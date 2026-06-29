@@ -222,7 +222,7 @@ class LocalFortuneService {
     final fortuneText = <String>[
       l10n.fortuneGeneratedLinkedDailyLine(
         name,
-        elementFlow,
+        _fortuneCauseClause(elementFlow),
         fortuneTheme,
       ),
       l10n.fortuneGeneratedLuckyInfoLine(luckyNumber, luckyColor),
@@ -495,6 +495,14 @@ class LocalFortuneService {
       ..._localizedValues(base),
       ..._localizedValues(extra),
     ];
+  }
+
+  static String _fortuneCauseClause(String value) {
+    return value
+        .trim()
+        .replaceFirst(RegExp(r'날이에요\.$'), '날')
+        .replaceFirst(RegExp(r'日です。$'), '日')
+        .replaceFirst(RegExp(r'\.$'), '');
   }
 
   static String _pickCombinedLocalized(String base, String extra, int seed) {

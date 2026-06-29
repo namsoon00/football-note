@@ -6400,7 +6400,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String fortuneGeneratedLinkedDailyLine(
       String name, String elementFlow, String fortuneTheme) {
-    return '$name, today is $elementFlow. $fortuneTheme';
+    return '$name, because today is $elementFlow, $fortuneTheme';
   }
 
   @override

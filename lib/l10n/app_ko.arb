@@ -3799,7 +3799,7 @@
       }
     }
   },
-  "fortuneGeneratedLinkedDailyLine": "{name}님, 오늘은 {elementFlow} {fortuneTheme}",
+  "fortuneGeneratedLinkedDailyLine": "{name}님, 오늘은 {elementFlow}이라서 {fortuneTheme}",
   "@fortuneGeneratedLinkedDailyLine": {
     "placeholders": {
       "name": {
