@@ -12,6 +12,9 @@ void main() {
   test(
     'fetchLatest overlays FIFA World Cup results onto local fixtures',
     () async {
+      final roundOf32Fixture = worldCupFixtures.singleWhere(
+        (fixture) => fixture.matchNumber == 79,
+      );
       final parsed = FifaWorldOverviewService.parseNationalMatches([
         _worldCupMatch(
           matchId: 'parse-check',
@@ -130,6 +133,17 @@ void main() {
                   awayCode: 'NZL',
                   homeScore: 2,
                   awayScore: 2,
+                  calendarShape: true,
+                ),
+                _worldCupMatch(
+                  matchId: 'official-round-of-32-calendar',
+                  matchNumber: roundOf32Fixture.matchNumber,
+                  period: 0,
+                  date: roundOf32Fixture.kickoffUtc.toIso8601String(),
+                  homeName: 'Mexico',
+                  homeCode: 'MEX',
+                  awayName: 'Ecuador',
+                  awayCode: 'ECU',
                   calendarShape: true,
                 ),
               ],
@@ -256,9 +270,21 @@ void main() {
         data.officialMatchesByFixtureNumber[iran.matchNumber]?.matchNumber,
         15,
       );
+      expect(
+        data.officialMatchesByFixtureNumber[roundOf32Fixture.matchNumber]
+            ?.homeTeamName,
+        'Mexico',
+      );
+      expect(
+        data.officialMatchesByFixtureNumber[roundOf32Fixture.matchNumber]
+            ?.awayTeamName,
+        'Ecuador',
+      );
       expect(data.rankingsByTeam['Korea Republic']?.rank, 21);
       expect(data.rankingsByTeam['Cape Verde']?.rank, 70);
       expect(requestedCompetitionMatches, isNotEmpty);
+      expect(requestedCompetitionMatches.single['from'], '2026-06-11');
+      expect(requestedCompetitionMatches.single['to'], '2026-07-20');
       expect(requestedRanges, isNotEmpty);
 
       service.dispose();

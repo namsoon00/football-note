@@ -50,15 +50,10 @@ class WorldCupLiveDataService {
       );
     }
 
-    final referenceNow = (now ?? DateTime.now()).toUtc();
     final firstKickoff = fixtures.first.kickoffUtc.toUtc();
     final lastKickoff = fixtures.last.kickoffUtc.toUtc();
     final start = firstKickoff.subtract(const Duration(hours: 12));
-    final end = _fetchEnd(
-      referenceNow: referenceNow,
-      firstKickoff: firstKickoff,
-      lastKickoff: lastKickoff,
-    );
+    final end = lastKickoff.add(const Duration(hours: 12));
     final officialMatchesFuture = _fetchWorldCupMatches(start: start, end: end);
     final rankingsFuture = _fifaService.fetchRankingOverview(
       gender: FifaRankingGender.men,
@@ -97,24 +92,6 @@ class WorldCupLiveDataService {
     String language = 'en',
   }) {
     return _fifaService.fetchMatchDetail(match: match, language: language);
-  }
-
-  DateTime _fetchEnd({
-    required DateTime referenceNow,
-    required DateTime firstKickoff,
-    required DateTime lastKickoff,
-  }) {
-    final tournamentEnd = lastKickoff.add(const Duration(hours: 12));
-    if (referenceNow.isBefore(firstKickoff)) {
-      return _minDateTime(
-        firstKickoff.add(const Duration(days: 7)),
-        tournamentEnd,
-      );
-    }
-    return _minDateTime(
-      referenceNow.add(const Duration(days: 1)),
-      tournamentEnd,
-    );
   }
 
   Future<List<FifaAMatchEntry>> _fetchWorldCupMatches({
