@@ -894,6 +894,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String worldCupScorePenaltyLine(int homePenaltyScore, int awayPenaltyScore) {
+    return 'PSO $homePenaltyScore : $awayPenaltyScore';
+  }
+
+  @override
   String get worldCupResultPendingTeam => 'Kickoff pending';
 
   @override
@@ -1606,6 +1611,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String worldCupBracketQualifiedSlotDetail(String slot) {
     return 'Qualified from $slot';
   }
+
+  @override
+  String get worldCupBracketWinnerCandidateDetail => 'Winner candidates';
+
+  @override
+  String get worldCupBracketLoserCandidateDetail => 'Loser candidates';
+
+  @override
+  String get worldCupBracketWinnerResolvedDetail => 'Winner confirmed';
+
+  @override
+  String get worldCupBracketLoserResolvedDetail => 'Loser confirmed';
 
   @override
   String worldCupBracketSourceMatch(int matchNumber, String home, String away) {

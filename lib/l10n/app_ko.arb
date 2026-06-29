@@ -432,6 +432,17 @@
       }
     }
   },
+  "worldCupScorePenaltyLine": "승부차기 {homePenaltyScore} : {awayPenaltyScore}",
+  "@worldCupScorePenaltyLine": {
+    "placeholders": {
+      "homePenaltyScore": {
+        "type": "int"
+      },
+      "awayPenaltyScore": {
+        "type": "int"
+      }
+    }
+  },
   "worldCupResultPendingTeam": "경기 전",
   "worldCupResultWin": "승",
   "worldCupResultDraw": "무",
@@ -967,6 +978,10 @@
       }
     }
   },
+  "worldCupBracketWinnerCandidateDetail": "승자 후보",
+  "worldCupBracketLoserCandidateDetail": "패자 후보",
+  "worldCupBracketWinnerResolvedDetail": "승자 확정",
+  "worldCupBracketLoserResolvedDetail": "패자 확정",
   "worldCupBracketSourceMatch": "M{matchNumber}: {home} 대 {away}",
   "@worldCupBracketSourceMatch": {
     "placeholders": {

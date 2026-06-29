@@ -239,6 +239,7 @@ void main() {
         home: WorldCupScreen(
           liveDataService: liveDataService,
           initialSelectedDay: worldCupFixtures.first.localDay,
+          currentTime: DateTime.utc(2026, 6, 20),
         ),
       ),
     );
@@ -302,6 +303,7 @@ void main() {
         home: WorldCupScreen(
           liveDataService: liveDataService,
           initialSelectedDay: worldCupFixtures.first.localDay,
+          currentTime: DateTime.utc(2026, 6, 25),
         ),
       ),
     );
@@ -319,6 +321,7 @@ void main() {
 
     expect(find.text('🇲🇽 멕시코'), findsWidgets);
     expect(find.text('🇩🇪 독일'), findsWidgets);
+    expect(find.text('승자 후보'), findsWidgets);
     expect(find.text('A조 1위 기준 진출'), findsNothing);
     expect(find.text('M79'), findsNothing);
   });
@@ -432,7 +435,7 @@ void main() {
     expect(find.text('3C/E/F/H/I'), findsNothing);
   });
 
-  testWidgets('team roster sheet shows expanded squad and formation data', (
+  testWidgets('team roster sheet shows expanded squad and club data', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -441,7 +444,10 @@ void main() {
         theme: AppTheme.light(),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: const WorldCupScreen(refreshOfficialDataOnOpen: false),
+        home: WorldCupScreen(
+          refreshOfficialDataOnOpen: false,
+          currentTime: DateTime.utc(2026, 6, 20),
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -484,21 +490,14 @@ void main() {
     expect(find.textContaining('32강 상대 후보(현재 순위): M'), findsNothing);
     expect(find.textContaining('→'), findsWidgets);
     await tester.scrollUntilVisible(
-      find.text('나의 베스트 11'),
+      find.text('골키퍼'),
       180,
       scrollable: find.byType(Scrollable).last,
     );
     await tester.pumpAndSettle();
-    expect(find.text('나의 베스트 11'), findsOneWidget);
-    expect(find.text('4-3-3 포메이션'), findsOneWidget);
-    expect(find.textContaining('공식 경기 라인업이 아니라'), findsOneWidget);
-    expect(find.text('포메이션'), findsOneWidget);
-    expect(find.text('11/11명 선택'), findsOneWidget);
-    expect(find.text('베스트 11 완성'), findsOneWidget);
-    await tester.tap(find.text('4-4-2').hitTestable().first);
-    await tester.pumpAndSettle();
-    expect(find.text('4-4-2 포메이션'), findsOneWidget);
-    expect(find.text('11/11명 선택'), findsOneWidget);
+    expect(find.text('나의 베스트 11'), findsNothing);
+    expect(find.text('포메이션'), findsNothing);
+    expect(find.byType(Checkbox), findsNothing);
     expect(find.text('라울 랑헬'), findsWidgets);
     await tester.scrollUntilVisible(
       find.text('Deportivo Guadalajara'),
@@ -515,22 +514,46 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('세사르 우에르타'), findsOneWidget);
     expect(find.text('RSC Anderlecht'), findsOneWidget);
-    final huertaToggle = find.byTooltip('세사르 우에르타 제외').first;
-    await tester.ensureVisible(huertaToggle);
-    await tester.pumpAndSettle();
-    await tester.tap(huertaToggle);
-    await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(
-      find.text('나의 베스트 11'),
-      -220,
-      scrollable: find.byType(Scrollable).last,
+  });
+
+  testWidgets('team roster hides round-of-32 scenarios after knockouts start', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        theme: AppTheme.light(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: WorldCupScreen(
+          refreshOfficialDataOnOpen: false,
+          currentTime: DateTime.utc(2026, 6, 28, 20),
+        ),
+      ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('10/11명 선택'), findsOneWidget);
-    expect(find.text('1명 더 선택'), findsOneWidget);
-    await tester.tap(find.text('자동 추천'));
+
+    final scrollable = find.byType(Scrollable).first;
+    await tester.scrollUntilVisible(
+      find.text('순위'),
+      180,
+      scrollable: scrollable,
+    );
     await tester.pumpAndSettle();
-    expect(find.text('11/11명 선택'), findsOneWidget);
+    await tester.tap(find.text('순위'));
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(
+      find.text('조별 순위표'),
+      180,
+      scrollable: scrollable,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.textContaining('멕시코').hitTestable().first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('멕시코 선수 명단'), findsOneWidget);
+    expect(find.text('32강 경우의 수'), findsNothing);
   });
 
   testWidgets('qualification scenarios adapt to one remaining team match', (
@@ -557,6 +580,7 @@ void main() {
         home: WorldCupScreen(
           liveDataService: liveDataService,
           initialSelectedDay: worldCupFixtures.first.localDay,
+          currentTime: DateTime.utc(2026, 6, 20),
         ),
       ),
     );
@@ -630,6 +654,7 @@ void main() {
         home: WorldCupScreen(
           liveDataService: liveDataService,
           initialSelectedDay: worldCupFixtures.first.localDay,
+          currentTime: DateTime.utc(2026, 6, 25),
         ),
       ),
     );
@@ -906,6 +931,66 @@ void main() {
     await tester.pump();
 
     expect(navigatorObserver.pushedRouteCount, 1);
+  });
+
+  testWidgets('finished penalty shootout fixture shows shootout score', (
+    tester,
+  ) async {
+    final fixture = worldCupFixtures.singleWhere(
+      (fixture) => fixture.matchNumber == 79,
+    );
+    final officialMatch = FifaAMatchEntry(
+      matchId: 'penalty-match',
+      matchNumber: fixture.matchNumber,
+      gender: FifaRankingGender.men,
+      competition: 'FIFA World Cup',
+      stage: 'Round of 32',
+      venue: fixture.venue,
+      city: 'Mexico City',
+      kickoffAt: fixture.kickoffUtc,
+      homeTeamName: 'Mexico',
+      homeCountryCode: 'MEX',
+      awayTeamName: 'Germany',
+      awayCountryCode: 'GER',
+      homeScore: 1,
+      awayScore: 1,
+      homePenaltyScore: 4,
+      awayPenaltyScore: 3,
+      status: FifaAMatchStatus.finished,
+    );
+    final liveDataService = _FakeWorldCupLiveDataService(
+      data: WorldCupLiveData(
+        fixtures: worldCupFixtures,
+        officialMatchesByFixtureNumber: {fixture.matchNumber: officialMatch},
+        refreshedAt: DateTime.utc(2026, 7, 1, 4),
+      ),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        theme: AppTheme.light(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: WorldCupScreen(
+          liveDataService: liveDataService,
+          initialSelectedDay: fixture.localDay,
+          currentTime: fixture.kickoffUtc.add(const Duration(hours: 3)),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final scrollable = find.byType(Scrollable).first;
+    await tester.scrollUntilVisible(
+      find.text('승부차기 4 : 3'),
+      180,
+      scrollable: scrollable,
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('1 : 1', findRichText: true), findsOneWidget);
+    expect(find.text('승부차기 4 : 3'), findsOneWidget);
   });
 
   testWidgets('finished draw fixture highlights tied score', (tester) async {

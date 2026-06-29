@@ -18,6 +18,8 @@ class WorldCupFixture {
   final String venue;
   final int? homeScore;
   final int? awayScore;
+  final int? homePenaltyScore;
+  final int? awayPenaltyScore;
 
   const WorldCupFixture({
     required this.matchNumber,
@@ -29,6 +31,8 @@ class WorldCupFixture {
     required this.venue,
     this.homeScore,
     this.awayScore,
+    this.homePenaltyScore,
+    this.awayPenaltyScore,
   });
 
   DateTime get kickoffUtc => DateTime.parse(kickoffUtcIso);
@@ -44,9 +48,14 @@ class WorldCupFixture {
 
   bool get hasScore => homeScore != null && awayScore != null;
 
+  bool get hasPenaltyScore =>
+      homePenaltyScore != null && awayPenaltyScore != null;
+
   WorldCupFixture copyWithScore({
     required int? homeScore,
     required int? awayScore,
+    int? homePenaltyScore,
+    int? awayPenaltyScore,
   }) {
     return WorldCupFixture(
       matchNumber: matchNumber,
@@ -58,6 +67,8 @@ class WorldCupFixture {
       venue: venue,
       homeScore: homeScore,
       awayScore: awayScore,
+      homePenaltyScore: homePenaltyScore,
+      awayPenaltyScore: awayPenaltyScore,
     );
   }
 
@@ -77,6 +88,17 @@ class WorldCupFixture {
     final opponentScore = isHome ? awayScore! : homeScore!;
     if (teamScore > opponentScore) return WorldCupFixtureTeamResult.win;
     if (teamScore < opponentScore) return WorldCupFixtureTeamResult.loss;
+    if (hasPenaltyScore) {
+      final teamPenaltyScore = isHome ? homePenaltyScore! : awayPenaltyScore!;
+      final opponentPenaltyScore =
+          isHome ? awayPenaltyScore! : homePenaltyScore!;
+      if (teamPenaltyScore > opponentPenaltyScore) {
+        return WorldCupFixtureTeamResult.win;
+      }
+      if (teamPenaltyScore < opponentPenaltyScore) {
+        return WorldCupFixtureTeamResult.loss;
+      }
+    }
     return WorldCupFixtureTeamResult.draw;
   }
 }

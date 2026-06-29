@@ -859,6 +859,11 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String worldCupScorePenaltyLine(int homePenaltyScore, int awayPenaltyScore) {
+    return '승부차기 $homePenaltyScore : $awayPenaltyScore';
+  }
+
+  @override
   String get worldCupResultPendingTeam => '경기 전';
 
   @override
@@ -1556,6 +1561,18 @@ class AppLocalizationsKo extends AppLocalizations {
   String worldCupBracketQualifiedSlotDetail(String slot) {
     return '$slot 기준 진출';
   }
+
+  @override
+  String get worldCupBracketWinnerCandidateDetail => '승자 후보';
+
+  @override
+  String get worldCupBracketLoserCandidateDetail => '패자 후보';
+
+  @override
+  String get worldCupBracketWinnerResolvedDetail => '승자 확정';
+
+  @override
+  String get worldCupBracketLoserResolvedDetail => '패자 확정';
 
   @override
   String worldCupBracketSourceMatch(int matchNumber, String home, String away) {
