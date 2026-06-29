@@ -937,6 +937,34 @@ class FifaWorldOverviewService {
       raw['AwayTeamScore'],
       raw['ScoreAway'],
     ]);
+    final homePenaltyScore = _firstInt([
+      home['PenaltyScore'],
+      home['PenaltyShootoutScore'],
+      home['ShootoutScore'],
+      home['TeamPenaltyScore'],
+      home['ScorePenalty'],
+      home['PenaltyGoals'],
+      raw['HomePenaltyScore'],
+      raw['HomeTeamPenaltyScore'],
+      raw['HomePenaltyShootoutScore'],
+      raw['HomeShootoutScore'],
+      raw['PenaltyScoreHome'],
+      raw['ScoreHomePenalty'],
+    ]);
+    final awayPenaltyScore = _firstInt([
+      away['PenaltyScore'],
+      away['PenaltyShootoutScore'],
+      away['ShootoutScore'],
+      away['TeamPenaltyScore'],
+      away['ScorePenalty'],
+      away['PenaltyGoals'],
+      raw['AwayPenaltyScore'],
+      raw['AwayTeamPenaltyScore'],
+      raw['AwayPenaltyShootoutScore'],
+      raw['AwayShootoutScore'],
+      raw['PenaltyScoreAway'],
+      raw['ScoreAwayPenalty'],
+    ]);
     final period = _asInt(raw['Period']) ?? 0;
     final statusCode = _firstInt([
       raw['MatchStatus'],
@@ -967,6 +995,8 @@ class FifaWorldOverviewService {
       awayCountryCode: awayCountryCode,
       homeScore: homeScore,
       awayScore: awayScore,
+      homePenaltyScore: homePenaltyScore,
+      awayPenaltyScore: awayPenaltyScore,
       status: _parseMatchStatus(
         period: period,
         statusCode: statusCode,

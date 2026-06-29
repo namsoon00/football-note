@@ -232,6 +232,8 @@ class WorldCupLiveDataService {
       return fixture.copyWithScore(
         homeScore: officialMatch.homeScore,
         awayScore: officialMatch.awayScore,
+        homePenaltyScore: officialMatch.homePenaltyScore,
+        awayPenaltyScore: officialMatch.awayPenaltyScore,
       );
     }
     final reverseDirection =
@@ -241,6 +243,8 @@ class WorldCupLiveDataService {
     return fixture.copyWithScore(
       homeScore: officialMatch.awayScore,
       awayScore: officialMatch.homeScore,
+      homePenaltyScore: officialMatch.awayPenaltyScore,
+      awayPenaltyScore: officialMatch.homePenaltyScore,
     );
   }
 

@@ -432,6 +432,17 @@
       }
     }
   },
+  "worldCupScorePenaltyLine": "PK戦 {homePenaltyScore} : {awayPenaltyScore}",
+  "@worldCupScorePenaltyLine": {
+    "placeholders": {
+      "homePenaltyScore": {
+        "type": "int"
+      },
+      "awayPenaltyScore": {
+        "type": "int"
+      }
+    }
+  },
   "worldCupResultPendingTeam": "試合前",
   "worldCupResultWin": "勝",
   "worldCupResultDraw": "分",
@@ -967,6 +978,10 @@
       }
     }
   },
+  "worldCupBracketWinnerCandidateDetail": "勝者候補",
+  "worldCupBracketLoserCandidateDetail": "敗者候補",
+  "worldCupBracketWinnerResolvedDetail": "勝者確定",
+  "worldCupBracketLoserResolvedDetail": "敗者確定",
   "worldCupBracketSourceMatch": "M{matchNumber}: {home} 対 {away}",
   "@worldCupBracketSourceMatch": {
     "placeholders": {

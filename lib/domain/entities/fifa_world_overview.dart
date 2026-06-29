@@ -152,6 +152,8 @@ class FifaAMatchEntry {
   final String awayCountryCode;
   final int? homeScore;
   final int? awayScore;
+  final int? homePenaltyScore;
+  final int? awayPenaltyScore;
   final FifaAMatchStatus status;
 
   const FifaAMatchEntry({
@@ -169,10 +171,15 @@ class FifaAMatchEntry {
     required this.awayCountryCode,
     required this.homeScore,
     required this.awayScore,
+    this.homePenaltyScore,
+    this.awayPenaltyScore,
     required this.status,
   });
 
   bool get hasScore => homeScore != null && awayScore != null;
+
+  bool get hasPenaltyScore =>
+      homePenaltyScore != null && awayPenaltyScore != null;
 }
 
 class FifaAMatchDetail {

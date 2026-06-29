@@ -1650,6 +1650,12 @@ abstract class AppLocalizations {
   /// **'{homeScore} : {awayScore}'**
   String worldCupScoreLine(int homeScore, int awayScore);
 
+  /// No description provided for @worldCupScorePenaltyLine.
+  ///
+  /// In en, this message translates to:
+  /// **'PSO {homePenaltyScore} : {awayPenaltyScore}'**
+  String worldCupScorePenaltyLine(int homePenaltyScore, int awayPenaltyScore);
+
   /// No description provided for @worldCupResultPendingTeam.
   ///
   /// In en, this message translates to:
@@ -2850,6 +2856,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Qualified from {slot}'**
   String worldCupBracketQualifiedSlotDetail(String slot);
+
+  /// No description provided for @worldCupBracketWinnerCandidateDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Winner candidates'**
+  String get worldCupBracketWinnerCandidateDetail;
+
+  /// No description provided for @worldCupBracketLoserCandidateDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Loser candidates'**
+  String get worldCupBracketLoserCandidateDetail;
+
+  /// No description provided for @worldCupBracketWinnerResolvedDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Winner confirmed'**
+  String get worldCupBracketWinnerResolvedDetail;
+
+  /// No description provided for @worldCupBracketLoserResolvedDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Loser confirmed'**
+  String get worldCupBracketLoserResolvedDetail;
 
   /// No description provided for @worldCupBracketSourceMatch.
   ///

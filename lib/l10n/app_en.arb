@@ -432,6 +432,17 @@
       }
     }
   },
+  "worldCupScorePenaltyLine": "PSO {homePenaltyScore} : {awayPenaltyScore}",
+  "@worldCupScorePenaltyLine": {
+    "placeholders": {
+      "homePenaltyScore": {
+        "type": "int"
+      },
+      "awayPenaltyScore": {
+        "type": "int"
+      }
+    }
+  },
   "worldCupResultPendingTeam": "Kickoff pending",
   "worldCupResultWin": "W",
   "worldCupResultDraw": "D",
@@ -967,6 +978,10 @@
       }
     }
   },
+  "worldCupBracketWinnerCandidateDetail": "Winner candidates",
+  "worldCupBracketLoserCandidateDetail": "Loser candidates",
+  "worldCupBracketWinnerResolvedDetail": "Winner confirmed",
+  "worldCupBracketLoserResolvedDetail": "Loser confirmed",
   "worldCupBracketSourceMatch": "M{matchNumber}: {home} v {away}",
   "@worldCupBracketSourceMatch": {
     "placeholders": {

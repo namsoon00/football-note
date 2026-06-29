@@ -324,7 +324,9 @@ void main() {
                   awayName: 'Germany',
                   awayCode: 'GER',
                   homeScore: 2,
-                  awayScore: 1,
+                  awayScore: 2,
+                  homePenaltyScore: 4,
+                  awayPenaltyScore: 3,
                   calendarShape: true,
                 ),
               ],
@@ -348,7 +350,9 @@ void main() {
       expect(officialMatch?.homeTeamName, 'Mexico');
       expect(officialMatch?.awayTeamName, 'Germany');
       expect(data.fixtures.single.homeScore, 2);
-      expect(data.fixtures.single.awayScore, 1);
+      expect(data.fixtures.single.awayScore, 2);
+      expect(data.fixtures.single.homePenaltyScore, 4);
+      expect(data.fixtures.single.awayPenaltyScore, 3);
 
       service.dispose();
     },
@@ -387,10 +391,22 @@ Map<String, dynamic> _worldCupMatch({
   required String awayCode,
   int? homeScore,
   int? awayScore,
+  int? homePenaltyScore,
+  int? awayPenaltyScore,
   bool calendarShape = false,
 }) {
-  final home = _team(name: homeName, countryCode: homeCode, score: homeScore);
-  final away = _team(name: awayName, countryCode: awayCode, score: awayScore);
+  final home = _team(
+    name: homeName,
+    countryCode: homeCode,
+    score: homeScore,
+    penaltyScore: homePenaltyScore,
+  );
+  final away = _team(
+    name: awayName,
+    countryCode: awayCode,
+    score: awayScore,
+    penaltyScore: awayPenaltyScore,
+  );
   return {
     'IdMatch': matchId,
     'MatchNumber': matchNumber,
@@ -419,6 +435,7 @@ Map<String, dynamic> _team({
   required String name,
   required String countryCode,
   required int? score,
+  int? penaltyScore,
 }) {
   return {
     'Gender': 1,
@@ -427,6 +444,7 @@ Map<String, dynamic> _team({
     'FootballType': 0,
     'IdCountry': countryCode,
     'Score': score,
+    if (penaltyScore != null) 'PenaltyScore': penaltyScore,
     'TeamName': [
       {'Locale': 'en-GB', 'Description': name},
     ],
