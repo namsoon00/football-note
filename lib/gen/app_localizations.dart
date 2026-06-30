@@ -18659,6 +18659,18 @@ abstract class AppLocalizations {
   /// **'Play'**
   String get trainingSketchPlayTooltip;
 
+  /// No description provided for @trainingSketchLandscapeModeTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Landscape mode'**
+  String get trainingSketchLandscapeModeTooltip;
+
+  /// No description provided for @trainingSketchPortraitModeTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Portrait mode'**
+  String get trainingSketchPortraitModeTooltip;
+
   /// No description provided for @trainingSketchPlaybackSpeedTooltip.
   ///
   /// In en, this message translates to:

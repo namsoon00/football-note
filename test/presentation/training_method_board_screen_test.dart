@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/player_level_service.dart';
@@ -1331,6 +1332,156 @@ void main() {
     expect((shotStart - playerEnd).distance, closeTo(0.07, 0.02));
     expect(shotRoute.points.last.x, closeTo(0.84, 0.02));
     expect(shotRoute.points.last.y, closeTo(0.34, 0.02));
+  });
+
+  testWidgets('same player can build pass dribble shot as three stages', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    String? savedLayout;
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '3단계 공격',
+          initialLayoutJson: const TrainingMethodLayout(
+            pages: <TrainingMethodPage>[
+              TrainingMethodPage(
+                name: 'Board',
+                items: <TrainingMethodItem>[
+                  TrainingMethodItem(
+                    id: 'player-1',
+                    type: 'player',
+                    x: 0.22,
+                    y: 0.52,
+                  ),
+                  TrainingMethodItem(
+                    id: 'ball-1',
+                    type: 'ball',
+                    x: 0.29,
+                    y: 0.52,
+                    colorValue: 0xFFFFCA28,
+                  ),
+                ],
+              ),
+            ],
+          ).encode(),
+          onSaved: (value) => savedLayout = value,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    await tester.tap(
+      find.descendant(of: boardFinder, matching: find.byIcon(Icons.person)),
+    );
+    await tester.pumpAndSettle();
+    await _tapVisibleOutlinedButton(tester, '패스');
+    await _tapBoardRelative(tester, boardFinder, const Offset(0.44, 0.50));
+    await _tapVisibleOutlinedButton(tester, '드리블');
+    await _tapBoardRelative(tester, boardFinder, const Offset(0.62, 0.42));
+    await _tapVisibleOutlinedButton(tester, '슈팅');
+    await _tapBoardRelative(tester, boardFinder, const Offset(0.84, 0.34));
+
+    await tester.tap(find.widgetWithText(TextButton, '저장'));
+    await tester.pumpAndSettle();
+
+    final saved = TrainingMethodLayout.decode(savedLayout ?? '');
+    final page = saved.pages.single;
+    final ballStages = page.routes
+        .where((route) => route.kind == TrainingMethodRouteKind.ball)
+        .map((route) => route.stageIndex)
+        .toList(growable: false)
+      ..sort();
+    final playerRoute = page.routes.singleWhere(
+      (route) => route.kind == TrainingMethodRouteKind.player,
+    );
+
+    expect(page.items.where((item) => item.type == 'ball'), hasLength(3));
+    expect(ballStages, [1, 2, 3]);
+    expect(playerRoute.stageIndex, 2);
+    expect(playerRoute.points.last.x, closeTo(0.62, 0.02));
+    expect(playerRoute.points.last.y, closeTo(0.42, 0.02));
+  });
+
+  testWidgets('two players can exchange passes as smart stages', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    String? savedLayout;
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '패스 왕복',
+          initialLayoutJson: const TrainingMethodLayout(
+            pages: <TrainingMethodPage>[
+              TrainingMethodPage(
+                name: 'Board',
+                items: <TrainingMethodItem>[
+                  TrainingMethodItem(
+                    id: 'player-1',
+                    type: 'player',
+                    x: 0.24,
+                    y: 0.52,
+                  ),
+                  TrainingMethodItem(
+                    id: 'player-2',
+                    type: 'player',
+                    x: 0.66,
+                    y: 0.42,
+                    colorValue: 0xFF1E88E5,
+                  ),
+                  TrainingMethodItem(
+                    id: 'ball-1',
+                    type: 'ball',
+                    x: 0.31,
+                    y: 0.52,
+                    colorValue: 0xFFFFCA28,
+                  ),
+                ],
+              ),
+            ],
+          ).encode(),
+          onSaved: (value) => savedLayout = value,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    await tester.tap(
+      find
+          .descendant(of: boardFinder, matching: find.byIcon(Icons.person))
+          .first,
+    );
+    await tester.pumpAndSettle();
+    await _tapVisibleOutlinedButton(tester, '패스');
+    await _tapBoardRelativeThroughWidgets(
+      tester,
+      boardFinder,
+      const Offset(0.66, 0.42),
+    );
+    await _tapVisibleOutlinedButton(tester, '패스');
+    await _tapBoardRelativeThroughWidgets(
+      tester,
+      boardFinder,
+      const Offset(0.24, 0.52),
+    );
+
+    await tester.tap(find.widgetWithText(TextButton, '저장'));
+    await tester.pumpAndSettle();
+
+    final saved = TrainingMethodLayout.decode(savedLayout ?? '');
+    final ballRoutes = saved.pages.single.routes
+        .where((route) => route.kind == TrainingMethodRouteKind.ball)
+        .toList(growable: false);
+
+    expect(ballRoutes, hasLength(2));
+    expect(ballRoutes.map((route) => route.stageIndex), [1, 2]);
+    expect(ballRoutes.last.points.last.x, closeTo(0.24, 0.02));
+    expect(ballRoutes.last.points.last.y, closeTo(0.52, 0.02));
   });
 
   testWidgets(
@@ -3023,6 +3174,48 @@ void main() {
       find.byKey(const ValueKey('training-board-canvas')),
     );
     expect(memoRect.left, greaterThan(boardRectWithMemo.right));
+  });
+
+  testWidgets('orientation button requests landscape mode', (
+    WidgetTester tester,
+  ) async {
+    _setPortraitSurface(tester);
+    final platformCalls = <MethodCall>[];
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) async {
+        platformCalls.add(call);
+        return null;
+      },
+    );
+    addTearDown(() {
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        null,
+      );
+    });
+
+    await tester.pumpWidget(
+      _buildApp(
+        const TrainingMethodBoardScreen(
+          boardTitle: '가로 모드',
+          initialLayoutJson: '',
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(
+      find.byKey(const ValueKey('training-sketch-orientation-button')),
+    );
+    await tester.pumpAndSettle();
+
+    final orientationCall = platformCalls.lastWhere(
+      (call) => call.method == 'SystemChrome.setPreferredOrientations',
+    );
+    final arguments = '${orientationCall.arguments}';
+    expect(arguments, contains('landscapeLeft'));
+    expect(arguments, contains('landscapeRight'));
   });
 
   testWidgets('tactical overlay can be toggled from the sketch menu', (

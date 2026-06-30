@@ -999,6 +999,14 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     return ball;
   }
 
+  _BoardItem? _ballForNextPlayerAction(_BoardItem player, {Offset? target}) {
+    if (_stageAfterSelectedRoute() == null) {
+      return _ballForTargetAction(player, target: target);
+    }
+    final ballPoint = _ballCarryPointForPlayer(player, toward: target);
+    return _ensureUnroutedBallAtPoint(ballPoint);
+  }
+
   int _suggestedStageForNewRoute(_PathDrawMode kind) {
     if (kind != _PathDrawMode.player) return 1;
     final selectedRoute = _selectedRoute;
@@ -2486,6 +2494,12 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         .any((route) => _normalizedRouteStageIndex(route.stageIndex) > 1);
   }
 
+  int? _stageAfterSelectedRoute() {
+    final route = _selectedRoute;
+    if (route == null || route.points.length < 2) return null;
+    return _normalizedRouteStageIndex(route.stageIndex + 1);
+  }
+
   String _routeStageLabel(int stageIndex) {
     return _l10n.trainingSketchRouteStageChip(
       _normalizedRouteStageIndex(stageIndex),
@@ -2641,6 +2655,17 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     _scheduleAutoSave();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(_l10n.trainingSketchAutoStagesSnack)),
+    );
+  }
+
+  Future<void> _setSketchOrientationLock({required bool landscape}) async {
+    await SystemChrome.setPreferredOrientations(
+      landscape
+          ? const <DeviceOrientation>[
+              DeviceOrientation.landscapeLeft,
+              DeviceOrientation.landscapeRight,
+            ]
+          : DeviceOrientation.values,
     );
   }
 
@@ -2955,12 +2980,16 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             toward: target,
           );
     final ball = chainedBallStart == null
-        ? _ballForTargetAction(selected, target: target)
+        ? _ballForNextPlayerAction(player, target: target)
         : _ensureUnroutedBallAtPoint(chainedBallStart);
     if (ball == null) return false;
     final nextSelectedItem = selectedItemOverride ??
         (targetItem?.type == _BoardItemType.player ? targetItem : null) ??
         selected;
+    final nextStage = stageIndex ??
+        (chainedPlayerRoute == null
+            ? _stageAfterSelectedRoute()
+            : _normalizedRouteStageIndex(chainedPlayerRoute.stageIndex + 1));
     return _applyQuickBallToPointTemplate(
       ball: ball,
       end: target,
@@ -2970,10 +2999,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
               : <Offset>[chainedBallStart, target]),
       segmentDurationsMs: segmentDurationsMs ?? <int>[durationMs],
       selectedItemOverride: nextSelectedItem,
-      stageIndex: stageIndex ??
-          (chainedPlayerRoute == null
-              ? null
-              : _normalizedRouteStageIndex(chainedPlayerRoute.stageIndex + 1)),
+      stageIndex: nextStage,
     );
   }
 
@@ -2992,7 +3018,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         ? null
         : _ballCarryPointFromOrigin(start, toward: passEnd);
     final ball = ballStart == null
-        ? _ballForTargetAction(selected, target: target)
+        ? _ballForNextPlayerAction(player, target: target)
         : _ensureUnroutedBallAtPoint(ballStart);
     if (ball == null) return false;
     final supportY = start.dy < 0.5 ? 0.08 : -0.08;
@@ -3007,7 +3033,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         points: <Offset>[ballStart ?? _itemPosition(ball), passEnd],
         segmentDurationsMs: const <int>[680],
         stageIndex: existingRoute == null
-            ? 1
+            ? (_stageAfterSelectedRoute() ?? 1)
             : _normalizedRouteStageIndex(existingRoute.stageIndex + 1),
       );
       final moveRoute = _upsertRouteForItem(
@@ -3087,10 +3113,14 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     final basePoints = _playerActionBasePoints(player, existingRoute);
     final playerStart = basePoints.last;
     final ballStart = existingRoute == null
-        ? null
+        ? (_stageAfterSelectedRoute() == null
+            ? null
+            : _ballCarryPointForPlayer(player, toward: target))
         : _ballCarryPointFromOrigin(playerStart, toward: target);
     final ball = existingRoute == null
-        ? _ballForTargetAction(player, target: target)
+        ? (ballStart == null
+            ? _ballForTargetAction(player, target: target)
+            : _ensureUnroutedBallAtPoint(ballStart))
         : _ensureUnroutedBallAtPoint(ballStart!);
     if (ball == null) return false;
     final resolvedBallStart = ballStart ?? _itemPosition(ball);
@@ -3105,6 +3135,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       yOffset: curveYOffset,
     );
     final stageIndex = existingRoute?.stageIndex ??
+        _stageAfterSelectedRoute() ??
         _pairedCarryStageFor(player: player, ball: ball);
     _stopRoutePlayback(restoreStart: false);
     setState(() {
@@ -3150,7 +3181,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   bool _applyCrossTargetAction(_BoardItem selected, Offset target) {
-    final ball = _ballForTargetAction(selected, target: target);
+    final player = _playerForTargetAction(selected);
+    if (player == null) return false;
+    final ball = _ballForNextPlayerAction(player, target: target);
     if (ball == null) return false;
     final start = _itemPosition(ball);
     final middle = _midTargetPoint(start, target, yOffset: -0.04);
@@ -3161,6 +3194,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       segmentDurationsMs: const <int>[520, 680],
       selectedItemOverride:
           selected.type == _BoardItemType.player ? selected : null,
+      stageIndex: _stageAfterSelectedRoute(),
     );
   }
 
@@ -3357,7 +3391,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   bool _applyServeTargetAction(_BoardItem selected, Offset target) {
-    final ball = _ballForTargetAction(selected, target: target);
+    final player = _playerForTargetAction(selected);
+    if (player == null) return false;
+    final ball = _ballForNextPlayerAction(player, target: target);
     if (ball == null) return false;
     final start = _itemPosition(ball);
     final middle = _clampedBoardPoint(
@@ -3371,11 +3407,14 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       segmentDurationsMs: const <int>[360, 620],
       selectedItemOverride:
           selected.type == _BoardItemType.player ? selected : null,
+      stageIndex: _stageAfterSelectedRoute(),
     );
   }
 
   bool _applyRallyTargetAction(_BoardItem selected, Offset target) {
-    final ball = _ballForTargetAction(selected, target: target);
+    final player = _playerForTargetAction(selected);
+    if (player == null) return false;
+    final ball = _ballForNextPlayerAction(player, target: target);
     if (ball == null) return false;
     final start = _itemPosition(ball);
     final middle = _clampedBoardPoint(
@@ -3389,6 +3428,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       segmentDurationsMs: const <int>[460, 560],
       selectedItemOverride:
           selected.type == _BoardItemType.player ? selected : null,
+      stageIndex: _stageAfterSelectedRoute(),
     );
   }
 
@@ -4372,6 +4412,18 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             : Icons.play_circle_outline,
         selected: _playController.isAnimating,
         tooltip: _l10n.trainingSketchPlayTooltip,
+      ),
+      AppBarActionButton.icon(
+        key: const ValueKey('training-sketch-orientation-button'),
+        onPressed: () {
+          unawaited(_setSketchOrientationLock(landscape: !isLandscape));
+        },
+        icon: isLandscape
+            ? Icons.stay_current_portrait_outlined
+            : Icons.stay_current_landscape_outlined,
+        tooltip: isLandscape
+            ? _l10n.trainingSketchPortraitModeTooltip
+            : _l10n.trainingSketchLandscapeModeTooltip,
       ),
       _buildTopBarMenuButton(isKo, isLandscape: isLandscape),
     ];

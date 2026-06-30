@@ -10607,6 +10607,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get trainingSketchPlayTooltip => '플레이';
 
   @override
+  String get trainingSketchLandscapeModeTooltip => '가로 모드';
+
+  @override
+  String get trainingSketchPortraitModeTooltip => '세로 모드';
+
+  @override
   String get trainingSketchPlaybackSpeedTooltip => '재생 속도';
 
   @override

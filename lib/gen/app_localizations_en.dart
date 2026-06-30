@@ -10898,6 +10898,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trainingSketchPlayTooltip => 'Play';
 
   @override
+  String get trainingSketchLandscapeModeTooltip => 'Landscape mode';
+
+  @override
+  String get trainingSketchPortraitModeTooltip => 'Portrait mode';
+
+  @override
   String get trainingSketchPlaybackSpeedTooltip => 'Playback speed';
 
   @override
