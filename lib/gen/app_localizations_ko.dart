@@ -1245,6 +1245,24 @@ class AppLocalizationsKo extends AppLocalizations {
   String get worldCupTeamMatchHistoryTitle => '상대별 결과';
 
   @override
+  String get worldCupKnockoutPathTitle => '결승까지의 상대';
+
+  @override
+  String get worldCupKnockoutPathSubtitle =>
+      '이 팀이 각 라운드를 통과한다고 가정하고 결승까지 만날 수 있는 상대 후보를 보여줘요.';
+
+  @override
+  String worldCupKnockoutPathCandidateCount(int count) {
+    return '$count팀 후보';
+  }
+
+  @override
+  String get worldCupKnockoutPathOpponentPending => '상대 확정 전';
+
+  @override
+  String get worldCupKnockoutPathEliminated => '이 라운드에서 탈락';
+
+  @override
   String get worldCupQualificationScenariosTitle => '32강 경우의 수';
 
   @override

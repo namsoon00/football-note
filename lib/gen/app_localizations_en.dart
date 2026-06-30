@@ -1292,6 +1292,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get worldCupTeamMatchHistoryTitle => 'Match results';
 
   @override
+  String get worldCupKnockoutPathTitle => 'Opponents to the final';
+
+  @override
+  String get worldCupKnockoutPathSubtitle =>
+      'Assuming this team advances through each round, these are the possible opponents on the path to the final.';
+
+  @override
+  String worldCupKnockoutPathCandidateCount(int count) {
+    return '$count candidates';
+  }
+
+  @override
+  String get worldCupKnockoutPathOpponentPending => 'Opponent to be confirmed';
+
+  @override
+  String get worldCupKnockoutPathEliminated => 'Eliminated here';
+
+  @override
   String get worldCupQualificationScenariosTitle => 'Round of 32 scenarios';
 
   @override
