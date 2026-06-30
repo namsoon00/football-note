@@ -379,7 +379,7 @@ void main() {
     expect(route.points.last.y, closeTo(0.38, 0.02));
   });
 
-  testWidgets('new ball creates a ball route by action and target tap', (
+  testWidgets('same player actions append to one connected route', (
     WidgetTester tester,
   ) async {
     _setLandscapeSurface(tester);
@@ -388,9 +388,63 @@ void main() {
     await tester.pumpWidget(
       _buildApp(
         TrainingMethodBoardScreen(
+          boardTitle: '연속 이동',
+          initialLayoutJson: const TrainingMethodLayout(
+            pages: <TrainingMethodPage>[
+              TrainingMethodPage(
+                name: 'Board',
+                items: <TrainingMethodItem>[
+                  TrainingMethodItem(
+                    id: 'player-1',
+                    type: 'player',
+                    x: 0.24,
+                    y: 0.52,
+                  ),
+                ],
+              ),
+            ],
+          ).encode(),
+          onSaved: (value) => savedLayout = value,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    await tester.tap(
+      find.descendant(of: boardFinder, matching: find.byIcon(Icons.person)),
+    );
+    await tester.pumpAndSettle();
+    await _tapVisibleOutlinedButton(tester, '이동');
+    await _tapBoardRelative(tester, boardFinder, const Offset(0.48, 0.44));
+    await _tapVisibleOutlinedButton(tester, '이동');
+    await _tapBoardRelative(tester, boardFinder, const Offset(0.72, 0.38));
+
+    await tester.tap(find.widgetWithText(TextButton, '저장'));
+    await tester.pumpAndSettle();
+
+    final saved = TrainingMethodLayout.decode(savedLayout ?? '');
+    final route = saved.pages.single.routes.single;
+
+    expect(route.kind, TrainingMethodRouteKind.player);
+    expect(route.linkedItemId, 'player-1');
+    expect(route.points, hasLength(3));
+    expect(route.points[1].x, closeTo(0.48, 0.02));
+    expect(route.points[1].y, closeTo(0.44, 0.02));
+    expect(route.points.last.x, closeTo(0.72, 0.02));
+    expect(route.points.last.y, closeTo(0.38, 0.02));
+  });
+
+  testWidgets('selected ball does not expose sketch actions', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+
+    await tester.pumpWidget(
+      _buildApp(
+        const TrainingMethodBoardScreen(
           boardTitle: '즉시 공 이동선',
           initialLayoutJson: '',
-          onSaved: (value) => savedLayout = value,
         ),
       ),
     );
@@ -400,27 +454,17 @@ void main() {
     await tester.pumpAndSettle();
 
     final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
-    await _tapVisibleOutlinedButton(tester, '패스');
-    expect(find.text('패스 대상이나 공간을 누르세요.'), findsOneWidget);
-    await _tapBoardRelative(tester, boardFinder, const Offset(0.70, 0.42));
-    await tester.tap(find.widgetWithText(TextButton, '저장'));
     await tester.pumpAndSettle();
 
-    final saved = TrainingMethodLayout.decode(savedLayout ?? '');
-    final page = saved.pages.single;
-    final item = page.items.singleWhere((entry) => entry.type == 'ball');
-    final player = page.items.singleWhere((entry) => entry.type == 'player');
-    final route = saved.pages.single.routes.single;
-    expect((player.x - item.x).abs(), lessThan(0.08));
-    expect((player.y - item.y).abs(), lessThan(0.06));
-    expect(_isItemAheadOf(item, player, const Offset(0.70, 0.42)), isTrue);
-    expect(item.type, 'ball');
-    expect(route.kind, TrainingMethodRouteKind.ball);
-    expect(route.linkedItemId, item.id);
-    expect(route.points.first.x, closeTo(item.x, 0.001));
-    expect(route.points.first.y, closeTo(item.y, 0.001));
-    expect(route.points.last.x, closeTo(0.70, 0.02));
-    expect(route.points.last.y, closeTo(0.42, 0.02));
+    expect(
+      find.descendant(
+          of: boardFinder, matching: find.byIcon(Icons.sports_soccer)),
+      findsOneWidget,
+    );
+    expect(find.widgetWithText(OutlinedButton, '패스'), findsNothing);
+    expect(find.widgetWithText(OutlinedButton, '드리블'), findsNothing);
+    expect(find.widgetWithText(OutlinedButton, '슈팅'), findsNothing);
+    expect(find.widgetWithText(OutlinedButton, '패스 만들기'), findsNothing);
   });
 
   testWidgets('player pass action creates a controlled ball when needed', (
@@ -692,13 +736,13 @@ void main() {
       dribbleRoute.points.first.y,
     );
     final movePoint = Offset(
-      playerRoute.points[1].x,
-      playerRoute.points[1].y,
+      playerRoute.points[playerRoute.points.length - 3].x,
+      playerRoute.points[playerRoute.points.length - 3].y,
     );
 
     expect(ballRoutes, hasLength(2));
     expect(playerRoute.stageIndex, 2);
-    expect(playerRoute.points.length, greaterThan(3));
+    expect(playerRoute.points.length, greaterThanOrEqualTo(3));
     expect(movePoint.dx, closeTo(0.64, 0.02));
     expect(movePoint.dy, closeTo(0.38, 0.02));
     expect(dribbleRoute.stageIndex, 2);
@@ -1207,7 +1251,7 @@ void main() {
     expect(route.segmentDurationsMs, [700, 300]);
   });
 
-  testWidgets('ball dribble action creates a controlled player when needed', (
+  testWidgets('player can dribble then shoot from the dribble end', (
     WidgetTester tester,
   ) async {
     _setLandscapeSurface(tester);
@@ -1223,11 +1267,10 @@ void main() {
                 name: 'Board',
                 items: <TrainingMethodItem>[
                   TrainingMethodItem(
-                    id: 'ball-1',
-                    type: 'ball',
-                    x: 0.36,
+                    id: 'player-1',
+                    type: 'player',
+                    x: 0.30,
                     y: 0.54,
-                    colorValue: 0xFFFFCA28,
                   ),
                 ],
               ),
@@ -1243,38 +1286,51 @@ void main() {
     await tester.tap(
       find.descendant(
         of: boardFinder,
-        matching: find.byIcon(Icons.sports_soccer),
+        matching: find.byIcon(Icons.person),
       ),
     );
     await tester.pumpAndSettle();
     await _tapVisibleOutlinedButton(tester, '드리블');
     await _tapBoardRelative(tester, boardFinder, const Offset(0.62, 0.42));
+    await _tapVisibleOutlinedButton(tester, '슈팅');
+    await _tapBoardRelative(tester, boardFinder, const Offset(0.84, 0.34));
 
     await tester.tap(find.widgetWithText(TextButton, '저장'));
     await tester.pumpAndSettle();
 
     final saved = TrainingMethodLayout.decode(savedLayout ?? '');
     final page = saved.pages.single;
-    expect(page.items.where((item) => item.type == 'player'), hasLength(1));
-    final player = page.items.singleWhere((item) => item.type == 'player');
-    final ball = page.items.singleWhere((item) => item.type == 'ball');
+    expect(page.items.where((item) => item.type == 'ball'), hasLength(2));
     final playerRoute = page.routes.singleWhere(
       (route) => route.kind == TrainingMethodRouteKind.player,
     );
-    final ballRoute = page.routes.singleWhere(
-      (route) => route.kind == TrainingMethodRouteKind.ball,
+    final ballRoutes = page.routes
+        .where((route) => route.kind == TrainingMethodRouteKind.ball)
+        .toList(growable: false);
+    final dribbleRoute = ballRoutes.singleWhere(
+      (route) => route.stageIndex == playerRoute.stageIndex,
     );
+    final shotRoute = ballRoutes.singleWhere(
+      (route) => route.stageIndex != playerRoute.stageIndex,
+    );
+    final playerEnd = Offset(
+      playerRoute.points.last.x,
+      playerRoute.points.last.y,
+    );
+    final shotStart =
+        Offset(shotRoute.points.first.x, shotRoute.points.first.y);
 
-    expect((player.x - ball.x).abs(), lessThan(0.08));
-    expect((player.y - ball.y).abs(), lessThan(0.06));
-    expect(_isItemAheadOf(ball, player, const Offset(0.62, 0.42)), isTrue);
-    expect(playerRoute.linkedItemId, player.id);
-    expect(ballRoute.linkedItemId, 'ball-1');
-    expect(ballRoute.stageIndex, playerRoute.stageIndex);
+    expect(playerRoute.linkedItemId, 'player-1');
+    expect(playerRoute.points.length, greaterThanOrEqualTo(3));
+    expect(dribbleRoute.stageIndex, 1);
+    expect(shotRoute.stageIndex, 2);
     expect(playerRoute.points.last.x, closeTo(0.62, 0.02));
     expect(playerRoute.points.last.y, closeTo(0.42, 0.02));
-    expect(ballRoute.points.last.x, closeTo(0.62, 0.02));
-    expect(ballRoute.points.last.y, closeTo(0.42, 0.02));
+    expect(dribbleRoute.points.last.x, closeTo(0.62, 0.02));
+    expect(dribbleRoute.points.last.y, closeTo(0.42, 0.02));
+    expect((shotStart - playerEnd).distance, closeTo(0.07, 0.02));
+    expect(shotRoute.points.last.x, closeTo(0.84, 0.02));
+    expect(shotRoute.points.last.y, closeTo(0.34, 0.02));
   });
 
   testWidgets(
@@ -1640,10 +1696,12 @@ void main() {
 
     final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
     await tester.tap(
-      find.descendant(
-        of: boardFinder,
-        matching: find.byIcon(Icons.sports_soccer),
-      ),
+      find
+          .descendant(
+            of: boardFinder,
+            matching: find.byIcon(Icons.person),
+          )
+          .first,
     );
     await tester.pumpAndSettle();
     await _tapVisibleOutlinedButton(tester, '패스');
@@ -1814,6 +1872,12 @@ void main() {
                 name: 'Board',
                 items: <TrainingMethodItem>[
                   TrainingMethodItem(
+                    id: 'player-1',
+                    type: 'player',
+                    x: 0.35,
+                    y: 0.76,
+                  ),
+                  TrainingMethodItem(
                     id: 'ball-1',
                     type: 'ball',
                     x: 0.42,
@@ -1840,10 +1904,12 @@ void main() {
 
     final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
     await tester.tap(
-      find.descendant(
-        of: boardFinder,
-        matching: find.byIcon(Icons.sports_tennis),
-      ),
+      find
+          .descendant(
+            of: boardFinder,
+            matching: find.byIcon(Icons.person),
+          )
+          .first,
     );
     await tester.pumpAndSettle();
     await _tapVisibleOutlinedButton(tester, '서브');
@@ -2394,7 +2460,7 @@ void main() {
     expect(route.points[1].y, closeTo(0.35 + dy, 0.0001));
   });
 
-  testWidgets('dragging a ball while route tool is active moves the ball', (
+  testWidgets('dragging a ball moves the ball and its linked route', (
     WidgetTester tester,
   ) async {
     _setLandscapeSurface(tester);
@@ -2443,7 +2509,6 @@ void main() {
       of: boardFinder,
       matching: find.byIcon(Icons.sports_soccer),
     );
-    await _openPassRouteToolForIcon(tester, ballFinder);
     await tester.drag(ballFinder, const Offset(56, -22));
     await tester.pumpAndSettle();
 
@@ -2464,8 +2529,7 @@ void main() {
     expect(route.points[1].y, closeTo(0.46 + dy, 0.0001));
   });
 
-  testWidgets(
-      'selecting a player while ball route tool is active switches tools', (
+  testWidgets('selecting a player after a ball exposes player route tools', (
     WidgetTester tester,
   ) async {
     _setLandscapeSurface(tester);
@@ -2505,19 +2569,22 @@ void main() {
     await tester.pumpAndSettle();
 
     final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
-    await _openPassRouteToolForIcon(
-      tester,
+    await tester.tap(
       find.descendant(
         of: boardFinder,
         matching: find.byIcon(Icons.sports_soccer),
       ),
     );
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(OutlinedButton, '패스 만들기'), findsNothing);
+
     await tester.tap(
       find.descendant(of: boardFinder, matching: find.byIcon(Icons.person)),
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('사람 동작'), findsOneWidget);
+    expect(find.text('선수 액션'), findsOneWidget);
+    await _tapVisibleOutlinedButton(tester, '이동 만들기');
 
     await _tapBoardRelative(tester, boardFinder, const Offset(0.52, 0.36));
     await _tapVisibleOutlinedButton(tester, '이동선 완료');
@@ -2583,7 +2650,11 @@ void main() {
       boardTopLeft + Offset(boardSize.width * 0.62, boardSize.height * 0.50),
     );
     await tester.pumpAndSettle();
-    expect(find.widgetWithText(OutlinedButton, '패스 만들기'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('training-selected-color-button')),
+      findsOneWidget,
+    );
+    expect(find.widgetWithText(OutlinedButton, '패스 만들기'), findsNothing);
   });
 
   testWidgets(
@@ -2650,7 +2721,7 @@ void main() {
   );
 
   testWidgets(
-    'selected ball pass action creates a ball route with ball color',
+    'selected ball cannot create a pass action route',
     (WidgetTester tester) async {
       _setLandscapeSurface(tester);
       String? savedLayout;
@@ -2666,8 +2737,6 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.widgetWithText(OutlinedButton, '사람'));
-      await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(OutlinedButton, '공'));
       await tester.pumpAndSettle();
 
@@ -2681,26 +2750,21 @@ void main() {
       );
 
       final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
-      await _tapVisibleOutlinedButton(tester, '패스');
-      await _tapBoardRelative(tester, boardFinder, const Offset(0.72, 0.32));
-
-      expect(find.text('동작 단계'), findsOneWidget);
-      await _tapVisibleOutlinedButton(tester, '다음 단계');
+      expect(
+        find.descendant(
+            of: boardFinder, matching: find.byIcon(Icons.sports_soccer)),
+        findsOneWidget,
+      );
+      expect(find.widgetWithText(OutlinedButton, '패스'), findsNothing);
 
       await tester.tap(find.widgetWithText(TextButton, '저장'));
       await tester.pumpAndSettle();
 
       final saved = TrainingMethodLayout.decode(savedLayout ?? '');
       final page = saved.pages.single;
-      final player = page.items.firstWhere((item) => item.type == 'player');
-      final ball = page.items.firstWhere((item) => item.type == 'ball');
-      final ballRoute = page.routes.single;
-
-      expect(player.colorValue, isNot(ball.colorValue));
-      expect(ballRoute.kind, TrainingMethodRouteKind.ball);
-      expect(ballRoute.linkedItemId, ball.id);
-      expect(ballRoute.colorValue, ball.colorValue);
-      expect(ballRoute.stageIndex, 2);
+      expect(page.items.where((item) => item.type == 'ball'), hasLength(1));
+      expect(page.items.where((item) => item.type == 'player'), isEmpty);
+      expect(page.routes, isEmpty);
     },
   );
 
@@ -2823,7 +2887,7 @@ void main() {
     },
   );
 
-  testWidgets('route actions live inside selected player and ball panels', (
+  testWidgets('route actions live only inside selected player panels', (
     WidgetTester tester,
   ) async {
     _setLandscapeSurface(tester);
@@ -2884,9 +2948,12 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.widgetWithText(OutlinedButton, '패스 만들기'), findsOneWidget);
-    expect(find.widgetWithText(OutlinedButton, '슈팅'), findsOneWidget);
-    expect(find.widgetWithText(OutlinedButton, '크로스'), findsOneWidget);
+    expect(find.text('공 액션'), findsNothing);
+    expect(find.widgetWithText(OutlinedButton, '패스 만들기'), findsNothing);
+    expect(find.widgetWithText(OutlinedButton, '패스'), findsNothing);
+    expect(find.widgetWithText(OutlinedButton, '드리블'), findsNothing);
+    expect(find.widgetWithText(OutlinedButton, '슈팅'), findsNothing);
+    expect(find.widgetWithText(OutlinedButton, '크로스'), findsNothing);
     expect(find.text('패스·드리블 플로우'), findsNothing);
   });
 
@@ -3289,15 +3356,15 @@ void main() {
     await tester.pumpAndSettle();
 
     final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
-    await _openPassRouteToolForIcon(
+    await _openMoveRouteToolForIcon(
       tester,
       find.descendant(
         of: boardFinder,
-        matching: find.byIcon(Icons.sports_soccer),
+        matching: find.byIcon(Icons.person),
       ),
     );
     expect(
-      find.byKey(const ValueKey('training-route-target-ball-ball-1')),
+      find.byKey(const ValueKey('training-route-target-player-player-1')),
       findsOneWidget,
     );
 
@@ -3307,7 +3374,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      find.byKey(const ValueKey('training-route-target-ball-ball-1')),
+      find.byKey(const ValueKey('training-route-target-player-player-1')),
       findsOneWidget,
     );
   });
@@ -3570,15 +3637,6 @@ Future<void> _openMoveRouteToolForIcon(
   await tester.tap(iconFinder);
   await tester.pumpAndSettle();
   await _tapVisibleOutlinedButton(tester, '이동 만들기');
-}
-
-Future<void> _openPassRouteToolForIcon(
-  WidgetTester tester,
-  Finder iconFinder,
-) async {
-  await tester.tap(iconFinder);
-  await tester.pumpAndSettle();
-  await _tapVisibleOutlinedButton(tester, '패스 만들기');
 }
 
 Future<void> _tapTopBarMenuItem(
