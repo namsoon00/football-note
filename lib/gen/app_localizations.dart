@@ -2377,6 +2377,36 @@ abstract class AppLocalizations {
   /// **'Match results'**
   String get worldCupTeamMatchHistoryTitle;
 
+  /// No description provided for @worldCupKnockoutPathTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Opponents to the final'**
+  String get worldCupKnockoutPathTitle;
+
+  /// No description provided for @worldCupKnockoutPathSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Assuming this team advances through each round, these are the possible opponents on the path to the final.'**
+  String get worldCupKnockoutPathSubtitle;
+
+  /// No description provided for @worldCupKnockoutPathCandidateCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} candidates'**
+  String worldCupKnockoutPathCandidateCount(int count);
+
+  /// No description provided for @worldCupKnockoutPathOpponentPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Opponent to be confirmed'**
+  String get worldCupKnockoutPathOpponentPending;
+
+  /// No description provided for @worldCupKnockoutPathEliminated.
+  ///
+  /// In en, this message translates to:
+  /// **'Eliminated here'**
+  String get worldCupKnockoutPathEliminated;
+
   /// No description provided for @worldCupQualificationScenariosTitle.
   ///
   /// In en, this message translates to:

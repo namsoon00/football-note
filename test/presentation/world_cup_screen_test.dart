@@ -622,6 +622,93 @@ void main() {
     expect(find.text('32강 경우의 수'), findsNothing);
   });
 
+  testWidgets('qualified team roster shows knockout path to final', (
+    tester,
+  ) async {
+    final fixture = worldCupFixtures.singleWhere(
+      (fixture) => fixture.matchNumber == 79,
+    );
+    final officialMatches = [
+      _officialRoundOf32Match(73, 'Switzerland', 'Chile'),
+      _officialRoundOf32Match(74, 'Brazil', 'Egypt'),
+      _officialRoundOf32Match(75, 'France', 'Senegal'),
+      _officialRoundOf32Match(76, 'Spain', 'Japan'),
+      _officialRoundOf32Match(77, 'Portugal', 'USA'),
+      _officialRoundOf32Match(78, 'England', 'Norway'),
+      _officialRoundOf32Match(79, 'Mexico', 'Germany'),
+      _officialRoundOf32Match(80, 'Argentina', 'Morocco'),
+      _officialRoundOf32Match(81, 'Netherlands', 'Ghana'),
+      _officialRoundOf32Match(82, 'Colombia', 'Italy'),
+      _officialRoundOf32Match(83, 'Croatia', 'Korea Republic'),
+      _officialRoundOf32Match(84, 'Uruguay', 'Australia'),
+      _officialRoundOf32Match(85, 'Belgium', 'Canada'),
+      _officialRoundOf32Match(86, 'Austria', 'Algeria'),
+      _officialRoundOf32Match(87, 'Denmark', 'Sweden'),
+      _officialRoundOf32Match(88, 'Ecuador', 'Serbia'),
+    ];
+    final liveDataService = _FakeWorldCupLiveDataService(
+      data: WorldCupLiveData(
+        fixtures: worldCupFixtures,
+        officialMatchesByFixtureNumber: {
+          for (final match in officialMatches) match.matchNumber!: match,
+        },
+        rankingsByTeam: const {},
+        refreshedAt: DateTime.utc(2026, 7, 1),
+      ),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        theme: AppTheme.light(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: WorldCupScreen(
+          liveDataService: liveDataService,
+          initialSelectedDay: fixture.localDay,
+          currentTime: DateTime.utc(2026, 7, 1, 3),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final scrollable = find.byType(Scrollable).first;
+    await tester.scrollUntilVisible(
+      find.text('멕시코'),
+      220,
+      scrollable: scrollable,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.textContaining('멕시코').hitTestable().first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('멕시코 선수 명단'), findsOneWidget);
+    final rosterScroll = find.byType(Scrollable).last;
+    await tester.scrollUntilVisible(
+      find.text('결승까지의 상대'),
+      220,
+      scrollable: rosterScroll,
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('결승까지의 상대'), findsOneWidget);
+    expect(find.text('32강'), findsWidgets);
+    expect(find.text('16강'), findsWidgets);
+    expect(find.text('8강'), findsWidgets);
+    expect(find.text('준결승'), findsWidgets);
+    expect(find.text('결승'), findsWidgets);
+    expect(find.text('독일'), findsWidgets);
+    expect(find.text('아르헨티나'), findsWidgets);
+    expect(find.text('모로코'), findsWidgets);
+    expect(find.text('브라질'), findsWidgets);
+    expect(find.text('대한민국'), findsWidgets);
+
+    await tester.tap(find.text('독일').hitTestable().last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('독일 선수 명단').hitTestable(), findsOneWidget);
+  });
+
   testWidgets('qualification scenarios adapt to one remaining team match', (
     tester,
   ) async {
@@ -1596,6 +1683,33 @@ List<WorldCupFixture> _worldCupFixturesWithScores(
       else
         fixture,
   ];
+}
+
+FifaAMatchEntry _officialRoundOf32Match(
+  int matchNumber,
+  String homeTeam,
+  String awayTeam,
+) {
+  final fixture = worldCupFixtures.singleWhere(
+    (fixture) => fixture.matchNumber == matchNumber,
+  );
+  return FifaAMatchEntry(
+    matchId: 'official-round-of-32-$matchNumber',
+    matchNumber: matchNumber,
+    gender: FifaRankingGender.men,
+    competition: 'FIFA World Cup',
+    stage: 'Round of 32',
+    venue: fixture.venue,
+    city: 'Test City',
+    kickoffAt: fixture.kickoffUtc,
+    homeTeamName: homeTeam,
+    homeCountryCode: 'TST',
+    awayTeamName: awayTeam,
+    awayCountryCode: 'TST',
+    homeScore: null,
+    awayScore: null,
+    status: FifaAMatchStatus.scheduled,
+  );
 }
 
 class _MemoryOptionRepository implements OptionRepository {

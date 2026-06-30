@@ -4255,6 +4255,11 @@ class _WorldCupTeamRosterSheetState extends State<_WorldCupTeamRosterSheet> {
       officialMatchesByFixtureNumber: widget.officialMatchesByFixtureNumber,
       currentTime: widget.currentTime,
     );
+    final knockoutPath = _worldCupTeamKnockoutPathForTeam(
+      team: team,
+      fixtures: widget.fixtures,
+      officialMatchesByFixtureNumber: widget.officialMatchesByFixtureNumber,
+    );
     return SafeArea(
       child: FractionallySizedBox(
         heightFactor: 0.9,
@@ -4338,6 +4343,13 @@ class _WorldCupTeamRosterSheetState extends State<_WorldCupTeamRosterSheet> {
               currentTime: widget.currentTime,
               onTeamTap: _openTeam,
             ),
+            if (knockoutPath != null) ...[
+              const SizedBox(height: 14),
+              _WorldCupTeamKnockoutPathPanel(
+                path: knockoutPath,
+                onTeamTap: _openTeam,
+              ),
+            ],
             if (showRoundOf32Scenarios) ...[
               const SizedBox(height: 14),
               _WorldCupRoundOf32ScenarioPanel(
@@ -4530,6 +4542,469 @@ class _WorldCupTeamMatchOverviewPanel extends StatelessWidget {
     }
     return null;
   }
+}
+
+class _WorldCupTeamKnockoutPathPanel extends StatelessWidget {
+  final _WorldCupTeamKnockoutPath path;
+  final ValueChanged<String> onTeamTap;
+
+  const _WorldCupTeamKnockoutPathPanel({
+    required this.path,
+    required this.onTeamTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.emoji_events_outlined,
+                color: theme.colorScheme.primary,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  l10n.worldCupKnockoutPathTitle,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              _SmallPill(label: _worldCupCountryName(l10n, path.team)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            l10n.worldCupKnockoutPathSubtitle,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              height: 1.35,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 10),
+          for (final step in path.steps) ...[
+            _WorldCupTeamKnockoutPathStepRow(
+              step: step,
+              onTeamTap: onTeamTap,
+            ),
+            if (step != path.steps.last) const SizedBox(height: 8),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _WorldCupTeamKnockoutPathStepRow extends StatelessWidget {
+  final _WorldCupTeamKnockoutPathStep step;
+  final ValueChanged<String> onTeamTap;
+
+  const _WorldCupTeamKnockoutPathStepRow({
+    required this.step,
+    required this.onTeamTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final accentColor =
+        step.isEliminated ? theme.colorScheme.error : theme.colorScheme.primary;
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: accentColor.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: accentColor.withValues(alpha: 0.24)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  _fixtureStageLabel(l10n, step.fixture),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: accentColor,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              if (step.isEliminated)
+                _SmallPill(label: l10n.worldCupKnockoutPathEliminated)
+              else if (step.opponentTeams.isEmpty)
+                _SmallPill(label: l10n.worldCupKnockoutPathOpponentPending)
+              else
+                _SmallPill(
+                  label: l10n.worldCupKnockoutPathCandidateCount(
+                    step.opponentTeams.length,
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          if (step.opponentTeams.isEmpty)
+            Text(
+              l10n.worldCupKnockoutPathOpponentPending,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w700,
+              ),
+            )
+          else
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                for (final opponent in step.opponentTeams)
+                  _WorldCupKnockoutOpponentChip(
+                    team: opponent,
+                    onTap: () => onTeamTap(opponent),
+                  ),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WorldCupKnockoutOpponentChip extends StatelessWidget {
+  final String team;
+  final VoidCallback onTap;
+
+  const _WorldCupKnockoutOpponentChip({
+    required this.team,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final flag = worldCupCountryFlag(team);
+    return Material(
+      color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+      borderRadius: BorderRadius.circular(999),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(999),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (flag.isNotEmpty) ...[
+                Text(flag, style: theme.textTheme.labelMedium),
+                const SizedBox(width: 5),
+              ],
+              Text(
+                _worldCupCountryName(l10n, team),
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurface,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _WorldCupTeamKnockoutPath {
+  final String team;
+  final List<_WorldCupTeamKnockoutPathStep> steps;
+
+  const _WorldCupTeamKnockoutPath({
+    required this.team,
+    required this.steps,
+  });
+}
+
+class _WorldCupTeamKnockoutPathStep {
+  final WorldCupFixture fixture;
+  final List<String> opponentTeams;
+  final bool isEliminated;
+
+  const _WorldCupTeamKnockoutPathStep({
+    required this.fixture,
+    required this.opponentTeams,
+    required this.isEliminated,
+  });
+}
+
+_WorldCupTeamKnockoutPath? _worldCupTeamKnockoutPathForTeam({
+  required String team,
+  required List<WorldCupFixture> fixtures,
+  required Map<int, FifaAMatchEntry> officialMatchesByFixtureNumber,
+}) {
+  final resolver = _WorldCupRoundOf32QualifiedSlotResolver(fixtures);
+  final canonicalTeam = _worldCupCanonicalCountry(team);
+  final sortedFixtures = fixtures.toList()
+    ..sort((a, b) => a.kickoffUtc.compareTo(b.kickoffUtc));
+  WorldCupFixture? currentFixture;
+  for (final fixture in sortedFixtures) {
+    if (fixture.stage != WorldCupStage.roundOf32) continue;
+    final participants = _worldCupDisplayParticipantsForFixture(
+      fixture,
+      officialMatchesByFixtureNumber[fixture.matchNumber],
+      qualifiedSlotResolver: resolver,
+    );
+    if (participants.involvesCountry(canonicalTeam)) {
+      currentFixture = fixture;
+      break;
+    }
+  }
+  if (currentFixture == null) return null;
+
+  final steps = <_WorldCupTeamKnockoutPathStep>[];
+  String? pathSlot;
+  while (currentFixture != null) {
+    final officialMatch =
+        officialMatchesByFixtureNumber[currentFixture.matchNumber];
+    final participants = _worldCupDisplayParticipantsForFixture(
+      currentFixture,
+      officialMatch,
+      qualifiedSlotResolver: resolver,
+    );
+    final teamSide = _worldCupTeamSideForPathFixture(
+      team: canonicalTeam,
+      pathSlot: pathSlot,
+      fixture: currentFixture,
+      participants: participants,
+    );
+    if (teamSide == null) break;
+    final opponentSide = teamSide == _BracketSlotSide.home
+        ? _BracketSlotSide.away
+        : _BracketSlotSide.home;
+    final opponentTeams = _worldCupCandidateTeamsForFixtureSide(
+      fixture: currentFixture,
+      side: opponentSide,
+      fixtures: sortedFixtures,
+      officialMatchesByFixtureNumber: officialMatchesByFixtureNumber,
+      qualifiedSlotResolver: resolver,
+    );
+    final displayScore = _displayScoreForFixture(currentFixture, officialMatch);
+    final resultSign = _homeResultSign(
+      homeScore: displayScore.homeScore,
+      awayScore: displayScore.awayScore,
+      homePenaltyScore: displayScore.homePenaltyScore,
+      awayPenaltyScore: displayScore.awayPenaltyScore,
+    );
+    var isEliminated = false;
+    if (resultSign != null && resultSign != 0) {
+      final homeWon = resultSign > 0;
+      final teamWon = teamSide == _BracketSlotSide.home ? homeWon : !homeWon;
+      isEliminated = !teamWon;
+    }
+
+    steps.add(
+      _WorldCupTeamKnockoutPathStep(
+        fixture: currentFixture,
+        opponentTeams: opponentTeams,
+        isEliminated: isEliminated,
+      ),
+    );
+    if (isEliminated || currentFixture.stage == WorldCupStage.finalMatch) {
+      break;
+    }
+
+    final winnerSlot = 'W${currentFixture.matchNumber}';
+    currentFixture = _worldCupFixtureForBracketSlot(sortedFixtures, winnerSlot);
+    pathSlot = winnerSlot;
+  }
+
+  if (steps.isEmpty) return null;
+  return _WorldCupTeamKnockoutPath(
+    team: canonicalTeam,
+    steps: List.unmodifiable(steps),
+  );
+}
+
+_BracketSlotSide? _worldCupTeamSideForPathFixture({
+  required String team,
+  required String? pathSlot,
+  required WorldCupFixture fixture,
+  required _WorldCupFixtureParticipants participants,
+}) {
+  final targetKey = _worldCupTeamKey(team);
+  if (participants.homeDisplayTeams
+      .any((candidate) => _worldCupTeamKey(candidate) == targetKey)) {
+    return _BracketSlotSide.home;
+  }
+  if (participants.awayDisplayTeams
+      .any((candidate) => _worldCupTeamKey(candidate) == targetKey)) {
+    return _BracketSlotSide.away;
+  }
+  if (_worldCupTeamKey(fixture.homeTeam) == targetKey) {
+    return _BracketSlotSide.home;
+  }
+  if (_worldCupTeamKey(fixture.awayTeam) == targetKey) {
+    return _BracketSlotSide.away;
+  }
+  if (pathSlot != null) {
+    final normalizedPathSlot = pathSlot.trim().toUpperCase();
+    if (fixture.homeTeam.trim().toUpperCase() == normalizedPathSlot) {
+      return _BracketSlotSide.home;
+    }
+    if (fixture.awayTeam.trim().toUpperCase() == normalizedPathSlot) {
+      return _BracketSlotSide.away;
+    }
+  }
+  return null;
+}
+
+List<String> _worldCupCandidateTeamsForFixtureSide({
+  required WorldCupFixture fixture,
+  required _BracketSlotSide side,
+  required List<WorldCupFixture> fixtures,
+  required Map<int, FifaAMatchEntry> officialMatchesByFixtureNumber,
+  required _WorldCupRoundOf32QualifiedSlotResolver qualifiedSlotResolver,
+  Set<String>? visitedSlots,
+}) {
+  final officialMatch = officialMatchesByFixtureNumber[fixture.matchNumber];
+  final participants = _worldCupDisplayParticipantsForFixture(
+    fixture,
+    officialMatch,
+    qualifiedSlotResolver: qualifiedSlotResolver,
+  );
+  final displayTeams = side == _BracketSlotSide.home
+      ? participants.homeDisplayTeams
+      : participants.awayDisplayTeams;
+  if (displayTeams.isNotEmpty) {
+    return _uniqueWorldCupTeams(displayTeams);
+  }
+  final slot =
+      side == _BracketSlotSide.home ? fixture.homeTeam : fixture.awayTeam;
+  return _worldCupCandidateTeamsForBracketSlot(
+    slot: slot,
+    fixtures: fixtures,
+    officialMatchesByFixtureNumber: officialMatchesByFixtureNumber,
+    qualifiedSlotResolver: qualifiedSlotResolver,
+    visitedSlots: visitedSlots,
+  );
+}
+
+List<String> _worldCupCandidateTeamsForBracketSlot({
+  required String slot,
+  required List<WorldCupFixture> fixtures,
+  required Map<int, FifaAMatchEntry> officialMatchesByFixtureNumber,
+  required _WorldCupRoundOf32QualifiedSlotResolver qualifiedSlotResolver,
+  Set<String>? visitedSlots,
+}) {
+  final normalizedSlot = slot.trim();
+  if (normalizedSlot.isEmpty) return const <String>[];
+  final visited = visitedSlots ?? <String>{};
+  final visitKey = normalizedSlot.toUpperCase();
+  if (!visited.add(visitKey)) return const <String>[];
+
+  final qualifiedTeams = qualifiedSlotResolver.teamsForSlot(normalizedSlot);
+  if (qualifiedTeams.isNotEmpty) return _uniqueWorldCupTeams(qualifiedTeams);
+
+  final directTeams = _worldCupSingleCountryCandidate(normalizedSlot);
+  if (directTeams.isNotEmpty) return directTeams;
+
+  final matchReference = RegExp(
+    r'^([WL])([0-9]+)$',
+  ).firstMatch(visitKey);
+  if (matchReference == null) return const <String>[];
+
+  final wantsWinner = matchReference.group(1) == 'W';
+  final sourceMatchNumber = int.parse(matchReference.group(2)!);
+  WorldCupFixture? sourceFixture;
+  for (final fixture in fixtures) {
+    if (fixture.matchNumber == sourceMatchNumber) {
+      sourceFixture = fixture;
+      break;
+    }
+  }
+  if (sourceFixture == null) return const <String>[];
+
+  final officialMatch =
+      officialMatchesByFixtureNumber[sourceFixture.matchNumber];
+  final displayScore = _displayScoreForFixture(sourceFixture, officialMatch);
+  final resultSign = _homeResultSign(
+    homeScore: displayScore.homeScore,
+    awayScore: displayScore.awayScore,
+    homePenaltyScore: displayScore.homePenaltyScore,
+    awayPenaltyScore: displayScore.awayPenaltyScore,
+  );
+  if (resultSign != null && resultSign != 0) {
+    final homeSideMatches = wantsWinner ? resultSign > 0 : resultSign < 0;
+    return _worldCupCandidateTeamsForFixtureSide(
+      fixture: sourceFixture,
+      side: homeSideMatches ? _BracketSlotSide.home : _BracketSlotSide.away,
+      fixtures: fixtures,
+      officialMatchesByFixtureNumber: officialMatchesByFixtureNumber,
+      qualifiedSlotResolver: qualifiedSlotResolver,
+      visitedSlots: {...visited},
+    );
+  }
+
+  return _uniqueWorldCupTeams([
+    ..._worldCupCandidateTeamsForFixtureSide(
+      fixture: sourceFixture,
+      side: _BracketSlotSide.home,
+      fixtures: fixtures,
+      officialMatchesByFixtureNumber: officialMatchesByFixtureNumber,
+      qualifiedSlotResolver: qualifiedSlotResolver,
+      visitedSlots: {...visited},
+    ),
+    ..._worldCupCandidateTeamsForFixtureSide(
+      fixture: sourceFixture,
+      side: _BracketSlotSide.away,
+      fixtures: fixtures,
+      officialMatchesByFixtureNumber: officialMatchesByFixtureNumber,
+      qualifiedSlotResolver: qualifiedSlotResolver,
+      visitedSlots: {...visited},
+    ),
+  ]);
+}
+
+WorldCupFixture? _worldCupFixtureForBracketSlot(
+  List<WorldCupFixture> fixtures,
+  String slot,
+) {
+  final normalizedSlot = slot.trim().toUpperCase();
+  for (final fixture in fixtures) {
+    if (fixture.homeTeam.trim().toUpperCase() == normalizedSlot ||
+        fixture.awayTeam.trim().toUpperCase() == normalizedSlot) {
+      return fixture;
+    }
+  }
+  return null;
+}
+
+List<String> _uniqueWorldCupTeams(Iterable<String> teams) {
+  final seen = <String>{};
+  final result = <String>[];
+  for (final team in teams) {
+    final canonicalTeam = _worldCupCanonicalCountry(team);
+    final key = _worldCupTeamKey(canonicalTeam);
+    if (key.isEmpty || !seen.add(key)) continue;
+    result.add(canonicalTeam);
+  }
+  result.sort((a, b) => a.compareTo(b));
+  return List.unmodifiable(result);
 }
 
 class _WorldCupRoundOf32ScenarioPanel extends StatelessWidget {

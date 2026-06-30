@@ -634,6 +634,18 @@
   "worldCupTeamMatchOverviewTitle": "代表チーム試合情報",
   "worldCupTeamCurrentPointsLabel": "現在の勝点",
   "worldCupTeamMatchHistoryTitle": "対戦結果",
+  "worldCupKnockoutPathTitle": "決勝までの相手",
+  "worldCupKnockoutPathSubtitle": "このチームが各ラウンドを勝ち上がると仮定し、決勝までに対戦する可能性のある相手を表示します。",
+  "worldCupKnockoutPathCandidateCount": "{count}チーム候補",
+  "@worldCupKnockoutPathCandidateCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupKnockoutPathOpponentPending": "相手未確定",
+  "worldCupKnockoutPathEliminated": "このラウンドで敗退",
   "worldCupQualificationScenariosTitle": "ラウンド32の可能性",
   "worldCupQualificationScenariosSubtitle": "現在の勝点 {currentPoints} から、残り {remainingMatches} 試合の結果別にラウンド32進出と相手候補を計算します。",
   "@worldCupQualificationScenariosSubtitle": {

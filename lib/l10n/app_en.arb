@@ -634,6 +634,18 @@
   "worldCupTeamMatchOverviewTitle": "Team match info",
   "worldCupTeamCurrentPointsLabel": "Current points",
   "worldCupTeamMatchHistoryTitle": "Match results",
+  "worldCupKnockoutPathTitle": "Opponents to the final",
+  "worldCupKnockoutPathSubtitle": "Assuming this team advances through each round, these are the possible opponents on the path to the final.",
+  "worldCupKnockoutPathCandidateCount": "{count} candidates",
+  "@worldCupKnockoutPathCandidateCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupKnockoutPathOpponentPending": "Opponent to be confirmed",
+  "worldCupKnockoutPathEliminated": "Eliminated here",
   "worldCupQualificationScenariosTitle": "Round of 32 scenarios",
   "worldCupQualificationScenariosSubtitle": "From {currentPoints} current points, this estimates Round of 32 paths and opponent slots for the {remainingMatches} remaining match results.",
   "@worldCupQualificationScenariosSubtitle": {

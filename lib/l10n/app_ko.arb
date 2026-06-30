@@ -634,6 +634,18 @@
   "worldCupTeamMatchOverviewTitle": "국가 경기 정보",
   "worldCupTeamCurrentPointsLabel": "현재 승점",
   "worldCupTeamMatchHistoryTitle": "상대별 결과",
+  "worldCupKnockoutPathTitle": "결승까지의 상대",
+  "worldCupKnockoutPathSubtitle": "이 팀이 각 라운드를 통과한다고 가정하고 결승까지 만날 수 있는 상대 후보를 보여줘요.",
+  "worldCupKnockoutPathCandidateCount": "{count}팀 후보",
+  "@worldCupKnockoutPathCandidateCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupKnockoutPathOpponentPending": "상대 확정 전",
+  "worldCupKnockoutPathEliminated": "이 라운드에서 탈락",
   "worldCupQualificationScenariosTitle": "32강 경우의 수",
   "worldCupQualificationScenariosSubtitle": "현재 승점 {currentPoints}점에서 남은 {remainingMatches}경기 결과 조합별 32강 진출 가능성과 상대 후보를 계산해요.",
   "@worldCupQualificationScenariosSubtitle": {
