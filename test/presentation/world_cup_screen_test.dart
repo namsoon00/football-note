@@ -24,7 +24,10 @@ void main() {
         theme: AppTheme.light(),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: const WorldCupScreen(refreshOfficialDataOnOpen: false),
+        home: WorldCupScreen(
+          refreshOfficialDataOnOpen: false,
+          currentTime: DateTime.utc(2026, 6, 20),
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -45,7 +48,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('일정'), findsOneWidget);
     expect(find.text('순위'), findsOneWidget);
-    expect(find.text('토너먼트'), findsOneWidget);
+    expect(find.text('토너먼트'), findsNothing);
     expect(find.text('대회 개요'), findsNothing);
     expect(find.text('결승까지의 흐름'), findsNothing);
 
@@ -67,7 +70,10 @@ void main() {
         theme: AppTheme.light(),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: const WorldCupScreen(refreshOfficialDataOnOpen: false),
+        home: WorldCupScreen(
+          refreshOfficialDataOnOpen: false,
+          currentTime: DateTime.utc(2026, 6, 20),
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -118,23 +124,34 @@ void main() {
     );
   });
 
-  testWidgets('standings and tournament views show structured plan cards', (
+  testWidgets('before knockouts schedule and standings tabs are visible', (
     tester,
   ) async {
-    final navigatorObserver = _RecordingNavigatorObserver();
     await tester.pumpWidget(
       MaterialApp(
         locale: const Locale('ko', 'KR'),
         theme: AppTheme.light(),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        navigatorObservers: [navigatorObserver],
-        home: const WorldCupScreen(refreshOfficialDataOnOpen: false),
+        home: WorldCupScreen(
+          refreshOfficialDataOnOpen: false,
+          currentTime: DateTime.utc(2026, 6, 20),
+        ),
       ),
     );
     await tester.pumpAndSettle();
 
     final scrollable = find.byType(Scrollable).first;
+    await tester.scrollUntilVisible(
+      find.text('일정'),
+      180,
+      scrollable: scrollable,
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('일정'), findsOneWidget);
+    expect(find.text('순위'), findsOneWidget);
+    expect(find.text('토너먼트'), findsNothing);
+
     await tester.scrollUntilVisible(
       find.text('순위'),
       180,
@@ -152,18 +169,44 @@ void main() {
     expect(find.text('동률 비교: 득실차 +2 · 득점 2'), findsNothing);
     expect(find.text('조별 팀 구성'), findsOneWidget);
     expect(find.text('A조'), findsWidgets);
+  });
 
+  testWidgets('after knockouts schedule and tournament tabs are visible', (
+    tester,
+  ) async {
+    final navigatorObserver = _RecordingNavigatorObserver();
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        theme: AppTheme.light(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        navigatorObservers: [navigatorObserver],
+        home: WorldCupScreen(
+          refreshOfficialDataOnOpen: false,
+          currentTime: DateTime.utc(2026, 6, 29),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final scrollable = find.byType(Scrollable).first;
     await tester.scrollUntilVisible(
       find.text('토너먼트'),
       180,
       scrollable: scrollable,
     );
     await tester.pumpAndSettle();
+    expect(find.text('일정'), findsOneWidget);
+    expect(find.text('순위'), findsNothing);
+    expect(find.text('토너먼트'), findsOneWidget);
+
     await tester.tap(find.text('토너먼트'));
     await tester.pumpAndSettle();
 
     expect(find.text('토너먼트 대진표'), findsOneWidget);
     expect(find.text('결승'), findsOneWidget);
+    expect(find.text('3위 결정전'), findsOneWidget);
     expect(find.text('준결승'), findsOneWidget);
     expect(find.text('8강'), findsOneWidget);
     expect(find.text('16강'), findsOneWidget);
@@ -178,8 +221,7 @@ void main() {
     final thirdPlaceStrip = find.byKey(
       const ValueKey('world-cup-third-place-strip'),
     );
-    expect(thirdPlaceStrip, findsOneWidget);
-    expect(tester.getSize(thirdPlaceStrip).height, lessThan(82));
+    expect(thirdPlaceStrip, findsNothing);
     final bracketViewer = tester.widget<InteractiveViewer>(
       find.byType(InteractiveViewer),
     );
@@ -239,7 +281,7 @@ void main() {
         home: WorldCupScreen(
           liveDataService: liveDataService,
           initialSelectedDay: worldCupFixtures.first.localDay,
-          currentTime: DateTime.utc(2026, 6, 20),
+          currentTime: DateTime.utc(2026, 6, 29),
         ),
       ),
     );
@@ -281,9 +323,9 @@ void main() {
       homeCountryCode: 'MEX',
       awayTeamName: 'Germany',
       awayCountryCode: 'GER',
-      homeScore: null,
-      awayScore: null,
-      status: FifaAMatchStatus.scheduled,
+      homeScore: 2,
+      awayScore: 1,
+      status: FifaAMatchStatus.finished,
     );
     final liveDataService = _FakeWorldCupLiveDataService(
       data: WorldCupLiveData(
@@ -303,7 +345,7 @@ void main() {
         home: WorldCupScreen(
           liveDataService: liveDataService,
           initialSelectedDay: worldCupFixtures.first.localDay,
-          currentTime: DateTime.utc(2026, 6, 25),
+          currentTime: DateTime.utc(2026, 6, 29),
         ),
       ),
     );
@@ -321,7 +363,10 @@ void main() {
 
     expect(find.text('🇲🇽 멕시코'), findsWidgets);
     expect(find.text('🇩🇪 독일'), findsWidgets);
-    expect(find.text('승자 후보'), findsWidgets);
+    expect(find.text('2 : 1', findRichText: true), findsWidgets);
+    expect(find.text('승'), findsWidgets);
+    expect(find.text('패'), findsWidgets);
+    expect(find.text('승자 확정'), findsWidgets);
     expect(find.text('A조 1위 기준 진출'), findsNothing);
     expect(find.text('M79'), findsNothing);
   });
@@ -519,6 +564,35 @@ void main() {
   testWidgets('team roster hides round-of-32 scenarios after knockouts start', (
     tester,
   ) async {
+    final fixture = worldCupFixtures.singleWhere(
+      (fixture) => fixture.matchNumber == 79,
+    );
+    final officialMatch = FifaAMatchEntry(
+      matchId: 'official-round-of-32-roster',
+      matchNumber: fixture.matchNumber,
+      gender: FifaRankingGender.men,
+      competition: 'FIFA World Cup',
+      stage: 'Round of 32',
+      venue: fixture.venue,
+      city: 'Mexico City',
+      kickoffAt: fixture.kickoffUtc,
+      homeTeamName: 'Mexico',
+      homeCountryCode: 'MEX',
+      awayTeamName: 'Germany',
+      awayCountryCode: 'GER',
+      homeScore: null,
+      awayScore: null,
+      status: FifaAMatchStatus.scheduled,
+    );
+    final liveDataService = _FakeWorldCupLiveDataService(
+      data: WorldCupLiveData(
+        fixtures: worldCupFixtures,
+        officialMatchesByFixtureNumber: {fixture.matchNumber: officialMatch},
+        rankingsByTeam: const {},
+        refreshedAt: DateTime.utc(2026, 7, 1),
+      ),
+    );
+
     await tester.pumpWidget(
       MaterialApp(
         locale: const Locale('ko', 'KR'),
@@ -526,8 +600,9 @@ void main() {
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: WorldCupScreen(
-          refreshOfficialDataOnOpen: false,
-          currentTime: DateTime.utc(2026, 6, 28, 20),
+          liveDataService: liveDataService,
+          initialSelectedDay: fixture.localDay,
+          currentTime: DateTime.utc(2026, 6, 29),
         ),
       ),
     );
@@ -535,17 +610,8 @@ void main() {
 
     final scrollable = find.byType(Scrollable).first;
     await tester.scrollUntilVisible(
-      find.text('순위'),
-      180,
-      scrollable: scrollable,
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('순위'));
-    await tester.pumpAndSettle();
-
-    await tester.scrollUntilVisible(
-      find.text('조별 순위표'),
-      180,
+      find.text('멕시코'),
+      220,
       scrollable: scrollable,
     );
     await tester.pumpAndSettle();
@@ -709,7 +775,10 @@ void main() {
         theme: AppTheme.light(),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: const WorldCupScreen(refreshOfficialDataOnOpen: false),
+        home: WorldCupScreen(
+          refreshOfficialDataOnOpen: false,
+          currentTime: DateTime.utc(2026, 6, 20),
+        ),
       ),
     );
     await tester.pumpAndSettle();
