@@ -6001,6 +6001,8 @@
   "trainingSketchControlsPanel": "ツールと選択",
   "trainingSketchTacticalOverlay": "戦術ゾーンを表示",
   "trainingSketchPlayTooltip": "遊ぶ",
+  "trainingSketchLandscapeModeTooltip": "横向きモード",
+  "trainingSketchPortraitModeTooltip": "縦向きモード",
   "trainingSketchPlaybackSpeedTooltip": "再生速度",
   "trainingSketchAddSketchTooltip": "スケッチを追加",
   "trainingSketchCopySketchTooltip": "別のスケッチからコピーする",

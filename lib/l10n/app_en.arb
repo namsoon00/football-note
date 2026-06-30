@@ -6001,6 +6001,8 @@
   "trainingSketchControlsPanel": "Tools and selection",
   "trainingSketchTacticalOverlay": "Show tactical zones",
   "trainingSketchPlayTooltip": "Play",
+  "trainingSketchLandscapeModeTooltip": "Landscape mode",
+  "trainingSketchPortraitModeTooltip": "Portrait mode",
   "trainingSketchPlaybackSpeedTooltip": "Playback speed",
   "trainingSketchAddSketchTooltip": "Add sketch",
   "trainingSketchCopySketchTooltip": "Copy from another sketch",

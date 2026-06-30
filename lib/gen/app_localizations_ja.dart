@@ -10568,6 +10568,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get trainingSketchPlayTooltip => '遊ぶ';
 
   @override
+  String get trainingSketchLandscapeModeTooltip => '横向きモード';
+
+  @override
+  String get trainingSketchPortraitModeTooltip => '縦向きモード';
+
+  @override
   String get trainingSketchPlaybackSpeedTooltip => '再生速度';
 
   @override
