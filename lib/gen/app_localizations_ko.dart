@@ -10353,11 +10353,6 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String clubScheduleHomeNextTrainingDay(Object weekday) {
-    return '다음 훈련 $weekday';
-  }
-
-  @override
   String clubScheduleTodayTraining(Object time) {
     return '오늘 $time';
   }

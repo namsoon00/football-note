@@ -2258,11 +2258,12 @@ class _ClubScheduleHomeCard extends StatelessWidget {
             ? l10n.clubScheduleTodayTraining(
                 _clubScheduleTimeRange(context, upcomingTraining.schedule),
               )
-            : l10n.clubScheduleHomeNextTrainingDay(
+            : l10n.clubScheduleHomeNextTraining(
                 _clubScheduleWeekdayLabel(
                   context,
                   upcomingTraining.schedule.weekday,
                 ),
+                _clubScheduleTimeRange(context, upcomingTraining.schedule),
               );
 
     return Material(
