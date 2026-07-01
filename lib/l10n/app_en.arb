@@ -6047,6 +6047,35 @@
   "trainingSketchQuickStart": "Quick start: Select a player, tap an action, then tap the target player or space.",
   "trainingSketchSelectedItemTitle": "Selected item",
   "trainingSketchAssignColorLabel": "Assign color",
+  "trainingSketchPlayerStagesTitle": "Player stages",
+  "trainingSketchPlayerStagesEmpty": "No stages are registered for this player yet.",
+  "trainingSketchPlayerStageChip": "Stage {stage} · {count} actions",
+  "@trainingSketchPlayerStageChip": {
+    "placeholders": {
+      "stage": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchRegisterNextPlayerStageButton": "Register stage {stage}",
+  "@trainingSketchRegisterNextPlayerStageButton": {
+    "placeholders": {
+      "stage": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchRegisteredNextPlayerStageHint": "The next action will be created as stage {stage}.",
+  "@trainingSketchRegisteredNextPlayerStageHint": {
+    "placeholders": {
+      "stage": {
+        "type": "int"
+      }
+    }
+  },
   "trainingSketchDrawRouteFirst": "Draw or select a route first.",
   "trainingSketchAddPlayerFirst": "Add a player icon first.",
   "trainingSketchAddBallFirst": "Add a ball icon first.",

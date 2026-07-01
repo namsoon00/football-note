@@ -10689,6 +10689,27 @@ class AppLocalizationsJa extends AppLocalizations {
   String get trainingSketchAssignColorLabel => '色の割り当て';
 
   @override
+  String get trainingSketchPlayerStagesTitle => 'プレーヤーのステージ';
+
+  @override
+  String get trainingSketchPlayerStagesEmpty => 'このプレーヤーにはまだステージが登録されていません。';
+
+  @override
+  String trainingSketchPlayerStageChip(int stage, int count) {
+    return 'ステージ$stage · 動作$count件';
+  }
+
+  @override
+  String trainingSketchRegisterNextPlayerStageButton(int stage) {
+    return 'ステージ$stageを登録';
+  }
+
+  @override
+  String trainingSketchRegisteredNextPlayerStageHint(int stage) {
+    return '次の動作はステージ$stageとして作成されます。';
+  }
+
+  @override
   String get trainingSketchDrawRouteFirst => 'まずルートを描画または選択します。';
 
   @override

@@ -10710,6 +10710,27 @@ class AppLocalizationsKo extends AppLocalizations {
   String get trainingSketchAssignColorLabel => '색상 지정';
 
   @override
+  String get trainingSketchPlayerStagesTitle => '선수 단계';
+
+  @override
+  String get trainingSketchPlayerStagesEmpty => '아직 이 선수에게 등록된 단계가 없어요.';
+
+  @override
+  String trainingSketchPlayerStageChip(int stage, int count) {
+    return '$stage단계 · 동작 $count개';
+  }
+
+  @override
+  String trainingSketchRegisterNextPlayerStageButton(int stage) {
+    return '$stage단계 등록';
+  }
+
+  @override
+  String trainingSketchRegisteredNextPlayerStageHint(int stage) {
+    return '다음 액션은 $stage단계로 만들어져요.';
+  }
+
+  @override
   String get trainingSketchDrawRouteFirst => '먼저 이동선을 그리거나 선택해 주세요.';
 
   @override
