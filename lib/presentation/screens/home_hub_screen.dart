@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 
 import '../../application/backup_service.dart';
 import '../../application/challenge_service.dart';
+import '../../application/club_schedule_service.dart';
 import '../../application/daily_loop/daily_loop_snapshot.dart';
 import '../../application/family_access_service.dart';
 import '../../application/locale_service.dart';
@@ -31,6 +32,7 @@ import '../../domain/entities/training_entry.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../localization/player_progression_localizations.dart';
 import '../models/home_hub_section_settings.dart';
+import '../theme/app_theme.dart';
 import '../utils/sport_conditioning_visuals.dart';
 import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_background.dart';
@@ -50,6 +52,7 @@ import 'news_screen.dart';
 import 'notification_center_screen.dart';
 import 'coach_lesson_screen.dart';
 import 'challenge_screen.dart';
+import 'club_schedule_screen.dart';
 import 'entry_form_screen.dart';
 import 'home_section_settings_screen.dart';
 import 'player_level_guide_screen.dart';
@@ -278,6 +281,10 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                     widget.optionRepository,
                     widget.settingsService,
                   ).unreadReminderCountSync();
+                  final clubScheduleProfile = ClubScheduleService(
+                    widget.optionRepository,
+                    sportId: sportId,
+                  ).loadProfile();
 
                   Widget keyedSection(String key, Widget child) {
                     return KeyedSubtree(
@@ -514,6 +521,14 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                         ),
                         const SizedBox(height: 12),
                         titleSection,
+                        const SizedBox(height: 12),
+                        _ClubScheduleHomeCard(
+                          key: const ValueKey<String>(
+                            'home-club-schedule-card',
+                          ),
+                          profile: clubScheduleProfile,
+                          onTap: () => _openClubSchedule(sportId: sportId),
+                        ),
                         const SizedBox(height: 12),
                         if (visibleHomeSections.isEmpty)
                           _HomeSectionsEmptyCard(l10n: l10n)
@@ -813,6 +828,18 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   Future<void> _openWeatherOutfitGuide() => _openWeatherDetails(
         initialAction: WeatherDetailInitialAction.outfitGuide,
       );
+
+  Future<void> _openClubSchedule({required String sportId}) async {
+    await Navigator.of(context).push(
+      AppPageRoute(
+        builder: (_) => ClubScheduleScreen(
+          optionRepository: widget.optionRepository,
+          sportId: sportId,
+        ),
+      ),
+    );
+    if (mounted) setState(() {});
+  }
 
   void _syncDailyTaskCompletionAward(_HomeHubData data) {
     if (_isParentMode) return;
@@ -2194,6 +2221,182 @@ class _HomeSectionsEmptyCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class _ClubScheduleHomeCard extends StatelessWidget {
+  final ClubScheduleProfile profile;
+  final VoidCallback onTap;
+
+  const _ClubScheduleHomeCard({
+    super.key,
+    required this.profile,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final today = DateTime.now();
+    final todaySchedule = profile.scheduleForDate(today);
+    final hasTodayTraining = todaySchedule?.enabled == true;
+    final nextTraining = profile.nextTraining(today);
+    final clubName = profile.clubName.trim();
+    final title = clubName.isEmpty ? l10n.clubScheduleHomeTitle : clubName;
+    final primary = hasTodayTraining
+        ? l10n.clubScheduleTodayTraining(
+            _clubScheduleTimeRange(context, todaySchedule!),
+          )
+        : l10n.clubScheduleHomeTodayRest;
+    final secondary = nextTraining == null
+        ? l10n.clubScheduleHomeSetupHint
+        : l10n.clubScheduleHomeNextTraining(
+            _clubScheduleWeekdayLabel(context, nextTraining.schedule.weekday),
+            _clubScheduleTimeRange(context, nextTraining.schedule),
+          );
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: AppRadius.surface,
+        child: Ink(
+          decoration: AppSurfaces.cardDecoration(scheme, theme.brightness),
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Row(
+            children: [
+              Container(
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(
+                  color: scheme.primary.withValues(alpha: 0.12),
+                  borderRadius: AppRadius.small,
+                ),
+                child: Icon(
+                  Icons.event_available_outlined,
+                  color: scheme.primary,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xxs),
+                    Text(
+                      primary,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: hasTodayTraining
+                            ? scheme.primary
+                            : scheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xxs),
+                    Text(
+                      secondary,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              _ClubScheduleUniformDots(profile: profile),
+              const SizedBox(width: AppSpacing.xs),
+              Icon(
+                Icons.chevron_right,
+                size: 20,
+                color: scheme.onSurfaceVariant,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ClubScheduleUniformDots extends StatelessWidget {
+  final ClubScheduleProfile profile;
+
+  const _ClubScheduleUniformDots({required this.profile});
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: AppLocalizations.of(context)!.clubScheduleUniformTitle,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _ClubScheduleUniformDot(colorValue: profile.homeUniformColorValue),
+          const SizedBox(width: 4),
+          _ClubScheduleUniformDot(colorValue: profile.awayUniformColorValue),
+          const SizedBox(width: 4),
+          _ClubScheduleUniformDot(colorValue: profile.keeperUniformColorValue),
+        ],
+      ),
+    );
+  }
+}
+
+class _ClubScheduleUniformDot extends StatelessWidget {
+  final int colorValue;
+
+  const _ClubScheduleUniformDot({required this.colorValue});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 18,
+      height: 18,
+      decoration: BoxDecoration(
+        color: Color(colorValue),
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.42),
+        ),
+      ),
+    );
+  }
+}
+
+String _clubScheduleWeekdayLabel(BuildContext context, int weekday) {
+  return DateFormat.EEEE(AppLocalizations.of(context)!.localeName).format(
+    DateTime(2026, 6, 29).add(Duration(days: weekday - 1)),
+  );
+}
+
+String _clubScheduleTimeRange(
+  BuildContext context,
+  ClubTrainingSchedule schedule,
+) {
+  return '${_clubScheduleTimeLabel(context, schedule.startMinutes)}-${_clubScheduleTimeLabel(context, schedule.endMinutes)}';
+}
+
+String _clubScheduleTimeLabel(BuildContext context, int minutes) {
+  final normalized = ClubScheduleService.normalizeMinutes(
+    minutes,
+    fallback: ClubTrainingSchedule.defaultStartMinutes,
+  );
+  return MaterialLocalizations.of(context).formatTimeOfDay(
+    TimeOfDay(hour: normalized ~/ 60, minute: normalized % 60),
+    alwaysUse24HourFormat: MediaQuery.alwaysUse24HourFormatOf(context),
+  );
 }
 
 class _QuickActionGrid extends StatelessWidget {

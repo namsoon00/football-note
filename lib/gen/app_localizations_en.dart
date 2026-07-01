@@ -10617,6 +10617,91 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get clubScheduleTitle => 'Club Schedule';
+
+  @override
+  String get clubScheduleSubtitle =>
+      'Check weekly training times and uniform colors quickly.';
+
+  @override
+  String get clubScheduleHomeTitle => 'Club schedule';
+
+  @override
+  String get clubScheduleHomeTodayRest => 'No training today';
+
+  @override
+  String get clubScheduleHomeSetupHint =>
+      'Add training times and uniform colors.';
+
+  @override
+  String clubScheduleHomeNextTraining(Object weekday, Object time) {
+    return 'Next training $weekday $time';
+  }
+
+  @override
+  String clubScheduleTodayTraining(Object time) {
+    return 'Today $time';
+  }
+
+  @override
+  String get clubScheduleTodayNoTraining => 'No training is set for today.';
+
+  @override
+  String clubScheduleNextTraining(Object weekday, Object time) {
+    return 'Next training: $weekday $time';
+  }
+
+  @override
+  String get clubScheduleNoUpcomingTraining => 'No upcoming training.';
+
+  @override
+  String get clubScheduleClubNameLabel => 'Club name';
+
+  @override
+  String get clubScheduleClubNameHint => 'e.g. Seongnam U15';
+
+  @override
+  String get clubScheduleWeekdayTitle => 'Weekly training times';
+
+  @override
+  String get clubScheduleWeekdayHelper =>
+      'Turn on training days and set start and end times.';
+
+  @override
+  String get clubScheduleStartTimeLabel => 'Start';
+
+  @override
+  String get clubScheduleEndTimeLabel => 'End';
+
+  @override
+  String get clubScheduleDayOffLabel => 'Off';
+
+  @override
+  String get clubScheduleUniformTitle => 'Uniform colors';
+
+  @override
+  String get clubScheduleUniformHelper =>
+      'Save the home, away, and goalkeeper colors you need at training.';
+
+  @override
+  String get clubScheduleHomeKitLabel => 'Home';
+
+  @override
+  String get clubScheduleAwayKitLabel => 'Away';
+
+  @override
+  String get clubScheduleKeeperKitLabel => 'GK';
+
+  @override
+  String get clubScheduleColorSelectTooltip => 'Select color';
+
+  @override
+  String get clubScheduleSaveButton => 'Save club schedule';
+
+  @override
+  String get clubScheduleSavedFeedback => 'Club schedule saved.';
+
+  @override
   String get teamManagementTitle => 'Team Management';
 
   @override
