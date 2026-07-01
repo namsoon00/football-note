@@ -8,6 +8,7 @@ import '../theme/app_theme.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_feedback.dart';
+import '../widgets/uniform_jersey_swatch.dart';
 
 class ClubScheduleScreen extends StatefulWidget {
   final OptionRepository optionRepository;
@@ -557,18 +558,23 @@ class _UniformSwatchButton extends StatelessWidget {
     return Tooltip(
       message: AppLocalizations.of(context)!.clubScheduleColorSelectTooltip,
       child: InkWell(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(12),
         onTap: onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 140),
           width: 36,
           height: 36,
+          padding: EdgeInsets.all(selected ? 2 : 4),
           decoration: BoxDecoration(
-            color: Color(colorValue),
-            shape: BoxShape.circle,
+            color: selected
+                ? scheme.primary.withValues(alpha: 0.10)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: selected ? scheme.primary : scheme.outline,
-              width: selected ? 3 : 1,
+              color: selected
+                  ? scheme.primary
+                  : scheme.outline.withValues(alpha: 0.46),
+              width: selected ? 2 : 1,
             ),
             boxShadow: [
               if (selected)
@@ -579,22 +585,18 @@ class _UniformSwatchButton extends StatelessWidget {
                 ),
             ],
           ),
-          child: selected
-              ? Icon(
-                  Icons.check,
-                  size: 18,
-                  color: _contrastColor(Color(colorValue)),
-                )
-              : null,
+          child: UniformJerseySwatch(
+            color: Color(colorValue),
+            size: selected ? 28 : 24,
+            borderColor: selected
+                ? scheme.primary
+                : scheme.outline.withValues(alpha: 0.7),
+            borderWidth: selected ? 1.4 : 1.1,
+            selected: selected,
+          ),
         ),
       ),
     );
-  }
-
-  static Color _contrastColor(Color color) {
-    return ThemeData.estimateBrightnessForColor(color) == Brightness.dark
-        ? Colors.white
-        : Colors.black;
   }
 }
 
@@ -642,14 +644,11 @@ class _UniformPreviewChip extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 14,
-              height: 14,
-              decoration: BoxDecoration(
-                color: Color(colorValue),
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white),
-              ),
+            UniformJerseySwatch(
+              color: Color(colorValue),
+              size: 18,
+              borderColor: Colors.white,
+              borderWidth: 1.2,
             ),
             const SizedBox(width: AppSpacing.xxs),
             Flexible(
