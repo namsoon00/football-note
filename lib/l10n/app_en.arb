@@ -259,6 +259,7 @@
   },
   "worldCupTitle": "World Cup View",
   "worldCupInfoAction": "Guide",
+  "worldCupPdfAction": "PDF",
   "worldCupSourceShortAction": "FIFA",
   "worldCupHeroTitle": "FIFA World Cup 2026",
   "worldCupHeroSubtitle": "Canada, Mexico, United States · 48 teams",
@@ -919,6 +920,9 @@
   "worldCupTournamentZoomReset": "Reset bracket zoom",
   "worldCupTournamentZoomIn": "Zoom bracket in",
   "worldCupTournamentOpenFullScreen": "Open full screen",
+  "worldCupTournamentPdfTooltip": "Download bracket PDF",
+  "worldCupTournamentPdfExportedSnack": "Bracket PDF is ready.",
+  "worldCupTournamentPdfExportFailedSnack": "Could not create the bracket PDF.",
   "worldCupStageMatchCount": "{count} matches",
   "@worldCupStageMatchCount": {
     "placeholders": {
@@ -6013,6 +6017,9 @@
   "trainingSketchControlsPanel": "Tools and selection",
   "trainingSketchTacticalOverlay": "Show tactical zones",
   "trainingSketchPlayTooltip": "Play",
+  "trainingSketchPdfExportTooltip": "Download sketch PDF",
+  "trainingSketchPdfExportedSnack": "Sketch PDF is ready.",
+  "trainingSketchPdfExportFailedSnack": "Could not create the sketch PDF.",
   "trainingSketchLandscapeModeTooltip": "Landscape mode",
   "trainingSketchPortraitModeTooltip": "Portrait mode",
   "trainingSketchPlaybackSpeedTooltip": "Playback speed",

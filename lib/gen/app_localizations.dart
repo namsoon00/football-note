@@ -1188,6 +1188,12 @@ abstract class AppLocalizations {
   /// **'Guide'**
   String get worldCupInfoAction;
 
+  /// No description provided for @worldCupPdfAction.
+  ///
+  /// In en, this message translates to:
+  /// **'PDF'**
+  String get worldCupPdfAction;
+
   /// No description provided for @worldCupSourceShortAction.
   ///
   /// In en, this message translates to:
@@ -2814,6 +2820,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open full screen'**
   String get worldCupTournamentOpenFullScreen;
+
+  /// No description provided for @worldCupTournamentPdfTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Download bracket PDF'**
+  String get worldCupTournamentPdfTooltip;
+
+  /// No description provided for @worldCupTournamentPdfExportedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Bracket PDF is ready.'**
+  String get worldCupTournamentPdfExportedSnack;
+
+  /// No description provided for @worldCupTournamentPdfExportFailedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not create the bracket PDF.'**
+  String get worldCupTournamentPdfExportFailedSnack;
 
   /// No description provided for @worldCupStageMatchCount.
   ///
@@ -18658,6 +18682,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Play'**
   String get trainingSketchPlayTooltip;
+
+  /// No description provided for @trainingSketchPdfExportTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Download sketch PDF'**
+  String get trainingSketchPdfExportTooltip;
+
+  /// No description provided for @trainingSketchPdfExportedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Sketch PDF is ready.'**
+  String get trainingSketchPdfExportedSnack;
+
+  /// No description provided for @trainingSketchPdfExportFailedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not create the sketch PDF.'**
+  String get trainingSketchPdfExportFailedSnack;
 
   /// No description provided for @trainingSketchLandscapeModeTooltip.
   ///

@@ -16,6 +16,7 @@ import '../../domain/entities/training_board.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../models/training_method_layout.dart';
 import '../models/training_board_templates.dart';
+import '../utils/pdf_export.dart';
 import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_page_route.dart';
 import 'training_board_template_gallery_screen.dart';
@@ -72,6 +73,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   List<int>? _activeRouteSegmentDurationsMs;
   DateTime? _activeRouteLastPointAt;
   late final AnimationController _playController;
+  final GlobalKey _boardPdfBoundaryKey = GlobalKey();
   List<_PlaybackTrack> _playbackTracks = const <_PlaybackTrack>[];
   _PathDrawMode _pathDrawMode = _PathDrawMode.player;
   String _lastSavedLayout = '';
@@ -92,6 +94,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   bool _showSelectedColorPicker = false;
   Timer? _autoSaveTimer;
   bool _autoSaveInProgress = false;
+  bool _pdfExportInProgress = false;
 
   bool get _isManagedMode => widget.optionRepository != null;
   _BoardPageState get _currentPage => _pages.first;
@@ -163,6 +166,34 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _autoSaveInProgress = false;
       if (mounted && _hasUnsavedChanges) {
         _scheduleAutoSave();
+      }
+    }
+  }
+
+  Future<void> _exportCurrentSketchPdf() async {
+    if (_pdfExportInProgress) return;
+    setState(() => _pdfExportInProgress = true);
+    try {
+      await WidgetsBinding.instance.endOfFrame;
+      final pngBytes = await captureRepaintBoundaryPng(_boardPdfBoundaryKey);
+      await sharePngAsPdf(
+        pngImage: pngBytes,
+        filename: timestampedPdfFilename('training-sketch'),
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_l10n.trainingSketchPdfExportedSnack)),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_l10n.trainingSketchPdfExportFailedSnack)),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _pdfExportInProgress = false);
+      } else {
+        _pdfExportInProgress = false;
       }
     }
   }
@@ -4208,149 +4239,155 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         final width = constraints.maxWidth;
         final height = constraints.maxHeight;
         final surface = _boardSurfaceForSport(_currentSportId);
-        return Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            gradient: _boardSurfaceGradient(surface),
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: GestureDetector(
-            key: const ValueKey('training-board-canvas'),
-            behavior: HitTestBehavior.opaque,
-            onPanStart: widget.readOnly
-                ? null
-                : _penMode
-                    ? (details) =>
-                        _startStroke(details.localPosition, width, height)
-                    : _pathMode
-                        ? (details) => _startPlayerPath(
-                            details.localPosition, width, height)
-                        : (details) => _startSelectedRouteEndDrag(
-                              details.localPosition,
-                              width,
-                              height,
-                            ),
-            onPanUpdate: widget.readOnly
-                ? null
-                : _penMode
-                    ? (details) =>
-                        _appendStrokePoint(details.localPosition, width, height)
-                    : _pathMode
-                        ? (details) => _appendPlayerPath(
-                            details.localPosition, width, height)
-                        : (details) => _updateSelectedRouteEndDrag(
-                              details.localPosition,
-                              width,
-                              height,
-                            ),
-            onPanEnd: widget.readOnly
-                ? null
-                : _penMode
-                    ? (_) => _endStroke()
-                    : _pathMode
-                        ? (_) => _endPlayerPath()
-                        : (_) => _endSelectedRouteEndDrag(),
-            onTapUp: widget.readOnly
-                ? null
-                : (_pathMode || _pendingTargetAction != null)
-                    ? (details) => _handleBoardTap(
-                          details.localPosition,
-                          width,
-                          height,
-                        )
-                    : null,
-            child: Stack(
-              children: [
-                CustomPaint(
-                  key: ValueKey<String>(
-                    'training-board-surface-${surface.name}',
+        return RepaintBoundary(
+          key: _boardPdfBoundaryKey,
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              gradient: _boardSurfaceGradient(surface),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: GestureDetector(
+              key: const ValueKey('training-board-canvas'),
+              behavior: HitTestBehavior.opaque,
+              onPanStart: widget.readOnly
+                  ? null
+                  : _penMode
+                      ? (details) =>
+                          _startStroke(details.localPosition, width, height)
+                      : _pathMode
+                          ? (details) => _startPlayerPath(
+                              details.localPosition, width, height)
+                          : (details) => _startSelectedRouteEndDrag(
+                                details.localPosition,
+                                width,
+                                height,
+                              ),
+              onPanUpdate: widget.readOnly
+                  ? null
+                  : _penMode
+                      ? (details) => _appendStrokePoint(
+                          details.localPosition, width, height)
+                      : _pathMode
+                          ? (details) => _appendPlayerPath(
+                              details.localPosition, width, height)
+                          : (details) => _updateSelectedRouteEndDrag(
+                                details.localPosition,
+                                width,
+                                height,
+                              ),
+              onPanEnd: widget.readOnly
+                  ? null
+                  : _penMode
+                      ? (_) => _endStroke()
+                      : _pathMode
+                          ? (_) => _endPlayerPath()
+                          : (_) => _endSelectedRouteEndDrag(),
+              onTapUp: widget.readOnly
+                  ? null
+                  : (_pathMode || _pendingTargetAction != null)
+                      ? (details) => _handleBoardTap(
+                            details.localPosition,
+                            width,
+                            height,
+                          )
+                      : null,
+              child: Stack(
+                children: [
+                  CustomPaint(
+                    key: ValueKey<String>(
+                      'training-board-surface-${surface.name}',
+                    ),
+                    size: Size(width, height),
+                    painter: _SportSurfacePainter(
+                      surface: surface,
+                      showTacticalOverlay: _showTacticalOverlay,
+                    ),
                   ),
-                  size: Size(width, height),
-                  painter: _SportSurfacePainter(
-                    surface: surface,
-                    showTacticalOverlay: _showTacticalOverlay,
+                  CustomPaint(
+                    size: Size(width, height),
+                    painter: _PlayerPathPainter(
+                      routes: _playController.isAnimating
+                          ? const <_BoardRoute>[]
+                          : _currentPage.routes,
+                      selectedRouteId: _selectedRouteId,
+                      activeRoutePoints: _activeRoutePoints,
+                      activeRouteColor: _activeRoutePreviewColor(),
+                      activeRouteKind: _pathDrawMode,
+                    ),
                   ),
-                ),
-                CustomPaint(
-                  size: Size(width, height),
-                  painter: _PlayerPathPainter(
-                    routes: _playController.isAnimating
-                        ? const <_BoardRoute>[]
-                        : _currentPage.routes,
-                    selectedRouteId: _selectedRouteId,
-                    activeRoutePoints: _activeRoutePoints,
-                    activeRouteColor: _activeRoutePreviewColor(),
-                    activeRouteKind: _pathDrawMode,
+                  CustomPaint(
+                    size: Size(width, height),
+                    painter: _InkPainter(
+                      strokes: _currentPage.strokes,
+                      activeStrokePoints: _activeStroke,
+                      activeStrokeColor: _penColor,
+                    ),
                   ),
-                ),
-                CustomPaint(
-                  size: Size(width, height),
-                  painter: _InkPainter(
-                    strokes: _currentPage.strokes,
-                    activeStrokePoints: _activeStroke,
-                    activeStrokeColor: _penColor,
-                  ),
-                ),
-                IgnorePointer(
-                  ignoring: _playController.isAnimating,
-                  child: Stack(
-                    children: [
-                      for (final item in _boardItemsInPaintOrder())
-                        Positioned(
-                          left: (item.x * width) - 26,
-                          top: (item.y * height) - 26,
-                          child: GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: () => _handleBoardItemTap(item),
-                            onPanStart: widget.readOnly
-                                ? null
-                                : (_) => _startItemMove(item),
-                            onPanUpdate: widget.readOnly
-                                ? null
-                                : (details) => _updateItemMoveByDelta(
-                                      item,
-                                      delta: details.delta,
-                                      boardWidth: width,
-                                      boardHeight: height,
-                                    ),
-                            onPanEnd:
-                                widget.readOnly ? null : (_) => _endItemMove(),
-                            onPanCancel: widget.readOnly ? null : _endItemMove,
-                            onLongPressStart: widget.readOnly
-                                ? null
-                                : (_) => _startLongPressItemMove(item),
-                            onLongPressMoveUpdate: widget.readOnly
-                                ? null
-                                : (details) => _updateLongPressItemMove(
-                                      item,
-                                      offsetFromOrigin:
-                                          details.offsetFromOrigin,
-                                      boardWidth: width,
-                                      boardHeight: height,
-                                    ),
-                            onLongPressEnd:
-                                widget.readOnly ? null : (_) => _endItemMove(),
-                            onLongPressCancel:
-                                widget.readOnly ? null : _endItemMove,
-                            child: SizedBox(
-                              width: 52,
-                              height: 52,
-                              child: Center(
-                                child: _BoardToken(
-                                  item: item,
-                                  selected: item.id == _selectedItemId,
-                                  moving: item.id == _movingItemId,
-                                  label: _boardTokenLabelFor(item),
-                                  sportId: _currentSportIdOrDefault,
+                  IgnorePointer(
+                    ignoring: _playController.isAnimating,
+                    child: Stack(
+                      children: [
+                        for (final item in _boardItemsInPaintOrder())
+                          Positioned(
+                            left: (item.x * width) - 26,
+                            top: (item.y * height) - 26,
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () => _handleBoardItemTap(item),
+                              onPanStart: widget.readOnly
+                                  ? null
+                                  : (_) => _startItemMove(item),
+                              onPanUpdate: widget.readOnly
+                                  ? null
+                                  : (details) => _updateItemMoveByDelta(
+                                        item,
+                                        delta: details.delta,
+                                        boardWidth: width,
+                                        boardHeight: height,
+                                      ),
+                              onPanEnd: widget.readOnly
+                                  ? null
+                                  : (_) => _endItemMove(),
+                              onPanCancel:
+                                  widget.readOnly ? null : _endItemMove,
+                              onLongPressStart: widget.readOnly
+                                  ? null
+                                  : (_) => _startLongPressItemMove(item),
+                              onLongPressMoveUpdate: widget.readOnly
+                                  ? null
+                                  : (details) => _updateLongPressItemMove(
+                                        item,
+                                        offsetFromOrigin:
+                                            details.offsetFromOrigin,
+                                        boardWidth: width,
+                                        boardHeight: height,
+                                      ),
+                              onLongPressEnd: widget.readOnly
+                                  ? null
+                                  : (_) => _endItemMove(),
+                              onLongPressCancel:
+                                  widget.readOnly ? null : _endItemMove,
+                              child: SizedBox(
+                                width: 52,
+                                height: 52,
+                                child: Center(
+                                  child: _BoardToken(
+                                    item: item,
+                                    selected: item.id == _selectedItemId,
+                                    moving: item.id == _movingItemId,
+                                    label: _boardTokenLabelFor(item),
+                                    sportId: _currentSportIdOrDefault,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );
@@ -4405,6 +4442,12 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           label: _l10n.save,
           maxLabelWidth: 72,
         ),
+      AppBarActionButton.icon(
+        key: const ValueKey('training-sketch-pdf-button'),
+        onPressed: _pdfExportInProgress ? null : _exportCurrentSketchPdf,
+        icon: Icons.picture_as_pdf_outlined,
+        tooltip: _l10n.trainingSketchPdfExportTooltip,
+      ),
       AppBarActionButton.icon(
         onPressed: () => _playPlayerPath(isKo),
         icon: _playController.isAnimating
