@@ -10311,6 +10311,87 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get clubScheduleTitle => 'クラブ予定';
+
+  @override
+  String get clubScheduleSubtitle => '曜日別の練習時間とユニフォームカラーをすぐ確認できます。';
+
+  @override
+  String get clubScheduleHomeTitle => 'クラブ予定';
+
+  @override
+  String get clubScheduleHomeTodayRest => '今日は練習なし';
+
+  @override
+  String get clubScheduleHomeSetupHint => '練習時間とユニフォームカラーを登録しましょう。';
+
+  @override
+  String clubScheduleHomeNextTraining(Object weekday, Object time) {
+    return '次の練習 $weekday $time';
+  }
+
+  @override
+  String clubScheduleTodayTraining(Object time) {
+    return '今日 $time';
+  }
+
+  @override
+  String get clubScheduleTodayNoTraining => '今日の練習は登録されていません。';
+
+  @override
+  String clubScheduleNextTraining(Object weekday, Object time) {
+    return '次の練習: $weekday $time';
+  }
+
+  @override
+  String get clubScheduleNoUpcomingTraining => '予定されている練習はありません。';
+
+  @override
+  String get clubScheduleClubNameLabel => 'クラブ名';
+
+  @override
+  String get clubScheduleClubNameHint => '例) ソンナムU15';
+
+  @override
+  String get clubScheduleWeekdayTitle => '曜日別の練習時間';
+
+  @override
+  String get clubScheduleWeekdayHelper => '練習がある曜日だけオンにして、開始と終了時間を設定します。';
+
+  @override
+  String get clubScheduleStartTimeLabel => '開始';
+
+  @override
+  String get clubScheduleEndTimeLabel => '終了';
+
+  @override
+  String get clubScheduleDayOffLabel => '休み';
+
+  @override
+  String get clubScheduleUniformTitle => 'ユニフォームカラー';
+
+  @override
+  String get clubScheduleUniformHelper => '練習場ですぐ確認できるホーム、アウェイ、GKカラーを保存します。';
+
+  @override
+  String get clubScheduleHomeKitLabel => 'ホーム';
+
+  @override
+  String get clubScheduleAwayKitLabel => 'アウェイ';
+
+  @override
+  String get clubScheduleKeeperKitLabel => 'GK';
+
+  @override
+  String get clubScheduleColorSelectTooltip => 'カラー選択';
+
+  @override
+  String get clubScheduleSaveButton => 'クラブ予定を保存';
+
+  @override
+  String get clubScheduleSavedFeedback => 'クラブ予定を保存しました。';
+
+  @override
   String get teamManagementTitle => 'チーム管理';
 
   @override

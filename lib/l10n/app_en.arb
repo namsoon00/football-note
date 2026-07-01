@@ -5870,6 +5870,48 @@
       "formation": {}
     }
   },
+  "clubScheduleTitle": "Club Schedule",
+  "clubScheduleSubtitle": "Check weekly training times and uniform colors quickly.",
+  "clubScheduleHomeTitle": "Club schedule",
+  "clubScheduleHomeTodayRest": "No training today",
+  "clubScheduleHomeSetupHint": "Add training times and uniform colors.",
+  "clubScheduleHomeNextTraining": "Next training {weekday} {time}",
+  "@clubScheduleHomeNextTraining": {
+    "placeholders": {
+      "weekday": {},
+      "time": {}
+    }
+  },
+  "clubScheduleTodayTraining": "Today {time}",
+  "@clubScheduleTodayTraining": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "clubScheduleTodayNoTraining": "No training is set for today.",
+  "clubScheduleNextTraining": "Next training: {weekday} {time}",
+  "@clubScheduleNextTraining": {
+    "placeholders": {
+      "weekday": {},
+      "time": {}
+    }
+  },
+  "clubScheduleNoUpcomingTraining": "No upcoming training.",
+  "clubScheduleClubNameLabel": "Club name",
+  "clubScheduleClubNameHint": "e.g. Seongnam U15",
+  "clubScheduleWeekdayTitle": "Weekly training times",
+  "clubScheduleWeekdayHelper": "Turn on training days and set start and end times.",
+  "clubScheduleStartTimeLabel": "Start",
+  "clubScheduleEndTimeLabel": "End",
+  "clubScheduleDayOffLabel": "Off",
+  "clubScheduleUniformTitle": "Uniform colors",
+  "clubScheduleUniformHelper": "Save the home, away, and goalkeeper colors you need at training.",
+  "clubScheduleHomeKitLabel": "Home",
+  "clubScheduleAwayKitLabel": "Away",
+  "clubScheduleKeeperKitLabel": "GK",
+  "clubScheduleColorSelectTooltip": "Select color",
+  "clubScheduleSaveButton": "Save club schedule",
+  "clubScheduleSavedFeedback": "Club schedule saved.",
   "teamManagementTitle": "Team Management",
   "teamManagementSubtitle": "Start with player registration, then drag players onto a larger pitch board to organize tactics.",
   "teamManagementOpenButton": "Team management",

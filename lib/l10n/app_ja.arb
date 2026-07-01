@@ -5870,6 +5870,48 @@
       "formation": {}
     }
   },
+  "clubScheduleTitle": "クラブ予定",
+  "clubScheduleSubtitle": "曜日別の練習時間とユニフォームカラーをすぐ確認できます。",
+  "clubScheduleHomeTitle": "クラブ予定",
+  "clubScheduleHomeTodayRest": "今日は練習なし",
+  "clubScheduleHomeSetupHint": "練習時間とユニフォームカラーを登録しましょう。",
+  "clubScheduleHomeNextTraining": "次の練習 {weekday} {time}",
+  "@clubScheduleHomeNextTraining": {
+    "placeholders": {
+      "weekday": {},
+      "time": {}
+    }
+  },
+  "clubScheduleTodayTraining": "今日 {time}",
+  "@clubScheduleTodayTraining": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "clubScheduleTodayNoTraining": "今日の練習は登録されていません。",
+  "clubScheduleNextTraining": "次の練習: {weekday} {time}",
+  "@clubScheduleNextTraining": {
+    "placeholders": {
+      "weekday": {},
+      "time": {}
+    }
+  },
+  "clubScheduleNoUpcomingTraining": "予定されている練習はありません。",
+  "clubScheduleClubNameLabel": "クラブ名",
+  "clubScheduleClubNameHint": "例) ソンナムU15",
+  "clubScheduleWeekdayTitle": "曜日別の練習時間",
+  "clubScheduleWeekdayHelper": "練習がある曜日だけオンにして、開始と終了時間を設定します。",
+  "clubScheduleStartTimeLabel": "開始",
+  "clubScheduleEndTimeLabel": "終了",
+  "clubScheduleDayOffLabel": "休み",
+  "clubScheduleUniformTitle": "ユニフォームカラー",
+  "clubScheduleUniformHelper": "練習場ですぐ確認できるホーム、アウェイ、GKカラーを保存します。",
+  "clubScheduleHomeKitLabel": "ホーム",
+  "clubScheduleAwayKitLabel": "アウェイ",
+  "clubScheduleKeeperKitLabel": "GK",
+  "clubScheduleColorSelectTooltip": "カラー選択",
+  "clubScheduleSaveButton": "クラブ予定を保存",
+  "clubScheduleSavedFeedback": "クラブ予定を保存しました。",
   "teamManagementTitle": "チーム管理",
   "teamManagementSubtitle": "選手登録から始め、大きなピッチボードへ選手をドラッグして戦術を整理します。",
   "teamManagementOpenButton": "チーム管理",

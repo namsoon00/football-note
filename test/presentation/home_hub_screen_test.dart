@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/backup_service.dart';
+import 'package:football_note/application/club_schedule_service.dart';
 import 'package:football_note/application/family_access_service.dart';
 import 'package:football_note/application/locale_service.dart';
 import 'package:football_note/application/meal_log_service.dart';
@@ -170,6 +171,71 @@ void main() {
       optionRepository.getValue<String>('home_weather_snapshot_v1'),
       contains('소나기 18°C'),
     );
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
+
+  testWidgets('home shows club schedule card and opens schedule screen', (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _MemoryOptionRepository();
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+    final trainingService = TrainingService(_MemoryTrainingRepository());
+    final mealLogService = MealLogService(optionRepository);
+    final todayWeekday = DateTime.now().weekday;
+
+    await ClubScheduleService(optionRepository).saveProfile(
+      ClubScheduleProfile.empty().copyWith(
+        clubName: '성남 U15',
+        weekdaySchedules: [
+          ClubTrainingSchedule(
+            weekday: todayWeekday,
+            enabled: true,
+            startMinutes: 19 * 60,
+            endMinutes: 21 * 60,
+          ),
+        ],
+        homeUniformColorValue: 0xFFDC2626,
+      ),
+    );
+
+    await tester.pumpWidget(
+      _buildApp(
+        HomeHubScreen(
+          trainingService: trainingService,
+          mealLogService: mealLogService,
+          localeService: localeService,
+          optionRepository: optionRepository,
+          settingsService: settingsService,
+          onCreate: () {},
+          onQuickPlan: () {},
+          onQuickMatch: () {},
+          onQuickQuiz: () {},
+          onQuickMeal: () {},
+          onQuickBoard: () {},
+          onOpenLogs: () {},
+          onOpenDiary: () {},
+          onOpenWeeklyStats: () {},
+          onEdit: (_) {},
+          onEditTrainingBoard: (_) {},
+          onCreateTrainingBoard: ({DateTime? initialDate}) async {},
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    final card = find.byKey(const ValueKey<String>('home-club-schedule-card'));
+    expect(card, findsOneWidget);
+    expect(find.text('성남 U15'), findsOneWidget);
+    expect(find.textContaining('오늘'), findsWidgets);
+
+    await tester.tap(card);
+    await tester.pumpAndSettle();
+
+    expect(find.text('클럽 일정'), findsWidgets);
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump();

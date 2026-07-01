@@ -5870,6 +5870,48 @@
       "formation": {}
     }
   },
+  "clubScheduleTitle": "클럽 일정",
+  "clubScheduleSubtitle": "요일별 훈련시간과 유니폼 컬러를 빠르게 확인하세요.",
+  "clubScheduleHomeTitle": "클럽 일정",
+  "clubScheduleHomeTodayRest": "오늘 훈련 없음",
+  "clubScheduleHomeSetupHint": "훈련 시간과 유니폼 컬러를 등록하세요.",
+  "clubScheduleHomeNextTraining": "다음 훈련 {weekday} {time}",
+  "@clubScheduleHomeNextTraining": {
+    "placeholders": {
+      "weekday": {},
+      "time": {}
+    }
+  },
+  "clubScheduleTodayTraining": "오늘 {time}",
+  "@clubScheduleTodayTraining": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "clubScheduleTodayNoTraining": "오늘 등록된 훈련이 없어요.",
+  "clubScheduleNextTraining": "다음 훈련: {weekday} {time}",
+  "@clubScheduleNextTraining": {
+    "placeholders": {
+      "weekday": {},
+      "time": {}
+    }
+  },
+  "clubScheduleNoUpcomingTraining": "예정된 훈련이 없어요.",
+  "clubScheduleClubNameLabel": "클럽 이름",
+  "clubScheduleClubNameHint": "예) 성남 U15",
+  "clubScheduleWeekdayTitle": "요일별 훈련시간",
+  "clubScheduleWeekdayHelper": "훈련이 있는 요일만 켜고 시작/종료 시간을 맞추세요.",
+  "clubScheduleStartTimeLabel": "시작",
+  "clubScheduleEndTimeLabel": "종료",
+  "clubScheduleDayOffLabel": "쉼",
+  "clubScheduleUniformTitle": "유니폼 컬러",
+  "clubScheduleUniformHelper": "훈련장에서 바로 확인할 홈, 어웨이, 골키퍼 컬러를 정해두세요.",
+  "clubScheduleHomeKitLabel": "홈",
+  "clubScheduleAwayKitLabel": "어웨이",
+  "clubScheduleKeeperKitLabel": "GK",
+  "clubScheduleColorSelectTooltip": "컬러 선택",
+  "clubScheduleSaveButton": "클럽 일정 저장",
+  "clubScheduleSavedFeedback": "클럽 일정을 저장했어요.",
   "teamManagementTitle": "팀 관리",
   "teamManagementSubtitle": "선수 등록부터 시작하고, 큰 그라운드 보드에 선수를 끌어 올려 전술을 정리하세요.",
   "teamManagementOpenButton": "팀 관리",

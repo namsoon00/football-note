@@ -18154,6 +18154,156 @@ abstract class AppLocalizations {
   /// **'{formation} formation'**
   String matchHubTeamFormationValue(Object formation);
 
+  /// No description provided for @clubScheduleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Club Schedule'**
+  String get clubScheduleTitle;
+
+  /// No description provided for @clubScheduleSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Check weekly training times and uniform colors quickly.'**
+  String get clubScheduleSubtitle;
+
+  /// No description provided for @clubScheduleHomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Club schedule'**
+  String get clubScheduleHomeTitle;
+
+  /// No description provided for @clubScheduleHomeTodayRest.
+  ///
+  /// In en, this message translates to:
+  /// **'No training today'**
+  String get clubScheduleHomeTodayRest;
+
+  /// No description provided for @clubScheduleHomeSetupHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add training times and uniform colors.'**
+  String get clubScheduleHomeSetupHint;
+
+  /// No description provided for @clubScheduleHomeNextTraining.
+  ///
+  /// In en, this message translates to:
+  /// **'Next training {weekday} {time}'**
+  String clubScheduleHomeNextTraining(Object weekday, Object time);
+
+  /// No description provided for @clubScheduleTodayTraining.
+  ///
+  /// In en, this message translates to:
+  /// **'Today {time}'**
+  String clubScheduleTodayTraining(Object time);
+
+  /// No description provided for @clubScheduleTodayNoTraining.
+  ///
+  /// In en, this message translates to:
+  /// **'No training is set for today.'**
+  String get clubScheduleTodayNoTraining;
+
+  /// No description provided for @clubScheduleNextTraining.
+  ///
+  /// In en, this message translates to:
+  /// **'Next training: {weekday} {time}'**
+  String clubScheduleNextTraining(Object weekday, Object time);
+
+  /// No description provided for @clubScheduleNoUpcomingTraining.
+  ///
+  /// In en, this message translates to:
+  /// **'No upcoming training.'**
+  String get clubScheduleNoUpcomingTraining;
+
+  /// No description provided for @clubScheduleClubNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Club name'**
+  String get clubScheduleClubNameLabel;
+
+  /// No description provided for @clubScheduleClubNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Seongnam U15'**
+  String get clubScheduleClubNameHint;
+
+  /// No description provided for @clubScheduleWeekdayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly training times'**
+  String get clubScheduleWeekdayTitle;
+
+  /// No description provided for @clubScheduleWeekdayHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on training days and set start and end times.'**
+  String get clubScheduleWeekdayHelper;
+
+  /// No description provided for @clubScheduleStartTimeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get clubScheduleStartTimeLabel;
+
+  /// No description provided for @clubScheduleEndTimeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'End'**
+  String get clubScheduleEndTimeLabel;
+
+  /// No description provided for @clubScheduleDayOffLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get clubScheduleDayOffLabel;
+
+  /// No description provided for @clubScheduleUniformTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Uniform colors'**
+  String get clubScheduleUniformTitle;
+
+  /// No description provided for @clubScheduleUniformHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Save the home, away, and goalkeeper colors you need at training.'**
+  String get clubScheduleUniformHelper;
+
+  /// No description provided for @clubScheduleHomeKitLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get clubScheduleHomeKitLabel;
+
+  /// No description provided for @clubScheduleAwayKitLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Away'**
+  String get clubScheduleAwayKitLabel;
+
+  /// No description provided for @clubScheduleKeeperKitLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'GK'**
+  String get clubScheduleKeeperKitLabel;
+
+  /// No description provided for @clubScheduleColorSelectTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Select color'**
+  String get clubScheduleColorSelectTooltip;
+
+  /// No description provided for @clubScheduleSaveButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Save club schedule'**
+  String get clubScheduleSaveButton;
+
+  /// No description provided for @clubScheduleSavedFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Club schedule saved.'**
+  String get clubScheduleSavedFeedback;
+
   /// No description provided for @teamManagementTitle.
   ///
   /// In en, this message translates to:

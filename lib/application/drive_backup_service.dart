@@ -12,6 +12,7 @@ import 'package:http/http.dart' as http;
 import 'backup_asset_store.dart';
 import 'backup_asset_store_types.dart';
 import 'challenge_service.dart';
+import 'club_schedule_service.dart';
 import 'coach_roster_service.dart';
 import 'drive_connection_info.dart';
 import 'league_fixture_reminder_service.dart';
@@ -305,6 +306,7 @@ class DriveBackupService implements BackupRepository {
     // Coach roster and active player selection.
     CoachRosterService.rosterPlayersKey,
     CoachRosterService.activePlayerIdKey,
+    ClubScheduleService.storageKey,
 
     // Family-shared record layer.
     FamilyAccessService.linkedRoleKey,
@@ -359,6 +361,7 @@ class DriveBackupService implements BackupRepository {
     'training_plans_v1_',
     'meal_logs_v1_',
     'training_boards_v1_',
+    'club_training_schedule_v1_',
     'match_managed_teams_v1_',
     'match_competitions_v1_',
     'challenge_runs_v1_',

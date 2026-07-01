@@ -10330,6 +10330,87 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get clubScheduleTitle => '클럽 일정';
+
+  @override
+  String get clubScheduleSubtitle => '요일별 훈련시간과 유니폼 컬러를 빠르게 확인하세요.';
+
+  @override
+  String get clubScheduleHomeTitle => '클럽 일정';
+
+  @override
+  String get clubScheduleHomeTodayRest => '오늘 훈련 없음';
+
+  @override
+  String get clubScheduleHomeSetupHint => '훈련 시간과 유니폼 컬러를 등록하세요.';
+
+  @override
+  String clubScheduleHomeNextTraining(Object weekday, Object time) {
+    return '다음 훈련 $weekday $time';
+  }
+
+  @override
+  String clubScheduleTodayTraining(Object time) {
+    return '오늘 $time';
+  }
+
+  @override
+  String get clubScheduleTodayNoTraining => '오늘 등록된 훈련이 없어요.';
+
+  @override
+  String clubScheduleNextTraining(Object weekday, Object time) {
+    return '다음 훈련: $weekday $time';
+  }
+
+  @override
+  String get clubScheduleNoUpcomingTraining => '예정된 훈련이 없어요.';
+
+  @override
+  String get clubScheduleClubNameLabel => '클럽 이름';
+
+  @override
+  String get clubScheduleClubNameHint => '예) 성남 U15';
+
+  @override
+  String get clubScheduleWeekdayTitle => '요일별 훈련시간';
+
+  @override
+  String get clubScheduleWeekdayHelper => '훈련이 있는 요일만 켜고 시작/종료 시간을 맞추세요.';
+
+  @override
+  String get clubScheduleStartTimeLabel => '시작';
+
+  @override
+  String get clubScheduleEndTimeLabel => '종료';
+
+  @override
+  String get clubScheduleDayOffLabel => '쉼';
+
+  @override
+  String get clubScheduleUniformTitle => '유니폼 컬러';
+
+  @override
+  String get clubScheduleUniformHelper => '훈련장에서 바로 확인할 홈, 어웨이, 골키퍼 컬러를 정해두세요.';
+
+  @override
+  String get clubScheduleHomeKitLabel => '홈';
+
+  @override
+  String get clubScheduleAwayKitLabel => '어웨이';
+
+  @override
+  String get clubScheduleKeeperKitLabel => 'GK';
+
+  @override
+  String get clubScheduleColorSelectTooltip => '컬러 선택';
+
+  @override
+  String get clubScheduleSaveButton => '클럽 일정 저장';
+
+  @override
+  String get clubScheduleSavedFeedback => '클럽 일정을 저장했어요.';
+
+  @override
   String get teamManagementTitle => '팀 관리';
 
   @override
