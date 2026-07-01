@@ -11477,19 +11477,19 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneDailyOutcomeTimes.
   ///
   /// In en, this message translates to:
-  /// **'when you check your phone in the morning|before you leave home|on the way to school or work|when choosing lunch|when you check messages in the afternoon|when you sit down for a short break|while tidying your bag or desk|while waiting for someone|around dinner time|before sleep when you look back on the day'**
+  /// **'in the morning|before leaving home|on the move|around lunch|in an afternoon message|during a short break|while tidying up|while waiting|around dinner|before sleep'**
   String get fortuneDailyOutcomeTimes;
 
   /// No description provided for @fortuneDailyOutcomeSubjects.
   ///
   /// In en, this message translates to:
-  /// **'a welcome message|a needed notification|the information you were looking for|a short conversation|someone\'s quick comment|a forgotten schedule|a clear free slot|the option you were weighing|a small discovery|the answer you waited for'**
+  /// **'good news|a needed alert|the answer you wanted|a short chat|unexpected praise|a welcome offer|new information|an easy choice|a small find|a welcome reply'**
   String get fortuneDailyOutcomeSubjects;
 
   /// No description provided for @fortuneDailyOutcomeResults.
   ///
   /// In en, this message translates to:
-  /// **'takes one task off your mind.|helps you decide the next step quickly.|gives you a clear reason to smile.|starts an easy chat with someone nearby.|reminds you of something you almost missed.|makes waiting feel shorter.|turns into a detail you can use right away.|stays pleasant enough to remember tonight.|turns a messy thought into one clear line.|makes the end of the day easier.'**
+  /// **'makes you smile fast.|makes the choice easy.|lifts your mood quickly.|opens a good chat.|catches what you almost missed.|makes waiting feel short.|helps right away.|makes today easier.|stays nice until tonight.|makes the day end easier.'**
   String get fortuneDailyOutcomeResults;
 
   /// No description provided for @fortuneSajuTrainingTones.
