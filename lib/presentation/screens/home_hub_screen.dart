@@ -44,6 +44,7 @@ import '../widgets/progress_star_gauge.dart';
 import '../widgets/rinzy_mascot.dart';
 import '../widgets/rice_bowl_summary.dart';
 import '../widgets/shared_tab_header.dart';
+import '../widgets/uniform_jersey_swatch.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
 import 'profile_screen.dart';
 import 'settings_screen.dart';
@@ -2320,9 +2321,17 @@ class _ClubScheduleHomeCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
-              _ClubScheduleUniformDot(
-                colorValue: previewSchedule?.uniformColorValue ??
-                    ClubTrainingSchedule.defaultUniformColorValue,
+              UniformJerseySwatch(
+                color: Color(
+                  previewSchedule?.uniformColorValue ??
+                      ClubTrainingSchedule.defaultUniformColorValue,
+                ),
+                size: 22,
+                borderColor: Theme.of(context).colorScheme.outline.withValues(
+                      alpha: 0.52,
+                    ),
+                semanticLabel:
+                    AppLocalizations.of(context)!.clubScheduleDayUniformLabel,
               ),
               const SizedBox(width: AppSpacing.xs),
               Icon(
@@ -2331,31 +2340,6 @@ class _ClubScheduleHomeCard extends StatelessWidget {
                 color: scheme.onSurfaceVariant,
               ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ClubScheduleUniformDot extends StatelessWidget {
-  final int colorValue;
-
-  const _ClubScheduleUniformDot({required this.colorValue});
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      label: AppLocalizations.of(context)!.clubScheduleDayUniformLabel,
-      child: Container(
-        width: 18,
-        height: 18,
-        decoration: BoxDecoration(
-          color: Color(colorValue),
-          shape: BoxShape.circle,
-          border: Border.all(
-            color:
-                Theme.of(context).colorScheme.outline.withValues(alpha: 0.42),
           ),
         ),
       ),
