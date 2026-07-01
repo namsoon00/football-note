@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 enum HomeHubSectionId {
+  clubSchedule('club_schedule'),
   level('level'),
   challenge('challenge'),
   streak('streak'),
@@ -48,6 +49,7 @@ class HomeHubSectionSettings {
   static const String legacyLayoutKey = 'home_hub_layout_v1';
 
   static const List<HomeHubSectionId> defaultOrder = <HomeHubSectionId>[
+    HomeHubSectionId.clubSchedule,
     HomeHubSectionId.level,
     HomeHubSectionId.challenge,
     HomeHubSectionId.streak,
@@ -58,6 +60,7 @@ class HomeHubSectionSettings {
   ];
 
   static const List<HomeHubSectionId> routineFirstOrder = <HomeHubSectionId>[
+    HomeHubSectionId.clubSchedule,
     HomeHubSectionId.dailyFlow,
     HomeHubSectionId.quickActions,
     HomeHubSectionId.continueSection,

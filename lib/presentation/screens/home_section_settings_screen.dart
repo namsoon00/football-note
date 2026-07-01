@@ -380,6 +380,7 @@ class _FastReorderableDelayedDragStartListener
 
 extension HomeHubSectionPresentation on HomeHubSectionId {
   IconData get icon => switch (this) {
+        HomeHubSectionId.clubSchedule => Icons.event_available_outlined,
         HomeHubSectionId.level => Icons.stars_outlined,
         HomeHubSectionId.challenge => Icons.flag_outlined,
         HomeHubSectionId.streak => Icons.local_fire_department_outlined,
@@ -390,6 +391,7 @@ extension HomeHubSectionPresentation on HomeHubSectionId {
       };
 
   String label(AppLocalizations l10n) => switch (this) {
+        HomeHubSectionId.clubSchedule => l10n.homeSectionClubSchedule,
         HomeHubSectionId.level => l10n.homeSectionLevel,
         HomeHubSectionId.challenge => l10n.homeSectionChallenge,
         HomeHubSectionId.streak => l10n.homeSectionStreak,

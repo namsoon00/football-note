@@ -1651,6 +1651,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get homeLayoutNoVisibleSections => '表示中のホームセクションがありません。';
 
   @override
+  String get homeSectionClubSchedule => 'クラブ予定';
+
+  @override
   String get homeSectionLevel => 'レベル概要';
 
   @override
