@@ -3203,7 +3203,7 @@ void main() {
     expect(memoRect.left, greaterThan(boardRectWithMemo.right));
   });
 
-  testWidgets('orientation button requests landscape mode', (
+  testWidgets('orientation button waits for a true landscape surface', (
     WidgetTester tester,
   ) async {
     _setPortraitSurface(tester);
@@ -3239,7 +3239,7 @@ void main() {
 
     expect(
       find.byKey(const ValueKey('training-landscape-control-panel')),
-      findsOneWidget,
+      findsNothing,
     );
     final orientationCall = platformCalls.lastWhere(
       (call) => call.method == 'SystemChrome.setPreferredOrientations',
@@ -3247,6 +3247,14 @@ void main() {
     final arguments = '${orientationCall.arguments}';
     expect(arguments, contains('landscapeLeft'));
     expect(arguments, contains('landscapeRight'));
+
+    tester.view.physicalSize = const Size(1000, 720);
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey('training-landscape-control-panel')),
+      findsOneWidget,
+    );
   });
 
   testWidgets('selected player can register the next action stage', (
