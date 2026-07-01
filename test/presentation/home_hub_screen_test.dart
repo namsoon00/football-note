@@ -236,10 +236,21 @@ void main() {
     final card = find.byKey(const ValueKey<String>('home-club-schedule-card'));
     expect(card, findsOneWidget);
     expect(find.text('성남 U15'), findsOneWidget);
+    final cardContext = tester.element(card);
+    String timeLabel(int minutes) {
+      return MaterialLocalizations.of(cardContext).formatTimeOfDay(
+        TimeOfDay(hour: minutes ~/ 60, minute: minutes % 60),
+        alwaysUse24HourFormat: MediaQuery.alwaysUse24HourFormatOf(cardContext),
+      );
+    }
+
+    final expectedTimeRange =
+        '${timeLabel(scheduleStartMinutes)}-${timeLabel(scheduleEndMinutes)}';
     expect(
       find.textContaining(canUseToday ? '오늘' : '다음 훈련'),
       findsWidgets,
     );
+    expect(find.textContaining(expectedTimeRange), findsOneWidget);
 
     await tester.tap(card);
     await tester.pumpAndSettle();
