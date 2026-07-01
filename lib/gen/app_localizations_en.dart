@@ -1699,6 +1699,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeLayoutNoVisibleSections => 'All home sections are hidden.';
 
   @override
+  String get homeSectionClubSchedule => 'Club schedule';
+
+  @override
   String get homeSectionLevel => 'Level summary';
 
   @override

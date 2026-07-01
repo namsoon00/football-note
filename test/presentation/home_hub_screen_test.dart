@@ -281,6 +281,10 @@ void main() {
     }
 
     expect(
+      sectionTop('home-layout-club-schedule-section'),
+      lessThan(sectionTop('home-layout-level-section')),
+    );
+    expect(
       sectionTop('home-layout-level-section'),
       lessThan(sectionTop('home-layout-daily-flow-section')),
     );
@@ -309,6 +313,12 @@ void main() {
     expect(find.text('홈 화면 설정'), findsOneWidget);
     expect(
       find.byKey(const ValueKey<String>('home-section-drag-area-level')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(
+        const ValueKey<String>('home-section-drag-area-club_schedule'),
+      ),
       findsOneWidget,
     );
     expect(find.byTooltip('섹션 이동'), findsNothing);
@@ -341,7 +351,7 @@ void main() {
     final reorderableList = tester.widget<ReorderableListView>(
       find.byKey(const ValueKey<String>('home-section-settings-list')),
     );
-    reorderableList.onReorder(5, 4);
+    reorderableList.onReorder(6, 5);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 250));
     expect(find.text('홈 화면 순서를 저장했어요.'), findsOneWidget);

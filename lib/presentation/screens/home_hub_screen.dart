@@ -344,6 +344,16 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                   );
 
                   final homeSectionsById = <HomeHubSectionId, Widget?>{
+                    HomeHubSectionId.clubSchedule: keyedSection(
+                      'home-layout-club-schedule-section',
+                      _ClubScheduleHomeCard(
+                        key: const ValueKey<String>(
+                          'home-club-schedule-card',
+                        ),
+                        profile: clubScheduleProfile,
+                        onTap: () => _openClubSchedule(sportId: sportId),
+                      ),
+                    ),
                     HomeHubSectionId.level: keyedSection(
                       'home-layout-level-section',
                       _LevelHeroCard(
@@ -521,14 +531,6 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                         ),
                         const SizedBox(height: 12),
                         titleSection,
-                        const SizedBox(height: 12),
-                        _ClubScheduleHomeCard(
-                          key: const ValueKey<String>(
-                            'home-club-schedule-card',
-                          ),
-                          profile: clubScheduleProfile,
-                          onTap: () => _openClubSchedule(sportId: sportId),
-                        ),
                         const SizedBox(height: 12),
                         if (visibleHomeSections.isEmpty)
                           _HomeSectionsEmptyCard(l10n: l10n)

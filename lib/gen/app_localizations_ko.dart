@@ -1648,6 +1648,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homeLayoutNoVisibleSections => '표시 중인 홈 섹션이 없어요.';
 
   @override
+  String get homeSectionClubSchedule => '클럽 일정';
+
+  @override
   String get homeSectionLevel => '레벨 요약';
 
   @override

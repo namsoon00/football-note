@@ -1031,6 +1031,7 @@
   "homeLayoutReorderTooltip": "Move section",
   "homeLayoutSavedMessage": "Home screen order saved.",
   "homeLayoutNoVisibleSections": "All home sections are hidden.",
+  "homeSectionClubSchedule": "Club schedule",
   "homeSectionLevel": "Level summary",
   "homeSectionChallenge": "Challenge",
   "homeSectionStreak": "Training streak",

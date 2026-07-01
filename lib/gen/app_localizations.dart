@@ -3013,6 +3013,12 @@ abstract class AppLocalizations {
   /// **'All home sections are hidden.'**
   String get homeLayoutNoVisibleSections;
 
+  /// No description provided for @homeSectionClubSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Club schedule'**
+  String get homeSectionClubSchedule;
+
   /// No description provided for @homeSectionLevel.
   ///
   /// In en, this message translates to:
