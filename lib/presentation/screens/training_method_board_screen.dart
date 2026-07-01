@@ -17,6 +17,7 @@ import '../../domain/repositories/option_repository.dart';
 import '../models/training_method_layout.dart';
 import '../models/training_board_templates.dart';
 import '../utils/pdf_export.dart';
+import '../utils/training_sketch_orientation_lock.dart';
 import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_page_route.dart';
 import 'training_board_template_gallery_screen.dart';
@@ -86,7 +87,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   bool _memoCommitted = false;
   int _memoSession = 0;
   double _playSpeed = 1.0;
-  bool _forceLandscapeLayout = false;
   bool _showLandscapeControls = true;
   bool _showLandscapeMemo = false;
   bool _showPortraitMemo = false;
@@ -2762,11 +2762,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   Future<void> _setSketchOrientationLock({required bool landscape}) async {
-    if (mounted) {
-      setState(() => _forceLandscapeLayout = landscape);
-    } else {
-      _forceLandscapeLayout = landscape;
-    }
     await SystemChrome.setPreferredOrientations(
       landscape
           ? const <DeviceOrientation>[
@@ -2775,6 +2770,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             ]
           : DeviceOrientation.values,
     );
+    await setTrainingSketchBrowserOrientation(landscape: landscape);
   }
 
   void _clearAllRoutes() {
@@ -4070,7 +4066,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     _syncRouteResult();
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final size = MediaQuery.sizeOf(context);
-    final isLandscape = _forceLandscapeLayout || size.width > size.height;
+    final isLandscape = size.width > size.height;
     final canPopWithoutPrompt = widget.readOnly || !_hasUnsavedChanges;
     return PopScope(
       canPop: canPopWithoutPrompt,
