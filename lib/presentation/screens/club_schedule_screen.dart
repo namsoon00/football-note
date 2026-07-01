@@ -6,6 +6,7 @@ import '../../application/club_schedule_service.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_background.dart';
+import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_feedback.dart';
 
 class ClubScheduleScreen extends StatefulWidget {
@@ -112,7 +113,24 @@ class _ClubScheduleScreenState extends State<ClubScheduleScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.clubScheduleTitle)),
+      appBar: AppBar(
+        title: Text(l10n.clubScheduleTitle),
+        actions: [
+          AppBarActionButton.label(
+            key: const ValueKey<String>('club-schedule-save-button'),
+            icon: _saving
+                ? const SizedBox.square(
+                    dimension: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.save_outlined),
+            label: l10n.clubScheduleSaveButton,
+            tooltip: l10n.clubScheduleSaveButton,
+            onPressed: _saving ? null : _save,
+            maxLabelWidth: 120,
+          ),
+        ],
+      ),
       body: AppBackground(
         child: SafeArea(
           child: ListView(
@@ -138,18 +156,6 @@ class _ClubScheduleScreenState extends State<ClubScheduleScreen> {
                 timeRangeLabel: _timeRangeLabel,
                 onScheduleChanged: _setSchedule,
                 onPickTime: _pickScheduleTime,
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              FilledButton.icon(
-                key: const ValueKey<String>('club-schedule-save-button'),
-                onPressed: _saving ? null : _save,
-                icon: _saving
-                    ? const SizedBox.square(
-                        dimension: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.save_outlined),
-                label: Text(l10n.clubScheduleSaveButton),
               ),
             ],
           ),
