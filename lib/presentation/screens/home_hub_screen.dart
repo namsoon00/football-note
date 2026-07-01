@@ -2247,6 +2247,10 @@ class _ClubScheduleHomeCard extends StatelessWidget {
     final nextTraining = profile.nextTraining(today);
     final previewSchedule =
         hasTodayTraining ? todaySchedule : nextTraining?.schedule;
+    final previewUniformColor = Color(
+      previewSchedule?.uniformColorValue ??
+          ClubTrainingSchedule.defaultUniformColorValue,
+    );
     final clubName = profile.clubName.trim();
     final title = clubName.isEmpty ? l10n.clubScheduleHomeTitle : clubName;
     final primary = hasTodayTraining
@@ -2274,13 +2278,20 @@ class _ClubScheduleHomeCard extends StatelessWidget {
               Container(
                 width: 46,
                 height: 46,
+                alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: scheme.primary.withValues(alpha: 0.12),
                   borderRadius: AppRadius.small,
+                  border: Border.all(
+                    color: scheme.outline.withValues(alpha: 0.14),
+                  ),
                 ),
-                child: Icon(
-                  Icons.event_available_outlined,
-                  color: scheme.primary,
+                child: UniformJerseySwatch(
+                  color: previewUniformColor,
+                  size: 31,
+                  borderColor: scheme.outline.withValues(alpha: 0.56),
+                  borderWidth: 1.25,
+                  semanticLabel: l10n.clubScheduleDayUniformLabel,
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
@@ -2321,19 +2332,6 @@ class _ClubScheduleHomeCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
-              UniformJerseySwatch(
-                color: Color(
-                  previewSchedule?.uniformColorValue ??
-                      ClubTrainingSchedule.defaultUniformColorValue,
-                ),
-                size: 22,
-                borderColor: Theme.of(context).colorScheme.outline.withValues(
-                      alpha: 0.52,
-                    ),
-                semanticLabel:
-                    AppLocalizations.of(context)!.clubScheduleDayUniformLabel,
-              ),
-              const SizedBox(width: AppSpacing.xs),
               Icon(
                 Icons.chevron_right,
                 size: 20,
