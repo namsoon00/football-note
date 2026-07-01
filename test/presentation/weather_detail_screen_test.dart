@@ -215,7 +215,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('Hourly precipitation starts at the first rainy hour', (
+  testWidgets('Hourly precipitation keeps hours before the first rainy hour', (
     WidgetTester tester,
   ) async {
     WeatherSharedResource.primeSnapshot(
@@ -278,13 +278,94 @@ void main() {
     await tester.pump();
 
     expect(find.text('시간별 비 타임라인'), findsOneWidget);
-    expect(find.text('09:00'), findsNothing);
-    expect(find.text('10:00'), findsNothing);
+    expect(find.text('09:00'), findsOneWidget);
+    expect(find.text('10:00'), findsOneWidget);
     expect(find.text('11:00'), findsAtLeastNWidgets(1));
     expect(find.textContaining('0.5 mm'), findsAtLeastNWidgets(1));
     expect(find.textContaining('조금 와요'), findsAtLeastNWidgets(1));
-    expect(find.textContaining('0.0 mm'), findsOneWidget);
-    expect(find.textContaining('안 와요'), findsOneWidget);
+    expect(find.textContaining('0.0 mm'), findsAtLeastNWidgets(1));
+    expect(find.textContaining('안 와요'), findsAtLeastNWidgets(1));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Hourly weather keeps all hours and focuses current hour', (
+    WidgetTester tester,
+  ) async {
+    final now = DateTime.now();
+    final todayDate = DateTime(now.year, now.month, now.day);
+    final firstHour = todayDate.add(Duration(hours: now.hour - 6));
+    String hourLabel(DateTime value) =>
+        '${value.hour.toString().padLeft(2, '0')}:00';
+
+    WeatherSharedResource.primeSnapshot(
+      WeatherSharedSnapshot(
+        location: '강남구 역삼1동',
+        localeTag: 'ko-KR',
+        fetchedAt: now,
+        summary: '맑음',
+        weatherCode: 0,
+        temperature: 21,
+        dailyForecasts: [
+          WeatherSharedDailyForecast(
+            date: todayDate,
+            summary: '맑음',
+            weatherCode: 0,
+            temperatureMax: 26,
+            temperatureMin: 15,
+            hourlyForecasts: [
+              for (var index = 0; index < 24; index++)
+                WeatherSharedForecastMoment(
+                  time: firstHour.add(Duration(hours: index)),
+                  temperature: 15 + index.toDouble(),
+                  weatherCode: 0,
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: const MaterialApp(
+          locale: Locale('ko', 'KR'),
+          localizationsDelegates: [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: [Locale('en'), Locale('ko', 'KR')],
+          home: WeatherDetailScreen(
+            initialLocation: '강남구 역삼1동',
+            initialSummary: '맑음 21°C',
+            initialWeatherCode: 0,
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text('시간별 날씨'), findsOneWidget);
+    expect(find.text(hourLabel(firstHour)), findsOneWidget);
+    expect(
+      find.text(hourLabel(todayDate.add(Duration(hours: now.hour)))),
+      findsOneWidget,
+    );
+
+    final horizontalScrollViewFinder = find.byWidgetPredicate(
+      (widget) =>
+          widget is SingleChildScrollView &&
+          widget.scrollDirection == Axis.horizontal,
+    );
+    expect(horizontalScrollViewFinder, findsOneWidget);
+    final horizontalScrollView = tester.widget<SingleChildScrollView>(
+      horizontalScrollViewFinder,
+    );
+    expect(horizontalScrollView.controller, isNotNull);
+    expect(horizontalScrollView.controller!.offset, greaterThan(0));
     expect(tester.takeException(), isNull);
   });
 

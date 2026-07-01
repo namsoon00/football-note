@@ -822,6 +822,11 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     return _dailyForecasts.first.precipitationProbabilityMax;
   }
 
+  DateTime? get _todayHourlyFocusTime {
+    if (_dailyForecasts.isEmpty) return null;
+    return _hourlyFocusTimeForForecastDate(_dailyForecasts.first.date);
+  }
+
   List<_HourlyPrecipitationEntry> get _todayHourlyPrecipitations {
     if (_dailyForecasts.isEmpty) return const <_HourlyPrecipitationEntry>[];
     return _visibleHourlyPrecipitationEntries(
@@ -862,6 +867,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
         formatPrecipitation: _formatPrecipitationTimelineLabel,
         formatWind: _formatWind,
         iconForCode: _weatherIcon,
+        focusTime: _todayHourlyFocusTime,
         accentStyle: accentStyle,
       );
     }
@@ -874,6 +880,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
             entries: precipitationEntries,
             formatTime: _formatHourlyTime,
             formatPrecipitation: _formatPrecipitationTimelineLabel,
+            focusTime: _todayHourlyFocusTime,
             accentStyle: accentStyle,
           ),
       ],
@@ -3009,6 +3016,7 @@ class _TomorrowWeatherCard extends StatelessWidget {
             formatPrecipitation: formatPrecipitationEntry,
             formatWind: formatWind,
             iconForCode: iconForCode,
+            focusTime: _hourlyFocusTimeForForecastDate(forecast.date),
           ),
         if (temperatureEntries.isEmpty && precipitationEntries.isNotEmpty)
           _HourlyPrecipitationSection(
@@ -3016,6 +3024,7 @@ class _TomorrowWeatherCard extends StatelessWidget {
             entries: precipitationEntries,
             formatTime: formatTime,
             formatPrecipitation: formatPrecipitationEntry,
+            focusTime: _hourlyFocusTimeForForecastDate(forecast.date),
           ),
         const SizedBox(height: 14),
         Container(
@@ -3441,17 +3450,51 @@ List<_HourlyPrecipitationEntry> _visibleHourlyPrecipitationEntries(
 ) {
   final sortedEntries = [...entries]
     ..sort((left, right) => left.time.compareTo(right.time));
-  final firstRainIndex = sortedEntries.indexWhere(
+  final hasRainSignal = sortedEntries.any(
     (entry) =>
         entry.precipitation > 0.05 ||
         (entry.precipitationProbability ?? 0) >= 30,
   );
-  if (firstRainIndex < 0) return const <_HourlyPrecipitationEntry>[];
-  return sortedEntries.skip(firstRainIndex).toList(growable: false);
+  if (!hasRainSignal) return const <_HourlyPrecipitationEntry>[];
+  return sortedEntries;
 }
 
 DateTime _hourBucket(DateTime time) =>
     DateTime(time.year, time.month, time.day, time.hour);
+
+DateTime _hourlyFocusTimeForForecastDate(DateTime forecastDate) {
+  final now = DateTime.now();
+  return DateTime(
+    forecastDate.year,
+    forecastDate.month,
+    forecastDate.day,
+    now.hour,
+    now.minute,
+  );
+}
+
+int? _closestHourlyIndex<T>(
+  List<T> entries,
+  DateTime? focusTime,
+  DateTime Function(T entry) timeOf,
+) {
+  if (entries.isEmpty || focusTime == null) return null;
+  final focusHour = _hourBucket(focusTime);
+  var closestIndex = 0;
+  var closestDistance =
+      _hourBucket(timeOf(entries.first)).difference(focusHour).abs().inMinutes;
+  for (var index = 1; index < entries.length; index++) {
+    final distance = _hourBucket(timeOf(entries[index]))
+        .difference(focusHour)
+        .abs()
+        .inMinutes;
+    if (distance < closestDistance) {
+      closestDistance = distance;
+      closestIndex = index;
+    }
+  }
+  return closestIndex;
+}
 
 List<_HourlyWeatherOverviewEntry> _hourlyWeatherOverviewEntries({
   required List<_ForecastMomentPreview> forecasts,
@@ -3550,11 +3593,85 @@ _PrecipitationAmountLevel _precipitationAmountLevel(double value) {
   return _PrecipitationAmountLevel.veryHeavy;
 }
 
+class _FocusedHorizontalScrollView extends StatefulWidget {
+  final Widget child;
+  final EdgeInsetsGeometry padding;
+  final double? initialCenterOffset;
+
+  const _FocusedHorizontalScrollView({
+    required this.child,
+    required this.padding,
+    required this.initialCenterOffset,
+  });
+
+  @override
+  State<_FocusedHorizontalScrollView> createState() =>
+      _FocusedHorizontalScrollViewState();
+}
+
+class _FocusedHorizontalScrollViewState
+    extends State<_FocusedHorizontalScrollView> {
+  late final ScrollController _controller;
+  bool _appliedInitialOffset = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = ScrollController();
+    _scheduleInitialOffset();
+  }
+
+  @override
+  void didUpdateWidget(covariant _FocusedHorizontalScrollView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialCenterOffset != widget.initialCenterOffset) {
+      _appliedInitialOffset = false;
+      _scheduleInitialOffset();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _scheduleInitialOffset() {
+    if (widget.initialCenterOffset == null || _appliedInitialOffset) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted ||
+          _appliedInitialOffset ||
+          widget.initialCenterOffset == null ||
+          !_controller.hasClients) {
+        return;
+      }
+      final position = _controller.position;
+      final target =
+          (widget.initialCenterOffset! - (position.viewportDimension / 2))
+              .clamp(0.0, position.maxScrollExtent)
+              .toDouble();
+      _controller.jumpTo(target);
+      _appliedInitialOffset = true;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      controller: _controller,
+      scrollDirection: Axis.horizontal,
+      padding: widget.padding,
+      child: widget.child,
+    );
+  }
+}
+
 class _HourlyPrecipitationSection extends StatelessWidget {
   final String title;
   final List<_HourlyPrecipitationEntry> entries;
   final String Function(DateTime) formatTime;
   final String Function(_HourlyPrecipitationEntry) formatPrecipitation;
+  final DateTime? focusTime;
   final bool accentStyle;
 
   const _HourlyPrecipitationSection({
@@ -3562,6 +3679,7 @@ class _HourlyPrecipitationSection extends StatelessWidget {
     required this.entries,
     required this.formatTime,
     required this.formatPrecipitation,
+    this.focusTime,
     this.accentStyle = false,
   });
 
@@ -3600,6 +3718,11 @@ class _HourlyPrecipitationSection extends StatelessWidget {
         }
         return current;
       },
+    );
+    final focusedIndex = _closestHourlyIndex<_HourlyPrecipitationEntry>(
+      sortedEntries,
+      focusTime,
+      (entry) => entry.time,
     );
     return Container(
       width: double.infinity,
@@ -3641,9 +3764,10 @@ class _HourlyPrecipitationSection extends StatelessWidget {
               color: chartBackground,
               borderRadius: AppRadius.small,
             ),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
+            child: _FocusedHorizontalScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+              initialCenterOffset:
+                  focusedIndex == null ? null : (focusedIndex * 62.0) + 31.0,
               child: _HourlyPrecipitationChart(
                 entries: sortedEntries,
                 formatTime: formatTime,
@@ -3828,6 +3952,7 @@ class _HourlyTemperatureSection extends StatelessWidget {
   final String Function(_HourlyPrecipitationEntry) formatPrecipitation;
   final String Function(double?) formatWind;
   final IconData Function(int?) iconForCode;
+  final DateTime? focusTime;
   final bool accentStyle;
 
   const _HourlyTemperatureSection({
@@ -3842,6 +3967,7 @@ class _HourlyTemperatureSection extends StatelessWidget {
     required this.formatPrecipitation,
     required this.formatWind,
     required this.iconForCode,
+    this.focusTime,
     this.accentStyle = false,
   });
 
@@ -3893,6 +4019,11 @@ class _HourlyTemperatureSection extends StatelessWidget {
     final hasWind = sortedEntries.any((entry) => entry.windSpeed != null);
     final width = _hourlyWeatherLabelWidth +
         (sortedEntries.length * _hourlyWeatherColumnWidth);
+    final focusedIndex = _closestHourlyIndex<_HourlyWeatherOverviewEntry>(
+      sortedEntries,
+      focusTime,
+      (entry) => entry.time,
+    );
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(10),
@@ -3933,9 +4064,13 @@ class _HourlyTemperatureSection extends StatelessWidget {
               color: chartBackground,
               borderRadius: AppRadius.small,
             ),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
+            child: _FocusedHorizontalScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+              initialCenterOffset: focusedIndex == null
+                  ? null
+                  : _hourlyWeatherLabelWidth +
+                      (focusedIndex * _hourlyWeatherColumnWidth) +
+                      (_hourlyWeatherColumnWidth / 2),
               child: SizedBox(
                 width: width,
                 child: Column(
