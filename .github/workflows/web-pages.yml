@@ -4,15 +4,6 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths:
-      - ".github/workflows/web-pages.yml"
-      - "lib/**"
-      - "web/**"
-      - "pubspec.yaml"
-      - "pubspec.lock"
-      - "l10n.yaml"
-      - "assets/**"
-      - "scripts/stamp_web_asset_version.sh"
 
 permissions:
   contents: read
@@ -37,6 +28,9 @@ jobs:
 
       - name: Enable web
         run: flutter config --enable-web
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
 
       - name: Install dependencies
         run: flutter pub get
