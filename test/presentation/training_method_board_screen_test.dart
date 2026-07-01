@@ -81,6 +81,33 @@ void main() {
     expect(decoded.pages.single.routes.single.stageIndex, 3);
   });
 
+  test('training sketch routes preserve player action ownership', () {
+    final encoded = const TrainingMethodLayout(
+      pages: <TrainingMethodPage>[
+        TrainingMethodPage(
+          name: 'Owned action',
+          items: <TrainingMethodItem>[],
+          routes: <TrainingMethodRoute>[
+            TrainingMethodRoute(
+              id: 'owned-ball',
+              kind: TrainingMethodRouteKind.ball,
+              linkedItemId: 'ball-1',
+              actorItemId: 'player-1',
+              points: <TrainingMethodPoint>[
+                TrainingMethodPoint(x: 0.2, y: 0.2),
+                TrainingMethodPoint(x: 0.4, y: 0.3),
+              ],
+            ),
+          ],
+        ),
+      ],
+    ).encode();
+
+    final decoded = TrainingMethodLayout.decode(encoded);
+
+    expect(decoded.pages.single.routes.single.actorItemId, 'player-1');
+  });
+
   testWidgets('routes can be split into editable movement stages', (
     WidgetTester tester,
   ) async {
@@ -3210,12 +3237,75 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    expect(
+      find.byKey(const ValueKey('training-landscape-control-panel')),
+      findsOneWidget,
+    );
     final orientationCall = platformCalls.lastWhere(
       (call) => call.method == 'SystemChrome.setPreferredOrientations',
     );
     final arguments = '${orientationCall.arguments}';
     expect(arguments, contains('landscapeLeft'));
     expect(arguments, contains('landscapeRight'));
+  });
+
+  testWidgets('selected player can register the next action stage', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    String? savedLayout;
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '선수 단계',
+          initialLayoutJson: const TrainingMethodLayout(
+            pages: <TrainingMethodPage>[
+              TrainingMethodPage(
+                name: 'Board',
+                items: <TrainingMethodItem>[
+                  TrainingMethodItem(
+                    id: 'player-1',
+                    type: 'player',
+                    x: 0.24,
+                    y: 0.58,
+                  ),
+                ],
+              ),
+            ],
+          ).encode(),
+          onSaved: (value) => savedLayout = value,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    await tester.tap(
+      find.descendant(of: boardFinder, matching: find.byIcon(Icons.person)),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('선수 단계'), findsWidgets);
+    await _tapVisibleOutlinedButton(tester, '1단계 등록');
+    await _tapVisibleOutlinedButton(tester, '패스');
+    await _tapBoardRelative(tester, boardFinder, const Offset(0.48, 0.42));
+
+    expect(find.text('1단계 · 동작 1개'), findsOneWidget);
+    await _tapVisibleOutlinedButton(tester, '2단계 등록');
+    await _tapVisibleOutlinedButton(tester, '슈팅');
+    await _tapBoardRelative(tester, boardFinder, const Offset(0.82, 0.34));
+
+    await tester.tap(find.widgetWithText(TextButton, '저장'));
+    await tester.pumpAndSettle();
+
+    final saved = TrainingMethodLayout.decode(savedLayout ?? '');
+    final playerStages = saved.pages.single.routes
+        .where((route) => route.actorItemId == 'player-1')
+        .map((route) => route.stageIndex)
+        .toList(growable: false);
+
+    expect(playerStages, containsAll(<int>[1, 2]));
   });
 
   testWidgets('sketch PDF export action is visible in the top bar', (

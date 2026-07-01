@@ -6047,6 +6047,35 @@
   "trainingSketchQuickStart": "クイックスタート: プレイヤーを選び、動作を押してから対象の人やスペースをタップします。",
   "trainingSketchSelectedItemTitle": "選択した項目",
   "trainingSketchAssignColorLabel": "色の割り当て",
+  "trainingSketchPlayerStagesTitle": "プレーヤーのステージ",
+  "trainingSketchPlayerStagesEmpty": "このプレーヤーにはまだステージが登録されていません。",
+  "trainingSketchPlayerStageChip": "ステージ{stage} · 動作{count}件",
+  "@trainingSketchPlayerStageChip": {
+    "placeholders": {
+      "stage": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchRegisterNextPlayerStageButton": "ステージ{stage}を登録",
+  "@trainingSketchRegisterNextPlayerStageButton": {
+    "placeholders": {
+      "stage": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchRegisteredNextPlayerStageHint": "次の動作はステージ{stage}として作成されます。",
+  "@trainingSketchRegisteredNextPlayerStageHint": {
+    "placeholders": {
+      "stage": {
+        "type": "int"
+      }
+    }
+  },
   "trainingSketchDrawRouteFirst": "まずルートを描画または選択します。",
   "trainingSketchAddPlayerFirst": "まずプレーヤーアイコンを追加します。",
   "trainingSketchAddBallFirst": "まずボールアイコンを追加します。",

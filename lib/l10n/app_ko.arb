@@ -6047,6 +6047,35 @@
   "trainingSketchQuickStart": "빠른 시작: 선수를 선택하고 액션을 누른 뒤, 대상 사람이나 공간을 찍으세요.",
   "trainingSketchSelectedItemTitle": "선택 요소",
   "trainingSketchAssignColorLabel": "색상 지정",
+  "trainingSketchPlayerStagesTitle": "선수 단계",
+  "trainingSketchPlayerStagesEmpty": "아직 이 선수에게 등록된 단계가 없어요.",
+  "trainingSketchPlayerStageChip": "{stage}단계 · 동작 {count}개",
+  "@trainingSketchPlayerStageChip": {
+    "placeholders": {
+      "stage": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchRegisterNextPlayerStageButton": "{stage}단계 등록",
+  "@trainingSketchRegisterNextPlayerStageButton": {
+    "placeholders": {
+      "stage": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchRegisteredNextPlayerStageHint": "다음 액션은 {stage}단계로 만들어져요.",
+  "@trainingSketchRegisteredNextPlayerStageHint": {
+    "placeholders": {
+      "stage": {
+        "type": "int"
+      }
+    }
+  },
   "trainingSketchDrawRouteFirst": "먼저 이동선을 그리거나 선택해 주세요.",
   "trainingSketchAddPlayerFirst": "먼저 사람 아이콘을 추가해 주세요.",
   "trainingSketchAddBallFirst": "먼저 공 아이콘을 추가해 주세요.",

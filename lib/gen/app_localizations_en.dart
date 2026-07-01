@@ -11005,6 +11005,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trainingSketchAssignColorLabel => 'Assign color';
 
   @override
+  String get trainingSketchPlayerStagesTitle => 'Player stages';
+
+  @override
+  String get trainingSketchPlayerStagesEmpty =>
+      'No stages are registered for this player yet.';
+
+  @override
+  String trainingSketchPlayerStageChip(int stage, int count) {
+    return 'Stage $stage · $count actions';
+  }
+
+  @override
+  String trainingSketchRegisterNextPlayerStageButton(int stage) {
+    return 'Register stage $stage';
+  }
+
+  @override
+  String trainingSketchRegisteredNextPlayerStageHint(int stage) {
+    return 'The next action will be created as stage $stage.';
+  }
+
+  @override
   String get trainingSketchDrawRouteFirst => 'Draw or select a route first.';
 
   @override

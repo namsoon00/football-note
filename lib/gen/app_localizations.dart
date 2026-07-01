@@ -18863,6 +18863,36 @@ abstract class AppLocalizations {
   /// **'Assign color'**
   String get trainingSketchAssignColorLabel;
 
+  /// No description provided for @trainingSketchPlayerStagesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Player stages'**
+  String get trainingSketchPlayerStagesTitle;
+
+  /// No description provided for @trainingSketchPlayerStagesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No stages are registered for this player yet.'**
+  String get trainingSketchPlayerStagesEmpty;
+
+  /// No description provided for @trainingSketchPlayerStageChip.
+  ///
+  /// In en, this message translates to:
+  /// **'Stage {stage} · {count} actions'**
+  String trainingSketchPlayerStageChip(int stage, int count);
+
+  /// No description provided for @trainingSketchRegisterNextPlayerStageButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Register stage {stage}'**
+  String trainingSketchRegisterNextPlayerStageButton(int stage);
+
+  /// No description provided for @trainingSketchRegisteredNextPlayerStageHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The next action will be created as stage {stage}.'**
+  String trainingSketchRegisteredNextPlayerStageHint(int stage);
+
   /// No description provided for @trainingSketchDrawRouteFirst.
   ///
   /// In en, this message translates to:
