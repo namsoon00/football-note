@@ -10642,6 +10642,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String clubScheduleHomeNextTrainingDay(Object weekday) {
+    return 'Next training $weekday';
+  }
+
+  @override
   String clubScheduleTodayTraining(Object time) {
     return 'Today $time';
   }

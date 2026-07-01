@@ -2241,29 +2241,29 @@ class _ClubScheduleHomeCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final today = DateTime.now();
-    final todaySchedule = profile.scheduleForDate(today);
-    final hasTodayTraining = todaySchedule?.enabled == true;
-    final nextTraining = profile.nextTraining(today);
-    final previewSchedule =
-        hasTodayTraining ? todaySchedule : nextTraining?.schedule;
+    final now = DateTime.now();
+    final upcomingTraining = profile.upcomingTraining(now);
+    final previewSchedule = upcomingTraining?.schedule;
     final previewUniformColor = Color(
       previewSchedule?.uniformColorValue ??
           ClubTrainingSchedule.defaultUniformColorValue,
     );
     final clubName = profile.clubName.trim();
     final title = clubName.isEmpty ? l10n.clubScheduleHomeTitle : clubName;
-    final primary = hasTodayTraining
-        ? l10n.clubScheduleTodayTraining(
-            _clubScheduleTimeRange(context, todaySchedule!),
-          )
-        : l10n.clubScheduleHomeTodayRest;
-    final secondary = nextTraining == null
+    final isTodayTraining = upcomingTraining != null &&
+        _isSameClubScheduleDate(upcomingTraining.date, now);
+    final primary = upcomingTraining == null
         ? l10n.clubScheduleHomeSetupHint
-        : l10n.clubScheduleHomeNextTraining(
-            _clubScheduleWeekdayLabel(context, nextTraining.schedule.weekday),
-            _clubScheduleTimeRange(context, nextTraining.schedule),
-          );
+        : isTodayTraining
+            ? l10n.clubScheduleTodayTraining(
+                _clubScheduleTimeRange(context, upcomingTraining.schedule),
+              )
+            : l10n.clubScheduleHomeNextTrainingDay(
+                _clubScheduleWeekdayLabel(
+                  context,
+                  upcomingTraining.schedule.weekday,
+                ),
+              );
 
     return Material(
       color: Colors.transparent,
@@ -2272,12 +2272,15 @@ class _ClubScheduleHomeCard extends StatelessWidget {
         borderRadius: AppRadius.surface,
         child: Ink(
           decoration: AppSurfaces.cardDecoration(scheme, theme.brightness),
-          padding: const EdgeInsets.all(AppSpacing.md),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
+          ),
           child: Row(
             children: [
               Container(
-                width: 46,
-                height: 46,
+                width: 42,
+                height: 42,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: scheme.primary.withValues(alpha: 0.12),
@@ -2288,7 +2291,7 @@ class _ClubScheduleHomeCard extends StatelessWidget {
                 ),
                 child: UniformJerseySwatch(
                   color: previewUniformColor,
-                  size: 31,
+                  size: 29,
                   borderColor: scheme.outline.withValues(alpha: 0.56),
                   borderWidth: 1.25,
                   semanticLabel: l10n.clubScheduleDayUniformLabel,
@@ -2303,7 +2306,7 @@ class _ClubScheduleHomeCard extends StatelessWidget {
                       title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleMedium?.copyWith(
+                      style: theme.textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w900,
                       ),
                     ),
@@ -2312,20 +2315,11 @@ class _ClubScheduleHomeCard extends StatelessWidget {
                       primary,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: hasTodayTraining
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: upcomingTraining != null
                             ? scheme.primary
                             : scheme.onSurfaceVariant,
                         fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.xxs),
-                    Text(
-                      secondary,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: scheme.onSurfaceVariant,
                       ),
                     ),
                   ],
@@ -2349,6 +2343,10 @@ String _clubScheduleWeekdayLabel(BuildContext context, int weekday) {
   return DateFormat.EEEE(AppLocalizations.of(context)!.localeName).format(
     DateTime(2026, 6, 29).add(Duration(days: weekday - 1)),
   );
+}
+
+bool _isSameClubScheduleDate(DateTime a, DateTime b) {
+  return a.year == b.year && a.month == b.month && a.day == b.day;
 }
 
 String _clubScheduleTimeRange(
