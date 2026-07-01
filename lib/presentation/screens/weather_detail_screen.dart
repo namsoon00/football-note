@@ -1364,20 +1364,19 @@ class _MetricClusterCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (metrics.isEmpty) return const SizedBox.shrink();
-    return Wrap(
-      alignment: WrapAlignment.center,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      spacing: 10,
-      runSpacing: 7,
+    return Row(
       children: [
-        for (var index = 0; index < metrics.length; index++)
-          _MetricCard(
-            label: metrics[index].label,
-            value: metrics[index].value,
-            icon: metrics[index].icon,
-            airLevel: metrics[index].airLevel,
-            prominent: index < 3,
+        for (var index = 0; index < metrics.length; index++) ...[
+          if (index > 0) const SizedBox(width: 6),
+          Expanded(
+            child: _MetricCard(
+              label: metrics[index].label,
+              value: metrics[index].value,
+              icon: metrics[index].icon,
+              airLevel: metrics[index].airLevel,
+            ),
           ),
+        ],
       ],
     );
   }
@@ -1496,6 +1495,9 @@ class _CompactWeatherHeaderCard extends StatelessWidget {
     final comparedMetric = metricByRole(
       _CompactMetricRole.comparedYesterday,
     );
+    final temperatureRangeMetric = metricByRole(
+      _CompactMetricRole.temperatureRange,
+    );
     final inlineMetrics = <_CompactMetricData>[];
     for (final role in const [
       _CompactMetricRole.feelsLike,
@@ -1508,6 +1510,7 @@ class _CompactWeatherHeaderCard extends StatelessWidget {
     final detailMetrics = metrics
         .where(
           (metric) => !const {
+            _CompactMetricRole.temperatureRange,
             _CompactMetricRole.comparedYesterday,
             _CompactMetricRole.feelsLike,
             _CompactMetricRole.humidity,
@@ -1673,10 +1676,11 @@ class _CompactWeatherHeaderCard extends StatelessWidget {
               ),
             ],
           ),
-          if (comparedMetric != null) ...[
+          if (comparedMetric != null || temperatureRangeMetric != null) ...[
             const SizedBox(height: 10),
-            _WeatherDeltaLine(
-              metric: comparedMetric,
+            _WeatherDeltaSummaryRow(
+              comparedMetric: comparedMetric,
+              temperatureRangeMetric: temperatureRangeMetric,
               labelColor: onGradientMuted,
               valueColor: onGradient,
             ),
@@ -1720,6 +1724,52 @@ class _CompactWeatherHeaderCard extends StatelessWidget {
           ],
         ],
       ),
+    );
+  }
+}
+
+class _WeatherDeltaSummaryRow extends StatelessWidget {
+  final _CompactMetricData? comparedMetric;
+  final _CompactMetricData? temperatureRangeMetric;
+  final Color labelColor;
+  final Color valueColor;
+
+  const _WeatherDeltaSummaryRow({
+    required this.comparedMetric,
+    required this.temperatureRangeMetric,
+    required this.labelColor,
+    required this.valueColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final metrics = [
+      if (comparedMetric != null) comparedMetric!,
+      if (temperatureRangeMetric != null) temperatureRangeMetric!,
+    ];
+    return Wrap(
+      alignment: WrapAlignment.center,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 8,
+      runSpacing: 4,
+      children: [
+        for (var index = 0; index < metrics.length; index++) ...[
+          if (index > 0)
+            Text(
+              '·',
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: labelColor,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          _WeatherDeltaLine(
+            metric: metrics[index],
+            labelColor: labelColor,
+            valueColor: valueColor,
+          ),
+        ],
+      ],
     );
   }
 }
@@ -1830,14 +1880,12 @@ class _MetricCard extends StatelessWidget {
   final String value;
   final IconData icon;
   final _AirQualityLevel? airLevel;
-  final bool prominent;
 
   const _MetricCard({
     required this.label,
     required this.value,
     required this.icon,
     this.airLevel,
-    this.prominent = false,
   });
 
   @override
@@ -1852,44 +1900,54 @@ class _MetricCard extends StatelessWidget {
         : palette.foreground.withValues(alpha: 0.82);
     return Semantics(
       label: '$label $value',
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            size: 15,
-            color: foreground,
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 58),
+        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 7),
+        decoration: BoxDecoration(
+          color: palette?.background ??
+              theme.colorScheme.surface.withValues(alpha: 0.68),
+          borderRadius: AppRadius.small,
+          border: Border.all(
+            color: palette?.border ??
+                theme.colorScheme.surface.withValues(alpha: 0.22),
           ),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.labelMedium?.copyWith(
-              color: labelColor,
-              fontWeight: FontWeight.w800,
-              height: 1.05,
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 14,
+              color: foreground,
             ),
-          ),
-          const SizedBox(width: 3),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 142),
-            child: Text(
-              value,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: (prominent
-                      ? theme.textTheme.titleSmall
-                      : theme.textTheme.labelLarge)
-                  ?.copyWith(
-                color: foreground,
-                fontWeight: FontWeight.w900,
-                height: 1.05,
+            const SizedBox(height: 3),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                label,
+                maxLines: 1,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: labelColor,
+                  fontWeight: FontWeight.w800,
+                  height: 1.05,
+                ),
               ),
             ),
-          ),
-        ],
+            const SizedBox(height: 2),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                value,
+                maxLines: 1,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: foreground,
+                  fontWeight: FontWeight.w900,
+                  height: 1.05,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
