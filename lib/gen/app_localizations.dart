@@ -18304,6 +18304,24 @@ abstract class AppLocalizations {
   /// **'Select color'**
   String get clubScheduleColorSelectTooltip;
 
+  /// No description provided for @clubScheduleColorHueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Hue'**
+  String get clubScheduleColorHueLabel;
+
+  /// No description provided for @clubScheduleColorSaturationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Saturation'**
+  String get clubScheduleColorSaturationLabel;
+
+  /// No description provided for @clubScheduleColorBrightnessLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Brightness'**
+  String get clubScheduleColorBrightnessLabel;
+
   /// No description provided for @clubScheduleSaveButton.
   ///
   /// In en, this message translates to:

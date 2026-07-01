@@ -10412,6 +10412,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String get clubScheduleColorSelectTooltip => '컬러 선택';
 
   @override
+  String get clubScheduleColorHueLabel => '색상';
+
+  @override
+  String get clubScheduleColorSaturationLabel => '채도';
+
+  @override
+  String get clubScheduleColorBrightnessLabel => '밝기';
+
+  @override
   String get clubScheduleSaveButton => '클럽 일정 저장';
 
   @override
