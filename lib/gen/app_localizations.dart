@@ -18304,6 +18304,12 @@ abstract class AppLocalizations {
   /// **'Select color'**
   String get clubScheduleColorSelectTooltip;
 
+  /// No description provided for @clubScheduleColorPresetsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Common colors'**
+  String get clubScheduleColorPresetsLabel;
+
   /// No description provided for @clubScheduleColorHueLabel.
   ///
   /// In en, this message translates to:

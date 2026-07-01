@@ -558,6 +558,17 @@ class _UniformColorPickerSheet extends StatefulWidget {
 }
 
 class _UniformColorPickerSheetState extends State<_UniformColorPickerSheet> {
+  static const List<_UniformColorPreset> _presets = <_UniformColorPreset>[
+    _UniformColorPreset(id: 'white', colorValue: 0xFFFFFFFF),
+    _UniformColorPreset(id: 'black', colorValue: 0xFF111827),
+    _UniformColorPreset(id: 'red', colorValue: 0xFFDC2626),
+    _UniformColorPreset(id: 'orange', colorValue: 0xFFF97316),
+    _UniformColorPreset(id: 'yellow', colorValue: 0xFFFACC15),
+    _UniformColorPreset(id: 'green', colorValue: 0xFF16A34A),
+    _UniformColorPreset(id: 'blue', colorValue: 0xFF2563EB),
+    _UniformColorPreset(id: 'purple', colorValue: 0xFF7C3AED),
+  ];
+
   late HSVColor _color;
 
   @override
@@ -574,104 +585,203 @@ class _UniformColorPickerSheetState extends State<_UniformColorPickerSheet> {
     final scheme = theme.colorScheme;
     final selectedColor = _color.toColor().withValues(alpha: 1);
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.md,
-        AppSpacing.xs,
-        AppSpacing.md,
-        AppSpacing.lg,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              UniformJerseySwatch(
-                color: selectedColor,
-                size: 52,
-                borderColor: scheme.outline.withValues(alpha: 0.64),
-                borderWidth: 1.4,
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Text(
-                  l10n.clubScheduleColorSelectTooltip,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w900,
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.md,
+          AppSpacing.xs,
+          AppSpacing.md,
+          AppSpacing.lg,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                UniformJerseySwatch(
+                  color: selectedColor,
+                  size: 52,
+                  borderColor: scheme.outline.withValues(alpha: 0.64),
+                  borderWidth: 1.4,
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Text(
+                    l10n.clubScheduleColorSelectTooltip,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.md),
-          _UniformColorSlider(
-            key: const ValueKey<String>('club-uniform-color-hue-slider'),
-            label: l10n.clubScheduleColorHueLabel,
-            valueLabel: _color.hue.round().toString(),
-            value: _color.hue,
-            min: 0,
-            max: 360,
-            divisions: 360,
-            activeColor: HSVColor.fromAHSV(1, _color.hue, 1, 1).toColor(),
-            onChanged: (value) {
-              setState(() {
-                _color = _color.withHue(value);
-              });
-            },
-          ),
-          _UniformColorSlider(
-            key: const ValueKey<String>(
-              'club-uniform-color-saturation-slider',
+              ],
             ),
-            label: l10n.clubScheduleColorSaturationLabel,
-            valueLabel: '${(_color.saturation * 100).round()}%',
-            value: _color.saturation,
-            min: 0,
-            max: 1,
-            divisions: 100,
-            activeColor: selectedColor,
-            onChanged: (value) {
-              setState(() {
-                _color = _color.withSaturation(value);
-              });
-            },
-          ),
-          _UniformColorSlider(
-            key: const ValueKey<String>(
-              'club-uniform-color-brightness-slider',
-            ),
-            label: l10n.clubScheduleColorBrightnessLabel,
-            valueLabel: '${(_color.value * 100).round()}%',
-            value: _color.value,
-            min: 0,
-            max: 1,
-            divisions: 100,
-            activeColor: selectedColor,
-            onChanged: (value) {
-              setState(() {
-                _color = _color.withValue(value);
-              });
-            },
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: Text(materialL10n.cancelButtonLabel),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              l10n.clubScheduleColorPresetsLabel,
+              style: theme.textTheme.labelLarge?.copyWith(
+                fontWeight: FontWeight.w900,
               ),
-              const SizedBox(width: AppSpacing.xs),
-              FilledButton(
-                onPressed: () => Navigator.of(context).pop(
-                  selectedColor.toARGB32(),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Wrap(
+              spacing: AppSpacing.xs,
+              runSpacing: AppSpacing.xs,
+              children: [
+                for (final preset in _presets)
+                  _UniformColorPresetButton(
+                    key: ValueKey<String>(
+                      'club-uniform-color-preset-${preset.id}',
+                    ),
+                    colorValue: preset.colorValue,
+                    selected: selectedColor.toARGB32() == preset.colorValue,
+                    label: l10n.clubScheduleColorSelectTooltip,
+                    onTap: () {
+                      setState(() {
+                        _color = HSVColor.fromColor(Color(preset.colorValue));
+                      });
+                    },
+                  ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.md),
+            _UniformColorSlider(
+              key: const ValueKey<String>('club-uniform-color-hue-slider'),
+              label: l10n.clubScheduleColorHueLabel,
+              valueLabel: _color.hue.round().toString(),
+              value: _color.hue,
+              min: 0,
+              max: 360,
+              divisions: 360,
+              activeColor: HSVColor.fromAHSV(1, _color.hue, 1, 1).toColor(),
+              onChanged: (value) {
+                setState(() {
+                  _color = _color.withHue(value);
+                });
+              },
+            ),
+            _UniformColorSlider(
+              key: const ValueKey<String>(
+                'club-uniform-color-saturation-slider',
+              ),
+              label: l10n.clubScheduleColorSaturationLabel,
+              valueLabel: '${(_color.saturation * 100).round()}%',
+              value: _color.saturation,
+              min: 0,
+              max: 1,
+              divisions: 100,
+              activeColor: selectedColor,
+              onChanged: (value) {
+                setState(() {
+                  _color = _color.withSaturation(value);
+                });
+              },
+            ),
+            _UniformColorSlider(
+              key: const ValueKey<String>(
+                'club-uniform-color-brightness-slider',
+              ),
+              label: l10n.clubScheduleColorBrightnessLabel,
+              valueLabel: '${(_color.value * 100).round()}%',
+              value: _color.value,
+              min: 0,
+              max: 1,
+              divisions: 100,
+              activeColor: selectedColor,
+              onChanged: (value) {
+                setState(() {
+                  _color = _color.withValue(value);
+                });
+              },
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(materialL10n.cancelButtonLabel),
                 ),
-                child: Text(materialL10n.okButtonLabel),
+                const SizedBox(width: AppSpacing.xs),
+                FilledButton(
+                  onPressed: () => Navigator.of(context).pop(
+                    selectedColor.toARGB32(),
+                  ),
+                  child: Text(materialL10n.okButtonLabel),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _UniformColorPreset {
+  final String id;
+  final int colorValue;
+
+  const _UniformColorPreset({
+    required this.id,
+    required this.colorValue,
+  });
+}
+
+class _UniformColorPresetButton extends StatelessWidget {
+  final int colorValue;
+  final bool selected;
+  final String label;
+  final VoidCallback onTap;
+
+  const _UniformColorPresetButton({
+    super.key,
+    required this.colorValue,
+    required this.selected,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Tooltip(
+      message: label,
+      child: Semantics(
+        button: true,
+        selected: selected,
+        label: label,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 140),
+            width: 42,
+            height: 42,
+            padding: const EdgeInsets.all(5),
+            decoration: BoxDecoration(
+              color: selected
+                  ? scheme.primary.withValues(alpha: 0.10)
+                  : scheme.surfaceContainerHighest.withValues(alpha: 0.42),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: selected
+                    ? scheme.primary
+                    : scheme.outline.withValues(alpha: 0.36),
+                width: selected ? 2 : 1,
               ),
-            ],
+            ),
+            child: UniformJerseySwatch(
+              color: Color(colorValue),
+              size: 30,
+              borderColor: selected
+                  ? scheme.primary
+                  : scheme.outline.withValues(alpha: 0.68),
+              borderWidth: selected ? 1.4 : 1.1,
+              selected: selected,
+            ),
           ),
-        ],
+        ),
       ),
     );
   }

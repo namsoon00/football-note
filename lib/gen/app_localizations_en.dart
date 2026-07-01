@@ -10702,6 +10702,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clubScheduleColorSelectTooltip => 'Select color';
 
   @override
+  String get clubScheduleColorPresetsLabel => 'Common colors';
+
+  @override
   String get clubScheduleColorHueLabel => 'Hue';
 
   @override
