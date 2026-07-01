@@ -37,7 +37,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final redHomeKit = find.byKey(
-      const ValueKey<String>('club-uniform-home-color-4292617766'),
+      const ValueKey<String>('club-uniform-day-1-color-4292617766'),
     );
     await tester.ensureVisible(redHomeKit);
     await tester.tap(redHomeKit);
@@ -54,7 +54,7 @@ void main() {
     expect(profile.clubName, '성남 U15');
     expect(profile.weekdaySchedules.first.weekday, DateTime.monday);
     expect(profile.weekdaySchedules.first.enabled, isTrue);
-    expect(profile.homeUniformColorValue, 0xFFDC2626);
+    expect(profile.weekdaySchedules.first.uniformColorValue, 0xFFDC2626);
     expect(find.text('클럽 일정을 저장했어요.'), findsOneWidget);
   });
 }

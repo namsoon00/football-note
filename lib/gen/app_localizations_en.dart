@@ -10665,7 +10665,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get clubScheduleWeekdayHelper =>
-      'Turn on training days and set start and end times.';
+      'Turn on training days, then set start time, end time, and uniform color.';
 
   @override
   String get clubScheduleStartTimeLabel => 'Start';
@@ -10675,6 +10675,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get clubScheduleDayOffLabel => 'Off';
+
+  @override
+  String get clubScheduleDayUniformLabel => 'Uniform';
 
   @override
   String get clubScheduleUniformTitle => 'Uniform colors';
