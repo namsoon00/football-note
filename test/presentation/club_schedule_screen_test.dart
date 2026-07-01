@@ -43,22 +43,29 @@ void main() {
     await tester.tap(uniformPicker);
     await tester.pumpAndSettle();
 
-    void moveSlider(String key, double value) {
-      final slider = tester.widget<Slider>(
+    Slider slider(String key) {
+      return tester.widget<Slider>(
         find.descendant(
           of: find.byKey(ValueKey<String>(key)),
           matching: find.byType(Slider),
         ),
       );
-      slider.onChanged!(value);
     }
 
-    moveSlider('club-uniform-color-hue-slider', 0);
+    await tester.tap(
+      find.byKey(const ValueKey<String>('club-uniform-color-preset-red')),
+    );
     await tester.pump();
-    moveSlider('club-uniform-color-saturation-slider', 1);
-    await tester.pump();
-    moveSlider('club-uniform-color-brightness-slider', 1);
-    await tester.pump();
+
+    expect(slider('club-uniform-color-hue-slider').value, closeTo(0, 0.1));
+    expect(
+      slider('club-uniform-color-saturation-slider').value,
+      closeTo(0.83, 0.01),
+    );
+    expect(
+      slider('club-uniform-color-brightness-slider').value,
+      closeTo(0.86, 0.01),
+    );
 
     await tester.tap(find.text('확인'));
     await tester.pumpAndSettle();
@@ -74,7 +81,7 @@ void main() {
     expect(profile.clubName, '성남 U15');
     expect(profile.weekdaySchedules.first.weekday, DateTime.monday);
     expect(profile.weekdaySchedules.first.enabled, isTrue);
-    expect(profile.weekdaySchedules.first.uniformColorValue, 0xFFFF0000);
+    expect(profile.weekdaySchedules.first.uniformColorValue, 0xFFDC2626);
     expect(find.text('클럽 일정을 저장했어요.'), findsOneWidget);
   });
 }

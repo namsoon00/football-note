@@ -5912,6 +5912,7 @@
   "clubScheduleAwayKitLabel": "Away",
   "clubScheduleKeeperKitLabel": "GK",
   "clubScheduleColorSelectTooltip": "Select color",
+  "clubScheduleColorPresetsLabel": "Common colors",
   "clubScheduleColorHueLabel": "Hue",
   "clubScheduleColorSaturationLabel": "Saturation",
   "clubScheduleColorBrightnessLabel": "Brightness",

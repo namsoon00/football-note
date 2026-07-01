@@ -5912,6 +5912,7 @@
   "clubScheduleAwayKitLabel": "アウェイ",
   "clubScheduleKeeperKitLabel": "GK",
   "clubScheduleColorSelectTooltip": "カラー選択",
+  "clubScheduleColorPresetsLabel": "代表色",
   "clubScheduleColorHueLabel": "色相",
   "clubScheduleColorSaturationLabel": "彩度",
   "clubScheduleColorBrightnessLabel": "明度",

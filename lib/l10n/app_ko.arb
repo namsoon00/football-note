@@ -5912,6 +5912,7 @@
   "clubScheduleAwayKitLabel": "어웨이",
   "clubScheduleKeeperKitLabel": "GK",
   "clubScheduleColorSelectTooltip": "컬러 선택",
+  "clubScheduleColorPresetsLabel": "대표 색상",
   "clubScheduleColorHueLabel": "색상",
   "clubScheduleColorSaturationLabel": "채도",
   "clubScheduleColorBrightnessLabel": "밝기",
