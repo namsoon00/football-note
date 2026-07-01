@@ -5,6 +5,7 @@ import 'sport_scoped_storage.dart';
 
 class PlayerProfileService {
   static const String nameKey = 'profile_name';
+  static const String playerNumberKey = 'profile_player_number';
   static const String photoUrlKey = 'profile_photo_url';
   static const String birthDateKey = 'profile_birth_date';
   static const String soccerStartDateKey = 'profile_soccer_start_date';
@@ -18,6 +19,7 @@ class PlayerProfileService {
 
   static const Set<String> optionKeys = <String>{
     nameKey,
+    playerNumberKey,
     photoUrlKey,
     birthDateKey,
     soccerStartDateKey,
@@ -32,6 +34,7 @@ class PlayerProfileService {
 
   static const List<String> sportScopedOptionKeyPrefixes = <String>[
     'profile_name_',
+    'profile_player_number_',
     'profile_photo_url_',
     'profile_birth_date_',
     'profile_soccer_start_date_',
@@ -63,6 +66,7 @@ class PlayerProfileService {
     final startRaw = _options.getValue<String>(_key(soccerStartDateKey));
     return PlayerProfile(
       name: _options.getValue<String>(_key(nameKey)) ?? '',
+      playerNumber: _options.getValue<String>(_key(playerNumberKey)) ?? '',
       photoUrl: _options.getValue<String>(_key(photoUrlKey)) ?? '',
       birthDate: _tryParseIsoDate(birthRaw),
       soccerStartDate: _tryParseIsoDate(startRaw),
@@ -82,6 +86,10 @@ class PlayerProfileService {
 
   Future<void> save(PlayerProfile profile) async {
     await _options.setValue(_key(nameKey), profile.name.trim());
+    await _options.setValue(
+      _key(playerNumberKey),
+      profile.playerNumber.trim(),
+    );
     await _options.setValue(_key(photoUrlKey), profile.photoUrl.trim());
     await _options.setValue(
       _key(birthDateKey),

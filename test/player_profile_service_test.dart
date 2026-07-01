@@ -34,6 +34,7 @@ void main() {
   test('save/load persists profile test results', () async {
     const profile = PlayerProfile(
       name: 'Kim',
+      playerNumber: '10',
       gender: 'male',
       mbtiResult: 'ENTJ',
       positionTestResult: 'MF · Midfielder',
@@ -44,6 +45,7 @@ void main() {
     final loaded = service.load();
 
     expect(loaded.name, 'Kim');
+    expect(loaded.playerNumber, '10');
     expect(loaded.gender, 'male');
     expect(loaded.mbtiResult, 'ENTJ');
     expect(loaded.positionTestResult, 'MF · Midfielder');
@@ -60,21 +62,28 @@ void main() {
     await footballService.save(
       const PlayerProfile(
         name: 'Football player',
+        playerNumber: '10',
         positionTestResult: 'MF · Midfielder',
       ),
     );
     await basketballService.save(
       const PlayerProfile(
         name: 'Basketball player',
+        playerNumber: '7',
         positionTestResult: 'G · Guard',
       ),
     );
 
     expect(footballService.load().name, 'Football player');
+    expect(footballService.load().playerNumber, '10');
     expect(basketballService.load().name, 'Basketball player');
+    expect(basketballService.load().playerNumber, '7');
     expect(optionBox.get(PlayerProfileService.nameKey), 'Football player');
     expect(optionBox.get('${PlayerProfileService.nameKey}_basketball'),
         'Basketball player');
+    expect(optionBox.get(PlayerProfileService.playerNumberKey), '10');
+    expect(optionBox.get('${PlayerProfileService.playerNumberKey}_basketball'),
+        '7');
     expect(optionBox.get(PlayerProfileService.positionTestResultKey),
         'MF · Midfielder');
     expect(

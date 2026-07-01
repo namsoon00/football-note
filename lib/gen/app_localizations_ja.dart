@@ -2651,6 +2651,12 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get profilePlayerNumberLabel => '選手番号';
+
+  @override
+  String get profilePlayerNumberHint => '例: 10';
+
+  @override
   String profileSportStartDateLabel(Object sport) {
     return '$sport開始日';
   }

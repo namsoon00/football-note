@@ -1660,6 +1660,8 @@
       "rewardName": {}
     }
   },
+  "profilePlayerNumberLabel": "選手番号",
+  "profilePlayerNumberHint": "例: 10",
   "profileSportStartDateLabel": "{sport}開始日",
   "@profileSportStartDateLabel": {
     "placeholders": {

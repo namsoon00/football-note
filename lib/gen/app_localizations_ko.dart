@@ -2648,6 +2648,12 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get profilePlayerNumberLabel => '선수 번호';
+
+  @override
+  String get profilePlayerNumberHint => '예) 10';
+
+  @override
   String profileSportStartDateLabel(Object sport) {
     return '$sport 시작일';
   }

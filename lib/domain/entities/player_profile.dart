@@ -1,5 +1,6 @@
 class PlayerProfile {
   final String name;
+  final String playerNumber;
   final String photoUrl;
   final DateTime? birthDate;
   final DateTime? soccerStartDate;
@@ -13,6 +14,7 @@ class PlayerProfile {
 
   const PlayerProfile({
     this.name = '',
+    this.playerNumber = '',
     this.photoUrl = '',
     this.birthDate,
     this.soccerStartDate,
@@ -27,6 +29,7 @@ class PlayerProfile {
 
   bool get isEmpty =>
       name.trim().isEmpty &&
+      playerNumber.trim().isEmpty &&
       photoUrl.trim().isEmpty &&
       birthDate == null &&
       soccerStartDate == null &&
@@ -40,6 +43,7 @@ class PlayerProfile {
 
   PlayerProfile copyWith({
     String? name,
+    String? playerNumber,
     String? photoUrl,
     DateTime? birthDate,
     DateTime? soccerStartDate,
@@ -57,6 +61,7 @@ class PlayerProfile {
   }) {
     return PlayerProfile(
       name: name ?? this.name,
+      playerNumber: playerNumber ?? this.playerNumber,
       photoUrl: photoUrl ?? this.photoUrl,
       birthDate: clearBirthDate ? null : (birthDate ?? this.birthDate),
       soccerStartDate: clearSoccerStartDate
