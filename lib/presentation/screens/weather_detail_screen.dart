@@ -1363,47 +1363,22 @@ class _MetricClusterCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        if (metrics.isEmpty) return const SizedBox.shrink();
-        const spacing = 6.0;
-        final maxWidth = constraints.maxWidth;
-        final columnCount = maxWidth >= 620
-            ? math.min(metrics.length, 4)
-            : maxWidth >= 320
-                ? math.min(metrics.length, 3)
-                : math.min(metrics.length, 2);
-        final itemWidth =
-            (maxWidth - spacing * (columnCount - 1)) / columnCount;
-        return Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surface.withValues(alpha: 0.16),
-            borderRadius: AppRadius.control,
-            border: Border.all(
-              color: theme.colorScheme.surface.withValues(alpha: 0.14),
-            ),
+    if (metrics.isEmpty) return const SizedBox.shrink();
+    return Wrap(
+      alignment: WrapAlignment.center,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 10,
+      runSpacing: 7,
+      children: [
+        for (var index = 0; index < metrics.length; index++)
+          _MetricCard(
+            label: metrics[index].label,
+            value: metrics[index].value,
+            icon: metrics[index].icon,
+            airLevel: metrics[index].airLevel,
+            prominent: index < 3,
           ),
-          child: Wrap(
-            spacing: spacing,
-            runSpacing: spacing,
-            children: [
-              for (var index = 0; index < metrics.length; index++)
-                SizedBox(
-                  width: itemWidth,
-                  child: _MetricCard(
-                    label: metrics[index].label,
-                    value: metrics[index].value,
-                    icon: metrics[index].icon,
-                    airLevel: metrics[index].airLevel,
-                    prominent: index < 3,
-                  ),
-                ),
-            ],
-          ),
-        );
-      },
+      ],
     );
   }
 }
@@ -1870,69 +1845,48 @@ class _MetricCard extends StatelessWidget {
     final theme = Theme.of(context);
     final palette =
         airLevel == null ? null : _airQualityPalette(theme, airLevel!);
-    return Container(
-      constraints: const BoxConstraints(minHeight: 52),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
-      decoration: BoxDecoration(
-        color: palette?.background ??
-            theme.colorScheme.surface.withValues(
-              alpha: prominent ? 0.88 : 0.68,
-            ),
-        borderRadius: AppRadius.small,
-        border: Border.all(
-          color: palette?.border ??
-              theme.colorScheme.outlineVariant.withValues(alpha: 0.45),
-        ),
-      ),
+    final foreground =
+        palette?.foreground ?? theme.colorScheme.onPrimaryContainer;
+    final labelColor = palette == null
+        ? theme.colorScheme.onPrimaryContainer.withValues(alpha: 0.72)
+        : palette.foreground.withValues(alpha: 0.82);
+    return Semantics(
+      label: '$label $value',
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Container(
-            width: 26,
-            height: 26,
-            decoration: BoxDecoration(
-              color: (palette?.foreground ?? theme.colorScheme.primary)
-                  .withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              icon,
-              size: 15,
-              color: palette?.foreground ?? theme.colorScheme.primary,
+          Icon(
+            icon,
+            size: 15,
+            color: foreground,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: labelColor,
+              fontWeight: FontWeight.w800,
+              height: 1.05,
             ),
           ),
-          const SizedBox(width: 7),
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: palette?.foreground ??
-                        theme.colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w800,
-                    height: 1.1,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  value,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: (prominent
-                          ? theme.textTheme.titleSmall
-                          : theme.textTheme.labelLarge)
-                      ?.copyWith(
-                    color: palette?.foreground,
-                    fontWeight: FontWeight.w900,
-                    height: 1.05,
-                  ),
-                ),
-              ],
+          const SizedBox(width: 3),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 142),
+            child: Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: (prominent
+                      ? theme.textTheme.titleSmall
+                      : theme.textTheme.labelLarge)
+                  ?.copyWith(
+                color: foreground,
+                fontWeight: FontWeight.w900,
+                height: 1.05,
+              ),
             ),
           ),
         ],
