@@ -597,6 +597,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get worldCupInfoAction => '説明';
 
   @override
+  String get worldCupPdfAction => 'PDF';
+
+  @override
   String get worldCupSourceShortAction => 'FIFA';
 
   @override
@@ -1530,6 +1533,15 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get worldCupTournamentOpenFullScreen => '全画面で表示';
+
+  @override
+  String get worldCupTournamentPdfTooltip => 'トーナメント表PDFをダウンロード';
+
+  @override
+  String get worldCupTournamentPdfExportedSnack => 'トーナメント表PDFを準備しました。';
+
+  @override
+  String get worldCupTournamentPdfExportFailedSnack => 'トーナメント表PDFを作成できませんでした。';
 
   @override
   String worldCupStageMatchCount(int count) {
@@ -10584,6 +10596,15 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get trainingSketchPlayTooltip => '遊ぶ';
+
+  @override
+  String get trainingSketchPdfExportTooltip => 'スケッチPDFをダウンロード';
+
+  @override
+  String get trainingSketchPdfExportedSnack => 'スケッチPDFを準備しました。';
+
+  @override
+  String get trainingSketchPdfExportFailedSnack => 'スケッチPDFを作成できませんでした。';
 
   @override
   String get trainingSketchLandscapeModeTooltip => '横向きモード';

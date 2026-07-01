@@ -259,6 +259,7 @@
   },
   "worldCupTitle": "월드컵 보기",
   "worldCupInfoAction": "설명",
+  "worldCupPdfAction": "PDF",
   "worldCupSourceShortAction": "FIFA",
   "worldCupHeroTitle": "FIFA 월드컵 2026",
   "worldCupHeroSubtitle": "캐나다, 멕시코, 미국 · 48개 팀",
@@ -919,6 +920,9 @@
   "worldCupTournamentZoomReset": "브래킷 크기 초기화",
   "worldCupTournamentZoomIn": "브래킷 확대",
   "worldCupTournamentOpenFullScreen": "전체 화면에서 보기",
+  "worldCupTournamentPdfTooltip": "대진표 PDF 다운로드",
+  "worldCupTournamentPdfExportedSnack": "대진표 PDF를 준비했어요.",
+  "worldCupTournamentPdfExportFailedSnack": "대진표 PDF를 만들지 못했어요.",
   "worldCupStageMatchCount": "{count}경기",
   "@worldCupStageMatchCount": {
     "placeholders": {
@@ -6013,6 +6017,9 @@
   "trainingSketchControlsPanel": "도구와 선택",
   "trainingSketchTacticalOverlay": "전술 구역 표시",
   "trainingSketchPlayTooltip": "플레이",
+  "trainingSketchPdfExportTooltip": "스케치 PDF 다운로드",
+  "trainingSketchPdfExportedSnack": "스케치 PDF를 준비했어요.",
+  "trainingSketchPdfExportFailedSnack": "스케치 PDF를 만들지 못했어요.",
   "trainingSketchLandscapeModeTooltip": "가로 모드",
   "trainingSketchPortraitModeTooltip": "세로 모드",
   "trainingSketchPlaybackSpeedTooltip": "재생 속도",

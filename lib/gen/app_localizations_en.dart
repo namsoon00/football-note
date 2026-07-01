@@ -628,6 +628,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get worldCupInfoAction => 'Guide';
 
   @override
+  String get worldCupPdfAction => 'PDF';
+
+  @override
   String get worldCupSourceShortAction => 'FIFA';
 
   @override
@@ -1577,6 +1580,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get worldCupTournamentOpenFullScreen => 'Open full screen';
+
+  @override
+  String get worldCupTournamentPdfTooltip => 'Download bracket PDF';
+
+  @override
+  String get worldCupTournamentPdfExportedSnack => 'Bracket PDF is ready.';
+
+  @override
+  String get worldCupTournamentPdfExportFailedSnack =>
+      'Could not create the bracket PDF.';
 
   @override
   String worldCupStageMatchCount(int count) {
@@ -10896,6 +10909,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trainingSketchPlayTooltip => 'Play';
+
+  @override
+  String get trainingSketchPdfExportTooltip => 'Download sketch PDF';
+
+  @override
+  String get trainingSketchPdfExportedSnack => 'Sketch PDF is ready.';
+
+  @override
+  String get trainingSketchPdfExportFailedSnack =>
+      'Could not create the sketch PDF.';
 
   @override
   String get trainingSketchLandscapeModeTooltip => 'Landscape mode';

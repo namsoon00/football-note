@@ -3218,6 +3218,27 @@ void main() {
     expect(arguments, contains('landscapeRight'));
   });
 
+  testWidgets('sketch PDF export action is visible in the top bar', (
+    WidgetTester tester,
+  ) async {
+    _setPortraitSurface(tester);
+
+    await tester.pumpWidget(
+      _buildApp(
+        const TrainingMethodBoardScreen(
+          boardTitle: 'PDF 스케치',
+          initialLayoutJson: '',
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey('training-sketch-pdf-button')),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('tactical overlay can be toggled from the sketch menu', (
     WidgetTester tester,
   ) async {

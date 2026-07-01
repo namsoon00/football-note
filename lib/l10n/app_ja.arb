@@ -259,6 +259,7 @@
   },
   "worldCupTitle": "ワールドカップ表示",
   "worldCupInfoAction": "説明",
+  "worldCupPdfAction": "PDF",
   "worldCupSourceShortAction": "FIFA",
   "worldCupHeroTitle": "FIFAワールドカップ2026",
   "worldCupHeroSubtitle": "カナダ、メキシコ、アメリカ · 48チーム",
@@ -919,6 +920,9 @@
   "worldCupTournamentZoomReset": "ブラケットの拡大率をリセット",
   "worldCupTournamentZoomIn": "ブラケットを拡大",
   "worldCupTournamentOpenFullScreen": "全画面で表示",
+  "worldCupTournamentPdfTooltip": "トーナメント表PDFをダウンロード",
+  "worldCupTournamentPdfExportedSnack": "トーナメント表PDFを準備しました。",
+  "worldCupTournamentPdfExportFailedSnack": "トーナメント表PDFを作成できませんでした。",
   "worldCupStageMatchCount": "{count}試合",
   "@worldCupStageMatchCount": {
     "placeholders": {
@@ -6013,6 +6017,9 @@
   "trainingSketchControlsPanel": "ツールと選択",
   "trainingSketchTacticalOverlay": "戦術ゾーンを表示",
   "trainingSketchPlayTooltip": "遊ぶ",
+  "trainingSketchPdfExportTooltip": "スケッチPDFをダウンロード",
+  "trainingSketchPdfExportedSnack": "スケッチPDFを準備しました。",
+  "trainingSketchPdfExportFailedSnack": "スケッチPDFを作成できませんでした。",
   "trainingSketchLandscapeModeTooltip": "横向きモード",
   "trainingSketchPortraitModeTooltip": "縦向きモード",
   "trainingSketchPlaybackSpeedTooltip": "再生速度",

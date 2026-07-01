@@ -594,6 +594,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get worldCupInfoAction => '설명';
 
   @override
+  String get worldCupPdfAction => 'PDF';
+
+  @override
   String get worldCupSourceShortAction => 'FIFA';
 
   @override
@@ -1527,6 +1530,15 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get worldCupTournamentOpenFullScreen => '전체 화면에서 보기';
+
+  @override
+  String get worldCupTournamentPdfTooltip => '대진표 PDF 다운로드';
+
+  @override
+  String get worldCupTournamentPdfExportedSnack => '대진표 PDF를 준비했어요.';
+
+  @override
+  String get worldCupTournamentPdfExportFailedSnack => '대진표 PDF를 만들지 못했어요.';
 
   @override
   String worldCupStageMatchCount(int count) {
@@ -10605,6 +10617,15 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get trainingSketchPlayTooltip => '플레이';
+
+  @override
+  String get trainingSketchPdfExportTooltip => '스케치 PDF 다운로드';
+
+  @override
+  String get trainingSketchPdfExportedSnack => '스케치 PDF를 준비했어요.';
+
+  @override
+  String get trainingSketchPdfExportFailedSnack => '스케치 PDF를 만들지 못했어요.';
 
   @override
   String get trainingSketchLandscapeModeTooltip => '가로 모드';

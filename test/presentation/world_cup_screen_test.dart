@@ -35,6 +35,10 @@ void main() {
     expect(find.text('월드컵 보기'), findsOneWidget);
     expect(find.text('설명'), findsOneWidget);
     expect(find.text('FIFA'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('world-cup-tournament-pdf-button')),
+      findsOneWidget,
+    );
     final countrySettingsY = tester.getTopLeft(find.text('내 월드컵 국가')).dy;
     final calendarY = tester.getTopLeft(find.text('전체 경기 캘린더')).dy;
     expect(countrySettingsY, lessThan(calendarY));
