@@ -10375,7 +10375,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get clubScheduleWeekdayTitle => '요일별 훈련시간';
 
   @override
-  String get clubScheduleWeekdayHelper => '훈련이 있는 요일만 켜고 시작/종료 시간을 맞추세요.';
+  String get clubScheduleWeekdayHelper =>
+      '훈련이 있는 요일만 켜고 시작/종료 시간과 유니폼 컬러를 맞추세요.';
 
   @override
   String get clubScheduleStartTimeLabel => '시작';
@@ -10385,6 +10386,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get clubScheduleDayOffLabel => '쉼';
+
+  @override
+  String get clubScheduleDayUniformLabel => '유니폼';
 
   @override
   String get clubScheduleUniformTitle => '유니폼 컬러';

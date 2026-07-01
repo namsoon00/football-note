@@ -195,9 +195,9 @@ void main() {
             enabled: true,
             startMinutes: 19 * 60,
             endMinutes: 21 * 60,
+            uniformColorValue: 0xFFDC2626,
           ),
         ],
-        homeUniformColorValue: 0xFFDC2626,
       ),
     );
 

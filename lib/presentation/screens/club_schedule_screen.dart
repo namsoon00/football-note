@@ -37,9 +37,6 @@ class _ClubScheduleScreenState extends State<ClubScheduleScreen> {
   late final ClubScheduleService _service;
   late ClubScheduleProfile _profile;
   late List<ClubTrainingSchedule> _schedules;
-  late int _homeUniformColorValue;
-  late int _awayUniformColorValue;
-  late int _keeperUniformColorValue;
   final TextEditingController _clubNameController = TextEditingController();
   bool _saving = false;
 
@@ -53,9 +50,6 @@ class _ClubScheduleScreenState extends State<ClubScheduleScreen> {
     _profile = _service.loadProfile();
     _clubNameController.text = _profile.clubName;
     _schedules = List<ClubTrainingSchedule>.from(_profile.weekdaySchedules);
-    _homeUniformColorValue = _profile.homeUniformColorValue;
-    _awayUniformColorValue = _profile.awayUniformColorValue;
-    _keeperUniformColorValue = _profile.keeperUniformColorValue;
   }
 
   @override
@@ -71,9 +65,6 @@ class _ClubScheduleScreenState extends State<ClubScheduleScreen> {
       final profile = _profile.copyWith(
         clubName: _clubNameController.text.trim(),
         weekdaySchedules: _schedules,
-        homeUniformColorValue: _homeUniformColorValue,
-        awayUniformColorValue: _awayUniformColorValue,
-        keeperUniformColorValue: _keeperUniformColorValue,
       );
       await _service.saveProfile(profile);
       if (!mounted) return;
@@ -82,9 +73,6 @@ class _ClubScheduleScreenState extends State<ClubScheduleScreen> {
         _schedules = List<ClubTrainingSchedule>.from(
           _profile.weekdaySchedules,
         );
-        _homeUniformColorValue = _profile.homeUniformColorValue;
-        _awayUniformColorValue = _profile.awayUniformColorValue;
-        _keeperUniformColorValue = _profile.keeperUniformColorValue;
       });
       AppFeedback.showSuccess(context, text: l10n.clubScheduleSavedFeedback);
     } finally {
@@ -145,23 +133,11 @@ class _ClubScheduleScreenState extends State<ClubScheduleScreen> {
               const SizedBox(height: AppSpacing.md),
               _WeekdaySchedulePanel(
                 schedules: _schedules,
+                palette: _uniformPalette,
                 weekdayLabel: _weekdayLabel,
                 timeRangeLabel: _timeRangeLabel,
                 onScheduleChanged: _setSchedule,
                 onPickTime: _pickScheduleTime,
-              ),
-              const SizedBox(height: AppSpacing.md),
-              _UniformColorPanel(
-                palette: _uniformPalette,
-                homeColorValue: _homeUniformColorValue,
-                awayColorValue: _awayUniformColorValue,
-                keeperColorValue: _keeperUniformColorValue,
-                onHomeColorChanged: (value) =>
-                    setState(() => _homeUniformColorValue = value),
-                onAwayColorChanged: (value) =>
-                    setState(() => _awayUniformColorValue = value),
-                onKeeperColorChanged: (value) =>
-                    setState(() => _keeperUniformColorValue = value),
               ),
               const SizedBox(height: AppSpacing.lg),
               FilledButton.icon(
@@ -186,9 +162,6 @@ class _ClubScheduleScreenState extends State<ClubScheduleScreen> {
     return _profile.copyWith(
       clubName: _clubNameController.text.trim(),
       weekdaySchedules: _schedules,
-      homeUniformColorValue: _homeUniformColorValue,
-      awayUniformColorValue: _awayUniformColorValue,
-      keeperUniformColorValue: _keeperUniformColorValue,
     );
   }
 
@@ -241,6 +214,8 @@ class _ClubScheduleSummaryPanel extends StatelessWidget {
     final todaySchedule = profile.scheduleForDate(today);
     final nextTraining = profile.nextTraining(today);
     final hasTodayTraining = todaySchedule?.enabled == true;
+    final previewSchedule =
+        hasTodayTraining ? todaySchedule : nextTraining?.schedule;
     final clubName = profile.clubName.trim();
     return Container(
       decoration: AppSurfaces.heroDecoration(
@@ -290,8 +265,10 @@ class _ClubScheduleSummaryPanel extends StatelessWidget {
               height: 1.35,
             ),
           ),
-          const SizedBox(height: AppSpacing.md),
-          _UniformPreviewRow(profile: profile),
+          if (previewSchedule != null) ...[
+            const SizedBox(height: AppSpacing.md),
+            _UniformPreviewRow(colorValue: previewSchedule.uniformColorValue),
+          ],
         ],
       ),
     );
@@ -329,6 +306,7 @@ class _ClubNamePanel extends StatelessWidget {
 
 class _WeekdaySchedulePanel extends StatelessWidget {
   final List<ClubTrainingSchedule> schedules;
+  final List<int> palette;
   final String Function(int weekday) weekdayLabel;
   final String Function(ClubTrainingSchedule schedule) timeRangeLabel;
   final ValueChanged<ClubTrainingSchedule> onScheduleChanged;
@@ -339,6 +317,7 @@ class _WeekdaySchedulePanel extends StatelessWidget {
 
   const _WeekdaySchedulePanel({
     required this.schedules,
+    required this.palette,
     required this.weekdayLabel,
     required this.timeRangeLabel,
     required this.onScheduleChanged,
@@ -350,7 +329,7 @@ class _WeekdaySchedulePanel extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     return Container(
-      key: const ValueKey<String>('club-schedule-uniform-panel'),
+      key: const ValueKey<String>('club-schedule-weekday-panel'),
       decoration: AppSurfaces.cardDecoration(
         theme.colorScheme,
         theme.brightness,
@@ -368,6 +347,7 @@ class _WeekdaySchedulePanel extends StatelessWidget {
           for (final schedule in schedules) ...[
             _WeekdayScheduleRow(
               schedule: schedule,
+              palette: palette,
               weekdayLabel: weekdayLabel(schedule.weekday),
               timeRangeLabel: timeRangeLabel(schedule),
               onScheduleChanged: onScheduleChanged,
@@ -384,6 +364,7 @@ class _WeekdaySchedulePanel extends StatelessWidget {
 
 class _WeekdayScheduleRow extends StatelessWidget {
   final ClubTrainingSchedule schedule;
+  final List<int> palette;
   final String weekdayLabel;
   final String timeRangeLabel;
   final ValueChanged<ClubTrainingSchedule> onScheduleChanged;
@@ -394,6 +375,7 @@ class _WeekdayScheduleRow extends StatelessWidget {
 
   const _WeekdayScheduleRow({
     required this.schedule,
+    required this.palette,
     required this.weekdayLabel,
     required this.timeRangeLabel,
     required this.onScheduleChanged,
@@ -434,118 +416,68 @@ class _WeekdayScheduleRow extends StatelessWidget {
           AnimatedOpacity(
             duration: const Duration(milliseconds: 160),
             opacity: schedule.enabled ? 1 : 0.46,
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    key: ValueKey<String>(
-                      'club-schedule-start-${schedule.weekday}',
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        key: ValueKey<String>(
+                          'club-schedule-start-${schedule.weekday}',
+                        ),
+                        onPressed: schedule.enabled
+                            ? () => onPickTime(schedule: schedule, start: true)
+                            : null,
+                        icon: const Icon(Icons.play_arrow_outlined),
+                        label: Text(l10n.clubScheduleStartTimeLabel),
+                      ),
                     ),
-                    onPressed: schedule.enabled
-                        ? () => onPickTime(schedule: schedule, start: true)
-                        : null,
-                    icon: const Icon(Icons.play_arrow_outlined),
-                    label: Text(l10n.clubScheduleStartTimeLabel),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.xs),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    key: ValueKey<String>(
-                      'club-schedule-end-${schedule.weekday}',
+                    const SizedBox(width: AppSpacing.xs),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        key: ValueKey<String>(
+                          'club-schedule-end-${schedule.weekday}',
+                        ),
+                        onPressed: schedule.enabled
+                            ? () => onPickTime(schedule: schedule, start: false)
+                            : null,
+                        icon: const Icon(Icons.stop_outlined),
+                        label: Text(l10n.clubScheduleEndTimeLabel),
+                      ),
                     ),
-                    onPressed: schedule.enabled
-                        ? () => onPickTime(schedule: schedule, start: false)
-                        : null,
-                    icon: const Icon(Icons.stop_outlined),
-                    label: Text(l10n.clubScheduleEndTimeLabel),
-                  ),
+                    const SizedBox(width: AppSpacing.sm),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(minWidth: 92),
+                      child: Text(
+                        schedule.enabled
+                            ? timeRangeLabel
+                            : l10n.clubScheduleDayOffLabel,
+                        textAlign: TextAlign.end,
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          color: schedule.enabled
+                              ? scheme.primary
+                              : scheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: AppSpacing.sm),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(minWidth: 92),
-                  child: Text(
-                    schedule.enabled
-                        ? timeRangeLabel
-                        : l10n.clubScheduleDayOffLabel,
-                    textAlign: TextAlign.end,
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      color: schedule.enabled
-                          ? scheme.primary
-                          : scheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w900,
+                if (schedule.enabled) ...[
+                  const SizedBox(height: AppSpacing.sm),
+                  _UniformColorSelector(
+                    label: l10n.clubScheduleDayUniformLabel,
+                    selectedColorValue: schedule.uniformColorValue,
+                    palette: palette,
+                    keyPrefix: 'day-${schedule.weekday}',
+                    onChanged: (value) => onScheduleChanged(
+                      schedule.copyWith(uniformColorValue: value),
                     ),
                   ),
-                ),
+                ],
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _UniformColorPanel extends StatelessWidget {
-  final List<int> palette;
-  final int homeColorValue;
-  final int awayColorValue;
-  final int keeperColorValue;
-  final ValueChanged<int> onHomeColorChanged;
-  final ValueChanged<int> onAwayColorChanged;
-  final ValueChanged<int> onKeeperColorChanged;
-
-  const _UniformColorPanel({
-    required this.palette,
-    required this.homeColorValue,
-    required this.awayColorValue,
-    required this.keeperColorValue,
-    required this.onHomeColorChanged,
-    required this.onAwayColorChanged,
-    required this.onKeeperColorChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    return Container(
-      decoration: AppSurfaces.cardDecoration(
-        theme.colorScheme,
-        theme.brightness,
-      ),
-      padding: const EdgeInsets.all(AppSpacing.md),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _PanelTitle(
-            icon: Icons.checkroom_outlined,
-            title: l10n.clubScheduleUniformTitle,
-            helper: l10n.clubScheduleUniformHelper,
-          ),
-          const SizedBox(height: AppSpacing.md),
-          _UniformColorSelector(
-            label: l10n.clubScheduleHomeKitLabel,
-            selectedColorValue: homeColorValue,
-            palette: palette,
-            keyPrefix: 'home',
-            onChanged: onHomeColorChanged,
-          ),
-          const SizedBox(height: AppSpacing.md),
-          _UniformColorSelector(
-            label: l10n.clubScheduleAwayKitLabel,
-            selectedColorValue: awayColorValue,
-            palette: palette,
-            keyPrefix: 'away',
-            onChanged: onAwayColorChanged,
-          ),
-          const SizedBox(height: AppSpacing.md),
-          _UniformColorSelector(
-            label: l10n.clubScheduleKeeperKitLabel,
-            selectedColorValue: keeperColorValue,
-            palette: palette,
-            keyPrefix: 'keeper',
-            onChanged: onKeeperColorChanged,
           ),
         ],
       ),
@@ -661,9 +593,9 @@ class _UniformSwatchButton extends StatelessWidget {
 }
 
 class _UniformPreviewRow extends StatelessWidget {
-  final ClubScheduleProfile profile;
+  final int colorValue;
 
-  const _UniformPreviewRow({required this.profile});
+  const _UniformPreviewRow({required this.colorValue});
 
   @override
   Widget build(BuildContext context) {
@@ -671,18 +603,8 @@ class _UniformPreviewRow extends StatelessWidget {
     return Row(
       children: [
         _UniformPreviewChip(
-          label: l10n.clubScheduleHomeKitLabel,
-          colorValue: profile.homeUniformColorValue,
-        ),
-        const SizedBox(width: AppSpacing.xs),
-        _UniformPreviewChip(
-          label: l10n.clubScheduleAwayKitLabel,
-          colorValue: profile.awayUniformColorValue,
-        ),
-        const SizedBox(width: AppSpacing.xs),
-        _UniformPreviewChip(
-          label: l10n.clubScheduleKeeperKitLabel,
-          colorValue: profile.keeperUniformColorValue,
+          label: l10n.clubScheduleDayUniformLabel,
+          colorValue: colorValue,
         ),
       ],
     );

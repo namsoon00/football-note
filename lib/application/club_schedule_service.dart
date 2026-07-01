@@ -6,17 +6,20 @@ import 'sport_scoped_storage.dart';
 class ClubTrainingSchedule {
   static const int defaultStartMinutes = 18 * 60;
   static const int defaultEndMinutes = 20 * 60;
+  static const int defaultUniformColorValue = 0xFF2563EB;
 
   final int weekday;
   final bool enabled;
   final int startMinutes;
   final int endMinutes;
+  final int uniformColorValue;
 
   const ClubTrainingSchedule({
     required this.weekday,
     this.enabled = false,
     this.startMinutes = defaultStartMinutes,
     this.endMinutes = defaultEndMinutes,
+    this.uniformColorValue = defaultUniformColorValue,
   });
 
   factory ClubTrainingSchedule.disabled(int weekday) {
@@ -25,7 +28,10 @@ class ClubTrainingSchedule {
     );
   }
 
-  factory ClubTrainingSchedule.fromMap(Map<String, dynamic> map) {
+  factory ClubTrainingSchedule.fromMap(
+    Map<String, dynamic> map, {
+    int fallbackUniformColorValue = defaultUniformColorValue,
+  }) {
     final start = ClubScheduleService.normalizeMinutes(
       map['startMinutes'],
       fallback: defaultStartMinutes,
@@ -38,6 +44,10 @@ class ClubTrainingSchedule {
         map['endMinutes'],
         startMinutes: start,
       ),
+      uniformColorValue: ClubScheduleService.normalizeColorValue(
+        map['uniformColorValue'],
+        fallback: fallbackUniformColorValue,
+      ),
     );
   }
 
@@ -46,6 +56,7 @@ class ClubTrainingSchedule {
     bool? enabled,
     int? startMinutes,
     int? endMinutes,
+    int? uniformColorValue,
   }) {
     final nextStart = ClubScheduleService.normalizeMinutes(
       startMinutes ?? this.startMinutes,
@@ -59,6 +70,10 @@ class ClubTrainingSchedule {
         endMinutes ?? this.endMinutes,
         startMinutes: nextStart,
       ),
+      uniformColorValue: ClubScheduleService.normalizeColorValue(
+        uniformColorValue ?? this.uniformColorValue,
+        fallback: defaultUniformColorValue,
+      ),
     );
   }
 
@@ -68,6 +83,7 @@ class ClubTrainingSchedule {
       'enabled': enabled,
       'startMinutes': startMinutes,
       'endMinutes': endMinutes,
+      'uniformColorValue': uniformColorValue,
     };
   }
 }
@@ -115,21 +131,23 @@ class ClubScheduleProfile {
   factory ClubScheduleProfile.fromMap(Map<String, dynamic> map) {
     final updatedAt = DateTime.tryParse(map['updatedAt']?.toString() ?? '') ??
         DateTime.fromMillisecondsSinceEpoch(0);
+    final homeUniformColorValue = ClubScheduleService.normalizeColorValue(
+      map['homeUniformColorValue'],
+      fallback: defaultHomeUniformColorValue,
+    );
     final schedules = map['weekdaySchedules'] is List
         ? (map['weekdaySchedules'] as List)
             .whereType<Map>()
             .map((item) => ClubTrainingSchedule.fromMap(
                   item.cast<String, dynamic>(),
+                  fallbackUniformColorValue: homeUniformColorValue,
                 ))
         : const Iterable<ClubTrainingSchedule>.empty();
 
     return ClubScheduleProfile(
       clubName: map['clubName']?.toString().trim() ?? '',
       weekdaySchedules: ClubScheduleService.normalizeSchedules(schedules),
-      homeUniformColorValue: ClubScheduleService.normalizeColorValue(
-        map['homeUniformColorValue'],
-        fallback: defaultHomeUniformColorValue,
-      ),
+      homeUniformColorValue: homeUniformColorValue,
       awayUniformColorValue: ClubScheduleService.normalizeColorValue(
         map['awayUniformColorValue'],
         fallback: defaultAwayUniformColorValue,

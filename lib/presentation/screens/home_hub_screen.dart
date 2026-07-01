@@ -2242,6 +2242,8 @@ class _ClubScheduleHomeCard extends StatelessWidget {
     final todaySchedule = profile.scheduleForDate(today);
     final hasTodayTraining = todaySchedule?.enabled == true;
     final nextTraining = profile.nextTraining(today);
+    final previewSchedule =
+        hasTodayTraining ? todaySchedule : nextTraining?.schedule;
     final clubName = profile.clubName.trim();
     final title = clubName.isEmpty ? l10n.clubScheduleHomeTitle : clubName;
     final primary = hasTodayTraining
@@ -2316,7 +2318,10 @@ class _ClubScheduleHomeCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
-              _ClubScheduleUniformDots(profile: profile),
+              _ClubScheduleUniformDot(
+                colorValue: previewSchedule?.uniformColorValue ??
+                    ClubTrainingSchedule.defaultUniformColorValue,
+              ),
               const SizedBox(width: AppSpacing.xs),
               Icon(
                 Icons.chevron_right,
@@ -2331,29 +2336,6 @@ class _ClubScheduleHomeCard extends StatelessWidget {
   }
 }
 
-class _ClubScheduleUniformDots extends StatelessWidget {
-  final ClubScheduleProfile profile;
-
-  const _ClubScheduleUniformDots({required this.profile});
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      label: AppLocalizations.of(context)!.clubScheduleUniformTitle,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _ClubScheduleUniformDot(colorValue: profile.homeUniformColorValue),
-          const SizedBox(width: 4),
-          _ClubScheduleUniformDot(colorValue: profile.awayUniformColorValue),
-          const SizedBox(width: 4),
-          _ClubScheduleUniformDot(colorValue: profile.keeperUniformColorValue),
-        ],
-      ),
-    );
-  }
-}
-
 class _ClubScheduleUniformDot extends StatelessWidget {
   final int colorValue;
 
@@ -2361,14 +2343,18 @@ class _ClubScheduleUniformDot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 18,
-      height: 18,
-      decoration: BoxDecoration(
-        color: Color(colorValue),
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.42),
+    return Semantics(
+      label: AppLocalizations.of(context)!.clubScheduleDayUniformLabel,
+      child: Container(
+        width: 18,
+        height: 18,
+        decoration: BoxDecoration(
+          color: Color(colorValue),
+          shape: BoxShape.circle,
+          border: Border.all(
+            color:
+                Theme.of(context).colorScheme.outline.withValues(alpha: 0.42),
+          ),
         ),
       ),
     );

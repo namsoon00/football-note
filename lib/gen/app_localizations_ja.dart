@@ -10356,7 +10356,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get clubScheduleWeekdayTitle => '曜日別の練習時間';
 
   @override
-  String get clubScheduleWeekdayHelper => '練習がある曜日だけオンにして、開始と終了時間を設定します。';
+  String get clubScheduleWeekdayHelper =>
+      '練習がある曜日だけオンにして、開始時間、終了時間、ユニフォームカラーを設定します。';
 
   @override
   String get clubScheduleStartTimeLabel => '開始';
@@ -10366,6 +10367,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get clubScheduleDayOffLabel => '休み';
+
+  @override
+  String get clubScheduleDayUniformLabel => 'ユニフォーム';
 
   @override
   String get clubScheduleUniformTitle => 'ユニフォームカラー';

@@ -18235,7 +18235,7 @@ abstract class AppLocalizations {
   /// No description provided for @clubScheduleWeekdayHelper.
   ///
   /// In en, this message translates to:
-  /// **'Turn on training days and set start and end times.'**
+  /// **'Turn on training days, then set start time, end time, and uniform color.'**
   String get clubScheduleWeekdayHelper;
 
   /// No description provided for @clubScheduleStartTimeLabel.
@@ -18255,6 +18255,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Off'**
   String get clubScheduleDayOffLabel;
+
+  /// No description provided for @clubScheduleDayUniformLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Uniform'**
+  String get clubScheduleDayUniformLabel;
 
   /// No description provided for @clubScheduleUniformTitle.
   ///

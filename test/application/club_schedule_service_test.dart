@@ -20,9 +20,9 @@ void main() {
               enabled: true,
               startMinutes: 19 * 60,
               endMinutes: 21 * 60,
+              uniformColorValue: 0xFFDC2626,
             ),
           ],
-          homeUniformColorValue: 0xFFDC2626,
         ),
       );
 
@@ -34,7 +34,10 @@ void main() {
         profile.scheduleForDate(DateTime(2026, 7, 1))?.startMinutes,
         19 * 60,
       );
-      expect(profile.homeUniformColorValue, 0xFFDC2626);
+      expect(
+        profile.scheduleForDate(DateTime(2026, 7, 1))?.uniformColorValue,
+        0xFFDC2626,
+      );
     });
 
     test('separates schedules by sport while preserving football key',
@@ -75,7 +78,7 @@ void main() {
           jsonEncode(
             <String, dynamic>{
               'clubName': '  Local FC  ',
-              'homeUniformColorValue': 0x2563EB,
+              'homeUniformColorValue': 0xDC2626,
               'weekdaySchedules': [
                 <String, dynamic>{
                   'weekday': 9,
@@ -95,7 +98,7 @@ void main() {
       expect(profile.weekdaySchedules.first.weekday, DateTime.monday);
       expect(profile.weekdaySchedules.first.startMinutes, 23 * 60 + 59);
       expect(profile.weekdaySchedules.first.endMinutes, 23 * 60 + 59);
-      expect(profile.homeUniformColorValue, 0xFF2563EB);
+      expect(profile.weekdaySchedules.first.uniformColorValue, 0xFFDC2626);
     });
   });
 }
