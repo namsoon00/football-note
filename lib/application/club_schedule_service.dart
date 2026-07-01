@@ -181,6 +181,21 @@ class ClubScheduleProfile {
     return null;
   }
 
+  ClubTrainingOccurrence? upcomingTraining(DateTime from) {
+    final today = DateTime(from.year, from.month, from.day);
+    final currentMinutes = from.hour * 60 + from.minute;
+    for (var dayOffset = 0; dayOffset < 14; dayOffset += 1) {
+      final date = today.add(Duration(days: dayOffset));
+      final schedule = scheduleForDate(date);
+      if (schedule == null || !schedule.enabled) continue;
+      if (dayOffset == 0 && currentMinutes >= schedule.endMinutes) {
+        continue;
+      }
+      return ClubTrainingOccurrence(date: date, schedule: schedule);
+    }
+    return null;
+  }
+
   ClubScheduleProfile copyWith({
     String? clubName,
     List<ClubTrainingSchedule>? weekdaySchedules,

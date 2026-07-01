@@ -184,17 +184,23 @@ void main() {
     final settingsService = SettingsService(optionRepository)..load();
     final trainingService = TrainingService(_MemoryTrainingRepository());
     final mealLogService = MealLogService(optionRepository);
-    final todayWeekday = DateTime.now().weekday;
+    final now = DateTime.now();
+    final nowMinutes = now.hour * 60 + now.minute;
+    final canUseToday = nowMinutes < 22 * 60;
+    final scheduleWeekday =
+        canUseToday ? now.weekday : now.add(const Duration(days: 1)).weekday;
+    final scheduleStartMinutes = canUseToday ? nowMinutes + 1 : 19 * 60;
+    final scheduleEndMinutes = canUseToday ? nowMinutes + 61 : 21 * 60;
 
     await ClubScheduleService(optionRepository).saveProfile(
       ClubScheduleProfile.empty().copyWith(
         clubName: '성남 U15',
         weekdaySchedules: [
           ClubTrainingSchedule(
-            weekday: todayWeekday,
+            weekday: scheduleWeekday,
             enabled: true,
-            startMinutes: 19 * 60,
-            endMinutes: 21 * 60,
+            startMinutes: scheduleStartMinutes,
+            endMinutes: scheduleEndMinutes,
             uniformColorValue: 0xFFDC2626,
           ),
         ],
@@ -230,7 +236,10 @@ void main() {
     final card = find.byKey(const ValueKey<String>('home-club-schedule-card'));
     expect(card, findsOneWidget);
     expect(find.text('성남 U15'), findsOneWidget);
-    expect(find.textContaining('오늘'), findsWidgets);
+    expect(
+      find.textContaining(canUseToday ? '오늘' : '다음 훈련'),
+      findsWidgets,
+    );
 
     await tester.tap(card);
     await tester.pumpAndSettle();

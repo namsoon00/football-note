@@ -18196,6 +18196,12 @@ abstract class AppLocalizations {
   /// **'Next training {weekday} {time}'**
   String clubScheduleHomeNextTraining(Object weekday, Object time);
 
+  /// No description provided for @clubScheduleHomeNextTrainingDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Next training {weekday}'**
+  String clubScheduleHomeNextTrainingDay(Object weekday);
+
   /// No description provided for @clubScheduleTodayTraining.
   ///
   /// In en, this message translates to:

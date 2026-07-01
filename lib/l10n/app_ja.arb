@@ -5883,6 +5883,12 @@
       "time": {}
     }
   },
+  "clubScheduleHomeNextTrainingDay": "次の練習 {weekday}",
+  "@clubScheduleHomeNextTrainingDay": {
+    "placeholders": {
+      "weekday": {}
+    }
+  },
   "clubScheduleTodayTraining": "今日 {time}",
   "@clubScheduleTodayTraining": {
     "placeholders": {

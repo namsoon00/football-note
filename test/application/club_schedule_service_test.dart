@@ -100,6 +100,37 @@ void main() {
       expect(profile.weekdaySchedules.first.endMinutes, 23 * 60 + 59);
       expect(profile.weekdaySchedules.first.uniformColorValue, 0xFFDC2626);
     });
+
+    test('upcoming training skips today after the training window', () {
+      final profile = ClubScheduleProfile.empty().copyWith(
+        weekdaySchedules: const [
+          ClubTrainingSchedule(
+            weekday: DateTime.wednesday,
+            enabled: true,
+            startMinutes: 18 * 60,
+            endMinutes: 20 * 60,
+          ),
+          ClubTrainingSchedule(
+            weekday: DateTime.thursday,
+            enabled: true,
+            startMinutes: 19 * 60,
+            endMinutes: 21 * 60,
+          ),
+        ],
+      );
+
+      expect(
+        profile
+            .upcomingTraining(DateTime(2026, 7, 1, 19, 30))
+            ?.schedule
+            .weekday,
+        DateTime.wednesday,
+      );
+      expect(
+        profile.upcomingTraining(DateTime(2026, 7, 1, 20))?.schedule.weekday,
+        DateTime.thursday,
+      );
+    });
   });
 }
 
