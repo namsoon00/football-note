@@ -1660,6 +1660,8 @@
       "rewardName": {}
     }
   },
+  "profilePlayerNumberLabel": "선수 번호",
+  "profilePlayerNumberHint": "예) 10",
   "profileSportStartDateLabel": "{sport} 시작일",
   "@profileSportStartDateLabel": {
     "placeholders": {

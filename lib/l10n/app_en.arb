@@ -1660,6 +1660,8 @@
       "rewardName": {}
     }
   },
+  "profilePlayerNumberLabel": "Player number",
+  "profilePlayerNumberHint": "Example: 10",
   "profileSportStartDateLabel": "{sport} start date",
   "@profileSportStartDateLabel": {
     "placeholders": {

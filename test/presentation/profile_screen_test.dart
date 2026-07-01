@@ -134,11 +134,18 @@ void main() {
   testWidgets('Profile screen reads visible profile data for current sport', (
     WidgetTester tester,
   ) async {
+    tester.view.physicalSize = const Size(1200, 1800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
     final repository = _MemoryOptionRepository()
       ..seed(SportCatalog.currentSportOptionKey, SportCatalog.basketballId)
       ..seed('profile_name', 'Football player')
+      ..seed('profile_player_number', '10')
       ..seed('profile_position_test_result', 'MF · 미드필더형')
       ..seed('profile_name_basketball', 'Basketball player')
+      ..seed('profile_player_number_basketball', '23')
       ..seed('profile_position_test_result_basketball', 'G · 가드형');
 
     await tester.pumpWidget(
@@ -152,7 +159,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Basketball player'), findsWidgets);
+    expect(find.text('23'), findsOneWidget);
     expect(find.text('Football player'), findsNothing);
+    expect(find.text('10'), findsNothing);
     expect(find.text('농구 시작일'), findsOneWidget);
     expect(find.text('포지션 G'), findsOneWidget);
 
@@ -161,6 +170,34 @@ void main() {
 
     expect(find.text('G · 가드형'), findsOneWidget);
     expect(find.text('MF · 미드필더형'), findsNothing);
+  });
+
+  testWidgets('Profile screen saves player number edits', (
+    WidgetTester tester,
+  ) async {
+    final repository = _MemoryOptionRepository();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ProfileScreen(optionRepository: repository),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final numberField = find.byWidgetPredicate(
+      (widget) =>
+          widget is TextField && widget.decoration?.labelText == '선수 번호',
+    );
+
+    expect(numberField, findsOneWidget);
+
+    await tester.enterText(numberField, '07');
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(repository.value('profile_player_number'), '07');
   });
 
   testWidgets('Profile level card opens level guide on tap', (
@@ -232,6 +269,8 @@ class _MemoryOptionRepository implements OptionRepository {
   void seed(String key, dynamic value) {
     _values[key] = value;
   }
+
+  dynamic value(String key) => _values[key];
 
   @override
   List<String> getOptions(String key, List<String> defaults) {

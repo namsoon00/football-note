@@ -4808,6 +4808,18 @@ abstract class AppLocalizations {
   /// **'Next reward Lv.{level} {rewardName}'**
   String profileNextReward(int level, Object rewardName);
 
+  /// No description provided for @profilePlayerNumberLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Player number'**
+  String get profilePlayerNumberLabel;
+
+  /// No description provided for @profilePlayerNumberHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Example: 10'**
+  String get profilePlayerNumberHint;
+
   /// No description provided for @profileSportStartDateLabel.
   ///
   /// In en, this message translates to:

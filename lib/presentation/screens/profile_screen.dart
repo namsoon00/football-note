@@ -100,6 +100,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   late final PlayerProfileService _profileService;
   late final String _sportId;
   late final TextEditingController _nameController;
+  late final TextEditingController _numberController;
   late final TextEditingController _heightController;
   late final TextEditingController _weightController;
 
@@ -125,6 +126,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
     final profile = _profileService.load();
     _nameController = TextEditingController(text: profile.name);
+    _numberController = TextEditingController(text: profile.playerNumber);
     _heightController = TextEditingController(
       text: _formatEditableNumber(profile.heightCm),
     );
@@ -150,6 +152,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _pendingProfileSave = _buildCurrentProfile();
     unawaited(_flushQueuedSaves());
     _nameController.dispose();
+    _numberController.dispose();
     _heightController.dispose();
     _weightController.dispose();
     super.dispose();
@@ -284,6 +287,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 setState(() {});
                 _scheduleAutoSave();
               },
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: _numberController,
+              enabled: !isReadOnly,
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              maxLength: 3,
+              decoration: InputDecoration(
+                labelText: l10n.profilePlayerNumberLabel,
+                hintText: l10n.profilePlayerNumberHint,
+                counterText: '',
+              ),
+              onChanged: (_) => _scheduleAutoSave(),
             ),
             const SizedBox(height: 10),
             Row(
@@ -505,6 +522,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final saved = _profileService.load();
     return PlayerProfile(
       name: _nameController.text.trim(),
+      playerNumber: _numberController.text.trim(),
       photoUrl: _photoPath.trim(),
       birthDate: _birthDate,
       soccerStartDate: _soccerStartDate,
