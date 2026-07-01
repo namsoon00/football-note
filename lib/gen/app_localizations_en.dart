@@ -6556,15 +6556,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fortuneDailyOutcomeTimes =>
-      'in the first morning notification|on the way out|before lunch|during a short break after lunch|while moving in the afternoon|in a familiar place|while checking messages|while tidying something up|while waiting|as the day wraps up';
+      'when you check your phone in the morning|before you leave home|on the way to school or work|when choosing lunch|when you check messages in the afternoon|when you sit down for a short break|while tidying your bag or desk|while waiting for someone|around dinner time|before sleep when you look back on the day';
 
   @override
   String get fortuneDailyOutcomeSubjects =>
-      'welcome news|a postponed task|the information you needed|a light conversation|a small compliment|a forgotten plan|unexpected free time|an easier option|a new clue|the answer you waited for';
+      'a welcome message|a needed notification|the information you were looking for|a short conversation|someone\'s quick comment|a forgotten schedule|a clear free slot|the option you were weighing|a small discovery|the answer you waited for';
 
   @override
   String get fortuneDailyOutcomeResults =>
-      'makes the day feel lighter.|puts your mind at ease.|makes the next choice easier.|turns the day in a better direction.|stays with you like a small reward.|opens the rest of the schedule comfortably.|settles a confusing thought.|spreads into a short laugh.|returns as satisfaction by the end of the day.|naturally leads to what you need.';
+      'takes one task off your mind.|helps you decide the next step quickly.|gives you a clear reason to smile.|starts an easy chat with someone nearby.|reminds you of something you almost missed.|makes waiting feel shorter.|turns into a detail you can use right away.|stays pleasant enough to remember tonight.|turns a messy thought into one clear line.|makes the end of the day easier.';
 
   @override
   String get fortuneSajuTrainingTones =>
