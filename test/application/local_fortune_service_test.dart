@@ -116,6 +116,9 @@ void main() {
     final unclearTerms = RegExp(
       '볼 수|수 있어요|확인할 수|뭔가|무언가|보이는|보여요|눈에|흐름|기운|가능성|예감|분위기|자신감|호기심|타이밍|감이',
     );
+    final abstractOutcomeTerms = RegExp(
+      '쪽으로|자연스럽게|보상처럼|헷갈리던|만족|단서',
+    );
     final adviceTerms = RegExp('해보세요|하세요|두세요|고르세요|마세요|주세요');
 
     expect(causes, hasLength(89));
@@ -124,6 +127,9 @@ void main() {
     expect(outcomeSubjects, hasLength(10));
     expect(outcomeResults, hasLength(10));
     expect(outcomeSentences, hasLength(1000));
+    expect(outcomeTimes, contains('아침에 휴대폰을 볼 때'));
+    expect(outcomeSubjects, contains('반가운 연락이'));
+    expect(outcomeResults, contains('해야 할 일을 하나 줄여줘요.'));
     expect(causes, contains('상대 표정을 보고 말을 고르는 날이에요.'));
     expect(events, contains('아침 알림에 반가운 이름이 떠요.'));
     expect(events, contains('점심 전에 미뤄둔 메시지를 보내요.'));
@@ -136,6 +142,7 @@ void main() {
     }
     for (final sentence in outcomeSentences) {
       expect(sentence, isNot(matches(unclearTerms)), reason: sentence);
+      expect(sentence, isNot(matches(abstractOutcomeTerms)), reason: sentence);
       expect(sentence, isNot(matches(adviceTerms)), reason: sentence);
       expect(sentence, endsWith('.'), reason: sentence);
     }
@@ -181,7 +188,7 @@ void main() {
     expect(sections[9].title, '오늘 운세 문장');
     expect(
       sections[9].values,
-      contains('아침 첫 알림에서 반가운 소식이 하루를 가볍게 만들어줘요.'),
+      contains('아침에 휴대폰을 볼 때 반가운 연락이 해야 할 일을 하나 줄여줘요.'),
     );
   });
 
