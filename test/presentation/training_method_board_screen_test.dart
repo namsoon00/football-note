@@ -3400,7 +3400,7 @@ void main() {
     expect(memoRect.left, greaterThan(boardRectWithMemo.right));
   });
 
-  testWidgets('orientation button waits for a true landscape surface', (
+  testWidgets('sketch screen requests landscape on entry', (
     WidgetTester tester,
   ) async {
     _setPortraitSurface(tester);
@@ -3429,21 +3429,32 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(
-      find.byKey(const ValueKey('training-sketch-orientation-button')),
-    );
-    await tester.pumpAndSettle();
-
     expect(
       find.byKey(const ValueKey('training-landscape-control-panel')),
       findsNothing,
     );
-    final orientationCall = platformCalls.lastWhere(
+    final entryOrientationCall = platformCalls.lastWhere(
       (call) => call.method == 'SystemChrome.setPreferredOrientations',
     );
-    final arguments = '${orientationCall.arguments}';
-    expect(arguments, contains('landscapeLeft'));
-    expect(arguments, contains('landscapeRight'));
+    final entryArguments = '${entryOrientationCall.arguments}';
+    expect(entryArguments, contains('landscapeLeft'));
+    expect(entryArguments, contains('landscapeRight'));
+
+    platformCalls.clear();
+    await tester.tap(
+      find.byKey(const ValueKey('training-sketch-orientation-button')),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('training-landscape-control-panel')),
+      findsNothing,
+    );
+    final retryOrientationCall = platformCalls.lastWhere(
+      (call) => call.method == 'SystemChrome.setPreferredOrientations',
+    );
+    final retryArguments = '${retryOrientationCall.arguments}';
+    expect(retryArguments, contains('landscapeLeft'));
+    expect(retryArguments, contains('landscapeRight'));
 
     tester.view.physicalSize = const Size(1000, 720);
     await tester.pumpAndSettle();
