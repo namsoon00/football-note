@@ -203,6 +203,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   @override
   void initState() {
     super.initState();
+    unawaited(_setSketchOrientationLock(landscape: true));
     if (_isManagedMode) {
       _managedBoardService = TrainingBoardService(
         widget.optionRepository!,
@@ -4165,7 +4166,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     _memoSession++;
     _autoSaveTimer?.cancel();
     unawaited(_speech.cancel());
-    unawaited(SystemChrome.setPreferredOrientations(DeviceOrientation.values));
+    unawaited(_setSketchOrientationLock(landscape: false));
     _playController
       ..removeListener(_onPlayTick)
       ..removeStatusListener(_onPlayStatusChanged)
@@ -4666,14 +4667,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       AppBarActionButton.icon(
         key: const ValueKey('training-sketch-orientation-button'),
         onPressed: () {
-          unawaited(_setSketchOrientationLock(landscape: !isLandscape));
+          unawaited(_setSketchOrientationLock(landscape: true));
         },
-        icon: isLandscape
-            ? Icons.stay_current_portrait_outlined
-            : Icons.stay_current_landscape_outlined,
-        tooltip: isLandscape
-            ? _l10n.trainingSketchPortraitModeTooltip
-            : _l10n.trainingSketchLandscapeModeTooltip,
+        icon: Icons.stay_current_landscape_outlined,
+        tooltip: _l10n.trainingSketchLandscapeModeTooltip,
       ),
       _buildTopBarMenuButton(isKo, isLandscape: isLandscape),
     ];
