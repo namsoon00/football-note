@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:intl/intl.dart';
@@ -31,6 +33,10 @@ class _ClubScheduleScreenState extends State<ClubScheduleScreen> {
   late ClubScheduleProfile _profile;
   late List<ClubTrainingSchedule> _schedules;
   final TextEditingController _clubNameController = TextEditingController();
+  Timer? _autoSaveTimer;
+  Future<void>? _activeSave;
+  bool _queueSaveAfterCurrent = false;
+  bool _syncingClubName = false;
   bool _saving = false;
 
   @override
@@ -43,32 +49,122 @@ class _ClubScheduleScreenState extends State<ClubScheduleScreen> {
     _profile = _service.loadProfile();
     _clubNameController.text = _profile.clubName;
     _schedules = List<ClubTrainingSchedule>.from(_profile.weekdaySchedules);
+    _clubNameController.addListener(_handleClubNameChanged);
   }
 
   @override
   void dispose() {
+    _autoSaveTimer?.cancel();
+    _clubNameController.removeListener(_handleClubNameChanged);
     _clubNameController.dispose();
     super.dispose();
   }
 
-  Future<void> _save() async {
-    final l10n = AppLocalizations.of(context)!;
+  bool get _hasUnsavedDraft => !_sameEditableProfile(_draftProfile(), _profile);
+
+  bool get _hasPendingSave =>
+      _saving || (_autoSaveTimer?.isActive ?? false) || _hasUnsavedDraft;
+
+  void _handleClubNameChanged() {
+    if (_syncingClubName) return;
+    setState(() {});
+    _scheduleAutoSave();
+  }
+
+  void _scheduleAutoSave() {
+    _autoSaveTimer?.cancel();
+    if (!_hasUnsavedDraft) {
+      if (mounted) setState(() {});
+      return;
+    }
+    if (_saving) {
+      _queueSaveAfterCurrent = true;
+      return;
+    }
+    setState(() {});
+    _autoSaveTimer = Timer(const Duration(milliseconds: 700), () {
+      _save(showFeedback: false);
+    });
+  }
+
+  Future<void> _save({
+    bool showFeedback = true,
+    bool force = false,
+  }) {
+    _autoSaveTimer?.cancel();
+    _queueSaveAfterCurrent = true;
+    if (_activeSave != null) {
+      return _activeSave!;
+    }
+
+    final save = _drainSaveQueue(
+      showFeedbackForFirstSave: showFeedback,
+      forceFirstSave: force,
+    );
+    _activeSave = save.whenComplete(() {
+      _activeSave = null;
+    });
+    return _activeSave!;
+  }
+
+  Future<void> _drainSaveQueue({
+    required bool showFeedbackForFirstSave,
+    required bool forceFirstSave,
+  }) async {
+    var showFeedback = showFeedbackForFirstSave;
+    var force = forceFirstSave;
+    while (mounted) {
+      _queueSaveAfterCurrent = false;
+      if (!force && !_hasUnsavedDraft) break;
+      try {
+        await _performSingleSave(showFeedback: showFeedback);
+      } catch (_) {
+        if (!mounted) return;
+        final l10n = AppLocalizations.of(context)!;
+        AppFeedback.showMessage(
+          context,
+          text: l10n.clubScheduleSaveFailedFeedback,
+        );
+        break;
+      }
+      showFeedback = false;
+      force = false;
+      if (!_queueSaveAfterCurrent && !_hasUnsavedDraft) break;
+    }
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _performSingleSave({required bool showFeedback}) async {
+    final l10n = showFeedback ? AppLocalizations.of(context)! : null;
+    final profileToSave = _draftProfile();
     setState(() => _saving = true);
     try {
-      final profile = _profile.copyWith(
-        clubName: _clubNameController.text.trim(),
-        weekdaySchedules: _schedules,
-      );
-      await _service.saveProfile(profile);
+      await _service.saveProfile(profileToSave);
       await _syncClubTrainingReminders();
       if (!mounted) return;
+      final saved = _service.loadProfile();
+      final currentDraft = _draftProfile();
+      final shouldPreserveDraft =
+          !_sameEditableProfile(currentDraft, profileToSave);
       setState(() {
-        _profile = _service.loadProfile();
-        _schedules = List<ClubTrainingSchedule>.from(
-          _profile.weekdaySchedules,
-        );
+        _profile = saved;
+        if (!shouldPreserveDraft) {
+          _schedules = List<ClubTrainingSchedule>.from(
+            saved.weekdaySchedules,
+          );
+          if (_clubNameController.text != saved.clubName) {
+            _syncingClubName = true;
+            _clubNameController.text = saved.clubName;
+            _syncingClubName = false;
+          }
+        }
       });
-      AppFeedback.showSuccess(context, text: l10n.clubScheduleSavedFeedback);
+      if (showFeedback && !shouldPreserveDraft && mounted) {
+        AppFeedback.showSuccess(
+          context,
+          text: l10n!.clubScheduleSavedFeedback,
+        );
+      }
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -95,6 +191,7 @@ class _ClubScheduleScreenState extends State<ClubScheduleScreen> {
         ),
       );
     });
+    _scheduleAutoSave();
   }
 
   Future<void> _pickScheduleTime({
@@ -118,51 +215,60 @@ class _ClubScheduleScreenState extends State<ClubScheduleScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.clubScheduleTitle),
-        actions: [
-          AppBarActionButton.label(
-            key: const ValueKey<String>('club-schedule-save-button'),
-            icon: _saving
-                ? const SizedBox.square(
-                    dimension: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.save_outlined),
-            label: l10n.clubScheduleSaveButton,
-            tooltip: l10n.clubScheduleSaveButton,
-            onPressed: _saving ? null : _save,
-            maxLabelWidth: 120,
-          ),
-        ],
-      ),
-      body: AppBackground(
-        child: SafeArea(
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.md,
-              AppSpacing.md,
-              AppSpacing.md,
-              AppSpacing.xl,
+    final canPop = !_hasPendingSave;
+    return PopScope(
+      canPop: canPop,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop || canPop) return;
+        await _handlePendingExit();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(l10n.clubScheduleTitle),
+          actions: [
+            AppBarActionButton.label(
+              key: const ValueKey<String>('club-schedule-save-button'),
+              icon: _saving
+                  ? const SizedBox.square(
+                      dimension: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.save_outlined),
+              label: l10n.clubScheduleSaveButton,
+              tooltip: l10n.clubScheduleSaveButton,
+              onPressed:
+                  _saving ? null : () => _save(showFeedback: true, force: true),
+              maxLabelWidth: 120,
             ),
-            children: [
-              _ClubScheduleSummaryPanel(
-                profile: _draftProfile(),
-                weekdayLabel: _weekdayLabel,
-                timeRangeLabel: _timeRangeLabel,
+          ],
+        ),
+        body: AppBackground(
+          child: SafeArea(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                AppSpacing.md,
+                AppSpacing.md,
+                AppSpacing.xl,
               ),
-              const SizedBox(height: AppSpacing.md),
-              _ClubNamePanel(controller: _clubNameController),
-              const SizedBox(height: AppSpacing.md),
-              _WeekdaySchedulePanel(
-                schedules: _schedules,
-                weekdayLabel: _weekdayLabel,
-                timeRangeLabel: _timeRangeLabel,
-                onScheduleChanged: _setSchedule,
-                onPickTime: _pickScheduleTime,
-              ),
-            ],
+              children: [
+                _ClubScheduleSummaryPanel(
+                  profile: _draftProfile(),
+                  weekdayLabel: _weekdayLabel,
+                  timeRangeLabel: _timeRangeLabel,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                _ClubNamePanel(controller: _clubNameController),
+                const SizedBox(height: AppSpacing.md),
+                _WeekdaySchedulePanel(
+                  schedules: _schedules,
+                  weekdayLabel: _weekdayLabel,
+                  timeRangeLabel: _timeRangeLabel,
+                  onScheduleChanged: _setSchedule,
+                  onPickTime: _pickScheduleTime,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -174,6 +280,85 @@ class _ClubScheduleScreenState extends State<ClubScheduleScreen> {
       clubName: _clubNameController.text.trim(),
       weekdaySchedules: _schedules,
     );
+  }
+
+  Future<void> _handlePendingExit() async {
+    final navigator = Navigator.of(context);
+    final action = await _confirmPendingExit();
+    if (!mounted || action == null) return;
+    switch (action) {
+      case _ClubSchedulePendingExitAction.keepEditing:
+        return;
+      case _ClubSchedulePendingExitAction.leaveWithoutSaving:
+        _autoSaveTimer?.cancel();
+        navigator.pop();
+      case _ClubSchedulePendingExitAction.saveAndLeave:
+        await _save(showFeedback: false, force: true);
+        if (!mounted || _hasPendingSave) return;
+        navigator.pop();
+    }
+  }
+
+  Future<_ClubSchedulePendingExitAction?> _confirmPendingExit() {
+    final l10n = AppLocalizations.of(context)!;
+    return showDialog<_ClubSchedulePendingExitAction>(
+      context: context,
+      builder: (context) => AlertDialog(
+        key: const ValueKey<String>('club-schedule-unsaved-dialog'),
+        title: Text(l10n.clubScheduleUnsavedDialogTitle),
+        content: Text(l10n.clubScheduleUnsavedDialogBody),
+        actions: [
+          TextButton(
+            key: const ValueKey<String>('club-schedule-unsaved-keep-editing'),
+            onPressed: () => Navigator.of(context).pop(
+              _ClubSchedulePendingExitAction.keepEditing,
+            ),
+            child: Text(l10n.clubScheduleUnsavedKeepEditing),
+          ),
+          TextButton(
+            key: const ValueKey<String>('club-schedule-unsaved-leave'),
+            onPressed: () => Navigator.of(context).pop(
+              _ClubSchedulePendingExitAction.leaveWithoutSaving,
+            ),
+            child: Text(l10n.clubScheduleUnsavedLeaveWithoutSaving),
+          ),
+          FilledButton(
+            key: const ValueKey<String>('club-schedule-unsaved-save-leave'),
+            onPressed: () => Navigator.of(context).pop(
+              _ClubSchedulePendingExitAction.saveAndLeave,
+            ),
+            child: Text(l10n.clubScheduleUnsavedSaveAndLeave),
+          ),
+        ],
+      ),
+    );
+  }
+
+  bool _sameEditableProfile(
+    ClubScheduleProfile a,
+    ClubScheduleProfile b,
+  ) {
+    if (a.clubName.trim() != b.clubName.trim()) return false;
+    if (a.weekdaySchedules.length != b.weekdaySchedules.length) return false;
+    for (var index = 0; index < a.weekdaySchedules.length; index += 1) {
+      if (!_sameSchedule(
+        a.weekdaySchedules[index],
+        b.weekdaySchedules[index],
+      )) {
+        return false;
+      }
+    }
+    return a.homeUniformColorValue == b.homeUniformColorValue &&
+        a.awayUniformColorValue == b.awayUniformColorValue &&
+        a.keeperUniformColorValue == b.keeperUniformColorValue;
+  }
+
+  bool _sameSchedule(ClubTrainingSchedule a, ClubTrainingSchedule b) {
+    return a.weekday == b.weekday &&
+        a.enabled == b.enabled &&
+        a.startMinutes == b.startMinutes &&
+        a.endMinutes == b.endMinutes &&
+        a.uniformColorValue == b.uniformColorValue;
   }
 
   String _weekdayLabel(int weekday) {
@@ -204,6 +389,12 @@ class _ClubScheduleScreenState extends State<ClubScheduleScreen> {
     );
     return TimeOfDay(hour: normalized ~/ 60, minute: normalized % 60);
   }
+}
+
+enum _ClubSchedulePendingExitAction {
+  keepEditing,
+  leaveWithoutSaving,
+  saveAndLeave,
 }
 
 class _ClubScheduleSummaryPanel extends StatelessWidget {

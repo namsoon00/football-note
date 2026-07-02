@@ -10459,6 +10459,25 @@ class AppLocalizationsJa extends AppLocalizations {
   String get clubScheduleSavedFeedback => 'クラブ予定を保存しました。';
 
   @override
+  String get clubScheduleSaveFailedFeedback => 'クラブ予定を保存できませんでした。もう一度お試しください。';
+
+  @override
+  String get clubScheduleUnsavedDialogTitle => '未保存の変更';
+
+  @override
+  String get clubScheduleUnsavedDialogBody =>
+      'まだ保存されていないクラブ予定の変更があります。保存してから移動しますか？';
+
+  @override
+  String get clubScheduleUnsavedKeepEditing => '編集を続ける';
+
+  @override
+  String get clubScheduleUnsavedLeaveWithoutSaving => '保存せずに移動';
+
+  @override
+  String get clubScheduleUnsavedSaveAndLeave => '保存して移動';
+
+  @override
   String get clubTrainingNotificationChannelName => 'クラブ練習通知';
 
   @override

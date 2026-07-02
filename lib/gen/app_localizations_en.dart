@@ -10768,6 +10768,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clubScheduleSavedFeedback => 'Club schedule saved.';
 
   @override
+  String get clubScheduleSaveFailedFeedback =>
+      'Could not save the club schedule. Please try again.';
+
+  @override
+  String get clubScheduleUnsavedDialogTitle => 'Unsaved changes';
+
+  @override
+  String get clubScheduleUnsavedDialogBody =>
+      'Some club schedule changes have not been saved yet. Save before leaving?';
+
+  @override
+  String get clubScheduleUnsavedKeepEditing => 'Keep editing';
+
+  @override
+  String get clubScheduleUnsavedLeaveWithoutSaving => 'Leave without saving';
+
+  @override
+  String get clubScheduleUnsavedSaveAndLeave => 'Save and leave';
+
+  @override
   String get clubTrainingNotificationChannelName => 'Club training alerts';
 
   @override

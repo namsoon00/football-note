@@ -10478,6 +10478,25 @@ class AppLocalizationsKo extends AppLocalizations {
   String get clubScheduleSavedFeedback => '클럽 일정을 저장했어요.';
 
   @override
+  String get clubScheduleSaveFailedFeedback => '클럽 일정 저장에 실패했어요. 다시 시도해 주세요.';
+
+  @override
+  String get clubScheduleUnsavedDialogTitle => '저장되지 않은 변경사항';
+
+  @override
+  String get clubScheduleUnsavedDialogBody =>
+      '아직 저장되지 않은 클럽 일정 변경이 있어요. 저장하고 나갈까요?';
+
+  @override
+  String get clubScheduleUnsavedKeepEditing => '계속 편집';
+
+  @override
+  String get clubScheduleUnsavedLeaveWithoutSaving => '저장 안 하고 나가기';
+
+  @override
+  String get clubScheduleUnsavedSaveAndLeave => '저장 후 나가기';
+
+  @override
   String get clubTrainingNotificationChannelName => '클럽 훈련 알림';
 
   @override

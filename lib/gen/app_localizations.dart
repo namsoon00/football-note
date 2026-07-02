@@ -18412,6 +18412,42 @@ abstract class AppLocalizations {
   /// **'Club schedule saved.'**
   String get clubScheduleSavedFeedback;
 
+  /// No description provided for @clubScheduleSaveFailedFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save the club schedule. Please try again.'**
+  String get clubScheduleSaveFailedFeedback;
+
+  /// No description provided for @clubScheduleUnsavedDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsaved changes'**
+  String get clubScheduleUnsavedDialogTitle;
+
+  /// No description provided for @clubScheduleUnsavedDialogBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Some club schedule changes have not been saved yet. Save before leaving?'**
+  String get clubScheduleUnsavedDialogBody;
+
+  /// No description provided for @clubScheduleUnsavedKeepEditing.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep editing'**
+  String get clubScheduleUnsavedKeepEditing;
+
+  /// No description provided for @clubScheduleUnsavedLeaveWithoutSaving.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave without saving'**
+  String get clubScheduleUnsavedLeaveWithoutSaving;
+
+  /// No description provided for @clubScheduleUnsavedSaveAndLeave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save and leave'**
+  String get clubScheduleUnsavedSaveAndLeave;
+
   /// No description provided for @clubTrainingNotificationChannelName.
   ///
   /// In en, this message translates to:
