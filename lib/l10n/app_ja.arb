@@ -3695,6 +3695,51 @@
   "mealLogScreenTitle": "食事記録",
   "mealLogDateLabel": "ログの日付",
   "mealLogDatePickerHelp": "食事記録の日付を選択してください",
+  "mealMenuInputLabel": "献立",
+  "mealMenuInputHint": "{label}の献立を入力",
+  "@mealMenuInputHint": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "mealSummaryRiceOnly": "{label} {rice}",
+  "@mealSummaryRiceOnly": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "rice": {
+        "type": "String"
+      }
+    }
+  },
+  "mealSummaryMenuOnly": "{label} {menu}",
+  "@mealSummaryMenuOnly": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "menu": {
+        "type": "String"
+      }
+    }
+  },
+  "mealSummaryRiceWithMenu": "{label} {rice} · {menu}",
+  "@mealSummaryRiceWithMenu": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "rice": {
+        "type": "String"
+      },
+      "menu": {
+        "type": "String"
+      }
+    }
+  },
   "mealSaveAction": "食事記録を保存する",
   "mealDeleteAction": "食事記録を削除する",
   "mealDeleteConfirmBody": "この日の食事記録を削除しますか?",

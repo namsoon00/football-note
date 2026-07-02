@@ -6240,6 +6240,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mealLogDatePickerHelp => 'Select meal log date';
 
   @override
+  String get mealMenuInputLabel => 'Menu';
+
+  @override
+  String mealMenuInputHint(String label) {
+    return 'Enter $label menu';
+  }
+
+  @override
+  String mealSummaryRiceOnly(String label, String rice) {
+    return '$label $rice';
+  }
+
+  @override
+  String mealSummaryMenuOnly(String label, String menu) {
+    return '$label $menu';
+  }
+
+  @override
+  String mealSummaryRiceWithMenu(String label, String rice, String menu) {
+    return '$label $rice · $menu';
+  }
+
+  @override
   String get mealSaveAction => 'Save meal log';
 
   @override

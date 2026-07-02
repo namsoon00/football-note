@@ -42,6 +42,10 @@ class _MealLogScreenState extends State<MealLogScreen> {
   double _breakfastRiceBowls = 0;
   double _lunchRiceBowls = 0;
   double _dinnerRiceBowls = 0;
+  final TextEditingController _breakfastMenuController =
+      TextEditingController();
+  final TextEditingController _lunchMenuController = TextEditingController();
+  final TextEditingController _dinnerMenuController = TextEditingController();
   MealEntry? _persistedEntry;
   Timer? _autoSaveTimer;
   bool _saveInProgress = false;
@@ -71,6 +75,9 @@ class _MealLogScreenState extends State<MealLogScreen> {
         breakfastRiceBowls: _breakfastRiceBowls,
         lunchRiceBowls: _lunchRiceBowls,
         dinnerRiceBowls: _dinnerRiceBowls,
+        breakfastMenu: _breakfastMenuController.text,
+        lunchMenu: _lunchMenuController.text,
+        dinnerMenu: _dinnerMenuController.text,
       ),
     );
 
@@ -109,36 +116,42 @@ class _MealLogScreenState extends State<MealLogScreen> {
                 mealKey: 'breakfast',
                 label: l10n.mealBreakfast,
                 value: _breakfastRiceBowls,
+                menuController: _breakfastMenuController,
                 l10n: l10n,
                 enabled: !_isParentMode,
                 onChanged: (value) {
                   setState(() => _breakfastRiceBowls = value);
                   _scheduleAutoSave();
                 },
+                onMenuChanged: (_) => _scheduleAutoSave(),
               ),
               const SizedBox(height: 10),
               _MealSelectorCard(
                 mealKey: 'lunch',
                 label: l10n.mealLunch,
                 value: _lunchRiceBowls,
+                menuController: _lunchMenuController,
                 l10n: l10n,
                 enabled: !_isParentMode,
                 onChanged: (value) {
                   setState(() => _lunchRiceBowls = value);
                   _scheduleAutoSave();
                 },
+                onMenuChanged: (_) => _scheduleAutoSave(),
               ),
               const SizedBox(height: 10),
               _MealSelectorCard(
                 mealKey: 'dinner',
                 label: l10n.mealDinner,
                 value: _dinnerRiceBowls,
+                menuController: _dinnerMenuController,
                 l10n: l10n,
                 enabled: !_isParentMode,
                 onChanged: (value) {
                   setState(() => _dinnerRiceBowls = value);
                   _scheduleAutoSave();
                 },
+                onMenuChanged: (_) => _scheduleAutoSave(),
               ),
               const SizedBox(height: 12),
               Card(
@@ -228,6 +241,9 @@ class _MealLogScreenState extends State<MealLogScreen> {
       breakfastRiceBowls: _breakfastRiceBowls,
       lunchRiceBowls: _lunchRiceBowls,
       dinnerRiceBowls: _dinnerRiceBowls,
+      breakfastMenu: _breakfastMenuController.text.trim(),
+      lunchMenu: _lunchMenuController.text.trim(),
+      dinnerMenu: _dinnerMenuController.text.trim(),
       createdAt: previousEntry?.createdAt ?? DateTime.now(),
     );
     try {
@@ -297,6 +313,9 @@ class _MealLogScreenState extends State<MealLogScreen> {
   void dispose() {
     _disposed = true;
     _autoSaveTimer?.cancel();
+    _breakfastMenuController.dispose();
+    _lunchMenuController.dispose();
+    _dinnerMenuController.dispose();
     super.dispose();
   }
 
@@ -310,6 +329,9 @@ class _MealLogScreenState extends State<MealLogScreen> {
     _breakfastRiceBowls = entry?.breakfastRiceBowls ?? 0;
     _lunchRiceBowls = entry?.lunchRiceBowls ?? 0;
     _dinnerRiceBowls = entry?.dinnerRiceBowls ?? 0;
+    _breakfastMenuController.text = entry?.breakfastMenu ?? '';
+    _lunchMenuController.text = entry?.lunchMenu ?? '';
+    _dinnerMenuController.text = entry?.dinnerMenu ?? '';
     _persistedEntry = entry;
   }
 
@@ -363,17 +385,21 @@ class _MealSelectorCard extends StatelessWidget {
   final String mealKey;
   final String label;
   final double value;
+  final TextEditingController menuController;
   final AppLocalizations l10n;
   final bool enabled;
   final ValueChanged<double> onChanged;
+  final ValueChanged<String> onMenuChanged;
 
   const _MealSelectorCard({
     required this.mealKey,
     required this.label,
     required this.value,
+    required this.menuController,
     required this.l10n,
     required this.enabled,
     required this.onChanged,
+    required this.onMenuChanged,
   });
 
   @override
@@ -446,6 +472,30 @@ class _MealSelectorCard extends StatelessWidget {
                 ],
               ),
             ],
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            key: ValueKey('meal-$mealKey-menu'),
+            controller: menuController,
+            enabled: enabled,
+            minLines: 1,
+            maxLines: 3,
+            maxLength: 120,
+            textInputAction: TextInputAction.done,
+            decoration: InputDecoration(
+              counterText: '',
+              filled: true,
+              fillColor: theme.colorScheme.surfaceContainerHighest.withValues(
+                alpha: 0.62,
+              ),
+              prefixIcon: const Icon(Icons.restaurant_menu_outlined),
+              labelText: l10n.mealMenuInputLabel,
+              hintText: l10n.mealMenuInputHint(label),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+            onChanged: onMenuChanged,
           ),
         ],
       ),

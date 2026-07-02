@@ -6073,6 +6073,29 @@ class AppLocalizationsKo extends AppLocalizations {
   String get mealLogDatePickerHelp => '식사 기록 날짜 선택';
 
   @override
+  String get mealMenuInputLabel => '식단';
+
+  @override
+  String mealMenuInputHint(String label) {
+    return '$label 식단을 입력하세요';
+  }
+
+  @override
+  String mealSummaryRiceOnly(String label, String rice) {
+    return '$label $rice';
+  }
+
+  @override
+  String mealSummaryMenuOnly(String label, String menu) {
+    return '$label $menu';
+  }
+
+  @override
+  String mealSummaryRiceWithMenu(String label, String rice, String menu) {
+    return '$label $rice · $menu';
+  }
+
+  @override
   String get mealSaveAction => '식사 기록 저장';
 
   @override

@@ -5947,19 +5947,42 @@ class _MealEntryTile extends StatelessWidget {
 
   String _mealSummary(AppLocalizations l10n, MealEntry entry) {
     final parts = <String>[
-      _mealLine(l10n, l10n.mealBreakfast, entry.breakfastRiceBowls),
-      _mealLine(l10n, l10n.mealLunch, entry.lunchRiceBowls),
-      _mealLine(l10n, l10n.mealDinner, entry.dinnerRiceBowls),
+      _mealLine(
+        l10n,
+        l10n.mealBreakfast,
+        entry.breakfastRiceBowls,
+        entry.breakfastMenu,
+      ),
+      _mealLine(l10n, l10n.mealLunch, entry.lunchRiceBowls, entry.lunchMenu),
+      _mealLine(
+        l10n,
+        l10n.mealDinner,
+        entry.dinnerRiceBowls,
+        entry.dinnerMenu,
+      ),
     ];
     return parts.join(' · ');
   }
 
-  String _mealLine(AppLocalizations l10n, String label, double bowls) {
-    if (bowls <= 0) return l10n.mealCompactSkipped(label);
+  String _mealLine(
+    AppLocalizations l10n,
+    String label,
+    double bowls,
+    String menu,
+  ) {
+    final trimmedMenu = menu.trim();
+    if (bowls <= 0) {
+      if (trimmedMenu.isNotEmpty) {
+        return l10n.mealSummaryMenuOnly(label, trimmedMenu);
+      }
+      return l10n.mealCompactSkipped(label);
+    }
     final count = bowls == bowls.truncateToDouble()
         ? bowls.toStringAsFixed(0)
         : bowls.toStringAsFixed(1);
-    return '$label ${l10n.mealRiceBowlsValue(count)}';
+    final rice = l10n.mealRiceBowlsValue(count);
+    if (trimmedMenu.isEmpty) return l10n.mealSummaryRiceOnly(label, rice);
+    return l10n.mealSummaryRiceWithMenu(label, rice, trimmedMenu);
   }
 }
 

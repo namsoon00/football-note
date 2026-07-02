@@ -10901,6 +10901,36 @@ abstract class AppLocalizations {
   /// **'Select meal log date'**
   String get mealLogDatePickerHelp;
 
+  /// No description provided for @mealMenuInputLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Menu'**
+  String get mealMenuInputLabel;
+
+  /// No description provided for @mealMenuInputHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter {label} menu'**
+  String mealMenuInputHint(String label);
+
+  /// No description provided for @mealSummaryRiceOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} {rice}'**
+  String mealSummaryRiceOnly(String label, String rice);
+
+  /// No description provided for @mealSummaryMenuOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} {menu}'**
+  String mealSummaryMenuOnly(String label, String menu);
+
+  /// No description provided for @mealSummaryRiceWithMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} {rice} · {menu}'**
+  String mealSummaryRiceWithMenu(String label, String rice, String menu);
+
   /// No description provided for @mealSaveAction.
   ///
   /// In en, this message translates to:

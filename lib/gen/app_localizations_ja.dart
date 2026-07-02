@@ -6070,6 +6070,29 @@ class AppLocalizationsJa extends AppLocalizations {
   String get mealLogDatePickerHelp => '食事記録の日付を選択してください';
 
   @override
+  String get mealMenuInputLabel => '献立';
+
+  @override
+  String mealMenuInputHint(String label) {
+    return '$labelの献立を入力';
+  }
+
+  @override
+  String mealSummaryRiceOnly(String label, String rice) {
+    return '$label $rice';
+  }
+
+  @override
+  String mealSummaryMenuOnly(String label, String menu) {
+    return '$label $menu';
+  }
+
+  @override
+  String mealSummaryRiceWithMenu(String label, String rice, String menu) {
+    return '$label $rice · $menu';
+  }
+
+  @override
   String get mealSaveAction => '食事記録を保存する';
 
   @override

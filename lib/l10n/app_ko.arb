@@ -3695,6 +3695,51 @@
   "mealLogScreenTitle": "식사 기록",
   "mealLogDateLabel": "기록 날짜",
   "mealLogDatePickerHelp": "식사 기록 날짜 선택",
+  "mealMenuInputLabel": "식단",
+  "mealMenuInputHint": "{label} 식단을 입력하세요",
+  "@mealMenuInputHint": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "mealSummaryRiceOnly": "{label} {rice}",
+  "@mealSummaryRiceOnly": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "rice": {
+        "type": "String"
+      }
+    }
+  },
+  "mealSummaryMenuOnly": "{label} {menu}",
+  "@mealSummaryMenuOnly": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "menu": {
+        "type": "String"
+      }
+    }
+  },
+  "mealSummaryRiceWithMenu": "{label} {rice} · {menu}",
+  "@mealSummaryRiceWithMenu": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "rice": {
+        "type": "String"
+      },
+      "menu": {
+        "type": "String"
+      }
+    }
+  },
   "mealSaveAction": "식사 기록 저장",
   "mealDeleteAction": "식사 기록 삭제",
   "mealDeleteConfirmBody": "이 날짜의 식사 기록을 삭제할까요?",
