@@ -80,6 +80,25 @@ void main() {
     expect(saved.dinnerRiceBowls, 0);
   });
 
+  testWidgets('meal log screen auto saves meal menu text', (tester) async {
+    final day = DateTime(2026, 3, 31);
+
+    await pumpMealLogScreen(tester, initialDate: day);
+
+    await tester.enterText(
+      find.byKey(const ValueKey('meal-breakfast-menu')),
+      '오트밀, 바나나, 우유',
+    );
+    await tester.pump(const Duration(milliseconds: 400));
+
+    final saved = mealLogService.entryForDay(day);
+    expect(saved, isNotNull);
+    expect(saved!.breakfastMenu, '오트밀, 바나나, 우유');
+    expect(saved.breakfastRiceBowls, 0);
+    expect(saved.completedMeals, 1);
+    expect(saved.hasRecords, isTrue);
+  });
+
   testWidgets('parent mode can view meal log without editing it', (
     tester,
   ) async {
@@ -94,12 +113,14 @@ void main() {
         breakfastRiceBowls: 1.5,
         lunchRiceBowls: 1,
         dinnerRiceBowls: 0.5,
+        breakfastMenu: '현미밥, 달걀, 사과',
       ),
     );
 
     await pumpMealLogScreen(tester, initialDate: day);
 
     expect(find.text('식사 기록은 읽기 전용이에요.'), findsNothing);
+    expect(find.text('현미밥, 달걀, 사과'), findsOneWidget);
 
     await tester.tap(
       find.byKey(const ValueKey('meal-breakfast-increment')),
@@ -110,6 +131,7 @@ void main() {
     final saved = mealLogService.entryForDay(day);
     expect(saved, isNotNull);
     expect(saved!.breakfastRiceBowls, 1.5);
+    expect(saved.breakfastMenu, '현미밥, 달걀, 사과');
   });
 }
 

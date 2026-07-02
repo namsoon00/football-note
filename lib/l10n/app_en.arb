@@ -3695,6 +3695,51 @@
   "mealLogScreenTitle": "Meal log",
   "mealLogDateLabel": "Log date",
   "mealLogDatePickerHelp": "Select meal log date",
+  "mealMenuInputLabel": "Menu",
+  "mealMenuInputHint": "Enter {label} menu",
+  "@mealMenuInputHint": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "mealSummaryRiceOnly": "{label} {rice}",
+  "@mealSummaryRiceOnly": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "rice": {
+        "type": "String"
+      }
+    }
+  },
+  "mealSummaryMenuOnly": "{label} {menu}",
+  "@mealSummaryMenuOnly": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "menu": {
+        "type": "String"
+      }
+    }
+  },
+  "mealSummaryRiceWithMenu": "{label} {rice} · {menu}",
+  "@mealSummaryRiceWithMenu": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "rice": {
+        "type": "String"
+      },
+      "menu": {
+        "type": "String"
+      }
+    }
+  },
   "mealSaveAction": "Save meal log",
   "mealDeleteAction": "Delete meal log",
   "mealDeleteConfirmBody": "Delete this day's meal log?",

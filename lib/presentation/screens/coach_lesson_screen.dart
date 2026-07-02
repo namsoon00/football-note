@@ -3231,19 +3231,28 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
   String _mealSummary(MealEntry entry) {
     final values = <String>[
-      _mealLine(_l10n.mealBreakfast, entry.breakfastRiceBowls),
-      _mealLine(_l10n.mealLunch, entry.lunchRiceBowls),
-      _mealLine(_l10n.mealDinner, entry.dinnerRiceBowls),
+      _mealLine(
+          _l10n.mealBreakfast, entry.breakfastRiceBowls, entry.breakfastMenu),
+      _mealLine(_l10n.mealLunch, entry.lunchRiceBowls, entry.lunchMenu),
+      _mealLine(_l10n.mealDinner, entry.dinnerRiceBowls, entry.dinnerMenu),
     ];
     return values.join(' · ');
   }
 
-  String _mealLine(String label, double bowls) {
-    if (bowls <= 0) return _l10n.mealCompactSkipped(label);
+  String _mealLine(String label, double bowls, String menu) {
+    final trimmedMenu = menu.trim();
+    if (bowls <= 0) {
+      if (trimmedMenu.isNotEmpty) {
+        return _l10n.mealSummaryMenuOnly(label, trimmedMenu);
+      }
+      return _l10n.mealCompactSkipped(label);
+    }
     final count = bowls == bowls.truncateToDouble()
         ? bowls.toStringAsFixed(0)
         : bowls.toStringAsFixed(1);
-    return '$label ${_l10n.mealRiceBowlsValue(count)}';
+    final rice = _l10n.mealRiceBowlsValue(count);
+    if (trimmedMenu.isEmpty) return _l10n.mealSummaryRiceOnly(label, rice);
+    return _l10n.mealSummaryRiceWithMenu(label, rice, trimmedMenu);
   }
 
   List<_DiaryTodoSeed> _newsTodoSeedsForDay(DateTime day) {
