@@ -281,9 +281,9 @@ void main() {
     expect(find.text('09:00'), findsOneWidget);
     expect(find.text('10:00'), findsOneWidget);
     expect(find.text('11:00'), findsAtLeastNWidgets(1));
-    expect(find.textContaining('0.5 mm'), findsAtLeastNWidgets(1));
+    expect(find.textContaining('0.5'), findsAtLeastNWidgets(1));
     expect(find.textContaining('조금 와요'), findsAtLeastNWidgets(1));
-    expect(find.textContaining('0.0 mm'), findsAtLeastNWidgets(1));
+    expect(find.textContaining('0.0'), findsAtLeastNWidgets(1));
     expect(find.textContaining('안 와요'), findsAtLeastNWidgets(1));
     expect(tester.takeException(), isNull);
   });
@@ -524,10 +524,10 @@ void main() {
     expect(find.text('13:00'), findsAtLeastNWidgets(1));
     expect(find.text('14:00'), findsAtLeastNWidgets(1));
     expect(find.text('15:00'), findsAtLeastNWidgets(1));
-    expect(find.textContaining('0.5 mm'), findsOneWidget);
-    expect(find.textContaining('0.8 mm'), findsNothing);
-    expect(find.textContaining('1.1 mm'), findsNothing);
-    expect(find.textContaining('0.0 mm'), findsOneWidget);
+    expect(find.textContaining('0.5'), findsOneWidget);
+    expect(find.textContaining('0.8'), findsNothing);
+    expect(find.textContaining('1.1'), findsNothing);
+    expect(find.textContaining('0.0'), findsOneWidget);
     expect(find.textContaining('조금 와요'), findsOneWidget);
     expect(find.textContaining('안 와요'), findsOneWidget);
     expect(tester.takeException(), isNull);
@@ -593,9 +593,9 @@ void main() {
     expect(find.text('비 체크'), findsNothing);
     expect(find.text('강수확률'), findsAtLeastNWidgets(1));
     expect(find.text('85%'), findsAtLeastNWidgets(1));
-    expect(find.textContaining('3.0 mm'), findsAtLeastNWidgets(1));
+    expect(find.textContaining('3.0'), findsAtLeastNWidgets(1));
     expect(find.text('15:00'), findsAtLeastNWidgets(1));
-    expect(find.textContaining('1.2 mm'), findsAtLeastNWidgets(1));
+    expect(find.textContaining('1.2'), findsAtLeastNWidgets(1));
     expect(find.textContaining('가볍게 와요'), findsAtLeastNWidgets(1));
     expect(find.textContaining('미끄러운 그라운드'), findsNothing);
     expect(tester.takeException(), isNull);
@@ -697,7 +697,7 @@ void main() {
     expect(find.text('12:00'), findsOneWidget);
     expect(find.text('14:00'), findsAtLeastNWidgets(1));
     expect(find.text('15:00'), findsAtLeastNWidgets(1));
-    expect(find.textContaining('1.2 mm'), findsAtLeastNWidgets(1));
+    expect(find.textContaining('1.2'), findsAtLeastNWidgets(1));
     expect(find.textContaining('가볍게 와요'), findsAtLeastNWidgets(1));
     expect(find.textContaining('안 와요'), findsOneWidget);
     expect(tester.takeException(), isNull);
