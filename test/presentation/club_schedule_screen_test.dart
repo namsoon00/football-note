@@ -6,6 +6,7 @@ import 'package:football_note/application/club_schedule_service.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/club_schedule_screen.dart';
+import 'package:football_note/presentation/theme/app_theme.dart';
 
 void main() {
   final binding = TestWidgetsFlutterBinding.ensureInitialized();
@@ -126,11 +127,84 @@ void main() {
     expect(profile.weekdaySchedules.first.uniformColorValue, 0xFFDC2626);
     expect(find.text('클럽 일정을 저장했어요.'), findsOneWidget);
   });
+
+  testWidgets('uniform color picker is visible on compact light Android layout',
+      (tester) async {
+    tester.view.physicalSize = const Size(1080, 1920);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    final repository = _MemoryOptionRepository();
+
+    await tester.pumpWidget(
+      _buildApp(
+        ClubScheduleScreen(optionRepository: repository),
+        theme: AppTheme.light(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(
+      find.byKey(
+        const ValueKey<String>('club-schedule-day-switch-1'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final logicalHeight =
+        tester.view.physicalSize.height / tester.view.devicePixelRatio;
+    final uniformPicker = find.byKey(
+      const ValueKey<String>('club-uniform-day-1-picker'),
+    );
+    for (var i = 0; i < 4; i += 1) {
+      final pickerRect = tester.getRect(uniformPicker);
+      if (pickerRect.top >= 0 && pickerRect.bottom <= logicalHeight) break;
+      await tester.drag(find.byType(ListView), const Offset(0, -96));
+      await tester.pumpAndSettle();
+    }
+    expect(
+      tester.getRect(uniformPicker).bottom,
+      lessThanOrEqualTo(logicalHeight),
+    );
+    await tester.tap(uniformPicker);
+    await tester.pumpAndSettle();
+
+    final sheet = find.byKey(
+      const ValueKey<String>('club-uniform-color-sheet'),
+    );
+    expect(sheet, findsOneWidget);
+    final sheetMaterial = tester.widget<Material>(sheet);
+    expect(
+      sheetMaterial.color,
+      Theme.of(tester.element(sheet)).colorScheme.surface,
+    );
+    expect(
+      find.byKey(const ValueKey<String>('club-uniform-color-preset-red')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey<String>('club-uniform-color-hue-slider')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(
+        const ValueKey<String>('club-uniform-color-brightness-slider'),
+      ),
+      findsOneWidget,
+    );
+
+    final sheetRect = tester.getRect(sheet);
+    expect(sheetRect.top, greaterThanOrEqualTo(0));
+    expect(sheetRect.bottom, lessThanOrEqualTo(logicalHeight + 0.1));
+  });
 }
 
-Widget _buildApp(Widget child) {
+Widget _buildApp(Widget child, {ThemeData? theme}) {
   return MaterialApp(
     locale: const Locale('ko', 'KR'),
+    theme: theme,
     localizationsDelegates: const [
       AppLocalizations.delegate,
       GlobalMaterialLocalizations.delegate,
