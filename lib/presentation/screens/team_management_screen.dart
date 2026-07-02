@@ -38,6 +38,11 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   final TextEditingController _playerNameController = TextEditingController();
   final TextEditingController _playerNumberController = TextEditingController();
   final TextEditingController _playerNoteController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey _teamsSectionKey = GlobalKey();
+  final GlobalKey _playersSectionKey = GlobalKey();
+  final GlobalKey _basicsSectionKey = GlobalKey();
+  final GlobalKey _boardSectionKey = GlobalKey();
   Timer? _autoSaveDebounce;
 
   List<ManagedTeam> _teams = const <ManagedTeam>[];
@@ -93,6 +98,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
     }
     _teamNameController.removeListener(_handleTextFieldChanged);
     _strategyController.removeListener(_handleTextFieldChanged);
+    _scrollController.dispose();
     _teamNameController.dispose();
     _strategyController.dispose();
     _playerNameController.dispose();
@@ -104,6 +110,17 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   void _handleTextFieldChanged() {
     if (_suppressAutoSave) return;
     _scheduleAutoSave();
+  }
+
+  void _scrollToSection(GlobalKey key) {
+    final context = key.currentContext;
+    if (context == null) return;
+    Scrollable.ensureVisible(
+      context,
+      duration: const Duration(milliseconds: 280),
+      curve: Curves.easeOutCubic,
+      alignment: 0.08,
+    );
   }
 
   void _loadTeams(AppLocalizations l10n, {String? preferredTeamId}) {
@@ -499,6 +516,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
         color: theme.scaffoldBackgroundColor,
         child: SafeArea(
           child: SingleChildScrollView(
+            controller: _scrollController,
             padding: const EdgeInsets.fromLTRB(
               AppSpacing.md,
               AppSpacing.sm,
@@ -532,54 +550,74 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
                   onDelete: () => unawaited(_deleteTeam()),
                 ),
                 const SizedBox(height: AppSpacing.md),
-                _TeamSelectorPanel(
-                  teams: _teams,
-                  selectedTeamId: _selectedTeam?.id ?? '',
-                  onSelectTeam: (team) => unawaited(_selectExistingTeam(team)),
+                _TeamManagementWorkflow(
+                  onOpenTeams: () => _scrollToSection(_teamsSectionKey),
+                  onOpenPlayers: () => _scrollToSection(_playersSectionKey),
+                  onOpenBasics: () => _scrollToSection(_basicsSectionKey),
+                  onOpenBoard: () => _scrollToSection(_boardSectionKey),
                 ),
                 const SizedBox(height: AppSpacing.md),
-                _PlayersPanel(
-                  players: _players,
-                  lineup: _lineup,
-                  playerPlacements: _playerPlacements,
-                  playerNameController: _playerNameController,
-                  playerNumberController: _playerNumberController,
-                  playerNoteController: _playerNoteController,
-                  playerRole: _playerRole,
-                  playerFoot: _playerFoot,
-                  playerCondition: _playerCondition,
-                  editingPlayerId: _editingPlayerId,
-                  onRoleChanged: (role) => setState(() => _playerRole = role),
-                  onFootChanged: (foot) => setState(() => _playerFoot = foot),
-                  onConditionChanged: (condition) =>
-                      setState(() => _playerCondition = condition),
-                  onSavePlayer: _savePlayer,
-                  onCancelPlayerEdit: _cancelPlayerEdit,
-                  onEditPlayer: _editPlayer,
-                  onRemovePlayer: _removePlayer,
+                KeyedSubtree(
+                  key: _teamsSectionKey,
+                  child: _TeamSelectorPanel(
+                    teams: _teams,
+                    selectedTeamId: _selectedTeam?.id ?? '',
+                    onSelectTeam: (team) =>
+                        unawaited(_selectExistingTeam(team)),
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.md),
-                _TeamBasicsPanel(
-                  teamNameController: _teamNameController,
-                  strategyController: _strategyController,
+                KeyedSubtree(
+                  key: _playersSectionKey,
+                  child: _PlayersPanel(
+                    players: _players,
+                    lineup: _lineup,
+                    playerPlacements: _playerPlacements,
+                    playerNameController: _playerNameController,
+                    playerNumberController: _playerNumberController,
+                    playerNoteController: _playerNoteController,
+                    playerRole: _playerRole,
+                    playerFoot: _playerFoot,
+                    playerCondition: _playerCondition,
+                    editingPlayerId: _editingPlayerId,
+                    onRoleChanged: (role) => setState(() => _playerRole = role),
+                    onFootChanged: (foot) => setState(() => _playerFoot = foot),
+                    onConditionChanged: (condition) =>
+                        setState(() => _playerCondition = condition),
+                    onSavePlayer: _savePlayer,
+                    onCancelPlayerEdit: _cancelPlayerEdit,
+                    onEditPlayer: _editPlayer,
+                    onRemovePlayer: _removePlayer,
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.md),
-                _FormationPanel(
-                  formation: _formation,
-                  players: _players,
-                  playerPlacements: _playerPlacements,
-                  tacticLines: _tacticLines,
-                  draftTacticLine: _draftTacticLine,
-                  selectedSpotId: _selectedSpotId,
-                  boardMode: _boardMode,
-                  onFormationChanged: _changeFormation,
-                  onSpotSelected: _selectSpot,
-                  onPlayerPlaced: _placePlayerOnBoard,
-                  onBoardModeChanged: _changeBoardMode,
-                  onTacticLineStarted: _startTacticLine,
-                  onTacticLineUpdated: _updateTacticLine,
-                  onTacticLineFinished: _finishTacticLine,
-                  onClearTacticLines: _clearTacticLines,
+                KeyedSubtree(
+                  key: _basicsSectionKey,
+                  child: _TeamBasicsPanel(
+                    teamNameController: _teamNameController,
+                    strategyController: _strategyController,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                KeyedSubtree(
+                  key: _boardSectionKey,
+                  child: _FormationPanel(
+                    formation: _formation,
+                    players: _players,
+                    playerPlacements: _playerPlacements,
+                    tacticLines: _tacticLines,
+                    draftTacticLine: _draftTacticLine,
+                    selectedSpotId: _selectedSpotId,
+                    boardMode: _boardMode,
+                    onFormationChanged: _changeFormation,
+                    onSpotSelected: _selectSpot,
+                    onPlayerPlaced: _placePlayerOnBoard,
+                    onBoardModeChanged: _changeBoardMode,
+                    onTacticLineStarted: _startTacticLine,
+                    onTacticLineUpdated: _updateTacticLine,
+                    onTacticLineFinished: _finishTacticLine,
+                    onClearTacticLines: _clearTacticLines,
+                  ),
                 ),
               ],
             ),
@@ -922,6 +960,133 @@ class _AutoSaveChip extends StatelessWidget {
       ),
     );
   }
+}
+
+class _TeamManagementWorkflow extends StatelessWidget {
+  final VoidCallback onOpenTeams;
+  final VoidCallback onOpenPlayers;
+  final VoidCallback onOpenBasics;
+  final VoidCallback onOpenBoard;
+
+  const _TeamManagementWorkflow({
+    required this.onOpenTeams,
+    required this.onOpenPlayers,
+    required this.onOpenBasics,
+    required this.onOpenBoard,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final actions = [
+      _TeamWorkflowActionData(
+        icon: Icons.shield_outlined,
+        title: l10n.teamManagementSavedTeamsTitle,
+        subtitle: l10n.teamManagementSavedTeamsHelper,
+        onTap: onOpenTeams,
+      ),
+      _TeamWorkflowActionData(
+        icon: Icons.person_add_alt_outlined,
+        title: l10n.teamManagementPlayersTitle,
+        subtitle: l10n.teamManagementPlayersHelper,
+        onTap: onOpenPlayers,
+      ),
+      _TeamWorkflowActionData(
+        icon: Icons.route_outlined,
+        title: l10n.teamManagementBasicsTitle,
+        subtitle: l10n.teamManagementBasicsHelper,
+        onTap: onOpenBasics,
+      ),
+      _TeamWorkflowActionData(
+        icon: Icons.grid_view_outlined,
+        title: l10n.teamManagementFormationTitle,
+        subtitle: l10n.teamManagementFormationHelper,
+        onTap: onOpenBoard,
+      ),
+    ];
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final crossAxisCount = constraints.maxWidth >= 720 ? 4 : 2;
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: actions.length,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            mainAxisSpacing: AppSpacing.sm,
+            crossAxisSpacing: AppSpacing.sm,
+            childAspectRatio: constraints.maxWidth >= 720 ? 1.08 : 1.12,
+          ),
+          itemBuilder: (context, index) {
+            return _TeamWorkflowCard(data: actions[index]);
+          },
+        );
+      },
+    );
+  }
+}
+
+class _TeamWorkflowCard extends StatelessWidget {
+  final _TeamWorkflowActionData data;
+
+  const _TeamWorkflowCard({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: data.onTap,
+        borderRadius: AppRadius.surface,
+        child: Ink(
+          decoration: AppSurfaces.cardDecoration(scheme, theme.brightness),
+          padding: const EdgeInsets.all(AppSpacing.sm),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(data.icon, color: scheme.primary, size: 24),
+              const Spacer(),
+              Text(
+                data.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xxs),
+              Text(
+                data.subtitle,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                  height: 1.25,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TeamWorkflowActionData {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  const _TeamWorkflowActionData({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
 }
 
 class _TeamSelectorPanel extends StatelessWidget {
