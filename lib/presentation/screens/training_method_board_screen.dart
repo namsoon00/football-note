@@ -2602,6 +2602,27 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     return _normalizedRouteStageIndex(route.stageIndex + 1);
   }
 
+  int? _stageAfterCurrentBallPossession(_BoardItem player) {
+    final route = _currentBallRouteForPlayer(player);
+    if (route == null || route.points.length < 2) return null;
+    return _normalizedRouteStageIndex(route.stageIndex + 1);
+  }
+
+  int? _stageAfterExplicitPlayerActions(_BoardItem player) {
+    final stages = _currentPage.routes
+        .where(
+          (route) =>
+              route.points.length >= 2 &&
+              (route.actorItemId == player.id ||
+                  (route.kind == _PathDrawMode.player &&
+                      route.linkedItemId == player.id)),
+        )
+        .map((route) => _normalizedRouteStageIndex(route.stageIndex))
+        .toList(growable: false);
+    if (stages.isEmpty) return null;
+    return _normalizedRouteStageIndex(stages.fold<int>(1, math.max) + 1);
+  }
+
   bool _routeBelongsToPlayerStage(_BoardRoute route, _BoardItem player) {
     if (route.points.length < 2) return false;
     if (route.actorItemId == player.id) return true;
@@ -2655,7 +2676,12 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     if (registered != null) return registered;
     final selectedRouteStage = _stageAfterSelectedRoute();
     if (selectedRouteStage != null) return selectedRouteStage;
-    return null;
+    final candidateStages = <int>[
+      if (_stageAfterExplicitPlayerActions(player) case final stage?) stage,
+      if (_stageAfterCurrentBallPossession(player) case final stage?) stage,
+    ];
+    if (candidateStages.isEmpty) return null;
+    return candidateStages.fold<int>(1, math.max);
   }
 
   void _registerNextStageForPlayer(_BoardItem player) {
