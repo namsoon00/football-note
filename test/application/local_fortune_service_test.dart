@@ -129,7 +129,10 @@ void main() {
     expect(outcomeSentences, hasLength(1000));
     expect(outcomeTimes, contains('뜻밖에'));
     expect(outcomeSubjects, contains('웃을 일이'));
-    expect(outcomeResults, contains('찾아와요.'));
+    expect(outcomeResults, contains('하나 생겨요.'));
+    expect(outcomeTimes, isNot(contains('작게')));
+    expect(outcomeTimes, isNot(contains('조용히')));
+    expect(outcomeTimes, isNot(contains('편하게')));
     expect(causes, contains('상대 표정을 보고 말을 고르는 날이에요.'));
     expect(events, contains('아침 알림에 반가운 이름이 떠요.'));
     expect(events, contains('점심 전에 미뤄둔 메시지를 보내요.'));
@@ -189,7 +192,7 @@ void main() {
     expect(sections[9].title, '오늘 운세 문장');
     expect(
       sections[9].values,
-      contains('뜻밖에 웃을 일이 찾아와요.'),
+      contains('뜻밖에 웃을 일이 하나 생겨요.'),
     );
   });
 
