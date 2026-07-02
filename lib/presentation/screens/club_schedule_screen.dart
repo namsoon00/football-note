@@ -302,7 +302,7 @@ class _ClubScheduleScreenState extends State<ClubScheduleScreen> {
                 _WeekdaySchedulePanel(
                   schedules: _schedules,
                   weekdayLabel: _weekdayLabel,
-                  timeRangeLabel: _timeRangeLabel,
+                  timeLabel: _timeLabel,
                   readOnly: readOnly,
                   onScheduleChanged: _setSchedule,
                   onPickTime: _pickScheduleTime,
@@ -563,7 +563,7 @@ class _ClubNamePanel extends StatelessWidget {
 class _WeekdaySchedulePanel extends StatelessWidget {
   final List<ClubTrainingSchedule> schedules;
   final String Function(int weekday) weekdayLabel;
-  final String Function(ClubTrainingSchedule schedule) timeRangeLabel;
+  final String Function(int minutes) timeLabel;
   final bool readOnly;
   final ValueChanged<ClubTrainingSchedule> onScheduleChanged;
   final Future<void> Function({
@@ -574,7 +574,7 @@ class _WeekdaySchedulePanel extends StatelessWidget {
   const _WeekdaySchedulePanel({
     required this.schedules,
     required this.weekdayLabel,
-    required this.timeRangeLabel,
+    required this.timeLabel,
     required this.readOnly,
     required this.onScheduleChanged,
     required this.onPickTime,
@@ -604,7 +604,8 @@ class _WeekdaySchedulePanel extends StatelessWidget {
             _WeekdayScheduleRow(
               schedule: schedule,
               weekdayLabel: weekdayLabel(schedule.weekday),
-              timeRangeLabel: timeRangeLabel(schedule),
+              startTimeLabel: timeLabel(schedule.startMinutes),
+              endTimeLabel: timeLabel(schedule.endMinutes),
               readOnly: readOnly,
               onScheduleChanged: onScheduleChanged,
               onPickTime: onPickTime,
@@ -621,7 +622,8 @@ class _WeekdaySchedulePanel extends StatelessWidget {
 class _WeekdayScheduleRow extends StatelessWidget {
   final ClubTrainingSchedule schedule;
   final String weekdayLabel;
-  final String timeRangeLabel;
+  final String startTimeLabel;
+  final String endTimeLabel;
   final bool readOnly;
   final ValueChanged<ClubTrainingSchedule> onScheduleChanged;
   final Future<void> Function({
@@ -632,7 +634,8 @@ class _WeekdayScheduleRow extends StatelessWidget {
   const _WeekdayScheduleRow({
     required this.schedule,
     required this.weekdayLabel,
-    required this.timeRangeLabel,
+    required this.startTimeLabel,
+    required this.endTimeLabel,
     required this.readOnly,
     required this.onScheduleChanged,
     required this.onPickTime,
@@ -643,11 +646,6 @@ class _WeekdayScheduleRow extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final timeButtonStyle = OutlinedButton.styleFrom(
-      alignment: Alignment.center,
-      minimumSize: const Size(0, AppSizes.minTouchTarget),
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-    );
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
       child: Column(
@@ -682,64 +680,72 @@ class _WeekdayScheduleRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        key: ValueKey<String>(
-                          'club-schedule-start-${schedule.weekday}',
-                        ),
-                        style: timeButtonStyle,
-                        onPressed: schedule.enabled && !readOnly
-                            ? () => onPickTime(schedule: schedule, start: true)
-                            : null,
-                        icon: const Icon(Icons.play_arrow_outlined, size: 18),
-                        label: Text(
-                          l10n.clubScheduleStartTimeLabel,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.xs),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        key: ValueKey<String>(
-                          'club-schedule-end-${schedule.weekday}',
-                        ),
-                        style: timeButtonStyle,
-                        onPressed: schedule.enabled && !readOnly
-                            ? () => onPickTime(schedule: schedule, start: false)
-                            : null,
-                        icon: const Icon(Icons.stop_outlined, size: 18),
-                        label: Text(
-                          l10n.clubScheduleEndTimeLabel,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                if (schedule.enabled) ...[
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _ScheduleTimeChip(
+                          key: ValueKey<String>(
+                            'club-schedule-start-${schedule.weekday}',
+                          ),
+                          labelKey: ValueKey<String>(
+                            'club-schedule-start-label-${schedule.weekday}',
+                          ),
+                          valueKey: ValueKey<String>(
+                            'club-schedule-start-time-value-${schedule.weekday}',
+                          ),
+                          icon: Icons.play_arrow_rounded,
+                          label: l10n.clubScheduleStartTimeLabel,
+                          timeLabel: startTimeLabel,
+                          onTap: readOnly
+                              ? null
+                              : () => onPickTime(
+                                    schedule: schedule,
+                                    start: true,
+                                  ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Text(
-                    schedule.enabled
-                        ? timeRangeLabel
-                        : l10n.clubScheduleDayOffLabel,
-                    key: ValueKey<String>(
-                      'club-schedule-time-summary-${schedule.weekday}',
-                    ),
-                    textAlign: TextAlign.end,
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      color: schedule.enabled
-                          ? scheme.primary
-                          : scheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w900,
+                      const SizedBox(width: AppSpacing.xs),
+                      Expanded(
+                        child: _ScheduleTimeChip(
+                          key: ValueKey<String>(
+                            'club-schedule-end-${schedule.weekday}',
+                          ),
+                          labelKey: ValueKey<String>(
+                            'club-schedule-end-label-${schedule.weekday}',
+                          ),
+                          valueKey: ValueKey<String>(
+                            'club-schedule-end-time-value-${schedule.weekday}',
+                          ),
+                          icon: Icons.stop_rounded,
+                          label: l10n.clubScheduleEndTimeLabel,
+                          timeLabel: endTimeLabel,
+                          onTap: readOnly
+                              ? null
+                              : () => onPickTime(
+                                    schedule: schedule,
+                                    start: false,
+                                  ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ] else ...[
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Text(
+                      l10n.clubScheduleDayOffLabel,
+                      key: ValueKey<String>(
+                        'club-schedule-time-summary-${schedule.weekday}',
+                      ),
+                      textAlign: TextAlign.end,
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                   ),
-                ),
+                ],
                 if (schedule.enabled) ...[
                   const SizedBox(height: AppSpacing.sm),
                   _UniformColorSelector(
@@ -757,6 +763,111 @@ class _WeekdayScheduleRow extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ScheduleTimeChip extends StatelessWidget {
+  final Key labelKey;
+  final Key valueKey;
+  final IconData icon;
+  final String label;
+  final String timeLabel;
+  final VoidCallback? onTap;
+
+  const _ScheduleTimeChip({
+    super.key,
+    required this.labelKey,
+    required this.valueKey,
+    required this.icon,
+    required this.label,
+    required this.timeLabel,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final enabled = onTap != null;
+    final foreground = enabled ? scheme.primary : scheme.onSurfaceVariant;
+    return Semantics(
+      button: true,
+      enabled: enabled,
+      label: '$label $timeLabel',
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(14),
+          child: Ink(
+            height: 64,
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm,
+              vertical: AppSpacing.xs,
+            ),
+            decoration: BoxDecoration(
+              color: enabled
+                  ? scheme.primary.withValues(alpha: 0.08)
+                  : scheme.surfaceContainerHighest.withValues(alpha: 0.54),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: enabled
+                    ? scheme.primary.withValues(alpha: 0.30)
+                    : scheme.outline.withValues(alpha: 0.32),
+              ),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(icon, size: 16, color: foreground),
+                    const SizedBox(width: AppSpacing.xxs),
+                    Expanded(
+                      child: Text(
+                        label,
+                        key: labelKey,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: foreground,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.xxs),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        timeLabel,
+                        key: valueKey,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: scheme.onSurface,
+                          fontWeight: FontWeight.w900,
+                          height: 1.05,
+                        ),
+                      ),
+                    ),
+                    if (enabled)
+                      Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        size: 18,
+                        color: scheme.onSurfaceVariant,
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
