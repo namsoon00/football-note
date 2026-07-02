@@ -46,6 +46,7 @@ class WatchCartAppBar extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final l10n = AppLocalizations.of(context)!;
+    const actionMargin = EdgeInsetsDirectional.only(end: AppSpacing.xxs);
     final leadingButton = Container(
       width: AppSizes.appBarAction,
       height: AppSizes.appBarAction,
@@ -73,9 +74,6 @@ class WatchCartAppBar extends StatelessWidget {
     );
     return LayoutBuilder(
       builder: (context, constraints) {
-        final compactActions = constraints.maxWidth < 360;
-        final hasOverflowActions =
-            compactActions && (onNewsTap != null || onQuizTap != null);
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -97,25 +95,29 @@ class WatchCartAppBar extends StatelessWidget {
                         icon: Icons.groups_2_outlined,
                         tooltip: l10n.matchHubTopActionTooltip,
                         selected: matchSelected,
+                        margin: actionMargin,
                         onPressed: onMatchTap,
                       ),
-                    if (!compactActions && onNewsTap != null)
+                    if (onNewsTap != null)
                       AppBarActionButton.icon(
                         icon: Icons.newspaper_outlined,
                         tooltip: l10n.tabNews,
                         badgeCount: newsBadgeCount,
+                        margin: actionMargin,
                         onPressed: onNewsTap,
                       ),
-                    if (!compactActions && onQuizTap != null)
+                    if (onQuizTap != null)
                       AppBarActionButton.icon(
                         icon: Icons.quiz_outlined,
                         tooltip: l10n.drawerQuiz,
+                        margin: actionMargin,
                         onPressed: onQuizTap,
                       ),
                     AppBarActionButton(
                       icon: _ProfileAppBarAvatar(
                         photoSource: profilePhotoSource,
                       ),
+                      margin: actionMargin,
                       onPressed: onProfileTap,
                     ),
                     if (onNotificationTap != null)
@@ -123,19 +125,15 @@ class WatchCartAppBar extends StatelessWidget {
                         icon: Icons.notifications_outlined,
                         tooltip: l10n.notifications,
                         badgeCount: notificationBadgeCount,
+                        margin: actionMargin,
                         onPressed: onNotificationTap,
                       ),
                     AppBarActionButton.icon(
                       icon: Icons.settings,
                       tooltip: l10n.settings,
+                      margin: actionMargin,
                       onPressed: onSettingsTap,
                     ),
-                    if (hasOverflowActions)
-                      _WatchCartOverflowActions(
-                        onNewsTap: onNewsTap,
-                        onQuizTap: onQuizTap,
-                        newsBadgeCount: newsBadgeCount,
-                      ),
                   ],
                 ),
               ),
@@ -146,63 +144,6 @@ class WatchCartAppBar extends StatelessWidget {
     );
   }
 }
-
-class _WatchCartOverflowActions extends StatelessWidget {
-  final VoidCallback? onNewsTap;
-  final VoidCallback? onQuizTap;
-  final int newsBadgeCount;
-
-  const _WatchCartOverflowActions({
-    required this.onNewsTap,
-    required this.onQuizTap,
-    required this.newsBadgeCount,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    return AppBarActionMenuButton<_WatchCartOverflowAction>(
-      icon: Icons.more_horiz,
-      tooltip: MaterialLocalizations.of(context).showMenuTooltip,
-      itemBuilder: (context) => [
-        if (onNewsTap != null)
-          PopupMenuItem<_WatchCartOverflowAction>(
-            value: _WatchCartOverflowAction.news,
-            child: ListTile(
-              dense: true,
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.newspaper_outlined),
-              title: Text(
-                newsBadgeCount > 0
-                    ? '${l10n.tabNews} $newsBadgeCount'
-                    : l10n.tabNews,
-              ),
-            ),
-          ),
-        if (onQuizTap != null)
-          PopupMenuItem<_WatchCartOverflowAction>(
-            value: _WatchCartOverflowAction.quiz,
-            child: ListTile(
-              dense: true,
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.quiz_outlined),
-              title: Text(l10n.drawerQuiz),
-            ),
-          ),
-      ],
-      onSelected: (value) {
-        switch (value) {
-          case _WatchCartOverflowAction.news:
-            onNewsTap?.call();
-          case _WatchCartOverflowAction.quiz:
-            onQuizTap?.call();
-        }
-      },
-    );
-  }
-}
-
-enum _WatchCartOverflowAction { news, quiz }
 
 class _ProfileAppBarAvatar extends StatelessWidget {
   final String photoSource;
