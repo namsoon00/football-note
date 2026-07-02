@@ -11477,19 +11477,19 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneDailyOutcomeTimes.
   ///
   /// In en, this message translates to:
-  /// **'in the morning|before leaving home|on the move|around lunch|in an afternoon message|during a short break|while tidying up|while waiting|around dinner|before sleep'**
+  /// **'unexpectedly|lightly|quietly|quickly|after a while|by chance|with a smile|in a small way|warmly|easily'**
   String get fortuneDailyOutcomeTimes;
 
   /// No description provided for @fortuneDailyOutcomeSubjects.
   ///
   /// In en, this message translates to:
-  /// **'good news|a needed alert|the answer you wanted|a short chat|unexpected praise|a welcome offer|new information|an easy choice|a small find|a welcome reply'**
+  /// **'a reason to smile|a good answer|a small lucky break|a welcome word|a new chance|an easy choice|good news|a comfortable moment|a grateful moment|a quick refresh'**
   String get fortuneDailyOutcomeSubjects;
 
   /// No description provided for @fortuneDailyOutcomeResults.
   ///
   /// In en, this message translates to:
-  /// **'makes you smile fast.|makes the choice easy.|lifts your mood quickly.|opens a good chat.|catches what you almost missed.|makes waiting feel short.|helps right away.|makes today easier.|stays nice until tonight.|makes the day end easier.'**
+  /// **'arrives.|appears.|comes closer.|works out.|stays pleasant.|passes lightly.|lasts longer.|becomes clear.|helps right away.|turns better.'**
   String get fortuneDailyOutcomeResults;
 
   /// No description provided for @fortuneSajuTrainingTones.

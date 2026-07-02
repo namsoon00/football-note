@@ -6405,15 +6405,15 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get fortuneDailyOutcomeTimes =>
-      '아침에|집을 나서기 전에|이동 중에|점심쯤|오후 메시지에서|잠깐 쉴 때|정리하다가|기다리는 동안|저녁쯤|잠들기 전';
+      '뜻밖에|가볍게|조용히|빠르게|오랜만에|우연히|기분 좋게|작게|반갑게|편하게';
 
   @override
   String get fortuneDailyOutcomeSubjects =>
-      '좋은 연락이|필요한 알림이|찾던 답이|짧은 대화가|뜻밖의 칭찬이|반가운 제안이|새 정보가|쉬운 선택이|작은 발견이|반가운 답장이';
+      '웃을 일이|좋은 답이|작은 행운이|반가운 말이|새 기회가|쉬운 선택이|괜찮은 소식이|편한 시간이|고마운 일이|기분 전환이';
 
   @override
   String get fortuneDailyOutcomeResults =>
-      '바로 웃게 해줘요.|선택을 쉽게 해줘요.|기분을 확 올려줘요.|대화를 열어줘요.|놓친 일을 챙겨줘요.|기다림을 짧게 해줘요.|바로 힘이 돼요.|오늘을 쉽게 풀어줘요.|밤까지 기분 좋게 남아요.|마무리를 편하게 해줘요.';
+      '찾아와요.|생겨요.|다가와요.|잘 풀려요.|기분 좋게 남아요.|가볍게 지나가요.|오래 이어져요.|분명해져요.|힘이 돼요.|좋게 바뀌어요.';
 
   @override
   String get fortuneSajuTrainingTones =>
