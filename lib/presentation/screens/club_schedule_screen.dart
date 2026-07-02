@@ -532,9 +532,13 @@ class _UniformColorSelector extends StatelessWidget {
               ),
             ),
             onPressed: () async {
+              final barrierColor =
+                  Theme.of(context).colorScheme.scrim.withValues(alpha: 0.38);
               final picked = await showModalBottomSheet<int>(
                 context: context,
-                showDragHandle: true,
+                backgroundColor: Colors.transparent,
+                barrierColor: barrierColor,
+                isScrollControlled: true,
                 useSafeArea: true,
                 builder: (context) => _UniformColorPickerSheet(
                   initialColorValue: selectedColorValue,
@@ -600,134 +604,179 @@ class _UniformColorPickerSheetState extends State<_UniformColorPickerSheet> {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final selectedColor = _color.toColor().withValues(alpha: 1);
+    final screenSize = MediaQuery.sizeOf(context);
+    final maxSheetHeight = screenSize.height * 0.88;
 
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.md,
-          AppSpacing.xs,
-          AppSpacing.md,
-          AppSpacing.lg,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                UniformJerseySwatch(
-                  color: selectedColor,
-                  size: 52,
-                  borderColor: scheme.outline.withValues(alpha: 0.64),
-                  borderWidth: 1.4,
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: Text(
-                    l10n.clubScheduleColorSelectTooltip,
-                    style: theme.textTheme.titleMedium?.copyWith(
+    return SizedBox(
+      width: screenSize.width,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: maxSheetHeight),
+        child: Material(
+          key: const ValueKey<String>('club-uniform-color-sheet'),
+          color: scheme.surface,
+          elevation: theme.brightness == Brightness.dark ? 0 : 10,
+          shadowColor: Colors.black.withValues(alpha: 0.18),
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(AppRadius.card),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                AppSpacing.sm,
+                AppSpacing.md,
+                AppSpacing.lg,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 36,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: scheme.onSurfaceVariant.withValues(alpha: 0.34),
+                        borderRadius: AppRadius.full,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Row(
+                    children: [
+                      UniformJerseySwatch(
+                        color: selectedColor,
+                        size: 52,
+                        borderColor: scheme.outline.withValues(alpha: 0.64),
+                        borderWidth: 1.4,
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: Text(
+                          l10n.clubScheduleColorSelectTooltip,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  Text(
+                    l10n.clubScheduleColorPresetsLabel,
+                    style: theme.textTheme.labelLarge?.copyWith(
                       fontWeight: FontWeight.w900,
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              l10n.clubScheduleColorPresetsLabel,
-              style: theme.textTheme.labelLarge?.copyWith(
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Wrap(
-              spacing: AppSpacing.xs,
-              runSpacing: AppSpacing.xs,
-              children: [
-                for (final preset in _presets)
-                  _UniformColorPresetButton(
-                    key: ValueKey<String>(
-                      'club-uniform-color-preset-${preset.id}',
+                  const SizedBox(height: AppSpacing.xs),
+                  Wrap(
+                    spacing: AppSpacing.xs,
+                    runSpacing: AppSpacing.xs,
+                    children: [
+                      for (final preset in _presets)
+                        _UniformColorPresetButton(
+                          key: ValueKey<String>(
+                            'club-uniform-color-preset-${preset.id}',
+                          ),
+                          colorValue: preset.colorValue,
+                          selected:
+                              selectedColor.toARGB32() == preset.colorValue,
+                          label: l10n.clubScheduleColorSelectTooltip,
+                          onTap: () {
+                            setState(() {
+                              _color = HSVColor.fromColor(
+                                Color(preset.colorValue),
+                              );
+                            });
+                          },
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  _UniformColorSlider(
+                    key: const ValueKey<String>(
+                      'club-uniform-color-hue-slider',
                     ),
-                    colorValue: preset.colorValue,
-                    selected: selectedColor.toARGB32() == preset.colorValue,
-                    label: l10n.clubScheduleColorSelectTooltip,
-                    onTap: () {
+                    label: l10n.clubScheduleColorHueLabel,
+                    valueLabel: _color.hue.round().toString(),
+                    value: _color.hue,
+                    min: 0,
+                    max: 360,
+                    divisions: 360,
+                    activeColor: HSVColor.fromAHSV(
+                      1,
+                      _color.hue,
+                      1,
+                      1,
+                    ).toColor(),
+                    onChanged: (value) {
                       setState(() {
-                        _color = HSVColor.fromColor(Color(preset.colorValue));
+                        _color = _color.withHue(value);
                       });
                     },
                   ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.md),
-            _UniformColorSlider(
-              key: const ValueKey<String>('club-uniform-color-hue-slider'),
-              label: l10n.clubScheduleColorHueLabel,
-              valueLabel: _color.hue.round().toString(),
-              value: _color.hue,
-              min: 0,
-              max: 360,
-              divisions: 360,
-              activeColor: HSVColor.fromAHSV(1, _color.hue, 1, 1).toColor(),
-              onChanged: (value) {
-                setState(() {
-                  _color = _color.withHue(value);
-                });
-              },
-            ),
-            _UniformColorSlider(
-              key: const ValueKey<String>(
-                'club-uniform-color-saturation-slider',
-              ),
-              label: l10n.clubScheduleColorSaturationLabel,
-              valueLabel: '${(_color.saturation * 100).round()}%',
-              value: _color.saturation,
-              min: 0,
-              max: 1,
-              divisions: 100,
-              activeColor: selectedColor,
-              onChanged: (value) {
-                setState(() {
-                  _color = _color.withSaturation(value);
-                });
-              },
-            ),
-            _UniformColorSlider(
-              key: const ValueKey<String>(
-                'club-uniform-color-brightness-slider',
-              ),
-              label: l10n.clubScheduleColorBrightnessLabel,
-              valueLabel: '${(_color.value * 100).round()}%',
-              value: _color.value,
-              min: 0,
-              max: 1,
-              divisions: 100,
-              activeColor: selectedColor,
-              onChanged: (value) {
-                setState(() {
-                  _color = _color.withValue(value);
-                });
-              },
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text(materialL10n.cancelButtonLabel),
-                ),
-                const SizedBox(width: AppSpacing.xs),
-                FilledButton(
-                  onPressed: () => Navigator.of(context).pop(
-                    selectedColor.toARGB32(),
+                  _UniformColorSlider(
+                    key: const ValueKey<String>(
+                      'club-uniform-color-saturation-slider',
+                    ),
+                    label: l10n.clubScheduleColorSaturationLabel,
+                    valueLabel: '${(_color.saturation * 100).round()}%',
+                    value: _color.saturation,
+                    min: 0,
+                    max: 1,
+                    divisions: 100,
+                    activeColor: selectedColor,
+                    onChanged: (value) {
+                      setState(() {
+                        _color = _color.withSaturation(value);
+                      });
+                    },
                   ),
-                  child: Text(materialL10n.okButtonLabel),
-                ),
-              ],
+                  _UniformColorSlider(
+                    key: const ValueKey<String>(
+                      'club-uniform-color-brightness-slider',
+                    ),
+                    label: l10n.clubScheduleColorBrightnessLabel,
+                    valueLabel: '${(_color.value * 100).round()}%',
+                    value: _color.value,
+                    min: 0,
+                    max: 1,
+                    divisions: 100,
+                    activeColor: selectedColor,
+                    onChanged: (value) {
+                      setState(() {
+                        _color = _color.withValue(value);
+                      });
+                    },
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Text(materialL10n.cancelButtonLabel),
+                      ),
+                      const SizedBox(width: AppSpacing.xs),
+                      FilledButton(
+                        style: FilledButton.styleFrom(
+                          minimumSize: const Size(72, 44),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.md,
+                          ),
+                        ),
+                        onPressed: () => Navigator.of(context).pop(
+                          selectedColor.toARGB32(),
+                        ),
+                        child: Text(materialL10n.okButtonLabel),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ],
+          ),
         ),
       ),
     );
