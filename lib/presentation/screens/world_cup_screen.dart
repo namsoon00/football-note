@@ -284,7 +284,15 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
       ],
       selected: {_effectiveSelectedView},
       onSelectionChanged: (selection) {
-        setState(() => _selectedView = selection.single);
+        final nextView = selection.single;
+        if (nextView == _WorldCupView.tournament) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            unawaited(_openTournamentFullScreen());
+          });
+          return;
+        }
+        setState(() => _selectedView = nextView);
       },
     );
   }
@@ -1065,8 +1073,10 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
                   clipBehavior: Clip.none,
                   allowImplicitScrolling: true,
                   padEnds: false,
-                  physics:
-                      const PageScrollPhysics(parent: BouncingScrollPhysics()),
+                  physics: _WorldCupLightSwipePageScrollPhysics(
+                    currentPage: initialIndex,
+                    parent: const BouncingScrollPhysics(),
+                  ),
                   itemCount: _dayPageCount,
                   onPageChanged: (index) {
                     final nextDay = _dayForPageIndex(index);
@@ -2005,6 +2015,91 @@ String _worldCupViewLabel(AppLocalizations l10n, _WorldCupView view) {
     _WorldCupView.standings => l10n.worldCupStandingsTab,
     _WorldCupView.tournament => l10n.worldCupTournamentTab,
   };
+}
+
+class _WorldCupLightSwipePageScrollPhysics extends PageScrollPhysics {
+  final int currentPage;
+  final double pageTurnThreshold;
+
+  const _WorldCupLightSwipePageScrollPhysics({
+    required this.currentPage,
+    this.pageTurnThreshold = 0.12,
+    super.parent,
+  });
+
+  @override
+  _WorldCupLightSwipePageScrollPhysics applyTo(ScrollPhysics? ancestor) {
+    return _WorldCupLightSwipePageScrollPhysics(
+      currentPage: currentPage,
+      pageTurnThreshold: pageTurnThreshold,
+      parent: buildParent(ancestor),
+    );
+  }
+
+  @override
+  Simulation? createBallisticSimulation(
+    ScrollMetrics position,
+    double velocity,
+  ) {
+    if ((velocity <= 0.0 && position.pixels <= position.minScrollExtent) ||
+        (velocity >= 0.0 && position.pixels >= position.maxScrollExtent)) {
+      return super.createBallisticSimulation(position, velocity);
+    }
+    if (position is! PageMetrics ||
+        position.viewportDimension <= 0 ||
+        position.viewportFraction <= 0) {
+      return super.createBallisticSimulation(position, velocity);
+    }
+
+    final tolerance = toleranceFor(position);
+    final targetPage = _targetPage(position, tolerance, velocity);
+    final targetPixels = _pixelsForPage(position, targetPage);
+    if ((targetPixels - position.pixels).abs() < tolerance.distance) {
+      return null;
+    }
+    return ScrollSpringSimulation(
+      spring,
+      position.pixels,
+      targetPixels,
+      velocity,
+      tolerance: tolerance,
+    );
+  }
+
+  double _targetPage(
+    PageMetrics position,
+    Tolerance tolerance,
+    double velocity,
+  ) {
+    final maxPage = _maxPage(position);
+    final basePage = currentPage.clamp(0, maxPage).toDouble();
+    final page = position.page ?? basePage;
+    if (velocity > tolerance.velocity) {
+      return (basePage + 1).clamp(0.0, maxPage).toDouble();
+    }
+    if (velocity < -tolerance.velocity) {
+      return (basePage - 1).clamp(0.0, maxPage).toDouble();
+    }
+
+    final delta = page - basePage;
+    if (delta >= pageTurnThreshold) {
+      return (basePage + 1).clamp(0.0, maxPage).toDouble();
+    }
+    if (delta <= -pageTurnThreshold) {
+      return (basePage - 1).clamp(0.0, maxPage).toDouble();
+    }
+    return basePage;
+  }
+
+  double _maxPage(PageMetrics position) {
+    final pageExtent = position.viewportDimension * position.viewportFraction;
+    if (pageExtent <= 0) return 0;
+    return position.maxScrollExtent / pageExtent;
+  }
+
+  double _pixelsForPage(PageMetrics position, double page) {
+    return page * position.viewportDimension * position.viewportFraction;
+  }
 }
 
 enum _WorldCupFixtureRuntimeStatus { scheduled, live, awaitingUpdate, finished }

@@ -205,10 +205,12 @@ void main() {
     expect(find.text('순위'), findsNothing);
     expect(find.text('토너먼트'), findsOneWidget);
 
+    navigatorObserver.reset();
     await tester.tap(find.text('토너먼트'));
     await tester.pumpAndSettle();
 
-    expect(find.text('토너먼트 대진표'), findsOneWidget);
+    expect(navigatorObserver.pushedRouteCount, 1);
+    expect(find.text('토너먼트 대진표'), findsWidgets);
     expect(find.text('결승'), findsOneWidget);
     expect(find.text('3위 결정전'), findsOneWidget);
     expect(find.text('준결승'), findsOneWidget);
@@ -234,7 +236,7 @@ void main() {
     expect(find.byIcon(Icons.zoom_out_rounded), findsOneWidget);
     expect(find.byIcon(Icons.restart_alt_rounded), findsOneWidget);
     expect(find.byIcon(Icons.zoom_in_rounded), findsOneWidget);
-    expect(find.byIcon(Icons.open_in_full_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.open_in_full_rounded), findsNothing);
 
     await tester.tap(find.byIcon(Icons.zoom_in_rounded));
     await tester.pumpAndSettle();
@@ -242,15 +244,6 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byIcon(Icons.restart_alt_rounded));
     await tester.pumpAndSettle();
-
-    navigatorObserver.reset();
-    await tester.tap(find.byIcon(Icons.open_in_full_rounded));
-    await tester.pumpAndSettle();
-
-    expect(navigatorObserver.pushedRouteCount, 1);
-    expect(find.text('토너먼트 대진표'), findsWidgets);
-    expect(find.byType(InteractiveViewer), findsOneWidget);
-    expect(find.byIcon(Icons.open_in_full_rounded), findsNothing);
   });
 
   testWidgets('tournament bracket resolves completed group slots to countries',
@@ -1417,7 +1410,7 @@ void main() {
 
     await tester.drag(
       find.byKey(const ValueKey<String>('world-cup-day-match-pager')),
-      const Offset(-260, 0),
+      const Offset(-112, 0),
     );
     await tester.pumpAndSettle();
 
