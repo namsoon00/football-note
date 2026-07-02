@@ -6421,15 +6421,15 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get fortuneDailyOutcomeTimes =>
-      '思いがけず|軽く|静かに|早く|久しぶりに|偶然|気分よく|小さく|うれしく|楽に';
+      '朝に|昼ごろ|午後に|夕方に|思いがけず|偶然|すぐに|ふと|短い間に|一日の終わりに';
 
   @override
   String get fortuneDailyOutcomeSubjects =>
-      '笑えることが|良い答えが|小さな幸運が|うれしい言葉が|新しい機会が|楽な選択が|良い知らせが|心地よい時間が|ありがたいことが|気分転換が';
+      '笑えることが|うれしい連絡が|良い知らせが|小さな幸運が|必要な答えが|新しい機会が|落ち着く時間が|助けになる一言が|ありがたいことが|楽な選択が';
 
   @override
   String get fortuneDailyOutcomeResults =>
-      '来ます。|生まれます。|近づきます。|うまくいきます。|気持ちよく残ります。|軽く過ぎます。|長く続きます。|はっきりします。|すぐ力になります。|良い方へ変わります。';
+      'ひとつ生まれます。|気持ちを軽くします。|一日を楽にします。|気持ちよく残ります。|次の一歩を楽にします。|思ったより大きく感じます。|今日を良い方へ変えます。|小さな力になります。|笑顔を作ります。|記憶に残ります。';
 
   @override
   String get fortuneSajuTrainingTones =>
