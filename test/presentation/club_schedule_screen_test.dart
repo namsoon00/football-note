@@ -249,6 +249,100 @@ void main() {
     expect(summaryRect.top, greaterThan(startRect.bottom));
     expect(summaryRect.right, lessThanOrEqualTo(endRect.right + 0.1));
   });
+
+  testWidgets('club schedule auto saves changes without pressing save', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 2200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    final repository = _MemoryOptionRepository();
+
+    await tester.pumpWidget(
+      _buildApp(
+        ClubScheduleScreen(optionRepository: repository),
+        theme: AppTheme.light(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byKey(const ValueKey<String>('club-schedule-name-field')),
+      '성남 U15',
+    );
+    await tester.tap(
+      find.byKey(
+        const ValueKey<String>('club-schedule-day-switch-1'),
+      ),
+    );
+
+    await tester.pump(const Duration(milliseconds: 800));
+    await tester.pumpAndSettle();
+
+    final profile = ClubScheduleService(repository).loadProfile();
+    expect(profile.clubName, '성남 U15');
+    expect(profile.weekdaySchedules.first.enabled, isTrue);
+  });
+
+  testWidgets('pending auto save asks before leaving', (tester) async {
+    tester.view.physicalSize = const Size(900, 2200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    final repository = _MemoryOptionRepository();
+
+    await tester.pumpWidget(
+      _buildApp(
+        Builder(
+          builder: (context) => TextButton(
+            key: const ValueKey<String>('open-club-schedule'),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => ClubScheduleScreen(
+                  optionRepository: repository,
+                ),
+              ),
+            ),
+            child: const Text('open'),
+          ),
+        ),
+        theme: AppTheme.light(),
+      ),
+    );
+    await tester.tap(find.byKey(const ValueKey<String>('open-club-schedule')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(
+      find.byKey(
+        const ValueKey<String>('club-schedule-day-switch-1'),
+      ),
+    );
+    await tester.pump();
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey<String>('club-schedule-unsaved-dialog')),
+      findsOneWidget,
+    );
+
+    await tester.tap(
+      find.byKey(const ValueKey<String>('club-schedule-unsaved-save-leave')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey<String>('open-club-schedule')),
+      findsOneWidget,
+    );
+    final profile = ClubScheduleService(repository).loadProfile();
+    expect(profile.weekdaySchedules.first.enabled, isTrue);
+  });
 }
 
 Widget _buildApp(Widget child, {ThemeData? theme}) {
