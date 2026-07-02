@@ -4598,6 +4598,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get notificationCategoryWeather => '날씨';
 
   @override
+  String get notificationCategoryClubTraining => '클럽 훈련';
+
+  @override
   String get notificationCategoryFixture => '경기';
 
   @override
@@ -4683,6 +4686,22 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String notificationWeatherTimeSubtitle(Object time) {
     return '매일 $time에 알림';
+  }
+
+  @override
+  String get notificationClubTrainingSettingsTitle => '클럽 훈련 알림';
+
+  @override
+  String notificationClubTrainingSettingsSubtitle(int minutes) {
+    return '훈련 $minutes분 전에 유니폼과 시간을 알려줍니다.';
+  }
+
+  @override
+  String get notificationClubTrainingLeadTimeLabel => '클럽 훈련 사전 알림';
+
+  @override
+  String notificationClubTrainingLeadTimeOption(int value) {
+    return '$value분 전';
   }
 
   @override
@@ -10434,6 +10453,23 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get clubScheduleSavedFeedback => '클럽 일정을 저장했어요.';
+
+  @override
+  String get clubTrainingNotificationChannelName => '클럽 훈련 알림';
+
+  @override
+  String get clubTrainingNotificationChannelDescription => '클럽 훈련 시작 전 리마인드 알림';
+
+  @override
+  String clubTrainingNotificationTitle(Object clubName) {
+    return '$clubName 훈련 준비';
+  }
+
+  @override
+  String clubTrainingNotificationBody(
+      int minutesBefore, Object timeRange, Object uniform) {
+    return '$minutesBefore분 뒤 훈련 · $timeRange · 유니폼 $uniform';
+  }
 
   @override
   String get teamManagementTitle => '팀 관리';

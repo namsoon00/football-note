@@ -10,6 +10,7 @@ import '../domain/entities/challenge.dart';
 import '../domain/entities/sport_definition.dart';
 import '../domain/entities/training_entry.dart';
 import '../domain/repositories/option_repository.dart';
+import 'club_training_reminder_service.dart';
 import 'league_fixture_reminder_service.dart';
 import 'notification_app_link.dart';
 import 'settings_service.dart';
@@ -902,7 +903,25 @@ class TrainingPlanReminderService {
       if (id.isEmpty) return false;
       return !weatherReadIds.contains(id);
     }).length;
-    return xpUnread + familyUnread + fixtureUnread + weatherUnread;
+    final clubTrainingLogs =
+        _options.getValue<List>(ClubTrainingReminderService.messageLogKey) ??
+            const [];
+    final clubTrainingReadRaw = _options.getValue<List>(
+          ClubTrainingReminderService.messageReadIdsKey,
+        ) ??
+        const [];
+    final clubTrainingReadIds =
+        clubTrainingReadRaw.map((e) => e.toString()).toSet();
+    final clubTrainingUnread = clubTrainingLogs.whereType<Map>().where((item) {
+      final id = item['id']?.toString() ?? '';
+      if (id.isEmpty) return false;
+      return !clubTrainingReadIds.contains(id);
+    }).length;
+    return xpUnread +
+        familyUnread +
+        fixtureUnread +
+        weatherUnread +
+        clubTrainingUnread;
   }
 
   Future<void> markAllRemindersRead() async {

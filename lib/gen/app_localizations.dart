@@ -8308,6 +8308,12 @@ abstract class AppLocalizations {
   /// **'Weather'**
   String get notificationCategoryWeather;
 
+  /// No description provided for @notificationCategoryClubTraining.
+  ///
+  /// In en, this message translates to:
+  /// **'Club training'**
+  String get notificationCategoryClubTraining;
+
   /// No description provided for @notificationCategoryFixture.
   ///
   /// In en, this message translates to:
@@ -8451,6 +8457,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Every day at {time}'**
   String notificationWeatherTimeSubtitle(Object time);
+
+  /// No description provided for @notificationClubTrainingSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Club training alerts'**
+  String get notificationClubTrainingSettingsTitle;
+
+  /// No description provided for @notificationClubTrainingSettingsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Send uniform and time alerts {minutes} minutes before training.'**
+  String notificationClubTrainingSettingsSubtitle(int minutes);
+
+  /// No description provided for @notificationClubTrainingLeadTimeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Club training lead time'**
+  String get notificationClubTrainingLeadTimeLabel;
+
+  /// No description provided for @notificationClubTrainingLeadTimeOption.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} min before'**
+  String notificationClubTrainingLeadTimeOption(int value);
 
   /// No description provided for @notificationNewBadge.
   ///
@@ -18351,6 +18381,31 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Club schedule saved.'**
   String get clubScheduleSavedFeedback;
+
+  /// No description provided for @clubTrainingNotificationChannelName.
+  ///
+  /// In en, this message translates to:
+  /// **'Club training alerts'**
+  String get clubTrainingNotificationChannelName;
+
+  /// No description provided for @clubTrainingNotificationChannelDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders before club training starts'**
+  String get clubTrainingNotificationChannelDescription;
+
+  /// No description provided for @clubTrainingNotificationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{clubName} training prep'**
+  String clubTrainingNotificationTitle(Object clubName);
+
+  /// No description provided for @clubTrainingNotificationBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Training in {minutesBefore} min · {timeRange} · Uniform {uniform}'**
+  String clubTrainingNotificationBody(
+      int minutesBefore, Object timeRange, Object uniform);
 
   /// No description provided for @teamManagementTitle.
   ///

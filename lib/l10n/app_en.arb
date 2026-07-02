@@ -2802,6 +2802,7 @@
   },
   "notificationCategoryTrainingPlan": "Training",
   "notificationCategoryWeather": "Weather",
+  "notificationCategoryClubTraining": "Club training",
   "notificationCategoryFixture": "Matches",
   "notificationCategoryXp": "XP",
   "notificationCategoryFamily": "Family",
@@ -2875,6 +2876,24 @@
   "@notificationWeatherTimeSubtitle": {
     "placeholders": {
       "time": {}
+    }
+  },
+  "notificationClubTrainingSettingsTitle": "Club training alerts",
+  "notificationClubTrainingSettingsSubtitle": "Send uniform and time alerts {minutes} minutes before training.",
+  "@notificationClubTrainingSettingsSubtitle": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationClubTrainingLeadTimeLabel": "Club training lead time",
+  "notificationClubTrainingLeadTimeOption": "{value} min before",
+  "@notificationClubTrainingLeadTimeOption": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
     }
   },
   "notificationNewBadge": "NEW",
@@ -5920,6 +5939,24 @@
   "clubScheduleColorBrightnessLabel": "Brightness",
   "clubScheduleSaveButton": "Save club schedule",
   "clubScheduleSavedFeedback": "Club schedule saved.",
+  "clubTrainingNotificationChannelName": "Club training alerts",
+  "clubTrainingNotificationChannelDescription": "Reminders before club training starts",
+  "clubTrainingNotificationTitle": "{clubName} training prep",
+  "@clubTrainingNotificationTitle": {
+    "placeholders": {
+      "clubName": {}
+    }
+  },
+  "clubTrainingNotificationBody": "Training in {minutesBefore} min · {timeRange} · Uniform {uniform}",
+  "@clubTrainingNotificationBody": {
+    "placeholders": {
+      "minutesBefore": {
+        "type": "int"
+      },
+      "timeRange": {},
+      "uniform": {}
+    }
+  },
   "teamManagementTitle": "Team Management",
   "teamManagementSubtitle": "Start with player registration, then drag players onto a larger pitch board to organize tactics.",
   "teamManagementOpenButton": "Team management",

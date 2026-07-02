@@ -13,6 +13,7 @@ import 'backup_asset_store.dart';
 import 'backup_asset_store_types.dart';
 import 'challenge_service.dart';
 import 'club_schedule_service.dart';
+import 'club_training_reminder_service.dart';
 import 'coach_roster_service.dart';
 import 'drive_connection_info.dart';
 import 'league_fixture_reminder_service.dart';
@@ -406,6 +407,8 @@ class DriveBackupService implements BackupRepository {
     'league_fixture_alert_enabled',
     'weather_alert_enabled',
     'weather_alert_time',
+    'club_training_alert_enabled',
+    'club_training_alert_minutes_before',
     'inactivity_alert_days',
     TrainingPlanReminderService.reminderIdsKey,
     TrainingPlanReminderService.reminderReadIdsKey,
@@ -425,6 +428,9 @@ class DriveBackupService implements BackupRepository {
     WeatherReminderService.reminderIdsKey,
     WeatherReminderService.messageLogKey,
     WeatherReminderService.messageReadIdsKey,
+    ClubTrainingReminderService.reminderIdsKey,
+    ClubTrainingReminderService.messageLogKey,
+    ClubTrainingReminderService.messageReadIdsKey,
     NewsBadgeService.seenArticleKeysKey,
     NewsBadgeService.lastOpenedAtKey,
     NewsBadgeService.lastRefreshAtKey,

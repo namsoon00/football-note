@@ -14,6 +14,7 @@ import '../../application/world_cup_schedule.dart';
 import '../../domain/entities/league_standings.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../screens/challenge_screen.dart';
+import '../screens/club_schedule_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/league_standings_screen.dart';
 import '../screens/notification_center_screen.dart';
@@ -170,6 +171,10 @@ class NotificationTapRouter {
           localeService: dependencies.localeService,
           settingsService: dependencies.settingsService,
           driveBackupService: dependencies.driveBackupService,
+        );
+      case 'club':
+        return ClubScheduleScreen(
+          optionRepository: dependencies.optionRepository,
         );
       case 'world-cup':
         return WorldCupScreen(

@@ -3,6 +3,8 @@ import 'package:football_note/gen/app_localizations.dart';
 import 'package:intl/intl.dart';
 
 import '../../application/club_schedule_service.dart';
+import '../../application/club_training_reminder_service.dart';
+import '../../application/settings_service.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_background.dart';
@@ -58,6 +60,7 @@ class _ClubScheduleScreenState extends State<ClubScheduleScreen> {
         weekdaySchedules: _schedules,
       );
       await _service.saveProfile(profile);
+      await _syncClubTrainingReminders();
       if (!mounted) return;
       setState(() {
         _profile = _service.loadProfile();
@@ -68,6 +71,19 @@ class _ClubScheduleScreenState extends State<ClubScheduleScreen> {
       AppFeedback.showSuccess(context, text: l10n.clubScheduleSavedFeedback);
     } finally {
       if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  Future<void> _syncClubTrainingReminders() async {
+    try {
+      final settings = SettingsService(widget.optionRepository)..load();
+      await ClubTrainingReminderService(
+        widget.optionRepository,
+        settings,
+        sportId: widget.sportId,
+      ).syncSettingsDrivenReminders();
+    } catch (_) {
+      // Reminder sync can recover on app startup or the next schedule save.
     }
   }
 

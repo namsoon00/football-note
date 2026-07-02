@@ -7,6 +7,7 @@ class NotificationAppLink {
   static const Set<String> _hosts = {
     'calendar',
     'challenge',
+    'club',
     'level',
     'league',
     'notifications',
@@ -120,6 +121,15 @@ class NotificationAppLink {
     ).toString();
   }
 
+  static String clubTraining({required int weekday}) {
+    return Uri(
+      scheme: scheme,
+      host: 'club',
+      path: '/training',
+      queryParameters: {'weekday': weekday.toString()},
+    ).toString();
+  }
+
   static String weatherToday() => _weather(action: 'today');
 
   static String weatherOutfit() => _weather(action: 'outfit');
@@ -204,6 +214,8 @@ class NotificationAppLink {
         return 'level';
       case 'history':
         return 'xp';
+      case 'training':
+        return 'club';
       case 'fixture':
         return queryParameters.containsKey('match') ? 'world-cup' : 'league';
       case 'detail':

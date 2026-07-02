@@ -4710,6 +4710,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notificationCategoryWeather => 'Weather';
 
   @override
+  String get notificationCategoryClubTraining => 'Club training';
+
+  @override
   String get notificationCategoryFixture => 'Matches';
 
   @override
@@ -4796,6 +4799,22 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String notificationWeatherTimeSubtitle(Object time) {
     return 'Every day at $time';
+  }
+
+  @override
+  String get notificationClubTrainingSettingsTitle => 'Club training alerts';
+
+  @override
+  String notificationClubTrainingSettingsSubtitle(int minutes) {
+    return 'Send uniform and time alerts $minutes minutes before training.';
+  }
+
+  @override
+  String get notificationClubTrainingLeadTimeLabel => 'Club training lead time';
+
+  @override
+  String notificationClubTrainingLeadTimeOption(int value) {
+    return '$value min before';
   }
 
   @override
@@ -10724,6 +10743,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get clubScheduleSavedFeedback => 'Club schedule saved.';
+
+  @override
+  String get clubTrainingNotificationChannelName => 'Club training alerts';
+
+  @override
+  String get clubTrainingNotificationChannelDescription =>
+      'Reminders before club training starts';
+
+  @override
+  String clubTrainingNotificationTitle(Object clubName) {
+    return '$clubName training prep';
+  }
+
+  @override
+  String clubTrainingNotificationBody(
+      int minutesBefore, Object timeRange, Object uniform) {
+    return 'Training in $minutesBefore min · $timeRange · Uniform $uniform';
+  }
 
   @override
   String get teamManagementTitle => 'Team Management';

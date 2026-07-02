@@ -2802,6 +2802,7 @@
   },
   "notificationCategoryTrainingPlan": "トレーニング",
   "notificationCategoryWeather": "天気",
+  "notificationCategoryClubTraining": "クラブ練習",
   "notificationCategoryFixture": "試合",
   "notificationCategoryXp": "XP",
   "notificationCategoryFamily": "保護者",
@@ -2875,6 +2876,24 @@
   "@notificationWeatherTimeSubtitle": {
     "placeholders": {
       "time": {}
+    }
+  },
+  "notificationClubTrainingSettingsTitle": "クラブ練習通知",
+  "notificationClubTrainingSettingsSubtitle": "練習の{minutes}分前にユニフォームと時間を通知します。",
+  "@notificationClubTrainingSettingsSubtitle": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationClubTrainingLeadTimeLabel": "クラブ練習の事前通知",
+  "notificationClubTrainingLeadTimeOption": "{value}分前",
+  "@notificationClubTrainingLeadTimeOption": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
     }
   },
   "notificationNewBadge": "NEW",
@@ -5920,6 +5939,24 @@
   "clubScheduleColorBrightnessLabel": "明度",
   "clubScheduleSaveButton": "クラブ予定を保存",
   "clubScheduleSavedFeedback": "クラブ予定を保存しました。",
+  "clubTrainingNotificationChannelName": "クラブ練習通知",
+  "clubTrainingNotificationChannelDescription": "クラブ練習開始前のリマインダー",
+  "clubTrainingNotificationTitle": "{clubName} 練習準備",
+  "@clubTrainingNotificationTitle": {
+    "placeholders": {
+      "clubName": {}
+    }
+  },
+  "clubTrainingNotificationBody": "{minutesBefore}分後に練習 · {timeRange} · ユニフォーム {uniform}",
+  "@clubTrainingNotificationBody": {
+    "placeholders": {
+      "minutesBefore": {
+        "type": "int"
+      },
+      "timeRange": {},
+      "uniform": {}
+    }
+  },
   "teamManagementTitle": "チーム管理",
   "teamManagementSubtitle": "選手登録から始め、大きなピッチボードへ選手をドラッグして戦術を整理します。",
   "teamManagementOpenButton": "チーム管理",
