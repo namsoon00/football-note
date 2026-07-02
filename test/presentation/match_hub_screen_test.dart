@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:football_note/application/family_access_service.dart';
 import 'package:football_note/application/locale_service.dart';
 import 'package:football_note/application/match_competition_service.dart';
 import 'package:football_note/application/settings_service.dart';
@@ -304,6 +305,102 @@ void main() {
     await tester.pump();
 
     expect(openedStats, isTrue);
+  });
+
+  testWidgets('parent mode blocks creating a new match record from hub', (
+    tester,
+  ) async {
+    await optionRepository.setValue(
+      FamilyAccessService.currentRoleLocalKey,
+      FamilyRole.parent.name,
+    );
+
+    await pumpHub(tester);
+    await tester.tap(find.text('시합 기록'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(MatchRecordScreen), findsNothing);
+    expect(
+      find.text('보호자 모드에서는 선수의 핵심 데이터를 수정할 수 없어요. 선수 모드에서 변경해 주세요.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('parent mode team management does not auto save edits', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 2400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    await optionRepository.setValue(
+      FamilyAccessService.currentRoleLocalKey,
+      FamilyRole.parent.name,
+    );
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en'),
+            Locale('ko', 'KR'),
+            Locale('ja'),
+          ],
+          home: TeamManagementScreen(optionRepository: optionRepository),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final addPlayerButton = tester.widget<FilledButton>(
+      find.widgetWithText(FilledButton, '선수 추가'),
+    );
+    final newTeamButton = tester.widget<FilledButton>(
+      find.widgetWithText(FilledButton, '새 팀'),
+    );
+    expect(addPlayerButton.onPressed, isNull);
+    expect(newTeamButton.onPressed, isNull);
+
+    await tester.enterText(find.byType(TextField).at(3), '보호자 팀');
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pumpAndSettle();
+
+    expect(TeamManagementService(optionRepository).allTeams(), isEmpty);
+  });
+
+  testWidgets('parent mode competition management keeps create flow disabled', (
+    tester,
+  ) async {
+    await optionRepository.setValue(
+      FamilyAccessService.currentRoleLocalKey,
+      FamilyRole.parent.name,
+    );
+
+    await pumpCompetitionManagement(tester, themeMode: ThemeMode.light);
+
+    final createLeagueButton = tester.widget<FilledButton>(
+      find.widgetWithText(FilledButton, '리그 만들기').first,
+    );
+    expect(createLeagueButton.onPressed, isNull);
+
+    await tester.tap(find.widgetWithText(FilledButton, '리그 만들기').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('대회 저장'), findsNothing);
+    final competitions = MatchCompetitionService(
+      optionRepository,
+    ).allCompetitions();
+    expect(competitions, isEmpty);
   });
 
   testWidgets('Match record screen saves a friendly result from touch controls',

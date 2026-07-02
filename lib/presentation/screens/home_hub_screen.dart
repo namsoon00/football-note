@@ -838,6 +838,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
         builder: (_) => ClubScheduleScreen(
           optionRepository: widget.optionRepository,
           sportId: sportId,
+          readOnly: _isParentMode,
         ),
       ),
     );

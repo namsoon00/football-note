@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:football_note/gen/app_localizations.dart';
 
 import '../../application/backup_service.dart';
+import '../../application/family_access_service.dart';
 import '../../application/locale_service.dart';
 import '../../application/match_competition_service.dart';
 import '../../application/settings_service.dart';
@@ -65,6 +66,10 @@ class _MatchHubScreenState extends State<MatchHubScreen> {
       });
     }
   }
+
+  bool get _isReadOnlySupportMode => FamilyAccessService(
+        widget.optionRepository,
+      ).loadState().isReadOnlySupportMode;
 
   Future<void> _pushPageSafely(Route<void> route) async {
     if (!mounted || _routePushInFlight) return;
@@ -284,6 +289,13 @@ class _MatchHubScreenState extends State<MatchHubScreen> {
   }
 
   Future<void> _openMatchRecord({DateTime? initialDate}) async {
+    if (_isReadOnlySupportMode) {
+      AppFeedback.showMessage(
+        context,
+        text: AppLocalizations.of(context)!.parentReadOnlyCoreDataMessage,
+      );
+      return;
+    }
     await _pushPageSafely(
       AppPageRoute(
         builder: (_) => MatchRecordScreen(
@@ -298,11 +310,13 @@ class _MatchHubScreenState extends State<MatchHubScreen> {
   }
 
   Future<void> _openTeamManagement() async {
+    final readOnly = _isReadOnlySupportMode;
     await _pushPageSafely(
       AppPageRoute(
         builder: (_) => TeamManagementScreen(
           optionRepository: widget.optionRepository,
           sportId: SportService(widget.optionRepository).currentSportId(),
+          readOnly: readOnly,
         ),
       ),
     );
@@ -320,12 +334,14 @@ class _MatchHubScreenState extends State<MatchHubScreen> {
   }
 
   Future<void> _openCompetitionManagement() async {
+    final readOnly = _isReadOnlySupportMode;
     await _pushPageSafely(
       AppPageRoute(
         builder: (_) => CompetitionManagementScreen(
           trainingService: widget.trainingService,
           optionRepository: widget.optionRepository,
           sportId: SportService(widget.optionRepository).currentSportId(),
+          readOnly: readOnly,
         ),
       ),
     );

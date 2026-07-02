@@ -16809,6 +16809,12 @@ abstract class AppLocalizations {
   /// **'Parent mode keeps core records read-only. Use shared data and reward naming instead.'**
   String get parentReadOnlyDrawerMessage;
 
+  /// No description provided for @parentReadOnlyCoreDataMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent mode cannot edit player core data. Switch to player mode to change it.'**
+  String get parentReadOnlyCoreDataMessage;
+
   /// No description provided for @parentReadOnlyCalendarSummary.
   ///
   /// In en, this message translates to:

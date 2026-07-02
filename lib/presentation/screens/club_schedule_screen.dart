@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 
 import '../../application/club_schedule_service.dart';
 import '../../application/club_training_reminder_service.dart';
+import '../../application/family_access_service.dart';
 import '../../application/settings_service.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../theme/app_theme.dart';
@@ -17,11 +18,13 @@ import '../widgets/uniform_jersey_swatch.dart';
 class ClubScheduleScreen extends StatefulWidget {
   final OptionRepository optionRepository;
   final String? sportId;
+  final bool readOnly;
 
   const ClubScheduleScreen({
     super.key,
     required this.optionRepository,
     this.sportId,
+    this.readOnly = false,
   });
 
   @override
@@ -60,19 +63,36 @@ class _ClubScheduleScreenState extends State<ClubScheduleScreen> {
     super.dispose();
   }
 
-  bool get _hasUnsavedDraft => !_sameEditableProfile(_draftProfile(), _profile);
+  bool get _isReadOnlySupportMode =>
+      widget.readOnly ||
+      FamilyAccessService(
+        widget.optionRepository,
+      ).loadState().isReadOnlySupportMode;
+
+  bool get _hasUnsavedDraft =>
+      !_isReadOnlySupportMode &&
+      !_sameEditableProfile(_draftProfile(), _profile);
 
   bool get _hasPendingSave =>
       _saving || (_autoSaveTimer?.isActive ?? false) || _hasUnsavedDraft;
 
   void _handleClubNameChanged() {
     if (_syncingClubName) return;
+    if (_isReadOnlySupportMode) {
+      if (_clubNameController.text != _profile.clubName) {
+        _syncingClubName = true;
+        _clubNameController.text = _profile.clubName;
+        _syncingClubName = false;
+      }
+      return;
+    }
     setState(() {});
     _scheduleAutoSave();
   }
 
   void _scheduleAutoSave() {
     _autoSaveTimer?.cancel();
+    if (_isReadOnlySupportMode) return;
     if (!_hasUnsavedDraft) {
       if (mounted) setState(() {});
       return;
@@ -92,6 +112,12 @@ class _ClubScheduleScreenState extends State<ClubScheduleScreen> {
     bool force = false,
   }) {
     _autoSaveTimer?.cancel();
+    if (_isReadOnlySupportMode) {
+      if (showFeedback && mounted) {
+        _showReadOnlyMessage();
+      }
+      return Future<void>.value();
+    }
     _queueSaveAfterCurrent = true;
     if (_activeSave != null) {
       return _activeSave!;
@@ -184,6 +210,10 @@ class _ClubScheduleScreenState extends State<ClubScheduleScreen> {
   }
 
   void _setSchedule(ClubTrainingSchedule schedule) {
+    if (_isReadOnlySupportMode) {
+      _showReadOnlyMessage();
+      return;
+    }
     setState(() {
       _schedules = ClubScheduleService.normalizeSchedules(
         _schedules.map(
@@ -198,6 +228,10 @@ class _ClubScheduleScreenState extends State<ClubScheduleScreen> {
     required ClubTrainingSchedule schedule,
     required bool start,
   }) async {
+    if (_isReadOnlySupportMode) {
+      _showReadOnlyMessage();
+      return;
+    }
     final initialMinutes = start ? schedule.startMinutes : schedule.endMinutes;
     final picked = await showTimePicker(
       context: context,
@@ -215,6 +249,7 @@ class _ClubScheduleScreenState extends State<ClubScheduleScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final readOnly = _isReadOnlySupportMode;
     final canPop = !_hasPendingSave;
     return PopScope(
       canPop: canPop,
@@ -236,8 +271,9 @@ class _ClubScheduleScreenState extends State<ClubScheduleScreen> {
                   : const Icon(Icons.save_outlined),
               label: l10n.clubScheduleSaveButton,
               tooltip: l10n.clubScheduleSaveButton,
-              onPressed:
-                  _saving ? null : () => _save(showFeedback: true, force: true),
+              onPressed: readOnly || _saving
+                  ? null
+                  : () => _save(showFeedback: true, force: true),
               maxLabelWidth: 120,
             ),
           ],
@@ -258,12 +294,16 @@ class _ClubScheduleScreenState extends State<ClubScheduleScreen> {
                   timeRangeLabel: _timeRangeLabel,
                 ),
                 const SizedBox(height: AppSpacing.md),
-                _ClubNamePanel(controller: _clubNameController),
+                _ClubNamePanel(
+                  controller: _clubNameController,
+                  readOnly: readOnly,
+                ),
                 const SizedBox(height: AppSpacing.md),
                 _WeekdaySchedulePanel(
                   schedules: _schedules,
                   weekdayLabel: _weekdayLabel,
                   timeRangeLabel: _timeRangeLabel,
+                  readOnly: readOnly,
                   onScheduleChanged: _setSchedule,
                   onPickTime: _pickScheduleTime,
                 ),
@@ -283,6 +323,7 @@ class _ClubScheduleScreenState extends State<ClubScheduleScreen> {
   }
 
   Future<void> _handlePendingExit() async {
+    if (_isReadOnlySupportMode) return;
     final navigator = Navigator.of(context);
     final action = await _confirmPendingExit();
     if (!mounted || action == null) return;
@@ -331,6 +372,14 @@ class _ClubScheduleScreenState extends State<ClubScheduleScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showReadOnlyMessage() {
+    if (!mounted) return;
+    AppFeedback.showMessage(
+      context,
+      text: AppLocalizations.of(context)!.parentReadOnlyCoreDataMessage,
     );
   }
 
@@ -479,8 +528,12 @@ class _ClubScheduleSummaryPanel extends StatelessWidget {
 
 class _ClubNamePanel extends StatelessWidget {
   final TextEditingController controller;
+  final bool readOnly;
 
-  const _ClubNamePanel({required this.controller});
+  const _ClubNamePanel({
+    required this.controller,
+    required this.readOnly,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -495,6 +548,7 @@ class _ClubNamePanel extends StatelessWidget {
       child: TextField(
         key: const ValueKey<String>('club-schedule-name-field'),
         controller: controller,
+        readOnly: readOnly,
         textInputAction: TextInputAction.done,
         decoration: InputDecoration(
           labelText: l10n.clubScheduleClubNameLabel,
@@ -510,6 +564,7 @@ class _WeekdaySchedulePanel extends StatelessWidget {
   final List<ClubTrainingSchedule> schedules;
   final String Function(int weekday) weekdayLabel;
   final String Function(ClubTrainingSchedule schedule) timeRangeLabel;
+  final bool readOnly;
   final ValueChanged<ClubTrainingSchedule> onScheduleChanged;
   final Future<void> Function({
     required ClubTrainingSchedule schedule,
@@ -520,6 +575,7 @@ class _WeekdaySchedulePanel extends StatelessWidget {
     required this.schedules,
     required this.weekdayLabel,
     required this.timeRangeLabel,
+    required this.readOnly,
     required this.onScheduleChanged,
     required this.onPickTime,
   });
@@ -549,6 +605,7 @@ class _WeekdaySchedulePanel extends StatelessWidget {
               schedule: schedule,
               weekdayLabel: weekdayLabel(schedule.weekday),
               timeRangeLabel: timeRangeLabel(schedule),
+              readOnly: readOnly,
               onScheduleChanged: onScheduleChanged,
               onPickTime: onPickTime,
             ),
@@ -565,6 +622,7 @@ class _WeekdayScheduleRow extends StatelessWidget {
   final ClubTrainingSchedule schedule;
   final String weekdayLabel;
   final String timeRangeLabel;
+  final bool readOnly;
   final ValueChanged<ClubTrainingSchedule> onScheduleChanged;
   final Future<void> Function({
     required ClubTrainingSchedule schedule,
@@ -575,6 +633,7 @@ class _WeekdayScheduleRow extends StatelessWidget {
     required this.schedule,
     required this.weekdayLabel,
     required this.timeRangeLabel,
+    required this.readOnly,
     required this.onScheduleChanged,
     required this.onPickTime,
   });
@@ -609,9 +668,11 @@ class _WeekdayScheduleRow extends StatelessWidget {
                   'club-schedule-day-switch-${schedule.weekday}',
                 ),
                 value: schedule.enabled,
-                onChanged: (enabled) => onScheduleChanged(
-                  schedule.copyWith(enabled: enabled),
-                ),
+                onChanged: readOnly
+                    ? null
+                    : (enabled) => onScheduleChanged(
+                          schedule.copyWith(enabled: enabled),
+                        ),
               ),
             ],
           ),
@@ -629,7 +690,7 @@ class _WeekdayScheduleRow extends StatelessWidget {
                           'club-schedule-start-${schedule.weekday}',
                         ),
                         style: timeButtonStyle,
-                        onPressed: schedule.enabled
+                        onPressed: schedule.enabled && !readOnly
                             ? () => onPickTime(schedule: schedule, start: true)
                             : null,
                         icon: const Icon(Icons.play_arrow_outlined, size: 18),
@@ -647,7 +708,7 @@ class _WeekdayScheduleRow extends StatelessWidget {
                           'club-schedule-end-${schedule.weekday}',
                         ),
                         style: timeButtonStyle,
-                        onPressed: schedule.enabled
+                        onPressed: schedule.enabled && !readOnly
                             ? () => onPickTime(schedule: schedule, start: false)
                             : null,
                         icon: const Icon(Icons.stop_outlined, size: 18),
@@ -685,9 +746,11 @@ class _WeekdayScheduleRow extends StatelessWidget {
                     label: l10n.clubScheduleDayUniformLabel,
                     selectedColorValue: schedule.uniformColorValue,
                     keyPrefix: 'day-${schedule.weekday}',
-                    onChanged: (value) => onScheduleChanged(
-                      schedule.copyWith(uniformColorValue: value),
-                    ),
+                    onChanged: readOnly
+                        ? null
+                        : (value) => onScheduleChanged(
+                              schedule.copyWith(uniformColorValue: value),
+                            ),
                   ),
                 ],
               ],
@@ -703,7 +766,7 @@ class _UniformColorSelector extends StatelessWidget {
   final String label;
   final int selectedColorValue;
   final String keyPrefix;
-  final ValueChanged<int> onChanged;
+  final ValueChanged<int>? onChanged;
 
   const _UniformColorSelector({
     required this.label,
@@ -740,21 +803,25 @@ class _UniformColorSelector extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            onPressed: () async {
-              final barrierColor =
-                  Theme.of(context).colorScheme.scrim.withValues(alpha: 0.38);
-              final picked = await showModalBottomSheet<int>(
-                context: context,
-                backgroundColor: Colors.transparent,
-                barrierColor: barrierColor,
-                isScrollControlled: true,
-                useSafeArea: true,
-                builder: (context) => _UniformColorPickerSheet(
-                  initialColorValue: selectedColorValue,
-                ),
-              );
-              if (picked != null) onChanged(picked);
-            },
+            onPressed: onChanged == null
+                ? null
+                : () async {
+                    final barrierColor = Theme.of(context)
+                        .colorScheme
+                        .scrim
+                        .withValues(alpha: 0.38);
+                    final picked = await showModalBottomSheet<int>(
+                      context: context,
+                      backgroundColor: Colors.transparent,
+                      barrierColor: barrierColor,
+                      isScrollControlled: true,
+                      useSafeArea: true,
+                      builder: (context) => _UniformColorPickerSheet(
+                        initialColorValue: selectedColorValue,
+                      ),
+                    );
+                    if (picked != null) onChanged!(picked);
+                  },
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [

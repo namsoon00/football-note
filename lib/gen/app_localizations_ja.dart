@@ -9577,6 +9577,10 @@ class AppLocalizationsJa extends AppLocalizations {
       '親モードでは、コア レコードが読み取り専用に保持されます。代わりに共有データを使用し、ネーミングに報酬を与えます。';
 
   @override
+  String get parentReadOnlyCoreDataMessage =>
+      '親モードでは選手のコアデータを編集できません。選手モードで変更してください。';
+
+  @override
   String get parentReadOnlyCalendarSummary => 'カレンダーはここでのみ表示されます。';
 
   @override
