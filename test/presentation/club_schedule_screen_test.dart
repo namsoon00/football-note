@@ -201,7 +201,8 @@ void main() {
     expect(sheetRect.bottom, lessThanOrEqualTo(logicalHeight + 0.1));
   });
 
-  testWidgets('start and end time buttons align in light layout', (
+  testWidgets('start and end time chips align and open picker in light layout',
+      (
     tester,
   ) async {
     tester.view.physicalSize = const Size(1170, 2532);
@@ -233,22 +234,45 @@ void main() {
     final endButton = find.byKey(
       const ValueKey<String>('club-schedule-end-1'),
     );
-    final timeSummary = find.byKey(
-      const ValueKey<String>('club-schedule-time-summary-1'),
+    final startLabel = find.byKey(
+      const ValueKey<String>('club-schedule-start-label-1'),
+    );
+    final startTime = find.byKey(
+      const ValueKey<String>('club-schedule-start-time-value-1'),
+    );
+    final endLabel = find.byKey(
+      const ValueKey<String>('club-schedule-end-label-1'),
+    );
+    final endTime = find.byKey(
+      const ValueKey<String>('club-schedule-end-time-value-1'),
     );
     expect(startButton, findsOneWidget);
     expect(endButton, findsOneWidget);
-    expect(timeSummary, findsOneWidget);
+    expect(startLabel, findsOneWidget);
+    expect(startTime, findsOneWidget);
+    expect(endLabel, findsOneWidget);
+    expect(endTime, findsOneWidget);
+    expect(
+      find.byKey(const ValueKey<String>('club-schedule-time-summary-1')),
+      findsNothing,
+    );
 
     final startRect = tester.getRect(startButton);
     final endRect = tester.getRect(endButton);
-    final summaryRect = tester.getRect(timeSummary);
+    final startLabelRect = tester.getRect(startLabel);
+    final startTimeRect = tester.getRect(startTime);
+    final endLabelRect = tester.getRect(endLabel);
+    final endTimeRect = tester.getRect(endTime);
 
     expect(startRect.top, closeTo(endRect.top, 0.1));
     expect(startRect.bottom, closeTo(endRect.bottom, 0.1));
     expect(startRect.width, closeTo(endRect.width, 0.1));
-    expect(summaryRect.top, greaterThan(startRect.bottom));
-    expect(summaryRect.right, lessThanOrEqualTo(endRect.right + 0.1));
+    expect(startTimeRect.top, greaterThan(startLabelRect.bottom));
+    expect(endTimeRect.top, greaterThan(endLabelRect.bottom));
+
+    await tester.tap(startButton);
+    await tester.pumpAndSettle();
+    expect(find.byType(TimePickerDialog), findsOneWidget);
   });
 
   testWidgets('club schedule auto saves changes without pressing save', (
