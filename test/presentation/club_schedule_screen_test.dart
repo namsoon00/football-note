@@ -199,6 +199,56 @@ void main() {
     expect(sheetRect.top, greaterThanOrEqualTo(0));
     expect(sheetRect.bottom, lessThanOrEqualTo(logicalHeight + 0.1));
   });
+
+  testWidgets('start and end time buttons align in light layout', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1170, 2532);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    final repository = _MemoryOptionRepository();
+
+    await tester.pumpWidget(
+      _buildApp(
+        ClubScheduleScreen(optionRepository: repository),
+        theme: AppTheme.light(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(
+      find.byKey(
+        const ValueKey<String>('club-schedule-day-switch-1'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final startButton = find.byKey(
+      const ValueKey<String>('club-schedule-start-1'),
+    );
+    final endButton = find.byKey(
+      const ValueKey<String>('club-schedule-end-1'),
+    );
+    final timeSummary = find.byKey(
+      const ValueKey<String>('club-schedule-time-summary-1'),
+    );
+    expect(startButton, findsOneWidget);
+    expect(endButton, findsOneWidget);
+    expect(timeSummary, findsOneWidget);
+
+    final startRect = tester.getRect(startButton);
+    final endRect = tester.getRect(endButton);
+    final summaryRect = tester.getRect(timeSummary);
+
+    expect(startRect.top, closeTo(endRect.top, 0.1));
+    expect(startRect.bottom, closeTo(endRect.bottom, 0.1));
+    expect(startRect.width, closeTo(endRect.width, 0.1));
+    expect(summaryRect.top, greaterThan(startRect.bottom));
+    expect(summaryRect.right, lessThanOrEqualTo(endRect.right + 0.1));
+  });
 }
 
 Widget _buildApp(Widget child, {ThemeData? theme}) {
