@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -37,6 +38,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   final TextEditingController _playerNameController = TextEditingController();
   final TextEditingController _playerNumberController = TextEditingController();
   final TextEditingController _playerNoteController = TextEditingController();
+  Timer? _autoSaveDebounce;
 
   List<ManagedTeam> _teams = const <ManagedTeam>[];
   ManagedTeam? _selectedTeam;
@@ -55,6 +57,11 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   ManagedTacticLine? _draftTacticLine;
   bool _loaded = false;
   bool _saving = false;
+  bool _hasPendingAutoSave = false;
+  bool _suppressAutoSave = false;
+  int _changeRevision = 0;
+  int _savedRevision = 0;
+  DateTime? _lastAutoSavedAt;
 
   @override
   void initState() {
@@ -63,6 +70,8 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
       widget.optionRepository,
       sportId: widget.sportId,
     );
+    _teamNameController.addListener(_handleTextFieldChanged);
+    _strategyController.addListener(_handleTextFieldChanged);
   }
 
   @override
@@ -75,12 +84,26 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
 
   @override
   void dispose() {
+    _autoSaveDebounce?.cancel();
+    if (_changeRevision > _savedRevision) {
+      final team = _currentTeam();
+      if (team.name.trim().isNotEmpty) {
+        unawaited(_teamService.upsertTeam(team));
+      }
+    }
+    _teamNameController.removeListener(_handleTextFieldChanged);
+    _strategyController.removeListener(_handleTextFieldChanged);
     _teamNameController.dispose();
     _strategyController.dispose();
     _playerNameController.dispose();
     _playerNumberController.dispose();
     _playerNoteController.dispose();
     super.dispose();
+  }
+
+  void _handleTextFieldChanged() {
+    if (_suppressAutoSave) return;
+    _scheduleAutoSave();
   }
 
   void _loadTeams(AppLocalizations l10n, {String? preferredTeamId}) {
@@ -100,6 +123,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
 
   void _selectTeam(ManagedTeam team) {
     final spots = TeamManagementService.formationSpots(team.formation);
+    _autoSaveDebounce?.cancel();
     _selectedTeam = team;
     _formation = team.formation;
     _players = List<ManagedTeamPlayer>.from(team.players);
@@ -123,9 +147,16 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
     _playerCondition = ManagedTeamPlayer.conditionReady;
     _boardMode = _TacticBoardMode.assign;
     _draftTacticLine = null;
+    _hasPendingAutoSave = false;
+    _changeRevision = 0;
+    _savedRevision = 0;
+    _lastAutoSavedAt =
+        _teams.any((item) => item.id == team.id) ? team.updatedAt : null;
+    _suppressAutoSave = true;
     _teamNameController.text = team.name;
     _strategyController.text = team.strategy;
     _clearPlayerForm();
+    _suppressAutoSave = false;
     setState(() {});
   }
 
@@ -142,11 +173,54 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
     );
   }
 
-  Future<void> _saveTeam() async {
+  void _scheduleAutoSave({
+    Duration delay = const Duration(milliseconds: 650),
+    bool markChanged = true,
+  }) {
+    if (_suppressAutoSave) return;
+    _autoSaveDebounce?.cancel();
+    if (markChanged) {
+      _changeRevision++;
+    }
+    if (mounted) {
+      setState(() => _hasPendingAutoSave = true);
+    } else {
+      _hasPendingAutoSave = true;
+    }
+    _autoSaveDebounce = Timer(
+      delay,
+      () => unawaited(_persistTeam()),
+    );
+  }
+
+  Future<void> _flushAutoSave() async {
+    _autoSaveDebounce?.cancel();
+    await _persistTeam();
+  }
+
+  Future<void> _persistTeam({
+    bool force = false,
+    bool showFeedback = false,
+  }) async {
     final l10n = AppLocalizations.of(context)!;
+    final revisionToSave = _changeRevision;
+    if (!force && revisionToSave <= _savedRevision) {
+      if (mounted) setState(() => _hasPendingAutoSave = false);
+      return;
+    }
     final name = _teamNameController.text.trim();
     if (name.isEmpty) {
-      AppFeedback.showMessage(context, text: l10n.teamManagementNameRequired);
+      if (showFeedback) {
+        AppFeedback.showMessage(context, text: l10n.teamManagementNameRequired);
+      }
+      if (mounted) setState(() => _hasPendingAutoSave = false);
+      return;
+    }
+    if (_saving) {
+      _scheduleAutoSave(
+        delay: const Duration(milliseconds: 300),
+        markChanged: false,
+      );
       return;
     }
     setState(() => _saving = true);
@@ -154,10 +228,31 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
       final team = _currentTeam();
       await _teamService.upsertTeam(team);
       if (!mounted) return;
-      AppFeedback.showSuccess(context, text: l10n.teamManagementSavedFeedback);
-      _loadTeams(l10n, preferredTeamId: team.id);
+      final teams = _teamService.allTeams();
+      final savedTeam = teams.where((item) => item.id == team.id).firstOrNull;
+      setState(() {
+        _teams = teams;
+        _selectedTeam = savedTeam ?? team;
+        if (_savedRevision < revisionToSave) {
+          _savedRevision = revisionToSave;
+        }
+        _hasPendingAutoSave = _changeRevision > _savedRevision;
+        _lastAutoSavedAt = DateTime.now();
+      });
+      if (showFeedback) {
+        AppFeedback.showSuccess(context,
+            text: l10n.teamManagementSavedFeedback);
+      }
     } finally {
-      if (mounted) setState(() => _saving = false);
+      if (mounted) {
+        setState(() => _saving = false);
+        if (_changeRevision > _savedRevision) {
+          _scheduleAutoSave(
+            delay: const Duration(milliseconds: 300),
+            markChanged: false,
+          );
+        }
+      }
     }
   }
 
@@ -165,14 +260,23 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
     final l10n = AppLocalizations.of(context)!;
     final team = _selectedTeam;
     if (team == null || !_teams.any((item) => item.id == team.id)) return;
+    _autoSaveDebounce?.cancel();
     await _teamService.deleteTeam(team.id);
     if (!mounted) return;
     AppFeedback.showSuccess(context, text: l10n.teamManagementDeletedFeedback);
     _loadTeams(l10n);
   }
 
-  void _startNewTeam() {
+  Future<void> _startNewTeam() async {
+    await _flushAutoSave();
+    if (!mounted) return;
     _selectTeam(_draftTeam(AppLocalizations.of(context)!));
+  }
+
+  Future<void> _selectExistingTeam(ManagedTeam team) async {
+    await _flushAutoSave();
+    if (!mounted) return;
+    _selectTeam(team);
   }
 
   void _changeFormation(String formation) {
@@ -187,6 +291,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
       );
       _selectedSpotId = spots.isEmpty ? null : spots.first.id;
     });
+    _scheduleAutoSave();
   }
 
   void _selectSpot(String spotId) {
@@ -230,6 +335,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
       }
       _clearPlayerForm();
     });
+    _scheduleAutoSave();
   }
 
   void _editPlayer(ManagedTeamPlayer player) {
@@ -270,6 +376,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
         _playerPlacements,
       )..remove(player.id);
     });
+    _scheduleAutoSave();
   }
 
   void _placePlayerOnBoard({
@@ -303,6 +410,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
         _selectedSpotId = nearestSpot.id;
       }
     });
+    _scheduleAutoSave();
   }
 
   TeamFormationSpot? _nearestFormationSpot(ManagedPlayerPlacement placement) {
@@ -368,6 +476,9 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
       }
       _draftTacticLine = null;
     });
+    if (distance >= 0.04) {
+      _scheduleAutoSave();
+    }
   }
 
   void _clearTacticLines() {
@@ -375,12 +486,14 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
       _tacticLines = const <ManagedTacticLine>[];
       _draftTacticLine = null;
     });
+    _scheduleAutoSave();
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    final totalSpots = TeamManagementService.formationSpots(_formation).length;
     return Scaffold(
       body: ColoredBox(
         color: theme.scaffoldBackgroundColor,
@@ -399,11 +512,30 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
                   onBack: () => Navigator.of(context).maybePop(),
                 ),
                 const SizedBox(height: AppSpacing.md),
+                _TeamManagementHero(
+                  teamName: _teamNameController.text.trim().isEmpty
+                      ? l10n.teamManagementDefaultTeamName
+                      : _teamNameController.text.trim(),
+                  playerCount: _players.length,
+                  placedCount: _playerPlacements.length,
+                  totalSpots: totalSpots,
+                  tacticLineCount: _tacticLines.length,
+                  formation: _formation,
+                  saving: _saving,
+                  pending:
+                      _hasPendingAutoSave || _changeRevision > _savedRevision,
+                  needsName: _teamNameController.text.trim().isEmpty,
+                  lastSavedAt: _lastAutoSavedAt,
+                  canDelete: _selectedTeam != null &&
+                      _teams.any((team) => team.id == _selectedTeam!.id),
+                  onNewTeam: () => unawaited(_startNewTeam()),
+                  onDelete: () => unawaited(_deleteTeam()),
+                ),
+                const SizedBox(height: AppSpacing.md),
                 _TeamSelectorPanel(
                   teams: _teams,
                   selectedTeamId: _selectedTeam?.id ?? '',
-                  onSelectTeam: _selectTeam,
-                  onNewTeam: _startNewTeam,
+                  onSelectTeam: (team) => unawaited(_selectExistingTeam(team)),
                 ),
                 const SizedBox(height: AppSpacing.md),
                 _PlayersPanel(
@@ -449,23 +581,6 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
                   onTacticLineFinished: _finishTacticLine,
                   onClearTacticLines: _clearTacticLines,
                 ),
-                const SizedBox(height: AppSpacing.lg),
-                _SaveTeamActions(
-                  canDelete: _selectedTeam != null &&
-                      _teams.any((team) => team.id == _selectedTeam!.id),
-                  saving: _saving,
-                  onDelete: _deleteTeam,
-                  onSave: _saveTeam,
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                Text(
-                  l10n.teamManagementSaveHint,
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
               ],
             ),
           ),
@@ -484,9 +599,7 @@ class _TeamManagementHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AppBarActionButton.icon(
           icon: Icons.arrow_back,
@@ -494,44 +607,319 @@ class _TeamManagementHeader extends StatelessWidget {
           onPressed: onBack,
           margin: EdgeInsets.zero,
         ),
-        const SizedBox(width: AppSpacing.xs),
+        const SizedBox(width: AppSpacing.sm),
         Expanded(
-          child: Container(
-            decoration: AppSurfaces.heroDecoration(
-              scheme,
-              theme.brightness,
-              accent: const Color(0xFF2563EB),
-            ),
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(
-                  Icons.groups_2_outlined,
-                  color: Colors.white.withValues(alpha: 0.92),
-                  size: 28,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.teamManagementTitle,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w900,
                 ),
-                const SizedBox(height: AppSpacing.sm),
-                Text(
-                  l10n.teamManagementTitle,
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                  ),
+              ),
+              const SizedBox(height: AppSpacing.xxs),
+              Text(
+                l10n.teamManagementSubtitle,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  height: 1.25,
                 ),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  l10n.teamManagementSubtitle,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.84),
-                    height: 1.35,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ],
+    );
+  }
+}
+
+class _TeamManagementHero extends StatelessWidget {
+  final String teamName;
+  final int playerCount;
+  final int placedCount;
+  final int totalSpots;
+  final int tacticLineCount;
+  final String formation;
+  final bool saving;
+  final bool pending;
+  final bool needsName;
+  final DateTime? lastSavedAt;
+  final bool canDelete;
+  final VoidCallback onNewTeam;
+  final VoidCallback onDelete;
+
+  const _TeamManagementHero({
+    required this.teamName,
+    required this.playerCount,
+    required this.placedCount,
+    required this.totalSpots,
+    required this.tacticLineCount,
+    required this.formation,
+    required this.saving,
+    required this.pending,
+    required this.needsName,
+    required this.lastSavedAt,
+    required this.canDelete,
+    required this.onNewTeam,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final textStyle = theme.textTheme.labelLarge?.copyWith(
+      fontWeight: FontWeight.w900,
+    );
+
+    return Container(
+      decoration: AppSurfaces.heroDecoration(
+        scheme,
+        theme.brightness,
+        accent: const Color(0xFF1F8A70),
+      ),
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.18),
+                  borderRadius: AppRadius.small,
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.24),
+                  ),
+                ),
+                child: const Icon(
+                  Icons.groups_2_outlined,
+                  color: Colors.white,
+                  size: 26,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      teamName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xxs),
+                    Text(
+                      l10n.teamManagementSaveHint,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.84),
+                        height: 1.35,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              _AutoSaveChip(
+                saving: saving,
+                pending: pending,
+                needsName: needsName,
+                saved: lastSavedAt != null,
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Wrap(
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.sm,
+            children: [
+              _TeamHeroMetricPill(
+                label: l10n.teamManagementPlayersTitle,
+                value: l10n.teamManagementPlayerCount(playerCount),
+              ),
+              _TeamHeroMetricPill(
+                label: l10n.teamManagementFormationLabel,
+                value: formation,
+              ),
+              _TeamHeroMetricPill(
+                label: l10n.teamManagementFormationTitle,
+                value: l10n.teamManagementLineupFilled(
+                  placedCount,
+                  totalSpots,
+                ),
+              ),
+              _TeamHeroMetricPill(
+                label: l10n.teamManagementBoardDrawMode,
+                value: l10n.teamManagementTacticLinesCount(tacticLineCount),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Row(
+            children: [
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: saving ? null : onNewTeam,
+                  icon: const Icon(Icons.add_outlined),
+                  label: Text(l10n.teamManagementNewTeamButton),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: const Color(0xFF166153),
+                    minimumSize:
+                        const Size.fromHeight(AppSizes.primaryButtonHeight),
+                    textStyle: textStyle,
+                  ),
+                ),
+              ),
+              if (canDelete) ...[
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: saving ? null : onDelete,
+                    icon: const Icon(Icons.delete_outline),
+                    label: Text(l10n.teamManagementDeleteTeamButton),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      side: BorderSide(
+                        color: Colors.white.withValues(alpha: 0.72),
+                      ),
+                      minimumSize:
+                          const Size.fromHeight(AppSizes.primaryButtonHeight),
+                      textStyle: textStyle,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TeamHeroMetricPill extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _TeamHeroMetricPill({
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      constraints: const BoxConstraints(minWidth: 136),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.14),
+        borderRadius: AppRadius.small,
+        border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: Colors.white.withValues(alpha: 0.78),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AutoSaveChip extends StatelessWidget {
+  final bool saving;
+  final bool pending;
+  final bool needsName;
+  final bool saved;
+
+  const _AutoSaveChip({
+    required this.saving,
+    required this.pending,
+    required this.needsName,
+    required this.saved,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final label = needsName
+        ? l10n.teamManagementAutoSaveNeedsName
+        : saving
+            ? l10n.teamManagementAutoSaveSaving
+            : pending
+                ? l10n.teamManagementAutoSavePending
+                : saved
+                    ? l10n.teamManagementAutoSaveSaved
+                    : l10n.teamManagementAutoSaveReady;
+    final icon = needsName
+        ? Icons.info_outline
+        : saving || pending
+            ? Icons.sync_outlined
+            : Icons.cloud_done_outlined;
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 148),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.xs,
+        vertical: AppSpacing.xxs,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.14),
+        borderRadius: AppRadius.full,
+        border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: Colors.white, size: 15),
+          const SizedBox(width: AppSpacing.xxs),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                  ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -540,13 +928,11 @@ class _TeamSelectorPanel extends StatelessWidget {
   final List<ManagedTeam> teams;
   final String selectedTeamId;
   final ValueChanged<ManagedTeam> onSelectTeam;
-  final VoidCallback onNewTeam;
 
   const _TeamSelectorPanel({
     required this.teams,
     required this.selectedTeamId,
     required this.onSelectTeam,
-    required this.onNewTeam,
   });
 
   @override
@@ -589,12 +975,6 @@ class _TeamSelectorPanel extends StatelessWidget {
                 fontWeight: FontWeight.w900,
               ),
             ),
-          const SizedBox(height: AppSpacing.sm),
-          OutlinedButton.icon(
-            onPressed: onNewTeam,
-            icon: const Icon(Icons.add_outlined),
-            label: Text(l10n.teamManagementNewTeamButton),
-          ),
         ],
       ),
     );
@@ -1663,47 +2043,6 @@ class _PlayerRosterRow extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _SaveTeamActions extends StatelessWidget {
-  final bool canDelete;
-  final bool saving;
-  final VoidCallback onDelete;
-  final VoidCallback onSave;
-
-  const _SaveTeamActions({
-    required this.canDelete,
-    required this.saving,
-    required this.onDelete,
-    required this.onSave,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    return Row(
-      children: [
-        if (canDelete) ...[
-          Expanded(
-            child: OutlinedButton.icon(
-              onPressed: saving ? null : onDelete,
-              icon: const Icon(Icons.delete_outline),
-              label: Text(l10n.teamManagementDeleteTeamButton),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-        ],
-        Expanded(
-          flex: 2,
-          child: FilledButton.icon(
-            onPressed: saving ? null : onSave,
-            icon: const Icon(Icons.save_outlined),
-            label: Text(l10n.teamManagementSaveTeamButton),
-          ),
-        ),
-      ],
     );
   }
 }

@@ -10787,7 +10787,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get teamManagementNoTeamsBody =>
-      'Enter a team name and roster, then save it to create a team card here.';
+      'Enter a team name and roster, and it will auto-save into a team card here.';
 
   @override
   String get teamManagementNewTeamButton => 'New team';
@@ -10961,7 +10961,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get teamManagementSaveHint =>
-      'Saved teams appear immediately on the Match screen team board.';
+      'Roster, tactics, and board placement auto-save as you edit and appear on the Match screen team board.';
+
+  @override
+  String get teamManagementAutoSaveReady => 'Auto-save';
+
+  @override
+  String get teamManagementAutoSavePending => 'Pending';
+
+  @override
+  String get teamManagementAutoSaveSaving => 'Saving';
+
+  @override
+  String get teamManagementAutoSaveSaved => 'Saved';
+
+  @override
+  String get teamManagementAutoSaveNeedsName => 'Name needed';
 
   @override
   String get teamManagementNameRequired => 'Enter a team name.';

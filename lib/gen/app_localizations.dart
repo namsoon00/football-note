@@ -18452,7 +18452,7 @@ abstract class AppLocalizations {
   /// No description provided for @teamManagementNoTeamsBody.
   ///
   /// In en, this message translates to:
-  /// **'Enter a team name and roster, then save it to create a team card here.'**
+  /// **'Enter a team name and roster, and it will auto-save into a team card here.'**
   String get teamManagementNoTeamsBody;
 
   /// No description provided for @teamManagementNewTeamButton.
@@ -18759,8 +18759,38 @@ abstract class AppLocalizations {
   /// No description provided for @teamManagementSaveHint.
   ///
   /// In en, this message translates to:
-  /// **'Saved teams appear immediately on the Match screen team board.'**
+  /// **'Roster, tactics, and board placement auto-save as you edit and appear on the Match screen team board.'**
   String get teamManagementSaveHint;
+
+  /// No description provided for @teamManagementAutoSaveReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-save'**
+  String get teamManagementAutoSaveReady;
+
+  /// No description provided for @teamManagementAutoSavePending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get teamManagementAutoSavePending;
+
+  /// No description provided for @teamManagementAutoSaveSaving.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving'**
+  String get teamManagementAutoSaveSaving;
+
+  /// No description provided for @teamManagementAutoSaveSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get teamManagementAutoSaveSaved;
+
+  /// No description provided for @teamManagementAutoSaveNeedsName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name needed'**
+  String get teamManagementAutoSaveNeedsName;
 
   /// No description provided for @teamManagementNameRequired.
   ///

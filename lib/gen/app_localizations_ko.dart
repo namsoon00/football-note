@@ -10496,7 +10496,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get teamManagementNoTeamsBody =>
-      '팀 이름과 선수 명단을 입력한 뒤 저장하면 이곳에 팀 카드가 생깁니다.';
+      '팀 이름과 선수 명단을 입력하면 자동 저장되어 이곳에 팀 카드가 생깁니다.';
 
   @override
   String get teamManagementNewTeamButton => '새 팀';
@@ -10665,7 +10665,23 @@ class AppLocalizationsKo extends AppLocalizations {
   String get teamManagementSaveTeamButton => '팀 저장';
 
   @override
-  String get teamManagementSaveHint => '저장한 팀은 시합 화면의 팀 관리 보드에 바로 표시됩니다.';
+  String get teamManagementSaveHint =>
+      '선수, 전술, 보드 배치는 변경 즉시 자동 저장되고 시합 화면의 팀 관리 보드에 반영됩니다.';
+
+  @override
+  String get teamManagementAutoSaveReady => '자동 저장';
+
+  @override
+  String get teamManagementAutoSavePending => '저장 대기';
+
+  @override
+  String get teamManagementAutoSaveSaving => '저장 중';
+
+  @override
+  String get teamManagementAutoSaveSaved => '저장됨';
+
+  @override
+  String get teamManagementAutoSaveNeedsName => '팀 이름 필요';
 
   @override
   String get teamManagementNameRequired => '팀 이름을 입력하세요.';

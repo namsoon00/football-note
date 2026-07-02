@@ -10476,7 +10476,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get teamManagementNoTeamsBody =>
-      'チーム名と選手名簿を入力して保存すると、ここにチームカードが作成されます。';
+      'チーム名と選手名簿を入力すると自動保存され、ここにチームカードが作成されます。';
 
   @override
   String get teamManagementNewTeamButton => '新しいチーム';
@@ -10644,7 +10644,23 @@ class AppLocalizationsJa extends AppLocalizations {
   String get teamManagementSaveTeamButton => 'チーム保存';
 
   @override
-  String get teamManagementSaveHint => '保存したチームは試合画面のチーム管理ボードにすぐ表示されます。';
+  String get teamManagementSaveHint =>
+      '選手、戦術、ボード配置は編集と同時に自動保存され、試合画面のチーム管理ボードに反映されます。';
+
+  @override
+  String get teamManagementAutoSaveReady => '自動保存';
+
+  @override
+  String get teamManagementAutoSavePending => '保存待ち';
+
+  @override
+  String get teamManagementAutoSaveSaving => '保存中';
+
+  @override
+  String get teamManagementAutoSaveSaved => '保存済み';
+
+  @override
+  String get teamManagementAutoSaveNeedsName => '名前が必要';
 
   @override
   String get teamManagementNameRequired => 'チーム名を入力してください。';

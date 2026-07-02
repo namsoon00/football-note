@@ -404,7 +404,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      tester.getTopLeft(find.text('선수 명단')).dy,
+      tester.getTopLeft(find.text('선수 명단').last).dy,
       lessThan(tester.getTopLeft(find.text('팀 정보와 전술 설명')).dy),
     );
 
@@ -435,8 +435,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.ensureVisible(find.text('보드 마카'));
-    await tester.tap(find.text('보드 마카'));
+    final markerMode = find.text('보드 마카').last;
+    await tester.ensureVisible(markerMode);
+    await tester.tap(markerMode);
     await tester.pumpAndSettle();
     await tester.dragFrom(
       pitchRect.centerLeft + Offset(80, pitchRect.height * 0.28),
@@ -444,8 +445,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.ensureVisible(find.text('팀 저장'));
-    await tester.tap(find.text('팀 저장'));
+    expect(find.text('팀 저장'), findsNothing);
+    await tester.pump(const Duration(seconds: 1));
     await tester.pumpAndSettle();
 
     final teams = TeamManagementService(optionRepository).allTeams();
