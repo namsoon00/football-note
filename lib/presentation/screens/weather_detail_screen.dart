@@ -3037,7 +3037,6 @@ class _TomorrowWeatherCard extends StatelessWidget {
             formatPrecipitation: formatPrecipitationEntry,
             formatWind: formatWind,
             iconForCode: iconForCode,
-            focusTime: _hourlyFocusTimeForForecastDate(forecast.date),
           ),
         if (temperatureEntries.isEmpty && precipitationEntries.isNotEmpty)
           _HourlyPrecipitationSection(
@@ -3045,7 +3044,6 @@ class _TomorrowWeatherCard extends StatelessWidget {
             entries: precipitationEntries,
             formatTime: formatTime,
             formatPrecipitation: formatPrecipitationEntry,
-            focusTime: _hourlyFocusTimeForForecastDate(forecast.date),
           ),
         const SizedBox(height: 14),
         Container(
