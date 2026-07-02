@@ -393,6 +393,11 @@ class _WeekdayScheduleRow extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final timeButtonStyle = OutlinedButton.styleFrom(
+      alignment: Alignment.center,
+      minimumSize: const Size(0, AppSizes.minTouchTarget),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+    );
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
       child: Column(
@@ -432,11 +437,16 @@ class _WeekdayScheduleRow extends StatelessWidget {
                         key: ValueKey<String>(
                           'club-schedule-start-${schedule.weekday}',
                         ),
+                        style: timeButtonStyle,
                         onPressed: schedule.enabled
                             ? () => onPickTime(schedule: schedule, start: true)
                             : null,
-                        icon: const Icon(Icons.play_arrow_outlined),
-                        label: Text(l10n.clubScheduleStartTimeLabel),
+                        icon: const Icon(Icons.play_arrow_outlined, size: 18),
+                        label: Text(
+                          l10n.clubScheduleStartTimeLabel,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ),
                     const SizedBox(width: AppSpacing.xs),
@@ -445,30 +455,38 @@ class _WeekdayScheduleRow extends StatelessWidget {
                         key: ValueKey<String>(
                           'club-schedule-end-${schedule.weekday}',
                         ),
+                        style: timeButtonStyle,
                         onPressed: schedule.enabled
                             ? () => onPickTime(schedule: schedule, start: false)
                             : null,
-                        icon: const Icon(Icons.stop_outlined),
-                        label: Text(l10n.clubScheduleEndTimeLabel),
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(minWidth: 92),
-                      child: Text(
-                        schedule.enabled
-                            ? timeRangeLabel
-                            : l10n.clubScheduleDayOffLabel,
-                        textAlign: TextAlign.end,
-                        style: theme.textTheme.labelLarge?.copyWith(
-                          color: schedule.enabled
-                              ? scheme.primary
-                              : scheme.onSurfaceVariant,
-                          fontWeight: FontWeight.w900,
+                        icon: const Icon(Icons.stop_outlined, size: 18),
+                        label: Text(
+                          l10n.clubScheduleEndTimeLabel,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ),
                   ],
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    schedule.enabled
+                        ? timeRangeLabel
+                        : l10n.clubScheduleDayOffLabel,
+                    key: ValueKey<String>(
+                      'club-schedule-time-summary-${schedule.weekday}',
+                    ),
+                    textAlign: TextAlign.end,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: schedule.enabled
+                          ? scheme.primary
+                          : scheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
                 ),
                 if (schedule.enabled) ...[
                   const SizedBox(height: AppSpacing.sm),
