@@ -405,7 +405,7 @@ void main() {
 
     expect(
       tester.getTopLeft(find.text('선수 명단').last).dy,
-      lessThan(tester.getTopLeft(find.text('팀 정보와 전술 설명')).dy),
+      lessThan(tester.getTopLeft(find.text('팀 정보와 전술 설명').last).dy),
     );
 
     final addPlayerButton = find.widgetWithText(FilledButton, '선수 추가');
