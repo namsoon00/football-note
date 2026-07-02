@@ -12,8 +12,18 @@ typedef PdfShareOverride = Future<void> Function({
   required String filename,
 });
 
+typedef PdfWidgetCaptureOverride = Future<Uint8List> Function({
+  required BuildContext context,
+  required Widget child,
+  required Size size,
+  required double pixelRatio,
+});
+
 @visibleForTesting
 PdfShareOverride? debugPdfShareOverride;
+
+@visibleForTesting
+PdfWidgetCaptureOverride? debugCaptureWidgetPngOverride;
 
 Future<Uint8List> captureRepaintBoundaryPng(
   GlobalKey key, {
@@ -42,6 +52,15 @@ Future<Uint8List> captureWidgetPng(
   required Size size,
   double pixelRatio = 2,
 }) async {
+  final override = debugCaptureWidgetPngOverride;
+  if (override != null) {
+    return override(
+      context: context,
+      child: child,
+      size: size,
+      pixelRatio: pixelRatio,
+    );
+  }
   final key = GlobalKey();
   final overlay = Overlay.of(context, rootOverlay: true);
   final mediaQuery = MediaQuery.maybeOf(context);

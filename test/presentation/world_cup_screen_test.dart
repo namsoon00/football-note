@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -9,10 +12,16 @@ import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/world_cup_screen.dart';
 import 'package:football_note/presentation/theme/app_theme.dart';
+import 'package:football_note/presentation/utils/pdf_export.dart';
 
 void main() {
   setUpAll(() async {
     await initializeDateFormatting('ko_KR');
+  });
+
+  tearDown(() {
+    debugPdfShareOverride = null;
+    debugCaptureWidgetPngOverride = null;
   });
 
   testWidgets('overview and road to final open from title action', (
@@ -37,7 +46,7 @@ void main() {
     expect(find.text('FIFA'), findsOneWidget);
     expect(
       find.byKey(const ValueKey('world-cup-tournament-pdf-button')),
-      findsOneWidget,
+      findsNothing,
     );
     final countrySettingsY = tester.getTopLeft(find.text('내 월드컵 국가')).dy;
     final calendarY = tester.getTopLeft(find.text('전체 경기 캘린더')).dy;
@@ -179,6 +188,19 @@ void main() {
     tester,
   ) async {
     final navigatorObserver = _RecordingNavigatorObserver();
+    List<int>? exportedBytes;
+    String? exportedFilename;
+    debugPdfShareOverride = ({required bytes, required filename}) async {
+      exportedBytes = List<int>.from(bytes);
+      exportedFilename = filename;
+    };
+    debugCaptureWidgetPngOverride = (
+        {required context,
+        required child,
+        required size,
+        required pixelRatio}) async {
+      return Uint8List.fromList(_tinyPngBytes);
+    };
     await tester.pumpWidget(
       MaterialApp(
         locale: const Locale('ko', 'KR'),
@@ -237,6 +259,12 @@ void main() {
     expect(find.byIcon(Icons.restart_alt_rounded), findsOneWidget);
     expect(find.byIcon(Icons.zoom_in_rounded), findsOneWidget);
     expect(find.byIcon(Icons.open_in_full_rounded), findsNothing);
+    expect(
+      find.byKey(const ValueKey('world-cup-tournament-pdf-button')),
+      findsOneWidget,
+    );
+    final pdfAction = find.widgetWithText(TextButton, 'PDF');
+    expect(pdfAction, findsOneWidget);
 
     await tester.tap(find.byIcon(Icons.zoom_in_rounded));
     await tester.pumpAndSettle();
@@ -244,6 +272,19 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byIcon(Icons.restart_alt_rounded));
     await tester.pumpAndSettle();
+
+    await tester.tap(pdfAction);
+    await tester.pump();
+    await tester.pumpAndSettle(const Duration(milliseconds: 120));
+    for (var attempt = 0; attempt < 20 && exportedBytes == null; attempt += 1) {
+      await tester.pump(const Duration(milliseconds: 120));
+    }
+
+    expect(exportedBytes, isNotNull);
+    expect(exportedBytes, isNotEmpty);
+    expect(exportedFilename, startsWith('world-cup-bracket_'));
+    expect(exportedFilename, endsWith('.pdf'));
+    expect(find.text('대진표 PDF를 준비했어요.'), findsOneWidget);
   });
 
   testWidgets('tournament bracket resolves completed group slots to countries',
@@ -1746,3 +1787,7 @@ class _MemoryOptionRepository implements OptionRepository {
     _values[key] = List<dynamic>.from(options);
   }
 }
+
+final Uint8List _tinyPngBytes = base64Decode(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR4nGP4DwQACfsD/fteaysAAAAASUVORK5CYII=',
+);
