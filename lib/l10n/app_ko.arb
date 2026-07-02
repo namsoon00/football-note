@@ -260,6 +260,7 @@
   "worldCupTitle": "월드컵 보기",
   "worldCupInfoAction": "설명",
   "worldCupPdfAction": "PDF",
+  "worldCupImageAction": "이미지",
   "worldCupSourceShortAction": "FIFA",
   "worldCupHeroTitle": "FIFA 월드컵 2026",
   "worldCupHeroSubtitle": "캐나다, 멕시코, 미국 · 48개 팀",
@@ -923,6 +924,9 @@
   "worldCupTournamentPdfTooltip": "대진표 PDF 다운로드",
   "worldCupTournamentPdfExportedSnack": "대진표 PDF를 준비했어요.",
   "worldCupTournamentPdfExportFailedSnack": "대진표 PDF를 만들지 못했어요.",
+  "worldCupTournamentImageTooltip": "대진표 이미지 공유",
+  "worldCupTournamentImageExportedSnack": "대진표 이미지를 준비했어요.",
+  "worldCupTournamentImageExportFailedSnack": "대진표 이미지를 만들지 못했어요.",
   "worldCupStageMatchCount": "{count}경기",
   "@worldCupStageMatchCount": {
     "placeholders": {

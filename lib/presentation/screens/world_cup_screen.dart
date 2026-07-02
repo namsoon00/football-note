@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -45,8 +44,8 @@ class WorldCupScreen extends StatefulWidget {
   State<WorldCupScreen> createState() => _WorldCupScreenState();
 }
 
-const Size _worldCupTournamentPdfPageSize = Size(1400, 900);
-const double _worldCupTournamentPdfPixelRatio = 1.5;
+const Size _worldCupTournamentShareImageSize = Size(3400, 1900);
+const double _worldCupTournamentShareImagePixelRatio = 1;
 
 class _WorldCupScreenState extends State<WorldCupScreen> {
   static const String _supportCountryKey = 'world_cup_support_country_v1';
@@ -6325,31 +6324,29 @@ typedef _BracketMatchScoreBuilder = _BracketMatchScoreData Function(
 
 enum _BracketSlotSide { home, away }
 
-Future<bool> _exportWorldCupTournamentBracketPdf({
+Future<bool> _shareWorldCupTournamentBracketImage({
   required BuildContext context,
   required List<_TournamentBracketRound> rounds,
   required _BracketSlotBuilder slotBuilder,
   required _BracketMatchScoreBuilder scoreBuilder,
 }) async {
-  final pages = <Uint8List>[];
-  for (final round in rounds) {
-    if (!context.mounted) return false;
-    final pngBytes = await captureWidgetPng(
-      context,
-      size: _worldCupTournamentPdfPageSize,
-      pixelRatio: _worldCupTournamentPdfPixelRatio,
-      child: _WorldCupTournamentRoundPdfPage(
-        round: round,
-        slotBuilder: slotBuilder,
-        scoreBuilder: scoreBuilder,
-      ),
-    );
-    pages.add(pngBytes);
-  }
   if (!context.mounted) return false;
-  await sharePngImagesAsPdf(
-    pngImages: pages,
-    filename: timestampedPdfFilename('world-cup-bracket'),
+  final l10n = AppLocalizations.of(context)!;
+  final pngBytes = await captureWidgetPng(
+    context,
+    size: _worldCupTournamentShareImageSize,
+    pixelRatio: _worldCupTournamentShareImagePixelRatio,
+    child: _WorldCupTournamentBracketShareImage(
+      rounds: rounds,
+      slotBuilder: slotBuilder,
+      scoreBuilder: scoreBuilder,
+    ),
+  );
+  if (!context.mounted) return false;
+  await sharePngImage(
+    pngImage: pngBytes,
+    filename: timestampedImageFilename('world-cup-bracket'),
+    title: l10n.worldCupTournamentTitle,
   );
   return true;
 }
@@ -6372,35 +6369,35 @@ class _WorldCupTournamentBracketFullScreen extends StatefulWidget {
 
 class _WorldCupTournamentBracketFullScreenState
     extends State<_WorldCupTournamentBracketFullScreen> {
-  bool _pdfExportInProgress = false;
+  bool _imageShareInProgress = false;
 
-  Future<void> _exportTournamentPdf() async {
-    if (_pdfExportInProgress) return;
-    setState(() => _pdfExportInProgress = true);
+  Future<void> _shareTournamentImage() async {
+    if (_imageShareInProgress) return;
+    setState(() => _imageShareInProgress = true);
     try {
-      final exported = await _exportWorldCupTournamentBracketPdf(
+      final shared = await _shareWorldCupTournamentBracketImage(
         context: context,
         rounds: widget.rounds,
         slotBuilder: widget.slotBuilder,
         scoreBuilder: widget.scoreBuilder,
       );
-      if (!mounted || !exported) return;
+      if (!mounted || !shared) return;
       final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.worldCupTournamentPdfExportedSnack)),
+        SnackBar(content: Text(l10n.worldCupTournamentImageExportedSnack)),
       );
     } catch (error, stackTrace) {
-      debugPrint('World Cup bracket PDF export failed: $error\n$stackTrace');
+      debugPrint('World Cup bracket image share failed: $error\n$stackTrace');
       if (!mounted) return;
       final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.worldCupTournamentPdfExportFailedSnack)),
+        SnackBar(content: Text(l10n.worldCupTournamentImageExportFailedSnack)),
       );
     } finally {
       if (mounted) {
-        setState(() => _pdfExportInProgress = false);
+        setState(() => _imageShareInProgress = false);
       } else {
-        _pdfExportInProgress = false;
+        _imageShareInProgress = false;
       }
     }
   }
@@ -6413,14 +6410,14 @@ class _WorldCupTournamentBracketFullScreenState
         title: Text(l10n.worldCupTournamentTitle),
         actions: [
           AppBarActionButton.label(
-            key: const ValueKey('world-cup-tournament-pdf-button'),
-            tooltip: l10n.worldCupTournamentPdfTooltip,
-            onPressed: _pdfExportInProgress
+            key: const ValueKey('world-cup-tournament-image-button'),
+            tooltip: l10n.worldCupTournamentImageTooltip,
+            onPressed: _imageShareInProgress
                 ? null
-                : () => unawaited(_exportTournamentPdf()),
-            icon: const Icon(Icons.picture_as_pdf_outlined),
-            label: l10n.worldCupPdfAction,
-            maxLabelWidth: 56,
+                : () => unawaited(_shareTournamentImage()),
+            icon: const Icon(Icons.ios_share_rounded),
+            label: l10n.worldCupImageAction,
+            maxLabelWidth: 68,
           ),
         ],
       ),
@@ -6746,13 +6743,13 @@ class _WorldCupTournamentBracketState
   }
 }
 
-class _WorldCupTournamentRoundPdfPage extends StatelessWidget {
-  final _TournamentBracketRound round;
+class _WorldCupTournamentBracketShareImage extends StatelessWidget {
+  final List<_TournamentBracketRound> rounds;
   final _BracketSlotBuilder slotBuilder;
   final _BracketMatchScoreBuilder scoreBuilder;
 
-  const _WorldCupTournamentRoundPdfPage({
-    required this.round,
+  const _WorldCupTournamentBracketShareImage({
+    required this.rounds,
     required this.slotBuilder,
     required this.scoreBuilder,
   });
@@ -6761,9 +6758,16 @@ class _WorldCupTournamentRoundPdfPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
+    const slotWidth = 166.0;
+    const spacing = 10.0;
+    final widestRoundCount = rounds
+        .map((round) => round.fixtures.length)
+        .fold<int>(1, (max, count) => count > max ? count : max);
+    final bracketWidth =
+        widestRoundCount * slotWidth + (widestRoundCount - 1) * spacing;
     return Container(
       color: theme.colorScheme.surface,
-      padding: const EdgeInsets.all(32),
+      padding: const EdgeInsets.all(42),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -6771,22 +6775,11 @@ class _WorldCupTournamentRoundPdfPage extends StatelessWidget {
             icon: Icons.account_tree_rounded,
             title: l10n.worldCupTournamentTitle,
           ),
-          const SizedBox(height: 10),
-          Text(
-            l10n.worldCupTournamentPlanBody,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-              height: 1.35,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 20),
           Expanded(
             child: Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(18),
+              padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
                 color: theme.colorScheme.surfaceContainerHighest.withValues(
                   alpha: 0.28,
@@ -6794,69 +6787,26 @@ class _WorldCupTournamentRoundPdfPage extends StatelessWidget {
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(color: theme.colorScheme.outlineVariant),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    round.title,
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      color: theme.colorScheme.primary,
-                      fontWeight: FontWeight.w900,
-                    ),
+              child: FittedBox(
+                alignment: Alignment.topCenter,
+                fit: BoxFit.contain,
+                child: SizedBox(
+                  width: bracketWidth,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      for (var index = 0; index < rounds.length; index += 1)
+                        _TournamentBracketRoundRow(
+                          round: rounds[index],
+                          slotBuilder: slotBuilder,
+                          scoreBuilder: scoreBuilder,
+                          slotWidth: slotWidth,
+                          spacing: spacing,
+                          compact: true,
+                        ),
+                    ],
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    round.subtitle,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Expanded(
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        final columns = math.min(
-                          4,
-                          math.max(1, round.fixtures.length),
-                        );
-                        const spacing = 12.0;
-                        final cardWidth =
-                            (constraints.maxWidth - spacing * (columns - 1)) /
-                                columns;
-                        final compact = round.fixtures.length > 4;
-                        return Align(
-                          alignment: Alignment.topLeft,
-                          child: Wrap(
-                            spacing: spacing,
-                            runSpacing: spacing,
-                            children: [
-                              for (final fixture in round.fixtures)
-                                SizedBox(
-                                  width: cardWidth,
-                                  child: _BracketMatchCard(
-                                    fixture: fixture,
-                                    homeSlot: slotBuilder(
-                                      fixture,
-                                      fixture.homeTeam,
-                                      _BracketSlotSide.home,
-                                    ),
-                                    awaySlot: slotBuilder(
-                                      fixture,
-                                      fixture.awayTeam,
-                                      _BracketSlotSide.away,
-                                    ),
-                                    scoreData: scoreBuilder(fixture),
-                                    compact: compact,
-                                  ),
-                                ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),

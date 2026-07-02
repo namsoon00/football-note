@@ -1194,6 +1194,12 @@ abstract class AppLocalizations {
   /// **'PDF'**
   String get worldCupPdfAction;
 
+  /// No description provided for @worldCupImageAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Image'**
+  String get worldCupImageAction;
+
   /// No description provided for @worldCupSourceShortAction.
   ///
   /// In en, this message translates to:
@@ -2838,6 +2844,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not create the bracket PDF.'**
   String get worldCupTournamentPdfExportFailedSnack;
+
+  /// No description provided for @worldCupTournamentImageTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Share bracket image'**
+  String get worldCupTournamentImageTooltip;
+
+  /// No description provided for @worldCupTournamentImageExportedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Bracket image is ready.'**
+  String get worldCupTournamentImageExportedSnack;
+
+  /// No description provided for @worldCupTournamentImageExportFailedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not create the bracket image.'**
+  String get worldCupTournamentImageExportFailedSnack;
 
   /// No description provided for @worldCupStageMatchCount.
   ///

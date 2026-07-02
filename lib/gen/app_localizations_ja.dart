@@ -600,6 +600,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get worldCupPdfAction => 'PDF';
 
   @override
+  String get worldCupImageAction => '画像';
+
+  @override
   String get worldCupSourceShortAction => 'FIFA';
 
   @override
@@ -1542,6 +1545,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get worldCupTournamentPdfExportFailedSnack => 'トーナメント表PDFを作成できませんでした。';
+
+  @override
+  String get worldCupTournamentImageTooltip => 'トーナメント表画像を共有';
+
+  @override
+  String get worldCupTournamentImageExportedSnack => 'トーナメント表画像を準備しました。';
+
+  @override
+  String get worldCupTournamentImageExportFailedSnack =>
+      'トーナメント表画像を作成できませんでした。';
 
   @override
   String worldCupStageMatchCount(int count) {

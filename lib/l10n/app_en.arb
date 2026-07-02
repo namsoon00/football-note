@@ -260,6 +260,7 @@
   "worldCupTitle": "World Cup View",
   "worldCupInfoAction": "Guide",
   "worldCupPdfAction": "PDF",
+  "worldCupImageAction": "Image",
   "worldCupSourceShortAction": "FIFA",
   "worldCupHeroTitle": "FIFA World Cup 2026",
   "worldCupHeroSubtitle": "Canada, Mexico, United States · 48 teams",
@@ -923,6 +924,9 @@
   "worldCupTournamentPdfTooltip": "Download bracket PDF",
   "worldCupTournamentPdfExportedSnack": "Bracket PDF is ready.",
   "worldCupTournamentPdfExportFailedSnack": "Could not create the bracket PDF.",
+  "worldCupTournamentImageTooltip": "Share bracket image",
+  "worldCupTournamentImageExportedSnack": "Bracket image is ready.",
+  "worldCupTournamentImageExportFailedSnack": "Could not create the bracket image.",
   "worldCupStageMatchCount": "{count} matches",
   "@worldCupStageMatchCount": {
     "placeholders": {
