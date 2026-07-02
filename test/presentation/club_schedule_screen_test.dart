@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/club_schedule_service.dart';
+import 'package:football_note/application/family_access_service.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/club_schedule_screen.dart';
@@ -285,6 +286,53 @@ void main() {
     final profile = ClubScheduleService(repository).loadProfile();
     expect(profile.clubName, '성남 U15');
     expect(profile.weekdaySchedules.first.enabled, isTrue);
+  });
+
+  testWidgets('parent mode keeps club schedule read-only without auto save', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 2200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    final repository = _MemoryOptionRepository();
+    await repository.setValue(
+      FamilyAccessService.currentRoleLocalKey,
+      FamilyRole.parent.name,
+    );
+    final service = ClubScheduleService(repository);
+    await service.saveProfile(
+      ClubScheduleProfile.empty(now: DateTime(2026, 7, 2)).copyWith(
+        clubName: '기존 클럽',
+      ),
+    );
+
+    await tester.pumpWidget(
+      _buildApp(
+        ClubScheduleScreen(optionRepository: repository),
+        theme: AppTheme.light(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byKey(const ValueKey<String>('club-schedule-name-field')),
+      '보호자 변경',
+    );
+    await tester.tap(
+      find.byKey(
+        const ValueKey<String>('club-schedule-day-switch-1'),
+      ),
+      warnIfMissed: false,
+    );
+    await tester.pump(const Duration(milliseconds: 900));
+    await tester.pumpAndSettle();
+
+    final profile = service.loadProfile();
+    expect(profile.clubName, '기존 클럽');
+    expect(profile.weekdaySchedules.first.enabled, isFalse);
   });
 
   testWidgets('pending auto save asks before leaving', (tester) async {

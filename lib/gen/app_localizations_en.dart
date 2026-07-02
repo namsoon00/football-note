@@ -9865,6 +9865,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Parent mode keeps core records read-only. Use shared data and reward naming instead.';
 
   @override
+  String get parentReadOnlyCoreDataMessage =>
+      'Parent mode cannot edit player core data. Switch to player mode to change it.';
+
+  @override
   String get parentReadOnlyCalendarSummary => 'Calendar is view only here.';
 
   @override

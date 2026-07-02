@@ -5489,6 +5489,7 @@
   "parentReadOnlyMealLog": "Parent mode cannot edit meal logs. Update meals in player mode.",
   "parentReadOnlyQuiz": "Parent mode does not run the quiz. Quiz history and XP stay in player mode.",
   "parentReadOnlyDrawerMessage": "Parent mode keeps core records read-only. Use shared data and reward naming instead.",
+  "parentReadOnlyCoreDataMessage": "Parent mode cannot edit player core data. Switch to player mode to change it.",
   "parentReadOnlyCalendarSummary": "Calendar is view only here.",
   "parentReadOnlyCalendarBanner": "Parent mode keeps the calendar read-only. Update plans, matches, and meals in player mode.",
   "parentReadOnlyCalendarMessage": "Parent mode cannot edit the calendar.",

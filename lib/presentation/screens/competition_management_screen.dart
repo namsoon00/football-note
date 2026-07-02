@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:football_note/gen/app_localizations.dart';
 
+import '../../application/family_access_service.dart';
 import '../../application/match_competition_service.dart';
 import '../../application/sport_capabilities.dart';
 import '../../application/sport_service.dart';
@@ -54,12 +55,14 @@ class CompetitionManagementScreen extends StatefulWidget {
   final TrainingService trainingService;
   final OptionRepository optionRepository;
   final String? sportId;
+  final bool readOnly;
 
   const CompetitionManagementScreen({
     super.key,
     required this.trainingService,
     required this.optionRepository,
     this.sportId,
+    this.readOnly = false,
   });
 
   @override
@@ -80,10 +83,17 @@ class _CompetitionManagementScreenState
     );
   }
 
+  bool get _isReadOnlySupportMode =>
+      widget.readOnly ||
+      FamilyAccessService(
+        widget.optionRepository,
+      ).loadState().isReadOnlySupportMode;
+
   @override
   Widget build(BuildContext context) {
     final sportId = widget.sportId ??
         SportService(widget.optionRepository).currentSportId();
+    final readOnly = _isReadOnlySupportMode;
     return Scaffold(
       body: ColoredBox(
         color: Theme.of(context).scaffoldBackgroundColor,
@@ -114,6 +124,7 @@ class _CompetitionManagementScreenState
                   children: [
                     _CompetitionOperationsHero(
                       metrics: metrics,
+                      readOnly: readOnly,
                       onBack: () => Navigator.of(context).maybePop(),
                       onCreateLeague: () => _openCompetitionEditor(
                         initialKind: MatchCompetitionRecord.kindLeague,
@@ -126,6 +137,7 @@ class _CompetitionManagementScreenState
                     _CompetitionListHeader(count: records.length),
                     if (records.isEmpty)
                       _CompetitionEmptyState(
+                        readOnly: readOnly,
                         onCreateLeague: () => _openCompetitionEditor(
                           initialKind: MatchCompetitionRecord.kindLeague,
                         ),
@@ -137,6 +149,7 @@ class _CompetitionManagementScreenState
                           child: _CompetitionOperationsCard(
                             record: record,
                             matchEntries: matchEntries,
+                            readOnly: readOnly,
                             onEdit: () =>
                                 _openCompetitionEditor(record: record),
                           ),
@@ -156,6 +169,13 @@ class _CompetitionManagementScreenState
     MatchCompetitionRecord? record,
     String initialKind = MatchCompetitionRecord.kindLeague,
   }) async {
+    if (_isReadOnlySupportMode) {
+      AppFeedback.showMessage(
+        context,
+        text: AppLocalizations.of(context)!.parentReadOnlyCoreDataMessage,
+      );
+      return;
+    }
     final changed = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
@@ -178,12 +198,14 @@ class _CompetitionManagementScreenState
 
 class _CompetitionOperationsHero extends StatelessWidget {
   final _CompetitionOperationsMetrics metrics;
+  final bool readOnly;
   final VoidCallback onBack;
   final VoidCallback onCreateLeague;
   final VoidCallback onCreateTournament;
 
   const _CompetitionOperationsHero({
     required this.metrics,
+    required this.readOnly,
     required this.onBack,
     required this.onCreateLeague,
     required this.onCreateTournament,
@@ -273,6 +295,7 @@ class _CompetitionOperationsHero extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.lg),
           _CompetitionHeroActions(
+            readOnly: readOnly,
             onCreateLeague: onCreateLeague,
             onCreateTournament: onCreateTournament,
           ),
@@ -283,10 +306,12 @@ class _CompetitionOperationsHero extends StatelessWidget {
 }
 
 class _CompetitionHeroActions extends StatelessWidget {
+  final bool readOnly;
   final VoidCallback onCreateLeague;
   final VoidCallback onCreateTournament;
 
   const _CompetitionHeroActions({
+    required this.readOnly,
     required this.onCreateLeague,
     required this.onCreateTournament,
   });
@@ -296,7 +321,7 @@ class _CompetitionHeroActions extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final primary = FilledButton.icon(
-      onPressed: onCreateLeague,
+      onPressed: readOnly ? null : onCreateLeague,
       icon: const Icon(Icons.leaderboard_outlined),
       label: Text(l10n.matchCompetitionCreateLeagueButton),
       style: FilledButton.styleFrom(
@@ -309,7 +334,7 @@ class _CompetitionHeroActions extends StatelessWidget {
       ),
     );
     final secondary = OutlinedButton.icon(
-      onPressed: onCreateTournament,
+      onPressed: readOnly ? null : onCreateTournament,
       icon: const Icon(Icons.account_tree_outlined),
       label: Text(l10n.matchCompetitionCreateTournamentButton),
       style: OutlinedButton.styleFrom(
@@ -427,9 +452,13 @@ class _CompetitionListHeader extends StatelessWidget {
 }
 
 class _CompetitionEmptyState extends StatelessWidget {
+  final bool readOnly;
   final VoidCallback onCreateLeague;
 
-  const _CompetitionEmptyState({required this.onCreateLeague});
+  const _CompetitionEmptyState({
+    required this.readOnly,
+    required this.onCreateLeague,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -461,7 +490,7 @@ class _CompetitionEmptyState extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.md),
           FilledButton.icon(
-            onPressed: onCreateLeague,
+            onPressed: readOnly ? null : onCreateLeague,
             icon: const Icon(Icons.add_outlined),
             label: Text(l10n.matchCompetitionCreateLeagueButton),
             style: _competitionFilledActionStyle(context),
@@ -475,11 +504,13 @@ class _CompetitionEmptyState extends StatelessWidget {
 class _CompetitionOperationsCard extends StatelessWidget {
   final MatchCompetitionRecord record;
   final List<TrainingEntry> matchEntries;
+  final bool readOnly;
   final VoidCallback onEdit;
 
   const _CompetitionOperationsCard({
     required this.record,
     required this.matchEntries,
+    required this.readOnly,
     required this.onEdit,
   });
 
@@ -556,7 +587,7 @@ class _CompetitionOperationsCard extends StatelessWidget {
               AppBarActionButton.icon(
                 icon: Icons.edit_outlined,
                 tooltip: l10n.matchCompetitionEditButton,
-                onPressed: onEdit,
+                onPressed: readOnly ? null : onEdit,
                 margin: EdgeInsets.zero,
               ),
             ],

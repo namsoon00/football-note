@@ -9598,6 +9598,10 @@ class AppLocalizationsKo extends AppLocalizations {
       '보호자 모드에서는 핵심 기록을 수정할 수 없어요. 공유 데이터와 선물 입력을 이용해 주세요.';
 
   @override
+  String get parentReadOnlyCoreDataMessage =>
+      '보호자 모드에서는 선수의 핵심 데이터를 수정할 수 없어요. 선수 모드에서 변경해 주세요.';
+
+  @override
   String get parentReadOnlyCalendarSummary => '캘린더는 읽기 전용이에요.';
 
   @override

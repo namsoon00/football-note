@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:football_note/gen/app_localizations.dart';
 
+import '../../application/family_access_service.dart';
 import '../../application/team_management_service.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../theme/app_theme.dart';
@@ -20,11 +21,13 @@ typedef _PlayerBoardDropCallback = void Function({
 class TeamManagementScreen extends StatefulWidget {
   final OptionRepository optionRepository;
   final String? sportId;
+  final bool readOnly;
 
   const TeamManagementScreen({
     super.key,
     required this.optionRepository,
     this.sportId,
+    this.readOnly = false,
   });
 
   @override
@@ -90,7 +93,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   @override
   void dispose() {
     _autoSaveDebounce?.cancel();
-    if (_changeRevision > _savedRevision) {
+    if (!_isReadOnlySupportMode && _changeRevision > _savedRevision) {
       final team = _currentTeam();
       if (team.name.trim().isNotEmpty) {
         unawaited(_teamService.upsertTeam(team));
@@ -108,8 +111,31 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   }
 
   void _handleTextFieldChanged() {
-    if (_suppressAutoSave) return;
+    if (_suppressAutoSave || _isReadOnlySupportMode) return;
     _scheduleAutoSave();
+  }
+
+  bool get _isReadOnlySupportMode =>
+      widget.readOnly ||
+      FamilyAccessService(
+        widget.optionRepository,
+      ).loadState().isReadOnlySupportMode;
+
+  bool _blockReadOnlyMutation({bool showMessage = true}) {
+    if (!_isReadOnlySupportMode) return false;
+    _autoSaveDebounce?.cancel();
+    _hasPendingAutoSave = false;
+    _changeRevision = _savedRevision;
+    if (mounted) {
+      setState(() {});
+      if (showMessage) {
+        AppFeedback.showMessage(
+          context,
+          text: AppLocalizations.of(context)!.parentReadOnlyCoreDataMessage,
+        );
+      }
+    }
+    return true;
   }
 
   void _scrollToSection(GlobalKey key) {
@@ -194,7 +220,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
     Duration delay = const Duration(milliseconds: 650),
     bool markChanged = true,
   }) {
-    if (_suppressAutoSave) return;
+    if (_suppressAutoSave || _blockReadOnlyMutation(showMessage: false)) return;
     _autoSaveDebounce?.cancel();
     if (markChanged) {
       _changeRevision++;
@@ -211,6 +237,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   }
 
   Future<void> _flushAutoSave() async {
+    if (_blockReadOnlyMutation(showMessage: false)) return;
     _autoSaveDebounce?.cancel();
     await _persistTeam();
   }
@@ -219,6 +246,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
     bool force = false,
     bool showFeedback = false,
   }) async {
+    if (_blockReadOnlyMutation(showMessage: showFeedback)) return;
     final l10n = AppLocalizations.of(context)!;
     final revisionToSave = _changeRevision;
     if (!force && revisionToSave <= _savedRevision) {
@@ -274,6 +302,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   }
 
   Future<void> _deleteTeam() async {
+    if (_blockReadOnlyMutation()) return;
     final l10n = AppLocalizations.of(context)!;
     final team = _selectedTeam;
     if (team == null || !_teams.any((item) => item.id == team.id)) return;
@@ -285,6 +314,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   }
 
   Future<void> _startNewTeam() async {
+    if (_blockReadOnlyMutation()) return;
     await _flushAutoSave();
     if (!mounted) return;
     _selectTeam(_draftTeam(AppLocalizations.of(context)!));
@@ -297,6 +327,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   }
 
   void _changeFormation(String formation) {
+    if (_blockReadOnlyMutation()) return;
     final normalized = TeamManagementService.normalizeFormation(formation);
     final spots = TeamManagementService.formationSpots(normalized);
     setState(() {
@@ -316,6 +347,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   }
 
   void _savePlayer() {
+    if (_blockReadOnlyMutation()) return;
     final l10n = AppLocalizations.of(context)!;
     final name = _playerNameController.text.trim();
     if (name.isEmpty) {
@@ -356,6 +388,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   }
 
   void _editPlayer(ManagedTeamPlayer player) {
+    if (_blockReadOnlyMutation()) return;
     setState(() {
       _editingPlayerId = player.id;
       _playerNameController.text = player.name;
@@ -382,6 +415,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   }
 
   void _removePlayer(ManagedTeamPlayer player) {
+    if (_blockReadOnlyMutation()) return;
     setState(() {
       _players = _players
           .where((item) => item.id != player.id)
@@ -400,6 +434,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
     required String playerId,
     required Offset point,
   }) {
+    if (_blockReadOnlyMutation()) return;
     final normalizedPlayerId = playerId.trim();
     if (!_players.any((player) => player.id == normalizedPlayerId)) return;
     final placement = ManagedPlayerPlacement.create(
@@ -448,6 +483,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   }
 
   void _changeBoardMode(_TacticBoardMode mode) {
+    if (_blockReadOnlyMutation()) return;
     setState(() {
       _boardMode = mode;
       _draftTacticLine = null;
@@ -455,6 +491,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   }
 
   void _startTacticLine(Offset point) {
+    if (_isReadOnlySupportMode) return;
     if (_boardMode != _TacticBoardMode.draw) return;
     setState(() {
       _draftTacticLine = ManagedTacticLine.create(
@@ -467,6 +504,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   }
 
   void _updateTacticLine(Offset point) {
+    if (_isReadOnlySupportMode) return;
     final draft = _draftTacticLine;
     if (_boardMode != _TacticBoardMode.draw || draft == null) return;
     setState(() {
@@ -475,6 +513,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   }
 
   void _finishTacticLine() {
+    if (_blockReadOnlyMutation(showMessage: false)) return;
     final draft = _draftTacticLine;
     if (draft == null) return;
     final distance = math.sqrt(
@@ -499,6 +538,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   }
 
   void _clearTacticLines() {
+    if (_blockReadOnlyMutation()) return;
     setState(() {
       _tacticLines = const <ManagedTacticLine>[];
       _draftTacticLine = null;
@@ -510,6 +550,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    final readOnly = _isReadOnlySupportMode;
     final totalSpots = TeamManagementService.formationSpots(_formation).length;
     return Scaffold(
       body: ColoredBox(
@@ -540,10 +581,11 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
                   tacticLineCount: _tacticLines.length,
                   formation: _formation,
                   saving: _saving,
-                  pending:
-                      _hasPendingAutoSave || _changeRevision > _savedRevision,
+                  pending: !readOnly &&
+                      (_hasPendingAutoSave || _changeRevision > _savedRevision),
                   needsName: _teamNameController.text.trim().isEmpty,
                   lastSavedAt: _lastAutoSavedAt,
+                  readOnly: readOnly,
                   canDelete: _selectedTeam != null &&
                       _teams.any((team) => team.id == _selectedTeam!.id),
                   onNewTeam: () => unawaited(_startNewTeam()),
@@ -580,6 +622,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
                     playerFoot: _playerFoot,
                     playerCondition: _playerCondition,
                     editingPlayerId: _editingPlayerId,
+                    readOnly: readOnly,
                     onRoleChanged: (role) => setState(() => _playerRole = role),
                     onFootChanged: (foot) => setState(() => _playerFoot = foot),
                     onConditionChanged: (condition) =>
@@ -596,6 +639,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
                   child: _TeamBasicsPanel(
                     teamNameController: _teamNameController,
                     strategyController: _strategyController,
+                    readOnly: readOnly,
                   ),
                 ),
                 const SizedBox(height: AppSpacing.md),
@@ -609,6 +653,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
                     draftTacticLine: _draftTacticLine,
                     selectedSpotId: _selectedSpotId,
                     boardMode: _boardMode,
+                    readOnly: readOnly,
                     onFormationChanged: _changeFormation,
                     onSpotSelected: _selectSpot,
                     onPlayerPlaced: _placePlayerOnBoard,
@@ -685,6 +730,7 @@ class _TeamManagementHero extends StatelessWidget {
   final bool pending;
   final bool needsName;
   final DateTime? lastSavedAt;
+  final bool readOnly;
   final bool canDelete;
   final VoidCallback onNewTeam;
   final VoidCallback onDelete;
@@ -700,6 +746,7 @@ class _TeamManagementHero extends StatelessWidget {
     required this.pending,
     required this.needsName,
     required this.lastSavedAt,
+    required this.readOnly,
     required this.canDelete,
     required this.onNewTeam,
     required this.onDelete,
@@ -808,7 +855,7 @@ class _TeamManagementHero extends StatelessWidget {
             children: [
               Expanded(
                 child: FilledButton.icon(
-                  onPressed: saving ? null : onNewTeam,
+                  onPressed: saving || readOnly ? null : onNewTeam,
                   icon: const Icon(Icons.add_outlined),
                   label: Text(l10n.teamManagementNewTeamButton),
                   style: FilledButton.styleFrom(
@@ -824,7 +871,7 @@ class _TeamManagementHero extends StatelessWidget {
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: saving ? null : onDelete,
+                    onPressed: saving || readOnly ? null : onDelete,
                     icon: const Icon(Icons.delete_outline),
                     label: Text(l10n.teamManagementDeleteTeamButton),
                     style: OutlinedButton.styleFrom(
@@ -1149,10 +1196,12 @@ class _TeamSelectorPanel extends StatelessWidget {
 class _TeamBasicsPanel extends StatelessWidget {
   final TextEditingController teamNameController;
   final TextEditingController strategyController;
+  final bool readOnly;
 
   const _TeamBasicsPanel({
     required this.teamNameController,
     required this.strategyController,
+    required this.readOnly,
   });
 
   @override
@@ -1174,6 +1223,7 @@ class _TeamBasicsPanel extends StatelessWidget {
           const SizedBox(height: AppSpacing.md),
           TextField(
             controller: teamNameController,
+            readOnly: readOnly,
             textInputAction: TextInputAction.next,
             decoration: InputDecoration(
               labelText: l10n.teamManagementTeamNameLabel,
@@ -1183,6 +1233,7 @@ class _TeamBasicsPanel extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
           TextField(
             controller: strategyController,
+            readOnly: readOnly,
             minLines: 3,
             maxLines: 5,
             decoration: InputDecoration(
@@ -1205,6 +1256,7 @@ class _FormationPanel extends StatelessWidget {
   final ManagedTacticLine? draftTacticLine;
   final String? selectedSpotId;
   final _TacticBoardMode boardMode;
+  final bool readOnly;
   final ValueChanged<String> onFormationChanged;
   final ValueChanged<String> onSpotSelected;
   final _PlayerBoardDropCallback onPlayerPlaced;
@@ -1222,6 +1274,7 @@ class _FormationPanel extends StatelessWidget {
     required this.draftTacticLine,
     required this.selectedSpotId,
     required this.boardMode,
+    required this.readOnly,
     required this.onFormationChanged,
     required this.onSpotSelected,
     required this.onPlayerPlaced,
@@ -1254,6 +1307,7 @@ class _FormationPanel extends StatelessWidget {
           _BoardModeToolbar(
             mode: boardMode,
             tacticLineCount: tacticLines.length,
+            readOnly: readOnly,
             onModeChanged: onBoardModeChanged,
             onClearTacticLines: onClearTacticLines,
           ),
@@ -1261,6 +1315,7 @@ class _FormationPanel extends StatelessWidget {
           _BoardPlayerTray(
             players: players,
             playerPlacements: playerPlacements,
+            readOnly: readOnly,
           ),
           const SizedBox(height: AppSpacing.md),
           _FormationPitch(
@@ -1271,6 +1326,7 @@ class _FormationPanel extends StatelessWidget {
             draftTacticLine: draftTacticLine,
             selectedSpotId: selectedSpotId,
             boardMode: boardMode,
+            readOnly: readOnly,
             onSpotSelected: onSpotSelected,
             onPlayerPlaced: onPlayerPlaced,
             onTacticLineStarted: onTacticLineStarted,
@@ -1301,8 +1357,9 @@ class _FormationPanel extends StatelessWidget {
                     ),
                 ],
                 selected: {formation},
-                onSelectionChanged: (values) =>
-                    onFormationChanged(values.first),
+                onSelectionChanged: readOnly
+                    ? null
+                    : (values) => onFormationChanged(values.first),
               ),
             ),
           ),
@@ -1315,12 +1372,14 @@ class _FormationPanel extends StatelessWidget {
 class _BoardModeToolbar extends StatelessWidget {
   final _TacticBoardMode mode;
   final int tacticLineCount;
+  final bool readOnly;
   final ValueChanged<_TacticBoardMode> onModeChanged;
   final VoidCallback onClearTacticLines;
 
   const _BoardModeToolbar({
     required this.mode,
     required this.tacticLineCount,
+    required this.readOnly,
     required this.onModeChanged,
     required this.onClearTacticLines,
   });
@@ -1350,10 +1409,12 @@ class _BoardModeToolbar extends StatelessWidget {
             ),
           ],
           selected: {mode},
-          onSelectionChanged: (values) => onModeChanged(values.first),
+          onSelectionChanged:
+              readOnly ? null : (values) => onModeChanged(values.first),
         ),
         OutlinedButton.icon(
-          onPressed: tacticLineCount == 0 ? null : onClearTacticLines,
+          onPressed:
+              readOnly || tacticLineCount == 0 ? null : onClearTacticLines,
           icon: const Icon(Icons.cleaning_services_outlined),
           label: Text(l10n.teamManagementBoardClearLinesButton),
         ),
@@ -1372,10 +1433,12 @@ class _BoardModeToolbar extends StatelessWidget {
 class _BoardPlayerTray extends StatelessWidget {
   final List<ManagedTeamPlayer> players;
   final Map<String, ManagedPlayerPlacement> playerPlacements;
+  final bool readOnly;
 
   const _BoardPlayerTray({
     required this.players,
     required this.playerPlacements,
+    required this.readOnly,
   });
 
   @override
@@ -1405,28 +1468,34 @@ class _BoardPlayerTray extends StatelessWidget {
           child: Row(
             children: [
               for (final player in players) ...[
-                Draggable<String>(
-                  data: player.id,
-                  feedback: Material(
-                    color: Colors.transparent,
-                    child: _BoardPlayerChip(
-                      player: player,
-                      assigned: assignedPlayerIds.contains(player.id),
-                      elevated: true,
-                    ),
-                  ),
-                  childWhenDragging: Opacity(
-                    opacity: 0.42,
-                    child: _BoardPlayerChip(
-                      player: player,
-                      assigned: assignedPlayerIds.contains(player.id),
-                    ),
-                  ),
-                  child: _BoardPlayerChip(
+                if (readOnly)
+                  _BoardPlayerChip(
                     player: player,
                     assigned: assignedPlayerIds.contains(player.id),
+                  )
+                else
+                  Draggable<String>(
+                    data: player.id,
+                    feedback: Material(
+                      color: Colors.transparent,
+                      child: _BoardPlayerChip(
+                        player: player,
+                        assigned: assignedPlayerIds.contains(player.id),
+                        elevated: true,
+                      ),
+                    ),
+                    childWhenDragging: Opacity(
+                      opacity: 0.42,
+                      child: _BoardPlayerChip(
+                        player: player,
+                        assigned: assignedPlayerIds.contains(player.id),
+                      ),
+                    ),
+                    child: _BoardPlayerChip(
+                      player: player,
+                      assigned: assignedPlayerIds.contains(player.id),
+                    ),
                   ),
-                ),
                 const SizedBox(width: AppSpacing.xs),
               ],
             ],
@@ -1496,6 +1565,7 @@ class _FormationPitch extends StatelessWidget {
   final ManagedTacticLine? draftTacticLine;
   final String? selectedSpotId;
   final _TacticBoardMode boardMode;
+  final bool readOnly;
   final ValueChanged<String> onSpotSelected;
   final _PlayerBoardDropCallback onPlayerPlaced;
   final ValueChanged<Offset> onTacticLineStarted;
@@ -1510,6 +1580,7 @@ class _FormationPitch extends StatelessWidget {
     required this.draftTacticLine,
     required this.selectedSpotId,
     required this.boardMode,
+    required this.readOnly,
     required this.onSpotSelected,
     required this.onPlayerPlaced,
     required this.onTacticLineStarted,
@@ -1541,13 +1612,16 @@ class _FormationPitch extends StatelessWidget {
 
               return DragTarget<String>(
                 onWillAcceptWithDetails: (details) {
-                  return boardMode == _TacticBoardMode.assign &&
+                  return !readOnly &&
+                      boardMode == _TacticBoardMode.assign &&
                       playerById.containsKey(details.data);
                 },
-                onAcceptWithDetails: (details) => onPlayerPlaced(
-                  playerId: details.data,
-                  point: normalizeFromGlobal(details.offset),
-                ),
+                onAcceptWithDetails: readOnly
+                    ? null
+                    : (details) => onPlayerPlaced(
+                          playerId: details.data,
+                          point: normalizeFromGlobal(details.offset),
+                        ),
                 builder: (context, candidateData, rejectedData) {
                   final dropHighlighted = candidateData.isNotEmpty;
                   return ClipRRect(
@@ -1555,23 +1629,25 @@ class _FormationPitch extends StatelessWidget {
                     child: GestureDetector(
                       key: const ValueKey('team-tactics-board-pitch'),
                       behavior: HitTestBehavior.opaque,
-                      onPanStart: boardMode == _TacticBoardMode.draw
-                          ? (details) => onTacticLineStarted(
-                                _normalizeBoardPoint(
-                                  details.localPosition,
-                                  constraints.biggest,
-                                ),
-                              )
-                          : null,
-                      onPanUpdate: boardMode == _TacticBoardMode.draw
-                          ? (details) => onTacticLineUpdated(
-                                _normalizeBoardPoint(
-                                  details.localPosition,
-                                  constraints.biggest,
-                                ),
-                              )
-                          : null,
-                      onPanEnd: boardMode == _TacticBoardMode.draw
+                      onPanStart:
+                          !readOnly && boardMode == _TacticBoardMode.draw
+                              ? (details) => onTacticLineStarted(
+                                    _normalizeBoardPoint(
+                                      details.localPosition,
+                                      constraints.biggest,
+                                    ),
+                                  )
+                              : null,
+                      onPanUpdate:
+                          !readOnly && boardMode == _TacticBoardMode.draw
+                              ? (details) => onTacticLineUpdated(
+                                    _normalizeBoardPoint(
+                                      details.localPosition,
+                                      constraints.biggest,
+                                    ),
+                                  )
+                              : null,
+                      onPanEnd: !readOnly && boardMode == _TacticBoardMode.draw
                           ? (_) => onTacticLineFinished()
                           : null,
                       child: Stack(
@@ -1617,7 +1693,7 @@ class _FormationPitch extends StatelessWidget {
                                 height: markerSize,
                                 child: _BoardPlacedPlayer(
                                   player: playerById[placement.playerId]!,
-                                  draggable:
+                                  draggable: !readOnly &&
                                       boardMode == _TacticBoardMode.assign,
                                 ),
                               ),
@@ -1879,6 +1955,7 @@ class _PlayersPanel extends StatelessWidget {
   final String playerFoot;
   final String playerCondition;
   final String? editingPlayerId;
+  final bool readOnly;
   final ValueChanged<String> onRoleChanged;
   final ValueChanged<String> onFootChanged;
   final ValueChanged<String> onConditionChanged;
@@ -1898,6 +1975,7 @@ class _PlayersPanel extends StatelessWidget {
     required this.playerFoot,
     required this.playerCondition,
     required this.editingPlayerId,
+    required this.readOnly,
     required this.onRoleChanged,
     required this.onFootChanged,
     required this.onConditionChanged,
@@ -1930,6 +2008,7 @@ class _PlayersPanel extends StatelessWidget {
                 flex: 3,
                 child: TextField(
                   controller: playerNameController,
+                  readOnly: readOnly,
                   textInputAction: TextInputAction.next,
                   decoration: InputDecoration(
                     labelText: l10n.teamManagementPlayerNameLabel,
@@ -1941,6 +2020,7 @@ class _PlayersPanel extends StatelessWidget {
               Expanded(
                 child: TextField(
                   controller: playerNumberController,
+                  readOnly: readOnly,
                   keyboardType: TextInputType.number,
                   textInputAction: TextInputAction.next,
                   decoration: InputDecoration(
@@ -1976,10 +2056,12 @@ class _PlayersPanel extends StatelessWidget {
                             child: Text(teamPlayerRoleLabel(l10n, role)),
                           ),
                       ],
-                      onChanged: (role) {
-                        if (role == null) return;
-                        onRoleChanged(role);
-                      },
+                      onChanged: readOnly
+                          ? null
+                          : (role) {
+                              if (role == null) return;
+                              onRoleChanged(role);
+                            },
                     ),
                   ),
                   SizedBox(
@@ -1996,10 +2078,12 @@ class _PlayersPanel extends StatelessWidget {
                             child: Text(teamPlayerFootLabel(l10n, foot)),
                           ),
                       ],
-                      onChanged: (foot) {
-                        if (foot == null) return;
-                        onFootChanged(foot);
-                      },
+                      onChanged: readOnly
+                          ? null
+                          : (foot) {
+                              if (foot == null) return;
+                              onFootChanged(foot);
+                            },
                     ),
                   ),
                   SizedBox(
@@ -2018,10 +2102,12 @@ class _PlayersPanel extends StatelessWidget {
                             ),
                           ),
                       ],
-                      onChanged: (condition) {
-                        if (condition == null) return;
-                        onConditionChanged(condition);
-                      },
+                      onChanged: readOnly
+                          ? null
+                          : (condition) {
+                              if (condition == null) return;
+                              onConditionChanged(condition);
+                            },
                     ),
                   ),
                 ],
@@ -2031,6 +2117,7 @@ class _PlayersPanel extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
           TextField(
             controller: playerNoteController,
+            readOnly: readOnly,
             minLines: 2,
             maxLines: 3,
             decoration: InputDecoration(
@@ -2045,7 +2132,7 @@ class _PlayersPanel extends StatelessWidget {
               if (editingPlayerId != null) ...[
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: onCancelPlayerEdit,
+                    onPressed: readOnly ? null : onCancelPlayerEdit,
                     icon: const Icon(Icons.close_outlined),
                     label: Text(l10n.teamManagementCancelPlayerEditButton),
                   ),
@@ -2055,7 +2142,7 @@ class _PlayersPanel extends StatelessWidget {
               Expanded(
                 flex: 2,
                 child: FilledButton.icon(
-                  onPressed: onSavePlayer,
+                  onPressed: readOnly ? null : onSavePlayer,
                   icon: Icon(
                     editingPlayerId == null
                         ? Icons.add_outlined
@@ -2090,6 +2177,7 @@ class _PlayersPanel extends StatelessWidget {
                           .length,
                   onEdit: () => onEditPlayer(player),
                   onRemove: () => onRemovePlayer(player),
+                  readOnly: readOnly,
                 ),
               ),
             ),
@@ -2104,12 +2192,14 @@ class _PlayerRosterRow extends StatelessWidget {
   final int assignedCount;
   final VoidCallback onEdit;
   final VoidCallback onRemove;
+  final bool readOnly;
 
   const _PlayerRosterRow({
     required this.player,
     required this.assignedCount,
     required this.onEdit,
     required this.onRemove,
+    required this.readOnly,
   });
 
   @override
@@ -2194,13 +2284,13 @@ class _PlayerRosterRow extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton.outlined(
-                onPressed: onEdit,
+                onPressed: readOnly ? null : onEdit,
                 icon: const Icon(Icons.edit_outlined),
                 tooltip: l10n.teamManagementEditPlayerButton,
               ),
               const SizedBox(height: AppSpacing.xxs),
               IconButton.outlined(
-                onPressed: onRemove,
+                onPressed: readOnly ? null : onRemove,
                 icon: const Icon(Icons.delete_outline),
                 tooltip: l10n.teamManagementRemovePlayerButton,
               ),
