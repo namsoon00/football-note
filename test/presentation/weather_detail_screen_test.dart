@@ -703,6 +703,88 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('Tomorrow hourly weather starts from the first hour', (
+    WidgetTester tester,
+  ) async {
+    final now = DateTime.now();
+    final todayDate = DateTime(now.year, now.month, now.day);
+    final tomorrow = todayDate.add(const Duration(days: 1));
+    final focusHour = tomorrow.add(Duration(hours: now.hour));
+    final firstHour = focusHour.subtract(const Duration(hours: 6));
+
+    WeatherSharedResource.primeSnapshot(
+      WeatherSharedSnapshot(
+        location: '강남구 역삼1동',
+        localeTag: 'ko-KR',
+        fetchedAt: now,
+        summary: '맑음',
+        weatherCode: 0,
+        temperature: 21,
+        dailyForecasts: [
+          WeatherSharedDailyForecast(
+            date: todayDate,
+            summary: '맑음',
+            weatherCode: 0,
+            temperatureMax: 24,
+            temperatureMin: 18,
+          ),
+          WeatherSharedDailyForecast(
+            date: tomorrow,
+            summary: '비',
+            weatherCode: 61,
+            temperatureMax: 22,
+            temperatureMin: 17,
+            hourlyForecasts: [
+              for (var index = 0; index < 24; index++)
+                WeatherSharedForecastMoment(
+                  time: firstHour.add(Duration(hours: index)),
+                  temperature: 15 + index.toDouble(),
+                  weatherCode: index.isEven ? 3 : 61,
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: const MaterialApp(
+          locale: Locale('ko', 'KR'),
+          localizationsDelegates: [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: [Locale('en'), Locale('ko', 'KR')],
+          home: WeatherDetailScreen(
+            initialLocation: '강남구 역삼1동',
+            initialSummary: '맑음 21°C',
+            initialWeatherCode: 0,
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.tap(find.text('내일'));
+    await tester.pumpAndSettle();
+
+    final horizontalScrollViewFinder = find.byWidgetPredicate(
+      (widget) =>
+          widget is SingleChildScrollView &&
+          widget.scrollDirection == Axis.horizontal,
+    );
+    expect(horizontalScrollViewFinder, findsOneWidget);
+    final horizontalScrollView = tester.widget<SingleChildScrollView>(
+      horizontalScrollViewFinder,
+    );
+    expect(horizontalScrollView.controller, isNotNull);
+    expect(horizontalScrollView.controller!.offset, 0);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('Tomorrow hot outfit previews do not recommend a vest', (
     WidgetTester tester,
   ) async {
