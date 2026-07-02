@@ -765,11 +765,11 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
 
   String _formatMillimeter(double? value) {
     if (value == null) return '--';
-    return '${value.toStringAsFixed(1)} mm · ${_precipitationAmountLabel(value)}';
+    return '${value.toStringAsFixed(1)} · ${_precipitationAmountLabel(value)}';
   }
 
   String _formatPrecipitationTimelineLabel(_HourlyPrecipitationEntry entry) {
-    final amount = '${entry.precipitation.toStringAsFixed(1)} mm';
+    final amount = entry.precipitation.toStringAsFixed(1);
     return '$amount\n${_precipitationAmountLabel(entry.precipitation)}';
   }
 
