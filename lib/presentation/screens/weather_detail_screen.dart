@@ -827,18 +827,39 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     return _hourlyFocusTimeForForecastDate(_dailyForecasts.first.date);
   }
 
+  List<_DailyWeatherForecast> get _todayAndNextDayForecasts {
+    if (_dailyForecasts.isEmpty) return const <_DailyWeatherForecast>[];
+    final today = _dateOnly(_dailyForecasts.first.date);
+    final nextDay = today.add(const Duration(days: 1));
+    return _dailyForecasts.where((forecast) {
+      final date = _dateOnly(forecast.date);
+      return !date.isBefore(today) && !date.isAfter(nextDay);
+    }).toList(growable: false);
+  }
+
   List<_HourlyPrecipitationEntry> get _todayHourlyPrecipitations {
     if (_dailyForecasts.isEmpty) return const <_HourlyPrecipitationEntry>[];
-    return _visibleHourlyPrecipitationEntries(
-      _dailyForecasts.first.hourlyPrecipitations,
-    );
+    final entriesByHour = <DateTime, _HourlyPrecipitationEntry>{};
+    for (final forecast in _todayAndNextDayForecasts) {
+      for (final entry in forecast.hourlyPrecipitations) {
+        entriesByHour[_hourBucket(entry.time)] = entry;
+      }
+    }
+    return _visibleHourlyPrecipitationEntries(entriesByHour.values.toList());
   }
 
   List<_ForecastMomentPreview> get _todayHourlyForecasts {
     if (_dailyForecasts.isEmpty) return const <_ForecastMomentPreview>[];
-    return _dailyForecasts.first.hourlyForecasts
-        .where((forecast) => forecast.temperature != null)
-        .toList(growable: false);
+    final forecastsByHour = <DateTime, _ForecastMomentPreview>{};
+    for (final forecast in _todayAndNextDayForecasts) {
+      for (final entry in forecast.hourlyForecasts) {
+        if (entry.temperature != null) {
+          forecastsByHour[_hourBucket(entry.time)] = entry;
+        }
+      }
+    }
+    return forecastsByHour.values.toList(growable: false)
+      ..sort((left, right) => left.time.compareTo(right.time));
   }
 
   Widget? _buildTodayHourlyWeatherFooter(
@@ -3461,6 +3482,8 @@ List<_HourlyPrecipitationEntry> _visibleHourlyPrecipitationEntries(
 
 DateTime _hourBucket(DateTime time) =>
     DateTime(time.year, time.month, time.day, time.hour);
+
+DateTime _dateOnly(DateTime date) => DateTime(date.year, date.month, date.day);
 
 DateTime _hourlyFocusTimeForForecastDate(DateTime forecastDate) {
   final now = DateTime.now();

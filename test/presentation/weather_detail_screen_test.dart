@@ -369,6 +369,89 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('Hourly weather continues into the next day', (
+    WidgetTester tester,
+  ) async {
+    final now = DateTime.now();
+    final todayDate = DateTime(now.year, now.month, now.day);
+    final tomorrow = todayDate.add(const Duration(days: 1));
+
+    WeatherSharedResource.primeSnapshot(
+      WeatherSharedSnapshot(
+        location: '강남구 역삼1동',
+        localeTag: 'ko-KR',
+        fetchedAt: now,
+        summary: '맑음',
+        weatherCode: 0,
+        temperature: 21,
+        dailyForecasts: [
+          WeatherSharedDailyForecast(
+            date: todayDate,
+            summary: '맑음',
+            weatherCode: 0,
+            temperatureMax: 25,
+            temperatureMin: 16,
+            hourlyForecasts: [
+              WeatherSharedForecastMoment(
+                time: todayDate.add(const Duration(hours: 23)),
+                temperature: 19,
+                weatherCode: 1,
+              ),
+            ],
+          ),
+          WeatherSharedDailyForecast(
+            date: tomorrow,
+            summary: '흐림',
+            weatherCode: 3,
+            temperatureMax: 24,
+            temperatureMin: 18,
+            hourlyForecasts: [
+              WeatherSharedForecastMoment(
+                time: tomorrow,
+                temperature: 18,
+                weatherCode: 3,
+              ),
+              WeatherSharedForecastMoment(
+                time: tomorrow.add(const Duration(hours: 1)),
+                temperature: 18.5,
+                weatherCode: 3,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: const MaterialApp(
+          locale: Locale('ko', 'KR'),
+          localizationsDelegates: [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: [Locale('en'), Locale('ko', 'KR')],
+          home: WeatherDetailScreen(
+            initialLocation: '강남구 역삼1동',
+            initialSummary: '맑음 21°C',
+            initialWeatherCode: 0,
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text('시간별 날씨'), findsOneWidget);
+    expect(find.text('23:00'), findsOneWidget);
+    expect(find.text('00:00'), findsOneWidget);
+    expect(find.text('01:00'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('Hourly precipitation labels only appear when severity changes', (
     WidgetTester tester,
   ) async {
