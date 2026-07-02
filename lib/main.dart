@@ -18,6 +18,7 @@ import 'application/training_service.dart';
 import 'application/locale_service.dart';
 import 'application/settings_service.dart';
 import 'application/backup_service.dart';
+import 'application/club_training_reminder_service.dart';
 import 'application/drive_backup_service.dart';
 import 'application/family_access_service.dart';
 import 'application/meal_log_service.dart';
@@ -92,6 +93,10 @@ Future<void> main() async {
     optionRepository,
     settingsService,
   );
+  final clubTrainingReminderService = ClubTrainingReminderService(
+    optionRepository,
+    settingsService,
+  );
   final badgeService = TrainingPlanBadgeService(optionRepository);
   NotificationTapRouter.configure(
     NotificationTapDependencies(
@@ -109,9 +114,12 @@ Future<void> main() async {
       NotificationTapRouter.handlePayload;
   WeatherReminderService.onNotificationPayloadTap =
       NotificationTapRouter.handlePayload;
+  ClubTrainingReminderService.onNotificationPayloadTap =
+      NotificationTapRouter.handlePayload;
   settingsService.addListener(() {
     unawaited(reminderService.syncSettingsDrivenReminders());
     unawaited(weatherReminderService.syncSettingsDrivenReminders());
+    unawaited(clubTrainingReminderService.syncSettingsDrivenReminders());
     if (!settingsService.reminderEnabled ||
         !settingsService.leagueFixtureAlertEnabled) {
       unawaited(leagueFixtureReminderService.clearAllReminders());
@@ -120,6 +128,10 @@ Future<void> main() async {
     if (!settingsService.reminderEnabled ||
         !settingsService.weatherAlertEnabled) {
       unawaited(weatherReminderService.clearAllReminders());
+    }
+    if (!settingsService.reminderEnabled ||
+        !settingsService.clubTrainingAlertEnabled) {
+      unawaited(clubTrainingReminderService.clearAllReminders());
     }
   });
 
@@ -141,6 +153,7 @@ Future<void> main() async {
       reminderService: reminderService,
       leagueFixtureReminderService: leagueFixtureReminderService,
       weatherReminderService: weatherReminderService,
+      clubTrainingReminderService: clubTrainingReminderService,
       badgeService: badgeService,
       trainingService: trainingService,
     ),
@@ -152,6 +165,7 @@ Future<void> _warmStartupServices({
   required TrainingPlanReminderService reminderService,
   required LeagueFixtureReminderService leagueFixtureReminderService,
   required WeatherReminderService weatherReminderService,
+  required ClubTrainingReminderService clubTrainingReminderService,
   required TrainingPlanBadgeService badgeService,
   required TrainingService trainingService,
 }) async {
@@ -196,6 +210,13 @@ Future<void> _warmStartupServices({
     await weatherReminderService.syncSettingsDrivenReminders();
   } catch (_) {
     // Weather reminder sync can recover on later settings or app interactions.
+  }
+  try {
+    await clubTrainingReminderService.initialize();
+    handleLaunchPayload(await clubTrainingReminderService.launchPayload());
+    await clubTrainingReminderService.syncSettingsDrivenReminders();
+  } catch (_) {
+    // Club training reminder sync can recover on later schedule changes.
   }
   try {
     await badgeService.syncFromStorage();

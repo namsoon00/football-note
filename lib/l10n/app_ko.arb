@@ -2802,6 +2802,7 @@
   },
   "notificationCategoryTrainingPlan": "훈련",
   "notificationCategoryWeather": "날씨",
+  "notificationCategoryClubTraining": "클럽 훈련",
   "notificationCategoryFixture": "경기",
   "notificationCategoryXp": "경험치",
   "notificationCategoryFamily": "보호자",
@@ -2875,6 +2876,24 @@
   "@notificationWeatherTimeSubtitle": {
     "placeholders": {
       "time": {}
+    }
+  },
+  "notificationClubTrainingSettingsTitle": "클럽 훈련 알림",
+  "notificationClubTrainingSettingsSubtitle": "훈련 {minutes}분 전에 유니폼과 시간을 알려줍니다.",
+  "@notificationClubTrainingSettingsSubtitle": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationClubTrainingLeadTimeLabel": "클럽 훈련 사전 알림",
+  "notificationClubTrainingLeadTimeOption": "{value}분 전",
+  "@notificationClubTrainingLeadTimeOption": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
     }
   },
   "notificationNewBadge": "NEW",
@@ -5920,6 +5939,24 @@
   "clubScheduleColorBrightnessLabel": "밝기",
   "clubScheduleSaveButton": "클럽 일정 저장",
   "clubScheduleSavedFeedback": "클럽 일정을 저장했어요.",
+  "clubTrainingNotificationChannelName": "클럽 훈련 알림",
+  "clubTrainingNotificationChannelDescription": "클럽 훈련 시작 전 리마인드 알림",
+  "clubTrainingNotificationTitle": "{clubName} 훈련 준비",
+  "@clubTrainingNotificationTitle": {
+    "placeholders": {
+      "clubName": {}
+    }
+  },
+  "clubTrainingNotificationBody": "{minutesBefore}분 뒤 훈련 · {timeRange} · 유니폼 {uniform}",
+  "@clubTrainingNotificationBody": {
+    "placeholders": {
+      "minutesBefore": {
+        "type": "int"
+      },
+      "timeRange": {},
+      "uniform": {}
+    }
+  },
   "teamManagementTitle": "팀 관리",
   "teamManagementSubtitle": "선수 등록부터 시작하고, 큰 그라운드 보드에 선수를 끌어 올려 전술을 정리하세요.",
   "teamManagementOpenButton": "팀 관리",

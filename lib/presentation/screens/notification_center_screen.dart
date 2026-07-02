@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../application/club_training_reminder_service.dart';
 import '../../application/league_fixture_reminder_service.dart';
 import '../../application/notification_app_link.dart';
 import '../../application/settings_service.dart';
@@ -37,6 +38,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
   late final TrainingPlanReminderService _reminderService;
   late final LeagueFixtureReminderService _fixtureReminderService;
   late final WeatherReminderService _weatherReminderService;
+  late final ClubTrainingReminderService _clubTrainingReminderService;
   bool _permissionGranted = true;
   bool _loading = true;
   bool _mutedNow = false;
@@ -45,6 +47,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
   List<_FamilyMessageRow> _familyRows = const [];
   List<_FixtureMessageRow> _fixtureRows = const [];
   List<_WeatherMessageRow> _weatherRows = const [];
+  List<_ClubTrainingMessageRow> _clubTrainingRows = const [];
   String? _lastTrainingLogAt;
   final Set<_NotificationCategory> _expandedCategories =
       <_NotificationCategory>{};
@@ -74,6 +77,10 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
       widget.optionRepository,
       widget.settingsService,
     );
+    _clubTrainingReminderService = ClubTrainingReminderService(
+      widget.optionRepository,
+      widget.settingsService,
+    );
     _load();
   }
 
@@ -89,6 +96,9 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
       final weatherReadIds = _loadSeenIds(
         WeatherReminderService.messageReadIdsKey,
       );
+      final clubTrainingReadIds = _loadSeenIds(
+        ClubTrainingReminderService.messageReadIdsKey,
+      );
       await _reminderService.markAllRemindersRead();
       final permission = await _reminderService.hasNotificationPermission();
       final muted = await _reminderService.isAlarmMutedNow();
@@ -97,8 +107,10 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
       final familyRows = _loadFamilyRows(familyReadIds);
       final fixtureRows = _loadFixtureRows(fixtureReadIds);
       final weatherRows = _loadWeatherRows(weatherReadIds);
+      final clubTrainingRows = _loadClubTrainingRows(clubTrainingReadIds);
       await _fixtureReminderService.markAllFixtureMessagesRead();
       await _weatherReminderService.markAllWeatherMessagesRead();
+      await _clubTrainingReminderService.markAllClubTrainingMessagesRead();
       final lastTrainingLogAt = widget.optionRepository.getValue<String>(
         _lastTrainingLogAtStorageKey,
       );
@@ -112,6 +124,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
         _familyRows = familyRows;
         _fixtureRows = fixtureRows;
         _weatherRows = weatherRows;
+        _clubTrainingRows = clubTrainingRows;
         _lastTrainingLogAt = lastTrainingLogAt;
         _loading = false;
       });
@@ -124,6 +137,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
         _familyRows = _loadFamilyRows(const <String>{});
         _fixtureRows = _loadFixtureRows(const <String>{});
         _weatherRows = _loadWeatherRows(const <String>{});
+        _clubTrainingRows = _loadClubTrainingRows(const <String>{});
         _loading = false;
       });
     }
@@ -192,6 +206,15 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
         .toList(growable: false);
   }
 
+  List<_ClubTrainingMessageRow> _loadClubTrainingRows(Set<String> readIds) {
+    final logs = _clubTrainingReminderService.loadClubTrainingMessageLogSync();
+    return logs
+        .map(
+          (item) => _ClubTrainingMessageRow.fromMap(item, readIds: readIds),
+        )
+        .toList(growable: false);
+  }
+
   Future<void> _deleteMessage(_PlanAlarmRow row) async {
     await _reminderService.dismissMessageKey(row.messageKey);
     await TrainingPlanBadgeService(widget.optionRepository).syncFromStorage();
@@ -246,6 +269,17 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     });
   }
 
+  Future<void> _deleteClubTrainingMessage(_ClubTrainingMessageRow row) async {
+    await _clubTrainingReminderService.deleteClubTrainingMessage(row.id);
+    await TrainingPlanBadgeService(widget.optionRepository).syncFromStorage();
+    if (!mounted) return;
+    setState(() {
+      _clubTrainingRows = _clubTrainingRows
+          .where((item) => item.id != row.id)
+          .toList(growable: false);
+    });
+  }
+
   Widget _deleteBackground(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Container(
@@ -264,6 +298,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
       DateTime.now().add(Duration(hours: hours)),
     );
     await _weatherReminderService.clearAllReminders();
+    await _clubTrainingReminderService.clearAllReminders();
     if (!mounted) return;
     await _load();
   }
@@ -272,6 +307,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     await _reminderService.clearAlarmMute();
     await _reminderService.syncSettingsDrivenReminders();
     await _weatherReminderService.syncSettingsDrivenReminders();
+    await _clubTrainingReminderService.syncSettingsDrivenReminders();
     if (!mounted) return;
     await _load();
   }
@@ -369,6 +405,24 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
           isNew: item.isNew,
           upcoming: true,
           onDelete: () => _deleteWeatherMessage(item),
+        ),
+      );
+    }
+    for (final item in _clubTrainingRows) {
+      items.add(
+        _NotificationFeedItem(
+          key: 'club-training-msg-${item.id}',
+          category: _NotificationCategory.clubTraining,
+          title: item.title.isEmpty ? l10n.clubScheduleTitle : item.title,
+          subtitle: item.body,
+          time: item.scheduledAt,
+          timeLabel: _formatFeedTime(item.scheduledAt, isKo: isKo),
+          icon: Icons.checkroom_outlined,
+          color: scheme.primary,
+          payload: item.payload,
+          isNew: item.isNew,
+          upcoming: true,
+          onDelete: () => _deleteClubTrainingMessage(item),
         ),
       );
     }
@@ -515,6 +569,8 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
         return l10n.notificationCategoryTrainingPlan;
       case _NotificationCategory.weather:
         return l10n.notificationCategoryWeather;
+      case _NotificationCategory.clubTraining:
+        return l10n.notificationCategoryClubTraining;
       case _NotificationCategory.fixture:
         return l10n.notificationCategoryFixture;
       case _NotificationCategory.xp:
@@ -530,6 +586,8 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
         return Icons.alarm_outlined;
       case _NotificationCategory.weather:
         return Icons.cloud_outlined;
+      case _NotificationCategory.clubTraining:
+        return Icons.checkroom_outlined;
       case _NotificationCategory.fixture:
         return Icons.sports_soccer_rounded;
       case _NotificationCategory.xp:
@@ -585,6 +643,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
   Future<void> _syncNotificationSettings() async {
     await _reminderService.syncSettingsDrivenReminders();
     await _weatherReminderService.syncSettingsDrivenReminders();
+    await _clubTrainingReminderService.syncSettingsDrivenReminders();
     if (!mounted) return;
     await _load();
   }
@@ -770,6 +829,59 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                                 : null,
                             child: Text(l10n.notificationChangeTimeAction),
                           ),
+                        ),
+                      SwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(
+                          l10n.notificationClubTrainingSettingsTitle,
+                        ),
+                        subtitle: Text(
+                          l10n.notificationClubTrainingSettingsSubtitle(
+                            widget
+                                .settingsService.clubTrainingAlertMinutesBefore,
+                          ),
+                        ),
+                        value: widget.settingsService.clubTrainingAlertEnabled,
+                        onChanged: widget.settingsService.reminderEnabled
+                            ? (value) async {
+                                await widget.settingsService
+                                    .setClubTrainingAlertEnabled(value);
+                                if (!value) {
+                                  await _clubTrainingReminderService
+                                      .clearAllReminders();
+                                }
+                                await refreshSheet();
+                              }
+                            : null,
+                      ),
+                      if (widget.settingsService.clubTrainingAlertEnabled)
+                        DropdownButtonFormField<int>(
+                          initialValue: widget
+                              .settingsService.clubTrainingAlertMinutesBefore,
+                          decoration: InputDecoration(
+                            labelText:
+                                l10n.notificationClubTrainingLeadTimeLabel,
+                          ),
+                          items: const [10, 30, 60, 120]
+                              .map(
+                                (value) => DropdownMenuItem<int>(
+                                  value: value,
+                                  child: Text(
+                                    l10n.notificationClubTrainingLeadTimeOption(
+                                      value,
+                                    ),
+                                  ),
+                                ),
+                              )
+                              .toList(growable: false),
+                          onChanged: widget.settingsService.reminderEnabled
+                              ? (value) async {
+                                  if (value == null) return;
+                                  await widget.settingsService
+                                      .setClubTrainingAlertMinutesBefore(value);
+                                  await refreshSheet();
+                                }
+                              : null,
                         ),
                       SwitchListTile(
                         contentPadding: EdgeInsets.zero,
@@ -1397,6 +1509,7 @@ class _NewBadge extends StatelessWidget {
 enum _NotificationCategory {
   trainingPlan,
   weather,
+  clubTraining,
   fixture,
   xp,
   family,
@@ -1621,6 +1734,46 @@ class _WeatherMessageRow {
         DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
             DateTime.now();
     return _WeatherMessageRow(
+      id: id,
+      payload: map['payload']?.toString() ?? '',
+      createdAt:
+          DateTime.tryParse(map['createdAt']?.toString() ?? '') ?? scheduledAt,
+      scheduledAt: scheduledAt,
+      title: map['title']?.toString() ?? '',
+      body: map['body']?.toString() ?? '',
+      isNew: id.isNotEmpty && !readIds.contains(id),
+    );
+  }
+}
+
+class _ClubTrainingMessageRow {
+  final String id;
+  final String payload;
+  final DateTime createdAt;
+  final DateTime scheduledAt;
+  final String title;
+  final String body;
+  final bool isNew;
+
+  const _ClubTrainingMessageRow({
+    required this.id,
+    required this.payload,
+    required this.createdAt,
+    required this.scheduledAt,
+    required this.title,
+    required this.body,
+    required this.isNew,
+  });
+
+  factory _ClubTrainingMessageRow.fromMap(
+    Map<String, dynamic> map, {
+    Set<String> readIds = const <String>{},
+  }) {
+    final id = map['id']?.toString() ?? '';
+    final scheduledAt =
+        DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
+            DateTime.now();
+    return _ClubTrainingMessageRow(
       id: id,
       payload: map['payload']?.toString() ?? '',
       createdAt:

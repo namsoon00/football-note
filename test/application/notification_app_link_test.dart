@@ -64,6 +64,11 @@ void main() {
         host: 'weather',
         path: '/detail',
       );
+      expectLink(
+        NotificationAppLink.clubTraining(weekday: DateTime.wednesday),
+        host: 'club',
+        path: '/training',
+      );
     });
 
     test('accepts Flutter route names and hostless app scheme paths', () {
@@ -143,6 +148,7 @@ void main() {
         path: '/fixture',
       );
       expectLink('/detail?action=tomorrow', host: 'weather', path: '/detail');
+      expectLink('/training?weekday=3', host: 'club', path: '/training');
       expectLink(
         '/family-sync?role=parent&syncedAt=2026-06-26T09:30:00.000',
         host: 'notifications',

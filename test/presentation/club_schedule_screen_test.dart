@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/club_schedule_service.dart';
@@ -7,6 +8,47 @@ import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/club_schedule_screen.dart';
 
 void main() {
+  final binding = TestWidgetsFlutterBinding.ensureInitialized();
+  const timezoneChannel = MethodChannel('flutter_timezone');
+  const notificationsChannel = MethodChannel(
+    'dexterous.com/flutter/local_notifications',
+  );
+
+  setUp(() {
+    binding.defaultBinaryMessenger.setMockMethodCallHandler(timezoneChannel, (
+      call,
+    ) async {
+      if (call.method == 'getLocalTimezone') return 'Asia/Seoul';
+      return <String>[];
+    });
+    binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      notificationsChannel,
+      (call) async {
+        switch (call.method) {
+          case 'initialize':
+          case 'requestNotificationsPermission':
+          case 'requestExactAlarmsPermission':
+          case 'zonedSchedule':
+          case 'cancel':
+            return true;
+          default:
+            return null;
+        }
+      },
+    );
+  });
+
+  tearDown(() {
+    binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      timezoneChannel,
+      null,
+    );
+    binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      notificationsChannel,
+      null,
+    );
+  });
+
   testWidgets('club schedule screen saves club name, weekday, and kit color', (
     tester,
   ) async {

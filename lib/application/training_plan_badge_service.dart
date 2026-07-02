@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import '../domain/repositories/option_repository.dart';
+import 'club_training_reminder_service.dart';
 import 'league_fixture_reminder_service.dart';
 import 'sport_scoped_storage.dart';
 import 'training_plan_reminder_service.dart';
@@ -71,7 +72,25 @@ class TrainingPlanBadgeService {
         return !weatherReadIds.contains(id);
       }).length;
 
-      final count = xpUnread + fixtureUnread + weatherUnread;
+      final clubTrainingLogs = _options.getValue<List>(
+            ClubTrainingReminderService.messageLogKey,
+          ) ??
+          const [];
+      final clubTrainingReadRaw = _options.getValue<List>(
+            ClubTrainingReminderService.messageReadIdsKey,
+          ) ??
+          const [];
+      final clubTrainingReadIds =
+          clubTrainingReadRaw.map((e) => e.toString()).toSet();
+      final clubTrainingUnread =
+          clubTrainingLogs.whereType<Map>().where((item) {
+        final id = item['id']?.toString() ?? '';
+        if (id.isEmpty) return false;
+        return !clubTrainingReadIds.contains(id);
+      }).length;
+
+      final count =
+          xpUnread + fixtureUnread + weatherUnread + clubTrainingUnread;
 
       if (count <= 0) {
         await _setBadgeCount(0);

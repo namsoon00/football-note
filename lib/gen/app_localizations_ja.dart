@@ -4600,6 +4600,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get notificationCategoryWeather => '天気';
 
   @override
+  String get notificationCategoryClubTraining => 'クラブ練習';
+
+  @override
   String get notificationCategoryFixture => '試合';
 
   @override
@@ -4683,6 +4686,22 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String notificationWeatherTimeSubtitle(Object time) {
     return '毎日 $time に通知';
+  }
+
+  @override
+  String get notificationClubTrainingSettingsTitle => 'クラブ練習通知';
+
+  @override
+  String notificationClubTrainingSettingsSubtitle(int minutes) {
+    return '練習の$minutes分前にユニフォームと時間を通知します。';
+  }
+
+  @override
+  String get notificationClubTrainingLeadTimeLabel => 'クラブ練習の事前通知';
+
+  @override
+  String notificationClubTrainingLeadTimeOption(int value) {
+    return '$value分前';
   }
 
   @override
@@ -10415,6 +10434,23 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get clubScheduleSavedFeedback => 'クラブ予定を保存しました。';
+
+  @override
+  String get clubTrainingNotificationChannelName => 'クラブ練習通知';
+
+  @override
+  String get clubTrainingNotificationChannelDescription => 'クラブ練習開始前のリマインダー';
+
+  @override
+  String clubTrainingNotificationTitle(Object clubName) {
+    return '$clubName 練習準備';
+  }
+
+  @override
+  String clubTrainingNotificationBody(
+      int minutesBefore, Object timeRange, Object uniform) {
+    return '$minutesBefore分後に練習 · $timeRange · ユニフォーム $uniform';
+  }
 
   @override
   String get teamManagementTitle => 'チーム管理';

@@ -18,6 +18,8 @@ class SettingsService extends ChangeNotifier {
   bool _leagueFixtureAlertEnabled = true;
   bool _weatherAlertEnabled = true;
   TimeOfDay _weatherAlertTime = const TimeOfDay(hour: 7, minute: 0);
+  bool _clubTrainingAlertEnabled = true;
+  int _clubTrainingAlertMinutesBefore = 60;
   int _inactivityAlertDays = 3;
 
   SettingsService(this._repository);
@@ -33,6 +35,8 @@ class SettingsService extends ChangeNotifier {
   bool get leagueFixtureAlertEnabled => _leagueFixtureAlertEnabled;
   bool get weatherAlertEnabled => _weatherAlertEnabled;
   TimeOfDay get weatherAlertTime => _weatherAlertTime;
+  bool get clubTrainingAlertEnabled => _clubTrainingAlertEnabled;
+  int get clubTrainingAlertMinutesBefore => _clubTrainingAlertMinutesBefore;
   int get inactivityAlertDays => _inactivityAlertDays;
 
   void load() {
@@ -62,6 +66,15 @@ class SettingsService extends ChangeNotifier {
             _weatherAlertEnabled;
     final weatherTime = _repository.getValue<String>('weather_alert_time');
     _weatherAlertTime = _parseTime(weatherTime) ?? _weatherAlertTime;
+    _clubTrainingAlertEnabled =
+        _repository.getValue<bool>('club_training_alert_enabled') ??
+            _clubTrainingAlertEnabled;
+    _clubTrainingAlertMinutesBefore = _clampInt(
+      _repository.getValue<num>('club_training_alert_minutes_before')?.toInt(),
+      fallback: _clubTrainingAlertMinutesBefore,
+      min: 5,
+      max: 240,
+    );
     _inactivityAlertDays = _clampInt(
       _repository.getValue<num>('inactivity_alert_days')?.toInt(),
       fallback: _inactivityAlertDays,
@@ -134,6 +147,21 @@ class SettingsService extends ChangeNotifier {
   Future<void> setWeatherAlertTime(TimeOfDay time) async {
     _weatherAlertTime = time;
     await _repository.setValue('weather_alert_time', _formatTime(time));
+    _notifyListenersSafely();
+  }
+
+  Future<void> setClubTrainingAlertEnabled(bool enabled) async {
+    _clubTrainingAlertEnabled = enabled;
+    await _repository.setValue('club_training_alert_enabled', enabled);
+    _notifyListenersSafely();
+  }
+
+  Future<void> setClubTrainingAlertMinutesBefore(int minutes) async {
+    _clubTrainingAlertMinutesBefore = minutes.clamp(5, 240);
+    await _repository.setValue(
+      'club_training_alert_minutes_before',
+      _clubTrainingAlertMinutesBefore,
+    );
     _notifyListenersSafely();
   }
 
