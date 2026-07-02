@@ -178,10 +178,18 @@ class HomeHubSectionSettings {
       bySection.putIfAbsent(item.section, () => item);
     }
     return <HomeHubSectionSetting>[
+      bySection[HomeHubSectionId.clubSchedule] ??
+          const HomeHubSectionSetting(
+            section: HomeHubSectionId.clubSchedule,
+            visible: true,
+          ),
       for (final item in parsed)
-        if (bySection[item.section] == item) item,
+        if (item.section != HomeHubSectionId.clubSchedule &&
+            bySection[item.section] == item)
+          item,
       for (final section in defaultOrder)
-        if (!bySection.containsKey(section))
+        if (section != HomeHubSectionId.clubSchedule &&
+            !bySection.containsKey(section))
           HomeHubSectionSetting(section: section, visible: true),
     ];
   }
