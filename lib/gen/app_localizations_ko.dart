@@ -597,6 +597,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get worldCupPdfAction => 'PDF';
 
   @override
+  String get worldCupImageAction => '이미지';
+
+  @override
   String get worldCupSourceShortAction => 'FIFA';
 
   @override
@@ -1539,6 +1542,15 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get worldCupTournamentPdfExportFailedSnack => '대진표 PDF를 만들지 못했어요.';
+
+  @override
+  String get worldCupTournamentImageTooltip => '대진표 이미지 공유';
+
+  @override
+  String get worldCupTournamentImageExportedSnack => '대진표 이미지를 준비했어요.';
+
+  @override
+  String get worldCupTournamentImageExportFailedSnack => '대진표 이미지를 만들지 못했어요.';
 
   @override
   String worldCupStageMatchCount(int count) {

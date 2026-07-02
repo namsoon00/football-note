@@ -631,6 +631,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get worldCupPdfAction => 'PDF';
 
   @override
+  String get worldCupImageAction => 'Image';
+
+  @override
   String get worldCupSourceShortAction => 'FIFA';
 
   @override
@@ -1590,6 +1593,16 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get worldCupTournamentPdfExportFailedSnack =>
       'Could not create the bracket PDF.';
+
+  @override
+  String get worldCupTournamentImageTooltip => 'Share bracket image';
+
+  @override
+  String get worldCupTournamentImageExportedSnack => 'Bracket image is ready.';
+
+  @override
+  String get worldCupTournamentImageExportFailedSnack =>
+      'Could not create the bracket image.';
 
   @override
   String worldCupStageMatchCount(int count) {

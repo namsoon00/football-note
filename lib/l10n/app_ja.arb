@@ -260,6 +260,7 @@
   "worldCupTitle": "ワールドカップ表示",
   "worldCupInfoAction": "説明",
   "worldCupPdfAction": "PDF",
+  "worldCupImageAction": "画像",
   "worldCupSourceShortAction": "FIFA",
   "worldCupHeroTitle": "FIFAワールドカップ2026",
   "worldCupHeroSubtitle": "カナダ、メキシコ、アメリカ · 48チーム",
@@ -923,6 +924,9 @@
   "worldCupTournamentPdfTooltip": "トーナメント表PDFをダウンロード",
   "worldCupTournamentPdfExportedSnack": "トーナメント表PDFを準備しました。",
   "worldCupTournamentPdfExportFailedSnack": "トーナメント表PDFを作成できませんでした。",
+  "worldCupTournamentImageTooltip": "トーナメント表画像を共有",
+  "worldCupTournamentImageExportedSnack": "トーナメント表画像を準備しました。",
+  "worldCupTournamentImageExportFailedSnack": "トーナメント表画像を作成できませんでした。",
   "worldCupStageMatchCount": "{count}試合",
   "@worldCupStageMatchCount": {
     "placeholders": {

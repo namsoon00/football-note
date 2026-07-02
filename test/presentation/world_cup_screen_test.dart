@@ -20,7 +20,7 @@ void main() {
   });
 
   tearDown(() {
-    debugPdfShareOverride = null;
+    debugPngImageShareOverride = null;
     debugCaptureWidgetPngOverride = null;
   });
 
@@ -45,7 +45,7 @@ void main() {
     expect(find.text('설명'), findsOneWidget);
     expect(find.text('FIFA'), findsOneWidget);
     expect(
-      find.byKey(const ValueKey('world-cup-tournament-pdf-button')),
+      find.byKey(const ValueKey('world-cup-tournament-image-button')),
       findsNothing,
     );
     final countrySettingsY = tester.getTopLeft(find.text('내 월드컵 국가')).dy;
@@ -190,7 +190,10 @@ void main() {
     final navigatorObserver = _RecordingNavigatorObserver();
     List<int>? exportedBytes;
     String? exportedFilename;
-    debugPdfShareOverride = ({required bytes, required filename}) async {
+    var captureCount = 0;
+    Size? capturedSize;
+    double? capturedPixelRatio;
+    debugPngImageShareOverride = ({required bytes, required filename}) async {
       exportedBytes = List<int>.from(bytes);
       exportedFilename = filename;
     };
@@ -199,6 +202,9 @@ void main() {
         required child,
         required size,
         required pixelRatio}) async {
+      captureCount += 1;
+      capturedSize = size;
+      capturedPixelRatio = pixelRatio;
       return Uint8List.fromList(_tinyPngBytes);
     };
     await tester.pumpWidget(
@@ -260,11 +266,11 @@ void main() {
     expect(find.byIcon(Icons.zoom_in_rounded), findsOneWidget);
     expect(find.byIcon(Icons.open_in_full_rounded), findsNothing);
     expect(
-      find.byKey(const ValueKey('world-cup-tournament-pdf-button')),
+      find.byKey(const ValueKey('world-cup-tournament-image-button')),
       findsOneWidget,
     );
-    final pdfAction = find.widgetWithText(TextButton, 'PDF');
-    expect(pdfAction, findsOneWidget);
+    final imageAction = find.widgetWithText(TextButton, '이미지');
+    expect(imageAction, findsOneWidget);
 
     await tester.tap(find.byIcon(Icons.zoom_in_rounded));
     await tester.pumpAndSettle();
@@ -273,7 +279,7 @@ void main() {
     await tester.tap(find.byIcon(Icons.restart_alt_rounded));
     await tester.pumpAndSettle();
 
-    await tester.tap(pdfAction);
+    await tester.tap(imageAction);
     await tester.pump();
     await tester.pumpAndSettle(const Duration(milliseconds: 120));
     for (var attempt = 0; attempt < 20 && exportedBytes == null; attempt += 1) {
@@ -282,9 +288,12 @@ void main() {
 
     expect(exportedBytes, isNotNull);
     expect(exportedBytes, isNotEmpty);
+    expect(captureCount, 1);
+    expect(capturedSize, const Size(3400, 1900));
+    expect(capturedPixelRatio, 1);
     expect(exportedFilename, startsWith('world-cup-bracket_'));
-    expect(exportedFilename, endsWith('.pdf'));
-    expect(find.text('대진표 PDF를 준비했어요.'), findsOneWidget);
+    expect(exportedFilename, endsWith('.png'));
+    expect(find.text('대진표 이미지를 준비했어요.'), findsOneWidget);
   });
 
   testWidgets('tournament bracket resolves completed group slots to countries',

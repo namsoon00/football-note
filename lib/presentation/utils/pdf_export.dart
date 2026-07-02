@@ -6,8 +6,14 @@ import 'package:flutter/foundation.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import 'package:share_plus/share_plus.dart';
 
 typedef PdfShareOverride = Future<void> Function({
+  required Uint8List bytes,
+  required String filename,
+});
+
+typedef PngImageShareOverride = Future<void> Function({
   required Uint8List bytes,
   required String filename,
 });
@@ -21,6 +27,9 @@ typedef PdfWidgetCaptureOverride = Future<Uint8List> Function({
 
 @visibleForTesting
 PdfShareOverride? debugPdfShareOverride;
+
+@visibleForTesting
+PngImageShareOverride? debugPngImageShareOverride;
 
 @visibleForTesting
 PdfWidgetCaptureOverride? debugCaptureWidgetPngOverride;
@@ -151,7 +160,43 @@ Future<void> sharePngAsPdf({
   );
 }
 
+Future<void> sharePngImage({
+  required Uint8List pngImage,
+  required String filename,
+  String? title,
+}) async {
+  if (pngImage.isEmpty) {
+    throw StateError('No image to share.');
+  }
+  final override = debugPngImageShareOverride;
+  if (override != null) {
+    await override(bytes: pngImage, filename: filename);
+    return;
+  }
+  await SharePlus.instance.share(
+    ShareParams(
+      title: title ?? filename,
+      files: [
+        XFile.fromData(
+          pngImage,
+          mimeType: 'image/png',
+          name: filename,
+        ),
+      ],
+      fileNameOverrides: [filename],
+    ),
+  );
+}
+
 String timestampedPdfFilename(String prefix) {
+  return _timestampedFilename(prefix, 'pdf');
+}
+
+String timestampedImageFilename(String prefix) {
+  return _timestampedFilename(prefix, 'png');
+}
+
+String _timestampedFilename(String prefix, String extension) {
   final now = DateTime.now();
   final timestamp = '${now.year.toString().padLeft(4, '0')}'
       '${now.month.toString().padLeft(2, '0')}'
@@ -162,5 +207,5 @@ String timestampedPdfFilename(String prefix) {
       .toLowerCase()
       .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
       .replaceAll(RegExp(r'^-+|-+$'), '');
-  return '${safePrefix.isEmpty ? 'export' : safePrefix}_$timestamp.pdf';
+  return '${safePrefix.isEmpty ? 'export' : safePrefix}_$timestamp.$extension';
 }
