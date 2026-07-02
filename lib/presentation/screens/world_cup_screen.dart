@@ -45,12 +45,14 @@ class WorldCupScreen extends StatefulWidget {
   State<WorldCupScreen> createState() => _WorldCupScreenState();
 }
 
+const Size _worldCupTournamentPdfPageSize = Size(1400, 900);
+const double _worldCupTournamentPdfPixelRatio = 1.5;
+
 class _WorldCupScreenState extends State<WorldCupScreen> {
   static const String _supportCountryKey = 'world_cup_support_country_v1';
   static const String _interestCountriesKey = 'world_cup_interest_countries_v1';
   static const double _calendarDayNumberFontSize = 17;
   static const double _selectedDayPageViewportFraction = 0.94;
-  static const Size _tournamentPdfPageSize = Size(1400, 900);
   static final Uri _sourceUri = Uri.parse(
     'https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/articles/match-schedule-fixtures-results-teams-stadiums',
   );
@@ -76,7 +78,6 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
   DateTime? _officialDataRefreshedAt;
   bool _officialDataRefreshing = false;
   bool _officialDataRefreshFailed = false;
-  bool _tournamentPdfExportInProgress = false;
   late final PageController _selectedDayPageController;
   final Map<String, double> _selectedDayMatchPageHeights = <String, double>{};
   double? _selectedDayPagePosition;
@@ -141,16 +142,6 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
             icon: const Icon(Icons.info_outline_rounded),
             label: l10n.worldCupInfoAction,
             maxLabelWidth: 84,
-          ),
-          AppBarActionButton.label(
-            key: const ValueKey('world-cup-tournament-pdf-button'),
-            tooltip: l10n.worldCupTournamentPdfTooltip,
-            onPressed: _tournamentPdfExportInProgress
-                ? null
-                : () => unawaited(_exportTournamentPdf()),
-            icon: const Icon(Icons.picture_as_pdf_outlined),
-            label: l10n.worldCupPdfAction,
-            maxLabelWidth: 56,
           ),
           AppBarActionButton.label(
             tooltip: l10n.worldCupSourceAction,
@@ -506,58 +497,6 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
         ),
       ),
     );
-  }
-
-  Future<void> _exportTournamentPdf() async {
-    if (_tournamentPdfExportInProgress) return;
-    setState(() => _tournamentPdfExportInProgress = true);
-    try {
-      final l10n = AppLocalizations.of(context)!;
-      final qualifiedSlotResolver = _WorldCupRoundOf32QualifiedSlotResolver(
-        _fixtures,
-      );
-      final rounds = _tournamentRounds(context, l10n);
-      final pages = <Uint8List>[];
-      for (final round in rounds) {
-        if (!mounted) return;
-        final pngBytes = await captureWidgetPng(
-          context,
-          size: _tournamentPdfPageSize,
-          child: _WorldCupTournamentRoundPdfPage(
-            round: round,
-            slotBuilder: (fixture, slot, side) => _bracketSlotData(
-              l10n,
-              fixture,
-              slot,
-              side,
-              qualifiedSlotResolver,
-            ),
-            scoreBuilder: _bracketMatchScoreData,
-          ),
-        );
-        pages.add(pngBytes);
-      }
-      await sharePngImagesAsPdf(
-        pngImages: pages,
-        filename: timestampedPdfFilename('world-cup-bracket'),
-      );
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.worldCupTournamentPdfExportedSnack)),
-      );
-    } catch (_) {
-      if (!mounted) return;
-      final l10n = AppLocalizations.of(context)!;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.worldCupTournamentPdfExportFailedSnack)),
-      );
-    } finally {
-      if (mounted) {
-        setState(() => _tournamentPdfExportInProgress = false);
-      } else {
-        _tournamentPdfExportInProgress = false;
-      }
-    }
   }
 
   Widget _buildOverview(BuildContext context) {
@@ -6386,7 +6325,36 @@ typedef _BracketMatchScoreBuilder = _BracketMatchScoreData Function(
 
 enum _BracketSlotSide { home, away }
 
-class _WorldCupTournamentBracketFullScreen extends StatelessWidget {
+Future<bool> _exportWorldCupTournamentBracketPdf({
+  required BuildContext context,
+  required List<_TournamentBracketRound> rounds,
+  required _BracketSlotBuilder slotBuilder,
+  required _BracketMatchScoreBuilder scoreBuilder,
+}) async {
+  final pages = <Uint8List>[];
+  for (final round in rounds) {
+    if (!context.mounted) return false;
+    final pngBytes = await captureWidgetPng(
+      context,
+      size: _worldCupTournamentPdfPageSize,
+      pixelRatio: _worldCupTournamentPdfPixelRatio,
+      child: _WorldCupTournamentRoundPdfPage(
+        round: round,
+        slotBuilder: slotBuilder,
+        scoreBuilder: scoreBuilder,
+      ),
+    );
+    pages.add(pngBytes);
+  }
+  if (!context.mounted) return false;
+  await sharePngImagesAsPdf(
+    pngImages: pages,
+    filename: timestampedPdfFilename('world-cup-bracket'),
+  );
+  return true;
+}
+
+class _WorldCupTournamentBracketFullScreen extends StatefulWidget {
   final List<_TournamentBracketRound> rounds;
   final _BracketSlotBuilder slotBuilder;
   final _BracketMatchScoreBuilder scoreBuilder;
@@ -6398,17 +6366,71 @@ class _WorldCupTournamentBracketFullScreen extends StatelessWidget {
   });
 
   @override
+  State<_WorldCupTournamentBracketFullScreen> createState() =>
+      _WorldCupTournamentBracketFullScreenState();
+}
+
+class _WorldCupTournamentBracketFullScreenState
+    extends State<_WorldCupTournamentBracketFullScreen> {
+  bool _pdfExportInProgress = false;
+
+  Future<void> _exportTournamentPdf() async {
+    if (_pdfExportInProgress) return;
+    setState(() => _pdfExportInProgress = true);
+    try {
+      final exported = await _exportWorldCupTournamentBracketPdf(
+        context: context,
+        rounds: widget.rounds,
+        slotBuilder: widget.slotBuilder,
+        scoreBuilder: widget.scoreBuilder,
+      );
+      if (!mounted || !exported) return;
+      final l10n = AppLocalizations.of(context)!;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.worldCupTournamentPdfExportedSnack)),
+      );
+    } catch (error, stackTrace) {
+      debugPrint('World Cup bracket PDF export failed: $error\n$stackTrace');
+      if (!mounted) return;
+      final l10n = AppLocalizations.of(context)!;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.worldCupTournamentPdfExportFailedSnack)),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _pdfExportInProgress = false);
+      } else {
+        _pdfExportInProgress = false;
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.worldCupTournamentTitle)),
+      appBar: AppBar(
+        title: Text(l10n.worldCupTournamentTitle),
+        actions: [
+          AppBarActionButton.label(
+            key: const ValueKey('world-cup-tournament-pdf-button'),
+            tooltip: l10n.worldCupTournamentPdfTooltip,
+            onPressed: _pdfExportInProgress
+                ? null
+                : () => unawaited(_exportTournamentPdf()),
+            icon: const Icon(Icons.picture_as_pdf_outlined),
+            label: l10n.worldCupPdfAction,
+            maxLabelWidth: 56,
+          ),
+        ],
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
           child: _WorldCupTournamentBracket(
-            rounds: rounds,
-            slotBuilder: slotBuilder,
-            scoreBuilder: scoreBuilder,
+            rounds: widget.rounds,
+            slotBuilder: widget.slotBuilder,
+            scoreBuilder: widget.scoreBuilder,
             fullScreen: true,
           ),
         ),
