@@ -18,6 +18,7 @@ class AutoBackupOptionRepository implements OptionRepository {
     DriveBackupService.parentDriveEmailLocalKey,
     DriveBackupService.parentDriveLabelLocalKey,
     DriveBackupService.parentDriveSubjectLocalKey,
+    'welcome_seen_v1',
   };
 
   final OptionRepository _delegate;
@@ -68,7 +69,8 @@ class AutoBackupOptionRepository implements OptionRepository {
     return _localOnlyKeys.contains(key) ||
         key.startsWith('drive_') ||
         key.startsWith('family_sync_message_') ||
-        key.startsWith('local_pre_restore_');
+        key.startsWith('local_pre_restore_') ||
+        key.startsWith('tab_quick_guide_seen_');
   }
 
   void _runBackup() {
@@ -76,17 +78,17 @@ class AutoBackupOptionRepository implements OptionRepository {
       _rerunAfterInFlight = true;
       return;
     }
-    _inFlight = _backupService
+    final backup = _backupService
         .backupIfSignedIn(requireAutoOnSave: true)
         .then<void>((_) {})
-        .catchError((_) {})
-        .whenComplete(() {
-          _inFlight = null;
-          if (_rerunAfterInFlight) {
-            _rerunAfterInFlight = false;
-            _timer?.cancel();
-            _timer = Timer(_debounceDuration, _runBackup);
-          }
-        });
+        .catchError((_) {});
+    _inFlight = backup.whenComplete(() {
+      _inFlight = null;
+      if (_rerunAfterInFlight) {
+        _rerunAfterInFlight = false;
+        _timer?.cancel();
+        _timer = Timer(_debounceDuration, _runBackup);
+      }
+    });
   }
 }
