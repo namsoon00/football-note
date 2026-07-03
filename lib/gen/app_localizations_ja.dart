@@ -601,7 +601,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String worldCupShareMessage(String url) {
-    return 'FIFAワールドカップ2026の日程、順位、トーナメント表を一緒に見よう。\n$url';
+    return 'Taeo Noteのワールドカップページで、2026年ワールドカップの日程、順位、トーナメント表を一緒に見よう。\n$url';
   }
 
   @override

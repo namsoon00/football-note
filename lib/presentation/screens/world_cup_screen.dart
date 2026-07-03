@@ -56,6 +56,10 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
   static final Uri _sourceUri = Uri.parse(
     'https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/articles/match-schedule-fixtures-results-teams-stadiums',
   );
+  static final Uri _shareUri = Uri.https(
+    'namsoon00.github.io',
+    '/football-note/',
+  ).replace(fragment: '/world-cup');
   static final DateTime _openingDate = DateTime(2026, 6, 11);
   static final DateTime _finalDate = DateTime(2026, 7, 19);
 
@@ -515,7 +519,7 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
       final l10n = AppLocalizations.of(context)!;
       await shareTextContent(
         subject: l10n.worldCupHeroTitle,
-        text: l10n.worldCupShareMessage(_sourceUri.toString()),
+        text: l10n.worldCupShareMessage(_shareUri.toString()),
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

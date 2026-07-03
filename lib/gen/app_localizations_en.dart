@@ -632,7 +632,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String worldCupShareMessage(String url) {
-    return 'Follow the FIFA World Cup 2026 schedule, standings, and tournament bracket together.\n$url';
+    return 'Follow the 2026 World Cup schedule, standings, and tournament bracket on Taeo Note.\n$url';
   }
 
   @override

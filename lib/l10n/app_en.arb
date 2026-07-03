@@ -260,7 +260,7 @@
   "worldCupTitle": "World Cup View",
   "worldCupInfoAction": "Guide",
   "worldCupShareTooltip": "Share World Cup page",
-  "worldCupShareMessage": "Follow the FIFA World Cup 2026 schedule, standings, and tournament bracket together.\n{url}",
+  "worldCupShareMessage": "Follow the 2026 World Cup schedule, standings, and tournament bracket on Taeo Note.\n{url}",
   "@worldCupShareMessage": {
     "placeholders": {
       "url": {

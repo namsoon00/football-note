@@ -598,7 +598,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String worldCupShareMessage(String url) {
-    return 'FIFA 월드컵 2026 일정, 순위, 토너먼트 대진표를 같이 봐요.\n$url';
+    return '태오의노트 월드컵 페이지에서 2026 월드컵 일정, 순위, 토너먼트 대진표를 같이 봐요.\n$url';
   }
 
   @override

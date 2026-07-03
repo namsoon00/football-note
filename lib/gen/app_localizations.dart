@@ -1197,7 +1197,7 @@ abstract class AppLocalizations {
   /// No description provided for @worldCupShareMessage.
   ///
   /// In en, this message translates to:
-  /// **'Follow the FIFA World Cup 2026 schedule, standings, and tournament bracket together.\n{url}'**
+  /// **'Follow the 2026 World Cup schedule, standings, and tournament bracket on Taeo Note.\n{url}'**
   String worldCupShareMessage(String url);
 
   /// No description provided for @worldCupShareOpenedSnack.
