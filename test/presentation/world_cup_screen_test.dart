@@ -13,6 +13,7 @@ import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/world_cup_screen.dart';
 import 'package:football_note/presentation/theme/app_theme.dart';
 import 'package:football_note/presentation/utils/pdf_export.dart';
+import 'package:football_note/presentation/utils/share_utils.dart';
 
 void main() {
   setUpAll(() async {
@@ -22,11 +23,19 @@ void main() {
   tearDown(() {
     debugPngImageShareOverride = null;
     debugCaptureWidgetPngOverride = null;
+    debugTextShareOverride = null;
   });
 
   testWidgets('overview and road to final open from title action', (
     tester,
   ) async {
+    String? sharedText;
+    String? sharedSubject;
+    debugTextShareOverride = ({required text, required subject}) async {
+      sharedText = text;
+      sharedSubject = subject;
+    };
+
     await tester.pumpWidget(
       MaterialApp(
         locale: const Locale('ko', 'KR'),
@@ -45,9 +54,21 @@ void main() {
     expect(find.text('설명'), findsOneWidget);
     expect(find.text('FIFA'), findsOneWidget);
     expect(
+      find.byKey(const ValueKey('world-cup-page-share-button')),
+      findsOneWidget,
+    );
+    expect(
       find.byKey(const ValueKey('world-cup-tournament-image-button')),
       findsNothing,
     );
+    await tester.tap(find.byKey(const ValueKey('world-cup-page-share-button')));
+    await tester.pumpAndSettle();
+
+    expect(sharedSubject, 'FIFA 월드컵 2026');
+    expect(sharedText, contains('FIFA 월드컵 2026 일정'));
+    expect(sharedText, contains('https://www.fifa.com/'));
+    expect(find.text('월드컵 공유를 준비했어요.'), findsOneWidget);
+
     final countrySettingsY = tester.getTopLeft(find.text('내 월드컵 국가')).dy;
     final calendarY = tester.getTopLeft(find.text('전체 경기 캘린더')).dy;
     expect(countrySettingsY, lessThan(calendarY));

@@ -594,6 +594,20 @@ class AppLocalizationsKo extends AppLocalizations {
   String get worldCupInfoAction => '설명';
 
   @override
+  String get worldCupShareTooltip => '월드컵 페이지 공유';
+
+  @override
+  String worldCupShareMessage(String url) {
+    return 'FIFA 월드컵 2026 일정, 순위, 토너먼트 대진표를 같이 봐요.\n$url';
+  }
+
+  @override
+  String get worldCupShareOpenedSnack => '월드컵 공유를 준비했어요.';
+
+  @override
+  String get worldCupShareFailedSnack => '월드컵 공유를 열지 못했어요.';
+
+  @override
   String get worldCupPdfAction => 'PDF';
 
   @override

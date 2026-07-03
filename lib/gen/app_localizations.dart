@@ -1188,6 +1188,30 @@ abstract class AppLocalizations {
   /// **'Guide'**
   String get worldCupInfoAction;
 
+  /// No description provided for @worldCupShareTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Share World Cup page'**
+  String get worldCupShareTooltip;
+
+  /// No description provided for @worldCupShareMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow the FIFA World Cup 2026 schedule, standings, and tournament bracket together.\n{url}'**
+  String worldCupShareMessage(String url);
+
+  /// No description provided for @worldCupShareOpenedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'World Cup share is ready.'**
+  String get worldCupShareOpenedSnack;
+
+  /// No description provided for @worldCupShareFailedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open World Cup sharing.'**
+  String get worldCupShareFailedSnack;
+
   /// No description provided for @worldCupPdfAction.
   ///
   /// In en, this message translates to:

@@ -16,6 +16,7 @@ import '../../domain/repositories/option_repository.dart';
 import '../../gen/app_localizations.dart';
 import '../utils/kickoff_time_format.dart';
 import '../utils/pdf_export.dart';
+import '../utils/share_utils.dart';
 import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_page_route.dart';
@@ -77,6 +78,7 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
   DateTime? _officialDataRefreshedAt;
   bool _officialDataRefreshing = false;
   bool _officialDataRefreshFailed = false;
+  bool _pageShareInProgress = false;
   late final PageController _selectedDayPageController;
   final Map<String, double> _selectedDayMatchPageHeights = <String, double>{};
   double? _selectedDayPagePosition;
@@ -141,6 +143,14 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
             icon: const Icon(Icons.info_outline_rounded),
             label: l10n.worldCupInfoAction,
             maxLabelWidth: 84,
+          ),
+          AppBarActionButton.icon(
+            key: const ValueKey('world-cup-page-share-button'),
+            tooltip: l10n.worldCupShareTooltip,
+            onPressed: _pageShareInProgress
+                ? null
+                : () => unawaited(_shareWorldCupPage()),
+            icon: Icons.ios_share_rounded,
           ),
           AppBarActionButton.label(
             tooltip: l10n.worldCupSourceAction,
@@ -496,6 +506,35 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _shareWorldCupPage() async {
+    if (_pageShareInProgress) return;
+    setState(() => _pageShareInProgress = true);
+    try {
+      final l10n = AppLocalizations.of(context)!;
+      await shareTextContent(
+        subject: l10n.worldCupHeroTitle,
+        text: l10n.worldCupShareMessage(_sourceUri.toString()),
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.worldCupShareOpenedSnack)),
+      );
+    } catch (error, stackTrace) {
+      debugPrint('World Cup page share failed: $error\n$stackTrace');
+      if (!mounted) return;
+      final l10n = AppLocalizations.of(context)!;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.worldCupShareFailedSnack)),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _pageShareInProgress = false);
+      } else {
+        _pageShareInProgress = false;
+      }
+    }
   }
 
   Widget _buildOverview(BuildContext context) {
