@@ -87,6 +87,7 @@ void main() {
         host: 'weather',
         path: '/detail',
       );
+      expectLink('/world-cup', host: 'world-cup', path: '');
     });
 
     test('accepts previous app scheme payloads as legacy aliases', () {

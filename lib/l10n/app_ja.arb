@@ -260,7 +260,7 @@
   "worldCupTitle": "ワールドカップ表示",
   "worldCupInfoAction": "説明",
   "worldCupShareTooltip": "ワールドカップページを共有",
-  "worldCupShareMessage": "FIFAワールドカップ2026の日程、順位、トーナメント表を一緒に見よう。\n{url}",
+  "worldCupShareMessage": "Taeo Noteのワールドカップページで、2026年ワールドカップの日程、順位、トーナメント表を一緒に見よう。\n{url}",
   "@worldCupShareMessage": {
     "placeholders": {
       "url": {

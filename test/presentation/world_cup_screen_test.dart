@@ -65,8 +65,12 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(sharedSubject, 'FIFA 월드컵 2026');
-    expect(sharedText, contains('FIFA 월드컵 2026 일정'));
-    expect(sharedText, contains('https://www.fifa.com/'));
+    expect(sharedText, contains('태오의노트 월드컵 페이지'));
+    expect(
+      sharedText,
+      contains('https://namsoon00.github.io/football-note/#/world-cup'),
+    );
+    expect(sharedText, isNot(contains('https://www.fifa.com/')));
     expect(find.text('월드컵 공유를 준비했어요.'), findsOneWidget);
 
     final countrySettingsY = tester.getTopLeft(find.text('내 월드컵 국가')).dy;
