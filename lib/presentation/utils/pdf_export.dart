@@ -8,6 +8,8 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:share_plus/share_plus.dart';
 
+import 'png_image_download.dart';
+
 typedef PdfShareOverride = Future<void> Function({
   required Uint8List bytes,
   required String filename,
@@ -171,6 +173,10 @@ Future<void> sharePngImage({
   final override = debugPngImageShareOverride;
   if (override != null) {
     await override(bytes: pngImage, filename: filename);
+    return;
+  }
+  if (kIsWeb) {
+    await downloadPngImage(pngImage: pngImage, filename: filename);
     return;
   }
   await SharePlus.instance.share(
