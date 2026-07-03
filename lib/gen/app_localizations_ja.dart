@@ -597,6 +597,20 @@ class AppLocalizationsJa extends AppLocalizations {
   String get worldCupInfoAction => '説明';
 
   @override
+  String get worldCupShareTooltip => 'ワールドカップページを共有';
+
+  @override
+  String worldCupShareMessage(String url) {
+    return 'FIFAワールドカップ2026の日程、順位、トーナメント表を一緒に見よう。\n$url';
+  }
+
+  @override
+  String get worldCupShareOpenedSnack => 'ワールドカップ共有を準備しました。';
+
+  @override
+  String get worldCupShareFailedSnack => 'ワールドカップ共有を開けませんでした。';
+
+  @override
   String get worldCupPdfAction => 'PDF';
 
   @override

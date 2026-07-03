@@ -259,6 +259,17 @@
   },
   "worldCupTitle": "ワールドカップ表示",
   "worldCupInfoAction": "説明",
+  "worldCupShareTooltip": "ワールドカップページを共有",
+  "worldCupShareMessage": "FIFAワールドカップ2026の日程、順位、トーナメント表を一緒に見よう。\n{url}",
+  "@worldCupShareMessage": {
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupShareOpenedSnack": "ワールドカップ共有を準備しました。",
+  "worldCupShareFailedSnack": "ワールドカップ共有を開けませんでした。",
   "worldCupPdfAction": "PDF",
   "worldCupImageAction": "画像",
   "worldCupSourceShortAction": "FIFA",

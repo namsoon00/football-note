@@ -628,6 +628,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get worldCupInfoAction => 'Guide';
 
   @override
+  String get worldCupShareTooltip => 'Share World Cup page';
+
+  @override
+  String worldCupShareMessage(String url) {
+    return 'Follow the FIFA World Cup 2026 schedule, standings, and tournament bracket together.\n$url';
+  }
+
+  @override
+  String get worldCupShareOpenedSnack => 'World Cup share is ready.';
+
+  @override
+  String get worldCupShareFailedSnack => 'Could not open World Cup sharing.';
+
+  @override
   String get worldCupPdfAction => 'PDF';
 
   @override

@@ -259,6 +259,17 @@
   },
   "worldCupTitle": "World Cup View",
   "worldCupInfoAction": "Guide",
+  "worldCupShareTooltip": "Share World Cup page",
+  "worldCupShareMessage": "Follow the FIFA World Cup 2026 schedule, standings, and tournament bracket together.\n{url}",
+  "@worldCupShareMessage": {
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupShareOpenedSnack": "World Cup share is ready.",
+  "worldCupShareFailedSnack": "Could not open World Cup sharing.",
   "worldCupPdfAction": "PDF",
   "worldCupImageAction": "Image",
   "worldCupSourceShortAction": "FIFA",
