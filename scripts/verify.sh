@@ -60,6 +60,9 @@ echo "==> issue worker plan classifier regression"
 echo "==> issue worker wording regression"
 ./scripts/test_issue_worker_plan_wording.sh
 
+echo "==> web asset version stamp regression"
+./scripts/test_web_asset_version_stamp.sh
+
 if [[ "${VERIFY_SCOPE}" == "minimal" ]]; then
   echo "==> minimal verification complete (skipping flutter test/run)"
   exit 0

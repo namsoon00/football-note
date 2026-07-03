@@ -19,6 +19,7 @@ required_files=(
   "${target_dir}/index.html"
   "${target_dir}/flutter_bootstrap.js"
 )
+version_file="${target_dir}/version.json"
 
 for file in "${required_files[@]}"; do
   if [[ ! -f "${file}" ]]; then
@@ -35,5 +36,10 @@ if grep -R "__WEB_ASSET_VERSION__" "${required_files[@]}" >/dev/null; then
   echo "Unstamped web asset version placeholder remains." >&2
   exit 1
 fi
+
+generated_at="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+printf '{"assetVersion":"%s","generatedAt":"%s"}\n' \
+  "${version}" \
+  "${generated_at}" >"${version_file}"
 
 echo "Stamped web asset version: ${version}"
