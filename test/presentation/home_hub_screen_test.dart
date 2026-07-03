@@ -160,13 +160,16 @@ void main() {
         fetchedAt: DateTime(2026, 6, 21, 9),
         summary: '소나기 18°C',
         weatherCode: 61,
+        pm10: 42,
+        pm25: 18,
       ),
     );
     await tester.pump();
     await tester.pump();
 
-    expect(find.text('소나기'), findsOneWidget);
     expect(find.text('18°C'), findsOneWidget);
+    expect(find.text('미세먼지 42'), findsOneWidget);
+    expect(find.text('소나기'), findsNothing);
     expect(
       optionRepository.getValue<String>('home_weather_snapshot_v1'),
       contains('소나기 18°C'),
