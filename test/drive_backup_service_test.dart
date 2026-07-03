@@ -338,6 +338,9 @@ void main() {
     await optionBox.put('benchmark_synced_at_v2', 'local-cache');
     await optionBox.put('training_plan_last_reminder_minutes_before_v1', 60);
     await optionBox.put('league_standings_last_selected_type_v1', 'epl');
+    await optionBox.put('welcome_seen_v1', true);
+    await optionBox.put('tab_quick_guide_seen_parent_mode_v1', true);
+    await optionBox.put('tab_quick_guide_seen_v1_0', true);
 
     await service.restoreFromMapForTesting(<String, dynamic>{
       'version': 6,
@@ -391,6 +394,9 @@ void main() {
     expect(optionBox.get('benchmark_synced_at_v2'), 'local-cache');
     expect(optionBox.get('training_plan_last_reminder_minutes_before_v1'), 60);
     expect(optionBox.get('league_standings_last_selected_type_v1'), 'epl');
+    expect(optionBox.get('welcome_seen_v1'), isTrue);
+    expect(optionBox.get('tab_quick_guide_seen_parent_mode_v1'), isTrue);
+    expect(optionBox.get('tab_quick_guide_seen_v1_0'), isTrue);
   });
 
   test('backs up and restores typed option values in v2 schema', () async {

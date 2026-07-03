@@ -457,6 +457,7 @@ class DriveBackupService implements BackupRepository {
     'logs_filter_jump_rope_only',
     'logs_filter_feedback_only',
     'logs_quick_guide_seen_v1',
+    'welcome_seen_v1',
     'league_standings_last_selected_league_v1',
     'league_standings_last_selected_type_v1',
     'league_standings_favorite_fixture_filter_types_v1',
@@ -477,6 +478,7 @@ class DriveBackupService implements BackupRepository {
     'last_training_log_at_v1_',
     'league_fixture_message_',
     'logs_filter_',
+    'tab_quick_guide_seen_',
   ];
   static const _backupVersion = 6;
   static const _typedValueKey = '__type';

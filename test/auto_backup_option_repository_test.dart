@@ -34,6 +34,8 @@ void main() {
       await repository.setValue('drive_last_backup', '2026-05-12T00:00:00.000');
       await repository.setValue('family_current_role_local_v1', 'parent');
       await repository.setValue('local_pre_restore_backup', '{}');
+      await repository.setValue('welcome_seen_v1', true);
+      await repository.setValue('tab_quick_guide_seen_parent_mode_v1', true);
       await Future<void>.delayed(Duration.zero);
       await Future<void>.delayed(Duration.zero);
 
