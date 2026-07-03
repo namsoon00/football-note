@@ -124,6 +124,8 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   String _weatherLocation = '';
   String _weatherSummary = '';
   int? _weatherCode;
+  double? _weatherPm10;
+  double? _weatherPm25;
   Timer? _initialWeatherTimer;
   StreamSubscription<WeatherSharedSnapshot>? _weatherSnapshotSubscription;
   late Stream<List<TrainingEntry>> _trainingEntriesStream;
@@ -335,6 +337,8 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                                 weatherLoadFailed: _weatherLoadFailed,
                                 weatherSummary: _weatherSummary.trim(),
                                 weatherCode: _weatherCode,
+                                pm10: _weatherPm10,
+                                pm25: _weatherPm25,
                                 onTap: _weatherBadgeTapAction(),
                               ),
                             ),
@@ -586,6 +590,8 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
       _weatherLocation = snapshot.location;
       _weatherCode = snapshot.weatherCode;
       _weatherSummary = snapshot.summary;
+      _weatherPm10 = snapshot.pm10;
+      _weatherPm25 = snapshot.pm25;
     });
   }
 
@@ -601,6 +607,8 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
       if (map['localeTag']?.toString() != locale.toLanguageTag()) return null;
       final summary = map['summary']?.toString().trim() ?? '';
       final weatherCode = (map['weatherCode'] as num?)?.toInt();
+      final pm10 = (map['pm10'] as num?)?.toDouble();
+      final pm25 = (map['pm25'] as num?)?.toDouble();
       if (summary.isEmpty && weatherCode == null) return null;
       return WeatherSharedSnapshot(
         location: map['location']?.toString() ?? '',
@@ -609,6 +617,8 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
             DateTime.fromMillisecondsSinceEpoch(0),
         summary: summary,
         weatherCode: weatherCode,
+        pm10: pm10,
+        pm25: pm25,
       );
     } catch (_) {
       return null;
@@ -629,6 +639,8 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
         'fetchedAt': snapshot.fetchedAt.toIso8601String(),
         'summary': snapshot.summary,
         'weatherCode': snapshot.weatherCode,
+        'pm10': snapshot.pm10,
+        'pm25': snapshot.pm25,
       }),
     );
   }
@@ -681,6 +693,8 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
             _weatherLocation = '';
             _weatherCode = null;
             _weatherSummary = '';
+            _weatherPm10 = null;
+            _weatherPm25 = null;
           }
         });
         return;
@@ -701,6 +715,8 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
               _weatherLocation = '';
               _weatherCode = null;
               _weatherSummary = '';
+              _weatherPm10 = null;
+              _weatherPm25 = null;
             }
           });
         }
@@ -757,6 +773,8 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
           _weatherLocation = place;
           _weatherCode = resolvedWeather.weatherCode;
           _weatherSummary = resolvedWeather.summary;
+          _weatherPm10 = resolvedWeather.pm10;
+          _weatherPm25 = resolvedWeather.pm25;
         });
       } else {
         setState(() {
@@ -767,6 +785,8 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
             _weatherLocation = place;
             _weatherCode = null;
             _weatherSummary = '';
+            _weatherPm10 = null;
+            _weatherPm25 = null;
           }
         });
         if (requestPermission && mounted) {
@@ -784,6 +804,8 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
           if (!hasWeather) {
             _weatherCode = null;
             _weatherSummary = '';
+            _weatherPm10 = null;
+            _weatherPm25 = null;
           }
         });
       }
@@ -1902,6 +1924,8 @@ class _TodayWeatherButton extends StatelessWidget {
   final bool weatherLoadFailed;
   final String weatherSummary;
   final int? weatherCode;
+  final double? pm10;
+  final double? pm25;
   final VoidCallback onTap;
 
   const _TodayWeatherButton({
@@ -1912,6 +1936,8 @@ class _TodayWeatherButton extends StatelessWidget {
     required this.weatherLoadFailed,
     required this.weatherSummary,
     required this.weatherCode,
+    required this.pm10,
+    required this.pm25,
     required this.onTap,
   });
 
@@ -2059,13 +2085,31 @@ class _TodayWeatherButton extends StatelessWidget {
     }
   }
 
+  String _formatAirMetric(double value) {
+    if (value == value.roundToDouble()) {
+      return value.round().toString();
+    }
+    return value.toStringAsFixed(1);
+  }
+
+  String? _airQualitySummary() {
+    final value = pm10 ?? pm25;
+    if (value == null) return null;
+    final label = pm10 != null ? l10n.homeWeatherPm10 : l10n.homeWeatherPm25;
+    return '$label ${_formatAirMetric(value)}';
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final hasWeather = weatherSummary.isNotEmpty;
     final palette = _palette(theme);
+    final airQualitySummary = _airQualitySummary();
     final parts = hasWeather
-        ? _HomeWeatherBadgeParts.parse(weatherSummary)
+        ? _HomeWeatherBadgeParts.fromWeatherSummary(
+            weatherSummary,
+            airQualitySummary: airQualitySummary,
+          )
         : _HomeWeatherBadgeParts(
             primary: weatherLoadFailed
                 ? l10n.homeWeatherRetryTitle
@@ -2182,15 +2226,21 @@ class _HomeWeatherBadgeParts {
     required this.secondary,
   });
 
-  factory _HomeWeatherBadgeParts.parse(String text) {
+  factory _HomeWeatherBadgeParts.fromWeatherSummary(
+    String text, {
+    required String? airQualitySummary,
+  }) {
     final trimmed = text.trim();
     final match = RegExp(r'^(.+?)\s+(-?\d+(?:\.\d+)?°C)$').firstMatch(trimmed);
     if (match == null) {
-      return _HomeWeatherBadgeParts(primary: trimmed, secondary: null);
+      return _HomeWeatherBadgeParts(
+        primary: airQualitySummary ?? trimmed,
+        secondary: null,
+      );
     }
     return _HomeWeatherBadgeParts(
       primary: match.group(2)!,
-      secondary: match.group(1)!,
+      secondary: airQualitySummary,
     );
   }
 }
