@@ -180,6 +180,7 @@ class ChallengeRun {
   final List<String> selectedSkillIds;
   final ChallengeMissionTargets? missionTargets;
   final int cadenceDays;
+  final String rewardGift;
 
   const ChallengeRun({
     required this.id,
@@ -194,6 +195,7 @@ class ChallengeRun {
     this.selectedSkillIds = defaultChallengeSkillIds,
     this.missionTargets,
     this.cadenceDays = 1,
+    this.rewardGift = '',
   });
 
   bool get isEnded => completedAt != null || result != null;
@@ -211,6 +213,8 @@ class ChallengeRun {
   DateTime get startDay => normalizeDay(startedAt);
 
   int get normalizedCadenceDays => cadenceDays < 1 ? 1 : cadenceDays;
+
+  bool get hasRewardGift => rewardGift.trim().isNotEmpty;
 
   DateTime dayForRound(int roundNumber) {
     return startDay.add(
@@ -231,6 +235,7 @@ class ChallengeRun {
     List<String>? selectedSkillIds,
     ChallengeMissionTargets? missionTargets,
     int? cadenceDays,
+    String? rewardGift,
   }) {
     return ChallengeRun(
       id: id ?? this.id,
@@ -246,6 +251,7 @@ class ChallengeRun {
       selectedSkillIds: selectedSkillIds ?? this.selectedSkillIds,
       missionTargets: missionTargets ?? this.missionTargets,
       cadenceDays: cadenceDays ?? this.cadenceDays,
+      rewardGift: rewardGift ?? this.rewardGift,
     );
   }
 
@@ -263,6 +269,7 @@ class ChallengeRun {
       'selectedSkillIds': selectedSkillIds,
       'missionTargets': missionTargets?.toMap(),
       'cadenceDays': normalizedCadenceDays,
+      'rewardGift': rewardGift.trim(),
     };
   }
 
@@ -304,6 +311,7 @@ class ChallengeRun {
             )
           : null,
       cadenceDays: _positiveIntOrDefault(map['cadenceDays'], 1),
+      rewardGift: _trimmedString(map['rewardGift']),
     );
   }
 }
@@ -747,4 +755,8 @@ double _nonNegativeDouble(Object? raw) {
       raw is num ? raw.toDouble() : double.tryParse(raw?.toString() ?? '');
   if (value == null || value < 0) return 0;
   return value;
+}
+
+String _trimmedString(Object? raw) {
+  return raw?.toString().trim() ?? '';
 }

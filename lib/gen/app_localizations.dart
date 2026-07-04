@@ -16884,13 +16884,13 @@ abstract class AppLocalizations {
   /// No description provided for @parentReadOnlyChallengeSummary.
   ///
   /// In en, this message translates to:
-  /// **'Challenge is view only here.'**
+  /// **'Parent mode can create challenges.'**
   String get parentReadOnlyChallengeSummary;
 
   /// No description provided for @parentReadOnlyChallengeMessage.
   ///
   /// In en, this message translates to:
-  /// **'Parent mode cannot start challenges or edit missions. You can only review challenge progress created in player mode.'**
+  /// **'In Parent mode, you can create challenges and set finish gifts. Mission records are still entered in player mode.'**
   String get parentReadOnlyChallengeMessage;
 
   /// No description provided for @parentReadOnlyDiaryMessage.
@@ -20615,6 +20615,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A big finish bonus is waiting'**
   String get challengeRewardPitchTitle;
+
+  /// No description provided for @challengeRewardGiftSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Gift reward'**
+  String get challengeRewardGiftSectionTitle;
+
+  /// No description provided for @challengeRewardGiftSectionSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Write the gift to give when the challenge is finished.'**
+  String get challengeRewardGiftSectionSubtitle;
+
+  /// No description provided for @challengeRewardGiftInputLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish gift'**
+  String get challengeRewardGiftInputLabel;
+
+  /// No description provided for @challengeRewardGiftInputHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Example: new football'**
+  String get challengeRewardGiftInputHint;
+
+  /// No description provided for @challengeRewardGiftPill.
+  ///
+  /// In en, this message translates to:
+  /// **'Gift: {gift}'**
+  String challengeRewardGiftPill(Object gift);
+
+  /// No description provided for @challengeRewardGiftPromisedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish gift'**
+  String get challengeRewardGiftPromisedLabel;
+
+  /// No description provided for @challengeRewardGiftPromisedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish the challenge to earn this gift: {gift}.'**
+  String challengeRewardGiftPromisedBody(Object gift);
 
   /// No description provided for @challengeRewardGuideTitle.
   ///

@@ -5508,8 +5508,8 @@
   "parentReadOnlyCalendarSummary": "Calendar is view only here.",
   "parentReadOnlyCalendarBanner": "Parent mode keeps the calendar read-only. Update plans, matches, and meals in player mode.",
   "parentReadOnlyCalendarMessage": "Parent mode cannot edit the calendar.",
-  "parentReadOnlyChallengeSummary": "Challenge is view only here.",
-  "parentReadOnlyChallengeMessage": "Parent mode cannot start challenges or edit missions. You can only review challenge progress created in player mode.",
+  "parentReadOnlyChallengeSummary": "Parent mode can create challenges.",
+  "parentReadOnlyChallengeMessage": "In Parent mode, you can create challenges and set finish gifts. Mission records are still entered in player mode.",
   "parentReadOnlyDiaryMessage": "Parent mode cannot edit the diary.",
   "parentReadOnlyDiaryBadge": "Parent mode read-only",
   "parentReadOnlySketchMessage": "Parent mode cannot edit training sketches.",
@@ -6629,6 +6629,23 @@
     }
   },
   "challengeRewardPitchTitle": "A big finish bonus is waiting",
+  "challengeRewardGiftSectionTitle": "Gift reward",
+  "challengeRewardGiftSectionSubtitle": "Write the gift to give when the challenge is finished.",
+  "challengeRewardGiftInputLabel": "Finish gift",
+  "challengeRewardGiftInputHint": "Example: new football",
+  "challengeRewardGiftPill": "Gift: {gift}",
+  "@challengeRewardGiftPill": {
+    "placeholders": {
+      "gift": {}
+    }
+  },
+  "challengeRewardGiftPromisedLabel": "Finish gift",
+  "challengeRewardGiftPromisedBody": "Finish the challenge to earn this gift: {gift}.",
+  "@challengeRewardGiftPromisedBody": {
+    "placeholders": {
+      "gift": {}
+    }
+  },
   "challengeRewardGuideTitle": "Challenge rewards",
   "challengeRewardGuideBody": "Round rewards grow when rounds are completed consecutively. A finished challenge also adds the finish bonus.",
   "challengeRewardGuideNoActive": "No active challenge is running. Start a challenge to see earned and remaining XP.",

@@ -5508,8 +5508,8 @@
   "parentReadOnlyCalendarSummary": "カレンダーはここでのみ表示されます。",
   "parentReadOnlyCalendarBanner": "親モードでは、カレンダーは読み取り専用になります。プレーヤーモードでのプラン、試合、食事を更新します。",
   "parentReadOnlyCalendarMessage": "親モードではカレンダーを編集できません。",
-  "parentReadOnlyChallengeSummary": "チャレンジはここでのみ表示されます。",
-  "parentReadOnlyChallengeMessage": "親モードではチャレンジを開始したりミッションを編集したりできません。プレイヤーモードで進めたチャレンジ状況のみ確認できます。",
+  "parentReadOnlyChallengeSummary": "親モードでチャレンジを作成できます。",
+  "parentReadOnlyChallengeMessage": "親モードではチャレンジを作成し、完走ギフトを設定できます。ミッション記録はプレイヤーモードで入力します。",
   "parentReadOnlyDiaryMessage": "親モードでは日記を編集できません。",
   "parentReadOnlyDiaryBadge": "親モードは読み取り専用",
   "parentReadOnlySketchMessage": "親モードではトレーニング スケッチを編集できません。",
@@ -6629,6 +6629,23 @@
     }
   },
   "challengeRewardPitchTitle": "完走すると大きなボーナスがあります",
+  "challengeRewardGiftSectionTitle": "ギフト報酬",
+  "challengeRewardGiftSectionSubtitle": "チャレンジを最後まで完走したときに渡すギフトを書いておきましょう。",
+  "challengeRewardGiftInputLabel": "完走ギフト",
+  "challengeRewardGiftInputHint": "例: 新しいサッカーボール",
+  "challengeRewardGiftPill": "ギフト: {gift}",
+  "@challengeRewardGiftPill": {
+    "placeholders": {
+      "gift": {}
+    }
+  },
+  "challengeRewardGiftPromisedLabel": "完走ギフト",
+  "challengeRewardGiftPromisedBody": "完走すると{gift}のギフトが待っています。",
+  "@challengeRewardGiftPromisedBody": {
+    "placeholders": {
+      "gift": {}
+    }
+  },
   "challengeRewardGuideTitle": "チャレンジ報酬",
   "challengeRewardGuideBody": "ラウンドを連続で完了するほどラウンド報酬が増えます。最後まで完走すると完走ボーナスも加算されます。",
   "challengeRewardGuideNoActive": "進行中のチャレンジはありません。チャレンジを始めると獲得済みXPと残りXPを確認できます。",

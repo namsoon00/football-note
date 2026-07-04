@@ -71,6 +71,7 @@ class ChallengeService {
     List<String> selectedSkillIds = defaultChallengeSkillIds,
     ChallengeMissionTargets? missionTargets,
     int cadenceDays = 1,
+    String rewardGift = '',
     DateTime? startedAt,
   }) async {
     final start = startedAt ?? DateTime.now();
@@ -85,6 +86,7 @@ class ChallengeService {
       ),
       missionTargets: missionTargets,
       cadenceDays: cadenceDays,
+      rewardGift: rewardGift.trim(),
     );
     final runs = loadRuns().toList(growable: true);
     runs.insert(0, run);
@@ -98,6 +100,7 @@ class ChallengeService {
     List<String> selectedSkillIds = defaultChallengeSkillIds,
     ChallengeMissionTargets? missionTargets,
     int cadenceDays = 1,
+    String? rewardGift,
   }) async {
     ChallengeRun? updatedRun;
     final completedRoundLimit = template.dayCount;
@@ -116,6 +119,7 @@ class ChallengeService {
           missionTargets: missionTargets,
           cadenceDays: cadenceDays,
           completedRoundNumbers: completedRoundNumbers,
+          rewardGift: rewardGift?.trim() ?? run.rewardGift,
         );
         return updatedRun!;
       },

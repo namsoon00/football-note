@@ -230,6 +230,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
           latestCompletedRun: latestCompletedRun,
           latestCompletedTemplate: latestCompletedTemplate,
           skillOptions: skillOptions,
+          canEditRewardGift: readOnly,
           onOpenTrainingPrograms: _openTrainingProgramSetup,
           onStart: _startChallenge,
           submitLabel: l10n.challengeStartAction,
@@ -250,14 +251,22 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
           initialRun: selectedProgress.run,
           initialTemplate: selectedProgress.template,
           skillOptions: skillOptions,
+          canEditRewardGift: readOnly,
           onOpenTrainingPrograms: _openTrainingProgramSetup,
-          onStart: (template, selectedSkillIds, missionTargets, cadenceDays) =>
+          onStart: (
+            template,
+            selectedSkillIds,
+            missionTargets,
+            cadenceDays,
+            rewardGift,
+          ) =>
               _updateChallenge(
             selectedProgress.run.id,
             template,
             selectedSkillIds,
             missionTargets,
             cadenceDays,
+            rewardGift,
           ),
           submitLabel: l10n.challengeUpdateAction,
           submitIcon: Icons.check_rounded,
@@ -267,7 +276,6 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     if (_mode == _ChallengeScreenMode.detail && selectedProgress != null) {
       return [
         _ChallengeDetailActions(
-          readOnly: readOnly,
           onEdit: () => _showChallengeEdit(selectedProgress),
         ),
         const SizedBox(height: 12),
@@ -301,9 +309,6 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     required ChallengeTemplate? latestCompletedTemplate,
     required bool readOnly,
   }) {
-    if (progresses.isEmpty && readOnly) {
-      return const <Widget>[_ChallengeReadOnlyEmptySection()];
-    }
     final widgets = <Widget>[];
     if (progresses.isEmpty) {
       if (latestCompletedRun != null && latestCompletedTemplate != null) {
@@ -324,6 +329,10 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
           ),
         );
         widgets.add(const SizedBox(height: 18));
+      }
+      if (readOnly) {
+        widgets.add(const _ParentReadOnlyChallengeNotice());
+        widgets.add(const SizedBox(height: 14));
       }
       widgets.add(
         FilledButton.icon(
@@ -346,24 +355,22 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
         _ChallengeListCard(
           progress: progress,
           templateTitle: _templateTitle(l10n, progress.template),
-          readOnly: readOnly,
+          readOnly: false,
           onOpen: () => _showChallengeDetail(progress),
           onEdit: () => _showChallengeEdit(progress),
         ),
       );
       widgets.add(const SizedBox(height: 10));
     }
-    if (!readOnly) {
-      widgets.add(const SizedBox(height: 8));
-      widgets.add(
-        OutlinedButton.icon(
-          key: const ValueKey('challenge-create-button'),
-          onPressed: _showChallengeCreate,
-          icon: const Icon(Icons.add_rounded),
-          label: Text(l10n.challengeCreateAnotherTitle),
-        ),
-      );
-    }
+    widgets.add(const SizedBox(height: 8));
+    widgets.add(
+      OutlinedButton.icon(
+        key: const ValueKey('challenge-create-button'),
+        onPressed: _showChallengeCreate,
+        icon: const Icon(Icons.add_rounded),
+        label: Text(l10n.challengeCreateAnotherTitle),
+      ),
+    );
     return widgets;
   }
 
@@ -384,10 +391,6 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   }
 
   void _showChallengeCreate() {
-    if (_isParentReadOnlyMode) {
-      _showParentReadOnlyMessage();
-      return;
-    }
     setState(() {
       _mode = _ChallengeScreenMode.create;
       _selectedRunId = null;
@@ -402,10 +405,6 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   }
 
   void _showChallengeEdit(ChallengeProgress progress) {
-    if (_isParentReadOnlyMode) {
-      _showParentReadOnlyMessage();
-      return;
-    }
     setState(() {
       _mode = _ChallengeScreenMode.edit;
       _selectedRunId = progress.run.id;
@@ -559,6 +558,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
             gainedXp: gainedXp,
             awardedRoundCount: awardedRoundCount,
             challengeCompleted: false,
+            rewardGift: progress.run.rewardGift,
             roundGainedXp: gainedXp,
             completionGainedXp: 0,
             missionSummaries: _completedMissionSummariesForRounds(
@@ -661,6 +661,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
               gainedXp: gainedXp,
               awardedRoundCount: awardedRoundCount,
               challengeCompleted: progress.allRoundsCompleted,
+              rewardGift: progress.run.rewardGift,
               roundGainedXp: roundGainedXp,
               completionGainedXp: completionGainedXp,
               missionSummaries: _completedMissionSummariesForRounds(
@@ -837,11 +838,8 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     List<String> selectedSkillIds,
     ChallengeMissionTargets missionTargets,
     int cadenceDays,
+    String rewardGift,
   ) async {
-    if (_isParentReadOnlyMode) {
-      _showParentReadOnlyMessage();
-      return;
-    }
     final l10n = AppLocalizations.of(context)!;
     _playChallengeTapFeedback();
     final run = await _challengeService.startChallenge(
@@ -849,14 +847,19 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       selectedSkillIds: selectedSkillIds,
       missionTargets: missionTargets,
       cadenceDays: cadenceDays,
+      rewardGift: rewardGift,
     );
+    await _syncParentChallengeBackupIfPossible();
     if (!mounted) return;
     setState(() {
       _mode = _ChallengeScreenMode.detail;
       _selectedRunId = run.id;
     });
     _showChallengeTopSnackBar(
-      l10n.challengeStartSnack(_templateTitle(l10n, template)),
+      _challengeSnackWithParentSync(
+        l10n,
+        l10n.challengeStartSnack(_templateTitle(l10n, template)),
+      ),
     );
   }
 
@@ -866,11 +869,8 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     List<String> selectedSkillIds,
     ChallengeMissionTargets missionTargets,
     int cadenceDays,
+    String rewardGift,
   ) async {
-    if (_isParentReadOnlyMode) {
-      _showParentReadOnlyMessage();
-      return;
-    }
     final l10n = AppLocalizations.of(context)!;
     _playChallengeTapFeedback();
     final updatedRun = await _challengeService.updateRun(
@@ -879,7 +879,9 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       selectedSkillIds: selectedSkillIds,
       missionTargets: missionTargets,
       cadenceDays: cadenceDays,
+      rewardGift: rewardGift,
     );
+    await _syncParentChallengeBackupIfPossible();
     if (!mounted) return;
     if (updatedRun == null) {
       setState(() {
@@ -894,7 +896,9 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       _mode = _ChallengeScreenMode.detail;
       _selectedRunId = updatedRun.id;
     });
-    _showChallengeTopSnackBar(l10n.challengeUpdateSnack);
+    _showChallengeTopSnackBar(
+      _challengeSnackWithParentSync(l10n, l10n.challengeUpdateSnack),
+    );
   }
 
   Future<void> _confirmAbandon(ChallengeProgress progress) async {
@@ -973,6 +977,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
             gainedXp: gainedXp,
             awardedRoundCount: awardedRoundCount.clamp(1, 99).toInt(),
             challengeCompleted: false,
+            rewardGift: progress.run.rewardGift,
             roundGainedXp: gainedXp,
             completionGainedXp: 0,
             missionSummaries: _completedMissionSummariesForRounds(
@@ -1205,30 +1210,29 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     ).loadState().isParentMode;
   }
 
+  Future<void> _syncParentChallengeBackupIfPossible() async {
+    if (!_isParentReadOnlyMode) return;
+    final backup = widget.driveBackupService;
+    if (backup == null) return;
+    try {
+      await backup.markParentSharedDataDirty();
+      await backup.backupIfSignedIn();
+    } catch (_) {
+      // Challenge setup remains saved locally if shared backup is unavailable.
+    }
+  }
+
+  String _challengeSnackWithParentSync(
+    AppLocalizations l10n,
+    String message,
+  ) {
+    if (!_isParentReadOnlyMode) return message;
+    return '$message ${l10n.parentSharedSyncPending}';
+  }
+
   void _showParentReadOnlyMessage() {
     _showChallengeTopSnackBar(
       AppLocalizations.of(context)!.parentReadOnlyChallengeMessage,
-    );
-  }
-}
-
-class _ChallengeReadOnlyEmptySection extends StatelessWidget {
-  const _ChallengeReadOnlyEmptySection();
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _ChallengeIntroCard(
-          title: l10n.challengeStartHeroTitle,
-          body: l10n.challengeStartHeroBody,
-          progress: 0,
-        ),
-        const SizedBox(height: 18),
-        const _ParentReadOnlyChallengeNotice(),
-      ],
     );
   }
 }
@@ -1250,7 +1254,10 @@ class _ParentReadOnlyChallengeNotice extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.visibility_outlined, color: theme.colorScheme.primary),
+          Icon(
+            Icons.supervisor_account_rounded,
+            color: theme.colorScheme.primary,
+          ),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -1289,12 +1296,14 @@ class _ChallengeStartSection extends StatefulWidget {
   final ChallengeRun? initialRun;
   final ChallengeTemplate? initialTemplate;
   final List<_ChallengeSkillOption> skillOptions;
+  final bool canEditRewardGift;
   final VoidCallback onOpenTrainingPrograms;
   final void Function(
     ChallengeTemplate template,
     List<String> selectedSkillIds,
     ChallengeMissionTargets missionTargets,
     int cadenceDays,
+    String rewardGift,
   ) onStart;
   final String submitLabel;
   final IconData submitIcon;
@@ -1309,6 +1318,7 @@ class _ChallengeStartSection extends StatefulWidget {
     this.initialRun,
     this.initialTemplate,
     required this.skillOptions,
+    required this.canEditRewardGift,
     required this.onOpenTrainingPrograms,
     required this.onStart,
     required this.submitLabel,
@@ -1326,11 +1336,19 @@ class _ChallengeStartSectionState extends State<_ChallengeStartSection> {
   late Set<String> _selectedSkillIds;
   int _selectedCadenceDays = 1;
   ChallengeMissionTargets? _missionTargets;
+  late final TextEditingController _rewardGiftController;
 
   @override
   void initState() {
     super.initState();
+    _rewardGiftController = TextEditingController();
     _applyInitialValues();
+  }
+
+  @override
+  void dispose() {
+    _rewardGiftController.dispose();
+    super.dispose();
   }
 
   @override
@@ -1487,6 +1505,15 @@ class _ChallengeStartSectionState extends State<_ChallengeStartSection> {
               ChallengeTrainingLevel.rookie,
             ),
           ),
+          if (widget.canEditRewardGift ||
+              _rewardGiftController.text.trim().isNotEmpty) ...[
+            const SizedBox(height: 12),
+            _ChallengeRewardGiftField(
+              controller: _rewardGiftController,
+              enabled: widget.canEditRewardGift,
+              onChanged: (_) => setState(() {}),
+            ),
+          ],
           const SizedBox(height: 12),
           FilledButton.icon(
             onPressed: () => widget.onStart(
@@ -1497,6 +1524,7 @@ class _ChallengeStartSectionState extends State<_ChallengeStartSection> {
               ),
               _effectiveMissionTargets,
               _selectedCadenceDays,
+              _rewardGiftController.text,
             ),
             icon: Icon(widget.submitIcon),
             label: Text(widget.submitLabel),
@@ -1513,6 +1541,7 @@ class _ChallengeStartSectionState extends State<_ChallengeStartSection> {
     if (initialRun == null) {
       _selectedSkillIds = <String>{};
       _missionTargets = null;
+      _rewardGiftController.text = '';
       return;
     }
     _selectedSkillIds = normalizeChallengeSkillIds(
@@ -1523,6 +1552,7 @@ class _ChallengeStartSectionState extends State<_ChallengeStartSection> {
         _defaultInitialMissionTargets(
           _selectedSkillIds,
         );
+    _rewardGiftController.text = initialRun.rewardGift;
   }
 
   void _selectTemplate(ChallengeTemplate template) {
@@ -1722,6 +1752,10 @@ class _ChallengeFinishedPraiseCard extends StatelessWidget {
                   ),
                 ],
               ),
+              if (run.hasRewardGift) ...[
+                const SizedBox(height: 12),
+                _ChallengeRewardGiftNotice(rewardGift: run.rewardGift),
+              ],
               const SizedBox(height: 14),
               Container(
                 padding: const EdgeInsets.symmetric(
@@ -2610,6 +2644,143 @@ class _RewardPitchCard extends StatelessWidget {
   }
 }
 
+class _ChallengeRewardGiftField extends StatelessWidget {
+  final TextEditingController controller;
+  final bool enabled;
+  final ValueChanged<String> onChanged;
+
+  const _ChallengeRewardGiftField({
+    required this.controller,
+    required this.enabled,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.card_giftcard_rounded,
+                color: theme.colorScheme.primary,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.challengeRewardGiftSectionTitle,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      l10n.challengeRewardGiftSectionSubtitle,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            key: const ValueKey('challenge-reward-gift-input'),
+            controller: controller,
+            enabled: enabled,
+            maxLength: 40,
+            textInputAction: TextInputAction.done,
+            decoration: InputDecoration(
+              counterText: '',
+              labelText: l10n.challengeRewardGiftInputLabel,
+              hintText: l10n.challengeRewardGiftInputHint,
+              prefixIcon: const Icon(Icons.redeem_rounded),
+            ),
+            onChanged: onChanged,
+          ),
+          if (!enabled && controller.text.trim().isNotEmpty) ...[
+            const SizedBox(height: 8),
+            _SmallStatusPill(
+              label: l10n.challengeRewardGiftPill(controller.text.trim()),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _ChallengeRewardGiftNotice extends StatelessWidget {
+  final String rewardGift;
+
+  const _ChallengeRewardGiftNotice({required this.rewardGift});
+
+  @override
+  Widget build(BuildContext context) {
+    final gift = rewardGift.trim();
+    if (gift.isEmpty) return const SizedBox.shrink();
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: scheme.tertiaryContainer.withValues(alpha: 0.46),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: scheme.tertiary.withValues(alpha: 0.24)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.card_giftcard_rounded, color: scheme.onTertiaryContainer),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.challengeRewardGiftPromisedLabel,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: scheme.onTertiaryContainer,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  l10n.challengeRewardGiftPromisedBody(gift),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: scheme.onTertiaryContainer,
+                    fontWeight: FontWeight.w700,
+                    height: 1.28,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _ChallengeRewardGuideScreen extends StatelessWidget {
   final ChallengeProgress? progress;
   final List<ChallengeTemplate> templates;
@@ -2635,6 +2806,12 @@ class _ChallengeRewardGuideScreen extends StatelessWidget {
                 body: l10n.challengeRewardGuideBody,
                 progress: activeProgress?.completionRate ?? 0,
               ),
+              if (activeProgress?.run.hasRewardGift == true) ...[
+                const SizedBox(height: 12),
+                _ChallengeRewardGiftNotice(
+                  rewardGift: activeProgress!.run.rewardGift,
+                ),
+              ],
               const SizedBox(height: 12),
               if (activeProgress == null)
                 _ChallengeDetailCard(
@@ -3334,6 +3511,12 @@ class _ChallengeHistoryDetailScreen extends StatelessWidget {
                       label: l10n.challengeInfoPeriodLabel,
                       value: l10n.challengeHistoryDetailPeriodValue(start, end),
                     ),
+                    if (run.hasRewardGift)
+                      _ChallengeInfoItem(
+                        icon: Icons.card_giftcard_rounded,
+                        label: l10n.challengeRewardGiftPromisedLabel,
+                        value: run.rewardGift,
+                      ),
                     _ChallengeInfoItem(
                       icon: Icons.sports_soccer,
                       label: l10n.challengeHistoryDetailMissionsLabel,
@@ -3698,6 +3881,10 @@ class _ActiveChallengeSection extends StatelessWidget {
       children: [
         if (readOnly) ...[
           const _ParentReadOnlyChallengeNotice(),
+          const SizedBox(height: 18),
+        ],
+        if (progress.run.hasRewardGift) ...[
+          _ChallengeRewardGiftNotice(rewardGift: progress.run.rewardGift),
           const SizedBox(height: 18),
         ],
         Text(
@@ -4102,6 +4289,12 @@ class _ChallengeListCard extends StatelessWidget {
                   ),
                 ],
               ),
+              if (progress.run.hasRewardGift) ...[
+                const SizedBox(height: 12),
+                _ChallengeRewardGiftNotice(
+                  rewardGift: progress.run.rewardGift,
+                ),
+              ],
               const SizedBox(height: 12),
               _ChallengeQuietProgressBar(
                 progress: progress.completionRate,
@@ -4246,18 +4439,13 @@ class _ChallengeCurrentRoundBadge extends StatelessWidget {
 }
 
 class _ChallengeDetailActions extends StatelessWidget {
-  final bool readOnly;
   final VoidCallback onEdit;
 
-  const _ChallengeDetailActions({
-    required this.readOnly,
-    required this.onEdit,
-  });
+  const _ChallengeDetailActions({required this.onEdit});
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    if (readOnly) return const SizedBox.shrink();
     return Align(
       alignment: AlignmentDirectional.centerEnd,
       child: OutlinedButton.icon(
@@ -5118,6 +5306,7 @@ class _ChallengeCelebrationScreen extends StatelessWidget {
   final int gainedXp;
   final int awardedRoundCount;
   final bool challengeCompleted;
+  final String rewardGift;
   final int roundGainedXp;
   final int completionGainedXp;
   final List<_ChallengeCompletedMissionSummary> missionSummaries;
@@ -5126,6 +5315,7 @@ class _ChallengeCelebrationScreen extends StatelessWidget {
     required this.gainedXp,
     required this.awardedRoundCount,
     required this.challengeCompleted,
+    this.rewardGift = '',
     required this.roundGainedXp,
     required this.completionGainedXp,
     required this.missionSummaries,
@@ -5151,6 +5341,7 @@ class _ChallengeCelebrationScreen extends StatelessWidget {
     final actionIcon = challengeCompleted
         ? Icons.add_task_rounded
         : Icons.celebration_outlined;
+    final completedRewardGift = challengeCompleted ? rewardGift.trim() : '';
     final mascotSize = MediaQuery.sizeOf(
       context,
     ).shortestSide.clamp(154, 220).toDouble();
@@ -5224,6 +5415,12 @@ class _ChallengeCelebrationScreen extends StatelessWidget {
                                 height: 1.35,
                               ),
                             ),
+                            if (completedRewardGift.isNotEmpty) ...[
+                              const SizedBox(height: 18),
+                              _ChallengeRewardGiftNotice(
+                                rewardGift: completedRewardGift,
+                              ),
+                            ],
                             if (missionSummaries.isNotEmpty) ...[
                               const SizedBox(height: 18),
                               _ChallengeCompletedMissionPanel(

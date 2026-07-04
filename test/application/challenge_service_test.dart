@@ -167,6 +167,31 @@ void main() {
     expect(service.activeRuns().single.templateId, weekly.id);
   });
 
+  test('challenge reward gift is persisted and editable', () async {
+    final service = ChallengeService(_MemoryOptionRepository());
+    final starter = service.templateById('starter_3')!;
+    final weekly = service.templateById('weekly_7')!;
+    final run = await service.startChallenge(
+      starter,
+      rewardGift: '  새 축구공  ',
+      startedAt: DateTime(2026, 6, 1, 9),
+    );
+
+    expect(run.rewardGift, '새 축구공');
+    expect(service.activeRun()!.rewardGift, '새 축구공');
+    expect(service.loadRuns().single.rewardGift, '새 축구공');
+
+    final updated = await service.updateRun(
+      run.id,
+      template: weekly,
+      rewardGift: '영화 보기',
+    );
+
+    expect(updated, isNotNull);
+    expect(updated!.rewardGift, '영화 보기');
+    expect(service.activeRun()!.rewardGift, '영화 보기');
+  });
+
   test('progress is completed only when every mission goal is met', () async {
     final service = ChallengeService(_MemoryOptionRepository());
     final template = service.templateById('starter_3')!;
