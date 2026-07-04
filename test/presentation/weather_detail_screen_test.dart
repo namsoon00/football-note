@@ -50,6 +50,67 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('Weather metric labels fit narrow header cards', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 720);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final today = DateTime.now();
+    final todayDate = DateTime(today.year, today.month, today.day);
+    WeatherSharedResource.primeSnapshot(
+      WeatherSharedSnapshot(
+        location: '강남구 역삼1동',
+        localeTag: 'ko-KR',
+        fetchedAt: DateTime.now(),
+        summary: '맑음',
+        weatherCode: 0,
+        temperature: 21,
+        dailyForecasts: [
+          WeatherSharedDailyForecast(
+            date: todayDate,
+            summary: '맑음',
+            weatherCode: 0,
+            temperatureMax: 26,
+            temperatureMin: 18,
+            precipitationSum: 2.4,
+            precipitationProbabilityMax: 85,
+            pm10: 42,
+            pm25: 18,
+          ),
+        ],
+      ),
+    );
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: const MaterialApp(
+          locale: Locale('ko', 'KR'),
+          localizationsDelegates: [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: [Locale('en'), Locale('ko', 'KR')],
+          home: WeatherDetailScreen(
+            initialLocation: '강남구 역삼1동',
+            initialSummary: '맑음 21°C',
+            initialWeatherCode: 0,
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('강수확률'), findsOneWidget);
+    expect(find.text('85%'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('Weather outfit guide uses compact themed layout', (
     WidgetTester tester,
   ) async {
