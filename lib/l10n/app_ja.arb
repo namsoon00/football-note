@@ -6646,6 +6646,14 @@
       "gift": {}
     }
   },
+  "challengeGiftReceiveTitle": "リンジーがギフトを持ってきました!",
+  "challengeGiftReceiveBody": "{gift}のギフトを受け取る時間です。最後までやり切った約束をリンジーが祝っています。",
+  "@challengeGiftReceiveBody": {
+    "placeholders": {
+      "gift": {}
+    }
+  },
+  "challengeGiftReceiveAction": "ギフトを受け取りました",
   "challengeRewardGuideTitle": "チャレンジ報酬",
   "challengeRewardGuideBody": "ラウンドを連続で完了するほどラウンド報酬が増えます。最後まで完走すると完走ボーナスも加算されます。",
   "challengeRewardGuideNoActive": "進行中のチャレンジはありません。チャレンジを始めると獲得済みXPと残りXPを確認できます。",

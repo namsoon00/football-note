@@ -774,6 +774,102 @@ void main() {
     await mealLogService.dispose();
   });
 
+  testWidgets('completed gift challenge shows Rinzy gift receive screen', (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(320, 700));
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() async {
+      await tester.binding.setSurfaceSize(null);
+      tester.view.resetDevicePixelRatio();
+    });
+    final optionRepository = _MemoryOptionRepository();
+    final challengeService = ChallengeService(optionRepository);
+    final template = challengeService.templateById('starter_3')!;
+    final today = normalizeDay(DateTime.now());
+    final startDay = today.subtract(const Duration(days: 2));
+    await challengeService.startChallenge(
+      template,
+      selectedSkillIds: const <String>['passing'],
+      missionTargets: const ChallengeMissionTargets(
+        trainingMinutes: 1,
+        jumpRopeMinutes: 0,
+        liftingMinutes: 0,
+        riceBowls: 0,
+      ),
+      rewardGift: '새 축구공',
+      startedAt: startDay.add(const Duration(hours: 9)),
+    );
+    final trainingRepository = _MemoryTrainingRepository();
+    final trainingService = TrainingService(trainingRepository);
+    await trainingService.add(
+      _trainingEntry(day: startDay, minutes: 1, program: '패스'),
+    );
+    await trainingService.add(
+      _trainingEntry(
+        day: startDay.add(const Duration(days: 1)),
+        minutes: 1,
+        program: '패스',
+      ),
+    );
+    final mealLogService = MealLogService(optionRepository);
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ChallengeScreen(
+          trainingService: trainingService,
+          mealLogService: mealLogService,
+          optionRepository: optionRepository,
+          localeService: localeService,
+          settingsService: settingsService,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await _openChallengeDetailByTitle(tester, '3일 챌린지');
+    final trainingMission =
+        find.byKey(const ValueKey('challenge-mission-training'));
+    await tester.ensureVisible(trainingMission);
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(trainingMission);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.byType(EntryFormScreen), findsOneWidget);
+
+    await trainingService.add(
+      _trainingEntry(day: today, minutes: 1, program: '패스'),
+    );
+    Navigator.of(tester.element(find.byType(EntryFormScreen))).pop();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(find.text('린지가 선물을 가져왔어요!'), findsOneWidget);
+    expect(
+      find.text('새 축구공 선물을 받을 시간이에요. 끝까지 해낸 약속을 린지가 축하하고 있어요.'),
+      findsOneWidget,
+    );
+    expect(find.widgetWithText(FilledButton, '선물 받았어요'), findsOneWidget);
+    expect(find.byIcon(Icons.card_giftcard_rounded), findsAtLeastNWidgets(1));
+    expect(tester.takeException(), isNull);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+    await mealLogService.dispose();
+  });
+
   testWidgets(
       'record return shows completion screen after reward is already synced', (
     WidgetTester tester,

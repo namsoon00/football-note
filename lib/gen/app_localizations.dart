@@ -20658,6 +20658,24 @@ abstract class AppLocalizations {
   /// **'Finish the challenge to earn this gift: {gift}.'**
   String challengeRewardGiftPromisedBody(Object gift);
 
+  /// No description provided for @challengeGiftReceiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rinzy brought your gift!'**
+  String get challengeGiftReceiveTitle;
+
+  /// No description provided for @challengeGiftReceiveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It is time to receive {gift}. Rinzy is celebrating the promise you finished.'**
+  String challengeGiftReceiveBody(Object gift);
+
+  /// No description provided for @challengeGiftReceiveAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Gift received'**
+  String get challengeGiftReceiveAction;
+
   /// No description provided for @challengeRewardGuideTitle.
   ///
   /// In en, this message translates to:

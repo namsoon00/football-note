@@ -5302,6 +5302,98 @@ class _ChallengeCompletedMissionPanel extends StatelessWidget {
   }
 }
 
+class _ChallengeGiftReceiveVisual extends StatelessWidget {
+  final String gift;
+  final double mascotSize;
+
+  const _ChallengeGiftReceiveVisual({
+    required this.gift,
+    required this.mascotSize,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final visualHeight = (mascotSize + 46).clamp(188.0, 268.0).toDouble();
+    final giftBoxSize = (mascotSize * 0.42).clamp(68.0, 92.0).toDouble();
+    return SizedBox(
+      height: visualHeight,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned(
+            bottom: 10,
+            child: ChallengeCheerRinzyMascot(
+              size: mascotSize,
+              progress: 1,
+              useImage: true,
+            ),
+          ),
+          PositionedDirectional(
+            end: 8,
+            bottom: 2,
+            child: Container(
+              width: giftBoxSize,
+              height: giftBoxSize,
+              decoration: BoxDecoration(
+                color: scheme.tertiaryContainer,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: scheme.tertiary.withValues(alpha: 0.35),
+                  width: 1.4,
+                ),
+                boxShadow: AppShadows.surface(theme.brightness),
+              ),
+              child: Icon(
+                Icons.card_giftcard_rounded,
+                color: scheme.onTertiaryContainer,
+                size: giftBoxSize * 0.52,
+              ),
+            ),
+          ),
+          PositionedDirectional(
+            start: 8,
+            top: 2,
+            child: Container(
+              constraints: BoxConstraints(maxWidth: mascotSize * 0.84),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: scheme.surface.withValues(alpha: 0.92),
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(color: scheme.outlineVariant),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.redeem_rounded,
+                    size: 17,
+                    color: scheme.tertiary,
+                  ),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      l10n.challengeRewardGiftPill(gift),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: scheme.onSurface,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _ChallengeCelebrationScreen extends StatelessWidget {
   final int gainedXp;
   final int awardedRoundCount;
@@ -5325,23 +5417,32 @@ class _ChallengeCelebrationScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final title = challengeCompleted
-        ? l10n.challengeCelebrationCompleteTitle
-        : l10n.challengeCelebrationTitle;
-    final body = challengeCompleted
-        ? (gainedXp > 0
-            ? l10n.challengeCelebrationCompleteBody(gainedXp)
-            : l10n.challengeCelebrationCompleteBodyNoXp)
-        : (gainedXp > 0
-            ? l10n.challengeCelebrationBody(awardedRoundCount, gainedXp)
-            : l10n.challengeCelebrationBodyNoXp);
-    final actionLabel = challengeCompleted
-        ? l10n.challengeCelebrationNextChallengeAction
-        : l10n.challengeCelebrationAction;
-    final actionIcon = challengeCompleted
-        ? Icons.add_task_rounded
-        : Icons.celebration_outlined;
     final completedRewardGift = challengeCompleted ? rewardGift.trim() : '';
+    final showsGiftReceiveScreen = completedRewardGift.isNotEmpty;
+    final title = showsGiftReceiveScreen
+        ? l10n.challengeGiftReceiveTitle
+        : challengeCompleted
+            ? l10n.challengeCelebrationCompleteTitle
+            : l10n.challengeCelebrationTitle;
+    final body = showsGiftReceiveScreen
+        ? l10n.challengeGiftReceiveBody(completedRewardGift)
+        : challengeCompleted
+            ? (gainedXp > 0
+                ? l10n.challengeCelebrationCompleteBody(gainedXp)
+                : l10n.challengeCelebrationCompleteBodyNoXp)
+            : (gainedXp > 0
+                ? l10n.challengeCelebrationBody(awardedRoundCount, gainedXp)
+                : l10n.challengeCelebrationBodyNoXp);
+    final actionLabel = showsGiftReceiveScreen
+        ? l10n.challengeGiftReceiveAction
+        : challengeCompleted
+            ? l10n.challengeCelebrationNextChallengeAction
+            : l10n.challengeCelebrationAction;
+    final actionIcon = showsGiftReceiveScreen
+        ? Icons.card_giftcard_rounded
+        : challengeCompleted
+            ? Icons.add_task_rounded
+            : Icons.celebration_outlined;
     final mascotSize = MediaQuery.sizeOf(
       context,
     ).shortestSide.clamp(154, 220).toDouble();
@@ -5392,11 +5493,17 @@ class _ChallengeCelebrationScreen extends StatelessWidget {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            ChallengeCheerRinzyMascot(
-                              size: mascotSize,
-                              progress: 1,
-                              useImage: true,
-                            ),
+                            if (showsGiftReceiveScreen)
+                              _ChallengeGiftReceiveVisual(
+                                gift: completedRewardGift,
+                                mascotSize: mascotSize,
+                              )
+                            else
+                              ChallengeCheerRinzyMascot(
+                                size: mascotSize,
+                                progress: 1,
+                                useImage: true,
+                              ),
                             const SizedBox(height: 18),
                             Text(
                               title,
@@ -5415,12 +5522,6 @@ class _ChallengeCelebrationScreen extends StatelessWidget {
                                 height: 1.35,
                               ),
                             ),
-                            if (completedRewardGift.isNotEmpty) ...[
-                              const SizedBox(height: 18),
-                              _ChallengeRewardGiftNotice(
-                                rewardGift: completedRewardGift,
-                              ),
-                            ],
                             if (missionSummaries.isNotEmpty) ...[
                               const SizedBox(height: 18),
                               _ChallengeCompletedMissionPanel(
