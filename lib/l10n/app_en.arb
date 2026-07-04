@@ -6646,6 +6646,14 @@
       "gift": {}
     }
   },
+  "challengeGiftReceiveTitle": "Rinzy brought your gift!",
+  "challengeGiftReceiveBody": "It is time to receive {gift}. Rinzy is celebrating the promise you finished.",
+  "@challengeGiftReceiveBody": {
+    "placeholders": {
+      "gift": {}
+    }
+  },
+  "challengeGiftReceiveAction": "Gift received",
   "challengeRewardGuideTitle": "Challenge rewards",
   "challengeRewardGuideBody": "Round rewards grow when rounds are completed consecutively. A finished challenge also adds the finish bonus.",
   "challengeRewardGuideNoActive": "No active challenge is running. Start a challenge to see earned and remaining XP.",

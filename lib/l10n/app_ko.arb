@@ -6646,6 +6646,14 @@
       "gift": {}
     }
   },
+  "challengeGiftReceiveTitle": "린지가 선물을 가져왔어요!",
+  "challengeGiftReceiveBody": "{gift} 선물을 받을 시간이에요. 끝까지 해낸 약속을 린지가 축하하고 있어요.",
+  "@challengeGiftReceiveBody": {
+    "placeholders": {
+      "gift": {}
+    }
+  },
+  "challengeGiftReceiveAction": "선물 받았어요",
   "challengeRewardGuideTitle": "챌린지 보상",
   "challengeRewardGuideBody": "라운드를 연속으로 완료할수록 라운드 보상이 커져요. 챌린지를 끝까지 완주하면 완주 보너스도 더해집니다.",
   "challengeRewardGuideNoActive": "진행 중인 챌린지가 없어요. 챌린지를 시작하면 획득한 XP와 남은 XP를 볼 수 있어요.",

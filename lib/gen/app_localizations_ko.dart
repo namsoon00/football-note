@@ -11745,6 +11745,17 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get challengeGiftReceiveTitle => '린지가 선물을 가져왔어요!';
+
+  @override
+  String challengeGiftReceiveBody(Object gift) {
+    return '$gift 선물을 받을 시간이에요. 끝까지 해낸 약속을 린지가 축하하고 있어요.';
+  }
+
+  @override
+  String get challengeGiftReceiveAction => '선물 받았어요';
+
+  @override
   String get challengeRewardGuideTitle => '챌린지 보상';
 
   @override

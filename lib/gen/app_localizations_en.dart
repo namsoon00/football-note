@@ -12070,6 +12070,17 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get challengeGiftReceiveTitle => 'Rinzy brought your gift!';
+
+  @override
+  String challengeGiftReceiveBody(Object gift) {
+    return 'It is time to receive $gift. Rinzy is celebrating the promise you finished.';
+  }
+
+  @override
+  String get challengeGiftReceiveAction => 'Gift received';
+
+  @override
   String get challengeRewardGuideTitle => 'Challenge rewards';
 
   @override

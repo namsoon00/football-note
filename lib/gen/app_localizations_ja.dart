@@ -11719,6 +11719,17 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get challengeGiftReceiveTitle => 'リンジーがギフトを持ってきました!';
+
+  @override
+  String challengeGiftReceiveBody(Object gift) {
+    return '$giftのギフトを受け取る時間です。最後までやり切った約束をリンジーが祝っています。';
+  }
+
+  @override
+  String get challengeGiftReceiveAction => 'ギフトを受け取りました';
+
+  @override
   String get challengeRewardGuideTitle => 'チャレンジ報酬';
 
   @override
