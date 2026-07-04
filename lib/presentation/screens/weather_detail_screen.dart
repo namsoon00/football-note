@@ -1949,11 +1949,13 @@ class _MetricCard extends StatelessWidget {
               color: foreground,
             ),
             const SizedBox(height: 3),
-            FittedBox(
-              fit: BoxFit.scaleDown,
+            SizedBox(
+              width: double.infinity,
               child: Text(
                 label,
-                maxLines: 1,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
                 style: theme.textTheme.labelSmall?.copyWith(
                   color: labelColor,
                   fontWeight: FontWeight.w800,
@@ -1962,15 +1964,18 @@ class _MetricCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 2),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                value,
-                maxLines: 1,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: foreground,
-                  fontWeight: FontWeight.w900,
-                  height: 1.05,
+            SizedBox(
+              width: double.infinity,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  value,
+                  maxLines: 1,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: foreground,
+                    fontWeight: FontWeight.w900,
+                    height: 1.05,
+                  ),
                 ),
               ),
             ),
