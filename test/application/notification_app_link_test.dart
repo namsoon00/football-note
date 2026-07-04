@@ -51,6 +51,11 @@ void main() {
         path: '/fixture',
       );
       expectLink(
+        NotificationAppLink.worldCup(),
+        host: 'world-cup',
+        path: '',
+      );
+      expectLink(
         NotificationAppLink.worldCupFixture(
           matchNumber: 12,
           teamName: 'Korea Republic',

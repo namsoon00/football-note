@@ -104,6 +104,10 @@ class NotificationAppLink {
     ).toString();
   }
 
+  static String worldCup() {
+    return Uri(scheme: scheme, path: '/world-cup').toString();
+  }
+
   static String worldCupFixture({
     required int matchNumber,
     required String teamName,
