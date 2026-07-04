@@ -5508,8 +5508,8 @@
   "parentReadOnlyCalendarSummary": "캘린더는 읽기 전용이에요.",
   "parentReadOnlyCalendarBanner": "보호자 모드에서는 캘린더를 읽기 전용으로 보여줍니다. 계획, 시합, 식사 수정은 선수 모드에서 진행해 주세요.",
   "parentReadOnlyCalendarMessage": "보호자 모드에서는 캘린더를 수정할 수 없어요.",
-  "parentReadOnlyChallengeSummary": "챌린지는 읽기 전용이에요.",
-  "parentReadOnlyChallengeMessage": "보호자 모드에서는 챌린지를 시작하거나 미션을 수정할 수 없어요. 선수 모드에서 진행한 챌린지 상태만 확인할 수 있습니다.",
+  "parentReadOnlyChallengeSummary": "보호자가 챌린지를 만들 수 있어요.",
+  "parentReadOnlyChallengeMessage": "보호자 모드에서는 챌린지를 만들고 완주 선물을 정할 수 있어요. 미션 기록은 선수 모드에서 입력합니다.",
   "parentReadOnlyDiaryMessage": "보호자 모드에서는 다이어리를 수정할 수 없어요.",
   "parentReadOnlyDiaryBadge": "보호자 모드 읽기 전용",
   "parentReadOnlySketchMessage": "보호자 모드에서는 훈련 스케치를 수정할 수 없어요.",
@@ -6629,6 +6629,23 @@
     }
   },
   "challengeRewardPitchTitle": "완주하면 큰 보너스가 기다려요",
+  "challengeRewardGiftSectionTitle": "선물 보상",
+  "challengeRewardGiftSectionSubtitle": "챌린지를 끝까지 완주했을 때 줄 선물을 적어두세요.",
+  "challengeRewardGiftInputLabel": "완주 선물",
+  "challengeRewardGiftInputHint": "예: 새 축구공",
+  "challengeRewardGiftPill": "선물: {gift}",
+  "@challengeRewardGiftPill": {
+    "placeholders": {
+      "gift": {}
+    }
+  },
+  "challengeRewardGiftPromisedLabel": "완주 선물",
+  "challengeRewardGiftPromisedBody": "완주하면 {gift} 선물이 기다려요.",
+  "@challengeRewardGiftPromisedBody": {
+    "placeholders": {
+      "gift": {}
+    }
+  },
   "challengeRewardGuideTitle": "챌린지 보상",
   "challengeRewardGuideBody": "라운드를 연속으로 완료할수록 라운드 보상이 커져요. 챌린지를 끝까지 완주하면 완주 보너스도 더해집니다.",
   "challengeRewardGuideNoActive": "진행 중인 챌린지가 없어요. 챌린지를 시작하면 획득한 XP와 남은 XP를 볼 수 있어요.",

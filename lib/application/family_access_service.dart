@@ -1,4 +1,5 @@
 import '../domain/repositories/option_repository.dart';
+import 'challenge_service.dart';
 import 'player_level_service.dart';
 import 'player_profile_service.dart';
 
@@ -99,6 +100,12 @@ class FamilyAccessService {
   static const String messagesKey = 'family_messages_v1';
   static const String lastSharedSyncAtKey = 'family_shared_sync_at_v1';
   static const String lastSharedSyncRoleKey = 'family_shared_sync_role_v1';
+  static const Set<String> challengeRunSharedOptionKeys = <String>{
+    ChallengeService.storageKey,
+    '${ChallengeService.storageKey}_baseball',
+    '${ChallengeService.storageKey}_basketball',
+    '${ChallengeService.storageKey}_tennis',
+  };
 
   static const Set<String> localOnlyOptionKeys = <String>{currentRoleLocalKey};
   static const Set<String> sharedBackupOptionKeys = <String>{
@@ -109,13 +116,14 @@ class FamilyAccessService {
     parentTrainingFeedbackKey,
     lastSharedSyncAtKey,
     lastSharedSyncRoleKey,
+    ...challengeRunSharedOptionKeys,
     ...PlayerLevelService.customRewardNamesOptionKeys,
   };
 
   static const FamilyBackupPolicy policy = FamilyBackupPolicy(
     childOwnsCoreData: true,
     parentMergesFamilyLayerOnly: true,
-    parentWritableScopes: <String>['feedback', 'rewards'],
+    parentWritableScopes: <String>['feedback', 'rewards', 'challenges'],
   );
 
   final OptionRepository _options;

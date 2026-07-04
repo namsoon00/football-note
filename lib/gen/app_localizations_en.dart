@@ -9907,11 +9907,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Parent mode cannot edit the calendar.';
 
   @override
-  String get parentReadOnlyChallengeSummary => 'Challenge is view only here.';
+  String get parentReadOnlyChallengeSummary =>
+      'Parent mode can create challenges.';
 
   @override
   String get parentReadOnlyChallengeMessage =>
-      'Parent mode cannot start challenges or edit missions. You can only review challenge progress created in player mode.';
+      'In Parent mode, you can create challenges and set finish gifts. Mission records are still entered in player mode.';
 
   @override
   String get parentReadOnlyDiaryMessage => 'Parent mode cannot edit the diary.';
@@ -12041,6 +12042,32 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get challengeRewardPitchTitle => 'A big finish bonus is waiting';
+
+  @override
+  String get challengeRewardGiftSectionTitle => 'Gift reward';
+
+  @override
+  String get challengeRewardGiftSectionSubtitle =>
+      'Write the gift to give when the challenge is finished.';
+
+  @override
+  String get challengeRewardGiftInputLabel => 'Finish gift';
+
+  @override
+  String get challengeRewardGiftInputHint => 'Example: new football';
+
+  @override
+  String challengeRewardGiftPill(Object gift) {
+    return 'Gift: $gift';
+  }
+
+  @override
+  String get challengeRewardGiftPromisedLabel => 'Finish gift';
+
+  @override
+  String challengeRewardGiftPromisedBody(Object gift) {
+    return 'Finish the challenge to earn this gift: $gift.';
+  }
 
   @override
   String get challengeRewardGuideTitle => 'Challenge rewards';

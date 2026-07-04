@@ -9618,11 +9618,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get parentReadOnlyCalendarMessage => '親モードではカレンダーを編集できません。';
 
   @override
-  String get parentReadOnlyChallengeSummary => 'チャレンジはここでのみ表示されます。';
+  String get parentReadOnlyChallengeSummary => '親モードでチャレンジを作成できます。';
 
   @override
   String get parentReadOnlyChallengeMessage =>
-      '親モードではチャレンジを開始したりミッションを編集したりできません。プレイヤーモードで進めたチャレンジ状況のみ確認できます。';
+      '親モードではチャレンジを作成し、完走ギフトを設定できます。ミッション記録はプレイヤーモードで入力します。';
 
   @override
   String get parentReadOnlyDiaryMessage => '親モードでは日記を編集できません。';
@@ -11691,6 +11691,32 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get challengeRewardPitchTitle => '完走すると大きなボーナスがあります';
+
+  @override
+  String get challengeRewardGiftSectionTitle => 'ギフト報酬';
+
+  @override
+  String get challengeRewardGiftSectionSubtitle =>
+      'チャレンジを最後まで完走したときに渡すギフトを書いておきましょう。';
+
+  @override
+  String get challengeRewardGiftInputLabel => '完走ギフト';
+
+  @override
+  String get challengeRewardGiftInputHint => '例: 新しいサッカーボール';
+
+  @override
+  String challengeRewardGiftPill(Object gift) {
+    return 'ギフト: $gift';
+  }
+
+  @override
+  String get challengeRewardGiftPromisedLabel => '完走ギフト';
+
+  @override
+  String challengeRewardGiftPromisedBody(Object gift) {
+    return '完走すると$giftのギフトが待っています。';
+  }
 
   @override
   String get challengeRewardGuideTitle => 'チャレンジ報酬';

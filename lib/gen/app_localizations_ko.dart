@@ -9638,11 +9638,11 @@ class AppLocalizationsKo extends AppLocalizations {
   String get parentReadOnlyCalendarMessage => '보호자 모드에서는 캘린더를 수정할 수 없어요.';
 
   @override
-  String get parentReadOnlyChallengeSummary => '챌린지는 읽기 전용이에요.';
+  String get parentReadOnlyChallengeSummary => '보호자가 챌린지를 만들 수 있어요.';
 
   @override
   String get parentReadOnlyChallengeMessage =>
-      '보호자 모드에서는 챌린지를 시작하거나 미션을 수정할 수 없어요. 선수 모드에서 진행한 챌린지 상태만 확인할 수 있습니다.';
+      '보호자 모드에서는 챌린지를 만들고 완주 선물을 정할 수 있어요. 미션 기록은 선수 모드에서 입력합니다.';
 
   @override
   String get parentReadOnlyDiaryMessage => '보호자 모드에서는 다이어리를 수정할 수 없어요.';
@@ -11717,6 +11717,32 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get challengeRewardPitchTitle => '완주하면 큰 보너스가 기다려요';
+
+  @override
+  String get challengeRewardGiftSectionTitle => '선물 보상';
+
+  @override
+  String get challengeRewardGiftSectionSubtitle =>
+      '챌린지를 끝까지 완주했을 때 줄 선물을 적어두세요.';
+
+  @override
+  String get challengeRewardGiftInputLabel => '완주 선물';
+
+  @override
+  String get challengeRewardGiftInputHint => '예: 새 축구공';
+
+  @override
+  String challengeRewardGiftPill(Object gift) {
+    return '선물: $gift';
+  }
+
+  @override
+  String get challengeRewardGiftPromisedLabel => '완주 선물';
+
+  @override
+  String challengeRewardGiftPromisedBody(Object gift) {
+    return '완주하면 $gift 선물이 기다려요.';
+  }
 
   @override
   String get challengeRewardGuideTitle => '챌린지 보상';

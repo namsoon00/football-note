@@ -526,7 +526,7 @@ void main() {
     await mealLogService.dispose();
   });
 
-  testWidgets('parent mode keeps challenge screen view only', (
+  testWidgets('parent mode keeps mission records view only', (
     WidgetTester tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(320, 640));
@@ -573,7 +573,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    expect(find.text('챌린지는 읽기 전용이에요.'), findsOneWidget);
+    expect(find.text('보호자가 챌린지를 만들 수 있어요.'), findsOneWidget);
     expect(find.text('챌린지 포기'), findsNothing);
     expect(find.text('훈련 프로그램 편집'), findsNothing);
     expect(
@@ -583,9 +583,13 @@ void main() {
 
     await _openChallengeDetailByTitle(tester, '3일 챌린지');
 
-    expect(find.text('챌린지는 읽기 전용이에요.'), findsOneWidget);
+    expect(find.text('보호자가 챌린지를 만들 수 있어요.'), findsOneWidget);
     expect(
       find.byKey(const ValueKey('challenge-rounds-calendar')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('challenge-edit-button')),
       findsOneWidget,
     );
     expect(find.text('줄넘기'), findsAtLeastNWidgets(1));
@@ -602,14 +606,21 @@ void main() {
     await mealLogService.dispose();
   });
 
-  testWidgets('parent mode cannot start a new challenge', (
+  testWidgets('parent mode can start a new challenge with a gift reward', (
     WidgetTester tester,
   ) async {
+    await tester.binding.setSurfaceSize(const Size(320, 720));
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() async {
+      await tester.binding.setSurfaceSize(null);
+      tester.view.resetDevicePixelRatio();
+    });
     final optionRepository = _MemoryOptionRepository();
     await optionRepository.setValue(
       FamilyAccessService.currentRoleLocalKey,
       FamilyRole.parent.name,
     );
+    final challengeService = ChallengeService(optionRepository);
     final trainingService = TrainingService(_MemoryTrainingRepository());
     final mealLogService = MealLogService(optionRepository);
     final localeService = LocaleService(optionRepository)..load();
@@ -637,9 +648,39 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    expect(find.text('챌린지는 읽기 전용이에요.'), findsOneWidget);
+    expect(find.text('보호자가 챌린지를 만들 수 있어요.'), findsOneWidget);
     expect(find.text('1. 기간 선택'), findsNothing);
     expect(find.widgetWithText(FilledButton, '챌린지 시작'), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('challenge-create-button')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.tap(
+      find.byKey(const ValueKey('challenge-template-starter_3')),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('선물 보상'), findsOneWidget);
+    await tester.enterText(
+      find.byKey(const ValueKey('challenge-reward-gift-input')),
+      '새 축구공',
+    );
+    await tester.pump();
+
+    await tester.ensureVisible(find.widgetWithText(FilledButton, '챌린지 시작'));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(find.widgetWithText(FilledButton, '챌린지 시작'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(challengeService.activeRun()?.rewardGift, '새 축구공');
+    expect(find.text('완주하면 새 축구공 선물이 기다려요.'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('challenge-rounds-calendar')),
+      findsOneWidget,
+    );
     expect(tester.takeException(), isNull);
 
     await tester.pumpWidget(const SizedBox.shrink());
