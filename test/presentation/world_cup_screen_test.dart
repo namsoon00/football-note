@@ -26,6 +26,17 @@ void main() {
     debugTextShareOverride = null;
   });
 
+  test('share URL follows the runtime platform', () {
+    expect(
+      worldCupShareUriForPlatform(isWeb: true).toString(),
+      'https://namsoon00.github.io/football-note/#/world-cup',
+    );
+    expect(
+      worldCupShareUriForPlatform(isWeb: false).toString(),
+      'taeonote:/world-cup',
+    );
+  });
+
   testWidgets('overview and road to final open from title action', (
     tester,
   ) async {
@@ -66,10 +77,8 @@ void main() {
 
     expect(sharedSubject, 'FIFA 월드컵 2026');
     expect(sharedText, contains('태오의노트 월드컵 페이지'));
-    expect(
-      sharedText,
-      contains('https://namsoon00.github.io/football-note/#/world-cup'),
-    );
+    expect(sharedText, contains('taeonote:/world-cup'));
+    expect(sharedText, isNot(contains('https://namsoon00.github.io/')));
     expect(sharedText, isNot(contains('https://www.fifa.com/')));
     expect(find.text('월드컵 공유를 준비했어요.'), findsOneWidget);
 

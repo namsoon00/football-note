@@ -1,12 +1,14 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../application/league_fixture_reminder_service.dart';
+import '../../application/notification_app_link.dart';
 import '../../application/settings_service.dart';
 import '../../application/world_cup_live_data_service.dart';
 import '../../application/world_cup_roster_data.dart';
@@ -22,6 +24,18 @@ import '../widgets/app_background.dart';
 import '../widgets/app_page_route.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
 import 'fifa_ranking_screen.dart';
+
+final Uri _worldCupWebShareUri = Uri.https(
+  'namsoon00.github.io',
+  '/football-note/',
+).replace(fragment: '/world-cup');
+
+@visibleForTesting
+Uri worldCupShareUriForPlatform({bool? isWeb}) {
+  return (isWeb ?? kIsWeb)
+      ? _worldCupWebShareUri
+      : Uri.parse(NotificationAppLink.worldCup());
+}
 
 class WorldCupScreen extends StatefulWidget {
   final OptionRepository? optionRepository;
@@ -56,10 +70,6 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
   static final Uri _sourceUri = Uri.parse(
     'https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/articles/match-schedule-fixtures-results-teams-stadiums',
   );
-  static final Uri _shareUri = Uri.https(
-    'namsoon00.github.io',
-    '/football-note/',
-  ).replace(fragment: '/world-cup');
   static final DateTime _openingDate = DateTime(2026, 6, 11);
   static final DateTime _finalDate = DateTime(2026, 7, 19);
 
@@ -517,9 +527,10 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
     setState(() => _pageShareInProgress = true);
     try {
       final l10n = AppLocalizations.of(context)!;
+      final shareUri = worldCupShareUriForPlatform();
       await shareTextContent(
         subject: l10n.worldCupHeroTitle,
-        text: l10n.worldCupShareMessage(_shareUri.toString()),
+        text: l10n.worldCupShareMessage(shareUri.toString()),
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
