@@ -157,7 +157,7 @@ void main() {
       WeatherSharedSnapshot(
         location: '탄천',
         localeTag: 'ko',
-        fetchedAt: DateTime(2026, 6, 21, 9),
+        fetchedAt: DateTime.now(),
         summary: '소나기 18°C',
         weatherCode: 61,
         pm10: 42,

@@ -112,9 +112,11 @@ class HomeHubScreen extends StatefulWidget {
   State<HomeHubScreen> createState() => _HomeHubScreenState();
 }
 
-class _HomeHubScreenState extends State<HomeHubScreen> {
+class _HomeHubScreenState extends State<HomeHubScreen>
+    with WidgetsBindingObserver {
   static const String _homeWeatherSnapshotKey = 'home_weather_snapshot_v1';
   static const int _homeTrainingLookbackDays = 400;
+  static const Duration _homeWeatherBackgroundRetryDelay = Duration(minutes: 5);
 
   late HomeHubSectionSettings _homeSectionSettings;
   bool _weatherLoading = false;
@@ -126,7 +128,9 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   int? _weatherCode;
   double? _weatherPm10;
   double? _weatherPm25;
+  DateTime? _weatherFetchedAt;
   Timer? _initialWeatherTimer;
+  Timer? _backgroundWeatherRefreshTimer;
   StreamSubscription<WeatherSharedSnapshot>? _weatherSnapshotSubscription;
   late Stream<List<TrainingEntry>> _trainingEntriesStream;
   bool _dailyTaskAwardInFlight = false;
@@ -154,6 +158,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _homeSectionSettings = _loadHomeSectionSettings();
     _trainingEntriesStream = _watchHomeTrainingEntries();
     _weatherSnapshotSubscription = WeatherSharedResource.snapshotUpdates.listen(
@@ -183,9 +188,17 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _initialWeatherTimer?.cancel();
+    _backgroundWeatherRefreshTimer?.cancel();
     unawaited(_weatherSnapshotSubscription?.cancel());
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) return;
+    unawaited(_refreshHomeWeatherInBackgroundIfStale());
   }
 
   HomeHubSectionSettings _loadHomeSectionSettings() {
@@ -592,7 +605,9 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
       _weatherSummary = snapshot.summary;
       _weatherPm10 = snapshot.pm10;
       _weatherPm25 = snapshot.pm25;
+      _weatherFetchedAt = snapshot.fetchedAt;
     });
+    _scheduleBackgroundWeatherRefresh(snapshot.fetchedAt);
   }
 
   WeatherSharedSnapshot? _loadPersistedHomeWeather(Locale locale) {
@@ -662,6 +677,43 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     });
   }
 
+  bool _isHomeWeatherStale() {
+    final fetchedAt = _weatherFetchedAt;
+    if (fetchedAt == null) return false;
+    return DateTime.now().difference(fetchedAt) >=
+        WeatherSharedResource.cacheTtl;
+  }
+
+  void _scheduleBackgroundWeatherRefresh(DateTime fetchedAt) {
+    _backgroundWeatherRefreshTimer?.cancel();
+    final refreshAt = fetchedAt.add(WeatherSharedResource.cacheTtl);
+    final delay = refreshAt.difference(DateTime.now());
+    if (delay <= Duration.zero) return;
+    _backgroundWeatherRefreshTimer = Timer(delay, () {
+      if (!mounted) return;
+      unawaited(_refreshHomeWeatherInBackgroundIfStale());
+    });
+  }
+
+  void _scheduleBackgroundWeatherRetry() {
+    _backgroundWeatherRefreshTimer?.cancel();
+    _backgroundWeatherRefreshTimer =
+        Timer(_homeWeatherBackgroundRetryDelay, () {
+      if (!mounted) return;
+      unawaited(_refreshHomeWeatherInBackgroundIfStale());
+    });
+  }
+
+  Future<void> _refreshHomeWeatherInBackgroundIfStale() async {
+    if (!mounted || _weatherFetchInFlight || !_isHomeWeatherStale()) return;
+    final previousFetchedAt = _weatherFetchedAt;
+    await _loadHomeWeather(requestPermission: false, showLoading: false);
+    if (!mounted) return;
+    if (_weatherFetchedAt == previousFetchedAt && _isHomeWeatherStale()) {
+      _scheduleBackgroundWeatherRetry();
+    }
+  }
+
   Future<void> _loadHomeWeather({
     required bool requestPermission,
     bool showLoading = true,
@@ -695,6 +747,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
             _weatherSummary = '';
             _weatherPm10 = null;
             _weatherPm25 = null;
+            _weatherFetchedAt = null;
           }
         });
         return;
@@ -717,6 +770,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
               _weatherSummary = '';
               _weatherPm10 = null;
               _weatherPm25 = null;
+              _weatherFetchedAt = null;
             }
           });
         }
@@ -775,7 +829,9 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
           _weatherSummary = resolvedWeather.summary;
           _weatherPm10 = resolvedWeather.pm10;
           _weatherPm25 = resolvedWeather.pm25;
+          _weatherFetchedAt = resolvedWeather.fetchedAt;
         });
+        _scheduleBackgroundWeatherRefresh(resolvedWeather.fetchedAt);
       } else {
         setState(() {
           final hasWeather = _weatherSummary.trim().isNotEmpty;
@@ -787,6 +843,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
             _weatherSummary = '';
             _weatherPm10 = null;
             _weatherPm25 = null;
+            _weatherFetchedAt = null;
           }
         });
         if (requestPermission && mounted) {
@@ -806,6 +863,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
             _weatherSummary = '';
             _weatherPm10 = null;
             _weatherPm25 = null;
+            _weatherFetchedAt = null;
           }
         });
       }

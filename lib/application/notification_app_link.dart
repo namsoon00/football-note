@@ -169,6 +169,19 @@ class NotificationAppLink {
 
   static Uri? _normalize(Uri uri) {
     final host = uri.host.trim();
+    if (host == 'notifications' &&
+        uri.pathSegments.isNotEmpty &&
+        uri.pathSegments.first == 'weather') {
+      final detailSegments = uri.pathSegments.skip(1).toList(growable: false);
+      return Uri(
+        scheme: scheme,
+        host: 'weather',
+        pathSegments:
+            detailSegments.isEmpty ? const ['detail'] : detailSegments,
+        queryParameters: uri.queryParameters,
+      );
+    }
+
     if (_hosts.contains(host)) {
       return Uri(
         scheme: scheme,

@@ -60,9 +60,18 @@ void main() {
         path: '/fixture',
       );
       expectLink(
+        NotificationAppLink.weatherToday(),
+        host: 'weather',
+        path: '/detail',
+      );
+      expectLink(
         NotificationAppLink.weatherWeekly(),
         host: 'weather',
         path: '/detail',
+      );
+      expect(
+        Uri.parse(NotificationAppLink.weatherToday()).queryParameters['action'],
+        'today',
       );
       expectLink(
         NotificationAppLink.clubTraining(weekday: DateTime.wednesday),
@@ -115,6 +124,11 @@ void main() {
       );
       expectLink(
         '$previousScheme:///weather/detail?action=outfit',
+        host: 'weather',
+        path: '/detail',
+      );
+      expectLink(
+        'taeonote://notifications/weather?action=today',
         host: 'weather',
         path: '/detail',
       );
