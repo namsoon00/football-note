@@ -11803,6 +11803,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get challengeUpdateSnack => 'Challenge updated.';
 
   @override
+  String get challengeEditUnavailableSnack =>
+      'Challenges with started records cannot be edited.';
+
+  @override
   String get challengeDeletePendingAction => 'Delete';
 
   @override

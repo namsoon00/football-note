@@ -6464,6 +6464,7 @@
   "challengeEditBody": "Adjust the duration, round frequency, and mission setup. Rounds already recorded stay in place.",
   "challengeUpdateAction": "Save changes",
   "challengeUpdateSnack": "Challenge updated.",
+  "challengeEditUnavailableSnack": "Challenges with started records cannot be edited.",
   "challengeDeletePendingAction": "Delete",
   "challengeDeletePendingTitle": "Delete challenge",
   "challengeDeletePendingBody": "The player has not started recording this challenge yet. Delete this challenge?",
