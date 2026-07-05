@@ -12,6 +12,7 @@ import '../../application/weather_shared_resource.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_background.dart';
+import '../widgets/app_skeleton.dart';
 
 enum WeatherDetailInitialAction {
   none,
@@ -202,15 +203,14 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                           icon: Icons.umbrella_outlined,
                           role: _CompactMetricRole.precipitation,
                         ),
-                        if (_todayPrecipitationProbabilityMax != null)
-                          _CompactMetricData(
-                            label: l10n.homeWeatherPrecipitationProbability,
-                            value: _formatProbability(
-                              _todayPrecipitationProbabilityMax,
-                            ),
-                            icon: Icons.water_drop_rounded,
-                            role: _CompactMetricRole.precipitationProbability,
+                        _CompactMetricData(
+                          label: l10n.homeWeatherPrecipitationProbability,
+                          value: _formatProbability(
+                            _todayPrecipitationProbabilityMax,
                           ),
+                          icon: Icons.water_drop_rounded,
+                          role: _CompactMetricRole.precipitationProbability,
+                        ),
                         _CompactMetricData(
                           label: l10n.homeWeatherWindSpeed,
                           value: _formatWind(_windSpeed),
@@ -1373,6 +1373,41 @@ class _CompactMetricData {
   });
 }
 
+class _MetricSkeletonData {
+  final Key key;
+  final double labelWidthFactor;
+  final double valueWidthFactor;
+
+  const _MetricSkeletonData({
+    required this.key,
+    required this.labelWidthFactor,
+    required this.valueWidthFactor,
+  });
+}
+
+const _loadingDetailMetricSkeletons = <_MetricSkeletonData>[
+  _MetricSkeletonData(
+    key: ValueKey<String>('weatherMetricSkeleton.precipitation'),
+    labelWidthFactor: 0.62,
+    valueWidthFactor: 0.5,
+  ),
+  _MetricSkeletonData(
+    key: ValueKey<String>('weatherMetricSkeleton.precipitationProbability'),
+    labelWidthFactor: 0.78,
+    valueWidthFactor: 0.58,
+  ),
+  _MetricSkeletonData(
+    key: ValueKey<String>('weatherMetricSkeleton.pm10'),
+    labelWidthFactor: 0.7,
+    valueWidthFactor: 0.54,
+  ),
+  _MetricSkeletonData(
+    key: ValueKey<String>('weatherMetricSkeleton.pm25'),
+    labelWidthFactor: 0.76,
+    valueWidthFactor: 0.54,
+  ),
+];
+
 class _WeatherMetricOverview extends StatelessWidget {
   final List<_CompactMetricData> metrics;
 
@@ -1381,6 +1416,30 @@ class _WeatherMetricOverview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _MetricClusterCard(metrics: metrics);
+  }
+}
+
+class _WeatherMetricSkeletonOverview extends StatelessWidget {
+  final List<_MetricSkeletonData> metrics;
+
+  const _WeatherMetricSkeletonOverview({required this.metrics});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        for (var index = 0; index < metrics.length; index++) ...[
+          if (index > 0) const SizedBox(width: 6),
+          Expanded(
+            child: _MetricSkeletonCard(
+              key: metrics[index].key,
+              labelWidthFactor: metrics[index].labelWidthFactor,
+              valueWidthFactor: metrics[index].valueWidthFactor,
+            ),
+          ),
+        ],
+      ],
+    );
   }
 }
 
@@ -1546,6 +1605,7 @@ class _CompactWeatherHeaderCard extends StatelessWidget {
           }.contains(metric.role),
         )
         .toList(growable: false);
+    final showDetailMetricSkeleton = loading && detailMetrics.isEmpty;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
@@ -1746,9 +1806,14 @@ class _CompactWeatherHeaderCard extends StatelessWidget {
               valueColor: onGradient,
             ),
           ],
-          if (detailMetrics.isNotEmpty) ...[
+          if (detailMetrics.isNotEmpty || showDetailMetricSkeleton) ...[
             const SizedBox(height: AppSpacing.sm),
-            _WeatherMetricOverview(metrics: detailMetrics),
+            if (showDetailMetricSkeleton)
+              const _WeatherMetricSkeletonOverview(
+                metrics: _loadingDetailMetricSkeletons,
+              )
+            else
+              _WeatherMetricOverview(metrics: detailMetrics),
           ],
         ],
       ),
@@ -1981,6 +2046,59 @@ class _MetricCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _MetricSkeletonCard extends StatelessWidget {
+  final double labelWidthFactor;
+  final double valueWidthFactor;
+
+  const _MetricSkeletonCard({
+    super.key,
+    required this.labelWidthFactor,
+    required this.valueWidthFactor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      constraints: const BoxConstraints(minHeight: 58),
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 7),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface.withValues(alpha: 0.68),
+        borderRadius: AppRadius.small,
+        border: Border.all(
+          color: theme.colorScheme.surface.withValues(alpha: 0.22),
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          AppSkeletonBlock(
+            width: 14,
+            height: 14,
+            borderRadius: BorderRadius.circular(999),
+          ),
+          const SizedBox(height: 5),
+          FractionallySizedBox(
+            widthFactor: labelWidthFactor,
+            child: AppSkeletonBlock(
+              height: 8,
+              borderRadius: BorderRadius.circular(999),
+            ),
+          ),
+          const SizedBox(height: 5),
+          FractionallySizedBox(
+            widthFactor: valueWidthFactor,
+            child: AppSkeletonBlock(
+              height: 10,
+              borderRadius: BorderRadius.circular(999),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -2983,13 +3101,12 @@ class _TomorrowWeatherCard extends StatelessWidget {
         icon: Icons.umbrella_outlined,
         role: _CompactMetricRole.precipitation,
       ),
-      if (forecast.precipitationProbabilityMax != null)
-        _CompactMetricData(
-          label: precipitationProbabilityLabel,
-          value: formatProbability(forecast.precipitationProbabilityMax),
-          icon: Icons.water_drop_rounded,
-          role: _CompactMetricRole.precipitationProbability,
-        ),
+      _CompactMetricData(
+        label: precipitationProbabilityLabel,
+        value: formatProbability(forecast.precipitationProbabilityMax),
+        icon: Icons.water_drop_rounded,
+        role: _CompactMetricRole.precipitationProbability,
+      ),
       _CompactMetricData(
         label: windLabel,
         value: formatWind(forecast.windSpeedMax),

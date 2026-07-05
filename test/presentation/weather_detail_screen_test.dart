@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/weather_shared_resource.dart';
 import 'package:football_note/gen/app_localizations.dart';
@@ -43,6 +46,7 @@ void main() {
     expect(find.text('맑음'), findsOneWidget);
     expect(find.text('어제 대비'), findsOneWidget);
     expect(find.text('대기질'), findsNothing);
+    expect(find.text('강수확률'), findsOneWidget);
     expect(find.text('미세먼지'), findsOneWidget);
     expect(find.text('초미세먼지'), findsOneWidget);
     expect(find.text('야외 활동 가이드'), findsNothing);
@@ -108,6 +112,58 @@ void main() {
 
     expect(find.text('강수확률'), findsOneWidget);
     expect(find.text('85%'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Weather loading skeleton reserves precipitation probability', (
+    WidgetTester tester,
+  ) async {
+    final serviceEnabledCompleter = Completer<bool>();
+    const geolocatorChannel = MethodChannel('flutter.baseflow.com/geolocator');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(geolocatorChannel, (call) {
+      if (call.method == 'isLocationServiceEnabled') {
+        return serviceEnabledCompleter.future;
+      }
+      return null;
+    });
+    addTearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(geolocatorChannel, null);
+      if (!serviceEnabledCompleter.isCompleted) {
+        serviceEnabledCompleter.complete(false);
+      }
+    });
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: const MaterialApp(
+          locale: Locale('ko', 'KR'),
+          localizationsDelegates: [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: [Locale('en'), Locale('ko', 'KR')],
+          home: WeatherDetailScreen(initialLocation: '강남구 역삼1동'),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(
+      find.byKey(
+        const ValueKey<String>(
+            'weatherMetricSkeleton.precipitationProbability'),
+      ),
+      findsOneWidget,
+    );
+
+    serviceEnabledCompleter.complete(false);
+    await tester.pumpAndSettle();
+
     expect(tester.takeException(), isNull);
   });
 
