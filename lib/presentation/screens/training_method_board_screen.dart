@@ -413,31 +413,40 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     var typedName = initialValue;
     final name = await showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(isKo ? titleKo : titleEn),
-        content: TextFormField(
-          initialValue: typedName,
-          onChanged: (value) => typedName = value,
-          autofocus: true,
-          textInputAction: TextInputAction.done,
-          decoration: InputDecoration(
-            labelText: isKo ? '보드명' : 'Board name',
-            hintText: isKo ? '예) 패스 워밍업' : 'e.g. Pass warm-up',
-            border: const OutlineInputBorder(),
+      builder: (context) {
+        final l10n = AppLocalizations.of(context)!;
+        final availableWidth = MediaQuery.sizeOf(context).width - 96;
+        final fieldWidth = availableWidth.clamp(280.0, 420.0).toDouble();
+        return AlertDialog(
+          title: Text(isKo ? titleKo : titleEn),
+          content: SizedBox(
+            width: fieldWidth,
+            child: TextFormField(
+              initialValue: typedName,
+              onChanged: (value) => typedName = value,
+              autofocus: true,
+              textInputAction: TextInputAction.done,
+              decoration: InputDecoration(
+                labelText: l10n.trainingSketchBoardNameLabel,
+                hintText: l10n.trainingSketchBoardNameHint,
+                border: const OutlineInputBorder(),
+              ),
+              onFieldSubmitted: (value) =>
+                  Navigator.of(context).pop(value.trim()),
+            ),
           ),
-          onFieldSubmitted: (value) => Navigator.of(context).pop(value.trim()),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(isKo ? '취소' : 'Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(typedName.trim()),
-            child: Text(isKo ? confirmKo : confirmEn),
-          ),
-        ],
-      ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(l10n.cancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(typedName.trim()),
+              child: Text(isKo ? confirmKo : confirmEn),
+            ),
+          ],
+        );
+      },
     );
     final trimmed = (name ?? '').trim();
     if (trimmed.isEmpty) return null;

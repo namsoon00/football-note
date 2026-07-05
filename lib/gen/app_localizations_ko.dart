@@ -10882,6 +10882,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get trainingSketchRenameSketchTooltip => '스케치명 수정';
 
   @override
+  String get trainingSketchBoardNameLabel => '보드명';
+
+  @override
+  String get trainingSketchBoardNameHint => '예) 패스 워밍업';
+
+  @override
   String get trainingSketchMemoLabel => '훈련 스케치 메모';
 
   @override

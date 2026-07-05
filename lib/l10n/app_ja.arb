@@ -6187,6 +6187,8 @@
   "trainingSketchDeleteSketchTooltip": "スケッチの削除",
   "trainingSketchImportSketchTooltip": "以前のスケッチをインポートする",
   "trainingSketchRenameSketchTooltip": "スケッチの名前を変更",
+  "trainingSketchBoardNameLabel": "ボード名",
+  "trainingSketchBoardNameHint": "例）パスのウォームアップ",
   "trainingSketchMemoLabel": "トレーニングスケッチノート",
   "trainingSketchMemoHint": "例えばコーン間をツータッチドリブルしてパスする",
   "trainingSketchVoiceInputTooltip": "音声入力",
