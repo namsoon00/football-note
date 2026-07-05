@@ -276,6 +276,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                 kind: _pathDrawModeFromRouteKind(route.kind),
                 linkedItemId: route.linkedItemId,
                 actorItemId: route.actorItemId,
+                targetItemId: route.targetItemId,
                 points: route.points
                     .map((point) => Offset(point.x, point.y))
                     .toList(growable: true),
@@ -370,6 +371,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                 kind: _pathDrawModeFromRouteKind(route.kind),
                 linkedItemId: route.linkedItemId,
                 actorItemId: route.actorItemId,
+                targetItemId: route.targetItemId,
                 points: route.points
                     .map((point) => Offset(point.x, point.y))
                     .toList(growable: true),
@@ -573,6 +575,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                   kind: _routeKindFromPathDrawMode(route.kind),
                   linkedItemId: route.linkedItemId,
                   actorItemId: route.actorItemId,
+                  targetItemId: route.targetItemId,
                   points: route.points
                       .map(
                         (point) =>
@@ -1201,6 +1204,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     List<int>? segmentDurationsMs,
     int? stageIndex,
     String? actorItemId,
+    String? targetItemId,
     _BoardRoute? replacementRoute,
     bool createNewRoute = false,
   }) {
@@ -1222,6 +1226,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         ..addAll(durations);
       route.linkedItemId = item.id;
       route.actorItemId = actorItemId ?? route.actorItemId;
+      route.targetItemId = targetItemId;
       route.stageIndex = nextStage;
       route.color = item.color;
       return route;
@@ -1234,6 +1239,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       segmentDurationsMs: List<int>.from(durations),
       stageIndex: nextStage,
       actorItemId: actorItemId,
+      targetItemId: targetItemId,
       color: item.color,
       width: _defaultRouteWidth(kind),
     );
@@ -1479,10 +1485,21 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     item.x = nextX;
     item.y = nextY;
     for (final route in _currentPage.routes) {
-      if (route.linkedItemId != item.id || route.points.isEmpty) continue;
-      for (var i = 0; i < route.points.length; i++) {
-        final point = route.points[i];
-        route.points[i] = Offset(
+      if (route.points.isEmpty) continue;
+      if (route.linkedItemId == item.id) {
+        for (var i = 0; i < route.points.length; i++) {
+          final point = route.points[i];
+          route.points[i] = Offset(
+            (point.dx + dx).clamp(0.0, 1.0).toDouble(),
+            (point.dy + dy).clamp(0.0, 1.0).toDouble(),
+          );
+        }
+        continue;
+      }
+      if (route.targetItemId == item.id) {
+        final lastIndex = route.points.length - 1;
+        final point = route.points[lastIndex];
+        route.points[lastIndex] = Offset(
           (point.dx + dx).clamp(0.0, 1.0).toDouble(),
           (point.dy + dy).clamp(0.0, 1.0).toDouble(),
         );
@@ -1669,6 +1686,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _currentPage.items.removeWhere((e) => e.id == id);
       final removedSelectedRoute = _selectedRouteId;
       _currentPage.routes.removeWhere((route) => route.linkedItemId == id);
+      for (final route in _currentPage.routes) {
+        if (route.targetItemId == id) {
+          route.targetItemId = null;
+        }
+      }
       if (removedSelectedRoute != null &&
           !_currentPage.routes.any(
             (route) => route.id == removedSelectedRoute,
@@ -2009,6 +2031,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
               kind: _pathDrawModeFromRouteKind(route.kind),
               linkedItemId: route.linkedItemId,
               actorItemId: route.actorItemId,
+              targetItemId: route.targetItemId,
               points: route.points
                   .map((point) => Offset(point.x, point.y))
                   .toList(growable: true),
@@ -3288,6 +3311,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       selectedItemOverride: nextSelectedItem,
       stageIndex: nextStage,
       actorItemId: player.id,
+      targetItemId: targetItem?.id,
       createNewRoute: true,
     );
   }
@@ -3330,6 +3354,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                 ? (_stageForNextPlayerAction(player) ?? 1)
                 : _normalizedRouteStageIndex(existingRoute.stageIndex + 1)),
         actorItemId: player.id,
+        targetItemId: targetItem?.id,
         createNewRoute: true,
       );
       final moveRoute = _upsertRouteForItem(
@@ -3789,6 +3814,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     _BoardItem? selectedItemOverride,
     int? stageIndex,
     String? actorItemId,
+    String? targetItemId,
     bool createNewRoute = false,
   }) {
     _stopRoutePlayback(restoreStart: false);
@@ -3801,6 +3827,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         segmentDurationsMs: segmentDurationsMs ?? const <int>[680],
         stageIndex: stageIndex ?? 1,
         actorItemId: actorItemId,
+        targetItemId: targetItemId,
         createNewRoute: createNewRoute,
       );
       _selectQuickActionRoute(
@@ -6611,6 +6638,7 @@ class _BoardRoute {
   final _PathDrawMode kind;
   String? linkedItemId;
   String? actorItemId;
+  String? targetItemId;
   final List<Offset> points;
   final List<int> segmentDurationsMs;
   int stageIndex;
@@ -6627,6 +6655,7 @@ class _BoardRoute {
     required this.width,
     this.linkedItemId,
     this.actorItemId,
+    this.targetItemId,
   });
 }
 
