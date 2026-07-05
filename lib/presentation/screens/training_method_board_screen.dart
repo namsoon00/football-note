@@ -868,7 +868,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   _BoardItem? _controlledBallForPlayer(_BoardItem player) {
-    final balls = _itemsOfType(_BoardItemType.ball);
+    final balls = _itemsOfType(_BoardItemType.ball).where((ball) {
+      final latestRoute = _latestBallRouteForBall(ball);
+      return latestRoute == null ||
+          _ballRouteGivesPlayerPossession(latestRoute, player);
+    }).toList(growable: false);
     if (balls.isEmpty) return null;
     balls.sort((a, b) {
       final playerPosition = _itemPosition(player);
@@ -877,9 +881,32 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       return aDistance.compareTo(bDistance);
     });
     final nearest = balls.first;
-    return (_itemPosition(nearest) - _itemPosition(player)).distance <= 0.14
+    return (_itemPosition(nearest) - _itemPosition(player)).distance <=
+            _ballPossessionRadius
         ? nearest
         : null;
+  }
+
+  _BoardRoute? _latestBallRouteForBall(_BoardItem ball) {
+    final routes = _currentPage.routes
+        .where(
+          (route) =>
+              route.kind == _PathDrawMode.ball &&
+              route.linkedItemId == ball.id &&
+              route.points.length >= 2,
+        )
+        .toList(growable: false);
+    if (routes.isEmpty) return null;
+    routes.sort((a, b) {
+      final stageCompare = _normalizedRouteStageIndex(
+        a.stageIndex,
+      ).compareTo(_normalizedRouteStageIndex(b.stageIndex));
+      if (stageCompare != 0) return stageCompare;
+      return _currentPage.routes.indexOf(a).compareTo(
+            _currentPage.routes.indexOf(b),
+          );
+    });
+    return routes.last;
   }
 
   Offset _directionalBoardPoint({
@@ -1022,7 +1049,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         playerRoute.points.last,
     ];
     final routeEnd = route.points.last;
-    return candidatePoints.any((point) => (point - routeEnd).distance <= 0.14);
+    return candidatePoints.any(
+      (point) => (point - routeEnd).distance <= _ballPossessionRadius,
+    );
   }
 
   bool _ballRouteGivesPlayerPossession(
@@ -1034,7 +1063,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         route.points.length < 2) {
       return false;
     }
-    if (route.actorItemId == player.id) return true;
+    final targetItemId = route.targetItemId;
+    if (targetItemId != null) {
+      return targetItemId == player.id &&
+          _ballRouteEndsNearPlayer(route, player);
+    }
     return _ballRouteEndsNearPlayer(route, player);
   }
 
@@ -1043,7 +1076,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           (route) =>
               route.kind == _PathDrawMode.ball &&
               route.points.length >= 2 &&
-              _ballRouteEndsNearPlayer(route, player),
+              _ballRouteGivesPlayerPossession(route, player),
         ) ||
         _controlledBallForPlayer(player) != null;
   }
@@ -1064,6 +1097,17 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     _BoardItem player,
     _SketchTargetAction action,
   ) {
+    final hasBall = _playerHasBallForFlow(player);
+    if (hasBall) {
+      return switch (action) {
+        _SketchTargetAction.receiveMove ||
+        _SketchTargetAction.overlap ||
+        _SketchTargetAction.cut ||
+        _SketchTargetAction.screen =>
+          false,
+        _ => true,
+      };
+    }
     if (action == _SketchTargetAction.receiveMove) {
       return _currentPage.routes.any(
         (route) => route.kind == _PathDrawMode.ball && route.points.length >= 2,
@@ -1497,12 +1541,16 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         continue;
       }
       if (route.targetItemId == item.id) {
-        final lastIndex = route.points.length - 1;
-        final point = route.points[lastIndex];
-        route.points[lastIndex] = Offset(
-          (point.dx + dx).clamp(0.0, 1.0).toDouble(),
-          (point.dy + dy).clamp(0.0, 1.0).toDouble(),
-        );
+        final moveWholeRoute =
+            route.kind == _PathDrawMode.ball && route.actorItemId == item.id;
+        final startIndex = moveWholeRoute ? 0 : route.points.length - 1;
+        for (var i = startIndex; i < route.points.length; i++) {
+          final point = route.points[i];
+          route.points[i] = Offset(
+            (point.dx + dx).clamp(0.0, 1.0).toDouble(),
+            (point.dy + dy).clamp(0.0, 1.0).toDouble(),
+          );
+        }
       }
     }
   }
@@ -3132,6 +3180,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           selected,
           target,
           durationMs: 760,
+          carryPossessedBall: false,
         ),
       _SketchTargetAction.screen => _applyScreenTargetAction(selected, target),
       _SketchTargetAction.coneTurn => _applyConeTurnTargetAction(
@@ -3153,11 +3202,13 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           selected,
           target,
           durationMs: 780,
+          carryPossessedBall: false,
         ),
       _SketchTargetAction.fielding => _applyMoveTargetAction(
           selected,
           target,
           durationMs: 700,
+          carryPossessedBall: false,
         ),
       _SketchTargetAction.throwBall => _applyBallTargetAction(
           selected: selected,
@@ -3170,6 +3221,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           selected,
           target,
           durationMs: 640,
+          carryPossessedBall: false,
         ),
     };
     if (applied) {
@@ -3252,11 +3304,73 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     return <Offset>[start, ...points.skip(1)];
   }
 
+  Offset _projectedCarryPoint(
+    List<Offset> points,
+    int index, {
+    required Offset fallbackTarget,
+  }) {
+    final current = points[index];
+    if (index + 1 < points.length) {
+      return _ballCarryPointFromOrigin(current, toward: points[index + 1]);
+    }
+    if (index > 0) {
+      final previous = points[index - 1];
+      final projected = _clampedBoardPoint(
+        current.dx + (current.dx - previous.dx),
+        current.dy + (current.dy - previous.dy),
+      );
+      return _ballCarryPointFromOrigin(current, toward: projected);
+    }
+    return _ballCarryPointFromOrigin(current, toward: fallbackTarget);
+  }
+
+  void _upsertPossessedBallCarryRoute({
+    required _BoardItem player,
+    required List<Offset> actionPoints,
+    required List<int> segmentDurationsMs,
+    required int stageIndex,
+  }) {
+    if (actionPoints.length < 2 || !_playerHasBallForFlow(player)) {
+      return;
+    }
+    final startOverride = _projectedCarryPoint(
+      actionPoints,
+      0,
+      fallbackTarget: actionPoints.last,
+    );
+    final possession = _ballPossessionForNextPlayerAction(
+      player,
+      target: actionPoints.last,
+      startOverride: startOverride,
+    );
+    if (possession == null) return;
+    final ballPoints = <Offset>[
+      possession.start,
+      for (var i = 1; i < actionPoints.length; i++)
+        _projectedCarryPoint(
+          actionPoints,
+          i,
+          fallbackTarget: actionPoints.last,
+        ),
+    ];
+    _upsertRouteForItem(
+      kind: _PathDrawMode.ball,
+      item: possession.ball,
+      points: ballPoints,
+      segmentDurationsMs: segmentDurationsMs,
+      stageIndex: stageIndex,
+      actorItemId: player.id,
+      targetItemId: player.id,
+      createNewRoute: true,
+    );
+  }
+
   bool _applyMoveTargetAction(
     _BoardItem selected,
     Offset target, {
     int durationMs = 720,
     List<Offset>? points,
+    bool carryPossessedBall = true,
   }) {
     final player = _playerForTargetAction(selected);
     if (player == null) return false;
@@ -3265,6 +3379,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       end: target,
       points: points,
       segmentDurationsMs: <int>[durationMs],
+      carryPossessedBall: carryPossessedBall,
     );
   }
 
@@ -3406,6 +3521,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       end: start,
       points: <Offset>[start, target, start],
       segmentDurationsMs: const <int>[540, 620],
+      carryPossessedBall: _playerHasBallForFlow(player),
     );
   }
 
@@ -3440,6 +3556,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             ? null
             : _ballCarryPointForPlayer(player, toward: target))
         : _ballCarryPointFromOrigin(playerStart, toward: target);
+    final possessionRoute = _currentBallRouteForPlayer(player);
     final possession = _ballPossessionForNextPlayerAction(
       player,
       target: target,
@@ -3458,10 +3575,15 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       target,
       yOffset: curveYOffset,
     );
+    final pairedStage = _pairedCarryStageFor(player: player, ball: ball);
+    final continueUnownedPossessionRoute = possessionRoute != null &&
+        possessionRoute.actorItemId == null &&
+        possessionRoute.targetItemId == null;
     final stageIndex = _registeredStageForPlayer(player) ??
         existingRoute?.stageIndex ??
-        _stageForNextPlayerAction(player) ??
-        _pairedCarryStageFor(player: player, ball: ball);
+        (continueUnownedPossessionRoute
+            ? pairedStage
+            : _stageForNextPlayerAction(player) ?? pairedStage);
     _stopRoutePlayback(restoreStart: false);
     setState(() {
       _upsertRouteForItem(
@@ -3617,26 +3739,33 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         center.dx + (direction.dx * 0.11),
         center.dy + (direction.dy * 0.11),
       );
+      final actionPoints = <Offset>[
+        start,
+        approach,
+        sideA,
+        around,
+        sideB,
+        exit,
+      ];
+      final actionDurations = <int>[360, 280, 260, 260, 420];
+      final stageIndex = existingRoute?.stageIndex ??
+          _registeredStageForPlayer(player) ??
+          _suggestedStageForNewRoute(_PathDrawMode.player);
+      _upsertPossessedBallCarryRoute(
+        player: player,
+        actionPoints: actionPoints,
+        segmentDurationsMs: actionDurations,
+        stageIndex: stageIndex,
+      );
       final route = _upsertRouteForItem(
         kind: _PathDrawMode.player,
         item: player,
-        points: <Offset>[
-          ...basePoints,
-          approach,
-          sideA,
-          around,
-          sideB,
-          exit,
-        ],
+        points: <Offset>[...basePoints, ...actionPoints.skip(1)],
         segmentDurationsMs: <int>[
           ..._playerActionBaseDurations(existingRoute),
-          360,
-          280,
-          260,
-          260,
-          420,
+          ...actionDurations,
         ],
-        stageIndex: existingRoute?.stageIndex,
+        stageIndex: stageIndex,
         actorItemId: player.id,
         replacementRoute: existingRoute,
       );
@@ -3706,17 +3835,26 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         center.dx + (direction.dx * 0.095),
         center.dy + (direction.dy * 0.095),
       );
+      final actionPoints = <Offset>[start, takeoff, center, landing];
+      final actionDurations = <int>[360, 240, 420];
+      final stageIndex = existingRoute?.stageIndex ??
+          _registeredStageForPlayer(player) ??
+          _suggestedStageForNewRoute(_PathDrawMode.player);
+      _upsertPossessedBallCarryRoute(
+        player: player,
+        actionPoints: actionPoints,
+        segmentDurationsMs: actionDurations,
+        stageIndex: stageIndex,
+      );
       final route = _upsertRouteForItem(
         kind: _PathDrawMode.player,
         item: player,
-        points: <Offset>[...basePoints, takeoff, center, landing],
+        points: <Offset>[...basePoints, ...actionPoints.skip(1)],
         segmentDurationsMs: <int>[
           ..._playerActionBaseDurations(existingRoute),
-          360,
-          240,
-          420,
+          ...actionDurations,
         ],
-        stageIndex: existingRoute?.stageIndex,
+        stageIndex: stageIndex,
         actorItemId: player.id,
         replacementRoute: existingRoute,
       );
@@ -3845,6 +3983,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     required Offset end,
     List<Offset>? points,
     List<int>? segmentDurationsMs,
+    bool carryPossessedBall = false,
   }) {
     _stopRoutePlayback(restoreStart: false);
     setState(() {
@@ -3859,6 +3998,17 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         pointCount: actionPoints.length,
         rawDurationsMs: segmentDurationsMs ?? const <int>[720],
       );
+      final stageIndex = existingRoute?.stageIndex ??
+          _registeredStageForPlayer(player) ??
+          _suggestedStageForNewRoute(_PathDrawMode.player);
+      if (carryPossessedBall) {
+        _upsertPossessedBallCarryRoute(
+          player: player,
+          actionPoints: actionPoints,
+          segmentDurationsMs: actionDurations,
+          stageIndex: stageIndex,
+        );
+      }
       final route = _upsertRouteForItem(
         kind: _PathDrawMode.player,
         item: player,
@@ -3867,9 +4017,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           ..._playerActionBaseDurations(existingRoute),
           ...actionDurations,
         ],
-        stageIndex: existingRoute?.stageIndex ??
-            _registeredStageForPlayer(player) ??
-            _suggestedStageForNewRoute(_PathDrawMode.player),
+        stageIndex: stageIndex,
         actorItemId: player.id,
         replacementRoute: existingRoute,
       );
@@ -6900,6 +7048,7 @@ const double _ballPlaybackSpeedMetersPerSecond = 9.2;
 const double _playerPlaybackAccelerationFraction = 0.20;
 const double _ballPlaybackAccelerationFraction = 0.05;
 const double _minPlaybackSegmentDistanceMeters = 0.05;
+const double _ballPossessionRadius = 0.23;
 const int _maxRouteStageIndex = 9;
 const Duration _minPlaybackDuration = Duration(milliseconds: 900);
 const List<double> _laneFractions = <double>[0.18, 0.38, 0.62, 0.82];
