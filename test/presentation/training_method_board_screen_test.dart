@@ -2333,6 +2333,166 @@ void main() {
     expect(ballRoutes.last.points.last.y, closeTo(0.38, 0.02));
   });
 
+  testWidgets('player flow only shows possible ball actions', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '가능한 동작',
+          initialLayoutJson: const TrainingMethodLayout(
+            pages: <TrainingMethodPage>[
+              TrainingMethodPage(
+                name: 'Board',
+                items: <TrainingMethodItem>[
+                  TrainingMethodItem(
+                    id: 'player-1',
+                    type: 'player',
+                    x: 0.22,
+                    y: 0.52,
+                  ),
+                  TrainingMethodItem(
+                    id: 'player-2',
+                    type: 'player',
+                    x: 0.62,
+                    y: 0.48,
+                    colorValue: 0xFF1E88E5,
+                  ),
+                  TrainingMethodItem(
+                    id: 'ball-1',
+                    type: 'ball',
+                    x: 0.29,
+                    y: 0.52,
+                    colorValue: 0xFFFFCA28,
+                  ),
+                ],
+              ),
+            ],
+          ).encode(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    await tester.tap(
+      find
+          .descendant(of: boardFinder, matching: find.byIcon(Icons.person))
+          .last,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('training-player-next-action-player-2')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(
+        const ValueKey('training-player-flow-target-player-2-player-1'),
+      ),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey('training-player-flow-new-receiver-player-2')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(
+          const ValueKey('training-player-flow-action-player-2-dribble')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey('training-player-flow-action-player-2-shot')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey('training-player-flow-action-player-2-move')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('player flow pass can create a receiver automatically', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    String? savedLayout;
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '자동 수신자',
+          initialLayoutJson: const TrainingMethodLayout(
+            pages: <TrainingMethodPage>[
+              TrainingMethodPage(
+                name: 'Board',
+                items: <TrainingMethodItem>[
+                  TrainingMethodItem(
+                    id: 'player-1',
+                    type: 'player',
+                    x: 0.28,
+                    y: 0.52,
+                  ),
+                  TrainingMethodItem(
+                    id: 'ball-1',
+                    type: 'ball',
+                    x: 0.35,
+                    y: 0.52,
+                    colorValue: 0xFFFFCA28,
+                  ),
+                ],
+              ),
+            ],
+          ).encode(),
+          onSaved: (value) => savedLayout = value,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    await tester.tap(
+      find
+          .descendant(of: boardFinder, matching: find.byIcon(Icons.person))
+          .first,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('training-player-next-action-player-1')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('training-player-flow-new-receiver-player-1')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey('training-player-next-action-item-1')),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.widgetWithText(TextButton, '저장'));
+    await tester.pumpAndSettle();
+
+    final saved = TrainingMethodLayout.decode(savedLayout ?? '');
+    final page = saved.pages.single;
+    final players = page.items
+        .where((item) => item.type == 'player')
+        .toList(growable: false);
+    final createdPlayer = players.singleWhere((item) => item.id == 'item-1');
+    final ballRoute = page.routes.singleWhere(
+      (route) => route.kind == TrainingMethodRouteKind.ball,
+    );
+
+    expect(players, hasLength(2));
+    expect(ballRoute.actorItemId, 'player-1');
+    expect(ballRoute.linkedItemId, 'ball-1');
+    expect(ballRoute.stageIndex, 1);
+    expect(ballRoute.points.last.x, closeTo(createdPlayer.x, 0.02));
+    expect(ballRoute.points.last.y, closeTo(createdPlayer.y, 0.02));
+  });
+
   testWidgets('tennis serve action creates a ball route to a target', (
     WidgetTester tester,
   ) async {

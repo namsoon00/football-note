@@ -11526,6 +11526,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get trainingSketchPassToNewPlayerButton => 'Pass to new player';
+
+  @override
   String trainingSketchPassToSpotButton(Object target, int index) {
     return 'Pass to $target $index';
   }
@@ -11536,6 +11539,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get trainingSketchThrowToNewPlayerButton => 'Throw to new player';
+
+  @override
   String trainingSketchThrowToSpotButton(Object target, int index) {
     return 'Throw to $target $index';
   }
@@ -11544,6 +11550,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String trainingSketchRallyToPlayerButton(int index) {
     return 'Rally to player $index';
   }
+
+  @override
+  String get trainingSketchRallyToNewPlayerButton => 'Rally to new player';
 
   @override
   String trainingSketchRallyToSpotButton(Object target, int index) {

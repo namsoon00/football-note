@@ -19770,6 +19770,12 @@ abstract class AppLocalizations {
   /// **'Pass to player {index}'**
   String trainingSketchPassToPlayerButton(int index);
 
+  /// No description provided for @trainingSketchPassToNewPlayerButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass to new player'**
+  String get trainingSketchPassToNewPlayerButton;
+
   /// No description provided for @trainingSketchPassToSpotButton.
   ///
   /// In en, this message translates to:
@@ -19782,6 +19788,12 @@ abstract class AppLocalizations {
   /// **'Throw to player {index}'**
   String trainingSketchThrowToPlayerButton(int index);
 
+  /// No description provided for @trainingSketchThrowToNewPlayerButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Throw to new player'**
+  String get trainingSketchThrowToNewPlayerButton;
+
   /// No description provided for @trainingSketchThrowToSpotButton.
   ///
   /// In en, this message translates to:
@@ -19793,6 +19805,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Rally to player {index}'**
   String trainingSketchRallyToPlayerButton(int index);
+
+  /// No description provided for @trainingSketchRallyToNewPlayerButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Rally to new player'**
+  String get trainingSketchRallyToNewPlayerButton;
 
   /// No description provided for @trainingSketchRallyToSpotButton.
   ///

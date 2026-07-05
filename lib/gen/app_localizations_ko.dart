@@ -11221,6 +11221,9 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get trainingSketchPassToNewPlayerButton => '새 사람에게 패스';
+
+  @override
   String trainingSketchPassToSpotButton(Object target, int index) {
     return '$target $index에 패스';
   }
@@ -11231,6 +11234,9 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get trainingSketchThrowToNewPlayerButton => '새 사람에게 송구';
+
+  @override
   String trainingSketchThrowToSpotButton(Object target, int index) {
     return '$target $index에 송구';
   }
@@ -11239,6 +11245,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String trainingSketchRallyToPlayerButton(int index) {
     return '사람 $index에게 랠리';
   }
+
+  @override
+  String get trainingSketchRallyToNewPlayerButton => '새 사람에게 랠리';
 
   @override
   String trainingSketchRallyToSpotButton(Object target, int index) {

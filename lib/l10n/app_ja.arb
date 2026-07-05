@@ -6352,6 +6352,7 @@
       }
     }
   },
+  "trainingSketchPassToNewPlayerButton": "新しいプレイヤーへパス",
   "trainingSketchPassToSpotButton": "{target} {index} へパス",
   "@trainingSketchPassToSpotButton": {
     "placeholders": {
@@ -6369,6 +6370,7 @@
       }
     }
   },
+  "trainingSketchThrowToNewPlayerButton": "新しいプレイヤーへ送球",
   "trainingSketchThrowToSpotButton": "{target} {index} へ送球",
   "@trainingSketchThrowToSpotButton": {
     "placeholders": {
@@ -6386,6 +6388,7 @@
       }
     }
   },
+  "trainingSketchRallyToNewPlayerButton": "新しいプレイヤーへラリー",
   "trainingSketchRallyToSpotButton": "{target} {index} へラリー",
   "@trainingSketchRallyToSpotButton": {
     "placeholders": {

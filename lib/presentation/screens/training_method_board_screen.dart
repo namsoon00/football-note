@@ -1036,8 +1036,37 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   bool _playerHasBallForFlow(_BoardItem player) {
-    return _currentBallRouteForPlayer(player) != null ||
+    return _currentPage.routes.any(
+          (route) =>
+              route.kind == _PathDrawMode.ball &&
+              route.points.length >= 2 &&
+              _ballRouteEndsNearPlayer(route, player),
+        ) ||
         _controlledBallForPlayer(player) != null;
+  }
+
+  bool _hasAnyBallInFlow() {
+    return _itemsOfType(_BoardItemType.ball).isNotEmpty ||
+        _currentPage.routes.any(
+          (route) =>
+              route.kind == _PathDrawMode.ball && route.points.length >= 2,
+        );
+  }
+
+  bool _canUsePlayerFlowBallActions(_BoardItem player) {
+    return _playerHasBallForFlow(player) || !_hasAnyBallInFlow();
+  }
+
+  bool _canUsePlayerFlowMovementAction(
+    _BoardItem player,
+    _SketchTargetAction action,
+  ) {
+    if (action == _SketchTargetAction.receiveMove) {
+      return _currentPage.routes.any(
+        (route) => route.kind == _PathDrawMode.ball && route.points.length >= 2,
+      );
+    }
+    return true;
   }
 
   _BoardRoute? _currentBallRouteForPlayer(_BoardItem player) {
@@ -1061,6 +1090,53 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           );
     });
     return candidates.last;
+  }
+
+  Offset _playerFlowOriginPoint(_BoardItem player) {
+    final route = _routeForItem(player.id, _PathDrawMode.player);
+    if (route != null && route.points.isNotEmpty) {
+      return route.points.last;
+    }
+    return _itemPosition(player);
+  }
+
+  Offset _suggestedPassReceiverPoint(_BoardItem player) {
+    final origin = _playerFlowOriginPoint(player);
+    final xStep = origin.dx < 0.68 ? 0.24 : -0.24;
+    final yOffsets = <double>[0, -0.10, 0.10, -0.18, 0.18];
+    final players = _itemsOfType(_BoardItemType.player);
+    Offset bestPoint = _clampedBoardPoint(origin.dx + xStep, origin.dy);
+    var bestDistance = -1.0;
+    for (final yOffset in yOffsets) {
+      final candidate = _clampedBoardPoint(
+        origin.dx + xStep,
+        origin.dy + yOffset,
+      );
+      final nearestDistance = players.fold<double>(1.0, (nearest, item) {
+        if (item.id == player.id) return nearest;
+        return math.min(nearest, (_itemPosition(item) - candidate).distance);
+      });
+      if (nearestDistance > bestDistance) {
+        bestDistance = nearestDistance;
+        bestPoint = candidate;
+      }
+    }
+    return bestPoint;
+  }
+
+  _BoardItem _createPassReceiverForPlayer(_BoardItem player) {
+    final point = _suggestedPassReceiverPoint(player);
+    final receiver = _BoardItem(
+      id: _nextBoardItemId(),
+      type: _BoardItemType.player,
+      x: point.dx,
+      y: point.dy,
+      size: 32,
+      rotationDeg: 0,
+      color: _nextItemColor(_BoardItemType.player),
+    );
+    _currentPage.items.add(receiver);
+    return receiver;
   }
 
   _PlayerBallPossession? _ballPossessionForNextPlayerAction(
@@ -3690,6 +3766,21 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     );
   }
 
+  void _applyQuickBallToNewReceiverTemplate(_BoardItem player) {
+    late final _BoardItem receiver;
+    setState(() {
+      receiver = _createPassReceiverForPlayer(player);
+      _selectedItemId = player.id;
+      _selectedRouteId = null;
+    });
+    _applyBallTargetAction(
+      selected: player,
+      target: _itemPosition(receiver),
+      targetItem: receiver,
+      durationMs: 680,
+    );
+  }
+
   bool _applyQuickBallToPointTemplate({
     required _BoardItem ball,
     required Offset end,
@@ -5133,6 +5224,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       builder: (context) => _buildPlayerFlowSheet(context, player),
     );
     if (!mounted || selection == null) return;
+    if (selection.createPassReceiver) {
+      _applyQuickBallToNewReceiverTemplate(player);
+      return;
+    }
     if (selection.targetItemId case final targetItemId?) {
       final target = _itemById(targetItemId);
       if (target != null) {
@@ -5210,13 +5305,18 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   Widget _buildPlayerFlowSheet(BuildContext sheetContext, _BoardItem player) {
     final theme = Theme.of(sheetContext);
     final hasBall = _playerHasBallForFlow(player);
+    final canUseBallActions = _canUsePlayerFlowBallActions(player);
     final sportId = _currentSportIdOrDefault;
     final targetPlayers = _itemsOfType(
       _BoardItemType.player,
       excludingId: player.id,
     );
-    final ballActions = _playerFlowBallActions(sportId);
-    final movementActions = _playerFlowMovementActions(sportId);
+    final ballActions = canUseBallActions
+        ? _playerFlowBallActions(sportId)
+        : const <_SketchTargetAction>[];
+    final movementActions = _playerFlowMovementActions(sportId)
+        .where((action) => _canUsePlayerFlowMovementAction(player, action))
+        .toList(growable: false);
     return SafeArea(
       child: Padding(
         padding: EdgeInsets.fromLTRB(
@@ -5261,7 +5361,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                   _l10n.trainingSketchPlayerFlowHint,
                   style: theme.textTheme.bodySmall,
                 ),
-                if (targetPlayers.isNotEmpty) ...[
+                if (canUseBallActions) ...[
                   const SizedBox(height: 16),
                   _buildPlayerFlowSectionTitle(
                     _l10n.trainingSketchPlayerFlowPassSection,
@@ -5278,45 +5378,54 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                           target: target,
                           sportId: sportId,
                         ),
+                      _playerFlowNewReceiverButton(
+                        sheetContext: sheetContext,
+                        player: player,
+                        sportId: sportId,
+                      ),
                     ],
                   ),
                 ],
-                const SizedBox(height: 16),
-                _buildPlayerFlowSectionTitle(
-                  _l10n.trainingSketchPlayerFlowBallSection,
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    for (final action in ballActions)
-                      _playerFlowActionButton(
-                        sheetContext: sheetContext,
-                        player: player,
-                        action: action,
-                        icon: _targetActionIcon(action),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _buildPlayerFlowSectionTitle(
-                  _l10n.trainingSketchPlayerFlowMoveSection,
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    for (final action in movementActions)
-                      _playerFlowActionButton(
-                        sheetContext: sheetContext,
-                        player: player,
-                        action: action,
-                        icon: _targetActionIcon(action),
-                      ),
-                  ],
-                ),
+                if (ballActions.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  _buildPlayerFlowSectionTitle(
+                    _l10n.trainingSketchPlayerFlowBallSection,
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      for (final action in ballActions)
+                        _playerFlowActionButton(
+                          sheetContext: sheetContext,
+                          player: player,
+                          action: action,
+                          icon: _targetActionIcon(action),
+                        ),
+                    ],
+                  ),
+                ],
+                if (movementActions.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  _buildPlayerFlowSectionTitle(
+                    _l10n.trainingSketchPlayerFlowMoveSection,
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      for (final action in movementActions)
+                        _playerFlowActionButton(
+                          sheetContext: sheetContext,
+                          player: player,
+                          action: action,
+                          icon: _targetActionIcon(action),
+                        ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),
@@ -5355,6 +5464,31 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       key: ValueKey('training-player-flow-target-${player.id}-${target.id}'),
       onPressed: () => Navigator.of(sheetContext).pop(
         _PlayerFlowSelection.target(target.id),
+      ),
+      icon: Icon(icon),
+      label: Text(label),
+    );
+  }
+
+  Widget _playerFlowNewReceiverButton({
+    required BuildContext sheetContext,
+    required _BoardItem player,
+    required String sportId,
+  }) {
+    final label = switch (sportId) {
+      SportCatalog.baseballId => _l10n.trainingSketchThrowToNewPlayerButton,
+      SportCatalog.tennisId => _l10n.trainingSketchRallyToNewPlayerButton,
+      _ => _l10n.trainingSketchPassToNewPlayerButton,
+    };
+    final icon = switch (sportId) {
+      SportCatalog.baseballId => Icons.person_add_alt_1,
+      SportCatalog.tennisId => Icons.person_add_alt_1,
+      _ => Icons.person_add_alt_1,
+    };
+    return FilledButton.tonalIcon(
+      key: ValueKey('training-player-flow-new-receiver-${player.id}'),
+      onPressed: () => Navigator.of(sheetContext).pop(
+        const _PlayerFlowSelection.createPassReceiver(),
       ),
       icon: Icon(icon),
       label: Text(label),
@@ -5405,23 +5539,18 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
 
   List<_SketchTargetAction> _playerFlowBallActions(String sportId) {
     return switch (sportId) {
-      SportCatalog.baseballId => <_SketchTargetAction>[
-          _SketchTargetAction.throwBall,
-        ],
+      SportCatalog.baseballId => const <_SketchTargetAction>[],
       SportCatalog.basketballId => <_SketchTargetAction>[
-          _SketchTargetAction.pass,
           _SketchTargetAction.drive,
           _SketchTargetAction.shot,
         ],
       SportCatalog.tennisId => <_SketchTargetAction>[
           _SketchTargetAction.serve,
-          _SketchTargetAction.rally,
         ],
       _ => <_SketchTargetAction>[
-          _SketchTargetAction.pass,
           _SketchTargetAction.dribble,
           _SketchTargetAction.shot,
-          _SketchTargetAction.passAndMove,
+          _SketchTargetAction.cross,
         ],
     };
   }
@@ -6626,10 +6755,20 @@ enum _SketchTargetAction {
 class _PlayerFlowSelection {
   final _SketchTargetAction? action;
   final String? targetItemId;
+  final bool createPassReceiver;
 
-  const _PlayerFlowSelection.action(this.action) : targetItemId = null;
+  const _PlayerFlowSelection.action(this.action)
+      : targetItemId = null,
+        createPassReceiver = false;
 
-  const _PlayerFlowSelection.target(this.targetItemId) : action = null;
+  const _PlayerFlowSelection.target(this.targetItemId)
+      : action = null,
+        createPassReceiver = false;
+
+  const _PlayerFlowSelection.createPassReceiver()
+      : action = null,
+        targetItemId = null,
+        createPassReceiver = true;
 }
 
 enum _BoardItemType { cone, hurdle, player, ball, ladder, target, base, basket }
