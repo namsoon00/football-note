@@ -11482,6 +11482,26 @@ class AppLocalizationsKo extends AppLocalizations {
   String get challengeUpdateSnack => '챌린지를 수정했어요.';
 
   @override
+  String get challengeDeletePendingAction => '삭제';
+
+  @override
+  String get challengeDeletePendingTitle => '챌린지 삭제';
+
+  @override
+  String get challengeDeletePendingBody =>
+      '아직 선수가 기록을 시작하지 않은 챌린지예요. 이 챌린지를 삭제할까요?';
+
+  @override
+  String get challengeDeletePendingConfirm => '삭제';
+
+  @override
+  String get challengeDeletePendingSnack => '챌린지를 삭제했어요.';
+
+  @override
+  String get challengeDeletePendingUnavailableSnack =>
+      '이미 기록이 시작된 챌린지는 삭제할 수 없어요.';
+
+  @override
   String get challengeStartHeroTitle => '린지의 챌린지 모드';
 
   @override

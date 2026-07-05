@@ -74,6 +74,8 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   late final ChallengeService _challengeService;
   late final SettingsService _settingsService;
   late final TrainingPlanReminderService _reminderService;
+  bool _startChallengeInFlight = false;
+  bool _updateChallengeInFlight = false;
   bool _finalizeInFlight = false;
   bool _roundAwardInFlight = false;
   bool _reminderSyncInFlight = false;
@@ -277,6 +279,9 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       return [
         _ChallengeDetailActions(
           onEdit: () => _showChallengeEdit(selectedProgress),
+          onDelete: _canDeleteParentPendingChallenge(selectedProgress)
+              ? () => _confirmDeleteParentPendingChallenge(selectedProgress)
+              : null,
         ),
         const SizedBox(height: 12),
         _ActiveChallengeSection(
@@ -840,27 +845,33 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     int cadenceDays,
     String rewardGift,
   ) async {
+    if (_startChallengeInFlight) return;
+    _startChallengeInFlight = true;
     final l10n = AppLocalizations.of(context)!;
-    _playChallengeTapFeedback();
-    final run = await _challengeService.startChallenge(
-      template,
-      selectedSkillIds: selectedSkillIds,
-      missionTargets: missionTargets,
-      cadenceDays: cadenceDays,
-      rewardGift: rewardGift,
-    );
-    if (!mounted) return;
-    setState(() {
-      _mode = _ChallengeScreenMode.detail;
-      _selectedRunId = run.id;
-    });
-    unawaited(_syncParentChallengeBackupIfPossible());
-    _showChallengeTopSnackBar(
-      _challengeSnackWithParentSync(
-        l10n,
-        l10n.challengeStartSnack(_templateTitle(l10n, template)),
-      ),
-    );
+    try {
+      _playChallengeTapFeedback();
+      final run = await _challengeService.startChallenge(
+        template,
+        selectedSkillIds: selectedSkillIds,
+        missionTargets: missionTargets,
+        cadenceDays: cadenceDays,
+        rewardGift: rewardGift,
+      );
+      if (!mounted) return;
+      setState(() {
+        _mode = _ChallengeScreenMode.detail;
+        _selectedRunId = run.id;
+      });
+      unawaited(_syncParentChallengeBackupIfPossible());
+      _showChallengeTopSnackBar(
+        _challengeSnackWithParentSync(
+          l10n,
+          l10n.challengeStartSnack(_templateTitle(l10n, template)),
+        ),
+      );
+    } finally {
+      _startChallengeInFlight = false;
+    }
   }
 
   Future<void> _updateChallenge(
@@ -871,33 +882,93 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     int cadenceDays,
     String rewardGift,
   ) async {
+    if (_updateChallengeInFlight) return;
+    _updateChallengeInFlight = true;
     final l10n = AppLocalizations.of(context)!;
-    _playChallengeTapFeedback();
-    final updatedRun = await _challengeService.updateRun(
-      runId,
-      template: template,
-      selectedSkillIds: selectedSkillIds,
-      missionTargets: missionTargets,
-      cadenceDays: cadenceDays,
-      rewardGift: rewardGift,
-    );
-    if (!mounted) return;
-    if (updatedRun == null) {
+    try {
+      _playChallengeTapFeedback();
+      final updatedRun = await _challengeService.updateRun(
+        runId,
+        template: template,
+        selectedSkillIds: selectedSkillIds,
+        missionTargets: missionTargets,
+        cadenceDays: cadenceDays,
+        rewardGift: rewardGift,
+      );
+      if (!mounted) return;
+      if (updatedRun == null) {
+        setState(() {
+          _mode = _ChallengeScreenMode.list;
+          _selectedRunId = null;
+        });
+        return;
+      }
+      _lastFinalizeSignatures.remove(runId);
+      _lastRoundAwardSignatures.remove(runId);
       setState(() {
-        _mode = _ChallengeScreenMode.list;
-        _selectedRunId = null;
+        _mode = _ChallengeScreenMode.detail;
+        _selectedRunId = updatedRun.id;
       });
+      unawaited(_syncParentChallengeBackupIfPossible());
+      _showChallengeTopSnackBar(
+        _challengeSnackWithParentSync(l10n, l10n.challengeUpdateSnack),
+      );
+    } finally {
+      _updateChallengeInFlight = false;
+    }
+  }
+
+  Future<void> _confirmDeleteParentPendingChallenge(
+    ChallengeProgress progress,
+  ) async {
+    final l10n = AppLocalizations.of(context)!;
+    if (!_canDeleteParentPendingChallenge(progress)) {
+      _showChallengeTopSnackBar(l10n.challengeDeletePendingUnavailableSnack);
       return;
     }
-    _lastFinalizeSignatures.remove(runId);
-    _lastRoundAwardSignatures.remove(runId);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.challengeDeletePendingTitle),
+        content: Text(l10n.challengeDeletePendingBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.challengeDeletePendingConfirm),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    if (!_canDeleteParentPendingChallenge(progress)) {
+      _showChallengeTopSnackBar(l10n.challengeDeletePendingUnavailableSnack);
+      return;
+    }
+    final deleted = await _challengeService.deleteActiveRun(progress.run.id);
+    if (!mounted) return;
+    if (!deleted) {
+      _showChallengeTopSnackBar(l10n.challengeDeletePendingUnavailableSnack);
+      return;
+    }
+    _lastFinalizeSignatures.remove(progress.run.id);
+    _lastRoundAwardSignatures.remove(progress.run.id);
+    _pendingFinalizeSignatures.removeWhere(
+      (signature) => signature.startsWith('${progress.run.id}:'),
+    );
+    _pendingRoundAwardSignatures.removeWhere(
+      (signature) => signature.startsWith('${progress.run.id}:'),
+    );
     setState(() {
-      _mode = _ChallengeScreenMode.detail;
-      _selectedRunId = updatedRun.id;
+      _mode = _ChallengeScreenMode.list;
+      _selectedRunId = null;
     });
     unawaited(_syncParentChallengeBackupIfPossible());
     _showChallengeTopSnackBar(
-      _challengeSnackWithParentSync(l10n, l10n.challengeUpdateSnack),
+      _challengeSnackWithParentSync(l10n, l10n.challengeDeletePendingSnack),
     );
   }
 
@@ -1210,6 +1281,21 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     ).loadState().isParentMode;
   }
 
+  bool _canDeleteParentPendingChallenge(ChallengeProgress progress) {
+    if (!_isParentReadOnlyMode || progress.run.isEnded) return false;
+    if (progress.run.completedRoundNumbers.isNotEmpty) return false;
+    return progress.rounds
+        .every((round) => !_roundHasAnyMissionProgress(round));
+  }
+
+  bool _roundHasAnyMissionProgress(ChallengeRoundProgress round) {
+    return round.trainingMinutes > 0 ||
+        round.jumpRopeMinutes > 0 ||
+        round.liftingMinutes > 0 ||
+        round.riceBowls > 0 ||
+        round.trainingPrograms.any((program) => program.currentMinutes > 0);
+  }
+
   Future<void> _syncParentChallengeBackupIfPossible() async {
     if (!_isParentReadOnlyMode) return;
     final backup = widget.driveBackupService;
@@ -1298,7 +1384,7 @@ class _ChallengeStartSection extends StatefulWidget {
   final List<_ChallengeSkillOption> skillOptions;
   final bool canEditRewardGift;
   final VoidCallback onOpenTrainingPrograms;
-  final void Function(
+  final Future<void> Function(
     ChallengeTemplate template,
     List<String> selectedSkillIds,
     ChallengeMissionTargets missionTargets,
@@ -1336,6 +1422,7 @@ class _ChallengeStartSectionState extends State<_ChallengeStartSection> {
   late Set<String> _selectedSkillIds;
   int _selectedCadenceDays = 1;
   ChallengeMissionTargets? _missionTargets;
+  bool _submitting = false;
   late final TextEditingController _rewardGiftController;
 
   @override
@@ -1516,22 +1603,44 @@ class _ChallengeStartSectionState extends State<_ChallengeStartSection> {
           ],
           const SizedBox(height: 12),
           FilledButton.icon(
-            onPressed: () => widget.onStart(
-              _selectedTemplate!,
-              normalizeChallengeSkillIds(
-                _selectedSkillIds,
-                allowEmpty: !_effectiveMissionTargets.hasTrainingMission,
-              ),
-              _effectiveMissionTargets,
-              _selectedCadenceDays,
-              _rewardGiftController.text,
-            ),
-            icon: Icon(widget.submitIcon),
+            onPressed: _submitting ? null : _submit,
+            icon: _submitting
+                ? const SizedBox.square(
+                    dimension: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2.2),
+                  )
+                : Icon(widget.submitIcon),
             label: Text(widget.submitLabel),
           ),
         ],
       ],
     );
+  }
+
+  Future<void> _submit() async {
+    final selectedTemplate = _selectedTemplate;
+    if (_submitting || selectedTemplate == null) return;
+    setState(() {
+      _submitting = true;
+    });
+    try {
+      await widget.onStart(
+        selectedTemplate,
+        normalizeChallengeSkillIds(
+          _selectedSkillIds,
+          allowEmpty: !_effectiveMissionTargets.hasTrainingMission,
+        ),
+        _effectiveMissionTargets,
+        _selectedCadenceDays,
+        _rewardGiftController.text,
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _submitting = false;
+        });
+      }
+    }
   }
 
   void _applyInitialValues() {
@@ -4440,20 +4549,33 @@ class _ChallengeCurrentRoundBadge extends StatelessWidget {
 
 class _ChallengeDetailActions extends StatelessWidget {
   final VoidCallback onEdit;
+  final VoidCallback? onDelete;
 
-  const _ChallengeDetailActions({required this.onEdit});
+  const _ChallengeDetailActions({required this.onEdit, this.onDelete});
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return Align(
-      alignment: AlignmentDirectional.centerEnd,
-      child: OutlinedButton.icon(
-        key: const ValueKey('challenge-edit-button'),
-        onPressed: onEdit,
-        icon: const Icon(Icons.tune_rounded),
-        label: Text(l10n.challengeEditAction),
-      ),
+    final onDelete = this.onDelete;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        if (onDelete != null) ...[
+          OutlinedButton.icon(
+            key: const ValueKey('challenge-delete-pending-button'),
+            onPressed: onDelete,
+            icon: const Icon(Icons.delete_outline_rounded),
+            label: Text(l10n.challengeDeletePendingAction),
+          ),
+          const SizedBox(width: 8),
+        ],
+        OutlinedButton.icon(
+          key: const ValueKey('challenge-edit-button'),
+          onPressed: onEdit,
+          icon: const Icon(Icons.tune_rounded),
+          label: Text(l10n.challengeEditAction),
+        ),
+      ],
     );
   }
 }

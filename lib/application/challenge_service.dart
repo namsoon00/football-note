@@ -207,6 +207,22 @@ class ChallengeService {
     await _saveRuns(runs);
   }
 
+  Future<bool> deleteActiveRun(String runId) async {
+    var deleted = false;
+    final runs = loadRuns().where(
+      (run) {
+        if (run.id == runId && !run.isEnded) {
+          deleted = true;
+          return false;
+        }
+        return true;
+      },
+    ).toList(growable: false);
+    if (!deleted) return false;
+    await _saveRuns(runs);
+    return true;
+  }
+
   ChallengeProgress? progressForRun({
     required ChallengeRun run,
     required List<TrainingEntry> trainingEntries,
