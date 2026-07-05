@@ -5611,7 +5611,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diaryStickerPlan => 'Plan';
 
   @override
-  String get diaryStickerFortune => 'Daily fortune';
+  String get diaryStickerFortune => 'Daily mood';
 
   @override
   String get diaryStickerBoard => 'Board';
@@ -5837,15 +5837,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get diaryFortunePinSummary =>
-      'Pin today\'s fortune as a diary sticker.';
+  String get diaryFortunePinSummary => 'Pin today\'s mood as a diary sticker.';
 
   @override
   String get diaryFortuneStorySentence =>
-      'Write the scene or encouragement you want to keep from today\'s fortune.';
+      'Write the scene or encouragement you want to keep from today\'s mood.';
 
   @override
-  String get diaryFortuneNoteTitle => 'Today fortune note';
+  String get diaryFortuneNoteTitle => 'Today mood note';
 
   @override
   String get diaryMatchTodoTitleNoOpponent => 'Match';
@@ -6373,17 +6372,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeRiceBowlEmpty => 'Skipped';
 
   @override
-  String get fortuneDialogTitle => 'Today\'s fortune';
+  String get fortuneDialogTitle => 'Today\'s mood';
 
   @override
   String get fortuneDialogSubtitle =>
-      'A practical daily-life fortune picked from birth date and name.';
+      'A play mood picked from birth date and name.';
 
   @override
-  String get fortuneDialogOverviewTitle => 'Fortune view';
+  String get fortuneDialogOverviewTitle => 'Mood view';
 
   @override
-  String get fortuneDialogOverallFortuneLabel => 'Today fortune';
+  String get fortuneDialogOverallFortuneLabel => 'Today mood';
 
   @override
   String get fortuneDialogLuckyInfoLabel => 'Color and number';
@@ -6402,7 +6401,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fortuneDialogLuckyInfoTitle => 'Color and number';
 
   @override
-  String get fortuneDialogPoolSizeLabel => 'Fortune combinations';
+  String get fortuneDialogPoolSizeLabel => 'Mood combinations';
 
   @override
   String fortuneDialogPoolSizeCount(String count) {
@@ -6410,14 +6409,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get fortuneDialogRecommendedProgramTitle => 'Recommended training';
+  String get fortuneDialogRecommendedProgramTitle => 'Next training pick';
 
   @override
-  String get fortuneDialogRecommendationTitle => 'Play note';
+  String get fortuneDialogRecommendationTitle => 'Play line';
 
   @override
   String get fortuneDialogEncouragement =>
-      'Keep one interesting little scene from today.';
+      'Save one quick highlight from today.';
 
   @override
   String get fortuneDialogAction => 'Got it';
@@ -6426,11 +6425,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fortuneDatabaseViewAction => 'View full database';
 
   @override
-  String get fortuneDatabaseTitle => 'Full Fortune Database';
+  String get fortuneDatabaseTitle => 'Full Mood Database';
 
   @override
   String get fortuneDatabaseSubtitle =>
-      'Myeongli flow cues, the daily events that can follow from them, colors, and numbers used to build today\'s fortune.';
+      'Myeongli codes, everyday scenes, color picks, and numbers used to build today\'s mood.';
 
   @override
   String get fortuneDatabaseCloseAction => 'Close';
@@ -6463,7 +6462,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fortuneDatabaseSectionDailyEvents => 'What may follow';
 
   @override
-  String get fortuneDatabaseSectionDailyOutcomes => 'Daily fortune sentences';
+  String get fortuneDatabaseSectionDailyOutcomes => 'Daily mood lines';
 
   @override
   String get fortuneDatabaseSectionActionCues => 'Small things to try';
@@ -6499,7 +6498,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fortuneDatabaseSectionCueActions => 'Small routines';
 
   @override
-  String get entryFortuneOpenFailed => 'Failed to open fortune.';
+  String get entryFortuneOpenFailed => 'Failed to open mood.';
 
   @override
   String get profileBirthTimeTitle => 'Birth time';
@@ -6527,7 +6526,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String fortuneGeneratedDailyLineOne(String name, String elementFlow) {
-    return '$name, today: $elementFlow';
+    return '$name, today\'s mood: $elementFlow';
   }
 
   @override
@@ -6538,12 +6537,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String fortuneGeneratedLinkedDailyLine(
       String name, String elementFlow, String fortuneTheme) {
-    return '$name, because today is $elementFlow, $fortuneTheme';
+    return '$name, today\'s mood: $elementFlow / $fortuneTheme';
   }
 
   @override
   String fortuneGeneratedDailyLineThree(String nameElement, String playAdvice) {
-    return 'With your $nameElement flow, $playAdvice';
+    return 'One-line mission: play it like a $nameElement and $playAdvice.';
   }
 
   @override
@@ -6551,7 +6550,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String fortuneGeneratedLuckyInfoLine(int number, String color) {
-    return 'Today\'s color is $color, and the number is $number.';
+    return 'Today\'s pick: $color, number $number.';
   }
 
   @override
@@ -6647,15 +6646,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fortuneDailyOutcomeTimes =>
-      'in the morning|around lunch|this afternoon|this evening|unexpectedly|by chance|soon|all at once|in a short moment|near the end';
+      'in the morning|around lunch|this afternoon|this evening|out of nowhere|by chance|pretty soon|all at once|in a quick moment|at the end';
 
   @override
   String get fortuneDailyOutcomeSubjects =>
-      'a smile|a welcome message|good news|a small lucky break|the answer you need|a new chance|a calm pocket of time|a helpful word|a grateful moment|an easy choice';
+      'a funny scene|a welcome message|good news|a small chance|the answer you need|a new offer|a free pocket of time|a sharp comment|a grateful moment|an easy choice';
 
   @override
   String get fortuneDailyOutcomeResults =>
-      'appears.|lightens your mood.|makes the day easier.|stays pleasant.|makes the next step easier.|feels bigger than expected.|turns today around.|gives you a small lift.|brings a smile.|stays in your memory.';
+      'pops up.|lifts the mood.|makes the day easier.|sticks around.|makes the next move easier.|lands bigger than expected.|changes today\'s energy.|gives you a little push.|makes you smile.|stays memorable.';
 
   @override
   String get fortuneSajuTrainingTones =>
@@ -9925,7 +9924,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'Parent mode cannot edit training sketches.';
 
   @override
-  String get parentReadOnlyFortuneEmpty => 'No saved fortune is available yet.';
+  String get parentReadOnlyFortuneEmpty =>
+      'No saved mood card is available yet.';
 
   @override
   String get parentFeedbackSectionTitle => 'Parent feedback';

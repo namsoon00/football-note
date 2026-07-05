@@ -91,9 +91,9 @@ class FortuneSections {
         return const <String>[];
       }
       if (number.isNotEmpty && color.isNotEmpty) {
-        return [_ensureSentence('오늘의 컬러는 $color, 숫자는 $number예요')];
+        return [_ensureSentence('오늘 픽은 $color, 숫자는 $number예요')];
       }
-      final text = color.isNotEmpty ? '오늘의 컬러는 $color예요' : '오늘의 숫자는 $number예요';
+      final text = color.isNotEmpty ? '오늘 픽은 $color예요' : '오늘 숫자는 $number예요';
       return [_ensureSentence(text)];
     }
 
@@ -103,13 +103,10 @@ class FortuneSections {
       return const <String>[];
     }
     if (number.isNotEmpty && color.isNotEmpty) {
-      return [
-        _ensureSentence("Today's color is $color, and the number is $number")
-      ];
+      return [_ensureSentence("Today's pick: $color, number $number")];
     }
-    final text = color.isNotEmpty
-        ? "Today's color is $color"
-        : "Today's number is $number";
+    final text =
+        color.isNotEmpty ? "Today's pick: $color" : "Today's number: $number";
     return [_ensureSentence(text)];
   }
 

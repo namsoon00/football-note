@@ -13,7 +13,7 @@ void main() {
     expect(sections.bodyLines, hasLength(1));
     expect(
       sections.bodyLines.single,
-      '오늘의 컬러는 에메랄드예요.',
+      '오늘 픽은 에메랄드예요.',
     );
   });
 }

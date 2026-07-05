@@ -9919,7 +9919,7 @@ abstract class AppLocalizations {
   /// No description provided for @diaryStickerFortune.
   ///
   /// In en, this message translates to:
-  /// **'Daily fortune'**
+  /// **'Daily mood'**
   String get diaryStickerFortune;
 
   /// No description provided for @diaryStickerBoard.
@@ -10256,19 +10256,19 @@ abstract class AppLocalizations {
   /// No description provided for @diaryFortunePinSummary.
   ///
   /// In en, this message translates to:
-  /// **'Pin today\'s fortune as a diary sticker.'**
+  /// **'Pin today\'s mood as a diary sticker.'**
   String get diaryFortunePinSummary;
 
   /// No description provided for @diaryFortuneStorySentence.
   ///
   /// In en, this message translates to:
-  /// **'Write the scene or encouragement you want to keep from today\'s fortune.'**
+  /// **'Write the scene or encouragement you want to keep from today\'s mood.'**
   String get diaryFortuneStorySentence;
 
   /// No description provided for @diaryFortuneNoteTitle.
   ///
   /// In en, this message translates to:
-  /// **'Today fortune note'**
+  /// **'Today mood note'**
   String get diaryFortuneNoteTitle;
 
   /// No description provided for @diaryMatchTodoTitleNoOpponent.
@@ -11132,25 +11132,25 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneDialogTitle.
   ///
   /// In en, this message translates to:
-  /// **'Today\'s fortune'**
+  /// **'Today\'s mood'**
   String get fortuneDialogTitle;
 
   /// No description provided for @fortuneDialogSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'A practical daily-life fortune picked from birth date and name.'**
+  /// **'A play mood picked from birth date and name.'**
   String get fortuneDialogSubtitle;
 
   /// No description provided for @fortuneDialogOverviewTitle.
   ///
   /// In en, this message translates to:
-  /// **'Fortune view'**
+  /// **'Mood view'**
   String get fortuneDialogOverviewTitle;
 
   /// No description provided for @fortuneDialogOverallFortuneLabel.
   ///
   /// In en, this message translates to:
-  /// **'Today fortune'**
+  /// **'Today mood'**
   String get fortuneDialogOverallFortuneLabel;
 
   /// No description provided for @fortuneDialogLuckyInfoLabel.
@@ -11180,7 +11180,7 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneDialogPoolSizeLabel.
   ///
   /// In en, this message translates to:
-  /// **'Fortune combinations'**
+  /// **'Mood combinations'**
   String get fortuneDialogPoolSizeLabel;
 
   /// No description provided for @fortuneDialogPoolSizeCount.
@@ -11192,19 +11192,19 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneDialogRecommendedProgramTitle.
   ///
   /// In en, this message translates to:
-  /// **'Recommended training'**
+  /// **'Next training pick'**
   String get fortuneDialogRecommendedProgramTitle;
 
   /// No description provided for @fortuneDialogRecommendationTitle.
   ///
   /// In en, this message translates to:
-  /// **'Play note'**
+  /// **'Play line'**
   String get fortuneDialogRecommendationTitle;
 
   /// No description provided for @fortuneDialogEncouragement.
   ///
   /// In en, this message translates to:
-  /// **'Keep one interesting little scene from today.'**
+  /// **'Save one quick highlight from today.'**
   String get fortuneDialogEncouragement;
 
   /// No description provided for @fortuneDialogAction.
@@ -11222,13 +11222,13 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneDatabaseTitle.
   ///
   /// In en, this message translates to:
-  /// **'Full Fortune Database'**
+  /// **'Full Mood Database'**
   String get fortuneDatabaseTitle;
 
   /// No description provided for @fortuneDatabaseSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Myeongli flow cues, the daily events that can follow from them, colors, and numbers used to build today\'s fortune.'**
+  /// **'Myeongli codes, everyday scenes, color picks, and numbers used to build today\'s mood.'**
   String get fortuneDatabaseSubtitle;
 
   /// No description provided for @fortuneDatabaseCloseAction.
@@ -11294,7 +11294,7 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneDatabaseSectionDailyOutcomes.
   ///
   /// In en, this message translates to:
-  /// **'Daily fortune sentences'**
+  /// **'Daily mood lines'**
   String get fortuneDatabaseSectionDailyOutcomes;
 
   /// No description provided for @fortuneDatabaseSectionActionCues.
@@ -11366,7 +11366,7 @@ abstract class AppLocalizations {
   /// No description provided for @entryFortuneOpenFailed.
   ///
   /// In en, this message translates to:
-  /// **'Failed to open fortune.'**
+  /// **'Failed to open mood.'**
   String get entryFortuneOpenFailed;
 
   /// No description provided for @profileBirthTimeTitle.
@@ -11410,7 +11410,7 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneGeneratedDailyLineOne.
   ///
   /// In en, this message translates to:
-  /// **'{name}, today: {elementFlow}'**
+  /// **'{name}, today\'s mood: {elementFlow}'**
   String fortuneGeneratedDailyLineOne(String name, String elementFlow);
 
   /// No description provided for @fortuneGeneratedDailyLineTwo.
@@ -11422,14 +11422,14 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneGeneratedLinkedDailyLine.
   ///
   /// In en, this message translates to:
-  /// **'{name}, because today is {elementFlow}, {fortuneTheme}'**
+  /// **'{name}, today\'s mood: {elementFlow} / {fortuneTheme}'**
   String fortuneGeneratedLinkedDailyLine(
       String name, String elementFlow, String fortuneTheme);
 
   /// No description provided for @fortuneGeneratedDailyLineThree.
   ///
   /// In en, this message translates to:
-  /// **'With your {nameElement} flow, {playAdvice}'**
+  /// **'One-line mission: play it like a {nameElement} and {playAdvice}.'**
   String fortuneGeneratedDailyLineThree(String nameElement, String playAdvice);
 
   /// No description provided for @fortuneGeneratedLuckyInfoHeader.
@@ -11441,7 +11441,7 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneGeneratedLuckyInfoLine.
   ///
   /// In en, this message translates to:
-  /// **'Today\'s color is {color}, and the number is {number}.'**
+  /// **'Today\'s pick: {color}, number {number}.'**
   String fortuneGeneratedLuckyInfoLine(int number, String color);
 
   /// No description provided for @fortuneRecommendedRecoveryProgram.
@@ -11585,19 +11585,19 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneDailyOutcomeTimes.
   ///
   /// In en, this message translates to:
-  /// **'in the morning|around lunch|this afternoon|this evening|unexpectedly|by chance|soon|all at once|in a short moment|near the end'**
+  /// **'in the morning|around lunch|this afternoon|this evening|out of nowhere|by chance|pretty soon|all at once|in a quick moment|at the end'**
   String get fortuneDailyOutcomeTimes;
 
   /// No description provided for @fortuneDailyOutcomeSubjects.
   ///
   /// In en, this message translates to:
-  /// **'a smile|a welcome message|good news|a small lucky break|the answer you need|a new chance|a calm pocket of time|a helpful word|a grateful moment|an easy choice'**
+  /// **'a funny scene|a welcome message|good news|a small chance|the answer you need|a new offer|a free pocket of time|a sharp comment|a grateful moment|an easy choice'**
   String get fortuneDailyOutcomeSubjects;
 
   /// No description provided for @fortuneDailyOutcomeResults.
   ///
   /// In en, this message translates to:
-  /// **'appears.|lightens your mood.|makes the day easier.|stays pleasant.|makes the next step easier.|feels bigger than expected.|turns today around.|gives you a small lift.|brings a smile.|stays in your memory.'**
+  /// **'pops up.|lifts the mood.|makes the day easier.|sticks around.|makes the next move easier.|lands bigger than expected.|changes today\'s energy.|gives you a little push.|makes you smile.|stays memorable.'**
   String get fortuneDailyOutcomeResults;
 
   /// No description provided for @fortuneSajuTrainingTones.
@@ -16914,7 +16914,7 @@ abstract class AppLocalizations {
   /// No description provided for @parentReadOnlyFortuneEmpty.
   ///
   /// In en, this message translates to:
-  /// **'No saved fortune is available yet.'**
+  /// **'No saved mood card is available yet.'**
   String get parentReadOnlyFortuneEmpty;
 
   /// No description provided for @parentFeedbackSectionTitle.
