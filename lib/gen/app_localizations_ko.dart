@@ -5462,7 +5462,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get diaryStickerPlan => '계획';
 
   @override
-  String get diaryStickerFortune => '오늘의 운세';
+  String get diaryStickerFortune => '오늘의 무드';
 
   @override
   String get diaryStickerBoard => '훈련보드';
@@ -5685,13 +5685,13 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get diaryFortunePinSummary => '오늘 기록에 남은 운세를 다이어리 스티커로 붙여둘 수 있어요.';
+  String get diaryFortunePinSummary => '오늘 기록에 남은 무드를 다이어리 스티커로 붙여둘 수 있어요.';
 
   @override
-  String get diaryFortuneStorySentence => '오늘 운세에서 기억하고 싶은 장면이나 응원 한 줄을 적어 본다.';
+  String get diaryFortuneStorySentence => '오늘 무드에서 기억하고 싶은 장면이나 응원 한 줄을 적어 본다.';
 
   @override
-  String get diaryFortuneNoteTitle => '오늘 운세 메모';
+  String get diaryFortuneNoteTitle => '오늘 무드 메모';
 
   @override
   String get diaryMatchTodoTitleNoOpponent => '시합';
@@ -6203,16 +6203,16 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homeRiceBowlEmpty => '안 먹음';
 
   @override
-  String get fortuneDialogTitle => '오늘의 운세';
+  String get fortuneDialogTitle => '오늘의 무드';
 
   @override
-  String get fortuneDialogSubtitle => '생일과 이름으로 고른 오늘의 생활 운세예요.';
+  String get fortuneDialogSubtitle => '생일과 이름에서 뽑은 오늘의 플레이 무드예요.';
 
   @override
-  String get fortuneDialogOverviewTitle => '운세 보기';
+  String get fortuneDialogOverviewTitle => '무드 보기';
 
   @override
-  String get fortuneDialogOverallFortuneLabel => '오늘 운세';
+  String get fortuneDialogOverallFortuneLabel => '오늘 무드';
 
   @override
   String get fortuneDialogLuckyInfoLabel => '컬러와 숫자';
@@ -6231,7 +6231,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get fortuneDialogLuckyInfoTitle => '컬러와 숫자';
 
   @override
-  String get fortuneDialogPoolSizeLabel => '운세 조합';
+  String get fortuneDialogPoolSizeLabel => '무드 조합';
 
   @override
   String fortuneDialogPoolSizeCount(String count) {
@@ -6239,13 +6239,13 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get fortuneDialogRecommendedProgramTitle => '추천 훈련';
+  String get fortuneDialogRecommendedProgramTitle => '다음 훈련 픽';
 
   @override
-  String get fortuneDialogRecommendationTitle => '플레이 코멘트';
+  String get fortuneDialogRecommendationTitle => '플레이 한줄';
 
   @override
-  String get fortuneDialogEncouragement => '오늘도 재미있는 작은 장면을 챙겨봐요.';
+  String get fortuneDialogEncouragement => '오늘 하이라이트 하나만 짧게 남겨봐요.';
 
   @override
   String get fortuneDialogAction => '좋아요';
@@ -6254,11 +6254,11 @@ class AppLocalizationsKo extends AppLocalizations {
   String get fortuneDatabaseViewAction => '전체 데이터 보기';
 
   @override
-  String get fortuneDatabaseTitle => '전체 운세 데이터베이스';
+  String get fortuneDatabaseTitle => '전체 무드 데이터베이스';
 
   @override
   String get fortuneDatabaseSubtitle =>
-      '명리학 흐름을 먼저 보고, 그 흐름에서 이어질 수 있는 오늘의 일과 컬러·숫자 데이터를 모았어요.';
+      '명리 코드와 생활 장면, 컬러·숫자 픽을 모아 오늘 무드를 만드는 데이터예요.';
 
   @override
   String get fortuneDatabaseCloseAction => '닫기';
@@ -6291,7 +6291,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get fortuneDatabaseSectionDailyEvents => '이어질 수 있는 일';
 
   @override
-  String get fortuneDatabaseSectionDailyOutcomes => '오늘 운세 문장';
+  String get fortuneDatabaseSectionDailyOutcomes => '오늘 무드 문장';
 
   @override
   String get fortuneDatabaseSectionActionCues => '가볍게 해볼 일';
@@ -6327,7 +6327,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get fortuneDatabaseSectionCueActions => '작은 루틴';
 
   @override
-  String get entryFortuneOpenFailed => '운세 화면을 여는 중 문제가 생겼어요.';
+  String get entryFortuneOpenFailed => '무드 화면을 여는 중 문제가 생겼어요.';
 
   @override
   String get profileBirthTimeTitle => '출생 시간';
@@ -6336,7 +6336,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get profileBirthTimeSelectDateFirst => '생년월일 선택 후 입력';
 
   @override
-  String get fortuneGeneratedUnknownPlayerName => '선수';
+  String get fortuneGeneratedUnknownPlayerName => '플레이어';
 
   @override
   String get fortuneGeneratedBirthNotSet => '생일 정보 없음';
@@ -6355,7 +6355,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String fortuneGeneratedDailyLineOne(String name, String elementFlow) {
-    return '$name님, 오늘은 $elementFlow';
+    return '$name님 오늘 무드: $elementFlow';
   }
 
   @override
@@ -6366,12 +6366,12 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String fortuneGeneratedLinkedDailyLine(
       String name, String elementFlow, String fortuneTheme) {
-    return '$name님, 오늘은 $elementFlow이라서 $fortuneTheme';
+    return '$name님 오늘 무드: $elementFlow / $fortuneTheme';
   }
 
   @override
   String fortuneGeneratedDailyLineThree(String nameElement, String playAdvice) {
-    return '$nameElement 흐름이라 $playAdvice';
+    return '한 줄 미션: $nameElement답게 $playAdvice.';
   }
 
   @override
@@ -6379,7 +6379,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String fortuneGeneratedLuckyInfoLine(int number, String color) {
-    return '오늘의 컬러는 $color, 숫자는 $number예요.';
+    return '오늘 픽은 $color, 숫자는 $number예요.';
   }
 
   @override
@@ -6473,15 +6473,15 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get fortuneDailyOutcomeTimes =>
-      '아침에|점심쯤|오후에|저녁에|뜻밖에|우연히|금방|문득|잠깐 사이|하루 끝에';
+      '아침에|점심쯤|오후에|저녁에|뜻밖에|우연히|금방|한번에|짧은 순간|마지막에';
 
   @override
   String get fortuneDailyOutcomeSubjects =>
-      '웃을 일이|반가운 연락이|좋은 소식이|작은 행운이|필요한 답이|새 기회가|편한 시간이|도움 되는 말이|고마운 일이|괜찮은 선택이';
+      '웃긴 장면이|반가운 메시지가|좋은 소식이|작은 찬스가|필요한 답이|새 제안이|여유 시간이|센스 있는 말이|고마운 순간이|쉬운 선택지가';
 
   @override
   String get fortuneDailyOutcomeResults =>
-      '하나 생겨요.|마음을 가볍게 해요.|하루를 편하게 해요.|기분 좋게 남아요.|다음 일을 쉽게 해요.|생각보다 크게 느껴져요.|오늘을 좋게 바꿔요.|작은 힘이 돼요.|미소를 만들어요.|기억에 남아요.';
+      '툭 나와요.|기분을 올려요.|하루를 편하게 해요.|오래 남아요.|다음 행동을 쉽게 해요.|생각보다 크게 와요.|오늘 텐션을 바꿔요.|작은 힘을 줘요.|웃게 만들어요.|기억에 남아요.';
 
   @override
   String get fortuneSajuTrainingTones =>
@@ -9654,7 +9654,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get parentReadOnlySketchMessage => '보호자 모드에서는 훈련 스케치를 수정할 수 없어요.';
 
   @override
-  String get parentReadOnlyFortuneEmpty => '저장된 운세가 아직 없어요.';
+  String get parentReadOnlyFortuneEmpty => '저장된 무드 카드가 아직 없어요.';
 
   @override
   String get parentFeedbackSectionTitle => '보호자 피드백';

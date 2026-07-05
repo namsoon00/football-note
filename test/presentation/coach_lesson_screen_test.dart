@@ -258,7 +258,7 @@ void main() {
     expect(find.text('오늘의 응원'), findsNothing);
     expect(find.text('오늘의 일기'), findsNothing);
     expect(find.text('자기 전 다이어리'), findsNothing);
-    expect(find.text('오늘의 운세 노트'), findsNothing);
+    expect(find.text('오늘 무드 메모'), findsNothing);
     expect(find.textContaining('훈련 2개'), findsNothing);
     expect(find.textContaining('시합 1개'), findsNothing);
     expect(find.text('계획 1개'), findsNothing);
@@ -631,7 +631,7 @@ void main() {
 
     expect(find.text('다이어리'), findsOneWidget);
     expect(find.text('오늘의 응원'), findsNothing);
-    expect(find.text('오늘의 운세 노트'), findsNothing);
+    expect(find.text('오늘 무드 메모'), findsNothing);
     expect(find.textContaining('행운'), findsNothing);
 
     expect(find.textContaining('볼터치'), findsWidgets);
@@ -724,7 +724,7 @@ void main() {
       findsOneWidget,
     );
     expect(find.textContaining('볼을 받기 전에 고개를 더 자주 들었고'), findsOneWidget);
-    expect(find.textContaining('오늘의 컬러는 하늘색예요'), findsOneWidget);
+    expect(find.textContaining('오늘 픽은 하늘색예요'), findsOneWidget);
     expect(find.textContaining('짧게 시선 한 번 더 확인하기'), findsNothing);
     expect(find.textContaining('짧은 패스로 리듬을 유지해 보세요.'), findsNothing);
 

@@ -215,9 +215,18 @@ class LocalFortuneService {
           dailyPillar.branch.index * 43,
       l10n: l10n,
     );
+    final nameRhythm = _nameRhythm(
+      seed: baseSeed + birthReading.elementSeed,
+      l10n: l10n,
+    );
+    final actionCue = _actionCue(
+      seed: baseSeed + (dailySignature?.seed ?? dailyPillar.index),
+      l10n: l10n,
+    );
 
     final fortuneText = <String>[
       l10n.fortuneGeneratedDailyLineOne(name, dailyFortune),
+      l10n.fortuneGeneratedDailyLineThree(nameRhythm, actionCue),
       l10n.fortuneGeneratedLuckyInfoLine(luckyNumber, luckyColor),
     ].join('\n');
 
@@ -370,6 +379,32 @@ class LocalFortuneService {
   }) {
     final candidates = _dailyOutcomeSentences(l10n);
     return _valueAt(candidates, seed + (signature?.seed ?? 0));
+  }
+
+  String _nameRhythm({
+    required int seed,
+    required AppLocalizations l10n,
+  }) {
+    return _valueAt(
+      _combinedLocalizedValues(
+        l10n.fortuneSajuNameElements,
+        l10n.fortuneSajuNameElementExtras,
+      ),
+      seed,
+    );
+  }
+
+  String _actionCue({
+    required int seed,
+    required AppLocalizations l10n,
+  }) {
+    return _valueAt(
+      _combinedLocalizedValues(
+        l10n.fortuneLuckyCueActions,
+        l10n.fortuneLuckyCueActionExtras,
+      ),
+      seed,
+    );
   }
 
   String _composeSegments({

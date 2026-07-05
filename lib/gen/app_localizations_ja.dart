@@ -5464,7 +5464,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diaryStickerPlan => 'プラン';
 
   @override
-  String get diaryStickerFortune => '今日の運勢';
+  String get diaryStickerFortune => '今日のムード';
 
   @override
   String get diaryStickerBoard => 'ボード';
@@ -5687,13 +5687,13 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get diaryFortunePinSummary => '今日の記録に残った運勢を日記ステッカーとして貼れます。';
+  String get diaryFortunePinSummary => '今日の記録に残ったムードを日記ステッカーとして貼れます。';
 
   @override
-  String get diaryFortuneStorySentence => '今日の運勢で残したい場面や応援の一言を書いてみる。';
+  String get diaryFortuneStorySentence => '今日のムードで残したい場面や応援の一言を書いてみる。';
 
   @override
-  String get diaryFortuneNoteTitle => '今日の運勢メモ';
+  String get diaryFortuneNoteTitle => '今日のムードメモ';
 
   @override
   String get diaryMatchTodoTitleNoOpponent => '試合';
@@ -6201,16 +6201,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get homeRiceBowlEmpty => 'スキップされました';
 
   @override
-  String get fortuneDialogTitle => '今日の運勢';
+  String get fortuneDialogTitle => '今日のムード';
 
   @override
-  String get fortuneDialogSubtitle => '生年月日と名前から選んだ、今日の暮らしの運勢です。';
+  String get fortuneDialogSubtitle => '生年月日と名前から選んだ、今日のプレームードです。';
 
   @override
-  String get fortuneDialogOverviewTitle => '運勢を見る';
+  String get fortuneDialogOverviewTitle => 'ムードを見る';
 
   @override
-  String get fortuneDialogOverallFortuneLabel => '今日の運勢';
+  String get fortuneDialogOverallFortuneLabel => '今日のムード';
 
   @override
   String get fortuneDialogLuckyInfoLabel => 'カラーと数字';
@@ -6229,7 +6229,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get fortuneDialogLuckyInfoTitle => 'カラーと数字';
 
   @override
-  String get fortuneDialogPoolSizeLabel => '運勢の組み合わせ';
+  String get fortuneDialogPoolSizeLabel => 'ムードの組み合わせ';
 
   @override
   String fortuneDialogPoolSizeCount(String count) {
@@ -6237,13 +6237,13 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get fortuneDialogRecommendedProgramTitle => 'おすすめのトレーニング';
+  String get fortuneDialogRecommendedProgramTitle => '次の練習ピック';
 
   @override
-  String get fortuneDialogRecommendationTitle => 'プレーコメント';
+  String get fortuneDialogRecommendationTitle => 'プレーひとこと';
 
   @override
-  String get fortuneDialogEncouragement => '今日も楽しい小さな場面を一つ残しましょう。';
+  String get fortuneDialogEncouragement => '今日のハイライトを一つだけ短く残しましょう。';
 
   @override
   String get fortuneDialogAction => 'OK';
@@ -6252,11 +6252,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get fortuneDatabaseViewAction => '全データを見る';
 
   @override
-  String get fortuneDatabaseTitle => '運勢データベース全体';
+  String get fortuneDatabaseTitle => 'ムードデータベース全体';
 
   @override
   String get fortuneDatabaseSubtitle =>
-      '命理の流れを先に見て、そこから続きそうな今日の出来事、カラー、数字をまとめました。';
+      '命理コード、日常の場面、カラーと数字のピックから今日のムードを作るデータです。';
 
   @override
   String get fortuneDatabaseCloseAction => '閉じる';
@@ -6289,7 +6289,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get fortuneDatabaseSectionDailyEvents => 'そこから続きそうなこと';
 
   @override
-  String get fortuneDatabaseSectionDailyOutcomes => '今日の運勢文';
+  String get fortuneDatabaseSectionDailyOutcomes => '今日のムード文';
 
   @override
   String get fortuneDatabaseSectionActionCues => '軽く試すこと';
@@ -6325,7 +6325,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get fortuneDatabaseSectionCueActions => '小さなルーティン';
 
   @override
-  String get entryFortuneOpenFailed => '運勢画面を開けませんでした。';
+  String get entryFortuneOpenFailed => 'ムード画面を開けませんでした。';
 
   @override
   String get profileBirthTimeTitle => '出生時刻';
@@ -6353,7 +6353,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String fortuneGeneratedDailyLineOne(String name, String elementFlow) {
-    return '$nameさん、今日は$elementFlow';
+    return '$nameさんの今日のムード: $elementFlow';
   }
 
   @override
@@ -6364,12 +6364,12 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String fortuneGeneratedLinkedDailyLine(
       String name, String elementFlow, String fortuneTheme) {
-    return '$nameさん、今日は$elementFlowなので$fortuneTheme';
+    return '$nameさんの今日のムード: $elementFlow / $fortuneTheme';
   }
 
   @override
   String fortuneGeneratedDailyLineThree(String nameElement, String playAdvice) {
-    return '$nameElementの流れなので、$playAdvice';
+    return 'ひとことミッション: $nameElementらしく$playAdvice。';
   }
 
   @override
@@ -6377,7 +6377,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String fortuneGeneratedLuckyInfoLine(int number, String color) {
-    return '今日のカラーは$color、数字は$numberです。';
+    return '今日のピックは$color、数字は$numberです。';
   }
 
   @override
@@ -6471,15 +6471,15 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get fortuneDailyOutcomeTimes =>
-      '朝に|昼ごろ|午後に|夕方に|思いがけず|偶然|すぐに|ふと|短い間に|一日の終わりに';
+      '朝に|昼ごろ|午後に|夕方に|思いがけず|偶然|すぐに|一気に|短い瞬間に|最後に';
 
   @override
   String get fortuneDailyOutcomeSubjects =>
-      '笑えることが|うれしい連絡が|良い知らせが|小さな幸運が|必要な答えが|新しい機会が|落ち着く時間が|助けになる一言が|ありがたいことが|楽な選択が';
+      '笑える場面が|うれしい連絡が|良い知らせが|小さなチャンスが|必要な答えが|新しい提案が|少し空く時間が|センスのある一言が|ありがたい瞬間が|楽な選択が';
 
   @override
   String get fortuneDailyOutcomeResults =>
-      'ひとつ生まれます。|気持ちを軽くします。|一日を楽にします。|気持ちよく残ります。|次の一歩を楽にします。|思ったより大きく感じます。|今日を良い方へ変えます。|小さな力になります。|笑顔を作ります。|記憶に残ります。';
+      'ぽんと出ます。|気分を上げます。|一日を楽にします。|長く残ります。|次の動きを楽にします。|思ったより大きく届きます。|今日のテンションを変えます。|小さな力になります。|笑顔にします。|記憶に残ります。';
 
   @override
   String get fortuneSajuTrainingTones =>
@@ -9634,7 +9634,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get parentReadOnlySketchMessage => '親モードではトレーニング スケッチを編集できません。';
 
   @override
-  String get parentReadOnlyFortuneEmpty => '保存された運勢はまだありません。';
+  String get parentReadOnlyFortuneEmpty => '保存されたムードカードはまだありません。';
 
   @override
   String get parentFeedbackSectionTitle => '保護者からのフィードバック';

@@ -251,7 +251,7 @@ void main() {
     await tapSaveAndFinish(tester);
 
     expect(find.byType(AlertDialog), findsNothing);
-    expect(find.text('생일과 이름으로 고른 오늘의 생활 운세예요.'), findsNothing);
+    expect(find.text('생일과 이름에서 뽑은 오늘의 플레이 무드예요.'), findsNothing);
     expect(find.text('open'), findsOneWidget);
   });
 
@@ -488,28 +488,28 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    await tester.tap(find.text('오늘의 운세'));
+    await tester.tap(find.text('오늘의 무드'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    expect(find.text('오늘의 운세'), findsWidgets);
-    expect(find.text('생일과 이름으로 고른 오늘의 생활 운세예요.'), findsOneWidget);
-    expect(find.text('운세 보기'), findsNothing);
-    expect(find.text('운세 조합'), findsNothing);
+    expect(find.text('오늘의 무드'), findsWidgets);
+    expect(find.text('생일과 이름에서 뽑은 오늘의 플레이 무드예요.'), findsOneWidget);
+    expect(find.text('무드 보기'), findsNothing);
+    expect(find.text('무드 조합'), findsNothing);
     expect(
-      find.textContaining('오늘의 컬러는 에메랄드예요'),
+      find.textContaining('오늘 픽은 에메랄드예요'),
       findsOneWidget,
     );
     expect(find.textContaining('시간대 오전 후반'), findsNothing);
     expect(find.textContaining('행운 색상: 에메랄드'), findsNothing);
-    expect(find.text('추천 훈련'), findsNothing);
-    expect(find.text('플레이 코멘트'), findsNothing);
+    expect(find.text('다음 훈련 픽'), findsNothing);
+    expect(find.text('플레이 한줄'), findsNothing);
 
     await tester.ensureVisible(find.text('전체 데이터 보기'));
     await tester.tap(find.text('전체 데이터 보기'));
     await tester.pumpAndSettle();
 
-    expect(find.text('전체 운세 데이터베이스'), findsOneWidget);
+    expect(find.text('전체 무드 데이터베이스'), findsOneWidget);
     expect(find.text('명리 코드'), findsOneWidget);
   });
 
@@ -738,12 +738,12 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('오늘의 운세'));
+    await tester.tap(find.text('오늘의 무드'));
     await tester.pumpAndSettle();
 
-    expect(find.text('오늘의 운세'), findsWidgets);
-    expect(find.text('생일과 이름으로 고른 오늘의 생활 운세예요.'), findsOneWidget);
-    expect(find.textContaining('오늘의 컬러는 에메랄드예요'), findsOneWidget);
+    expect(find.text('오늘의 무드'), findsWidgets);
+    expect(find.text('생일과 이름에서 뽑은 오늘의 플레이 무드예요.'), findsOneWidget);
+    expect(find.textContaining('오늘 픽은 에메랄드예요'), findsOneWidget);
   });
 
   testWidgets('parent mode keeps training sketch action visible', (
