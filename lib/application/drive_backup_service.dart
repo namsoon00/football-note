@@ -813,7 +813,7 @@ class DriveBackupService implements BackupRepository {
     if (saved == null || current == null || saved.isEmpty || current.isEmpty) {
       return false;
     }
-    return !_sameDriveAccount(saved, current);
+    return !_samePlayerDriveAccount(saved, current);
   }
 
   Future<bool> importChangedPlayerDriveBackup() {
@@ -1510,6 +1510,20 @@ class DriveBackupService implements BackupRepository {
       return previousEmail == currentEmail;
     }
     return _driveAccountIdentity(previous) == _driveAccountIdentity(current);
+  }
+
+  bool _samePlayerDriveAccount(
+    DriveConnectionInfo saved,
+    DriveConnectionInfo current,
+  ) {
+    final savedSubject = saved.subjectId.trim().toLowerCase();
+    final currentSubject = current.subjectId.trim().toLowerCase();
+    if (savedSubject.isNotEmpty || currentSubject.isNotEmpty) {
+      return savedSubject.isNotEmpty &&
+          currentSubject.isNotEmpty &&
+          savedSubject == currentSubject;
+    }
+    return _sameDriveAccount(saved, current);
   }
 
   String _driveAccountIdentity(DriveConnectionInfo? info) {
