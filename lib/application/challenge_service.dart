@@ -75,11 +75,86 @@ class ChallengeService {
     DateTime? startedAt,
   }) async {
     final start = startedAt ?? DateTime.now();
+    final run = _buildChallengeRun(
+      template,
+      trainingLevel: trainingLevel,
+      selectedSkillIds: selectedSkillIds,
+      missionTargets: missionTargets,
+      cadenceDays: cadenceDays,
+      rewardGift: rewardGift,
+      startedAt: start,
+      started: true,
+    );
+    final runs = loadRuns().toList(growable: true);
+    runs.insert(0, run);
+    await _saveRuns(runs);
+    return run;
+  }
+
+  Future<ChallengeRun> prepareChallenge(
+    ChallengeTemplate template, {
+    ChallengeTrainingLevel trainingLevel = ChallengeTrainingLevel.rookie,
+    List<String> selectedSkillIds = defaultChallengeSkillIds,
+    ChallengeMissionTargets? missionTargets,
+    int cadenceDays = 1,
+    String rewardGift = '',
+    DateTime? preparedAt,
+  }) async {
+    final prepared = preparedAt ?? DateTime.now();
+    final run = _buildChallengeRun(
+      template,
+      trainingLevel: trainingLevel,
+      selectedSkillIds: selectedSkillIds,
+      missionTargets: missionTargets,
+      cadenceDays: cadenceDays,
+      rewardGift: rewardGift,
+      startedAt: prepared,
+      started: false,
+    );
+    final runs = loadRuns().toList(growable: true);
+    runs.insert(0, run);
+    await _saveRuns(runs);
+    return run;
+  }
+
+  Future<ChallengeRun?> startPreparedRun(
+    String runId, {
+    DateTime? startedAt,
+  }) async {
+    final start = startedAt ?? DateTime.now();
+    var changed = false;
+    ChallengeRun? startedRun;
+    final runs = loadRuns().map((run) {
+      if (run.id != runId || run.isEnded) return run;
+      if (run.isStarted) {
+        startedRun = run;
+        return run;
+      }
+      changed = true;
+      startedRun = run.copyWith(started: true, startedAt: start);
+      return startedRun!;
+    }).toList(growable: false);
+    if (startedRun == null) return null;
+    if (changed) await _saveRuns(runs);
+    return startedRun;
+  }
+
+  ChallengeRun _buildChallengeRun(
+    ChallengeTemplate template, {
+    required ChallengeTrainingLevel trainingLevel,
+    required List<String> selectedSkillIds,
+    required ChallengeMissionTargets? missionTargets,
+    required int cadenceDays,
+    required String rewardGift,
+    required DateTime startedAt,
+    required bool started,
+  }) {
     final run = ChallengeRun(
-      id: '${template.id}-${start.toUtc().microsecondsSinceEpoch}',
+      id: '${template.id}-${startedAt.toUtc().microsecondsSinceEpoch}',
       templateId: template.id,
       trainingLevel: trainingLevel,
-      startedAt: start,
+      startedAt: startedAt,
+      started: started,
       selectedSkillIds: normalizeChallengeSkillIds(
         selectedSkillIds,
         allowEmpty: missionTargets?.hasTrainingMission == false,
@@ -88,9 +163,6 @@ class ChallengeService {
       cadenceDays: cadenceDays,
       rewardGift: rewardGift.trim(),
     );
-    final runs = loadRuns().toList(growable: true);
-    runs.insert(0, run);
-    await _saveRuns(runs);
     return run;
   }
 
@@ -106,7 +178,7 @@ class ChallengeService {
     final completedRoundLimit = template.dayCount;
     final runs = loadRuns().map(
       (run) {
-        if (run.id != runId || run.isEnded) return run;
+        if (run.id != runId || run.isEnded || run.isStarted) return run;
         final completedRoundNumbers = run.completedRoundNumbers
             .where((roundNumber) => roundNumber <= completedRoundLimit)
             .toList(growable: false);

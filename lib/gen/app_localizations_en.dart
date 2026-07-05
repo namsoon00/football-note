@@ -11771,7 +11771,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String challengeListBody(int count) {
-    return '$count challenges are in progress. Today\'s rounds and overall progress are grouped here.';
+    return '$count challenges are ready or in progress. Prepared challenges and today\'s rounds are grouped here.';
   }
 
   @override
@@ -11794,7 +11794,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get challengeEditBody =>
-      'Adjust the duration, round frequency, and mission setup. Rounds already recorded stay in place.';
+      'Adjust the duration, round frequency, and mission setup before the challenge starts.';
 
   @override
   String get challengeUpdateAction => 'Save changes';
@@ -11814,7 +11814,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get challengeDeletePendingBody =>
-      'The player has not started recording this challenge yet. Delete this challenge?';
+      'This challenge has not started yet. Delete this challenge?';
 
   @override
   String get challengeDeletePendingConfirm => 'Delete';
@@ -11831,7 +11831,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get challengeStartHeroBody =>
-      'Choose a duration and mission amounts, then press start to begin. Missing even one day ends the challenge.';
+      'Choose a duration and mission amounts, then prepare the challenge. When ready, the player can start from today.';
 
   @override
   String get challengeLatestComplete => 'Latest challenge complete';
@@ -12165,7 +12165,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get challengeStartReadyTitle => '3. Ready to start';
+  String get challengeStartReadyTitle => '3. Save setup';
+
+  @override
+  String get challengePrepareAction => 'Prepare challenge';
 
   @override
   String get challengeStartAction => 'Start challenge';
@@ -12229,7 +12232,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get challengeCompletedBadge => 'Complete';
 
   @override
+  String get challengeReadyBadge => 'Not started';
+
+  @override
   String get challengePendingBadge => 'In progress';
+
+  @override
+  String get challengeReadyPeriodLabel =>
+      'The schedule starts from the day you begin.';
+
+  @override
+  String challengeReadyCardTitle(Object title) {
+    return '$title is ready';
+  }
+
+  @override
+  String get challengeReadyPlayerBody =>
+      'Start when you are ready. The round schedule and mission tracking open from the start day.';
+
+  @override
+  String get challengeReadyParentBody =>
+      'The player can start this from player mode when ready. Before it starts, you can still edit or delete it.';
+
+  @override
+  String get challengeReadyStartAction => 'Start now';
 
   @override
   String challengeCompletedSummary(Object title) {
@@ -12238,6 +12264,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get challengeRoundDateToday => 'Today';
+
+  @override
+  String challengePrepareSnack(Object title) {
+    return '$title prepared.';
+  }
 
   @override
   String challengeStartSnack(Object title) {

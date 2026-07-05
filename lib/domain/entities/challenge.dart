@@ -172,6 +172,7 @@ class ChallengeRun {
   final String templateId;
   final ChallengeTrainingLevel trainingLevel;
   final DateTime startedAt;
+  final bool started;
   final DateTime? completedAt;
   final bool abandoned;
   final ChallengeRunResult? result;
@@ -187,6 +188,7 @@ class ChallengeRun {
     required this.templateId,
     this.trainingLevel = ChallengeTrainingLevel.rookie,
     required this.startedAt,
+    this.started = true,
     this.completedAt,
     this.abandoned = false,
     this.result,
@@ -197,6 +199,8 @@ class ChallengeRun {
     this.cadenceDays = 1,
     this.rewardGift = '',
   });
+
+  bool get isStarted => started;
 
   bool get isEnded => completedAt != null || result != null;
 
@@ -227,6 +231,7 @@ class ChallengeRun {
     String? templateId,
     ChallengeTrainingLevel? trainingLevel,
     DateTime? startedAt,
+    bool? started,
     DateTime? completedAt,
     bool? abandoned,
     ChallengeRunResult? result,
@@ -242,6 +247,7 @@ class ChallengeRun {
       templateId: templateId ?? this.templateId,
       trainingLevel: trainingLevel ?? this.trainingLevel,
       startedAt: startedAt ?? this.startedAt,
+      started: started ?? this.started,
       completedAt: completedAt ?? this.completedAt,
       abandoned: abandoned ?? this.abandoned,
       result: result ?? this.result,
@@ -261,6 +267,7 @@ class ChallengeRun {
       'templateId': templateId,
       'trainingLevel': trainingLevel.name,
       'startedAt': startedAt.toIso8601String(),
+      'started': started,
       'completedAt': completedAt?.toIso8601String(),
       'abandoned': abandoned,
       'result': result?.name,
@@ -277,6 +284,8 @@ class ChallengeRun {
     final completedAt = DateTime.tryParse(map['completedAt']?.toString() ?? '');
     final abandoned = map['abandoned'] == true;
     final parsedResult = _challengeRunResultFromName(map['result']?.toString());
+    final parsedStarted =
+        map.containsKey('started') ? map['started'] == true : true;
     final rawCompletedRoundNumbers = map['completedRoundNumbers'];
     final rawSelectedSkillIds = map['selectedSkillIds'];
     final rawMissionTargets = map['missionTargets'];
@@ -290,6 +299,8 @@ class ChallengeRun {
       ),
       startedAt: DateTime.tryParse(map['startedAt']?.toString() ?? '') ??
           DateTime.now(),
+      started:
+          completedAt != null || parsedResult != null ? true : parsedStarted,
       completedAt: completedAt,
       abandoned: abandoned,
       result: parsedResult ??
@@ -345,11 +356,13 @@ class ChallengeProgress {
   DateTime? get finalRoundDate => rounds.isEmpty ? null : rounds.last.date;
 
   double get completionRate {
+    if (!run.isStarted) return 0;
     if (rounds.isEmpty) return 0;
     return completedRoundCount / rounds.length;
   }
 
   bool hasEndedByDate({DateTime? now}) {
+    if (!run.isStarted) return false;
     final finalDate = finalRoundDate;
     if (finalDate == null) return false;
     final today = normalizeDay(now ?? DateTime.now());
@@ -357,10 +370,12 @@ class ChallengeProgress {
   }
 
   bool readyToFinalize({DateTime? now}) {
+    if (!run.isStarted) return false;
     return allRoundsCompleted || hasEndedByDate(now: now);
   }
 
   ChallengeRoundProgress? get todayRound {
+    if (!run.isStarted) return null;
     final today = normalizeDay(DateTime.now());
     for (final round in rounds) {
       if (round.date == today) return round;
@@ -369,6 +384,7 @@ class ChallengeProgress {
   }
 
   ChallengeRoundProgress? get activeRound {
+    if (!run.isStarted) return null;
     final today = normalizeDay(DateTime.now());
     final todayMatch = todayRound;
     if (todayMatch != null) return todayMatch;
@@ -382,6 +398,7 @@ class ChallengeProgress {
   }
 
   ChallengeRoundProgress? missedExpiredRound({DateTime? now}) {
+    if (!run.isStarted) return null;
     final today = normalizeDay(now ?? DateTime.now());
     for (final round in rounds) {
       if (round.date.isBefore(today) && !round.completed) return round;

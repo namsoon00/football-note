@@ -22,7 +22,7 @@ import 'package:football_note/presentation/screens/challenge_screen.dart';
 import 'package:football_note/presentation/screens/entry_form_screen.dart';
 
 void main() {
-  testWidgets('challenge screen starts a template and shows round calendar', (
+  testWidgets('challenge screen prepares then starts a template', (
     WidgetTester tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(320, 640));
@@ -32,6 +32,7 @@ void main() {
       tester.view.resetDevicePixelRatio();
     });
     final optionRepository = _MemoryOptionRepository();
+    final challengeService = ChallengeService(optionRepository);
     final trainingService = TrainingService(_MemoryTrainingRepository());
     final mealLogService = MealLogService(optionRepository);
     final localeService = LocaleService(optionRepository)..load();
@@ -93,8 +94,8 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('미션별 목표량'), findsOneWidget);
-    expect(find.text('3. 시작 준비'), findsOneWidget);
-    expect(find.widgetWithText(FilledButton, '챌린지 시작'), findsOneWidget);
+    expect(find.text('3. 준비 저장'), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, '챌린지 준비'), findsOneWidget);
     expect(find.text('라운드'), findsNothing);
     final defaultProgramChip = find.widgetWithText(FilterChip, '기본기');
     expect(defaultProgramChip, findsOneWidget);
@@ -124,18 +125,35 @@ void main() {
       isTrue,
     );
 
-    await tester.ensureVisible(find.widgetWithText(FilledButton, '챌린지 시작'));
+    await tester.ensureVisible(find.widgetWithText(FilledButton, '챌린지 준비'));
     await tester.pump(const Duration(milliseconds: 300));
-    final startButton = find.widgetWithText(FilledButton, '챌린지 시작');
-    await tester.tap(startButton);
+    final prepareButton = find.widgetWithText(FilledButton, '챌린지 준비');
+    await tester.tap(prepareButton);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
-    final startSnackBar = tester.widget<SnackBar>(find.byType(SnackBar));
-    expect(startSnackBar.behavior, SnackBarBehavior.floating);
-    final startSnackBarMargin = startSnackBar.margin! as EdgeInsetsDirectional;
-    expect(startSnackBarMargin.bottom, greaterThan(100));
+    final prepareSnackBar = tester.widget<SnackBar>(find.byType(SnackBar));
+    expect(prepareSnackBar.behavior, SnackBarBehavior.floating);
+    final prepareSnackBarMargin =
+        prepareSnackBar.margin! as EdgeInsetsDirectional;
+    expect(prepareSnackBarMargin.bottom, greaterThan(100));
     await tester.pump(const Duration(seconds: 1));
 
+    expect(challengeService.activeRun()?.isStarted, isFalse);
+    expect(find.byKey(const ValueKey('challenge-ready-card')), findsOneWidget);
+    expect(find.text('3일 챌린지 준비 완료'), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, '지금 시작'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('challenge-rounds-calendar')),
+      findsNothing,
+    );
+
+    await tester.tap(
+      find.byKey(const ValueKey('challenge-start-prepared-button')),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(challengeService.activeRun()?.isStarted, isTrue);
     expect(
       find.byKey(const ValueKey('challenge-rounds-calendar')),
       findsOneWidget,
@@ -245,7 +263,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text('2. 미션 선택'), findsOneWidget);
-    expect(find.widgetWithText(FilledButton, '챌린지 시작'), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, '챌린지 준비'), findsOneWidget);
     expect(tester.takeException(), isNull);
 
     await tester.pumpWidget(const SizedBox.shrink());
@@ -271,9 +289,9 @@ void main() {
       starter,
       startedAt: DateTime(today.year, today.month, today.day, 9),
     );
-    final weeklyRun = await challengeService.startChallenge(
+    final weeklyRun = await challengeService.prepareChallenge(
       weekly,
-      startedAt: DateTime(today.year, today.month, today.day, 10),
+      preparedAt: DateTime(today.year, today.month, today.day, 10),
       cadenceDays: 2,
     );
     final trainingService = TrainingService(_MemoryTrainingRepository());
@@ -303,7 +321,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    expect(find.text('진행 중인 챌린지'), findsAtLeastNWidgets(1));
+    expect(find.text('활성 챌린지'), findsAtLeastNWidgets(1));
     expect(find.text('7일 챌린지'), findsOneWidget);
     expect(find.text('3일 챌린지'), findsOneWidget);
     expect(
@@ -326,6 +344,10 @@ void main() {
     expect(find.text('챌린지 상세'), findsOneWidget);
     expect(
       find.byKey(const ValueKey('challenge-rounds-calendar')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey('challenge-ready-card')),
       findsOneWidget,
     );
     expect(
@@ -355,11 +377,15 @@ void main() {
       7,
     );
     expect(find.text('챌린지 상세'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('challenge-ready-card')),
+      findsOneWidget,
+    );
 
     await tester.tap(find.byIcon(Icons.arrow_back_rounded));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text('진행 중인 챌린지'), findsAtLeastNWidgets(1));
+    expect(find.text('활성 챌린지'), findsAtLeastNWidgets(1));
 
     await tester.tap(find.byKey(const ValueKey('challenge-create-button')));
     await tester.pump();
@@ -592,7 +618,7 @@ void main() {
     );
     expect(
       find.byKey(const ValueKey('challenge-edit-button')),
-      findsOneWidget,
+      findsNothing,
     );
     expect(find.text('줄넘기'), findsAtLeastNWidgets(1));
 
@@ -608,7 +634,7 @@ void main() {
     await mealLogService.dispose();
   });
 
-  testWidgets('parent mode can start a new challenge with a gift reward', (
+  testWidgets('parent mode can prepare a new challenge with a gift reward', (
     WidgetTester tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(320, 720));
@@ -652,7 +678,7 @@ void main() {
 
     expect(find.text('보호자가 챌린지를 만들 수 있어요.'), findsOneWidget);
     expect(find.text('1. 기간 선택'), findsNothing);
-    expect(find.widgetWithText(FilledButton, '챌린지 시작'), findsNothing);
+    expect(find.widgetWithText(FilledButton, '챌린지 준비'), findsNothing);
 
     await tester.tap(find.byKey(const ValueKey('challenge-create-button')));
     await tester.pump();
@@ -671,18 +697,20 @@ void main() {
     );
     await tester.pump();
 
-    await tester.ensureVisible(find.widgetWithText(FilledButton, '챌린지 시작'));
+    await tester.ensureVisible(find.widgetWithText(FilledButton, '챌린지 준비'));
     await tester.pump(const Duration(milliseconds: 300));
-    await tester.tap(find.widgetWithText(FilledButton, '챌린지 시작'));
+    await tester.tap(find.widgetWithText(FilledButton, '챌린지 준비'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(challengeService.activeRun()?.rewardGift, '새 축구공');
+    expect(challengeService.activeRun()?.isStarted, isFalse);
     expect(find.text('완주하면 새 축구공 선물이 기다려요.'), findsOneWidget);
     expect(
-      find.byKey(const ValueKey('challenge-rounds-calendar')),
+      find.byKey(const ValueKey('challenge-ready-card')),
       findsOneWidget,
     );
+    expect(find.widgetWithText(FilledButton, '지금 시작'), findsNothing);
     expect(tester.takeException(), isNull);
 
     await tester.pumpWidget(const SizedBox.shrink());
@@ -690,7 +718,7 @@ void main() {
     await mealLogService.dispose();
   });
 
-  testWidgets('parent challenge start does not wait for shared backup sync', (
+  testWidgets('parent challenge prepare does not wait for shared backup sync', (
     WidgetTester tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(320, 720));
@@ -743,16 +771,17 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    await tester.ensureVisible(find.widgetWithText(FilledButton, '챌린지 시작'));
+    await tester.ensureVisible(find.widgetWithText(FilledButton, '챌린지 준비'));
     await tester.pump(const Duration(milliseconds: 300));
-    await tester.tap(find.widgetWithText(FilledButton, '챌린지 시작'));
+    await tester.tap(find.widgetWithText(FilledButton, '챌린지 준비'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(challengeService.activeRun(), isNotNull);
+    expect(challengeService.activeRun()?.isStarted, isFalse);
     expect(backupRepository.backupRequested, isTrue);
     expect(
-      find.byKey(const ValueKey('challenge-rounds-calendar')),
+      find.byKey(const ValueKey('challenge-ready-card')),
       findsOneWidget,
     );
     expect(tester.takeException(), isNull);
@@ -764,7 +793,7 @@ void main() {
     await mealLogService.dispose();
   });
 
-  testWidgets('parent challenge start ignores repeated taps while saving', (
+  testWidgets('parent challenge prepare ignores repeated taps while saving', (
     WidgetTester tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(320, 720));
@@ -814,24 +843,25 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    final startButton = find.widgetWithText(FilledButton, '챌린지 시작');
-    await tester.ensureVisible(startButton);
+    final prepareButton = find.widgetWithText(FilledButton, '챌린지 준비');
+    await tester.ensureVisible(prepareButton);
     await tester.pump(const Duration(milliseconds: 300));
-    await tester.tap(startButton);
-    await tester.tap(startButton);
+    await tester.tap(prepareButton);
+    await tester.tap(prepareButton);
     await tester.pump();
 
     expect(optionRepository.challengeSaveCount, 1);
     expect(challengeService.activeRuns(), isEmpty);
-    expect(tester.widget<FilledButton>(startButton).onPressed, isNull);
+    expect(tester.widget<FilledButton>(prepareButton).onPressed, isNull);
 
     optionRepository.releaseChallengeSave();
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(challengeService.activeRuns(), hasLength(1));
+    expect(challengeService.activeRun()?.isStarted, isFalse);
     expect(
-      find.byKey(const ValueKey('challenge-rounds-calendar')),
+      find.byKey(const ValueKey('challenge-ready-card')),
       findsOneWidget,
     );
     expect(tester.takeException(), isNull);
@@ -857,7 +887,7 @@ void main() {
     );
     final challengeService = ChallengeService(optionRepository);
     final template = challengeService.templateById('starter_3')!;
-    await challengeService.startChallenge(template);
+    await challengeService.prepareChallenge(template);
     final trainingService = TrainingService(_MemoryTrainingRepository());
     final mealLogService = MealLogService(optionRepository);
     final localeService = LocaleService(optionRepository)..load();
@@ -991,7 +1021,7 @@ void main() {
     },
   );
 
-  testWidgets('challenge edit save is blocked after player records progress', (
+  testWidgets('challenge edit save is blocked after challenge starts', (
     WidgetTester tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(320, 720));
@@ -1008,7 +1038,7 @@ void main() {
     final challengeService = ChallengeService(optionRepository);
     final template = challengeService.templateById('starter_3')!;
     final today = DateTime.now();
-    await challengeService.startChallenge(
+    final run = await challengeService.prepareChallenge(
       template,
       selectedSkillIds: const <String>['passing'],
       missionTargets: const ChallengeMissionTargets(
@@ -1018,7 +1048,7 @@ void main() {
         riceBowls: 0,
       ),
       rewardGift: '새 축구공',
-      startedAt: DateTime(today.year, today.month, today.day, 9),
+      preparedAt: DateTime(today.year, today.month, today.day, 9),
     );
     final trainingRepository = _MemoryTrainingRepository();
     final trainingService = TrainingService(trainingRepository);
@@ -1059,11 +1089,9 @@ void main() {
       '새 풋살화',
     );
     await tester.pump();
-    await trainingRepository.add(
-      _trainingEntry(
-        day: DateTime(today.year, today.month, today.day, 17),
-        minutes: 5,
-      ),
+    await challengeService.startPreparedRun(
+      run.id,
+      startedAt: DateTime(today.year, today.month, today.day, 10),
     );
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
@@ -1424,7 +1452,7 @@ void main() {
       find.byKey(const ValueKey('challenge-rounds-calendar')),
       findsNothing,
     );
-    expect(find.text('진행 중인 챌린지'), findsAtLeastNWidgets(1));
+    expect(find.text('활성 챌린지'), findsAtLeastNWidgets(1));
     expect(find.text('3일 챌린지'), findsOneWidget);
     expect(PlayerLevelService(optionRepository).loadState().totalXp, 10);
     expect(tester.takeException(), isNull);

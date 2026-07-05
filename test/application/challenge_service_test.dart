@@ -128,11 +128,47 @@ void main() {
     ]);
   });
 
-  test('active challenge can be edited without replacing its run id', () async {
+  test('prepared challenge waits for explicit start', () async {
+    final service = ChallengeService(_MemoryOptionRepository());
+    final template = service.templateById('starter_3')!;
+    final preparedAt = DateTime(2026, 6, 1, 9);
+    final startAt = DateTime(2026, 6, 4, 7);
+    final run = await service.prepareChallenge(
+      template,
+      preparedAt: preparedAt,
+      cadenceDays: 2,
+    );
+
+    expect(run.isStarted, isFalse);
+    expect(service.activeRun()!.isStarted, isFalse);
+
+    final preparedProgress = service.activeProgress(
+      trainingEntries: const <TrainingEntry>[],
+      mealEntries: const <MealEntry>[],
+    )!;
+    expect(preparedProgress.activeRound, isNull);
+    expect(preparedProgress.readyToFinalize(now: DateTime(2026, 7)), isFalse);
+
+    final started = await service.startPreparedRun(run.id, startedAt: startAt);
+    final repeated = await service.startPreparedRun(
+      run.id,
+      startedAt: DateTime(2026, 6, 7, 7),
+    );
+
+    expect(started, isNotNull);
+    expect(started!.isStarted, isTrue);
+    expect(started.startDay, DateTime(2026, 6, 4));
+    expect(started.dayForRound(2), DateTime(2026, 6, 6));
+    expect(repeated!.startedAt, started.startedAt);
+    expect(service.activeRuns(), hasLength(1));
+  });
+
+  test('prepared challenge can be edited without replacing its run id',
+      () async {
     final service = ChallengeService(_MemoryOptionRepository());
     final starter = service.templateById('starter_3')!;
     final weekly = service.templateById('weekly_7')!;
-    final run = await service.startChallenge(
+    final run = await service.prepareChallenge(
       starter,
       selectedSkillIds: const <String>['passing'],
       missionTargets: const ChallengeMissionTargets(
@@ -141,7 +177,7 @@ void main() {
         liftingMinutes: 0,
         riceBowls: 0,
       ),
-      startedAt: DateTime(2026, 6, 1, 9),
+      preparedAt: DateTime(2026, 6, 1, 9),
     );
 
     final updated = await service.updateRun(
@@ -167,14 +203,27 @@ void main() {
     expect(service.activeRuns().single.templateId, weekly.id);
   });
 
+  test('started challenge cannot be edited', () async {
+    final service = ChallengeService(_MemoryOptionRepository());
+    final starter = service.templateById('starter_3')!;
+    final weekly = service.templateById('weekly_7')!;
+    final run = await service.prepareChallenge(starter);
+    await service.startPreparedRun(run.id, startedAt: DateTime(2026, 6, 1, 9));
+
+    final updated = await service.updateRun(run.id, template: weekly);
+
+    expect(updated, isNull);
+    expect(service.activeRuns().single.templateId, starter.id);
+  });
+
   test('challenge reward gift is persisted and editable', () async {
     final service = ChallengeService(_MemoryOptionRepository());
     final starter = service.templateById('starter_3')!;
     final weekly = service.templateById('weekly_7')!;
-    final run = await service.startChallenge(
+    final run = await service.prepareChallenge(
       starter,
       rewardGift: '  새 축구공  ',
-      startedAt: DateTime(2026, 6, 1, 9),
+      preparedAt: DateTime(2026, 6, 1, 9),
     );
 
     expect(run.rewardGift, '새 축구공');
