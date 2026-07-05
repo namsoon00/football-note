@@ -440,15 +440,41 @@ void main() {
         find.byKey(const ValueKey<String>('home-title-label')), findsOneWidget);
     expect(find.text('3단계 중 1단계'), findsOneWidget);
     expect(
+      find.byKey(const ValueKey('tab-coach-mark-highlight')),
+      findsOneWidget,
+    );
+    final firstTargetRect = tester.getRect(
+      find.byKey(const ValueKey<String>('home-layout-daily-flow-section')),
+    );
+    final firstHighlightRect = tester.getRect(
+      find.byKey(const ValueKey('tab-coach-mark-highlight')),
+    );
+    expect(
+      (firstHighlightRect.center - firstTargetRect.center).distance,
+      lessThan(1),
+    );
+    expect(
       optionRepository.getValue<bool>('tab_quick_guide_seen_v1_0'),
       isTrue,
     );
 
     await tester.tap(find.byKey(const ValueKey('tab-coach-mark-next-button')));
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 250));
+    await tester.pump(const Duration(milliseconds: 260));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 240));
 
     expect(find.text('3단계 중 2단계'), findsOneWidget);
+    final secondTargetRect = tester.getRect(
+      find.byKey(const ValueKey<String>('home-layout-meal-section')),
+    );
+    final secondHighlightRect = tester.getRect(
+      find.byKey(const ValueKey('tab-coach-mark-highlight')),
+    );
+    expect(
+      (secondHighlightRect.center - secondTargetRect.center).distance,
+      lessThan(1),
+    );
     expect(
       find.byKey(const ValueKey('tab-coach-mark-try-button')),
       findsOneWidget,

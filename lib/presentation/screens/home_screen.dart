@@ -76,6 +76,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   StreamSubscription<void>? _backupDataChangeSubscription;
   int _dataRevision = 0;
   String? _activeSportId;
+  final List<GlobalKey> _tabDestinationKeys = List<GlobalKey>.generate(
+    5,
+    (index) => GlobalKey(debugLabel: 'home-tab-destination-$index'),
+  );
+  final GlobalKey _homeDailyFlowGuideKey =
+      GlobalKey(debugLabel: 'home-guide-daily-flow');
+  final GlobalKey _homeMealGuideKey = GlobalKey(debugLabel: 'home-guide-meal');
 
   @override
   void initState() {
@@ -279,6 +286,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           onEdit: _openEdit,
           onEditTrainingBoard: _openEditTrainingBoard,
           onCreateTrainingBoard: _openCreateTrainingBoard,
+          dailyFlowGuideKey: _homeDailyFlowGuideKey,
+          mealGuideKey: _homeMealGuideKey,
         ),
       ),
       _buildTabChild(
@@ -370,26 +379,31 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         onDestinationSelected: _onDestinationSelected,
         destinations: [
           NavigationDestination(
+            key: _tabDestinationKeys[0],
             icon: const Icon(Icons.home_outlined),
             selectedIcon: const Icon(Icons.home),
             label: l10n.tabHome,
           ),
           NavigationDestination(
+            key: _tabDestinationKeys[1],
             icon: const Icon(Icons.list_alt_outlined),
             selectedIcon: const Icon(Icons.list_alt),
             label: l10n.tabLogs,
           ),
           NavigationDestination(
+            key: _tabDestinationKeys[2],
             icon: const Icon(Icons.calendar_month_outlined),
             selectedIcon: const Icon(Icons.calendar_month),
             label: l10n.tabCalendar,
           ),
           NavigationDestination(
+            key: _tabDestinationKeys[3],
             icon: const Icon(Icons.bar_chart_outlined),
             selectedIcon: const Icon(Icons.bar_chart),
             label: l10n.tabStats,
           ),
           NavigationDestination(
+            key: _tabDestinationKeys[4],
             icon: const Icon(Icons.auto_stories_outlined),
             selectedIcon: const Icon(Icons.auto_stories),
             label: l10n.tabDiary,
@@ -491,6 +505,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (!mounted) return;
     final l10n = AppLocalizations.of(context)!;
     final guide = _tabGuideData(tabIndex, l10n, isParentMode: isParentMode);
+    await _ensureGuideTargetVisible(
+      guide.steps.isEmpty ? null : guide.steps.first.targetKey,
+    );
+    if (!mounted) return;
     final action = await showGeneralDialog<VoidCallback>(
       context: context,
       barrierDismissible: true,
@@ -507,18 +525,23 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         );
         return FadeTransition(
           opacity: curved,
-          child: SlideTransition(
-            position: Tween<Offset>(
-              begin: const Offset(0, 0.035),
-              end: Offset.zero,
-            ).animate(curved),
-            child: child,
-          ),
+          child: child,
         );
       },
     );
     if (!mounted || action == null) return;
     action();
+  }
+
+  Future<void> _ensureGuideTargetVisible(GlobalKey? targetKey) async {
+    final targetContext = targetKey?.currentContext;
+    if (targetContext == null) return;
+    await Scrollable.ensureVisible(
+      targetContext,
+      alignment: 0.28,
+      duration: Duration.zero,
+      curve: Curves.easeOutCubic,
+    );
   }
 
   _TabGuideData _tabGuideData(
@@ -535,6 +558,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             icon: Icons.list_alt_outlined,
             actionLabel: l10n.tabLogs,
             description: l10n.parentWelcomeGuideStepLogs,
+            targetKey: _tabDestinationKeys[1],
           ),
           _TabGuideStep(
             icon: Icons.rate_review_outlined,
@@ -559,18 +583,21 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               icon: Icons.today_outlined,
               actionLabel: l10n.guideActionToday,
               description: l10n.welcomeHomeStepToday,
+              targetKey: _homeDailyFlowGuideKey,
             ),
             _TabGuideStep(
               icon: Icons.rice_bowl_outlined,
               actionLabel: l10n.guideActionMeal,
               description: l10n.welcomeHomeStepMeal,
               onTry: () => unawaited(_openMealLog(initialDate: DateTime.now())),
+              targetKey: _homeMealGuideKey,
             ),
             _TabGuideStep(
               icon: Icons.bar_chart_outlined,
               actionLabel: l10n.homePriorityStatsAction,
               description: l10n.welcomeHomeStepStats,
               onTry: _openWeeklyStatsForCurrentWeek,
+              targetKey: _tabDestinationKeys[3],
             ),
           ],
         );
@@ -584,6 +611,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               actionLabel: l10n.addEntry,
               description: l10n.welcomeLogsStepAdd,
               onTry: () => unawaited(_openCreate()),
+              targetKey: _tabDestinationKeys[1],
             ),
             _TabGuideStep(
               icon: Icons.developer_board_outlined,
@@ -607,6 +635,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               icon: Icons.touch_app_outlined,
               actionLabel: l10n.guideActionSelectDate,
               description: l10n.welcomeCalendarStepDate,
+              targetKey: _tabDestinationKeys[2],
             ),
             _TabGuideStep(
               icon: Icons.add,
@@ -631,6 +660,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               icon: Icons.date_range_outlined,
               actionLabel: l10n.guideActionPeriod,
               description: l10n.welcomeStatsStepPeriod,
+              targetKey: _tabDestinationKeys[3],
             ),
             _TabGuideStep(
               icon: Icons.stacked_line_chart,
@@ -654,6 +684,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               actionLabel: l10n.guideActionOpenToday,
               description: l10n.welcomeDiaryStepToday,
               onTry: _openTodayDiary,
+              targetKey: _tabDestinationKeys[4],
             ),
             _TabGuideStep(
               icon: Icons.sticky_note_2_outlined,
@@ -870,12 +901,14 @@ class _TabGuideStep {
   final String actionLabel;
   final String description;
   final VoidCallback? onTry;
+  final GlobalKey? targetKey;
 
   const _TabGuideStep({
     required this.icon,
     required this.actionLabel,
     required this.description,
     this.onTry,
+    this.targetKey,
   });
 }
 
@@ -889,88 +922,287 @@ class _TabCoachMarkDialog extends StatefulWidget {
 }
 
 class _TabCoachMarkDialogState extends State<_TabCoachMarkDialog> {
+  static const double _screenPadding = 14;
+  static const double _targetInflate = 8;
+  static const Size _fallbackTargetSize = Size(220, 76);
+  static const double _floatingWidth = 260;
+  static const double _floatingHeightEstimate = 78;
+  static const double _bottomPanelReserve = 286;
   int _stepIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_refreshCurrentTarget());
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final steps = widget.guide.steps;
+    if (steps.isEmpty) {
+      return const SizedBox.shrink();
+    }
     final step = steps[_stepIndex];
     final isLast = _stepIndex == steps.length - 1;
     return Material(
       key: const ValueKey('tab-coach-mark-dialog'),
       color: Colors.transparent,
-      child: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final targetTop = _spotlightTopForStep(
-              stepIndex: _stepIndex,
-              totalSteps: steps.length,
-              maxHeight: constraints.maxHeight,
-            );
-            return Stack(
-              key: const ValueKey('tab-coach-mark-screen-overlay'),
-              children: [
-                Positioned.fill(
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => Navigator.of(context).pop(),
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(
-                          alpha:
-                              theme.brightness == Brightness.dark ? 0.50 : 0.42,
-                        ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final viewport = Size(constraints.maxWidth, constraints.maxHeight);
+          final spotlightRect = _spotlightRectForStep(
+            step: step,
+            stepIndex: _stepIndex,
+            totalSteps: steps.length,
+            viewport: viewport,
+          );
+          final floatingOffset = _floatingOffsetFor(
+            spotlightRect,
+            viewport,
+            MediaQuery.paddingOf(context),
+          );
+          return Stack(
+            key: const ValueKey('tab-coach-mark-screen-overlay'),
+            children: [
+              Positioned.fill(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => Navigator.of(context).pop(),
+                  child: CustomPaint(
+                    painter: _CoachMarkScrimPainter(
+                      spotlightRect: spotlightRect,
+                      color: Colors.black.withValues(
+                        alpha:
+                            theme.brightness == Brightness.dark ? 0.50 : 0.42,
                       ),
                     ),
                   ),
                 ),
-                AnimatedPositioned(
-                  duration: const Duration(milliseconds: 240),
-                  curve: Curves.easeOutCubic,
-                  left: 18,
-                  right: 18,
-                  top: targetTop,
-                  child: Align(
-                    alignment: _spotlightAlignmentForStep(_stepIndex),
-                    child: _CoachMarkFloatingTarget(
-                      step: step,
-                      label: AppLocalizations.of(
-                        context,
-                      )!
-                          .welcomeGuideCoachMarkLabel,
+              ),
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+                left: spotlightRect.left,
+                top: spotlightRect.top,
+                width: spotlightRect.width,
+                height: spotlightRect.height,
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    key: const ValueKey('tab-coach-mark-highlight'),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: theme.colorScheme.primary,
+                        width: 3,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: theme.colorScheme.primary.withValues(
+                            alpha: 0.42,
+                          ),
+                          blurRadius: 28,
+                          spreadRadius: 4,
+                        ),
+                      ],
                     ),
                   ),
                 ),
-                Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
-                    child: _CoachMarkExplanationPanel(
-                      guide: widget.guide,
-                      step: step,
-                      currentStep: _stepIndex + 1,
-                      totalSteps: steps.length,
-                      isLast: isLast,
-                      onSkip: () => Navigator.of(context).pop(),
-                      onBack: _stepIndex == 0
-                          ? null
-                          : () => setState(() => _stepIndex -= 1),
-                      onTry: step.onTry == null
-                          ? null
-                          : () => Navigator.of(context).pop(step.onTry),
-                      onNext: isLast
-                          ? () => Navigator.of(context).pop()
-                          : () => setState(() => _stepIndex += 1),
-                    ),
+              ),
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+                left: floatingOffset.dx,
+                top: floatingOffset.dy,
+                width: _floatingWidth,
+                child: Align(
+                  child: _CoachMarkFloatingTarget(
+                    key: const ValueKey('tab-coach-mark-floating-target'),
+                    step: step,
+                    label: AppLocalizations.of(
+                      context,
+                    )!
+                        .welcomeGuideCoachMarkLabel,
                   ),
                 ),
-              ],
-            );
-          },
-        ),
+              ),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: SafeArea(
+                  minimum: const EdgeInsets.fromLTRB(16, 16, 16, 18),
+                  child: _CoachMarkExplanationPanel(
+                    guide: widget.guide,
+                    step: step,
+                    currentStep: _stepIndex + 1,
+                    totalSteps: steps.length,
+                    isLast: isLast,
+                    onSkip: () => Navigator.of(context).pop(),
+                    onBack: _stepIndex == 0
+                        ? null
+                        : () => unawaited(_showStep(_stepIndex - 1)),
+                    onTry: step.onTry == null
+                        ? null
+                        : () => Navigator.of(context).pop(step.onTry),
+                    onNext: isLast
+                        ? () => Navigator.of(context).pop()
+                        : () => unawaited(_showStep(_stepIndex + 1)),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
+  }
+
+  Future<void> _refreshCurrentTarget() async {
+    if (widget.guide.steps.isEmpty) return;
+    await _ensureTargetVisible(
+      widget.guide.steps[_stepIndex].targetKey,
+      duration: Duration.zero,
+    );
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _showStep(int nextIndex) async {
+    final steps = widget.guide.steps;
+    if (nextIndex < 0 || nextIndex >= steps.length || nextIndex == _stepIndex) {
+      return;
+    }
+    await _ensureTargetVisible(steps[nextIndex].targetKey);
+    if (!mounted) return;
+    setState(() => _stepIndex = nextIndex);
+  }
+
+  Future<void> _ensureTargetVisible(
+    GlobalKey? targetKey, {
+    Duration duration = const Duration(milliseconds: 220),
+  }) async {
+    final targetContext = targetKey?.currentContext;
+    if (targetContext == null) return;
+    await Scrollable.ensureVisible(
+      targetContext,
+      alignment: 0.28,
+      duration: duration,
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  Rect _spotlightRectForStep({
+    required _TabGuideStep step,
+    required int stepIndex,
+    required int totalSteps,
+    required Size viewport,
+  }) {
+    final targetRect = _targetRectForStep(step);
+    final rect = (targetRect ??
+            _fallbackRectForStep(
+              stepIndex: stepIndex,
+              totalSteps: totalSteps,
+              viewport: viewport,
+            ))
+        .inflate(_targetInflate);
+    return _clampRect(rect, viewport, margin: 0);
+  }
+
+  Rect? _targetRectForStep(_TabGuideStep step) {
+    final targetContext = step.targetKey?.currentContext;
+    if (targetContext == null) return null;
+    final renderObject = targetContext.findRenderObject();
+    if (renderObject is! RenderBox ||
+        !renderObject.attached ||
+        !renderObject.hasSize) {
+      return null;
+    }
+    final topLeft = renderObject.localToGlobal(Offset.zero);
+    return topLeft & renderObject.size;
+  }
+
+  Rect _fallbackRectForStep({
+    required int stepIndex,
+    required int totalSteps,
+    required Size viewport,
+  }) {
+    final top = _spotlightTopForStep(
+      stepIndex: stepIndex,
+      totalSteps: totalSteps,
+      maxHeight: viewport.height,
+    );
+    final availableWidth =
+        (viewport.width - (_screenPadding * 2) - _fallbackTargetSize.width)
+            .clamp(0.0, double.infinity)
+            .toDouble();
+    final horizontalProgress = switch (stepIndex % 3) {
+      0 => 0.0,
+      1 => 0.5,
+      _ => 1.0,
+    };
+    final left = _screenPadding + (availableWidth * horizontalProgress);
+    return Rect.fromLTWH(
+      left,
+      top,
+      _fallbackTargetSize.width,
+      _fallbackTargetSize.height,
+    );
+  }
+
+  Rect _clampRect(
+    Rect rect,
+    Size viewport, {
+    double margin = _screenPadding,
+  }) {
+    final maxWidth =
+        (viewport.width - (margin * 2)).clamp(0.0, double.infinity).toDouble();
+    final maxHeight =
+        (viewport.height - (margin * 2)).clamp(0.0, double.infinity).toDouble();
+    final width = rect.width.clamp(0.0, maxWidth).toDouble();
+    final height = rect.height.clamp(0.0, maxHeight).toDouble();
+    final left = _clampDouble(
+      rect.center.dx - (width / 2),
+      margin,
+      viewport.width - margin - width,
+    );
+    final top = _clampDouble(
+      rect.center.dy - (height / 2),
+      margin,
+      viewport.height - margin - height,
+    );
+    return Rect.fromLTWH(left, top, width, height);
+  }
+
+  Offset _floatingOffsetFor(
+    Rect spotlightRect,
+    Size viewport,
+    EdgeInsets safePadding,
+  ) {
+    final left = _clampDouble(
+      spotlightRect.center.dx - (_floatingWidth / 2),
+      _screenPadding,
+      viewport.width - _screenPadding - _floatingWidth,
+    );
+    final safeTop = safePadding.top + _screenPadding;
+    final safeBottom = viewport.height - safePadding.bottom - _screenPadding;
+    final bottomPanelTop = safeBottom - _bottomPanelReserve;
+    final belowTop = spotlightRect.bottom + 12;
+    final aboveTop = spotlightRect.top - _floatingHeightEstimate - 12;
+    final top = belowTop + _floatingHeightEstimate <= bottomPanelTop
+        ? belowTop
+        : aboveTop >= safeTop
+            ? aboveTop
+            : _clampDouble(
+                belowTop,
+                safeTop,
+                safeBottom - _floatingHeightEstimate,
+              );
+    return Offset(left, top);
+  }
+
+  double _clampDouble(double value, double min, double max) {
+    if (max < min) return min;
+    return value.clamp(min, max).toDouble();
   }
 
   double _spotlightTopForStep({
@@ -985,13 +1217,39 @@ class _TabCoachMarkDialogState extends State<_TabCoachMarkDialog> {
     final progress = stepIndex / (totalSteps - 1);
     return upper + ((lower - upper) * progress);
   }
+}
 
-  AlignmentGeometry _spotlightAlignmentForStep(int stepIndex) {
-    return switch (stepIndex % 3) {
-      0 => AlignmentDirectional.centerStart,
-      1 => Alignment.center,
-      _ => AlignmentDirectional.centerEnd,
-    };
+class _CoachMarkScrimPainter extends CustomPainter {
+  final Rect spotlightRect;
+  final Color color;
+
+  const _CoachMarkScrimPainter({
+    required this.spotlightRect,
+    required this.color,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final screenPath = Path()..addRect(Offset.zero & size);
+    final spotlightPath = Path()
+      ..addRRect(
+        RRect.fromRectAndRadius(
+          spotlightRect,
+          const Radius.circular(20),
+        ),
+      );
+    final scrimPath = Path.combine(
+      PathOperation.difference,
+      screenPath,
+      spotlightPath,
+    );
+    canvas.drawPath(scrimPath, Paint()..color = color);
+  }
+
+  @override
+  bool shouldRepaint(covariant _CoachMarkScrimPainter oldDelegate) {
+    return oldDelegate.spotlightRect != spotlightRect ||
+        oldDelegate.color != color;
   }
 }
 
@@ -1000,6 +1258,7 @@ class _CoachMarkFloatingTarget extends StatelessWidget {
   final String label;
 
   const _CoachMarkFloatingTarget({
+    super.key,
     required this.step,
     required this.label,
   });
