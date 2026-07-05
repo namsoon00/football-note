@@ -2255,6 +2255,7 @@ class DriveBackupService implements BackupRepository {
     final options = (data['options'] as Map?) ?? const {};
     final assetRecords = _extractAssetRecords(data);
     final preservedLocalOnly = _localOptionSnapshotForRestore();
+    final fallbackCurrentSportId = _localCurrentSportIdForRestore();
 
     final stagedEntries = <TrainingEntry>[];
     for (final raw in entries) {
@@ -2310,7 +2311,22 @@ class DriveBackupService implements BackupRepository {
         await _optionBox.put(entry.key, entry.value);
       }
     }
+    if (!stagedOptions.containsKey(SportCatalog.currentSportOptionKey) &&
+        fallbackCurrentSportId != null) {
+      await _optionBox.put(
+        SportCatalog.currentSportOptionKey,
+        fallbackCurrentSportId,
+      );
+    }
     _notifyDataChanged();
+  }
+
+  String? _localCurrentSportIdForRestore() {
+    final raw = _optionBox.get(SportCatalog.currentSportOptionKey);
+    if (raw is! String || raw.trim().isEmpty) {
+      return null;
+    }
+    return SportCatalog.normalizeSportId(raw);
   }
 
   dynamic _encodeOptionValueForBackup({
