@@ -6,7 +6,7 @@ import 'package:football_note/domain/entities/training_entry.dart';
 import 'package:football_note/gen/app_localizations_ko.dart';
 
 void main() {
-  test('generateResult returns a modern mood card', () {
+  test('generateResult returns a short recommendation card', () {
     final service = LocalFortuneService();
     final l10n = AppLocalizationsKo();
     final result = service.generateResult(
@@ -38,59 +38,44 @@ void main() {
     expect(result.fortuneText, isNot(contains('[재미 포인트]')));
     expect(result.fortuneText, isNot(contains('재미 포인트')));
     final lines = result.fortuneText.split('\n');
-    expect(lines, hasLength(3));
-    expect(lines.first, startsWith('민준님 오늘 무드: '));
-    expect(lines[1], startsWith('한 줄 미션: '));
-    expect(lines[1], contains('답게 '));
-    expect(lines.first, isNot(contains('그래서')));
-    expect(lines.first, isNot(contains('분위기예요')));
-    expect(lines.first, isNot(contains('쪽으로 흐름이 잡혀요')));
-    expect(lines.first, isNot(contains('흐름')));
-    expect(lines.first, isNot(contains('볼 수')));
-    expect(lines.first, isNot(contains('수 있어요')));
-    expect(lines.first, isNot(contains('라서')));
-    expect(lines.first, isNot(matches(RegExp('해보세요|하세요|두세요|고르세요|마세요|주세요'))));
-    expect(lines.first, matches(RegExp(r'^민준님 오늘 무드: .+\.$')));
-    expect(
-        lines.first.substring(0, lines.first.length - 1), isNot(contains('.')));
-    final dailyOutcomeSentences = <String>{
-      for (final time in l10n.fortuneDailyOutcomeTimes.split('|'))
-        for (final subject in l10n.fortuneDailyOutcomeSubjects.split('|'))
-          for (final outcome in l10n.fortuneDailyOutcomeResults.split('|'))
-            '$time $subject $outcome',
-    };
-    expect(dailyOutcomeSentences, hasLength(1000));
-    expect(dailyOutcomeSentences.any(lines.first.contains), isTrue);
-    expect(lines.first, isNot(contains('훈련')));
-    expect(lines.first, isNot(contains('패스')));
-    expect(lines.last, contains('오늘 픽은 '));
-    expect(lines.last, contains('숫자는 '));
+    final shortLines = l10n.fortuneShortLines.split('|');
+    final blockedTerms = RegExp(
+      '그래서|분위기|흐름|기운|가능성|예감|행운|무드|오늘의|볼 수|수 있어요|'
+      '해보세요|하세요|두세요|고르세요|마세요|주세요|답게|미션',
+    );
+    expect(lines, hasLength(2));
+    expect(lines.first, startsWith('민준님, '));
+    expect(lines.first, matches(RegExp(r'^민준님, .+\.$')));
+    expect(shortLines.any(lines.first.contains), isTrue);
+    expect(lines.first, isNot(matches(blockedTerms)));
+    expect(lines.first.length, lessThanOrEqualTo(32));
+    expect(lines.last, matches(RegExp(r'^픽: .+ · [1-9]$')));
+    expect(lines.last, isNot(contains('오늘 픽은 ')));
+    expect(lines.last, isNot(contains('숫자는 ')));
     expect(lines.last, isNot(contains('시간대 ')));
   });
 
-  test('korean day flow copy reads as linked natural snippets', () {
+  test('korean short fortune copy stays concrete and simple', () {
     final l10n = AppLocalizationsKo();
-    final flows = '${l10n.fortuneSajuElementFlows}|'
-            '${l10n.fortuneSajuElementFlowExtras}'
-        .split('|');
+    final shortLines = l10n.fortuneShortLines.split('|');
+    final blockedTerms = RegExp(
+      '흐름|기운|가능성|예감|분위기|행운|무드|오늘의|'
+      '해보세요|하세요|두세요|고르세요|마세요|주세요|볼 수|수 있어요|날이에요',
+    );
 
-    expect(flows, hasLength(60));
-    expect(flows, contains('상대 표정을 보고 말을 고르는 날이에요.'));
-    for (final flow in flows) {
+    expect(shortLines, hasLength(40));
+    expect(shortLines, contains('보내기 전 한 번 읽어요.'));
+    expect(shortLines, contains('패스 전 고개 한 번 들어요.'));
+    for (final shortLine in shortLines) {
       final line = l10n.fortuneGeneratedDailyLineOne(
         '민준',
-        flow,
+        shortLine,
       );
-      expect(line, startsWith('민준님 오늘 무드: '));
-      expect(line, isNot(contains('빠른 눈치 분위기')));
-      expect(line, isNot(contains('분위기예요')));
-      expect(line, isNot(contains('쪽으로 흐름이 잡혀요')));
-      expect(line, isNot(contains('흐름')));
-      expect(line, isNot(contains('그래서')));
-      expect(line, isNot(contains('볼 수')));
-      expect(line, isNot(contains('수 있어요')));
-      expect(line, matches(RegExp(r'오늘 무드: .+날이에요\.$')));
+      expect(line, startsWith('민준님, '));
+      expect(line, isNot(matches(blockedTerms)), reason: line);
+      expect(line, matches(RegExp(r'^민준님, .+\.$')));
       expect(line, endsWith('.'));
+      expect(line.length, lessThanOrEqualTo(32), reason: line);
     }
   });
 
@@ -168,6 +153,7 @@ void main() {
         35,
         12,
         5,
+        40,
         60,
         96,
         1000,
@@ -190,11 +176,13 @@ void main() {
     expect(sections[4].values, contains(startsWith('자오충:')));
     expect(sections[5].values, contains(startsWith('천을귀인:')));
     expect(sections[6].values, contains(startsWith('목:')));
-    expect(sections[7].title, '오늘 흐름의 이유');
-    expect(sections[8].title, '이어질 수 있는 일');
-    expect(sections[9].title, '오늘 무드 문장');
+    expect(sections[7].title, '짧은 추천안');
+    expect(sections[7].values, contains('패스 전 고개 한 번 들어요.'));
+    expect(sections[8].title, '한 줄 재료');
+    expect(sections[9].title, '이어질 수 있는 일');
+    expect(sections[10].title, '짧은 운세 문장');
     expect(
-      sections[9].values,
+      sections[10].values,
       contains('뜻밖에 웃긴 장면이 툭 나와요.'),
     );
   });

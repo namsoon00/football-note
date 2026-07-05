@@ -13,7 +13,7 @@ void main() {
     expect(sections.bodyLines, hasLength(1));
     expect(
       sections.bodyLines.single,
-      '오늘 픽은 에메랄드예요.',
+      '픽: 에메랄드',
     );
   });
 }

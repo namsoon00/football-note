@@ -5611,7 +5611,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diaryStickerPlan => 'Plan';
 
   @override
-  String get diaryStickerFortune => 'Daily mood';
+  String get diaryStickerFortune => 'Today\'s line';
 
   @override
   String get diaryStickerBoard => 'Board';
@@ -5837,14 +5837,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get diaryFortunePinSummary => 'Pin today\'s mood as a diary sticker.';
+  String get diaryFortunePinSummary => 'Pin today\'s line as a diary sticker.';
 
   @override
   String get diaryFortuneStorySentence =>
-      'Write the scene or encouragement you want to keep from today\'s mood.';
+      'Write the scene you want to keep from today\'s line.';
 
   @override
-  String get diaryFortuneNoteTitle => 'Today mood note';
+  String get diaryFortuneNoteTitle => 'Fortune line note';
 
   @override
   String get diaryMatchTodoTitleNoOpponent => 'Match';
@@ -6372,20 +6372,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeRiceBowlEmpty => 'Skipped';
 
   @override
-  String get fortuneDialogTitle => 'Today\'s mood';
+  String get fortuneDialogTitle => 'Today\'s line';
 
   @override
-  String get fortuneDialogSubtitle =>
-      'A play mood picked from birth date and name.';
+  String get fortuneDialogSubtitle => '';
 
   @override
-  String get fortuneDialogOverviewTitle => 'Mood view';
+  String get fortuneDialogOverviewTitle => 'Line view';
 
   @override
-  String get fortuneDialogOverallFortuneLabel => 'Today mood';
+  String get fortuneDialogOverallFortuneLabel => 'Line';
 
   @override
-  String get fortuneDialogLuckyInfoLabel => 'Color and number';
+  String get fortuneDialogLuckyInfoLabel => 'Pick';
 
   @override
   String fortuneDialogOverallFortuneCount(int count) {
@@ -6398,10 +6397,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get fortuneDialogLuckyInfoTitle => 'Color and number';
+  String get fortuneDialogLuckyInfoTitle => 'Pick';
 
   @override
-  String get fortuneDialogPoolSizeLabel => 'Mood combinations';
+  String get fortuneDialogPoolSizeLabel => 'Combinations';
 
   @override
   String fortuneDialogPoolSizeCount(String count) {
@@ -6425,11 +6424,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fortuneDatabaseViewAction => 'View full database';
 
   @override
-  String get fortuneDatabaseTitle => 'Full Mood Database';
+  String get fortuneDatabaseTitle => 'Full Fortune Database';
 
   @override
   String get fortuneDatabaseSubtitle =>
-      'Myeongli codes, everyday scenes, color picks, and numbers used to build today\'s mood.';
+      'Myeongli codes, everyday scenes, color picks, and numbers used to build short fortunes.';
 
   @override
   String get fortuneDatabaseCloseAction => 'Close';
@@ -6456,13 +6455,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fortuneDatabaseSectionElementColors => 'Element colors';
 
   @override
-  String get fortuneDatabaseSectionDayMoods => 'Why today feels this way';
+  String get fortuneDatabaseSectionShortLines => 'Short picks';
+
+  @override
+  String get fortuneDatabaseSectionDayMoods => 'Line ingredients';
 
   @override
   String get fortuneDatabaseSectionDailyEvents => 'What may follow';
 
   @override
-  String get fortuneDatabaseSectionDailyOutcomes => 'Daily mood lines';
+  String get fortuneDatabaseSectionDailyOutcomes => 'Short fortune lines';
 
   @override
   String get fortuneDatabaseSectionActionCues => 'Small things to try';
@@ -6498,7 +6500,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fortuneDatabaseSectionCueActions => 'Small routines';
 
   @override
-  String get entryFortuneOpenFailed => 'Failed to open mood.';
+  String get entryFortuneOpenFailed => 'Failed to open fortune.';
 
   @override
   String get profileBirthTimeTitle => 'Birth time';
@@ -6525,8 +6527,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get fortuneShortLines =>
+      'Read once before sending.|Play the first pass safe.|Check your bag zipper.|Drink water before you start.|Take the first five minutes slow.|Retie your boots before you go.|Drop one task from the list.|Miss it, then watch the next ball.|Send the short reply first.|Watch only ten seconds of the clip.|Scan the empty space first.|Use your voice once.|Save one photo before wrapping up.|Give one teammate a compliment first.|One line is enough for today\'s note.|If you rush, pause three seconds.|Keep the first touch under your feet.|Track the run without the ball.|Put it away right now.|Change posture while you wait.|Eat slow and put the phone down.|Start with the easiest thing.|Write the messy choice in two lines.|Finish the small promise today.|Screenshot the new info first.|Save the sentence you liked.|Stretch before leaving practice.|Say hello first.|Move one beat early when space opens.|Break the routine into ten minutes.|Lower the load if it feels off.|Drop the good scene into notes.|Mute one alert and focus.|Set the next plan five minutes early.|Lift your head before the pass.|Pick only the first dribble direction.|Empty the bag before going home.|Grab water during the break.|Keep the basics to the end.|Leave one check mark before closing.';
+
+  @override
   String fortuneGeneratedDailyLineOne(String name, String elementFlow) {
-    return '$name, today\'s mood: $elementFlow';
+    return '$name, $elementFlow';
   }
 
   @override
@@ -6537,20 +6543,20 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String fortuneGeneratedLinkedDailyLine(
       String name, String elementFlow, String fortuneTheme) {
-    return '$name, today\'s mood: $elementFlow / $fortuneTheme';
+    return '$name, $elementFlow / $fortuneTheme';
   }
 
   @override
   String fortuneGeneratedDailyLineThree(String nameElement, String playAdvice) {
-    return 'One-line mission: play it like a $nameElement and $playAdvice.';
+    return 'Pick: use $nameElement and $playAdvice.';
   }
 
   @override
-  String get fortuneGeneratedLuckyInfoHeader => '[Color and number]';
+  String get fortuneGeneratedLuckyInfoHeader => '[Pick]';
 
   @override
   String fortuneGeneratedLuckyInfoLine(int number, String color) {
-    return 'Today\'s pick: $color, number $number.';
+    return 'Pick: $color · $number';
   }
 
   @override

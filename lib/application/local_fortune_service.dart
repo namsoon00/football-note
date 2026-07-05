@@ -67,6 +67,10 @@ class LocalFortuneService {
         values: _localizedValues(l10n.fortuneMyeongliElementColorLabels),
       ),
       FortuneDatabaseSection(
+        title: l10n.fortuneDatabaseSectionShortLines,
+        values: _localizedValues(l10n.fortuneShortLines),
+      ),
+      FortuneDatabaseSection(
         title: l10n.fortuneDatabaseSectionDayMoods,
         values: _combinedLocalizedValues(
           l10n.fortuneSajuElementFlows,
@@ -184,7 +188,7 @@ class LocalFortuneService {
     required AppLocalizations l10n,
   }) {
     final baseSeed = _seed(entry, profile, history);
-    final birthReading = _birthReading(profile, l10n);
+    final birthReading = _birthReading(profile);
     final dailySignature = birthReading.chart == null
         ? null
         : _myeongli.dailySignature(
@@ -207,26 +211,16 @@ class LocalFortuneService {
       l10n: l10n,
     );
     final name = _playerName(profile, l10n);
-    final dailyFortune = _dailyFortuneSentence(
-      signature: dailySignature,
+    final shortFortune = _shortFortuneSentence(
       seed: baseSeed +
           birthReading.elementSeed +
           dailyPillar.stem.index * 37 +
           dailyPillar.branch.index * 43,
       l10n: l10n,
     );
-    final nameRhythm = _nameRhythm(
-      seed: baseSeed + birthReading.elementSeed,
-      l10n: l10n,
-    );
-    final actionCue = _actionCue(
-      seed: baseSeed + (dailySignature?.seed ?? dailyPillar.index),
-      l10n: l10n,
-    );
 
     final fortuneText = <String>[
-      l10n.fortuneGeneratedDailyLineOne(name, dailyFortune),
-      l10n.fortuneGeneratedDailyLineThree(nameRhythm, actionCue),
+      l10n.fortuneGeneratedDailyLineOne(name, shortFortune),
       l10n.fortuneGeneratedLuckyInfoLine(luckyNumber, luckyColor),
     ].join('\n');
 
@@ -372,39 +366,11 @@ class LocalFortuneService {
     return numbers[seed.abs() % numbers.length];
   }
 
-  String _dailyFortuneSentence({
-    required MyeongliDailySignature? signature,
+  String _shortFortuneSentence({
     required int seed,
     required AppLocalizations l10n,
   }) {
-    final candidates = _dailyOutcomeSentences(l10n);
-    return _valueAt(candidates, seed + (signature?.seed ?? 0));
-  }
-
-  String _nameRhythm({
-    required int seed,
-    required AppLocalizations l10n,
-  }) {
-    return _valueAt(
-      _combinedLocalizedValues(
-        l10n.fortuneSajuNameElements,
-        l10n.fortuneSajuNameElementExtras,
-      ),
-      seed,
-    );
-  }
-
-  String _actionCue({
-    required int seed,
-    required AppLocalizations l10n,
-  }) {
-    return _valueAt(
-      _combinedLocalizedValues(
-        l10n.fortuneLuckyCueActions,
-        l10n.fortuneLuckyCueActionExtras,
-      ),
-      seed,
-    );
+    return _valueAt(_localizedValues(l10n.fortuneShortLines), seed);
   }
 
   String _composeSegments({
@@ -422,46 +388,20 @@ class LocalFortuneService {
     return parts.join(separator).replaceAll(RegExp(r'\s+'), ' ').trim();
   }
 
-  _BirthReading _birthReading(
-    PlayerProfile profile,
-    AppLocalizations l10n,
-  ) {
+  _BirthReading _birthReading(PlayerProfile profile) {
     final birthDate = profile.birthDate;
     if (birthDate == null) {
       final seed = _nameSeed(profile);
       return _BirthReading(
-        frame: l10n.fortuneGeneratedBirthNotSet,
-        seed: seed,
         elementSeed: seed,
       );
     }
 
     final chart = _myeongli.chartForBirth(birthDate);
-    final frame = chart.hour == null
-        ? l10n.fortuneGeneratedBirthFrame(
-            _pillarLabel(chart.year, l10n),
-            _pillarLabel(chart.month, l10n),
-            _pillarLabel(chart.day, l10n),
-          )
-        : l10n.fortuneGeneratedBirthFrameWithTime(
-            _pillarLabel(chart.year, l10n),
-            _pillarLabel(chart.month, l10n),
-            _pillarLabel(chart.day, l10n),
-            _pillarLabel(chart.hour!, l10n),
-          );
     return _BirthReading(
-      frame: frame,
-      seed: chart.seed,
       elementSeed: chart.elementSeed,
       chart: chart,
     );
-  }
-
-  String _pillarLabel(MyeongliPillar pillar, AppLocalizations l10n) {
-    final stems = _localizedValues(l10n.fortuneSajuHeavenlyStems);
-    final branches = _localizedValues(l10n.fortuneSajuEarthlyBranches);
-    return '${_valueAt(stems, pillar.stem.index)}'
-        '${_valueAt(branches, pillar.branch.index)}';
   }
 
   static String _playerName(PlayerProfile profile, AppLocalizations l10n) {
@@ -584,6 +524,7 @@ class LocalFortuneService {
       _fortuneDailyOutcomeSubjectCount,
       _fortuneDailyOutcomeResultCount,
     );
+    final shortLineCount = count(_fortuneShortLineCount);
     final myeongliSignatureCount = countSegments(
       _fortuneMyeongliTenGodCount,
       _fortuneMyeongliTwelveStageCount,
@@ -601,6 +542,7 @@ class LocalFortuneService {
         sajuReadingCount *
         sajuAdviceCount *
         dailyOutcomeCount *
+        shortLineCount *
         BigInt.from(luckyNumberCount);
   }
 
@@ -619,14 +561,10 @@ class LocalFortuneService {
 }
 
 class _BirthReading {
-  final String frame;
-  final int seed;
   final int elementSeed;
   final MyeongliChart? chart;
 
   const _BirthReading({
-    required this.frame,
-    required this.seed,
     required this.elementSeed,
     this.chart,
   });
@@ -651,3 +589,4 @@ const int _fortuneSajuPlayAdviceCount = 96;
 const int _fortuneDailyOutcomeTimeCount = 10;
 const int _fortuneDailyOutcomeSubjectCount = 10;
 const int _fortuneDailyOutcomeResultCount = 10;
+const int _fortuneShortLineCount = 40;

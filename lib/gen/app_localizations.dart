@@ -9919,7 +9919,7 @@ abstract class AppLocalizations {
   /// No description provided for @diaryStickerFortune.
   ///
   /// In en, this message translates to:
-  /// **'Daily mood'**
+  /// **'Today\'s line'**
   String get diaryStickerFortune;
 
   /// No description provided for @diaryStickerBoard.
@@ -10256,19 +10256,19 @@ abstract class AppLocalizations {
   /// No description provided for @diaryFortunePinSummary.
   ///
   /// In en, this message translates to:
-  /// **'Pin today\'s mood as a diary sticker.'**
+  /// **'Pin today\'s line as a diary sticker.'**
   String get diaryFortunePinSummary;
 
   /// No description provided for @diaryFortuneStorySentence.
   ///
   /// In en, this message translates to:
-  /// **'Write the scene or encouragement you want to keep from today\'s mood.'**
+  /// **'Write the scene you want to keep from today\'s line.'**
   String get diaryFortuneStorySentence;
 
   /// No description provided for @diaryFortuneNoteTitle.
   ///
   /// In en, this message translates to:
-  /// **'Today mood note'**
+  /// **'Fortune line note'**
   String get diaryFortuneNoteTitle;
 
   /// No description provided for @diaryMatchTodoTitleNoOpponent.
@@ -11132,31 +11132,31 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneDialogTitle.
   ///
   /// In en, this message translates to:
-  /// **'Today\'s mood'**
+  /// **'Today\'s line'**
   String get fortuneDialogTitle;
 
   /// No description provided for @fortuneDialogSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'A play mood picked from birth date and name.'**
+  /// **''**
   String get fortuneDialogSubtitle;
 
   /// No description provided for @fortuneDialogOverviewTitle.
   ///
   /// In en, this message translates to:
-  /// **'Mood view'**
+  /// **'Line view'**
   String get fortuneDialogOverviewTitle;
 
   /// No description provided for @fortuneDialogOverallFortuneLabel.
   ///
   /// In en, this message translates to:
-  /// **'Today mood'**
+  /// **'Line'**
   String get fortuneDialogOverallFortuneLabel;
 
   /// No description provided for @fortuneDialogLuckyInfoLabel.
   ///
   /// In en, this message translates to:
-  /// **'Color and number'**
+  /// **'Pick'**
   String get fortuneDialogLuckyInfoLabel;
 
   /// No description provided for @fortuneDialogOverallFortuneCount.
@@ -11174,13 +11174,13 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneDialogLuckyInfoTitle.
   ///
   /// In en, this message translates to:
-  /// **'Color and number'**
+  /// **'Pick'**
   String get fortuneDialogLuckyInfoTitle;
 
   /// No description provided for @fortuneDialogPoolSizeLabel.
   ///
   /// In en, this message translates to:
-  /// **'Mood combinations'**
+  /// **'Combinations'**
   String get fortuneDialogPoolSizeLabel;
 
   /// No description provided for @fortuneDialogPoolSizeCount.
@@ -11222,13 +11222,13 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneDatabaseTitle.
   ///
   /// In en, this message translates to:
-  /// **'Full Mood Database'**
+  /// **'Full Fortune Database'**
   String get fortuneDatabaseTitle;
 
   /// No description provided for @fortuneDatabaseSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Myeongli codes, everyday scenes, color picks, and numbers used to build today\'s mood.'**
+  /// **'Myeongli codes, everyday scenes, color picks, and numbers used to build short fortunes.'**
   String get fortuneDatabaseSubtitle;
 
   /// No description provided for @fortuneDatabaseCloseAction.
@@ -11279,10 +11279,16 @@ abstract class AppLocalizations {
   /// **'Element colors'**
   String get fortuneDatabaseSectionElementColors;
 
+  /// No description provided for @fortuneDatabaseSectionShortLines.
+  ///
+  /// In en, this message translates to:
+  /// **'Short picks'**
+  String get fortuneDatabaseSectionShortLines;
+
   /// No description provided for @fortuneDatabaseSectionDayMoods.
   ///
   /// In en, this message translates to:
-  /// **'Why today feels this way'**
+  /// **'Line ingredients'**
   String get fortuneDatabaseSectionDayMoods;
 
   /// No description provided for @fortuneDatabaseSectionDailyEvents.
@@ -11294,7 +11300,7 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneDatabaseSectionDailyOutcomes.
   ///
   /// In en, this message translates to:
-  /// **'Daily mood lines'**
+  /// **'Short fortune lines'**
   String get fortuneDatabaseSectionDailyOutcomes;
 
   /// No description provided for @fortuneDatabaseSectionActionCues.
@@ -11366,7 +11372,7 @@ abstract class AppLocalizations {
   /// No description provided for @entryFortuneOpenFailed.
   ///
   /// In en, this message translates to:
-  /// **'Failed to open mood.'**
+  /// **'Failed to open fortune.'**
   String get entryFortuneOpenFailed;
 
   /// No description provided for @profileBirthTimeTitle.
@@ -11407,10 +11413,16 @@ abstract class AppLocalizations {
   String fortuneGeneratedBirthFrameWithTime(String yearPillar,
       String monthPillar, String dayPillar, String hourPillar);
 
+  /// No description provided for @fortuneShortLines.
+  ///
+  /// In en, this message translates to:
+  /// **'Read once before sending.|Play the first pass safe.|Check your bag zipper.|Drink water before you start.|Take the first five minutes slow.|Retie your boots before you go.|Drop one task from the list.|Miss it, then watch the next ball.|Send the short reply first.|Watch only ten seconds of the clip.|Scan the empty space first.|Use your voice once.|Save one photo before wrapping up.|Give one teammate a compliment first.|One line is enough for today\'s note.|If you rush, pause three seconds.|Keep the first touch under your feet.|Track the run without the ball.|Put it away right now.|Change posture while you wait.|Eat slow and put the phone down.|Start with the easiest thing.|Write the messy choice in two lines.|Finish the small promise today.|Screenshot the new info first.|Save the sentence you liked.|Stretch before leaving practice.|Say hello first.|Move one beat early when space opens.|Break the routine into ten minutes.|Lower the load if it feels off.|Drop the good scene into notes.|Mute one alert and focus.|Set the next plan five minutes early.|Lift your head before the pass.|Pick only the first dribble direction.|Empty the bag before going home.|Grab water during the break.|Keep the basics to the end.|Leave one check mark before closing.'**
+  String get fortuneShortLines;
+
   /// No description provided for @fortuneGeneratedDailyLineOne.
   ///
   /// In en, this message translates to:
-  /// **'{name}, today\'s mood: {elementFlow}'**
+  /// **'{name}, {elementFlow}'**
   String fortuneGeneratedDailyLineOne(String name, String elementFlow);
 
   /// No description provided for @fortuneGeneratedDailyLineTwo.
@@ -11422,26 +11434,26 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneGeneratedLinkedDailyLine.
   ///
   /// In en, this message translates to:
-  /// **'{name}, today\'s mood: {elementFlow} / {fortuneTheme}'**
+  /// **'{name}, {elementFlow} / {fortuneTheme}'**
   String fortuneGeneratedLinkedDailyLine(
       String name, String elementFlow, String fortuneTheme);
 
   /// No description provided for @fortuneGeneratedDailyLineThree.
   ///
   /// In en, this message translates to:
-  /// **'One-line mission: play it like a {nameElement} and {playAdvice}.'**
+  /// **'Pick: use {nameElement} and {playAdvice}.'**
   String fortuneGeneratedDailyLineThree(String nameElement, String playAdvice);
 
   /// No description provided for @fortuneGeneratedLuckyInfoHeader.
   ///
   /// In en, this message translates to:
-  /// **'[Color and number]'**
+  /// **'[Pick]'**
   String get fortuneGeneratedLuckyInfoHeader;
 
   /// No description provided for @fortuneGeneratedLuckyInfoLine.
   ///
   /// In en, this message translates to:
-  /// **'Today\'s pick: {color}, number {number}.'**
+  /// **'Pick: {color} · {number}'**
   String fortuneGeneratedLuckyInfoLine(int number, String color);
 
   /// No description provided for @fortuneRecommendedRecoveryProgram.
