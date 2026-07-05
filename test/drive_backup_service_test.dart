@@ -1851,7 +1851,8 @@ void main() {
     },
   );
 
-  test('changed player drive detection prefers subject id', () async {
+  test('changed player drive detection requires subject id when available',
+      () async {
     await optionBox.put(
       DriveBackupService.recordDriveEmailLocalKey,
       'player@example.com',
@@ -1872,6 +1873,10 @@ void main() {
     expect(service.hasChangedPlayerDriveConnection(), isTrue);
 
     await optionBox.delete(DriveBackupService.recordDriveSubjectLocalKey);
+
+    expect(service.hasChangedPlayerDriveConnection(), isTrue);
+
+    await optionBox.delete(DriveBackupService.connectedDriveSubjectLocalKey);
 
     expect(service.hasChangedPlayerDriveConnection(), isFalse);
   });
