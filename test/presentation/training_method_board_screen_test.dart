@@ -108,6 +108,34 @@ void main() {
     expect(decoded.pages.single.routes.single.actorItemId, 'player-1');
   });
 
+  test('training sketch routes preserve pass target ownership', () {
+    final encoded = const TrainingMethodLayout(
+      pages: <TrainingMethodPage>[
+        TrainingMethodPage(
+          name: 'Targeted action',
+          items: <TrainingMethodItem>[],
+          routes: <TrainingMethodRoute>[
+            TrainingMethodRoute(
+              id: 'targeted-ball',
+              kind: TrainingMethodRouteKind.ball,
+              linkedItemId: 'ball-1',
+              actorItemId: 'player-1',
+              targetItemId: 'player-2',
+              points: <TrainingMethodPoint>[
+                TrainingMethodPoint(x: 0.2, y: 0.2),
+                TrainingMethodPoint(x: 0.4, y: 0.3),
+              ],
+            ),
+          ],
+        ),
+      ],
+    ).encode();
+
+    final decoded = TrainingMethodLayout.decode(encoded);
+
+    expect(decoded.pages.single.routes.single.targetItemId, 'player-2');
+  });
+
   testWidgets('routes can be split into editable movement stages', (
     WidgetTester tester,
   ) async {
@@ -2229,6 +2257,86 @@ void main() {
     expect(ballRoute.stageIndex, 1);
     expect(playerRoute.linkedItemId, 'player-2');
     expect(playerRoute.stageIndex, 2);
+  });
+
+  testWidgets('moving pass receiver keeps the ball route end attached', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    String? savedLayout;
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '패스 수신자 이동',
+          initialLayoutJson: const TrainingMethodLayout(
+            pages: <TrainingMethodPage>[
+              TrainingMethodPage(
+                name: 'Board',
+                items: <TrainingMethodItem>[
+                  TrainingMethodItem(
+                    id: 'player-1',
+                    type: 'player',
+                    x: 0.22,
+                    y: 0.52,
+                  ),
+                  TrainingMethodItem(
+                    id: 'player-2',
+                    type: 'player',
+                    x: 0.52,
+                    y: 0.46,
+                    colorValue: 0xFF1E88E5,
+                  ),
+                  TrainingMethodItem(
+                    id: 'ball-1',
+                    type: 'ball',
+                    x: 0.29,
+                    y: 0.52,
+                    colorValue: 0xFFFFCA28,
+                  ),
+                ],
+              ),
+            ],
+          ).encode(),
+          onSaved: (value) => savedLayout = value,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    final playerIcons = find.descendant(
+      of: boardFinder,
+      matching: find.byIcon(Icons.person),
+    );
+    await tester.tap(playerIcons.first);
+    await tester.pumpAndSettle();
+    await _tapVisibleOutlinedButton(tester, '사람 2에게 패스');
+
+    await tester.drag(playerIcons.at(1), const Offset(58, -30));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(TextButton, '저장'));
+    await tester.pumpAndSettle();
+
+    final saved = TrainingMethodLayout.decode(savedLayout ?? '');
+    final page = saved.pages.single;
+    final receiver = page.items.singleWhere((item) => item.id == 'player-2');
+    final ballRoute = page.routes.singleWhere(
+      (route) => route.kind == TrainingMethodRouteKind.ball,
+    );
+    final dx = receiver.x - 0.52;
+    final dy = receiver.y - 0.46;
+
+    expect(dx.abs(), greaterThan(0.001));
+    expect(dy.abs(), greaterThan(0.001));
+    expect(ballRoute.linkedItemId, 'ball-1');
+    expect(ballRoute.actorItemId, 'player-1');
+    expect(ballRoute.targetItemId, 'player-2');
+    expect(ballRoute.points.first.x, closeTo(0.29, 0.03));
+    expect(ballRoute.points.first.y, closeTo(0.52, 0.03));
+    expect(ballRoute.points.last.x, closeTo(0.52 + dx, 0.0001));
+    expect(ballRoute.points.last.y, closeTo(0.46 + dy, 0.0001));
   });
 
   testWidgets('player flow builder connects passes across multiple players', (

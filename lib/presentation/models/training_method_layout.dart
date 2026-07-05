@@ -237,6 +237,7 @@ class TrainingMethodRoute {
   final TrainingMethodRouteKind kind;
   final String? linkedItemId;
   final String? actorItemId;
+  final String? targetItemId;
   final List<TrainingMethodPoint> points;
   final List<int> segmentDurationsMs;
   final int stageIndex;
@@ -251,6 +252,7 @@ class TrainingMethodRoute {
     this.stageIndex = 1,
     this.linkedItemId,
     this.actorItemId,
+    this.targetItemId,
     this.colorValue = 0xFF80D8FF,
     this.width = 4.0,
   });
@@ -268,6 +270,9 @@ class TrainingMethodRoute {
       actorItemId: (map['actorItemId'] as String?)?.trim().isEmpty == true
           ? null
           : (map['actorItemId'] as String?),
+      targetItemId: (map['targetItemId'] as String?)?.trim().isEmpty == true
+          ? null
+          : (map['targetItemId'] as String?),
       points: (map['points'] is List)
           ? (map['points'] as List)
               .whereType<Map>()
@@ -297,6 +302,7 @@ class TrainingMethodRoute {
         'kind': kind.name,
         if (linkedItemId != null) 'linkedItemId': linkedItemId,
         if (actorItemId != null) 'actorItemId': actorItemId,
+        if (targetItemId != null) 'targetItemId': targetItemId,
         'points': points.map((e) => e.toMap()).toList(growable: false),
         if (segmentDurationsMs.isNotEmpty)
           'segmentDurationsMs': segmentDurationsMs,
