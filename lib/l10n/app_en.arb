@@ -6352,6 +6352,7 @@
       }
     }
   },
+  "trainingSketchPassToNewPlayerButton": "Pass to new player",
   "trainingSketchPassToSpotButton": "Pass to {target} {index}",
   "@trainingSketchPassToSpotButton": {
     "placeholders": {
@@ -6369,6 +6370,7 @@
       }
     }
   },
+  "trainingSketchThrowToNewPlayerButton": "Throw to new player",
   "trainingSketchThrowToSpotButton": "Throw to {target} {index}",
   "@trainingSketchThrowToSpotButton": {
     "placeholders": {
@@ -6386,6 +6388,7 @@
       }
     }
   },
+  "trainingSketchRallyToNewPlayerButton": "Rally to new player",
   "trainingSketchRallyToSpotButton": "Rally to {target} {index}",
   "@trainingSketchRallyToSpotButton": {
     "placeholders": {

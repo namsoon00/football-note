@@ -6352,6 +6352,7 @@
       }
     }
   },
+  "trainingSketchPassToNewPlayerButton": "새 사람에게 패스",
   "trainingSketchPassToSpotButton": "{target} {index}에 패스",
   "@trainingSketchPassToSpotButton": {
     "placeholders": {
@@ -6369,6 +6370,7 @@
       }
     }
   },
+  "trainingSketchThrowToNewPlayerButton": "새 사람에게 송구",
   "trainingSketchThrowToSpotButton": "{target} {index}에 송구",
   "@trainingSketchThrowToSpotButton": {
     "placeholders": {
@@ -6386,6 +6388,7 @@
       }
     }
   },
+  "trainingSketchRallyToNewPlayerButton": "새 사람에게 랠리",
   "trainingSketchRallyToSpotButton": "{target} {index}로 랠리",
   "@trainingSketchRallyToSpotButton": {
     "placeholders": {
