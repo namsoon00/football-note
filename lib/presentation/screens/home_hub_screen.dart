@@ -84,6 +84,8 @@ class HomeHubScreen extends StatefulWidget {
   final ValueChanged<TrainingEntry> onEdit;
   final ValueChanged<TrainingEntry> onEditTrainingBoard;
   final Future<void> Function({DateTime? initialDate}) onCreateTrainingBoard;
+  final GlobalKey? dailyFlowGuideKey;
+  final GlobalKey? mealGuideKey;
 
   const HomeHubScreen({
     super.key,
@@ -106,6 +108,8 @@ class HomeHubScreen extends StatefulWidget {
     required this.onEdit,
     required this.onEditTrainingBoard,
     required this.onCreateTrainingBoard,
+    this.dailyFlowGuideKey,
+    this.mealGuideKey,
   });
 
   @override
@@ -302,10 +306,19 @@ class _HomeHubScreenState extends State<HomeHubScreen>
                     sportId: sportId,
                   ).loadProfile();
 
-                  Widget keyedSection(String key, Widget child) {
-                    return KeyedSubtree(
+                  Widget keyedSection(
+                    String key,
+                    Widget child, {
+                    GlobalKey? guideKey,
+                  }) {
+                    final keyedChild = KeyedSubtree(
                       key: ValueKey<String>(key),
                       child: child,
+                    );
+                    if (guideKey == null) return keyedChild;
+                    return KeyedSubtree(
+                      key: guideKey,
+                      child: keyedChild,
                     );
                   }
 
@@ -416,6 +429,7 @@ class _HomeHubScreenState extends State<HomeHubScreen>
                           context,
                         ).colorScheme.surface.withValues(alpha: 0.86),
                       ),
+                      guideKey: widget.mealGuideKey,
                     ),
                     HomeHubSectionId.dailyFlow: keyedSection(
                       'home-layout-daily-flow-section',
@@ -464,6 +478,7 @@ class _HomeHubScreenState extends State<HomeHubScreen>
                           widget.onQuickMeal,
                         ),
                       ),
+                      guideKey: widget.dailyFlowGuideKey,
                     ),
                     HomeHubSectionId.quickActions: keyedSection(
                       'home-layout-quick-actions-section',
