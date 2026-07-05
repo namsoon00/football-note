@@ -6143,6 +6143,29 @@ class AppLocalizationsJa extends AppLocalizations {
   String get mealLogXpSourceLabel => '食事記録';
 
   @override
+  String mealCalorieEstimateValue(int kcal) {
+    return '約$kcal kcal';
+  }
+
+  @override
+  String get mealCalorieEstimateEmpty => 'カロリー計算待ち';
+
+  @override
+  String get mealCalorieCoachEmpty => '献立を入力すると、ご飯の量と食品キーワードから大まかなカロリーを計算します。';
+
+  @override
+  String get mealCalorieCoachLow =>
+      '今日のカロリーは低めに見積もられています。トレーニング日なら、次の食事にご飯、さつまいも、バナナなどの炭水化物を足してみましょう。';
+
+  @override
+  String get mealCalorieCoachSteady =>
+      'トレーニングのエネルギーとして無理のない記録です。次はたんぱく質と野菜を各食事に分けて入れてみましょう。';
+
+  @override
+  String get mealCalorieCoachHigh =>
+      'カロリーは高めに見積もられています。揚げ物、麺、間食が重なった場合は、次の食事をたんぱく質と野菜中心に軽めに整えましょう。';
+
+  @override
   String mealAverageExpectedValue(String value) {
     return '予想される平均 $value ボウル';
   }

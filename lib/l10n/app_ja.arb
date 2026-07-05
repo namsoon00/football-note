@@ -3769,6 +3769,19 @@
   },
   "mealDeletedFeedback": "食事記録削除しました。",
   "mealLogXpSourceLabel": "食事記録",
+  "mealCalorieEstimateValue": "約{kcal} kcal",
+  "@mealCalorieEstimateValue": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      }
+    }
+  },
+  "mealCalorieEstimateEmpty": "カロリー計算待ち",
+  "mealCalorieCoachEmpty": "献立を入力すると、ご飯の量と食品キーワードから大まかなカロリーを計算します。",
+  "mealCalorieCoachLow": "今日のカロリーは低めに見積もられています。トレーニング日なら、次の食事にご飯、さつまいも、バナナなどの炭水化物を足してみましょう。",
+  "mealCalorieCoachSteady": "トレーニングのエネルギーとして無理のない記録です。次はたんぱく質と野菜を各食事に分けて入れてみましょう。",
+  "mealCalorieCoachHigh": "カロリーは高めに見積もられています。揚げ物、麺、間食が重なった場合は、次の食事をたんぱく質と野菜中心に軽めに整えましょう。",
   "mealAverageExpectedValue": "予想される平均 {value} ボウル",
   "@mealAverageExpectedValue": {
     "placeholders": {

@@ -6145,6 +6145,29 @@ class AppLocalizationsKo extends AppLocalizations {
   String get mealLogXpSourceLabel => '식사 기록';
 
   @override
+  String mealCalorieEstimateValue(int kcal) {
+    return '약 $kcal kcal';
+  }
+
+  @override
+  String get mealCalorieEstimateEmpty => '칼로리 계산 대기';
+
+  @override
+  String get mealCalorieCoachEmpty => '식단을 입력하면 밥공기 수와 음식 키워드로 대략적인 칼로리를 계산해요.';
+
+  @override
+  String get mealCalorieCoachLow =>
+      '오늘 열량이 낮게 잡혀요. 훈련일이면 다음 끼니에 밥, 고구마, 바나나 같은 탄수화물을 보충해보세요.';
+
+  @override
+  String get mealCalorieCoachSteady =>
+      '훈련 에너지로 무난한 기록이에요. 다음은 단백질과 채소를 끼니마다 나눠 넣어보세요.';
+
+  @override
+  String get mealCalorieCoachHigh =>
+      '열량이 높게 잡혀요. 튀김, 면, 간식이 겹쳤다면 다음 끼니는 단백질과 채소 중심으로 가볍게 맞춰보세요.';
+
+  @override
   String mealAverageExpectedValue(String value) {
     return '평균 기대치 $value공기';
   }

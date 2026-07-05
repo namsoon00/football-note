@@ -6312,6 +6312,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mealLogXpSourceLabel => 'Meal log';
 
   @override
+  String mealCalorieEstimateValue(int kcal) {
+    return 'About $kcal kcal';
+  }
+
+  @override
+  String get mealCalorieEstimateEmpty => 'Calorie estimate pending';
+
+  @override
+  String get mealCalorieCoachEmpty =>
+      'Enter a menu to estimate rough calories from rice bowl count and food keywords.';
+
+  @override
+  String get mealCalorieCoachLow =>
+      'Calories look low today. On a training day, add a carb such as rice, sweet potato, or banana to the next meal.';
+
+  @override
+  String get mealCalorieCoachSteady =>
+      'This looks reasonable for training energy. Next, spread protein and vegetables across each meal.';
+
+  @override
+  String get mealCalorieCoachHigh =>
+      'Calories look high. If fried food, noodles, or snacks overlapped, make the next meal lighter with protein and vegetables.';
+
+  @override
   String mealAverageExpectedValue(String value) {
     return 'Expected average $value bowl(s)';
   }
