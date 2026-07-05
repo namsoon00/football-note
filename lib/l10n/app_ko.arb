@@ -6206,6 +6206,21 @@
   "trainingSketchPenModeHint": "펜 모드: 보드 영역을 드래그해 그릴 수 있습니다.",
   "trainingSketchPenColorLabel": "펜 색상",
   "trainingSketchQuickStart": "빠른 시작: 선수를 선택하고 액션을 누른 뒤, 대상 사람이나 공간을 찍으세요.",
+  "trainingSketchNextActionButton": "다음 동작 추가",
+  "trainingSketchPlayerFlowTitle": "사람 {index} 흐름",
+  "@trainingSketchPlayerFlowTitle": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchPlayerFlowWithBall": "공 보유",
+  "trainingSketchPlayerFlowWithoutBall": "공 없음",
+  "trainingSketchPlayerFlowHint": "선수의 다음 동작을 고르면 단계와 공 이동이 자동으로 이어집니다.",
+  "trainingSketchPlayerFlowPassSection": "동료에게 바로 연결",
+  "trainingSketchPlayerFlowBallSection": "공을 쓰는 동작",
+  "trainingSketchPlayerFlowMoveSection": "움직임",
   "trainingSketchSelectedItemTitle": "선택 요소",
   "trainingSketchAssignColorLabel": "색상 지정",
   "trainingSketchPlayerStagesTitle": "선수 단계",

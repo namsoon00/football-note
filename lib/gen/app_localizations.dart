@@ -19266,6 +19266,54 @@ abstract class AppLocalizations {
   /// **'Quick start: Select a player, tap an action, then tap the target player or space.'**
   String get trainingSketchQuickStart;
 
+  /// No description provided for @trainingSketchNextActionButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Add next action'**
+  String get trainingSketchNextActionButton;
+
+  /// No description provided for @trainingSketchPlayerFlowTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Player {index} flow'**
+  String trainingSketchPlayerFlowTitle(int index);
+
+  /// No description provided for @trainingSketchPlayerFlowWithBall.
+  ///
+  /// In en, this message translates to:
+  /// **'Has ball'**
+  String get trainingSketchPlayerFlowWithBall;
+
+  /// No description provided for @trainingSketchPlayerFlowWithoutBall.
+  ///
+  /// In en, this message translates to:
+  /// **'No ball'**
+  String get trainingSketchPlayerFlowWithoutBall;
+
+  /// No description provided for @trainingSketchPlayerFlowHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the player\'s next action and the stage and ball movement will connect automatically.'**
+  String get trainingSketchPlayerFlowHint;
+
+  /// No description provided for @trainingSketchPlayerFlowPassSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect to teammate'**
+  String get trainingSketchPlayerFlowPassSection;
+
+  /// No description provided for @trainingSketchPlayerFlowBallSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Ball actions'**
+  String get trainingSketchPlayerFlowBallSection;
+
+  /// No description provided for @trainingSketchPlayerFlowMoveSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Movement'**
+  String get trainingSketchPlayerFlowMoveSection;
+
   /// No description provided for @trainingSketchSelectedItemTitle.
   ///
   /// In en, this message translates to:
