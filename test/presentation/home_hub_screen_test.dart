@@ -432,6 +432,12 @@ void main() {
       find.byKey(const ValueKey('tab-coach-mark-dialog')),
       findsOneWidget,
     );
+    expect(
+      find.byKey(const ValueKey('tab-coach-mark-screen-overlay')),
+      findsOneWidget,
+    );
+    expect(
+        find.byKey(const ValueKey<String>('home-title-label')), findsOneWidget);
     expect(find.text('3단계 중 1단계'), findsOneWidget);
     expect(
       optionRepository.getValue<bool>('tab_quick_guide_seen_v1_0'),
