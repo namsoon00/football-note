@@ -379,7 +379,7 @@ class _SettingsScreenState extends State<SettingsScreen>
   bool _shouldShowLatestRestoreAction(FamilyAccessState familyState) {
     if (!_signedIn) return false;
     if (familyState.isSupportMode) return true;
-    return false;
+    return !_backupLockedByChangedPlayerDrive(familyState);
   }
 
   @override
