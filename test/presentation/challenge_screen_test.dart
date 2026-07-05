@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:football_note/application/backup_service.dart';
 import 'package:football_note/application/challenge_service.dart';
 import 'package:football_note/application/family_access_service.dart';
 import 'package:football_note/application/locale_service.dart';
@@ -13,6 +14,7 @@ import 'package:football_note/application/training_service.dart';
 import 'package:football_note/domain/entities/challenge.dart';
 import 'package:football_note/domain/entities/sport_definition.dart';
 import 'package:football_note/domain/entities/training_entry.dart';
+import 'package:football_note/domain/repositories/backup_repository.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/domain/repositories/training_repository.dart';
 import 'package:football_note/gen/app_localizations.dart';
@@ -688,6 +690,80 @@ void main() {
     await mealLogService.dispose();
   });
 
+  testWidgets('parent challenge start does not wait for shared backup sync', (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(320, 720));
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() async {
+      await tester.binding.setSurfaceSize(null);
+      tester.view.resetDevicePixelRatio();
+    });
+    final optionRepository = _MemoryOptionRepository();
+    await optionRepository.setValue(
+      FamilyAccessService.currentRoleLocalKey,
+      FamilyRole.parent.name,
+    );
+    final challengeService = ChallengeService(optionRepository);
+    final trainingService = TrainingService(_MemoryTrainingRepository());
+    final mealLogService = MealLogService(optionRepository);
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+    final backupRepository = _SlowBackupRepository();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ChallengeScreen(
+          trainingService: trainingService,
+          mealLogService: mealLogService,
+          optionRepository: optionRepository,
+          localeService: localeService,
+          settingsService: settingsService,
+          driveBackupService: BackupService(backupRepository),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.tap(find.byKey(const ValueKey('challenge-create-button')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester
+        .tap(find.byKey(const ValueKey('challenge-template-starter_3')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.ensureVisible(find.widgetWithText(FilledButton, '챌린지 시작'));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(find.widgetWithText(FilledButton, '챌린지 시작'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(challengeService.activeRun(), isNotNull);
+    expect(backupRepository.backupRequested, isTrue);
+    expect(
+      find.byKey(const ValueKey('challenge-rounds-calendar')),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+
+    backupRepository.completeBackup();
+    await tester.pump();
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+    await mealLogService.dispose();
+  });
+
   testWidgets('mission completion after record return shows celebration', (
     WidgetTester tester,
   ) async {
@@ -1122,6 +1198,47 @@ TrainingEntry _trainingEntry({
     location: '운동장',
     program: program,
   );
+}
+
+class _SlowBackupRepository implements BackupRepository {
+  final Completer<bool> _backupCompleter = Completer<bool>();
+  bool backupRequested = false;
+
+  void completeBackup() {
+    if (!_backupCompleter.isCompleted) {
+      _backupCompleter.complete(true);
+    }
+  }
+
+  @override
+  Future<void> autoBackupDaily() async {}
+
+  @override
+  Future<void> backup() async {}
+
+  @override
+  Future<bool> backupIfSignedIn({bool requireAutoOnSave = false}) {
+    backupRequested = true;
+    return _backupCompleter.future;
+  }
+
+  @override
+  DateTime? getLastBackup() => null;
+
+  @override
+  bool isAutoDailyEnabled() => false;
+
+  @override
+  bool isAutoOnSaveEnabled() => false;
+
+  @override
+  Future<void> restoreLatest() async {}
+
+  @override
+  Future<void> setAutoDailyEnabled(bool value) async {}
+
+  @override
+  Future<void> setAutoOnSaveEnabled(bool value) async {}
 }
 
 class _MemoryOptionRepository implements OptionRepository {

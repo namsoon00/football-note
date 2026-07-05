@@ -849,12 +849,12 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       cadenceDays: cadenceDays,
       rewardGift: rewardGift,
     );
-    await _syncParentChallengeBackupIfPossible();
     if (!mounted) return;
     setState(() {
       _mode = _ChallengeScreenMode.detail;
       _selectedRunId = run.id;
     });
+    unawaited(_syncParentChallengeBackupIfPossible());
     _showChallengeTopSnackBar(
       _challengeSnackWithParentSync(
         l10n,
@@ -881,7 +881,6 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       cadenceDays: cadenceDays,
       rewardGift: rewardGift,
     );
-    await _syncParentChallengeBackupIfPossible();
     if (!mounted) return;
     if (updatedRun == null) {
       setState(() {
@@ -896,6 +895,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       _mode = _ChallengeScreenMode.detail;
       _selectedRunId = updatedRun.id;
     });
+    unawaited(_syncParentChallengeBackupIfPossible());
     _showChallengeTopSnackBar(
       _challengeSnackWithParentSync(l10n, l10n.challengeUpdateSnack),
     );
