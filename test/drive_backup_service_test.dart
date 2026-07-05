@@ -399,6 +399,64 @@ void main() {
     expect(optionBox.get('tab_quick_guide_seen_v1_0'), isTrue);
   });
 
+  test('restore keeps local sport selection when remote omits startup sport',
+      () async {
+    await optionBox.put(
+      SportCatalog.currentSportOptionKey,
+      SportCatalog.basketballId,
+    );
+
+    await service.restoreFromMapForTesting(<String, dynamic>{
+      'version': 6,
+      'createdAt': '2026-02-02T08:00:00.000',
+      'entries': const <dynamic>[],
+      'options': const <String, dynamic>{'profile_name': 'Remote player'},
+      'optionRecords': const <Map<String, dynamic>>[
+        <String, dynamic>{'key': 'profile_name', 'value': 'Remote player'},
+      ],
+      'family': const <String, dynamic>{
+        'updatedByRole': 'child',
+        'familyLayerOnly': false,
+      },
+    });
+
+    expect(
+      optionBox.get(SportCatalog.currentSportOptionKey),
+      SportCatalog.basketballId,
+    );
+  });
+
+  test('restore uses remote sport selection when backup provides it', () async {
+    await optionBox.put(
+      SportCatalog.currentSportOptionKey,
+      SportCatalog.basketballId,
+    );
+
+    await service.restoreFromMapForTesting(<String, dynamic>{
+      'version': 6,
+      'createdAt': '2026-02-02T08:00:00.000',
+      'entries': const <dynamic>[],
+      'options': const <String, dynamic>{
+        SportCatalog.currentSportOptionKey: SportCatalog.tennisId,
+      },
+      'optionRecords': const <Map<String, dynamic>>[
+        <String, dynamic>{
+          'key': SportCatalog.currentSportOptionKey,
+          'value': SportCatalog.tennisId,
+        },
+      ],
+      'family': const <String, dynamic>{
+        'updatedByRole': 'child',
+        'familyLayerOnly': false,
+      },
+    });
+
+    expect(
+      optionBox.get(SportCatalog.currentSportOptionKey),
+      SportCatalog.tennisId,
+    );
+  });
+
   test('backs up and restores typed option values in v2 schema', () async {
     final bytes = Uint8List.fromList([1, 2, 3, 4]);
     final timestamp = DateTime(2026, 1, 6, 7, 30);
@@ -1919,6 +1977,10 @@ void main() {
         'custom_diary_entries_v3',
         '{"2026-04-18":{"body":"old diary"}}',
       );
+      await optionBox.put(
+        SportCatalog.currentSportOptionKey,
+        SportCatalog.tennisId,
+      );
 
       final switchedAccount =
           await service.startChangedPlayerDriveWithEmptyData();
@@ -1941,6 +2003,10 @@ void main() {
       );
       expect(service.hasLocalPreRestoreBackup(), isTrue);
       expect(service.hasChangedPlayerDriveConnection(), isFalse);
+      expect(
+        optionBox.get(SportCatalog.currentSportOptionKey),
+        SportCatalog.tennisId,
+      );
     },
   );
 
