@@ -20214,6 +20214,42 @@ abstract class AppLocalizations {
   /// **'Challenge updated.'**
   String get challengeUpdateSnack;
 
+  /// No description provided for @challengeDeletePendingAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get challengeDeletePendingAction;
+
+  /// No description provided for @challengeDeletePendingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete challenge'**
+  String get challengeDeletePendingTitle;
+
+  /// No description provided for @challengeDeletePendingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The player has not started recording this challenge yet. Delete this challenge?'**
+  String get challengeDeletePendingBody;
+
+  /// No description provided for @challengeDeletePendingConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get challengeDeletePendingConfirm;
+
+  /// No description provided for @challengeDeletePendingSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenge deleted.'**
+  String get challengeDeletePendingSnack;
+
+  /// No description provided for @challengeDeletePendingUnavailableSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenges with started records cannot be deleted.'**
+  String get challengeDeletePendingUnavailableSnack;
+
   /// No description provided for @challengeStartHeroTitle.
   ///
   /// In en, this message translates to:

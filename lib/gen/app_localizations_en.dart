@@ -11803,6 +11803,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get challengeUpdateSnack => 'Challenge updated.';
 
   @override
+  String get challengeDeletePendingAction => 'Delete';
+
+  @override
+  String get challengeDeletePendingTitle => 'Delete challenge';
+
+  @override
+  String get challengeDeletePendingBody =>
+      'The player has not started recording this challenge yet. Delete this challenge?';
+
+  @override
+  String get challengeDeletePendingConfirm => 'Delete';
+
+  @override
+  String get challengeDeletePendingSnack => 'Challenge deleted.';
+
+  @override
+  String get challengeDeletePendingUnavailableSnack =>
+      'Challenges with started records cannot be deleted.';
+
+  @override
   String get challengeStartHeroTitle => 'Rinzy\'s Challenge Mode';
 
   @override

@@ -11456,6 +11456,25 @@ class AppLocalizationsJa extends AppLocalizations {
   String get challengeUpdateSnack => 'チャレンジを更新しました。';
 
   @override
+  String get challengeDeletePendingAction => '削除';
+
+  @override
+  String get challengeDeletePendingTitle => 'チャレンジ削除';
+
+  @override
+  String get challengeDeletePendingBody =>
+      '選手はまだこのチャレンジの記録を始めていません。このチャレンジを削除しますか?';
+
+  @override
+  String get challengeDeletePendingConfirm => '削除';
+
+  @override
+  String get challengeDeletePendingSnack => 'チャレンジを削除しました。';
+
+  @override
+  String get challengeDeletePendingUnavailableSnack => '記録が始まったチャレンジは削除できません。';
+
+  @override
   String get challengeStartHeroTitle => 'リンジーのチャレンジモード';
 
   @override

@@ -764,6 +764,235 @@ void main() {
     await mealLogService.dispose();
   });
 
+  testWidgets('parent challenge start ignores repeated taps while saving', (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(320, 720));
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() async {
+      await tester.binding.setSurfaceSize(null);
+      tester.view.resetDevicePixelRatio();
+    });
+    final optionRepository = _SlowChallengeSaveOptionRepository();
+    await optionRepository.setValue(
+      FamilyAccessService.currentRoleLocalKey,
+      FamilyRole.parent.name,
+    );
+    final challengeService = ChallengeService(optionRepository);
+    final trainingService = TrainingService(_MemoryTrainingRepository());
+    final mealLogService = MealLogService(optionRepository);
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ChallengeScreen(
+          trainingService: trainingService,
+          mealLogService: mealLogService,
+          optionRepository: optionRepository,
+          localeService: localeService,
+          settingsService: settingsService,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.tap(find.byKey(const ValueKey('challenge-create-button')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester
+        .tap(find.byKey(const ValueKey('challenge-template-starter_3')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    final startButton = find.widgetWithText(FilledButton, '챌린지 시작');
+    await tester.ensureVisible(startButton);
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(startButton);
+    await tester.tap(startButton);
+    await tester.pump();
+
+    expect(optionRepository.challengeSaveCount, 1);
+    expect(challengeService.activeRuns(), isEmpty);
+    expect(tester.widget<FilledButton>(startButton).onPressed, isNull);
+
+    optionRepository.releaseChallengeSave();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(challengeService.activeRuns(), hasLength(1));
+    expect(
+      find.byKey(const ValueKey('challenge-rounds-calendar')),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+    await mealLogService.dispose();
+  });
+
+  testWidgets('parent mode can delete a challenge before player records', (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(320, 720));
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() async {
+      await tester.binding.setSurfaceSize(null);
+      tester.view.resetDevicePixelRatio();
+    });
+    final optionRepository = _MemoryOptionRepository();
+    await optionRepository.setValue(
+      FamilyAccessService.currentRoleLocalKey,
+      FamilyRole.parent.name,
+    );
+    final challengeService = ChallengeService(optionRepository);
+    final template = challengeService.templateById('starter_3')!;
+    await challengeService.startChallenge(template);
+    final trainingService = TrainingService(_MemoryTrainingRepository());
+    final mealLogService = MealLogService(optionRepository);
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ChallengeScreen(
+          trainingService: trainingService,
+          mealLogService: mealLogService,
+          optionRepository: optionRepository,
+          localeService: localeService,
+          settingsService: settingsService,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await _openChallengeDetailByTitle(tester, '3일 챌린지');
+    expect(
+      find.byKey(const ValueKey('challenge-delete-pending-button')),
+      findsOneWidget,
+    );
+
+    await tester.tap(
+      find.byKey(const ValueKey('challenge-delete-pending-button')),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('챌린지 삭제'), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilledButton, '삭제'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(challengeService.activeRuns(), isEmpty);
+    expect(find.text('챌린지 만들기'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('challenge-rounds-calendar')),
+      findsNothing,
+    );
+    expect(tester.takeException(), isNull);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+    await mealLogService.dispose();
+  });
+
+  testWidgets('parent mode keeps delete hidden after player records progress', (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(320, 720));
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() async {
+      await tester.binding.setSurfaceSize(null);
+      tester.view.resetDevicePixelRatio();
+    });
+    final optionRepository = _MemoryOptionRepository();
+    await optionRepository.setValue(
+      FamilyAccessService.currentRoleLocalKey,
+      FamilyRole.parent.name,
+    );
+    final challengeService = ChallengeService(optionRepository);
+    final template = challengeService.templateById('starter_3')!;
+    final today = DateTime.now();
+    await challengeService.startChallenge(
+      template,
+      selectedSkillIds: const <String>['passing'],
+      missionTargets: const ChallengeMissionTargets(
+        trainingMinutes: 30,
+        jumpRopeMinutes: 0,
+        liftingMinutes: 0,
+        riceBowls: 0,
+      ),
+      startedAt: DateTime(today.year, today.month, today.day, 9),
+    );
+    final trainingRepository = _MemoryTrainingRepository();
+    await trainingRepository.add(
+      _trainingEntry(
+        day: DateTime(today.year, today.month, today.day, 17),
+        minutes: 5,
+      ),
+    );
+    final trainingService = TrainingService(trainingRepository);
+    final mealLogService = MealLogService(optionRepository);
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ChallengeScreen(
+          trainingService: trainingService,
+          mealLogService: mealLogService,
+          optionRepository: optionRepository,
+          localeService: localeService,
+          settingsService: settingsService,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await _openChallengeDetailByTitle(tester, '3일 챌린지');
+
+    expect(
+      find.byKey(const ValueKey('challenge-delete-pending-button')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey('challenge-edit-button')),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+    await mealLogService.dispose();
+  });
+
   testWidgets('mission completion after record return shows celebration', (
     WidgetTester tester,
   ) async {
@@ -1239,6 +1468,26 @@ class _SlowBackupRepository implements BackupRepository {
 
   @override
   Future<void> setAutoOnSaveEnabled(bool value) async {}
+}
+
+class _SlowChallengeSaveOptionRepository extends _MemoryOptionRepository {
+  final Completer<void> _challengeSaveCompleter = Completer<void>();
+  int challengeSaveCount = 0;
+
+  void releaseChallengeSave() {
+    if (!_challengeSaveCompleter.isCompleted) {
+      _challengeSaveCompleter.complete();
+    }
+  }
+
+  @override
+  Future<void> setValue(String key, dynamic value) async {
+    if (key == ChallengeService.storageKey) {
+      challengeSaveCount += 1;
+      await _challengeSaveCompleter.future;
+    }
+    await super.setValue(key, value);
+  }
 }
 
 class _MemoryOptionRepository implements OptionRepository {
