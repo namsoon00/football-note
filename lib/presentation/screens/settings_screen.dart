@@ -1239,14 +1239,15 @@ class _SettingsScreenState extends State<SettingsScreen>
     FamilyAccessState familyState,
   ) {
     final driveBackupService = widget.driveBackupService!;
+    final backupLocked = _backupLockedByChangedPlayerDrive(familyState);
     final children = <Widget>[
       _buildCurrentDriveAccountTile(l10n),
-      _buildDriveQuickActions(l10n: l10n, familyState: familyState),
     ];
-    if (_backupLockedByChangedPlayerDrive(familyState)) {
+    if (backupLocked) {
       children.add(_buildDriveBackupLockedWarning(l10n));
     }
-    if (!_signedIn) {
+    children.add(_buildDriveQuickActions(l10n: l10n, familyState: familyState));
+    if (!_signedIn || backupLocked) {
       return children;
     }
     children.addAll([
@@ -1393,7 +1394,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         ),
       );
     }
-    if (_signedIn && !isSupportMode) {
+    if (_signedIn && !isSupportMode && !backupLocked) {
       actions.add(
         _buildDriveQuickActionButton(
           icon: Icons.cloud_upload_outlined,

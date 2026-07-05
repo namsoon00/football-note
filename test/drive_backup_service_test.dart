@@ -1849,6 +1849,38 @@ void main() {
     );
   });
 
+  test('manual player backup is blocked while Drive account changed', () async {
+    service = DriveBackupService(
+      trainingBox,
+      optionBox,
+      backupAssetFileStore: assetStore,
+      driveConnectionLoader: () async => const DriveConnectionInfo(
+        email: 'new@example.com',
+        displayName: 'New Player',
+        subjectId: 'new-subject',
+      ),
+    );
+    await optionBox.put(
+      DriveBackupService.recordDriveEmailLocalKey,
+      'old@example.com',
+    );
+    await optionBox.put(
+      DriveBackupService.recordDriveSubjectLocalKey,
+      'old-subject',
+    );
+
+    expect(
+      service.backup(),
+      throwsA(
+        isA<StateError>().having(
+          (error) => error.message,
+          'message',
+          DriveBackupService.changedPlayerDriveConnectionErrorCode,
+        ),
+      ),
+    );
+  });
+
   test(
     'public empty start flow clears stale data and adopts changed drive',
     () async {

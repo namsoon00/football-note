@@ -563,12 +563,13 @@ class DriveBackupService implements BackupRepository {
 
   Future<void> _backup() async {
     try {
+      await _syncConnectedDriveAccountCache();
+      _throwIfChangedPlayerDriveConnection();
       final driveApi = await _driveApi(requireInteractive: kIsWeb);
       await _syncConnectedDriveAccountCache();
-      final switchedAccount = await _prepareConnectedDriveDataForCurrentRole();
-      if (switchedAccount) {
-        return;
-      }
+      await _prepareConnectedDriveDataForCurrentRole(
+        throwOnChangedPlayerDrive: true,
+      );
       await _backupWithApi(driveApi);
     } catch (e, st) {
       if (!_isAuthError(e)) rethrow;
@@ -577,12 +578,13 @@ class DriveBackupService implements BackupRepository {
       );
       debugPrintStack(stackTrace: st);
       await _reauthenticateForDriveScope();
+      await _syncConnectedDriveAccountCache();
+      _throwIfChangedPlayerDriveConnection();
       final retriedApi = await _driveApi(requireInteractive: false);
       await _syncConnectedDriveAccountCache();
-      final switchedAccount = await _prepareConnectedDriveDataForCurrentRole();
-      if (switchedAccount) {
-        return;
-      }
+      await _prepareConnectedDriveDataForCurrentRole(
+        throwOnChangedPlayerDrive: true,
+      );
       await _backupWithApi(retriedApi);
     }
   }
@@ -608,6 +610,10 @@ class DriveBackupService implements BackupRepository {
         return false;
       }
       try {
+        await _syncConnectedDriveAccountCache();
+        if (hasChangedPlayerDriveConnection()) {
+          return false;
+        }
         final driveApi = await _driveApi(requireInteractive: false);
         await _syncConnectedDriveAccountCache();
         final switchedAccount =
@@ -639,6 +645,9 @@ class DriveBackupService implements BackupRepository {
       final authHeaders = await account.authHeaders;
       final driveApi = drive.DriveApi(_GoogleAuthClient(authHeaders));
       await _syncConnectedDriveAccountCache();
+      if (hasChangedPlayerDriveConnection()) {
+        return false;
+      }
       final switchedAccount = await _prepareConnectedDriveDataForCurrentRole();
       if (switchedAccount) {
         return false;
@@ -1798,7 +1807,9 @@ class DriveBackupService implements BackupRepository {
     }
   }
 
-  Future<bool> _prepareConnectedDriveDataForCurrentRole() async {
+  Future<bool> _prepareConnectedDriveDataForCurrentRole({
+    bool throwOnChangedPlayerDrive = false,
+  }) async {
     if (_familyService.loadState().currentRole != FamilyRole.child) {
       return false;
     }
@@ -1811,7 +1822,16 @@ class DriveBackupService implements BackupRepository {
       await _syncSharedChildDriveMetadataIfNeeded();
       return false;
     }
+    if (throwOnChangedPlayerDrive) {
+      throw StateError(changedPlayerDriveConnectionErrorCode);
+    }
     return true;
+  }
+
+  void _throwIfChangedPlayerDriveConnection() {
+    if (hasChangedPlayerDriveConnection()) {
+      throw StateError(changedPlayerDriveConnectionErrorCode);
+    }
   }
 
   Future<String> _findOrCreateFolder(drive.DriveApi api) async {

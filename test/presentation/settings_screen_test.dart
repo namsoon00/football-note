@@ -698,7 +698,7 @@ void main() {
     expect(localRestoreButton, findsNothing);
   });
 
-  testWidgets('player backup is disabled when Google account changes', (
+  testWidgets('player backup is hidden when Google account changes', (
     WidgetTester tester,
   ) async {
     final optionRepository = _MemoryOptionRepository();
@@ -733,29 +733,28 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    final remoteRestoreButton = find.widgetWithText(
+      OutlinedButton,
+      '이 계정 백업 가져오기',
+    );
     await tester.scrollUntilVisible(
-      find.widgetWithText(OutlinedButton, '데이터 백업하기'),
+      remoteRestoreButton,
       300,
       scrollable: find.byType(Scrollable).first,
     );
     await tester.pumpAndSettle();
 
-    final backupButtonFinder = find.widgetWithText(OutlinedButton, '데이터 백업하기');
-    final remoteRestoreButton = find.widgetWithText(
-      OutlinedButton,
-      '이 계정 백업 가져오기',
-    );
-    final backupButton = tester.widget<OutlinedButton>(backupButtonFinder);
     final previousButton = tester.widget<IconButton>(
       find.widgetWithIcon(IconButton, Icons.history_rounded),
     );
-    expect(backupButton.onPressed, isNull);
     expect(previousButton.onPressed, isNull);
     expect(remoteRestoreButton, findsOneWidget);
     expect(
-      tester.getTopLeft(remoteRestoreButton).dy,
-      lessThan(tester.getTopLeft(backupButtonFinder).dy),
+      find.widgetWithText(OutlinedButton, '데이터 백업하기'),
+      findsNothing,
     );
+    expect(find.text('매일 자동 백업'), findsNothing);
+    expect(find.text('저장 시 자동 백업'), findsNothing);
     expect(
       find.text(
           'Google 계정이 바뀌었어요. 이 계정으로 백업하기 전에 이 기기에서 어떤 데이터로 시작할지 선택해야 해요.'),
@@ -1022,13 +1021,16 @@ void main() {
         find.widgetWithText(OutlinedButton, '이 계정 백업 가져오기'),
         findsOneWidget,
       );
-
-      final backupButtonFinder = find.widgetWithText(
-        OutlinedButton,
-        '데이터 백업하기',
+      expect(
+        find.widgetWithText(OutlinedButton, '데이터 백업하기'),
+        findsNothing,
       );
-      final backupButton = tester.widget<OutlinedButton>(backupButtonFinder);
-      expect(backupButton.onPressed, isNull);
+      expect(find.text('매일 자동 백업'), findsNothing);
+      expect(find.text('저장 시 자동 백업'), findsNothing);
+      expect(
+        find.textContaining('Google 계정이 바뀌었어요'),
+        findsOneWidget,
+      );
 
       await tester.tap(find.widgetWithText(OutlinedButton, '이 계정 백업 가져오기'));
       await tester.pumpAndSettle();
