@@ -41,14 +41,15 @@ void main() {
     final shortLines = l10n.fortuneShortLines.split('|');
     final blockedTerms = RegExp(
       '그래서|분위기|흐름|기운|가능성|예감|행운|무드|오늘의|볼 수|수 있어요|'
-      '해보세요|하세요|두세요|고르세요|마세요|주세요|답게|미션',
+      '해보세요|하세요|두세요|고르세요|마세요|주세요|답게|미션|'
+      '작은 약속|오늘 안에|오늘안에|끝내요|할 일',
     );
     expect(lines, hasLength(2));
     expect(lines.first, startsWith('민준님, '));
     expect(lines.first, matches(RegExp(r'^민준님, .+\.$')));
     expect(shortLines.any(lines.first.contains), isTrue);
     expect(lines.first, isNot(matches(blockedTerms)));
-    expect(lines.first.length, lessThanOrEqualTo(32));
+    expect(lines.first.length, lessThanOrEqualTo(42));
     expect(lines.last, matches(RegExp(r'^픽: .+ · [1-9]$')));
     expect(lines.last, isNot(contains('오늘 픽은 ')));
     expect(lines.last, isNot(contains('숫자는 ')));
@@ -60,12 +61,13 @@ void main() {
     final shortLines = l10n.fortuneShortLines.split('|');
     final blockedTerms = RegExp(
       '흐름|기운|가능성|예감|분위기|행운|무드|오늘의|'
-      '해보세요|하세요|두세요|고르세요|마세요|주세요|볼 수|수 있어요|날이에요',
+      '해보세요|하세요|두세요|고르세요|마세요|주세요|볼 수|수 있어요|날이에요|'
+      '작은 약속|오늘 안에|오늘안에|끝내요|할 일',
     );
 
     expect(shortLines, hasLength(40));
-    expect(shortLines, contains('보내기 전 한 번 읽어요.'));
-    expect(shortLines, contains('패스 전 고개 한 번 들어요.'));
+    expect(shortLines, contains('보내기 전 한 번 더 읽으면 실수 하나 줄어요.'));
+    expect(shortLines, contains('패스 전 고개 한 번 들면 선택지가 늘어요.'));
     for (final shortLine in shortLines) {
       final line = l10n.fortuneGeneratedDailyLineOne(
         '민준',
@@ -75,7 +77,7 @@ void main() {
       expect(line, isNot(matches(blockedTerms)), reason: line);
       expect(line, matches(RegExp(r'^민준님, .+\.$')));
       expect(line, endsWith('.'));
-      expect(line.length, lessThanOrEqualTo(32), reason: line);
+      expect(line.length, lessThanOrEqualTo(42), reason: line);
     }
   });
 
@@ -177,7 +179,7 @@ void main() {
     expect(sections[5].values, contains(startsWith('천을귀인:')));
     expect(sections[6].values, contains(startsWith('목:')));
     expect(sections[7].title, '짧은 추천안');
-    expect(sections[7].values, contains('패스 전 고개 한 번 들어요.'));
+    expect(sections[7].values, contains('패스 전 고개 한 번 들면 선택지가 늘어요.'));
     expect(sections[8].title, '한 줄 재료');
     expect(sections[9].title, '이어질 수 있는 일');
     expect(sections[10].title, '짧은 운세 문장');
