@@ -11421,11 +11421,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get challengeHistoryAction => '履歴';
 
   @override
-  String get challengeListTitle => '進行中のチャレンジ';
+  String get challengeListTitle => '有効なチャレンジ';
 
   @override
   String challengeListBody(int count) {
-    return '$count件のチャレンジが進行中です。今日のラウンドと全体の進行率をまとめました。';
+    return '$count件のチャレンジが準備中または進行中です。開始前のチャレンジと今日のラウンドをまとめました。';
   }
 
   @override
@@ -11447,7 +11447,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get challengeEditAction => '編集';
 
   @override
-  String get challengeEditBody => '期間、進行間隔、ミッション構成を調整できます。記録済みのラウンドはそのまま残ります。';
+  String get challengeEditBody => '開始前のチャレンジの期間、進行間隔、ミッション構成を調整できます。';
 
   @override
   String get challengeUpdateAction => '変更を保存';
@@ -11465,8 +11465,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get challengeDeletePendingTitle => 'チャレンジ削除';
 
   @override
-  String get challengeDeletePendingBody =>
-      '選手はまだこのチャレンジの記録を始めていません。このチャレンジを削除しますか?';
+  String get challengeDeletePendingBody => 'まだ開始していないチャレンジです。このチャレンジを削除しますか?';
 
   @override
   String get challengeDeletePendingConfirm => '削除';
@@ -11482,7 +11481,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get challengeStartHeroBody =>
-      '期間とミッション別の量を選び、開始ボタンを押すと始まります。1日でも逃すと失敗です。';
+      '期間とミッション別の量を選んで、チャレンジを準備します。準備ができたら、プレーヤーモードで今日から開始できます。';
 
   @override
   String get challengeLatestComplete => '最新チャレンジ完了';
@@ -11812,7 +11811,10 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get challengeStartReadyTitle => '3. 開始準備';
+  String get challengeStartReadyTitle => '3. 準備を保存';
+
+  @override
+  String get challengePrepareAction => 'チャレンジを準備';
 
   @override
   String get challengeStartAction => 'チャレンジ開始';
@@ -11876,7 +11878,29 @@ class AppLocalizationsJa extends AppLocalizations {
   String get challengeCompletedBadge => '完了';
 
   @override
+  String get challengeReadyBadge => '開始前';
+
+  @override
   String get challengePendingBadge => '進行中';
+
+  @override
+  String get challengeReadyPeriodLabel => '開始すると、その日からスケジュールが組まれます。';
+
+  @override
+  String challengeReadyCardTitle(Object title) {
+    return '$title の準備完了';
+  }
+
+  @override
+  String get challengeReadyPlayerBody =>
+      '準備ができたら開始しましょう。開始日からラウンド予定とミッション記録が開きます。';
+
+  @override
+  String get challengeReadyParentBody =>
+      '選手が準備できたら、プレーヤーモードで開始できます。開始前は編集または削除できます。';
+
+  @override
+  String get challengeReadyStartAction => '今すぐ開始';
 
   @override
   String challengeCompletedSummary(Object title) {
@@ -11885,6 +11909,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get challengeRoundDateToday => '今日';
+
+  @override
+  String challengePrepareSnack(Object title) {
+    return '$titleを準備しました。';
+  }
 
   @override
   String challengeStartSnack(Object title) {

@@ -6447,7 +6447,7 @@
   "challengeRewardAction": "Rewards",
   "challengeHistoryAction": "History",
   "challengeListTitle": "Active challenges",
-  "challengeListBody": "{count} challenges are in progress. Today's rounds and overall progress are grouped here.",
+  "challengeListBody": "{count} challenges are ready or in progress. Prepared challenges and today's rounds are grouped here.",
   "@challengeListBody": {
     "placeholders": {
       "count": {
@@ -6461,18 +6461,18 @@
   "challengeDetailAction": "Details",
   "challengeEditTitle": "Edit challenge",
   "challengeEditAction": "Edit",
-  "challengeEditBody": "Adjust the duration, round frequency, and mission setup. Rounds already recorded stay in place.",
+  "challengeEditBody": "Adjust the duration, round frequency, and mission setup before the challenge starts.",
   "challengeUpdateAction": "Save changes",
   "challengeUpdateSnack": "Challenge updated.",
   "challengeEditUnavailableSnack": "Challenges with started records cannot be edited.",
   "challengeDeletePendingAction": "Delete",
   "challengeDeletePendingTitle": "Delete challenge",
-  "challengeDeletePendingBody": "The player has not started recording this challenge yet. Delete this challenge?",
+  "challengeDeletePendingBody": "This challenge has not started yet. Delete this challenge?",
   "challengeDeletePendingConfirm": "Delete",
   "challengeDeletePendingSnack": "Challenge deleted.",
   "challengeDeletePendingUnavailableSnack": "Challenges with started records cannot be deleted.",
   "challengeStartHeroTitle": "Rinzy's Challenge Mode",
-  "challengeStartHeroBody": "Choose a duration and mission amounts, then press start to begin. Missing even one day ends the challenge.",
+  "challengeStartHeroBody": "Choose a duration and mission amounts, then prepare the challenge. When ready, the player can start from today.",
   "challengeLatestComplete": "Latest challenge complete",
   "challengeSelectTitle": "Choose a challenge",
   "challengeActiveCardTitle": "{title} in progress",
@@ -6706,7 +6706,8 @@
       }
     }
   },
-  "challengeStartReadyTitle": "3. Ready to start",
+  "challengeStartReadyTitle": "3. Save setup",
+  "challengePrepareAction": "Prepare challenge",
   "challengeStartAction": "Start challenge",
   "challengeRoundCount": "{completed}/{total} rounds complete",
   "@challengeRoundCount": {
@@ -6786,7 +6787,18 @@
     }
   },
   "challengeCompletedBadge": "Complete",
+  "challengeReadyBadge": "Not started",
   "challengePendingBadge": "In progress",
+  "challengeReadyPeriodLabel": "The schedule starts from the day you begin.",
+  "challengeReadyCardTitle": "{title} is ready",
+  "@challengeReadyCardTitle": {
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "challengeReadyPlayerBody": "Start when you are ready. The round schedule and mission tracking open from the start day.",
+  "challengeReadyParentBody": "The player can start this from player mode when ready. Before it starts, you can still edit or delete it.",
+  "challengeReadyStartAction": "Start now",
   "challengeCompletedSummary": "{title} complete",
   "@challengeCompletedSummary": {
     "placeholders": {
@@ -6794,6 +6806,12 @@
     }
   },
   "challengeRoundDateToday": "Today",
+  "challengePrepareSnack": "{title} prepared.",
+  "@challengePrepareSnack": {
+    "placeholders": {
+      "title": {}
+    }
+  },
   "challengeStartSnack": "{title} started.",
   "@challengeStartSnack": {
     "placeholders": {

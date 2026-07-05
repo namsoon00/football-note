@@ -6446,8 +6446,8 @@
   "challengeTitle": "챌린지",
   "challengeRewardAction": "보상",
   "challengeHistoryAction": "히스토리",
-  "challengeListTitle": "진행 중인 챌린지",
-  "challengeListBody": "{count}개의 챌린지가 진행 중이에요. 오늘 라운드와 전체 진행률을 한눈에 모았어요.",
+  "challengeListTitle": "활성 챌린지",
+  "challengeListBody": "{count}개의 챌린지가 준비 또는 진행 중이에요. 시작 전 챌린지와 오늘 라운드를 함께 모았어요.",
   "@challengeListBody": {
     "placeholders": {
       "count": {
@@ -6461,18 +6461,18 @@
   "challengeDetailAction": "상세",
   "challengeEditTitle": "챌린지 수정",
   "challengeEditAction": "수정",
-  "challengeEditBody": "기간, 진행 간격, 미션 구성을 조정할 수 있어요. 이미 기록한 라운드는 그대로 유지됩니다.",
+  "challengeEditBody": "시작 전 챌린지의 기간, 진행 간격, 미션 구성을 조정할 수 있어요.",
   "challengeUpdateAction": "수정 저장",
   "challengeUpdateSnack": "챌린지를 수정했어요.",
   "challengeEditUnavailableSnack": "이미 기록이 시작된 챌린지는 수정할 수 없어요.",
   "challengeDeletePendingAction": "삭제",
   "challengeDeletePendingTitle": "챌린지 삭제",
-  "challengeDeletePendingBody": "아직 선수가 기록을 시작하지 않은 챌린지예요. 이 챌린지를 삭제할까요?",
+  "challengeDeletePendingBody": "아직 시작하지 않은 챌린지예요. 이 챌린지를 삭제할까요?",
   "challengeDeletePendingConfirm": "삭제",
   "challengeDeletePendingSnack": "챌린지를 삭제했어요.",
   "challengeDeletePendingUnavailableSnack": "이미 기록이 시작된 챌린지는 삭제할 수 없어요.",
   "challengeStartHeroTitle": "린지의 챌린지 모드",
-  "challengeStartHeroBody": "기간과 미션별 훈련량을 고른 뒤 시작 버튼을 누르면 도전이 시작됩니다. 하루라도 놓치면 실패예요.",
+  "challengeStartHeroBody": "기간과 미션별 훈련량을 고른 뒤 챌린지를 준비해요. 준비가 끝나면 선수 모드에서 오늘부터 시작할 수 있어요.",
   "challengeLatestComplete": "최근 챌린지 완료",
   "challengeSelectTitle": "챌린지 선택",
   "challengeActiveCardTitle": "{title} 진행 중",
@@ -6706,7 +6706,8 @@
       }
     }
   },
-  "challengeStartReadyTitle": "3. 시작 준비",
+  "challengeStartReadyTitle": "3. 준비 저장",
+  "challengePrepareAction": "챌린지 준비",
   "challengeStartAction": "챌린지 시작",
   "challengeRoundCount": "{completed}/{total} 라운드 완료",
   "@challengeRoundCount": {
@@ -6786,7 +6787,18 @@
     }
   },
   "challengeCompletedBadge": "완료",
+  "challengeReadyBadge": "시작 전",
   "challengePendingBadge": "진행 중",
+  "challengeReadyPeriodLabel": "시작하면 오늘부터 일정이 잡혀요.",
+  "challengeReadyCardTitle": "{title} 준비 완료",
+  "@challengeReadyCardTitle": {
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "challengeReadyPlayerBody": "준비가 됐으면 지금 시작하세요. 시작한 날부터 라운드 일정과 미션 기록이 열립니다.",
+  "challengeReadyParentBody": "선수가 준비되면 선수 모드에서 시작할 수 있어요. 시작 전에는 수정하거나 삭제할 수 있습니다.",
+  "challengeReadyStartAction": "지금 시작",
   "challengeCompletedSummary": "{title} 완료",
   "@challengeCompletedSummary": {
     "placeholders": {
@@ -6794,6 +6806,12 @@
     }
   },
   "challengeRoundDateToday": "오늘",
+  "challengePrepareSnack": "{title}를 준비했어요.",
+  "@challengePrepareSnack": {
+    "placeholders": {
+      "title": {}
+    }
+  },
   "challengeStartSnack": "{title}를 시작했어요.",
   "@challengeStartSnack": {
     "placeholders": {

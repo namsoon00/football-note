@@ -6446,8 +6446,8 @@
   "challengeTitle": "チャレンジ",
   "challengeRewardAction": "報酬",
   "challengeHistoryAction": "履歴",
-  "challengeListTitle": "進行中のチャレンジ",
-  "challengeListBody": "{count}件のチャレンジが進行中です。今日のラウンドと全体の進行率をまとめました。",
+  "challengeListTitle": "有効なチャレンジ",
+  "challengeListBody": "{count}件のチャレンジが準備中または進行中です。開始前のチャレンジと今日のラウンドをまとめました。",
   "@challengeListBody": {
     "placeholders": {
       "count": {
@@ -6461,18 +6461,18 @@
   "challengeDetailAction": "詳細",
   "challengeEditTitle": "チャレンジ編集",
   "challengeEditAction": "編集",
-  "challengeEditBody": "期間、進行間隔、ミッション構成を調整できます。記録済みのラウンドはそのまま残ります。",
+  "challengeEditBody": "開始前のチャレンジの期間、進行間隔、ミッション構成を調整できます。",
   "challengeUpdateAction": "変更を保存",
   "challengeUpdateSnack": "チャレンジを更新しました。",
   "challengeEditUnavailableSnack": "記録が始まったチャレンジは編集できません。",
   "challengeDeletePendingAction": "削除",
   "challengeDeletePendingTitle": "チャレンジ削除",
-  "challengeDeletePendingBody": "選手はまだこのチャレンジの記録を始めていません。このチャレンジを削除しますか?",
+  "challengeDeletePendingBody": "まだ開始していないチャレンジです。このチャレンジを削除しますか?",
   "challengeDeletePendingConfirm": "削除",
   "challengeDeletePendingSnack": "チャレンジを削除しました。",
   "challengeDeletePendingUnavailableSnack": "記録が始まったチャレンジは削除できません。",
   "challengeStartHeroTitle": "リンジーのチャレンジモード",
-  "challengeStartHeroBody": "期間とミッション別の量を選び、開始ボタンを押すと始まります。1日でも逃すと失敗です。",
+  "challengeStartHeroBody": "期間とミッション別の量を選んで、チャレンジを準備します。準備ができたら、プレーヤーモードで今日から開始できます。",
   "challengeLatestComplete": "最新チャレンジ完了",
   "challengeSelectTitle": "チャレンジを選択",
   "challengeActiveCardTitle": "{title} 進行中",
@@ -6706,7 +6706,8 @@
       }
     }
   },
-  "challengeStartReadyTitle": "3. 開始準備",
+  "challengeStartReadyTitle": "3. 準備を保存",
+  "challengePrepareAction": "チャレンジを準備",
   "challengeStartAction": "チャレンジ開始",
   "challengeRoundCount": "{completed}/{total} ラウンド完了",
   "@challengeRoundCount": {
@@ -6786,7 +6787,18 @@
     }
   },
   "challengeCompletedBadge": "完了",
+  "challengeReadyBadge": "開始前",
   "challengePendingBadge": "進行中",
+  "challengeReadyPeriodLabel": "開始すると、その日からスケジュールが組まれます。",
+  "challengeReadyCardTitle": "{title} の準備完了",
+  "@challengeReadyCardTitle": {
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "challengeReadyPlayerBody": "準備ができたら開始しましょう。開始日からラウンド予定とミッション記録が開きます。",
+  "challengeReadyParentBody": "選手が準備できたら、プレーヤーモードで開始できます。開始前は編集または削除できます。",
+  "challengeReadyStartAction": "今すぐ開始",
   "challengeCompletedSummary": "{title} 完了",
   "@challengeCompletedSummary": {
     "placeholders": {
@@ -6794,6 +6806,12 @@
     }
   },
   "challengeRoundDateToday": "今日",
+  "challengePrepareSnack": "{title}を準備しました。",
+  "@challengePrepareSnack": {
+    "placeholders": {
+      "title": {}
+    }
+  },
   "challengeStartSnack": "{title}を開始しました。",
   "@challengeStartSnack": {
     "placeholders": {

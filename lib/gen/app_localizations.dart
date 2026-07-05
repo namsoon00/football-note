@@ -20157,7 +20157,7 @@ abstract class AppLocalizations {
   /// No description provided for @challengeListBody.
   ///
   /// In en, this message translates to:
-  /// **'{count} challenges are in progress. Today\'s rounds and overall progress are grouped here.'**
+  /// **'{count} challenges are ready or in progress. Prepared challenges and today\'s rounds are grouped here.'**
   String challengeListBody(int count);
 
   /// No description provided for @challengeCreateTitle.
@@ -20199,7 +20199,7 @@ abstract class AppLocalizations {
   /// No description provided for @challengeEditBody.
   ///
   /// In en, this message translates to:
-  /// **'Adjust the duration, round frequency, and mission setup. Rounds already recorded stay in place.'**
+  /// **'Adjust the duration, round frequency, and mission setup before the challenge starts.'**
   String get challengeEditBody;
 
   /// No description provided for @challengeUpdateAction.
@@ -20235,7 +20235,7 @@ abstract class AppLocalizations {
   /// No description provided for @challengeDeletePendingBody.
   ///
   /// In en, this message translates to:
-  /// **'The player has not started recording this challenge yet. Delete this challenge?'**
+  /// **'This challenge has not started yet. Delete this challenge?'**
   String get challengeDeletePendingBody;
 
   /// No description provided for @challengeDeletePendingConfirm.
@@ -20265,7 +20265,7 @@ abstract class AppLocalizations {
   /// No description provided for @challengeStartHeroBody.
   ///
   /// In en, this message translates to:
-  /// **'Choose a duration and mission amounts, then press start to begin. Missing even one day ends the challenge.'**
+  /// **'Choose a duration and mission amounts, then prepare the challenge. When ready, the player can start from today.'**
   String get challengeStartHeroBody;
 
   /// No description provided for @challengeLatestComplete.
@@ -20823,8 +20823,14 @@ abstract class AppLocalizations {
   /// No description provided for @challengeStartReadyTitle.
   ///
   /// In en, this message translates to:
-  /// **'3. Ready to start'**
+  /// **'3. Save setup'**
   String get challengeStartReadyTitle;
+
+  /// No description provided for @challengePrepareAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Prepare challenge'**
+  String get challengePrepareAction;
 
   /// No description provided for @challengeStartAction.
   ///
@@ -20916,11 +20922,47 @@ abstract class AppLocalizations {
   /// **'Complete'**
   String get challengeCompletedBadge;
 
+  /// No description provided for @challengeReadyBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Not started'**
+  String get challengeReadyBadge;
+
   /// No description provided for @challengePendingBadge.
   ///
   /// In en, this message translates to:
   /// **'In progress'**
   String get challengePendingBadge;
+
+  /// No description provided for @challengeReadyPeriodLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'The schedule starts from the day you begin.'**
+  String get challengeReadyPeriodLabel;
+
+  /// No description provided for @challengeReadyCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} is ready'**
+  String challengeReadyCardTitle(Object title);
+
+  /// No description provided for @challengeReadyPlayerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Start when you are ready. The round schedule and mission tracking open from the start day.'**
+  String get challengeReadyPlayerBody;
+
+  /// No description provided for @challengeReadyParentBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The player can start this from player mode when ready. Before it starts, you can still edit or delete it.'**
+  String get challengeReadyParentBody;
+
+  /// No description provided for @challengeReadyStartAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Start now'**
+  String get challengeReadyStartAction;
 
   /// No description provided for @challengeCompletedSummary.
   ///
@@ -20933,6 +20975,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Today'**
   String get challengeRoundDateToday;
+
+  /// No description provided for @challengePrepareSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} prepared.'**
+  String challengePrepareSnack(Object title);
 
   /// No description provided for @challengeStartSnack.
   ///
