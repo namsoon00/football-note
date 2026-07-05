@@ -6187,6 +6187,8 @@
   "trainingSketchDeleteSketchTooltip": "스케치 삭제",
   "trainingSketchImportSketchTooltip": "이전 스케치 가져오기",
   "trainingSketchRenameSketchTooltip": "스케치명 수정",
+  "trainingSketchBoardNameLabel": "보드명",
+  "trainingSketchBoardNameHint": "예) 패스 워밍업",
   "trainingSketchMemoLabel": "훈련 스케치 메모",
   "trainingSketchMemoHint": "예) 콘 사이 2터치 드리블 후 패스",
   "trainingSketchVoiceInputTooltip": "음성 입력",

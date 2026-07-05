@@ -3400,6 +3400,40 @@ void main() {
     expect(memoRect.left, greaterThan(boardRectWithMemo.right));
   });
 
+  testWidgets('initial sketch title input keeps usable width in landscape', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+
+    await tester.pumpWidget(
+      _buildApp(
+        const TrainingMethodBoardScreen(
+          boardTitle: '패스 워밍업',
+          initialLayoutJson: '',
+          presets: <TrainingBoardPreset>[
+            TrainingBoardPreset(
+              title: '기본',
+              subtitle: '',
+              layoutJson: '',
+            ),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester
+        .tap(find.byKey(const ValueKey('training-landscape-topbar-menu')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('스케치명 수정').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('스케치명 수정'), findsOneWidget);
+    final fieldRect = tester.getRect(find.byType(TextFormField));
+    expect(fieldRect.width, greaterThanOrEqualTo(280));
+    expect(fieldRect.width, lessThanOrEqualTo(420));
+  });
+
   testWidgets('sketch screen requests landscape on entry', (
     WidgetTester tester,
   ) async {

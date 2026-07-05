@@ -6187,6 +6187,8 @@
   "trainingSketchDeleteSketchTooltip": "Delete sketch",
   "trainingSketchImportSketchTooltip": "Import previous sketch",
   "trainingSketchRenameSketchTooltip": "Rename sketch",
+  "trainingSketchBoardNameLabel": "Board name",
+  "trainingSketchBoardNameHint": "e.g. Pass warm-up",
   "trainingSketchMemoLabel": "Training sketch note",
   "trainingSketchMemoHint": "e.g. Two-touch dribble between cones then pass",
   "trainingSketchVoiceInputTooltip": "Voice input",

@@ -19152,6 +19152,18 @@ abstract class AppLocalizations {
   /// **'Rename sketch'**
   String get trainingSketchRenameSketchTooltip;
 
+  /// No description provided for @trainingSketchBoardNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Board name'**
+  String get trainingSketchBoardNameLabel;
+
+  /// No description provided for @trainingSketchBoardNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Pass warm-up'**
+  String get trainingSketchBoardNameHint;
+
   /// No description provided for @trainingSketchMemoLabel.
   ///
   /// In en, this message translates to:

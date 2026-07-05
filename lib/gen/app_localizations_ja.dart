@@ -10862,6 +10862,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get trainingSketchRenameSketchTooltip => 'スケッチの名前を変更';
 
   @override
+  String get trainingSketchBoardNameLabel => 'ボード名';
+
+  @override
+  String get trainingSketchBoardNameHint => '例）パスのウォームアップ';
+
+  @override
   String get trainingSketchMemoLabel => 'トレーニングスケッチノート';
 
   @override
