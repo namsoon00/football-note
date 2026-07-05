@@ -10920,6 +10920,32 @@ class AppLocalizationsJa extends AppLocalizations {
       'クイックスタート: プレイヤーを選び、動作を押してから対象の人やスペースをタップします。';
 
   @override
+  String get trainingSketchNextActionButton => '次の動作を追加';
+
+  @override
+  String trainingSketchPlayerFlowTitle(int index) {
+    return 'プレイヤー $index の流れ';
+  }
+
+  @override
+  String get trainingSketchPlayerFlowWithBall => 'ボール保持';
+
+  @override
+  String get trainingSketchPlayerFlowWithoutBall => 'ボールなし';
+
+  @override
+  String get trainingSketchPlayerFlowHint => '選手の次の動作を選ぶと、段階とボールの動きが自動でつながります。';
+
+  @override
+  String get trainingSketchPlayerFlowPassSection => '味方につなぐ';
+
+  @override
+  String get trainingSketchPlayerFlowBallSection => 'ボールを使う動作';
+
+  @override
+  String get trainingSketchPlayerFlowMoveSection => '動き';
+
+  @override
   String get trainingSketchSelectedItemTitle => '選択した項目';
 
   @override

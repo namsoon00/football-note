@@ -6206,6 +6206,21 @@
   "trainingSketchPenModeHint": "Pen mode: drag on the board to draw.",
   "trainingSketchPenColorLabel": "Pen color",
   "trainingSketchQuickStart": "Quick start: Select a player, tap an action, then tap the target player or space.",
+  "trainingSketchNextActionButton": "Add next action",
+  "trainingSketchPlayerFlowTitle": "Player {index} flow",
+  "@trainingSketchPlayerFlowTitle": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchPlayerFlowWithBall": "Has ball",
+  "trainingSketchPlayerFlowWithoutBall": "No ball",
+  "trainingSketchPlayerFlowHint": "Choose the player's next action and the stage and ball movement will connect automatically.",
+  "trainingSketchPlayerFlowPassSection": "Connect to teammate",
+  "trainingSketchPlayerFlowBallSection": "Ball actions",
+  "trainingSketchPlayerFlowMoveSection": "Movement",
   "trainingSketchSelectedItemTitle": "Selected item",
   "trainingSketchAssignColorLabel": "Assign color",
   "trainingSketchPlayerStagesTitle": "Player stages",

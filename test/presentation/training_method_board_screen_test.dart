@@ -2231,6 +2231,108 @@ void main() {
     expect(playerRoute.stageIndex, 2);
   });
 
+  testWidgets('player flow builder connects passes across multiple players', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    String? savedLayout;
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '패스 연계',
+          initialLayoutJson: const TrainingMethodLayout(
+            pages: <TrainingMethodPage>[
+              TrainingMethodPage(
+                name: 'Board',
+                items: <TrainingMethodItem>[
+                  TrainingMethodItem(
+                    id: 'player-1',
+                    type: 'player',
+                    x: 0.22,
+                    y: 0.52,
+                  ),
+                  TrainingMethodItem(
+                    id: 'player-2',
+                    type: 'player',
+                    x: 0.52,
+                    y: 0.46,
+                    colorValue: 0xFF1E88E5,
+                  ),
+                  TrainingMethodItem(
+                    id: 'player-3',
+                    type: 'player',
+                    x: 0.76,
+                    y: 0.38,
+                    colorValue: 0xFF43A047,
+                  ),
+                  TrainingMethodItem(
+                    id: 'ball-1',
+                    type: 'ball',
+                    x: 0.29,
+                    y: 0.52,
+                    colorValue: 0xFFFFCA28,
+                  ),
+                ],
+              ),
+            ],
+          ).encode(),
+          onSaved: (value) => savedLayout = value,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    await tester.tap(
+      find
+          .descendant(of: boardFinder, matching: find.byIcon(Icons.person))
+          .first,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(
+        find.byKey(const ValueKey('training-player-next-action-player-1')));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(
+          const ValueKey('training-player-flow-target-player-1-player-2')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey('training-player-next-action-player-2')),
+      findsOneWidget,
+    );
+    await tester.tap(
+        find.byKey(const ValueKey('training-player-next-action-player-2')));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(
+          const ValueKey('training-player-flow-target-player-2-player-3')),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(TextButton, '저장'));
+    await tester.pumpAndSettle();
+
+    final saved = TrainingMethodLayout.decode(savedLayout ?? '');
+    final ballRoutes = saved.pages.single.routes
+        .where((route) => route.kind == TrainingMethodRouteKind.ball)
+        .toList(growable: false);
+    final stages =
+        ballRoutes.map((route) => route.stageIndex).toList(growable: false);
+
+    expect(ballRoutes, hasLength(2));
+    expect(ballRoutes.map((route) => route.actorItemId), [
+      'player-1',
+      'player-2',
+    ]);
+    expect(ballRoutes.map((route) => route.linkedItemId).toSet(), {'ball-1'});
+    expect(stages, [1, 2]);
+    expect(ballRoutes.last.points.last.x, closeTo(0.76, 0.02));
+    expect(ballRoutes.last.points.last.y, closeTo(0.38, 0.02));
+  });
+
   testWidgets('tennis serve action creates a ball route to a target', (
     WidgetTester tester,
   ) async {

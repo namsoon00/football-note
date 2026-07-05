@@ -6206,6 +6206,21 @@
   "trainingSketchPenModeHint": "ペンモード: ボード上をドラッグして描画します。",
   "trainingSketchPenColorLabel": "ペンの色",
   "trainingSketchQuickStart": "クイックスタート: プレイヤーを選び、動作を押してから対象の人やスペースをタップします。",
+  "trainingSketchNextActionButton": "次の動作を追加",
+  "trainingSketchPlayerFlowTitle": "プレイヤー {index} の流れ",
+  "@trainingSketchPlayerFlowTitle": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchPlayerFlowWithBall": "ボール保持",
+  "trainingSketchPlayerFlowWithoutBall": "ボールなし",
+  "trainingSketchPlayerFlowHint": "選手の次の動作を選ぶと、段階とボールの動きが自動でつながります。",
+  "trainingSketchPlayerFlowPassSection": "味方につなぐ",
+  "trainingSketchPlayerFlowBallSection": "ボールを使う動作",
+  "trainingSketchPlayerFlowMoveSection": "動き",
   "trainingSketchSelectedItemTitle": "選択した項目",
   "trainingSketchAssignColorLabel": "色の割り当て",
   "trainingSketchPlayerStagesTitle": "プレーヤーのステージ",

@@ -11241,6 +11241,33 @@ class AppLocalizationsEn extends AppLocalizations {
       'Quick start: Select a player, tap an action, then tap the target player or space.';
 
   @override
+  String get trainingSketchNextActionButton => 'Add next action';
+
+  @override
+  String trainingSketchPlayerFlowTitle(int index) {
+    return 'Player $index flow';
+  }
+
+  @override
+  String get trainingSketchPlayerFlowWithBall => 'Has ball';
+
+  @override
+  String get trainingSketchPlayerFlowWithoutBall => 'No ball';
+
+  @override
+  String get trainingSketchPlayerFlowHint =>
+      'Choose the player\'s next action and the stage and ball movement will connect automatically.';
+
+  @override
+  String get trainingSketchPlayerFlowPassSection => 'Connect to teammate';
+
+  @override
+  String get trainingSketchPlayerFlowBallSection => 'Ball actions';
+
+  @override
+  String get trainingSketchPlayerFlowMoveSection => 'Movement';
+
+  @override
   String get trainingSketchSelectedItemTitle => 'Selected item';
 
   @override

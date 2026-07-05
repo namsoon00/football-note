@@ -10940,6 +10940,33 @@ class AppLocalizationsKo extends AppLocalizations {
       '빠른 시작: 선수를 선택하고 액션을 누른 뒤, 대상 사람이나 공간을 찍으세요.';
 
   @override
+  String get trainingSketchNextActionButton => '다음 동작 추가';
+
+  @override
+  String trainingSketchPlayerFlowTitle(int index) {
+    return '사람 $index 흐름';
+  }
+
+  @override
+  String get trainingSketchPlayerFlowWithBall => '공 보유';
+
+  @override
+  String get trainingSketchPlayerFlowWithoutBall => '공 없음';
+
+  @override
+  String get trainingSketchPlayerFlowHint =>
+      '선수의 다음 동작을 고르면 단계와 공 이동이 자동으로 이어집니다.';
+
+  @override
+  String get trainingSketchPlayerFlowPassSection => '동료에게 바로 연결';
+
+  @override
+  String get trainingSketchPlayerFlowBallSection => '공을 쓰는 동작';
+
+  @override
+  String get trainingSketchPlayerFlowMoveSection => '움직임';
+
+  @override
   String get trainingSketchSelectedItemTitle => '선택 요소';
 
   @override

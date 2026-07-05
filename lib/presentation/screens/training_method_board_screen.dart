@@ -1035,6 +1035,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     return _ballRouteEndsNearPlayer(route, player);
   }
 
+  bool _playerHasBallForFlow(_BoardItem player) {
+    return _currentBallRouteForPlayer(player) != null ||
+        _controlledBallForPlayer(player) != null;
+  }
+
   _BoardRoute? _currentBallRouteForPlayer(_BoardItem player) {
     final selectedRoute = _selectedRoute;
     if (selectedRoute != null &&
@@ -5120,6 +5125,335 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     );
   }
 
+  Future<void> _openPlayerFlowBuilder(_BoardItem player) async {
+    final selection = await showModalBottomSheet<_PlayerFlowSelection>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (context) => _buildPlayerFlowSheet(context, player),
+    );
+    if (!mounted || selection == null) return;
+    if (selection.targetItemId case final targetItemId?) {
+      final target = _itemById(targetItemId);
+      if (target != null) {
+        _applyQuickBallToItemTemplate(target);
+      }
+      return;
+    }
+    if (selection.action case final action?) {
+      _beginTargetAction(action);
+    }
+  }
+
+  Widget _buildPlayerFlowStarter(_BoardItem player) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final hasBall = _playerHasBallForFlow(player);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: colors.primaryContainer.withValues(alpha: 0.52),
+        border: Border.all(color: colors.primary.withValues(alpha: 0.28)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.account_tree_outlined, color: colors.primary),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  _l10n.trainingSketchPlayerFlowTitle(
+                    _itemIndexOfType(player),
+                  ),
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: colors.onPrimaryContainer,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              Chip(
+                visualDensity: VisualDensity.compact,
+                label: Text(
+                  hasBall
+                      ? _l10n.trainingSketchPlayerFlowWithBall
+                      : _l10n.trainingSketchPlayerFlowWithoutBall,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            _l10n.trainingSketchPlayerFlowHint,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colors.onPrimaryContainer,
+            ),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              key: ValueKey('training-player-next-action-${player.id}'),
+              onPressed: () => unawaited(_openPlayerFlowBuilder(player)),
+              icon: const Icon(Icons.add_circle_outline),
+              label: Text(_l10n.trainingSketchNextActionButton),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPlayerFlowSheet(BuildContext sheetContext, _BoardItem player) {
+    final theme = Theme.of(sheetContext);
+    final hasBall = _playerHasBallForFlow(player);
+    final sportId = _currentSportIdOrDefault;
+    final targetPlayers = _itemsOfType(
+      _BoardItemType.player,
+      excludingId: player.id,
+    );
+    final ballActions = _playerFlowBallActions(sportId);
+    final movementActions = _playerFlowMovementActions(sportId);
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          16,
+          0,
+          16,
+          16 + MediaQuery.viewInsetsOf(sheetContext).bottom,
+        ),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.sizeOf(sheetContext).height * 0.78,
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        _l10n.trainingSketchPlayerFlowTitle(
+                          _itemIndexOfType(player),
+                        ),
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                    Chip(
+                      visualDensity: VisualDensity.compact,
+                      label: Text(
+                        hasBall
+                            ? _l10n.trainingSketchPlayerFlowWithBall
+                            : _l10n.trainingSketchPlayerFlowWithoutBall,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  _l10n.trainingSketchPlayerFlowHint,
+                  style: theme.textTheme.bodySmall,
+                ),
+                if (targetPlayers.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  _buildPlayerFlowSectionTitle(
+                    _l10n.trainingSketchPlayerFlowPassSection,
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      for (final target in targetPlayers)
+                        _playerFlowTargetButton(
+                          sheetContext: sheetContext,
+                          player: player,
+                          target: target,
+                          sportId: sportId,
+                        ),
+                    ],
+                  ),
+                ],
+                const SizedBox(height: 16),
+                _buildPlayerFlowSectionTitle(
+                  _l10n.trainingSketchPlayerFlowBallSection,
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final action in ballActions)
+                      _playerFlowActionButton(
+                        sheetContext: sheetContext,
+                        player: player,
+                        action: action,
+                        icon: _targetActionIcon(action),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                _buildPlayerFlowSectionTitle(
+                  _l10n.trainingSketchPlayerFlowMoveSection,
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final action in movementActions)
+                      _playerFlowActionButton(
+                        sheetContext: sheetContext,
+                        player: player,
+                        action: action,
+                        icon: _targetActionIcon(action),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPlayerFlowSectionTitle(String label) {
+    return Text(
+      label,
+      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+            fontWeight: FontWeight.w900,
+          ),
+    );
+  }
+
+  Widget _playerFlowTargetButton({
+    required BuildContext sheetContext,
+    required _BoardItem player,
+    required _BoardItem target,
+    required String sportId,
+  }) {
+    final index = _itemIndexOfType(target);
+    final label = switch (sportId) {
+      SportCatalog.baseballId => _l10n.trainingSketchThrowToPlayerButton(index),
+      SportCatalog.tennisId => _l10n.trainingSketchRallyToPlayerButton(index),
+      _ => _l10n.trainingSketchPassToPlayerButton(index),
+    };
+    final icon = switch (sportId) {
+      SportCatalog.baseballId => Icons.sports_baseball,
+      SportCatalog.tennisId => Icons.sports_tennis,
+      _ => Icons.near_me_outlined,
+    };
+    return FilledButton.icon(
+      key: ValueKey('training-player-flow-target-${player.id}-${target.id}'),
+      onPressed: () => Navigator.of(sheetContext).pop(
+        _PlayerFlowSelection.target(target.id),
+      ),
+      icon: Icon(icon),
+      label: Text(label),
+    );
+  }
+
+  Widget _playerFlowActionButton({
+    required BuildContext sheetContext,
+    required _BoardItem player,
+    required _SketchTargetAction action,
+    required IconData icon,
+  }) {
+    return OutlinedButton.icon(
+      key: ValueKey('training-player-flow-action-${player.id}-${action.name}'),
+      onPressed: () => Navigator.of(sheetContext).pop(
+        _PlayerFlowSelection.action(action),
+      ),
+      icon: Icon(icon),
+      label: Text(_targetActionLabel(action)),
+    );
+  }
+
+  IconData _targetActionIcon(_SketchTargetAction action) {
+    return switch (action) {
+      _SketchTargetAction.move => Icons.directions_run,
+      _SketchTargetAction.pass => Icons.near_me_outlined,
+      _SketchTargetAction.passAndMove => Icons.sync_alt,
+      _SketchTargetAction.dribble => Icons.sports_soccer_outlined,
+      _SketchTargetAction.receiveMove => Icons.call_received,
+      _SketchTargetAction.returnMove => Icons.keyboard_return,
+      _SketchTargetAction.overlap => Icons.moving,
+      _SketchTargetAction.shot => Icons.ads_click,
+      _SketchTargetAction.cross => Icons.north_east,
+      _SketchTargetAction.drive => Icons.sports_basketball_outlined,
+      _SketchTargetAction.cut => Icons.call_split,
+      _SketchTargetAction.screen => Icons.block,
+      _SketchTargetAction.coneTurn => Icons.change_history,
+      _SketchTargetAction.coneJump => Icons.arrow_upward,
+      _SketchTargetAction.hurdleJump => Icons.arrow_upward,
+      _SketchTargetAction.runBase => Icons.signpost_outlined,
+      _SketchTargetAction.fielding => Icons.front_hand_outlined,
+      _SketchTargetAction.throwBall => Icons.near_me_outlined,
+      _SketchTargetAction.serve => Icons.sports_tennis,
+      _SketchTargetAction.rally => Icons.sync_alt,
+      _SketchTargetAction.recover => Icons.keyboard_return,
+    };
+  }
+
+  List<_SketchTargetAction> _playerFlowBallActions(String sportId) {
+    return switch (sportId) {
+      SportCatalog.baseballId => <_SketchTargetAction>[
+          _SketchTargetAction.throwBall,
+        ],
+      SportCatalog.basketballId => <_SketchTargetAction>[
+          _SketchTargetAction.pass,
+          _SketchTargetAction.drive,
+          _SketchTargetAction.shot,
+        ],
+      SportCatalog.tennisId => <_SketchTargetAction>[
+          _SketchTargetAction.serve,
+          _SketchTargetAction.rally,
+        ],
+      _ => <_SketchTargetAction>[
+          _SketchTargetAction.pass,
+          _SketchTargetAction.dribble,
+          _SketchTargetAction.shot,
+          _SketchTargetAction.passAndMove,
+        ],
+    };
+  }
+
+  List<_SketchTargetAction> _playerFlowMovementActions(String sportId) {
+    return switch (sportId) {
+      SportCatalog.baseballId => <_SketchTargetAction>[
+          _SketchTargetAction.move,
+          _SketchTargetAction.runBase,
+          _SketchTargetAction.fielding,
+          _SketchTargetAction.coneTurn,
+        ],
+      SportCatalog.basketballId => <_SketchTargetAction>[
+          _SketchTargetAction.move,
+          _SketchTargetAction.cut,
+          _SketchTargetAction.screen,
+          _SketchTargetAction.coneTurn,
+        ],
+      SportCatalog.tennisId => <_SketchTargetAction>[
+          _SketchTargetAction.move,
+          _SketchTargetAction.recover,
+          _SketchTargetAction.coneTurn,
+        ],
+      _ => <_SketchTargetAction>[
+          _SketchTargetAction.move,
+          _SketchTargetAction.receiveMove,
+          _SketchTargetAction.coneTurn,
+          _SketchTargetAction.hurdleJump,
+        ],
+    };
+  }
+
   Widget _buildPendingTargetActionBanner() {
     final action = _pendingTargetAction;
     if (action == null) return const SizedBox.shrink();
@@ -6073,6 +6407,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             _buildPendingTargetActionBanner(),
           ],
           const SizedBox(height: 10),
+          _buildPlayerFlowStarter(selected),
+          const SizedBox(height: 10),
           _buildSelectedPlayerStagePlanner(selected),
           const SizedBox(height: 10),
           Text(
@@ -6285,6 +6621,15 @@ enum _SketchTargetAction {
   serve,
   rally,
   recover,
+}
+
+class _PlayerFlowSelection {
+  final _SketchTargetAction? action;
+  final String? targetItemId;
+
+  const _PlayerFlowSelection.action(this.action) : targetItemId = null;
+
+  const _PlayerFlowSelection.target(this.targetItemId) : action = null;
 }
 
 enum _BoardItemType { cone, hurdle, player, ball, ladder, target, base, basket }
