@@ -396,21 +396,20 @@ class _SettingsScreenState extends State<SettingsScreen>
         false;
   }
 
-  bool _playerRemoteBackupRequiresImport(FamilyAccessState familyState) {
+  bool _playerDriveNeedsResolution(FamilyAccessState familyState) {
     if (!familyState.isChildMode || !_signedIn) return false;
-    if (_backupLockedByChangedPlayerDrive(familyState)) return false;
-    return _hasRemotePlayerBackup && _savedPlayerDriveLabel().isEmpty;
+    return _backupLockedByChangedPlayerDrive(familyState) ||
+        _savedPlayerDriveLabel().isEmpty;
   }
 
   bool _playerBackupBlockedBeforeImport(FamilyAccessState familyState) {
-    return _backupLockedByChangedPlayerDrive(familyState) ||
-        _playerRemoteBackupRequiresImport(familyState);
+    return _playerDriveNeedsResolution(familyState);
   }
 
   bool _shouldShowLatestRestoreAction(FamilyAccessState familyState) {
     if (!_signedIn) return false;
     if (familyState.isSupportMode) return true;
-    return !_backupLockedByChangedPlayerDrive(familyState);
+    return !_playerBackupBlockedBeforeImport(familyState);
   }
 
   @override
@@ -1245,7 +1244,7 @@ class _SettingsScreenState extends State<SettingsScreen>
           IconButton(
             onPressed: (_backupBusy ||
                     _restoreBusy ||
-                    _backupLockedByChangedPlayerDrive(familyState))
+                    _playerBackupBlockedBeforeImport(familyState))
                 ? null
                 : () => _showPreviousBackupRestoreInfo(l10n),
             icon: const Icon(Icons.history_rounded, size: 18),
@@ -1362,7 +1361,6 @@ class _SettingsScreenState extends State<SettingsScreen>
       return const SizedBox.shrink();
     }
     final isSupportMode = familyState.isSupportMode;
-    final backupLocked = _backupLockedByChangedPlayerDrive(familyState);
     final backupBlockedBeforeImport =
         _playerBackupBlockedBeforeImport(familyState);
     final actions = <Widget>[
@@ -1400,7 +1398,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         ),
       );
     }
-    if (backupLocked) {
+    if (backupBlockedBeforeImport) {
       actions.add(
         _buildDriveQuickActionButton(
           icon: Icons.cloud_download_outlined,
@@ -2734,7 +2732,7 @@ class _SettingsScreenState extends State<SettingsScreen>
   Future<void> _showPreviousBackupRestoreInfo(AppLocalizations l10n) async {
     final familyState =
         FamilyAccessService(widget.optionRepository).loadState();
-    if (_backupLockedByChangedPlayerDrive(familyState)) {
+    if (_playerBackupBlockedBeforeImport(familyState)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l10n.driveBackupLockedAccountChanged)),
       );

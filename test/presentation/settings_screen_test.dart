@@ -32,6 +32,8 @@ void main() {
       ),
       sharedChildDriveLabel: '',
       sharedChildDriveEmail: '',
+      savedRecordDriveLabel: '민수 · player@example.com',
+      savedRecordDriveEmail: 'player@example.com',
       lastBackupAt: DateTime(2026, 3, 22, 10),
     );
 
@@ -89,6 +91,8 @@ void main() {
       ),
       sharedChildDriveLabel: '',
       sharedChildDriveEmail: '',
+      savedRecordDriveLabel: '민수 · player@example.com',
+      savedRecordDriveEmail: 'player@example.com',
       lastBackupAt: DateTime(2026, 3, 22, 10),
     );
 
@@ -131,6 +135,8 @@ void main() {
       ),
       sharedChildDriveLabel: '',
       sharedChildDriveEmail: '',
+      savedRecordDriveLabel: '민수 · player@example.com',
+      savedRecordDriveEmail: 'player@example.com',
       lastBackupAt: DateTime(2026, 3, 22, 10),
     );
 
@@ -657,6 +663,8 @@ void main() {
       ),
       sharedChildDriveLabel: '',
       sharedChildDriveEmail: '',
+      savedRecordDriveLabel: '민수 · player@example.com',
+      savedRecordDriveEmail: 'player@example.com',
       localPreRestoreAt: DateTime(2026, 3, 22, 7),
       lastBackupAt: DateTime(2026, 3, 22, 10),
     );
@@ -749,11 +757,19 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final latestRestoreButton = find.widgetWithText(
+      final accountImportButton = find.widgetWithText(
         OutlinedButton,
-        '최근 데이터 가져오기',
+        '이 계정 백업 가져오기',
       );
-      expect(latestRestoreButton, findsOneWidget);
+      expect(accountImportButton, findsOneWidget);
+      expect(
+        find.widgetWithText(OutlinedButton, '이 계정으로 새로 시작'),
+        findsOneWidget,
+      );
+      expect(
+        find.widgetWithText(OutlinedButton, '최근 데이터 가져오기'),
+        findsNothing,
+      );
       expect(
         find.widgetWithText(OutlinedButton, '데이터 백업하기'),
         findsNothing,
@@ -766,20 +782,93 @@ void main() {
       );
 
       await tester.scrollUntilVisible(
-        latestRestoreButton,
+        accountImportButton,
         300,
         scrollable: find.byType(Scrollable).first,
       );
       await tester.pumpAndSettle();
-      await tester.tap(latestRestoreButton);
+      await tester.tap(accountImportButton);
       await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(TextButton, '확인'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(TextButton, '확인'));
+      await tester.tap(find.widgetWithText(FilledButton, '이 계정 백업 가져오기'));
       await tester.pump();
       await tester.pumpAndSettle();
 
-      expect(backupService.restoreLatestCalled, isTrue);
+      expect(backupService.importChangedPlayerDriveBackupCalled, isTrue);
+    },
+  );
+
+  testWidgets(
+    'player mode blocks backup for unsaved Drive even without remote backup',
+    (WidgetTester tester) async {
+      final optionRepository = _MemoryOptionRepository();
+      final localeService = LocaleService(optionRepository)..load();
+      final settingsService = SettingsService(optionRepository)..load();
+      final backupService = _FakeDriveBackupService(
+        signedIn: true,
+        connectionInfo: const DriveConnectionInfo(
+          email: 'new-player@example.com',
+          displayName: '민수',
+          subjectId: 'subject-new',
+        ),
+        sharedChildDriveLabel: '',
+        sharedChildDriveEmail: '',
+        hasRemotePlayerBackup: false,
+        lastBackupAt: DateTime(2026, 3, 22, 10),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('ko'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: SettingsScreen(
+            localeService: localeService,
+            settingsService: settingsService,
+            optionRepository: optionRepository,
+            driveBackupService: backupService,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.widgetWithText(OutlinedButton, '이 계정 백업 가져오기'),
+        findsOneWidget,
+      );
+      final startEmptyButton = find.widgetWithText(
+        OutlinedButton,
+        '이 계정으로 새로 시작',
+      );
+      expect(startEmptyButton, findsOneWidget);
+      expect(
+        find.widgetWithText(OutlinedButton, '최근 데이터 가져오기'),
+        findsNothing,
+      );
+      expect(
+        find.widgetWithText(OutlinedButton, '데이터 백업하기'),
+        findsNothing,
+      );
+      expect(find.text('매일 자동 백업'), findsNothing);
+      expect(find.text('저장 시 자동 백업'), findsNothing);
+      expect(
+        find.textContaining('Google 계정이 바뀌었어요'),
+        findsOneWidget,
+      );
+
+      await tester.scrollUntilVisible(
+        startEmptyButton,
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(startEmptyButton);
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, '이 계정으로 새로 시작'));
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(
+          backupService.getSavedRecordDriveEmail(), 'new-player@example.com');
     },
   );
 
@@ -1095,8 +1184,16 @@ void main() {
 
       expect(backupService.getSavedRecordDriveEmail(), isEmpty);
       expect(
-        find.widgetWithText(OutlinedButton, '최근 데이터 가져오기'),
+        find.widgetWithText(OutlinedButton, '이 계정 백업 가져오기'),
         findsOneWidget,
+      );
+      expect(
+        find.widgetWithText(OutlinedButton, '이 계정으로 새로 시작'),
+        findsOneWidget,
+      );
+      expect(
+        find.widgetWithText(OutlinedButton, '최근 데이터 가져오기'),
+        findsNothing,
       );
       expect(
         find.widgetWithText(OutlinedButton, '데이터 백업하기'),
