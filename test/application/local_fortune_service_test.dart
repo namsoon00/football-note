@@ -50,7 +50,8 @@ void main() {
     expect(shortLines.any(lines.first.contains), isTrue);
     expect(lines.first, isNot(matches(blockedTerms)));
     expect(lines.first.length, lessThanOrEqualTo(42));
-    expect(lines.last, matches(RegExp(r'^픽: .+ · [1-9]$')));
+    expect(lines.last, matches(RegExp(r'^행운의 숫자와 색: [1-9] · .+$')));
+    expect(lines.last, isNot(contains('픽')));
     expect(lines.last, isNot(contains('오늘 픽은 ')));
     expect(lines.last, isNot(contains('숫자는 ')));
     expect(lines.last, isNot(contains('시간대 ')));

@@ -48,14 +48,17 @@ class FortuneSections {
     return line == '[행운 정보]' ||
         line == '[재미 포인트]' ||
         line == '[컬러와 숫자]' ||
+        line == '[행운의 숫자와 색]' ||
         line == '[픽]' ||
         line == '[Lucky info]' ||
         line == '[Fun points]' ||
         line == '[Color and number]' ||
+        line == '[Lucky number and color]' ||
         line == '[Pick]' ||
         line == '[ラッキー情報]' ||
         line == '[楽しいポイント]' ||
         line == '[カラーと数字]' ||
+        line == '[ラッキーナンバーとカラー]' ||
         line == '[ピック]';
   }
 
@@ -97,9 +100,9 @@ class FortuneSections {
         return const <String>[];
       }
       if (number.isNotEmpty && color.isNotEmpty) {
-        return ['픽: $color · $number'];
+        return ['행운의 숫자와 색: $number · $color'];
       }
-      final text = color.isNotEmpty ? '픽: $color' : '숫자: $number';
+      final text = color.isNotEmpty ? '행운의 색: $color' : '행운의 숫자: $number';
       return [text];
     }
 
@@ -109,9 +112,10 @@ class FortuneSections {
       return const <String>[];
     }
     if (number.isNotEmpty && color.isNotEmpty) {
-      return ['Pick: $color · $number'];
+      return ['Lucky number and color: $number · $color'];
     }
-    final text = color.isNotEmpty ? 'Pick: $color' : 'Number: $number';
+    final text =
+        color.isNotEmpty ? 'Lucky color: $color' : 'Lucky number: $number';
     return [text];
   }
 
@@ -127,21 +131,25 @@ class FortuneSections {
         final color = pickMatch.group(1)?.trim() ?? '';
         final number = pickMatch.group(2)?.trim() ?? '';
         if (color.isNotEmpty && number.isNotEmpty) {
-          return ['픽: $color · $number'];
+          return ['행운의 숫자와 색: $number · $color'];
         }
-        if (color.isNotEmpty) return ['픽: $color'];
+        if (color.isNotEmpty) return ['행운의 색: $color'];
       }
       final numberMatch = RegExp(r'^오늘 숫자는 (.+?)예요$').firstMatch(text);
       if (numberMatch != null) {
         final number = numberMatch.group(1)?.trim() ?? '';
-        if (number.isNotEmpty) return ['숫자: $number'];
+        if (number.isNotEmpty) return ['행운의 숫자: $number'];
       }
       final separator = text.indexOf(':');
       if (separator > 0) {
         final key = text.substring(0, separator).trim();
         final value = text.substring(separator + 1).trim();
-        if (key == '행운 색상' && value.isNotEmpty) return ['픽: $value'];
-        if (key == '행운 숫자' && value.isNotEmpty) return ['숫자: $value'];
+        if (key == '행운 색상' && value.isNotEmpty) {
+          return ['행운의 색: $value'];
+        }
+        if (key == '행운 숫자' && value.isNotEmpty) {
+          return ['행운의 숫자: $value'];
+        }
         if (key.startsWith('행운 ')) return const <String>[];
       }
     }

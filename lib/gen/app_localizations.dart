@@ -11156,7 +11156,7 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneDialogLuckyInfoLabel.
   ///
   /// In en, this message translates to:
-  /// **'Pick'**
+  /// **'Lucky number and color'**
   String get fortuneDialogLuckyInfoLabel;
 
   /// No description provided for @fortuneDialogOverallFortuneCount.
@@ -11174,7 +11174,7 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneDialogLuckyInfoTitle.
   ///
   /// In en, this message translates to:
-  /// **'Pick'**
+  /// **'Lucky number and color'**
   String get fortuneDialogLuckyInfoTitle;
 
   /// No description provided for @fortuneDialogPoolSizeLabel.
@@ -11192,7 +11192,7 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneDialogRecommendedProgramTitle.
   ///
   /// In en, this message translates to:
-  /// **'Next training pick'**
+  /// **'Next training recommendation'**
   String get fortuneDialogRecommendedProgramTitle;
 
   /// No description provided for @fortuneDialogRecommendationTitle.
@@ -11228,7 +11228,7 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneDatabaseSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Myeongli codes, everyday scenes, color picks, and numbers used to build short fortunes.'**
+  /// **'Myeongli codes, everyday scenes, lucky numbers, and lucky colors used to build short fortunes.'**
   String get fortuneDatabaseSubtitle;
 
   /// No description provided for @fortuneDatabaseCloseAction.
@@ -11282,7 +11282,7 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneDatabaseSectionShortLines.
   ///
   /// In en, this message translates to:
-  /// **'Short picks'**
+  /// **'Short recommendations'**
   String get fortuneDatabaseSectionShortLines;
 
   /// No description provided for @fortuneDatabaseSectionDayMoods.
@@ -11416,7 +11416,7 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneShortLines.
   ///
   /// In en, this message translates to:
-  /// **'Read once more before sending.|The first pass can stay safe.|Check the bag zipper before moving.|A sip of water helps the start.|Take the first five minutes slow.|Retied boots make the first step lighter.|Fewer options keep focus longer.|After a miss, the next ball has the answer.|A short reply sent first feels lighter.|Ten seconds of film can show the point.|Scan empty space and the pass lane opens.|Use your voice once and the team moves faster.|One finish photo keeps the day clear.|One quick compliment speeds up the talk.|One line is enough for the record.|Pause three seconds when you rush.|Keep the first touch close for the next move.|Move without the ball and you get it again.|Putting it away now saves time later.|Change posture while waiting and the body loosens.|Eat slow and put the phone down for a bit.|Start with the easiest piece when stuck.|Write the messy choice in two lines.|A short overdue reply is enough.|Screenshot new info and it is easier to find.|Save the line you liked; it will help later.|Stretch after practice and tomorrow feels easier.|Say hello first and the talk opens faster.|Move one beat early when space appears.|Split the routine into ten-minute chunks.|Lower the load if it feels off.|Save the good scene and reuse it later.|Mute one alert and focus gets longer.|Set the next plan five minutes early.|Lift your head before the pass and options grow.|Pick one dribble direction and feet stay cleaner.|Empty the bag before home and tomorrow is easier.|Grab water first during the break.|Basics make mistakes shrink faster.|One check before closing saves time tomorrow.'**
+  /// **'Read once more before sending.|The first pass can stay safe.|Check the bag zipper before moving.|A sip of water helps the start.|Take the first five minutes slow.|Retied boots make the first step lighter.|Fewer options keep focus longer.|After a miss, the next ball has the answer.|A short reply sent first feels lighter.|Ten seconds of film can show the point.|Scan empty space and the pass lane opens.|Use your voice once and the team moves faster.|One finish photo keeps the day clear.|One quick compliment speeds up the talk.|One line is enough for the record.|Pause three seconds when you rush.|Keep the first touch close for the next move.|Move without the ball and you get it again.|Putting it away now saves time later.|Change posture while waiting and the body loosens.|Eat slow and put the phone down for a bit.|Start with the easiest piece when stuck.|Write the messy choice in two lines.|A short overdue reply is enough.|Screenshot new info and it is easier to find.|Save the line you liked; it will help later.|Stretch after practice and tomorrow feels easier.|Say hello first and the talk opens faster.|Move one beat early when space appears.|Split the routine into ten-minute chunks.|Lower the load if it feels off.|Save the good scene and reuse it later.|Mute one alert and focus gets longer.|Set the next plan five minutes early.|Lift your head before the pass and options grow.|Choose one dribble direction and feet stay cleaner.|Empty the bag before home and tomorrow is easier.|Grab water first during the break.|Basics make mistakes shrink faster.|One check before closing saves time tomorrow.'**
   String get fortuneShortLines;
 
   /// No description provided for @fortuneGeneratedDailyLineOne.
@@ -11441,19 +11441,19 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneGeneratedDailyLineThree.
   ///
   /// In en, this message translates to:
-  /// **'Pick: use {nameElement} and {playAdvice}.'**
+  /// **'Recommendation: use {nameElement} and {playAdvice}.'**
   String fortuneGeneratedDailyLineThree(String nameElement, String playAdvice);
 
   /// No description provided for @fortuneGeneratedLuckyInfoHeader.
   ///
   /// In en, this message translates to:
-  /// **'[Pick]'**
+  /// **'[Lucky number and color]'**
   String get fortuneGeneratedLuckyInfoHeader;
 
   /// No description provided for @fortuneGeneratedLuckyInfoLine.
   ///
   /// In en, this message translates to:
-  /// **'Pick: {color} · {number}'**
+  /// **'Lucky number and color: {number} · {color}'**
   String fortuneGeneratedLuckyInfoLine(int number, String color);
 
   /// No description provided for @fortuneRecommendedRecoveryProgram.

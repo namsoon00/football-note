@@ -6215,7 +6215,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get fortuneDialogOverallFortuneLabel => '한 줄';
 
   @override
-  String get fortuneDialogLuckyInfoLabel => '픽';
+  String get fortuneDialogLuckyInfoLabel => '행운의 숫자와 색';
 
   @override
   String fortuneDialogOverallFortuneCount(int count) {
@@ -6228,7 +6228,7 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get fortuneDialogLuckyInfoTitle => '픽';
+  String get fortuneDialogLuckyInfoTitle => '행운의 숫자와 색';
 
   @override
   String get fortuneDialogPoolSizeLabel => '조합 수';
@@ -6239,7 +6239,7 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get fortuneDialogRecommendedProgramTitle => '다음 훈련 픽';
+  String get fortuneDialogRecommendedProgramTitle => '다음 훈련 추천';
 
   @override
   String get fortuneDialogRecommendationTitle => '플레이 한줄';
@@ -6258,7 +6258,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get fortuneDatabaseSubtitle =>
-      '명리 코드와 생활 장면, 컬러·숫자 픽으로 짧은 운세를 만드는 데이터예요.';
+      '명리 코드와 생활 장면, 행운의 숫자와 색으로 짧은 운세를 만드는 데이터예요.';
 
   @override
   String get fortuneDatabaseCloseAction => '닫기';
@@ -6382,11 +6382,11 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get fortuneGeneratedLuckyInfoHeader => '[픽]';
+  String get fortuneGeneratedLuckyInfoHeader => '[행운의 숫자와 색]';
 
   @override
   String fortuneGeneratedLuckyInfoLine(int number, String color) {
-    return '픽: $color · $number';
+    return '행운의 숫자와 색: $number · $color';
   }
 
   @override
