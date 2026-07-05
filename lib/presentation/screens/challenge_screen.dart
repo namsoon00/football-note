@@ -278,7 +278,9 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     if (_mode == _ChallengeScreenMode.detail && selectedProgress != null) {
       return [
         _ChallengeDetailActions(
-          onEdit: () => _showChallengeEdit(selectedProgress),
+          onEdit: _canEditPendingChallenge(selectedProgress)
+              ? () => _showChallengeEdit(selectedProgress)
+              : null,
           onDelete: _canDeleteParentPendingChallenge(selectedProgress)
               ? () => _confirmDeleteParentPendingChallenge(selectedProgress)
               : null,
@@ -356,11 +358,12 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     widgets.add(_ChallengeListHeader(count: progresses.length));
     widgets.add(const SizedBox(height: 12));
     for (final progress in progresses) {
+      final canEdit = _canEditPendingChallenge(progress);
       widgets.add(
         _ChallengeListCard(
           progress: progress,
           templateTitle: _templateTitle(l10n, progress.template),
-          readOnly: false,
+          readOnly: !canEdit,
           onOpen: () => _showChallengeDetail(progress),
           onEdit: () => _showChallengeEdit(progress),
         ),
@@ -410,6 +413,12 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   }
 
   void _showChallengeEdit(ChallengeProgress progress) {
+    if (!_canEditPendingChallenge(progress)) {
+      _showChallengeTopSnackBar(
+        AppLocalizations.of(context)!.challengeEditUnavailableSnack,
+      );
+      return;
+    }
     setState(() {
       _mode = _ChallengeScreenMode.edit;
       _selectedRunId = progress.run.id;
@@ -886,6 +895,19 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     _updateChallengeInFlight = true;
     final l10n = AppLocalizations.of(context)!;
     try {
+      final currentProgress = await _currentProgressForRun(runId);
+      if (!mounted) return;
+      if (currentProgress == null ||
+          !_canEditPendingChallenge(currentProgress)) {
+        setState(() {
+          _mode = currentProgress == null
+              ? _ChallengeScreenMode.list
+              : _ChallengeScreenMode.detail;
+          _selectedRunId = currentProgress?.run.id;
+        });
+        _showChallengeTopSnackBar(l10n.challengeEditUnavailableSnack);
+        return;
+      }
       _playChallengeTapFeedback();
       final updatedRun = await _challengeService.updateRun(
         runId,
@@ -1282,7 +1304,12 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   }
 
   bool _canDeleteParentPendingChallenge(ChallengeProgress progress) {
-    if (!_isParentReadOnlyMode || progress.run.isEnded) return false;
+    if (!_isParentReadOnlyMode) return false;
+    return _canEditPendingChallenge(progress);
+  }
+
+  bool _canEditPendingChallenge(ChallengeProgress progress) {
+    if (progress.run.isEnded) return false;
     if (progress.run.completedRoundNumbers.isNotEmpty) return false;
     return progress.rounds
         .every((round) => !_roundHasAnyMissionProgress(round));
@@ -1294,6 +1321,21 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
         round.liftingMinutes > 0 ||
         round.riceBowls > 0 ||
         round.trainingPrograms.any((program) => program.currentMinutes > 0);
+  }
+
+  Future<ChallengeProgress?> _currentProgressForRun(String runId) async {
+    final trainingEntries = (await _activeChallengeTrainingEntries())
+        .where((entry) => !entry.isMatch)
+        .toList(growable: false);
+    final mealEntries = widget.mealLogService.mergedEntries(
+      directEntries: widget.mealLogService.allEntries(),
+      legacyEntries: trainingEntries,
+    );
+    return _challengeService.activeProgressForRun(
+      runId: runId,
+      trainingEntries: trainingEntries,
+      mealEntries: mealEntries,
+    );
   }
 
   Future<void> _syncParentChallengeBackupIfPossible() async {
@@ -4548,7 +4590,7 @@ class _ChallengeCurrentRoundBadge extends StatelessWidget {
 }
 
 class _ChallengeDetailActions extends StatelessWidget {
-  final VoidCallback onEdit;
+  final VoidCallback? onEdit;
   final VoidCallback? onDelete;
 
   const _ChallengeDetailActions({required this.onEdit, this.onDelete});
@@ -4556,7 +4598,9 @@ class _ChallengeDetailActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final onEdit = this.onEdit;
     final onDelete = this.onDelete;
+    if (onEdit == null && onDelete == null) return const SizedBox.shrink();
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
@@ -4569,12 +4613,13 @@ class _ChallengeDetailActions extends StatelessWidget {
           ),
           const SizedBox(width: 8),
         ],
-        OutlinedButton.icon(
-          key: const ValueKey('challenge-edit-button'),
-          onPressed: onEdit,
-          icon: const Icon(Icons.tune_rounded),
-          label: Text(l10n.challengeEditAction),
-        ),
+        if (onEdit != null)
+          OutlinedButton.icon(
+            key: const ValueKey('challenge-edit-button'),
+            onPressed: onEdit,
+            icon: const Icon(Icons.tune_rounded),
+            label: Text(l10n.challengeEditAction),
+          ),
       ],
     );
   }

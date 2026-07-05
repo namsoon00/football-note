@@ -20214,6 +20214,12 @@ abstract class AppLocalizations {
   /// **'Challenge updated.'**
   String get challengeUpdateSnack;
 
+  /// No description provided for @challengeEditUnavailableSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenges with started records cannot be edited.'**
+  String get challengeEditUnavailableSnack;
+
   /// No description provided for @challengeDeletePendingAction.
   ///
   /// In en, this message translates to:

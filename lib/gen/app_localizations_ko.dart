@@ -11482,6 +11482,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get challengeUpdateSnack => '챌린지를 수정했어요.';
 
   @override
+  String get challengeEditUnavailableSnack => '이미 기록이 시작된 챌린지는 수정할 수 없어요.';
+
+  @override
   String get challengeDeletePendingAction => '삭제';
 
   @override

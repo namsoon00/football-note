@@ -6464,6 +6464,7 @@
   "challengeEditBody": "기간, 진행 간격, 미션 구성을 조정할 수 있어요. 이미 기록한 라운드는 그대로 유지됩니다.",
   "challengeUpdateAction": "수정 저장",
   "challengeUpdateSnack": "챌린지를 수정했어요.",
+  "challengeEditUnavailableSnack": "이미 기록이 시작된 챌린지는 수정할 수 없어요.",
   "challengeDeletePendingAction": "삭제",
   "challengeDeletePendingTitle": "챌린지 삭제",
   "challengeDeletePendingBody": "아직 선수가 기록을 시작하지 않은 챌린지예요. 이 챌린지를 삭제할까요?",

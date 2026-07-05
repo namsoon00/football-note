@@ -11456,6 +11456,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get challengeUpdateSnack => 'チャレンジを更新しました。';
 
   @override
+  String get challengeEditUnavailableSnack => '記録が始まったチャレンジは編集できません。';
+
+  @override
   String get challengeDeletePendingAction => '削除';
 
   @override
