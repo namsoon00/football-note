@@ -404,13 +404,20 @@ class _EntryGateState extends State<_EntryGate> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _welcomeSeen =
         widget.optionRepository.getValue<bool>(_welcomeSeenKey) ?? false;
-    final hasStoredSport = widget.optionRepository.getValue<String>(
-          SportCatalog.currentSportOptionKey,
-        ) !=
-        null;
+    final storedSportId = widget.optionRepository.getValue<String>(
+      SportCatalog.currentSportOptionKey,
+    );
+    final hasStoredSport = storedSportId?.trim().isNotEmpty == true;
     final isSupportMode =
         FamilyAccessService(widget.optionRepository).loadState().isSupportMode;
-    _startupSportSelected = hasStoredSport || isSupportMode;
+    _startupSportSelected = hasStoredSport || isSupportMode || _welcomeSeen;
+    if (!hasStoredSport && _welcomeSeen && !isSupportMode) {
+      unawaited(
+        SportService(widget.optionRepository).setCurrentSportId(
+          SportCatalog.normalizeSportId(widget.sportId),
+        ),
+      );
+    }
   }
 
   @override
