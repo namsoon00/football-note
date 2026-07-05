@@ -80,6 +80,9 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
 
   List<TrainingEntry> _contextEntries = const <TrainingEntry>[];
   bool _saving = false;
+  Timer? _autoSaveTimer;
+  bool _autoSaveInFlight = false;
+  bool _autoSaveQueued = false;
 
   bool get _isCompetitionMatch =>
       _matchKind == MatchCompetitionRecord.kindLeague ||
@@ -87,6 +90,9 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
 
   bool get _isParentMode =>
       FamilyAccessService(widget.optionRepository).loadState().isParentMode;
+
+  bool get _canAutoSaveExistingMatch =>
+      !_isParentMode && widget.editingEntry?.key is int;
 
   @override
   void initState() {
@@ -97,6 +103,7 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
 
   @override
   void dispose() {
+    _autoSaveTimer?.cancel();
     _competitionNameController.dispose();
     _teamController.dispose();
     _opponentController.dispose();
@@ -165,6 +172,43 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
     );
     if (!mounted) return;
     setState(() => _contextEntries = entries);
+  }
+
+  void _updateAndScheduleAutoSave(VoidCallback update) {
+    setState(update);
+    _scheduleAutoSave();
+  }
+
+  void _scheduleAutoSave() {
+    _autoSaveTimer?.cancel();
+    if (!_canAutoSaveExistingMatch || _saving) {
+      return;
+    }
+    if (_autoSaveInFlight) {
+      _autoSaveQueued = true;
+      return;
+    }
+    _autoSaveTimer = Timer(const Duration(milliseconds: 700), () {
+      unawaited(_autoSaveMatch());
+    });
+  }
+
+  Future<void> _autoSaveMatch() async {
+    if (!_canAutoSaveExistingMatch || _saving) return;
+    if (_autoSaveInFlight) {
+      _autoSaveQueued = true;
+      return;
+    }
+    _autoSaveInFlight = true;
+    try {
+      await _saveMatch(closeAfterSave: false);
+    } finally {
+      _autoSaveInFlight = false;
+      if (_autoSaveQueued && mounted) {
+        _autoSaveQueued = false;
+        _scheduleAutoSave();
+      }
+    }
   }
 
   @override
@@ -315,7 +359,7 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
           onSelectionChanged: _saving
               ? null
               : (selection) {
-                  setState(() {
+                  _updateAndScheduleAutoSave(() {
                     _matchKind = selection.first;
                     _selectedCompetitionId = '';
                     _competitionName = '';
@@ -333,7 +377,10 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
           enabled: !_saving,
           maxLength: 40,
           textInputAction: TextInputAction.next,
-          onChanged: (value) => _location = value,
+          onChanged: (value) {
+            _location = value;
+            _scheduleAutoSave();
+          },
           decoration: InputDecoration(
             labelText: l10n.location,
             hintText: l10n.matchLocationHint,
@@ -390,7 +437,7 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
                             sportId: sportId,
                           ).findCompetitionById(value);
                     if (record == null) return;
-                    setState(() => _applyCompetition(record));
+                    _updateAndScheduleAutoSave(() => _applyCompetition(record));
                   },
             decoration: InputDecoration(
               labelText: l10n.matchCompetitionSelectLabel,
@@ -407,6 +454,7 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
           onChanged: (value) {
             _competitionName = value;
             _selectedCompetitionId = '';
+            _scheduleAutoSave();
           },
           decoration: InputDecoration(
             labelText: l10n.matchCompetitionNameLabel,
@@ -433,7 +481,9 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
           onSelectionChanged: _saving
               ? null
               : (selection) {
-                  setState(() => _competitionStatus = selection.first);
+                  _updateAndScheduleAutoSave(
+                    () => _competitionStatus = selection.first,
+                  );
                 },
         ),
         const SizedBox(height: AppSpacing.sm),
@@ -445,7 +495,10 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
             enabled: !_saving,
             maxLength: 24,
             textInputAction: TextInputAction.next,
-            onChanged: (value) => _leagueRound = value,
+            onChanged: (value) {
+              _leagueRound = value;
+              _scheduleAutoSave();
+            },
             decoration: InputDecoration(
               labelText: l10n.matchLeagueRoundLabel,
               hintText: l10n.matchLeagueRoundHint,
@@ -466,7 +519,9 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
                 ? null
                 : (value) {
                     if (value == null) return;
-                    setState(() => _tournamentStage = value);
+                    _updateAndScheduleAutoSave(
+                      () => _tournamentStage = value,
+                    );
                   },
             decoration: InputDecoration(
               labelText: l10n.matchTournamentStageLabel,
@@ -503,7 +558,7 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
                   onDeleted: _saving
                       ? null
                       : () {
-                          setState(() {
+                          _updateAndScheduleAutoSave(() {
                             _teams = _teams
                                 .where((candidate) => candidate != team)
                                 .toList(growable: false);
@@ -570,7 +625,7 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
                 ? null
                 : (value) {
                     if (value == null) return;
-                    setState(() {
+                    _updateAndScheduleAutoSave(() {
                       _opponent = value;
                       _opponentController.text = value;
                     });
@@ -586,7 +641,10 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
             enabled: !_saving,
             maxLength: 40,
             textInputAction: TextInputAction.next,
-            onChanged: (value) => _opponent = value,
+            onChanged: (value) {
+              _opponent = value;
+              _scheduleAutoSave();
+            },
             decoration: InputDecoration(
               labelText: l10n.matchOpponentTeamLabel,
               hintText: l10n.matchOpponentTeamHint,
@@ -629,8 +687,9 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
           showSelectedIcon: false,
           onSelectionChanged: _saving
               ? null
-              : (selection) =>
-                  setState(() => _applyMatchResult(selection.first)),
+              : (selection) => _updateAndScheduleAutoSave(
+                    () => _applyMatchResult(selection.first),
+                  ),
         ),
         const SizedBox(height: AppSpacing.xs),
         _TwoColumn(
@@ -638,12 +697,14 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
             _TouchCounter(
               label: l10n.matchOurScoreLabel,
               value: _ourScore,
-              onChanged: (value) => setState(() => _ourScore = value),
+              onChanged: (value) =>
+                  _updateAndScheduleAutoSave(() => _ourScore = value),
             ),
             _TouchCounter(
               label: l10n.matchOpponentScoreLabel,
               value: _opponentScore,
-              onChanged: (value) => setState(() => _opponentScore = value),
+              onChanged: (value) =>
+                  _updateAndScheduleAutoSave(() => _opponentScore = value),
             ),
           ],
         ),
@@ -662,7 +723,9 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
                 ? null
                 : (value) {
                     if (value == null) return;
-                    setState(() => _tournamentOutcome = value);
+                    _updateAndScheduleAutoSave(
+                      () => _tournamentOutcome = value,
+                    );
                   },
             decoration: InputDecoration(
               labelText: l10n.matchTournamentOutcomeLabel,
@@ -680,7 +743,7 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
                 ? _leaguePoints
                 : _tournamentWins,
             onChanged: (value) {
-              setState(() {
+              _updateAndScheduleAutoSave(() {
                 if (_matchKind == MatchCompetitionRecord.kindLeague) {
                   _leaguePoints = value;
                 } else {
@@ -710,22 +773,26 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
             _TouchCounter(
               label: labels.primary.label,
               value: _playerGoals,
-              onChanged: (value) => setState(() => _playerGoals = value),
+              onChanged: (value) =>
+                  _updateAndScheduleAutoSave(() => _playerGoals = value),
             ),
             _TouchCounter(
               label: labels.secondary.label,
               value: _playerAssists,
-              onChanged: (value) => setState(() => _playerAssists = value),
+              onChanged: (value) =>
+                  _updateAndScheduleAutoSave(() => _playerAssists = value),
             ),
             _TouchCounter(
               label: labels.tertiary.label,
               value: _shotsOnTarget,
-              onChanged: (value) => setState(() => _shotsOnTarget = value),
+              onChanged: (value) =>
+                  _updateAndScheduleAutoSave(() => _shotsOnTarget = value),
             ),
             _TouchCounter(
               label: labels.quaternary.label,
               value: _ballsWon,
-              onChanged: (value) => setState(() => _ballsWon = value),
+              onChanged: (value) =>
+                  _updateAndScheduleAutoSave(() => _ballsWon = value),
             ),
           ],
         ),
@@ -733,7 +800,8 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
         _TouchCounter(
           label: l10n.matchMinutesPlayedLabel,
           value: _minutesPlayed,
-          onChanged: (value) => setState(() => _minutesPlayed = value),
+          onChanged: (value) =>
+              _updateAndScheduleAutoSave(() => _minutesPlayed = value),
         ),
         const SizedBox(height: AppSpacing.xs),
         TextField(
@@ -741,7 +809,10 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
           enabled: !_saving,
           maxLength: 60,
           textInputAction: TextInputAction.done,
-          onChanged: (value) => _memo = value,
+          onChanged: (value) {
+            _memo = value;
+            _scheduleAutoSave();
+          },
           decoration: InputDecoration(
             labelText: l10n.matchNoteOptionalLabel,
             border: const OutlineInputBorder(),
@@ -787,7 +858,7 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
       lastDate: DateTime(2032),
     );
     if (picked == null || !mounted) return;
-    setState(() {
+    _updateAndScheduleAutoSave(() {
       _matchDay = DateTime(picked.year, picked.month, picked.day);
     });
   }
@@ -827,6 +898,7 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
       _teams = nextTeams;
       _teamController.clear();
     });
+    _scheduleAutoSave();
   }
 
   List<String> _opponentOptions() {
@@ -863,24 +935,28 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
     }
   }
 
-  Future<void> _saveMatch() async {
+  Future<void> _saveMatch({bool closeAfterSave = true}) async {
     if (_saving) return;
     final l10n = AppLocalizations.of(context)!;
     final opponent = _opponent.trim();
     final competitionName = _competitionName.trim();
     final teams = MatchCompetitionService.normalizeTeams(_teams);
     if (_isCompetitionMatch && competitionName.isEmpty) {
-      AppFeedback.showMessage(
-        context,
-        text: l10n.matchCompetitionNameRequired,
-      );
+      if (closeAfterSave) {
+        AppFeedback.showMessage(
+          context,
+          text: l10n.matchCompetitionNameRequired,
+        );
+      }
       return;
     }
     if (opponent.isEmpty && teams.isEmpty) {
-      AppFeedback.showMessage(
-        context,
-        text: l10n.matchOpponentTeamHint,
-      );
+      if (closeAfterSave) {
+        AppFeedback.showMessage(
+          context,
+          text: l10n.matchOpponentTeamHint,
+        );
+      }
       return;
     }
     final savedOpponent = opponent.isNotEmpty ? opponent : teams.first;
@@ -936,7 +1012,13 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
       sportId: sportId,
     );
 
-    setState(() => _saving = true);
+    if (!closeAfterSave && previousEntry?.key is! int) {
+      return;
+    }
+    if (closeAfterSave) {
+      _autoSaveTimer?.cancel();
+      setState(() => _saving = true);
+    }
     try {
       if (_isCompetitionMatch) {
         final competitionService = MatchCompetitionService(
@@ -972,8 +1054,10 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
       if (previousEntry?.key is int) {
         await widget.trainingService.update(previousEntry!.key as int, saved);
       } else {
+        if (!closeAfterSave) return;
         await widget.trainingService.add(saved);
       }
+      if (!closeAfterSave) return;
       final award = await PlayerLevelService(
         widget.optionRepository,
         sportId: saved.sportId,
@@ -1012,7 +1096,7 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
       }
       if (mounted) Navigator.of(context).pop(true);
     } finally {
-      if (mounted) setState(() => _saving = false);
+      if (closeAfterSave && mounted) setState(() => _saving = false);
     }
   }
 }

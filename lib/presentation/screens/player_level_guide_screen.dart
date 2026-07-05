@@ -221,12 +221,25 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
       context: context,
       builder: (dialogContext) => _RewardNameDialog(
         initialValue: status.customRewardName,
-        l10n: AppLocalizations.of(context)!,
+        l10n: AppLocalizations.of(dialogContext)!,
+        onAutoSave: (value) => _saveRewardName(
+          status,
+          value,
+          showFeedback: false,
+        ),
       ),
     );
-    if (saved == null) return;
+    if (saved == null || !mounted) return;
+    await _saveRewardName(status, saved, showFeedback: true);
+  }
+
+  Future<void> _saveRewardName(
+    PlayerLevelRewardStatus status,
+    String saved, {
+    required bool showFeedback,
+  }) async {
     await _levelService.setCustomRewardName(status.reward.level, saved);
-    if (!mounted || !context.mounted) return;
+    if (!mounted) return;
     final l10n = AppLocalizations.of(context)!;
     final familyState = FamilyAccessService(
       widget.optionRepository,
@@ -237,8 +250,8 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
     } else {
       unawaited(_syncSharedBackupIfPossible());
     }
-    if (!context.mounted) return;
     setState(() {});
+    if (!showFeedback) return;
     final baseMessage = saved.trim().isEmpty
         ? l10n.levelGuideRewardCleared
         : l10n.levelGuideRewardSaved;
@@ -425,26 +438,75 @@ class _LevelGuideSummaryCard extends StatelessWidget {
 class _RewardNameDialog extends StatefulWidget {
   final String initialValue;
   final AppLocalizations l10n;
+  final Future<void> Function(String value) onAutoSave;
 
-  const _RewardNameDialog({required this.initialValue, required this.l10n});
+  const _RewardNameDialog({
+    required this.initialValue,
+    required this.l10n,
+    required this.onAutoSave,
+  });
 
   @override
   State<_RewardNameDialog> createState() => _RewardNameDialogState();
 }
 
 class _RewardNameDialogState extends State<_RewardNameDialog> {
+  static const Duration _autoSaveDelay = Duration(milliseconds: 700);
+
   late final TextEditingController _controller;
+  Timer? _autoSaveTimer;
+  bool _autoSaveInFlight = false;
+  bool _autoSaveQueued = false;
+  late String _lastSavedValue;
 
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController(text: widget.initialValue);
+    _lastSavedValue = widget.initialValue.trim();
+    _controller = TextEditingController(text: widget.initialValue)
+      ..addListener(_scheduleAutoSave);
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _autoSaveTimer?.cancel();
+    _controller
+      ..removeListener(_scheduleAutoSave)
+      ..dispose();
     super.dispose();
+  }
+
+  void _scheduleAutoSave() {
+    _autoSaveTimer?.cancel();
+    final next = _controller.text.trim();
+    if (next == _lastSavedValue) return;
+    if (_autoSaveInFlight) {
+      _autoSaveQueued = true;
+      return;
+    }
+    _autoSaveTimer = Timer(_autoSaveDelay, () {
+      unawaited(_runAutoSave());
+    });
+  }
+
+  Future<void> _runAutoSave() async {
+    final next = _controller.text.trim();
+    if (next == _lastSavedValue) return;
+    if (_autoSaveInFlight) {
+      _autoSaveQueued = true;
+      return;
+    }
+    _autoSaveInFlight = true;
+    try {
+      await widget.onAutoSave(next);
+      _lastSavedValue = next;
+    } finally {
+      _autoSaveInFlight = false;
+      if (_autoSaveQueued && mounted) {
+        _autoSaveQueued = false;
+        _scheduleAutoSave();
+      }
+    }
   }
 
   @override

@@ -72,7 +72,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byTooltip('경험치 히스토리'));
+    await tester.tap(find.byTooltip('경험치 히스토리').first);
     await tester.pumpAndSettle();
 
     expect(find.text('경험치 히스토리'), findsWidgets);
@@ -197,6 +197,36 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('동기화 중...'), findsNothing);
+  });
+
+  testWidgets('reward name auto saves while dialog stays open', (tester) async {
+    final repository = _MemoryOptionRepository()
+      ..seed(FamilyAccessService.currentRoleLocalKey, 'parent')
+      ..seed(PlayerLevelService.totalXpKey, 120);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: PlayerLevelGuideScreen(
+          currentLevel: 1,
+          optionRepository: repository,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await _tapVisibleRewardEdit(tester);
+    await tester.enterText(find.byType(TextField).first, '새 축구공');
+    await tester.pump(const Duration(milliseconds: 800));
+    await tester.pump();
+
+    expect(
+      PlayerLevelService(repository).loadCustomRewardNames().values,
+      contains('새 축구공'),
+    );
+    expect(find.text('레벨 선물 입력'), findsOneWidget);
   });
 }
 
