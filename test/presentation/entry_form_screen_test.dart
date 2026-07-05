@@ -488,16 +488,16 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    await tester.tap(find.text('오늘의 무드'));
+    await tester.tap(find.text('오늘의 한 줄'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    expect(find.text('오늘의 무드'), findsWidgets);
-    expect(find.text('생일과 이름에서 뽑은 오늘의 플레이 무드예요.'), findsOneWidget);
+    expect(find.text('오늘의 한 줄'), findsWidgets);
+    expect(find.text('생일과 이름에서 뽑은 오늘의 플레이 무드예요.'), findsNothing);
     expect(find.text('무드 보기'), findsNothing);
     expect(find.text('무드 조합'), findsNothing);
     expect(
-      find.textContaining('오늘 픽은 에메랄드예요'),
+      find.textContaining('픽: 에메랄드'),
       findsOneWidget,
     );
     expect(find.textContaining('시간대 오전 후반'), findsNothing);
@@ -509,7 +509,7 @@ void main() {
     await tester.tap(find.text('전체 데이터 보기'));
     await tester.pumpAndSettle();
 
-    expect(find.text('전체 무드 데이터베이스'), findsOneWidget);
+    expect(find.text('전체 운세 데이터베이스'), findsOneWidget);
     expect(find.text('명리 코드'), findsOneWidget);
   });
 
@@ -738,12 +738,12 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('오늘의 무드'));
+    await tester.tap(find.text('오늘의 한 줄'));
     await tester.pumpAndSettle();
 
-    expect(find.text('오늘의 무드'), findsWidgets);
-    expect(find.text('생일과 이름에서 뽑은 오늘의 플레이 무드예요.'), findsOneWidget);
-    expect(find.textContaining('오늘 픽은 에메랄드예요'), findsOneWidget);
+    expect(find.text('오늘의 한 줄'), findsWidgets);
+    expect(find.text('생일과 이름에서 뽑은 오늘의 플레이 무드예요.'), findsNothing);
+    expect(find.textContaining('픽: 에메랄드'), findsOneWidget);
   });
 
   testWidgets('parent mode keeps training sketch action visible', (

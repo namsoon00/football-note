@@ -48,12 +48,15 @@ class FortuneSections {
     return line == '[행운 정보]' ||
         line == '[재미 포인트]' ||
         line == '[컬러와 숫자]' ||
+        line == '[픽]' ||
         line == '[Lucky info]' ||
         line == '[Fun points]' ||
         line == '[Color and number]' ||
+        line == '[Pick]' ||
         line == '[ラッキー情報]' ||
         line == '[楽しいポイント]' ||
-        line == '[カラーと数字]';
+        line == '[カラーと数字]' ||
+        line == '[ピック]';
   }
 
   static bool _isLuckyInfoLine(String line) {
@@ -67,10 +70,13 @@ class FortuneSections {
   }
 
   static List<String> _compactLuckyInfoLines(List<String> lines) {
-    if (lines.length <= 1) return lines;
+    if (lines.isEmpty) return lines;
     final isKo = lines.any(
       (line) => line.startsWith('행운 ') || line.startsWith('오늘 '),
     );
+    if (lines.length == 1) {
+      return _compactSingleLuckyInfoLine(lines.single, isKo: isKo);
+    }
     final values = <String, String>{};
     for (final line in lines) {
       final separator = line.indexOf(':');
@@ -91,10 +97,10 @@ class FortuneSections {
         return const <String>[];
       }
       if (number.isNotEmpty && color.isNotEmpty) {
-        return [_ensureSentence('오늘 픽은 $color, 숫자는 $number예요')];
+        return ['픽: $color · $number'];
       }
-      final text = color.isNotEmpty ? '오늘 픽은 $color예요' : '오늘 숫자는 $number예요';
-      return [_ensureSentence(text)];
+      final text = color.isNotEmpty ? '픽: $color' : '숫자: $number';
+      return [text];
     }
 
     final number = _valueFor(values, const ['Lucky number']);
@@ -103,11 +109,43 @@ class FortuneSections {
       return const <String>[];
     }
     if (number.isNotEmpty && color.isNotEmpty) {
-      return [_ensureSentence("Today's pick: $color, number $number")];
+      return ['Pick: $color · $number'];
     }
-    final text =
-        color.isNotEmpty ? "Today's pick: $color" : "Today's number: $number";
-    return [_ensureSentence(text)];
+    final text = color.isNotEmpty ? 'Pick: $color' : 'Number: $number';
+    return [text];
+  }
+
+  static List<String> _compactSingleLuckyInfoLine(
+    String line, {
+    required bool isKo,
+  }) {
+    final text = _stripTerminalPunctuation(line);
+    if (isKo) {
+      final pickMatch =
+          RegExp(r'^오늘 픽은 (.+?)(?:, 숫자는 (.+?))?예요$').firstMatch(text);
+      if (pickMatch != null) {
+        final color = pickMatch.group(1)?.trim() ?? '';
+        final number = pickMatch.group(2)?.trim() ?? '';
+        if (color.isNotEmpty && number.isNotEmpty) {
+          return ['픽: $color · $number'];
+        }
+        if (color.isNotEmpty) return ['픽: $color'];
+      }
+      final numberMatch = RegExp(r'^오늘 숫자는 (.+?)예요$').firstMatch(text);
+      if (numberMatch != null) {
+        final number = numberMatch.group(1)?.trim() ?? '';
+        if (number.isNotEmpty) return ['숫자: $number'];
+      }
+      final separator = text.indexOf(':');
+      if (separator > 0) {
+        final key = text.substring(0, separator).trim();
+        final value = text.substring(separator + 1).trim();
+        if (key == '행운 색상' && value.isNotEmpty) return ['픽: $value'];
+        if (key == '행운 숫자' && value.isNotEmpty) return ['숫자: $value'];
+        if (key.startsWith('행운 ')) return const <String>[];
+      }
+    }
+    return [_singleSentenceFallback(line, isKo: isKo)];
   }
 
   static String _valueFor(Map<String, String> values, List<String> keys) {

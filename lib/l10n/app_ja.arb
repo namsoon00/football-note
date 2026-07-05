@@ -3188,7 +3188,7 @@
   "diaryStickerTraining": "トレーニング",
   "diaryStickerMatch": "マッチ",
   "diaryStickerPlan": "プラン",
-  "diaryStickerFortune": "今日のムード",
+  "diaryStickerFortune": "今日のひとこと",
   "diaryStickerBoard": "ボード",
   "diaryStickerNews": "ニュース",
   "diaryStickerMeal": "丼もの",
@@ -3457,9 +3457,9 @@
       }
     }
   },
-  "diaryFortunePinSummary": "今日の記録に残ったムードを日記ステッカーとして貼れます。",
-  "diaryFortuneStorySentence": "今日のムードで残したい場面や応援の一言を書いてみる。",
-  "diaryFortuneNoteTitle": "今日のムードメモ",
+  "diaryFortunePinSummary": "今日のひとことを日記ステッカーとして貼れます。",
+  "diaryFortuneStorySentence": "今日のひとことから残したい場面を書きます。",
+  "diaryFortuneNoteTitle": "ひとこと運勢メモ",
   "diaryMatchTodoTitleNoOpponent": "試合",
   "diaryMatchTodoTitleWithOpponent": "試合 · {opponent}戦",
   "@diaryMatchTodoTitleWithOpponent": {
@@ -3801,11 +3801,11 @@
   "homeRiceBowlFull": "ボウルいっぱい",
   "homeRiceBowlHalf": "半丼",
   "homeRiceBowlEmpty": "スキップされました",
-  "fortuneDialogTitle": "今日のムード",
-  "fortuneDialogSubtitle": "生年月日と名前から選んだ、今日のプレームードです。",
-  "fortuneDialogOverviewTitle": "ムードを見る",
-  "fortuneDialogOverallFortuneLabel": "今日のムード",
-  "fortuneDialogLuckyInfoLabel": "カラーと数字",
+  "fortuneDialogTitle": "今日のひとこと",
+  "fortuneDialogSubtitle": "",
+  "fortuneDialogOverviewTitle": "ひとことを見る",
+  "fortuneDialogOverallFortuneLabel": "ひとこと",
+  "fortuneDialogLuckyInfoLabel": "ピック",
   "fortuneDialogOverallFortuneCount": "{count} ライン",
   "@fortuneDialogOverallFortuneCount": {
     "placeholders": {
@@ -3822,8 +3822,8 @@
       }
     }
   },
-  "fortuneDialogLuckyInfoTitle": "カラーと数字",
-  "fortuneDialogPoolSizeLabel": "ムードの組み合わせ",
+  "fortuneDialogLuckyInfoTitle": "ピック",
+  "fortuneDialogPoolSizeLabel": "組み合わせ",
   "fortuneDialogPoolSizeCount": "{count} ケース",
   "@fortuneDialogPoolSizeCount": {
     "placeholders": {
@@ -3837,8 +3837,8 @@
   "fortuneDialogEncouragement": "今日のハイライトを一つだけ短く残しましょう。",
   "fortuneDialogAction": "OK",
   "fortuneDatabaseViewAction": "全データを見る",
-  "fortuneDatabaseTitle": "ムードデータベース全体",
-  "fortuneDatabaseSubtitle": "命理コード、日常の場面、カラーと数字のピックから今日のムードを作るデータです。",
+  "fortuneDatabaseTitle": "運勢データベース全体",
+  "fortuneDatabaseSubtitle": "命理コード、日常の場面、カラーと数字のピックから短い運勢を作るデータです。",
   "fortuneDatabaseCloseAction": "閉じる",
   "fortuneDatabaseSectionBirthCodes": "命理コード",
   "fortuneDatabaseSectionHiddenStems": "蔵干",
@@ -3847,9 +3847,10 @@
   "fortuneDatabaseSectionBranchRelations": "地支の合冲刑害破",
   "fortuneDatabaseSectionSymbolicStars": "神殺キーワード",
   "fortuneDatabaseSectionElementColors": "五行カラー",
-  "fortuneDatabaseSectionDayMoods": "今日の流れの理由",
+  "fortuneDatabaseSectionShortLines": "短いピック",
+  "fortuneDatabaseSectionDayMoods": "ひとことの材料",
   "fortuneDatabaseSectionDailyEvents": "そこから続きそうなこと",
-  "fortuneDatabaseSectionDailyOutcomes": "今日のムード文",
+  "fortuneDatabaseSectionDailyOutcomes": "短い運勢文",
   "fortuneDatabaseSectionActionCues": "軽く試すこと",
   "fortuneDatabaseSectionNameRhythms": "名前リズム",
   "fortuneDatabaseSectionAdvice": "今日のひとこと",
@@ -3861,7 +3862,7 @@
   "fortuneDatabaseSectionSceneBases": "場所と場面",
   "fortuneDatabaseSectionCueOpenings": "ルーティンの始まり",
   "fortuneDatabaseSectionCueActions": "小さなルーティン",
-  "entryFortuneOpenFailed": "ムード画面を開けませんでした。",
+  "entryFortuneOpenFailed": "運勢画面を開けませんでした。",
   "profileBirthTimeTitle": "出生時刻",
   "profileBirthTimeSelectDateFirst": "生年月日を先に選択",
   "fortuneGeneratedUnknownPlayerName": "選手",
@@ -3897,7 +3898,8 @@
       }
     }
   },
-  "fortuneGeneratedDailyLineOne": "{name}さんの今日のムード: {elementFlow}",
+  "fortuneShortLines": "送る前に一度読みます。|最初のパスは安全に通します。|バッグのファスナーを確認します。|水を一口飲んで始めます。|最初の5分はゆっくり入ります。|出る前に靴ひもを結び直します。|やることを一つ減らします。|ミスしたら次のボールを見ます。|返事は短く先に送ります。|練習動画は10秒だけ見ます。|空いたスペースを先に見ます。|一度だけ大きな声を出します。|終わる前に写真を一枚残します。|仲間を一つ先にほめます。|今日の記録は一行で十分です。|急ぐ時は3秒止まって選びます。|ファーストタッチは足元に置きます。|ボールなしの動きを見ます。|片づける物は今戻します。|待つ間に姿勢を変えます。|ごはんはゆっくり、スマホは少し置きます。|詰まったら一番簡単なことから始めます。|迷ったら紙に二行で書きます。|小さな約束は今日中に終えます。|新しい情報は先にスクショします。|気に入った文は保存します。|練習後はストレッチから始めます。|最初のあいさつは先にします。|スペースが空いたら一拍早く動きます。|ルーティンは10分ずつ区切ります。|きつければ強度を下げます。|良い場面はメモに残します。|通知を一つ切って集中します。|次の予定は5分早く入れます。|パス前に一度顔を上げます。|ドリブルは最初の方向だけ決めます。|帰る前にバッグを空にします。|休み時間は水から取ります。|基本は最後まで持ちます。|終える前にチェックを一つ付けます。",
+  "fortuneGeneratedDailyLineOne": "{name}さん、{elementFlow}",
   "@fortuneGeneratedDailyLineOne": {
     "placeholders": {
       "name": {
@@ -3916,7 +3918,7 @@
       }
     }
   },
-  "fortuneGeneratedLinkedDailyLine": "{name}さんの今日のムード: {elementFlow} / {fortuneTheme}",
+  "fortuneGeneratedLinkedDailyLine": "{name}さん、{elementFlow} / {fortuneTheme}",
   "@fortuneGeneratedLinkedDailyLine": {
     "placeholders": {
       "name": {
@@ -3930,7 +3932,7 @@
       }
     }
   },
-  "fortuneGeneratedDailyLineThree": "ひとことミッション: {nameElement}らしく{playAdvice}。",
+  "fortuneGeneratedDailyLineThree": "ピック: {nameElement}らしく{playAdvice}。",
   "@fortuneGeneratedDailyLineThree": {
     "placeholders": {
       "nameElement": {
@@ -3941,8 +3943,8 @@
       }
     }
   },
-  "fortuneGeneratedLuckyInfoHeader": "[カラーと数字]",
-  "fortuneGeneratedLuckyInfoLine": "今日のピックは{color}、数字は{number}です。",
+  "fortuneGeneratedLuckyInfoHeader": "[ピック]",
+  "fortuneGeneratedLuckyInfoLine": "ピック: {color} · {number}",
   "@fortuneGeneratedLuckyInfoLine": {
     "placeholders": {
       "number": {

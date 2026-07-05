@@ -3188,7 +3188,7 @@
   "diaryStickerTraining": "훈련",
   "diaryStickerMatch": "시합",
   "diaryStickerPlan": "계획",
-  "diaryStickerFortune": "오늘의 무드",
+  "diaryStickerFortune": "오늘의 한 줄",
   "diaryStickerBoard": "훈련보드",
   "diaryStickerNews": "소식",
   "diaryStickerMeal": "공기밥",
@@ -3458,8 +3458,8 @@
     }
   },
   "diaryFortunePinSummary": "오늘 기록에 남은 무드를 다이어리 스티커로 붙여둘 수 있어요.",
-  "diaryFortuneStorySentence": "오늘 무드에서 기억하고 싶은 장면이나 응원 한 줄을 적어 본다.",
-  "diaryFortuneNoteTitle": "오늘 무드 메모",
+  "diaryFortuneStorySentence": "오늘 한 줄에서 기억할 장면을 짧게 남긴다.",
+  "diaryFortuneNoteTitle": "한 줄 운세 메모",
   "diaryMatchTodoTitleNoOpponent": "시합",
   "diaryMatchTodoTitleWithOpponent": "시합 · {opponent}전",
   "@diaryMatchTodoTitleWithOpponent": {
@@ -3801,11 +3801,11 @@
   "homeRiceBowlFull": "한 공기",
   "homeRiceBowlHalf": "반 공기",
   "homeRiceBowlEmpty": "안 먹음",
-  "fortuneDialogTitle": "오늘의 무드",
-  "fortuneDialogSubtitle": "생일과 이름에서 뽑은 오늘의 플레이 무드예요.",
-  "fortuneDialogOverviewTitle": "무드 보기",
-  "fortuneDialogOverallFortuneLabel": "오늘 무드",
-  "fortuneDialogLuckyInfoLabel": "컬러와 숫자",
+  "fortuneDialogTitle": "오늘의 한 줄",
+  "fortuneDialogSubtitle": "",
+  "fortuneDialogOverviewTitle": "한 줄 보기",
+  "fortuneDialogOverallFortuneLabel": "한 줄",
+  "fortuneDialogLuckyInfoLabel": "픽",
   "fortuneDialogOverallFortuneCount": "{count}줄",
   "@fortuneDialogOverallFortuneCount": {
     "placeholders": {
@@ -3822,8 +3822,8 @@
       }
     }
   },
-  "fortuneDialogLuckyInfoTitle": "컬러와 숫자",
-  "fortuneDialogPoolSizeLabel": "무드 조합",
+  "fortuneDialogLuckyInfoTitle": "픽",
+  "fortuneDialogPoolSizeLabel": "조합 수",
   "fortuneDialogPoolSizeCount": "{count}개",
   "@fortuneDialogPoolSizeCount": {
     "placeholders": {
@@ -3837,8 +3837,8 @@
   "fortuneDialogEncouragement": "오늘 하이라이트 하나만 짧게 남겨봐요.",
   "fortuneDialogAction": "좋아요",
   "fortuneDatabaseViewAction": "전체 데이터 보기",
-  "fortuneDatabaseTitle": "전체 무드 데이터베이스",
-  "fortuneDatabaseSubtitle": "명리 코드와 생활 장면, 컬러·숫자 픽을 모아 오늘 무드를 만드는 데이터예요.",
+  "fortuneDatabaseTitle": "전체 운세 데이터베이스",
+  "fortuneDatabaseSubtitle": "명리 코드와 생활 장면, 컬러·숫자 픽으로 짧은 운세를 만드는 데이터예요.",
   "fortuneDatabaseCloseAction": "닫기",
   "fortuneDatabaseSectionBirthCodes": "명리 코드",
   "fortuneDatabaseSectionHiddenStems": "지장간",
@@ -3847,9 +3847,10 @@
   "fortuneDatabaseSectionBranchRelations": "지지 합충형해파",
   "fortuneDatabaseSectionSymbolicStars": "신살 키워드",
   "fortuneDatabaseSectionElementColors": "오행 컬러",
-  "fortuneDatabaseSectionDayMoods": "오늘 흐름의 이유",
+  "fortuneDatabaseSectionShortLines": "짧은 추천안",
+  "fortuneDatabaseSectionDayMoods": "한 줄 재료",
   "fortuneDatabaseSectionDailyEvents": "이어질 수 있는 일",
-  "fortuneDatabaseSectionDailyOutcomes": "오늘 무드 문장",
+  "fortuneDatabaseSectionDailyOutcomes": "짧은 운세 문장",
   "fortuneDatabaseSectionActionCues": "가볍게 해볼 일",
   "fortuneDatabaseSectionNameRhythms": "이름 리듬",
   "fortuneDatabaseSectionAdvice": "오늘의 한마디",
@@ -3861,7 +3862,7 @@
   "fortuneDatabaseSectionSceneBases": "장소와 장면",
   "fortuneDatabaseSectionCueOpenings": "루틴 시작점",
   "fortuneDatabaseSectionCueActions": "작은 루틴",
-  "entryFortuneOpenFailed": "무드 화면을 여는 중 문제가 생겼어요.",
+  "entryFortuneOpenFailed": "운세 화면을 여는 중 문제가 생겼어요.",
   "profileBirthTimeTitle": "출생 시간",
   "profileBirthTimeSelectDateFirst": "생년월일 선택 후 입력",
   "fortuneGeneratedUnknownPlayerName": "플레이어",
@@ -3897,7 +3898,8 @@
       }
     }
   },
-  "fortuneGeneratedDailyLineOne": "{name}님 오늘 무드: {elementFlow}",
+  "fortuneShortLines": "보내기 전 한 번 읽어요.|첫 패스는 안전하게 꽂아요.|가방 지퍼부터 확인해요.|물 한 모금 마시고 시작해요.|첫 5분은 천천히 올려요.|신발끈 다시 묶고 나가요.|할 일 하나만 줄여요.|실수하면 바로 다음 볼 봐요.|답장은 짧게 먼저 보내요.|연습 영상은 10초만 봐요.|빈 공간을 먼저 봐요.|목소리 한 번 크게 내요.|마무리 전에 사진 한 장 남겨요.|친구 칭찬 하나 먼저 해요.|오늘 기록은 한 줄이면 돼요.|급하면 3초 쉬고 골라요.|첫 터치는 발밑에 붙여요.|공 없는 움직임을 챙겨요.|정리할 건 지금 바로 치워요.|기다릴 땐 자세부터 바꿔요.|밥은 천천히, 폰은 잠깐 내려요.|막히면 제일 쉬운 것부터 해요.|헷갈리면 종이에 두 줄로 써요.|작은 약속은 오늘 안에 끝내요.|새 정보는 캡처부터 해요.|마음에 든 문장은 저장해요.|연습 끝나면 스트레칭부터 해요.|첫 인사는 먼저 던져요.|공간 보이면 한 박자 빨리 움직여요.|루틴은 10분씩 끊어 가요.|불편하면 강도부터 낮춰요.|좋은 장면은 메모장에 남겨요.|알림 하나 끄고 집중해요.|다음 약속은 5분 일찍 잡아요.|패스 전 고개 한 번 들어요.|드리블은 첫 방향만 정해요.|집 가기 전 가방을 비워요.|쉬는 시간엔 물부터 챙겨요.|기본기는 마지막까지 챙겨요.|끝내기 전 체크 표시 하나 남겨요.",
+  "fortuneGeneratedDailyLineOne": "{name}님, {elementFlow}",
   "@fortuneGeneratedDailyLineOne": {
     "placeholders": {
       "name": {
@@ -3916,7 +3918,7 @@
       }
     }
   },
-  "fortuneGeneratedLinkedDailyLine": "{name}님 오늘 무드: {elementFlow} / {fortuneTheme}",
+  "fortuneGeneratedLinkedDailyLine": "{name}님, {elementFlow} / {fortuneTheme}",
   "@fortuneGeneratedLinkedDailyLine": {
     "placeholders": {
       "name": {
@@ -3930,7 +3932,7 @@
       }
     }
   },
-  "fortuneGeneratedDailyLineThree": "한 줄 미션: {nameElement}답게 {playAdvice}.",
+  "fortuneGeneratedDailyLineThree": "추천: {nameElement}처럼 {playAdvice}.",
   "@fortuneGeneratedDailyLineThree": {
     "placeholders": {
       "nameElement": {
@@ -3941,8 +3943,8 @@
       }
     }
   },
-  "fortuneGeneratedLuckyInfoHeader": "[컬러와 숫자]",
-  "fortuneGeneratedLuckyInfoLine": "오늘 픽은 {color}, 숫자는 {number}예요.",
+  "fortuneGeneratedLuckyInfoHeader": "[픽]",
+  "fortuneGeneratedLuckyInfoLine": "픽: {color} · {number}",
   "@fortuneGeneratedLuckyInfoLine": {
     "placeholders": {
       "number": {

@@ -3188,7 +3188,7 @@
   "diaryStickerTraining": "Training",
   "diaryStickerMatch": "Match",
   "diaryStickerPlan": "Plan",
-  "diaryStickerFortune": "Daily mood",
+  "diaryStickerFortune": "Today's line",
   "diaryStickerBoard": "Board",
   "diaryStickerNews": "News",
   "diaryStickerMeal": "Rice bowl",
@@ -3457,9 +3457,9 @@
       }
     }
   },
-  "diaryFortunePinSummary": "Pin today's mood as a diary sticker.",
-  "diaryFortuneStorySentence": "Write the scene or encouragement you want to keep from today's mood.",
-  "diaryFortuneNoteTitle": "Today mood note",
+  "diaryFortunePinSummary": "Pin today's line as a diary sticker.",
+  "diaryFortuneStorySentence": "Write the scene you want to keep from today's line.",
+  "diaryFortuneNoteTitle": "Fortune line note",
   "diaryMatchTodoTitleNoOpponent": "Match",
   "diaryMatchTodoTitleWithOpponent": "Match · vs {opponent}",
   "@diaryMatchTodoTitleWithOpponent": {
@@ -3801,11 +3801,11 @@
   "homeRiceBowlFull": "Full bowl",
   "homeRiceBowlHalf": "Half bowl",
   "homeRiceBowlEmpty": "Skipped",
-  "fortuneDialogTitle": "Today's mood",
-  "fortuneDialogSubtitle": "A play mood picked from birth date and name.",
-  "fortuneDialogOverviewTitle": "Mood view",
-  "fortuneDialogOverallFortuneLabel": "Today mood",
-  "fortuneDialogLuckyInfoLabel": "Color and number",
+  "fortuneDialogTitle": "Today's line",
+  "fortuneDialogSubtitle": "",
+  "fortuneDialogOverviewTitle": "Line view",
+  "fortuneDialogOverallFortuneLabel": "Line",
+  "fortuneDialogLuckyInfoLabel": "Pick",
   "fortuneDialogOverallFortuneCount": "{count} lines",
   "@fortuneDialogOverallFortuneCount": {
     "placeholders": {
@@ -3822,8 +3822,8 @@
       }
     }
   },
-  "fortuneDialogLuckyInfoTitle": "Color and number",
-  "fortuneDialogPoolSizeLabel": "Mood combinations",
+  "fortuneDialogLuckyInfoTitle": "Pick",
+  "fortuneDialogPoolSizeLabel": "Combinations",
   "fortuneDialogPoolSizeCount": "{count} cases",
   "@fortuneDialogPoolSizeCount": {
     "placeholders": {
@@ -3837,8 +3837,8 @@
   "fortuneDialogEncouragement": "Save one quick highlight from today.",
   "fortuneDialogAction": "Got it",
   "fortuneDatabaseViewAction": "View full database",
-  "fortuneDatabaseTitle": "Full Mood Database",
-  "fortuneDatabaseSubtitle": "Myeongli codes, everyday scenes, color picks, and numbers used to build today's mood.",
+  "fortuneDatabaseTitle": "Full Fortune Database",
+  "fortuneDatabaseSubtitle": "Myeongli codes, everyday scenes, color picks, and numbers used to build short fortunes.",
   "fortuneDatabaseCloseAction": "Close",
   "fortuneDatabaseSectionBirthCodes": "Myeongli codes",
   "fortuneDatabaseSectionHiddenStems": "Hidden stems",
@@ -3847,9 +3847,10 @@
   "fortuneDatabaseSectionBranchRelations": "Branch relations",
   "fortuneDatabaseSectionSymbolicStars": "Symbolic stars",
   "fortuneDatabaseSectionElementColors": "Element colors",
-  "fortuneDatabaseSectionDayMoods": "Why today feels this way",
+  "fortuneDatabaseSectionShortLines": "Short picks",
+  "fortuneDatabaseSectionDayMoods": "Line ingredients",
   "fortuneDatabaseSectionDailyEvents": "What may follow",
-  "fortuneDatabaseSectionDailyOutcomes": "Daily mood lines",
+  "fortuneDatabaseSectionDailyOutcomes": "Short fortune lines",
   "fortuneDatabaseSectionActionCues": "Small things to try",
   "fortuneDatabaseSectionNameRhythms": "Name rhythms",
   "fortuneDatabaseSectionAdvice": "Daily notes",
@@ -3861,7 +3862,7 @@
   "fortuneDatabaseSectionSceneBases": "Places and scenes",
   "fortuneDatabaseSectionCueOpenings": "Routine starts",
   "fortuneDatabaseSectionCueActions": "Small routines",
-  "entryFortuneOpenFailed": "Failed to open mood.",
+  "entryFortuneOpenFailed": "Failed to open fortune.",
   "profileBirthTimeTitle": "Birth time",
   "profileBirthTimeSelectDateFirst": "Select birth date first",
   "fortuneGeneratedUnknownPlayerName": "Player",
@@ -3897,7 +3898,8 @@
       }
     }
   },
-  "fortuneGeneratedDailyLineOne": "{name}, today's mood: {elementFlow}",
+  "fortuneShortLines": "Read once before sending.|Play the first pass safe.|Check your bag zipper.|Drink water before you start.|Take the first five minutes slow.|Retie your boots before you go.|Drop one task from the list.|Miss it, then watch the next ball.|Send the short reply first.|Watch only ten seconds of the clip.|Scan the empty space first.|Use your voice once.|Save one photo before wrapping up.|Give one teammate a compliment first.|One line is enough for today's note.|If you rush, pause three seconds.|Keep the first touch under your feet.|Track the run without the ball.|Put it away right now.|Change posture while you wait.|Eat slow and put the phone down.|Start with the easiest thing.|Write the messy choice in two lines.|Finish the small promise today.|Screenshot the new info first.|Save the sentence you liked.|Stretch before leaving practice.|Say hello first.|Move one beat early when space opens.|Break the routine into ten minutes.|Lower the load if it feels off.|Drop the good scene into notes.|Mute one alert and focus.|Set the next plan five minutes early.|Lift your head before the pass.|Pick only the first dribble direction.|Empty the bag before going home.|Grab water during the break.|Keep the basics to the end.|Leave one check mark before closing.",
+  "fortuneGeneratedDailyLineOne": "{name}, {elementFlow}",
   "@fortuneGeneratedDailyLineOne": {
     "placeholders": {
       "name": {
@@ -3916,7 +3918,7 @@
       }
     }
   },
-  "fortuneGeneratedLinkedDailyLine": "{name}, today's mood: {elementFlow} / {fortuneTheme}",
+  "fortuneGeneratedLinkedDailyLine": "{name}, {elementFlow} / {fortuneTheme}",
   "@fortuneGeneratedLinkedDailyLine": {
     "placeholders": {
       "name": {
@@ -3930,7 +3932,7 @@
       }
     }
   },
-  "fortuneGeneratedDailyLineThree": "One-line mission: play it like a {nameElement} and {playAdvice}.",
+  "fortuneGeneratedDailyLineThree": "Pick: use {nameElement} and {playAdvice}.",
   "@fortuneGeneratedDailyLineThree": {
     "placeholders": {
       "nameElement": {
@@ -3941,8 +3943,8 @@
       }
     }
   },
-  "fortuneGeneratedLuckyInfoHeader": "[Color and number]",
-  "fortuneGeneratedLuckyInfoLine": "Today's pick: {color}, number {number}.",
+  "fortuneGeneratedLuckyInfoHeader": "[Pick]",
+  "fortuneGeneratedLuckyInfoLine": "Pick: {color} · {number}",
   "@fortuneGeneratedLuckyInfoLine": {
     "placeholders": {
       "number": {

@@ -5462,7 +5462,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get diaryStickerPlan => '계획';
 
   @override
-  String get diaryStickerFortune => '오늘의 무드';
+  String get diaryStickerFortune => '오늘의 한 줄';
 
   @override
   String get diaryStickerBoard => '훈련보드';
@@ -5688,10 +5688,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get diaryFortunePinSummary => '오늘 기록에 남은 무드를 다이어리 스티커로 붙여둘 수 있어요.';
 
   @override
-  String get diaryFortuneStorySentence => '오늘 무드에서 기억하고 싶은 장면이나 응원 한 줄을 적어 본다.';
+  String get diaryFortuneStorySentence => '오늘 한 줄에서 기억할 장면을 짧게 남긴다.';
 
   @override
-  String get diaryFortuneNoteTitle => '오늘 무드 메모';
+  String get diaryFortuneNoteTitle => '한 줄 운세 메모';
 
   @override
   String get diaryMatchTodoTitleNoOpponent => '시합';
@@ -6203,19 +6203,19 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homeRiceBowlEmpty => '안 먹음';
 
   @override
-  String get fortuneDialogTitle => '오늘의 무드';
+  String get fortuneDialogTitle => '오늘의 한 줄';
 
   @override
-  String get fortuneDialogSubtitle => '생일과 이름에서 뽑은 오늘의 플레이 무드예요.';
+  String get fortuneDialogSubtitle => '';
 
   @override
-  String get fortuneDialogOverviewTitle => '무드 보기';
+  String get fortuneDialogOverviewTitle => '한 줄 보기';
 
   @override
-  String get fortuneDialogOverallFortuneLabel => '오늘 무드';
+  String get fortuneDialogOverallFortuneLabel => '한 줄';
 
   @override
-  String get fortuneDialogLuckyInfoLabel => '컬러와 숫자';
+  String get fortuneDialogLuckyInfoLabel => '픽';
 
   @override
   String fortuneDialogOverallFortuneCount(int count) {
@@ -6228,10 +6228,10 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get fortuneDialogLuckyInfoTitle => '컬러와 숫자';
+  String get fortuneDialogLuckyInfoTitle => '픽';
 
   @override
-  String get fortuneDialogPoolSizeLabel => '무드 조합';
+  String get fortuneDialogPoolSizeLabel => '조합 수';
 
   @override
   String fortuneDialogPoolSizeCount(String count) {
@@ -6254,11 +6254,11 @@ class AppLocalizationsKo extends AppLocalizations {
   String get fortuneDatabaseViewAction => '전체 데이터 보기';
 
   @override
-  String get fortuneDatabaseTitle => '전체 무드 데이터베이스';
+  String get fortuneDatabaseTitle => '전체 운세 데이터베이스';
 
   @override
   String get fortuneDatabaseSubtitle =>
-      '명리 코드와 생활 장면, 컬러·숫자 픽을 모아 오늘 무드를 만드는 데이터예요.';
+      '명리 코드와 생활 장면, 컬러·숫자 픽으로 짧은 운세를 만드는 데이터예요.';
 
   @override
   String get fortuneDatabaseCloseAction => '닫기';
@@ -6285,13 +6285,16 @@ class AppLocalizationsKo extends AppLocalizations {
   String get fortuneDatabaseSectionElementColors => '오행 컬러';
 
   @override
-  String get fortuneDatabaseSectionDayMoods => '오늘 흐름의 이유';
+  String get fortuneDatabaseSectionShortLines => '짧은 추천안';
+
+  @override
+  String get fortuneDatabaseSectionDayMoods => '한 줄 재료';
 
   @override
   String get fortuneDatabaseSectionDailyEvents => '이어질 수 있는 일';
 
   @override
-  String get fortuneDatabaseSectionDailyOutcomes => '오늘 무드 문장';
+  String get fortuneDatabaseSectionDailyOutcomes => '짧은 운세 문장';
 
   @override
   String get fortuneDatabaseSectionActionCues => '가볍게 해볼 일';
@@ -6327,7 +6330,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get fortuneDatabaseSectionCueActions => '작은 루틴';
 
   @override
-  String get entryFortuneOpenFailed => '무드 화면을 여는 중 문제가 생겼어요.';
+  String get entryFortuneOpenFailed => '운세 화면을 여는 중 문제가 생겼어요.';
 
   @override
   String get profileBirthTimeTitle => '출생 시간';
@@ -6354,8 +6357,12 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get fortuneShortLines =>
+      '보내기 전 한 번 읽어요.|첫 패스는 안전하게 꽂아요.|가방 지퍼부터 확인해요.|물 한 모금 마시고 시작해요.|첫 5분은 천천히 올려요.|신발끈 다시 묶고 나가요.|할 일 하나만 줄여요.|실수하면 바로 다음 볼 봐요.|답장은 짧게 먼저 보내요.|연습 영상은 10초만 봐요.|빈 공간을 먼저 봐요.|목소리 한 번 크게 내요.|마무리 전에 사진 한 장 남겨요.|친구 칭찬 하나 먼저 해요.|오늘 기록은 한 줄이면 돼요.|급하면 3초 쉬고 골라요.|첫 터치는 발밑에 붙여요.|공 없는 움직임을 챙겨요.|정리할 건 지금 바로 치워요.|기다릴 땐 자세부터 바꿔요.|밥은 천천히, 폰은 잠깐 내려요.|막히면 제일 쉬운 것부터 해요.|헷갈리면 종이에 두 줄로 써요.|작은 약속은 오늘 안에 끝내요.|새 정보는 캡처부터 해요.|마음에 든 문장은 저장해요.|연습 끝나면 스트레칭부터 해요.|첫 인사는 먼저 던져요.|공간 보이면 한 박자 빨리 움직여요.|루틴은 10분씩 끊어 가요.|불편하면 강도부터 낮춰요.|좋은 장면은 메모장에 남겨요.|알림 하나 끄고 집중해요.|다음 약속은 5분 일찍 잡아요.|패스 전 고개 한 번 들어요.|드리블은 첫 방향만 정해요.|집 가기 전 가방을 비워요.|쉬는 시간엔 물부터 챙겨요.|기본기는 마지막까지 챙겨요.|끝내기 전 체크 표시 하나 남겨요.';
+
+  @override
   String fortuneGeneratedDailyLineOne(String name, String elementFlow) {
-    return '$name님 오늘 무드: $elementFlow';
+    return '$name님, $elementFlow';
   }
 
   @override
@@ -6366,20 +6373,20 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String fortuneGeneratedLinkedDailyLine(
       String name, String elementFlow, String fortuneTheme) {
-    return '$name님 오늘 무드: $elementFlow / $fortuneTheme';
+    return '$name님, $elementFlow / $fortuneTheme';
   }
 
   @override
   String fortuneGeneratedDailyLineThree(String nameElement, String playAdvice) {
-    return '한 줄 미션: $nameElement답게 $playAdvice.';
+    return '추천: $nameElement처럼 $playAdvice.';
   }
 
   @override
-  String get fortuneGeneratedLuckyInfoHeader => '[컬러와 숫자]';
+  String get fortuneGeneratedLuckyInfoHeader => '[픽]';
 
   @override
   String fortuneGeneratedLuckyInfoLine(int number, String color) {
-    return '오늘 픽은 $color, 숫자는 $number예요.';
+    return '픽: $color · $number';
   }
 
   @override
