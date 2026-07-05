@@ -3805,7 +3805,7 @@
   "fortuneDialogSubtitle": "",
   "fortuneDialogOverviewTitle": "ひとことを見る",
   "fortuneDialogOverallFortuneLabel": "ひとこと",
-  "fortuneDialogLuckyInfoLabel": "ピック",
+  "fortuneDialogLuckyInfoLabel": "ラッキーナンバーとカラー",
   "fortuneDialogOverallFortuneCount": "{count} ライン",
   "@fortuneDialogOverallFortuneCount": {
     "placeholders": {
@@ -3822,7 +3822,7 @@
       }
     }
   },
-  "fortuneDialogLuckyInfoTitle": "ピック",
+  "fortuneDialogLuckyInfoTitle": "ラッキーナンバーとカラー",
   "fortuneDialogPoolSizeLabel": "組み合わせ",
   "fortuneDialogPoolSizeCount": "{count} ケース",
   "@fortuneDialogPoolSizeCount": {
@@ -3832,13 +3832,13 @@
       }
     }
   },
-  "fortuneDialogRecommendedProgramTitle": "次の練習ピック",
+  "fortuneDialogRecommendedProgramTitle": "次の練習おすすめ",
   "fortuneDialogRecommendationTitle": "プレーひとこと",
   "fortuneDialogEncouragement": "今日のハイライトを一つだけ短く残しましょう。",
   "fortuneDialogAction": "OK",
   "fortuneDatabaseViewAction": "全データを見る",
   "fortuneDatabaseTitle": "運勢データベース全体",
-  "fortuneDatabaseSubtitle": "命理コード、日常の場面、カラーと数字のピックから短い運勢を作るデータです。",
+  "fortuneDatabaseSubtitle": "命理コード、日常の場面、ラッキーナンバーとカラーから短い運勢を作るデータです。",
   "fortuneDatabaseCloseAction": "閉じる",
   "fortuneDatabaseSectionBirthCodes": "命理コード",
   "fortuneDatabaseSectionHiddenStems": "蔵干",
@@ -3847,7 +3847,7 @@
   "fortuneDatabaseSectionBranchRelations": "地支の合冲刑害破",
   "fortuneDatabaseSectionSymbolicStars": "神殺キーワード",
   "fortuneDatabaseSectionElementColors": "五行カラー",
-  "fortuneDatabaseSectionShortLines": "短いピック",
+  "fortuneDatabaseSectionShortLines": "短いおすすめ",
   "fortuneDatabaseSectionDayMoods": "ひとことの材料",
   "fortuneDatabaseSectionDailyEvents": "そこから続きそうなこと",
   "fortuneDatabaseSectionDailyOutcomes": "短い運勢文",
@@ -3932,7 +3932,7 @@
       }
     }
   },
-  "fortuneGeneratedDailyLineThree": "ピック: {nameElement}らしく{playAdvice}。",
+  "fortuneGeneratedDailyLineThree": "おすすめ: {nameElement}らしく{playAdvice}。",
   "@fortuneGeneratedDailyLineThree": {
     "placeholders": {
       "nameElement": {
@@ -3943,8 +3943,8 @@
       }
     }
   },
-  "fortuneGeneratedLuckyInfoHeader": "[ピック]",
-  "fortuneGeneratedLuckyInfoLine": "ピック: {color} · {number}",
+  "fortuneGeneratedLuckyInfoHeader": "[ラッキーナンバーとカラー]",
+  "fortuneGeneratedLuckyInfoLine": "ラッキーナンバーとカラー: {number} · {color}",
   "@fortuneGeneratedLuckyInfoLine": {
     "placeholders": {
       "number": {

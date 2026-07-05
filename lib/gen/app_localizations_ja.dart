@@ -6213,7 +6213,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get fortuneDialogOverallFortuneLabel => 'ひとこと';
 
   @override
-  String get fortuneDialogLuckyInfoLabel => 'ピック';
+  String get fortuneDialogLuckyInfoLabel => 'ラッキーナンバーとカラー';
 
   @override
   String fortuneDialogOverallFortuneCount(int count) {
@@ -6226,7 +6226,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get fortuneDialogLuckyInfoTitle => 'ピック';
+  String get fortuneDialogLuckyInfoTitle => 'ラッキーナンバーとカラー';
 
   @override
   String get fortuneDialogPoolSizeLabel => '組み合わせ';
@@ -6237,7 +6237,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get fortuneDialogRecommendedProgramTitle => '次の練習ピック';
+  String get fortuneDialogRecommendedProgramTitle => '次の練習おすすめ';
 
   @override
   String get fortuneDialogRecommendationTitle => 'プレーひとこと';
@@ -6255,7 +6255,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get fortuneDatabaseTitle => '運勢データベース全体';
 
   @override
-  String get fortuneDatabaseSubtitle => '命理コード、日常の場面、カラーと数字のピックから短い運勢を作るデータです。';
+  String get fortuneDatabaseSubtitle =>
+      '命理コード、日常の場面、ラッキーナンバーとカラーから短い運勢を作るデータです。';
 
   @override
   String get fortuneDatabaseCloseAction => '閉じる';
@@ -6282,7 +6283,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get fortuneDatabaseSectionElementColors => '五行カラー';
 
   @override
-  String get fortuneDatabaseSectionShortLines => '短いピック';
+  String get fortuneDatabaseSectionShortLines => '短いおすすめ';
 
   @override
   String get fortuneDatabaseSectionDayMoods => 'ひとことの材料';
@@ -6375,15 +6376,15 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String fortuneGeneratedDailyLineThree(String nameElement, String playAdvice) {
-    return 'ピック: $nameElementらしく$playAdvice。';
+    return 'おすすめ: $nameElementらしく$playAdvice。';
   }
 
   @override
-  String get fortuneGeneratedLuckyInfoHeader => '[ピック]';
+  String get fortuneGeneratedLuckyInfoHeader => '[ラッキーナンバーとカラー]';
 
   @override
   String fortuneGeneratedLuckyInfoLine(int number, String color) {
-    return 'ピック: $color · $number';
+    return 'ラッキーナンバーとカラー: $number · $color';
   }
 
   @override

@@ -3805,7 +3805,7 @@
   "fortuneDialogSubtitle": "",
   "fortuneDialogOverviewTitle": "한 줄 보기",
   "fortuneDialogOverallFortuneLabel": "한 줄",
-  "fortuneDialogLuckyInfoLabel": "픽",
+  "fortuneDialogLuckyInfoLabel": "행운의 숫자와 색",
   "fortuneDialogOverallFortuneCount": "{count}줄",
   "@fortuneDialogOverallFortuneCount": {
     "placeholders": {
@@ -3822,7 +3822,7 @@
       }
     }
   },
-  "fortuneDialogLuckyInfoTitle": "픽",
+  "fortuneDialogLuckyInfoTitle": "행운의 숫자와 색",
   "fortuneDialogPoolSizeLabel": "조합 수",
   "fortuneDialogPoolSizeCount": "{count}개",
   "@fortuneDialogPoolSizeCount": {
@@ -3832,13 +3832,13 @@
       }
     }
   },
-  "fortuneDialogRecommendedProgramTitle": "다음 훈련 픽",
+  "fortuneDialogRecommendedProgramTitle": "다음 훈련 추천",
   "fortuneDialogRecommendationTitle": "플레이 한줄",
   "fortuneDialogEncouragement": "오늘 하이라이트 하나만 짧게 남겨봐요.",
   "fortuneDialogAction": "좋아요",
   "fortuneDatabaseViewAction": "전체 데이터 보기",
   "fortuneDatabaseTitle": "전체 운세 데이터베이스",
-  "fortuneDatabaseSubtitle": "명리 코드와 생활 장면, 컬러·숫자 픽으로 짧은 운세를 만드는 데이터예요.",
+  "fortuneDatabaseSubtitle": "명리 코드와 생활 장면, 행운의 숫자와 색으로 짧은 운세를 만드는 데이터예요.",
   "fortuneDatabaseCloseAction": "닫기",
   "fortuneDatabaseSectionBirthCodes": "명리 코드",
   "fortuneDatabaseSectionHiddenStems": "지장간",
@@ -3943,8 +3943,8 @@
       }
     }
   },
-  "fortuneGeneratedLuckyInfoHeader": "[픽]",
-  "fortuneGeneratedLuckyInfoLine": "픽: {color} · {number}",
+  "fortuneGeneratedLuckyInfoHeader": "[행운의 숫자와 색]",
+  "fortuneGeneratedLuckyInfoLine": "행운의 숫자와 색: {number} · {color}",
   "@fortuneGeneratedLuckyInfoLine": {
     "placeholders": {
       "number": {

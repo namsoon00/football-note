@@ -13,7 +13,7 @@ void main() {
     expect(sections.bodyLines, hasLength(1));
     expect(
       sections.bodyLines.single,
-      '픽: 에메랄드',
+      '행운의 색: 에메랄드',
     );
   });
 }

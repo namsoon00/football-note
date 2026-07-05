@@ -6384,7 +6384,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fortuneDialogOverallFortuneLabel => 'Line';
 
   @override
-  String get fortuneDialogLuckyInfoLabel => 'Pick';
+  String get fortuneDialogLuckyInfoLabel => 'Lucky number and color';
 
   @override
   String fortuneDialogOverallFortuneCount(int count) {
@@ -6397,7 +6397,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get fortuneDialogLuckyInfoTitle => 'Pick';
+  String get fortuneDialogLuckyInfoTitle => 'Lucky number and color';
 
   @override
   String get fortuneDialogPoolSizeLabel => 'Combinations';
@@ -6408,7 +6408,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get fortuneDialogRecommendedProgramTitle => 'Next training pick';
+  String get fortuneDialogRecommendedProgramTitle =>
+      'Next training recommendation';
 
   @override
   String get fortuneDialogRecommendationTitle => 'Play line';
@@ -6428,7 +6429,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fortuneDatabaseSubtitle =>
-      'Myeongli codes, everyday scenes, color picks, and numbers used to build short fortunes.';
+      'Myeongli codes, everyday scenes, lucky numbers, and lucky colors used to build short fortunes.';
 
   @override
   String get fortuneDatabaseCloseAction => 'Close';
@@ -6455,7 +6456,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fortuneDatabaseSectionElementColors => 'Element colors';
 
   @override
-  String get fortuneDatabaseSectionShortLines => 'Short picks';
+  String get fortuneDatabaseSectionShortLines => 'Short recommendations';
 
   @override
   String get fortuneDatabaseSectionDayMoods => 'Line ingredients';
@@ -6528,7 +6529,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fortuneShortLines =>
-      'Read once more before sending.|The first pass can stay safe.|Check the bag zipper before moving.|A sip of water helps the start.|Take the first five minutes slow.|Retied boots make the first step lighter.|Fewer options keep focus longer.|After a miss, the next ball has the answer.|A short reply sent first feels lighter.|Ten seconds of film can show the point.|Scan empty space and the pass lane opens.|Use your voice once and the team moves faster.|One finish photo keeps the day clear.|One quick compliment speeds up the talk.|One line is enough for the record.|Pause three seconds when you rush.|Keep the first touch close for the next move.|Move without the ball and you get it again.|Putting it away now saves time later.|Change posture while waiting and the body loosens.|Eat slow and put the phone down for a bit.|Start with the easiest piece when stuck.|Write the messy choice in two lines.|A short overdue reply is enough.|Screenshot new info and it is easier to find.|Save the line you liked; it will help later.|Stretch after practice and tomorrow feels easier.|Say hello first and the talk opens faster.|Move one beat early when space appears.|Split the routine into ten-minute chunks.|Lower the load if it feels off.|Save the good scene and reuse it later.|Mute one alert and focus gets longer.|Set the next plan five minutes early.|Lift your head before the pass and options grow.|Pick one dribble direction and feet stay cleaner.|Empty the bag before home and tomorrow is easier.|Grab water first during the break.|Basics make mistakes shrink faster.|One check before closing saves time tomorrow.';
+      'Read once more before sending.|The first pass can stay safe.|Check the bag zipper before moving.|A sip of water helps the start.|Take the first five minutes slow.|Retied boots make the first step lighter.|Fewer options keep focus longer.|After a miss, the next ball has the answer.|A short reply sent first feels lighter.|Ten seconds of film can show the point.|Scan empty space and the pass lane opens.|Use your voice once and the team moves faster.|One finish photo keeps the day clear.|One quick compliment speeds up the talk.|One line is enough for the record.|Pause three seconds when you rush.|Keep the first touch close for the next move.|Move without the ball and you get it again.|Putting it away now saves time later.|Change posture while waiting and the body loosens.|Eat slow and put the phone down for a bit.|Start with the easiest piece when stuck.|Write the messy choice in two lines.|A short overdue reply is enough.|Screenshot new info and it is easier to find.|Save the line you liked; it will help later.|Stretch after practice and tomorrow feels easier.|Say hello first and the talk opens faster.|Move one beat early when space appears.|Split the routine into ten-minute chunks.|Lower the load if it feels off.|Save the good scene and reuse it later.|Mute one alert and focus gets longer.|Set the next plan five minutes early.|Lift your head before the pass and options grow.|Choose one dribble direction and feet stay cleaner.|Empty the bag before home and tomorrow is easier.|Grab water first during the break.|Basics make mistakes shrink faster.|One check before closing saves time tomorrow.';
 
   @override
   String fortuneGeneratedDailyLineOne(String name, String elementFlow) {
@@ -6548,15 +6549,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String fortuneGeneratedDailyLineThree(String nameElement, String playAdvice) {
-    return 'Pick: use $nameElement and $playAdvice.';
+    return 'Recommendation: use $nameElement and $playAdvice.';
   }
 
   @override
-  String get fortuneGeneratedLuckyInfoHeader => '[Pick]';
+  String get fortuneGeneratedLuckyInfoHeader => '[Lucky number and color]';
 
   @override
   String fortuneGeneratedLuckyInfoLine(int number, String color) {
-    return 'Pick: $color · $number';
+    return 'Lucky number and color: $number · $color';
   }
 
   @override
