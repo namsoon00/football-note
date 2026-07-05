@@ -44,6 +44,8 @@ class DriveBackupService implements BackupRepository {
     FirebaseAuth? firebaseAuth,
     BackupAssetFileStore? backupAssetFileStore,
     Future<DriveConnectionInfo?> Function()? driveConnectionLoader,
+    Future<drive.DriveApi> Function({required bool requireInteractive})?
+        driveApiLoader,
     String? webClientId,
   })  : _googleSignIn = googleSignIn ??
             GoogleSignIn(
@@ -53,7 +55,8 @@ class DriveBackupService implements BackupRepository {
         _firebaseAuth = firebaseAuth ?? _safeFirebaseAuth(),
         _backupAssetFileStore =
             backupAssetFileStore ?? createBackupAssetFileStore(),
-        _driveConnectionLoader = driveConnectionLoader {
+        _driveConnectionLoader = driveConnectionLoader,
+        _driveApiLoader = driveApiLoader {
     _bindDriveAccountStateChanges();
   }
 
@@ -63,6 +66,8 @@ class DriveBackupService implements BackupRepository {
   final FirebaseAuth? _firebaseAuth;
   final BackupAssetFileStore _backupAssetFileStore;
   final Future<DriveConnectionInfo?> Function()? _driveConnectionLoader;
+  final Future<drive.DriveApi> Function({required bool requireInteractive})?
+      _driveApiLoader;
   final StreamController<void> _driveAccountStateController =
       StreamController<void>.broadcast();
   final StreamController<void> _dataChangeController =
@@ -567,8 +572,10 @@ class DriveBackupService implements BackupRepository {
       _throwIfChangedPlayerDriveConnection();
       final driveApi = await _driveApi(requireInteractive: kIsWeb);
       await _syncConnectedDriveAccountCache();
+      await _throwIfPlayerRemoteBackupNeedsImport(driveApi);
       await _prepareConnectedDriveDataForCurrentRole(
         throwOnChangedPlayerDrive: true,
+        rememberNewPlayerConnection: true,
       );
       await _backupWithApi(driveApi);
     } catch (e, st) {
@@ -582,8 +589,10 @@ class DriveBackupService implements BackupRepository {
       _throwIfChangedPlayerDriveConnection();
       final retriedApi = await _driveApi(requireInteractive: false);
       await _syncConnectedDriveAccountCache();
+      await _throwIfPlayerRemoteBackupNeedsImport(retriedApi);
       await _prepareConnectedDriveDataForCurrentRole(
         throwOnChangedPlayerDrive: true,
+        rememberNewPlayerConnection: true,
       );
       await _backupWithApi(retriedApi);
     }
@@ -616,8 +625,12 @@ class DriveBackupService implements BackupRepository {
         }
         final driveApi = await _driveApi(requireInteractive: false);
         await _syncConnectedDriveAccountCache();
-        final switchedAccount =
-            await _prepareConnectedDriveDataForCurrentRole();
+        if (await _playerRemoteBackupNeedsImport(driveApi)) {
+          return false;
+        }
+        final switchedAccount = await _prepareConnectedDriveDataForCurrentRole(
+          rememberNewPlayerConnection: true,
+        );
         if (switchedAccount) {
           return false;
         }
@@ -648,7 +661,12 @@ class DriveBackupService implements BackupRepository {
       if (hasChangedPlayerDriveConnection()) {
         return false;
       }
-      final switchedAccount = await _prepareConnectedDriveDataForCurrentRole();
+      if (await _playerRemoteBackupNeedsImport(driveApi)) {
+        return false;
+      }
+      final switchedAccount = await _prepareConnectedDriveDataForCurrentRole(
+        rememberNewPlayerConnection: true,
+      );
       if (switchedAccount) {
         return false;
       }
@@ -937,6 +955,10 @@ class DriveBackupService implements BackupRepository {
   }
 
   Future<drive.DriveApi> _driveApi({required bool requireInteractive}) async {
+    final driveApiLoader = _driveApiLoader;
+    if (driveApiLoader != null) {
+      return driveApiLoader(requireInteractive: requireInteractive);
+    }
     if (kIsWeb) {
       final accessToken = await _ensureWebAccessToken(
         requireInteractive: requireInteractive,
@@ -1563,6 +1585,10 @@ class DriveBackupService implements BackupRepository {
 
   Future<bool> _hasRemoteBackupFile() async {
     final driveApi = await _driveApi(requireInteractive: false);
+    return _hasRemoteBackupFileWithApi(driveApi);
+  }
+
+  Future<bool> _hasRemoteBackupFileWithApi(drive.DriveApi driveApi) async {
     final folderId = await _findFolderId(driveApi);
     if (folderId == null) {
       return false;
@@ -1809,12 +1835,21 @@ class DriveBackupService implements BackupRepository {
 
   Future<bool> _prepareConnectedDriveDataForCurrentRole({
     bool throwOnChangedPlayerDrive = false,
+    bool rememberNewPlayerConnection = false,
   }) async {
     if (_familyService.loadState().currentRole != FamilyRole.child) {
       return false;
     }
     final current = _loadCachedDriveConnectionInfo();
     if (current == null || current.email.trim().isEmpty) {
+      return false;
+    }
+    final saved = _loadSavedRecordDriveConnectionInfo();
+    if (saved == null || saved.isEmpty) {
+      if (rememberNewPlayerConnection) {
+        await rememberRecordDriveConnection();
+        await _syncSharedChildDriveMetadataIfNeeded();
+      }
       return false;
     }
     if (!hasChangedPlayerDriveConnection()) {
@@ -1826,6 +1861,31 @@ class DriveBackupService implements BackupRepository {
       throw StateError(changedPlayerDriveConnectionErrorCode);
     }
     return true;
+  }
+
+  Future<bool> _playerRemoteBackupNeedsImport(
+    drive.DriveApi driveApi,
+  ) async {
+    if (_familyService.loadState().currentRole != FamilyRole.child) {
+      return false;
+    }
+    final current = _loadCachedDriveConnectionInfo();
+    final saved = _loadSavedRecordDriveConnectionInfo();
+    if (current == null ||
+        current.isEmpty ||
+        saved != null && !saved.isEmpty ||
+        hasChangedPlayerDriveConnection()) {
+      return false;
+    }
+    return _hasRemoteBackupFileWithApi(driveApi);
+  }
+
+  Future<void> _throwIfPlayerRemoteBackupNeedsImport(
+    drive.DriveApi driveApi,
+  ) async {
+    if (await _playerRemoteBackupNeedsImport(driveApi)) {
+      throw StateError(changedPlayerDriveConnectionErrorCode);
+    }
   }
 
   void _throwIfChangedPlayerDriveConnection() {

@@ -715,6 +715,74 @@ void main() {
     expect(backupService.restoreLatestCalled, isTrue);
   });
 
+  testWidgets(
+    'player mode hides backup until remote backup is imported for unsaved Drive',
+    (WidgetTester tester) async {
+      final optionRepository = _MemoryOptionRepository();
+      final localeService = LocaleService(optionRepository)..load();
+      final settingsService = SettingsService(optionRepository)..load();
+      final backupService = _FakeDriveBackupService(
+        signedIn: true,
+        connectionInfo: const DriveConnectionInfo(
+          email: 'new-player@example.com',
+          displayName: '민수',
+          subjectId: 'subject-new',
+        ),
+        sharedChildDriveLabel: '',
+        sharedChildDriveEmail: '',
+        hasRemotePlayerBackup: true,
+        lastBackupAt: DateTime(2026, 3, 22, 10),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('ko'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: SettingsScreen(
+            localeService: localeService,
+            settingsService: settingsService,
+            optionRepository: optionRepository,
+            driveBackupService: backupService,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final latestRestoreButton = find.widgetWithText(
+        OutlinedButton,
+        '최근 데이터 가져오기',
+      );
+      expect(latestRestoreButton, findsOneWidget);
+      expect(
+        find.widgetWithText(OutlinedButton, '데이터 백업하기'),
+        findsNothing,
+      );
+      expect(find.text('매일 자동 백업'), findsNothing);
+      expect(find.text('저장 시 자동 백업'), findsNothing);
+      expect(
+        find.textContaining('Google 계정이 바뀌었어요'),
+        findsOneWidget,
+      );
+
+      await tester.scrollUntilVisible(
+        latestRestoreButton,
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(latestRestoreButton);
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(TextButton, '확인'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(TextButton, '확인'));
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(backupService.restoreLatestCalled, isTrue);
+    },
+  );
+
   testWidgets('player backup is hidden when Google account changes', (
     WidgetTester tester,
   ) async {
@@ -983,6 +1051,57 @@ void main() {
       expect(find.text('Google Drive 연결 해제'), findsOneWidget);
       expect(find.text('민수 · player@example.com'), findsWidgets);
       expect(find.text('Google 로그인이 필요해요.'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'player sign in does not remember unsaved Drive before remote import',
+    (WidgetTester tester) async {
+      final optionRepository = _MemoryOptionRepository();
+      final localeService = LocaleService(optionRepository)..load();
+      final settingsService = SettingsService(optionRepository)..load();
+      final backupService = _FakeDriveBackupService(
+        signedIn: false,
+        connectionInfo: null,
+        sharedChildDriveLabel: '',
+        sharedChildDriveEmail: '',
+        hasRemotePlayerBackup: true,
+        signInConnectionInfo: const DriveConnectionInfo(
+          email: 'new-player@example.com',
+          displayName: '민수',
+          subjectId: 'subject-new',
+        ),
+        lastBackupAt: DateTime(2026, 3, 22, 10),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('ko'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: SettingsScreen(
+            localeService: localeService,
+            settingsService: settingsService,
+            optionRepository: optionRepository,
+            driveBackupService: backupService,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(OutlinedButton, 'Google Drive 연결'));
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(backupService.getSavedRecordDriveEmail(), isEmpty);
+      expect(
+        find.widgetWithText(OutlinedButton, '최근 데이터 가져오기'),
+        findsOneWidget,
+      );
+      expect(
+        find.widgetWithText(OutlinedButton, '데이터 백업하기'),
+        findsNothing,
+      );
     },
   );
 

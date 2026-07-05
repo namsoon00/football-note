@@ -15,7 +15,9 @@ import 'package:football_note/domain/entities/sport_definition.dart';
 import 'package:football_note/domain/entities/training_entry.dart';
 import 'package:football_note/infrastructure/hive_option_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:hive/hive.dart';
+import 'package:http/http.dart' as http;
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -1940,6 +1942,40 @@ void main() {
   });
 
   test(
+    'manual player backup is blocked before importing unsaved remote backup',
+    () async {
+      final driveClient = _RemoteBackupDriveClient(hasBackup: true);
+      service = DriveBackupService(
+        trainingBox,
+        optionBox,
+        backupAssetFileStore: assetStore,
+        driveConnectionLoader: () async => const DriveConnectionInfo(
+          email: 'new@example.com',
+          displayName: 'New Player',
+          subjectId: 'new-subject',
+        ),
+        driveApiLoader: ({required bool requireInteractive}) async =>
+            drive.DriveApi(driveClient),
+      );
+
+      await expectLater(
+        service.backup(),
+        throwsA(
+          isA<StateError>().having(
+            (error) => error.message,
+            'message',
+            DriveBackupService.changedPlayerDriveConnectionErrorCode,
+          ),
+        ),
+      );
+
+      expect(service.getSavedRecordDriveEmail(), isEmpty);
+      expect(driveClient.writeRequestCount, 0);
+      expect(driveClient.listRequestCount, greaterThanOrEqualTo(2));
+    },
+  );
+
+  test(
     'public empty start flow clears stale data and adopts changed drive',
     () async {
       service = DriveBackupService(
@@ -2090,6 +2126,62 @@ void main() {
       expect(state.lastSharedSyncRole, isNull);
     },
   );
+}
+
+class _RemoteBackupDriveClient extends http.BaseClient {
+  _RemoteBackupDriveClient({required this.hasBackup});
+
+  final bool hasBackup;
+  int listRequestCount = 0;
+  int writeRequestCount = 0;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    if (request.method != 'GET' ||
+        !request.url.path.endsWith('/drive/v3/files')) {
+      writeRequestCount += 1;
+      throw StateError('Unexpected Drive write request: ${request.method}');
+    }
+
+    listRequestCount += 1;
+    final query = request.url.queryParameters['q'] ?? '';
+    if (query.contains("mimeType='application/vnd.google-apps.folder'") &&
+        query.contains("name='${DriveBackupService.backupFolderName}'")) {
+      return _jsonResponse(request, <String, Object?>{
+        'files': const <Map<String, String>>[
+          <String, String>{'id': 'folder-id', 'name': '태오의노트'},
+        ],
+      });
+    }
+    if (query.contains("'folder-id' in parents") &&
+        query.contains("name='taeo_note_backup.json'")) {
+      return _jsonResponse(request, <String, Object?>{
+        'files': hasBackup
+            ? const <Map<String, String>>[
+                <String, String>{
+                  'id': 'backup-id',
+                  'name': 'taeo_note_backup.json',
+                  'modifiedTime': '2026-03-22T10:00:00.000Z',
+                },
+              ]
+            : const <Map<String, String>>[],
+      });
+    }
+    return _jsonResponse(request, const <String, Object?>{'files': []});
+  }
+
+  http.StreamedResponse _jsonResponse(
+    http.BaseRequest request,
+    Map<String, Object?> payload,
+  ) {
+    final bytes = utf8.encode(jsonEncode(payload));
+    return http.StreamedResponse(
+      Stream<List<int>>.value(bytes),
+      200,
+      request: request,
+      headers: const <String, String>{'content-type': 'application/json'},
+    );
+  }
 }
 
 class _FakeBackupAssetFileStore implements BackupAssetFileStore {

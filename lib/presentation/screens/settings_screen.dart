@@ -168,10 +168,18 @@ class _SettingsScreenState extends State<SettingsScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _driveAccountStateSubscription = widget.driveBackupService
-        ?.driveAccountStateChanges()
-        .listen((_) => unawaited(_refreshDriveUi()));
-    unawaited(_refreshDriveUi(refreshParentSharedData: true));
+    _driveAccountStateSubscription =
+        widget.driveBackupService?.driveAccountStateChanges().listen(
+              (_) => unawaited(
+                _refreshDriveUi(allowRemoteStatusLookup: true),
+              ),
+            );
+    unawaited(
+      _refreshDriveUi(
+        refreshParentSharedData: true,
+        allowRemoteStatusLookup: true,
+      ),
+    );
   }
 
   @override
@@ -313,20 +321,18 @@ class _SettingsScreenState extends State<SettingsScreen>
         hasRemotePlayerBackup =
             await widget.driveBackupService!.hasRemotePlayerBackup();
       }
+      if (checkRemotePlayerBackup &&
+          familyState.isChildMode &&
+          signedIn &&
+          connection != null &&
+          !connection.isEmpty &&
+          _savedPlayerDriveLabel().isEmpty) {
+        hasRemotePlayerBackup =
+            await widget.driveBackupService!.hasRemotePlayerBackup();
+      }
     } catch (e, st) {
       debugPrint('Shared child Drive lookup failed: $e');
       debugPrintStack(stackTrace: st);
-    }
-    if (familyState.isChildMode &&
-        connection != null &&
-        !connection.isEmpty &&
-        widget.driveBackupService!.getSavedRecordDriveEmail().trim().isEmpty) {
-      try {
-        await widget.driveBackupService!.rememberRecordDriveConnection();
-      } catch (e, st) {
-        debugPrint('Drive player connection cache refresh failed: $e');
-        debugPrintStack(stackTrace: st);
-      }
     }
     final cachedConnectedDriveLabel = _cachedConnectedDriveLabel();
     if (!mounted) return;
@@ -362,6 +368,20 @@ class _SettingsScreenState extends State<SettingsScreen>
     return '$cachedLabel · $cachedEmail';
   }
 
+  String _savedPlayerDriveLabel() {
+    final backup = widget.driveBackupService;
+    if (backup == null) return '';
+    final label = backup.getSavedPlayerDriveLabel().trim();
+    final email = backup.getSavedPlayerDriveEmail().trim();
+    if (label.isEmpty) {
+      return email;
+    }
+    if (email.isEmpty || label.toLowerCase().contains(email.toLowerCase())) {
+      return label;
+    }
+    return '$label · $email';
+  }
+
   bool _driveLabelMatchesEmail(String label, String email) {
     final normalizedEmail = email.trim().toLowerCase();
     if (normalizedEmail.isEmpty || label.trim().isEmpty) {
@@ -374,6 +394,17 @@ class _SettingsScreenState extends State<SettingsScreen>
     if (!familyState.isChildMode || !_signedIn) return false;
     return widget.driveBackupService?.hasChangedPlayerDriveConnection() ??
         false;
+  }
+
+  bool _playerRemoteBackupRequiresImport(FamilyAccessState familyState) {
+    if (!familyState.isChildMode || !_signedIn) return false;
+    if (_backupLockedByChangedPlayerDrive(familyState)) return false;
+    return _hasRemotePlayerBackup && _savedPlayerDriveLabel().isEmpty;
+  }
+
+  bool _playerBackupBlockedBeforeImport(FamilyAccessState familyState) {
+    return _backupLockedByChangedPlayerDrive(familyState) ||
+        _playerRemoteBackupRequiresImport(familyState);
   }
 
   bool _shouldShowLatestRestoreAction(FamilyAccessState familyState) {
@@ -1239,15 +1270,16 @@ class _SettingsScreenState extends State<SettingsScreen>
     FamilyAccessState familyState,
   ) {
     final driveBackupService = widget.driveBackupService!;
-    final backupLocked = _backupLockedByChangedPlayerDrive(familyState);
+    final backupBlockedBeforeImport =
+        _playerBackupBlockedBeforeImport(familyState);
     final children = <Widget>[
       _buildCurrentDriveAccountTile(l10n),
     ];
-    if (backupLocked) {
+    if (backupBlockedBeforeImport) {
       children.add(_buildDriveBackupLockedWarning(l10n));
     }
     children.add(_buildDriveQuickActions(l10n: l10n, familyState: familyState));
-    if (!_signedIn || backupLocked) {
+    if (!_signedIn || backupBlockedBeforeImport) {
       return children;
     }
     children.addAll([
@@ -1331,6 +1363,8 @@ class _SettingsScreenState extends State<SettingsScreen>
     }
     final isSupportMode = familyState.isSupportMode;
     final backupLocked = _backupLockedByChangedPlayerDrive(familyState);
+    final backupBlockedBeforeImport =
+        _playerBackupBlockedBeforeImport(familyState);
     final actions = <Widget>[
       _buildDriveQuickActionButton(
         icon: _signedIn ? Icons.link_off_outlined : Icons.link_outlined,
@@ -1394,13 +1428,13 @@ class _SettingsScreenState extends State<SettingsScreen>
         ),
       );
     }
-    if (_signedIn && !isSupportMode && !backupLocked) {
+    if (_signedIn && !isSupportMode && !backupBlockedBeforeImport) {
       actions.add(
         _buildDriveQuickActionButton(
           icon: Icons.cloud_upload_outlined,
           label: l10n.settingsBackupDataActionTitle,
           tone: _DriveQuickActionTone.backup,
-          onPressed: (_backupBusy || _restoreBusy || backupLocked)
+          onPressed: (_backupBusy || _restoreBusy || backupBlockedBeforeImport)
               ? null
               : () => _backupToDrive(
                     l10n,
@@ -2477,6 +2511,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       await _refreshDriveUi(
         allowCachedConnection: !wasSignedIn,
         refreshParentSharedData: !wasSignedIn,
+        allowRemoteStatusLookup: true,
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -2490,6 +2525,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       await _refreshDriveUi(
         allowCachedConnection: true,
         refreshParentSharedData: !wasSignedIn,
+        allowRemoteStatusLookup: true,
       );
       if (!mounted) return;
       if (_signedIn || _connectedDriveLabel.trim().isNotEmpty) {
@@ -2516,6 +2552,12 @@ class _SettingsScreenState extends State<SettingsScreen>
     final backup = widget.driveBackupService;
     if (backup == null) return;
     if (backup.hasChangedPlayerDriveConnection()) {
+      return;
+    }
+    final familyState = FamilyAccessService(
+      widget.optionRepository,
+    ).loadState();
+    if (familyState.isChildMode && _savedPlayerDriveLabel().isEmpty) {
       return;
     }
     await backup.rememberCurrentRoleDriveConnection();
