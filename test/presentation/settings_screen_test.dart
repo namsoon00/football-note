@@ -152,7 +152,7 @@ void main() {
     expect(find.widgetWithText(ChoiceChip, '선수'), findsOneWidget);
     expect(find.widgetWithText(OutlinedButton, '데이터 백업하기'), findsOneWidget);
     expect(find.text('데이터 백업하기'), findsOneWidget);
-    expect(find.text('최근 데이터 가져오기'), findsNothing);
+    expect(find.text('최근 데이터 가져오기'), findsOneWidget);
     expect(
       find.text('이 기기가 직접 기록하는 선수용인지, 보호자가 확인하는 기기인지 먼저 고르세요.'),
       findsNothing,
@@ -641,7 +641,7 @@ void main() {
     expect(find.text('선수 모드 Drive 다시 연결'), findsNothing);
   });
 
-  testWidgets('player mode hides import action when Drive account is unchanged',
+  testWidgets('player mode shows latest import when Drive account is available',
       (
     WidgetTester tester,
   ) async {
@@ -677,12 +677,16 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.scrollUntilVisible(
-      find.widgetWithText(OutlinedButton, '데이터 백업하기'),
+      find.widgetWithText(OutlinedButton, '최근 데이터 가져오기'),
       300,
       scrollable: find.byType(Scrollable).first,
     );
     await tester.pumpAndSettle();
 
+    final latestRestoreButton = find.widgetWithText(
+      OutlinedButton,
+      '최근 데이터 가져오기',
+    );
     final backupButton = find.widgetWithText(OutlinedButton, '데이터 백업하기');
     final remoteRestoreButton = find.widgetWithText(
       OutlinedButton,
@@ -693,9 +697,22 @@ void main() {
       '최근 가져오기 취소',
     );
 
+    expect(latestRestoreButton, findsOneWidget);
     expect(backupButton, findsOneWidget);
     expect(remoteRestoreButton, findsNothing);
     expect(localRestoreButton, findsNothing);
+
+    await tester.tap(latestRestoreButton);
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Google Drive의 최신 데이터를'), findsOneWidget);
+    await tester.tap(find.widgetWithText(TextButton, '확인'));
+    await tester.pumpAndSettle();
+    expect(find.text('복원 재확인'), findsOneWidget);
+    await tester.tap(find.widgetWithText(TextButton, '확인'));
+    await tester.pump();
+    await tester.pumpAndSettle();
+
+    expect(backupService.restoreLatestCalled, isTrue);
   });
 
   testWidgets('player backup is hidden when Google account changes', (
