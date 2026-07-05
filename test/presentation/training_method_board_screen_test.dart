@@ -797,7 +797,8 @@ void main() {
     );
 
     expect(ballRoutes, hasLength(2));
-    expect(ballRoutes.map((route) => route.linkedItemId).toSet(), {'ball-1'});
+    expect(ballRoutes.map((route) => route.linkedItemId).toSet().length, 2);
+    expect(ballRoutes.map((route) => route.linkedItemId), contains('ball-1'));
     expect(playerRoute.stageIndex, 2);
     expect(playerRoute.points.length, greaterThanOrEqualTo(3));
     expect(movePoint.dx, closeTo(0.64, 0.02));
@@ -868,6 +869,85 @@ void main() {
     expect(route.linkedItemId, player.id);
     expect(route.points, hasLength(greaterThanOrEqualTo(6)));
     expect(nearConePointCount, greaterThanOrEqualTo(3));
+  });
+
+  testWidgets('cone turn carries the ball when the player has possession', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    String? savedLayout;
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '공 소유 콘 돌기',
+          initialLayoutJson: const TrainingMethodLayout(
+            pages: <TrainingMethodPage>[
+              TrainingMethodPage(
+                name: 'Board',
+                items: <TrainingMethodItem>[
+                  TrainingMethodItem(
+                    id: 'player-1',
+                    type: 'player',
+                    x: 0.28,
+                    y: 0.54,
+                  ),
+                  TrainingMethodItem(
+                    id: 'ball-1',
+                    type: 'ball',
+                    x: 0.35,
+                    y: 0.54,
+                    colorValue: 0xFFFFCA28,
+                  ),
+                ],
+              ),
+            ],
+          ).encode(),
+          onSaved: (value) => savedLayout = value,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    await tester.tap(
+      find.descendant(of: boardFinder, matching: find.byIcon(Icons.person)),
+    );
+    await tester.pumpAndSettle();
+    await _tapVisibleOutlinedButton(tester, '드리블');
+    await _tapBoardRelative(tester, boardFinder, const Offset(0.44, 0.50));
+    await _tapVisibleOutlinedButton(tester, '콘 돌기');
+    await _tapBoardRelative(tester, boardFinder, const Offset(0.58, 0.43));
+
+    await tester.tap(find.widgetWithText(TextButton, '저장'));
+    await tester.pumpAndSettle();
+
+    final saved = TrainingMethodLayout.decode(savedLayout ?? '');
+    final page = saved.pages.single;
+    final cone = page.items.singleWhere((item) => item.type == 'cone');
+    final playerRoute = page.routes.singleWhere(
+      (route) => route.kind == TrainingMethodRouteKind.player,
+    );
+    final ballRoutes = page.routes
+        .where((route) => route.kind == TrainingMethodRouteKind.ball)
+        .toList(growable: false);
+    final coneCarryRoute = ballRoutes.singleWhere(
+      (route) => route.targetItemId == 'player-1',
+    );
+    final ballNearConePointCount = coneCarryRoute.points.where((point) {
+      return Offset(point.x - cone.x, point.y - cone.y).distance < 0.12;
+    }).length;
+
+    expect(ballRoutes, hasLength(2));
+    expect(ballRoutes.map((route) => route.linkedItemId).toSet(), {'ball-1'});
+    expect(coneCarryRoute.actorItemId, 'player-1');
+    expect(coneCarryRoute.stageIndex, playerRoute.stageIndex);
+    expect(coneCarryRoute.points.length, greaterThanOrEqualTo(5));
+    expect(ballNearConePointCount, greaterThanOrEqualTo(3));
+    expect(
+        playerRoute.points.last.x, closeTo(coneCarryRoute.points.last.x, 0.12));
+    expect(
+        playerRoute.points.last.y, closeTo(coneCarryRoute.points.last.y, 0.12));
   });
 
   testWidgets('player cone jump action creates a cone and jump route', (
@@ -2040,8 +2120,11 @@ void main() {
         Offset(shotRoute.points.first.x, shotRoute.points.first.y);
 
     expect(page.items.where((item) => item.type == 'cone'), hasLength(1));
-    expect(page.items.where((item) => item.type == 'ball'), hasLength(1));
-    expect(ballRoutes.map((route) => route.linkedItemId).toSet(), {'ball-1'});
+    expect(page.items.where((item) => item.type == 'ball'), hasLength(2));
+    expect(ballRoutes.map((route) => route.linkedItemId), contains('ball-1'));
+    expect(ballRoutes.map((route) => route.linkedItemId).toSet().length, 2);
+    expect(passRoute.linkedItemId, 'ball-1');
+    expect(shotRoute.linkedItemId, isNot('ball-1'));
     expect(passRoute.stageIndex, 1);
     expect(playerRoute.linkedItemId, 'player-1');
     expect(playerRoute.stageIndex, 2);
@@ -2245,16 +2328,21 @@ void main() {
 
     final saved = TrainingMethodLayout.decode(savedLayout ?? '');
     final page = saved.pages.single;
-    final ballRoute = page.routes.singleWhere(
-      (route) => route.kind == TrainingMethodRouteKind.ball,
-    );
+    final ballRoutes = page.routes
+        .where((route) => route.kind == TrainingMethodRouteKind.ball)
+        .toList(growable: false);
+    final passRoute = ballRoutes.singleWhere((route) => route.stageIndex == 1);
+    final carryRoute = ballRoutes.singleWhere((route) => route.stageIndex == 2);
     final playerRoute = page.routes.singleWhere(
       (route) => route.kind == TrainingMethodRouteKind.player,
     );
 
     expect(page.items.where((item) => item.type == 'hurdle'), hasLength(1));
-    expect(ballRoute.linkedItemId, 'ball-1');
-    expect(ballRoute.stageIndex, 1);
+    expect(ballRoutes, hasLength(2));
+    expect(passRoute.linkedItemId, 'ball-1');
+    expect(carryRoute.linkedItemId, 'ball-1');
+    expect(carryRoute.actorItemId, 'player-2');
+    expect(carryRoute.targetItemId, 'player-2');
     expect(playerRoute.linkedItemId, 'player-2');
     expect(playerRoute.stageIndex, 2);
   });
