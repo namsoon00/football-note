@@ -46,6 +46,62 @@ void main() {
     expect(saved['reactions'], <String>['thanks']);
   });
 
+  testWidgets('player reaction auto saves without tapping save', (
+    WidgetTester tester,
+  ) async {
+    final repository = _MemoryOptionRepository();
+    final entry = _entry();
+    await ParentSharedFeedbackService(
+      repository,
+    ).saveFeedbackForEntry(entry, '턴 타이밍이 좋아졌어요.');
+    await repository.setValue(
+      FamilyAccessService.currentRoleLocalKey,
+      FamilyRole.child.name,
+    );
+
+    await _pumpHost(tester, repository: repository, entry: entry);
+    await tester.tap(find.text('open'));
+    await _pumpTestTransition(tester);
+
+    await tester.tap(find.widgetWithText(FilterChip, '고마워요'));
+    await tester.pump(const Duration(milliseconds: 800));
+    await tester.pump();
+
+    final raw = repository.getValue<Map>(
+      FamilyAccessService.parentTrainingFeedbackKey,
+    );
+    final saved = raw!.values.single as Map;
+    expect(saved['message'], '턴 타이밍이 좋아졌어요.');
+    expect(saved['reactions'], <String>['thanks']);
+    expect(find.byType(ParentFeedbackScreen), findsOneWidget);
+  });
+
+  testWidgets('parent feedback message auto saves without closing', (
+    WidgetTester tester,
+  ) async {
+    final repository = _MemoryOptionRepository();
+    final entry = _entry();
+    await repository.setValue(
+      FamilyAccessService.currentRoleLocalKey,
+      FamilyRole.parent.name,
+    );
+
+    await _pumpHost(tester, repository: repository, entry: entry);
+    await tester.tap(find.text('open'));
+    await _pumpTestTransition(tester);
+
+    await tester.enterText(find.byType(TextField).first, '몸을 열고 받는 동작이 좋아요.');
+    await tester.pump(const Duration(milliseconds: 800));
+    await tester.pump();
+
+    final raw = repository.getValue<Map>(
+      FamilyAccessService.parentTrainingFeedbackKey,
+    );
+    final saved = raw!.values.single as Map;
+    expect(saved['message'], '몸을 열고 받는 동작이 좋아요.');
+    expect(find.byType(ParentFeedbackScreen), findsOneWidget);
+  });
+
   testWidgets('parent mode can only view player reactions', (
     WidgetTester tester,
   ) async {

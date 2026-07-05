@@ -52,6 +52,9 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
   Set<String> _selectedReactions = <String>{};
   DateTime? _savedUpdatedAt;
   bool _isSaving = false;
+  Timer? _autoSaveTimer;
+  bool _autoSaveInFlight = false;
+  bool _autoSaveQueued = false;
 
   bool get _canEdit {
     return FamilyAccessService(
@@ -115,6 +118,7 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
 
   @override
   void dispose() {
+    _autoSaveTimer?.cancel();
     _controller
       ..removeListener(_handleControllerChanged)
       ..dispose();
@@ -124,7 +128,22 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
   void _handleControllerChanged() {
     if (mounted) {
       setState(() {});
+      _scheduleAutoSave();
     }
+  }
+
+  void _scheduleAutoSave() {
+    _autoSaveTimer?.cancel();
+    if ((!_canEdit && !_canReact) || !_hasChanges || _isSaving) {
+      return;
+    }
+    if (_autoSaveInFlight) {
+      _autoSaveQueued = true;
+      return;
+    }
+    _autoSaveTimer = Timer(const Duration(milliseconds: 700), () {
+      unawaited(_saveFeedback(closeAfterSave: false));
+    });
   }
 
   Future<bool> _confirmExitWithoutSave() async {
@@ -152,11 +171,20 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
     return shouldLeave ?? false;
   }
 
-  Future<void> _saveFeedback() async {
+  Future<void> _saveFeedback({bool closeAfterSave = true}) async {
     if ((!_canEdit && !_canReact) || !_hasChanges || _isSaving) {
       return;
     }
-    setState(() => _isSaving = true);
+    if (closeAfterSave) {
+      _autoSaveTimer?.cancel();
+      setState(() => _isSaving = true);
+    } else {
+      if (_autoSaveInFlight) {
+        _autoSaveQueued = true;
+        return;
+      }
+      _autoSaveInFlight = true;
+    }
     try {
       final canEdit = _canEdit;
       final saved = await _feedbackService.saveFeedbackForEntry(
@@ -169,21 +197,42 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
         unawaited(syncFuture);
         return;
       }
-      Navigator.of(context).pop(
-        ParentFeedbackScreenResult(
-          changed: true,
-          feedback: saved,
-          didSync: false,
-        ),
-      );
+      if (closeAfterSave) {
+        Navigator.of(context).pop(
+          ParentFeedbackScreenResult(
+            changed: true,
+            feedback: saved,
+            didSync: false,
+          ),
+        );
+      } else {
+        setState(() {
+          _savedMessage = saved?.message ?? '';
+          _savedReactions = saved?.reactions ?? const <String>[];
+          _selectedReactions = canEdit
+              ? _selectedReactions
+              : saved?.reactions.toSet() ?? <String>{};
+          _savedUpdatedAt = saved?.updatedAt;
+        });
+      }
       unawaited(syncFuture);
     } catch (_) {
       if (!mounted) {
         return;
       }
-      final l10n = AppLocalizations.of(context)!;
-      AppFeedback.showMessage(context, text: l10n.parentFeedbackSaveFailed);
-      setState(() => _isSaving = false);
+      if (closeAfterSave) {
+        final l10n = AppLocalizations.of(context)!;
+        AppFeedback.showMessage(context, text: l10n.parentFeedbackSaveFailed);
+        setState(() => _isSaving = false);
+      }
+    } finally {
+      if (!closeAfterSave) {
+        _autoSaveInFlight = false;
+        if (_autoSaveQueued && mounted) {
+          _autoSaveQueued = false;
+          _scheduleAutoSave();
+        }
+      }
     }
   }
 
@@ -333,6 +382,7 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
                           canEdit: !_isSaving,
                           onChanged: (value) {
                             setState(() => _selectedReactions = value);
+                            _scheduleAutoSave();
                           },
                         ),
                         const SizedBox(height: 12),

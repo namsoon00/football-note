@@ -273,6 +273,33 @@ void main() {
     }
   });
 
+  testWidgets('Competition editor auto saves after name is entered', (
+    tester,
+  ) async {
+    await pumpCompetitionManagement(tester, themeMode: ThemeMode.light);
+
+    await tester.tap(find.widgetWithText(FilledButton, '리그 만들기').first);
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField).first, '자동 저장 리그');
+    await tester.pump(const Duration(milliseconds: 800));
+    await tester.pump();
+
+    var competitions = MatchCompetitionService(
+      optionRepository,
+    ).allCompetitions();
+    expect(competitions, hasLength(1));
+    expect(competitions.single.name, '자동 저장 리그');
+
+    await tester.enterText(find.byType(TextField).at(1), '2026 가을');
+    await tester.pump(const Duration(milliseconds: 800));
+    await tester.pump();
+
+    competitions = MatchCompetitionService(optionRepository).allCompetitions();
+    expect(competitions.single.season, '2026 가을');
+    expect(find.text('대회 저장'), findsOneWidget);
+  });
+
   testWidgets('Match hub opens a dedicated records view', (
     tester,
   ) async {

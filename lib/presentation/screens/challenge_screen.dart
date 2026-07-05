@@ -270,6 +270,23 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
             cadenceDays,
             rewardGift,
           ),
+          onAutoSave: (
+            template,
+            selectedSkillIds,
+            missionTargets,
+            cadenceDays,
+            rewardGift,
+          ) =>
+              _updateChallenge(
+            selectedProgress.run.id,
+            template,
+            selectedSkillIds,
+            missionTargets,
+            cadenceDays,
+            rewardGift,
+            showFeedback: false,
+            stayInEdit: true,
+          ),
           submitLabel: l10n.challengeUpdateAction,
           submitIcon: Icons.check_rounded,
         ),
@@ -889,8 +906,10 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     List<String> selectedSkillIds,
     ChallengeMissionTargets missionTargets,
     int cadenceDays,
-    String rewardGift,
-  ) async {
+    String rewardGift, {
+    bool showFeedback = true,
+    bool stayInEdit = false,
+  }) async {
     if (_updateChallengeInFlight) return;
     _updateChallengeInFlight = true;
     final l10n = AppLocalizations.of(context)!;
@@ -899,16 +918,20 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       if (!mounted) return;
       if (currentProgress == null ||
           !_canEditPendingChallenge(currentProgress)) {
-        setState(() {
-          _mode = currentProgress == null
-              ? _ChallengeScreenMode.list
-              : _ChallengeScreenMode.detail;
-          _selectedRunId = currentProgress?.run.id;
-        });
-        _showChallengeTopSnackBar(l10n.challengeEditUnavailableSnack);
+        if (showFeedback) {
+          setState(() {
+            _mode = currentProgress == null
+                ? _ChallengeScreenMode.list
+                : _ChallengeScreenMode.detail;
+            _selectedRunId = currentProgress?.run.id;
+          });
+          _showChallengeTopSnackBar(l10n.challengeEditUnavailableSnack);
+        }
         return;
       }
-      _playChallengeTapFeedback();
+      if (showFeedback) {
+        _playChallengeTapFeedback();
+      }
       final updatedRun = await _challengeService.updateRun(
         runId,
         template: template,
@@ -919,22 +942,28 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       );
       if (!mounted) return;
       if (updatedRun == null) {
-        setState(() {
-          _mode = _ChallengeScreenMode.list;
-          _selectedRunId = null;
-        });
+        if (showFeedback) {
+          setState(() {
+            _mode = _ChallengeScreenMode.list;
+            _selectedRunId = null;
+          });
+        }
         return;
       }
       _lastFinalizeSignatures.remove(runId);
       _lastRoundAwardSignatures.remove(runId);
       setState(() {
-        _mode = _ChallengeScreenMode.detail;
+        _mode = stayInEdit
+            ? _ChallengeScreenMode.edit
+            : _ChallengeScreenMode.detail;
         _selectedRunId = updatedRun.id;
       });
       unawaited(_syncParentChallengeBackupIfPossible());
-      _showChallengeTopSnackBar(
-        _challengeSnackWithParentSync(l10n, l10n.challengeUpdateSnack),
-      );
+      if (showFeedback) {
+        _showChallengeTopSnackBar(
+          _challengeSnackWithParentSync(l10n, l10n.challengeUpdateSnack),
+        );
+      }
     } finally {
       _updateChallengeInFlight = false;
     }
@@ -1433,6 +1462,13 @@ class _ChallengeStartSection extends StatefulWidget {
     int cadenceDays,
     String rewardGift,
   ) onStart;
+  final Future<void> Function(
+    ChallengeTemplate template,
+    List<String> selectedSkillIds,
+    ChallengeMissionTargets missionTargets,
+    int cadenceDays,
+    String rewardGift,
+  )? onAutoSave;
   final String submitLabel;
   final IconData submitIcon;
 
@@ -1449,6 +1485,7 @@ class _ChallengeStartSection extends StatefulWidget {
     required this.canEditRewardGift,
     required this.onOpenTrainingPrograms,
     required this.onStart,
+    this.onAutoSave,
     required this.submitLabel,
     required this.submitIcon,
   });
@@ -1458,6 +1495,8 @@ class _ChallengeStartSection extends StatefulWidget {
 }
 
 class _ChallengeStartSectionState extends State<_ChallengeStartSection> {
+  static const Duration _autoSaveDelay = Duration(milliseconds: 700);
+
   final GlobalKey _missionSectionKey = GlobalKey();
   final GlobalKey _readySectionKey = GlobalKey();
   ChallengeTemplate? _selectedTemplate;
@@ -1466,16 +1505,23 @@ class _ChallengeStartSectionState extends State<_ChallengeStartSection> {
   ChallengeMissionTargets? _missionTargets;
   bool _submitting = false;
   late final TextEditingController _rewardGiftController;
+  Timer? _autoSaveTimer;
+  Future<void>? _activeAutoSave;
+  bool _autoSaveInFlight = false;
+  bool _autoSaveQueued = false;
+  String _lastAutoSavedSignature = '';
 
   @override
   void initState() {
     super.initState();
     _rewardGiftController = TextEditingController();
     _applyInitialValues();
+    _lastAutoSavedSignature = _currentAutoSaveSignature();
   }
 
   @override
   void dispose() {
+    _autoSaveTimer?.cancel();
     _rewardGiftController.dispose();
     super.dispose();
   }
@@ -1486,6 +1532,7 @@ class _ChallengeStartSectionState extends State<_ChallengeStartSection> {
     if (oldWidget.initialRun?.id != widget.initialRun?.id ||
         oldWidget.initialTemplate?.id != widget.initialTemplate?.id) {
       _applyInitialValues();
+      _lastAutoSavedSignature = _currentAutoSaveSignature();
       return;
     }
     if (!_sameChallengeSkillOptions(
@@ -1568,9 +1615,9 @@ class _ChallengeStartSectionState extends State<_ChallengeStartSection> {
                 ChoiceChip(
                   label: Text(_challengeCadenceLabel(l10n, cadenceDays)),
                   selected: cadenceDays == _selectedCadenceDays,
-                  onSelected: (_) => setState(() {
-                    _selectedCadenceDays = cadenceDays;
-                  }),
+                  onSelected: (_) => _updateAndScheduleAutoSave(
+                    () => _selectedCadenceDays = cadenceDays,
+                  ),
                 ),
             ],
           ),
@@ -1640,7 +1687,7 @@ class _ChallengeStartSectionState extends State<_ChallengeStartSection> {
             _ChallengeRewardGiftField(
               controller: _rewardGiftController,
               enabled: widget.canEditRewardGift,
-              onChanged: (_) => setState(() {}),
+              onChanged: (_) => _updateAndScheduleAutoSave(() {}),
             ),
           ],
           const SizedBox(height: 12),
@@ -1662,10 +1709,12 @@ class _ChallengeStartSectionState extends State<_ChallengeStartSection> {
   Future<void> _submit() async {
     final selectedTemplate = _selectedTemplate;
     if (_submitting || selectedTemplate == null) return;
+    _autoSaveTimer?.cancel();
     setState(() {
       _submitting = true;
     });
     try {
+      await _activeAutoSave;
       await widget.onStart(
         selectedTemplate,
         normalizeChallengeSkillIds(
@@ -1713,6 +1762,7 @@ class _ChallengeStartSectionState extends State<_ChallengeStartSection> {
       _selectedSkillIds = selectedTrainingPrograms;
       _missionTargets = _defaultInitialMissionTargets(selectedTrainingPrograms);
     });
+    _scheduleAutoSave();
     _scrollTo(_missionSectionKey);
   }
 
@@ -1764,6 +1814,7 @@ class _ChallengeStartSectionState extends State<_ChallengeStartSection> {
         defaultTrainingMinutes: defaults.trainingMinutes,
       );
     });
+    _scheduleAutoSave();
   }
 
   void _updateMissionTargets(ChallengeMissionTargets targets) {
@@ -1774,6 +1825,112 @@ class _ChallengeStartSectionState extends State<_ChallengeStartSection> {
         _selectedSkillIds = <String>{};
       }
     });
+    _scheduleAutoSave();
+  }
+
+  void _updateAndScheduleAutoSave(VoidCallback update) {
+    setState(update);
+    _scheduleAutoSave();
+  }
+
+  void _scheduleAutoSave() {
+    _autoSaveTimer?.cancel();
+    if (widget.initialRun == null || widget.onAutoSave == null) {
+      return;
+    }
+    final signature = _currentAutoSaveSignature();
+    if (signature.isEmpty || signature == _lastAutoSavedSignature) {
+      return;
+    }
+    if (_autoSaveInFlight) {
+      _autoSaveQueued = true;
+      return;
+    }
+    _autoSaveTimer = Timer(_autoSaveDelay, () {
+      final future = _runAutoSave();
+      _activeAutoSave = future;
+      unawaited(future);
+    });
+  }
+
+  Future<void> _runAutoSave() async {
+    final onAutoSave = widget.onAutoSave;
+    final selectedTemplate = _selectedTemplate;
+    if (onAutoSave == null || selectedTemplate == null) return;
+    final missionTargets = _effectiveMissionTargets;
+    final selectedSkillIds = normalizeChallengeSkillIds(
+      _selectedSkillIds,
+      allowEmpty: !missionTargets.hasTrainingMission,
+    );
+    final signature = _autoSaveSignature(
+      template: selectedTemplate,
+      selectedSkillIds: selectedSkillIds,
+      missionTargets: missionTargets,
+      cadenceDays: _selectedCadenceDays,
+      rewardGift: _rewardGiftController.text,
+    );
+    if (signature == _lastAutoSavedSignature) return;
+    if (_autoSaveInFlight) {
+      _autoSaveQueued = true;
+      return;
+    }
+    _autoSaveInFlight = true;
+    try {
+      await onAutoSave(
+        selectedTemplate,
+        selectedSkillIds,
+        missionTargets,
+        _selectedCadenceDays,
+        _rewardGiftController.text,
+      );
+      _lastAutoSavedSignature = signature;
+    } finally {
+      _autoSaveInFlight = false;
+      _activeAutoSave = null;
+      if (_autoSaveQueued && mounted) {
+        _autoSaveQueued = false;
+        _scheduleAutoSave();
+      }
+    }
+  }
+
+  String _currentAutoSaveSignature() {
+    final selectedTemplate = _selectedTemplate;
+    if (selectedTemplate == null) return '';
+    final missionTargets = _effectiveMissionTargets;
+    return _autoSaveSignature(
+      template: selectedTemplate,
+      selectedSkillIds: normalizeChallengeSkillIds(
+        _selectedSkillIds,
+        allowEmpty: !missionTargets.hasTrainingMission,
+      ),
+      missionTargets: missionTargets,
+      cadenceDays: _selectedCadenceDays,
+      rewardGift: _rewardGiftController.text,
+    );
+  }
+
+  String _autoSaveSignature({
+    required ChallengeTemplate template,
+    required List<String> selectedSkillIds,
+    required ChallengeMissionTargets missionTargets,
+    required int cadenceDays,
+    required String rewardGift,
+  }) {
+    final programTargets = missionTargets.trainingProgramMinutes.entries
+        .toList(growable: false)
+      ..sort((a, b) => a.key.compareTo(b.key));
+    return [
+      template.id,
+      cadenceDays.toString(),
+      selectedSkillIds.join(','),
+      missionTargets.trainingMinutes.toString(),
+      missionTargets.jumpRopeMinutes.toString(),
+      missionTargets.liftingMinutes.toString(),
+      missionTargets.riceBowls.toString(),
+      for (final target in programTargets) '${target.key}:${target.value}',
+      rewardGift.trim(),
+    ].join('\n');
   }
 
   ChallengeMissionTargets _targetsWithSelectedTrainingPrograms(

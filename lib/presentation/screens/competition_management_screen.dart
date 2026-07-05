@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:football_note/gen/app_localizations.dart';
 
@@ -1223,6 +1225,8 @@ class _CompetitionEditorSheet extends StatefulWidget {
 }
 
 class _CompetitionEditorSheetState extends State<_CompetitionEditorSheet> {
+  static const Duration _autoSaveDelay = Duration(milliseconds: 700);
+
   late String _kind;
   late String _status;
   late List<String> _teams;
@@ -1232,11 +1236,25 @@ class _CompetitionEditorSheetState extends State<_CompetitionEditorSheet> {
   late final TextEditingController _organizerController;
   late final TextEditingController _noteController;
   late final TextEditingController _teamController;
+  MatchCompetitionRecord? _persistedRecord;
+  Timer? _autoSaveTimer;
+  bool _autoSaveInFlight = false;
+  bool _autoSaveQueued = false;
+  String _lastSavedSignature = '';
+
+  List<TextEditingController> get _autoSaveControllers => [
+        _nameController,
+        _seasonController,
+        _venueController,
+        _organizerController,
+        _noteController,
+      ];
 
   @override
   void initState() {
     super.initState();
     final record = widget.record;
+    _persistedRecord = record;
     _kind = record?.kind ?? widget.initialKind;
     _status = record?.status ?? MatchCompetitionRecord.statusActive;
     _teams = MatchCompetitionService.normalizeTeams(record?.teams ?? const []);
@@ -1248,10 +1266,19 @@ class _CompetitionEditorSheetState extends State<_CompetitionEditorSheet> {
     );
     _noteController = TextEditingController(text: record?.note ?? '');
     _teamController = TextEditingController();
+    _lastSavedSignature =
+        record == null ? '' : _competitionRecordSignature(record);
+    for (final controller in _autoSaveControllers) {
+      controller.addListener(_handleEditorChanged);
+    }
   }
 
   @override
   void dispose() {
+    _autoSaveTimer?.cancel();
+    for (final controller in _autoSaveControllers) {
+      controller.removeListener(_handleEditorChanged);
+    }
     _nameController.dispose();
     _seasonController.dispose();
     _venueController.dispose();
@@ -1326,7 +1353,9 @@ class _CompetitionEditorSheetState extends State<_CompetitionEditorSheet> {
                             selected: {_kind},
                             showSelectedIcon: false,
                             onSelectionChanged: (selection) {
-                              setState(() => _kind = selection.first);
+                              _updateAndScheduleAutoSave(
+                                () => _kind = selection.first,
+                              );
                             },
                           ),
                           const SizedBox(height: AppSpacing.sm),
@@ -1362,7 +1391,9 @@ class _CompetitionEditorSheetState extends State<_CompetitionEditorSheet> {
                             selected: {_status},
                             showSelectedIcon: false,
                             onSelectionChanged: (selection) {
-                              setState(() => _status = selection.first);
+                              _updateAndScheduleAutoSave(
+                                () => _status = selection.first,
+                              );
                             },
                           ),
                         ],
@@ -1464,25 +1495,90 @@ class _CompetitionEditorSheetState extends State<_CompetitionEditorSheet> {
       _teams = next;
       _teamController.clear();
     });
+    _scheduleAutoSave();
   }
 
   void _removeTeam(String team) {
     setState(() {
       _teams = _teams.where((item) => item != team).toList(growable: false);
     });
+    _scheduleAutoSave();
   }
 
   Future<void> _saveCompetition() async {
     final l10n = AppLocalizations.of(context)!;
-    final name = _nameController.text.trim();
-    if (name.isEmpty) {
+    final updated = _buildCompetitionRecord();
+    if (updated == null) {
       AppFeedback.showMessage(
         context,
         text: l10n.matchCompetitionNameRequired,
       );
       return;
     }
-    final updated = MatchCompetitionRecord.create(
+    _autoSaveTimer?.cancel();
+    await _persistCompetition(updated);
+    if (!mounted) return;
+    AppFeedback.showSuccess(
+      context,
+      text: l10n.matchCompetitionSavedFeedback,
+    );
+    Navigator.of(context).pop(true);
+  }
+
+  void _handleEditorChanged() {
+    if (!mounted) return;
+    setState(() {});
+    _scheduleAutoSave();
+  }
+
+  void _updateAndScheduleAutoSave(VoidCallback update) {
+    setState(update);
+    _scheduleAutoSave();
+  }
+
+  void _scheduleAutoSave() {
+    _autoSaveTimer?.cancel();
+    final updated = _buildCompetitionRecord();
+    if (updated == null ||
+        _competitionRecordSignature(updated) == _lastSavedSignature) {
+      return;
+    }
+    if (_autoSaveInFlight) {
+      _autoSaveQueued = true;
+      return;
+    }
+    _autoSaveTimer = Timer(_autoSaveDelay, () {
+      unawaited(_autoSaveCompetition());
+    });
+  }
+
+  Future<void> _autoSaveCompetition() async {
+    final updated = _buildCompetitionRecord();
+    if (updated == null ||
+        _competitionRecordSignature(updated) == _lastSavedSignature) {
+      return;
+    }
+    if (_autoSaveInFlight) {
+      _autoSaveQueued = true;
+      return;
+    }
+    _autoSaveInFlight = true;
+    try {
+      await _persistCompetition(updated);
+      if (mounted) setState(() {});
+    } finally {
+      _autoSaveInFlight = false;
+      if (_autoSaveQueued && mounted) {
+        _autoSaveQueued = false;
+        _scheduleAutoSave();
+      }
+    }
+  }
+
+  MatchCompetitionRecord? _buildCompetitionRecord() {
+    final name = _nameController.text.trim();
+    if (name.isEmpty) return null;
+    return MatchCompetitionRecord.create(
       kind: _kind,
       name: name,
       teams: _teams,
@@ -1492,19 +1588,32 @@ class _CompetitionEditorSheetState extends State<_CompetitionEditorSheet> {
       organizer: _organizerController.text,
       note: _noteController.text,
     );
-    final existing = widget.record;
+  }
+
+  Future<void> _persistCompetition(MatchCompetitionRecord updated) async {
+    final existing = _persistedRecord ?? widget.record;
     if (existing != null && existing.id != updated.id) {
       await widget.service.deleteCompetition(existing.id);
     }
-    await widget.service.upsertCompetition(
-      updated.copyWith(createdAt: existing?.createdAt ?? updated.createdAt),
-    );
-    if (!mounted) return;
-    AppFeedback.showSuccess(
-      context,
-      text: l10n.matchCompetitionSavedFeedback,
-    );
-    Navigator.of(context).pop(true);
+    final createdAt = existing?.createdAt ?? updated.createdAt;
+    final normalized = updated.copyWith(createdAt: createdAt);
+    await widget.service.upsertCompetition(normalized);
+    _persistedRecord =
+        widget.service.findCompetitionById(normalized.id) ?? normalized;
+    _lastSavedSignature = _competitionRecordSignature(updated);
+  }
+
+  String _competitionRecordSignature(MatchCompetitionRecord record) {
+    return [
+      record.kind,
+      record.name.trim(),
+      record.status,
+      record.season.trim(),
+      record.venue.trim(),
+      record.organizer.trim(),
+      record.note.trim(),
+      ...MatchCompetitionService.normalizeTeams(record.teams),
+    ].join('\n');
   }
 }
 
