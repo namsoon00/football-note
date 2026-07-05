@@ -569,10 +569,10 @@ class DriveBackupService implements BackupRepository {
   Future<void> _backup() async {
     try {
       await _syncConnectedDriveAccountCache();
-      _throwIfChangedPlayerDriveConnection();
+      _throwIfPlayerDriveNeedsResolutionBeforeBackup();
       final driveApi = await _driveApi(requireInteractive: kIsWeb);
       await _syncConnectedDriveAccountCache();
-      await _throwIfPlayerRemoteBackupNeedsImport(driveApi);
+      _throwIfPlayerDriveNeedsResolutionBeforeBackup();
       await _prepareConnectedDriveDataForCurrentRole(
         throwOnChangedPlayerDrive: true,
         rememberNewPlayerConnection: true,
@@ -586,10 +586,10 @@ class DriveBackupService implements BackupRepository {
       debugPrintStack(stackTrace: st);
       await _reauthenticateForDriveScope();
       await _syncConnectedDriveAccountCache();
-      _throwIfChangedPlayerDriveConnection();
+      _throwIfPlayerDriveNeedsResolutionBeforeBackup();
       final retriedApi = await _driveApi(requireInteractive: false);
       await _syncConnectedDriveAccountCache();
-      await _throwIfPlayerRemoteBackupNeedsImport(retriedApi);
+      _throwIfPlayerDriveNeedsResolutionBeforeBackup();
       await _prepareConnectedDriveDataForCurrentRole(
         throwOnChangedPlayerDrive: true,
         rememberNewPlayerConnection: true,
@@ -620,12 +620,12 @@ class DriveBackupService implements BackupRepository {
       }
       try {
         await _syncConnectedDriveAccountCache();
-        if (hasChangedPlayerDriveConnection()) {
+        if (_playerDriveNeedsResolutionBeforeBackup()) {
           return false;
         }
         final driveApi = await _driveApi(requireInteractive: false);
         await _syncConnectedDriveAccountCache();
-        if (await _playerRemoteBackupNeedsImport(driveApi)) {
+        if (_playerDriveNeedsResolutionBeforeBackup()) {
           return false;
         }
         final switchedAccount = await _prepareConnectedDriveDataForCurrentRole(
@@ -655,13 +655,14 @@ class DriveBackupService implements BackupRepository {
       if (account == null) {
         return false;
       }
+      await _syncConnectedDriveAccountCache();
+      if (_playerDriveNeedsResolutionBeforeBackup()) {
+        return false;
+      }
       final authHeaders = await account.authHeaders;
       final driveApi = drive.DriveApi(_GoogleAuthClient(authHeaders));
       await _syncConnectedDriveAccountCache();
-      if (hasChangedPlayerDriveConnection()) {
-        return false;
-      }
-      if (await _playerRemoteBackupNeedsImport(driveApi)) {
+      if (_playerDriveNeedsResolutionBeforeBackup()) {
         return false;
       }
       final switchedAccount = await _prepareConnectedDriveDataForCurrentRole(
@@ -822,7 +823,8 @@ class DriveBackupService implements BackupRepository {
   Future<bool> _importChangedPlayerDriveBackup() async {
     final driveApi = await _driveApi(requireInteractive: false);
     await _syncConnectedDriveAccountCache();
-    if (!hasChangedPlayerDriveConnection()) {
+    final saved = _loadSavedRecordDriveConnectionInfo();
+    if (saved != null && !saved.isEmpty && !hasChangedPlayerDriveConnection()) {
       await rememberRecordDriveConnection();
       await _syncSharedChildDriveMetadataIfNeeded();
       return false;
@@ -1863,33 +1865,20 @@ class DriveBackupService implements BackupRepository {
     return true;
   }
 
-  Future<bool> _playerRemoteBackupNeedsImport(
-    drive.DriveApi driveApi,
-  ) async {
+  bool _playerDriveNeedsResolutionBeforeBackup() {
     if (_familyService.loadState().currentRole != FamilyRole.child) {
       return false;
     }
     final current = _loadCachedDriveConnectionInfo();
     final saved = _loadSavedRecordDriveConnectionInfo();
-    if (current == null ||
-        current.isEmpty ||
-        saved != null && !saved.isEmpty ||
-        hasChangedPlayerDriveConnection()) {
+    if (current == null || current.isEmpty) {
       return false;
     }
-    return _hasRemoteBackupFileWithApi(driveApi);
+    return saved == null || saved.isEmpty || hasChangedPlayerDriveConnection();
   }
 
-  Future<void> _throwIfPlayerRemoteBackupNeedsImport(
-    drive.DriveApi driveApi,
-  ) async {
-    if (await _playerRemoteBackupNeedsImport(driveApi)) {
-      throw StateError(changedPlayerDriveConnectionErrorCode);
-    }
-  }
-
-  void _throwIfChangedPlayerDriveConnection() {
-    if (hasChangedPlayerDriveConnection()) {
+  void _throwIfPlayerDriveNeedsResolutionBeforeBackup() {
+    if (_playerDriveNeedsResolutionBeforeBackup()) {
       throw StateError(changedPlayerDriveConnectionErrorCode);
     }
   }

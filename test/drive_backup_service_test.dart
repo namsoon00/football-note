@@ -1942,9 +1942,10 @@ void main() {
   });
 
   test(
-    'manual player backup is blocked before importing unsaved remote backup',
+    'manual player backup is blocked before resolving unsaved drive account',
     () async {
-      final driveClient = _RemoteBackupDriveClient(hasBackup: true);
+      var driveApiRequested = false;
+      final driveClient = _RemoteBackupDriveClient(hasBackup: false);
       service = DriveBackupService(
         trainingBox,
         optionBox,
@@ -1954,8 +1955,10 @@ void main() {
           displayName: 'New Player',
           subjectId: 'new-subject',
         ),
-        driveApiLoader: ({required bool requireInteractive}) async =>
-            drive.DriveApi(driveClient),
+        driveApiLoader: ({required bool requireInteractive}) async {
+          driveApiRequested = true;
+          return drive.DriveApi(driveClient);
+        },
       );
 
       await expectLater(
@@ -1970,8 +1973,9 @@ void main() {
       );
 
       expect(service.getSavedRecordDriveEmail(), isEmpty);
+      expect(driveApiRequested, isFalse);
       expect(driveClient.writeRequestCount, 0);
-      expect(driveClient.listRequestCount, greaterThanOrEqualTo(2));
+      expect(driveClient.listRequestCount, 0);
     },
   );
 
