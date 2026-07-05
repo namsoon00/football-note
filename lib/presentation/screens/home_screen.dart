@@ -491,9 +491,31 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (!mounted) return;
     final l10n = AppLocalizations.of(context)!;
     final guide = _tabGuideData(tabIndex, l10n, isParentMode: isParentMode);
-    final action = await showDialog<VoidCallback>(
+    final action = await showGeneralDialog<VoidCallback>(
       context: context,
-      builder: (context) => _TabCoachMarkDialog(guide: guide),
+      barrierDismissible: true,
+      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+      barrierColor: Colors.transparent,
+      transitionDuration: const Duration(milliseconds: 180),
+      pageBuilder: (context, animation, secondaryAnimation) =>
+          _TabCoachMarkDialog(guide: guide),
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        final curved = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+          reverseCurve: Curves.easeInCubic,
+        );
+        return FadeTransition(
+          opacity: curved,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0, 0.035),
+              end: Offset.zero,
+            ).animate(curved),
+            child: child,
+          ),
+        );
+      },
     );
     if (!mounted || action == null) return;
     action();
@@ -872,18 +894,225 @@ class _TabCoachMarkDialogState extends State<_TabCoachMarkDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final l10n = AppLocalizations.of(context)!;
     final steps = widget.guide.steps;
     final step = steps[_stepIndex];
     final isLast = _stepIndex == steps.length - 1;
-    return Dialog(
+    return Material(
       key: const ValueKey('tab-coach-mark-dialog'),
-      insetPadding: const EdgeInsets.symmetric(horizontal: 22, vertical: 24),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 420),
+      color: Colors.transparent,
+      child: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final targetTop = _spotlightTopForStep(
+              stepIndex: _stepIndex,
+              totalSteps: steps.length,
+              maxHeight: constraints.maxHeight,
+            );
+            return Stack(
+              key: const ValueKey('tab-coach-mark-screen-overlay'),
+              children: [
+                Positioned.fill(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => Navigator.of(context).pop(),
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(
+                          alpha:
+                              theme.brightness == Brightness.dark ? 0.50 : 0.42,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                AnimatedPositioned(
+                  duration: const Duration(milliseconds: 240),
+                  curve: Curves.easeOutCubic,
+                  left: 18,
+                  right: 18,
+                  top: targetTop,
+                  child: Align(
+                    alignment: _spotlightAlignmentForStep(_stepIndex),
+                    child: _CoachMarkFloatingTarget(
+                      step: step,
+                      label: AppLocalizations.of(
+                        context,
+                      )!
+                          .welcomeGuideCoachMarkLabel,
+                    ),
+                  ),
+                ),
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
+                    child: _CoachMarkExplanationPanel(
+                      guide: widget.guide,
+                      step: step,
+                      currentStep: _stepIndex + 1,
+                      totalSteps: steps.length,
+                      isLast: isLast,
+                      onSkip: () => Navigator.of(context).pop(),
+                      onBack: _stepIndex == 0
+                          ? null
+                          : () => setState(() => _stepIndex -= 1),
+                      onTry: step.onTry == null
+                          ? null
+                          : () => Navigator.of(context).pop(step.onTry),
+                      onNext: isLast
+                          ? () => Navigator.of(context).pop()
+                          : () => setState(() => _stepIndex += 1),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  double _spotlightTopForStep({
+    required int stepIndex,
+    required int totalSteps,
+    required double maxHeight,
+  }) {
+    final safeMax = maxHeight <= 0 ? 640.0 : maxHeight;
+    const upper = 72.0;
+    final lower = (safeMax - 318).clamp(upper, safeMax).toDouble();
+    if (totalSteps <= 1) return safeMax * 0.24;
+    final progress = stepIndex / (totalSteps - 1);
+    return upper + ((lower - upper) * progress);
+  }
+
+  AlignmentGeometry _spotlightAlignmentForStep(int stepIndex) {
+    return switch (stepIndex % 3) {
+      0 => AlignmentDirectional.centerStart,
+      1 => Alignment.center,
+      _ => AlignmentDirectional.centerEnd,
+    };
+  }
+}
+
+class _CoachMarkFloatingTarget extends StatelessWidget {
+  final _TabGuideStep step;
+  final String label;
+
+  const _CoachMarkFloatingTarget({
+    required this.step,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: scheme.primary, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: scheme.primary.withValues(alpha: 0.34),
+            blurRadius: 28,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: scheme.primary,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(step.icon, color: scheme.onPrimary),
+            ),
+            const SizedBox(width: 10),
+            Flexible(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: scheme.primary,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    step.actionLabel,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CoachMarkExplanationPanel extends StatelessWidget {
+  final _TabGuideData guide;
+  final _TabGuideStep step;
+  final int currentStep;
+  final int totalSteps;
+  final bool isLast;
+  final VoidCallback onSkip;
+  final VoidCallback? onBack;
+  final VoidCallback? onTry;
+  final VoidCallback onNext;
+
+  const _CoachMarkExplanationPanel({
+    required this.guide,
+    required this.step,
+    required this.currentStep,
+    required this.totalSteps,
+    required this.isLast,
+    required this.onSkip,
+    required this.onBack,
+    required this.onTry,
+    required this.onNext,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context)!;
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 480),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: scheme.surface,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: scheme.outline.withValues(alpha: 0.18)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.22),
+              blurRadius: 28,
+              offset: const Offset(0, 16),
+            ),
+          ],
+        ),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(18, 18, 18, 14),
+          padding: const EdgeInsets.fromLTRB(18, 16, 18, 14),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -892,8 +1121,8 @@ class _TabCoachMarkDialogState extends State<_TabCoachMarkDialog> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    width: 44,
-                    height: 44,
+                    width: 42,
+                    height: 42,
                     decoration: BoxDecoration(
                       color: scheme.primaryContainer,
                       shape: BoxShape.circle,
@@ -906,16 +1135,18 @@ class _TabCoachMarkDialogState extends State<_TabCoachMarkDialog> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          widget.guide.title,
-                          style: theme.textTheme.titleLarge?.copyWith(
+                          guide.title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w900,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 3),
                         Text(
                           l10n.tabGuideCoachMarkStep(
-                            _stepIndex + 1,
-                            steps.length,
+                            currentStep,
+                            totalSteps,
                           ),
                           style: theme.textTheme.labelMedium?.copyWith(
                             color: scheme.primary,
@@ -927,37 +1158,43 @@ class _TabCoachMarkDialogState extends State<_TabCoachMarkDialog> {
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               Text(
-                widget.guide.intro,
-                style: theme.textTheme.bodyMedium?.copyWith(
+                guide.intro,
+                style: theme.textTheme.bodySmall?.copyWith(
                   color: scheme.onSurfaceVariant,
                   height: 1.35,
                 ),
               ),
-              const SizedBox(height: 14),
-              _CoachMarkStepSpotlight(step: step),
-              const SizedBox(height: 14),
+              const SizedBox(height: 10),
+              Text(
+                step.description,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  height: 1.38,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 12),
               Row(
                 children: [
-                  for (var index = 0; index < steps.length; index += 1) ...[
+                  for (var index = 0; index < totalSteps; index += 1) ...[
                     Expanded(
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 180),
                         height: 4,
                         decoration: BoxDecoration(
-                          color: index <= _stepIndex
+                          color: index < currentStep
                               ? scheme.primary
                               : scheme.outlineVariant,
                           borderRadius: BorderRadius.circular(999),
                         ),
                       ),
                     ),
-                    if (index != steps.length - 1) const SizedBox(width: 6),
+                    if (index != totalSteps - 1) const SizedBox(width: 6),
                   ],
                 ],
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 12),
               Wrap(
                 alignment: WrapAlignment.end,
                 spacing: 8,
@@ -965,27 +1202,25 @@ class _TabCoachMarkDialogState extends State<_TabCoachMarkDialog> {
                 children: [
                   TextButton(
                     key: const ValueKey('tab-coach-mark-skip-button'),
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: onSkip,
                     child: Text(l10n.tabGuideCoachMarkSkip),
                   ),
-                  if (_stepIndex > 0)
+                  if (onBack != null)
                     TextButton(
                       key: const ValueKey('tab-coach-mark-back-button'),
-                      onPressed: () => setState(() => _stepIndex -= 1),
+                      onPressed: onBack,
                       child: Text(l10n.tabGuideCoachMarkBack),
                     ),
-                  if (step.onTry != null)
+                  if (onTry != null)
                     FilledButton.tonalIcon(
                       key: const ValueKey('tab-coach-mark-try-button'),
-                      onPressed: () => Navigator.of(context).pop(step.onTry),
+                      onPressed: onTry,
                       icon: const Icon(Icons.touch_app_rounded),
                       label: Text(l10n.tabGuideCoachMarkTry),
                     ),
                   FilledButton.icon(
                     key: const ValueKey('tab-coach-mark-next-button'),
-                    onPressed: isLast
-                        ? () => Navigator.of(context).pop()
-                        : () => setState(() => _stepIndex += 1),
+                    onPressed: onNext,
                     icon: Icon(
                       isLast
                           ? Icons.check_rounded
@@ -1001,99 +1236,6 @@ class _TabCoachMarkDialogState extends State<_TabCoachMarkDialog> {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _CoachMarkStepSpotlight extends StatelessWidget {
-  final _TabGuideStep step;
-
-  const _CoachMarkStepSpotlight({required this.step});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: scheme.primaryContainer.withValues(alpha: 0.42),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: scheme.primary.withValues(alpha: 0.28)),
-        boxShadow: [
-          BoxShadow(
-            color: scheme.primary.withValues(alpha: 0.12),
-            blurRadius: 18,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: scheme.primary,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(step.icon, color: scheme.onPrimary, size: 20),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: scheme.surface,
-                      borderRadius: BorderRadius.circular(999),
-                      border: Border.all(
-                        color: scheme.primary.withValues(alpha: 0.32),
-                      ),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.touch_app_rounded,
-                            color: scheme.primary,
-                            size: 16,
-                          ),
-                          const SizedBox(width: 5),
-                          Flexible(
-                            child: Text(
-                              step.actionLabel,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.labelLarge?.copyWith(
-                                color: scheme.primary,
-                                fontWeight: FontWeight.w900,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    step.description,
-                    style: theme.textTheme.bodyMedium?.copyWith(height: 1.35),
-                  ),
-                ],
-              ),
-            ),
-          ],
         ),
       ),
     );
