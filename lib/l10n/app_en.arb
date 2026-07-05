@@ -3769,6 +3769,19 @@
   },
   "mealDeletedFeedback": "Meal log deleted.",
   "mealLogXpSourceLabel": "Meal log",
+  "mealCalorieEstimateValue": "About {kcal} kcal",
+  "@mealCalorieEstimateValue": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      }
+    }
+  },
+  "mealCalorieEstimateEmpty": "Calorie estimate pending",
+  "mealCalorieCoachEmpty": "Enter a menu to estimate rough calories from rice bowl count and food keywords.",
+  "mealCalorieCoachLow": "Calories look low today. On a training day, add a carb such as rice, sweet potato, or banana to the next meal.",
+  "mealCalorieCoachSteady": "This looks reasonable for training energy. Next, spread protein and vegetables across each meal.",
+  "mealCalorieCoachHigh": "Calories look high. If fried food, noodles, or snacks overlapped, make the next meal lighter with protein and vegetables.",
   "mealAverageExpectedValue": "Expected average {value} bowl(s)",
   "@mealAverageExpectedValue": {
     "placeholders": {

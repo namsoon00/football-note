@@ -90,6 +90,10 @@ void main() {
       '오트밀, 바나나, 우유',
     );
     await tester.pump(const Duration(milliseconds: 400));
+    await tester.drag(find.byType(ListView), const Offset(0, -700));
+    await tester.pumpAndSettle();
+
+    expect(find.text('약 455 kcal'), findsOneWidget);
 
     final saved = mealLogService.entryForDay(day);
     expect(saved, isNotNull);

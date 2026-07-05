@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../application/family_access_service.dart';
+import '../../application/meal_calorie_estimator.dart';
 import '../../application/meal_coaching_service.dart';
 import '../../application/meal_log_service.dart';
 import '../../application/player_level_service.dart';
@@ -69,17 +70,17 @@ class _MealLogScreenState extends State<MealLogScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final status = MealStatus.fromMealEntry(
-      MealEntry(
-        date: _date,
-        breakfastRiceBowls: _breakfastRiceBowls,
-        lunchRiceBowls: _lunchRiceBowls,
-        dinnerRiceBowls: _dinnerRiceBowls,
-        breakfastMenu: _breakfastMenuController.text,
-        lunchMenu: _lunchMenuController.text,
-        dinnerMenu: _dinnerMenuController.text,
-      ),
+    final currentEntry = MealEntry(
+      date: _date,
+      breakfastRiceBowls: _breakfastRiceBowls,
+      lunchRiceBowls: _lunchRiceBowls,
+      dinnerRiceBowls: _dinnerRiceBowls,
+      breakfastMenu: _breakfastMenuController.text,
+      lunchMenu: _lunchMenuController.text,
+      dinnerMenu: _dinnerMenuController.text,
     );
+    final status = MealStatus.fromMealEntry(currentEntry);
+    final calorieEstimate = MealCalorieEstimator.estimate(currentEntry);
 
     return Scaffold(
       appBar: AppBar(
@@ -123,7 +124,10 @@ class _MealLogScreenState extends State<MealLogScreen> {
                   setState(() => _breakfastRiceBowls = value);
                   _scheduleAutoSave();
                 },
-                onMenuChanged: (_) => _scheduleAutoSave(),
+                onMenuChanged: (_) {
+                  setState(() {});
+                  _scheduleAutoSave();
+                },
               ),
               const SizedBox(height: 10),
               _MealSelectorCard(
@@ -137,7 +141,10 @@ class _MealLogScreenState extends State<MealLogScreen> {
                   setState(() => _lunchRiceBowls = value);
                   _scheduleAutoSave();
                 },
-                onMenuChanged: (_) => _scheduleAutoSave(),
+                onMenuChanged: (_) {
+                  setState(() {});
+                  _scheduleAutoSave();
+                },
               ),
               const SizedBox(height: 10),
               _MealSelectorCard(
@@ -151,7 +158,10 @@ class _MealLogScreenState extends State<MealLogScreen> {
                   setState(() => _dinnerRiceBowls = value);
                   _scheduleAutoSave();
                 },
-                onMenuChanged: (_) => _scheduleAutoSave(),
+                onMenuChanged: (_) {
+                  setState(() {});
+                  _scheduleAutoSave();
+                },
               ),
               const SizedBox(height: 12),
               Card(
@@ -186,8 +196,23 @@ class _MealLogScreenState extends State<MealLogScreen> {
                               _formatBowls(status.totalRiceBowls),
                             ),
                           ),
+                          _InfoPill(
+                            label: calorieEstimate.hasEstimate
+                                ? l10n.mealCalorieEstimateValue(
+                                    calorieEstimate.totalKcal,
+                                  )
+                                : l10n.mealCalorieEstimateEmpty,
+                          ),
                           _InfoPill(label: _xpLabel(l10n, status)),
                         ],
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        _calorieCoach(l10n, calorieEstimate),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                          height: 1.35,
+                        ),
                       ),
                     ],
                   ),
@@ -370,6 +395,16 @@ class _MealLogScreenState extends State<MealLogScreen> {
     if (status.completedMeals >= 3) return l10n.mealXpFull;
     if (status.completedMeals >= 2) return l10n.mealXpPartial;
     return l10n.mealXpNeutral;
+  }
+
+  String _calorieCoach(
+    AppLocalizations l10n,
+    MealCalorieEstimate estimate,
+  ) {
+    if (!estimate.hasEstimate) return l10n.mealCalorieCoachEmpty;
+    if (estimate.totalKcal < 1200) return l10n.mealCalorieCoachLow;
+    if (estimate.totalKcal > 3000) return l10n.mealCalorieCoachHigh;
+    return l10n.mealCalorieCoachSteady;
   }
 
   String _formatBowls(double bowls) {

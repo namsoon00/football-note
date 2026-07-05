@@ -11021,6 +11021,42 @@ abstract class AppLocalizations {
   /// **'Meal log'**
   String get mealLogXpSourceLabel;
 
+  /// No description provided for @mealCalorieEstimateValue.
+  ///
+  /// In en, this message translates to:
+  /// **'About {kcal} kcal'**
+  String mealCalorieEstimateValue(int kcal);
+
+  /// No description provided for @mealCalorieEstimateEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Calorie estimate pending'**
+  String get mealCalorieEstimateEmpty;
+
+  /// No description provided for @mealCalorieCoachEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a menu to estimate rough calories from rice bowl count and food keywords.'**
+  String get mealCalorieCoachEmpty;
+
+  /// No description provided for @mealCalorieCoachLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Calories look low today. On a training day, add a carb such as rice, sweet potato, or banana to the next meal.'**
+  String get mealCalorieCoachLow;
+
+  /// No description provided for @mealCalorieCoachSteady.
+  ///
+  /// In en, this message translates to:
+  /// **'This looks reasonable for training energy. Next, spread protein and vegetables across each meal.'**
+  String get mealCalorieCoachSteady;
+
+  /// No description provided for @mealCalorieCoachHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'Calories look high. If fried food, noodles, or snacks overlapped, make the next meal lighter with protein and vegetables.'**
+  String get mealCalorieCoachHigh;
+
   /// No description provided for @mealAverageExpectedValue.
   ///
   /// In en, this message translates to:
