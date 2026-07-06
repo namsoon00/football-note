@@ -8,6 +8,7 @@ class NotificationAppLink {
     'calendar',
     'challenge',
     'club',
+    'family',
     'level',
     'league',
     'notifications',
@@ -81,10 +82,14 @@ class NotificationAppLink {
   static String familySync({required String role, required DateTime syncedAt}) {
     return Uri(
       scheme: scheme,
-      host: 'notifications',
-      path: '/family-sync',
+      host: 'family',
+      path: '/sync',
       queryParameters: {'role': role, 'syncedAt': syncedAt.toIso8601String()},
     ).toString();
+  }
+
+  static String notificationCenter() {
+    return Uri(scheme: scheme, host: 'notifications').toString();
   }
 
   static String leagueFixture({
@@ -105,7 +110,7 @@ class NotificationAppLink {
   }
 
   static String worldCup() {
-    return Uri(scheme: scheme, path: '/world-cup').toString();
+    return Uri(scheme: scheme, host: 'world-cup').toString();
   }
 
   static String worldCupFixture({
@@ -186,6 +191,17 @@ class NotificationAppLink {
       );
     }
 
+    if (host == 'notifications' &&
+        uri.pathSegments.isNotEmpty &&
+        uri.pathSegments.first == 'family-sync') {
+      return Uri(
+        scheme: scheme,
+        host: 'family',
+        pathSegments: const ['sync'],
+        queryParameters: uri.queryParameters,
+      );
+    }
+
     if (_hosts.contains(host)) {
       return Uri(
         scheme: scheme,
@@ -203,6 +219,15 @@ class NotificationAppLink {
         scheme: scheme,
         host: first,
         pathSegments: segments.skip(1),
+        queryParameters: uri.queryParameters,
+      );
+    }
+
+    if (first == 'family-sync') {
+      return Uri(
+        scheme: scheme,
+        host: 'family',
+        pathSegments: const ['sync'],
         queryParameters: uri.queryParameters,
       );
     }
@@ -233,12 +258,12 @@ class NotificationAppLink {
         return 'xp';
       case 'training':
         return 'club';
+      case 'center':
+        return 'notifications';
       case 'fixture':
         return queryParameters.containsKey('match') ? 'world-cup' : 'league';
       case 'detail':
         return 'weather';
-      case 'family-sync':
-        return 'notifications';
     }
     return null;
   }

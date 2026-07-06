@@ -530,19 +530,22 @@ class TrainingPlanReminderService {
     if (!_settings.reminderEnabled || !_settings.familySyncAlertEnabled) {
       return;
     }
+    final notificationPayload =
+        NotificationAppLink.tryParse(payload)?.toString() ??
+            NotificationAppLink.notificationCenter();
     final messageId =
-        'family:${DateTime.now().microsecondsSinceEpoch}:${payload.hashCode}';
+        'family:${DateTime.now().microsecondsSinceEpoch}:${notificationPayload.hashCode}';
     await _appendFamilyMessageLog(
       id: messageId,
       title: _notificationTitle,
       body: body,
-      payload: payload,
+      payload: notificationPayload,
     );
     if (kIsWeb) return;
     if (!await hasNotificationPermission()) return;
     final id = _notificationIdForScope(
       'family',
-      '$payload:${DateTime.now().millisecondsSinceEpoch}',
+      '$notificationPayload:${DateTime.now().millisecondsSinceEpoch}',
     );
     try {
       await _plugin.show(
@@ -562,7 +565,7 @@ class TrainingPlanReminderService {
           ),
           iOS: const DarwinNotificationDetails(),
         ),
-        payload: payload,
+        payload: notificationPayload,
       );
     } catch (_) {
       // Ignore immediate notification failures.
