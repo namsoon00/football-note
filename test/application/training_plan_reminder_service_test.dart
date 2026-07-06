@@ -13,9 +13,11 @@ void main() {
   const notificationsChannel = MethodChannel(
     'dexterous.com/flutter/local_notifications',
   );
+  late List<MethodCall> notificationCalls;
 
   setUp(() {
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    notificationCalls = <MethodCall>[];
     binding.defaultBinaryMessenger.setMockMethodCallHandler(timezoneChannel, (
       call,
     ) async {
@@ -25,10 +27,13 @@ void main() {
     binding.defaultBinaryMessenger.setMockMethodCallHandler(
       notificationsChannel,
       (call) async {
+        notificationCalls.add(call);
         switch (call.method) {
           case 'initialize':
           case 'requestNotificationsPermission':
           case 'requestExactAlarmsPermission':
+          case 'areNotificationsEnabled':
+          case 'show':
             return true;
           case 'zonedSchedule':
           case 'cancel':
@@ -135,6 +140,35 @@ void main() {
       );
     },
   );
+
+  test('family sync alert stores a canonical family app link payload',
+      () async {
+    final repository = _MemoryOptionRepository()
+      ..seed('reminder_enabled', true)
+      ..seed('family_sync_alert_enabled', true);
+    final settings = SettingsService(repository)..load();
+    final reminderService = TrainingPlanReminderService(repository, settings);
+
+    await reminderService.showFamilySyncAlert(
+      body: '가족 공유가 업데이트되었습니다.',
+      payload: 'taeonote://notifications/family-sync?role=parent',
+    );
+
+    final logs = repository.getValue<List>(
+      TrainingPlanReminderService.familyMessageLogKey,
+    );
+    expect(logs, hasLength(1));
+    final row = (logs!.single as Map).cast<String, dynamic>();
+    expect(row['payload'], 'taeonote://family/sync?role=parent');
+    expect(
+      notificationCalls.where((call) => call.method == 'show'),
+      hasLength(1),
+    );
+    final showCall = notificationCalls.singleWhere(
+      (call) => call.method == 'show',
+    );
+    expect(showCall.arguments, containsPair('payload', row['payload']));
+  });
 }
 
 class _MemoryOptionRepository implements OptionRepository {

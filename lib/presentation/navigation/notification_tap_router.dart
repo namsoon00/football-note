@@ -192,6 +192,7 @@ class NotificationTapRouter {
         );
       case 'weather':
         return WeatherDetailScreen(initialAction: _weatherActionFromLink(uri));
+      case 'family':
       case 'notifications':
         return _notificationCenterBuilder(dependencies);
     }

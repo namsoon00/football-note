@@ -38,8 +38,8 @@ void main() {
       );
       expectLink(
         NotificationAppLink.familySync(role: 'parent', syncedAt: date),
-        host: 'notifications',
-        path: '/family-sync',
+        host: 'family',
+        path: '/sync',
       );
       expectLink(
         NotificationAppLink.leagueFixture(
@@ -83,6 +83,56 @@ void main() {
         host: 'club',
         path: '/training',
       );
+    });
+
+    test('generated notification links use explicit app scheme domains', () {
+      final date = DateTime(2026, 6, 26, 9, 30);
+      final generatedLinks = <String, String>{
+        'calendar': NotificationAppLink.calendarPlan(
+          planId: 'plan-1',
+          scheduledAt: date,
+          atStartTime: true,
+        ),
+        'calendar inactivity': NotificationAppLink.inactivityReminder(
+          daysSince: 3,
+          targetDay: date,
+        ),
+        'challenge': NotificationAppLink.challengeRound(
+          runId: 'run-1',
+          roundNumber: 2,
+        ),
+        'club': NotificationAppLink.clubTraining(
+          weekday: DateTime.wednesday,
+        ),
+        'family': NotificationAppLink.familySync(
+          role: 'parent',
+          syncedAt: date,
+        ),
+        'level': NotificationAppLink.levelGuide(level: 7),
+        'league': NotificationAppLink.leagueFixture(
+          leagueType: 'kLeague1',
+          fixtureKey: 'fixture-1',
+          kickoffAt: date,
+        ),
+        'notifications': NotificationAppLink.notificationCenter(),
+        'weather': NotificationAppLink.weatherToday(),
+        'world-cup': NotificationAppLink.worldCup(),
+        'world-cup fixture': NotificationAppLink.worldCupFixture(
+          matchNumber: 12,
+          teamName: 'Korea Republic',
+          kickoffAt: date,
+        ),
+        'xp': NotificationAppLink.xpHistory(totalXp: 120),
+      };
+
+      for (final entry in generatedLinks.entries) {
+        expect(
+          entry.value,
+          startsWith('${NotificationAppLink.scheme}://'),
+          reason: entry.key,
+        );
+        expect(NotificationAppLink.tryParse(entry.value), isNotNull);
+      }
     });
 
     test('accepts Flutter route names and hostless app scheme paths', () {
@@ -137,6 +187,11 @@ void main() {
         host: 'weather',
         path: '/detail',
       );
+      expectLink(
+        'taeonote://notifications/family-sync?role=parent',
+        host: 'family',
+        path: '/sync',
+      );
     });
 
     test('infers destination when the platform drops the app link host', () {
@@ -171,8 +226,8 @@ void main() {
       expectLink('/training?weekday=3', host: 'club', path: '/training');
       expectLink(
         '/family-sync?role=parent&syncedAt=2026-06-26T09:30:00.000',
-        host: 'notifications',
-        path: '/family-sync',
+        host: 'family',
+        path: '/sync',
       );
     });
 
