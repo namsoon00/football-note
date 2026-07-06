@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:intl/intl.dart';
 
@@ -25,6 +24,7 @@ import '../../domain/entities/training_entry.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../theme/app_motion.dart';
 import '../theme/app_theme.dart';
+import '../utils/app_sound_effects.dart';
 import '../utils/sport_conditioning_visuals.dart';
 import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_background.dart';
@@ -1331,13 +1331,11 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   }
 
   void _playChallengeTapFeedback() {
-    unawaited(HapticFeedback.selectionClick());
-    unawaited(SystemSound.play(SystemSoundType.click));
+    AppSoundEffects.playTap();
   }
 
   void _playChallengeSuccessFeedback() {
-    unawaited(HapticFeedback.heavyImpact());
-    unawaited(SystemSound.play(SystemSoundType.alert));
+    AppSoundEffects.playMissionComplete();
   }
 
   void _showChallengeTopSnackBar(String message) {

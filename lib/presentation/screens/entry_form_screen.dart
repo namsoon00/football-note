@@ -28,6 +28,7 @@ import '../widgets/watch_cart/watch_cart_card.dart';
 import '../widgets/status_style.dart';
 import '../models/training_method_layout.dart';
 import '../models/training_board_link_codec.dart';
+import '../utils/app_sound_effects.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/app_page_route.dart';
 import '../widgets/app_pressable_scale.dart';
@@ -4005,6 +4006,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
             final rewardName = claim.customRewardName.trim().isNotEmpty
                 ? claim.customRewardName
                 : (isKo ? claim.reward.nameKo : claim.reward.nameEn);
+            AppSoundEffects.playRewardClaimed();
             AppFeedback.showSuccess(
               context,
               text: l10n.levelUpRewardClaimed(rewardName),
