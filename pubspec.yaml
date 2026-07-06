@@ -61,6 +61,7 @@ dependencies:
   printing: ^5.14.3
   web: ^1.1.1
   share_plus: ^13.2.0
+  audioplayers: ^6.7.1
 
 dev_dependencies:
   flutter_test:
@@ -97,6 +98,7 @@ flutter:
     - assets/watch_cart/svg/
     - assets/animations/
     - assets/videos/
+    - assets/sounds/
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 
