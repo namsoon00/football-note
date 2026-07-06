@@ -2,11 +2,11 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:football_note/gen/app_localizations.dart';
 
 import '../../application/player_level_service.dart';
 import '../localization/player_progression_localizations.dart';
+import '../utils/app_sound_effects.dart';
 import 'player_level_visuals.dart';
 
 Future<void> showXpGemRewardDialog(
@@ -1870,8 +1870,7 @@ Future<void> _showCelebrationDialog(
   bool fullScreen = false,
   bool showBackdrop = true,
 }) {
-  unawaited(HapticFeedback.mediumImpact());
-  unawaited(SystemSound.play(SystemSoundType.alert));
+  AppSoundEffects.playReward();
   return showGeneralDialog<void>(
     context: context,
     barrierDismissible: true,

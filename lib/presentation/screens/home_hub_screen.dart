@@ -33,6 +33,7 @@ import '../../domain/repositories/option_repository.dart';
 import '../localization/player_progression_localizations.dart';
 import '../models/home_hub_section_settings.dart';
 import '../theme/app_theme.dart';
+import '../utils/app_sound_effects.dart';
 import '../utils/sport_conditioning_visuals.dart';
 import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_background.dart';
@@ -975,6 +976,7 @@ class _HomeHubScreenState extends State<HomeHubScreen>
       );
       final award = await levelService.awardForDailyTasksCompleted();
       if (!mounted || award.gainedXp <= 0) return;
+      AppSoundEffects.playMissionComplete();
       final reminderService = TrainingPlanReminderService(
         widget.optionRepository,
         widget.settingsService,

@@ -9,6 +9,7 @@ import '../../application/player_level_service.dart';
 import '../../application/sport_service.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../localization/player_progression_localizations.dart';
+import '../utils/app_sound_effects.dart';
 import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_feedback.dart';
@@ -207,6 +208,7 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
     final rewardName = claim.customRewardName.trim().isNotEmpty
         ? claim.customRewardName
         : l10n.levelGuideRewardFallbackName;
+    AppSoundEffects.playRewardClaimed();
     AppFeedback.showSuccess(
       context,
       text: l10n.levelGuideRewardClaimed(rewardName),
