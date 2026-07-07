@@ -6274,6 +6274,62 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get mealMainDishLabel => 'Main dish';
+
+  @override
+  String get mealMainDishNone => 'No main dish';
+
+  @override
+  String get mealDishPortionSmall => 'Light';
+
+  @override
+  String get mealDishPortionRegular => 'Regular';
+
+  @override
+  String get mealDishPortionLarge => 'Large';
+
+  @override
+  String mealDishNutritionPreview(int kcal, int protein) {
+    return 'About $kcal kcal · protein ${protein}g';
+  }
+
+  @override
+  String get mealDishChickenBreast => 'Chicken breast';
+
+  @override
+  String get mealDishEggs => 'Eggs';
+
+  @override
+  String get mealDishTofu => 'Tofu';
+
+  @override
+  String get mealDishGrilledFish => 'Grilled fish';
+
+  @override
+  String get mealDishSalmon => 'Salmon';
+
+  @override
+  String get mealDishBulgogi => 'Bulgogi';
+
+  @override
+  String get mealDishKimchiStew => 'Kimchi stew';
+
+  @override
+  String get mealDishDoenjangStew => 'Doenjang stew';
+
+  @override
+  String get mealDishFriedChicken => 'Fried chicken';
+
+  @override
+  String get mealDishChickenSalad => 'Chicken salad';
+
+  @override
+  String get mealDishRamen => 'Ramen';
+
+  @override
+  String get mealDishSandwich => 'Sandwich';
+
+  @override
   String mealSummaryRiceOnly(String label, String rice) {
     return '$label $rice';
   }
@@ -6281,6 +6337,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String mealSummaryMenuOnly(String label, String menu) {
     return '$label $menu';
+  }
+
+  @override
+  String mealSummaryMenuPair(String first, String second) {
+    return '$first, $second';
   }
 
   @override
@@ -6318,6 +6379,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mealCalorieEstimateEmpty => 'Calorie estimate pending';
+
+  @override
+  String mealNutritionEstimateValue(int carbs, int protein, int fat) {
+    return 'Carbs ${carbs}g · protein ${protein}g · fat ${fat}g';
+  }
 
   @override
   String get mealCalorieCoachEmpty =>

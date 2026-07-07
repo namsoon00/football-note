@@ -103,6 +103,30 @@ void main() {
     expect(saved.hasRecords, isTrue);
   });
 
+  testWidgets('meal log screen auto saves selected main dish and portion', (
+    tester,
+  ) async {
+    final day = DateTime(2026, 3, 31);
+
+    await pumpMealLogScreen(tester, initialDate: day);
+
+    await tester.tap(find.byKey(const ValueKey('meal-breakfast-dish')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('닭가슴살').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('많이'));
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(find.text('약 215 kcal · 단백질 40g'), findsOneWidget);
+
+    final saved = mealLogService.entryForDay(day);
+    expect(saved, isNotNull);
+    expect(saved!.breakfastDishId, 'chickenBreast');
+    expect(saved.breakfastDishPortion, 'large');
+    expect(saved.completedMeals, 1);
+    expect(saved.hasRecords, isTrue);
+  });
+
   testWidgets('parent mode can view meal log without editing it', (
     tester,
   ) async {

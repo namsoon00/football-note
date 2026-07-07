@@ -6105,6 +6105,62 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get mealMainDishLabel => 'メイン料理';
+
+  @override
+  String get mealMainDishNone => '選択なし';
+
+  @override
+  String get mealDishPortionSmall => '少なめ';
+
+  @override
+  String get mealDishPortionRegular => '普通';
+
+  @override
+  String get mealDishPortionLarge => '多め';
+
+  @override
+  String mealDishNutritionPreview(int kcal, int protein) {
+    return '約$kcal kcal · たんぱく質 ${protein}g';
+  }
+
+  @override
+  String get mealDishChickenBreast => '鶏むね肉';
+
+  @override
+  String get mealDishEggs => '卵';
+
+  @override
+  String get mealDishTofu => '豆腐';
+
+  @override
+  String get mealDishGrilledFish => '焼き魚';
+
+  @override
+  String get mealDishSalmon => 'サーモン';
+
+  @override
+  String get mealDishBulgogi => 'プルコギ';
+
+  @override
+  String get mealDishKimchiStew => 'キムチチゲ';
+
+  @override
+  String get mealDishDoenjangStew => 'テンジャンチゲ';
+
+  @override
+  String get mealDishFriedChicken => 'フライドチキン';
+
+  @override
+  String get mealDishChickenSalad => 'チキンサラダ';
+
+  @override
+  String get mealDishRamen => 'ラーメン';
+
+  @override
+  String get mealDishSandwich => 'サンドイッチ';
+
+  @override
   String mealSummaryRiceOnly(String label, String rice) {
     return '$label $rice';
   }
@@ -6112,6 +6168,11 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String mealSummaryMenuOnly(String label, String menu) {
     return '$label $menu';
+  }
+
+  @override
+  String mealSummaryMenuPair(String first, String second) {
+    return '$first, $second';
   }
 
   @override
@@ -6149,6 +6210,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get mealCalorieEstimateEmpty => 'カロリー計算待ち';
+
+  @override
+  String mealNutritionEstimateValue(int carbs, int protein, int fat) {
+    return '炭 ${carbs}g · たんぱく質 ${protein}g · 脂質 ${fat}g';
+  }
 
   @override
   String get mealCalorieCoachEmpty => '献立を入力すると、ご飯の量と食品キーワードから大まかなカロリーを計算します。';

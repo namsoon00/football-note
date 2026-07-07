@@ -5952,13 +5952,21 @@ class _MealEntryTile extends StatelessWidget {
         l10n.mealBreakfast,
         entry.breakfastRiceBowls,
         entry.breakfastMenu,
+        entry.breakfastDishId,
       ),
-      _mealLine(l10n, l10n.mealLunch, entry.lunchRiceBowls, entry.lunchMenu),
+      _mealLine(
+        l10n,
+        l10n.mealLunch,
+        entry.lunchRiceBowls,
+        entry.lunchMenu,
+        entry.lunchDishId,
+      ),
       _mealLine(
         l10n,
         l10n.mealDinner,
         entry.dinnerRiceBowls,
         entry.dinnerMenu,
+        entry.dinnerDishId,
       ),
     ];
     return parts.join(' · ');
@@ -5969,11 +5977,16 @@ class _MealEntryTile extends StatelessWidget {
     String label,
     double bowls,
     String menu,
+    String dishId,
   ) {
     final trimmedMenu = menu.trim();
+    final dishLabel = _dishLabel(l10n, dishId);
+    final menuText = dishLabel.isEmpty || trimmedMenu.isEmpty
+        ? dishLabel + trimmedMenu
+        : l10n.mealSummaryMenuPair(dishLabel, trimmedMenu);
     if (bowls <= 0) {
-      if (trimmedMenu.isNotEmpty) {
-        return l10n.mealSummaryMenuOnly(label, trimmedMenu);
+      if (menuText.isNotEmpty) {
+        return l10n.mealSummaryMenuOnly(label, menuText);
       }
       return l10n.mealCompactSkipped(label);
     }
@@ -5981,8 +5994,26 @@ class _MealEntryTile extends StatelessWidget {
         ? bowls.toStringAsFixed(0)
         : bowls.toStringAsFixed(1);
     final rice = l10n.mealRiceBowlsValue(count);
-    if (trimmedMenu.isEmpty) return l10n.mealSummaryRiceOnly(label, rice);
-    return l10n.mealSummaryRiceWithMenu(label, rice, trimmedMenu);
+    if (menuText.isEmpty) return l10n.mealSummaryRiceOnly(label, rice);
+    return l10n.mealSummaryRiceWithMenu(label, rice, menuText);
+  }
+
+  String _dishLabel(AppLocalizations l10n, String dishId) {
+    return switch (dishId) {
+      'chickenBreast' => l10n.mealDishChickenBreast,
+      'eggs' => l10n.mealDishEggs,
+      'tofu' => l10n.mealDishTofu,
+      'grilledFish' => l10n.mealDishGrilledFish,
+      'salmon' => l10n.mealDishSalmon,
+      'bulgogi' => l10n.mealDishBulgogi,
+      'kimchiStew' => l10n.mealDishKimchiStew,
+      'doenjangStew' => l10n.mealDishDoenjangStew,
+      'friedChicken' => l10n.mealDishFriedChicken,
+      'chickenSalad' => l10n.mealDishChickenSalad,
+      'ramen' => l10n.mealDishRamen,
+      'sandwich' => l10n.mealDishSandwich,
+      _ => '',
+    };
   }
 }
 

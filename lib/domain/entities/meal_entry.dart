@@ -8,6 +8,12 @@ class MealEntry {
   final String breakfastMenu;
   final String lunchMenu;
   final String dinnerMenu;
+  final String breakfastDishId;
+  final String lunchDishId;
+  final String dinnerDishId;
+  final String breakfastDishPortion;
+  final String lunchDishPortion;
+  final String dinnerDishPortion;
   final DateTime createdAt;
 
   MealEntry({
@@ -18,6 +24,12 @@ class MealEntry {
     this.breakfastMenu = '',
     this.lunchMenu = '',
     this.dinnerMenu = '',
+    this.breakfastDishId = '',
+    this.lunchDishId = '',
+    this.dinnerDishId = '',
+    this.breakfastDishPortion = 'regular',
+    this.lunchDishPortion = 'regular',
+    this.dinnerDishPortion = 'regular',
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
 
@@ -27,12 +39,21 @@ class MealEntry {
   bool get hasMealPlan =>
       breakfastMenu.trim().isNotEmpty ||
       lunchMenu.trim().isNotEmpty ||
-      dinnerMenu.trim().isNotEmpty;
+      dinnerMenu.trim().isNotEmpty ||
+      breakfastDishId.trim().isNotEmpty ||
+      lunchDishId.trim().isNotEmpty ||
+      dinnerDishId.trim().isNotEmpty;
 
   int get completedMeals => <bool>[
-        breakfastRiceBowls > 0 || breakfastMenu.trim().isNotEmpty,
-        lunchRiceBowls > 0 || lunchMenu.trim().isNotEmpty,
-        dinnerRiceBowls > 0 || dinnerMenu.trim().isNotEmpty,
+        breakfastRiceBowls > 0 ||
+            breakfastMenu.trim().isNotEmpty ||
+            breakfastDishId.trim().isNotEmpty,
+        lunchRiceBowls > 0 ||
+            lunchMenu.trim().isNotEmpty ||
+            lunchDishId.trim().isNotEmpty,
+        dinnerRiceBowls > 0 ||
+            dinnerMenu.trim().isNotEmpty ||
+            dinnerDishId.trim().isNotEmpty,
       ].where((value) => value).length;
 
   bool get hasRecords => totalRiceBowls > 0 || hasMealPlan;
@@ -45,6 +66,12 @@ class MealEntry {
     String? breakfastMenu,
     String? lunchMenu,
     String? dinnerMenu,
+    String? breakfastDishId,
+    String? lunchDishId,
+    String? dinnerDishId,
+    String? breakfastDishPortion,
+    String? lunchDishPortion,
+    String? dinnerDishPortion,
     DateTime? createdAt,
   }) {
     return MealEntry(
@@ -55,6 +82,12 @@ class MealEntry {
       breakfastMenu: breakfastMenu ?? this.breakfastMenu,
       lunchMenu: lunchMenu ?? this.lunchMenu,
       dinnerMenu: dinnerMenu ?? this.dinnerMenu,
+      breakfastDishId: breakfastDishId ?? this.breakfastDishId,
+      lunchDishId: lunchDishId ?? this.lunchDishId,
+      dinnerDishId: dinnerDishId ?? this.dinnerDishId,
+      breakfastDishPortion: breakfastDishPortion ?? this.breakfastDishPortion,
+      lunchDishPortion: lunchDishPortion ?? this.lunchDishPortion,
+      dinnerDishPortion: dinnerDishPortion ?? this.dinnerDishPortion,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -68,6 +101,12 @@ class MealEntry {
       'breakfastMenu': breakfastMenu,
       'lunchMenu': lunchMenu,
       'dinnerMenu': dinnerMenu,
+      'breakfastDishId': breakfastDishId,
+      'lunchDishId': lunchDishId,
+      'dinnerDishId': dinnerDishId,
+      'breakfastDishPortion': breakfastDishPortion,
+      'lunchDishPortion': lunchDishPortion,
+      'dinnerDishPortion': dinnerDishPortion,
       'createdAt': createdAt.toIso8601String(),
     };
   }
@@ -81,6 +120,13 @@ class MealEntry {
       breakfastMenu: _stringValue(map['breakfastMenu']),
       lunchMenu: _stringValue(map['lunchMenu']),
       dinnerMenu: _stringValue(map['dinnerMenu']),
+      breakfastDishId: _stringValue(map['breakfastDishId']),
+      lunchDishId: _stringValue(map['lunchDishId']),
+      dinnerDishId: _stringValue(map['dinnerDishId']),
+      breakfastDishPortion:
+          _portionValue(_stringValue(map['breakfastDishPortion'])),
+      lunchDishPortion: _portionValue(_stringValue(map['lunchDishPortion'])),
+      dinnerDishPortion: _portionValue(_stringValue(map['dinnerDishPortion'])),
       createdAt: DateTime.tryParse(map['createdAt']?.toString() ?? '') ??
           DateTime.now(),
     );
@@ -98,6 +144,13 @@ class MealEntry {
   }
 
   static String _stringValue(Object? value) => value?.toString() ?? '';
+
+  static String _portionValue(String value) {
+    return switch (value) {
+      'small' || 'regular' || 'large' => value,
+      _ => 'regular',
+    };
+  }
 
   static int compareByRecentCreated(MealEntry a, MealEntry b) {
     final createdCompare = b.createdAt.compareTo(a.createdAt);
