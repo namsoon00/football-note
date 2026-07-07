@@ -6289,6 +6289,44 @@
   "trainingSketchPlayerFlowPassSection": "Connect to teammate",
   "trainingSketchPlayerFlowBallSection": "Ball actions",
   "trainingSketchPlayerFlowMoveSection": "Movement",
+  "trainingSketchGlobalStagesTitle": "Overall stages",
+  "trainingSketchGlobalStagesHint": "Build the board as one sequence, and add several actions to the same stage when they should happen together.",
+  "trainingSketchGlobalStagesEmpty": "No stages yet. The first action starts as stage 1.",
+  "trainingSketchGlobalStageChip": "Stage {stage} · {count} actions",
+  "@trainingSketchGlobalStageChip": {
+    "placeholders": {
+      "stage": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchAddSameStageButton": "Add to stage {stage}",
+  "@trainingSketchAddSameStageButton": {
+    "placeholders": {
+      "stage": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchAddNextStageButton": "Add stage {stage}",
+  "@trainingSketchAddNextStageButton": {
+    "placeholders": {
+      "stage": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchRegisteredNextGlobalStageHint": "The next action will be created in overall stage {stage}.",
+  "@trainingSketchRegisteredNextGlobalStageHint": {
+    "placeholders": {
+      "stage": {
+        "type": "int"
+      }
+    }
+  },
   "trainingSketchSelectedItemTitle": "Selected item",
   "trainingSketchAssignColorLabel": "Assign color",
   "trainingSketchPlayerStagesTitle": "Player stages",

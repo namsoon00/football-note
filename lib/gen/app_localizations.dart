@@ -19482,6 +19482,48 @@ abstract class AppLocalizations {
   /// **'Movement'**
   String get trainingSketchPlayerFlowMoveSection;
 
+  /// No description provided for @trainingSketchGlobalStagesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Overall stages'**
+  String get trainingSketchGlobalStagesTitle;
+
+  /// No description provided for @trainingSketchGlobalStagesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Build the board as one sequence, and add several actions to the same stage when they should happen together.'**
+  String get trainingSketchGlobalStagesHint;
+
+  /// No description provided for @trainingSketchGlobalStagesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No stages yet. The first action starts as stage 1.'**
+  String get trainingSketchGlobalStagesEmpty;
+
+  /// No description provided for @trainingSketchGlobalStageChip.
+  ///
+  /// In en, this message translates to:
+  /// **'Stage {stage} · {count} actions'**
+  String trainingSketchGlobalStageChip(int stage, int count);
+
+  /// No description provided for @trainingSketchAddSameStageButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to stage {stage}'**
+  String trainingSketchAddSameStageButton(int stage);
+
+  /// No description provided for @trainingSketchAddNextStageButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Add stage {stage}'**
+  String trainingSketchAddNextStageButton(int stage);
+
+  /// No description provided for @trainingSketchRegisteredNextGlobalStageHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The next action will be created in overall stage {stage}.'**
+  String trainingSketchRegisteredNextGlobalStageHint(int stage);
+
   /// No description provided for @trainingSketchSelectedItemTitle.
   ///
   /// In en, this message translates to:

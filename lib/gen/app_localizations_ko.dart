@@ -11063,6 +11063,37 @@ class AppLocalizationsKo extends AppLocalizations {
   String get trainingSketchPlayerFlowMoveSection => '움직임';
 
   @override
+  String get trainingSketchGlobalStagesTitle => '전체 단계';
+
+  @override
+  String get trainingSketchGlobalStagesHint =>
+      '보드 전체 순서로 이어서 만들고, 필요하면 같은 단계에 여러 액션을 함께 넣을 수 있어요.';
+
+  @override
+  String get trainingSketchGlobalStagesEmpty =>
+      '아직 등록된 단계가 없어요. 첫 액션은 1단계로 시작합니다.';
+
+  @override
+  String trainingSketchGlobalStageChip(int stage, int count) {
+    return '$stage단계 · 액션 $count개';
+  }
+
+  @override
+  String trainingSketchAddSameStageButton(int stage) {
+    return '$stage단계에 추가';
+  }
+
+  @override
+  String trainingSketchAddNextStageButton(int stage) {
+    return '$stage단계 추가';
+  }
+
+  @override
+  String trainingSketchRegisteredNextGlobalStageHint(int stage) {
+    return '다음 액션은 전체 $stage단계로 만들어져요.';
+  }
+
+  @override
   String get trainingSketchSelectedItemTitle => '선택 요소';
 
   @override
