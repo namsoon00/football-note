@@ -6289,6 +6289,44 @@
   "trainingSketchPlayerFlowPassSection": "味方につなぐ",
   "trainingSketchPlayerFlowBallSection": "ボールを使う動作",
   "trainingSketchPlayerFlowMoveSection": "動き",
+  "trainingSketchGlobalStagesTitle": "全体ステージ",
+  "trainingSketchGlobalStagesHint": "ボード全体を1つの順序として作成し、同時に動くものは同じステージに追加できます。",
+  "trainingSketchGlobalStagesEmpty": "まだステージがありません。最初の動作はステージ1から始まります。",
+  "trainingSketchGlobalStageChip": "ステージ{stage} · 動作{count}件",
+  "@trainingSketchGlobalStageChip": {
+    "placeholders": {
+      "stage": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchAddSameStageButton": "ステージ{stage}に追加",
+  "@trainingSketchAddSameStageButton": {
+    "placeholders": {
+      "stage": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchAddNextStageButton": "ステージ{stage}を追加",
+  "@trainingSketchAddNextStageButton": {
+    "placeholders": {
+      "stage": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchRegisteredNextGlobalStageHint": "次の動作は全体ステージ{stage}として作成されます。",
+  "@trainingSketchRegisteredNextGlobalStageHint": {
+    "placeholders": {
+      "stage": {
+        "type": "int"
+      }
+    }
+  },
   "trainingSketchSelectedItemTitle": "選択した項目",
   "trainingSketchAssignColorLabel": "色の割り当て",
   "trainingSketchPlayerStagesTitle": "プレーヤーのステージ",

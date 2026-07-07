@@ -93,7 +93,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   bool _showPortraitInspector = true;
   bool _showTacticalOverlay = true;
   bool _showSelectedColorPicker = false;
-  final Map<String, int> _registeredNextStageByPlayerId = <String, int>{};
+  int? _registeredNextActionStageIndex;
   Timer? _autoSaveTimer;
   bool _autoSaveInProgress = false;
   bool _pdfExportInProgress = false;
@@ -1211,23 +1211,14 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     );
   }
 
-  int _suggestedStageForNewRoute(_PathDrawMode kind) {
-    if (kind != _PathDrawMode.player) return 1;
+  int _suggestedStageForNewRoute(_PathDrawMode _) {
+    final registered = _registeredStageForNextAction();
+    if (registered != null) return registered;
     final selectedRoute = _selectedRoute;
-    if (selectedRoute != null &&
-        selectedRoute.kind == _PathDrawMode.ball &&
-        selectedRoute.points.length >= 2) {
+    if (selectedRoute != null && selectedRoute.points.length >= 2) {
       return _normalizedRouteStageIndex(selectedRoute.stageIndex + 1);
     }
-    final ballStages = _currentPage.routes
-        .where(
-          (route) =>
-              route.kind == _PathDrawMode.ball && route.points.length >= 2,
-        )
-        .map((route) => _normalizedRouteStageIndex(route.stageIndex))
-        .toList(growable: false);
-    if (ballStages.isEmpty) return 1;
-    return _normalizedRouteStageIndex(ballStages.fold<int>(1, math.max) + 1);
+    return _nextGlobalStageForNewAction();
   }
 
   int _pairedCarryStageFor({
@@ -2740,6 +2731,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       maxStage =
           math.max(maxStage, _normalizedRouteStageIndex(route.stageIndex));
     }
+    final registered = _registeredStageForNextAction();
+    if (registered != null) {
+      maxStage = math.max(maxStage, registered);
+    }
     return maxStage;
   }
 
@@ -2770,51 +2765,17 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     return _normalizedRouteStageIndex(route.stageIndex + 1);
   }
 
-  int? _stageAfterExplicitPlayerActions(_BoardItem player) {
-    final stages = _currentPage.routes
-        .where(
-          (route) =>
-              route.points.length >= 2 &&
-              (route.actorItemId == player.id ||
-                  (route.kind == _PathDrawMode.player &&
-                      route.linkedItemId == player.id)),
-        )
-        .map((route) => _normalizedRouteStageIndex(route.stageIndex))
-        .toList(growable: false);
-    if (stages.isEmpty) return null;
-    return _normalizedRouteStageIndex(stages.fold<int>(1, math.max) + 1);
-  }
-
-  bool _routeBelongsToPlayerStage(_BoardRoute route, _BoardItem player) {
-    if (route.points.length < 2) return false;
-    if (route.actorItemId == player.id) return true;
-    if (route.kind == _PathDrawMode.player && route.linkedItemId == player.id) {
-      return true;
-    }
-    if (route.actorItemId != null || route.kind != _PathDrawMode.ball) {
-      return false;
-    }
-    final playerRoute = _routeForItem(player.id, _PathDrawMode.player);
-    final candidateStarts = <Offset>[
-      _itemPosition(player),
-      if (playerRoute != null) ...playerRoute.points,
-    ];
-    final routeStart = route.points.first;
-    return candidateStarts
-        .any((point) => (point - routeStart).distance <= 0.12);
-  }
-
-  List<_PlayerStageSummary> _playerStageSummaries(_BoardItem player) {
+  List<_StageSummary> _globalStageSummaries() {
     final routesByStage = <int, List<_BoardRoute>>{};
     for (final route in _currentPage.routes) {
-      if (!_routeBelongsToPlayerStage(route, player)) continue;
+      if (route.points.length < 2) continue;
       final stage = _normalizedRouteStageIndex(route.stageIndex);
       routesByStage.putIfAbsent(stage, () => <_BoardRoute>[]).add(route);
     }
     final stages = routesByStage.keys.toList(growable: false)..sort();
     return stages
         .map(
-          (stage) => _PlayerStageSummary(
+          (stage) => _StageSummary(
             stageIndex: stage,
             routes: List<_BoardRoute>.unmodifiable(routesByStage[stage]!),
           ),
@@ -2822,33 +2783,46 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         .toList(growable: false);
   }
 
-  int? _registeredStageForPlayer(_BoardItem player) {
-    final registered = _registeredNextStageByPlayerId[player.id];
+  int? _registeredStageForNextAction() {
+    final registered = _registeredNextActionStageIndex;
     return registered == null ? null : _normalizedRouteStageIndex(registered);
   }
 
-  int _nextStageForPlayer(_BoardItem player) {
-    final summaries = _playerStageSummaries(player);
+  int _sameStageForNextAction() {
+    final selectedRoute = _selectedRoute;
+    if (selectedRoute != null && selectedRoute.points.length >= 2) {
+      return _normalizedRouteStageIndex(selectedRoute.stageIndex);
+    }
+    final summaries = _globalStageSummaries();
+    if (summaries.isEmpty) return 1;
+    return _normalizedRouteStageIndex(summaries.last.stageIndex);
+  }
+
+  int _nextGlobalStageForNewAction() {
+    final summaries = _globalStageSummaries();
     if (summaries.isEmpty) return 1;
     return _normalizedRouteStageIndex(summaries.last.stageIndex + 1);
   }
 
   int? _stageForNextPlayerAction(_BoardItem player) {
-    final registered = _registeredStageForPlayer(player);
+    final registered = _registeredStageForNextAction();
     if (registered != null) return registered;
     final selectedRouteStage = _stageAfterSelectedRoute();
     if (selectedRouteStage != null) return selectedRouteStage;
-    final candidateStages = <int>[
-      if (_stageAfterExplicitPlayerActions(player) case final stage?) stage,
-      if (_stageAfterCurrentBallPossession(player) case final stage?) stage,
-    ];
-    if (candidateStages.isEmpty) return null;
-    return candidateStages.fold<int>(1, math.max);
+    final possessionStage = _stageAfterCurrentBallPossession(player);
+    if (possessionStage != null) return possessionStage;
+    return _nextGlobalStageForNewAction();
   }
 
-  void _registerNextStageForPlayer(_BoardItem player) {
+  void _registerSameStageForNextAction() {
     setState(() {
-      _registeredNextStageByPlayerId[player.id] = _nextStageForPlayer(player);
+      _registeredNextActionStageIndex = _sameStageForNextAction();
+    });
+  }
+
+  void _registerNextStageForNextAction() {
+    setState(() {
+      _registeredNextActionStageIndex = _nextGlobalStageForNewAction();
     });
   }
 
@@ -3236,9 +3210,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }) {
     _selectedItemId = selectedItemOverride?.id ?? item.id;
     _selectedRouteId = route.id;
-    if (route.actorItemId != null) {
-      _registeredNextStageByPlayerId.remove(route.actorItemId);
-    }
+    _registeredNextActionStageIndex = null;
     _showSelectedColorPicker = false;
     _pathDrawMode = route.kind;
     _pathMode = false;
@@ -3414,10 +3386,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         (targetItem?.type == _BoardItemType.player ? targetItem : null) ??
         selected;
     final nextStage = stageIndex ??
+        _stageForNextPlayerAction(player) ??
         (chainedPlayerRoute == null
-            ? _stageForNextPlayerAction(player)
-            : _registeredStageForPlayer(player) ??
-                _normalizedRouteStageIndex(chainedPlayerRoute.stageIndex + 1));
+            ? 1
+            : _normalizedRouteStageIndex(chainedPlayerRoute.stageIndex + 1));
     return _applyQuickBallToPointTemplate(
       ball: ball,
       end: target,
@@ -3464,9 +3436,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         item: ball,
         points: <Offset>[resolvedBallStart, passEnd],
         segmentDurationsMs: const <int>[680],
-        stageIndex: _registeredStageForPlayer(player) ??
+        stageIndex: _stageForNextPlayerAction(player) ??
             (existingRoute == null
-                ? (_stageForNextPlayerAction(player) ?? 1)
+                ? 1
                 : _normalizedRouteStageIndex(existingRoute.stageIndex + 1)),
         actorItemId: player.id,
         targetItemId: targetItem?.id,
@@ -3480,8 +3452,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           ..._playerActionBaseDurations(existingRoute),
           760,
         ],
-        stageIndex: existingRoute?.stageIndex ??
-            _registeredStageForPlayer(player) ??
+        stageIndex: _registeredStageForNextAction() ??
+            existingRoute?.stageIndex ??
             _suggestedStageForNewRoute(_PathDrawMode.player),
         actorItemId: player.id,
         replacementRoute: existingRoute,
@@ -3579,7 +3551,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     final continueUnownedPossessionRoute = possessionRoute != null &&
         possessionRoute.actorItemId == null &&
         possessionRoute.targetItemId == null;
-    final stageIndex = _registeredStageForPlayer(player) ??
+    final stageIndex = _registeredStageForNextAction() ??
         existingRoute?.stageIndex ??
         (continueUnownedPossessionRoute
             ? pairedStage
@@ -3748,8 +3720,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         exit,
       ];
       final actionDurations = <int>[360, 280, 260, 260, 420];
-      final stageIndex = existingRoute?.stageIndex ??
-          _registeredStageForPlayer(player) ??
+      final stageIndex = _registeredStageForNextAction() ??
+          existingRoute?.stageIndex ??
           _suggestedStageForNewRoute(_PathDrawMode.player);
       _upsertPossessedBallCarryRoute(
         player: player,
@@ -3837,8 +3809,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       );
       final actionPoints = <Offset>[start, takeoff, center, landing];
       final actionDurations = <int>[360, 240, 420];
-      final stageIndex = existingRoute?.stageIndex ??
-          _registeredStageForPlayer(player) ??
+      final stageIndex = _registeredStageForNextAction() ??
+          existingRoute?.stageIndex ??
           _suggestedStageForNewRoute(_PathDrawMode.player);
       _upsertPossessedBallCarryRoute(
         player: player,
@@ -3998,8 +3970,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         pointCount: actionPoints.length,
         rawDurationsMs: segmentDurationsMs ?? const <int>[720],
       );
-      final stageIndex = existingRoute?.stageIndex ??
-          _registeredStageForPlayer(player) ??
+      final stageIndex = _registeredStageForNextAction() ??
+          existingRoute?.stageIndex ??
           _suggestedStageForNewRoute(_PathDrawMode.player);
       if (carryPossessedBall) {
         _upsertPossessedBallCarryRoute(
@@ -6344,13 +6316,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     );
   }
 
-  void _selectPlayerStageSummary(
-    _BoardItem player,
-    _PlayerStageSummary summary,
-  ) {
+  void _selectGlobalStageSummary(_StageSummary summary) {
     final route = summary.routes.first;
     setState(() {
-      _selectedItemId = player.id;
+      _selectedItemId = route.linkedItemId ?? route.actorItemId;
       _selectedRouteId = route.id;
       _pathDrawMode = route.kind;
       _showSelectedColorPicker = false;
@@ -6365,30 +6334,32 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     });
   }
 
-  Widget _buildSelectedPlayerStagePlanner(_BoardItem player) {
+  Widget _buildGlobalStagePlanner() {
     final theme = Theme.of(context);
-    final summaries = _playerStageSummaries(player);
-    final registeredStage = _registeredStageForPlayer(player);
-    final nextStage = _nextStageForPlayer(player);
-    final accentColor = player.color;
+    final colors = theme.colorScheme;
+    final summaries = _globalStageSummaries();
+    final registeredStage = _registeredStageForNextAction();
+    final sameStage = _sameStageForNextAction();
+    final nextStage = _nextGlobalStageForNewAction();
+    final accentColor = colors.primary;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: accentColor.withValues(alpha: 0.10),
-        border: Border.all(color: accentColor.withValues(alpha: 0.24)),
+        borderRadius: BorderRadius.circular(10),
+        color: colors.surface.withValues(alpha: 0.48),
+        border: Border.all(color: colors.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.low_priority_rounded, size: 18, color: accentColor),
+              Icon(Icons.view_timeline_outlined, size: 18, color: accentColor),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  _l10n.trainingSketchPlayerStagesTitle,
+                  _l10n.trainingSketchGlobalStagesTitle,
                   style: theme.textTheme.labelLarge?.copyWith(
                     fontWeight: FontWeight.w900,
                   ),
@@ -6396,10 +6367,15 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
               ),
             ],
           ),
+          const SizedBox(height: 6),
+          Text(
+            _l10n.trainingSketchGlobalStagesHint,
+            style: theme.textTheme.bodySmall,
+          ),
           const SizedBox(height: 8),
           if (summaries.isEmpty)
             Text(
-              _l10n.trainingSketchPlayerStagesEmpty,
+              _l10n.trainingSketchGlobalStagesEmpty,
               style: theme.textTheme.bodySmall,
             )
           else
@@ -6410,7 +6386,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                 for (final summary in summaries)
                   ActionChip(
                     key: ValueKey(
-                      'training-player-stage-${player.id}-${summary.stageIndex}',
+                      'training-global-stage-${summary.stageIndex}',
                     ),
                     avatar: CircleAvatar(
                       radius: 10,
@@ -6425,19 +6401,19 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                       ),
                     ),
                     label: Text(
-                      _l10n.trainingSketchPlayerStageChip(
+                      _l10n.trainingSketchGlobalStageChip(
                         summary.stageIndex,
                         summary.routes.length,
                       ),
                     ),
-                    onPressed: () => _selectPlayerStageSummary(player, summary),
+                    onPressed: () => _selectGlobalStageSummary(summary),
                   ),
               ],
             ),
           if (registeredStage != null) ...[
             const SizedBox(height: 8),
             Text(
-              _l10n.trainingSketchRegisteredNextPlayerStageHint(
+              _l10n.trainingSketchRegisteredNextGlobalStageHint(
                 registeredStage,
               ),
               style: theme.textTheme.bodySmall?.copyWith(
@@ -6447,13 +6423,27 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             ),
           ],
           const SizedBox(height: 8),
-          OutlinedButton.icon(
-            key: ValueKey('training-player-register-next-stage-${player.id}'),
-            onPressed: () => _registerNextStageForPlayer(player),
-            icon: const Icon(Icons.add_task_outlined),
-            label: Text(
-              _l10n.trainingSketchRegisterNextPlayerStageButton(nextStage),
-            ),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              OutlinedButton.icon(
+                key: const ValueKey('training-register-same-stage'),
+                onPressed: _registerSameStageForNextAction,
+                icon: const Icon(Icons.add_link_outlined),
+                label: Text(
+                  _l10n.trainingSketchAddSameStageButton(sameStage),
+                ),
+              ),
+              FilledButton.icon(
+                key: const ValueKey('training-register-next-stage'),
+                onPressed: _registerNextStageForNextAction,
+                icon: const Icon(Icons.add_task_outlined),
+                label: Text(
+                  _l10n.trainingSketchAddNextStageButton(nextStage),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -6668,9 +6658,16 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       );
     }
     if (selected == null) {
-      return Text(
-        l10n.trainingSketchQuickStart,
-        style: Theme.of(context).textTheme.bodySmall,
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.trainingSketchQuickStart,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(height: 10),
+          _buildGlobalStagePlanner(),
+        ],
       );
     }
     final selectedStageRoute = _stageRouteForSelectedItem(
@@ -6713,7 +6710,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           const SizedBox(height: 10),
           _buildPlayerFlowStarter(selected),
           const SizedBox(height: 10),
-          _buildSelectedPlayerStagePlanner(selected),
+          _buildGlobalStagePlanner(),
           const SizedBox(height: 10),
           Text(
             _selectedActionSectionTitle(selected),
@@ -6807,11 +6804,11 @@ class _BoardRoute {
   });
 }
 
-class _PlayerStageSummary {
+class _StageSummary {
   final int stageIndex;
   final List<_BoardRoute> routes;
 
-  const _PlayerStageSummary({
+  const _StageSummary({
     required this.stageIndex,
     required this.routes,
   });

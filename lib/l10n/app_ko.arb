@@ -6289,6 +6289,44 @@
   "trainingSketchPlayerFlowPassSection": "동료에게 바로 연결",
   "trainingSketchPlayerFlowBallSection": "공을 쓰는 동작",
   "trainingSketchPlayerFlowMoveSection": "움직임",
+  "trainingSketchGlobalStagesTitle": "전체 단계",
+  "trainingSketchGlobalStagesHint": "보드 전체 순서로 이어서 만들고, 필요하면 같은 단계에 여러 액션을 함께 넣을 수 있어요.",
+  "trainingSketchGlobalStagesEmpty": "아직 등록된 단계가 없어요. 첫 액션은 1단계로 시작합니다.",
+  "trainingSketchGlobalStageChip": "{stage}단계 · 액션 {count}개",
+  "@trainingSketchGlobalStageChip": {
+    "placeholders": {
+      "stage": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchAddSameStageButton": "{stage}단계에 추가",
+  "@trainingSketchAddSameStageButton": {
+    "placeholders": {
+      "stage": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchAddNextStageButton": "{stage}단계 추가",
+  "@trainingSketchAddNextStageButton": {
+    "placeholders": {
+      "stage": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchRegisteredNextGlobalStageHint": "다음 액션은 전체 {stage}단계로 만들어져요.",
+  "@trainingSketchRegisteredNextGlobalStageHint": {
+    "placeholders": {
+      "stage": {
+        "type": "int"
+      }
+    }
+  },
   "trainingSketchSelectedItemTitle": "선택 요소",
   "trainingSketchAssignColorLabel": "색상 지정",
   "trainingSketchPlayerStagesTitle": "선수 단계",

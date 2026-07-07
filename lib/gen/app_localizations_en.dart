@@ -11365,6 +11365,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trainingSketchPlayerFlowMoveSection => 'Movement';
 
   @override
+  String get trainingSketchGlobalStagesTitle => 'Overall stages';
+
+  @override
+  String get trainingSketchGlobalStagesHint =>
+      'Build the board as one sequence, and add several actions to the same stage when they should happen together.';
+
+  @override
+  String get trainingSketchGlobalStagesEmpty =>
+      'No stages yet. The first action starts as stage 1.';
+
+  @override
+  String trainingSketchGlobalStageChip(int stage, int count) {
+    return 'Stage $stage · $count actions';
+  }
+
+  @override
+  String trainingSketchAddSameStageButton(int stage) {
+    return 'Add to stage $stage';
+  }
+
+  @override
+  String trainingSketchAddNextStageButton(int stage) {
+    return 'Add stage $stage';
+  }
+
+  @override
+  String trainingSketchRegisteredNextGlobalStageHint(int stage) {
+    return 'The next action will be created in overall stage $stage.';
+  }
+
+  @override
   String get trainingSketchSelectedItemTitle => 'Selected item';
 
   @override

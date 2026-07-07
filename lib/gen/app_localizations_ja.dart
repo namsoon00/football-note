@@ -11042,6 +11042,37 @@ class AppLocalizationsJa extends AppLocalizations {
   String get trainingSketchPlayerFlowMoveSection => '動き';
 
   @override
+  String get trainingSketchGlobalStagesTitle => '全体ステージ';
+
+  @override
+  String get trainingSketchGlobalStagesHint =>
+      'ボード全体を1つの順序として作成し、同時に動くものは同じステージに追加できます。';
+
+  @override
+  String get trainingSketchGlobalStagesEmpty =>
+      'まだステージがありません。最初の動作はステージ1から始まります。';
+
+  @override
+  String trainingSketchGlobalStageChip(int stage, int count) {
+    return 'ステージ$stage · 動作$count件';
+  }
+
+  @override
+  String trainingSketchAddSameStageButton(int stage) {
+    return 'ステージ$stageに追加';
+  }
+
+  @override
+  String trainingSketchAddNextStageButton(int stage) {
+    return 'ステージ$stageを追加';
+  }
+
+  @override
+  String trainingSketchRegisteredNextGlobalStageHint(int stage) {
+    return '次の動作は全体ステージ$stageとして作成されます。';
+  }
+
+  @override
   String get trainingSketchSelectedItemTitle => '選択した項目';
 
   @override

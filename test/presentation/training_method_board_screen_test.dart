@@ -3957,7 +3957,7 @@ void main() {
     );
   });
 
-  testWidgets('selected player can register the next action stage', (
+  testWidgets('selected player can add actions to global sketch stages', (
     WidgetTester tester,
   ) async {
     _setLandscapeSurface(tester);
@@ -3966,7 +3966,7 @@ void main() {
     await tester.pumpWidget(
       _buildApp(
         TrainingMethodBoardScreen(
-          boardTitle: '선수 단계',
+          boardTitle: '전체 단계',
           initialLayoutJson: const TrainingMethodLayout(
             pages: <TrainingMethodPage>[
               TrainingMethodPage(
@@ -3994,13 +3994,17 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('선수 단계'), findsWidgets);
-    await _tapVisibleOutlinedButton(tester, '1단계 등록');
+    expect(find.text('전체 단계'), findsWidgets);
+    await _tapVisibleOutlinedButton(tester, '1단계에 추가');
     await _tapVisibleOutlinedButton(tester, '패스');
     await _tapBoardRelative(tester, boardFinder, const Offset(0.48, 0.42));
 
-    expect(find.text('1단계 · 동작 1개'), findsOneWidget);
-    await _tapVisibleOutlinedButton(tester, '2단계 등록');
+    expect(find.text('1단계 · 액션 1개'), findsOneWidget);
+    final nextStageButton = find.widgetWithText(FilledButton, '2단계 추가');
+    await tester.ensureVisible(nextStageButton);
+    await tester.pumpAndSettle();
+    await tester.tap(nextStageButton);
+    await tester.pumpAndSettle();
     await _tapVisibleOutlinedButton(tester, '슈팅');
     await _tapBoardRelative(tester, boardFinder, const Offset(0.82, 0.34));
 
