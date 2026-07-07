@@ -122,6 +122,12 @@ void main() {
     WidgetTester tester,
   ) async {
     final optionRepository = _MemoryOptionRepository();
+    await optionRepository.setValue(
+      HomeHubSectionSettings.storageKey,
+      HomeHubSectionSettings.fromOrder(
+        HomeHubSectionSettings.routineFirstOrder,
+      ).encode(),
+    );
     final localeService = LocaleService(optionRepository)..load();
     final settingsService = SettingsService(optionRepository)..load();
     final trainingService = TrainingService(_MemoryTrainingRepository());
