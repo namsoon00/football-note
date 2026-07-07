@@ -11082,17 +11082,41 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String trainingSketchAddSameStageButton(int stage) {
-    return 'ステージ$stageに追加';
+    return 'ステージ$stageに同時追加';
   }
 
   @override
   String trainingSketchAddNextStageButton(int stage) {
-    return 'ステージ$stageを追加';
+    return '新しいステージ$stageを作成';
   }
 
   @override
   String trainingSketchRegisteredNextGlobalStageHint(int stage) {
-    return '次の動作は全体ステージ$stageとして作成されます。';
+    return '全体ステージ$stageを編集中です。';
+  }
+
+  @override
+  String trainingSketchBallPossessionRequiredSnack(Object player) {
+    return '$playerは今ボールを持っていません。先にパスを受けるか、所有中のボールを選択してください。';
+  }
+
+  @override
+  String get trainingSketchBallOwnershipTitle => 'ボール所有';
+
+  @override
+  String trainingSketchBallOwnedBy(Object ball, Object player) {
+    return '$ball: $playerが保持';
+  }
+
+  @override
+  String trainingSketchBallMovingToTarget(
+      Object ball, Object actor, Object target) {
+    return '$ball: $actorから$targetへ移動中';
+  }
+
+  @override
+  String trainingSketchBallUnowned(Object ball) {
+    return '$ball: 所有者なし';
   }
 
   @override

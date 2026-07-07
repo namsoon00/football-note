@@ -6329,7 +6329,7 @@
       "ball": {}
     }
   },
-  "trainingSketchAddSameStageButton": "Add to stage {stage}",
+  "trainingSketchAddSameStageButton": "Add together in stage {stage}",
   "@trainingSketchAddSameStageButton": {
     "placeholders": {
       "stage": {
@@ -6337,7 +6337,7 @@
       }
     }
   },
-  "trainingSketchAddNextStageButton": "Add stage {stage}",
+  "trainingSketchAddNextStageButton": "Create new stage {stage}",
   "@trainingSketchAddNextStageButton": {
     "placeholders": {
       "stage": {
@@ -6345,12 +6345,40 @@
       }
     }
   },
-  "trainingSketchRegisteredNextGlobalStageHint": "The next action will be created in overall stage {stage}.",
+  "trainingSketchRegisteredNextGlobalStageHint": "Editing overall stage {stage}.",
   "@trainingSketchRegisteredNextGlobalStageHint": {
     "placeholders": {
       "stage": {
         "type": "int"
       }
+    }
+  },
+  "trainingSketchBallPossessionRequiredSnack": "{player} does not have the ball. Have them receive a pass first or select the ball they own.",
+  "@trainingSketchBallPossessionRequiredSnack": {
+    "placeholders": {
+      "player": {}
+    }
+  },
+  "trainingSketchBallOwnershipTitle": "Ball ownership",
+  "trainingSketchBallOwnedBy": "{ball}: owned by {player}",
+  "@trainingSketchBallOwnedBy": {
+    "placeholders": {
+      "ball": {},
+      "player": {}
+    }
+  },
+  "trainingSketchBallMovingToTarget": "{ball}: moving from {actor} to {target}",
+  "@trainingSketchBallMovingToTarget": {
+    "placeholders": {
+      "ball": {},
+      "actor": {},
+      "target": {}
+    }
+  },
+  "trainingSketchBallUnowned": "{ball}: no owner",
+  "@trainingSketchBallUnowned": {
+    "placeholders": {
+      "ball": {}
     }
   },
   "trainingSketchSelectedItemTitle": "Selected item",

@@ -19539,20 +19539,51 @@ abstract class AppLocalizations {
   /// No description provided for @trainingSketchAddSameStageButton.
   ///
   /// In en, this message translates to:
-  /// **'Add to stage {stage}'**
+  /// **'Add together in stage {stage}'**
   String trainingSketchAddSameStageButton(int stage);
 
   /// No description provided for @trainingSketchAddNextStageButton.
   ///
   /// In en, this message translates to:
-  /// **'Add stage {stage}'**
+  /// **'Create new stage {stage}'**
   String trainingSketchAddNextStageButton(int stage);
 
   /// No description provided for @trainingSketchRegisteredNextGlobalStageHint.
   ///
   /// In en, this message translates to:
-  /// **'The next action will be created in overall stage {stage}.'**
+  /// **'Editing overall stage {stage}.'**
   String trainingSketchRegisteredNextGlobalStageHint(int stage);
+
+  /// No description provided for @trainingSketchBallPossessionRequiredSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'{player} does not have the ball. Have them receive a pass first or select the ball they own.'**
+  String trainingSketchBallPossessionRequiredSnack(Object player);
+
+  /// No description provided for @trainingSketchBallOwnershipTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ball ownership'**
+  String get trainingSketchBallOwnershipTitle;
+
+  /// No description provided for @trainingSketchBallOwnedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'{ball}: owned by {player}'**
+  String trainingSketchBallOwnedBy(Object ball, Object player);
+
+  /// No description provided for @trainingSketchBallMovingToTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'{ball}: moving from {actor} to {target}'**
+  String trainingSketchBallMovingToTarget(
+      Object ball, Object actor, Object target);
+
+  /// No description provided for @trainingSketchBallUnowned.
+  ///
+  /// In en, this message translates to:
+  /// **'{ball}: no owner'**
+  String trainingSketchBallUnowned(Object ball);
 
   /// No description provided for @trainingSketchSelectedItemTitle.
   ///

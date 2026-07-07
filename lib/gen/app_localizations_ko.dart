@@ -11103,17 +11103,41 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String trainingSketchAddSameStageButton(int stage) {
-    return '$stage단계에 추가';
+    return '$stage단계에 동시에 추가';
   }
 
   @override
   String trainingSketchAddNextStageButton(int stage) {
-    return '$stage단계 추가';
+    return '새 $stage단계 만들기';
   }
 
   @override
   String trainingSketchRegisteredNextGlobalStageHint(int stage) {
-    return '다음 액션은 전체 $stage단계로 만들어져요.';
+    return '현재 전체 $stage단계 편집 중입니다.';
+  }
+
+  @override
+  String trainingSketchBallPossessionRequiredSnack(Object player) {
+    return '$player는 지금 공을 가지고 있지 않아요. 먼저 패스를 받거나 소유 중인 공을 선택해 주세요.';
+  }
+
+  @override
+  String get trainingSketchBallOwnershipTitle => '공 소유 관계';
+
+  @override
+  String trainingSketchBallOwnedBy(Object ball, Object player) {
+    return '$ball: $player 보유';
+  }
+
+  @override
+  String trainingSketchBallMovingToTarget(
+      Object ball, Object actor, Object target) {
+    return '$ball: $actor에서 $target로 이동 중';
+  }
+
+  @override
+  String trainingSketchBallUnowned(Object ball) {
+    return '$ball: 소유자 없음';
   }
 
   @override
