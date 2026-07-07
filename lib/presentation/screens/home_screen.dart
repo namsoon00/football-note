@@ -30,6 +30,16 @@ import 'match_record_screen.dart';
 import 'training_board_list_screen.dart';
 import 'coach_lesson_screen.dart';
 
+enum _HomeCoachAnchor {
+  tabHome,
+  tabLogs,
+  tabCalendar,
+  tabStats,
+  tabDiary,
+  homeDailyFlow,
+  homeMeal,
+}
+
 class HomeScreen extends StatefulWidget {
   final TrainingService trainingService;
   final MealLogService mealLogService;
@@ -76,13 +86,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   StreamSubscription<void>? _backupDataChangeSubscription;
   int _dataRevision = 0;
   String? _activeSportId;
-  final List<GlobalKey> _tabDestinationKeys = List<GlobalKey>.generate(
-    5,
-    (index) => GlobalKey(debugLabel: 'home-tab-destination-$index'),
-  );
-  final GlobalKey _homeDailyFlowGuideKey =
-      GlobalKey(debugLabel: 'home-guide-daily-flow');
-  final GlobalKey _homeMealGuideKey = GlobalKey(debugLabel: 'home-guide-meal');
+  final Map<_HomeCoachAnchor, GlobalKey> _coachAnchorKeys =
+      <_HomeCoachAnchor, GlobalKey>{
+    for (final anchor in _HomeCoachAnchor.values)
+      anchor: GlobalKey(debugLabel: 'home-coach-anchor-${anchor.name}'),
+  };
 
   @override
   void initState() {
@@ -138,6 +146,32 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       unawaited(_syncFamilySharedDataIfNeeded());
     }
+  }
+
+  GlobalKey _coachAnchorKey(_HomeCoachAnchor anchor) {
+    return _coachAnchorKeys[anchor]!;
+  }
+
+  Map<HomeHubCoachAnchor, GlobalKey> get _homeHubCoachAnchors {
+    return <HomeHubCoachAnchor, GlobalKey>{
+      HomeHubCoachAnchor.dailyFlow:
+          _coachAnchorKey(_HomeCoachAnchor.homeDailyFlow),
+      HomeHubCoachAnchor.meal: _coachAnchorKey(_HomeCoachAnchor.homeMeal),
+    };
+  }
+
+  _CoachMarkAnchor _coachMarkAnchor(
+    _HomeCoachAnchor anchor, {
+    Alignment fallbackAlignment = Alignment.center,
+    double fallbackTopFactor = 0.34,
+    double scrollAlignment = 0.28,
+  }) {
+    return _CoachMarkAnchor(
+      key: _coachAnchorKey(anchor),
+      fallbackAlignment: fallbackAlignment,
+      fallbackTopFactor: fallbackTopFactor,
+      scrollAlignment: scrollAlignment,
+    );
   }
 
   Future<void> _syncFamilySharedDataIfNeeded() async {
@@ -286,8 +320,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           onEdit: _openEdit,
           onEditTrainingBoard: _openEditTrainingBoard,
           onCreateTrainingBoard: _openCreateTrainingBoard,
-          dailyFlowGuideKey: _homeDailyFlowGuideKey,
-          mealGuideKey: _homeMealGuideKey,
+          coachGuideAnchors: _homeHubCoachAnchors,
         ),
       ),
       _buildTabChild(
@@ -379,31 +412,31 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         onDestinationSelected: _onDestinationSelected,
         destinations: [
           NavigationDestination(
-            key: _tabDestinationKeys[0],
+            key: _coachAnchorKey(_HomeCoachAnchor.tabHome),
             icon: const Icon(Icons.home_outlined),
             selectedIcon: const Icon(Icons.home),
             label: l10n.tabHome,
           ),
           NavigationDestination(
-            key: _tabDestinationKeys[1],
+            key: _coachAnchorKey(_HomeCoachAnchor.tabLogs),
             icon: const Icon(Icons.list_alt_outlined),
             selectedIcon: const Icon(Icons.list_alt),
             label: l10n.tabLogs,
           ),
           NavigationDestination(
-            key: _tabDestinationKeys[2],
+            key: _coachAnchorKey(_HomeCoachAnchor.tabCalendar),
             icon: const Icon(Icons.calendar_month_outlined),
             selectedIcon: const Icon(Icons.calendar_month),
             label: l10n.tabCalendar,
           ),
           NavigationDestination(
-            key: _tabDestinationKeys[3],
+            key: _coachAnchorKey(_HomeCoachAnchor.tabStats),
             icon: const Icon(Icons.bar_chart_outlined),
             selectedIcon: const Icon(Icons.bar_chart),
             label: l10n.tabStats,
           ),
           NavigationDestination(
-            key: _tabDestinationKeys[4],
+            key: _coachAnchorKey(_HomeCoachAnchor.tabDiary),
             icon: const Icon(Icons.auto_stories_outlined),
             selectedIcon: const Icon(Icons.auto_stories),
             label: l10n.tabDiary,
@@ -506,7 +539,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final l10n = AppLocalizations.of(context)!;
     final guide = _tabGuideData(tabIndex, l10n, isParentMode: isParentMode);
     await _ensureGuideTargetVisible(
-      guide.steps.isEmpty ? null : guide.steps.first.targetKey,
+      guide.steps.isEmpty ? null : guide.steps.first.targetAnchor,
     );
     if (!mounted) return;
     final action = await showGeneralDialog<VoidCallback>(
@@ -533,12 +566,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     action();
   }
 
-  Future<void> _ensureGuideTargetVisible(GlobalKey? targetKey) async {
-    final targetContext = targetKey?.currentContext;
+  Future<void> _ensureGuideTargetVisible(_CoachMarkAnchor? targetAnchor) async {
+    final targetContext = targetAnchor?.key.currentContext;
     if (targetContext == null) return;
     await Scrollable.ensureVisible(
       targetContext,
-      alignment: 0.28,
+      alignment: targetAnchor?.scrollAlignment ?? 0.28,
       duration: Duration.zero,
       curve: Curves.easeOutCubic,
     );
@@ -558,7 +591,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             icon: Icons.list_alt_outlined,
             actionLabel: l10n.tabLogs,
             description: l10n.parentWelcomeGuideStepLogs,
-            targetKey: _tabDestinationKeys[1],
+            targetAnchor: _coachMarkAnchor(
+              _HomeCoachAnchor.tabLogs,
+              fallbackAlignment: Alignment.bottomLeft,
+              fallbackTopFactor: 0.86,
+            ),
           ),
           _TabGuideStep(
             icon: Icons.rate_review_outlined,
@@ -583,21 +620,33 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               icon: Icons.today_outlined,
               actionLabel: l10n.guideActionToday,
               description: l10n.welcomeHomeStepToday,
-              targetKey: _homeDailyFlowGuideKey,
+              targetAnchor: _coachMarkAnchor(
+                _HomeCoachAnchor.homeDailyFlow,
+                fallbackAlignment: Alignment.center,
+                fallbackTopFactor: 0.32,
+              ),
             ),
             _TabGuideStep(
               icon: Icons.rice_bowl_outlined,
               actionLabel: l10n.guideActionMeal,
               description: l10n.welcomeHomeStepMeal,
               onTry: () => unawaited(_openMealLog(initialDate: DateTime.now())),
-              targetKey: _homeMealGuideKey,
+              targetAnchor: _coachMarkAnchor(
+                _HomeCoachAnchor.homeMeal,
+                fallbackAlignment: Alignment.center,
+                fallbackTopFactor: 0.42,
+              ),
             ),
             _TabGuideStep(
               icon: Icons.bar_chart_outlined,
               actionLabel: l10n.homePriorityStatsAction,
               description: l10n.welcomeHomeStepStats,
               onTry: _openWeeklyStatsForCurrentWeek,
-              targetKey: _tabDestinationKeys[3],
+              targetAnchor: _coachMarkAnchor(
+                _HomeCoachAnchor.tabStats,
+                fallbackAlignment: Alignment.bottomCenter,
+                fallbackTopFactor: 0.86,
+              ),
             ),
           ],
         );
@@ -611,7 +660,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               actionLabel: l10n.addEntry,
               description: l10n.welcomeLogsStepAdd,
               onTry: () => unawaited(_openCreate()),
-              targetKey: _tabDestinationKeys[1],
+              targetAnchor: _coachMarkAnchor(
+                _HomeCoachAnchor.tabLogs,
+                fallbackAlignment: Alignment.bottomLeft,
+                fallbackTopFactor: 0.86,
+              ),
             ),
             _TabGuideStep(
               icon: Icons.developer_board_outlined,
@@ -635,7 +688,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               icon: Icons.touch_app_outlined,
               actionLabel: l10n.guideActionSelectDate,
               description: l10n.welcomeCalendarStepDate,
-              targetKey: _tabDestinationKeys[2],
+              targetAnchor: _coachMarkAnchor(
+                _HomeCoachAnchor.tabCalendar,
+                fallbackAlignment: Alignment.bottomCenter,
+                fallbackTopFactor: 0.86,
+              ),
             ),
             _TabGuideStep(
               icon: Icons.add,
@@ -660,7 +717,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               icon: Icons.date_range_outlined,
               actionLabel: l10n.guideActionPeriod,
               description: l10n.welcomeStatsStepPeriod,
-              targetKey: _tabDestinationKeys[3],
+              targetAnchor: _coachMarkAnchor(
+                _HomeCoachAnchor.tabStats,
+                fallbackAlignment: Alignment.bottomCenter,
+                fallbackTopFactor: 0.86,
+              ),
             ),
             _TabGuideStep(
               icon: Icons.stacked_line_chart,
@@ -684,7 +745,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               actionLabel: l10n.guideActionOpenToday,
               description: l10n.welcomeDiaryStepToday,
               onTry: _openTodayDiary,
-              targetKey: _tabDestinationKeys[4],
+              targetAnchor: _coachMarkAnchor(
+                _HomeCoachAnchor.tabDiary,
+                fallbackAlignment: Alignment.bottomRight,
+                fallbackTopFactor: 0.86,
+              ),
             ),
             _TabGuideStep(
               icon: Icons.sticky_note_2_outlined,
@@ -896,19 +961,33 @@ class _TabGuideData {
   });
 }
 
+class _CoachMarkAnchor {
+  final GlobalKey key;
+  final Alignment fallbackAlignment;
+  final double fallbackTopFactor;
+  final double scrollAlignment;
+
+  const _CoachMarkAnchor({
+    required this.key,
+    required this.fallbackAlignment,
+    required this.fallbackTopFactor,
+    required this.scrollAlignment,
+  });
+}
+
 class _TabGuideStep {
   final IconData icon;
   final String actionLabel;
   final String description;
   final VoidCallback? onTry;
-  final GlobalKey? targetKey;
+  final _CoachMarkAnchor? targetAnchor;
 
   const _TabGuideStep({
     required this.icon,
     required this.actionLabel,
     required this.description,
     this.onTry,
-    this.targetKey,
+    this.targetAnchor,
   });
 }
 
@@ -1061,7 +1140,7 @@ class _TabCoachMarkDialogState extends State<_TabCoachMarkDialog> {
   Future<void> _refreshCurrentTarget() async {
     if (widget.guide.steps.isEmpty) return;
     await _ensureTargetVisible(
-      widget.guide.steps[_stepIndex].targetKey,
+      widget.guide.steps[_stepIndex].targetAnchor,
       duration: Duration.zero,
     );
     if (mounted) setState(() {});
@@ -1072,20 +1151,20 @@ class _TabCoachMarkDialogState extends State<_TabCoachMarkDialog> {
     if (nextIndex < 0 || nextIndex >= steps.length || nextIndex == _stepIndex) {
       return;
     }
-    await _ensureTargetVisible(steps[nextIndex].targetKey);
+    await _ensureTargetVisible(steps[nextIndex].targetAnchor);
     if (!mounted) return;
     setState(() => _stepIndex = nextIndex);
   }
 
   Future<void> _ensureTargetVisible(
-    GlobalKey? targetKey, {
+    _CoachMarkAnchor? targetAnchor, {
     Duration duration = const Duration(milliseconds: 220),
   }) async {
-    final targetContext = targetKey?.currentContext;
+    final targetContext = targetAnchor?.key.currentContext;
     if (targetContext == null) return;
     await Scrollable.ensureVisible(
       targetContext,
-      alignment: 0.28,
+      alignment: targetAnchor?.scrollAlignment ?? 0.28,
       duration: duration,
       curve: Curves.easeOutCubic,
     );
@@ -1100,6 +1179,7 @@ class _TabCoachMarkDialogState extends State<_TabCoachMarkDialog> {
     final targetRect = _targetRectForStep(step);
     final rect = (targetRect ??
             _fallbackRectForStep(
+              step: step,
               stepIndex: stepIndex,
               totalSteps: totalSteps,
               viewport: viewport,
@@ -1109,7 +1189,7 @@ class _TabCoachMarkDialogState extends State<_TabCoachMarkDialog> {
   }
 
   Rect? _targetRectForStep(_TabGuideStep step) {
-    final targetContext = step.targetKey?.currentContext;
+    final targetContext = step.targetAnchor?.key.currentContext;
     if (targetContext == null) return null;
     final renderObject = targetContext.findRenderObject();
     if (renderObject is! RenderBox ||
@@ -1122,24 +1202,31 @@ class _TabCoachMarkDialogState extends State<_TabCoachMarkDialog> {
   }
 
   Rect _fallbackRectForStep({
+    required _TabGuideStep step,
     required int stepIndex,
     required int totalSteps,
     required Size viewport,
   }) {
-    final top = _spotlightTopForStep(
-      stepIndex: stepIndex,
-      totalSteps: totalSteps,
-      maxHeight: viewport.height,
-    );
+    final anchor = step.targetAnchor;
+    final top = anchor == null
+        ? _spotlightTopForStep(
+            stepIndex: stepIndex,
+            totalSteps: totalSteps,
+            maxHeight: viewport.height,
+          )
+        : ((viewport.height * anchor.fallbackTopFactor) -
+            (_fallbackTargetSize.height / 2));
     final availableWidth =
         (viewport.width - (_screenPadding * 2) - _fallbackTargetSize.width)
             .clamp(0.0, double.infinity)
             .toDouble();
-    final horizontalProgress = switch (stepIndex % 3) {
-      0 => 0.0,
-      1 => 0.5,
-      _ => 1.0,
-    };
+    final horizontalProgress = anchor == null
+        ? switch (stepIndex % 3) {
+            0 => 0.0,
+            1 => 0.5,
+            _ => 1.0,
+          }
+        : ((anchor.fallbackAlignment.x + 1) / 2).clamp(0.0, 1.0).toDouble();
     final left = _screenPadding + (availableWidth * horizontalProgress);
     return Rect.fromLTWH(
       left,
