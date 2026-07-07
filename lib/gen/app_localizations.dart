@@ -10952,13 +10952,13 @@ abstract class AppLocalizations {
   /// No description provided for @mealMenuInputLabel.
   ///
   /// In en, this message translates to:
-  /// **'Menu'**
+  /// **'Additional note'**
   String get mealMenuInputLabel;
 
   /// No description provided for @mealMenuInputHint.
   ///
   /// In en, this message translates to:
-  /// **'Enter {label} menu'**
+  /// **'Add foods not on the list or notes for {label}'**
   String mealMenuInputHint(String label);
 
   /// No description provided for @mealMainDishLabel.
@@ -10996,6 +10996,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'About {kcal} kcal · protein {protein}g'**
   String mealDishNutritionPreview(int kcal, int protein);
+
+  /// No description provided for @mealCompanionFoodsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Foods eaten together'**
+  String get mealCompanionFoodsLabel;
+
+  /// No description provided for @mealCompanionFoodsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No extra foods selected'**
+  String get mealCompanionFoodsEmpty;
+
+  /// No description provided for @mealCompanionFoodsChooseAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose foods'**
+  String get mealCompanionFoodsChooseAction;
+
+  /// No description provided for @mealCompanionFoodsEditAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get mealCompanionFoodsEditAction;
+
+  /// No description provided for @mealCompanionFoodsSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose foods eaten together'**
+  String get mealCompanionFoodsSheetTitle;
+
+  /// No description provided for @mealFoodSearchLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Search foods'**
+  String get mealFoodSearchLabel;
+
+  /// No description provided for @mealFoodSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Kimchi, milk, banana, and more'**
+  String get mealFoodSearchHint;
+
+  /// No description provided for @mealFoodSelectionClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all'**
+  String get mealFoodSelectionClear;
+
+  /// No description provided for @mealFoodSelectionDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get mealFoodSelectionDone;
+
+  /// No description provided for @mealFoodNutritionLine.
+  ///
+  /// In en, this message translates to:
+  /// **'{kcal} kcal · carbs {carbs}g · protein {protein}g · fat {fat}g'**
+  String mealFoodNutritionLine(int kcal, int carbs, int protein, int fat);
+
+  /// No description provided for @mealFoodOptionSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{category} · {nutrition}'**
+  String mealFoodOptionSubtitle(String category, String nutrition);
+
+  /// No description provided for @mealSelectedFoodsNutritionPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra foods about {kcal} kcal · protein {protein}g'**
+  String mealSelectedFoodsNutritionPreview(int kcal, int protein);
+
+  /// No description provided for @mealFoodCategoryMain.
+  ///
+  /// In en, this message translates to:
+  /// **'Main'**
+  String get mealFoodCategoryMain;
+
+  /// No description provided for @mealFoodCategoryProtein.
+  ///
+  /// In en, this message translates to:
+  /// **'Protein'**
+  String get mealFoodCategoryProtein;
+
+  /// No description provided for @mealFoodCategorySide.
+  ///
+  /// In en, this message translates to:
+  /// **'Side'**
+  String get mealFoodCategorySide;
+
+  /// No description provided for @mealFoodCategorySoup.
+  ///
+  /// In en, this message translates to:
+  /// **'Soup'**
+  String get mealFoodCategorySoup;
+
+  /// No description provided for @mealFoodCategoryCarb.
+  ///
+  /// In en, this message translates to:
+  /// **'Carbs'**
+  String get mealFoodCategoryCarb;
+
+  /// No description provided for @mealFoodCategoryFruit.
+  ///
+  /// In en, this message translates to:
+  /// **'Fruit'**
+  String get mealFoodCategoryFruit;
+
+  /// No description provided for @mealFoodCategorySnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Snack'**
+  String get mealFoodCategorySnack;
+
+  /// No description provided for @mealFoodCategoryDrink.
+  ///
+  /// In en, this message translates to:
+  /// **'Drink'**
+  String get mealFoodCategoryDrink;
 
   /// No description provided for @mealDishChickenBreast.
   ///
@@ -11068,6 +11188,534 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sandwich'**
   String get mealDishSandwich;
+
+  /// No description provided for @mealFoodBibimbap.
+  ///
+  /// In en, this message translates to:
+  /// **'Bibimbap'**
+  String get mealFoodBibimbap;
+
+  /// No description provided for @mealFoodFriedRice.
+  ///
+  /// In en, this message translates to:
+  /// **'Fried rice'**
+  String get mealFoodFriedRice;
+
+  /// No description provided for @mealFoodGimbap.
+  ///
+  /// In en, this message translates to:
+  /// **'Gimbap'**
+  String get mealFoodGimbap;
+
+  /// No description provided for @mealFoodCurryRice.
+  ///
+  /// In en, this message translates to:
+  /// **'Curry rice'**
+  String get mealFoodCurryRice;
+
+  /// No description provided for @mealFoodPorkCutlet.
+  ///
+  /// In en, this message translates to:
+  /// **'Pork cutlet'**
+  String get mealFoodPorkCutlet;
+
+  /// No description provided for @mealFoodJajangmyeon.
+  ///
+  /// In en, this message translates to:
+  /// **'Jajangmyeon'**
+  String get mealFoodJajangmyeon;
+
+  /// No description provided for @mealFoodJjampong.
+  ///
+  /// In en, this message translates to:
+  /// **'Jjamppong'**
+  String get mealFoodJjampong;
+
+  /// No description provided for @mealFoodTteokbokki.
+  ///
+  /// In en, this message translates to:
+  /// **'Tteokbokki'**
+  String get mealFoodTteokbokki;
+
+  /// No description provided for @mealFoodPasta.
+  ///
+  /// In en, this message translates to:
+  /// **'Pasta'**
+  String get mealFoodPasta;
+
+  /// No description provided for @mealFoodHamburger.
+  ///
+  /// In en, this message translates to:
+  /// **'Hamburger'**
+  String get mealFoodHamburger;
+
+  /// No description provided for @mealFoodPizza.
+  ///
+  /// In en, this message translates to:
+  /// **'Pizza'**
+  String get mealFoodPizza;
+
+  /// No description provided for @mealFoodPorkBelly.
+  ///
+  /// In en, this message translates to:
+  /// **'Pork belly'**
+  String get mealFoodPorkBelly;
+
+  /// No description provided for @mealFoodJeyukBokkeum.
+  ///
+  /// In en, this message translates to:
+  /// **'Spicy pork stir-fry'**
+  String get mealFoodJeyukBokkeum;
+
+  /// No description provided for @mealFoodBeefSteak.
+  ///
+  /// In en, this message translates to:
+  /// **'Beef steak'**
+  String get mealFoodBeefSteak;
+
+  /// No description provided for @mealFoodDakgalbi.
+  ///
+  /// In en, this message translates to:
+  /// **'Dakgalbi'**
+  String get mealFoodDakgalbi;
+
+  /// No description provided for @mealFoodOmurice.
+  ///
+  /// In en, this message translates to:
+  /// **'Omurice'**
+  String get mealFoodOmurice;
+
+  /// No description provided for @mealFoodUdon.
+  ///
+  /// In en, this message translates to:
+  /// **'Udon'**
+  String get mealFoodUdon;
+
+  /// No description provided for @mealFoodColdNoodles.
+  ///
+  /// In en, this message translates to:
+  /// **'Cold noodles'**
+  String get mealFoodColdNoodles;
+
+  /// No description provided for @mealFoodSoybeanNoodles.
+  ///
+  /// In en, this message translates to:
+  /// **'Soybean noodles'**
+  String get mealFoodSoybeanNoodles;
+
+  /// No description provided for @mealFoodDumplingSoup.
+  ///
+  /// In en, this message translates to:
+  /// **'Dumpling soup'**
+  String get mealFoodDumplingSoup;
+
+  /// No description provided for @mealFoodSamgyetang.
+  ///
+  /// In en, this message translates to:
+  /// **'Samgyetang'**
+  String get mealFoodSamgyetang;
+
+  /// No description provided for @mealFoodKimchi.
+  ///
+  /// In en, this message translates to:
+  /// **'Kimchi'**
+  String get mealFoodKimchi;
+
+  /// No description provided for @mealFoodPickledRadish.
+  ///
+  /// In en, this message translates to:
+  /// **'Pickled radish'**
+  String get mealFoodPickledRadish;
+
+  /// No description provided for @mealFoodSeasonedBeanSprouts.
+  ///
+  /// In en, this message translates to:
+  /// **'Seasoned bean sprouts'**
+  String get mealFoodSeasonedBeanSprouts;
+
+  /// No description provided for @mealFoodSpinachNamul.
+  ///
+  /// In en, this message translates to:
+  /// **'Spinach namul'**
+  String get mealFoodSpinachNamul;
+
+  /// No description provided for @mealFoodSeaweedSalad.
+  ///
+  /// In en, this message translates to:
+  /// **'Seaweed salad'**
+  String get mealFoodSeaweedSalad;
+
+  /// No description provided for @mealFoodLettuce.
+  ///
+  /// In en, this message translates to:
+  /// **'Lettuce'**
+  String get mealFoodLettuce;
+
+  /// No description provided for @mealFoodCucumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Cucumber'**
+  String get mealFoodCucumber;
+
+  /// No description provided for @mealFoodTomato.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomato'**
+  String get mealFoodTomato;
+
+  /// No description provided for @mealFoodAvocado.
+  ///
+  /// In en, this message translates to:
+  /// **'Avocado'**
+  String get mealFoodAvocado;
+
+  /// No description provided for @mealFoodBroccoli.
+  ///
+  /// In en, this message translates to:
+  /// **'Broccoli'**
+  String get mealFoodBroccoli;
+
+  /// No description provided for @mealFoodSweetPotato.
+  ///
+  /// In en, this message translates to:
+  /// **'Sweet potato'**
+  String get mealFoodSweetPotato;
+
+  /// No description provided for @mealFoodPotato.
+  ///
+  /// In en, this message translates to:
+  /// **'Potato'**
+  String get mealFoodPotato;
+
+  /// No description provided for @mealFoodCorn.
+  ///
+  /// In en, this message translates to:
+  /// **'Corn'**
+  String get mealFoodCorn;
+
+  /// No description provided for @mealFoodBoiledEgg.
+  ///
+  /// In en, this message translates to:
+  /// **'Boiled egg'**
+  String get mealFoodBoiledEgg;
+
+  /// No description provided for @mealFoodFriedEgg.
+  ///
+  /// In en, this message translates to:
+  /// **'Fried egg'**
+  String get mealFoodFriedEgg;
+
+  /// No description provided for @mealFoodOmelet.
+  ///
+  /// In en, this message translates to:
+  /// **'Omelet'**
+  String get mealFoodOmelet;
+
+  /// No description provided for @mealFoodCheese.
+  ///
+  /// In en, this message translates to:
+  /// **'Cheese'**
+  String get mealFoodCheese;
+
+  /// No description provided for @mealFoodTunaCan.
+  ///
+  /// In en, this message translates to:
+  /// **'Canned tuna'**
+  String get mealFoodTunaCan;
+
+  /// No description provided for @mealFoodHam.
+  ///
+  /// In en, this message translates to:
+  /// **'Ham'**
+  String get mealFoodHam;
+
+  /// No description provided for @mealFoodSausage.
+  ///
+  /// In en, this message translates to:
+  /// **'Sausage'**
+  String get mealFoodSausage;
+
+  /// No description provided for @mealFoodBacon.
+  ///
+  /// In en, this message translates to:
+  /// **'Bacon'**
+  String get mealFoodBacon;
+
+  /// No description provided for @mealFoodMackerel.
+  ///
+  /// In en, this message translates to:
+  /// **'Mackerel'**
+  String get mealFoodMackerel;
+
+  /// No description provided for @mealFoodShrimp.
+  ///
+  /// In en, this message translates to:
+  /// **'Shrimp'**
+  String get mealFoodShrimp;
+
+  /// No description provided for @mealFoodSquid.
+  ///
+  /// In en, this message translates to:
+  /// **'Squid'**
+  String get mealFoodSquid;
+
+  /// No description provided for @mealFoodBeans.
+  ///
+  /// In en, this message translates to:
+  /// **'Beans'**
+  String get mealFoodBeans;
+
+  /// No description provided for @mealFoodChickpeas.
+  ///
+  /// In en, this message translates to:
+  /// **'Chickpeas'**
+  String get mealFoodChickpeas;
+
+  /// No description provided for @mealFoodLentils.
+  ///
+  /// In en, this message translates to:
+  /// **'Lentils'**
+  String get mealFoodLentils;
+
+  /// No description provided for @mealFoodSeaweedSoup.
+  ///
+  /// In en, this message translates to:
+  /// **'Seaweed soup'**
+  String get mealFoodSeaweedSoup;
+
+  /// No description provided for @mealFoodBeefSoup.
+  ///
+  /// In en, this message translates to:
+  /// **'Beef soup'**
+  String get mealFoodBeefSoup;
+
+  /// No description provided for @mealFoodEggSoup.
+  ///
+  /// In en, this message translates to:
+  /// **'Egg soup'**
+  String get mealFoodEggSoup;
+
+  /// No description provided for @mealFoodTofuSoup.
+  ///
+  /// In en, this message translates to:
+  /// **'Soft tofu soup'**
+  String get mealFoodTofuSoup;
+
+  /// No description provided for @mealFoodVegetableSoup.
+  ///
+  /// In en, this message translates to:
+  /// **'Vegetable soup'**
+  String get mealFoodVegetableSoup;
+
+  /// No description provided for @mealFoodMisoSoup.
+  ///
+  /// In en, this message translates to:
+  /// **'Miso soup'**
+  String get mealFoodMisoSoup;
+
+  /// No description provided for @mealFoodChickenSoup.
+  ///
+  /// In en, this message translates to:
+  /// **'Chicken soup'**
+  String get mealFoodChickenSoup;
+
+  /// No description provided for @mealFoodDumplings.
+  ///
+  /// In en, this message translates to:
+  /// **'Dumplings'**
+  String get mealFoodDumplings;
+
+  /// No description provided for @mealFoodFriedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Fried snack'**
+  String get mealFoodFriedSnack;
+
+  /// No description provided for @mealFoodFrenchFries.
+  ///
+  /// In en, this message translates to:
+  /// **'French fries'**
+  String get mealFoodFrenchFries;
+
+  /// No description provided for @mealFoodRiceCake.
+  ///
+  /// In en, this message translates to:
+  /// **'Rice cake'**
+  String get mealFoodRiceCake;
+
+  /// No description provided for @mealFoodBreadSlice.
+  ///
+  /// In en, this message translates to:
+  /// **'Bread slice'**
+  String get mealFoodBreadSlice;
+
+  /// No description provided for @mealFoodToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Toast'**
+  String get mealFoodToast;
+
+  /// No description provided for @mealFoodOatmeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Oatmeal'**
+  String get mealFoodOatmeal;
+
+  /// No description provided for @mealFoodCereal.
+  ///
+  /// In en, this message translates to:
+  /// **'Cereal'**
+  String get mealFoodCereal;
+
+  /// No description provided for @mealFoodGranola.
+  ///
+  /// In en, this message translates to:
+  /// **'Granola'**
+  String get mealFoodGranola;
+
+  /// No description provided for @mealFoodMixedNuts.
+  ///
+  /// In en, this message translates to:
+  /// **'Mixed nuts'**
+  String get mealFoodMixedNuts;
+
+  /// No description provided for @mealFoodAlmonds.
+  ///
+  /// In en, this message translates to:
+  /// **'Almonds'**
+  String get mealFoodAlmonds;
+
+  /// No description provided for @mealFoodIceCream.
+  ///
+  /// In en, this message translates to:
+  /// **'Ice cream'**
+  String get mealFoodIceCream;
+
+  /// No description provided for @mealFoodChocolate.
+  ///
+  /// In en, this message translates to:
+  /// **'Chocolate'**
+  String get mealFoodChocolate;
+
+  /// No description provided for @mealFoodCookie.
+  ///
+  /// In en, this message translates to:
+  /// **'Cookie'**
+  String get mealFoodCookie;
+
+  /// No description provided for @mealFoodCake.
+  ///
+  /// In en, this message translates to:
+  /// **'Cake'**
+  String get mealFoodCake;
+
+  /// No description provided for @mealFoodYogurt.
+  ///
+  /// In en, this message translates to:
+  /// **'Yogurt'**
+  String get mealFoodYogurt;
+
+  /// No description provided for @mealFoodGreekYogurt.
+  ///
+  /// In en, this message translates to:
+  /// **'Greek yogurt'**
+  String get mealFoodGreekYogurt;
+
+  /// No description provided for @mealFoodProteinShake.
+  ///
+  /// In en, this message translates to:
+  /// **'Protein shake'**
+  String get mealFoodProteinShake;
+
+  /// No description provided for @mealFoodWheyProtein.
+  ///
+  /// In en, this message translates to:
+  /// **'Whey protein'**
+  String get mealFoodWheyProtein;
+
+  /// No description provided for @mealFoodMilk.
+  ///
+  /// In en, this message translates to:
+  /// **'Milk'**
+  String get mealFoodMilk;
+
+  /// No description provided for @mealFoodSoyMilk.
+  ///
+  /// In en, this message translates to:
+  /// **'Soy milk'**
+  String get mealFoodSoyMilk;
+
+  /// No description provided for @mealFoodJuice.
+  ///
+  /// In en, this message translates to:
+  /// **'Juice'**
+  String get mealFoodJuice;
+
+  /// No description provided for @mealFoodSportsDrink.
+  ///
+  /// In en, this message translates to:
+  /// **'Sports drink'**
+  String get mealFoodSportsDrink;
+
+  /// No description provided for @mealFoodCoffeeLatte.
+  ///
+  /// In en, this message translates to:
+  /// **'Cafe latte'**
+  String get mealFoodCoffeeLatte;
+
+  /// No description provided for @mealFoodAmericano.
+  ///
+  /// In en, this message translates to:
+  /// **'Americano'**
+  String get mealFoodAmericano;
+
+  /// No description provided for @mealFoodCola.
+  ///
+  /// In en, this message translates to:
+  /// **'Cola'**
+  String get mealFoodCola;
+
+  /// No description provided for @mealFoodWater.
+  ///
+  /// In en, this message translates to:
+  /// **'Water'**
+  String get mealFoodWater;
+
+  /// No description provided for @mealFoodBanana.
+  ///
+  /// In en, this message translates to:
+  /// **'Banana'**
+  String get mealFoodBanana;
+
+  /// No description provided for @mealFoodApple.
+  ///
+  /// In en, this message translates to:
+  /// **'Apple'**
+  String get mealFoodApple;
+
+  /// No description provided for @mealFoodOrange.
+  ///
+  /// In en, this message translates to:
+  /// **'Orange'**
+  String get mealFoodOrange;
+
+  /// No description provided for @mealFoodGrapes.
+  ///
+  /// In en, this message translates to:
+  /// **'Grapes'**
+  String get mealFoodGrapes;
+
+  /// No description provided for @mealFoodStrawberries.
+  ///
+  /// In en, this message translates to:
+  /// **'Strawberries'**
+  String get mealFoodStrawberries;
+
+  /// No description provided for @mealFoodBlueberries.
+  ///
+  /// In en, this message translates to:
+  /// **'Blueberries'**
+  String get mealFoodBlueberries;
 
   /// No description provided for @mealSummaryRiceOnly.
   ///
@@ -11156,7 +11804,7 @@ abstract class AppLocalizations {
   /// No description provided for @mealCalorieCoachEmpty.
   ///
   /// In en, this message translates to:
-  /// **'Enter a menu to estimate rough calories from rice bowl count and food keywords.'**
+  /// **'Record foods to estimate rough calories from rice bowls and selected items.'**
   String get mealCalorieCoachEmpty;
 
   /// No description provided for @mealCalorieCoachLow.

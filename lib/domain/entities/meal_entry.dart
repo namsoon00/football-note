@@ -14,6 +14,9 @@ class MealEntry {
   final String breakfastDishPortion;
   final String lunchDishPortion;
   final String dinnerDishPortion;
+  final List<String> breakfastFoodIds;
+  final List<String> lunchFoodIds;
+  final List<String> dinnerFoodIds;
   final DateTime createdAt;
 
   MealEntry({
@@ -30,8 +33,16 @@ class MealEntry {
     this.breakfastDishPortion = 'regular',
     this.lunchDishPortion = 'regular',
     this.dinnerDishPortion = 'regular',
+    List<String> breakfastFoodIds = const <String>[],
+    List<String> lunchFoodIds = const <String>[],
+    List<String> dinnerFoodIds = const <String>[],
     DateTime? createdAt,
-  }) : createdAt = createdAt ?? DateTime.now();
+  })  : breakfastFoodIds = List<String>.unmodifiable(
+          _foodIdsValue(breakfastFoodIds),
+        ),
+        lunchFoodIds = List<String>.unmodifiable(_foodIdsValue(lunchFoodIds)),
+        dinnerFoodIds = List<String>.unmodifiable(_foodIdsValue(dinnerFoodIds)),
+        createdAt = createdAt ?? DateTime.now();
 
   double get totalRiceBowls =>
       breakfastRiceBowls + lunchRiceBowls + dinnerRiceBowls;
@@ -42,18 +53,24 @@ class MealEntry {
       dinnerMenu.trim().isNotEmpty ||
       breakfastDishId.trim().isNotEmpty ||
       lunchDishId.trim().isNotEmpty ||
-      dinnerDishId.trim().isNotEmpty;
+      dinnerDishId.trim().isNotEmpty ||
+      breakfastFoodIds.isNotEmpty ||
+      lunchFoodIds.isNotEmpty ||
+      dinnerFoodIds.isNotEmpty;
 
   int get completedMeals => <bool>[
         breakfastRiceBowls > 0 ||
             breakfastMenu.trim().isNotEmpty ||
-            breakfastDishId.trim().isNotEmpty,
+            breakfastDishId.trim().isNotEmpty ||
+            breakfastFoodIds.isNotEmpty,
         lunchRiceBowls > 0 ||
             lunchMenu.trim().isNotEmpty ||
-            lunchDishId.trim().isNotEmpty,
+            lunchDishId.trim().isNotEmpty ||
+            lunchFoodIds.isNotEmpty,
         dinnerRiceBowls > 0 ||
             dinnerMenu.trim().isNotEmpty ||
-            dinnerDishId.trim().isNotEmpty,
+            dinnerDishId.trim().isNotEmpty ||
+            dinnerFoodIds.isNotEmpty,
       ].where((value) => value).length;
 
   bool get hasRecords => totalRiceBowls > 0 || hasMealPlan;
@@ -72,6 +89,9 @@ class MealEntry {
     String? breakfastDishPortion,
     String? lunchDishPortion,
     String? dinnerDishPortion,
+    List<String>? breakfastFoodIds,
+    List<String>? lunchFoodIds,
+    List<String>? dinnerFoodIds,
     DateTime? createdAt,
   }) {
     return MealEntry(
@@ -88,6 +108,9 @@ class MealEntry {
       breakfastDishPortion: breakfastDishPortion ?? this.breakfastDishPortion,
       lunchDishPortion: lunchDishPortion ?? this.lunchDishPortion,
       dinnerDishPortion: dinnerDishPortion ?? this.dinnerDishPortion,
+      breakfastFoodIds: breakfastFoodIds ?? this.breakfastFoodIds,
+      lunchFoodIds: lunchFoodIds ?? this.lunchFoodIds,
+      dinnerFoodIds: dinnerFoodIds ?? this.dinnerFoodIds,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -107,6 +130,9 @@ class MealEntry {
       'breakfastDishPortion': breakfastDishPortion,
       'lunchDishPortion': lunchDishPortion,
       'dinnerDishPortion': dinnerDishPortion,
+      'breakfastFoodIds': breakfastFoodIds,
+      'lunchFoodIds': lunchFoodIds,
+      'dinnerFoodIds': dinnerFoodIds,
       'createdAt': createdAt.toIso8601String(),
     };
   }
@@ -127,6 +153,9 @@ class MealEntry {
           _portionValue(_stringValue(map['breakfastDishPortion'])),
       lunchDishPortion: _portionValue(_stringValue(map['lunchDishPortion'])),
       dinnerDishPortion: _portionValue(_stringValue(map['dinnerDishPortion'])),
+      breakfastFoodIds: _foodIdsValue(map['breakfastFoodIds']),
+      lunchFoodIds: _foodIdsValue(map['lunchFoodIds']),
+      dinnerFoodIds: _foodIdsValue(map['dinnerFoodIds']),
       createdAt: DateTime.tryParse(map['createdAt']?.toString() ?? '') ??
           DateTime.now(),
     );
@@ -144,6 +173,18 @@ class MealEntry {
   }
 
   static String _stringValue(Object? value) => value?.toString() ?? '';
+
+  static List<String> _foodIdsValue(Object? value) {
+    if (value is! Iterable) return const <String>[];
+    final seen = <String>{};
+    final ids = <String>[];
+    for (final item in value) {
+      final id = item.toString().trim();
+      if (id.isEmpty || !seen.add(id)) continue;
+      ids.add(id);
+    }
+    return ids;
+  }
 
   static String _portionValue(String value) {
     return switch (value) {

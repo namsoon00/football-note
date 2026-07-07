@@ -6099,11 +6099,11 @@ class AppLocalizationsKo extends AppLocalizations {
   String get mealLogDatePickerHelp => '식사 기록 날짜 선택';
 
   @override
-  String get mealMenuInputLabel => '식단';
+  String get mealMenuInputLabel => '추가 메모';
 
   @override
   String mealMenuInputHint(String label) {
-    return '$label 식단을 입력하세요';
+    return '$label에 목록에 없는 음식이나 느낌을 메모하세요';
   }
 
   @override
@@ -6125,6 +6125,72 @@ class AppLocalizationsKo extends AppLocalizations {
   String mealDishNutritionPreview(int kcal, int protein) {
     return '약 $kcal kcal · 단백질 ${protein}g';
   }
+
+  @override
+  String get mealCompanionFoodsLabel => '같이 먹은 음식';
+
+  @override
+  String get mealCompanionFoodsEmpty => '선택한 음식이 없어요';
+
+  @override
+  String get mealCompanionFoodsChooseAction => '음식 선택';
+
+  @override
+  String get mealCompanionFoodsEditAction => '수정';
+
+  @override
+  String get mealCompanionFoodsSheetTitle => '같이 먹은 음식 선택';
+
+  @override
+  String get mealFoodSearchLabel => '음식 검색';
+
+  @override
+  String get mealFoodSearchHint => '김치, 우유, 바나나 등';
+
+  @override
+  String get mealFoodSelectionClear => '전체 해제';
+
+  @override
+  String get mealFoodSelectionDone => '완료';
+
+  @override
+  String mealFoodNutritionLine(int kcal, int carbs, int protein, int fat) {
+    return '$kcal kcal · 탄 ${carbs}g · 단 ${protein}g · 지 ${fat}g';
+  }
+
+  @override
+  String mealFoodOptionSubtitle(String category, String nutrition) {
+    return '$category · $nutrition';
+  }
+
+  @override
+  String mealSelectedFoodsNutritionPreview(int kcal, int protein) {
+    return '추가 음식 약 $kcal kcal · 단백질 ${protein}g';
+  }
+
+  @override
+  String get mealFoodCategoryMain => '메인';
+
+  @override
+  String get mealFoodCategoryProtein => '단백질';
+
+  @override
+  String get mealFoodCategorySide => '반찬';
+
+  @override
+  String get mealFoodCategorySoup => '국·찌개';
+
+  @override
+  String get mealFoodCategoryCarb => '탄수화물';
+
+  @override
+  String get mealFoodCategoryFruit => '과일';
+
+  @override
+  String get mealFoodCategorySnack => '간식';
+
+  @override
+  String get mealFoodCategoryDrink => '음료';
 
   @override
   String get mealDishChickenBreast => '닭가슴살';
@@ -6161,6 +6227,270 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get mealDishSandwich => '샌드위치';
+
+  @override
+  String get mealFoodBibimbap => '비빔밥';
+
+  @override
+  String get mealFoodFriedRice => '볶음밥';
+
+  @override
+  String get mealFoodGimbap => '김밥';
+
+  @override
+  String get mealFoodCurryRice => '카레라이스';
+
+  @override
+  String get mealFoodPorkCutlet => '돈가스';
+
+  @override
+  String get mealFoodJajangmyeon => '짜장면';
+
+  @override
+  String get mealFoodJjampong => '짬뽕';
+
+  @override
+  String get mealFoodTteokbokki => '떡볶이';
+
+  @override
+  String get mealFoodPasta => '파스타';
+
+  @override
+  String get mealFoodHamburger => '햄버거';
+
+  @override
+  String get mealFoodPizza => '피자';
+
+  @override
+  String get mealFoodPorkBelly => '삼겹살';
+
+  @override
+  String get mealFoodJeyukBokkeum => '제육볶음';
+
+  @override
+  String get mealFoodBeefSteak => '스테이크';
+
+  @override
+  String get mealFoodDakgalbi => '닭갈비';
+
+  @override
+  String get mealFoodOmurice => '오므라이스';
+
+  @override
+  String get mealFoodUdon => '우동';
+
+  @override
+  String get mealFoodColdNoodles => '냉면';
+
+  @override
+  String get mealFoodSoybeanNoodles => '콩국수';
+
+  @override
+  String get mealFoodDumplingSoup => '만둣국';
+
+  @override
+  String get mealFoodSamgyetang => '삼계탕';
+
+  @override
+  String get mealFoodKimchi => '김치';
+
+  @override
+  String get mealFoodPickledRadish => '단무지';
+
+  @override
+  String get mealFoodSeasonedBeanSprouts => '콩나물무침';
+
+  @override
+  String get mealFoodSpinachNamul => '시금치나물';
+
+  @override
+  String get mealFoodSeaweedSalad => '미역무침';
+
+  @override
+  String get mealFoodLettuce => '상추';
+
+  @override
+  String get mealFoodCucumber => '오이';
+
+  @override
+  String get mealFoodTomato => '토마토';
+
+  @override
+  String get mealFoodAvocado => '아보카도';
+
+  @override
+  String get mealFoodBroccoli => '브로콜리';
+
+  @override
+  String get mealFoodSweetPotato => '고구마';
+
+  @override
+  String get mealFoodPotato => '감자';
+
+  @override
+  String get mealFoodCorn => '옥수수';
+
+  @override
+  String get mealFoodBoiledEgg => '삶은 계란';
+
+  @override
+  String get mealFoodFriedEgg => '계란후라이';
+
+  @override
+  String get mealFoodOmelet => '오믈렛';
+
+  @override
+  String get mealFoodCheese => '치즈';
+
+  @override
+  String get mealFoodTunaCan => '참치캔';
+
+  @override
+  String get mealFoodHam => '햄';
+
+  @override
+  String get mealFoodSausage => '소시지';
+
+  @override
+  String get mealFoodBacon => '베이컨';
+
+  @override
+  String get mealFoodMackerel => '고등어';
+
+  @override
+  String get mealFoodShrimp => '새우';
+
+  @override
+  String get mealFoodSquid => '오징어';
+
+  @override
+  String get mealFoodBeans => '콩';
+
+  @override
+  String get mealFoodChickpeas => '병아리콩';
+
+  @override
+  String get mealFoodLentils => '렌틸콩';
+
+  @override
+  String get mealFoodSeaweedSoup => '미역국';
+
+  @override
+  String get mealFoodBeefSoup => '소고기국';
+
+  @override
+  String get mealFoodEggSoup => '계란국';
+
+  @override
+  String get mealFoodTofuSoup => '순두부국';
+
+  @override
+  String get mealFoodVegetableSoup => '채소수프';
+
+  @override
+  String get mealFoodMisoSoup => '미소국';
+
+  @override
+  String get mealFoodChickenSoup => '닭고기수프';
+
+  @override
+  String get mealFoodDumplings => '만두';
+
+  @override
+  String get mealFoodFriedSnack => '튀김';
+
+  @override
+  String get mealFoodFrenchFries => '감자튀김';
+
+  @override
+  String get mealFoodRiceCake => '떡';
+
+  @override
+  String get mealFoodBreadSlice => '식빵';
+
+  @override
+  String get mealFoodToast => '토스트';
+
+  @override
+  String get mealFoodOatmeal => '오트밀';
+
+  @override
+  String get mealFoodCereal => '시리얼';
+
+  @override
+  String get mealFoodGranola => '그래놀라';
+
+  @override
+  String get mealFoodMixedNuts => '믹스넛';
+
+  @override
+  String get mealFoodAlmonds => '아몬드';
+
+  @override
+  String get mealFoodIceCream => '아이스크림';
+
+  @override
+  String get mealFoodChocolate => '초콜릿';
+
+  @override
+  String get mealFoodCookie => '쿠키';
+
+  @override
+  String get mealFoodCake => '케이크';
+
+  @override
+  String get mealFoodYogurt => '요거트';
+
+  @override
+  String get mealFoodGreekYogurt => '그릭요거트';
+
+  @override
+  String get mealFoodProteinShake => '프로틴 쉐이크';
+
+  @override
+  String get mealFoodWheyProtein => '웨이 프로틴';
+
+  @override
+  String get mealFoodMilk => '우유';
+
+  @override
+  String get mealFoodSoyMilk => '두유';
+
+  @override
+  String get mealFoodJuice => '주스';
+
+  @override
+  String get mealFoodSportsDrink => '스포츠음료';
+
+  @override
+  String get mealFoodCoffeeLatte => '카페라떼';
+
+  @override
+  String get mealFoodAmericano => '아메리카노';
+
+  @override
+  String get mealFoodCola => '콜라';
+
+  @override
+  String get mealFoodWater => '물';
+
+  @override
+  String get mealFoodBanana => '바나나';
+
+  @override
+  String get mealFoodApple => '사과';
+
+  @override
+  String get mealFoodOrange => '오렌지';
+
+  @override
+  String get mealFoodGrapes => '포도';
+
+  @override
+  String get mealFoodStrawberries => '딸기';
+
+  @override
+  String get mealFoodBlueberries => '블루베리';
 
   @override
   String mealSummaryRiceOnly(String label, String rice) {
@@ -6219,7 +6549,8 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get mealCalorieCoachEmpty => '식단을 입력하면 밥공기 수와 음식 키워드로 대략적인 칼로리를 계산해요.';
+  String get mealCalorieCoachEmpty =>
+      '음식을 기록하면 밥공기 수와 선택한 음식으로 대략적인 칼로리를 계산해요.';
 
   @override
   String get mealCalorieCoachLow =>

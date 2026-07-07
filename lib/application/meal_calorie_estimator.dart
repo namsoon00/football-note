@@ -56,19 +56,29 @@ class MealNutritionEstimate {
   }
 }
 
-class MealDishOption {
+enum MealFoodCategory { main, protein, side, soup, carb, fruit, snack, drink }
+
+class MealFoodOption {
   final String id;
+  final MealFoodCategory category;
   final int kcal;
   final double carbs;
   final double protein;
   final double fat;
+  final int servingGrams;
+  final bool canBeMainDish;
+  final bool canBeCompanion;
 
-  const MealDishOption({
+  const MealFoodOption({
     required this.id,
+    required this.category,
     required this.kcal,
     required this.carbs,
     required this.protein,
     required this.fat,
+    this.servingGrams = 0,
+    this.canBeMainDish = false,
+    this.canBeCompanion = true,
   });
 
   MealNutritionEstimate get nutrition {
@@ -81,6 +91,8 @@ class MealDishOption {
   }
 }
 
+typedef MealDishOption = MealFoodOption;
+
 class MealCalorieEstimator {
   const MealCalorieEstimator._();
 
@@ -91,51 +103,865 @@ class MealCalorieEstimator {
 
   static const List<String> portionIds = <String>['small', 'regular', 'large'];
 
-  static const List<MealDishOption> mainDishOptions = <MealDishOption>[
-    MealDishOption(
+  static const List<MealFoodOption> foodOptions = <MealFoodOption>[
+    MealFoodOption(
       id: 'chickenBreast',
+      category: MealFoodCategory.main,
       kcal: 165,
       carbs: 0,
       protein: 31,
       fat: 4,
+      servingGrams: 100,
+      canBeMainDish: true,
     ),
-    MealDishOption(id: 'eggs', kcal: 160, carbs: 1, protein: 13, fat: 11),
-    MealDishOption(id: 'tofu', kcal: 150, carbs: 4, protein: 15, fat: 9),
-    MealDishOption(
+    MealFoodOption(
+      id: 'eggs',
+      category: MealFoodCategory.main,
+      kcal: 160,
+      carbs: 1,
+      protein: 13,
+      fat: 11,
+      servingGrams: 100,
+      canBeMainDish: true,
+    ),
+    MealFoodOption(
+      id: 'tofu',
+      category: MealFoodCategory.main,
+      kcal: 150,
+      carbs: 4,
+      protein: 15,
+      fat: 9,
+      servingGrams: 150,
+      canBeMainDish: true,
+    ),
+    MealFoodOption(
       id: 'grilledFish',
+      category: MealFoodCategory.main,
       kcal: 250,
       carbs: 0,
       protein: 28,
       fat: 12,
+      servingGrams: 150,
+      canBeMainDish: true,
     ),
-    MealDishOption(id: 'salmon', kcal: 300, carbs: 0, protein: 27, fat: 18),
-    MealDishOption(id: 'bulgogi', kcal: 500, carbs: 20, protein: 30, fat: 25),
-    MealDishOption(
-        id: 'kimchiStew', kcal: 450, carbs: 20, protein: 25, fat: 22),
-    MealDishOption(
+    MealFoodOption(
+      id: 'salmon',
+      category: MealFoodCategory.main,
+      kcal: 300,
+      carbs: 0,
+      protein: 27,
+      fat: 18,
+      servingGrams: 150,
+      canBeMainDish: true,
+    ),
+    MealFoodOption(
+      id: 'bulgogi',
+      category: MealFoodCategory.main,
+      kcal: 500,
+      carbs: 20,
+      protein: 30,
+      fat: 25,
+      servingGrams: 300,
+      canBeMainDish: true,
+    ),
+    MealFoodOption(
+      id: 'kimchiStew',
+      category: MealFoodCategory.main,
+      kcal: 450,
+      carbs: 20,
+      protein: 25,
+      fat: 22,
+      servingGrams: 400,
+      canBeMainDish: true,
+    ),
+    MealFoodOption(
       id: 'doenjangStew',
+      category: MealFoodCategory.main,
       kcal: 350,
       carbs: 18,
       protein: 20,
       fat: 14,
+      servingGrams: 400,
+      canBeMainDish: true,
     ),
-    MealDishOption(
+    MealFoodOption(
       id: 'friedChicken',
+      category: MealFoodCategory.main,
       kcal: 600,
       carbs: 25,
       protein: 35,
       fat: 38,
+      servingGrams: 250,
+      canBeMainDish: true,
     ),
-    MealDishOption(
+    MealFoodOption(
       id: 'chickenSalad',
+      category: MealFoodCategory.main,
       kcal: 300,
       carbs: 12,
       protein: 28,
       fat: 12,
+      servingGrams: 300,
+      canBeMainDish: true,
     ),
-    MealDishOption(id: 'ramen', kcal: 500, carbs: 80, protein: 12, fat: 16),
-    MealDishOption(id: 'sandwich', kcal: 450, carbs: 50, protein: 20, fat: 15),
+    MealFoodOption(
+      id: 'ramen',
+      category: MealFoodCategory.main,
+      kcal: 500,
+      carbs: 80,
+      protein: 12,
+      fat: 16,
+      servingGrams: 550,
+      canBeMainDish: true,
+    ),
+    MealFoodOption(
+      id: 'sandwich',
+      category: MealFoodCategory.main,
+      kcal: 450,
+      carbs: 50,
+      protein: 20,
+      fat: 15,
+      servingGrams: 220,
+      canBeMainDish: true,
+    ),
+    MealFoodOption(
+        id: 'bibimbap',
+        category: MealFoodCategory.main,
+        kcal: 600,
+        carbs: 90,
+        protein: 22,
+        fat: 18,
+        servingGrams: 450,
+        canBeMainDish: true),
+    MealFoodOption(
+        id: 'friedRice',
+        category: MealFoodCategory.main,
+        kcal: 600,
+        carbs: 85,
+        protein: 18,
+        fat: 20,
+        servingGrams: 400,
+        canBeMainDish: true),
+    MealFoodOption(
+        id: 'gimbap',
+        category: MealFoodCategory.main,
+        kcal: 480,
+        carbs: 75,
+        protein: 14,
+        fat: 14,
+        servingGrams: 250,
+        canBeMainDish: true),
+    MealFoodOption(
+        id: 'curryRice',
+        category: MealFoodCategory.main,
+        kcal: 550,
+        carbs: 85,
+        protein: 18,
+        fat: 16,
+        servingGrams: 450,
+        canBeMainDish: true),
+    MealFoodOption(
+        id: 'porkCutlet',
+        category: MealFoodCategory.main,
+        kcal: 750,
+        carbs: 80,
+        protein: 32,
+        fat: 32,
+        servingGrams: 350,
+        canBeMainDish: true),
+    MealFoodOption(
+        id: 'jajangmyeon',
+        category: MealFoodCategory.main,
+        kcal: 800,
+        carbs: 120,
+        protein: 25,
+        fat: 25,
+        servingGrams: 650,
+        canBeMainDish: true),
+    MealFoodOption(
+        id: 'jjampong',
+        category: MealFoodCategory.main,
+        kcal: 700,
+        carbs: 100,
+        protein: 35,
+        fat: 18,
+        servingGrams: 700,
+        canBeMainDish: true),
+    MealFoodOption(
+        id: 'tteokbokki',
+        category: MealFoodCategory.main,
+        kcal: 500,
+        carbs: 95,
+        protein: 10,
+        fat: 8,
+        servingGrams: 300,
+        canBeMainDish: true),
+    MealFoodOption(
+        id: 'pasta',
+        category: MealFoodCategory.main,
+        kcal: 650,
+        carbs: 90,
+        protein: 22,
+        fat: 20,
+        servingGrams: 450,
+        canBeMainDish: true),
+    MealFoodOption(
+        id: 'hamburger',
+        category: MealFoodCategory.main,
+        kcal: 600,
+        carbs: 45,
+        protein: 28,
+        fat: 32,
+        servingGrams: 250,
+        canBeMainDish: true),
+    MealFoodOption(
+        id: 'pizza',
+        category: MealFoodCategory.main,
+        kcal: 600,
+        carbs: 65,
+        protein: 28,
+        fat: 28,
+        servingGrams: 250,
+        canBeMainDish: true),
+    MealFoodOption(
+        id: 'porkBelly',
+        category: MealFoodCategory.main,
+        kcal: 650,
+        carbs: 0,
+        protein: 28,
+        fat: 55,
+        servingGrams: 180,
+        canBeMainDish: true),
+    MealFoodOption(
+        id: 'jeyukBokkeum',
+        category: MealFoodCategory.main,
+        kcal: 550,
+        carbs: 25,
+        protein: 35,
+        fat: 28,
+        servingGrams: 300,
+        canBeMainDish: true),
+    MealFoodOption(
+        id: 'beefSteak',
+        category: MealFoodCategory.main,
+        kcal: 600,
+        carbs: 5,
+        protein: 45,
+        fat: 40,
+        servingGrams: 250,
+        canBeMainDish: true),
+    MealFoodOption(
+        id: 'dakgalbi',
+        category: MealFoodCategory.main,
+        kcal: 600,
+        carbs: 55,
+        protein: 35,
+        fat: 25,
+        servingGrams: 400,
+        canBeMainDish: true),
+    MealFoodOption(
+        id: 'omurice',
+        category: MealFoodCategory.main,
+        kcal: 700,
+        carbs: 95,
+        protein: 25,
+        fat: 24,
+        servingGrams: 450,
+        canBeMainDish: true),
+    MealFoodOption(
+        id: 'udon',
+        category: MealFoodCategory.main,
+        kcal: 450,
+        carbs: 80,
+        protein: 13,
+        fat: 6,
+        servingGrams: 650,
+        canBeMainDish: true),
+    MealFoodOption(
+        id: 'coldNoodles',
+        category: MealFoodCategory.main,
+        kcal: 550,
+        carbs: 95,
+        protein: 18,
+        fat: 8,
+        servingGrams: 600,
+        canBeMainDish: true),
+    MealFoodOption(
+        id: 'soybeanNoodles',
+        category: MealFoodCategory.main,
+        kcal: 650,
+        carbs: 80,
+        protein: 25,
+        fat: 22,
+        servingGrams: 700,
+        canBeMainDish: true),
+    MealFoodOption(
+        id: 'dumplingSoup',
+        category: MealFoodCategory.main,
+        kcal: 600,
+        carbs: 80,
+        protein: 24,
+        fat: 20,
+        servingGrams: 650,
+        canBeMainDish: true),
+    MealFoodOption(
+        id: 'samgyetang',
+        category: MealFoodCategory.main,
+        kcal: 800,
+        carbs: 20,
+        protein: 70,
+        fat: 45,
+        servingGrams: 900,
+        canBeMainDish: true),
+    MealFoodOption(
+        id: 'kimchi',
+        category: MealFoodCategory.side,
+        kcal: 30,
+        carbs: 5,
+        protein: 2,
+        fat: 0,
+        servingGrams: 50),
+    MealFoodOption(
+        id: 'pickledRadish',
+        category: MealFoodCategory.side,
+        kcal: 20,
+        carbs: 4,
+        protein: 0,
+        fat: 0,
+        servingGrams: 50),
+    MealFoodOption(
+        id: 'seasonedBeanSprouts',
+        category: MealFoodCategory.side,
+        kcal: 45,
+        carbs: 6,
+        protein: 3,
+        fat: 2,
+        servingGrams: 80),
+    MealFoodOption(
+        id: 'spinachNamul',
+        category: MealFoodCategory.side,
+        kcal: 45,
+        carbs: 5,
+        protein: 3,
+        fat: 2,
+        servingGrams: 80),
+    MealFoodOption(
+        id: 'seaweedSalad',
+        category: MealFoodCategory.side,
+        kcal: 35,
+        carbs: 6,
+        protein: 1,
+        fat: 1,
+        servingGrams: 80),
+    MealFoodOption(
+        id: 'lettuce',
+        category: MealFoodCategory.side,
+        kcal: 10,
+        carbs: 2,
+        protein: 1,
+        fat: 0,
+        servingGrams: 50),
+    MealFoodOption(
+        id: 'cucumber',
+        category: MealFoodCategory.side,
+        kcal: 15,
+        carbs: 3,
+        protein: 1,
+        fat: 0,
+        servingGrams: 100),
+    MealFoodOption(
+        id: 'tomato',
+        category: MealFoodCategory.side,
+        kcal: 20,
+        carbs: 4,
+        protein: 1,
+        fat: 0,
+        servingGrams: 120),
+    MealFoodOption(
+        id: 'avocado',
+        category: MealFoodCategory.side,
+        kcal: 160,
+        carbs: 9,
+        protein: 2,
+        fat: 15,
+        servingGrams: 100),
+    MealFoodOption(
+        id: 'broccoli',
+        category: MealFoodCategory.side,
+        kcal: 35,
+        carbs: 7,
+        protein: 3,
+        fat: 0,
+        servingGrams: 100),
+    MealFoodOption(
+        id: 'sweetPotato',
+        category: MealFoodCategory.carb,
+        kcal: 130,
+        carbs: 31,
+        protein: 2,
+        fat: 0,
+        servingGrams: 130),
+    MealFoodOption(
+        id: 'potato',
+        category: MealFoodCategory.carb,
+        kcal: 110,
+        carbs: 26,
+        protein: 3,
+        fat: 0,
+        servingGrams: 150),
+    MealFoodOption(
+        id: 'corn',
+        category: MealFoodCategory.carb,
+        kcal: 100,
+        carbs: 22,
+        protein: 3,
+        fat: 1,
+        servingGrams: 100),
+    MealFoodOption(
+        id: 'boiledEgg',
+        category: MealFoodCategory.protein,
+        kcal: 80,
+        carbs: 1,
+        protein: 6,
+        fat: 5,
+        servingGrams: 50),
+    MealFoodOption(
+        id: 'friedEgg',
+        category: MealFoodCategory.protein,
+        kcal: 100,
+        carbs: 1,
+        protein: 6,
+        fat: 7,
+        servingGrams: 60),
+    MealFoodOption(
+        id: 'omelet',
+        category: MealFoodCategory.protein,
+        kcal: 180,
+        carbs: 2,
+        protein: 12,
+        fat: 13,
+        servingGrams: 120),
+    MealFoodOption(
+        id: 'cheese',
+        category: MealFoodCategory.protein,
+        kcal: 70,
+        carbs: 1,
+        protein: 4,
+        fat: 6,
+        servingGrams: 20),
+    MealFoodOption(
+        id: 'tunaCan',
+        category: MealFoodCategory.protein,
+        kcal: 150,
+        carbs: 0,
+        protein: 30,
+        fat: 5,
+        servingGrams: 100),
+    MealFoodOption(
+        id: 'ham',
+        category: MealFoodCategory.protein,
+        kcal: 120,
+        carbs: 2,
+        protein: 10,
+        fat: 8,
+        servingGrams: 60),
+    MealFoodOption(
+        id: 'sausage',
+        category: MealFoodCategory.protein,
+        kcal: 250,
+        carbs: 4,
+        protein: 12,
+        fat: 20,
+        servingGrams: 100),
+    MealFoodOption(
+        id: 'bacon',
+        category: MealFoodCategory.protein,
+        kcal: 160,
+        carbs: 1,
+        protein: 12,
+        fat: 12,
+        servingGrams: 50),
+    MealFoodOption(
+        id: 'mackerel',
+        category: MealFoodCategory.protein,
+        kcal: 280,
+        carbs: 0,
+        protein: 25,
+        fat: 20,
+        servingGrams: 140),
+    MealFoodOption(
+        id: 'shrimp',
+        category: MealFoodCategory.protein,
+        kcal: 100,
+        carbs: 1,
+        protein: 20,
+        fat: 1,
+        servingGrams: 100),
+    MealFoodOption(
+        id: 'squid',
+        category: MealFoodCategory.protein,
+        kcal: 120,
+        carbs: 3,
+        protein: 24,
+        fat: 2,
+        servingGrams: 120),
+    MealFoodOption(
+        id: 'beans',
+        category: MealFoodCategory.protein,
+        kcal: 130,
+        carbs: 20,
+        protein: 8,
+        fat: 3,
+        servingGrams: 100),
+    MealFoodOption(
+        id: 'chickpeas',
+        category: MealFoodCategory.protein,
+        kcal: 170,
+        carbs: 27,
+        protein: 9,
+        fat: 3,
+        servingGrams: 100),
+    MealFoodOption(
+        id: 'lentils',
+        category: MealFoodCategory.protein,
+        kcal: 160,
+        carbs: 28,
+        protein: 12,
+        fat: 1,
+        servingGrams: 100),
+    MealFoodOption(
+        id: 'seaweedSoup',
+        category: MealFoodCategory.soup,
+        kcal: 100,
+        carbs: 8,
+        protein: 10,
+        fat: 5,
+        servingGrams: 300),
+    MealFoodOption(
+        id: 'beefSoup',
+        category: MealFoodCategory.soup,
+        kcal: 250,
+        carbs: 5,
+        protein: 25,
+        fat: 15,
+        servingGrams: 400),
+    MealFoodOption(
+        id: 'eggSoup',
+        category: MealFoodCategory.soup,
+        kcal: 90,
+        carbs: 3,
+        protein: 7,
+        fat: 5,
+        servingGrams: 250),
+    MealFoodOption(
+        id: 'tofuSoup',
+        category: MealFoodCategory.soup,
+        kcal: 250,
+        carbs: 12,
+        protein: 18,
+        fat: 14,
+        servingGrams: 400),
+    MealFoodOption(
+        id: 'vegetableSoup',
+        category: MealFoodCategory.soup,
+        kcal: 120,
+        carbs: 20,
+        protein: 5,
+        fat: 2,
+        servingGrams: 300),
+    MealFoodOption(
+        id: 'misoSoup',
+        category: MealFoodCategory.soup,
+        kcal: 60,
+        carbs: 6,
+        protein: 4,
+        fat: 2,
+        servingGrams: 200),
+    MealFoodOption(
+        id: 'chickenSoup',
+        category: MealFoodCategory.soup,
+        kcal: 300,
+        carbs: 15,
+        protein: 28,
+        fat: 12,
+        servingGrams: 450),
+    MealFoodOption(
+        id: 'dumplings',
+        category: MealFoodCategory.snack,
+        kcal: 350,
+        carbs: 45,
+        protein: 15,
+        fat: 12,
+        servingGrams: 200),
+    MealFoodOption(
+        id: 'friedSnack',
+        category: MealFoodCategory.snack,
+        kcal: 350,
+        carbs: 40,
+        protein: 8,
+        fat: 20,
+        servingGrams: 150),
+    MealFoodOption(
+        id: 'frenchFries',
+        category: MealFoodCategory.snack,
+        kcal: 350,
+        carbs: 45,
+        protein: 4,
+        fat: 17,
+        servingGrams: 150),
+    MealFoodOption(
+        id: 'riceCake',
+        category: MealFoodCategory.snack,
+        kcal: 220,
+        carbs: 48,
+        protein: 4,
+        fat: 1,
+        servingGrams: 100),
+    MealFoodOption(
+        id: 'breadSlice',
+        category: MealFoodCategory.snack,
+        kcal: 80,
+        carbs: 15,
+        protein: 3,
+        fat: 1,
+        servingGrams: 35),
+    MealFoodOption(
+        id: 'toast',
+        category: MealFoodCategory.snack,
+        kcal: 300,
+        carbs: 40,
+        protein: 10,
+        fat: 12,
+        servingGrams: 180),
+    MealFoodOption(
+        id: 'oatmeal',
+        category: MealFoodCategory.snack,
+        kcal: 250,
+        carbs: 45,
+        protein: 8,
+        fat: 5,
+        servingGrams: 250),
+    MealFoodOption(
+        id: 'cereal',
+        category: MealFoodCategory.snack,
+        kcal: 250,
+        carbs: 50,
+        protein: 6,
+        fat: 3,
+        servingGrams: 60),
+    MealFoodOption(
+        id: 'granola',
+        category: MealFoodCategory.snack,
+        kcal: 220,
+        carbs: 35,
+        protein: 6,
+        fat: 7,
+        servingGrams: 50),
+    MealFoodOption(
+        id: 'mixedNuts',
+        category: MealFoodCategory.snack,
+        kcal: 180,
+        carbs: 6,
+        protein: 6,
+        fat: 16,
+        servingGrams: 30),
+    MealFoodOption(
+        id: 'almonds',
+        category: MealFoodCategory.snack,
+        kcal: 170,
+        carbs: 6,
+        protein: 6,
+        fat: 15,
+        servingGrams: 30),
+    MealFoodOption(
+        id: 'iceCream',
+        category: MealFoodCategory.snack,
+        kcal: 250,
+        carbs: 30,
+        protein: 5,
+        fat: 14,
+        servingGrams: 120),
+    MealFoodOption(
+        id: 'chocolate',
+        category: MealFoodCategory.snack,
+        kcal: 220,
+        carbs: 25,
+        protein: 3,
+        fat: 13,
+        servingGrams: 40),
+    MealFoodOption(
+        id: 'cookie',
+        category: MealFoodCategory.snack,
+        kcal: 160,
+        carbs: 24,
+        protein: 2,
+        fat: 7,
+        servingGrams: 40),
+    MealFoodOption(
+        id: 'cake',
+        category: MealFoodCategory.snack,
+        kcal: 350,
+        carbs: 50,
+        protein: 5,
+        fat: 15,
+        servingGrams: 120),
+    MealFoodOption(
+        id: 'yogurt',
+        category: MealFoodCategory.snack,
+        kcal: 120,
+        carbs: 18,
+        protein: 6,
+        fat: 3,
+        servingGrams: 150),
+    MealFoodOption(
+        id: 'greekYogurt',
+        category: MealFoodCategory.snack,
+        kcal: 100,
+        carbs: 6,
+        protein: 15,
+        fat: 0,
+        servingGrams: 150),
+    MealFoodOption(
+        id: 'proteinShake',
+        category: MealFoodCategory.drink,
+        kcal: 180,
+        carbs: 8,
+        protein: 25,
+        fat: 3,
+        servingGrams: 300),
+    MealFoodOption(
+        id: 'wheyProtein',
+        category: MealFoodCategory.drink,
+        kcal: 120,
+        carbs: 3,
+        protein: 24,
+        fat: 2,
+        servingGrams: 35),
+    MealFoodOption(
+        id: 'milk',
+        category: MealFoodCategory.drink,
+        kcal: 130,
+        carbs: 12,
+        protein: 7,
+        fat: 5,
+        servingGrams: 200),
+    MealFoodOption(
+        id: 'soyMilk',
+        category: MealFoodCategory.drink,
+        kcal: 110,
+        carbs: 9,
+        protein: 7,
+        fat: 4,
+        servingGrams: 200),
+    MealFoodOption(
+        id: 'juice',
+        category: MealFoodCategory.drink,
+        kcal: 120,
+        carbs: 28,
+        protein: 1,
+        fat: 0,
+        servingGrams: 200),
+    MealFoodOption(
+        id: 'sportsDrink',
+        category: MealFoodCategory.drink,
+        kcal: 80,
+        carbs: 20,
+        protein: 0,
+        fat: 0,
+        servingGrams: 250),
+    MealFoodOption(
+        id: 'coffeeLatte',
+        category: MealFoodCategory.drink,
+        kcal: 150,
+        carbs: 12,
+        protein: 8,
+        fat: 7,
+        servingGrams: 300),
+    MealFoodOption(
+        id: 'americano',
+        category: MealFoodCategory.drink,
+        kcal: 5,
+        carbs: 1,
+        protein: 0,
+        fat: 0,
+        servingGrams: 300),
+    MealFoodOption(
+        id: 'cola',
+        category: MealFoodCategory.drink,
+        kcal: 140,
+        carbs: 35,
+        protein: 0,
+        fat: 0,
+        servingGrams: 355),
+    MealFoodOption(
+        id: 'water',
+        category: MealFoodCategory.drink,
+        kcal: 0,
+        carbs: 0,
+        protein: 0,
+        fat: 0,
+        servingGrams: 300),
+    MealFoodOption(
+        id: 'banana',
+        category: MealFoodCategory.fruit,
+        kcal: 105,
+        carbs: 27,
+        protein: 1,
+        fat: 0,
+        servingGrams: 120),
+    MealFoodOption(
+        id: 'apple',
+        category: MealFoodCategory.fruit,
+        kcal: 95,
+        carbs: 25,
+        protein: 0,
+        fat: 0,
+        servingGrams: 180),
+    MealFoodOption(
+        id: 'orange',
+        category: MealFoodCategory.fruit,
+        kcal: 60,
+        carbs: 15,
+        protein: 1,
+        fat: 0,
+        servingGrams: 130),
+    MealFoodOption(
+        id: 'grapes',
+        category: MealFoodCategory.fruit,
+        kcal: 70,
+        carbs: 18,
+        protein: 1,
+        fat: 0,
+        servingGrams: 100),
+    MealFoodOption(
+        id: 'strawberries',
+        category: MealFoodCategory.fruit,
+        kcal: 50,
+        carbs: 12,
+        protein: 1,
+        fat: 0,
+        servingGrams: 150),
+    MealFoodOption(
+        id: 'blueberries',
+        category: MealFoodCategory.fruit,
+        kcal: 85,
+        carbs: 21,
+        protein: 1,
+        fat: 0,
+        servingGrams: 150),
   ];
+
+  static List<MealFoodOption> get mainDishOptions {
+    return foodOptions
+        .where((option) => option.canBeMainDish)
+        .toList(growable: false);
+  }
+
+  static List<MealFoodOption> get companionFoodOptions {
+    return foodOptions
+        .where((option) => option.canBeCompanion)
+        .toList(growable: false);
+  }
 
   static MealCalorieEstimate estimate(MealEntry entry) {
     return MealCalorieEstimate(
@@ -144,29 +970,51 @@ class MealCalorieEstimator {
         menu: entry.breakfastMenu,
         dishId: entry.breakfastDishId,
         dishPortion: entry.breakfastDishPortion,
+        foodIds: entry.breakfastFoodIds,
       ),
       lunch: _estimateMeal(
         riceBowls: entry.lunchRiceBowls,
         menu: entry.lunchMenu,
         dishId: entry.lunchDishId,
         dishPortion: entry.lunchDishPortion,
+        foodIds: entry.lunchFoodIds,
       ),
       dinner: _estimateMeal(
         riceBowls: entry.dinnerRiceBowls,
         menu: entry.dinnerMenu,
         dishId: entry.dinnerDishId,
         dishPortion: entry.dinnerDishPortion,
+        foodIds: entry.dinnerFoodIds,
       ),
     );
   }
 
-  static MealDishOption? dishById(String id) {
+  static MealFoodOption? foodById(String id) {
     final normalizedId = id.trim();
     if (normalizedId.isEmpty) return null;
-    for (final option in mainDishOptions) {
+    for (final option in foodOptions) {
       if (option.id == normalizedId) return option;
     }
     return null;
+  }
+
+  static MealDishOption? dishById(String id) {
+    final option = foodById(id);
+    if (option == null || !option.canBeMainDish) return null;
+    return option;
+  }
+
+  static MealNutritionEstimate nutritionForFoodIds(Iterable<String> foodIds) {
+    final seen = <String>{};
+    var total = const MealNutritionEstimate(kcal: 0);
+    for (final rawId in foodIds) {
+      final id = rawId.trim();
+      if (id.isEmpty || !seen.add(id)) continue;
+      final option = foodById(id);
+      if (option == null) continue;
+      total = total.plus(option.nutrition);
+    }
+    return total;
   }
 
   static double portionFactor(String portionId) {
@@ -182,6 +1030,7 @@ class MealCalorieEstimator {
     required String menu,
     required String dishId,
     required String dishPortion,
+    required Iterable<String> foodIds,
   }) {
     final riceNutrition = MealNutritionEstimate(
       kcal: (riceBowls * kcalPerRiceBowl).round(),
@@ -192,9 +1041,11 @@ class MealCalorieEstimator {
     final dishNutrition =
         dishById(dishId)?.nutrition.scaled(portionFactor(dishPortion)) ??
             const MealNutritionEstimate(kcal: 0);
+    final foodNutrition = nutritionForFoodIds(foodIds);
     final menuKcal = _estimateMenu(menu, skipRiceKeywords: riceBowls > 0);
     return riceNutrition
         .plus(dishNutrition)
+        .plus(foodNutrition)
         .plus(MealNutritionEstimate(kcal: menuKcal));
   }
 

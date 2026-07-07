@@ -30,6 +30,7 @@ import '../../domain/entities/meal_entry.dart';
 import '../../domain/entities/sport_definition.dart';
 import '../../domain/entities/training_entry.dart';
 import '../../domain/repositories/option_repository.dart';
+import '../meal_food_labels.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_feedback.dart';
@@ -5953,6 +5954,7 @@ class _MealEntryTile extends StatelessWidget {
         entry.breakfastRiceBowls,
         entry.breakfastMenu,
         entry.breakfastDishId,
+        entry.breakfastFoodIds,
       ),
       _mealLine(
         l10n,
@@ -5960,6 +5962,7 @@ class _MealEntryTile extends StatelessWidget {
         entry.lunchRiceBowls,
         entry.lunchMenu,
         entry.lunchDishId,
+        entry.lunchFoodIds,
       ),
       _mealLine(
         l10n,
@@ -5967,6 +5970,7 @@ class _MealEntryTile extends StatelessWidget {
         entry.dinnerRiceBowls,
         entry.dinnerMenu,
         entry.dinnerDishId,
+        entry.dinnerFoodIds,
       ),
     ];
     return parts.join(' · ');
@@ -5978,12 +5982,15 @@ class _MealEntryTile extends StatelessWidget {
     double bowls,
     String menu,
     String dishId,
+    List<String> foodIds,
   ) {
     final trimmedMenu = menu.trim();
-    final dishLabel = _dishLabel(l10n, dishId);
-    final menuText = dishLabel.isEmpty || trimmedMenu.isEmpty
-        ? dishLabel + trimmedMenu
-        : l10n.mealSummaryMenuPair(dishLabel, trimmedMenu);
+    final menuItems = <String>[
+      if (dishId.trim().isNotEmpty) mealFoodLabel(l10n, dishId),
+      for (final foodId in foodIds) mealFoodLabel(l10n, foodId),
+      if (trimmedMenu.isNotEmpty) trimmedMenu,
+    ].where((item) => item.trim().isNotEmpty).toList(growable: false);
+    final menuText = _joinedMenuText(l10n, menuItems);
     if (bowls <= 0) {
       if (menuText.isNotEmpty) {
         return l10n.mealSummaryMenuOnly(label, menuText);
@@ -5998,22 +6005,11 @@ class _MealEntryTile extends StatelessWidget {
     return l10n.mealSummaryRiceWithMenu(label, rice, menuText);
   }
 
-  String _dishLabel(AppLocalizations l10n, String dishId) {
-    return switch (dishId) {
-      'chickenBreast' => l10n.mealDishChickenBreast,
-      'eggs' => l10n.mealDishEggs,
-      'tofu' => l10n.mealDishTofu,
-      'grilledFish' => l10n.mealDishGrilledFish,
-      'salmon' => l10n.mealDishSalmon,
-      'bulgogi' => l10n.mealDishBulgogi,
-      'kimchiStew' => l10n.mealDishKimchiStew,
-      'doenjangStew' => l10n.mealDishDoenjangStew,
-      'friedChicken' => l10n.mealDishFriedChicken,
-      'chickenSalad' => l10n.mealDishChickenSalad,
-      'ramen' => l10n.mealDishRamen,
-      'sandwich' => l10n.mealDishSandwich,
-      _ => '',
-    };
+  String _joinedMenuText(AppLocalizations l10n, List<String> items) {
+    return items.fold<String>('', (current, item) {
+      if (current.isEmpty) return item;
+      return l10n.mealSummaryMenuPair(current, item);
+    });
   }
 }
 
