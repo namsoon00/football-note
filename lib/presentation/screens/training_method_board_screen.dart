@@ -887,6 +887,68 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         : null;
   }
 
+  _BoardItem? _nearestPlayerToPoint(Offset point, {required double radius}) {
+    final players = _itemsOfType(_BoardItemType.player);
+    if (players.isEmpty) return null;
+    players.sort((a, b) {
+      final aDistance = (_itemPosition(a) - point).distance;
+      final bDistance = (_itemPosition(b) - point).distance;
+      return aDistance.compareTo(bDistance);
+    });
+    final nearest = players.first;
+    return (_itemPosition(nearest) - point).distance <= radius ? nearest : null;
+  }
+
+  _BoardItem? _currentBallOwner(_BoardItem ball) {
+    final latestRoute = _latestBallRouteForBall(ball);
+    if (latestRoute == null) {
+      return _nearestPlayerToPoint(
+        _itemPosition(ball),
+        radius: _ballPossessionRadius,
+      );
+    }
+    final targetItemId = latestRoute.targetItemId;
+    if (targetItemId != null) {
+      final target = _itemById(targetItemId);
+      if (target != null &&
+          target.type == _BoardItemType.player &&
+          _ballRouteGivesPlayerPossession(latestRoute, target)) {
+        return target;
+      }
+      return null;
+    }
+    for (final player in _itemsOfType(_BoardItemType.player)) {
+      if (_ballRouteGivesPlayerPossession(latestRoute, player)) {
+        return player;
+      }
+    }
+    return null;
+  }
+
+  bool _hasBallOwnedByAnotherPlayer(_BoardItem player) {
+    return _itemsOfType(_BoardItemType.ball).any((ball) {
+      final owner = _currentBallOwner(ball);
+      return owner != null && owner.id != player.id;
+    });
+  }
+
+  bool _canStartBallActionForPlayer(_BoardItem player) {
+    return _playerHasBallForFlow(player) ||
+        !_hasBallOwnedByAnotherPlayer(player);
+  }
+
+  void _showBallPossessionRequiredSnackBar(_BoardItem player) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          _l10n.trainingSketchBallPossessionRequiredSnack(
+            _stageItemLabel(player),
+          ),
+        ),
+      ),
+    );
+  }
+
   _BoardRoute? _latestBallRouteForBall(_BoardItem ball) {
     final routes = _currentPage.routes
         .where(
@@ -1034,8 +1096,15 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
 
   _BoardItem? _ballForTargetAction(_BoardItem selected, {Offset? target}) {
     if (selected.type != _BoardItemType.player) return null;
-    final ball = _controlledBallForPlayer(selected) ??
-        _createControlledBallForPlayer(selected, toward: target);
+    final controlledBall = _controlledBallForPlayer(selected);
+    if (controlledBall != null) {
+      _placeBallInFrontOfPlayer(selected, controlledBall, toward: target);
+      return controlledBall;
+    }
+    if (!_canStartBallActionForPlayer(selected)) {
+      return null;
+    }
+    final ball = _createControlledBallForPlayer(selected, toward: target);
     _placeBallInFrontOfPlayer(selected, ball, toward: target);
     return ball;
   }
@@ -1065,32 +1134,19 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     }
     final targetItemId = route.targetItemId;
     if (targetItemId != null) {
-      return targetItemId == player.id &&
-          _ballRouteEndsNearPlayer(route, player);
+      return targetItemId == player.id;
     }
     return _ballRouteEndsNearPlayer(route, player);
   }
 
   bool _playerHasBallForFlow(_BoardItem player) {
-    return _currentPage.routes.any(
-          (route) =>
-              route.kind == _PathDrawMode.ball &&
-              route.points.length >= 2 &&
-              _ballRouteGivesPlayerPossession(route, player),
-        ) ||
-        _controlledBallForPlayer(player) != null;
-  }
-
-  bool _hasAnyBallInFlow() {
-    return _itemsOfType(_BoardItemType.ball).isNotEmpty ||
-        _currentPage.routes.any(
-          (route) =>
-              route.kind == _PathDrawMode.ball && route.points.length >= 2,
-        );
+    return _itemsOfType(_BoardItemType.ball).any(
+      (ball) => _currentBallOwner(ball)?.id == player.id,
+    );
   }
 
   bool _canUsePlayerFlowBallActions(_BoardItem player) {
-    return _playerHasBallForFlow(player) || !_hasAnyBallInFlow();
+    return _canStartBallActionForPlayer(player);
   }
 
   bool _canUsePlayerFlowMovementAction(
@@ -1118,12 +1174,19 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
 
   _BoardRoute? _currentBallRouteForPlayer(_BoardItem player) {
     final selectedRoute = _selectedRoute;
+    final selectedLinkedBall = selectedRoute?.linkedItemId == null
+        ? null
+        : _itemById(selectedRoute!.linkedItemId!);
     if (selectedRoute != null &&
+        selectedLinkedBall?.type == _BoardItemType.ball &&
+        _latestBallRouteForBall(selectedLinkedBall!)?.id == selectedRoute.id &&
         _ballRouteGivesPlayerPossession(selectedRoute, player)) {
       return selectedRoute;
     }
 
-    final candidates = _currentPage.routes
+    final candidates = _itemsOfType(_BoardItemType.ball)
+        .map(_latestBallRouteForBall)
+        .whereType<_BoardRoute>()
         .where((route) => _ballRouteGivesPlayerPossession(route, player))
         .toList(growable: false);
     if (candidates.isEmpty) return null;
@@ -1203,6 +1266,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       }
     }
 
+    if (!_canStartBallActionForPlayer(player)) {
+      _showBallPossessionRequiredSnackBar(player);
+      return null;
+    }
     final ball = _ballForTargetAction(player, target: target);
     if (ball == null) return null;
     return _PlayerBallPossession(
@@ -2804,6 +2871,24 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     return _normalizedRouteStageIndex(summaries.last.stageIndex + 1);
   }
 
+  int _defaultStageForNextGlobalAction() {
+    final selected = _selectedItem;
+    if (selected != null && selected.type == _BoardItemType.player) {
+      final selectedRouteStage = _stageAfterSelectedRoute();
+      if (selectedRouteStage != null) return selectedRouteStage;
+      final possessionStage = _stageAfterCurrentBallPossession(selected);
+      if (possessionStage != null) return possessionStage;
+    }
+    final selectedRouteStage = _stageAfterSelectedRoute();
+    if (selectedRouteStage != null) return selectedRouteStage;
+    return _nextGlobalStageForNewAction();
+  }
+
+  int _activeStageForNextAction() {
+    return _registeredStageForNextAction() ??
+        _defaultStageForNextGlobalAction();
+  }
+
   int? _stageForNextPlayerAction(_BoardItem player) {
     final registered = _registeredStageForNextAction();
     if (registered != null) return registered;
@@ -3059,13 +3144,16 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   void _beginTargetAction(_SketchTargetAction action) {
     final selected = _selectedItem;
     if (selected == null) return;
-    if (_requiresPlayerTargetAction(action) &&
-        _playerForTargetAction(selected) == null) {
+    final player = _playerForTargetAction(selected);
+    if (_requiresPlayerTargetAction(action) && player == null) {
       return;
     }
-    if (_requiresBallTargetAction(action) &&
-        _playerForTargetAction(selected) == null) {
-      return;
+    if (_requiresBallTargetAction(action)) {
+      if (player == null) return;
+      if (!_canStartBallActionForPlayer(player)) {
+        _showBallPossessionRequiredSnackBar(player);
+        return;
+      }
     }
     _stopRoutePlayback(restoreStart: false);
     unawaited(HapticFeedback.selectionClick());
@@ -5793,8 +5881,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     if (selected.type != _BoardItemType.player) {
       return buttons;
     }
-    buttons.addAll(_buildPlayerQuickActionButtons(sportId));
-    buttons.addAll(_buildTargetPlayerActionButtons(selected, sportId));
+    buttons.addAll(_buildPlayerQuickActionButtons(selected, sportId));
+    if (_canStartBallActionForPlayer(selected)) {
+      buttons.addAll(_buildTargetPlayerActionButtons(selected, sportId));
+    }
     if (includeRouteTool) {
       buttons.add(
         OutlinedButton.icon(
@@ -5807,149 +5897,74 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     return buttons;
   }
 
-  List<Widget> _buildPlayerQuickActionButtons(String sportId) {
-    switch (sportId) {
-      case SportCatalog.baseballId:
-        return <Widget>[
-          _targetActionButton(
-            action: _SketchTargetAction.move,
-            icon: Icons.directions_run,
+  List<_SketchTargetAction> _playerQuickActionsForSport(String sportId) {
+    return switch (sportId) {
+      SportCatalog.baseballId => <_SketchTargetAction>[
+          _SketchTargetAction.move,
+          _SketchTargetAction.coneTurn,
+          _SketchTargetAction.coneJump,
+          _SketchTargetAction.runBase,
+          _SketchTargetAction.fielding,
+          _SketchTargetAction.throwBall,
+        ],
+      SportCatalog.basketballId => <_SketchTargetAction>[
+          _SketchTargetAction.move,
+          _SketchTargetAction.coneTurn,
+          _SketchTargetAction.coneJump,
+          _SketchTargetAction.drive,
+          _SketchTargetAction.pass,
+          _SketchTargetAction.shot,
+          _SketchTargetAction.cut,
+          _SketchTargetAction.screen,
+        ],
+      SportCatalog.tennisId => <_SketchTargetAction>[
+          _SketchTargetAction.move,
+          _SketchTargetAction.coneTurn,
+          _SketchTargetAction.coneJump,
+          _SketchTargetAction.serve,
+          _SketchTargetAction.rally,
+          _SketchTargetAction.recover,
+        ],
+      _ => <_SketchTargetAction>[
+          _SketchTargetAction.move,
+          _SketchTargetAction.coneTurn,
+          _SketchTargetAction.coneJump,
+          _SketchTargetAction.hurdleJump,
+          _SketchTargetAction.dribble,
+          _SketchTargetAction.pass,
+          _SketchTargetAction.passAndMove,
+          _SketchTargetAction.shot,
+          _SketchTargetAction.cross,
+          _SketchTargetAction.receiveMove,
+          _SketchTargetAction.returnMove,
+          _SketchTargetAction.overlap,
+        ],
+    };
+  }
+
+  List<Widget> _buildPlayerQuickActionButtons(
+    _BoardItem player,
+    String sportId,
+  ) {
+    final actions = _playerQuickActionsForSport(sportId).where((action) {
+      if (_requiresBallTargetAction(action) &&
+          !_canStartBallActionForPlayer(player)) {
+        return false;
+      }
+      if (_requiresPlayerTargetAction(action) &&
+          !_canUsePlayerFlowMovementAction(player, action)) {
+        return false;
+      }
+      return true;
+    });
+    return actions
+        .map(
+          (action) => _targetActionButton(
+            action: action,
+            icon: _targetActionIcon(action),
           ),
-          _targetActionButton(
-            action: _SketchTargetAction.coneTurn,
-            icon: Icons.change_history,
-          ),
-          _targetActionButton(
-            action: _SketchTargetAction.coneJump,
-            icon: Icons.arrow_upward,
-          ),
-          _targetActionButton(
-            action: _SketchTargetAction.runBase,
-            icon: Icons.signpost_outlined,
-          ),
-          _targetActionButton(
-            action: _SketchTargetAction.fielding,
-            icon: Icons.front_hand_outlined,
-          ),
-          _targetActionButton(
-            action: _SketchTargetAction.throwBall,
-            icon: Icons.near_me_outlined,
-          ),
-        ];
-      case SportCatalog.basketballId:
-        return <Widget>[
-          _targetActionButton(
-            action: _SketchTargetAction.move,
-            icon: Icons.directions_run,
-          ),
-          _targetActionButton(
-            action: _SketchTargetAction.coneTurn,
-            icon: Icons.change_history,
-          ),
-          _targetActionButton(
-            action: _SketchTargetAction.coneJump,
-            icon: Icons.arrow_upward,
-          ),
-          _targetActionButton(
-            action: _SketchTargetAction.drive,
-            icon: Icons.sports_basketball_outlined,
-          ),
-          _targetActionButton(
-            action: _SketchTargetAction.pass,
-            icon: Icons.near_me_outlined,
-          ),
-          _targetActionButton(
-            action: _SketchTargetAction.shot,
-            icon: Icons.ads_click,
-          ),
-          _targetActionButton(
-            action: _SketchTargetAction.cut,
-            icon: Icons.call_split,
-          ),
-          _targetActionButton(
-            action: _SketchTargetAction.screen,
-            icon: Icons.block,
-          ),
-        ];
-      case SportCatalog.tennisId:
-        return <Widget>[
-          _targetActionButton(
-            action: _SketchTargetAction.move,
-            icon: Icons.directions_run,
-          ),
-          _targetActionButton(
-            action: _SketchTargetAction.coneTurn,
-            icon: Icons.change_history,
-          ),
-          _targetActionButton(
-            action: _SketchTargetAction.coneJump,
-            icon: Icons.arrow_upward,
-          ),
-          _targetActionButton(
-            action: _SketchTargetAction.serve,
-            icon: Icons.sports_tennis,
-          ),
-          _targetActionButton(
-            action: _SketchTargetAction.rally,
-            icon: Icons.sync_alt,
-          ),
-          _targetActionButton(
-            action: _SketchTargetAction.recover,
-            icon: Icons.keyboard_return,
-          ),
-        ];
-      default:
-        return <Widget>[
-          _targetActionButton(
-            action: _SketchTargetAction.move,
-            icon: Icons.directions_run,
-          ),
-          _targetActionButton(
-            action: _SketchTargetAction.coneTurn,
-            icon: Icons.change_history,
-          ),
-          _targetActionButton(
-            action: _SketchTargetAction.coneJump,
-            icon: Icons.arrow_upward,
-          ),
-          _targetActionButton(
-            action: _SketchTargetAction.hurdleJump,
-            icon: Icons.arrow_upward,
-          ),
-          _targetActionButton(
-            action: _SketchTargetAction.dribble,
-            icon: Icons.sports_soccer_outlined,
-          ),
-          _targetActionButton(
-            action: _SketchTargetAction.pass,
-            icon: Icons.near_me_outlined,
-          ),
-          _targetActionButton(
-            action: _SketchTargetAction.passAndMove,
-            icon: Icons.sync_alt,
-          ),
-          _targetActionButton(
-            action: _SketchTargetAction.shot,
-            icon: Icons.ads_click,
-          ),
-          _targetActionButton(
-            action: _SketchTargetAction.cross,
-            icon: Icons.north_east,
-          ),
-          _targetActionButton(
-            action: _SketchTargetAction.receiveMove,
-            icon: Icons.call_received,
-          ),
-          _targetActionButton(
-            action: _SketchTargetAction.returnMove,
-            icon: Icons.keyboard_return,
-          ),
-          _targetActionButton(
-            action: _SketchTargetAction.overlap,
-            icon: Icons.moving,
-          ),
-        ];
-    }
+        )
+        .toList(growable: false);
   }
 
   List<Widget> _buildTargetPlayerActionButtons(
@@ -6321,6 +6336,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     setState(() {
       _selectedItemId = route.linkedItemId ?? route.actorItemId;
       _selectedRouteId = route.id;
+      _registeredNextActionStageIndex = summary.stageIndex;
       _pathDrawMode = route.kind;
       _showSelectedColorPicker = false;
       _pathMode = false;
@@ -6368,75 +6384,169 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     );
   }
 
+  String _ballOwnershipDescription(_BoardItem ball) {
+    final ballLabel = _stageItemLabel(ball);
+    final owner = _currentBallOwner(ball);
+    if (owner != null) {
+      return _l10n.trainingSketchBallOwnedBy(
+        ballLabel,
+        _stageItemLabel(owner),
+      );
+    }
+    final latestRoute = _latestBallRouteForBall(ball);
+    final actorItem = latestRoute?.actorItemId == null
+        ? null
+        : _itemById(latestRoute!.actorItemId!);
+    final targetItem = latestRoute?.targetItemId == null
+        ? null
+        : _itemById(latestRoute!.targetItemId!);
+    if (actorItem != null &&
+        targetItem != null &&
+        actorItem.id != targetItem.id) {
+      return _l10n.trainingSketchBallMovingToTarget(
+        ballLabel,
+        _stageItemLabel(actorItem),
+        _stageItemLabel(targetItem),
+      );
+    }
+    return _l10n.trainingSketchBallUnowned(ballLabel);
+  }
+
+  Widget _buildBallOwnershipSummary({
+    required ThemeData theme,
+    required ColorScheme colors,
+  }) {
+    final balls = _itemsOfType(_BoardItemType.ball);
+    if (balls.isEmpty) return const SizedBox.shrink();
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        color: colors.secondaryContainer.withValues(alpha: 0.42),
+        border: Border.all(
+          color: colors.secondary.withValues(alpha: 0.24),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.sports_soccer_outlined,
+                size: 16,
+                color: colors.onSecondaryContainer,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                _l10n.trainingSketchBallOwnershipTitle,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colors.onSecondaryContainer,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          for (final ball in balls)
+            Padding(
+              padding: const EdgeInsets.only(top: 3),
+              child: Text(
+                _ballOwnershipDescription(ball),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colors.onSecondaryContainer,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildGlobalStageSummaryItem(
     _StageSummary summary, {
     required Color accentColor,
+    required bool isActive,
     required ThemeData theme,
   }) {
     final descriptions = summary.routes
         .map(_stageRouteActionDescription)
         .toList(growable: false);
+    final colors = theme.colorScheme;
     return InkWell(
       key: ValueKey('training-global-stage-${summary.stageIndex}'),
       onTap: () => _selectGlobalStageSummary(summary),
       borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            CircleAvatar(
-              radius: 12,
-              backgroundColor: accentColor,
-              child: Text(
-                '${summary.stageIndex}',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w900,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          color: isActive
+              ? colors.primaryContainer.withValues(alpha: 0.46)
+              : Colors.transparent,
+          border: Border.all(
+            color: isActive ? colors.primary : Colors.transparent,
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CircleAvatar(
+                radius: 12,
+                backgroundColor: accentColor,
+                child: Text(
+                  '${summary.stageIndex}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _l10n.trainingSketchGlobalStageChip(
-                      summary.stageIndex,
-                      summary.routes.length,
-                    ),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                  const SizedBox(height: 3),
-                  for (final description in descriptions)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 2),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Icon(
-                            Icons.subdirectory_arrow_right,
-                            size: 14,
-                            color: accentColor,
-                          ),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              description,
-                              style: theme.textTheme.bodySmall,
-                            ),
-                          ),
-                        ],
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _l10n.trainingSketchGlobalStageChip(
+                        summary.stageIndex,
+                        summary.routes.length,
+                      ),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w900,
                       ),
                     ),
-                ],
+                    const SizedBox(height: 3),
+                    for (final description in descriptions)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(
+                              Icons.subdirectory_arrow_right,
+                              size: 14,
+                              color: accentColor,
+                            ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                description,
+                                style: theme.textTheme.bodySmall,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -6447,6 +6557,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     final colors = theme.colorScheme;
     final summaries = _globalStageSummaries();
     final registeredStage = _registeredStageForNextAction();
+    final activeStage = _activeStageForNextAction();
     final sameStage = _sameStageForNextAction();
     final nextStage = _nextGlobalStageForNewAction();
     final accentColor = colors.primary;
@@ -6494,22 +6605,27 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                   _buildGlobalStageSummaryItem(
                     summary,
                     accentColor: accentColor,
+                    isActive: summary.stageIndex == activeStage,
                     theme: theme,
                   ),
               ],
             ),
-          if (registeredStage != null) ...[
+          if (_itemsOfType(_BoardItemType.ball).isNotEmpty) ...[
             const SizedBox(height: 8),
-            Text(
-              _l10n.trainingSketchRegisteredNextGlobalStageHint(
-                registeredStage,
-              ),
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.primary,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
+            _buildBallOwnershipSummary(theme: theme, colors: colors),
           ],
+          const SizedBox(height: 8),
+          Text(
+            _l10n.trainingSketchRegisteredNextGlobalStageHint(
+              activeStage,
+            ),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: registeredStage == null
+                  ? theme.colorScheme.onSurfaceVariant
+                  : theme.colorScheme.primary,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,

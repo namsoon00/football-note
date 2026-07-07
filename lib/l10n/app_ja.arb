@@ -6329,7 +6329,7 @@
       "ball": {}
     }
   },
-  "trainingSketchAddSameStageButton": "ステージ{stage}に追加",
+  "trainingSketchAddSameStageButton": "ステージ{stage}に同時追加",
   "@trainingSketchAddSameStageButton": {
     "placeholders": {
       "stage": {
@@ -6337,7 +6337,7 @@
       }
     }
   },
-  "trainingSketchAddNextStageButton": "ステージ{stage}を追加",
+  "trainingSketchAddNextStageButton": "新しいステージ{stage}を作成",
   "@trainingSketchAddNextStageButton": {
     "placeholders": {
       "stage": {
@@ -6345,12 +6345,40 @@
       }
     }
   },
-  "trainingSketchRegisteredNextGlobalStageHint": "次の動作は全体ステージ{stage}として作成されます。",
+  "trainingSketchRegisteredNextGlobalStageHint": "全体ステージ{stage}を編集中です。",
   "@trainingSketchRegisteredNextGlobalStageHint": {
     "placeholders": {
       "stage": {
         "type": "int"
       }
+    }
+  },
+  "trainingSketchBallPossessionRequiredSnack": "{player}は今ボールを持っていません。先にパスを受けるか、所有中のボールを選択してください。",
+  "@trainingSketchBallPossessionRequiredSnack": {
+    "placeholders": {
+      "player": {}
+    }
+  },
+  "trainingSketchBallOwnershipTitle": "ボール所有",
+  "trainingSketchBallOwnedBy": "{ball}: {player}が保持",
+  "@trainingSketchBallOwnedBy": {
+    "placeholders": {
+      "ball": {},
+      "player": {}
+    }
+  },
+  "trainingSketchBallMovingToTarget": "{ball}: {actor}から{target}へ移動中",
+  "@trainingSketchBallMovingToTarget": {
+    "placeholders": {
+      "ball": {},
+      "actor": {},
+      "target": {}
+    }
+  },
+  "trainingSketchBallUnowned": "{ball}: 所有者なし",
+  "@trainingSketchBallUnowned": {
+    "placeholders": {
+      "ball": {}
     }
   },
   "trainingSketchSelectedItemTitle": "選択した項目",

@@ -6329,7 +6329,7 @@
       "ball": {}
     }
   },
-  "trainingSketchAddSameStageButton": "{stage}단계에 추가",
+  "trainingSketchAddSameStageButton": "{stage}단계에 동시에 추가",
   "@trainingSketchAddSameStageButton": {
     "placeholders": {
       "stage": {
@@ -6337,7 +6337,7 @@
       }
     }
   },
-  "trainingSketchAddNextStageButton": "{stage}단계 추가",
+  "trainingSketchAddNextStageButton": "새 {stage}단계 만들기",
   "@trainingSketchAddNextStageButton": {
     "placeholders": {
       "stage": {
@@ -6345,12 +6345,40 @@
       }
     }
   },
-  "trainingSketchRegisteredNextGlobalStageHint": "다음 액션은 전체 {stage}단계로 만들어져요.",
+  "trainingSketchRegisteredNextGlobalStageHint": "현재 전체 {stage}단계 편집 중입니다.",
   "@trainingSketchRegisteredNextGlobalStageHint": {
     "placeholders": {
       "stage": {
         "type": "int"
       }
+    }
+  },
+  "trainingSketchBallPossessionRequiredSnack": "{player}는 지금 공을 가지고 있지 않아요. 먼저 패스를 받거나 소유 중인 공을 선택해 주세요.",
+  "@trainingSketchBallPossessionRequiredSnack": {
+    "placeholders": {
+      "player": {}
+    }
+  },
+  "trainingSketchBallOwnershipTitle": "공 소유 관계",
+  "trainingSketchBallOwnedBy": "{ball}: {player} 보유",
+  "@trainingSketchBallOwnedBy": {
+    "placeholders": {
+      "ball": {},
+      "player": {}
+    }
+  },
+  "trainingSketchBallMovingToTarget": "{ball}: {actor}에서 {target}로 이동 중",
+  "@trainingSketchBallMovingToTarget": {
+    "placeholders": {
+      "ball": {},
+      "actor": {},
+      "target": {}
+    }
+  },
+  "trainingSketchBallUnowned": "{ball}: 소유자 없음",
+  "@trainingSketchBallUnowned": {
+    "placeholders": {
+      "ball": {}
     }
   },
   "trainingSketchSelectedItemTitle": "선택 요소",
