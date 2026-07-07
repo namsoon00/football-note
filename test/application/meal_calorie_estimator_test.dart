@@ -56,4 +56,20 @@ void main() {
     expect(estimate.totalProtein, closeTo(45.3, 0.01));
     expect(estimate.totalFat, closeTo(6.2, 0.01));
   });
+
+  test('adds selected companion food nutrition', () {
+    final estimate = MealCalorieEstimator.estimate(
+      MealEntry(
+        date: DateTime(2026, 7, 6),
+        breakfastRiceBowls: 1,
+        breakfastDishId: 'chickenBreast',
+        breakfastFoodIds: const <String>['kimchi', 'milk', 'kimchi'],
+      ),
+    );
+
+    expect(estimate.breakfastKcal, 625);
+    expect(estimate.totalCarbs, closeTo(82, 0.01));
+    expect(estimate.totalProtein, closeTo(45, 0.01));
+    expect(estimate.totalFat, closeTo(10, 0.01));
+  });
 }

@@ -3710,8 +3710,8 @@
   "mealLogScreenTitle": "Meal log",
   "mealLogDateLabel": "Log date",
   "mealLogDatePickerHelp": "Select meal log date",
-  "mealMenuInputLabel": "Menu",
-  "mealMenuInputHint": "Enter {label} menu",
+  "mealMenuInputLabel": "Additional note",
+  "mealMenuInputHint": "Add foods not on the list or notes for {label}",
   "@mealMenuInputHint": {
     "placeholders": {
       "label": {
@@ -3735,6 +3735,62 @@
       }
     }
   },
+  "mealCompanionFoodsLabel": "Foods eaten together",
+  "mealCompanionFoodsEmpty": "No extra foods selected",
+  "mealCompanionFoodsChooseAction": "Choose foods",
+  "mealCompanionFoodsEditAction": "Edit",
+  "mealCompanionFoodsSheetTitle": "Choose foods eaten together",
+  "mealFoodSearchLabel": "Search foods",
+  "mealFoodSearchHint": "Kimchi, milk, banana, and more",
+  "mealFoodSelectionClear": "Clear all",
+  "mealFoodSelectionDone": "Done",
+  "mealFoodNutritionLine": "{kcal} kcal · carbs {carbs}g · protein {protein}g · fat {fat}g",
+  "@mealFoodNutritionLine": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      },
+      "carbs": {
+        "type": "int"
+      },
+      "protein": {
+        "type": "int"
+      },
+      "fat": {
+        "type": "int"
+      }
+    }
+  },
+  "mealFoodOptionSubtitle": "{category} · {nutrition}",
+  "@mealFoodOptionSubtitle": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      },
+      "nutrition": {
+        "type": "String"
+      }
+    }
+  },
+  "mealSelectedFoodsNutritionPreview": "Extra foods about {kcal} kcal · protein {protein}g",
+  "@mealSelectedFoodsNutritionPreview": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      },
+      "protein": {
+        "type": "int"
+      }
+    }
+  },
+  "mealFoodCategoryMain": "Main",
+  "mealFoodCategoryProtein": "Protein",
+  "mealFoodCategorySide": "Side",
+  "mealFoodCategorySoup": "Soup",
+  "mealFoodCategoryCarb": "Carbs",
+  "mealFoodCategoryFruit": "Fruit",
+  "mealFoodCategorySnack": "Snack",
+  "mealFoodCategoryDrink": "Drink",
   "mealDishChickenBreast": "Chicken breast",
   "mealDishEggs": "Eggs",
   "mealDishTofu": "Tofu",
@@ -3747,6 +3803,94 @@
   "mealDishChickenSalad": "Chicken salad",
   "mealDishRamen": "Ramen",
   "mealDishSandwich": "Sandwich",
+  "mealFoodBibimbap": "Bibimbap",
+  "mealFoodFriedRice": "Fried rice",
+  "mealFoodGimbap": "Gimbap",
+  "mealFoodCurryRice": "Curry rice",
+  "mealFoodPorkCutlet": "Pork cutlet",
+  "mealFoodJajangmyeon": "Jajangmyeon",
+  "mealFoodJjampong": "Jjamppong",
+  "mealFoodTteokbokki": "Tteokbokki",
+  "mealFoodPasta": "Pasta",
+  "mealFoodHamburger": "Hamburger",
+  "mealFoodPizza": "Pizza",
+  "mealFoodPorkBelly": "Pork belly",
+  "mealFoodJeyukBokkeum": "Spicy pork stir-fry",
+  "mealFoodBeefSteak": "Beef steak",
+  "mealFoodDakgalbi": "Dakgalbi",
+  "mealFoodOmurice": "Omurice",
+  "mealFoodUdon": "Udon",
+  "mealFoodColdNoodles": "Cold noodles",
+  "mealFoodSoybeanNoodles": "Soybean noodles",
+  "mealFoodDumplingSoup": "Dumpling soup",
+  "mealFoodSamgyetang": "Samgyetang",
+  "mealFoodKimchi": "Kimchi",
+  "mealFoodPickledRadish": "Pickled radish",
+  "mealFoodSeasonedBeanSprouts": "Seasoned bean sprouts",
+  "mealFoodSpinachNamul": "Spinach namul",
+  "mealFoodSeaweedSalad": "Seaweed salad",
+  "mealFoodLettuce": "Lettuce",
+  "mealFoodCucumber": "Cucumber",
+  "mealFoodTomato": "Tomato",
+  "mealFoodAvocado": "Avocado",
+  "mealFoodBroccoli": "Broccoli",
+  "mealFoodSweetPotato": "Sweet potato",
+  "mealFoodPotato": "Potato",
+  "mealFoodCorn": "Corn",
+  "mealFoodBoiledEgg": "Boiled egg",
+  "mealFoodFriedEgg": "Fried egg",
+  "mealFoodOmelet": "Omelet",
+  "mealFoodCheese": "Cheese",
+  "mealFoodTunaCan": "Canned tuna",
+  "mealFoodHam": "Ham",
+  "mealFoodSausage": "Sausage",
+  "mealFoodBacon": "Bacon",
+  "mealFoodMackerel": "Mackerel",
+  "mealFoodShrimp": "Shrimp",
+  "mealFoodSquid": "Squid",
+  "mealFoodBeans": "Beans",
+  "mealFoodChickpeas": "Chickpeas",
+  "mealFoodLentils": "Lentils",
+  "mealFoodSeaweedSoup": "Seaweed soup",
+  "mealFoodBeefSoup": "Beef soup",
+  "mealFoodEggSoup": "Egg soup",
+  "mealFoodTofuSoup": "Soft tofu soup",
+  "mealFoodVegetableSoup": "Vegetable soup",
+  "mealFoodMisoSoup": "Miso soup",
+  "mealFoodChickenSoup": "Chicken soup",
+  "mealFoodDumplings": "Dumplings",
+  "mealFoodFriedSnack": "Fried snack",
+  "mealFoodFrenchFries": "French fries",
+  "mealFoodRiceCake": "Rice cake",
+  "mealFoodBreadSlice": "Bread slice",
+  "mealFoodToast": "Toast",
+  "mealFoodOatmeal": "Oatmeal",
+  "mealFoodCereal": "Cereal",
+  "mealFoodGranola": "Granola",
+  "mealFoodMixedNuts": "Mixed nuts",
+  "mealFoodAlmonds": "Almonds",
+  "mealFoodIceCream": "Ice cream",
+  "mealFoodChocolate": "Chocolate",
+  "mealFoodCookie": "Cookie",
+  "mealFoodCake": "Cake",
+  "mealFoodYogurt": "Yogurt",
+  "mealFoodGreekYogurt": "Greek yogurt",
+  "mealFoodProteinShake": "Protein shake",
+  "mealFoodWheyProtein": "Whey protein",
+  "mealFoodMilk": "Milk",
+  "mealFoodSoyMilk": "Soy milk",
+  "mealFoodJuice": "Juice",
+  "mealFoodSportsDrink": "Sports drink",
+  "mealFoodCoffeeLatte": "Cafe latte",
+  "mealFoodAmericano": "Americano",
+  "mealFoodCola": "Cola",
+  "mealFoodWater": "Water",
+  "mealFoodBanana": "Banana",
+  "mealFoodApple": "Apple",
+  "mealFoodOrange": "Orange",
+  "mealFoodGrapes": "Grapes",
+  "mealFoodStrawberries": "Strawberries",
+  "mealFoodBlueberries": "Blueberries",
   "mealSummaryRiceOnly": "{label} {rice}",
   "@mealSummaryRiceOnly": {
     "placeholders": {
@@ -3831,7 +3975,7 @@
       }
     }
   },
-  "mealCalorieCoachEmpty": "Enter a menu to estimate rough calories from rice bowl count and food keywords.",
+  "mealCalorieCoachEmpty": "Record foods to estimate rough calories from rice bowls and selected items.",
   "mealCalorieCoachLow": "Calories look low today. On a training day, add a carb such as rice, sweet potato, or banana to the next meal.",
   "mealCalorieCoachSteady": "This looks reasonable for training energy. Next, spread protein and vegetables across each meal.",
   "mealCalorieCoachHigh": "Calories look high. If fried food, noodles, or snacks overlapped, make the next meal lighter with protein and vegetables.",

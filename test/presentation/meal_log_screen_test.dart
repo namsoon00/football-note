@@ -90,8 +90,11 @@ void main() {
       '오트밀, 바나나, 우유',
     );
     await tester.pump(const Duration(milliseconds: 400));
-    await tester.drag(find.byType(ListView), const Offset(0, -700));
-    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('약 455 kcal'),
+      500,
+      scrollable: find.byType(Scrollable).first,
+    );
 
     expect(find.text('약 455 kcal'), findsOneWidget);
 
@@ -123,6 +126,41 @@ void main() {
     expect(saved, isNotNull);
     expect(saved!.breakfastDishId, 'chickenBreast');
     expect(saved.breakfastDishPortion, 'large');
+    expect(saved.completedMeals, 1);
+    expect(saved.hasRecords, isTrue);
+  });
+
+  testWidgets('meal log screen auto saves selected companion foods', (
+    tester,
+  ) async {
+    final day = DateTime(2026, 3, 31);
+
+    await pumpMealLogScreen(tester, initialDate: day);
+
+    await tester.tap(find.byKey(const ValueKey('meal-breakfast-foods')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('meal-food-search')),
+      '바나나',
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('meal-food-option-banana')));
+    await tester.pump();
+    await tester.enterText(
+      find.byKey(const ValueKey('meal-food-search')),
+      '우유',
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('meal-food-option-milk')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('meal-food-sheet-done')));
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(find.text('추가 음식 약 235 kcal · 단백질 8g'), findsOneWidget);
+
+    final saved = mealLogService.entryForDay(day);
+    expect(saved, isNotNull);
+    expect(saved!.breakfastFoodIds, containsAll(<String>['banana', 'milk']));
     expect(saved.completedMeals, 1);
     expect(saved.hasRecords, isTrue);
   });

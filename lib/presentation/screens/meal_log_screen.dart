@@ -12,6 +12,7 @@ import '../../application/settings_service.dart';
 import '../../application/training_plan_reminder_service.dart';
 import '../../domain/entities/meal_entry.dart';
 import '../../domain/repositories/option_repository.dart';
+import '../meal_food_labels.dart';
 import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_feedback.dart';
@@ -53,6 +54,9 @@ class _MealLogScreenState extends State<MealLogScreen> {
   String _breakfastDishPortion = 'regular';
   String _lunchDishPortion = 'regular';
   String _dinnerDishPortion = 'regular';
+  List<String> _breakfastFoodIds = const <String>[];
+  List<String> _lunchFoodIds = const <String>[];
+  List<String> _dinnerFoodIds = const <String>[];
   MealEntry? _persistedEntry;
   Timer? _autoSaveTimer;
   bool _saveInProgress = false;
@@ -90,6 +94,9 @@ class _MealLogScreenState extends State<MealLogScreen> {
       breakfastDishPortion: _breakfastDishPortion,
       lunchDishPortion: _lunchDishPortion,
       dinnerDishPortion: _dinnerDishPortion,
+      breakfastFoodIds: _foodIdsForMeal(_breakfastFoodIds, _breakfastDishId),
+      lunchFoodIds: _foodIdsForMeal(_lunchFoodIds, _lunchDishId),
+      dinnerFoodIds: _foodIdsForMeal(_dinnerFoodIds, _dinnerDishId),
     );
     final status = MealStatus.fromMealEntry(currentEntry);
     final calorieEstimate = MealCalorieEstimator.estimate(currentEntry);
@@ -132,6 +139,7 @@ class _MealLogScreenState extends State<MealLogScreen> {
                 menuController: _breakfastMenuController,
                 selectedDishId: _breakfastDishId,
                 selectedDishPortion: _breakfastDishPortion,
+                selectedFoodIds: _breakfastFoodIds,
                 l10n: l10n,
                 enabled: !_isParentMode,
                 onChanged: (value) {
@@ -146,11 +154,19 @@ class _MealLogScreenState extends State<MealLogScreen> {
                   setState(() {
                     _breakfastDishId = value;
                     if (value.isEmpty) _breakfastDishPortion = 'regular';
+                    _breakfastFoodIds = _foodIdsForMeal(
+                      _breakfastFoodIds,
+                      value,
+                    );
                   });
                   _scheduleAutoSave();
                 },
                 onDishPortionChanged: (value) {
                   setState(() => _breakfastDishPortion = value);
+                  _scheduleAutoSave();
+                },
+                onFoodIdsChanged: (value) {
+                  setState(() => _breakfastFoodIds = value);
                   _scheduleAutoSave();
                 },
               ),
@@ -162,6 +178,7 @@ class _MealLogScreenState extends State<MealLogScreen> {
                 menuController: _lunchMenuController,
                 selectedDishId: _lunchDishId,
                 selectedDishPortion: _lunchDishPortion,
+                selectedFoodIds: _lunchFoodIds,
                 l10n: l10n,
                 enabled: !_isParentMode,
                 onChanged: (value) {
@@ -176,11 +193,16 @@ class _MealLogScreenState extends State<MealLogScreen> {
                   setState(() {
                     _lunchDishId = value;
                     if (value.isEmpty) _lunchDishPortion = 'regular';
+                    _lunchFoodIds = _foodIdsForMeal(_lunchFoodIds, value);
                   });
                   _scheduleAutoSave();
                 },
                 onDishPortionChanged: (value) {
                   setState(() => _lunchDishPortion = value);
+                  _scheduleAutoSave();
+                },
+                onFoodIdsChanged: (value) {
+                  setState(() => _lunchFoodIds = value);
                   _scheduleAutoSave();
                 },
               ),
@@ -192,6 +214,7 @@ class _MealLogScreenState extends State<MealLogScreen> {
                 menuController: _dinnerMenuController,
                 selectedDishId: _dinnerDishId,
                 selectedDishPortion: _dinnerDishPortion,
+                selectedFoodIds: _dinnerFoodIds,
                 l10n: l10n,
                 enabled: !_isParentMode,
                 onChanged: (value) {
@@ -206,11 +229,16 @@ class _MealLogScreenState extends State<MealLogScreen> {
                   setState(() {
                     _dinnerDishId = value;
                     if (value.isEmpty) _dinnerDishPortion = 'regular';
+                    _dinnerFoodIds = _foodIdsForMeal(_dinnerFoodIds, value);
                   });
                   _scheduleAutoSave();
                 },
                 onDishPortionChanged: (value) {
                   setState(() => _dinnerDishPortion = value);
+                  _scheduleAutoSave();
+                },
+                onFoodIdsChanged: (value) {
+                  setState(() => _dinnerFoodIds = value);
                   _scheduleAutoSave();
                 },
               ),
@@ -334,6 +362,9 @@ class _MealLogScreenState extends State<MealLogScreen> {
       breakfastDishPortion: _breakfastDishPortion,
       lunchDishPortion: _lunchDishPortion,
       dinnerDishPortion: _dinnerDishPortion,
+      breakfastFoodIds: _foodIdsForMeal(_breakfastFoodIds, _breakfastDishId),
+      lunchFoodIds: _foodIdsForMeal(_lunchFoodIds, _lunchDishId),
+      dinnerFoodIds: _foodIdsForMeal(_dinnerFoodIds, _dinnerDishId),
       createdAt: previousEntry?.createdAt ?? DateTime.now(),
     );
     try {
@@ -428,6 +459,18 @@ class _MealLogScreenState extends State<MealLogScreen> {
     _breakfastDishPortion = _normalizedPortion(entry?.breakfastDishPortion);
     _lunchDishPortion = _normalizedPortion(entry?.lunchDishPortion);
     _dinnerDishPortion = _normalizedPortion(entry?.dinnerDishPortion);
+    _breakfastFoodIds = _foodIdsForMeal(
+      _normalizedFoodIds(entry?.breakfastFoodIds),
+      _breakfastDishId,
+    );
+    _lunchFoodIds = _foodIdsForMeal(
+      _normalizedFoodIds(entry?.lunchFoodIds),
+      _lunchDishId,
+    );
+    _dinnerFoodIds = _foodIdsForMeal(
+      _normalizedFoodIds(entry?.dinnerFoodIds),
+      _dinnerDishId,
+    );
     _persistedEntry = entry;
   }
 
@@ -435,6 +478,27 @@ class _MealLogScreenState extends State<MealLogScreen> {
     return MealCalorieEstimator.portionIds.contains(portion)
         ? portion!
         : 'regular';
+  }
+
+  List<String> _normalizedFoodIds(List<String>? foodIds) {
+    if (foodIds == null || foodIds.isEmpty) return const <String>[];
+    final seen = <String>{};
+    final normalized = <String>[];
+    for (final id in foodIds) {
+      if (MealCalorieEstimator.foodById(id) == null || !seen.add(id)) {
+        continue;
+      }
+      normalized.add(id);
+    }
+    return List<String>.unmodifiable(normalized);
+  }
+
+  List<String> _foodIdsForMeal(List<String> foodIds, String dishId) {
+    final normalizedDishId = dishId.trim();
+    if (normalizedDishId.isEmpty) return foodIds;
+    return foodIds
+        .where((id) => id != normalizedDishId)
+        .toList(growable: false);
   }
 
   String _headline(AppLocalizations l10n, MealStatus status) {
@@ -500,12 +564,14 @@ class _MealSelectorCard extends StatelessWidget {
   final TextEditingController menuController;
   final String selectedDishId;
   final String selectedDishPortion;
+  final List<String> selectedFoodIds;
   final AppLocalizations l10n;
   final bool enabled;
   final ValueChanged<double> onChanged;
   final ValueChanged<String> onMenuChanged;
   final ValueChanged<String> onDishChanged;
   final ValueChanged<String> onDishPortionChanged;
+  final ValueChanged<List<String>> onFoodIdsChanged;
 
   const _MealSelectorCard({
     required this.mealKey,
@@ -514,12 +580,14 @@ class _MealSelectorCard extends StatelessWidget {
     required this.menuController,
     required this.selectedDishId,
     required this.selectedDishPortion,
+    required this.selectedFoodIds,
     required this.l10n,
     required this.enabled,
     required this.onChanged,
     required this.onMenuChanged,
     required this.onDishChanged,
     required this.onDishPortionChanged,
+    required this.onFoodIdsChanged,
   });
 
   @override
@@ -528,6 +596,9 @@ class _MealSelectorCard extends StatelessWidget {
     final accent = theme.colorScheme.primary;
     final normalizedDishId = _normalizedDishId(selectedDishId);
     final normalizedPortion = _normalizedPortion(selectedDishPortion);
+    final normalizedFoodIds = _normalizedFoodIds(
+      selectedFoodIds.where((id) => id != normalizedDishId),
+    );
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -619,7 +690,7 @@ class _MealSelectorCard extends StatelessWidget {
               for (final option in MealCalorieEstimator.mainDishOptions)
                 DropdownMenuItem<String>(
                   value: option.id,
-                  child: Text(_dishLabel(option.id)),
+                  child: Text(mealFoodLabel(l10n, option.id)),
                 ),
             ],
             onChanged: enabled ? (value) => onDishChanged(value ?? '') : null,
@@ -656,6 +727,15 @@ class _MealSelectorCard extends StatelessWidget {
               ),
             ),
           ],
+          const SizedBox(height: 12),
+          _CompanionFoodSelector(
+            mealKey: mealKey,
+            l10n: l10n,
+            selectedDishId: normalizedDishId,
+            selectedFoodIds: normalizedFoodIds,
+            enabled: enabled,
+            onChanged: onFoodIdsChanged,
+          ),
           const SizedBox(height: 12),
           TextField(
             key: ValueKey('meal-$mealKey-menu'),
@@ -716,6 +796,18 @@ class _MealSelectorCard extends StatelessWidget {
     return MealCalorieEstimator.portionIds.contains(value) ? value : 'regular';
   }
 
+  List<String> _normalizedFoodIds(Iterable<String> value) {
+    final seen = <String>{};
+    final ids = <String>[];
+    for (final id in value) {
+      if (MealCalorieEstimator.foodById(id) == null || !seen.add(id)) {
+        continue;
+      }
+      ids.add(id);
+    }
+    return List<String>.unmodifiable(ids);
+  }
+
   String _dishNutritionLabel(String dishId, String portionId) {
     final dish = MealCalorieEstimator.dishById(dishId);
     if (dish == null) return '';
@@ -727,23 +819,262 @@ class _MealSelectorCard extends StatelessWidget {
       nutrition.protein.round(),
     );
   }
+}
 
-  String _dishLabel(String dishId) {
-    return switch (dishId) {
-      'chickenBreast' => l10n.mealDishChickenBreast,
-      'eggs' => l10n.mealDishEggs,
-      'tofu' => l10n.mealDishTofu,
-      'grilledFish' => l10n.mealDishGrilledFish,
-      'salmon' => l10n.mealDishSalmon,
-      'bulgogi' => l10n.mealDishBulgogi,
-      'kimchiStew' => l10n.mealDishKimchiStew,
-      'doenjangStew' => l10n.mealDishDoenjangStew,
-      'friedChicken' => l10n.mealDishFriedChicken,
-      'chickenSalad' => l10n.mealDishChickenSalad,
-      'ramen' => l10n.mealDishRamen,
-      'sandwich' => l10n.mealDishSandwich,
-      _ => dishId,
-    };
+class _CompanionFoodSelector extends StatelessWidget {
+  final String mealKey;
+  final AppLocalizations l10n;
+  final String selectedDishId;
+  final List<String> selectedFoodIds;
+  final bool enabled;
+  final ValueChanged<List<String>> onChanged;
+
+  const _CompanionFoodSelector({
+    required this.mealKey,
+    required this.l10n,
+    required this.selectedDishId,
+    required this.selectedFoodIds,
+    required this.enabled,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final selectedIds = selectedFoodIds
+        .where((id) => MealCalorieEstimator.foodById(id) != null)
+        .toList(growable: false);
+    final nutrition = MealCalorieEstimator.nutritionForFoodIds(selectedIds);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                l10n.mealCompanionFoodsLabel,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+            OutlinedButton.icon(
+              key: ValueKey('meal-$mealKey-foods'),
+              onPressed: enabled ? () => _openFoodSheet(context) : null,
+              icon: const Icon(Icons.playlist_add_check_rounded),
+              label: Text(
+                selectedIds.isEmpty
+                    ? l10n.mealCompanionFoodsChooseAction
+                    : l10n.mealCompanionFoodsEditAction,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        if (selectedIds.isEmpty)
+          Text(
+            l10n.mealCompanionFoodsEmpty,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          )
+        else ...[
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final id in selectedIds)
+                InputChip(
+                  key: ValueKey('meal-$mealKey-food-chip-$id'),
+                  label: Text(mealFoodLabel(l10n, id)),
+                  onDeleted: enabled
+                      ? () => onChanged(
+                            selectedIds
+                                .where((selectedId) => selectedId != id)
+                                .toList(growable: false),
+                          )
+                      : null,
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            l10n.mealSelectedFoodsNutritionPreview(
+              nutrition.kcal,
+              nutrition.protein.round(),
+            ),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Future<void> _openFoodSheet(BuildContext context) async {
+    final next = await showModalBottomSheet<List<String>>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (context) {
+        return _CompanionFoodSheet(
+          selectedDishId: selectedDishId,
+          selectedFoodIds: selectedFoodIds,
+        );
+      },
+    );
+    if (next == null) return;
+    onChanged(next);
+  }
+}
+
+class _CompanionFoodSheet extends StatefulWidget {
+  final String selectedDishId;
+  final List<String> selectedFoodIds;
+
+  const _CompanionFoodSheet({
+    required this.selectedDishId,
+    required this.selectedFoodIds,
+  });
+
+  @override
+  State<_CompanionFoodSheet> createState() => _CompanionFoodSheetState();
+}
+
+class _CompanionFoodSheetState extends State<_CompanionFoodSheet> {
+  late final Set<String> _selectedFoodIds = widget.selectedFoodIds
+      .where((id) => MealCalorieEstimator.foodById(id) != null)
+      .toSet();
+  String _query = '';
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final options = _filteredOptions(l10n);
+    return FractionallySizedBox(
+      heightFactor: 0.88,
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.outlineVariant,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                l10n.mealCompanionFoodsSheetTitle,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                key: const ValueKey('meal-food-search'),
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.search_rounded),
+                  labelText: l10n.mealFoodSearchLabel,
+                  hintText: l10n.mealFoodSearchHint,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                onChanged: (value) => setState(() => _query = value),
+              ),
+              const SizedBox(height: 10),
+              Expanded(
+                child: ListView.separated(
+                  itemCount: options.length,
+                  separatorBuilder: (_, __) => const Divider(height: 1),
+                  itemBuilder: (context, index) {
+                    final option = options[index];
+                    final selected = _selectedFoodIds.contains(option.id);
+                    return CheckboxListTile(
+                      key: ValueKey('meal-food-option-${option.id}'),
+                      value: selected,
+                      title: Text(mealFoodLabel(l10n, option.id)),
+                      subtitle: Text(
+                        l10n.mealFoodOptionSubtitle(
+                          mealFoodCategoryLabel(l10n, option.category),
+                          l10n.mealFoodNutritionLine(
+                            option.kcal,
+                            option.carbs.round(),
+                            option.protein.round(),
+                            option.fat.round(),
+                          ),
+                        ),
+                      ),
+                      controlAffinity: ListTileControlAffinity.leading,
+                      onChanged: (_) => _toggle(option.id),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  TextButton(
+                    onPressed: _selectedFoodIds.isEmpty
+                        ? null
+                        : () => setState(_selectedFoodIds.clear),
+                    child: Text(l10n.mealFoodSelectionClear),
+                  ),
+                  const Spacer(),
+                  FilledButton(
+                    key: const ValueKey('meal-food-sheet-done'),
+                    onPressed: () {
+                      Navigator.of(context).pop(_orderedSelection());
+                    },
+                    child: Text(l10n.mealFoodSelectionDone),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  List<MealFoodOption> _filteredOptions(AppLocalizations l10n) {
+    final query = _query.trim().toLowerCase();
+    return MealCalorieEstimator.companionFoodOptions.where((option) {
+      if (option.id == widget.selectedDishId) return false;
+      if (query.isEmpty) return true;
+      final label = mealFoodLabel(l10n, option.id).toLowerCase();
+      return label.contains(query) || option.id.toLowerCase().contains(query);
+    }).toList(growable: false);
+  }
+
+  void _toggle(String id) {
+    setState(() {
+      if (!_selectedFoodIds.add(id)) {
+        _selectedFoodIds.remove(id);
+      }
+    });
+  }
+
+  List<String> _orderedSelection() {
+    return MealCalorieEstimator.companionFoodOptions
+        .where(
+          (option) =>
+              option.id != widget.selectedDishId &&
+              _selectedFoodIds.contains(option.id),
+        )
+        .map((option) => option.id)
+        .toList(growable: false);
   }
 }
 

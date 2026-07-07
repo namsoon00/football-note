@@ -6266,11 +6266,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mealLogDatePickerHelp => 'Select meal log date';
 
   @override
-  String get mealMenuInputLabel => 'Menu';
+  String get mealMenuInputLabel => 'Additional note';
 
   @override
   String mealMenuInputHint(String label) {
-    return 'Enter $label menu';
+    return 'Add foods not on the list or notes for $label';
   }
 
   @override
@@ -6292,6 +6292,72 @@ class AppLocalizationsEn extends AppLocalizations {
   String mealDishNutritionPreview(int kcal, int protein) {
     return 'About $kcal kcal · protein ${protein}g';
   }
+
+  @override
+  String get mealCompanionFoodsLabel => 'Foods eaten together';
+
+  @override
+  String get mealCompanionFoodsEmpty => 'No extra foods selected';
+
+  @override
+  String get mealCompanionFoodsChooseAction => 'Choose foods';
+
+  @override
+  String get mealCompanionFoodsEditAction => 'Edit';
+
+  @override
+  String get mealCompanionFoodsSheetTitle => 'Choose foods eaten together';
+
+  @override
+  String get mealFoodSearchLabel => 'Search foods';
+
+  @override
+  String get mealFoodSearchHint => 'Kimchi, milk, banana, and more';
+
+  @override
+  String get mealFoodSelectionClear => 'Clear all';
+
+  @override
+  String get mealFoodSelectionDone => 'Done';
+
+  @override
+  String mealFoodNutritionLine(int kcal, int carbs, int protein, int fat) {
+    return '$kcal kcal · carbs ${carbs}g · protein ${protein}g · fat ${fat}g';
+  }
+
+  @override
+  String mealFoodOptionSubtitle(String category, String nutrition) {
+    return '$category · $nutrition';
+  }
+
+  @override
+  String mealSelectedFoodsNutritionPreview(int kcal, int protein) {
+    return 'Extra foods about $kcal kcal · protein ${protein}g';
+  }
+
+  @override
+  String get mealFoodCategoryMain => 'Main';
+
+  @override
+  String get mealFoodCategoryProtein => 'Protein';
+
+  @override
+  String get mealFoodCategorySide => 'Side';
+
+  @override
+  String get mealFoodCategorySoup => 'Soup';
+
+  @override
+  String get mealFoodCategoryCarb => 'Carbs';
+
+  @override
+  String get mealFoodCategoryFruit => 'Fruit';
+
+  @override
+  String get mealFoodCategorySnack => 'Snack';
+
+  @override
+  String get mealFoodCategoryDrink => 'Drink';
 
   @override
   String get mealDishChickenBreast => 'Chicken breast';
@@ -6328,6 +6394,270 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mealDishSandwich => 'Sandwich';
+
+  @override
+  String get mealFoodBibimbap => 'Bibimbap';
+
+  @override
+  String get mealFoodFriedRice => 'Fried rice';
+
+  @override
+  String get mealFoodGimbap => 'Gimbap';
+
+  @override
+  String get mealFoodCurryRice => 'Curry rice';
+
+  @override
+  String get mealFoodPorkCutlet => 'Pork cutlet';
+
+  @override
+  String get mealFoodJajangmyeon => 'Jajangmyeon';
+
+  @override
+  String get mealFoodJjampong => 'Jjamppong';
+
+  @override
+  String get mealFoodTteokbokki => 'Tteokbokki';
+
+  @override
+  String get mealFoodPasta => 'Pasta';
+
+  @override
+  String get mealFoodHamburger => 'Hamburger';
+
+  @override
+  String get mealFoodPizza => 'Pizza';
+
+  @override
+  String get mealFoodPorkBelly => 'Pork belly';
+
+  @override
+  String get mealFoodJeyukBokkeum => 'Spicy pork stir-fry';
+
+  @override
+  String get mealFoodBeefSteak => 'Beef steak';
+
+  @override
+  String get mealFoodDakgalbi => 'Dakgalbi';
+
+  @override
+  String get mealFoodOmurice => 'Omurice';
+
+  @override
+  String get mealFoodUdon => 'Udon';
+
+  @override
+  String get mealFoodColdNoodles => 'Cold noodles';
+
+  @override
+  String get mealFoodSoybeanNoodles => 'Soybean noodles';
+
+  @override
+  String get mealFoodDumplingSoup => 'Dumpling soup';
+
+  @override
+  String get mealFoodSamgyetang => 'Samgyetang';
+
+  @override
+  String get mealFoodKimchi => 'Kimchi';
+
+  @override
+  String get mealFoodPickledRadish => 'Pickled radish';
+
+  @override
+  String get mealFoodSeasonedBeanSprouts => 'Seasoned bean sprouts';
+
+  @override
+  String get mealFoodSpinachNamul => 'Spinach namul';
+
+  @override
+  String get mealFoodSeaweedSalad => 'Seaweed salad';
+
+  @override
+  String get mealFoodLettuce => 'Lettuce';
+
+  @override
+  String get mealFoodCucumber => 'Cucumber';
+
+  @override
+  String get mealFoodTomato => 'Tomato';
+
+  @override
+  String get mealFoodAvocado => 'Avocado';
+
+  @override
+  String get mealFoodBroccoli => 'Broccoli';
+
+  @override
+  String get mealFoodSweetPotato => 'Sweet potato';
+
+  @override
+  String get mealFoodPotato => 'Potato';
+
+  @override
+  String get mealFoodCorn => 'Corn';
+
+  @override
+  String get mealFoodBoiledEgg => 'Boiled egg';
+
+  @override
+  String get mealFoodFriedEgg => 'Fried egg';
+
+  @override
+  String get mealFoodOmelet => 'Omelet';
+
+  @override
+  String get mealFoodCheese => 'Cheese';
+
+  @override
+  String get mealFoodTunaCan => 'Canned tuna';
+
+  @override
+  String get mealFoodHam => 'Ham';
+
+  @override
+  String get mealFoodSausage => 'Sausage';
+
+  @override
+  String get mealFoodBacon => 'Bacon';
+
+  @override
+  String get mealFoodMackerel => 'Mackerel';
+
+  @override
+  String get mealFoodShrimp => 'Shrimp';
+
+  @override
+  String get mealFoodSquid => 'Squid';
+
+  @override
+  String get mealFoodBeans => 'Beans';
+
+  @override
+  String get mealFoodChickpeas => 'Chickpeas';
+
+  @override
+  String get mealFoodLentils => 'Lentils';
+
+  @override
+  String get mealFoodSeaweedSoup => 'Seaweed soup';
+
+  @override
+  String get mealFoodBeefSoup => 'Beef soup';
+
+  @override
+  String get mealFoodEggSoup => 'Egg soup';
+
+  @override
+  String get mealFoodTofuSoup => 'Soft tofu soup';
+
+  @override
+  String get mealFoodVegetableSoup => 'Vegetable soup';
+
+  @override
+  String get mealFoodMisoSoup => 'Miso soup';
+
+  @override
+  String get mealFoodChickenSoup => 'Chicken soup';
+
+  @override
+  String get mealFoodDumplings => 'Dumplings';
+
+  @override
+  String get mealFoodFriedSnack => 'Fried snack';
+
+  @override
+  String get mealFoodFrenchFries => 'French fries';
+
+  @override
+  String get mealFoodRiceCake => 'Rice cake';
+
+  @override
+  String get mealFoodBreadSlice => 'Bread slice';
+
+  @override
+  String get mealFoodToast => 'Toast';
+
+  @override
+  String get mealFoodOatmeal => 'Oatmeal';
+
+  @override
+  String get mealFoodCereal => 'Cereal';
+
+  @override
+  String get mealFoodGranola => 'Granola';
+
+  @override
+  String get mealFoodMixedNuts => 'Mixed nuts';
+
+  @override
+  String get mealFoodAlmonds => 'Almonds';
+
+  @override
+  String get mealFoodIceCream => 'Ice cream';
+
+  @override
+  String get mealFoodChocolate => 'Chocolate';
+
+  @override
+  String get mealFoodCookie => 'Cookie';
+
+  @override
+  String get mealFoodCake => 'Cake';
+
+  @override
+  String get mealFoodYogurt => 'Yogurt';
+
+  @override
+  String get mealFoodGreekYogurt => 'Greek yogurt';
+
+  @override
+  String get mealFoodProteinShake => 'Protein shake';
+
+  @override
+  String get mealFoodWheyProtein => 'Whey protein';
+
+  @override
+  String get mealFoodMilk => 'Milk';
+
+  @override
+  String get mealFoodSoyMilk => 'Soy milk';
+
+  @override
+  String get mealFoodJuice => 'Juice';
+
+  @override
+  String get mealFoodSportsDrink => 'Sports drink';
+
+  @override
+  String get mealFoodCoffeeLatte => 'Cafe latte';
+
+  @override
+  String get mealFoodAmericano => 'Americano';
+
+  @override
+  String get mealFoodCola => 'Cola';
+
+  @override
+  String get mealFoodWater => 'Water';
+
+  @override
+  String get mealFoodBanana => 'Banana';
+
+  @override
+  String get mealFoodApple => 'Apple';
+
+  @override
+  String get mealFoodOrange => 'Orange';
+
+  @override
+  String get mealFoodGrapes => 'Grapes';
+
+  @override
+  String get mealFoodStrawberries => 'Strawberries';
+
+  @override
+  String get mealFoodBlueberries => 'Blueberries';
 
   @override
   String mealSummaryRiceOnly(String label, String rice) {
@@ -6387,7 +6717,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mealCalorieCoachEmpty =>
-      'Enter a menu to estimate rough calories from rice bowl count and food keywords.';
+      'Record foods to estimate rough calories from rice bowls and selected items.';
 
   @override
   String get mealCalorieCoachLow =>

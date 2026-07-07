@@ -3710,8 +3710,8 @@
   "mealLogScreenTitle": "食事記録",
   "mealLogDateLabel": "ログの日付",
   "mealLogDatePickerHelp": "食事記録の日付を選択してください",
-  "mealMenuInputLabel": "献立",
-  "mealMenuInputHint": "{label}の献立を入力",
+  "mealMenuInputLabel": "追加メモ",
+  "mealMenuInputHint": "{label}で一覧にない食べ物やメモを入力",
   "@mealMenuInputHint": {
     "placeholders": {
       "label": {
@@ -3735,6 +3735,62 @@
       }
     }
   },
+  "mealCompanionFoodsLabel": "一緒に食べたもの",
+  "mealCompanionFoodsEmpty": "追加の食べ物は未選択",
+  "mealCompanionFoodsChooseAction": "食べ物を選択",
+  "mealCompanionFoodsEditAction": "編集",
+  "mealCompanionFoodsSheetTitle": "一緒に食べたものを選択",
+  "mealFoodSearchLabel": "食べ物を検索",
+  "mealFoodSearchHint": "キムチ、牛乳、バナナなど",
+  "mealFoodSelectionClear": "すべて解除",
+  "mealFoodSelectionDone": "完了",
+  "mealFoodNutritionLine": "{kcal} kcal · 炭 {carbs}g · たんぱく質 {protein}g · 脂質 {fat}g",
+  "@mealFoodNutritionLine": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      },
+      "carbs": {
+        "type": "int"
+      },
+      "protein": {
+        "type": "int"
+      },
+      "fat": {
+        "type": "int"
+      }
+    }
+  },
+  "mealFoodOptionSubtitle": "{category} · {nutrition}",
+  "@mealFoodOptionSubtitle": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      },
+      "nutrition": {
+        "type": "String"
+      }
+    }
+  },
+  "mealSelectedFoodsNutritionPreview": "追加の食べ物 約{kcal} kcal · たんぱく質 {protein}g",
+  "@mealSelectedFoodsNutritionPreview": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      },
+      "protein": {
+        "type": "int"
+      }
+    }
+  },
+  "mealFoodCategoryMain": "メイン",
+  "mealFoodCategoryProtein": "たんぱく質",
+  "mealFoodCategorySide": "副菜",
+  "mealFoodCategorySoup": "汁物",
+  "mealFoodCategoryCarb": "炭水化物",
+  "mealFoodCategoryFruit": "果物",
+  "mealFoodCategorySnack": "間食",
+  "mealFoodCategoryDrink": "飲み物",
   "mealDishChickenBreast": "鶏むね肉",
   "mealDishEggs": "卵",
   "mealDishTofu": "豆腐",
@@ -3747,6 +3803,94 @@
   "mealDishChickenSalad": "チキンサラダ",
   "mealDishRamen": "ラーメン",
   "mealDishSandwich": "サンドイッチ",
+  "mealFoodBibimbap": "ビビンバ",
+  "mealFoodFriedRice": "チャーハン",
+  "mealFoodGimbap": "キンパ",
+  "mealFoodCurryRice": "カレーライス",
+  "mealFoodPorkCutlet": "とんかつ",
+  "mealFoodJajangmyeon": "ジャージャー麺",
+  "mealFoodJjampong": "チャンポン",
+  "mealFoodTteokbokki": "トッポッキ",
+  "mealFoodPasta": "パスタ",
+  "mealFoodHamburger": "ハンバーガー",
+  "mealFoodPizza": "ピザ",
+  "mealFoodPorkBelly": "豚バラ焼き",
+  "mealFoodJeyukBokkeum": "豚肉炒め",
+  "mealFoodBeefSteak": "ビーフステーキ",
+  "mealFoodDakgalbi": "タッカルビ",
+  "mealFoodOmurice": "オムライス",
+  "mealFoodUdon": "うどん",
+  "mealFoodColdNoodles": "冷麺",
+  "mealFoodSoybeanNoodles": "豆乳麺",
+  "mealFoodDumplingSoup": "餃子スープ",
+  "mealFoodSamgyetang": "サムゲタン",
+  "mealFoodKimchi": "キムチ",
+  "mealFoodPickledRadish": "たくあん",
+  "mealFoodSeasonedBeanSprouts": "もやしナムル",
+  "mealFoodSpinachNamul": "ほうれん草ナムル",
+  "mealFoodSeaweedSalad": "わかめ和え",
+  "mealFoodLettuce": "レタス",
+  "mealFoodCucumber": "きゅうり",
+  "mealFoodTomato": "トマト",
+  "mealFoodAvocado": "アボカド",
+  "mealFoodBroccoli": "ブロッコリー",
+  "mealFoodSweetPotato": "さつまいも",
+  "mealFoodPotato": "じゃがいも",
+  "mealFoodCorn": "とうもろこし",
+  "mealFoodBoiledEgg": "ゆで卵",
+  "mealFoodFriedEgg": "目玉焼き",
+  "mealFoodOmelet": "オムレツ",
+  "mealFoodCheese": "チーズ",
+  "mealFoodTunaCan": "ツナ缶",
+  "mealFoodHam": "ハム",
+  "mealFoodSausage": "ソーセージ",
+  "mealFoodBacon": "ベーコン",
+  "mealFoodMackerel": "サバ",
+  "mealFoodShrimp": "エビ",
+  "mealFoodSquid": "イカ",
+  "mealFoodBeans": "豆",
+  "mealFoodChickpeas": "ひよこ豆",
+  "mealFoodLentils": "レンズ豆",
+  "mealFoodSeaweedSoup": "わかめスープ",
+  "mealFoodBeefSoup": "牛肉スープ",
+  "mealFoodEggSoup": "卵スープ",
+  "mealFoodTofuSoup": "豆腐スープ",
+  "mealFoodVegetableSoup": "野菜スープ",
+  "mealFoodMisoSoup": "味噌汁",
+  "mealFoodChickenSoup": "チキンスープ",
+  "mealFoodDumplings": "餃子",
+  "mealFoodFriedSnack": "揚げ物",
+  "mealFoodFrenchFries": "フライドポテト",
+  "mealFoodRiceCake": "餅",
+  "mealFoodBreadSlice": "食パン",
+  "mealFoodToast": "トースト",
+  "mealFoodOatmeal": "オートミール",
+  "mealFoodCereal": "シリアル",
+  "mealFoodGranola": "グラノーラ",
+  "mealFoodMixedNuts": "ミックスナッツ",
+  "mealFoodAlmonds": "アーモンド",
+  "mealFoodIceCream": "アイスクリーム",
+  "mealFoodChocolate": "チョコレート",
+  "mealFoodCookie": "クッキー",
+  "mealFoodCake": "ケーキ",
+  "mealFoodYogurt": "ヨーグルト",
+  "mealFoodGreekYogurt": "ギリシャヨーグルト",
+  "mealFoodProteinShake": "プロテインシェイク",
+  "mealFoodWheyProtein": "ホエイプロテイン",
+  "mealFoodMilk": "牛乳",
+  "mealFoodSoyMilk": "豆乳",
+  "mealFoodJuice": "ジュース",
+  "mealFoodSportsDrink": "スポーツドリンク",
+  "mealFoodCoffeeLatte": "カフェラテ",
+  "mealFoodAmericano": "アメリカーノ",
+  "mealFoodCola": "コーラ",
+  "mealFoodWater": "水",
+  "mealFoodBanana": "バナナ",
+  "mealFoodApple": "りんご",
+  "mealFoodOrange": "オレンジ",
+  "mealFoodGrapes": "ぶどう",
+  "mealFoodStrawberries": "いちご",
+  "mealFoodBlueberries": "ブルーベリー",
   "mealSummaryRiceOnly": "{label} {rice}",
   "@mealSummaryRiceOnly": {
     "placeholders": {
@@ -3831,7 +3975,7 @@
       }
     }
   },
-  "mealCalorieCoachEmpty": "献立を入力すると、ご飯の量と食品キーワードから大まかなカロリーを計算します。",
+  "mealCalorieCoachEmpty": "食べ物を記録すると、ご飯の量と選択した項目から大まかなカロリーを計算します。",
   "mealCalorieCoachLow": "今日のカロリーは低めに見積もられています。トレーニング日なら、次の食事にご飯、さつまいも、バナナなどの炭水化物を足してみましょう。",
   "mealCalorieCoachSteady": "トレーニングのエネルギーとして無理のない記録です。次はたんぱく質と野菜を各食事に分けて入れてみましょう。",
   "mealCalorieCoachHigh": "カロリーは高めに見積もられています。揚げ物、麺、間食が重なった場合は、次の食事をたんぱく質と野菜中心に軽めに整えましょう。",

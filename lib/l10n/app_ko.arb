@@ -3710,8 +3710,8 @@
   "mealLogScreenTitle": "식사 기록",
   "mealLogDateLabel": "기록 날짜",
   "mealLogDatePickerHelp": "식사 기록 날짜 선택",
-  "mealMenuInputLabel": "식단",
-  "mealMenuInputHint": "{label} 식단을 입력하세요",
+  "mealMenuInputLabel": "추가 메모",
+  "mealMenuInputHint": "{label}에 목록에 없는 음식이나 느낌을 메모하세요",
   "@mealMenuInputHint": {
     "placeholders": {
       "label": {
@@ -3735,6 +3735,62 @@
       }
     }
   },
+  "mealCompanionFoodsLabel": "같이 먹은 음식",
+  "mealCompanionFoodsEmpty": "선택한 음식이 없어요",
+  "mealCompanionFoodsChooseAction": "음식 선택",
+  "mealCompanionFoodsEditAction": "수정",
+  "mealCompanionFoodsSheetTitle": "같이 먹은 음식 선택",
+  "mealFoodSearchLabel": "음식 검색",
+  "mealFoodSearchHint": "김치, 우유, 바나나 등",
+  "mealFoodSelectionClear": "전체 해제",
+  "mealFoodSelectionDone": "완료",
+  "mealFoodNutritionLine": "{kcal} kcal · 탄 {carbs}g · 단 {protein}g · 지 {fat}g",
+  "@mealFoodNutritionLine": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      },
+      "carbs": {
+        "type": "int"
+      },
+      "protein": {
+        "type": "int"
+      },
+      "fat": {
+        "type": "int"
+      }
+    }
+  },
+  "mealFoodOptionSubtitle": "{category} · {nutrition}",
+  "@mealFoodOptionSubtitle": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      },
+      "nutrition": {
+        "type": "String"
+      }
+    }
+  },
+  "mealSelectedFoodsNutritionPreview": "추가 음식 약 {kcal} kcal · 단백질 {protein}g",
+  "@mealSelectedFoodsNutritionPreview": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      },
+      "protein": {
+        "type": "int"
+      }
+    }
+  },
+  "mealFoodCategoryMain": "메인",
+  "mealFoodCategoryProtein": "단백질",
+  "mealFoodCategorySide": "반찬",
+  "mealFoodCategorySoup": "국·찌개",
+  "mealFoodCategoryCarb": "탄수화물",
+  "mealFoodCategoryFruit": "과일",
+  "mealFoodCategorySnack": "간식",
+  "mealFoodCategoryDrink": "음료",
   "mealDishChickenBreast": "닭가슴살",
   "mealDishEggs": "계란",
   "mealDishTofu": "두부",
@@ -3747,6 +3803,94 @@
   "mealDishChickenSalad": "닭가슴살 샐러드",
   "mealDishRamen": "라면",
   "mealDishSandwich": "샌드위치",
+  "mealFoodBibimbap": "비빔밥",
+  "mealFoodFriedRice": "볶음밥",
+  "mealFoodGimbap": "김밥",
+  "mealFoodCurryRice": "카레라이스",
+  "mealFoodPorkCutlet": "돈가스",
+  "mealFoodJajangmyeon": "짜장면",
+  "mealFoodJjampong": "짬뽕",
+  "mealFoodTteokbokki": "떡볶이",
+  "mealFoodPasta": "파스타",
+  "mealFoodHamburger": "햄버거",
+  "mealFoodPizza": "피자",
+  "mealFoodPorkBelly": "삼겹살",
+  "mealFoodJeyukBokkeum": "제육볶음",
+  "mealFoodBeefSteak": "스테이크",
+  "mealFoodDakgalbi": "닭갈비",
+  "mealFoodOmurice": "오므라이스",
+  "mealFoodUdon": "우동",
+  "mealFoodColdNoodles": "냉면",
+  "mealFoodSoybeanNoodles": "콩국수",
+  "mealFoodDumplingSoup": "만둣국",
+  "mealFoodSamgyetang": "삼계탕",
+  "mealFoodKimchi": "김치",
+  "mealFoodPickledRadish": "단무지",
+  "mealFoodSeasonedBeanSprouts": "콩나물무침",
+  "mealFoodSpinachNamul": "시금치나물",
+  "mealFoodSeaweedSalad": "미역무침",
+  "mealFoodLettuce": "상추",
+  "mealFoodCucumber": "오이",
+  "mealFoodTomato": "토마토",
+  "mealFoodAvocado": "아보카도",
+  "mealFoodBroccoli": "브로콜리",
+  "mealFoodSweetPotato": "고구마",
+  "mealFoodPotato": "감자",
+  "mealFoodCorn": "옥수수",
+  "mealFoodBoiledEgg": "삶은 계란",
+  "mealFoodFriedEgg": "계란후라이",
+  "mealFoodOmelet": "오믈렛",
+  "mealFoodCheese": "치즈",
+  "mealFoodTunaCan": "참치캔",
+  "mealFoodHam": "햄",
+  "mealFoodSausage": "소시지",
+  "mealFoodBacon": "베이컨",
+  "mealFoodMackerel": "고등어",
+  "mealFoodShrimp": "새우",
+  "mealFoodSquid": "오징어",
+  "mealFoodBeans": "콩",
+  "mealFoodChickpeas": "병아리콩",
+  "mealFoodLentils": "렌틸콩",
+  "mealFoodSeaweedSoup": "미역국",
+  "mealFoodBeefSoup": "소고기국",
+  "mealFoodEggSoup": "계란국",
+  "mealFoodTofuSoup": "순두부국",
+  "mealFoodVegetableSoup": "채소수프",
+  "mealFoodMisoSoup": "미소국",
+  "mealFoodChickenSoup": "닭고기수프",
+  "mealFoodDumplings": "만두",
+  "mealFoodFriedSnack": "튀김",
+  "mealFoodFrenchFries": "감자튀김",
+  "mealFoodRiceCake": "떡",
+  "mealFoodBreadSlice": "식빵",
+  "mealFoodToast": "토스트",
+  "mealFoodOatmeal": "오트밀",
+  "mealFoodCereal": "시리얼",
+  "mealFoodGranola": "그래놀라",
+  "mealFoodMixedNuts": "믹스넛",
+  "mealFoodAlmonds": "아몬드",
+  "mealFoodIceCream": "아이스크림",
+  "mealFoodChocolate": "초콜릿",
+  "mealFoodCookie": "쿠키",
+  "mealFoodCake": "케이크",
+  "mealFoodYogurt": "요거트",
+  "mealFoodGreekYogurt": "그릭요거트",
+  "mealFoodProteinShake": "프로틴 쉐이크",
+  "mealFoodWheyProtein": "웨이 프로틴",
+  "mealFoodMilk": "우유",
+  "mealFoodSoyMilk": "두유",
+  "mealFoodJuice": "주스",
+  "mealFoodSportsDrink": "스포츠음료",
+  "mealFoodCoffeeLatte": "카페라떼",
+  "mealFoodAmericano": "아메리카노",
+  "mealFoodCola": "콜라",
+  "mealFoodWater": "물",
+  "mealFoodBanana": "바나나",
+  "mealFoodApple": "사과",
+  "mealFoodOrange": "오렌지",
+  "mealFoodGrapes": "포도",
+  "mealFoodStrawberries": "딸기",
+  "mealFoodBlueberries": "블루베리",
   "mealSummaryRiceOnly": "{label} {rice}",
   "@mealSummaryRiceOnly": {
     "placeholders": {
@@ -3831,7 +3975,7 @@
       }
     }
   },
-  "mealCalorieCoachEmpty": "식단을 입력하면 밥공기 수와 음식 키워드로 대략적인 칼로리를 계산해요.",
+  "mealCalorieCoachEmpty": "음식을 기록하면 밥공기 수와 선택한 음식으로 대략적인 칼로리를 계산해요.",
   "mealCalorieCoachLow": "오늘 열량이 낮게 잡혀요. 훈련일이면 다음 끼니에 밥, 고구마, 바나나 같은 탄수화물을 보충해보세요.",
   "mealCalorieCoachSteady": "훈련 에너지로 무난한 기록이에요. 다음은 단백질과 채소를 끼니마다 나눠 넣어보세요.",
   "mealCalorieCoachHigh": "열량이 높게 잡혀요. 튀김, 면, 간식이 겹쳤다면 다음 끼니는 단백질과 채소 중심으로 가볍게 맞춰보세요.",
