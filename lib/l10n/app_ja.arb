@@ -6303,6 +6303,32 @@
       }
     }
   },
+  "trainingSketchStageActionUnknownItem": "要素",
+  "trainingSketchStageActionPlayerMove": "{actor}が移動",
+  "@trainingSketchStageActionPlayerMove": {
+    "placeholders": {
+      "actor": {}
+    }
+  },
+  "trainingSketchStageActionBallMove": "{actor}がボールを動かす",
+  "@trainingSketchStageActionBallMove": {
+    "placeholders": {
+      "actor": {}
+    }
+  },
+  "trainingSketchStageActionBallToTarget": "{actor}から{target}へボール移動",
+  "@trainingSketchStageActionBallToTarget": {
+    "placeholders": {
+      "actor": {},
+      "target": {}
+    }
+  },
+  "trainingSketchStageActionUnownedBallMove": "{ball}が移動",
+  "@trainingSketchStageActionUnownedBallMove": {
+    "placeholders": {
+      "ball": {}
+    }
+  },
   "trainingSketchAddSameStageButton": "ステージ{stage}に追加",
   "@trainingSketchAddSameStageButton": {
     "placeholders": {

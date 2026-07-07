@@ -19506,6 +19506,36 @@ abstract class AppLocalizations {
   /// **'Stage {stage} · {count} actions'**
   String trainingSketchGlobalStageChip(int stage, int count);
 
+  /// No description provided for @trainingSketchStageActionUnknownItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Item'**
+  String get trainingSketchStageActionUnknownItem;
+
+  /// No description provided for @trainingSketchStageActionPlayerMove.
+  ///
+  /// In en, this message translates to:
+  /// **'{actor} moves'**
+  String trainingSketchStageActionPlayerMove(Object actor);
+
+  /// No description provided for @trainingSketchStageActionBallMove.
+  ///
+  /// In en, this message translates to:
+  /// **'{actor} moves the ball'**
+  String trainingSketchStageActionBallMove(Object actor);
+
+  /// No description provided for @trainingSketchStageActionBallToTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'{actor} moves the ball to {target}'**
+  String trainingSketchStageActionBallToTarget(Object actor, Object target);
+
+  /// No description provided for @trainingSketchStageActionUnownedBallMove.
+  ///
+  /// In en, this message translates to:
+  /// **'{ball} moves'**
+  String trainingSketchStageActionUnownedBallMove(Object ball);
+
   /// No description provided for @trainingSketchAddSameStageButton.
   ///
   /// In en, this message translates to:

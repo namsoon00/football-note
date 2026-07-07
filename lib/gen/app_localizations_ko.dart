@@ -11079,6 +11079,29 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get trainingSketchStageActionUnknownItem => '요소';
+
+  @override
+  String trainingSketchStageActionPlayerMove(Object actor) {
+    return '$actor 이동';
+  }
+
+  @override
+  String trainingSketchStageActionBallMove(Object actor) {
+    return '$actor 공 이동';
+  }
+
+  @override
+  String trainingSketchStageActionBallToTarget(Object actor, Object target) {
+    return '$actor에서 $target로 공 이동';
+  }
+
+  @override
+  String trainingSketchStageActionUnownedBallMove(Object ball) {
+    return '$ball 이동';
+  }
+
+  @override
   String trainingSketchAddSameStageButton(int stage) {
     return '$stage단계에 추가';
   }

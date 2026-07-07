@@ -6303,6 +6303,32 @@
       }
     }
   },
+  "trainingSketchStageActionUnknownItem": "Item",
+  "trainingSketchStageActionPlayerMove": "{actor} moves",
+  "@trainingSketchStageActionPlayerMove": {
+    "placeholders": {
+      "actor": {}
+    }
+  },
+  "trainingSketchStageActionBallMove": "{actor} moves the ball",
+  "@trainingSketchStageActionBallMove": {
+    "placeholders": {
+      "actor": {}
+    }
+  },
+  "trainingSketchStageActionBallToTarget": "{actor} moves the ball to {target}",
+  "@trainingSketchStageActionBallToTarget": {
+    "placeholders": {
+      "actor": {},
+      "target": {}
+    }
+  },
+  "trainingSketchStageActionUnownedBallMove": "{ball} moves",
+  "@trainingSketchStageActionUnownedBallMove": {
+    "placeholders": {
+      "ball": {}
+    }
+  },
   "trainingSketchAddSameStageButton": "Add to stage {stage}",
   "@trainingSketchAddSameStageButton": {
     "placeholders": {

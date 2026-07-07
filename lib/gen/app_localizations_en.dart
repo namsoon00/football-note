@@ -11381,6 +11381,29 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get trainingSketchStageActionUnknownItem => 'Item';
+
+  @override
+  String trainingSketchStageActionPlayerMove(Object actor) {
+    return '$actor moves';
+  }
+
+  @override
+  String trainingSketchStageActionBallMove(Object actor) {
+    return '$actor moves the ball';
+  }
+
+  @override
+  String trainingSketchStageActionBallToTarget(Object actor, Object target) {
+    return '$actor moves the ball to $target';
+  }
+
+  @override
+  String trainingSketchStageActionUnownedBallMove(Object ball) {
+    return '$ball moves';
+  }
+
+  @override
   String trainingSketchAddSameStageButton(int stage) {
     return 'Add to stage $stage';
   }
