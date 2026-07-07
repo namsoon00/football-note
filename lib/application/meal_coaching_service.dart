@@ -84,13 +84,17 @@ class MealStatus {
 
   factory MealStatus.fromMealEntry(MealEntry entry) {
     return MealStatus(
-      breakfastDone:
-          entry.breakfastRiceBowls > 0 || entry.breakfastMenu.trim().isNotEmpty,
+      breakfastDone: entry.breakfastRiceBowls > 0 ||
+          entry.breakfastMenu.trim().isNotEmpty ||
+          entry.breakfastDishId.trim().isNotEmpty,
       breakfastRiceBowls: entry.breakfastRiceBowls,
-      lunchDone: entry.lunchRiceBowls > 0 || entry.lunchMenu.trim().isNotEmpty,
+      lunchDone: entry.lunchRiceBowls > 0 ||
+          entry.lunchMenu.trim().isNotEmpty ||
+          entry.lunchDishId.trim().isNotEmpty,
       lunchRiceBowls: entry.lunchRiceBowls,
-      dinnerDone:
-          entry.dinnerRiceBowls > 0 || entry.dinnerMenu.trim().isNotEmpty,
+      dinnerDone: entry.dinnerRiceBowls > 0 ||
+          entry.dinnerMenu.trim().isNotEmpty ||
+          entry.dinnerDishId.trim().isNotEmpty,
       dinnerRiceBowls: entry.dinnerRiceBowls,
     );
   }

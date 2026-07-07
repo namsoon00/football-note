@@ -1,47 +1,201 @@
 import '../domain/entities/meal_entry.dart';
 
 class MealCalorieEstimate {
-  final int breakfastKcal;
-  final int lunchKcal;
-  final int dinnerKcal;
+  final MealNutritionEstimate breakfast;
+  final MealNutritionEstimate lunch;
+  final MealNutritionEstimate dinner;
 
   const MealCalorieEstimate({
-    required this.breakfastKcal,
-    required this.lunchKcal,
-    required this.dinnerKcal,
+    required this.breakfast,
+    required this.lunch,
+    required this.dinner,
   });
 
+  int get breakfastKcal => breakfast.kcal;
+  int get lunchKcal => lunch.kcal;
+  int get dinnerKcal => dinner.kcal;
+
   int get totalKcal => breakfastKcal + lunchKcal + dinnerKcal;
+  double get totalCarbs => breakfast.carbs + lunch.carbs + dinner.carbs;
+  double get totalProtein => breakfast.protein + lunch.protein + dinner.protein;
+  double get totalFat => breakfast.fat + lunch.fat + dinner.fat;
 
   bool get hasEstimate => totalKcal > 0;
+  bool get hasNutrition => totalCarbs > 0 || totalProtein > 0 || totalFat > 0;
+}
+
+class MealNutritionEstimate {
+  final int kcal;
+  final double carbs;
+  final double protein;
+  final double fat;
+
+  const MealNutritionEstimate({
+    required this.kcal,
+    this.carbs = 0,
+    this.protein = 0,
+    this.fat = 0,
+  });
+
+  MealNutritionEstimate scaled(double factor) {
+    return MealNutritionEstimate(
+      kcal: (kcal * factor).round(),
+      carbs: carbs * factor,
+      protein: protein * factor,
+      fat: fat * factor,
+    );
+  }
+
+  MealNutritionEstimate plus(MealNutritionEstimate other) {
+    return MealNutritionEstimate(
+      kcal: kcal + other.kcal,
+      carbs: carbs + other.carbs,
+      protein: protein + other.protein,
+      fat: fat + other.fat,
+    );
+  }
+}
+
+class MealDishOption {
+  final String id;
+  final int kcal;
+  final double carbs;
+  final double protein;
+  final double fat;
+
+  const MealDishOption({
+    required this.id,
+    required this.kcal,
+    required this.carbs,
+    required this.protein,
+    required this.fat,
+  });
+
+  MealNutritionEstimate get nutrition {
+    return MealNutritionEstimate(
+      kcal: kcal,
+      carbs: carbs,
+      protein: protein,
+      fat: fat,
+    );
+  }
 }
 
 class MealCalorieEstimator {
   const MealCalorieEstimator._();
 
   static const int kcalPerRiceBowl = 300;
+  static const double carbsPerRiceBowl = 65;
+  static const double proteinPerRiceBowl = 5;
+  static const double fatPerRiceBowl = 1;
+
+  static const List<String> portionIds = <String>['small', 'regular', 'large'];
+
+  static const List<MealDishOption> mainDishOptions = <MealDishOption>[
+    MealDishOption(
+      id: 'chickenBreast',
+      kcal: 165,
+      carbs: 0,
+      protein: 31,
+      fat: 4,
+    ),
+    MealDishOption(id: 'eggs', kcal: 160, carbs: 1, protein: 13, fat: 11),
+    MealDishOption(id: 'tofu', kcal: 150, carbs: 4, protein: 15, fat: 9),
+    MealDishOption(
+      id: 'grilledFish',
+      kcal: 250,
+      carbs: 0,
+      protein: 28,
+      fat: 12,
+    ),
+    MealDishOption(id: 'salmon', kcal: 300, carbs: 0, protein: 27, fat: 18),
+    MealDishOption(id: 'bulgogi', kcal: 500, carbs: 20, protein: 30, fat: 25),
+    MealDishOption(
+        id: 'kimchiStew', kcal: 450, carbs: 20, protein: 25, fat: 22),
+    MealDishOption(
+      id: 'doenjangStew',
+      kcal: 350,
+      carbs: 18,
+      protein: 20,
+      fat: 14,
+    ),
+    MealDishOption(
+      id: 'friedChicken',
+      kcal: 600,
+      carbs: 25,
+      protein: 35,
+      fat: 38,
+    ),
+    MealDishOption(
+      id: 'chickenSalad',
+      kcal: 300,
+      carbs: 12,
+      protein: 28,
+      fat: 12,
+    ),
+    MealDishOption(id: 'ramen', kcal: 500, carbs: 80, protein: 12, fat: 16),
+    MealDishOption(id: 'sandwich', kcal: 450, carbs: 50, protein: 20, fat: 15),
+  ];
 
   static MealCalorieEstimate estimate(MealEntry entry) {
     return MealCalorieEstimate(
-      breakfastKcal: _estimateMeal(
+      breakfast: _estimateMeal(
         riceBowls: entry.breakfastRiceBowls,
         menu: entry.breakfastMenu,
+        dishId: entry.breakfastDishId,
+        dishPortion: entry.breakfastDishPortion,
       ),
-      lunchKcal: _estimateMeal(
+      lunch: _estimateMeal(
         riceBowls: entry.lunchRiceBowls,
         menu: entry.lunchMenu,
+        dishId: entry.lunchDishId,
+        dishPortion: entry.lunchDishPortion,
       ),
-      dinnerKcal: _estimateMeal(
+      dinner: _estimateMeal(
         riceBowls: entry.dinnerRiceBowls,
         menu: entry.dinnerMenu,
+        dishId: entry.dinnerDishId,
+        dishPortion: entry.dinnerDishPortion,
       ),
     );
   }
 
-  static int _estimateMeal({required double riceBowls, required String menu}) {
-    final riceKcal = (riceBowls * kcalPerRiceBowl).round();
+  static MealDishOption? dishById(String id) {
+    final normalizedId = id.trim();
+    if (normalizedId.isEmpty) return null;
+    for (final option in mainDishOptions) {
+      if (option.id == normalizedId) return option;
+    }
+    return null;
+  }
+
+  static double portionFactor(String portionId) {
+    return switch (portionId) {
+      'small' => 0.7,
+      'large' => 1.3,
+      _ => 1.0,
+    };
+  }
+
+  static MealNutritionEstimate _estimateMeal({
+    required double riceBowls,
+    required String menu,
+    required String dishId,
+    required String dishPortion,
+  }) {
+    final riceNutrition = MealNutritionEstimate(
+      kcal: (riceBowls * kcalPerRiceBowl).round(),
+      carbs: riceBowls * carbsPerRiceBowl,
+      protein: riceBowls * proteinPerRiceBowl,
+      fat: riceBowls * fatPerRiceBowl,
+    );
+    final dishNutrition =
+        dishById(dishId)?.nutrition.scaled(portionFactor(dishPortion)) ??
+            const MealNutritionEstimate(kcal: 0);
     final menuKcal = _estimateMenu(menu, skipRiceKeywords: riceBowls > 0);
-    return riceKcal + menuKcal;
+    return riceNutrition
+        .plus(dishNutrition)
+        .plus(MealNutritionEstimate(kcal: menuKcal));
   }
 
   static int _estimateMenu(String menu, {required bool skipRiceKeywords}) {

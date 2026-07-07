@@ -3232,18 +3232,36 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   String _mealSummary(MealEntry entry) {
     final values = <String>[
       _mealLine(
-          _l10n.mealBreakfast, entry.breakfastRiceBowls, entry.breakfastMenu),
-      _mealLine(_l10n.mealLunch, entry.lunchRiceBowls, entry.lunchMenu),
-      _mealLine(_l10n.mealDinner, entry.dinnerRiceBowls, entry.dinnerMenu),
+        _l10n.mealBreakfast,
+        entry.breakfastRiceBowls,
+        entry.breakfastMenu,
+        entry.breakfastDishId,
+      ),
+      _mealLine(
+        _l10n.mealLunch,
+        entry.lunchRiceBowls,
+        entry.lunchMenu,
+        entry.lunchDishId,
+      ),
+      _mealLine(
+        _l10n.mealDinner,
+        entry.dinnerRiceBowls,
+        entry.dinnerMenu,
+        entry.dinnerDishId,
+      ),
     ];
     return values.join(' · ');
   }
 
-  String _mealLine(String label, double bowls, String menu) {
+  String _mealLine(String label, double bowls, String menu, String dishId) {
     final trimmedMenu = menu.trim();
+    final dishLabel = _mealDishLabel(dishId);
+    final menuText = dishLabel.isEmpty || trimmedMenu.isEmpty
+        ? dishLabel + trimmedMenu
+        : _l10n.mealSummaryMenuPair(dishLabel, trimmedMenu);
     if (bowls <= 0) {
-      if (trimmedMenu.isNotEmpty) {
-        return _l10n.mealSummaryMenuOnly(label, trimmedMenu);
+      if (menuText.isNotEmpty) {
+        return _l10n.mealSummaryMenuOnly(label, menuText);
       }
       return _l10n.mealCompactSkipped(label);
     }
@@ -3251,8 +3269,26 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         ? bowls.toStringAsFixed(0)
         : bowls.toStringAsFixed(1);
     final rice = _l10n.mealRiceBowlsValue(count);
-    if (trimmedMenu.isEmpty) return _l10n.mealSummaryRiceOnly(label, rice);
-    return _l10n.mealSummaryRiceWithMenu(label, rice, trimmedMenu);
+    if (menuText.isEmpty) return _l10n.mealSummaryRiceOnly(label, rice);
+    return _l10n.mealSummaryRiceWithMenu(label, rice, menuText);
+  }
+
+  String _mealDishLabel(String dishId) {
+    return switch (dishId) {
+      'chickenBreast' => _l10n.mealDishChickenBreast,
+      'eggs' => _l10n.mealDishEggs,
+      'tofu' => _l10n.mealDishTofu,
+      'grilledFish' => _l10n.mealDishGrilledFish,
+      'salmon' => _l10n.mealDishSalmon,
+      'bulgogi' => _l10n.mealDishBulgogi,
+      'kimchiStew' => _l10n.mealDishKimchiStew,
+      'doenjangStew' => _l10n.mealDishDoenjangStew,
+      'friedChicken' => _l10n.mealDishFriedChicken,
+      'chickenSalad' => _l10n.mealDishChickenSalad,
+      'ramen' => _l10n.mealDishRamen,
+      'sandwich' => _l10n.mealDishSandwich,
+      _ => '',
+    };
   }
 
   List<_DiaryTodoSeed> _newsTodoSeedsForDay(DateTime day) {

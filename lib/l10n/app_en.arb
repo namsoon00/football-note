@@ -3719,6 +3719,34 @@
       }
     }
   },
+  "mealMainDishLabel": "Main dish",
+  "mealMainDishNone": "No main dish",
+  "mealDishPortionSmall": "Light",
+  "mealDishPortionRegular": "Regular",
+  "mealDishPortionLarge": "Large",
+  "mealDishNutritionPreview": "About {kcal} kcal · protein {protein}g",
+  "@mealDishNutritionPreview": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      },
+      "protein": {
+        "type": "int"
+      }
+    }
+  },
+  "mealDishChickenBreast": "Chicken breast",
+  "mealDishEggs": "Eggs",
+  "mealDishTofu": "Tofu",
+  "mealDishGrilledFish": "Grilled fish",
+  "mealDishSalmon": "Salmon",
+  "mealDishBulgogi": "Bulgogi",
+  "mealDishKimchiStew": "Kimchi stew",
+  "mealDishDoenjangStew": "Doenjang stew",
+  "mealDishFriedChicken": "Fried chicken",
+  "mealDishChickenSalad": "Chicken salad",
+  "mealDishRamen": "Ramen",
+  "mealDishSandwich": "Sandwich",
   "mealSummaryRiceOnly": "{label} {rice}",
   "@mealSummaryRiceOnly": {
     "placeholders": {
@@ -3737,6 +3765,17 @@
         "type": "String"
       },
       "menu": {
+        "type": "String"
+      }
+    }
+  },
+  "mealSummaryMenuPair": "{first}, {second}",
+  "@mealSummaryMenuPair": {
+    "placeholders": {
+      "first": {
+        "type": "String"
+      },
+      "second": {
         "type": "String"
       }
     }
@@ -3778,6 +3817,20 @@
     }
   },
   "mealCalorieEstimateEmpty": "Calorie estimate pending",
+  "mealNutritionEstimateValue": "Carbs {carbs}g · protein {protein}g · fat {fat}g",
+  "@mealNutritionEstimateValue": {
+    "placeholders": {
+      "carbs": {
+        "type": "int"
+      },
+      "protein": {
+        "type": "int"
+      },
+      "fat": {
+        "type": "int"
+      }
+    }
+  },
   "mealCalorieCoachEmpty": "Enter a menu to estimate rough calories from rice bowl count and food keywords.",
   "mealCalorieCoachLow": "Calories look low today. On a training day, add a carb such as rice, sweet potato, or banana to the next meal.",
   "mealCalorieCoachSteady": "This looks reasonable for training energy. Next, spread protein and vegetables across each meal.",

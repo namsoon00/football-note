@@ -6107,6 +6107,62 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get mealMainDishLabel => '메인요리';
+
+  @override
+  String get mealMainDishNone => '선택 안 함';
+
+  @override
+  String get mealDishPortionSmall => '적게';
+
+  @override
+  String get mealDishPortionRegular => '보통';
+
+  @override
+  String get mealDishPortionLarge => '많이';
+
+  @override
+  String mealDishNutritionPreview(int kcal, int protein) {
+    return '약 $kcal kcal · 단백질 ${protein}g';
+  }
+
+  @override
+  String get mealDishChickenBreast => '닭가슴살';
+
+  @override
+  String get mealDishEggs => '계란';
+
+  @override
+  String get mealDishTofu => '두부';
+
+  @override
+  String get mealDishGrilledFish => '생선구이';
+
+  @override
+  String get mealDishSalmon => '연어';
+
+  @override
+  String get mealDishBulgogi => '불고기';
+
+  @override
+  String get mealDishKimchiStew => '김치찌개';
+
+  @override
+  String get mealDishDoenjangStew => '된장찌개';
+
+  @override
+  String get mealDishFriedChicken => '치킨';
+
+  @override
+  String get mealDishChickenSalad => '닭가슴살 샐러드';
+
+  @override
+  String get mealDishRamen => '라면';
+
+  @override
+  String get mealDishSandwich => '샌드위치';
+
+  @override
   String mealSummaryRiceOnly(String label, String rice) {
     return '$label $rice';
   }
@@ -6114,6 +6170,11 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String mealSummaryMenuOnly(String label, String menu) {
     return '$label $menu';
+  }
+
+  @override
+  String mealSummaryMenuPair(String first, String second) {
+    return '$first, $second';
   }
 
   @override
@@ -6151,6 +6212,11 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get mealCalorieEstimateEmpty => '칼로리 계산 대기';
+
+  @override
+  String mealNutritionEstimateValue(int carbs, int protein, int fat) {
+    return '탄 ${carbs}g · 단 ${protein}g · 지 ${fat}g';
+  }
 
   @override
   String get mealCalorieCoachEmpty => '식단을 입력하면 밥공기 수와 음식 키워드로 대략적인 칼로리를 계산해요.';

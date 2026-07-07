@@ -10961,6 +10961,114 @@ abstract class AppLocalizations {
   /// **'Enter {label} menu'**
   String mealMenuInputHint(String label);
 
+  /// No description provided for @mealMainDishLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Main dish'**
+  String get mealMainDishLabel;
+
+  /// No description provided for @mealMainDishNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No main dish'**
+  String get mealMainDishNone;
+
+  /// No description provided for @mealDishPortionSmall.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get mealDishPortionSmall;
+
+  /// No description provided for @mealDishPortionRegular.
+  ///
+  /// In en, this message translates to:
+  /// **'Regular'**
+  String get mealDishPortionRegular;
+
+  /// No description provided for @mealDishPortionLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Large'**
+  String get mealDishPortionLarge;
+
+  /// No description provided for @mealDishNutritionPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'About {kcal} kcal · protein {protein}g'**
+  String mealDishNutritionPreview(int kcal, int protein);
+
+  /// No description provided for @mealDishChickenBreast.
+  ///
+  /// In en, this message translates to:
+  /// **'Chicken breast'**
+  String get mealDishChickenBreast;
+
+  /// No description provided for @mealDishEggs.
+  ///
+  /// In en, this message translates to:
+  /// **'Eggs'**
+  String get mealDishEggs;
+
+  /// No description provided for @mealDishTofu.
+  ///
+  /// In en, this message translates to:
+  /// **'Tofu'**
+  String get mealDishTofu;
+
+  /// No description provided for @mealDishGrilledFish.
+  ///
+  /// In en, this message translates to:
+  /// **'Grilled fish'**
+  String get mealDishGrilledFish;
+
+  /// No description provided for @mealDishSalmon.
+  ///
+  /// In en, this message translates to:
+  /// **'Salmon'**
+  String get mealDishSalmon;
+
+  /// No description provided for @mealDishBulgogi.
+  ///
+  /// In en, this message translates to:
+  /// **'Bulgogi'**
+  String get mealDishBulgogi;
+
+  /// No description provided for @mealDishKimchiStew.
+  ///
+  /// In en, this message translates to:
+  /// **'Kimchi stew'**
+  String get mealDishKimchiStew;
+
+  /// No description provided for @mealDishDoenjangStew.
+  ///
+  /// In en, this message translates to:
+  /// **'Doenjang stew'**
+  String get mealDishDoenjangStew;
+
+  /// No description provided for @mealDishFriedChicken.
+  ///
+  /// In en, this message translates to:
+  /// **'Fried chicken'**
+  String get mealDishFriedChicken;
+
+  /// No description provided for @mealDishChickenSalad.
+  ///
+  /// In en, this message translates to:
+  /// **'Chicken salad'**
+  String get mealDishChickenSalad;
+
+  /// No description provided for @mealDishRamen.
+  ///
+  /// In en, this message translates to:
+  /// **'Ramen'**
+  String get mealDishRamen;
+
+  /// No description provided for @mealDishSandwich.
+  ///
+  /// In en, this message translates to:
+  /// **'Sandwich'**
+  String get mealDishSandwich;
+
   /// No description provided for @mealSummaryRiceOnly.
   ///
   /// In en, this message translates to:
@@ -10972,6 +11080,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{label} {menu}'**
   String mealSummaryMenuOnly(String label, String menu);
+
+  /// No description provided for @mealSummaryMenuPair.
+  ///
+  /// In en, this message translates to:
+  /// **'{first}, {second}'**
+  String mealSummaryMenuPair(String first, String second);
 
   /// No description provided for @mealSummaryRiceWithMenu.
   ///
@@ -11032,6 +11146,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Calorie estimate pending'**
   String get mealCalorieEstimateEmpty;
+
+  /// No description provided for @mealNutritionEstimateValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Carbs {carbs}g · protein {protein}g · fat {fat}g'**
+  String mealNutritionEstimateValue(int carbs, int protein, int fat);
 
   /// No description provided for @mealCalorieCoachEmpty.
   ///

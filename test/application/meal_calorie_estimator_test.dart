@@ -40,4 +40,20 @@ void main() {
 
     expect(estimate.breakfastKcal, 380);
   });
+
+  test('adds selected main dish nutrition with portion multiplier', () {
+    final estimate = MealCalorieEstimator.estimate(
+      MealEntry(
+        date: DateTime(2026, 7, 6),
+        breakfastRiceBowls: 1,
+        breakfastDishId: 'chickenBreast',
+        breakfastDishPortion: 'large',
+      ),
+    );
+
+    expect(estimate.breakfastKcal, 515);
+    expect(estimate.totalCarbs, closeTo(65, 0.01));
+    expect(estimate.totalProtein, closeTo(45.3, 0.01));
+    expect(estimate.totalFat, closeTo(6.2, 0.01));
+  });
 }
