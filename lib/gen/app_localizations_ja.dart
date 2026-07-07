@@ -11058,6 +11058,29 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get trainingSketchStageActionUnknownItem => '要素';
+
+  @override
+  String trainingSketchStageActionPlayerMove(Object actor) {
+    return '$actorが移動';
+  }
+
+  @override
+  String trainingSketchStageActionBallMove(Object actor) {
+    return '$actorがボールを動かす';
+  }
+
+  @override
+  String trainingSketchStageActionBallToTarget(Object actor, Object target) {
+    return '$actorから$targetへボール移動';
+  }
+
+  @override
+  String trainingSketchStageActionUnownedBallMove(Object ball) {
+    return '$ballが移動';
+  }
+
+  @override
   String trainingSketchAddSameStageButton(int stage) {
     return 'ステージ$stageに追加';
   }

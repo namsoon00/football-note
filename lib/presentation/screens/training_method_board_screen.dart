@@ -6334,6 +6334,114 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     });
   }
 
+  String _stageItemLabel(_BoardItem? item) {
+    if (item == null) return _l10n.trainingSketchStageActionUnknownItem;
+    return '${_boardToolLabel(item.type)} ${_itemIndexOfType(item)}';
+  }
+
+  String _stageRouteActionDescription(_BoardRoute route) {
+    final linkedItem = _linkedItemForRoute(route);
+    final actorItem =
+        route.actorItemId == null ? null : _itemById(route.actorItemId!);
+    final targetItem =
+        route.targetItemId == null ? null : _itemById(route.targetItemId!);
+    if (route.kind == _PathDrawMode.player) {
+      return _l10n.trainingSketchStageActionPlayerMove(
+        _stageItemLabel(linkedItem ?? actorItem),
+      );
+    }
+    if (actorItem != null &&
+        targetItem != null &&
+        actorItem.id != targetItem.id) {
+      return _l10n.trainingSketchStageActionBallToTarget(
+        _stageItemLabel(actorItem),
+        _stageItemLabel(targetItem),
+      );
+    }
+    if (actorItem != null) {
+      return _l10n.trainingSketchStageActionBallMove(
+        _stageItemLabel(actorItem),
+      );
+    }
+    return _l10n.trainingSketchStageActionUnownedBallMove(
+      _stageItemLabel(linkedItem),
+    );
+  }
+
+  Widget _buildGlobalStageSummaryItem(
+    _StageSummary summary, {
+    required Color accentColor,
+    required ThemeData theme,
+  }) {
+    final descriptions = summary.routes
+        .map(_stageRouteActionDescription)
+        .toList(growable: false);
+    return InkWell(
+      key: ValueKey('training-global-stage-${summary.stageIndex}'),
+      onTap: () => _selectGlobalStageSummary(summary),
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CircleAvatar(
+              radius: 12,
+              backgroundColor: accentColor,
+              child: Text(
+                '${summary.stageIndex}',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _l10n.trainingSketchGlobalStageChip(
+                      summary.stageIndex,
+                      summary.routes.length,
+                    ),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  for (final description in descriptions)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            Icons.subdirectory_arrow_right,
+                            size: 14,
+                            color: accentColor,
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              description,
+                              style: theme.textTheme.bodySmall,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildGlobalStagePlanner() {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
@@ -6379,34 +6487,14 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
               style: theme.textTheme.bodySmall,
             )
           else
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 for (final summary in summaries)
-                  ActionChip(
-                    key: ValueKey(
-                      'training-global-stage-${summary.stageIndex}',
-                    ),
-                    avatar: CircleAvatar(
-                      radius: 10,
-                      backgroundColor: accentColor,
-                      child: Text(
-                        '${summary.stageIndex}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                    ),
-                    label: Text(
-                      _l10n.trainingSketchGlobalStageChip(
-                        summary.stageIndex,
-                        summary.routes.length,
-                      ),
-                    ),
-                    onPressed: () => _selectGlobalStageSummary(summary),
+                  _buildGlobalStageSummaryItem(
+                    summary,
+                    accentColor: accentColor,
+                    theme: theme,
                   ),
               ],
             ),

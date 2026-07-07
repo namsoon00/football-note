@@ -3978,6 +3978,12 @@ void main() {
                     x: 0.24,
                     y: 0.58,
                   ),
+                  TrainingMethodItem(
+                    id: 'player-2',
+                    type: 'player',
+                    x: 0.48,
+                    y: 0.42,
+                  ),
                 ],
               ),
             ],
@@ -3990,16 +3996,18 @@ void main() {
 
     final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
     await tester.tap(
-      find.descendant(of: boardFinder, matching: find.byIcon(Icons.person)),
+      find
+          .descendant(of: boardFinder, matching: find.byIcon(Icons.person))
+          .first,
     );
     await tester.pumpAndSettle();
 
     expect(find.text('전체 단계'), findsWidgets);
     await _tapVisibleOutlinedButton(tester, '1단계에 추가');
-    await _tapVisibleOutlinedButton(tester, '패스');
-    await _tapBoardRelative(tester, boardFinder, const Offset(0.48, 0.42));
+    await _tapVisibleOutlinedButton(tester, '사람 2에게 패스');
 
     expect(find.text('1단계 · 액션 1개'), findsOneWidget);
+    expect(find.text('사람 1에서 사람 2로 공 이동'), findsOneWidget);
     final nextStageButton = find.widgetWithText(FilledButton, '2단계 추가');
     await tester.ensureVisible(nextStageButton);
     await tester.pumpAndSettle();
@@ -4008,16 +4016,19 @@ void main() {
     await _tapVisibleOutlinedButton(tester, '슈팅');
     await _tapBoardRelative(tester, boardFinder, const Offset(0.82, 0.34));
 
+    expect(find.text('2단계 · 액션 1개'), findsOneWidget);
+    expect(find.text('사람 2 공 이동'), findsOneWidget);
+
     await tester.tap(find.widgetWithText(TextButton, '저장'));
     await tester.pumpAndSettle();
 
     final saved = TrainingMethodLayout.decode(savedLayout ?? '');
-    final playerStages = saved.pages.single.routes
-        .where((route) => route.actorItemId == 'player-1')
+    final actionStages = saved.pages.single.routes
+        .where((route) => route.actorItemId != null)
         .map((route) => route.stageIndex)
         .toList(growable: false);
 
-    expect(playerStages, containsAll(<int>[1, 2]));
+    expect(actionStages, containsAll(<int>[1, 2]));
   });
 
   testWidgets('sketch PDF export action is visible in the top bar', (

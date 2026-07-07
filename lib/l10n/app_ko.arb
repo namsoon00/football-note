@@ -6303,6 +6303,32 @@
       }
     }
   },
+  "trainingSketchStageActionUnknownItem": "요소",
+  "trainingSketchStageActionPlayerMove": "{actor} 이동",
+  "@trainingSketchStageActionPlayerMove": {
+    "placeholders": {
+      "actor": {}
+    }
+  },
+  "trainingSketchStageActionBallMove": "{actor} 공 이동",
+  "@trainingSketchStageActionBallMove": {
+    "placeholders": {
+      "actor": {}
+    }
+  },
+  "trainingSketchStageActionBallToTarget": "{actor}에서 {target}로 공 이동",
+  "@trainingSketchStageActionBallToTarget": {
+    "placeholders": {
+      "actor": {},
+      "target": {}
+    }
+  },
+  "trainingSketchStageActionUnownedBallMove": "{ball} 이동",
+  "@trainingSketchStageActionUnownedBallMove": {
+    "placeholders": {
+      "ball": {}
+    }
+  },
   "trainingSketchAddSameStageButton": "{stage}단계에 추가",
   "@trainingSketchAddSameStageButton": {
     "placeholders": {
