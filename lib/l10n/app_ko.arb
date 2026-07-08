@@ -6081,14 +6081,14 @@
   "matchNoteOptionalLabel": "메모(선택)",
   "matchShotsOnTargetLabel": "유효 슈팅",
   "matchBallsWonLabel": "공을 뺏은 횟수",
-  "matchHubTopActionTooltip": "팀 관리",
-  "matchHubTitle": "팀 관리",
-  "matchHubSubtitle": "팀, 선수, 전술을 관리하고 친선, 리그, 토너먼트 기록으로 이어가세요.",
+  "matchHubTopActionTooltip": "팀 운영",
+  "matchHubTitle": "팀 운영",
+  "matchHubSubtitle": "우리 팀의 일정, 선수단, 라인업을 정리하고 친선, 리그, 토너먼트 기록으로 이어가세요.",
   "matchHubOverviewTitle": "팀 운영 보드",
   "matchHubRecentFormLabel": "최근 폼",
   "matchHubRecordButton": "시합 기록",
-  "matchEntryManagedInHubTitle": "시합 기록은 팀 관리 화면에서 관리합니다.",
-  "matchEntryManagedInHubBody": "훈련 노트에서는 시합 정보를 보여주지 않습니다. 시합 확인과 수정은 상단 팀 관리 화면에서 진행해 주세요.",
+  "matchEntryManagedInHubTitle": "시합 기록은 팀 운영 화면에서 관리합니다.",
+  "matchEntryManagedInHubBody": "훈련 노트에서는 시합 정보를 보여주지 않습니다. 시합 확인과 수정은 상단 팀 운영 화면에서 진행해 주세요.",
   "matchHubRecordHelper": "오늘 경기 결과를 바로 입력",
   "matchRecordsOpenButton": "시합 기록 보기",
   "matchRecordsOpenHelper": "지난 경기 결과를 따로 확인",
@@ -6107,7 +6107,7 @@
   "matchHubRecentMatchesTitle": "최근 시합",
   "matchHubEmptyTitle": "아직 시합 기록이 없어요.",
   "matchHubEmptySubtitle": "친선 경기부터 빠르게 남기면 승률과 최근 폼을 계산할 수 있어요.",
-  "matchHubOpeningFeedback": "팀 관리 화면으로 이동합니다.",
+  "matchHubOpeningFeedback": "팀 운영 화면으로 이동합니다.",
   "matchHubRecordedOnlyProgress": "{count}경기 기록됨",
   "@matchHubRecordedOnlyProgress": {
     "placeholders": {
@@ -6142,10 +6142,10 @@
       }
     }
   },
-  "matchHubTeamManagementHeaderSubtitle": "팀, 선수, 전술, 포메이션을 관리하고 경기 기록으로 이어가세요.",
-  "matchHubTeamManagementTitle": "팀 관리 보드",
-  "matchHubTeamManagementHelper": "선수와 전술, 포메이션을 관리",
-  "matchHubTeamStateLabel": "관리 팀",
+  "matchHubTeamManagementHeaderSubtitle": "우리 팀의 일정, 선수단, 라인업과 대회 흐름을 경기 기록으로 이어가세요.",
+  "matchHubTeamManagementTitle": "우리 팀 운영",
+  "matchHubTeamManagementHelper": "일정, 선수단, 라인업 관리",
+  "matchHubTeamStateLabel": "운영 팀",
   "matchHubTeamStateValue": "{count}팀",
   "@matchHubTeamStateValue": {
     "placeholders": {
@@ -6154,8 +6154,8 @@
       }
     }
   },
-  "matchHubNoTeamsTitle": "아직 관리 중인 팀이 없어요.",
-  "matchHubNoTeamsSubtitle": "팀을 만들고 선수와 전략을 넣은 뒤 그라운드 위 포지션에 선수를 배치해 보세요.",
+  "matchHubNoTeamsTitle": "아직 운영 중인 팀이 없어요.",
+  "matchHubNoTeamsSubtitle": "우리 팀을 만들고 선수단, 일정, 라인업을 차례로 채워 보세요.",
   "matchHubMoreTeamsCount": "외 {count}팀 더 있음",
   "@matchHubMoreTeamsCount": {
     "placeholders": {
@@ -6241,23 +6241,59 @@
       "uniform": {}
     }
   },
-  "teamManagementTitle": "팀 관리",
-  "teamManagementSubtitle": "선수 등록부터 시작하고, 큰 그라운드 보드에 선수를 끌어 올려 전술을 정리하세요.",
-  "teamManagementOpenButton": "팀 관리",
+  "teamManagementTitle": "팀 운영 센터",
+  "teamManagementSubtitle": "일정, 선수단, 라인업, 전술과 대회 흐름을 한곳에서 점검하세요.",
+  "teamManagementOpenButton": "팀 운영",
   "teamManagementDefaultTeamName": "우리 팀",
-  "teamManagementSavedTeamsTitle": "관리 팀",
-  "teamManagementSavedTeamsHelper": "저장된 팀을 선택하면 선수 명단, 전술 설명, 보드 배치를 바로 수정할 수 있어요.",
+  "teamManagementSavedTeamsTitle": "팀 선택",
+  "teamManagementSavedTeamsHelper": "저장된 팀을 선택하면 선수단, 전술 원칙, 보드 배치를 바로 이어서 운영할 수 있어요.",
   "teamManagementNoTeamsTitle": "첫 팀을 준비 중입니다.",
   "teamManagementNoTeamsBody": "팀 이름과 선수 명단을 입력하면 자동 저장되어 이곳에 팀 카드가 생깁니다.",
+  "teamManagementOperationsTitle": "운영 요약",
+  "teamManagementOperationsHelper": "다음 훈련, 선수단 상태, 라인업 완성도와 참가 대회를 먼저 확인하세요.",
+  "teamManagementOperationsNextTrainingLabel": "다음 훈련",
+  "teamManagementOperationsNextTrainingUnset": "훈련 일정 없음",
+  "teamManagementOperationsRosterLabel": "선수단 상태",
+  "teamManagementOperationsRosterValue": "전체 {total}명 · 관리 {managed}명",
+  "@teamManagementOperationsRosterValue": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "managed": {
+        "type": "int"
+      }
+    }
+  },
+  "teamManagementOperationsLineupLabel": "라인업",
+  "teamManagementOperationsCompetitionsLabel": "대회",
+  "teamManagementOperationsCompetitionsValue": "진행 {active} · 전체 {total}",
+  "@teamManagementOperationsCompetitionsValue": {
+    "placeholders": {
+      "active": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "teamManagementOperationsScheduleTitle": "일정과 대회",
+  "teamManagementOperationsScheduleHelper": "훈련 요일, 유니폼, 참가 대회를 팀 운영 흐름 안에서 함께 확인하세요.",
+  "teamManagementOperationsOpenScheduleButton": "일정 편집",
+  "teamManagementOperationsNoTraining": "등록된 훈련 일정이 없어요.",
+  "teamManagementOperationsUniformLabel": "유니폼",
+  "teamManagementOperationsCompetitionTitle": "참가 대회",
+  "teamManagementOperationsNoCompetitions": "대회 관리에서 리그나 토너먼트를 만들면 이곳에 진행 상태가 표시됩니다.",
   "teamManagementNewTeamButton": "새 팀",
-  "teamManagementBasicsTitle": "팀 정보와 전술 설명",
-  "teamManagementBasicsHelper": "선수 명단을 만든 뒤 팀 이름과 전술 설명을 정리하세요.",
+  "teamManagementBasicsTitle": "팀 프로필과 전술 원칙",
+  "teamManagementBasicsHelper": "선수단이 공유할 팀 이름과 경기 운영 원칙을 정리하세요.",
   "teamManagementTeamNameLabel": "팀 이름",
   "teamManagementTeamNameHint": "예) 우리 팀 U15",
   "teamManagementStrategyLabel": "전술 설명",
   "teamManagementStrategyHint": "예) 전방 압박 시작 위치, 측면 전환 약속, 수비 블록 기준",
-  "teamManagementFormationTitle": "그라운드 전술 보드",
-  "teamManagementFormationHelper": "포메이션을 먼저 고르지 않아도 됩니다. 선수 칩을 그라운드 어디든 끌어 올리고, 마카 모드에서 이동선이나 압박 방향을 그리세요.",
+  "teamManagementFormationTitle": "라인업/전술 보드",
+  "teamManagementFormationHelper": "선발 배치와 전술 메모를 함께 정리하세요. 선수 칩을 그라운드 어디든 끌어 올리고, 마카 모드에서 이동선이나 압박 방향을 그리세요.",
   "teamManagementFormationLabel": "포메이션",
   "teamManagementFormationSpotLabel": "{spot}",
   "@teamManagementFormationSpotLabel": {
@@ -6274,8 +6310,8 @@
   },
   "teamManagementAssignedPlayerLabel": "배정할 선수",
   "teamManagementUnassignedPlayer": "미배정",
-  "teamManagementPlayersTitle": "선수 명단",
-  "teamManagementPlayersHelper": "팀 관리의 시작은 선수 등록입니다. 번호, 포지션, 주발, 컨디션과 관리 메모를 남기세요.",
+  "teamManagementPlayersTitle": "선수단",
+  "teamManagementPlayersHelper": "등번호, 포지션, 주발, 컨디션과 관리 메모를 선수단 카드로 관리하세요.",
   "teamManagementPlayerNameLabel": "선수 이름",
   "teamManagementPlayerNameHint": "예) 김민준",
   "teamManagementPlayerNumberLabel": "번호",
@@ -6334,7 +6370,7 @@
   "teamManagementRemovePlayerButton": "삭제",
   "teamManagementDeleteTeamButton": "팀 삭제",
   "teamManagementSaveTeamButton": "팀 저장",
-  "teamManagementSaveHint": "선수, 전술, 보드 배치는 변경 즉시 자동 저장되고 시합 화면의 팀 관리 보드에 반영됩니다.",
+  "teamManagementSaveHint": "선수단, 전술, 보드 배치는 변경 즉시 자동 저장되고 시합 허브의 우리 팀 운영 카드에 반영됩니다.",
   "teamManagementAutoSaveReady": "자동 저장",
   "teamManagementAutoSavePending": "저장 대기",
   "teamManagementAutoSaveSaving": "저장 중",

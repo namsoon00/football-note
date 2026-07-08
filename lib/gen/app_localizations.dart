@@ -18877,19 +18877,19 @@ abstract class AppLocalizations {
   /// No description provided for @matchHubTopActionTooltip.
   ///
   /// In en, this message translates to:
-  /// **'Team management'**
+  /// **'Team operations'**
   String get matchHubTopActionTooltip;
 
   /// No description provided for @matchHubTitle.
   ///
   /// In en, this message translates to:
-  /// **'Team Management'**
+  /// **'Team Operations'**
   String get matchHubTitle;
 
   /// No description provided for @matchHubSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Manage teams, players, and tactics before recording friendlies, leagues, and tournaments.'**
+  /// **'Organize your team\'s schedule, roster, and lineup before recording friendlies, leagues, and tournaments.'**
   String get matchHubSubtitle;
 
   /// No description provided for @matchHubOverviewTitle.
@@ -18913,13 +18913,13 @@ abstract class AppLocalizations {
   /// No description provided for @matchEntryManagedInHubTitle.
   ///
   /// In en, this message translates to:
-  /// **'Match records are managed in Team Management.'**
+  /// **'Match records are managed in Team Operations.'**
   String get matchEntryManagedInHubTitle;
 
   /// No description provided for @matchEntryManagedInHubBody.
   ///
   /// In en, this message translates to:
-  /// **'Training notes no longer show match details. View and edit matches from the top Team Management screen.'**
+  /// **'Training notes no longer show match details. View and edit matches from the top Team Operations screen.'**
   String get matchEntryManagedInHubBody;
 
   /// No description provided for @matchHubRecordHelper.
@@ -19033,7 +19033,7 @@ abstract class AppLocalizations {
   /// No description provided for @matchHubOpeningFeedback.
   ///
   /// In en, this message translates to:
-  /// **'Opening Team Management.'**
+  /// **'Opening Team Operations.'**
   String get matchHubOpeningFeedback;
 
   /// No description provided for @matchHubRecordedOnlyProgress.
@@ -19063,25 +19063,25 @@ abstract class AppLocalizations {
   /// No description provided for @matchHubTeamManagementHeaderSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Manage teams, players, tactics, and formations before recording matches.'**
+  /// **'Connect your team\'s schedule, roster, lineup, and competition flow to match records.'**
   String get matchHubTeamManagementHeaderSubtitle;
 
   /// No description provided for @matchHubTeamManagementTitle.
   ///
   /// In en, this message translates to:
-  /// **'Team management board'**
+  /// **'Our Team Operations'**
   String get matchHubTeamManagementTitle;
 
   /// No description provided for @matchHubTeamManagementHelper.
   ///
   /// In en, this message translates to:
-  /// **'Manage players, tactics, and formations'**
+  /// **'Manage schedule, roster, and lineup'**
   String get matchHubTeamManagementHelper;
 
   /// No description provided for @matchHubTeamStateLabel.
   ///
   /// In en, this message translates to:
-  /// **'Managed teams'**
+  /// **'Operating teams'**
   String get matchHubTeamStateLabel;
 
   /// No description provided for @matchHubTeamStateValue.
@@ -19093,13 +19093,13 @@ abstract class AppLocalizations {
   /// No description provided for @matchHubNoTeamsTitle.
   ///
   /// In en, this message translates to:
-  /// **'No managed teams yet.'**
+  /// **'No operating team yet.'**
   String get matchHubNoTeamsTitle;
 
   /// No description provided for @matchHubNoTeamsSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Create a team, add players and strategy notes, then assign players to positions on the pitch.'**
+  /// **'Create your team, then fill in the roster, schedule, and lineup.'**
   String get matchHubNoTeamsSubtitle;
 
   /// No description provided for @matchHubMoreTeamsCount.
@@ -19358,19 +19358,19 @@ abstract class AppLocalizations {
   /// No description provided for @teamManagementTitle.
   ///
   /// In en, this message translates to:
-  /// **'Team Management'**
+  /// **'Team Operations Center'**
   String get teamManagementTitle;
 
   /// No description provided for @teamManagementSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Start with player registration, then drag players onto a larger pitch board to organize tactics.'**
+  /// **'Review schedule, roster, lineup, tactics, and competition flow in one place.'**
   String get teamManagementSubtitle;
 
   /// No description provided for @teamManagementOpenButton.
   ///
   /// In en, this message translates to:
-  /// **'Team management'**
+  /// **'Team operations'**
   String get teamManagementOpenButton;
 
   /// No description provided for @teamManagementDefaultTeamName.
@@ -19382,13 +19382,13 @@ abstract class AppLocalizations {
   /// No description provided for @teamManagementSavedTeamsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Managed teams'**
+  /// **'Team selector'**
   String get teamManagementSavedTeamsTitle;
 
   /// No description provided for @teamManagementSavedTeamsHelper.
   ///
   /// In en, this message translates to:
-  /// **'Select a saved team to update its roster, tactical notes, and board placement.'**
+  /// **'Select a saved team to continue operating its roster, tactical principles, and board placement.'**
   String get teamManagementSavedTeamsHelper;
 
   /// No description provided for @teamManagementNoTeamsTitle.
@@ -19403,6 +19403,102 @@ abstract class AppLocalizations {
   /// **'Enter a team name and roster, and it will auto-save into a team card here.'**
   String get teamManagementNoTeamsBody;
 
+  /// No description provided for @teamManagementOperationsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Operations Summary'**
+  String get teamManagementOperationsTitle;
+
+  /// No description provided for @teamManagementOperationsHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Check next training, roster status, lineup readiness, and competitions first.'**
+  String get teamManagementOperationsHelper;
+
+  /// No description provided for @teamManagementOperationsNextTrainingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Next training'**
+  String get teamManagementOperationsNextTrainingLabel;
+
+  /// No description provided for @teamManagementOperationsNextTrainingUnset.
+  ///
+  /// In en, this message translates to:
+  /// **'No training set'**
+  String get teamManagementOperationsNextTrainingUnset;
+
+  /// No description provided for @teamManagementOperationsRosterLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Roster status'**
+  String get teamManagementOperationsRosterLabel;
+
+  /// No description provided for @teamManagementOperationsRosterValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{total} total · {managed} managed'**
+  String teamManagementOperationsRosterValue(int total, int managed);
+
+  /// No description provided for @teamManagementOperationsLineupLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Lineup'**
+  String get teamManagementOperationsLineupLabel;
+
+  /// No description provided for @teamManagementOperationsCompetitionsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Competitions'**
+  String get teamManagementOperationsCompetitionsLabel;
+
+  /// No description provided for @teamManagementOperationsCompetitionsValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{active} active · {total} total'**
+  String teamManagementOperationsCompetitionsValue(int active, int total);
+
+  /// No description provided for @teamManagementOperationsScheduleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule and competitions'**
+  String get teamManagementOperationsScheduleTitle;
+
+  /// No description provided for @teamManagementOperationsScheduleHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Review training days, uniforms, and competitions inside the team operations flow.'**
+  String get teamManagementOperationsScheduleHelper;
+
+  /// No description provided for @teamManagementOperationsOpenScheduleButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit schedule'**
+  String get teamManagementOperationsOpenScheduleButton;
+
+  /// No description provided for @teamManagementOperationsNoTraining.
+  ///
+  /// In en, this message translates to:
+  /// **'No training schedule has been set.'**
+  String get teamManagementOperationsNoTraining;
+
+  /// No description provided for @teamManagementOperationsUniformLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Uniforms'**
+  String get teamManagementOperationsUniformLabel;
+
+  /// No description provided for @teamManagementOperationsCompetitionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Competitions'**
+  String get teamManagementOperationsCompetitionTitle;
+
+  /// No description provided for @teamManagementOperationsNoCompetitions.
+  ///
+  /// In en, this message translates to:
+  /// **'Create leagues or tournaments in competition management to show their status here.'**
+  String get teamManagementOperationsNoCompetitions;
+
   /// No description provided for @teamManagementNewTeamButton.
   ///
   /// In en, this message translates to:
@@ -19412,13 +19508,13 @@ abstract class AppLocalizations {
   /// No description provided for @teamManagementBasicsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Team info and tactics'**
+  /// **'Team profile and principles'**
   String get teamManagementBasicsTitle;
 
   /// No description provided for @teamManagementBasicsHelper.
   ///
   /// In en, this message translates to:
-  /// **'After building the roster, organize the team name and tactical notes.'**
+  /// **'Set the team name and match principles the roster should share.'**
   String get teamManagementBasicsHelper;
 
   /// No description provided for @teamManagementTeamNameLabel.
@@ -19448,13 +19544,13 @@ abstract class AppLocalizations {
   /// No description provided for @teamManagementFormationTitle.
   ///
   /// In en, this message translates to:
-  /// **'Pitch tactics board'**
+  /// **'Lineup / tactics board'**
   String get teamManagementFormationTitle;
 
   /// No description provided for @teamManagementFormationHelper.
   ///
   /// In en, this message translates to:
-  /// **'You do not need to choose a formation first. Drag player chips anywhere on the pitch, then use marker mode for movement lines or pressing directions.'**
+  /// **'Organize starting placement and tactical notes together. Drag player chips anywhere on the pitch, then use marker mode for movement lines or pressing directions.'**
   String get teamManagementFormationHelper;
 
   /// No description provided for @teamManagementFormationLabel.
@@ -19502,7 +19598,7 @@ abstract class AppLocalizations {
   /// No description provided for @teamManagementPlayersHelper.
   ///
   /// In en, this message translates to:
-  /// **'Team management starts with player registration. Track number, position, preferred foot, condition, and management notes.'**
+  /// **'Manage number, position, preferred foot, condition, and notes as roster cards.'**
   String get teamManagementPlayersHelper;
 
   /// No description provided for @teamManagementPlayerNameLabel.
@@ -19707,7 +19803,7 @@ abstract class AppLocalizations {
   /// No description provided for @teamManagementSaveHint.
   ///
   /// In en, this message translates to:
-  /// **'Roster, tactics, and board placement auto-save as you edit and appear on the Match screen team board.'**
+  /// **'Roster, tactics, and board placement auto-save as you edit and appear in the Match Hub team operations card.'**
   String get teamManagementSaveHint;
 
   /// No description provided for @teamManagementAutoSaveReady.

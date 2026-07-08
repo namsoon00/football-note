@@ -6081,14 +6081,14 @@
   "matchNoteOptionalLabel": "Note (optional)",
   "matchShotsOnTargetLabel": "Shots on target",
   "matchBallsWonLabel": "Balls won",
-  "matchHubTopActionTooltip": "Team management",
-  "matchHubTitle": "Team Management",
-  "matchHubSubtitle": "Manage teams, players, and tactics before recording friendlies, leagues, and tournaments.",
+  "matchHubTopActionTooltip": "Team operations",
+  "matchHubTitle": "Team Operations",
+  "matchHubSubtitle": "Organize your team's schedule, roster, and lineup before recording friendlies, leagues, and tournaments.",
   "matchHubOverviewTitle": "Team operations board",
   "matchHubRecentFormLabel": "Recent form",
   "matchHubRecordButton": "Record match",
-  "matchEntryManagedInHubTitle": "Match records are managed in Team Management.",
-  "matchEntryManagedInHubBody": "Training notes no longer show match details. View and edit matches from the top Team Management screen.",
+  "matchEntryManagedInHubTitle": "Match records are managed in Team Operations.",
+  "matchEntryManagedInHubBody": "Training notes no longer show match details. View and edit matches from the top Team Operations screen.",
   "matchHubRecordHelper": "Enter today's result quickly",
   "matchRecordsOpenButton": "Match records",
   "matchRecordsOpenHelper": "Review past match results",
@@ -6107,7 +6107,7 @@
   "matchHubRecentMatchesTitle": "Recent matches",
   "matchHubEmptyTitle": "No match records yet.",
   "matchHubEmptySubtitle": "Start with a friendly match to calculate win rate and recent form.",
-  "matchHubOpeningFeedback": "Opening Team Management.",
+  "matchHubOpeningFeedback": "Opening Team Operations.",
   "matchHubRecordedOnlyProgress": "{count} match(es) recorded",
   "@matchHubRecordedOnlyProgress": {
     "placeholders": {
@@ -6142,10 +6142,10 @@
       }
     }
   },
-  "matchHubTeamManagementHeaderSubtitle": "Manage teams, players, tactics, and formations before recording matches.",
-  "matchHubTeamManagementTitle": "Team management board",
-  "matchHubTeamManagementHelper": "Manage players, tactics, and formations",
-  "matchHubTeamStateLabel": "Managed teams",
+  "matchHubTeamManagementHeaderSubtitle": "Connect your team's schedule, roster, lineup, and competition flow to match records.",
+  "matchHubTeamManagementTitle": "Our Team Operations",
+  "matchHubTeamManagementHelper": "Manage schedule, roster, and lineup",
+  "matchHubTeamStateLabel": "Operating teams",
   "matchHubTeamStateValue": "{count} team(s)",
   "@matchHubTeamStateValue": {
     "placeholders": {
@@ -6154,8 +6154,8 @@
       }
     }
   },
-  "matchHubNoTeamsTitle": "No managed teams yet.",
-  "matchHubNoTeamsSubtitle": "Create a team, add players and strategy notes, then assign players to positions on the pitch.",
+  "matchHubNoTeamsTitle": "No operating team yet.",
+  "matchHubNoTeamsSubtitle": "Create your team, then fill in the roster, schedule, and lineup.",
   "matchHubMoreTeamsCount": "{count} more team(s)",
   "@matchHubMoreTeamsCount": {
     "placeholders": {
@@ -6241,23 +6241,59 @@
       "uniform": {}
     }
   },
-  "teamManagementTitle": "Team Management",
-  "teamManagementSubtitle": "Start with player registration, then drag players onto a larger pitch board to organize tactics.",
-  "teamManagementOpenButton": "Team management",
+  "teamManagementTitle": "Team Operations Center",
+  "teamManagementSubtitle": "Review schedule, roster, lineup, tactics, and competition flow in one place.",
+  "teamManagementOpenButton": "Team operations",
   "teamManagementDefaultTeamName": "Our team",
-  "teamManagementSavedTeamsTitle": "Managed teams",
-  "teamManagementSavedTeamsHelper": "Select a saved team to update its roster, tactical notes, and board placement.",
+  "teamManagementSavedTeamsTitle": "Team selector",
+  "teamManagementSavedTeamsHelper": "Select a saved team to continue operating its roster, tactical principles, and board placement.",
   "teamManagementNoTeamsTitle": "Preparing your first team.",
   "teamManagementNoTeamsBody": "Enter a team name and roster, and it will auto-save into a team card here.",
+  "teamManagementOperationsTitle": "Operations Summary",
+  "teamManagementOperationsHelper": "Check next training, roster status, lineup readiness, and competitions first.",
+  "teamManagementOperationsNextTrainingLabel": "Next training",
+  "teamManagementOperationsNextTrainingUnset": "No training set",
+  "teamManagementOperationsRosterLabel": "Roster status",
+  "teamManagementOperationsRosterValue": "{total} total · {managed} managed",
+  "@teamManagementOperationsRosterValue": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "managed": {
+        "type": "int"
+      }
+    }
+  },
+  "teamManagementOperationsLineupLabel": "Lineup",
+  "teamManagementOperationsCompetitionsLabel": "Competitions",
+  "teamManagementOperationsCompetitionsValue": "{active} active · {total} total",
+  "@teamManagementOperationsCompetitionsValue": {
+    "placeholders": {
+      "active": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "teamManagementOperationsScheduleTitle": "Schedule and competitions",
+  "teamManagementOperationsScheduleHelper": "Review training days, uniforms, and competitions inside the team operations flow.",
+  "teamManagementOperationsOpenScheduleButton": "Edit schedule",
+  "teamManagementOperationsNoTraining": "No training schedule has been set.",
+  "teamManagementOperationsUniformLabel": "Uniforms",
+  "teamManagementOperationsCompetitionTitle": "Competitions",
+  "teamManagementOperationsNoCompetitions": "Create leagues or tournaments in competition management to show their status here.",
   "teamManagementNewTeamButton": "New team",
-  "teamManagementBasicsTitle": "Team info and tactics",
-  "teamManagementBasicsHelper": "After building the roster, organize the team name and tactical notes.",
+  "teamManagementBasicsTitle": "Team profile and principles",
+  "teamManagementBasicsHelper": "Set the team name and match principles the roster should share.",
   "teamManagementTeamNameLabel": "Team name",
   "teamManagementTeamNameHint": "e.g. Our U15",
   "teamManagementStrategyLabel": "Tactical notes",
   "teamManagementStrategyHint": "e.g. Pressing trigger, wide switch rule, defensive block standard",
-  "teamManagementFormationTitle": "Pitch tactics board",
-  "teamManagementFormationHelper": "You do not need to choose a formation first. Drag player chips anywhere on the pitch, then use marker mode for movement lines or pressing directions.",
+  "teamManagementFormationTitle": "Lineup / tactics board",
+  "teamManagementFormationHelper": "Organize starting placement and tactical notes together. Drag player chips anywhere on the pitch, then use marker mode for movement lines or pressing directions.",
   "teamManagementFormationLabel": "Formation",
   "teamManagementFormationSpotLabel": "{spot}",
   "@teamManagementFormationSpotLabel": {
@@ -6275,7 +6311,7 @@
   "teamManagementAssignedPlayerLabel": "Assigned player",
   "teamManagementUnassignedPlayer": "Unassigned",
   "teamManagementPlayersTitle": "Roster",
-  "teamManagementPlayersHelper": "Team management starts with player registration. Track number, position, preferred foot, condition, and management notes.",
+  "teamManagementPlayersHelper": "Manage number, position, preferred foot, condition, and notes as roster cards.",
   "teamManagementPlayerNameLabel": "Player name",
   "teamManagementPlayerNameHint": "e.g. Minjun Kim",
   "teamManagementPlayerNumberLabel": "No.",
@@ -6334,7 +6370,7 @@
   "teamManagementRemovePlayerButton": "Remove",
   "teamManagementDeleteTeamButton": "Delete team",
   "teamManagementSaveTeamButton": "Save team",
-  "teamManagementSaveHint": "Roster, tactics, and board placement auto-save as you edit and appear on the Match screen team board.",
+  "teamManagementSaveHint": "Roster, tactics, and board placement auto-save as you edit and appear in the Match Hub team operations card.",
   "teamManagementAutoSaveReady": "Auto-save",
   "teamManagementAutoSavePending": "Pending",
   "teamManagementAutoSaveSaving": "Saving",
