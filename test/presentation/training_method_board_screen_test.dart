@@ -346,17 +346,19 @@ void main() {
     await pumpSport(SportCatalog.tennisId);
     expect(find.widgetWithText(OutlinedButton, '목표'), findsOneWidget);
     expect(find.widgetWithText(OutlinedButton, '사람'), findsOneWidget);
-    expect(find.widgetWithText(OutlinedButton, '공'), findsOneWidget);
+    expect(find.widgetWithText(OutlinedButton, '공'), findsNothing);
     expect(find.widgetWithText(OutlinedButton, '사다리'), findsNothing);
     expect(find.widgetWithText(OutlinedButton, '낮은 뜀틀'), findsNothing);
 
     await pumpSport(SportCatalog.baseballId);
+    expect(find.widgetWithText(OutlinedButton, '공'), findsNothing);
     expect(find.widgetWithText(OutlinedButton, '베이스'), findsOneWidget);
     expect(find.widgetWithText(OutlinedButton, '목표'), findsOneWidget);
     expect(find.widgetWithText(OutlinedButton, '골대'), findsNothing);
     expect(find.widgetWithText(OutlinedButton, '사다리'), findsNothing);
 
     await pumpSport(SportCatalog.basketballId);
+    expect(find.widgetWithText(OutlinedButton, '공'), findsNothing);
     expect(find.widgetWithText(OutlinedButton, '골대'), findsOneWidget);
     expect(find.widgetWithText(OutlinedButton, '목표'), findsOneWidget);
     expect(find.widgetWithText(OutlinedButton, '베이스'), findsNothing);
@@ -498,7 +500,7 @@ void main() {
     expect(route.points.last.y, closeTo(0.38, 0.02));
   });
 
-  testWidgets('selected ball does not expose sketch actions', (
+  testWidgets('ball is not a direct sketch tool', (
     WidgetTester tester,
   ) async {
     _setLandscapeSurface(tester);
@@ -513,17 +515,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(OutlinedButton, '공'));
-    await tester.pumpAndSettle();
-
-    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
-    await tester.pumpAndSettle();
-
-    expect(
-      find.descendant(
-          of: boardFinder, matching: find.byIcon(Icons.sports_soccer)),
-      findsOneWidget,
-    );
+    expect(find.widgetWithText(OutlinedButton, '공'), findsNothing);
     expect(find.widgetWithText(OutlinedButton, '패스'), findsNothing);
     expect(find.widgetWithText(OutlinedButton, '드리블'), findsNothing);
     expect(find.widgetWithText(OutlinedButton, '슈팅'), findsNothing);
@@ -3364,7 +3356,7 @@ void main() {
     expect(route.points[1].y, closeTo(0.35 + dy, 0.0001));
   });
 
-  testWidgets('dragging a ball moves the ball and its linked route', (
+  testWidgets('dragging a ball is ignored because ball follows players', (
     WidgetTester tester,
   ) async {
     _setLandscapeSurface(tester);
@@ -3413,7 +3405,7 @@ void main() {
       of: boardFinder,
       matching: find.byIcon(Icons.sports_soccer),
     );
-    await tester.drag(ballFinder, const Offset(56, -22));
+    await tester.dragFrom(tester.getCenter(ballFinder), const Offset(56, -22));
     await tester.pumpAndSettle();
 
     await tester.tap(find.widgetWithText(TextButton, '저장'));
@@ -3422,18 +3414,16 @@ void main() {
     final saved = TrainingMethodLayout.decode(savedLayout ?? '');
     final ball = saved.pages.single.items.single;
     final route = saved.pages.single.routes.single;
-    final dx = ball.x - 0.24;
-    final dy = ball.y - 0.58;
 
-    expect(dx, greaterThan(0.001));
-    expect(dy, lessThan(-0.001));
-    expect(route.points[0].x, closeTo(0.24 + dx, 0.0001));
-    expect(route.points[0].y, closeTo(0.58 + dy, 0.0001));
-    expect(route.points[1].x, closeTo(0.62 + dx, 0.0001));
-    expect(route.points[1].y, closeTo(0.46 + dy, 0.0001));
+    expect(ball.x, closeTo(0.24, 0.0001));
+    expect(ball.y, closeTo(0.58, 0.0001));
+    expect(route.points[0].x, closeTo(0.24, 0.0001));
+    expect(route.points[0].y, closeTo(0.58, 0.0001));
+    expect(route.points[1].x, closeTo(0.62, 0.0001));
+    expect(route.points[1].y, closeTo(0.46, 0.0001));
   });
 
-  testWidgets('selecting a player after a ball exposes player route tools', (
+  testWidgets('existing ball does not block player route tools', (
     WidgetTester tester,
   ) async {
     _setLandscapeSurface(tester);
@@ -3473,13 +3463,6 @@ void main() {
     await tester.pumpAndSettle();
 
     final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
-    await tester.tap(
-      find.descendant(
-        of: boardFinder,
-        matching: find.byIcon(Icons.sports_soccer),
-      ),
-    );
-    await tester.pumpAndSettle();
     expect(find.widgetWithText(OutlinedButton, '패스 만들기'), findsNothing);
 
     await tester.tap(
@@ -3504,7 +3487,7 @@ void main() {
     expect(route.points.first.y, closeTo(0.52, 0.001));
   });
 
-  testWidgets('players and balls are hit-tested above training props', (
+  testWidgets('players stay interactive above props while balls stay passive', (
     WidgetTester tester,
   ) async {
     _setLandscapeSurface(tester);
@@ -3625,7 +3608,7 @@ void main() {
   );
 
   testWidgets(
-    'selected ball cannot create a pass action route',
+    'ball cannot be added as a direct sketch token',
     (WidgetTester tester) async {
       _setLandscapeSurface(tester);
       String? savedLayout;
@@ -3641,8 +3624,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.widgetWithText(OutlinedButton, '공'));
-      await tester.pumpAndSettle();
+      expect(find.widgetWithText(OutlinedButton, '공'), findsNothing);
 
       expect(
         find.byKey(const ValueKey('training-player-path-mode-button')),
@@ -3657,7 +3639,7 @@ void main() {
       expect(
         find.descendant(
             of: boardFinder, matching: find.byIcon(Icons.sports_soccer)),
-        findsOneWidget,
+        findsNothing,
       );
       expect(find.widgetWithText(OutlinedButton, '패스'), findsNothing);
 
@@ -3666,7 +3648,7 @@ void main() {
 
       final saved = TrainingMethodLayout.decode(savedLayout ?? '');
       final page = saved.pages.single;
-      expect(page.items.where((item) => item.type == 'ball'), hasLength(1));
+      expect(page.items.where((item) => item.type == 'ball'), isEmpty);
       expect(page.items.where((item) => item.type == 'player'), isEmpty);
       expect(page.routes, isEmpty);
     },
@@ -3905,19 +3887,16 @@ void main() {
     expect(find.widgetWithText(OutlinedButton, '돌아오기'), findsOneWidget);
     expect(find.widgetWithText(OutlinedButton, '오버랩'), findsOneWidget);
 
-    await tester.tap(
+    expect(
       find.descendant(
         of: boardFinder,
         matching: find.byIcon(Icons.sports_soccer),
       ),
+      findsOneWidget,
     );
-    await tester.pumpAndSettle();
     expect(find.text('공 액션'), findsNothing);
     expect(find.widgetWithText(OutlinedButton, '패스 만들기'), findsNothing);
-    expect(find.widgetWithText(OutlinedButton, '패스'), findsNothing);
-    expect(find.widgetWithText(OutlinedButton, '드리블'), findsNothing);
-    expect(find.widgetWithText(OutlinedButton, '슈팅'), findsNothing);
-    expect(find.widgetWithText(OutlinedButton, '크로스'), findsNothing);
+    expect(find.widgetWithText(OutlinedButton, '패스'), findsOneWidget);
     expect(find.text('패스·드리블 플로우'), findsNothing);
   });
 
