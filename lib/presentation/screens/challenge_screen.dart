@@ -55,6 +55,8 @@ class ChallengeScreen extends StatefulWidget {
   final LocaleService localeService;
   final SettingsService settingsService;
   final BackupService? driveBackupService;
+  final String? initialRunId;
+  final int? initialRoundNumber;
 
   const ChallengeScreen({
     super.key,
@@ -64,6 +66,8 @@ class ChallengeScreen extends StatefulWidget {
     required this.localeService,
     required this.settingsService,
     this.driveBackupService,
+    this.initialRunId,
+    this.initialRoundNumber,
   });
 
   @override
@@ -87,6 +91,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   final Set<String> _pendingRoundAwardSignatures = <String>{};
   _ChallengeScreenMode _mode = _ChallengeScreenMode.list;
   String? _selectedRunId;
+  int? _focusedRoundNumber;
 
   @override
   void initState() {
@@ -97,6 +102,12 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       widget.optionRepository,
       _settingsService,
     );
+    final initialRunId = widget.initialRunId?.trim();
+    if (initialRunId != null && initialRunId.isNotEmpty) {
+      _mode = _ChallengeScreenMode.detail;
+      _selectedRunId = initialRunId;
+      _focusedRoundNumber = widget.initialRoundNumber;
+    }
   }
 
   @override
@@ -316,6 +327,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
           onOpenMeal: _openMealMission,
           onOpenTrainingPrograms: _openTrainingProgramSetup,
           onStartPrepared: () => _startPreparedChallenge(selectedProgress),
+          focusRoundNumber: _focusedRoundNumber,
         ),
       ];
     }
@@ -414,6 +426,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     setState(() {
       _mode = _ChallengeScreenMode.list;
       _selectedRunId = null;
+      _focusedRoundNumber = null;
     });
   }
 
@@ -421,6 +434,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     setState(() {
       _mode = _ChallengeScreenMode.create;
       _selectedRunId = null;
+      _focusedRoundNumber = null;
     });
   }
 
@@ -428,6 +442,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     setState(() {
       _mode = _ChallengeScreenMode.detail;
       _selectedRunId = progress.run.id;
+      _focusedRoundNumber = null;
     });
   }
 
@@ -441,6 +456,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     setState(() {
       _mode = _ChallengeScreenMode.edit;
       _selectedRunId = progress.run.id;
+      _focusedRoundNumber = null;
     });
   }
 
@@ -4192,6 +4208,7 @@ class _ActiveChallengeSection extends StatelessWidget {
   final _OpenChallengeMission onOpenMeal;
   final VoidCallback onOpenTrainingPrograms;
   final VoidCallback onStartPrepared;
+  final int? focusRoundNumber;
 
   const _ActiveChallengeSection({
     required this.sportId,
@@ -4205,13 +4222,14 @@ class _ActiveChallengeSection extends StatelessWidget {
     required this.onOpenMeal,
     required this.onOpenTrainingPrograms,
     required this.onStartPrepared,
+    this.focusRoundNumber,
   });
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final activeRound = progress.activeRound;
+    final focusedRound = _focusedRoundFor(progress, focusRoundNumber);
     final started = progress.run.isStarted;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -4243,11 +4261,11 @@ class _ActiveChallengeSection extends StatelessWidget {
             onAbandon: readOnly ? null : onAbandon,
           ),
           const SizedBox(height: 18),
-          if (activeRound != null)
+          if (focusedRound != null)
             _RoundFocusCard(
               sportId: sportId,
               progress: progress,
-              round: activeRound,
+              round: focusedRound,
               readOnly: readOnly,
               onOpenTraining: onOpenTraining,
               onOpenJumpRope: onOpenJumpRope,
@@ -4260,6 +4278,18 @@ class _ActiveChallengeSection extends StatelessWidget {
         ],
       ],
     );
+  }
+
+  ChallengeRoundProgress? _focusedRoundFor(
+    ChallengeProgress progress,
+    int? roundNumber,
+  ) {
+    if (roundNumber != null) {
+      for (final round in progress.rounds) {
+        if (round.round.number == roundNumber) return round;
+      }
+    }
+    return progress.activeRound;
   }
 }
 
@@ -4370,7 +4400,9 @@ class _RoundFocusCard extends StatelessWidget {
     final theme = Theme.of(context);
     final title = round.isToday
         ? l10n.challengeTodayRoundTitle(round.round.number)
-        : l10n.challengeUpcomingRoundTitle(round.round.number);
+        : round.completed || round.isMissed
+            ? l10n.challengeRoundTitle(round.round.number)
+            : l10n.challengeUpcomingRoundTitle(round.round.number);
     final selectedPrograms = _challengeSkillLabels(
       l10n,
       progress.run.selectedSkillIds,

@@ -149,10 +149,12 @@ class NotificationTapRouter {
           dependencies,
           initialIndex: 2,
           initialCalendarSelectedDay: _dateFromQuery(uri),
+          initialCalendarPlanId: uri.queryParameters['planId'],
         );
       case 'xp':
         return PlayerXpHistoryScreen(
           optionRepository: dependencies.optionRepository,
+          initialTotalXp: int.tryParse(uri.queryParameters['totalXp'] ?? ''),
         );
       case 'level':
         final level = int.tryParse(uri.queryParameters['level'] ?? '');
@@ -171,14 +173,22 @@ class NotificationTapRouter {
           localeService: dependencies.localeService,
           settingsService: dependencies.settingsService,
           driveBackupService: dependencies.driveBackupService,
+          initialRunId: uri.queryParameters['runId'],
+          initialRoundNumber: int.tryParse(
+            uri.queryParameters['round'] ?? '',
+          ),
         );
       case 'club':
         return ClubScheduleScreen(
           optionRepository: dependencies.optionRepository,
+          initialWeekday: int.tryParse(uri.queryParameters['weekday'] ?? ''),
         );
       case 'world-cup':
+        final matchNumber = int.tryParse(uri.queryParameters['match'] ?? '');
         return WorldCupScreen(
-          initialSelectedDay: _dateFromQuery(uri),
+          initialSelectedDay:
+              _dateFromQuery(uri) ?? _worldCupDayForMatchNumber(matchNumber),
+          initialMatchNumber: matchNumber,
           optionRepository: dependencies.optionRepository,
           settingsService: dependencies.settingsService,
         );
@@ -187,6 +197,8 @@ class NotificationTapRouter {
           initialType:
               _leagueTypeFromName(uri.queryParameters['leagueType'] ?? '') ??
                   LeagueStandingsType.kLeague1,
+          forceInitialType: true,
+          initialFixtureKey: uri.queryParameters['fixtureKey'],
           optionRepository: dependencies.optionRepository,
           settingsService: dependencies.settingsService,
         );
@@ -203,6 +215,7 @@ class NotificationTapRouter {
     NotificationTapDependencies dependencies, {
     int initialIndex = 0,
     DateTime? initialCalendarSelectedDay,
+    String? initialCalendarPlanId,
   }) {
     return HomeScreen(
       trainingService: dependencies.trainingService,
@@ -213,6 +226,7 @@ class NotificationTapRouter {
       driveBackupService: dependencies.driveBackupService,
       initialIndex: initialIndex,
       initialCalendarSelectedDay: initialCalendarSelectedDay,
+      initialCalendarPlanId: initialCalendarPlanId,
     );
   }
 
@@ -325,6 +339,14 @@ class NotificationTapRouter {
     final parts = payload.split(':');
     if (parts.length < 2) return null;
     final matchNumber = int.tryParse(parts[1]);
+    if (matchNumber == null) return null;
+    for (final fixture in worldCupFixtures) {
+      if (fixture.matchNumber == matchNumber) return fixture.localDay;
+    }
+    return null;
+  }
+
+  static DateTime? _worldCupDayForMatchNumber(int? matchNumber) {
     if (matchNumber == null) return null;
     for (final fixture in worldCupFixtures) {
       if (fixture.matchNumber == matchNumber) return fixture.localDay;

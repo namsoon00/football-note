@@ -43,6 +43,7 @@ class WorldCupScreen extends StatefulWidget {
   final WorldCupLiveDataService? liveDataService;
   final bool refreshOfficialDataOnOpen;
   final DateTime? initialSelectedDay;
+  final int? initialMatchNumber;
   final DateTime? currentTime;
 
   const WorldCupScreen({
@@ -52,6 +53,7 @@ class WorldCupScreen extends StatefulWidget {
     this.liveDataService,
     this.refreshOfficialDataOnOpen = true,
     this.initialSelectedDay,
+    this.initialMatchNumber,
     this.currentTime,
   });
 
@@ -97,6 +99,7 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
   final Map<String, double> _selectedDayMatchPageHeights = <String, double>{};
   double? _selectedDayPagePosition;
   Timer? _clockTimer;
+  bool _initialMatchDetailHandled = false;
 
   @override
   void initState() {
@@ -106,7 +109,12 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
     _countries = worldCupCountries();
     _focusedDay = _initialCalendarDay();
     _selectedDay = _focusedDay;
-    final initialSelectedDay = widget.initialSelectedDay;
+    final initialMatchNumber = widget.initialMatchNumber;
+    final initialMatch = initialMatchNumber == null
+        ? null
+        : _fixtureByMatchNumber(initialMatchNumber);
+    final initialSelectedDay =
+        widget.initialSelectedDay ?? initialMatch?.localDay;
     if (initialSelectedDay != null) {
       _focusedDay = _clampCalendarDay(initialSelectedDay);
       _selectedDay = _focusedDay;
@@ -126,6 +134,7 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
       } else {
         unawaited(_syncWorldCupReminders());
       }
+      unawaited(_openInitialMatchDetail());
     });
     _clockTimer = Timer.periodic(const Duration(minutes: 1), (_) {
       if (mounted) setState(() {});
@@ -1466,6 +1475,16 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
         currentTime: widget.currentTime,
       ),
     );
+  }
+
+  Future<void> _openInitialMatchDetail() async {
+    if (_initialMatchDetailHandled) return;
+    final matchNumber = widget.initialMatchNumber;
+    if (matchNumber == null) return;
+    _initialMatchDetailHandled = true;
+    final fixture = _fixtureByMatchNumber(matchNumber);
+    if (fixture == null || !mounted) return;
+    await _openFixtureDetail(fixture);
   }
 
   Future<void> _setSupportCountry(String country) async {

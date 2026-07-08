@@ -11,8 +11,13 @@ import '../widgets/app_feedback.dart';
 
 class PlayerXpHistoryScreen extends StatefulWidget {
   final OptionRepository optionRepository;
+  final int? initialTotalXp;
 
-  const PlayerXpHistoryScreen({super.key, required this.optionRepository});
+  const PlayerXpHistoryScreen({
+    super.key,
+    required this.optionRepository,
+    this.initialTotalXp,
+  });
 
   @override
   State<PlayerXpHistoryScreen> createState() => _PlayerXpHistoryScreenState();
@@ -20,11 +25,20 @@ class PlayerXpHistoryScreen extends StatefulWidget {
 
 class _PlayerXpHistoryScreenState extends State<PlayerXpHistoryScreen> {
   late final PlayerLevelService _levelService;
+  final ScrollController _scrollController = ScrollController();
+  final Map<String, GlobalKey> _historyItemKeys = <String, GlobalKey>{};
+  bool _scrolledToInitialTotalXp = false;
 
   @override
   void initState() {
     super.initState();
     _levelService = PlayerLevelService(widget.optionRepository);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -34,6 +48,7 @@ class _PlayerXpHistoryScreenState extends State<PlayerXpHistoryScreen> {
     final history = _levelService.loadXpHistory()
       ..sort((a, b) => b.awardedAt.compareTo(a.awardedAt));
     final groupedHistory = _groupByDay(history);
+    _scheduleScrollToInitialTotalXp(history);
 
     return Scaffold(
       appBar: AppBar(
@@ -63,6 +78,7 @@ class _PlayerXpHistoryScreenState extends State<PlayerXpHistoryScreen> {
                   ),
                 )
               : ListView.separated(
+                  controller: _scrollController,
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
                   itemCount: groupedHistory.length + 1,
                   separatorBuilder: (_, __) => const SizedBox(height: 12),
@@ -84,6 +100,8 @@ class _PlayerXpHistoryScreenState extends State<PlayerXpHistoryScreen> {
                       l10n: l10n,
                       day: section.day,
                       items: section.items,
+                      highlightedTotalXp: widget.initialTotalXp,
+                      keyForItem: _historyItemKey,
                       onDelete: (item) => _deleteHistoryItem(item, l10n),
                     );
                   },
@@ -146,6 +164,42 @@ class _PlayerXpHistoryScreenState extends State<PlayerXpHistoryScreen> {
     }
     return sections;
   }
+
+  void _scheduleScrollToInitialTotalXp(List<PlayerXpHistoryEntry> history) {
+    if (_scrolledToInitialTotalXp) return;
+    final totalXp = widget.initialTotalXp;
+    if (totalXp == null) return;
+    final target = history.cast<PlayerXpHistoryEntry?>().firstWhere(
+          (item) => item?.totalXp == totalXp,
+          orElse: () => null,
+        );
+    if (target == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _scrolledToInitialTotalXp) return;
+      final targetContext =
+          _historyItemKeys[_historyItemToken(target)]?.currentContext;
+      if (targetContext == null) return;
+      _scrolledToInitialTotalXp = true;
+      Scrollable.ensureVisible(
+        targetContext,
+        duration: const Duration(milliseconds: 320),
+        curve: Curves.easeOutCubic,
+        alignment: 0.18,
+      );
+    });
+  }
+
+  GlobalKey _historyItemKey(PlayerXpHistoryEntry item) {
+    return _historyItemKeys.putIfAbsent(
+      _historyItemToken(item),
+      GlobalKey.new,
+    );
+  }
+
+  String _historyItemToken(PlayerXpHistoryEntry item) {
+    return '${item.awardedAt.microsecondsSinceEpoch}:'
+        '${item.totalXp}:${item.deltaXp}:${item.sourceId}';
+  }
 }
 
 class _XpHistorySummaryCard extends StatelessWidget {
@@ -201,6 +255,8 @@ class _XpHistoryDaySection extends StatelessWidget {
   final AppLocalizations l10n;
   final DateTime day;
   final List<PlayerXpHistoryEntry> items;
+  final int? highlightedTotalXp;
+  final GlobalKey Function(PlayerXpHistoryEntry item) keyForItem;
   final ValueChanged<PlayerXpHistoryEntry> onDelete;
 
   const _XpHistoryDaySection({
@@ -208,6 +264,8 @@ class _XpHistoryDaySection extends StatelessWidget {
     required this.l10n,
     required this.day,
     required this.items,
+    required this.highlightedTotalXp,
+    required this.keyForItem,
     required this.onDelete,
   });
 
@@ -236,12 +294,16 @@ class _XpHistoryDaySection extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           for (var index = 0; index < items.length; index++) ...[
-            _XpHistoryTimelineRow(
-              item: items[index],
-              isKo: isKo,
-              l10n: l10n,
-              showConnector: index != items.length - 1,
-              onDelete: () => onDelete(items[index]),
+            KeyedSubtree(
+              key: keyForItem(items[index]),
+              child: _XpHistoryTimelineRow(
+                item: items[index],
+                isKo: isKo,
+                l10n: l10n,
+                highlighted: items[index].totalXp == highlightedTotalXp,
+                showConnector: index != items.length - 1,
+                onDelete: () => onDelete(items[index]),
+              ),
             ),
             if (index != items.length - 1) const SizedBox(height: 12),
           ],
@@ -261,6 +323,7 @@ class _XpHistoryTimelineRow extends StatelessWidget {
   final PlayerXpHistoryEntry item;
   final bool isKo;
   final AppLocalizations l10n;
+  final bool highlighted;
   final bool showConnector;
   final VoidCallback onDelete;
 
@@ -268,6 +331,7 @@ class _XpHistoryTimelineRow extends StatelessWidget {
     required this.item,
     required this.isKo,
     required this.l10n,
+    required this.highlighted,
     required this.showConnector,
     required this.onDelete,
   });
@@ -308,8 +372,15 @@ class _XpHistoryTimelineRow extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerHigh,
+              color: highlighted
+                  ? theme.colorScheme.primaryContainer.withValues(alpha: 0.42)
+                  : theme.colorScheme.surfaceContainerHigh,
               borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: highlighted
+                    ? theme.colorScheme.primary.withValues(alpha: 0.46)
+                    : Colors.transparent,
+              ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

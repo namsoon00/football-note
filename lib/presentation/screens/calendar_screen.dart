@@ -63,6 +63,7 @@ class CalendarScreen extends StatefulWidget {
   final SettingsService settingsService;
   final BackupService? driveBackupService;
   final DateTime? initialSelectedDay;
+  final String? initialPlanId;
   final ValueChanged<TrainingEntry> onEdit;
   final VoidCallback? onCreate;
   final VoidCallback? onCreateMeal;
@@ -81,6 +82,7 @@ class CalendarScreen extends StatefulWidget {
     required this.settingsService,
     this.driveBackupService,
     this.initialSelectedDay,
+    this.initialPlanId,
     required this.onEdit,
     this.onCreate,
     this.onCreateMeal,
@@ -129,6 +131,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   List<_TrainingPlan> _plans = const <_TrainingPlan>[];
   String _plansStorageRaw = '';
   bool _quickCreateHandled = false;
+  bool _initialPlanLinkHandled = false;
   bool _overlayOpenInFlight = false;
   double _calendarVerticalDragDistance = 0;
 
@@ -167,6 +170,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       widget.onSelectedDayChanged?.call(
         _normalizeDay(_selectedDay ?? _focusedDay),
       );
+      unawaited(_maybeOpenInitialPlanLink());
       unawaited(_maybeRunQuickCreateAction());
     });
   }
@@ -205,6 +209,29 @@ class _CalendarScreenState extends State<CalendarScreen> {
     if (widget.quickCreateAction == null) return;
     if (widget.quickCreateAction == oldWidget.quickCreateAction) return;
     unawaited(_maybeRunQuickCreateAction());
+  }
+
+  Future<void> _maybeOpenInitialPlanLink() async {
+    if (_initialPlanLinkHandled) return;
+    final planId = widget.initialPlanId?.trim();
+    if (planId == null || planId.isEmpty) return;
+    _initialPlanLinkHandled = true;
+    final plan = _planForId(planId);
+    if (plan == null || !mounted) return;
+    final normalizedDay = _normalizeDay(plan.scheduledAt);
+    setState(() {
+      _selectedDay = normalizedDay;
+      _focusedDay = normalizedDay;
+    });
+    widget.onSelectedDayChanged?.call(normalizedDay);
+    await _openPlanSheet(day: plan.scheduledAt, editingPlan: plan);
+  }
+
+  _TrainingPlan? _planForId(String planId) {
+    for (final plan in _plans) {
+      if (plan.id == planId) return plan;
+    }
+    return null;
   }
 
   Future<void> _maybeRunQuickCreateAction() async {

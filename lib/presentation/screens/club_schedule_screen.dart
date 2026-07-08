@@ -19,12 +19,14 @@ class ClubScheduleScreen extends StatefulWidget {
   final OptionRepository optionRepository;
   final String? sportId;
   final bool readOnly;
+  final int? initialWeekday;
 
   const ClubScheduleScreen({
     super.key,
     required this.optionRepository,
     this.sportId,
     this.readOnly = false,
+    this.initialWeekday,
   });
 
   @override
@@ -36,6 +38,13 @@ class _ClubScheduleScreenState extends State<ClubScheduleScreen> {
   late ClubScheduleProfile _profile;
   late List<ClubTrainingSchedule> _schedules;
   final TextEditingController _clubNameController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  final Map<int, GlobalKey> _weekdayKeys = {
+    for (var weekday = DateTime.monday;
+        weekday <= DateTime.sunday;
+        weekday += 1)
+      weekday: GlobalKey(debugLabel: 'club-schedule-weekday-$weekday'),
+  };
   Timer? _autoSaveTimer;
   Future<void>? _activeSave;
   bool _queueSaveAfterCurrent = false;
@@ -53,6 +62,9 @@ class _ClubScheduleScreenState extends State<ClubScheduleScreen> {
     _clubNameController.text = _profile.clubName;
     _schedules = List<ClubTrainingSchedule>.from(_profile.weekdaySchedules);
     _clubNameController.addListener(_handleClubNameChanged);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToInitialWeekday();
+    });
   }
 
   @override
@@ -60,6 +72,7 @@ class _ClubScheduleScreenState extends State<ClubScheduleScreen> {
     _autoSaveTimer?.cancel();
     _clubNameController.removeListener(_handleClubNameChanged);
     _clubNameController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -88,6 +101,24 @@ class _ClubScheduleScreenState extends State<ClubScheduleScreen> {
     }
     setState(() {});
     _scheduleAutoSave();
+  }
+
+  void _scrollToInitialWeekday() {
+    final weekday = widget.initialWeekday;
+    if (weekday == null ||
+        weekday < DateTime.monday ||
+        weekday > DateTime.sunday) {
+      return;
+    }
+    final context = _weekdayKeys[weekday]?.currentContext;
+    if (context == null) return;
+    Scrollable.ensureVisible(
+      context,
+      duration: const Duration(milliseconds: 280),
+      curve: Curves.easeOutCubic,
+      alignment: 0.42,
+      alignmentPolicy: ScrollPositionAlignmentPolicy.explicit,
+    );
   }
 
   void _scheduleAutoSave() {
@@ -281,6 +312,7 @@ class _ClubScheduleScreenState extends State<ClubScheduleScreen> {
         body: AppBackground(
           child: SafeArea(
             child: ListView(
+              controller: _scrollController,
               padding: const EdgeInsets.fromLTRB(
                 AppSpacing.md,
                 AppSpacing.md,
@@ -301,6 +333,8 @@ class _ClubScheduleScreenState extends State<ClubScheduleScreen> {
                 const SizedBox(height: AppSpacing.md),
                 _WeekdaySchedulePanel(
                   schedules: _schedules,
+                  weekdayKeys: _weekdayKeys,
+                  highlightedWeekday: widget.initialWeekday,
                   weekdayLabel: _weekdayLabel,
                   timeLabel: _timeLabel,
                   readOnly: readOnly,
@@ -562,6 +596,8 @@ class _ClubNamePanel extends StatelessWidget {
 
 class _WeekdaySchedulePanel extends StatelessWidget {
   final List<ClubTrainingSchedule> schedules;
+  final Map<int, GlobalKey> weekdayKeys;
+  final int? highlightedWeekday;
   final String Function(int weekday) weekdayLabel;
   final String Function(int minutes) timeLabel;
   final bool readOnly;
@@ -573,6 +609,8 @@ class _WeekdaySchedulePanel extends StatelessWidget {
 
   const _WeekdaySchedulePanel({
     required this.schedules,
+    required this.weekdayKeys,
+    required this.highlightedWeekday,
     required this.weekdayLabel,
     required this.timeLabel,
     required this.readOnly,
@@ -602,7 +640,9 @@ class _WeekdaySchedulePanel extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
           for (final schedule in schedules) ...[
             _WeekdayScheduleRow(
+              key: weekdayKeys[schedule.weekday],
               schedule: schedule,
+              highlighted: schedule.weekday == highlightedWeekday,
               weekdayLabel: weekdayLabel(schedule.weekday),
               startTimeLabel: timeLabel(schedule.startMinutes),
               endTimeLabel: timeLabel(schedule.endMinutes),
@@ -621,6 +661,7 @@ class _WeekdaySchedulePanel extends StatelessWidget {
 
 class _WeekdayScheduleRow extends StatelessWidget {
   final ClubTrainingSchedule schedule;
+  final bool highlighted;
   final String weekdayLabel;
   final String startTimeLabel;
   final String endTimeLabel;
@@ -632,7 +673,9 @@ class _WeekdayScheduleRow extends StatelessWidget {
   }) onPickTime;
 
   const _WeekdayScheduleRow({
+    super.key,
     required this.schedule,
+    required this.highlighted,
     required this.weekdayLabel,
     required this.startTimeLabel,
     required this.endTimeLabel,
@@ -646,8 +689,22 @@ class _WeekdayScheduleRow extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOutCubic,
+      margin: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+      padding: EdgeInsets.all(highlighted ? AppSpacing.sm : 0),
+      decoration: BoxDecoration(
+        color: highlighted
+            ? scheme.primaryContainer.withValues(alpha: 0.36)
+            : Colors.transparent,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: highlighted
+              ? scheme.primary.withValues(alpha: 0.40)
+              : Colors.transparent,
+        ),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
