@@ -16,6 +16,7 @@ import '../../application/training_service.dart';
 import '../../domain/entities/training_entry.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../theme/app_theme.dart';
+import '../utils/app_sound_effects.dart';
 import '../utils/match_entry_format.dart';
 import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_feedback.dart';
@@ -1063,6 +1064,7 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
         sportId: saved.sportId,
       ).awardForMatchLog(previousEntry: previousEntry, updatedEntry: saved);
       if (!mounted) return;
+      AppSoundEffects.playRewardClaimed();
       AppFeedback.showSuccess(
         context,
         text: award.gainedXp > 0

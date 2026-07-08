@@ -16,6 +16,7 @@ import '../../domain/entities/training_board.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../models/training_method_layout.dart';
 import '../models/training_board_templates.dart';
+import '../utils/app_sound_effects.dart';
 import '../utils/pdf_export.dart';
 import '../utils/training_sketch_orientation_lock.dart';
 import '../widgets/app_bar_action_button.dart';
@@ -1936,6 +1937,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     if (!mounted) return true;
     if (showFeedback && (boardAward?.gainedXp ?? 0) <= 0) {
       final l10n = AppLocalizations.of(context)!;
+      AppSoundEffects.playRewardClaimed();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(l10n.trainingSketchSavedSnack),
