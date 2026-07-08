@@ -6705,6 +6705,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get fortuneDatabaseSectionShortLines => '短いおすすめ';
 
   @override
+  String get fortuneDatabaseSectionLuckyInfoNotes => 'ラッキーひとこと';
+
+  @override
   String get fortuneDatabaseSectionDayMoods => 'ひとことの材料';
 
   @override
@@ -6802,9 +6805,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get fortuneGeneratedLuckyInfoHeader => '[ラッキーナンバーとカラー]';
 
   @override
-  String fortuneGeneratedLuckyInfoLine(int number, String color) {
-    return 'ラッキーナンバーとカラー: $number · $color';
+  String fortuneGeneratedLuckyInfoLine(int number, String color, String note) {
+    return 'ラッキーナンバーは$number、カラーは$colorです。$note';
   }
+
+  @override
+  String get fortuneLuckyInfoNotes =>
+      '数字は小さな背番号みたいに覚えます。|この色を見たら今日のルーティンサインにします。|バッグの中でこの色を見つけたら少し心強いです。|色はユニフォームの差し色、数字は応援番号です。|見えたら少し笑って次のプレーへ進みます。|今日の運は持ち物の一か所で十分です。|数字は短く覚えて、色は目に残します。|この組み合わせはお守りより軽く、ステッカーより現実的です。|友だちに話しても気まずくないラッキーアイテムです。|色一つで今日の場面が少しはっきりします。|数字は拍子、色はアクセントとして持ちます。|バッグの中で見つけたら小さな勝ちです。|ユニフォームを選ぶくらい軽く覚えます。|見えたら水を一口飲むサインにします。|数字はチェックマークみたいに一つ残します。|この色は今日の小さなハイライトで十分です。|運も時々ドレスコードを見ます。|数字は短く、色ははっきり持ちます。|この組み合わせを小さなブースターにします。|なぜか目に入ったら味方だと思います。|色は目に、数字は頭に少し入れます。|この組み合わせは今日の小さな応援団です。|色を見たら肩の力を一度抜きます。|数字は背番号、色はサイドラインの応援みたいに持ちます。';
 
   @override
   String get fortuneRecommendedRecoveryProgram => 'リカバリー・ボールタッチ';
