@@ -6708,6 +6708,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get fortuneDatabaseSectionShortLines => '짧은 추천안';
 
   @override
+  String get fortuneDatabaseSectionLuckyInfoNotes => '행운 한마디';
+
+  @override
   String get fortuneDatabaseSectionDayMoods => '한 줄 재료';
 
   @override
@@ -6805,9 +6808,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get fortuneGeneratedLuckyInfoHeader => '[행운의 숫자와 색]';
 
   @override
-  String fortuneGeneratedLuckyInfoLine(int number, String color) {
-    return '행운의 숫자와 색: $number · $color';
+  String fortuneGeneratedLuckyInfoLine(int number, String color, String note) {
+    return '행운의 숫자는 $number, 색은 $color예요. $note';
   }
+
+  @override
+  String get fortuneLuckyInfoNotes =>
+      '숫자는 마음속 등번호처럼 가볍게 저장해요.|이 색 보이면 오늘 루틴 시작 사인으로 써요.|가방 속에서 이 색을 찾으면 괜히 든든해요.|색은 유니폼 포인트, 숫자는 응원 번호로 챙겨요.|보이면 살짝 웃고 다음 플레이로 넘어가요.|행운은 소지품 한 칸이면 충분해요.|숫자는 짧게 외우고 색은 눈에 익혀요.|이 조합은 부적보다 가볍고 스티커보다 현실적이에요.|친구에게 말해도 덜 민망한 행운템이에요.|색 하나로 오늘 장면이 조금 선명해져요.|숫자는 박자처럼, 색은 포인트처럼 챙겨요.|오늘 가방 안에서 찾으면 소소하게 이긴 겁니다.|유니폼 고르듯 가볍게 기억해요.|보이는 순간 물 한 모금 마시는 사인으로 써요.|숫자는 체크 표시처럼 하루에 하나 남겨요.|이 색은 하루의 작은 하이라이트로 충분해요.|행운도 가끔은 드레스코드를 챙깁니다.|숫자는 짧게, 색은 선명하게 가져가요.|오늘은 이 조합을 작은 부스터로 써요.|괜히 눈에 띄면 그냥 내 편이라고 생각해요.|색은 눈에, 숫자는 머리에 살짝 넣어요.|이 조합은 하루짜리 미니 응원단이에요.|색을 보면 어깨 힘 한 번 빼는 걸로 해요.|숫자는 등번호, 색은 사이드라인 응원처럼 챙겨요.';
 
   @override
   String get fortuneRecommendedRecoveryProgram => '회복 볼터치';

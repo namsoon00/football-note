@@ -12089,6 +12089,12 @@ abstract class AppLocalizations {
   /// **'Short recommendations'**
   String get fortuneDatabaseSectionShortLines;
 
+  /// No description provided for @fortuneDatabaseSectionLuckyInfoNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Lucky one-liners'**
+  String get fortuneDatabaseSectionLuckyInfoNotes;
+
   /// No description provided for @fortuneDatabaseSectionDayMoods.
   ///
   /// In en, this message translates to:
@@ -12257,8 +12263,14 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneGeneratedLuckyInfoLine.
   ///
   /// In en, this message translates to:
-  /// **'Lucky number and color: {number} · {color}'**
-  String fortuneGeneratedLuckyInfoLine(int number, String color);
+  /// **'Lucky number is {number}, lucky color is {color}. {note}'**
+  String fortuneGeneratedLuckyInfoLine(int number, String color, String note);
+
+  /// No description provided for @fortuneLuckyInfoNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the number like a small jersey number.|When you spot this color, use it as your routine signal.|Finding this color in your bag can feel oddly steady.|Treat the color as the uniform accent and the number as your cheer code.|Smile when you see it, then move to the next play.|Today\'s luck only needs one pocket in your bag.|Remember the number quickly and let the color stay visible.|This combo is lighter than a charm and more useful than a sticker.|It is a lucky item you can mention without feeling awkward.|One color can make today\'s scene a little clearer.|Carry the number like a beat and the color like an accent.|Finding it in your bag counts as a tiny win.|Remember it as lightly as choosing a uniform.|Let it remind you to take one sip of water.|Leave the number like one check mark for the day.|This color is enough as today\'s small highlight.|Even luck checks the dress code sometimes.|Keep the number short and the color clear.|Use this combo as a small booster.|If it catches your eye, count it as being on your side.|Keep the color in sight and the number in mind.|This combo is today\'s tiny cheering section.|When you see the color, drop your shoulders once.|Carry the number like a jersey and the color like sideline support.'**
+  String get fortuneLuckyInfoNotes;
 
   /// No description provided for @fortuneRecommendedRecoveryProgram.
   ///
