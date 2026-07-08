@@ -49,6 +49,7 @@ class HomeScreen extends StatefulWidget {
   final BackupService? driveBackupService;
   final int initialIndex;
   final DateTime? initialCalendarSelectedDay;
+  final String? initialCalendarPlanId;
   final CalendarQuickCreateAction? calendarQuickCreateAction;
 
   const HomeScreen({
@@ -61,6 +62,7 @@ class HomeScreen extends StatefulWidget {
     this.driveBackupService,
     this.initialIndex = 0,
     this.initialCalendarSelectedDay,
+    this.initialCalendarPlanId,
     this.calendarQuickCreateAction,
   });
 
@@ -352,6 +354,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           settingsService: widget.settingsService,
           driveBackupService: widget.driveBackupService,
           initialSelectedDay: _calendarSelectedDay,
+          initialPlanId: widget.initialCalendarPlanId,
           onEdit: _openEdit,
           onCreate: () => _openCreate(initialDate: _calendarSelectedDay),
           onCreateMeal: () => _openMealLog(initialDate: _calendarSelectedDay),

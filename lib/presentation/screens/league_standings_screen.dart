@@ -19,18 +19,22 @@ import '../widgets/app_skeleton.dart';
 
 class LeagueStandingsScreen extends StatefulWidget {
   final LeagueStandingsType initialType;
+  final bool forceInitialType;
   final LeagueStandingsService? service;
   final LeagueFixtureReminderService? reminderService;
   final OptionRepository? optionRepository;
   final SettingsService? settingsService;
+  final String? initialFixtureKey;
 
   const LeagueStandingsScreen({
     super.key,
     this.initialType = LeagueStandingsType.kLeague1,
+    this.forceInitialType = false,
     this.service,
     this.reminderService,
     this.optionRepository,
     this.settingsService,
+    this.initialFixtureKey,
   });
 
   @override
@@ -60,6 +64,7 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
       <LeagueStandingsType>{};
   Set<String> _favoriteTeamKeys = <String>{};
   Future<_LeagueOverviewSnapshot>? _future;
+  bool _initialFixtureOpenHandled = false;
 
   @override
   void initState() {
@@ -83,6 +88,7 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
     );
     _future = _futureFor(_selectedType);
     _scrollLeagueTabIntoView(_selectedType);
+    _scheduleInitialFixtureOpen();
   }
 
   @override
@@ -111,6 +117,10 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
   }
 
   LeagueStandingsType _loadInitialType() {
+    if (widget.forceInitialType ||
+        (widget.initialFixtureKey ?? '').trim().isNotEmpty) {
+      return widget.initialType;
+    }
     final stored = widget.optionRepository?.getValue<String>(
       _lastSelectedLeagueKey,
     );
@@ -165,6 +175,44 @@ class _LeagueStandingsScreenState extends State<LeagueStandingsScreen> {
 
   Future<_LeagueOverviewSnapshot> _futureFor(LeagueStandingsType type) {
     return _futures.putIfAbsent(type, () => _load(type));
+  }
+
+  void _scheduleInitialFixtureOpen() {
+    if (_initialFixtureOpenHandled) return;
+    final fixtureKey = widget.initialFixtureKey?.trim();
+    if (fixtureKey == null || fixtureKey.isEmpty) return;
+    _initialFixtureOpenHandled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        final snapshot = await _futureFor(_selectedType);
+        if (!mounted || snapshot.fixtures.entries.isEmpty) return;
+        final target = _fixtureEntryForKey(snapshot.fixtures, fixtureKey);
+        await Navigator.of(context).push(
+          AppPageRoute<void>(
+            builder: (_) => _LeagueFixtureCalendarScreen(
+              snapshot: snapshot.fixtures,
+              entries: snapshot.fixtures.entries,
+              favoriteTeamKeys: _favoriteTeamKeys,
+              initialFixtureKey: fixtureKey,
+              initialSelectedDay: target?.kickoffAt.toLocal(),
+            ),
+          ),
+        );
+      } catch (error) {
+        debugPrint('League fixture deep link open failed: $error');
+      }
+    });
+  }
+
+  LeagueFixtureEntry? _fixtureEntryForKey(
+    LeagueFixtureSnapshot snapshot,
+    String fixtureKey,
+  ) {
+    final trimmed = fixtureKey.trim();
+    for (final entry in snapshot.entries) {
+      if (_fixtureKeyMatchesEntry(snapshot, entry, trimmed)) return entry;
+    }
+    return null;
   }
 
   Future<LeagueFixtureSnapshot> _loadFixturesOrEmpty({
@@ -1756,6 +1804,30 @@ bool _fixtureInvolvesTeam(LeagueFixtureEntry fixture, String teamName) {
       fixture.awayTeamName.trim().toLowerCase() == normalized;
 }
 
+LeagueFixtureEntry? _fixtureEntryForKey(
+  LeagueFixtureSnapshot snapshot,
+  Iterable<LeagueFixtureEntry> entries,
+  String fixtureKey,
+) {
+  final trimmed = fixtureKey.trim();
+  if (trimmed.isEmpty) return null;
+  for (final entry in entries) {
+    if (_fixtureKeyMatchesEntry(snapshot, entry, trimmed)) return entry;
+  }
+  return null;
+}
+
+bool _fixtureKeyMatchesEntry(
+  LeagueFixtureSnapshot snapshot,
+  LeagueFixtureEntry entry,
+  String fixtureKey,
+) {
+  final trimmed = fixtureKey.trim();
+  if (trimmed.isEmpty) return false;
+  if (trimmed == entry.id) return true;
+  return trimmed.startsWith('${snapshot.type.name}:${entry.id}:');
+}
+
 class _FixtureCalendarButton extends StatelessWidget {
   final LeagueFixtureSnapshot snapshot;
   final List<LeagueFixtureEntry> entries;
@@ -1805,11 +1877,15 @@ class _LeagueFixtureCalendarScreen extends StatefulWidget {
   final LeagueFixtureSnapshot snapshot;
   final List<LeagueFixtureEntry> entries;
   final Set<String> favoriteTeamKeys;
+  final String? initialFixtureKey;
+  final DateTime? initialSelectedDay;
 
   const _LeagueFixtureCalendarScreen({
     required this.snapshot,
     required this.entries,
     required this.favoriteTeamKeys,
+    this.initialFixtureKey,
+    this.initialSelectedDay,
   });
 
   @override
@@ -1837,8 +1913,13 @@ class _LeagueFixtureCalendarScreenState
     final defaultDay = defaultEntry == null
         ? _normalizeDay(now)
         : _normalizeDay(defaultEntry.kickoffAt.toLocal());
-    _focusedDay = defaultDay;
-    _selectedDay = defaultDay;
+    final linkedEntry = _fixtureEntryForKey(widget.snapshot, widget.entries,
+        widget.initialFixtureKey?.trim() ?? '');
+    final initialDay = widget.initialSelectedDay ??
+        linkedEntry?.kickoffAt.toLocal() ??
+        defaultDay;
+    _focusedDay = _normalizeDay(initialDay);
+    _selectedDay = _focusedDay;
   }
 
   Map<DateTime, List<LeagueFixtureEntry>> _groupByDay(
@@ -1991,7 +2072,14 @@ class _LeagueFixtureCalendarScreenState
                 for (var index = 0;
                     index < selectedEntries.length;
                     index++) ...[
-                  _FixtureRow(entry: selectedEntries[index]),
+                  _FixtureRow(
+                    entry: selectedEntries[index],
+                    highlighted: _fixtureKeyMatchesEntry(
+                      widget.snapshot,
+                      selectedEntries[index],
+                      widget.initialFixtureKey ?? '',
+                    ),
+                  ),
                   if (index != selectedEntries.length - 1)
                     const SizedBox(height: 8),
                 ],
@@ -2056,8 +2144,9 @@ class _FixtureCalendarMarkers extends StatelessWidget {
 
 class _FixtureRow extends StatelessWidget {
   final LeagueFixtureEntry entry;
+  final bool highlighted;
 
-  const _FixtureRow({required this.entry});
+  const _FixtureRow({required this.entry, this.highlighted = false});
 
   @override
   Widget build(BuildContext context) {
@@ -2073,8 +2162,17 @@ class _FixtureRow extends StatelessWidget {
       if (entry.city.trim().isNotEmpty) entry.city.trim(),
     ];
     return Material(
-      color: theme.colorScheme.surfaceContainerLow,
-      borderRadius: BorderRadius.circular(12),
+      color: highlighted
+          ? theme.colorScheme.primaryContainer.withValues(alpha: 0.42)
+          : theme.colorScheme.surfaceContainerLow,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: highlighted
+              ? theme.colorScheme.primary.withValues(alpha: 0.46)
+              : Colors.transparent,
+        ),
+      ),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: entry.sourceUrl.trim().isEmpty
