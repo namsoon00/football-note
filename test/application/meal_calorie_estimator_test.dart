@@ -72,4 +72,20 @@ void main() {
     expect(estimate.totalProtein, closeTo(45, 0.01));
     expect(estimate.totalFat, closeTo(10, 0.01));
   });
+
+  test('uses standalone main dish portion and adds manual rice separately', () {
+    final estimate = MealCalorieEstimator.estimate(
+      MealEntry(
+        date: DateTime(2026, 7, 9),
+        breakfastDishId: 'spaghetti',
+        breakfastDishPortion: 'small',
+        lunchRiceBowls: 1,
+        lunchDishId: 'spaghetti',
+      ),
+    );
+
+    expect(estimate.breakfastKcal, 455);
+    expect(estimate.lunchKcal, 950);
+    expect(estimate.totalKcal, 1405);
+  });
 }
