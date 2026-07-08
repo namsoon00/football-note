@@ -548,6 +548,35 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newsTranslateAction => 'Translate';
 
   @override
+  String get newsLoadFailedMessage =>
+      'Failed to load news. Pull down to refresh.';
+
+  @override
+  String get newsNoChannelArticles => 'No news for selected channels.';
+
+  @override
+  String get newsNoScrappedArticles => 'No scrapped news yet.';
+
+  @override
+  String get newsNoResultsFound => 'No results found.';
+
+  @override
+  String get newsScrapTooltip => 'Scrap';
+
+  @override
+  String get newsRemoveScrapTooltip => 'Remove scrap';
+
+  @override
+  String get newsScrappedSnack => 'News scrapped.';
+
+  @override
+  String get newsScrapRemovedSnack => 'Scrap removed.';
+
+  @override
+  String get newsTranslationGuideSnack =>
+      'Use the top-right menu on the article screen to translate the page.';
+
+  @override
   String get newsSelectChannelsTitle => 'Select news channels';
 
   @override
@@ -3462,6 +3491,115 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsWeeklyMinutes => 'Weekly Minutes';
 
   @override
+  String get statsLoadingMessage => 'Loading statistics...';
+
+  @override
+  String get statsLoadFailedMessage =>
+      'There was a problem loading statistics.';
+
+  @override
+  String get statsFallbackMessage =>
+      'Some stats failed to compute, showing fallback view.';
+
+  @override
+  String get statsTrainingTab => 'Training';
+
+  @override
+  String get statsMatchesTab => 'Matches';
+
+  @override
+  String get statsNoMatchesSelectedPeriod =>
+      'No matches in the selected period.';
+
+  @override
+  String get statsRangePickerHelp => 'Select period';
+
+  @override
+  String get statsWorkoutDaysNone => 'Workout days: none';
+
+  @override
+  String statsWorkoutDaysValue(Object days) {
+    return 'Workout days: $days';
+  }
+
+  @override
+  String get statsGrowthChartTitle => 'Growth Chart';
+
+  @override
+  String get statsActualLabel => 'Actual';
+
+  @override
+  String get statsTargetLabel => 'Target';
+
+  @override
+  String get statsActualTimeDailyLabel => 'Actual time (daily)';
+
+  @override
+  String get statsAverageTargetTimeDailyLabel => 'Average target time (daily)';
+
+  @override
+  String get statsAllMatchRecordsTitle => 'All Match Records';
+
+  @override
+  String statsMatchMinutesPlayedValue(Object minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String get statsResultUnset => 'Result unset';
+
+  @override
+  String get statsOutcomeWin => 'Win';
+
+  @override
+  String get statsOutcomeDraw => 'Draw';
+
+  @override
+  String get statsOutcomeLoss => 'Loss';
+
+  @override
+  String get statsDurationZeroMinutes => '0m';
+
+  @override
+  String statsDurationMinutes(Object minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String statsDurationHours(Object hours) {
+    return '$hours h';
+  }
+
+  @override
+  String statsDurationHoursMinutes(Object hours, Object minutes) {
+    return '$hours h $minutes min';
+  }
+
+  @override
+  String get statsCompactDurationZero => '0h';
+
+  @override
+  String statsCompactDurationMinutes(Object minutes) {
+    return '$minutes m';
+  }
+
+  @override
+  String statsCompactDurationHours(Object hours) {
+    return '$hours h';
+  }
+
+  @override
+  String statsCompactDurationHoursMinutes(Object hours, Object minutes) {
+    return '$hours h $minutes m';
+  }
+
+  @override
+  String get statsComparisonCurrentLabel => 'Now';
+
+  @override
+  String get statsComparisonAverageLabel => 'Avg';
+
+  @override
   String get growthHistory => 'Growth History';
 
   @override
@@ -4247,6 +4385,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get languageJapanese => 'Japanese';
 
   @override
+  String get languageSystemDefault => 'System default';
+
+  @override
   String get settings => 'Settings';
 
   @override
@@ -4270,6 +4411,52 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsNewsBlockedDomainsExample =>
       'Example: example.com (domain only, no path)';
+
+  @override
+  String get settingsJournalOptionManagerTitle => 'Journal option manager';
+
+  @override
+  String settingsOptionItemsCount(int count) {
+    return '$count items';
+  }
+
+  @override
+  String get settingsDurationOptionsTitle => 'Duration options';
+
+  @override
+  String get settingsDurationOptionsManageTitle => 'Manage duration options';
+
+  @override
+  String get settingsProgramOptionsTitle => 'Program options';
+
+  @override
+  String get settingsProgramOptionsManageTitle => 'Manage program options';
+
+  @override
+  String get settingsTrainingGoalOptionsTitle => 'Training goal options';
+
+  @override
+  String get settingsTrainingGoalOptionsManageTitle =>
+      'Manage training goal options';
+
+  @override
+  String get settingsInjuryPartOptionsTitle => 'Injury part options';
+
+  @override
+  String get settingsInjuryPartOptionsManageTitle =>
+      'Manage injury part options';
+
+  @override
+  String get settingsOptionEditTitle => 'Edit option';
+
+  @override
+  String get settingsOptionAddTitle => 'Add option';
+
+  @override
+  String get settingsIntOptionEditTitle => 'Edit minutes';
+
+  @override
+  String get settingsIntOptionAddTitle => 'Add minutes';
 
   @override
   String get settingsApiUsageTitle => 'APIs used in this app';
@@ -5478,6 +5665,133 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeWeatherOutfitCaseWetRange => 'When raining or snowing';
+
+  @override
+  String get homeWeatherOutfitLayersDefault => 'Base layer + short-sleeve top';
+
+  @override
+  String get homeWeatherOutfitOuterDefault => 'Light zip-up or vest';
+
+  @override
+  String get homeWeatherOutfitBottomDefault => 'Standard shorts';
+
+  @override
+  String get homeWeatherOutfitAccessoriesDefault =>
+      'Spare socks and water bottle';
+
+  @override
+  String get homeWeatherOutfitLayersHot =>
+      'Sleeveless/short-sleeve + cooling base';
+
+  @override
+  String get homeWeatherOutfitOuterNone => 'No outerwear';
+
+  @override
+  String get homeWeatherOutfitBottomHot => 'Breathable shorts';
+
+  @override
+  String get homeWeatherOutfitAccessoriesHot => 'Cool towel, iced water, cap';
+
+  @override
+  String get homeWeatherOutfitNoteHotBreaks => 'Take frequent cooling breaks';
+
+  @override
+  String get homeWeatherOutfitLayersWarm => 'Short-sleeve training top';
+
+  @override
+  String get homeWeatherOutfitBottomWarm => 'Training shorts';
+
+  @override
+  String get homeWeatherOutfitAccessoriesWarm => 'Spare shirt and sweat towel';
+
+  @override
+  String get homeWeatherOutfitLayersMild => 'Base layer + short/long sleeve';
+
+  @override
+  String get homeWeatherOutfitOuterMild => 'Training zip-up or vest';
+
+  @override
+  String get homeWeatherOutfitBottomMild => 'Light track pants or shorts';
+
+  @override
+  String get homeWeatherOutfitAccessoriesMild => 'Warm-up layer';
+
+  @override
+  String get homeWeatherOutfitLayersCool =>
+      'Brushed base layer + long-sleeve top';
+
+  @override
+  String get homeWeatherOutfitOuterCool => 'Windbreaker + vest';
+
+  @override
+  String get homeWeatherOutfitBottomTrackPants => 'Long training pants';
+
+  @override
+  String get homeWeatherOutfitAccessoriesCool => 'Light gloves, neck warmer';
+
+  @override
+  String get homeWeatherOutfitLayersCold =>
+      'Thermal base + long-sleeve + midlayer';
+
+  @override
+  String get homeWeatherOutfitOuterCold => 'Windproof jacket or padded vest';
+
+  @override
+  String get homeWeatherOutfitAccessoriesCold =>
+      'Winter gloves, neck warmer, ear cover';
+
+  @override
+  String get homeWeatherOutfitLayersVeryCold =>
+      'Heat base layer + thick midlayer';
+
+  @override
+  String get homeWeatherOutfitOuterVeryCold =>
+      'Light puffer/training padded jacket';
+
+  @override
+  String get homeWeatherOutfitBottomVeryCold => 'Thermal training pants';
+
+  @override
+  String get homeWeatherOutfitAccessoriesVeryCold =>
+      'Insulated gloves, neck warmer, beanie';
+
+  @override
+  String get homeWeatherOutfitNoteVeryCold =>
+      'Warm up indoors then do short outdoor sets';
+
+  @override
+  String get homeWeatherOutfitNoteStrongWind =>
+      'Strong wind: windbreaker and neck warmer required';
+
+  @override
+  String get homeWeatherOutfitOuterWaterproof => 'Waterproof windproof jacket';
+
+  @override
+  String get homeWeatherOutfitOuterRainLight =>
+      'Water-resistant jacket + light midlayer';
+
+  @override
+  String homeWeatherOutfitAccessoriesRain(Object accessories) {
+    return '$accessories, waterproof or spare socks';
+  }
+
+  @override
+  String get homeWeatherOutfitNoteWetGrass => 'Watch slippery wet grass';
+
+  @override
+  String homeWeatherOutfitAccessoriesSnow(Object accessories) {
+    return '$accessories, hand warmers (optional)';
+  }
+
+  @override
+  String get homeWeatherOutfitNoteIcy => 'Avoid icy zones';
+
+  @override
+  String get homeWeatherOutfitBottomFleece => 'Fleece-lined pants';
+
+  @override
+  String get homeWeatherOutfitCautionNormal =>
+      'Normal intensity is fine in current conditions';
 
   @override
   String get homeWeatherAirQualityTitle => 'Air quality';
@@ -12271,6 +12585,103 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get trainingSketchCopiedFromAnotherSnack =>
       'Sketch copied from another one.';
+
+  @override
+  String get trainingBoardListTitle => 'Training sketch list';
+
+  @override
+  String get trainingBoardTitleDialogTitle => 'Training sketch title';
+
+  @override
+  String get trainingBoardTitleHint => 'e.g. Pass warm-up';
+
+  @override
+  String get trainingBoardRenamedSnack => 'Board renamed.';
+
+  @override
+  String get trainingBoardRenameUndoneSnack => 'Rename undone.';
+
+  @override
+  String get trainingBoardNoCopySourceSnack => 'No training sketch to copy.';
+
+  @override
+  String trainingBoardDefaultCopyTitle(Object title) {
+    return '$title Copy';
+  }
+
+  @override
+  String get trainingBoardDeleteTitle => 'Delete training sketch';
+
+  @override
+  String trainingBoardDeleteConfirm(Object title) {
+    return 'Delete \"$title\"?';
+  }
+
+  @override
+  String get trainingBoardDeletedSnack => 'Board deleted.';
+
+  @override
+  String get trainingBoardDeleteUndoneSnack => 'Delete undone.';
+
+  @override
+  String get trainingBoardDefaultTitle => 'Training Board';
+
+  @override
+  String get trainingBoardSearchCloseTooltip => 'Close search';
+
+  @override
+  String get trainingBoardSearchTooltip => 'Search boards';
+
+  @override
+  String get trainingBoardSortTooltip => 'Sort';
+
+  @override
+  String get trainingBoardSortRecentlyUpdated => 'Recently updated';
+
+  @override
+  String get trainingBoardSortTrainingDate => 'Training date';
+
+  @override
+  String get trainingBoardSortName => 'Name A-Z';
+
+  @override
+  String get trainingBoardAddTooltip => 'Add training sketch';
+
+  @override
+  String get trainingBoardCreateNewAction => 'Create new sketch';
+
+  @override
+  String get trainingBoardCopyPreviousAction => 'Copy previous sketch';
+
+  @override
+  String get trainingBoardDoneAction => 'Done';
+
+  @override
+  String get trainingBoardEmptyTitle => 'No boards yet.';
+
+  @override
+  String get trainingBoardEmptySubtitle =>
+      'Create one directly from a training note.';
+
+  @override
+  String get trainingBoardBackToNotes => 'Back to notes';
+
+  @override
+  String get trainingBoardSearchHint => 'Search board';
+
+  @override
+  String get trainingBoardNoSearchResults => 'No search results.';
+
+  @override
+  String trainingBoardListItemSubtitle(Object count, Object date) {
+    return '$count items · Training date $date';
+  }
+
+  @override
+  String get trainingBoardRenameAction => 'Rename';
+
+  @override
+  String get trainingBoardDuplicateAction => 'Duplicate';
 
   @override
   String get trainingSketchAutoStagesButton => 'Auto stages';

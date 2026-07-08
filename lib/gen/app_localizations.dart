@@ -1038,6 +1038,60 @@ abstract class AppLocalizations {
   /// **'Translate'**
   String get newsTranslateAction;
 
+  /// No description provided for @newsLoadFailedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load news. Pull down to refresh.'**
+  String get newsLoadFailedMessage;
+
+  /// No description provided for @newsNoChannelArticles.
+  ///
+  /// In en, this message translates to:
+  /// **'No news for selected channels.'**
+  String get newsNoChannelArticles;
+
+  /// No description provided for @newsNoScrappedArticles.
+  ///
+  /// In en, this message translates to:
+  /// **'No scrapped news yet.'**
+  String get newsNoScrappedArticles;
+
+  /// No description provided for @newsNoResultsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No results found.'**
+  String get newsNoResultsFound;
+
+  /// No description provided for @newsScrapTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Scrap'**
+  String get newsScrapTooltip;
+
+  /// No description provided for @newsRemoveScrapTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove scrap'**
+  String get newsRemoveScrapTooltip;
+
+  /// No description provided for @newsScrappedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'News scrapped.'**
+  String get newsScrappedSnack;
+
+  /// No description provided for @newsScrapRemovedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Scrap removed.'**
+  String get newsScrapRemovedSnack;
+
+  /// No description provided for @newsTranslationGuideSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the top-right menu on the article screen to translate the page.'**
+  String get newsTranslationGuideSnack;
+
   /// No description provided for @newsSelectChannelsTitle.
   ///
   /// In en, this message translates to:
@@ -6170,6 +6224,186 @@ abstract class AppLocalizations {
   /// **'Weekly Minutes'**
   String get statsWeeklyMinutes;
 
+  /// No description provided for @statsLoadingMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading statistics...'**
+  String get statsLoadingMessage;
+
+  /// No description provided for @statsLoadFailedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'There was a problem loading statistics.'**
+  String get statsLoadFailedMessage;
+
+  /// No description provided for @statsFallbackMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Some stats failed to compute, showing fallback view.'**
+  String get statsFallbackMessage;
+
+  /// No description provided for @statsTrainingTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Training'**
+  String get statsTrainingTab;
+
+  /// No description provided for @statsMatchesTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Matches'**
+  String get statsMatchesTab;
+
+  /// No description provided for @statsNoMatchesSelectedPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'No matches in the selected period.'**
+  String get statsNoMatchesSelectedPeriod;
+
+  /// No description provided for @statsRangePickerHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Select period'**
+  String get statsRangePickerHelp;
+
+  /// No description provided for @statsWorkoutDaysNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Workout days: none'**
+  String get statsWorkoutDaysNone;
+
+  /// No description provided for @statsWorkoutDaysValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Workout days: {days}'**
+  String statsWorkoutDaysValue(Object days);
+
+  /// No description provided for @statsGrowthChartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Growth Chart'**
+  String get statsGrowthChartTitle;
+
+  /// No description provided for @statsActualLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual'**
+  String get statsActualLabel;
+
+  /// No description provided for @statsTargetLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Target'**
+  String get statsTargetLabel;
+
+  /// No description provided for @statsActualTimeDailyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual time (daily)'**
+  String get statsActualTimeDailyLabel;
+
+  /// No description provided for @statsAverageTargetTimeDailyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Average target time (daily)'**
+  String get statsAverageTargetTimeDailyLabel;
+
+  /// No description provided for @statsAllMatchRecordsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'All Match Records'**
+  String get statsAllMatchRecordsTitle;
+
+  /// No description provided for @statsMatchMinutesPlayedValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min'**
+  String statsMatchMinutesPlayedValue(Object minutes);
+
+  /// No description provided for @statsResultUnset.
+  ///
+  /// In en, this message translates to:
+  /// **'Result unset'**
+  String get statsResultUnset;
+
+  /// No description provided for @statsOutcomeWin.
+  ///
+  /// In en, this message translates to:
+  /// **'Win'**
+  String get statsOutcomeWin;
+
+  /// No description provided for @statsOutcomeDraw.
+  ///
+  /// In en, this message translates to:
+  /// **'Draw'**
+  String get statsOutcomeDraw;
+
+  /// No description provided for @statsOutcomeLoss.
+  ///
+  /// In en, this message translates to:
+  /// **'Loss'**
+  String get statsOutcomeLoss;
+
+  /// No description provided for @statsDurationZeroMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'0m'**
+  String get statsDurationZeroMinutes;
+
+  /// No description provided for @statsDurationMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min'**
+  String statsDurationMinutes(Object minutes);
+
+  /// No description provided for @statsDurationHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} h'**
+  String statsDurationHours(Object hours);
+
+  /// No description provided for @statsDurationHoursMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} h {minutes} min'**
+  String statsDurationHoursMinutes(Object hours, Object minutes);
+
+  /// No description provided for @statsCompactDurationZero.
+  ///
+  /// In en, this message translates to:
+  /// **'0h'**
+  String get statsCompactDurationZero;
+
+  /// No description provided for @statsCompactDurationMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} m'**
+  String statsCompactDurationMinutes(Object minutes);
+
+  /// No description provided for @statsCompactDurationHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} h'**
+  String statsCompactDurationHours(Object hours);
+
+  /// No description provided for @statsCompactDurationHoursMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} h {minutes} m'**
+  String statsCompactDurationHoursMinutes(Object hours, Object minutes);
+
+  /// No description provided for @statsComparisonCurrentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Now'**
+  String get statsComparisonCurrentLabel;
+
+  /// No description provided for @statsComparisonAverageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg'**
+  String get statsComparisonAverageLabel;
+
   /// No description provided for @growthHistory.
   ///
   /// In en, this message translates to:
@@ -7498,6 +7732,12 @@ abstract class AppLocalizations {
   /// **'Japanese'**
   String get languageJapanese;
 
+  /// No description provided for @languageSystemDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'System default'**
+  String get languageSystemDefault;
+
   /// No description provided for @settings.
   ///
   /// In en, this message translates to:
@@ -7539,6 +7779,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Example: example.com (domain only, no path)'**
   String get settingsNewsBlockedDomainsExample;
+
+  /// No description provided for @settingsJournalOptionManagerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Journal option manager'**
+  String get settingsJournalOptionManagerTitle;
+
+  /// No description provided for @settingsOptionItemsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} items'**
+  String settingsOptionItemsCount(int count);
+
+  /// No description provided for @settingsDurationOptionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration options'**
+  String get settingsDurationOptionsTitle;
+
+  /// No description provided for @settingsDurationOptionsManageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage duration options'**
+  String get settingsDurationOptionsManageTitle;
+
+  /// No description provided for @settingsProgramOptionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Program options'**
+  String get settingsProgramOptionsTitle;
+
+  /// No description provided for @settingsProgramOptionsManageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage program options'**
+  String get settingsProgramOptionsManageTitle;
+
+  /// No description provided for @settingsTrainingGoalOptionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Training goal options'**
+  String get settingsTrainingGoalOptionsTitle;
+
+  /// No description provided for @settingsTrainingGoalOptionsManageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage training goal options'**
+  String get settingsTrainingGoalOptionsManageTitle;
+
+  /// No description provided for @settingsInjuryPartOptionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Injury part options'**
+  String get settingsInjuryPartOptionsTitle;
+
+  /// No description provided for @settingsInjuryPartOptionsManageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage injury part options'**
+  String get settingsInjuryPartOptionsManageTitle;
+
+  /// No description provided for @settingsOptionEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit option'**
+  String get settingsOptionEditTitle;
+
+  /// No description provided for @settingsOptionAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add option'**
+  String get settingsOptionAddTitle;
+
+  /// No description provided for @settingsIntOptionEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit minutes'**
+  String get settingsIntOptionEditTitle;
+
+  /// No description provided for @settingsIntOptionAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add minutes'**
+  String get settingsIntOptionAddTitle;
 
   /// No description provided for @settingsApiUsageTitle.
   ///
@@ -9675,6 +9999,228 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'When raining or snowing'**
   String get homeWeatherOutfitCaseWetRange;
+
+  /// No description provided for @homeWeatherOutfitLayersDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Base layer + short-sleeve top'**
+  String get homeWeatherOutfitLayersDefault;
+
+  /// No description provided for @homeWeatherOutfitOuterDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Light zip-up or vest'**
+  String get homeWeatherOutfitOuterDefault;
+
+  /// No description provided for @homeWeatherOutfitBottomDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard shorts'**
+  String get homeWeatherOutfitBottomDefault;
+
+  /// No description provided for @homeWeatherOutfitAccessoriesDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Spare socks and water bottle'**
+  String get homeWeatherOutfitAccessoriesDefault;
+
+  /// No description provided for @homeWeatherOutfitLayersHot.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleeveless/short-sleeve + cooling base'**
+  String get homeWeatherOutfitLayersHot;
+
+  /// No description provided for @homeWeatherOutfitOuterNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No outerwear'**
+  String get homeWeatherOutfitOuterNone;
+
+  /// No description provided for @homeWeatherOutfitBottomHot.
+  ///
+  /// In en, this message translates to:
+  /// **'Breathable shorts'**
+  String get homeWeatherOutfitBottomHot;
+
+  /// No description provided for @homeWeatherOutfitAccessoriesHot.
+  ///
+  /// In en, this message translates to:
+  /// **'Cool towel, iced water, cap'**
+  String get homeWeatherOutfitAccessoriesHot;
+
+  /// No description provided for @homeWeatherOutfitNoteHotBreaks.
+  ///
+  /// In en, this message translates to:
+  /// **'Take frequent cooling breaks'**
+  String get homeWeatherOutfitNoteHotBreaks;
+
+  /// No description provided for @homeWeatherOutfitLayersWarm.
+  ///
+  /// In en, this message translates to:
+  /// **'Short-sleeve training top'**
+  String get homeWeatherOutfitLayersWarm;
+
+  /// No description provided for @homeWeatherOutfitBottomWarm.
+  ///
+  /// In en, this message translates to:
+  /// **'Training shorts'**
+  String get homeWeatherOutfitBottomWarm;
+
+  /// No description provided for @homeWeatherOutfitAccessoriesWarm.
+  ///
+  /// In en, this message translates to:
+  /// **'Spare shirt and sweat towel'**
+  String get homeWeatherOutfitAccessoriesWarm;
+
+  /// No description provided for @homeWeatherOutfitLayersMild.
+  ///
+  /// In en, this message translates to:
+  /// **'Base layer + short/long sleeve'**
+  String get homeWeatherOutfitLayersMild;
+
+  /// No description provided for @homeWeatherOutfitOuterMild.
+  ///
+  /// In en, this message translates to:
+  /// **'Training zip-up or vest'**
+  String get homeWeatherOutfitOuterMild;
+
+  /// No description provided for @homeWeatherOutfitBottomMild.
+  ///
+  /// In en, this message translates to:
+  /// **'Light track pants or shorts'**
+  String get homeWeatherOutfitBottomMild;
+
+  /// No description provided for @homeWeatherOutfitAccessoriesMild.
+  ///
+  /// In en, this message translates to:
+  /// **'Warm-up layer'**
+  String get homeWeatherOutfitAccessoriesMild;
+
+  /// No description provided for @homeWeatherOutfitLayersCool.
+  ///
+  /// In en, this message translates to:
+  /// **'Brushed base layer + long-sleeve top'**
+  String get homeWeatherOutfitLayersCool;
+
+  /// No description provided for @homeWeatherOutfitOuterCool.
+  ///
+  /// In en, this message translates to:
+  /// **'Windbreaker + vest'**
+  String get homeWeatherOutfitOuterCool;
+
+  /// No description provided for @homeWeatherOutfitBottomTrackPants.
+  ///
+  /// In en, this message translates to:
+  /// **'Long training pants'**
+  String get homeWeatherOutfitBottomTrackPants;
+
+  /// No description provided for @homeWeatherOutfitAccessoriesCool.
+  ///
+  /// In en, this message translates to:
+  /// **'Light gloves, neck warmer'**
+  String get homeWeatherOutfitAccessoriesCool;
+
+  /// No description provided for @homeWeatherOutfitLayersCold.
+  ///
+  /// In en, this message translates to:
+  /// **'Thermal base + long-sleeve + midlayer'**
+  String get homeWeatherOutfitLayersCold;
+
+  /// No description provided for @homeWeatherOutfitOuterCold.
+  ///
+  /// In en, this message translates to:
+  /// **'Windproof jacket or padded vest'**
+  String get homeWeatherOutfitOuterCold;
+
+  /// No description provided for @homeWeatherOutfitAccessoriesCold.
+  ///
+  /// In en, this message translates to:
+  /// **'Winter gloves, neck warmer, ear cover'**
+  String get homeWeatherOutfitAccessoriesCold;
+
+  /// No description provided for @homeWeatherOutfitLayersVeryCold.
+  ///
+  /// In en, this message translates to:
+  /// **'Heat base layer + thick midlayer'**
+  String get homeWeatherOutfitLayersVeryCold;
+
+  /// No description provided for @homeWeatherOutfitOuterVeryCold.
+  ///
+  /// In en, this message translates to:
+  /// **'Light puffer/training padded jacket'**
+  String get homeWeatherOutfitOuterVeryCold;
+
+  /// No description provided for @homeWeatherOutfitBottomVeryCold.
+  ///
+  /// In en, this message translates to:
+  /// **'Thermal training pants'**
+  String get homeWeatherOutfitBottomVeryCold;
+
+  /// No description provided for @homeWeatherOutfitAccessoriesVeryCold.
+  ///
+  /// In en, this message translates to:
+  /// **'Insulated gloves, neck warmer, beanie'**
+  String get homeWeatherOutfitAccessoriesVeryCold;
+
+  /// No description provided for @homeWeatherOutfitNoteVeryCold.
+  ///
+  /// In en, this message translates to:
+  /// **'Warm up indoors then do short outdoor sets'**
+  String get homeWeatherOutfitNoteVeryCold;
+
+  /// No description provided for @homeWeatherOutfitNoteStrongWind.
+  ///
+  /// In en, this message translates to:
+  /// **'Strong wind: windbreaker and neck warmer required'**
+  String get homeWeatherOutfitNoteStrongWind;
+
+  /// No description provided for @homeWeatherOutfitOuterWaterproof.
+  ///
+  /// In en, this message translates to:
+  /// **'Waterproof windproof jacket'**
+  String get homeWeatherOutfitOuterWaterproof;
+
+  /// No description provided for @homeWeatherOutfitOuterRainLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Water-resistant jacket + light midlayer'**
+  String get homeWeatherOutfitOuterRainLight;
+
+  /// No description provided for @homeWeatherOutfitAccessoriesRain.
+  ///
+  /// In en, this message translates to:
+  /// **'{accessories}, waterproof or spare socks'**
+  String homeWeatherOutfitAccessoriesRain(Object accessories);
+
+  /// No description provided for @homeWeatherOutfitNoteWetGrass.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch slippery wet grass'**
+  String get homeWeatherOutfitNoteWetGrass;
+
+  /// No description provided for @homeWeatherOutfitAccessoriesSnow.
+  ///
+  /// In en, this message translates to:
+  /// **'{accessories}, hand warmers (optional)'**
+  String homeWeatherOutfitAccessoriesSnow(Object accessories);
+
+  /// No description provided for @homeWeatherOutfitNoteIcy.
+  ///
+  /// In en, this message translates to:
+  /// **'Avoid icy zones'**
+  String get homeWeatherOutfitNoteIcy;
+
+  /// No description provided for @homeWeatherOutfitBottomFleece.
+  ///
+  /// In en, this message translates to:
+  /// **'Fleece-lined pants'**
+  String get homeWeatherOutfitBottomFleece;
+
+  /// No description provided for @homeWeatherOutfitCautionNormal.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal intensity is fine in current conditions'**
+  String get homeWeatherOutfitCautionNormal;
 
   /// No description provided for @homeWeatherAirQualityTitle.
   ///
@@ -21192,6 +21738,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sketch copied from another one.'**
   String get trainingSketchCopiedFromAnotherSnack;
+
+  /// No description provided for @trainingBoardListTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Training sketch list'**
+  String get trainingBoardListTitle;
+
+  /// No description provided for @trainingBoardTitleDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Training sketch title'**
+  String get trainingBoardTitleDialogTitle;
+
+  /// No description provided for @trainingBoardTitleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Pass warm-up'**
+  String get trainingBoardTitleHint;
+
+  /// No description provided for @trainingBoardRenamedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Board renamed.'**
+  String get trainingBoardRenamedSnack;
+
+  /// No description provided for @trainingBoardRenameUndoneSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename undone.'**
+  String get trainingBoardRenameUndoneSnack;
+
+  /// No description provided for @trainingBoardNoCopySourceSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'No training sketch to copy.'**
+  String get trainingBoardNoCopySourceSnack;
+
+  /// No description provided for @trainingBoardDefaultCopyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} Copy'**
+  String trainingBoardDefaultCopyTitle(Object title);
+
+  /// No description provided for @trainingBoardDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete training sketch'**
+  String get trainingBoardDeleteTitle;
+
+  /// No description provided for @trainingBoardDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{title}\"?'**
+  String trainingBoardDeleteConfirm(Object title);
+
+  /// No description provided for @trainingBoardDeletedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Board deleted.'**
+  String get trainingBoardDeletedSnack;
+
+  /// No description provided for @trainingBoardDeleteUndoneSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete undone.'**
+  String get trainingBoardDeleteUndoneSnack;
+
+  /// No description provided for @trainingBoardDefaultTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Training Board'**
+  String get trainingBoardDefaultTitle;
+
+  /// No description provided for @trainingBoardSearchCloseTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Close search'**
+  String get trainingBoardSearchCloseTooltip;
+
+  /// No description provided for @trainingBoardSearchTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Search boards'**
+  String get trainingBoardSearchTooltip;
+
+  /// No description provided for @trainingBoardSortTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort'**
+  String get trainingBoardSortTooltip;
+
+  /// No description provided for @trainingBoardSortRecentlyUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently updated'**
+  String get trainingBoardSortRecentlyUpdated;
+
+  /// No description provided for @trainingBoardSortTrainingDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Training date'**
+  String get trainingBoardSortTrainingDate;
+
+  /// No description provided for @trainingBoardSortName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name A-Z'**
+  String get trainingBoardSortName;
+
+  /// No description provided for @trainingBoardAddTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Add training sketch'**
+  String get trainingBoardAddTooltip;
+
+  /// No description provided for @trainingBoardCreateNewAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Create new sketch'**
+  String get trainingBoardCreateNewAction;
+
+  /// No description provided for @trainingBoardCopyPreviousAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy previous sketch'**
+  String get trainingBoardCopyPreviousAction;
+
+  /// No description provided for @trainingBoardDoneAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get trainingBoardDoneAction;
+
+  /// No description provided for @trainingBoardEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No boards yet.'**
+  String get trainingBoardEmptyTitle;
+
+  /// No description provided for @trainingBoardEmptySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create one directly from a training note.'**
+  String get trainingBoardEmptySubtitle;
+
+  /// No description provided for @trainingBoardBackToNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to notes'**
+  String get trainingBoardBackToNotes;
+
+  /// No description provided for @trainingBoardSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search board'**
+  String get trainingBoardSearchHint;
+
+  /// No description provided for @trainingBoardNoSearchResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No search results.'**
+  String get trainingBoardNoSearchResults;
+
+  /// No description provided for @trainingBoardListItemSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} items · Training date {date}'**
+  String trainingBoardListItemSubtitle(Object count, Object date);
+
+  /// No description provided for @trainingBoardRenameAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get trainingBoardRenameAction;
+
+  /// No description provided for @trainingBoardDuplicateAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate'**
+  String get trainingBoardDuplicateAction;
 
   /// No description provided for @trainingSketchAutoStagesButton.
   ///

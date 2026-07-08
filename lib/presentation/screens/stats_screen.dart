@@ -149,21 +149,18 @@ class _StatsScreenState extends State<StatsScreen> {
           child: StreamBuilder<List<TrainingEntry>>(
             stream: _trainingEntriesStream,
             builder: (context, snapshot) {
-              final isKo = Localizations.localeOf(context).languageCode == 'ko';
+              final l10n = AppLocalizations.of(context)!;
               if (snapshot.hasError) {
                 return _buildStatsContent(
                   context,
                   entries: const [],
                   mealEntries: const <MealEntry>[],
-                  isKo: isKo,
-                  topMessage: isKo
-                      ? '통계를 불러오는 중 문제가 발생했어요.'
-                      : 'There was a problem loading statistics.',
+                  topMessage: l10n.statsLoadFailedMessage,
                 );
               }
               if (!snapshot.hasData &&
                   snapshot.connectionState == ConnectionState.waiting) {
-                return _buildLoadingState(context, isKo);
+                return _buildLoadingState(context);
               }
               final entries = snapshot.data ?? const <TrainingEntry>[];
               return StreamBuilder<List<MealEntry>>(
@@ -175,17 +172,13 @@ class _StatsScreenState extends State<StatsScreen> {
                       context,
                       entries: entries,
                       mealEntries: mealEntries,
-                      isKo: isKo,
                     );
                   } catch (_) {
                     return _buildStatsContent(
                       context,
                       entries: entries,
                       mealEntries: mealEntries,
-                      isKo: isKo,
-                      topMessage: isKo
-                          ? '일부 통계 계산에 실패해 기본 화면으로 표시합니다.'
-                          : 'Some stats failed to compute, showing fallback view.',
+                      topMessage: l10n.statsFallbackMessage,
                     );
                   }
                 },
@@ -197,10 +190,10 @@ class _StatsScreenState extends State<StatsScreen> {
     );
   }
 
-  Widget _buildLoadingState(BuildContext context, bool isKo) {
+  Widget _buildLoadingState(BuildContext context) {
     return Center(
       child: Text(
-        isKo ? '통계 데이터를 불러오는 중...' : 'Loading statistics...',
+        AppLocalizations.of(context)!.statsLoadingMessage,
         style: Theme.of(context).textTheme.bodyMedium,
       ),
     );
@@ -210,7 +203,6 @@ class _StatsScreenState extends State<StatsScreen> {
     BuildContext context, {
     required List<TrainingEntry> entries,
     required List<MealEntry> mealEntries,
-    required bool isKo,
     String? topMessage,
   }) {
     final l10n = AppLocalizations.of(context)!;
@@ -299,13 +291,13 @@ class _StatsScreenState extends State<StatsScreen> {
                           vertical: 8,
                         ),
                       ),
-                      child: Text(isKo ? '최근 1주일' : 'Last 7 days'),
+                      child: Text(l10n.statsRecent7),
                     ),
                     const SizedBox(width: 8),
                     OutlinedButton.icon(
                       onPressed: () => _pickRange(context),
                       icon: const Icon(Icons.date_range_outlined, size: 18),
-                      label: Text(_rangeLabel(isKo)),
+                      label: Text(_rangeLabel()),
                       style: OutlinedButton.styleFrom(
                         visualDensity: VisualDensity.compact,
                         minimumSize: const Size(1, 38),
@@ -326,12 +318,11 @@ class _StatsScreenState extends State<StatsScreen> {
             _InlineNotice(text: topMessage),
             const SizedBox(height: 12),
           ],
-          _buildStatsTabBar(context, isKo),
+          _buildStatsTabBar(context),
           const SizedBox(height: 16),
           if (_statsTabIndex == 0)
             _buildTrainingStatsTab(
               context,
-              isKo: isKo,
               profile: profile,
               ageYears: ageYears,
               soccerYears: soccerYears,
@@ -344,7 +335,6 @@ class _StatsScreenState extends State<StatsScreen> {
           else
             _buildMatchStatsTab(
               context,
-              isKo: isKo,
               filteredEntries: filteredEntries,
               matchEntries: matchEntries,
               sportId: sportId,
@@ -354,18 +344,19 @@ class _StatsScreenState extends State<StatsScreen> {
     );
   }
 
-  Widget _buildStatsTabBar(BuildContext context, bool isKo) {
+  Widget _buildStatsTabBar(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return SegmentedButton<int>(
       segments: [
         ButtonSegment<int>(
           value: 0,
           icon: const Icon(Icons.fitness_center_outlined),
-          label: Text(isKo ? '훈련' : 'Training'),
+          label: Text(l10n.statsTrainingTab),
         ),
         ButtonSegment<int>(
           value: 1,
           icon: const Icon(Icons.sports_soccer_outlined),
-          label: Text(isKo ? '시합' : 'Matches'),
+          label: Text(l10n.statsMatchesTab),
         ),
       ],
       selected: {_statsTabIndex},
@@ -380,7 +371,6 @@ class _StatsScreenState extends State<StatsScreen> {
 
   Widget _buildTrainingStatsTab(
     BuildContext context, {
-    required bool isKo,
     required PlayerProfile profile,
     required int? ageYears,
     required int? soccerYears,
@@ -437,7 +427,6 @@ class _StatsScreenState extends State<StatsScreen> {
               ageYears: ageYears,
               soccerYears: soccerYears,
               sportId: sportId,
-              isKo: isKo,
               showAverage: canShowAverage,
               range: _selectedRange,
             ),
@@ -449,7 +438,6 @@ class _StatsScreenState extends State<StatsScreen> {
               profile: profile,
               ageYears: ageYears,
               sportId: sportId,
-              isKo: isKo,
               benchmarkService: _benchmarkService,
               showAverage: canShowAverage,
               onReferenceTap: canShowAverage
@@ -494,16 +482,13 @@ class _StatsScreenState extends State<StatsScreen> {
 
   Widget _buildMatchStatsTab(
     BuildContext context, {
-    required bool isKo,
     required List<TrainingEntry> filteredEntries,
     required List<TrainingEntry> matchEntries,
     required String sportId,
   }) {
     if (filteredEntries.isEmpty || matchEntries.isEmpty) {
       return _InlineNotice(
-        text: isKo
-            ? '선택한 기간에 시합 기록이 없습니다.'
-            : 'No matches in the selected period.',
+        text: AppLocalizations.of(context)!.statsNoMatchesSelectedPeriod,
       );
     }
 
@@ -545,7 +530,7 @@ class _StatsScreenState extends State<StatsScreen> {
   }
 
   Future<void> _pickRange(BuildContext context) async {
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final rangeColor = theme.colorScheme.primary.withValues(alpha: 0.22);
     final picked = await showDateRangePicker(
@@ -553,9 +538,9 @@ class _StatsScreenState extends State<StatsScreen> {
       initialDateRange: _selectedRange,
       firstDate: DateTime(2022, 1, 1),
       lastDate: DateTime(2032, 12, 31),
-      helpText: isKo ? '통계 기간 선택' : 'Select period',
-      confirmText: isKo ? '적용' : 'Apply',
-      cancelText: isKo ? '취소' : 'Cancel',
+      helpText: l10n.statsRangePickerHelp,
+      confirmText: l10n.filterApply,
+      cancelText: l10n.cancel,
       builder: (context, child) {
         return Theme(
           data: theme.copyWith(
@@ -583,14 +568,12 @@ class _StatsScreenState extends State<StatsScreen> {
     );
   }
 
-  String _rangeLabel(bool isKo) {
+  String _rangeLabel() {
     final start = _selectedRange.start;
     final end = _selectedRange.end;
-    final startText =
-        isKo ? '${start.month}/${start.day}' : '${start.month}/${start.day}';
-    final endText =
-        isKo ? '${end.month}/${end.day}' : '${end.month}/${end.day}';
-    return isKo ? '$startText~$endText' : '$startText-$endText';
+    final startText = '${start.month}/${start.day}';
+    final endText = '${end.month}/${end.day}';
+    return '$startText-$endText';
   }
 
   void _setRecentWeekRange() {
@@ -742,7 +725,6 @@ class _TargetGrowthChart extends StatelessWidget {
   final int? ageYears;
   final int? soccerYears;
   final String sportId;
-  final bool isKo;
   final bool showAverage;
   final DateTimeRange range;
 
@@ -751,13 +733,13 @@ class _TargetGrowthChart extends StatelessWidget {
     required this.ageYears,
     required this.soccerYears,
     required this.sportId,
-    required this.isKo,
     required this.showAverage,
     required this.range,
   });
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final target = benchmarkTargetForSport(
       sportId: sportId,
       ageYears: ageYears,
@@ -801,16 +783,16 @@ class _TargetGrowthChart extends StatelessWidget {
     }
     final workedDateText = workedDays.toList()..sort((a, b) => a.compareTo(b));
     final workedLabel = workedDateText.isEmpty
-        ? (isKo ? '운동한 날: 없음' : 'Workout days: none')
-        : (isKo
-            ? '운동한 날: ${workedDateText.map((d) => '${d.month}/${d.day}').join(', ')}'
-            : 'Workout days: ${workedDateText.map((d) => '${d.month}/${d.day}').join(', ')}');
+        ? l10n.statsWorkoutDaysNone
+        : l10n.statsWorkoutDaysValue(
+            workedDateText.map((d) => '${d.month}/${d.day}').join(', '),
+          );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _SectionTitle(
           icon: Icons.show_chart,
-          title: isKo ? '성장 그래프' : 'Growth Chart',
+          title: l10n.statsGrowthChartTitle,
         ),
         const SizedBox(height: 12),
         SizedBox(
@@ -827,11 +809,11 @@ class _TargetGrowthChart extends StatelessWidget {
                   getTooltipItems: (touchedSpots) {
                     return touchedSpots.map((spot) {
                       final label = spot.barIndex == 0
-                          ? (isKo ? '실제' : 'Actual')
-                          : (isKo ? '목표' : 'Target');
+                          ? l10n.statsActualLabel
+                          : l10n.statsTargetLabel;
                       final timeText = _formatMinutesAsTime(
                         spot.y.round(),
-                        isKo: isKo,
+                        l10n: l10n,
                       );
                       return LineTooltipItem(
                         '$label: $timeText',
@@ -853,7 +835,7 @@ class _TargetGrowthChart extends StatelessWidget {
                     getTitlesWidget: (value, meta) {
                       if (value < 0) return const SizedBox.shrink();
                       return Text(
-                        _compactHourTick(value, isKo: isKo),
+                        _compactHourTick(value, l10n: l10n),
                         style: const TextStyle(fontSize: 10),
                       );
                     },
@@ -903,12 +885,12 @@ class _TargetGrowthChart extends StatelessWidget {
           children: [
             _LegendDot(
               color: const Color(0xFF3DDC84),
-              label: isKo ? '실제 훈련 시간(일)' : 'Actual time (daily)',
+              label: l10n.statsActualTimeDailyLabel,
             ),
             if (showAverage)
               _LegendDot(
                 color: const Color(0xFFFFC857),
-                label: isKo ? '평균 목표 시간(일)' : 'Average target time (daily)',
+                label: l10n.statsAverageTargetTimeDailyLabel,
               ),
           ],
         ),
@@ -924,7 +906,6 @@ class _BodyAndLiftingBenchmarkCard extends StatelessWidget {
   final PlayerProfile profile;
   final int? ageYears;
   final String sportId;
-  final bool isKo;
   final BenchmarkService benchmarkService;
   final bool showAverage;
   final VoidCallback? onReferenceTap;
@@ -934,7 +915,6 @@ class _BodyAndLiftingBenchmarkCard extends StatelessWidget {
     required this.profile,
     required this.ageYears,
     required this.sportId,
-    required this.isKo,
     required this.benchmarkService,
     required this.showAverage,
     required this.onReferenceTap,
@@ -992,7 +972,6 @@ class _BodyAndLiftingBenchmarkCard extends StatelessWidget {
           const SizedBox(height: 10),
         ],
         _ComparisonRow(
-          isKo: isKo,
           label: l10n.averageComparisonHeightLabel,
           current: latestHeight == null
               ? l10n.averageComparisonNotSet
@@ -1011,7 +990,6 @@ class _BodyAndLiftingBenchmarkCard extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         _ComparisonRow(
-          isKo: isKo,
           label: l10n.averageComparisonWeightLabel,
           current: latestWeight == null
               ? l10n.averageComparisonNotSet
@@ -1030,7 +1008,6 @@ class _BodyAndLiftingBenchmarkCard extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         _ComparisonRow(
-          isKo: isKo,
           label: l10n.averageComparisonConditioningPerSessionLabel(
             conditioningLabel,
           ),
@@ -1147,7 +1124,6 @@ class _LiftingSummaryCard extends StatelessWidget {
     final yMax = trendEntries.isEmpty
         ? yInterval.toDouble()
         : ((maxTotal / yInterval).ceil() * yInterval).toDouble();
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final l10n = AppLocalizations.of(context)!;
     final secondaryLabel = SportDefaults.secondaryConditioningLabel(
       l10n: l10n,
@@ -1256,15 +1232,13 @@ class _LiftingSummaryCard extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    isKo ? '${entry.value.count}회' : '${entry.value.count}',
+                    l10n.times(entry.value.count),
                     style: const TextStyle(fontWeight: FontWeight.w700),
                   ),
                   if (entry.value.increase > 0) ...[
                     const SizedBox(width: 6),
                     Text(
-                      isKo
-                          ? '(+${entry.value.increase})'
-                          : '(+${entry.value.increase})',
+                      '(+${entry.value.increase})',
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
@@ -1597,7 +1571,6 @@ class _TrainingReportSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final sportLabel = SportDefaults.label(l10n: l10n, sportId: sportId);
     final primaryConditioningLabel = SportDefaults.primaryConditioningLabel(
       l10n: l10n,
@@ -1688,7 +1661,7 @@ class _TrainingReportSection extends StatelessWidget {
     final cards = <_MetricCard>[
       _MetricCard(
         label: l10n.statsReportTotalTimeLabel,
-        value: _formatMinutesAsTime(totalMinutes, isKo: isKo),
+        value: _formatMinutesAsTime(totalMinutes, l10n: l10n),
       ),
       _MetricCard(
         label: l10n.statsReportTrainingRhythmLabel,
@@ -3046,14 +3019,14 @@ class _MatchHistorySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final l10n = AppLocalizations.of(context)!;
     final sorted = [...entries]..sort(TrainingEntry.compareByRecentCreated);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _SectionTitle(
           icon: Icons.format_list_bulleted_outlined,
-          title: isKo ? '전체 시합 기록' : 'All Match Records',
+          title: l10n.statsAllMatchRecordsTitle,
         ),
         const SizedBox(height: 12),
         ...sorted.map(
@@ -3075,14 +3048,13 @@ class _MatchHistoryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final locale = Localizations.localeOf(context).toString();
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final l10n = AppLocalizations.of(context)!;
     final labels = SportMatchLabels.forSport(
       l10n: l10n,
       sportId: entry.sportId,
     );
     final opponent = entry.opponentTeam.trim().isEmpty
-        ? (isKo ? '상대 미입력' : 'Opponent unset')
+        ? l10n.statsCompetitionOpponentUnset
         : entry.opponentTeam.trim();
     final competitionLine =
         matchCompetitionDetailParts(entry, l10n, teamLimit: 4).join(' · ');
@@ -3090,7 +3062,7 @@ class _MatchHistoryTile extends StatelessWidget {
       if (competitionLine.isNotEmpty) competitionLine,
       ...labels.personalRecordParts(entry),
       if (entry.minutesPlayed != null)
-        isKo ? '${entry.minutesPlayed}분 출전' : '${entry.minutesPlayed} min',
+        l10n.statsMatchMinutesPlayedValue(entry.minutesPlayed!),
     ].join(' · ');
 
     return Container(
@@ -3112,7 +3084,7 @@ class _MatchHistoryTile extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            _matchResultLabel(entry, isKo: isKo),
+            _matchResultLabel(entry, l10n: l10n),
             style: TextStyle(
               color: Theme.of(context).colorScheme.primary,
               fontWeight: FontWeight.w700,
@@ -3222,16 +3194,17 @@ int? _matchRateMinutesForSport(String? sportId) {
   }
 }
 
-String _matchResultLabel(TrainingEntry entry, {required bool isKo}) {
+String _matchResultLabel(TrainingEntry entry,
+    {required AppLocalizations l10n}) {
   final scored = entry.scoredGoals;
   final conceded = entry.concededGoals;
   if (scored == null && conceded == null) {
-    return isKo ? '결과 미입력' : 'Result unset';
+    return l10n.statsResultUnset;
   }
   final resultLabel = switch (_matchOutcome(entry)) {
-    1 => isKo ? '승' : 'Win',
-    -1 => isKo ? '패' : 'Loss',
-    _ => isKo ? '무' : 'Draw',
+    1 => l10n.statsOutcomeWin,
+    -1 => l10n.statsOutcomeLoss,
+    _ => l10n.statsOutcomeDraw,
   };
   return '$resultLabel ${scored ?? '-'}:${conceded ?? '-'}';
 }
@@ -3487,27 +3460,27 @@ class _CoachMessage extends StatelessWidget {
   }
 }
 
-String _formatMinutesAsTime(int minutes, {required bool isKo}) {
-  if (minutes <= 0) return isKo ? '0분' : '0m';
+String _formatMinutesAsTime(int minutes, {required AppLocalizations l10n}) {
+  if (minutes <= 0) return l10n.statsDurationZeroMinutes;
   final hours = minutes ~/ 60;
   final remain = minutes % 60;
   if (hours <= 0) {
-    return isKo ? '$remain분' : '$remain min';
+    return l10n.statsDurationMinutes(remain);
   }
   if (remain <= 0) {
-    return isKo ? '$hours시간' : '$hours h';
+    return l10n.statsDurationHours(hours);
   }
-  return isKo ? '$hours시간 $remain분' : '$hours h $remain min';
+  return l10n.statsDurationHoursMinutes(hours, remain);
 }
 
-String _compactHourTick(double minuteValue, {required bool isKo}) {
+String _compactHourTick(double minuteValue, {required AppLocalizations l10n}) {
   final minutes = minuteValue.round();
-  if (minutes <= 0) return isKo ? '0분' : '0h';
+  if (minutes <= 0) return l10n.statsCompactDurationZero;
   final hours = minutes ~/ 60;
   final remain = minutes % 60;
-  if (hours <= 0) return isKo ? '$remain분' : '$remain m';
-  if (remain <= 0) return isKo ? '$hours시간' : '$hours h';
-  return isKo ? '$hours시간 $remain분' : '$hours h $remain m';
+  if (hours <= 0) return l10n.statsCompactDurationMinutes(remain);
+  if (remain <= 0) return l10n.statsCompactDurationHours(hours);
+  return l10n.statsCompactDurationHoursMinutes(hours, remain);
 }
 
 DateTime _dayOnly(DateTime value) {
@@ -3523,7 +3496,6 @@ int _periodDayCount(DateTimeRange range) {
 String _oneDecimal(double value) => value.toStringAsFixed(1);
 
 class _ComparisonRow extends StatelessWidget {
-  final bool isKo;
   final String label;
   final String current;
   final String average;
@@ -3531,7 +3503,6 @@ class _ComparisonRow extends StatelessWidget {
   final bool isPositive;
 
   const _ComparisonRow({
-    required this.isKo,
     required this.label,
     required this.current,
     required this.average,
@@ -3542,6 +3513,7 @@ class _ComparisonRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final gapColor =
         isPositive ? const Color(0xFF3DDC84) : theme.colorScheme.error;
     return Container(
@@ -3572,8 +3544,8 @@ class _ComparisonRow extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('${isKo ? '현재' : 'Now'}: $current'),
-              Text('${isKo ? '평균' : 'Avg'}: $average'),
+              Text('${l10n.statsComparisonCurrentLabel}: $current'),
+              Text('${l10n.statsComparisonAverageLabel}: $average'),
             ],
           ),
         ],

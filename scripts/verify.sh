@@ -42,6 +42,9 @@ flutter pub get
 echo "==> flutter gen-l10n"
 flutter gen-l10n
 
+echo "==> localization consistency"
+python3 scripts/check_l10n_consistency.py
+
 echo "==> flutter analyze"
 flutter analyze
 

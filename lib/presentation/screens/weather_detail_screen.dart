@@ -94,7 +94,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     final hasWeather = _summary.isNotEmpty;
     final pm10Level = _pm10Level(l10n, _pm10);
     final pm25Level = _pm25Level(l10n, _pm25);
-    final detailedOutfitGuide = _buildDetailedOutfitGuide(isKo, l10n);
+    final detailedOutfitGuide = _buildDetailedOutfitGuide(l10n);
     final tomorrowForecast =
         _dailyForecasts.length > 1 ? _dailyForecasts[1] : null;
     final weeklyForecasts = _dailyForecasts.take(7).toList(growable: false);
@@ -282,7 +282,6 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
           ? const <_OutfitMomentPreviewData>[]
           : _buildForecastOutfitPreviews(
               forecast: tomorrowForecast,
-              isKo: isKo,
               l10n: l10n,
             ),
       tomorrowForecast: tomorrowForecast,
@@ -480,7 +479,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
         case WeatherDetailInitialAction.outfitGuide:
           _openOutfitGuideScreen(
             l10n: l10n,
-            guide: _buildDetailedOutfitGuide(isKo, l10n),
+            guide: _buildDetailedOutfitGuide(l10n),
           );
           break;
         case WeatherDetailInitialAction.tomorrowForecast:
@@ -911,12 +910,8 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
   double? get _currentOutfitTemperature =>
       _apparentTemperature ?? _temperature ?? _temperatureMax;
 
-  _DetailedOutfitGuide _buildDetailedOutfitGuide(
-    bool isKo,
-    AppLocalizations l10n,
-  ) =>
+  _DetailedOutfitGuide _buildDetailedOutfitGuide(AppLocalizations l10n) =>
       _buildOutfitGuide(
-        isKo: isKo,
         l10n: l10n,
         apparentTemperature: _currentOutfitTemperature,
         precipitationMm: _todayPrecipitation,
@@ -927,7 +922,6 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
 
   List<_OutfitMomentPreviewData> _buildForecastOutfitPreviews({
     required _DailyWeatherForecast forecast,
-    required bool isKo,
     required AppLocalizations l10n,
   }) {
     final slots = <({
@@ -961,7 +955,6 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
             return null;
           }
           final guide = _buildOutfitGuide(
-            isKo: isKo,
             l10n: l10n,
             apparentTemperature: temperature,
             precipitationMm: precipitation,
@@ -982,7 +975,6 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
   }
 
   _DetailedOutfitGuide _buildOutfitGuide({
-    required bool isKo,
     required AppLocalizations l10n,
     required double? apparentTemperature,
     required double? precipitationMm,
@@ -1040,59 +1032,46 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     ];
 
     if (apparentTemperature == null) {
-      layers = isKo ? '기능성 이너 + 반팔 훈련복' : 'Base layer + short-sleeve top';
-      outer = isKo ? '얇은 집업 또는 조끼' : 'Light zip-up or vest';
-      bottom = isKo ? '기본 반바지' : 'Standard shorts';
-      accessories = isKo ? '여벌 양말, 물통' : 'Spare socks and water bottle';
+      layers = l10n.homeWeatherOutfitLayersDefault;
+      outer = l10n.homeWeatherOutfitOuterDefault;
+      bottom = l10n.homeWeatherOutfitBottomDefault;
+      accessories = l10n.homeWeatherOutfitAccessoriesDefault;
     } else if (apparentTemperature >= 30) {
-      layers =
-          isKo ? '민소매/반팔 + 쿨 이너' : 'Sleeveless/short-sleeve + cooling base';
-      outer = isKo ? '겉옷 없음' : 'No outerwear';
-      bottom = isKo ? '통풍 반바지' : 'Breathable shorts';
-      accessories = isKo ? '쿨타월, 얼음물, 챙 모자' : 'Cool towel, iced water, cap';
-      notes.add(isKo ? '과열 방지 위해 휴식 간격을 짧게' : 'Take frequent cooling breaks');
+      layers = l10n.homeWeatherOutfitLayersHot;
+      outer = l10n.homeWeatherOutfitOuterNone;
+      bottom = l10n.homeWeatherOutfitBottomHot;
+      accessories = l10n.homeWeatherOutfitAccessoriesHot;
+      notes.add(l10n.homeWeatherOutfitNoteHotBreaks);
     } else if (apparentTemperature >= 22) {
-      layers = isKo ? '반팔 훈련복' : 'Short-sleeve training top';
-      outer = isKo ? '겉옷 없음' : 'No outerwear';
-      bottom = isKo ? '반바지' : 'Training shorts';
-      accessories = isKo ? '여벌 티셔츠, 땀수건' : 'Spare shirt and sweat towel';
+      layers = l10n.homeWeatherOutfitLayersWarm;
+      outer = l10n.homeWeatherOutfitOuterNone;
+      bottom = l10n.homeWeatherOutfitBottomWarm;
+      accessories = l10n.homeWeatherOutfitAccessoriesWarm;
     } else if (apparentTemperature >= 15) {
-      layers = isKo ? '기능성 이너 + 반팔/긴팔' : 'Base layer + short/long sleeve';
-      outer = isKo ? '트레이닝 집업 또는 조끼' : 'Training zip-up or vest';
-      bottom = isKo ? '얇은 긴바지 또는 반바지' : 'Light track pants or shorts';
-      accessories = isKo ? '워밍업용 겉옷' : 'Warm-up layer';
+      layers = l10n.homeWeatherOutfitLayersMild;
+      outer = l10n.homeWeatherOutfitOuterMild;
+      bottom = l10n.homeWeatherOutfitBottomMild;
+      accessories = l10n.homeWeatherOutfitAccessoriesMild;
     } else if (apparentTemperature >= 8) {
-      layers = isKo ? '기모 이너 + 긴팔 훈련복' : 'Brushed base layer + long-sleeve top';
-      outer = isKo ? '바람막이 + 조끼' : 'Windbreaker + vest';
-      bottom = isKo ? '긴 트레이닝 팬츠' : 'Long training pants';
-      accessories = isKo ? '얇은 장갑, 넥워머' : 'Light gloves, neck warmer';
+      layers = l10n.homeWeatherOutfitLayersCool;
+      outer = l10n.homeWeatherOutfitOuterCool;
+      bottom = l10n.homeWeatherOutfitBottomTrackPants;
+      accessories = l10n.homeWeatherOutfitAccessoriesCool;
     } else if (apparentTemperature >= 2) {
-      layers = isKo
-          ? '기모 이너 + 긴팔 + 덧입는 상의'
-          : 'Thermal base + long-sleeve + midlayer';
-      outer = isKo ? '방풍 자켓 또는 경량 패딩 조끼' : 'Windproof jacket or padded vest';
-      bottom = isKo ? '긴 트레이닝 팬츠' : 'Long training pants';
-      accessories =
-          isKo ? '방한 장갑, 넥워머, 귀마개' : 'Winter gloves, neck warmer, ear cover';
+      layers = l10n.homeWeatherOutfitLayersCold;
+      outer = l10n.homeWeatherOutfitOuterCold;
+      bottom = l10n.homeWeatherOutfitBottomTrackPants;
+      accessories = l10n.homeWeatherOutfitAccessoriesCold;
     } else {
-      layers = isKo ? '발열 이너 + 두꺼운 긴팔 상의' : 'Heat base layer + thick midlayer';
-      outer = isKo ? '경량 패딩/훈련용 패딩' : 'Light puffer/training padded jacket';
-      bottom = isKo ? '방한 팬츠' : 'Thermal training pants';
-      accessories =
-          isKo ? '방한 장갑, 넥워머, 비니' : 'Insulated gloves, neck warmer, beanie';
-      notes.add(
-        isKo
-            ? '실내 워밍업 후 짧은 세트로 진행'
-            : 'Warm up indoors then do short outdoor sets',
-      );
+      layers = l10n.homeWeatherOutfitLayersVeryCold;
+      outer = l10n.homeWeatherOutfitOuterVeryCold;
+      bottom = l10n.homeWeatherOutfitBottomVeryCold;
+      accessories = l10n.homeWeatherOutfitAccessoriesVeryCold;
+      notes.add(l10n.homeWeatherOutfitNoteVeryCold);
     }
 
     if (isWindy) {
-      notes.add(
-        isKo
-            ? '강풍: 바람막이/넥워머 필수'
-            : 'Strong wind: windbreaker and neck warmer required',
-      );
+      notes.add(l10n.homeWeatherOutfitNoteStrongWind);
       callouts.add(
         _OutfitCoachCallout(
           icon: Icons.air_rounded,
@@ -1102,18 +1081,14 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     }
     if (isRainy) {
       outer = isStormy || hasHeavyPrecipitation || isVeryWindy
-          ? (isKo ? '방수 방풍 자켓' : 'Waterproof windproof jacket')
-          : (isKo
-              ? '생활방수 자켓 + 얇은 긴팔 상의'
-              : 'Water-resistant jacket + light midlayer');
-      accessories = isKo
-          ? '$accessories, 방수 양말 또는 여벌 양말'
-          : '$accessories, waterproof or spare socks';
-      notes.add(isKo ? '젖은 잔디 미끄럼 주의' : 'Watch slippery wet grass');
+          ? l10n.homeWeatherOutfitOuterWaterproof
+          : l10n.homeWeatherOutfitOuterRainLight;
+      accessories = l10n.homeWeatherOutfitAccessoriesRain(accessories);
+      notes.add(l10n.homeWeatherOutfitNoteWetGrass);
       if (hasHeavyPrecipitation ||
           isStormy ||
           (apparentTemperature != null && apparentTemperature < 18)) {
-        bottom = isKo ? '긴 트레이닝 팬츠' : 'Long training pants';
+        bottom = l10n.homeWeatherOutfitBottomTrackPants;
       }
       callouts.add(
         _OutfitCoachCallout(
@@ -1123,11 +1098,9 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       );
     }
     if (isSnowy) {
-      outer = isKo ? '방수 방풍 자켓' : 'Waterproof windproof jacket';
-      accessories = isKo
-          ? '$accessories, 손난로(선택)'
-          : '$accessories, hand warmers (optional)';
-      notes.add(isKo ? '빙판 구간 피해서 훈련' : 'Avoid icy zones');
+      outer = l10n.homeWeatherOutfitOuterWaterproof;
+      accessories = l10n.homeWeatherOutfitAccessoriesSnow(accessories);
+      notes.add(l10n.homeWeatherOutfitNoteIcy);
       callouts.add(
         _OutfitCoachCallout(
           icon: Icons.ac_unit_rounded,
@@ -1138,7 +1111,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     if ((isSnowy || isRainy || windSpeed >= 25) &&
         apparentTemperature != null &&
         apparentTemperature < 8) {
-      bottom = isKo ? '기모 긴바지' : 'Fleece-lined pants';
+      bottom = l10n.homeWeatherOutfitBottomFleece;
     }
     if (airLevel.index >= _AirQualityLevel.sensitive.index) {
       callouts.add(
@@ -1157,17 +1130,13 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       coachSummary: callouts.first.text,
       callouts: callouts.skip(1).toList(growable: false),
       caution: notes.isEmpty
-          ? (isKo
-              ? '현재 조건에서 일반 강도 훈련 가능'
-              : 'Normal intensity is fine in current conditions')
-          : notes.join(isKo ? ' · ' : ' · '),
+          ? l10n.homeWeatherOutfitCautionNormal
+          : notes.join(' · '),
     );
   }
 
   List<_OutfitCase> _buildAllOutfitCases(AppLocalizations l10n) {
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final hotGuide = _buildOutfitGuide(
-      isKo: isKo,
       l10n: l10n,
       apparentTemperature: 31,
       precipitationMm: 0,
@@ -1176,7 +1145,6 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       airLevel: _AirQualityLevel.good,
     );
     final warmGuide = _buildOutfitGuide(
-      isKo: isKo,
       l10n: l10n,
       apparentTemperature: 25,
       precipitationMm: 0,
@@ -1185,7 +1153,6 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       airLevel: _AirQualityLevel.good,
     );
     final mildGuide = _buildOutfitGuide(
-      isKo: isKo,
       l10n: l10n,
       apparentTemperature: 18,
       precipitationMm: 0,
@@ -1194,7 +1161,6 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       airLevel: _AirQualityLevel.good,
     );
     final coolGuide = _buildOutfitGuide(
-      isKo: isKo,
       l10n: l10n,
       apparentTemperature: 11,
       precipitationMm: 0,
@@ -1203,7 +1169,6 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       airLevel: _AirQualityLevel.good,
     );
     final coldGuide = _buildOutfitGuide(
-      isKo: isKo,
       l10n: l10n,
       apparentTemperature: 5,
       precipitationMm: 0,
@@ -1212,7 +1177,6 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       airLevel: _AirQualityLevel.good,
     );
     final wetGuide = _buildOutfitGuide(
-      isKo: isKo,
       l10n: l10n,
       apparentTemperature: 6,
       precipitationMm: 12,

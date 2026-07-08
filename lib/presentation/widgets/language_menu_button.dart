@@ -14,7 +14,9 @@ class LanguageMenuButton extends StatelessWidget {
       icon: Icons.language,
       tooltip: AppLocalizations.of(context)!.language,
       onSelected: (value) {
-        if (value == 'en') {
+        if (value == 'system') {
+          localeService.setLocale(null);
+        } else if (value == 'en') {
           localeService.setLocale(const Locale('en'));
         } else if (value == 'ja') {
           localeService.setLocale(const Locale('ja'));
@@ -23,6 +25,10 @@ class LanguageMenuButton extends StatelessWidget {
         }
       },
       itemBuilder: (context) => [
+        PopupMenuItem(
+          value: 'system',
+          child: Text(AppLocalizations.of(context)!.languageSystemDefault),
+        ),
         PopupMenuItem(
           value: 'en',
           child: Text(AppLocalizations.of(context)!.languageEnglish),

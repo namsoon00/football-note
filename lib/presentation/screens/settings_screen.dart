@@ -279,8 +279,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || readOnly) return;
       if (widget.initialTarget == SettingsInitialTarget.trainingPrograms) {
-        final isKo = Localizations.localeOf(context).languageCode == 'ko';
-        unawaited(_manageProgramOptions(isKo));
+        unawaited(_manageProgramOptions());
       }
     });
   }
@@ -415,8 +414,7 @@ class _SettingsScreenState extends State<SettingsScreen>
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final current = widget.localeService.locale?.languageCode ?? 'en';
+    final current = widget.localeService.locale?.languageCode ?? 'system';
     final familyState = FamilyAccessService(
       widget.optionRepository,
     ).loadState();
@@ -594,14 +592,17 @@ class _SettingsScreenState extends State<SettingsScreen>
                         child: _buildSelectRow<String>(
                           label: l10n.language,
                           value: current,
-                          options: const ['en', 'ko', 'ja'],
+                          options: const ['system', 'en', 'ko', 'ja'],
                           optionLabel: (value) => switch (value) {
+                            'system' => l10n.languageSystemDefault,
                             'ko' => l10n.languageKorean,
                             'ja' => l10n.languageJapanese,
                             _ => l10n.languageEnglish,
                           },
                           onChanged: (value) {
-                            if (value == 'ko') {
+                            if (value == 'system') {
+                              widget.localeService.setLocale(null);
+                            } else if (value == 'ko') {
                               widget.localeService.setLocale(
                                 const Locale('ko', 'KR'),
                               );
@@ -669,7 +670,6 @@ class _SettingsScreenState extends State<SettingsScreen>
               const SizedBox(height: 6),
               _buildDefaultsAndOptionManager(
                 l10n,
-                isKo,
                 readOnly: parentSettingsReadOnly,
               ),
               const SizedBox(height: 8),
@@ -1617,8 +1617,7 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
 
   Widget _buildDefaultsAndOptionManager(
-    AppLocalizations l10n,
-    bool isKo, {
+    AppLocalizations l10n, {
     bool readOnly = false,
   }) {
     final sportId = SportService(widget.optionRepository).currentSportId();
@@ -1644,18 +1643,20 @@ class _SettingsScreenState extends State<SettingsScreen>
           const SizedBox(height: 10),
         ],
         Text(
-          isKo ? '기본값' : 'Default values',
+          l10n.defaults,
           style: Theme.of(
             context,
           ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 8),
         _buildDefaultTile(
+          l10n: l10n,
           label: l10n.defaultDuration,
           valueText: defaultDurationText,
           onEdit: readOnly ? null : () => _pickDefaultDuration(l10n),
         ),
         _buildDefaultTile(
+          l10n: l10n,
           label: l10n.defaultProgram,
           valueText: _defaultProgram,
           onEdit: readOnly
@@ -1678,21 +1679,22 @@ class _SettingsScreenState extends State<SettingsScreen>
         const Divider(height: 1),
         const SizedBox(height: 12),
         Text(
-          isKo ? '일지 항목 관리' : 'Journal option manager',
+          l10n.settingsJournalOptionManagerTitle,
           style: Theme.of(
             context,
           ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 8),
         _buildOptionManagerTile(
-          title: isKo ? '훈련 시간 옵션' : 'Duration options',
-          subtitle:
-              '${_durationOptions.where((e) => e > 0).length}${isKo ? '개 항목' : ' items'}',
+          title: l10n.settingsDurationOptionsTitle,
+          subtitle: l10n.settingsOptionItemsCount(
+            _durationOptions.where((e) => e > 0).length,
+          ),
           onTap: readOnly
               ? null
               : () => _manageIntOptions(
                     key: durationOptionsKey,
-                    title: isKo ? '훈련 시간 옵션 관리' : 'Manage duration options',
+                    title: l10n.settingsDurationOptionsManageTitle,
                     options: _durationOptions,
                     minKeep: 1,
                     formatLabel: (value) =>
@@ -1712,13 +1714,13 @@ class _SettingsScreenState extends State<SettingsScreen>
                   ),
         ),
         _buildOptionManagerTile(
-          title: isKo ? '프로그램 옵션' : 'Program options',
-          subtitle: '${_programOptions.length}${isKo ? '개 항목' : ' items'}',
-          onTap: readOnly ? null : () => _manageProgramOptions(isKo),
+          title: l10n.settingsProgramOptionsTitle,
+          subtitle: l10n.settingsOptionItemsCount(_programOptions.length),
+          onTap: readOnly ? null : () => _manageProgramOptions(),
         ),
         _buildOptionManagerTile(
-          title: isKo ? '훈련 목표 옵션' : 'Training goal options',
-          subtitle: '${_dailyGoalOptions.length}${isKo ? '개 항목' : ' items'}',
+          title: l10n.settingsTrainingGoalOptionsTitle,
+          subtitle: l10n.settingsOptionItemsCount(_dailyGoalOptions.length),
           onTap: readOnly
               ? null
               : () => _manageStringOptions(
@@ -1728,8 +1730,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                         widget.optionRepository,
                       ).currentSportId(),
                     ),
-                    title:
-                        isKo ? '훈련 목표 옵션 관리' : 'Manage training goal options',
+                    title: l10n.settingsTrainingGoalOptionsManageTitle,
                     options: _dailyGoalOptions,
                     minKeep: 1,
                     onSaved: (updated) async {
@@ -1738,13 +1739,13 @@ class _SettingsScreenState extends State<SettingsScreen>
                   ),
         ),
         _buildOptionManagerTile(
-          title: isKo ? '부상 부위 옵션' : 'Injury part options',
-          subtitle: '${_injuryPartOptions.length}${isKo ? '개 항목' : ' items'}',
+          title: l10n.settingsInjuryPartOptionsTitle,
+          subtitle: l10n.settingsOptionItemsCount(_injuryPartOptions.length),
           onTap: readOnly
               ? null
               : () => _manageStringOptions(
                     key: injuryPartsKey,
-                    title: isKo ? '부상 부위 옵션 관리' : 'Manage injury part options',
+                    title: l10n.settingsInjuryPartOptionsManageTitle,
                     options: _injuryPartOptions,
                     minKeep: 1,
                     onSaved: (updated) async {
@@ -1757,11 +1758,11 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
 
   Widget _buildDefaultTile({
+    required AppLocalizations l10n,
     required String label,
     required String valueText,
     required Future<void> Function()? onEdit,
   }) {
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
     return ListTile(
       dense: true,
       contentPadding: EdgeInsets.zero,
@@ -1769,7 +1770,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       subtitle: Text(valueText),
       trailing: IconButton(
         icon: const Icon(Icons.edit_outlined),
-        tooltip: isKo ? '수정' : 'Edit',
+        tooltip: l10n.edit,
         onPressed: onEdit,
       ),
     );
@@ -1798,11 +1799,12 @@ class _SettingsScreenState extends State<SettingsScreen>
     );
   }
 
-  Future<void> _manageProgramOptions(bool isKo) async {
+  Future<void> _manageProgramOptions() async {
+    final l10n = AppLocalizations.of(context)!;
     final sportId = SportService(widget.optionRepository).currentSportId();
     await _manageStringOptions(
       key: SportCatalog.optionKey('programs', sportId: sportId),
-      title: isKo ? '프로그램 옵션 관리' : 'Manage program options',
+      title: l10n.settingsProgramOptionsManageTitle,
       options: _programOptions,
       minKeep: 1,
       onSaved: (updated) async {
@@ -1910,7 +1912,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     String Function(String value)? sanitize,
   }) async {
     var working = [...options];
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final l10n = AppLocalizations.of(context)!;
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -1941,7 +1943,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                               label: Text(option),
                               onPressed: () async {
                                 final edited = await _showTextInputDialog(
-                                  title: isKo ? '항목 수정' : 'Edit option',
+                                  title: l10n.settingsOptionEditTitle,
                                   initial: option,
                                 );
                                 if (edited == null || edited.isEmpty) return;
@@ -1970,7 +1972,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                     OutlinedButton.icon(
                       onPressed: () async {
                         final added = await _showTextInputDialog(
-                          title: isKo ? '새 항목 추가' : 'Add option',
+                          title: l10n.settingsOptionAddTitle,
                         );
                         if (added == null || added.isEmpty) return;
                         final normalized =
@@ -1982,7 +1984,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                         setSheetState(() => working.add(normalized));
                       },
                       icon: const Icon(Icons.add),
-                      label: Text(isKo ? '항목 추가' : 'Add item'),
+                      label: Text(l10n.add),
                     ),
                     const SizedBox(height: 10),
                     FilledButton(
@@ -1993,7 +1995,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                         if (!context.mounted) return;
                         Navigator.of(context).pop();
                       },
-                      child: Text(isKo ? '저장' : 'Save'),
+                      child: Text(l10n.save),
                     ),
                   ],
                 ),
@@ -2014,7 +2016,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     required Future<void> Function(List<int> updated) onSaved,
   }) async {
     var working = [...options];
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final l10n = AppLocalizations.of(context)!;
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -2045,7 +2047,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                               label: Text(formatLabel(option)),
                               onPressed: () async {
                                 final edited = await _showTextInputDialog(
-                                  title: isKo ? '시간 수정(분)' : 'Edit minutes',
+                                  title: l10n.settingsIntOptionEditTitle,
                                   initial: option.toString(),
                                   number: true,
                                 );
@@ -2072,7 +2074,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                     OutlinedButton.icon(
                       onPressed: () async {
                         final added = await _showTextInputDialog(
-                          title: isKo ? '새 시간 추가(분)' : 'Add minutes',
+                          title: l10n.settingsIntOptionAddTitle,
                           number: true,
                         );
                         final parsed = int.tryParse(added ?? '');
@@ -2084,7 +2086,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                         setSheetState(() => working.add(parsed));
                       },
                       icon: const Icon(Icons.add),
-                      label: Text(isKo ? '항목 추가' : 'Add item'),
+                      label: Text(l10n.add),
                     ),
                     const SizedBox(height: 10),
                     FilledButton(
@@ -2096,7 +2098,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                         if (!context.mounted) return;
                         Navigator.of(context).pop();
                       },
-                      child: Text(isKo ? '저장' : 'Save'),
+                      child: Text(l10n.save),
                     ),
                   ],
                 ),

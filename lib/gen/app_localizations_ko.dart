@@ -515,6 +515,33 @@ class AppLocalizationsKo extends AppLocalizations {
   String get newsTranslateAction => '번역';
 
   @override
+  String get newsLoadFailedMessage => '뉴스를 불러오지 못했습니다. 아래로 당겨 새로고침 해주세요.';
+
+  @override
+  String get newsNoChannelArticles => '선택한 채널의 뉴스가 없습니다.';
+
+  @override
+  String get newsNoScrappedArticles => '스크랩한 소식이 없습니다.';
+
+  @override
+  String get newsNoResultsFound => '검색 결과가 없습니다.';
+
+  @override
+  String get newsScrapTooltip => '스크랩';
+
+  @override
+  String get newsRemoveScrapTooltip => '스크랩 해제';
+
+  @override
+  String get newsScrappedSnack => '소식을 스크랩했어요.';
+
+  @override
+  String get newsScrapRemovedSnack => '스크랩을 해제했어요.';
+
+  @override
+  String get newsTranslationGuideSnack => '기사 화면 우측 상단 메뉴에서 번역 기능을 사용할 수 있어요.';
+
+  @override
   String get newsSelectChannelsTitle => '뉴스 채널 선택';
 
   @override
@@ -3372,6 +3399,112 @@ class AppLocalizationsKo extends AppLocalizations {
   String get statsWeeklyMinutes => '최근 7일 훈련 시간(분)';
 
   @override
+  String get statsLoadingMessage => '통계 데이터를 불러오는 중...';
+
+  @override
+  String get statsLoadFailedMessage => '통계를 불러오는 중 문제가 발생했어요.';
+
+  @override
+  String get statsFallbackMessage => '일부 통계 계산에 실패해 기본 화면으로 표시합니다.';
+
+  @override
+  String get statsTrainingTab => '훈련';
+
+  @override
+  String get statsMatchesTab => '시합';
+
+  @override
+  String get statsNoMatchesSelectedPeriod => '선택한 기간에 시합 기록이 없습니다.';
+
+  @override
+  String get statsRangePickerHelp => '통계 기간 선택';
+
+  @override
+  String get statsWorkoutDaysNone => '운동한 날: 없음';
+
+  @override
+  String statsWorkoutDaysValue(Object days) {
+    return '운동한 날: $days';
+  }
+
+  @override
+  String get statsGrowthChartTitle => '성장 그래프';
+
+  @override
+  String get statsActualLabel => '실제';
+
+  @override
+  String get statsTargetLabel => '목표';
+
+  @override
+  String get statsActualTimeDailyLabel => '실제 훈련 시간(일)';
+
+  @override
+  String get statsAverageTargetTimeDailyLabel => '평균 목표 시간(일)';
+
+  @override
+  String get statsAllMatchRecordsTitle => '전체 시합 기록';
+
+  @override
+  String statsMatchMinutesPlayedValue(Object minutes) {
+    return '$minutes분 출전';
+  }
+
+  @override
+  String get statsResultUnset => '결과 미입력';
+
+  @override
+  String get statsOutcomeWin => '승';
+
+  @override
+  String get statsOutcomeDraw => '무';
+
+  @override
+  String get statsOutcomeLoss => '패';
+
+  @override
+  String get statsDurationZeroMinutes => '0분';
+
+  @override
+  String statsDurationMinutes(Object minutes) {
+    return '$minutes분';
+  }
+
+  @override
+  String statsDurationHours(Object hours) {
+    return '$hours시간';
+  }
+
+  @override
+  String statsDurationHoursMinutes(Object hours, Object minutes) {
+    return '$hours시간 $minutes분';
+  }
+
+  @override
+  String get statsCompactDurationZero => '0분';
+
+  @override
+  String statsCompactDurationMinutes(Object minutes) {
+    return '$minutes분';
+  }
+
+  @override
+  String statsCompactDurationHours(Object hours) {
+    return '$hours시간';
+  }
+
+  @override
+  String statsCompactDurationHoursMinutes(Object hours, Object minutes) {
+    return '$hours시간 $minutes분';
+  }
+
+  @override
+  String get statsComparisonCurrentLabel => '현재';
+
+  @override
+  String get statsComparisonAverageLabel => '평균';
+
+  @override
   String get growthHistory => '성장 히스토리';
 
   @override
@@ -4152,6 +4285,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get languageJapanese => '일본어';
 
   @override
+  String get languageSystemDefault => '시스템 기본값';
+
+  @override
   String get settings => '설정';
 
   @override
@@ -4174,6 +4310,50 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get settingsNewsBlockedDomainsExample =>
       '예시: example.com (프로토콜/경로 없이 도메인만 입력)';
+
+  @override
+  String get settingsJournalOptionManagerTitle => '일지 항목 관리';
+
+  @override
+  String settingsOptionItemsCount(int count) {
+    return '$count개 항목';
+  }
+
+  @override
+  String get settingsDurationOptionsTitle => '훈련 시간 옵션';
+
+  @override
+  String get settingsDurationOptionsManageTitle => '훈련 시간 옵션 관리';
+
+  @override
+  String get settingsProgramOptionsTitle => '프로그램 옵션';
+
+  @override
+  String get settingsProgramOptionsManageTitle => '프로그램 옵션 관리';
+
+  @override
+  String get settingsTrainingGoalOptionsTitle => '훈련 목표 옵션';
+
+  @override
+  String get settingsTrainingGoalOptionsManageTitle => '훈련 목표 옵션 관리';
+
+  @override
+  String get settingsInjuryPartOptionsTitle => '부상 부위 옵션';
+
+  @override
+  String get settingsInjuryPartOptionsManageTitle => '부상 부위 옵션 관리';
+
+  @override
+  String get settingsOptionEditTitle => '항목 수정';
+
+  @override
+  String get settingsOptionAddTitle => '새 항목 추가';
+
+  @override
+  String get settingsIntOptionEditTitle => '시간 수정(분)';
+
+  @override
+  String get settingsIntOptionAddTitle => '새 시간 추가(분)';
 
   @override
   String get settingsApiUsageTitle => '앱에서 사용하는 API';
@@ -5333,6 +5513,121 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get homeWeatherOutfitCaseWetRange => '강수 또는 적설 시';
+
+  @override
+  String get homeWeatherOutfitLayersDefault => '기능성 이너 + 반팔 훈련복';
+
+  @override
+  String get homeWeatherOutfitOuterDefault => '얇은 집업 또는 조끼';
+
+  @override
+  String get homeWeatherOutfitBottomDefault => '기본 반바지';
+
+  @override
+  String get homeWeatherOutfitAccessoriesDefault => '여벌 양말, 물통';
+
+  @override
+  String get homeWeatherOutfitLayersHot => '민소매/반팔 + 쿨 이너';
+
+  @override
+  String get homeWeatherOutfitOuterNone => '겉옷 없음';
+
+  @override
+  String get homeWeatherOutfitBottomHot => '통풍 반바지';
+
+  @override
+  String get homeWeatherOutfitAccessoriesHot => '쿨타월, 얼음물, 챙 모자';
+
+  @override
+  String get homeWeatherOutfitNoteHotBreaks => '과열 방지 위해 휴식 간격을 짧게';
+
+  @override
+  String get homeWeatherOutfitLayersWarm => '반팔 훈련복';
+
+  @override
+  String get homeWeatherOutfitBottomWarm => '반바지';
+
+  @override
+  String get homeWeatherOutfitAccessoriesWarm => '여벌 티셔츠, 땀수건';
+
+  @override
+  String get homeWeatherOutfitLayersMild => '기능성 이너 + 반팔/긴팔';
+
+  @override
+  String get homeWeatherOutfitOuterMild => '트레이닝 집업 또는 조끼';
+
+  @override
+  String get homeWeatherOutfitBottomMild => '얇은 긴바지 또는 반바지';
+
+  @override
+  String get homeWeatherOutfitAccessoriesMild => '워밍업용 겉옷';
+
+  @override
+  String get homeWeatherOutfitLayersCool => '기모 이너 + 긴팔 훈련복';
+
+  @override
+  String get homeWeatherOutfitOuterCool => '바람막이 + 조끼';
+
+  @override
+  String get homeWeatherOutfitBottomTrackPants => '긴 트레이닝 팬츠';
+
+  @override
+  String get homeWeatherOutfitAccessoriesCool => '얇은 장갑, 넥워머';
+
+  @override
+  String get homeWeatherOutfitLayersCold => '기모 이너 + 긴팔 + 덧입는 상의';
+
+  @override
+  String get homeWeatherOutfitOuterCold => '방풍 자켓 또는 경량 패딩 조끼';
+
+  @override
+  String get homeWeatherOutfitAccessoriesCold => '방한 장갑, 넥워머, 귀마개';
+
+  @override
+  String get homeWeatherOutfitLayersVeryCold => '발열 이너 + 두꺼운 긴팔 상의';
+
+  @override
+  String get homeWeatherOutfitOuterVeryCold => '경량 패딩/훈련용 패딩';
+
+  @override
+  String get homeWeatherOutfitBottomVeryCold => '방한 팬츠';
+
+  @override
+  String get homeWeatherOutfitAccessoriesVeryCold => '방한 장갑, 넥워머, 비니';
+
+  @override
+  String get homeWeatherOutfitNoteVeryCold => '실내 워밍업 후 짧은 세트로 진행';
+
+  @override
+  String get homeWeatherOutfitNoteStrongWind => '강풍: 바람막이/넥워머 필수';
+
+  @override
+  String get homeWeatherOutfitOuterWaterproof => '방수 방풍 자켓';
+
+  @override
+  String get homeWeatherOutfitOuterRainLight => '생활방수 자켓 + 얇은 긴팔 상의';
+
+  @override
+  String homeWeatherOutfitAccessoriesRain(Object accessories) {
+    return '$accessories, 방수 양말 또는 여벌 양말';
+  }
+
+  @override
+  String get homeWeatherOutfitNoteWetGrass => '젖은 잔디 미끄럼 주의';
+
+  @override
+  String homeWeatherOutfitAccessoriesSnow(Object accessories) {
+    return '$accessories, 손난로(선택)';
+  }
+
+  @override
+  String get homeWeatherOutfitNoteIcy => '빙판 구간 피해서 훈련';
+
+  @override
+  String get homeWeatherOutfitBottomFleece => '기모 긴바지';
+
+  @override
+  String get homeWeatherOutfitCautionNormal => '현재 조건에서 일반 강도 훈련 가능';
 
   @override
   String get homeWeatherAirQualityTitle => '대기질';
@@ -11964,6 +12259,102 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get trainingSketchCopiedFromAnotherSnack => '다른 스케치를 복사해 추가했습니다.';
+
+  @override
+  String get trainingBoardListTitle => '훈련 스케치 리스트';
+
+  @override
+  String get trainingBoardTitleDialogTitle => '훈련 스케치 제목';
+
+  @override
+  String get trainingBoardTitleHint => '예) 패스 워밍업';
+
+  @override
+  String get trainingBoardRenamedSnack => '보드 이름을 변경했어요.';
+
+  @override
+  String get trainingBoardRenameUndoneSnack => '이름 변경을 되돌렸어요.';
+
+  @override
+  String get trainingBoardNoCopySourceSnack => '복사할 훈련 스케치가 없어요.';
+
+  @override
+  String trainingBoardDefaultCopyTitle(Object title) {
+    return '$title 복사본';
+  }
+
+  @override
+  String get trainingBoardDeleteTitle => '훈련 스케치 삭제';
+
+  @override
+  String trainingBoardDeleteConfirm(Object title) {
+    return '\"$title\"를 정말 삭제할까요?';
+  }
+
+  @override
+  String get trainingBoardDeletedSnack => '보드를 삭제했어요.';
+
+  @override
+  String get trainingBoardDeleteUndoneSnack => '삭제를 되돌렸어요.';
+
+  @override
+  String get trainingBoardDefaultTitle => '훈련 보드';
+
+  @override
+  String get trainingBoardSearchCloseTooltip => '검색 닫기';
+
+  @override
+  String get trainingBoardSearchTooltip => '보드 검색';
+
+  @override
+  String get trainingBoardSortTooltip => '정렬';
+
+  @override
+  String get trainingBoardSortRecentlyUpdated => '최근 수정순';
+
+  @override
+  String get trainingBoardSortTrainingDate => '훈련일 최신순';
+
+  @override
+  String get trainingBoardSortName => '이름순';
+
+  @override
+  String get trainingBoardAddTooltip => '훈련 스케치 추가';
+
+  @override
+  String get trainingBoardCreateNewAction => '새 스케치 만들기';
+
+  @override
+  String get trainingBoardCopyPreviousAction => '이전 스케치 복사';
+
+  @override
+  String get trainingBoardDoneAction => '완료';
+
+  @override
+  String get trainingBoardEmptyTitle => '훈련보드가 아직 없습니다.';
+
+  @override
+  String get trainingBoardEmptySubtitle => '훈련노트에서 보드 버튼을 눌러 바로 생성해보세요.';
+
+  @override
+  String get trainingBoardBackToNotes => '훈련노트로 돌아가기';
+
+  @override
+  String get trainingBoardSearchHint => '보드명 검색';
+
+  @override
+  String get trainingBoardNoSearchResults => '검색 결과가 없습니다.';
+
+  @override
+  String trainingBoardListItemSubtitle(Object count, Object date) {
+    return '요소 $count개 · 훈련일 $date';
+  }
+
+  @override
+  String get trainingBoardRenameAction => '이름 변경';
+
+  @override
+  String get trainingBoardDuplicateAction => '복제';
 
   @override
   String get trainingSketchAutoStagesButton => '단계 자동 나누기';

@@ -17,18 +17,11 @@ class LocaleService extends ChangeNotifier {
   void load() {
     final values = _optionRepository.getOptions(_key, const []);
     if (values.isEmpty) {
-      _locale = const Locale('ko', 'KR');
+      _locale = null;
       _notifyListenersSafely();
       return;
     }
-    final raw = values.first;
-    if (raw == 'en') {
-      _locale = const Locale('en');
-    } else if (raw == 'ja') {
-      _locale = const Locale('ja');
-    } else if (raw == 'ko') {
-      _locale = const Locale('ko', 'KR');
-    }
+    _locale = _localeForStoredValue(values.first);
     _notifyListenersSafely();
   }
 
@@ -57,6 +50,16 @@ class LocaleService extends ChangeNotifier {
         notifyListeners();
       }
     });
+  }
+
+  Locale? _localeForStoredValue(String raw) {
+    final languageCode = raw.trim().replaceAll('_', '-').split('-').first;
+    return switch (languageCode) {
+      'en' => const Locale('en'),
+      'ja' => const Locale('ja'),
+      'ko' => const Locale('ko', 'KR'),
+      _ => null,
+    };
   }
 
   @override
