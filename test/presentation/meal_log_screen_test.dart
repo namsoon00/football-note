@@ -115,7 +115,14 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('meal-breakfast-dish')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('닭가슴살').last);
+    await tester.enterText(
+      find.byKey(const ValueKey('meal-main-dish-search')),
+      '닭가슴살',
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('meal-main-dish-option-chickenBreast')),
+    );
     await tester.pumpAndSettle();
     await tester.tap(find.text('많이'));
     await tester.pump(const Duration(milliseconds: 400));

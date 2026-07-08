@@ -667,36 +667,15 @@ class _MealSelectorCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          DropdownButtonFormField<String>(
-            key: ValueKey('meal-$mealKey-dish'),
-            initialValue: normalizedDishId,
-            isExpanded: true,
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: theme.colorScheme.surfaceContainerHighest.withValues(
-                alpha: 0.62,
-              ),
-              prefixIcon: const Icon(Icons.dinner_dining_outlined),
-              labelText: l10n.mealMainDishLabel,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-            ),
-            items: [
-              DropdownMenuItem<String>(
-                value: '',
-                child: Text(l10n.mealMainDishNone),
-              ),
-              for (final option in MealCalorieEstimator.mainDishOptions)
-                DropdownMenuItem<String>(
-                  value: option.id,
-                  child: Text(mealFoodLabel(l10n, option.id)),
-                ),
-            ],
-            onChanged: enabled ? (value) => onDishChanged(value ?? '') : null,
+          _MainDishSelector(
+            mealKey: mealKey,
+            l10n: l10n,
+            selectedDishId: normalizedDishId,
+            enabled: enabled,
+            onDishChanged: onDishChanged,
           ),
+          if (normalizedDishId.isNotEmpty) const SizedBox(height: 8),
           if (normalizedDishId.isNotEmpty) ...[
-            const SizedBox(height: 10),
             SegmentedButton<String>(
               key: ValueKey('meal-$mealKey-dish-portion'),
               segments: [
@@ -818,6 +797,198 @@ class _MealSelectorCard extends StatelessWidget {
       nutrition.kcal,
       nutrition.protein.round(),
     );
+  }
+}
+
+class _MainDishSelector extends StatelessWidget {
+  final String mealKey;
+  final AppLocalizations l10n;
+  final String selectedDishId;
+  final bool enabled;
+  final ValueChanged<String> onDishChanged;
+
+  const _MainDishSelector({
+    required this.mealKey,
+    required this.l10n,
+    required this.selectedDishId,
+    required this.enabled,
+    required this.onDishChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final selectedDish = MealCalorieEstimator.dishById(selectedDishId);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                l10n.mealMainDishLabel,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+            OutlinedButton.icon(
+              key: ValueKey('meal-$mealKey-dish'),
+              onPressed: enabled ? () => _openMainDishSheet(context) : null,
+              icon: const Icon(Icons.search_rounded),
+              label: Text(
+                selectedDish == null
+                    ? l10n.mealMainDishChooseAction
+                    : l10n.mealMainDishEditAction,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        if (selectedDish == null)
+          Text(
+            l10n.mealMainDishNone,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          )
+        else
+          InputChip(
+            key: ValueKey('meal-$mealKey-dish-chip'),
+            avatar: const Icon(Icons.dinner_dining_outlined, size: 18),
+            label: Text(mealFoodLabel(l10n, selectedDish.id)),
+            onDeleted: enabled ? () => onDishChanged('') : null,
+          ),
+      ],
+    );
+  }
+
+  Future<void> _openMainDishSheet(BuildContext context) async {
+    final next = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (context) {
+        return _MainDishSheet(selectedDishId: selectedDishId);
+      },
+    );
+    if (next == null) return;
+    onDishChanged(next);
+  }
+}
+
+class _MainDishSheet extends StatefulWidget {
+  final String selectedDishId;
+
+  const _MainDishSheet({required this.selectedDishId});
+
+  @override
+  State<_MainDishSheet> createState() => _MainDishSheetState();
+}
+
+class _MainDishSheetState extends State<_MainDishSheet> {
+  String _query = '';
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final options = _filteredOptions(l10n);
+    return FractionallySizedBox(
+      heightFactor: 0.88,
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.outlineVariant,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                l10n.mealMainDishSheetTitle,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                key: const ValueKey('meal-main-dish-search'),
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.search_rounded),
+                  labelText: l10n.mealFoodSearchLabel,
+                  hintText: l10n.mealFoodSearchHint,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                onChanged: (value) => setState(() => _query = value),
+              ),
+              const SizedBox(height: 10),
+              Expanded(
+                child: ListView.separated(
+                  itemCount: options.length,
+                  separatorBuilder: (_, __) => const Divider(height: 1),
+                  itemBuilder: (context, index) {
+                    final option = options[index];
+                    final selected = option.id == widget.selectedDishId;
+                    return ListTile(
+                      key: ValueKey('meal-main-dish-option-${option.id}'),
+                      leading: Icon(
+                        selected
+                            ? Icons.radio_button_checked
+                            : Icons.radio_button_unchecked,
+                        color: selected ? theme.colorScheme.primary : null,
+                      ),
+                      title: Text(mealFoodLabel(l10n, option.id)),
+                      subtitle: Text(
+                        l10n.mealFoodOptionSubtitle(
+                          mealFoodCategoryLabel(l10n, option.category),
+                          l10n.mealFoodNutritionLine(
+                            option.kcal,
+                            option.carbs.round(),
+                            option.protein.round(),
+                            option.fat.round(),
+                          ),
+                        ),
+                      ),
+                      onTap: () => Navigator.of(context).pop(option.id),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 10),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  key: const ValueKey('meal-main-dish-clear'),
+                  onPressed: () => Navigator.of(context).pop(''),
+                  child: Text(l10n.mealMainDishClearAction),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  List<MealFoodOption> _filteredOptions(AppLocalizations l10n) {
+    final query = _query.trim().toLowerCase();
+    return MealCalorieEstimator.mainDishOptions.where((option) {
+      if (query.isEmpty) return true;
+      final label = mealFoodLabel(l10n, option.id).toLowerCase();
+      return label.contains(query) || option.id.toLowerCase().contains(query);
+    }).toList(growable: false);
   }
 }
 

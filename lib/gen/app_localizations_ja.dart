@@ -6111,6 +6111,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get mealMainDishNone => '選択なし';
 
   @override
+  String get mealMainDishChooseAction => 'メインを選択';
+
+  @override
+  String get mealMainDishEditAction => '編集';
+
+  @override
+  String get mealMainDishSheetTitle => 'メイン料理を検索';
+
+  @override
+  String get mealMainDishClearAction => '選択なし';
+
+  @override
   String get mealDishPortionSmall => '少なめ';
 
   @override
@@ -6288,6 +6300,243 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get mealFoodSamgyetang => 'サムゲタン';
+
+  @override
+  String get mealFoodKimchiFriedRice => 'キムチチャーハン';
+
+  @override
+  String get mealFoodBudaeJjigae => 'プデチゲ';
+
+  @override
+  String get mealFoodSundubuJjigae => 'スンドゥブチゲ';
+
+  @override
+  String get mealFoodGalbitang => 'カルビタン';
+
+  @override
+  String get mealFoodSeolleongtang => 'ソルロンタン';
+
+  @override
+  String get mealFoodYukgaejang => 'ユッケジャン';
+
+  @override
+  String get mealFoodGamjatang => 'カムジャタン';
+
+  @override
+  String get mealFoodKalguksu => 'カルグクス';
+
+  @override
+  String get mealFoodSujebi => 'すいとん';
+
+  @override
+  String get mealFoodBibimNoodles => 'ビビン麺';
+
+  @override
+  String get mealFoodJapchae => 'チャプチェ';
+
+  @override
+  String get mealFoodBossam => 'ポッサム';
+
+  @override
+  String get mealFoodJokbal => 'チョッパル';
+
+  @override
+  String get mealFoodGalbiJjim => 'カルビチム';
+
+  @override
+  String get mealFoodDakdoritang => '鶏肉の辛煮';
+
+  @override
+  String get mealFoodHaejangguk => 'ヘジャングク';
+
+  @override
+  String get mealFoodGukbap => 'クッパ';
+
+  @override
+  String get mealFoodSoondaeGuk => 'スンデグク';
+
+  @override
+  String get mealFoodTteokguk => 'トックク';
+
+  @override
+  String get mealFoodJanchiGuksu => 'ジャンチグクス';
+
+  @override
+  String get mealFoodMakguksu => 'マッククス';
+
+  @override
+  String get mealFoodKimchiPancake => 'キムチチヂミ';
+
+  @override
+  String get mealFoodSeafoodPancake => '海鮮チヂミ';
+
+  @override
+  String get mealFoodBindaetteok => 'ピンデトック';
+
+  @override
+  String get mealFoodSundae => 'スンデ';
+
+  @override
+  String get mealFoodOdengSoup => 'おでんスープ';
+
+  @override
+  String get mealFoodSpaghetti => 'スパゲッティ';
+
+  @override
+  String get mealFoodLasagna => 'ラザニア';
+
+  @override
+  String get mealFoodRisotto => 'リゾット';
+
+  @override
+  String get mealFoodPaella => 'パエリア';
+
+  @override
+  String get mealFoodTacos => 'タコス';
+
+  @override
+  String get mealFoodBurrito => 'ブリトー';
+
+  @override
+  String get mealFoodQuesadilla => 'ケサディーヤ';
+
+  @override
+  String get mealFoodNachos => 'ナチョス';
+
+  @override
+  String get mealFoodSushi => '寿司';
+
+  @override
+  String get mealFoodSashimi => '刺身';
+
+  @override
+  String get mealFoodTempuraDon => '天丼';
+
+  @override
+  String get mealFoodGyudon => '牛丼';
+
+  @override
+  String get mealFoodKatsudon => 'カツ丼';
+
+  @override
+  String get mealFoodYakisoba => '焼きそば';
+
+  @override
+  String get mealFoodOkonomiyaki => 'お好み焼き';
+
+  @override
+  String get mealFoodTakoyaki => 'たこ焼き';
+
+  @override
+  String get mealFoodPho => 'フォー';
+
+  @override
+  String get mealFoodBanhMi => 'バインミー';
+
+  @override
+  String get mealFoodPadThai => 'パッタイ';
+
+  @override
+  String get mealFoodTomYumSoup => 'トムヤムクン';
+
+  @override
+  String get mealFoodGreenCurry => 'グリーンカレー';
+
+  @override
+  String get mealFoodMassamanCurry => 'マッサマンカレー';
+
+  @override
+  String get mealFoodNasiGoreng => 'ナシゴレン';
+
+  @override
+  String get mealFoodSatay => 'サテ';
+
+  @override
+  String get mealFoodLaksa => 'ラクサ';
+
+  @override
+  String get mealFoodButterChicken => 'バターチキン';
+
+  @override
+  String get mealFoodChickenTikkaMasala => 'チキンティッカマサラ';
+
+  @override
+  String get mealFoodBiryani => 'ビリヤニ';
+
+  @override
+  String get mealFoodNaan => 'ナン';
+
+  @override
+  String get mealFoodDal => 'ダルカレー';
+
+  @override
+  String get mealFoodKebab => 'ケバブ';
+
+  @override
+  String get mealFoodShawarma => 'シャワルマ';
+
+  @override
+  String get mealFoodFalafel => 'ファラフェル';
+
+  @override
+  String get mealFoodHummus => 'フムス';
+
+  @override
+  String get mealFoodShakshuka => 'シャクシュカ';
+
+  @override
+  String get mealFoodFishAndChips => 'フィッシュアンドチップス';
+
+  @override
+  String get mealFoodRoastChicken => 'ローストチキン';
+
+  @override
+  String get mealFoodMeatballs => 'ミートボール';
+
+  @override
+  String get mealFoodMacAndCheese => 'マカロニチーズ';
+
+  @override
+  String get mealFoodHotDog => 'ホットドッグ';
+
+  @override
+  String get mealFoodBurritoBowl => 'ブリトーボウル';
+
+  @override
+  String get mealFoodChowMein => 'チャウメン';
+
+  @override
+  String get mealFoodMapoTofu => '麻婆豆腐';
+
+  @override
+  String get mealFoodKungPaoChicken => '宮保鶏丁';
+
+  @override
+  String get mealFoodDimSum => '点心';
+
+  @override
+  String get mealFoodSpringRoll => '春巻き';
+
+  @override
+  String get mealFoodFriedNoodles => '炒め麺';
+
+  @override
+  String get mealFoodCongee => 'お粥';
+
+  @override
+  String get mealFoodWontonSoup => 'ワンタンスープ';
+
+  @override
+  String get mealFoodPokeBowl => 'ポケボウル';
+
+  @override
+  String get mealFoodCaesarSalad => 'シーザーサラダ';
+
+  @override
+  String get mealFoodGreekSalad => 'ギリシャサラダ';
+
+  @override
+  String get mealFoodClamChowder => 'クラムチャウダー';
 
   @override
   String get mealFoodKimchi => 'キムチ';
@@ -6489,6 +6738,123 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get mealFoodBlueberries => 'ブルーベリー';
+
+  @override
+  String get mealFoodSaladGreens => 'サラダ野菜';
+
+  @override
+  String get mealFoodSeasonedSeaweed => '味付け海苔';
+
+  @override
+  String get mealFoodLaver => '海苔';
+
+  @override
+  String get mealFoodGyeranJjim => 'ケランチム';
+
+  @override
+  String get mealFoodJangjorim => 'ジャンジョリム';
+
+  @override
+  String get mealFoodAnchovyBokkeum => '煮干し炒め';
+
+  @override
+  String get mealFoodFishCakeBokkeum => 'さつま揚げ炒め';
+
+  @override
+  String get mealFoodKongjaban => '黒豆煮';
+
+  @override
+  String get mealFoodCucumberKimchi => 'きゅうりキムチ';
+
+  @override
+  String get mealFoodRadishKimchi => '大根キムチ';
+
+  @override
+  String get mealFoodKkakdugi => 'カクテキ';
+
+  @override
+  String get mealFoodPerillaLeaves => 'エゴマの葉漬け';
+
+  @override
+  String get mealFoodGarlic => 'にんにく';
+
+  @override
+  String get mealFoodSsamjang => 'サムジャン';
+
+  @override
+  String get mealFoodGochujang => 'コチュジャン';
+
+  @override
+  String get mealFoodDoenjang => 'テンジャン';
+
+  @override
+  String get mealFoodSalsa => 'サルサ';
+
+  @override
+  String get mealFoodGuacamole => 'ワカモレ';
+
+  @override
+  String get mealFoodTortillaChips => 'トルティーヤチップス';
+
+  @override
+  String get mealFoodPitaBread => 'ピタパン';
+
+  @override
+  String get mealFoodPickles => 'ピクルス';
+
+  @override
+  String get mealFoodOlives => 'オリーブ';
+
+  @override
+  String get mealFoodSauerkraut => 'ザワークラウト';
+
+  @override
+  String get mealFoodColeslaw => 'コールスロー';
+
+  @override
+  String get mealFoodMashedPotatoes => 'マッシュポテト';
+
+  @override
+  String get mealFoodBakedBeans => 'ベイクドビーンズ';
+
+  @override
+  String get mealFoodGarlicBread => 'ガーリックブレッド';
+
+  @override
+  String get mealFoodOnionSoup => 'オニオンスープ';
+
+  @override
+  String get mealFoodEdamame => '枝豆';
+
+  @override
+  String get mealFoodMozzarella => 'モッツァレラ';
+
+  @override
+  String get mealFoodHoney => 'はちみつ';
+
+  @override
+  String get mealFoodJam => 'ジャム';
+
+  @override
+  String get mealFoodPeanutButter => 'ピーナッツバター';
+
+  @override
+  String get mealFoodCrackers => 'クラッカー';
+
+  @override
+  String get mealFoodCroissant => 'クロワッサン';
+
+  @override
+  String get mealFoodBagel => 'ベーグル';
+
+  @override
+  String get mealFoodMuffin => 'マフィン';
+
+  @override
+  String get mealFoodPancakes => 'パンケーキ';
+
+  @override
+  String get mealFoodWaffles => 'ワッフル';
 
   @override
   String mealSummaryRiceOnly(String label, String rice) {

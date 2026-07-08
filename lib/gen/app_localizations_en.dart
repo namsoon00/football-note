@@ -6280,6 +6280,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mealMainDishNone => 'No main dish';
 
   @override
+  String get mealMainDishChooseAction => 'Choose main';
+
+  @override
+  String get mealMainDishEditAction => 'Edit';
+
+  @override
+  String get mealMainDishSheetTitle => 'Search main dish';
+
+  @override
+  String get mealMainDishClearAction => 'No main dish';
+
+  @override
   String get mealDishPortionSmall => 'Light';
 
   @override
@@ -6457,6 +6469,243 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mealFoodSamgyetang => 'Samgyetang';
+
+  @override
+  String get mealFoodKimchiFriedRice => 'Kimchi fried rice';
+
+  @override
+  String get mealFoodBudaeJjigae => 'Budae jjigae';
+
+  @override
+  String get mealFoodSundubuJjigae => 'Sundubu jjigae';
+
+  @override
+  String get mealFoodGalbitang => 'Galbitang';
+
+  @override
+  String get mealFoodSeolleongtang => 'Seolleongtang';
+
+  @override
+  String get mealFoodYukgaejang => 'Yukgaejang';
+
+  @override
+  String get mealFoodGamjatang => 'Gamjatang';
+
+  @override
+  String get mealFoodKalguksu => 'Kalguksu';
+
+  @override
+  String get mealFoodSujebi => 'Sujebi';
+
+  @override
+  String get mealFoodBibimNoodles => 'Bibim noodles';
+
+  @override
+  String get mealFoodJapchae => 'Japchae';
+
+  @override
+  String get mealFoodBossam => 'Bossam';
+
+  @override
+  String get mealFoodJokbal => 'Jokbal';
+
+  @override
+  String get mealFoodGalbiJjim => 'Galbi jjim';
+
+  @override
+  String get mealFoodDakdoritang => 'Spicy braised chicken';
+
+  @override
+  String get mealFoodHaejangguk => 'Haejangguk';
+
+  @override
+  String get mealFoodGukbap => 'Gukbap';
+
+  @override
+  String get mealFoodSoondaeGuk => 'Soondae guk';
+
+  @override
+  String get mealFoodTteokguk => 'Tteokguk';
+
+  @override
+  String get mealFoodJanchiGuksu => 'Janchi guksu';
+
+  @override
+  String get mealFoodMakguksu => 'Makguksu';
+
+  @override
+  String get mealFoodKimchiPancake => 'Kimchi pancake';
+
+  @override
+  String get mealFoodSeafoodPancake => 'Seafood pancake';
+
+  @override
+  String get mealFoodBindaetteok => 'Mung bean pancake';
+
+  @override
+  String get mealFoodSundae => 'Korean blood sausage';
+
+  @override
+  String get mealFoodOdengSoup => 'Fish cake soup';
+
+  @override
+  String get mealFoodSpaghetti => 'Spaghetti';
+
+  @override
+  String get mealFoodLasagna => 'Lasagna';
+
+  @override
+  String get mealFoodRisotto => 'Risotto';
+
+  @override
+  String get mealFoodPaella => 'Paella';
+
+  @override
+  String get mealFoodTacos => 'Tacos';
+
+  @override
+  String get mealFoodBurrito => 'Burrito';
+
+  @override
+  String get mealFoodQuesadilla => 'Quesadilla';
+
+  @override
+  String get mealFoodNachos => 'Nachos';
+
+  @override
+  String get mealFoodSushi => 'Sushi';
+
+  @override
+  String get mealFoodSashimi => 'Sashimi';
+
+  @override
+  String get mealFoodTempuraDon => 'Tempura don';
+
+  @override
+  String get mealFoodGyudon => 'Gyudon';
+
+  @override
+  String get mealFoodKatsudon => 'Katsudon';
+
+  @override
+  String get mealFoodYakisoba => 'Yakisoba';
+
+  @override
+  String get mealFoodOkonomiyaki => 'Okonomiyaki';
+
+  @override
+  String get mealFoodTakoyaki => 'Takoyaki';
+
+  @override
+  String get mealFoodPho => 'Pho';
+
+  @override
+  String get mealFoodBanhMi => 'Banh mi';
+
+  @override
+  String get mealFoodPadThai => 'Pad thai';
+
+  @override
+  String get mealFoodTomYumSoup => 'Tom yum soup';
+
+  @override
+  String get mealFoodGreenCurry => 'Green curry';
+
+  @override
+  String get mealFoodMassamanCurry => 'Massaman curry';
+
+  @override
+  String get mealFoodNasiGoreng => 'Nasi goreng';
+
+  @override
+  String get mealFoodSatay => 'Satay';
+
+  @override
+  String get mealFoodLaksa => 'Laksa';
+
+  @override
+  String get mealFoodButterChicken => 'Butter chicken';
+
+  @override
+  String get mealFoodChickenTikkaMasala => 'Chicken tikka masala';
+
+  @override
+  String get mealFoodBiryani => 'Biryani';
+
+  @override
+  String get mealFoodNaan => 'Naan';
+
+  @override
+  String get mealFoodDal => 'Dal';
+
+  @override
+  String get mealFoodKebab => 'Kebab';
+
+  @override
+  String get mealFoodShawarma => 'Shawarma';
+
+  @override
+  String get mealFoodFalafel => 'Falafel';
+
+  @override
+  String get mealFoodHummus => 'Hummus';
+
+  @override
+  String get mealFoodShakshuka => 'Shakshuka';
+
+  @override
+  String get mealFoodFishAndChips => 'Fish and chips';
+
+  @override
+  String get mealFoodRoastChicken => 'Roast chicken';
+
+  @override
+  String get mealFoodMeatballs => 'Meatballs';
+
+  @override
+  String get mealFoodMacAndCheese => 'Mac and cheese';
+
+  @override
+  String get mealFoodHotDog => 'Hot dog';
+
+  @override
+  String get mealFoodBurritoBowl => 'Burrito bowl';
+
+  @override
+  String get mealFoodChowMein => 'Chow mein';
+
+  @override
+  String get mealFoodMapoTofu => 'Mapo tofu';
+
+  @override
+  String get mealFoodKungPaoChicken => 'Kung pao chicken';
+
+  @override
+  String get mealFoodDimSum => 'Dim sum';
+
+  @override
+  String get mealFoodSpringRoll => 'Spring roll';
+
+  @override
+  String get mealFoodFriedNoodles => 'Fried noodles';
+
+  @override
+  String get mealFoodCongee => 'Congee';
+
+  @override
+  String get mealFoodWontonSoup => 'Wonton soup';
+
+  @override
+  String get mealFoodPokeBowl => 'Poke bowl';
+
+  @override
+  String get mealFoodCaesarSalad => 'Caesar salad';
+
+  @override
+  String get mealFoodGreekSalad => 'Greek salad';
+
+  @override
+  String get mealFoodClamChowder => 'Clam chowder';
 
   @override
   String get mealFoodKimchi => 'Kimchi';
@@ -6658,6 +6907,123 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mealFoodBlueberries => 'Blueberries';
+
+  @override
+  String get mealFoodSaladGreens => 'Salad greens';
+
+  @override
+  String get mealFoodSeasonedSeaweed => 'Seasoned seaweed';
+
+  @override
+  String get mealFoodLaver => 'Laver';
+
+  @override
+  String get mealFoodGyeranJjim => 'Steamed egg';
+
+  @override
+  String get mealFoodJangjorim => 'Jangjorim';
+
+  @override
+  String get mealFoodAnchovyBokkeum => 'Stir-fried anchovies';
+
+  @override
+  String get mealFoodFishCakeBokkeum => 'Stir-fried fish cake';
+
+  @override
+  String get mealFoodKongjaban => 'Sweet black beans';
+
+  @override
+  String get mealFoodCucumberKimchi => 'Cucumber kimchi';
+
+  @override
+  String get mealFoodRadishKimchi => 'Radish kimchi';
+
+  @override
+  String get mealFoodKkakdugi => 'Kkakdugi';
+
+  @override
+  String get mealFoodPerillaLeaves => 'Pickled perilla leaves';
+
+  @override
+  String get mealFoodGarlic => 'Garlic';
+
+  @override
+  String get mealFoodSsamjang => 'Ssamjang';
+
+  @override
+  String get mealFoodGochujang => 'Gochujang';
+
+  @override
+  String get mealFoodDoenjang => 'Doenjang';
+
+  @override
+  String get mealFoodSalsa => 'Salsa';
+
+  @override
+  String get mealFoodGuacamole => 'Guacamole';
+
+  @override
+  String get mealFoodTortillaChips => 'Tortilla chips';
+
+  @override
+  String get mealFoodPitaBread => 'Pita bread';
+
+  @override
+  String get mealFoodPickles => 'Pickles';
+
+  @override
+  String get mealFoodOlives => 'Olives';
+
+  @override
+  String get mealFoodSauerkraut => 'Sauerkraut';
+
+  @override
+  String get mealFoodColeslaw => 'Coleslaw';
+
+  @override
+  String get mealFoodMashedPotatoes => 'Mashed potatoes';
+
+  @override
+  String get mealFoodBakedBeans => 'Baked beans';
+
+  @override
+  String get mealFoodGarlicBread => 'Garlic bread';
+
+  @override
+  String get mealFoodOnionSoup => 'Onion soup';
+
+  @override
+  String get mealFoodEdamame => 'Edamame';
+
+  @override
+  String get mealFoodMozzarella => 'Mozzarella';
+
+  @override
+  String get mealFoodHoney => 'Honey';
+
+  @override
+  String get mealFoodJam => 'Jam';
+
+  @override
+  String get mealFoodPeanutButter => 'Peanut butter';
+
+  @override
+  String get mealFoodCrackers => 'Crackers';
+
+  @override
+  String get mealFoodCroissant => 'Croissant';
+
+  @override
+  String get mealFoodBagel => 'Bagel';
+
+  @override
+  String get mealFoodMuffin => 'Muffin';
+
+  @override
+  String get mealFoodPancakes => 'Pancakes';
+
+  @override
+  String get mealFoodWaffles => 'Waffles';
 
   @override
   String mealSummaryRiceOnly(String label, String rice) {
