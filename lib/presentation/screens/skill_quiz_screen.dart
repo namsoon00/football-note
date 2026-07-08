@@ -17,6 +17,7 @@ import '../../application/training_plan_reminder_service.dart';
 import '../../domain/entities/sport_definition.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../theme/app_theme.dart';
+import '../utils/app_sound_effects.dart';
 import '../widgets/app_bar_action_button.dart';
 
 class SkillQuizScreen extends StatefulWidget {
@@ -856,6 +857,11 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       _speedTimer?.cancel();
       _pendingResumeSnapshot = null;
     });
+    if (wrongQuestions.isEmpty) {
+      AppSoundEffects.playReward();
+    } else {
+      AppSoundEffects.playMissionComplete();
+    }
   }
 
   bool get _showEntryHubBackButton => _questions.isNotEmpty || _finished;

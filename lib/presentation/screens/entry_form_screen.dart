@@ -4020,6 +4020,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         if (!mounted) return;
       }
       if (popAfterSave) {
+        if (widget.entry != null && levelAward.gainedXp <= 0) {
+          AppSoundEffects.playRewardClaimed();
+        }
         AppFeedback.showSuccess(context, text: l10n.trainingSaveToastPlain);
         Navigator.of(context).pop();
       }

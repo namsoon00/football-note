@@ -13,6 +13,7 @@ import '../../application/training_plan_reminder_service.dart';
 import '../../domain/entities/meal_entry.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../meal_food_labels.dart';
+import '../utils/app_sound_effects.dart';
 import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_feedback.dart';
@@ -348,6 +349,9 @@ class _MealLogScreenState extends State<MealLogScreen> {
     final l10n = AppLocalizations.of(context)!;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final previousEntry = _persistedEntry;
+    final previousCompletedMeals = previousEntry == null
+        ? 0
+        : MealStatus.fromMealEntry(previousEntry).completedMeals;
     final entry = MealEntry(
       date: _date,
       breakfastRiceBowls: _breakfastRiceBowls,
@@ -375,6 +379,10 @@ class _MealLogScreenState extends State<MealLogScreen> {
         previousEntry: previousEntry,
         updatedEntry: entry,
       );
+      final updatedStatus = MealStatus.fromMealEntry(entry);
+      if (previousCompletedMeals < 3 && updatedStatus.completedMeals >= 3) {
+        AppSoundEffects.playMissionComplete();
+      }
       final reminderService = TrainingPlanReminderService(
         widget.optionRepository,
         widget.settingsService,
