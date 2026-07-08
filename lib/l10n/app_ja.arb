@@ -6203,14 +6203,14 @@
   "matchNoteOptionalLabel": "注記 (オプション)",
   "matchShotsOnTargetLabel": "枠内シュート",
   "matchBallsWonLabel": "獲得したボール",
-  "matchHubTopActionTooltip": "チーム管理",
-  "matchHubTitle": "チーム管理",
-  "matchHubSubtitle": "チーム、選手、戦術を管理し、親善試合、リーグ、トーナメントの記録につなげましょう。",
+  "matchHubTopActionTooltip": "チーム運営",
+  "matchHubTitle": "チーム運営",
+  "matchHubSubtitle": "自分のチームの予定、選手名簿、ラインアップを整理し、親善試合、リーグ、トーナメントの記録につなげましょう。",
   "matchHubOverviewTitle": "チーム運営ボード",
   "matchHubRecentFormLabel": "最近のフォーム",
   "matchHubRecordButton": "試合を記録",
-  "matchEntryManagedInHubTitle": "試合記録はチーム管理画面で管理します。",
-  "matchEntryManagedInHubBody": "トレーニングノートでは試合情報を表示しません。試合の確認と編集は上部のチーム管理画面で行ってください。",
+  "matchEntryManagedInHubTitle": "試合記録はチーム運営画面で管理します。",
+  "matchEntryManagedInHubBody": "トレーニングノートでは試合情報を表示しません。試合の確認と編集は上部のチーム運営画面で行ってください。",
   "matchHubRecordHelper": "今日の結果をすばやく入力",
   "matchRecordsOpenButton": "試合記録を見る",
   "matchRecordsOpenHelper": "過去の試合結果を確認",
@@ -6229,7 +6229,7 @@
   "matchHubRecentMatchesTitle": "最近の試合",
   "matchHubEmptyTitle": "試合記録がまだありません。",
   "matchHubEmptySubtitle": "親善試合から記録すると、勝率と最近のフォームを計算できます。",
-  "matchHubOpeningFeedback": "チーム管理画面へ移動します。",
+  "matchHubOpeningFeedback": "チーム運営画面へ移動します。",
   "matchHubRecordedOnlyProgress": "{count}試合記録済み",
   "@matchHubRecordedOnlyProgress": {
     "placeholders": {
@@ -6264,10 +6264,10 @@
       }
     }
   },
-  "matchHubTeamManagementHeaderSubtitle": "チーム、選手、戦術、フォーメーションを管理して試合記録につなげましょう。",
-  "matchHubTeamManagementTitle": "チーム管理ボード",
-  "matchHubTeamManagementHelper": "選手、戦術、フォーメーションを管理",
-  "matchHubTeamStateLabel": "管理チーム",
+  "matchHubTeamManagementHeaderSubtitle": "チームの予定、選手名簿、ラインアップ、大会の流れを試合記録につなげましょう。",
+  "matchHubTeamManagementTitle": "自分のチーム運営",
+  "matchHubTeamManagementHelper": "予定、選手名簿、ラインアップを管理",
+  "matchHubTeamStateLabel": "運営チーム",
   "matchHubTeamStateValue": "{count}チーム",
   "@matchHubTeamStateValue": {
     "placeholders": {
@@ -6276,8 +6276,8 @@
       }
     }
   },
-  "matchHubNoTeamsTitle": "管理中のチームはまだありません。",
-  "matchHubNoTeamsSubtitle": "チームを作成し、選手と戦略を入力して、ピッチ上のポジションに選手を割り当てましょう。",
+  "matchHubNoTeamsTitle": "運営中のチームはまだありません。",
+  "matchHubNoTeamsSubtitle": "自分のチームを作成し、選手名簿、予定、ラインアップを順に入力しましょう。",
   "matchHubMoreTeamsCount": "ほか{count}チーム",
   "@matchHubMoreTeamsCount": {
     "placeholders": {
@@ -6363,23 +6363,59 @@
       "uniform": {}
     }
   },
-  "teamManagementTitle": "チーム管理",
-  "teamManagementSubtitle": "選手登録から始め、大きなピッチボードへ選手をドラッグして戦術を整理します。",
-  "teamManagementOpenButton": "チーム管理",
+  "teamManagementTitle": "チーム運営センター",
+  "teamManagementSubtitle": "予定、選手名簿、ラインアップ、戦術、大会の流れを一か所で確認します。",
+  "teamManagementOpenButton": "チーム運営",
   "teamManagementDefaultTeamName": "自分のチーム",
-  "teamManagementSavedTeamsTitle": "管理チーム",
-  "teamManagementSavedTeamsHelper": "保存済みチームを選ぶと、選手名簿、戦術メモ、ボード配置をすぐに更新できます。",
+  "teamManagementSavedTeamsTitle": "チーム選択",
+  "teamManagementSavedTeamsHelper": "保存済みチームを選ぶと、選手名簿、戦術原則、ボード配置の運営を続けられます。",
   "teamManagementNoTeamsTitle": "最初のチームを準備中です。",
   "teamManagementNoTeamsBody": "チーム名と選手名簿を入力すると自動保存され、ここにチームカードが作成されます。",
+  "teamManagementOperationsTitle": "運営サマリー",
+  "teamManagementOperationsHelper": "次の練習、選手名簿の状態、ラインアップ完成度、参加大会を先に確認します。",
+  "teamManagementOperationsNextTrainingLabel": "次の練習",
+  "teamManagementOperationsNextTrainingUnset": "練習予定なし",
+  "teamManagementOperationsRosterLabel": "選手名簿の状態",
+  "teamManagementOperationsRosterValue": "全{total}人 · 管理{managed}人",
+  "@teamManagementOperationsRosterValue": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "managed": {
+        "type": "int"
+      }
+    }
+  },
+  "teamManagementOperationsLineupLabel": "ラインアップ",
+  "teamManagementOperationsCompetitionsLabel": "大会",
+  "teamManagementOperationsCompetitionsValue": "進行{active} · 全{total}",
+  "@teamManagementOperationsCompetitionsValue": {
+    "placeholders": {
+      "active": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "teamManagementOperationsScheduleTitle": "予定と大会",
+  "teamManagementOperationsScheduleHelper": "練習曜日、ユニフォーム、参加大会をチーム運営の流れの中で確認します。",
+  "teamManagementOperationsOpenScheduleButton": "予定を編集",
+  "teamManagementOperationsNoTraining": "登録された練習予定はありません。",
+  "teamManagementOperationsUniformLabel": "ユニフォーム",
+  "teamManagementOperationsCompetitionTitle": "参加大会",
+  "teamManagementOperationsNoCompetitions": "大会管理でリーグやトーナメントを作成すると、ここに進行状況が表示されます。",
   "teamManagementNewTeamButton": "新しいチーム",
-  "teamManagementBasicsTitle": "チーム情報と戦術説明",
-  "teamManagementBasicsHelper": "選手名簿を作成してから、チーム名と戦術説明を整理します。",
+  "teamManagementBasicsTitle": "チームプロフィールと戦術原則",
+  "teamManagementBasicsHelper": "選手名簿で共有するチーム名と試合運営の原則を整理します。",
   "teamManagementTeamNameLabel": "チーム名",
   "teamManagementTeamNameHint": "例) 自分のU15",
   "teamManagementStrategyLabel": "戦術説明",
   "teamManagementStrategyHint": "例) プレス開始位置、サイドチェンジの約束、守備ブロックの基準",
-  "teamManagementFormationTitle": "ピッチ戦術ボード",
-  "teamManagementFormationHelper": "先にフォーメーションを選ぶ必要はありません。選手チップをピッチ上の好きな場所へドラッグし、マーカーモードで移動線やプレス方向を描きます。",
+  "teamManagementFormationTitle": "ラインアップ/戦術ボード",
+  "teamManagementFormationHelper": "先発配置と戦術メモを一緒に整理します。選手チップをピッチ上の好きな場所へドラッグし、マーカーモードで移動線やプレス方向を描きます。",
   "teamManagementFormationLabel": "フォーメーション",
   "teamManagementFormationSpotLabel": "{spot}",
   "@teamManagementFormationSpotLabel": {
@@ -6397,7 +6433,7 @@
   "teamManagementAssignedPlayerLabel": "割り当てる選手",
   "teamManagementUnassignedPlayer": "未割り当て",
   "teamManagementPlayersTitle": "選手名簿",
-  "teamManagementPlayersHelper": "チーム管理は選手登録から始まります。番号、ポジション、利き足、コンディション、管理メモを残しましょう。",
+  "teamManagementPlayersHelper": "番号、ポジション、利き足、コンディション、管理メモを選手カードで管理します。",
   "teamManagementPlayerNameLabel": "選手名",
   "teamManagementPlayerNameHint": "例) キム・ミンジュン",
   "teamManagementPlayerNumberLabel": "番号",
@@ -6456,7 +6492,7 @@
   "teamManagementRemovePlayerButton": "削除",
   "teamManagementDeleteTeamButton": "チーム削除",
   "teamManagementSaveTeamButton": "チーム保存",
-  "teamManagementSaveHint": "選手、戦術、ボード配置は編集と同時に自動保存され、試合画面のチーム管理ボードに反映されます。",
+  "teamManagementSaveHint": "選手名簿、戦術、ボード配置は編集と同時に自動保存され、試合ハブのチーム運営カードに反映されます。",
   "teamManagementAutoSaveReady": "自動保存",
   "teamManagementAutoSavePending": "保存待ち",
   "teamManagementAutoSaveSaving": "保存中",

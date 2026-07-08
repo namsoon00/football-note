@@ -193,14 +193,14 @@ void main() {
 
     await pumpHub(tester);
 
-    expect(find.text('팀 관리'), findsWidgets);
+    expect(find.text('팀 운영'), findsWidgets);
     expect(find.text('팀 운영 보드'), findsOneWidget);
     expect(find.text('시합 허브'), findsNothing);
     expect(find.text('2경기'), findsOneWidget);
     expect(find.text('1승 0무 1패'), findsOneWidget);
     expect(find.text('주말 리그'), findsOneWidget);
     expect(find.text('컵 대회'), findsOneWidget);
-    expect(find.text('팀 관리 보드'), findsOneWidget);
+    expect(find.text('우리 팀 운영'), findsOneWidget);
     expect(find.text('우리 팀 U15'), findsOneWidget);
     expect(find.text('대회 관리'), findsWidgets);
     expect(find.text('시합 기록 보기'), findsOneWidget);
@@ -242,9 +242,9 @@ void main() {
 
     await pumpHub(tester);
 
-    expect(find.text('팀 관리 보드'), findsNothing);
-    expect(find.text('관리 팀'), findsNothing);
-    expect(find.text('아직 관리 중인 팀이 없어요.'), findsNothing);
+    expect(find.text('우리 팀 운영'), findsNothing);
+    expect(find.text('운영 팀'), findsNothing);
+    expect(find.text('아직 운영 중인 팀이 없어요.'), findsNothing);
     expect(find.text('우리 팀 U15'), findsNothing);
     expect(find.text('대회 관리'), findsWidgets);
     expect(find.text('시합 기록 보기'), findsOneWidget);
@@ -528,8 +528,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      tester.getTopLeft(find.text('선수 명단').last).dy,
-      lessThan(tester.getTopLeft(find.text('팀 정보와 전술 설명').last).dy),
+      tester.getTopLeft(find.text('선수단').last).dy,
+      lessThan(tester.getTopLeft(find.text('팀 프로필과 전술 원칙').last).dy),
     );
 
     final addPlayerButton = find.widgetWithText(FilledButton, '선수 추가');

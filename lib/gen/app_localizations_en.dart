@@ -11358,14 +11358,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get matchBallsWonLabel => 'Balls won';
 
   @override
-  String get matchHubTopActionTooltip => 'Team management';
+  String get matchHubTopActionTooltip => 'Team operations';
 
   @override
-  String get matchHubTitle => 'Team Management';
+  String get matchHubTitle => 'Team Operations';
 
   @override
   String get matchHubSubtitle =>
-      'Manage teams, players, and tactics before recording friendlies, leagues, and tournaments.';
+      'Organize your team\'s schedule, roster, and lineup before recording friendlies, leagues, and tournaments.';
 
   @override
   String get matchHubOverviewTitle => 'Team operations board';
@@ -11378,11 +11378,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get matchEntryManagedInHubTitle =>
-      'Match records are managed in Team Management.';
+      'Match records are managed in Team Operations.';
 
   @override
   String get matchEntryManagedInHubBody =>
-      'Training notes no longer show match details. View and edit matches from the top Team Management screen.';
+      'Training notes no longer show match details. View and edit matches from the top Team Operations screen.';
 
   @override
   String get matchHubRecordHelper => 'Enter today\'s result quickly';
@@ -11443,7 +11443,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Start with a friendly match to calculate win rate and recent form.';
 
   @override
-  String get matchHubOpeningFeedback => 'Opening Team Management.';
+  String get matchHubOpeningFeedback => 'Opening Team Operations.';
 
   @override
   String matchHubRecordedOnlyProgress(int count) {
@@ -11465,17 +11465,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get matchHubTeamManagementHeaderSubtitle =>
-      'Manage teams, players, tactics, and formations before recording matches.';
+      'Connect your team\'s schedule, roster, lineup, and competition flow to match records.';
 
   @override
-  String get matchHubTeamManagementTitle => 'Team management board';
+  String get matchHubTeamManagementTitle => 'Our Team Operations';
 
   @override
   String get matchHubTeamManagementHelper =>
-      'Manage players, tactics, and formations';
+      'Manage schedule, roster, and lineup';
 
   @override
-  String get matchHubTeamStateLabel => 'Managed teams';
+  String get matchHubTeamStateLabel => 'Operating teams';
 
   @override
   String matchHubTeamStateValue(int count) {
@@ -11483,11 +11483,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get matchHubNoTeamsTitle => 'No managed teams yet.';
+  String get matchHubNoTeamsTitle => 'No operating team yet.';
 
   @override
   String get matchHubNoTeamsSubtitle =>
-      'Create a team, add players and strategy notes, then assign players to positions on the pitch.';
+      'Create your team, then fill in the roster, schedule, and lineup.';
 
   @override
   String matchHubMoreTeamsCount(int count) {
@@ -11638,24 +11638,24 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get teamManagementTitle => 'Team Management';
+  String get teamManagementTitle => 'Team Operations Center';
 
   @override
   String get teamManagementSubtitle =>
-      'Start with player registration, then drag players onto a larger pitch board to organize tactics.';
+      'Review schedule, roster, lineup, tactics, and competition flow in one place.';
 
   @override
-  String get teamManagementOpenButton => 'Team management';
+  String get teamManagementOpenButton => 'Team operations';
 
   @override
   String get teamManagementDefaultTeamName => 'Our team';
 
   @override
-  String get teamManagementSavedTeamsTitle => 'Managed teams';
+  String get teamManagementSavedTeamsTitle => 'Team selector';
 
   @override
   String get teamManagementSavedTeamsHelper =>
-      'Select a saved team to update its roster, tactical notes, and board placement.';
+      'Select a saved team to continue operating its roster, tactical principles, and board placement.';
 
   @override
   String get teamManagementNoTeamsTitle => 'Preparing your first team.';
@@ -11665,14 +11665,71 @@ class AppLocalizationsEn extends AppLocalizations {
       'Enter a team name and roster, and it will auto-save into a team card here.';
 
   @override
+  String get teamManagementOperationsTitle => 'Operations Summary';
+
+  @override
+  String get teamManagementOperationsHelper =>
+      'Check next training, roster status, lineup readiness, and competitions first.';
+
+  @override
+  String get teamManagementOperationsNextTrainingLabel => 'Next training';
+
+  @override
+  String get teamManagementOperationsNextTrainingUnset => 'No training set';
+
+  @override
+  String get teamManagementOperationsRosterLabel => 'Roster status';
+
+  @override
+  String teamManagementOperationsRosterValue(int total, int managed) {
+    return '$total total · $managed managed';
+  }
+
+  @override
+  String get teamManagementOperationsLineupLabel => 'Lineup';
+
+  @override
+  String get teamManagementOperationsCompetitionsLabel => 'Competitions';
+
+  @override
+  String teamManagementOperationsCompetitionsValue(int active, int total) {
+    return '$active active · $total total';
+  }
+
+  @override
+  String get teamManagementOperationsScheduleTitle =>
+      'Schedule and competitions';
+
+  @override
+  String get teamManagementOperationsScheduleHelper =>
+      'Review training days, uniforms, and competitions inside the team operations flow.';
+
+  @override
+  String get teamManagementOperationsOpenScheduleButton => 'Edit schedule';
+
+  @override
+  String get teamManagementOperationsNoTraining =>
+      'No training schedule has been set.';
+
+  @override
+  String get teamManagementOperationsUniformLabel => 'Uniforms';
+
+  @override
+  String get teamManagementOperationsCompetitionTitle => 'Competitions';
+
+  @override
+  String get teamManagementOperationsNoCompetitions =>
+      'Create leagues or tournaments in competition management to show their status here.';
+
+  @override
   String get teamManagementNewTeamButton => 'New team';
 
   @override
-  String get teamManagementBasicsTitle => 'Team info and tactics';
+  String get teamManagementBasicsTitle => 'Team profile and principles';
 
   @override
   String get teamManagementBasicsHelper =>
-      'After building the roster, organize the team name and tactical notes.';
+      'Set the team name and match principles the roster should share.';
 
   @override
   String get teamManagementTeamNameLabel => 'Team name';
@@ -11688,11 +11745,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'e.g. Pressing trigger, wide switch rule, defensive block standard';
 
   @override
-  String get teamManagementFormationTitle => 'Pitch tactics board';
+  String get teamManagementFormationTitle => 'Lineup / tactics board';
 
   @override
   String get teamManagementFormationHelper =>
-      'You do not need to choose a formation first. Drag player chips anywhere on the pitch, then use marker mode for movement lines or pressing directions.';
+      'Organize starting placement and tactical notes together. Drag player chips anywhere on the pitch, then use marker mode for movement lines or pressing directions.';
 
   @override
   String get teamManagementFormationLabel => 'Formation';
@@ -11722,7 +11779,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get teamManagementPlayersHelper =>
-      'Team management starts with player registration. Track number, position, preferred foot, condition, and management notes.';
+      'Manage number, position, preferred foot, condition, and notes as roster cards.';
 
   @override
   String get teamManagementPlayerNameLabel => 'Player name';
@@ -11836,7 +11893,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get teamManagementSaveHint =>
-      'Roster, tactics, and board placement auto-save as you edit and appear on the Match screen team board.';
+      'Roster, tactics, and board placement auto-save as you edit and appear in the Match Hub team operations card.';
 
   @override
   String get teamManagementAutoSaveReady => 'Auto-save';
