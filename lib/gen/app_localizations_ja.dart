@@ -11330,6 +11330,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get trainingSketchPenButton => 'ペン';
 
   @override
+  String get trainingSketchAddElementMenuButton => '要素を追加';
+
+  @override
   String get trainingSketchClearInkButton => 'クリアインク';
 
   @override

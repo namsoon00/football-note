@@ -6413,6 +6413,7 @@
   "trainingSketchBaseButton": "Base",
   "trainingSketchBasketButton": "Hoop",
   "trainingSketchPenButton": "Pen",
+  "trainingSketchAddElementMenuButton": "Add item",
   "trainingSketchClearInkButton": "Clear ink",
   "trainingSketchResetButton": "Clear",
   "trainingSketchPenModeHint": "Pen mode: drag on the board to draw.",

@@ -11651,6 +11651,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trainingSketchPenButton => 'Pen';
 
   @override
+  String get trainingSketchAddElementMenuButton => 'Add item';
+
+  @override
   String get trainingSketchClearInkButton => 'Clear ink';
 
   @override

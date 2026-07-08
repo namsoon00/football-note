@@ -6413,6 +6413,7 @@
   "trainingSketchBaseButton": "ベース",
   "trainingSketchBasketButton": "リング",
   "trainingSketchPenButton": "ペン",
+  "trainingSketchAddElementMenuButton": "要素を追加",
   "trainingSketchClearInkButton": "クリアインク",
   "trainingSketchResetButton": "クリア",
   "trainingSketchPenModeHint": "ペンモード: ボード上をドラッグして描画します。",

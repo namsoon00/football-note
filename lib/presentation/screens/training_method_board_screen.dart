@@ -818,6 +818,16 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
 
   Offset _itemPosition(_BoardItem item) => Offset(item.x, item.y);
 
+  Offset _itemActionPoint(_BoardItem item) {
+    if (item.type == _BoardItemType.player) {
+      final route = _routeForItem(item.id, _PathDrawMode.player);
+      if (route != null && route.points.isNotEmpty) {
+        return route.points.last;
+      }
+    }
+    return _itemPosition(item);
+  }
+
   Offset _boardPointFromLocal(
     Offset localPosition,
     double width,
@@ -3194,7 +3204,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }) {
     _applyPendingTargetActionToPoint(
       action: action,
-      target: _itemPosition(target),
+      target: _itemActionPoint(target),
       targetItem: target,
     );
   }
@@ -3983,7 +3993,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     if (selected == null) return;
     _applyBallTargetAction(
       selected: selected,
-      target: _itemPosition(target),
+      target: _itemActionPoint(target),
       targetItem: target,
       durationMs: 680,
     );
@@ -3998,7 +4008,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     });
     _applyBallTargetAction(
       selected: player,
-      target: _itemPosition(receiver),
+      target: _itemActionPoint(receiver),
       targetItem: receiver,
       durationMs: 680,
     );
@@ -5295,7 +5305,13 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   List<Widget> _buildToolButtonsList(bool isKo) {
-    final l10n = _l10n;
+    final selected = _selectedItem;
+    if (selected != null && !_penMode && !_pathMode) {
+      return <Widget>[
+        _addElementMenuButton(),
+        ..._buildUtilityToolButtons(isKo),
+      ];
+    }
     return <Widget>[
       for (final tool in _boardToolSpecsForCurrentSport())
         _toolButton(
@@ -5303,6 +5319,41 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           icon: tool.icon,
           onTap: () => _addItem(tool.type),
         ),
+      ..._buildUtilityToolButtons(isKo),
+    ];
+  }
+
+  Widget _addElementMenuButton() {
+    return MenuAnchor(
+      key: const ValueKey('training-add-element-menu'),
+      menuChildren: <Widget>[
+        for (final tool in _boardToolSpecsForCurrentSport())
+          MenuItemButton(
+            leadingIcon: Icon(tool.icon),
+            onPressed: () => _addItem(tool.type),
+            child: Text(tool.label),
+          ),
+      ],
+      builder: (context, controller, _) {
+        return OutlinedButton.icon(
+          onPressed: () {
+            if (controller.isOpen) {
+              controller.close();
+            } else {
+              controller.open();
+            }
+          },
+          icon: const Icon(Icons.add_circle_outline),
+          label: Text(_l10n.trainingSketchAddElementMenuButton),
+          style: _toolButtonStyle(),
+        );
+      },
+    );
+  }
+
+  List<Widget> _buildUtilityToolButtons(bool isKo) {
+    final l10n = _l10n;
+    return <Widget>[
       OutlinedButton.icon(
         onPressed: () => setState(() {
           _penMode = !_penMode;
@@ -5863,12 +5914,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         ],
       ),
     );
-  }
-
-  String _selectedActionSectionTitle(_BoardItem selected) {
-    return selected.type == _BoardItemType.player
-        ? _l10n.trainingSketchPlayerActionsTitle
-        : _l10n.trainingSketchBallActionsTitle;
   }
 
   List<Widget> _buildSelectedQuickActionButtons(
@@ -6912,12 +6957,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             _buildPendingTargetActionBanner(),
           ],
           const SizedBox(height: 10),
-          _buildPlayerFlowStarter(selected),
-          const SizedBox(height: 10),
-          _buildGlobalStagePlanner(),
-          const SizedBox(height: 10),
           Text(
-            _selectedActionSectionTitle(selected),
+            l10n.trainingSketchPlayerActionsTitle,
             style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(height: 6),
@@ -6929,6 +6970,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
               includeRouteTool: true,
             ),
           ),
+          const SizedBox(height: 10),
+          _buildPlayerFlowStarter(selected),
+          const SizedBox(height: 10),
+          _buildGlobalStagePlanner(),
           if (selectedStageRoute != null) ...[
             const SizedBox(height: 10),
             _buildRouteStageControls(
