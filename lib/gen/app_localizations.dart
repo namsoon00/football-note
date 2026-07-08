@@ -20052,6 +20052,12 @@ abstract class AppLocalizations {
   /// **'Pen'**
   String get trainingSketchPenButton;
 
+  /// No description provided for @trainingSketchAddElementMenuButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Add item'**
+  String get trainingSketchAddElementMenuButton;
+
   /// No description provided for @trainingSketchClearInkButton.
   ///
   /// In en, this message translates to:

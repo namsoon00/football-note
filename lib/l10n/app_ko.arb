@@ -6413,6 +6413,7 @@
   "trainingSketchBaseButton": "베이스",
   "trainingSketchBasketButton": "골대",
   "trainingSketchPenButton": "펜",
+  "trainingSketchAddElementMenuButton": "요소 추가",
   "trainingSketchClearInkButton": "펜 지우기",
   "trainingSketchResetButton": "초기화",
   "trainingSketchPenModeHint": "펜 모드: 보드 영역을 드래그해 그릴 수 있습니다.",

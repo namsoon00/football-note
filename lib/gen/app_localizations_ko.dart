@@ -11351,6 +11351,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get trainingSketchPenButton => '펜';
 
   @override
+  String get trainingSketchAddElementMenuButton => '요소 추가';
+
+  @override
   String get trainingSketchClearInkButton => '펜 지우기';
 
   @override
