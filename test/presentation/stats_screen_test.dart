@@ -84,7 +84,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('최근 1주일'), findsOneWidget);
+    expect(find.text('최근 7일'), findsOneWidget);
     expect(find.text('훈련'), findsOneWidget);
     expect(find.text('시합'), findsOneWidget);
     expect(find.text('기록 리듬'), findsOneWidget);
@@ -475,7 +475,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('3/16~3/22'), findsOneWidget);
+    expect(find.text('3/16-3/22'), findsOneWidget);
   });
 
   testWidgets('Stats screen shows meal averages from standalone logs', (

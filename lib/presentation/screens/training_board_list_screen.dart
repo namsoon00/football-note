@@ -130,18 +130,18 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
   }
 
   Future<String?> _promptTitle({String initialValue = ''}) async {
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController(text: initialValue);
     final title = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(isKo ? '훈련 스케치 제목' : 'Training sketch title'),
+        title: Text(l10n.trainingBoardTitleDialogTitle),
         content: TextField(
           controller: controller,
           autofocus: true,
           textInputAction: TextInputAction.done,
           decoration: InputDecoration(
-            hintText: isKo ? '예) 패스 워밍업' : 'e.g. Pass warm-up',
+            hintText: l10n.trainingBoardTitleHint,
             border: const OutlineInputBorder(),
           ),
           onSubmitted: (value) => Navigator.of(context).pop(value.trim()),
@@ -149,11 +149,11 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text(isKo ? '취소' : 'Cancel'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(controller.text.trim()),
-            child: Text(isKo ? '확인' : 'OK'),
+            child: Text(l10n.confirm),
           ),
         ],
       ),
@@ -197,16 +197,16 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
     if (!mounted || title == null || title == board.title) return;
     await _boardService.saveBoard(board.copyWith(title: title));
     if (!mounted) return;
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final l10n = AppLocalizations.of(context)!;
     AppFeedback.showUndo(
       context,
-      text: isKo ? '보드 이름을 변경했어요.' : 'Board renamed.',
-      undoLabel: isKo ? '되돌리기' : 'Undo',
+      text: l10n.trainingBoardRenamedSnack,
+      undoLabel: l10n.undo,
       onUndo: () {
         unawaited(_boardService.saveBoard(board));
         AppFeedback.showSuccess(
           context,
-          text: isKo ? '이름 변경을 되돌렸어요.' : 'Rename undone.',
+          text: l10n.trainingBoardRenameUndoneSnack,
         );
         unawaited(_reload());
       },
@@ -262,10 +262,11 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
       return;
     }
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final l10n = AppLocalizations.of(context)!;
     if (_boards.isEmpty) {
       AppFeedback.showSuccess(
         context,
-        text: isKo ? '복사할 훈련 스케치가 없어요.' : 'No training sketch to copy.',
+        text: l10n.trainingBoardNoCopySourceSnack,
       );
       return;
     }
@@ -295,8 +296,7 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
       ),
     );
     if (!mounted || source == null) return;
-    final defaultCopyTitle =
-        isKo ? '${source.title} 복사본' : '${source.title} Copy';
+    final defaultCopyTitle = l10n.trainingBoardDefaultCopyTitle(source.title);
     final copiedTitle = await _promptTitle(initialValue: defaultCopyTitle);
     if (!mounted || copiedTitle == null) return;
     final created = await _boardService.createBoard(
@@ -331,23 +331,21 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
       _showParentReadOnlyMessage();
       return;
     }
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final l10n = AppLocalizations.of(context)!;
     final shouldDelete = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(isKo ? '훈련 스케치 삭제' : 'Delete training sketch'),
-        content: Text(
-          isKo ? '"${board.title}"를 정말 삭제할까요?' : 'Delete "${board.title}"?',
-        ),
+        title: Text(l10n.trainingBoardDeleteTitle),
+        content: Text(l10n.trainingBoardDeleteConfirm(board.title)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: Text(isKo ? '취소' : 'Cancel'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             onPressed: () => Navigator.of(context).pop(true),
-            child: Text(isKo ? '삭제' : 'Delete'),
+            child: Text(l10n.delete),
           ),
         ],
       ),
@@ -366,8 +364,8 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
     if (!mounted) return;
     AppFeedback.showUndo(
       context,
-      text: isKo ? '보드를 삭제했어요.' : 'Board deleted.',
-      undoLabel: isKo ? '되돌리기' : 'Undo',
+      text: l10n.trainingBoardDeletedSnack,
+      undoLabel: l10n.undo,
       onUndo: () {
         unawaited(() async {
           await _boardService.saveBoard(board);
@@ -380,7 +378,7 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
         }());
         AppFeedback.showSuccess(
           context,
-          text: isKo ? '삭제를 되돌렸어요.' : 'Delete undone.',
+          text: l10n.trainingBoardDeleteUndoneSnack,
         );
         unawaited(_reload());
       },
@@ -400,7 +398,7 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
     }
     final fallback = fallbackTitle.trim();
     if (fallback.isNotEmpty) return fallback;
-    return 'Training Board';
+    return AppLocalizations.of(context)!.trainingBoardDefaultTitle;
   }
 
   List<TrainingBoard> _visibleBoards() {
@@ -446,47 +444,46 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final listTitle = isKo ? '훈련 스케치 리스트' : 'Training sketch list';
+    final l10n = AppLocalizations.of(context)!;
     final visibleBoards = _visibleBoards();
     final isFiltered = _searchQuery.trim().isNotEmpty;
     final isParentMode = _isParentMode;
     return Scaffold(
       appBar: AppBar(
-        title: Text(listTitle),
+        title: Text(l10n.trainingBoardListTitle),
         actions: [
           AppBarActionButton.icon(
             tooltip: _showSearch
-                ? (isKo ? '검색 닫기' : 'Close search')
-                : (isKo ? '보드 검색' : 'Search boards'),
+                ? l10n.trainingBoardSearchCloseTooltip
+                : l10n.trainingBoardSearchTooltip,
             onPressed: _toggleSearch,
             icon: _showSearch ? Icons.close : Icons.search,
             selected: _showSearch,
           ),
           if (!widget.selectionMode)
             AppBarActionMenuButton<_BoardListSort>(
-              tooltip: isKo ? '정렬' : 'Sort',
+              tooltip: l10n.trainingBoardSortTooltip,
               icon: Icons.sort,
               initialValue: _sort,
               onSelected: (next) => setState(() => _sort = next),
               itemBuilder: (_) => [
                 PopupMenuItem<_BoardListSort>(
                   value: _BoardListSort.updatedDesc,
-                  child: Text(isKo ? '최근 수정순' : 'Recently updated'),
+                  child: Text(l10n.trainingBoardSortRecentlyUpdated),
                 ),
                 PopupMenuItem<_BoardListSort>(
                   value: _BoardListSort.trainingDateDesc,
-                  child: Text(isKo ? '훈련일 최신순' : 'Training date'),
+                  child: Text(l10n.trainingBoardSortTrainingDate),
                 ),
                 PopupMenuItem<_BoardListSort>(
                   value: _BoardListSort.titleAsc,
-                  child: Text(isKo ? '이름순' : 'Name A-Z'),
+                  child: Text(l10n.trainingBoardSortName),
                 ),
               ],
             ),
           if (!widget.selectionMode)
             AppBarActionMenuButton<String>(
-              tooltip: isKo ? '훈련 스케치 추가' : 'Add training sketch',
+              tooltip: l10n.trainingBoardAddTooltip,
               enabled: !isParentMode,
               icon: Icons.add,
               onSelected: (value) {
@@ -502,20 +499,20 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
               itemBuilder: (_) => [
                 PopupMenuItem<String>(
                   value: 'new',
-                  child: Text(isKo ? '새 스케치 만들기' : 'Create new sketch'),
+                  child: Text(l10n.trainingBoardCreateNewAction),
                 ),
                 PopupMenuItem<String>(
                   value: 'copy',
-                  child: Text(isKo ? '이전 스케치 복사' : 'Copy previous sketch'),
+                  child: Text(l10n.trainingBoardCopyPreviousAction),
                 ),
               ],
             ),
           if (widget.selectionMode)
             AppBarActionButton.label(
               onPressed: _submitSelection,
-              tooltip: isKo ? '완료' : 'Done',
+              tooltip: l10n.trainingBoardDoneAction,
               icon: const Icon(Icons.check_rounded),
-              label: isKo ? '완료' : 'Done',
+              label: l10n.trainingBoardDoneAction,
               maxLabelWidth: 64,
             ),
         ],
@@ -535,14 +532,12 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          isKo ? '훈련보드가 아직 없습니다.' : 'No boards yet.',
+                          l10n.trainingBoardEmptyTitle,
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          isKo
-                              ? '훈련노트에서 보드 버튼을 눌러 바로 생성해보세요.'
-                              : 'Create one directly from a training note.',
+                          l10n.trainingBoardEmptySubtitle,
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
@@ -550,7 +545,7 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
                         FilledButton.icon(
                           onPressed: () => Navigator.of(context).pop(),
                           icon: const Icon(Icons.arrow_back),
-                          label: Text(isKo ? '훈련노트로 돌아가기' : 'Back to notes'),
+                          label: Text(l10n.trainingBoardBackToNotes),
                         ),
                       ],
                     ),
@@ -569,12 +564,12 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
                         textInputAction: TextInputAction.search,
                         decoration: InputDecoration(
                           isDense: true,
-                          hintText: isKo ? '보드명 검색' : 'Search board',
+                          hintText: l10n.trainingBoardSearchHint,
                           prefixIcon: const Icon(Icons.search),
                           suffixIcon: _searchQuery.isEmpty
                               ? null
                               : IconButton(
-                                  tooltip: isKo ? '지우기' : 'Clear',
+                                  tooltip: l10n.weatherLabelClear,
                                   onPressed: () {
                                     _searchController.clear();
                                     setState(() => _searchQuery = '');
@@ -591,7 +586,7 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
                     child: visibleBoards.isEmpty && isFiltered
                         ? Center(
                             child: Text(
-                              isKo ? '검색 결과가 없습니다.' : 'No search results.',
+                              l10n.trainingBoardNoSearchResults,
                             ),
                           )
                         : ListView.separated(
@@ -634,9 +629,10 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Text(
-                                      isKo
-                                          ? '요소 $itemCount개 · 훈련일 $dateText'
-                                          : '$itemCount items · Training date $dateText',
+                                      l10n.trainingBoardListItemSubtitle(
+                                        itemCount,
+                                        dateText,
+                                      ),
                                     ),
                                     const SizedBox(height: 8),
                                     _BoardPreview(layout: layout),
@@ -663,16 +659,18 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
                                   itemBuilder: (_) => [
                                     PopupMenuItem<String>(
                                       value: 'rename',
-                                      child: Text(isKo ? '이름 변경' : 'Rename'),
+                                      child:
+                                          Text(l10n.trainingBoardRenameAction),
                                     ),
                                     PopupMenuItem<String>(
                                       value: 'duplicate',
-                                      child: Text(isKo ? '복제' : 'Duplicate'),
+                                      child: Text(
+                                          l10n.trainingBoardDuplicateAction),
                                     ),
                                     PopupMenuItem<String>(
                                       value: 'delete',
                                       child: Text(
-                                        isKo ? '삭제' : 'Delete',
+                                        l10n.delete,
                                         style: const TextStyle(
                                           color: Colors.red,
                                         ),
@@ -737,8 +735,9 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
       return;
     }
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final l10n = AppLocalizations.of(context)!;
     final copiedTitle = await _promptTitle(
-      initialValue: isKo ? '${source.title} 복사본' : '${source.title} Copy',
+      initialValue: l10n.trainingBoardDefaultCopyTitle(source.title),
     );
     if (!mounted || copiedTitle == null) return;
     final created = await _boardService.createBoard(

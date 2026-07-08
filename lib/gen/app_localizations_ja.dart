@@ -518,6 +518,33 @@ class AppLocalizationsJa extends AppLocalizations {
   String get newsTranslateAction => '翻訳する';
 
   @override
+  String get newsLoadFailedMessage => 'ニュースを読み込めませんでした。下に引いて更新してください。';
+
+  @override
+  String get newsNoChannelArticles => '選択したチャンネルのニュースはありません。';
+
+  @override
+  String get newsNoScrappedArticles => 'スクラップしたニュースはまだありません。';
+
+  @override
+  String get newsNoResultsFound => '検索結果がありません。';
+
+  @override
+  String get newsScrapTooltip => 'スクラップ';
+
+  @override
+  String get newsRemoveScrapTooltip => 'スクラップ解除';
+
+  @override
+  String get newsScrappedSnack => 'ニュースをスクラップしました。';
+
+  @override
+  String get newsScrapRemovedSnack => 'スクラップを解除しました。';
+
+  @override
+  String get newsTranslationGuideSnack => '記事画面右上のメニューから翻訳機能を使えます。';
+
+  @override
   String get newsSelectChannelsTitle => 'ニュースチャンネルを選択する';
 
   @override
@@ -1998,7 +2025,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String trainingXpToastMoreReasons(int count) {
-    return 'もっと見る';
+    return 'ほか$count件';
   }
 
   @override
@@ -3374,6 +3401,112 @@ class AppLocalizationsJa extends AppLocalizations {
   String get statsWeeklyMinutes => '毎週の議事録';
 
   @override
+  String get statsLoadingMessage => '統計データを読み込んでいます...';
+
+  @override
+  String get statsLoadFailedMessage => '統計の読み込み中に問題が発生しました。';
+
+  @override
+  String get statsFallbackMessage => '一部の統計計算に失敗したため、基本画面を表示します。';
+
+  @override
+  String get statsTrainingTab => 'トレーニング';
+
+  @override
+  String get statsMatchesTab => '試合';
+
+  @override
+  String get statsNoMatchesSelectedPeriod => '選択した期間に試合記録はありません。';
+
+  @override
+  String get statsRangePickerHelp => '統計期間を選択';
+
+  @override
+  String get statsWorkoutDaysNone => '運動した日: なし';
+
+  @override
+  String statsWorkoutDaysValue(Object days) {
+    return '運動した日: $days';
+  }
+
+  @override
+  String get statsGrowthChartTitle => '成長グラフ';
+
+  @override
+  String get statsActualLabel => '実績';
+
+  @override
+  String get statsTargetLabel => '目標';
+
+  @override
+  String get statsActualTimeDailyLabel => '実際の練習時間(日別)';
+
+  @override
+  String get statsAverageTargetTimeDailyLabel => '平均目標時間(日別)';
+
+  @override
+  String get statsAllMatchRecordsTitle => '全試合記録';
+
+  @override
+  String statsMatchMinutesPlayedValue(Object minutes) {
+    return '$minutes分出場';
+  }
+
+  @override
+  String get statsResultUnset => '結果未入力';
+
+  @override
+  String get statsOutcomeWin => '勝';
+
+  @override
+  String get statsOutcomeDraw => '分';
+
+  @override
+  String get statsOutcomeLoss => '敗';
+
+  @override
+  String get statsDurationZeroMinutes => '0分';
+
+  @override
+  String statsDurationMinutes(Object minutes) {
+    return '$minutes分';
+  }
+
+  @override
+  String statsDurationHours(Object hours) {
+    return '$hours時間';
+  }
+
+  @override
+  String statsDurationHoursMinutes(Object hours, Object minutes) {
+    return '$hours時間 $minutes分';
+  }
+
+  @override
+  String get statsCompactDurationZero => '0分';
+
+  @override
+  String statsCompactDurationMinutes(Object minutes) {
+    return '$minutes分';
+  }
+
+  @override
+  String statsCompactDurationHours(Object hours) {
+    return '$hours時間';
+  }
+
+  @override
+  String statsCompactDurationHoursMinutes(Object hours, Object minutes) {
+    return '$hours時間 $minutes分';
+  }
+
+  @override
+  String get statsComparisonCurrentLabel => '現在';
+
+  @override
+  String get statsComparisonAverageLabel => '平均';
+
+  @override
   String get growthHistory => '成長の歴史';
 
   @override
@@ -4154,6 +4287,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get languageJapanese => '日本語';
 
   @override
+  String get languageSystemDefault => 'システム標準';
+
+  @override
   String get settings => '設定';
 
   @override
@@ -4176,6 +4312,50 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get settingsNewsBlockedDomainsExample =>
       '例: example.com (プロトコル/パスなしでドメインのみ入力)';
+
+  @override
+  String get settingsJournalOptionManagerTitle => '日誌項目の管理';
+
+  @override
+  String settingsOptionItemsCount(int count) {
+    return '$count件';
+  }
+
+  @override
+  String get settingsDurationOptionsTitle => '練習時間オプション';
+
+  @override
+  String get settingsDurationOptionsManageTitle => '練習時間オプションを管理';
+
+  @override
+  String get settingsProgramOptionsTitle => 'プログラムオプション';
+
+  @override
+  String get settingsProgramOptionsManageTitle => 'プログラムオプションを管理';
+
+  @override
+  String get settingsTrainingGoalOptionsTitle => '練習目標オプション';
+
+  @override
+  String get settingsTrainingGoalOptionsManageTitle => '練習目標オプションを管理';
+
+  @override
+  String get settingsInjuryPartOptionsTitle => 'けが部位オプション';
+
+  @override
+  String get settingsInjuryPartOptionsManageTitle => 'けが部位オプションを管理';
+
+  @override
+  String get settingsOptionEditTitle => '項目を編集';
+
+  @override
+  String get settingsOptionAddTitle => '新しい項目を追加';
+
+  @override
+  String get settingsIntOptionEditTitle => '時間を編集（分）';
+
+  @override
+  String get settingsIntOptionAddTitle => '新しい時間を追加（分）';
 
   @override
   String get settingsApiUsageTitle => 'このアプリで使用するAPI';
@@ -5336,6 +5516,121 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get homeWeatherOutfitCaseWetRange => '雨や雪の場合';
+
+  @override
+  String get homeWeatherOutfitLayersDefault => '機能性インナー + 半袖トレーニングトップ';
+
+  @override
+  String get homeWeatherOutfitOuterDefault => '薄手のジップアップまたはベスト';
+
+  @override
+  String get homeWeatherOutfitBottomDefault => '基本のショーツ';
+
+  @override
+  String get homeWeatherOutfitAccessoriesDefault => '替えの靴下、水筒';
+
+  @override
+  String get homeWeatherOutfitLayersHot => 'ノースリーブ/半袖 + 冷感インナー';
+
+  @override
+  String get homeWeatherOutfitOuterNone => 'アウターなし';
+
+  @override
+  String get homeWeatherOutfitBottomHot => '通気性のよいショーツ';
+
+  @override
+  String get homeWeatherOutfitAccessoriesHot => 'クールタオル、冷水、つば付き帽子';
+
+  @override
+  String get homeWeatherOutfitNoteHotBreaks => '熱がこもらないよう休憩を短い間隔で入れる';
+
+  @override
+  String get homeWeatherOutfitLayersWarm => '半袖トレーニングトップ';
+
+  @override
+  String get homeWeatherOutfitBottomWarm => 'ショーツ';
+
+  @override
+  String get homeWeatherOutfitAccessoriesWarm => '替えのシャツ、汗拭きタオル';
+
+  @override
+  String get homeWeatherOutfitLayersMild => '機能性インナー + 半袖/長袖';
+
+  @override
+  String get homeWeatherOutfitOuterMild => 'トレーニング用ジップアップまたはベスト';
+
+  @override
+  String get homeWeatherOutfitBottomMild => '薄手のロングパンツまたはショーツ';
+
+  @override
+  String get homeWeatherOutfitAccessoriesMild => 'ウォームアップ用アウター';
+
+  @override
+  String get homeWeatherOutfitLayersCool => '起毛インナー + 長袖トレーニングトップ';
+
+  @override
+  String get homeWeatherOutfitOuterCool => 'ウィンドブレーカー + ベスト';
+
+  @override
+  String get homeWeatherOutfitBottomTrackPants => 'ロングトレーニングパンツ';
+
+  @override
+  String get homeWeatherOutfitAccessoriesCool => '薄手の手袋、ネックウォーマー';
+
+  @override
+  String get homeWeatherOutfitLayersCold => '起毛インナー + 長袖 + 重ね着トップ';
+
+  @override
+  String get homeWeatherOutfitOuterCold => '防風ジャケットまたは軽量中綿ベスト';
+
+  @override
+  String get homeWeatherOutfitAccessoriesCold => '防寒手袋、ネックウォーマー、イヤーカバー';
+
+  @override
+  String get homeWeatherOutfitLayersVeryCold => '発熱インナー + 厚手の長袖トップ';
+
+  @override
+  String get homeWeatherOutfitOuterVeryCold => '軽量ダウン/トレーニング用中綿ジャケット';
+
+  @override
+  String get homeWeatherOutfitBottomVeryCold => '防寒パンツ';
+
+  @override
+  String get homeWeatherOutfitAccessoriesVeryCold => '防寒手袋、ネックウォーマー、ビーニー';
+
+  @override
+  String get homeWeatherOutfitNoteVeryCold => '屋内でウォームアップしてから短いセットで行う';
+
+  @override
+  String get homeWeatherOutfitNoteStrongWind => '強風: ウィンドブレーカーとネックウォーマー必須';
+
+  @override
+  String get homeWeatherOutfitOuterWaterproof => '防水防風ジャケット';
+
+  @override
+  String get homeWeatherOutfitOuterRainLight => '生活防水ジャケット + 薄手の長袖';
+
+  @override
+  String homeWeatherOutfitAccessoriesRain(Object accessories) {
+    return '$accessories、防水ソックスまたは替えの靴下';
+  }
+
+  @override
+  String get homeWeatherOutfitNoteWetGrass => '濡れた芝での滑りに注意';
+
+  @override
+  String homeWeatherOutfitAccessoriesSnow(Object accessories) {
+    return '$accessories、カイロ(任意)';
+  }
+
+  @override
+  String get homeWeatherOutfitNoteIcy => '凍結した場所を避けて練習';
+
+  @override
+  String get homeWeatherOutfitBottomFleece => '裏起毛ロングパンツ';
+
+  @override
+  String get homeWeatherOutfitCautionNormal => '現在の条件なら通常強度の練習が可能です';
 
   @override
   String get homeWeatherAirQualityTitle => '空気の質';
@@ -11522,6 +11817,102 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get trainingSketchCopiedFromAnotherSnack => '別のスケッチからコピーしました。';
+
+  @override
+  String get trainingBoardListTitle => 'トレーニングスケッチ一覧';
+
+  @override
+  String get trainingBoardTitleDialogTitle => 'トレーニングスケッチのタイトル';
+
+  @override
+  String get trainingBoardTitleHint => '例) パスのウォームアップ';
+
+  @override
+  String get trainingBoardRenamedSnack => 'ボード名を変更しました。';
+
+  @override
+  String get trainingBoardRenameUndoneSnack => '名前の変更を取り消しました。';
+
+  @override
+  String get trainingBoardNoCopySourceSnack => 'コピーできるトレーニングスケッチがありません。';
+
+  @override
+  String trainingBoardDefaultCopyTitle(Object title) {
+    return '$title のコピー';
+  }
+
+  @override
+  String get trainingBoardDeleteTitle => 'トレーニングスケッチを削除';
+
+  @override
+  String trainingBoardDeleteConfirm(Object title) {
+    return '「$title」を削除しますか？';
+  }
+
+  @override
+  String get trainingBoardDeletedSnack => 'ボードを削除しました。';
+
+  @override
+  String get trainingBoardDeleteUndoneSnack => '削除を取り消しました。';
+
+  @override
+  String get trainingBoardDefaultTitle => 'トレーニングボード';
+
+  @override
+  String get trainingBoardSearchCloseTooltip => '検索を閉じる';
+
+  @override
+  String get trainingBoardSearchTooltip => 'ボードを検索';
+
+  @override
+  String get trainingBoardSortTooltip => '並び替え';
+
+  @override
+  String get trainingBoardSortRecentlyUpdated => '最近更新順';
+
+  @override
+  String get trainingBoardSortTrainingDate => '練習日順';
+
+  @override
+  String get trainingBoardSortName => '名前順';
+
+  @override
+  String get trainingBoardAddTooltip => 'トレーニングスケッチを追加';
+
+  @override
+  String get trainingBoardCreateNewAction => '新しいスケッチを作成';
+
+  @override
+  String get trainingBoardCopyPreviousAction => '前のスケッチをコピー';
+
+  @override
+  String get trainingBoardDoneAction => '完了';
+
+  @override
+  String get trainingBoardEmptyTitle => 'ボードはまだありません。';
+
+  @override
+  String get trainingBoardEmptySubtitle => '練習ノートから直接作成できます。';
+
+  @override
+  String get trainingBoardBackToNotes => 'ノートに戻る';
+
+  @override
+  String get trainingBoardSearchHint => 'ボード名を検索';
+
+  @override
+  String get trainingBoardNoSearchResults => '検索結果がありません。';
+
+  @override
+  String trainingBoardListItemSubtitle(Object count, Object date) {
+    return '$count項目 · 練習日 $date';
+  }
+
+  @override
+  String get trainingBoardRenameAction => '名前を変更';
+
+  @override
+  String get trainingBoardDuplicateAction => '複製';
 
   @override
   String get trainingSketchAutoStagesButton => 'ステージ自動分け';

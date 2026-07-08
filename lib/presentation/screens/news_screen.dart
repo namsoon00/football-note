@@ -563,6 +563,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   }
 
   Widget _buildNewsBody(bool isKo, _NewsRegionFilter filter) {
+    final l10n = AppLocalizations.of(context)!;
     final visibleArticles = _filteredArticles(filter);
     final showScrappedOnly = _showScrappedOnly;
     if (_isLoading && _articles.isEmpty) {
@@ -575,23 +576,21 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     if (_articles.isEmpty && _hadError) {
       items.add(
         _buildMessageCard(
-          isKo
-              ? '뉴스를 불러오지 못했습니다. 아래로 당겨 새로고침 해주세요.'
-              : 'Failed to load news. Pull down to refresh.',
+          l10n.newsLoadFailedMessage,
         ),
       );
     } else if (_articles.isEmpty) {
       items.add(
         _buildMessageCard(
-          isKo ? '선택한 채널의 뉴스가 없습니다.' : 'No news for selected channels.',
+          l10n.newsNoChannelArticles,
         ),
       );
     } else if (visibleArticles.isEmpty) {
       items.add(
         _buildMessageCard(
           showScrappedOnly
-              ? (isKo ? '스크랩한 소식이 없습니다.' : 'No scrapped news yet.')
-              : (isKo ? '검색 결과가 없습니다.' : 'No results found.'),
+              ? l10n.newsNoScrappedArticles
+              : l10n.newsNoResultsFound,
         ),
       );
     } else {
@@ -625,6 +624,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
 
   Widget _buildArticleCard(NewsArticle article) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final l10n = AppLocalizations.of(context)!;
     final isParentMode = _isParentMode;
     final pub = article.publishedAt;
     final dateText = pub == null
@@ -663,8 +663,8 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
               if (!isParentMode)
                 IconButton(
                   tooltip: _isScrapped(article)
-                      ? (isKo ? '스크랩 해제' : 'Remove scrap')
-                      : (isKo ? '스크랩' : 'Scrap'),
+                      ? l10n.newsRemoveScrapTooltip
+                      : l10n.newsScrapTooltip,
                   onPressed: () => _toggleScrap(article),
                   icon: Icon(
                     _isScrapped(article)
@@ -751,7 +751,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
 
   Future<void> _toggleScrap(NewsArticle article) async {
     if (_isParentMode) return;
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final l10n = AppLocalizations.of(context)!;
     final link = _scrapKeyForArticle(article);
     final next = Set<String>.from(_scrappedLinks);
     final nextItems = Map<String, _ScrappedNewsItem>.from(_scrappedItemsByLink);
@@ -775,9 +775,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          added
-              ? (isKo ? '소식을 스크랩했어요.' : 'News scrapped.')
-              : (isKo ? '스크랩을 해제했어요.' : 'Scrap removed.'),
+          added ? l10n.newsScrappedSnack : l10n.newsScrapRemovedSnack,
         ),
         duration: const Duration(seconds: 2),
       ),
@@ -1625,9 +1623,11 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
       _guideShownOnce = true;
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('기사 화면 우측 상단 메뉴에서 번역 기능을 사용할 수 있어요.'),
-            duration: Duration(seconds: 3),
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.newsTranslationGuideSnack,
+            ),
+            duration: const Duration(seconds: 3),
           ),
         );
       }
