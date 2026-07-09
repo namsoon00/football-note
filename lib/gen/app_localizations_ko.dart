@@ -11642,9 +11642,8 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String clubTrainingNotificationBody(
-      int minutesBefore, Object timeRange, Object uniform) {
-    return '$minutesBefore분 뒤 훈련 · $timeRange · 유니폼 $uniform';
+  String clubTrainingNotificationBody(int minutesBefore, Object timeRange) {
+    return '$minutesBefore분 뒤 훈련 · $timeRange';
   }
 
   @override

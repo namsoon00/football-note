@@ -11623,9 +11623,8 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String clubTrainingNotificationBody(
-      int minutesBefore, Object timeRange, Object uniform) {
-    return '$minutesBefore分後に練習 · $timeRange · ユニフォーム $uniform';
+  String clubTrainingNotificationBody(int minutesBefore, Object timeRange) {
+    return '$minutesBefore分後に練習 · $timeRange';
   }
 
   @override

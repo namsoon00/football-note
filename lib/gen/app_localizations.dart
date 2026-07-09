@@ -20647,9 +20647,8 @@ abstract class AppLocalizations {
   /// No description provided for @clubTrainingNotificationBody.
   ///
   /// In en, this message translates to:
-  /// **'Training in {minutesBefore} min · {timeRange} · Uniform {uniform}'**
-  String clubTrainingNotificationBody(
-      int minutesBefore, Object timeRange, Object uniform);
+  /// **'Training in {minutesBefore} min · {timeRange}'**
+  String clubTrainingNotificationBody(int minutesBefore, Object timeRange);
 
   /// No description provided for @teamManagementTitle.
   ///

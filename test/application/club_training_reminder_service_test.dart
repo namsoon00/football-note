@@ -54,7 +54,7 @@ void main() {
     );
   });
 
-  test('schedules weekly club training reminders with uniform details',
+  test('schedules weekly club training reminders without color codes',
       () async {
     final repository = _MemoryOptionRepository()
       ..seed('reminder_enabled', true)
@@ -96,7 +96,9 @@ void main() {
     expect(row['title'], '성남 U15 훈련 준비');
     expect(row['body'], contains('30분 뒤 훈련'));
     expect(row['body'], contains('19:00-21:00'));
-    expect(row['body'], contains('#DC2626'));
+    expect(row['body'], isNot(contains('#DC2626')));
+    expect(row['body'], isNot(contains('유니폼')));
+    expect(row, isNot(contains('uniform')));
     expect(row['payload'], 'taeonote://club/training?weekday=3');
   });
 

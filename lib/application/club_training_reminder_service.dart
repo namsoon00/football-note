@@ -144,11 +144,9 @@ class ClubTrainingReminderService {
         '$sportId:${schedule.weekday}',
       );
       final timeRange = _timeRange(schedule);
-      final uniform = _uniformColorToken(schedule.uniformColorValue);
       final body = l10n.clubTrainingNotificationBody(
         minutesBefore,
         timeRange,
-        uniform,
       );
 
       try {
@@ -175,7 +173,6 @@ class ClubTrainingReminderService {
         'body': body,
         'weekday': schedule.weekday,
         'time': timeRange,
-        'uniform': uniform,
       });
     }
 
@@ -375,11 +372,6 @@ class ClubTrainingReminderService {
     final hour = (normalized ~/ 60).toString().padLeft(2, '0');
     final minute = (normalized % 60).toString().padLeft(2, '0');
     return '$hour:$minute';
-  }
-
-  String _uniformColorToken(int colorValue) {
-    final rgb = colorValue & 0x00FFFFFF;
-    return '#${rgb.toRadixString(16).padLeft(6, '0').toUpperCase()}';
   }
 
   AppLocalizations _localizations() {
