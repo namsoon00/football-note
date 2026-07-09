@@ -2590,6 +2590,105 @@ void main() {
     expect(ballRoutes.last.points.last.y, closeTo(0.38, 0.02));
   });
 
+  testWidgets('selected player shows next action first with complete actions', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '다음 동작',
+          initialLayoutJson: const TrainingMethodLayout(
+            pages: <TrainingMethodPage>[
+              TrainingMethodPage(
+                name: 'Board',
+                items: <TrainingMethodItem>[
+                  TrainingMethodItem(
+                    id: 'player-1',
+                    type: 'player',
+                    x: 0.22,
+                    y: 0.52,
+                  ),
+                  TrainingMethodItem(
+                    id: 'player-2',
+                    type: 'player',
+                    x: 0.56,
+                    y: 0.44,
+                    colorValue: 0xFF1E88E5,
+                  ),
+                  TrainingMethodItem(
+                    id: 'cone-1',
+                    type: 'cone',
+                    x: 0.42,
+                    y: 0.36,
+                  ),
+                  TrainingMethodItem(
+                    id: 'ball-1',
+                    type: 'ball',
+                    x: 0.29,
+                    y: 0.52,
+                    colorValue: 0xFFFFCA28,
+                  ),
+                ],
+              ),
+            ],
+          ).encode(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    await tester.tap(
+      find
+          .descendant(of: boardFinder, matching: find.byIcon(Icons.person))
+          .first,
+    );
+    await tester.pumpAndSettle();
+
+    final nextAction =
+        find.byKey(const ValueKey('training-player-next-action-player-1'));
+    expect(nextAction, findsOneWidget);
+    expect(
+      tester.getRect(nextAction).top,
+      lessThan(tester.getRect(find.text('선수 액션')).top),
+    );
+
+    await tester.tap(nextAction);
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(
+        const ValueKey('training-player-flow-target-player-1-player-2'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('training-player-flow-target-player-1-cone-1')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('training-player-flow-new-receiver-player-1')),
+      findsOneWidget,
+    );
+    for (final action in <String>[
+      'pass',
+      'passAndMove',
+      'dribble',
+      'shot',
+      'cross',
+      'move',
+      'coneTurn',
+      'hurdleJump',
+    ]) {
+      expect(
+        find.byKey(ValueKey('training-player-flow-action-player-1-$action')),
+        findsOneWidget,
+      );
+    }
+  });
+
   testWidgets('player flow only shows possible ball actions', (
     WidgetTester tester,
   ) async {
@@ -3816,6 +3915,7 @@ void main() {
       await _tapVisibleOutlinedButton(tester, '슈팅');
       await _tapBoardRelative(tester, boardFinder, const Offset(0.82, 0.34));
 
+      expect(find.text('공 1: 소유자 없음'), findsOneWidget);
       expect(find.text('동작 단계'), findsOneWidget);
       await _tapVisibleOutlinedButton(tester, '다음 단계');
 
@@ -4002,7 +4102,8 @@ void main() {
     expect(fieldRect.width, lessThanOrEqualTo(420));
   });
 
-  testWidgets('sketch screen requests landscape on entry', (
+  testWidgets('sketch screen starts portrait and toggles orientation both ways',
+      (
     WidgetTester tester,
   ) async {
     _setPortraitSurface(tester);
@@ -4032,37 +4133,52 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      find.byKey(const ValueKey('training-landscape-control-panel')),
-      findsNothing,
+      find.byKey(const ValueKey('training-portrait-inspector-panel')),
+      findsOneWidget,
     );
-    final entryOrientationCall = platformCalls.lastWhere(
-      (call) => call.method == 'SystemChrome.setPreferredOrientations',
+    expect(
+      platformCalls.where(
+        (call) => call.method == 'SystemChrome.setPreferredOrientations',
+      ),
+      isEmpty,
     );
-    final entryArguments = '${entryOrientationCall.arguments}';
-    expect(entryArguments, contains('landscapeLeft'));
-    expect(entryArguments, contains('landscapeRight'));
 
-    platformCalls.clear();
     await tester.tap(
       find.byKey(const ValueKey('training-sketch-orientation-button')),
     );
     await tester.pumpAndSettle();
-    expect(
-      find.byKey(const ValueKey('training-landscape-control-panel')),
-      findsNothing,
-    );
-    final retryOrientationCall = platformCalls.lastWhere(
+    final landscapeOrientationCall = platformCalls.lastWhere(
       (call) => call.method == 'SystemChrome.setPreferredOrientations',
     );
-    final retryArguments = '${retryOrientationCall.arguments}';
-    expect(retryArguments, contains('landscapeLeft'));
-    expect(retryArguments, contains('landscapeRight'));
+    final landscapeArguments = '${landscapeOrientationCall.arguments}';
+    expect(landscapeArguments, contains('landscapeLeft'));
+    expect(landscapeArguments, contains('landscapeRight'));
 
     tester.view.physicalSize = const Size(1000, 720);
     await tester.pumpAndSettle();
 
     expect(
       find.byKey(const ValueKey('training-landscape-control-panel')),
+      findsOneWidget,
+    );
+
+    platformCalls.clear();
+    await tester.tap(
+      find.byKey(const ValueKey('training-sketch-orientation-button')),
+    );
+    await tester.pumpAndSettle();
+    final portraitOrientationCall = platformCalls.lastWhere(
+      (call) => call.method == 'SystemChrome.setPreferredOrientations',
+    );
+    final portraitArguments = '${portraitOrientationCall.arguments}';
+    expect(portraitArguments, contains('portraitUp'));
+    expect(portraitArguments, contains('portraitDown'));
+
+    tester.view.physicalSize = const Size(430, 900);
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey('training-portrait-inspector-panel')),
       findsOneWidget,
     );
   });
