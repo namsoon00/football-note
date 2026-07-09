@@ -11681,17 +11681,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get matchBallsWonLabel => 'Balls won';
 
   @override
-  String get matchHubTopActionTooltip => 'Team operations';
+  String get matchHubTopActionTooltip => 'Match Hub';
 
   @override
-  String get matchHubTitle => 'Team Operations';
+  String get matchHubTitle => 'Match Hub';
 
   @override
   String get matchHubSubtitle =>
-      'Organize your team\'s schedule, roster, and lineup before recording friendlies, leagues, and tournaments.';
+      'Organize match records, competitions, and schedule flow, then connect them to your team operations.';
 
   @override
-  String get matchHubOverviewTitle => 'Team operations board';
+  String get matchHubOverviewTitle => 'Match operations board';
 
   @override
   String get matchHubRecentFormLabel => 'Recent form';
@@ -11701,11 +11701,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get matchEntryManagedInHubTitle =>
-      'Match records are managed in Team Operations.';
+      'Match records are managed in the Match Hub.';
 
   @override
   String get matchEntryManagedInHubBody =>
-      'Training notes no longer show match details. View and edit matches from the top Team Operations screen.';
+      'Training notes no longer show match details. View and edit matches from the top Match Hub.';
 
   @override
   String get matchHubRecordHelper => 'Enter today\'s result quickly';
@@ -11766,7 +11766,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Start with a friendly match to calculate win rate and recent form.';
 
   @override
-  String get matchHubOpeningFeedback => 'Opening Team Operations.';
+  String get matchHubOpeningFeedback => 'Opening Match Hub.';
 
   @override
   String matchHubRecordedOnlyProgress(int count) {
@@ -11788,17 +11788,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get matchHubTeamManagementHeaderSubtitle =>
-      'Connect your team\'s schedule, roster, lineup, and competition flow to match records.';
+      'Review match records, competitions, and team status in the match flow.';
 
   @override
-  String get matchHubTeamManagementTitle => 'Our Team Operations';
+  String get matchHubTeamManagementTitle => 'Our team';
 
   @override
   String get matchHubTeamManagementHelper =>
-      'Manage schedule, roster, and lineup';
+      'Manage roster, schedule, and lineup';
 
   @override
-  String get matchHubTeamStateLabel => 'Operating teams';
+  String get matchHubTeamStateLabel => 'Our team';
 
   @override
   String matchHubTeamStateValue(int count) {
@@ -11806,11 +11806,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get matchHubNoTeamsTitle => 'No operating team yet.';
+  String get matchHubNoPrimaryTeamValue => 'Not set';
+
+  @override
+  String get matchHubNoTeamsTitle => 'No team set yet.';
 
   @override
   String get matchHubNoTeamsSubtitle =>
-      'Create your team, then fill in the roster, schedule, and lineup.';
+      'Prepare your team in the team operations screen where the roster is visible immediately.';
 
   @override
   String matchHubMoreTeamsCount(int count) {
@@ -11961,11 +11964,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get teamManagementTitle => 'Team Operations Center';
+  String get teamManagementTitle => 'Team Operations';
 
   @override
   String get teamManagementSubtitle =>
-      'Review schedule, roster, lineup, tactics, and competition flow in one place.';
+      'Manage one team roster, schedule, lineup, and tactics board on one screen.';
 
   @override
   String get teamManagementOpenButton => 'Team operations';
@@ -11992,7 +11995,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get teamManagementOperationsHelper =>
-      'Check next training, roster status, lineup readiness, and competitions first.';
+      'Review next training, roster status, lineup readiness, and competitions at a glance.';
 
   @override
   String get teamManagementOperationsNextTrainingLabel => 'Next training';
@@ -12025,7 +12028,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get teamManagementOperationsScheduleHelper =>
-      'Review training days, uniforms, and competitions inside the team operations flow.';
+      'Organize training days, uniforms, and competitions in the schedule section.';
 
   @override
   String get teamManagementOperationsOpenScheduleButton => 'Edit schedule';
@@ -12216,7 +12219,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get teamManagementSaveHint =>
-      'Roster, tactics, and board placement auto-save as you edit and appear in the Match Hub team operations card.';
+      'Your team roster, tactics, and board placement auto-save as you edit and appear in the Match Hub team card.';
 
   @override
   String get teamManagementAutoSaveReady => 'Auto-save';

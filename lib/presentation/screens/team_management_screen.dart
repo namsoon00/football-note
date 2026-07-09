@@ -50,15 +50,12 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   final TextEditingController _playerNumberController = TextEditingController();
   final TextEditingController _playerNoteController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  final GlobalKey _operationsSectionKey = GlobalKey();
-  final GlobalKey _teamsSectionKey = GlobalKey();
   final GlobalKey _playersSectionKey = GlobalKey();
   final GlobalKey _basicsSectionKey = GlobalKey();
   final GlobalKey _scheduleSectionKey = GlobalKey();
   final GlobalKey _boardSectionKey = GlobalKey();
   Timer? _autoSaveDebounce;
 
-  List<ManagedTeam> _teams = const <ManagedTeam>[];
   ClubScheduleProfile _clubProfile = ClubScheduleProfile.empty();
   List<MatchCompetitionRecord> _competitions = const <MatchCompetitionRecord>[];
   ManagedTeam? _selectedTeam;
@@ -108,7 +105,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
     super.didChangeDependencies();
     if (_loaded) return;
     _loaded = true;
-    _loadTeams(AppLocalizations.of(context)!);
+    _loadTeam(AppLocalizations.of(context)!);
   }
 
   @override
@@ -159,17 +156,6 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
     return true;
   }
 
-  void _scrollToSection(GlobalKey key) {
-    final context = key.currentContext;
-    if (context == null) return;
-    Scrollable.ensureVisible(
-      context,
-      duration: const Duration(milliseconds: 280),
-      curve: Curves.easeOutCubic,
-      alignment: 0.08,
-    );
-  }
-
   void _refreshOperationsData({bool setStateAfterLoad = true}) {
     final nextProfile = _clubScheduleService.loadProfile();
     final nextCompetitions = _competitionService.allCompetitions();
@@ -200,22 +186,20 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
     _refreshOperationsData();
   }
 
-  void _loadTeams(AppLocalizations l10n, {String? preferredTeamId}) {
+  void _loadTeam(AppLocalizations l10n) {
     final teams = _teamService.allTeams();
-    final selected = preferredTeamId == null
-        ? null
-        : teams.where((team) => team.id == preferredTeamId).firstOrNull;
-    setState(() {
-      _teams = teams;
-    });
-    _selectTeam(selected ?? (teams.isEmpty ? _draftTeam(l10n) : teams.first));
+    if (teams.isEmpty) {
+      _selectTeam(_draftTeam(l10n));
+      return;
+    }
+    _selectTeam(teams.first, saved: true);
   }
 
   ManagedTeam _draftTeam(AppLocalizations l10n) {
     return ManagedTeam.create(name: l10n.teamManagementDefaultTeamName);
   }
 
-  void _selectTeam(ManagedTeam team) {
+  void _selectTeam(ManagedTeam team, {bool saved = false}) {
     final spots = TeamManagementService.formationSpots(team.formation);
     _autoSaveDebounce?.cancel();
     _selectedTeam = team;
@@ -244,8 +228,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
     _hasPendingAutoSave = false;
     _changeRevision = 0;
     _savedRevision = 0;
-    _lastAutoSavedAt =
-        _teams.any((item) => item.id == team.id) ? team.updatedAt : null;
+    _lastAutoSavedAt = saved ? team.updatedAt : null;
     _suppressAutoSave = true;
     _teamNameController.text = team.name;
     _strategyController.text = team.strategy;
@@ -324,10 +307,8 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
       final team = _currentTeam();
       await _teamService.upsertTeam(team);
       if (!mounted) return;
-      final teams = _teamService.allTeams();
-      final savedTeam = teams.where((item) => item.id == team.id).firstOrNull;
+      final savedTeam = _teamService.findTeamById(team.id);
       setState(() {
-        _teams = teams;
         _selectedTeam = savedTeam ?? team;
         if (_savedRevision < revisionToSave) {
           _savedRevision = revisionToSave;
@@ -350,31 +331,6 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
         }
       }
     }
-  }
-
-  Future<void> _deleteTeam() async {
-    if (_blockReadOnlyMutation()) return;
-    final l10n = AppLocalizations.of(context)!;
-    final team = _selectedTeam;
-    if (team == null || !_teams.any((item) => item.id == team.id)) return;
-    _autoSaveDebounce?.cancel();
-    await _teamService.deleteTeam(team.id);
-    if (!mounted) return;
-    AppFeedback.showSuccess(context, text: l10n.teamManagementDeletedFeedback);
-    _loadTeams(l10n);
-  }
-
-  Future<void> _startNewTeam() async {
-    if (_blockReadOnlyMutation()) return;
-    await _flushAutoSave();
-    if (!mounted) return;
-    _selectTeam(_draftTeam(AppLocalizations.of(context)!));
-  }
-
-  Future<void> _selectExistingTeam(ManagedTeam team) async {
-    await _flushAutoSave();
-    if (!mounted) return;
-    _selectTeam(team);
   }
 
   void _changeFormation(String formation) {
@@ -637,43 +593,6 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
                       (_hasPendingAutoSave || _changeRevision > _savedRevision),
                   needsName: _teamNameController.text.trim().isEmpty,
                   lastSavedAt: _lastAutoSavedAt,
-                  readOnly: readOnly,
-                  canDelete: _selectedTeam != null &&
-                      _teams.any((team) => team.id == _selectedTeam!.id),
-                  onNewTeam: () => unawaited(_startNewTeam()),
-                  onDelete: () => unawaited(_deleteTeam()),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                KeyedSubtree(
-                  key: _operationsSectionKey,
-                  child: _TeamOperationsOverview(
-                    profile: _clubProfile,
-                    players: _players,
-                    placedCount: placedCount,
-                    totalSpots: totalSpots,
-                    competitions: _competitions,
-                    onOpenSchedule: () => unawaited(_openClubSchedule()),
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                _TeamManagementWorkflow(
-                  onOpenOperations: () =>
-                      _scrollToSection(_operationsSectionKey),
-                  onOpenTeams: () => _scrollToSection(_teamsSectionKey),
-                  onOpenPlayers: () => _scrollToSection(_playersSectionKey),
-                  onOpenBasics: () => _scrollToSection(_basicsSectionKey),
-                  onOpenSchedule: () => _scrollToSection(_scheduleSectionKey),
-                  onOpenBoard: () => _scrollToSection(_boardSectionKey),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                KeyedSubtree(
-                  key: _teamsSectionKey,
-                  child: _TeamSelectorPanel(
-                    teams: _teams,
-                    selectedTeamId: _selectedTeam?.id ?? '',
-                    onSelectTeam: (team) =>
-                        unawaited(_selectExistingTeam(team)),
-                  ),
                 ),
                 const SizedBox(height: AppSpacing.md),
                 KeyedSubtree(
@@ -699,6 +618,14 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
                     onEditPlayer: _editPlayer,
                     onRemovePlayer: _removePlayer,
                   ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                _TeamOperationsOverview(
+                  profile: _clubProfile,
+                  players: _players,
+                  placedCount: placedCount,
+                  totalSpots: totalSpots,
+                  competitions: _competitions,
                 ),
                 const SizedBox(height: AppSpacing.md),
                 KeyedSubtree(
@@ -806,10 +733,6 @@ class _TeamManagementHero extends StatelessWidget {
   final bool pending;
   final bool needsName;
   final DateTime? lastSavedAt;
-  final bool readOnly;
-  final bool canDelete;
-  final VoidCallback onNewTeam;
-  final VoidCallback onDelete;
 
   const _TeamManagementHero({
     required this.teamName,
@@ -822,10 +745,6 @@ class _TeamManagementHero extends StatelessWidget {
     required this.pending,
     required this.needsName,
     required this.lastSavedAt,
-    required this.readOnly,
-    required this.canDelete,
-    required this.onNewTeam,
-    required this.onDelete,
   });
 
   @override
@@ -833,9 +752,6 @@ class _TeamManagementHero extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final textStyle = theme.textTheme.labelLarge?.copyWith(
-      fontWeight: FontWeight.w900,
-    );
 
     return Container(
       decoration: AppSurfaces.heroDecoration(
@@ -924,44 +840,6 @@ class _TeamManagementHero extends StatelessWidget {
                 label: l10n.teamManagementBoardDrawMode,
                 value: l10n.teamManagementTacticLinesCount(tacticLineCount),
               ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          Row(
-            children: [
-              Expanded(
-                child: FilledButton.icon(
-                  onPressed: saving || readOnly ? null : onNewTeam,
-                  icon: const Icon(Icons.add_outlined),
-                  label: Text(l10n.teamManagementNewTeamButton),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: const Color(0xFF166153),
-                    minimumSize:
-                        const Size.fromHeight(AppSizes.primaryButtonHeight),
-                    textStyle: textStyle,
-                  ),
-                ),
-              ),
-              if (canDelete) ...[
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: saving || readOnly ? null : onDelete,
-                    icon: const Icon(Icons.delete_outline),
-                    label: Text(l10n.teamManagementDeleteTeamButton),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      side: BorderSide(
-                        color: Colors.white.withValues(alpha: 0.72),
-                      ),
-                      minimumSize:
-                          const Size.fromHeight(AppSizes.primaryButtonHeight),
-                      textStyle: textStyle,
-                    ),
-                  ),
-                ),
-              ],
             ],
           ),
         ],
@@ -1091,7 +969,6 @@ class _TeamOperationsOverview extends StatelessWidget {
   final int placedCount;
   final int totalSpots;
   final List<MatchCompetitionRecord> competitions;
-  final VoidCallback onOpenSchedule;
 
   const _TeamOperationsOverview({
     required this.profile,
@@ -1099,7 +976,6 @@ class _TeamOperationsOverview extends StatelessWidget {
     required this.placedCount,
     required this.totalSpots,
     required this.competitions,
-    required this.onOpenSchedule,
   });
 
   @override
@@ -1155,9 +1031,6 @@ class _TeamOperationsOverview extends StatelessWidget {
                                 upcomingTraining.schedule,
                               ),
                             ),
-                      actionLabel:
-                          l10n.teamManagementOperationsOpenScheduleButton,
-                      onAction: onOpenSchedule,
                     ),
                   ),
                   SizedBox(
@@ -1207,15 +1080,11 @@ class _OperationsMetricCard extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
-  final String? actionLabel;
-  final VoidCallback? onAction;
 
   const _OperationsMetricCard({
     required this.icon,
     required this.label,
     required this.value,
-    this.actionLabel,
-    this.onAction,
   });
 
   @override
@@ -1255,225 +1124,6 @@ class _OperationsMetricCard extends StatelessWidget {
               height: 1.18,
             ),
           ),
-          if (actionLabel != null && onAction != null) ...[
-            const SizedBox(height: AppSpacing.xs),
-            Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: AppBarActionButton.label(
-                onPressed: onAction,
-                icon: const Icon(Icons.arrow_forward_outlined),
-                label: actionLabel!,
-                tooltip: actionLabel,
-                margin: EdgeInsets.zero,
-                maxLabelWidth: 112,
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _TeamManagementWorkflow extends StatelessWidget {
-  final VoidCallback onOpenOperations;
-  final VoidCallback onOpenTeams;
-  final VoidCallback onOpenPlayers;
-  final VoidCallback onOpenBasics;
-  final VoidCallback onOpenSchedule;
-  final VoidCallback onOpenBoard;
-
-  const _TeamManagementWorkflow({
-    required this.onOpenOperations,
-    required this.onOpenTeams,
-    required this.onOpenPlayers,
-    required this.onOpenBasics,
-    required this.onOpenSchedule,
-    required this.onOpenBoard,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final actions = [
-      _TeamWorkflowActionData(
-        icon: Icons.dashboard_customize_outlined,
-        title: l10n.teamManagementOperationsTitle,
-        subtitle: l10n.teamManagementOperationsHelper,
-        onTap: onOpenOperations,
-      ),
-      _TeamWorkflowActionData(
-        icon: Icons.shield_outlined,
-        title: l10n.teamManagementSavedTeamsTitle,
-        subtitle: l10n.teamManagementSavedTeamsHelper,
-        onTap: onOpenTeams,
-      ),
-      _TeamWorkflowActionData(
-        icon: Icons.person_add_alt_outlined,
-        title: l10n.teamManagementPlayersTitle,
-        subtitle: l10n.teamManagementPlayersHelper,
-        onTap: onOpenPlayers,
-      ),
-      _TeamWorkflowActionData(
-        icon: Icons.route_outlined,
-        title: l10n.teamManagementBasicsTitle,
-        subtitle: l10n.teamManagementBasicsHelper,
-        onTap: onOpenBasics,
-      ),
-      _TeamWorkflowActionData(
-        icon: Icons.event_available_outlined,
-        title: l10n.teamManagementOperationsScheduleTitle,
-        subtitle: l10n.teamManagementOperationsScheduleHelper,
-        onTap: onOpenSchedule,
-      ),
-      _TeamWorkflowActionData(
-        icon: Icons.grid_view_outlined,
-        title: l10n.teamManagementFormationTitle,
-        subtitle: l10n.teamManagementFormationHelper,
-        onTap: onOpenBoard,
-      ),
-    ];
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final crossAxisCount = constraints.maxWidth >= 820
-            ? 6
-            : constraints.maxWidth >= 620
-                ? 3
-                : 2;
-        return GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: actions.length,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: crossAxisCount,
-            mainAxisSpacing: AppSpacing.sm,
-            crossAxisSpacing: AppSpacing.sm,
-            childAspectRatio: constraints.maxWidth >= 720 ? 1.08 : 1.12,
-          ),
-          itemBuilder: (context, index) {
-            return _TeamWorkflowCard(data: actions[index]);
-          },
-        );
-      },
-    );
-  }
-}
-
-class _TeamWorkflowCard extends StatelessWidget {
-  final _TeamWorkflowActionData data;
-
-  const _TeamWorkflowCard({required this.data});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: data.onTap,
-        borderRadius: AppRadius.surface,
-        child: Ink(
-          decoration: AppSurfaces.cardDecoration(scheme, theme.brightness),
-          padding: const EdgeInsets.all(AppSpacing.sm),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(data.icon, color: scheme.primary, size: 24),
-              const Spacer(),
-              Text(
-                data.title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.xxs),
-              Text(
-                data.subtitle,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                  height: 1.25,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _TeamWorkflowActionData {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-
-  const _TeamWorkflowActionData({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
-}
-
-class _TeamSelectorPanel extends StatelessWidget {
-  final List<ManagedTeam> teams;
-  final String selectedTeamId;
-  final ValueChanged<ManagedTeam> onSelectTeam;
-
-  const _TeamSelectorPanel({
-    required this.teams,
-    required this.selectedTeamId,
-    required this.onSelectTeam,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final brightness = theme.brightness;
-    return Container(
-      decoration: AppSurfaces.cardDecoration(scheme, brightness),
-      padding: const EdgeInsets.all(AppSpacing.md),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _PanelTitle(
-            icon: Icons.shield_outlined,
-            title: l10n.teamManagementSavedTeamsTitle,
-            helper: teams.isEmpty
-                ? l10n.teamManagementNoTeamsBody
-                : l10n.teamManagementSavedTeamsHelper,
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          if (teams.isNotEmpty)
-            Wrap(
-              spacing: AppSpacing.xs,
-              runSpacing: AppSpacing.xs,
-              children: [
-                for (final team in teams)
-                  ChoiceChip(
-                    label: Text(team.name),
-                    selected: team.id == selectedTeamId,
-                    onSelected: (_) => onSelectTeam(team),
-                  ),
-              ],
-            )
-          else
-            Text(
-              l10n.teamManagementNoTeamsTitle,
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w900,
-              ),
-            ),
         ],
       ),
     );

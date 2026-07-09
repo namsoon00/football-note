@@ -11360,17 +11360,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get matchBallsWonLabel => '獲得したボール';
 
   @override
-  String get matchHubTopActionTooltip => 'チーム運営';
+  String get matchHubTopActionTooltip => '試合ハブ';
 
   @override
-  String get matchHubTitle => 'チーム運営';
+  String get matchHubTitle => '試合ハブ';
 
   @override
-  String get matchHubSubtitle =>
-      '自分のチームの予定、選手名簿、ラインアップを整理し、親善試合、リーグ、トーナメントの記録につなげましょう。';
+  String get matchHubSubtitle => '試合記録、大会、予定の流れを整理し、自分のチーム運営につなげましょう。';
 
   @override
-  String get matchHubOverviewTitle => 'チーム運営ボード';
+  String get matchHubOverviewTitle => '試合運営ボード';
 
   @override
   String get matchHubRecentFormLabel => '最近のフォーム';
@@ -11379,11 +11378,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get matchHubRecordButton => '試合を記録';
 
   @override
-  String get matchEntryManagedInHubTitle => '試合記録はチーム運営画面で管理します。';
+  String get matchEntryManagedInHubTitle => '試合記録は試合ハブで管理します。';
 
   @override
   String get matchEntryManagedInHubBody =>
-      'トレーニングノートでは試合情報を表示しません。試合の確認と編集は上部のチーム運営画面で行ってください。';
+      'トレーニングノートでは試合情報を表示しません。試合の確認と編集は上部の試合ハブで行ってください。';
 
   @override
   String get matchHubRecordHelper => '今日の結果をすばやく入力';
@@ -11441,7 +11440,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get matchHubEmptySubtitle => '親善試合から記録すると、勝率と最近のフォームを計算できます。';
 
   @override
-  String get matchHubOpeningFeedback => 'チーム運営画面へ移動します。';
+  String get matchHubOpeningFeedback => '試合ハブへ移動します。';
 
   @override
   String matchHubRecordedOnlyProgress(int count) {
@@ -11463,16 +11462,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get matchHubTeamManagementHeaderSubtitle =>
-      'チームの予定、選手名簿、ラインアップ、大会の流れを試合記録につなげましょう。';
+      '試合記録、大会、チーム状態を試合の流れに合わせて確認します。';
 
   @override
-  String get matchHubTeamManagementTitle => '自分のチーム運営';
+  String get matchHubTeamManagementTitle => '自分のチーム';
 
   @override
-  String get matchHubTeamManagementHelper => '予定、選手名簿、ラインアップを管理';
+  String get matchHubTeamManagementHelper => '選手名簿、予定、ラインアップを管理';
 
   @override
-  String get matchHubTeamStateLabel => '運営チーム';
+  String get matchHubTeamStateLabel => '自分のチーム';
 
   @override
   String matchHubTeamStateValue(int count) {
@@ -11480,10 +11479,13 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get matchHubNoTeamsTitle => '運営中のチームはまだありません。';
+  String get matchHubNoPrimaryTeamValue => '未登録';
 
   @override
-  String get matchHubNoTeamsSubtitle => '自分のチームを作成し、選手名簿、予定、ラインアップを順に入力しましょう。';
+  String get matchHubNoTeamsTitle => '自分のチームはまだありません。';
+
+  @override
+  String get matchHubNoTeamsSubtitle => '選手名簿がすぐ見えるチーム運営画面で自分のチームを準備しましょう。';
 
   @override
   String matchHubMoreTeamsCount(int count) {
@@ -11629,10 +11631,10 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get teamManagementTitle => 'チーム運営センター';
+  String get teamManagementTitle => 'チーム運営';
 
   @override
-  String get teamManagementSubtitle => '予定、選手名簿、ラインアップ、戦術、大会の流れを一か所で確認します。';
+  String get teamManagementSubtitle => '1つのチームの選手名簿、予定、ラインアップ、戦術ボードを1画面で管理します。';
 
   @override
   String get teamManagementOpenButton => 'チーム運営';
@@ -11659,7 +11661,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get teamManagementOperationsHelper =>
-      '次の練習、選手名簿の状態、ラインアップ完成度、参加大会を先に確認します。';
+      '次の練習、選手名簿の状態、ラインアップ完成度、参加大会を一覧で確認します。';
 
   @override
   String get teamManagementOperationsNextTrainingLabel => '次の練習';
@@ -11691,7 +11693,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get teamManagementOperationsScheduleHelper =>
-      '練習曜日、ユニフォーム、参加大会をチーム運営の流れの中で確認します。';
+      '練習曜日、ユニフォーム、参加大会を予定セクションで整理します。';
 
   @override
   String get teamManagementOperationsOpenScheduleButton => '予定を編集';
@@ -11876,7 +11878,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get teamManagementSaveHint =>
-      '選手名簿、戦術、ボード配置は編集と同時に自動保存され、試合ハブのチーム運営カードに反映されます。';
+      '自分のチームの選手名簿、戦術、ボード配置は編集と同時に自動保存され、試合ハブのチームカードに反映されます。';
 
   @override
   String get teamManagementAutoSaveReady => '自動保存';
