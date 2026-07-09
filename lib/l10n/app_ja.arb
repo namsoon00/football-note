@@ -6454,14 +6454,13 @@
       "clubName": {}
     }
   },
-  "clubTrainingNotificationBody": "{minutesBefore}分後に練習 · {timeRange} · ユニフォーム {uniform}",
+  "clubTrainingNotificationBody": "{minutesBefore}分後に練習 · {timeRange}",
   "@clubTrainingNotificationBody": {
     "placeholders": {
       "minutesBefore": {
         "type": "int"
       },
-      "timeRange": {},
-      "uniform": {}
+      "timeRange": {}
     }
   },
   "teamManagementTitle": "チーム運営センター",

@@ -6454,14 +6454,13 @@
       "clubName": {}
     }
   },
-  "clubTrainingNotificationBody": "Training in {minutesBefore} min · {timeRange} · Uniform {uniform}",
+  "clubTrainingNotificationBody": "Training in {minutesBefore} min · {timeRange}",
   "@clubTrainingNotificationBody": {
     "placeholders": {
       "minutesBefore": {
         "type": "int"
       },
-      "timeRange": {},
-      "uniform": {}
+      "timeRange": {}
     }
   },
   "teamManagementTitle": "Team Operations Center",
