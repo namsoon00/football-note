@@ -13385,12 +13385,6 @@ abstract class AppLocalizations {
   /// **'Short recommendations'**
   String get fortuneDatabaseSectionShortLines;
 
-  /// No description provided for @fortuneDatabaseSectionLuckyInfoNotes.
-  ///
-  /// In en, this message translates to:
-  /// **'Lucky one-liners'**
-  String get fortuneDatabaseSectionLuckyInfoNotes;
-
   /// No description provided for @fortuneDatabaseSectionDayMoods.
   ///
   /// In en, this message translates to:
@@ -13522,7 +13516,7 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneShortLines.
   ///
   /// In en, this message translates to:
-  /// **'Read once more before sending.|The first pass can stay safe.|Check the bag zipper before moving.|A sip of water helps the start.|Take the first five minutes slow.|Retied boots make the first step lighter.|Fewer options keep focus longer.|After a miss, the next ball has the answer.|A short reply sent first feels lighter.|Ten seconds of film can show the point.|Scan empty space and the pass lane opens.|Use your voice once and the team moves faster.|One finish photo keeps the day clear.|One quick compliment speeds up the talk.|One line is enough for the record.|Pause three seconds when you rush.|Keep the first touch close for the next move.|Move without the ball and you get it again.|Putting it away now saves time later.|Change posture while waiting and the body loosens.|Eat slow and put the phone down for a bit.|Start with the easiest piece when stuck.|Write the messy choice in two lines.|A short overdue reply is enough.|Screenshot new info and it is easier to find.|Save the line you liked; it will help later.|Stretch after practice and tomorrow feels easier.|Say hello first and the talk opens faster.|Move one beat early when space appears.|Split the routine into ten-minute chunks.|Lower the load if it feels off.|Save the good scene and reuse it later.|Mute one alert and focus gets longer.|Set the next plan five minutes early.|Lift your head before the pass and options grow.|Choose one dribble direction and feet stay cleaner.|Empty the bag before home and tomorrow is easier.|Grab water first during the break.|Basics make mistakes shrink faster.|One check before closing saves time tomorrow.'**
+  /// **'Read once more before sending.|The first pass can stay safe.|Check the bag zipper before moving.|A sip of water helps the start.|Take the first five minutes slow.|Retied boots make the first step lighter.|Fewer options keep focus longer.|After a miss, the next ball has the answer.|A short reply sent first feels lighter.|Ten seconds of film can show the point.|Scan empty space and the pass lane opens.|Use your voice once and the team moves faster.|One finish photo keeps the day clear.|One quick compliment speeds up the talk.|One line is enough for the record.|Pause three seconds when you rush.|Keep the first touch close for the next move.|Move without the ball and you get it again.|Putting it away now saves time later.|Change posture while waiting and the body loosens.|Eat slow and put the phone down for a bit.|Start with the easiest piece when stuck.|Write the messy choice in two lines.|A short overdue reply is enough.|Screenshot new info and it is easier to find.|Save the line you liked; it will help later.|Stretch after practice and tomorrow feels easier.|Say hello first and the talk opens faster.|Move one beat early when space appears.|Split the routine into ten-minute chunks.|Lower the load if it feels off.|Save the good scene and reuse it later.|Mute one alert and focus gets longer.|Set the next plan five minutes early.|Lift your head before the pass and options grow.|Choose one dribble direction and feet stay cleaner.|Empty the bag before home and tomorrow is easier.|Grab water first during the break.|Basics make mistakes shrink faster.|One check before closing saves time tomorrow.|Finding one sock already counts as a start.|A calm first touch keeps the day cleaner.|A short reply on time lands neatly.|Let the eyes work before the feet.|One receipt out of the bag clears the head.|Laugh once and the next scene arrives faster.|The simple first choice keeps the feet quiet.|Fill the bottle and the routine follows.|One record line saves tomorrow some wandering.|One easy pass can wake up the team.|Drop the shoulders and the view opens.|Clear one blank and the head follows.|A late reply still works when it is clean.|If speed tangles, check the laces first.|One small tidy-up buys the afternoon time.|One compliment warms the team chat fast.|Keep the snack light and the focus long.|The next position matters more than the missed ball.|The first note line is more useful than it looks.|A tidy bag is tomorrow morning\'s cheat code.'**
   String get fortuneShortLines;
 
   /// No description provided for @fortuneGeneratedDailyLineOne.
@@ -13559,14 +13553,8 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneGeneratedLuckyInfoLine.
   ///
   /// In en, this message translates to:
-  /// **'Lucky number is {number}, lucky color is {color}. {note}'**
-  String fortuneGeneratedLuckyInfoLine(int number, String color, String note);
-
-  /// No description provided for @fortuneLuckyInfoNotes.
-  ///
-  /// In en, this message translates to:
-  /// **'Keep the number like a small jersey number.|When you spot this color, use it as your routine signal.|Finding this color in your bag can feel oddly steady.|Treat the color as the uniform accent and the number as your cheer code.|Smile when you see it, then move to the next play.|Today\'s luck only needs one pocket in your bag.|Remember the number quickly and let the color stay visible.|This combo is lighter than a charm and more useful than a sticker.|It is a lucky item you can mention without feeling awkward.|One color can make today\'s scene a little clearer.|Carry the number like a beat and the color like an accent.|Finding it in your bag counts as a tiny win.|Remember it as lightly as choosing a uniform.|Let it remind you to take one sip of water.|Leave the number like one check mark for the day.|This color is enough as today\'s small highlight.|Even luck checks the dress code sometimes.|Keep the number short and the color clear.|Use this combo as a small booster.|If it catches your eye, count it as being on your side.|Keep the color in sight and the number in mind.|This combo is today\'s tiny cheering section.|When you see the color, drop your shoulders once.|Carry the number like a jersey and the color like sideline support.'**
-  String get fortuneLuckyInfoNotes;
+  /// **'Lucky number is {number}, lucky color is {color}.'**
+  String fortuneGeneratedLuckyInfoLine(int number, String color);
 
   /// No description provided for @fortuneRecommendedRecoveryProgram.
   ///

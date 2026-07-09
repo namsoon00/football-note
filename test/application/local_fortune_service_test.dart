@@ -39,7 +39,6 @@ void main() {
     expect(result.fortuneText, isNot(contains('재미 포인트')));
     final lines = result.fortuneText.split('\n');
     final shortLines = l10n.fortuneShortLines.split('|');
-    final luckyNotes = l10n.fortuneLuckyInfoNotes.split('|');
     final blockedTerms = RegExp(
       '그래서|분위기|흐름|기운|가능성|예감|행운|무드|오늘의|볼 수|수 있어요|'
       '해보세요|하세요|두세요|고르세요|마세요|주세요|답게|미션|'
@@ -53,9 +52,8 @@ void main() {
     expect(lines.first.length, lessThanOrEqualTo(42));
     expect(
       lines.last,
-      matches(RegExp(r'^행운의 숫자는 [1-9], 색은 .+예요\. .+\.$')),
+      matches(RegExp(r'^행운의 숫자는 [1-9], 색은 .+예요\.$')),
     );
-    expect(luckyNotes.any(lines.last.contains), isTrue);
     expect(lines.last, isNot(contains('픽')));
     expect(lines.last, isNot(contains('오늘 픽은 ')));
     expect(lines.last, isNot(contains('·')));
@@ -65,22 +63,17 @@ void main() {
   test('korean short fortune copy stays concrete and simple', () {
     final l10n = AppLocalizationsKo();
     final shortLines = l10n.fortuneShortLines.split('|');
-    final luckyNotes = l10n.fortuneLuckyInfoNotes.split('|');
     final blockedTerms = RegExp(
       '흐름|기운|가능성|예감|분위기|행운|무드|오늘의|'
       '해보세요|하세요|두세요|고르세요|마세요|주세요|볼 수|수 있어요|날이에요|'
       '작은 약속|오늘 안에|오늘안에|끝내요|할 일',
     );
-    final luckyNoteBlockedTerms = RegExp(
-      '흐름|기운|가능성|예감|분위기|무드|픽|작은 약속|오늘 안에|오늘안에|끝내요',
-    );
 
-    expect(shortLines, hasLength(40));
+    expect(shortLines, hasLength(60));
     expect(shortLines, contains('보내기 전 한 번 더 읽으면 실수 하나 줄어요.'));
     expect(shortLines, contains('패스 전 고개 한 번 들면 선택지가 늘어요.'));
-    expect(luckyNotes, hasLength(24));
-    expect(luckyNotes, contains('숫자는 마음속 등번호처럼 가볍게 저장해요.'));
-    expect(luckyNotes, contains('이 조합은 하루짜리 미니 응원단이에요.'));
+    expect(shortLines, contains('양말 한 짝만 찾아도 출발은 이긴 거예요.'));
+    expect(shortLines, contains('정리된 가방은 내일 아침 치트키예요.'));
     for (final shortLine in shortLines) {
       final line = l10n.fortuneGeneratedDailyLineOne(
         '민준',
@@ -91,12 +84,6 @@ void main() {
       expect(line, matches(RegExp(r'^민준님, .+\.$')));
       expect(line, endsWith('.'));
       expect(line.length, lessThanOrEqualTo(42), reason: line);
-    }
-    for (final luckyNote in luckyNotes) {
-      expect(luckyNote, isNot(matches(luckyNoteBlockedTerms)),
-          reason: luckyNote);
-      expect(luckyNote, endsWith('.'), reason: luckyNote);
-      expect(luckyNote.length, lessThanOrEqualTo(42), reason: luckyNote);
     }
   });
 
@@ -174,8 +161,7 @@ void main() {
         35,
         12,
         5,
-        40,
-        24,
+        60,
         60,
         96,
         1000,
@@ -200,13 +186,12 @@ void main() {
     expect(sections[6].values, contains(startsWith('목:')));
     expect(sections[7].title, '짧은 추천안');
     expect(sections[7].values, contains('패스 전 고개 한 번 들면 선택지가 늘어요.'));
-    expect(sections[8].title, '행운 한마디');
-    expect(sections[8].values, contains('이 조합은 하루짜리 미니 응원단이에요.'));
-    expect(sections[9].title, '한 줄 재료');
-    expect(sections[10].title, '이어질 수 있는 일');
-    expect(sections[11].title, '짧은 운세 문장');
+    expect(sections[7].values, contains('정리된 가방은 내일 아침 치트키예요.'));
+    expect(sections[8].title, '한 줄 재료');
+    expect(sections[9].title, '이어질 수 있는 일');
+    expect(sections[10].title, '짧은 운세 문장');
     expect(
-      sections[11].values,
+      sections[10].values,
       contains('뜻밖에 웃긴 장면이 툭 나와요.'),
     );
   });
