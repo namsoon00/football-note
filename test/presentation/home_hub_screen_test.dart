@@ -684,9 +684,8 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    final teamManagementShortcut = find.byTooltip('팀 운영');
-    expect(teamManagementShortcut, findsWidgets);
-    expect(find.byIcon(Icons.groups_2_outlined), findsOneWidget);
+    final matchHubShortcut = find.byTooltip('시합 허브');
+    expect(matchHubShortcut, findsWidgets);
 
     final quickMatchButton = find.byKey(
       const ValueKey<String>('home-quick-action-match'),
@@ -732,8 +731,7 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
-      expect(find.byTooltip('팀 운영'), findsNothing);
-      expect(find.byIcon(Icons.groups_2_outlined), findsNothing);
+      expect(find.byTooltip('시합 허브'), findsNothing);
 
       final quickMatchButton = find.byKey(
         const ValueKey<String>('home-quick-action-match'),

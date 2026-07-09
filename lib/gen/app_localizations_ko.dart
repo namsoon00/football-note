@@ -11379,17 +11379,16 @@ class AppLocalizationsKo extends AppLocalizations {
   String get matchBallsWonLabel => '공을 뺏은 횟수';
 
   @override
-  String get matchHubTopActionTooltip => '팀 운영';
+  String get matchHubTopActionTooltip => '시합 허브';
 
   @override
-  String get matchHubTitle => '팀 운영';
+  String get matchHubTitle => '시합 허브';
 
   @override
-  String get matchHubSubtitle =>
-      '우리 팀의 일정, 선수단, 라인업을 정리하고 친선, 리그, 토너먼트 기록으로 이어가세요.';
+  String get matchHubSubtitle => '시합 기록, 대회, 일정 흐름을 정리하고 우리 팀 운영으로 연결하세요.';
 
   @override
-  String get matchHubOverviewTitle => '팀 운영 보드';
+  String get matchHubOverviewTitle => '시합 운영 보드';
 
   @override
   String get matchHubRecentFormLabel => '최근 폼';
@@ -11398,11 +11397,11 @@ class AppLocalizationsKo extends AppLocalizations {
   String get matchHubRecordButton => '시합 기록';
 
   @override
-  String get matchEntryManagedInHubTitle => '시합 기록은 팀 운영 화면에서 관리합니다.';
+  String get matchEntryManagedInHubTitle => '시합 기록은 시합 허브에서 관리합니다.';
 
   @override
   String get matchEntryManagedInHubBody =>
-      '훈련 노트에서는 시합 정보를 보여주지 않습니다. 시합 확인과 수정은 상단 팀 운영 화면에서 진행해 주세요.';
+      '훈련 노트에서는 시합 정보를 보여주지 않습니다. 시합 확인과 수정은 상단 시합 허브에서 진행해 주세요.';
 
   @override
   String get matchHubRecordHelper => '오늘 경기 결과를 바로 입력';
@@ -11460,7 +11459,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get matchHubEmptySubtitle => '친선 경기부터 빠르게 남기면 승률과 최근 폼을 계산할 수 있어요.';
 
   @override
-  String get matchHubOpeningFeedback => '팀 운영 화면으로 이동합니다.';
+  String get matchHubOpeningFeedback => '시합 허브로 이동합니다.';
 
   @override
   String matchHubRecordedOnlyProgress(int count) {
@@ -11482,16 +11481,16 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get matchHubTeamManagementHeaderSubtitle =>
-      '우리 팀의 일정, 선수단, 라인업과 대회 흐름을 경기 기록으로 이어가세요.';
+      '시합 기록, 대회, 팀 상태를 경기 흐름에 맞춰 확인하세요.';
 
   @override
-  String get matchHubTeamManagementTitle => '우리 팀 운영';
+  String get matchHubTeamManagementTitle => '우리 팀';
 
   @override
-  String get matchHubTeamManagementHelper => '일정, 선수단, 라인업 관리';
+  String get matchHubTeamManagementHelper => '선수단, 일정, 라인업 관리';
 
   @override
-  String get matchHubTeamStateLabel => '운영 팀';
+  String get matchHubTeamStateLabel => '우리 팀';
 
   @override
   String matchHubTeamStateValue(int count) {
@@ -11499,10 +11498,13 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get matchHubNoTeamsTitle => '아직 운영 중인 팀이 없어요.';
+  String get matchHubNoPrimaryTeamValue => '미등록';
 
   @override
-  String get matchHubNoTeamsSubtitle => '우리 팀을 만들고 선수단, 일정, 라인업을 차례로 채워 보세요.';
+  String get matchHubNoTeamsTitle => '아직 우리 팀이 없어요.';
+
+  @override
+  String get matchHubNoTeamsSubtitle => '선수단이 바로 보이는 팀 운영 화면에서 우리 팀을 준비하세요.';
 
   @override
   String matchHubMoreTeamsCount(int count) {
@@ -11647,10 +11649,11 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get teamManagementTitle => '팀 운영 센터';
+  String get teamManagementTitle => '팀 운영';
 
   @override
-  String get teamManagementSubtitle => '일정, 선수단, 라인업, 전술과 대회 흐름을 한곳에서 점검하세요.';
+  String get teamManagementSubtitle =>
+      '우리 팀 하나의 선수단, 일정, 라인업, 전술 보드를 한 화면에서 관리하세요.';
 
   @override
   String get teamManagementOpenButton => '팀 운영';
@@ -11677,7 +11680,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get teamManagementOperationsHelper =>
-      '다음 훈련, 선수단 상태, 라인업 완성도와 참가 대회를 먼저 확인하세요.';
+      '다음 훈련, 선수단 상태, 라인업 완성도와 참가 대회를 한눈에 확인하세요.';
 
   @override
   String get teamManagementOperationsNextTrainingLabel => '다음 훈련';
@@ -11709,7 +11712,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get teamManagementOperationsScheduleHelper =>
-      '훈련 요일, 유니폼, 참가 대회를 팀 운영 흐름 안에서 함께 확인하세요.';
+      '훈련 요일, 유니폼, 참가 대회를 일정 섹션에서 정리하세요.';
 
   @override
   String get teamManagementOperationsOpenScheduleButton => '일정 편집';
@@ -11895,7 +11898,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get teamManagementSaveHint =>
-      '선수단, 전술, 보드 배치는 변경 즉시 자동 저장되고 시합 허브의 우리 팀 운영 카드에 반영됩니다.';
+      '우리 팀의 선수단, 전술, 보드 배치는 변경 즉시 자동 저장되고 시합 허브의 우리 팀 카드에 반영됩니다.';
 
   @override
   String get teamManagementAutoSaveReady => '자동 저장';
