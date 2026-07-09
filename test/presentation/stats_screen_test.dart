@@ -500,6 +500,9 @@ void main() {
         breakfastRiceBowls: 1,
         lunchRiceBowls: 0.5,
         dinnerRiceBowls: 1,
+        lunchDishId: 'spaghetti',
+        lunchDishPortion: 'small',
+        dinnerFoodIds: const <String>['banana'],
       ),
     );
 
@@ -534,6 +537,11 @@ void main() {
     expect(find.text('최근 기록 공기밥'), findsNothing);
     expect(find.text('기록 일수'), findsOneWidget);
     expect(find.text('평균 실제'), findsOneWidget);
+    expect(find.text('평균 칼로리'), findsOneWidget);
+    expect(find.text('총 칼로리'), findsOneWidget);
+    expect(find.text('평균 영양소'), findsOneWidget);
+    expect(find.text('약 1310 kcal'), findsWidgets);
+    expect(find.text('탄 256g · 단 29g · 지 15g'), findsOneWidget);
     expect(find.byType(BarChart), findsOneWidget);
     expect(find.text('아침'), findsWidgets);
     expect(find.text('점심'), findsWidgets);

@@ -423,7 +423,8 @@ class _HomeHubScreenState extends State<HomeHubScreen>
                       'home-layout-meal-section',
                       RiceBowlSummaryCard(
                         entry: data.todayMealEntry,
-                        title: l10n.homeRiceBowlTitle,
+                        title: _homeMealHeadline(l10n, data.todayMealEntry),
+                        subtitle: l10n.homeRiceBowlTitle,
                         compact: true,
                         onTap: widget.onQuickMeal,
                         backgroundColor: Theme.of(
@@ -522,7 +523,11 @@ class _HomeHubScreenState extends State<HomeHubScreen>
                   };
 
                   final visibleHomeSections = <Widget>[];
-                  for (final section in _homeSectionSettings.visibleSections) {
+                  final visibleSectionIds = _prioritizedHomeSections(
+                    _homeSectionSettings.visibleSections,
+                    data.todayMealEntry,
+                  );
+                  for (final section in visibleSectionIds) {
                     final child = homeSectionsById[section];
                     if (child == null) continue;
                     if (visibleHomeSections.isNotEmpty) {
@@ -601,6 +606,34 @@ class _HomeHubScreenState extends State<HomeHubScreen>
     _applyHomeWeatherSnapshot(persistedSnapshot);
     return DateTime.now().difference(persistedSnapshot.fetchedAt) <
         WeatherSharedResource.cacheTtl;
+  }
+
+  List<HomeHubSectionId> _prioritizedHomeSections(
+    List<HomeHubSectionId> sections,
+    MealEntry? todayMealEntry,
+  ) {
+    if (!sections.contains(HomeHubSectionId.meal) ||
+        !_shouldPromoteMealSection(todayMealEntry)) {
+      return sections;
+    }
+    return <HomeHubSectionId>[
+      HomeHubSectionId.meal,
+      for (final section in sections)
+        if (section != HomeHubSectionId.meal) section,
+    ];
+  }
+
+  bool _shouldPromoteMealSection(MealEntry? todayMealEntry) {
+    return todayMealEntry == null || todayMealEntry.completedMeals < 3;
+  }
+
+  String _homeMealHeadline(AppLocalizations l10n, MealEntry? entry) {
+    return switch (entry?.completedMeals ?? 0) {
+      3 => l10n.mealCoachHeadlinePerfect,
+      2 => l10n.mealCoachHeadlineAlmost,
+      1 => l10n.mealCoachHeadlineNeedsMore,
+      _ => l10n.mealCoachHeadlineStart,
+    };
   }
 
   void _handleSharedWeatherSnapshot(WeatherSharedSnapshot snapshot) {

@@ -7260,6 +7260,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String get mealStatsBestDay => '최고 섭취';
 
   @override
+  String get mealStatsAverageCalories => '평균 칼로리';
+
+  @override
+  String get mealStatsTotalCalories => '총 칼로리';
+
+  @override
+  String get mealStatsAverageNutrition => '평균 영양소';
+
+  @override
   String get mealIncreaseAction => '공기 추가';
 
   @override
