@@ -71,10 +71,6 @@ class LocalFortuneService {
         values: _localizedValues(l10n.fortuneShortLines),
       ),
       FortuneDatabaseSection(
-        title: l10n.fortuneDatabaseSectionLuckyInfoNotes,
-        values: _localizedValues(l10n.fortuneLuckyInfoNotes),
-      ),
-      FortuneDatabaseSection(
         title: l10n.fortuneDatabaseSectionDayMoods,
         values: _combinedLocalizedValues(
           l10n.fortuneSajuElementFlows,
@@ -208,10 +204,6 @@ class LocalFortuneService {
       l10n: l10n,
     );
     final luckyNumber = _luckyNumber(seed: baseSeed, element: luckyElement);
-    final luckyInfoNote = _luckyInfoNote(
-      seed: baseSeed + luckyNumber * 19 + _textSeed(luckyColor),
-      l10n: l10n,
-    );
     final recommendedProgram = _recommendedProgram(entry: entry, l10n: l10n);
     final recommendationText = _recommendationText(
       entry: entry,
@@ -229,11 +221,7 @@ class LocalFortuneService {
 
     final fortuneText = <String>[
       l10n.fortuneGeneratedDailyLineOne(name, shortFortune),
-      l10n.fortuneGeneratedLuckyInfoLine(
-        luckyNumber,
-        luckyColor,
-        luckyInfoNote,
-      ),
+      l10n.fortuneGeneratedLuckyInfoLine(luckyNumber, luckyColor),
     ].join('\n');
 
     return LocalFortuneResult(
@@ -376,13 +364,6 @@ class LocalFortuneService {
     ];
     final numbers = elementNumbers[element.index];
     return numbers[seed.abs() % numbers.length];
-  }
-
-  String _luckyInfoNote({
-    required int seed,
-    required AppLocalizations l10n,
-  }) {
-    return _valueAt(_localizedValues(l10n.fortuneLuckyInfoNotes), seed);
   }
 
   String _shortFortuneSentence({
@@ -544,7 +525,6 @@ class LocalFortuneService {
       _fortuneDailyOutcomeResultCount,
     );
     final shortLineCount = count(_fortuneShortLineCount);
-    final luckyInfoNoteCount = count(_fortuneLuckyInfoNoteCount);
     final myeongliSignatureCount = countSegments(
       _fortuneMyeongliTenGodCount,
       _fortuneMyeongliTwelveStageCount,
@@ -563,7 +543,6 @@ class LocalFortuneService {
         sajuAdviceCount *
         dailyOutcomeCount *
         shortLineCount *
-        luckyInfoNoteCount *
         BigInt.from(luckyNumberCount);
   }
 
@@ -610,5 +589,4 @@ const int _fortuneSajuPlayAdviceCount = 96;
 const int _fortuneDailyOutcomeTimeCount = 10;
 const int _fortuneDailyOutcomeSubjectCount = 10;
 const int _fortuneDailyOutcomeResultCount = 10;
-const int _fortuneShortLineCount = 40;
-const int _fortuneLuckyInfoNoteCount = 24;
+const int _fortuneShortLineCount = 60;
