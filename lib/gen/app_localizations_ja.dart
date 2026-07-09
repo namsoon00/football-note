@@ -7257,6 +7257,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get mealStatsBestDay => '最高の一日';
 
   @override
+  String get mealStatsAverageCalories => '平均カロリー';
+
+  @override
+  String get mealStatsTotalCalories => '総カロリー';
+
+  @override
+  String get mealStatsAverageNutrition => '平均栄養素';
+
+  @override
   String get mealIncreaseAction => 'ボウルを追加する';
 
   @override

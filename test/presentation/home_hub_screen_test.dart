@@ -14,6 +14,7 @@ import 'package:football_note/application/sport_state_controller.dart';
 import 'package:football_note/application/training_service.dart';
 import 'package:football_note/application/weather_shared_resource.dart';
 import 'package:football_note/domain/entities/sport_definition.dart';
+import 'package:football_note/domain/entities/meal_entry.dart';
 import 'package:football_note/domain/entities/training_board.dart';
 import 'package:football_note/domain/entities/training_entry.dart';
 import 'package:football_note/domain/repositories/backup_repository.dart';
@@ -83,6 +84,63 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump();
   });
+
+  testWidgets(
+    'home promotes incomplete meal routine to the top',
+    (WidgetTester tester) async {
+      final optionRepository = _MemoryOptionRepository();
+      await optionRepository.setValue('tab_quick_guide_seen_v1_0', true);
+      final localeService = LocaleService(optionRepository)..load();
+      final settingsService = SettingsService(optionRepository)..load();
+      final trainingService = TrainingService(_MemoryTrainingRepository());
+      final mealLogService = MealLogService(optionRepository);
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+
+      await mealLogService.save(
+        MealEntry(date: today, breakfastRiceBowls: 1),
+      );
+
+      await tester.pumpWidget(
+        _buildApp(
+          HomeHubScreen(
+            trainingService: trainingService,
+            mealLogService: mealLogService,
+            localeService: localeService,
+            optionRepository: optionRepository,
+            settingsService: settingsService,
+            onCreate: () {},
+            onQuickPlan: () {},
+            onQuickMatch: () {},
+            onQuickQuiz: () {},
+            onQuickMeal: () {},
+            onQuickBoard: () {},
+            onOpenLogs: () {},
+            onOpenDiary: () {},
+            onOpenWeeklyStats: () {},
+            onEdit: (_) {},
+            onEditTrainingBoard: (_) {},
+            onCreateTrainingBoard: ({DateTime? initialDate}) async {},
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      double sectionTop(String key) {
+        return tester.getTopLeft(find.byKey(ValueKey<String>(key))).dy;
+      }
+
+      expect(find.text('식사 루틴을 더 채워야 합니다.'), findsOneWidget);
+      expect(
+        sectionTop('home-layout-meal-section'),
+        lessThan(sectionTop('home-layout-club-schedule-section')),
+      );
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+    },
+  );
 
   testWidgets(
     'home startup sync checks daily backup before family refresh',

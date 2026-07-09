@@ -13163,6 +13163,24 @@ abstract class AppLocalizations {
   /// **'Best day'**
   String get mealStatsBestDay;
 
+  /// No description provided for @mealStatsAverageCalories.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg calories'**
+  String get mealStatsAverageCalories;
+
+  /// No description provided for @mealStatsTotalCalories.
+  ///
+  /// In en, this message translates to:
+  /// **'Total calories'**
+  String get mealStatsTotalCalories;
+
+  /// No description provided for @mealStatsAverageNutrition.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg nutrients'**
+  String get mealStatsAverageNutrition;
+
   /// No description provided for @mealIncreaseAction.
   ///
   /// In en, this message translates to:

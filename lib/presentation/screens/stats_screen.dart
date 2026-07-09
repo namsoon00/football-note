@@ -6,6 +6,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import '../../application/benchmark_service.dart';
 import '../../application/match_competition_service.dart';
+import '../../application/meal_calorie_estimator.dart';
 import '../../application/meal_log_service.dart';
 import '../../application/news_badge_service.dart';
 import '../../application/sport_capabilities.dart';
@@ -1825,6 +1826,20 @@ class _MealTrendCard extends StatelessWidget {
       (best, current) =>
           current.totalRiceBowls > best.totalRiceBowls ? current : best,
     );
+    final totalNutrition = mealEntries
+        .map(MealCalorieEstimator.estimate)
+        .fold<MealNutritionEstimate>(
+          const MealNutritionEstimate(kcal: 0),
+          (sum, estimate) => sum.plus(
+            MealNutritionEstimate(
+              kcal: estimate.totalKcal,
+              carbs: estimate.totalCarbs,
+              protein: estimate.totalProtein,
+              fat: estimate.totalFat,
+            ),
+          ),
+        );
+    final averageNutrition = totalNutrition.scaled(1 / mealEntries.length);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1980,6 +1995,37 @@ class _MealTrendCard extends StatelessWidget {
             ),
           ],
         ),
+        if (totalNutrition.kcal > 0) ...[
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: _CompactMetricChip(
+                  label: l10n.mealStatsAverageCalories,
+                  value: l10n.mealCalorieEstimateValue(
+                    averageNutrition.kcal,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _CompactMetricChip(
+                  label: l10n.mealStatsTotalCalories,
+                  value: l10n.mealCalorieEstimateValue(totalNutrition.kcal),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          _CompactMetricChip(
+            label: l10n.mealStatsAverageNutrition,
+            value: l10n.mealNutritionEstimateValue(
+              averageNutrition.carbs.round(),
+              averageNutrition.protein.round(),
+              averageNutrition.fat.round(),
+            ),
+          ),
+        ],
       ],
     );
   }

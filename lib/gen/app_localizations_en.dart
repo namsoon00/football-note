@@ -7446,6 +7446,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mealStatsBestDay => 'Best day';
 
   @override
+  String get mealStatsAverageCalories => 'Avg calories';
+
+  @override
+  String get mealStatsTotalCalories => 'Total calories';
+
+  @override
+  String get mealStatsAverageNutrition => 'Avg nutrients';
+
+  @override
   String get mealIncreaseAction => 'Add bowl';
 
   @override
