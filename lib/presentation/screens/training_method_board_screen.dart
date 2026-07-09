@@ -204,7 +204,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   @override
   void initState() {
     super.initState();
-    unawaited(_setSketchOrientationLock(landscape: true));
     if (_isManagedMode) {
       _managedBoardService = TrainingBoardService(
         widget.optionRepository!,
@@ -881,6 +880,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     final balls = _itemsOfType(_BoardItemType.ball).where((ball) {
       final latestRoute = _latestBallRouteForBall(ball);
       return latestRoute == null ||
+          (latestRoute.actorItemId == null &&
+              latestRoute.targetItemId == null &&
+              (_itemPosition(ball) - _itemPosition(player)).distance <=
+                  _ballPossessionRadius) ||
           _ballRouteGivesPlayerPossession(latestRoute, player);
     }).toList(growable: false);
     if (balls.isEmpty) return null;
@@ -1119,18 +1122,24 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     return ball;
   }
 
-  bool _ballRouteEndsNearPlayer(_BoardRoute route, _BoardItem player) {
-    if (route.points.isEmpty) return false;
-    final playerRoute = _routeForItem(player.id, _PathDrawMode.player);
-    final candidatePoints = <Offset>[
-      _itemPosition(player),
-      if (playerRoute != null && playerRoute.points.isNotEmpty)
-        playerRoute.points.last,
-    ];
-    final routeEnd = route.points.last;
-    return candidatePoints.any(
-      (point) => (point - routeEnd).distance <= _ballPossessionRadius,
-    );
+  bool _ballRouteImplicitlyCarriesWithPlayer(
+    _BoardRoute route,
+    _BoardItem player,
+  ) {
+    if (route.actorItemId != player.id || route.points.length < 3) {
+      return false;
+    }
+    final routeStage = _normalizedRouteStageIndex(route.stageIndex);
+    return _currentPage.routes.any((playerRoute) {
+      if (playerRoute.kind != _PathDrawMode.player ||
+          playerRoute.points.isEmpty ||
+          playerRoute.linkedItemId != player.id ||
+          _normalizedRouteStageIndex(playerRoute.stageIndex) != routeStage) {
+        return false;
+      }
+      return (playerRoute.points.last - route.points.last).distance <=
+          _ballPossessionRadius;
+    });
   }
 
   bool _ballRouteGivesPlayerPossession(
@@ -1146,7 +1155,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     if (targetItemId != null) {
       return targetItemId == player.id;
     }
-    return _ballRouteEndsNearPlayer(route, player);
+    return _ballRouteImplicitlyCarriesWithPlayer(route, player);
   }
 
   bool _playerHasBallForFlow(_BoardItem player) {
@@ -3123,9 +3132,17 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
               DeviceOrientation.landscapeLeft,
               DeviceOrientation.landscapeRight,
             ]
-          : DeviceOrientation.values,
+          : const <DeviceOrientation>[
+              DeviceOrientation.portraitUp,
+              DeviceOrientation.portraitDown,
+            ],
     );
     await setTrainingSketchBrowserOrientation(landscape: landscape);
+  }
+
+  Future<void> _clearSketchOrientationLock() async {
+    await SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+    await setTrainingSketchBrowserOrientation(landscape: false);
   }
 
   void _clearAllRoutes() {
@@ -3498,6 +3515,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     _BoardItem? targetItem,
     _BoardItem? selectedItemOverride,
     int? stageIndex,
+    bool retainActorPossessionWhenUntargeted = true,
   }) {
     final player = _playerForTargetAction(selected);
     if (player == null) return false;
@@ -3532,7 +3550,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       selectedItemOverride: nextSelectedItem,
       stageIndex: nextStage,
       actorItemId: player.id,
-      targetItemId: targetItem?.id,
+      targetItemId: targetItem?.id ??
+          (retainActorPossessionWhenUntargeted ? player.id : null),
       createNewRoute: true,
     );
   }
@@ -3662,7 +3681,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             ? null
             : _ballCarryPointForPlayer(player, toward: target))
         : _ballCarryPointFromOrigin(playerStart, toward: target);
-    final possessionRoute = _currentBallRouteForPlayer(player);
     final possession = _ballPossessionForNextPlayerAction(
       player,
       target: target,
@@ -3671,6 +3689,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     if (possession == null) return false;
     final ball = possession.ball;
     final resolvedBallStart = possession.start;
+    final possessionRoute = _latestBallRouteForBall(ball);
     final playerMiddle = _midTargetPoint(
       playerStart,
       target,
@@ -3733,6 +3752,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       selected: selected,
       target: target,
       durationMs: 620,
+      retainActorPossessionWhenUntargeted: false,
     );
   }
 
@@ -4552,7 +4572,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     _memoSession++;
     _autoSaveTimer?.cancel();
     unawaited(_speech.cancel());
-    unawaited(_setSketchOrientationLock(landscape: false));
+    unawaited(_clearSketchOrientationLock());
     _playController
       ..removeListener(_onPlayTick)
       ..removeStatusListener(_onPlayStatusChanged)
@@ -5068,10 +5088,14 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       AppBarActionButton.icon(
         key: const ValueKey('training-sketch-orientation-button'),
         onPressed: () {
-          unawaited(_setSketchOrientationLock(landscape: true));
+          unawaited(_setSketchOrientationLock(landscape: !isLandscape));
         },
-        icon: Icons.stay_current_landscape_outlined,
-        tooltip: _l10n.trainingSketchLandscapeModeTooltip,
+        icon: isLandscape
+            ? Icons.stay_current_portrait_outlined
+            : Icons.stay_current_landscape_outlined,
+        tooltip: isLandscape
+            ? _l10n.trainingSketchPortraitModeTooltip
+            : _l10n.trainingSketchLandscapeModeTooltip,
       ),
       _buildTopBarMenuButton(isKo, isLandscape: isLandscape),
     ];
@@ -5648,6 +5672,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _BoardItemType.player,
       excludingId: player.id,
     );
+    final targetSpots = _currentPage.items
+        .where((item) => item.id != player.id && _isPassTargetSpot(item))
+        .toList(growable: false);
     final ballActions = canUseBallActions
         ? _playerFlowBallActions(sportId)
         : const <_SketchTargetAction>[];
@@ -5709,6 +5736,13 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                     runSpacing: 8,
                     children: [
                       for (final target in targetPlayers)
+                        _playerFlowTargetButton(
+                          sheetContext: sheetContext,
+                          player: player,
+                          target: target,
+                          sportId: sportId,
+                        ),
+                      for (final target in targetSpots)
                         _playerFlowTargetButton(
                           sheetContext: sheetContext,
                           player: player,
@@ -5787,16 +5821,31 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     required String sportId,
   }) {
     final index = _itemIndexOfType(target);
-    final label = switch (sportId) {
-      SportCatalog.baseballId => _l10n.trainingSketchThrowToPlayerButton(index),
-      SportCatalog.tennisId => _l10n.trainingSketchRallyToPlayerButton(index),
-      _ => _l10n.trainingSketchPassToPlayerButton(index),
-    };
-    final icon = switch (sportId) {
-      SportCatalog.baseballId => Icons.sports_baseball,
-      SportCatalog.tennisId => Icons.sports_tennis,
-      _ => Icons.near_me_outlined,
-    };
+    late final String label;
+    late final IconData icon;
+    if (target.type == _BoardItemType.player) {
+      label = switch (sportId) {
+        SportCatalog.baseballId =>
+          _l10n.trainingSketchThrowToPlayerButton(index),
+        SportCatalog.tennisId => _l10n.trainingSketchRallyToPlayerButton(index),
+        _ => _l10n.trainingSketchPassToPlayerButton(index),
+      };
+      icon = switch (sportId) {
+        SportCatalog.baseballId => Icons.sports_baseball,
+        SportCatalog.tennisId => Icons.sports_tennis,
+        _ => Icons.near_me_outlined,
+      };
+    } else {
+      final targetName = _boardToolLabel(target.type);
+      label = switch (sportId) {
+        SportCatalog.baseballId =>
+          _l10n.trainingSketchThrowToSpotButton(targetName, index),
+        SportCatalog.tennisId =>
+          _l10n.trainingSketchRallyToSpotButton(targetName, index),
+        _ => _l10n.trainingSketchPassToSpotButton(targetName, index),
+      };
+      icon = _boardItemIcon(target.type, sportId: sportId);
+    }
     return FilledButton.icon(
       key: ValueKey('training-player-flow-target-${player.id}-${target.id}'),
       onPressed: () => Navigator.of(sheetContext).pop(
@@ -5876,15 +5925,21 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
 
   List<_SketchTargetAction> _playerFlowBallActions(String sportId) {
     return switch (sportId) {
-      SportCatalog.baseballId => const <_SketchTargetAction>[],
+      SportCatalog.baseballId => <_SketchTargetAction>[
+          _SketchTargetAction.throwBall,
+        ],
       SportCatalog.basketballId => <_SketchTargetAction>[
+          _SketchTargetAction.pass,
           _SketchTargetAction.drive,
           _SketchTargetAction.shot,
         ],
       SportCatalog.tennisId => <_SketchTargetAction>[
           _SketchTargetAction.serve,
+          _SketchTargetAction.rally,
         ],
       _ => <_SketchTargetAction>[
+          _SketchTargetAction.pass,
+          _SketchTargetAction.passAndMove,
           _SketchTargetAction.dribble,
           _SketchTargetAction.shot,
           _SketchTargetAction.cross,
@@ -6977,6 +7032,14 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (selected.type == _BoardItemType.player) ...[
+          _buildPlayerFlowStarter(selected),
+          if (_pendingTargetAction != null) ...[
+            const SizedBox(height: 10),
+            _buildPendingTargetActionBanner(),
+          ],
+          const SizedBox(height: 10),
+        ],
         Row(
           children: [
             Expanded(
@@ -7003,10 +7066,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             l10n.trainingSketchLinkPlayerHint,
             style: Theme.of(context).textTheme.bodySmall,
           ),
-          if (_pendingTargetAction != null) ...[
-            const SizedBox(height: 10),
-            _buildPendingTargetActionBanner(),
-          ],
           const SizedBox(height: 10),
           Text(
             l10n.trainingSketchPlayerActionsTitle,
@@ -7021,8 +7080,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
               includeRouteTool: true,
             ),
           ),
-          const SizedBox(height: 10),
-          _buildPlayerFlowStarter(selected),
           const SizedBox(height: 10),
           _buildGlobalStagePlanner(),
           if (selectedStageRoute != null) ...[
