@@ -6751,6 +6751,12 @@
       "actor": {}
     }
   },
+  "trainingSketchStageActionPlayerStay": "{actor} 제자리",
+  "@trainingSketchStageActionPlayerStay": {
+    "placeholders": {
+      "actor": {}
+    }
+  },
   "trainingSketchStageActionBallMove": "{actor} 공 이동",
   "@trainingSketchStageActionBallMove": {
     "placeholders": {
@@ -6955,6 +6961,7 @@
   "trainingSketchCreateMoveRouteButton": "이동 만들기",
   "trainingSketchCreatePassRouteButton": "패스 만들기",
   "trainingSketchQuickMoveButton": "이동",
+  "trainingSketchQuickStayButton": "제자리",
   "trainingSketchQuickPassButton": "패스",
   "trainingSketchQuickPassAndMoveButton": "패스 후 이동",
   "trainingSketchQuickDribbleButton": "드리블",

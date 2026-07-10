@@ -6751,6 +6751,12 @@
       "actor": {}
     }
   },
+  "trainingSketchStageActionPlayerStay": "{actor} stays in place",
+  "@trainingSketchStageActionPlayerStay": {
+    "placeholders": {
+      "actor": {}
+    }
+  },
   "trainingSketchStageActionBallMove": "{actor} moves the ball",
   "@trainingSketchStageActionBallMove": {
     "placeholders": {
@@ -6955,6 +6961,7 @@
   "trainingSketchCreateMoveRouteButton": "Create move",
   "trainingSketchCreatePassRouteButton": "Create pass",
   "trainingSketchQuickMoveButton": "Move",
+  "trainingSketchQuickStayButton": "Stay",
   "trainingSketchQuickPassButton": "Pass",
   "trainingSketchQuickPassAndMoveButton": "Pass then move",
   "trainingSketchQuickDribbleButton": "Dribble",

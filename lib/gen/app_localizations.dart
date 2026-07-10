@@ -21719,6 +21719,12 @@ abstract class AppLocalizations {
   /// **'{actor} moves'**
   String trainingSketchStageActionPlayerMove(Object actor);
 
+  /// No description provided for @trainingSketchStageActionPlayerStay.
+  ///
+  /// In en, this message translates to:
+  /// **'{actor} stays in place'**
+  String trainingSketchStageActionPlayerStay(Object actor);
+
   /// No description provided for @trainingSketchStageActionBallMove.
   ///
   /// In en, this message translates to:
@@ -22295,6 +22301,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Move'**
   String get trainingSketchQuickMoveButton;
+
+  /// No description provided for @trainingSketchQuickStayButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Stay'**
+  String get trainingSketchQuickStayButton;
 
   /// No description provided for @trainingSketchQuickPassButton.
   ///
