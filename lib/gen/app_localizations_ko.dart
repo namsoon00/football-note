@@ -6394,6 +6394,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String get mealLogDatePickerHelp => '식사 기록 날짜 선택';
 
   @override
+  String get mealDietDetailsTitle => '식단 입력';
+
+  @override
+  String get mealDietDetailsHint => '메인요리, 같이 먹은 음식, 메모는 필요할 때만 펼쳐요.';
+
+  @override
+  String get mealDietDetailsFilled => '입력된 식단 정보가 있어요.';
+
+  @override
   String get mealMenuInputLabel => '추가 메모';
 
   @override

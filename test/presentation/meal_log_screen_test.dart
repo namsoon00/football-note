@@ -58,6 +58,13 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  Future<void> expandDietDetails(WidgetTester tester, String mealKey) async {
+    await tester.tap(
+      find.byKey(PageStorageKey<String>('meal-$mealKey-diet-expansion')),
+    );
+    await tester.pumpAndSettle();
+  }
+
   testWidgets('meal log screen auto saves after rice bowl tap', (tester) async {
     final day = DateTime(2026, 3, 31);
 
@@ -80,10 +87,40 @@ void main() {
     expect(saved.dinnerRiceBowls, 0);
   });
 
+  testWidgets('meal coach summary appears below date and diet form folds', (
+    tester,
+  ) async {
+    final day = DateTime(2026, 3, 31);
+    await mealLogService.save(
+      MealEntry(date: day, breakfastRiceBowls: 1),
+    );
+
+    await pumpMealLogScreen(tester, initialDate: day);
+
+    expect(find.text('식사 루틴을 더 채워야 합니다.'), findsOneWidget);
+    expect(find.byKey(const ValueKey('meal-breakfast-menu')), findsNothing);
+
+    final dateBottom = tester
+        .getBottomLeft(find.byKey(const ValueKey('meal-log-date-card')))
+        .dy;
+    final coachTop = tester
+        .getTopLeft(find.byKey(const ValueKey('meal-coach-summary-card')))
+        .dy;
+    final breakfastTop =
+        tester.getTopLeft(find.byKey(const ValueKey('meal-breakfast-card'))).dy;
+    expect(coachTop, greaterThan(dateBottom));
+    expect(coachTop, lessThan(breakfastTop));
+
+    await expandDietDetails(tester, 'breakfast');
+
+    expect(find.byKey(const ValueKey('meal-breakfast-menu')), findsOneWidget);
+  });
+
   testWidgets('meal log screen auto saves meal menu text', (tester) async {
     final day = DateTime(2026, 3, 31);
 
     await pumpMealLogScreen(tester, initialDate: day);
+    await expandDietDetails(tester, 'breakfast');
 
     await tester.enterText(
       find.byKey(const ValueKey('meal-breakfast-menu')),
@@ -112,8 +149,12 @@ void main() {
     final day = DateTime(2026, 3, 31);
 
     await pumpMealLogScreen(tester, initialDate: day);
+    await expandDietDetails(tester, 'breakfast');
 
-    await tester.tap(find.byKey(const ValueKey('meal-breakfast-dish')));
+    final dishButton = find.byKey(const ValueKey('meal-breakfast-dish'));
+    await tester.ensureVisible(dishButton);
+    await tester.pumpAndSettle();
+    await tester.tap(dishButton);
     await tester.pumpAndSettle();
     await tester.enterText(
       find.byKey(const ValueKey('meal-main-dish-search')),
@@ -143,8 +184,12 @@ void main() {
     final day = DateTime(2026, 3, 31);
 
     await pumpMealLogScreen(tester, initialDate: day);
+    await expandDietDetails(tester, 'breakfast');
 
-    await tester.tap(find.byKey(const ValueKey('meal-breakfast-foods')));
+    final foodsButton = find.byKey(const ValueKey('meal-breakfast-foods'));
+    await tester.ensureVisible(foodsButton);
+    await tester.pumpAndSettle();
+    await tester.tap(foodsButton);
     await tester.pumpAndSettle();
     await tester.enterText(
       find.byKey(const ValueKey('meal-food-search')),

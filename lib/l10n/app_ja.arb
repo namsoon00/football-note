@@ -3808,6 +3808,9 @@
   "mealLogScreenTitle": "食事記録",
   "mealLogDateLabel": "ログの日付",
   "mealLogDatePickerHelp": "食事記録の日付を選択してください",
+  "mealDietDetailsTitle": "食事内容の入力",
+  "mealDietDetailsHint": "メイン料理、追加の食べ物、メモが必要なときだけ開きます。",
+  "mealDietDetailsFilled": "食事内容が入力されています。",
   "mealMenuInputLabel": "追加メモ",
   "mealMenuInputHint": "{label}で一覧にない食べ物やメモを入力",
   "@mealMenuInputHint": {

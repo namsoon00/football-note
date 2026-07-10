@@ -120,6 +120,7 @@ class _MealLogScreenState extends State<MealLogScreen> {
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
             children: [
               Card(
+                key: const ValueKey('meal-log-date-card'),
                 child: ListTile(
                   leading: const Icon(Icons.calendar_today_outlined),
                   title: Text(l10n.mealLogDateLabel),
@@ -131,6 +132,14 @@ class _MealLogScreenState extends State<MealLogScreen> {
                   trailing: const Icon(Icons.chevron_right),
                   onTap: _pickDate,
                 ),
+              ),
+              const SizedBox(height: 12),
+              _buildCoachCard(
+                context: context,
+                l10n: l10n,
+                theme: theme,
+                status: status,
+                calorieEstimate: calorieEstimate,
               ),
               const SizedBox(height: 12),
               _MealSelectorCard(
@@ -243,71 +252,81 @@ class _MealLogScreenState extends State<MealLogScreen> {
                   _scheduleAutoSave();
                 },
               ),
-              const SizedBox(height: 12),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _headline(l10n, status),
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        _body(l10n, status),
-                        style: theme.textTheme.bodyMedium,
-                      ),
-                      const SizedBox(height: 10),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          _InfoPill(
-                            label: l10n.mealAverageExpectedValue(
-                              _formatBowls(MealLogService.expectedBowlsPerDay),
-                            ),
-                          ),
-                          _InfoPill(
-                            label: l10n.mealAverageActualValue(
-                              _formatBowls(status.totalRiceBowls),
-                            ),
-                          ),
-                          _InfoPill(
-                            label: calorieEstimate.hasEstimate
-                                ? l10n.mealCalorieEstimateValue(
-                                    calorieEstimate.totalKcal,
-                                  )
-                                : l10n.mealCalorieEstimateEmpty,
-                          ),
-                          if (calorieEstimate.hasNutrition)
-                            _InfoPill(
-                              label: l10n.mealNutritionEstimateValue(
-                                calorieEstimate.totalCarbs.round(),
-                                calorieEstimate.totalProtein.round(),
-                                calorieEstimate.totalFat.round(),
-                              ),
-                            ),
-                          _InfoPill(label: _xpLabel(l10n, status)),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        _calorieCoach(l10n, calorieEstimate),
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                          height: 1.35,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCoachCard({
+    required BuildContext context,
+    required AppLocalizations l10n,
+    required ThemeData theme,
+    required MealStatus status,
+    required MealCalorieEstimate calorieEstimate,
+  }) {
+    return Card(
+      key: const ValueKey('meal-coach-summary-card'),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              _headline(l10n, status),
+              key: const ValueKey('meal-coach-headline'),
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _body(l10n, status),
+              style: theme.textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _InfoPill(
+                  label: l10n.mealAverageExpectedValue(
+                    _formatBowls(MealLogService.expectedBowlsPerDay),
+                  ),
+                ),
+                _InfoPill(
+                  label: l10n.mealAverageActualValue(
+                    _formatBowls(status.totalRiceBowls),
+                  ),
+                ),
+                _InfoPill(
+                  label: calorieEstimate.hasEstimate
+                      ? l10n.mealCalorieEstimateValue(
+                          calorieEstimate.totalKcal,
+                        )
+                      : l10n.mealCalorieEstimateEmpty,
+                ),
+                if (calorieEstimate.hasNutrition)
+                  _InfoPill(
+                    label: l10n.mealNutritionEstimateValue(
+                      calorieEstimate.totalCarbs.round(),
+                      calorieEstimate.totalProtein.round(),
+                      calorieEstimate.totalFat.round(),
+                    ),
+                  ),
+                _InfoPill(label: _xpLabel(l10n, status)),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              _calorieCoach(l10n, calorieEstimate),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                height: 1.35,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -607,7 +626,11 @@ class _MealSelectorCard extends StatelessWidget {
     final normalizedFoodIds = _normalizedFoodIds(
       selectedFoodIds.where((id) => id != normalizedDishId),
     );
+    final hasDietDetails = normalizedDishId.isNotEmpty ||
+        normalizedFoodIds.isNotEmpty ||
+        menuController.text.trim().isNotEmpty;
     return Container(
+      key: ValueKey('meal-$mealKey-card'),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface.withValues(alpha: 0.92),
@@ -675,77 +698,100 @@ class _MealSelectorCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          _MainDishSelector(
-            mealKey: mealKey,
-            l10n: l10n,
-            selectedDishId: normalizedDishId,
-            enabled: enabled,
-            onDishChanged: onDishChanged,
-          ),
-          if (normalizedDishId.isNotEmpty) const SizedBox(height: 8),
-          if (normalizedDishId.isNotEmpty) ...[
-            SegmentedButton<String>(
-              key: ValueKey('meal-$mealKey-dish-portion'),
-              segments: [
-                ButtonSegment<String>(
-                  value: 'small',
-                  label: Text(l10n.mealDishPortionSmall),
+          Theme(
+            data: theme.copyWith(dividerColor: Colors.transparent),
+            child: ExpansionTile(
+              key: PageStorageKey<String>('meal-$mealKey-diet-expansion'),
+              initiallyExpanded: hasDietDetails,
+              maintainState: true,
+              tilePadding: EdgeInsets.zero,
+              childrenPadding: const EdgeInsets.only(top: 6),
+              leading: const Icon(Icons.restaurant_menu_outlined),
+              title: Text(
+                l10n.mealDietDetailsTitle,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w900,
                 ),
-                ButtonSegment<String>(
-                  value: 'regular',
-                  label: Text(l10n.mealDishPortionRegular),
+              ),
+              subtitle: Text(
+                hasDietDetails
+                    ? l10n.mealDietDetailsFilled
+                    : l10n.mealDietDetailsHint,
+              ),
+              children: [
+                _MainDishSelector(
+                  mealKey: mealKey,
+                  l10n: l10n,
+                  selectedDishId: normalizedDishId,
+                  enabled: enabled,
+                  onDishChanged: onDishChanged,
                 ),
-                ButtonSegment<String>(
-                  value: 'large',
-                  label: Text(l10n.mealDishPortionLarge),
+                if (normalizedDishId.isNotEmpty) const SizedBox(height: 8),
+                if (normalizedDishId.isNotEmpty) ...[
+                  SegmentedButton<String>(
+                    key: ValueKey('meal-$mealKey-dish-portion'),
+                    segments: [
+                      ButtonSegment<String>(
+                        value: 'small',
+                        label: Text(l10n.mealDishPortionSmall),
+                      ),
+                      ButtonSegment<String>(
+                        value: 'regular',
+                        label: Text(l10n.mealDishPortionRegular),
+                      ),
+                      ButtonSegment<String>(
+                        value: 'large',
+                        label: Text(l10n.mealDishPortionLarge),
+                      ),
+                    ],
+                    selected: {normalizedPortion},
+                    onSelectionChanged: enabled
+                        ? (values) => onDishPortionChanged(values.first)
+                        : null,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _dishNutritionLabel(normalizedDishId, normalizedPortion),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 12),
+                _CompanionFoodSelector(
+                  mealKey: mealKey,
+                  l10n: l10n,
+                  selectedDishId: normalizedDishId,
+                  selectedFoodIds: normalizedFoodIds,
+                  enabled: enabled,
+                  onChanged: onFoodIdsChanged,
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  key: ValueKey('meal-$mealKey-menu'),
+                  controller: menuController,
+                  enabled: enabled,
+                  minLines: 1,
+                  maxLines: 3,
+                  maxLength: 120,
+                  textInputAction: TextInputAction.done,
+                  decoration: InputDecoration(
+                    counterText: '',
+                    filled: true,
+                    fillColor: theme.colorScheme.surfaceContainerHighest
+                        .withValues(alpha: 0.62),
+                    prefixIcon: const Icon(Icons.restaurant_menu_outlined),
+                    labelText: l10n.mealMenuInputLabel,
+                    hintText: l10n.mealMenuInputHint(label),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  onChanged: onMenuChanged,
                 ),
               ],
-              selected: {normalizedPortion},
-              onSelectionChanged: enabled
-                  ? (values) => onDishPortionChanged(values.first)
-                  : null,
             ),
-            const SizedBox(height: 8),
-            Text(
-              _dishNutritionLabel(normalizedDishId, normalizedPortion),
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-          const SizedBox(height: 12),
-          _CompanionFoodSelector(
-            mealKey: mealKey,
-            l10n: l10n,
-            selectedDishId: normalizedDishId,
-            selectedFoodIds: normalizedFoodIds,
-            enabled: enabled,
-            onChanged: onFoodIdsChanged,
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            key: ValueKey('meal-$mealKey-menu'),
-            controller: menuController,
-            enabled: enabled,
-            minLines: 1,
-            maxLines: 3,
-            maxLength: 120,
-            textInputAction: TextInputAction.done,
-            decoration: InputDecoration(
-              counterText: '',
-              filled: true,
-              fillColor: theme.colorScheme.surfaceContainerHighest.withValues(
-                alpha: 0.62,
-              ),
-              prefixIcon: const Icon(Icons.restaurant_menu_outlined),
-              labelText: l10n.mealMenuInputLabel,
-              hintText: l10n.mealMenuInputHint(label),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-            ),
-            onChanged: onMenuChanged,
           ),
         ],
       ),
