@@ -589,4 +589,4 @@ const int _fortuneSajuPlayAdviceCount = 96;
 const int _fortuneDailyOutcomeTimeCount = 10;
 const int _fortuneDailyOutcomeSubjectCount = 10;
 const int _fortuneDailyOutcomeResultCount = 10;
-const int _fortuneShortLineCount = 60;
+const int _fortuneShortLineCount = 80;
