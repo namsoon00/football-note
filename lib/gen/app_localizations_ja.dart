@@ -11353,16 +11353,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get matchBallsWonLabel => '獲得したボール';
 
   @override
-  String get matchHubTopActionTooltip => '試合ハブ';
+  String get matchHubTopActionTooltip => 'チーム・試合管理';
 
   @override
-  String get matchHubTitle => '試合ハブ';
+  String get matchHubTitle => 'チーム・試合管理';
 
   @override
-  String get matchHubSubtitle => '試合記録、大会、予定の流れを整理し、自分のチーム運営につなげましょう。';
+  String get matchHubSubtitle => 'チーム準備と試合記録を同じ流れで管理します。';
 
   @override
-  String get matchHubOverviewTitle => '試合運営ボード';
+  String get matchHubOverviewTitle => '運営状況';
 
   @override
   String get matchHubRecentFormLabel => '最近のフォーム';
@@ -11371,11 +11371,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get matchHubRecordButton => '試合を記録';
 
   @override
-  String get matchEntryManagedInHubTitle => '試合記録は試合ハブで管理します。';
+  String get matchEntryManagedInHubTitle => '試合記録はチーム・試合管理で管理します。';
 
   @override
   String get matchEntryManagedInHubBody =>
-      'トレーニングノートでは試合情報を表示しません。試合の確認と編集は上部の試合ハブで行ってください。';
+      'トレーニングノートでは試合情報を表示しません。試合の確認と編集は上部のチーム・試合管理で行ってください。';
 
   @override
   String get matchHubRecordHelper => '今日の結果をすばやく入力';
@@ -11433,7 +11433,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get matchHubEmptySubtitle => '親善試合から記録すると、勝率と最近のフォームを計算できます。';
 
   @override
-  String get matchHubOpeningFeedback => '試合ハブへ移動します。';
+  String get matchHubOpeningFeedback => 'チーム・試合管理へ移動します。';
 
   @override
   String matchHubRecordedOnlyProgress(int count) {
@@ -11455,10 +11455,10 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get matchHubTeamManagementHeaderSubtitle =>
-      '試合記録、大会、チーム状態を試合の流れに合わせて確認します。';
+      'チーム準備、試合記録、大会の流れを一か所でつなげて管理します。';
 
   @override
-  String get matchHubTeamManagementTitle => '自分のチーム';
+  String get matchHubTeamManagementTitle => 'チーム状況';
 
   @override
   String get matchHubTeamManagementHelper => '選手名簿、予定、ラインアップを管理';
@@ -11478,7 +11478,25 @@ class AppLocalizationsJa extends AppLocalizations {
   String get matchHubNoTeamsTitle => '自分のチームはまだありません。';
 
   @override
-  String get matchHubNoTeamsSubtitle => '選手名簿がすぐ見えるチーム運営画面で自分のチームを準備しましょう。';
+  String get matchHubNoTeamsSubtitle => '選手登録から始められるチーム管理画面で自分のチームを準備しましょう。';
+
+  @override
+  String get matchHubCommandCenterTitle => '運営タスク';
+
+  @override
+  String get matchHubCommandCenterHelper => 'チーム準備と試合運営を必要な操作ごとに分けました。';
+
+  @override
+  String get matchHubTeamCommandHelper => '選手登録、チームプロフィール、ラインアップ、戦術ボード';
+
+  @override
+  String get matchHubTeamCommandPrimary => '選手名簿を管理';
+
+  @override
+  String get matchHubMatchCommandTitle => '試合管理';
+
+  @override
+  String get matchHubMatchCommandHelper => '試合記録、大会運営、記録確認、統計分析';
 
   @override
   String matchHubMoreTeamsCount(int count) {
@@ -11623,13 +11641,13 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get teamManagementTitle => 'チーム運営';
+  String get teamManagementTitle => 'チーム管理';
 
   @override
-  String get teamManagementSubtitle => '1つのチームの選手名簿、予定、ラインアップ、戦術ボードを1画面で管理します。';
+  String get teamManagementSubtitle => '選手登録、チームプロフィール、ラインアップ、戦術ボードを1画面で管理します。';
 
   @override
-  String get teamManagementOpenButton => 'チーム運営';
+  String get teamManagementOpenButton => 'チーム管理';
 
   @override
   String get teamManagementDefaultTeamName => '自分のチーム';
@@ -11870,7 +11888,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get teamManagementSaveHint =>
-      '自分のチームの選手名簿、戦術、ボード配置は編集と同時に自動保存され、試合ハブのチームカードに反映されます。';
+      '自分のチームの選手名簿、戦術、ボード配置は編集と同時に自動保存され、チーム・試合管理のチーム状況に反映されます。';
 
   @override
   String get teamManagementAutoSaveReady => '自動保存';
