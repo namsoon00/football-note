@@ -38,6 +38,8 @@ enum _HomeCoachAnchor {
   tabStats,
   tabDiary,
   homeDailyFlow,
+  homeDailyTrainingLog,
+  homeDailyMeal,
   homeMeal,
 }
 
@@ -161,6 +163,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     return <HomeHubCoachAnchor, GlobalKey>{
       HomeHubCoachAnchor.dailyFlow:
           _coachAnchorKey(_HomeCoachAnchor.homeDailyFlow),
+      HomeHubCoachAnchor.dailyTrainingLog:
+          _coachAnchorKey(_HomeCoachAnchor.homeDailyTrainingLog),
+      HomeHubCoachAnchor.dailyMeal:
+          _coachAnchorKey(_HomeCoachAnchor.homeDailyMeal),
       HomeHubCoachAnchor.meal: _coachAnchorKey(_HomeCoachAnchor.homeMeal),
     };
   }
@@ -629,9 +635,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               actionLabel: l10n.guideActionToday,
               description: l10n.welcomeHomeStepToday,
               targetAnchor: _coachMarkAnchor(
-                _HomeCoachAnchor.homeDailyFlow,
-                fallbackAlignment: Alignment.center,
-                fallbackTopFactor: 0.32,
+                _HomeCoachAnchor.homeDailyTrainingLog,
+                fallbackAlignment: Alignment.centerLeft,
+                fallbackTopFactor: 0.42,
               ),
             ),
             _TabGuideStep(
@@ -640,9 +646,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               description: l10n.welcomeHomeStepMeal,
               onTry: () => unawaited(_openMealLog(initialDate: DateTime.now())),
               targetAnchor: _coachMarkAnchor(
-                _HomeCoachAnchor.homeMeal,
-                fallbackAlignment: Alignment.center,
-                fallbackTopFactor: 0.42,
+                _HomeCoachAnchor.homeDailyMeal,
+                fallbackAlignment: Alignment.centerLeft,
+                fallbackTopFactor: 0.50,
               ),
             ),
             _TabGuideStep(
@@ -983,6 +989,24 @@ class _CoachMarkAnchor {
   });
 }
 
+class _CoachMarkPanelSlot {
+  final double top;
+  final double bottom;
+  final Alignment alignment;
+  final bool isAboveTarget;
+
+  const _CoachMarkPanelSlot({
+    required this.top,
+    required this.bottom,
+    required this.alignment,
+    required this.isAboveTarget,
+  });
+
+  Rect bounds(Size viewport) {
+    return Rect.fromLTRB(0, top, viewport.width, viewport.height - bottom);
+  }
+}
+
 class _TabGuideStep {
   final IconData icon;
   final String actionLabel;
@@ -1014,7 +1038,7 @@ class _TabCoachMarkDialogState extends State<_TabCoachMarkDialog> {
   static const Size _fallbackTargetSize = Size(220, 76);
   static const double _floatingWidth = 260;
   static const double _floatingHeightEstimate = 78;
-  static const double _bottomPanelReserve = 286;
+  static const double _panelGap = 14;
   int _stepIndex = 0;
 
   @override
@@ -1046,10 +1070,17 @@ class _TabCoachMarkDialogState extends State<_TabCoachMarkDialog> {
             totalSteps: steps.length,
             viewport: viewport,
           );
+          final safePadding = MediaQuery.paddingOf(context);
+          final panelSlot = _explanationPanelSlotFor(
+            spotlightRect: spotlightRect,
+            viewport: viewport,
+            safePadding: safePadding,
+          );
           final floatingOffset = _floatingOffsetFor(
             spotlightRect,
             viewport,
-            MediaQuery.paddingOf(context),
+            safePadding,
+            panelSlot,
           );
           return Stack(
             key: const ValueKey('tab-coach-mark-screen-overlay'),
@@ -1098,43 +1129,53 @@ class _TabCoachMarkDialogState extends State<_TabCoachMarkDialog> {
                   ),
                 ),
               ),
+              if (floatingOffset != null)
+                AnimatedPositioned(
+                  duration: const Duration(milliseconds: 220),
+                  curve: Curves.easeOutCubic,
+                  left: floatingOffset.dx,
+                  top: floatingOffset.dy,
+                  width: _floatingWidth,
+                  child: Align(
+                    child: _CoachMarkFloatingTarget(
+                      key: const ValueKey('tab-coach-mark-floating-target'),
+                      step: step,
+                      label: AppLocalizations.of(
+                        context,
+                      )!
+                          .welcomeGuideCoachMarkLabel,
+                    ),
+                  ),
+                ),
               AnimatedPositioned(
                 duration: const Duration(milliseconds: 220),
                 curve: Curves.easeOutCubic,
-                left: floatingOffset.dx,
-                top: floatingOffset.dy,
-                width: _floatingWidth,
+                left: 16,
+                right: 16,
+                top: panelSlot.top,
+                bottom: panelSlot.bottom,
                 child: Align(
-                  child: _CoachMarkFloatingTarget(
-                    key: const ValueKey('tab-coach-mark-floating-target'),
-                    step: step,
-                    label: AppLocalizations.of(
-                      context,
-                    )!
-                        .welcomeGuideCoachMarkLabel,
-                  ),
-                ),
-              ),
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: SafeArea(
-                  minimum: const EdgeInsets.fromLTRB(16, 16, 16, 18),
-                  child: _CoachMarkExplanationPanel(
-                    guide: widget.guide,
-                    step: step,
-                    currentStep: _stepIndex + 1,
-                    totalSteps: steps.length,
-                    isLast: isLast,
-                    onSkip: () => Navigator.of(context).pop(),
-                    onBack: _stepIndex == 0
-                        ? null
-                        : () => unawaited(_showStep(_stepIndex - 1)),
-                    onTry: step.onTry == null
-                        ? null
-                        : () => Navigator.of(context).pop(step.onTry),
-                    onNext: isLast
-                        ? () => Navigator.of(context).pop()
-                        : () => unawaited(_showStep(_stepIndex + 1)),
+                  alignment: panelSlot.alignment,
+                  child: SingleChildScrollView(
+                    reverse: panelSlot.isAboveTarget,
+                    child: _CoachMarkExplanationPanel(
+                      key: const ValueKey('tab-coach-mark-explanation-panel'),
+                      guide: widget.guide,
+                      step: step,
+                      currentStep: _stepIndex + 1,
+                      totalSteps: steps.length,
+                      isLast: isLast,
+                      onSkip: () => Navigator.of(context).pop(),
+                      onBack: _stepIndex == 0
+                          ? null
+                          : () => unawaited(_showStep(_stepIndex - 1)),
+                      onTry: step.onTry == null
+                          ? null
+                          : () => Navigator.of(context).pop(step.onTry),
+                      onNext: isLast
+                          ? () => Navigator.of(context).pop()
+                          : () => unawaited(_showStep(_stepIndex + 1)),
+                    ),
                   ),
                 ),
               ),
@@ -1268,10 +1309,56 @@ class _TabCoachMarkDialogState extends State<_TabCoachMarkDialog> {
     return Rect.fromLTWH(left, top, width, height);
   }
 
-  Offset _floatingOffsetFor(
+  _CoachMarkPanelSlot _explanationPanelSlotFor({
+    required Rect spotlightRect,
+    required Size viewport,
+    required EdgeInsets safePadding,
+  }) {
+    final safeTop = safePadding.top + _screenPadding;
+    final safeBottom = _clampDouble(
+      viewport.height - safePadding.bottom - _screenPadding,
+      safeTop,
+      viewport.height,
+    );
+    final aboveBottomEdge = _clampDouble(
+      spotlightRect.top - _panelGap,
+      safeTop,
+      safeBottom,
+    );
+    final belowTopEdge = _clampDouble(
+      spotlightRect.bottom + _panelGap,
+      safeTop,
+      safeBottom,
+    );
+    final aboveHeight =
+        (aboveBottomEdge - safeTop).clamp(0.0, double.infinity).toDouble();
+    final belowHeight =
+        (safeBottom - belowTopEdge).clamp(0.0, double.infinity).toDouble();
+    final useAbove = aboveHeight >= belowHeight;
+    if (useAbove) {
+      return _CoachMarkPanelSlot(
+        top: safeTop,
+        bottom: (viewport.height - aboveBottomEdge)
+            .clamp(0.0, viewport.height)
+            .toDouble(),
+        alignment: Alignment.bottomCenter,
+        isAboveTarget: true,
+      );
+    }
+    return _CoachMarkPanelSlot(
+      top: belowTopEdge,
+      bottom:
+          (viewport.height - safeBottom).clamp(0.0, viewport.height).toDouble(),
+      alignment: Alignment.topCenter,
+      isAboveTarget: false,
+    );
+  }
+
+  Offset? _floatingOffsetFor(
     Rect spotlightRect,
     Size viewport,
     EdgeInsets safePadding,
+    _CoachMarkPanelSlot panelSlot,
   ) {
     final left = _clampDouble(
       spotlightRect.center.dx - (_floatingWidth / 2),
@@ -1279,20 +1366,30 @@ class _TabCoachMarkDialogState extends State<_TabCoachMarkDialog> {
       viewport.width - _screenPadding - _floatingWidth,
     );
     final safeTop = safePadding.top + _screenPadding;
-    final safeBottom = viewport.height - safePadding.bottom - _screenPadding;
-    final bottomPanelTop = safeBottom - _bottomPanelReserve;
+    final safeBottom = _clampDouble(
+      viewport.height - safePadding.bottom - _screenPadding,
+      safeTop,
+      viewport.height,
+    );
     final belowTop = spotlightRect.bottom + 12;
     final aboveTop = spotlightRect.top - _floatingHeightEstimate - 12;
-    final top = belowTop + _floatingHeightEstimate <= bottomPanelTop
-        ? belowTop
-        : aboveTop >= safeTop
-            ? aboveTop
-            : _clampDouble(
-                belowTop,
-                safeTop,
-                safeBottom - _floatingHeightEstimate,
-              );
-    return Offset(left, top);
+    final preferredTops = panelSlot.isAboveTarget
+        ? <double>[belowTop, aboveTop]
+        : <double>[aboveTop, belowTop];
+    final panelBounds = panelSlot.bounds(viewport).inflate(4);
+    for (final top in preferredTops) {
+      final candidate = Rect.fromLTWH(
+        left,
+        top,
+        _floatingWidth,
+        _floatingHeightEstimate,
+      );
+      final fitsVertically = top >= safeTop && candidate.bottom <= safeBottom;
+      if (fitsVertically && !candidate.overlaps(panelBounds)) {
+        return Offset(left, top);
+      }
+    }
+    return null;
   }
 
   double _clampDouble(double value, double min, double max) {
@@ -1434,6 +1531,7 @@ class _CoachMarkExplanationPanel extends StatelessWidget {
   final VoidCallback onNext;
 
   const _CoachMarkExplanationPanel({
+    super.key,
     required this.guide,
     required this.step,
     required this.currentStep,

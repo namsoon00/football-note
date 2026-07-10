@@ -66,7 +66,12 @@ import 'weather_detail_screen.dart';
 typedef _HomeHubData = DailyLoopSnapshot;
 typedef _RecentTrainingMarker = DailyLoopTrainingMarker;
 
-enum HomeHubCoachAnchor { dailyFlow, meal }
+enum HomeHubCoachAnchor {
+  dailyFlow,
+  dailyTrainingLog,
+  dailyMeal,
+  meal,
+}
 
 class HomeHubScreen extends StatefulWidget {
   final TrainingService trainingService;
@@ -443,6 +448,7 @@ class _HomeHubScreenState extends State<HomeHubScreen>
                         data: data,
                         l10n: l10n,
                         sportId: sportId,
+                        coachGuideAnchors: widget.coachGuideAnchors,
                         onLog: _trackedAction(
                           'daily_flow_log',
                           () => _openTodayEntryOrCreate(data),
@@ -1655,6 +1661,7 @@ class _DailyFlowCard extends StatelessWidget {
   final _HomeHubData data;
   final AppLocalizations l10n;
   final String sportId;
+  final Map<HomeHubCoachAnchor, GlobalKey> coachGuideAnchors;
   final VoidCallback? onLog;
   final VoidCallback? onLifting;
   final VoidCallback? onJumpRope;
@@ -1668,6 +1675,7 @@ class _DailyFlowCard extends StatelessWidget {
     required this.data,
     required this.l10n,
     required this.sportId,
+    required this.coachGuideAnchors,
     required this.onLog,
     required this.onLifting,
     required this.onJumpRope,
@@ -1701,6 +1709,12 @@ class _DailyFlowCard extends StatelessWidget {
     final completedCount = visibleTaskStates.where((done) => done).length;
     final totalCount = visibleTaskStates.length;
     final progress = completedCount / totalCount;
+    Widget coachTarget(HomeHubCoachAnchor anchor, Widget child) {
+      final guideKey = coachGuideAnchors[anchor];
+      if (guideKey == null) return child;
+      return KeyedSubtree(key: guideKey, child: child);
+    }
+
     return WatchCartCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1740,11 +1754,15 @@ class _DailyFlowCard extends StatelessWidget {
             crossAxisSpacing: 8,
             childAspectRatio: 2.0,
             children: [
-              _TodoChip(
-                done: data.loggedTrainingToday,
-                icon: Icons.menu_book_rounded,
-                label: l10n.homeTodoTrainingLogShort,
-                onTap: onLog,
+              coachTarget(
+                HomeHubCoachAnchor.dailyTrainingLog,
+                _TodoChip(
+                  key: const ValueKey<String>('home-daily-flow-log-action'),
+                  done: data.loggedTrainingToday,
+                  icon: Icons.menu_book_rounded,
+                  label: l10n.homeTodoTrainingLogShort,
+                  onTap: onLog,
+                ),
               ),
               _TodoChip(
                 done: data.loggedLiftingToday,
@@ -1758,11 +1776,15 @@ class _DailyFlowCard extends StatelessWidget {
                 label: primaryConditioningLabel,
                 onTap: onJumpRope,
               ),
-              _TodoChip(
-                done: data.loggedMealsToday,
-                icon: Icons.rice_bowl_outlined,
-                label: l10n.mealShortLabel,
-                onTap: onMeal,
+              coachTarget(
+                HomeHubCoachAnchor.dailyMeal,
+                _TodoChip(
+                  key: const ValueKey<String>('home-daily-flow-meal-action'),
+                  done: data.loggedMealsToday,
+                  icon: Icons.rice_bowl_outlined,
+                  label: l10n.mealShortLabel,
+                  onTap: onMeal,
+                ),
               ),
               _TodoChip(
                 done: data.quizCompletedToday,
@@ -2958,6 +2980,7 @@ class _TodoChip extends StatelessWidget {
   final VoidCallback? onTap;
 
   const _TodoChip({
+    super.key,
     required this.done,
     required this.icon,
     required this.label,
