@@ -1837,11 +1837,22 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     if (id == null) return;
     _stopRoutePlayback(restoreStart: false);
     setState(() {
-      _currentPage.items.removeWhere((e) => e.id == id);
+      final selectedItem = _itemById(id);
+      final itemIdsToRemove = <String>{id};
+      if (selectedItem?.type == _BoardItemType.player) {
+        itemIdsToRemove.addAll(
+          _itemsOfType(_BoardItemType.ball)
+              .where((ball) => _currentBallOwner(ball)?.id == id)
+              .map((ball) => ball.id),
+        );
+      }
+      _currentPage.items.removeWhere((e) => itemIdsToRemove.contains(e.id));
       final removedSelectedRoute = _selectedRouteId;
-      _currentPage.routes.removeWhere((route) => route.linkedItemId == id);
+      _currentPage.routes.removeWhere(
+        (route) => itemIdsToRemove.contains(route.linkedItemId),
+      );
       for (final route in _currentPage.routes) {
-        if (route.targetItemId == id) {
+        if (itemIdsToRemove.contains(route.targetItemId)) {
           route.targetItemId = null;
         }
       }
