@@ -323,7 +323,7 @@ void main() {
     expect(exportedBytes, isNotNull);
     expect(exportedBytes, isNotEmpty);
     expect(captureCount, 1);
-    expect(capturedSize, const Size(3400, 1900));
+    expect(capturedSize, const Size(2000, 1120));
     expect(capturedPixelRatio, 1);
     expect(exportedFilename, startsWith('world-cup-bracket_'));
     expect(exportedFilename, endsWith('.png'));

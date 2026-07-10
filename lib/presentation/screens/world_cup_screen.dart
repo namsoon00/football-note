@@ -61,7 +61,7 @@ class WorldCupScreen extends StatefulWidget {
   State<WorldCupScreen> createState() => _WorldCupScreenState();
 }
 
-const Size _worldCupTournamentShareImageSize = Size(3400, 1900);
+const Size _worldCupTournamentShareImageSize = Size(2000, 1120);
 const double _worldCupTournamentShareImagePixelRatio = 1;
 
 class _WorldCupScreenState extends State<WorldCupScreen> {
@@ -6415,7 +6415,6 @@ Future<bool> _shareWorldCupTournamentBracketImage({
       scoreBuilder: scoreBuilder,
     ),
   );
-  if (!context.mounted) return false;
   await sharePngImage(
     pngImage: pngBytes,
     filename: timestampedImageFilename('world-cup-bracket'),
