@@ -72,48 +72,89 @@ Future<Uint8List> captureWidgetPng(
       pixelRatio: pixelRatio,
     );
   }
-  final key = GlobalKey();
-  final overlay = Overlay.of(context, rootOverlay: true);
   final mediaQuery = MediaQuery.maybeOf(context);
   final textDirection = Directionality.maybeOf(context) ?? TextDirection.ltr;
-  final entry = OverlayEntry(
-    builder: (overlayContext) {
-      final exportChild = MediaQuery(
-        data: (mediaQuery ?? MediaQuery.of(overlayContext)).copyWith(
-          size: size,
-          devicePixelRatio: 1,
-        ),
-        child: Directionality(
-          textDirection: textDirection,
-          child: RepaintBoundary(
-            key: key,
-            child: SizedBox.fromSize(size: size, child: child),
-          ),
-        ),
-      );
-      return Positioned(
-        left: 0,
-        top: 0,
-        width: size.width,
-        height: size.height,
-        child: IgnorePointer(
-          child: Opacity(
-            opacity: 0.01,
-            child: InheritedTheme.captureAll(context, exportChild),
-          ),
-        ),
-      );
-    },
+  final view = View.maybeOf(context) ??
+      WidgetsBinding.instance.platformDispatcher.views.first;
+  final repaintBoundary = RenderRepaintBoundary();
+  final renderView = RenderView(
+    view: view,
+    configuration: ViewConfiguration(
+      logicalConstraints: BoxConstraints.tight(size),
+      physicalConstraints: BoxConstraints.tight(size),
+      devicePixelRatio: 1,
+    ),
+    child: repaintBoundary,
   );
-  overlay.insert(entry);
-  try {
-    await WidgetsBinding.instance.endOfFrame;
-    await Future<void>.delayed(const Duration(milliseconds: 80));
-    await WidgetsBinding.instance.endOfFrame;
-    return captureRepaintBoundaryPng(key, pixelRatio: pixelRatio);
-  } finally {
-    entry.remove();
+  final pipelineOwner = PipelineOwner();
+  final focusManager = FocusManager();
+  final buildOwner = BuildOwner(focusManager: focusManager);
+  final mediaData = (mediaQuery ?? MediaQueryData(size: size)).copyWith(
+    size: size,
+    devicePixelRatio: 1,
+  );
+  Widget exportChild = MediaQuery(
+    data: mediaData,
+    child: Directionality(
+      textDirection: textDirection,
+      child: SizedBox.fromSize(size: size, child: child),
+    ),
+  );
+  if (Localizations.maybeLocaleOf(context) != null) {
+    exportChild = Localizations.override(
+      context: context,
+      child: exportChild,
+    );
   }
+  exportChild = InheritedTheme.captureAll(context, exportChild);
+
+  renderView.attach(pipelineOwner);
+  renderView.prepareInitialFrame();
+  final rootElement = RenderObjectToWidgetAdapter<RenderBox>(
+    container: repaintBoundary,
+    debugShortDescription: '[png export]',
+    child: exportChild,
+  ).attachToRenderTree(buildOwner);
+
+  try {
+    _pumpOffscreenFrame(
+      buildOwner: buildOwner,
+      pipelineOwner: pipelineOwner,
+      rootElement: rootElement,
+    );
+    final image = await repaintBoundary.toImage(pixelRatio: pixelRatio);
+    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    image.dispose();
+    final bytes = byteData?.buffer.asUint8List();
+    if (bytes == null || bytes.isEmpty) {
+      throw StateError('PDF export image is empty.');
+    }
+    return bytes;
+  } finally {
+    RenderObjectToWidgetAdapter<RenderBox>(
+      container: repaintBoundary,
+      debugShortDescription: '[png export teardown]',
+    ).attachToRenderTree(buildOwner, rootElement);
+    _pumpOffscreenFrame(
+      buildOwner: buildOwner,
+      pipelineOwner: pipelineOwner,
+      rootElement: rootElement,
+    );
+    renderView.detach();
+    focusManager.dispose();
+  }
+}
+
+void _pumpOffscreenFrame({
+  required BuildOwner buildOwner,
+  required PipelineOwner pipelineOwner,
+  required RenderObjectToWidgetElement<RenderBox> rootElement,
+}) {
+  buildOwner.buildScope(rootElement);
+  pipelineOwner.flushLayout();
+  pipelineOwner.flushCompositingBits();
+  pipelineOwner.flushPaint();
+  buildOwner.finalizeTree();
 }
 
 Future<void> sharePngImagesAsPdf({
