@@ -508,15 +508,19 @@ void main() {
       findsOneWidget,
     );
     final firstTargetRect = tester.getRect(
-      find.byKey(const ValueKey<String>('home-layout-daily-flow-section')),
+      find.byKey(const ValueKey<String>('home-daily-flow-log-action')),
     );
     final firstHighlightRect = tester.getRect(
       find.byKey(const ValueKey('tab-coach-mark-highlight')),
+    );
+    final firstPanelRect = tester.getRect(
+      find.byKey(const ValueKey('tab-coach-mark-explanation-panel')),
     );
     expect(
       (firstHighlightRect.center - firstTargetRect.center).distance,
       lessThan(1),
     );
+    expect(firstHighlightRect.overlaps(firstPanelRect), isFalse);
     expect(
       optionRepository.getValue<bool>('tab_quick_guide_seen_v1_0'),
       isTrue,
@@ -530,19 +534,40 @@ void main() {
 
     expect(find.text('3단계 중 2단계'), findsOneWidget);
     final secondTargetRect = tester.getRect(
-      find.byKey(const ValueKey<String>('home-layout-meal-section')),
+      find.byKey(const ValueKey<String>('home-daily-flow-meal-action')),
     );
     final secondHighlightRect = tester.getRect(
       find.byKey(const ValueKey('tab-coach-mark-highlight')),
+    );
+    final secondPanelRect = tester.getRect(
+      find.byKey(const ValueKey('tab-coach-mark-explanation-panel')),
     );
     expect(
       (secondHighlightRect.center - secondTargetRect.center).distance,
       lessThan(1),
     );
+    expect(secondHighlightRect.overlaps(secondPanelRect), isFalse);
     expect(
       find.byKey(const ValueKey('tab-coach-mark-try-button')),
       findsOneWidget,
     );
+
+    await tester.tap(find.byKey(const ValueKey('tab-coach-mark-next-button')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 260));
+
+    expect(find.text('3단계 중 3단계'), findsOneWidget);
+    final thirdHighlightRect = tester.getRect(
+      find.byKey(const ValueKey('tab-coach-mark-highlight')),
+    );
+    final thirdPanelRect = tester.getRect(
+      find.byKey(const ValueKey('tab-coach-mark-explanation-panel')),
+    );
+    expect(thirdHighlightRect.overlaps(thirdPanelRect), isFalse);
+
+    await tester.tap(find.byKey(const ValueKey('tab-coach-mark-back-button')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 260));
 
     await tester.tap(find.byKey(const ValueKey('tab-coach-mark-try-button')));
     await tester.pump();
