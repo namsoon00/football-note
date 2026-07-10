@@ -20161,25 +20161,25 @@ abstract class AppLocalizations {
   /// No description provided for @matchHubTopActionTooltip.
   ///
   /// In en, this message translates to:
-  /// **'Match Hub'**
+  /// **'Team & match management'**
   String get matchHubTopActionTooltip;
 
   /// No description provided for @matchHubTitle.
   ///
   /// In en, this message translates to:
-  /// **'Match Hub'**
+  /// **'Team & match management'**
   String get matchHubTitle;
 
   /// No description provided for @matchHubSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Organize match records, competitions, and schedule flow, then connect them to your team operations.'**
+  /// **'Manage team preparation and match records in the same flow.'**
   String get matchHubSubtitle;
 
   /// No description provided for @matchHubOverviewTitle.
   ///
   /// In en, this message translates to:
-  /// **'Match operations board'**
+  /// **'Operations snapshot'**
   String get matchHubOverviewTitle;
 
   /// No description provided for @matchHubRecentFormLabel.
@@ -20197,13 +20197,13 @@ abstract class AppLocalizations {
   /// No description provided for @matchEntryManagedInHubTitle.
   ///
   /// In en, this message translates to:
-  /// **'Match records are managed in the Match Hub.'**
+  /// **'Match records are managed in Team & Match Management.'**
   String get matchEntryManagedInHubTitle;
 
   /// No description provided for @matchEntryManagedInHubBody.
   ///
   /// In en, this message translates to:
-  /// **'Training notes no longer show match details. View and edit matches from the top Match Hub.'**
+  /// **'Training notes no longer show match details. View and edit matches from the top Team & Match Management area.'**
   String get matchEntryManagedInHubBody;
 
   /// No description provided for @matchHubRecordHelper.
@@ -20317,7 +20317,7 @@ abstract class AppLocalizations {
   /// No description provided for @matchHubOpeningFeedback.
   ///
   /// In en, this message translates to:
-  /// **'Opening Match Hub.'**
+  /// **'Opening Team & Match Management.'**
   String get matchHubOpeningFeedback;
 
   /// No description provided for @matchHubRecordedOnlyProgress.
@@ -20347,13 +20347,13 @@ abstract class AppLocalizations {
   /// No description provided for @matchHubTeamManagementHeaderSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Review match records, competitions, and team status in the match flow.'**
+  /// **'Connect team preparation, match records, and competition flow in one place.'**
   String get matchHubTeamManagementHeaderSubtitle;
 
   /// No description provided for @matchHubTeamManagementTitle.
   ///
   /// In en, this message translates to:
-  /// **'Our team'**
+  /// **'Team snapshot'**
   String get matchHubTeamManagementTitle;
 
   /// No description provided for @matchHubTeamManagementHelper.
@@ -20389,8 +20389,44 @@ abstract class AppLocalizations {
   /// No description provided for @matchHubNoTeamsSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Prepare your team in the team operations screen where the roster is visible immediately.'**
+  /// **'Prepare your team in the team management screen where player registration starts immediately.'**
   String get matchHubNoTeamsSubtitle;
+
+  /// No description provided for @matchHubCommandCenterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Operations work'**
+  String get matchHubCommandCenterTitle;
+
+  /// No description provided for @matchHubCommandCenterHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Team preparation and match operations are split into clear actions.'**
+  String get matchHubCommandCenterHelper;
+
+  /// No description provided for @matchHubTeamCommandHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Player registration, team profile, lineup, and tactics board'**
+  String get matchHubTeamCommandHelper;
+
+  /// No description provided for @matchHubTeamCommandPrimary.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage roster'**
+  String get matchHubTeamCommandPrimary;
+
+  /// No description provided for @matchHubMatchCommandTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Match management'**
+  String get matchHubMatchCommandTitle;
+
+  /// No description provided for @matchHubMatchCommandHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Match records, competitions, record review, and stats'**
+  String get matchHubMatchCommandHelper;
 
   /// No description provided for @matchHubMoreTeamsCount.
   ///
@@ -20647,19 +20683,19 @@ abstract class AppLocalizations {
   /// No description provided for @teamManagementTitle.
   ///
   /// In en, this message translates to:
-  /// **'Team Operations'**
+  /// **'Team Management'**
   String get teamManagementTitle;
 
   /// No description provided for @teamManagementSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Manage one team roster, schedule, lineup, and tactics board on one screen.'**
+  /// **'Manage player registration, team profile, lineup, and tactics board on one screen.'**
   String get teamManagementSubtitle;
 
   /// No description provided for @teamManagementOpenButton.
   ///
   /// In en, this message translates to:
-  /// **'Team operations'**
+  /// **'Team management'**
   String get teamManagementOpenButton;
 
   /// No description provided for @teamManagementDefaultTeamName.
@@ -21092,7 +21128,7 @@ abstract class AppLocalizations {
   /// No description provided for @teamManagementSaveHint.
   ///
   /// In en, this message translates to:
-  /// **'Your team roster, tactics, and board placement auto-save as you edit and appear in the Match Hub team card.'**
+  /// **'Your team roster, tactics, and board placement auto-save as you edit and appear in the Team & Match Management snapshot.'**
   String get teamManagementSaveHint;
 
   /// No description provided for @teamManagementAutoSaveReady.
