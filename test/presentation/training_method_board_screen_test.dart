@@ -3159,6 +3159,86 @@ void main() {
     );
   });
 
+  testWidgets('deleting a player also deletes the ball they own', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    String? savedLayout;
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '소유자 삭제',
+          initialLayoutJson: const TrainingMethodLayout(
+            pages: <TrainingMethodPage>[
+              TrainingMethodPage(
+                name: 'Board',
+                items: <TrainingMethodItem>[
+                  TrainingMethodItem(
+                    id: 'player-1',
+                    type: 'player',
+                    x: 0.22,
+                    y: 0.52,
+                  ),
+                  TrainingMethodItem(
+                    id: 'player-2',
+                    type: 'player',
+                    x: 0.58,
+                    y: 0.48,
+                    colorValue: 0xFF1E88E5,
+                  ),
+                  TrainingMethodItem(
+                    id: 'ball-1',
+                    type: 'ball',
+                    x: 0.38,
+                    y: 0.50,
+                    colorValue: 0xFFFFCA28,
+                  ),
+                ],
+                routes: <TrainingMethodRoute>[
+                  TrainingMethodRoute(
+                    id: 'route-ball-1',
+                    kind: TrainingMethodRouteKind.ball,
+                    linkedItemId: 'ball-1',
+                    actorItemId: 'player-2',
+                    targetItemId: 'player-1',
+                    points: <TrainingMethodPoint>[
+                      TrainingMethodPoint(x: 0.58, y: 0.48),
+                      TrainingMethodPoint(x: 0.22, y: 0.52),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ).encode(),
+          onSaved: (value) => savedLayout = value,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    await tester.tap(
+      find
+          .descendant(of: boardFinder, matching: find.byIcon(Icons.person))
+          .first,
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('삭제').last);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(TextButton, '저장'));
+    await tester.pumpAndSettle();
+
+    final saved = TrainingMethodLayout.decode(savedLayout ?? '');
+    final page = saved.pages.single;
+    expect(page.items.map((item) => item.id), isNot(contains('player-1')));
+    expect(page.items.map((item) => item.id), isNot(contains('ball-1')));
+    expect(page.items.map((item) => item.id), contains('player-2'));
+    expect(page.routes, isEmpty);
+  });
+
   testWidgets('moving a token hides its border and number badge', (
     WidgetTester tester,
   ) async {
