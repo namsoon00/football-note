@@ -69,11 +69,13 @@ void main() {
       '작은 약속|오늘 안에|오늘안에|끝내요|할 일',
     );
 
-    expect(shortLines, hasLength(60));
+    expect(shortLines, hasLength(80));
     expect(shortLines, contains('보내기 전 한 번 더 읽으면 실수 하나 줄어요.'));
     expect(shortLines, contains('패스 전 고개 한 번 들면 선택지가 늘어요.'));
     expect(shortLines, contains('양말 한 짝만 찾아도 출발은 이긴 거예요.'));
     expect(shortLines, contains('정리된 가방은 내일 아침 치트키예요.'));
+    expect(shortLines, contains('괜히 두근거리는 알림이 하나 와요.'));
+    expect(shortLines, contains('집에 오는 길 불빛이 유난히 예뻐요.'));
     for (final shortLine in shortLines) {
       final line = l10n.fortuneGeneratedDailyLineOne(
         '민준',
@@ -161,7 +163,7 @@ void main() {
         35,
         12,
         5,
-        60,
+        80,
         60,
         96,
         1000,
@@ -187,6 +189,7 @@ void main() {
     expect(sections[7].title, '짧은 추천안');
     expect(sections[7].values, contains('패스 전 고개 한 번 들면 선택지가 늘어요.'));
     expect(sections[7].values, contains('정리된 가방은 내일 아침 치트키예요.'));
+    expect(sections[7].values, contains('괜히 두근거리는 알림이 하나 와요.'));
     expect(sections[8].title, '한 줄 재료');
     expect(sections[9].title, '이어질 수 있는 일');
     expect(sections[10].title, '짧은 운세 문장');
