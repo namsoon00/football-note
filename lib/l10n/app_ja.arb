@@ -6751,6 +6751,12 @@
       "actor": {}
     }
   },
+  "trainingSketchStageActionPlayerStay": "{actor}がその場で待つ",
+  "@trainingSketchStageActionPlayerStay": {
+    "placeholders": {
+      "actor": {}
+    }
+  },
   "trainingSketchStageActionBallMove": "{actor}がボールを動かす",
   "@trainingSketchStageActionBallMove": {
     "placeholders": {
@@ -6955,6 +6961,7 @@
   "trainingSketchCreateMoveRouteButton": "移動作成",
   "trainingSketchCreatePassRouteButton": "パス作成",
   "trainingSketchQuickMoveButton": "移動",
+  "trainingSketchQuickStayButton": "その場",
   "trainingSketchQuickPassButton": "パス",
   "trainingSketchQuickPassAndMoveButton": "パス後に移動",
   "trainingSketchQuickDribbleButton": "ドリブル",
