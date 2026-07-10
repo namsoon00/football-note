@@ -11495,6 +11495,24 @@ abstract class AppLocalizations {
   /// **'Select meal log date'**
   String get mealLogDatePickerHelp;
 
+  /// No description provided for @mealDietDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Diet details'**
+  String get mealDietDetailsTitle;
+
+  /// No description provided for @mealDietDetailsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Open only when adding a main dish, extra foods, or notes.'**
+  String get mealDietDetailsHint;
+
+  /// No description provided for @mealDietDetailsFilled.
+  ///
+  /// In en, this message translates to:
+  /// **'Diet details are entered.'**
+  String get mealDietDetailsFilled;
+
   /// No description provided for @mealMenuInputLabel.
   ///
   /// In en, this message translates to:

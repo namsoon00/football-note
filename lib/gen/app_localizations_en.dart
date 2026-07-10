@@ -6580,6 +6580,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mealLogDatePickerHelp => 'Select meal log date';
 
   @override
+  String get mealDietDetailsTitle => 'Diet details';
+
+  @override
+  String get mealDietDetailsHint =>
+      'Open only when adding a main dish, extra foods, or notes.';
+
+  @override
+  String get mealDietDetailsFilled => 'Diet details are entered.';
+
+  @override
   String get mealMenuInputLabel => 'Additional note';
 
   @override
