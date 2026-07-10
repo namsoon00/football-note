@@ -5633,6 +5633,34 @@
   "familyRoleSelectionDescription": "이 기기가 직접 기록하는 선수용인지, 보호자용인지, 여러 선수를 관리하는 코치용인지 먼저 고르세요.",
   "settingsUsageModeTitle": "사용 방식",
   "settingsRoleAndSyncTitle": "사용 방식 및 동기화",
+  "healthConnectSectionTitle": "삼성 헬스 자동 등록",
+  "healthConnectSectionSubtitle": "Samsung Health가 Health Connect에 공유한 줄넘기 운동을 훈련 기록의 줄넘기 항목으로 가져옵니다.",
+  "healthConnectAutoSyncTitle": "줄넘기 자동 등록",
+  "healthConnectAutoSyncSubtitle": "권한을 허용하면 앱 시작과 복귀 시 최근 줄넘기 운동을 확인해 중복 없이 등록합니다.",
+  "healthConnectStatusUnavailable": "이 기기에서는 Health Connect를 사용할 수 없어요.",
+  "healthConnectStatusUpdateRequired": "Health Connect 업데이트가 필요해요.",
+  "healthConnectStatusPermissionNeeded": "Health Connect 운동 권한을 허용해야 해요.",
+  "healthConnectStatusReady": "권한이 허용됐어요. 필요할 때 동기화할 수 있습니다.",
+  "healthConnectStatusAutoOn": "자동 등록이 켜져 있어요.",
+  "healthConnectSyncNow": "지금 동기화",
+  "healthConnectGrantAndSync": "권한 허용 및 동기화",
+  "healthConnectLastSync": "마지막 동기화: {time}",
+  "@healthConnectLastSync": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "healthConnectSyncImported": "줄넘기 기록 {count}개를 등록했어요.",
+  "@healthConnectSyncImported": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "healthConnectSyncNoNewRecords": "새로 등록할 줄넘기 기록이 없어요.",
+  "healthConnectSyncFailed": "Health Connect 동기화에 실패했어요.",
+  "healthConnectDisabled": "줄넘기 자동 등록을 껐어요.",
   "settingsInfoTooltip": "설명 보기",
   "settingsSupportModeLabel": "보호자",
   "settingsCoachRosterTitle": "코치 선수 목록",

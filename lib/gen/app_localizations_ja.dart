@@ -10091,6 +10091,61 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsRoleAndSyncTitle => '使用法と同期';
 
   @override
+  String get healthConnectSectionTitle => 'Samsung Health自動登録';
+
+  @override
+  String get healthConnectSectionSubtitle =>
+      'Samsung HealthがHealth Connectに共有した縄跳びワークアウトを、トレーニング記録の縄跳び項目として取り込みます。';
+
+  @override
+  String get healthConnectAutoSyncTitle => '縄跳びを自動登録';
+
+  @override
+  String get healthConnectAutoSyncSubtitle =>
+      '権限を許可すると、アプリ起動時と復帰時に最近の縄跳びワークアウトを確認し、重複なしで登録します。';
+
+  @override
+  String get healthConnectStatusUnavailable => 'この端末ではHealth Connectを利用できません。';
+
+  @override
+  String get healthConnectStatusUpdateRequired => 'Health Connectの更新が必要です。';
+
+  @override
+  String get healthConnectStatusPermissionNeeded =>
+      'Health Connectの運動権限を許可してください。';
+
+  @override
+  String get healthConnectStatusReady => '権限が許可されています。必要なときに同期できます。';
+
+  @override
+  String get healthConnectStatusAutoOn => '自動登録がオンです。';
+
+  @override
+  String get healthConnectSyncNow => '今すぐ同期';
+
+  @override
+  String get healthConnectGrantAndSync => '許可して同期';
+
+  @override
+  String healthConnectLastSync(Object time) {
+    return '最終同期: $time';
+  }
+
+  @override
+  String healthConnectSyncImported(int count) {
+    return '縄跳び記録を$count件登録しました。';
+  }
+
+  @override
+  String get healthConnectSyncNoNewRecords => '新しく登録する縄跳び記録はありません。';
+
+  @override
+  String get healthConnectSyncFailed => 'Health Connectの同期に失敗しました。';
+
+  @override
+  String get healthConnectDisabled => '縄跳びの自動登録をオフにしました。';
+
+  @override
   String get settingsInfoTooltip => '説明を表示';
 
   @override

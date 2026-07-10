@@ -10388,6 +10388,65 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsRoleAndSyncTitle => 'Usage & sync';
 
   @override
+  String get healthConnectSectionTitle => 'Samsung Health auto import';
+
+  @override
+  String get healthConnectSectionSubtitle =>
+      'Import jump rope workouts shared by Samsung Health through Health Connect into jump rope training logs.';
+
+  @override
+  String get healthConnectAutoSyncTitle => 'Auto-import jump rope';
+
+  @override
+  String get healthConnectAutoSyncSubtitle =>
+      'After permission is granted, the app checks recent jump rope workouts on launch and resume, then imports them without duplicates.';
+
+  @override
+  String get healthConnectStatusUnavailable =>
+      'Health Connect is unavailable on this device.';
+
+  @override
+  String get healthConnectStatusUpdateRequired =>
+      'Health Connect needs to be updated.';
+
+  @override
+  String get healthConnectStatusPermissionNeeded =>
+      'Allow Health Connect exercise permission first.';
+
+  @override
+  String get healthConnectStatusReady =>
+      'Permission is allowed. You can sync when needed.';
+
+  @override
+  String get healthConnectStatusAutoOn => 'Auto import is on.';
+
+  @override
+  String get healthConnectSyncNow => 'Sync now';
+
+  @override
+  String get healthConnectGrantAndSync => 'Allow and sync';
+
+  @override
+  String healthConnectLastSync(Object time) {
+    return 'Last sync: $time';
+  }
+
+  @override
+  String healthConnectSyncImported(int count) {
+    return 'Imported $count jump rope record(s).';
+  }
+
+  @override
+  String get healthConnectSyncNoNewRecords =>
+      'No new jump rope records to import.';
+
+  @override
+  String get healthConnectSyncFailed => 'Health Connect sync failed.';
+
+  @override
+  String get healthConnectDisabled => 'Jump rope auto import is off.';
+
+  @override
   String get settingsInfoTooltip => 'Show description';
 
   @override

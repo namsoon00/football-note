@@ -5633,6 +5633,34 @@
   "familyRoleSelectionDescription": "このデバイスをプレーヤーが直接使うか、保護者が使うか、複数のプレーヤーを管理するコーチが使うかを選択します。",
   "settingsUsageModeTitle": "使用モード",
   "settingsRoleAndSyncTitle": "使用法と同期",
+  "healthConnectSectionTitle": "Samsung Health自動登録",
+  "healthConnectSectionSubtitle": "Samsung HealthがHealth Connectに共有した縄跳びワークアウトを、トレーニング記録の縄跳び項目として取り込みます。",
+  "healthConnectAutoSyncTitle": "縄跳びを自動登録",
+  "healthConnectAutoSyncSubtitle": "権限を許可すると、アプリ起動時と復帰時に最近の縄跳びワークアウトを確認し、重複なしで登録します。",
+  "healthConnectStatusUnavailable": "この端末ではHealth Connectを利用できません。",
+  "healthConnectStatusUpdateRequired": "Health Connectの更新が必要です。",
+  "healthConnectStatusPermissionNeeded": "Health Connectの運動権限を許可してください。",
+  "healthConnectStatusReady": "権限が許可されています。必要なときに同期できます。",
+  "healthConnectStatusAutoOn": "自動登録がオンです。",
+  "healthConnectSyncNow": "今すぐ同期",
+  "healthConnectGrantAndSync": "許可して同期",
+  "healthConnectLastSync": "最終同期: {time}",
+  "@healthConnectLastSync": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "healthConnectSyncImported": "縄跳び記録を{count}件登録しました。",
+  "@healthConnectSyncImported": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "healthConnectSyncNoNewRecords": "新しく登録する縄跳び記録はありません。",
+  "healthConnectSyncFailed": "Health Connectの同期に失敗しました。",
+  "healthConnectDisabled": "縄跳びの自動登録をオフにしました。",
   "settingsInfoTooltip": "説明を表示",
   "settingsSupportModeLabel": "親",
   "settingsCoachRosterTitle": "コーチのプレーヤー一覧",

@@ -21,6 +21,7 @@ import 'application/backup_service.dart';
 import 'application/club_training_reminder_service.dart';
 import 'application/drive_backup_service.dart';
 import 'application/family_access_service.dart';
+import 'application/health_connect_jump_rope_sync_service.dart';
 import 'application/meal_log_service.dart';
 import 'application/league_fixture_reminder_service.dart';
 import 'application/notification_app_link.dart';
@@ -80,6 +81,10 @@ Future<void> main() async {
   final trainingService = TrainingService(
     trainingRepository,
     backupService: backupService,
+  );
+  final healthConnectJumpRopeSyncService = HealthConnectJumpRopeSyncService(
+    trainingService: trainingService,
+    optionRepository: optionRepository,
   );
   final reminderService = TrainingPlanReminderService(
     optionRepository,
@@ -144,6 +149,7 @@ Future<void> main() async {
       settingsService: settingsService,
       sportController: sportController,
       driveBackupService: backupService,
+      healthConnectJumpRopeSyncService: healthConnectJumpRopeSyncService,
     ),
   );
 
@@ -156,6 +162,7 @@ Future<void> main() async {
       clubTrainingReminderService: clubTrainingReminderService,
       badgeService: badgeService,
       trainingService: trainingService,
+      healthConnectJumpRopeSyncService: healthConnectJumpRopeSyncService,
     ),
   );
 }
@@ -168,6 +175,7 @@ Future<void> _warmStartupServices({
   required ClubTrainingReminderService clubTrainingReminderService,
   required TrainingPlanBadgeService badgeService,
   required TrainingService trainingService,
+  required HealthConnectJumpRopeSyncService healthConnectJumpRopeSyncService,
 }) async {
   var handledLaunchPayload = false;
   void handleLaunchPayload(String? payload) {
@@ -223,6 +231,11 @@ Future<void> _warmStartupServices({
   } catch (_) {
     // Badge sync is non-critical for first frame.
   }
+  try {
+    await healthConnectJumpRopeSyncService.syncIfEnabled();
+  } catch (_) {
+    // Health Connect sync can recover on the next app resume or settings action.
+  }
 }
 
 class FootballNoteApp extends StatelessWidget {
@@ -233,6 +246,7 @@ class FootballNoteApp extends StatelessWidget {
   final SettingsService settingsService;
   final SportStateController sportController;
   final BackupService? driveBackupService;
+  final HealthConnectJumpRopeSyncService? healthConnectJumpRopeSyncService;
 
   const FootballNoteApp({
     super.key,
@@ -242,6 +256,7 @@ class FootballNoteApp extends StatelessWidget {
     required this.localeService,
     required this.settingsService,
     required this.sportController,
+    this.healthConnectJumpRopeSyncService,
     this.driveBackupService,
   });
 
@@ -256,6 +271,7 @@ class FootballNoteApp extends StatelessWidget {
           localeService: localeService,
           settingsService: settingsService,
           driveBackupService: driveBackupService,
+          healthConnectJumpRopeSyncService: healthConnectJumpRopeSyncService,
         );
 
     return SportScope(
@@ -372,6 +388,7 @@ class _EntryGate extends StatefulWidget {
   final LocaleService localeService;
   final SettingsService settingsService;
   final BackupService? driveBackupService;
+  final HealthConnectJumpRopeSyncService? healthConnectJumpRopeSyncService;
   final String sportId;
 
   const _EntryGate({
@@ -382,6 +399,7 @@ class _EntryGate extends StatefulWidget {
     required this.optionRepository,
     required this.localeService,
     required this.settingsService,
+    this.healthConnectJumpRopeSyncService,
     this.driveBackupService,
   });
 
@@ -397,6 +415,7 @@ class _EntryGateState extends State<_EntryGate> with WidgetsBindingObserver {
   bool _sportSelectionInFlight = false;
   bool _welcomeSeen = false;
   bool _welcomeDismissInFlight = false;
+  bool _healthConnectSyncBusy = false;
 
   @override
   void initState() {
@@ -418,6 +437,7 @@ class _EntryGateState extends State<_EntryGate> with WidgetsBindingObserver {
         ),
       );
     }
+    unawaited(_syncHealthConnectJumpRopeIfNeeded());
   }
 
   @override
@@ -432,6 +452,27 @@ class _EntryGateState extends State<_EntryGate> with WidgetsBindingObserver {
       return;
     }
     unawaited(_refreshParentSharedDataOnResume());
+    unawaited(_syncHealthConnectJumpRopeIfNeeded());
+  }
+
+  Future<void> _syncHealthConnectJumpRopeIfNeeded() async {
+    if (_healthConnectSyncBusy) return;
+    if (FamilyAccessService(widget.optionRepository)
+        .loadState()
+        .isSupportMode) {
+      return;
+    }
+    final healthConnectJumpRopeSyncService =
+        widget.healthConnectJumpRopeSyncService;
+    if (healthConnectJumpRopeSyncService == null) {
+      return;
+    }
+    _healthConnectSyncBusy = true;
+    try {
+      await healthConnectJumpRopeSyncService.syncIfEnabled();
+    } finally {
+      _healthConnectSyncBusy = false;
+    }
   }
 
   Future<void> _refreshParentSharedDataOnResume() async {
@@ -526,6 +567,7 @@ class _EntryGateState extends State<_EntryGate> with WidgetsBindingObserver {
       localeService: widget.localeService,
       settingsService: widget.settingsService,
       driveBackupService: widget.driveBackupService,
+      healthConnectJumpRopeSyncService: widget.healthConnectJumpRopeSyncService,
     );
   }
 }

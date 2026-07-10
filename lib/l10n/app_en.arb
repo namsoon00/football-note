@@ -5633,6 +5633,34 @@
   "familyRoleSelectionDescription": "Choose whether this device is used by the player directly, by a parent, or by a coach managing multiple players.",
   "settingsUsageModeTitle": "Usage mode",
   "settingsRoleAndSyncTitle": "Usage & sync",
+  "healthConnectSectionTitle": "Samsung Health auto import",
+  "healthConnectSectionSubtitle": "Import jump rope workouts shared by Samsung Health through Health Connect into jump rope training logs.",
+  "healthConnectAutoSyncTitle": "Auto-import jump rope",
+  "healthConnectAutoSyncSubtitle": "After permission is granted, the app checks recent jump rope workouts on launch and resume, then imports them without duplicates.",
+  "healthConnectStatusUnavailable": "Health Connect is unavailable on this device.",
+  "healthConnectStatusUpdateRequired": "Health Connect needs to be updated.",
+  "healthConnectStatusPermissionNeeded": "Allow Health Connect exercise permission first.",
+  "healthConnectStatusReady": "Permission is allowed. You can sync when needed.",
+  "healthConnectStatusAutoOn": "Auto import is on.",
+  "healthConnectSyncNow": "Sync now",
+  "healthConnectGrantAndSync": "Allow and sync",
+  "healthConnectLastSync": "Last sync: {time}",
+  "@healthConnectLastSync": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "healthConnectSyncImported": "Imported {count} jump rope record(s).",
+  "@healthConnectSyncImported": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "healthConnectSyncNoNewRecords": "No new jump rope records to import.",
+  "healthConnectSyncFailed": "Health Connect sync failed.",
+  "healthConnectDisabled": "Jump rope auto import is off.",
   "settingsInfoTooltip": "Show description",
   "settingsSupportModeLabel": "Parent",
   "settingsCoachRosterTitle": "Coach roster",
