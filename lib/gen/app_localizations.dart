@@ -17936,6 +17936,102 @@ abstract class AppLocalizations {
   /// **'Usage & sync'**
   String get settingsRoleAndSyncTitle;
 
+  /// No description provided for @healthConnectSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Samsung Health auto import'**
+  String get healthConnectSectionTitle;
+
+  /// No description provided for @healthConnectSectionSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import jump rope workouts shared by Samsung Health through Health Connect into jump rope training logs.'**
+  String get healthConnectSectionSubtitle;
+
+  /// No description provided for @healthConnectAutoSyncTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-import jump rope'**
+  String get healthConnectAutoSyncTitle;
+
+  /// No description provided for @healthConnectAutoSyncSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'After permission is granted, the app checks recent jump rope workouts on launch and resume, then imports them without duplicates.'**
+  String get healthConnectAutoSyncSubtitle;
+
+  /// No description provided for @healthConnectStatusUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Health Connect is unavailable on this device.'**
+  String get healthConnectStatusUnavailable;
+
+  /// No description provided for @healthConnectStatusUpdateRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Health Connect needs to be updated.'**
+  String get healthConnectStatusUpdateRequired;
+
+  /// No description provided for @healthConnectStatusPermissionNeeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow Health Connect exercise permission first.'**
+  String get healthConnectStatusPermissionNeeded;
+
+  /// No description provided for @healthConnectStatusReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Permission is allowed. You can sync when needed.'**
+  String get healthConnectStatusReady;
+
+  /// No description provided for @healthConnectStatusAutoOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto import is on.'**
+  String get healthConnectStatusAutoOn;
+
+  /// No description provided for @healthConnectSyncNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync now'**
+  String get healthConnectSyncNow;
+
+  /// No description provided for @healthConnectGrantAndSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow and sync'**
+  String get healthConnectGrantAndSync;
+
+  /// No description provided for @healthConnectLastSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Last sync: {time}'**
+  String healthConnectLastSync(Object time);
+
+  /// No description provided for @healthConnectSyncImported.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported {count} jump rope record(s).'**
+  String healthConnectSyncImported(int count);
+
+  /// No description provided for @healthConnectSyncNoNewRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'No new jump rope records to import.'**
+  String get healthConnectSyncNoNewRecords;
+
+  /// No description provided for @healthConnectSyncFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Health Connect sync failed.'**
+  String get healthConnectSyncFailed;
+
+  /// No description provided for @healthConnectDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump rope auto import is off.'**
+  String get healthConnectDisabled;
+
   /// No description provided for @settingsInfoTooltip.
   ///
   /// In en, this message translates to:

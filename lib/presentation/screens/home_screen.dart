@@ -10,6 +10,7 @@ import '../../domain/repositories/option_repository.dart';
 import '../../application/locale_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/backup_service.dart';
+import '../../application/health_connect_jump_rope_sync_service.dart';
 import '../../application/news_badge_service.dart';
 import '../../application/notification_app_link.dart';
 import '../../application/sport_capabilities.dart';
@@ -47,6 +48,7 @@ class HomeScreen extends StatefulWidget {
   final LocaleService localeService;
   final SettingsService settingsService;
   final BackupService? driveBackupService;
+  final HealthConnectJumpRopeSyncService? healthConnectJumpRopeSyncService;
   final int initialIndex;
   final DateTime? initialCalendarSelectedDay;
   final String? initialCalendarPlanId;
@@ -60,6 +62,7 @@ class HomeScreen extends StatefulWidget {
     required this.localeService,
     required this.settingsService,
     this.driveBackupService,
+    this.healthConnectJumpRopeSyncService,
     this.initialIndex = 0,
     this.initialCalendarSelectedDay,
     this.initialCalendarPlanId,
@@ -308,6 +311,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           optionRepository: widget.optionRepository,
           settingsService: widget.settingsService,
           driveBackupService: widget.driveBackupService,
+          healthConnectJumpRopeSyncService:
+              widget.healthConnectJumpRopeSyncService,
           onCreate: _openCreate,
           onQuickPlan: () =>
               _openCalendarQuickCreate(CalendarQuickCreateAction.plan),

@@ -10106,6 +10106,62 @@ class AppLocalizationsKo extends AppLocalizations {
   String get settingsRoleAndSyncTitle => '사용 방식 및 동기화';
 
   @override
+  String get healthConnectSectionTitle => '삼성 헬스 자동 등록';
+
+  @override
+  String get healthConnectSectionSubtitle =>
+      'Samsung Health가 Health Connect에 공유한 줄넘기 운동을 훈련 기록의 줄넘기 항목으로 가져옵니다.';
+
+  @override
+  String get healthConnectAutoSyncTitle => '줄넘기 자동 등록';
+
+  @override
+  String get healthConnectAutoSyncSubtitle =>
+      '권한을 허용하면 앱 시작과 복귀 시 최근 줄넘기 운동을 확인해 중복 없이 등록합니다.';
+
+  @override
+  String get healthConnectStatusUnavailable =>
+      '이 기기에서는 Health Connect를 사용할 수 없어요.';
+
+  @override
+  String get healthConnectStatusUpdateRequired => 'Health Connect 업데이트가 필요해요.';
+
+  @override
+  String get healthConnectStatusPermissionNeeded =>
+      'Health Connect 운동 권한을 허용해야 해요.';
+
+  @override
+  String get healthConnectStatusReady => '권한이 허용됐어요. 필요할 때 동기화할 수 있습니다.';
+
+  @override
+  String get healthConnectStatusAutoOn => '자동 등록이 켜져 있어요.';
+
+  @override
+  String get healthConnectSyncNow => '지금 동기화';
+
+  @override
+  String get healthConnectGrantAndSync => '권한 허용 및 동기화';
+
+  @override
+  String healthConnectLastSync(Object time) {
+    return '마지막 동기화: $time';
+  }
+
+  @override
+  String healthConnectSyncImported(int count) {
+    return '줄넘기 기록 $count개를 등록했어요.';
+  }
+
+  @override
+  String get healthConnectSyncNoNewRecords => '새로 등록할 줄넘기 기록이 없어요.';
+
+  @override
+  String get healthConnectSyncFailed => 'Health Connect 동기화에 실패했어요.';
+
+  @override
+  String get healthConnectDisabled => '줄넘기 자동 등록을 껐어요.';
+
+  @override
   String get settingsInfoTooltip => '설명 보기';
 
   @override

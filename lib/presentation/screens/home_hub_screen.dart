@@ -11,6 +11,7 @@ import '../../application/challenge_service.dart';
 import '../../application/club_schedule_service.dart';
 import '../../application/daily_loop/daily_loop_snapshot.dart';
 import '../../application/family_access_service.dart';
+import '../../application/health_connect_jump_rope_sync_service.dart';
 import '../../application/locale_service.dart';
 import '../../application/meal_log_service.dart';
 import '../../application/news_badge_service.dart';
@@ -74,6 +75,7 @@ class HomeHubScreen extends StatefulWidget {
   final OptionRepository optionRepository;
   final SettingsService settingsService;
   final BackupService? driveBackupService;
+  final HealthConnectJumpRopeSyncService? healthConnectJumpRopeSyncService;
   final VoidCallback onCreate;
   final VoidCallback? onQuickPlan;
   final VoidCallback? onQuickMatch;
@@ -97,6 +99,7 @@ class HomeHubScreen extends StatefulWidget {
     required this.optionRepository,
     required this.settingsService,
     this.driveBackupService,
+    this.healthConnectJumpRopeSyncService,
     required this.onCreate,
     this.onQuickPlan,
     this.onQuickMatch,
@@ -1107,6 +1110,8 @@ class _HomeHubScreenState extends State<HomeHubScreen>
           settingsService: widget.settingsService,
           optionRepository: widget.optionRepository,
           driveBackupService: widget.driveBackupService,
+          healthConnectJumpRopeSyncService:
+              widget.healthConnectJumpRopeSyncService,
         ),
       ),
     );

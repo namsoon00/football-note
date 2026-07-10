@@ -9,6 +9,7 @@ import '../../application/coach_roster_service.dart';
 import '../../application/drive_connection_info.dart';
 import '../../application/drive_backup_service.dart';
 import '../../application/family_access_service.dart';
+import '../../application/health_connect_jump_rope_sync_service.dart';
 import '../../application/locale_service.dart';
 import '../../application/localized_option_defaults.dart';
 import '../../application/news_badge_service.dart';
@@ -123,6 +124,7 @@ class SettingsScreen extends StatefulWidget {
   final SettingsService settingsService;
   final OptionRepository optionRepository;
   final BackupService? driveBackupService;
+  final HealthConnectJumpRopeSyncService? healthConnectJumpRopeSyncService;
   final SettingsInitialTarget? initialTarget;
 
   const SettingsScreen({
@@ -131,6 +133,7 @@ class SettingsScreen extends StatefulWidget {
     required this.settingsService,
     required this.optionRepository,
     this.driveBackupService,
+    this.healthConnectJumpRopeSyncService,
     this.initialTarget,
   });
 
@@ -153,6 +156,10 @@ class _SettingsScreenState extends State<SettingsScreen>
   bool _hasRemotePlayerBackup = false;
   bool _driveStatusLoading = true;
   bool _openedInitialTarget = false;
+  bool _healthConnectBusy = false;
+  bool _healthConnectStatusLoading = false;
+  HealthConnectStatus _healthConnectStatus =
+      const HealthConnectStatus.unavailable();
   StreamSubscription<void>? _driveAccountStateSubscription;
 
   late List<int> _durationOptions;
@@ -180,12 +187,14 @@ class _SettingsScreenState extends State<SettingsScreen>
         allowRemoteStatusLookup: true,
       ),
     );
+    unawaited(_refreshHealthConnectUi());
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       unawaited(_refreshDriveUi(refreshParentSharedData: true));
+      unawaited(_refreshHealthConnectUi());
     }
   }
 
@@ -553,6 +562,13 @@ class _SettingsScreenState extends State<SettingsScreen>
             driveMatchesExpected: driveMatchesExpected,
           ),
           const SizedBox(height: 12),
+          if (widget.healthConnectJumpRopeSyncService != null) ...[
+            _buildHealthConnectSection(
+              l10n,
+              readOnly: parentSettingsReadOnly,
+            ),
+            const SizedBox(height: 12),
+          ],
           _buildSectionCard(
             title: l10n.settingsGeneralSection,
             icon: Icons.tune,
@@ -713,6 +729,195 @@ class _SettingsScreenState extends State<SettingsScreen>
           _buildApiUsageSection(l10n),
         ],
       ),
+    );
+  }
+
+  Widget _buildHealthConnectSection(
+    AppLocalizations l10n, {
+    required bool readOnly,
+  }) {
+    final service = widget.healthConnectJumpRopeSyncService;
+    if (service == null) return const SizedBox.shrink();
+    final statusText = _healthConnectStatusText(l10n);
+    final autoEnabled = service.autoSyncEnabled;
+    final canUse = _healthConnectStatus.isAvailable;
+    final canRunAction = !_healthConnectBusy && !readOnly && canUse;
+    final lastSyncAt = service.lastSyncAt;
+    return _buildSectionCard(
+      title: l10n.healthConnectSectionTitle,
+      icon: Icons.health_and_safety_outlined,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
+          child: Text(
+            l10n.healthConnectSectionSubtitle,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          secondary: Icon(
+            autoEnabled ? Icons.sync_rounded : Icons.sync_disabled_rounded,
+          ),
+          title: Text(l10n.healthConnectAutoSyncTitle),
+          subtitle: Text(
+            readOnly ? l10n.parentReadOnlySettingsOptions : statusText,
+          ),
+          value: autoEnabled,
+          onChanged: canUse && !_healthConnectBusy && !readOnly
+              ? (value) => unawaited(_setHealthConnectAutoSync(value, l10n))
+              : null,
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Text(
+            l10n.healthConnectAutoSyncSubtitle,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            OutlinedButton.icon(
+              onPressed: canRunAction
+                  ? () => unawaited(_syncHealthConnectJumpRope(l10n))
+                  : null,
+              icon: _healthConnectBusy
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.sync),
+              label: Text(
+                _healthConnectStatus.permissionsGranted
+                    ? l10n.healthConnectSyncNow
+                    : l10n.healthConnectGrantAndSync,
+              ),
+            ),
+          ],
+        ),
+        if (lastSyncAt != null) ...[
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              l10n.healthConnectLastSync(_formatBackupTime(lastSyncAt)),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  String _healthConnectStatusText(AppLocalizations l10n) {
+    if (_healthConnectStatusLoading) return l10n.settingsSyncStatusChecking;
+    switch (_healthConnectStatus.availability) {
+      case HealthConnectAvailabilityState.unavailable:
+        return l10n.healthConnectStatusUnavailable;
+      case HealthConnectAvailabilityState.updateRequired:
+        return l10n.healthConnectStatusUpdateRequired;
+      case HealthConnectAvailabilityState.available:
+        if (!_healthConnectStatus.permissionsGranted) {
+          return l10n.healthConnectStatusPermissionNeeded;
+        }
+        return widget.healthConnectJumpRopeSyncService?.autoSyncEnabled == true
+            ? l10n.healthConnectStatusAutoOn
+            : l10n.healthConnectStatusReady;
+    }
+  }
+
+  Future<void> _refreshHealthConnectUi() async {
+    final service = widget.healthConnectJumpRopeSyncService;
+    if (service == null) return;
+    if (mounted) {
+      setState(() => _healthConnectStatusLoading = true);
+    }
+    final status = await service.status();
+    if (!mounted) return;
+    setState(() {
+      _healthConnectStatus = status;
+      _healthConnectStatusLoading = false;
+    });
+  }
+
+  Future<void> _setHealthConnectAutoSync(
+    bool enabled,
+    AppLocalizations l10n,
+  ) async {
+    final service = widget.healthConnectJumpRopeSyncService;
+    if (service == null || _healthConnectBusy) return;
+    setState(() => _healthConnectBusy = true);
+    try {
+      if (!enabled) {
+        await service.setAutoSyncEnabled(false);
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.healthConnectDisabled)),
+        );
+        setState(() {});
+        return;
+      }
+      final result = _healthConnectStatus.permissionsGranted
+          ? await (() async {
+              await service.setAutoSyncEnabled(true);
+              return service.syncRecent();
+            })()
+          : await service.requestPermissionsAndSync();
+      if (!mounted) return;
+      _showHealthConnectSyncSnack(l10n, result);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.healthConnectSyncFailed)),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _healthConnectBusy = false);
+        unawaited(_refreshHealthConnectUi());
+      }
+    }
+  }
+
+  Future<void> _syncHealthConnectJumpRope(AppLocalizations l10n) async {
+    final service = widget.healthConnectJumpRopeSyncService;
+    if (service == null || _healthConnectBusy) return;
+    setState(() => _healthConnectBusy = true);
+    try {
+      final result = _healthConnectStatus.permissionsGranted
+          ? await service.syncRecent()
+          : await service.requestPermissionsAndSync();
+      if (!mounted) return;
+      _showHealthConnectSyncSnack(l10n, result);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.healthConnectSyncFailed)),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _healthConnectBusy = false);
+        unawaited(_refreshHealthConnectUi());
+      }
+    }
+  }
+
+  void _showHealthConnectSyncSnack(
+    AppLocalizations l10n,
+    HealthConnectJumpRopeSyncResult result,
+  ) {
+    final message = !result.status.isAvailable
+        ? l10n.healthConnectStatusUnavailable
+        : !result.status.permissionsGranted
+            ? l10n.healthConnectStatusPermissionNeeded
+            : result.importedCount > 0
+                ? l10n.healthConnectSyncImported(result.importedCount)
+                : l10n.healthConnectSyncNoNewRecords;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
     );
   }
 
