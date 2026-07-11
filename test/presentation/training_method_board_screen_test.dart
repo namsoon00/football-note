@@ -1674,6 +1674,99 @@ void main() {
     expect(playerRoute.stageIndex, 2);
   });
 
+  testWidgets('reselected player adds next action after the last global stage',
+      (WidgetTester tester) async {
+    _setLandscapeSurface(tester);
+    String? savedLayout;
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '재선택 단계',
+          initialLayoutJson: const TrainingMethodLayout(
+            pages: <TrainingMethodPage>[
+              TrainingMethodPage(
+                name: 'Board',
+                items: <TrainingMethodItem>[
+                  TrainingMethodItem(
+                    id: 'player-1',
+                    type: 'player',
+                    x: 0.22,
+                    y: 0.52,
+                  ),
+                  TrainingMethodItem(
+                    id: 'ball-1',
+                    type: 'ball',
+                    x: 0.58,
+                    y: 0.46,
+                    colorValue: 0xFFFFCA28,
+                  ),
+                ],
+                routes: <TrainingMethodRoute>[
+                  TrainingMethodRoute(
+                    id: 'player-1-route',
+                    kind: TrainingMethodRouteKind.player,
+                    linkedItemId: 'player-1',
+                    actorItemId: 'player-1',
+                    stageIndex: 1,
+                    points: <TrainingMethodPoint>[
+                      TrainingMethodPoint(x: 0.22, y: 0.52),
+                      TrainingMethodPoint(x: 0.34, y: 0.52),
+                    ],
+                  ),
+                  TrainingMethodRoute(
+                    id: 'ball-1-route',
+                    kind: TrainingMethodRouteKind.ball,
+                    linkedItemId: 'ball-1',
+                    stageIndex: 2,
+                    points: <TrainingMethodPoint>[
+                      TrainingMethodPoint(x: 0.58, y: 0.46),
+                      TrainingMethodPoint(x: 0.70, y: 0.46),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ).encode(),
+          onSaved: (value) => savedLayout = value,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    final player1Icon = find.descendant(
+      of: boardFinder,
+      matching: find.byIcon(Icons.person),
+    );
+    final player1Detector = _itemGestureDetectorForIcon(tester, player1Icon);
+    player1Detector.onTap!();
+    await tester.pumpAndSettle();
+    player1Detector.onTap!();
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('training-player-next-action-player-1')),
+    );
+    await tester.pumpAndSettle();
+    await _tapVisibleOutlinedButton(tester, '이동');
+    expect(find.text('이동 대상이나 공간을 누르세요.'), findsOneWidget);
+    await _tapBoardRelative(tester, boardFinder, const Offset(0.46, 0.36));
+
+    await tester.tap(find.widgetWithText(TextButton, '저장'));
+    await tester.pumpAndSettle();
+
+    final saved = TrainingMethodLayout.decode(savedLayout ?? '');
+    final player1Route = saved.pages.single.routes.singleWhere(
+      (route) =>
+          route.kind == TrainingMethodRouteKind.player &&
+          route.linkedItemId == 'player-1',
+    );
+
+    expect(player1Route.stageIndex, 3);
+    expect(player1Route.points.last.x, closeTo(0.46, 0.02));
+    expect(player1Route.points.last.y, closeTo(0.36, 0.02));
+  });
+
   testWidgets('two players can exchange passes as smart stages', (
     WidgetTester tester,
   ) async {
