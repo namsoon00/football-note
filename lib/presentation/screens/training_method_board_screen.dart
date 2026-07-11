@@ -1843,9 +1843,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       final itemIdsToRemove = <String>{id};
       if (selectedItem?.type == _BoardItemType.player) {
         itemIdsToRemove.addAll(
-          _itemsOfType(_BoardItemType.ball)
-              .where((ball) => _currentBallOwner(ball)?.id == id)
-              .map((ball) => ball.id),
+          _itemsOfType(_BoardItemType.ball).where((ball) {
+            final owner = _currentBallOwner(ball);
+            return owner == null || owner.id == id;
+          }).map((ball) => ball.id),
         );
       }
       _currentPage.items.removeWhere((e) => itemIdsToRemove.contains(e.id));
@@ -3283,13 +3284,12 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     final applied = switch (action) {
       _SketchTargetAction.move => _applyMoveTargetAction(selected, target),
       _SketchTargetAction.stay => _applyStayTargetAction(selected),
-      _SketchTargetAction.pass => _applyBallTargetAction(
-          selected: selected,
-          target: target,
+      _SketchTargetAction.pass => _applyPassTargetAction(
+          selected,
+          target,
           targetItem: targetItem,
-          durationMs: 680,
         ),
-      _SketchTargetAction.passAndMove => _applyPassAndMoveTargetAction(
+      _SketchTargetAction.passAndMove => _applyPassAndMoveToPlayerTargetAction(
           selected,
           target,
           targetItem: targetItem,
@@ -3620,6 +3620,49 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       targetItemId: targetItem?.id ??
           (retainActorPossessionWhenUntargeted ? player.id : null),
       createNewRoute: true,
+    );
+  }
+
+  _BoardItem? _resolvePlayerPassTarget(
+    _BoardItem selected,
+    Offset target,
+    _BoardItem? targetItem,
+  ) {
+    if (targetItem?.type == _BoardItemType.player &&
+        targetItem?.id != selected.id) {
+      return targetItem;
+    }
+    final nearest = _nearestPlayerToPoint(target, radius: 0.075);
+    if (nearest == null || nearest.id == selected.id) return null;
+    return nearest;
+  }
+
+  bool _applyPassTargetAction(
+    _BoardItem selected,
+    Offset target, {
+    _BoardItem? targetItem,
+  }) {
+    final receiver = _resolvePlayerPassTarget(selected, target, targetItem);
+    if (receiver == null) return false;
+    return _applyBallTargetAction(
+      selected: selected,
+      target: _itemActionPoint(receiver),
+      targetItem: receiver,
+      durationMs: 680,
+    );
+  }
+
+  bool _applyPassAndMoveToPlayerTargetAction(
+    _BoardItem selected,
+    Offset target, {
+    _BoardItem? targetItem,
+  }) {
+    final receiver = _resolvePlayerPassTarget(selected, target, targetItem);
+    if (receiver == null) return false;
+    return _applyPassAndMoveTargetAction(
+      selected,
+      _itemActionPoint(receiver),
+      targetItem: receiver,
     );
   }
 
@@ -4114,6 +4157,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   void _applyQuickBallToItemTemplate(_BoardItem target) {
     final selected = _selectedItem;
     if (selected == null) return;
+    if (target.type != _BoardItemType.player) return;
     _applyBallTargetAction(
       selected: selected,
       target: _itemActionPoint(target),
@@ -5722,11 +5766,15 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _BoardItemType.player,
       excludingId: player.id,
     );
-    final targetSpots = _currentPage.items
-        .where((item) => item.id != player.id && _isPassTargetSpot(item))
-        .toList(growable: false);
     final ballActions = canUseBallActions
         ? _playerFlowBallActions(sportId)
+            .where(
+              (action) => _canUsePlayerFlowBallAction(
+                action,
+                hasPlayerPassTarget: targetPlayers.isNotEmpty,
+              ),
+            )
+            .toList(growable: false)
         : const <_SketchTargetAction>[];
     final movementActions = _playerFlowMovementActions(sportId)
         .where((action) => _canUsePlayerFlowMovementAction(player, action))
@@ -5775,7 +5823,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                   _l10n.trainingSketchPlayerFlowHint,
                   style: theme.textTheme.bodySmall,
                 ),
-                if (canUseBallActions) ...[
+                if (canUseBallActions && targetPlayers.isNotEmpty) ...[
                   const SizedBox(height: 16),
                   _buildPlayerFlowSectionTitle(
                     _l10n.trainingSketchPlayerFlowPassSection,
@@ -5786,13 +5834,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                     runSpacing: 8,
                     children: [
                       for (final target in targetPlayers)
-                        _playerFlowTargetButton(
-                          sheetContext: sheetContext,
-                          player: player,
-                          target: target,
-                          sportId: sportId,
-                        ),
-                      for (final target in targetSpots)
                         _playerFlowTargetButton(
                           sheetContext: sheetContext,
                           player: player,
@@ -5998,6 +6039,18 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     };
   }
 
+  bool _canUsePlayerFlowBallAction(
+    _SketchTargetAction action, {
+    required bool hasPlayerPassTarget,
+  }) {
+    return switch (action) {
+      _SketchTargetAction.pass ||
+      _SketchTargetAction.passAndMove =>
+        hasPlayerPassTarget,
+      _ => true,
+    };
+  }
+
   List<_SketchTargetAction> _playerFlowMovementActions(String sportId) {
     return switch (sportId) {
       SportCatalog.baseballId => <_SketchTargetAction>[
@@ -6081,16 +6134,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         ],
       ),
     );
-  }
-
-  bool _isPassTargetSpot(_BoardItem item) {
-    return switch (item.type) {
-      _BoardItemType.cone ||
-      _BoardItemType.target ||
-      _BoardItemType.base =>
-        true,
-      _ => false,
-    };
   }
 
   Widget _buildSelectedTools(bool isKo) {
