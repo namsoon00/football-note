@@ -1701,11 +1701,15 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     }
     final kind = _routeKindForItem(item);
     setState(() {
+      final wasSelected = _selectedItemId == item.id;
       if (_selectedItemId != item.id) {
         _showSelectedColorPicker = false;
       }
       _selectedItemId = item.id;
       _pendingTargetAction = null;
+      if (wasSelected && item.type == _BoardItemType.player && !_pathMode) {
+        _registeredNextActionStageIndex = _nextGlobalStageForNewAction();
+      }
       _routeReplaceMode = false;
       _activeRoutePoints = null;
       _activeRouteSegmentDurationsMs = null;
