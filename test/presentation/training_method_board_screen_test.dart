@@ -481,7 +481,9 @@ void main() {
 
     final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
     await tester.tap(
-      find.descendant(of: boardFinder, matching: find.byIcon(Icons.person)),
+      find
+          .descendant(of: boardFinder, matching: find.byIcon(Icons.person))
+          .first,
     );
     await tester.pumpAndSettle();
     await _tapVisibleOutlinedButton(tester, '이동');
@@ -547,6 +549,13 @@ void main() {
                     x: 0.24,
                     y: 0.50,
                   ),
+                  TrainingMethodItem(
+                    id: 'player-2',
+                    type: 'player',
+                    x: 0.70,
+                    y: 0.44,
+                    colorValue: 0xFF1E88E5,
+                  ),
                 ],
               ),
             ],
@@ -559,7 +568,9 @@ void main() {
 
     final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
     await tester.tap(
-      find.descendant(of: boardFinder, matching: find.byIcon(Icons.person)),
+      find
+          .descendant(of: boardFinder, matching: find.byIcon(Icons.person))
+          .first,
     );
     await tester.pumpAndSettle();
     expect(
@@ -575,7 +586,7 @@ void main() {
 
     final saved = TrainingMethodLayout.decode(savedLayout ?? '');
     final page = saved.pages.single;
-    final player = page.items.singleWhere((item) => item.type == 'player');
+    final player = page.items.singleWhere((item) => item.id == 'player-1');
     final ball = page.items.singleWhere((item) => item.type == 'ball');
     final route = page.routes.single;
 
@@ -621,7 +632,9 @@ void main() {
 
     final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
     await tester.tap(
-      find.descendant(of: boardFinder, matching: find.byIcon(Icons.person)),
+      find
+          .descendant(of: boardFinder, matching: find.byIcon(Icons.person))
+          .first,
     );
     await tester.pumpAndSettle();
     await _tapVisibleOutlinedButton(tester, '드리블');
@@ -673,6 +686,13 @@ void main() {
                     x: 0.22,
                     y: 0.52,
                   ),
+                  TrainingMethodItem(
+                    id: 'player-2',
+                    type: 'player',
+                    x: 0.74,
+                    y: 0.38,
+                    colorValue: 0xFF1E88E5,
+                  ),
                 ],
               ),
             ],
@@ -685,7 +705,9 @@ void main() {
 
     final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
     await tester.tap(
-      find.descendant(of: boardFinder, matching: find.byIcon(Icons.person)),
+      find
+          .descendant(of: boardFinder, matching: find.byIcon(Icons.person))
+          .first,
     );
     await tester.pumpAndSettle();
     await _tapVisibleOutlinedButton(tester, '이동');
@@ -836,7 +858,9 @@ void main() {
 
     final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
     await tester.tap(
-      find.descendant(of: boardFinder, matching: find.byIcon(Icons.person)),
+      find
+          .descendant(of: boardFinder, matching: find.byIcon(Icons.person))
+          .first,
     );
     await tester.pumpAndSettle();
     await _tapVisibleOutlinedButton(tester, '콘 돌기');
@@ -903,7 +927,9 @@ void main() {
 
     final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
     await tester.tap(
-      find.descendant(of: boardFinder, matching: find.byIcon(Icons.person)),
+      find
+          .descendant(of: boardFinder, matching: find.byIcon(Icons.person))
+          .first,
     );
     await tester.pumpAndSettle();
     await _tapVisibleOutlinedButton(tester, '드리블');
@@ -1465,7 +1491,7 @@ void main() {
     expect(shotRoute.points.last.y, closeTo(0.34, 0.02));
   });
 
-  testWidgets('same player can build pass dribble shot as three stages', (
+  testWidgets('receiving player can build pass dribble shot as three stages', (
     WidgetTester tester,
   ) async {
     _setLandscapeSurface(tester);
@@ -1487,6 +1513,13 @@ void main() {
                     y: 0.52,
                   ),
                   TrainingMethodItem(
+                    id: 'player-2',
+                    type: 'player',
+                    x: 0.44,
+                    y: 0.50,
+                    colorValue: 0xFF1E88E5,
+                  ),
+                  TrainingMethodItem(
                     id: 'ball-1',
                     type: 'ball',
                     x: 0.29,
@@ -1505,7 +1538,9 @@ void main() {
 
     final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
     await tester.tap(
-      find.descendant(of: boardFinder, matching: find.byIcon(Icons.person)),
+      find
+          .descendant(of: boardFinder, matching: find.byIcon(Icons.person))
+          .first,
     );
     await tester.pumpAndSettle();
     await _tapVisibleOutlinedButton(tester, '패스');
@@ -2183,11 +2218,10 @@ void main() {
     expect(route.points.last.y, closeTo(0.42, 0.001));
   });
 
-  testWidgets('pass action can target a cone spot directly', (
+  testWidgets('pass action cannot target a cone spot directly', (
     WidgetTester tester,
   ) async {
     _setLandscapeSurface(tester);
-    String? savedLayout;
 
     await tester.pumpWidget(
       _buildApp(
@@ -2221,7 +2255,6 @@ void main() {
               ),
             ],
           ).encode(),
-          onSaved: (value) => savedLayout = value,
         ),
       ),
     );
@@ -2232,17 +2265,16 @@ void main() {
       find.descendant(of: boardFinder, matching: find.byIcon(Icons.person)),
     );
     await tester.pumpAndSettle();
-    await _tapVisibleOutlinedButton(tester, '콘 1에 패스');
 
-    await tester.tap(find.widgetWithText(TextButton, '저장'));
+    await tester.tap(
+      find.byKey(const ValueKey('training-player-next-action-player-1')),
+    );
     await tester.pumpAndSettle();
-
-    final saved = TrainingMethodLayout.decode(savedLayout ?? '');
-    final route = saved.pages.single.routes.single;
-    expect(route.kind, TrainingMethodRouteKind.ball);
-    expect(route.linkedItemId, 'ball-1');
-    expect(route.points.last.x, closeTo(0.68, 0.001));
-    expect(route.points.last.y, closeTo(0.42, 0.001));
+    expect(
+      find.byKey(const ValueKey('training-player-flow-target-player-1-cone-1')),
+      findsNothing,
+    );
+    expect(find.widgetWithText(FilledButton, '콘 1에 패스'), findsNothing);
   });
 
   testWidgets('pass to a player selects receiver for the next action stage', (
@@ -2673,7 +2705,7 @@ void main() {
     );
     expect(
       find.byKey(const ValueKey('training-player-flow-target-player-1-cone-1')),
-      findsOneWidget,
+      findsNothing,
     );
     expect(
       find.byKey(const ValueKey('training-player-flow-new-receiver-player-1')),
@@ -2858,11 +2890,10 @@ void main() {
     );
   });
 
-  testWidgets('player flow pass can create a receiver automatically', (
+  testWidgets('player flow hides pass creation when no receiver exists', (
     WidgetTester tester,
   ) async {
     _setLandscapeSurface(tester);
-    String? savedLayout;
 
     await tester.pumpWidget(
       _buildApp(
@@ -2890,7 +2921,6 @@ void main() {
               ),
             ],
           ).encode(),
-          onSaved: (value) => savedLayout = value,
         ),
       ),
     );
@@ -2909,35 +2939,15 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(player1NextAction);
     await tester.pumpAndSettle();
-    await tester.tap(
-      find.byKey(const ValueKey('training-player-flow-new-receiver-player-1')),
-    );
-    await tester.pumpAndSettle();
 
     expect(
-      find.byKey(const ValueKey('training-player-next-action-item-1')),
-      findsOneWidget,
+      find.byKey(const ValueKey('training-player-flow-new-receiver-player-1')),
+      findsNothing,
     );
-
-    await tester.tap(find.widgetWithText(TextButton, '저장'));
-    await tester.pumpAndSettle();
-
-    final saved = TrainingMethodLayout.decode(savedLayout ?? '');
-    final page = saved.pages.single;
-    final players = page.items
-        .where((item) => item.type == 'player')
-        .toList(growable: false);
-    final createdPlayer = players.singleWhere((item) => item.id == 'item-1');
-    final ballRoute = page.routes.singleWhere(
-      (route) => route.kind == TrainingMethodRouteKind.ball,
+    expect(
+      find.byKey(const ValueKey('training-player-flow-action-player-1-pass')),
+      findsNothing,
     );
-
-    expect(players, hasLength(2));
-    expect(ballRoute.actorItemId, 'player-1');
-    expect(ballRoute.linkedItemId, 'ball-1');
-    expect(ballRoute.stageIndex, 1);
-    expect(ballRoute.points.last.x, closeTo(createdPlayer.x, 0.02));
-    expect(ballRoute.points.last.y, closeTo(createdPlayer.y, 0.02));
   });
 
   testWidgets('tennis serve action creates a ball route to a target', (
@@ -3326,6 +3336,92 @@ void main() {
     expect(page.items.map((item) => item.id), isNot(contains('ball-1')));
     expect(page.items.map((item) => item.id), contains('player-2'));
     expect(page.routes, isEmpty);
+  });
+
+  testWidgets('deleting a player also deletes unowned balls', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    String? savedLayout;
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '소유 없는 공 삭제',
+          initialLayoutJson: const TrainingMethodLayout(
+            pages: <TrainingMethodPage>[
+              TrainingMethodPage(
+                name: 'Board',
+                items: <TrainingMethodItem>[
+                  TrainingMethodItem(
+                    id: 'player-1',
+                    type: 'player',
+                    x: 0.22,
+                    y: 0.52,
+                  ),
+                  TrainingMethodItem(
+                    id: 'player-2',
+                    type: 'player',
+                    x: 0.58,
+                    y: 0.46,
+                    colorValue: 0xFF1E88E5,
+                  ),
+                  TrainingMethodItem(
+                    id: 'ball-1',
+                    type: 'ball',
+                    x: 0.82,
+                    y: 0.28,
+                    colorValue: 0xFFFFCA28,
+                  ),
+                  TrainingMethodItem(
+                    id: 'ball-2',
+                    type: 'ball',
+                    x: 0.65,
+                    y: 0.46,
+                    colorValue: 0xFF90CAF9,
+                  ),
+                ],
+                routes: <TrainingMethodRoute>[
+                  TrainingMethodRoute(
+                    id: 'owned-ball',
+                    kind: TrainingMethodRouteKind.ball,
+                    linkedItemId: 'ball-2',
+                    actorItemId: 'player-2',
+                    targetItemId: 'player-2',
+                    points: <TrainingMethodPoint>[
+                      TrainingMethodPoint(x: 0.65, y: 0.46),
+                      TrainingMethodPoint(x: 0.66, y: 0.46),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ).encode(),
+          onSaved: (value) => savedLayout = value,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    await tester.tap(
+      find
+          .descendant(of: boardFinder, matching: find.byIcon(Icons.person))
+          .first,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('삭제'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(TextButton, '저장'));
+    await tester.pumpAndSettle();
+
+    final saved = TrainingMethodLayout.decode(savedLayout ?? '');
+    final page = saved.pages.single;
+    expect(page.items.map((item) => item.id), isNot(contains('player-1')));
+    expect(page.items.map((item) => item.id), isNot(contains('ball-1')));
+    expect(
+        page.items.map((item) => item.id), containsAll(['player-2', 'ball-2']));
+    expect(page.routes.single.linkedItemId, 'ball-2');
   });
 
   testWidgets('moving a token hides its border and number badge', (
@@ -4218,7 +4314,7 @@ void main() {
     );
     expect(
       find.byKey(const ValueKey('training-player-flow-action-player-1-pass')),
-      findsOneWidget,
+      findsNothing,
     );
   });
 
