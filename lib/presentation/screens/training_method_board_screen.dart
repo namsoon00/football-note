@@ -5491,13 +5491,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   List<Widget> _buildToolButtonsList(bool isKo) {
-    final selected = _selectedItem;
-    if (selected != null && !_penMode && !_pathMode) {
-      return <Widget>[
-        _addElementMenuButton(),
-        ..._buildUtilityToolButtons(isKo),
-      ];
-    }
     return <Widget>[
       for (final tool in _boardToolSpecsForCurrentSport())
         _toolButton(
@@ -5507,34 +5500,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         ),
       ..._buildUtilityToolButtons(isKo),
     ];
-  }
-
-  Widget _addElementMenuButton() {
-    return MenuAnchor(
-      key: const ValueKey('training-add-element-menu'),
-      menuChildren: <Widget>[
-        for (final tool in _boardToolSpecsForCurrentSport())
-          MenuItemButton(
-            leadingIcon: Icon(tool.icon),
-            onPressed: () => _addItem(tool.type),
-            child: Text(tool.label),
-          ),
-      ],
-      builder: (context, controller, _) {
-        return OutlinedButton.icon(
-          onPressed: () {
-            if (controller.isOpen) {
-              controller.close();
-            } else {
-              controller.open();
-            }
-          },
-          icon: const Icon(Icons.add_circle_outline),
-          label: Text(_l10n.trainingSketchAddElementMenuButton),
-          style: _toolButtonStyle(),
-        );
-      },
-    );
   }
 
   List<Widget> _buildUtilityToolButtons(bool isKo) {

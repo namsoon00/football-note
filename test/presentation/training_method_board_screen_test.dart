@@ -422,11 +422,13 @@ void main() {
       find.byKey(const ValueKey('training-player-next-action-item-1')),
       findsOneWidget,
     );
+    expect(find.widgetWithText(OutlinedButton, '사람'), findsOneWidget);
+    expect(find.widgetWithText(OutlinedButton, '콘'), findsOneWidget);
     expect(find.widgetWithText(OutlinedButton, '이동'), findsNothing);
     expect(find.widgetWithText(OutlinedButton, '공'), findsNothing);
     expect(
       find.byKey(const ValueKey('training-add-element-menu')),
-      findsOneWidget,
+      findsNothing,
     );
 
     final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
