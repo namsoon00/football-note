@@ -83,6 +83,11 @@ void main() {
         host: 'club',
         path: '/training',
       );
+      expectLink(
+        NotificationAppLink.clubMorningWorkout(),
+        host: 'club',
+        path: '/morning-workout',
+      );
     });
 
     test('generated notification links use explicit app scheme domains', () {
@@ -104,6 +109,7 @@ void main() {
         'club': NotificationAppLink.clubTraining(
           weekday: DateTime.wednesday,
         ),
+        'club morning workout': NotificationAppLink.clubMorningWorkout(),
         'family': NotificationAppLink.familySync(
           role: 'parent',
           syncedAt: date,
@@ -224,6 +230,7 @@ void main() {
       );
       expectLink('/detail?action=tomorrow', host: 'weather', path: '/detail');
       expectLink('/training?weekday=3', host: 'club', path: '/training');
+      expectLink('/morning-workout', host: 'club', path: '/morning-workout');
       expectLink(
         '/family-sync?role=parent&syncedAt=2026-06-26T09:30:00.000',
         host: 'family',

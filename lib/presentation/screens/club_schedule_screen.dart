@@ -35,6 +35,7 @@ class ClubScheduleScreen extends StatefulWidget {
 
 class _ClubScheduleScreenState extends State<ClubScheduleScreen> {
   late final ClubScheduleService _service;
+  late final SettingsService _settingsService;
   late ClubScheduleProfile _profile;
   late List<ClubTrainingSchedule> _schedules;
   final TextEditingController _clubNameController = TextEditingController();
@@ -58,6 +59,7 @@ class _ClubScheduleScreenState extends State<ClubScheduleScreen> {
       widget.optionRepository,
       sportId: widget.sportId,
     );
+    _settingsService = SettingsService(widget.optionRepository)..load();
     _profile = _service.loadProfile();
     _clubNameController.text = _profile.clubName;
     _schedules = List<ClubTrainingSchedule>.from(_profile.weekdaySchedules);
@@ -229,15 +231,39 @@ class _ClubScheduleScreenState extends State<ClubScheduleScreen> {
 
   Future<void> _syncClubTrainingReminders() async {
     try {
-      final settings = SettingsService(widget.optionRepository)..load();
       await ClubTrainingReminderService(
         widget.optionRepository,
-        settings,
+        _settingsService,
         sportId: widget.sportId,
       ).syncSettingsDrivenReminders();
     } catch (_) {
       // Reminder sync can recover on app startup or the next schedule save.
     }
+  }
+
+  Future<void> _setMorningWorkoutAlertEnabled(bool enabled) async {
+    if (_isReadOnlySupportMode) {
+      _showReadOnlyMessage();
+      return;
+    }
+    await _settingsService.setClubMorningWorkoutAlertEnabled(enabled);
+    await _syncClubTrainingReminders();
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _pickMorningWorkoutAlertTime() async {
+    if (_isReadOnlySupportMode) {
+      _showReadOnlyMessage();
+      return;
+    }
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: _settingsService.clubMorningWorkoutAlertTime,
+    );
+    if (picked == null) return;
+    await _settingsService.setClubMorningWorkoutAlertTime(picked);
+    await _syncClubTrainingReminders();
+    if (mounted) setState(() {});
   }
 
   void _setSchedule(ClubTrainingSchedule schedule) {
@@ -340,6 +366,17 @@ class _ClubScheduleScreenState extends State<ClubScheduleScreen> {
                   readOnly: readOnly,
                   onScheduleChanged: _setSchedule,
                   onPickTime: _pickScheduleTime,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                _MorningWorkoutAlarmPanel(
+                  enabled: _settingsService.clubMorningWorkoutAlertEnabled,
+                  timeLabel:
+                      _settingsService.clubMorningWorkoutAlertTime.format(
+                    context,
+                  ),
+                  readOnly: readOnly,
+                  onChanged: _setMorningWorkoutAlertEnabled,
+                  onPickTime: _pickMorningWorkoutAlertTime,
                 ),
               ],
             ),
@@ -589,6 +626,76 @@ class _ClubNamePanel extends StatelessWidget {
           hintText: l10n.clubScheduleClubNameHint,
           prefixIcon: const Icon(Icons.shield_outlined),
         ),
+      ),
+    );
+  }
+}
+
+class _MorningWorkoutAlarmPanel extends StatelessWidget {
+  final bool enabled;
+  final String timeLabel;
+  final bool readOnly;
+  final ValueChanged<bool> onChanged;
+  final VoidCallback onPickTime;
+
+  const _MorningWorkoutAlarmPanel({
+    required this.enabled,
+    required this.timeLabel,
+    required this.readOnly,
+    required this.onChanged,
+    required this.onPickTime,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    return Container(
+      key: const ValueKey<String>('club-morning-workout-panel'),
+      decoration: AppSurfaces.cardDecoration(
+        theme.colorScheme,
+        theme.brightness,
+      ),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _PanelTitle(
+            icon: Icons.wb_sunny_outlined,
+            title: l10n.clubMorningWorkoutAlertTitle,
+            helper: l10n.clubMorningWorkoutAlertHelper,
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          SwitchListTile(
+            key: const ValueKey<String>('club-morning-workout-alert-switch'),
+            contentPadding: EdgeInsets.zero,
+            title: Text(l10n.clubMorningWorkoutAlertSwitchTitle),
+            subtitle: Text(
+              l10n.clubMorningWorkoutAlertSwitchSubtitle(timeLabel),
+            ),
+            value: enabled,
+            onChanged: readOnly ? null : onChanged,
+          ),
+          if (enabled) ...[
+            const SizedBox(height: AppSpacing.xs),
+            ListTile(
+              key: const ValueKey<String>('club-morning-workout-time-row'),
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.alarm_outlined),
+              title: Text(l10n.clubMorningWorkoutAlertTimeTitle),
+              subtitle: Text(
+                l10n.clubMorningWorkoutAlertTimeSubtitle(timeLabel),
+              ),
+              trailing: OutlinedButton(
+                key: const ValueKey<String>(
+                  'club-morning-workout-time-button',
+                ),
+                onPressed: readOnly ? null : onPickTime,
+                child: Text(l10n.clubMorningWorkoutAlertChangeTimeAction),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

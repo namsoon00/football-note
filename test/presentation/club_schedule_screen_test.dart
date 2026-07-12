@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/club_schedule_service.dart';
+import 'package:football_note/application/club_training_reminder_service.dart';
 import 'package:football_note/application/family_access_service.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/gen/app_localizations.dart';
@@ -310,6 +311,48 @@ void main() {
     final profile = ClubScheduleService(repository).loadProfile();
     expect(profile.clubName, '성남 U15');
     expect(profile.weekdaySchedules.first.enabled, isTrue);
+  });
+
+  testWidgets('club schedule enables a daily morning workout alarm', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 2200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    final repository = _MemoryOptionRepository();
+
+    await tester.pumpWidget(
+      _buildApp(
+        ClubScheduleScreen(optionRepository: repository),
+        theme: AppTheme.light(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final switchFinder = find.byKey(
+      const ValueKey<String>('club-morning-workout-alert-switch'),
+    );
+    await tester.ensureVisible(switchFinder);
+    await tester.tap(switchFinder);
+    await tester.pumpAndSettle();
+
+    expect(
+      repository.getValue<bool>('club_morning_workout_alert_enabled'),
+      isTrue,
+    );
+    expect(
+      find.byKey(const ValueKey<String>('club-morning-workout-time-row')),
+      findsOneWidget,
+    );
+    final logs = repository.getValue<List>(
+      ClubTrainingReminderService.messageLogKey,
+    );
+    expect(logs, hasLength(1));
+    final row = (logs!.single as Map).cast<String, dynamic>();
+    expect(row['payload'], 'taeonote://club/morning-workout');
   });
 
   testWidgets('parent mode keeps club schedule read-only without auto save', (

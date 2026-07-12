@@ -6460,6 +6460,23 @@
   "clubScheduleNoUpcomingTraining": "予定されている練習はありません。",
   "clubScheduleClubNameLabel": "クラブ名",
   "clubScheduleClubNameHint": "例) ソンナムU15",
+  "clubMorningWorkoutAlertTitle": "朝トレーニング通知",
+  "clubMorningWorkoutAlertHelper": "クラブ予定と一緒に毎朝のトレーニング時間を管理します。",
+  "clubMorningWorkoutAlertSwitchTitle": "朝トレーニング通知をオン",
+  "clubMorningWorkoutAlertSwitchSubtitle": "毎日 {time} に通知",
+  "@clubMorningWorkoutAlertSwitchSubtitle": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "clubMorningWorkoutAlertTimeTitle": "通知時刻",
+  "clubMorningWorkoutAlertTimeSubtitle": "現在 {time}",
+  "@clubMorningWorkoutAlertTimeSubtitle": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "clubMorningWorkoutAlertChangeTimeAction": "時刻を変更",
   "clubScheduleWeekdayTitle": "曜日別の練習時間",
   "clubScheduleWeekdayHelper": "練習がある曜日だけオンにして、開始時間、終了時間、ユニフォームカラーを設定します。",
   "clubScheduleStartTimeLabel": "開始",
@@ -6499,6 +6516,13 @@
         "type": "int"
       },
       "timeRange": {}
+    }
+  },
+  "clubMorningWorkoutNotificationTitle": "朝トレーニング通知",
+  "clubMorningWorkoutNotificationBody": "{time} は朝トレーニングの時間です。",
+  "@clubMorningWorkoutNotificationBody": {
+    "placeholders": {
+      "time": {}
     }
   },
   "teamManagementTitle": "チーム管理",

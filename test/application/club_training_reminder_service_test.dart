@@ -102,6 +102,34 @@ void main() {
     expect(row['payload'], 'taeonote://club/training?weekday=3');
   });
 
+  test('schedules daily morning workout reminders from club settings',
+      () async {
+    final repository = _MemoryOptionRepository()
+      ..seed('reminder_enabled', true)
+      ..seed('club_training_alert_enabled', false)
+      ..seed('club_morning_workout_alert_enabled', true)
+      ..seed('club_morning_workout_alert_time', '06:15');
+    final settings = SettingsService(repository)..load();
+    final service = ClubTrainingReminderService(repository, settings);
+
+    final count = await service.syncSettingsDrivenReminders();
+
+    expect(count, 1);
+    expect(
+      notificationCalls.where((call) => call.method == 'zonedSchedule'),
+      hasLength(1),
+    );
+    final logs = repository.getValue<List>(
+      ClubTrainingReminderService.messageLogKey,
+    );
+    expect(logs, hasLength(1));
+    final row = (logs!.single as Map).cast<String, dynamic>();
+    expect(row['title'], '아침 운동 알림');
+    expect(row['body'], contains('06:15'));
+    expect(row['kind'], 'morningWorkout');
+    expect(row['payload'], 'taeonote://club/morning-workout');
+  });
+
   test('disabled club training alerts clear scheduled reminders and messages',
       () async {
     final repository = _MemoryOptionRepository()

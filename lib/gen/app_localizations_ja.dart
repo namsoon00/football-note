@@ -11630,6 +11630,31 @@ class AppLocalizationsJa extends AppLocalizations {
   String get clubScheduleClubNameHint => '例) ソンナムU15';
 
   @override
+  String get clubMorningWorkoutAlertTitle => '朝トレーニング通知';
+
+  @override
+  String get clubMorningWorkoutAlertHelper => 'クラブ予定と一緒に毎朝のトレーニング時間を管理します。';
+
+  @override
+  String get clubMorningWorkoutAlertSwitchTitle => '朝トレーニング通知をオン';
+
+  @override
+  String clubMorningWorkoutAlertSwitchSubtitle(Object time) {
+    return '毎日 $time に通知';
+  }
+
+  @override
+  String get clubMorningWorkoutAlertTimeTitle => '通知時刻';
+
+  @override
+  String clubMorningWorkoutAlertTimeSubtitle(Object time) {
+    return '現在 $time';
+  }
+
+  @override
+  String get clubMorningWorkoutAlertChangeTimeAction => '時刻を変更';
+
+  @override
   String get clubScheduleWeekdayTitle => '曜日別の練習時間';
 
   @override
@@ -11717,6 +11742,14 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String clubTrainingNotificationBody(int minutesBefore, Object timeRange) {
     return '$minutesBefore分後に練習 · $timeRange';
+  }
+
+  @override
+  String get clubMorningWorkoutNotificationTitle => '朝トレーニング通知';
+
+  @override
+  String clubMorningWorkoutNotificationBody(Object time) {
+    return '$time は朝トレーニングの時間です。';
   }
 
   @override
