@@ -11974,15 +11974,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get clubMorningWorkoutAlertHelper =>
-      'Keep a daily morning workout time alongside your club schedule.';
+      'Keep your morning workout time alongside your club schedule.';
 
   @override
   String get clubMorningWorkoutAlertSwitchTitle =>
       'Turn on morning workout alarm';
 
   @override
-  String clubMorningWorkoutAlertSwitchSubtitle(Object time) {
-    return 'Daily alert at $time';
+  String clubMorningWorkoutAlertSwitchSubtitle(Object weekdays, Object time) {
+    return '$weekdays · alert at $time';
   }
 
   @override
@@ -11995,6 +11995,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get clubMorningWorkoutAlertChangeTimeAction => 'Change time';
+
+  @override
+  String get clubMorningWorkoutAlertWeekdayTitle => 'Alert weekdays';
+
+  @override
+  String get clubMorningWorkoutAlertEveryDay => 'Every day';
 
   @override
   String get clubScheduleWeekdayTitle => 'Weekly training times';

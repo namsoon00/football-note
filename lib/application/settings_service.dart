@@ -3,6 +3,16 @@ import 'package:flutter/scheduler.dart';
 import '../domain/repositories/option_repository.dart';
 
 class SettingsService extends ChangeNotifier {
+  static const List<int> defaultClubMorningWorkoutAlertWeekdays = <int>[
+    DateTime.monday,
+    DateTime.tuesday,
+    DateTime.wednesday,
+    DateTime.thursday,
+    DateTime.friday,
+    DateTime.saturday,
+    DateTime.sunday,
+  ];
+
   final OptionRepository _repository;
   bool _notificationScheduled = false;
   bool _disposed = false;
@@ -22,6 +32,9 @@ class SettingsService extends ChangeNotifier {
   int _clubTrainingAlertMinutesBefore = 60;
   bool _clubMorningWorkoutAlertEnabled = false;
   TimeOfDay _clubMorningWorkoutAlertTime = const TimeOfDay(hour: 6, minute: 30);
+  List<int> _clubMorningWorkoutAlertWeekdays = List<int>.from(
+    defaultClubMorningWorkoutAlertWeekdays,
+  );
   int _inactivityAlertDays = 3;
 
   SettingsService(this._repository);
@@ -41,6 +54,8 @@ class SettingsService extends ChangeNotifier {
   int get clubTrainingAlertMinutesBefore => _clubTrainingAlertMinutesBefore;
   bool get clubMorningWorkoutAlertEnabled => _clubMorningWorkoutAlertEnabled;
   TimeOfDay get clubMorningWorkoutAlertTime => _clubMorningWorkoutAlertTime;
+  List<int> get clubMorningWorkoutAlertWeekdays =>
+      List<int>.unmodifiable(_clubMorningWorkoutAlertWeekdays);
   int get inactivityAlertDays => _inactivityAlertDays;
 
   void load() {
@@ -86,6 +101,13 @@ class SettingsService extends ChangeNotifier {
         _repository.getValue<String>('club_morning_workout_alert_time');
     _clubMorningWorkoutAlertTime =
         _parseTime(morningWorkoutTime) ?? _clubMorningWorkoutAlertTime;
+    _clubMorningWorkoutAlertWeekdays = _normalizeWeekdays(
+      _repository.getIntOptions(
+        'club_morning_workout_alert_weekdays',
+        _clubMorningWorkoutAlertWeekdays,
+      ),
+      fallback: _clubMorningWorkoutAlertWeekdays,
+    );
     _inactivityAlertDays = _clampInt(
       _repository.getValue<num>('inactivity_alert_days')?.toInt(),
       fallback: _inactivityAlertDays,
@@ -191,6 +213,18 @@ class SettingsService extends ChangeNotifier {
     _notifyListenersSafely();
   }
 
+  Future<void> setClubMorningWorkoutAlertWeekdays(List<int> weekdays) async {
+    _clubMorningWorkoutAlertWeekdays = _normalizeWeekdays(
+      weekdays,
+      fallback: _clubMorningWorkoutAlertWeekdays,
+    );
+    await _repository.saveOptions(
+      'club_morning_workout_alert_weekdays',
+      _clubMorningWorkoutAlertWeekdays,
+    );
+    _notifyListenersSafely();
+  }
+
   Future<void> setInactivityAlertDays(int days) async {
     _inactivityAlertDays = days.clamp(1, 14);
     await _repository.setValue('inactivity_alert_days', _inactivityAlertDays);
@@ -256,5 +290,23 @@ class SettingsService extends ChangeNotifier {
   }) {
     if (value == null) return fallback;
     return value.clamp(min, max);
+  }
+
+  List<int> _normalizeWeekdays(
+    List<int> weekdays, {
+    required List<int> fallback,
+  }) {
+    final normalized = weekdays
+        .where((weekday) =>
+            weekday >= DateTime.monday && weekday <= DateTime.sunday)
+        .toSet()
+        .toList(growable: false)
+      ..sort();
+    if (normalized.isEmpty) {
+      return List<int>.from(
+        fallback.isEmpty ? defaultClubMorningWorkoutAlertWeekdays : fallback,
+      );
+    }
+    return normalized;
   }
 }

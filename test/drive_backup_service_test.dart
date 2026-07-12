@@ -152,6 +152,7 @@ void main() {
       'reminder_time': '07:30',
       'club_morning_workout_alert_enabled': true,
       'club_morning_workout_alert_time': '06:15',
+      'club_morning_workout_alert_weekdays': [1, 3, 5],
       'default_duration': 90,
       'default_location': 'A Ground',
       'type_options': ['technique', 'tactics'],
@@ -188,6 +189,10 @@ void main() {
     );
     expect(
       backupOptions.containsKey('club_morning_workout_alert_time'),
+      isFalse,
+    );
+    expect(
+      backupOptions.containsKey('club_morning_workout_alert_weekdays'),
       isFalse,
     );
     expect(backupOptions.containsKey('drive_last_backup'), isFalse);
@@ -350,6 +355,7 @@ void main() {
     await optionBox.put('benchmark_synced_at_v2', 'local-cache');
     await optionBox.put('training_plan_last_reminder_minutes_before_v1', 60);
     await optionBox.put('club_morning_workout_alert_time', '06:15');
+    await optionBox.put('club_morning_workout_alert_weekdays', <int>[1, 3, 5]);
     await optionBox.put('league_standings_last_selected_type_v1', 'epl');
     await optionBox.put('welcome_seen_v1', true);
     await optionBox.put('tab_quick_guide_seen_parent_mode_v1', true);
@@ -367,6 +373,7 @@ void main() {
         'benchmark_synced_at_v2': 'remote-cache',
         'training_plan_last_reminder_minutes_before_v1': 15,
         'club_morning_workout_alert_time': '05:00',
+        'club_morning_workout_alert_weekdays': <int>[2, 4],
         'league_standings_last_selected_type_v1': 'kLeague1',
       },
       'optionRecords': <Map<String, dynamic>>[
@@ -393,6 +400,10 @@ void main() {
           'value': '05:00',
         },
         <String, dynamic>{
+          'key': 'club_morning_workout_alert_weekdays',
+          'value': <int>[2, 4],
+        },
+        <String, dynamic>{
           'key': 'league_standings_last_selected_type_v1',
           'value': 'kLeague1',
         },
@@ -412,6 +423,11 @@ void main() {
     expect(optionBox.get('benchmark_synced_at_v2'), 'local-cache');
     expect(optionBox.get('training_plan_last_reminder_minutes_before_v1'), 60);
     expect(optionBox.get('club_morning_workout_alert_time'), '06:15');
+    expect(optionBox.get('club_morning_workout_alert_weekdays'), <int>[
+      1,
+      3,
+      5,
+    ]);
     expect(optionBox.get('league_standings_last_selected_type_v1'), 'epl');
     expect(optionBox.get('welcome_seen_v1'), isTrue);
     expect(optionBox.get('tab_quick_guide_seen_parent_mode_v1'), isTrue);

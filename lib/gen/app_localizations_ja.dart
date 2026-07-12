@@ -11633,14 +11633,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get clubMorningWorkoutAlertTitle => '朝トレーニング通知';
 
   @override
-  String get clubMorningWorkoutAlertHelper => 'クラブ予定と一緒に毎朝のトレーニング時間を管理します。';
+  String get clubMorningWorkoutAlertHelper => 'クラブ予定と一緒に朝のトレーニング時間を管理します。';
 
   @override
   String get clubMorningWorkoutAlertSwitchTitle => '朝トレーニング通知をオン';
 
   @override
-  String clubMorningWorkoutAlertSwitchSubtitle(Object time) {
-    return '毎日 $time に通知';
+  String clubMorningWorkoutAlertSwitchSubtitle(Object weekdays, Object time) {
+    return '$weekdays · $time に通知';
   }
 
   @override
@@ -11653,6 +11653,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get clubMorningWorkoutAlertChangeTimeAction => '時刻を変更';
+
+  @override
+  String get clubMorningWorkoutAlertWeekdayTitle => '通知する曜日';
+
+  @override
+  String get clubMorningWorkoutAlertEveryDay => '毎日';
 
   @override
   String get clubScheduleWeekdayTitle => '曜日別の練習時間';

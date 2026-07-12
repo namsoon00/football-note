@@ -128,6 +128,47 @@ void main() {
     expect(row['body'], contains('06:15'));
     expect(row['kind'], 'morningWorkout');
     expect(row['payload'], 'taeonote://club/morning-workout');
+    expect(row['weekdays'],
+        SettingsService.defaultClubMorningWorkoutAlertWeekdays);
+  });
+
+  test('schedules morning workout reminders only on selected weekdays',
+      () async {
+    final repository = _MemoryOptionRepository()
+      ..seed('reminder_enabled', true)
+      ..seed('club_training_alert_enabled', false)
+      ..seed('club_morning_workout_alert_enabled', true)
+      ..seed('club_morning_workout_alert_time', '06:15')
+      ..seed('club_morning_workout_alert_weekdays', <int>[
+        DateTime.monday,
+        DateTime.wednesday,
+      ]);
+    final settings = SettingsService(repository)..load();
+    final service = ClubTrainingReminderService(repository, settings);
+
+    final count = await service.syncSettingsDrivenReminders();
+
+    expect(count, 2);
+    expect(
+      notificationCalls.where((call) => call.method == 'zonedSchedule'),
+      hasLength(2),
+    );
+    final logs = repository.getValue<List>(
+      ClubTrainingReminderService.messageLogKey,
+    );
+    expect(logs, hasLength(2));
+    final rows = logs!
+        .whereType<Map>()
+        .map((row) => row.cast<String, dynamic>())
+        .toList(growable: false);
+    expect(rows.map((row) => row['weekday']), [
+      DateTime.monday,
+      DateTime.wednesday,
+    ]);
+    expect(
+      rows.every((row) => row['payload'] == 'taeonote://club/morning-workout'),
+      isTrue,
+    );
   });
 
   test('disabled club training alerts clear scheduled reminders and messages',
