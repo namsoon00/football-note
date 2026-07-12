@@ -821,7 +821,7 @@ void main() {
     expect(ballRoutes, hasLength(1));
     expect(ballRoutes.single.linkedItemId, 'ball-1');
     expect(ballRoutes.single.targetItemId, 'player-2');
-    expect(playerRoute.stageIndex, 2);
+    expect(playerRoute.stageIndex, 1);
     expect(playerRoute.points.length, greaterThanOrEqualTo(3));
     expect(playerRoute.points.last.x, closeTo(0.64, 0.02));
     expect(playerRoute.points.last.y, closeTo(0.38, 0.02));
@@ -1493,6 +1493,88 @@ void main() {
     expect(shotRoute.points.last.y, closeTo(0.34, 0.02));
   });
 
+  testWidgets('player moves immediately after shooting starts', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    String? savedLayout;
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '슈팅 후 이동',
+          initialLayoutJson: const TrainingMethodLayout(
+            pages: <TrainingMethodPage>[
+              TrainingMethodPage(
+                name: 'Board',
+                items: <TrainingMethodItem>[
+                  TrainingMethodItem(
+                    id: 'player-1',
+                    type: 'player',
+                    x: 0.30,
+                    y: 0.54,
+                  ),
+                  TrainingMethodItem(
+                    id: 'ball-1',
+                    type: 'ball',
+                    x: 0.37,
+                    y: 0.54,
+                    colorValue: 0xFFFFCA28,
+                  ),
+                ],
+              ),
+            ],
+          ).encode(),
+          onSaved: (value) => savedLayout = value,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    await tester.tap(
+      find.descendant(
+        of: boardFinder,
+        matching: find.byIcon(Icons.person),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await _tapVisibleOutlinedButton(tester, '슈팅');
+    await _tapBoardRelative(tester, boardFinder, const Offset(0.84, 0.34));
+    await tester.tap(
+      find.descendant(
+        of: boardFinder,
+        matching: find.byIcon(Icons.person),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('training-player-next-action-player-1')),
+    );
+    await tester.pumpAndSettle();
+    await _tapVisibleOutlinedButton(tester, '이동');
+    await _tapBoardRelative(tester, boardFinder, const Offset(0.56, 0.42));
+
+    await tester.tap(find.widgetWithText(TextButton, '저장'));
+    await tester.pumpAndSettle();
+
+    final saved = TrainingMethodLayout.decode(savedLayout ?? '');
+    final page = saved.pages.single;
+    final shotRoute = page.routes.singleWhere(
+      (route) => route.kind == TrainingMethodRouteKind.ball,
+    );
+    final playerRoute = page.routes.singleWhere(
+      (route) => route.kind == TrainingMethodRouteKind.player,
+    );
+
+    expect(shotRoute.actorItemId, 'player-1');
+    expect(shotRoute.targetItemId, isNull);
+    expect(playerRoute.linkedItemId, 'player-1');
+    expect(playerRoute.stageIndex, shotRoute.stageIndex);
+    expect(playerRoute.points.last.x, closeTo(0.56, 0.02));
+    expect(playerRoute.points.last.y, closeTo(0.42, 0.02));
+  });
+
   testWidgets('receiving player can build pass dribble shot as three stages', (
     WidgetTester tester,
   ) async {
@@ -2064,7 +2146,7 @@ void main() {
     expect(ballRoute.linkedItemId, 'ball-1');
     expect(ballRoute.stageIndex, 1);
     expect(playerRoute.linkedItemId, 'player-1');
-    expect(playerRoute.stageIndex, 2);
+    expect(playerRoute.stageIndex, 1);
   });
 
   testWidgets('pass then move to a player keeps the passer move connected', (
@@ -2146,7 +2228,7 @@ void main() {
     expect(ballRoute.points.last.x, closeTo(0.54, 0.001));
     expect(ballRoute.points.last.y, closeTo(0.44, 0.001));
     expect(playerRoute.linkedItemId, 'player-1');
-    expect(playerRoute.stageIndex, 2);
+    expect(playerRoute.stageIndex, 1);
     expect(playerRoute.points.first.x, closeTo(0.22, 0.001));
     expect(playerRoute.points.first.y, closeTo(0.52, 0.001));
     expect(playerRoute.points.last.x, closeTo(0.72, 0.02));
@@ -2239,7 +2321,7 @@ void main() {
     expect(passRoute.targetItemId, 'player-2');
     expect(passRoute.stageIndex, 1);
     expect(playerRoute.linkedItemId, 'player-1');
-    expect(playerRoute.stageIndex, 2);
+    expect(playerRoute.stageIndex, 1);
     expect(playerRoute.points.length, greaterThan(6));
   });
 
