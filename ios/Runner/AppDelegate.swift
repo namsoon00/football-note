@@ -7,6 +7,8 @@ import GoogleSignIn
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
   private var runningPoseAnalysisChannels: [RunningPoseAnalysisChannel] = []
   private var runningPoseAnalysisChannelMessengers = Set<ObjectIdentifier>()
+  private var mediaPipePoseLandmarkerChannels: [MediaPipePoseLandmarkerChannel] = []
+  private var mediaPipePoseLandmarkerChannelMessengers = Set<ObjectIdentifier>()
   private var appBadgeChannels: [FlutterMethodChannel] = []
   private var appBadgeChannelMessengers = Set<ObjectIdentifier>()
 
@@ -39,6 +41,7 @@ import GoogleSignIn
     let didFinish = super.application(application, didFinishLaunchingWithOptions: launchOptions)
     if let controller = window?.rootViewController as? FlutterViewController {
       registerRunningPoseAnalysisChannel(binaryMessenger: controller.binaryMessenger)
+      registerMediaPipePoseLandmarkerChannel(binaryMessenger: controller.binaryMessenger)
       registerAppBadgeChannel(binaryMessenger: controller.binaryMessenger)
     }
     return didFinish
@@ -50,6 +53,9 @@ import GoogleSignIn
     }
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
     registerRunningPoseAnalysisChannel(
+      binaryMessenger: engineBridge.applicationRegistrar.messenger()
+    )
+    registerMediaPipePoseLandmarkerChannel(
       binaryMessenger: engineBridge.applicationRegistrar.messenger()
     )
     registerAppBadgeChannel(
@@ -67,6 +73,18 @@ import GoogleSignIn
       RunningPoseAnalysisChannel(binaryMessenger: binaryMessenger)
     )
     runningPoseAnalysisChannelMessengers.insert(messengerKey)
+  }
+
+  private func registerMediaPipePoseLandmarkerChannel(binaryMessenger: FlutterBinaryMessenger) {
+    let messengerKey = ObjectIdentifier(binaryMessenger as AnyObject)
+    guard !mediaPipePoseLandmarkerChannelMessengers.contains(messengerKey) else {
+      return
+    }
+
+    mediaPipePoseLandmarkerChannels.append(
+      MediaPipePoseLandmarkerChannel(binaryMessenger: binaryMessenger)
+    )
+    mediaPipePoseLandmarkerChannelMessengers.insert(messengerKey)
   }
 
   private func registerAppBadgeChannel(binaryMessenger: FlutterBinaryMessenger) {
