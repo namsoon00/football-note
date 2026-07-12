@@ -6930,6 +6930,7 @@
   "trainingSketchReverseRouteButton": "Reverse direction",
   "trainingSketchRedrawRouteButton": "Redraw selected",
   "trainingSketchDeleteRouteButton": "Delete selected",
+  "trainingSketchDeleteStageActionTooltip": "Delete stage action",
   "trainingSketchPlayerRouteChip": "Player {index}",
   "@trainingSketchPlayerRouteChip": {
     "placeholders": {

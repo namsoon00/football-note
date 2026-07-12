@@ -3435,6 +3435,163 @@ void main() {
     );
   });
 
+  testWidgets('global stage action can be deleted directly from summary', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    String? savedLayout;
+    final initialLayout = const TrainingMethodLayout(
+      pages: <TrainingMethodPage>[
+        TrainingMethodPage(
+          name: 'Board',
+          items: <TrainingMethodItem>[
+            TrainingMethodItem(id: 'player-1', type: 'player', x: 0.2, y: 0.5),
+            TrainingMethodItem(
+              id: 'player-2',
+              type: 'player',
+              x: 0.62,
+              y: 0.46,
+            ),
+            TrainingMethodItem(id: 'ball-1', type: 'ball', x: 0.27, y: 0.5),
+          ],
+          routes: <TrainingMethodRoute>[
+            TrainingMethodRoute(
+              id: 'route-pass',
+              kind: TrainingMethodRouteKind.ball,
+              linkedItemId: 'ball-1',
+              actorItemId: 'player-1',
+              targetItemId: 'player-2',
+              stageIndex: 1,
+              points: <TrainingMethodPoint>[
+                TrainingMethodPoint(x: 0.27, y: 0.5),
+                TrainingMethodPoint(x: 0.62, y: 0.46),
+              ],
+            ),
+            TrainingMethodRoute(
+              id: 'route-move',
+              kind: TrainingMethodRouteKind.player,
+              linkedItemId: 'player-2',
+              actorItemId: 'player-2',
+              stageIndex: 2,
+              points: <TrainingMethodPoint>[
+                TrainingMethodPoint(x: 0.62, y: 0.46),
+                TrainingMethodPoint(x: 0.76, y: 0.40),
+              ],
+            ),
+          ],
+        ),
+      ],
+    ).encode();
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '단계 삭제',
+          initialLayoutJson: initialLayout,
+          onSaved: (value) => savedLayout = value,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    await tester.tap(
+      find
+          .descendant(of: boardFinder, matching: find.byIcon(Icons.person))
+          .first,
+    );
+    await tester.pumpAndSettle();
+
+    final deletePassAction = find.byKey(
+      const ValueKey('training-global-stage-action-delete-route-pass'),
+    );
+    expect(deletePassAction, findsOneWidget);
+    await tester.tap(deletePassAction);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(TextButton, '저장'));
+    await tester.pumpAndSettle();
+
+    final saved = TrainingMethodLayout.decode(savedLayout ?? '');
+    final routeIds = saved.pages.single.routes.map((route) => route.id);
+    expect(routeIds, isNot(contains('route-pass')));
+    expect(routeIds, contains('route-move'));
+  });
+
+  testWidgets('deleting a carry action removes paired player and ball routes', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    String? savedLayout;
+    final initialLayout = const TrainingMethodLayout(
+      pages: <TrainingMethodPage>[
+        TrainingMethodPage(
+          name: 'Board',
+          items: <TrainingMethodItem>[
+            TrainingMethodItem(id: 'player-1', type: 'player', x: 0.2, y: 0.5),
+            TrainingMethodItem(id: 'ball-1', type: 'ball', x: 0.27, y: 0.5),
+          ],
+          routes: <TrainingMethodRoute>[
+            TrainingMethodRoute(
+              id: 'route-player-carry',
+              kind: TrainingMethodRouteKind.player,
+              linkedItemId: 'player-1',
+              actorItemId: 'player-1',
+              stageIndex: 1,
+              points: <TrainingMethodPoint>[
+                TrainingMethodPoint(x: 0.2, y: 0.5),
+                TrainingMethodPoint(x: 0.46, y: 0.42),
+              ],
+            ),
+            TrainingMethodRoute(
+              id: 'route-ball-carry',
+              kind: TrainingMethodRouteKind.ball,
+              linkedItemId: 'ball-1',
+              actorItemId: 'player-1',
+              targetItemId: 'player-1',
+              stageIndex: 1,
+              points: <TrainingMethodPoint>[
+                TrainingMethodPoint(x: 0.27, y: 0.5),
+                TrainingMethodPoint(x: 0.53, y: 0.42),
+              ],
+            ),
+          ],
+        ),
+      ],
+    ).encode();
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '운반 삭제',
+          initialLayoutJson: initialLayout,
+          onSaved: (value) => savedLayout = value,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    await tester.tap(
+      find.descendant(of: boardFinder, matching: find.byIcon(Icons.person)),
+    );
+    await tester.pumpAndSettle();
+
+    final deleteCarryAction = find.byKey(
+      const ValueKey('training-global-stage-action-delete-route-ball-carry'),
+    );
+    expect(deleteCarryAction, findsOneWidget);
+    await tester.tap(deleteCarryAction);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(TextButton, '저장'));
+    await tester.pumpAndSettle();
+
+    final saved = TrainingMethodLayout.decode(savedLayout ?? '');
+    expect(saved.pages.single.routes, isEmpty);
+    expect(saved.pages.single.items.map((item) => item.id), contains('ball-1'));
+  });
+
   testWidgets('deleting a player also deletes the ball they own', (
     WidgetTester tester,
   ) async {

@@ -22230,6 +22230,12 @@ abstract class AppLocalizations {
   /// **'Delete selected'**
   String get trainingSketchDeleteRouteButton;
 
+  /// No description provided for @trainingSketchDeleteStageActionTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete stage action'**
+  String get trainingSketchDeleteStageActionTooltip;
+
   /// No description provided for @trainingSketchPlayerRouteChip.
   ///
   /// In en, this message translates to:

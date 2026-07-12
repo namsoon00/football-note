@@ -12526,6 +12526,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get trainingSketchDeleteRouteButton => '선택 이동선 삭제';
 
   @override
+  String get trainingSketchDeleteStageActionTooltip => '단계 액션 삭제';
+
+  @override
   String trainingSketchPlayerRouteChip(int index) {
     return '사람 $index';
   }

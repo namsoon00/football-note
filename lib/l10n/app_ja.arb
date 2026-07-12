@@ -6930,6 +6930,7 @@
   "trainingSketchReverseRouteButton": "方向を反転",
   "trainingSketchRedrawRouteButton": "選択された再描画",
   "trainingSketchDeleteRouteButton": "選択したものを削除",
+  "trainingSketchDeleteStageActionTooltip": "ステージアクションを削除",
   "trainingSketchPlayerRouteChip": "プレイヤー {index}",
   "@trainingSketchPlayerRouteChip": {
     "placeholders": {

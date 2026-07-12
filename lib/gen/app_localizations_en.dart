@@ -12862,6 +12862,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trainingSketchDeleteRouteButton => 'Delete selected';
 
   @override
+  String get trainingSketchDeleteStageActionTooltip => 'Delete stage action';
+
+  @override
   String trainingSketchPlayerRouteChip(int index) {
     return 'Player $index';
   }
