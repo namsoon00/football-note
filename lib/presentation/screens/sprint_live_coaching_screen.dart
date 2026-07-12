@@ -47,9 +47,6 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
   final SprintLandmarkSmoother _debugOverlaySmoother = SprintLandmarkSmoother();
   final MediaPipePoseLandmarkerService _mediaPipePoseLandmarker =
       const MediaPipePoseLandmarkerService();
-  final PoseDetector _poseDetector = PoseDetector(
-    options: PoseDetectorOptions(mode: PoseDetectionMode.stream),
-  );
   final FlutterTts _tts = FlutterTts();
 
   final Map<DeviceOrientation, int> _orientations = const {
@@ -138,7 +135,6 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
       unawaited(controller.dispose());
     }
     unawaited(_mediaPipePoseLandmarker.close());
-    unawaited(_poseDetector.close());
     unawaited(_tts.stop());
     super.dispose();
   }
@@ -668,24 +664,14 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
         rotationDegrees: _rotationDegrees(frameInput.rotation),
         timestamp: receivedAt,
       );
-      final poseFrame = mediaPipeDetection == null
-          ? await _sprintPoseFrameFromMlKit(
-              frameInput.inputImage,
-              Size(image.width.toDouble(), image.height.toDouble()),
-              receivedAt,
-            )
-          : _sprintPoseFrameFromMediaPipe(mediaPipeDetection, receivedAt);
-      final overlayRotation = mediaPipeDetection == null
-          ? frameInput.rotation
-          : InputImageRotation.rotation0deg;
-      final debugSmoothedFrame = poseFrame == null
-          ? null
-          : _debugOverlaySmoother.smooth(
-              _filterDebugFrame(poseFrame),
-              alpha: _pipelineConfig.smoothingFactor,
-              maxDisplacementRatio:
-                  _pipelineConfig.outlierJointDisplacementRatio,
-            );
+      final poseFrame =
+          _sprintPoseFrameFromMediaPipe(mediaPipeDetection, receivedAt);
+      const overlayRotation = InputImageRotation.rotation0deg;
+      final debugSmoothedFrame = _debugOverlaySmoother.smooth(
+        _filterDebugFrame(poseFrame),
+        alpha: _pipelineConfig.smoothingFactor,
+        maxDisplacementRatio: _pipelineConfig.outlierJointDisplacementRatio,
+      );
       final state = _coachingService.ingestPoseFrame(
         poseFrame,
         timestamp: receivedAt,
@@ -707,16 +693,14 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
       setState(() {
         _coachingState = state;
         _sessionMetrics = snapshot;
-        _poseOverlayState = poseFrame == null
-            ? null
-            : _SprintPoseOverlayState(
-                rawFrame: poseFrame,
-                smoothedFrame: debugSmoothedFrame,
-                stateEstimate: state.stateEstimate,
-                rotation: overlayRotation,
-                lensDirection:
-                    _activeCamera?.lensDirection ?? CameraLensDirection.back,
-              );
+        _poseOverlayState = _SprintPoseOverlayState(
+          rawFrame: poseFrame,
+          smoothedFrame: debugSmoothedFrame,
+          stateEstimate: state.stateEstimate,
+          rotation: overlayRotation,
+          lensDirection:
+              _activeCamera?.lensDirection ?? CameraLensDirection.back,
+        );
       });
 
       _logStateTransitions(
@@ -726,7 +710,7 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
       );
       _emitSessionLog(event: 'periodic', force: false, now: receivedAt);
       await _maybeSpeakFeedback(previousState: previousState, state: state);
-    } catch (_) {
+    } catch (error, stackTrace) {
       stopwatch.stop();
       _sessionMetricsCollector.recordSkippedFrame(
         SprintSkippedFrameReason.analysisError,
@@ -736,6 +720,7 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
         receivedAt,
       );
       _refreshSessionMetricsIfNeeded(receivedAt);
+      Error.throwWithStackTrace(error, stackTrace);
     } finally {
       _isProcessingFrame = false;
     }
@@ -935,19 +920,7 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
       return null;
     }
 
-    final plane = image.planes.first;
-    return _CameraFrameInput(
-      inputImage: InputImage.fromBytes(
-        bytes: plane.bytes,
-        metadata: InputImageMetadata(
-          size: Size(image.width.toDouble(), image.height.toDouble()),
-          rotation: rotation,
-          format: format,
-          bytesPerRow: plane.bytesPerRow,
-        ),
-      ),
-      rotation: rotation,
-    );
+    return _CameraFrameInput(rotation: rotation);
   }
 
   InputImageRotation? _resolveImageRotation(
@@ -986,80 +959,14 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
     };
   }
 
-  Future<SprintPoseFrame?> _sprintPoseFrameFromMlKit(
-    InputImage inputImage,
-    Size imageSize,
-    DateTime timestamp,
-  ) async {
-    final poses = await _poseDetector.processImage(inputImage);
-    return poses.isEmpty
-        ? null
-        : _sprintPoseFrameFromPose(poses.first, imageSize, timestamp);
-  }
-
-  SprintPoseFrame _sprintPoseFrameFromPose(
-    Pose pose,
-    Size imageSize,
-    DateTime timestamp,
-  ) {
-    final landmarks = <SprintPoseLandmarkType, SprintPoseLandmark>{};
-
-    void addLandmark(PoseLandmarkType source, SprintPoseLandmarkType target) {
-      final landmark = pose.landmarks[source];
-      if (landmark == null) {
-        return;
-      }
-      landmarks[target] = SprintPoseLandmark(
-        position: Offset(landmark.x, landmark.y),
-        confidence: landmark.likelihood,
-      );
-    }
-
-    addLandmark(PoseLandmarkType.nose, SprintPoseLandmarkType.nose);
-    addLandmark(PoseLandmarkType.leftEar, SprintPoseLandmarkType.leftEar);
-    addLandmark(PoseLandmarkType.rightEar, SprintPoseLandmarkType.rightEar);
-    addLandmark(
-      PoseLandmarkType.leftShoulder,
-      SprintPoseLandmarkType.leftShoulder,
-    );
-    addLandmark(
-      PoseLandmarkType.rightShoulder,
-      SprintPoseLandmarkType.rightShoulder,
-    );
-    addLandmark(PoseLandmarkType.leftElbow, SprintPoseLandmarkType.leftElbow);
-    addLandmark(PoseLandmarkType.rightElbow, SprintPoseLandmarkType.rightElbow);
-    addLandmark(PoseLandmarkType.leftWrist, SprintPoseLandmarkType.leftWrist);
-    addLandmark(PoseLandmarkType.rightWrist, SprintPoseLandmarkType.rightWrist);
-    addLandmark(PoseLandmarkType.leftHip, SprintPoseLandmarkType.leftHip);
-    addLandmark(PoseLandmarkType.rightHip, SprintPoseLandmarkType.rightHip);
-    addLandmark(PoseLandmarkType.leftKnee, SprintPoseLandmarkType.leftKnee);
-    addLandmark(PoseLandmarkType.rightKnee, SprintPoseLandmarkType.rightKnee);
-    addLandmark(PoseLandmarkType.leftAnkle, SprintPoseLandmarkType.leftAnkle);
-    addLandmark(PoseLandmarkType.rightAnkle, SprintPoseLandmarkType.rightAnkle);
-    addLandmark(PoseLandmarkType.leftHeel, SprintPoseLandmarkType.leftHeel);
-    addLandmark(PoseLandmarkType.rightHeel, SprintPoseLandmarkType.rightHeel);
-    addLandmark(
-      PoseLandmarkType.leftFootIndex,
-      SprintPoseLandmarkType.leftFootIndex,
-    );
-    addLandmark(
-      PoseLandmarkType.rightFootIndex,
-      SprintPoseLandmarkType.rightFootIndex,
-    );
-
-    return SprintPoseFrame(
-      imageSize: imageSize,
-      timestamp: timestamp,
-      landmarks: landmarks,
-    );
-  }
-
-  SprintPoseFrame? _sprintPoseFrameFromMediaPipe(
+  SprintPoseFrame _sprintPoseFrameFromMediaPipe(
     MediaPipePoseDetection detection,
     DateTime timestamp,
   ) {
     if (detection.imageSize.isEmpty || detection.landmarks.isEmpty) {
-      return null;
+      throw StateError(
+        'MediaPipe pose detection returned no usable sprint landmarks.',
+      );
     }
 
     final landmarks = <SprintPoseLandmarkType, SprintPoseLandmark>{};
@@ -1080,6 +987,12 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
                 z: world.z,
                 visibility: world.visibility,
               ),
+      );
+    }
+
+    if (landmarks.isEmpty) {
+      throw StateError(
+        'MediaPipe pose detection returned no sprint landmark mapping.',
       );
     }
 
@@ -2769,10 +2682,9 @@ class _GuideFramePainter extends CustomPainter {
 }
 
 class _CameraFrameInput {
-  final InputImage inputImage;
   final InputImageRotation rotation;
 
-  const _CameraFrameInput({required this.inputImage, required this.rotation});
+  const _CameraFrameInput({required this.rotation});
 }
 
 class _SprintPoseOverlayState {

@@ -14,13 +14,15 @@ class MediaPipePoseLandmarkerService {
       (defaultTargetPlatform == TargetPlatform.android ||
           defaultTargetPlatform == TargetPlatform.iOS);
 
-  Future<MediaPipePoseDetection?> detectPoseFromCameraImage({
+  Future<MediaPipePoseDetection> detectPoseFromCameraImage({
     required CameraImage image,
     required int rotationDegrees,
     required DateTime timestamp,
   }) async {
     if (!isSupported) {
-      return null;
+      throw UnsupportedError(
+        'MediaPipe pose detection is only available on Android and iOS.',
+      );
     }
 
     return switch (defaultTargetPlatform) {
@@ -34,72 +36,70 @@ class MediaPipePoseLandmarkerService {
           rotationDegrees: rotationDegrees,
           timestamp: timestamp,
         ),
-      _ => null,
+      _ => throw UnsupportedError(
+          'MediaPipe pose detection is not available on this platform.',
+        ),
     };
   }
 
-  Future<MediaPipePoseDetection?> _detectPoseFromNv21({
+  Future<MediaPipePoseDetection> _detectPoseFromNv21({
     required CameraImage image,
     required int rotationDegrees,
     required DateTime timestamp,
   }) async {
     if (image.planes.length != 1) {
-      return null;
+      throw ArgumentError.value(
+        image.planes.length,
+        'image.planes.length',
+        'MediaPipe Android pose detection requires one NV21 plane.',
+      );
     }
     final bytes = image.planes.first.bytes;
-    try {
-      final result = await _channel.invokeMethod<Map<Object?, Object?>>(
-        'detectPoseFromNv21',
-        <String, Object?>{
-          'bytes': bytes,
-          'width': image.width,
-          'height': image.height,
-          'rotationDegrees': rotationDegrees,
-          'timestampMs': timestamp.millisecondsSinceEpoch,
-        },
-      );
-      if (result == null) {
-        return null;
-      }
-      return MediaPipePoseDetection.fromMap(result);
-    } on PlatformException {
-      return null;
-    } on MissingPluginException {
-      return null;
+    final result = await _channel.invokeMethod<Map<Object?, Object?>>(
+      'detectPoseFromNv21',
+      <String, Object?>{
+        'bytes': bytes,
+        'width': image.width,
+        'height': image.height,
+        'rotationDegrees': rotationDegrees,
+        'timestampMs': timestamp.millisecondsSinceEpoch,
+      },
+    );
+    if (result == null) {
+      throw StateError('Native MediaPipe pose detection returned no result.');
     }
+    return MediaPipePoseDetection.fromMap(result);
   }
 
-  Future<MediaPipePoseDetection?> _detectPoseFromBgra8888({
+  Future<MediaPipePoseDetection> _detectPoseFromBgra8888({
     required CameraImage image,
     required int rotationDegrees,
     required DateTime timestamp,
   }) async {
     if (image.planes.length != 1) {
-      return null;
+      throw ArgumentError.value(
+        image.planes.length,
+        'image.planes.length',
+        'MediaPipe iOS pose detection requires one BGRA8888 plane.',
+      );
     }
 
     final plane = image.planes.first;
-    try {
-      final result = await _channel.invokeMethod<Map<Object?, Object?>>(
-        'detectPoseFromBgra8888',
-        <String, Object?>{
-          'bytes': plane.bytes,
-          'width': image.width,
-          'height': image.height,
-          'bytesPerRow': plane.bytesPerRow,
-          'rotationDegrees': rotationDegrees,
-          'timestampMs': timestamp.millisecondsSinceEpoch,
-        },
-      );
-      if (result == null) {
-        return null;
-      }
-      return MediaPipePoseDetection.fromMap(result);
-    } on PlatformException {
-      return null;
-    } on MissingPluginException {
-      return null;
+    final result = await _channel.invokeMethod<Map<Object?, Object?>>(
+      'detectPoseFromBgra8888',
+      <String, Object?>{
+        'bytes': plane.bytes,
+        'width': image.width,
+        'height': image.height,
+        'bytesPerRow': plane.bytesPerRow,
+        'rotationDegrees': rotationDegrees,
+        'timestampMs': timestamp.millisecondsSinceEpoch,
+      },
+    );
+    if (result == null) {
+      throw StateError('Native MediaPipe pose detection returned no result.');
     }
+    return MediaPipePoseDetection.fromMap(result);
   }
 
   Future<void> close() async {
@@ -111,7 +111,7 @@ class MediaPipePoseLandmarkerService {
     } on PlatformException {
       // The detector is best-effort and can be recreated on the next screen open.
     } on MissingPluginException {
-      // Native MediaPipe is optional and the ML Kit fallback remains available.
+      // Native MediaPipe may be unavailable during teardown.
     }
   }
 }
