@@ -10,17 +10,42 @@ class MediaPipePoseLandmarkerService {
   const MediaPipePoseLandmarkerService();
 
   bool get isSupported =>
-      !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.iOS);
 
-  Future<MediaPipePoseDetection?> detectPoseFromNv21({
+  Future<MediaPipePoseDetection?> detectPoseFromCameraImage({
     required CameraImage image,
     required int rotationDegrees,
     required DateTime timestamp,
   }) async {
-    if (!isSupported || image.planes.length != 1) {
+    if (!isSupported) {
       return null;
     }
 
+    return switch (defaultTargetPlatform) {
+      TargetPlatform.android => _detectPoseFromNv21(
+          image: image,
+          rotationDegrees: rotationDegrees,
+          timestamp: timestamp,
+        ),
+      TargetPlatform.iOS => _detectPoseFromBgra8888(
+          image: image,
+          rotationDegrees: rotationDegrees,
+          timestamp: timestamp,
+        ),
+      _ => null,
+    };
+  }
+
+  Future<MediaPipePoseDetection?> _detectPoseFromNv21({
+    required CameraImage image,
+    required int rotationDegrees,
+    required DateTime timestamp,
+  }) async {
+    if (image.planes.length != 1) {
+      return null;
+    }
     final bytes = image.planes.first.bytes;
     try {
       final result = await _channel.invokeMethod<Map<Object?, Object?>>(
@@ -29,6 +54,39 @@ class MediaPipePoseLandmarkerService {
           'bytes': bytes,
           'width': image.width,
           'height': image.height,
+          'rotationDegrees': rotationDegrees,
+          'timestampMs': timestamp.millisecondsSinceEpoch,
+        },
+      );
+      if (result == null) {
+        return null;
+      }
+      return MediaPipePoseDetection.fromMap(result);
+    } on PlatformException {
+      return null;
+    } on MissingPluginException {
+      return null;
+    }
+  }
+
+  Future<MediaPipePoseDetection?> _detectPoseFromBgra8888({
+    required CameraImage image,
+    required int rotationDegrees,
+    required DateTime timestamp,
+  }) async {
+    if (image.planes.length != 1) {
+      return null;
+    }
+
+    final plane = image.planes.first;
+    try {
+      final result = await _channel.invokeMethod<Map<Object?, Object?>>(
+        'detectPoseFromBgra8888',
+        <String, Object?>{
+          'bytes': plane.bytes,
+          'width': image.width,
+          'height': image.height,
+          'bytesPerRow': plane.bytesPerRow,
           'rotationDegrees': rotationDegrees,
           'timestampMs': timestamp.millisecondsSinceEpoch,
         },
@@ -53,7 +111,7 @@ class MediaPipePoseLandmarkerService {
     } on PlatformException {
       // The detector is best-effort and can be recreated on the next screen open.
     } on MissingPluginException {
-      // Native MediaPipe is currently Android-only.
+      // Native MediaPipe is optional and the ML Kit fallback remains available.
     }
   }
 }

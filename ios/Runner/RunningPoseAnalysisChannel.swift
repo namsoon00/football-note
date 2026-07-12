@@ -1,8 +1,7 @@
 import AVFoundation
 import CoreMedia
 import Flutter
-import MLKitPoseDetection
-import MLKitVision
+import MediaPipeTasksVision
 import UIKit
 
 final class RunningPoseAnalysisChannel {
@@ -89,11 +88,10 @@ final class RunningPoseAnalysisChannel {
     imageGenerator.requestedTimeToleranceBefore = .zero
     imageGenerator.requestedTimeToleranceAfter = .zero
 
-    let options = PoseDetectorOptions()
-    options.detectorMode = .stream
-    let detector = PoseDetector.poseDetector(options: options)
+    let poseLandmarker = try makePoseLandmarker()
 
     var frameSamples: [FrameSample] = []
+    var lastTimestampMs = 0
     for index in 0..<Self.sampleCount {
       let fraction: Double
       if Self.sampleCount == 1 {
@@ -111,11 +109,18 @@ final class RunningPoseAnalysisChannel {
           return
         }
         let image = UIImage(cgImage: cgImage)
-        let visionImage = VisionImage(image: image)
-        visionImage.orientation = image.imageOrientation
+        let mpImage = try MPImage(uiImage: image)
+        let timestampMs = max(
+          Int((CMTimeGetSeconds(captureTime) * 1000.0).rounded()),
+          lastTimestampMs + 1
+        )
+        lastTimestampMs = timestampMs
 
-        let poses = try detector.results(in: visionImage)
-        guard let pose = poses.first, let sample = extractFrameSample(from: pose) else {
+        let result = try poseLandmarker.detect(
+          videoFrame: mpImage,
+          timestampInMilliseconds: timestampMs
+        )
+        guard let sample = extractFrameSample(from: result, imageSize: image.size) else {
           return
         }
         frameSamples.append(sample)
@@ -168,23 +173,51 @@ final class RunningPoseAnalysisChannel {
     ]
   }
 
-  private func extractFrameSample(from pose: Pose) -> FrameSample? {
+  private func makePoseLandmarker() throws -> PoseLandmarker {
+    guard let modelPath = Bundle.main.path(
+      forResource: Self.modelResourceName,
+      ofType: Self.modelResourceExtension
+    ) else {
+      throw AnalysisError(
+        code: "model_missing",
+        message: "MediaPipe pose model is missing from the iOS bundle."
+      )
+    }
+
+    let options = PoseLandmarkerOptions()
+    options.baseOptions.modelAssetPath = modelPath
+    options.runningMode = .video
+    options.numPoses = 1
+    options.minPoseDetectionConfidence = Self.minimumLikelihood
+    options.minPosePresenceConfidence = Self.minimumLikelihood
+    options.minTrackingConfidence = Self.minimumLikelihood
+    return try PoseLandmarker(options: options)
+  }
+
+  private func extractFrameSample(
+    from result: PoseLandmarkerResult,
+    imageSize: CGSize
+  ) -> FrameSample? {
+    guard let landmarks = result.landmarks.first, landmarks.count > Self.leftFootIndex else {
+      return nil
+    }
+
     guard
-      let leftShoulder = confidentLandmark(.leftShoulder, in: pose),
-      let rightShoulder = confidentLandmark(.rightShoulder, in: pose),
-      let leftHip = confidentLandmark(.leftHip, in: pose),
-      let rightHip = confidentLandmark(.rightHip, in: pose),
-      let leftKnee = confidentLandmark(.leftKnee, in: pose),
-      let rightKnee = confidentLandmark(.rightKnee, in: pose),
-      let leftAnkle = confidentLandmark(.leftAnkle, in: pose),
-      let rightAnkle = confidentLandmark(.rightAnkle, in: pose)
+      let leftShoulder = confidentPoint(Self.leftShoulderIndex, in: landmarks, imageSize: imageSize),
+      let rightShoulder = confidentPoint(Self.rightShoulderIndex, in: landmarks, imageSize: imageSize),
+      let leftHip = confidentPoint(Self.leftHipIndex, in: landmarks, imageSize: imageSize),
+      let rightHip = confidentPoint(Self.rightHipIndex, in: landmarks, imageSize: imageSize),
+      let leftKnee = confidentPoint(Self.leftKneeIndex, in: landmarks, imageSize: imageSize),
+      let rightKnee = confidentPoint(Self.rightKneeIndex, in: landmarks, imageSize: imageSize),
+      let leftAnkle = confidentPoint(Self.leftAnkleIndex, in: landmarks, imageSize: imageSize),
+      let rightAnkle = confidentPoint(Self.rightAnkleIndex, in: landmarks, imageSize: imageSize)
     else {
       return nil
     }
 
-    let shoulderCenter = midpoint(point(leftShoulder.position), point(rightShoulder.position))
-    let hipCenter = midpoint(point(leftHip.position), point(rightHip.position))
-    let ankleCenter = midpoint(point(leftAnkle.position), point(rightAnkle.position))
+    let shoulderCenter = midpoint(leftShoulder, rightShoulder)
+    let hipCenter = midpoint(leftHip, rightHip)
+    let ankleCenter = midpoint(leftAnkle, rightAnkle)
     let torsoScale = distance(shoulderCenter, hipCenter)
     let legScale = distance(hipCenter, ankleCenter)
     let bodyScale = max(torsoScale, legScale)
@@ -193,32 +226,46 @@ final class RunningPoseAnalysisChannel {
     }
 
     return FrameSample(
-      leftShoulder: point(leftShoulder.position),
-      rightShoulder: point(rightShoulder.position),
-      leftHip: point(leftHip.position),
-      rightHip: point(rightHip.position),
-      leftKnee: point(leftKnee.position),
-      rightKnee: point(rightKnee.position),
+      leftShoulder: leftShoulder,
+      rightShoulder: rightShoulder,
+      leftHip: leftHip,
+      rightHip: rightHip,
+      leftKnee: leftKnee,
+      rightKnee: rightKnee,
       shoulderCenter: shoulderCenter,
       hipCenter: hipCenter,
-      leftAnkle: point(leftAnkle.position),
-      rightAnkle: point(rightAnkle.position),
-      leftHeel: confidentLandmark(.leftHeel, in: pose).map { point($0.position) },
-      rightHeel: confidentLandmark(.rightHeel, in: pose).map { point($0.position) },
-      leftElbow: confidentLandmark(.leftElbow, in: pose).map { point($0.position) },
-      rightElbow: confidentLandmark(.rightElbow, in: pose).map { point($0.position) },
-      leftWrist: confidentLandmark(.leftWrist, in: pose).map { point($0.position) },
-      rightWrist: confidentLandmark(.rightWrist, in: pose).map { point($0.position) },
+      leftAnkle: leftAnkle,
+      rightAnkle: rightAnkle,
+      leftHeel: confidentPoint(Self.leftHeelIndex, in: landmarks, imageSize: imageSize),
+      rightHeel: confidentPoint(Self.rightHeelIndex, in: landmarks, imageSize: imageSize),
+      leftElbow: confidentPoint(Self.leftElbowIndex, in: landmarks, imageSize: imageSize),
+      rightElbow: confidentPoint(Self.rightElbowIndex, in: landmarks, imageSize: imageSize),
+      leftWrist: confidentPoint(Self.leftWristIndex, in: landmarks, imageSize: imageSize),
+      rightWrist: confidentPoint(Self.rightWristIndex, in: landmarks, imageSize: imageSize),
       bodyScale: bodyScale
     )
   }
 
-  private func confidentLandmark(_ type: PoseLandmarkType, in pose: Pose) -> PoseLandmark? {
-    let landmark = pose.landmark(ofType: type)
-    guard landmark.inFrameLikelihood >= Self.minimumLikelihood else {
+  private func confidentPoint(
+    _ index: Int,
+    in landmarks: [NormalizedLandmark],
+    imageSize: CGSize
+  ) -> CGPoint? {
+    guard index >= 0, index < landmarks.count else {
       return nil
     }
-    return landmark
+    let landmark = landmarks[index]
+    let confidence = max(
+      landmark.visibility?.floatValue ?? 0,
+      landmark.presence?.floatValue ?? 0
+    )
+    guard confidence >= Self.minimumLikelihood else {
+      return nil
+    }
+    return CGPoint(
+      x: Double(landmark.x) * Double(imageSize.width),
+      y: Double(landmark.y) * Double(imageSize.height)
+    )
   }
 
   private func resolveDirection(from samples: [FrameSample]) -> AnalysisDirection {
@@ -241,10 +288,6 @@ final class RunningPoseAnalysisChannel {
     let dx = Double(first.x - second.x)
     let dy = Double(first.y - second.y)
     return hypot(dx, dy)
-  }
-
-  private func point(_ source: Vision3DPoint) -> CGPoint {
-    CGPoint(x: source.x, y: source.y)
   }
 
   private func roundTo3(_ value: Double) -> Double {
@@ -376,4 +419,21 @@ final class RunningPoseAnalysisChannel {
   private static let minimumLikelihood: Float = 0.45
   private static let minimumBodyScalePx = 40.0
   private static let stationaryThresholdRatio = 0.12
+  private static let modelResourceName = "pose_landmarker_lite"
+  private static let modelResourceExtension = "task"
+  private static let leftShoulderIndex = 11
+  private static let rightShoulderIndex = 12
+  private static let leftElbowIndex = 13
+  private static let rightElbowIndex = 14
+  private static let leftWristIndex = 15
+  private static let rightWristIndex = 16
+  private static let leftHipIndex = 23
+  private static let rightHipIndex = 24
+  private static let leftKneeIndex = 25
+  private static let rightKneeIndex = 26
+  private static let leftAnkleIndex = 27
+  private static let rightAnkleIndex = 28
+  private static let leftHeelIndex = 29
+  private static let rightHeelIndex = 30
+  private static let leftFootIndex = 31
 }

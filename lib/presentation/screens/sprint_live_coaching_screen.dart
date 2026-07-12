@@ -663,7 +663,7 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
 
     try {
       final mediaPipeDetection =
-          await _mediaPipePoseLandmarker.detectPoseFromNv21(
+          await _mediaPipePoseLandmarker.detectPoseFromCameraImage(
         image: image,
         rotationDegrees: _rotationDegrees(frameInput.rotation),
         timestamp: receivedAt,
