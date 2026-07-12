@@ -20899,7 +20899,7 @@ abstract class AppLocalizations {
   /// No description provided for @teamManagementSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Manage player registration, team profile, lineup, and tactics board on one screen.'**
+  /// **'Organize the roster, lineup, team profile, schedule, and competitions by task.'**
   String get teamManagementSubtitle;
 
   /// No description provided for @teamManagementOpenButton.
@@ -20913,6 +20913,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Our team'**
   String get teamManagementDefaultTeamName;
+
+  /// No description provided for @teamManagementWorkspaceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a workspace'**
+  String get teamManagementWorkspaceTitle;
+
+  /// No description provided for @teamManagementWorkspaceHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Open only the area you need and stay focused.'**
+  String get teamManagementWorkspaceHelper;
+
+  /// No description provided for @teamManagementWorkspaceRosterTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Roster'**
+  String get teamManagementWorkspaceRosterTab;
+
+  /// No description provided for @teamManagementWorkspaceBoardTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Lineup board'**
+  String get teamManagementWorkspaceBoardTab;
+
+  /// No description provided for @teamManagementWorkspaceProfileTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Team profile'**
+  String get teamManagementWorkspaceProfileTab;
+
+  /// No description provided for @teamManagementWorkspaceOperationsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule'**
+  String get teamManagementWorkspaceOperationsTab;
+
+  /// No description provided for @teamManagementWorkspaceProfileValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Name & tactics'**
+  String get teamManagementWorkspaceProfileValue;
 
   /// No description provided for @teamManagementSavedTeamsTitle.
   ///

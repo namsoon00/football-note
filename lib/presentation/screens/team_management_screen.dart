@@ -19,6 +19,8 @@ import 'club_schedule_screen.dart';
 
 enum _TacticBoardMode { assign, draw }
 
+enum _TeamManagementWorkspace { roster, board, profile, operations }
+
 typedef _PlayerBoardDropCallback = void Function({
   required String playerId,
   required Offset point,
@@ -50,10 +52,6 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   final TextEditingController _playerNumberController = TextEditingController();
   final TextEditingController _playerNoteController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  final GlobalKey _playersSectionKey = GlobalKey();
-  final GlobalKey _basicsSectionKey = GlobalKey();
-  final GlobalKey _scheduleSectionKey = GlobalKey();
-  final GlobalKey _boardSectionKey = GlobalKey();
   Timer? _autoSaveDebounce;
 
   ClubScheduleProfile _clubProfile = ClubScheduleProfile.empty();
@@ -70,6 +68,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   String _playerCondition = ManagedTeamPlayer.conditionReady;
   String? _selectedSpotId;
   String? _editingPlayerId;
+  _TeamManagementWorkspace _activeWorkspace = _TeamManagementWorkspace.roster;
   _TacticBoardMode _boardMode = _TacticBoardMode.assign;
   ManagedTacticLine? _draftTacticLine;
   bool _loaded = false;
@@ -560,6 +559,8 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
     final readOnly = _isReadOnlySupportMode;
     final totalSpots = TeamManagementService.formationSpots(_formation).length;
     final placedCount = _playerPlacements.length;
+    final activeCompetitions =
+        _competitions.where((competition) => !competition.isFinished).length;
     return Scaffold(
       body: ColoredBox(
         color: theme.scaffoldBackgroundColor,
@@ -595,72 +596,312 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
                   lastSavedAt: _lastAutoSavedAt,
                 ),
                 const SizedBox(height: AppSpacing.md),
-                KeyedSubtree(
-                  key: _playersSectionKey,
-                  child: _PlayersPanel(
-                    players: _players,
-                    lineup: _lineup,
-                    playerPlacements: _playerPlacements,
-                    playerNameController: _playerNameController,
-                    playerNumberController: _playerNumberController,
-                    playerNoteController: _playerNoteController,
-                    playerRole: _playerRole,
-                    playerFoot: _playerFoot,
-                    playerCondition: _playerCondition,
-                    editingPlayerId: _editingPlayerId,
-                    readOnly: readOnly,
-                    onRoleChanged: (role) => setState(() => _playerRole = role),
-                    onFootChanged: (foot) => setState(() => _playerFoot = foot),
-                    onConditionChanged: (condition) =>
-                        setState(() => _playerCondition = condition),
-                    onSavePlayer: _savePlayer,
-                    onCancelPlayerEdit: _cancelPlayerEdit,
-                    onEditPlayer: _editPlayer,
-                    onRemovePlayer: _removePlayer,
-                  ),
+                _TeamWorkspaceSwitcher(
+                  activeWorkspace: _activeWorkspace,
+                  playerCount: _players.length,
+                  placedCount: placedCount,
+                  totalSpots: totalSpots,
+                  activeCompetitions: activeCompetitions,
+                  totalCompetitions: _competitions.length,
+                  onWorkspaceChanged: (workspace) {
+                    setState(() => _activeWorkspace = workspace);
+                    if (_scrollController.hasClients) {
+                      unawaited(
+                        _scrollController.animateTo(
+                          0,
+                          duration: const Duration(milliseconds: 220),
+                          curve: Curves.easeOut,
+                        ),
+                      );
+                    }
+                  },
                 ),
                 const SizedBox(height: AppSpacing.md),
-                KeyedSubtree(
-                  key: _basicsSectionKey,
-                  child: _TeamBasicsPanel(
-                    teamNameController: _teamNameController,
-                    strategyController: _strategyController,
-                    readOnly: readOnly,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                KeyedSubtree(
-                  key: _scheduleSectionKey,
-                  child: _ScheduleCompetitionPanel(
-                    profile: _clubProfile,
-                    competitions: _competitions,
-                    onOpenSchedule: () => unawaited(_openClubSchedule()),
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                KeyedSubtree(
-                  key: _boardSectionKey,
-                  child: _FormationPanel(
-                    formation: _formation,
-                    players: _players,
-                    playerPlacements: _playerPlacements,
-                    tacticLines: _tacticLines,
-                    draftTacticLine: _draftTacticLine,
-                    selectedSpotId: _selectedSpotId,
-                    boardMode: _boardMode,
-                    readOnly: readOnly,
-                    onFormationChanged: _changeFormation,
-                    onSpotSelected: _selectSpot,
-                    onPlayerPlaced: _placePlayerOnBoard,
-                    onBoardModeChanged: _changeBoardMode,
-                    onTacticLineStarted: _startTacticLine,
-                    onTacticLineUpdated: _updateTacticLine,
-                    onTacticLineFinished: _finishTacticLine,
-                    onClearTacticLines: _clearTacticLines,
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 180),
+                  switchInCurve: Curves.easeOut,
+                  switchOutCurve: Curves.easeIn,
+                  child: KeyedSubtree(
+                    key: ValueKey<_TeamManagementWorkspace>(_activeWorkspace),
+                    child: _buildActiveWorkspace(readOnly),
                   ),
                 ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActiveWorkspace(bool readOnly) {
+    switch (_activeWorkspace) {
+      case _TeamManagementWorkspace.roster:
+        return _PlayersPanel(
+          players: _players,
+          lineup: _lineup,
+          playerPlacements: _playerPlacements,
+          playerNameController: _playerNameController,
+          playerNumberController: _playerNumberController,
+          playerNoteController: _playerNoteController,
+          playerRole: _playerRole,
+          playerFoot: _playerFoot,
+          playerCondition: _playerCondition,
+          editingPlayerId: _editingPlayerId,
+          readOnly: readOnly,
+          onRoleChanged: (role) => setState(() => _playerRole = role),
+          onFootChanged: (foot) => setState(() => _playerFoot = foot),
+          onConditionChanged: (condition) =>
+              setState(() => _playerCondition = condition),
+          onSavePlayer: _savePlayer,
+          onCancelPlayerEdit: _cancelPlayerEdit,
+          onEditPlayer: _editPlayer,
+          onRemovePlayer: _removePlayer,
+        );
+      case _TeamManagementWorkspace.board:
+        return _FormationPanel(
+          formation: _formation,
+          players: _players,
+          playerPlacements: _playerPlacements,
+          tacticLines: _tacticLines,
+          draftTacticLine: _draftTacticLine,
+          selectedSpotId: _selectedSpotId,
+          boardMode: _boardMode,
+          readOnly: readOnly,
+          onFormationChanged: _changeFormation,
+          onSpotSelected: _selectSpot,
+          onPlayerPlaced: _placePlayerOnBoard,
+          onBoardModeChanged: _changeBoardMode,
+          onTacticLineStarted: _startTacticLine,
+          onTacticLineUpdated: _updateTacticLine,
+          onTacticLineFinished: _finishTacticLine,
+          onClearTacticLines: _clearTacticLines,
+        );
+      case _TeamManagementWorkspace.profile:
+        return _TeamBasicsPanel(
+          teamNameController: _teamNameController,
+          strategyController: _strategyController,
+          readOnly: readOnly,
+        );
+      case _TeamManagementWorkspace.operations:
+        return _ScheduleCompetitionPanel(
+          profile: _clubProfile,
+          competitions: _competitions,
+          onOpenSchedule: () => unawaited(_openClubSchedule()),
+        );
+    }
+  }
+}
+
+class _TeamWorkspaceSwitcher extends StatelessWidget {
+  final _TeamManagementWorkspace activeWorkspace;
+  final int playerCount;
+  final int placedCount;
+  final int totalSpots;
+  final int activeCompetitions;
+  final int totalCompetitions;
+  final ValueChanged<_TeamManagementWorkspace> onWorkspaceChanged;
+
+  const _TeamWorkspaceSwitcher({
+    required this.activeWorkspace,
+    required this.playerCount,
+    required this.placedCount,
+    required this.totalSpots,
+    required this.activeCompetitions,
+    required this.totalCompetitions,
+    required this.onWorkspaceChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final items = [
+      _WorkspaceItem(
+        workspace: _TeamManagementWorkspace.roster,
+        icon: Icons.groups_2_outlined,
+        label: l10n.teamManagementWorkspaceRosterTab,
+        value: l10n.teamManagementPlayerCount(playerCount),
+      ),
+      _WorkspaceItem(
+        workspace: _TeamManagementWorkspace.board,
+        icon: Icons.grid_view_outlined,
+        label: l10n.teamManagementWorkspaceBoardTab,
+        value: l10n.teamManagementLineupFilled(placedCount, totalSpots),
+      ),
+      _WorkspaceItem(
+        workspace: _TeamManagementWorkspace.profile,
+        icon: Icons.route_outlined,
+        label: l10n.teamManagementWorkspaceProfileTab,
+        value: l10n.teamManagementWorkspaceProfileValue,
+      ),
+      _WorkspaceItem(
+        workspace: _TeamManagementWorkspace.operations,
+        icon: Icons.event_available_outlined,
+        label: l10n.teamManagementWorkspaceOperationsTab,
+        value: l10n.teamManagementOperationsCompetitionsValue(
+          activeCompetitions,
+          totalCompetitions,
+        ),
+      ),
+    ];
+
+    return Container(
+      decoration: AppSurfaces.cardDecoration(scheme, theme.brightness),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.dashboard_customize_outlined, color: scheme.primary),
+              const SizedBox(width: AppSpacing.xs),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.teamManagementWorkspaceTitle,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xxs),
+                    Text(
+                      l10n.teamManagementWorkspaceHelper,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                        height: 1.3,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final columns = constraints.maxWidth >= 760
+                  ? 4
+                  : constraints.maxWidth >= 520
+                      ? 2
+                      : 1;
+              final gap = AppSpacing.xs * (columns - 1);
+              final itemWidth = (constraints.maxWidth - gap) / columns;
+              return Wrap(
+                spacing: AppSpacing.xs,
+                runSpacing: AppSpacing.xs,
+                children: [
+                  for (final item in items)
+                    SizedBox(
+                      width: itemWidth,
+                      child: _WorkspaceTile(
+                        item: item,
+                        selected: activeWorkspace == item.workspace,
+                        onTap: () => onWorkspaceChanged(item.workspace),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WorkspaceItem {
+  final _TeamManagementWorkspace workspace;
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _WorkspaceItem({
+    required this.workspace,
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+}
+
+class _WorkspaceTile extends StatelessWidget {
+  final _WorkspaceItem item;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _WorkspaceTile({
+    required this.item,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final foreground = selected ? scheme.onPrimaryContainer : scheme.onSurface;
+    final background = selected
+        ? scheme.primaryContainer
+        : scheme.surfaceContainerHighest.withValues(alpha: 0.52);
+    return Material(
+      color: background,
+      borderRadius: AppRadius.small,
+      child: InkWell(
+        onTap: selected ? null : onTap,
+        borderRadius: AppRadius.small,
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 76),
+          padding: const EdgeInsets.all(AppSpacing.sm),
+          decoration: BoxDecoration(
+            borderRadius: AppRadius.small,
+            border: Border.all(
+              color: selected
+                  ? scheme.primary.withValues(alpha: 0.46)
+                  : AppSurfaces.borderColor(scheme, theme.brightness),
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                item.icon,
+                color: selected ? scheme.primary : scheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: foreground,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xxs),
+                    Text(
+                      item.value,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: selected
+                            ? scheme.onPrimaryContainer.withValues(alpha: 0.78)
+                            : scheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),

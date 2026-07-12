@@ -11783,14 +11783,34 @@ class AppLocalizationsKo extends AppLocalizations {
   String get teamManagementTitle => '팀 관리';
 
   @override
-  String get teamManagementSubtitle =>
-      '선수 등록, 팀 프로필, 라인업, 전술 보드를 한 화면에서 관리하세요.';
+  String get teamManagementSubtitle => '선수단, 라인업, 팀 프로필, 일정과 대회를 작업별로 정리하세요.';
 
   @override
   String get teamManagementOpenButton => '팀 관리';
 
   @override
   String get teamManagementDefaultTeamName => '우리 팀';
+
+  @override
+  String get teamManagementWorkspaceTitle => '작업 선택';
+
+  @override
+  String get teamManagementWorkspaceHelper => '필요한 영역만 열어 집중해서 관리하세요.';
+
+  @override
+  String get teamManagementWorkspaceRosterTab => '선수단';
+
+  @override
+  String get teamManagementWorkspaceBoardTab => '라인업 보드';
+
+  @override
+  String get teamManagementWorkspaceProfileTab => '팀 프로필';
+
+  @override
+  String get teamManagementWorkspaceOperationsTab => '일정·대회';
+
+  @override
+  String get teamManagementWorkspaceProfileValue => '이름·전술';
 
   @override
   String get teamManagementSavedTeamsTitle => '팀 선택';

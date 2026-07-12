@@ -11762,13 +11762,34 @@ class AppLocalizationsJa extends AppLocalizations {
   String get teamManagementTitle => 'チーム管理';
 
   @override
-  String get teamManagementSubtitle => '選手登録、チームプロフィール、ラインアップ、戦術ボードを1画面で管理します。';
+  String get teamManagementSubtitle => '選手団、ラインアップ、チームプロフィール、予定と大会を作業別に整理します。';
 
   @override
   String get teamManagementOpenButton => 'チーム管理';
 
   @override
   String get teamManagementDefaultTeamName => '自分のチーム';
+
+  @override
+  String get teamManagementWorkspaceTitle => '作業を選択';
+
+  @override
+  String get teamManagementWorkspaceHelper => '必要な領域だけ開いて集中して管理します。';
+
+  @override
+  String get teamManagementWorkspaceRosterTab => '選手団';
+
+  @override
+  String get teamManagementWorkspaceBoardTab => 'ラインアップボード';
+
+  @override
+  String get teamManagementWorkspaceProfileTab => 'チームプロフィール';
+
+  @override
+  String get teamManagementWorkspaceOperationsTab => '予定・大会';
+
+  @override
+  String get teamManagementWorkspaceProfileValue => '名前・戦術';
 
   @override
   String get teamManagementSavedTeamsTitle => 'チーム選択';
