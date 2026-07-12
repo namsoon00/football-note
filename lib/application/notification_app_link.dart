@@ -139,6 +139,14 @@ class NotificationAppLink {
     ).toString();
   }
 
+  static String clubMorningWorkout() {
+    return Uri(
+      scheme: scheme,
+      host: 'club',
+      path: '/morning-workout',
+    ).toString();
+  }
+
   static String weatherToday() => _weather(action: 'today');
 
   static String weatherOutfit() => _weather(action: 'outfit');
@@ -257,6 +265,7 @@ class NotificationAppLink {
       case 'history':
         return 'xp';
       case 'training':
+      case 'morning-workout':
         return 'club';
       case 'center':
         return 'notifications';

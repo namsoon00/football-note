@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart' show Locale;
+import 'package:flutter/material.dart' show Locale, TimeOfDay;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:football_note/gen/app_localizations.dart';
@@ -99,10 +99,7 @@ class ClubTrainingReminderService {
 
   Future<int> syncSettingsDrivenReminders() async {
     await clearAllReminders(clearMessages: false);
-    if (kIsWeb ||
-        !_settings.reminderEnabled ||
-        !_settings.clubTrainingAlertEnabled ||
-        await _isAlarmMutedNow()) {
+    if (kIsWeb || !_settings.reminderEnabled || await _isAlarmMutedNow()) {
       await _replaceClubTrainingMessages(const <Map<String, dynamic>>[]);
       return 0;
     }
@@ -114,7 +111,11 @@ class ClubTrainingReminderService {
     final enabledSchedules = profile.weekdaySchedules
         .where((schedule) => schedule.enabled)
         .toList(growable: false);
-    if (enabledSchedules.isEmpty) {
+    final shouldScheduleTraining =
+        _settings.clubTrainingAlertEnabled && enabledSchedules.isNotEmpty;
+    final shouldScheduleMorningWorkout =
+        _settings.clubMorningWorkoutAlertEnabled;
+    if (!shouldScheduleTraining && !shouldScheduleMorningWorkout) {
       await _replaceClubTrainingMessages(const <Map<String, dynamic>>[]);
       return 0;
     }
@@ -131,49 +132,92 @@ class ClubTrainingReminderService {
     final scheduledIds = <int>[];
     final messages = <Map<String, dynamic>>[];
 
-    for (final schedule in enabledSchedules) {
-      final scheduledAt = _nextWeeklyReminderTime(
-        schedule,
-        minutesBefore: minutesBefore,
+    if (shouldScheduleMorningWorkout) {
+      final scheduledAt = _nextDailyReminderTime(
+        _settings.clubMorningWorkoutAlertTime,
       );
-      final payload = NotificationAppLink.clubTraining(
-        weekday: schedule.weekday,
+      final payload = NotificationAppLink.clubMorningWorkout();
+      final timeLabel = _timeLabel(
+        _settings.clubMorningWorkoutAlertTime.hour * 60 +
+            _settings.clubMorningWorkoutAlertTime.minute,
       );
       final id = _notificationIdForScope(
-        'club_training',
-        '$sportId:${schedule.weekday}',
+        'club_morning_workout',
+        '$sportId:$timeLabel',
       );
-      final timeRange = _timeRange(schedule);
-      final body = l10n.clubTrainingNotificationBody(
-        minutesBefore,
-        timeRange,
-      );
+      final body = l10n.clubMorningWorkoutNotificationBody(timeLabel);
 
       try {
-        await _scheduleWeeklyReminder(
+        await _scheduleReminder(
           id: id,
-          title: title,
+          title: l10n.clubMorningWorkoutNotificationTitle,
           body: body,
           scheduledAt: scheduledAt,
           payload: payload,
+          matchDateTimeComponents: DateTimeComponents.time,
         );
+        scheduledIds.add(id);
+        messages.add({
+          'id': 'club-morning:$sportId:$timeLabel',
+          'payload': payload,
+          'createdAt': now.toIso8601String(),
+          'scheduledAt': scheduledAt.toIso8601String(),
+          'title': l10n.clubMorningWorkoutNotificationTitle,
+          'body': body,
+          'kind': 'morningWorkout',
+          'time': timeLabel,
+        });
       } catch (error) {
-        debugPrint('Club training reminder schedule failed: $error');
-        continue;
+        debugPrint('Morning workout reminder schedule failed: $error');
       }
+    }
 
-      scheduledIds.add(id);
-      messages.add({
-        'id':
-            'club:$sportId:${schedule.weekday}:${schedule.startMinutes}:${schedule.endMinutes}:${schedule.uniformColorValue}:$minutesBefore',
-        'payload': payload,
-        'createdAt': now.toIso8601String(),
-        'scheduledAt': scheduledAt.toIso8601String(),
-        'title': title,
-        'body': body,
-        'weekday': schedule.weekday,
-        'time': timeRange,
-      });
+    if (shouldScheduleTraining) {
+      for (final schedule in enabledSchedules) {
+        final scheduledAt = _nextWeeklyReminderTime(
+          schedule,
+          minutesBefore: minutesBefore,
+        );
+        final payload = NotificationAppLink.clubTraining(
+          weekday: schedule.weekday,
+        );
+        final id = _notificationIdForScope(
+          'club_training',
+          '$sportId:${schedule.weekday}',
+        );
+        final timeRange = _timeRange(schedule);
+        final body = l10n.clubTrainingNotificationBody(
+          minutesBefore,
+          timeRange,
+        );
+
+        try {
+          await _scheduleReminder(
+            id: id,
+            title: title,
+            body: body,
+            scheduledAt: scheduledAt,
+            payload: payload,
+            matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
+          );
+        } catch (error) {
+          debugPrint('Club training reminder schedule failed: $error');
+          continue;
+        }
+
+        scheduledIds.add(id);
+        messages.add({
+          'id':
+              'club:$sportId:${schedule.weekday}:${schedule.startMinutes}:${schedule.endMinutes}:${schedule.uniformColorValue}:$minutesBefore',
+          'payload': payload,
+          'createdAt': now.toIso8601String(),
+          'scheduledAt': scheduledAt.toIso8601String(),
+          'title': title,
+          'body': body,
+          'weekday': schedule.weekday,
+          'time': timeRange,
+        });
+      }
     }
 
     await _options.setValue(reminderIdsKey, scheduledIds);
@@ -249,12 +293,13 @@ class ClubTrainingReminderService {
     );
   }
 
-  Future<void> _scheduleWeeklyReminder({
+  Future<void> _scheduleReminder({
     required int id,
     required String title,
     required String body,
     required tz.TZDateTime scheduledAt,
     required String payload,
+    required DateTimeComponents matchDateTimeComponents,
   }) async {
     final l10n = _localizations();
     final details = NotificationDetails(
@@ -280,7 +325,7 @@ class ClubTrainingReminderService {
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
         payload: payload,
-        matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
+        matchDateTimeComponents: matchDateTimeComponents,
       );
     }
 
@@ -356,6 +401,22 @@ class ClubTrainingReminderService {
     var reminderAt = nextStart.subtract(Duration(minutes: minutesBefore));
     if (!reminderAt.isAfter(now)) {
       reminderAt = reminderAt.add(const Duration(days: 7));
+    }
+    return reminderAt;
+  }
+
+  tz.TZDateTime _nextDailyReminderTime(TimeOfDay time) {
+    final now = tz.TZDateTime.now(tz.local);
+    var reminderAt = tz.TZDateTime(
+      tz.local,
+      now.year,
+      now.month,
+      now.day,
+      time.hour,
+      time.minute,
+    );
+    if (!reminderAt.isAfter(now)) {
+      reminderAt = reminderAt.add(const Duration(days: 1));
     }
     return reminderAt;
   }

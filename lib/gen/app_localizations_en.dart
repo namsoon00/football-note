@@ -11970,6 +11970,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clubScheduleClubNameHint => 'e.g. Seongnam U15';
 
   @override
+  String get clubMorningWorkoutAlertTitle => 'Morning workout alarm';
+
+  @override
+  String get clubMorningWorkoutAlertHelper =>
+      'Keep a daily morning workout time alongside your club schedule.';
+
+  @override
+  String get clubMorningWorkoutAlertSwitchTitle =>
+      'Turn on morning workout alarm';
+
+  @override
+  String clubMorningWorkoutAlertSwitchSubtitle(Object time) {
+    return 'Daily alert at $time';
+  }
+
+  @override
+  String get clubMorningWorkoutAlertTimeTitle => 'Alert time';
+
+  @override
+  String clubMorningWorkoutAlertTimeSubtitle(Object time) {
+    return 'Current time $time';
+  }
+
+  @override
+  String get clubMorningWorkoutAlertChangeTimeAction => 'Change time';
+
+  @override
   String get clubScheduleWeekdayTitle => 'Weekly training times';
 
   @override
@@ -12060,6 +12087,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String clubTrainingNotificationBody(int minutesBefore, Object timeRange) {
     return 'Training in $minutesBefore min · $timeRange';
+  }
+
+  @override
+  String get clubMorningWorkoutNotificationTitle => 'Morning workout alarm';
+
+  @override
+  String clubMorningWorkoutNotificationBody(Object time) {
+    return '$time is your morning workout time.';
   }
 
   @override

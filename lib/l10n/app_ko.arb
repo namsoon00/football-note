@@ -6460,6 +6460,23 @@
   "clubScheduleNoUpcomingTraining": "예정된 훈련이 없어요.",
   "clubScheduleClubNameLabel": "클럽 이름",
   "clubScheduleClubNameHint": "예) 성남 U15",
+  "clubMorningWorkoutAlertTitle": "아침 운동 알림",
+  "clubMorningWorkoutAlertHelper": "클럽 일정과 함께 매일 아침 운동 시간을 챙겨요.",
+  "clubMorningWorkoutAlertSwitchTitle": "아침 운동 알림 켜기",
+  "clubMorningWorkoutAlertSwitchSubtitle": "매일 {time}에 알림",
+  "@clubMorningWorkoutAlertSwitchSubtitle": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "clubMorningWorkoutAlertTimeTitle": "알림 시간",
+  "clubMorningWorkoutAlertTimeSubtitle": "현재 {time}",
+  "@clubMorningWorkoutAlertTimeSubtitle": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "clubMorningWorkoutAlertChangeTimeAction": "시간 변경",
   "clubScheduleWeekdayTitle": "요일별 훈련시간",
   "clubScheduleWeekdayHelper": "훈련이 있는 요일만 켜고 시작/종료 시간과 유니폼 컬러를 맞추세요.",
   "clubScheduleStartTimeLabel": "시작",
@@ -6499,6 +6516,13 @@
         "type": "int"
       },
       "timeRange": {}
+    }
+  },
+  "clubMorningWorkoutNotificationTitle": "아침 운동 알림",
+  "clubMorningWorkoutNotificationBody": "{time} 아침 운동 시간이에요.",
+  "@clubMorningWorkoutNotificationBody": {
+    "placeholders": {
+      "time": {}
     }
   },
   "teamManagementTitle": "팀 관리",

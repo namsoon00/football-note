@@ -20656,6 +20656,48 @@ abstract class AppLocalizations {
   /// **'e.g. Seongnam U15'**
   String get clubScheduleClubNameHint;
 
+  /// No description provided for @clubMorningWorkoutAlertTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Morning workout alarm'**
+  String get clubMorningWorkoutAlertTitle;
+
+  /// No description provided for @clubMorningWorkoutAlertHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep a daily morning workout time alongside your club schedule.'**
+  String get clubMorningWorkoutAlertHelper;
+
+  /// No description provided for @clubMorningWorkoutAlertSwitchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on morning workout alarm'**
+  String get clubMorningWorkoutAlertSwitchTitle;
+
+  /// No description provided for @clubMorningWorkoutAlertSwitchSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily alert at {time}'**
+  String clubMorningWorkoutAlertSwitchSubtitle(Object time);
+
+  /// No description provided for @clubMorningWorkoutAlertTimeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Alert time'**
+  String get clubMorningWorkoutAlertTimeTitle;
+
+  /// No description provided for @clubMorningWorkoutAlertTimeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Current time {time}'**
+  String clubMorningWorkoutAlertTimeSubtitle(Object time);
+
+  /// No description provided for @clubMorningWorkoutAlertChangeTimeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Change time'**
+  String get clubMorningWorkoutAlertChangeTimeAction;
+
   /// No description provided for @clubScheduleWeekdayTitle.
   ///
   /// In en, this message translates to:
@@ -20823,6 +20865,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Training in {minutesBefore} min · {timeRange}'**
   String clubTrainingNotificationBody(int minutesBefore, Object timeRange);
+
+  /// No description provided for @clubMorningWorkoutNotificationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Morning workout alarm'**
+  String get clubMorningWorkoutNotificationTitle;
+
+  /// No description provided for @clubMorningWorkoutNotificationBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{time} is your morning workout time.'**
+  String clubMorningWorkoutNotificationBody(Object time);
 
   /// No description provided for @teamManagementTitle.
   ///

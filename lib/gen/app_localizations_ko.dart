@@ -11651,6 +11651,31 @@ class AppLocalizationsKo extends AppLocalizations {
   String get clubScheduleClubNameHint => '예) 성남 U15';
 
   @override
+  String get clubMorningWorkoutAlertTitle => '아침 운동 알림';
+
+  @override
+  String get clubMorningWorkoutAlertHelper => '클럽 일정과 함께 매일 아침 운동 시간을 챙겨요.';
+
+  @override
+  String get clubMorningWorkoutAlertSwitchTitle => '아침 운동 알림 켜기';
+
+  @override
+  String clubMorningWorkoutAlertSwitchSubtitle(Object time) {
+    return '매일 $time에 알림';
+  }
+
+  @override
+  String get clubMorningWorkoutAlertTimeTitle => '알림 시간';
+
+  @override
+  String clubMorningWorkoutAlertTimeSubtitle(Object time) {
+    return '현재 $time';
+  }
+
+  @override
+  String get clubMorningWorkoutAlertChangeTimeAction => '시간 변경';
+
+  @override
   String get clubScheduleWeekdayTitle => '요일별 훈련시간';
 
   @override
@@ -11738,6 +11763,14 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String clubTrainingNotificationBody(int minutesBefore, Object timeRange) {
     return '$minutesBefore분 뒤 훈련 · $timeRange';
+  }
+
+  @override
+  String get clubMorningWorkoutNotificationTitle => '아침 운동 알림';
+
+  @override
+  String clubMorningWorkoutNotificationBody(Object time) {
+    return '$time 아침 운동 시간이에요.';
   }
 
   @override

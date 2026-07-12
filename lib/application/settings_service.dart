@@ -20,6 +20,8 @@ class SettingsService extends ChangeNotifier {
   TimeOfDay _weatherAlertTime = const TimeOfDay(hour: 7, minute: 0);
   bool _clubTrainingAlertEnabled = true;
   int _clubTrainingAlertMinutesBefore = 60;
+  bool _clubMorningWorkoutAlertEnabled = false;
+  TimeOfDay _clubMorningWorkoutAlertTime = const TimeOfDay(hour: 6, minute: 30);
   int _inactivityAlertDays = 3;
 
   SettingsService(this._repository);
@@ -37,6 +39,8 @@ class SettingsService extends ChangeNotifier {
   TimeOfDay get weatherAlertTime => _weatherAlertTime;
   bool get clubTrainingAlertEnabled => _clubTrainingAlertEnabled;
   int get clubTrainingAlertMinutesBefore => _clubTrainingAlertMinutesBefore;
+  bool get clubMorningWorkoutAlertEnabled => _clubMorningWorkoutAlertEnabled;
+  TimeOfDay get clubMorningWorkoutAlertTime => _clubMorningWorkoutAlertTime;
   int get inactivityAlertDays => _inactivityAlertDays;
 
   void load() {
@@ -75,6 +79,13 @@ class SettingsService extends ChangeNotifier {
       min: 5,
       max: 240,
     );
+    _clubMorningWorkoutAlertEnabled =
+        _repository.getValue<bool>('club_morning_workout_alert_enabled') ??
+            _clubMorningWorkoutAlertEnabled;
+    final morningWorkoutTime =
+        _repository.getValue<String>('club_morning_workout_alert_time');
+    _clubMorningWorkoutAlertTime =
+        _parseTime(morningWorkoutTime) ?? _clubMorningWorkoutAlertTime;
     _inactivityAlertDays = _clampInt(
       _repository.getValue<num>('inactivity_alert_days')?.toInt(),
       fallback: _inactivityAlertDays,
@@ -161,6 +172,21 @@ class SettingsService extends ChangeNotifier {
     await _repository.setValue(
       'club_training_alert_minutes_before',
       _clubTrainingAlertMinutesBefore,
+    );
+    _notifyListenersSafely();
+  }
+
+  Future<void> setClubMorningWorkoutAlertEnabled(bool enabled) async {
+    _clubMorningWorkoutAlertEnabled = enabled;
+    await _repository.setValue('club_morning_workout_alert_enabled', enabled);
+    _notifyListenersSafely();
+  }
+
+  Future<void> setClubMorningWorkoutAlertTime(TimeOfDay time) async {
+    _clubMorningWorkoutAlertTime = time;
+    await _repository.setValue(
+      'club_morning_workout_alert_time',
+      _formatTime(time),
     );
     _notifyListenersSafely();
   }
