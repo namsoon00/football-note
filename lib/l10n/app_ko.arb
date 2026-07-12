@@ -6461,11 +6461,12 @@
   "clubScheduleClubNameLabel": "클럽 이름",
   "clubScheduleClubNameHint": "예) 성남 U15",
   "clubMorningWorkoutAlertTitle": "아침 운동 알림",
-  "clubMorningWorkoutAlertHelper": "클럽 일정과 함께 매일 아침 운동 시간을 챙겨요.",
+  "clubMorningWorkoutAlertHelper": "클럽 일정과 함께 아침 운동 시간을 챙겨요.",
   "clubMorningWorkoutAlertSwitchTitle": "아침 운동 알림 켜기",
-  "clubMorningWorkoutAlertSwitchSubtitle": "매일 {time}에 알림",
+  "clubMorningWorkoutAlertSwitchSubtitle": "{weekdays} · {time}에 알림",
   "@clubMorningWorkoutAlertSwitchSubtitle": {
     "placeholders": {
+      "weekdays": {},
       "time": {}
     }
   },
@@ -6477,6 +6478,8 @@
     }
   },
   "clubMorningWorkoutAlertChangeTimeAction": "시간 변경",
+  "clubMorningWorkoutAlertWeekdayTitle": "알림 요일",
+  "clubMorningWorkoutAlertEveryDay": "매일",
   "clubScheduleWeekdayTitle": "요일별 훈련시간",
   "clubScheduleWeekdayHelper": "훈련이 있는 요일만 켜고 시작/종료 시간과 유니폼 컬러를 맞추세요.",
   "clubScheduleStartTimeLabel": "시작",

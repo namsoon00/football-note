@@ -6461,11 +6461,12 @@
   "clubScheduleClubNameLabel": "Club name",
   "clubScheduleClubNameHint": "e.g. Seongnam U15",
   "clubMorningWorkoutAlertTitle": "Morning workout alarm",
-  "clubMorningWorkoutAlertHelper": "Keep a daily morning workout time alongside your club schedule.",
+  "clubMorningWorkoutAlertHelper": "Keep your morning workout time alongside your club schedule.",
   "clubMorningWorkoutAlertSwitchTitle": "Turn on morning workout alarm",
-  "clubMorningWorkoutAlertSwitchSubtitle": "Daily alert at {time}",
+  "clubMorningWorkoutAlertSwitchSubtitle": "{weekdays} · alert at {time}",
   "@clubMorningWorkoutAlertSwitchSubtitle": {
     "placeholders": {
+      "weekdays": {},
       "time": {}
     }
   },
@@ -6477,6 +6478,8 @@
     }
   },
   "clubMorningWorkoutAlertChangeTimeAction": "Change time",
+  "clubMorningWorkoutAlertWeekdayTitle": "Alert weekdays",
+  "clubMorningWorkoutAlertEveryDay": "Every day",
   "clubScheduleWeekdayTitle": "Weekly training times",
   "clubScheduleWeekdayHelper": "Turn on training days, then set start time, end time, and uniform color.",
   "clubScheduleStartTimeLabel": "Start",

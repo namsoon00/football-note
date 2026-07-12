@@ -313,7 +313,7 @@ void main() {
     expect(profile.weekdaySchedules.first.enabled, isTrue);
   });
 
-  testWidgets('club schedule enables a daily morning workout alarm', (
+  testWidgets('club schedule configures morning workout alarm weekdays', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(900, 2200);
@@ -347,12 +347,35 @@ void main() {
       find.byKey(const ValueKey<String>('club-morning-workout-time-row')),
       findsOneWidget,
     );
+    final sundayChip = find.byKey(
+      const ValueKey<String>('club-morning-workout-weekday-7'),
+    );
+    await tester.ensureVisible(sundayChip);
+    await tester.tap(sundayChip);
+    await tester.pumpAndSettle();
+
+    expect(
+      repository.getValue<List>('club_morning_workout_alert_weekdays'),
+      <int>[
+        DateTime.monday,
+        DateTime.tuesday,
+        DateTime.wednesday,
+        DateTime.thursday,
+        DateTime.friday,
+        DateTime.saturday,
+      ],
+    );
+
     final logs = repository.getValue<List>(
       ClubTrainingReminderService.messageLogKey,
     );
-    expect(logs, hasLength(1));
-    final row = (logs!.single as Map).cast<String, dynamic>();
-    expect(row['payload'], 'taeonote://club/morning-workout');
+    expect(logs, hasLength(6));
+    expect(
+      logs!.whereType<Map>().every(
+            (row) => row['payload'] == 'taeonote://club/morning-workout',
+          ),
+      isTrue,
+    );
   });
 
   testWidgets('parent mode keeps club schedule read-only without auto save', (

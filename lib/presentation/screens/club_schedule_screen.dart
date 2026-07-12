@@ -266,6 +266,28 @@ class _ClubScheduleScreenState extends State<ClubScheduleScreen> {
     if (mounted) setState(() {});
   }
 
+  Future<void> _setMorningWorkoutAlertWeekday(
+    int weekday,
+    bool selected,
+  ) async {
+    if (_isReadOnlySupportMode) {
+      _showReadOnlyMessage();
+      return;
+    }
+    final next = _settingsService.clubMorningWorkoutAlertWeekdays.toSet();
+    if (selected) {
+      next.add(weekday);
+    } else {
+      if (next.length <= 1) return;
+      next.remove(weekday);
+    }
+    await _settingsService.setClubMorningWorkoutAlertWeekdays(
+      next.toList(growable: false),
+    );
+    await _syncClubTrainingReminders();
+    if (mounted) setState(() {});
+  }
+
   void _setSchedule(ClubTrainingSchedule schedule) {
     if (_isReadOnlySupportMode) {
       _showReadOnlyMessage();
@@ -374,9 +396,14 @@ class _ClubScheduleScreenState extends State<ClubScheduleScreen> {
                       _settingsService.clubMorningWorkoutAlertTime.format(
                     context,
                   ),
+                  weekdaySummary: _morningWorkoutWeekdaySummary(),
+                  selectedWeekdays:
+                      _settingsService.clubMorningWorkoutAlertWeekdays,
+                  weekdayLabel: _shortWeekdayLabel,
                   readOnly: readOnly,
                   onChanged: _setMorningWorkoutAlertEnabled,
                   onPickTime: _pickMorningWorkoutAlertTime,
+                  onWeekdayChanged: _setMorningWorkoutAlertWeekday,
                 ),
               ],
             ),
@@ -485,6 +512,25 @@ class _ClubScheduleScreenState extends State<ClubScheduleScreen> {
     return DateFormat.EEEE(
       AppLocalizations.of(context)!.localeName,
     ).format(_dateForWeekday(weekday));
+  }
+
+  String _shortWeekdayLabel(int weekday) {
+    return DateFormat.E(
+      AppLocalizations.of(context)!.localeName,
+    ).format(_dateForWeekday(weekday));
+  }
+
+  String _morningWorkoutWeekdaySummary() {
+    final weekdays = _settingsService.clubMorningWorkoutAlertWeekdays;
+    final weekdaySet = weekdays.toSet();
+    final allSelected =
+        SettingsService.defaultClubMorningWorkoutAlertWeekdays.every(
+      weekdaySet.contains,
+    );
+    if (allSelected) {
+      return AppLocalizations.of(context)!.clubMorningWorkoutAlertEveryDay;
+    }
+    return weekdays.map(_shortWeekdayLabel).join(', ');
   }
 
   String _timeRangeLabel(ClubTrainingSchedule schedule) {
@@ -634,16 +680,24 @@ class _ClubNamePanel extends StatelessWidget {
 class _MorningWorkoutAlarmPanel extends StatelessWidget {
   final bool enabled;
   final String timeLabel;
+  final String weekdaySummary;
+  final List<int> selectedWeekdays;
+  final String Function(int weekday) weekdayLabel;
   final bool readOnly;
   final ValueChanged<bool> onChanged;
   final VoidCallback onPickTime;
+  final void Function(int weekday, bool selected) onWeekdayChanged;
 
   const _MorningWorkoutAlarmPanel({
     required this.enabled,
     required this.timeLabel,
+    required this.weekdaySummary,
+    required this.selectedWeekdays,
+    required this.weekdayLabel,
     required this.readOnly,
     required this.onChanged,
     required this.onPickTime,
+    required this.onWeekdayChanged,
   });
 
   @override
@@ -671,7 +725,10 @@ class _MorningWorkoutAlarmPanel extends StatelessWidget {
             contentPadding: EdgeInsets.zero,
             title: Text(l10n.clubMorningWorkoutAlertSwitchTitle),
             subtitle: Text(
-              l10n.clubMorningWorkoutAlertSwitchSubtitle(timeLabel),
+              l10n.clubMorningWorkoutAlertSwitchSubtitle(
+                weekdaySummary,
+                timeLabel,
+              ),
             ),
             value: enabled,
             onChanged: readOnly ? null : onChanged,
@@ -693,6 +750,32 @@ class _MorningWorkoutAlarmPanel extends StatelessWidget {
                 onPressed: readOnly ? null : onPickTime,
                 child: Text(l10n.clubMorningWorkoutAlertChangeTimeAction),
               ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              l10n.clubMorningWorkoutAlertWeekdayTitle,
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Wrap(
+              spacing: AppSpacing.xs,
+              runSpacing: AppSpacing.xs,
+              children: [
+                for (final weekday
+                    in SettingsService.defaultClubMorningWorkoutAlertWeekdays)
+                  FilterChip(
+                    key: ValueKey<String>(
+                      'club-morning-workout-weekday-$weekday',
+                    ),
+                    label: Text(weekdayLabel(weekday)),
+                    selected: selectedWeekdays.contains(weekday),
+                    onSelected: readOnly
+                        ? null
+                        : (selected) => onWeekdayChanged(weekday, selected),
+                  ),
+              ],
             ),
           ],
         ],

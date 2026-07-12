@@ -416,6 +416,7 @@ class DriveBackupService implements BackupRepository {
     'club_training_alert_minutes_before',
     'club_morning_workout_alert_enabled',
     'club_morning_workout_alert_time',
+    'club_morning_workout_alert_weekdays',
     'inactivity_alert_days',
     TrainingPlanReminderService.reminderIdsKey,
     TrainingPlanReminderService.reminderReadIdsKey,

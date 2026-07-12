@@ -20665,7 +20665,7 @@ abstract class AppLocalizations {
   /// No description provided for @clubMorningWorkoutAlertHelper.
   ///
   /// In en, this message translates to:
-  /// **'Keep a daily morning workout time alongside your club schedule.'**
+  /// **'Keep your morning workout time alongside your club schedule.'**
   String get clubMorningWorkoutAlertHelper;
 
   /// No description provided for @clubMorningWorkoutAlertSwitchTitle.
@@ -20677,8 +20677,8 @@ abstract class AppLocalizations {
   /// No description provided for @clubMorningWorkoutAlertSwitchSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Daily alert at {time}'**
-  String clubMorningWorkoutAlertSwitchSubtitle(Object time);
+  /// **'{weekdays} · alert at {time}'**
+  String clubMorningWorkoutAlertSwitchSubtitle(Object weekdays, Object time);
 
   /// No description provided for @clubMorningWorkoutAlertTimeTitle.
   ///
@@ -20697,6 +20697,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Change time'**
   String get clubMorningWorkoutAlertChangeTimeAction;
+
+  /// No description provided for @clubMorningWorkoutAlertWeekdayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Alert weekdays'**
+  String get clubMorningWorkoutAlertWeekdayTitle;
+
+  /// No description provided for @clubMorningWorkoutAlertEveryDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Every day'**
+  String get clubMorningWorkoutAlertEveryDay;
 
   /// No description provided for @clubScheduleWeekdayTitle.
   ///

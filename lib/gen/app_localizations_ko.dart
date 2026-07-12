@@ -11654,14 +11654,14 @@ class AppLocalizationsKo extends AppLocalizations {
   String get clubMorningWorkoutAlertTitle => '아침 운동 알림';
 
   @override
-  String get clubMorningWorkoutAlertHelper => '클럽 일정과 함께 매일 아침 운동 시간을 챙겨요.';
+  String get clubMorningWorkoutAlertHelper => '클럽 일정과 함께 아침 운동 시간을 챙겨요.';
 
   @override
   String get clubMorningWorkoutAlertSwitchTitle => '아침 운동 알림 켜기';
 
   @override
-  String clubMorningWorkoutAlertSwitchSubtitle(Object time) {
-    return '매일 $time에 알림';
+  String clubMorningWorkoutAlertSwitchSubtitle(Object weekdays, Object time) {
+    return '$weekdays · $time에 알림';
   }
 
   @override
@@ -11674,6 +11674,12 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get clubMorningWorkoutAlertChangeTimeAction => '시간 변경';
+
+  @override
+  String get clubMorningWorkoutAlertWeekdayTitle => '알림 요일';
+
+  @override
+  String get clubMorningWorkoutAlertEveryDay => '매일';
 
   @override
   String get clubScheduleWeekdayTitle => '요일별 훈련시간';

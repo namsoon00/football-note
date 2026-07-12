@@ -111,10 +111,12 @@ class ClubTrainingReminderService {
     final enabledSchedules = profile.weekdaySchedules
         .where((schedule) => schedule.enabled)
         .toList(growable: false);
+    final morningWorkoutWeekdays = _settings.clubMorningWorkoutAlertWeekdays;
     final shouldScheduleTraining =
         _settings.clubTrainingAlertEnabled && enabledSchedules.isNotEmpty;
     final shouldScheduleMorningWorkout =
-        _settings.clubMorningWorkoutAlertEnabled;
+        _settings.clubMorningWorkoutAlertEnabled &&
+            morningWorkoutWeekdays.isNotEmpty;
     if (!shouldScheduleTraining && !shouldScheduleMorningWorkout) {
       await _replaceClubTrainingMessages(const <Map<String, dynamic>>[]);
       return 0;
@@ -133,42 +135,68 @@ class ClubTrainingReminderService {
     final messages = <Map<String, dynamic>>[];
 
     if (shouldScheduleMorningWorkout) {
-      final scheduledAt = _nextDailyReminderTime(
-        _settings.clubMorningWorkoutAlertTime,
-      );
+      final morningWorkoutTime = _settings.clubMorningWorkoutAlertTime;
       final payload = NotificationAppLink.clubMorningWorkout();
       final timeLabel = _timeLabel(
-        _settings.clubMorningWorkoutAlertTime.hour * 60 +
-            _settings.clubMorningWorkoutAlertTime.minute,
-      );
-      final id = _notificationIdForScope(
-        'club_morning_workout',
-        '$sportId:$timeLabel',
+        morningWorkoutTime.hour * 60 + morningWorkoutTime.minute,
       );
       final body = l10n.clubMorningWorkoutNotificationBody(timeLabel);
 
-      try {
-        await _scheduleReminder(
-          id: id,
-          title: l10n.clubMorningWorkoutNotificationTitle,
-          body: body,
-          scheduledAt: scheduledAt,
-          payload: payload,
+      Future<void> scheduleMorningWorkoutReminder({
+        required tz.TZDateTime scheduledAt,
+        required DateTimeComponents matchDateTimeComponents,
+        int? weekday,
+      }) async {
+        final weekdayToken = weekday == null ? 'daily' : weekday.toString();
+        final id = _notificationIdForScope(
+          'club_morning_workout',
+          '$sportId:$weekdayToken:$timeLabel',
+        );
+        try {
+          await _scheduleReminder(
+            id: id,
+            title: l10n.clubMorningWorkoutNotificationTitle,
+            body: body,
+            scheduledAt: scheduledAt,
+            payload: payload,
+            matchDateTimeComponents: matchDateTimeComponents,
+          );
+          scheduledIds.add(id);
+          messages.add({
+            'id': 'club-morning:$sportId:$weekdayToken:$timeLabel',
+            'payload': payload,
+            'createdAt': now.toIso8601String(),
+            'scheduledAt': scheduledAt.toIso8601String(),
+            'title': l10n.clubMorningWorkoutNotificationTitle,
+            'body': body,
+            'kind': 'morningWorkout',
+            'time': timeLabel,
+            'weekdays': weekday == null
+                ? List<int>.from(morningWorkoutWeekdays)
+                : <int>[weekday],
+            if (weekday != null) 'weekday': weekday,
+          });
+        } catch (error) {
+          debugPrint('Morning workout reminder schedule failed: $error');
+        }
+      }
+
+      if (_hasEveryWeekday(morningWorkoutWeekdays)) {
+        await scheduleMorningWorkoutReminder(
+          scheduledAt: _nextDailyReminderTime(morningWorkoutTime),
           matchDateTimeComponents: DateTimeComponents.time,
         );
-        scheduledIds.add(id);
-        messages.add({
-          'id': 'club-morning:$sportId:$timeLabel',
-          'payload': payload,
-          'createdAt': now.toIso8601String(),
-          'scheduledAt': scheduledAt.toIso8601String(),
-          'title': l10n.clubMorningWorkoutNotificationTitle,
-          'body': body,
-          'kind': 'morningWorkout',
-          'time': timeLabel,
-        });
-      } catch (error) {
-        debugPrint('Morning workout reminder schedule failed: $error');
+      } else {
+        for (final weekday in morningWorkoutWeekdays) {
+          await scheduleMorningWorkoutReminder(
+            scheduledAt: _nextWeeklyMorningWorkoutReminderTime(
+              weekday: weekday,
+              time: morningWorkoutTime,
+            ),
+            matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
+            weekday: weekday,
+          );
+        }
       }
     }
 
@@ -419,6 +447,34 @@ class ClubTrainingReminderService {
       reminderAt = reminderAt.add(const Duration(days: 1));
     }
     return reminderAt;
+  }
+
+  tz.TZDateTime _nextWeeklyMorningWorkoutReminderTime({
+    required int weekday,
+    required TimeOfDay time,
+  }) {
+    final now = tz.TZDateTime.now(tz.local);
+    final todayAtTime = tz.TZDateTime(
+      tz.local,
+      now.year,
+      now.month,
+      now.day,
+      time.hour,
+      time.minute,
+    );
+    final delta = (weekday - now.weekday + 7) % 7;
+    var reminderAt = todayAtTime.add(Duration(days: delta));
+    if (!reminderAt.isAfter(now)) {
+      reminderAt = reminderAt.add(const Duration(days: 7));
+    }
+    return reminderAt;
+  }
+
+  bool _hasEveryWeekday(List<int> weekdays) {
+    final weekdaySet = weekdays.toSet();
+    return SettingsService.defaultClubMorningWorkoutAlertWeekdays.every(
+      weekdaySet.contains,
+    );
   }
 
   String _timeRange(ClubTrainingSchedule schedule) {
