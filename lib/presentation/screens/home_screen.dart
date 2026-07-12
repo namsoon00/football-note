@@ -185,6 +185,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
+  void _scheduleTabGuideIfNeeded(int tabIndex) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      unawaited(_showTabGuideIfNeeded(tabIndex));
+    });
+  }
+
   Future<void> _syncFamilySharedDataIfNeeded() async {
     final backup = widget.driveBackupService;
     if (backup == null || _familySyncInFlight) return;
@@ -480,7 +487,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _builtTabIndices.add(value);
       _index = value;
     });
-    unawaited(_showTabGuideIfNeeded(value));
+    _scheduleTabGuideIfNeeded(value);
   }
 
   void _openWeeklyStatsForCurrentWeek() {
@@ -492,7 +499,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _statsInitialTabRequestKey++;
       _index = 3;
     });
-    unawaited(_showTabGuideIfNeeded(3));
+    _scheduleTabGuideIfNeeded(3);
   }
 
   void _openTodayDiary() {
@@ -501,7 +508,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _openTodayDiaryRequestKey++;
       _index = 4;
     });
-    unawaited(_showTabGuideIfNeeded(4));
+    _scheduleTabGuideIfNeeded(4);
   }
 
   DateTimeRange _currentWeekRange() {
@@ -830,7 +837,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _pendingCalendarQuickCreateAction = action;
       _index = 2;
     });
-    unawaited(_showTabGuideIfNeeded(2));
+    _scheduleTabGuideIfNeeded(2);
   }
 
   Future<void> _openMatchHub() async {
@@ -886,7 +893,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _builtTabIndices.add(2);
       _index = 2;
     });
-    unawaited(_showTabGuideIfNeeded(2));
+    _scheduleTabGuideIfNeeded(2);
   }
 
   void _openMatchHubStats() {
@@ -896,7 +903,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _statsInitialTabRequestKey += 1;
       _index = 3;
     });
-    unawaited(_showTabGuideIfNeeded(3));
+    _scheduleTabGuideIfNeeded(3);
   }
 
   Future<void> _openTrainingBoards() async {
@@ -1039,6 +1046,7 @@ class _TabCoachMarkDialogState extends State<_TabCoachMarkDialog> {
   static const double _floatingWidth = 260;
   static const double _floatingHeightEstimate = 78;
   static const double _panelGap = 14;
+  final GlobalKey _overlayKey = GlobalKey(debugLabel: 'tab-coach-mark-overlay');
   int _stepIndex = 0;
 
   @override
@@ -1082,104 +1090,107 @@ class _TabCoachMarkDialogState extends State<_TabCoachMarkDialog> {
             safePadding,
             panelSlot,
           );
-          return Stack(
+          return KeyedSubtree(
             key: const ValueKey('tab-coach-mark-screen-overlay'),
-            children: [
-              Positioned.fill(
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () => Navigator.of(context).pop(),
-                  child: CustomPaint(
-                    painter: _CoachMarkScrimPainter(
-                      spotlightRect: spotlightRect,
-                      color: Colors.black.withValues(
-                        alpha:
-                            theme.brightness == Brightness.dark ? 0.50 : 0.42,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              AnimatedPositioned(
-                duration: const Duration(milliseconds: 220),
-                curve: Curves.easeOutCubic,
-                left: spotlightRect.left,
-                top: spotlightRect.top,
-                width: spotlightRect.width,
-                height: spotlightRect.height,
-                child: IgnorePointer(
-                  child: DecoratedBox(
-                    key: const ValueKey('tab-coach-mark-highlight'),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: theme.colorScheme.primary,
-                        width: 3,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: theme.colorScheme.primary.withValues(
-                            alpha: 0.42,
-                          ),
-                          blurRadius: 28,
-                          spreadRadius: 4,
+            child: Stack(
+              key: _overlayKey,
+              children: [
+                Positioned.fill(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => Navigator.of(context).pop(),
+                    child: CustomPaint(
+                      painter: _CoachMarkScrimPainter(
+                        spotlightRect: spotlightRect,
+                        color: Colors.black.withValues(
+                          alpha:
+                              theme.brightness == Brightness.dark ? 0.50 : 0.42,
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-              if (floatingOffset != null)
                 AnimatedPositioned(
                   duration: const Duration(milliseconds: 220),
                   curve: Curves.easeOutCubic,
-                  left: floatingOffset.dx,
-                  top: floatingOffset.dy,
-                  width: _floatingWidth,
+                  left: spotlightRect.left,
+                  top: spotlightRect.top,
+                  width: spotlightRect.width,
+                  height: spotlightRect.height,
+                  child: IgnorePointer(
+                    child: DecoratedBox(
+                      key: const ValueKey('tab-coach-mark-highlight'),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: theme.colorScheme.primary,
+                          width: 3,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: theme.colorScheme.primary.withValues(
+                              alpha: 0.42,
+                            ),
+                            blurRadius: 28,
+                            spreadRadius: 4,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                if (floatingOffset != null)
+                  AnimatedPositioned(
+                    duration: const Duration(milliseconds: 220),
+                    curve: Curves.easeOutCubic,
+                    left: floatingOffset.dx,
+                    top: floatingOffset.dy,
+                    width: _floatingWidth,
+                    child: Align(
+                      child: _CoachMarkFloatingTarget(
+                        key: const ValueKey('tab-coach-mark-floating-target'),
+                        step: step,
+                        label: AppLocalizations.of(
+                          context,
+                        )!
+                            .welcomeGuideCoachMarkLabel,
+                      ),
+                    ),
+                  ),
+                AnimatedPositioned(
+                  duration: const Duration(milliseconds: 220),
+                  curve: Curves.easeOutCubic,
+                  left: 16,
+                  right: 16,
+                  top: panelSlot.top,
+                  bottom: panelSlot.bottom,
                   child: Align(
-                    child: _CoachMarkFloatingTarget(
-                      key: const ValueKey('tab-coach-mark-floating-target'),
-                      step: step,
-                      label: AppLocalizations.of(
-                        context,
-                      )!
-                          .welcomeGuideCoachMarkLabel,
+                    alignment: panelSlot.alignment,
+                    child: SingleChildScrollView(
+                      reverse: panelSlot.isAboveTarget,
+                      child: _CoachMarkExplanationPanel(
+                        key: const ValueKey('tab-coach-mark-explanation-panel'),
+                        guide: widget.guide,
+                        step: step,
+                        currentStep: _stepIndex + 1,
+                        totalSteps: steps.length,
+                        isLast: isLast,
+                        onSkip: () => Navigator.of(context).pop(),
+                        onBack: _stepIndex == 0
+                            ? null
+                            : () => unawaited(_showStep(_stepIndex - 1)),
+                        onTry: step.onTry == null
+                            ? null
+                            : () => Navigator.of(context).pop(step.onTry),
+                        onNext: isLast
+                            ? () => Navigator.of(context).pop()
+                            : () => unawaited(_showStep(_stepIndex + 1)),
+                      ),
                     ),
                   ),
                 ),
-              AnimatedPositioned(
-                duration: const Duration(milliseconds: 220),
-                curve: Curves.easeOutCubic,
-                left: 16,
-                right: 16,
-                top: panelSlot.top,
-                bottom: panelSlot.bottom,
-                child: Align(
-                  alignment: panelSlot.alignment,
-                  child: SingleChildScrollView(
-                    reverse: panelSlot.isAboveTarget,
-                    child: _CoachMarkExplanationPanel(
-                      key: const ValueKey('tab-coach-mark-explanation-panel'),
-                      guide: widget.guide,
-                      step: step,
-                      currentStep: _stepIndex + 1,
-                      totalSteps: steps.length,
-                      isLast: isLast,
-                      onSkip: () => Navigator.of(context).pop(),
-                      onBack: _stepIndex == 0
-                          ? null
-                          : () => unawaited(_showStep(_stepIndex - 1)),
-                      onTry: step.onTry == null
-                          ? null
-                          : () => Navigator.of(context).pop(step.onTry),
-                      onNext: isLast
-                          ? () => Navigator.of(context).pop()
-                          : () => unawaited(_showStep(_stepIndex + 1)),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+              ],
+            ),
           );
         },
       ),
@@ -1246,8 +1257,24 @@ class _TabCoachMarkDialogState extends State<_TabCoachMarkDialog> {
         !renderObject.hasSize) {
       return null;
     }
-    final topLeft = renderObject.localToGlobal(Offset.zero);
-    return topLeft & renderObject.size;
+    final targetTopLeft = renderObject.localToGlobal(Offset.zero);
+    final targetBottomRight = renderObject.localToGlobal(
+      Offset(renderObject.size.width, renderObject.size.height),
+    );
+    final overlayContext = _overlayKey.currentContext;
+    if (overlayContext == null) {
+      return Rect.fromPoints(targetTopLeft, targetBottomRight);
+    }
+    final overlayObject = overlayContext.findRenderObject();
+    if (overlayObject is! RenderBox ||
+        !overlayObject.attached ||
+        !overlayObject.hasSize) {
+      return Rect.fromPoints(targetTopLeft, targetBottomRight);
+    }
+    return Rect.fromPoints(
+      overlayObject.globalToLocal(targetTopLeft),
+      overlayObject.globalToLocal(targetBottomRight),
+    );
   }
 
   Rect _fallbackRectForStep({
