@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/family_access_service.dart';
@@ -35,6 +36,7 @@ void main() {
   var storageGeneration = 0;
 
   setUpAll(() async {
+    _mockAudioplayersChannels();
     tempDir = await Directory.systemTemp.createTemp('football_note_entry_form');
     Hive.init(tempDir.path);
     if (!Hive.isAdapterRegistered(1)) {
@@ -43,6 +45,7 @@ void main() {
   });
 
   tearDownAll(() {
+    _clearAudioplayersChannels();
     unawaited(Hive.close());
     unawaited(tempDir.delete(recursive: true));
   });
@@ -178,7 +181,17 @@ void main() {
     final lessonDetailField = find.widgetWithText(TextFormField, '어떤 레슨인가요?');
     await tester.ensureVisible(lessonDetailField);
     await tester.enterText(lessonDetailField, '드리블 개인레슨');
-    await tapSaveAndFinish(tester);
+    for (var i = 0; i < 12; i += 1) {
+      await tester.pump(const Duration(milliseconds: 200));
+      await tester.runAsync(() async {
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+      });
+      final entry = (await allEntries(tester)).single;
+      if (entry.liftingMinutes == 30 && entry.jumpRopeMinutes == 40) {
+        break;
+      }
+    }
+    await tester.pump();
 
     final savedEntry = (await allEntries(tester)).single;
     expect(savedEntry.isLesson, isTrue);
@@ -344,6 +357,89 @@ void main() {
     expect(trainingBox.length, 1);
     expect(trainingBox.values.single.improvements, '압박이 오기 전에 선택지를 더 빨리 봤다.');
     expect(find.text('open-detached'), findsOneWidget);
+  });
+
+  testWidgets('conditioning minutes use ten-minute selectors and save', (
+    WidgetTester tester,
+  ) async {
+    await resetStorage(tester);
+    final original = TrainingEntry(
+      date: DateTime(2026, 3, 17, 18),
+      createdAt: DateTime(2026, 3, 17, 18),
+      durationMinutes: 60,
+      intensity: 3,
+      type: '기본기',
+      mood: 4,
+      injury: false,
+      notes: '',
+      location: '학교 운동장',
+      program: '기본기',
+      liftingMinutes: 10,
+      jumpRopeEnabled: true,
+      jumpRopeMinutes: 20,
+      jumpRopeCount: 100,
+    );
+    await addEntry(tester, original);
+    final storedEntry = (await allEntries(tester)).single;
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+          home: EntryFormScreen(
+            trainingService: trainingService,
+            optionRepository: optionRepository,
+            localeService: localeService,
+            settingsService: settingsService,
+            entry: storedEntry,
+          ),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+
+    final liftingSelect = _conditioningMinuteSelect('리프팅 시간(분)');
+    await tester.ensureVisible(liftingSelect);
+    expect(liftingSelect, findsOneWidget);
+    expect(
+      find.widgetWithText(TextFormField, '리프팅 시간(분)'),
+      findsNothing,
+    );
+
+    await tester.tap(liftingSelect);
+    await tester.pumpAndSettle();
+    expect(find.text('60분'), findsWidgets);
+    expect(find.text('70분'), findsNothing);
+    await tester.tap(find.text('30분').last);
+    await tester.pumpAndSettle();
+
+    final jumpRopeSelect = _conditioningMinuteSelect('줄넘기 시간(분)');
+    await tester.ensureVisible(jumpRopeSelect);
+    expect(jumpRopeSelect, findsOneWidget);
+    expect(
+      find.widgetWithText(TextFormField, '줄넘기 시간(분)'),
+      findsNothing,
+    );
+
+    await tester.tap(jumpRopeSelect);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('40분').last);
+    await tester.pumpAndSettle();
+
+    await tapSaveAndFinish(tester);
+
+    final savedEntry = (await allEntries(tester)).single;
+    expect(savedEntry.liftingMinutes, 30);
+    expect(savedEntry.jumpRopeMinutes, 40);
+    expect(savedEntry.jumpRopeCount, 100);
   });
 
   testWidgets(
@@ -843,6 +939,74 @@ void main() {
     expect(find.text('패스 패턴'), findsWidgets);
     expect(find.text('보호자 모드에서는 훈련 스케치를 수정할 수 없어요.'), findsOneWidget);
   });
+}
+
+Finder _conditioningMinuteSelect(String label) {
+  return find.byWidgetPredicate(
+    (widget) =>
+        widget is DropdownButtonFormField<int> &&
+        widget.decoration.labelText == label,
+  );
+}
+
+void _mockAudioplayersChannels() {
+  final messenger =
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+  const globalMethodChannel = MethodChannel('xyz.luan/audioplayers.global');
+  const playerMethodChannel = MethodChannel('xyz.luan/audioplayers');
+  const globalEventChannel =
+      EventChannel('xyz.luan/audioplayers.global/events');
+  messenger.setMockMethodCallHandler(globalMethodChannel, (_) async => null);
+  messenger.setMockMethodCallHandler(playerMethodChannel, (_) async => null);
+  messenger.setMockStreamHandler(
+    globalEventChannel,
+    MockStreamHandler.inline(
+      onListen: (_, __) {},
+      onCancel: (_) {},
+    ),
+  );
+  for (final playerId in <String>[
+    'app-sfx-tap',
+    'app-sfx-reward',
+    'app-sfx-mission-complete',
+    'app-sfx-reward-claimed',
+  ]) {
+    messenger.setMockStreamHandler(
+      EventChannel('xyz.luan/audioplayers/events/$playerId'),
+      MockStreamHandler.inline(
+        onListen: (_, __) {},
+        onCancel: (_) {},
+      ),
+    );
+  }
+}
+
+void _clearAudioplayersChannels() {
+  final messenger =
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+  messenger.setMockMethodCallHandler(
+    const MethodChannel('xyz.luan/audioplayers.global'),
+    null,
+  );
+  messenger.setMockMethodCallHandler(
+    const MethodChannel('xyz.luan/audioplayers'),
+    null,
+  );
+  messenger.setMockStreamHandler(
+    const EventChannel('xyz.luan/audioplayers.global/events'),
+    null,
+  );
+  for (final playerId in <String>[
+    'app-sfx-tap',
+    'app-sfx-reward',
+    'app-sfx-mission-complete',
+    'app-sfx-reward-claimed',
+  ]) {
+    messenger.setMockStreamHandler(
+      EventChannel('xyz.luan/audioplayers/events/$playerId'),
+      null,
+    );
+  }
 }
 
 class _MemoryOptionRepository implements OptionRepository {
