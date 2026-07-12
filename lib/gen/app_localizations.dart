@@ -20092,6 +20092,36 @@ abstract class AppLocalizations {
   /// **'e.g. Main stadium'**
   String get matchLocationHint;
 
+  /// No description provided for @matchBoardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Match board'**
+  String get matchBoardTitle;
+
+  /// No description provided for @matchBoardHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Set the opponent, score, result, and personal stats directly on the board.'**
+  String get matchBoardHelper;
+
+  /// No description provided for @matchBoardEventsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick events'**
+  String get matchBoardEventsTitle;
+
+  /// No description provided for @matchDetailsSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get matchDetailsSectionTitle;
+
+  /// No description provided for @matchDetailsSectionHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep venue and notes after the live match flow.'**
+  String get matchDetailsSectionHelper;
+
   /// No description provided for @matchFlowBasicSectionTitle.
   ///
   /// In en, this message translates to:
