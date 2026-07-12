@@ -111,6 +111,15 @@ class EntryFormScreen extends StatefulWidget {
 
 class _EntryFormScreenState extends State<EntryFormScreen> {
   static const String _recentBoardIdKey = 'recent_board_id';
+  static const List<int> _conditioningMinuteBaseOptions = <int>[
+    0,
+    10,
+    20,
+    30,
+    40,
+    50,
+    60,
+  ];
   final _formKey = GlobalKey<FormState>();
   final _goodPointsController = TextEditingController();
   final _improvementsController = TextEditingController();
@@ -125,9 +134,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   final _liftShouldersController = TextEditingController();
   final _liftArmsController = TextEditingController();
   final _liftCoreController = TextEditingController();
-  final _liftingMinutesController = TextEditingController();
   final _jumpRopeController = TextEditingController();
-  final _jumpRopeMinutesController = TextEditingController();
   final _jumpRopeNoteController = TextEditingController();
   final _liftingFieldFocusNode = FocusNode();
   final _jumpRopeFieldFocusNode = FocusNode();
@@ -177,7 +184,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   bool _injury = false;
   bool _rehab = false;
   bool _liftingEnabled = false;
+  int _liftingMinutes = 0;
   bool _jumpRopeEnabled = false;
+  int _jumpRopeMinutes = 0;
   bool _fortuneEnabled = false;
   bool _breakfastDone = false;
   int _breakfastRiceBowls = 0;
@@ -351,12 +360,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       );
       _liftArmsController.text = _liftingText(entry.liftingByPart, 'head');
       _liftCoreController.text = _liftingText(entry.liftingByPart, 'chest');
-      _liftingMinutesController.text =
-          entry.liftingMinutes > 0 ? entry.liftingMinutes.toString() : '';
+      _liftingMinutes = entry.liftingMinutes < 0 ? 0 : entry.liftingMinutes;
       _jumpRopeController.text =
           entry.jumpRopeCount > 0 ? entry.jumpRopeCount.toString() : '';
-      _jumpRopeMinutesController.text =
-          entry.jumpRopeMinutes > 0 ? entry.jumpRopeMinutes.toString() : '';
+      _jumpRopeMinutes = entry.jumpRopeMinutes < 0 ? 0 : entry.jumpRopeMinutes;
       _jumpRopeEnabled = entry.jumpRopeEnabled;
       _jumpRopeNoteController.text = entry.jumpRopeNote;
       _breakfastDone = entry.breakfastDone;
@@ -681,10 +688,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _weatherSummary.trim(),
       _weatherLocation.trim(),
       _jumpRopeController.text.trim(),
-      _jumpRopeMinutesController.text.trim(),
+      _jumpRopeMinutes.toString(),
       _jumpRopeEnabled.toString(),
       _jumpRopeNoteController.text.trim(),
-      _liftingMinutesController.text.trim(),
+      _liftingMinutes.toString(),
       _breakfastDone.toString(),
       _breakfastRiceBowls.toString(),
       _lunchDone.toString(),
@@ -1848,9 +1855,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     _liftShouldersController.dispose();
     _liftArmsController.dispose();
     _liftCoreController.dispose();
-    _liftingMinutesController.dispose();
     _jumpRopeController.dispose();
-    _jumpRopeMinutesController.dispose();
     _jumpRopeNoteController.dispose();
     _liftingFieldFocusNode.dispose();
     _jumpRopeFieldFocusNode.dispose();
@@ -2288,19 +2293,23 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                         ).textTheme.titleSmall,
                                       ),
                                       const SizedBox(height: 8),
-                                      _buildEmphasizedField(
+                                      _buildConditioningMinutesSelect(
                                         fieldKey: _liftingFieldKey,
-                                        controller: _liftingMinutesController,
                                         focusNode: _liftingFieldFocusNode,
                                         enabled: _liftingEnabled,
-                                        keyboardType: TextInputType.number,
+                                        value: _liftingMinutes,
                                         decoration: InputDecoration(
                                           labelText: l10n
                                               .sportConditioningMinutesLabel(
                                             secondaryConditioningLabel,
                                           ),
-                                          hintText: '0',
                                         ),
+                                        onChanged: (value) {
+                                          setState(
+                                            () => _liftingMinutes = value,
+                                          );
+                                          _scheduleAutoSave();
+                                        },
                                       ),
                                       const SizedBox(height: 8),
                                       Row(
@@ -2436,22 +2445,26 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                       Row(
                                         children: [
                                           Expanded(
-                                            child: _buildEmphasizedField(
+                                            child:
+                                                _buildConditioningMinutesSelect(
                                               fieldKey: _jumpRopeFieldKey,
-                                              controller:
-                                                  _jumpRopeMinutesController,
                                               focusNode:
                                                   _jumpRopeFieldFocusNode,
                                               enabled: _jumpRopeEnabled,
-                                              keyboardType:
-                                                  TextInputType.number,
+                                              value: _jumpRopeMinutes,
                                               decoration: InputDecoration(
                                                 labelText: l10n
                                                     .sportConditioningMinutesLabel(
                                                   primaryConditioningLabel,
                                                 ),
-                                                hintText: '0',
                                               ),
+                                              onChanged: (value) {
+                                                setState(
+                                                  () =>
+                                                      _jumpRopeMinutes = value,
+                                                );
+                                                _scheduleAutoSave();
+                                              },
                                             ),
                                           ),
                                           const SizedBox(width: 12),
@@ -3082,6 +3095,92 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     );
   }
 
+  Widget _buildConditioningMinutesSelect({
+    Key? fieldKey,
+    FocusNode? focusNode,
+    required InputDecoration decoration,
+    required int value,
+    required ValueChanged<int> onChanged,
+    bool enabled = true,
+  }) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final outline = theme.colorScheme.outline.withValues(alpha: 0.42);
+    final disabledOutline = theme.colorScheme.outline.withValues(alpha: 0.26);
+    final disabledText = theme.colorScheme.onSurface.withValues(alpha: 0.45);
+    final fillColor = enabled
+        ? theme.colorScheme.surfaceContainerHighest
+        : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.56);
+    final selectedValue = value < 0 ? 0 : value;
+    final options = _conditioningMinuteOptions(selectedValue);
+    return DropdownButtonFormField<int>(
+      key: fieldKey,
+      focusNode: focusNode,
+      initialValue: selectedValue,
+      isExpanded: true,
+      borderRadius: BorderRadius.circular(12),
+      icon: const Icon(Icons.expand_more_rounded),
+      style: TextStyle(
+        color: enabled ? theme.colorScheme.onSurface : disabledText,
+      ),
+      decoration: decoration.copyWith(
+        filled: true,
+        fillColor: fillColor,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 12,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: outline, width: 1.3),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: outline, width: 1.3),
+        ),
+        disabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: disabledOutline, width: 1.2),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: theme.colorScheme.primary, width: 1.8),
+        ),
+        labelStyle: TextStyle(
+          color: enabled
+              ? theme.colorScheme.onSurfaceVariant
+              : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.46),
+        ),
+      ),
+      items: options
+          .map(
+            (minutes) => DropdownMenuItem<int>(
+              value: minutes,
+              child: Text(
+                minutes <= 0 ? l10n.notSet : l10n.minutes(minutes),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          )
+          .toList(growable: false),
+      onChanged: enabled
+          ? (selected) {
+              if (selected != null) onChanged(selected);
+            }
+          : null,
+    );
+  }
+
+  List<int> _conditioningMinuteOptions(int selectedMinutes) {
+    final options = _conditioningMinuteBaseOptions.toList();
+    if (selectedMinutes > 0 && !options.contains(selectedMinutes)) {
+      options.add(selectedMinutes);
+      options.sort();
+    }
+    return options;
+  }
+
   Widget _buildVoiceListeningStatus(AppLocalizations l10n) {
     final theme = Theme.of(context);
     return Padding(
@@ -3612,9 +3711,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       isLesson: _isLesson,
       lessonDetail: _isLesson ? _lessonDetailController.text.trim() : '',
       liftingByPart: const <String, int>{},
-      liftingMinutes: _liftingEnabled
-          ? (_parseInt(_liftingMinutesController.text.trim()) ?? 0)
-          : 0,
+      liftingMinutes: _liftingEnabled ? _liftingMinutes : 0,
       goalFocuses: _selectedDailyGoals.toList()..sort(),
       goodPoints: goodPoints,
       improvements: improvements,
@@ -3623,9 +3720,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       jumpRopeCount: _jumpRopeEnabled
           ? (_parseInt(_jumpRopeController.text.trim()) ?? 0)
           : 0,
-      jumpRopeMinutes: _jumpRopeEnabled
-          ? (_parseInt(_jumpRopeMinutesController.text.trim()) ?? 0)
-          : 0,
+      jumpRopeMinutes: _jumpRopeEnabled ? _jumpRopeMinutes : 0,
       jumpRopeEnabled: _jumpRopeEnabled,
       jumpRopeNote: _jumpRopeEnabled ? _jumpRopeNoteController.text.trim() : '',
       breakfastDone: _breakfastDone,
@@ -3768,12 +3863,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
               'chest': _parseLiftCount(_liftCoreController.text),
             }..removeWhere((_, value) => value <= 0))
           : <String, int>{};
-      final liftingMinutes = _liftingEnabled
-          ? (_parseInt(
-                _liftingMinutesController.text.trim(),
-              )?.clamp(0, 1000000) ??
-              0)
-          : 0;
+      final liftingMinutes = _liftingEnabled ? _liftingMinutes : 0;
       final selectedGoals = _selectedDailyGoals.toList()..sort();
       final goodPoints = _goodPointsController.text.trim();
       final improvements = _improvementsController.text.trim();
@@ -3783,12 +3873,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       final jumpRopeCount = _jumpRopeEnabled
           ? (_parseInt(_jumpRopeController.text.trim())?.clamp(0, 1000000) ?? 0)
           : 0;
-      final jumpRopeMinutes = _jumpRopeEnabled
-          ? (_parseInt(
-                _jumpRopeMinutesController.text.trim(),
-              )?.clamp(0, 1000000) ??
-              0)
-          : 0;
+      final jumpRopeMinutes = _jumpRopeEnabled ? _jumpRopeMinutes : 0;
       final jumpRopeNote =
           _jumpRopeEnabled ? _jumpRopeNoteController.text.trim() : '';
 
