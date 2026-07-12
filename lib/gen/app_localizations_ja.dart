@@ -12501,6 +12501,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get trainingSketchDeleteRouteButton => '選択したものを削除';
 
   @override
+  String get trainingSketchDeleteStageActionTooltip => 'ステージアクションを削除';
+
+  @override
   String trainingSketchPlayerRouteChip(int index) {
     return 'プレイヤー $index';
   }

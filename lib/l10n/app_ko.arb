@@ -6930,6 +6930,7 @@
   "trainingSketchReverseRouteButton": "방향 뒤집기",
   "trainingSketchRedrawRouteButton": "선택 이동선 다시 그리기",
   "trainingSketchDeleteRouteButton": "선택 이동선 삭제",
+  "trainingSketchDeleteStageActionTooltip": "단계 액션 삭제",
   "trainingSketchPlayerRouteChip": "사람 {index}",
   "@trainingSketchPlayerRouteChip": {
     "placeholders": {

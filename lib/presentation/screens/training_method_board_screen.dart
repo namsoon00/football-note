@@ -2841,15 +2841,94 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   void _deleteSelectedRoute() {
     final route = _selectedRoute;
     if (route == null) return;
+    _deleteRouteById(route.id);
+  }
+
+  bool _isPossessedCarryBallRoute(_BoardRoute route) {
+    final actorItemId = route.actorItemId;
+    return route.kind == _PathDrawMode.ball &&
+        actorItemId != null &&
+        route.targetItemId == actorItemId;
+  }
+
+  Set<String> _actionRouteIdsForDeletion(_BoardRoute route) {
+    final routeIds = <String>{route.id};
+    final stageIndex = _normalizedRouteStageIndex(route.stageIndex);
+    String? playerId;
+    if (route.kind == _PathDrawMode.player) {
+      playerId = route.linkedItemId ?? route.actorItemId;
+    } else if (_isPossessedCarryBallRoute(route)) {
+      playerId = route.actorItemId;
+    }
+    if (playerId == null) return routeIds;
+
+    for (final candidate in _currentPage.routes) {
+      if (candidate.id == route.id ||
+          _normalizedRouteStageIndex(candidate.stageIndex) != stageIndex) {
+        continue;
+      }
+      if (route.kind == _PathDrawMode.player) {
+        if (_isPossessedCarryBallRoute(candidate) &&
+            candidate.actorItemId == playerId) {
+          routeIds.add(candidate.id);
+        }
+      } else if (_isPossessedCarryBallRoute(route) &&
+          candidate.kind == _PathDrawMode.player &&
+          (candidate.linkedItemId == playerId ||
+              candidate.actorItemId == playerId)) {
+        routeIds.add(candidate.id);
+      }
+    }
+    return routeIds;
+  }
+
+  void _removeIdleBallIfUnowned(String ballId) {
+    final ball = _itemById(ballId);
+    if (ball == null || ball.type != _BoardItemType.ball) return;
+    final hasBallRoute = _currentPage.routes.any(
+      (route) =>
+          route.kind == _PathDrawMode.ball &&
+          route.linkedItemId == ball.id &&
+          route.points.length >= 2,
+    );
+    if (hasBallRoute || _currentBallOwner(ball) != null) return;
+    _currentPage.items.removeWhere((item) => item.id == ball.id);
+    _currentPage.routes.removeWhere((route) => route.linkedItemId == ball.id);
+    if (_selectedItemId == ball.id) {
+      _selectedItemId = null;
+    }
+  }
+
+  void _deleteRouteById(String routeId) {
+    final route = _firstWhereOrNull(
+      _currentPage.routes,
+      (entry) => entry.id == routeId,
+    );
+    if (route == null) return;
+    final routeIds = _actionRouteIdsForDeletion(route);
+    final linkedBallIds = _currentPage.routes
+        .where(
+          (entry) =>
+              routeIds.contains(entry.id) &&
+              entry.kind == _PathDrawMode.ball &&
+              entry.linkedItemId != null,
+        )
+        .map((entry) => entry.linkedItemId!)
+        .toSet();
     final wasPlaying = _playbackTracks.any(
-      (track) => track.route.id == route.id,
+      (track) => routeIds.contains(track.route.id),
     );
     if (wasPlaying) {
       _stopRoutePlayback(restoreStart: false);
     }
     setState(() {
-      _currentPage.routes.removeWhere((entry) => entry.id == route.id);
-      _selectedRouteId = null;
+      _currentPage.routes.removeWhere((entry) => routeIds.contains(entry.id));
+      if (_selectedRouteId != null && routeIds.contains(_selectedRouteId)) {
+        _selectedRouteId = null;
+      }
+      for (final ballId in linkedBallIds) {
+        _removeIdleBallIfUnowned(ballId);
+      }
       _routeReplaceMode = false;
       _activeRoutePoints = null;
       _activeRouteSegmentDurationsMs = null;
@@ -4237,6 +4316,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     String? targetItemId,
     bool createNewRoute = false,
   }) {
+    if (actorItemId == null) return false;
     _stopRoutePlayback(restoreStart: false);
     setState(() {
       final start = _itemPosition(ball);
@@ -6600,9 +6680,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     required bool isActive,
     required ThemeData theme,
   }) {
-    final descriptions = summary.routes
-        .map(_stageRouteActionDescription)
-        .toList(growable: false);
     final colors = theme.colorScheme;
     return InkWell(
       key: ValueKey('training-global-stage-${summary.stageIndex}'),
@@ -6651,11 +6728,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                       ),
                     ),
                     const SizedBox(height: 3),
-                    for (final description in descriptions)
+                    for (final route in summary.routes)
                       Padding(
                         padding: const EdgeInsets.only(top: 2),
                         child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Icon(
                               Icons.subdirectory_arrow_right,
@@ -6665,8 +6742,42 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                             const SizedBox(width: 4),
                             Expanded(
                               child: Text(
-                                description,
+                                _stageRouteActionDescription(route),
                                 style: theme.textTheme.bodySmall,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            Tooltip(
+                              message:
+                                  _l10n.trainingSketchDeleteStageActionTooltip,
+                              child: Semantics(
+                                button: true,
+                                enabled: !widget.readOnly,
+                                label: _l10n
+                                    .trainingSketchDeleteStageActionTooltip,
+                                child: Material(
+                                  color: Colors.transparent,
+                                  shape: const CircleBorder(),
+                                  child: InkWell(
+                                    key: ValueKey(
+                                      'training-global-stage-action-delete-${route.id}',
+                                    ),
+                                    customBorder: const CircleBorder(),
+                                    onTap: widget.readOnly
+                                        ? null
+                                        : () => _deleteRouteById(route.id),
+                                    child: SizedBox(
+                                      width: 32,
+                                      height: 32,
+                                      child: Icon(
+                                        Icons.close,
+                                        size: 16,
+                                        color: colors.error,
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
                           ],
@@ -7009,6 +7120,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             ),
             _buildSelectedColorButton(selected),
             IconButton(
+              key: const ValueKey('training-selected-item-delete-button'),
               onPressed: _removeSelected,
               icon: const Icon(Icons.delete_outline, color: Colors.red),
               tooltip: l10n.delete,
@@ -7021,6 +7133,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         ],
         if (selected.type == _BoardItemType.player) ...[
           const SizedBox(height: 10),
+          _buildGlobalStagePlanner(),
+          const SizedBox(height: 10),
           Text(
             l10n.trainingSketchLinkPlayerHint,
             style: Theme.of(context).textTheme.bodySmall,
@@ -7031,8 +7145,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             icon: const Icon(Icons.add_road_outlined),
             label: Text(l10n.trainingSketchCreateMoveRouteButton),
           ),
-          const SizedBox(height: 10),
-          _buildGlobalStagePlanner(),
           if (selectedStageRoute != null) ...[
             const SizedBox(height: 10),
             _buildRouteStageControls(
