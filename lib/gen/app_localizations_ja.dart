@@ -11014,6 +11014,13 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get matchCompetitionQuickLoadTitle => '保存済み大会を読み込む';
+
+  @override
+  String get matchCompetitionQuickLoadHelper =>
+      'リーグ/トーナメント名、参加チーム、状態、会場を試合記録に反映します。';
+
+  @override
   String get matchCompetitionFinishedNotice =>
       '終了した大会です。過去の試合記録を整理するときに選択してください。';
 

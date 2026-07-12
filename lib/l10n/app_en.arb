@@ -6072,6 +6072,8 @@
       "name": {}
     }
   },
+  "matchCompetitionQuickLoadTitle": "Load saved competition",
+  "matchCompetitionQuickLoadHelper": "Fill the match record with the league or tournament name, teams, status, and venue.",
   "matchCompetitionFinishedNotice": "This competition is finished. Select it when organizing past match records.",
   "matchCompetitionManageButton": "Teams / results",
   "matchCompetitionOpenButton": "Competition management",

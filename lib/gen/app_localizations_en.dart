@@ -11333,6 +11333,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get matchCompetitionQuickLoadTitle => 'Load saved competition';
+
+  @override
+  String get matchCompetitionQuickLoadHelper =>
+      'Fill the match record with the league or tournament name, teams, status, and venue.';
+
+  @override
   String get matchCompetitionFinishedNotice =>
       'This competition is finished. Select it when organizing past match records.';
 

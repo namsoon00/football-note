@@ -19545,6 +19545,18 @@ abstract class AppLocalizations {
   /// **'{name} · finished'**
   String matchCompetitionOptionFinished(Object name);
 
+  /// No description provided for @matchCompetitionQuickLoadTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Load saved competition'**
+  String get matchCompetitionQuickLoadTitle;
+
+  /// No description provided for @matchCompetitionQuickLoadHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill the match record with the league or tournament name, teams, status, and venue.'**
+  String get matchCompetitionQuickLoadHelper;
+
   /// No description provided for @matchCompetitionFinishedNotice.
   ///
   /// In en, this message translates to:
