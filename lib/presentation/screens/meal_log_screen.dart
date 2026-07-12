@@ -1139,7 +1139,7 @@ class _CompanionFoodSelector extends StatelessWidget {
   }
 
   Future<void> _openFoodSheet(BuildContext context) async {
-    final next = await showModalBottomSheet<List<String>>(
+    await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
@@ -1147,21 +1147,22 @@ class _CompanionFoodSelector extends StatelessWidget {
         return _CompanionFoodSheet(
           selectedDishId: selectedDishId,
           selectedFoodIds: selectedFoodIds,
+          onChanged: onChanged,
         );
       },
     );
-    if (next == null) return;
-    onChanged(next);
   }
 }
 
 class _CompanionFoodSheet extends StatefulWidget {
   final String selectedDishId;
   final List<String> selectedFoodIds;
+  final ValueChanged<List<String>> onChanged;
 
   const _CompanionFoodSheet({
     required this.selectedDishId,
     required this.selectedFoodIds,
+    required this.onChanged,
   });
 
   @override
@@ -1251,16 +1252,15 @@ class _CompanionFoodSheetState extends State<_CompanionFoodSheet> {
               Row(
                 children: [
                   TextButton(
-                    onPressed: _selectedFoodIds.isEmpty
-                        ? null
-                        : () => setState(_selectedFoodIds.clear),
+                    onPressed:
+                        _selectedFoodIds.isEmpty ? null : _clearSelection,
                     child: Text(l10n.mealFoodSelectionClear),
                   ),
                   const Spacer(),
                   FilledButton(
                     key: const ValueKey('meal-food-sheet-done'),
                     onPressed: () {
-                      Navigator.of(context).pop(_orderedSelection());
+                      Navigator.of(context).pop();
                     },
                     child: Text(l10n.mealFoodSelectionDone),
                   ),
@@ -1289,6 +1289,12 @@ class _CompanionFoodSheetState extends State<_CompanionFoodSheet> {
         _selectedFoodIds.remove(id);
       }
     });
+    widget.onChanged(_orderedSelection());
+  }
+
+  void _clearSelection() {
+    setState(_selectedFoodIds.clear);
+    widget.onChanged(const <String>[]);
   }
 
   List<String> _orderedSelection() {
