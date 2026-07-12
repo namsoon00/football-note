@@ -11034,6 +11034,13 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get matchCompetitionQuickLoadTitle => '저장된 대회 불러오기';
+
+  @override
+  String get matchCompetitionQuickLoadHelper =>
+      '리그/토너먼트 이름, 참가 팀, 상태와 장소를 시합 기록에 채웁니다.';
+
+  @override
   String get matchCompetitionFinishedNotice =>
       '종료된 대회입니다. 이전 경기 기록을 정리할 때 선택하세요.';
 

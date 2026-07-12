@@ -326,6 +326,12 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
     final sportId = widget.editingEntry?.sportId ??
         SportService(widget.optionRepository).currentSportId();
     final labels = SportMatchLabels.forSport(l10n: l10n, sportId: sportId);
+    final savedCompetitions = _isCompetitionMatch
+        ? MatchCompetitionService(
+            widget.optionRepository,
+            sportId: sportId,
+          ).competitionsForKind(_matchKind)
+        : const <MatchCompetitionRecord>[];
     final opponentOptions = _opponentOptions();
     return _MatchRecordSection(
       step: 1,
@@ -334,6 +340,17 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
       helper: l10n.matchBoardHelper,
       children: [
         _buildMatchSetupControls(context),
+        if (savedCompetitions.isNotEmpty) ...[
+          const SizedBox(height: AppSpacing.sm),
+          _SavedCompetitionLoader(
+            competitions: savedCompetitions,
+            selectedCompetitionId: _selectedCompetitionId,
+            enabled: !_saving,
+            onSelected: (record) {
+              _updateAndScheduleAutoSave(() => _applyCompetition(record));
+            },
+          ),
+        ],
         const SizedBox(height: AppSpacing.sm),
         _buildOpponentControl(context, opponentOptions),
         const SizedBox(height: AppSpacing.sm),
@@ -699,17 +716,6 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
 
   Widget _buildCompetitionSection(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final sportId = widget.editingEntry?.sportId ??
-        SportService(widget.optionRepository).currentSportId();
-    final competitions = MatchCompetitionService(
-      widget.optionRepository,
-      sportId: sportId,
-    ).competitionsForKind(_matchKind);
-    final selectedValue = competitions.any(
-      (competition) => competition.id == _selectedCompetitionId,
-    )
-        ? _selectedCompetitionId
-        : null;
     return _MatchRecordSection(
       step: 2,
       icon: _matchKind == MatchCompetitionRecord.kindTournament
@@ -718,40 +724,6 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
       title: l10n.matchFlowCompetitionSectionTitle,
       helper: l10n.matchFlowCompetitionSectionHelper,
       children: [
-        if (competitions.isNotEmpty) ...[
-          DropdownButtonFormField<String>(
-            initialValue: selectedValue,
-            items: [
-              for (final competition in competitions)
-                DropdownMenuItem<String>(
-                  value: competition.id,
-                  child: Text(
-                    competition.isFinished
-                        ? l10n.matchCompetitionOptionFinished(competition.name)
-                        : l10n.matchCompetitionOptionActive(competition.name),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-            ],
-            onChanged: _saving
-                ? null
-                : (value) {
-                    final record = value == null
-                        ? null
-                        : MatchCompetitionService(
-                            widget.optionRepository,
-                            sportId: sportId,
-                          ).findCompetitionById(value);
-                    if (record == null) return;
-                    _updateAndScheduleAutoSave(() => _applyCompetition(record));
-                  },
-            decoration: InputDecoration(
-              labelText: l10n.matchCompetitionSelectLabel,
-              border: const OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.xs),
-        ],
         TextField(
           controller: _competitionNameController,
           enabled: !_saving,
@@ -950,11 +922,16 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
   }
 
   void _applyCompetition(MatchCompetitionRecord record) {
+    _matchKind = record.kind;
     _selectedCompetitionId = record.id;
     _competitionName = record.name;
     _competitionNameController.text = record.name;
     _competitionStatus = record.status;
     _teams = MatchCompetitionService.normalizeTeams(record.teams);
+    if (_location.trim().isEmpty && record.venue.trim().isNotEmpty) {
+      _location = record.venue.trim();
+      _locationController.text = _location;
+    }
     if (!_teams.contains(_opponent.trim())) {
       _opponent = '';
       _opponentController.clear();
@@ -1258,6 +1235,109 @@ class _MatchRecordSection extends StatelessWidget {
           ],
           const SizedBox(height: AppSpacing.md),
           ...children,
+        ],
+      ),
+    );
+  }
+}
+
+class _SavedCompetitionLoader extends StatelessWidget {
+  final List<MatchCompetitionRecord> competitions;
+  final String selectedCompetitionId;
+  final bool enabled;
+  final ValueChanged<MatchCompetitionRecord> onSelected;
+
+  const _SavedCompetitionLoader({
+    required this.competitions,
+    required this.selectedCompetitionId,
+    required this.enabled,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final selectedValue =
+        competitions.any((record) => record.id == selectedCompetitionId)
+            ? selectedCompetitionId
+            : null;
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.sm),
+      decoration: AppSurfaces.subtleDecoration(
+        scheme,
+        theme.brightness,
+        accent: scheme.secondary,
+        accentAlpha: 0.04,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.cloud_download_outlined, color: scheme.secondary),
+              const SizedBox(width: AppSpacing.xs),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.matchCompetitionQuickLoadTitle,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xxs),
+                    Text(
+                      l10n.matchCompetitionQuickLoadHelper,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w700,
+                        height: 1.3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          DropdownButtonFormField<String>(
+            key: const ValueKey<String>('match-saved-competition-loader'),
+            initialValue: selectedValue,
+            items: [
+              for (final competition in competitions)
+                DropdownMenuItem<String>(
+                  value: competition.id,
+                  child: Text(
+                    competition.isFinished
+                        ? l10n.matchCompetitionOptionFinished(
+                            competition.name,
+                          )
+                        : l10n.matchCompetitionOptionActive(competition.name),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+            ],
+            onChanged: enabled
+                ? (value) {
+                    if (value == null) return;
+                    for (final competition in competitions) {
+                      if (competition.id == value) {
+                        onSelected(competition);
+                        return;
+                      }
+                    }
+                  }
+                : null,
+            decoration: InputDecoration(
+              labelText: l10n.matchCompetitionSelectLabel,
+              border: const OutlineInputBorder(),
+            ),
+          ),
         ],
       ),
     );

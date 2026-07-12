@@ -6072,6 +6072,8 @@
       "name": {}
     }
   },
+  "matchCompetitionQuickLoadTitle": "保存済み大会を読み込む",
+  "matchCompetitionQuickLoadHelper": "リーグ/トーナメント名、参加チーム、状態、会場を試合記録に反映します。",
   "matchCompetitionFinishedNotice": "終了した大会です。過去の試合記録を整理するときに選択してください。",
   "matchCompetitionManageButton": "チーム登録/結果を見る",
   "matchCompetitionOpenButton": "大会管理",
