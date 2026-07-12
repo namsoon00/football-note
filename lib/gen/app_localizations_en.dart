@@ -12108,13 +12108,35 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get teamManagementSubtitle =>
-      'Manage player registration, team profile, lineup, and tactics board on one screen.';
+      'Organize the roster, lineup, team profile, schedule, and competitions by task.';
 
   @override
   String get teamManagementOpenButton => 'Team management';
 
   @override
   String get teamManagementDefaultTeamName => 'Our team';
+
+  @override
+  String get teamManagementWorkspaceTitle => 'Choose a workspace';
+
+  @override
+  String get teamManagementWorkspaceHelper =>
+      'Open only the area you need and stay focused.';
+
+  @override
+  String get teamManagementWorkspaceRosterTab => 'Roster';
+
+  @override
+  String get teamManagementWorkspaceBoardTab => 'Lineup board';
+
+  @override
+  String get teamManagementWorkspaceProfileTab => 'Team profile';
+
+  @override
+  String get teamManagementWorkspaceOperationsTab => 'Schedule';
+
+  @override
+  String get teamManagementWorkspaceProfileValue => 'Name & tactics';
 
   @override
   String get teamManagementSavedTeamsTitle => 'Team selector';

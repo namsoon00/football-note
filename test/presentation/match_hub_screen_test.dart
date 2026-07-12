@@ -398,7 +398,9 @@ void main() {
     expect(find.widgetWithText(OutlinedButton, '팀 삭제'), findsNothing);
     expect(find.text('팀 선택'), findsNothing);
 
-    await tester.enterText(find.byType(TextField).at(3), '보호자 팀');
+    await tester.tap(find.text('팀 프로필').last);
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, '보호자 팀');
     await tester.pump(const Duration(seconds: 1));
     await tester.pumpAndSettle();
 
@@ -547,10 +549,10 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    expect(find.text('작업 선택'), findsOneWidget);
+    expect(find.text('팀 프로필과 전술 원칙'), findsNothing);
     expect(
-      tester.getTopLeft(find.text('선수단').last).dy,
-      lessThan(tester.getTopLeft(find.text('팀 프로필과 전술 원칙').last).dy),
-    );
+        find.byKey(const ValueKey('team-tactics-board-pitch')), findsNothing);
     expect(find.widgetWithText(FilledButton, '새 팀'), findsNothing);
     expect(find.widgetWithText(OutlinedButton, '팀 삭제'), findsNothing);
     expect(find.text('팀 선택'), findsNothing);
@@ -568,8 +570,12 @@ void main() {
     await tester.tap(addPlayerButton);
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.byType(TextField).at(3), '우리 팀 U15');
-    await tester.enterText(find.byType(TextField).at(4), '전방 압박 후 측면 전환');
+    await tester.tap(find.text('팀 프로필').last);
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).at(0), '우리 팀 U15');
+    await tester.enterText(find.byType(TextField).at(1), '전방 압박 후 측면 전환');
+    await tester.tap(find.text('라인업 보드').last);
+    await tester.pumpAndSettle();
 
     final playerChip = find.text('10 김민준').last;
     final pitchFinder = find.byKey(const ValueKey('team-tactics-board-pitch'));
