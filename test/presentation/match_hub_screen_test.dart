@@ -478,10 +478,28 @@ void main() {
 
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField).at(1), '서울 U15');
-    await tester.ensureVisible(find.text('승'));
+    await tester.enterText(
+      find.byKey(const ValueKey<String>('match-opponent-field')),
+      '서울 U15',
+    );
+    await tester.tap(
+      find.byKey(const ValueKey<String>('match-board-our-score-increase')),
+    );
+    await tester.ensureVisible(
+      find.byKey(const ValueKey<String>('match-board-primary-stat-increase')),
+    );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('승'));
+    await tester.tap(
+      find.byKey(const ValueKey<String>('match-board-primary-stat-increase')),
+    );
+    await tester.ensureVisible(
+      find.byKey(const ValueKey<String>('match-board-minutes-increase')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey<String>('match-board-minutes-increase')),
+    );
+    await tester.ensureVisible(find.text('승'));
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('저장'));
     await tester.pumpAndSettle();
@@ -492,6 +510,8 @@ void main() {
     expect(trainingRepository.entries.single.opponentTeam, '서울 U15');
     expect(trainingRepository.entries.single.scoredGoals, 1);
     expect(trainingRepository.entries.single.concededGoals, 0);
+    expect(trainingRepository.entries.single.playerGoals, 1);
+    expect(trainingRepository.entries.single.minutesPlayed, 5);
     expect(trainingRepository.entries.single.matchKind, 'friendly');
   });
 

@@ -263,17 +263,13 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
               children: [
                 _buildHeader(context),
                 const SizedBox(height: AppSpacing.md),
-                _buildBasicsSection(context),
+                _buildMatchBoardSection(context),
                 if (_isCompetitionMatch) ...[
                   const SizedBox(height: AppSpacing.sm),
                   _buildCompetitionSection(context),
                 ],
                 const SizedBox(height: AppSpacing.sm),
-                _buildOpponentSection(context),
-                const SizedBox(height: AppSpacing.sm),
-                _buildResultSection(context),
-                const SizedBox(height: AppSpacing.sm),
-                _buildPersonalSection(context),
+                _buildMatchDetailsSection(context),
                 const SizedBox(height: AppSpacing.lg),
                 _buildActions(context),
               ],
@@ -324,55 +320,349 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
     );
   }
 
-  Widget _buildBasicsSection(BuildContext context) {
+  Widget _buildMatchBoardSection(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final sportId = widget.editingEntry?.sportId ??
+        SportService(widget.optionRepository).currentSportId();
+    final labels = SportMatchLabels.forSport(l10n: l10n, sportId: sportId);
+    final opponentOptions = _opponentOptions();
     return _MatchRecordSection(
       step: 1,
-      icon: Icons.event_available_outlined,
-      title: l10n.matchFlowBasicSectionTitle,
+      icon: Icons.sports_soccer_outlined,
+      title: l10n.matchBoardTitle,
+      helper: l10n.matchBoardHelper,
       children: [
-        OutlinedButton.icon(
-          onPressed: _saving ? null : _pickMatchDate,
-          icon: const Icon(Icons.calendar_today_outlined),
-          label: Text(DateFormat('yyyy-MM-dd').format(_matchDay)),
+        _buildMatchSetupControls(context),
+        const SizedBox(height: AppSpacing.sm),
+        _buildOpponentControl(context, opponentOptions),
+        const SizedBox(height: AppSpacing.sm),
+        _LiveScoreboard(
+          homeLabel: l10n.matchCompetitionMyTeamFallback,
+          awayLabel: _opponent.trim().isEmpty
+              ? l10n.matchOpponentTeamLabel
+              : _opponent.trim(),
+          homeScore: _ourScore,
+          awayScore: _opponentScore,
+          onHomeScoreChanged: (value) => _updateAndScheduleAutoSave(() {
+            _ourScore = value;
+            if (value != null && _opponentScore == null) {
+              _opponentScore = 0;
+            }
+          }),
+          onAwayScoreChanged: (value) => _updateAndScheduleAutoSave(() {
+            _opponentScore = value;
+            if (value != null && _ourScore == null) {
+              _ourScore = 0;
+            }
+          }),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        _ResultChoiceStrip(
+          selected: _matchResultValue(),
+          onSelected: _saving
+              ? null
+              : (value) => _updateAndScheduleAutoSave(
+                    () => _applyMatchResult(value),
+                  ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Text(
+          l10n.matchBoardEventsTitle,
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w900,
+          ),
         ),
         const SizedBox(height: AppSpacing.xs),
-        SegmentedButton<String>(
-          segments: [
-            ButtonSegment<String>(
-              value: 'friendly',
-              icon: const Icon(Icons.handshake_outlined),
-              label: Text(l10n.matchKindFriendly),
+        _DynamicCounterGrid(
+          children: [
+            _TouchCounter(
+              label: labels.primary.label,
+              icon: Icons.sports_soccer_outlined,
+              value: _playerGoals,
+              increaseKey: const ValueKey<String>(
+                'match-board-primary-stat-increase',
+              ),
+              decreaseKey: const ValueKey<String>(
+                'match-board-primary-stat-decrease',
+              ),
+              onChanged: (value) =>
+                  _updateAndScheduleAutoSave(() => _playerGoals = value),
             ),
-            ButtonSegment<String>(
-              value: MatchCompetitionRecord.kindLeague,
-              icon: const Icon(Icons.leaderboard_outlined),
-              label: Text(l10n.matchKindLeague),
+            _TouchCounter(
+              label: labels.secondary.label,
+              icon: Icons.call_split_outlined,
+              value: _playerAssists,
+              increaseKey: const ValueKey<String>(
+                'match-board-secondary-stat-increase',
+              ),
+              decreaseKey: const ValueKey<String>(
+                'match-board-secondary-stat-decrease',
+              ),
+              onChanged: (value) =>
+                  _updateAndScheduleAutoSave(() => _playerAssists = value),
             ),
-            ButtonSegment<String>(
-              value: MatchCompetitionRecord.kindTournament,
-              icon: const Icon(Icons.account_tree_outlined),
-              label: Text(l10n.matchKindTournament),
+            _TouchCounter(
+              label: labels.tertiary.label,
+              icon: Icons.track_changes_outlined,
+              value: _shotsOnTarget,
+              increaseKey: const ValueKey<String>(
+                'match-board-tertiary-stat-increase',
+              ),
+              decreaseKey: const ValueKey<String>(
+                'match-board-tertiary-stat-decrease',
+              ),
+              onChanged: (value) =>
+                  _updateAndScheduleAutoSave(() => _shotsOnTarget = value),
+            ),
+            _TouchCounter(
+              label: labels.quaternary.label,
+              icon: Icons.shield_outlined,
+              value: _ballsWon,
+              increaseKey: const ValueKey<String>(
+                'match-board-quaternary-stat-increase',
+              ),
+              decreaseKey: const ValueKey<String>(
+                'match-board-quaternary-stat-decrease',
+              ),
+              onChanged: (value) =>
+                  _updateAndScheduleAutoSave(() => _ballsWon = value),
+            ),
+            _TouchCounter(
+              label: l10n.matchMinutesPlayedLabel,
+              icon: Icons.timer_outlined,
+              value: _minutesPlayed,
+              step: 5,
+              increaseKey: const ValueKey<String>(
+                'match-board-minutes-increase',
+              ),
+              decreaseKey: const ValueKey<String>(
+                'match-board-minutes-decrease',
+              ),
+              onChanged: (value) =>
+                  _updateAndScheduleAutoSave(() => _minutesPlayed = value),
             ),
           ],
-          selected: {_matchKind},
-          showSelectedIcon: false,
-          onSelectionChanged: _saving
-              ? null
-              : (selection) {
-                  _updateAndScheduleAutoSave(() {
-                    _matchKind = selection.first;
-                    _selectedCompetitionId = '';
-                    _competitionName = '';
-                    _competitionStatus = MatchCompetitionRecord.statusActive;
-                    _competitionNameController.clear();
-                    _teams = const <String>[];
-                    _opponent = '';
-                    _opponentController.clear();
-                  });
-                },
         ),
+        if (_matchKind == MatchCompetitionRecord.kindTournament) ...[
+          const SizedBox(height: AppSpacing.sm),
+          _buildTournamentOutcomeControl(context),
+        ],
+        if (_isCompetitionMatch) ...[
+          const SizedBox(height: AppSpacing.sm),
+          _TouchCounter(
+            label: _matchKind == MatchCompetitionRecord.kindLeague
+                ? l10n.matchLeaguePointsLabel
+                : l10n.matchTournamentWinsLabel,
+            icon: _matchKind == MatchCompetitionRecord.kindLeague
+                ? Icons.emoji_events_outlined
+                : Icons.workspace_premium_outlined,
+            value: _matchKind == MatchCompetitionRecord.kindLeague
+                ? _leaguePoints
+                : _tournamentWins,
+            onChanged: (value) {
+              _updateAndScheduleAutoSave(() {
+                if (_matchKind == MatchCompetitionRecord.kindLeague) {
+                  _leaguePoints = value;
+                } else {
+                  _tournamentWins = value;
+                }
+              });
+            },
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildMatchSetupControls(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final dateButton = OutlinedButton.icon(
+      onPressed: _saving ? null : _pickMatchDate,
+      icon: const Icon(Icons.calendar_today_outlined),
+      label: Text(DateFormat('yyyy-MM-dd').format(_matchDay)),
+    );
+    final kindSelector = SegmentedButton<String>(
+      segments: [
+        ButtonSegment<String>(
+          value: 'friendly',
+          icon: const Icon(Icons.handshake_outlined),
+          label: Text(l10n.matchKindFriendly),
+        ),
+        ButtonSegment<String>(
+          value: MatchCompetitionRecord.kindLeague,
+          icon: const Icon(Icons.leaderboard_outlined),
+          label: Text(l10n.matchKindLeague),
+        ),
+        ButtonSegment<String>(
+          value: MatchCompetitionRecord.kindTournament,
+          icon: const Icon(Icons.account_tree_outlined),
+          label: Text(l10n.matchKindTournament),
+        ),
+      ],
+      selected: {_matchKind},
+      showSelectedIcon: false,
+      onSelectionChanged: _saving
+          ? null
+          : (selection) {
+              _updateAndScheduleAutoSave(() {
+                _matchKind = selection.first;
+                _selectedCompetitionId = '';
+                _competitionName = '';
+                _competitionStatus = MatchCompetitionRecord.statusActive;
+                _competitionNameController.clear();
+                _teams = const <String>[];
+                _opponent = '';
+                _opponentController.clear();
+              });
+            },
+    );
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 620) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              dateButton,
+              const SizedBox(height: AppSpacing.xs),
+              kindSelector,
+            ],
+          );
+        }
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(width: 168, child: dateButton),
+            const SizedBox(width: AppSpacing.xs),
+            Expanded(child: kindSelector),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildOpponentControl(
+    BuildContext context,
+    List<String> opponentOptions,
+  ) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final textField = TextField(
+      key: const ValueKey<String>('match-opponent-field'),
+      controller: _opponentController,
+      enabled: !_saving,
+      maxLength: 40,
+      textInputAction: TextInputAction.next,
+      onChanged: (value) {
+        _opponent = value;
+        _scheduleAutoSave();
+      },
+      decoration: InputDecoration(
+        labelText: l10n.matchOpponentTeamLabel,
+        hintText: l10n.matchOpponentTeamHint,
+        border: const OutlineInputBorder(),
+      ),
+    );
+
+    if (_isCompetitionMatch && opponentOptions.isNotEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            l10n.matchFlowOpponentSectionTitle,
+            style: theme.textTheme.labelLarge?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Wrap(
+            spacing: AppSpacing.xs,
+            runSpacing: AppSpacing.xs,
+            children: [
+              for (final team in opponentOptions)
+                ChoiceChip(
+                  label: Text(team),
+                  selected: _opponent == team,
+                  onSelected: _saving
+                      ? null
+                      : (_) {
+                          _updateAndScheduleAutoSave(() {
+                            _opponent = team;
+                            _opponentController.text = team;
+                          });
+                        },
+                ),
+            ],
+          ),
+        ],
+      );
+    }
+
+    if (opponentOptions.isEmpty) return textField;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        textField,
         const SizedBox(height: AppSpacing.xs),
+        Wrap(
+          spacing: AppSpacing.xs,
+          runSpacing: AppSpacing.xs,
+          children: [
+            for (final team in opponentOptions.take(6))
+              ChoiceChip(
+                label: Text(team),
+                selected: _opponent == team,
+                onSelected: _saving
+                    ? null
+                    : (_) {
+                        _updateAndScheduleAutoSave(() {
+                          _opponent = team;
+                          _opponentController.text = team;
+                        });
+                      },
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTournamentOutcomeControl(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return DropdownButtonFormField<String>(
+      initialValue: _tournamentOutcome,
+      items: [
+        for (final value in matchTournamentOutcomeValues)
+          DropdownMenuItem<String>(
+            value: value,
+            child: Text(matchTournamentOutcomeLabel(l10n, value)),
+          ),
+      ],
+      onChanged: _saving
+          ? null
+          : (value) {
+              if (value == null) return;
+              _updateAndScheduleAutoSave(
+                () => _tournamentOutcome = value,
+              );
+            },
+      decoration: InputDecoration(
+        labelText: l10n.matchTournamentOutcomeLabel,
+        border: const OutlineInputBorder(),
+      ),
+    );
+  }
+
+  Widget _buildMatchDetailsSection(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return _MatchRecordSection(
+      step: _isCompetitionMatch ? 3 : 2,
+      icon: Icons.edit_note_outlined,
+      title: l10n.matchDetailsSectionTitle,
+      helper: l10n.matchDetailsSectionHelper,
+      children: [
         TextField(
           controller: _locationController,
           enabled: !_saving,
@@ -385,6 +675,21 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
           decoration: InputDecoration(
             labelText: l10n.location,
             hintText: l10n.matchLocationHint,
+            border: const OutlineInputBorder(),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        TextField(
+          controller: _memoController,
+          enabled: !_saving,
+          maxLength: 60,
+          textInputAction: TextInputAction.done,
+          onChanged: (value) {
+            _memo = value;
+            _scheduleAutoSave();
+          },
+          decoration: InputDecoration(
+            labelText: l10n.matchNoteOptionalLabel,
             border: const OutlineInputBorder(),
           ),
         ),
@@ -598,226 +903,6 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
               ),
             ),
           ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildOpponentSection(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final options = _opponentOptions();
-    return _MatchRecordSection(
-      step: _isCompetitionMatch ? 3 : 2,
-      icon: Icons.groups_outlined,
-      title: l10n.matchFlowOpponentSectionTitle,
-      helper: _isCompetitionMatch ? l10n.matchFlowOpponentSectionHelper : null,
-      children: [
-        if (_isCompetitionMatch && options.isNotEmpty)
-          DropdownButtonFormField<String>(
-            initialValue: options.contains(_opponent) ? _opponent : null,
-            items: [
-              for (final team in options)
-                DropdownMenuItem<String>(
-                  value: team,
-                  child: Text(team, overflow: TextOverflow.ellipsis),
-                ),
-            ],
-            onChanged: _saving
-                ? null
-                : (value) {
-                    if (value == null) return;
-                    _updateAndScheduleAutoSave(() {
-                      _opponent = value;
-                      _opponentController.text = value;
-                    });
-                  },
-            decoration: InputDecoration(
-              labelText: l10n.matchOpponentTeamLabel,
-              border: const OutlineInputBorder(),
-            ),
-          )
-        else
-          TextField(
-            controller: _opponentController,
-            enabled: !_saving,
-            maxLength: 40,
-            textInputAction: TextInputAction.next,
-            onChanged: (value) {
-              _opponent = value;
-              _scheduleAutoSave();
-            },
-            decoration: InputDecoration(
-              labelText: l10n.matchOpponentTeamLabel,
-              hintText: l10n.matchOpponentTeamHint,
-              border: const OutlineInputBorder(),
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildResultSection(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final step = _isCompetitionMatch ? 4 : 3;
-    return _MatchRecordSection(
-      step: step,
-      icon: Icons.scoreboard_outlined,
-      title: l10n.matchFlowResultSectionTitle,
-      helper: l10n.matchFlowResultSectionHelper,
-      children: [
-        SegmentedButton<String>(
-          segments: [
-            ButtonSegment<String>(
-              value: _resultUnset,
-              label: Text(l10n.matchResultUnset),
-            ),
-            ButtonSegment<String>(
-              value: _resultWin,
-              label: Text(l10n.matchResultWin),
-            ),
-            ButtonSegment<String>(
-              value: _resultDraw,
-              label: Text(l10n.matchResultDraw),
-            ),
-            ButtonSegment<String>(
-              value: _resultLoss,
-              label: Text(l10n.matchResultLoss),
-            ),
-          ],
-          selected: {_matchResultValue()},
-          showSelectedIcon: false,
-          onSelectionChanged: _saving
-              ? null
-              : (selection) => _updateAndScheduleAutoSave(
-                    () => _applyMatchResult(selection.first),
-                  ),
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        _TwoColumn(
-          children: [
-            _TouchCounter(
-              label: l10n.matchOurScoreLabel,
-              value: _ourScore,
-              onChanged: (value) =>
-                  _updateAndScheduleAutoSave(() => _ourScore = value),
-            ),
-            _TouchCounter(
-              label: l10n.matchOpponentScoreLabel,
-              value: _opponentScore,
-              onChanged: (value) =>
-                  _updateAndScheduleAutoSave(() => _opponentScore = value),
-            ),
-          ],
-        ),
-        if (_matchKind == MatchCompetitionRecord.kindTournament) ...[
-          const SizedBox(height: AppSpacing.xs),
-          DropdownButtonFormField<String>(
-            initialValue: _tournamentOutcome,
-            items: [
-              for (final value in matchTournamentOutcomeValues)
-                DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(matchTournamentOutcomeLabel(l10n, value)),
-                ),
-            ],
-            onChanged: _saving
-                ? null
-                : (value) {
-                    if (value == null) return;
-                    _updateAndScheduleAutoSave(
-                      () => _tournamentOutcome = value,
-                    );
-                  },
-            decoration: InputDecoration(
-              labelText: l10n.matchTournamentOutcomeLabel,
-              border: const OutlineInputBorder(),
-            ),
-          ),
-        ],
-        if (_isCompetitionMatch) ...[
-          const SizedBox(height: AppSpacing.xs),
-          _TouchCounter(
-            label: _matchKind == MatchCompetitionRecord.kindLeague
-                ? l10n.matchLeaguePointsLabel
-                : l10n.matchTournamentWinsLabel,
-            value: _matchKind == MatchCompetitionRecord.kindLeague
-                ? _leaguePoints
-                : _tournamentWins,
-            onChanged: (value) {
-              _updateAndScheduleAutoSave(() {
-                if (_matchKind == MatchCompetitionRecord.kindLeague) {
-                  _leaguePoints = value;
-                } else {
-                  _tournamentWins = value;
-                }
-              });
-            },
-          ),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildPersonalSection(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final sportId = widget.editingEntry?.sportId ??
-        SportService(widget.optionRepository).currentSportId();
-    final labels = SportMatchLabels.forSport(l10n: l10n, sportId: sportId);
-    return _MatchRecordSection(
-      step: _isCompetitionMatch ? 5 : 4,
-      icon: Icons.person_outline,
-      title: l10n.matchFlowPersonalSectionTitle,
-      helper: l10n.matchFlowPersonalSectionHelper,
-      children: [
-        _TwoColumn(
-          children: [
-            _TouchCounter(
-              label: labels.primary.label,
-              value: _playerGoals,
-              onChanged: (value) =>
-                  _updateAndScheduleAutoSave(() => _playerGoals = value),
-            ),
-            _TouchCounter(
-              label: labels.secondary.label,
-              value: _playerAssists,
-              onChanged: (value) =>
-                  _updateAndScheduleAutoSave(() => _playerAssists = value),
-            ),
-            _TouchCounter(
-              label: labels.tertiary.label,
-              value: _shotsOnTarget,
-              onChanged: (value) =>
-                  _updateAndScheduleAutoSave(() => _shotsOnTarget = value),
-            ),
-            _TouchCounter(
-              label: labels.quaternary.label,
-              value: _ballsWon,
-              onChanged: (value) =>
-                  _updateAndScheduleAutoSave(() => _ballsWon = value),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        _TouchCounter(
-          label: l10n.matchMinutesPlayedLabel,
-          value: _minutesPlayed,
-          onChanged: (value) =>
-              _updateAndScheduleAutoSave(() => _minutesPlayed = value),
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        TextField(
-          controller: _memoController,
-          enabled: !_saving,
-          maxLength: 60,
-          textInputAction: TextInputAction.done,
-          onChanged: (value) {
-            _memo = value;
-            _scheduleAutoSave();
-          },
-          decoration: InputDecoration(
-            labelText: l10n.matchNoteOptionalLabel,
-            border: const OutlineInputBorder(),
-          ),
         ),
       ],
     );
@@ -1179,19 +1264,278 @@ class _MatchRecordSection extends StatelessWidget {
   }
 }
 
-class _TwoColumn extends StatelessWidget {
-  final List<Widget> children;
+class _LiveScoreboard extends StatelessWidget {
+  final String homeLabel;
+  final String awayLabel;
+  final int? homeScore;
+  final int? awayScore;
+  final ValueChanged<int?> onHomeScoreChanged;
+  final ValueChanged<int?> onAwayScoreChanged;
 
-  const _TwoColumn({required this.children});
+  const _LiveScoreboard({
+    required this.homeLabel,
+    required this.awayLabel,
+    required this.homeScore,
+    required this.awayScore,
+    required this.onHomeScoreChanged,
+    required this.onAwayScoreChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final itemWidth = (constraints.maxWidth - AppSpacing.xs) / 2;
+        final compact = constraints.maxWidth < 520;
+        final separator = _ScoreSeparator(
+          vertical: !compact,
+          homeScore: homeScore,
+          awayScore: awayScore,
+        );
+        if (compact) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _ScorePanel(
+                label: homeLabel,
+                value: homeScore,
+                accent: Theme.of(context).colorScheme.primary,
+                increaseKey: const ValueKey<String>(
+                  'match-board-our-score-increase',
+                ),
+                decreaseKey: const ValueKey<String>(
+                  'match-board-our-score-decrease',
+                ),
+                onChanged: onHomeScoreChanged,
+              ),
+              separator,
+              _ScorePanel(
+                label: awayLabel,
+                value: awayScore,
+                accent: Theme.of(context).colorScheme.tertiary,
+                increaseKey: const ValueKey<String>(
+                  'match-board-opponent-score-increase',
+                ),
+                decreaseKey: const ValueKey<String>(
+                  'match-board-opponent-score-decrease',
+                ),
+                onChanged: onAwayScoreChanged,
+              ),
+            ],
+          );
+        }
+        return Row(
+          children: [
+            Expanded(
+              child: _ScorePanel(
+                label: homeLabel,
+                value: homeScore,
+                accent: Theme.of(context).colorScheme.primary,
+                increaseKey: const ValueKey<String>(
+                  'match-board-our-score-increase',
+                ),
+                decreaseKey: const ValueKey<String>(
+                  'match-board-our-score-decrease',
+                ),
+                onChanged: onHomeScoreChanged,
+              ),
+            ),
+            separator,
+            Expanded(
+              child: _ScorePanel(
+                label: awayLabel,
+                value: awayScore,
+                accent: Theme.of(context).colorScheme.tertiary,
+                increaseKey: const ValueKey<String>(
+                  'match-board-opponent-score-increase',
+                ),
+                decreaseKey: const ValueKey<String>(
+                  'match-board-opponent-score-decrease',
+                ),
+                onChanged: onAwayScoreChanged,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _ScorePanel extends StatelessWidget {
+  final String label;
+  final int? value;
+  final Color accent;
+  final Key increaseKey;
+  final Key decreaseKey;
+  final ValueChanged<int?> onChanged;
+
+  const _ScorePanel({
+    required this.label,
+    required this.value,
+    required this.accent,
+    required this.increaseKey,
+    required this.decreaseKey,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final current = value ?? 0;
+    return Container(
+      constraints: const BoxConstraints(minHeight: 150),
+      padding: const EdgeInsets.all(AppSpacing.sm),
+      decoration: BoxDecoration(
+        color: accent.withValues(alpha: 0.08),
+        borderRadius: AppRadius.small,
+        border: Border.all(color: accent.withValues(alpha: 0.26)),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.labelLarge?.copyWith(
+              color: scheme.onSurfaceVariant,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Row(
+            children: [
+              _CounterButton(
+                buttonKey: decreaseKey,
+                tooltip: l10n.matchCountDecreaseTooltip(label),
+                icon: Icons.remove_rounded,
+                enabled: current > 0,
+                onPressed: () {
+                  final next = current - 1;
+                  onChanged(next <= 0 ? null : next);
+                },
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Expanded(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    current.toString(),
+                    style: theme.textTheme.displayLarge?.copyWith(
+                      color: accent,
+                      fontWeight: FontWeight.w900,
+                      height: 0.92,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              _CounterButton(
+                buttonKey: increaseKey,
+                tooltip: l10n.matchCountIncreaseTooltip(label),
+                icon: Icons.add_rounded,
+                enabled: true,
+                onPressed: () => onChanged(current + 1),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ScoreSeparator extends StatelessWidget {
+  final bool vertical;
+  final int? homeScore;
+  final int? awayScore;
+
+  const _ScoreSeparator({
+    required this.vertical,
+    required this.homeScore,
+    required this.awayScore,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final resolved = homeScore != null && awayScore != null;
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: vertical ? AppSpacing.sm : 0,
+        vertical: vertical ? 0 : AppSpacing.xs,
+      ),
+      child: Icon(
+        resolved ? Icons.sports_score_outlined : Icons.more_horiz_rounded,
+        color: resolved ? scheme.primary : scheme.onSurfaceVariant,
+        size: 24,
+      ),
+    );
+  }
+}
+
+class _ResultChoiceStrip extends StatelessWidget {
+  final String selected;
+  final ValueChanged<String>? onSelected;
+
+  const _ResultChoiceStrip({
+    required this.selected,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final options = [
+      (
+        value: _MatchRecordScreenState._resultUnset,
+        label: l10n.matchResultUnset
+      ),
+      (value: _MatchRecordScreenState._resultWin, label: l10n.matchResultWin),
+      (value: _MatchRecordScreenState._resultDraw, label: l10n.matchResultDraw),
+      (value: _MatchRecordScreenState._resultLoss, label: l10n.matchResultLoss),
+    ];
+    return Wrap(
+      spacing: AppSpacing.xs,
+      runSpacing: AppSpacing.xs,
+      alignment: WrapAlignment.center,
+      children: [
+        for (final option in options)
+          ChoiceChip(
+            label: Text(option.label),
+            selected: selected == option.value,
+            onSelected:
+                onSelected == null ? null : (_) => onSelected!(option.value),
+          ),
+      ],
+    );
+  }
+}
+
+class _DynamicCounterGrid extends StatelessWidget {
+  final List<Widget> children;
+
+  const _DynamicCounterGrid({required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = constraints.maxWidth >= 760
+            ? 5
+            : constraints.maxWidth >= 560
+                ? 3
+                : 2;
+        const gap = AppSpacing.xs;
+        final itemWidth =
+            (constraints.maxWidth - (gap * (columns - 1))) / columns;
         return Wrap(
-          spacing: AppSpacing.xs,
-          runSpacing: AppSpacing.xs,
+          spacing: gap,
+          runSpacing: gap,
           children: [
             for (final child in children)
               SizedBox(width: itemWidth, child: child),
@@ -1204,13 +1548,21 @@ class _TwoColumn extends StatelessWidget {
 
 class _TouchCounter extends StatelessWidget {
   final String label;
+  final IconData icon;
   final int? value;
+  final int step;
+  final Key? increaseKey;
+  final Key? decreaseKey;
   final ValueChanged<int?> onChanged;
 
   const _TouchCounter({
     required this.label,
+    required this.icon,
     required this.value,
     required this.onChanged,
+    this.step = 1,
+    this.increaseKey,
+    this.decreaseKey,
   });
 
   @override
@@ -1220,7 +1572,7 @@ class _TouchCounter extends StatelessWidget {
     final scheme = theme.colorScheme;
     final current = value ?? 0;
     return Container(
-      constraints: const BoxConstraints(minHeight: 92),
+      constraints: const BoxConstraints(minHeight: 112),
       padding: const EdgeInsets.all(AppSpacing.xs),
       decoration: BoxDecoration(
         color: scheme.surfaceContainerHighest.withValues(alpha: 0.46),
@@ -1232,25 +1584,34 @@ class _TouchCounter extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-            style: theme.textTheme.labelMedium?.copyWith(
-              color: scheme.onSurfaceVariant,
-              fontWeight: FontWeight.w800,
+          Icon(icon, size: 18, color: scheme.primary),
+          const SizedBox(height: AppSpacing.xxs),
+          SizedBox(
+            height: 34,
+            child: Center(
+              child: Text(
+                label,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w800,
+                  height: 1.1,
+                ),
+              ),
             ),
           ),
           const SizedBox(height: AppSpacing.xs),
           Row(
             children: [
               _CounterButton(
+                buttonKey: decreaseKey,
                 tooltip: l10n.matchCountDecreaseTooltip(label),
                 icon: Icons.remove_rounded,
                 enabled: current > 0,
                 onPressed: () {
-                  final next = current - 1;
+                  final next = current - step;
                   onChanged(next <= 0 ? null : next);
                 },
               ),
@@ -1281,10 +1642,11 @@ class _TouchCounter extends StatelessWidget {
               ),
               const SizedBox(width: AppSpacing.xs),
               _CounterButton(
+                buttonKey: increaseKey,
                 tooltip: l10n.matchCountIncreaseTooltip(label),
                 icon: Icons.add_rounded,
                 enabled: true,
-                onPressed: () => onChanged(current + 1),
+                onPressed: () => onChanged(current + step),
               ),
             ],
           ),
@@ -1299,18 +1661,21 @@ class _CounterButton extends StatelessWidget {
   final IconData icon;
   final bool enabled;
   final VoidCallback onPressed;
+  final Key? buttonKey;
 
   const _CounterButton({
     required this.tooltip,
     required this.icon,
     required this.enabled,
     required this.onPressed,
+    this.buttonKey,
   });
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return SizedBox.square(
+      key: buttonKey,
       dimension: 40,
       child: Tooltip(
         message: tooltip,

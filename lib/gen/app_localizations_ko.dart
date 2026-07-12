@@ -11337,6 +11337,21 @@ class AppLocalizationsKo extends AppLocalizations {
   String get matchLocationHint => '예) 메인 구장';
 
   @override
+  String get matchBoardTitle => '시합 보드';
+
+  @override
+  String get matchBoardHelper => '상대, 스코어, 승무패, 개인 기록을 경기판에서 바로 조정하세요.';
+
+  @override
+  String get matchBoardEventsTitle => '빠른 기록';
+
+  @override
+  String get matchDetailsSectionTitle => '상세 정보';
+
+  @override
+  String get matchDetailsSectionHelper => '장소와 메모처럼 경기 후 정리할 내용을 남기세요.';
+
+  @override
   String get matchFlowBasicSectionTitle => '기본 정보';
 
   @override

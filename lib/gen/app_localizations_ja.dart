@@ -11317,6 +11317,21 @@ class AppLocalizationsJa extends AppLocalizations {
   String get matchLocationHint => '例: メイン競技場';
 
   @override
+  String get matchBoardTitle => '試合ボード';
+
+  @override
+  String get matchBoardHelper => '相手、スコア、勝敗、個人記録をボード上で直接調整します。';
+
+  @override
+  String get matchBoardEventsTitle => 'クイック記録';
+
+  @override
+  String get matchDetailsSectionTitle => '詳細情報';
+
+  @override
+  String get matchDetailsSectionHelper => '会場やメモなど試合後に整理する内容を残します。';
+
+  @override
   String get matchFlowBasicSectionTitle => '基本情報';
 
   @override

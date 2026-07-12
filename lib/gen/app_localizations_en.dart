@@ -11639,6 +11639,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get matchLocationHint => 'e.g. Main stadium';
 
   @override
+  String get matchBoardTitle => 'Match board';
+
+  @override
+  String get matchBoardHelper =>
+      'Set the opponent, score, result, and personal stats directly on the board.';
+
+  @override
+  String get matchBoardEventsTitle => 'Quick events';
+
+  @override
+  String get matchDetailsSectionTitle => 'Details';
+
+  @override
+  String get matchDetailsSectionHelper =>
+      'Keep venue and notes after the live match flow.';
+
+  @override
   String get matchFlowBasicSectionTitle => 'Basics';
 
   @override
