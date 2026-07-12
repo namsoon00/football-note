@@ -197,22 +197,28 @@ void main() {
     );
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('meal-food-option-banana')));
-    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    var saved = mealLogService.entryForDay(day);
+    expect(saved, isNotNull);
+    expect(saved!.breakfastFoodIds, contains('banana'));
+
     await tester.enterText(
       find.byKey(const ValueKey('meal-food-search')),
       '우유',
     );
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('meal-food-option-milk')));
-    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    saved = mealLogService.entryForDay(day);
+    expect(saved, isNotNull);
+    expect(saved!.breakfastFoodIds, containsAll(<String>['banana', 'milk']));
+
     await tester.tap(find.byKey(const ValueKey('meal-food-sheet-done')));
     await tester.pump(const Duration(milliseconds: 400));
 
     expect(find.text('추가 음식 약 235 kcal · 단백질 8g'), findsOneWidget);
-
-    final saved = mealLogService.entryForDay(day);
-    expect(saved, isNotNull);
-    expect(saved!.breakfastFoodIds, containsAll(<String>['banana', 'milk']));
     expect(saved.completedMeals, 1);
     expect(saved.hasRecords, isTrue);
   });
