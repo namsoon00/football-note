@@ -538,6 +538,8 @@ void main() {
     final addPlayerButton = find.widgetWithText(FilledButton, '선수 추가');
     await tester.ensureVisible(addPlayerButton);
     await tester.pumpAndSettle();
+    await tester.tap(find.text('미드필더').first);
+    await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).at(0), '김민준');
     await tester.enterText(find.byType(TextField).at(1), '10');
     await tester.enterText(find.byType(TextField).at(2), '왼발 킥 좋음');
@@ -581,6 +583,7 @@ void main() {
     expect(teams.single.name, '우리 팀 U15');
     expect(teams.single.strategy, '전방 압박 후 측면 전환');
     expect(teams.single.players.single.name, '김민준');
+    expect(teams.single.players.single.role, ManagedTeamPlayer.roleMidfielder);
     expect(teams.single.players.single.note, '왼발 킥 좋음');
     final placement =
         teams.single.playerPlacements[teams.single.players.single.id];
