@@ -2094,39 +2094,110 @@ class _PlayersPanel extends StatelessWidget {
             helper: l10n.teamManagementPlayersHelper,
           ),
           const SizedBox(height: AppSpacing.md),
-          Row(
+          Text(
+            l10n.teamManagementPlayerRoleLabel,
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: scheme.onSurfaceVariant,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Wrap(
+            spacing: AppSpacing.xs,
+            runSpacing: AppSpacing.xs,
             children: [
-              Expanded(
-                flex: 3,
-                child: TextField(
-                  controller: playerNameController,
-                  readOnly: readOnly,
-                  textInputAction: TextInputAction.next,
-                  decoration: InputDecoration(
-                    labelText: l10n.teamManagementPlayerNameLabel,
-                    hintText: l10n.teamManagementPlayerNameHint,
-                  ),
+              for (final role in _playerRoles)
+                ChoiceChip(
+                  label: Text(teamPlayerRoleLabel(l10n, role)),
+                  selected: playerRole == role,
+                  onSelected: readOnly ? null : (_) => onRoleChanged(role),
                 ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: TextField(
-                  controller: playerNumberController,
-                  readOnly: readOnly,
-                  keyboardType: TextInputType.number,
-                  textInputAction: TextInputAction.next,
-                  decoration: InputDecoration(
-                    labelText: l10n.teamManagementPlayerNumberLabel,
-                    hintText: l10n.teamManagementPlayerNumberHint,
-                  ),
-                ),
-              ),
             ],
           ),
           const SizedBox(height: AppSpacing.sm),
           LayoutBuilder(
             builder: (context, constraints) {
-              final columns = constraints.maxWidth >= 640 ? 3 : 2;
+              final compact = constraints.maxWidth < 620;
+              final nameField = TextField(
+                controller: playerNameController,
+                readOnly: readOnly,
+                textInputAction: TextInputAction.next,
+                decoration: InputDecoration(
+                  labelText: l10n.teamManagementPlayerNameLabel,
+                  hintText: l10n.teamManagementPlayerNameHint,
+                ),
+              );
+              final numberField = TextField(
+                controller: playerNumberController,
+                readOnly: readOnly,
+                keyboardType: TextInputType.number,
+                textInputAction: TextInputAction.next,
+                decoration: InputDecoration(
+                  labelText: l10n.teamManagementPlayerNumberLabel,
+                  hintText: l10n.teamManagementPlayerNumberHint,
+                ),
+              );
+              final saveButton = FilledButton.icon(
+                onPressed: readOnly ? null : onSavePlayer,
+                icon: Icon(
+                  editingPlayerId == null
+                      ? Icons.add_outlined
+                      : Icons.save_outlined,
+                ),
+                label: Text(
+                  editingPlayerId == null
+                      ? l10n.teamManagementAddPlayerButton
+                      : l10n.teamManagementUpdatePlayerButton,
+                ),
+              );
+              final cancelButton = OutlinedButton.icon(
+                onPressed: readOnly ? null : onCancelPlayerEdit,
+                icon: const Icon(Icons.close_outlined),
+                label: Text(l10n.teamManagementCancelPlayerEditButton),
+              );
+              if (compact) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(flex: 3, child: nameField),
+                        const SizedBox(width: AppSpacing.sm),
+                        Expanded(child: numberField),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Row(
+                      children: [
+                        if (editingPlayerId != null) ...[
+                          Expanded(child: cancelButton),
+                          const SizedBox(width: AppSpacing.sm),
+                        ],
+                        Expanded(flex: 2, child: saveButton),
+                      ],
+                    ),
+                  ],
+                );
+              }
+              return Row(
+                children: [
+                  Expanded(flex: 4, child: nameField),
+                  const SizedBox(width: AppSpacing.sm),
+                  SizedBox(width: 112, child: numberField),
+                  const SizedBox(width: AppSpacing.sm),
+                  if (editingPlayerId != null) ...[
+                    SizedBox(width: 140, child: cancelButton),
+                    const SizedBox(width: AppSpacing.sm),
+                  ],
+                  SizedBox(width: 148, child: saveButton),
+                ],
+              );
+            },
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final columns = constraints.maxWidth >= 520 ? 2 : 1;
               final gap = AppSpacing.sm * (columns - 1);
               final fieldWidth =
                   math.max(150.0, (constraints.maxWidth - gap) / columns);
@@ -2134,28 +2205,6 @@ class _PlayersPanel extends StatelessWidget {
                 spacing: AppSpacing.sm,
                 runSpacing: AppSpacing.sm,
                 children: [
-                  SizedBox(
-                    width: fieldWidth,
-                    child: DropdownButtonFormField<String>(
-                      initialValue: playerRole,
-                      decoration: InputDecoration(
-                        labelText: l10n.teamManagementPlayerRoleLabel,
-                      ),
-                      items: [
-                        for (final role in _playerRoles)
-                          DropdownMenuItem<String>(
-                            value: role,
-                            child: Text(teamPlayerRoleLabel(l10n, role)),
-                          ),
-                      ],
-                      onChanged: readOnly
-                          ? null
-                          : (role) {
-                              if (role == null) return;
-                              onRoleChanged(role);
-                            },
-                    ),
-                  ),
                   SizedBox(
                     width: fieldWidth,
                     child: DropdownButtonFormField<String>(
@@ -2217,37 +2266,6 @@ class _PlayersPanel extends StatelessWidget {
               hintText: l10n.teamManagementPlayerNoteHint,
               alignLabelWithHint: true,
             ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Row(
-            children: [
-              if (editingPlayerId != null) ...[
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: readOnly ? null : onCancelPlayerEdit,
-                    icon: const Icon(Icons.close_outlined),
-                    label: Text(l10n.teamManagementCancelPlayerEditButton),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-              ],
-              Expanded(
-                flex: 2,
-                child: FilledButton.icon(
-                  onPressed: readOnly ? null : onSavePlayer,
-                  icon: Icon(
-                    editingPlayerId == null
-                        ? Icons.add_outlined
-                        : Icons.save_outlined,
-                  ),
-                  label: Text(
-                    editingPlayerId == null
-                        ? l10n.teamManagementAddPlayerButton
-                        : l10n.teamManagementUpdatePlayerButton,
-                  ),
-                ),
-              ),
-            ],
           ),
           const SizedBox(height: AppSpacing.md),
           if (players.isEmpty)
