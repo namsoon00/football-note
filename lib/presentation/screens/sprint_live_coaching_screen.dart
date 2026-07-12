@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:google_mlkit_pose_detection/google_mlkit_pose_detection.dart';
 
+import '../../application/mediapipe_pose_landmarker_service.dart';
 import '../../application/sprint_live_coaching_service.dart';
 import '../../application/sprint_live_session_metrics.dart';
 import '../../domain/entities/sprint_pose_frame.dart';
@@ -44,6 +45,8 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
   final SprintLiveSessionMetricsCollector _sessionMetricsCollector =
       SprintLiveSessionMetricsCollector();
   final SprintLandmarkSmoother _debugOverlaySmoother = SprintLandmarkSmoother();
+  final MediaPipePoseLandmarkerService _mediaPipePoseLandmarker =
+      const MediaPipePoseLandmarkerService();
   final PoseDetector _poseDetector = PoseDetector(
     options: PoseDetectorOptions(mode: PoseDetectionMode.stream),
   );
@@ -134,6 +137,7 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
     if (controller != null) {
       unawaited(controller.dispose());
     }
+    unawaited(_mediaPipePoseLandmarker.close());
     unawaited(_poseDetector.close());
     unawaited(_tts.stop());
     super.dispose();
@@ -658,14 +662,22 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
     final stopwatch = Stopwatch()..start();
 
     try {
-      final poses = await _poseDetector.processImage(frameInput.inputImage);
-      final poseFrame = poses.isEmpty
-          ? null
-          : _sprintPoseFrameFromPose(
-              poses.first,
+      final mediaPipeDetection =
+          await _mediaPipePoseLandmarker.detectPoseFromNv21(
+        image: image,
+        rotationDegrees: _rotationDegrees(frameInput.rotation),
+        timestamp: receivedAt,
+      );
+      final poseFrame = mediaPipeDetection == null
+          ? await _sprintPoseFrameFromMlKit(
+              frameInput.inputImage,
               Size(image.width.toDouble(), image.height.toDouble()),
               receivedAt,
-            );
+            )
+          : _sprintPoseFrameFromMediaPipe(mediaPipeDetection, receivedAt);
+      final overlayRotation = mediaPipeDetection == null
+          ? frameInput.rotation
+          : InputImageRotation.rotation0deg;
       final debugSmoothedFrame = poseFrame == null
           ? null
           : _debugOverlaySmoother.smooth(
@@ -701,7 +713,7 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
                 rawFrame: poseFrame,
                 smoothedFrame: debugSmoothedFrame,
                 stateEstimate: state.stateEstimate,
-                rotation: frameInput.rotation,
+                rotation: overlayRotation,
                 lensDirection:
                     _activeCamera?.lensDirection ?? CameraLensDirection.back,
               );
@@ -965,6 +977,26 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
     return null;
   }
 
+  int _rotationDegrees(InputImageRotation rotation) {
+    return switch (rotation) {
+      InputImageRotation.rotation0deg => 0,
+      InputImageRotation.rotation90deg => 90,
+      InputImageRotation.rotation180deg => 180,
+      InputImageRotation.rotation270deg => 270,
+    };
+  }
+
+  Future<SprintPoseFrame?> _sprintPoseFrameFromMlKit(
+    InputImage inputImage,
+    Size imageSize,
+    DateTime timestamp,
+  ) async {
+    final poses = await _poseDetector.processImage(inputImage);
+    return poses.isEmpty
+        ? null
+        : _sprintPoseFrameFromPose(poses.first, imageSize, timestamp);
+  }
+
   SprintPoseFrame _sprintPoseFrameFromPose(
     Pose pose,
     Size imageSize,
@@ -1020,6 +1052,69 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
       timestamp: timestamp,
       landmarks: landmarks,
     );
+  }
+
+  SprintPoseFrame? _sprintPoseFrameFromMediaPipe(
+    MediaPipePoseDetection detection,
+    DateTime timestamp,
+  ) {
+    if (detection.imageSize.isEmpty || detection.landmarks.isEmpty) {
+      return null;
+    }
+
+    final landmarks = <SprintPoseLandmarkType, SprintPoseLandmark>{};
+    for (final landmark in detection.landmarks) {
+      final type = _sprintPoseLandmarkTypeForMediaPipeIndex(landmark.index);
+      if (type == null) {
+        continue;
+      }
+      final world = landmark.worldLandmark;
+      landmarks[type] = SprintPoseLandmark(
+        position: landmark.position,
+        confidence: landmark.confidence,
+        worldLandmark: world == null
+            ? null
+            : SprintPoseWorldLandmark(
+                x: world.x,
+                y: world.y,
+                z: world.z,
+                visibility: world.visibility,
+              ),
+      );
+    }
+
+    return SprintPoseFrame(
+      imageSize: detection.imageSize,
+      timestamp: timestamp,
+      landmarks: landmarks,
+    );
+  }
+
+  SprintPoseLandmarkType? _sprintPoseLandmarkTypeForMediaPipeIndex(
+    int index,
+  ) {
+    return switch (index) {
+      0 => SprintPoseLandmarkType.nose,
+      7 => SprintPoseLandmarkType.leftEar,
+      8 => SprintPoseLandmarkType.rightEar,
+      11 => SprintPoseLandmarkType.leftShoulder,
+      12 => SprintPoseLandmarkType.rightShoulder,
+      13 => SprintPoseLandmarkType.leftElbow,
+      14 => SprintPoseLandmarkType.rightElbow,
+      15 => SprintPoseLandmarkType.leftWrist,
+      16 => SprintPoseLandmarkType.rightWrist,
+      23 => SprintPoseLandmarkType.leftHip,
+      24 => SprintPoseLandmarkType.rightHip,
+      25 => SprintPoseLandmarkType.leftKnee,
+      26 => SprintPoseLandmarkType.rightKnee,
+      27 => SprintPoseLandmarkType.leftAnkle,
+      28 => SprintPoseLandmarkType.rightAnkle,
+      29 => SprintPoseLandmarkType.leftHeel,
+      30 => SprintPoseLandmarkType.rightHeel,
+      31 => SprintPoseLandmarkType.leftFootIndex,
+      32 => SprintPoseLandmarkType.rightFootIndex,
+      _ => null,
+    };
   }
 
   SprintPoseFrame _filterDebugFrame(SprintPoseFrame frame) {

@@ -42,8 +42,27 @@ const int sprintMvpCoreLandmarkCount = 12;
 class SprintPoseLandmark {
   final Offset position;
   final double confidence;
+  final SprintPoseWorldLandmark? worldLandmark;
 
-  const SprintPoseLandmark({required this.position, required this.confidence});
+  const SprintPoseLandmark({
+    required this.position,
+    required this.confidence,
+    this.worldLandmark,
+  });
+}
+
+class SprintPoseWorldLandmark {
+  final double x;
+  final double y;
+  final double z;
+  final double? visibility;
+
+  const SprintPoseWorldLandmark({
+    required this.x,
+    required this.y,
+    required this.z,
+    this.visibility,
+  });
 }
 
 class SprintPoseFrame {
