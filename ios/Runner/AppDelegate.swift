@@ -2,6 +2,7 @@ import Flutter
 import UIKit
 import FirebaseCore
 import GoogleSignIn
+import UserNotifications
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
@@ -112,9 +113,22 @@ import GoogleSignIn
           return
         }
 
-        DispatchQueue.main.async {
-          UIApplication.shared.applicationIconBadgeNumber = max(0, count)
-          result(nil)
+        let badgeCount = max(0, count)
+        UNUserNotificationCenter.current().getNotificationSettings { settings in
+          let authorized: Bool
+          switch settings.authorizationStatus {
+          case .authorized, .provisional, .ephemeral:
+            authorized = settings.badgeSetting == .enabled
+          default:
+            authorized = false
+          }
+
+          DispatchQueue.main.async {
+            if authorized {
+              UIApplication.shared.applicationIconBadgeNumber = badgeCount
+            }
+            result(nil)
+          }
         }
       default:
         result(FlutterMethodNotImplemented)

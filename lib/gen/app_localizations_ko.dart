@@ -81,6 +81,22 @@ class AppLocalizationsKo extends AppLocalizations {
   String get startupSportAction => '이 종목으로 시작하기';
 
   @override
+  String get startupLoadingTitle => '앱을 준비하고 있어요';
+
+  @override
+  String get startupLoadingBody => '기록과 설정을 불러오는 중입니다. 잠시만 기다려 주세요.';
+
+  @override
+  String get startupErrorTitle => '앱을 시작하지 못했어요';
+
+  @override
+  String get startupErrorBody =>
+      '초기 데이터를 불러오는 중 문제가 생겼습니다. 다시 시도해도 계속 멈추면 앱을 완전히 종료한 뒤 다시 열어 주세요.';
+
+  @override
+  String get startupRetryAction => '다시 시도';
+
+  @override
   String get startupSportFootballDescription =>
       '훈련, 시합, 스케치, 뉴스까지 축구 중심으로 시작해요.';
 

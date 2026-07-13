@@ -27,7 +27,6 @@ import 'application/league_fixture_reminder_service.dart';
 import 'application/notification_app_link.dart';
 import 'application/sport_service.dart';
 import 'application/sport_state_controller.dart';
-import 'application/training_plan_badge_service.dart';
 import 'application/training_plan_reminder_service.dart';
 import 'application/weather_reminder_service.dart';
 import 'domain/entities/sport_definition.dart';
@@ -39,25 +38,66 @@ import 'presentation/navigation/notification_tap_router.dart';
 import 'presentation/widgets/keyboard_dismiss_overlay.dart';
 import 'presentation/widgets/sport_scope.dart';
 
+const int _trainingEntryHiveTypeId = 1;
+
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  if (!kIsWeb) {
+  runZonedGuarded<void>(
+    () {
+      WidgetsFlutterBinding.ensureInitialized();
+      FlutterError.onError = (details) {
+        FlutterError.presentError(details);
+      };
+      runApp(const FootballNoteBootstrapApp());
+    },
+    (error, stackTrace) {
+      FlutterError.reportError(
+        FlutterErrorDetails(
+          exception: error,
+          stack: stackTrace,
+          library: 'football_note startup',
+        ),
+      );
+    },
+  );
+}
+
+Future<void> _initializeFirebase() async {
+  if (Firebase.apps.isNotEmpty) {
+    return;
+  }
+
+  try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-  } else {
-    try {
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
-    } catch (_) {
-      // Firebase web config may be intentionally omitted for local/dev web runs.
+  } on FirebaseException catch (error) {
+    if (error.code == 'duplicate-app' || Firebase.apps.isNotEmpty) {
+      return;
     }
+    if (kIsWeb) {
+      return;
+    }
+    rethrow;
+  } catch (_) {
+    if (kIsWeb) {
+      return;
+    }
+    rethrow;
   }
+}
+
+Future<_FootballNoteDependencies> _initializeAppDependencies() async {
+  await _initializeFirebase();
   await Hive.initFlutter();
-  Hive.registerAdapter(TrainingEntryAdapter());
-  final trainingBox = await Hive.openBox<TrainingEntry>('training_entries');
-  final optionBox = await Hive.openBox('options');
+  if (!Hive.isAdapterRegistered(_trainingEntryHiveTypeId)) {
+    Hive.registerAdapter(TrainingEntryAdapter());
+  }
+  final trainingBox = Hive.isBoxOpen('training_entries')
+      ? Hive.box<TrainingEntry>('training_entries')
+      : await Hive.openBox<TrainingEntry>('training_entries');
+  final optionBox = Hive.isBoxOpen('options')
+      ? Hive.box('options')
+      : await Hive.openBox('options');
   await initializeDateFormatting('ko_KR');
   final trainingRepository = HiveTrainingRepository(trainingBox);
   final baseOptionRepository = HiveOptionRepository(optionBox);
@@ -102,7 +142,6 @@ Future<void> main() async {
     optionRepository,
     settingsService,
   );
-  final badgeService = TrainingPlanBadgeService(optionRepository);
   NotificationTapRouter.configure(
     NotificationTapDependencies(
       trainingService: trainingService,
@@ -140,40 +179,38 @@ Future<void> main() async {
     }
   });
 
-  runApp(
-    FootballNoteApp(
-      trainingService: trainingService,
-      mealLogService: mealLogService,
-      optionRepository: optionRepository,
-      localeService: localeService,
-      settingsService: settingsService,
-      sportController: sportController,
-      driveBackupService: backupService,
-      healthConnectJumpRopeSyncService: healthConnectJumpRopeSyncService,
-    ),
-  );
-
   unawaited(
     _warmStartupServices(
       backupService: backupService,
+      settingsService: settingsService,
       reminderService: reminderService,
       leagueFixtureReminderService: leagueFixtureReminderService,
       weatherReminderService: weatherReminderService,
       clubTrainingReminderService: clubTrainingReminderService,
-      badgeService: badgeService,
       trainingService: trainingService,
       healthConnectJumpRopeSyncService: healthConnectJumpRopeSyncService,
     ),
+  );
+
+  return _FootballNoteDependencies(
+    trainingService: trainingService,
+    mealLogService: mealLogService,
+    optionRepository: optionRepository,
+    localeService: localeService,
+    settingsService: settingsService,
+    sportController: sportController,
+    backupService: backupService,
+    healthConnectJumpRopeSyncService: healthConnectJumpRopeSyncService,
   );
 }
 
 Future<void> _warmStartupServices({
   required BackupService backupService,
+  required SettingsService settingsService,
   required TrainingPlanReminderService reminderService,
   required LeagueFixtureReminderService leagueFixtureReminderService,
   required WeatherReminderService weatherReminderService,
   required ClubTrainingReminderService clubTrainingReminderService,
-  required TrainingPlanBadgeService badgeService,
   required TrainingService trainingService,
   required HealthConnectJumpRopeSyncService healthConnectJumpRopeSyncService,
 }) async {
@@ -200,41 +237,286 @@ Future<void> _warmStartupServices({
     // Family shared refresh can recover on later app resumes.
   }
   try {
-    await reminderService.initialize();
-    handleLaunchPayload(await reminderService.launchPayload());
-    await reminderService.syncAll(entries: await trainingService.allEntries());
+    if (settingsService.reminderEnabled) {
+      await reminderService.initialize();
+      handleLaunchPayload(await reminderService.launchPayload());
+      await reminderService.syncAll(
+          entries: await trainingService.allEntries());
+    }
   } catch (_) {
     // Reminder sync can recover on later app interactions.
   }
   try {
-    await leagueFixtureReminderService.initialize();
-    handleLaunchPayload(await leagueFixtureReminderService.launchPayload());
+    if (settingsService.reminderEnabled &&
+        settingsService.leagueFixtureAlertEnabled) {
+      await leagueFixtureReminderService.initialize();
+      handleLaunchPayload(await leagueFixtureReminderService.launchPayload());
+    }
   } catch (_) {
     // Fixture notification launch handling can recover on later interactions.
   }
   try {
-    await weatherReminderService.initialize();
-    handleLaunchPayload(await weatherReminderService.launchPayload());
-    await weatherReminderService.syncSettingsDrivenReminders();
+    if (settingsService.reminderEnabled &&
+        settingsService.weatherAlertEnabled) {
+      await weatherReminderService.initialize();
+      handleLaunchPayload(await weatherReminderService.launchPayload());
+      await weatherReminderService.syncSettingsDrivenReminders();
+    }
   } catch (_) {
     // Weather reminder sync can recover on later settings or app interactions.
   }
   try {
-    await clubTrainingReminderService.initialize();
-    handleLaunchPayload(await clubTrainingReminderService.launchPayload());
-    await clubTrainingReminderService.syncSettingsDrivenReminders();
+    if (settingsService.reminderEnabled &&
+        settingsService.clubTrainingAlertEnabled) {
+      await clubTrainingReminderService.initialize();
+      handleLaunchPayload(await clubTrainingReminderService.launchPayload());
+      await clubTrainingReminderService.syncSettingsDrivenReminders();
+    }
   } catch (_) {
     // Club training reminder sync can recover on later schedule changes.
-  }
-  try {
-    await badgeService.syncFromStorage();
-  } catch (_) {
-    // Badge sync is non-critical for first frame.
   }
   try {
     await healthConnectJumpRopeSyncService.syncIfEnabled();
   } catch (_) {
     // Health Connect sync can recover on the next app resume or settings action.
+  }
+}
+
+class _FootballNoteDependencies {
+  final TrainingService trainingService;
+  final MealLogService mealLogService;
+  final OptionRepository optionRepository;
+  final LocaleService localeService;
+  final SettingsService settingsService;
+  final SportStateController sportController;
+  final BackupService backupService;
+  final HealthConnectJumpRopeSyncService healthConnectJumpRopeSyncService;
+
+  const _FootballNoteDependencies({
+    required this.trainingService,
+    required this.mealLogService,
+    required this.optionRepository,
+    required this.localeService,
+    required this.settingsService,
+    required this.sportController,
+    required this.backupService,
+    required this.healthConnectJumpRopeSyncService,
+  });
+}
+
+class FootballNoteBootstrapApp extends StatefulWidget {
+  const FootballNoteBootstrapApp({super.key});
+
+  @override
+  State<FootballNoteBootstrapApp> createState() =>
+      _FootballNoteBootstrapAppState();
+}
+
+class _FootballNoteBootstrapAppState extends State<FootballNoteBootstrapApp> {
+  late Future<_FootballNoteDependencies> _dependenciesFuture;
+  Object? _reportedStartupError;
+
+  @override
+  void initState() {
+    super.initState();
+    _dependenciesFuture = _initializeAppDependencies();
+  }
+
+  void _retry() {
+    setState(() {
+      _reportedStartupError = null;
+      _dependenciesFuture = _initializeAppDependencies();
+    });
+  }
+
+  void _reportStartupError(Object error, StackTrace? stackTrace) {
+    if (identical(_reportedStartupError, error)) {
+      return;
+    }
+    _reportedStartupError = error;
+    FlutterError.reportError(
+      FlutterErrorDetails(
+        exception: error,
+        stack: stackTrace,
+        library: 'football_note startup',
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<_FootballNoteDependencies>(
+      future: _dependenciesFuture,
+      builder: (context, snapshot) {
+        final dependencies = snapshot.data;
+        if (dependencies != null) {
+          return FootballNoteApp(
+            trainingService: dependencies.trainingService,
+            mealLogService: dependencies.mealLogService,
+            optionRepository: dependencies.optionRepository,
+            localeService: dependencies.localeService,
+            settingsService: dependencies.settingsService,
+            sportController: dependencies.sportController,
+            driveBackupService: dependencies.backupService,
+            healthConnectJumpRopeSyncService:
+                dependencies.healthConnectJumpRopeSyncService,
+          );
+        }
+
+        if (snapshot.hasError) {
+          _reportStartupError(snapshot.error!, snapshot.stackTrace);
+          return _StartupShell(
+            builder: (context) => _StartupFailureScreen(onRetry: _retry),
+          );
+        }
+
+        return _StartupShell(
+          builder: (context) => const _StartupLoadingScreen(),
+        );
+      },
+    );
+  }
+}
+
+class _StartupShell extends StatelessWidget {
+  final WidgetBuilder builder;
+
+  const _StartupShell({required this.builder});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
+      themeMode: ThemeMode.system,
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      builder: (context, child) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final overlayStyle =
+            (isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark)
+                .copyWith(
+          statusBarColor: Colors.transparent,
+          systemNavigationBarColor:
+              isDark ? const Color(0xFF0F131A) : const Color(0xFFF6F8FC),
+          systemNavigationBarIconBrightness:
+              isDark ? Brightness.light : Brightness.dark,
+        );
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: overlayStyle,
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
+      home: Builder(builder: builder),
+    );
+  }
+}
+
+class _StartupLoadingScreen extends StatelessWidget {
+  const _StartupLoadingScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(28),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(
+                  width: 42,
+                  height: 42,
+                  child: CircularProgressIndicator(strokeWidth: 4),
+                ),
+                const SizedBox(height: 28),
+                Text(
+                  l10n.startupLoadingTitle,
+                  textAlign: TextAlign.center,
+                  style: textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  l10n.startupLoadingBody,
+                  textAlign: TextAlign.center,
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    height: 1.45,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StartupFailureScreen extends StatelessWidget {
+  final VoidCallback onRetry;
+
+  const _StartupFailureScreen({required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(28),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.error_outline,
+                  size: 44,
+                  color: colorScheme.error,
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  l10n.startupErrorTitle,
+                  textAlign: TextAlign.center,
+                  style: textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  l10n.startupErrorBody,
+                  textAlign: TextAlign.center,
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    height: 1.45,
+                  ),
+                ),
+                const SizedBox(height: 28),
+                FilledButton.icon(
+                  onPressed: onRetry,
+                  icon: const Icon(Icons.refresh),
+                  label: Text(l10n.startupRetryAction),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 

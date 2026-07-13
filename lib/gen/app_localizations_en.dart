@@ -82,6 +82,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get startupSportAction => 'Start with this sport';
 
   @override
+  String get startupLoadingTitle => 'Getting the app ready';
+
+  @override
+  String get startupLoadingBody =>
+      'Loading your records and settings. Please wait a moment.';
+
+  @override
+  String get startupErrorTitle => 'The app could not start';
+
+  @override
+  String get startupErrorBody =>
+      'Something went wrong while loading the initial data. If retry keeps stopping here, fully close the app and open it again.';
+
+  @override
+  String get startupRetryAction => 'Retry';
+
+  @override
   String get startupSportFootballDescription =>
       'Start with football training, matches, sketches, and news.';
 
