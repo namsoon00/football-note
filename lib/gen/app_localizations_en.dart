@@ -8765,6 +8765,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachSprintQualityGateStableFrames => 'Stable frames';
 
   @override
+  String get runningCoachSprintQualityGateGaitPhase => 'Gait phase';
+
+  @override
   String runningCoachSprintQualityPercentValue(int percent) {
     return '$percent%';
   }
@@ -8912,6 +8915,39 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get runningCoachSprintSessionGaitPhaseLabel => 'Gait phase';
+
+  @override
+  String runningCoachSprintSessionGaitPhaseValue(
+      Object phase, int confidence, int stance, int flight) {
+    return '$phase · conf $confidence% · stance $stance · flight $flight';
+  }
+
+  @override
+  String get runningCoachSprintSessionLandingLabel => 'Landing';
+
+  @override
+  String runningCoachSprintSessionLandingValue(
+      Object overstride, Object shinAngle, int events) {
+    return 'over $overstride% · shin $shinAngle° · events $events';
+  }
+
+  @override
+  String get runningCoachSprintSessionReferenceLabel => 'Session reference';
+
+  @override
+  String runningCoachSprintSessionReferenceValue(
+      Object status, Object knee, Object trunk, Object rhythm) {
+    return '$status · knee $knee · trunk $trunk · rhythm $rhythm';
+  }
+
+  @override
+  String get runningCoachSprintSessionReferenceReady => 'ready';
+
+  @override
+  String get runningCoachSprintSessionReferenceCollecting => 'collecting';
+
+  @override
   String get runningCoachSprintSessionConfidenceLabel => 'Landmark confidence';
 
   @override
@@ -8964,6 +9000,30 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get runningCoachSprintMetricLandingLabel => 'Landing';
+
+  @override
+  String runningCoachSprintMetricLandingValue(Object value, Object angle) {
+    return 'Over $value% · shin $angle°';
+  }
+
+  @override
+  String get runningCoachSprintMetricFlightLabel => 'Flight';
+
+  @override
+  String runningCoachSprintMetricFlightValue(Object value) {
+    return '$value%';
+  }
+
+  @override
+  String get runningCoachSprintMetricLateFormLabel => 'Late form';
+
+  @override
+  String runningCoachSprintMetricLateFormValue(Object value) {
+    return 'Drop $value%';
+  }
+
+  @override
   String runningCoachSprintMetricTargetRangeDegrees(int minimum, int maximum) {
     return 'Target $minimum-$maximum°';
   }
@@ -8985,6 +9045,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSprintMetricTargetLiveReference => 'Live reference';
+
+  @override
+  String get runningCoachSprintMetricTargetSessionReference =>
+      'Session reference';
 
   @override
   String get runningCoachSprintBodyVisibilityFull => 'Full body locked';
@@ -9014,6 +9078,18 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get runningCoachSprintCueBalanceArms =>
       'The arm swing is unbalanced. Match the backward drive on both sides more closely.';
+
+  @override
+  String get runningCoachSprintCueLandUnderHips =>
+      'Let the foot land closer under the hip instead of reaching out in front.';
+
+  @override
+  String get runningCoachSprintCueLiftOffQuickly =>
+      'Get off the ground a little quicker and keep the next step light.';
+
+  @override
+  String get runningCoachSprintCueHoldLateForm =>
+      'Hold the same knee drive and forward lean through the end of the sprint.';
 
   @override
   String get runningCoachSprintCueKeepPushing =>
@@ -9502,6 +9578,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachSprintCueTryLabel => 'Try';
 
   @override
+  String get runningCoachSprintGaitPhaseUnknown => 'Unknown';
+
+  @override
+  String get runningCoachSprintGaitPhaseLeftStance => 'Left stance';
+
+  @override
+  String get runningCoachSprintGaitPhaseRightStance => 'Right stance';
+
+  @override
+  String get runningCoachSprintGaitPhaseDoubleSupport => 'Double support';
+
+  @override
+  String get runningCoachSprintGaitPhaseFlight => 'Flight';
+
+  @override
   String get runningCoachSprintTrackingStateBodyTooSmall => 'Move closer';
 
   @override
@@ -9649,6 +9740,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'One arm is contributing less backward drive, so rhythm support from the upper body is uneven.';
 
   @override
+  String get runningCoachSprintDiagnosisLandUnderHips =>
+      'The lead foot is reaching too far ahead of the hip line, which can create a braking contact.';
+
+  @override
+  String get runningCoachSprintDiagnosisLiftOffQuickly =>
+      'The gait phase has too little flight time, so the contact pattern looks heavy.';
+
+  @override
+  String get runningCoachSprintDiagnosisHoldLateForm =>
+      'Your current stride is dropping below the session reference for knee drive, lean, or rhythm.';
+
+  @override
   String get runningCoachSprintDiagnosisKeepPushing =>
       'The main sprint metrics are inside the stable range, so the app is holding the current cue.';
 
@@ -9667,6 +9770,18 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get runningCoachSprintActionBalanceArms =>
       'Match the backward arm drive on both sides and keep the shoulders quieter.';
+
+  @override
+  String get runningCoachSprintActionLandUnderHips =>
+      'Think quick down-and-back under the hip instead of casting the foot forward.';
+
+  @override
+  String get runningCoachSprintActionLiftOffQuickly =>
+      'Push back and leave the ground sharply, keeping the ankle stiff through contact.';
+
+  @override
+  String get runningCoachSprintActionHoldLateForm =>
+      'Shorten the effort slightly and keep the same knee punch and trunk angle for the final steps.';
 
   @override
   String get runningCoachSprintActionKeepPushing =>
@@ -9709,8 +9824,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String runningCoachSprintSessionFeatureConfidenceValue(
-      Object trunk, Object knee, Object rhythm) {
-    return '$trunk / $knee / $rhythm';
+      Object trunk, Object knee, Object rhythm, Object landing, Object flight) {
+    return '$trunk / $knee / $rhythm / $landing / $flight';
   }
 
   @override
@@ -9732,6 +9847,18 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get runningCoachSprintFeatureUnavailableStepEvents =>
       'not enough stable step events';
+
+  @override
+  String get runningCoachSprintFeatureUnavailableLandingEvents =>
+      'not enough landing events';
+
+  @override
+  String get runningCoachSprintFeatureUnavailableGaitPhase =>
+      'not enough gait phase samples';
+
+  @override
+  String get runningCoachSprintFeatureUnavailableSessionReference =>
+      'session reference is still collecting';
 
   @override
   String get homeWeatherNeedsLocationTitle => 'Need location';

@@ -8535,6 +8535,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachSprintQualityGateStableFrames => '安定フレーム';
 
   @override
+  String get runningCoachSprintQualityGateGaitPhase => 'ランニング局面';
+
+  @override
   String runningCoachSprintQualityPercentValue(int percent) {
     return '$percent%';
   }
@@ -8679,6 +8682,39 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get runningCoachSprintSessionGaitPhaseLabel => 'ランニング局面';
+
+  @override
+  String runningCoachSprintSessionGaitPhaseValue(
+      Object phase, int confidence, int stance, int flight) {
+    return '$phase・信頼 $confidence%・接地 $stance・浮遊 $flight';
+  }
+
+  @override
+  String get runningCoachSprintSessionLandingLabel => '接地';
+
+  @override
+  String runningCoachSprintSessionLandingValue(
+      Object overstride, Object shinAngle, int events) {
+    return '前方 $overstride%・すね $shinAngle°・イベント $events';
+  }
+
+  @override
+  String get runningCoachSprintSessionReferenceLabel => 'セッション基準';
+
+  @override
+  String runningCoachSprintSessionReferenceValue(
+      Object status, Object knee, Object trunk, Object rhythm) {
+    return '$status・膝 $knee・体幹 $trunk・リズム $rhythm';
+  }
+
+  @override
+  String get runningCoachSprintSessionReferenceReady => '準備完了';
+
+  @override
+  String get runningCoachSprintSessionReferenceCollecting => '収集中';
+
+  @override
   String get runningCoachSprintSessionConfidenceLabel => '画期的な信頼性';
 
   @override
@@ -8731,6 +8767,30 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get runningCoachSprintMetricLandingLabel => '接地';
+
+  @override
+  String runningCoachSprintMetricLandingValue(Object value, Object angle) {
+    return '前方 $value%・すね $angle°';
+  }
+
+  @override
+  String get runningCoachSprintMetricFlightLabel => '浮遊';
+
+  @override
+  String runningCoachSprintMetricFlightValue(Object value) {
+    return '$value%';
+  }
+
+  @override
+  String get runningCoachSprintMetricLateFormLabel => '後半フォーム';
+
+  @override
+  String runningCoachSprintMetricLateFormValue(Object value) {
+    return '低下 $value%';
+  }
+
+  @override
   String runningCoachSprintMetricTargetRangeDegrees(int minimum, int maximum) {
     return '目標 $minimum-$maximum°';
   }
@@ -8752,6 +8812,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachSprintMetricTargetLiveReference => 'ライブ基準';
+
+  @override
+  String get runningCoachSprintMetricTargetSessionReference => 'セッション基準';
 
   @override
   String get runningCoachSprintBodyVisibilityFull => '全身ロック';
@@ -8779,6 +8842,15 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get runningCoachSprintCueBalanceArms =>
       '腕の振りがアンバランスです。両側の後進ドライブをより厳密に一致させます。';
+
+  @override
+  String get runningCoachSprintCueLandUnderHips => '足を前に伸ばしすぎず、腰の下に近い位置へ接地します。';
+
+  @override
+  String get runningCoachSprintCueLiftOffQuickly => '地面から少し早く離れ、次の一歩を軽く保ちます。';
+
+  @override
+  String get runningCoachSprintCueHoldLateForm => 'スプリントの最後まで同じ膝のドライブと前傾を保ちます。';
 
   @override
   String get runningCoachSprintCueKeepPushing => '良い。同じリズムで前傾姿勢で押し続けます。';
@@ -9246,6 +9318,21 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachSprintCueTryLabel => '試す';
 
   @override
+  String get runningCoachSprintGaitPhaseUnknown => '不明';
+
+  @override
+  String get runningCoachSprintGaitPhaseLeftStance => '左接地';
+
+  @override
+  String get runningCoachSprintGaitPhaseRightStance => '右接地';
+
+  @override
+  String get runningCoachSprintGaitPhaseDoubleSupport => '両足接地';
+
+  @override
+  String get runningCoachSprintGaitPhaseFlight => '浮遊';
+
+  @override
   String get runningCoachSprintTrackingStateBodyTooSmall => '近くに移動してください';
 
   @override
@@ -9387,6 +9474,18 @@ class AppLocalizationsJa extends AppLocalizations {
       '片方の腕は後方への駆動にあまり貢献していないため、上半身からのリズムサポートが不均一になります。';
 
   @override
+  String get runningCoachSprintDiagnosisLandUnderHips =>
+      'リード足が腰のラインより前に出すぎており、接地でブレーキが起きる可能性があります。';
+
+  @override
+  String get runningCoachSprintDiagnosisLiftOffQuickly =>
+      'ランニング局面の浮遊時間が短く、接地パターンが重く見えます。';
+
+  @override
+  String get runningCoachSprintDiagnosisHoldLateForm =>
+      '現在のストライドは、膝ドライブ、前傾、リズムのいずれかでセッション基準を下回っています。';
+
+  @override
   String get runningCoachSprintDiagnosisKeepPushing =>
       '主要なスプリント指標は安定範囲内にあるため、アプリは現在のキューを保持しています。';
 
@@ -9405,6 +9504,18 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get runningCoachSprintActionBalanceArms =>
       '両側の後方アームドライブを一致させ、肩を静かに保ちます。';
+
+  @override
+  String get runningCoachSprintActionLandUnderHips =>
+      '足を前へ投げ出さず、腰の下へ素早く下ろして後ろへ押す意識にします。';
+
+  @override
+  String get runningCoachSprintActionLiftOffQuickly =>
+      '足首を固く保ち、後ろへ押して接地後すぐに地面から離れます。';
+
+  @override
+  String get runningCoachSprintActionHoldLateForm =>
+      '出力を少し抑えても、最後の数歩で同じ膝のパンチと体幹角度を保ちます。';
 
   @override
   String get runningCoachSprintActionKeepPushing =>
@@ -9445,8 +9556,8 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String runningCoachSprintSessionFeatureConfidenceValue(
-      Object trunk, Object knee, Object rhythm) {
-    return '$trunk / $knee / $rhythm';
+      Object trunk, Object knee, Object rhythm, Object landing, Object flight) {
+    return '$trunk / $knee / $rhythm / $landing / $flight';
   }
 
   @override
@@ -9468,6 +9579,18 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get runningCoachSprintFeatureUnavailableStepEvents =>
       '十分な安定したステップイベントがありません';
+
+  @override
+  String get runningCoachSprintFeatureUnavailableLandingEvents =>
+      '十分な安定した接地イベントがありません';
+
+  @override
+  String get runningCoachSprintFeatureUnavailableGaitPhase =>
+      'ランニング局面のサンプルが不足しています';
+
+  @override
+  String get runningCoachSprintFeatureUnavailableSessionReference =>
+      'セッション基準をまだ収集中です';
 
   @override
   String get homeWeatherNeedsLocationTitle => '場所が必要です';
