@@ -302,8 +302,9 @@ class MatchCompetitionService {
         ? MatchCompetitionRecord.kindTournament
         : MatchCompetitionRecord.kindLeague;
     final existing = findCompetition(kind: kind, name: name);
+    if (existing == null) return;
     final teams = normalizeTeams([
-      ...?existing?.teams,
+      ...existing.teams,
       ...entry.leagueTeamNames,
       entry.opponentTeam,
     ]);
@@ -312,11 +313,11 @@ class MatchCompetitionService {
         kind: kind,
         name: name,
         teams: teams,
-        status: existing?.status ?? MatchCompetitionRecord.statusActive,
-        season: existing?.season ?? '',
-        venue: existing?.venue ?? '',
-        organizer: existing?.organizer ?? '',
-        note: existing?.note ?? '',
+        status: existing.status,
+        season: existing.season,
+        venue: existing.venue,
+        organizer: existing.organizer,
+        note: existing.note,
       ),
     );
   }

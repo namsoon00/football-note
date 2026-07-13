@@ -19557,6 +19557,30 @@ abstract class AppLocalizations {
   /// **'Fill the match record with the league or tournament name, teams, status, and venue.'**
   String get matchCompetitionQuickLoadHelper;
 
+  /// No description provided for @matchCompetitionManagedOnlyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a competition created in Competition Management.'**
+  String get matchCompetitionManagedOnlyTitle;
+
+  /// No description provided for @matchCompetitionManagedOnlyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Match registration no longer creates leagues or tournaments. Create one in Competition Management first, then load it here to record the match.'**
+  String get matchCompetitionManagedOnlyBody;
+
+  /// No description provided for @matchCompetitionSelectionRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a competition created in Competition Management first.'**
+  String get matchCompetitionSelectionRequired;
+
+  /// No description provided for @matchCompetitionSelectedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected competition'**
+  String get matchCompetitionSelectedTitle;
+
   /// No description provided for @matchCompetitionFinishedNotice.
   ///
   /// In en, this message translates to:

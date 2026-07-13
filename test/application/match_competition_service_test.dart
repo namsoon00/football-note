@@ -109,7 +109,7 @@ void main() {
     expect(competition?.teams, <String>['레드 FC', '블루 FC']);
   });
 
-  test('팀 목록이 없는 토너먼트 기록도 저장 대회로 보존한다', () async {
+  test('등록되지 않은 토너먼트 기록은 저장 대회를 새로 만들지 않는다', () async {
     final repository = _MemoryOptionRepository();
     final service = MatchCompetitionService(repository);
 
@@ -133,9 +133,7 @@ void main() {
       MatchCompetitionRecord.kindTournament,
     );
 
-    expect(tournaments, hasLength(1));
-    expect(tournaments.single.name, '여름 컵');
-    expect(tournaments.single.teams, <String>['블루 FC']);
+    expect(tournaments, isEmpty);
   });
 
   test('리그 순위는 등록 팀과 기록 결과를 합쳐 승점 순으로 계산한다', () {
