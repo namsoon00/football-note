@@ -74,13 +74,6 @@ class WeatherReminderService {
         enableVibration: _settings.reminderVibrationEnabled,
       ),
     );
-    await androidImpl?.requestNotificationsPermission();
-    await androidImpl?.requestExactAlarmsPermission();
-
-    final iosImpl = _plugin.resolvePlatformSpecificImplementation<
-        IOSFlutterLocalNotificationsPlugin>();
-    await iosImpl?.requestPermissions(alert: true, badge: true, sound: true);
-
     _initialized = true;
   }
 

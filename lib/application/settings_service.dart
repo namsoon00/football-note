@@ -18,7 +18,7 @@ class SettingsService extends ChangeNotifier {
   bool _disposed = false;
 
   ThemeMode _themeMode = ThemeMode.light;
-  bool _reminderEnabled = true;
+  bool _reminderEnabled = false;
   bool _reminderVibrationEnabled = true;
   TimeOfDay _reminderTime = const TimeOfDay(hour: 19, minute: 0);
   bool _levelUpAlertEnabled = true;
@@ -61,7 +61,7 @@ class SettingsService extends ChangeNotifier {
   void load() {
     final theme = _repository.getValue<String>('theme_mode');
     _themeMode = _parseThemeMode(theme) ?? ThemeMode.light;
-    _reminderEnabled = _repository.getValue<bool>('reminder_enabled') ?? true;
+    _reminderEnabled = _repository.getValue<bool>('reminder_enabled') ?? false;
     _reminderVibrationEnabled =
         _repository.getValue<bool>('reminder_vibration_enabled') ?? true;
     final time = _repository.getValue<String>('reminder_time');

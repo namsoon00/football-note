@@ -232,6 +232,36 @@ abstract class AppLocalizations {
   /// **'Start with this sport'**
   String get startupSportAction;
 
+  /// No description provided for @startupLoadingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Getting the app ready'**
+  String get startupLoadingTitle;
+
+  /// No description provided for @startupLoadingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading your records and settings. Please wait a moment.'**
+  String get startupLoadingBody;
+
+  /// No description provided for @startupErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The app could not start'**
+  String get startupErrorTitle;
+
+  /// No description provided for @startupErrorBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong while loading the initial data. If retry keeps stopping here, fully close the app and open it again.'**
+  String get startupErrorBody;
+
+  /// No description provided for @startupRetryAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get startupRetryAction;
+
   /// No description provided for @startupSportFootballDescription.
   ///
   /// In en, this message translates to:
