@@ -8845,6 +8845,34 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get runningCoachSprintSessionMediaPipeLabel => 'MediaPipe';
+
+  @override
+  String runningCoachSprintSessionMediaPipeValue(Object platform, Object format,
+      int rotationDegrees, int processingMs, Object strictMode) {
+    return '$platform · $format · rot $rotationDegrees° · ${processingMs}ms · strict $strictMode';
+  }
+
+  @override
+  String get runningCoachSprintSessionMediaPipeStrictOn => 'on';
+
+  @override
+  String get runningCoachSprintSessionMediaPipeStrictOff => 'off';
+
+  @override
+  String get runningCoachSprintSessionMediaPipeLandmarksLabel =>
+      'MediaPipe landmarks';
+
+  @override
+  String runningCoachSprintSessionMediaPipeLandmarksValue(int raw, int mapped,
+      int core, int world, Object minConfidence, Object averageConfidence) {
+    return 'raw $raw · mapped $mapped · core $core · world $world · min $minConfidence · avg $averageConfidence';
+  }
+
+  @override
+  String get runningCoachSprintSessionMediaPipeErrorLabel => 'MediaPipe error';
+
+  @override
   String get runningCoachSprintSessionActiveFeedbackLabel => 'Active feedback';
 
   @override

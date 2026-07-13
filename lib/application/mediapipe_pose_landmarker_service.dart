@@ -6,6 +6,10 @@ class MediaPipePoseLandmarkerService {
   static const MethodChannel _channel = MethodChannel(
     'football_note/mediapipe_pose_landmarker',
   );
+  static const bool strictFailureMode = bool.fromEnvironment(
+    'SPRINT_MEDIAPIPE_STRICT',
+    defaultValue: true,
+  );
 
   const MediaPipePoseLandmarkerService();
 

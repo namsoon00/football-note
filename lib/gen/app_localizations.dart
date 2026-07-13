@@ -15489,6 +15489,50 @@ abstract class AppLocalizations {
   String runningCoachSprintSessionBodyVisibilityValue(
       Object status, int visible, int total, int percent);
 
+  /// No description provided for @runningCoachSprintSessionMediaPipeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'MediaPipe'**
+  String get runningCoachSprintSessionMediaPipeLabel;
+
+  /// No description provided for @runningCoachSprintSessionMediaPipeValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{platform} · {format} · rot {rotationDegrees}° · {processingMs}ms · strict {strictMode}'**
+  String runningCoachSprintSessionMediaPipeValue(Object platform, Object format,
+      int rotationDegrees, int processingMs, Object strictMode);
+
+  /// No description provided for @runningCoachSprintSessionMediaPipeStrictOn.
+  ///
+  /// In en, this message translates to:
+  /// **'on'**
+  String get runningCoachSprintSessionMediaPipeStrictOn;
+
+  /// No description provided for @runningCoachSprintSessionMediaPipeStrictOff.
+  ///
+  /// In en, this message translates to:
+  /// **'off'**
+  String get runningCoachSprintSessionMediaPipeStrictOff;
+
+  /// No description provided for @runningCoachSprintSessionMediaPipeLandmarksLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'MediaPipe landmarks'**
+  String get runningCoachSprintSessionMediaPipeLandmarksLabel;
+
+  /// No description provided for @runningCoachSprintSessionMediaPipeLandmarksValue.
+  ///
+  /// In en, this message translates to:
+  /// **'raw {raw} · mapped {mapped} · core {core} · world {world} · min {minConfidence} · avg {averageConfidence}'**
+  String runningCoachSprintSessionMediaPipeLandmarksValue(int raw, int mapped,
+      int core, int world, Object minConfidence, Object averageConfidence);
+
+  /// No description provided for @runningCoachSprintSessionMediaPipeErrorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'MediaPipe error'**
+  String get runningCoachSprintSessionMediaPipeErrorLabel;
+
   /// No description provided for @runningCoachSprintSessionActiveFeedbackLabel.
   ///
   /// In en, this message translates to:

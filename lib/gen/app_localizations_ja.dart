@@ -8613,6 +8613,34 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get runningCoachSprintSessionMediaPipeLabel => 'MediaPipe';
+
+  @override
+  String runningCoachSprintSessionMediaPipeValue(Object platform, Object format,
+      int rotationDegrees, int processingMs, Object strictMode) {
+    return '$platform・$format・回転 $rotationDegrees°・${processingMs}ms・strict $strictMode';
+  }
+
+  @override
+  String get runningCoachSprintSessionMediaPipeStrictOn => 'オン';
+
+  @override
+  String get runningCoachSprintSessionMediaPipeStrictOff => 'オフ';
+
+  @override
+  String get runningCoachSprintSessionMediaPipeLandmarksLabel =>
+      'MediaPipe ランドマーク';
+
+  @override
+  String runningCoachSprintSessionMediaPipeLandmarksValue(int raw, int mapped,
+      int core, int world, Object minConfidence, Object averageConfidence) {
+    return 'raw $raw・mapped $mapped・core $core・world $world・min $minConfidence・avg $averageConfidence';
+  }
+
+  @override
+  String get runningCoachSprintSessionMediaPipeErrorLabel => 'MediaPipe エラー';
+
+  @override
   String get runningCoachSprintSessionActiveFeedbackLabel => 'アクティブなフィードバック';
 
   @override

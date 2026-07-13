@@ -4927,6 +4927,44 @@
       }
     }
   },
+  "runningCoachSprintSessionMediaPipeLabel": "MediaPipe",
+  "runningCoachSprintSessionMediaPipeValue": "{platform} · {format} · 회전 {rotationDegrees}° · {processingMs}ms · strict {strictMode}",
+  "@runningCoachSprintSessionMediaPipeValue": {
+    "placeholders": {
+      "platform": {},
+      "format": {},
+      "rotationDegrees": {
+        "type": "int"
+      },
+      "processingMs": {
+        "type": "int"
+      },
+      "strictMode": {}
+    }
+  },
+  "runningCoachSprintSessionMediaPipeStrictOn": "켜짐",
+  "runningCoachSprintSessionMediaPipeStrictOff": "꺼짐",
+  "runningCoachSprintSessionMediaPipeLandmarksLabel": "MediaPipe 관절",
+  "runningCoachSprintSessionMediaPipeLandmarksValue": "원본 {raw} · 매핑 {mapped} · 핵심 {core} · 월드 {world} · 최저 {minConfidence} · 평균 {averageConfidence}",
+  "@runningCoachSprintSessionMediaPipeLandmarksValue": {
+    "placeholders": {
+      "raw": {
+        "type": "int"
+      },
+      "mapped": {
+        "type": "int"
+      },
+      "core": {
+        "type": "int"
+      },
+      "world": {
+        "type": "int"
+      },
+      "minConfidence": {},
+      "averageConfidence": {}
+    }
+  },
+  "runningCoachSprintSessionMediaPipeErrorLabel": "MediaPipe 오류",
   "runningCoachSprintSessionActiveFeedbackLabel": "활성 피드백",
   "runningCoachSprintSessionActiveFeedbackValue": "{key} · {text}",
   "@runningCoachSprintSessionActiveFeedbackValue": {

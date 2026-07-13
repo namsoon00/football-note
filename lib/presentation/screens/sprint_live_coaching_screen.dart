@@ -64,6 +64,8 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
   SprintLiveSessionMetricsSnapshot _sessionMetrics =
       const SprintLiveSessionMetricsSnapshot.initial();
   _SprintPoseOverlayState? _poseOverlayState;
+  _MediaPipeFrameDiagnostics _mediaPipeDiagnostics =
+      const _MediaPipeFrameDiagnostics.initial();
   bool _isInitializing = true;
   bool _isSpeechEnabled = true;
   bool _isDebugModeEnabled = false;
@@ -115,6 +117,7 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
     if (state == AppLifecycleState.inactive ||
         state == AppLifecycleState.paused) {
       _endSessionLogging(reason: 'lifecycle_${state.name}');
+      unawaited(_mediaPipePoseLandmarker.close());
       unawaited(controller.dispose());
       _controller = null;
       return;
@@ -520,12 +523,14 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
     if (oldController != null) {
       await oldController.dispose();
     }
+    await _mediaPipePoseLandmarker.close();
 
     _coachingService.reset();
     _sessionMetricsCollector.reset();
     _sessionMetrics = const SprintLiveSessionMetricsSnapshot.initial();
     _coachingState = const SprintRealtimeCoachingState.initial();
     _poseOverlayState = null;
+    _mediaPipeDiagnostics = const _MediaPipeFrameDiagnostics.initial();
     _debugOverlaySmoother.reset();
     _lastAnalyzedAt = null;
     _lastSpokenAt = null;
@@ -666,6 +671,13 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
       );
       final poseFrame =
           _sprintPoseFrameFromMediaPipe(mediaPipeDetection, receivedAt);
+      final mediaPipeDiagnostics = _buildMediaPipeDiagnostics(
+        detection: mediaPipeDetection,
+        frame: poseFrame,
+        frameInput: frameInput,
+        cameraImage: image,
+        processingTime: stopwatch.elapsed,
+      );
       const overlayRotation = InputImageRotation.rotation0deg;
       final debugSmoothedFrame = _debugOverlaySmoother.smooth(
         _filterDebugFrame(poseFrame),
@@ -693,6 +705,7 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
       setState(() {
         _coachingState = state;
         _sessionMetrics = snapshot;
+        _mediaPipeDiagnostics = mediaPipeDiagnostics;
         _poseOverlayState = _SprintPoseOverlayState(
           rawFrame: poseFrame,
           smoothedFrame: debugSmoothedFrame,
@@ -720,6 +733,28 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
         receivedAt,
       );
       _refreshSessionMetricsIfNeeded(receivedAt);
+      final failedDiagnostics = _mediaPipeDiagnostics.copyWithFailure(
+        error: error,
+        platformLabel: _mediaPipePlatformLabel,
+        rotationDegrees: _rotationDegrees(frameInput.rotation),
+        frameInput: frameInput,
+        cameraImage: image,
+        processingTime: stopwatch.elapsed,
+      );
+      if (!_isDisposed && mounted) {
+        setState(() {
+          _mediaPipeDiagnostics = failedDiagnostics;
+        });
+      }
+      _emitSessionLog(
+        event: 'mediapipe_error',
+        force: true,
+        now: receivedAt,
+        details: failedDiagnostics.toLogPayload(),
+      );
+      if (!MediaPipePoseLandmarkerService.strictFailureMode) {
+        return;
+      }
       Error.throwWithStackTrace(error, stackTrace);
     } finally {
       _isProcessingFrame = false;
@@ -920,7 +955,10 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
       return null;
     }
 
-    return _CameraFrameInput(rotation: rotation);
+    return _CameraFrameInput(
+      rotation: rotation,
+      formatLabel: format.name,
+    );
   }
 
   InputImageRotation? _resolveImageRotation(
@@ -975,6 +1013,9 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
       if (type == null) {
         continue;
       }
+      if (landmark.confidence < _pipelineConfig.minimumLandmarkConfidence) {
+        continue;
+      }
       final world = landmark.worldLandmark;
       landmarks[type] = SprintPoseLandmark(
         position: landmark.position,
@@ -993,6 +1034,14 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
     if (landmarks.isEmpty) {
       throw StateError(
         'MediaPipe pose detection returned no sprint landmark mapping.',
+      );
+    }
+    final visibleCoreLandmarks = sprintMvpCoreLandmarks
+        .where((type) => landmarks.containsKey(type))
+        .length;
+    if (visibleCoreLandmarks < _pipelineConfig.minimumVisibleLandmarks) {
+      throw StateError(
+        'MediaPipe pose detection returned only $visibleCoreLandmarks usable core landmarks.',
       );
     }
 
@@ -1037,6 +1086,57 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
           entry.key: entry.value,
     };
     return frame.copyWith(landmarks: filtered);
+  }
+
+  _MediaPipeFrameDiagnostics _buildMediaPipeDiagnostics({
+    required MediaPipePoseDetection detection,
+    required SprintPoseFrame frame,
+    required _CameraFrameInput frameInput,
+    required CameraImage cameraImage,
+    required Duration processingTime,
+  }) {
+    final landmarks = frame.landmarks.values.toList(growable: false);
+    final confidences = landmarks.map((landmark) => landmark.confidence);
+    final averageConfidence = confidences.isEmpty
+        ? 0.0
+        : confidences.reduce((sum, value) => sum + value) / confidences.length;
+    final minConfidence = confidences.isEmpty
+        ? 0.0
+        : confidences.reduce((first, second) => math.min(first, second));
+    final visibleCoreLandmarks = sprintMvpCoreLandmarks
+        .where((type) => frame.landmarks.containsKey(type))
+        .length;
+    final worldLandmarks =
+        landmarks.where((landmark) => landmark.worldLandmark != null).length;
+    return _MediaPipeFrameDiagnostics(
+      platformLabel: _mediaPipePlatformLabel,
+      formatLabel: frameInput.formatLabel,
+      rotationDegrees: _rotationDegrees(frameInput.rotation),
+      sourceWidth: cameraImage.width,
+      sourceHeight: cameraImage.height,
+      imageWidth: detection.imageSize.width.round(),
+      imageHeight: detection.imageSize.height.round(),
+      processingTime: processingTime,
+      rawLandmarkCount: detection.landmarks.length,
+      mappedLandmarkCount: frame.landmarks.length,
+      coreLandmarkCount: visibleCoreLandmarks,
+      worldLandmarkCount: worldLandmarks,
+      minConfidence: minConfidence,
+      averageConfidence: averageConfidence,
+      strictMode: MediaPipePoseLandmarkerService.strictFailureMode,
+      updatedAt: DateTime.now(),
+      error: null,
+    );
+  }
+
+  String get _mediaPipePlatformLabel {
+    if (_isAndroidPlatform) {
+      return 'Android';
+    }
+    if (_isIosPlatform) {
+      return 'iOS';
+    }
+    return 'unsupported';
   }
 
   Future<void> _maybeSpeakFeedback({
@@ -1714,6 +1814,34 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
           (_coachingState.stateEstimate.bodyVisibilityRatio * 100).round(),
         ),
       ),
+      _SessionSummaryLine(
+        label: l10n.runningCoachSprintSessionMediaPipeLabel,
+        value: l10n.runningCoachSprintSessionMediaPipeValue(
+          _mediaPipeDiagnostics.platformLabel,
+          _mediaPipeDiagnostics.formatLabel,
+          _mediaPipeDiagnostics.rotationDegrees,
+          _mediaPipeDiagnostics.processingTime.inMilliseconds,
+          _mediaPipeDiagnostics.strictMode
+              ? l10n.runningCoachSprintSessionMediaPipeStrictOn
+              : l10n.runningCoachSprintSessionMediaPipeStrictOff,
+        ),
+      ),
+      _SessionSummaryLine(
+        label: l10n.runningCoachSprintSessionMediaPipeLandmarksLabel,
+        value: l10n.runningCoachSprintSessionMediaPipeLandmarksValue(
+          _mediaPipeDiagnostics.rawLandmarkCount,
+          _mediaPipeDiagnostics.mappedLandmarkCount,
+          _mediaPipeDiagnostics.coreLandmarkCount,
+          _mediaPipeDiagnostics.worldLandmarkCount,
+          _mediaPipeDiagnostics.minConfidence.toStringAsFixed(2),
+          _mediaPipeDiagnostics.averageConfidence.toStringAsFixed(2),
+        ),
+      ),
+      if (_mediaPipeDiagnostics.error != null)
+        _SessionSummaryLine(
+          label: l10n.runningCoachSprintSessionMediaPipeErrorLabel,
+          value: _mediaPipeDiagnostics.error!,
+        ),
       _SessionSummaryLine(
         label: l10n.runningCoachSprintSessionVisibleJointCountLabel,
         value: l10n.runningCoachSprintSessionVisibleJointCountValue(
@@ -2683,8 +2811,119 @@ class _GuideFramePainter extends CustomPainter {
 
 class _CameraFrameInput {
   final InputImageRotation rotation;
+  final String formatLabel;
 
-  const _CameraFrameInput({required this.rotation});
+  const _CameraFrameInput({
+    required this.rotation,
+    required this.formatLabel,
+  });
+}
+
+class _MediaPipeFrameDiagnostics {
+  final String platformLabel;
+  final String formatLabel;
+  final int rotationDegrees;
+  final int sourceWidth;
+  final int sourceHeight;
+  final int imageWidth;
+  final int imageHeight;
+  final Duration processingTime;
+  final int rawLandmarkCount;
+  final int mappedLandmarkCount;
+  final int coreLandmarkCount;
+  final int worldLandmarkCount;
+  final double minConfidence;
+  final double averageConfidence;
+  final bool strictMode;
+  final DateTime? updatedAt;
+  final String? error;
+
+  const _MediaPipeFrameDiagnostics({
+    required this.platformLabel,
+    required this.formatLabel,
+    required this.rotationDegrees,
+    required this.sourceWidth,
+    required this.sourceHeight,
+    required this.imageWidth,
+    required this.imageHeight,
+    required this.processingTime,
+    required this.rawLandmarkCount,
+    required this.mappedLandmarkCount,
+    required this.coreLandmarkCount,
+    required this.worldLandmarkCount,
+    required this.minConfidence,
+    required this.averageConfidence,
+    required this.strictMode,
+    required this.updatedAt,
+    required this.error,
+  });
+
+  const _MediaPipeFrameDiagnostics.initial()
+      : platformLabel = '-',
+        formatLabel = '-',
+        rotationDegrees = 0,
+        sourceWidth = 0,
+        sourceHeight = 0,
+        imageWidth = 0,
+        imageHeight = 0,
+        processingTime = Duration.zero,
+        rawLandmarkCount = 0,
+        mappedLandmarkCount = 0,
+        coreLandmarkCount = 0,
+        worldLandmarkCount = 0,
+        minConfidence = 0,
+        averageConfidence = 0,
+        strictMode = MediaPipePoseLandmarkerService.strictFailureMode,
+        updatedAt = null,
+        error = null;
+
+  _MediaPipeFrameDiagnostics copyWithFailure({
+    required Object error,
+    required String platformLabel,
+    required int rotationDegrees,
+    required _CameraFrameInput frameInput,
+    required CameraImage cameraImage,
+    required Duration processingTime,
+  }) {
+    return _MediaPipeFrameDiagnostics(
+      platformLabel: platformLabel,
+      formatLabel: frameInput.formatLabel,
+      rotationDegrees: rotationDegrees,
+      sourceWidth: cameraImage.width,
+      sourceHeight: cameraImage.height,
+      imageWidth: imageWidth,
+      imageHeight: imageHeight,
+      processingTime: processingTime,
+      rawLandmarkCount: rawLandmarkCount,
+      mappedLandmarkCount: mappedLandmarkCount,
+      coreLandmarkCount: coreLandmarkCount,
+      worldLandmarkCount: worldLandmarkCount,
+      minConfidence: minConfidence,
+      averageConfidence: averageConfidence,
+      strictMode: MediaPipePoseLandmarkerService.strictFailureMode,
+      updatedAt: DateTime.now(),
+      error: error.toString(),
+    );
+  }
+
+  Map<String, Object?> toLogPayload() {
+    return <String, Object?>{
+      'platform': platformLabel,
+      'format': formatLabel,
+      'rotationDegrees': rotationDegrees,
+      'sourceSize': '${sourceWidth}x$sourceHeight',
+      'imageSize': '${imageWidth}x$imageHeight',
+      'processingMs': processingTime.inMilliseconds,
+      'rawLandmarks': rawLandmarkCount,
+      'mappedLandmarks': mappedLandmarkCount,
+      'coreLandmarks': coreLandmarkCount,
+      'worldLandmarks': worldLandmarkCount,
+      'minConfidence': minConfidence.toStringAsFixed(3),
+      'averageConfidence': averageConfidence.toStringAsFixed(3),
+      'strictMode': strictMode,
+      'error': error,
+    };
+  }
 }
 
 class _SprintPoseOverlayState {
