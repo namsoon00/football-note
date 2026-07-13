@@ -20,6 +20,8 @@ import '../utils/app_sound_effects.dart';
 import '../utils/match_entry_format.dart';
 import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_feedback.dart';
+import '../widgets/app_page_route.dart';
+import 'competition_management_screen.dart';
 
 class MatchRecordScreen extends StatefulWidget {
   final TrainingService trainingService;
@@ -53,8 +55,6 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
   late String _matchKind;
   late String _opponent;
   late String _location;
-  late String _competitionName;
-  late String _competitionStatus;
   late String _selectedCompetitionId;
   late String _leagueRound;
   late String _tournamentStage;
@@ -71,9 +71,6 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
   late int? _tournamentWins;
   late String _memo;
 
-  final TextEditingController _competitionNameController =
-      TextEditingController();
-  final TextEditingController _teamController = TextEditingController();
   final TextEditingController _opponentController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _roundController = TextEditingController();
@@ -105,8 +102,6 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
   @override
   void dispose() {
     _autoSaveTimer?.cancel();
-    _competitionNameController.dispose();
-    _teamController.dispose();
     _opponentController.dispose();
     _locationController.dispose();
     _roundController.dispose();
@@ -124,8 +119,7 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
             : 'friendly';
     _opponent = entry?.opponentTeam ?? entry?.club ?? '';
     _location = entry?.effectiveMatchLocation ?? '';
-    _competitionName = entry?.matchCompetitionName ?? '';
-    _competitionStatus = MatchCompetitionRecord.statusActive;
+    final competitionName = entry?.matchCompetitionName ?? '';
     _selectedCompetitionId = '';
     _leagueRound = entry?.isLeagueMatch == true ? entry?.matchStage ?? '' : '';
     _tournamentStage = normalizeMatchTournamentStage(
@@ -147,7 +141,6 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
     _tournamentWins = entry?.tournamentWins;
     _memo = entry?.notes ?? '';
 
-    _competitionNameController.text = _competitionName;
     _opponentController.text = _opponent;
     _locationController.text = _location;
     _roundController.text = _leagueRound;
@@ -158,7 +151,7 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
     final competition = MatchCompetitionService(
       widget.optionRepository,
       sportId: sportId,
-    ).findCompetition(kind: _matchKind, name: _competitionName);
+    ).findCompetition(kind: _matchKind, name: competitionName);
     if (competition != null) {
       _applyCompetition(competition);
     }
@@ -173,6 +166,23 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
     );
     if (!mounted) return;
     setState(() => _contextEntries = entries);
+  }
+
+  Future<void> _openCompetitionManagement() async {
+    final sportId = widget.editingEntry?.sportId ??
+        SportService(widget.optionRepository).currentSportId();
+    await Navigator.of(context).push(
+      AppPageRoute(
+        builder: (_) => CompetitionManagementScreen(
+          trainingService: widget.trainingService,
+          optionRepository: widget.optionRepository,
+          sportId: sportId,
+          readOnly: _isParentMode,
+        ),
+      ),
+    );
+    if (!mounted) return;
+    setState(() {});
   }
 
   void _updateAndScheduleAutoSave(VoidCallback update) {
@@ -340,7 +350,12 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
       helper: l10n.matchBoardHelper,
       children: [
         _buildMatchSetupControls(context),
-        if (savedCompetitions.isNotEmpty) ...[
+        if (_isCompetitionMatch && savedCompetitions.isEmpty) ...[
+          const SizedBox(height: AppSpacing.sm),
+          _ManagedCompetitionRequiredNotice(
+            onOpenCompetitionManagement: _openCompetitionManagement,
+          ),
+        ] else if (savedCompetitions.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.sm),
           _SavedCompetitionLoader(
             competitions: savedCompetitions,
@@ -525,9 +540,6 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
               _updateAndScheduleAutoSave(() {
                 _matchKind = selection.first;
                 _selectedCompetitionId = '';
-                _competitionName = '';
-                _competitionStatus = MatchCompetitionRecord.statusActive;
-                _competitionNameController.clear();
                 _teams = const <String>[];
                 _opponent = '';
                 _opponentController.clear();
@@ -716,6 +728,7 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
 
   Widget _buildCompetitionSection(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final selectedCompetition = _selectedManagedCompetition();
     return _MatchRecordSection(
       step: 2,
       icon: _matchKind == MatchCompetitionRecord.kindTournament
@@ -724,158 +737,51 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
       title: l10n.matchFlowCompetitionSectionTitle,
       helper: l10n.matchFlowCompetitionSectionHelper,
       children: [
-        TextField(
-          controller: _competitionNameController,
-          enabled: !_saving,
-          maxLength: 40,
-          textInputAction: TextInputAction.next,
-          onChanged: (value) {
-            _competitionName = value;
-            _selectedCompetitionId = '';
-            _scheduleAutoSave();
-          },
-          decoration: InputDecoration(
-            labelText: l10n.matchCompetitionNameLabel,
-            hintText: _matchKind == MatchCompetitionRecord.kindTournament
-                ? l10n.matchTournamentNameHint
-                : l10n.matchLeagueNameHint,
-            border: const OutlineInputBorder(),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        SegmentedButton<String>(
-          segments: [
-            ButtonSegment<String>(
-              value: MatchCompetitionRecord.statusActive,
-              label: Text(l10n.matchCompetitionStatusActive),
-            ),
-            ButtonSegment<String>(
-              value: MatchCompetitionRecord.statusFinished,
-              label: Text(l10n.matchCompetitionStatusFinished),
-            ),
-          ],
-          selected: {_competitionStatus},
-          showSelectedIcon: false,
-          onSelectionChanged: _saving
-              ? null
-              : (selection) {
-                  _updateAndScheduleAutoSave(
-                    () => _competitionStatus = selection.first,
-                  );
-                },
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        _buildTeamEditor(context),
-        const SizedBox(height: AppSpacing.xs),
-        if (_matchKind == MatchCompetitionRecord.kindLeague)
-          TextField(
-            controller: _roundController,
-            enabled: !_saving,
-            maxLength: 24,
-            textInputAction: TextInputAction.next,
-            onChanged: (value) {
-              _leagueRound = value;
-              _scheduleAutoSave();
-            },
-            decoration: InputDecoration(
-              labelText: l10n.matchLeagueRoundLabel,
-              hintText: l10n.matchLeagueRoundHint,
-              border: const OutlineInputBorder(),
-            ),
-          )
-        else
-          DropdownButtonFormField<String>(
-            initialValue: _tournamentStage,
-            items: [
-              for (final value in matchTournamentStageValues)
-                DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(matchTournamentStageLabel(l10n, value)),
-                ),
-            ],
-            onChanged: _saving
-                ? null
-                : (value) {
-                    if (value == null) return;
-                    _updateAndScheduleAutoSave(
-                      () => _tournamentStage = value,
-                    );
-                  },
-            decoration: InputDecoration(
-              labelText: l10n.matchTournamentStageLabel,
-              border: const OutlineInputBorder(),
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildTeamEditor(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(
-          l10n.matchCompetitionTeamsListTitle,
-          style: theme.textTheme.labelLarge?.copyWith(
-            fontWeight: FontWeight.w900,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        if (_teams.isEmpty)
-          _InlineHint(text: l10n.matchCompetitionNoTeams)
-        else
-          Wrap(
-            spacing: AppSpacing.xs,
-            runSpacing: AppSpacing.xs,
-            children: [
-              for (final team in _teams)
-                InputChip(
-                  label: Text(team),
-                  onDeleted: _saving
-                      ? null
-                      : () {
-                          _updateAndScheduleAutoSave(() {
-                            _teams = _teams
-                                .where((candidate) => candidate != team)
-                                .toList(growable: false);
-                            if (_opponent == team) {
-                              _opponent = '';
-                              _opponentController.clear();
-                            }
-                          });
-                        },
-                ),
-            ],
-          ),
-        const SizedBox(height: AppSpacing.xs),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _teamController,
-                enabled: !_saving,
-                textInputAction: TextInputAction.done,
-                onSubmitted: (_) => _addTeamFromField(),
-                decoration: InputDecoration(
-                  labelText: l10n.matchCompetitionTeamNameLabel,
-                  border: const OutlineInputBorder(),
-                ),
+        if (selectedCompetition == null)
+          _InlineHint(text: l10n.matchCompetitionSelectionRequired)
+        else ...[
+          _SelectedCompetitionSummary(competition: selectedCompetition),
+          const SizedBox(height: AppSpacing.sm),
+          if (_matchKind == MatchCompetitionRecord.kindLeague)
+            TextField(
+              controller: _roundController,
+              enabled: !_saving,
+              maxLength: 24,
+              textInputAction: TextInputAction.next,
+              onChanged: (value) {
+                _leagueRound = value;
+                _scheduleAutoSave();
+              },
+              decoration: InputDecoration(
+                labelText: l10n.matchLeagueRoundLabel,
+                hintText: l10n.matchLeagueRoundHint,
+                border: const OutlineInputBorder(),
+              ),
+            )
+          else
+            DropdownButtonFormField<String>(
+              initialValue: _tournamentStage,
+              items: [
+                for (final value in matchTournamentStageValues)
+                  DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(matchTournamentStageLabel(l10n, value)),
+                  ),
+              ],
+              onChanged: _saving
+                  ? null
+                  : (value) {
+                      if (value == null) return;
+                      _updateAndScheduleAutoSave(
+                        () => _tournamentStage = value,
+                      );
+                    },
+              decoration: InputDecoration(
+                labelText: l10n.matchTournamentStageLabel,
+                border: const OutlineInputBorder(),
               ),
             ),
-            const SizedBox(width: AppSpacing.xs),
-            SizedBox(
-              height: 56,
-              child: FilledButton.icon(
-                onPressed: _saving ? null : _addTeamFromField,
-                icon: const Icon(Icons.add),
-                label: Text(l10n.matchCompetitionAddTeamButton),
-              ),
-            ),
-          ],
-        ),
+        ],
       ],
     );
   }
@@ -924,9 +830,6 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
   void _applyCompetition(MatchCompetitionRecord record) {
     _matchKind = record.kind;
     _selectedCompetitionId = record.id;
-    _competitionName = record.name;
-    _competitionNameController.text = record.name;
-    _competitionStatus = record.status;
     _teams = MatchCompetitionService.normalizeTeams(record.teams);
     if (_location.trim().isEmpty && record.venue.trim().isNotEmpty) {
       _location = record.venue.trim();
@@ -938,30 +841,18 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
     }
   }
 
-  void _addTeamFromField() {
-    final l10n = AppLocalizations.of(context)!;
-    final value = _teamController.text.trim();
-    if (value.isEmpty) {
-      AppFeedback.showMessage(
-        context,
-        text: l10n.matchCompetitionTeamNameRequired,
-      );
-      return;
+  MatchCompetitionRecord? _selectedManagedCompetition() {
+    if (!_isCompetitionMatch || _selectedCompetitionId.trim().isEmpty) {
+      return null;
     }
-    final nextTeams =
-        MatchCompetitionService.normalizeTeams([..._teams, value]);
-    if (nextTeams.length == _teams.length) {
-      AppFeedback.showMessage(
-        context,
-        text: l10n.matchCompetitionTeamAlreadyAdded,
-      );
-      return;
-    }
-    setState(() {
-      _teams = nextTeams;
-      _teamController.clear();
-    });
-    _scheduleAutoSave();
+    final sportId = widget.editingEntry?.sportId ??
+        SportService(widget.optionRepository).currentSportId();
+    final competition = MatchCompetitionService(
+      widget.optionRepository,
+      sportId: sportId,
+    ).findCompetitionById(_selectedCompetitionId);
+    if (competition?.kind != _matchKind) return null;
+    return competition;
   }
 
   List<String> _opponentOptions() {
@@ -1001,18 +892,33 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
   Future<void> _saveMatch({bool closeAfterSave = true}) async {
     if (_saving) return;
     final l10n = AppLocalizations.of(context)!;
+    final previousEntry = widget.editingEntry;
+    final sportId = previousEntry?.sportId ??
+        SportService(widget.optionRepository).currentSportId();
+    final selectedCompetition = _isCompetitionMatch
+        ? MatchCompetitionService(
+            widget.optionRepository,
+            sportId: sportId,
+          ).findCompetitionById(_selectedCompetitionId)
+        : null;
     final opponent = _opponent.trim();
-    final competitionName = _competitionName.trim();
-    final teams = MatchCompetitionService.normalizeTeams(_teams);
-    if (_isCompetitionMatch && competitionName.isEmpty) {
+    if (_isCompetitionMatch &&
+        (selectedCompetition == null ||
+            selectedCompetition.kind != _matchKind ||
+            selectedCompetition.name.trim().isEmpty)) {
       if (closeAfterSave) {
         AppFeedback.showMessage(
           context,
-          text: l10n.matchCompetitionNameRequired,
+          text: l10n.matchCompetitionSelectionRequired,
         );
       }
       return;
     }
+    final competitionName =
+        _isCompetitionMatch ? selectedCompetition!.name.trim() : '';
+    final teams = _isCompetitionMatch
+        ? MatchCompetitionService.normalizeTeams(selectedCompetition!.teams)
+        : MatchCompetitionService.normalizeTeams(_teams);
     if (opponent.isEmpty && teams.isEmpty) {
       if (closeAfterSave) {
         AppFeedback.showMessage(
@@ -1023,9 +929,6 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
       return;
     }
     final savedOpponent = opponent.isNotEmpty ? opponent : teams.first;
-    final previousEntry = widget.editingEntry;
-    final sportId = previousEntry?.sportId ??
-        SportService(widget.optionRepository).currentSportId();
     final saved = TrainingEntry(
       date: _matchDay,
       durationMinutes: previousEntry?.durationMinutes ?? 90,
@@ -1083,33 +986,6 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
       setState(() => _saving = true);
     }
     try {
-      if (_isCompetitionMatch) {
-        final competitionService = MatchCompetitionService(
-          widget.optionRepository,
-          sportId: sportId,
-        );
-        final existingCompetition = _selectedCompetitionId.trim().isNotEmpty
-            ? competitionService.findCompetitionById(_selectedCompetitionId)
-            : competitionService.findCompetition(
-                kind: _matchKind,
-                name: competitionName,
-              );
-        await competitionService.upsertCompetition(
-          MatchCompetitionRecord.create(
-            kind: _matchKind,
-            name: competitionName,
-            teams: MatchCompetitionService.normalizeTeams([
-              ...teams,
-              savedOpponent,
-            ]),
-            status: _competitionStatus,
-            season: existingCompetition?.season ?? '',
-            venue: existingCompetition?.venue ?? '',
-            organizer: existingCompetition?.organizer ?? '',
-            note: existingCompetition?.note ?? '',
-          ),
-        );
-      }
       await MatchCompetitionService(
         widget.optionRepository,
         sportId: saved.sportId,
@@ -1236,6 +1112,202 @@ class _MatchRecordSection extends StatelessWidget {
           const SizedBox(height: AppSpacing.md),
           ...children,
         ],
+      ),
+    );
+  }
+}
+
+class _ManagedCompetitionRequiredNotice extends StatelessWidget {
+  final VoidCallback onOpenCompetitionManagement;
+
+  const _ManagedCompetitionRequiredNotice({
+    required this.onOpenCompetitionManagement,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.sm),
+      decoration: AppSurfaces.subtleDecoration(
+        scheme,
+        theme.brightness,
+        accent: scheme.primary,
+        accentAlpha: 0.04,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.emoji_events_outlined, color: scheme.primary),
+          const SizedBox(width: AppSpacing.xs),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.matchCompetitionManagedOnlyTitle,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xxs),
+                Text(
+                  l10n.matchCompetitionManagedOnlyBody,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                    height: 1.3,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: OutlinedButton.icon(
+                    onPressed: onOpenCompetitionManagement,
+                    icon: const Icon(Icons.open_in_new_outlined),
+                    label: Text(l10n.matchCompetitionOpenButton),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SelectedCompetitionSummary extends StatelessWidget {
+  final MatchCompetitionRecord competition;
+
+  const _SelectedCompetitionSummary({required this.competition});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final statusLabel = competition.isFinished
+        ? l10n.matchCompetitionStatusFinished
+        : l10n.matchCompetitionStatusActive;
+    final teams = MatchCompetitionService.normalizeTeams(competition.teams);
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.sm),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.46),
+        borderRadius: AppRadius.small,
+        border: Border.all(color: scheme.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.verified_outlined, color: scheme.primary, size: 20),
+              const SizedBox(width: AppSpacing.xs),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.matchCompetitionSelectedTitle,
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xxs),
+                    Text(
+                      competition.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              _SmallInfoPill(
+                label: statusLabel,
+                color: competition.isFinished
+                    ? scheme.onSurfaceVariant
+                    : scheme.primary,
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Wrap(
+            spacing: AppSpacing.xs,
+            runSpacing: AppSpacing.xs,
+            children: [
+              _SmallInfoPill(
+                label: l10n.matchCompetitionTeamCount(teams.length),
+                color: scheme.secondary,
+              ),
+              if (competition.venue.trim().isNotEmpty)
+                _SmallInfoPill(
+                  label: competition.venue.trim(),
+                  color: scheme.tertiary,
+                ),
+            ],
+          ),
+          if (teams.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.xs),
+            Wrap(
+              spacing: AppSpacing.xs,
+              runSpacing: AppSpacing.xs,
+              children: [
+                for (final team in teams.take(8))
+                  Chip(
+                    label: Text(team),
+                    visualDensity: VisualDensity.compact,
+                  ),
+              ],
+            ),
+          ] else ...[
+            const SizedBox(height: AppSpacing.xs),
+            _InlineHint(text: l10n.matchCompetitionNoTeams),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _SmallInfoPill extends StatelessWidget {
+  final String label;
+  final Color color;
+
+  const _SmallInfoPill({
+    required this.label,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.xs,
+        vertical: 3,
+      ),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: AppRadius.full,
+      ),
+      child: Text(
+        label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: color,
+          fontWeight: FontWeight.w900,
+        ),
       ),
     );
   }

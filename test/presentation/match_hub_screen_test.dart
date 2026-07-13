@@ -517,6 +517,56 @@ void main() {
     expect(trainingRepository.entries.single.matchKind, 'friendly');
   });
 
+  testWidgets('Match record screen requires a managed league competition', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en'),
+            Locale('ko', 'KR'),
+            Locale('ja'),
+          ],
+          home: MatchRecordScreen(
+            trainingService: trainingService,
+            localeService: localeService,
+            optionRepository: optionRepository,
+            settingsService: settingsService,
+            initialDate: DateTime(2026, 7, 13),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('리그 경기'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('대회관리에서 만든 대회를 선택하세요.'), findsOneWidget);
+    expect(find.text('대회 이름'), findsNothing);
+
+    await tester.enterText(
+      find.byKey(const ValueKey<String>('match-opponent-field')),
+      '서울 U15',
+    );
+    await tester.ensureVisible(find.text('저장'));
+    await tester.tap(find.text('저장'));
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(trainingRepository.entries, isEmpty);
+    expect(
+        MatchCompetitionService(optionRepository).allCompetitions(), isEmpty);
+  });
+
   testWidgets('Match record screen loads a saved league competition', (
     tester,
   ) async {
@@ -560,6 +610,7 @@ void main() {
     await tester.tap(find.text('리그 경기'));
     await tester.pumpAndSettle();
     expect(find.text('저장된 대회 불러오기'), findsOneWidget);
+    expect(find.text('대회 이름'), findsNothing);
 
     await tester.tap(
       find.byKey(const ValueKey<String>('match-saved-competition-loader')),

@@ -11041,6 +11041,19 @@ class AppLocalizationsKo extends AppLocalizations {
       '리그/토너먼트 이름, 참가 팀, 상태와 장소를 시합 기록에 채웁니다.';
 
   @override
+  String get matchCompetitionManagedOnlyTitle => '대회관리에서 만든 대회를 선택하세요.';
+
+  @override
+  String get matchCompetitionManagedOnlyBody =>
+      '시합등록에서는 리그나 토너먼트를 새로 만들지 않습니다. 대회관리에서 먼저 만든 뒤 여기서 불러와 기록하세요.';
+
+  @override
+  String get matchCompetitionSelectionRequired => '대회관리에서 만든 대회를 먼저 선택하세요.';
+
+  @override
+  String get matchCompetitionSelectedTitle => '선택한 대회';
+
+  @override
   String get matchCompetitionFinishedNotice =>
       '종료된 대회입니다. 이전 경기 기록을 정리할 때 선택하세요.';
 

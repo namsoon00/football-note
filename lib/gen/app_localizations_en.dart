@@ -11340,6 +11340,21 @@ class AppLocalizationsEn extends AppLocalizations {
       'Fill the match record with the league or tournament name, teams, status, and venue.';
 
   @override
+  String get matchCompetitionManagedOnlyTitle =>
+      'Select a competition created in Competition Management.';
+
+  @override
+  String get matchCompetitionManagedOnlyBody =>
+      'Match registration no longer creates leagues or tournaments. Create one in Competition Management first, then load it here to record the match.';
+
+  @override
+  String get matchCompetitionSelectionRequired =>
+      'Select a competition created in Competition Management first.';
+
+  @override
+  String get matchCompetitionSelectedTitle => 'Selected competition';
+
+  @override
   String get matchCompetitionFinishedNotice =>
       'This competition is finished. Select it when organizing past match records.';
 

@@ -11021,6 +11021,19 @@ class AppLocalizationsJa extends AppLocalizations {
       'リーグ/トーナメント名、参加チーム、状態、会場を試合記録に反映します。';
 
   @override
+  String get matchCompetitionManagedOnlyTitle => '大会管理で作成した大会を選択してください。';
+
+  @override
+  String get matchCompetitionManagedOnlyBody =>
+      '試合登録ではリーグやトーナメントを新規作成しません。先に大会管理で作成し、ここで読み込んで記録してください。';
+
+  @override
+  String get matchCompetitionSelectionRequired => '大会管理で作成した大会を先に選択してください。';
+
+  @override
+  String get matchCompetitionSelectedTitle => '選択した大会';
+
+  @override
   String get matchCompetitionFinishedNotice =>
       '終了した大会です。過去の試合記録を整理するときに選択してください。';
 
