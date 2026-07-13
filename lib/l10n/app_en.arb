@@ -4841,6 +4841,7 @@
   "runningCoachSprintQualityGateSideView": "Side view",
   "runningCoachSprintQualityGateConfidence": "Joint confidence",
   "runningCoachSprintQualityGateStableFrames": "Stable frames",
+  "runningCoachSprintQualityGateGaitPhase": "Gait phase",
   "runningCoachSprintQualityPercentValue": "{percent}%",
   "@runningCoachSprintQualityPercentValue": {
     "placeholders": {
@@ -5021,6 +5022,45 @@
       }
     }
   },
+  "runningCoachSprintSessionGaitPhaseLabel": "Gait phase",
+  "runningCoachSprintSessionGaitPhaseValue": "{phase} · conf {confidence}% · stance {stance} · flight {flight}",
+  "@runningCoachSprintSessionGaitPhaseValue": {
+    "placeholders": {
+      "phase": {},
+      "confidence": {
+        "type": "int"
+      },
+      "stance": {
+        "type": "int"
+      },
+      "flight": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintSessionLandingLabel": "Landing",
+  "runningCoachSprintSessionLandingValue": "over {overstride}% · shin {shinAngle}° · events {events}",
+  "@runningCoachSprintSessionLandingValue": {
+    "placeholders": {
+      "overstride": {},
+      "shinAngle": {},
+      "events": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintSessionReferenceLabel": "Session reference",
+  "runningCoachSprintSessionReferenceValue": "{status} · knee {knee} · trunk {trunk} · rhythm {rhythm}",
+  "@runningCoachSprintSessionReferenceValue": {
+    "placeholders": {
+      "status": {},
+      "knee": {},
+      "trunk": {},
+      "rhythm": {}
+    }
+  },
+  "runningCoachSprintSessionReferenceReady": "ready",
+  "runningCoachSprintSessionReferenceCollecting": "collecting",
   "runningCoachSprintSessionConfidenceLabel": "Landmark confidence",
   "runningCoachSprintSessionConfidenceValue": "0.8+ {high}% · 0.6-0.8 {medium}% · <0.6 {low}%",
   "@runningCoachSprintSessionConfidenceValue": {
@@ -5072,6 +5112,28 @@
       "value": {}
     }
   },
+  "runningCoachSprintMetricLandingLabel": "Landing",
+  "runningCoachSprintMetricLandingValue": "Over {value}% · shin {angle}°",
+  "@runningCoachSprintMetricLandingValue": {
+    "placeholders": {
+      "value": {},
+      "angle": {}
+    }
+  },
+  "runningCoachSprintMetricFlightLabel": "Flight",
+  "runningCoachSprintMetricFlightValue": "{value}%",
+  "@runningCoachSprintMetricFlightValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "runningCoachSprintMetricLateFormLabel": "Late form",
+  "runningCoachSprintMetricLateFormValue": "Drop {value}%",
+  "@runningCoachSprintMetricLateFormValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
   "runningCoachSprintMetricTargetRangeDegrees": "Target {minimum}-{maximum}°",
   "@runningCoachSprintMetricTargetRangeDegrees": {
     "placeholders": {
@@ -5108,6 +5170,7 @@
     }
   },
   "runningCoachSprintMetricTargetLiveReference": "Live reference",
+  "runningCoachSprintMetricTargetSessionReference": "Session reference",
   "runningCoachSprintBodyVisibilityFull": "Full body locked",
   "runningCoachSprintBodyVisibilityPartial": "Partial landmarks",
   "runningCoachSprintBodyVisibilityNotVisible": "Body lost",
@@ -5116,6 +5179,9 @@
   "runningCoachSprintCueDriveKnee": "After the push-off, drive the knee forward a little more aggressively.",
   "runningCoachSprintCueKeepRhythm": "The left-right rhythm is drifting. Try to keep the ground contacts more even.",
   "runningCoachSprintCueBalanceArms": "The arm swing is unbalanced. Match the backward drive on both sides more closely.",
+  "runningCoachSprintCueLandUnderHips": "Let the foot land closer under the hip instead of reaching out in front.",
+  "runningCoachSprintCueLiftOffQuickly": "Get off the ground a little quicker and keep the next step light.",
+  "runningCoachSprintCueHoldLateForm": "Hold the same knee drive and forward lean through the end of the sprint.",
   "runningCoachSprintCueKeepPushing": "Good. Keep pushing with the same rhythm and forward lean.",
   "runningCoachSelectedVideoLabel": "Selected video",
   "runningCoachNoVideoSelected": "No video selected yet.",
@@ -5312,6 +5378,11 @@
   "runningCoachSprintDebugPanelTitle": "Debug overlay",
   "runningCoachSprintCueWhyLabel": "Why",
   "runningCoachSprintCueTryLabel": "Try",
+  "runningCoachSprintGaitPhaseUnknown": "Unknown",
+  "runningCoachSprintGaitPhaseLeftStance": "Left stance",
+  "runningCoachSprintGaitPhaseRightStance": "Right stance",
+  "runningCoachSprintGaitPhaseDoubleSupport": "Double support",
+  "runningCoachSprintGaitPhaseFlight": "Flight",
   "runningCoachSprintTrackingStateBodyTooSmall": "Move closer",
   "runningCoachSprintTrackingStateBodyOutOfFrame": "Keep the full body in frame",
   "runningCoachSprintTrackingStateLowConfidence": "Raise tracking confidence",
@@ -5368,11 +5439,17 @@
   "runningCoachSprintDiagnosisDriveKnee": "The knee drive is staying low relative to the hips, so the front-side step does not connect strongly.",
   "runningCoachSprintDiagnosisKeepRhythm": "Step timing is varying too much, so the left-right sprint rhythm is drifting.",
   "runningCoachSprintDiagnosisBalanceArms": "One arm is contributing less backward drive, so rhythm support from the upper body is uneven.",
+  "runningCoachSprintDiagnosisLandUnderHips": "The lead foot is reaching too far ahead of the hip line, which can create a braking contact.",
+  "runningCoachSprintDiagnosisLiftOffQuickly": "The gait phase has too little flight time, so the contact pattern looks heavy.",
+  "runningCoachSprintDiagnosisHoldLateForm": "Your current stride is dropping below the session reference for knee drive, lean, or rhythm.",
   "runningCoachSprintDiagnosisKeepPushing": "The main sprint metrics are inside the stable range, so the app is holding the current cue.",
   "runningCoachSprintActionLeanForward": "Keep the chest low for the first three steps so the hip-to-shoulder axis stays inside the 8-24° range.",
   "runningCoachSprintActionDriveKnee": "Push the ground harder and let the knee come through instead of trying to lift it by itself.",
   "runningCoachSprintActionKeepRhythm": "Do not reach for a longer step. Keep ground contacts evenly spaced for the next few strides.",
   "runningCoachSprintActionBalanceArms": "Match the backward arm drive on both sides and keep the shoulders quieter.",
+  "runningCoachSprintActionLandUnderHips": "Think quick down-and-back under the hip instead of casting the foot forward.",
+  "runningCoachSprintActionLiftOffQuickly": "Push back and leave the ground sharply, keeping the ankle stiff through contact.",
+  "runningCoachSprintActionHoldLateForm": "Shorten the effort slightly and keep the same knee punch and trunk angle for the final steps.",
   "runningCoachSprintActionKeepPushing": "Stay with the same shape for another few steps so the app can confirm stability.",
   "runningCoachSprintSessionTrackingStateLabel": "Tracking state",
   "runningCoachSprintSessionPersonSizeLabel": "Person size",
@@ -5409,12 +5486,14 @@
     }
   },
   "runningCoachSprintSessionFeatureConfidenceLabel": "Feature confidence",
-  "runningCoachSprintSessionFeatureConfidenceValue": "{trunk} / {knee} / {rhythm}",
+  "runningCoachSprintSessionFeatureConfidenceValue": "{trunk} / {knee} / {rhythm} / {landing} / {flight}",
   "@runningCoachSprintSessionFeatureConfidenceValue": {
     "placeholders": {
       "trunk": {},
       "knee": {},
-      "rhythm": {}
+      "rhythm": {},
+      "landing": {},
+      "flight": {}
     }
   },
   "runningCoachSprintSessionFeatureDebugValue": "{feature} {value} ({confidence}%)",
@@ -5436,6 +5515,9 @@
   },
   "runningCoachSprintFeatureUnavailableJointWindow": "not enough stable joint frames",
   "runningCoachSprintFeatureUnavailableStepEvents": "not enough stable step events",
+  "runningCoachSprintFeatureUnavailableLandingEvents": "not enough landing events",
+  "runningCoachSprintFeatureUnavailableGaitPhase": "not enough gait phase samples",
+  "runningCoachSprintFeatureUnavailableSessionReference": "session reference is still collecting",
   "homeWeatherNeedsLocationTitle": "Need location",
   "homeWeatherNeedsLocationSubtitle": "Turn location on",
   "homeStreakBadgeActive": "Momentum",

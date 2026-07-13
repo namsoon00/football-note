@@ -8549,6 +8549,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachSprintQualityGateStableFrames => '안정 프레임';
 
   @override
+  String get runningCoachSprintQualityGateGaitPhase => '러닝 단계';
+
+  @override
   String runningCoachSprintQualityPercentValue(int percent) {
     return '$percent%';
   }
@@ -8692,6 +8695,39 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get runningCoachSprintSessionGaitPhaseLabel => '러닝 단계';
+
+  @override
+  String runningCoachSprintSessionGaitPhaseValue(
+      Object phase, int confidence, int stance, int flight) {
+    return '$phase · 신뢰 $confidence% · 접지 $stance · 비행 $flight';
+  }
+
+  @override
+  String get runningCoachSprintSessionLandingLabel => '착지';
+
+  @override
+  String runningCoachSprintSessionLandingValue(
+      Object overstride, Object shinAngle, int events) {
+    return '전방 $overstride% · 정강이 $shinAngle° · 이벤트 $events';
+  }
+
+  @override
+  String get runningCoachSprintSessionReferenceLabel => '세션 기준선';
+
+  @override
+  String runningCoachSprintSessionReferenceValue(
+      Object status, Object knee, Object trunk, Object rhythm) {
+    return '$status · 무릎 $knee · 상체 $trunk · 리듬 $rhythm';
+  }
+
+  @override
+  String get runningCoachSprintSessionReferenceReady => '준비됨';
+
+  @override
+  String get runningCoachSprintSessionReferenceCollecting => '수집 중';
+
+  @override
   String get runningCoachSprintSessionConfidenceLabel => '랜드마크 신뢰도';
 
   @override
@@ -8744,6 +8780,30 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get runningCoachSprintMetricLandingLabel => '착지';
+
+  @override
+  String runningCoachSprintMetricLandingValue(Object value, Object angle) {
+    return '전방 $value% · 정강이 $angle°';
+  }
+
+  @override
+  String get runningCoachSprintMetricFlightLabel => '비행';
+
+  @override
+  String runningCoachSprintMetricFlightValue(Object value) {
+    return '$value%';
+  }
+
+  @override
+  String get runningCoachSprintMetricLateFormLabel => '후반 폼';
+
+  @override
+  String runningCoachSprintMetricLateFormValue(Object value) {
+    return '저하 $value%';
+  }
+
+  @override
   String runningCoachSprintMetricTargetRangeDegrees(int minimum, int maximum) {
     return '목표 $minimum-$maximum도';
   }
@@ -8765,6 +8825,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachSprintMetricTargetLiveReference => '실시간 기준';
+
+  @override
+  String get runningCoachSprintMetricTargetSessionReference => '세션 기준';
 
   @override
   String get runningCoachSprintBodyVisibilityFull => '전신 확보';
@@ -8794,6 +8857,18 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get runningCoachSprintCueBalanceArms =>
       '팔 스윙 좌우 차이가 커요. 뒤로 당기는 길이를 비슷하게 맞춰 보세요.';
+
+  @override
+  String get runningCoachSprintCueLandUnderHips =>
+      '발을 앞에 뻗기보다 엉덩이 아래에 더 가깝게 착지해 주세요.';
+
+  @override
+  String get runningCoachSprintCueLiftOffQuickly =>
+      '지면에서 조금 더 빠르게 빠져나오고 다음 스텝을 가볍게 유지해 주세요.';
+
+  @override
+  String get runningCoachSprintCueHoldLateForm =>
+      '스프린트 끝까지 같은 무릎 드라이브와 전경사를 유지해 주세요.';
 
   @override
   String get runningCoachSprintCueKeepPushing =>
@@ -9273,6 +9348,21 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachSprintCueTryLabel => '시도';
 
   @override
+  String get runningCoachSprintGaitPhaseUnknown => '알 수 없음';
+
+  @override
+  String get runningCoachSprintGaitPhaseLeftStance => '왼발 접지';
+
+  @override
+  String get runningCoachSprintGaitPhaseRightStance => '오른발 접지';
+
+  @override
+  String get runningCoachSprintGaitPhaseDoubleSupport => '양발 접지';
+
+  @override
+  String get runningCoachSprintGaitPhaseFlight => '비행';
+
+  @override
   String get runningCoachSprintTrackingStateBodyTooSmall => '카메라에 더 가깝게';
 
   @override
@@ -9414,6 +9504,18 @@ class AppLocalizationsKo extends AppLocalizations {
       '한쪽 팔의 뒤로 미는 기여가 작아서 상체 리듬 지원이 비대칭으로 보입니다.';
 
   @override
+  String get runningCoachSprintDiagnosisLandUnderHips =>
+      '앞발이 엉덩이 선보다 너무 앞에 닿아 접지 순간 브레이크가 걸릴 수 있습니다.';
+
+  @override
+  String get runningCoachSprintDiagnosisLiftOffQuickly =>
+      '러닝 단계상 비행 구간이 너무 짧아 접지 패턴이 무겁게 보입니다.';
+
+  @override
+  String get runningCoachSprintDiagnosisHoldLateForm =>
+      '현재 보폭이 세션 기준선보다 무릎 드라이브, 전경사, 리듬 중 일부에서 떨어지고 있습니다.';
+
+  @override
   String get runningCoachSprintDiagnosisKeepPushing =>
       '핵심 스프린트 지표가 안정 범위 안에 있어 지금 형태를 유지하는 안내를 주고 있습니다.';
 
@@ -9432,6 +9534,18 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get runningCoachSprintActionBalanceArms =>
       '양쪽 팔의 뒤로 미는 길이를 비슷하게 맞추고 어깨 흔들림을 줄여 보세요.';
+
+  @override
+  String get runningCoachSprintActionLandUnderHips =>
+      '발을 앞으로 던지기보다 엉덩이 아래로 빠르게 내려찍고 뒤로 밀어내는 느낌을 가져가세요.';
+
+  @override
+  String get runningCoachSprintActionLiftOffQuickly =>
+      '발목을 단단히 유지한 채 뒤로 밀고, 접지 후 바로 지면에서 빠져나오세요.';
+
+  @override
+  String get runningCoachSprintActionHoldLateForm =>
+      '강도를 살짝 줄이더라도 마지막 몇 걸음에서 같은 무릎 펀치와 상체 각도를 지켜 보세요.';
 
   @override
   String get runningCoachSprintActionKeepPushing =>
@@ -9472,8 +9586,8 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String runningCoachSprintSessionFeatureConfidenceValue(
-      Object trunk, Object knee, Object rhythm) {
-    return '$trunk / $knee / $rhythm';
+      Object trunk, Object knee, Object rhythm, Object landing, Object flight) {
+    return '$trunk / $knee / $rhythm / $landing / $flight';
   }
 
   @override
@@ -9495,6 +9609,17 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get runningCoachSprintFeatureUnavailableStepEvents =>
       '안정적인 스텝 이벤트가 부족함';
+
+  @override
+  String get runningCoachSprintFeatureUnavailableLandingEvents =>
+      '안정적인 착지 이벤트가 부족함';
+
+  @override
+  String get runningCoachSprintFeatureUnavailableGaitPhase => '러닝 단계 샘플이 부족함';
+
+  @override
+  String get runningCoachSprintFeatureUnavailableSessionReference =>
+      '세션 기준선을 아직 수집 중';
 
   @override
   String get homeWeatherNeedsLocationTitle => '위치 연결 필요';

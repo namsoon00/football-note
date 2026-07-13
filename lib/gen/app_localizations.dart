@@ -15374,6 +15374,12 @@ abstract class AppLocalizations {
   /// **'Stable frames'**
   String get runningCoachSprintQualityGateStableFrames;
 
+  /// No description provided for @runningCoachSprintQualityGateGaitPhase.
+  ///
+  /// In en, this message translates to:
+  /// **'Gait phase'**
+  String get runningCoachSprintQualityGateGaitPhase;
+
   /// No description provided for @runningCoachSprintQualityPercentValue.
   ///
   /// In en, this message translates to:
@@ -15590,6 +15596,57 @@ abstract class AppLocalizations {
   String runningCoachSprintSessionStepDetectorValue(
       int switches, int accepted, int lowVelocity, int minInterval);
 
+  /// No description provided for @runningCoachSprintSessionGaitPhaseLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Gait phase'**
+  String get runningCoachSprintSessionGaitPhaseLabel;
+
+  /// No description provided for @runningCoachSprintSessionGaitPhaseValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{phase} · conf {confidence}% · stance {stance} · flight {flight}'**
+  String runningCoachSprintSessionGaitPhaseValue(
+      Object phase, int confidence, int stance, int flight);
+
+  /// No description provided for @runningCoachSprintSessionLandingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Landing'**
+  String get runningCoachSprintSessionLandingLabel;
+
+  /// No description provided for @runningCoachSprintSessionLandingValue.
+  ///
+  /// In en, this message translates to:
+  /// **'over {overstride}% · shin {shinAngle}° · events {events}'**
+  String runningCoachSprintSessionLandingValue(
+      Object overstride, Object shinAngle, int events);
+
+  /// No description provided for @runningCoachSprintSessionReferenceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Session reference'**
+  String get runningCoachSprintSessionReferenceLabel;
+
+  /// No description provided for @runningCoachSprintSessionReferenceValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{status} · knee {knee} · trunk {trunk} · rhythm {rhythm}'**
+  String runningCoachSprintSessionReferenceValue(
+      Object status, Object knee, Object trunk, Object rhythm);
+
+  /// No description provided for @runningCoachSprintSessionReferenceReady.
+  ///
+  /// In en, this message translates to:
+  /// **'ready'**
+  String get runningCoachSprintSessionReferenceReady;
+
+  /// No description provided for @runningCoachSprintSessionReferenceCollecting.
+  ///
+  /// In en, this message translates to:
+  /// **'collecting'**
+  String get runningCoachSprintSessionReferenceCollecting;
+
   /// No description provided for @runningCoachSprintSessionConfidenceLabel.
   ///
   /// In en, this message translates to:
@@ -15669,6 +15726,42 @@ abstract class AppLocalizations {
   /// **'Gap {value}%'**
   String runningCoachSprintMetricArmBalanceValue(Object value);
 
+  /// No description provided for @runningCoachSprintMetricLandingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Landing'**
+  String get runningCoachSprintMetricLandingLabel;
+
+  /// No description provided for @runningCoachSprintMetricLandingValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Over {value}% · shin {angle}°'**
+  String runningCoachSprintMetricLandingValue(Object value, Object angle);
+
+  /// No description provided for @runningCoachSprintMetricFlightLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Flight'**
+  String get runningCoachSprintMetricFlightLabel;
+
+  /// No description provided for @runningCoachSprintMetricFlightValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{value}%'**
+  String runningCoachSprintMetricFlightValue(Object value);
+
+  /// No description provided for @runningCoachSprintMetricLateFormLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Late form'**
+  String get runningCoachSprintMetricLateFormLabel;
+
+  /// No description provided for @runningCoachSprintMetricLateFormValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop {value}%'**
+  String runningCoachSprintMetricLateFormValue(Object value);
+
   /// No description provided for @runningCoachSprintMetricTargetRangeDegrees.
   ///
   /// In en, this message translates to:
@@ -15698,6 +15791,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Live reference'**
   String get runningCoachSprintMetricTargetLiveReference;
+
+  /// No description provided for @runningCoachSprintMetricTargetSessionReference.
+  ///
+  /// In en, this message translates to:
+  /// **'Session reference'**
+  String get runningCoachSprintMetricTargetSessionReference;
 
   /// No description provided for @runningCoachSprintBodyVisibilityFull.
   ///
@@ -15746,6 +15845,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The arm swing is unbalanced. Match the backward drive on both sides more closely.'**
   String get runningCoachSprintCueBalanceArms;
+
+  /// No description provided for @runningCoachSprintCueLandUnderHips.
+  ///
+  /// In en, this message translates to:
+  /// **'Let the foot land closer under the hip instead of reaching out in front.'**
+  String get runningCoachSprintCueLandUnderHips;
+
+  /// No description provided for @runningCoachSprintCueLiftOffQuickly.
+  ///
+  /// In en, this message translates to:
+  /// **'Get off the ground a little quicker and keep the next step light.'**
+  String get runningCoachSprintCueLiftOffQuickly;
+
+  /// No description provided for @runningCoachSprintCueHoldLateForm.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold the same knee drive and forward lean through the end of the sprint.'**
+  String get runningCoachSprintCueHoldLateForm;
 
   /// No description provided for @runningCoachSprintCueKeepPushing.
   ///
@@ -16533,6 +16650,36 @@ abstract class AppLocalizations {
   /// **'Try'**
   String get runningCoachSprintCueTryLabel;
 
+  /// No description provided for @runningCoachSprintGaitPhaseUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get runningCoachSprintGaitPhaseUnknown;
+
+  /// No description provided for @runningCoachSprintGaitPhaseLeftStance.
+  ///
+  /// In en, this message translates to:
+  /// **'Left stance'**
+  String get runningCoachSprintGaitPhaseLeftStance;
+
+  /// No description provided for @runningCoachSprintGaitPhaseRightStance.
+  ///
+  /// In en, this message translates to:
+  /// **'Right stance'**
+  String get runningCoachSprintGaitPhaseRightStance;
+
+  /// No description provided for @runningCoachSprintGaitPhaseDoubleSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Double support'**
+  String get runningCoachSprintGaitPhaseDoubleSupport;
+
+  /// No description provided for @runningCoachSprintGaitPhaseFlight.
+  ///
+  /// In en, this message translates to:
+  /// **'Flight'**
+  String get runningCoachSprintGaitPhaseFlight;
+
   /// No description provided for @runningCoachSprintTrackingStateBodyTooSmall.
   ///
   /// In en, this message translates to:
@@ -16768,6 +16915,24 @@ abstract class AppLocalizations {
   /// **'One arm is contributing less backward drive, so rhythm support from the upper body is uneven.'**
   String get runningCoachSprintDiagnosisBalanceArms;
 
+  /// No description provided for @runningCoachSprintDiagnosisLandUnderHips.
+  ///
+  /// In en, this message translates to:
+  /// **'The lead foot is reaching too far ahead of the hip line, which can create a braking contact.'**
+  String get runningCoachSprintDiagnosisLandUnderHips;
+
+  /// No description provided for @runningCoachSprintDiagnosisLiftOffQuickly.
+  ///
+  /// In en, this message translates to:
+  /// **'The gait phase has too little flight time, so the contact pattern looks heavy.'**
+  String get runningCoachSprintDiagnosisLiftOffQuickly;
+
+  /// No description provided for @runningCoachSprintDiagnosisHoldLateForm.
+  ///
+  /// In en, this message translates to:
+  /// **'Your current stride is dropping below the session reference for knee drive, lean, or rhythm.'**
+  String get runningCoachSprintDiagnosisHoldLateForm;
+
   /// No description provided for @runningCoachSprintDiagnosisKeepPushing.
   ///
   /// In en, this message translates to:
@@ -16797,6 +16962,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Match the backward arm drive on both sides and keep the shoulders quieter.'**
   String get runningCoachSprintActionBalanceArms;
+
+  /// No description provided for @runningCoachSprintActionLandUnderHips.
+  ///
+  /// In en, this message translates to:
+  /// **'Think quick down-and-back under the hip instead of casting the foot forward.'**
+  String get runningCoachSprintActionLandUnderHips;
+
+  /// No description provided for @runningCoachSprintActionLiftOffQuickly.
+  ///
+  /// In en, this message translates to:
+  /// **'Push back and leave the ground sharply, keeping the ankle stiff through contact.'**
+  String get runningCoachSprintActionLiftOffQuickly;
+
+  /// No description provided for @runningCoachSprintActionHoldLateForm.
+  ///
+  /// In en, this message translates to:
+  /// **'Shorten the effort slightly and keep the same knee punch and trunk angle for the final steps.'**
+  String get runningCoachSprintActionHoldLateForm;
 
   /// No description provided for @runningCoachSprintActionKeepPushing.
   ///
@@ -16858,9 +17041,9 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSprintSessionFeatureConfidenceValue.
   ///
   /// In en, this message translates to:
-  /// **'{trunk} / {knee} / {rhythm}'**
+  /// **'{trunk} / {knee} / {rhythm} / {landing} / {flight}'**
   String runningCoachSprintSessionFeatureConfidenceValue(
-      Object trunk, Object knee, Object rhythm);
+      Object trunk, Object knee, Object rhythm, Object landing, Object flight);
 
   /// No description provided for @runningCoachSprintSessionFeatureDebugValue.
   ///
@@ -16887,6 +17070,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'not enough stable step events'**
   String get runningCoachSprintFeatureUnavailableStepEvents;
+
+  /// No description provided for @runningCoachSprintFeatureUnavailableLandingEvents.
+  ///
+  /// In en, this message translates to:
+  /// **'not enough landing events'**
+  String get runningCoachSprintFeatureUnavailableLandingEvents;
+
+  /// No description provided for @runningCoachSprintFeatureUnavailableGaitPhase.
+  ///
+  /// In en, this message translates to:
+  /// **'not enough gait phase samples'**
+  String get runningCoachSprintFeatureUnavailableGaitPhase;
+
+  /// No description provided for @runningCoachSprintFeatureUnavailableSessionReference.
+  ///
+  /// In en, this message translates to:
+  /// **'session reference is still collecting'**
+  String get runningCoachSprintFeatureUnavailableSessionReference;
 
   /// No description provided for @homeWeatherNeedsLocationTitle.
   ///

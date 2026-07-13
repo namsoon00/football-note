@@ -274,10 +274,31 @@ class SprintLiveSessionMetricsCollector {
         ),
         'armAsymmetryRatio':
             state.features.armSwingAsymmetryRatio?.toStringAsFixed(3),
+        'gaitPhase': state.features.gaitPhase.name,
+        'gaitPhaseConfidence':
+            state.features.gaitPhaseConfidence.toStringAsFixed(3),
+        'overstrideRatio': state.features.overstrideRatio?.toStringAsFixed(3),
+        'landingShinAngleDegrees':
+            state.features.landingShinAngleDegrees?.toStringAsFixed(2),
+        'flightRatio': state.features.estimatedFlightRatio?.toStringAsFixed(3),
+        'contactBalanceAsymmetry':
+            state.features.contactBalanceAsymmetryRatio?.toStringAsFixed(3),
+        'lateFormDropScore':
+            state.features.lateFormDropScore?.toStringAsFixed(3),
+        'sessionReferenceReady': state.features.sessionReferenceReady,
+        'sessionKneeDriveDeltaRatio':
+            state.features.sessionKneeDriveDeltaRatio?.toStringAsFixed(3),
+        'sessionTrunkAngleDeltaDegrees':
+            state.features.sessionTrunkAngleDeltaDegrees?.toStringAsFixed(2),
+        'sessionRhythmDeltaMs':
+            state.features.sessionRhythmDeltaMs?.toStringAsFixed(2),
       },
       'stepDetector': <String, Object?>{
         'leadSwitches': state.features.stepCrossoverCount,
         'acceptedEvents': state.features.detectedStepEvents,
+        'landingEvents': state.features.landingEventCount,
+        'stanceFrames': state.features.stanceFrameCount,
+        'flightFrames': state.features.flightFrameCount,
         'rejectedLowVelocity': state.features.rejectedStepEventsLowVelocity,
         'rejectedMinInterval': state.features.rejectedStepEventsMinInterval,
       },

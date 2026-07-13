@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/domain/entities/sprint_pose_frame.dart';
+import 'package:football_note/domain/entities/sprint_realtime_coaching_state.dart';
 import 'package:football_note/realtime_analysis/sprint_coaching/sprint_feature_calculator.dart';
 import 'package:football_note/realtime_analysis/sprint_coaching/sprint_pose_normalizer.dart';
 
@@ -48,11 +49,97 @@ void main() {
       expect(snapshot.cadenceStepsPerMinute, closeTo(240, 0.001));
       expect(snapshot.stepIntervalStdMs, closeTo(0, 0.001));
       expect(snapshot.armSwingAsymmetryRatio, closeTo(0.0434, 0.001));
+      expect(snapshot.overstrideRatio, closeTo(0.26, 0.001));
+      expect(snapshot.landingShinAngleDegrees, isNotNull);
+      expect(snapshot.estimatedFlightRatio, closeTo(0, 0.001));
+      expect(snapshot.gaitPhase, SprintGaitPhase.doubleSupport);
       expect(snapshot.detectedStepEvents, 4);
       expect(snapshot.stepCrossoverCount, 4);
       expect(snapshot.rejectedStepEventsLowVelocity, 0);
       expect(snapshot.rejectedStepEventsMinInterval, 0);
       expect(snapshot.hasEnoughSignal, isTrue);
+    });
+
+    test('estimates gait phase, flight ratio, and overstride at landing', () {
+      final calculator = SprintFeatureCalculator();
+      final start = DateTime(2026, 4, 13, 9);
+
+      final snapshot = calculator.calculate(<SprintNormalizedPoseFrame>[
+        _frame(
+          timestamp: start,
+          leftAnkleX: 0.38,
+          rightAnkleX: -0.22,
+          leftAnkleY: 0.86,
+          rightAnkleY: 1,
+          kneeDriveHeight: 0.34,
+        ),
+        _frame(
+          timestamp: start.add(const Duration(milliseconds: 100)),
+          leftAnkleX: 0.36,
+          rightAnkleX: -0.22,
+          leftAnkleY: 1,
+          rightAnkleY: 0.82,
+          kneeDriveHeight: 0.35,
+        ),
+        _frame(
+          timestamp: start.add(const Duration(milliseconds: 220)),
+          leftAnkleX: -0.36,
+          rightAnkleX: 0.32,
+          leftAnkleY: 0.82,
+          rightAnkleY: 1,
+          kneeDriveHeight: 0.36,
+        ),
+        _frame(
+          timestamp: start.add(const Duration(milliseconds: 340)),
+          leftAnkleX: -0.34,
+          rightAnkleX: 0.34,
+          leftAnkleY: 1,
+          rightAnkleY: 0.8,
+          kneeDriveHeight: 0.36,
+        ),
+        _frame(
+          timestamp: start.add(const Duration(milliseconds: 470)),
+          leftAnkleX: 0.34,
+          rightAnkleX: -0.34,
+          leftAnkleY: 0.82,
+          rightAnkleY: 1,
+          kneeDriveHeight: 0.37,
+        ),
+        _frame(
+          timestamp: start.add(const Duration(milliseconds: 600)),
+          leftAnkleX: 0.24,
+          rightAnkleX: -0.24,
+          leftAnkleY: 0.78,
+          rightAnkleY: 0.78,
+          kneeDriveHeight: 0.34,
+        ),
+      ]);
+
+      expect(snapshot.detectedStepEvents, 2);
+      expect(snapshot.overstrideRatio, closeTo(0.34, 0.001));
+      expect(snapshot.estimatedFlightRatio, closeTo(1 / 6, 0.001));
+      expect(snapshot.gaitPhase, SprintGaitPhase.flight);
+      expect(snapshot.flightFrameCount, 1);
+      expect(snapshot.stanceFrameCount, 5);
+    });
+
+    test('scores late form drop when knee drive fades late in the window', () {
+      final calculator = SprintFeatureCalculator();
+      final start = DateTime(2026, 4, 13, 9);
+      final frames = <SprintNormalizedPoseFrame>[
+        for (var index = 0; index < 9; index += 1)
+          _frame(
+            timestamp: start.add(Duration(milliseconds: index * 120)),
+            leftAnkleX: index.isEven ? 0.22 : -0.22,
+            rightAnkleX: index.isEven ? -0.22 : 0.22,
+            kneeDriveHeight: index < 3 ? 0.42 : (index > 5 ? 0.24 : 0.34),
+          ),
+      ];
+
+      final snapshot = calculator.calculate(frames);
+
+      expect(snapshot.lateFormDrop.available, isTrue);
+      expect(snapshot.lateFormDropScore, greaterThan(0.5));
     });
 
     test(
@@ -180,6 +267,8 @@ SprintNormalizedPoseFrame _frame({
   required double leftAnkleX,
   required double rightAnkleX,
   required double kneeDriveHeight,
+  double leftAnkleY = 1,
+  double rightAnkleY = 1,
 }) {
   const shoulderCenter = Offset(0.2, -1);
   const leftShoulder = Offset(0.0, -1);
@@ -201,8 +290,8 @@ SprintNormalizedPoseFrame _frame({
       SprintPoseLandmarkType.rightWrist: const Offset(0.86, -0.26),
       SprintPoseLandmarkType.leftKnee: const Offset(-0.16, -0.18),
       SprintPoseLandmarkType.rightKnee: Offset(0.16, -kneeDriveHeight),
-      SprintPoseLandmarkType.leftAnkle: Offset(leftAnkleX, 1),
-      SprintPoseLandmarkType.rightAnkle: Offset(rightAnkleX, 1),
+      SprintPoseLandmarkType.leftAnkle: Offset(leftAnkleX, leftAnkleY),
+      SprintPoseLandmarkType.rightAnkle: Offset(rightAnkleX, rightAnkleY),
     },
     landmarkConfidences: <SprintPoseLandmarkType, double>{
       SprintPoseLandmarkType.leftShoulder: 0.98,

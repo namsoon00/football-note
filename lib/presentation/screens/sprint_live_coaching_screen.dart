@@ -1335,6 +1335,12 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
       if (state.features.kneeDrive.available)
         state.features.kneeDrive.confidence,
       if (state.features.rhythm.available) state.features.rhythm.confidence,
+      if (state.features.overstride.available)
+        state.features.overstride.confidence,
+      if (state.features.flightRatio.available)
+        state.features.flightRatio.confidence,
+      if (state.features.lateFormDrop.available)
+        state.features.lateFormDrop.confidence,
     ];
     if (values.isEmpty) {
       return 0;
@@ -1523,6 +1529,12 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
       'runningCoachSprintCueKeepRhythm' => l10n.runningCoachSprintCueKeepRhythm,
       'runningCoachSprintCueBalanceArms' =>
         l10n.runningCoachSprintCueBalanceArms,
+      'runningCoachSprintCueLandUnderHips' =>
+        l10n.runningCoachSprintCueLandUnderHips,
+      'runningCoachSprintCueLiftOffQuickly' =>
+        l10n.runningCoachSprintCueLiftOffQuickly,
+      'runningCoachSprintCueHoldLateForm' =>
+        l10n.runningCoachSprintCueHoldLateForm,
       'runningCoachSprintCueKeepPushing' =>
         l10n.runningCoachSprintCueKeepPushing,
       _ => '',
@@ -1542,6 +1554,12 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
         l10n.runningCoachSprintDiagnosisKeepRhythm,
       'runningCoachSprintDiagnosisBalanceArms' =>
         l10n.runningCoachSprintDiagnosisBalanceArms,
+      'runningCoachSprintDiagnosisLandUnderHips' =>
+        l10n.runningCoachSprintDiagnosisLandUnderHips,
+      'runningCoachSprintDiagnosisLiftOffQuickly' =>
+        l10n.runningCoachSprintDiagnosisLiftOffQuickly,
+      'runningCoachSprintDiagnosisHoldLateForm' =>
+        l10n.runningCoachSprintDiagnosisHoldLateForm,
       'runningCoachSprintDiagnosisKeepPushing' =>
         l10n.runningCoachSprintDiagnosisKeepPushing,
       _ => '',
@@ -1561,6 +1579,12 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
         l10n.runningCoachSprintActionKeepRhythm,
       'runningCoachSprintActionBalanceArms' =>
         l10n.runningCoachSprintActionBalanceArms,
+      'runningCoachSprintActionLandUnderHips' =>
+        l10n.runningCoachSprintActionLandUnderHips,
+      'runningCoachSprintActionLiftOffQuickly' =>
+        l10n.runningCoachSprintActionLiftOffQuickly,
+      'runningCoachSprintActionHoldLateForm' =>
+        l10n.runningCoachSprintActionHoldLateForm,
       'runningCoachSprintActionKeepPushing' =>
         l10n.runningCoachSprintActionKeepPushing,
       _ => '',
@@ -1642,6 +1666,45 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
         ),
       ),
       _MetricTileData(
+        label: l10n.runningCoachSprintMetricLandingLabel,
+        target: l10n.runningCoachSprintMetricTargetMaximumPercent(
+          (_pipelineConfig.maximumOverstrideRatio * 100).round(),
+        ),
+        value: _coachingState.features.overstrideRatio == null ||
+                _coachingState.features.landingShinAngleDegrees == null
+            ? l10n.runningCoachSprintMetricPending
+            : l10n.runningCoachSprintMetricLandingValue(
+                (_coachingState.features.overstrideRatio! * 100)
+                    .round()
+                    .toString(),
+                _coachingState.features.landingShinAngleDegrees!
+                    .round()
+                    .toString(),
+              ),
+        accent: _accentForThreshold(
+          value: _coachingState.features.overstrideRatio,
+          maximum: _pipelineConfig.maximumOverstrideRatio,
+        ),
+      ),
+      _MetricTileData(
+        label: l10n.runningCoachSprintMetricFlightLabel,
+        target: l10n.runningCoachSprintMetricTargetMinimumPercent(
+          (_pipelineConfig.minimumFlightRatio * 100).round(),
+        ),
+        value: _coachingState.features.estimatedFlightRatio == null
+            ? l10n.runningCoachSprintMetricPending
+            : l10n.runningCoachSprintMetricFlightValue(
+                (_coachingState.features.estimatedFlightRatio! * 100)
+                    .round()
+                    .toString(),
+              ),
+        accent: _accentForThreshold(
+          value: _coachingState.features.estimatedFlightRatio,
+          minimum: _pipelineConfig.minimumFlightRatio,
+          lowerIsBad: true,
+        ),
+      ),
+      _MetricTileData(
         label: l10n.runningCoachSprintMetricArmBalanceLabel,
         target: l10n.runningCoachSprintMetricTargetMaximumPercent(
           (_pipelineConfig.maximumArmAsymmetryRatio * 100).round(),
@@ -1656,6 +1719,23 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
         accent: _accentForThreshold(
           value: _coachingState.features.armSwingAsymmetryRatio,
           maximum: _pipelineConfig.maximumArmAsymmetryRatio,
+        ),
+      ),
+      _MetricTileData(
+        label: l10n.runningCoachSprintMetricLateFormLabel,
+        target: _coachingState.features.sessionReferenceReady
+            ? l10n.runningCoachSprintMetricTargetSessionReference
+            : l10n.runningCoachSprintMetricTargetLiveReference,
+        value: _coachingState.features.lateFormDropScore == null
+            ? l10n.runningCoachSprintMetricPending
+            : l10n.runningCoachSprintMetricLateFormValue(
+                (_coachingState.features.lateFormDropScore! * 100)
+                    .round()
+                    .toString(),
+              ),
+        accent: _accentForThreshold(
+          value: _coachingState.features.lateFormDropScore,
+          maximum: _pipelineConfig.maximumLateFormDropScore,
         ),
       ),
     ];
@@ -1678,6 +1758,10 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
     final hasStableWindow =
         estimate.stableFrameCount >= _pipelineConfig.minimumWindowFrames &&
             _coachingState.trackedFrames >= _pipelineConfig.minimumWindowFrames;
+    final hasGaitPhase =
+        _coachingState.features.gaitPhase != SprintGaitPhase.unknown &&
+            _coachingState.features.gaitPhaseConfidence >=
+                _pipelineConfig.minimumFeatureConfidence;
 
     final gates = [
       _QualityGateData(
@@ -1721,6 +1805,11 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
               .toInt(),
         ),
         passed: hasStableWindow,
+      ),
+      _QualityGateData(
+        label: l10n.runningCoachSprintQualityGateGaitPhase,
+        value: _gaitPhaseLabel(l10n, _coachingState.features.gaitPhase),
+        passed: hasGaitPhase,
       ),
     ];
 
@@ -1873,6 +1962,46 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
         ),
       ),
       _SessionSummaryLine(
+        label: l10n.runningCoachSprintSessionGaitPhaseLabel,
+        value: l10n.runningCoachSprintSessionGaitPhaseValue(
+          _gaitPhaseLabel(l10n, _coachingState.features.gaitPhase),
+          (_coachingState.features.gaitPhaseConfidence * 100).round(),
+          _coachingState.features.stanceFrameCount,
+          _coachingState.features.flightFrameCount,
+        ),
+      ),
+      _SessionSummaryLine(
+        label: l10n.runningCoachSprintSessionLandingLabel,
+        value: l10n.runningCoachSprintSessionLandingValue(
+          _coachingState.features.overstrideRatio == null
+              ? l10n.runningCoachSprintMetricPending
+              : (_coachingState.features.overstrideRatio! * 100)
+                  .round()
+                  .toString(),
+          _coachingState.features.landingShinAngleDegrees == null
+              ? l10n.runningCoachSprintMetricPending
+              : _coachingState.features.landingShinAngleDegrees!
+                  .round()
+                  .toString(),
+          _coachingState.features.landingEventCount,
+        ),
+      ),
+      _SessionSummaryLine(
+        label: l10n.runningCoachSprintSessionReferenceLabel,
+        value: l10n.runningCoachSprintSessionReferenceValue(
+          _coachingState.features.sessionReferenceReady
+              ? l10n.runningCoachSprintSessionReferenceReady
+              : l10n.runningCoachSprintSessionReferenceCollecting,
+          _signedPercentValue(
+            _coachingState.features.sessionKneeDriveDeltaRatio,
+          ),
+          _signedDegreeValue(
+            _coachingState.features.sessionTrunkAngleDeltaDegrees,
+          ),
+          _signedMsValue(_coachingState.features.sessionRhythmDeltaMs),
+        ),
+      ),
+      _SessionSummaryLine(
         label: l10n.runningCoachSprintSessionFeedbackChangesLabel,
         value: l10n.runningCoachSprintSessionFeedbackChangesValue(
           _sessionMetrics.feedbackChangeCount,
@@ -1917,6 +2046,24 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
             unavailableReason:
                 _coachingState.features.rhythm.reasonIfUnavailable,
             valueFormatter: (value) => value.toStringAsFixed(0),
+          ),
+          _featureDebugValue(
+            l10n,
+            label: l10n.runningCoachSprintMetricLandingLabel,
+            value: _coachingState.features.overstrideRatio,
+            confidence: _coachingState.features.overstride.confidence,
+            unavailableReason:
+                _coachingState.features.overstride.reasonIfUnavailable,
+            valueFormatter: (value) => value.toStringAsFixed(2),
+          ),
+          _featureDebugValue(
+            l10n,
+            label: l10n.runningCoachSprintMetricFlightLabel,
+            value: _coachingState.features.estimatedFlightRatio,
+            confidence: _coachingState.features.flightRatio.confidence,
+            unavailableReason:
+                _coachingState.features.flightRatio.reasonIfUnavailable,
+            valueFormatter: (value) => value.toStringAsFixed(2),
           ),
         ),
       ),
@@ -2020,15 +2167,57 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
     };
   }
 
+  String _gaitPhaseLabel(AppLocalizations l10n, SprintGaitPhase phase) {
+    return switch (phase) {
+      SprintGaitPhase.unknown => l10n.runningCoachSprintGaitPhaseUnknown,
+      SprintGaitPhase.leftStance => l10n.runningCoachSprintGaitPhaseLeftStance,
+      SprintGaitPhase.rightStance =>
+        l10n.runningCoachSprintGaitPhaseRightStance,
+      SprintGaitPhase.doubleSupport =>
+        l10n.runningCoachSprintGaitPhaseDoubleSupport,
+      SprintGaitPhase.flight => l10n.runningCoachSprintGaitPhaseFlight,
+    };
+  }
+
   String _featureUnavailableReasonLabel(AppLocalizations l10n, String? reason) {
     return switch (reason) {
       'insufficient_joint_window' =>
         l10n.runningCoachSprintFeatureUnavailableJointWindow,
       'insufficient_step_events' =>
         l10n.runningCoachSprintFeatureUnavailableStepEvents,
+      'insufficient_landing_events' =>
+        l10n.runningCoachSprintFeatureUnavailableLandingEvents,
+      'insufficient_gait_phase' =>
+        l10n.runningCoachSprintFeatureUnavailableGaitPhase,
+      'insufficient_session_reference' =>
+        l10n.runningCoachSprintFeatureUnavailableSessionReference,
       null || '' => l10n.runningCoachSprintMetricPending,
       _ => reason,
     };
+  }
+
+  String _signedPercentValue(double? ratio) {
+    if (ratio == null) {
+      return '-';
+    }
+    final value = (ratio * 100).round();
+    return value > 0 ? '+$value%' : '$value%';
+  }
+
+  String _signedDegreeValue(double? value) {
+    if (value == null) {
+      return '-';
+    }
+    final text = value.toStringAsFixed(1);
+    return value > 0 ? '+$text°' : '$text°';
+  }
+
+  String _signedMsValue(double? value) {
+    if (value == null) {
+      return '-';
+    }
+    final rounded = value.round();
+    return rounded > 0 ? '+${rounded}ms' : '${rounded}ms';
   }
 
   String _featureDebugValue(
@@ -2439,7 +2628,11 @@ class _MetricsRail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tileWidth = math.max(96.0, math.min(122.0, (width - 56) / 5));
+    final tileCount = math.max(1, metrics.length);
+    final tileWidth = math.max(
+      92.0,
+      math.min(122.0, (width - ((tileCount - 1) * 8)) / tileCount),
+    );
     return DecoratedBox(
       decoration: BoxDecoration(
         color: const Color(0xA8121720),

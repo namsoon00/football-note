@@ -28,7 +28,7 @@ class SprintFeedbackRuleEngine {
       candidates.add(
         SprintFeedbackMessage(
           code: SprintFeedbackCode.leanForwardMore,
-          priority: 95,
+          priority: stateEstimate.accelerationPhaseDetected ? 98 : 90,
           cueKey: 'runningCoachSprintCueLeanForward',
           diagnosisKey: 'runningCoachSprintDiagnosisLeanForward',
           actionTipKey: 'runningCoachSprintActionLeanForward',
@@ -52,7 +52,7 @@ class SprintFeedbackRuleEngine {
       candidates.add(
         SprintFeedbackMessage(
           code: SprintFeedbackCode.driveKneeHigher,
-          priority: 90,
+          priority: stateEstimate.accelerationPhaseDetected ? 94 : 82,
           cueKey: 'runningCoachSprintCueDriveKnee',
           diagnosisKey: 'runningCoachSprintDiagnosisDriveKnee',
           actionTipKey: 'runningCoachSprintActionDriveKnee',
@@ -69,13 +69,43 @@ class SprintFeedbackRuleEngine {
       );
     }
 
+    if (features.overstride.available &&
+        features.shinAngle.available &&
+        _minConfidence(features.overstride, features.shinAngle) >=
+            config.minimumFeatureConfidence &&
+        ((features.overstrideRatio ?? 0) > config.maximumOverstrideRatio ||
+            (features.landingShinAngleDegrees ?? 0) >
+                config.maximumLandingShinAngleDegrees)) {
+      candidates.add(
+        SprintFeedbackMessage(
+          code: SprintFeedbackCode.landUnderHips,
+          priority: stateEstimate.accelerationPhaseDetected ? 88 : 96,
+          cueKey: 'runningCoachSprintCueLandUnderHips',
+          diagnosisKey: 'runningCoachSprintDiagnosisLandUnderHips',
+          actionTipKey: 'runningCoachSprintActionLandUnderHips',
+          severity: _severityForGap(
+            deficit: _landingDeficit(features, config),
+            severeThreshold: 0.12,
+          ),
+          confidence: _minConfidence(features.overstride, features.shinAngle),
+          sourceFeatures: const <String>[
+            'overstride_ratio',
+            'landing_shin_angle',
+            'step_events',
+          ],
+          cooldownKey: 'land_under_hips',
+          debugLabel: '착지 과전방',
+        ),
+      );
+    }
+
     if (features.rhythm.available &&
         features.rhythm.confidence >= config.minimumFeatureConfidence &&
         (features.stepIntervalStdMs ?? 0) > config.maximumStepIntervalStdMs) {
       candidates.add(
         SprintFeedbackMessage(
           code: SprintFeedbackCode.keepRhythmSteady,
-          priority: 84,
+          priority: stateEstimate.accelerationPhaseDetected ? 78 : 88,
           cueKey: 'runningCoachSprintCueKeepRhythm',
           diagnosisKey: 'runningCoachSprintDiagnosisKeepRhythm',
           actionTipKey: 'runningCoachSprintActionKeepRhythm',
@@ -88,6 +118,33 @@ class SprintFeedbackRuleEngine {
           sourceFeatures: const <String>['rhythm_variance', 'step_events'],
           cooldownKey: 'keep_rhythm',
           debugLabel: '리듬 변동 과다',
+        ),
+      );
+    }
+
+    if (features.flightRatio.available &&
+        features.flightRatio.confidence >= config.minimumFeatureConfidence &&
+        (features.estimatedFlightRatio ?? 1) < config.minimumFlightRatio) {
+      candidates.add(
+        SprintFeedbackMessage(
+          code: SprintFeedbackCode.liftOffQuickly,
+          priority: stateEstimate.accelerationPhaseDetected ? 80 : 86,
+          cueKey: 'runningCoachSprintCueLiftOffQuickly',
+          diagnosisKey: 'runningCoachSprintDiagnosisLiftOffQuickly',
+          actionTipKey: 'runningCoachSprintActionLiftOffQuickly',
+          severity: _severityForGap(
+            deficit: config.minimumFlightRatio -
+                (features.estimatedFlightRatio ?? 0),
+            severeThreshold: config.minimumFlightRatio,
+          ),
+          confidence: features.flightRatio.confidence,
+          sourceFeatures: const <String>[
+            'gait_phase',
+            'flight_ratio',
+            'stance_frames',
+          ],
+          cooldownKey: 'lift_off_quickly',
+          debugLabel: '지면 이탈 부족',
         ),
       );
     }
@@ -116,6 +173,34 @@ class SprintFeedbackRuleEngine {
       );
     }
 
+    if (features.lateFormDrop.available &&
+        features.lateFormDrop.confidence >= config.minimumFeatureConfidence &&
+        (features.lateFormDropScore ?? 0) > config.maximumLateFormDropScore) {
+      candidates.add(
+        SprintFeedbackMessage(
+          code: SprintFeedbackCode.holdLateForm,
+          priority: 92,
+          cueKey: 'runningCoachSprintCueHoldLateForm',
+          diagnosisKey: 'runningCoachSprintDiagnosisHoldLateForm',
+          actionTipKey: 'runningCoachSprintActionHoldLateForm',
+          severity: _severityForGap(
+            deficit: (features.lateFormDropScore ?? 0) -
+                config.maximumLateFormDropScore,
+            severeThreshold: 0.24,
+          ),
+          confidence: features.lateFormDrop.confidence,
+          sourceFeatures: const <String>[
+            'late_form_drop',
+            'session_reference',
+            'knee_drive',
+            'trunk_angle',
+          ],
+          cooldownKey: 'hold_late_form',
+          debugLabel: '후반 폼 저하',
+        ),
+      );
+    }
+
     if (candidates.isEmpty) {
       return SprintFeedbackMessage(
         code: SprintFeedbackCode.keepPushing,
@@ -129,6 +214,7 @@ class SprintFeedbackRuleEngine {
           'trunk_angle',
           'knee_drive',
           'rhythm_variance',
+          'gait_phase',
         ],
         cooldownKey: 'keep_pushing',
         debugLabel: '유지 피드백',
@@ -143,6 +229,29 @@ class SprintFeedbackRuleEngine {
       return right.confidence.compareTo(left.confidence);
     });
     return candidates.first;
+  }
+
+  double _landingDeficit(
+    SprintFeatureSnapshot features,
+    SprintPipelineConfig config,
+  ) {
+    final overstrideDeficit =
+        ((features.overstrideRatio ?? 0) - config.maximumOverstrideRatio)
+            .clamp(0.0, 1.0);
+    final shinDeficit = (((features.landingShinAngleDegrees ?? 0) -
+                config.maximumLandingShinAngleDegrees) /
+            100)
+        .clamp(0.0, 1.0);
+    return overstrideDeficit > shinDeficit ? overstrideDeficit : shinDeficit;
+  }
+
+  double _minConfidence(
+    SprintMeasuredValue first,
+    SprintMeasuredValue second,
+  ) {
+    return first.confidence < second.confidence
+        ? first.confidence
+        : second.confidence;
   }
 
   SprintFeedbackSeverity _severityForGap({

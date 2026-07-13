@@ -4841,6 +4841,7 @@
   "runningCoachSprintQualityGateSideView": "サイドビュー",
   "runningCoachSprintQualityGateConfidence": "関節信頼度",
   "runningCoachSprintQualityGateStableFrames": "安定フレーム",
+  "runningCoachSprintQualityGateGaitPhase": "ランニング局面",
   "runningCoachSprintQualityPercentValue": "{percent}%",
   "@runningCoachSprintQualityPercentValue": {
     "placeholders": {
@@ -5021,6 +5022,45 @@
       }
     }
   },
+  "runningCoachSprintSessionGaitPhaseLabel": "ランニング局面",
+  "runningCoachSprintSessionGaitPhaseValue": "{phase}・信頼 {confidence}%・接地 {stance}・浮遊 {flight}",
+  "@runningCoachSprintSessionGaitPhaseValue": {
+    "placeholders": {
+      "phase": {},
+      "confidence": {
+        "type": "int"
+      },
+      "stance": {
+        "type": "int"
+      },
+      "flight": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintSessionLandingLabel": "接地",
+  "runningCoachSprintSessionLandingValue": "前方 {overstride}%・すね {shinAngle}°・イベント {events}",
+  "@runningCoachSprintSessionLandingValue": {
+    "placeholders": {
+      "overstride": {},
+      "shinAngle": {},
+      "events": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintSessionReferenceLabel": "セッション基準",
+  "runningCoachSprintSessionReferenceValue": "{status}・膝 {knee}・体幹 {trunk}・リズム {rhythm}",
+  "@runningCoachSprintSessionReferenceValue": {
+    "placeholders": {
+      "status": {},
+      "knee": {},
+      "trunk": {},
+      "rhythm": {}
+    }
+  },
+  "runningCoachSprintSessionReferenceReady": "準備完了",
+  "runningCoachSprintSessionReferenceCollecting": "収集中",
   "runningCoachSprintSessionConfidenceLabel": "画期的な信頼性",
   "runningCoachSprintSessionConfidenceValue": "0.8+ {high}% · 0.6-0.8 {medium}% · <0.6 {low}%",
   "@runningCoachSprintSessionConfidenceValue": {
@@ -5072,6 +5112,28 @@
       "value": {}
     }
   },
+  "runningCoachSprintMetricLandingLabel": "接地",
+  "runningCoachSprintMetricLandingValue": "前方 {value}%・すね {angle}°",
+  "@runningCoachSprintMetricLandingValue": {
+    "placeholders": {
+      "value": {},
+      "angle": {}
+    }
+  },
+  "runningCoachSprintMetricFlightLabel": "浮遊",
+  "runningCoachSprintMetricFlightValue": "{value}%",
+  "@runningCoachSprintMetricFlightValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "runningCoachSprintMetricLateFormLabel": "後半フォーム",
+  "runningCoachSprintMetricLateFormValue": "低下 {value}%",
+  "@runningCoachSprintMetricLateFormValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
   "runningCoachSprintMetricTargetRangeDegrees": "目標 {minimum}-{maximum}°",
   "@runningCoachSprintMetricTargetRangeDegrees": {
     "placeholders": {
@@ -5108,6 +5170,7 @@
     }
   },
   "runningCoachSprintMetricTargetLiveReference": "ライブ基準",
+  "runningCoachSprintMetricTargetSessionReference": "セッション基準",
   "runningCoachSprintBodyVisibilityFull": "全身ロック",
   "runningCoachSprintBodyVisibilityPartial": "部分的なランドマーク",
   "runningCoachSprintBodyVisibilityNotVisible": "身体が失われた",
@@ -5116,6 +5179,9 @@
   "runningCoachSprintCueDriveKnee": "押し出した後、膝をもう少し積極的に前に動かします。",
   "runningCoachSprintCueKeepRhythm": "左右のリズムが漂います。接地接触をより均一に保つようにしてください。",
   "runningCoachSprintCueBalanceArms": "腕の振りがアンバランスです。両側の後進ドライブをより厳密に一致させます。",
+  "runningCoachSprintCueLandUnderHips": "足を前に伸ばしすぎず、腰の下に近い位置へ接地します。",
+  "runningCoachSprintCueLiftOffQuickly": "地面から少し早く離れ、次の一歩を軽く保ちます。",
+  "runningCoachSprintCueHoldLateForm": "スプリントの最後まで同じ膝のドライブと前傾を保ちます。",
   "runningCoachSprintCueKeepPushing": "良い。同じリズムで前傾姿勢で押し続けます。",
   "runningCoachSelectedVideoLabel": "選択したビデオ",
   "runningCoachNoVideoSelected": "まだビデオが選択されていません。",
@@ -5312,6 +5378,11 @@
   "runningCoachSprintDebugPanelTitle": "デバッグオーバーレイ",
   "runningCoachSprintCueWhyLabel": "なぜ",
   "runningCoachSprintCueTryLabel": "試す",
+  "runningCoachSprintGaitPhaseUnknown": "不明",
+  "runningCoachSprintGaitPhaseLeftStance": "左接地",
+  "runningCoachSprintGaitPhaseRightStance": "右接地",
+  "runningCoachSprintGaitPhaseDoubleSupport": "両足接地",
+  "runningCoachSprintGaitPhaseFlight": "浮遊",
   "runningCoachSprintTrackingStateBodyTooSmall": "近くに移動してください",
   "runningCoachSprintTrackingStateBodyOutOfFrame": "全身をフレーム内に収める",
   "runningCoachSprintTrackingStateLowConfidence": "追跡の信頼性を高める",
@@ -5368,11 +5439,17 @@
   "runningCoachSprintDiagnosisDriveKnee": "膝ドライブが腰に対して低い位置にあるため、フロントサイドステップが強くつながりません。",
   "runningCoachSprintDiagnosisKeepRhythm": "ステップのタイミングがばらつきすぎて、左右のスプリントのリズムがズレてしまいます。",
   "runningCoachSprintDiagnosisBalanceArms": "片方の腕は後方への駆動にあまり貢献していないため、上半身からのリズムサポートが不均一になります。",
+  "runningCoachSprintDiagnosisLandUnderHips": "リード足が腰のラインより前に出すぎており、接地でブレーキが起きる可能性があります。",
+  "runningCoachSprintDiagnosisLiftOffQuickly": "ランニング局面の浮遊時間が短く、接地パターンが重く見えます。",
+  "runningCoachSprintDiagnosisHoldLateForm": "現在のストライドは、膝ドライブ、前傾、リズムのいずれかでセッション基準を下回っています。",
   "runningCoachSprintDiagnosisKeepPushing": "主要なスプリント指標は安定範囲内にあるため、アプリは現在のキューを保持しています。",
   "runningCoachSprintActionLeanForward": "最初の3歩は胸を低く保ち、腰-肩の軸が8-24°の範囲に残るようにします。",
   "runningCoachSprintActionDriveKnee": "地面を強く押して、膝を自分で持ち上げようとするのではなく、膝を通すようにします。",
   "runningCoachSprintActionKeepRhythm": "それ以上長いステップに手を伸ばさないでください。次の数歩の間、接地点を等間隔に保ちます。",
   "runningCoachSprintActionBalanceArms": "両側の後方アームドライブを一致させ、肩を静かに保ちます。",
+  "runningCoachSprintActionLandUnderHips": "足を前へ投げ出さず、腰の下へ素早く下ろして後ろへ押す意識にします。",
+  "runningCoachSprintActionLiftOffQuickly": "足首を固く保ち、後ろへ押して接地後すぐに地面から離れます。",
+  "runningCoachSprintActionHoldLateForm": "出力を少し抑えても、最後の数歩で同じ膝のパンチと体幹角度を保ちます。",
   "runningCoachSprintActionKeepPushing": "アプリが安定性を確認できるように、さらに数ステップ同じ形状を維持します。",
   "runningCoachSprintSessionTrackingStateLabel": "追跡状態",
   "runningCoachSprintSessionPersonSizeLabel": "人のサイズ",
@@ -5409,12 +5486,14 @@
     }
   },
   "runningCoachSprintSessionFeatureConfidenceLabel": "特徴の信頼度",
-  "runningCoachSprintSessionFeatureConfidenceValue": "{trunk} / {knee} / {rhythm}",
+  "runningCoachSprintSessionFeatureConfidenceValue": "{trunk} / {knee} / {rhythm} / {landing} / {flight}",
   "@runningCoachSprintSessionFeatureConfidenceValue": {
     "placeholders": {
       "trunk": {},
       "knee": {},
-      "rhythm": {}
+      "rhythm": {},
+      "landing": {},
+      "flight": {}
     }
   },
   "runningCoachSprintSessionFeatureDebugValue": "{feature} {value} ({confidence}%)",
@@ -5436,6 +5515,9 @@
   },
   "runningCoachSprintFeatureUnavailableJointWindow": "十分な安定した関節フレームがありません",
   "runningCoachSprintFeatureUnavailableStepEvents": "十分な安定したステップイベントがありません",
+  "runningCoachSprintFeatureUnavailableLandingEvents": "十分な安定した接地イベントがありません",
+  "runningCoachSprintFeatureUnavailableGaitPhase": "ランニング局面のサンプルが不足しています",
+  "runningCoachSprintFeatureUnavailableSessionReference": "セッション基準をまだ収集中です",
   "homeWeatherNeedsLocationTitle": "場所が必要です",
   "homeWeatherNeedsLocationSubtitle": "位置情報をオンにする",
   "homeStreakBadgeActive": "勢い",

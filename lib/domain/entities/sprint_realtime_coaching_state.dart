@@ -10,10 +10,21 @@ enum SprintFeedbackCode {
   driveKneeHigher,
   keepRhythmSteady,
   balanceArmSwing,
+  landUnderHips,
+  liftOffQuickly,
+  holdLateForm,
   keepPushing,
 }
 
 enum SprintBodyVisibilityStatus { notVisible, partial, full }
+
+enum SprintGaitPhase {
+  unknown,
+  leftStance,
+  rightStance,
+  doubleSupport,
+  flight,
+}
 
 enum SprintTrackingReadiness {
   bodyTooSmall,
@@ -61,11 +72,25 @@ class SprintFeatureSnapshot {
   final SprintMeasuredValue cadence;
   final SprintMeasuredValue rhythm;
   final SprintMeasuredValue armBalance;
+  final SprintMeasuredValue overstride;
+  final SprintMeasuredValue shinAngle;
+  final SprintMeasuredValue flightRatio;
+  final SprintMeasuredValue contactBalance;
+  final SprintMeasuredValue lateFormDrop;
   final Duration? stepInterval;
+  final SprintGaitPhase gaitPhase;
+  final double gaitPhaseConfidence;
   final int detectedStepEvents;
   final int stepCrossoverCount;
   final int rejectedStepEventsLowVelocity;
   final int rejectedStepEventsMinInterval;
+  final int landingEventCount;
+  final int stanceFrameCount;
+  final int flightFrameCount;
+  final bool sessionReferenceReady;
+  final double? sessionKneeDriveDeltaRatio;
+  final double? sessionTrunkAngleDeltaDegrees;
+  final double? sessionRhythmDeltaMs;
 
   const SprintFeatureSnapshot({
     this.trunkAngle = const SprintMeasuredValue.unavailable(
@@ -83,11 +108,35 @@ class SprintFeatureSnapshot {
     this.armBalance = const SprintMeasuredValue.unavailable(
       reasonIfUnavailable: 'insufficient_joint_window',
     ),
+    this.overstride = const SprintMeasuredValue.unavailable(
+      reasonIfUnavailable: 'insufficient_landing_events',
+    ),
+    this.shinAngle = const SprintMeasuredValue.unavailable(
+      reasonIfUnavailable: 'insufficient_landing_events',
+    ),
+    this.flightRatio = const SprintMeasuredValue.unavailable(
+      reasonIfUnavailable: 'insufficient_gait_phase',
+    ),
+    this.contactBalance = const SprintMeasuredValue.unavailable(
+      reasonIfUnavailable: 'insufficient_gait_phase',
+    ),
+    this.lateFormDrop = const SprintMeasuredValue.unavailable(
+      reasonIfUnavailable: 'insufficient_session_reference',
+    ),
     this.stepInterval,
+    this.gaitPhase = SprintGaitPhase.unknown,
+    this.gaitPhaseConfidence = 0,
     this.detectedStepEvents = 0,
     this.stepCrossoverCount = 0,
     this.rejectedStepEventsLowVelocity = 0,
     this.rejectedStepEventsMinInterval = 0,
+    this.landingEventCount = 0,
+    this.stanceFrameCount = 0,
+    this.flightFrameCount = 0,
+    this.sessionReferenceReady = false,
+    this.sessionKneeDriveDeltaRatio,
+    this.sessionTrunkAngleDeltaDegrees,
+    this.sessionRhythmDeltaMs,
   });
 
   const SprintFeatureSnapshot.empty() : this();
@@ -102,11 +151,91 @@ class SprintFeatureSnapshot {
 
   double? get armSwingAsymmetryRatio => armBalance.value;
 
+  double? get overstrideRatio => overstride.value;
+
+  double? get landingShinAngleDegrees => shinAngle.value;
+
+  double? get estimatedFlightRatio => flightRatio.value;
+
+  double? get contactBalanceAsymmetryRatio => contactBalance.value;
+
+  double? get lateFormDropScore => lateFormDrop.value;
+
   bool get hasEnoughSignal =>
       trunkAngle.available ||
       kneeDrive.available ||
       rhythm.available ||
-      armBalance.available;
+      armBalance.available ||
+      overstride.available ||
+      flightRatio.available;
+
+  SprintFeatureSnapshot copyWith({
+    SprintMeasuredValue? trunkAngle,
+    SprintMeasuredValue? kneeDrive,
+    SprintMeasuredValue? cadence,
+    SprintMeasuredValue? rhythm,
+    SprintMeasuredValue? armBalance,
+    SprintMeasuredValue? overstride,
+    SprintMeasuredValue? shinAngle,
+    SprintMeasuredValue? flightRatio,
+    SprintMeasuredValue? contactBalance,
+    SprintMeasuredValue? lateFormDrop,
+    Duration? stepInterval,
+    bool clearStepInterval = false,
+    SprintGaitPhase? gaitPhase,
+    double? gaitPhaseConfidence,
+    int? detectedStepEvents,
+    int? stepCrossoverCount,
+    int? rejectedStepEventsLowVelocity,
+    int? rejectedStepEventsMinInterval,
+    int? landingEventCount,
+    int? stanceFrameCount,
+    int? flightFrameCount,
+    bool? sessionReferenceReady,
+    double? sessionKneeDriveDeltaRatio,
+    bool clearSessionKneeDriveDeltaRatio = false,
+    double? sessionTrunkAngleDeltaDegrees,
+    bool clearSessionTrunkAngleDeltaDegrees = false,
+    double? sessionRhythmDeltaMs,
+    bool clearSessionRhythmDeltaMs = false,
+  }) {
+    return SprintFeatureSnapshot(
+      trunkAngle: trunkAngle ?? this.trunkAngle,
+      kneeDrive: kneeDrive ?? this.kneeDrive,
+      cadence: cadence ?? this.cadence,
+      rhythm: rhythm ?? this.rhythm,
+      armBalance: armBalance ?? this.armBalance,
+      overstride: overstride ?? this.overstride,
+      shinAngle: shinAngle ?? this.shinAngle,
+      flightRatio: flightRatio ?? this.flightRatio,
+      contactBalance: contactBalance ?? this.contactBalance,
+      lateFormDrop: lateFormDrop ?? this.lateFormDrop,
+      stepInterval:
+          clearStepInterval ? null : stepInterval ?? this.stepInterval,
+      gaitPhase: gaitPhase ?? this.gaitPhase,
+      gaitPhaseConfidence: gaitPhaseConfidence ?? this.gaitPhaseConfidence,
+      detectedStepEvents: detectedStepEvents ?? this.detectedStepEvents,
+      stepCrossoverCount: stepCrossoverCount ?? this.stepCrossoverCount,
+      rejectedStepEventsLowVelocity:
+          rejectedStepEventsLowVelocity ?? this.rejectedStepEventsLowVelocity,
+      rejectedStepEventsMinInterval:
+          rejectedStepEventsMinInterval ?? this.rejectedStepEventsMinInterval,
+      landingEventCount: landingEventCount ?? this.landingEventCount,
+      stanceFrameCount: stanceFrameCount ?? this.stanceFrameCount,
+      flightFrameCount: flightFrameCount ?? this.flightFrameCount,
+      sessionReferenceReady:
+          sessionReferenceReady ?? this.sessionReferenceReady,
+      sessionKneeDriveDeltaRatio: clearSessionKneeDriveDeltaRatio
+          ? null
+          : sessionKneeDriveDeltaRatio ?? this.sessionKneeDriveDeltaRatio,
+      sessionTrunkAngleDeltaDegrees: clearSessionTrunkAngleDeltaDegrees
+          ? null
+          : sessionTrunkAngleDeltaDegrees ?? this.sessionTrunkAngleDeltaDegrees,
+      sessionRhythmDeltaMs: clearSessionRhythmDeltaMs
+          ? null
+          : sessionRhythmDeltaMs ?? this.sessionRhythmDeltaMs,
+    );
+  }
 }
 
 class SprintStateEstimate {

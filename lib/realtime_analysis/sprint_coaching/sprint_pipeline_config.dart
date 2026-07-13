@@ -27,9 +27,18 @@ class SprintPipelineConfig {
   final double minimumKneeDriveHeight;
   final double maximumStepIntervalStdMs;
   final double maximumArmAsymmetryRatio;
+  final double maximumOverstrideRatio;
+  final double maximumLandingShinAngleDegrees;
+  final double minimumFlightRatio;
+  final double maximumContactAsymmetryRatio;
+  final double maximumLateFormDropScore;
+  final double maximumSessionKneeDriveDropRatio;
+  final double maximumSessionTrunkAngleDropDegrees;
   final Duration minimumStepEventInterval;
   final double stepDetectionHysteresis;
   final double minimumStepDetectionVelocity;
+  final double footContactGroundClearanceRatio;
+  final double flightGroundClearanceRatio;
 
   const SprintPipelineConfig({
     this.preset = SprintPipelineTuningPreset.balanced,
@@ -58,9 +67,18 @@ class SprintPipelineConfig {
     this.minimumKneeDriveHeight = 0.24,
     this.maximumStepIntervalStdMs = 110,
     this.maximumArmAsymmetryRatio = 0.18,
+    this.maximumOverstrideRatio = 0.36,
+    this.maximumLandingShinAngleDegrees = 20,
+    this.minimumFlightRatio = 0.08,
+    this.maximumContactAsymmetryRatio = 0.4,
+    this.maximumLateFormDropScore = 0.34,
+    this.maximumSessionKneeDriveDropRatio = 0.14,
+    this.maximumSessionTrunkAngleDropDegrees = 4,
     this.minimumStepEventInterval = const Duration(milliseconds: 110),
     this.stepDetectionHysteresis = 0.08,
     this.minimumStepDetectionVelocity = 0.9,
+    this.footContactGroundClearanceRatio = 0.08,
+    this.flightGroundClearanceRatio = 0.14,
   });
 
   const SprintPipelineConfig.conservative()
@@ -91,9 +109,18 @@ class SprintPipelineConfig {
           minimumKneeDriveHeight: 0.27,
           maximumStepIntervalStdMs: 100,
           maximumArmAsymmetryRatio: 0.16,
+          maximumOverstrideRatio: 0.32,
+          maximumLandingShinAngleDegrees: 18,
+          minimumFlightRatio: 0.1,
+          maximumContactAsymmetryRatio: 0.34,
+          maximumLateFormDropScore: 0.28,
+          maximumSessionKneeDriveDropRatio: 0.12,
+          maximumSessionTrunkAngleDropDegrees: 3.5,
           minimumStepEventInterval: const Duration(milliseconds: 120),
           stepDetectionHysteresis: 0.09,
           minimumStepDetectionVelocity: 1.0,
+          footContactGroundClearanceRatio: 0.07,
+          flightGroundClearanceRatio: 0.13,
         );
 
   const SprintPipelineConfig.responsive()
@@ -124,9 +151,18 @@ class SprintPipelineConfig {
           minimumKneeDriveHeight: 0.22,
           maximumStepIntervalStdMs: 125,
           maximumArmAsymmetryRatio: 0.2,
+          maximumOverstrideRatio: 0.4,
+          maximumLandingShinAngleDegrees: 23,
+          minimumFlightRatio: 0.06,
+          maximumContactAsymmetryRatio: 0.46,
+          maximumLateFormDropScore: 0.4,
+          maximumSessionKneeDriveDropRatio: 0.18,
+          maximumSessionTrunkAngleDropDegrees: 5,
           minimumStepEventInterval: const Duration(milliseconds: 95),
           stepDetectionHysteresis: 0.06,
           minimumStepDetectionVelocity: 0.75,
+          footContactGroundClearanceRatio: 0.1,
+          flightGroundClearanceRatio: 0.16,
         );
 
   SprintPipelineConfig copyWith({
@@ -156,9 +192,18 @@ class SprintPipelineConfig {
     double? minimumKneeDriveHeight,
     double? maximumStepIntervalStdMs,
     double? maximumArmAsymmetryRatio,
+    double? maximumOverstrideRatio,
+    double? maximumLandingShinAngleDegrees,
+    double? minimumFlightRatio,
+    double? maximumContactAsymmetryRatio,
+    double? maximumLateFormDropScore,
+    double? maximumSessionKneeDriveDropRatio,
+    double? maximumSessionTrunkAngleDropDegrees,
     Duration? minimumStepEventInterval,
     double? stepDetectionHysteresis,
     double? minimumStepDetectionVelocity,
+    double? footContactGroundClearanceRatio,
+    double? flightGroundClearanceRatio,
   }) {
     return SprintPipelineConfig(
       preset: preset ?? this.preset,
@@ -210,12 +255,30 @@ class SprintPipelineConfig {
           maximumStepIntervalStdMs ?? this.maximumStepIntervalStdMs,
       maximumArmAsymmetryRatio:
           maximumArmAsymmetryRatio ?? this.maximumArmAsymmetryRatio,
+      maximumOverstrideRatio:
+          maximumOverstrideRatio ?? this.maximumOverstrideRatio,
+      maximumLandingShinAngleDegrees:
+          maximumLandingShinAngleDegrees ?? this.maximumLandingShinAngleDegrees,
+      minimumFlightRatio: minimumFlightRatio ?? this.minimumFlightRatio,
+      maximumContactAsymmetryRatio:
+          maximumContactAsymmetryRatio ?? this.maximumContactAsymmetryRatio,
+      maximumLateFormDropScore:
+          maximumLateFormDropScore ?? this.maximumLateFormDropScore,
+      maximumSessionKneeDriveDropRatio: maximumSessionKneeDriveDropRatio ??
+          this.maximumSessionKneeDriveDropRatio,
+      maximumSessionTrunkAngleDropDegrees:
+          maximumSessionTrunkAngleDropDegrees ??
+              this.maximumSessionTrunkAngleDropDegrees,
       minimumStepEventInterval:
           minimumStepEventInterval ?? this.minimumStepEventInterval,
       stepDetectionHysteresis:
           stepDetectionHysteresis ?? this.stepDetectionHysteresis,
       minimumStepDetectionVelocity:
           minimumStepDetectionVelocity ?? this.minimumStepDetectionVelocity,
+      footContactGroundClearanceRatio: footContactGroundClearanceRatio ??
+          this.footContactGroundClearanceRatio,
+      flightGroundClearanceRatio:
+          flightGroundClearanceRatio ?? this.flightGroundClearanceRatio,
     );
   }
 }
