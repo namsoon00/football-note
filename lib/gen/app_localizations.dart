@@ -21190,6 +21190,24 @@ abstract class AppLocalizations {
   /// **'Manage number, position, preferred foot, condition, and notes as roster cards.'**
   String get teamManagementPlayersHelper;
 
+  /// No description provided for @teamManagementRosterBoardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Squad board'**
+  String get teamManagementRosterBoardTitle;
+
+  /// No description provided for @teamManagementRosterBoardHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Review player status and board placement by position.'**
+  String get teamManagementRosterBoardHelper;
+
+  /// No description provided for @teamManagementRoleGroupCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{role} · {count} player(s)'**
+  String teamManagementRoleGroupCount(Object role, int count);
+
   /// No description provided for @teamManagementPlayerNameLabel.
   ///
   /// In en, this message translates to:
@@ -21328,6 +21346,18 @@ abstract class AppLocalizations {
   /// **'{role} · {foot} · {condition} · {count} placed'**
   String teamManagementPlayerDetailMeta(
       Object role, Object foot, Object condition, int count);
+
+  /// No description provided for @teamManagementRosterPlacementCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Board {count}'**
+  String teamManagementRosterPlacementCount(int count);
+
+  /// No description provided for @teamManagementRosterNoPlacement.
+  ///
+  /// In en, this message translates to:
+  /// **'Not on board'**
+  String get teamManagementRosterNoPlacement;
 
   /// No description provided for @teamManagementPlayerTrayTitle.
   ///

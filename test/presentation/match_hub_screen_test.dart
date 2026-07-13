@@ -641,6 +641,10 @@ void main() {
     await tester.tap(addPlayerButton);
     await tester.pumpAndSettle();
 
+    expect(find.text('스쿼드 보드'), findsOneWidget);
+    expect(find.text('미드필더 · 1명'), findsOneWidget);
+    expect(find.text('보드 미배치'), findsOneWidget);
+
     await tester.tap(find.text('팀 프로필').last);
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).at(0), '우리 팀 U15');

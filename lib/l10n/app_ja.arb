@@ -6608,6 +6608,17 @@
   "teamManagementUnassignedPlayer": "未割り当て",
   "teamManagementPlayersTitle": "選手名簿",
   "teamManagementPlayersHelper": "番号、ポジション、利き足、コンディション、管理メモを選手カードで管理します。",
+  "teamManagementRosterBoardTitle": "スカッドボード",
+  "teamManagementRosterBoardHelper": "ポジション別に選手の状態とボード配置をすばやく確認します。",
+  "teamManagementRoleGroupCount": "{role} · {count}人",
+  "@teamManagementRoleGroupCount": {
+    "placeholders": {
+      "role": {},
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "teamManagementPlayerNameLabel": "選手名",
   "teamManagementPlayerNameHint": "例) キム・ミンジュン",
   "teamManagementPlayerNumberLabel": "番号",
@@ -6649,6 +6660,15 @@
       }
     }
   },
+  "teamManagementRosterPlacementCount": "ボード{count}",
+  "@teamManagementRosterPlacementCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "teamManagementRosterNoPlacement": "ボード未配置",
   "teamManagementPlayerTrayTitle": "ドラッグする選手",
   "teamManagementPlayerTrayEmpty": "先に選手を登録すると、ここからピッチへ直接ドラッグできます。",
   "teamManagementBoardMovePlayersMode": "選手配置",

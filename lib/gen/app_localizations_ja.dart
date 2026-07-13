@@ -11925,6 +11925,17 @@ class AppLocalizationsJa extends AppLocalizations {
       '番号、ポジション、利き足、コンディション、管理メモを選手カードで管理します。';
 
   @override
+  String get teamManagementRosterBoardTitle => 'スカッドボード';
+
+  @override
+  String get teamManagementRosterBoardHelper => 'ポジション別に選手の状態とボード配置をすばやく確認します。';
+
+  @override
+  String teamManagementRoleGroupCount(Object role, int count) {
+    return '$role · $count人';
+  }
+
+  @override
   String get teamManagementPlayerNameLabel => '選手名';
 
   @override
@@ -11998,6 +12009,14 @@ class AppLocalizationsJa extends AppLocalizations {
       Object role, Object foot, Object condition, int count) {
     return '$role · $foot · $condition · $count件配置';
   }
+
+  @override
+  String teamManagementRosterPlacementCount(int count) {
+    return 'ボード$count';
+  }
+
+  @override
+  String get teamManagementRosterNoPlacement => 'ボード未配置';
 
   @override
   String get teamManagementPlayerTrayTitle => 'ドラッグする選手';

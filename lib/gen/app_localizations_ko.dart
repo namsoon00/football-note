@@ -11946,6 +11946,18 @@ class AppLocalizationsKo extends AppLocalizations {
       '등번호, 포지션, 주발, 컨디션과 관리 메모를 선수단 카드로 관리하세요.';
 
   @override
+  String get teamManagementRosterBoardTitle => '스쿼드 보드';
+
+  @override
+  String get teamManagementRosterBoardHelper =>
+      '포지션별로 선수 상태와 보드 배치를 빠르게 확인하세요.';
+
+  @override
+  String teamManagementRoleGroupCount(Object role, int count) {
+    return '$role · $count명';
+  }
+
+  @override
   String get teamManagementPlayerNameLabel => '선수 이름';
 
   @override
@@ -12019,6 +12031,14 @@ class AppLocalizationsKo extends AppLocalizations {
       Object role, Object foot, Object condition, int count) {
     return '$role · $foot · $condition · $count개 배치';
   }
+
+  @override
+  String teamManagementRosterPlacementCount(int count) {
+    return '보드 $count';
+  }
+
+  @override
+  String get teamManagementRosterNoPlacement => '보드 미배치';
 
   @override
   String get teamManagementPlayerTrayTitle => '드래그할 선수';

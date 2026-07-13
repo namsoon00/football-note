@@ -6608,6 +6608,17 @@
   "teamManagementUnassignedPlayer": "미배정",
   "teamManagementPlayersTitle": "선수단",
   "teamManagementPlayersHelper": "등번호, 포지션, 주발, 컨디션과 관리 메모를 선수단 카드로 관리하세요.",
+  "teamManagementRosterBoardTitle": "스쿼드 보드",
+  "teamManagementRosterBoardHelper": "포지션별로 선수 상태와 보드 배치를 빠르게 확인하세요.",
+  "teamManagementRoleGroupCount": "{role} · {count}명",
+  "@teamManagementRoleGroupCount": {
+    "placeholders": {
+      "role": {},
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "teamManagementPlayerNameLabel": "선수 이름",
   "teamManagementPlayerNameHint": "예) 김민준",
   "teamManagementPlayerNumberLabel": "번호",
@@ -6649,6 +6660,15 @@
       }
     }
   },
+  "teamManagementRosterPlacementCount": "보드 {count}",
+  "@teamManagementRosterPlacementCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "teamManagementRosterNoPlacement": "보드 미배치",
   "teamManagementPlayerTrayTitle": "드래그할 선수",
   "teamManagementPlayerTrayEmpty": "먼저 선수를 등록하면 여기에서 그라운드로 바로 끌어 놓을 수 있어요.",
   "teamManagementBoardMovePlayersMode": "선수 배치",
