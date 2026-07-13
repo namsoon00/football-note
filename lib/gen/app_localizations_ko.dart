@@ -8627,6 +8627,33 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get runningCoachSprintSessionMediaPipeLabel => 'MediaPipe';
+
+  @override
+  String runningCoachSprintSessionMediaPipeValue(Object platform, Object format,
+      int rotationDegrees, int processingMs, Object strictMode) {
+    return '$platform · $format · 회전 $rotationDegrees° · ${processingMs}ms · strict $strictMode';
+  }
+
+  @override
+  String get runningCoachSprintSessionMediaPipeStrictOn => '켜짐';
+
+  @override
+  String get runningCoachSprintSessionMediaPipeStrictOff => '꺼짐';
+
+  @override
+  String get runningCoachSprintSessionMediaPipeLandmarksLabel => 'MediaPipe 관절';
+
+  @override
+  String runningCoachSprintSessionMediaPipeLandmarksValue(int raw, int mapped,
+      int core, int world, Object minConfidence, Object averageConfidence) {
+    return '원본 $raw · 매핑 $mapped · 핵심 $core · 월드 $world · 최저 $minConfidence · 평균 $averageConfidence';
+  }
+
+  @override
+  String get runningCoachSprintSessionMediaPipeErrorLabel => 'MediaPipe 오류';
+
+  @override
   String get runningCoachSprintSessionActiveFeedbackLabel => '활성 피드백';
 
   @override

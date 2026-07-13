@@ -184,7 +184,9 @@ final class MediaPipePoseLandmarkerChannel {
       throw MediaPipePoseLandmarkerError.invalidFrame
     }
 
-    return rotatedImage(from: cgImage, rotationDegrees: rotationDegrees)
+    return resizedImageIfNeeded(
+      rotatedImage(from: cgImage, rotationDegrees: rotationDegrees)
+    )
   }
 
   private func rotatedImage(from cgImage: CGImage, rotationDegrees: Int) -> UIImage {
@@ -210,6 +212,23 @@ final class MediaPipePoseLandmarkerChannel {
           height: sourceSize.height
         )
       )
+    }
+  }
+
+  private func resizedImageIfNeeded(_ image: UIImage) -> UIImage {
+    let longEdge = max(image.size.width, image.size.height)
+    guard longEdge > Self.maxAnalysisLongEdge else {
+      return image
+    }
+
+    let scale = Self.maxAnalysisLongEdge / longEdge
+    let targetSize = CGSize(
+      width: max(1, image.size.width * scale),
+      height: max(1, image.size.height * scale)
+    )
+    let renderer = UIGraphicsImageRenderer(size: targetSize)
+    return renderer.image { _ in
+      image.draw(in: CGRect(origin: .zero, size: targetSize))
     }
   }
 
@@ -281,4 +300,5 @@ final class MediaPipePoseLandmarkerChannel {
   private static let minimumPosePresenceConfidence: Float = 0.45
   private static let minimumTrackingConfidence: Float = 0.45
   private static let bytesPerPixel = 4
+  private static let maxAnalysisLongEdge: CGFloat = 720
 }

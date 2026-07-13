@@ -4927,6 +4927,44 @@
       }
     }
   },
+  "runningCoachSprintSessionMediaPipeLabel": "MediaPipe",
+  "runningCoachSprintSessionMediaPipeValue": "{platform}・{format}・回転 {rotationDegrees}°・{processingMs}ms・strict {strictMode}",
+  "@runningCoachSprintSessionMediaPipeValue": {
+    "placeholders": {
+      "platform": {},
+      "format": {},
+      "rotationDegrees": {
+        "type": "int"
+      },
+      "processingMs": {
+        "type": "int"
+      },
+      "strictMode": {}
+    }
+  },
+  "runningCoachSprintSessionMediaPipeStrictOn": "オン",
+  "runningCoachSprintSessionMediaPipeStrictOff": "オフ",
+  "runningCoachSprintSessionMediaPipeLandmarksLabel": "MediaPipe ランドマーク",
+  "runningCoachSprintSessionMediaPipeLandmarksValue": "raw {raw}・mapped {mapped}・core {core}・world {world}・min {minConfidence}・avg {averageConfidence}",
+  "@runningCoachSprintSessionMediaPipeLandmarksValue": {
+    "placeholders": {
+      "raw": {
+        "type": "int"
+      },
+      "mapped": {
+        "type": "int"
+      },
+      "core": {
+        "type": "int"
+      },
+      "world": {
+        "type": "int"
+      },
+      "minConfidence": {},
+      "averageConfidence": {}
+    }
+  },
+  "runningCoachSprintSessionMediaPipeErrorLabel": "MediaPipe エラー",
   "runningCoachSprintSessionActiveFeedbackLabel": "アクティブなフィードバック",
   "runningCoachSprintSessionActiveFeedbackValue": "{key}・{text}",
   "@runningCoachSprintSessionActiveFeedbackValue": {

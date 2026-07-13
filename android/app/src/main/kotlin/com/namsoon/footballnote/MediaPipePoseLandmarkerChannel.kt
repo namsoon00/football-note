@@ -21,6 +21,7 @@ import java.util.Optional
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlin.math.max
+import kotlin.math.roundToInt
 
 class MediaPipePoseLandmarkerChannel(
     private val context: Context,
@@ -107,9 +108,13 @@ class MediaPipePoseLandmarkerChannel(
         timestampMs: Long,
     ): Map<String, Any?> {
         val sourceBitmap = nv21ToBitmap(bytes, width, height)
-        val bitmap = rotateBitmap(sourceBitmap, rotationDegrees)
-        if (bitmap !== sourceBitmap) {
+        val rotatedBitmap = rotateBitmap(sourceBitmap, rotationDegrees)
+        if (rotatedBitmap !== sourceBitmap) {
             sourceBitmap.recycle()
+        }
+        val bitmap = resizeBitmapIfNeeded(rotatedBitmap)
+        if (bitmap !== rotatedBitmap) {
+            rotatedBitmap.recycle()
         }
 
         try {
@@ -189,6 +194,18 @@ class MediaPipePoseLandmarkerChannel(
         return Bitmap.createBitmap(source, 0, 0, source.width, source.height, matrix, true)
     }
 
+    private fun resizeBitmapIfNeeded(source: Bitmap): Bitmap {
+        val longEdge = max(source.width, source.height)
+        if (longEdge <= maxAnalysisLongEdgePx) {
+            return source
+        }
+
+        val scale = maxAnalysisLongEdgePx.toFloat() / longEdge.toFloat()
+        val targetWidth = max(1, (source.width * scale).roundToInt())
+        val targetHeight = max(1, (source.height * scale).roundToInt())
+        return Bitmap.createScaledBitmap(source, targetWidth, targetHeight, true)
+    }
+
     private fun optionalFloat(value: Optional<Float>): Float? =
         if (value.isPresent) value.get() else null
 
@@ -201,5 +218,6 @@ class MediaPipePoseLandmarkerChannel(
         private const val minimumPosePresenceConfidence = 0.45f
         private const val minimumTrackingConfidence = 0.45f
         private const val jpegQuality = 95
+        private const val maxAnalysisLongEdgePx = 720
     }
 }
