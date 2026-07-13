@@ -8,10 +8,12 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:path_provider/path_provider.dart';
 import 'firebase_options.dart';
 import 'domain/entities/training_entry.dart';
 import 'domain/repositories/option_repository.dart';
 import 'infrastructure/auto_backup_option_repository.dart';
+import 'infrastructure/hive_startup_recovery.dart';
 import 'infrastructure/hive_option_repository.dart';
 import 'infrastructure/hive_training_repository.dart';
 import 'application/training_service.dart';
@@ -88,16 +90,18 @@ Future<void> _initializeFirebase() async {
 
 Future<_FootballNoteDependencies> _initializeAppDependencies() async {
   await _initializeFirebase();
-  await Hive.initFlutter();
+  final hivePath = await _initializeHiveStorage();
   if (!Hive.isAdapterRegistered(_trainingEntryHiveTypeId)) {
     Hive.registerAdapter(TrainingEntryAdapter());
   }
-  final trainingBox = Hive.isBoxOpen('training_entries')
-      ? Hive.box<TrainingEntry>('training_entries')
-      : await Hive.openBox<TrainingEntry>('training_entries');
-  final optionBox = Hive.isBoxOpen('options')
-      ? Hive.box('options')
-      : await Hive.openBox('options');
+  final trainingBox = await openRecoverableHiveBox<TrainingEntry>(
+    'training_entries',
+    path: hivePath,
+  );
+  final optionBox = await openRecoverableHiveBox<dynamic>(
+    'options',
+    path: hivePath,
+  );
   await initializeDateFormatting('ko_KR');
   final trainingRepository = HiveTrainingRepository(trainingBox);
   final baseOptionRepository = HiveOptionRepository(optionBox);
@@ -202,6 +206,17 @@ Future<_FootballNoteDependencies> _initializeAppDependencies() async {
     backupService: backupService,
     healthConnectJumpRopeSyncService: healthConnectJumpRopeSyncService,
   );
+}
+
+Future<String?> _initializeHiveStorage() async {
+  if (kIsWeb) {
+    await Hive.initFlutter();
+    return null;
+  }
+  final appDirectory = await getApplicationDocumentsDirectory();
+  final hivePath = appDirectory.path;
+  Hive.init(hivePath);
+  return hivePath;
 }
 
 Future<void> _warmStartupServices({
