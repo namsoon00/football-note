@@ -12277,6 +12277,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'Manage number, position, preferred foot, condition, and notes as roster cards.';
 
   @override
+  String get teamManagementRosterBoardTitle => 'Squad board';
+
+  @override
+  String get teamManagementRosterBoardHelper =>
+      'Review player status and board placement by position.';
+
+  @override
+  String teamManagementRoleGroupCount(Object role, int count) {
+    return '$role · $count player(s)';
+  }
+
+  @override
   String get teamManagementPlayerNameLabel => 'Player name';
 
   @override
@@ -12351,6 +12363,14 @@ class AppLocalizationsEn extends AppLocalizations {
       Object role, Object foot, Object condition, int count) {
     return '$role · $foot · $condition · $count placed';
   }
+
+  @override
+  String teamManagementRosterPlacementCount(int count) {
+    return 'Board $count';
+  }
+
+  @override
+  String get teamManagementRosterNoPlacement => 'Not on board';
 
   @override
   String get teamManagementPlayerTrayTitle => 'Players to drag';

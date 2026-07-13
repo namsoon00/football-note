@@ -6608,6 +6608,17 @@
   "teamManagementUnassignedPlayer": "Unassigned",
   "teamManagementPlayersTitle": "Roster",
   "teamManagementPlayersHelper": "Manage number, position, preferred foot, condition, and notes as roster cards.",
+  "teamManagementRosterBoardTitle": "Squad board",
+  "teamManagementRosterBoardHelper": "Review player status and board placement by position.",
+  "teamManagementRoleGroupCount": "{role} · {count} player(s)",
+  "@teamManagementRoleGroupCount": {
+    "placeholders": {
+      "role": {},
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "teamManagementPlayerNameLabel": "Player name",
   "teamManagementPlayerNameHint": "e.g. Minjun Kim",
   "teamManagementPlayerNumberLabel": "No.",
@@ -6649,6 +6660,15 @@
       }
     }
   },
+  "teamManagementRosterPlacementCount": "Board {count}",
+  "@teamManagementRosterPlacementCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "teamManagementRosterNoPlacement": "Not on board",
   "teamManagementPlayerTrayTitle": "Players to drag",
   "teamManagementPlayerTrayEmpty": "Register players first, then drag them from here directly onto the pitch.",
   "teamManagementBoardMovePlayersMode": "Place players",
