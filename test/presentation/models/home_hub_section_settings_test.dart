@@ -5,10 +5,22 @@ import 'package:football_note/presentation/models/home_hub_section_settings.dart
 
 void main() {
   group('HomeHubSectionSettings', () {
-    test('defaults place club schedule first', () {
+    test('defaults place routine actions before progress sections', () {
       final settings = HomeHubSectionSettings.defaults();
 
-      expect(settings.sections.first.section, HomeHubSectionId.clubSchedule);
+      expect(
+        settings.sections.map((item) => item.section),
+        <HomeHubSectionId>[
+          HomeHubSectionId.clubSchedule,
+          HomeHubSectionId.dailyFlow,
+          HomeHubSectionId.quickActions,
+          HomeHubSectionId.continueSection,
+          HomeHubSectionId.meal,
+          HomeHubSectionId.challenge,
+          HomeHubSectionId.streak,
+          HomeHubSectionId.level,
+        ],
+      );
     });
 
     test('decode promotes stored club schedule to the top', () {

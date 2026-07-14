@@ -369,11 +369,11 @@ void main() {
 
     expect(
       sectionTop('home-layout-club-schedule-section'),
-      lessThan(sectionTop('home-layout-level-section')),
+      lessThan(sectionTop('home-layout-daily-flow-section')),
     );
     expect(
-      sectionTop('home-layout-level-section'),
-      lessThan(sectionTop('home-layout-daily-flow-section')),
+      sectionTop('home-layout-daily-flow-section'),
+      lessThan(sectionTop('home-layout-quick-actions-section')),
     );
     expect(find.text('홈화면 변경'), findsOneWidget);
     final titleRect = tester.getRect(
@@ -399,13 +399,21 @@ void main() {
 
     expect(find.text('홈 화면 설정'), findsOneWidget);
     expect(
-      find.byKey(const ValueKey<String>('home-section-drag-area-level')),
-      findsOneWidget,
-    );
-    expect(
       find.byKey(
         const ValueKey<String>('home-section-drag-area-club_schedule'),
       ),
+      findsOneWidget,
+    );
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey<String>('home-section-drag-area-level')),
+      240,
+      scrollable: find.descendant(
+        of: find.byKey(const ValueKey<String>('home-section-settings-list')),
+        matching: find.byType(Scrollable),
+      ),
+    );
+    expect(
+      find.byKey(const ValueKey<String>('home-section-drag-area-level')),
       findsOneWidget,
     );
     expect(find.byTooltip('섹션 이동'), findsNothing);
@@ -438,7 +446,7 @@ void main() {
     final reorderableList = tester.widget<ReorderableListView>(
       find.byKey(const ValueKey<String>('home-section-settings-list')),
     );
-    reorderableList.onReorder(6, 5);
+    reorderableList.onReorder(2, 1);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 250));
     expect(find.text('홈 화면 순서를 저장했어요.'), findsOneWidget);
