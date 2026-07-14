@@ -2042,6 +2042,94 @@ void main() {
   );
 
   test(
+    'backup refuses to overwrite meaningful remote data with empty local data',
+    () async {
+      final driveClient = _OverwriteGuardDriveClient(
+        remoteBackup: <String, dynamic>{
+          'format': 'teo_note_backup',
+          'version': 6,
+          'createdAt': '2026-04-20T09:00:00.000',
+          'entries': const <Map<String, dynamic>>[
+            <String, dynamic>{'notes': 'remote player data'},
+          ],
+          'options': const <String, dynamic>{},
+          'optionRecords': const <Map<String, dynamic>>[],
+          'family': const <String, dynamic>{
+            'updatedByRole': 'child',
+            'familyLayerOnly': false,
+          },
+          'driveAccount': const <String, dynamic>{
+            'email': 'player@example.com',
+            'label': 'Player · player@example.com',
+            'subjectId': 'player-subject',
+          },
+        },
+      );
+      service = DriveBackupService(
+        trainingBox,
+        optionBox,
+        backupAssetFileStore: assetStore,
+        driveConnectionLoader: () async => const DriveConnectionInfo(
+          email: 'player@example.com',
+          displayName: 'Player',
+          subjectId: 'player-subject',
+        ),
+        driveApiLoader: ({required bool requireInteractive}) async {
+          return drive.DriveApi(driveClient);
+        },
+      );
+      await optionBox.put(
+        DriveBackupService.recordDriveEmailLocalKey,
+        'player@example.com',
+      );
+      await optionBox.put(
+        DriveBackupService.recordDriveSubjectLocalKey,
+        'player-subject',
+      );
+      await optionBox.put(
+        SportCatalog.currentSportOptionKey,
+        SportCatalog.tennisId,
+      );
+      await optionBox.put('profile_name', 'Reinstalled Player');
+
+      await expectLater(
+        service.backup(),
+        throwsA(
+          isA<StateError>().having(
+            (error) => error.message,
+            'message',
+            DriveBackupService.remoteBackupOverwriteBlockedErrorCode,
+          ),
+        ),
+      );
+
+      expect(driveClient.mediaDownloadCount, 1);
+      expect(driveClient.writeRequestCount, 0);
+    },
+  );
+
+  test('backup payload records connected Drive account subject id', () async {
+    service = DriveBackupService(
+      trainingBox,
+      optionBox,
+      backupAssetFileStore: assetStore,
+      driveConnectionLoader: () async => const DriveConnectionInfo(
+        email: 'player@example.com',
+        displayName: 'Player',
+        subjectId: 'player-subject',
+      ),
+    );
+
+    await service.getDriveConnectionInfo();
+
+    final backup = service.buildBackupForTesting();
+    final driveAccount = backup['driveAccount'] as Map<String, dynamic>;
+
+    expect(driveAccount['email'], 'player@example.com');
+    expect(driveAccount['subjectId'], 'player-subject');
+  });
+
+  test(
     'public empty start flow clears stale data and adopts changed drive',
     () async {
       service = DriveBackupService(
@@ -2237,6 +2325,72 @@ class _RemoteBackupDriveClient extends http.BaseClient {
       });
     }
     return _jsonResponse(request, const <String, Object?>{'files': []});
+  }
+
+  http.StreamedResponse _jsonResponse(
+    http.BaseRequest request,
+    Map<String, Object?> payload,
+  ) {
+    final bytes = utf8.encode(jsonEncode(payload));
+    return http.StreamedResponse(
+      Stream<List<int>>.value(bytes),
+      200,
+      request: request,
+      headers: const <String, String>{'content-type': 'application/json'},
+    );
+  }
+}
+
+class _OverwriteGuardDriveClient extends http.BaseClient {
+  _OverwriteGuardDriveClient({required this.remoteBackup});
+
+  final Map<String, dynamic> remoteBackup;
+  int mediaDownloadCount = 0;
+  int writeRequestCount = 0;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    if (request.method == 'GET' &&
+        request.url.path.endsWith('/drive/v3/files')) {
+      final query = request.url.queryParameters['q'] ?? '';
+      if (query.contains("mimeType='application/vnd.google-apps.folder'") &&
+          query.contains("name='${DriveBackupService.backupFolderName}'")) {
+        return _jsonResponse(request, <String, Object?>{
+          'files': <Map<String, String>>[
+            <String, String>{
+              'id': 'folder-id',
+              'name': DriveBackupService.backupFolderName,
+            },
+          ],
+        });
+      }
+      if (query.contains("'folder-id' in parents") &&
+          query.contains("name='${DriveBackupService.backupFileName}'")) {
+        return _jsonResponse(request, <String, Object?>{
+          'files': <Map<String, String>>[
+            <String, String>{
+              'id': 'backup-id',
+              'name': DriveBackupService.backupFileName,
+              'modifiedTime': '2026-04-20T10:00:00.000Z',
+            },
+          ],
+        });
+      }
+      return _jsonResponse(request, const <String, Object?>{'files': []});
+    }
+    if (request.method == 'GET' &&
+        request.url.path.endsWith('/drive/v3/files/backup-id')) {
+      mediaDownloadCount += 1;
+      final bytes = utf8.encode(jsonEncode(remoteBackup));
+      return http.StreamedResponse(
+        Stream<List<int>>.value(bytes),
+        200,
+        request: request,
+        headers: const <String, String>{'content-type': 'application/json'},
+      );
+    }
+    writeRequestCount += 1;
+    throw StateError('Unexpected Drive write request: ${request.method}');
   }
 
   http.StreamedResponse _jsonResponse(

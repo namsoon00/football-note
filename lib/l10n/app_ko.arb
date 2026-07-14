@@ -2780,6 +2780,8 @@
   "restoreLocalFailed": "최근 가져오기 취소에 실패했어요. 다시 시도해 주세요.",
   "localBackup": "로컬 안전 백업",
   "driveBackupLockedAccountChanged": "Google 계정이 바뀌었어요. 이 계정으로 백업하기 전에 이 기기에서 어떤 데이터로 시작할지 선택해야 해요.",
+  "driveBackupRemoteOverwriteBlocked": "이 기기에 선수 데이터가 없지만 Drive 백업에는 데이터가 있어 백업을 중단했어요. 먼저 Drive 백업을 가져와 주세요.",
+  "driveBackupOwnerMismatch": "Drive 백업이 다른 Google 계정의 데이터로 확인되어 백업을 중단했어요. 올바른 계정으로 다시 연결해 주세요.",
   "driveAccountSwitchImportAction": "이 계정 백업 가져오기",
   "driveAccountSwitchStartEmptyAction": "이 계정으로 새로 시작",
   "driveAccountSwitchImportTitle": "연결된 계정의 데이터를 사용할까요?",
