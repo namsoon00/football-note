@@ -7217,6 +7217,30 @@
       }
     }
   },
+  "trainingSketchConeTurnTargetButton": "コーン {index} 回り",
+  "@trainingSketchConeTurnTargetButton": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchConeJumpTargetButton": "コーン {index} 越え",
+  "@trainingSketchConeJumpTargetButton": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchHurdleJumpTargetButton": "ハードル {index} 越え",
+  "@trainingSketchHurdleJumpTargetButton": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
   "trainingSketchThrowToPlayerButton": "プレイヤー {index} へ送球",
   "@trainingSketchThrowToPlayerButton": {
     "placeholders": {

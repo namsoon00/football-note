@@ -12963,6 +12963,21 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String trainingSketchConeTurnTargetButton(int index) {
+    return 'コーン $index 回り';
+  }
+
+  @override
+  String trainingSketchConeJumpTargetButton(int index) {
+    return 'コーン $index 越え';
+  }
+
+  @override
+  String trainingSketchHurdleJumpTargetButton(int index) {
+    return 'ハードル $index 越え';
+  }
+
+  @override
   String trainingSketchThrowToPlayerButton(int index) {
     return 'プレイヤー $index へ送球';
   }
