@@ -11,6 +11,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:path_provider/path_provider.dart';
 import 'firebase_options.dart';
 import 'domain/entities/training_entry.dart';
+import 'domain/repositories/backup_repository.dart';
 import 'domain/repositories/option_repository.dart';
 import 'infrastructure/auto_backup_option_repository.dart';
 import 'infrastructure/hive_startup_recovery.dart';
@@ -79,39 +80,58 @@ Future<void> _initializeFirebase() async {
     if (kIsWeb) {
       return;
     }
-    rethrow;
+    FlutterError.reportError(
+      FlutterErrorDetails(
+        exception: error,
+        stack: StackTrace.current,
+        library: 'football_note startup',
+        context: ErrorDescription('while initializing optional Firebase'),
+      ),
+    );
   } catch (_) {
     if (kIsWeb) {
       return;
     }
-    rethrow;
   }
 }
 
 Future<_FootballNoteDependencies> _initializeAppDependencies() async {
-  await _initializeFirebase();
-  final hivePath = await _initializeHiveStorage();
-  if (!Hive.isAdapterRegistered(_trainingEntryHiveTypeId)) {
-    Hive.registerAdapter(TrainingEntryAdapter());
-  }
-  final trainingBox = await openRecoverableHiveBox<TrainingEntry>(
-    'training_entries',
-    path: hivePath,
+  await _runStartupStage<void>('firebase', _initializeFirebase);
+  final hivePath = await _runStartupStage<String?>(
+    'hive_storage',
+    _initializeHiveStorage,
   );
-  final optionBox = await openRecoverableHiveBox<dynamic>(
-    'options',
-    path: hivePath,
+  await _runStartupStage<void>('hive_adapters', () async {
+    if (!Hive.isAdapterRegistered(_trainingEntryHiveTypeId)) {
+      Hive.registerAdapter(TrainingEntryAdapter());
+    }
+  });
+  final trainingBox = await _runStartupStage<Box<TrainingEntry>>(
+    'training_entries_box',
+    () => openRecoverableHiveBox<TrainingEntry>(
+      'training_entries',
+      path: hivePath,
+    ),
   );
-  await initializeDateFormatting('ko_KR');
+  final optionBox = await _runStartupStage<Box<dynamic>>(
+    'options_box',
+    () => openRecoverableHiveBox<dynamic>(
+      'options',
+      path: hivePath,
+    ),
+  );
+  await _runStartupStage<void>(
+    'date_formatting',
+    () => initializeDateFormatting('ko_KR'),
+  );
   final trainingRepository = HiveTrainingRepository(trainingBox);
   final baseOptionRepository = HiveOptionRepository(optionBox);
   const webClientId = String.fromEnvironment('GOOGLE_WEB_CLIENT_ID');
-  final driveBackupRepository = DriveBackupService(
+  final backupService = _createBackupService(
     trainingBox,
     optionBox,
     webClientId: webClientId,
   );
-  final backupService = BackupService(driveBackupRepository);
   final optionRepository = AutoBackupOptionRepository(
     baseOptionRepository,
     backupService,
@@ -208,6 +228,49 @@ Future<_FootballNoteDependencies> _initializeAppDependencies() async {
   );
 }
 
+Future<T> _runStartupStage<T>(
+  String stage,
+  FutureOr<T> Function() action,
+) async {
+  try {
+    return await action();
+  } catch (error, stackTrace) {
+    Error.throwWithStackTrace(
+      _StartupStageException(
+        stage: stage,
+        error: error,
+      ),
+      stackTrace,
+    );
+  }
+}
+
+BackupService _createBackupService(
+  Box<TrainingEntry> trainingBox,
+  Box<dynamic> optionBox, {
+  required String webClientId,
+}) {
+  try {
+    return BackupService(
+      DriveBackupService(
+        trainingBox,
+        optionBox,
+        webClientId: webClientId,
+      ),
+    );
+  } catch (error, stackTrace) {
+    FlutterError.reportError(
+      FlutterErrorDetails(
+        exception: error,
+        stack: stackTrace,
+        library: 'football_note startup',
+        context: ErrorDescription('while creating optional Drive backup'),
+      ),
+    );
+    return BackupService(const _DisabledBackupRepository());
+  }
+}
+
 Future<String?> _initializeHiveStorage() async {
   if (kIsWeb) {
     await Hive.initFlutter();
@@ -297,6 +360,56 @@ Future<void> _warmStartupServices({
   }
 }
 
+class _StartupStageException implements Exception {
+  final String stage;
+  final Object error;
+
+  const _StartupStageException({
+    required this.stage,
+    required this.error,
+  });
+
+  @override
+  String toString() => 'Startup failed at $stage: $error';
+}
+
+class _DisabledBackupRepository implements BackupRepository {
+  const _DisabledBackupRepository();
+
+  @override
+  Future<void> autoBackupDaily() async {}
+
+  @override
+  Future<void> backup() async {
+    throw StateError('Drive backup is unavailable.');
+  }
+
+  @override
+  Future<bool> backupIfSignedIn({bool requireAutoOnSave = false}) async {
+    return false;
+  }
+
+  @override
+  DateTime? getLastBackup() => null;
+
+  @override
+  bool isAutoDailyEnabled() => false;
+
+  @override
+  bool isAutoOnSaveEnabled() => false;
+
+  @override
+  Future<void> restoreLatest() async {
+    throw StateError('Drive restore is unavailable.');
+  }
+
+  @override
+  Future<void> setAutoDailyEnabled(bool value) async {}
+
+  @override
+  Future<void> setAutoOnSaveEnabled(bool value) async {}
+}
+
 class _FootballNoteDependencies {
   final TrainingService trainingService;
   final MealLogService mealLogService;
@@ -381,7 +494,10 @@ class _FootballNoteBootstrapAppState extends State<FootballNoteBootstrapApp> {
         if (snapshot.hasError) {
           _reportStartupError(snapshot.error!, snapshot.stackTrace);
           return _StartupShell(
-            builder: (context) => _StartupFailureScreen(onRetry: _retry),
+            builder: (context) => _StartupFailureScreen(
+              error: snapshot.error!,
+              onRetry: _retry,
+            ),
           );
         }
 
@@ -481,57 +597,138 @@ class _StartupLoadingScreen extends StatelessWidget {
 }
 
 class _StartupFailureScreen extends StatelessWidget {
+  final Object error;
   final VoidCallback onRetry;
 
-  const _StartupFailureScreen({required this.onRetry});
+  const _StartupFailureScreen({
+    required this.error,
+    required this.onRetry,
+  });
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
+    final diagnostics = _StartupDiagnostics.from(error);
     return Scaffold(
       body: SafeArea(
-        child: Center(
+        child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.all(28),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.error_outline,
-                  size: 44,
-                  color: colorScheme.error,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: MediaQuery.sizeOf(context).height -
+                    MediaQuery.paddingOf(context).vertical -
+                    56,
+              ),
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 44,
+                      color: colorScheme.error,
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      l10n.startupErrorTitle,
+                      textAlign: TextAlign.center,
+                      style: textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      l10n.startupErrorBody,
+                      textAlign: TextAlign.center,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                        height: 1.45,
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: colorScheme.surfaceContainerHighest
+                            .withValues(alpha: 0.72),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: colorScheme.outlineVariant,
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.startupErrorDetailsLabel,
+                            style: textTheme.labelLarge?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              color: colorScheme.onSurface,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          SelectableText(
+                            '${l10n.startupErrorStepLabel}: '
+                            '${diagnostics.stage}\n'
+                            '${l10n.startupErrorMessageLabel}: '
+                            '${diagnostics.message}',
+                            style: textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                              height: 1.35,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 28),
+                    FilledButton.icon(
+                      onPressed: onRetry,
+                      icon: const Icon(Icons.refresh),
+                      label: Text(l10n.startupRetryAction),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 24),
-                Text(
-                  l10n.startupErrorTitle,
-                  textAlign: TextAlign.center,
-                  style: textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  l10n.startupErrorBody,
-                  textAlign: TextAlign.center,
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                    height: 1.45,
-                  ),
-                ),
-                const SizedBox(height: 28),
-                FilledButton.icon(
-                  onPressed: onRetry,
-                  icon: const Icon(Icons.refresh),
-                  label: Text(l10n.startupRetryAction),
-                ),
-              ],
+              ),
             ),
           ),
         ),
       ),
     );
+  }
+}
+
+class _StartupDiagnostics {
+  final String stage;
+  final String message;
+
+  const _StartupDiagnostics({
+    required this.stage,
+    required this.message,
+  });
+
+  factory _StartupDiagnostics.from(Object error) {
+    if (error is _StartupStageException) {
+      return _StartupDiagnostics(
+        stage: error.stage,
+        message: _summarizeError(error.error),
+      );
+    }
+    return _StartupDiagnostics(
+      stage: 'unknown',
+      message: _summarizeError(error),
+    );
+  }
+
+  static String _summarizeError(Object error) {
+    final text = error.toString().replaceAll(RegExp(r'\s+'), ' ').trim();
+    if (text.length <= 420) {
+      return text;
+    }
+    return '${text.substring(0, 420)}...';
   }
 }
 

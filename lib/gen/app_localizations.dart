@@ -256,6 +256,24 @@ abstract class AppLocalizations {
   /// **'Something went wrong while loading the initial data. If retry keeps stopping here, fully close the app and open it again.'**
   String get startupErrorBody;
 
+  /// No description provided for @startupErrorDetailsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Error details'**
+  String get startupErrorDetailsLabel;
+
+  /// No description provided for @startupErrorStepLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Step'**
+  String get startupErrorStepLabel;
+
+  /// No description provided for @startupErrorMessageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get startupErrorMessageLabel;
+
   /// No description provided for @startupRetryAction.
   ///
   /// In en, this message translates to:

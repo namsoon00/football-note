@@ -96,6 +96,15 @@ class AppLocalizationsEn extends AppLocalizations {
       'Something went wrong while loading the initial data. If retry keeps stopping here, fully close the app and open it again.';
 
   @override
+  String get startupErrorDetailsLabel => 'Error details';
+
+  @override
+  String get startupErrorStepLabel => 'Step';
+
+  @override
+  String get startupErrorMessageLabel => 'Message';
+
+  @override
   String get startupRetryAction => 'Retry';
 
   @override

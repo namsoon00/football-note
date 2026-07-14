@@ -26,6 +26,9 @@ if (flutterVersionName == null) {
 def keystoreProperties = new Properties()
 def keystorePropertiesFile = rootProject.file('key.properties')
 def releaseSigningConfigured = keystorePropertiesFile.exists()
+def allowDebugReleaseSigning = (
+    project.findProperty('allowDebugReleaseSigning') ?: 'false'
+).toString().toBoolean()
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
@@ -35,9 +38,18 @@ gradle.taskGraph.whenReady { taskGraph ->
         it.name.toLowerCase().contains('release')
     }
     if (hasReleaseTask && !releaseSigningConfigured) {
+        if (allowDebugReleaseSigning) {
+            logger.warn(
+                'Using the Android debug signing key for a local release build. ' +
+                    'Do not distribute this artifact.'
+            )
+            return
+        }
         throw new GradleException(
             'Missing android/key.properties for release signing. ' +
-                'Create it from the upload keystore before building a release.'
+                'Create it from the upload keystore before building a release. ' +
+                'For local release-only testing, set ' +
+                'ORG_GRADLE_PROJECT_allowDebugReleaseSigning=true.'
         )
     }
 }
@@ -89,7 +101,9 @@ android {
 
     buildTypes {
         release {
-            signingConfig signingConfigs.release
+            signingConfig releaseSigningConfigured ?
+                signingConfigs.release :
+                signingConfigs.debug
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }

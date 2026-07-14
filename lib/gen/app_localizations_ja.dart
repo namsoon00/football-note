@@ -92,6 +92,15 @@ class AppLocalizationsJa extends AppLocalizations {
       '初期データの読み込み中に問題が発生しました。再試行してもここで止まる場合は、アプリを完全に終了してからもう一度開いてください。';
 
   @override
+  String get startupErrorDetailsLabel => 'エラー情報';
+
+  @override
+  String get startupErrorStepLabel => 'ステップ';
+
+  @override
+  String get startupErrorMessageLabel => 'メッセージ';
+
+  @override
   String get startupRetryAction => '再試行';
 
   @override
