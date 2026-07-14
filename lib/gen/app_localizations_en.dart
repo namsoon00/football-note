@@ -12330,7 +12330,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get teamManagementWorkspaceRosterTab => 'Roster';
 
   @override
-  String get teamManagementWorkspaceBoardTab => 'Lineup board';
+  String get teamManagementWorkspaceBoardTab => 'Tactics board';
 
   @override
   String get teamManagementWorkspaceProfileTab => 'Team profile';
@@ -12436,11 +12436,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'e.g. Pressing trigger, wide switch rule, defensive block standard';
 
   @override
-  String get teamManagementFormationTitle => 'Lineup / tactics board';
+  String get teamManagementFormationTitle => 'Pro tactics board';
 
   @override
   String get teamManagementFormationHelper =>
-      'Organize starting placement and tactical notes together. Drag player chips anywhere on the pitch, then use marker mode for movement lines or pressing directions.';
+      'Place players freely and draw movement lines, pressing lines, and space zones to prepare match operations.';
 
   @override
   String get teamManagementFormationLabel => 'Formation';
@@ -12582,16 +12582,39 @@ class AppLocalizationsEn extends AppLocalizations {
   String get teamManagementBoardDrawMode => 'Board marker';
 
   @override
+  String get teamManagementBoardMovementMode => 'Movement';
+
+  @override
+  String get teamManagementBoardPressMode => 'Press line';
+
+  @override
+  String get teamManagementBoardZoneMode => 'Space zone';
+
+  @override
   String get teamManagementBoardClearLinesButton => 'Clear lines';
 
   @override
+  String get teamManagementBoardClearMarkersButton => 'Clear markers';
+
+  @override
+  String get teamManagementBoardPlacementLabel => 'Board placement';
+
+  @override
+  String get teamManagementBoardMarkerLabel => 'Tactical markers';
+
+  @override
+  String teamManagementBoardPlacementValue(int placed, int total) {
+    return '$placed/$total placed';
+  }
+
+  @override
   String teamManagementTacticLinesCount(int count) {
-    return '$count movement line(s)';
+    return '$count marker(s)';
   }
 
   @override
   String get teamManagementFormationDropHint =>
-      'Drop player chips anywhere on the pitch. The formation below is only a guide and does not need to be selected first.';
+      'Drag players anywhere on the pitch. Drag on the board to draw movement lines, pressing lines, or space zones.';
 
   @override
   String get teamManagementRemovePlayerButton => 'Remove';

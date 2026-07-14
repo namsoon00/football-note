@@ -11976,7 +11976,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get teamManagementWorkspaceRosterTab => '選手団';
 
   @override
-  String get teamManagementWorkspaceBoardTab => 'ラインアップボード';
+  String get teamManagementWorkspaceBoardTab => '戦術ボード';
 
   @override
   String get teamManagementWorkspaceProfileTab => 'チームプロフィール';
@@ -12078,11 +12078,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get teamManagementStrategyHint => '例) プレス開始位置、サイドチェンジの約束、守備ブロックの基準';
 
   @override
-  String get teamManagementFormationTitle => 'ラインアップ/戦術ボード';
+  String get teamManagementFormationTitle => 'プロ戦術ボード';
 
   @override
   String get teamManagementFormationHelper =>
-      '先発配置と戦術メモを一緒に整理します。選手チップをピッチ上の好きな場所へドラッグし、マーカーモードで移動線やプレス方向を描きます。';
+      '選手を自由に配置し、移動線、プレスライン、スペース領域を描いて試合運営を整理します。';
 
   @override
   String get teamManagementFormationLabel => 'フォーメーション';
@@ -12220,16 +12220,39 @@ class AppLocalizationsJa extends AppLocalizations {
   String get teamManagementBoardDrawMode => 'ボードマーカー';
 
   @override
+  String get teamManagementBoardMovementMode => '移動線';
+
+  @override
+  String get teamManagementBoardPressMode => 'プレス線';
+
+  @override
+  String get teamManagementBoardZoneMode => 'スペース領域';
+
+  @override
   String get teamManagementBoardClearLinesButton => '線を消去';
 
   @override
+  String get teamManagementBoardClearMarkersButton => 'マーカーを消去';
+
+  @override
+  String get teamManagementBoardPlacementLabel => 'ボード配置';
+
+  @override
+  String get teamManagementBoardMarkerLabel => '戦術マーカー';
+
+  @override
+  String teamManagementBoardPlacementValue(int placed, int total) {
+    return '$placed/$total配置';
+  }
+
+  @override
   String teamManagementTacticLinesCount(int count) {
-    return '移動線 $count本';
+    return 'マーカー $count件';
   }
 
   @override
   String get teamManagementFormationDropHint =>
-      '選手チップをピッチ上の好きな場所へ置いてください。下のフォーメーションは目安で、先に選ぶ必要はありません。';
+      '選手はドラッグして自由配置し、移動線・プレス線・スペース領域はボード上をドラッグして描きます。';
 
   @override
   String get teamManagementRemovePlayerButton => '削除';

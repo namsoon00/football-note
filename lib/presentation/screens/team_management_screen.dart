@@ -17,7 +17,7 @@ import '../widgets/app_feedback.dart';
 import '../widgets/uniform_jersey_swatch.dart';
 import 'club_schedule_screen.dart';
 
-enum _TacticBoardMode { assign, draw }
+enum _TacticBoardMode { assign, movement, press, zone }
 
 enum _TeamManagementWorkspace { roster, board, profile, operations }
 
@@ -66,7 +66,6 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   String _playerRole = ManagedTeamPlayer.roleForward;
   String _playerFoot = ManagedTeamPlayer.footRight;
   String _playerCondition = ManagedTeamPlayer.conditionReady;
-  String? _selectedSpotId;
   String? _editingPlayerId;
   _TeamManagementWorkspace _activeWorkspace = _TeamManagementWorkspace.roster;
   _TacticBoardMode _boardMode = _TacticBoardMode.assign;
@@ -199,7 +198,6 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   }
 
   void _selectTeam(ManagedTeam team, {bool saved = false}) {
-    final spots = TeamManagementService.formationSpots(team.formation);
     _autoSaveDebounce?.cancel();
     _selectedTeam = team;
     _formation = team.formation;
@@ -217,7 +215,6 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
             formation: _formation,
           );
     _tacticLines = List<ManagedTacticLine>.from(team.tacticLines);
-    _selectedSpotId = spots.isEmpty ? null : spots.first.id;
     _editingPlayerId = null;
     _playerRole = ManagedTeamPlayer.roleForward;
     _playerFoot = ManagedTeamPlayer.footRight;
@@ -332,26 +329,6 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
     }
   }
 
-  void _changeFormation(String formation) {
-    if (_blockReadOnlyMutation()) return;
-    final normalized = TeamManagementService.normalizeFormation(formation);
-    final spots = TeamManagementService.formationSpots(normalized);
-    setState(() {
-      _formation = normalized;
-      _lineup = TeamManagementService.normalizeLineup(
-        lineup: _lineup,
-        players: _players,
-        formation: normalized,
-      );
-      _selectedSpotId = spots.isEmpty ? null : spots.first.id;
-    });
-    _scheduleAutoSave();
-  }
-
-  void _selectSpot(String spotId) {
-    setState(() => _selectedSpotId = spotId);
-  }
-
   void _savePlayer() {
     if (_blockReadOnlyMutation()) return;
     final l10n = AppLocalizations.of(context)!;
@@ -448,44 +425,13 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
       x: point.dx,
       y: point.dy,
     );
-    final nearestSpot = _nearestFormationSpot(placement);
     setState(() {
       _playerPlacements = {
         ..._playerPlacements,
         normalizedPlayerId: placement,
       };
-      if (nearestSpot != null) {
-        final next = Map<String, String>.from(_lineup)
-          ..removeWhere((_, assignedPlayerId) {
-            return assignedPlayerId == normalizedPlayerId;
-          });
-        next[nearestSpot.id] = normalizedPlayerId;
-        _lineup = TeamManagementService.normalizeLineup(
-          lineup: next,
-          players: _players,
-          formation: _formation,
-        );
-        _selectedSpotId = nearestSpot.id;
-      }
     });
     _scheduleAutoSave();
-  }
-
-  TeamFormationSpot? _nearestFormationSpot(ManagedPlayerPlacement placement) {
-    final spots = TeamManagementService.formationSpots(_formation);
-    if (spots.isEmpty) return null;
-    TeamFormationSpot? nearest;
-    var nearestDistance = double.infinity;
-    for (final spot in spots) {
-      final dx = spot.x - placement.x;
-      final dy = spot.y - placement.y;
-      final distance = (dx * dx) + (dy * dy);
-      if (distance < nearestDistance) {
-        nearest = spot;
-        nearestDistance = distance;
-      }
-    }
-    return nearest;
   }
 
   void _changeBoardMode(_TacticBoardMode mode) {
@@ -496,11 +442,20 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
     });
   }
 
+  String _markerTypeForBoardMode(_TacticBoardMode mode) {
+    return switch (mode) {
+      _TacticBoardMode.press => ManagedTacticLine.typePress,
+      _TacticBoardMode.zone => ManagedTacticLine.typeZone,
+      _ => ManagedTacticLine.typeMovement,
+    };
+  }
+
   void _startTacticLine(Offset point) {
     if (_isReadOnlySupportMode) return;
-    if (_boardMode != _TacticBoardMode.draw) return;
+    if (_boardMode == _TacticBoardMode.assign) return;
     setState(() {
       _draftTacticLine = ManagedTacticLine.create(
+        type: _markerTypeForBoardMode(_boardMode),
         startX: point.dx,
         startY: point.dy,
         endX: point.dx,
@@ -512,7 +467,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   void _updateTacticLine(Offset point) {
     if (_isReadOnlySupportMode) return;
     final draft = _draftTacticLine;
-    if (_boardMode != _TacticBoardMode.draw || draft == null) return;
+    if (_boardMode == _TacticBoardMode.assign || draft == null) return;
     setState(() {
       _draftTacticLine = draft.copyWith(endX: point.dx, endY: point.dy);
     });
@@ -557,7 +512,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final readOnly = _isReadOnlySupportMode;
-    final totalSpots = TeamManagementService.formationSpots(_formation).length;
+    final totalBoardPlayers = _players.length;
     final placedCount = _playerPlacements.length;
     final activeCompetitions =
         _competitions.where((competition) => !competition.isFinished).length;
@@ -584,7 +539,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
                   activeWorkspace: _activeWorkspace,
                   playerCount: _players.length,
                   placedCount: placedCount,
-                  totalSpots: totalSpots,
+                  totalPlayers: totalBoardPlayers,
                   activeCompetitions: activeCompetitions,
                   totalCompetitions: _competitions.length,
                   onWorkspaceChanged: (workspace) {
@@ -607,9 +562,8 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
                       : _teamNameController.text.trim(),
                   playerCount: _players.length,
                   placedCount: placedCount,
-                  totalSpots: totalSpots,
+                  totalPlayers: totalBoardPlayers,
                   tacticLineCount: _tacticLines.length,
-                  formation: _formation,
                   saving: _saving,
                   pending: !readOnly &&
                       (_hasPendingAutoSave || _changeRevision > _savedRevision),
@@ -659,17 +613,13 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
           onRemovePlayer: _removePlayer,
         );
       case _TeamManagementWorkspace.board:
-        return _FormationPanel(
-          formation: _formation,
+        return _TacticsBoardPanel(
           players: _players,
           playerPlacements: _playerPlacements,
           tacticLines: _tacticLines,
           draftTacticLine: _draftTacticLine,
-          selectedSpotId: _selectedSpotId,
           boardMode: _boardMode,
           readOnly: readOnly,
-          onFormationChanged: _changeFormation,
-          onSpotSelected: _selectSpot,
           onPlayerPlaced: _placePlayerOnBoard,
           onBoardModeChanged: _changeBoardMode,
           onTacticLineStarted: _startTacticLine,
@@ -697,7 +647,7 @@ class _TeamWorkspaceSwitcher extends StatelessWidget {
   final _TeamManagementWorkspace activeWorkspace;
   final int playerCount;
   final int placedCount;
-  final int totalSpots;
+  final int totalPlayers;
   final int activeCompetitions;
   final int totalCompetitions;
   final ValueChanged<_TeamManagementWorkspace> onWorkspaceChanged;
@@ -706,7 +656,7 @@ class _TeamWorkspaceSwitcher extends StatelessWidget {
     required this.activeWorkspace,
     required this.playerCount,
     required this.placedCount,
-    required this.totalSpots,
+    required this.totalPlayers,
     required this.activeCompetitions,
     required this.totalCompetitions,
     required this.onWorkspaceChanged,
@@ -728,7 +678,10 @@ class _TeamWorkspaceSwitcher extends StatelessWidget {
         workspace: _TeamManagementWorkspace.board,
         icon: Icons.grid_view_outlined,
         label: l10n.teamManagementWorkspaceBoardTab,
-        value: l10n.teamManagementLineupFilled(placedCount, totalSpots),
+        value: l10n.teamManagementBoardPlacementValue(
+          placedCount,
+          totalPlayers,
+        ),
       ),
       _WorkspaceItem(
         workspace: _TeamManagementWorkspace.profile,
@@ -963,9 +916,8 @@ class _TeamManagementHero extends StatelessWidget {
   final String teamName;
   final int playerCount;
   final int placedCount;
-  final int totalSpots;
+  final int totalPlayers;
   final int tacticLineCount;
-  final String formation;
   final bool saving;
   final bool pending;
   final bool needsName;
@@ -975,9 +927,8 @@ class _TeamManagementHero extends StatelessWidget {
     required this.teamName,
     required this.playerCount,
     required this.placedCount,
-    required this.totalSpots,
+    required this.totalPlayers,
     required this.tacticLineCount,
-    required this.formation,
     required this.saving,
     required this.pending,
     required this.needsName,
@@ -1063,18 +1014,14 @@ class _TeamManagementHero extends StatelessWidget {
                 value: l10n.teamManagementPlayerCount(playerCount),
               ),
               _TeamHeroMetricPill(
-                label: l10n.teamManagementFormationLabel,
-                value: formation,
-              ),
-              _TeamHeroMetricPill(
-                label: l10n.teamManagementFormationTitle,
-                value: l10n.teamManagementLineupFilled(
+                label: l10n.teamManagementBoardPlacementLabel,
+                value: l10n.teamManagementBoardPlacementValue(
                   placedCount,
-                  totalSpots,
+                  totalPlayers,
                 ),
               ),
               _TeamHeroMetricPill(
-                label: l10n.teamManagementBoardDrawMode,
+                label: l10n.teamManagementBoardMarkerLabel,
                 value: l10n.teamManagementTacticLinesCount(tacticLineCount),
               ),
             ],
@@ -1585,17 +1532,13 @@ class _MiniStatusChip extends StatelessWidget {
   }
 }
 
-class _FormationPanel extends StatelessWidget {
-  final String formation;
+class _TacticsBoardPanel extends StatelessWidget {
   final List<ManagedTeamPlayer> players;
   final Map<String, ManagedPlayerPlacement> playerPlacements;
   final List<ManagedTacticLine> tacticLines;
   final ManagedTacticLine? draftTacticLine;
-  final String? selectedSpotId;
   final _TacticBoardMode boardMode;
   final bool readOnly;
-  final ValueChanged<String> onFormationChanged;
-  final ValueChanged<String> onSpotSelected;
   final _PlayerBoardDropCallback onPlayerPlaced;
   final ValueChanged<_TacticBoardMode> onBoardModeChanged;
   final ValueChanged<Offset> onTacticLineStarted;
@@ -1603,17 +1546,13 @@ class _FormationPanel extends StatelessWidget {
   final VoidCallback onTacticLineFinished;
   final VoidCallback onClearTacticLines;
 
-  const _FormationPanel({
-    required this.formation,
+  const _TacticsBoardPanel({
     required this.players,
     required this.playerPlacements,
     required this.tacticLines,
     required this.draftTacticLine,
-    required this.selectedSpotId,
     required this.boardMode,
     required this.readOnly,
-    required this.onFormationChanged,
-    required this.onSpotSelected,
     required this.onPlayerPlaced,
     required this.onBoardModeChanged,
     required this.onTacticLineStarted,
@@ -1627,7 +1566,6 @@ class _FormationPanel extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final spots = TeamManagementService.formationSpots(formation);
 
     return Container(
       decoration: AppSurfaces.cardDecoration(scheme, theme.brightness),
@@ -1655,16 +1593,13 @@ class _FormationPanel extends StatelessWidget {
             readOnly: readOnly,
           ),
           const SizedBox(height: AppSpacing.md),
-          _FormationPitch(
-            spots: spots,
+          _TacticsPitch(
             players: players,
             playerPlacements: playerPlacements,
             tacticLines: tacticLines,
             draftTacticLine: draftTacticLine,
-            selectedSpotId: selectedSpotId,
             boardMode: boardMode,
             readOnly: readOnly,
-            onSpotSelected: onSpotSelected,
             onPlayerPlaced: onPlayerPlaced,
             onTacticLineStarted: onTacticLineStarted,
             onTacticLineUpdated: onTacticLineUpdated,
@@ -1676,28 +1611,6 @@ class _FormationPanel extends StatelessWidget {
             style: theme.textTheme.bodySmall?.copyWith(
               color: scheme.onSurfaceVariant,
               fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
-              child: SegmentedButton<String>(
-                showSelectedIcon: false,
-                segments: [
-                  for (final option
-                      in TeamManagementService.supportedFormations)
-                    ButtonSegment<String>(
-                      value: option,
-                      label: Text(option),
-                    ),
-                ],
-                selected: {formation},
-                onSelectionChanged: readOnly
-                    ? null
-                    : (values) => onFormationChanged(values.first),
-              ),
             ),
           ),
         ],
@@ -1740,9 +1653,19 @@ class _BoardModeToolbar extends StatelessWidget {
               label: Text(l10n.teamManagementBoardMovePlayersMode),
             ),
             ButtonSegment<_TacticBoardMode>(
-              value: _TacticBoardMode.draw,
+              value: _TacticBoardMode.movement,
               icon: const Icon(Icons.timeline_outlined),
-              label: Text(l10n.teamManagementBoardDrawMode),
+              label: Text(l10n.teamManagementBoardMovementMode),
+            ),
+            ButtonSegment<_TacticBoardMode>(
+              value: _TacticBoardMode.press,
+              icon: const Icon(Icons.keyboard_double_arrow_up_outlined),
+              label: Text(l10n.teamManagementBoardPressMode),
+            ),
+            ButtonSegment<_TacticBoardMode>(
+              value: _TacticBoardMode.zone,
+              icon: const Icon(Icons.crop_free_outlined),
+              label: Text(l10n.teamManagementBoardZoneMode),
             ),
           ],
           selected: {mode},
@@ -1753,7 +1676,7 @@ class _BoardModeToolbar extends StatelessWidget {
           onPressed:
               readOnly || tacticLineCount == 0 ? null : onClearTacticLines,
           icon: const Icon(Icons.cleaning_services_outlined),
-          label: Text(l10n.teamManagementBoardClearLinesButton),
+          label: Text(l10n.teamManagementBoardClearMarkersButton),
         ),
         Text(
           l10n.teamManagementTacticLinesCount(tacticLineCount),
@@ -1894,31 +1817,25 @@ class _BoardPlayerChip extends StatelessWidget {
   }
 }
 
-class _FormationPitch extends StatelessWidget {
-  final List<TeamFormationSpot> spots;
+class _TacticsPitch extends StatelessWidget {
   final List<ManagedTeamPlayer> players;
   final Map<String, ManagedPlayerPlacement> playerPlacements;
   final List<ManagedTacticLine> tacticLines;
   final ManagedTacticLine? draftTacticLine;
-  final String? selectedSpotId;
   final _TacticBoardMode boardMode;
   final bool readOnly;
-  final ValueChanged<String> onSpotSelected;
   final _PlayerBoardDropCallback onPlayerPlaced;
   final ValueChanged<Offset> onTacticLineStarted;
   final ValueChanged<Offset> onTacticLineUpdated;
   final VoidCallback onTacticLineFinished;
 
-  const _FormationPitch({
-    required this.spots,
+  const _TacticsPitch({
     required this.players,
     required this.playerPlacements,
     required this.tacticLines,
     required this.draftTacticLine,
-    required this.selectedSpotId,
     required this.boardMode,
     required this.readOnly,
-    required this.onSpotSelected,
     required this.onPlayerPlaced,
     required this.onTacticLineStarted,
     required this.onTacticLineUpdated,
@@ -1935,7 +1852,8 @@ class _FormationPitch extends StatelessWidget {
           height: boardHeight,
           child: LayoutBuilder(
             builder: (context, constraints) {
-              const markerSize = 66.0;
+              const markerWidth = 76.0;
+              const markerHeight = 60.0;
               Offset normalizeFromGlobal(Offset globalPosition) {
                 final renderObject = context.findRenderObject();
                 if (renderObject is! RenderBox) {
@@ -1967,7 +1885,7 @@ class _FormationPitch extends StatelessWidget {
                       key: const ValueKey('team-tactics-board-pitch'),
                       behavior: HitTestBehavior.opaque,
                       onPanStart:
-                          !readOnly && boardMode == _TacticBoardMode.draw
+                          !readOnly && boardMode != _TacticBoardMode.assign
                               ? (details) => onTacticLineStarted(
                                     _normalizeBoardPoint(
                                       details.localPosition,
@@ -1976,7 +1894,7 @@ class _FormationPitch extends StatelessWidget {
                                   )
                               : null,
                       onPanUpdate:
-                          !readOnly && boardMode == _TacticBoardMode.draw
+                          !readOnly && boardMode != _TacticBoardMode.assign
                               ? (details) => onTacticLineUpdated(
                                     _normalizeBoardPoint(
                                       details.localPosition,
@@ -1984,9 +1902,10 @@ class _FormationPitch extends StatelessWidget {
                                     ),
                                   )
                               : null,
-                      onPanEnd: !readOnly && boardMode == _TacticBoardMode.draw
-                          ? (_) => onTacticLineFinished()
-                          : null,
+                      onPanEnd:
+                          !readOnly && boardMode != _TacticBoardMode.assign
+                              ? (_) => onTacticLineFinished()
+                              : null,
                       child: Stack(
                         fit: StackFit.expand,
                         children: [
@@ -2001,18 +1920,6 @@ class _FormationPitch extends StatelessWidget {
                                 ),
                               ),
                             ),
-                          for (final spot in spots)
-                            Positioned(
-                              left: (constraints.maxWidth * spot.x) - 22,
-                              top: (constraints.maxHeight * spot.y) - 14,
-                              width: 44,
-                              height: 28,
-                              child: _PitchGuideSpot(
-                                spot: spot,
-                                selected: spot.id == selectedSpotId,
-                                onTap: () => onSpotSelected(spot.id),
-                              ),
-                            ),
                           CustomPaint(
                             painter: _TacticLinesPainter(
                               lines: tacticLines,
@@ -2023,11 +1930,11 @@ class _FormationPitch extends StatelessWidget {
                             if (playerById[placement.playerId] != null)
                               Positioned(
                                 left: (constraints.maxWidth * placement.x) -
-                                    (markerSize / 2),
+                                    (markerWidth / 2),
                                 top: (constraints.maxHeight * placement.y) -
-                                    (markerSize / 2),
-                                width: markerSize,
-                                height: markerSize,
+                                    (markerHeight / 2),
+                                width: markerWidth,
+                                height: markerHeight,
                                 child: _BoardPlacedPlayer(
                                   player: playerById[placement.playerId]!,
                                   draggable: !readOnly &&
@@ -2044,43 +1951,6 @@ class _FormationPitch extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-class _PitchGuideSpot extends StatelessWidget {
-  final TeamFormationSpot spot;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _PitchGuideSpot({
-    required this.spot,
-    required this.selected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: selected
-          ? Colors.white.withValues(alpha: 0.72)
-          : Colors.white.withValues(alpha: 0.24),
-      borderRadius: AppRadius.small,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: AppRadius.small,
-        child: Center(
-          child: Text(
-            spot.label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: selected ? const Color(0xFF064E3B) : Colors.white,
-                  fontWeight: FontWeight.w900,
-                ),
-          ),
-        ),
-      ),
     );
   }
 }
@@ -2102,7 +1972,7 @@ class _BoardPlacedPlayer extends StatelessWidget {
       data: player.id,
       feedback: Material(
         color: Colors.transparent,
-        child: SizedBox(width: 66, height: 66, child: marker),
+        child: SizedBox(width: 76, height: 60, child: marker),
       ),
       childWhenDragging: Opacity(opacity: 0.36, child: marker),
       child: marker,
@@ -2118,37 +1988,62 @@ class _PitchPlayerMarker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final accent = _playerRoleAccent(player.role);
+    final condition = _playerConditionAccent(player.condition);
     return Material(
       color: Colors.white,
       elevation: 8,
-      shape: const CircleBorder(),
+      borderRadius: AppRadius.small,
       child: Container(
         decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(color: const Color(0xFF0F5132), width: 2),
+          color: Colors.white,
+          borderRadius: AppRadius.small,
+          border: Border.all(color: accent, width: 2),
         ),
-        padding: const EdgeInsets.all(5),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.xs,
+          vertical: AppSpacing.xxs,
+        ),
+        child: Stack(
           children: [
-            Text(
-              player.number.trim().isEmpty
-                  ? teamPlayerRoleShortLabel(player.role)
-                  : player.number.trim(),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.labelLarge?.copyWith(
-                color: const Color(0xFF0F5132),
-                fontWeight: FontWeight.w900,
+            PositionedDirectional(
+              top: 0,
+              end: 0,
+              child: Container(
+                width: 9,
+                height: 9,
+                decoration: BoxDecoration(
+                  color: condition,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 1.5),
+                ),
               ),
             ),
-            Text(
-              _playerInitialLabel(player),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: const Color(0xFF0F5132),
-                fontWeight: FontWeight.w900,
+            Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    player.number.trim().isEmpty
+                        ? teamPlayerRoleShortLabel(player.role)
+                        : player.number.trim(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: accent,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  Text(
+                    _playerInitialLabel(player),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: const Color(0xFF111827),
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -2228,36 +2123,56 @@ class _TacticLinesPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0xFFFACC15).withValues(alpha: 0.9)
-      ..strokeWidth = 4
-      ..strokeCap = StrokeCap.round
-      ..style = PaintingStyle.stroke;
-    final draftPaint = Paint()
-      ..color = const Color(0xFF60A5FA).withValues(alpha: 0.86)
-      ..strokeWidth = 3
-      ..strokeCap = StrokeCap.round
-      ..style = PaintingStyle.stroke;
-
-    for (final line in lines) {
-      _drawArrow(canvas, size, line, paint);
-    }
     final draft = draftLine;
+    for (final line in lines.where(_isZoneMarker)) {
+      _drawZone(canvas, size, line, draft: false);
+    }
+    if (draft != null && _isZoneMarker(draft)) {
+      _drawZone(canvas, size, draft, draft: true);
+    }
+    for (final line in lines.where((line) => !_isZoneMarker(line))) {
+      _drawMarkerLine(canvas, size, line, draft: false);
+    }
     if (draft != null) {
-      _drawArrow(canvas, size, draft, draftPaint);
+      if (!_isZoneMarker(draft)) {
+        _drawMarkerLine(canvas, size, draft, draft: true);
+      }
     }
   }
 
-  void _drawArrow(
+  bool _isZoneMarker(ManagedTacticLine line) {
+    return line.type == ManagedTacticLine.typeZone;
+  }
+
+  void _drawMarkerLine(
     Canvas canvas,
     Size size,
-    ManagedTacticLine line,
-    Paint paint,
-  ) {
+    ManagedTacticLine line, {
+    required bool draft,
+  }) {
+    final isPress = line.type == ManagedTacticLine.typePress;
+    final color = draft
+        ? const Color(0xFF60A5FA)
+        : isPress
+            ? const Color(0xFFF97316)
+            : const Color(0xFFFACC15);
+    final paint = Paint()
+      ..color = color.withValues(alpha: draft ? 0.82 : 0.92)
+      ..strokeWidth = isPress ? 3.4 : 4
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke;
     final start = Offset(line.startX * size.width, line.startY * size.height);
     final end = Offset(line.endX * size.width, line.endY * size.height);
-    canvas.drawLine(start, end, paint);
+    if (isPress) {
+      _drawDashedLine(canvas, start, end, paint);
+    } else {
+      canvas.drawLine(start, end, paint);
+    }
 
+    _drawArrowHead(canvas, start, end, paint);
+  }
+
+  void _drawArrowHead(Canvas canvas, Offset start, Offset end, Paint paint) {
     final angle = math.atan2(end.dy - start.dy, end.dx - start.dx);
     const headLength = 14.0;
     const headAngle = math.pi / 7;
@@ -2273,6 +2188,61 @@ class _TacticLinesPainter extends CustomPainter {
         end.dy - headLength * math.sin(angle + headAngle),
       );
     canvas.drawPath(path, paint);
+  }
+
+  void _drawDashedLine(
+    Canvas canvas,
+    Offset start,
+    Offset end,
+    Paint paint,
+  ) {
+    const dash = 14.0;
+    const gap = 9.0;
+    final delta = end - start;
+    final distance = delta.distance;
+    if (distance == 0) return;
+    final direction = delta / distance;
+    var traveled = 0.0;
+    while (traveled < distance) {
+      final segmentStart = start + direction * traveled;
+      final segmentEnd =
+          start + direction * math.min(traveled + dash, distance);
+      canvas.drawLine(segmentStart, segmentEnd, paint);
+      traveled += dash + gap;
+    }
+  }
+
+  void _drawZone(
+    Canvas canvas,
+    Size size,
+    ManagedTacticLine line, {
+    required bool draft,
+  }) {
+    final start = Offset(line.startX * size.width, line.startY * size.height);
+    final end = Offset(line.endX * size.width, line.endY * size.height);
+    final rect = Rect.fromLTRB(
+      math.min(start.dx, end.dx),
+      math.min(start.dy, end.dy),
+      math.max(start.dx, end.dx),
+      math.max(start.dy, end.dy),
+    );
+    if (rect.width < 2 || rect.height < 2) return;
+    final color = draft ? const Color(0xFF60A5FA) : const Color(0xFF38BDF8);
+    final fill = Paint()
+      ..color = color.withValues(alpha: draft ? 0.18 : 0.22)
+      ..style = PaintingStyle.fill;
+    final stroke = Paint()
+      ..color = color.withValues(alpha: draft ? 0.86 : 0.92)
+      ..strokeWidth = 2.5
+      ..style = PaintingStyle.stroke;
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(rect, const Radius.circular(12)),
+      fill,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(rect, const Radius.circular(12)),
+      stroke,
+    );
   }
 
   @override

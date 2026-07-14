@@ -6669,7 +6669,7 @@
   "teamManagementWorkspaceTitle": "작업 선택",
   "teamManagementWorkspaceHelper": "필요한 영역만 열어 집중해서 관리하세요.",
   "teamManagementWorkspaceRosterTab": "선수단",
-  "teamManagementWorkspaceBoardTab": "라인업 보드",
+  "teamManagementWorkspaceBoardTab": "전술 보드",
   "teamManagementWorkspaceProfileTab": "팀 프로필",
   "teamManagementWorkspaceOperationsTab": "일정·대회",
   "teamManagementWorkspaceProfileValue": "이름·전술",
@@ -6720,8 +6720,8 @@
   "teamManagementTeamNameHint": "예) 우리 팀 U15",
   "teamManagementStrategyLabel": "전술 설명",
   "teamManagementStrategyHint": "예) 전방 압박 시작 위치, 측면 전환 약속, 수비 블록 기준",
-  "teamManagementFormationTitle": "라인업/전술 보드",
-  "teamManagementFormationHelper": "선발 배치와 전술 메모를 함께 정리하세요. 선수 칩을 그라운드 어디든 끌어 올리고, 마카 모드에서 이동선이나 압박 방향을 그리세요.",
+  "teamManagementFormationTitle": "프로 전술 보드",
+  "teamManagementFormationHelper": "선수를 자유롭게 배치하고 이동선, 압박선, 공간 영역을 함께 그려 경기 운영 계획을 정리하세요.",
   "teamManagementFormationLabel": "포메이션",
   "teamManagementFormationSpotLabel": "{spot}",
   "@teamManagementFormationSpotLabel": {
@@ -6805,8 +6805,25 @@
   "teamManagementPlayerTrayEmpty": "먼저 선수를 등록하면 여기에서 그라운드로 바로 끌어 놓을 수 있어요.",
   "teamManagementBoardMovePlayersMode": "선수 배치",
   "teamManagementBoardDrawMode": "보드 마카",
+  "teamManagementBoardMovementMode": "이동선",
+  "teamManagementBoardPressMode": "압박선",
+  "teamManagementBoardZoneMode": "공간 영역",
   "teamManagementBoardClearLinesButton": "선 지우기",
-  "teamManagementTacticLinesCount": "이동선 {count}개",
+  "teamManagementBoardClearMarkersButton": "마커 지우기",
+  "teamManagementBoardPlacementLabel": "보드 배치",
+  "teamManagementBoardMarkerLabel": "전술 마커",
+  "teamManagementBoardPlacementValue": "{placed}/{total} 배치",
+  "@teamManagementBoardPlacementValue": {
+    "placeholders": {
+      "placed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "teamManagementTacticLinesCount": "마커 {count}개",
   "@teamManagementTacticLinesCount": {
     "placeholders": {
       "count": {
@@ -6814,7 +6831,7 @@
       }
     }
   },
-  "teamManagementFormationDropHint": "선수 칩을 그라운드 어디든 놓으세요. 아래 포메이션은 기준선일 뿐 먼저 선택할 필요가 없습니다.",
+  "teamManagementFormationDropHint": "선수는 드래그해서 자유 배치하고, 이동선·압박선·공간 영역은 보드 위를 드래그해 그리세요.",
   "teamManagementRemovePlayerButton": "삭제",
   "teamManagementDeleteTeamButton": "팀 삭제",
   "teamManagementSaveTeamButton": "팀 저장",
