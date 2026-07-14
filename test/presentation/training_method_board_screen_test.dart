@@ -1092,7 +1092,7 @@ void main() {
     );
   });
 
-  testWidgets('dribble does not move a paired carry route to stage two', (
+  testWidgets('dribble after an owned ball route advances to the next stage', (
     WidgetTester tester,
   ) async {
     _setLandscapeSurface(tester);
@@ -1126,6 +1126,8 @@ void main() {
                     id: 'route-ball-1',
                     kind: TrainingMethodRouteKind.ball,
                     linkedItemId: 'ball-1',
+                    actorItemId: 'player-1',
+                    targetItemId: 'player-1',
                     stageIndex: 1,
                     points: <TrainingMethodPoint>[
                       TrainingMethodPoint(x: 0.36, y: 0.55),
@@ -1161,10 +1163,10 @@ void main() {
         .where((route) => route.kind == TrainingMethodRouteKind.ball)
         .toList(growable: false);
 
-    expect(playerRoute.stageIndex, 1);
+    expect(playerRoute.stageIndex, 2);
     expect(ballRoutes, hasLength(2));
     expect(ballRoutes.map((route) => route.linkedItemId).toSet(), {'ball-1'});
-    expect(ballRoutes.map((route) => route.stageIndex).toSet(), {1});
+    expect(ballRoutes.map((route) => route.stageIndex).toSet(), {1, 2});
   });
 
   testWidgets('single selected route only shows its actual stage', (
@@ -2454,6 +2456,166 @@ void main() {
     expect(find.widgetWithText(FilledButton, '콘 1에 패스'), findsNothing);
   });
 
+  testWidgets(
+      'player flow target prop action jumps an existing hurdle with owned ball',
+      (WidgetTester tester) async {
+    _setLandscapeSurface(tester);
+    String? savedLayout;
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '뜀틀 대상',
+          initialLayoutJson: const TrainingMethodLayout(
+            pages: <TrainingMethodPage>[
+              TrainingMethodPage(
+                name: 'Board',
+                items: <TrainingMethodItem>[
+                  TrainingMethodItem(
+                    id: 'player-1',
+                    type: 'player',
+                    x: 0.22,
+                    y: 0.52,
+                  ),
+                  TrainingMethodItem(
+                    id: 'ball-1',
+                    type: 'ball',
+                    x: 0.29,
+                    y: 0.52,
+                    colorValue: 0xFFFFCA28,
+                  ),
+                  TrainingMethodItem(
+                    id: 'hurdle-1',
+                    type: 'hurdle',
+                    x: 0.58,
+                    y: 0.42,
+                  ),
+                ],
+              ),
+            ],
+          ).encode(),
+          onSaved: (value) => savedLayout = value,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    await tester.tap(
+      find.descendant(of: boardFinder, matching: find.byIcon(Icons.person)),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('training-player-next-action-player-1')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(
+        const ValueKey(
+          'training-player-flow-prop-action-player-1-hurdleJump-hurdle-1',
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(TextButton, '저장'));
+    await tester.pumpAndSettle();
+
+    final saved = TrainingMethodLayout.decode(savedLayout ?? '');
+    final page = saved.pages.single;
+    final playerRoute = page.routes.singleWhere(
+      (route) => route.kind == TrainingMethodRouteKind.player,
+    );
+    final ballRoute = page.routes.singleWhere(
+      (route) => route.kind == TrainingMethodRouteKind.ball,
+    );
+
+    expect(page.items.where((item) => item.type == 'hurdle'), hasLength(1));
+    expect(playerRoute.linkedItemId, 'player-1');
+    expect(playerRoute.points, hasLength(4));
+    expect(playerRoute.points[2].x, closeTo(0.58, 0.001));
+    expect(playerRoute.points[2].y, closeTo(0.42, 0.001));
+    expect(ballRoute.linkedItemId, 'ball-1');
+    expect(ballRoute.actorItemId, 'player-1');
+    expect(ballRoute.targetItemId, 'player-1');
+    expect(ballRoute.stageIndex, playerRoute.stageIndex);
+  });
+
+  testWidgets('player flow move carries the initially owned ball', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    String? savedLayout;
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '공 동반 이동',
+          initialLayoutJson: const TrainingMethodLayout(
+            pages: <TrainingMethodPage>[
+              TrainingMethodPage(
+                name: 'Board',
+                items: <TrainingMethodItem>[
+                  TrainingMethodItem(
+                    id: 'player-1',
+                    type: 'player',
+                    x: 0.22,
+                    y: 0.52,
+                  ),
+                  TrainingMethodItem(
+                    id: 'ball-1',
+                    type: 'ball',
+                    x: 0.29,
+                    y: 0.52,
+                    colorValue: 0xFFFFCA28,
+                  ),
+                ],
+              ),
+            ],
+          ).encode(),
+          onSaved: (value) => savedLayout = value,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    await tester.tap(
+      find.descendant(of: boardFinder, matching: find.byIcon(Icons.person)),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('training-player-next-action-player-1')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('training-player-flow-action-player-1-move')),
+    );
+    await tester.pumpAndSettle();
+    await _tapBoardRelative(tester, boardFinder, const Offset(0.56, 0.42));
+
+    await tester.tap(find.widgetWithText(TextButton, '저장'));
+    await tester.pumpAndSettle();
+
+    final saved = TrainingMethodLayout.decode(savedLayout ?? '');
+    final routes = saved.pages.single.routes;
+    final playerRoute = routes.singleWhere(
+      (route) => route.kind == TrainingMethodRouteKind.player,
+    );
+    final ballRoute = routes.singleWhere(
+      (route) => route.kind == TrainingMethodRouteKind.ball,
+    );
+
+    expect(playerRoute.linkedItemId, 'player-1');
+    expect(playerRoute.points.last.x, closeTo(0.56, 0.02));
+    expect(playerRoute.points.last.y, closeTo(0.42, 0.02));
+    expect(ballRoute.linkedItemId, 'ball-1');
+    expect(ballRoute.actorItemId, 'player-1');
+    expect(ballRoute.targetItemId, 'player-1');
+    expect(ballRoute.stageIndex, playerRoute.stageIndex);
+    expect(ballRoute.points.last.x, greaterThan(playerRoute.points.last.x));
+  });
+
   testWidgets('pass to a player selects receiver for the next action stage', (
     WidgetTester tester,
   ) async {
@@ -2841,6 +3003,12 @@ void main() {
                     y: 0.36,
                   ),
                   TrainingMethodItem(
+                    id: 'hurdle-1',
+                    type: 'hurdle',
+                    x: 0.62,
+                    y: 0.36,
+                  ),
+                  TrainingMethodItem(
                     id: 'ball-1',
                     type: 'ball',
                     x: 0.29,
@@ -2884,6 +3052,18 @@ void main() {
       find.byKey(const ValueKey('training-player-flow-target-player-1-cone-1')),
       findsNothing,
     );
+    for (final entry in <String>[
+      'coneTurn-cone-1',
+      'coneJump-cone-1',
+      'hurdleJump-hurdle-1',
+    ]) {
+      expect(
+        find.byKey(
+          ValueKey('training-player-flow-prop-action-player-1-$entry'),
+        ),
+        findsOneWidget,
+      );
+    }
     expect(
       find.byKey(const ValueKey('training-player-flow-new-receiver-player-1')),
       findsOneWidget,

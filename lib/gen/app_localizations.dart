@@ -23027,6 +23027,24 @@ abstract class AppLocalizations {
   /// **'Pass to {target} {index}'**
   String trainingSketchPassToSpotButton(Object target, int index);
 
+  /// No description provided for @trainingSketchConeTurnTargetButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Circle cone {index}'**
+  String trainingSketchConeTurnTargetButton(int index);
+
+  /// No description provided for @trainingSketchConeJumpTargetButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump cone {index}'**
+  String trainingSketchConeJumpTargetButton(int index);
+
+  /// No description provided for @trainingSketchHurdleJumpTargetButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump hurdle {index}'**
+  String trainingSketchHurdleJumpTargetButton(int index);
+
   /// No description provided for @trainingSketchThrowToPlayerButton.
   ///
   /// In en, this message translates to:

@@ -7217,6 +7217,30 @@
       }
     }
   },
+  "trainingSketchConeTurnTargetButton": "Circle cone {index}",
+  "@trainingSketchConeTurnTargetButton": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchConeJumpTargetButton": "Jump cone {index}",
+  "@trainingSketchConeJumpTargetButton": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchHurdleJumpTargetButton": "Jump hurdle {index}",
+  "@trainingSketchHurdleJumpTargetButton": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
   "trainingSketchThrowToPlayerButton": "Throw to player {index}",
   "@trainingSketchThrowToPlayerButton": {
     "placeholders": {

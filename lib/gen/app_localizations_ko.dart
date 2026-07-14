@@ -12989,6 +12989,21 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String trainingSketchConeTurnTargetButton(int index) {
+    return '콘 $index 돌기';
+  }
+
+  @override
+  String trainingSketchConeJumpTargetButton(int index) {
+    return '콘 $index 넘기';
+  }
+
+  @override
+  String trainingSketchHurdleJumpTargetButton(int index) {
+    return '뜀틀 $index 넘기';
+  }
+
+  @override
   String trainingSketchThrowToPlayerButton(int index) {
     return '사람 $index에게 송구';
   }

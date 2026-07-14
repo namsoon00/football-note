@@ -7217,6 +7217,30 @@
       }
     }
   },
+  "trainingSketchConeTurnTargetButton": "콘 {index} 돌기",
+  "@trainingSketchConeTurnTargetButton": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchConeJumpTargetButton": "콘 {index} 넘기",
+  "@trainingSketchConeJumpTargetButton": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchHurdleJumpTargetButton": "뜀틀 {index} 넘기",
+  "@trainingSketchHurdleJumpTargetButton": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
   "trainingSketchThrowToPlayerButton": "사람 {index}에게 송구",
   "@trainingSketchThrowToPlayerButton": {
     "placeholders": {

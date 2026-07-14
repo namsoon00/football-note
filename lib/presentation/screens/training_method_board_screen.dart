@@ -1167,7 +1167,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   bool _canUsePlayerFlowBallActions(_BoardItem player) {
-    return _canStartBallActionForPlayer(player);
+    return _playerHasBallForFlow(player) ||
+        _itemsOfType(_BoardItemType.ball).isEmpty;
   }
 
   bool _canUsePlayerFlowMovementAction(
@@ -5770,7 +5771,13 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     if (selection.targetItemId case final targetItemId?) {
       final target = _itemById(targetItemId);
       if (target != null) {
-        _applyQuickBallToItemTemplate(target);
+        if (selection.action case final action?) {
+          _selectedItemId = player.id;
+          _selectedRouteId = null;
+          _applyPendingTargetActionToItem(action: action, target: target);
+        } else {
+          _applyQuickBallToItemTemplate(target);
+        }
       }
       return;
     }
@@ -5867,6 +5874,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     final movementActions = _playerFlowMovementActions(sportId)
         .where((action) => _canUsePlayerFlowMovementAction(player, action))
         .toList(growable: false);
+    final propActions = _playerFlowPropActions(movementActions);
     return SafeArea(
       child: Padding(
         padding: EdgeInsets.fromLTRB(
@@ -5973,6 +5981,12 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                           action: action,
                           icon: _targetActionIcon(action),
                         ),
+                      for (final propAction in propActions)
+                        _playerFlowPropActionButton(
+                          sheetContext: sheetContext,
+                          player: player,
+                          propAction: propAction,
+                        ),
                     ],
                   ),
                 ],
@@ -5984,6 +5998,33 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     );
   }
 
+  List<_PlayerFlowPropAction> _playerFlowPropActions(
+    List<_SketchTargetAction> movementActions,
+  ) {
+    final enabledActions = movementActions.toSet();
+    final actions = <_PlayerFlowPropAction>[];
+    final cones = _itemsOfType(_BoardItemType.cone);
+    final hurdles = _itemsOfType(_BoardItemType.hurdle);
+    if (enabledActions.contains(_SketchTargetAction.coneTurn)) {
+      for (final cone in cones) {
+        actions.add(_PlayerFlowPropAction(_SketchTargetAction.coneTurn, cone));
+      }
+    }
+    if (enabledActions.contains(_SketchTargetAction.coneJump)) {
+      for (final cone in cones) {
+        actions.add(_PlayerFlowPropAction(_SketchTargetAction.coneJump, cone));
+      }
+    }
+    if (enabledActions.contains(_SketchTargetAction.hurdleJump)) {
+      for (final hurdle in hurdles) {
+        actions.add(
+          _PlayerFlowPropAction(_SketchTargetAction.hurdleJump, hurdle),
+        );
+      }
+    }
+    return actions;
+  }
+
   Widget _buildPlayerFlowSectionTitle(String label) {
     return Text(
       label,
@@ -5991,6 +6032,45 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             fontWeight: FontWeight.w900,
           ),
     );
+  }
+
+  Widget _playerFlowPropActionButton({
+    required BuildContext sheetContext,
+    required _BoardItem player,
+    required _PlayerFlowPropAction propAction,
+  }) {
+    return OutlinedButton.icon(
+      key: ValueKey(
+        'training-player-flow-prop-action-${player.id}-'
+        '${propAction.action.name}-${propAction.target.id}',
+      ),
+      onPressed: () => Navigator.of(sheetContext).pop(
+        _PlayerFlowSelection.targetAction(
+          propAction.action,
+          propAction.target.id,
+        ),
+      ),
+      icon: Icon(_targetActionIcon(propAction.action)),
+      label: Text(
+        _playerFlowPropActionLabel(propAction.action, propAction.target),
+      ),
+    );
+  }
+
+  String _playerFlowPropActionLabel(
+    _SketchTargetAction action,
+    _BoardItem target,
+  ) {
+    final index = _itemIndexOfType(target);
+    return switch (action) {
+      _SketchTargetAction.coneTurn =>
+        _l10n.trainingSketchConeTurnTargetButton(index),
+      _SketchTargetAction.coneJump =>
+        _l10n.trainingSketchConeJumpTargetButton(index),
+      _SketchTargetAction.hurdleJump =>
+        _l10n.trainingSketchHurdleJumpTargetButton(index),
+      _ => _targetActionLabel(action),
+    };
   }
 
   Widget _playerFlowTargetButton({
@@ -7361,10 +7441,20 @@ class _PlayerFlowSelection {
       : action = null,
         createPassReceiver = false;
 
+  const _PlayerFlowSelection.targetAction(this.action, this.targetItemId)
+      : createPassReceiver = false;
+
   const _PlayerFlowSelection.createPassReceiver()
       : action = null,
         targetItemId = null,
         createPassReceiver = true;
+}
+
+class _PlayerFlowPropAction {
+  final _SketchTargetAction action;
+  final _BoardItem target;
+
+  const _PlayerFlowPropAction(this.action, this.target);
 }
 
 enum _BoardItemType { cone, hurdle, player, ball, ladder, target, base, basket }
