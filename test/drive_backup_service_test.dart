@@ -19,6 +19,27 @@ import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 
+final String _legacyBackupFormat = String.fromCharCodes(
+  const <int>[
+    116,
+    97,
+    101,
+    111,
+    95,
+    110,
+    111,
+    116,
+    101,
+    95,
+    98,
+    97,
+    99,
+    107,
+    117,
+    112,
+  ],
+);
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -29,7 +50,7 @@ void main() {
   late _FakeBackupAssetFileStore assetStore;
 
   setUpAll(() async {
-    tempDir = await Directory.systemTemp.createTemp('taeo_note_backup');
+    tempDir = await Directory.systemTemp.createTemp('teo_note_backup');
     Hive.init(tempDir.path);
     Hive.registerAdapter(TrainingEntryAdapter());
     trainingBox = await Hive.openBox<TrainingEntry>('training_entries');
@@ -57,16 +78,16 @@ void main() {
     await tempDir.delete(recursive: true);
   });
 
-  test('uses Taeo note as the user-facing Drive backup folder name', () {
-    expect(DriveBackupService.backupFolderName, '태오의노트');
+  test('uses teo as the user-facing Drive backup folder name', () {
+    expect(DriveBackupService.backupFolderName, 'teo');
     expect(
       DriveBackupService.backupDisplayPath,
-      contains('Google Drive > 태오의노트 >'),
+      contains('Google Drive > teo >'),
     );
   });
 
   test('uses active player backup filenames in coach mode', () async {
-    expect(service.backupFileNameForTesting(), 'taeo_note_backup.json');
+    expect(service.backupFileNameForTesting(), 'teo_note_backup.json');
 
     await optionBox.put(
       FamilyAccessService.currentRoleLocalKey,
@@ -81,7 +102,7 @@ void main() {
     );
     expect(
       DriveBackupService.playerBackupDisplayPath('minjun'),
-      'Google Drive > 태오의노트 > player_minjun_backup.json',
+      'Google Drive > teo > player_minjun_backup.json',
     );
   });
 
@@ -169,7 +190,7 @@ void main() {
         (backup['entries'] as List).single as Map<String, dynamic>;
     final family = backup['family'] as Map<String, dynamic>;
 
-    expect(backup['format'], 'taeo_note_backup');
+    expect(backup['format'], 'teo_note_backup');
     expect(backup['version'], 6);
     expect(backedUpEntry['sportId'], SportCatalog.footballId);
     expect(backedUpEntry['matchCompetitionName'], 'Weekend League');
@@ -659,8 +680,8 @@ void main() {
     expect(trainingBox.values.single.sportId, SportCatalog.tennisId);
   });
 
-  test('restores backups saved with the previous internal format id', () async {
-    final previousFormat = String.fromCharCodes(
+  test('restores backups saved with previous internal format ids', () async {
+    final footballNoteFormat = String.fromCharCodes(
       const <int>[
         102,
         111,
@@ -685,21 +706,24 @@ void main() {
       ],
     );
 
-    await service.restoreFromMapForTesting(<String, dynamic>{
-      'format': previousFormat,
-      'version': 6,
-      'createdAt': '2026-01-01T00:00:00.000',
-      'entries': const <dynamic>[],
-      'options': const <String, dynamic>{'profile_name': 'Taeo'},
-    });
+    for (final format in <String>[footballNoteFormat, _legacyBackupFormat]) {
+      await optionBox.clear();
+      await service.restoreFromMapForTesting(<String, dynamic>{
+        'format': format,
+        'version': 6,
+        'createdAt': '2026-01-01T00:00:00.000',
+        'entries': const <dynamic>[],
+        'options': const <String, dynamic>{'profile_name': 'teo'},
+      });
 
-    expect(optionBox.get('profile_name'), 'Taeo');
+      expect(optionBox.get('profile_name'), 'teo');
+    }
   });
 
   test('rejects backups created by a newer schema version', () async {
     expect(
       () => service.restoreFromMapForTesting(<String, dynamic>{
-        'format': 'taeo_note_backup',
+        'format': 'teo_note_backup',
         'version': 999,
         'createdAt': '2026-01-01T00:00:00.000',
         'entries': const <dynamic>[],
@@ -718,7 +742,7 @@ void main() {
   test('rejects malformed backup payload maps', () async {
     expect(
       () => service.restoreFromMapForTesting(<String, dynamic>{
-        'format': 'taeo_note_backup',
+        'format': 'teo_note_backup',
         'version': 5,
         'createdAt': '2026-01-01T00:00:00.000',
         'entries': const <String, dynamic>{'unexpected': true},
@@ -1816,7 +1840,7 @@ void main() {
           subjectId: 'new-subject',
         ),
         remoteBackup: <String, dynamic>{
-          'format': 'taeo_note_backup',
+          'format': 'teo_note_backup',
           'version': 5,
           'createdAt': '2026-04-20T09:00:00.000',
           'entries': <Map<String, dynamic>>[
@@ -2190,19 +2214,22 @@ class _RemoteBackupDriveClient extends http.BaseClient {
     if (query.contains("mimeType='application/vnd.google-apps.folder'") &&
         query.contains("name='${DriveBackupService.backupFolderName}'")) {
       return _jsonResponse(request, <String, Object?>{
-        'files': const <Map<String, String>>[
-          <String, String>{'id': 'folder-id', 'name': '태오의노트'},
+        'files': <Map<String, String>>[
+          <String, String>{
+            'id': 'folder-id',
+            'name': DriveBackupService.backupFolderName,
+          },
         ],
       });
     }
     if (query.contains("'folder-id' in parents") &&
-        query.contains("name='taeo_note_backup.json'")) {
+        query.contains("name='${DriveBackupService.backupFileName}'")) {
       return _jsonResponse(request, <String, Object?>{
         'files': hasBackup
-            ? const <Map<String, String>>[
+            ? <Map<String, String>>[
                 <String, String>{
                   'id': 'backup-id',
-                  'name': 'taeo_note_backup.json',
+                  'name': DriveBackupService.backupFileName,
                   'modifiedTime': '2026-03-22T10:00:00.000Z',
                 },
               ]

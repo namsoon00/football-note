@@ -136,14 +136,47 @@ class DriveBackupService implements BackupRepository {
   static const sharedChildDriveEmailKey = 'drive_child_email_v1';
   static const sharedChildDriveLabelKey = 'drive_child_label_v1';
   static const sharedChildDriveSubjectLocalKey = 'drive_child_subject_v1';
-  static const backupFolderName = '태오의노트';
-  static final String _legacyBackupFolderName = String.fromCharCodes(
+  static const backupFolderName = 'teo';
+  static final String _legacyKoreanBackupFolderName = String.fromCharCodes(
+    const <int>[53468, 50724, 51032, 45432, 53944],
+  );
+  static final String _legacyFootballNoteBackupFolderName =
+      String.fromCharCodes(
     const <int>[70, 111, 111, 116, 98, 97, 108, 108, 32, 78, 111, 116, 101],
   );
+  static final List<String> _legacyBackupFolderNames = <String>[
+    _legacyKoreanBackupFolderName,
+    _legacyFootballNoteBackupFolderName,
+  ];
   static const coachRosterFileName = 'coach_roster.json';
-  static const backupFileName = 'taeo_note_backup.json';
-  static const previousBackupFileName = 'taeo_note_backup_previous.json';
-  static final String _legacyFileName = String.fromCharCodes(
+  static const backupFileName = 'teo_note_backup.json';
+  static const previousBackupFileName = 'teo_note_backup_previous.json';
+  static final String _legacyMisspelledFileName = String.fromCharCodes(
+    const <int>[
+      116,
+      97,
+      101,
+      111,
+      95,
+      110,
+      111,
+      116,
+      101,
+      95,
+      98,
+      97,
+      99,
+      107,
+      117,
+      112,
+      46,
+      106,
+      115,
+      111,
+      110,
+    ],
+  );
+  static final String _legacyFootballNoteFileName = String.fromCharCodes(
     const <int>[
       102,
       111,
@@ -172,7 +205,46 @@ class DriveBackupService implements BackupRepository {
       110,
     ],
   );
-  static final String _legacyPreviousFileName = String.fromCharCodes(
+  static final List<String> _legacyFileNames = <String>[
+    _legacyMisspelledFileName,
+    _legacyFootballNoteFileName,
+  ];
+  static final String _legacyPreviousMisspelledFileName = String.fromCharCodes(
+    const <int>[
+      116,
+      97,
+      101,
+      111,
+      95,
+      110,
+      111,
+      116,
+      101,
+      95,
+      98,
+      97,
+      99,
+      107,
+      117,
+      112,
+      95,
+      112,
+      114,
+      101,
+      118,
+      105,
+      111,
+      117,
+      115,
+      46,
+      106,
+      115,
+      111,
+      110,
+    ],
+  );
+  static final String _legacyFootballNotePreviousFileName =
+      String.fromCharCodes(
     const <int>[
       102,
       111,
@@ -210,6 +282,10 @@ class DriveBackupService implements BackupRepository {
       110,
     ],
   );
+  static final List<String> _legacyPreviousFileNames = <String>[
+    _legacyPreviousMisspelledFileName,
+    _legacyFootballNotePreviousFileName,
+  ];
   static String get backupDisplayPath =>
       'Google Drive > $backupFolderName > $backupFileName';
   static String get previousBackupDisplayPath =>
@@ -496,8 +572,29 @@ class DriveBackupService implements BackupRepository {
   static const _assetRecordsKey = 'assetRecords';
   static const _assetRefPrefix = 'backup_asset://';
   static const _backupFormatKey = 'format';
-  static const _backupFormatValue = 'taeo_note_backup';
-  static final String _legacyBackupFormatValue = String.fromCharCodes(
+  static const _backupFormatValue = 'teo_note_backup';
+  static final String _legacyMisspelledBackupFormatValue = String.fromCharCodes(
+    const <int>[
+      116,
+      97,
+      101,
+      111,
+      95,
+      110,
+      111,
+      116,
+      101,
+      95,
+      98,
+      97,
+      99,
+      107,
+      117,
+      112,
+    ],
+  );
+  static final String _legacyFootballNoteBackupFormatValue =
+      String.fromCharCodes(
     const <int>[
       102,
       111,
@@ -521,6 +618,11 @@ class DriveBackupService implements BackupRepository {
       112,
     ],
   );
+  static final Set<String> _acceptedBackupFormatValues = <String>{
+    _backupFormatValue,
+    _legacyMisspelledBackupFormatValue,
+    _legacyFootballNoteBackupFormatValue,
+  };
   Stream<void> driveAccountStateChanges() =>
       _driveAccountStateController.stream;
 
@@ -1905,18 +2007,20 @@ class DriveBackupService implements BackupRepository {
     if (existingId != null) {
       return existingId;
     }
-    final legacyId = await _findFolderIdByName(api, _legacyBackupFolderName);
-    if (legacyId != null) {
-      try {
-        await api.files.update(
-          drive.File(name: _folderName),
-          legacyId,
-          $fields: 'id,name',
-        );
-      } catch (_) {
-        // Keep using the existing folder if Drive refuses the rename.
+    for (final legacyFolderName in _legacyBackupFolderNames) {
+      final legacyId = await _findFolderIdByName(api, legacyFolderName);
+      if (legacyId != null) {
+        try {
+          await api.files.update(
+            drive.File(name: _folderName),
+            legacyId,
+            $fields: 'id,name',
+          );
+        } catch (_) {
+          // Keep using the existing folder if Drive refuses the rename.
+        }
+        return legacyId;
       }
-      return legacyId;
     }
     final folder = await api.files.create(
       drive.File(
@@ -1928,8 +2032,13 @@ class DriveBackupService implements BackupRepository {
   }
 
   Future<String?> _findFolderId(drive.DriveApi api) async {
-    return await _findFolderIdByName(api, _folderName) ??
-        await _findFolderIdByName(api, _legacyBackupFolderName);
+    final currentId = await _findFolderIdByName(api, _folderName);
+    if (currentId != null) return currentId;
+    for (final legacyFolderName in _legacyBackupFolderNames) {
+      final legacyId = await _findFolderIdByName(api, legacyFolderName);
+      if (legacyId != null) return legacyId;
+    }
+    return null;
   }
 
   Future<String?> _findFolderIdByName(
@@ -1956,7 +2065,11 @@ class DriveBackupService implements BackupRepository {
       _activeBackupFileName,
     );
     if (active != null || _activeCoachPlayerId.isNotEmpty) return active;
-    return _findBackupFileByName(api, folderId, _legacyFileName);
+    for (final legacyFileName in _legacyFileNames) {
+      final legacy = await _findBackupFileByName(api, folderId, legacyFileName);
+      if (legacy != null) return legacy;
+    }
+    return null;
   }
 
   Future<drive.File?> _findPreviousBackupFile(
@@ -1969,7 +2082,11 @@ class DriveBackupService implements BackupRepository {
       _activePreviousBackupFileName,
     );
     if (active != null || _activeCoachPlayerId.isNotEmpty) return active;
-    return _findBackupFileByName(api, folderId, _legacyPreviousFileName);
+    for (final legacyFileName in _legacyPreviousFileNames) {
+      final legacy = await _findBackupFileByName(api, folderId, legacyFileName);
+      if (legacy != null) return legacy;
+    }
+    return null;
   }
 
   Future<drive.File?> _findBackupFileByName(
@@ -3318,9 +3435,7 @@ class DriveBackupService implements BackupRepository {
 
   Map<String, dynamic> _validatedBackupData(Map<String, dynamic> data) {
     final rawFormat = data[_backupFormatKey];
-    if (rawFormat != null &&
-        rawFormat != _backupFormatValue &&
-        rawFormat != _legacyBackupFormatValue) {
+    if (rawFormat != null && !_acceptedBackupFormatValues.contains(rawFormat)) {
       throw StateError(invalidBackupPayloadErrorCode);
     }
     final rawVersion = data['version'];
