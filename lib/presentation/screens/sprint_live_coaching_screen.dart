@@ -83,6 +83,8 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
   bool _lastBodyNotVisibleActive = false;
   _SpeechDebugState _speechDebugState = const _SpeechDebugState.initial();
   String? _lastSpeechEventFingerprint;
+  AppLocalizations? _cachedL10n;
+  Locale? _cachedLocale;
   final Map<SprintSkippedFrameReason, DateTime> _lastSkipLogAtByReason =
       <SprintSkippedFrameReason, DateTime>{};
 
@@ -105,6 +107,8 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    _cachedL10n = AppLocalizations.of(context)!;
+    _cachedLocale = Localizations.localeOf(context);
     unawaited(_configureTts());
   }
 
@@ -474,7 +478,10 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
       return;
     }
 
-    final locale = Localizations.localeOf(context);
+    final locale = _cachedLocale;
+    if (locale == null) {
+      return;
+    }
     final languageCode = locale.languageCode == 'ko' ? 'ko-KR' : 'en-US';
     if (_configuredTtsLanguage == languageCode) {
       return;
@@ -809,6 +816,10 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
     DateTime? now,
     Map<String, Object?>? details,
   }) {
+    if (_isDisposed && event != 'end') {
+      return;
+    }
+
     final timestamp = now ?? DateTime.now();
     if (event == 'periodic' &&
         !force &&
@@ -817,7 +828,7 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
       return;
     }
 
-    final l10n = mounted ? AppLocalizations.of(context) : null;
+    final l10n = _cachedL10n;
     final feedbackText = l10n == null
         ? null
         : _localizedFeedbackCue(l10n, _coachingState.activeFeedbackKey);
@@ -880,6 +891,7 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
     final previousFeedbackKey = previousState.activeFeedbackKey;
     final nextFeedbackKey = nextState.activeFeedbackKey;
     if (nextFeedbackKey != previousFeedbackKey) {
+      final l10n = _cachedL10n;
       _emitSessionLog(
         event: 'feedback_changed',
         force: true,
@@ -887,10 +899,9 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
         details: <String, Object?>{
           'from': previousFeedbackKey,
           'to': nextFeedbackKey,
-          'text': _localizedFeedbackCue(
-            AppLocalizations.of(context)!,
-            nextFeedbackKey,
-          ),
+          'text': l10n == null
+              ? null
+              : _localizedFeedbackCue(l10n, nextFeedbackKey),
         },
       );
     }
@@ -1177,10 +1188,20 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
       return;
     }
 
-    final cue = _localizedFeedbackCue(
-      AppLocalizations.of(context)!,
-      selectedFeedback.cueKey,
-    );
+    final l10n = _cachedL10n;
+    if (l10n == null) {
+      _recordSpeechSkip(
+        generatedFeedbackId: generatedFeedbackId,
+        selectedFeedbackId: selectedFeedback.code.name,
+        reason: 'localizations_unavailable',
+        trackingState: trackingState,
+        featureConfidence: featureConfidence,
+        now: now,
+      );
+      return;
+    }
+
+    final cue = _localizedFeedbackCue(l10n, selectedFeedback.cueKey);
     if (cue.isEmpty) {
       _recordSpeechSkip(
         generatedFeedbackId: generatedFeedbackId,
