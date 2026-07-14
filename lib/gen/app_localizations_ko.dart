@@ -12625,6 +12625,38 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get trainingSketchFlowReviewTitle => '흐름 점검';
+
+  @override
+  String get trainingSketchFlowReviewOk => '공 소유와 액션 연결이 자연스럽습니다.';
+
+  @override
+  String trainingSketchFlowWarningBallWithoutActor(Object ball) {
+    return '$ball가 사람 없이 움직입니다.';
+  }
+
+  @override
+  String trainingSketchFlowWarningWrongOwner(
+      Object ball, Object owner, Object actor) {
+    return '$ball는 $owner 보유인데 $actor가 사용합니다.';
+  }
+
+  @override
+  String trainingSketchFlowWarningUnownedBallUsed(Object ball, Object actor) {
+    return '$ball는 소유자 없음 상태인데 $actor가 사용합니다.';
+  }
+
+  @override
+  String trainingSketchFlowWarningMultipleActors(Object ball, int stage) {
+    return '$stage단계에서 $ball를 여러 사람이 동시에 사용합니다.';
+  }
+
+  @override
+  String trainingSketchFlowWarningInvalidTarget(Object ball, Object target) {
+    return '$ball의 도착 대상이 사람($target)이 아닙니다.';
+  }
+
+  @override
   String get trainingSketchSelectedItemTitle => '선택 요소';
 
   @override
@@ -12844,6 +12876,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get trainingSketchDeleteRouteButton => '선택 이동선 삭제';
+
+  @override
+  String get trainingSketchEditStageActionTooltip => '단계 액션 수정';
 
   @override
   String get trainingSketchDeleteStageActionTooltip => '단계 액션 삭제';

@@ -22367,6 +22367,49 @@ abstract class AppLocalizations {
   /// **'{ball}: no owner'**
   String trainingSketchBallUnowned(Object ball);
 
+  /// No description provided for @trainingSketchFlowReviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Flow review'**
+  String get trainingSketchFlowReviewTitle;
+
+  /// No description provided for @trainingSketchFlowReviewOk.
+  ///
+  /// In en, this message translates to:
+  /// **'Ball ownership and action links look natural.'**
+  String get trainingSketchFlowReviewOk;
+
+  /// No description provided for @trainingSketchFlowWarningBallWithoutActor.
+  ///
+  /// In en, this message translates to:
+  /// **'{ball} moves without a player.'**
+  String trainingSketchFlowWarningBallWithoutActor(Object ball);
+
+  /// No description provided for @trainingSketchFlowWarningWrongOwner.
+  ///
+  /// In en, this message translates to:
+  /// **'{ball} is owned by {owner}, but {actor} uses it.'**
+  String trainingSketchFlowWarningWrongOwner(
+      Object ball, Object owner, Object actor);
+
+  /// No description provided for @trainingSketchFlowWarningUnownedBallUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'{ball} has no owner, but {actor} uses it.'**
+  String trainingSketchFlowWarningUnownedBallUsed(Object ball, Object actor);
+
+  /// No description provided for @trainingSketchFlowWarningMultipleActors.
+  ///
+  /// In en, this message translates to:
+  /// **'Multiple players use {ball} in stage {stage}.'**
+  String trainingSketchFlowWarningMultipleActors(Object ball, int stage);
+
+  /// No description provided for @trainingSketchFlowWarningInvalidTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'{ball} targets a non-player ({target}).'**
+  String trainingSketchFlowWarningInvalidTarget(Object ball, Object target);
+
   /// No description provided for @trainingSketchSelectedItemTitle.
   ///
   /// In en, this message translates to:
@@ -22774,6 +22817,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete selected'**
   String get trainingSketchDeleteRouteButton;
+
+  /// No description provided for @trainingSketchEditStageActionTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit stage action'**
+  String get trainingSketchEditStageActionTooltip;
 
   /// No description provided for @trainingSketchDeleteStageActionTooltip.
   ///

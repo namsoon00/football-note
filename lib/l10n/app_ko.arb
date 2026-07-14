@@ -7044,6 +7044,45 @@
       "ball": {}
     }
   },
+  "trainingSketchFlowReviewTitle": "흐름 점검",
+  "trainingSketchFlowReviewOk": "공 소유와 액션 연결이 자연스럽습니다.",
+  "trainingSketchFlowWarningBallWithoutActor": "{ball}가 사람 없이 움직입니다.",
+  "@trainingSketchFlowWarningBallWithoutActor": {
+    "placeholders": {
+      "ball": {}
+    }
+  },
+  "trainingSketchFlowWarningWrongOwner": "{ball}는 {owner} 보유인데 {actor}가 사용합니다.",
+  "@trainingSketchFlowWarningWrongOwner": {
+    "placeholders": {
+      "ball": {},
+      "owner": {},
+      "actor": {}
+    }
+  },
+  "trainingSketchFlowWarningUnownedBallUsed": "{ball}는 소유자 없음 상태인데 {actor}가 사용합니다.",
+  "@trainingSketchFlowWarningUnownedBallUsed": {
+    "placeholders": {
+      "ball": {},
+      "actor": {}
+    }
+  },
+  "trainingSketchFlowWarningMultipleActors": "{stage}단계에서 {ball}를 여러 사람이 동시에 사용합니다.",
+  "@trainingSketchFlowWarningMultipleActors": {
+    "placeholders": {
+      "ball": {},
+      "stage": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchFlowWarningInvalidTarget": "{ball}의 도착 대상이 사람({target})이 아닙니다.",
+  "@trainingSketchFlowWarningInvalidTarget": {
+    "placeholders": {
+      "ball": {},
+      "target": {}
+    }
+  },
   "trainingSketchSelectedItemTitle": "선택 요소",
   "trainingSketchAssignColorLabel": "색상 지정",
   "trainingSketchPlayerStagesTitle": "선수 단계",
@@ -7141,6 +7180,7 @@
   "trainingSketchReverseRouteButton": "방향 뒤집기",
   "trainingSketchRedrawRouteButton": "선택 이동선 다시 그리기",
   "trainingSketchDeleteRouteButton": "선택 이동선 삭제",
+  "trainingSketchEditStageActionTooltip": "단계 액션 수정",
   "trainingSketchDeleteStageActionTooltip": "단계 액션 삭제",
   "trainingSketchPlayerRouteChip": "사람 {index}",
   "@trainingSketchPlayerRouteChip": {

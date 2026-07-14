@@ -12600,6 +12600,38 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get trainingSketchFlowReviewTitle => '流れの確認';
+
+  @override
+  String get trainingSketchFlowReviewOk => 'ボール所有とアクションのつながりは自然です。';
+
+  @override
+  String trainingSketchFlowWarningBallWithoutActor(Object ball) {
+    return '$ball がプレイヤーなしで動いています。';
+  }
+
+  @override
+  String trainingSketchFlowWarningWrongOwner(
+      Object ball, Object owner, Object actor) {
+    return '$ball は $owner が保持していますが、$actor が使っています。';
+  }
+
+  @override
+  String trainingSketchFlowWarningUnownedBallUsed(Object ball, Object actor) {
+    return '$ball は所有者なしですが、$actor が使っています。';
+  }
+
+  @override
+  String trainingSketchFlowWarningMultipleActors(Object ball, int stage) {
+    return 'ステージ$stageで複数のプレイヤーが $ball を使っています。';
+  }
+
+  @override
+  String trainingSketchFlowWarningInvalidTarget(Object ball, Object target) {
+    return '$ball の到達先がプレイヤーではありません（$target）。';
+  }
+
+  @override
   String get trainingSketchSelectedItemTitle => '選択した項目';
 
   @override
@@ -12818,6 +12850,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get trainingSketchDeleteRouteButton => '選択したものを削除';
+
+  @override
+  String get trainingSketchEditStageActionTooltip => 'ステージアクションを編集';
 
   @override
   String get trainingSketchDeleteStageActionTooltip => 'ステージアクションを削除';

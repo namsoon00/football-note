@@ -3698,6 +3698,197 @@ void main() {
     expect(routeIds, contains('route-move'));
   });
 
+  testWidgets('global stage action can enter edit mode from summary', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    final initialLayout = const TrainingMethodLayout(
+      pages: <TrainingMethodPage>[
+        TrainingMethodPage(
+          name: 'Board',
+          items: <TrainingMethodItem>[
+            TrainingMethodItem(id: 'player-1', type: 'player', x: 0.2, y: 0.5),
+            TrainingMethodItem(id: 'ball-1', type: 'ball', x: 0.27, y: 0.5),
+          ],
+          routes: <TrainingMethodRoute>[
+            TrainingMethodRoute(
+              id: 'route-shot',
+              kind: TrainingMethodRouteKind.ball,
+              linkedItemId: 'ball-1',
+              actorItemId: 'player-1',
+              stageIndex: 1,
+              points: <TrainingMethodPoint>[
+                TrainingMethodPoint(x: 0.27, y: 0.5),
+                TrainingMethodPoint(x: 0.82, y: 0.34),
+              ],
+            ),
+          ],
+        ),
+      ],
+    ).encode();
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '단계 수정',
+          initialLayoutJson: initialLayout,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    await tester.tap(
+      find.descendant(of: boardFinder, matching: find.byIcon(Icons.person)),
+    );
+    await tester.pumpAndSettle();
+
+    final editAction = find.byKey(
+      const ValueKey('training-global-stage-action-edit-route-shot'),
+    );
+    expect(editAction, findsOneWidget);
+    await tester.tap(editAction);
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('도착 지점을 누르고 이동선 완료를 누르면 선택한 이동선이 바뀝니다.'),
+      findsOneWidget,
+    );
+    expect(find.widgetWithText(OutlinedButton, '이동선 완료'), findsOneWidget);
+  });
+
+  testWidgets('flow review warns when another player uses owned ball', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    final initialLayout = const TrainingMethodLayout(
+      pages: <TrainingMethodPage>[
+        TrainingMethodPage(
+          name: 'Board',
+          items: <TrainingMethodItem>[
+            TrainingMethodItem(id: 'player-1', type: 'player', x: 0.2, y: 0.5),
+            TrainingMethodItem(
+              id: 'player-2',
+              type: 'player',
+              x: 0.62,
+              y: 0.46,
+            ),
+            TrainingMethodItem(id: 'ball-1', type: 'ball', x: 0.27, y: 0.5),
+          ],
+          routes: <TrainingMethodRoute>[
+            TrainingMethodRoute(
+              id: 'route-stolen-carry',
+              kind: TrainingMethodRouteKind.ball,
+              linkedItemId: 'ball-1',
+              actorItemId: 'player-2',
+              targetItemId: 'player-2',
+              stageIndex: 1,
+              points: <TrainingMethodPoint>[
+                TrainingMethodPoint(x: 0.27, y: 0.5),
+                TrainingMethodPoint(x: 0.70, y: 0.42),
+              ],
+            ),
+          ],
+        ),
+      ],
+    ).encode();
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '흐름 점검',
+          initialLayoutJson: initialLayout,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    await tester.tap(
+      find
+          .descendant(of: boardFinder, matching: find.byIcon(Icons.person))
+          .first,
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('흐름 점검'), findsOneWidget);
+    expect(
+      find.text('공 1는 사람 1 보유인데 사람 2가 사용합니다.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('flow review warns when unowned shot ball is reused', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    final initialLayout = const TrainingMethodLayout(
+      pages: <TrainingMethodPage>[
+        TrainingMethodPage(
+          name: 'Board',
+          items: <TrainingMethodItem>[
+            TrainingMethodItem(id: 'player-1', type: 'player', x: 0.2, y: 0.5),
+            TrainingMethodItem(
+              id: 'player-2',
+              type: 'player',
+              x: 0.62,
+              y: 0.46,
+            ),
+            TrainingMethodItem(id: 'ball-1', type: 'ball', x: 0.27, y: 0.5),
+          ],
+          routes: <TrainingMethodRoute>[
+            TrainingMethodRoute(
+              id: 'route-shot',
+              kind: TrainingMethodRouteKind.ball,
+              linkedItemId: 'ball-1',
+              actorItemId: 'player-1',
+              stageIndex: 1,
+              points: <TrainingMethodPoint>[
+                TrainingMethodPoint(x: 0.27, y: 0.5),
+                TrainingMethodPoint(x: 0.84, y: 0.34),
+              ],
+            ),
+            TrainingMethodRoute(
+              id: 'route-reuse',
+              kind: TrainingMethodRouteKind.ball,
+              linkedItemId: 'ball-1',
+              actorItemId: 'player-2',
+              targetItemId: 'player-2',
+              stageIndex: 2,
+              points: <TrainingMethodPoint>[
+                TrainingMethodPoint(x: 0.84, y: 0.34),
+                TrainingMethodPoint(x: 0.70, y: 0.42),
+              ],
+            ),
+          ],
+        ),
+      ],
+    ).encode();
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '슈팅 후 재사용',
+          initialLayoutJson: initialLayout,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    await tester.tap(
+      find
+          .descendant(of: boardFinder, matching: find.byIcon(Icons.person))
+          .first,
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('공 1는 소유자 없음 상태인데 사람 2가 사용합니다.'),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('deleting a carry action removes paired player and ball routes', (
     WidgetTester tester,
   ) async {
