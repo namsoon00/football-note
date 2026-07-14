@@ -67,7 +67,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   String _playerFoot = ManagedTeamPlayer.footRight;
   String _playerCondition = ManagedTeamPlayer.conditionReady;
   String? _editingPlayerId;
-  _TeamManagementWorkspace _activeWorkspace = _TeamManagementWorkspace.roster;
+  _TeamManagementWorkspace? _activeWorkspace;
   _TacticBoardMode _boardMode = _TacticBoardMode.assign;
   ManagedTacticLine? _draftTacticLine;
   bool _loaded = false;
@@ -509,13 +509,8 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final readOnly = _isReadOnlySupportMode;
-    final totalBoardPlayers = _players.length;
-    final placedCount = _playerPlacements.length;
-    final activeCompetitions =
-        _competitions.where((competition) => !competition.isFinished).length;
     return Scaffold(
       body: ColoredBox(
         color: theme.scaffoldBackgroundColor,
@@ -535,49 +530,18 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
                   onBack: () => Navigator.of(context).maybePop(),
                 ),
                 const SizedBox(height: AppSpacing.sm),
-                _TeamWorkspaceSwitcher(
-                  activeWorkspace: _activeWorkspace,
-                  playerCount: _players.length,
-                  placedCount: placedCount,
-                  totalPlayers: totalBoardPlayers,
-                  activeCompetitions: activeCompetitions,
-                  totalCompetitions: _competitions.length,
-                  onWorkspaceChanged: (workspace) {
-                    setState(() => _activeWorkspace = workspace);
-                    if (_scrollController.hasClients) {
-                      unawaited(
-                        _scrollController.animateTo(
-                          0,
-                          duration: const Duration(milliseconds: 220),
-                          curve: Curves.easeOut,
-                        ),
-                      );
-                    }
-                  },
-                ),
-                const SizedBox(height: AppSpacing.md),
-                _TeamManagementHero(
-                  teamName: _teamNameController.text.trim().isEmpty
-                      ? l10n.teamManagementDefaultTeamName
-                      : _teamNameController.text.trim(),
-                  playerCount: _players.length,
-                  placedCount: placedCount,
-                  totalPlayers: totalBoardPlayers,
-                  tacticLineCount: _tacticLines.length,
-                  saving: _saving,
-                  pending: !readOnly &&
-                      (_hasPendingAutoSave || _changeRevision > _savedRevision),
-                  needsName: _teamNameController.text.trim().isEmpty,
-                  lastSavedAt: _lastAutoSavedAt,
-                ),
-                const SizedBox(height: AppSpacing.md),
                 AnimatedSwitcher(
                   duration: const Duration(milliseconds: 180),
                   switchInCurve: Curves.easeOut,
                   switchOutCurve: Curves.easeIn,
                   child: KeyedSubtree(
-                    key: ValueKey<_TeamManagementWorkspace>(_activeWorkspace),
-                    child: _buildActiveWorkspace(readOnly),
+                    key: ValueKey<_TeamManagementWorkspace?>(_activeWorkspace),
+                    child: _activeWorkspace == null
+                        ? _buildWorkspaceHome(readOnly)
+                        : _buildWorkspaceScreen(
+                            _activeWorkspace!,
+                            readOnly,
+                          ),
                   ),
                 ),
               ],
@@ -588,8 +552,85 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
     );
   }
 
-  Widget _buildActiveWorkspace(bool readOnly) {
-    switch (_activeWorkspace) {
+  Widget _buildWorkspaceHome(bool readOnly) {
+    final l10n = AppLocalizations.of(context)!;
+    final totalBoardPlayers = _players.length;
+    final placedCount = _playerPlacements.length;
+    final activeCompetitions =
+        _competitions.where((competition) => !competition.isFinished).length;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _TeamManagementHero(
+          teamName: _teamNameController.text.trim().isEmpty
+              ? l10n.teamManagementDefaultTeamName
+              : _teamNameController.text.trim(),
+          playerCount: _players.length,
+          placedCount: placedCount,
+          totalPlayers: totalBoardPlayers,
+          tacticLineCount: _tacticLines.length,
+          saving: _saving,
+          pending: !readOnly &&
+              (_hasPendingAutoSave || _changeRevision > _savedRevision),
+          needsName: _teamNameController.text.trim().isEmpty,
+          lastSavedAt: _lastAutoSavedAt,
+        ),
+        const SizedBox(height: AppSpacing.md),
+        _TeamWorkspaceMenu(
+          playerCount: _players.length,
+          placedCount: placedCount,
+          totalPlayers: totalBoardPlayers,
+          activeCompetitions: activeCompetitions,
+          totalCompetitions: _competitions.length,
+          onWorkspaceSelected: _openWorkspace,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWorkspaceScreen(
+    _TeamManagementWorkspace workspace,
+    bool readOnly,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _WorkspaceScreenHeader(
+          workspace: workspace,
+          onBackToMenu: _closeWorkspace,
+        ),
+        const SizedBox(height: AppSpacing.md),
+        _buildActiveWorkspace(workspace, readOnly),
+      ],
+    );
+  }
+
+  void _openWorkspace(_TeamManagementWorkspace workspace) {
+    setState(() => _activeWorkspace = workspace);
+    _scrollToTop();
+  }
+
+  void _closeWorkspace() {
+    setState(() => _activeWorkspace = null);
+    _scrollToTop();
+  }
+
+  void _scrollToTop() {
+    if (!_scrollController.hasClients) return;
+    unawaited(
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOut,
+      ),
+    );
+  }
+
+  Widget _buildActiveWorkspace(
+    _TeamManagementWorkspace workspace,
+    bool readOnly,
+  ) {
+    switch (workspace) {
       case _TeamManagementWorkspace.roster:
         return _PlayersPanel(
           players: _players,
@@ -643,30 +684,26 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   }
 }
 
-class _TeamWorkspaceSwitcher extends StatelessWidget {
-  final _TeamManagementWorkspace activeWorkspace;
+class _TeamWorkspaceMenu extends StatelessWidget {
   final int playerCount;
   final int placedCount;
   final int totalPlayers;
   final int activeCompetitions;
   final int totalCompetitions;
-  final ValueChanged<_TeamManagementWorkspace> onWorkspaceChanged;
+  final ValueChanged<_TeamManagementWorkspace> onWorkspaceSelected;
 
-  const _TeamWorkspaceSwitcher({
-    required this.activeWorkspace,
+  const _TeamWorkspaceMenu({
     required this.playerCount,
     required this.placedCount,
     required this.totalPlayers,
     required this.activeCompetitions,
     required this.totalCompetitions,
-    required this.onWorkspaceChanged,
+    required this.onWorkspaceSelected,
   });
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
     final items = [
       _WorkspaceItem(
         workspace: _TeamManagementWorkspace.roster,
@@ -700,70 +737,38 @@ class _TeamWorkspaceSwitcher extends StatelessWidget {
       ),
     ];
 
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.brightness == Brightness.dark
-            ? scheme.surfaceContainerHighest.withValues(alpha: 0.34)
-            : scheme.surfaceContainerHighest.withValues(alpha: 0.72),
-        borderRadius: AppRadius.small,
-        border: Border.all(
-          color: AppSurfaces.borderColor(scheme, theme.brightness),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _PanelTitle(
+          icon: Icons.dashboard_customize_outlined,
+          title: l10n.teamManagementWorkspaceTitle,
+          helper: l10n.teamManagementWorkspaceHelper,
         ),
-      ),
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.xs,
-        vertical: AppSpacing.xs,
-      ),
-      child: Row(
-        children: [
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 128),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.dashboard_customize_outlined,
-                    color: scheme.primary,
-                    size: 18,
-                  ),
-                  const SizedBox(width: AppSpacing.xxs),
-                  Flexible(
-                    child: Text(
-                      l10n.teamManagementWorkspaceTitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: scheme.onSurface,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.xs),
-          Expanded(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  for (final item in items) ...[
-                    _WorkspaceTabButton(
+        const SizedBox(height: AppSpacing.sm),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final useTwoColumns = constraints.maxWidth >= 560;
+            final itemWidth = useTwoColumns
+                ? (constraints.maxWidth - AppSpacing.sm) / 2
+                : constraints.maxWidth;
+            return Wrap(
+              spacing: AppSpacing.sm,
+              runSpacing: AppSpacing.sm,
+              children: [
+                for (final item in items)
+                  SizedBox(
+                    width: itemWidth,
+                    child: _WorkspaceMenuButton(
                       item: item,
-                      selected: activeWorkspace == item.workspace,
-                      onTap: () => onWorkspaceChanged(item.workspace),
+                      onTap: () => onWorkspaceSelected(item.workspace),
                     ),
-                    const SizedBox(width: AppSpacing.xs),
-                  ],
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
+                  ),
+              ],
+            );
+          },
+        ),
+      ],
     );
   }
 }
@@ -782,14 +787,12 @@ class _WorkspaceItem {
   });
 }
 
-class _WorkspaceTabButton extends StatelessWidget {
+class _WorkspaceMenuButton extends StatelessWidget {
   final _WorkspaceItem item;
-  final bool selected;
   final VoidCallback onTap;
 
-  const _WorkspaceTabButton({
+  const _WorkspaceMenuButton({
     required this.item,
-    required this.selected,
     required this.onTap,
   });
 
@@ -797,41 +800,44 @@ class _WorkspaceTabButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final foreground = selected ? scheme.onPrimary : scheme.onSurface;
-    final helperColor = selected
-        ? scheme.onPrimary.withValues(alpha: 0.78)
-        : scheme.onSurfaceVariant;
-    final background = selected ? scheme.primary : scheme.surface;
     return Material(
-      color: background,
+      key: ValueKey<String>('team-workspace-${item.workspace.name}'),
+      color: theme.brightness == Brightness.dark
+          ? scheme.surfaceContainerHighest.withValues(alpha: 0.28)
+          : scheme.surface,
       borderRadius: AppRadius.small,
       child: InkWell(
-        onTap: selected ? null : onTap,
+        onTap: onTap,
         borderRadius: AppRadius.small,
         child: Container(
-          constraints: const BoxConstraints(
-            minWidth: 136,
-            maxWidth: 168,
-            minHeight: 48,
-          ),
+          constraints: const BoxConstraints(minHeight: 86),
           padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.sm,
-            vertical: AppSpacing.xs,
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
           ),
           decoration: BoxDecoration(
             borderRadius: AppRadius.small,
             border: Border.all(
-              color: selected
-                  ? scheme.primary
-                  : AppSurfaces.borderColor(scheme, theme.brightness),
+              color: AppSurfaces.borderColor(scheme, theme.brightness),
             ),
           ),
           child: Row(
-            mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(item.icon, color: foreground, size: 18),
-              const SizedBox(width: AppSpacing.xs),
-              Flexible(
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: scheme.primaryContainer,
+                  borderRadius: AppRadius.small,
+                ),
+                child: Icon(
+                  item.icon,
+                  color: scheme.onPrimaryContainer,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -841,22 +847,28 @@ class _WorkspaceTabButton extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.labelLarge?.copyWith(
-                        color: foreground,
+                        color: scheme.onSurface,
                         fontWeight: FontWeight.w900,
                       ),
                     ),
-                    const SizedBox(height: 1),
+                    const SizedBox(height: AppSpacing.xxs),
                     Text(
                       item.value,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.labelSmall?.copyWith(
-                        color: helperColor,
+                        color: scheme.onSurfaceVariant,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
                   ],
                 ),
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Icon(
+                Icons.chevron_right,
+                color: scheme.onSurfaceVariant,
+                size: 22,
               ),
             ],
           ),
@@ -864,6 +876,100 @@ class _WorkspaceTabButton extends StatelessWidget {
       ),
     );
   }
+}
+
+class _WorkspaceScreenHeader extends StatelessWidget {
+  final _TeamManagementWorkspace workspace;
+  final VoidCallback onBackToMenu;
+
+  const _WorkspaceScreenHeader({
+    required this.workspace,
+    required this.onBackToMenu,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: theme.brightness == Brightness.dark
+            ? scheme.surfaceContainerHighest.withValues(alpha: 0.28)
+            : scheme.surface,
+        borderRadius: AppRadius.small,
+        border: Border.all(
+          color: AppSurfaces.borderColor(scheme, theme.brightness),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AppBarActionButton.icon(
+            key: const ValueKey('team-workspace-back'),
+            icon: Icons.arrow_back,
+            tooltip: l10n.teamManagementWorkspaceBackButton,
+            onPressed: onBackToMenu,
+            margin: EdgeInsets.zero,
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _workspaceTitle(l10n, workspace),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: scheme.onSurface,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xxs),
+                Text(
+                  _workspaceHelper(l10n, workspace),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                    height: 1.25,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+String _workspaceTitle(
+  AppLocalizations l10n,
+  _TeamManagementWorkspace workspace,
+) {
+  return switch (workspace) {
+    _TeamManagementWorkspace.roster => l10n.teamManagementWorkspaceRosterTab,
+    _TeamManagementWorkspace.board => l10n.teamManagementWorkspaceBoardTab,
+    _TeamManagementWorkspace.profile => l10n.teamManagementWorkspaceProfileTab,
+    _TeamManagementWorkspace.operations =>
+      l10n.teamManagementWorkspaceOperationsTab,
+  };
+}
+
+String _workspaceHelper(
+  AppLocalizations l10n,
+  _TeamManagementWorkspace workspace,
+) {
+  return switch (workspace) {
+    _TeamManagementWorkspace.roster => l10n.teamManagementPlayersHelper,
+    _TeamManagementWorkspace.board => l10n.teamManagementFormationHelper,
+    _TeamManagementWorkspace.profile => l10n.teamManagementBasicsHelper,
+    _TeamManagementWorkspace.operations =>
+      l10n.teamManagementOperationsScheduleHelper,
+  };
 }
 
 class _TeamManagementHeader extends StatelessWidget {
@@ -1639,39 +1745,40 @@ class _BoardModeToolbar extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final tools = [
+      (
+        mode: _TacticBoardMode.assign,
+        icon: Icons.open_with_outlined,
+        label: l10n.teamManagementBoardMovePlayersMode,
+      ),
+      (
+        mode: _TacticBoardMode.movement,
+        icon: Icons.timeline_outlined,
+        label: l10n.teamManagementBoardMovementMode,
+      ),
+      (
+        mode: _TacticBoardMode.press,
+        icon: Icons.keyboard_double_arrow_up_outlined,
+        label: l10n.teamManagementBoardPressMode,
+      ),
+      (
+        mode: _TacticBoardMode.zone,
+        icon: Icons.crop_free_outlined,
+        label: l10n.teamManagementBoardZoneMode,
+      ),
+    ];
     return Wrap(
       spacing: AppSpacing.sm,
       runSpacing: AppSpacing.xs,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        SegmentedButton<_TacticBoardMode>(
-          showSelectedIcon: false,
-          segments: [
-            ButtonSegment<_TacticBoardMode>(
-              value: _TacticBoardMode.assign,
-              icon: const Icon(Icons.open_with_outlined),
-              label: Text(l10n.teamManagementBoardMovePlayersMode),
-            ),
-            ButtonSegment<_TacticBoardMode>(
-              value: _TacticBoardMode.movement,
-              icon: const Icon(Icons.timeline_outlined),
-              label: Text(l10n.teamManagementBoardMovementMode),
-            ),
-            ButtonSegment<_TacticBoardMode>(
-              value: _TacticBoardMode.press,
-              icon: const Icon(Icons.keyboard_double_arrow_up_outlined),
-              label: Text(l10n.teamManagementBoardPressMode),
-            ),
-            ButtonSegment<_TacticBoardMode>(
-              value: _TacticBoardMode.zone,
-              icon: const Icon(Icons.crop_free_outlined),
-              label: Text(l10n.teamManagementBoardZoneMode),
-            ),
-          ],
-          selected: {mode},
-          onSelectionChanged:
-              readOnly ? null : (values) => onModeChanged(values.first),
-        ),
+        for (final tool in tools)
+          _BoardModeButton(
+            icon: tool.icon,
+            label: tool.label,
+            selected: mode == tool.mode,
+            onTap: readOnly ? null : () => onModeChanged(tool.mode),
+          ),
         OutlinedButton.icon(
           onPressed:
               readOnly || tacticLineCount == 0 ? null : onClearTacticLines,
@@ -1686,6 +1793,66 @@ class _BoardModeToolbar extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _BoardModeButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool selected;
+  final VoidCallback? onTap;
+
+  const _BoardModeButton({
+    required this.icon,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final foreground = selected ? scheme.onPrimary : scheme.onSurface;
+    return Material(
+      color: selected ? scheme.primary : scheme.surface,
+      borderRadius: AppRadius.small,
+      child: InkWell(
+        onTap: selected ? null : onTap,
+        borderRadius: AppRadius.small,
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 40, minWidth: 104),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.sm,
+            vertical: AppSpacing.xs,
+          ),
+          decoration: BoxDecoration(
+            borderRadius: AppRadius.small,
+            border: Border.all(
+              color: selected
+                  ? scheme.primary
+                  : AppSurfaces.borderColor(scheme, theme.brightness),
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 18, color: foreground),
+              const SizedBox(width: AppSpacing.xxs),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: foreground,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -1723,43 +1890,40 @@ class _BoardPlayerTray extends StatelessWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.xs),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              for (final player in players) ...[
-                if (readOnly)
-                  _BoardPlayerChip(
-                    player: player,
-                    assigned: assignedPlayerIds.contains(player.id),
-                  )
-                else
-                  Draggable<String>(
-                    data: player.id,
-                    feedback: Material(
-                      color: Colors.transparent,
-                      child: _BoardPlayerChip(
-                        player: player,
-                        assigned: assignedPlayerIds.contains(player.id),
-                        elevated: true,
-                      ),
+        Wrap(
+          spacing: AppSpacing.xs,
+          runSpacing: AppSpacing.xs,
+          children: [
+            for (final player in players)
+              if (readOnly)
+                _BoardPlayerChip(
+                  player: player,
+                  assigned: assignedPlayerIds.contains(player.id),
+                )
+              else
+                Draggable<String>(
+                  data: player.id,
+                  feedback: Material(
+                    color: Colors.transparent,
+                    child: _BoardPlayerChip(
+                      player: player,
+                      assigned: assignedPlayerIds.contains(player.id),
+                      elevated: true,
                     ),
-                    childWhenDragging: Opacity(
-                      opacity: 0.42,
-                      child: _BoardPlayerChip(
-                        player: player,
-                        assigned: assignedPlayerIds.contains(player.id),
-                      ),
-                    ),
+                  ),
+                  childWhenDragging: Opacity(
+                    opacity: 0.42,
                     child: _BoardPlayerChip(
                       player: player,
                       assigned: assignedPlayerIds.contains(player.id),
                     ),
                   ),
-                const SizedBox(width: AppSpacing.xs),
-              ],
-            ],
-          ),
+                  child: _BoardPlayerChip(
+                    player: player,
+                    assigned: assignedPlayerIds.contains(player.id),
+                  ),
+                ),
+          ],
         ),
       ],
     );
@@ -1847,7 +2011,12 @@ class _TacticsPitch extends StatelessWidget {
     final playerById = {for (final player in players) player.id: player};
     return LayoutBuilder(
       builder: (context, outerConstraints) {
-        final boardHeight = outerConstraints.maxWidth >= 700 ? 680.0 : 560.0;
+        final boardWidth = outerConstraints.maxWidth;
+        final boardHeight = boardWidth >= 860
+            ? 520.0
+            : boardWidth >= 600
+                ? 440.0
+                : math.max(320.0, boardWidth * 0.74);
         return SizedBox(
           height: boardHeight,
           child: LayoutBuilder(
@@ -2062,50 +2231,168 @@ Offset _normalizeBoardPoint(Offset localPosition, Size size) {
   );
 }
 
+const List<double> _teamBoardLaneFractions = <double>[0.18, 0.38, 0.62, 0.82];
+
 class _PitchPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
+    final backgroundPaint = Paint()
       ..shader = const LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [Color(0xFF166534), Color(0xFF0F5132)],
+        colors: [Color(0xFF2E7D32), Color(0xFF1B5E20)],
       ).createShader(Offset.zero & size);
-    canvas.drawRect(Offset.zero & size, paint);
+    canvas.drawRect(Offset.zero & size, backgroundPaint);
 
-    final linePaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.52)
-      ..strokeWidth = 2
-      ..style = PaintingStyle.stroke;
-    final thinLinePaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.26)
-      ..strokeWidth = 1
-      ..style = PaintingStyle.stroke;
-    final rect = Rect.fromLTWH(14, 14, size.width - 28, size.height - 28);
-    canvas.drawRect(rect, linePaint);
+    final fieldRect = Rect.fromLTWH(8, 8, size.width - 16, size.height - 16);
+    final stripePaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.045)
+      ..style = PaintingStyle.fill;
+    final stripeWidth = fieldRect.width / 10;
+    for (var i = 0; i < 10; i += 2) {
+      canvas.drawRect(
+        Rect.fromLTWH(
+          fieldRect.left + stripeWidth * i,
+          fieldRect.top,
+          stripeWidth,
+          fieldRect.height,
+        ),
+        stripePaint,
+      );
+    }
+
+    _drawTacticalOverlay(canvas, fieldRect);
+
+    final line = Paint()
+      ..color = Colors.white.withValues(alpha: 0.72)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(1.5, math.min(size.width, size.height) * 0.004);
+    final center = fieldRect.center;
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(fieldRect, const Radius.circular(12)),
+      line,
+    );
     canvas.drawLine(
-      Offset(14, size.height / 2),
-      Offset(size.width - 14, size.height / 2),
-      linePaint,
+      Offset(center.dx, fieldRect.top),
+      Offset(center.dx, fieldRect.bottom),
+      line,
     );
-    canvas.drawCircle(Offset(size.width / 2, size.height / 2), 42, linePaint);
-    canvas.drawCircle(Offset(size.width / 2, size.height / 2), 3, linePaint);
+    canvas.drawCircle(
+      center,
+      math.min(42, fieldRect.shortestSide * 0.13),
+      line,
+    );
+    final boxDepth = math.min(fieldRect.width * 0.17, 92.0);
+    final boxHeight = math.min(fieldRect.height * 0.42, 136.0);
+    final boxTop = center.dy - boxHeight / 2;
     canvas.drawRect(
-      Rect.fromCenter(
-        center: Offset(size.width / 2, 14),
-        width: size.width * 0.46,
-        height: size.height * 0.16,
-      ),
-      thinLinePaint,
+      Rect.fromLTWH(fieldRect.left, boxTop, boxDepth, boxHeight),
+      line,
     );
     canvas.drawRect(
-      Rect.fromCenter(
-        center: Offset(size.width / 2, size.height - 14),
-        width: size.width * 0.46,
-        height: size.height * 0.16,
-      ),
-      thinLinePaint,
+      Rect.fromLTWH(fieldRect.right - boxDepth, boxTop, boxDepth, boxHeight),
+      line,
     );
+    final goalDepth = math.min(fieldRect.width * 0.022, 12.0);
+    final goalHeight = math.min(fieldRect.height * 0.18, 58.0);
+    canvas.drawRect(
+      Rect.fromLTWH(
+        fieldRect.left - goalDepth,
+        center.dy - goalHeight / 2,
+        goalDepth,
+        goalHeight,
+      ),
+      line,
+    );
+    canvas.drawRect(
+      Rect.fromLTWH(
+        fieldRect.right,
+        center.dy - goalHeight / 2,
+        goalDepth,
+        goalHeight,
+      ),
+      line,
+    );
+    final spotPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.72)
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(center, 2.6, spotPaint);
+  }
+
+  void _drawTacticalOverlay(Canvas canvas, Rect fieldRect) {
+    final halfSpacePaint = Paint()
+      ..color = const Color(0xFFFFF59D).withValues(alpha: 0.075)
+      ..style = PaintingStyle.fill;
+    final centralPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.035)
+      ..style = PaintingStyle.fill;
+    final laneYs = _teamBoardLaneFractions
+        .map((fraction) => fieldRect.top + fieldRect.height * fraction)
+        .toList(growable: false);
+    canvas.drawRect(
+      Rect.fromLTRB(fieldRect.left, laneYs[0], fieldRect.right, laneYs[1]),
+      halfSpacePaint,
+    );
+    canvas.drawRect(
+      Rect.fromLTRB(fieldRect.left, laneYs[2], fieldRect.right, laneYs[3]),
+      halfSpacePaint,
+    );
+    canvas.drawRect(
+      Rect.fromLTRB(fieldRect.left, laneYs[1], fieldRect.right, laneYs[2]),
+      centralPaint,
+    );
+
+    final thirdPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.28)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2;
+    for (final fraction in const [1 / 3, 2 / 3]) {
+      final x = fieldRect.left + fieldRect.width * fraction;
+      _drawDashedGuide(
+        canvas,
+        Offset(x, fieldRect.top),
+        Offset(x, fieldRect.bottom),
+        thirdPaint,
+        dash: 12,
+        gap: 8,
+      );
+    }
+
+    final lanePaint = Paint()
+      ..color = const Color(0xFFE0F7FA).withValues(alpha: 0.32)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0;
+    for (final y in laneYs) {
+      _drawDashedGuide(
+        canvas,
+        Offset(fieldRect.left, y),
+        Offset(fieldRect.right, y),
+        lanePaint,
+        dash: 9,
+        gap: 7,
+      );
+    }
+  }
+
+  void _drawDashedGuide(
+    Canvas canvas,
+    Offset start,
+    Offset end,
+    Paint paint, {
+    required double dash,
+    required double gap,
+  }) {
+    final vector = end - start;
+    final distance = vector.distance;
+    if (distance <= 0) return;
+    final direction = vector / distance;
+    var covered = 0.0;
+    while (covered < distance) {
+      final segmentStart = start + direction * covered;
+      final segmentEnd = start + direction * math.min(covered + dash, distance);
+      canvas.drawLine(segmentStart, segmentEnd, paint);
+      covered += dash + gap;
+    }
   }
 
   @override

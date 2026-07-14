@@ -11978,7 +11978,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get teamManagementWorkspaceTitle => '作業を選択';
 
   @override
-  String get teamManagementWorkspaceHelper => '必要な領域だけ開いて集中して管理します。';
+  String get teamManagementWorkspaceHelper =>
+      '必要な作業ボタンを選び、選手団、戦術ボード、チーム情報、予定画面へ移動します。';
+
+  @override
+  String get teamManagementWorkspaceBackButton => '作業選択へ';
 
   @override
   String get teamManagementWorkspaceRosterTab => '選手団';

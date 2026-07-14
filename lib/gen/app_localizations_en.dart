@@ -12332,7 +12332,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get teamManagementWorkspaceHelper =>
-      'Open only the area you need and stay focused.';
+      'Choose a task button to open the roster, tactics board, team details, or schedule screen.';
+
+  @override
+  String get teamManagementWorkspaceBackButton => 'Back to tasks';
 
   @override
   String get teamManagementWorkspaceRosterTab => 'Roster';

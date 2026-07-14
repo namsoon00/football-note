@@ -12000,7 +12000,11 @@ class AppLocalizationsKo extends AppLocalizations {
   String get teamManagementWorkspaceTitle => '작업 선택';
 
   @override
-  String get teamManagementWorkspaceHelper => '필요한 영역만 열어 집중해서 관리하세요.';
+  String get teamManagementWorkspaceHelper =>
+      '필요한 작업 버튼을 눌러 선수단, 전술 보드, 팀 정보, 일정 화면으로 이동하세요.';
+
+  @override
+  String get teamManagementWorkspaceBackButton => '작업 선택으로';
 
   @override
   String get teamManagementWorkspaceRosterTab => '선수단';

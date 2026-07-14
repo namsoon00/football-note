@@ -21264,8 +21264,14 @@ abstract class AppLocalizations {
   /// No description provided for @teamManagementWorkspaceHelper.
   ///
   /// In en, this message translates to:
-  /// **'Open only the area you need and stay focused.'**
+  /// **'Choose a task button to open the roster, tactics board, team details, or schedule screen.'**
   String get teamManagementWorkspaceHelper;
+
+  /// No description provided for @teamManagementWorkspaceBackButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to tasks'**
+  String get teamManagementWorkspaceBackButton;
 
   /// No description provided for @teamManagementWorkspaceRosterTab.
   ///
