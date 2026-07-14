@@ -10356,6 +10356,21 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get healthConnectImportNotificationChannelName => '삼성 헬스 자동 등록';
+
+  @override
+  String get healthConnectImportNotificationChannelDescription =>
+      'Health Connect 줄넘기 기록 자동 등록 알림';
+
+  @override
+  String get healthConnectImportNotificationTitle => '줄넘기 기록 등록 완료';
+
+  @override
+  String healthConnectImportNotificationBody(int count) {
+    return '줄넘기 기록 $count개가 태오의노트에 등록됐어요.';
+  }
+
+  @override
   String get healthConnectSyncNoNewRecords => '새로 등록할 줄넘기 기록이 없어요.';
 
   @override

@@ -864,6 +864,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       final result = _healthConnectStatus.permissionsGranted
           ? await (() async {
               await service.setAutoSyncEnabled(true);
+              await service.requestImportNotificationPermission();
               return service.syncRecent();
             })()
           : await service.requestPermissionsAndSync();

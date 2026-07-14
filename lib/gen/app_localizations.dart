@@ -18355,6 +18355,30 @@ abstract class AppLocalizations {
   /// **'Imported {count} jump rope record(s).'**
   String healthConnectSyncImported(int count);
 
+  /// No description provided for @healthConnectImportNotificationChannelName.
+  ///
+  /// In en, this message translates to:
+  /// **'Samsung Health auto import'**
+  String get healthConnectImportNotificationChannelName;
+
+  /// No description provided for @healthConnectImportNotificationChannelDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Alerts when Health Connect jump rope workouts are imported'**
+  String get healthConnectImportNotificationChannelDescription;
+
+  /// No description provided for @healthConnectImportNotificationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump rope record imported'**
+  String get healthConnectImportNotificationTitle;
+
+  /// No description provided for @healthConnectImportNotificationBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} jump rope record(s) were imported into Taeo\'s Note.'**
+  String healthConnectImportNotificationBody(int count);
+
   /// No description provided for @healthConnectSyncNoNewRecords.
   ///
   /// In en, this message translates to:

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:football_note/application/health_connect_jump_rope_import_notification_service.dart';
 import 'package:football_note/application/health_connect_jump_rope_sync_service.dart';
 import 'package:football_note/application/training_service.dart';
 import 'package:football_note/domain/entities/sport_definition.dart';
@@ -84,6 +85,76 @@ void main() {
     );
   });
 
+  test('syncRecent does not show an OS notification for manual sync', () async {
+    final options = _MemoryOptionRepository();
+    final trainingRepository = _MemoryTrainingRepository();
+    final notifier = _FakeHealthConnectJumpRopeImportNotifier();
+    final platform = _FakeHealthConnectJumpRopePlatform(
+      sessions: [
+        HealthConnectJumpRopeSession(
+          id: 'hc-manual',
+          startTime: DateTime(2026, 7, 11, 7, 30),
+          endTime: DateTime(2026, 7, 11, 7, 40),
+          durationMillis: 10 * Duration.millisecondsPerMinute,
+          jumpCount: 700,
+          title: 'Jump rope',
+          sourcePackage: 'com.sec.android.app.shealth',
+          matchedBySegment: true,
+        ),
+      ],
+    );
+    final service = HealthConnectJumpRopeSyncService(
+      trainingService: TrainingService(trainingRepository),
+      optionRepository: options,
+      platform: platform,
+      importNotifier: notifier,
+    );
+
+    final result = await service.syncRecent(now: DateTime(2026, 7, 11, 9));
+
+    expect(result.importedCount, 1);
+    expect(notifier.notifications, isEmpty);
+  });
+
+  test('syncIfEnabled shows an OS notification after automatic import',
+      () async {
+    final options = _MemoryOptionRepository();
+    await options.setValue(
+      HealthConnectJumpRopeSyncService.autoSyncEnabledKey,
+      true,
+    );
+    final trainingRepository = _MemoryTrainingRepository();
+    final notifier = _FakeHealthConnectJumpRopeImportNotifier();
+    final startTime = DateTime(2026, 7, 11, 7, 30);
+    final platform = _FakeHealthConnectJumpRopePlatform(
+      sessions: [
+        HealthConnectJumpRopeSession(
+          id: 'hc-auto',
+          startTime: startTime,
+          endTime: DateTime(2026, 7, 11, 7, 40),
+          durationMillis: 10 * Duration.millisecondsPerMinute,
+          jumpCount: 700,
+          title: 'Jump rope',
+          sourcePackage: 'com.sec.android.app.shealth',
+          matchedBySegment: true,
+        ),
+      ],
+    );
+    final service = HealthConnectJumpRopeSyncService(
+      trainingService: TrainingService(trainingRepository),
+      optionRepository: options,
+      platform: platform,
+      importNotifier: notifier,
+    );
+
+    final result = await service.syncIfEnabled(now: DateTime(2026, 7, 11, 9));
+
+    expect(result.importedCount, 1);
+    expect(notifier.notifications, hasLength(1));
+    expect(notifier.notifications.single.count, 1);
+    expect(notifier.notifications.single.firstSessionStart, startTime);
+  });
+
   test('syncRecent skips a session when only its Health Connect id changed',
       () async {
     final options = _MemoryOptionRepository();
@@ -160,6 +231,7 @@ void main() {
       () async {
     final options = _MemoryOptionRepository();
     final trainingRepository = _MemoryTrainingRepository();
+    final notifier = _FakeHealthConnectJumpRopeImportNotifier();
     final platform = _FakeHealthConnectJumpRopePlatform(
       permissionsGranted: false,
       grantOnRequest: true,
@@ -180,6 +252,7 @@ void main() {
       trainingService: TrainingService(trainingRepository),
       optionRepository: options,
       platform: platform,
+      importNotifier: notifier,
     );
 
     final result = await service.requestPermissionsAndSync(
@@ -188,6 +261,7 @@ void main() {
 
     expect(result.importedCount, 1);
     expect(service.autoSyncEnabled, isTrue);
+    expect(notifier.permissionRequests, 1);
     expect(trainingRepository.entries.single.program, '줄넘기');
   });
 }
@@ -205,6 +279,29 @@ String _sessionFingerprint({
     endTime.millisecondsSinceEpoch,
     durationMillis,
   ].join('|');
+}
+
+class _FakeHealthConnectJumpRopeImportNotifier
+    implements HealthConnectJumpRopeImportNotifier {
+  final List<HealthConnectJumpRopeImportNotification> notifications =
+      <HealthConnectJumpRopeImportNotification>[];
+  var permissionRequests = 0;
+
+  @override
+  Future<String?> launchPayload() async => null;
+
+  @override
+  Future<bool> requestPermission() async {
+    permissionRequests += 1;
+    return true;
+  }
+
+  @override
+  Future<void> showImported(
+    HealthConnectJumpRopeImportNotification notification,
+  ) async {
+    notifications.add(notification);
+  }
 }
 
 class _FakeHealthConnectJumpRopePlatform

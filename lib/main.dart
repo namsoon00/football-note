@@ -24,6 +24,7 @@ import 'application/backup_service.dart';
 import 'application/club_training_reminder_service.dart';
 import 'application/drive_backup_service.dart';
 import 'application/family_access_service.dart';
+import 'application/health_connect_jump_rope_import_notification_service.dart';
 import 'application/health_connect_jump_rope_sync_service.dart';
 import 'application/meal_log_service.dart';
 import 'application/league_fixture_reminder_service.dart';
@@ -146,11 +147,19 @@ Future<_FootballNoteDependencies> _initializeAppDependencies() async {
     trainingRepository,
     backupService: backupService,
   );
+  final healthConnectJumpRopeImportNotificationService =
+      MethodChannelHealthConnectJumpRopePlatform.isSupportedDevice
+          ? HealthConnectJumpRopeImportNotificationService(
+              optionRepository: optionRepository,
+              settingsService: settingsService,
+            )
+          : null;
   final healthConnectJumpRopeSyncService =
       MethodChannelHealthConnectJumpRopePlatform.isSupportedDevice
           ? HealthConnectJumpRopeSyncService(
               trainingService: trainingService,
               optionRepository: optionRepository,
+              importNotifier: healthConnectJumpRopeImportNotificationService!,
             )
           : null;
   final reminderService = TrainingPlanReminderService(
@@ -186,6 +195,8 @@ Future<_FootballNoteDependencies> _initializeAppDependencies() async {
   WeatherReminderService.onNotificationPayloadTap =
       NotificationTapRouter.handlePayload;
   ClubTrainingReminderService.onNotificationPayloadTap =
+      NotificationTapRouter.handlePayload;
+  HealthConnectJumpRopeImportNotificationService.onNotificationPayloadTap =
       NotificationTapRouter.handlePayload;
   settingsService.addListener(() {
     unawaited(reminderService.syncSettingsDrivenReminders());
@@ -355,6 +366,13 @@ Future<void> _warmStartupServices({
     }
   } catch (_) {
     // Club training reminder sync can recover on later schedule changes.
+  }
+  try {
+    handleLaunchPayload(
+      await healthConnectJumpRopeSyncService?.importNotificationLaunchPayload(),
+    );
+  } catch (_) {
+    // Health Connect notification launch handling can recover later.
   }
   try {
     await healthConnectJumpRopeSyncService?.syncIfEnabled();

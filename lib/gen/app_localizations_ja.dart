@@ -10330,6 +10330,21 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get healthConnectImportNotificationChannelName => 'Samsung Health自動登録';
+
+  @override
+  String get healthConnectImportNotificationChannelDescription =>
+      'Health Connectの縄跳び記録を自動登録したときの通知';
+
+  @override
+  String get healthConnectImportNotificationTitle => '縄跳び記録を登録しました';
+
+  @override
+  String healthConnectImportNotificationBody(int count) {
+    return '縄跳び記録$count件をTaeo\'s Noteに登録しました。';
+  }
+
+  @override
   String get healthConnectSyncNoNewRecords => '新しく登録する縄跳び記録はありません。';
 
   @override

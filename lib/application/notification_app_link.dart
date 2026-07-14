@@ -49,6 +49,15 @@ class NotificationAppLink {
     ).toString();
   }
 
+  static String calendarDay({required DateTime date}) {
+    return Uri(
+      scheme: scheme,
+      host: 'calendar',
+      path: '/day',
+      queryParameters: {'date': _dateToken(date)},
+    ).toString();
+  }
+
   static String challengeRound({
     required String runId,
     required int roundNumber,

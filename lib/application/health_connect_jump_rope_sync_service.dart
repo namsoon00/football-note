@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import '../domain/entities/sport_definition.dart';
 import '../domain/entities/training_entry.dart';
 import '../domain/repositories/option_repository.dart';
+import 'health_connect_jump_rope_import_notification_service.dart';
 import 'player_level_service.dart';
 import 'sport_service.dart';
 import 'training_service.dart';
@@ -198,15 +199,19 @@ class HealthConnectJumpRopeSyncService {
   final TrainingService _trainingService;
   final OptionRepository _optionRepository;
   final HealthConnectJumpRopePlatform _platform;
+  final HealthConnectJumpRopeImportNotifier _importNotifier;
 
   HealthConnectJumpRopeSyncService({
     required TrainingService trainingService,
     required OptionRepository optionRepository,
     HealthConnectJumpRopePlatform platform =
         const MethodChannelHealthConnectJumpRopePlatform(),
+    HealthConnectJumpRopeImportNotifier importNotifier =
+        const NoopHealthConnectJumpRopeImportNotifier(),
   })  : _trainingService = trainingService,
         _optionRepository = optionRepository,
-        _platform = platform;
+        _platform = platform,
+        _importNotifier = importNotifier;
 
   bool get autoSyncEnabled =>
       _optionRepository.getValue<bool>(autoSyncEnabledKey) ?? false;
@@ -236,7 +241,16 @@ class HealthConnectJumpRopeSyncService {
       );
     }
     await setAutoSyncEnabled(true);
+    await _importNotifier.requestPermission();
     return syncRecent(now: now);
+  }
+
+  Future<bool> requestImportNotificationPermission() {
+    return _importNotifier.requestPermission();
+  }
+
+  Future<String?> importNotificationLaunchPayload() {
+    return _importNotifier.launchPayload();
   }
 
   Future<HealthConnectJumpRopeSyncResult> syncIfEnabled({
@@ -247,12 +261,13 @@ class HealthConnectJumpRopeSyncService {
         status: HealthConnectStatus.unavailable(),
       );
     }
-    return syncRecent(now: now);
+    return syncRecent(now: now, notifyOnImport: true);
   }
 
   Future<HealthConnectJumpRopeSyncResult> syncRecent({
     DateTime? now,
     int lookbackDays = defaultLookbackDays,
+    bool notifyOnImport = false,
   }) async {
     final currentStatus = await _platform.status();
     if (!currentStatus.isAvailable || !currentStatus.permissionsGranted) {
@@ -272,6 +287,7 @@ class HealthConnectJumpRopeSyncService {
 
     var importedCount = 0;
     var duplicateCount = 0;
+    DateTime? firstImportedSessionStart;
     final nextSyncedIds = syncedIds.toList(growable: true);
     for (final session in sessions) {
       final recordId = session.id.trim();
@@ -298,6 +314,7 @@ class HealthConnectJumpRopeSyncService {
       );
       existingEntries.add(entry);
       importedCount += 1;
+      firstImportedSessionStart ??= session.startTime;
       nextSyncedIds.addAll(syncKeys);
       syncedIds.addAll(syncKeys);
     }
@@ -311,6 +328,19 @@ class HealthConnectJumpRopeSyncService {
       syncEndedAt.toIso8601String(),
     );
     await _optionRepository.setValue(lastImportCountKey, importedCount);
+    if (notifyOnImport && importedCount > 0) {
+      try {
+        await _importNotifier.showImported(
+          HealthConnectJumpRopeImportNotification(
+            count: importedCount,
+            importedAt: syncEndedAt,
+            firstSessionStart: firstImportedSessionStart,
+          ),
+        );
+      } catch (_) {
+        // The import has already been saved; notification can recover later.
+      }
+    }
 
     return HealthConnectJumpRopeSyncResult(
       status: currentStatus,

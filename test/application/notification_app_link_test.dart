@@ -22,6 +22,11 @@ void main() {
         path: '/inactivity',
       );
       expectLink(
+        NotificationAppLink.calendarDay(date: date),
+        host: 'calendar',
+        path: '/day',
+      );
+      expectLink(
         NotificationAppLink.challengeRound(runId: 'run-1', roundNumber: 2),
         host: 'challenge',
         path: '/round',
@@ -102,6 +107,7 @@ void main() {
           daysSince: 3,
           targetDay: date,
         ),
+        'calendar day': NotificationAppLink.calendarDay(date: date),
         'challenge': NotificationAppLink.challengeRound(
           runId: 'run-1',
           roundNumber: 2,
