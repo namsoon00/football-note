@@ -86,7 +86,6 @@ class _LogsScreenState extends State<LogsScreen> {
   static const String _jumpRopeOnlyFilterKey = 'logs_filter_jump_rope_only';
   static const String _feedbackOnlyFilterKey = 'logs_filter_feedback_only';
   static const String _lessonOnlyFilterKey = 'logs_filter_lesson_only';
-  static const String _quickGuideSeenKey = 'logs_quick_guide_seen_v1';
   final TextEditingController _searchController = TextEditingController();
   bool _showSearch = false;
   String _searchQuery = '';
@@ -98,7 +97,6 @@ class _LogsScreenState extends State<LogsScreen> {
   bool _lessonOnly = false;
   _LogsLayout _layout = _LogsLayout.card;
   bool _optionsLoaded = false;
-  bool _quickGuideOpened = false;
   List<String> _programOptions = [];
   static const int _pageSize = 12;
   int _visibleCount = _pageSize;
@@ -202,12 +200,6 @@ class _LogsScreenState extends State<LogsScreen> {
                   sourceEntries.length >= _loadedEntryLimit;
               final allEntries = sourceEntries.toList(growable: false)
                 ..sort(TrainingEntry.compareByRecentCreated);
-              if (snapshot.hasData && allEntries.isEmpty) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (!mounted) return;
-                  unawaited(_maybeShowQuickGuide(hasEntries: false));
-                });
-              }
               final parentFeedbackByEntryId = ParentSharedFeedbackService(
                 widget.optionRepository,
               ).loadAll();
@@ -1189,69 +1181,6 @@ class _LogsScreenState extends State<LogsScreen> {
     });
   }
 
-  Future<void> _maybeShowQuickGuide({required bool hasEntries}) async {
-    if (_quickGuideOpened) return;
-    if (hasEntries) return;
-    if (_isParentMode) return;
-    _quickGuideOpened = true;
-    final seen = widget.optionRepository.getValue<bool>(_quickGuideSeenKey);
-    if (seen == true) return;
-    await _showQuickGuideDialog();
-    await widget.optionRepository.setValue(_quickGuideSeenKey, true);
-  }
-
-  Future<void> _showQuickGuideDialog() async {
-    final l10n = AppLocalizations.of(context)!;
-    final steps = [
-      _LogsQuickGuideStep(
-        icon: Icons.add_circle_outline,
-        actionLabel: l10n.addEntry,
-        description: l10n.welcomeLogsStepAdd,
-      ),
-      _LogsQuickGuideStep(
-        icon: Icons.developer_board_outlined,
-        actionLabel: l10n.homePriorityBoardAction,
-        description: l10n.welcomeLogsStepBoard,
-      ),
-      _LogsQuickGuideStep(
-        icon: Icons.view_agenda_outlined,
-        actionLabel: l10n.guideActionCardList,
-        description: l10n.welcomeLogsStepReview,
-      ),
-    ];
-    await showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.logsQuickGuideTitle),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(l10n.logsQuickGuideIntro),
-            const SizedBox(height: 12),
-            for (var index = 0; index < steps.length; index += 1) ...[
-              _LogsQuickGuideStepTile(number: index + 1, step: steps[index]),
-              if (index != steps.length - 1) const SizedBox(height: 8),
-            ],
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(MaterialLocalizations.of(context).closeButtonLabel),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              widget.onCreate();
-            },
-            child: Text(l10n.addEntry),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildEmptyState({
     required String title,
     required String subtitle,
@@ -1901,101 +1830,6 @@ class _StatusIcon extends StatelessWidget {
               meta.sparkleIcon,
               size: 10,
               color: Colors.white.withAlpha(230),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _LogsQuickGuideStep {
-  final IconData icon;
-  final String actionLabel;
-  final String description;
-
-  const _LogsQuickGuideStep({
-    required this.icon,
-    required this.actionLabel,
-    required this.description,
-  });
-}
-
-class _LogsQuickGuideStepTile extends StatelessWidget {
-  final int number;
-  final _LogsQuickGuideStep step;
-
-  const _LogsQuickGuideStepTile({required this.number, required this.step});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: scheme.primaryContainer.withValues(alpha: 0.28),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: scheme.primary.withValues(alpha: 0.18)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CircleAvatar(
-            radius: 12,
-            backgroundColor: scheme.primary,
-            child: Text(
-              '$number',
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: scheme.onPrimary,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: scheme.surface,
-                    borderRadius: BorderRadius.circular(999),
-                    border: Border.all(
-                      color: scheme.primary.withValues(alpha: 0.24),
-                    ),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(step.icon, size: 15, color: scheme.primary),
-                        const SizedBox(width: 5),
-                        Flexible(
-                          child: Text(
-                            step.actionLabel,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.labelMedium?.copyWith(
-                              color: scheme.primary,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  step.description,
-                  style: theme.textTheme.bodySmall?.copyWith(height: 1.35),
-                ),
-              ],
             ),
           ),
         ],
