@@ -5791,6 +5791,17 @@
       }
     }
   },
+  "healthConnectImportNotificationChannelName": "Samsung Health auto import",
+  "healthConnectImportNotificationChannelDescription": "Alerts when Health Connect jump rope workouts are imported",
+  "healthConnectImportNotificationTitle": "Jump rope record imported",
+  "healthConnectImportNotificationBody": "{count} jump rope record(s) were imported into Taeo's Note.",
+  "@healthConnectImportNotificationBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "healthConnectSyncNoNewRecords": "No new jump rope records to import.",
   "healthConnectSyncFailed": "Health Connect sync failed.",
   "healthConnectDisabled": "Jump rope auto import is off.",

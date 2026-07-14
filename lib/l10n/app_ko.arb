@@ -5791,6 +5791,17 @@
       }
     }
   },
+  "healthConnectImportNotificationChannelName": "삼성 헬스 자동 등록",
+  "healthConnectImportNotificationChannelDescription": "Health Connect 줄넘기 기록 자동 등록 알림",
+  "healthConnectImportNotificationTitle": "줄넘기 기록 등록 완료",
+  "healthConnectImportNotificationBody": "줄넘기 기록 {count}개가 태오의노트에 등록됐어요.",
+  "@healthConnectImportNotificationBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "healthConnectSyncNoNewRecords": "새로 등록할 줄넘기 기록이 없어요.",
   "healthConnectSyncFailed": "Health Connect 동기화에 실패했어요.",
   "healthConnectDisabled": "줄넘기 자동 등록을 껐어요.",

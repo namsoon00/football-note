@@ -10636,6 +10636,23 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get healthConnectImportNotificationChannelName =>
+      'Samsung Health auto import';
+
+  @override
+  String get healthConnectImportNotificationChannelDescription =>
+      'Alerts when Health Connect jump rope workouts are imported';
+
+  @override
+  String get healthConnectImportNotificationTitle =>
+      'Jump rope record imported';
+
+  @override
+  String healthConnectImportNotificationBody(int count) {
+    return '$count jump rope record(s) were imported into Taeo\'s Note.';
+  }
+
+  @override
   String get healthConnectSyncNoNewRecords =>
       'No new jump rope records to import.';
 

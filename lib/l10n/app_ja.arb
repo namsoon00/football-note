@@ -5791,6 +5791,17 @@
       }
     }
   },
+  "healthConnectImportNotificationChannelName": "Samsung Health自動登録",
+  "healthConnectImportNotificationChannelDescription": "Health Connectの縄跳び記録を自動登録したときの通知",
+  "healthConnectImportNotificationTitle": "縄跳び記録を登録しました",
+  "healthConnectImportNotificationBody": "縄跳び記録{count}件をTaeo's Noteに登録しました。",
+  "@healthConnectImportNotificationBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "healthConnectSyncNoNewRecords": "新しく登録する縄跳び記録はありません。",
   "healthConnectSyncFailed": "Health Connectの同期に失敗しました。",
   "healthConnectDisabled": "縄跳びの自動登録をオフにしました。",
