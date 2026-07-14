@@ -157,18 +157,25 @@ class HealthConnectChannel(
                 "End time is missing.",
             )
         val client = HealthConnectClient.getOrCreate(activity)
-        val response = client.readRecords(
-            ReadRecordsRequest(
-                recordType = ExerciseSessionRecord::class,
-                timeRangeFilter = TimeRangeFilter.between(
-                    Instant.ofEpochMilli(startMillis),
-                    Instant.ofEpochMilli(endMillis),
+        val records = mutableListOf<ExerciseSessionRecord>()
+        var pageToken: String? = null
+        do {
+            val response = client.readRecords(
+                ReadRecordsRequest(
+                    recordType = ExerciseSessionRecord::class,
+                    timeRangeFilter = TimeRangeFilter.between(
+                        Instant.ofEpochMilli(startMillis),
+                        Instant.ofEpochMilli(endMillis),
+                    ),
+                    ascendingOrder = true,
+                    pageSize = 500,
+                    pageToken = pageToken,
                 ),
-                ascendingOrder = true,
-                pageSize = 500,
-            ),
-        )
-        return response.records.mapNotNull(::jumpRopeSessionMap)
+            )
+            records.addAll(response.records)
+            pageToken = response.pageToken?.takeIf { it.isNotBlank() }
+        } while (pageToken != null)
+        return records.mapNotNull(::jumpRopeSessionMap)
     }
 
     private fun jumpRopeSessionMap(
@@ -182,6 +189,16 @@ class HealthConnectChannel(
             containsJumpRopeKeyword(record.notes)
         if (!matchedBySegment && !matchedByText) return null
 
+        val sessionStartTime = if (matchedBySegment) {
+            jumpSegments.minOf { it.startTime }
+        } else {
+            record.startTime
+        }
+        val sessionEndTime = if (matchedBySegment) {
+            jumpSegments.maxOf { it.endTime }
+        } else {
+            record.endTime
+        }
         val durationMillis = if (matchedBySegment) {
             jumpSegments.sumOf { segment ->
                 Duration.between(segment.startTime, segment.endTime)
@@ -204,8 +221,8 @@ class HealthConnectChannel(
         }
         return mapOf(
             "id" to id,
-            "startEpochMillis" to record.startTime.toEpochMilli(),
-            "endEpochMillis" to record.endTime.toEpochMilli(),
+            "startEpochMillis" to sessionStartTime.toEpochMilli(),
+            "endEpochMillis" to sessionEndTime.toEpochMilli(),
             "durationMillis" to durationMillis,
             "jumpCount" to jumpSegments.sumOf { it.repetitions },
             "title" to (record.title ?: ""),

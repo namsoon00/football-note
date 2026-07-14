@@ -176,8 +176,10 @@ class MethodChannelHealthConnectJumpRopePlatform
     );
   }
 
-  static bool get _isAndroid =>
+  static bool get isSupportedDevice =>
       !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+
+  static bool get _isAndroid => isSupportedDevice;
 }
 
 class HealthConnectJumpRopeSyncService {
@@ -191,7 +193,7 @@ class HealthConnectJumpRopeSyncService {
       'health_connect_jump_rope_last_import_count_v1';
 
   static const int defaultLookbackDays = 30;
-  static const int _maxStoredRecordIds = 500;
+  static const int _maxStoredRecordIds = 1000;
 
   final TrainingService _trainingService;
   final OptionRepository _optionRepository;
@@ -273,8 +275,15 @@ class HealthConnectJumpRopeSyncService {
     final nextSyncedIds = syncedIds.toList(growable: true);
     for (final session in sessions) {
       final recordId = session.id.trim();
-      if (recordId.isEmpty || syncedIds.contains(recordId)) {
+      final syncKeys = _syncKeysForSession(session);
+      final alreadyImported = syncKeys.any(syncedIds.contains) ||
+          _matchesExistingEntry(session, existingEntries);
+      if (recordId.isEmpty || alreadyImported) {
         duplicateCount += 1;
+        if (recordId.isNotEmpty && alreadyImported) {
+          nextSyncedIds.addAll(syncKeys);
+          syncedIds.addAll(syncKeys);
+        }
         continue;
       }
 
@@ -289,8 +298,8 @@ class HealthConnectJumpRopeSyncService {
       );
       existingEntries.add(entry);
       importedCount += 1;
-      nextSyncedIds.add(recordId);
-      syncedIds.add(recordId);
+      nextSyncedIds.addAll(syncKeys);
+      syncedIds.addAll(syncKeys);
     }
 
     await _optionRepository.setValue(
@@ -362,5 +371,41 @@ class HealthConnectJumpRopeSyncService {
     }
     if (unique.length <= _maxStoredRecordIds) return unique;
     return unique.sublist(unique.length - _maxStoredRecordIds);
+  }
+
+  List<String> _syncKeysForSession(HealthConnectJumpRopeSession session) {
+    final id = session.id.trim();
+    final fingerprint = [
+      'healthConnectJumpRope',
+      session.sourcePackage.trim(),
+      session.startTime.millisecondsSinceEpoch,
+      session.endTime.millisecondsSinceEpoch,
+      session.durationMillis,
+    ].join('|');
+    return <String>[
+      if (id.isNotEmpty) id,
+      fingerprint,
+    ];
+  }
+
+  bool _matchesExistingEntry(
+    HealthConnectJumpRopeSession session,
+    List<TrainingEntry> entries,
+  ) {
+    final sessionDay = DateTime(
+      session.startTime.year,
+      session.startTime.month,
+      session.startTime.day,
+    );
+    return entries.any((entry) {
+      if (!entry.jumpRopeEnabled) return false;
+      if (entry.createdAt != session.startTime) return false;
+      if (entry.date != sessionDay) return false;
+      if (entry.jumpRopeMinutes != session.durationMinutes) return false;
+      if (session.jumpCount > 0 && entry.jumpRopeCount != session.jumpCount) {
+        return false;
+      }
+      return true;
+    });
   }
 }

@@ -146,10 +146,13 @@ Future<_FootballNoteDependencies> _initializeAppDependencies() async {
     trainingRepository,
     backupService: backupService,
   );
-  final healthConnectJumpRopeSyncService = HealthConnectJumpRopeSyncService(
-    trainingService: trainingService,
-    optionRepository: optionRepository,
-  );
+  final healthConnectJumpRopeSyncService =
+      MethodChannelHealthConnectJumpRopePlatform.isSupportedDevice
+          ? HealthConnectJumpRopeSyncService(
+              trainingService: trainingService,
+              optionRepository: optionRepository,
+            )
+          : null;
   final reminderService = TrainingPlanReminderService(
     optionRepository,
     settingsService,
@@ -290,7 +293,7 @@ Future<void> _warmStartupServices({
   required WeatherReminderService weatherReminderService,
   required ClubTrainingReminderService clubTrainingReminderService,
   required TrainingService trainingService,
-  required HealthConnectJumpRopeSyncService healthConnectJumpRopeSyncService,
+  required HealthConnectJumpRopeSyncService? healthConnectJumpRopeSyncService,
 }) async {
   var handledLaunchPayload = false;
   void handleLaunchPayload(String? payload) {
@@ -354,7 +357,7 @@ Future<void> _warmStartupServices({
     // Club training reminder sync can recover on later schedule changes.
   }
   try {
-    await healthConnectJumpRopeSyncService.syncIfEnabled();
+    await healthConnectJumpRopeSyncService?.syncIfEnabled();
   } catch (_) {
     // Health Connect sync can recover on the next app resume or settings action.
   }
@@ -418,7 +421,7 @@ class _FootballNoteDependencies {
   final SettingsService settingsService;
   final SportStateController sportController;
   final BackupService backupService;
-  final HealthConnectJumpRopeSyncService healthConnectJumpRopeSyncService;
+  final HealthConnectJumpRopeSyncService? healthConnectJumpRopeSyncService;
 
   const _FootballNoteDependencies({
     required this.trainingService,
