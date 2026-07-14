@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -113,6 +114,8 @@ class DriveBackupService implements BackupRepository {
   static const _lastRecordBackupKey = 'drive_last_record_backup_v1';
   static const _previousBackupCreatedAtKey =
       'drive_previous_backup_created_at_v1';
+  static const _localDatasetIdKey = 'drive_local_dataset_id_v1';
+  static const _localDeviceIdKey = 'drive_local_device_id_v1';
   static const _lastFamilySyncPushAtKey = 'drive_last_family_sync_push_v1';
   static const _lastFamilySyncPullAtKey = 'drive_last_family_sync_pull_v1';
   static const _lastFamilyRemoteSnapshotAtKey =
@@ -301,6 +304,7 @@ class DriveBackupService implements BackupRepository {
   static const _folderName = backupFolderName;
   static const _fileName = backupFileName;
   static const _previousFileName = previousBackupFileName;
+  static const _historyBackupRetentionCount = 10;
   static const _driveScope = 'https://www.googleapis.com/auth/drive.file';
   static const parentDriveMismatchErrorCode = 'parent_drive_mismatch';
   static const parentFamilyMismatchErrorCode = 'parent_family_mismatch';
@@ -323,6 +327,8 @@ class DriveBackupService implements BackupRepository {
     _lastBackupKey,
     _lastRecordBackupKey,
     _previousBackupCreatedAtKey,
+    _localDatasetIdKey,
+    _localDeviceIdKey,
     _lastFamilySyncPushAtKey,
     _lastFamilySyncPullAtKey,
     _lastFamilyRemoteSnapshotAtKey,
@@ -573,6 +579,7 @@ class DriveBackupService implements BackupRepository {
   static const _optionRecordsKey = 'optionRecords';
   static const _familyMetadataKey = 'family';
   static const _driveAccountMetadataKey = 'driveAccount';
+  static const _backupSafetyManifestKey = 'safetyManifest';
   static const _assetRecordsKey = 'assetRecords';
   static const _assetRefPrefix = 'backup_asset://';
   static const _backupFormatKey = 'format';
@@ -728,11 +735,23 @@ class DriveBackupService implements BackupRepository {
         : previousPlayerBackupFileName(playerId);
   }
 
+  String get _activeHistoryBackupFileNamePrefix {
+    final fileName = _activeBackupFileName;
+    final stem = fileName.endsWith('.json')
+        ? fileName.substring(0, fileName.length - '.json'.length)
+        : fileName;
+    return '${stem}_history_';
+  }
+
   @visibleForTesting
   String backupFileNameForTesting() => _activeBackupFileName;
 
   @visibleForTesting
   String previousBackupFileNameForTesting() => _activePreviousBackupFileName;
+
+  @visibleForTesting
+  String historyBackupFileNamePrefixForTesting() =>
+      _activeHistoryBackupFileNamePrefix;
 
   Future<T> _runDriveMutation<T>(Future<T> Function() action) async {
     final previous = _driveMutationTail.catchError((_) {});
@@ -2211,6 +2230,28 @@ class DriveBackupService implements BackupRepository {
     );
   }
 
+  Future<void> _cleanupHistoryBackups(
+    drive.DriveApi api,
+    String folderId,
+  ) async {
+    final prefix = _activeHistoryBackupFileNamePrefix;
+    final result = await api.files.list(
+      q: "'$folderId' in parents and name contains '$prefix' and trashed=false",
+      spaces: 'drive',
+      orderBy: 'modifiedTime desc',
+      $fields: 'files(id,name,modifiedTime)',
+    );
+    final files = (result.files ?? const <drive.File>[])
+        .where((file) => (file.name ?? '').startsWith(prefix))
+        .toList(growable: false);
+    for (var i = _historyBackupRetentionCount; i < files.length; i++) {
+      final id = files[i].id;
+      if (id != null && id.isNotEmpty) {
+        await api.files.delete(id);
+      }
+    }
+  }
+
   Future<void> _cleanupDuplicateBackupFiles(
     drive.DriveApi api,
     String folderId,
@@ -2302,6 +2343,12 @@ class DriveBackupService implements BackupRepository {
     final bytes = utf8.encode(content);
     final media = drive.Media(Stream.value(bytes), bytes.length);
     final activePreviousBackupFileName = _activePreviousBackupFileName;
+    await _createHistoryRemoteBackup(
+      driveApi,
+      folderId,
+      content,
+      createdAt: previousCreatedAt ?? existing.modifiedTime ?? DateTime.now(),
+    );
     final previous = await _findPreviousBackupFile(driveApi, folderId);
     if (previous != null && previous.id != null) {
       final updated = await driveApi.files.update(
@@ -2323,6 +2370,41 @@ class DriveBackupService implements BackupRepository {
     if (created.id != null) {
       await _cleanupDuplicatePreviousBackups(driveApi, folderId, created.id!);
     }
+  }
+
+  Future<void> _createHistoryRemoteBackup(
+    drive.DriveApi driveApi,
+    String folderId,
+    String content, {
+    required DateTime createdAt,
+  }) async {
+    final bytes = utf8.encode(content);
+    final media = drive.Media(Stream.value(bytes), bytes.length);
+    await driveApi.files.create(
+      drive.File(
+        name: _historyBackupFileName(createdAt),
+        parents: [folderId],
+      ),
+      uploadMedia: media,
+      $fields: 'id,modifiedTime',
+    );
+    await _cleanupHistoryBackups(driveApi, folderId);
+  }
+
+  String _historyBackupFileName(DateTime createdAt) {
+    final utc = createdAt.toUtc();
+    final stamp = _compactUtcTimestamp(utc);
+    return '$_activeHistoryBackupFileNamePrefix$stamp.json';
+  }
+
+  String _compactUtcTimestamp(DateTime value) {
+    String two(int number) => number.toString().padLeft(2, '0');
+    return '${value.year.toString().padLeft(4, '0')}'
+        '${two(value.month)}'
+        '${two(value.day)}T'
+        '${two(value.hour)}'
+        '${two(value.minute)}'
+        '${two(value.second)}Z';
   }
 
   DateTime? _createdAtFromBackupContent(String content) {
@@ -2427,8 +2509,11 @@ class DriveBackupService implements BackupRepository {
       options[key] = encodedValue;
     }
     final familyState = _familyService.loadState();
-    final driveAccountMetadata = _driveAccountMetadataForBackup();
-    return {
+    final driveAccount = _driveAccountInfoForBackup();
+    final driveAccountMetadata = driveAccount == null
+        ? const <String, dynamic>{}
+        : _driveConnectionMetadata(driveAccount);
+    final backup = <String, dynamic>{
       _backupFormatKey: _backupFormatValue,
       'version': _backupVersion,
       'createdAt': DateTime.now().toIso8601String(),
@@ -2444,6 +2529,11 @@ class DriveBackupService implements BackupRepository {
       if (driveAccountMetadata.isNotEmpty)
         _driveAccountMetadataKey: driveAccountMetadata,
     };
+    backup[_backupSafetyManifestKey] = _buildSafetyManifest(
+      backup,
+      driveAccount: driveAccount,
+    );
+    return backup;
   }
 
   @visibleForTesting
@@ -2596,6 +2686,7 @@ class DriveBackupService implements BackupRepository {
         fallbackCurrentSportId,
       );
     }
+    await _adoptDatasetIdFromSafetyManifest(data);
     _notifyDataChanged();
   }
 
@@ -3081,12 +3172,13 @@ class DriveBackupService implements BackupRepository {
     final email = current.email.trim();
     final label = current.label.trim();
     final subjectId = current.subjectId.trim();
+    final datasetId = _createLocalIdValue('dataset');
     final options = <String, dynamic>{
       if (email.isNotEmpty) sharedChildDriveEmailKey: email,
       if (label.isNotEmpty) sharedChildDriveLabelKey: label,
       if (subjectId.isNotEmpty) sharedChildDriveSubjectLocalKey: subjectId,
     };
-    return <String, dynamic>{
+    final backup = <String, dynamic>{
       _backupFormatKey: _backupFormatValue,
       'version': _backupVersion,
       'createdAt': DateTime.now().toIso8601String(),
@@ -3108,6 +3200,12 @@ class DriveBackupService implements BackupRepository {
       ),
       _driveAccountMetadataKey: _driveConnectionMetadata(current),
     };
+    backup[_backupSafetyManifestKey] = _buildSafetyManifest(
+      backup,
+      driveAccount: current,
+      datasetIdOverride: datasetId,
+    );
+    return backup;
   }
 
   bool hasLocalPreRestoreBackup() {
@@ -3561,6 +3659,10 @@ class DriveBackupService implements BackupRepository {
     if (data[_familyMetadataKey] case final family? when family is! Map) {
       throw StateError(invalidBackupPayloadErrorCode);
     }
+    if (data[_backupSafetyManifestKey] case final manifest?
+        when manifest is! Map) {
+      throw StateError(invalidBackupPayloadErrorCode);
+    }
     return data;
   }
 
@@ -3596,6 +3698,9 @@ class DriveBackupService implements BackupRepository {
     if (_backupOwnerConflictsWithConnectedAccount(remote)) {
       throw StateError(backupOwnerMismatchErrorCode);
     }
+    if (_wouldDropTooManyCoreRecords(local: local, remote: remote)) {
+      throw StateError(remoteBackupOverwriteBlockedErrorCode);
+    }
     if (!_hasCoreBackupData(local) && _hasCoreBackupData(remote)) {
       throw StateError(remoteBackupOverwriteBlockedErrorCode);
     }
@@ -3606,6 +3711,18 @@ class DriveBackupService implements BackupRepository {
       return;
     }
     throw StateError(remoteBackupOverwriteBlockedErrorCode);
+  }
+
+  bool _wouldDropTooManyCoreRecords({
+    required Map<String, dynamic> local,
+    required Map<String, dynamic> remote,
+  }) {
+    final localCoreRecords = _backupSafetyCounts(local).coreRecords;
+    final remoteCoreRecords = _backupSafetyCounts(remote).coreRecords;
+    if (remoteCoreRecords < 5) {
+      return false;
+    }
+    return localCoreRecords * 3 < remoteCoreRecords;
   }
 
   bool _hasMeaningfulBackupData(Map<String, dynamic> backup) {
@@ -3691,13 +3808,13 @@ class DriveBackupService implements BackupRepository {
     return true;
   }
 
-  Map<String, dynamic> _driveAccountMetadataForBackup() {
+  DriveConnectionInfo? _driveAccountInfoForBackup() {
     final info = _loadCachedDriveConnectionInfo() ??
         _loadSavedDriveConnectionInfoForCurrentRole();
     if (info == null || info.isEmpty) {
-      return const <String, dynamic>{};
+      return null;
     }
-    return _driveConnectionMetadata(info);
+    return info;
   }
 
   Map<String, dynamic> _driveConnectionMetadata(DriveConnectionInfo info) {
@@ -3753,6 +3870,180 @@ class DriveBackupService implements BackupRepository {
     );
   }
 
+  Map<String, dynamic> _buildSafetyManifest(
+    Map<String, dynamic> backup, {
+    required DriveConnectionInfo? driveAccount,
+    String? datasetIdOverride,
+  }) {
+    final counts = _backupSafetyCounts(backup);
+    final datasetId = datasetIdOverride ?? _loadOrCreateLocalDatasetId();
+    final deviceId = _loadOrCreateLocalDeviceId();
+    return <String, dynamic>{
+      'schemaVersion': 1,
+      'datasetId': datasetId,
+      'deviceId': deviceId,
+      'createdAt': DateTime.now().toIso8601String(),
+      if (driveAccount != null && driveAccount.email.trim().isNotEmpty)
+        'accountEmail': driveAccount.email.trim(),
+      if (driveAccount != null && driveAccount.subjectId.trim().isNotEmpty)
+        'accountSubjectId': driveAccount.subjectId.trim(),
+      'recordCounts': counts.toMap(),
+      'contentHash': _stableBackupContentHash(backup),
+    };
+  }
+
+  _BackupSafetyCounts _backupSafetyCounts(Map<String, dynamic> backup) {
+    final entries = backup['entries'];
+    final trainingEntryCount = entries is List ? entries.length : 0;
+    var meaningfulOptionCount = 0;
+    var coreRecordOptionCount = 0;
+    final version = (backup['version'] as num?)?.toInt() ?? 1;
+    for (final record in _extractOptionRecords(backup)) {
+      final key = _fromBackupValue(record['key'], version: version);
+      if (key is! String) {
+        continue;
+      }
+      final value = _fromBackupValue(record['value'], version: version);
+      if (_isMeaningfulBackupOptionKey(key) &&
+          _hasMeaningfulBackupValue(value)) {
+        meaningfulOptionCount += _meaningfulBackupValueCount(value);
+      }
+      if (_isCoreRecordBackupOptionKey(key) &&
+          _hasMeaningfulBackupValue(value)) {
+        coreRecordOptionCount += _meaningfulBackupValueCount(value);
+      }
+    }
+    return _BackupSafetyCounts(
+      trainingEntries: trainingEntryCount,
+      meaningfulOptions: meaningfulOptionCount,
+      coreRecordOptions: coreRecordOptionCount,
+    );
+  }
+
+  int _meaningfulBackupValueCount(dynamic value) {
+    if (!_hasMeaningfulBackupValue(value)) {
+      return 0;
+    }
+    if (value is String) {
+      try {
+        return _meaningfulBackupValueCount(jsonDecode(value.trim()));
+      } on FormatException {
+        return 1;
+      }
+    }
+    if (value is List || value is Set) {
+      return (value as Iterable)
+          .map(_meaningfulBackupValueCount)
+          .fold<int>(0, (sum, count) => sum + count);
+    }
+    if (value is Map) {
+      return value.values
+          .map(_meaningfulBackupValueCount)
+          .fold<int>(0, (sum, count) => sum + count);
+    }
+    return 1;
+  }
+
+  String _stableBackupContentHash(Map<String, dynamic> backup) {
+    final canonical = jsonEncode(
+      _canonicalJson(<String, dynamic>{
+        'entries': backup['entries'] ?? const <dynamic>[],
+        'optionRecords': _extractOptionRecords(backup),
+        _familyMetadataKey: backup[_familyMetadataKey],
+        _assetRecordsKey: backup[_assetRecordsKey],
+      }),
+    );
+    var hash = 0x811c9dc5;
+    for (final unit in canonical.codeUnits) {
+      hash ^= unit;
+      hash = (hash * 0x01000193) & 0xffffffff;
+    }
+    return hash.toRadixString(16).padLeft(8, '0');
+  }
+
+  dynamic _canonicalJson(dynamic value) {
+    if (value is Map) {
+      final result = <String, dynamic>{};
+      final entries = value.entries
+          .map(
+            (entry) => MapEntry(entry.key.toString(), entry.value),
+          )
+          .toList(growable: false)
+        ..sort((a, b) => a.key.compareTo(b.key));
+      for (final entry in entries) {
+        result[entry.key] = _canonicalJson(entry.value);
+      }
+      return result;
+    }
+    if (value is List) {
+      return value.map(_canonicalJson).toList(growable: false);
+    }
+    return value;
+  }
+
+  String _loadOrCreateLocalDatasetId() {
+    final existing = (_optionBox.get(_localDatasetIdKey) as String?)?.trim();
+    if (existing != null && existing.isNotEmpty) {
+      return existing;
+    }
+    final generated = _createLocalIdValue('dataset');
+    unawaited(_optionBox.put(_localDatasetIdKey, generated));
+    return generated;
+  }
+
+  String _loadOrCreateLocalDeviceId() {
+    final existing = (_optionBox.get(_localDeviceIdKey) as String?)?.trim();
+    if (existing != null && existing.isNotEmpty) {
+      return existing;
+    }
+    final generated = _createLocalIdValue('device');
+    unawaited(_optionBox.put(_localDeviceIdKey, generated));
+    return generated;
+  }
+
+  String _createLocalIdValue(String prefix) {
+    final random = _randomHex(12);
+    final time = DateTime.now().microsecondsSinceEpoch.toRadixString(36);
+    return '$prefix-$time-$random';
+  }
+
+  String _randomHex(int byteCount) {
+    try {
+      final secure = math.Random.secure();
+      return List<int>.generate(byteCount, (_) => secure.nextInt(256))
+          .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+          .join();
+    } catch (_) {
+      final fallback = math.Random();
+      return List<int>.generate(byteCount, (_) => fallback.nextInt(256))
+          .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+          .join();
+    }
+  }
+
+  Future<void> _adoptDatasetIdFromSafetyManifest(
+    Map<String, dynamic> backup,
+  ) async {
+    final raw = backup[_backupSafetyManifestKey];
+    if (raw is! Map) {
+      return;
+    }
+    final datasetId = raw['datasetId']?.toString().trim() ?? '';
+    if (datasetId.isEmpty) {
+      return;
+    }
+    await _optionBox.put(_localDatasetIdKey, datasetId);
+  }
+
+  String? _extractSafetyManifestDatasetId(Map<String, dynamic> backup) {
+    final raw = backup[_backupSafetyManifestKey];
+    if (raw is! Map) {
+      return null;
+    }
+    final datasetId = raw['datasetId']?.toString().trim() ?? '';
+    return datasetId.isEmpty ? null : datasetId;
+  }
+
   Map<String, dynamic> _mergeParentFamilyBackup({
     required Map<String, dynamic> remote,
     required Map<String, dynamic> local,
@@ -3775,7 +4066,7 @@ class DriveBackupService implements BackupRepository {
       }
     }
     final familyState = _familyService.loadState();
-    return <String, dynamic>{
+    final merged = <String, dynamic>{
       ...remote,
       'version': _backupVersion,
       'createdAt': DateTime.now().toIso8601String(),
@@ -3795,6 +4086,12 @@ class DriveBackupService implements BackupRepository {
         familyLayerOnly: true,
       ),
     };
+    merged[_backupSafetyManifestKey] = _buildSafetyManifest(
+      merged,
+      driveAccount: _driveAccountInfoForBackup(),
+      datasetIdOverride: _extractSafetyManifestDatasetId(remote),
+    );
+    return merged;
   }
 
   Map<String, dynamic> _copyStringOptions(Map<String, dynamic> backup) {
@@ -4054,6 +4351,29 @@ class DriveBackupService implements BackupRepository {
           ) ??
           const <String, int>{},
     );
+  }
+}
+
+class _BackupSafetyCounts {
+  const _BackupSafetyCounts({
+    required this.trainingEntries,
+    required this.meaningfulOptions,
+    required this.coreRecordOptions,
+  });
+
+  final int trainingEntries;
+  final int meaningfulOptions;
+  final int coreRecordOptions;
+
+  int get coreRecords => trainingEntries + coreRecordOptions;
+
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'trainingEntries': trainingEntries,
+      'meaningfulOptions': meaningfulOptions,
+      'coreRecordOptions': coreRecordOptions,
+      'coreRecords': coreRecords,
+    };
   }
 }
 
