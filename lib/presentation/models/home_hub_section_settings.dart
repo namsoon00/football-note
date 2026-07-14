@@ -50,13 +50,13 @@ class HomeHubSectionSettings {
 
   static const List<HomeHubSectionId> defaultOrder = <HomeHubSectionId>[
     HomeHubSectionId.clubSchedule,
-    HomeHubSectionId.level,
-    HomeHubSectionId.challenge,
-    HomeHubSectionId.streak,
-    HomeHubSectionId.meal,
     HomeHubSectionId.dailyFlow,
     HomeHubSectionId.quickActions,
     HomeHubSectionId.continueSection,
+    HomeHubSectionId.meal,
+    HomeHubSectionId.challenge,
+    HomeHubSectionId.streak,
+    HomeHubSectionId.level,
   ];
 
   static const List<HomeHubSectionId> routineFirstOrder = <HomeHubSectionId>[
