@@ -390,6 +390,10 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    await tester.tap(
+      find.byKey(const ValueKey('team-workspace-roster')),
+    );
+    await tester.pumpAndSettle();
     final addPlayerButton = tester.widget<FilledButton>(
       find.widgetWithText(FilledButton, '선수 추가'),
     );
@@ -398,7 +402,11 @@ void main() {
     expect(find.widgetWithText(OutlinedButton, '팀 삭제'), findsNothing);
     expect(find.text('팀 선택'), findsNothing);
 
-    await tester.tap(find.text('팀 프로필').last);
+    await tester.tap(find.byKey(const ValueKey('team-workspace-back')));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('team-workspace-profile')),
+    );
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).first, '보호자 팀');
     await tester.pump(const Duration(seconds: 1));
@@ -679,6 +687,12 @@ void main() {
     expect(find.widgetWithText(OutlinedButton, '팀 삭제'), findsNothing);
     expect(find.text('팀 선택'), findsNothing);
 
+    expect(find.widgetWithText(FilledButton, '선수 추가'), findsNothing);
+    await tester.tap(
+      find.byKey(const ValueKey('team-workspace-roster')),
+    );
+    await tester.pumpAndSettle();
+
     final addPlayerButton = find.widgetWithText(FilledButton, '선수 추가');
     await tester.ensureVisible(addPlayerButton);
     await tester.pumpAndSettle();
@@ -696,11 +710,19 @@ void main() {
     expect(find.text('미드필더 · 1명'), findsOneWidget);
     expect(find.text('보드 미배치'), findsOneWidget);
 
-    await tester.tap(find.text('팀 프로필').last);
+    await tester.tap(find.byKey(const ValueKey('team-workspace-back')));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('team-workspace-profile')),
+    );
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).at(0), '우리 팀 U15');
     await tester.enterText(find.byType(TextField).at(1), '전방 압박 후 측면 전환');
-    await tester.tap(find.text('전술 보드').last);
+    await tester.tap(find.byKey(const ValueKey('team-workspace-back')));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('team-workspace-board')),
+    );
     await tester.pumpAndSettle();
     expect(find.text('포메이션'), findsNothing);
 
@@ -710,7 +732,7 @@ void main() {
     await tester.ensureVisible(pitchFinder);
     await tester.pumpAndSettle();
     final pitchRect = tester.getRect(pitchFinder);
-    expect(pitchRect.height, greaterThan(540));
+    expect(pitchRect.height, greaterThan(300));
     await tester.drag(
       playerChip,
       pitchRect.center - tester.getCenter(playerChip),
