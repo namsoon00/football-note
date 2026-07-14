@@ -700,8 +700,9 @@ void main() {
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).at(0), '우리 팀 U15');
     await tester.enterText(find.byType(TextField).at(1), '전방 압박 후 측면 전환');
-    await tester.tap(find.text('라인업 보드').last);
+    await tester.tap(find.text('전술 보드').last);
     await tester.pumpAndSettle();
+    expect(find.text('포메이션'), findsNothing);
 
     final playerChip = find.text('10 김민준').last;
     final pitchFinder = find.byKey(const ValueKey('team-tactics-board-pitch'));
@@ -716,13 +717,31 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final markerMode = find.text('보드 마카').last;
+    final markerMode = find.text('이동선').last;
     await tester.ensureVisible(markerMode);
     await tester.tap(markerMode);
     await tester.pumpAndSettle();
     await tester.dragFrom(
       pitchRect.centerLeft + Offset(80, pitchRect.height * 0.28),
       const Offset(180, -120),
+    );
+    await tester.pumpAndSettle();
+
+    final pressMode = find.text('압박선').last;
+    await tester.tap(pressMode);
+    await tester.pumpAndSettle();
+    await tester.dragFrom(
+      pitchRect.centerRight - Offset(80, pitchRect.height * 0.22),
+      const Offset(-170, 110),
+    );
+    await tester.pumpAndSettle();
+
+    final zoneMode = find.text('공간 영역').last;
+    await tester.tap(zoneMode);
+    await tester.pumpAndSettle();
+    await tester.dragFrom(
+      pitchRect.center - const Offset(80, 80),
+      const Offset(160, 130),
     );
     await tester.pumpAndSettle();
 
@@ -742,7 +761,15 @@ void main() {
     expect(placement, isNotNull);
     expect(placement!.x, inInclusiveRange(0.35, 0.65));
     expect(placement.y, inInclusiveRange(0.35, 0.65));
-    expect(teams.single.tacticLines, hasLength(1));
+    expect(teams.single.tacticLines, hasLength(3));
+    expect(
+      teams.single.tacticLines.map((line) => line.type),
+      containsAll(<String>[
+        ManagedTacticLine.typeMovement,
+        ManagedTacticLine.typePress,
+        ManagedTacticLine.typeZone,
+      ]),
+    );
   });
 }
 

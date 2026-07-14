@@ -6669,7 +6669,7 @@
   "teamManagementWorkspaceTitle": "作業を選択",
   "teamManagementWorkspaceHelper": "必要な領域だけ開いて集中して管理します。",
   "teamManagementWorkspaceRosterTab": "選手団",
-  "teamManagementWorkspaceBoardTab": "ラインアップボード",
+  "teamManagementWorkspaceBoardTab": "戦術ボード",
   "teamManagementWorkspaceProfileTab": "チームプロフィール",
   "teamManagementWorkspaceOperationsTab": "予定・大会",
   "teamManagementWorkspaceProfileValue": "名前・戦術",
@@ -6720,8 +6720,8 @@
   "teamManagementTeamNameHint": "例) 自分のU15",
   "teamManagementStrategyLabel": "戦術説明",
   "teamManagementStrategyHint": "例) プレス開始位置、サイドチェンジの約束、守備ブロックの基準",
-  "teamManagementFormationTitle": "ラインアップ/戦術ボード",
-  "teamManagementFormationHelper": "先発配置と戦術メモを一緒に整理します。選手チップをピッチ上の好きな場所へドラッグし、マーカーモードで移動線やプレス方向を描きます。",
+  "teamManagementFormationTitle": "プロ戦術ボード",
+  "teamManagementFormationHelper": "選手を自由に配置し、移動線、プレスライン、スペース領域を描いて試合運営を整理します。",
   "teamManagementFormationLabel": "フォーメーション",
   "teamManagementFormationSpotLabel": "{spot}",
   "@teamManagementFormationSpotLabel": {
@@ -6805,8 +6805,25 @@
   "teamManagementPlayerTrayEmpty": "先に選手を登録すると、ここからピッチへ直接ドラッグできます。",
   "teamManagementBoardMovePlayersMode": "選手配置",
   "teamManagementBoardDrawMode": "ボードマーカー",
+  "teamManagementBoardMovementMode": "移動線",
+  "teamManagementBoardPressMode": "プレス線",
+  "teamManagementBoardZoneMode": "スペース領域",
   "teamManagementBoardClearLinesButton": "線を消去",
-  "teamManagementTacticLinesCount": "移動線 {count}本",
+  "teamManagementBoardClearMarkersButton": "マーカーを消去",
+  "teamManagementBoardPlacementLabel": "ボード配置",
+  "teamManagementBoardMarkerLabel": "戦術マーカー",
+  "teamManagementBoardPlacementValue": "{placed}/{total}配置",
+  "@teamManagementBoardPlacementValue": {
+    "placeholders": {
+      "placed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "teamManagementTacticLinesCount": "マーカー {count}件",
   "@teamManagementTacticLinesCount": {
     "placeholders": {
       "count": {
@@ -6814,7 +6831,7 @@
       }
     }
   },
-  "teamManagementFormationDropHint": "選手チップをピッチ上の好きな場所へ置いてください。下のフォーメーションは目安で、先に選ぶ必要はありません。",
+  "teamManagementFormationDropHint": "選手はドラッグして自由配置し、移動線・プレス線・スペース領域はボード上をドラッグして描きます。",
   "teamManagementRemovePlayerButton": "削除",
   "teamManagementDeleteTeamButton": "チーム削除",
   "teamManagementSaveTeamButton": "チーム保存",

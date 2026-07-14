@@ -108,7 +108,12 @@ class ManagedTeamPlayer {
 }
 
 class ManagedTacticLine {
+  static const String typeMovement = 'movement';
+  static const String typePress = 'press';
+  static const String typeZone = 'zone';
+
   final String id;
+  final String type;
   final double startX;
   final double startY;
   final double endX;
@@ -116,6 +121,7 @@ class ManagedTacticLine {
 
   const ManagedTacticLine({
     required this.id,
+    this.type = typeMovement,
     required this.startX,
     required this.startY,
     required this.endX,
@@ -123,6 +129,7 @@ class ManagedTacticLine {
   });
 
   factory ManagedTacticLine.create({
+    String type = typeMovement,
     required double startX,
     required double startY,
     required double endX,
@@ -132,6 +139,7 @@ class ManagedTacticLine {
     final timestamp = now ?? DateTime.now();
     return ManagedTacticLine(
       id: TeamManagementService.tacticLineId(now: timestamp),
+      type: TeamManagementService.normalizeTacticMarkerType(type),
       startX: TeamManagementService.normalizeBoardCoordinate(startX),
       startY: TeamManagementService.normalizeBoardCoordinate(startY),
       endX: TeamManagementService.normalizeBoardCoordinate(endX),
@@ -142,6 +150,9 @@ class ManagedTacticLine {
   factory ManagedTacticLine.fromMap(Map<String, dynamic> map) {
     return ManagedTacticLine(
       id: map['id']?.toString().trim() ?? '',
+      type: TeamManagementService.normalizeTacticMarkerType(
+        map['type']?.toString() ?? '',
+      ),
       startX: TeamManagementService.normalizeBoardCoordinate(map['startX']),
       startY: TeamManagementService.normalizeBoardCoordinate(map['startY']),
       endX: TeamManagementService.normalizeBoardCoordinate(map['endX']),
@@ -151,6 +162,7 @@ class ManagedTacticLine {
 
   ManagedTacticLine copyWith({
     String? id,
+    String? type,
     double? startX,
     double? startY,
     double? endX,
@@ -158,6 +170,7 @@ class ManagedTacticLine {
   }) {
     return ManagedTacticLine(
       id: id ?? this.id,
+      type: TeamManagementService.normalizeTacticMarkerType(type ?? this.type),
       startX: TeamManagementService.normalizeBoardCoordinate(
         startX ?? this.startX,
       ),
@@ -172,6 +185,7 @@ class ManagedTacticLine {
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'id': id,
+      'type': type,
       'startX': startX,
       'startY': startY,
       'endX': endX,
@@ -593,6 +607,14 @@ class TeamManagementService {
       ManagedTeamPlayer.conditionWatch => ManagedTeamPlayer.conditionWatch,
       ManagedTeamPlayer.conditionRest => ManagedTeamPlayer.conditionRest,
       _ => ManagedTeamPlayer.conditionReady,
+    };
+  }
+
+  static String normalizeTacticMarkerType(String type) {
+    return switch (type) {
+      ManagedTacticLine.typePress => ManagedTacticLine.typePress,
+      ManagedTacticLine.typeZone => ManagedTacticLine.typeZone,
+      _ => ManagedTacticLine.typeMovement,
     };
   }
 

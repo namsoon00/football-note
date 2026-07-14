@@ -11998,7 +11998,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get teamManagementWorkspaceRosterTab => '선수단';
 
   @override
-  String get teamManagementWorkspaceBoardTab => '라인업 보드';
+  String get teamManagementWorkspaceBoardTab => '전술 보드';
 
   @override
   String get teamManagementWorkspaceProfileTab => '팀 프로필';
@@ -12100,11 +12100,11 @@ class AppLocalizationsKo extends AppLocalizations {
   String get teamManagementStrategyHint => '예) 전방 압박 시작 위치, 측면 전환 약속, 수비 블록 기준';
 
   @override
-  String get teamManagementFormationTitle => '라인업/전술 보드';
+  String get teamManagementFormationTitle => '프로 전술 보드';
 
   @override
   String get teamManagementFormationHelper =>
-      '선발 배치와 전술 메모를 함께 정리하세요. 선수 칩을 그라운드 어디든 끌어 올리고, 마카 모드에서 이동선이나 압박 방향을 그리세요.';
+      '선수를 자유롭게 배치하고 이동선, 압박선, 공간 영역을 함께 그려 경기 운영 계획을 정리하세요.';
 
   @override
   String get teamManagementFormationLabel => '포메이션';
@@ -12244,16 +12244,39 @@ class AppLocalizationsKo extends AppLocalizations {
   String get teamManagementBoardDrawMode => '보드 마카';
 
   @override
+  String get teamManagementBoardMovementMode => '이동선';
+
+  @override
+  String get teamManagementBoardPressMode => '압박선';
+
+  @override
+  String get teamManagementBoardZoneMode => '공간 영역';
+
+  @override
   String get teamManagementBoardClearLinesButton => '선 지우기';
 
   @override
+  String get teamManagementBoardClearMarkersButton => '마커 지우기';
+
+  @override
+  String get teamManagementBoardPlacementLabel => '보드 배치';
+
+  @override
+  String get teamManagementBoardMarkerLabel => '전술 마커';
+
+  @override
+  String teamManagementBoardPlacementValue(int placed, int total) {
+    return '$placed/$total 배치';
+  }
+
+  @override
   String teamManagementTacticLinesCount(int count) {
-    return '이동선 $count개';
+    return '마커 $count개';
   }
 
   @override
   String get teamManagementFormationDropHint =>
-      '선수 칩을 그라운드 어디든 놓으세요. 아래 포메이션은 기준선일 뿐 먼저 선택할 필요가 없습니다.';
+      '선수는 드래그해서 자유 배치하고, 이동선·압박선·공간 영역은 보드 위를 드래그해 그리세요.';
 
   @override
   String get teamManagementRemovePlayerButton => '삭제';

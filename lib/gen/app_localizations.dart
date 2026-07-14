@@ -21264,7 +21264,7 @@ abstract class AppLocalizations {
   /// No description provided for @teamManagementWorkspaceBoardTab.
   ///
   /// In en, this message translates to:
-  /// **'Lineup board'**
+  /// **'Tactics board'**
   String get teamManagementWorkspaceBoardTab;
 
   /// No description provided for @teamManagementWorkspaceProfileTab.
@@ -21450,13 +21450,13 @@ abstract class AppLocalizations {
   /// No description provided for @teamManagementFormationTitle.
   ///
   /// In en, this message translates to:
-  /// **'Lineup / tactics board'**
+  /// **'Pro tactics board'**
   String get teamManagementFormationTitle;
 
   /// No description provided for @teamManagementFormationHelper.
   ///
   /// In en, this message translates to:
-  /// **'Organize starting placement and tactical notes together. Drag player chips anywhere on the pitch, then use marker mode for movement lines or pressing directions.'**
+  /// **'Place players freely and draw movement lines, pressing lines, and space zones to prepare match operations.'**
   String get teamManagementFormationHelper;
 
   /// No description provided for @teamManagementFormationLabel.
@@ -21700,22 +21700,64 @@ abstract class AppLocalizations {
   /// **'Board marker'**
   String get teamManagementBoardDrawMode;
 
+  /// No description provided for @teamManagementBoardMovementMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Movement'**
+  String get teamManagementBoardMovementMode;
+
+  /// No description provided for @teamManagementBoardPressMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Press line'**
+  String get teamManagementBoardPressMode;
+
+  /// No description provided for @teamManagementBoardZoneMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Space zone'**
+  String get teamManagementBoardZoneMode;
+
   /// No description provided for @teamManagementBoardClearLinesButton.
   ///
   /// In en, this message translates to:
   /// **'Clear lines'**
   String get teamManagementBoardClearLinesButton;
 
+  /// No description provided for @teamManagementBoardClearMarkersButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear markers'**
+  String get teamManagementBoardClearMarkersButton;
+
+  /// No description provided for @teamManagementBoardPlacementLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Board placement'**
+  String get teamManagementBoardPlacementLabel;
+
+  /// No description provided for @teamManagementBoardMarkerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tactical markers'**
+  String get teamManagementBoardMarkerLabel;
+
+  /// No description provided for @teamManagementBoardPlacementValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{placed}/{total} placed'**
+  String teamManagementBoardPlacementValue(int placed, int total);
+
   /// No description provided for @teamManagementTacticLinesCount.
   ///
   /// In en, this message translates to:
-  /// **'{count} movement line(s)'**
+  /// **'{count} marker(s)'**
   String teamManagementTacticLinesCount(int count);
 
   /// No description provided for @teamManagementFormationDropHint.
   ///
   /// In en, this message translates to:
-  /// **'Drop player chips anywhere on the pitch. The formation below is only a guide and does not need to be selected first.'**
+  /// **'Drag players anywhere on the pitch. Drag on the board to draw movement lines, pressing lines, or space zones.'**
   String get teamManagementFormationDropHint;
 
   /// No description provided for @teamManagementRemovePlayerButton.

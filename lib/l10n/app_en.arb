@@ -6669,7 +6669,7 @@
   "teamManagementWorkspaceTitle": "Choose a workspace",
   "teamManagementWorkspaceHelper": "Open only the area you need and stay focused.",
   "teamManagementWorkspaceRosterTab": "Roster",
-  "teamManagementWorkspaceBoardTab": "Lineup board",
+  "teamManagementWorkspaceBoardTab": "Tactics board",
   "teamManagementWorkspaceProfileTab": "Team profile",
   "teamManagementWorkspaceOperationsTab": "Schedule",
   "teamManagementWorkspaceProfileValue": "Name & tactics",
@@ -6720,8 +6720,8 @@
   "teamManagementTeamNameHint": "e.g. Our U15",
   "teamManagementStrategyLabel": "Tactical notes",
   "teamManagementStrategyHint": "e.g. Pressing trigger, wide switch rule, defensive block standard",
-  "teamManagementFormationTitle": "Lineup / tactics board",
-  "teamManagementFormationHelper": "Organize starting placement and tactical notes together. Drag player chips anywhere on the pitch, then use marker mode for movement lines or pressing directions.",
+  "teamManagementFormationTitle": "Pro tactics board",
+  "teamManagementFormationHelper": "Place players freely and draw movement lines, pressing lines, and space zones to prepare match operations.",
   "teamManagementFormationLabel": "Formation",
   "teamManagementFormationSpotLabel": "{spot}",
   "@teamManagementFormationSpotLabel": {
@@ -6805,8 +6805,25 @@
   "teamManagementPlayerTrayEmpty": "Register players first, then drag them from here directly onto the pitch.",
   "teamManagementBoardMovePlayersMode": "Place players",
   "teamManagementBoardDrawMode": "Board marker",
+  "teamManagementBoardMovementMode": "Movement",
+  "teamManagementBoardPressMode": "Press line",
+  "teamManagementBoardZoneMode": "Space zone",
   "teamManagementBoardClearLinesButton": "Clear lines",
-  "teamManagementTacticLinesCount": "{count} movement line(s)",
+  "teamManagementBoardClearMarkersButton": "Clear markers",
+  "teamManagementBoardPlacementLabel": "Board placement",
+  "teamManagementBoardMarkerLabel": "Tactical markers",
+  "teamManagementBoardPlacementValue": "{placed}/{total} placed",
+  "@teamManagementBoardPlacementValue": {
+    "placeholders": {
+      "placed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "teamManagementTacticLinesCount": "{count} marker(s)",
   "@teamManagementTacticLinesCount": {
     "placeholders": {
       "count": {
@@ -6814,7 +6831,7 @@
       }
     }
   },
-  "teamManagementFormationDropHint": "Drop player chips anywhere on the pitch. The formation below is only a guide and does not need to be selected first.",
+  "teamManagementFormationDropHint": "Drag players anywhere on the pitch. Drag on the board to draw movement lines, pressing lines, or space zones.",
   "teamManagementRemovePlayerButton": "Remove",
   "teamManagementDeleteTeamButton": "Delete team",
   "teamManagementSaveTeamButton": "Save team",
