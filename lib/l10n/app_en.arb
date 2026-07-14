@@ -2780,6 +2780,8 @@
   "restoreLocalFailed": "Failed to undo the latest import. Please try again.",
   "localBackup": "Local safety backup",
   "driveBackupLockedAccountChanged": "The Google account changed. Choose how this device should use the connected account before any backup can run.",
+  "driveBackupRemoteOverwriteBlocked": "Backup was stopped because this device has no player data but the Drive backup already contains data. Import the Drive backup first.",
+  "driveBackupOwnerMismatch": "Backup was stopped because the Drive backup belongs to a different Google account. Reconnect the correct account first.",
   "driveAccountSwitchImportAction": "Import this account's backup",
   "driveAccountSwitchStartEmptyAction": "Start empty with this account",
   "driveAccountSwitchImportTitle": "Use connected account data?",

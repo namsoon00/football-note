@@ -4578,6 +4578,14 @@ class AppLocalizationsJa extends AppLocalizations {
       'Googleアカウントが変わりました。このアカウントでバックアップする前に、このデバイスでどのデータから始めるかを選択してください。';
 
   @override
+  String get driveBackupRemoteOverwriteBlocked =>
+      'このデバイスにプレーヤーデータがなく、Drive バックアップにはデータがあるため、バックアップを停止しました。先に Drive バックアップをインポートしてください。';
+
+  @override
+  String get driveBackupOwnerMismatch =>
+      'Drive バックアップが別の Google アカウントのデータとして確認されたため、バックアップを停止しました。正しいアカウントに接続し直してください。';
+
+  @override
   String get driveAccountSwitchImportAction => 'このアカウントのバックアップをインポート';
 
   @override

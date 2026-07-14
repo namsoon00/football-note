@@ -3038,6 +3038,14 @@ class _SettingsScreenState extends State<SettingsScreen>
     if (raw.contains(DriveBackupService.invalidBackupPayloadErrorCode)) {
       return l10n.backupPayloadInvalid;
     }
+    if (raw.contains(
+      DriveBackupService.remoteBackupOverwriteBlockedErrorCode,
+    )) {
+      return l10n.driveBackupRemoteOverwriteBlocked;
+    }
+    if (raw.contains(DriveBackupService.backupOwnerMismatchErrorCode)) {
+      return l10n.driveBackupOwnerMismatch;
+    }
     if (raw
         .contains(DriveBackupService.changedPlayerDriveConnectionErrorCode)) {
       return l10n.driveBackupLockedAccountChanged;

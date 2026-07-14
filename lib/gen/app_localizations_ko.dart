@@ -4576,6 +4576,14 @@ class AppLocalizationsKo extends AppLocalizations {
       'Google 계정이 바뀌었어요. 이 계정으로 백업하기 전에 이 기기에서 어떤 데이터로 시작할지 선택해야 해요.';
 
   @override
+  String get driveBackupRemoteOverwriteBlocked =>
+      '이 기기에 선수 데이터가 없지만 Drive 백업에는 데이터가 있어 백업을 중단했어요. 먼저 Drive 백업을 가져와 주세요.';
+
+  @override
+  String get driveBackupOwnerMismatch =>
+      'Drive 백업이 다른 Google 계정의 데이터로 확인되어 백업을 중단했어요. 올바른 계정으로 다시 연결해 주세요.';
+
+  @override
   String get driveAccountSwitchImportAction => '이 계정 백업 가져오기';
 
   @override

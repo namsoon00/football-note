@@ -311,6 +311,9 @@ class DriveBackupService implements BackupRepository {
       'changed_player_drive_connection';
   static const changedPlayerRemoteBackupMissingErrorCode =
       'changed_player_remote_backup_missing';
+  static const remoteBackupOverwriteBlockedErrorCode =
+      'remote_backup_overwrite_blocked';
+  static const backupOwnerMismatchErrorCode = 'backup_owner_mismatch';
   static const invalidBackupPayloadErrorCode = 'invalid_backup_payload';
   static const unsupportedBackupVersionErrorCode = 'unsupported_backup_version';
   static const unsupportedBackupValueErrorCode = 'unsupported_backup_value';
@@ -569,6 +572,7 @@ class DriveBackupService implements BackupRepository {
   static const _typedDataKey = 'data';
   static const _optionRecordsKey = 'optionRecords';
   static const _familyMetadataKey = 'family';
+  static const _driveAccountMetadataKey = 'driveAccount';
   static const _assetRecordsKey = 'assetRecords';
   static const _assetRefPrefix = 'backup_asset://';
   static const _backupFormatKey = 'format';
@@ -623,6 +627,84 @@ class DriveBackupService implements BackupRepository {
     _legacyMisspelledBackupFormatValue,
     _legacyFootballNoteBackupFormatValue,
   };
+  static const Set<String> _nonMeaningfulBackupOptionKeys = {
+    SportCatalog.currentSportOptionKey,
+    'durations',
+    'default_duration',
+    'default_location',
+    'type_options',
+    'programs',
+    'daily_goals',
+    'default_program',
+    'injury_parts',
+    'match_locations',
+    FamilyAccessService.linkedRoleKey,
+    FamilyAccessService.familyIdKey,
+    FamilyAccessService.childNameKey,
+    FamilyAccessService.parentNameKey,
+    FamilyAccessService.lastSharedSyncAtKey,
+    FamilyAccessService.lastSharedSyncRoleKey,
+    sharedChildDriveEmailKey,
+    sharedChildDriveLabelKey,
+    sharedChildDriveSubjectLocalKey,
+  };
+  static const List<String> _nonMeaningfulBackupOptionKeyPrefixes = [
+    'programs_',
+    'daily_goals_',
+    'default_program_',
+    'durations_',
+    'default_duration_',
+    'injury_parts_',
+    'match_locations_',
+  ];
+  static const Set<String> _coreRecordBackupOptionKeys = {
+    TrainingPlanReminderService.plansStorageKey,
+    MealLogService.storageKey,
+    TrainingBoardService.storageKey,
+    TeamManagementService.storageKey,
+    MatchCompetitionService.storageKey,
+    ChallengeService.storageKey,
+    RunningCoachHistoryService.storageKey,
+    RunningGrowthService.storageKey,
+    'custom_diary_entries_v3',
+    'coach_diary_completed_day_v2',
+    PlayerLevelService.totalXpKey,
+    PlayerLevelService.xpHistoryKey,
+    PlayerLevelService.diaryCreatedDayKey,
+    PlayerLevelService.claimedRewardLevelsKey,
+    PlayerLevelService.rewardClaimMessagesKey,
+    CoachRosterService.rosterPlayersKey,
+    ClubScheduleService.storageKey,
+    'skill_quiz_history_v1',
+    'skill_quiz_cleared_sets_v1',
+    'space_speed_ranking_history_v1',
+    'news_scrapped_links',
+    'news_scrapped_items_v1',
+  };
+  static const List<String> _coreRecordBackupOptionKeyPrefixes = [
+    CoachRosterService.scopedOptionKeyPrefix,
+    'training_plans_v1_',
+    'meal_logs_v1_',
+    'training_boards_v1_',
+    'club_training_schedule_v1_',
+    'match_managed_teams_v1_',
+    'match_competitions_v1_',
+    'challenge_runs_v1_',
+    'running_coach_sessions_v1_',
+    'running_growth_records_v1_',
+    'custom_diary_entries_v3_',
+    'coach_diary_completed_day_v2_',
+    'player_total_xp_v1_',
+    'player_xp_history_v1_',
+    'player_diary_created_day_v2_',
+    'player_claimed_reward_levels_v1_',
+    'player_reward_claim_messages_v1_',
+    'skill_quiz_history_v1_',
+    'skill_quiz_cleared_sets_v1_',
+    'space_speed_ranking_history_v1_',
+    'news_scrapped_links_',
+    'news_scrapped_items_v1_',
+  ];
   Stream<void> driveAccountStateChanges() =>
       _driveAccountStateController.stream;
 
@@ -2154,19 +2236,27 @@ class DriveBackupService implements BackupRepository {
     final activeBackupFileName = _activeBackupFileName;
     final existing = await _findBackupFile(driveApi, folderId);
     final familyState = _familyService.loadState();
-    final remote = existing != null && familyState.isSupportMode
-        ? await _downloadBackupMap(driveApi, existing.id!)
-        : null;
+    final existingContent = existing?.id == null
+        ? null
+        : await _downloadFileContent(driveApi, existing!.id!);
+    final remote =
+        existingContent == null ? null : _decodeBackupPayload(existingContent);
     _validateParentRemoteBinding(remote);
     final data = _buildUploadPayload(
       currentRole: familyState.currentRole,
       remote: remote,
     );
+    _throwIfUnsafeRemoteOverwrite(local: data, remote: remote);
     final bytes = utf8.encode(jsonEncode(data));
     final media = drive.Media(Stream.value(bytes), bytes.length);
     late final DateTime syncedAt;
     if (existing != null) {
-      await _preservePreviousRemoteBackup(driveApi, folderId, existing);
+      await _preservePreviousRemoteBackup(
+        driveApi,
+        folderId,
+        existing,
+        existingContent: existingContent,
+      );
       final updated = await driveApi.files.update(
         drive.File(name: activeBackupFileName),
         existing.id!,
@@ -2197,11 +2287,13 @@ class DriveBackupService implements BackupRepository {
   Future<void> _preservePreviousRemoteBackup(
     drive.DriveApi driveApi,
     String folderId,
-    drive.File existing,
-  ) async {
+    drive.File existing, {
+    String? existingContent,
+  }) async {
     final existingId = existing.id;
     if (existingId == null || existingId.isEmpty) return;
-    final content = await _downloadFileContent(driveApi, existingId);
+    final content =
+        existingContent ?? await _downloadFileContent(driveApi, existingId);
     final previousCreatedAt =
         _createdAtFromBackupContent(content) ?? existing.modifiedTime;
     if (previousCreatedAt != null) {
@@ -2335,6 +2427,7 @@ class DriveBackupService implements BackupRepository {
       options[key] = encodedValue;
     }
     final familyState = _familyService.loadState();
+    final driveAccountMetadata = _driveAccountMetadataForBackup();
     return {
       _backupFormatKey: _backupFormatValue,
       'version': _backupVersion,
@@ -2348,6 +2441,8 @@ class DriveBackupService implements BackupRepository {
         updatedByRole: updatedByRole,
         familyLayerOnly: familyLayerOnly,
       ),
+      if (driveAccountMetadata.isNotEmpty)
+        _driveAccountMetadataKey: driveAccountMetadata,
     };
   }
 
@@ -3011,6 +3106,7 @@ class DriveBackupService implements BackupRepository {
         updatedByRole: FamilyRole.child,
         familyLayerOnly: false,
       ),
+      _driveAccountMetadataKey: _driveConnectionMetadata(current),
     };
   }
 
@@ -3488,6 +3584,173 @@ class DriveBackupService implements BackupRepository {
       );
     }
     return _mergeParentFamilyBackup(remote: remote, local: local);
+  }
+
+  void _throwIfUnsafeRemoteOverwrite({
+    required Map<String, dynamic> local,
+    required Map<String, dynamic>? remote,
+  }) {
+    if (remote == null) {
+      return;
+    }
+    if (_backupOwnerConflictsWithConnectedAccount(remote)) {
+      throw StateError(backupOwnerMismatchErrorCode);
+    }
+    if (!_hasCoreBackupData(local) && _hasCoreBackupData(remote)) {
+      throw StateError(remoteBackupOverwriteBlockedErrorCode);
+    }
+    if (_hasMeaningfulBackupData(local)) {
+      return;
+    }
+    if (!_hasMeaningfulBackupData(remote)) {
+      return;
+    }
+    throw StateError(remoteBackupOverwriteBlockedErrorCode);
+  }
+
+  bool _hasMeaningfulBackupData(Map<String, dynamic> backup) {
+    final entries = backup['entries'];
+    if (entries is List && entries.isNotEmpty) {
+      return true;
+    }
+    final version = (backup['version'] as num?)?.toInt() ?? 1;
+    for (final record in _extractOptionRecords(backup)) {
+      final key = _fromBackupValue(record['key'], version: version);
+      if (key is! String || !_isMeaningfulBackupOptionKey(key)) {
+        continue;
+      }
+      final value = _fromBackupValue(record['value'], version: version);
+      if (_hasMeaningfulBackupValue(value)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool _hasCoreBackupData(Map<String, dynamic> backup) {
+    final entries = backup['entries'];
+    if (entries is List && entries.isNotEmpty) {
+      return true;
+    }
+    final version = (backup['version'] as num?)?.toInt() ?? 1;
+    for (final record in _extractOptionRecords(backup)) {
+      final key = _fromBackupValue(record['key'], version: version);
+      if (key is! String || !_isCoreRecordBackupOptionKey(key)) {
+        continue;
+      }
+      final value = _fromBackupValue(record['value'], version: version);
+      if (_hasMeaningfulBackupValue(value)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool _isCoreRecordBackupOptionKey(String key) {
+    if (_coreRecordBackupOptionKeys.contains(key)) {
+      return true;
+    }
+    return _startsWithAny(key, _coreRecordBackupOptionKeyPrefixes);
+  }
+
+  bool _isMeaningfulBackupOptionKey(String key) {
+    if (_nonMeaningfulBackupOptionKeys.contains(key)) {
+      return false;
+    }
+    return !_startsWithAny(key, _nonMeaningfulBackupOptionKeyPrefixes);
+  }
+
+  bool _hasMeaningfulBackupValue(dynamic value) {
+    if (value == null) {
+      return false;
+    }
+    if (value is String) {
+      final trimmed = value.trim();
+      if (trimmed.isEmpty || trimmed == '[]' || trimmed == '{}') {
+        return false;
+      }
+      try {
+        final decoded = jsonDecode(trimmed);
+        return _hasMeaningfulBackupValue(decoded);
+      } on FormatException {
+        return true;
+      }
+    }
+    if (value is bool) {
+      return value;
+    }
+    if (value is num) {
+      return value != 0;
+    }
+    if (value is List || value is Set) {
+      return (value as Iterable).any(_hasMeaningfulBackupValue);
+    }
+    if (value is Map) {
+      return value.values.any(_hasMeaningfulBackupValue);
+    }
+    return true;
+  }
+
+  Map<String, dynamic> _driveAccountMetadataForBackup() {
+    final info = _loadCachedDriveConnectionInfo() ??
+        _loadSavedDriveConnectionInfoForCurrentRole();
+    if (info == null || info.isEmpty) {
+      return const <String, dynamic>{};
+    }
+    return _driveConnectionMetadata(info);
+  }
+
+  Map<String, dynamic> _driveConnectionMetadata(DriveConnectionInfo info) {
+    return <String, dynamic>{
+      if (info.email.trim().isNotEmpty) 'email': info.email.trim(),
+      if (info.label.trim().isNotEmpty) 'label': info.label.trim(),
+      if (info.subjectId.trim().isNotEmpty) 'subjectId': info.subjectId.trim(),
+    };
+  }
+
+  bool _backupOwnerConflictsWithConnectedAccount(
+    Map<String, dynamic> backup,
+  ) {
+    final owner = _extractBackupDriveConnectionInfo(backup);
+    final connected = _loadCachedDriveConnectionInfo();
+    if (owner == null ||
+        connected == null ||
+        owner.isEmpty ||
+        connected.isEmpty) {
+      return false;
+    }
+    final ownerSubject = owner.subjectId.trim().toLowerCase();
+    final connectedSubject = connected.subjectId.trim().toLowerCase();
+    if (ownerSubject.isNotEmpty &&
+        connectedSubject.isNotEmpty &&
+        ownerSubject == connectedSubject) {
+      return false;
+    }
+    final ownerEmail = _normalizedEmail(owner.email);
+    final connectedEmail = _normalizedEmail(connected.email);
+    if (ownerEmail.isNotEmpty &&
+        connectedEmail.isNotEmpty &&
+        ownerEmail == connectedEmail) {
+      return false;
+    }
+    if (ownerSubject.isNotEmpty && connectedSubject.isNotEmpty) {
+      return true;
+    }
+    return ownerEmail.isNotEmpty && connectedEmail.isNotEmpty;
+  }
+
+  DriveConnectionInfo? _extractBackupDriveConnectionInfo(
+    Map<String, dynamic> backup,
+  ) {
+    final raw = backup[_driveAccountMetadataKey];
+    if (raw is! Map) {
+      return null;
+    }
+    return _buildDriveConnectionInfoFromLabelEmail(
+      label: raw['label']?.toString().trim() ?? '',
+      email: raw['email']?.toString().trim() ?? '',
+      subjectId: raw['subjectId']?.toString().trim() ?? '',
+    );
   }
 
   Map<String, dynamic> _mergeParentFamilyBackup({

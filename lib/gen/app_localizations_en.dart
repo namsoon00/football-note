@@ -4687,6 +4687,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'The Google account changed. Choose how this device should use the connected account before any backup can run.';
 
   @override
+  String get driveBackupRemoteOverwriteBlocked =>
+      'Backup was stopped because this device has no player data but the Drive backup already contains data. Import the Drive backup first.';
+
+  @override
+  String get driveBackupOwnerMismatch =>
+      'Backup was stopped because the Drive backup belongs to a different Google account. Reconnect the correct account first.';
+
+  @override
   String get driveAccountSwitchImportAction => 'Import this account\'s backup';
 
   @override

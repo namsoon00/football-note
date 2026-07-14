@@ -8260,6 +8260,18 @@ abstract class AppLocalizations {
   /// **'The Google account changed. Choose how this device should use the connected account before any backup can run.'**
   String get driveBackupLockedAccountChanged;
 
+  /// No description provided for @driveBackupRemoteOverwriteBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup was stopped because this device has no player data but the Drive backup already contains data. Import the Drive backup first.'**
+  String get driveBackupRemoteOverwriteBlocked;
+
+  /// No description provided for @driveBackupOwnerMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup was stopped because the Drive backup belongs to a different Google account. Reconnect the correct account first.'**
+  String get driveBackupOwnerMismatch;
+
   /// No description provided for @driveAccountSwitchImportAction.
   ///
   /// In en, this message translates to:
