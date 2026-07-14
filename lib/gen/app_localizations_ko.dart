@@ -94,6 +94,15 @@ class AppLocalizationsKo extends AppLocalizations {
       '초기 데이터를 불러오는 중 문제가 생겼습니다. 다시 시도해도 계속 멈추면 앱을 완전히 종료한 뒤 다시 열어 주세요.';
 
   @override
+  String get startupErrorDetailsLabel => '오류 정보';
+
+  @override
+  String get startupErrorStepLabel => '단계';
+
+  @override
+  String get startupErrorMessageLabel => '메시지';
+
+  @override
   String get startupRetryAction => '다시 시도';
 
   @override
