@@ -34,13 +34,24 @@ if (keystorePropertiesFile.exists()) {
 }
 
 gradle.taskGraph.whenReady { taskGraph ->
-    def hasReleaseTask = taskGraph.allTasks.any {
-        it.name.toLowerCase().contains('release')
+    def releaseTaskNames = taskGraph.allTasks
+        .collect { it.name.toLowerCase() }
+        .findAll { it.contains('release') }
+    def requestedTaskNames = gradle.startParameter.taskNames
+        .collect { it.toLowerCase() }
+    def hasReleaseTask = !releaseTaskNames.isEmpty()
+    def hasDistributionReleaseTask = requestedTaskNames.any {
+        it.contains('bundlerelease') ||
+            it.contains('publish') ||
+            it.contains('upload')
     }
     if (hasReleaseTask && !releaseSigningConfigured) {
-        if (allowDebugReleaseSigning) {
+        def isCiBuild = (System.getenv('CI') ?: 'false').toString().toBoolean()
+        def canUseDebugReleaseSigning = allowDebugReleaseSigning ||
+            (!isCiBuild && !hasDistributionReleaseTask)
+        if (canUseDebugReleaseSigning) {
             logger.warn(
-                'Using the Android debug signing key for a local release build. ' +
+                'Using the Android debug signing key for a local release run/build. ' +
                     'Do not distribute this artifact.'
             )
             return
