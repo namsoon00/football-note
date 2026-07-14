@@ -1726,6 +1726,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homeLayoutNoVisibleSections => '표시 중인 홈 섹션이 없어요.';
 
   @override
+  String get homeLayoutAutoOrderHint => '고정하지 않은 섹션은 자주 사용할수록 위로 올라가요.';
+
+  @override
+  String get homeSectionPinTooltip => '이 위치에 고정';
+
+  @override
+  String get homeSectionUnpinTooltip => '고정 해제';
+
+  @override
   String get homeSectionClubSchedule => '클럽 일정';
 
   @override

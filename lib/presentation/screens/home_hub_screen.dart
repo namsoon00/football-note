@@ -132,6 +132,7 @@ class _HomeHubScreenState extends State<HomeHubScreen>
   static const Duration _homeWeatherBackgroundRetryDelay = Duration(minutes: 5);
 
   late HomeHubSectionSettings _homeSectionSettings;
+  late Map<HomeHubSectionId, int> _homeSectionUsageCounts;
   bool _weatherLoading = false;
   bool _weatherNeedsLocation = true;
   bool _weatherLoadFailed = false;
@@ -173,6 +174,7 @@ class _HomeHubScreenState extends State<HomeHubScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _homeSectionSettings = _loadHomeSectionSettings();
+    _homeSectionUsageCounts = _loadHomeSectionUsageCounts();
     _trainingEntriesStream = _watchHomeTrainingEntries();
     _weatherSnapshotSubscription = WeatherSharedResource.snapshotUpdates.listen(
       _handleSharedWeatherSnapshot,
@@ -194,6 +196,7 @@ class _HomeHubScreenState extends State<HomeHubScreen>
     super.didUpdateWidget(oldWidget);
     if (widget.optionRepository != oldWidget.optionRepository) {
       _homeSectionSettings = _loadHomeSectionSettings();
+      _homeSectionUsageCounts = _loadHomeSectionUsageCounts();
     }
     if (widget.trainingService == oldWidget.trainingService) return;
     _trainingEntriesStream = _watchHomeTrainingEntries();
@@ -224,6 +227,13 @@ class _HomeHubScreenState extends State<HomeHubScreen>
     );
   }
 
+  Map<HomeHubSectionId, int> _loadHomeSectionUsageCounts() {
+    return HomeHubSectionSettings.decodeUsageCounts(
+      widget.optionRepository
+          .getValue<String>(HomeHubSectionSettings.usageStorageKey),
+    );
+  }
+
   Future<void> _openHomeSectionSettings() async {
     await Navigator.of(context).push(
       AppPageRoute(
@@ -236,6 +246,7 @@ class _HomeHubScreenState extends State<HomeHubScreen>
     if (!mounted) return;
     setState(() {
       _homeSectionSettings = _loadHomeSectionSettings();
+      _homeSectionUsageCounts = _loadHomeSectionUsageCounts();
     });
   }
 
@@ -391,7 +402,11 @@ class _HomeHubScreenState extends State<HomeHubScreen>
                           'home-club-schedule-card',
                         ),
                         profile: clubScheduleProfile,
-                        onTap: () => _openClubSchedule(sportId: sportId),
+                        onTap: _trackedAction(
+                          'home_club_schedule',
+                          () => _openClubSchedule(sportId: sportId),
+                          section: HomeHubSectionId.clubSchedule,
+                        )!,
                       ),
                     ),
                     HomeHubSectionId.level: keyedSection(
@@ -399,7 +414,11 @@ class _HomeHubScreenState extends State<HomeHubScreen>
                       _LevelHeroCard(
                         levelState: levelState,
                         sportId: sportId,
-                        onTap: _openLevelGuide,
+                        onTap: _trackedAction(
+                          'home_level',
+                          _openLevelGuide,
+                          section: HomeHubSectionId.level,
+                        )!,
                       ),
                     ),
                     HomeHubSectionId.challenge: keyedSection(
@@ -412,7 +431,11 @@ class _HomeHubScreenState extends State<HomeHubScreen>
                                 l10n,
                                 challengeProgress.template,
                               ),
-                        onTap: _openChallenge,
+                        onTap: _trackedAction(
+                          'home_challenge',
+                          _openChallenge,
+                          section: HomeHubSectionId.challenge,
+                        )!,
                       ),
                     ),
                     HomeHubSectionId.streak: data.showStreakHighlight
@@ -421,9 +444,13 @@ class _HomeHubScreenState extends State<HomeHubScreen>
                             _TrainingStreakSpotlightCard(
                               data: data,
                               l10n: l10n,
-                              onTap: data.latestTrainingGapDays == 0
-                                  ? widget.onOpenWeeklyStats
-                                  : () => _openTodayEntryOrCreate(data),
+                              onTap: _trackedAction(
+                                'home_streak',
+                                data.latestTrainingGapDays == 0
+                                    ? widget.onOpenWeeklyStats
+                                    : () => _openTodayEntryOrCreate(data),
+                                section: HomeHubSectionId.streak,
+                              )!,
                             ),
                           )
                         : null,
@@ -434,7 +461,11 @@ class _HomeHubScreenState extends State<HomeHubScreen>
                         title: _homeMealHeadline(l10n, data.todayMealEntry),
                         subtitle: l10n.homeRiceBowlTitle,
                         compact: true,
-                        onTap: widget.onQuickMeal,
+                        onTap: _trackedAction(
+                          'home_meal_card',
+                          widget.onQuickMeal,
+                          section: HomeHubSectionId.meal,
+                        ),
                         backgroundColor: Theme.of(
                           context,
                         ).colorScheme.surface.withValues(alpha: 0.86),
@@ -452,6 +483,7 @@ class _HomeHubScreenState extends State<HomeHubScreen>
                         onLog: _trackedAction(
                           'daily_flow_log',
                           () => _openTodayEntryOrCreate(data),
+                          section: HomeHubSectionId.dailyFlow,
                         ),
                         onLifting: _trackedAction(
                           'daily_flow_lifting',
@@ -460,6 +492,7 @@ class _HomeHubScreenState extends State<HomeHubScreen>
                             initialFocusTarget:
                                 EntryFormInitialFocusTarget.lifting,
                           ),
+                          section: HomeHubSectionId.dailyFlow,
                         ),
                         onJumpRope: _trackedAction(
                           'daily_flow_jump_rope',
@@ -468,26 +501,32 @@ class _HomeHubScreenState extends State<HomeHubScreen>
                             initialFocusTarget:
                                 EntryFormInitialFocusTarget.jumpRope,
                           ),
+                          section: HomeHubSectionId.dailyFlow,
                         ),
                         onQuiz: _trackedAction(
                           'daily_flow_quiz',
                           widget.onQuickQuiz,
+                          section: HomeHubSectionId.dailyFlow,
                         ),
                         onReview: _trackedAction(
                           'daily_flow_review',
                           widget.onOpenDiary,
+                          section: HomeHubSectionId.dailyFlow,
                         ),
                         onNews: _trackedAction(
                           'daily_flow_news',
                           _openNews,
+                          section: HomeHubSectionId.dailyFlow,
                         ),
                         onBoard: _trackedAction(
                           'daily_flow_board',
                           () => _openTodayBoardSketch(data),
+                          section: HomeHubSectionId.dailyFlow,
                         ),
                         onMeal: _trackedAction(
                           'daily_flow_meal',
                           widget.onQuickMeal,
+                          section: HomeHubSectionId.dailyFlow,
                         ),
                       ),
                       guideKey: widget
@@ -501,18 +540,22 @@ class _HomeHubScreenState extends State<HomeHubScreen>
                         onQuickMatch: _trackedAction(
                           'quick_create_match',
                           widget.onQuickMatch,
+                          section: HomeHubSectionId.quickActions,
                         ),
                         onQuickPlan: _trackedAction(
                           'quick_create_plan',
                           widget.onQuickPlan,
+                          section: HomeHubSectionId.quickActions,
                         ),
                         onQuickWeatherOutfit: _trackedAction(
                           'quick_weather_outfit',
                           _openWeatherOutfitGuide,
+                          section: HomeHubSectionId.quickActions,
                         ),
                         onQuickRunningCoach: _trackedAction(
                           'quick_running_coach',
                           _openRunningCoach,
+                          section: HomeHubSectionId.quickActions,
                         ),
                       ),
                     ),
@@ -521,19 +564,41 @@ class _HomeHubScreenState extends State<HomeHubScreen>
                       _ContinueCard(
                         data: data,
                         showQuiz: true,
-                        onContinueQuiz: widget.onQuickQuiz,
-                        onContinueTraining: () => _openTodayEntryOrCreate(data),
-                        onContinueMatch: widget.onQuickMatch,
+                        onContinueQuiz: _trackedAction(
+                          'continue_quiz',
+                          widget.onQuickQuiz,
+                          section: HomeHubSectionId.continueSection,
+                        ),
+                        onContinueTraining: _trackedAction(
+                          'continue_training',
+                          () => _openTodayEntryOrCreate(data),
+                          section: HomeHubSectionId.continueSection,
+                        ),
+                        onContinueMatch: _trackedAction(
+                          'continue_match',
+                          widget.onQuickMatch,
+                          section: HomeHubSectionId.continueSection,
+                        ),
                         onContinueBoard: data.latestBoard == null
-                            ? widget.onQuickBoard
-                            : () => _openBoard(context, data.latestBoard!),
+                            ? _trackedAction(
+                                'continue_board',
+                                widget.onQuickBoard,
+                                section: HomeHubSectionId.continueSection,
+                              )
+                            : _trackedAction(
+                                'continue_board',
+                                () => _openBoard(context, data.latestBoard!),
+                                section: HomeHubSectionId.continueSection,
+                              ),
                       ),
                     ),
                   };
 
                   final visibleHomeSections = <Widget>[];
                   final visibleSectionIds = _prioritizedHomeSections(
-                    _homeSectionSettings.visibleSections,
+                    _homeSectionSettings.visibleSectionsByUsage(
+                      _homeSectionUsageCounts,
+                    ),
                     data.todayMealEntry,
                   );
                   for (final section in visibleSectionIds) {
@@ -622,6 +687,7 @@ class _HomeHubScreenState extends State<HomeHubScreen>
     MealEntry? todayMealEntry,
   ) {
     if (!sections.contains(HomeHubSectionId.meal) ||
+        _homeSectionSettings.isPinned(HomeHubSectionId.meal) ||
         !_shouldPromoteMealSection(todayMealEntry)) {
       return sections;
     }
@@ -1211,11 +1277,20 @@ class _HomeHubScreenState extends State<HomeHubScreen>
     );
   }
 
-  VoidCallback? _trackedAction(String key, VoidCallback? action) {
+  VoidCallback? _trackedAction(
+    String key,
+    VoidCallback? action, {
+    HomeHubSectionId? section,
+  }) {
     if (action == null) return null;
     return () {
       action();
-      _queueHomeActionSideEffect(() => _trackHomeActionTap(key));
+      _queueHomeActionSideEffect(() async {
+        if (section != null) {
+          await _recordHomeSectionUsage(section);
+        }
+        await _trackHomeActionTap(key);
+      });
     };
   }
 
@@ -1233,6 +1308,19 @@ class _HomeHubScreenState extends State<HomeHubScreen>
     await widget.optionRepository.setValue(
       'home_action_last_tap_at_v1',
       DateTime.now().toIso8601String(),
+    );
+  }
+
+  Future<void> _recordHomeSectionUsage(HomeHubSectionId section) async {
+    final current = _homeSectionUsageCounts[section] ?? 0;
+    final next = Map<HomeHubSectionId, int>.of(_homeSectionUsageCounts)
+      ..[section] = current >= 999999 ? current : current + 1;
+    if (mounted) {
+      setState(() => _homeSectionUsageCounts = next);
+    }
+    await widget.optionRepository.setValue(
+      HomeHubSectionSettings.usageStorageKey,
+      HomeHubSectionSettings.encodeUsageCounts(next),
     );
   }
 

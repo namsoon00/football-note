@@ -52,6 +52,79 @@ void main() {
       );
     });
 
+    test('decode keeps pinned sections', () {
+      final settings = HomeHubSectionSettings.decode(
+        jsonEncode(
+          <String, dynamic>{
+            'sections': <Map<String, dynamic>>[
+              <String, dynamic>{'id': 'club_schedule', 'visible': true},
+              <String, dynamic>{
+                'id': 'daily_flow',
+                'visible': true,
+                'pinned': true,
+              },
+            ],
+          },
+        ),
+      );
+
+      expect(settings.isPinned(HomeHubSectionId.dailyFlow), isTrue);
+      expect(settings.isPinned(HomeHubSectionId.clubSchedule), isFalse);
+    });
+
+    test('orders unpinned visible sections by usage', () {
+      final settings = HomeHubSectionSettings.defaults();
+
+      expect(
+        settings.visibleSectionsByUsage(
+          <HomeHubSectionId, int>{
+            HomeHubSectionId.challenge: 9,
+            HomeHubSectionId.quickActions: 3,
+          },
+        ).take(3),
+        <HomeHubSectionId>[
+          HomeHubSectionId.challenge,
+          HomeHubSectionId.quickActions,
+          HomeHubSectionId.clubSchedule,
+        ],
+      );
+    });
+
+    test('pinned sections keep their visible slot during usage ordering', () {
+      final settings = HomeHubSectionSettings.defaults().setPinned(
+        HomeHubSectionId.clubSchedule,
+        true,
+      );
+
+      expect(
+        settings.visibleSectionsByUsage(
+          <HomeHubSectionId, int>{
+            HomeHubSectionId.challenge: 9,
+            HomeHubSectionId.quickActions: 3,
+          },
+        ).take(3),
+        <HomeHubSectionId>[
+          HomeHubSectionId.clubSchedule,
+          HomeHubSectionId.challenge,
+          HomeHubSectionId.quickActions,
+        ],
+      );
+    });
+
+    test('usage counts round-trip through storage json', () {
+      final encoded = HomeHubSectionSettings.encodeUsageCounts(
+        <HomeHubSectionId, int>{
+          HomeHubSectionId.dailyFlow: 4,
+          HomeHubSectionId.meal: 0,
+        },
+      );
+
+      expect(
+        HomeHubSectionSettings.decodeUsageCounts(encoded),
+        <HomeHubSectionId, int>{HomeHubSectionId.dailyFlow: 4},
+      );
+    });
+
     test('decode inserts missing club schedule at the top', () {
       final settings = HomeHubSectionSettings.decode(
         jsonEncode(

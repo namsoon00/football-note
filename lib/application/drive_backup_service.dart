@@ -376,6 +376,7 @@ class DriveBackupService implements BackupRepository {
     'coach_diary_completed_day_v2',
     'diary_theme_v1',
     'home_hub_sections_v1',
+    'home_hub_section_usage_v1',
 
     // Progression and reward state.
     PlayerLevelService.totalXpKey,

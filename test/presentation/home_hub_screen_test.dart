@@ -404,6 +404,12 @@ void main() {
       ),
       findsOneWidget,
     );
+    await tester.tap(
+      find.byKey(
+        const ValueKey<String>('home-section-pinned-club_schedule'),
+      ),
+    );
+    await tester.pump();
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey<String>('home-section-drag-area-level')),
       240,
@@ -453,6 +459,10 @@ void main() {
 
     final rawSettings = optionRepository.getValue<String>(
       HomeHubSectionSettings.storageKey,
+    );
+    expect(
+      rawSettings,
+      contains('"id":"club_schedule","visible":true,"pinned":true'),
     );
     expect(rawSettings, contains('"id":"level","visible":false'));
     expect(

@@ -1730,6 +1730,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get homeLayoutNoVisibleSections => '表示中のホームセクションがありません。';
 
   @override
+  String get homeLayoutAutoOrderHint => '固定していないセクションは、よく使うほど上に移動します。';
+
+  @override
+  String get homeSectionPinTooltip => 'この位置に固定';
+
+  @override
+  String get homeSectionUnpinTooltip => '固定を解除';
+
+  @override
   String get homeSectionClubSchedule => 'クラブ予定';
 
   @override
