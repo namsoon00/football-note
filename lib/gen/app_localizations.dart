@@ -3163,6 +3163,24 @@ abstract class AppLocalizations {
   /// **'All home sections are hidden.'**
   String get homeLayoutNoVisibleSections;
 
+  /// No description provided for @homeLayoutAutoOrderHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Sections you do not pin move up as you use them more.'**
+  String get homeLayoutAutoOrderHint;
+
+  /// No description provided for @homeSectionPinTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin this position'**
+  String get homeSectionPinTooltip;
+
+  /// No description provided for @homeSectionUnpinTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpin'**
+  String get homeSectionUnpinTooltip;
+
   /// No description provided for @homeSectionClubSchedule.
   ///
   /// In en, this message translates to:

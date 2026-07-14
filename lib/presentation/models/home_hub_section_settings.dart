@@ -25,27 +25,35 @@ enum HomeHubSectionId {
 class HomeHubSectionSetting {
   final HomeHubSectionId section;
   final bool visible;
+  final bool pinned;
 
   const HomeHubSectionSetting({
     required this.section,
     required this.visible,
+    this.pinned = false,
   });
 
-  HomeHubSectionSetting copyWith({bool? visible}) {
+  HomeHubSectionSetting copyWith({
+    bool? visible,
+    bool? pinned,
+  }) {
     return HomeHubSectionSetting(
       section: section,
       visible: visible ?? this.visible,
+      pinned: pinned ?? this.pinned,
     );
   }
 
   Map<String, dynamic> toMap() => <String, dynamic>{
         'id': section.storageId,
         'visible': visible,
+        'pinned': pinned,
       };
 }
 
 class HomeHubSectionSettings {
   static const String storageKey = 'home_hub_sections_v1';
+  static const String usageStorageKey = 'home_hub_section_usage_v1';
   static const String legacyLayoutKey = 'home_hub_layout_v1';
 
   static const List<HomeHubSectionId> defaultOrder = <HomeHubSectionId>[
@@ -114,6 +122,7 @@ class HomeHubSectionSettings {
           HomeHubSectionSetting(
             section: section,
             visible: item['visible'] != false,
+            pinned: item['pinned'] == true,
           ),
         );
       }
@@ -136,6 +145,62 @@ class HomeHubSectionSettings {
       .where((section) => section.visible)
       .map((section) => section.section)
       .toList(growable: false);
+
+  List<HomeHubSectionId> visibleSectionsByUsage(
+    Map<HomeHubSectionId, int> usageCounts,
+  ) {
+    final visibleItems =
+        sections.where((section) => section.visible).toList(growable: false);
+    if (visibleItems.length < 2 ||
+        usageCounts.values.every((count) => count <= 0)) {
+      return visibleSections;
+    }
+
+    final originalIndexes = <HomeHubSectionId, int>{
+      for (var index = 0; index < visibleItems.length; index++)
+        visibleItems[index].section: index,
+    };
+    final pinnedSlots = <int, HomeHubSectionSetting>{};
+    final movableItems = <HomeHubSectionSetting>[];
+    for (var index = 0; index < visibleItems.length; index++) {
+      final item = visibleItems[index];
+      if (item.pinned) {
+        pinnedSlots[index] = item;
+      } else {
+        movableItems.add(item);
+      }
+    }
+    if (movableItems.length < 2) {
+      return visibleItems
+          .map((section) => section.section)
+          .toList(growable: false);
+    }
+
+    movableItems.sort((a, b) {
+      final usageCompare = (usageCounts[b.section] ?? 0).compareTo(
+        usageCounts[a.section] ?? 0,
+      );
+      if (usageCompare != 0) return usageCompare;
+      return originalIndexes[a.section]!.compareTo(originalIndexes[b.section]!);
+    });
+
+    final result = <HomeHubSectionId>[];
+    var movableIndex = 0;
+    for (var index = 0; index < visibleItems.length; index++) {
+      final pinned = pinnedSlots[index];
+      if (pinned != null) {
+        result.add(pinned.section);
+      } else {
+        result.add(movableItems[movableIndex].section);
+        movableIndex += 1;
+      }
+    }
+    return result;
+  }
+
+  bool isPinned(HomeHubSectionId section) {
+    return sections.any((item) => item.section == section && item.pinned);
+  }
 
   HomeHubSectionSettings move(int oldIndex, int newIndex) {
     if (oldIndex < 0 || oldIndex >= sections.length) return this;
@@ -161,6 +226,54 @@ class HomeHubSectionSettings {
           )
           .toList(growable: false),
     );
+  }
+
+  HomeHubSectionSettings setPinned(
+    HomeHubSectionId section,
+    bool pinned,
+  ) {
+    return HomeHubSectionSettings(
+      sections: sections
+          .map(
+            (item) =>
+                item.section == section ? item.copyWith(pinned: pinned) : item,
+          )
+          .toList(growable: false),
+    );
+  }
+
+  static Map<HomeHubSectionId, int> decodeUsageCounts(String? raw) {
+    if (raw == null || raw.trim().isEmpty) {
+      return <HomeHubSectionId, int>{};
+    }
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map) return <HomeHubSectionId, int>{};
+      final source = decoded['counts'] is Map ? decoded['counts'] : decoded;
+      if (source is! Map) return <HomeHubSectionId, int>{};
+      final counts = <HomeHubSectionId, int>{};
+      for (final entry in source.entries) {
+        final section = HomeHubSectionId.fromStorageId(
+          entry.key?.toString() ?? '',
+        );
+        final value = entry.value;
+        if (section == null || value is! num || value <= 0) continue;
+        counts[section] = value.toInt();
+      }
+      return counts;
+    } catch (_) {
+      return <HomeHubSectionId, int>{};
+    }
+  }
+
+  static String encodeUsageCounts(Map<HomeHubSectionId, int> usageCounts) {
+    return jsonEncode(<String, dynamic>{
+      'version': 1,
+      'counts': <String, int>{
+        for (final entry in usageCounts.entries)
+          if (entry.value > 0) entry.key.storageId: entry.value,
+      },
+    });
   }
 
   static HomeHubSectionSettings _fromLegacyLayout(String? legacyLayout) {

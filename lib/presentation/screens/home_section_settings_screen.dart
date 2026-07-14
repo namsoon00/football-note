@@ -124,6 +124,21 @@ class _HomeSectionSettingsScreenState extends State<HomeSectionSettingsScreen> {
                   ],
                 ),
               ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.md,
+                  0,
+                  AppSpacing.md,
+                  AppSpacing.sm,
+                ),
+                child: Text(
+                  l10n.homeLayoutAutoOrderHint,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
               Expanded(
                 child: ReorderableListView.builder(
                   key: const ValueKey<String>('home-section-settings-list'),
@@ -153,6 +168,11 @@ class _HomeSectionSettingsScreenState extends State<HomeSectionSettingsScreen> {
                       onVisibleChanged: (visible) {
                         _update(
                           _settings.setVisible(setting.section, visible),
+                        );
+                      },
+                      onPinnedChanged: (pinned) {
+                        _update(
+                          _settings.setPinned(setting.section, pinned),
                         );
                       },
                     );
@@ -196,12 +216,14 @@ class _HomeSectionSettingTile extends StatefulWidget {
   final int index;
   final HomeHubSectionSetting setting;
   final ValueChanged<bool> onVisibleChanged;
+  final ValueChanged<bool> onPinnedChanged;
 
   const _HomeSectionSettingTile({
     super.key,
     required this.index,
     required this.setting,
     required this.onVisibleChanged,
+    required this.onPinnedChanged,
   });
 
   @override
@@ -309,6 +331,41 @@ class _HomeSectionSettingTileState extends State<_HomeSectionSettingTile> {
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  Tooltip(
+                    key: ValueKey<String>(
+                      'home-section-pinned-${setting.section.storageId}',
+                    ),
+                    message: setting.pinned
+                        ? l10n.homeSectionUnpinTooltip
+                        : l10n.homeSectionPinTooltip,
+                    child: Semantics(
+                      button: true,
+                      toggled: setting.pinned,
+                      child: Material(
+                        color: setting.pinned
+                            ? scheme.primaryContainer.withValues(alpha: 0.72)
+                            : scheme.surfaceContainerHighest.withValues(
+                                alpha: 0.48,
+                              ),
+                        borderRadius: AppRadius.full,
+                        child: InkWell(
+                          borderRadius: AppRadius.full,
+                          onTap: () => widget.onPinnedChanged(!setting.pinned),
+                          child: SizedBox.square(
+                            dimension: 40,
+                            child: Icon(
+                              setting.pinned
+                                  ? Icons.push_pin
+                                  : Icons.push_pin_outlined,
+                              color: setting.pinned
+                                  ? scheme.primary
+                                  : scheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),

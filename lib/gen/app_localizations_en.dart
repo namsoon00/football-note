@@ -1781,6 +1781,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeLayoutNoVisibleSections => 'All home sections are hidden.';
 
   @override
+  String get homeLayoutAutoOrderHint =>
+      'Sections you do not pin move up as you use them more.';
+
+  @override
+  String get homeSectionPinTooltip => 'Pin this position';
+
+  @override
+  String get homeSectionUnpinTooltip => 'Unpin';
+
+  @override
   String get homeSectionClubSchedule => 'Club schedule';
 
   @override
