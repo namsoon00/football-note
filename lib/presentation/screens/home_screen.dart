@@ -550,15 +550,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final isParentMode = FamilyAccessService(
       widget.optionRepository,
     ).loadState().isParentMode;
+    if (!_isTabGuideEnabled(tabIndex, isParentMode: isParentMode)) return;
     final key = isParentMode
         ? 'tab_quick_guide_seen_parent_mode_v1'
         : 'tab_quick_guide_seen_v1_$tabIndex';
     final alreadySeen = widget.optionRepository.getValue<bool>(key) ?? false;
     if (alreadySeen) return;
-    await widget.optionRepository.setValue(key, true);
-    if (!mounted) return;
     final l10n = AppLocalizations.of(context)!;
     final guide = _tabGuideData(tabIndex, l10n, isParentMode: isParentMode);
+    if (guide.steps.isEmpty) return;
+    await widget.optionRepository.setValue(key, true);
+    if (!mounted) return;
     await _ensureGuideTargetVisible(
       guide.steps.isEmpty ? null : guide.steps.first.targetAnchor,
     );
@@ -585,6 +587,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
     if (!mounted || action == null) return;
     action();
+  }
+
+  bool _isTabGuideEnabled(int tabIndex, {required bool isParentMode}) {
+    if (isParentMode) return true;
+    return tabIndex != 1;
   }
 
   Future<void> _ensureGuideTargetVisible(_CoachMarkAnchor? targetAnchor) async {
@@ -1084,12 +1091,14 @@ class _TabCoachMarkDialogState extends State<_TabCoachMarkDialog> {
             viewport: viewport,
             safePadding: safePadding,
           );
-          final floatingOffset = _floatingOffsetFor(
-            spotlightRect,
-            viewport,
-            safePadding,
-            panelSlot,
-          );
+          final floatingOffset = spotlightRect == null
+              ? null
+              : _floatingOffsetFor(
+                  spotlightRect,
+                  viewport,
+                  safePadding,
+                  panelSlot,
+                );
           return KeyedSubtree(
             key: const ValueKey('tab-coach-mark-screen-overlay'),
             child: Stack(
@@ -1110,35 +1119,36 @@ class _TabCoachMarkDialogState extends State<_TabCoachMarkDialog> {
                     ),
                   ),
                 ),
-                AnimatedPositioned(
-                  duration: const Duration(milliseconds: 220),
-                  curve: Curves.easeOutCubic,
-                  left: spotlightRect.left,
-                  top: spotlightRect.top,
-                  width: spotlightRect.width,
-                  height: spotlightRect.height,
-                  child: IgnorePointer(
-                    child: DecoratedBox(
-                      key: const ValueKey('tab-coach-mark-highlight'),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: theme.colorScheme.primary,
-                          width: 3,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: theme.colorScheme.primary.withValues(
-                              alpha: 0.42,
-                            ),
-                            blurRadius: 28,
-                            spreadRadius: 4,
+                if (spotlightRect != null)
+                  AnimatedPositioned(
+                    duration: const Duration(milliseconds: 220),
+                    curve: Curves.easeOutCubic,
+                    left: spotlightRect.left,
+                    top: spotlightRect.top,
+                    width: spotlightRect.width,
+                    height: spotlightRect.height,
+                    child: IgnorePointer(
+                      child: DecoratedBox(
+                        key: const ValueKey('tab-coach-mark-highlight'),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: theme.colorScheme.primary,
+                            width: 3,
                           ),
-                        ],
+                          boxShadow: [
+                            BoxShadow(
+                              color: theme.colorScheme.primary.withValues(
+                                alpha: 0.42,
+                              ),
+                              blurRadius: 28,
+                              spreadRadius: 4,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
                 if (floatingOffset != null)
                   AnimatedPositioned(
                     duration: const Duration(milliseconds: 220),
@@ -1230,13 +1240,14 @@ class _TabCoachMarkDialogState extends State<_TabCoachMarkDialog> {
     );
   }
 
-  Rect _spotlightRectForStep({
+  Rect? _spotlightRectForStep({
     required _TabGuideStep step,
     required int stepIndex,
     required int totalSteps,
     required Size viewport,
   }) {
     final targetRect = _targetRectForStep(step);
+    if (targetRect == null && step.targetAnchor == null) return null;
     final rect = (targetRect ??
             _fallbackRectForStep(
               step: step,
@@ -1337,7 +1348,7 @@ class _TabCoachMarkDialogState extends State<_TabCoachMarkDialog> {
   }
 
   _CoachMarkPanelSlot _explanationPanelSlotFor({
-    required Rect spotlightRect,
+    required Rect? spotlightRect,
     required Size viewport,
     required EdgeInsets safePadding,
   }) {
@@ -1347,6 +1358,16 @@ class _TabCoachMarkDialogState extends State<_TabCoachMarkDialog> {
       safeTop,
       viewport.height,
     );
+    if (spotlightRect == null) {
+      return _CoachMarkPanelSlot(
+        top: safeTop,
+        bottom: (viewport.height - safeBottom)
+            .clamp(0.0, viewport.height)
+            .toDouble(),
+        alignment: Alignment.center,
+        isAboveTarget: false,
+      );
+    }
     final aboveBottomEdge = _clampDouble(
       spotlightRect.top - _panelGap,
       safeTop,
@@ -1439,7 +1460,7 @@ class _TabCoachMarkDialogState extends State<_TabCoachMarkDialog> {
 }
 
 class _CoachMarkScrimPainter extends CustomPainter {
-  final Rect spotlightRect;
+  final Rect? spotlightRect;
   final Color color;
 
   const _CoachMarkScrimPainter({
@@ -1449,11 +1470,16 @@ class _CoachMarkScrimPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    final rect = spotlightRect;
+    if (rect == null) {
+      canvas.drawRect(Offset.zero & size, Paint()..color = color);
+      return;
+    }
     final screenPath = Path()..addRect(Offset.zero & size);
     final spotlightPath = Path()
       ..addRRect(
         RRect.fromRectAndRadius(
-          spotlightRect,
+          rect,
           const Radius.circular(20),
         ),
       );

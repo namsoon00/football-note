@@ -580,6 +580,101 @@ void main() {
     await tester.pump();
   });
 
+  testWidgets('logs tab does not open the tab quick guide', (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _MemoryOptionRepository();
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+    final trainingService = TrainingService(_MemoryTrainingRepository());
+    final mealLogService = MealLogService(optionRepository);
+
+    await tester.pumpWidget(
+      _buildApp(
+        HomeScreen(
+          trainingService: trainingService,
+          mealLogService: mealLogService,
+          localeService: localeService,
+          optionRepository: optionRepository,
+          settingsService: settingsService,
+          initialIndex: 1,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(
+      find.byKey(const ValueKey('tab-coach-mark-dialog')),
+      findsNothing,
+    );
+    expect(
+      optionRepository.getValue<bool>('tab_quick_guide_seen_v1_1'),
+      isNull,
+    );
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
+
+  testWidgets('unanchored tab guide steps do not draw a stray coach mark', (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _MemoryOptionRepository();
+    await optionRepository.setValue('tab_quick_guide_seen_v1_0', true);
+    await optionRepository.setValue('tab_quick_guide_seen_v1_1', true);
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+    final trainingService = TrainingService(_MemoryTrainingRepository());
+    final mealLogService = MealLogService(optionRepository);
+
+    await tester.pumpWidget(
+      _buildApp(
+        HomeScreen(
+          trainingService: trainingService,
+          mealLogService: mealLogService,
+          localeService: localeService,
+          optionRepository: optionRepository,
+          settingsService: settingsService,
+          initialIndex: 2,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(
+      find.byKey(const ValueKey('tab-coach-mark-dialog')),
+      findsOneWidget,
+    );
+    expect(find.text('3단계 중 1단계'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('tab-coach-mark-highlight')),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.byKey(const ValueKey('tab-coach-mark-next-button')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 260));
+
+    expect(find.text('3단계 중 2단계'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('tab-coach-mark-highlight')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey('tab-coach-mark-floating-target')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey('tab-coach-mark-explanation-panel')),
+      findsOneWidget,
+    );
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
+
   testWidgets(
     'home quick actions and continue card use Japanese localization',
     (WidgetTester tester) async {

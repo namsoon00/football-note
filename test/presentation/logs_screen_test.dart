@@ -335,7 +335,7 @@ void main() {
     expect(find.textContaining('패스'), findsNothing);
   });
 
-  testWidgets('Logs screen shows quick guide only when there are no entries', (
+  testWidgets('Logs screen does not show quick guide on empty entries', (
     WidgetTester tester,
   ) async {
     await clearTrainingBox();
@@ -367,10 +367,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 200));
 
-    expect(find.text('빠른 시작 가이드'), findsOneWidget);
-
-    await tester.tap(find.text('닫기'));
-    await tester.pumpAndSettle();
+    expect(find.text('빠른 시작 가이드'), findsNothing);
 
     await clearTrainingBox();
     await service.add(
