@@ -5156,7 +5156,10 @@ class _ArchivedAnalysisVideoCardState
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.movie_filter_outlined, color: scheme.primary),
+                Icon(
+                  Icons.movie_filter_outlined,
+                  color: scheme.primary,
+                ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(
@@ -5181,22 +5184,27 @@ class _ArchivedAnalysisVideoCardState
                     ],
                   ),
                 ),
-                if (isReady)
-                  FilledButton.icon(
-                    onPressed: _togglePlayback,
-                    icon: Icon(
-                      controller.value.isPlaying
-                          ? Icons.pause_rounded
-                          : Icons.play_arrow_rounded,
-                    ),
-                    label: Text(
-                      controller.value.isPlaying
-                          ? l10n.runningCoachArchivedVideoPause
-                          : l10n.runningCoachArchivedVideoPlay,
-                    ),
-                  ),
               ],
             ),
+            if (isReady) ...[
+              const SizedBox(height: 10),
+              Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: FilledButton.icon(
+                  onPressed: _togglePlayback,
+                  icon: Icon(
+                    controller.value.isPlaying
+                        ? Icons.pause_rounded
+                        : Icons.play_arrow_rounded,
+                  ),
+                  label: Text(
+                    controller.value.isPlaying
+                        ? l10n.runningCoachArchivedVideoPause
+                        : l10n.runningCoachArchivedVideoPlay,
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: 12),
             DecoratedBox(
               decoration: BoxDecoration(
@@ -5499,15 +5507,25 @@ class _RunningInsightGuidePainter extends CustomPainter {
 
     final hip = center + Offset(-12 * scale, -8 * scale);
     final shoulder = hip + Offset(lean * scale, -54 * scale);
+    final bodyNormal = _normalVector(shoulder, hip);
+    final hipFront = hip - bodyNormal * 11 * scale;
+    final hipRear = hip + bodyNormal * 11 * scale;
+    final shoulderFront = shoulder - bodyNormal * 10 * scale;
+    final shoulderRear = shoulder + bodyNormal * 10 * scale;
+    final chest = Offset.lerp(shoulder, hip, 0.42)!;
     final neck = shoulder + Offset(8 * scale, -12 * scale);
     final head = neck + Offset(5 * scale, -14 * scale);
-    final frontKnee = hip + Offset(30 * scale, (32 + kneeDrop) * scale);
-    final frontFoot = hip + Offset(footReach * scale, 58 * scale);
-    final backKnee = hip + Offset(-45 * scale, 32 * scale);
-    final backFoot = hip + Offset(-76 * scale, 56 * scale);
-    final frontElbow = shoulder + Offset(armOpen * scale, 28 * scale);
+    final frontKnee = hipFront + Offset(30 * scale, (32 + kneeDrop) * scale);
+    final frontAnkle = hipFront + Offset((footReach - 10) * scale, 50 * scale);
+    final frontToe = hipFront + Offset(footReach * scale, 58 * scale);
+    final frontHeel = frontAnkle + Offset(-12 * scale, 5 * scale);
+    final backKnee = hipRear + Offset(-45 * scale, 32 * scale);
+    final backAnkle = hipRear + Offset(-76 * scale, 53 * scale);
+    final backToe = backAnkle + Offset(-16 * scale, 3 * scale);
+    final backHeel = backAnkle + Offset(10 * scale, 6 * scale);
+    final frontElbow = shoulderFront + Offset(armOpen * scale, 28 * scale);
     final frontHand = frontElbow + Offset(18 * scale, 26 * scale);
-    final backElbow = shoulder + Offset(-armOpen * scale, 20 * scale);
+    final backElbow = shoulderRear + Offset(-armOpen * scale, 20 * scale);
     final backHand = backElbow + Offset(-20 * scale, 26 * scale);
 
     final guidePaint = Paint()
@@ -5548,36 +5566,75 @@ class _RunningInsightGuidePainter extends CustomPainter {
     _drawTorsoBiomechanics(canvas, shoulder, hip, scale);
     _drawBodySegment(canvas, hip, shoulder, bodyPaint, accentPaint,
         active: metric == RunningCoachMetric.posture);
-    _drawBodySegment(canvas, shoulder, frontElbow, bodyPaint, accentPaint,
+    _drawShoulderPelvisBars(
+      canvas,
+      shoulderFront,
+      shoulderRear,
+      hipFront,
+      hipRear,
+      bodyPaint,
+    );
+    _drawBodySegment(canvas, shoulderFront, frontElbow, bodyPaint, accentPaint,
         active: metric == RunningCoachMetric.armCarriage);
     _drawBodySegment(canvas, frontElbow, frontHand, bodyPaint, accentPaint,
         active: metric == RunningCoachMetric.armCarriage);
-    _drawBodySegment(canvas, shoulder, backElbow, bodyPaint, accentPaint,
+    _drawBodySegment(canvas, shoulderRear, backElbow, bodyPaint, accentPaint,
         active: metric == RunningCoachMetric.armCarriage);
     _drawBodySegment(canvas, backElbow, backHand, bodyPaint, accentPaint,
         active: metric == RunningCoachMetric.armCarriage);
-    _drawBodySegment(canvas, hip, frontKnee, bodyPaint, accentPaint,
+    _drawBodySegment(canvas, hipFront, frontKnee, bodyPaint, accentPaint,
         active: metric == RunningCoachMetric.kneeFlexion);
-    _drawBodySegment(canvas, frontKnee, frontFoot, bodyPaint, accentPaint,
+    _drawBodySegment(canvas, frontKnee, frontAnkle, bodyPaint, accentPaint,
         active: metric == RunningCoachMetric.kneeFlexion ||
             metric == RunningCoachMetric.footStrike);
-    _drawBodySegment(canvas, hip, backKnee, bodyPaint, accentPaint);
-    _drawBodySegment(canvas, backKnee, backFoot, bodyPaint, accentPaint);
+    _drawFoot(
+      canvas,
+      ankle: frontAnkle,
+      heel: frontHeel,
+      toe: frontToe,
+      bodyPaint: bodyPaint,
+      accentPaint: accentPaint,
+      active: metric == RunningCoachMetric.footStrike,
+    );
+    _drawBodySegment(canvas, hipRear, backKnee, bodyPaint, accentPaint);
+    _drawBodySegment(canvas, backKnee, backAnkle, bodyPaint, accentPaint);
+    _drawFoot(
+      canvas,
+      ankle: backAnkle,
+      heel: backHeel,
+      toe: backToe,
+      bodyPaint: bodyPaint,
+      accentPaint: accentPaint,
+    );
 
     canvas.drawCircle(head, compact ? 7 * scale : 10 * scale, jointPaint);
     canvas.drawCircle(head, compact ? 7 * scale : 10 * scale, jointStroke);
-    for (final joint in [
-      shoulder,
-      hip,
-      frontElbow,
-      backElbow,
-      frontKnee,
-      backKnee,
-      frontFoot,
-      backFoot,
+    for (final joint in <({Offset point, bool active})>[
+      (point: neck, active: false),
+      (point: shoulderFront, active: metric == RunningCoachMetric.posture),
+      (point: shoulderRear, active: metric == RunningCoachMetric.posture),
+      (point: chest, active: metric == RunningCoachMetric.posture),
+      (point: hipFront, active: metric == RunningCoachMetric.footStrike),
+      (point: hipRear, active: metric == RunningCoachMetric.footStrike),
+      (point: frontElbow, active: metric == RunningCoachMetric.armCarriage),
+      (point: frontHand, active: metric == RunningCoachMetric.armCarriage),
+      (point: backElbow, active: metric == RunningCoachMetric.armCarriage),
+      (point: backHand, active: metric == RunningCoachMetric.armCarriage),
+      (point: frontKnee, active: metric == RunningCoachMetric.kneeFlexion),
+      (point: frontAnkle, active: metric == RunningCoachMetric.footStrike),
+      (point: frontToe, active: metric == RunningCoachMetric.footStrike),
+      (point: backKnee, active: false),
+      (point: backAnkle, active: false),
+      (point: backToe, active: false),
     ]) {
-      canvas.drawCircle(joint, compact ? 2.8 * scale : 4 * scale, jointPaint);
-      canvas.drawCircle(joint, compact ? 2.8 * scale : 4 * scale, jointStroke);
+      _drawDetailedJoint(
+        canvas,
+        joint.point,
+        scale,
+        jointPaint,
+        joint.active ? accentJointStroke : jointStroke,
+        active: joint.active,
+      );
     }
 
     switch (metric) {
@@ -5639,10 +5696,10 @@ class _RunningInsightGuidePainter extends CustomPainter {
           Offset(hip.dx, groundY + 4 * scale),
           guidePaint,
         );
-        canvas.drawCircle(frontFoot, compact ? 6 * scale : 8 * scale,
+        canvas.drawCircle(frontToe, compact ? 6 * scale : 8 * scale,
             Paint()..color = accentColor.withValues(alpha: 0.18));
         canvas.drawCircle(
-            frontFoot, compact ? 6 * scale : 8 * scale, accentJointStroke);
+            frontToe, compact ? 6 * scale : 8 * scale, accentJointStroke);
       case RunningCoachMetric.kneeFlexion:
         _drawAngleArc(
           canvas,
@@ -5669,6 +5726,85 @@ class _RunningInsightGuidePainter extends CustomPainter {
             Paint()..color = accentColor.withValues(alpha: 0.16));
         canvas.drawCircle(
             frontElbow, compact ? 7 * scale : 9 * scale, accentJointStroke);
+    }
+  }
+
+  void _drawShoulderPelvisBars(
+    Canvas canvas,
+    Offset shoulderFront,
+    Offset shoulderRear,
+    Offset hipFront,
+    Offset hipRear,
+    Paint bodyPaint,
+  ) {
+    final paint = Paint()
+      ..color = bodyPaint.color.withValues(alpha: compact ? 0.36 : 0.48)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = compact ? 2.0 : 2.8
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(shoulderRear, shoulderFront, paint);
+    canvas.drawLine(hipRear, hipFront, paint);
+  }
+
+  void _drawFoot(
+    Canvas canvas, {
+    required Offset ankle,
+    required Offset heel,
+    required Offset toe,
+    required Paint bodyPaint,
+    required Paint accentPaint,
+    bool active = false,
+  }) {
+    final paint = Paint()
+      ..color = active
+          ? accentPaint.color.withValues(alpha: 0.92)
+          : bodyPaint.color.withValues(alpha: 0.72)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = active ? (compact ? 4.0 : 5.4) : (compact ? 3.0 : 4.2)
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    final footPath = Path()
+      ..moveTo(heel.dx, heel.dy)
+      ..quadraticBezierTo(ankle.dx, ankle.dy, toe.dx, toe.dy);
+    canvas.drawPath(
+      footPath.shift(Offset(0, paint.strokeWidth * 0.24)),
+      Paint()
+        ..color = Colors.black.withValues(alpha: compact ? 0.04 : 0.08)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = paint.strokeWidth + 1.8
+        ..strokeCap = StrokeCap.round,
+    );
+    canvas.drawPath(footPath, paint);
+  }
+
+  void _drawDetailedJoint(
+    Canvas canvas,
+    Offset center,
+    double scale,
+    Paint fillPaint,
+    Paint strokePaint, {
+    bool active = false,
+  }) {
+    final outerRadius = compact ? 3.0 * scale : 4.4 * scale;
+    if (active) {
+      canvas.drawCircle(
+        center,
+        outerRadius + (compact ? 2.4 * scale : 3.2 * scale),
+        Paint()
+          ..color = strokePaint.color.withValues(alpha: 0.14)
+          ..style = PaintingStyle.fill,
+      );
+    }
+    canvas.drawCircle(center, outerRadius, fillPaint);
+    canvas.drawCircle(center, outerRadius, strokePaint);
+    if (!compact) {
+      canvas.drawCircle(
+        center,
+        math.max(1.4, outerRadius * 0.34),
+        Paint()
+          ..color = strokePaint.color.withValues(alpha: active ? 0.92 : 0.52)
+          ..style = PaintingStyle.fill,
+      );
     }
   }
 
