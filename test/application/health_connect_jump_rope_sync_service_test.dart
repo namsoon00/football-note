@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/health_connect_jump_rope_sync_service.dart';
 import 'package:football_note/application/training_service.dart';
@@ -7,6 +8,24 @@ import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/domain/repositories/training_repository.dart';
 
 void main() {
+  tearDown(() {
+    debugDefaultTargetPlatformOverride = null;
+  });
+
+  test('method channel platform is supported only on Android', () {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    expect(
+      MethodChannelHealthConnectJumpRopePlatform.isSupportedDevice,
+      isFalse,
+    );
+
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    expect(
+      MethodChannelHealthConnectJumpRopePlatform.isSupportedDevice,
+      isTrue,
+    );
+  });
+
   test('syncRecent imports Health Connect jump rope sessions once', () async {
     final options = _MemoryOptionRepository();
     final trainingRepository = _MemoryTrainingRepository();
@@ -47,12 +66,93 @@ void main() {
     expect(imported.jumpRopeMinutes, 12);
     expect(imported.jumpRopeCount, 900);
     expect(imported.program, 'Jump rope');
+    final syncedKeys = options.getOptions(
+      HealthConnectJumpRopeSyncService.syncedRecordIdsKey,
+      const <String>[],
+    );
+    expect(syncedKeys, contains('hc-1'));
     expect(
-      options.getOptions(
-        HealthConnectJumpRopeSyncService.syncedRecordIdsKey,
-        const <String>[],
+      syncedKeys,
+      contains(
+        _sessionFingerprint(
+          sourcePackage: 'com.sec.android.app.shealth',
+          startTime: DateTime(2026, 7, 11, 7, 30),
+          endTime: DateTime(2026, 7, 11, 7, 42),
+          durationMillis: 12 * Duration.millisecondsPerMinute,
+        ),
       ),
-      <String>['hc-1'],
+    );
+  });
+
+  test('syncRecent skips a session when only its Health Connect id changed',
+      () async {
+    final options = _MemoryOptionRepository();
+    final trainingRepository = _MemoryTrainingRepository();
+    final startTime = DateTime(2026, 7, 11, 7, 30);
+    final endTime = DateTime(2026, 7, 11, 7, 42);
+    await trainingRepository.add(
+      TrainingEntry(
+        date: DateTime(startTime.year, startTime.month, startTime.day),
+        sportId: SportCatalog.footballId,
+        durationMinutes: 12,
+        intensity: 3,
+        type: 'Jump rope',
+        mood: 3,
+        injury: false,
+        notes: '',
+        location: '',
+        program: 'Jump rope',
+        createdAt: startTime,
+        jumpRopeCount: 900,
+        jumpRopeMinutes: 12,
+        jumpRopeEnabled: true,
+      ),
+    );
+    await options.saveOptions(
+      HealthConnectJumpRopeSyncService.syncedRecordIdsKey,
+      <String>['hc-old'],
+    );
+    final platform = _FakeHealthConnectJumpRopePlatform(
+      sessions: [
+        HealthConnectJumpRopeSession(
+          id: 'hc-new',
+          startTime: startTime,
+          endTime: endTime,
+          durationMillis: 12 * Duration.millisecondsPerMinute,
+          jumpCount: 900,
+          title: 'Jump rope',
+          sourcePackage: 'com.sec.android.app.shealth',
+          matchedBySegment: true,
+        ),
+      ],
+    );
+    final service = HealthConnectJumpRopeSyncService(
+      trainingService: TrainingService(trainingRepository),
+      optionRepository: options,
+      platform: platform,
+    );
+
+    final result = await service.syncRecent(now: DateTime(2026, 7, 11, 9));
+
+    expect(result.importedCount, 0);
+    expect(result.duplicateCount, 1);
+    expect(trainingRepository.entries, hasLength(1));
+    final syncedKeys = options.getOptions(
+      HealthConnectJumpRopeSyncService.syncedRecordIdsKey,
+      const <String>[],
+    );
+    expect(syncedKeys, contains('hc-old'));
+    expect(syncedKeys, contains('hc-new'));
+    expect(
+      syncedKeys,
+      contains(
+        _sessionFingerprint(
+          sourcePackage: 'com.sec.android.app.shealth',
+          startTime: startTime,
+          endTime: endTime,
+          durationMillis: 12 * Duration.millisecondsPerMinute,
+        ),
+      ),
     );
   });
 
@@ -90,6 +190,21 @@ void main() {
     expect(service.autoSyncEnabled, isTrue);
     expect(trainingRepository.entries.single.program, '줄넘기');
   });
+}
+
+String _sessionFingerprint({
+  required String sourcePackage,
+  required DateTime startTime,
+  required DateTime endTime,
+  required int durationMillis,
+}) {
+  return [
+    'healthConnectJumpRope',
+    sourcePackage,
+    startTime.millisecondsSinceEpoch,
+    endTime.millisecondsSinceEpoch,
+    durationMillis,
+  ].join('|');
 }
 
 class _FakeHealthConnectJumpRopePlatform
