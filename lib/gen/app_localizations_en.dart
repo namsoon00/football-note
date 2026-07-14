@@ -12966,6 +12966,39 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get trainingSketchFlowReviewTitle => 'Flow review';
+
+  @override
+  String get trainingSketchFlowReviewOk =>
+      'Ball ownership and action links look natural.';
+
+  @override
+  String trainingSketchFlowWarningBallWithoutActor(Object ball) {
+    return '$ball moves without a player.';
+  }
+
+  @override
+  String trainingSketchFlowWarningWrongOwner(
+      Object ball, Object owner, Object actor) {
+    return '$ball is owned by $owner, but $actor uses it.';
+  }
+
+  @override
+  String trainingSketchFlowWarningUnownedBallUsed(Object ball, Object actor) {
+    return '$ball has no owner, but $actor uses it.';
+  }
+
+  @override
+  String trainingSketchFlowWarningMultipleActors(Object ball, int stage) {
+    return 'Multiple players use $ball in stage $stage.';
+  }
+
+  @override
+  String trainingSketchFlowWarningInvalidTarget(Object ball, Object target) {
+    return '$ball targets a non-player ($target).';
+  }
+
+  @override
   String get trainingSketchSelectedItemTitle => 'Selected item';
 
   @override
@@ -13190,6 +13223,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trainingSketchDeleteRouteButton => 'Delete selected';
+
+  @override
+  String get trainingSketchEditStageActionTooltip => 'Edit stage action';
 
   @override
   String get trainingSketchDeleteStageActionTooltip => 'Delete stage action';

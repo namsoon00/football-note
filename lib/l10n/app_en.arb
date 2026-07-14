@@ -7044,6 +7044,45 @@
       "ball": {}
     }
   },
+  "trainingSketchFlowReviewTitle": "Flow review",
+  "trainingSketchFlowReviewOk": "Ball ownership and action links look natural.",
+  "trainingSketchFlowWarningBallWithoutActor": "{ball} moves without a player.",
+  "@trainingSketchFlowWarningBallWithoutActor": {
+    "placeholders": {
+      "ball": {}
+    }
+  },
+  "trainingSketchFlowWarningWrongOwner": "{ball} is owned by {owner}, but {actor} uses it.",
+  "@trainingSketchFlowWarningWrongOwner": {
+    "placeholders": {
+      "ball": {},
+      "owner": {},
+      "actor": {}
+    }
+  },
+  "trainingSketchFlowWarningUnownedBallUsed": "{ball} has no owner, but {actor} uses it.",
+  "@trainingSketchFlowWarningUnownedBallUsed": {
+    "placeholders": {
+      "ball": {},
+      "actor": {}
+    }
+  },
+  "trainingSketchFlowWarningMultipleActors": "Multiple players use {ball} in stage {stage}.",
+  "@trainingSketchFlowWarningMultipleActors": {
+    "placeholders": {
+      "ball": {},
+      "stage": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchFlowWarningInvalidTarget": "{ball} targets a non-player ({target}).",
+  "@trainingSketchFlowWarningInvalidTarget": {
+    "placeholders": {
+      "ball": {},
+      "target": {}
+    }
+  },
   "trainingSketchSelectedItemTitle": "Selected item",
   "trainingSketchAssignColorLabel": "Assign color",
   "trainingSketchPlayerStagesTitle": "Player stages",
@@ -7141,6 +7180,7 @@
   "trainingSketchReverseRouteButton": "Reverse direction",
   "trainingSketchRedrawRouteButton": "Redraw selected",
   "trainingSketchDeleteRouteButton": "Delete selected",
+  "trainingSketchEditStageActionTooltip": "Edit stage action",
   "trainingSketchDeleteStageActionTooltip": "Delete stage action",
   "trainingSketchPlayerRouteChip": "Player {index}",
   "@trainingSketchPlayerRouteChip": {

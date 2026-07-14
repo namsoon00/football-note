@@ -7044,6 +7044,45 @@
       "ball": {}
     }
   },
+  "trainingSketchFlowReviewTitle": "流れの確認",
+  "trainingSketchFlowReviewOk": "ボール所有とアクションのつながりは自然です。",
+  "trainingSketchFlowWarningBallWithoutActor": "{ball} がプレイヤーなしで動いています。",
+  "@trainingSketchFlowWarningBallWithoutActor": {
+    "placeholders": {
+      "ball": {}
+    }
+  },
+  "trainingSketchFlowWarningWrongOwner": "{ball} は {owner} が保持していますが、{actor} が使っています。",
+  "@trainingSketchFlowWarningWrongOwner": {
+    "placeholders": {
+      "ball": {},
+      "owner": {},
+      "actor": {}
+    }
+  },
+  "trainingSketchFlowWarningUnownedBallUsed": "{ball} は所有者なしですが、{actor} が使っています。",
+  "@trainingSketchFlowWarningUnownedBallUsed": {
+    "placeholders": {
+      "ball": {},
+      "actor": {}
+    }
+  },
+  "trainingSketchFlowWarningMultipleActors": "ステージ{stage}で複数のプレイヤーが {ball} を使っています。",
+  "@trainingSketchFlowWarningMultipleActors": {
+    "placeholders": {
+      "ball": {},
+      "stage": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchFlowWarningInvalidTarget": "{ball} の到達先がプレイヤーではありません（{target}）。",
+  "@trainingSketchFlowWarningInvalidTarget": {
+    "placeholders": {
+      "ball": {},
+      "target": {}
+    }
+  },
   "trainingSketchSelectedItemTitle": "選択した項目",
   "trainingSketchAssignColorLabel": "色の割り当て",
   "trainingSketchPlayerStagesTitle": "プレーヤーのステージ",
@@ -7141,6 +7180,7 @@
   "trainingSketchReverseRouteButton": "方向を反転",
   "trainingSketchRedrawRouteButton": "選択された再描画",
   "trainingSketchDeleteRouteButton": "選択したものを削除",
+  "trainingSketchEditStageActionTooltip": "ステージアクションを編集",
   "trainingSketchDeleteStageActionTooltip": "ステージアクションを削除",
   "trainingSketchPlayerRouteChip": "プレイヤー {index}",
   "@trainingSketchPlayerRouteChip": {

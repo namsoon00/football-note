@@ -4402,14 +4402,14 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   String _pathModeHint() {
+    if (_routeReplaceMode) {
+      return _l10n.trainingSketchRouteReplaceHint;
+    }
     final routeableCount = _routeableItemCount(_pathDrawMode);
     if (routeableCount == 0) {
       return _pathDrawMode == _PathDrawMode.player
           ? _l10n.trainingSketchAddPlayerFirst
           : _l10n.trainingSketchAddBallFirst;
-    }
-    if (_routeReplaceMode) {
-      return _l10n.trainingSketchRouteReplaceHint;
     }
     final selectedItem = _selectedItem;
     final expectedType = _boardItemTypeForRouteKind(_pathDrawMode);
@@ -6599,10 +6599,18 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
 
   void _selectGlobalStageSummary(_StageSummary summary) {
     final route = summary.routes.first;
+    _selectStageActionRoute(route, registeredStage: summary.stageIndex);
+  }
+
+  void _selectStageActionRoute(
+    _BoardRoute route, {
+    int? registeredStage,
+  }) {
     setState(() {
       _selectedItemId = _selectableItemIdForRoute(route);
       _selectedRouteId = route.id;
-      _registeredNextActionStageIndex = summary.stageIndex;
+      _registeredNextActionStageIndex =
+          registeredStage ?? _normalizedRouteStageIndex(route.stageIndex);
       _pathDrawMode = route.kind;
       _showSelectedColorPicker = false;
       _pathMode = false;
@@ -6612,6 +6620,33 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _activeStroke = null;
       _activeRoutePoints = null;
       _activeRouteSegmentDurationsMs = null;
+      _activeRouteLastPointAt = null;
+    });
+  }
+
+  void _editStageActionRoute(_BoardRoute route) {
+    final normalizedDurations = _normalizedRouteSegmentDurations(
+      pointCount: route.points.length,
+      rawDurationsMs: route.segmentDurationsMs,
+    );
+    final basePointCount = math.max(1, route.points.length - 1);
+    setState(() {
+      _selectedItemId = _selectableItemIdForRoute(route);
+      _selectedRouteId = route.id;
+      _registeredNextActionStageIndex = _normalizedRouteStageIndex(
+        route.stageIndex,
+      );
+      _pathDrawMode = route.kind;
+      _pathMode = true;
+      _penMode = false;
+      _pendingTargetAction = null;
+      _showSelectedColorPicker = false;
+      _routeReplaceMode = true;
+      _activeStroke = null;
+      _activeRoutePoints = route.points.take(basePointCount).toList();
+      _activeRouteSegmentDurationsMs = normalizedDurations
+          .take(math.max(0, basePointCount - 1))
+          .toList(growable: true);
       _activeRouteLastPointAt = null;
     });
   }
@@ -6700,6 +6735,199 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       );
     }
     return _l10n.trainingSketchBallUnowned(ballLabel);
+  }
+
+  _BoardItem? _initialBallOwner(_BoardItem ball) {
+    return _nearestPlayerToPoint(
+      _itemPosition(ball),
+      radius: _ballPossessionRadius,
+    );
+  }
+
+  List<String> _sketchFlowWarnings() {
+    final balls = _itemsOfType(_BoardItemType.ball);
+    if (balls.isEmpty) return const <String>[];
+    final ownerByBallId = <String, String?>{
+      for (final ball in balls) ball.id: _initialBallOwner(ball)?.id,
+    };
+    final hasPriorActionByBallId = <String, bool>{
+      for (final ball in balls) ball.id: false,
+    };
+    final ballRoutes = _currentPage.routes
+        .where(
+          (route) =>
+              route.kind == _PathDrawMode.ball &&
+              route.linkedItemId != null &&
+              route.points.length >= 2,
+        )
+        .toList(growable: false);
+    ballRoutes.sort((a, b) {
+      final stageCompare = _normalizedRouteStageIndex(
+        a.stageIndex,
+      ).compareTo(_normalizedRouteStageIndex(b.stageIndex));
+      if (stageCompare != 0) return stageCompare;
+      return _currentPage.routes.indexOf(a).compareTo(
+            _currentPage.routes.indexOf(b),
+          );
+    });
+
+    final warnings = <String>{};
+    var index = 0;
+    while (index < ballRoutes.length) {
+      final stage = _normalizedRouteStageIndex(ballRoutes[index].stageIndex);
+      final stageRoutes = <_BoardRoute>[];
+      while (index < ballRoutes.length &&
+          _normalizedRouteStageIndex(ballRoutes[index].stageIndex) == stage) {
+        stageRoutes.add(ballRoutes[index]);
+        index += 1;
+      }
+
+      final actorsByBallId = <String, Set<String>>{};
+      for (final route in stageRoutes) {
+        final ball = _itemById(route.linkedItemId!);
+        if (ball == null || ball.type != _BoardItemType.ball) continue;
+        final ballLabel = _stageItemLabel(ball);
+        final actorId = route.actorItemId;
+        final actor = actorId == null ? null : _itemById(actorId);
+        if (actorId == null ||
+            actor == null ||
+            actor.type != _BoardItemType.player) {
+          warnings
+              .add(_l10n.trainingSketchFlowWarningBallWithoutActor(ballLabel));
+          continue;
+        }
+
+        actorsByBallId.putIfAbsent(ball.id, () => <String>{}).add(actor.id);
+        final ownerId = ownerByBallId[ball.id];
+        if (ownerId != null && ownerId != actor.id) {
+          warnings.add(
+            _l10n.trainingSketchFlowWarningWrongOwner(
+              ballLabel,
+              _stageItemLabel(_itemById(ownerId)),
+              _stageItemLabel(actor),
+            ),
+          );
+        } else if (ownerId == null &&
+            (hasPriorActionByBallId[ball.id] ?? false)) {
+          warnings.add(
+            _l10n.trainingSketchFlowWarningUnownedBallUsed(
+              ballLabel,
+              _stageItemLabel(actor),
+            ),
+          );
+        }
+
+        final targetId = route.targetItemId;
+        if (targetId != null && targetId != actor.id) {
+          final target = _itemById(targetId);
+          if (target == null || target.type != _BoardItemType.player) {
+            warnings.add(
+              _l10n.trainingSketchFlowWarningInvalidTarget(
+                ballLabel,
+                _stageItemLabel(target),
+              ),
+            );
+          }
+        }
+      }
+
+      for (final entry in actorsByBallId.entries) {
+        if (entry.value.length > 1) {
+          warnings.add(
+            _l10n.trainingSketchFlowWarningMultipleActors(
+              _stageItemLabel(_itemById(entry.key)),
+              stage,
+            ),
+          );
+        }
+      }
+
+      for (final route in stageRoutes) {
+        final ball = _itemById(route.linkedItemId!);
+        if (ball == null || ball.type != _BoardItemType.ball) continue;
+        hasPriorActionByBallId[ball.id] = true;
+        final actorId = route.actorItemId;
+        final actor = actorId == null ? null : _itemById(actorId);
+        if (actor == null || actor.type != _BoardItemType.player) {
+          ownerByBallId[ball.id] = null;
+          continue;
+        }
+        final targetId = route.targetItemId;
+        final target = targetId == null ? null : _itemById(targetId);
+        if (target != null && target.type == _BoardItemType.player) {
+          ownerByBallId[ball.id] = target.id;
+        } else if (targetId == actor.id) {
+          ownerByBallId[ball.id] = actor.id;
+        } else {
+          ownerByBallId[ball.id] = null;
+        }
+      }
+    }
+
+    return warnings.toList(growable: false);
+  }
+
+  Widget _buildFlowReviewSummary({
+    required ThemeData theme,
+    required ColorScheme colors,
+  }) {
+    final warnings = _sketchFlowWarnings();
+    final hasWarnings = warnings.isNotEmpty;
+    final foreground = hasWarnings ? colors.onErrorContainer : colors.tertiary;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        color: hasWarnings
+            ? colors.errorContainer.withValues(alpha: 0.56)
+            : colors.tertiaryContainer.withValues(alpha: 0.34),
+        border: Border.all(
+          color: (hasWarnings ? colors.error : colors.tertiary).withValues(
+            alpha: 0.32,
+          ),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                hasWarnings ? Icons.error_outline : Icons.verified_outlined,
+                size: 16,
+                color: foreground,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                _l10n.trainingSketchFlowReviewTitle,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: foreground,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          if (hasWarnings)
+            for (final warning in warnings)
+              Padding(
+                padding: const EdgeInsets.only(top: 3),
+                child: Text(
+                  warning,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colors.onErrorContainer,
+                  ),
+                ),
+              )
+          else
+            Text(
+              _l10n.trainingSketchFlowReviewOk,
+              style: theme.textTheme.bodySmall?.copyWith(color: foreground),
+            ),
+        ],
+      ),
+    );
   }
 
   Widget _buildBallOwnershipSummary({
@@ -6830,6 +7058,38 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                             ),
                             Tooltip(
                               message:
+                                  _l10n.trainingSketchEditStageActionTooltip,
+                              child: Semantics(
+                                button: true,
+                                enabled: !widget.readOnly,
+                                label:
+                                    _l10n.trainingSketchEditStageActionTooltip,
+                                child: Material(
+                                  color: Colors.transparent,
+                                  shape: const CircleBorder(),
+                                  child: InkWell(
+                                    key: ValueKey(
+                                      'training-global-stage-action-edit-${route.id}',
+                                    ),
+                                    customBorder: const CircleBorder(),
+                                    onTap: widget.readOnly
+                                        ? null
+                                        : () => _editStageActionRoute(route),
+                                    child: SizedBox(
+                                      width: 32,
+                                      height: 32,
+                                      child: Icon(
+                                        Icons.edit_outlined,
+                                        size: 16,
+                                        color: colors.primary,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Tooltip(
+                              message:
                                   _l10n.trainingSketchDeleteStageActionTooltip,
                               child: Semantics(
                                 button: true,
@@ -6934,6 +7194,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           if (_itemsOfType(_BoardItemType.ball).isNotEmpty) ...[
             const SizedBox(height: 8),
             _buildBallOwnershipSummary(theme: theme, colors: colors),
+            const SizedBox(height: 8),
+            _buildFlowReviewSummary(theme: theme, colors: colors),
           ],
           const SizedBox(height: 8),
           Text(
