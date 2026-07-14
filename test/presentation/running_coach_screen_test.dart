@@ -7,6 +7,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/running_coach_history_service.dart';
+import 'package:football_note/application/running_coaching_service.dart';
 import 'package:football_note/domain/entities/running_coach_session.dart';
 import 'package:football_note/domain/entities/running_video_analysis_result.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
@@ -316,6 +317,135 @@ void main() {
     );
     expect(find.text('Action cue'), findsOneWidget);
     expect(find.text('Recommended drill'), findsOneWidget);
+  });
+
+  testWidgets('analysis result layout stays readable on narrow phones', (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(375, 812));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    const longVideoName =
+        '2026-07-14-side-view-sprint-overstride-right-camera-angle-final-review.mp4';
+    const result = RunningVideoAnalysisResult(
+      videoDuration: Duration(seconds: 8),
+      sampledFrames: 30,
+      validFrames: 28,
+      direction: RunningDirection.leftToRight,
+      forwardLeanDegrees: 4,
+      verticalBounceRatio: 0.10,
+      footStrikeDistanceRatio: 0.25,
+      stanceKneeAngleDegrees: 172,
+      elbowAngleDegrees: 126,
+      metricQualities: <RunningCoachMetric, RunningMetricQuality>{
+        RunningCoachMetric.posture: RunningMetricQuality(
+          confidence: 1,
+          sampleCount: 28,
+        ),
+        RunningCoachMetric.bounce: RunningMetricQuality(
+          confidence: 1,
+          sampleCount: 28,
+        ),
+        RunningCoachMetric.footStrike: RunningMetricQuality(
+          confidence: 1,
+          sampleCount: 28,
+        ),
+        RunningCoachMetric.kneeFlexion: RunningMetricQuality(
+          confidence: 1,
+          sampleCount: 28,
+        ),
+        RunningCoachMetric.armCarriage: RunningMetricQuality(
+          confidence: 1,
+          sampleCount: 28,
+        ),
+      },
+    );
+    final report = const RunningCoachingService().buildReport(result);
+    final primary = report.primaryFocus!;
+    final session = RunningCoachSessionAnalysis(
+      id: 'layout-stress',
+      analyzedAt: DateTime(2026, 7, 14, 9),
+      source: RunningCoachSessionSource.uploadVideo,
+      overallScore: report.overallScore,
+      duration: result.videoDuration,
+      sampledFrames: result.sampledFrames,
+      validFrames: result.validFrames,
+      primaryMetric: primary.metric,
+      primaryFinding: primary.finding,
+      primaryStatus: primary.status,
+      primaryScore: primary.score,
+      primaryValue: primary.value,
+      primaryConfidence: primary.quality.confidence,
+      videoName: longVideoName,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: Padding(
+            padding: const EdgeInsets.all(16),
+            child: runningArchivedAnalysisVideoCardForTesting(
+              session: session,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+    expect(
+      find.byKey(const ValueKey('running-coach-archived-video-card')),
+      findsOneWidget,
+    );
+    final analyzedVideoTitle = find.text('Analyzed video');
+    expect(analyzedVideoTitle, findsOneWidget);
+    final titleSize = tester.getSize(analyzedVideoTitle);
+    expect(titleSize.width, greaterThan(90));
+    expect(titleSize.height, lessThan(40));
+
+    final videoName = find.text(longVideoName);
+    expect(videoName, findsOneWidget);
+    final videoNameSize = tester.getSize(videoName);
+    expect(videoNameSize.width, greaterThan(180));
+    expect(videoNameSize.height, lessThan(28));
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: runningAnalysisResultScreenForTesting(
+          result: result,
+          report: report,
+          session: session,
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+
+    for (var scrollStep = 0; scrollStep < 8; scrollStep += 1) {
+      await tester.drag(
+        find.byType(Scrollable).first,
+        const Offset(0, -520),
+      );
+      await tester.pump(const Duration(milliseconds: 250));
+      expect(tester.takeException(), isNull);
+    }
   });
 }
 

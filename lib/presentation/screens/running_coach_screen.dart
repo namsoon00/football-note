@@ -30,6 +30,26 @@ class RunningCoachScreen extends StatefulWidget {
   State<RunningCoachScreen> createState() => _RunningCoachScreenState();
 }
 
+@visibleForTesting
+Widget runningAnalysisResultScreenForTesting({
+  required RunningVideoAnalysisResult result,
+  required RunningCoachingReport report,
+  required RunningCoachSessionAnalysis session,
+}) {
+  return _RunningAnalysisResultScreen(
+    result: result,
+    report: report,
+    session: session,
+  );
+}
+
+@visibleForTesting
+Widget runningArchivedAnalysisVideoCardForTesting({
+  required RunningCoachSessionAnalysis session,
+}) {
+  return _ArchivedAnalysisVideoCard(session: session);
+}
+
 class _RunningCoachScreenState extends State<RunningCoachScreen> {
   final ImagePicker _picker = ImagePicker();
   final RunningVideoAnalysisService _analysisService =
@@ -4916,6 +4936,7 @@ class _RunningAnalysisResultScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.runningCoachAnalysisResultScreenTitle)),
       body: ListView(
+        key: const ValueKey('running-coach-analysis-result-list'),
         padding: const EdgeInsets.all(16),
         children: [
           if (session.videoPath != null) ...[
@@ -5147,6 +5168,7 @@ class _ArchivedAnalysisVideoCardState
     final isReady = controller != null && controller.value.isInitialized;
     final readyController = isReady ? controller : null;
     return Card(
+      key: const ValueKey('running-coach-archived-video-card'),
       clipBehavior: Clip.antiAlias,
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -5374,6 +5396,8 @@ class _InsightGuideVisual extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
     return DecoratedBox(
+      key:
+          ValueKey('running-coach-insight-guide-visual-${insight.metric.name}'),
       decoration: BoxDecoration(
         color: scheme.surfaceContainerHighest.withValues(alpha: 0.72),
         borderRadius: BorderRadius.circular(16),
@@ -6312,50 +6336,40 @@ class _MetricScoreRow extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  copy.title,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                copy.value,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(color: accent),
-              ),
-            ],
+          Text(
+            copy.title,
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(999),
-                  child: LinearProgressIndicator(
-                    value: insight.score / 100,
-                    minHeight: 8,
-                    color: accent,
-                    backgroundColor: accent.withAlpha(30),
-                  ),
+          Text(
+            copy.value,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: accent,
+                  fontWeight: FontWeight.w700,
                 ),
-              ),
-              const SizedBox(width: 12),
+          ),
+          const SizedBox(height: 10),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(999),
+            child: LinearProgressIndicator(
+              value: insight.score / 100,
+              minHeight: 8,
+              color: accent,
+              backgroundColor: accent.withAlpha(30),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
               _ScoreBadge(score: insight.score),
-              const SizedBox(width: 8),
               _QualityBadge(quality: insight.quality),
+              if (priority != null) _PriorityBadge(priority: priority!),
             ],
           ),
-          if (priority != null) ...[
-            const SizedBox(height: 8),
-            _PriorityBadge(priority: priority!),
-          ],
         ],
       ),
     );
