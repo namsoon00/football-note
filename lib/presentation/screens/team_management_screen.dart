@@ -3,23 +3,19 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:football_note/gen/app_localizations.dart';
-import 'package:intl/intl.dart';
 
-import '../../application/club_schedule_service.dart';
 import '../../application/family_access_service.dart';
-import '../../application/match_competition_service.dart';
 import '../../application/team_management_service.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_page_route.dart';
 import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_feedback.dart';
-import '../widgets/uniform_jersey_swatch.dart';
 import 'club_schedule_screen.dart';
 
 enum _TacticBoardMode { assign, movement, press, zone }
 
-enum _TeamManagementWorkspace { roster, board, profile, operations }
+enum _TeamManagementWorkspace { board }
 
 typedef _PlayerBoardDropCallback = void Function({
   required String playerId,
@@ -44,8 +40,6 @@ class TeamManagementScreen extends StatefulWidget {
 
 class _TeamManagementScreenState extends State<TeamManagementScreen> {
   late final TeamManagementService _teamService;
-  late final ClubScheduleService _clubScheduleService;
-  late final MatchCompetitionService _competitionService;
   final TextEditingController _teamNameController = TextEditingController();
   final TextEditingController _strategyController = TextEditingController();
   final TextEditingController _playerNameController = TextEditingController();
@@ -54,8 +48,6 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   final ScrollController _scrollController = ScrollController();
   Timer? _autoSaveDebounce;
 
-  ClubScheduleProfile _clubProfile = ClubScheduleProfile.empty();
-  List<MatchCompetitionRecord> _competitions = const <MatchCompetitionRecord>[];
   ManagedTeam? _selectedTeam;
   List<ManagedTeamPlayer> _players = const <ManagedTeamPlayer>[];
   Map<String, String> _lineup = const <String, String>{};
@@ -70,13 +62,12 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   _TeamManagementWorkspace? _activeWorkspace;
   _TacticBoardMode _boardMode = _TacticBoardMode.assign;
   ManagedTacticLine? _draftTacticLine;
+  bool _playerFormExpanded = false;
   bool _loaded = false;
   bool _saving = false;
-  bool _hasPendingAutoSave = false;
   bool _suppressAutoSave = false;
   int _changeRevision = 0;
   int _savedRevision = 0;
-  DateTime? _lastAutoSavedAt;
 
   @override
   void initState() {
@@ -85,15 +76,6 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
       widget.optionRepository,
       sportId: widget.sportId,
     );
-    _clubScheduleService = ClubScheduleService(
-      widget.optionRepository,
-      sportId: widget.sportId,
-    );
-    _competitionService = MatchCompetitionService(
-      widget.optionRepository,
-      sportId: widget.sportId,
-    );
-    _refreshOperationsData(setStateAfterLoad: false);
     _teamNameController.addListener(_handleTextFieldChanged);
     _strategyController.addListener(_handleTextFieldChanged);
   }
@@ -140,7 +122,6 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   bool _blockReadOnlyMutation({bool showMessage = true}) {
     if (!_isReadOnlySupportMode) return false;
     _autoSaveDebounce?.cancel();
-    _hasPendingAutoSave = false;
     _changeRevision = _savedRevision;
     if (mounted) {
       setState(() {});
@@ -152,20 +133,6 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
       }
     }
     return true;
-  }
-
-  void _refreshOperationsData({bool setStateAfterLoad = true}) {
-    final nextProfile = _clubScheduleService.loadProfile();
-    final nextCompetitions = _competitionService.allCompetitions();
-    if (!setStateAfterLoad || !mounted) {
-      _clubProfile = nextProfile;
-      _competitions = nextCompetitions;
-      return;
-    }
-    setState(() {
-      _clubProfile = nextProfile;
-      _competitions = nextCompetitions;
-    });
   }
 
   Future<void> _openClubSchedule() async {
@@ -180,8 +147,6 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
         ),
       ),
     );
-    if (!mounted) return;
-    _refreshOperationsData();
   }
 
   void _loadTeam(AppLocalizations l10n) {
@@ -219,12 +184,11 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
     _playerRole = ManagedTeamPlayer.roleForward;
     _playerFoot = ManagedTeamPlayer.footRight;
     _playerCondition = ManagedTeamPlayer.conditionReady;
+    _playerFormExpanded = false;
     _boardMode = _TacticBoardMode.assign;
     _draftTacticLine = null;
-    _hasPendingAutoSave = false;
     _changeRevision = 0;
     _savedRevision = 0;
-    _lastAutoSavedAt = saved ? team.updatedAt : null;
     _suppressAutoSave = true;
     _teamNameController.text = team.name;
     _strategyController.text = team.strategy;
@@ -256,9 +220,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
       _changeRevision++;
     }
     if (mounted) {
-      setState(() => _hasPendingAutoSave = true);
-    } else {
-      _hasPendingAutoSave = true;
+      setState(() {});
     }
     _autoSaveDebounce = Timer(
       delay,
@@ -280,7 +242,6 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
     final l10n = AppLocalizations.of(context)!;
     final revisionToSave = _changeRevision;
     if (!force && revisionToSave <= _savedRevision) {
-      if (mounted) setState(() => _hasPendingAutoSave = false);
       return;
     }
     final name = _teamNameController.text.trim();
@@ -288,7 +249,6 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
       if (showFeedback) {
         AppFeedback.showMessage(context, text: l10n.teamManagementNameRequired);
       }
-      if (mounted) setState(() => _hasPendingAutoSave = false);
       return;
     }
     if (_saving) {
@@ -309,8 +269,6 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
         if (_savedRevision < revisionToSave) {
           _savedRevision = revisionToSave;
         }
-        _hasPendingAutoSave = _changeRevision > _savedRevision;
-        _lastAutoSavedAt = DateTime.now();
       });
       if (showFeedback) {
         AppFeedback.showSuccess(context,
@@ -366,14 +324,24 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
         );
       }
       _clearPlayerForm();
+      _playerFormExpanded = false;
     });
     _scheduleAutoSave();
+  }
+
+  void _startPlayerRegistration() {
+    if (_blockReadOnlyMutation()) return;
+    setState(() {
+      _clearPlayerForm();
+      _playerFormExpanded = true;
+    });
   }
 
   void _editPlayer(ManagedTeamPlayer player) {
     if (_blockReadOnlyMutation()) return;
     setState(() {
       _editingPlayerId = player.id;
+      _playerFormExpanded = true;
       _playerNameController.text = player.name;
       _playerNumberController.text = player.number;
       _playerRole = player.role;
@@ -384,7 +352,10 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   }
 
   void _cancelPlayerEdit() {
-    setState(_clearPlayerForm);
+    setState(() {
+      _clearPlayerForm();
+      _playerFormExpanded = false;
+    });
   }
 
   void _clearPlayerForm() {
@@ -511,97 +482,97 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final readOnly = _isReadOnlySupportMode;
+    final workspace = _activeWorkspace;
     return Scaffold(
       body: ColoredBox(
         color: theme.scaffoldBackgroundColor,
         child: SafeArea(
-          child: SingleChildScrollView(
-            controller: _scrollController,
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.md,
-              AppSpacing.sm,
-              AppSpacing.md,
-              AppSpacing.xl,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _TeamManagementHeader(
-                  onBack: () => Navigator.of(context).maybePop(),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 180),
-                  switchInCurve: Curves.easeOut,
-                  switchOutCurve: Curves.easeIn,
-                  child: KeyedSubtree(
-                    key: ValueKey<_TeamManagementWorkspace?>(_activeWorkspace),
-                    child: _activeWorkspace == null
-                        ? _buildWorkspaceHome(readOnly)
-                        : _buildWorkspaceScreen(
-                            _activeWorkspace!,
-                            readOnly,
-                          ),
+          child: workspace == _TeamManagementWorkspace.board
+              ? Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    AppSpacing.sm,
+                    AppSpacing.md,
+                    AppSpacing.md,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _WorkspaceScreenHeader(
+                        onBackToMenu: _closeWorkspace,
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      Expanded(
+                        child: _buildActiveWorkspace(workspace!, readOnly),
+                      ),
+                    ],
+                  ),
+                )
+              : SingleChildScrollView(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    AppSpacing.sm,
+                    AppSpacing.md,
+                    AppSpacing.xl,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _TeamManagementHeader(
+                        onBack: () => Navigator.of(context).maybePop(),
+                        onOpenBoard: () =>
+                            _openWorkspace(_TeamManagementWorkspace.board),
+                        onOpenSchedule: () => unawaited(_openClubSchedule()),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      _buildTeamManagementHome(readOnly),
+                    ],
                   ),
                 ),
-              ],
-            ),
-          ),
         ),
       ),
     );
   }
 
-  Widget _buildWorkspaceHome(bool readOnly) {
-    final l10n = AppLocalizations.of(context)!;
-    final totalBoardPlayers = _players.length;
-    final placedCount = _playerPlacements.length;
-    final activeCompetitions =
-        _competitions.where((competition) => !competition.isFinished).length;
+  Widget _buildTeamManagementHome(bool readOnly) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _TeamManagementHero(
-          teamName: _teamNameController.text.trim().isEmpty
-              ? l10n.teamManagementDefaultTeamName
-              : _teamNameController.text.trim(),
-          playerCount: _players.length,
-          placedCount: placedCount,
-          totalPlayers: totalBoardPlayers,
-          tacticLineCount: _tacticLines.length,
-          saving: _saving,
-          pending: !readOnly &&
-              (_hasPendingAutoSave || _changeRevision > _savedRevision),
-          needsName: _teamNameController.text.trim().isEmpty,
-          lastSavedAt: _lastAutoSavedAt,
-        ),
+        _buildPlayersPanel(readOnly),
         const SizedBox(height: AppSpacing.md),
-        _TeamWorkspaceMenu(
-          playerCount: _players.length,
-          placedCount: placedCount,
-          totalPlayers: totalBoardPlayers,
-          activeCompetitions: activeCompetitions,
-          totalCompetitions: _competitions.length,
-          onWorkspaceSelected: _openWorkspace,
+        _TeamBasicsPanel(
+          teamNameController: _teamNameController,
+          strategyController: _strategyController,
+          readOnly: readOnly,
         ),
       ],
     );
   }
 
-  Widget _buildWorkspaceScreen(
-    _TeamManagementWorkspace workspace,
-    bool readOnly,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _WorkspaceScreenHeader(
-          workspace: workspace,
-          onBackToMenu: _closeWorkspace,
-        ),
-        const SizedBox(height: AppSpacing.md),
-        _buildActiveWorkspace(workspace, readOnly),
-      ],
+  Widget _buildPlayersPanel(bool readOnly) {
+    return _PlayersPanel(
+      players: _players,
+      lineup: _lineup,
+      playerPlacements: _playerPlacements,
+      playerNameController: _playerNameController,
+      playerNumberController: _playerNumberController,
+      playerNoteController: _playerNoteController,
+      playerRole: _playerRole,
+      playerFoot: _playerFoot,
+      playerCondition: _playerCondition,
+      editingPlayerId: _editingPlayerId,
+      formExpanded: _playerFormExpanded,
+      readOnly: readOnly,
+      onStartPlayerRegistration: _startPlayerRegistration,
+      onRoleChanged: (role) => setState(() => _playerRole = role),
+      onFootChanged: (foot) => setState(() => _playerFoot = foot),
+      onConditionChanged: (condition) =>
+          setState(() => _playerCondition = condition),
+      onSavePlayer: _savePlayer,
+      onCancelPlayerEdit: _cancelPlayerEdit,
+      onEditPlayer: _editPlayer,
+      onRemovePlayer: _removePlayer,
     );
   }
 
@@ -631,28 +602,6 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
     bool readOnly,
   ) {
     switch (workspace) {
-      case _TeamManagementWorkspace.roster:
-        return _PlayersPanel(
-          players: _players,
-          lineup: _lineup,
-          playerPlacements: _playerPlacements,
-          playerNameController: _playerNameController,
-          playerNumberController: _playerNumberController,
-          playerNoteController: _playerNoteController,
-          playerRole: _playerRole,
-          playerFoot: _playerFoot,
-          playerCondition: _playerCondition,
-          editingPlayerId: _editingPlayerId,
-          readOnly: readOnly,
-          onRoleChanged: (role) => setState(() => _playerRole = role),
-          onFootChanged: (foot) => setState(() => _playerFoot = foot),
-          onConditionChanged: (condition) =>
-              setState(() => _playerCondition = condition),
-          onSavePlayer: _savePlayer,
-          onCancelPlayerEdit: _cancelPlayerEdit,
-          onEditPlayer: _editPlayer,
-          onRemovePlayer: _removePlayer,
-        );
       case _TeamManagementWorkspace.board:
         return _TacticsBoardPanel(
           players: _players,
@@ -668,222 +617,14 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
           onTacticLineFinished: _finishTacticLine,
           onClearTacticLines: _clearTacticLines,
         );
-      case _TeamManagementWorkspace.profile:
-        return _TeamBasicsPanel(
-          teamNameController: _teamNameController,
-          strategyController: _strategyController,
-          readOnly: readOnly,
-        );
-      case _TeamManagementWorkspace.operations:
-        return _ScheduleCompetitionPanel(
-          profile: _clubProfile,
-          competitions: _competitions,
-          onOpenSchedule: () => unawaited(_openClubSchedule()),
-        );
     }
   }
 }
 
-class _TeamWorkspaceMenu extends StatelessWidget {
-  final int playerCount;
-  final int placedCount;
-  final int totalPlayers;
-  final int activeCompetitions;
-  final int totalCompetitions;
-  final ValueChanged<_TeamManagementWorkspace> onWorkspaceSelected;
-
-  const _TeamWorkspaceMenu({
-    required this.playerCount,
-    required this.placedCount,
-    required this.totalPlayers,
-    required this.activeCompetitions,
-    required this.totalCompetitions,
-    required this.onWorkspaceSelected,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final items = [
-      _WorkspaceItem(
-        workspace: _TeamManagementWorkspace.roster,
-        icon: Icons.groups_2_outlined,
-        label: l10n.teamManagementWorkspaceRosterTab,
-        value: l10n.teamManagementPlayerCount(playerCount),
-      ),
-      _WorkspaceItem(
-        workspace: _TeamManagementWorkspace.board,
-        icon: Icons.grid_view_outlined,
-        label: l10n.teamManagementWorkspaceBoardTab,
-        value: l10n.teamManagementBoardPlacementValue(
-          placedCount,
-          totalPlayers,
-        ),
-      ),
-      _WorkspaceItem(
-        workspace: _TeamManagementWorkspace.profile,
-        icon: Icons.route_outlined,
-        label: l10n.teamManagementWorkspaceProfileTab,
-        value: l10n.teamManagementWorkspaceProfileValue,
-      ),
-      _WorkspaceItem(
-        workspace: _TeamManagementWorkspace.operations,
-        icon: Icons.event_available_outlined,
-        label: l10n.teamManagementWorkspaceOperationsTab,
-        value: l10n.teamManagementOperationsCompetitionsValue(
-          activeCompetitions,
-          totalCompetitions,
-        ),
-      ),
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _PanelTitle(
-          icon: Icons.dashboard_customize_outlined,
-          title: l10n.teamManagementWorkspaceTitle,
-          helper: l10n.teamManagementWorkspaceHelper,
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final useTwoColumns = constraints.maxWidth >= 560;
-            final itemWidth = useTwoColumns
-                ? (constraints.maxWidth - AppSpacing.sm) / 2
-                : constraints.maxWidth;
-            return Wrap(
-              spacing: AppSpacing.sm,
-              runSpacing: AppSpacing.sm,
-              children: [
-                for (final item in items)
-                  SizedBox(
-                    width: itemWidth,
-                    child: _WorkspaceMenuButton(
-                      item: item,
-                      onTap: () => onWorkspaceSelected(item.workspace),
-                    ),
-                  ),
-              ],
-            );
-          },
-        ),
-      ],
-    );
-  }
-}
-
-class _WorkspaceItem {
-  final _TeamManagementWorkspace workspace;
-  final IconData icon;
-  final String label;
-  final String value;
-
-  const _WorkspaceItem({
-    required this.workspace,
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
-}
-
-class _WorkspaceMenuButton extends StatelessWidget {
-  final _WorkspaceItem item;
-  final VoidCallback onTap;
-
-  const _WorkspaceMenuButton({
-    required this.item,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return Material(
-      key: ValueKey<String>('team-workspace-${item.workspace.name}'),
-      color: theme.brightness == Brightness.dark
-          ? scheme.surfaceContainerHighest.withValues(alpha: 0.28)
-          : scheme.surface,
-      borderRadius: AppRadius.small,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: AppRadius.small,
-        child: Container(
-          constraints: const BoxConstraints(minHeight: 86),
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md,
-            vertical: AppSpacing.sm,
-          ),
-          decoration: BoxDecoration(
-            borderRadius: AppRadius.small,
-            border: Border.all(
-              color: AppSurfaces.borderColor(scheme, theme.brightness),
-            ),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: scheme.primaryContainer,
-                  borderRadius: AppRadius.small,
-                ),
-                child: Icon(
-                  item.icon,
-                  color: scheme.onPrimaryContainer,
-                  size: 22,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: scheme.onSurface,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.xxs),
-                    Text(
-                      item.value,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: scheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: AppSpacing.xs),
-              Icon(
-                Icons.chevron_right,
-                color: scheme.onSurfaceVariant,
-                size: 22,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _WorkspaceScreenHeader extends StatelessWidget {
-  final _TeamManagementWorkspace workspace;
   final VoidCallback onBackToMenu;
 
   const _WorkspaceScreenHeader({
-    required this.workspace,
     required this.onBackToMenu,
   });
 
@@ -915,29 +656,14 @@ class _WorkspaceScreenHeader extends StatelessWidget {
           ),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _workspaceTitle(l10n, workspace),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: scheme.onSurface,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.xxs),
-                Text(
-                  _workspaceHelper(l10n, workspace),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                    height: 1.25,
-                  ),
-                ),
-              ],
+            child: Text(
+              l10n.teamManagementWorkspaceBoardTab,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: scheme.onSurface,
+                fontWeight: FontWeight.w900,
+              ),
             ),
           ),
         ],
@@ -946,36 +672,16 @@ class _WorkspaceScreenHeader extends StatelessWidget {
   }
 }
 
-String _workspaceTitle(
-  AppLocalizations l10n,
-  _TeamManagementWorkspace workspace,
-) {
-  return switch (workspace) {
-    _TeamManagementWorkspace.roster => l10n.teamManagementWorkspaceRosterTab,
-    _TeamManagementWorkspace.board => l10n.teamManagementWorkspaceBoardTab,
-    _TeamManagementWorkspace.profile => l10n.teamManagementWorkspaceProfileTab,
-    _TeamManagementWorkspace.operations =>
-      l10n.teamManagementWorkspaceOperationsTab,
-  };
-}
-
-String _workspaceHelper(
-  AppLocalizations l10n,
-  _TeamManagementWorkspace workspace,
-) {
-  return switch (workspace) {
-    _TeamManagementWorkspace.roster => l10n.teamManagementPlayersHelper,
-    _TeamManagementWorkspace.board => l10n.teamManagementFormationHelper,
-    _TeamManagementWorkspace.profile => l10n.teamManagementBasicsHelper,
-    _TeamManagementWorkspace.operations =>
-      l10n.teamManagementOperationsScheduleHelper,
-  };
-}
-
 class _TeamManagementHeader extends StatelessWidget {
   final VoidCallback onBack;
+  final VoidCallback onOpenBoard;
+  final VoidCallback onOpenSchedule;
 
-  const _TeamManagementHeader({required this.onBack});
+  const _TeamManagementHeader({
+    required this.onBack,
+    required this.onOpenBoard,
+    required this.onOpenSchedule,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1000,255 +706,23 @@ class _TeamManagementHeader extends StatelessWidget {
                   fontWeight: FontWeight.w900,
                 ),
               ),
-              const SizedBox(height: AppSpacing.xxs),
-              Text(
-                l10n.teamManagementSubtitle,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  height: 1.25,
-                ),
-              ),
             ],
           ),
         ),
+        AppBarActionButton.icon(
+          key: const ValueKey('team-header-board'),
+          icon: Icons.sports_soccer_outlined,
+          tooltip: l10n.teamManagementWorkspaceBoardTab,
+          onPressed: onOpenBoard,
+        ),
+        AppBarActionButton.icon(
+          key: const ValueKey('team-header-schedule'),
+          icon: Icons.calendar_month_outlined,
+          tooltip: l10n.clubScheduleTitle,
+          onPressed: onOpenSchedule,
+          margin: EdgeInsets.zero,
+        ),
       ],
-    );
-  }
-}
-
-class _TeamManagementHero extends StatelessWidget {
-  final String teamName;
-  final int playerCount;
-  final int placedCount;
-  final int totalPlayers;
-  final int tacticLineCount;
-  final bool saving;
-  final bool pending;
-  final bool needsName;
-  final DateTime? lastSavedAt;
-
-  const _TeamManagementHero({
-    required this.teamName,
-    required this.playerCount,
-    required this.placedCount,
-    required this.totalPlayers,
-    required this.tacticLineCount,
-    required this.saving,
-    required this.pending,
-    required this.needsName,
-    required this.lastSavedAt,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-
-    return Container(
-      decoration: AppSurfaces.heroDecoration(
-        scheme,
-        theme.brightness,
-        accent: const Color(0xFF1F8A70),
-      ),
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.18),
-                  borderRadius: AppRadius.small,
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.24),
-                  ),
-                ),
-                child: const Icon(
-                  Icons.groups_2_outlined,
-                  color: Colors.white,
-                  size: 26,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      teamName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.xxs),
-                    Text(
-                      l10n.teamManagementSaveHint,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.84),
-                        height: 1.35,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              _AutoSaveChip(
-                saving: saving,
-                pending: pending,
-                needsName: needsName,
-                saved: lastSavedAt != null,
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          Wrap(
-            spacing: AppSpacing.sm,
-            runSpacing: AppSpacing.sm,
-            children: [
-              _TeamHeroMetricPill(
-                label: l10n.teamManagementPlayersTitle,
-                value: l10n.teamManagementPlayerCount(playerCount),
-              ),
-              _TeamHeroMetricPill(
-                label: l10n.teamManagementBoardPlacementLabel,
-                value: l10n.teamManagementBoardPlacementValue(
-                  placedCount,
-                  totalPlayers,
-                ),
-              ),
-              _TeamHeroMetricPill(
-                label: l10n.teamManagementBoardMarkerLabel,
-                value: l10n.teamManagementTacticLinesCount(tacticLineCount),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TeamHeroMetricPill extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _TeamHeroMetricPill({
-    required this.label,
-    required this.value,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      constraints: const BoxConstraints(minWidth: 136),
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: AppSpacing.xs,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.14),
-        borderRadius: AppRadius.small,
-        border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: Colors.white.withValues(alpha: 0.78),
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _AutoSaveChip extends StatelessWidget {
-  final bool saving;
-  final bool pending;
-  final bool needsName;
-  final bool saved;
-
-  const _AutoSaveChip({
-    required this.saving,
-    required this.pending,
-    required this.needsName,
-    required this.saved,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final label = needsName
-        ? l10n.teamManagementAutoSaveNeedsName
-        : saving
-            ? l10n.teamManagementAutoSaveSaving
-            : pending
-                ? l10n.teamManagementAutoSavePending
-                : saved
-                    ? l10n.teamManagementAutoSaveSaved
-                    : l10n.teamManagementAutoSaveReady;
-    final icon = needsName
-        ? Icons.info_outline
-        : saving || pending
-            ? Icons.sync_outlined
-            : Icons.cloud_done_outlined;
-    return Container(
-      constraints: const BoxConstraints(maxWidth: 148),
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.xs,
-        vertical: AppSpacing.xxs,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.14),
-        borderRadius: AppRadius.full,
-        border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: Colors.white, size: 15),
-          const SizedBox(width: AppSpacing.xxs),
-          Flexible(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                  ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -1308,336 +782,6 @@ class _TeamBasicsPanel extends StatelessWidget {
   }
 }
 
-class _ScheduleCompetitionPanel extends StatelessWidget {
-  final ClubScheduleProfile profile;
-  final List<MatchCompetitionRecord> competitions;
-  final VoidCallback onOpenSchedule;
-
-  const _ScheduleCompetitionPanel({
-    required this.profile,
-    required this.competitions,
-    required this.onOpenSchedule,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final upcomingTraining = profile.upcomingTraining(DateTime.now());
-    final activeCompetitions =
-        competitions.where((competition) => !competition.isFinished).length;
-
-    return Container(
-      decoration: AppSurfaces.cardDecoration(scheme, theme.brightness),
-      padding: const EdgeInsets.all(AppSpacing.md),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _PanelTitle(
-            icon: Icons.event_available_outlined,
-            title: l10n.teamManagementOperationsScheduleTitle,
-            helper: l10n.teamManagementOperationsScheduleHelper,
-          ),
-          const SizedBox(height: AppSpacing.md),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final columns = constraints.maxWidth >= 720 ? 2 : 1;
-              final gap = AppSpacing.sm * (columns - 1);
-              final itemWidth = (constraints.maxWidth - gap) / columns;
-              return Wrap(
-                spacing: AppSpacing.sm,
-                runSpacing: AppSpacing.sm,
-                children: [
-                  SizedBox(
-                    width: itemWidth,
-                    child: _OperationsDetailPanel(
-                      icon: Icons.schedule_outlined,
-                      title: l10n.teamManagementOperationsScheduleTitle,
-                      body: upcomingTraining == null
-                          ? l10n.teamManagementOperationsNoTraining
-                          : l10n.clubScheduleNextTraining(
-                              _teamScheduleWeekdayLabel(
-                                context,
-                                upcomingTraining.date,
-                              ),
-                              _teamScheduleTimeRange(
-                                context,
-                                upcomingTraining.schedule,
-                              ),
-                            ),
-                      trailing: FilledButton.icon(
-                        onPressed: onOpenSchedule,
-                        icon: const Icon(Icons.edit_calendar_outlined),
-                        label: Text(
-                          l10n.teamManagementOperationsOpenScheduleButton,
-                        ),
-                      ),
-                      children: [
-                        const SizedBox(height: AppSpacing.sm),
-                        _UniformSummary(profile: profile),
-                      ],
-                    ),
-                  ),
-                  SizedBox(
-                    width: itemWidth,
-                    child: _OperationsDetailPanel(
-                      icon: Icons.emoji_events_outlined,
-                      title: l10n.teamManagementOperationsCompetitionTitle,
-                      body: l10n.teamManagementOperationsCompetitionsValue(
-                        activeCompetitions,
-                        competitions.length,
-                      ),
-                      children: [
-                        const SizedBox(height: AppSpacing.sm),
-                        if (competitions.isEmpty)
-                          Text(
-                            l10n.teamManagementOperationsNoCompetitions,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: scheme.onSurfaceVariant,
-                              height: 1.3,
-                            ),
-                          )
-                        else
-                          ...competitions.take(3).map(
-                                (competition) => Padding(
-                                  padding: const EdgeInsets.only(
-                                    bottom: AppSpacing.xs,
-                                  ),
-                                  child: _CompetitionStatusRow(
-                                    competition: competition,
-                                  ),
-                                ),
-                              ),
-                      ],
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _OperationsDetailPanel extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String body;
-  final Widget? trailing;
-  final List<Widget> children;
-
-  const _OperationsDetailPanel({
-    required this.icon,
-    required this.title,
-    required this.body,
-    this.trailing,
-    this.children = const <Widget>[],
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return Container(
-      constraints: const BoxConstraints(minHeight: 188),
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: AppSurfaces.subtleDecoration(
-        scheme,
-        theme.brightness,
-        accent: scheme.primary,
-        accentAlpha: 0.04,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(icon, color: scheme.primary, size: 22),
-              const SizedBox(width: AppSpacing.xs),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.xxs),
-                    Text(
-                      body,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: scheme.onSurfaceVariant,
-                        height: 1.3,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          if (children.isNotEmpty) ...children,
-          if (trailing != null) ...[
-            const SizedBox(height: AppSpacing.md),
-            Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: trailing,
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _UniformSummary extends StatelessWidget {
-  final ClubScheduleProfile profile;
-
-  const _UniformSummary({required this.profile});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final items = [
-      (
-        label: l10n.clubScheduleHomeKitLabel,
-        color: Color(profile.homeUniformColorValue),
-      ),
-      (
-        label: l10n.clubScheduleAwayKitLabel,
-        color: Color(profile.awayUniformColorValue),
-      ),
-      (
-        label: l10n.clubScheduleKeeperKitLabel,
-        color: Color(profile.keeperUniformColorValue),
-      ),
-    ];
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          l10n.teamManagementOperationsUniformLabel,
-          style: theme.textTheme.labelMedium?.copyWith(
-            color: scheme.onSurfaceVariant,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        Wrap(
-          spacing: AppSpacing.sm,
-          runSpacing: AppSpacing.xs,
-          children: [
-            for (final item in items)
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  UniformJerseySwatch(
-                    color: item.color,
-                    size: 28,
-                    borderColor: scheme.outlineVariant,
-                    semanticLabel: item.label,
-                  ),
-                  const SizedBox(width: AppSpacing.xxs),
-                  Text(
-                    item.label,
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ],
-              ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class _CompetitionStatusRow extends StatelessWidget {
-  final MatchCompetitionRecord competition;
-
-  const _CompetitionStatusRow({required this.competition});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final isLeague = competition.kind == MatchCompetitionRecord.kindLeague;
-    final label = competition.isFinished
-        ? l10n.matchCompetitionStatusFinished
-        : l10n.matchCompetitionStatusActive;
-    return Row(
-      children: [
-        Icon(
-          isLeague ? Icons.table_chart_outlined : Icons.account_tree,
-          color: scheme.primary,
-          size: 18,
-        ),
-        const SizedBox(width: AppSpacing.xs),
-        Expanded(
-          child: Text(
-            competition.name,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ),
-        const SizedBox(width: AppSpacing.xs),
-        _MiniStatusChip(label: label, active: !competition.isFinished),
-      ],
-    );
-  }
-}
-
-class _MiniStatusChip extends StatelessWidget {
-  final String label;
-  final bool active;
-
-  const _MiniStatusChip({
-    required this.label,
-    required this.active,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final color = active ? scheme.primary : scheme.onSurfaceVariant;
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.xs,
-        vertical: 3,
-      ),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.10),
-        borderRadius: AppRadius.full,
-      ),
-      child: Text(
-        label,
-        style: theme.textTheme.labelSmall?.copyWith(
-          color: color,
-          fontWeight: FontWeight.w900,
-        ),
-      ),
-    );
-  }
-}
-
 class _TacticsBoardPanel extends StatelessWidget {
   final List<ManagedTeamPlayer> players;
   final Map<String, ManagedPlayerPlacement> playerPlacements;
@@ -1676,30 +820,9 @@ class _TacticsBoardPanel extends StatelessWidget {
     return Container(
       decoration: AppSurfaces.cardDecoration(scheme, theme.brightness),
       padding: const EdgeInsets.all(AppSpacing.md),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _PanelTitle(
-            icon: Icons.grid_view_outlined,
-            title: l10n.teamManagementFormationTitle,
-            helper: l10n.teamManagementFormationHelper,
-          ),
-          const SizedBox(height: AppSpacing.md),
-          _BoardModeToolbar(
-            mode: boardMode,
-            tacticLineCount: tacticLines.length,
-            readOnly: readOnly,
-            onModeChanged: onBoardModeChanged,
-            onClearTacticLines: onClearTacticLines,
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          _BoardPlayerTray(
-            players: players,
-            playerPlacements: playerPlacements,
-            readOnly: readOnly,
-          ),
-          const SizedBox(height: AppSpacing.md),
-          _TacticsPitch(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final pitch = _TacticsPitch(
             players: players,
             playerPlacements: playerPlacements,
             tacticLines: tacticLines,
@@ -1710,16 +833,45 @@ class _TacticsBoardPanel extends StatelessWidget {
             onTacticLineStarted: onTacticLineStarted,
             onTacticLineUpdated: onTacticLineUpdated,
             onTacticLineFinished: onTacticLineFinished,
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            l10n.teamManagementFormationDropHint,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: scheme.onSurfaceVariant,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
+          );
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _PanelTitle(
+                icon: Icons.sports_soccer_outlined,
+                title: l10n.teamManagementFormationTitle,
+                helper: l10n.teamManagementFormationHelper,
+              ),
+              const SizedBox(height: AppSpacing.md),
+              _BoardModeToolbar(
+                mode: boardMode,
+                tacticLineCount: tacticLines.length,
+                readOnly: readOnly,
+                onModeChanged: onBoardModeChanged,
+                onClearTacticLines: onClearTacticLines,
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              _BoardPlayerTray(
+                players: players,
+                playerPlacements: playerPlacements,
+                readOnly: readOnly,
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              if (constraints.maxHeight.isFinite)
+                Expanded(child: pitch)
+              else
+                pitch,
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                l10n.teamManagementFormationDropHint,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -1871,61 +1023,44 @@ class _BoardPlayerTray extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
     if (players.isEmpty) {
-      return _InlineEmptyMessage(
-        icon: Icons.swipe_outlined,
-        title: l10n.teamManagementPlayerTrayTitle,
-        body: l10n.teamManagementPlayerTrayEmpty,
+      return SizedBox(
+        height: 40,
+        child: Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: Text(l10n.teamManagementPlayerTrayEmpty),
+        ),
       );
     }
     final assignedPlayerIds = playerPlacements.keys.toSet();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          l10n.teamManagementPlayerTrayTitle,
-          style: theme.textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.w900,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        Wrap(
-          spacing: AppSpacing.xs,
-          runSpacing: AppSpacing.xs,
-          children: [
-            for (final player in players)
-              if (readOnly)
-                _BoardPlayerChip(
-                  player: player,
-                  assigned: assignedPlayerIds.contains(player.id),
-                )
-              else
-                Draggable<String>(
-                  data: player.id,
-                  feedback: Material(
-                    color: Colors.transparent,
-                    child: _BoardPlayerChip(
-                      player: player,
-                      assigned: assignedPlayerIds.contains(player.id),
-                      elevated: true,
-                    ),
-                  ),
-                  childWhenDragging: Opacity(
-                    opacity: 0.42,
-                    child: _BoardPlayerChip(
-                      player: player,
-                      assigned: assignedPlayerIds.contains(player.id),
-                    ),
-                  ),
-                  child: _BoardPlayerChip(
-                    player: player,
-                    assigned: assignedPlayerIds.contains(player.id),
-                  ),
-                ),
-          ],
-        ),
-      ],
+    return SizedBox(
+      height: 42,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: players.length,
+        separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.xs),
+        itemBuilder: (context, index) {
+          final player = players[index];
+          final chip = _BoardPlayerChip(
+            player: player,
+            assigned: assignedPlayerIds.contains(player.id),
+          );
+          if (readOnly) return chip;
+          return Draggable<String>(
+            data: player.id,
+            feedback: Material(
+              color: Colors.transparent,
+              child: _BoardPlayerChip(
+                player: player,
+                assigned: assignedPlayerIds.contains(player.id),
+                elevated: true,
+              ),
+            ),
+            childWhenDragging: Opacity(opacity: 0.42, child: chip),
+            child: chip,
+          );
+        },
+      ),
     );
   }
 }
@@ -2012,11 +1147,17 @@ class _TacticsPitch extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, outerConstraints) {
         final boardWidth = outerConstraints.maxWidth;
-        final boardHeight = boardWidth >= 860
+        final preferredHeight = boardWidth >= 860
             ? 520.0
             : boardWidth >= 600
                 ? 440.0
                 : math.max(320.0, boardWidth * 0.74);
+        final boardHeight = outerConstraints.maxHeight.isFinite
+            ? math.max(
+                260.0,
+                math.min(preferredHeight, outerConstraints.maxHeight),
+              )
+            : preferredHeight;
         return SizedBox(
           height: boardHeight,
           child: LayoutBuilder(
@@ -2549,7 +1690,9 @@ class _PlayersPanel extends StatelessWidget {
   final String playerFoot;
   final String playerCondition;
   final String? editingPlayerId;
+  final bool formExpanded;
   final bool readOnly;
+  final VoidCallback onStartPlayerRegistration;
   final ValueChanged<String> onRoleChanged;
   final ValueChanged<String> onFootChanged;
   final ValueChanged<String> onConditionChanged;
@@ -2569,7 +1712,9 @@ class _PlayersPanel extends StatelessWidget {
     required this.playerFoot,
     required this.playerCondition,
     required this.editingPlayerId,
+    required this.formExpanded,
     required this.readOnly,
+    required this.onStartPlayerRegistration,
     required this.onRoleChanged,
     required this.onFootChanged,
     required this.onConditionChanged,
@@ -2590,185 +1735,42 @@ class _PlayersPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _PanelTitle(
-            icon: Icons.person_add_alt_outlined,
-            title: l10n.teamManagementPlayersTitle,
-            helper: l10n.teamManagementPlayersHelper,
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            l10n.teamManagementPlayerRoleLabel,
-            style: theme.textTheme.labelMedium?.copyWith(
-              color: scheme.onSurfaceVariant,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          Wrap(
-            spacing: AppSpacing.xs,
-            runSpacing: AppSpacing.xs,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              for (final role in _playerRoles)
-                ChoiceChip(
-                  label: Text(teamPlayerRoleLabel(l10n, role)),
-                  selected: playerRole == role,
-                  onSelected: readOnly ? null : (_) => onRoleChanged(role),
+              Expanded(
+                child: _PanelTitle(
+                  icon: Icons.groups_2_outlined,
+                  title: l10n.teamManagementPlayersTitle,
+                  helper: l10n.teamManagementPlayersHelper,
                 ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              FilledButton.icon(
+                onPressed: readOnly ? null : onStartPlayerRegistration,
+                icon: const Icon(Icons.person_add_alt_outlined),
+                label: Text(l10n.teamManagementAddPlayerButton),
+              ),
             ],
           ),
-          const SizedBox(height: AppSpacing.sm),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final compact = constraints.maxWidth < 620;
-              final nameField = TextField(
-                controller: playerNameController,
-                readOnly: readOnly,
-                textInputAction: TextInputAction.next,
-                decoration: InputDecoration(
-                  labelText: l10n.teamManagementPlayerNameLabel,
-                  hintText: l10n.teamManagementPlayerNameHint,
-                ),
-              );
-              final numberField = TextField(
-                controller: playerNumberController,
-                readOnly: readOnly,
-                keyboardType: TextInputType.number,
-                textInputAction: TextInputAction.next,
-                decoration: InputDecoration(
-                  labelText: l10n.teamManagementPlayerNumberLabel,
-                  hintText: l10n.teamManagementPlayerNumberHint,
-                ),
-              );
-              final saveButton = FilledButton.icon(
-                onPressed: readOnly ? null : onSavePlayer,
-                icon: Icon(
-                  editingPlayerId == null
-                      ? Icons.add_outlined
-                      : Icons.save_outlined,
-                ),
-                label: Text(
-                  editingPlayerId == null
-                      ? l10n.teamManagementAddPlayerButton
-                      : l10n.teamManagementUpdatePlayerButton,
-                ),
-              );
-              final cancelButton = OutlinedButton.icon(
-                onPressed: readOnly ? null : onCancelPlayerEdit,
-                icon: const Icon(Icons.close_outlined),
-                label: Text(l10n.teamManagementCancelPlayerEditButton),
-              );
-              if (compact) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(flex: 3, child: nameField),
-                        const SizedBox(width: AppSpacing.sm),
-                        Expanded(child: numberField),
-                      ],
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    Row(
-                      children: [
-                        if (editingPlayerId != null) ...[
-                          Expanded(child: cancelButton),
-                          const SizedBox(width: AppSpacing.sm),
-                        ],
-                        Expanded(flex: 2, child: saveButton),
-                      ],
-                    ),
-                  ],
-                );
-              }
-              return Row(
-                children: [
-                  Expanded(flex: 4, child: nameField),
-                  const SizedBox(width: AppSpacing.sm),
-                  SizedBox(width: 112, child: numberField),
-                  const SizedBox(width: AppSpacing.sm),
-                  if (editingPlayerId != null) ...[
-                    SizedBox(width: 140, child: cancelButton),
-                    const SizedBox(width: AppSpacing.sm),
-                  ],
-                  SizedBox(width: 148, child: saveButton),
-                ],
-              );
-            },
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final columns = constraints.maxWidth >= 520 ? 2 : 1;
-              final gap = AppSpacing.sm * (columns - 1);
-              final fieldWidth =
-                  math.max(150.0, (constraints.maxWidth - gap) / columns);
-              return Wrap(
-                spacing: AppSpacing.sm,
-                runSpacing: AppSpacing.sm,
-                children: [
-                  SizedBox(
-                    width: fieldWidth,
-                    child: DropdownButtonFormField<String>(
-                      initialValue: playerFoot,
-                      decoration: InputDecoration(
-                        labelText: l10n.teamManagementPlayerFootLabel,
-                      ),
-                      items: [
-                        for (final foot in _playerFeet)
-                          DropdownMenuItem<String>(
-                            value: foot,
-                            child: Text(teamPlayerFootLabel(l10n, foot)),
-                          ),
-                      ],
-                      onChanged: readOnly
-                          ? null
-                          : (foot) {
-                              if (foot == null) return;
-                              onFootChanged(foot);
-                            },
-                    ),
-                  ),
-                  SizedBox(
-                    width: fieldWidth,
-                    child: DropdownButtonFormField<String>(
-                      initialValue: playerCondition,
-                      decoration: InputDecoration(
-                        labelText: l10n.teamManagementPlayerConditionLabel,
-                      ),
-                      items: [
-                        for (final condition in _playerConditions)
-                          DropdownMenuItem<String>(
-                            value: condition,
-                            child: Text(
-                              teamPlayerConditionLabel(l10n, condition),
-                            ),
-                          ),
-                      ],
-                      onChanged: readOnly
-                          ? null
-                          : (condition) {
-                              if (condition == null) return;
-                              onConditionChanged(condition);
-                            },
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          TextField(
-            controller: playerNoteController,
-            readOnly: readOnly,
-            minLines: 2,
-            maxLines: 3,
-            decoration: InputDecoration(
-              labelText: l10n.teamManagementPlayerNoteLabel,
-              hintText: l10n.teamManagementPlayerNoteHint,
-              alignLabelWithHint: true,
+          if (formExpanded) ...[
+            const SizedBox(height: AppSpacing.md),
+            _PlayerEditorForm(
+              playerNameController: playerNameController,
+              playerNumberController: playerNumberController,
+              playerNoteController: playerNoteController,
+              playerRole: playerRole,
+              playerFoot: playerFoot,
+              playerCondition: playerCondition,
+              editingPlayerId: editingPlayerId,
+              readOnly: readOnly,
+              onRoleChanged: onRoleChanged,
+              onFootChanged: onFootChanged,
+              onConditionChanged: onConditionChanged,
+              onSavePlayer: onSavePlayer,
+              onCancelPlayerEdit: onCancelPlayerEdit,
             ),
-          ),
+          ],
           const SizedBox(height: AppSpacing.md),
           if (players.isEmpty)
             _InlineEmptyMessage(
@@ -2787,6 +1789,223 @@ class _PlayersPanel extends StatelessWidget {
             ),
         ],
       ),
+    );
+  }
+}
+
+class _PlayerEditorForm extends StatelessWidget {
+  final TextEditingController playerNameController;
+  final TextEditingController playerNumberController;
+  final TextEditingController playerNoteController;
+  final String playerRole;
+  final String playerFoot;
+  final String playerCondition;
+  final String? editingPlayerId;
+  final bool readOnly;
+  final ValueChanged<String> onRoleChanged;
+  final ValueChanged<String> onFootChanged;
+  final ValueChanged<String> onConditionChanged;
+  final VoidCallback onSavePlayer;
+  final VoidCallback onCancelPlayerEdit;
+
+  const _PlayerEditorForm({
+    required this.playerNameController,
+    required this.playerNumberController,
+    required this.playerNoteController,
+    required this.playerRole,
+    required this.playerFoot,
+    required this.playerCondition,
+    required this.editingPlayerId,
+    required this.readOnly,
+    required this.onRoleChanged,
+    required this.onFootChanged,
+    required this.onConditionChanged,
+    required this.onSavePlayer,
+    required this.onCancelPlayerEdit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          l10n.teamManagementPlayerRoleLabel,
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: scheme.onSurfaceVariant,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Wrap(
+          spacing: AppSpacing.xs,
+          runSpacing: AppSpacing.xs,
+          children: [
+            for (final role in _playerRoles)
+              ChoiceChip(
+                label: Text(teamPlayerRoleLabel(l10n, role)),
+                selected: playerRole == role,
+                onSelected: readOnly ? null : (_) => onRoleChanged(role),
+              ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final compact = constraints.maxWidth < 620;
+            final nameField = TextField(
+              controller: playerNameController,
+              readOnly: readOnly,
+              textInputAction: TextInputAction.next,
+              decoration: InputDecoration(
+                labelText: l10n.teamManagementPlayerNameLabel,
+                hintText: l10n.teamManagementPlayerNameHint,
+              ),
+            );
+            final numberField = TextField(
+              controller: playerNumberController,
+              readOnly: readOnly,
+              keyboardType: TextInputType.number,
+              textInputAction: TextInputAction.next,
+              decoration: InputDecoration(
+                labelText: l10n.teamManagementPlayerNumberLabel,
+                hintText: l10n.teamManagementPlayerNumberHint,
+              ),
+            );
+            final saveButton = FilledButton.icon(
+              onPressed: readOnly ? null : onSavePlayer,
+              icon: Icon(
+                editingPlayerId == null
+                    ? Icons.add_outlined
+                    : Icons.save_outlined,
+              ),
+              label: Text(
+                editingPlayerId == null
+                    ? l10n.teamManagementAddPlayerButton
+                    : l10n.teamManagementUpdatePlayerButton,
+              ),
+            );
+            final cancelButton = OutlinedButton.icon(
+              onPressed: readOnly ? null : onCancelPlayerEdit,
+              icon: const Icon(Icons.close_outlined),
+              label: Text(l10n.teamManagementCancelPlayerEditButton),
+            );
+            if (compact) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(flex: 3, child: nameField),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(child: numberField),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Row(
+                    children: [
+                      if (editingPlayerId != null) ...[
+                        Expanded(child: cancelButton),
+                        const SizedBox(width: AppSpacing.sm),
+                      ],
+                      Expanded(flex: 2, child: saveButton),
+                    ],
+                  ),
+                ],
+              );
+            }
+            return Row(
+              children: [
+                Expanded(flex: 4, child: nameField),
+                const SizedBox(width: AppSpacing.sm),
+                SizedBox(width: 112, child: numberField),
+                const SizedBox(width: AppSpacing.sm),
+                if (editingPlayerId != null) ...[
+                  SizedBox(width: 140, child: cancelButton),
+                  const SizedBox(width: AppSpacing.sm),
+                ],
+                SizedBox(width: 148, child: saveButton),
+              ],
+            );
+          },
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final columns = constraints.maxWidth >= 520 ? 2 : 1;
+            final gap = AppSpacing.sm * (columns - 1);
+            final fieldWidth =
+                math.max(150.0, (constraints.maxWidth - gap) / columns);
+            return Wrap(
+              spacing: AppSpacing.sm,
+              runSpacing: AppSpacing.sm,
+              children: [
+                SizedBox(
+                  width: fieldWidth,
+                  child: DropdownButtonFormField<String>(
+                    initialValue: playerFoot,
+                    decoration: InputDecoration(
+                      labelText: l10n.teamManagementPlayerFootLabel,
+                    ),
+                    items: [
+                      for (final foot in _playerFeet)
+                        DropdownMenuItem<String>(
+                          value: foot,
+                          child: Text(teamPlayerFootLabel(l10n, foot)),
+                        ),
+                    ],
+                    onChanged: readOnly
+                        ? null
+                        : (foot) {
+                            if (foot == null) return;
+                            onFootChanged(foot);
+                          },
+                  ),
+                ),
+                SizedBox(
+                  width: fieldWidth,
+                  child: DropdownButtonFormField<String>(
+                    initialValue: playerCondition,
+                    decoration: InputDecoration(
+                      labelText: l10n.teamManagementPlayerConditionLabel,
+                    ),
+                    items: [
+                      for (final condition in _playerConditions)
+                        DropdownMenuItem<String>(
+                          value: condition,
+                          child: Text(
+                            teamPlayerConditionLabel(l10n, condition),
+                          ),
+                        ),
+                    ],
+                    onChanged: readOnly
+                        ? null
+                        : (condition) {
+                            if (condition == null) return;
+                            onConditionChanged(condition);
+                          },
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        TextField(
+          controller: playerNoteController,
+          readOnly: readOnly,
+          minLines: 2,
+          maxLines: 3,
+          decoration: InputDecoration(
+            labelText: l10n.teamManagementPlayerNoteLabel,
+            hintText: l10n.teamManagementPlayerNoteHint,
+            alignLabelWithHint: true,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -3324,27 +2543,6 @@ class _InlineEmptyMessage extends StatelessWidget {
       ),
     );
   }
-}
-
-String _teamScheduleWeekdayLabel(BuildContext context, DateTime date) {
-  final locale = Localizations.localeOf(context).toString();
-  return DateFormat.E(locale).format(date);
-}
-
-String _teamScheduleTimeRange(
-  BuildContext context,
-  ClubTrainingSchedule schedule,
-) {
-  return '${_teamScheduleTimeLabel(context, schedule.startMinutes)}-'
-      '${_teamScheduleTimeLabel(context, schedule.endMinutes)}';
-}
-
-String _teamScheduleTimeLabel(BuildContext context, int minutes) {
-  final time = TimeOfDay(hour: minutes ~/ 60, minute: minutes % 60);
-  return MaterialLocalizations.of(context).formatTimeOfDay(
-    time,
-    alwaysUse24HourFormat: MediaQuery.alwaysUse24HourFormatOf(context),
-  );
 }
 
 const List<String> _playerRoles = <String>[
