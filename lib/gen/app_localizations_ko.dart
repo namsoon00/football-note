@@ -12899,6 +12899,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get trainingSketchEditStageActionTooltip => '단계 액션 수정';
 
   @override
+  String get trainingSketchAddSameStageActionTooltip => '이 단계에 선수 액션 추가';
+
+  @override
+  String get trainingSketchAddNextStageActionTooltip => '다음 단계에 선수 액션 추가';
+
+  @override
   String get trainingSketchDeleteStageActionTooltip => '단계 액션 삭제';
 
   @override

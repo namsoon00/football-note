@@ -7193,6 +7193,8 @@
   "trainingSketchRedrawRouteButton": "Redraw selected",
   "trainingSketchDeleteRouteButton": "Delete selected",
   "trainingSketchEditStageActionTooltip": "Edit stage action",
+  "trainingSketchAddSameStageActionTooltip": "Add player action to this stage",
+  "trainingSketchAddNextStageActionTooltip": "Add player action to the next stage",
   "trainingSketchDeleteStageActionTooltip": "Delete stage action",
   "trainingSketchPlayerRouteChip": "Player {index}",
   "@trainingSketchPlayerRouteChip": {
