@@ -604,7 +604,7 @@ class _TeamCommandPanel extends StatelessWidget {
         ? 0
         : TeamManagementService.formationSpots(team!.formation).length;
     return _CommandPanel(
-      icon: Icons.groups_2_outlined,
+      icon: Icons.manage_accounts_outlined,
       title: l10n.teamManagementOpenButton,
       subtitle: l10n.matchHubTeamCommandHelper,
       children: [
