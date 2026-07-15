@@ -21,6 +21,7 @@ void main() {
               startMinutes: 19 * 60,
               endMinutes: 21 * 60,
               uniformColorValue: 0xFFDC2626,
+              sockColorValue: 0xFF111827,
             ),
           ],
         ),
@@ -37,6 +38,10 @@ void main() {
       expect(
         profile.scheduleForDate(DateTime(2026, 7, 1))?.uniformColorValue,
         0xFFDC2626,
+      );
+      expect(
+        profile.scheduleForDate(DateTime(2026, 7, 1))?.sockColorValue,
+        0xFF111827,
       );
     });
 
@@ -99,6 +104,7 @@ void main() {
       expect(profile.weekdaySchedules.first.startMinutes, 23 * 60 + 59);
       expect(profile.weekdaySchedules.first.endMinutes, 23 * 60 + 59);
       expect(profile.weekdaySchedules.first.uniformColorValue, 0xFFDC2626);
+      expect(profile.weekdaySchedules.first.sockColorValue, 0xFFDC2626);
     });
 
     test('upcoming training skips today after the training window', () {

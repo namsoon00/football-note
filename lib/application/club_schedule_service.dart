@@ -7,12 +7,14 @@ class ClubTrainingSchedule {
   static const int defaultStartMinutes = 18 * 60;
   static const int defaultEndMinutes = 20 * 60;
   static const int defaultUniformColorValue = 0xFF2563EB;
+  static const int defaultSockColorValue = 0xFFFFFFFF;
 
   final int weekday;
   final bool enabled;
   final int startMinutes;
   final int endMinutes;
   final int uniformColorValue;
+  final int sockColorValue;
 
   const ClubTrainingSchedule({
     required this.weekday,
@@ -20,6 +22,7 @@ class ClubTrainingSchedule {
     this.startMinutes = defaultStartMinutes,
     this.endMinutes = defaultEndMinutes,
     this.uniformColorValue = defaultUniformColorValue,
+    this.sockColorValue = defaultSockColorValue,
   });
 
   factory ClubTrainingSchedule.disabled(int weekday) {
@@ -31,10 +34,15 @@ class ClubTrainingSchedule {
   factory ClubTrainingSchedule.fromMap(
     Map<String, dynamic> map, {
     int fallbackUniformColorValue = defaultUniformColorValue,
+    int? fallbackSockColorValue,
   }) {
     final start = ClubScheduleService.normalizeMinutes(
       map['startMinutes'],
       fallback: defaultStartMinutes,
+    );
+    final uniformColorValue = ClubScheduleService.normalizeColorValue(
+      map['uniformColorValue'],
+      fallback: fallbackUniformColorValue,
     );
     return ClubTrainingSchedule(
       weekday: ClubScheduleService.normalizeWeekday(map['weekday']),
@@ -44,9 +52,10 @@ class ClubTrainingSchedule {
         map['endMinutes'],
         startMinutes: start,
       ),
-      uniformColorValue: ClubScheduleService.normalizeColorValue(
-        map['uniformColorValue'],
-        fallback: fallbackUniformColorValue,
+      uniformColorValue: uniformColorValue,
+      sockColorValue: ClubScheduleService.normalizeColorValue(
+        map['sockColorValue'],
+        fallback: fallbackSockColorValue ?? uniformColorValue,
       ),
     );
   }
@@ -57,6 +66,7 @@ class ClubTrainingSchedule {
     int? startMinutes,
     int? endMinutes,
     int? uniformColorValue,
+    int? sockColorValue,
   }) {
     final nextStart = ClubScheduleService.normalizeMinutes(
       startMinutes ?? this.startMinutes,
@@ -74,6 +84,10 @@ class ClubTrainingSchedule {
         uniformColorValue ?? this.uniformColorValue,
         fallback: defaultUniformColorValue,
       ),
+      sockColorValue: ClubScheduleService.normalizeColorValue(
+        sockColorValue ?? this.sockColorValue,
+        fallback: defaultSockColorValue,
+      ),
     );
   }
 
@@ -84,6 +98,7 @@ class ClubTrainingSchedule {
       'startMinutes': startMinutes,
       'endMinutes': endMinutes,
       'uniformColorValue': uniformColorValue,
+      'sockColorValue': sockColorValue,
     };
   }
 }

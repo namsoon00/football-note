@@ -11819,7 +11819,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get clubScheduleTitle => 'クラブ予定';
 
   @override
-  String get clubScheduleSubtitle => '曜日別の練習時間とユニフォームカラーをすぐ確認できます。';
+  String get clubScheduleSubtitle => '曜日別の練習時間とユニフォーム、ソックスカラーをすぐ確認できます。';
 
   @override
   String get clubScheduleHomeTitle => 'クラブ予定';
@@ -11828,7 +11828,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get clubScheduleHomeTodayRest => '今日は練習なし';
 
   @override
-  String get clubScheduleHomeSetupHint => '練習時間とユニフォームカラーを登録しましょう。';
+  String get clubScheduleHomeSetupHint => '練習時間とユニフォーム、ソックスカラーを登録しましょう。';
 
   @override
   String clubScheduleHomeNextTraining(Object weekday, Object time) {
@@ -11893,7 +11893,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get clubScheduleWeekdayHelper =>
-      '練習がある曜日だけオンにして、開始時間、終了時間、ユニフォームカラーを設定します。';
+      '練習がある曜日だけオンにして、開始時間、終了時間、ユニフォームとソックスカラーを設定します。';
 
   @override
   String get clubScheduleStartTimeLabel => '開始';
@@ -11906,6 +11906,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get clubScheduleDayUniformLabel => 'ユニフォーム';
+
+  @override
+  String get clubScheduleDaySockLabel => 'ソックス';
 
   @override
   String get clubScheduleUniformTitle => 'ユニフォームカラー';

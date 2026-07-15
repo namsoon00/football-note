@@ -6582,10 +6582,10 @@
     }
   },
   "clubScheduleTitle": "クラブ予定",
-  "clubScheduleSubtitle": "曜日別の練習時間とユニフォームカラーをすぐ確認できます。",
+  "clubScheduleSubtitle": "曜日別の練習時間とユニフォーム、ソックスカラーをすぐ確認できます。",
   "clubScheduleHomeTitle": "クラブ予定",
   "clubScheduleHomeTodayRest": "今日は練習なし",
-  "clubScheduleHomeSetupHint": "練習時間とユニフォームカラーを登録しましょう。",
+  "clubScheduleHomeSetupHint": "練習時間とユニフォーム、ソックスカラーを登録しましょう。",
   "clubScheduleHomeNextTraining": "次の練習 {weekday} {time}",
   "@clubScheduleHomeNextTraining": {
     "placeholders": {
@@ -6631,11 +6631,12 @@
   "clubMorningWorkoutAlertWeekdayTitle": "通知する曜日",
   "clubMorningWorkoutAlertEveryDay": "毎日",
   "clubScheduleWeekdayTitle": "曜日別の練習時間",
-  "clubScheduleWeekdayHelper": "練習がある曜日だけオンにして、開始時間、終了時間、ユニフォームカラーを設定します。",
+  "clubScheduleWeekdayHelper": "練習がある曜日だけオンにして、開始時間、終了時間、ユニフォームとソックスカラーを設定します。",
   "clubScheduleStartTimeLabel": "開始",
   "clubScheduleEndTimeLabel": "終了",
   "clubScheduleDayOffLabel": "休み",
   "clubScheduleDayUniformLabel": "ユニフォーム",
+  "clubScheduleDaySockLabel": "ソックス",
   "clubScheduleUniformTitle": "ユニフォームカラー",
   "clubScheduleUniformHelper": "練習場ですぐ確認できるホーム、アウェイ、GKカラーを保存します。",
   "clubScheduleHomeKitLabel": "ホーム",

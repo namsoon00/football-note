@@ -20976,7 +20976,7 @@ abstract class AppLocalizations {
   /// No description provided for @clubScheduleSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Check weekly training times and uniform colors quickly.'**
+  /// **'Check weekly training times, uniform colors, and sock colors quickly.'**
   String get clubScheduleSubtitle;
 
   /// No description provided for @clubScheduleHomeTitle.
@@ -20994,7 +20994,7 @@ abstract class AppLocalizations {
   /// No description provided for @clubScheduleHomeSetupHint.
   ///
   /// In en, this message translates to:
-  /// **'Add training times and uniform colors.'**
+  /// **'Add training times, uniform colors, and sock colors.'**
   String get clubScheduleHomeSetupHint;
 
   /// No description provided for @clubScheduleHomeNextTraining.
@@ -21102,7 +21102,7 @@ abstract class AppLocalizations {
   /// No description provided for @clubScheduleWeekdayHelper.
   ///
   /// In en, this message translates to:
-  /// **'Turn on training days, then set start time, end time, and uniform color.'**
+  /// **'Turn on training days, then set start time, end time, uniform color, and sock color.'**
   String get clubScheduleWeekdayHelper;
 
   /// No description provided for @clubScheduleStartTimeLabel.
@@ -21128,6 +21128,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Uniform'**
   String get clubScheduleDayUniformLabel;
+
+  /// No description provided for @clubScheduleDaySockLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Socks'**
+  String get clubScheduleDaySockLabel;
 
   /// No description provided for @clubScheduleUniformTitle.
   ///

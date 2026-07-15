@@ -2524,6 +2524,10 @@ class _ClubScheduleHomeCard extends StatelessWidget {
       previewSchedule?.uniformColorValue ??
           ClubTrainingSchedule.defaultUniformColorValue,
     );
+    final previewSockColor = Color(
+      previewSchedule?.sockColorValue ??
+          ClubTrainingSchedule.defaultSockColorValue,
+    );
     final clubName = profile.clubName.trim();
     final title = clubName.isEmpty ? l10n.clubScheduleHomeTitle : clubName;
     final isTodayTraining = upcomingTraining != null &&
@@ -2566,12 +2570,34 @@ class _ClubScheduleHomeCard extends StatelessWidget {
                     color: scheme.outline.withValues(alpha: 0.14),
                   ),
                 ),
-                child: UniformJerseySwatch(
-                  color: previewUniformColor,
-                  size: 29,
-                  borderColor: scheme.outline.withValues(alpha: 0.56),
-                  borderWidth: 1.25,
-                  semanticLabel: l10n.clubScheduleDayUniformLabel,
+                child: SizedBox.square(
+                  dimension: 32,
+                  child: Stack(
+                    children: [
+                      Positioned(
+                        left: 0,
+                        top: 1,
+                        child: UniformJerseySwatch(
+                          color: previewUniformColor,
+                          size: 26,
+                          borderColor: scheme.outline.withValues(alpha: 0.56),
+                          borderWidth: 1.25,
+                          semanticLabel: l10n.clubScheduleDayUniformLabel,
+                        ),
+                      ),
+                      Positioned(
+                        right: 0,
+                        bottom: 0,
+                        child: UniformSockSwatch(
+                          color: previewSockColor,
+                          size: 18,
+                          borderColor: scheme.outline.withValues(alpha: 0.56),
+                          borderWidth: 1.25,
+                          semanticLabel: l10n.clubScheduleDaySockLabel,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),

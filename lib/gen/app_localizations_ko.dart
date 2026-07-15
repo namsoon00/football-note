@@ -11841,7 +11841,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get clubScheduleTitle => '클럽 일정';
 
   @override
-  String get clubScheduleSubtitle => '요일별 훈련시간과 유니폼 컬러를 빠르게 확인하세요.';
+  String get clubScheduleSubtitle => '요일별 훈련시간과 유니폼, 양말 컬러를 빠르게 확인하세요.';
 
   @override
   String get clubScheduleHomeTitle => '클럽 일정';
@@ -11850,7 +11850,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get clubScheduleHomeTodayRest => '오늘 훈련 없음';
 
   @override
-  String get clubScheduleHomeSetupHint => '훈련 시간과 유니폼 컬러를 등록하세요.';
+  String get clubScheduleHomeSetupHint => '훈련 시간과 유니폼, 양말 컬러를 등록하세요.';
 
   @override
   String clubScheduleHomeNextTraining(Object weekday, Object time) {
@@ -11915,7 +11915,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get clubScheduleWeekdayHelper =>
-      '훈련이 있는 요일만 켜고 시작/종료 시간과 유니폼 컬러를 맞추세요.';
+      '훈련이 있는 요일만 켜고 시작/종료 시간, 유니폼과 양말 컬러를 맞추세요.';
 
   @override
   String get clubScheduleStartTimeLabel => '시작';
@@ -11928,6 +11928,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get clubScheduleDayUniformLabel => '유니폼';
+
+  @override
+  String get clubScheduleDaySockLabel => '양말';
 
   @override
   String get clubScheduleUniformTitle => '유니폼 컬러';

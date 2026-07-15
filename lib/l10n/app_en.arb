@@ -6582,10 +6582,10 @@
     }
   },
   "clubScheduleTitle": "Club Schedule",
-  "clubScheduleSubtitle": "Check weekly training times and uniform colors quickly.",
+  "clubScheduleSubtitle": "Check weekly training times, uniform colors, and sock colors quickly.",
   "clubScheduleHomeTitle": "Club schedule",
   "clubScheduleHomeTodayRest": "No training today",
-  "clubScheduleHomeSetupHint": "Add training times and uniform colors.",
+  "clubScheduleHomeSetupHint": "Add training times, uniform colors, and sock colors.",
   "clubScheduleHomeNextTraining": "Next training {weekday} {time}",
   "@clubScheduleHomeNextTraining": {
     "placeholders": {
@@ -6631,11 +6631,12 @@
   "clubMorningWorkoutAlertWeekdayTitle": "Alert weekdays",
   "clubMorningWorkoutAlertEveryDay": "Every day",
   "clubScheduleWeekdayTitle": "Weekly training times",
-  "clubScheduleWeekdayHelper": "Turn on training days, then set start time, end time, and uniform color.",
+  "clubScheduleWeekdayHelper": "Turn on training days, then set start time, end time, uniform color, and sock color.",
   "clubScheduleStartTimeLabel": "Start",
   "clubScheduleEndTimeLabel": "End",
   "clubScheduleDayOffLabel": "Off",
   "clubScheduleDayUniformLabel": "Uniform",
+  "clubScheduleDaySockLabel": "Socks",
   "clubScheduleUniformTitle": "Uniform colors",
   "clubScheduleUniformHelper": "Save the home, away, and goalkeeper colors you need at training.",
   "clubScheduleHomeKitLabel": "Home",
