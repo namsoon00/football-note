@@ -1,6 +1,6 @@
 # 태오의노트 테크 노트
 
-최종 갱신: 2026-03-03
+최종 갱신: 2026-07-15
 
 ## 1) 아키텍처 개요
 - 기본 원칙: DDD 분리
@@ -21,10 +21,13 @@
 - 로컬 저장: Hive
 - 주요 박스:
 - `training_entries`
+- `training_entries_query_index_v1`
 - `options`
 - 백업:
 - `TrainingService`의 add/update/delete 후 비동기 백업 트리거
 - Google Drive API + 앱 옵션/엔트리 전체 동기화
+- `training_entries_query_index_v1`은 `training_entries`에서 재생성 가능한 보조 인덱스이며 Drive 백업 JSON에는 포함하지 않는다.
+- options 박스에는 `meal_logs_v1`, `training_boards_v1`, `match_competitions_v1`, `challenge_runs_v1`, 퀴즈/뉴스/게임 이력처럼 누적형 앱 레코드가 남아 있다. 이 값들은 현재 Drive 백업/복원 포맷의 `options`/`optionRecords` 계약에 직접 포함되므로, 개별 박스 분리는 각 서비스와 백업 마이그레이션을 함께 바꾸는 별도 작업으로 다룬다.
 
 ## 4) 주요 서비스 책임
 - `TrainingService`

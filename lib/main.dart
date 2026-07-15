@@ -112,6 +112,15 @@ Future<_FootballNoteDependencies> _initializeAppDependencies() async {
     () => openRecoverableHiveBox<TrainingEntry>(
       'training_entries',
       path: hivePath,
+      compactionStrategy:
+          HiveTrainingRepository.trainingEntryCompactionStrategy,
+    ),
+  );
+  final trainingIndexBox = await _runStartupStage<Box<dynamic>>(
+    'training_entries_index_box',
+    () => openRecoverableHiveBox<dynamic>(
+      HiveTrainingRepository.indexBoxNameFor('training_entries'),
+      path: hivePath,
     ),
   );
   final optionBox = await _runStartupStage<Box<dynamic>>(
@@ -125,7 +134,14 @@ Future<_FootballNoteDependencies> _initializeAppDependencies() async {
     'date_formatting',
     () => initializeDateFormatting('ko_KR'),
   );
-  final trainingRepository = HiveTrainingRepository(trainingBox);
+  final trainingRepository = HiveTrainingRepository(
+    trainingBox,
+    indexBox: trainingIndexBox,
+  );
+  await _runStartupStage<void>(
+    'training_entries_index',
+    trainingRepository.ensureIndexReady,
+  );
   final baseOptionRepository = HiveOptionRepository(optionBox);
   const webClientId = String.fromEnvironment('GOOGLE_WEB_CLIENT_ID');
   final backupService = _createBackupService(
