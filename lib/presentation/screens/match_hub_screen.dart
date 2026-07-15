@@ -309,6 +309,10 @@ class _MatchHubScreenState extends State<MatchHubScreen> {
       AppPageRoute(
         builder: (_) => TeamManagementScreen(
           optionRepository: widget.optionRepository,
+          trainingService: widget.trainingService,
+          localeService: widget.localeService,
+          settingsService: widget.settingsService,
+          onOpenMatchStats: widget.onOpenMatchStats,
           sportId: SportService(widget.optionRepository).currentSportId(),
           readOnly: readOnly,
         ),
@@ -536,62 +540,45 @@ class _MatchHubCommandCenter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final panelCount = supportsTeamManagement ? 2 : 1;
-        final gap = AppSpacing.sm * (panelCount - 1);
-        final panelWidth = panelCount == 1 || constraints.maxWidth < 720
-            ? constraints.maxWidth
-            : (constraints.maxWidth - gap) / panelCount;
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _SectionHeader(title: l10n.matchHubCommandCenterTitle),
-            Text(
-              l10n.matchHubCommandCenterHelper,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    height: 1.3,
-                  ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Wrap(
-              spacing: AppSpacing.sm,
-              runSpacing: AppSpacing.sm,
-              children: [
-                if (supportsTeamManagement)
-                  SizedBox(
-                    width: panelWidth,
-                    child: _TeamCommandPanel(
-                      team: primaryTeam,
-                      onManageTeams: onManageTeams,
-                    ),
-                  ),
-                SizedBox(
-                  width: panelWidth,
-                  child: _MatchCommandPanel(
-                    metrics: metrics,
-                    onRecordMatch: onRecordMatch,
-                    onManageCompetitions: onManageCompetitions,
-                    onOpenMatchRecords: onOpenMatchRecords,
-                    onOpenMatchStats: onOpenMatchStats,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        );
-      },
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _SectionHeader(title: l10n.matchHubCommandCenterTitle),
+        Text(
+          l10n.matchHubCommandCenterHelper,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                height: 1.3,
+              ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        if (supportsTeamManagement)
+          _TeamCommandPanel(
+            team: primaryTeam,
+            metrics: metrics,
+            onManageTeams: onManageTeams,
+          )
+        else
+          _MatchCommandPanel(
+            metrics: metrics,
+            onRecordMatch: onRecordMatch,
+            onManageCompetitions: onManageCompetitions,
+            onOpenMatchRecords: onOpenMatchRecords,
+            onOpenMatchStats: onOpenMatchStats,
+          ),
+      ],
     );
   }
 }
 
 class _TeamCommandPanel extends StatelessWidget {
   final ManagedTeam? team;
+  final _MatchHubMetrics metrics;
   final VoidCallback onManageTeams;
 
   const _TeamCommandPanel({
     required this.team,
+    required this.metrics,
     required this.onManageTeams,
   });
 
@@ -600,12 +587,9 @@ class _TeamCommandPanel extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final totalSpots = team == null
-        ? 0
-        : TeamManagementService.formationSpots(team!.formation).length;
     return _CommandPanel(
       icon: Icons.manage_accounts_outlined,
-      title: l10n.teamManagementOpenButton,
+      title: l10n.teamManagementTitle,
       subtitle: l10n.matchHubTeamCommandHelper,
       children: [
         if (team == null)
@@ -631,17 +615,16 @@ class _TeamCommandPanel extends StatelessWidget {
             children: [
               Expanded(
                 child: _CompactInfo(
-                  label: l10n.teamManagementPlayersTitle,
+                  label: l10n.teamManagementPlayerSectionTab,
                   value: l10n.teamManagementPlayerCount(team!.players.length),
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: _CompactInfo(
-                  label: l10n.teamManagementOperationsLineupLabel,
-                  value: l10n.teamManagementLineupFilled(
-                    team!.filledLineupCount,
-                    totalSpots,
+                  label: l10n.teamManagementMatchSectionTab,
+                  value: l10n.statsMatchTotalMatchesValue(
+                    metrics.totalMatches,
                   ),
                 ),
               ),
@@ -653,7 +636,7 @@ class _TeamCommandPanel extends StatelessWidget {
           alignment: AlignmentDirectional.centerStart,
           child: FilledButton.icon(
             onPressed: onManageTeams,
-            icon: const Icon(Icons.person_add_alt_outlined),
+            icon: const Icon(Icons.manage_accounts_outlined),
             label: Text(l10n.matchHubTeamCommandPrimary),
           ),
         ),
