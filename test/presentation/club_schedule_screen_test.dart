@@ -52,7 +52,7 @@ void main() {
     );
   });
 
-  testWidgets('club schedule screen saves club name, weekday, and kit color', (
+  testWidgets('club schedule screen saves club name, weekday, kit, and socks', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(900, 2200);
@@ -115,6 +115,21 @@ void main() {
     await tester.tap(find.text('확인'));
     await tester.pumpAndSettle();
 
+    final sockPicker = find.byKey(
+      const ValueKey<String>('club-uniform-day-1-sock-picker'),
+    );
+    await tester.ensureVisible(sockPicker);
+    await tester.tap(sockPicker);
+    await tester.pumpAndSettle();
+
+    await tester.tap(
+      find.byKey(const ValueKey<String>('club-uniform-color-preset-black')),
+    );
+    await tester.pump();
+
+    await tester.tap(find.text('확인'));
+    await tester.pumpAndSettle();
+
     final saveButton = find.byKey(
       const ValueKey<String>('club-schedule-save-button'),
     );
@@ -127,6 +142,7 @@ void main() {
     expect(profile.weekdaySchedules.first.weekday, DateTime.monday);
     expect(profile.weekdaySchedules.first.enabled, isTrue);
     expect(profile.weekdaySchedules.first.uniformColorValue, 0xFFDC2626);
+    expect(profile.weekdaySchedules.first.sockColorValue, 0xFF111827);
     expect(find.text('클럽 일정을 저장했어요.'), findsOneWidget);
   });
 
@@ -323,6 +339,7 @@ void main() {
       tester.view.resetDevicePixelRatio();
     });
     final repository = _MemoryOptionRepository();
+    await repository.setValue('reminder_enabled', true);
 
     await tester.pumpWidget(
       _buildApp(
@@ -366,9 +383,14 @@ void main() {
       ],
     );
 
-    final logs = repository.getValue<List>(
-      ClubTrainingReminderService.messageLogKey,
-    );
+    List? logs;
+    for (var attempt = 0; attempt < 10; attempt += 1) {
+      logs = repository.getValue<List>(
+        ClubTrainingReminderService.messageLogKey,
+      );
+      if ((logs?.length ?? 0) == 6) break;
+      await tester.pump(const Duration(milliseconds: 100));
+    }
     expect(logs, hasLength(6));
     expect(
       logs!.whereType<Map>().every(

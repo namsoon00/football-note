@@ -505,7 +505,8 @@ class _ClubScheduleScreenState extends State<ClubScheduleScreen> {
         a.enabled == b.enabled &&
         a.startMinutes == b.startMinutes &&
         a.endMinutes == b.endMinutes &&
-        a.uniformColorValue == b.uniformColorValue;
+        a.uniformColorValue == b.uniformColorValue &&
+        a.sockColorValue == b.sockColorValue;
   }
 
   String _weekdayLabel(int weekday) {
@@ -635,7 +636,10 @@ class _ClubScheduleSummaryPanel extends StatelessWidget {
           ),
           if (previewSchedule != null) ...[
             const SizedBox(height: AppSpacing.md),
-            _UniformPreviewRow(colorValue: previewSchedule.uniformColorValue),
+            _UniformPreviewRow(
+              uniformColorValue: previewSchedule.uniformColorValue,
+              sockColorValue: previewSchedule.sockColorValue,
+            ),
           ],
         ],
       ),
@@ -1005,6 +1009,18 @@ class _WeekdayScheduleRow extends StatelessWidget {
                               schedule.copyWith(uniformColorValue: value),
                             ),
                   ),
+                  const SizedBox(height: AppSpacing.xs),
+                  _UniformColorSelector(
+                    label: l10n.clubScheduleDaySockLabel,
+                    selectedColorValue: schedule.sockColorValue,
+                    keyPrefix: 'day-${schedule.weekday}-sock',
+                    swatchType: _UniformColorSwatchType.socks,
+                    onChanged: readOnly
+                        ? null
+                        : (value) => onScheduleChanged(
+                              schedule.copyWith(sockColorValue: value),
+                            ),
+                  ),
                 ],
               ],
             ),
@@ -1120,16 +1136,49 @@ class _ScheduleTimeChip extends StatelessWidget {
   }
 }
 
+enum _UniformColorSwatchType { jersey, socks }
+
+Widget _uniformColorSwatch({
+  required _UniformColorSwatchType type,
+  required Color color,
+  required double size,
+  required Color borderColor,
+  double borderWidth = 1.2,
+  bool selected = false,
+  String? semanticLabel,
+}) {
+  return switch (type) {
+    _UniformColorSwatchType.jersey => UniformJerseySwatch(
+        color: color,
+        size: size,
+        borderColor: borderColor,
+        borderWidth: borderWidth,
+        selected: selected,
+        semanticLabel: semanticLabel,
+      ),
+    _UniformColorSwatchType.socks => UniformSockSwatch(
+        color: color,
+        size: size,
+        borderColor: borderColor,
+        borderWidth: borderWidth,
+        selected: selected,
+        semanticLabel: semanticLabel,
+      ),
+  };
+}
+
 class _UniformColorSelector extends StatelessWidget {
   final String label;
   final int selectedColorValue;
   final String keyPrefix;
+  final _UniformColorSwatchType swatchType;
   final ValueChanged<int>? onChanged;
 
   const _UniformColorSelector({
     required this.label,
     required this.selectedColorValue,
     required this.keyPrefix,
+    this.swatchType = _UniformColorSwatchType.jersey,
     required this.onChanged,
   });
 
@@ -1176,6 +1225,7 @@ class _UniformColorSelector extends StatelessWidget {
                       useSafeArea: true,
                       builder: (context) => _UniformColorPickerSheet(
                         initialColorValue: selectedColorValue,
+                        swatchType: swatchType,
                       ),
                     );
                     if (picked != null) onChanged!(picked);
@@ -1183,7 +1233,8 @@ class _UniformColorSelector extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                UniformJerseySwatch(
+                _uniformColorSwatch(
+                  type: swatchType,
                   color: Color(selectedColorValue),
                   size: 30,
                   borderColor: scheme.outline.withValues(alpha: 0.68),
@@ -1203,8 +1254,12 @@ class _UniformColorSelector extends StatelessWidget {
 
 class _UniformColorPickerSheet extends StatefulWidget {
   final int initialColorValue;
+  final _UniformColorSwatchType swatchType;
 
-  const _UniformColorPickerSheet({required this.initialColorValue});
+  const _UniformColorPickerSheet({
+    required this.initialColorValue,
+    required this.swatchType,
+  });
 
   @override
   State<_UniformColorPickerSheet> createState() =>
@@ -1279,7 +1334,8 @@ class _UniformColorPickerSheetState extends State<_UniformColorPickerSheet> {
                   const SizedBox(height: AppSpacing.sm),
                   Row(
                     children: [
-                      UniformJerseySwatch(
+                      _uniformColorSwatch(
+                        type: widget.swatchType,
                         color: selectedColor,
                         size: 52,
                         borderColor: scheme.outline.withValues(alpha: 0.64),
@@ -1313,6 +1369,7 @@ class _UniformColorPickerSheetState extends State<_UniformColorPickerSheet> {
                           key: ValueKey<String>(
                             'club-uniform-color-preset-${preset.id}',
                           ),
+                          swatchType: widget.swatchType,
                           colorValue: preset.colorValue,
                           selected:
                               selectedColor.toARGB32() == preset.colorValue,
@@ -1428,6 +1485,7 @@ class _UniformColorPreset {
 }
 
 class _UniformColorPresetButton extends StatelessWidget {
+  final _UniformColorSwatchType swatchType;
   final int colorValue;
   final bool selected;
   final String label;
@@ -1435,6 +1493,7 @@ class _UniformColorPresetButton extends StatelessWidget {
 
   const _UniformColorPresetButton({
     super.key,
+    required this.swatchType,
     required this.colorValue,
     required this.selected,
     required this.label,
@@ -1470,7 +1529,8 @@ class _UniformColorPresetButton extends StatelessWidget {
                 width: selected ? 2 : 1,
               ),
             ),
-            child: UniformJerseySwatch(
+            child: _uniformColorSwatch(
+              type: swatchType,
               color: Color(colorValue),
               size: 30,
               borderColor: selected
@@ -1553,9 +1613,13 @@ class _UniformColorSlider extends StatelessWidget {
 }
 
 class _UniformPreviewRow extends StatelessWidget {
-  final int colorValue;
+  final int uniformColorValue;
+  final int sockColorValue;
 
-  const _UniformPreviewRow({required this.colorValue});
+  const _UniformPreviewRow({
+    required this.uniformColorValue,
+    required this.sockColorValue,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1564,7 +1628,14 @@ class _UniformPreviewRow extends StatelessWidget {
       children: [
         _UniformPreviewChip(
           label: l10n.clubScheduleDayUniformLabel,
-          colorValue: colorValue,
+          colorValue: uniformColorValue,
+          swatchType: _UniformColorSwatchType.jersey,
+        ),
+        const SizedBox(width: AppSpacing.xs),
+        _UniformPreviewChip(
+          label: l10n.clubScheduleDaySockLabel,
+          colorValue: sockColorValue,
+          swatchType: _UniformColorSwatchType.socks,
         ),
       ],
     );
@@ -1574,10 +1645,12 @@ class _UniformPreviewRow extends StatelessWidget {
 class _UniformPreviewChip extends StatelessWidget {
   final String label;
   final int colorValue;
+  final _UniformColorSwatchType swatchType;
 
   const _UniformPreviewChip({
     required this.label,
     required this.colorValue,
+    required this.swatchType,
   });
 
   @override
@@ -1596,7 +1669,8 @@ class _UniformPreviewChip extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            UniformJerseySwatch(
+            _uniformColorSwatch(
+              type: swatchType,
               color: Color(colorValue),
               size: 18,
               borderColor: Colors.white,

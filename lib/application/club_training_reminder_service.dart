@@ -229,7 +229,7 @@ class ClubTrainingReminderService {
         scheduledIds.add(id);
         messages.add({
           'id':
-              'club:$sportId:${schedule.weekday}:${schedule.startMinutes}:${schedule.endMinutes}:${schedule.uniformColorValue}:$minutesBefore',
+              'club:$sportId:${schedule.weekday}:${schedule.startMinutes}:${schedule.endMinutes}:${schedule.uniformColorValue}:${schedule.sockColorValue}:$minutesBefore',
           'payload': payload,
           'createdAt': now.toIso8601String(),
           'scheduledAt': scheduledAt.toIso8601String(),

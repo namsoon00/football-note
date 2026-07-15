@@ -12168,7 +12168,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get clubScheduleSubtitle =>
-      'Check weekly training times and uniform colors quickly.';
+      'Check weekly training times, uniform colors, and sock colors quickly.';
 
   @override
   String get clubScheduleHomeTitle => 'Club schedule';
@@ -12178,7 +12178,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get clubScheduleHomeSetupHint =>
-      'Add training times and uniform colors.';
+      'Add training times, uniform colors, and sock colors.';
 
   @override
   String clubScheduleHomeNextTraining(Object weekday, Object time) {
@@ -12245,7 +12245,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get clubScheduleWeekdayHelper =>
-      'Turn on training days, then set start time, end time, and uniform color.';
+      'Turn on training days, then set start time, end time, uniform color, and sock color.';
 
   @override
   String get clubScheduleStartTimeLabel => 'Start';
@@ -12258,6 +12258,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get clubScheduleDayUniformLabel => 'Uniform';
+
+  @override
+  String get clubScheduleDaySockLabel => 'Socks';
 
   @override
   String get clubScheduleUniformTitle => 'Uniform colors';

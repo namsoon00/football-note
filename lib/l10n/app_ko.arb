@@ -6582,10 +6582,10 @@
     }
   },
   "clubScheduleTitle": "클럽 일정",
-  "clubScheduleSubtitle": "요일별 훈련시간과 유니폼 컬러를 빠르게 확인하세요.",
+  "clubScheduleSubtitle": "요일별 훈련시간과 유니폼, 양말 컬러를 빠르게 확인하세요.",
   "clubScheduleHomeTitle": "클럽 일정",
   "clubScheduleHomeTodayRest": "오늘 훈련 없음",
-  "clubScheduleHomeSetupHint": "훈련 시간과 유니폼 컬러를 등록하세요.",
+  "clubScheduleHomeSetupHint": "훈련 시간과 유니폼, 양말 컬러를 등록하세요.",
   "clubScheduleHomeNextTraining": "다음 훈련 {weekday} {time}",
   "@clubScheduleHomeNextTraining": {
     "placeholders": {
@@ -6631,11 +6631,12 @@
   "clubMorningWorkoutAlertWeekdayTitle": "알림 요일",
   "clubMorningWorkoutAlertEveryDay": "매일",
   "clubScheduleWeekdayTitle": "요일별 훈련시간",
-  "clubScheduleWeekdayHelper": "훈련이 있는 요일만 켜고 시작/종료 시간과 유니폼 컬러를 맞추세요.",
+  "clubScheduleWeekdayHelper": "훈련이 있는 요일만 켜고 시작/종료 시간, 유니폼과 양말 컬러를 맞추세요.",
   "clubScheduleStartTimeLabel": "시작",
   "clubScheduleEndTimeLabel": "종료",
   "clubScheduleDayOffLabel": "쉼",
   "clubScheduleDayUniformLabel": "유니폼",
+  "clubScheduleDaySockLabel": "양말",
   "clubScheduleUniformTitle": "유니폼 컬러",
   "clubScheduleUniformHelper": "훈련장에서 바로 확인할 홈, 어웨이, 골키퍼 컬러를 정해두세요.",
   "clubScheduleHomeKitLabel": "홈",
