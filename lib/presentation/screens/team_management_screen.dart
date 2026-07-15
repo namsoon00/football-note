@@ -5,15 +5,23 @@ import 'package:flutter/material.dart';
 import 'package:football_note/gen/app_localizations.dart';
 
 import '../../application/family_access_service.dart';
+import '../../application/locale_service.dart';
+import '../../application/settings_service.dart';
 import '../../application/team_management_service.dart';
+import '../../application/training_service.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_page_route.dart';
 import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_feedback.dart';
 import 'club_schedule_screen.dart';
+import 'competition_management_screen.dart';
+import 'match_record_screen.dart';
+import 'match_records_screen.dart';
 
 enum _TacticBoardMode { assign, movement, press, zone }
+
+enum _TeamManagementSection { players, matches }
 
 enum _TeamManagementWorkspace { board }
 
@@ -24,12 +32,20 @@ typedef _PlayerBoardDropCallback = void Function({
 
 class TeamManagementScreen extends StatefulWidget {
   final OptionRepository optionRepository;
+  final TrainingService? trainingService;
+  final LocaleService? localeService;
+  final SettingsService? settingsService;
+  final VoidCallback? onOpenMatchStats;
   final String? sportId;
   final bool readOnly;
 
   const TeamManagementScreen({
     super.key,
     required this.optionRepository,
+    this.trainingService,
+    this.localeService,
+    this.settingsService,
+    this.onOpenMatchStats,
     this.sportId,
     this.readOnly = false,
   });
@@ -59,6 +75,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   String _playerFoot = ManagedTeamPlayer.footRight;
   String _playerCondition = ManagedTeamPlayer.conditionReady;
   String? _editingPlayerId;
+  _TeamManagementSection _activeSection = _TeamManagementSection.players;
   _TeamManagementWorkspace? _activeWorkspace;
   _TacticBoardMode _boardMode = _TacticBoardMode.assign;
   ManagedTacticLine? _draftTacticLine;
@@ -147,6 +164,75 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _openMatchRecord() async {
+    if (_isReadOnlySupportMode) {
+      AppFeedback.showMessage(
+        context,
+        text: AppLocalizations.of(context)!.parentReadOnlyCoreDataMessage,
+      );
+      return;
+    }
+    final trainingService = widget.trainingService;
+    final localeService = widget.localeService;
+    final settingsService = widget.settingsService;
+    if (trainingService == null ||
+        localeService == null ||
+        settingsService == null) {
+      return;
+    }
+    await _flushAutoSave();
+    if (!mounted) return;
+    await Navigator.of(context).push(
+      AppPageRoute(
+        builder: (_) => MatchRecordScreen(
+          trainingService: trainingService,
+          localeService: localeService,
+          optionRepository: widget.optionRepository,
+          settingsService: settingsService,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openCompetitionManagement() async {
+    final trainingService = widget.trainingService;
+    if (trainingService == null) return;
+    await _flushAutoSave();
+    if (!mounted) return;
+    await Navigator.of(context).push(
+      AppPageRoute(
+        builder: (_) => CompetitionManagementScreen(
+          trainingService: trainingService,
+          optionRepository: widget.optionRepository,
+          sportId: widget.sportId,
+          readOnly: _isReadOnlySupportMode,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openMatchRecords() async {
+    final trainingService = widget.trainingService;
+    if (trainingService == null) return;
+    await _flushAutoSave();
+    if (!mounted) return;
+    await Navigator.of(context).push(
+      AppPageRoute(
+        builder: (_) => MatchRecordsScreen(
+          trainingService: trainingService,
+          optionRepository: widget.optionRepository,
+        ),
+      ),
+    );
+  }
+
+  void _openMatchStats() {
+    final onOpenMatchStats = widget.onOpenMatchStats;
+    if (onOpenMatchStats == null) return;
+    Navigator.of(context).maybePop();
+    WidgetsBinding.instance.addPostFrameCallback((_) => onOpenMatchStats());
   }
 
   void _loadTeam(AppLocalizations l10n) {
@@ -521,9 +607,11 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
                     children: [
                       _TeamManagementHeader(
                         onBack: () => Navigator.of(context).maybePop(),
-                        onOpenBoard: () =>
-                            _openWorkspace(_TeamManagementWorkspace.board),
-                        onOpenSchedule: () => unawaited(_openClubSchedule()),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      _TeamManagementSectionSwitcher(
+                        selectedSection: _activeSection,
+                        onSectionChanged: _changeSection,
                       ),
                       const SizedBox(height: AppSpacing.md),
                       _buildTeamManagementHome(readOnly),
@@ -536,10 +624,21 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   }
 
   Widget _buildTeamManagementHome(bool readOnly) {
+    return switch (_activeSection) {
+      _TeamManagementSection.players => _buildPlayerManagementHome(readOnly),
+      _TeamManagementSection.matches => _buildMatchManagementHome(),
+    };
+  }
+
+  Widget _buildPlayerManagementHome(bool readOnly) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _buildPlayersPanel(readOnly),
+        const SizedBox(height: AppSpacing.md),
+        _PlayerManagementTools(
+          onOpenBoard: () => _openWorkspace(_TeamManagementWorkspace.board),
+        ),
         const SizedBox(height: AppSpacing.md),
         _TeamBasicsPanel(
           teamNameController: _teamNameController,
@@ -547,6 +646,22 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
           readOnly: readOnly,
         ),
       ],
+    );
+  }
+
+  Widget _buildMatchManagementHome() {
+    final matchActionsEnabled = widget.trainingService != null &&
+        widget.localeService != null &&
+        widget.settingsService != null;
+    return _MatchManagementPanel(
+      matchActionsEnabled: matchActionsEnabled,
+      recordsEnabled: widget.trainingService != null,
+      onRecordMatch: () => unawaited(_openMatchRecord()),
+      onManageCompetitions: () => unawaited(_openCompetitionManagement()),
+      onOpenMatchRecords: () => unawaited(_openMatchRecords()),
+      onOpenMatchStats:
+          widget.onOpenMatchStats == null ? null : _openMatchStats,
+      onOpenSchedule: () => unawaited(_openClubSchedule()),
     );
   }
 
@@ -578,6 +693,12 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
 
   void _openWorkspace(_TeamManagementWorkspace workspace) {
     setState(() => _activeWorkspace = workspace);
+    _scrollToTop();
+  }
+
+  void _changeSection(_TeamManagementSection section) {
+    if (_activeSection == section) return;
+    setState(() => _activeSection = section);
     _scrollToTop();
   }
 
@@ -674,13 +795,9 @@ class _WorkspaceScreenHeader extends StatelessWidget {
 
 class _TeamManagementHeader extends StatelessWidget {
   final VoidCallback onBack;
-  final VoidCallback onOpenBoard;
-  final VoidCallback onOpenSchedule;
 
   const _TeamManagementHeader({
     required this.onBack,
-    required this.onOpenBoard,
-    required this.onOpenSchedule,
   });
 
   @override
@@ -709,20 +826,185 @@ class _TeamManagementHeader extends StatelessWidget {
             ],
           ),
         ),
-        AppBarActionButton.icon(
-          key: const ValueKey('team-header-board'),
-          icon: Icons.sports_soccer_outlined,
-          tooltip: l10n.teamManagementWorkspaceBoardTab,
-          onPressed: onOpenBoard,
+      ],
+    );
+  }
+}
+
+class _TeamManagementSectionSwitcher extends StatelessWidget {
+  final _TeamManagementSection selectedSection;
+  final ValueChanged<_TeamManagementSection> onSectionChanged;
+
+  const _TeamManagementSectionSwitcher({
+    required this.selectedSection,
+    required this.onSectionChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return SegmentedButton<_TeamManagementSection>(
+      key: const ValueKey('team-management-section-switcher'),
+      showSelectedIcon: false,
+      segments: [
+        ButtonSegment<_TeamManagementSection>(
+          value: _TeamManagementSection.players,
+          icon: const Icon(Icons.groups_2_outlined),
+          label: Text(
+            l10n.teamManagementPlayerSectionTab,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
-        AppBarActionButton.icon(
-          key: const ValueKey('team-header-schedule'),
-          icon: Icons.calendar_month_outlined,
-          tooltip: l10n.clubScheduleTitle,
-          onPressed: onOpenSchedule,
-          margin: EdgeInsets.zero,
+        ButtonSegment<_TeamManagementSection>(
+          value: _TeamManagementSection.matches,
+          icon: const Icon(Icons.event_note_outlined),
+          label: Text(
+            l10n.teamManagementMatchSectionTab,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
       ],
+      selected: {selectedSection},
+      onSelectionChanged: (selection) => onSectionChanged(selection.single),
+    );
+  }
+}
+
+class _PlayerManagementTools extends StatelessWidget {
+  final VoidCallback onOpenBoard;
+
+  const _PlayerManagementTools({
+    required this.onOpenBoard,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Container(
+      decoration: AppSurfaces.cardDecoration(scheme, theme.brightness),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Row(
+        children: [
+          Expanded(
+            child: _PanelTitle(
+              icon: Icons.sports_soccer_outlined,
+              title: l10n.teamManagementWorkspaceBoardTab,
+              helper: l10n.teamManagementPlayerSectionBoardHelper,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          OutlinedButton.icon(
+            key: const ValueKey('team-player-board'),
+            onPressed: onOpenBoard,
+            icon: const Icon(Icons.account_tree_outlined),
+            label: Text(l10n.teamManagementWorkspaceBoardTab),
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size(0, 44),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MatchManagementPanel extends StatelessWidget {
+  final bool matchActionsEnabled;
+  final bool recordsEnabled;
+  final VoidCallback onRecordMatch;
+  final VoidCallback onManageCompetitions;
+  final VoidCallback onOpenMatchRecords;
+  final VoidCallback? onOpenMatchStats;
+  final VoidCallback onOpenSchedule;
+
+  const _MatchManagementPanel({
+    required this.matchActionsEnabled,
+    required this.recordsEnabled,
+    required this.onRecordMatch,
+    required this.onManageCompetitions,
+    required this.onOpenMatchRecords,
+    required this.onOpenMatchStats,
+    required this.onOpenSchedule,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Container(
+      decoration: AppSurfaces.cardDecoration(scheme, theme.brightness),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _PanelTitle(
+            icon: Icons.event_note_outlined,
+            title: l10n.teamManagementMatchSectionTitle,
+            helper: l10n.teamManagementMatchSectionHelper,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final columns = constraints.maxWidth >= 640 ? 2 : 1;
+              final gap = AppSpacing.sm * (columns - 1);
+              final width = (constraints.maxWidth - gap) / columns;
+              return Wrap(
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.sm,
+                children: [
+                  SizedBox(
+                    width: width,
+                    child: FilledButton.icon(
+                      onPressed: matchActionsEnabled ? onRecordMatch : null,
+                      icon: const Icon(Icons.edit_note_outlined),
+                      label: Text(l10n.matchHubRecordButton),
+                    ),
+                  ),
+                  SizedBox(
+                    width: width,
+                    child: OutlinedButton.icon(
+                      onPressed: recordsEnabled ? onManageCompetitions : null,
+                      icon: const Icon(Icons.emoji_events_outlined),
+                      label: Text(l10n.matchCompetitionOpenButton),
+                    ),
+                  ),
+                  SizedBox(
+                    width: width,
+                    child: OutlinedButton.icon(
+                      onPressed: recordsEnabled ? onOpenMatchRecords : null,
+                      icon: const Icon(Icons.fact_check_outlined),
+                      label: Text(l10n.matchRecordsOpenButton),
+                    ),
+                  ),
+                  SizedBox(
+                    width: width,
+                    child: OutlinedButton.icon(
+                      onPressed: onOpenMatchStats,
+                      icon: const Icon(Icons.analytics_outlined),
+                      label: Text(l10n.matchHubStatsButton),
+                    ),
+                  ),
+                  SizedBox(
+                    width: width,
+                    child: OutlinedButton.icon(
+                      onPressed: onOpenSchedule,
+                      icon: const Icon(Icons.calendar_month_outlined),
+                      label: Text(l10n.clubScheduleTitle),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 }
