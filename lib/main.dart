@@ -18,6 +18,7 @@ import 'infrastructure/hive_startup_recovery.dart';
 import 'infrastructure/hive_option_repository.dart';
 import 'infrastructure/hive_training_repository.dart';
 import 'application/training_service.dart';
+import 'application/firebase_startup.dart';
 import 'application/locale_service.dart';
 import 'application/settings_service.dart';
 import 'application/backup_service.dart';
@@ -66,34 +67,22 @@ Future<void> main() async {
 }
 
 Future<void> _initializeFirebase() async {
-  if (Firebase.apps.isNotEmpty) {
-    return;
-  }
-
-  try {
-    await Firebase.initializeApp(
+  await initializeOptionalFirebase(
+    isWeb: kIsWeb,
+    isConfigured: DefaultFirebaseOptions.isCurrentPlatformConfigured,
+    hasApps: () => Firebase.apps.isNotEmpty,
+    initializeApp: () => Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
-    );
-  } on FirebaseException catch (error) {
-    if (error.code == 'duplicate-app' || Firebase.apps.isNotEmpty) {
-      return;
-    }
-    if (kIsWeb) {
-      return;
-    }
-    FlutterError.reportError(
+    ),
+    reportError: (error, stackTrace) => FlutterError.reportError(
       FlutterErrorDetails(
         exception: error,
-        stack: StackTrace.current,
+        stack: stackTrace,
         library: 'football_note startup',
         context: ErrorDescription('while initializing optional Firebase'),
       ),
-    );
-  } catch (_) {
-    if (kIsWeb) {
-      return;
-    }
-  }
+    ),
+  );
 }
 
 Future<_FootballNoteDependencies> _initializeAppDependencies() async {
