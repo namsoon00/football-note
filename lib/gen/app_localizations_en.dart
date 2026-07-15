@@ -13248,6 +13248,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trainingSketchEditStageActionTooltip => 'Edit stage action';
 
   @override
+  String get trainingSketchAddSameStageActionTooltip =>
+      'Add player action to this stage';
+
+  @override
+  String get trainingSketchAddNextStageActionTooltip =>
+      'Add player action to the next stage';
+
+  @override
   String get trainingSketchDeleteStageActionTooltip => 'Delete stage action';
 
   @override

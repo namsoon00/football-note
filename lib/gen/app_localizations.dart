@@ -22854,6 +22854,18 @@ abstract class AppLocalizations {
   /// **'Edit stage action'**
   String get trainingSketchEditStageActionTooltip;
 
+  /// No description provided for @trainingSketchAddSameStageActionTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Add player action to this stage'**
+  String get trainingSketchAddSameStageActionTooltip;
+
+  /// No description provided for @trainingSketchAddNextStageActionTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Add player action to the next stage'**
+  String get trainingSketchAddNextStageActionTooltip;
+
   /// No description provided for @trainingSketchDeleteStageActionTooltip.
   ///
   /// In en, this message translates to:

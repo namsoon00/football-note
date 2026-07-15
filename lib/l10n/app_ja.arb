@@ -7193,6 +7193,8 @@
   "trainingSketchRedrawRouteButton": "選択された再描画",
   "trainingSketchDeleteRouteButton": "選択したものを削除",
   "trainingSketchEditStageActionTooltip": "ステージアクションを編集",
+  "trainingSketchAddSameStageActionTooltip": "このステージに選手の動作を追加",
+  "trainingSketchAddNextStageActionTooltip": "次のステージに選手の動作を追加",
   "trainingSketchDeleteStageActionTooltip": "ステージアクションを削除",
   "trainingSketchPlayerRouteChip": "プレイヤー {index}",
   "@trainingSketchPlayerRouteChip": {

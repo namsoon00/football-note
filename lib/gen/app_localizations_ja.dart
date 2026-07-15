@@ -12873,6 +12873,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get trainingSketchEditStageActionTooltip => 'ステージアクションを編集';
 
   @override
+  String get trainingSketchAddSameStageActionTooltip => 'このステージに選手の動作を追加';
+
+  @override
+  String get trainingSketchAddNextStageActionTooltip => '次のステージに選手の動作を追加';
+
+  @override
   String get trainingSketchDeleteStageActionTooltip => 'ステージアクションを削除';
 
   @override
