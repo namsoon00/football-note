@@ -1729,29 +1729,48 @@ class _PlayersPanel extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final addPlayerButton = FilledButton.icon(
+      onPressed: readOnly ? null : onStartPlayerRegistration,
+      icon: const Icon(Icons.person_add_alt_outlined),
+      label: Text(l10n.teamManagementAddPlayerButton),
+      style: FilledButton.styleFrom(
+        minimumSize: const Size(0, 44),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+    );
     return Container(
       decoration: AppSurfaces.cardDecoration(scheme, theme.brightness),
       padding: const EdgeInsets.all(AppSpacing.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                child: _PanelTitle(
-                  icon: Icons.groups_2_outlined,
-                  title: l10n.teamManagementPlayersTitle,
-                  helper: l10n.teamManagementPlayersHelper,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              FilledButton.icon(
-                onPressed: readOnly ? null : onStartPlayerRegistration,
-                icon: const Icon(Icons.person_add_alt_outlined),
-                label: Text(l10n.teamManagementAddPlayerButton),
-              ),
-            ],
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final title = _PanelTitle(
+                icon: Icons.groups_2_outlined,
+                title: l10n.teamManagementPlayersTitle,
+                helper: l10n.teamManagementPlayersHelper,
+              );
+              if (constraints.maxWidth < 420) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    title,
+                    const SizedBox(height: AppSpacing.sm),
+                    addPlayerButton,
+                  ],
+                );
+              }
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(child: title),
+                  const SizedBox(width: AppSpacing.sm),
+                  addPlayerButton,
+                ],
+              );
+            },
           ),
           if (formExpanded) ...[
             const SizedBox(height: AppSpacing.md),

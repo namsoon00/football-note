@@ -405,6 +405,47 @@ void main() {
     expect(TeamManagementService(optionRepository).allTeams(), isEmpty);
   });
 
+  testWidgets('team management mobile home shows roster content immediately', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('en'),
+          theme: AppTheme.light(),
+          darkTheme: AppTheme.dark(),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en'),
+            Locale('ko', 'KR'),
+            Locale('ja'),
+          ],
+          home: TeamManagementScreen(optionRepository: optionRepository),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Team Management'), findsOneWidget);
+    expect(find.text('Roster'), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, 'Add player'), findsOneWidget);
+    expect(find.text('No players registered.'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('parent mode competition management keeps create flow disabled', (
     tester,
   ) async {
