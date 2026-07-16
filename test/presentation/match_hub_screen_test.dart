@@ -115,20 +115,6 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  Future<void> openTeamManagementFromHub(WidgetTester tester) async {
-    final openButton = find.text('팀 관리 열기');
-    await tester.ensureVisible(openButton);
-    await tester.pumpAndSettle();
-    await tester.tap(openButton);
-    await tester.pumpAndSettle();
-  }
-
-  Future<void> openTeamMatchManagementFromHub(WidgetTester tester) async {
-    await openTeamManagementFromHub(tester);
-    await tester.tap(find.text('시합관리'));
-    await tester.pumpAndSettle();
-  }
-
   Future<void> seedMatchHubRecords() async {
     final competitionService = MatchCompetitionService(optionRepository);
     await competitionService.upsertCompetition(
@@ -210,11 +196,11 @@ void main() {
     expect(find.text('팀 관리'), findsWidgets);
     expect(find.text('운영 현황'), findsOneWidget);
     expect(find.text('운영 작업'), findsOneWidget);
-    expect(find.text('선수관리'), findsOneWidget);
+    expect(find.text('선수관리'), findsWidgets);
     expect(find.text('시합관리'), findsOneWidget);
-    expect(find.text('팀 관리 열기'), findsOneWidget);
+    expect(find.text('팀 관리 열기'), findsNothing);
     expect(find.text('2경기'), findsWidgets);
-    expect(find.text('1승 0무 1패'), findsOneWidget);
+    expect(find.text('1승 0무 1패'), findsNothing);
     expect(find.text('주말 리그'), findsOneWidget);
     expect(find.text('컵 대회'), findsOneWidget);
     expect(find.text('우리 팀'), findsWidgets);
@@ -222,6 +208,11 @@ void main() {
     expect(find.text('대회 관리'), findsWidgets);
     expect(find.text('최근 시합'), findsNothing);
     expect(find.text('3 : 1'), findsNothing);
+
+    await tester.tap(find.text('운영 현황'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('1승 0무 1패'), findsOneWidget);
   });
 
   testWidgets('Match hub opens professional competition management', (
@@ -230,8 +221,8 @@ void main() {
     await seedMatchHubRecords();
 
     await pumpHub(tester);
-    await openTeamMatchManagementFromHub(tester);
-    await tester.tap(find.text('대회 관리'));
+    await tester
+        .tap(find.byKey(const ValueKey('match-hub-competition-action')));
     await tester.pumpAndSettle();
 
     expect(find.text('대회 운영 센터'), findsOneWidget);
@@ -321,8 +312,9 @@ void main() {
     await seedMatchHubRecords();
 
     await pumpHub(tester);
-    await openTeamMatchManagementFromHub(tester);
-    await tester.tap(find.text('시합 기록 보기'));
+    final recordsButton = find.text('시합 기록 보기');
+    await tester.ensureVisible(recordsButton);
+    await tester.tap(recordsButton);
     await tester.pumpAndSettle();
 
     expect(find.text('시합 기록'), findsWidgets);
@@ -343,8 +335,9 @@ void main() {
       tester,
       onOpenMatchStats: () => openedStats = true,
     );
-    await openTeamMatchManagementFromHub(tester);
-    await tester.tap(find.text('시합 통계'));
+    final statsButton = find.text('시합 통계');
+    await tester.ensureVisible(statsButton);
+    await tester.tap(statsButton);
     await tester.pump();
     await tester.pump();
 
@@ -360,8 +353,9 @@ void main() {
     );
 
     await pumpHub(tester);
-    await openTeamMatchManagementFromHub(tester);
-    await tester.tap(find.text('시합 기록'));
+    final recordButton = find.text('시합 기록');
+    await tester.ensureVisible(recordButton);
+    await tester.tap(recordButton);
     await tester.pumpAndSettle();
 
     expect(find.byType(MatchRecordScreen), findsNothing);

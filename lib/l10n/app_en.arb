@@ -6562,11 +6562,12 @@
   "matchHubNoTeamsTitle": "No team set yet.",
   "matchHubNoTeamsSubtitle": "Prepare your team in the team management screen where player registration starts immediately.",
   "matchHubCommandCenterTitle": "Operations work",
-  "matchHubCommandCenterHelper": "Open Team Management, then switch between player management and match management.",
+  "matchHubCommandCenterHelper": "Choose player management or match management from one screen.",
+  "matchHubPlayerCommandHelper": "Manage player registration, team profile, lineup, and tactics board.",
   "matchHubTeamCommandHelper": "Switch between player management and match management in one team structure.",
   "matchHubTeamCommandPrimary": "Open team management",
   "matchHubMatchCommandTitle": "Match management",
-  "matchHubMatchCommandHelper": "Match records, competitions, record review, and stats",
+  "matchHubMatchCommandHelper": "Quickly run match recording, record review, and stats.",
   "matchHubMoreTeamsCount": "{count} more team(s)",
   "@matchHubMoreTeamsCount": {
     "placeholders": {
@@ -6762,7 +6763,7 @@
   "teamManagementPlayersHelper": "Manage number, position, preferred foot, condition, and notes as roster cards.",
   "teamManagementPlayerSectionBoardHelper": "Build lineups, movement lines, pressing lines, and space zones directly on the board.",
   "teamManagementMatchSectionTitle": "Match management",
-  "teamManagementMatchSectionHelper": "Run match recording, competition management, record review, and club schedule from one place.",
+  "teamManagementMatchSectionHelper": "Run match recording, record review, stats, and club schedule from one place. Use the title action for competition management.",
   "teamManagementRosterBoardTitle": "Squad board",
   "teamManagementRosterBoardHelper": "Review player status and board placement by position.",
   "teamManagementRoleGroupCount": "{role} · {count} player(s)",

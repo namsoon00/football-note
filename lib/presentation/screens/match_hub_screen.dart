@@ -55,6 +55,7 @@ class MatchHubScreen extends StatefulWidget {
 
 class _MatchHubScreenState extends State<MatchHubScreen> {
   bool _routePushInFlight = false;
+  bool _overviewExpanded = false;
 
   @override
   void initState() {
@@ -136,6 +137,19 @@ class _MatchHubScreenState extends State<MatchHubScreen> {
                   children: [
                     _MatchHubHeader(
                       onBack: () => Navigator.of(context).maybePop(),
+                      onManageCompetitions: () => _openCompetitionManagement(),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    _MatchHubHero(
+                      metrics: metrics,
+                      supportsTeamManagement: supportsTeamManagement,
+                      primaryTeam: primaryTeam,
+                      expanded: _overviewExpanded,
+                      onToggle: () {
+                        setState(
+                          () => _overviewExpanded = !_overviewExpanded,
+                        );
+                      },
                     ),
                     const SizedBox(height: AppSpacing.md),
                     _MatchHubCommandCenter(
@@ -144,16 +158,9 @@ class _MatchHubScreenState extends State<MatchHubScreen> {
                       metrics: metrics,
                       onRecordMatch: () => _openMatchRecord(),
                       onManageTeams: () => _openTeamManagement(),
-                      onManageCompetitions: () => _openCompetitionManagement(),
                       onOpenMatchRecords: () => _openMatchRecords(),
                       onOpenMatchStats: () =>
                           _closeThen(widget.onOpenMatchStats),
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    _MatchHubHero(
-                      metrics: metrics,
-                      supportsTeamManagement: supportsTeamManagement,
-                      primaryTeam: primaryTeam,
                     ),
                     const SizedBox(height: AppSpacing.md),
                     _MatchHubCompetitionSection(
@@ -348,8 +355,12 @@ class _MatchHubScreenState extends State<MatchHubScreen> {
 
 class _MatchHubHeader extends StatelessWidget {
   final VoidCallback onBack;
+  final VoidCallback onManageCompetitions;
 
-  const _MatchHubHeader({required this.onBack});
+  const _MatchHubHeader({
+    required this.onBack,
+    required this.onManageCompetitions,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -387,6 +398,13 @@ class _MatchHubHeader extends StatelessWidget {
             ],
           ),
         ),
+        AppBarActionButton.icon(
+          key: const ValueKey('match-hub-competition-action'),
+          icon: Icons.emoji_events_outlined,
+          tooltip: l10n.matchCompetitionOpenButton,
+          onPressed: onManageCompetitions,
+          margin: EdgeInsets.zero,
+        ),
       ],
     );
   }
@@ -396,11 +414,15 @@ class _MatchHubHero extends StatelessWidget {
   final _MatchHubMetrics metrics;
   final bool supportsTeamManagement;
   final ManagedTeam? primaryTeam;
+  final bool expanded;
+  final VoidCallback onToggle;
 
   const _MatchHubHero({
     required this.metrics,
     required this.supportsTeamManagement,
     required this.primaryTeam,
+    required this.expanded,
+    required this.onToggle,
   });
 
   @override
@@ -419,97 +441,104 @@ class _MatchHubHero extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.18),
-                  borderRadius: AppRadius.small,
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.24),
+          InkWell(
+            borderRadius: AppRadius.small,
+            onTap: onToggle,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.18),
+                    borderRadius: AppRadius.small,
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.24),
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.analytics_outlined,
+                    color: Colors.white,
+                    size: 23,
                   ),
                 ),
-                child: const Icon(
-                  Icons.sports_soccer_outlined,
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Text(
+                    l10n.matchHubOverviewTitle,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+                Icon(
+                  expanded
+                      ? Icons.keyboard_arrow_up_outlined
+                      : Icons.keyboard_arrow_down_outlined,
                   color: Colors.white,
-                  size: 26,
                 ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.matchHubOverviewTitle,
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.xxs),
-                    Text(
-                      l10n.matchHubSubtitle,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.84),
-                        height: 1.35,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
-          const SizedBox(height: AppSpacing.lg),
-          Wrap(
-            spacing: AppSpacing.sm,
-            runSpacing: AppSpacing.sm,
-            children: [
-              _HeroMetricPill(
-                label: l10n.statsMatchTotalMatchesLabel,
-                value: l10n.statsMatchTotalMatchesValue(metrics.totalMatches),
+          if (expanded) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              l10n.matchHubSubtitle,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: Colors.white.withValues(alpha: 0.84),
+                height: 1.35,
               ),
-              _HeroMetricPill(
-                label: l10n.statsMatchRecordLabel,
-                value: l10n.statsMatchRecordValue(
-                  metrics.wins,
-                  metrics.draws,
-                  metrics.losses,
-                ),
-              ),
-              _HeroMetricPill(
-                label: l10n.statsMatchWinRateLabel,
-                value: l10n.statsMatchWinRateValue(metrics.winRate),
-              ),
-              _HeroMetricPill(
-                label: l10n.matchHubRecentFormLabel,
-                value: metrics.formText(l10n),
-              ),
-              _HeroMetricPill(
-                label: l10n.statsMatchTypeLabel,
-                value: l10n.matchHubKindBreakdown(
-                  metrics.friendlyMatches,
-                  metrics.leagueMatches,
-                  metrics.tournamentMatches,
-                ),
-              ),
-              _HeroMetricPill(
-                label: l10n.matchHubCompetitionStateLabel,
-                value: l10n.matchHubCompetitionStateValue(
-                  metrics.activeCompetitions,
-                  metrics.finishedCompetitions,
-                ),
-              ),
-              if (supportsTeamManagement)
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Wrap(
+              spacing: AppSpacing.sm,
+              runSpacing: AppSpacing.sm,
+              children: [
                 _HeroMetricPill(
-                  label: l10n.matchHubTeamStateLabel,
-                  value: primaryTeam?.name ?? l10n.matchHubNoPrimaryTeamValue,
+                  label: l10n.statsMatchTotalMatchesLabel,
+                  value: l10n.statsMatchTotalMatchesValue(metrics.totalMatches),
                 ),
-            ],
-          ),
+                _HeroMetricPill(
+                  label: l10n.statsMatchRecordLabel,
+                  value: l10n.statsMatchRecordValue(
+                    metrics.wins,
+                    metrics.draws,
+                    metrics.losses,
+                  ),
+                ),
+                _HeroMetricPill(
+                  label: l10n.statsMatchWinRateLabel,
+                  value: l10n.statsMatchWinRateValue(metrics.winRate),
+                ),
+                _HeroMetricPill(
+                  label: l10n.matchHubRecentFormLabel,
+                  value: metrics.formText(l10n),
+                ),
+                _HeroMetricPill(
+                  label: l10n.statsMatchTypeLabel,
+                  value: l10n.matchHubKindBreakdown(
+                    metrics.friendlyMatches,
+                    metrics.leagueMatches,
+                    metrics.tournamentMatches,
+                  ),
+                ),
+                _HeroMetricPill(
+                  label: l10n.matchHubCompetitionStateLabel,
+                  value: l10n.matchHubCompetitionStateValue(
+                    metrics.activeCompetitions,
+                    metrics.finishedCompetitions,
+                  ),
+                ),
+                if (supportsTeamManagement)
+                  _HeroMetricPill(
+                    label: l10n.matchHubTeamStateLabel,
+                    value: primaryTeam?.name ?? l10n.matchHubNoPrimaryTeamValue,
+                  ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -522,7 +551,6 @@ class _MatchHubCommandCenter extends StatelessWidget {
   final _MatchHubMetrics metrics;
   final VoidCallback onRecordMatch;
   final VoidCallback onManageTeams;
-  final VoidCallback onManageCompetitions;
   final VoidCallback onOpenMatchRecords;
   final VoidCallback onOpenMatchStats;
 
@@ -532,7 +560,6 @@ class _MatchHubCommandCenter extends StatelessWidget {
     required this.metrics,
     required this.onRecordMatch,
     required this.onManageTeams,
-    required this.onManageCompetitions,
     required this.onOpenMatchRecords,
     required this.onOpenMatchStats,
   });
@@ -540,46 +567,62 @@ class _MatchHubCommandCenter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _SectionHeader(title: l10n.matchHubCommandCenterTitle),
-        Text(
-          l10n.matchHubCommandCenterHelper,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                height: 1.3,
-              ),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        if (supportsTeamManagement)
-          _TeamCommandPanel(
-            team: primaryTeam,
-            metrics: metrics,
-            onManageTeams: onManageTeams,
-          )
-        else
-          _MatchCommandPanel(
-            metrics: metrics,
-            onRecordMatch: onRecordMatch,
-            onManageCompetitions: onManageCompetitions,
-            onOpenMatchRecords: onOpenMatchRecords,
-            onOpenMatchStats: onOpenMatchStats,
-          ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final panelCount = supportsTeamManagement ? 2 : 1;
+        final gap = AppSpacing.sm * (panelCount - 1);
+        final panelWidth = panelCount == 1 || constraints.maxWidth < 720
+            ? constraints.maxWidth
+            : (constraints.maxWidth - gap) / panelCount;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _SectionHeader(title: l10n.matchHubCommandCenterTitle),
+            Text(
+              l10n.matchHubCommandCenterHelper,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    height: 1.3,
+                  ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Wrap(
+              spacing: AppSpacing.sm,
+              runSpacing: AppSpacing.sm,
+              children: [
+                if (supportsTeamManagement)
+                  SizedBox(
+                    width: panelWidth,
+                    child: _PlayerCommandPanel(
+                      team: primaryTeam,
+                      onManagePlayers: onManageTeams,
+                    ),
+                  ),
+                SizedBox(
+                  width: panelWidth,
+                  child: _MatchCommandPanel(
+                    metrics: metrics,
+                    onRecordMatch: onRecordMatch,
+                    onOpenMatchRecords: onOpenMatchRecords,
+                    onOpenMatchStats: onOpenMatchStats,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
     );
   }
 }
 
-class _TeamCommandPanel extends StatelessWidget {
+class _PlayerCommandPanel extends StatelessWidget {
   final ManagedTeam? team;
-  final _MatchHubMetrics metrics;
-  final VoidCallback onManageTeams;
+  final VoidCallback onManagePlayers;
 
-  const _TeamCommandPanel({
+  const _PlayerCommandPanel({
     required this.team,
-    required this.metrics,
-    required this.onManageTeams,
+    required this.onManagePlayers,
   });
 
   @override
@@ -588,9 +631,9 @@ class _TeamCommandPanel extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     return _CommandPanel(
-      icon: Icons.manage_accounts_outlined,
-      title: l10n.teamManagementTitle,
-      subtitle: l10n.matchHubTeamCommandHelper,
+      icon: Icons.groups_2_outlined,
+      title: l10n.teamManagementPlayerSectionTab,
+      subtitle: l10n.matchHubPlayerCommandHelper,
       children: [
         if (team == null)
           Text(
@@ -615,16 +658,18 @@ class _TeamCommandPanel extends StatelessWidget {
             children: [
               Expanded(
                 child: _CompactInfo(
-                  label: l10n.teamManagementPlayerSectionTab,
+                  label: l10n.teamManagementPlayersTitle,
                   value: l10n.teamManagementPlayerCount(team!.players.length),
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: _CompactInfo(
-                  label: l10n.teamManagementMatchSectionTab,
-                  value: l10n.statsMatchTotalMatchesValue(
-                    metrics.totalMatches,
+                  label: l10n.teamManagementOperationsLineupLabel,
+                  value: l10n.teamManagementLineupFilled(
+                    team!.filledLineupCount,
+                    TeamManagementService.formationSpots(team!.formation)
+                        .length,
                   ),
                 ),
               ),
@@ -635,9 +680,9 @@ class _TeamCommandPanel extends StatelessWidget {
         Align(
           alignment: AlignmentDirectional.centerStart,
           child: FilledButton.icon(
-            onPressed: onManageTeams,
-            icon: const Icon(Icons.manage_accounts_outlined),
-            label: Text(l10n.matchHubTeamCommandPrimary),
+            onPressed: onManagePlayers,
+            icon: const Icon(Icons.person_add_alt_outlined),
+            label: Text(l10n.teamManagementPlayerSectionTab),
           ),
         ),
       ],
@@ -648,14 +693,12 @@ class _TeamCommandPanel extends StatelessWidget {
 class _MatchCommandPanel extends StatelessWidget {
   final _MatchHubMetrics metrics;
   final VoidCallback onRecordMatch;
-  final VoidCallback onManageCompetitions;
   final VoidCallback onOpenMatchRecords;
   final VoidCallback onOpenMatchStats;
 
   const _MatchCommandPanel({
     required this.metrics,
     required this.onRecordMatch,
-    required this.onManageCompetitions,
     required this.onOpenMatchRecords,
     required this.onOpenMatchStats,
   });
@@ -665,7 +708,7 @@ class _MatchCommandPanel extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     return _CommandPanel(
       icon: Icons.sports_soccer_outlined,
-      title: l10n.matchHubMatchCommandTitle,
+      title: l10n.teamManagementMatchSectionTab,
       subtitle: l10n.matchHubMatchCommandHelper,
       children: [
         Row(
@@ -704,14 +747,6 @@ class _MatchCommandPanel extends StatelessWidget {
                     onPressed: onRecordMatch,
                     icon: const Icon(Icons.edit_note_outlined),
                     label: Text(l10n.matchHubRecordButton),
-                  ),
-                ),
-                SizedBox(
-                  width: buttonWidth,
-                  child: OutlinedButton.icon(
-                    onPressed: onManageCompetitions,
-                    icon: const Icon(Icons.emoji_events_outlined),
-                    label: Text(l10n.matchCompetitionOpenButton),
                   ),
                 ),
                 SizedBox(

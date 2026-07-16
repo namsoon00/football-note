@@ -6562,11 +6562,12 @@
   "matchHubNoTeamsTitle": "아직 우리 팀이 없어요.",
   "matchHubNoTeamsSubtitle": "선수 등록부터 시작할 수 있는 팀 관리 화면에서 우리 팀을 준비하세요.",
   "matchHubCommandCenterTitle": "운영 작업",
-  "matchHubCommandCenterHelper": "팀 관리 안에서 선수관리와 시합관리를 선택해 이어서 작업하세요.",
+  "matchHubCommandCenterHelper": "선수관리와 시합관리를 한 화면에서 선택해 이어서 작업하세요.",
+  "matchHubPlayerCommandHelper": "선수 등록, 팀 프로필, 라인업과 전술 보드를 관리하세요.",
   "matchHubTeamCommandHelper": "선수관리와 시합관리를 한 화면 구조 안에서 전환합니다.",
   "matchHubTeamCommandPrimary": "팀 관리 열기",
   "matchHubMatchCommandTitle": "시합 관리",
-  "matchHubMatchCommandHelper": "시합 기록, 대회 운영, 기록 확인, 통계 분석",
+  "matchHubMatchCommandHelper": "시합 기록, 기록 확인, 통계 분석을 빠르게 실행하세요.",
   "matchHubMoreTeamsCount": "외 {count}팀 더 있음",
   "@matchHubMoreTeamsCount": {
     "placeholders": {
@@ -6762,7 +6763,7 @@
   "teamManagementPlayersHelper": "등번호, 포지션, 주발, 컨디션과 관리 메모를 선수단 카드로 관리하세요.",
   "teamManagementPlayerSectionBoardHelper": "라인업과 움직임, 압박선, 공간 영역을 보드에서 직접 구성하세요.",
   "teamManagementMatchSectionTitle": "시합관리",
-  "teamManagementMatchSectionHelper": "시합 기록, 대회 관리, 기록 확인, 클럽 일정을 한곳에서 실행하세요.",
+  "teamManagementMatchSectionHelper": "시합 기록, 기록 확인, 통계, 클럽 일정을 한곳에서 실행하세요. 대회 관리는 타이틀 우측 버튼에서 열 수 있습니다.",
   "teamManagementRosterBoardTitle": "스쿼드 보드",
   "teamManagementRosterBoardHelper": "포지션별로 선수 상태와 보드 배치를 빠르게 확인하세요.",
   "teamManagementRoleGroupCount": "{role} · {count}명",

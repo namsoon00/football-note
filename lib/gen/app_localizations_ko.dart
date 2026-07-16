@@ -11813,8 +11813,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get matchHubCommandCenterTitle => '운영 작업';
 
   @override
-  String get matchHubCommandCenterHelper =>
-      '팀 관리 안에서 선수관리와 시합관리를 선택해 이어서 작업하세요.';
+  String get matchHubCommandCenterHelper => '선수관리와 시합관리를 한 화면에서 선택해 이어서 작업하세요.';
+
+  @override
+  String get matchHubPlayerCommandHelper => '선수 등록, 팀 프로필, 라인업과 전술 보드를 관리하세요.';
 
   @override
   String get matchHubTeamCommandHelper => '선수관리와 시합관리를 한 화면 구조 안에서 전환합니다.';
@@ -11826,7 +11828,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get matchHubMatchCommandTitle => '시합 관리';
 
   @override
-  String get matchHubMatchCommandHelper => '시합 기록, 대회 운영, 기록 확인, 통계 분석';
+  String get matchHubMatchCommandHelper => '시합 기록, 기록 확인, 통계 분석을 빠르게 실행하세요.';
 
   @override
   String matchHubMoreTeamsCount(int count) {
@@ -12190,7 +12192,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get teamManagementMatchSectionHelper =>
-      '시합 기록, 대회 관리, 기록 확인, 클럽 일정을 한곳에서 실행하세요.';
+      '시합 기록, 기록 확인, 통계, 클럽 일정을 한곳에서 실행하세요. 대회 관리는 타이틀 우측 버튼에서 열 수 있습니다.';
 
   @override
   String get teamManagementRosterBoardTitle => '스쿼드 보드';

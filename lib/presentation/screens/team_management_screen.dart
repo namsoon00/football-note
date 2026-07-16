@@ -607,6 +607,9 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
                     children: [
                       _TeamManagementHeader(
                         onBack: () => Navigator.of(context).maybePop(),
+                        onManageCompetitions: widget.trainingService == null
+                            ? null
+                            : () => unawaited(_openCompetitionManagement()),
                       ),
                       const SizedBox(height: AppSpacing.md),
                       _TeamManagementSectionSwitcher(
@@ -657,7 +660,6 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
       matchActionsEnabled: matchActionsEnabled,
       recordsEnabled: widget.trainingService != null,
       onRecordMatch: () => unawaited(_openMatchRecord()),
-      onManageCompetitions: () => unawaited(_openCompetitionManagement()),
       onOpenMatchRecords: () => unawaited(_openMatchRecords()),
       onOpenMatchStats:
           widget.onOpenMatchStats == null ? null : _openMatchStats,
@@ -795,9 +797,11 @@ class _WorkspaceScreenHeader extends StatelessWidget {
 
 class _TeamManagementHeader extends StatelessWidget {
   final VoidCallback onBack;
+  final VoidCallback? onManageCompetitions;
 
   const _TeamManagementHeader({
     required this.onBack,
+    required this.onManageCompetitions,
   });
 
   @override
@@ -826,6 +830,14 @@ class _TeamManagementHeader extends StatelessWidget {
             ],
           ),
         ),
+        if (onManageCompetitions != null)
+          AppBarActionButton.icon(
+            key: const ValueKey('team-header-competition'),
+            icon: Icons.emoji_events_outlined,
+            tooltip: l10n.matchCompetitionOpenButton,
+            onPressed: onManageCompetitions,
+            margin: EdgeInsets.zero,
+          ),
       ],
     );
   }
@@ -918,7 +930,6 @@ class _MatchManagementPanel extends StatelessWidget {
   final bool matchActionsEnabled;
   final bool recordsEnabled;
   final VoidCallback onRecordMatch;
-  final VoidCallback onManageCompetitions;
   final VoidCallback onOpenMatchRecords;
   final VoidCallback? onOpenMatchStats;
   final VoidCallback onOpenSchedule;
@@ -927,7 +938,6 @@ class _MatchManagementPanel extends StatelessWidget {
     required this.matchActionsEnabled,
     required this.recordsEnabled,
     required this.onRecordMatch,
-    required this.onManageCompetitions,
     required this.onOpenMatchRecords,
     required this.onOpenMatchStats,
     required this.onOpenSchedule,
@@ -965,14 +975,6 @@ class _MatchManagementPanel extends StatelessWidget {
                       onPressed: matchActionsEnabled ? onRecordMatch : null,
                       icon: const Icon(Icons.edit_note_outlined),
                       label: Text(l10n.matchHubRecordButton),
-                    ),
-                  ),
-                  SizedBox(
-                    width: width,
-                    child: OutlinedButton.icon(
-                      onPressed: recordsEnabled ? onManageCompetitions : null,
-                      icon: const Icon(Icons.emoji_events_outlined),
-                      label: Text(l10n.matchCompetitionOpenButton),
                     ),
                   ),
                   SizedBox(
