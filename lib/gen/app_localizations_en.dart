@@ -12137,7 +12137,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get matchHubCommandCenterHelper =>
-      'Open Team Management, then switch between player management and match management.';
+      'Choose player management or match management from one screen.';
+
+  @override
+  String get matchHubPlayerCommandHelper =>
+      'Manage player registration, team profile, lineup, and tactics board.';
 
   @override
   String get matchHubTeamCommandHelper =>
@@ -12151,7 +12155,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get matchHubMatchCommandHelper =>
-      'Match records, competitions, record review, and stats';
+      'Quickly run match recording, record review, and stats.';
 
   @override
   String matchHubMoreTeamsCount(int count) {
@@ -12528,7 +12532,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get teamManagementMatchSectionHelper =>
-      'Run match recording, competition management, record review, and club schedule from one place.';
+      'Run match recording, record review, stats, and club schedule from one place. Use the title action for competition management.';
 
   @override
   String get teamManagementRosterBoardTitle => 'Squad board';

@@ -6562,11 +6562,12 @@
   "matchHubNoTeamsTitle": "自分のチームはまだありません。",
   "matchHubNoTeamsSubtitle": "選手登録から始められるチーム管理画面で自分のチームを準備しましょう。",
   "matchHubCommandCenterTitle": "運営タスク",
-  "matchHubCommandCenterHelper": "チーム管理を開いて、選手管理と試合管理を切り替えて作業します。",
+  "matchHubCommandCenterHelper": "一つの画面から選手管理と試合管理を選んで作業します。",
+  "matchHubPlayerCommandHelper": "選手登録、チームプロフィール、ラインアップ、戦術ボードを管理します。",
   "matchHubTeamCommandHelper": "選手管理と試合管理を一つのチーム構造内で切り替えます。",
   "matchHubTeamCommandPrimary": "チーム管理を開く",
   "matchHubMatchCommandTitle": "試合管理",
-  "matchHubMatchCommandHelper": "試合記録、大会運営、記録確認、統計分析",
+  "matchHubMatchCommandHelper": "試合記録、記録確認、統計分析をすばやく実行します。",
   "matchHubMoreTeamsCount": "ほか{count}チーム",
   "@matchHubMoreTeamsCount": {
     "placeholders": {
@@ -6762,7 +6763,7 @@
   "teamManagementPlayersHelper": "番号、ポジション、利き足、コンディション、管理メモを選手カードで管理します。",
   "teamManagementPlayerSectionBoardHelper": "ラインアップ、動き、プレス線、スペース領域をボード上で直接構成します。",
   "teamManagementMatchSectionTitle": "試合管理",
-  "teamManagementMatchSectionHelper": "試合記録、大会管理、記録確認、クラブ予定を一か所から実行します。",
+  "teamManagementMatchSectionHelper": "試合記録、記録確認、統計、クラブ予定を一か所から実行します。大会管理はタイトル右側の操作から開けます。",
   "teamManagementRosterBoardTitle": "スカッドボード",
   "teamManagementRosterBoardHelper": "ポジション別に選手の状態とボード配置をすばやく確認します。",
   "teamManagementRoleGroupCount": "{role} · {count}人",

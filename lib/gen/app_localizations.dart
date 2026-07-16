@@ -20928,8 +20928,14 @@ abstract class AppLocalizations {
   /// No description provided for @matchHubCommandCenterHelper.
   ///
   /// In en, this message translates to:
-  /// **'Open Team Management, then switch between player management and match management.'**
+  /// **'Choose player management or match management from one screen.'**
   String get matchHubCommandCenterHelper;
+
+  /// No description provided for @matchHubPlayerCommandHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage player registration, team profile, lineup, and tactics board.'**
+  String get matchHubPlayerCommandHelper;
 
   /// No description provided for @matchHubTeamCommandHelper.
   ///
@@ -20952,7 +20958,7 @@ abstract class AppLocalizations {
   /// No description provided for @matchHubMatchCommandHelper.
   ///
   /// In en, this message translates to:
-  /// **'Match records, competitions, record review, and stats'**
+  /// **'Quickly run match recording, record review, and stats.'**
   String get matchHubMatchCommandHelper;
 
   /// No description provided for @matchHubMoreTeamsCount.
@@ -21600,7 +21606,7 @@ abstract class AppLocalizations {
   /// No description provided for @teamManagementMatchSectionHelper.
   ///
   /// In en, this message translates to:
-  /// **'Run match recording, competition management, record review, and club schedule from one place.'**
+  /// **'Run match recording, record review, stats, and club schedule from one place. Use the title action for competition management.'**
   String get teamManagementMatchSectionHelper;
 
   /// No description provided for @teamManagementRosterBoardTitle.
