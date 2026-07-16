@@ -2822,61 +2822,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _routeReplaceMode = false;
     });
     _scheduleAutoSave();
-  }
-
-  void _prepareSelectedRouteRedraw() {
-    final route = _selectedRoute;
-    if (route == null) return;
-    setState(() {
-      _routeReplaceMode = true;
-      _pathMode = true;
-      _pathDrawMode = route.kind;
-      _penMode = false;
-      _pendingTargetAction = null;
-      _showSelectedColorPicker = false;
-      _activeRoutePoints = null;
-      _activeRouteSegmentDurationsMs = null;
-      _activeRouteLastPointAt = null;
-      if (route.linkedItemId != null) {
-        _selectedItemId = _selectableItemIdForRoute(route);
-      }
-    });
-  }
-
-  void _prepareSelectedRouteExtension() {
-    final route = _selectedRoute;
-    if (route == null || route.points.length < 2) return;
-    _prepareRouteExtensionDraft(route);
-    setState(() {
-      _pathMode = true;
-    });
-  }
-
-  void _reverseSelectedRoute() {
-    final route = _selectedRoute;
-    if (route == null || route.points.length < 2) return;
-    _stopRoutePlayback(restoreStart: false);
-    final reversedPoints = route.points.reversed.toList(growable: false);
-    final reversedDurations =
-        route.segmentDurationsMs.reversed.toList(growable: false);
-    setState(() {
-      route.points.setAll(0, reversedPoints);
-      route.segmentDurationsMs.setAll(0, reversedDurations);
-      _trimRouteDurations(route);
-      _pathDrawMode = route.kind;
-      _routeReplaceMode = false;
-      _activeRoutePoints = null;
-      _activeRouteSegmentDurationsMs = null;
-      _activeRouteLastPointAt = null;
-      _pendingTargetAction = null;
-    });
-    _scheduleAutoSave();
-  }
-
-  void _deleteSelectedRoute() {
-    final route = _selectedRoute;
-    if (route == null) return;
-    _deleteRouteById(route.id);
+    AppSoundEffects.playSketchMove();
   }
 
   bool _isPossessedCarryBallRoute(_BoardRoute route) {
@@ -2997,11 +2943,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   List<int> _visibleRouteStages() {
-    final routeCount = _sequenceableRoutes().length;
+    final routes = _sequenceableRoutes();
     final maxStage = _maxRouteStageInPage();
     final count = math.min(
       _maxRouteStageIndex,
-      routeCount <= 1 ? maxStage : math.max(2, maxStage + 1),
+      routes.isEmpty ? maxStage : math.max(2, maxStage + 1),
     );
     return List<int>.generate(count, (index) => index + 1, growable: false);
   }
@@ -3078,16 +3024,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   int? _registeredStageForNextAction() {
     final registered = _registeredNextActionStageIndex;
     return registered == null ? null : _normalizedRouteStageIndex(registered);
-  }
-
-  int _sameStageForNextAction() {
-    final selectedRoute = _selectedRoute;
-    if (selectedRoute != null && selectedRoute.points.length >= 2) {
-      return _normalizedRouteStageIndex(selectedRoute.stageIndex);
-    }
-    final summaries = _globalStageSummaries();
-    if (summaries.isEmpty) return 1;
-    return _normalizedRouteStageIndex(summaries.last.stageIndex);
   }
 
   int _nextGlobalStageForNewAction() {
@@ -3174,18 +3110,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         _stageAfterCurrentBallPossession(player) ??
         existingRoute?.stageIndex ??
         _nextStageForPlayerFlow(player);
-  }
-
-  void _registerSameStageForNextAction() {
-    setState(() {
-      _registeredNextActionStageIndex = _sameStageForNextAction();
-    });
-  }
-
-  void _registerNextStageForNextAction() {
-    setState(() {
-      _registeredNextActionStageIndex = _nextGlobalStageForNewAction();
-    });
   }
 
   String _routeStageLabel(int stageIndex) {
@@ -3300,52 +3224,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     _scheduleAutoSave();
   }
 
-  void _shiftRouteStage(_BoardRoute route, int delta) {
-    _setRouteStageAndSelect(route, route.stageIndex + delta);
-  }
-
-  void _moveRouteAfterBall(_BoardRoute route) {
-    if (route.kind != _PathDrawMode.player) return;
-    final ballStages = _currentPage.routes
-        .where(
-          (entry) =>
-              entry.kind == _PathDrawMode.ball && entry.points.length >= 2,
-        )
-        .map((entry) => _normalizedRouteStageIndex(entry.stageIndex))
-        .toList(growable: false);
-    if (ballStages.isEmpty) return;
-    final nextStage = ballStages.fold<int>(1, math.max) + 1;
-    _setRouteStageAndSelect(route, nextStage);
-  }
-
-  void _splitRoutesIntoStages() {
-    final routes = _sequenceableRoutes();
-    if (routes.length < 2) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_l10n.trainingSketchAutoStagesNeedTwoSnack)),
-      );
-      return;
-    }
-    _stopRoutePlayback(restoreStart: false);
-    setState(() {
-      for (var index = 0; index < routes.length; index++) {
-        final route = routes[index];
-        _removeLeadingRouteWait(route);
-        route.stageIndex = _normalizedRouteStageIndex(index + 1);
-      }
-      _selectedRouteId = routes.first.id;
-      _pathDrawMode = routes.first.kind;
-      _routeReplaceMode = false;
-      _activeRoutePoints = null;
-      _activeRouteSegmentDurationsMs = null;
-      _activeRouteLastPointAt = null;
-    });
-    _scheduleAutoSave();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(_l10n.trainingSketchAutoStagesSnack)),
-    );
-  }
-
   Future<void> _setSketchOrientationLock({required bool landscape}) async {
     await SystemChrome.setPreferredOrientations(
       landscape
@@ -3413,14 +3291,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _activeRouteSegmentDurationsMs = null;
       _activeRouteLastPointAt = null;
     });
-  }
-
-  void _activateRouteToolForSelectedItem() {
-    final selected = _selectedItem;
-    if (selected == null || selected.type != _BoardItemType.player) {
-      return;
-    }
-    _selectRouteableItem(selected);
   }
 
   void _beginTargetAction(_SketchTargetAction action) {
@@ -3568,9 +3438,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           carryPossessedBall: false,
         ),
     };
-    if (applied) {
-      unawaited(HapticFeedback.lightImpact());
-    }
+    if (!applied) return;
   }
 
   void _selectQuickActionRoute(
@@ -3593,6 +3461,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     _activeRoutePoints = null;
     _activeRouteSegmentDurationsMs = null;
     _activeRouteLastPointAt = null;
+    AppSoundEffects.playSketchMove();
   }
 
   Offset _midTargetPoint(
@@ -5956,6 +5825,34 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                   ),
                 ),
               ),
+              if (!widget.readOnly)
+                Tooltip(
+                  message: _l10n.delete,
+                  child: Semantics(
+                    button: true,
+                    label: _l10n.delete,
+                    child: Material(
+                      color: Colors.transparent,
+                      shape: const CircleBorder(),
+                      child: InkWell(
+                        key: const ValueKey(
+                          'training-selected-item-delete-button',
+                        ),
+                        customBorder: const CircleBorder(),
+                        onTap: _removeSelected,
+                        child: SizedBox(
+                          width: 36,
+                          height: 36,
+                          child: Icon(
+                            Icons.delete_outline,
+                            color: colors.error,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               Chip(
                 visualDensity: VisualDensity.compact,
                 label: Text(
@@ -6490,18 +6387,13 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     required Color accentColor,
     required bool showStageChoices,
     required bool includeActiveRouteControls,
-    required bool includeRouteEditControls,
   }) {
     final l10n = _l10n;
-    final hasRoute = route != null;
-    final selectedRouteStage =
-        hasRoute ? _normalizedRouteStageIndex(route.stageIndex) : 1;
-    final canMoveRouteAfterBall = hasRoute &&
-        route.kind == _PathDrawMode.player &&
-        _currentPage.routes.any(
-          (entry) =>
-              entry.kind == _PathDrawMode.ball && entry.points.length >= 2,
-        );
+    final stageRoute = route;
+    final hasRoute = stageRoute != null;
+    final selectedRouteStage = stageRoute == null
+        ? 1
+        : _normalizedRouteStageIndex(stageRoute.stageIndex);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -6536,9 +6428,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                         ),
                       ),
                     ),
-                    onSelected: hasRoute
-                        ? (_) => _setRouteStageAndSelect(route, stage)
-                        : null,
+                    onSelected: stageRoute == null
+                        ? null
+                        : (_) => _setRouteStageAndSelect(stageRoute, stage),
                   ),
                 )
                 .toList(growable: false),
@@ -6568,56 +6460,13 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                 label: Text(l10n.trainingSketchUndoLastRoutePointButton),
               ),
             ],
-            OutlinedButton.icon(
-              onPressed: _splitRoutesIntoStages,
-              icon: const Icon(Icons.view_timeline_outlined),
-              label: Text(l10n.trainingSketchAutoStagesButton),
-            ),
-            OutlinedButton.icon(
-              onPressed: hasRoute && selectedRouteStage > 1
-                  ? () => _shiftRouteStage(route, -1)
-                  : null,
-              icon: const Icon(Icons.chevron_left),
-              label: Text(l10n.trainingSketchPreviousStageButton),
-            ),
-            OutlinedButton.icon(
-              onPressed: hasRoute && selectedRouteStage < _maxRouteStageIndex
-                  ? () => _shiftRouteStage(route, 1)
-                  : null,
-              icon: const Icon(Icons.chevron_right),
-              label: Text(l10n.trainingSketchNextStageButton),
-            ),
-            OutlinedButton.icon(
-              onPressed: canMoveRouteAfterBall
-                  ? () => _moveRouteAfterBall(route)
-                  : null,
-              icon: const Icon(Icons.sports_soccer_outlined),
-              label: Text(l10n.trainingSketchRouteAfterBallButton),
-            ),
-            if (includeRouteEditControls) ...[
+            if (stageRoute != null)
               OutlinedButton.icon(
-                onPressed: hasRoute ? _prepareSelectedRouteExtension : null,
-                icon: const Icon(Icons.add_road_outlined),
-                label: Text(l10n.trainingSketchExtendRouteButton),
-              ),
-              OutlinedButton.icon(
-                onPressed: hasRoute && route.points.length >= 2
-                    ? _reverseSelectedRoute
-                    : null,
-                icon: const Icon(Icons.swap_vert),
-                label: Text(l10n.trainingSketchReverseRouteButton),
-              ),
-              OutlinedButton.icon(
-                onPressed: hasRoute ? _prepareSelectedRouteRedraw : null,
-                icon: const Icon(Icons.edit_outlined),
-                label: Text(l10n.trainingSketchRedrawRouteButton),
-              ),
-              OutlinedButton.icon(
-                onPressed: hasRoute ? _deleteSelectedRoute : null,
+                key: ValueKey('training-route-stage-delete-${stageRoute.id}'),
+                onPressed: () => _deleteRouteById(stageRoute.id),
                 icon: const Icon(Icons.delete_outline),
-                label: Text(l10n.trainingSketchDeleteRouteButton),
+                label: Text(l10n.trainingSketchDeleteStageActionTooltip),
               ),
-            ],
           ],
         ),
       ],
@@ -6774,11 +6623,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   void _editStageActionRoute(_BoardRoute route) {
-    final normalizedDurations = _normalizedRouteSegmentDurations(
-      pointCount: route.points.length,
-      rawDurationsMs: route.segmentDurationsMs,
-    );
-    final basePointCount = math.max(1, route.points.length - 1);
     setState(() {
       _selectedItemId = _selectableItemIdForRoute(route);
       _selectedRouteId = route.id;
@@ -6786,16 +6630,14 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         route.stageIndex,
       );
       _pathDrawMode = route.kind;
-      _pathMode = true;
+      _pathMode = false;
       _penMode = false;
       _pendingTargetAction = null;
       _showSelectedColorPicker = false;
-      _routeReplaceMode = true;
+      _routeReplaceMode = false;
       _activeStroke = null;
-      _activeRoutePoints = route.points.take(basePointCount).toList();
-      _activeRouteSegmentDurationsMs = normalizedDurations
-          .take(math.max(0, basePointCount - 1))
-          .toList(growable: true);
+      _activeRoutePoints = null;
+      _activeRouteSegmentDurationsMs = null;
       _activeRouteLastPointAt = null;
     });
   }
@@ -7279,15 +7121,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                                 _selectablePlayerForRoute(route) != null) ...[
                               _buildGlobalStageActionShortcut(
                                 route: route,
-                                stageIndex: summary.stageIndex,
-                                keySuffix: 'add-same',
-                                tooltip: _l10n
-                                    .trainingSketchAddSameStageActionTooltip,
-                                icon: Icons.add_link_outlined,
-                                iconColor: colors.tertiary,
-                              ),
-                              _buildGlobalStageActionShortcut(
-                                route: route,
                                 stageIndex: summary.stageIndex + 1,
                                 keySuffix: 'add-next',
                                 tooltip: _l10n
@@ -7347,8 +7180,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     final summaries = _globalStageSummaries();
     final registeredStage = _registeredStageForNextAction();
     final activeStage = _activeStageForNextAction();
-    final sameStage = _sameStageForNextAction();
-    final nextStage = _nextGlobalStageForNewAction();
     final accentColor = colors.primary;
     return Container(
       width: double.infinity,
@@ -7416,29 +7247,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                   : theme.colorScheme.primary,
               fontWeight: FontWeight.w800,
             ),
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              OutlinedButton.icon(
-                key: const ValueKey('training-register-same-stage'),
-                onPressed: _registerSameStageForNextAction,
-                icon: const Icon(Icons.add_link_outlined),
-                label: Text(
-                  _l10n.trainingSketchAddSameStageButton(sameStage),
-                ),
-              ),
-              FilledButton.icon(
-                key: const ValueKey('training-register-next-stage'),
-                onPressed: _registerNextStageForNextAction,
-                icon: const Icon(Icons.add_task_outlined),
-                label: Text(
-                  _l10n.trainingSketchAddNextStageButton(nextStage),
-                ),
-              ),
-            ],
           ),
         ],
       ),
@@ -7627,7 +7435,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             accentColor: accentColor,
             showStageChoices: routes.isNotEmpty,
             includeActiveRouteControls: true,
-            includeRouteEditControls: true,
           ),
         ],
       );
@@ -7649,17 +7456,33 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       selected,
       selectedRoute,
     );
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (selected.type == _BoardItemType.player) ...[
+    if (selected.type == _BoardItemType.player) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           _buildPlayerFlowStarter(selected),
           if (_pendingTargetAction != null) ...[
             const SizedBox(height: 10),
             _buildPendingTargetActionBanner(),
           ],
           const SizedBox(height: 10),
+          _buildGlobalStagePlanner(),
+          if (selectedStageRoute != null) ...[
+            const SizedBox(height: 10),
+            _buildRouteStageControls(
+              route: selectedStageRoute,
+              visibleStages: _visibleRouteStages(),
+              accentColor: _routeGroupAccentColor(selectedStageRoute.kind),
+              showStageChoices: true,
+              includeActiveRouteControls: false,
+            ),
+          ],
         ],
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
         Row(
           children: [
             Expanded(
@@ -7680,33 +7503,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         if (_showSelectedColorPicker) ...[
           const SizedBox(height: 6),
           _buildSelectedColorPicker(selected, colorChoices),
-        ],
-        if (selected.type == _BoardItemType.player) ...[
-          const SizedBox(height: 10),
-          _buildGlobalStagePlanner(),
-          const SizedBox(height: 10),
-          Text(
-            l10n.trainingSketchLinkPlayerHint,
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-          const SizedBox(height: 8),
-          OutlinedButton.icon(
-            onPressed: _activateRouteToolForSelectedItem,
-            icon: const Icon(Icons.add_road_outlined),
-            label: Text(l10n.trainingSketchCreateMoveRouteButton),
-          ),
-          if (selectedStageRoute != null) ...[
-            const SizedBox(height: 10),
-            _buildRouteStageControls(
-              route: selectedStageRoute,
-              visibleStages: _visibleRouteStages(),
-              accentColor: _routeGroupAccentColor(selectedStageRoute.kind),
-              showStageChoices: true,
-              includeActiveRouteControls: false,
-              includeRouteEditControls:
-                  selectedStageRoute.kind == _PathDrawMode.player,
-            ),
-          ],
         ],
       ],
     );

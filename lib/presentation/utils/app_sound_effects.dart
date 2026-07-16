@@ -12,6 +12,8 @@ class AppSoundEffects {
       _buildPlayer('app-sfx-mission-complete');
   static final AudioPlayer _rewardClaimedPlayer =
       _buildPlayer('app-sfx-reward-claimed');
+  static final AudioPlayer _sketchMovePlayer =
+      _buildPlayer('app-sfx-sketch-move');
 
   static void playTap() {
     unawaited(HapticFeedback.selectionClick());
@@ -43,6 +45,11 @@ class AppSoundEffects {
         volume: 0.58,
       ),
     );
+  }
+
+  static void playSketchMove() {
+    unawaited(HapticFeedback.lightImpact());
+    unawaited(_play(_sketchMovePlayer, 'sounds/tap.wav', volume: 0.36));
   }
 
   static AudioPlayer _buildPlayer(String id) {
