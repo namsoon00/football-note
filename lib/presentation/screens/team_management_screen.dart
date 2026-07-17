@@ -6,9 +6,13 @@ import 'package:football_note/gen/app_localizations.dart';
 
 import '../../application/family_access_service.dart';
 import '../../application/locale_service.dart';
+import '../../application/match_competition_service.dart';
 import '../../application/settings_service.dart';
+import '../../application/sport_capabilities.dart';
+import '../../application/sport_service.dart';
 import '../../application/team_management_service.dart';
 import '../../application/training_service.dart';
+import '../../domain/entities/training_entry.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_page_route.dart';
@@ -38,6 +42,8 @@ class TeamManagementScreen extends StatefulWidget {
   final VoidCallback? onOpenMatchStats;
   final String? sportId;
   final bool readOnly;
+  final bool openRecordOnStart;
+  final DateTime? initialRecordDate;
 
   const TeamManagementScreen({
     super.key,
@@ -48,6 +54,8 @@ class TeamManagementScreen extends StatefulWidget {
     this.onOpenMatchStats,
     this.sportId,
     this.readOnly = false,
+    this.openRecordOnStart = false,
+    this.initialRecordDate,
   });
 
   @override
@@ -80,6 +88,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   _TacticBoardMode _boardMode = _TacticBoardMode.assign;
   ManagedTacticLine? _draftTacticLine;
   bool _playerFormExpanded = false;
+  bool _overviewExpanded = false;
   bool _loaded = false;
   bool _saving = false;
   bool _suppressAutoSave = false;
@@ -95,6 +104,12 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
     );
     _teamNameController.addListener(_handleTextFieldChanged);
     _strategyController.addListener(_handleTextFieldChanged);
+    if (widget.openRecordOnStart) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        unawaited(_openMatchRecord(initialDate: widget.initialRecordDate));
+      });
+    }
   }
 
   @override
@@ -136,6 +151,9 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
         widget.optionRepository,
       ).loadState().isReadOnlySupportMode;
 
+  String get _resolvedSportId =>
+      widget.sportId ?? SportService(widget.optionRepository).currentSportId();
+
   bool _blockReadOnlyMutation({bool showMessage = true}) {
     if (!_isReadOnlySupportMode) return false;
     _autoSaveDebounce?.cancel();
@@ -166,7 +184,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
     );
   }
 
-  Future<void> _openMatchRecord() async {
+  Future<void> _openMatchRecord({DateTime? initialDate}) async {
     if (_isReadOnlySupportMode) {
       AppFeedback.showMessage(
         context,
@@ -191,6 +209,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
           localeService: localeService,
           optionRepository: widget.optionRepository,
           settingsService: settingsService,
+          initialDate: initialDate,
         ),
       ),
     );
@@ -594,34 +613,78 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
                     ],
                   ),
                 )
-              : SingleChildScrollView(
-                  controller: _scrollController,
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.md,
-                    AppSpacing.sm,
-                    AppSpacing.md,
-                    AppSpacing.xl,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _TeamManagementHeader(
-                        onBack: () => Navigator.of(context).maybePop(),
-                        onManageCompetitions: widget.trainingService == null
-                            ? null
-                            : () => unawaited(_openCompetitionManagement()),
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      _TeamManagementSectionSwitcher(
-                        selectedSection: _activeSection,
-                        onSectionChanged: _changeSection,
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      _buildTeamManagementHome(readOnly),
-                    ],
-                  ),
-                ),
+              : _buildMainManagementContent(readOnly),
         ),
+      ),
+    );
+  }
+
+  Widget _buildMainManagementContent(bool readOnly) {
+    final trainingService = widget.trainingService;
+    if (trainingService == null) {
+      return _buildMainManagementScrollView(readOnly, metrics: null);
+    }
+    return StreamBuilder<List<TrainingEntry>>(
+      stream: trainingService.watchEntries(),
+      builder: (context, snapshot) {
+        final sportId = _resolvedSportId;
+        final entries = filterEntriesForSport(
+          snapshot.data ?? const <TrainingEntry>[],
+          sportId,
+        ).where((entry) => entry.isMatch).toList(growable: false)
+          ..sort((a, b) => b.date.compareTo(a.date));
+        final competitions = _collectCompetitionRecords(
+          entries,
+          sportId: sportId,
+        );
+        final metrics = _TeamOperationsMetrics.from(
+          entries: entries,
+          competitions: competitions,
+        );
+        return _buildMainManagementScrollView(readOnly, metrics: metrics);
+      },
+    );
+  }
+
+  Widget _buildMainManagementScrollView(
+    bool readOnly, {
+    required _TeamOperationsMetrics? metrics,
+  }) {
+    return SingleChildScrollView(
+      controller: _scrollController,
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.sm,
+        AppSpacing.md,
+        AppSpacing.xl,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _TeamManagementHeader(
+            onBack: () => Navigator.of(context).maybePop(),
+            onManageCompetitions: widget.trainingService == null
+                ? null
+                : () => unawaited(_openCompetitionManagement()),
+          ),
+          if (metrics != null) ...[
+            const SizedBox(height: AppSpacing.md),
+            _TeamOperationsOverview(
+              metrics: metrics,
+              expanded: _overviewExpanded,
+              onToggle: () {
+                setState(() => _overviewExpanded = !_overviewExpanded);
+              },
+            ),
+          ],
+          const SizedBox(height: AppSpacing.md),
+          _TeamManagementSectionSwitcher(
+            selectedSection: _activeSection,
+            onSectionChanged: _changeSection,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          _buildTeamManagementHome(readOnly),
+        ],
       ),
     );
   }
@@ -665,6 +728,46 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
           widget.onOpenMatchStats == null ? null : _openMatchStats,
       onOpenSchedule: () => unawaited(_openClubSchedule()),
     );
+  }
+
+  List<MatchCompetitionRecord> _collectCompetitionRecords(
+    List<TrainingEntry> entries, {
+    required String sportId,
+  }) {
+    final records = <String, MatchCompetitionRecord>{
+      for (final record in MatchCompetitionService(
+        widget.optionRepository,
+        sportId: sportId,
+      ).allCompetitions())
+        record.id: record,
+    };
+
+    for (final entry in entries) {
+      if (!entry.isLeagueMatch && !entry.isTournamentMatch) continue;
+      final name = entry.matchCompetitionName.trim();
+      if (name.isEmpty) continue;
+      final kind = entry.isTournamentMatch
+          ? MatchCompetitionRecord.kindTournament
+          : MatchCompetitionRecord.kindLeague;
+      final id = MatchCompetitionService.competitionId(
+        kind: kind,
+        name: name,
+      );
+      records.putIfAbsent(
+        id,
+        () => MatchCompetitionRecord.create(
+          kind: kind,
+          name: name,
+          teams: [
+            ...entry.leagueTeamNames,
+            entry.opponentTeam,
+          ],
+          now: entry.date,
+        ),
+      );
+    }
+
+    return records.values.toList(growable: false);
   }
 
   Widget _buildPlayersPanel(bool readOnly) {
@@ -831,12 +934,14 @@ class _TeamManagementHeader extends StatelessWidget {
           ),
         ),
         if (onManageCompetitions != null)
-          AppBarActionButton.icon(
+          AppBarActionButton.label(
             key: const ValueKey('team-header-competition'),
-            icon: Icons.emoji_events_outlined,
+            icon: const Icon(Icons.emoji_events_outlined),
+            label: l10n.matchCompetitionOpenButton,
             tooltip: l10n.matchCompetitionOpenButton,
             onPressed: onManageCompetitions,
             margin: EdgeInsets.zero,
+            maxLabelWidth: 132,
           ),
       ],
     );
@@ -880,6 +985,199 @@ class _TeamManagementSectionSwitcher extends StatelessWidget {
       ],
       selected: {selectedSection},
       onSelectionChanged: (selection) => onSectionChanged(selection.single),
+    );
+  }
+}
+
+class _TeamOperationsOverview extends StatelessWidget {
+  final _TeamOperationsMetrics metrics;
+  final bool expanded;
+  final VoidCallback onToggle;
+
+  const _TeamOperationsOverview({
+    required this.metrics,
+    required this.expanded,
+    required this.onToggle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final summary = [
+      l10n.statsMatchTotalMatchesValue(metrics.totalMatches),
+      l10n.statsMatchRecordValue(metrics.wins, metrics.draws, metrics.losses),
+    ].join(' · ');
+    return Container(
+      decoration: AppSurfaces.cardDecoration(scheme, theme.brightness),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: AppRadius.small,
+              onTap: onToggle,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxs),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: scheme.primary.withValues(alpha: 0.10),
+                        borderRadius: AppRadius.small,
+                      ),
+                      child: Icon(
+                        Icons.analytics_outlined,
+                        color: scheme.primary,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.matchHubOverviewTitle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.xxs),
+                          Text(
+                            summary,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: scheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      expanded
+                          ? Icons.keyboard_arrow_up_outlined
+                          : Icons.keyboard_arrow_down_outlined,
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          if (expanded) ...[
+            const SizedBox(height: AppSpacing.md),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final columns = constraints.maxWidth >= 560 ? 4 : 2;
+                final gap = AppSpacing.sm * (columns - 1);
+                final width = (constraints.maxWidth - gap) / columns;
+                return Wrap(
+                  spacing: AppSpacing.sm,
+                  runSpacing: AppSpacing.sm,
+                  children: [
+                    SizedBox(
+                      width: width,
+                      child: _TeamOverviewMetric(
+                        label: l10n.statsMatchTotalMatchesLabel,
+                        value: l10n
+                            .statsMatchTotalMatchesValue(metrics.totalMatches),
+                      ),
+                    ),
+                    SizedBox(
+                      width: width,
+                      child: _TeamOverviewMetric(
+                        label: l10n.statsMatchRecordLabel,
+                        value: l10n.statsMatchRecordValue(
+                          metrics.wins,
+                          metrics.draws,
+                          metrics.losses,
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      width: width,
+                      child: _TeamOverviewMetric(
+                        label: l10n.matchHubRecentFormLabel,
+                        value: metrics.formText(l10n),
+                      ),
+                    ),
+                    SizedBox(
+                      width: width,
+                      child: _TeamOverviewMetric(
+                        label: l10n.matchHubCompetitionStateLabel,
+                        value: l10n.matchHubCompetitionStateValue(
+                          metrics.activeCompetitions,
+                          metrics.finishedCompetitions,
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _TeamOverviewMetric extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _TeamOverviewMetric({
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Container(
+      constraints: const BoxConstraints(minHeight: 72),
+      padding: const EdgeInsets.all(AppSpacing.sm),
+      decoration: BoxDecoration(
+        color: AppSurfaces.subtleColor(scheme, theme.brightness),
+        borderRadius: AppRadius.small,
+        border: Border.all(
+          color: AppSurfaces.borderColor(scheme, theme.brightness),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: scheme.onSurfaceVariant,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xxs),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -2911,4 +3209,81 @@ String _playerInitialLabel(ManagedTeamPlayer player) {
   final trimmed = player.name.trim();
   if (trimmed.length <= 2) return trimmed;
   return trimmed.characters.take(2).toString();
+}
+
+class _TeamOperationsMetrics {
+  final int totalMatches;
+  final int wins;
+  final int draws;
+  final int losses;
+  final int activeCompetitions;
+  final int finishedCompetitions;
+  final List<int> recentOutcomes;
+
+  const _TeamOperationsMetrics({
+    required this.totalMatches,
+    required this.wins,
+    required this.draws,
+    required this.losses,
+    required this.activeCompetitions,
+    required this.finishedCompetitions,
+    required this.recentOutcomes,
+  });
+
+  factory _TeamOperationsMetrics.from({
+    required List<TrainingEntry> entries,
+    required List<MatchCompetitionRecord> competitions,
+  }) {
+    final outcomes =
+        entries.map(_teamMatchOutcome).whereType<int>().toList(growable: false);
+    return _TeamOperationsMetrics(
+      totalMatches: entries.length,
+      wins: outcomes.where((value) => value > 0).length,
+      draws: outcomes.where((value) => value == 0).length,
+      losses: outcomes.where((value) => value < 0).length,
+      activeCompetitions:
+          competitions.where((record) => !record.isFinished).length,
+      finishedCompetitions:
+          competitions.where((record) => record.isFinished).length,
+      recentOutcomes: outcomes.take(5).toList(growable: false),
+    );
+  }
+
+  String formText(AppLocalizations l10n) {
+    if (recentOutcomes.isEmpty) return l10n.statsMatchFormUnsetValue;
+    return recentOutcomes
+        .map((outcome) => _teamOutcomeShortLabel(outcome, l10n))
+        .join(' ');
+  }
+}
+
+int? _teamMatchOutcome(TrainingEntry entry) {
+  final scored = entry.scoredGoals;
+  final conceded = entry.concededGoals;
+  if (scored != null && conceded != null) {
+    if (scored > conceded) return 1;
+    if (scored == conceded) return 0;
+    return -1;
+  }
+  final points = entry.leaguePoints;
+  if (points != null) {
+    if (points >= 3) return 1;
+    if (points == 1) return 0;
+    return -1;
+  }
+  if (entry.tournamentOutcome == 'advanced' ||
+      entry.tournamentOutcome == 'champion') {
+    return 1;
+  }
+  if (entry.tournamentOutcome == 'eliminated') return -1;
+  return null;
+}
+
+String _teamOutcomeShortLabel(int? outcome, AppLocalizations l10n) {
+  return switch (outcome) {
+    1 => l10n.statsMatchOutcomeWinShort,
+    0 => l10n.statsMatchOutcomeDrawShort,
+    -1 => l10n.statsMatchOutcomeLossShort,
+    _ => '-',
+  };
 }

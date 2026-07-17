@@ -26,8 +26,8 @@ import '../widgets/app_page_route.dart';
 import '../widgets/sport_scope.dart';
 import 'skill_quiz_screen.dart';
 import 'home_hub_screen.dart';
-import 'match_hub_screen.dart';
 import 'match_record_screen.dart';
+import 'team_management_screen.dart';
 import 'training_board_list_screen.dart';
 import 'coach_lesson_screen.dart';
 
@@ -850,13 +850,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Future<void> _openMatchHub() async {
     await _pushPageSafely(
       AppPageRoute(
-        builder: (_) => MatchHubScreen(
+        builder: (_) => TeamManagementScreen(
+          optionRepository: widget.optionRepository,
           trainingService: widget.trainingService,
           localeService: widget.localeService,
-          optionRepository: widget.optionRepository,
           settingsService: widget.settingsService,
-          driveBackupService: widget.driveBackupService,
-          onOpenCalendar: _openMatchHubCalendar,
           onOpenMatchStats: _openMatchHubStats,
         ),
       ),
@@ -866,13 +864,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Future<void> _openMatchHubRecord(DateTime initialDate) async {
     await _pushPageSafely(
       AppPageRoute(
-        builder: (_) => MatchHubScreen(
+        builder: (_) => TeamManagementScreen(
+          optionRepository: widget.optionRepository,
           trainingService: widget.trainingService,
           localeService: widget.localeService,
-          optionRepository: widget.optionRepository,
           settingsService: widget.settingsService,
-          driveBackupService: widget.driveBackupService,
-          onOpenCalendar: _openMatchHubCalendar,
           onOpenMatchStats: _openMatchHubStats,
           openRecordOnStart: true,
           initialRecordDate: initialDate,
@@ -893,14 +889,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         ),
       ),
     );
-  }
-
-  void _openMatchHubCalendar() {
-    setState(() {
-      _builtTabIndices.add(2);
-      _index = 2;
-    });
-    _scheduleTabGuideIfNeeded(2);
   }
 
   void _openMatchHubStats() {

@@ -398,12 +398,14 @@ class _MatchHubHeader extends StatelessWidget {
             ],
           ),
         ),
-        AppBarActionButton.icon(
+        AppBarActionButton.label(
           key: const ValueKey('match-hub-competition-action'),
-          icon: Icons.emoji_events_outlined,
+          icon: const Icon(Icons.emoji_events_outlined),
+          label: l10n.matchCompetitionOpenButton,
           tooltip: l10n.matchCompetitionOpenButton,
           onPressed: onManageCompetitions,
           margin: EdgeInsets.zero,
+          maxLabelWidth: 132,
         ),
       ],
     );
