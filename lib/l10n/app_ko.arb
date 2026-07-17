@@ -6825,6 +6825,22 @@
     }
   },
   "teamManagementRosterNoPlacement": "보드 미배치",
+  "teamManagementRosterReadyCount": "출전 가능 {count}",
+  "@teamManagementRosterReadyCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "teamManagementRosterManagedCount": "관리 {count}",
+  "@teamManagementRosterManagedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "teamManagementPlayerTrayTitle": "드래그할 선수",
   "teamManagementPlayerTrayEmpty": "먼저 선수를 등록하면 여기에서 그라운드로 바로 끌어 놓을 수 있어요.",
   "teamManagementBoardMovePlayersMode": "선수 배치",

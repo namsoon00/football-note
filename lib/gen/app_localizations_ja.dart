@@ -12268,6 +12268,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get teamManagementRosterNoPlacement => 'ボード未配置';
 
   @override
+  String teamManagementRosterReadyCount(int count) {
+    return '出場可能$count';
+  }
+
+  @override
+  String teamManagementRosterManagedCount(int count) {
+    return '管理$count';
+  }
+
+  @override
   String get teamManagementPlayerTrayTitle => 'ドラッグする選手';
 
   @override

@@ -12290,6 +12290,16 @@ class AppLocalizationsKo extends AppLocalizations {
   String get teamManagementRosterNoPlacement => '보드 미배치';
 
   @override
+  String teamManagementRosterReadyCount(int count) {
+    return '출전 가능 $count';
+  }
+
+  @override
+  String teamManagementRosterManagedCount(int count) {
+    return '관리 $count';
+  }
+
+  @override
   String get teamManagementPlayerTrayTitle => '드래그할 선수';
 
   @override

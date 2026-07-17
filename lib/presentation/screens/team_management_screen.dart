@@ -2649,6 +2649,17 @@ class _RosterBoard extends StatelessWidget {
     final visibleGroups = _playerRoles
         .where((role) => groupedPlayers[role]!.isNotEmpty)
         .toList(growable: false);
+    final placedCount =
+        players.where((player) => _assignedCountFor(player) > 0).length;
+    final readyCount = players
+        .where((player) => player.condition == ManagedTeamPlayer.conditionReady)
+        .length;
+    final watchCount = players
+        .where((player) => player.condition == ManagedTeamPlayer.conditionWatch)
+        .length;
+    final restCount = players
+        .where((player) => player.condition == ManagedTeamPlayer.conditionRest)
+        .length;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -2694,6 +2705,14 @@ class _RosterBoard extends StatelessWidget {
           ],
         ),
         const SizedBox(height: AppSpacing.sm),
+        _RosterSummaryBar(
+          totalCount: players.length,
+          placedCount: placedCount,
+          readyCount: readyCount,
+          watchCount: watchCount,
+          restCount: restCount,
+        ),
+        const SizedBox(height: AppSpacing.sm),
         LayoutBuilder(
           builder: (context, constraints) {
             final columns = constraints.maxWidth >= 920
@@ -2730,6 +2749,131 @@ class _RosterBoard extends StatelessWidget {
   int _assignedCountFor(ManagedTeamPlayer player) {
     if (playerPlacements.containsKey(player.id)) return 1;
     return lineup.values.where((playerId) => playerId == player.id).length;
+  }
+}
+
+class _RosterSummaryBar extends StatelessWidget {
+  final int totalCount;
+  final int placedCount;
+  final int readyCount;
+  final int watchCount;
+  final int restCount;
+
+  const _RosterSummaryBar({
+    required this.totalCount,
+    required this.placedCount,
+    required this.readyCount,
+    required this.watchCount,
+    required this.restCount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxWidth < 520;
+        final width = compact
+            ? constraints.maxWidth
+            : (constraints.maxWidth - AppSpacing.xs * 3) / 4;
+        return Wrap(
+          spacing: AppSpacing.xs,
+          runSpacing: AppSpacing.xs,
+          children: [
+            SizedBox(
+              width: width,
+              child: _RosterSummaryChip(
+                icon: Icons.groups_2_outlined,
+                label: l10n.teamManagementPlayerCount(totalCount),
+                color: scheme.primary,
+              ),
+            ),
+            SizedBox(
+              width: width,
+              child: _RosterSummaryChip(
+                icon: Icons.account_tree_outlined,
+                label: l10n.teamManagementBoardPlacementValue(
+                  placedCount,
+                  totalCount,
+                ),
+                color: scheme.tertiary,
+              ),
+            ),
+            SizedBox(
+              width: width,
+              child: _RosterSummaryChip(
+                icon: Icons.verified_outlined,
+                label: l10n.teamManagementRosterReadyCount(readyCount),
+                color: _playerConditionAccent(
+                  ManagedTeamPlayer.conditionReady,
+                ),
+              ),
+            ),
+            SizedBox(
+              width: width,
+              child: _RosterSummaryChip(
+                icon: Icons.monitor_heart_outlined,
+                label: watchCount + restCount > 0
+                    ? l10n.teamManagementRosterManagedCount(
+                        watchCount + restCount,
+                      )
+                    : l10n.teamManagementRosterManagedCount(0),
+                color: watchCount + restCount > 0
+                    ? _playerConditionAccent(ManagedTeamPlayer.conditionWatch)
+                    : scheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _RosterSummaryChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+
+  const _RosterSummaryChip({
+    required this.icon,
+    required this.label,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      constraints: const BoxConstraints(minHeight: 38),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.xs,
+        vertical: AppSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: AppRadius.small,
+        border: Border.all(color: color.withValues(alpha: 0.18)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 17, color: color),
+          const SizedBox(width: AppSpacing.xxs),
+          Expanded(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: color,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -2838,54 +2982,92 @@ class _PlayerRosterCard extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final conditionAccent = _playerConditionAccent(player.condition);
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.sm),
-      decoration: BoxDecoration(
-        color: theme.brightness == Brightness.dark
-            ? scheme.surfaceContainerHighest.withValues(alpha: 0.36)
-            : scheme.surfaceContainerHighest.withValues(alpha: 0.42),
-        borderRadius: AppRadius.small,
-        border: Border.all(color: scheme.outlineVariant),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    final note = player.note.trim();
+    return Material(
+      color: theme.brightness == Brightness.dark
+          ? scheme.surfaceContainerHighest.withValues(alpha: 0.30)
+          : scheme.surface,
+      borderRadius: AppRadius.small,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: AppRadius.small,
+          border: Border.all(color: scheme.outlineVariant),
+          boxShadow: [
+            if (theme.brightness == Brightness.light)
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.035),
+                blurRadius: 14,
+                offset: const Offset(0, 8),
+              ),
+          ],
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: IntrinsicHeight(
+          child: Row(
             children: [
               Container(
-                width: 48,
-                height: 56,
+                width: 5,
+                color: accent,
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Container(
+                width: 50,
+                margin: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
                 decoration: BoxDecoration(
-                  color: accent.withValues(alpha: 0.13),
+                  color: accent.withValues(alpha: 0.12),
                   borderRadius: AppRadius.small,
-                  border: Border.all(color: accent.withValues(alpha: 0.28)),
+                  border: Border.all(color: accent.withValues(alpha: 0.24)),
                 ),
                 alignment: Alignment.center,
-                child: Text(
-                  player.number.isEmpty
-                      ? teamPlayerRoleShortLabel(player.role)
-                      : player.number,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: accent,
-                    fontWeight: FontWeight.w900,
-                  ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      player.number.isEmpty ? '-' : player.number,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        color: accent,
+                        fontWeight: FontWeight.w900,
+                        height: 1.0,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      teamPlayerRoleShortLabel(player.role),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: accent,
+                        fontWeight: FontWeight.w900,
+                        height: 1.0,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      player.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            player.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.xs),
+                        _RosterStatusDot(color: conditionAccent),
+                      ],
                     ),
                     const SizedBox(height: AppSpacing.xxs),
                     Wrap(
@@ -2915,56 +3097,109 @@ class _PlayerRosterCard extends StatelessWidget {
                         ),
                       ],
                     ),
+                    if (note.isNotEmpty) ...[
+                      const SizedBox(height: AppSpacing.xs),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            Icons.sticky_note_2_outlined,
+                            size: 14,
+                            color: scheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: AppSpacing.xxs),
+                          Expanded(
+                            child: Text(
+                              note,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: scheme.onSurfaceVariant,
+                                height: 1.25,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),
               const SizedBox(width: AppSpacing.xs),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SizedBox(
-                    width: 38,
-                    height: 38,
-                    child: IconButton.outlined(
-                      onPressed: readOnly ? null : onEdit,
-                      icon: const Icon(Icons.edit_outlined),
-                      tooltip: l10n.teamManagementEditPlayerButton,
-                      style: IconButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+                child: MenuAnchor(
+                  menuChildren: [
+                    MenuItemButton(
+                      leadingIcon: const Icon(Icons.edit_outlined),
+                      onPressed: onEdit,
+                      child: Text(l10n.teamManagementEditPlayerButton),
                     ),
-                  ),
-                  const SizedBox(width: AppSpacing.xxs),
-                  SizedBox(
-                    width: 38,
-                    height: 38,
-                    child: IconButton.outlined(
-                      onPressed: readOnly ? null : onRemove,
-                      icon: const Icon(Icons.delete_outline),
-                      tooltip: l10n.teamManagementRemovePlayerButton,
-                      style: IconButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
+                    MenuItemButton(
+                      leadingIcon: const Icon(Icons.delete_outline),
+                      onPressed: onRemove,
+                      child: Text(l10n.teamManagementRemovePlayerButton),
                     ),
-                  ),
-                ],
+                  ],
+                  builder: (context, controller, child) {
+                    return Tooltip(
+                      message: l10n.teamManagementEditPlayerButton,
+                      child: SizedBox(
+                        width: 40,
+                        height: 40,
+                        child: Material(
+                          color: Colors.transparent,
+                          borderRadius: AppRadius.small,
+                          child: InkWell(
+                            borderRadius: AppRadius.small,
+                            onTap: readOnly
+                                ? null
+                                : () {
+                                    if (controller.isOpen) {
+                                      controller.close();
+                                    } else {
+                                      controller.open();
+                                    }
+                                  },
+                            child: Icon(
+                              Icons.more_vert,
+                              color: readOnly
+                                  ? scheme.onSurface.withValues(alpha: 0.38)
+                                  : scheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
             ],
           ),
-          if (player.note.trim().isNotEmpty) ...[
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              player.note.trim(),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: scheme.onSurfaceVariant,
-                height: 1.3,
-              ),
-            ),
-          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RosterStatusDot extends StatelessWidget {
+  final Color color;
+
+  const _RosterStatusDot({required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 10,
+      height: 10,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.28),
+            blurRadius: 8,
+          ),
         ],
       ),
     );

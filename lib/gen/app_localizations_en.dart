@@ -12631,6 +12631,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get teamManagementRosterNoPlacement => 'Not on board';
 
   @override
+  String teamManagementRosterReadyCount(int count) {
+    return 'Ready $count';
+  }
+
+  @override
+  String teamManagementRosterManagedCount(int count) {
+    return 'Managed $count';
+  }
+
+  @override
   String get teamManagementPlayerTrayTitle => 'Players to drag';
 
   @override
