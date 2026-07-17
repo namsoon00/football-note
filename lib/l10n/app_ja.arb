@@ -6840,6 +6840,49 @@
   "teamManagementPlayerNameHint": "例) キム・ミンジュン",
   "teamManagementPlayerNumberLabel": "番号",
   "teamManagementPlayerNumberHint": "10",
+  "teamManagementPlayerRegistrationTitle": "選手登録",
+  "teamManagementPlayerEditTitle": "選手情報の編集",
+  "teamManagementRegisterPlayerButton": "選手登録",
+  "teamManagementPlayerImageTitle": "選手画像",
+  "teamManagementPlayerImageEmptyTitle": "選手写真",
+  "teamManagementPlayerImageSelectButton": "写真を選択",
+  "teamManagementPlayerImageReplaceButton": "写真を変更",
+  "teamManagementPlayerImageRemoveButton": "写真を削除",
+  "teamManagementPlayerImagePickFailed": "画像を読み込めませんでした。別の写真でもう一度お試しください。",
+  "teamManagementPlayerBasicInfoTitle": "基本情報",
+  "teamManagementPlayerGradeLabel": "学年",
+  "teamManagementPlayerGradeHint": "例) 小学5年",
+  "teamManagementPlayerBodySizeTitle": "身体サイズ",
+  "teamManagementPlayerHeightLabel": "身長",
+  "teamManagementPlayerHeightUnit": "cm",
+  "teamManagementPlayerWeightLabel": "体重",
+  "teamManagementPlayerWeightUnit": "kg",
+  "teamManagementPlayerStatusTitle": "状態情報",
+  "teamManagementPlayerNumberEmpty": "番号なし",
+  "teamManagementPlayerNumberPreview": "番号 {number}",
+  "@teamManagementPlayerNumberPreview": {
+    "placeholders": {
+      "number": {}
+    }
+  },
+  "teamManagementPlayerGradeMeta": "{grade}",
+  "@teamManagementPlayerGradeMeta": {
+    "placeholders": {
+      "grade": {}
+    }
+  },
+  "teamManagementPlayerHeightMeta": "{height}cm",
+  "@teamManagementPlayerHeightMeta": {
+    "placeholders": {
+      "height": {}
+    }
+  },
+  "teamManagementPlayerWeightMeta": "{weight}kg",
+  "@teamManagementPlayerWeightMeta": {
+    "placeholders": {
+      "weight": {}
+    }
+  },
   "teamManagementPlayerRoleLabel": "基本ポジション",
   "teamManagementPlayerFootLabel": "利き足",
   "teamManagementPlayerFootRight": "右足",
@@ -6851,7 +6894,7 @@
   "teamManagementPlayerConditionRest": "休養推奨",
   "teamManagementPlayerNoteLabel": "選手メモ",
   "teamManagementPlayerNoteHint": "例) 左足のキックが良い、プレス後の切り替えが速い、膝の負荷を管理",
-  "teamManagementAddPlayerButton": "選手を追加",
+  "teamManagementAddPlayerButton": "選手登録",
   "teamManagementUpdatePlayerButton": "変更を保存",
   "teamManagementCancelPlayerEditButton": "編集をキャンセル",
   "teamManagementEditPlayerButton": "編集",

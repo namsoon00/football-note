@@ -12618,6 +12618,84 @@ class AppLocalizationsEn extends AppLocalizations {
   String get teamManagementPlayerNumberHint => '10';
 
   @override
+  String get teamManagementPlayerRegistrationTitle => 'Register player';
+
+  @override
+  String get teamManagementPlayerEditTitle => 'Edit player';
+
+  @override
+  String get teamManagementRegisterPlayerButton => 'Register player';
+
+  @override
+  String get teamManagementPlayerImageTitle => 'Player image';
+
+  @override
+  String get teamManagementPlayerImageEmptyTitle => 'Player photo';
+
+  @override
+  String get teamManagementPlayerImageSelectButton => 'Choose photo';
+
+  @override
+  String get teamManagementPlayerImageReplaceButton => 'Change photo';
+
+  @override
+  String get teamManagementPlayerImageRemoveButton => 'Remove photo';
+
+  @override
+  String get teamManagementPlayerImagePickFailed =>
+      'Could not load the image. Please try another photo.';
+
+  @override
+  String get teamManagementPlayerBasicInfoTitle => 'Basic info';
+
+  @override
+  String get teamManagementPlayerGradeLabel => 'Grade';
+
+  @override
+  String get teamManagementPlayerGradeHint => 'e.g. Grade 5';
+
+  @override
+  String get teamManagementPlayerBodySizeTitle => 'Body size';
+
+  @override
+  String get teamManagementPlayerHeightLabel => 'Height';
+
+  @override
+  String get teamManagementPlayerHeightUnit => 'cm';
+
+  @override
+  String get teamManagementPlayerWeightLabel => 'Weight';
+
+  @override
+  String get teamManagementPlayerWeightUnit => 'kg';
+
+  @override
+  String get teamManagementPlayerStatusTitle => 'Status info';
+
+  @override
+  String get teamManagementPlayerNumberEmpty => 'No number';
+
+  @override
+  String teamManagementPlayerNumberPreview(Object number) {
+    return 'No. $number';
+  }
+
+  @override
+  String teamManagementPlayerGradeMeta(Object grade) {
+    return '$grade';
+  }
+
+  @override
+  String teamManagementPlayerHeightMeta(Object height) {
+    return '${height}cm';
+  }
+
+  @override
+  String teamManagementPlayerWeightMeta(Object weight) {
+    return '${weight}kg';
+  }
+
+  @override
   String get teamManagementPlayerRoleLabel => 'Default position';
 
   @override
@@ -12652,7 +12730,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'e.g. Strong left foot, quick pressing transition, monitor knee load';
 
   @override
-  String get teamManagementAddPlayerButton => 'Add player';
+  String get teamManagementAddPlayerButton => 'Register player';
 
   @override
   String get teamManagementUpdatePlayerButton => 'Save changes';

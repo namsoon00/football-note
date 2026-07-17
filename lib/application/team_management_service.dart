@@ -22,6 +22,10 @@ class ManagedTeamPlayer {
   final String foot;
   final String condition;
   final String note;
+  final String grade;
+  final double heightCm;
+  final double weightKg;
+  final String imageDataUrl;
 
   const ManagedTeamPlayer({
     required this.id,
@@ -31,6 +35,10 @@ class ManagedTeamPlayer {
     this.foot = footRight,
     this.condition = conditionReady,
     this.note = '',
+    this.grade = '',
+    this.heightCm = 0,
+    this.weightKg = 0,
+    this.imageDataUrl = '',
   });
 
   factory ManagedTeamPlayer.create({
@@ -40,6 +48,10 @@ class ManagedTeamPlayer {
     String foot = footRight,
     String condition = conditionReady,
     String note = '',
+    String grade = '',
+    double heightCm = 0,
+    double weightKg = 0,
+    String imageDataUrl = '',
     DateTime? now,
   }) {
     final timestamp = now ?? DateTime.now();
@@ -51,6 +63,10 @@ class ManagedTeamPlayer {
       foot: TeamManagementService.normalizePlayerFoot(foot),
       condition: TeamManagementService.normalizePlayerCondition(condition),
       note: note.trim(),
+      grade: grade.trim(),
+      heightCm: TeamManagementService.normalizeBodyMeasurement(heightCm),
+      weightKg: TeamManagementService.normalizeBodyMeasurement(weightKg),
+      imageDataUrl: imageDataUrl.trim(),
     );
   }
 
@@ -69,6 +85,14 @@ class ManagedTeamPlayer {
         map['condition']?.toString() ?? '',
       ),
       note: map['note']?.toString().trim() ?? '',
+      grade: map['grade']?.toString().trim() ?? '',
+      heightCm: TeamManagementService.normalizeBodyMeasurement(
+        map['heightCm'],
+      ),
+      weightKg: TeamManagementService.normalizeBodyMeasurement(
+        map['weightKg'],
+      ),
+      imageDataUrl: map['imageDataUrl']?.toString().trim() ?? '',
     );
   }
 
@@ -80,6 +104,10 @@ class ManagedTeamPlayer {
     String? foot,
     String? condition,
     String? note,
+    String? grade,
+    double? heightCm,
+    double? weightKg,
+    String? imageDataUrl,
   }) {
     return ManagedTeamPlayer(
       id: id ?? this.id,
@@ -91,6 +119,14 @@ class ManagedTeamPlayer {
         condition ?? this.condition,
       ),
       note: note ?? this.note,
+      grade: grade ?? this.grade,
+      heightCm: TeamManagementService.normalizeBodyMeasurement(
+        heightCm ?? this.heightCm,
+      ),
+      weightKg: TeamManagementService.normalizeBodyMeasurement(
+        weightKg ?? this.weightKg,
+      ),
+      imageDataUrl: imageDataUrl ?? this.imageDataUrl,
     );
   }
 
@@ -103,6 +139,10 @@ class ManagedTeamPlayer {
       'foot': foot,
       'condition': condition,
       'note': note,
+      'grade': grade,
+      'heightCm': heightCm,
+      'weightKg': weightKg,
+      'imageDataUrl': imageDataUrl,
     };
   }
 }
@@ -869,6 +909,15 @@ class TeamManagementService {
       _ => 0.0,
     };
     return number.clamp(0.0, 1.0).toDouble();
+  }
+
+  static double normalizeBodyMeasurement(Object? value) {
+    final number = switch (value) {
+      num() => value.toDouble(),
+      String() => double.tryParse(value.replaceAll(',', '.')) ?? 0.0,
+      _ => 0.0,
+    };
+    return number.clamp(0.0, 300.0).toDouble();
   }
 
   static List<ManagedTeamPlayer> normalizePlayers(

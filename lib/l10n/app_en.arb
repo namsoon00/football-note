@@ -6840,6 +6840,49 @@
   "teamManagementPlayerNameHint": "e.g. Minjun Kim",
   "teamManagementPlayerNumberLabel": "No.",
   "teamManagementPlayerNumberHint": "10",
+  "teamManagementPlayerRegistrationTitle": "Register player",
+  "teamManagementPlayerEditTitle": "Edit player",
+  "teamManagementRegisterPlayerButton": "Register player",
+  "teamManagementPlayerImageTitle": "Player image",
+  "teamManagementPlayerImageEmptyTitle": "Player photo",
+  "teamManagementPlayerImageSelectButton": "Choose photo",
+  "teamManagementPlayerImageReplaceButton": "Change photo",
+  "teamManagementPlayerImageRemoveButton": "Remove photo",
+  "teamManagementPlayerImagePickFailed": "Could not load the image. Please try another photo.",
+  "teamManagementPlayerBasicInfoTitle": "Basic info",
+  "teamManagementPlayerGradeLabel": "Grade",
+  "teamManagementPlayerGradeHint": "e.g. Grade 5",
+  "teamManagementPlayerBodySizeTitle": "Body size",
+  "teamManagementPlayerHeightLabel": "Height",
+  "teamManagementPlayerHeightUnit": "cm",
+  "teamManagementPlayerWeightLabel": "Weight",
+  "teamManagementPlayerWeightUnit": "kg",
+  "teamManagementPlayerStatusTitle": "Status info",
+  "teamManagementPlayerNumberEmpty": "No number",
+  "teamManagementPlayerNumberPreview": "No. {number}",
+  "@teamManagementPlayerNumberPreview": {
+    "placeholders": {
+      "number": {}
+    }
+  },
+  "teamManagementPlayerGradeMeta": "{grade}",
+  "@teamManagementPlayerGradeMeta": {
+    "placeholders": {
+      "grade": {}
+    }
+  },
+  "teamManagementPlayerHeightMeta": "{height}cm",
+  "@teamManagementPlayerHeightMeta": {
+    "placeholders": {
+      "height": {}
+    }
+  },
+  "teamManagementPlayerWeightMeta": "{weight}kg",
+  "@teamManagementPlayerWeightMeta": {
+    "placeholders": {
+      "weight": {}
+    }
+  },
   "teamManagementPlayerRoleLabel": "Default position",
   "teamManagementPlayerFootLabel": "Preferred foot",
   "teamManagementPlayerFootRight": "Right",
@@ -6851,7 +6894,7 @@
   "teamManagementPlayerConditionRest": "Rest advised",
   "teamManagementPlayerNoteLabel": "Player note",
   "teamManagementPlayerNoteHint": "e.g. Strong left foot, quick pressing transition, monitor knee load",
-  "teamManagementAddPlayerButton": "Add player",
+  "teamManagementAddPlayerButton": "Register player",
   "teamManagementUpdatePlayerButton": "Save changes",
   "teamManagementCancelPlayerEditButton": "Cancel edit",
   "teamManagementEditPlayerButton": "Edit",
