@@ -5,20 +5,21 @@ import 'package:football_note/presentation/models/home_hub_section_settings.dart
 
 void main() {
   group('HomeHubSectionSettings', () {
-    test('defaults prioritize usable actions before motivational progress', () {
+    test('defaults prioritize motivational progress before training actions',
+        () {
       final settings = HomeHubSectionSettings.defaults();
 
       expect(
         settings.sections.map((item) => item.section),
         <HomeHubSectionId>[
-          HomeHubSectionId.dailyFlow,
-          HomeHubSectionId.quickActions,
-          HomeHubSectionId.continueSection,
-          HomeHubSectionId.clubSchedule,
-          HomeHubSectionId.meal,
-          HomeHubSectionId.streak,
           HomeHubSectionId.challenge,
           HomeHubSectionId.level,
+          HomeHubSectionId.streak,
+          HomeHubSectionId.dailyFlow,
+          HomeHubSectionId.continueSection,
+          HomeHubSectionId.quickActions,
+          HomeHubSectionId.clubSchedule,
+          HomeHubSectionId.meal,
         ],
       );
       expect(settings.customized, isFalse);
@@ -87,14 +88,14 @@ void main() {
         <HomeHubSectionId>[
           HomeHubSectionId.challenge,
           HomeHubSectionId.quickActions,
-          HomeHubSectionId.dailyFlow,
+          HomeHubSectionId.level,
         ],
       );
     });
 
     test('pinned sections keep their visible slot during usage ordering', () {
       final settings = HomeHubSectionSettings.defaults().setPinned(
-        HomeHubSectionId.dailyFlow,
+        HomeHubSectionId.level,
         true,
       );
 
@@ -106,8 +107,8 @@ void main() {
           },
         ).take(3),
         <HomeHubSectionId>[
-          HomeHubSectionId.dailyFlow,
           HomeHubSectionId.challenge,
+          HomeHubSectionId.level,
           HomeHubSectionId.quickActions,
         ],
       );
@@ -141,8 +142,8 @@ void main() {
 
       expect(settings.sections.first.section, HomeHubSectionId.level);
       expect(settings.sections[1].section, HomeHubSectionId.dailyFlow);
-      expect(settings.sections[2].section, HomeHubSectionId.quickActions);
-      expect(settings.sections[3].section, HomeHubSectionId.continueSection);
+      expect(settings.sections[2].section, HomeHubSectionId.challenge);
+      expect(settings.sections[3].section, HomeHubSectionId.streak);
     });
   });
 }
