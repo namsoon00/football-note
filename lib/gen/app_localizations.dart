@@ -21498,13 +21498,13 @@ abstract class AppLocalizations {
   /// No description provided for @teamManagementBasicsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Team profile and principles'**
+  /// **'Team profile'**
   String get teamManagementBasicsTitle;
 
   /// No description provided for @teamManagementBasicsHelper.
   ///
   /// In en, this message translates to:
-  /// **'Set the team name and match principles the roster should share.'**
+  /// **'Manage the team name used across the roster.'**
   String get teamManagementBasicsHelper;
 
   /// No description provided for @teamManagementTeamNameLabel.
@@ -21540,7 +21540,7 @@ abstract class AppLocalizations {
   /// No description provided for @teamManagementFormationHelper.
   ///
   /// In en, this message translates to:
-  /// **'Place players freely and draw movement lines, pressing lines, and space zones to prepare match operations.'**
+  /// **'Place players freely and organize movement lines, press lines, and space zones on a wider board.'**
   String get teamManagementFormationHelper;
 
   /// No description provided for @teamManagementFormationLabel.
@@ -21832,6 +21832,18 @@ abstract class AppLocalizations {
   /// **'Clear markers'**
   String get teamManagementBoardClearMarkersButton;
 
+  /// No description provided for @teamManagementBoardLandscapeButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Landscape'**
+  String get teamManagementBoardLandscapeButton;
+
+  /// No description provided for @teamManagementBoardPortraitButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Portrait'**
+  String get teamManagementBoardPortraitButton;
+
   /// No description provided for @teamManagementBoardPlacementLabel.
   ///
   /// In en, this message translates to:
@@ -21859,7 +21871,7 @@ abstract class AppLocalizations {
   /// No description provided for @teamManagementFormationDropHint.
   ///
   /// In en, this message translates to:
-  /// **'Drag players anywhere on the pitch. Drag on the board to draw movement lines, pressing lines, or space zones.'**
+  /// **'In player placement mode, drag players already on the board to adjust their exact position. Use landscape mode when you need more drawing space.'**
   String get teamManagementFormationDropHint;
 
   /// No description provided for @teamManagementRemovePlayerButton.

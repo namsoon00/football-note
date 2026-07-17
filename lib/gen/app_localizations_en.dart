@@ -12467,11 +12467,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get teamManagementNewTeamButton => 'New team';
 
   @override
-  String get teamManagementBasicsTitle => 'Team profile and principles';
+  String get teamManagementBasicsTitle => 'Team profile';
 
   @override
   String get teamManagementBasicsHelper =>
-      'Set the team name and match principles the roster should share.';
+      'Manage the team name used across the roster.';
 
   @override
   String get teamManagementTeamNameLabel => 'Team name';
@@ -12491,7 +12491,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get teamManagementFormationHelper =>
-      'Place players freely and draw movement lines, pressing lines, and space zones to prepare match operations.';
+      'Place players freely and organize movement lines, press lines, and space zones on a wider board.';
 
   @override
   String get teamManagementFormationLabel => 'Formation';
@@ -12659,6 +12659,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get teamManagementBoardClearMarkersButton => 'Clear markers';
 
   @override
+  String get teamManagementBoardLandscapeButton => 'Landscape';
+
+  @override
+  String get teamManagementBoardPortraitButton => 'Portrait';
+
+  @override
   String get teamManagementBoardPlacementLabel => 'Board placement';
 
   @override
@@ -12676,7 +12682,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get teamManagementFormationDropHint =>
-      'Drag players anywhere on the pitch. Drag on the board to draw movement lines, pressing lines, or space zones.';
+      'In player placement mode, drag players already on the board to adjust their exact position. Use landscape mode when you need more drawing space.';
 
   @override
   String get teamManagementRemovePlayerButton => 'Remove';

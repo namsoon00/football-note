@@ -12130,10 +12130,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get teamManagementNewTeamButton => '새 팀';
 
   @override
-  String get teamManagementBasicsTitle => '팀 프로필과 전술 원칙';
+  String get teamManagementBasicsTitle => '팀 프로필';
 
   @override
-  String get teamManagementBasicsHelper => '선수단이 공유할 팀 이름과 경기 운영 원칙을 정리하세요.';
+  String get teamManagementBasicsHelper => '선수단에서 사용할 팀 이름을 관리하세요.';
 
   @override
   String get teamManagementTeamNameLabel => '팀 이름';
@@ -12152,7 +12152,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get teamManagementFormationHelper =>
-      '선수를 자유롭게 배치하고 이동선, 압박선, 공간 영역을 함께 그려 경기 운영 계획을 정리하세요.';
+      '선수를 자유 배치하고 이동선, 압박선, 공간 영역을 넓은 보드에서 정리하세요.';
 
   @override
   String get teamManagementFormationLabel => '포메이션';
@@ -12318,6 +12318,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get teamManagementBoardClearMarkersButton => '마커 지우기';
 
   @override
+  String get teamManagementBoardLandscapeButton => '가로모드';
+
+  @override
+  String get teamManagementBoardPortraitButton => '세로모드';
+
+  @override
   String get teamManagementBoardPlacementLabel => '보드 배치';
 
   @override
@@ -12335,7 +12341,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get teamManagementFormationDropHint =>
-      '선수는 드래그해서 자유 배치하고, 이동선·압박선·공간 영역은 보드 위를 드래그해 그리세요.';
+      '선수 배치 모드에서는 보드 위 선수를 직접 끌어 위치를 조정하세요. 더 넓게 그릴 때는 가로모드를 사용하세요.';
 
   @override
   String get teamManagementRemovePlayerButton => '삭제';

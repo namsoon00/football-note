@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:football_note/gen/app_localizations.dart';
 
 import '../../application/family_access_service.dart';
@@ -89,6 +90,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   ManagedTacticLine? _draftTacticLine;
   bool _playerFormExpanded = false;
   bool _overviewExpanded = false;
+  bool _boardLandscapeMode = false;
   bool _loaded = false;
   bool _saving = false;
   bool _suppressAutoSave = false;
@@ -122,6 +124,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
 
   @override
   void dispose() {
+    _resetBoardLandscapeMode();
     _autoSaveDebounce?.cancel();
     if (!_isReadOnlySupportMode && _changeRevision > _savedRevision) {
       final team = _currentTeam();
@@ -605,6 +608,8 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
                     children: [
                       _WorkspaceScreenHeader(
                         onBackToMenu: _closeWorkspace,
+                        landscapeMode: _boardLandscapeMode,
+                        onToggleLandscape: _toggleBoardLandscapeMode,
                       ),
                       const SizedBox(height: AppSpacing.md),
                       Expanded(
@@ -663,6 +668,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
         children: [
           _TeamManagementHeader(
             onBack: () => Navigator.of(context).maybePop(),
+            onOpenBoard: () => _openWorkspace(_TeamManagementWorkspace.board),
             onManageCompetitions: widget.trainingService == null
                 ? null
                 : () => unawaited(_openCompetitionManagement()),
@@ -702,13 +708,8 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
       children: [
         _buildPlayersPanel(readOnly),
         const SizedBox(height: AppSpacing.md),
-        _PlayerManagementTools(
-          onOpenBoard: () => _openWorkspace(_TeamManagementWorkspace.board),
-        ),
-        const SizedBox(height: AppSpacing.md),
         _TeamBasicsPanel(
           teamNameController: _teamNameController,
-          strategyController: _strategyController,
           readOnly: readOnly,
         ),
       ],
@@ -809,7 +810,29 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
 
   void _closeWorkspace() {
     setState(() => _activeWorkspace = null);
+    _resetBoardLandscapeMode();
     _scrollToTop();
+  }
+
+  void _toggleBoardLandscapeMode() {
+    final next = !_boardLandscapeMode;
+    setState(() => _boardLandscapeMode = next);
+    unawaited(
+      SystemChrome.setPreferredOrientations(
+        next
+            ? const [
+                DeviceOrientation.landscapeLeft,
+                DeviceOrientation.landscapeRight,
+              ]
+            : DeviceOrientation.values,
+      ),
+    );
+  }
+
+  void _resetBoardLandscapeMode() {
+    if (!_boardLandscapeMode) return;
+    _boardLandscapeMode = false;
+    unawaited(SystemChrome.setPreferredOrientations(DeviceOrientation.values));
   }
 
   void _scrollToTop() {
@@ -849,9 +872,13 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
 
 class _WorkspaceScreenHeader extends StatelessWidget {
   final VoidCallback onBackToMenu;
+  final bool landscapeMode;
+  final VoidCallback onToggleLandscape;
 
   const _WorkspaceScreenHeader({
     required this.onBackToMenu,
+    required this.landscapeMode,
+    required this.onToggleLandscape,
   });
 
   @override
@@ -892,6 +919,24 @@ class _WorkspaceScreenHeader extends StatelessWidget {
               ),
             ),
           ),
+          const SizedBox(width: AppSpacing.sm),
+          AppBarActionButton.label(
+            key: const ValueKey('team-board-landscape-toggle'),
+            icon: Icon(
+              landscapeMode
+                  ? Icons.stay_current_portrait_outlined
+                  : Icons.stay_current_landscape_outlined,
+            ),
+            label: landscapeMode
+                ? l10n.teamManagementBoardPortraitButton
+                : l10n.teamManagementBoardLandscapeButton,
+            tooltip: landscapeMode
+                ? l10n.teamManagementBoardPortraitButton
+                : l10n.teamManagementBoardLandscapeButton,
+            onPressed: onToggleLandscape,
+            margin: EdgeInsets.zero,
+            maxLabelWidth: 88,
+          ),
         ],
       ),
     );
@@ -900,10 +945,12 @@ class _WorkspaceScreenHeader extends StatelessWidget {
 
 class _TeamManagementHeader extends StatelessWidget {
   final VoidCallback onBack;
+  final VoidCallback onOpenBoard;
   final VoidCallback? onManageCompetitions;
 
   const _TeamManagementHeader({
     required this.onBack,
+    required this.onOpenBoard,
     required this.onManageCompetitions,
   });
 
@@ -932,6 +979,15 @@ class _TeamManagementHeader extends StatelessWidget {
               ),
             ],
           ),
+        ),
+        AppBarActionButton.label(
+          key: const ValueKey('team-header-board'),
+          icon: const Icon(Icons.account_tree_outlined),
+          label: l10n.teamManagementWorkspaceBoardTab,
+          tooltip: l10n.teamManagementWorkspaceBoardTab,
+          onPressed: onOpenBoard,
+          margin: const EdgeInsetsDirectional.only(end: AppSpacing.xs),
+          maxLabelWidth: 96,
         ),
         if (onManageCompetitions != null)
           AppBarActionButton.label(
@@ -1182,48 +1238,6 @@ class _TeamOverviewMetric extends StatelessWidget {
   }
 }
 
-class _PlayerManagementTools extends StatelessWidget {
-  final VoidCallback onOpenBoard;
-
-  const _PlayerManagementTools({
-    required this.onOpenBoard,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return Container(
-      decoration: AppSurfaces.cardDecoration(scheme, theme.brightness),
-      padding: const EdgeInsets.all(AppSpacing.md),
-      child: Row(
-        children: [
-          Expanded(
-            child: _PanelTitle(
-              icon: Icons.sports_soccer_outlined,
-              title: l10n.teamManagementWorkspaceBoardTab,
-              helper: l10n.teamManagementPlayerSectionBoardHelper,
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          OutlinedButton.icon(
-            key: const ValueKey('team-player-board'),
-            onPressed: onOpenBoard,
-            icon: const Icon(Icons.account_tree_outlined),
-            label: Text(l10n.teamManagementWorkspaceBoardTab),
-            style: OutlinedButton.styleFrom(
-              minimumSize: const Size(0, 44),
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _MatchManagementPanel extends StatelessWidget {
   final bool matchActionsEnabled;
   final bool recordsEnabled;
@@ -1311,12 +1325,10 @@ class _MatchManagementPanel extends StatelessWidget {
 
 class _TeamBasicsPanel extends StatelessWidget {
   final TextEditingController teamNameController;
-  final TextEditingController strategyController;
   final bool readOnly;
 
   const _TeamBasicsPanel({
     required this.teamNameController,
-    required this.strategyController,
     required this.readOnly,
   });
 
@@ -1344,18 +1356,6 @@ class _TeamBasicsPanel extends StatelessWidget {
             decoration: InputDecoration(
               labelText: l10n.teamManagementTeamNameLabel,
               hintText: l10n.teamManagementTeamNameHint,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          TextField(
-            controller: strategyController,
-            readOnly: readOnly,
-            minLines: 3,
-            maxLines: 5,
-            decoration: InputDecoration(
-              labelText: l10n.teamManagementStrategyLabel,
-              hintText: l10n.teamManagementStrategyHint,
-              alignLabelWithHint: true,
             ),
           ),
         ],
@@ -1401,7 +1401,7 @@ class _TacticsBoardPanel extends StatelessWidget {
 
     return Container(
       decoration: AppSurfaces.cardDecoration(scheme, theme.brightness),
-      padding: const EdgeInsets.all(AppSpacing.md),
+      padding: const EdgeInsets.all(AppSpacing.sm),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final pitch = _TacticsPitch(
@@ -1419,12 +1419,6 @@ class _TacticsBoardPanel extends StatelessWidget {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _PanelTitle(
-                icon: Icons.sports_soccer_outlined,
-                title: l10n.teamManagementFormationTitle,
-                helper: l10n.teamManagementFormationHelper,
-              ),
-              const SizedBox(height: AppSpacing.md),
               _BoardModeToolbar(
                 mode: boardMode,
                 tacticLineCount: tacticLines.length,
@@ -1556,9 +1550,9 @@ class _BoardModeButton extends StatelessWidget {
         onTap: selected ? null : onTap,
         borderRadius: AppRadius.small,
         child: Container(
-          constraints: const BoxConstraints(minHeight: 40, minWidth: 104),
+          constraints: const BoxConstraints(minHeight: 36, minWidth: 88),
           padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.sm,
+            horizontal: AppSpacing.xs,
             vertical: AppSpacing.xs,
           ),
           decoration: BoxDecoration(
@@ -1572,7 +1566,7 @@ class _BoardModeButton extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 18, color: foreground),
+              Icon(icon, size: 17, color: foreground),
               const SizedBox(width: AppSpacing.xxs),
               Text(
                 label,
@@ -1616,7 +1610,7 @@ class _BoardPlayerTray extends StatelessWidget {
     }
     final assignedPlayerIds = playerPlacements.keys.toSet();
     return SizedBox(
-      height: 42,
+      height: 36,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: players.length,
@@ -1630,6 +1624,7 @@ class _BoardPlayerTray extends StatelessWidget {
           if (readOnly) return chip;
           return Draggable<String>(
             data: player.id,
+            dragAnchorStrategy: pointerDragAnchorStrategy,
             feedback: Material(
               color: Colors.transparent,
               child: _BoardPlayerChip(
@@ -1670,15 +1665,15 @@ class _BoardPlayerChip extends StatelessWidget {
       borderRadius: AppRadius.small,
       child: Padding(
         padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.sm,
-          vertical: AppSpacing.xs,
+          horizontal: AppSpacing.xs,
+          vertical: AppSpacing.xxs,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               Icons.drag_indicator,
-              size: 18,
+              size: 16,
               color: assigned ? scheme.onPrimaryContainer : scheme.primary,
             ),
             const SizedBox(width: AppSpacing.xxs),
@@ -1689,6 +1684,7 @@ class _BoardPlayerChip extends StatelessWidget {
               style: theme.textTheme.labelLarge?.copyWith(
                 color: assigned ? scheme.onPrimaryContainer : scheme.onSurface,
                 fontWeight: FontWeight.w900,
+                fontSize: 12,
               ),
             ),
           ],
@@ -1730,22 +1726,22 @@ class _TacticsPitch extends StatelessWidget {
       builder: (context, outerConstraints) {
         final boardWidth = outerConstraints.maxWidth;
         final preferredHeight = boardWidth >= 860
-            ? 520.0
+            ? 640.0
             : boardWidth >= 600
-                ? 440.0
-                : math.max(320.0, boardWidth * 0.74);
+                ? 560.0
+                : math.max(380.0, boardWidth * 0.92);
         final boardHeight = outerConstraints.maxHeight.isFinite
-            ? math.max(
-                260.0,
-                math.min(preferredHeight, outerConstraints.maxHeight),
+            ? math.min(
+                math.max(340.0, preferredHeight),
+                outerConstraints.maxHeight,
               )
             : preferredHeight;
         return SizedBox(
           height: boardHeight,
           child: LayoutBuilder(
             builder: (context, constraints) {
-              const markerWidth = 76.0;
-              const markerHeight = 60.0;
+              const markerWidth = 58.0;
+              const markerHeight = 46.0;
               Offset normalizeFromGlobal(Offset globalPosition) {
                 final renderObject = context.findRenderObject();
                 if (renderObject is! RenderBox) {
@@ -1831,6 +1827,14 @@ class _TacticsPitch extends StatelessWidget {
                                   player: playerById[placement.playerId]!,
                                   draggable: !readOnly &&
                                       boardMode == _TacticBoardMode.assign,
+                                  onMoveToGlobal: (globalPosition) {
+                                    onPlayerPlaced(
+                                      playerId: placement.playerId,
+                                      point: normalizeFromGlobal(
+                                        globalPosition,
+                                      ),
+                                    );
+                                  },
                                 ),
                               ),
                         ],
@@ -1850,23 +1854,22 @@ class _TacticsPitch extends StatelessWidget {
 class _BoardPlacedPlayer extends StatelessWidget {
   final ManagedTeamPlayer player;
   final bool draggable;
+  final ValueChanged<Offset> onMoveToGlobal;
 
   const _BoardPlacedPlayer({
     required this.player,
     required this.draggable,
+    required this.onMoveToGlobal,
   });
 
   @override
   Widget build(BuildContext context) {
     final marker = _PitchPlayerMarker(player: player);
     if (!draggable) return marker;
-    return Draggable<String>(
-      data: player.id,
-      feedback: Material(
-        color: Colors.transparent,
-        child: SizedBox(width: 76, height: 60, child: marker),
-      ),
-      childWhenDragging: Opacity(opacity: 0.36, child: marker),
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onPanStart: (details) => onMoveToGlobal(details.globalPosition),
+      onPanUpdate: (details) => onMoveToGlobal(details.globalPosition),
       child: marker,
     );
   }
@@ -1893,8 +1896,8 @@ class _PitchPlayerMarker extends StatelessWidget {
           border: Border.all(color: accent, width: 2),
         ),
         padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.xs,
-          vertical: AppSpacing.xxs,
+          horizontal: AppSpacing.xxs,
+          vertical: 2,
         ),
         child: Stack(
           children: [
@@ -1902,8 +1905,8 @@ class _PitchPlayerMarker extends StatelessWidget {
               top: 0,
               end: 0,
               child: Container(
-                width: 9,
-                height: 9,
+                width: 7,
+                height: 7,
                 decoration: BoxDecoration(
                   color: condition,
                   shape: BoxShape.circle,
@@ -1924,6 +1927,8 @@ class _PitchPlayerMarker extends StatelessWidget {
                     style: theme.textTheme.labelLarge?.copyWith(
                       color: accent,
                       fontWeight: FontWeight.w900,
+                      fontSize: 13,
+                      height: 1.0,
                     ),
                   ),
                   Text(
@@ -1933,6 +1938,8 @@ class _PitchPlayerMarker extends StatelessWidget {
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: const Color(0xFF111827),
                       fontWeight: FontWeight.w900,
+                      fontSize: 10,
+                      height: 1.0,
                     ),
                   ),
                 ],

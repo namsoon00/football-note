@@ -726,7 +726,11 @@ void main() {
     expect(find.text('작업 선택'), findsNothing);
     expect(find.text('선수관리'), findsOneWidget);
     expect(find.text('시합관리'), findsOneWidget);
-    expect(find.text('팀 프로필과 전술 원칙'), findsOneWidget);
+    expect(find.text('팀 프로필'), findsOneWidget);
+    expect(find.text('팀 프로필과 전술 원칙'), findsNothing);
+    expect(find.text('전술 설명'), findsNothing);
+    expect(find.byKey(const ValueKey('team-header-board')), findsOneWidget);
+    expect(find.byKey(const ValueKey('team-player-board')), findsNothing);
     expect(
         find.byKey(const ValueKey('team-tactics-board-pitch')), findsNothing);
     expect(find.widgetWithText(FilledButton, '새 팀'), findsNothing);
@@ -753,14 +757,15 @@ void main() {
     expect(find.text('미드필더 · 1명'), findsOneWidget);
     expect(find.text('보드 미배치'), findsOneWidget);
 
-    await tester.ensureVisible(find.text('팀 프로필과 전술 원칙'));
+    await tester.ensureVisible(find.text('팀 프로필'));
     await tester.enterText(find.byType(TextField).at(0), '우리 팀 U15');
-    await tester.enterText(find.byType(TextField).at(1), '전방 압박 후 측면 전환');
-    final boardButton = find.byKey(const ValueKey('team-player-board'));
+    final boardButton = find.byKey(const ValueKey('team-header-board'));
     await tester.ensureVisible(boardButton);
     await tester.tap(boardButton);
     await tester.pumpAndSettle();
     expect(find.text('포메이션'), findsNothing);
+    expect(find.byKey(const ValueKey('team-board-landscape-toggle')),
+        findsOneWidget);
 
     final playerChip = find.text('10 김민준').last;
     final pitchFinder = find.byKey(const ValueKey('team-tactics-board-pitch'));
@@ -768,7 +773,7 @@ void main() {
     await tester.ensureVisible(pitchFinder);
     await tester.pumpAndSettle();
     final pitchRect = tester.getRect(pitchFinder);
-    expect(pitchRect.height, greaterThan(300));
+    expect(pitchRect.height, greaterThan(420));
     await tester.drag(
       playerChip,
       pitchRect.center - tester.getCenter(playerChip),
@@ -810,7 +815,7 @@ void main() {
     final teams = TeamManagementService(optionRepository).allTeams();
     expect(teams, hasLength(1));
     expect(teams.single.name, '우리 팀 U15');
-    expect(teams.single.strategy, '전방 압박 후 측면 전환');
+    expect(teams.single.strategy, isEmpty);
     expect(teams.single.players.single.name, '김민준');
     expect(teams.single.players.single.role, ManagedTeamPlayer.roleMidfielder);
     expect(teams.single.players.single.note, '왼발 킥 좋음');

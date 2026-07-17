@@ -12109,10 +12109,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get teamManagementNewTeamButton => '新しいチーム';
 
   @override
-  String get teamManagementBasicsTitle => 'チームプロフィールと戦術原則';
+  String get teamManagementBasicsTitle => 'チームプロフィール';
 
   @override
-  String get teamManagementBasicsHelper => '選手名簿で共有するチーム名と試合運営の原則を整理します。';
+  String get teamManagementBasicsHelper => '選手名簿で使用するチーム名を管理します。';
 
   @override
   String get teamManagementTeamNameLabel => 'チーム名';
@@ -12131,7 +12131,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get teamManagementFormationHelper =>
-      '選手を自由に配置し、移動線、プレスライン、スペース領域を描いて試合運営を整理します。';
+      '選手を自由に配置し、移動線、プレスライン、スペース領域を広いボードで整理します。';
 
   @override
   String get teamManagementFormationLabel => 'フォーメーション';
@@ -12295,6 +12295,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get teamManagementBoardClearMarkersButton => 'マーカーを消去';
 
   @override
+  String get teamManagementBoardLandscapeButton => '横画面';
+
+  @override
+  String get teamManagementBoardPortraitButton => '縦画面';
+
+  @override
   String get teamManagementBoardPlacementLabel => 'ボード配置';
 
   @override
@@ -12312,7 +12318,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get teamManagementFormationDropHint =>
-      '選手はドラッグして自由配置し、移動線・プレス線・スペース領域はボード上をドラッグして描きます。';
+      '選手配置モードでは、ボード上の選手を直接ドラッグして正確な位置を調整します。広く描くときは横画面を使ってください。';
 
   @override
   String get teamManagementRemovePlayerButton => '削除';
