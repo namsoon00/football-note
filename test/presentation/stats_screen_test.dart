@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +15,7 @@ import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/domain/repositories/training_repository.dart';
 import 'package:football_note/application/player_profile_service.dart';
 import 'package:football_note/application/training_service.dart';
+import 'package:football_note/application/training_plan_reminder_service.dart';
 import 'package:football_note/domain/entities/sport_definition.dart';
 import 'package:football_note/presentation/screens/stats_screen.dart';
 import 'package:football_note/application/locale_service.dart';
@@ -88,6 +90,10 @@ void main() {
     expect(find.text('훈련'), findsOneWidget);
     expect(find.text('시합'), findsOneWidget);
     expect(find.text('기록 리듬'), findsOneWidget);
+    expect(find.text('레슨 횟수'), findsNothing);
+    expect(find.text('자세히 보기'), findsOneWidget);
+    await tester.tap(find.text('자세히 보기'));
+    await tester.pumpAndSettle();
     expect(find.text('레슨 횟수'), findsOneWidget);
     expect(find.text('1회'), findsOneWidget);
     expect(find.text('축구 성장 요약'), findsOneWidget);
@@ -138,8 +144,169 @@ void main() {
     expect(find.text('축구 성장 요약'), findsOneWidget);
     expect(find.text('총 훈련 시간'), findsOneWidget);
     expect(find.text('기록 리듬'), findsOneWidget);
-    expect(find.text('계획 실행률'), findsOneWidget);
+    expect(find.text('목표/계획'), findsOneWidget);
+    expect(find.text('집중 분야'), findsNothing);
+  });
+
+  testWidgets('Growth summary starts compact and toggles detail metrics', (
+    WidgetTester tester,
+  ) async {
+    final today = DateTime.now();
+    final yesterday = today.subtract(const Duration(days: 1));
+    final unloggedPlanDay = today.subtract(const Duration(days: 2));
+    await optionRepository.setValue(
+      TrainingPlanReminderService.plansStorageKeyFor(optionRepository),
+      jsonEncode([
+        {'scheduledAt': today.toIso8601String()},
+        {'scheduledAt': unloggedPlanDay.toIso8601String()},
+      ]),
+    );
+    await service.add(
+      TrainingEntry(
+        date: today,
+        durationMinutes: 45,
+        intensity: 4,
+        type: '드리블',
+        mood: 4,
+        injury: false,
+        notes: '',
+        location: '학교 운동장',
+        isLesson: true,
+        goalFocuses: const <String>['첫 터치'],
+        jumpRopeMinutes: 8,
+        jumpRopeCount: 120,
+        jumpRopeEnabled: true,
+      ),
+    );
+    await service.add(
+      TrainingEntry(
+        date: yesterday,
+        durationMinutes: 35,
+        intensity: 3,
+        type: '패스',
+        mood: 3,
+        injury: false,
+        notes: '',
+        location: '학교 운동장',
+        liftingMinutes: 12,
+        liftingByPart: const <String, int>{'하체': 24},
+      ),
+    );
+    await mealLogService.save(
+      MealEntry(
+        date: today,
+        breakfastRiceBowls: 1,
+        lunchRiceBowls: 1,
+        dinnerRiceBowls: 1,
+      ),
+    );
+
+    await _pumpStatsScreen(
+      tester,
+      service: service,
+      mealLogService: mealLogService,
+      localeService: localeService,
+      optionRepository: optionRepository,
+      settingsService: settingsService,
+      locale: const Locale('ko'),
+    );
+
+    expect(find.text('총 훈련 시간'), findsOneWidget);
+    expect(find.text('기록 리듬'), findsOneWidget);
+    expect(find.text('2회 · 2/7일 · 2일 연속'), findsOneWidget);
+    expect(find.text('목표/계획'), findsOneWidget);
+    expect(find.textContaining('계획 50%'), findsOneWidget);
+    expect(find.text('레슨 횟수'), findsNothing);
+    expect(find.text('집중 분야'), findsNothing);
+    expect(find.text('식사 기록률'), findsNothing);
+    expect(find.text('자세히 보기'), findsOneWidget);
+
+    final collapsedCoachText = tester.widget<Text>(
+      find.textContaining('식사 기록은').first,
+    );
+    expect(collapsedCoachText.maxLines, 2);
+
+    await tester.tap(find.text('자세히 보기'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('접기'), findsOneWidget);
+    expect(find.text('레슨 횟수'), findsOneWidget);
     expect(find.text('집중 분야'), findsOneWidget);
+    expect(find.text('식사 기록률'), findsOneWidget);
+    expect(find.text('컨디션'), findsOneWidget);
+    expect(find.text('보조운동'), findsOneWidget);
+    final expandedCoachText = tester.widget<Text>(
+      find.textContaining('식사 기록은').first,
+    );
+    expect(expandedCoachText.maxLines, isNull);
+
+    await tester.tap(find.text('접기'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('자세히 보기'), findsOneWidget);
+    expect(find.text('레슨 횟수'), findsNothing);
+    expect(find.text('집중 분야'), findsNothing);
+    final recollapsedCoachText = tester.widget<Text>(
+      find.textContaining('식사 기록은').first,
+    );
+    expect(recollapsedCoachText.maxLines, 2);
+  });
+
+  testWidgets('Growth summary detail toggle is localized', (
+    WidgetTester tester,
+  ) async {
+    await service.add(
+      TrainingEntry(
+        date: DateTime.now(),
+        durationMinutes: 30,
+        intensity: 3,
+        type: '패스',
+        mood: 3,
+        injury: false,
+        notes: '',
+        location: '학교 운동장',
+        isLesson: true,
+      ),
+    );
+
+    await _pumpStatsScreen(
+      tester,
+      service: service,
+      mealLogService: mealLogService,
+      localeService: localeService,
+      optionRepository: optionRepository,
+      settingsService: settingsService,
+      locale: const Locale('en'),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Show details'), findsOneWidget);
+    expect(find.text('Lessons'), findsNothing);
+    await tester.tap(find.text('Show details'));
+    await tester.pumpAndSettle();
+    expect(find.text('Collapse'), findsOneWidget);
+    expect(find.text('Lessons'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+
+    await _pumpStatsScreen(
+      tester,
+      service: service,
+      mealLogService: mealLogService,
+      localeService: localeService,
+      optionRepository: optionRepository,
+      settingsService: settingsService,
+      locale: const Locale('ja'),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('詳しく見る'), findsOneWidget);
+    expect(find.text('レッスン回数'), findsNothing);
+    await tester.tap(find.text('詳しく見る'));
+    await tester.pumpAndSettle();
+    expect(find.text('閉じる'), findsOneWidget);
+    expect(find.text('レッスン回数'), findsOneWidget);
   });
 
   testWidgets('Stats screen separates match records in match tab', (
@@ -665,6 +832,36 @@ void main() {
     expect(find.text('40분 기준'), findsOneWidget);
     expect(find.textContaining('득점 12.0'), findsOneWidget);
   });
+}
+
+Future<void> _pumpStatsScreen(
+  WidgetTester tester, {
+  required TrainingService service,
+  required MealLogService mealLogService,
+  required LocaleService localeService,
+  required OptionRepository optionRepository,
+  required SettingsService settingsService,
+  required Locale locale,
+}) async {
+  await tester.pumpWidget(
+    DefaultAssetBundle(
+      bundle: TestAssetBundle(),
+      child: MaterialApp(
+        locale: locale,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: StatsScreen(
+          trainingService: service,
+          mealLogService: mealLogService,
+          localeService: localeService,
+          onCreate: () {},
+          optionRepository: optionRepository,
+          settingsService: settingsService,
+        ),
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
 }
 
 Future<void> _markBenchmarksFresh(

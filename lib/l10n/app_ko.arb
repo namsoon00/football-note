@@ -2125,6 +2125,23 @@
       }
     }
   },
+  "statsReportTrainingRhythmCompactValue": "{sessions}회 · {activeDays}/{periodDays}일 · {streak}일 연속",
+  "@statsReportTrainingRhythmCompactValue": {
+    "placeholders": {
+      "sessions": {
+        "type": "int"
+      },
+      "activeDays": {
+        "type": "int"
+      },
+      "periodDays": {
+        "type": "int"
+      },
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
   "statsReportLessonCountLabel": "레슨 횟수",
   "statsReportLessonCountValue": "{count}회",
   "@statsReportLessonCountValue": {
@@ -2158,6 +2175,8 @@
   "statsReportNoPlanValue": "계획 없음",
   "statsReportFocusLabel": "집중 분야",
   "statsReportDefaultFocus": "기본기",
+  "statsReportExpandDetailsAction": "자세히 보기",
+  "statsReportCollapseDetailsAction": "접기",
   "statsReportFocusStreakValue": "{focus} · {days}일 연속",
   "@statsReportFocusStreakValue": {
     "placeholders": {
@@ -2202,6 +2221,7 @@
       }
     }
   },
+  "statsReportConditioningLabel": "보조운동",
   "statsReportConditioningValue": "{minutes}분 · {count}회",
   "@statsReportConditioningValue": {
     "placeholders": {

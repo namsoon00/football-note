@@ -3748,6 +3748,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String statsReportTrainingRhythmCompactValue(
+      int sessions, int activeDays, int periodDays, int streak) {
+    return '$sessions sessions · $activeDays/$periodDays days · $streak-day streak';
+  }
+
+  @override
   String get statsReportLessonCountLabel => 'Lessons';
 
   @override
@@ -3784,6 +3790,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsReportDefaultFocus => 'Fundamentals';
 
   @override
+  String get statsReportExpandDetailsAction => 'Show details';
+
+  @override
+  String get statsReportCollapseDetailsAction => 'Collapse';
+
+  @override
   String statsReportFocusStreakValue(Object focus, int days) {
     return '$focus · $days-day streak';
   }
@@ -3813,6 +3825,9 @@ class AppLocalizationsEn extends AppLocalizations {
       Object intensity, Object mood, int injuryDays) {
     return 'Load $intensity · Mood $mood · Injury ${injuryDays}d';
   }
+
+  @override
+  String get statsReportConditioningLabel => 'Conditioning';
 
   @override
   String statsReportConditioningValue(int minutes, int count) {

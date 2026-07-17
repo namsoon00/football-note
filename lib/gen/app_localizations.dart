@@ -6657,6 +6657,13 @@ abstract class AppLocalizations {
   String statsReportTrainingRhythmValue(
       int sessions, int activeDays, int periodDays);
 
+  /// No description provided for @statsReportTrainingRhythmCompactValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{sessions} sessions · {activeDays}/{periodDays} days · {streak}-day streak'**
+  String statsReportTrainingRhythmCompactValue(
+      int sessions, int activeDays, int periodDays, int streak);
+
   /// No description provided for @statsReportLessonCountLabel.
   ///
   /// In en, this message translates to:
@@ -6717,6 +6724,18 @@ abstract class AppLocalizations {
   /// **'Fundamentals'**
   String get statsReportDefaultFocus;
 
+  /// No description provided for @statsReportExpandDetailsAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Show details'**
+  String get statsReportExpandDetailsAction;
+
+  /// No description provided for @statsReportCollapseDetailsAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse'**
+  String get statsReportCollapseDetailsAction;
+
   /// No description provided for @statsReportFocusStreakValue.
   ///
   /// In en, this message translates to:
@@ -6760,6 +6779,12 @@ abstract class AppLocalizations {
   /// **'Load {intensity} · Mood {mood} · Injury {injuryDays}d'**
   String statsReportConditionValue(
       Object intensity, Object mood, int injuryDays);
+
+  /// No description provided for @statsReportConditioningLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Conditioning'**
+  String get statsReportConditioningLabel;
 
   /// No description provided for @statsReportConditioningValue.
   ///
