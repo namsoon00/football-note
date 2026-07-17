@@ -408,8 +408,6 @@ void main() {
     expect(find.widgetWithText(FilledButton, '새 팀'), findsNothing);
     expect(find.widgetWithText(OutlinedButton, '팀 삭제'), findsNothing);
     expect(find.text('팀 선택'), findsNothing);
-
-    await tester.enterText(find.byType(TextField).first, '보호자 팀');
     await tester.pump(const Duration(seconds: 1));
     await tester.pumpAndSettle();
 
@@ -726,7 +724,7 @@ void main() {
     expect(find.text('작업 선택'), findsNothing);
     expect(find.text('선수관리'), findsOneWidget);
     expect(find.text('시합관리'), findsOneWidget);
-    expect(find.text('팀 프로필'), findsOneWidget);
+    expect(find.text('팀 프로필'), findsNothing);
     expect(find.text('팀 프로필과 전술 원칙'), findsNothing);
     expect(find.text('전술 설명'), findsNothing);
     expect(find.byKey(const ValueKey('team-header-board')), findsOneWidget);
@@ -755,10 +753,8 @@ void main() {
 
     expect(find.text('스쿼드 보드'), findsOneWidget);
     expect(find.text('미드필더 · 1명'), findsOneWidget);
-    expect(find.text('보드 미배치'), findsOneWidget);
+    expect(find.textContaining('보드 미배치'), findsOneWidget);
 
-    await tester.ensureVisible(find.text('팀 프로필'));
-    await tester.enterText(find.byType(TextField).at(0), '우리 팀 U15');
     final boardButton = find.byKey(const ValueKey('team-header-board'));
     await tester.ensureVisible(boardButton);
     await tester.tap(boardButton);
@@ -814,7 +810,7 @@ void main() {
 
     final teams = TeamManagementService(optionRepository).allTeams();
     expect(teams, hasLength(1));
-    expect(teams.single.name, '우리 팀 U15');
+    expect(teams.single.name, '우리 팀');
     expect(teams.single.strategy, isEmpty);
     expect(teams.single.players.single.name, '김민준');
     expect(teams.single.players.single.role, ManagedTeamPlayer.roleMidfielder);
