@@ -21748,6 +21748,144 @@ abstract class AppLocalizations {
   /// **'10'**
   String get teamManagementPlayerNumberHint;
 
+  /// No description provided for @teamManagementPlayerRegistrationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Register player'**
+  String get teamManagementPlayerRegistrationTitle;
+
+  /// No description provided for @teamManagementPlayerEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit player'**
+  String get teamManagementPlayerEditTitle;
+
+  /// No description provided for @teamManagementRegisterPlayerButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Register player'**
+  String get teamManagementRegisterPlayerButton;
+
+  /// No description provided for @teamManagementPlayerImageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Player image'**
+  String get teamManagementPlayerImageTitle;
+
+  /// No description provided for @teamManagementPlayerImageEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Player photo'**
+  String get teamManagementPlayerImageEmptyTitle;
+
+  /// No description provided for @teamManagementPlayerImageSelectButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose photo'**
+  String get teamManagementPlayerImageSelectButton;
+
+  /// No description provided for @teamManagementPlayerImageReplaceButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Change photo'**
+  String get teamManagementPlayerImageReplaceButton;
+
+  /// No description provided for @teamManagementPlayerImageRemoveButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove photo'**
+  String get teamManagementPlayerImageRemoveButton;
+
+  /// No description provided for @teamManagementPlayerImagePickFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the image. Please try another photo.'**
+  String get teamManagementPlayerImagePickFailed;
+
+  /// No description provided for @teamManagementPlayerBasicInfoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Basic info'**
+  String get teamManagementPlayerBasicInfoTitle;
+
+  /// No description provided for @teamManagementPlayerGradeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Grade'**
+  String get teamManagementPlayerGradeLabel;
+
+  /// No description provided for @teamManagementPlayerGradeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Grade 5'**
+  String get teamManagementPlayerGradeHint;
+
+  /// No description provided for @teamManagementPlayerBodySizeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Body size'**
+  String get teamManagementPlayerBodySizeTitle;
+
+  /// No description provided for @teamManagementPlayerHeightLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Height'**
+  String get teamManagementPlayerHeightLabel;
+
+  /// No description provided for @teamManagementPlayerHeightUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'cm'**
+  String get teamManagementPlayerHeightUnit;
+
+  /// No description provided for @teamManagementPlayerWeightLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get teamManagementPlayerWeightLabel;
+
+  /// No description provided for @teamManagementPlayerWeightUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'kg'**
+  String get teamManagementPlayerWeightUnit;
+
+  /// No description provided for @teamManagementPlayerStatusTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Status info'**
+  String get teamManagementPlayerStatusTitle;
+
+  /// No description provided for @teamManagementPlayerNumberEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No number'**
+  String get teamManagementPlayerNumberEmpty;
+
+  /// No description provided for @teamManagementPlayerNumberPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'No. {number}'**
+  String teamManagementPlayerNumberPreview(Object number);
+
+  /// No description provided for @teamManagementPlayerGradeMeta.
+  ///
+  /// In en, this message translates to:
+  /// **'{grade}'**
+  String teamManagementPlayerGradeMeta(Object grade);
+
+  /// No description provided for @teamManagementPlayerHeightMeta.
+  ///
+  /// In en, this message translates to:
+  /// **'{height}cm'**
+  String teamManagementPlayerHeightMeta(Object height);
+
+  /// No description provided for @teamManagementPlayerWeightMeta.
+  ///
+  /// In en, this message translates to:
+  /// **'{weight}kg'**
+  String teamManagementPlayerWeightMeta(Object weight);
+
   /// No description provided for @teamManagementPlayerRoleLabel.
   ///
   /// In en, this message translates to:
@@ -21817,7 +21955,7 @@ abstract class AppLocalizations {
   /// No description provided for @teamManagementAddPlayerButton.
   ///
   /// In en, this message translates to:
-  /// **'Add player'**
+  /// **'Register player'**
   String get teamManagementAddPlayerButton;
 
   /// No description provided for @teamManagementUpdatePlayerButton.

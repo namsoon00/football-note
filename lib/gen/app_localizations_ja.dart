@@ -12255,6 +12255,84 @@ class AppLocalizationsJa extends AppLocalizations {
   String get teamManagementPlayerNumberHint => '10';
 
   @override
+  String get teamManagementPlayerRegistrationTitle => '選手登録';
+
+  @override
+  String get teamManagementPlayerEditTitle => '選手情報の編集';
+
+  @override
+  String get teamManagementRegisterPlayerButton => '選手登録';
+
+  @override
+  String get teamManagementPlayerImageTitle => '選手画像';
+
+  @override
+  String get teamManagementPlayerImageEmptyTitle => '選手写真';
+
+  @override
+  String get teamManagementPlayerImageSelectButton => '写真を選択';
+
+  @override
+  String get teamManagementPlayerImageReplaceButton => '写真を変更';
+
+  @override
+  String get teamManagementPlayerImageRemoveButton => '写真を削除';
+
+  @override
+  String get teamManagementPlayerImagePickFailed =>
+      '画像を読み込めませんでした。別の写真でもう一度お試しください。';
+
+  @override
+  String get teamManagementPlayerBasicInfoTitle => '基本情報';
+
+  @override
+  String get teamManagementPlayerGradeLabel => '学年';
+
+  @override
+  String get teamManagementPlayerGradeHint => '例) 小学5年';
+
+  @override
+  String get teamManagementPlayerBodySizeTitle => '身体サイズ';
+
+  @override
+  String get teamManagementPlayerHeightLabel => '身長';
+
+  @override
+  String get teamManagementPlayerHeightUnit => 'cm';
+
+  @override
+  String get teamManagementPlayerWeightLabel => '体重';
+
+  @override
+  String get teamManagementPlayerWeightUnit => 'kg';
+
+  @override
+  String get teamManagementPlayerStatusTitle => '状態情報';
+
+  @override
+  String get teamManagementPlayerNumberEmpty => '番号なし';
+
+  @override
+  String teamManagementPlayerNumberPreview(Object number) {
+    return '番号 $number';
+  }
+
+  @override
+  String teamManagementPlayerGradeMeta(Object grade) {
+    return '$grade';
+  }
+
+  @override
+  String teamManagementPlayerHeightMeta(Object height) {
+    return '${height}cm';
+  }
+
+  @override
+  String teamManagementPlayerWeightMeta(Object weight) {
+    return '${weight}kg';
+  }
+
+  @override
   String get teamManagementPlayerRoleLabel => '基本ポジション';
 
   @override
@@ -12289,7 +12367,7 @@ class AppLocalizationsJa extends AppLocalizations {
       '例) 左足のキックが良い、プレス後の切り替えが速い、膝の負荷を管理';
 
   @override
-  String get teamManagementAddPlayerButton => '選手を追加';
+  String get teamManagementAddPlayerButton => '選手登録';
 
   @override
   String get teamManagementUpdatePlayerButton => '変更を保存';

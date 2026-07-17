@@ -12278,6 +12278,84 @@ class AppLocalizationsKo extends AppLocalizations {
   String get teamManagementPlayerNumberHint => '10';
 
   @override
+  String get teamManagementPlayerRegistrationTitle => '선수 등록';
+
+  @override
+  String get teamManagementPlayerEditTitle => '선수 정보 수정';
+
+  @override
+  String get teamManagementRegisterPlayerButton => '선수 등록';
+
+  @override
+  String get teamManagementPlayerImageTitle => '선수 이미지';
+
+  @override
+  String get teamManagementPlayerImageEmptyTitle => '선수 사진';
+
+  @override
+  String get teamManagementPlayerImageSelectButton => '사진 선택';
+
+  @override
+  String get teamManagementPlayerImageReplaceButton => '사진 변경';
+
+  @override
+  String get teamManagementPlayerImageRemoveButton => '사진 제거';
+
+  @override
+  String get teamManagementPlayerImagePickFailed =>
+      '이미지를 불러오지 못했어요. 다른 사진으로 다시 시도해 주세요.';
+
+  @override
+  String get teamManagementPlayerBasicInfoTitle => '기본 정보';
+
+  @override
+  String get teamManagementPlayerGradeLabel => '학년';
+
+  @override
+  String get teamManagementPlayerGradeHint => '예) 초등 5학년';
+
+  @override
+  String get teamManagementPlayerBodySizeTitle => '신체 사이즈';
+
+  @override
+  String get teamManagementPlayerHeightLabel => '키';
+
+  @override
+  String get teamManagementPlayerHeightUnit => 'cm';
+
+  @override
+  String get teamManagementPlayerWeightLabel => '몸무게';
+
+  @override
+  String get teamManagementPlayerWeightUnit => 'kg';
+
+  @override
+  String get teamManagementPlayerStatusTitle => '상태 정보';
+
+  @override
+  String get teamManagementPlayerNumberEmpty => '번호 없음';
+
+  @override
+  String teamManagementPlayerNumberPreview(Object number) {
+    return '번호 $number';
+  }
+
+  @override
+  String teamManagementPlayerGradeMeta(Object grade) {
+    return '$grade';
+  }
+
+  @override
+  String teamManagementPlayerHeightMeta(Object height) {
+    return '${height}cm';
+  }
+
+  @override
+  String teamManagementPlayerWeightMeta(Object weight) {
+    return '${weight}kg';
+  }
+
+  @override
   String get teamManagementPlayerRoleLabel => '기본 포지션';
 
   @override
@@ -12311,7 +12389,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get teamManagementPlayerNoteHint => '예) 왼발 킥 좋음, 압박 전환 빠름, 무릎 관리 필요';
 
   @override
-  String get teamManagementAddPlayerButton => '선수 추가';
+  String get teamManagementAddPlayerButton => '선수 등록';
 
   @override
   String get teamManagementUpdatePlayerButton => '수정 저장';

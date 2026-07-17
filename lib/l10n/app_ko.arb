@@ -6840,6 +6840,49 @@
   "teamManagementPlayerNameHint": "예) 김민준",
   "teamManagementPlayerNumberLabel": "번호",
   "teamManagementPlayerNumberHint": "10",
+  "teamManagementPlayerRegistrationTitle": "선수 등록",
+  "teamManagementPlayerEditTitle": "선수 정보 수정",
+  "teamManagementRegisterPlayerButton": "선수 등록",
+  "teamManagementPlayerImageTitle": "선수 이미지",
+  "teamManagementPlayerImageEmptyTitle": "선수 사진",
+  "teamManagementPlayerImageSelectButton": "사진 선택",
+  "teamManagementPlayerImageReplaceButton": "사진 변경",
+  "teamManagementPlayerImageRemoveButton": "사진 제거",
+  "teamManagementPlayerImagePickFailed": "이미지를 불러오지 못했어요. 다른 사진으로 다시 시도해 주세요.",
+  "teamManagementPlayerBasicInfoTitle": "기본 정보",
+  "teamManagementPlayerGradeLabel": "학년",
+  "teamManagementPlayerGradeHint": "예) 초등 5학년",
+  "teamManagementPlayerBodySizeTitle": "신체 사이즈",
+  "teamManagementPlayerHeightLabel": "키",
+  "teamManagementPlayerHeightUnit": "cm",
+  "teamManagementPlayerWeightLabel": "몸무게",
+  "teamManagementPlayerWeightUnit": "kg",
+  "teamManagementPlayerStatusTitle": "상태 정보",
+  "teamManagementPlayerNumberEmpty": "번호 없음",
+  "teamManagementPlayerNumberPreview": "번호 {number}",
+  "@teamManagementPlayerNumberPreview": {
+    "placeholders": {
+      "number": {}
+    }
+  },
+  "teamManagementPlayerGradeMeta": "{grade}",
+  "@teamManagementPlayerGradeMeta": {
+    "placeholders": {
+      "grade": {}
+    }
+  },
+  "teamManagementPlayerHeightMeta": "{height}cm",
+  "@teamManagementPlayerHeightMeta": {
+    "placeholders": {
+      "height": {}
+    }
+  },
+  "teamManagementPlayerWeightMeta": "{weight}kg",
+  "@teamManagementPlayerWeightMeta": {
+    "placeholders": {
+      "weight": {}
+    }
+  },
   "teamManagementPlayerRoleLabel": "기본 포지션",
   "teamManagementPlayerFootLabel": "주발",
   "teamManagementPlayerFootRight": "오른발",
@@ -6851,7 +6894,7 @@
   "teamManagementPlayerConditionRest": "휴식 권장",
   "teamManagementPlayerNoteLabel": "선수 메모",
   "teamManagementPlayerNoteHint": "예) 왼발 킥 좋음, 압박 전환 빠름, 무릎 관리 필요",
-  "teamManagementAddPlayerButton": "선수 추가",
+  "teamManagementAddPlayerButton": "선수 등록",
   "teamManagementUpdatePlayerButton": "수정 저장",
   "teamManagementCancelPlayerEditButton": "수정 취소",
   "teamManagementEditPlayerButton": "수정",

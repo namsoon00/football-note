@@ -402,7 +402,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final addPlayerButton = tester.widget<FilledButton>(
-      find.widgetWithText(FilledButton, '선수 추가').first,
+      find.widgetWithText(FilledButton, '선수 등록').first,
     );
     expect(addPlayerButton.onPressed, isNull);
     expect(find.widgetWithText(FilledButton, '새 팀'), findsNothing);
@@ -452,7 +452,10 @@ void main() {
     expect(find.text('Player management'), findsOneWidget);
     expect(find.text('Match management'), findsOneWidget);
     expect(find.text('Roster'), findsOneWidget);
-    expect(find.widgetWithText(FilledButton, 'Add player'), findsOneWidget);
+    expect(
+      find.widgetWithText(FilledButton, 'Register player'),
+      findsOneWidget,
+    );
     expect(find.text('No players registered.'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
@@ -735,17 +738,44 @@ void main() {
     expect(find.widgetWithText(OutlinedButton, '팀 삭제'), findsNothing);
     expect(find.text('팀 선택'), findsNothing);
 
-    final addPlayerButton = find.widgetWithText(FilledButton, '선수 추가');
+    final addPlayerButton = find.widgetWithText(FilledButton, '선수 등록');
     await tester.ensureVisible(addPlayerButton);
     await tester.pumpAndSettle();
     await tester.tap(addPlayerButton.first);
     await tester.pumpAndSettle();
+    expect(find.text('선수 등록'), findsWidgets);
     await tester.tap(find.text('미드필더').first);
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField).at(0), '김민준');
-    await tester.enterText(find.byType(TextField).at(1), '10');
-    await tester.enterText(find.byType(TextField).at(2), '왼발 킥 좋음');
-    final savePlayerButton = find.widgetWithText(FilledButton, '선수 추가').last;
+    await tester.enterText(
+      find.byKey(const ValueKey('team-player-name-field')),
+      '김민준',
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('team-player-number-field')),
+      '10',
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('team-player-grade-field')),
+      '초등 5학년',
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('team-player-height-field')),
+      '152.5',
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('team-player-weight-field')),
+      '43.2',
+    );
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('team-player-note-field')),
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('team-player-note-field')),
+      '왼발 킥 좋음',
+    );
+    final savePlayerButton = find.byKey(
+      const ValueKey('team-player-save-button'),
+    );
     await tester.ensureVisible(savePlayerButton);
     await tester.pumpAndSettle();
     await tester.tap(savePlayerButton);
@@ -830,6 +860,9 @@ void main() {
     expect(teams.single.strategy, isEmpty);
     expect(teams.single.players.single.name, '김민준');
     expect(teams.single.players.single.role, ManagedTeamPlayer.roleMidfielder);
+    expect(teams.single.players.single.grade, '초등 5학년');
+    expect(teams.single.players.single.heightCm, 152.5);
+    expect(teams.single.players.single.weightKg, 43.2);
     expect(teams.single.players.single.note, '왼발 킥 좋음');
     final placement =
         teams.single.playerPlacements[teams.single.players.single.id];
