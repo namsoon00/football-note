@@ -6825,6 +6825,22 @@
     }
   },
   "teamManagementRosterNoPlacement": "Not on board",
+  "teamManagementRosterReadyCount": "Ready {count}",
+  "@teamManagementRosterReadyCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "teamManagementRosterManagedCount": "Managed {count}",
+  "@teamManagementRosterManagedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "teamManagementPlayerTrayTitle": "Players to drag",
   "teamManagementPlayerTrayEmpty": "Register players first, then drag them from here directly onto the pitch.",
   "teamManagementBoardMovePlayersMode": "Place players",

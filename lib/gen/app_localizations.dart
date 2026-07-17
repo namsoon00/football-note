@@ -21778,6 +21778,18 @@ abstract class AppLocalizations {
   /// **'Not on board'**
   String get teamManagementRosterNoPlacement;
 
+  /// No description provided for @teamManagementRosterReadyCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready {count}'**
+  String teamManagementRosterReadyCount(int count);
+
+  /// No description provided for @teamManagementRosterManagedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Managed {count}'**
+  String teamManagementRosterManagedCount(int count);
+
   /// No description provided for @teamManagementPlayerTrayTitle.
   ///
   /// In en, this message translates to:
