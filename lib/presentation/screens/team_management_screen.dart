@@ -75,6 +75,8 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   Map<String, ManagedPlayerPlacement> _playerPlacements =
       const <String, ManagedPlayerPlacement>{};
   List<ManagedTacticLine> _tacticLines = const <ManagedTacticLine>[];
+  List<ManagedTacticBoard> _tacticBoards = const <ManagedTacticBoard>[];
+  String _activeTacticBoardId = '';
   String _formation = ManagedTeam.defaultFormation;
   String _playerRole = ManagedTeamPlayer.roleForward;
   String _playerFoot = ManagedTeamPlayer.footRight;
@@ -259,7 +261,14 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   }
 
   ManagedTeam _draftTeam(AppLocalizations l10n) {
-    return ManagedTeam.create(name: l10n.teamManagementDefaultTeamName);
+    final board = ManagedTacticBoard.create(
+      title: l10n.teamManagementTacticBoardDefaultTitle(1),
+    );
+    return ManagedTeam.create(
+      name: l10n.teamManagementDefaultTeamName,
+      tacticBoards: [board],
+      activeTacticBoardId: board.id,
+    );
   }
 
   void _selectTeam(ManagedTeam team, {bool saved = false}) {
@@ -272,14 +281,22 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
       players: _players,
       formation: _formation,
     );
-    _playerPlacements = team.playerPlacements.isNotEmpty
-        ? Map<String, ManagedPlayerPlacement>.from(team.playerPlacements)
-        : TeamManagementService.placementsFromLineup(
-            lineup: _lineup,
-            players: _players,
-            formation: _formation,
-          );
-    _tacticLines = List<ManagedTacticLine>.from(team.tacticLines);
+    _tacticBoards = _normalizedTacticBoards(
+      boards: team.tacticBoards,
+      fallbackPlacements: team.playerPlacements.isNotEmpty
+          ? team.playerPlacements
+          : TeamManagementService.placementsFromLineup(
+              lineup: _lineup,
+              players: _players,
+              formation: _formation,
+            ),
+      fallbackLines: team.tacticLines,
+    );
+    _activeTacticBoardId = TeamManagementService.normalizeActiveTacticBoardId(
+      team.activeTacticBoardId,
+      _tacticBoards,
+    );
+    _loadActiveTacticBoardState();
     _editingPlayerId = null;
     _playerRole = ManagedTeamPlayer.roleForward;
     _playerFoot = ManagedTeamPlayer.footRight;
@@ -299,14 +316,101 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
 
   ManagedTeam _currentTeam() {
     final base = _selectedTeam ?? ManagedTeam.create(name: '');
+    final tacticBoards = _syncedTacticBoards();
+    final activeBoard = TeamManagementService.activeTacticBoard(
+      tacticBoards,
+      _activeTacticBoardId,
+    );
     return base.copyWith(
       name: _teamNameController.text.trim(),
       formation: _formation,
       strategy: _strategyController.text.trim(),
       players: _players,
       lineup: _lineup,
-      playerPlacements: _playerPlacements,
-      tacticLines: _tacticLines,
+      playerPlacements: activeBoard.playerPlacements,
+      tacticLines: activeBoard.tacticLines,
+      tacticBoards: tacticBoards,
+      activeTacticBoardId: activeBoard.id,
+    );
+  }
+
+  List<ManagedTacticBoard> _normalizedTacticBoards({
+    required List<ManagedTacticBoard> boards,
+    required Map<String, ManagedPlayerPlacement> fallbackPlacements,
+    required List<ManagedTacticLine> fallbackLines,
+  }) {
+    final normalized = TeamManagementService.normalizeTacticBoards(
+      boards,
+      players: _players,
+    );
+    if (normalized.isNotEmpty) return normalized;
+    return [
+      ManagedTacticBoard.create(
+        title: TeamManagementService.defaultTacticBoardTitle(1),
+        playerPlacements: TeamManagementService.normalizePlayerPlacements(
+          placements: fallbackPlacements,
+          players: _players,
+        ),
+        tacticLines: fallbackLines,
+      ),
+    ];
+  }
+
+  List<ManagedTacticBoard> _syncedTacticBoards() {
+    final normalized = TeamManagementService.normalizeTacticBoards(
+      _tacticBoards,
+      players: _players,
+    );
+    final boards = normalized.isNotEmpty
+        ? normalized
+        : [
+            ManagedTacticBoard.create(
+              title: TeamManagementService.defaultTacticBoardTitle(1),
+              playerPlacements: _playerPlacements,
+              tacticLines: _tacticLines,
+            ),
+          ];
+    final activeBoardId = TeamManagementService.normalizeActiveTacticBoardId(
+      _activeTacticBoardId,
+      boards,
+    );
+    final normalizedPlacements =
+        TeamManagementService.normalizePlayerPlacements(
+      placements: _playerPlacements,
+      players: _players,
+    );
+    final normalizedLines = TeamManagementService.normalizeTacticLines(
+      _tacticLines,
+    );
+    return [
+      for (final board in boards)
+        if (board.id == activeBoardId)
+          board.copyWith(
+            playerPlacements: normalizedPlacements,
+            tacticLines: normalizedLines,
+          )
+        else
+          board,
+    ];
+  }
+
+  void _loadActiveTacticBoardState() {
+    final activeBoard = TeamManagementService.activeTacticBoard(
+      _tacticBoards,
+      _activeTacticBoardId,
+    );
+    _activeTacticBoardId = activeBoard.id;
+    _playerPlacements = Map<String, ManagedPlayerPlacement>.from(
+      activeBoard.playerPlacements,
+    );
+    _tacticLines = List<ManagedTacticLine>.from(activeBoard.tacticLines);
+  }
+
+  void _syncActiveTacticBoardState() {
+    _tacticBoards = _syncedTacticBoards();
+    _activeTacticBoardId = TeamManagementService.normalizeActiveTacticBoardId(
+      _activeTacticBoardId,
+      _tacticBoards,
     );
   }
 
@@ -468,6 +572,106 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
     _playerCondition = ManagedTeamPlayer.conditionReady;
   }
 
+  void _selectTacticBoard(String boardId) {
+    final key = boardId.trim();
+    if (key.isEmpty || key == _activeTacticBoardId) return;
+    setState(() {
+      _tacticBoards = _syncedTacticBoards();
+      _activeTacticBoardId = key;
+      _loadActiveTacticBoardState();
+      _draftTacticLine = null;
+      _boardMode = _TacticBoardMode.assign;
+    });
+    if (_isReadOnlySupportMode) return;
+    _scheduleAutoSave();
+  }
+
+  void _addTacticBoard() {
+    if (_blockReadOnlyMutation()) return;
+    final l10n = AppLocalizations.of(context)!;
+    final synced = _syncedTacticBoards();
+    final next = ManagedTacticBoard.create(
+      title: l10n.teamManagementTacticBoardDefaultTitle(synced.length + 1),
+    );
+    setState(() {
+      _tacticBoards = [...synced, next];
+      _activeTacticBoardId = next.id;
+      _loadActiveTacticBoardState();
+      _draftTacticLine = null;
+      _boardMode = _TacticBoardMode.assign;
+    });
+    _scheduleAutoSave();
+  }
+
+  void _duplicateTacticBoard() {
+    if (_blockReadOnlyMutation()) return;
+    final l10n = AppLocalizations.of(context)!;
+    final synced = _syncedTacticBoards();
+    final source = TeamManagementService.activeTacticBoard(
+      synced,
+      _activeTacticBoardId,
+    );
+    final sourceIndex = synced.indexWhere((board) => board.id == source.id);
+    final duplicate = ManagedTacticBoard.create(
+      title: l10n.teamManagementTacticBoardCopyTitle(
+        _tacticBoardDisplayTitle(
+          l10n,
+          source,
+          sourceIndex < 0 ? 0 : sourceIndex,
+        ),
+      ),
+      playerPlacements: source.playerPlacements,
+      tacticLines: source.tacticLines,
+    );
+    setState(() {
+      _tacticBoards = [...synced, duplicate];
+      _activeTacticBoardId = duplicate.id;
+      _loadActiveTacticBoardState();
+      _draftTacticLine = null;
+      _boardMode = _TacticBoardMode.assign;
+    });
+    _scheduleAutoSave();
+  }
+
+  void _renameTacticBoard(String boardId, String title) {
+    if (_blockReadOnlyMutation()) return;
+    final trimmed = title.trim();
+    if (trimmed.isEmpty) return;
+    setState(() {
+      _tacticBoards = [
+        for (final board in _syncedTacticBoards())
+          if (board.id == boardId)
+            board.copyWith(title: trimmed, updatedAt: DateTime.now())
+          else
+            board,
+      ];
+    });
+    _scheduleAutoSave();
+  }
+
+  void _deleteActiveTacticBoard() {
+    if (_blockReadOnlyMutation()) return;
+    final synced = _syncedTacticBoards();
+    if (synced.length <= 1) return;
+    final currentIndex = synced.indexWhere(
+      (board) => board.id == _activeTacticBoardId,
+    );
+    final nextBoards = synced
+        .where((board) => board.id != _activeTacticBoardId)
+        .toList(growable: false);
+    final nextIndex = currentIndex <= 0
+        ? 0
+        : math.min(currentIndex - 1, nextBoards.length - 1);
+    setState(() {
+      _tacticBoards = nextBoards;
+      _activeTacticBoardId = nextBoards[nextIndex].id;
+      _loadActiveTacticBoardState();
+      _draftTacticLine = null;
+      _boardMode = _TacticBoardMode.assign;
+    });
+    _scheduleAutoSave();
+  }
+
   void _removePlayer(ManagedTeamPlayer player) {
     if (_blockReadOnlyMutation()) return;
     setState(() {
@@ -480,6 +684,15 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
       _playerPlacements = Map<String, ManagedPlayerPlacement>.from(
         _playerPlacements,
       )..remove(player.id);
+      _tacticBoards = [
+        for (final board in _syncedTacticBoards())
+          board.copyWith(
+            playerPlacements:
+                Map<String, ManagedPlayerPlacement>.from(board.playerPlacements)
+                  ..remove(player.id),
+          ),
+      ];
+      _loadActiveTacticBoardState();
     });
     _scheduleAutoSave();
   }
@@ -501,6 +714,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
         ..._playerPlacements,
         normalizedPlayerId: placement,
       };
+      _syncActiveTacticBoardState();
     });
     _scheduleAutoSave();
   }
@@ -561,6 +775,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
             now: DateTime.now(),
           )),
         ]);
+        _syncActiveTacticBoardState();
       }
       _draftTacticLine = null;
     });
@@ -574,6 +789,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
     setState(() {
       _tacticLines = const <ManagedTacticLine>[];
       _draftTacticLine = null;
+      _syncActiveTacticBoardState();
     });
     _scheduleAutoSave();
   }
@@ -760,11 +976,18 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
       case _TeamManagementWorkspace.board:
         return _TacticsBoardPanel(
           players: _players,
+          tacticBoards: _syncedTacticBoards(),
+          activeTacticBoardId: _activeTacticBoardId,
           playerPlacements: _playerPlacements,
           tacticLines: _tacticLines,
           draftTacticLine: _draftTacticLine,
           boardMode: _boardMode,
           readOnly: readOnly,
+          onTacticBoardSelected: _selectTacticBoard,
+          onAddTacticBoard: _addTacticBoard,
+          onDuplicateTacticBoard: _duplicateTacticBoard,
+          onRenameTacticBoard: _renameTacticBoard,
+          onDeleteTacticBoard: _deleteActiveTacticBoard,
           onPlayerPlaced: _placePlayerOnBoard,
           onBoardModeChanged: _changeBoardMode,
           onTacticLineStarted: _startTacticLine,
@@ -1038,11 +1261,18 @@ class _MatchManagementPanel extends StatelessWidget {
 
 class _TacticsBoardPanel extends StatelessWidget {
   final List<ManagedTeamPlayer> players;
+  final List<ManagedTacticBoard> tacticBoards;
+  final String activeTacticBoardId;
   final Map<String, ManagedPlayerPlacement> playerPlacements;
   final List<ManagedTacticLine> tacticLines;
   final ManagedTacticLine? draftTacticLine;
   final _TacticBoardMode boardMode;
   final bool readOnly;
+  final ValueChanged<String> onTacticBoardSelected;
+  final VoidCallback onAddTacticBoard;
+  final VoidCallback onDuplicateTacticBoard;
+  final void Function(String boardId, String title) onRenameTacticBoard;
+  final VoidCallback onDeleteTacticBoard;
   final _PlayerBoardDropCallback onPlayerPlaced;
   final ValueChanged<_TacticBoardMode> onBoardModeChanged;
   final ValueChanged<Offset> onTacticLineStarted;
@@ -1052,11 +1282,18 @@ class _TacticsBoardPanel extends StatelessWidget {
 
   const _TacticsBoardPanel({
     required this.players,
+    required this.tacticBoards,
+    required this.activeTacticBoardId,
     required this.playerPlacements,
     required this.tacticLines,
     required this.draftTacticLine,
     required this.boardMode,
     required this.readOnly,
+    required this.onTacticBoardSelected,
+    required this.onAddTacticBoard,
+    required this.onDuplicateTacticBoard,
+    required this.onRenameTacticBoard,
+    required this.onDeleteTacticBoard,
     required this.onPlayerPlaced,
     required this.onBoardModeChanged,
     required this.onTacticLineStarted,
@@ -1099,6 +1336,17 @@ class _TacticsBoardPanel extends StatelessWidget {
                 onClearTacticLines: onClearTacticLines,
               ),
               const SizedBox(height: AppSpacing.sm),
+              _TacticPlaybookPanel(
+                boards: tacticBoards,
+                activeBoardId: activeTacticBoardId,
+                readOnly: readOnly,
+                onBoardSelected: onTacticBoardSelected,
+                onAddBoard: onAddTacticBoard,
+                onDuplicateBoard: onDuplicateTacticBoard,
+                onRenameBoard: onRenameTacticBoard,
+                onDeleteBoard: onDeleteTacticBoard,
+              ),
+              const SizedBox(height: AppSpacing.sm),
               _BoardPlayerTray(
                 players: players,
                 playerPlacements: playerPlacements,
@@ -1123,6 +1371,328 @@ class _TacticsBoardPanel extends StatelessWidget {
       ),
     );
   }
+}
+
+class _TacticPlaybookPanel extends StatelessWidget {
+  final List<ManagedTacticBoard> boards;
+  final String activeBoardId;
+  final bool readOnly;
+  final ValueChanged<String> onBoardSelected;
+  final VoidCallback onAddBoard;
+  final VoidCallback onDuplicateBoard;
+  final void Function(String boardId, String title) onRenameBoard;
+  final VoidCallback onDeleteBoard;
+
+  const _TacticPlaybookPanel({
+    required this.boards,
+    required this.activeBoardId,
+    required this.readOnly,
+    required this.onBoardSelected,
+    required this.onAddBoard,
+    required this.onDuplicateBoard,
+    required this.onRenameBoard,
+    required this.onDeleteBoard,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final activeBoard = TeamManagementService.activeTacticBoard(
+      boards,
+      activeBoardId,
+    );
+    final activeBoardIndex = boards.indexWhere(
+      (board) => board.id == activeBoard.id,
+    );
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.sm),
+      decoration: BoxDecoration(
+        color: AppSurfaces.subtleColor(scheme, theme.brightness),
+        borderRadius: AppRadius.small,
+        border: Border.all(
+          color: AppSurfaces.borderColor(scheme, theme.brightness),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: scheme.primary.withValues(alpha: 0.12),
+                  borderRadius: AppRadius.small,
+                ),
+                child: Icon(
+                  Icons.menu_book_outlined,
+                  color: scheme.primary,
+                  size: 19,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.teamManagementTacticBookTitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    Text(
+                      l10n.teamManagementTacticBookPageCount(boards.length),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Wrap(
+            spacing: AppSpacing.xs,
+            runSpacing: AppSpacing.xs,
+            children: [
+              FilledButton.icon(
+                key: const ValueKey('team-tactic-board-add'),
+                onPressed: readOnly ? null : onAddBoard,
+                icon: const Icon(Icons.add_outlined),
+                label: Text(l10n.teamManagementTacticBoardAddButton),
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size(0, 36),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+              ),
+              OutlinedButton.icon(
+                key: const ValueKey('team-tactic-board-duplicate'),
+                onPressed: readOnly ? null : onDuplicateBoard,
+                icon: const Icon(Icons.copy_all_outlined),
+                label: Text(l10n.teamManagementTacticBoardDuplicateButton),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(0, 36),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+              ),
+              OutlinedButton.icon(
+                key: const ValueKey('team-tactic-board-rename'),
+                onPressed: readOnly
+                    ? null
+                    : () => unawaited(
+                          _showRenameDialog(
+                            context,
+                            activeBoard,
+                            activeBoardIndex < 0 ? 0 : activeBoardIndex,
+                          ),
+                        ),
+                icon: const Icon(Icons.drive_file_rename_outline),
+                label: Text(l10n.teamManagementTacticBoardRenameButton),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(0, 36),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+              ),
+              OutlinedButton.icon(
+                key: const ValueKey('team-tactic-board-delete'),
+                onPressed:
+                    readOnly || boards.length <= 1 ? null : onDeleteBoard,
+                icon: const Icon(Icons.delete_outline),
+                label: Text(l10n.teamManagementTacticBoardDeleteButton),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(0, 36),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          SizedBox(
+            height: 74,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: boards.length,
+              separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.xs),
+              itemBuilder: (context, index) {
+                final board = boards[index];
+                return _TacticPageCard(
+                  index: index,
+                  board: board,
+                  selected: board.id == activeBoard.id,
+                  onTap: () => onBoardSelected(board.id),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showRenameDialog(
+    BuildContext context,
+    ManagedTacticBoard board,
+    int boardIndex,
+  ) async {
+    final l10n = AppLocalizations.of(context)!;
+    final controller = TextEditingController(
+      text: _tacticBoardDisplayTitle(l10n, board, boardIndex),
+    );
+    final title = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(l10n.teamManagementTacticBoardRenameDialogTitle),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            textInputAction: TextInputAction.done,
+            decoration: InputDecoration(
+              labelText: l10n.teamManagementTacticBoardNameLabel,
+            ),
+            onSubmitted: (value) => Navigator.of(context).pop(value),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(controller.text),
+              child: Text(l10n.teamManagementTacticBoardRenameSaveButton),
+            ),
+          ],
+        );
+      },
+    );
+    controller.dispose();
+    if (title == null) return;
+    onRenameBoard(board.id, title);
+  }
+}
+
+class _TacticPageCard extends StatelessWidget {
+  final int index;
+  final ManagedTacticBoard board;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _TacticPageCard({
+    required this.index,
+    required this.board,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final foreground = selected ? scheme.onPrimaryContainer : scheme.onSurface;
+    final title = _tacticBoardDisplayTitle(l10n, board, index);
+    return Material(
+      color: selected ? scheme.primaryContainer : scheme.surface,
+      borderRadius: AppRadius.small,
+      child: InkWell(
+        onTap: selected ? null : onTap,
+        borderRadius: AppRadius.small,
+        child: Container(
+          width: 180,
+          padding: const EdgeInsets.all(AppSpacing.xs),
+          decoration: BoxDecoration(
+            borderRadius: AppRadius.small,
+            border: Border.all(
+              color: selected
+                  ? scheme.primary.withValues(alpha: 0.62)
+                  : AppSurfaces.borderColor(scheme, theme.brightness),
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 48,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: selected
+                      ? scheme.primary.withValues(alpha: 0.18)
+                      : scheme.surfaceContainerHighest.withValues(alpha: 0.62),
+                  borderRadius: AppRadius.small,
+                ),
+                child: Text(
+                  (index + 1).toString().padLeft(2, '0'),
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: selected ? scheme.primary : scheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: foreground,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      l10n.teamManagementTacticBoardPageMeta(
+                        board.playerPlacements.length,
+                        board.tacticLines.length,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: selected
+                            ? scheme.onPrimaryContainer.withValues(alpha: 0.76)
+                            : scheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+String _tacticBoardDisplayTitle(
+  AppLocalizations l10n,
+  ManagedTacticBoard board,
+  int index,
+) {
+  final normalizedIndex = index < 0 ? 0 : index;
+  final title = board.title.trim();
+  final legacyDefaultTitle = TeamManagementService.defaultTacticBoardTitle(
+    normalizedIndex + 1,
+  );
+  if (title.isEmpty || title == legacyDefaultTitle) {
+    return l10n.teamManagementTacticBoardDefaultTitle(normalizedIndex + 1);
+  }
+  return title;
 }
 
 class _BoardModeToolbar extends StatelessWidget {

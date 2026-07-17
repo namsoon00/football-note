@@ -11809,8 +11809,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get matchHubCommandCenterHelper => '一つの画面から選手管理と試合管理を選んで作業します。';
 
   @override
-  String get matchHubPlayerCommandHelper =>
-      '選手登録、チームプロフィール、ラインアップ、戦術ボードを管理します。';
+  String get matchHubPlayerCommandHelper => '選手登録、戦術ブック、試合準備ボードを管理します。';
 
   @override
   String get matchHubTeamCommandHelper => '選手管理と試合管理を一つのチーム構造内で切り替えます。';
@@ -12012,7 +12011,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get teamManagementTitle => 'チーム管理';
 
   @override
-  String get teamManagementSubtitle => '選手団、ラインアップ、チームプロフィール、予定と大会を作業別に整理します。';
+  String get teamManagementSubtitle => '選手団、戦術ブック、予定と大会を作業別に整理します。';
 
   @override
   String get teamManagementOpenButton => 'チーム管理';
@@ -12031,7 +12030,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get teamManagementWorkspaceHelper =>
-      '必要な作業ボタンを選び、選手団、戦術ボード、チーム情報、予定画面へ移動します。';
+      '必要な作業ボタンを選び、選手団、戦術ブック、予定画面へ移動します。';
 
   @override
   String get teamManagementWorkspaceBackButton => '作業選択へ';
@@ -12041,6 +12040,50 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get teamManagementWorkspaceBoardTab => '戦術ボード';
+
+  @override
+  String get teamManagementTacticBookTitle => '戦術ブック';
+
+  @override
+  String teamManagementTacticBookPageCount(int count) {
+    return '戦術 $count件';
+  }
+
+  @override
+  String teamManagementTacticBoardDefaultTitle(int index) {
+    return '戦術 $index';
+  }
+
+  @override
+  String teamManagementTacticBoardCopyTitle(Object title) {
+    return '$title コピー';
+  }
+
+  @override
+  String get teamManagementTacticBoardAddButton => '新規戦術';
+
+  @override
+  String get teamManagementTacticBoardDuplicateButton => '複製';
+
+  @override
+  String get teamManagementTacticBoardRenameButton => '名前変更';
+
+  @override
+  String get teamManagementTacticBoardDeleteButton => '削除';
+
+  @override
+  String get teamManagementTacticBoardRenameDialogTitle => '戦術名を変更';
+
+  @override
+  String get teamManagementTacticBoardNameLabel => '戦術名';
+
+  @override
+  String get teamManagementTacticBoardRenameSaveButton => '保存';
+
+  @override
+  String teamManagementTacticBoardPageMeta(int players, int markers) {
+    return '$players人 · マーカー$markers件';
+  }
 
   @override
   String get teamManagementWorkspaceProfileTab => 'チームプロフィール';

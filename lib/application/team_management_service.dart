@@ -246,6 +246,114 @@ class ManagedPlayerPlacement {
   }
 }
 
+class ManagedTacticBoard {
+  final String id;
+  final String title;
+  final Map<String, ManagedPlayerPlacement> playerPlacements;
+  final List<ManagedTacticLine> tacticLines;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  const ManagedTacticBoard({
+    required this.id,
+    required this.title,
+    this.playerPlacements = const <String, ManagedPlayerPlacement>{},
+    this.tacticLines = const <ManagedTacticLine>[],
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  factory ManagedTacticBoard.create({
+    required String title,
+    Map<String, ManagedPlayerPlacement> playerPlacements =
+        const <String, ManagedPlayerPlacement>{},
+    List<ManagedTacticLine> tacticLines = const <ManagedTacticLine>[],
+    DateTime? now,
+  }) {
+    final timestamp = now ?? DateTime.now();
+    return ManagedTacticBoard(
+      id: TeamManagementService.tacticBoardId(title: title, now: timestamp),
+      title: title.trim(),
+      playerPlacements: playerPlacements,
+      tacticLines: TeamManagementService.normalizeTacticLines(tacticLines),
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    );
+  }
+
+  factory ManagedTacticBoard.fromMap(Map<String, dynamic> map) {
+    final createdAt = DateTime.tryParse(map['createdAt']?.toString() ?? '') ??
+        DateTime.fromMillisecondsSinceEpoch(0);
+    final updatedAt =
+        DateTime.tryParse(map['updatedAt']?.toString() ?? '') ?? createdAt;
+    final playerPlacements = map['playerPlacements'] is Map
+        ? (map['playerPlacements'] as Map).map(
+            (key, value) {
+              final raw = value is Map
+                  ? value.cast<String, dynamic>()
+                  : <String, dynamic>{};
+              return MapEntry(
+                key.toString(),
+                ManagedPlayerPlacement.fromMap({
+                  ...raw,
+                  'playerId': raw['playerId'] ?? key.toString(),
+                }),
+              );
+            },
+          )
+        : const <String, ManagedPlayerPlacement>{};
+    final tacticLines = map['tacticLines'] is List
+        ? (map['tacticLines'] as List)
+            .whereType<Map>()
+            .map((item) => ManagedTacticLine.fromMap(
+                  item.cast<String, dynamic>(),
+                ))
+            .toList(growable: false)
+        : const <ManagedTacticLine>[];
+    return ManagedTacticBoard(
+      id: map['id']?.toString().trim() ?? '',
+      title: map['title']?.toString().trim() ?? '',
+      playerPlacements: playerPlacements,
+      tacticLines: TeamManagementService.normalizeTacticLines(tacticLines),
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+    );
+  }
+
+  ManagedTacticBoard copyWith({
+    String? id,
+    String? title,
+    Map<String, ManagedPlayerPlacement>? playerPlacements,
+    List<ManagedTacticLine>? tacticLines,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return ManagedTacticBoard(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      playerPlacements: playerPlacements ?? this.playerPlacements,
+      tacticLines: TeamManagementService.normalizeTacticLines(
+        tacticLines ?? this.tacticLines,
+      ),
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'id': id,
+      'title': title,
+      'playerPlacements': playerPlacements.map(
+        (key, value) => MapEntry(key, value.toMap()),
+      ),
+      'tacticLines': tacticLines.map((line) => line.toMap()).toList(),
+      'createdAt': createdAt.toIso8601String(),
+      'updatedAt': updatedAt.toIso8601String(),
+    };
+  }
+}
+
 class ManagedTeam {
   static const String defaultFormation = '4-3-3';
 
@@ -257,6 +365,8 @@ class ManagedTeam {
   final Map<String, String> lineup;
   final Map<String, ManagedPlayerPlacement> playerPlacements;
   final List<ManagedTacticLine> tacticLines;
+  final List<ManagedTacticBoard> tacticBoards;
+  final String activeTacticBoardId;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -269,6 +379,8 @@ class ManagedTeam {
     this.lineup = const <String, String>{},
     this.playerPlacements = const <String, ManagedPlayerPlacement>{},
     this.tacticLines = const <ManagedTacticLine>[],
+    this.tacticBoards = const <ManagedTacticBoard>[],
+    this.activeTacticBoardId = '',
     required this.createdAt,
     required this.updatedAt,
   });
@@ -287,6 +399,8 @@ class ManagedTeam {
     Map<String, ManagedPlayerPlacement> playerPlacements =
         const <String, ManagedPlayerPlacement>{},
     List<ManagedTacticLine> tacticLines = const <ManagedTacticLine>[],
+    List<ManagedTacticBoard> tacticBoards = const <ManagedTacticBoard>[],
+    String activeTacticBoardId = '',
     DateTime? now,
   }) {
     final timestamp = now ?? DateTime.now();
@@ -303,6 +417,38 @@ class ManagedTeam {
       placements: playerPlacements,
       players: normalizedPlayers,
     );
+    final fallbackPlacements = normalizedPlacements.isNotEmpty
+        ? normalizedPlacements
+        : TeamManagementService.placementsFromLineup(
+            lineup: normalizedLineup,
+            players: normalizedPlayers,
+            formation: normalizedFormation,
+          );
+    final fallbackLines = TeamManagementService.normalizeTacticLines(
+      tacticLines,
+    );
+    final normalizedBoards = TeamManagementService.normalizeTacticBoards(
+      tacticBoards,
+      players: normalizedPlayers,
+    );
+    final effectiveBoards = normalizedBoards.isNotEmpty
+        ? normalizedBoards
+        : [
+            ManagedTacticBoard.create(
+              title: TeamManagementService.defaultTacticBoardTitle(1),
+              playerPlacements: fallbackPlacements,
+              tacticLines: fallbackLines,
+              now: timestamp,
+            ),
+          ];
+    final activeBoardId = TeamManagementService.normalizeActiveTacticBoardId(
+      activeTacticBoardId,
+      effectiveBoards,
+    );
+    final activeBoard = TeamManagementService.activeTacticBoard(
+      effectiveBoards,
+      activeBoardId,
+    );
     return ManagedTeam(
       id: TeamManagementService.teamId(name: name, now: timestamp),
       name: name.trim(),
@@ -310,14 +456,10 @@ class ManagedTeam {
       strategy: strategy.trim(),
       players: normalizedPlayers,
       lineup: normalizedLineup,
-      playerPlacements: normalizedPlacements.isNotEmpty
-          ? normalizedPlacements
-          : TeamManagementService.placementsFromLineup(
-              lineup: normalizedLineup,
-              players: normalizedPlayers,
-              formation: normalizedFormation,
-            ),
-      tacticLines: TeamManagementService.normalizeTacticLines(tacticLines),
+      playerPlacements: activeBoard.playerPlacements,
+      tacticLines: activeBoard.tacticLines,
+      tacticBoards: effectiveBoards,
+      activeTacticBoardId: activeBoard.id,
       createdAt: timestamp,
       updatedAt: timestamp,
     );
@@ -370,6 +512,14 @@ class ManagedTeam {
                 ))
             .toList(growable: false)
         : const <ManagedTacticLine>[];
+    final tacticBoards = map['tacticBoards'] is List
+        ? (map['tacticBoards'] as List)
+            .whereType<Map>()
+            .map((item) => ManagedTacticBoard.fromMap(
+                  item.cast<String, dynamic>(),
+                ))
+            .toList(growable: false)
+        : const <ManagedTacticBoard>[];
     final normalizedPlayers = TeamManagementService.normalizePlayers(players);
     final normalizedLineup = TeamManagementService.normalizeLineup(
       lineup: lineup,
@@ -380,6 +530,38 @@ class ManagedTeam {
         TeamManagementService.normalizePlayerPlacements(
       placements: playerPlacements,
       players: normalizedPlayers,
+    );
+    final fallbackPlacements = normalizedPlacements.isNotEmpty
+        ? normalizedPlacements
+        : TeamManagementService.placementsFromLineup(
+            lineup: normalizedLineup,
+            players: normalizedPlayers,
+            formation: formation,
+          );
+    final fallbackLines = TeamManagementService.normalizeTacticLines(
+      tacticLines,
+    );
+    final normalizedBoards = TeamManagementService.normalizeTacticBoards(
+      tacticBoards,
+      players: normalizedPlayers,
+    );
+    final effectiveBoards = normalizedBoards.isNotEmpty
+        ? normalizedBoards
+        : [
+            ManagedTacticBoard.create(
+              title: TeamManagementService.defaultTacticBoardTitle(1),
+              playerPlacements: fallbackPlacements,
+              tacticLines: fallbackLines,
+              now: createdAt,
+            ),
+          ];
+    final activeBoardId = TeamManagementService.normalizeActiveTacticBoardId(
+      map['activeTacticBoardId']?.toString() ?? '',
+      effectiveBoards,
+    );
+    final activeBoard = TeamManagementService.activeTacticBoard(
+      effectiveBoards,
+      activeBoardId,
     );
     return ManagedTeam(
       id: map['id']?.toString().trim().isNotEmpty == true
@@ -393,14 +575,10 @@ class ManagedTeam {
       strategy: map['strategy']?.toString().trim() ?? '',
       players: normalizedPlayers,
       lineup: normalizedLineup,
-      playerPlacements: normalizedPlacements.isNotEmpty
-          ? normalizedPlacements
-          : TeamManagementService.placementsFromLineup(
-              lineup: normalizedLineup,
-              players: normalizedPlayers,
-              formation: formation,
-            ),
-      tacticLines: TeamManagementService.normalizeTacticLines(tacticLines),
+      playerPlacements: activeBoard.playerPlacements,
+      tacticLines: activeBoard.tacticLines,
+      tacticBoards: effectiveBoards,
+      activeTacticBoardId: activeBoard.id,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );
@@ -415,6 +593,8 @@ class ManagedTeam {
     Map<String, String>? lineup,
     Map<String, ManagedPlayerPlacement>? playerPlacements,
     List<ManagedTacticLine>? tacticLines,
+    List<ManagedTacticBoard>? tacticBoards,
+    String? activeTacticBoardId,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -427,6 +607,60 @@ class ManagedTeam {
       players: nextPlayers,
       formation: nextFormation,
     );
+    var nextBoards = TeamManagementService.normalizeTacticBoards(
+      tacticBoards ?? this.tacticBoards,
+      players: nextPlayers,
+    );
+    final nextPlacements = TeamManagementService.normalizePlayerPlacements(
+      placements: playerPlacements ?? this.playerPlacements,
+      players: nextPlayers,
+    );
+    final nextLines = TeamManagementService.normalizeTacticLines(
+      tacticLines ?? this.tacticLines,
+    );
+    if (nextBoards.isEmpty) {
+      nextBoards = [
+        ManagedTacticBoard.create(
+          title: TeamManagementService.defaultTacticBoardTitle(1),
+          playerPlacements: nextPlacements.isNotEmpty
+              ? nextPlacements
+              : TeamManagementService.placementsFromLineup(
+                  lineup: nextLineup,
+                  players: nextPlayers,
+                  formation: nextFormation,
+                ),
+          tacticLines: nextLines,
+          now: createdAt ?? this.createdAt,
+        ),
+      ];
+    }
+    if (tacticBoards == null &&
+        (playerPlacements != null || tacticLines != null)) {
+      final targetBoardId = TeamManagementService.normalizeActiveTacticBoardId(
+        activeTacticBoardId ?? this.activeTacticBoardId,
+        nextBoards,
+      );
+      nextBoards = [
+        for (final board in nextBoards)
+          if (board.id == targetBoardId)
+            board.copyWith(
+              playerPlacements: nextPlacements,
+              tacticLines: nextLines,
+              updatedAt: updatedAt ?? DateTime.now(),
+            )
+          else
+            board,
+      ];
+    }
+    final nextActiveBoardId =
+        TeamManagementService.normalizeActiveTacticBoardId(
+      activeTacticBoardId ?? this.activeTacticBoardId,
+      nextBoards,
+    );
+    final activeBoard = TeamManagementService.activeTacticBoard(
+      nextBoards,
+      nextActiveBoardId,
+    );
     return ManagedTeam(
       id: id ?? this.id,
       name: name ?? this.name,
@@ -434,13 +668,10 @@ class ManagedTeam {
       strategy: strategy ?? this.strategy,
       players: nextPlayers,
       lineup: nextLineup,
-      playerPlacements: TeamManagementService.normalizePlayerPlacements(
-        placements: playerPlacements ?? this.playerPlacements,
-        players: nextPlayers,
-      ),
-      tacticLines: TeamManagementService.normalizeTacticLines(
-        tacticLines ?? this.tacticLines,
-      ),
+      playerPlacements: activeBoard.playerPlacements,
+      tacticLines: activeBoard.tacticLines,
+      tacticBoards: nextBoards,
+      activeTacticBoardId: activeBoard.id,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -458,6 +689,8 @@ class ManagedTeam {
         (key, value) => MapEntry(key, value.toMap()),
       ),
       'tacticLines': tacticLines.map((line) => line.toMap()).toList(),
+      'tacticBoards': tacticBoards.map((board) => board.toMap()).toList(),
+      'activeTacticBoardId': activeTacticBoardId,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
     };
@@ -577,6 +810,17 @@ class TeamManagementService {
 
   static String tacticLineId({required DateTime now}) {
     return 'tactic-line:${now.microsecondsSinceEpoch}';
+  }
+
+  static String tacticBoardId({
+    required String title,
+    required DateTime now,
+  }) {
+    return 'tactic-board:${_normalizeKey(title)}:${now.microsecondsSinceEpoch}';
+  }
+
+  static String defaultTacticBoardTitle(int index) {
+    return 'Board ${index < 1 ? 1 : index}';
   }
 
   static String normalizeFormation(String formation) {
@@ -713,6 +957,64 @@ class TeamManagementService {
       lines.add(line.copyWith(id: id));
     }
     return lines;
+  }
+
+  static List<ManagedTacticBoard> normalizeTacticBoards(
+    Iterable<ManagedTacticBoard> values, {
+    required Iterable<ManagedTeamPlayer> players,
+  }) {
+    final seen = <String>{};
+    final boards = <ManagedTacticBoard>[];
+    for (final board in values) {
+      final id = board.id.trim();
+      if (id.isEmpty || seen.contains(id)) continue;
+      seen.add(id);
+      final title = board.title.trim().isEmpty
+          ? defaultTacticBoardTitle(boards.length + 1)
+          : board.title.trim();
+      boards.add(
+        board.copyWith(
+          id: id,
+          title: title,
+          playerPlacements: normalizePlayerPlacements(
+            placements: board.playerPlacements,
+            players: players,
+          ),
+          tacticLines: normalizeTacticLines(board.tacticLines),
+        ),
+      );
+    }
+    return boards;
+  }
+
+  static String normalizeActiveTacticBoardId(
+    String activeTacticBoardId,
+    List<ManagedTacticBoard> boards,
+  ) {
+    if (boards.isEmpty) return '';
+    final key = activeTacticBoardId.trim();
+    if (key.isNotEmpty && boards.any((board) => board.id == key)) {
+      return key;
+    }
+    return boards.first.id;
+  }
+
+  static ManagedTacticBoard activeTacticBoard(
+    List<ManagedTacticBoard> boards,
+    String activeTacticBoardId,
+  ) {
+    if (boards.isEmpty) {
+      final now = DateTime.fromMillisecondsSinceEpoch(0);
+      return ManagedTacticBoard.create(
+        title: defaultTacticBoardTitle(1),
+        now: now,
+      );
+    }
+    final key = normalizeActiveTacticBoardId(activeTacticBoardId, boards);
+    return boards.firstWhere(
+      (board) => board.id == key,
+      orElse: () => boards.first,
+    );
   }
 
   static List<TeamFormationSpot> formationSpots(String formation) {

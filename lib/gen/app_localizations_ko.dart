@@ -11831,7 +11831,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get matchHubCommandCenterHelper => '선수관리와 시합관리를 한 화면에서 선택해 이어서 작업하세요.';
 
   @override
-  String get matchHubPlayerCommandHelper => '선수 등록, 팀 프로필, 라인업과 전술 보드를 관리하세요.';
+  String get matchHubPlayerCommandHelper => '선수 등록, 전술 책, 시합 준비 보드를 관리하세요.';
 
   @override
   String get matchHubTeamCommandHelper => '선수관리와 시합관리를 한 화면 구조 안에서 전환합니다.';
@@ -12033,7 +12033,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get teamManagementTitle => '팀 관리';
 
   @override
-  String get teamManagementSubtitle => '선수단, 라인업, 팀 프로필, 일정과 대회를 작업별로 정리하세요.';
+  String get teamManagementSubtitle => '선수단, 전술 책, 일정과 대회를 작업별로 정리하세요.';
 
   @override
   String get teamManagementOpenButton => '팀 관리';
@@ -12052,7 +12052,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get teamManagementWorkspaceHelper =>
-      '필요한 작업 버튼을 눌러 선수단, 전술 보드, 팀 정보, 일정 화면으로 이동하세요.';
+      '필요한 작업 버튼을 눌러 선수단, 전술 책, 일정 화면으로 이동하세요.';
 
   @override
   String get teamManagementWorkspaceBackButton => '작업 선택으로';
@@ -12062,6 +12062,50 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get teamManagementWorkspaceBoardTab => '전술 보드';
+
+  @override
+  String get teamManagementTacticBookTitle => '전술 책';
+
+  @override
+  String teamManagementTacticBookPageCount(int count) {
+    return '$count개 전술';
+  }
+
+  @override
+  String teamManagementTacticBoardDefaultTitle(int index) {
+    return '전술 $index';
+  }
+
+  @override
+  String teamManagementTacticBoardCopyTitle(Object title) {
+    return '$title 복사본';
+  }
+
+  @override
+  String get teamManagementTacticBoardAddButton => '새 전술';
+
+  @override
+  String get teamManagementTacticBoardDuplicateButton => '복제';
+
+  @override
+  String get teamManagementTacticBoardRenameButton => '이름 변경';
+
+  @override
+  String get teamManagementTacticBoardDeleteButton => '삭제';
+
+  @override
+  String get teamManagementTacticBoardRenameDialogTitle => '전술 이름 변경';
+
+  @override
+  String get teamManagementTacticBoardNameLabel => '전술 이름';
+
+  @override
+  String get teamManagementTacticBoardRenameSaveButton => '저장';
+
+  @override
+  String teamManagementTacticBoardPageMeta(int players, int markers) {
+    return '$players명 · 마커 $markers개';
+  }
 
   @override
   String get teamManagementWorkspaceProfileTab => '팀 프로필';

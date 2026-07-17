@@ -6583,7 +6583,7 @@
   "matchHubNoTeamsSubtitle": "선수 등록부터 시작할 수 있는 팀 관리 화면에서 우리 팀을 준비하세요.",
   "matchHubCommandCenterTitle": "운영 작업",
   "matchHubCommandCenterHelper": "선수관리와 시합관리를 한 화면에서 선택해 이어서 작업하세요.",
-  "matchHubPlayerCommandHelper": "선수 등록, 팀 프로필, 라인업과 전술 보드를 관리하세요.",
+  "matchHubPlayerCommandHelper": "선수 등록, 전술 책, 시합 준비 보드를 관리하세요.",
   "matchHubTeamCommandHelper": "선수관리와 시합관리를 한 화면 구조 안에서 전환합니다.",
   "matchHubTeamCommandPrimary": "팀 관리 열기",
   "matchHubMatchCommandTitle": "시합 관리",
@@ -6701,16 +6701,57 @@
     }
   },
   "teamManagementTitle": "팀 관리",
-  "teamManagementSubtitle": "선수단, 라인업, 팀 프로필, 일정과 대회를 작업별로 정리하세요.",
+  "teamManagementSubtitle": "선수단, 전술 책, 일정과 대회를 작업별로 정리하세요.",
   "teamManagementOpenButton": "팀 관리",
   "teamManagementPlayerSectionTab": "선수관리",
   "teamManagementMatchSectionTab": "시합관리",
   "teamManagementDefaultTeamName": "우리 팀",
   "teamManagementWorkspaceTitle": "작업 선택",
-  "teamManagementWorkspaceHelper": "필요한 작업 버튼을 눌러 선수단, 전술 보드, 팀 정보, 일정 화면으로 이동하세요.",
+  "teamManagementWorkspaceHelper": "필요한 작업 버튼을 눌러 선수단, 전술 책, 일정 화면으로 이동하세요.",
   "teamManagementWorkspaceBackButton": "작업 선택으로",
   "teamManagementWorkspaceRosterTab": "선수단",
   "teamManagementWorkspaceBoardTab": "전술 보드",
+  "teamManagementTacticBookTitle": "전술 책",
+  "teamManagementTacticBookPageCount": "{count}개 전술",
+  "@teamManagementTacticBookPageCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "teamManagementTacticBoardDefaultTitle": "전술 {index}",
+  "@teamManagementTacticBoardDefaultTitle": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "teamManagementTacticBoardCopyTitle": "{title} 복사본",
+  "@teamManagementTacticBoardCopyTitle": {
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "teamManagementTacticBoardAddButton": "새 전술",
+  "teamManagementTacticBoardDuplicateButton": "복제",
+  "teamManagementTacticBoardRenameButton": "이름 변경",
+  "teamManagementTacticBoardDeleteButton": "삭제",
+  "teamManagementTacticBoardRenameDialogTitle": "전술 이름 변경",
+  "teamManagementTacticBoardNameLabel": "전술 이름",
+  "teamManagementTacticBoardRenameSaveButton": "저장",
+  "teamManagementTacticBoardPageMeta": "{players}명 · 마커 {markers}개",
+  "@teamManagementTacticBoardPageMeta": {
+    "placeholders": {
+      "players": {
+        "type": "int"
+      },
+      "markers": {
+        "type": "int"
+      }
+    }
+  },
   "teamManagementWorkspaceProfileTab": "팀 프로필",
   "teamManagementWorkspaceOperationsTab": "일정·대회",
   "teamManagementWorkspaceProfileValue": "이름·전술",

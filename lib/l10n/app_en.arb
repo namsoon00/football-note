@@ -6583,7 +6583,7 @@
   "matchHubNoTeamsSubtitle": "Prepare your team in the team management screen where player registration starts immediately.",
   "matchHubCommandCenterTitle": "Operations work",
   "matchHubCommandCenterHelper": "Choose player management or match management from one screen.",
-  "matchHubPlayerCommandHelper": "Manage player registration, team profile, lineup, and tactics board.",
+  "matchHubPlayerCommandHelper": "Manage player registration, the tactics book, and match-prep boards.",
   "matchHubTeamCommandHelper": "Switch between player management and match management in one team structure.",
   "matchHubTeamCommandPrimary": "Open team management",
   "matchHubMatchCommandTitle": "Match management",
@@ -6701,16 +6701,57 @@
     }
   },
   "teamManagementTitle": "Team Management",
-  "teamManagementSubtitle": "Organize the roster, lineup, team profile, schedule, and competitions by task.",
+  "teamManagementSubtitle": "Organize the roster, tactics book, schedule, and competitions by task.",
   "teamManagementOpenButton": "Team management",
   "teamManagementPlayerSectionTab": "Player management",
   "teamManagementMatchSectionTab": "Match management",
   "teamManagementDefaultTeamName": "Our team",
   "teamManagementWorkspaceTitle": "Choose a workspace",
-  "teamManagementWorkspaceHelper": "Choose a task button to open the roster, tactics board, team details, or schedule screen.",
+  "teamManagementWorkspaceHelper": "Choose a task button to open the roster, tactics book, or schedule screen.",
   "teamManagementWorkspaceBackButton": "Back to tasks",
   "teamManagementWorkspaceRosterTab": "Roster",
   "teamManagementWorkspaceBoardTab": "Tactics board",
+  "teamManagementTacticBookTitle": "Tactics book",
+  "teamManagementTacticBookPageCount": "{count} tactic(s)",
+  "@teamManagementTacticBookPageCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "teamManagementTacticBoardDefaultTitle": "Tactic {index}",
+  "@teamManagementTacticBoardDefaultTitle": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "teamManagementTacticBoardCopyTitle": "{title} copy",
+  "@teamManagementTacticBoardCopyTitle": {
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "teamManagementTacticBoardAddButton": "New tactic",
+  "teamManagementTacticBoardDuplicateButton": "Duplicate",
+  "teamManagementTacticBoardRenameButton": "Rename",
+  "teamManagementTacticBoardDeleteButton": "Delete",
+  "teamManagementTacticBoardRenameDialogTitle": "Rename tactic",
+  "teamManagementTacticBoardNameLabel": "Tactic name",
+  "teamManagementTacticBoardRenameSaveButton": "Save",
+  "teamManagementTacticBoardPageMeta": "{players} players · {markers} markers",
+  "@teamManagementTacticBoardPageMeta": {
+    "placeholders": {
+      "players": {
+        "type": "int"
+      },
+      "markers": {
+        "type": "int"
+      }
+    }
+  },
   "teamManagementWorkspaceProfileTab": "Team profile",
   "teamManagementWorkspaceOperationsTab": "Schedule",
   "teamManagementWorkspaceProfileValue": "Name & tactics",
