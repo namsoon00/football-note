@@ -57,25 +57,25 @@ class HomeHubSectionSettings {
   static const String legacyLayoutKey = 'home_hub_layout_v1';
 
   static const List<HomeHubSectionId> defaultOrder = <HomeHubSectionId>[
-    HomeHubSectionId.dailyFlow,
-    HomeHubSectionId.quickActions,
-    HomeHubSectionId.continueSection,
-    HomeHubSectionId.clubSchedule,
-    HomeHubSectionId.meal,
-    HomeHubSectionId.streak,
     HomeHubSectionId.challenge,
     HomeHubSectionId.level,
+    HomeHubSectionId.streak,
+    HomeHubSectionId.dailyFlow,
+    HomeHubSectionId.continueSection,
+    HomeHubSectionId.quickActions,
+    HomeHubSectionId.clubSchedule,
+    HomeHubSectionId.meal,
   ];
 
   static const List<HomeHubSectionId> routineFirstOrder = <HomeHubSectionId>[
-    HomeHubSectionId.dailyFlow,
-    HomeHubSectionId.quickActions,
-    HomeHubSectionId.continueSection,
-    HomeHubSectionId.clubSchedule,
-    HomeHubSectionId.meal,
-    HomeHubSectionId.streak,
     HomeHubSectionId.challenge,
     HomeHubSectionId.level,
+    HomeHubSectionId.streak,
+    HomeHubSectionId.dailyFlow,
+    HomeHubSectionId.continueSection,
+    HomeHubSectionId.quickActions,
+    HomeHubSectionId.clubSchedule,
+    HomeHubSectionId.meal,
   ];
 
   final List<HomeHubSectionSetting> sections;

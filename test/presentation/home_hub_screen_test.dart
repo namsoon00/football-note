@@ -375,16 +375,12 @@ void main() {
     }
 
     expect(
-      sectionTop('home-layout-daily-flow-section'),
-      lessThan(sectionTop('home-layout-quick-actions-section')),
+      sectionTop('home-layout-challenge-section'),
+      lessThan(sectionTop('home-layout-level-section')),
     );
     expect(
-      sectionTop('home-layout-quick-actions-section'),
-      lessThan(sectionTop('home-layout-continue-section')),
-    );
-    expect(
-      sectionTop('home-layout-continue-section'),
-      lessThan(sectionTop('home-layout-club-schedule-section')),
+      sectionTop('home-layout-level-section'),
+      lessThan(sectionTop('home-layout-daily-flow-section')),
     );
     expect(find.text('홈화면 변경'), findsOneWidget);
     final titleRect = tester.getRect(
@@ -411,13 +407,13 @@ void main() {
     expect(find.text('홈 화면 설정'), findsOneWidget);
     expect(
       find.byKey(
-        const ValueKey<String>('home-section-drag-area-club_schedule'),
+        const ValueKey<String>('home-section-drag-area-challenge'),
       ),
       findsOneWidget,
     );
     await tester.tap(
       find.byKey(
-        const ValueKey<String>('home-section-pinned-club_schedule'),
+        const ValueKey<String>('home-section-pinned-challenge'),
       ),
     );
     await tester.pump();
@@ -463,7 +459,7 @@ void main() {
     final reorderableList = tester.widget<ReorderableListView>(
       find.byKey(const ValueKey<String>('home-section-settings-list')),
     );
-    reorderableList.onReorder(1, 0);
+    reorderableList.onReorder(5, 3);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 250));
     expect(find.text('홈 화면 순서를 저장했어요.'), findsOneWidget);
@@ -473,7 +469,7 @@ void main() {
     );
     expect(
       rawSettings,
-      contains('"id":"club_schedule","visible":true,"pinned":true'),
+      contains('"id":"challenge","visible":true,"pinned":true'),
     );
     expect(rawSettings, contains('"id":"level","visible":false'));
     expect(
