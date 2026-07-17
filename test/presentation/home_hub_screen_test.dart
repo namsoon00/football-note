@@ -135,7 +135,7 @@ void main() {
       expect(find.text('식사 루틴을 더 채워야 합니다.'), findsOneWidget);
       expect(
         sectionTop('home-layout-meal-section'),
-        lessThan(sectionTop('home-layout-club-schedule-section')),
+        lessThan(sectionTop('home-layout-daily-flow-section')),
       );
 
       await tester.pumpWidget(const SizedBox.shrink());
@@ -320,8 +320,14 @@ void main() {
     );
     expect(find.textContaining(expectedTimeRange), findsOneWidget);
 
+    await tester.scrollUntilVisible(
+      card,
+      240,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.tap(card);
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text('클럽 일정'), findsWidgets);
 
@@ -369,12 +375,16 @@ void main() {
     }
 
     expect(
-      sectionTop('home-layout-club-schedule-section'),
-      lessThan(sectionTop('home-layout-daily-flow-section')),
-    );
-    expect(
       sectionTop('home-layout-daily-flow-section'),
       lessThan(sectionTop('home-layout-quick-actions-section')),
+    );
+    expect(
+      sectionTop('home-layout-quick-actions-section'),
+      lessThan(sectionTop('home-layout-continue-section')),
+    );
+    expect(
+      sectionTop('home-layout-continue-section'),
+      lessThan(sectionTop('home-layout-club-schedule-section')),
     );
     expect(find.text('홈화면 변경'), findsOneWidget);
     final titleRect = tester.getRect(
@@ -453,7 +463,7 @@ void main() {
     final reorderableList = tester.widget<ReorderableListView>(
       find.byKey(const ValueKey<String>('home-section-settings-list')),
     );
-    reorderableList.onReorder(2, 1);
+    reorderableList.onReorder(1, 0);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 250));
     expect(find.text('홈 화면 순서를 저장했어요.'), findsOneWidget);
@@ -482,6 +492,78 @@ void main() {
     expect(
       sectionTop('home-layout-quick-actions-section'),
       lessThan(sectionTop('home-layout-daily-flow-section')),
+    );
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
+
+  testWidgets('home keeps saved manual order ahead of usage ranking', (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _MemoryOptionRepository();
+    await optionRepository.setValue(
+      HomeHubSectionSettings.storageKey,
+      HomeHubSectionSettings.fromOrder(<HomeHubSectionId>[
+        HomeHubSectionId.quickActions,
+        HomeHubSectionId.dailyFlow,
+        HomeHubSectionId.challenge,
+        HomeHubSectionId.meal,
+        HomeHubSectionId.clubSchedule,
+        HomeHubSectionId.continueSection,
+        HomeHubSectionId.streak,
+        HomeHubSectionId.level,
+      ]).encode(),
+    );
+    await optionRepository.setValue(
+      HomeHubSectionSettings.usageStorageKey,
+      HomeHubSectionSettings.encodeUsageCounts(<HomeHubSectionId, int>{
+        HomeHubSectionId.challenge: 20,
+        HomeHubSectionId.meal: 12,
+      }),
+    );
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+    final trainingService = TrainingService(_MemoryTrainingRepository());
+    final mealLogService = MealLogService(optionRepository);
+
+    await tester.pumpWidget(
+      _buildApp(
+        HomeHubScreen(
+          trainingService: trainingService,
+          mealLogService: mealLogService,
+          localeService: localeService,
+          optionRepository: optionRepository,
+          settingsService: settingsService,
+          onCreate: () {},
+          onQuickPlan: () {},
+          onQuickMatch: () {},
+          onQuickQuiz: () {},
+          onQuickMeal: () {},
+          onQuickBoard: () {},
+          onOpenLogs: () {},
+          onOpenDiary: () {},
+          onOpenWeeklyStats: () {},
+          onEdit: (_) {},
+          onEditTrainingBoard: (_) {},
+          onCreateTrainingBoard: ({DateTime? initialDate}) async {},
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    double sectionTop(String key) {
+      return tester.getTopLeft(find.byKey(ValueKey<String>(key))).dy;
+    }
+
+    expect(
+      sectionTop('home-layout-quick-actions-section'),
+      lessThan(sectionTop('home-layout-challenge-section')),
+    );
+    expect(
+      sectionTop('home-layout-quick-actions-section'),
+      lessThan(sectionTop('home-layout-meal-section')),
     );
 
     await tester.pumpWidget(const SizedBox.shrink());

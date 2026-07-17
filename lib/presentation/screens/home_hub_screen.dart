@@ -595,10 +595,13 @@ class _HomeHubScreenState extends State<HomeHubScreen>
                   };
 
                   final visibleHomeSections = <Widget>[];
+                  final orderedSectionIds = _homeSectionSettings.customized
+                      ? _homeSectionSettings.visibleSections
+                      : _homeSectionSettings.visibleSectionsByUsage(
+                          _homeSectionUsageCounts,
+                        );
                   final visibleSectionIds = _prioritizedHomeSections(
-                    _homeSectionSettings.visibleSectionsByUsage(
-                      _homeSectionUsageCounts,
-                    ),
+                    orderedSectionIds,
                     data.todayMealEntry,
                   );
                   for (final section in visibleSectionIds) {
@@ -686,7 +689,8 @@ class _HomeHubScreenState extends State<HomeHubScreen>
     List<HomeHubSectionId> sections,
     MealEntry? todayMealEntry,
   ) {
-    if (!sections.contains(HomeHubSectionId.meal) ||
+    if (_homeSectionSettings.customized ||
+        !sections.contains(HomeHubSectionId.meal) ||
         _homeSectionSettings.isPinned(HomeHubSectionId.meal) ||
         !_shouldPromoteMealSection(todayMealEntry)) {
       return sections;

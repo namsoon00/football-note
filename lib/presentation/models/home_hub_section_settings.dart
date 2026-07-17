@@ -57,37 +57,45 @@ class HomeHubSectionSettings {
   static const String legacyLayoutKey = 'home_hub_layout_v1';
 
   static const List<HomeHubSectionId> defaultOrder = <HomeHubSectionId>[
-    HomeHubSectionId.clubSchedule,
     HomeHubSectionId.dailyFlow,
     HomeHubSectionId.quickActions,
     HomeHubSectionId.continueSection,
+    HomeHubSectionId.clubSchedule,
     HomeHubSectionId.meal,
-    HomeHubSectionId.challenge,
     HomeHubSectionId.streak,
+    HomeHubSectionId.challenge,
     HomeHubSectionId.level,
   ];
 
   static const List<HomeHubSectionId> routineFirstOrder = <HomeHubSectionId>[
-    HomeHubSectionId.clubSchedule,
     HomeHubSectionId.dailyFlow,
     HomeHubSectionId.quickActions,
     HomeHubSectionId.continueSection,
-    HomeHubSectionId.level,
-    HomeHubSectionId.challenge,
-    HomeHubSectionId.streak,
+    HomeHubSectionId.clubSchedule,
     HomeHubSectionId.meal,
+    HomeHubSectionId.streak,
+    HomeHubSectionId.challenge,
+    HomeHubSectionId.level,
   ];
 
   final List<HomeHubSectionSetting> sections;
+  final bool customized;
 
-  const HomeHubSectionSettings({required this.sections});
+  const HomeHubSectionSettings({
+    required this.sections,
+    this.customized = false,
+  });
 
   factory HomeHubSectionSettings.defaults() {
     return HomeHubSectionSettings.fromOrder(defaultOrder);
   }
 
-  factory HomeHubSectionSettings.fromOrder(List<HomeHubSectionId> order) {
+  factory HomeHubSectionSettings.fromOrder(
+    List<HomeHubSectionId> order, {
+    bool customized = false,
+  }) {
     return HomeHubSectionSettings(
+      customized: customized,
       sections: order
           .map(
             (section) => HomeHubSectionSetting(
@@ -127,6 +135,7 @@ class HomeHubSectionSettings {
         );
       }
       return HomeHubSectionSettings(
+        customized: true,
         sections: _normalizedSections(parsed),
       );
     } catch (_) {
@@ -210,7 +219,7 @@ class HomeHubSectionSettings {
     if (newIndex > next.length) newIndex = next.length;
     final moved = next.removeAt(oldIndex);
     next.insert(newIndex, moved);
-    return HomeHubSectionSettings(sections: next);
+    return HomeHubSectionSettings(sections: next, customized: true);
   }
 
   HomeHubSectionSettings setVisible(
@@ -218,6 +227,7 @@ class HomeHubSectionSettings {
     bool visible,
   ) {
     return HomeHubSectionSettings(
+      customized: true,
       sections: sections
           .map(
             (item) => item.section == section
@@ -233,6 +243,7 @@ class HomeHubSectionSettings {
     bool pinned,
   ) {
     return HomeHubSectionSettings(
+      customized: true,
       sections: sections
           .map(
             (item) =>
@@ -291,18 +302,10 @@ class HomeHubSectionSettings {
       bySection.putIfAbsent(item.section, () => item);
     }
     return <HomeHubSectionSetting>[
-      bySection[HomeHubSectionId.clubSchedule] ??
-          const HomeHubSectionSetting(
-            section: HomeHubSectionId.clubSchedule,
-            visible: true,
-          ),
       for (final item in parsed)
-        if (item.section != HomeHubSectionId.clubSchedule &&
-            bySection[item.section] == item)
-          item,
+        if (bySection[item.section] == item) item,
       for (final section in defaultOrder)
-        if (section != HomeHubSectionId.clubSchedule &&
-            !bySection.containsKey(section))
+        if (!bySection.containsKey(section))
           HomeHubSectionSetting(section: section, visible: true),
     ];
   }

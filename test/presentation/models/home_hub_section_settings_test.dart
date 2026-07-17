@@ -5,25 +5,26 @@ import 'package:football_note/presentation/models/home_hub_section_settings.dart
 
 void main() {
   group('HomeHubSectionSettings', () {
-    test('defaults place routine actions before progress sections', () {
+    test('defaults prioritize usable actions before motivational progress', () {
       final settings = HomeHubSectionSettings.defaults();
 
       expect(
         settings.sections.map((item) => item.section),
         <HomeHubSectionId>[
-          HomeHubSectionId.clubSchedule,
           HomeHubSectionId.dailyFlow,
           HomeHubSectionId.quickActions,
           HomeHubSectionId.continueSection,
+          HomeHubSectionId.clubSchedule,
           HomeHubSectionId.meal,
-          HomeHubSectionId.challenge,
           HomeHubSectionId.streak,
+          HomeHubSectionId.challenge,
           HomeHubSectionId.level,
         ],
       );
+      expect(settings.customized, isFalse);
     });
 
-    test('decode promotes stored club schedule to the top', () {
+    test('decode preserves stored section order', () {
       final settings = HomeHubSectionSettings.decode(
         jsonEncode(
           <String, dynamic>{
@@ -39,9 +40,9 @@ void main() {
       expect(
         settings.sections.map((item) => item.section).take(3),
         <HomeHubSectionId>[
-          HomeHubSectionId.clubSchedule,
           HomeHubSectionId.level,
           HomeHubSectionId.meal,
+          HomeHubSectionId.clubSchedule,
         ],
       );
       expect(
@@ -50,6 +51,7 @@ void main() {
             .visible,
         isFalse,
       );
+      expect(settings.customized, isTrue);
     });
 
     test('decode keeps pinned sections', () {
@@ -85,14 +87,14 @@ void main() {
         <HomeHubSectionId>[
           HomeHubSectionId.challenge,
           HomeHubSectionId.quickActions,
-          HomeHubSectionId.clubSchedule,
+          HomeHubSectionId.dailyFlow,
         ],
       );
     });
 
     test('pinned sections keep their visible slot during usage ordering', () {
       final settings = HomeHubSectionSettings.defaults().setPinned(
-        HomeHubSectionId.clubSchedule,
+        HomeHubSectionId.dailyFlow,
         true,
       );
 
@@ -104,7 +106,7 @@ void main() {
           },
         ).take(3),
         <HomeHubSectionId>[
-          HomeHubSectionId.clubSchedule,
+          HomeHubSectionId.dailyFlow,
           HomeHubSectionId.challenge,
           HomeHubSectionId.quickActions,
         ],
@@ -125,7 +127,7 @@ void main() {
       );
     });
 
-    test('decode inserts missing club schedule at the top', () {
+    test('decode appends missing sections by default order', () {
       final settings = HomeHubSectionSettings.decode(
         jsonEncode(
           <String, dynamic>{
@@ -137,8 +139,10 @@ void main() {
         ),
       );
 
-      expect(settings.sections.first.section, HomeHubSectionId.clubSchedule);
-      expect(settings.sections[1].section, HomeHubSectionId.level);
+      expect(settings.sections.first.section, HomeHubSectionId.level);
+      expect(settings.sections[1].section, HomeHubSectionId.dailyFlow);
+      expect(settings.sections[2].section, HomeHubSectionId.quickActions);
+      expect(settings.sections[3].section, HomeHubSectionId.continueSection);
     });
   });
 }
