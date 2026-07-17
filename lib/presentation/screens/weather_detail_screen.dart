@@ -3914,6 +3914,9 @@ class _HourlyPrecipitationChart extends StatelessWidget {
   Widget build(BuildContext context) {
     if (entries.isEmpty) return const SizedBox.shrink();
     final width = math.max(320.0, entries.length * 62.0);
+    final timeLabels = _deduplicatedHourlyTimeLabels(
+      entries.map((entry) => formatTime(entry.time)),
+    );
     const chartHeight = 72.0;
     const precipitationLabelHeight = 34.0;
     return SizedBox(
@@ -3935,12 +3938,6 @@ class _HourlyPrecipitationChart extends StatelessWidget {
           Row(
             children: List<Widget>.generate(entries.length, (index) {
               final entry = entries[index];
-              final previousEntry = index == 0 ? null : entries[index - 1];
-              final showPrecipitationLabel = previousEntry == null ||
-                  _precipitationAmountLevel(entry.precipitation) !=
-                      _precipitationAmountLevel(
-                        previousEntry.precipitation,
-                      );
               return SizedBox(
                 width: width / entries.length,
                 child: Column(
@@ -3949,27 +3946,23 @@ class _HourlyPrecipitationChart extends StatelessWidget {
                     SizedBox(
                       height: precipitationLabelHeight,
                       child: Center(
-                        child: showPrecipitationLabel
-                            ? Text(
-                                formatPrecipitation(entry),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                textAlign: TextAlign.center,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .labelMedium
-                                    ?.copyWith(
-                                      color: labelColor,
-                                      fontWeight: FontWeight.w900,
-                                      height: 1.05,
-                                    ),
-                              )
-                            : const SizedBox.shrink(),
+                        child: Text(
+                          formatPrecipitation(entry),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          style:
+                              Theme.of(context).textTheme.labelMedium?.copyWith(
+                                    color: labelColor,
+                                    fontWeight: FontWeight.w900,
+                                    height: 1.05,
+                                  ),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      formatTime(entry.time),
+                      timeLabels[index],
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
@@ -4214,13 +4207,8 @@ class _HourlyTemperatureSection extends StatelessWidget {
                       _HourlyWeatherMetricRow(
                         label: precipitationLabel,
                         values: [
-                          for (var index = 0;
-                              index < sortedEntries.length;
-                              index++)
-                            _precipitationOverviewLabel(
-                              sortedEntries,
-                              index,
-                            ),
+                          for (final entry in sortedEntries)
+                            _precipitationOverviewLabel(entry),
                         ],
                         labelColor: timeTextColor,
                         valueColor: titleColor,
@@ -4247,19 +4235,9 @@ class _HourlyTemperatureSection extends StatelessWidget {
     );
   }
 
-  String _precipitationOverviewLabel(
-    List<_HourlyWeatherOverviewEntry> entries,
-    int index,
-  ) {
-    final entry = entries[index];
+  String _precipitationOverviewLabel(_HourlyWeatherOverviewEntry entry) {
     final precipitation = entry.precipitation;
     if (precipitation == null) return '--';
-    final previous = index == 0 ? null : entries[index - 1];
-    final level = _precipitationAmountLevel(precipitation);
-    final previousLevel = previous?.precipitation == null
-        ? null
-        : _precipitationAmountLevel(previous!.precipitation!);
-    if (previousLevel == level) return '';
     return formatPrecipitation(entry.toPrecipitationEntry());
   }
 }
@@ -4359,6 +4337,9 @@ class _HourlyTemperatureChart extends StatelessWidget {
     if (entries.isEmpty) return const SizedBox.shrink();
     final width =
         _hourlyWeatherLabelWidth + (entries.length * _hourlyWeatherColumnWidth);
+    final timeLabels = _deduplicatedHourlyTimeLabels(
+      entries.map((entry) => formatTime(entry.time)),
+    );
     const chartHeight = 72.0;
     return SizedBox(
       width: width,
@@ -4375,7 +4356,7 @@ class _HourlyTemperatureChart extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        formatTime(entries[index].time),
+                        timeLabels[index],
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
@@ -4508,6 +4489,13 @@ class _HourlyTemperatureChartPainter extends CustomPainter {
         oldDelegate.temperatureColors != temperatureColors ||
         oldDelegate.pointFillColor != pointFillColor;
   }
+}
+
+List<String> _deduplicatedHourlyTimeLabels(Iterable<String> labels) {
+  final seenLabels = <String>{};
+  return [
+    for (final label in labels) seenLabels.add(label) ? label : '',
+  ];
 }
 
 class _HourlyPrecipitationEntry {

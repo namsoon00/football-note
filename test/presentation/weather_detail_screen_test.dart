@@ -569,7 +569,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('Hourly precipitation labels only appear when severity changes', (
+  testWidgets('Hourly precipitation shows every amount label', (
     WidgetTester tester,
   ) async {
     WeatherSharedResource.primeSnapshot(
@@ -642,11 +642,92 @@ void main() {
     expect(find.text('14:00'), findsAtLeastNWidgets(1));
     expect(find.text('15:00'), findsAtLeastNWidgets(1));
     expect(find.textContaining('0.5'), findsOneWidget);
-    expect(find.textContaining('0.8'), findsNothing);
-    expect(find.textContaining('1.1'), findsNothing);
+    expect(find.textContaining('0.8'), findsOneWidget);
+    expect(find.textContaining('1.1'), findsOneWidget);
     expect(find.textContaining('0.0'), findsOneWidget);
-    expect(find.textContaining('조금 와요'), findsOneWidget);
+    expect(find.textContaining('조금 와요'), findsNWidgets(2));
+    expect(find.textContaining('가볍게 와요'), findsAtLeastNWidgets(2));
     expect(find.textContaining('안 와요'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Hourly precipitation hides only duplicate time labels', (
+    WidgetTester tester,
+  ) async {
+    final today = DateTime(2026, 5, 4);
+    final tomorrow = today.add(const Duration(days: 1));
+    WeatherSharedResource.primeSnapshot(
+      WeatherSharedSnapshot(
+        location: '강남구 역삼1동',
+        localeTag: 'ko-KR',
+        fetchedAt: DateTime.now(),
+        summary: '맑음',
+        weatherCode: 0,
+        temperature: 21,
+        dailyForecasts: [
+          WeatherSharedDailyForecast(
+            date: today,
+            summary: '맑음',
+            weatherCode: 0,
+            temperatureMax: 24,
+            temperatureMin: 18,
+          ),
+          WeatherSharedDailyForecast(
+            date: tomorrow,
+            summary: '비',
+            weatherCode: 61,
+            temperatureMax: 22,
+            temperatureMin: 17,
+            precipitationSum: 2.7,
+            hourlyPrecipitations: [
+              WeatherSharedHourlyPrecipitation(
+                time: tomorrow.add(const Duration(hours: 9)),
+                precipitation: 0.6,
+              ),
+              WeatherSharedHourlyPrecipitation(
+                time: tomorrow.add(const Duration(hours: 9)),
+                precipitation: 0.9,
+              ),
+              WeatherSharedHourlyPrecipitation(
+                time: tomorrow.add(const Duration(hours: 10)),
+                precipitation: 1.2,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: const MaterialApp(
+          locale: Locale('ko', 'KR'),
+          localizationsDelegates: [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: [Locale('en'), Locale('ko', 'KR')],
+          home: WeatherDetailScreen(
+            initialLocation: '강남구 역삼1동',
+            initialSummary: '맑음 21°C',
+            initialWeatherCode: 0,
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.tap(find.text('내일'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('시간별 비 타임라인'), findsOneWidget);
+    expect(find.text('09:00'), findsOneWidget);
+    expect(find.text('10:00'), findsOneWidget);
+    expect(find.textContaining('0.6'), findsOneWidget);
+    expect(find.textContaining('0.9'), findsOneWidget);
+    expect(find.textContaining('1.2'), findsAtLeastNWidgets(1));
     expect(tester.takeException(), isNull);
   });
 
