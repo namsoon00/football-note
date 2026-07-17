@@ -20959,7 +20959,7 @@ abstract class AppLocalizations {
   /// No description provided for @matchHubPlayerCommandHelper.
   ///
   /// In en, this message translates to:
-  /// **'Manage player registration, team profile, lineup, and tactics board.'**
+  /// **'Manage player registration, the tactics book, and match-prep boards.'**
   String get matchHubPlayerCommandHelper;
 
   /// No description provided for @matchHubTeamCommandHelper.
@@ -21319,7 +21319,7 @@ abstract class AppLocalizations {
   /// No description provided for @teamManagementSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Organize the roster, lineup, team profile, schedule, and competitions by task.'**
+  /// **'Organize the roster, tactics book, schedule, and competitions by task.'**
   String get teamManagementSubtitle;
 
   /// No description provided for @teamManagementOpenButton.
@@ -21355,7 +21355,7 @@ abstract class AppLocalizations {
   /// No description provided for @teamManagementWorkspaceHelper.
   ///
   /// In en, this message translates to:
-  /// **'Choose a task button to open the roster, tactics board, team details, or schedule screen.'**
+  /// **'Choose a task button to open the roster, tactics book, or schedule screen.'**
   String get teamManagementWorkspaceHelper;
 
   /// No description provided for @teamManagementWorkspaceBackButton.
@@ -21375,6 +21375,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tactics board'**
   String get teamManagementWorkspaceBoardTab;
+
+  /// No description provided for @teamManagementTacticBookTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tactics book'**
+  String get teamManagementTacticBookTitle;
+
+  /// No description provided for @teamManagementTacticBookPageCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} tactic(s)'**
+  String teamManagementTacticBookPageCount(int count);
+
+  /// No description provided for @teamManagementTacticBoardDefaultTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tactic {index}'**
+  String teamManagementTacticBoardDefaultTitle(int index);
+
+  /// No description provided for @teamManagementTacticBoardCopyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} copy'**
+  String teamManagementTacticBoardCopyTitle(Object title);
+
+  /// No description provided for @teamManagementTacticBoardAddButton.
+  ///
+  /// In en, this message translates to:
+  /// **'New tactic'**
+  String get teamManagementTacticBoardAddButton;
+
+  /// No description provided for @teamManagementTacticBoardDuplicateButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate'**
+  String get teamManagementTacticBoardDuplicateButton;
+
+  /// No description provided for @teamManagementTacticBoardRenameButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get teamManagementTacticBoardRenameButton;
+
+  /// No description provided for @teamManagementTacticBoardDeleteButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get teamManagementTacticBoardDeleteButton;
+
+  /// No description provided for @teamManagementTacticBoardRenameDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename tactic'**
+  String get teamManagementTacticBoardRenameDialogTitle;
+
+  /// No description provided for @teamManagementTacticBoardNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tactic name'**
+  String get teamManagementTacticBoardNameLabel;
+
+  /// No description provided for @teamManagementTacticBoardRenameSaveButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get teamManagementTacticBoardRenameSaveButton;
+
+  /// No description provided for @teamManagementTacticBoardPageMeta.
+  ///
+  /// In en, this message translates to:
+  /// **'{players} players · {markers} markers'**
+  String teamManagementTacticBoardPageMeta(int players, int markers);
 
   /// No description provided for @teamManagementWorkspaceProfileTab.
   ///

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/match_competition_service.dart';
 import 'package:football_note/application/running_growth_service.dart';
@@ -48,6 +50,55 @@ void main() {
         ),
         isTrue,
       );
+    });
+
+    test('migrates a single tactic board into the tactic book', () {
+      final repository = _MemoryOptionRepository();
+      final player = ManagedTeamPlayer.create(
+        name: 'Kim',
+        now: DateTime(2026, 7, 1),
+      );
+      final placement = ManagedPlayerPlacement.create(
+        playerId: player.id,
+        x: 0.42,
+        y: 0.58,
+      );
+      final line = ManagedTacticLine.create(
+        type: ManagedTacticLine.typePress,
+        startX: 0.2,
+        startY: 0.3,
+        endX: 0.7,
+        endY: 0.4,
+        now: DateTime(2026, 7, 1, 9),
+      );
+      repository.seed(
+        TeamManagementService.storageKey,
+        jsonEncode([
+          <String, Object?>{
+            'id': 'team:legacy',
+            'name': 'Legacy Team',
+            'formation': ManagedTeam.defaultFormation,
+            'strategy': '',
+            'players': [player.toMap()],
+            'lineup': <String, String>{},
+            'playerPlacements': <String, Object?>{
+              player.id: placement.toMap(),
+            },
+            'tacticLines': [line.toMap()],
+            'createdAt': DateTime(2026, 7, 1).toIso8601String(),
+            'updatedAt': DateTime(2026, 7, 1).toIso8601String(),
+          },
+        ]),
+      );
+
+      final team = TeamManagementService(repository).allTeams().single;
+
+      expect(team.tacticBoards, hasLength(1));
+      expect(team.tacticBoards.single.playerPlacements[player.id], isNotNull);
+      expect(team.tacticBoards.single.tacticLines.single.type,
+          ManagedTacticLine.typePress);
+      expect(team.playerPlacements[player.id], isNotNull);
+      expect(team.tacticLines, hasLength(1));
     });
 
     test('separates match competitions by sport', () async {

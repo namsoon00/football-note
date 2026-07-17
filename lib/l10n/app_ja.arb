@@ -6583,7 +6583,7 @@
   "matchHubNoTeamsSubtitle": "選手登録から始められるチーム管理画面で自分のチームを準備しましょう。",
   "matchHubCommandCenterTitle": "運営タスク",
   "matchHubCommandCenterHelper": "一つの画面から選手管理と試合管理を選んで作業します。",
-  "matchHubPlayerCommandHelper": "選手登録、チームプロフィール、ラインアップ、戦術ボードを管理します。",
+  "matchHubPlayerCommandHelper": "選手登録、戦術ブック、試合準備ボードを管理します。",
   "matchHubTeamCommandHelper": "選手管理と試合管理を一つのチーム構造内で切り替えます。",
   "matchHubTeamCommandPrimary": "チーム管理を開く",
   "matchHubMatchCommandTitle": "試合管理",
@@ -6701,16 +6701,57 @@
     }
   },
   "teamManagementTitle": "チーム管理",
-  "teamManagementSubtitle": "選手団、ラインアップ、チームプロフィール、予定と大会を作業別に整理します。",
+  "teamManagementSubtitle": "選手団、戦術ブック、予定と大会を作業別に整理します。",
   "teamManagementOpenButton": "チーム管理",
   "teamManagementPlayerSectionTab": "選手管理",
   "teamManagementMatchSectionTab": "試合管理",
   "teamManagementDefaultTeamName": "自分のチーム",
   "teamManagementWorkspaceTitle": "作業を選択",
-  "teamManagementWorkspaceHelper": "必要な作業ボタンを選び、選手団、戦術ボード、チーム情報、予定画面へ移動します。",
+  "teamManagementWorkspaceHelper": "必要な作業ボタンを選び、選手団、戦術ブック、予定画面へ移動します。",
   "teamManagementWorkspaceBackButton": "作業選択へ",
   "teamManagementWorkspaceRosterTab": "選手団",
   "teamManagementWorkspaceBoardTab": "戦術ボード",
+  "teamManagementTacticBookTitle": "戦術ブック",
+  "teamManagementTacticBookPageCount": "戦術 {count}件",
+  "@teamManagementTacticBookPageCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "teamManagementTacticBoardDefaultTitle": "戦術 {index}",
+  "@teamManagementTacticBoardDefaultTitle": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "teamManagementTacticBoardCopyTitle": "{title} コピー",
+  "@teamManagementTacticBoardCopyTitle": {
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "teamManagementTacticBoardAddButton": "新規戦術",
+  "teamManagementTacticBoardDuplicateButton": "複製",
+  "teamManagementTacticBoardRenameButton": "名前変更",
+  "teamManagementTacticBoardDeleteButton": "削除",
+  "teamManagementTacticBoardRenameDialogTitle": "戦術名を変更",
+  "teamManagementTacticBoardNameLabel": "戦術名",
+  "teamManagementTacticBoardRenameSaveButton": "保存",
+  "teamManagementTacticBoardPageMeta": "{players}人 · マーカー{markers}件",
+  "@teamManagementTacticBoardPageMeta": {
+    "placeholders": {
+      "players": {
+        "type": "int"
+      },
+      "markers": {
+        "type": "int"
+      }
+    }
+  },
   "teamManagementWorkspaceProfileTab": "チームプロフィール",
   "teamManagementWorkspaceOperationsTab": "予定・大会",
   "teamManagementWorkspaceProfileValue": "名前・戦術",

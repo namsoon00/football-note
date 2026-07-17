@@ -762,6 +762,8 @@ void main() {
     expect(find.text('포메이션'), findsNothing);
     expect(find.byKey(const ValueKey('team-board-landscape-toggle')),
         findsOneWidget);
+    expect(find.text('전술 책'), findsOneWidget);
+    expect(find.text('전술 1'), findsOneWidget);
 
     final playerChip = find.text('10 김민준').last;
     final pitchFinder = find.byKey(const ValueKey('team-tactics-board-pitch'));
@@ -804,6 +806,20 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    await tester.tap(find.byKey(const ValueKey('team-tactic-board-add')));
+    await tester.pumpAndSettle();
+    expect(find.text('전술 2'), findsOneWidget);
+    final secondBoardPlayerChip = find.text('10 김민준').last;
+    await tester.ensureVisible(secondBoardPlayerChip);
+    await tester.drag(
+      secondBoardPlayerChip,
+      pitchRect.topCenter.translate(0, pitchRect.height * 0.32) -
+          tester.getCenter(secondBoardPlayerChip),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('전술 1').last);
+    await tester.pumpAndSettle();
+
     expect(find.text('팀 저장'), findsNothing);
     await tester.pump(const Duration(seconds: 1));
     await tester.pumpAndSettle();
@@ -821,6 +837,10 @@ void main() {
     expect(placement!.x, inInclusiveRange(0.35, 0.65));
     expect(placement.y, inInclusiveRange(0.35, 0.65));
     expect(teams.single.tacticLines, hasLength(3));
+    expect(teams.single.tacticBoards, hasLength(2));
+    expect(teams.single.tacticBoards.first.tacticLines, hasLength(3));
+    expect(teams.single.tacticBoards.last.title, '전술 2');
+    expect(teams.single.tacticBoards.last.playerPlacements, hasLength(1));
     expect(
       teams.single.tacticLines.map((line) => line.type),
       containsAll(<String>[
