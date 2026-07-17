@@ -3650,6 +3650,12 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String statsReportTrainingRhythmCompactValue(
+      int sessions, int activeDays, int periodDays, int streak) {
+    return '$sessions회 · $activeDays/$periodDays일 · $streak일 연속';
+  }
+
+  @override
   String get statsReportLessonCountLabel => '레슨 횟수';
 
   @override
@@ -3686,6 +3692,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get statsReportDefaultFocus => '기본기';
 
   @override
+  String get statsReportExpandDetailsAction => '자세히 보기';
+
+  @override
+  String get statsReportCollapseDetailsAction => '접기';
+
+  @override
   String statsReportFocusStreakValue(Object focus, int days) {
     return '$focus · $days일 연속';
   }
@@ -3715,6 +3727,9 @@ class AppLocalizationsKo extends AppLocalizations {
       Object intensity, Object mood, int injuryDays) {
     return '강도 $intensity · 기분 $mood · 부상 $injuryDays일';
   }
+
+  @override
+  String get statsReportConditioningLabel => '보조운동';
 
   @override
   String statsReportConditioningValue(int minutes, int count) {

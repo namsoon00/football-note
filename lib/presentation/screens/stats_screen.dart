@@ -1548,7 +1548,7 @@ class _JumpRopeSummaryCard extends StatelessWidget {
   }
 }
 
-class _TrainingReportSection extends StatelessWidget {
+class _TrainingReportSection extends StatefulWidget {
   final List<TrainingEntry> entries;
   final List<MealEntry> mealEntries;
   final List<_StatsPlanLite> plans;
@@ -1570,68 +1570,88 @@ class _TrainingReportSection extends StatelessWidget {
   });
 
   @override
+  State<_TrainingReportSection> createState() => _TrainingReportSectionState();
+}
+
+class _TrainingReportSectionState extends State<_TrainingReportSection> {
+  bool _detailsExpanded = false;
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final sportLabel = SportDefaults.label(l10n: l10n, sportId: sportId);
+    final sportLabel = SportDefaults.label(l10n: l10n, sportId: widget.sportId);
     final primaryConditioningLabel = SportDefaults.primaryConditioningLabel(
       l10n: l10n,
-      sportId: sportId,
+      sportId: widget.sportId,
     );
     final secondaryConditioningLabel = SportDefaults.secondaryConditioningLabel(
       l10n: l10n,
-      sportId: sportId,
+      sportId: widget.sportId,
     );
-    final periodDays = _periodDayCount(range);
-    final activeDays = entries.map((entry) => _dayOnly(entry.date)).toSet();
-    final mealDays = mealEntries.map((entry) => _dayOnly(entry.date)).toSet();
-    final lessonCount = entries.where((entry) => entry.isLesson).length;
-    final totalMinutes = entries.fold<int>(
+    final periodDays = _periodDayCount(widget.range);
+    final activeDays =
+        widget.entries.map((entry) => _dayOnly(entry.date)).toSet();
+    final mealDays =
+        widget.mealEntries.map((entry) => _dayOnly(entry.date)).toSet();
+    final fullMealDays = widget.mealEntries
+        .where((entry) => entry.completedMeals >= 3)
+        .map((entry) => _dayOnly(entry.date))
+        .toSet()
+        .length;
+    final lessonCount = widget.entries.where((entry) => entry.isLesson).length;
+    final totalMinutes = widget.entries.fold<int>(
       0,
       (sum, entry) => sum + entry.durationMinutes,
     );
-    final focus = _topFocusLabel(entries, l10n);
-    final streak = _currentTrainingStreak(entries);
+    final focus = _topFocusLabel(widget.entries, l10n);
+    final streak = _currentTrainingStreak(widget.entries);
     final target = benchmarkTargetForSport(
-      sportId: sportId,
-      ageYears: ageYears,
-      sportYears: soccerYears,
+      sportId: widget.sportId,
+      ageYears: widget.ageYears,
+      sportYears: widget.soccerYears,
     );
-    final targetMinutes = showTarget
+    final targetMinutes = widget.showTarget
         ? ((target.weeklyMinutesTarget / 7) * periodDays).round()
         : 0;
     final targetPercent = targetMinutes > 0
         ? ((totalMinutes / targetMinutes) * 100).round()
         : null;
-    final plannedDays = plans.map((plan) => _dayOnly(plan.scheduledAt)).toSet();
+    final plannedDays =
+        widget.plans.map((plan) => _dayOnly(plan.scheduledAt)).toSet();
     final completedPlanDays = plannedDays.where(activeDays.contains).length;
     final planPercent = plannedDays.isEmpty
         ? null
         : ((completedPlanDays / plannedDays.length) * 100).round();
-    final avgMood = entries.fold<double>(
+    final avgIntensity = widget.entries.fold<double>(
+          0,
+          (sum, entry) => sum + entry.intensity,
+        ) /
+        widget.entries.length;
+    final avgMood = widget.entries.fold<double>(
           0,
           (sum, entry) => sum + entry.mood,
         ) /
-        entries.length;
-    final injuryDays = entries
+        widget.entries.length;
+    final injuryDays = widget.entries
         .where((entry) => entry.injury)
         .map((entry) {
           return _dayOnly(entry.date);
         })
         .toSet()
         .length;
-    final primaryMinutes = entries.fold<int>(
+    final primaryMinutes = widget.entries.fold<int>(
       0,
       (sum, entry) => sum + entry.jumpRopeMinutes,
     );
-    final primaryCount = entries.fold<int>(
+    final primaryCount = widget.entries.fold<int>(
       0,
       (sum, entry) => sum + entry.jumpRopeCount,
     );
-    final secondaryMinutes = entries.fold<int>(
+    final secondaryMinutes = widget.entries.fold<int>(
       0,
       (sum, entry) => sum + entry.liftingMinutes,
     );
-    final secondaryCount = entries.fold<int>(
+    final secondaryCount = widget.entries.fold<int>(
       0,
       (sum, entry) =>
           sum +
@@ -1645,6 +1665,9 @@ class _TrainingReportSection extends StatelessWidget {
     final planText = planPercent == null
         ? l10n.statsReportNoPlanValue
         : l10n.statsReportTargetPercentValue(planPercent);
+    final targetText = targetPercent == null
+        ? l10n.statsReportNoTargetValue
+        : l10n.statsReportTargetPercentValue(targetPercent);
     final insight = _trainingInsight(
       l10n: l10n,
       sportLabel: sportLabel,
@@ -1659,39 +1682,56 @@ class _TrainingReportSection extends StatelessWidget {
       secondaryConditioningLabel: secondaryConditioningLabel,
     );
 
-    final cards = <_MetricCard>[
+    final coreCards = <_MetricCard>[
       _MetricCard(
         label: l10n.statsReportTotalTimeLabel,
         value: _formatMinutesAsTime(totalMinutes, l10n: l10n),
       ),
       _MetricCard(
         label: l10n.statsReportTrainingRhythmLabel,
-        value: l10n.statsReportTrainingRhythmValue(
-          entries.length,
+        value: l10n.statsReportTrainingRhythmCompactValue(
+          widget.entries.length,
           activeDays.length,
           periodDays,
+          streak,
         ),
       ),
+      _MetricCard(
+        label: l10n.statsReportTargetPlanLabel,
+        value: l10n.statsReportTargetPlanValue(targetText, planText),
+      ),
+    ];
+    final detailCards = <_MetricCard>[
       _MetricCard(
         label: l10n.statsReportLessonCountLabel,
         value: l10n.statsReportLessonCountValue(lessonCount),
       ),
-      if (targetPercent != null)
-        _MetricCard(
-          label: l10n.statsReportTargetPlanLabel,
-          value: l10n.statsReportTargetPlanValue(
-            l10n.statsReportTargetPercentValue(targetPercent),
-            planText,
-          ),
-        )
-      else
-        _MetricCard(
-          label: l10n.statsReportPlanExecutionLabel,
-          value: planText,
-        ),
       _MetricCard(
         label: l10n.statsReportFocusLabel,
         value: l10n.statsReportFocusStreakValue(focus, streak),
+      ),
+      _MetricCard(
+        label: l10n.statsReportMealCoverageLabel,
+        value: l10n.statsReportMealCoverageValue(
+          mealDays.length,
+          periodDays,
+          fullMealDays,
+        ),
+      ),
+      _MetricCard(
+        label: l10n.statsReportConditionLabel,
+        value: l10n.statsReportConditionValue(
+          _oneDecimal(avgIntensity),
+          _oneDecimal(avgMood),
+          injuryDays,
+        ),
+      ),
+      _MetricCard(
+        label: l10n.statsReportConditioningLabel,
+        value: l10n.statsReportConditioningValue(
+          primaryMinutes + secondaryMinutes,
+          primaryCount + secondaryCount,
+        ),
       ),
     ];
 
@@ -1703,26 +1743,54 @@ class _TrainingReportSection extends StatelessWidget {
           title: l10n.statsReportTrainingTitle(sportLabel),
         ),
         const SizedBox(height: 12),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final columns = constraints.maxWidth >= 520 ? 2 : 1;
-            final cardWidth =
-                (constraints.maxWidth - (10 * (columns - 1))) / columns;
-            return Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: cards
-                  .map((card) => SizedBox(width: cardWidth, child: card))
-                  .toList(growable: false),
-            );
-          },
-        ),
-        const SizedBox(height: 12),
+        _CompactMetricGrid(cards: coreCards),
+        const SizedBox(height: 10),
         _CoachMessage(
           icon: Icons.tips_and_updates_outlined,
           title: l10n.statsReportInsightTitle,
           message: insight,
+          maxLines: _detailsExpanded ? null : 2,
         ),
+        const SizedBox(height: 4),
+        Align(
+          alignment: Alignment.centerRight,
+          child: Semantics(
+            expanded: _detailsExpanded,
+            child: TextButton(
+              key: const ValueKey('stats-report-details-toggle'),
+              onPressed: () {
+                setState(() {
+                  _detailsExpanded = !_detailsExpanded;
+                });
+              },
+              style: TextButton.styleFrom(
+                minimumSize: const Size(48, 48),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                tapTargetSize: MaterialTapTargetSize.padded,
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    _detailsExpanded
+                        ? Icons.keyboard_arrow_up
+                        : Icons.keyboard_arrow_down,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    _detailsExpanded
+                        ? l10n.statsReportCollapseDetailsAction
+                        : l10n.statsReportExpandDetailsAction,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        if (_detailsExpanded) ...[
+          const SizedBox(height: 6),
+          _CompactMetricGrid(cards: detailCards),
+        ],
       ],
     );
   }
@@ -1767,6 +1835,31 @@ class _TrainingReportSection extends StatelessWidget {
       sportLabel,
       activeDayCount,
       periodDays,
+    );
+  }
+}
+
+class _CompactMetricGrid extends StatelessWidget {
+  final List<_MetricCard> cards;
+
+  const _CompactMetricGrid({required this.cards});
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const spacing = 8.0;
+        final columns = constraints.maxWidth >= 640 ? 3 : 2;
+        final cardWidth =
+            (constraints.maxWidth - (spacing * (columns - 1))) / columns;
+        return Wrap(
+          spacing: spacing,
+          runSpacing: spacing,
+          children: cards
+              .map((card) => SizedBox(width: cardWidth, child: card))
+              .toList(growable: false),
+        );
+      },
     );
   }
 }
@@ -3460,11 +3553,13 @@ class _CoachMessage extends StatelessWidget {
   final IconData icon;
   final String title;
   final String message;
+  final int? maxLines;
 
   const _CoachMessage({
     required this.icon,
     required this.title,
     required this.message,
+    this.maxLines,
   });
 
   @override
@@ -3492,6 +3587,10 @@ class _CoachMessage extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   message,
+                  maxLines: maxLines,
+                  overflow: maxLines == null
+                      ? TextOverflow.visible
+                      : TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         height: 1.45,
                         fontWeight: FontWeight.w500,

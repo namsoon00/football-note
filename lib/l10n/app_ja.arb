@@ -2125,6 +2125,23 @@
       }
     }
   },
+  "statsReportTrainingRhythmCompactValue": "{sessions}回 · {activeDays}/{periodDays}日 · {streak}日連続",
+  "@statsReportTrainingRhythmCompactValue": {
+    "placeholders": {
+      "sessions": {
+        "type": "int"
+      },
+      "activeDays": {
+        "type": "int"
+      },
+      "periodDays": {
+        "type": "int"
+      },
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
   "statsReportLessonCountLabel": "レッスン回数",
   "statsReportLessonCountValue": "{count}回",
   "@statsReportLessonCountValue": {
@@ -2158,6 +2175,8 @@
   "statsReportNoPlanValue": "計画なし",
   "statsReportFocusLabel": "集中分野",
   "statsReportDefaultFocus": "基礎",
+  "statsReportExpandDetailsAction": "詳しく見る",
+  "statsReportCollapseDetailsAction": "閉じる",
   "statsReportFocusStreakValue": "{focus} · {days}日連続",
   "@statsReportFocusStreakValue": {
     "placeholders": {
@@ -2202,6 +2221,7 @@
       }
     }
   },
+  "statsReportConditioningLabel": "補助運動",
   "statsReportConditioningValue": "{minutes}分 · {count}回",
   "@statsReportConditioningValue": {
     "placeholders": {
