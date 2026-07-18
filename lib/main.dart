@@ -40,6 +40,7 @@ import 'presentation/screens/sport_start_selection_screen.dart';
 import 'presentation/screens/welcome_screen.dart';
 import 'presentation/theme/app_theme.dart';
 import 'presentation/navigation/notification_tap_router.dart';
+import 'presentation/widgets/football_loading_bar.dart';
 import 'presentation/widgets/keyboard_dismiss_overlay.dart';
 import 'presentation/widgets/sport_scope.dart';
 
@@ -591,12 +592,12 @@ class _StartupLoadingScreen extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const SizedBox(
-                  width: 42,
-                  height: 42,
-                  child: CircularProgressIndicator(strokeWidth: 4),
+                Semantics(
+                  label: l10n.startupLoadingTitle,
+                  liveRegion: true,
+                  child: const FootballLoadingBar(),
                 ),
-                const SizedBox(height: 28),
+                const SizedBox(height: 24),
                 Text(
                   l10n.startupLoadingTitle,
                   textAlign: TextAlign.center,
