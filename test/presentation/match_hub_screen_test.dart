@@ -750,21 +750,25 @@ void main() {
       find.byKey(const ValueKey('team-player-name-field')),
       '김민준',
     );
-    await tester.enterText(
-      find.byKey(const ValueKey('team-player-number-field')),
-      '10',
+    await _selectDropdownValue(
+      tester,
+      const ValueKey('team-player-number-field'),
+      '번호 10',
     );
-    await tester.enterText(
-      find.byKey(const ValueKey('team-player-grade-field')),
+    await _selectDropdownValue(
+      tester,
+      const ValueKey('team-player-grade-field'),
       '초등 5학년',
     );
-    await tester.enterText(
-      find.byKey(const ValueKey('team-player-height-field')),
-      '152.5',
+    await _selectDropdownValue(
+      tester,
+      const ValueKey('team-player-height-field'),
+      '152cm',
     );
-    await tester.enterText(
-      find.byKey(const ValueKey('team-player-weight-field')),
-      '43.2',
+    await _selectDropdownValue(
+      tester,
+      const ValueKey('team-player-weight-field'),
+      '43kg',
     );
     await tester.ensureVisible(
       find.byKey(const ValueKey('team-player-note-field')),
@@ -861,8 +865,8 @@ void main() {
     expect(teams.single.players.single.name, '김민준');
     expect(teams.single.players.single.role, ManagedTeamPlayer.roleMidfielder);
     expect(teams.single.players.single.grade, '초등 5학년');
-    expect(teams.single.players.single.heightCm, 152.5);
-    expect(teams.single.players.single.weightKg, 43.2);
+    expect(teams.single.players.single.heightCm, 152);
+    expect(teams.single.players.single.weightKg, 43);
     expect(teams.single.players.single.note, '왼발 킥 좋음');
     final placement =
         teams.single.playerPlacements[teams.single.players.single.id];
@@ -907,6 +911,19 @@ void _expectOutlinedButtonContrast(WidgetTester tester, String text) {
         .first,
   );
   _expectButtonStyleContrast(button.style, text);
+}
+
+Future<void> _selectDropdownValue(
+  WidgetTester tester,
+  Key dropdownKey,
+  String optionText,
+) async {
+  final dropdown = find.byKey(dropdownKey);
+  await tester.ensureVisible(dropdown);
+  await tester.tap(dropdown);
+  await tester.pumpAndSettle();
+  await tester.tap(find.text(optionText).last);
+  await tester.pumpAndSettle();
 }
 
 void _expectButtonStyleContrast(ButtonStyle? style, String text) {

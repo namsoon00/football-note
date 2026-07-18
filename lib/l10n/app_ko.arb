@@ -6852,7 +6852,33 @@
   "teamManagementPlayerBasicInfoTitle": "기본 정보",
   "teamManagementPlayerGradeLabel": "학년",
   "teamManagementPlayerGradeHint": "예) 초등 5학년",
+  "teamManagementPlayerGradeUnset": "학년 미선택",
+  "teamManagementPlayerElementaryGradeOption": "초등 {grade}학년",
+  "@teamManagementPlayerElementaryGradeOption": {
+    "placeholders": {
+      "grade": {
+        "type": "int"
+      }
+    }
+  },
+  "teamManagementPlayerMiddleGradeOption": "중등 {grade}학년",
+  "@teamManagementPlayerMiddleGradeOption": {
+    "placeholders": {
+      "grade": {
+        "type": "int"
+      }
+    }
+  },
+  "teamManagementPlayerHighGradeOption": "고등 {grade}학년",
+  "@teamManagementPlayerHighGradeOption": {
+    "placeholders": {
+      "grade": {
+        "type": "int"
+      }
+    }
+  },
   "teamManagementPlayerBodySizeTitle": "신체 사이즈",
+  "teamManagementPlayerBodySizeUnset": "미선택",
   "teamManagementPlayerHeightLabel": "키",
   "teamManagementPlayerHeightUnit": "cm",
   "teamManagementPlayerWeightLabel": "몸무게",

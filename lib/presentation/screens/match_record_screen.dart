@@ -1060,28 +1060,18 @@ class _MatchRecordSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    return Container(
-      decoration: AppSurfaces.cardDecoration(scheme, theme.brightness),
-      padding: const EdgeInsets.all(AppSpacing.md),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             children: [
-              Container(
-                width: 32,
-                height: 32,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: scheme.primary.withValues(alpha: 0.12),
-                  borderRadius: AppRadius.small,
-                ),
-                child: Text(
-                  step.toString(),
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    color: scheme.primary,
-                    fontWeight: FontWeight.w900,
-                  ),
+              Text(
+                step.toString().padLeft(2, '0'),
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: scheme.primary,
+                  fontWeight: FontWeight.w900,
                 ),
               ),
               const SizedBox(width: AppSpacing.xs),
@@ -1129,14 +1119,8 @@ class _ManagedCompetitionRequiredNotice extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.sm),
-      decoration: AppSurfaces.subtleDecoration(
-        scheme,
-        theme.brightness,
-        accent: scheme.primary,
-        accentAlpha: 0.04,
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1193,13 +1177,8 @@ class _SelectedCompetitionSummary extends StatelessWidget {
         ? l10n.matchCompetitionStatusFinished
         : l10n.matchCompetitionStatusActive;
     final teams = MatchCompetitionService.normalizeTeams(competition.teams);
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.sm),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest.withValues(alpha: 0.46),
-        borderRadius: AppRadius.small,
-        border: Border.all(color: scheme.outlineVariant),
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -1336,14 +1315,8 @@ class _SavedCompetitionLoader extends StatelessWidget {
             ? selectedCompetitionId
             : null;
 
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.sm),
-      decoration: AppSurfaces.subtleDecoration(
-        scheme,
-        theme.brightness,
-        accent: scheme.secondary,
-        accentAlpha: 0.04,
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

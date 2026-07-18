@@ -116,9 +116,9 @@ class _CompetitionManagementScreenState
 
               return SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.md,
                   AppSpacing.sm,
-                  AppSpacing.md,
+                  AppSpacing.sm,
+                  AppSpacing.sm,
                   AppSpacing.xl,
                 ),
                 child: Column(
@@ -218,91 +218,79 @@ class _CompetitionOperationsHero extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    return Container(
-      decoration: AppSurfaces.heroDecoration(
-        scheme,
-        theme.brightness,
-        accent: const Color(0xFF1F8A70),
-      ),
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              AppBarActionButton.icon(
-                icon: Icons.arrow_back,
-                tooltip: MaterialLocalizations.of(context).backButtonTooltip,
-                onPressed: onBack,
-                margin: EdgeInsets.zero,
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.matchCompetitionProTitle,
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.xxs),
-                    Text(
-                      l10n.matchCompetitionProSubtitle,
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.84),
-                        height: 1.35,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            l10n.matchCompetitionOperationsSummaryTitle,
-            style: theme.textTheme.labelLarge?.copyWith(
-              color: Colors.white.withValues(alpha: 0.82),
-              fontWeight: FontWeight.w900,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            BackButton(
+              onPressed: onBack,
             ),
+            const SizedBox(width: AppSpacing.xs),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.matchCompetitionProTitle,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xxs),
+                  Text(
+                    l10n.matchCompetitionProSubtitle,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                      height: 1.35,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Text(
+          l10n.matchCompetitionOperationsSummaryTitle,
+          style: theme.textTheme.labelLarge?.copyWith(
+            color: scheme.onSurfaceVariant,
+            fontWeight: FontWeight.w900,
           ),
-          const SizedBox(height: AppSpacing.xs),
-          Wrap(
-            spacing: AppSpacing.sm,
-            runSpacing: AppSpacing.sm,
-            children: [
-              _CompetitionHeroMetricPill(
-                label: l10n.matchCompetitionStatusActive,
-                value: '${metrics.activeCompetitions}',
-              ),
-              _CompetitionHeroMetricPill(
-                label: l10n.matchCompetitionStatusFinished,
-                value: '${metrics.finishedCompetitions}',
-              ),
-              _CompetitionHeroMetricPill(
-                label: l10n.matchCompetitionSummaryTeams,
-                value: '${metrics.registeredTeams}',
-              ),
-              _CompetitionHeroMetricPill(
-                label: l10n.matchCompetitionSummaryMatches,
-                value: '${metrics.recordedCompetitionMatches}',
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          _CompetitionHeroActions(
-            readOnly: readOnly,
-            onCreateLeague: onCreateLeague,
-            onCreateTournament: onCreateTournament,
-          ),
-        ],
-      ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Wrap(
+          spacing: AppSpacing.sm,
+          runSpacing: AppSpacing.sm,
+          children: [
+            _CompetitionHeroMetricPill(
+              label: l10n.matchCompetitionStatusActive,
+              value: '${metrics.activeCompetitions}',
+            ),
+            _CompetitionHeroMetricPill(
+              label: l10n.matchCompetitionStatusFinished,
+              value: '${metrics.finishedCompetitions}',
+            ),
+            _CompetitionHeroMetricPill(
+              label: l10n.matchCompetitionSummaryTeams,
+              value: '${metrics.registeredTeams}',
+            ),
+            _CompetitionHeroMetricPill(
+              label: l10n.matchCompetitionSummaryMatches,
+              value: '${metrics.recordedCompetitionMatches}',
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        _CompetitionHeroActions(
+          readOnly: readOnly,
+          onCreateLeague: onCreateLeague,
+          onCreateTournament: onCreateTournament,
+        ),
+      ],
     );
   }
 }
@@ -322,13 +310,14 @@ class _CompetitionHeroActions extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    const actionColor = Color(0xFF166153);
     final primary = FilledButton.icon(
       onPressed: readOnly ? null : onCreateLeague,
       icon: const Icon(Icons.leaderboard_outlined),
       label: Text(l10n.matchCompetitionCreateLeagueButton),
       style: FilledButton.styleFrom(
-        backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFF166153),
+        backgroundColor: actionColor,
+        foregroundColor: Colors.white,
         minimumSize: const Size(0, AppSizes.primaryButtonHeight),
         textStyle: theme.textTheme.labelLarge?.copyWith(
           fontWeight: FontWeight.w900,
@@ -340,9 +329,9 @@ class _CompetitionHeroActions extends StatelessWidget {
       icon: const Icon(Icons.account_tree_outlined),
       label: Text(l10n.matchCompetitionCreateTournamentButton),
       style: OutlinedButton.styleFrom(
-        backgroundColor: Colors.white.withValues(alpha: 0.92),
-        foregroundColor: const Color(0xFF166153),
-        side: BorderSide(color: Colors.white.withValues(alpha: 0.72)),
+        backgroundColor: Colors.white,
+        foregroundColor: actionColor,
+        side: BorderSide(color: actionColor.withValues(alpha: 0.58)),
         minimumSize: const Size(0, AppSizes.primaryButtonHeight),
         textStyle: theme.textTheme.labelLarge?.copyWith(
           fontWeight: FontWeight.w900,
@@ -385,16 +374,16 @@ class _CompetitionHeroMetricPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     return Container(
       constraints: const BoxConstraints(minWidth: 118),
       padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: AppSpacing.xs,
+        horizontal: AppSpacing.xs,
+        vertical: AppSpacing.xxs,
       ),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.14),
+        color: scheme.primary.withValues(alpha: 0.08),
         borderRadius: AppRadius.small,
-        border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -405,7 +394,7 @@ class _CompetitionHeroMetricPill extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: theme.textTheme.labelSmall?.copyWith(
-              color: Colors.white.withValues(alpha: 0.78),
+              color: scheme.onSurfaceVariant,
               fontWeight: FontWeight.w800,
             ),
           ),
@@ -415,7 +404,7 @@ class _CompetitionHeroMetricPill extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: theme.textTheme.titleMedium?.copyWith(
-              color: Colors.white,
+              color: scheme.primary,
               fontWeight: FontWeight.w900,
             ),
           ),
@@ -467,9 +456,11 @@ class _CompetitionEmptyState extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    return Container(
-      decoration: AppSurfaces.subtleDecoration(scheme, theme.brightness),
-      padding: const EdgeInsets.all(AppSpacing.lg),
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.lg,
+      ),
       child: Column(
         children: [
           Icon(Icons.emoji_events_outlined, color: scheme.primary, size: 34),
@@ -534,24 +525,22 @@ class _CompetitionOperationsCard extends StatelessWidget {
     );
     final nextAction = _nextActionLabel(l10n, record, progress, entries);
     return Container(
-      decoration: AppSurfaces.cardDecoration(scheme, theme.brightness),
-      padding: const EdgeInsets.all(AppSpacing.md),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: AppSurfaces.borderColor(scheme, theme.brightness),
+          ),
+        ),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: accent.withValues(alpha: 0.12),
-                  borderRadius: AppRadius.small,
-                ),
-                child: Icon(
-                  isLeague ? Icons.leaderboard_outlined : Icons.account_tree,
-                  color: accent,
-                ),
+              Icon(
+                isLeague ? Icons.leaderboard_outlined : Icons.account_tree,
+                color: accent,
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
@@ -586,11 +575,10 @@ class _CompetitionOperationsCard extends StatelessWidget {
                   ],
                 ),
               ),
-              AppBarActionButton.icon(
+              _InlineCompetitionIconAction(
                 icon: Icons.edit_outlined,
                 tooltip: l10n.matchCompetitionEditButton,
                 onPressed: readOnly ? null : onEdit,
-                margin: EdgeInsets.zero,
               ),
             ],
           ),
@@ -705,6 +693,45 @@ class _CompetitionMetadata extends StatelessWidget {
       children: [
         for (final item in items) _InfoPill(text: item),
       ],
+    );
+  }
+}
+
+class _InlineCompetitionIconAction extends StatelessWidget {
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback? onPressed;
+
+  const _InlineCompetitionIconAction({
+    required this.icon,
+    required this.tooltip,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final enabled = onPressed != null;
+    return Semantics(
+      button: true,
+      enabled: enabled,
+      label: tooltip,
+      child: Tooltip(
+        message: tooltip,
+        child: InkResponse(
+          onTap: onPressed,
+          radius: 22,
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.xs),
+            child: Icon(
+              icon,
+              color: enabled
+                  ? scheme.onSurfaceVariant
+                  : scheme.onSurfaceVariant.withValues(alpha: 0.38),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -1629,14 +1656,8 @@ class _EditorSectionPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest.withValues(alpha: 0.48),
-        borderRadius: AppRadius.surface,
-        border: Border.all(color: scheme.outline.withValues(alpha: 0.18)),
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -1732,13 +1753,8 @@ class _EditorTeamsPanel extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    return Container(
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest.withValues(alpha: 0.48),
-        borderRadius: AppRadius.surface,
-        border: Border.all(color: scheme.outline.withValues(alpha: 0.18)),
-      ),
-      padding: const EdgeInsets.all(AppSpacing.md),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

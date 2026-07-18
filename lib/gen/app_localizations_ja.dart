@@ -12292,7 +12292,28 @@ class AppLocalizationsJa extends AppLocalizations {
   String get teamManagementPlayerGradeHint => '例) 小学5年';
 
   @override
+  String get teamManagementPlayerGradeUnset => '学年未選択';
+
+  @override
+  String teamManagementPlayerElementaryGradeOption(int grade) {
+    return '小学$grade年';
+  }
+
+  @override
+  String teamManagementPlayerMiddleGradeOption(int grade) {
+    return '中学$grade年';
+  }
+
+  @override
+  String teamManagementPlayerHighGradeOption(int grade) {
+    return '高校$grade年';
+  }
+
+  @override
   String get teamManagementPlayerBodySizeTitle => '身体サイズ';
+
+  @override
+  String get teamManagementPlayerBodySizeUnset => '未選択';
 
   @override
   String get teamManagementPlayerHeightLabel => '身長';

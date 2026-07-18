@@ -6852,7 +6852,33 @@
   "teamManagementPlayerBasicInfoTitle": "基本情報",
   "teamManagementPlayerGradeLabel": "学年",
   "teamManagementPlayerGradeHint": "例) 小学5年",
+  "teamManagementPlayerGradeUnset": "学年未選択",
+  "teamManagementPlayerElementaryGradeOption": "小学{grade}年",
+  "@teamManagementPlayerElementaryGradeOption": {
+    "placeholders": {
+      "grade": {
+        "type": "int"
+      }
+    }
+  },
+  "teamManagementPlayerMiddleGradeOption": "中学{grade}年",
+  "@teamManagementPlayerMiddleGradeOption": {
+    "placeholders": {
+      "grade": {
+        "type": "int"
+      }
+    }
+  },
+  "teamManagementPlayerHighGradeOption": "高校{grade}年",
+  "@teamManagementPlayerHighGradeOption": {
+    "placeholders": {
+      "grade": {
+        "type": "int"
+      }
+    }
+  },
   "teamManagementPlayerBodySizeTitle": "身体サイズ",
+  "teamManagementPlayerBodySizeUnset": "未選択",
   "teamManagementPlayerHeightLabel": "身長",
   "teamManagementPlayerHeightUnit": "cm",
   "teamManagementPlayerWeightLabel": "体重",
