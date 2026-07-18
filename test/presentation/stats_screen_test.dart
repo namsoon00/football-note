@@ -89,12 +89,22 @@ void main() {
     expect(find.text('최근 7일'), findsOneWidget);
     expect(find.text('훈련'), findsOneWidget);
     expect(find.text('시합'), findsOneWidget);
-    expect(find.text('기록 리듬'), findsOneWidget);
-    expect(find.text('레슨 횟수'), findsNothing);
+    expect(
+      find.text('선택 기간에 총 1시간, 훈련 1회, 1일 연속 기록을 남겼어요.'),
+      findsOneWidget,
+    );
+    expect(find.text('선택 기간 7일 중 1일 활동 기록'), findsOneWidget);
+    expect(find.byKey(const ValueKey('stats-report-core-metric-list')),
+        findsOneWidget);
+    expect(find.text('집중 분야'), findsOneWidget);
+    expect(find.text('레슨 횟수'), findsOneWidget);
+    expect(find.text('식사 기록률'), findsNothing);
     expect(find.text('자세히 보기'), findsOneWidget);
     await tester.tap(find.text('자세히 보기'));
     await tester.pumpAndSettle();
-    expect(find.text('레슨 횟수'), findsOneWidget);
+    expect(find.byKey(const ValueKey('stats-report-detail-metric-list')),
+        findsOneWidget);
+    expect(find.text('식사 기록률'), findsOneWidget);
     expect(find.text('1회'), findsOneWidget);
     expect(find.text('축구 성장 요약'), findsOneWidget);
     expect(find.byTooltip('다이어리'), findsNothing);
@@ -142,10 +152,70 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('축구 성장 요약'), findsOneWidget);
-    expect(find.text('총 훈련 시간'), findsOneWidget);
-    expect(find.text('기록 리듬'), findsOneWidget);
-    expect(find.text('목표/계획'), findsOneWidget);
-    expect(find.text('집중 분야'), findsNothing);
+    expect(
+      find.text('선택 기간에 총 45분, 훈련 1회, 1일 연속 기록을 남겼어요.'),
+      findsOneWidget,
+    );
+    expect(find.text('선택 기간 7일 중 1일 활동 기록'), findsOneWidget);
+    expect(find.byKey(const ValueKey('stats-report-core-metric-list')),
+        findsOneWidget);
+    expect(find.byKey(const ValueKey('stats-report-progress-indicator')),
+        findsNothing);
+    expect(
+      find.byWidgetPredicate(
+        (widget) => widget.runtimeType.toString() == '_CompactMetricGrid',
+      ),
+      findsNothing,
+    );
+    expect(find.text('총 훈련 시간'), findsNothing);
+    expect(find.text('기록 리듬'), findsNothing);
+    expect(find.text('목표/계획'), findsNothing);
+    expect(find.text('집중 분야'), findsOneWidget);
+    expect(find.text('레슨 횟수'), findsOneWidget);
+  });
+
+  testWidgets('Growth summary shows target progress with an exact percent', (
+    WidgetTester tester,
+  ) async {
+    final today = DateTime.now();
+    await optionRepository.setValue(
+      PlayerProfileService.birthDateKey,
+      DateTime(today.year - 13, today.month, today.day).toIso8601String(),
+    );
+    await optionRepository.setValue(
+      PlayerProfileService.soccerStartDateKey,
+      DateTime(today.year - 2, today.month, today.day).toIso8601String(),
+    );
+    await service.add(
+      TrainingEntry(
+        date: today,
+        durationMinutes: 189,
+        intensity: 3,
+        type: '패스',
+        mood: 3,
+        injury: false,
+        notes: '',
+        location: '학교 운동장',
+      ),
+    );
+
+    await _pumpStatsScreen(
+      tester,
+      service: service,
+      mealLogService: mealLogService,
+      localeService: localeService,
+      optionRepository: optionRepository,
+      settingsService: settingsService,
+      locale: const Locale('ko'),
+    );
+
+    expect(find.text('목표 달성률'), findsOneWidget);
+    expect(find.text('50%'), findsOneWidget);
+    final progress = tester.widget<LinearProgressIndicator>(
+      find.byKey(const ValueKey('stats-report-progress-indicator')),
+    );
+    expect(progress.value, 0.5);
+    expect(find.text('계획 실행률'), findsNothing);
   });
 
   testWidgets('Growth summary starts compact and toggles detail metrics', (
@@ -211,13 +281,22 @@ void main() {
       locale: const Locale('ko'),
     );
 
-    expect(find.text('총 훈련 시간'), findsOneWidget);
-    expect(find.text('기록 리듬'), findsOneWidget);
-    expect(find.text('2회 · 2/7일 · 2일 연속'), findsOneWidget);
-    expect(find.text('목표/계획'), findsOneWidget);
-    expect(find.textContaining('계획 50%'), findsOneWidget);
-    expect(find.text('레슨 횟수'), findsNothing);
-    expect(find.text('집중 분야'), findsNothing);
+    expect(
+      find.text('선택 기간에 총 1시간 20분, 훈련 2회, 2일 연속 기록을 남겼어요.'),
+      findsOneWidget,
+    );
+    expect(find.text('선택 기간 7일 중 2일 활동 기록'), findsOneWidget);
+    expect(find.text('계획 실행률'), findsOneWidget);
+    expect(find.text('50%'), findsOneWidget);
+    final progress = tester.widget<LinearProgressIndicator>(
+      find.byKey(const ValueKey('stats-report-progress-indicator')),
+    );
+    expect(progress.value, 0.5);
+    expect(find.text('총 훈련 시간'), findsNothing);
+    expect(find.text('기록 리듬'), findsNothing);
+    expect(find.text('목표/계획'), findsNothing);
+    expect(find.text('레슨 횟수'), findsOneWidget);
+    expect(find.text('집중 분야'), findsOneWidget);
     expect(find.text('식사 기록률'), findsNothing);
     expect(find.text('자세히 보기'), findsOneWidget);
 
@@ -230,11 +309,12 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('접기'), findsOneWidget);
-    expect(find.text('레슨 횟수'), findsOneWidget);
-    expect(find.text('집중 분야'), findsOneWidget);
+    expect(find.byKey(const ValueKey('stats-report-detail-metric-list')),
+        findsOneWidget);
     expect(find.text('식사 기록률'), findsOneWidget);
     expect(find.text('컨디션'), findsOneWidget);
     expect(find.text('보조운동'), findsOneWidget);
+    expect(find.text('계획 없음'), findsNothing);
     final expandedCoachText = tester.widget<Text>(
       find.textContaining('식사 기록은').first,
     );
@@ -244,8 +324,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('자세히 보기'), findsOneWidget);
-    expect(find.text('레슨 횟수'), findsNothing);
-    expect(find.text('집중 분야'), findsNothing);
+    expect(find.text('레슨 횟수'), findsOneWidget);
+    expect(find.text('집중 분야'), findsOneWidget);
+    expect(find.text('식사 기록률'), findsNothing);
     final recollapsedCoachText = tester.widget<Text>(
       find.textContaining('식사 기록은').first,
     );
@@ -281,11 +362,18 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Show details'), findsOneWidget);
-    expect(find.text('Lessons'), findsNothing);
+    expect(
+        find.text(
+            'This period has 30 min across 1 session with a 1-day streak.'),
+        findsOneWidget);
+    expect(
+        find.text('Logged on 1/7 days in the selected period'), findsOneWidget);
+    expect(find.text('Lessons'), findsOneWidget);
+    expect(find.text('Meal coverage'), findsNothing);
     await tester.tap(find.text('Show details'));
     await tester.pumpAndSettle();
     expect(find.text('Collapse'), findsOneWidget);
-    expect(find.text('Lessons'), findsOneWidget);
+    expect(find.text('Meal coverage'), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump();
@@ -302,11 +390,17 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('詳しく見る'), findsOneWidget);
-    expect(find.text('レッスン回数'), findsNothing);
+    expect(
+      find.text('選択期間で合計30分、練習1回、1日連続の記録です。'),
+      findsOneWidget,
+    );
+    expect(find.text('選択期間7日のうち1日を記録'), findsOneWidget);
+    expect(find.text('レッスン回数'), findsOneWidget);
+    expect(find.text('食事記録率'), findsNothing);
     await tester.tap(find.text('詳しく見る'));
     await tester.pumpAndSettle();
     expect(find.text('閉じる'), findsOneWidget);
-    expect(find.text('レッスン回数'), findsOneWidget);
+    expect(find.text('食事記録率'), findsOneWidget);
   });
 
   testWidgets('Stats screen separates match records in match tab', (

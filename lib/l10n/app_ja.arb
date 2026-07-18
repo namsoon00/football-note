@@ -2172,8 +2172,32 @@
       "sport": {}
     }
   },
+  "statsReportSummarySentence": "選択期間で合計{totalTime}、練習{sessions}回、{streak}日連続の記録です。",
+  "@statsReportSummarySentence": {
+    "placeholders": {
+      "totalTime": {},
+      "sessions": {
+        "type": "int"
+      },
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
+  "statsReportActivityPeriodSummary": "選択期間{periodDays}日のうち{activeDays}日を記録",
+  "@statsReportActivityPeriodSummary": {
+    "placeholders": {
+      "activeDays": {
+        "type": "int"
+      },
+      "periodDays": {
+        "type": "int"
+      }
+    }
+  },
   "statsReportInsightTitle": "期間レポート",
   "statsReportTargetLabel": "目標達成",
+  "statsReportTargetProgressLabel": "目標達成率",
   "statsReportTargetPercentValue": "{percent}%",
   "@statsReportTargetPercentValue": {
     "placeholders": {

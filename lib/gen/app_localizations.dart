@@ -6735,6 +6735,18 @@ abstract class AppLocalizations {
   /// **'{sport} Growth Summary'**
   String statsReportTrainingTitle(Object sport);
 
+  /// No description provided for @statsReportSummarySentence.
+  ///
+  /// In en, this message translates to:
+  /// **'This period has {totalTime} across {sessions, plural, =1{1 session} other{{sessions} sessions}} with a {streak, plural, =1{1-day streak} other{{streak}-day streak}}.'**
+  String statsReportSummarySentence(Object totalTime, int sessions, int streak);
+
+  /// No description provided for @statsReportActivityPeriodSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged on {activeDays}/{periodDays} days in the selected period'**
+  String statsReportActivityPeriodSummary(int activeDays, int periodDays);
+
   /// No description provided for @statsReportInsightTitle.
   ///
   /// In en, this message translates to:
@@ -6746,6 +6758,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Target'**
   String get statsReportTargetLabel;
+
+  /// No description provided for @statsReportTargetProgressLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Target achievement'**
+  String get statsReportTargetProgressLabel;
 
   /// No description provided for @statsReportTargetPercentValue.
   ///
