@@ -622,7 +622,7 @@
     }
   },
   "worldCupRankingsTitle": "World Cup rankings",
-  "worldCupRankingsIntro": "Player rankings are gathered from the FIFA official match details available in the app. Goals come from official scorer lists, and assists are counted when the goal record includes an assisting player ID.",
+  "worldCupRankingsIntro": "Player rankings are gathered from the FIFA official match details available in the app. Goals come from official scorer lists, assists use assisting player IDs, and discipline uses official yellow/red card records.",
   "worldCupRankingsSourceMatchesLabel": "Source matches",
   "worldCupRankingsSourceMatchesValue": "{count} matches",
   "@worldCupRankingsSourceMatchesValue": {
@@ -636,11 +636,11 @@
   "worldCupRankingsLoading": "Loading FIFA player records...",
   "worldCupGoalRankingsTitle": "Goal ranking",
   "worldCupAssistRankingsTitle": "Assist ranking",
-  "worldCupFoulRankingsTitle": "Foul ranking",
+  "worldCupDisciplineRankingsTitle": "Yellow/red card ranking",
   "worldCupRankingsNoOfficialMatches": "There are no finished official matches to rank yet. This fills automatically when FIFA data arrives.",
   "worldCupGoalRankingsEmpty": "Official scorer details are not available yet. Goal rankings will fill in when match details update.",
   "worldCupAssistRankingsEmpty": "FIFA official goal records do not include assisting player IDs yet, so there are no assists to show.",
-  "worldCupFoulRankingsEmpty": "The connected FIFA detail data does not currently expose foul records for this ranking.",
+  "worldCupDisciplineRankingsEmpty": "FIFA official yellow/red card records are not available yet, so there is no discipline ranking to show.",
   "worldCupRankingsGoalCount": "{count} goals",
   "@worldCupRankingsGoalCount": {
     "placeholders": {
@@ -657,14 +657,19 @@
       }
     }
   },
-  "worldCupRankingsFoulCount": "{count} fouls",
-  "@worldCupRankingsFoulCount": {
+  "worldCupRankingsDisciplineCount": "Yellow {yellowCards} · Red {redCards}",
+  "@worldCupRankingsDisciplineCount": {
     "placeholders": {
-      "count": {
+      "yellowCards": {
+        "type": "int"
+      },
+      "redCards": {
         "type": "int"
       }
     }
   },
+  "worldCupYellowCardLabel": "yellow",
+  "worldCupRedCardLabel": "red",
   "worldCupRankingsEventWithMinute": "vs {opponent} {minute}",
   "@worldCupRankingsEventWithMinute": {
     "placeholders": {
@@ -672,6 +677,20 @@
         "type": "String"
       },
       "minute": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupRankingsCardEventWithMinute": "vs {opponent} {minute} {card}",
+  "@worldCupRankingsCardEventWithMinute": {
+    "placeholders": {
+      "opponent": {
+        "type": "String"
+      },
+      "minute": {
+        "type": "String"
+      },
+      "card": {
         "type": "String"
       }
     }

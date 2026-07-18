@@ -608,6 +608,8 @@ class FifaWorldOverviewService {
       awayScorers: _parseGoalScorers(away),
       homeAssists: _parseGoalAssists(home),
       awayAssists: _parseGoalAssists(away),
+      homeBookings: _parseBookings(home),
+      awayBookings: _parseBookings(away),
       homePlayers: _parseMatchPlayers(home),
       awayPlayers: _parseMatchPlayers(away),
       homeTactics: _asString(home['Tactics']),
@@ -1178,6 +1180,42 @@ class FifaWorldOverviewService {
       );
     }
     return assists;
+  }
+
+  static List<FifaMatchBooking> _parseBookings(Map<String, dynamic> team) {
+    final rawBookings = team['Bookings'];
+    if (rawBookings is! List) return const <FifaMatchBooking>[];
+    final playerNames = _playerNamesById(team);
+    final bookings = <FifaMatchBooking>[];
+    for (final raw in rawBookings) {
+      if (raw is! Map) continue;
+      final booking = raw.cast<String, dynamic>();
+      final playerId = _asString(booking['IdPlayer']);
+      final playerName = playerNames[playerId] ??
+          _firstNonEmpty([
+            _localizedDescription(booking['PlayerName']),
+            _localizedDescription(booking['Name']),
+          ]);
+      if (playerName.isEmpty) continue;
+      final cardType = _parseBookingCardType(_asInt(booking['Card']));
+      if (cardType == FifaMatchCardType.unknown) continue;
+      bookings.add(
+        FifaMatchBooking(
+          playerName: playerName,
+          minute: _asString(booking['Minute']),
+          cardType: cardType,
+        ),
+      );
+    }
+    return bookings;
+  }
+
+  static FifaMatchCardType _parseBookingCardType(int? raw) {
+    return switch (raw) {
+      1 => FifaMatchCardType.yellow,
+      2 => FifaMatchCardType.red,
+      _ => FifaMatchCardType.unknown,
+    };
   }
 
   static Map<String, String> _playerNamesById(Map<String, dynamic> team) {

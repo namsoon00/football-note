@@ -2469,7 +2469,7 @@ abstract class AppLocalizations {
   /// No description provided for @worldCupRankingsIntro.
   ///
   /// In en, this message translates to:
-  /// **'Player rankings are gathered from the FIFA official match details available in the app. Goals come from official scorer lists, and assists are counted when the goal record includes an assisting player ID.'**
+  /// **'Player rankings are gathered from the FIFA official match details available in the app. Goals come from official scorer lists, assists use assisting player IDs, and discipline uses official yellow/red card records.'**
   String get worldCupRankingsIntro;
 
   /// No description provided for @worldCupRankingsSourceMatchesLabel.
@@ -2508,11 +2508,11 @@ abstract class AppLocalizations {
   /// **'Assist ranking'**
   String get worldCupAssistRankingsTitle;
 
-  /// No description provided for @worldCupFoulRankingsTitle.
+  /// No description provided for @worldCupDisciplineRankingsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Foul ranking'**
-  String get worldCupFoulRankingsTitle;
+  /// **'Yellow/red card ranking'**
+  String get worldCupDisciplineRankingsTitle;
 
   /// No description provided for @worldCupRankingsNoOfficialMatches.
   ///
@@ -2532,11 +2532,11 @@ abstract class AppLocalizations {
   /// **'FIFA official goal records do not include assisting player IDs yet, so there are no assists to show.'**
   String get worldCupAssistRankingsEmpty;
 
-  /// No description provided for @worldCupFoulRankingsEmpty.
+  /// No description provided for @worldCupDisciplineRankingsEmpty.
   ///
   /// In en, this message translates to:
-  /// **'The connected FIFA detail data does not currently expose foul records for this ranking.'**
-  String get worldCupFoulRankingsEmpty;
+  /// **'FIFA official yellow/red card records are not available yet, so there is no discipline ranking to show.'**
+  String get worldCupDisciplineRankingsEmpty;
 
   /// No description provided for @worldCupRankingsGoalCount.
   ///
@@ -2550,17 +2550,36 @@ abstract class AppLocalizations {
   /// **'{count} assists'**
   String worldCupRankingsAssistCount(int count);
 
-  /// No description provided for @worldCupRankingsFoulCount.
+  /// No description provided for @worldCupRankingsDisciplineCount.
   ///
   /// In en, this message translates to:
-  /// **'{count} fouls'**
-  String worldCupRankingsFoulCount(int count);
+  /// **'Yellow {yellowCards} · Red {redCards}'**
+  String worldCupRankingsDisciplineCount(int yellowCards, int redCards);
+
+  /// No description provided for @worldCupYellowCardLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'yellow'**
+  String get worldCupYellowCardLabel;
+
+  /// No description provided for @worldCupRedCardLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'red'**
+  String get worldCupRedCardLabel;
 
   /// No description provided for @worldCupRankingsEventWithMinute.
   ///
   /// In en, this message translates to:
   /// **'vs {opponent} {minute}'**
   String worldCupRankingsEventWithMinute(String opponent, String minute);
+
+  /// No description provided for @worldCupRankingsCardEventWithMinute.
+  ///
+  /// In en, this message translates to:
+  /// **'vs {opponent} {minute} {card}'**
+  String worldCupRankingsCardEventWithMinute(
+      String opponent, String minute, String card);
 
   /// No description provided for @worldCupRankingsMoreEvents.
   ///

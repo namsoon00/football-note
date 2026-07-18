@@ -1285,7 +1285,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get worldCupRankingsIntro =>
-      'FIFA 공식 매치 상세에서 확인되는 선수 기록을 모아 보여줘요. 득점은 공식 득점자 목록으로, 어시스트는 득점 기록의 도움 선수 ID가 제공될 때 집계합니다.';
+      'FIFA 공식 매치 상세에서 확인되는 선수 기록을 모아 보여줘요. 득점은 공식 득점자 목록으로, 어시스트는 도움 선수 ID로, 징계는 공식 경고/퇴장 기록으로 집계합니다.';
 
   @override
   String get worldCupRankingsSourceMatchesLabel => '집계 경기';
@@ -1308,7 +1308,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get worldCupAssistRankingsTitle => '어시스트 순위';
 
   @override
-  String get worldCupFoulRankingsTitle => '반칙 순위';
+  String get worldCupDisciplineRankingsTitle => '경고/퇴장 순위';
 
   @override
   String get worldCupRankingsNoOfficialMatches =>
@@ -1323,8 +1323,8 @@ class AppLocalizationsKo extends AppLocalizations {
       'FIFA 공식 득점 기록에 도움 선수 ID가 아직 없어 표시할 어시스트가 없습니다.';
 
   @override
-  String get worldCupFoulRankingsEmpty =>
-      '현재 연결된 FIFA 상세 데이터에는 반칙 항목이 없어 표시할 기록이 없습니다.';
+  String get worldCupDisciplineRankingsEmpty =>
+      'FIFA 공식 경고/퇴장 기록이 아직 없어 표시할 징계 순위가 없습니다.';
 
   @override
   String worldCupRankingsGoalCount(int count) {
@@ -1337,13 +1337,25 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String worldCupRankingsFoulCount(int count) {
-    return '$count회';
+  String worldCupRankingsDisciplineCount(int yellowCards, int redCards) {
+    return '경고 $yellowCards · 퇴장 $redCards';
   }
+
+  @override
+  String get worldCupYellowCardLabel => '경고';
+
+  @override
+  String get worldCupRedCardLabel => '퇴장';
 
   @override
   String worldCupRankingsEventWithMinute(String opponent, String minute) {
     return '$opponent전 $minute';
+  }
+
+  @override
+  String worldCupRankingsCardEventWithMinute(
+      String opponent, String minute, String card) {
+    return '$opponent전 $minute $card';
   }
 
   @override

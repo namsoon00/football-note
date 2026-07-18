@@ -230,6 +230,10 @@ void main() {
       {'IdPlayer': 'home-9', 'IdAssistPlayer': 'home-18', 'Minute': "21'"},
       {'IdPlayer': 'home-9', 'Minute': "64'"},
     ];
+    homeTeam['Bookings'] = [
+      {'IdPlayer': 'home-18', 'Minute': "33'", 'Card': 1},
+      {'IdPlayer': 'home-9', 'Minute': "88'", 'Card': 2},
+    ];
     awayTeam['Players'] = [
       {
         'IdPlayer': 'away-10',
@@ -244,6 +248,9 @@ void main() {
     ];
     awayTeam['Goals'] = [
       {'IdPlayer': 'away-10', 'Minute': "77'"},
+    ];
+    awayTeam['Bookings'] = [
+      {'IdPlayer': 'away-10', 'Minute': "80'", 'Card': 1},
     ];
     raw['BallPossession'] = {'OverallHome': 58.2, 'OverallAway': 41.8};
 
@@ -263,8 +270,16 @@ void main() {
     expect(detail.homeAssists, hasLength(1));
     expect(detail.homeAssists.single.playerName, 'K. Lee');
     expect(detail.homeAssists.single.minute, "21'");
+    expect(detail.homeBookings, hasLength(2));
+    expect(detail.homeBookings.first.playerName, 'K. Lee');
+    expect(detail.homeBookings.first.minute, "33'");
+    expect(detail.homeBookings.first.cardType, FifaMatchCardType.yellow);
+    expect(detail.homeBookings.last.playerName, 'S. Son');
+    expect(detail.homeBookings.last.cardType, FifaMatchCardType.red);
     expect(detail.awayAssists, isEmpty);
     expect(detail.awayScorers.single.playerName, 'T. Kubo');
+    expect(detail.awayBookings.single.playerName, 'T. Kubo');
+    expect(detail.awayBookings.single.cardType, FifaMatchCardType.yellow);
     final homeScorer = detail.homePlayers.firstWhere(
       (player) => player.playerName == 'S. Son',
     );

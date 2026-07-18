@@ -1334,7 +1334,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get worldCupRankingsIntro =>
-      'Player rankings are gathered from the FIFA official match details available in the app. Goals come from official scorer lists, and assists are counted when the goal record includes an assisting player ID.';
+      'Player rankings are gathered from the FIFA official match details available in the app. Goals come from official scorer lists, assists use assisting player IDs, and discipline uses official yellow/red card records.';
 
   @override
   String get worldCupRankingsSourceMatchesLabel => 'Source matches';
@@ -1357,7 +1357,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get worldCupAssistRankingsTitle => 'Assist ranking';
 
   @override
-  String get worldCupFoulRankingsTitle => 'Foul ranking';
+  String get worldCupDisciplineRankingsTitle => 'Yellow/red card ranking';
 
   @override
   String get worldCupRankingsNoOfficialMatches =>
@@ -1372,8 +1372,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'FIFA official goal records do not include assisting player IDs yet, so there are no assists to show.';
 
   @override
-  String get worldCupFoulRankingsEmpty =>
-      'The connected FIFA detail data does not currently expose foul records for this ranking.';
+  String get worldCupDisciplineRankingsEmpty =>
+      'FIFA official yellow/red card records are not available yet, so there is no discipline ranking to show.';
 
   @override
   String worldCupRankingsGoalCount(int count) {
@@ -1386,13 +1386,25 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String worldCupRankingsFoulCount(int count) {
-    return '$count fouls';
+  String worldCupRankingsDisciplineCount(int yellowCards, int redCards) {
+    return 'Yellow $yellowCards · Red $redCards';
   }
+
+  @override
+  String get worldCupYellowCardLabel => 'yellow';
+
+  @override
+  String get worldCupRedCardLabel => 'red';
 
   @override
   String worldCupRankingsEventWithMinute(String opponent, String minute) {
     return 'vs $opponent $minute';
+  }
+
+  @override
+  String worldCupRankingsCardEventWithMinute(
+      String opponent, String minute, String card) {
+    return 'vs $opponent $minute $card';
   }
 
   @override
