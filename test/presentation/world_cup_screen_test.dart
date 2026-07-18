@@ -94,8 +94,9 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text('일정'), findsOneWidget);
-    expect(find.text('순위'), findsOneWidget);
-    expect(find.text('토너먼트'), findsNothing);
+    expect(find.text('조별리그'), findsOneWidget);
+    expect(find.text('기록 순위'), findsOneWidget);
+    expect(find.text('토너먼트'), findsOneWidget);
     expect(find.text('대회 개요'), findsNothing);
     expect(find.text('결승까지의 흐름'), findsNothing);
 
@@ -171,7 +172,7 @@ void main() {
     );
   });
 
-  testWidgets('before knockouts schedule and standings tabs are visible', (
+  testWidgets('before knockouts all world cup tabs are visible', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -196,16 +197,17 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text('일정'), findsOneWidget);
-    expect(find.text('순위'), findsOneWidget);
-    expect(find.text('토너먼트'), findsNothing);
+    expect(find.text('조별리그'), findsOneWidget);
+    expect(find.text('기록 순위'), findsOneWidget);
+    expect(find.text('토너먼트'), findsOneWidget);
 
     await tester.scrollUntilVisible(
-      find.text('순위'),
+      find.text('조별리그'),
       180,
       scrollable: scrollable,
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('순위'));
+    await tester.tap(find.text('조별리그'));
     await tester.pumpAndSettle();
 
     expect(find.text('조별 순위'), findsOneWidget);
@@ -218,7 +220,89 @@ void main() {
     expect(find.text('A조'), findsWidgets);
   });
 
-  testWidgets('after knockouts schedule and tournament tabs are visible', (
+  testWidgets('world cup rankings tab shows player stat sections', (
+    tester,
+  ) async {
+    final fixture = worldCupFixtures.firstWhere(
+      (fixture) => fixture.involvesCountry('Korea Republic'),
+    );
+    final officialMatch = FifaAMatchEntry(
+      matchId: 'korea-ranking-match',
+      matchNumber: fixture.matchNumber,
+      gender: FifaRankingGender.men,
+      competition: 'FIFA World Cup',
+      stage: 'First Stage',
+      venue: fixture.venue,
+      city: 'Guadalajara',
+      kickoffAt: fixture.kickoffUtc,
+      homeTeamName: fixture.homeTeam,
+      homeCountryCode: 'KOR',
+      awayTeamName: fixture.awayTeam,
+      awayCountryCode: 'CZE',
+      homeScore: 2,
+      awayScore: 1,
+      status: FifaAMatchStatus.finished,
+    );
+    final liveDataService = _FakeWorldCupLiveDataService(
+      data: WorldCupLiveData(
+        fixtures: worldCupFixtures,
+        officialMatchesByFixtureNumber: {fixture.matchNumber: officialMatch},
+        refreshedAt: DateTime.utc(2026, 6, 12, 4),
+      ),
+      detail: FifaAMatchDetail(
+        match: officialMatch,
+        homeScorers: const [
+          FifaMatchScorer(playerName: 'Son Heung-min', minute: '12'),
+          FifaMatchScorer(playerName: 'Son Heung-min', minute: '48'),
+        ],
+        awayScorers: const <FifaMatchScorer>[],
+        homePlayers: const <FifaMatchPlayer>[],
+        awayPlayers: const <FifaMatchPlayer>[],
+        homePossession: null,
+        awayPossession: null,
+      ),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        theme: AppTheme.light(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: WorldCupScreen(
+          liveDataService: liveDataService,
+          currentTime: DateTime.utc(2026, 6, 20),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final scrollable = find.byType(Scrollable).first;
+    await tester.scrollUntilVisible(
+      find.text('기록 순위'),
+      180,
+      scrollable: scrollable,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('기록 순위'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('월드컵 순위'), findsOneWidget);
+    expect(find.text('득점 순위'), findsOneWidget);
+    expect(find.text('어시스트 순위'), findsOneWidget);
+    expect(find.text('반칙 순위'), findsOneWidget);
+    expect(find.text('손흥민'), findsOneWidget);
+    expect(find.text('2골'), findsOneWidget);
+    expect(find.textContaining('체코전 12'), findsOneWidget);
+    expect(
+      find.textContaining('어시스트 항목이 없어 표시할 기록이 없습니다'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets(
+      'after knockouts schedule standings rankings and tournament tabs are visible',
+      (
     tester,
   ) async {
     final navigatorObserver = _RecordingNavigatorObserver();
@@ -264,7 +348,8 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text('일정'), findsOneWidget);
-    expect(find.text('순위'), findsNothing);
+    expect(find.text('조별리그'), findsOneWidget);
+    expect(find.text('기록 순위'), findsOneWidget);
     expect(find.text('토너먼트'), findsOneWidget);
 
     navigatorObserver.reset();
@@ -580,12 +665,12 @@ void main() {
 
     final scrollable = find.byType(Scrollable).first;
     await tester.scrollUntilVisible(
-      find.text('순위'),
+      find.text('조별리그'),
       180,
       scrollable: scrollable,
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('순위'));
+    await tester.tap(find.text('조별리그'));
     await tester.pumpAndSettle();
 
     await tester.scrollUntilVisible(
@@ -822,12 +907,12 @@ void main() {
 
     final scrollable = find.byType(Scrollable).first;
     await tester.scrollUntilVisible(
-      find.text('순위'),
+      find.text('조별리그'),
       180,
       scrollable: scrollable,
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('순위'));
+    await tester.tap(find.text('조별리그'));
     await tester.pumpAndSettle();
 
     await tester.scrollUntilVisible(
@@ -896,12 +981,12 @@ void main() {
 
     final scrollable = find.byType(Scrollable).first;
     await tester.scrollUntilVisible(
-      find.text('순위'),
+      find.text('조별리그'),
       180,
       scrollable: scrollable,
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('순위'));
+    await tester.tap(find.text('조별리그'));
     await tester.pumpAndSettle();
 
     await tester.scrollUntilVisible(
@@ -953,12 +1038,12 @@ void main() {
 
     final scrollable = find.byType(Scrollable).first;
     await tester.scrollUntilVisible(
-      find.text('순위'),
+      find.text('조별리그'),
       180,
       scrollable: scrollable,
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('순위'));
+    await tester.tap(find.text('조별리그'));
     await tester.pumpAndSettle();
 
     await tester.scrollUntilVisible(

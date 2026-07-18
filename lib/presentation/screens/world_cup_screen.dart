@@ -95,6 +95,8 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
   bool _officialDataRefreshing = false;
   bool _officialDataRefreshFailed = false;
   bool _pageShareInProgress = false;
+  Future<_WorldCupStatRankings>? _statRankingsFuture;
+  String _statRankingsCacheKey = '';
   late final PageController _selectedDayPageController;
   final Map<String, double> _selectedDayMatchPageHeights = <String, double>{};
   double? _selectedDayPagePosition;
@@ -200,6 +202,7 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
               switch (selectedView) {
                 _WorldCupView.schedule => _buildScheduleView(context),
                 _WorldCupView.standings => _buildStandingsPlan(context),
+                _WorldCupView.rankings => _buildWorldCupRankings(context),
                 _WorldCupView.tournament => _buildTournamentPlan(context),
               },
             ],
@@ -295,27 +298,37 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
   Widget _buildViewSwitcher(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final visibleViews = _visibleWorldCupViews;
-    return SegmentedButton<_WorldCupView>(
-      showSelectedIcon: false,
-      segments: [
-        for (final view in visibleViews)
-          ButtonSegment<_WorldCupView>(
-            value: view,
-            icon: Icon(_worldCupViewIcon(view)),
-            label: Text(_worldCupViewLabel(l10n, view)),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minWidth: constraints.maxWidth),
+            child: SegmentedButton<_WorldCupView>(
+              showSelectedIcon: false,
+              segments: [
+                for (final view in visibleViews)
+                  ButtonSegment<_WorldCupView>(
+                    value: view,
+                    icon: Icon(_worldCupViewIcon(view)),
+                    label: Text(_worldCupViewLabel(l10n, view)),
+                  ),
+              ],
+              selected: {_effectiveSelectedView},
+              onSelectionChanged: (selection) {
+                final nextView = selection.single;
+                if (nextView == _WorldCupView.tournament) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (!mounted) return;
+                    unawaited(_openTournamentFullScreen());
+                  });
+                  return;
+                }
+                setState(() => _selectedView = nextView);
+              },
+            ),
           ),
-      ],
-      selected: {_effectiveSelectedView},
-      onSelectionChanged: (selection) {
-        final nextView = selection.single;
-        if (nextView == _WorldCupView.tournament) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (!mounted) return;
-            unawaited(_openTournamentFullScreen());
-          });
-          return;
-        }
-        setState(() => _selectedView = nextView);
+        );
       },
     );
   }
@@ -323,7 +336,9 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
   List<_WorldCupView> get _visibleWorldCupViews {
     return <_WorldCupView>[
       _WorldCupView.schedule,
-      _roundOf32Started ? _WorldCupView.tournament : _WorldCupView.standings,
+      _WorldCupView.standings,
+      _WorldCupView.rankings,
+      _WorldCupView.tournament,
     ];
   }
 
@@ -334,14 +349,237 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
         : visibleViews.last;
   }
 
-  bool get _roundOf32Started => _roundOf32HasStarted(
-        fixtures: _fixtures,
-        officialMatchesByFixtureNumber: _officialMatchesByFixtureNumber,
-        currentTime: widget.currentTime,
-      );
-
   Widget _buildScheduleView(BuildContext context) {
     return _buildSelectedDayMatches(context);
+  }
+
+  Widget _buildWorldCupRankings(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final statMatches = _officialMatchesForStats;
+    final locale = Localizations.localeOf(context);
+    final localeName = locale.toString();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        WatchCartCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _SectionTitle(
+                icon: Icons.query_stats_rounded,
+                title: l10n.worldCupRankingsTitle,
+              ),
+              const SizedBox(height: 10),
+              Text(
+                l10n.worldCupRankingsIntro,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  height: 1.35,
+                ),
+              ),
+              const SizedBox(height: 12),
+              _InfoGrid(
+                items: [
+                  _InfoItem(
+                    l10n.worldCupRankingsSourceMatchesLabel,
+                    l10n.worldCupRankingsSourceMatchesValue(
+                      statMatches.length,
+                    ),
+                  ),
+                  _InfoItem(
+                    l10n.worldCupRankingsUpdatedLabel,
+                    _officialDataRefreshedAt == null
+                        ? l10n.worldCupOfficialUnavailable
+                        : l10n.worldCupOfficialUpdatedAt(
+                            _formatOfficialRefreshTime(
+                              context,
+                              _officialDataRefreshedAt!,
+                            ),
+                          ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        if (statMatches.isEmpty)
+          _WorldCupStatRankingsPanel(
+            rankings: const _WorldCupStatRankings.empty(),
+            localeName: localeName,
+          )
+        else
+          FutureBuilder<_WorldCupStatRankings>(
+            future: _statRankingsFutureFor(
+              matches: statMatches,
+              language: _fifaApiLanguageForLocale(locale),
+            ),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState != ConnectionState.done) {
+                return WatchCartCard(
+                  child: Row(
+                    children: [
+                      SizedBox.square(
+                        dimension: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          l10n.worldCupRankingsLoading,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+              return _WorldCupStatRankingsPanel(
+                rankings: snapshot.data ?? const _WorldCupStatRankings.empty(),
+                localeName: localeName,
+              );
+            },
+          ),
+      ],
+    );
+  }
+
+  List<_WorldCupOfficialMatchForStats> get _officialMatchesForStats {
+    final matches = <_WorldCupOfficialMatchForStats>[];
+    for (final entry in _officialMatchesByFixtureNumber.entries) {
+      final officialMatch = entry.value;
+      if (officialMatch.status != FifaAMatchStatus.finished) continue;
+      final fixture = _fixtureByMatchNumber(entry.key);
+      if (fixture == null) continue;
+      matches.add(
+        _WorldCupOfficialMatchForStats(
+          fixture: fixture,
+          officialMatch: officialMatch,
+        ),
+      );
+    }
+    matches
+        .sort((a, b) => a.fixture.kickoffUtc.compareTo(b.fixture.kickoffUtc));
+    return matches.toList(growable: false);
+  }
+
+  Future<_WorldCupStatRankings> _statRankingsFutureFor({
+    required List<_WorldCupOfficialMatchForStats> matches,
+    required String language,
+  }) {
+    final cacheKey = [
+      language,
+      for (final match in matches)
+        '${match.fixture.matchNumber}:${match.officialMatch.matchId}:'
+            '${match.officialMatch.homeScore}-${match.officialMatch.awayScore}:'
+            '${match.officialMatch.homePenaltyScore}-'
+            '${match.officialMatch.awayPenaltyScore}',
+    ].join('|');
+    if (_statRankingsFuture != null && _statRankingsCacheKey == cacheKey) {
+      return _statRankingsFuture!;
+    }
+    _statRankingsCacheKey = cacheKey;
+    _statRankingsFuture = _loadWorldCupStatRankings(
+      matches: matches,
+      language: language,
+    );
+    return _statRankingsFuture!;
+  }
+
+  Future<_WorldCupStatRankings> _loadWorldCupStatRankings({
+    required List<_WorldCupOfficialMatchForStats> matches,
+    required String language,
+  }) async {
+    final goals = <String, _WorldCupPlayerStatAccumulator>{};
+    var detailedMatchCount = 0;
+    const chunkSize = 4;
+    for (var index = 0; index < matches.length; index += chunkSize) {
+      final chunk = matches.skip(index).take(chunkSize).toList(growable: false);
+      final details = await Future.wait(
+        chunk.map(
+          (match) async {
+            try {
+              final detail = await _liveDataService.fetchMatchDetail(
+                match.officialMatch,
+                language: language,
+              );
+              return _WorldCupOfficialDetailForStats(
+                source: match,
+                detail: detail,
+              );
+            } catch (_) {
+              return _WorldCupOfficialDetailForStats(
+                source: match,
+                detail: null,
+              );
+            }
+          },
+        ),
+      );
+      for (final item in details) {
+        final detail = item.detail;
+        if (detail == null) continue;
+        detailedMatchCount += 1;
+        final participants = _worldCupDisplayParticipantsForFixture(
+          item.source.fixture,
+          item.source.officialMatch,
+        );
+        _addGoalScorersToRankings(
+          goals: goals,
+          team: participants.homeTeam,
+          opponent: participants.awayTeam,
+          scorers: detail.homeScorers,
+        );
+        _addGoalScorersToRankings(
+          goals: goals,
+          team: participants.awayTeam,
+          opponent: participants.homeTeam,
+          scorers: detail.awayScorers,
+        );
+      }
+    }
+    final goalRankings = goals.values.map((entry) => entry.toEntry()).toList()
+      ..sort(_compareWorldCupPlayerStatEntries);
+    return _WorldCupStatRankings(
+      goals: goalRankings.toList(growable: false),
+      assists: const <_WorldCupPlayerStatEntry>[],
+      fouls: const <_WorldCupPlayerStatEntry>[],
+      sourceMatchCount: matches.length,
+      detailedMatchCount: detailedMatchCount,
+    );
+  }
+
+  void _addGoalScorersToRankings({
+    required Map<String, _WorldCupPlayerStatAccumulator> goals,
+    required String team,
+    required String opponent,
+    required List<FifaMatchScorer> scorers,
+  }) {
+    for (final scorer in scorers) {
+      final playerName = scorer.playerName.trim();
+      if (playerName.isEmpty) continue;
+      final key = '${_worldCupTeamKey(team)}|${playerName.toLowerCase()}';
+      final accumulator = goals.putIfAbsent(
+        key,
+        () => _WorldCupPlayerStatAccumulator(
+          team: team,
+          playerName: playerName,
+        ),
+      );
+      accumulator.addEvent(
+        _WorldCupPlayerStatEvent(
+          opponent: opponent,
+          minute: scorer.minute.trim(),
+        ),
+      );
+    }
   }
 
   Widget _buildStandingsPlan(BuildContext context) {
@@ -1542,6 +1780,8 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
             liveData.officialMatchesByFixtureNumber;
         _rankingsByTeam = liveData.rankingsByTeam;
         _officialDataRefreshedAt = liveData.refreshedAt;
+        _statRankingsFuture = null;
+        _statRankingsCacheKey = '';
         _selectedDayMatchPageHeights.clear();
       });
     } catch (_) {
@@ -2010,12 +2250,13 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
   }
 }
 
-enum _WorldCupView { schedule, standings, tournament }
+enum _WorldCupView { schedule, standings, rankings, tournament }
 
 IconData _worldCupViewIcon(_WorldCupView view) {
   return switch (view) {
     _WorldCupView.schedule => Icons.event_note_rounded,
     _WorldCupView.standings => Icons.leaderboard_rounded,
+    _WorldCupView.rankings => Icons.query_stats_rounded,
     _WorldCupView.tournament => Icons.account_tree_rounded,
   };
 }
@@ -2024,8 +2265,322 @@ String _worldCupViewLabel(AppLocalizations l10n, _WorldCupView view) {
   return switch (view) {
     _WorldCupView.schedule => l10n.worldCupScheduleTab,
     _WorldCupView.standings => l10n.worldCupStandingsTab,
+    _WorldCupView.rankings => l10n.worldCupRankingsTab,
     _WorldCupView.tournament => l10n.worldCupTournamentTab,
   };
+}
+
+class _WorldCupOfficialMatchForStats {
+  final WorldCupFixture fixture;
+  final FifaAMatchEntry officialMatch;
+
+  const _WorldCupOfficialMatchForStats({
+    required this.fixture,
+    required this.officialMatch,
+  });
+}
+
+class _WorldCupOfficialDetailForStats {
+  final _WorldCupOfficialMatchForStats source;
+  final FifaAMatchDetail? detail;
+
+  const _WorldCupOfficialDetailForStats({
+    required this.source,
+    required this.detail,
+  });
+}
+
+class _WorldCupStatRankings {
+  final List<_WorldCupPlayerStatEntry> goals;
+  final List<_WorldCupPlayerStatEntry> assists;
+  final List<_WorldCupPlayerStatEntry> fouls;
+  final int sourceMatchCount;
+  final int detailedMatchCount;
+
+  const _WorldCupStatRankings({
+    required this.goals,
+    required this.assists,
+    required this.fouls,
+    required this.sourceMatchCount,
+    required this.detailedMatchCount,
+  });
+
+  const _WorldCupStatRankings.empty()
+      : goals = const <_WorldCupPlayerStatEntry>[],
+        assists = const <_WorldCupPlayerStatEntry>[],
+        fouls = const <_WorldCupPlayerStatEntry>[],
+        sourceMatchCount = 0,
+        detailedMatchCount = 0;
+}
+
+class _WorldCupPlayerStatEntry {
+  final String team;
+  final String playerName;
+  final int count;
+  final List<_WorldCupPlayerStatEvent> events;
+
+  const _WorldCupPlayerStatEntry({
+    required this.team,
+    required this.playerName,
+    required this.count,
+    required this.events,
+  });
+}
+
+class _WorldCupPlayerStatEvent {
+  final String opponent;
+  final String minute;
+
+  const _WorldCupPlayerStatEvent({
+    required this.opponent,
+    required this.minute,
+  });
+}
+
+class _WorldCupPlayerStatAccumulator {
+  final String team;
+  final String playerName;
+  final List<_WorldCupPlayerStatEvent> events = <_WorldCupPlayerStatEvent>[];
+
+  _WorldCupPlayerStatAccumulator({
+    required this.team,
+    required this.playerName,
+  });
+
+  void addEvent(_WorldCupPlayerStatEvent event) {
+    events.add(event);
+  }
+
+  _WorldCupPlayerStatEntry toEntry() {
+    return _WorldCupPlayerStatEntry(
+      team: team,
+      playerName: playerName,
+      count: events.length,
+      events: events.toList(growable: false),
+    );
+  }
+}
+
+int _compareWorldCupPlayerStatEntries(
+  _WorldCupPlayerStatEntry a,
+  _WorldCupPlayerStatEntry b,
+) {
+  final countComparison = b.count.compareTo(a.count);
+  if (countComparison != 0) return countComparison;
+  final teamComparison = a.team.compareTo(b.team);
+  if (teamComparison != 0) return teamComparison;
+  return a.playerName.compareTo(b.playerName);
+}
+
+class _WorldCupStatRankingsPanel extends StatelessWidget {
+  final _WorldCupStatRankings rankings;
+  final String localeName;
+
+  const _WorldCupStatRankingsPanel({
+    required this.rankings,
+    required this.localeName,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _WorldCupPlayerStatSection(
+          icon: Icons.sports_score_rounded,
+          title: l10n.worldCupGoalRankingsTitle,
+          entries: rankings.goals,
+          localeName: localeName,
+          emptyMessage: rankings.sourceMatchCount == 0
+              ? l10n.worldCupRankingsNoOfficialMatches
+              : l10n.worldCupGoalRankingsEmpty,
+          countLabelBuilder: l10n.worldCupRankingsGoalCount,
+        ),
+        const SizedBox(height: 12),
+        _WorldCupPlayerStatSection(
+          icon: Icons.assistant_direction_rounded,
+          title: l10n.worldCupAssistRankingsTitle,
+          entries: rankings.assists,
+          localeName: localeName,
+          emptyMessage: l10n.worldCupAssistRankingsEmpty,
+          countLabelBuilder: l10n.worldCupRankingsAssistCount,
+        ),
+        const SizedBox(height: 12),
+        _WorldCupPlayerStatSection(
+          icon: Icons.report_gmailerrorred_rounded,
+          title: l10n.worldCupFoulRankingsTitle,
+          entries: rankings.fouls,
+          localeName: localeName,
+          emptyMessage: l10n.worldCupFoulRankingsEmpty,
+          countLabelBuilder: l10n.worldCupRankingsFoulCount,
+        ),
+      ],
+    );
+  }
+}
+
+class _WorldCupPlayerStatSection extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final List<_WorldCupPlayerStatEntry> entries;
+  final String localeName;
+  final String emptyMessage;
+  final String Function(int count) countLabelBuilder;
+
+  const _WorldCupPlayerStatSection({
+    required this.icon,
+    required this.title,
+    required this.entries,
+    required this.localeName,
+    required this.emptyMessage,
+    required this.countLabelBuilder,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final visibleEntries = entries.take(20).toList(growable: false);
+    return WatchCartCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _SectionTitle(icon: icon, title: title),
+          const SizedBox(height: 12),
+          if (entries.isEmpty)
+            Text(
+              emptyMessage,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                height: 1.35,
+              ),
+            )
+          else
+            Column(
+              children: [
+                for (var index = 0; index < visibleEntries.length; index++)
+                  Padding(
+                    padding: EdgeInsets.only(
+                      bottom: index == visibleEntries.length - 1 ? 0 : 8,
+                    ),
+                    child: _WorldCupPlayerStatRow(
+                      rank: index + 1,
+                      entry: visibleEntries[index],
+                      localeName: localeName,
+                      countLabel: countLabelBuilder(
+                        visibleEntries[index].count,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WorldCupPlayerStatRow extends StatelessWidget {
+  final int rank;
+  final _WorldCupPlayerStatEntry entry;
+  final String localeName;
+  final String countLabel;
+
+  const _WorldCupPlayerStatRow({
+    required this.rank,
+    required this.entry,
+    required this.localeName,
+    required this.countLabel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final eventText = _eventText(l10n);
+    final playerName = worldCupRosterDisplayNameForPlayer(
+      entry.team,
+      entry.playerName,
+      localeName,
+    );
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text(
+              '$rank',
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: theme.colorScheme.onPrimaryContainer,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  playerName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 4,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    _CountryLabel(country: entry.team),
+                    if (eventText.isNotEmpty)
+                      Text(
+                        eventText,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          _SmallPill(label: countLabel),
+        ],
+      ),
+    );
+  }
+
+  String _eventText(AppLocalizations l10n) {
+    final labels = entry.events.take(3).map((event) {
+      final opponent = _worldCupCountryName(l10n, event.opponent);
+      if (event.minute.isEmpty) return opponent;
+      return l10n.worldCupRankingsEventWithMinute(opponent, event.minute);
+    }).toList();
+    if (entry.events.length > labels.length) {
+      labels.add(
+        l10n.worldCupRankingsMoreEvents(entry.events.length - labels.length),
+      );
+    }
+    return labels.join(l10n.worldCupQualificationOpponentTeamSeparator);
+  }
 }
 
 class _WorldCupLightSwipePageScrollPhysics extends PageScrollPhysics {
