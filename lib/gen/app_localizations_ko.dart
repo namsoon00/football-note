@@ -1285,7 +1285,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get worldCupRankingsIntro =>
-      'FIFA 공식 매치 상세에서 확인되는 선수 기록을 모아 보여줘요. 득점은 공식 득점자 목록으로, 어시스트는 도움 선수 ID로, 징계는 공식 경고/퇴장 기록으로 집계합니다.';
+      'FIFA 공식 매치 상세에서 확인되는 선수 기록을 모아 보여줘요. 득점은 공식 득점자 목록으로, 어시스트는 FIFA가 도움 선수 ID를 제공한 경기만 집계하고, 징계는 공식 경고/퇴장 기록으로 집계합니다.';
 
   @override
   String get worldCupRankingsSourceMatchesLabel => '집계 경기';
@@ -1320,7 +1320,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get worldCupAssistRankingsEmpty =>
-      'FIFA 공식 득점 기록에 도움 선수 ID가 아직 없어 표시할 어시스트가 없습니다.';
+      'FIFA가 도움 선수 ID를 제공한 경기만 집계할 수 있어 현재 표시할 어시스트가 없습니다.';
 
   @override
   String get worldCupDisciplineRankingsEmpty =>

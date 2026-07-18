@@ -2469,7 +2469,7 @@ abstract class AppLocalizations {
   /// No description provided for @worldCupRankingsIntro.
   ///
   /// In en, this message translates to:
-  /// **'Player rankings are gathered from the FIFA official match details available in the app. Goals come from official scorer lists, assists use assisting player IDs, and discipline uses official yellow/red card records.'**
+  /// **'Player rankings are gathered from the FIFA official match details available in the app. Goals come from official scorer lists, assists are counted only for matches where FIFA provides assisting player IDs, and discipline uses official yellow/red card records.'**
   String get worldCupRankingsIntro;
 
   /// No description provided for @worldCupRankingsSourceMatchesLabel.
@@ -2529,7 +2529,7 @@ abstract class AppLocalizations {
   /// No description provided for @worldCupAssistRankingsEmpty.
   ///
   /// In en, this message translates to:
-  /// **'FIFA official goal records do not include assisting player IDs yet, so there are no assists to show.'**
+  /// **'Assists can only be counted when FIFA provides assisting player IDs, so there are no assists to show yet.'**
   String get worldCupAssistRankingsEmpty;
 
   /// No description provided for @worldCupDisciplineRankingsEmpty.

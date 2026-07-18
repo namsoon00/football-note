@@ -2737,7 +2737,7 @@ int _compareWorldCupPlayerStatEntries(
   return a.playerName.compareTo(b.playerName);
 }
 
-class _WorldCupStatRankingsPanel extends StatelessWidget {
+class _WorldCupStatRankingsPanel extends StatefulWidget {
   final _WorldCupStatRankings rankings;
   final String localeName;
 
@@ -2747,62 +2747,126 @@ class _WorldCupStatRankingsPanel extends StatelessWidget {
   });
 
   @override
+  State<_WorldCupStatRankingsPanel> createState() =>
+      _WorldCupStatRankingsPanelState();
+}
+
+class _WorldCupStatRankingsPanelState
+    extends State<_WorldCupStatRankingsPanel> {
+  int _selectedIndex = 0;
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _WorldCupPlayerStatSection(
-          icon: Icons.sports_score_rounded,
-          title: l10n.worldCupGoalRankingsTitle,
-          entries: rankings.goals,
-          localeName: localeName,
-          emptyMessage: rankings.sourceMatchCount == 0
-              ? l10n.worldCupRankingsNoOfficialMatches
-              : l10n.worldCupGoalRankingsEmpty,
-          countLabelBuilder: (entry) => l10n.worldCupRankingsGoalCount(
-            entry.count,
-          ),
+    final theme = Theme.of(context);
+    final tabs = [
+      _WorldCupPlayerStatTabData(
+        icon: Icons.sports_score_rounded,
+        title: l10n.worldCupGoalRankingsTitle,
+        entries: widget.rankings.goals,
+        emptyMessage: widget.rankings.sourceMatchCount == 0
+            ? l10n.worldCupRankingsNoOfficialMatches
+            : l10n.worldCupGoalRankingsEmpty,
+        countLabelBuilder: (entry) => l10n.worldCupRankingsGoalCount(
+          entry.count,
         ),
-        const SizedBox(height: 12),
-        _WorldCupPlayerStatSection(
-          icon: Icons.assistant_direction_rounded,
-          title: l10n.worldCupAssistRankingsTitle,
-          entries: rankings.assists,
-          localeName: localeName,
-          emptyMessage: l10n.worldCupAssistRankingsEmpty,
-          countLabelBuilder: (entry) => l10n.worldCupRankingsAssistCount(
-            entry.count,
-          ),
+      ),
+      _WorldCupPlayerStatTabData(
+        icon: Icons.assistant_direction_rounded,
+        title: l10n.worldCupAssistRankingsTitle,
+        entries: widget.rankings.assists,
+        emptyMessage: l10n.worldCupAssistRankingsEmpty,
+        countLabelBuilder: (entry) => l10n.worldCupRankingsAssistCount(
+          entry.count,
         ),
-        const SizedBox(height: 12),
-        _WorldCupPlayerStatSection(
-          icon: Icons.style_rounded,
-          title: l10n.worldCupDisciplineRankingsTitle,
-          entries: rankings.disciplines,
-          localeName: localeName,
-          emptyMessage: l10n.worldCupDisciplineRankingsEmpty,
-          countLabelBuilder: (entry) => l10n.worldCupRankingsDisciplineCount(
-            entry.yellowCardCount,
-            entry.redCardCount,
-          ),
+      ),
+      _WorldCupPlayerStatTabData(
+        icon: Icons.style_rounded,
+        title: l10n.worldCupDisciplineRankingsTitle,
+        entries: widget.rankings.disciplines,
+        emptyMessage: l10n.worldCupDisciplineRankingsEmpty,
+        countLabelBuilder: (entry) => l10n.worldCupRankingsDisciplineCount(
+          entry.yellowCardCount,
+          entry.redCardCount,
         ),
-      ],
+      ),
+    ];
+    final selectedIndex = math.min(_selectedIndex, tabs.length - 1);
+    final selectedTab = tabs[selectedIndex];
+    return WatchCartCard(
+      child: DefaultTabController(
+        length: tabs.length,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TabBar(
+              isScrollable: true,
+              labelColor: theme.colorScheme.primary,
+              unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
+              indicatorColor: theme.colorScheme.primary,
+              dividerColor: theme.colorScheme.outlineVariant,
+              labelStyle: theme.textTheme.labelLarge?.copyWith(
+                fontWeight: FontWeight.w900,
+              ),
+              unselectedLabelStyle: theme.textTheme.labelLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+              onTap: (index) {
+                setState(() {
+                  _selectedIndex = index;
+                });
+              },
+              tabs: [
+                for (final tab in tabs)
+                  Tab(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(tab.icon, size: 17),
+                        const SizedBox(width: 6),
+                        Text(tab.title),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            _WorldCupPlayerStatSection(
+              entries: selectedTab.entries,
+              localeName: widget.localeName,
+              emptyMessage: selectedTab.emptyMessage,
+              countLabelBuilder: selectedTab.countLabelBuilder,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
 
-class _WorldCupPlayerStatSection extends StatelessWidget {
+class _WorldCupPlayerStatTabData {
   final IconData icon;
   final String title;
+  final List<_WorldCupPlayerStatEntry> entries;
+  final String emptyMessage;
+  final String Function(_WorldCupPlayerStatEntry entry) countLabelBuilder;
+
+  const _WorldCupPlayerStatTabData({
+    required this.icon,
+    required this.title,
+    required this.entries,
+    required this.emptyMessage,
+    required this.countLabelBuilder,
+  });
+}
+
+class _WorldCupPlayerStatSection extends StatelessWidget {
   final List<_WorldCupPlayerStatEntry> entries;
   final String localeName;
   final String emptyMessage;
   final String Function(_WorldCupPlayerStatEntry entry) countLabelBuilder;
 
   const _WorldCupPlayerStatSection({
-    required this.icon,
-    required this.title,
     required this.entries,
     required this.localeName,
     required this.emptyMessage,
@@ -2813,39 +2877,30 @@ class _WorldCupPlayerStatSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final visibleEntries = entries.take(20).toList(growable: false);
-    return WatchCartCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _SectionTitle(icon: icon, title: title),
-          const SizedBox(height: 12),
-          if (entries.isEmpty)
-            Text(
-              emptyMessage,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-                height: 1.35,
-              ),
-            )
-          else
-            Column(
-              children: [
-                for (var index = 0; index < visibleEntries.length; index++)
-                  Padding(
-                    padding: EdgeInsets.only(
-                      bottom: index == visibleEntries.length - 1 ? 0 : 8,
-                    ),
-                    child: _WorldCupPlayerStatRow(
-                      rank: index + 1,
-                      entry: visibleEntries[index],
-                      localeName: localeName,
-                      countLabel: countLabelBuilder(visibleEntries[index]),
-                    ),
-                  ),
-              ],
+    if (entries.isEmpty) {
+      return Text(
+        emptyMessage,
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+          height: 1.35,
+        ),
+      );
+    }
+    return Column(
+      children: [
+        for (var index = 0; index < visibleEntries.length; index++)
+          Padding(
+            padding: EdgeInsets.only(
+              bottom: index == visibleEntries.length - 1 ? 0 : 8,
             ),
-        ],
-      ),
+            child: _WorldCupPlayerStatRow(
+              rank: index + 1,
+              entry: visibleEntries[index],
+              localeName: localeName,
+              countLabel: countLabelBuilder(visibleEntries[index]),
+            ),
+          ),
+      ],
     );
   }
 }
