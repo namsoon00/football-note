@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
@@ -67,6 +68,8 @@ const double _worldCupTournamentShareImagePixelRatio = 1;
 class _WorldCupScreenState extends State<WorldCupScreen> {
   static const String _supportCountryKey = 'world_cup_support_country_v1';
   static const String _interestCountriesKey = 'world_cup_interest_countries_v1';
+  static const String _playerStatRankingsCacheKey =
+      'world_cup_player_stat_rankings_cache_v1';
   static const double _calendarDayNumberFontSize = 17;
   static const double _selectedDayPageViewportFraction = 0.94;
   static final Uri _sourceUri = Uri.parse(
@@ -97,6 +100,8 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
   bool _pageShareInProgress = false;
   Future<_WorldCupStatRankings>? _statRankingsFuture;
   String _statRankingsCacheKey = '';
+  final Map<String, String> _statRankingsCacheJsonByLanguage =
+      <String, String>{};
   late final PageController _selectedDayPageController;
   final Map<String, double> _selectedDayMatchPageHeights = <String, double>{};
   double? _selectedDayPagePosition;
@@ -497,12 +502,25 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
     required List<_WorldCupOfficialMatchForStats> matches,
     required String language,
   }) async {
-    final goals = <String, _WorldCupPlayerStatAccumulator>{};
-    final assists = <String, _WorldCupPlayerStatAccumulator>{};
-    var detailedMatchCount = 0;
+    final cache = _loadWorldCupStatRankingsCache(language);
+    final currentMatchKeys = {
+      for (final match in matches) _worldCupStatMatchCacheKey(match): match,
+    };
+    final contributionsByKey = <String, _WorldCupMatchStatContribution>{
+      for (final contribution in cache.contributions)
+        if (currentMatchKeys.containsKey(contribution.matchKey))
+          contribution.matchKey: contribution,
+    };
+    var cacheChanged = contributionsByKey.length != cache.contributions.length;
+    final missingMatches = [
+      for (final match in matches)
+        if (!contributionsByKey.containsKey(_worldCupStatMatchCacheKey(match)))
+          match,
+    ];
     const chunkSize = 4;
-    for (var index = 0; index < matches.length; index += chunkSize) {
-      final chunk = matches.skip(index).take(chunkSize).toList(growable: false);
+    for (var index = 0; index < missingMatches.length; index += chunkSize) {
+      final chunk =
+          missingMatches.skip(index).take(chunkSize).toList(growable: false);
       final details = await Future.wait(
         chunk.map(
           (match) async {
@@ -527,50 +545,180 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
       for (final item in details) {
         final detail = item.detail;
         if (detail == null) continue;
-        detailedMatchCount += 1;
-        final participants = _worldCupDisplayParticipantsForFixture(
-          item.source.fixture,
-          item.source.officialMatch,
+        final contribution = _buildWorldCupMatchStatContribution(
+          source: item.source,
+          detail: detail,
         );
-        _addGoalScorersToRankings(
-          goals: goals,
-          team: participants.homeTeam,
-          opponent: participants.awayTeam,
-          scorers: detail.homeScorers,
-        );
-        _addGoalScorersToRankings(
-          goals: goals,
-          team: participants.awayTeam,
-          opponent: participants.homeTeam,
-          scorers: detail.awayScorers,
-        );
-        _addAssistPlayersToRankings(
-          assists: assists,
-          team: participants.homeTeam,
-          opponent: participants.awayTeam,
-          matchAssists: detail.homeAssists,
-        );
-        _addAssistPlayersToRankings(
-          assists: assists,
-          team: participants.awayTeam,
-          opponent: participants.homeTeam,
-          matchAssists: detail.awayAssists,
-        );
+        contributionsByKey[contribution.matchKey] = contribution;
+        cacheChanged = true;
       }
     }
-    final goalRankings = goals.values.map((entry) => entry.toEntry()).toList()
-      ..sort(_compareWorldCupPlayerStatEntries);
-    final assistRankings = assists.values
-        .map((entry) => entry.toEntry())
-        .toList()
-      ..sort(_compareWorldCupPlayerStatEntries);
-    return _WorldCupStatRankings(
-      goals: goalRankings.toList(growable: false),
-      assists: assistRankings.toList(growable: false),
-      fouls: const <_WorldCupPlayerStatEntry>[],
+    final contributions = contributionsByKey.values.toList()
+      ..sort((a, b) => a.kickoffUtc.compareTo(b.kickoffUtc));
+    if (cacheChanged) {
+      await _saveWorldCupStatRankingsCache(
+        language: language,
+        cache: _WorldCupStatRankingsCache(contributions: contributions),
+      );
+    }
+    return _aggregateWorldCupStatRankings(
+      contributions,
       sourceMatchCount: matches.length,
-      detailedMatchCount: detailedMatchCount,
     );
+  }
+
+  _WorldCupMatchStatContribution _buildWorldCupMatchStatContribution({
+    required _WorldCupOfficialMatchForStats source,
+    required FifaAMatchDetail detail,
+  }) {
+    final goals = <String, _WorldCupPlayerStatAccumulator>{};
+    final assists = <String, _WorldCupPlayerStatAccumulator>{};
+    final disciplines = <String, _WorldCupPlayerStatAccumulator>{};
+    final participants = _worldCupDisplayParticipantsForFixture(
+      source.fixture,
+      source.officialMatch,
+    );
+    _addGoalScorersToRankings(
+      goals: goals,
+      team: participants.homeTeam,
+      opponent: participants.awayTeam,
+      scorers: detail.homeScorers,
+    );
+    _addGoalScorersToRankings(
+      goals: goals,
+      team: participants.awayTeam,
+      opponent: participants.homeTeam,
+      scorers: detail.awayScorers,
+    );
+    _addAssistPlayersToRankings(
+      assists: assists,
+      team: participants.homeTeam,
+      opponent: participants.awayTeam,
+      matchAssists: detail.homeAssists,
+    );
+    _addAssistPlayersToRankings(
+      assists: assists,
+      team: participants.awayTeam,
+      opponent: participants.homeTeam,
+      matchAssists: detail.awayAssists,
+    );
+    _addBookingsToRankings(
+      disciplines: disciplines,
+      team: participants.homeTeam,
+      opponent: participants.awayTeam,
+      bookings: detail.homeBookings,
+    );
+    _addBookingsToRankings(
+      disciplines: disciplines,
+      team: participants.awayTeam,
+      opponent: participants.homeTeam,
+      bookings: detail.awayBookings,
+    );
+    return _WorldCupMatchStatContribution(
+      matchKey: _worldCupStatMatchCacheKey(source),
+      kickoffUtc: source.fixture.kickoffUtc.toUtc(),
+      goals: _sortedWorldCupStatEntries(goals),
+      assists: _sortedWorldCupStatEntries(assists),
+      disciplines: _sortedWorldCupStatEntries(disciplines),
+    );
+  }
+
+  _WorldCupStatRankings _aggregateWorldCupStatRankings(
+    List<_WorldCupMatchStatContribution> contributions, {
+    required int sourceMatchCount,
+  }) {
+    final goals = <String, _WorldCupPlayerStatAccumulator>{};
+    final assists = <String, _WorldCupPlayerStatAccumulator>{};
+    final disciplines = <String, _WorldCupPlayerStatAccumulator>{};
+    for (final contribution in contributions) {
+      _addEntriesToRankings(goals, contribution.goals);
+      _addEntriesToRankings(assists, contribution.assists);
+      _addEntriesToRankings(disciplines, contribution.disciplines);
+    }
+    return _WorldCupStatRankings(
+      goals: _sortedWorldCupStatEntries(goals),
+      assists: _sortedWorldCupStatEntries(assists),
+      disciplines: _sortedWorldCupStatEntries(disciplines),
+      sourceMatchCount: sourceMatchCount,
+      detailedMatchCount: contributions.length,
+    );
+  }
+
+  List<_WorldCupPlayerStatEntry> _sortedWorldCupStatEntries(
+    Map<String, _WorldCupPlayerStatAccumulator> values,
+  ) {
+    return values.values.map((entry) => entry.toEntry()).toList()
+      ..sort(_compareWorldCupPlayerStatEntries);
+  }
+
+  void _addEntriesToRankings(
+    Map<String, _WorldCupPlayerStatAccumulator> rankings,
+    List<_WorldCupPlayerStatEntry> entries,
+  ) {
+    for (final entry in entries) {
+      final key = _worldCupPlayerStatKey(entry.team, entry.playerName);
+      final accumulator = rankings.putIfAbsent(
+        key,
+        () => _WorldCupPlayerStatAccumulator(
+          team: entry.team,
+          playerName: entry.playerName,
+        ),
+      );
+      for (final event in entry.events) {
+        accumulator.addEvent(event);
+      }
+    }
+  }
+
+  _WorldCupStatRankingsCache _loadWorldCupStatRankingsCache(String language) {
+    final storageKey = _worldCupStatRankingsCacheStorageKey(language);
+    final raw = widget.optionRepository?.getValue<String>(
+          storageKey,
+        ) ??
+        _statRankingsCacheJsonByLanguage[storageKey];
+    if (raw == null || raw.trim().isEmpty) {
+      return const _WorldCupStatRankingsCache.empty();
+    }
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map) return const _WorldCupStatRankingsCache.empty();
+      return _WorldCupStatRankingsCache.fromJson(
+          decoded.cast<String, dynamic>());
+    } catch (_) {
+      return const _WorldCupStatRankingsCache.empty();
+    }
+  }
+
+  Future<void> _saveWorldCupStatRankingsCache({
+    required String language,
+    required _WorldCupStatRankingsCache cache,
+  }) async {
+    final storageKey = _worldCupStatRankingsCacheStorageKey(language);
+    final encoded = jsonEncode(cache.toJson());
+    _statRankingsCacheJsonByLanguage[storageKey] = encoded;
+    await widget.optionRepository?.setValue(
+      storageKey,
+      encoded,
+    );
+  }
+
+  String _worldCupStatRankingsCacheStorageKey(String language) {
+    final normalizedLanguage = language.trim().toLowerCase();
+    return '$_playerStatRankingsCacheKey'
+        '_${normalizedLanguage.isEmpty ? 'en' : normalizedLanguage}';
+  }
+
+  String _worldCupStatMatchCacheKey(_WorldCupOfficialMatchForStats match) {
+    final officialMatch = match.officialMatch;
+    return [
+      match.fixture.matchNumber,
+      officialMatch.matchId,
+      officialMatch.homeScore ?? '',
+      officialMatch.awayScore ?? '',
+      officialMatch.homePenaltyScore ?? '',
+      officialMatch.awayPenaltyScore ?? '',
+      officialMatch.status.name,
+    ].join('|');
   }
 
   void _addGoalScorersToRankings({
@@ -582,7 +730,7 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
     for (final scorer in scorers) {
       final playerName = scorer.playerName.trim();
       if (playerName.isEmpty) continue;
-      final key = '${_worldCupTeamKey(team)}|${playerName.toLowerCase()}';
+      final key = _worldCupPlayerStatKey(team, playerName);
       final accumulator = goals.putIfAbsent(
         key,
         () => _WorldCupPlayerStatAccumulator(
@@ -608,7 +756,7 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
     for (final assist in matchAssists) {
       final playerName = assist.playerName.trim();
       if (playerName.isEmpty) continue;
-      final key = '${_worldCupTeamKey(team)}|${playerName.toLowerCase()}';
+      final key = _worldCupPlayerStatKey(team, playerName);
       final accumulator = assists.putIfAbsent(
         key,
         () => _WorldCupPlayerStatAccumulator(
@@ -623,6 +771,37 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
         ),
       );
     }
+  }
+
+  void _addBookingsToRankings({
+    required Map<String, _WorldCupPlayerStatAccumulator> disciplines,
+    required String team,
+    required String opponent,
+    required List<FifaMatchBooking> bookings,
+  }) {
+    for (final booking in bookings) {
+      final playerName = booking.playerName.trim();
+      if (playerName.isEmpty) continue;
+      final key = _worldCupPlayerStatKey(team, playerName);
+      final accumulator = disciplines.putIfAbsent(
+        key,
+        () => _WorldCupPlayerStatAccumulator(
+          team: team,
+          playerName: playerName,
+        ),
+      );
+      accumulator.addEvent(
+        _WorldCupPlayerStatEvent(
+          opponent: opponent,
+          minute: booking.minute.trim(),
+          cardType: booking.cardType,
+        ),
+      );
+    }
+  }
+
+  String _worldCupPlayerStatKey(String team, String playerName) {
+    return '${_worldCupTeamKey(team)}|${playerName.trim().toLowerCase()}';
   }
 
   Widget _buildStandingsPlan(BuildContext context) {
@@ -2336,14 +2515,14 @@ class _WorldCupOfficialDetailForStats {
 class _WorldCupStatRankings {
   final List<_WorldCupPlayerStatEntry> goals;
   final List<_WorldCupPlayerStatEntry> assists;
-  final List<_WorldCupPlayerStatEntry> fouls;
+  final List<_WorldCupPlayerStatEntry> disciplines;
   final int sourceMatchCount;
   final int detailedMatchCount;
 
   const _WorldCupStatRankings({
     required this.goals,
     required this.assists,
-    required this.fouls,
+    required this.disciplines,
     required this.sourceMatchCount,
     required this.detailedMatchCount,
   });
@@ -2351,9 +2530,81 @@ class _WorldCupStatRankings {
   const _WorldCupStatRankings.empty()
       : goals = const <_WorldCupPlayerStatEntry>[],
         assists = const <_WorldCupPlayerStatEntry>[],
-        fouls = const <_WorldCupPlayerStatEntry>[],
+        disciplines = const <_WorldCupPlayerStatEntry>[],
         sourceMatchCount = 0,
         detailedMatchCount = 0;
+}
+
+class _WorldCupStatRankingsCache {
+  final List<_WorldCupMatchStatContribution> contributions;
+
+  const _WorldCupStatRankingsCache({required this.contributions});
+
+  const _WorldCupStatRankingsCache.empty()
+      : contributions = const <_WorldCupMatchStatContribution>[];
+
+  factory _WorldCupStatRankingsCache.fromJson(Map<String, dynamic> json) {
+    final rawContributions = json['matches'];
+    if (rawContributions is! List) {
+      return const _WorldCupStatRankingsCache.empty();
+    }
+    return _WorldCupStatRankingsCache(
+      contributions: [
+        for (final raw in rawContributions)
+          if (raw is Map)
+            _WorldCupMatchStatContribution.fromJson(
+              raw.cast<String, dynamic>(),
+            ),
+      ],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'version': 1,
+      'matches': [
+        for (final contribution in contributions) contribution.toJson(),
+      ],
+    };
+  }
+}
+
+class _WorldCupMatchStatContribution {
+  final String matchKey;
+  final DateTime kickoffUtc;
+  final List<_WorldCupPlayerStatEntry> goals;
+  final List<_WorldCupPlayerStatEntry> assists;
+  final List<_WorldCupPlayerStatEntry> disciplines;
+
+  const _WorldCupMatchStatContribution({
+    required this.matchKey,
+    required this.kickoffUtc,
+    required this.goals,
+    required this.assists,
+    required this.disciplines,
+  });
+
+  factory _WorldCupMatchStatContribution.fromJson(Map<String, dynamic> json) {
+    return _WorldCupMatchStatContribution(
+      matchKey: json['matchKey']?.toString() ?? '',
+      kickoffUtc:
+          DateTime.tryParse(json['kickoffUtc']?.toString() ?? '')?.toUtc() ??
+              DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+      goals: _WorldCupPlayerStatEntry.listFromJson(json['goals']),
+      assists: _WorldCupPlayerStatEntry.listFromJson(json['assists']),
+      disciplines: _WorldCupPlayerStatEntry.listFromJson(json['disciplines']),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'matchKey': matchKey,
+      'kickoffUtc': kickoffUtc.toUtc().toIso8601String(),
+      'goals': [for (final entry in goals) entry.toJson()],
+      'assists': [for (final entry in assists) entry.toJson()],
+      'disciplines': [for (final entry in disciplines) entry.toJson()],
+    };
+  }
 }
 
 class _WorldCupPlayerStatEntry {
@@ -2368,16 +2619,78 @@ class _WorldCupPlayerStatEntry {
     required this.count,
     required this.events,
   });
+
+  int get yellowCardCount => events
+      .where((event) => event.cardType == FifaMatchCardType.yellow)
+      .length;
+
+  int get redCardCount =>
+      events.where((event) => event.cardType == FifaMatchCardType.red).length;
+
+  factory _WorldCupPlayerStatEntry.fromJson(Map<String, dynamic> json) {
+    final events = _WorldCupPlayerStatEvent.listFromJson(json['events']);
+    return _WorldCupPlayerStatEntry(
+      team: json['team']?.toString() ?? '',
+      playerName: json['playerName']?.toString() ?? '',
+      count: events.length,
+      events: events,
+    );
+  }
+
+  static List<_WorldCupPlayerStatEntry> listFromJson(dynamic raw) {
+    if (raw is! List) return const <_WorldCupPlayerStatEntry>[];
+    return [
+      for (final item in raw)
+        if (item is Map)
+          _WorldCupPlayerStatEntry.fromJson(item.cast<String, dynamic>()),
+    ];
+  }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'team': team,
+      'playerName': playerName,
+      'count': count,
+      'events': [for (final event in events) event.toJson()],
+    };
+  }
 }
 
 class _WorldCupPlayerStatEvent {
   final String opponent;
   final String minute;
+  final FifaMatchCardType? cardType;
 
   const _WorldCupPlayerStatEvent({
     required this.opponent,
     required this.minute,
+    this.cardType,
   });
+
+  factory _WorldCupPlayerStatEvent.fromJson(Map<String, dynamic> json) {
+    return _WorldCupPlayerStatEvent(
+      opponent: json['opponent']?.toString() ?? '',
+      minute: json['minute']?.toString() ?? '',
+      cardType: _worldCupMatchCardTypeFromName(json['cardType']?.toString()),
+    );
+  }
+
+  static List<_WorldCupPlayerStatEvent> listFromJson(dynamic raw) {
+    if (raw is! List) return const <_WorldCupPlayerStatEvent>[];
+    return [
+      for (final item in raw)
+        if (item is Map)
+          _WorldCupPlayerStatEvent.fromJson(item.cast<String, dynamic>()),
+    ];
+  }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'opponent': opponent,
+      'minute': minute,
+      if (cardType != null) 'cardType': cardType!.name,
+    };
+  }
 }
 
 class _WorldCupPlayerStatAccumulator {
@@ -2402,6 +2715,15 @@ class _WorldCupPlayerStatAccumulator {
       events: events.toList(growable: false),
     );
   }
+}
+
+FifaMatchCardType? _worldCupMatchCardTypeFromName(String? value) {
+  return switch (value) {
+    'yellow' => FifaMatchCardType.yellow,
+    'red' => FifaMatchCardType.red,
+    'unknown' => FifaMatchCardType.unknown,
+    _ => null,
+  };
 }
 
 int _compareWorldCupPlayerStatEntries(
@@ -2438,7 +2760,9 @@ class _WorldCupStatRankingsPanel extends StatelessWidget {
           emptyMessage: rankings.sourceMatchCount == 0
               ? l10n.worldCupRankingsNoOfficialMatches
               : l10n.worldCupGoalRankingsEmpty,
-          countLabelBuilder: l10n.worldCupRankingsGoalCount,
+          countLabelBuilder: (entry) => l10n.worldCupRankingsGoalCount(
+            entry.count,
+          ),
         ),
         const SizedBox(height: 12),
         _WorldCupPlayerStatSection(
@@ -2447,16 +2771,21 @@ class _WorldCupStatRankingsPanel extends StatelessWidget {
           entries: rankings.assists,
           localeName: localeName,
           emptyMessage: l10n.worldCupAssistRankingsEmpty,
-          countLabelBuilder: l10n.worldCupRankingsAssistCount,
+          countLabelBuilder: (entry) => l10n.worldCupRankingsAssistCount(
+            entry.count,
+          ),
         ),
         const SizedBox(height: 12),
         _WorldCupPlayerStatSection(
-          icon: Icons.report_gmailerrorred_rounded,
-          title: l10n.worldCupFoulRankingsTitle,
-          entries: rankings.fouls,
+          icon: Icons.style_rounded,
+          title: l10n.worldCupDisciplineRankingsTitle,
+          entries: rankings.disciplines,
           localeName: localeName,
-          emptyMessage: l10n.worldCupFoulRankingsEmpty,
-          countLabelBuilder: l10n.worldCupRankingsFoulCount,
+          emptyMessage: l10n.worldCupDisciplineRankingsEmpty,
+          countLabelBuilder: (entry) => l10n.worldCupRankingsDisciplineCount(
+            entry.yellowCardCount,
+            entry.redCardCount,
+          ),
         ),
       ],
     );
@@ -2469,7 +2798,7 @@ class _WorldCupPlayerStatSection extends StatelessWidget {
   final List<_WorldCupPlayerStatEntry> entries;
   final String localeName;
   final String emptyMessage;
-  final String Function(int count) countLabelBuilder;
+  final String Function(_WorldCupPlayerStatEntry entry) countLabelBuilder;
 
   const _WorldCupPlayerStatSection({
     required this.icon,
@@ -2510,9 +2839,7 @@ class _WorldCupPlayerStatSection extends StatelessWidget {
                       rank: index + 1,
                       entry: visibleEntries[index],
                       localeName: localeName,
-                      countLabel: countLabelBuilder(
-                        visibleEntries[index].count,
-                      ),
+                      countLabel: countLabelBuilder(visibleEntries[index]),
                     ),
                   ),
               ],
@@ -2614,7 +2941,17 @@ class _WorldCupPlayerStatRow extends StatelessWidget {
   String _eventText(AppLocalizations l10n) {
     final labels = entry.events.take(3).map((event) {
       final opponent = _worldCupCountryName(l10n, event.opponent);
-      if (event.minute.isEmpty) return opponent;
+      final cardLabel = _worldCupCardTypeLabel(l10n, event.cardType);
+      if (event.minute.isEmpty) {
+        return cardLabel.isEmpty ? opponent : '$opponent $cardLabel';
+      }
+      if (cardLabel.isNotEmpty) {
+        return l10n.worldCupRankingsCardEventWithMinute(
+          opponent,
+          event.minute,
+          cardLabel,
+        );
+      }
       return l10n.worldCupRankingsEventWithMinute(opponent, event.minute);
     }).toList();
     if (entry.events.length > labels.length) {
@@ -2624,6 +2961,17 @@ class _WorldCupPlayerStatRow extends StatelessWidget {
     }
     return labels.join(l10n.worldCupQualificationOpponentTeamSeparator);
   }
+}
+
+String _worldCupCardTypeLabel(
+  AppLocalizations l10n,
+  FifaMatchCardType? cardType,
+) {
+  return switch (cardType) {
+    FifaMatchCardType.yellow => l10n.worldCupYellowCardLabel,
+    FifaMatchCardType.red => l10n.worldCupRedCardLabel,
+    FifaMatchCardType.unknown || null => '',
+  };
 }
 
 class _WorldCupLightSwipePageScrollPhysics extends PageScrollPhysics {

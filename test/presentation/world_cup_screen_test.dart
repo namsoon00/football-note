@@ -223,6 +223,7 @@ void main() {
   testWidgets('world cup rankings tab shows player stat sections', (
     tester,
   ) async {
+    final optionRepository = _MemoryOptionRepository();
     final fixture = worldCupFixtures.firstWhere(
       (fixture) => fixture.involvesCountry('Korea Republic'),
     );
@@ -259,6 +260,18 @@ void main() {
         homeAssists: const [
           FifaMatchAssist(playerName: 'Lee Kang-in', minute: '12'),
         ],
+        homeBookings: const [
+          FifaMatchBooking(
+            playerName: 'Son Heung-min',
+            minute: '73',
+            cardType: FifaMatchCardType.yellow,
+          ),
+          FifaMatchBooking(
+            playerName: 'Son Heung-min',
+            minute: '88',
+            cardType: FifaMatchCardType.red,
+          ),
+        ],
         homePlayers: const <FifaMatchPlayer>[],
         awayPlayers: const <FifaMatchPlayer>[],
         homePossession: null,
@@ -274,6 +287,7 @@ void main() {
         supportedLocales: AppLocalizations.supportedLocales,
         home: WorldCupScreen(
           liveDataService: liveDataService,
+          optionRepository: optionRepository,
           currentTime: DateTime.utc(2026, 6, 20),
         ),
       ),
@@ -293,12 +307,54 @@ void main() {
     expect(find.text('월드컵 순위'), findsOneWidget);
     expect(find.text('득점 순위'), findsOneWidget);
     expect(find.text('어시스트 순위'), findsOneWidget);
-    expect(find.text('반칙 순위'), findsOneWidget);
-    expect(find.text('손흥민'), findsOneWidget);
+    expect(find.text('경고/퇴장 순위'), findsOneWidget);
+    expect(find.text('손흥민'), findsWidgets);
     expect(find.text('2골'), findsOneWidget);
     expect(find.text('이강인'), findsOneWidget);
     expect(find.text('1도움'), findsOneWidget);
+    expect(find.text('경고 1 · 퇴장 1'), findsOneWidget);
     expect(find.textContaining('체코전 12'), findsWidgets);
+    expect(find.textContaining('체코전 73 경고'), findsWidgets);
+    expect(liveDataService.detailFetchCount, 1);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+
+    final cachedLiveDataService = _FakeWorldCupLiveDataService(
+      data: WorldCupLiveData(
+        fixtures: worldCupFixtures,
+        officialMatchesByFixtureNumber: {fixture.matchNumber: officialMatch},
+        refreshedAt: DateTime.utc(2026, 6, 12, 4),
+      ),
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        theme: AppTheme.light(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: WorldCupScreen(
+          liveDataService: cachedLiveDataService,
+          optionRepository: optionRepository,
+          currentTime: DateTime.utc(2026, 6, 20),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final cachedScrollable = find.byType(Scrollable).first;
+    await tester.scrollUntilVisible(
+      find.text('기록 순위'),
+      180,
+      scrollable: cachedScrollable,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('기록 순위'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('경고/퇴장 순위'), findsOneWidget);
+    expect(find.text('경고 1 · 퇴장 1'), findsOneWidget);
+    expect(cachedLiveDataService.detailFetchCount, 0);
   });
 
   testWidgets(
@@ -1788,6 +1844,7 @@ class _FakeWorldCupLiveDataService extends WorldCupLiveDataService {
   final WorldCupLiveData data;
   final FifaAMatchDetail? detail;
   String lastDetailLanguage = '';
+  int detailFetchCount = 0;
 
   _FakeWorldCupLiveDataService({required this.data, this.detail});
 
@@ -1805,6 +1862,7 @@ class _FakeWorldCupLiveDataService extends WorldCupLiveDataService {
     String language = 'en',
   }) async {
     lastDetailLanguage = language;
+    detailFetchCount += 1;
     return detail;
   }
 

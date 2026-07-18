@@ -188,6 +188,8 @@ class FifaAMatchDetail {
   final List<FifaMatchScorer> awayScorers;
   final List<FifaMatchAssist> homeAssists;
   final List<FifaMatchAssist> awayAssists;
+  final List<FifaMatchBooking> homeBookings;
+  final List<FifaMatchBooking> awayBookings;
   final List<FifaMatchPlayer> homePlayers;
   final List<FifaMatchPlayer> awayPlayers;
   final String homeTactics;
@@ -202,6 +204,8 @@ class FifaAMatchDetail {
     required this.awayScorers,
     this.homeAssists = const <FifaMatchAssist>[],
     this.awayAssists = const <FifaMatchAssist>[],
+    this.homeBookings = const <FifaMatchBooking>[],
+    this.awayBookings = const <FifaMatchBooking>[],
     this.homePlayers = const <FifaMatchPlayer>[],
     this.awayPlayers = const <FifaMatchPlayer>[],
     this.homeTactics = '',
@@ -213,6 +217,8 @@ class FifaAMatchDetail {
 
   bool get hasScorers => homeScorers.isNotEmpty || awayScorers.isNotEmpty;
 
+  bool get hasBookings => homeBookings.isNotEmpty || awayBookings.isNotEmpty;
+
   bool get hasPlayers => homePlayers.isNotEmpty || awayPlayers.isNotEmpty;
 
   bool get hasPossession => homePossession != null && awayPossession != null;
@@ -221,6 +227,7 @@ class FifaAMatchDetail {
 
   bool get hasOfficialRecords =>
       hasScorers ||
+      hasBookings ||
       hasPlayers ||
       hasPossession ||
       hasTactics ||
@@ -239,6 +246,20 @@ class FifaMatchAssist {
   final String minute;
 
   const FifaMatchAssist({required this.playerName, required this.minute});
+}
+
+enum FifaMatchCardType { yellow, red, unknown }
+
+class FifaMatchBooking {
+  final String playerName;
+  final String minute;
+  final FifaMatchCardType cardType;
+
+  const FifaMatchBooking({
+    required this.playerName,
+    required this.minute,
+    required this.cardType,
+  });
 }
 
 enum FifaMatchPlayerPosition {
