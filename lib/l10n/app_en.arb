@@ -622,7 +622,7 @@
     }
   },
   "worldCupRankingsTitle": "World Cup rankings",
-  "worldCupRankingsIntro": "Player rankings are gathered from the FIFA official match details available in the app. Goals come from official scorer lists, assists use assisting player IDs, and discipline uses official yellow/red card records.",
+  "worldCupRankingsIntro": "Player rankings are gathered from the FIFA official match details available in the app. Goals come from official scorer lists, assists are counted only for matches where FIFA provides assisting player IDs, and discipline uses official yellow/red card records.",
   "worldCupRankingsSourceMatchesLabel": "Source matches",
   "worldCupRankingsSourceMatchesValue": "{count} matches",
   "@worldCupRankingsSourceMatchesValue": {
@@ -639,7 +639,7 @@
   "worldCupDisciplineRankingsTitle": "Yellow/red card ranking",
   "worldCupRankingsNoOfficialMatches": "There are no finished official matches to rank yet. This fills automatically when FIFA data arrives.",
   "worldCupGoalRankingsEmpty": "Official scorer details are not available yet. Goal rankings will fill in when match details update.",
-  "worldCupAssistRankingsEmpty": "FIFA official goal records do not include assisting player IDs yet, so there are no assists to show.",
+  "worldCupAssistRankingsEmpty": "Assists can only be counted when FIFA provides assisting player IDs, so there are no assists to show yet.",
   "worldCupDisciplineRankingsEmpty": "FIFA official yellow/red card records are not available yet, so there is no discipline ranking to show.",
   "worldCupRankingsGoalCount": "{count} goals",
   "@worldCupRankingsGoalCount": {
