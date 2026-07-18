@@ -222,7 +222,7 @@ class _CompetitionOperationsHero extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             BackButton(
               onPressed: onBack,
@@ -234,6 +234,8 @@ class _CompetitionOperationsHero extends StatelessWidget {
                 children: [
                   Text(
                     l10n.matchCompetitionProTitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w900,
                     ),
@@ -241,7 +243,7 @@ class _CompetitionOperationsHero extends StatelessWidget {
                   const SizedBox(height: AppSpacing.xxs),
                   Text(
                     l10n.matchCompetitionProSubtitle,
-                    maxLines: 3,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: scheme.onSurfaceVariant,
@@ -253,44 +255,92 @@ class _CompetitionOperationsHero extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: AppSpacing.md),
-        Text(
-          l10n.matchCompetitionOperationsSummaryTitle,
-          style: theme.textTheme.labelLarge?.copyWith(
-            color: scheme.onSurfaceVariant,
-            fontWeight: FontWeight.w900,
+        const SizedBox(height: AppSpacing.sm),
+        _CompetitionSurface(
+          accent: scheme.primary,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.dashboard_customize_outlined,
+                    color: scheme.primary,
+                    size: 20,
+                  ),
+                  const SizedBox(width: AppSpacing.xs),
+                  Expanded(
+                    child: Text(
+                      l10n.matchCompetitionOperationsSummaryTitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Wrap(
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.sm,
+                children: [
+                  _CompetitionHeroMetricPill(
+                    label: l10n.matchCompetitionStatusActive,
+                    value: '${metrics.activeCompetitions}',
+                  ),
+                  _CompetitionHeroMetricPill(
+                    label: l10n.matchCompetitionStatusFinished,
+                    value: '${metrics.finishedCompetitions}',
+                  ),
+                  _CompetitionHeroMetricPill(
+                    label: l10n.matchCompetitionSummaryTeams,
+                    value: '${metrics.registeredTeams}',
+                  ),
+                  _CompetitionHeroMetricPill(
+                    label: l10n.matchCompetitionSummaryMatches,
+                    value: '${metrics.recordedCompetitionMatches}',
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.md),
+              _CompetitionHeroActions(
+                readOnly: readOnly,
+                onCreateLeague: onCreateLeague,
+                onCreateTournament: onCreateTournament,
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: AppSpacing.xs),
-        Wrap(
-          spacing: AppSpacing.sm,
-          runSpacing: AppSpacing.sm,
-          children: [
-            _CompetitionHeroMetricPill(
-              label: l10n.matchCompetitionStatusActive,
-              value: '${metrics.activeCompetitions}',
-            ),
-            _CompetitionHeroMetricPill(
-              label: l10n.matchCompetitionStatusFinished,
-              value: '${metrics.finishedCompetitions}',
-            ),
-            _CompetitionHeroMetricPill(
-              label: l10n.matchCompetitionSummaryTeams,
-              value: '${metrics.registeredTeams}',
-            ),
-            _CompetitionHeroMetricPill(
-              label: l10n.matchCompetitionSummaryMatches,
-              value: '${metrics.recordedCompetitionMatches}',
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        _CompetitionHeroActions(
-          readOnly: readOnly,
-          onCreateLeague: onCreateLeague,
-          onCreateTournament: onCreateTournament,
-        ),
       ],
+    );
+  }
+}
+
+class _CompetitionSurface extends StatelessWidget {
+  final Widget child;
+  final Color? accent;
+
+  const _CompetitionSurface({
+    required this.child,
+    this.accent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final color = accent ?? scheme.primary;
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: AppSurfaces.subtleDecoration(
+        scheme,
+        theme.brightness,
+        accent: color,
+        accentAlpha: 0.05,
+      ),
+      child: child,
     );
   }
 }
@@ -309,34 +359,17 @@ class _CompetitionHeroActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    const actionColor = Color(0xFF166153);
     final primary = FilledButton.icon(
       onPressed: readOnly ? null : onCreateLeague,
       icon: const Icon(Icons.leaderboard_outlined),
       label: Text(l10n.matchCompetitionCreateLeagueButton),
-      style: FilledButton.styleFrom(
-        backgroundColor: actionColor,
-        foregroundColor: Colors.white,
-        minimumSize: const Size(0, AppSizes.primaryButtonHeight),
-        textStyle: theme.textTheme.labelLarge?.copyWith(
-          fontWeight: FontWeight.w900,
-        ),
-      ),
+      style: _competitionFilledActionStyle(context),
     );
     final secondary = OutlinedButton.icon(
       onPressed: readOnly ? null : onCreateTournament,
       icon: const Icon(Icons.account_tree_outlined),
       label: Text(l10n.matchCompetitionCreateTournamentButton),
-      style: OutlinedButton.styleFrom(
-        backgroundColor: Colors.white,
-        foregroundColor: actionColor,
-        side: BorderSide(color: actionColor.withValues(alpha: 0.58)),
-        minimumSize: const Size(0, AppSizes.primaryButtonHeight),
-        textStyle: theme.textTheme.labelLarge?.copyWith(
-          fontWeight: FontWeight.w900,
-        ),
-      ),
+      style: _competitionOutlinedActionStyle(context),
     );
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -526,17 +559,12 @@ class _CompetitionOperationsCard extends StatelessWidget {
     final nextAction = _nextActionLabel(l10n, record, progress, entries);
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: theme.brightness == Brightness.dark
-            ? scheme.surfaceContainerHighest.withValues(alpha: 0.24)
-            : scheme.surfaceContainerHighest.withValues(alpha: 0.44),
+      decoration: AppSurfaces.cardDecoration(
+        scheme,
+        theme.brightness,
+      ).copyWith(
         borderRadius: AppRadius.small,
-        border: Border.all(
-          color: AppSurfaces.borderColor(
-            scheme,
-            theme.brightness,
-          ).withValues(alpha: 0.62),
-        ),
+        border: Border.all(color: accent.withValues(alpha: 0.24)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -765,7 +793,7 @@ class _CompetitionNextActionBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.sm),
       decoration: BoxDecoration(
-        color: accent.withValues(alpha: 0.09),
+        color: accent.withValues(alpha: 0.08),
         borderRadius: AppRadius.small,
         border: Border.all(color: accent.withValues(alpha: 0.22)),
       ),
@@ -896,9 +924,14 @@ class _CompetitionMetricTile extends StatelessWidget {
       constraints: const BoxConstraints(minHeight: 64),
       padding: const EdgeInsets.all(AppSpacing.sm),
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest.withValues(alpha: 0.62),
+        color: AppSurfaces.subtleColor(scheme, theme.brightness),
         borderRadius: AppRadius.small,
-        border: Border.all(color: scheme.outline.withValues(alpha: 0.18)),
+        border: Border.all(
+          color: AppSurfaces.borderColor(
+            scheme,
+            theme.brightness,
+          ).withValues(alpha: 0.34),
+        ),
       ),
       child: Row(
         children: [
@@ -1159,7 +1192,7 @@ class _PreviewPanel extends StatelessWidget {
     final color = accent ?? scheme.primary;
     return Container(
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest.withValues(alpha: 0.48),
+        color: AppSurfaces.subtleColor(scheme, theme.brightness),
         borderRadius: AppRadius.small,
         border: Border.all(
           color: color.withValues(
@@ -1661,8 +1694,14 @@ class _EditorSectionPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+    final scheme = theme.colorScheme;
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: AppSurfaces.cardDecoration(
+        scheme,
+        theme.brightness,
+      ).copyWith(borderRadius: AppRadius.small),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -1758,8 +1797,13 @@ class _EditorTeamsPanel extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: AppSurfaces.cardDecoration(
+        scheme,
+        theme.brightness,
+      ).copyWith(borderRadius: AppRadius.small),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

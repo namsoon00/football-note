@@ -738,6 +738,18 @@ void main() {
     expect(find.widgetWithText(OutlinedButton, '팀 삭제'), findsNothing);
     expect(find.text('팀 선택'), findsNothing);
 
+    await tester.enterText(
+      find.byKey(const ValueKey('team-name-field')),
+      '우리 팀 U15',
+    );
+    await tester.tap(find.byKey(const ValueKey('team-name-save')));
+    await tester.pumpAndSettle();
+
+    expect(
+      TeamManagementService(optionRepository).allTeams().single.name,
+      '우리 팀 U15',
+    );
+
     final addPlayerButton = find.widgetWithText(FilledButton, '선수 등록');
     await tester.ensureVisible(addPlayerButton);
     await tester.pumpAndSettle();
@@ -873,7 +885,7 @@ void main() {
 
     final teams = TeamManagementService(optionRepository).allTeams();
     expect(teams, hasLength(1));
-    expect(teams.single.name, '우리 팀');
+    expect(teams.single.name, '우리 팀 U15');
     expect(teams.single.strategy, isEmpty);
     expect(teams.single.players.single.name, '김민준');
     expect(teams.single.players.single.role, ManagedTeamPlayer.roleMidfielder);

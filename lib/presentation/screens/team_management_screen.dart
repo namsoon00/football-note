@@ -532,6 +532,10 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
     }
   }
 
+  Future<void> _saveTeamNameNow() async {
+    await _persistTeam(force: true, showFeedback: true);
+  }
+
   Future<void> _openPlayerRegistration({
     ManagedTeamPlayer? player,
   }) async {
@@ -918,6 +922,14 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
                 : () => unawaited(_openCompetitionManagement()),
           ),
           const SizedBox(height: AppSpacing.sm),
+          _TeamIdentityPanel(
+            teamNameController: _teamNameController,
+            saving: _saving,
+            hasPendingChanges: _changeRevision > _savedRevision,
+            readOnly: readOnly,
+            onSave: () => unawaited(_saveTeamNameNow()),
+          ),
+          const SizedBox(height: AppSpacing.sm),
           _TeamManagementSectionSwitcher(
             selectedSection: _activeSection,
             onSectionChanged: _changeSection,
@@ -1170,6 +1182,121 @@ class _TeamManagementHeader extends StatelessWidget {
   }
 }
 
+class _TeamIdentityPanel extends StatelessWidget {
+  final TextEditingController teamNameController;
+  final bool saving;
+  final bool hasPendingChanges;
+  final bool readOnly;
+  final VoidCallback onSave;
+
+  const _TeamIdentityPanel({
+    required this.teamNameController,
+    required this.saving,
+    required this.hasPendingChanges,
+    required this.readOnly,
+    required this.onSave,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final statusLabel = saving
+        ? l10n.teamManagementAutoSaveSaving
+        : hasPendingChanges
+            ? l10n.teamManagementAutoSaveReady
+            : l10n.teamManagementAutoSaveSaved;
+    return _StructuredSection(
+      padding: const EdgeInsets.all(AppSpacing.sm),
+      accent: scheme.primary,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final compact = constraints.maxWidth < 520;
+          final nameField = TextField(
+            key: const ValueKey('team-name-field'),
+            controller: teamNameController,
+            readOnly: readOnly,
+            textInputAction: TextInputAction.done,
+            onSubmitted: (_) {
+              if (!readOnly) onSave();
+            },
+            decoration: InputDecoration(
+              labelText: l10n.teamManagementTeamNameLabel,
+              hintText: l10n.teamManagementTeamNameHint,
+              prefixIcon: const Icon(Icons.shield_outlined),
+            ),
+          );
+          final saveButton = FilledButton.icon(
+            key: const ValueKey('team-name-save'),
+            onPressed: readOnly || saving ? null : onSave,
+            icon: saving
+                ? SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: scheme.onPrimary,
+                    ),
+                  )
+                : const Icon(Icons.save_outlined),
+            label: Text(l10n.save),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size(0, AppSizes.primaryButtonHeight),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+          );
+          final status = Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.xs,
+              vertical: AppSpacing.xxs,
+            ),
+            decoration: BoxDecoration(
+              color: scheme.primary.withValues(alpha: 0.10),
+              borderRadius: AppRadius.full,
+            ),
+            child: Text(
+              statusLabel,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: scheme.primary,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          );
+          if (compact) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Expanded(child: status),
+                    const SizedBox(width: AppSpacing.xs),
+                    SizedBox(width: 104, child: saveButton),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                nameField,
+              ],
+            );
+          }
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(child: nameField),
+              const SizedBox(width: AppSpacing.sm),
+              status,
+              const SizedBox(width: AppSpacing.xs),
+              SizedBox(width: 112, child: saveButton),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
 class _TeamManagementSectionSwitcher extends StatelessWidget {
   final _TeamManagementSection selectedSection;
   final ValueChanged<_TeamManagementSection> onSectionChanged;
@@ -1231,6 +1358,8 @@ class _MatchManagementPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     return _StructuredSection(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1238,12 +1367,24 @@ class _MatchManagementPanel extends StatelessWidget {
           _PanelTitle(
             icon: Icons.event_note_outlined,
             title: l10n.teamManagementMatchSectionTitle,
-            helper: l10n.teamManagementMatchSectionHelper,
           ),
           const SizedBox(height: AppSpacing.md),
+          FilledButton.icon(
+            onPressed: matchActionsEnabled ? onRecordMatch : null,
+            icon: const Icon(Icons.edit_note_outlined),
+            label: Text(l10n.matchHubRecordButton),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size(0, AppSizes.primaryButtonHeight),
+              textStyle: theme.textTheme.labelLarge?.copyWith(
+                fontWeight: FontWeight.w900,
+              ),
+              shape: RoundedRectangleBorder(borderRadius: AppRadius.control),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
           LayoutBuilder(
             builder: (context, constraints) {
-              final columns = constraints.maxWidth >= 640 ? 2 : 1;
+              final columns = constraints.maxWidth >= 720 ? 3 : 1;
               final gap = AppSpacing.sm * (columns - 1);
               final width = (constraints.maxWidth - gap) / columns;
               return Wrap(
@@ -1252,34 +1393,29 @@ class _MatchManagementPanel extends StatelessWidget {
                 children: [
                   SizedBox(
                     width: width,
-                    child: FilledButton.icon(
-                      onPressed: matchActionsEnabled ? onRecordMatch : null,
-                      icon: const Icon(Icons.edit_note_outlined),
-                      label: Text(l10n.matchHubRecordButton),
-                    ),
-                  ),
-                  SizedBox(
-                    width: width,
-                    child: _InlineActionButton(
+                    child: _MatchOperationTile(
                       onPressed: recordsEnabled ? onOpenMatchRecords : null,
                       icon: Icons.fact_check_outlined,
                       label: l10n.matchRecordsOpenButton,
+                      accent: scheme.tertiary,
                     ),
                   ),
                   SizedBox(
                     width: width,
-                    child: _InlineActionButton(
+                    child: _MatchOperationTile(
                       onPressed: onOpenMatchStats,
                       icon: Icons.analytics_outlined,
                       label: l10n.matchHubStatsButton,
+                      accent: const Color(0xFF2563EB),
                     ),
                   ),
                   SizedBox(
                     width: width,
-                    child: _InlineActionButton(
+                    child: _MatchOperationTile(
                       onPressed: onOpenSchedule,
                       icon: Icons.calendar_month_outlined,
                       label: l10n.clubScheduleTitle,
+                      accent: const Color(0xFF0F766E),
                     ),
                   ),
                 ],
@@ -1287,6 +1423,92 @@ class _MatchManagementPanel extends StatelessWidget {
             },
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _MatchOperationTile extends StatelessWidget {
+  final VoidCallback? onPressed;
+  final IconData icon;
+  final String label;
+  final Color accent;
+
+  const _MatchOperationTile({
+    required this.onPressed,
+    required this.icon,
+    required this.label,
+    required this.accent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final enabled = onPressed != null;
+    final foreground = enabled ? scheme.onSurface : scheme.onSurfaceVariant;
+    return Semantics(
+      button: true,
+      enabled: enabled,
+      label: label,
+      child: Material(
+        color: enabled
+            ? scheme.surface.withValues(alpha: 0.72)
+            : scheme.surfaceContainerHighest.withValues(alpha: 0.36),
+        borderRadius: AppRadius.small,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: AppRadius.small,
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 70),
+            padding: const EdgeInsets.all(AppSpacing.sm),
+            decoration: BoxDecoration(
+              borderRadius: AppRadius.small,
+              border: Border.all(
+                color: enabled
+                    ? accent.withValues(alpha: 0.28)
+                    : scheme.outline.withValues(alpha: 0.16),
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: accent.withValues(alpha: enabled ? 0.12 : 0.06),
+                    borderRadius: AppRadius.small,
+                  ),
+                  child: Icon(
+                    icon,
+                    color: enabled
+                        ? accent
+                        : scheme.onSurfaceVariant.withValues(alpha: 0.42),
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Text(
+                    label,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: foreground,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right,
+                  color: enabled
+                      ? scheme.onSurfaceVariant
+                      : scheme.onSurfaceVariant.withValues(alpha: 0.32),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -4410,57 +4632,37 @@ class _StructuredSection extends StatelessWidget {
 class _PanelTitle extends StatelessWidget {
   final IconData icon;
   final String title;
-  final String? helper;
 
   const _PanelTitle({
     required this.icon,
     required this.title,
-    this.helper,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final helper = this.helper;
     return Row(
-      crossAxisAlignment:
-          helper == null ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Container(
-          width: helper == null ? 34 : 38,
-          height: helper == null ? 34 : 38,
+          width: 34,
+          height: 34,
           decoration: BoxDecoration(
             color: scheme.primary.withValues(alpha: 0.10),
             borderRadius: AppRadius.small,
           ),
-          child:
-              Icon(icon, color: scheme.primary, size: helper == null ? 18 : 20),
+          child: Icon(icon, color: scheme.primary, size: 18),
         ),
         const SizedBox(width: AppSpacing.sm),
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              if (helper != null) ...[
-                const SizedBox(height: AppSpacing.xxs),
-                Text(
-                  helper,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                    height: 1.3,
-                  ),
-                ),
-              ],
-            ],
+          child: Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w900,
+            ),
           ),
         ),
       ],
