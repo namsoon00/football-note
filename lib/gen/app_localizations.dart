@@ -22836,6 +22836,12 @@ abstract class AppLocalizations {
   /// **'{actor} moves the ball'**
   String trainingSketchStageActionBallMove(Object actor);
 
+  /// No description provided for @trainingSketchStageActionBallPickup.
+  ///
+  /// In en, this message translates to:
+  /// **'{actor} gains the ball'**
+  String trainingSketchStageActionBallPickup(Object actor);
+
   /// No description provided for @trainingSketchStageActionBallToTarget.
   ///
   /// In en, this message translates to:
@@ -23473,6 +23479,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Move'**
   String get trainingSketchQuickMoveButton;
+
+  /// No description provided for @trainingSketchQuickMoveToBallButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to ball'**
+  String get trainingSketchQuickMoveToBallButton;
 
   /// No description provided for @trainingSketchQuickStayButton.
   ///

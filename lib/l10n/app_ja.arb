@@ -7261,6 +7261,12 @@
       "actor": {}
     }
   },
+  "trainingSketchStageActionBallPickup": "{actor}がボールを確保",
+  "@trainingSketchStageActionBallPickup": {
+    "placeholders": {
+      "actor": {}
+    }
+  },
   "trainingSketchStageActionBallToTarget": "{actor}から{target}へボール移動",
   "@trainingSketchStageActionBallToTarget": {
     "placeholders": {
@@ -7502,6 +7508,7 @@
   "trainingSketchCreateMoveRouteButton": "移動作成",
   "trainingSketchCreatePassRouteButton": "パス作成",
   "trainingSketchQuickMoveButton": "移動",
+  "trainingSketchQuickMoveToBallButton": "ボールへ移動",
   "trainingSketchQuickStayButton": "その場",
   "trainingSketchQuickPassButton": "パス",
   "trainingSketchQuickPassAndMoveButton": "パス後に移動",

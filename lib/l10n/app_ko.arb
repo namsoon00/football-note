@@ -7261,6 +7261,12 @@
       "actor": {}
     }
   },
+  "trainingSketchStageActionBallPickup": "{actor} 공 확보",
+  "@trainingSketchStageActionBallPickup": {
+    "placeholders": {
+      "actor": {}
+    }
+  },
   "trainingSketchStageActionBallToTarget": "{actor}에서 {target}로 공 이동",
   "@trainingSketchStageActionBallToTarget": {
     "placeholders": {
@@ -7502,6 +7508,7 @@
   "trainingSketchCreateMoveRouteButton": "이동 만들기",
   "trainingSketchCreatePassRouteButton": "패스 만들기",
   "trainingSketchQuickMoveButton": "이동",
+  "trainingSketchQuickMoveToBallButton": "공으로 이동",
   "trainingSketchQuickStayButton": "제자리",
   "trainingSketchQuickPassButton": "패스",
   "trainingSketchQuickPassAndMoveButton": "패스 후 이동",
