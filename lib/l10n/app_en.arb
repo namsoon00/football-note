@@ -6852,7 +6852,33 @@
   "teamManagementPlayerBasicInfoTitle": "Basic info",
   "teamManagementPlayerGradeLabel": "Grade",
   "teamManagementPlayerGradeHint": "e.g. Grade 5",
+  "teamManagementPlayerGradeUnset": "No grade",
+  "teamManagementPlayerElementaryGradeOption": "Elementary grade {grade}",
+  "@teamManagementPlayerElementaryGradeOption": {
+    "placeholders": {
+      "grade": {
+        "type": "int"
+      }
+    }
+  },
+  "teamManagementPlayerMiddleGradeOption": "Middle school grade {grade}",
+  "@teamManagementPlayerMiddleGradeOption": {
+    "placeholders": {
+      "grade": {
+        "type": "int"
+      }
+    }
+  },
+  "teamManagementPlayerHighGradeOption": "High school grade {grade}",
+  "@teamManagementPlayerHighGradeOption": {
+    "placeholders": {
+      "grade": {
+        "type": "int"
+      }
+    }
+  },
   "teamManagementPlayerBodySizeTitle": "Body size",
+  "teamManagementPlayerBodySizeUnset": "Not set",
   "teamManagementPlayerHeightLabel": "Height",
   "teamManagementPlayerHeightUnit": "cm",
   "teamManagementPlayerWeightLabel": "Weight",

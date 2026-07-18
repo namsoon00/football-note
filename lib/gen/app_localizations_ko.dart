@@ -12315,7 +12315,28 @@ class AppLocalizationsKo extends AppLocalizations {
   String get teamManagementPlayerGradeHint => '예) 초등 5학년';
 
   @override
+  String get teamManagementPlayerGradeUnset => '학년 미선택';
+
+  @override
+  String teamManagementPlayerElementaryGradeOption(int grade) {
+    return '초등 $grade학년';
+  }
+
+  @override
+  String teamManagementPlayerMiddleGradeOption(int grade) {
+    return '중등 $grade학년';
+  }
+
+  @override
+  String teamManagementPlayerHighGradeOption(int grade) {
+    return '고등 $grade학년';
+  }
+
+  @override
   String get teamManagementPlayerBodySizeTitle => '신체 사이즈';
+
+  @override
+  String get teamManagementPlayerBodySizeUnset => '미선택';
 
   @override
   String get teamManagementPlayerHeightLabel => '키';

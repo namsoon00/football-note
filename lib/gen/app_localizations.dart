@@ -21820,11 +21820,41 @@ abstract class AppLocalizations {
   /// **'e.g. Grade 5'**
   String get teamManagementPlayerGradeHint;
 
+  /// No description provided for @teamManagementPlayerGradeUnset.
+  ///
+  /// In en, this message translates to:
+  /// **'No grade'**
+  String get teamManagementPlayerGradeUnset;
+
+  /// No description provided for @teamManagementPlayerElementaryGradeOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Elementary grade {grade}'**
+  String teamManagementPlayerElementaryGradeOption(int grade);
+
+  /// No description provided for @teamManagementPlayerMiddleGradeOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Middle school grade {grade}'**
+  String teamManagementPlayerMiddleGradeOption(int grade);
+
+  /// No description provided for @teamManagementPlayerHighGradeOption.
+  ///
+  /// In en, this message translates to:
+  /// **'High school grade {grade}'**
+  String teamManagementPlayerHighGradeOption(int grade);
+
   /// No description provided for @teamManagementPlayerBodySizeTitle.
   ///
   /// In en, this message translates to:
   /// **'Body size'**
   String get teamManagementPlayerBodySizeTitle;
+
+  /// No description provided for @teamManagementPlayerBodySizeUnset.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get teamManagementPlayerBodySizeUnset;
 
   /// No description provided for @teamManagementPlayerHeightLabel.
   ///

@@ -12655,7 +12655,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get teamManagementPlayerGradeHint => 'e.g. Grade 5';
 
   @override
+  String get teamManagementPlayerGradeUnset => 'No grade';
+
+  @override
+  String teamManagementPlayerElementaryGradeOption(int grade) {
+    return 'Elementary grade $grade';
+  }
+
+  @override
+  String teamManagementPlayerMiddleGradeOption(int grade) {
+    return 'Middle school grade $grade';
+  }
+
+  @override
+  String teamManagementPlayerHighGradeOption(int grade) {
+    return 'High school grade $grade';
+  }
+
+  @override
   String get teamManagementPlayerBodySizeTitle => 'Body size';
+
+  @override
+  String get teamManagementPlayerBodySizeUnset => 'Not set';
 
   @override
   String get teamManagementPlayerHeightLabel => 'Height';
