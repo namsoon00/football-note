@@ -840,7 +840,18 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    await tester.tap(find.byKey(const ValueKey('team-tactic-board-list-open')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('team-tactic-board-add')));
+    await tester.pumpAndSettle();
+    expect(find.text('전술 2'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('team-tactic-board-list-open')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('team-tactic-board-delete')));
+    await tester.pumpAndSettle();
+    expect(find.text('전술 삭제'), findsOneWidget);
+    expect(find.textContaining('전술 2'), findsWidgets);
+    await tester.tap(find.text('취소').last);
     await tester.pumpAndSettle();
     expect(find.text('전술 2'), findsOneWidget);
     final secondBoardPlayerChip = find.text('10 김민준').last;
@@ -850,6 +861,8 @@ void main() {
       pitchRect.topCenter.translate(0, pitchRect.height * 0.32) -
           tester.getCenter(secondBoardPlayerChip),
     );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('team-tactic-board-list-open')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('전술 1').last);
     await tester.pumpAndSettle();

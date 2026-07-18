@@ -28,6 +28,18 @@ enum _TeamManagementSection { players, matches }
 
 enum _TeamManagementWorkspace { board }
 
+class _TacticUndoSnapshot {
+  final List<ManagedTacticBoard> boards;
+  final String activeBoardId;
+  final _TacticBoardMode boardMode;
+
+  const _TacticUndoSnapshot({
+    required this.boards,
+    required this.activeBoardId,
+    required this.boardMode,
+  });
+}
+
 typedef _PlayerBoardDropCallback = void Function({
   required String playerId,
   required Offset point,
@@ -81,6 +93,8 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   _TeamManagementWorkspace? _activeWorkspace;
   _TacticBoardMode _boardMode = _TacticBoardMode.assign;
   ManagedTacticLine? _draftTacticLine;
+  final List<_TacticUndoSnapshot> _tacticUndoStack = <_TacticUndoSnapshot>[];
+  String? _activePlacementUndoPlayerId;
   bool _boardLandscapeMode = false;
   bool _loaded = false;
   bool _saving = false;
@@ -290,6 +304,8 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
     _loadActiveTacticBoardState();
     _boardMode = _TacticBoardMode.assign;
     _draftTacticLine = null;
+    _tacticUndoStack.clear();
+    _activePlacementUndoPlayerId = null;
     _changeRevision = 0;
     _savedRevision = 0;
     _suppressAutoSave = true;
@@ -396,6 +412,46 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
     _activeTacticBoardId = TeamManagementService.normalizeActiveTacticBoardId(
       _activeTacticBoardId,
       _tacticBoards,
+    );
+  }
+
+  _TacticUndoSnapshot _captureTacticUndoSnapshot() {
+    final boards = _syncedTacticBoards();
+    final activeBoardId = TeamManagementService.normalizeActiveTacticBoardId(
+      _activeTacticBoardId,
+      boards,
+    );
+    return _TacticUndoSnapshot(
+      boards: List<ManagedTacticBoard>.from(boards),
+      activeBoardId: activeBoardId,
+      boardMode: _boardMode,
+    );
+  }
+
+  void _rememberTacticUndoState() {
+    if (_isReadOnlySupportMode) return;
+    _tacticUndoStack.add(_captureTacticUndoSnapshot());
+    if (_tacticUndoStack.length > 30) {
+      _tacticUndoStack.removeAt(0);
+    }
+  }
+
+  void _undoLastTacticAction() {
+    if (_blockReadOnlyMutation()) return;
+    if (_tacticUndoStack.isEmpty) return;
+    final snapshot = _tacticUndoStack.removeLast();
+    setState(() {
+      _tacticBoards = List<ManagedTacticBoard>.from(snapshot.boards);
+      _activeTacticBoardId = snapshot.activeBoardId;
+      _loadActiveTacticBoardState();
+      _boardMode = snapshot.boardMode;
+      _draftTacticLine = null;
+      _activePlacementUndoPlayerId = null;
+    });
+    _scheduleAutoSave();
+    AppFeedback.showSuccess(
+      context,
+      text: AppLocalizations.of(context)!.teamManagementTacticBoardUndoFeedback,
     );
   }
 
@@ -530,6 +586,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
     if (_blockReadOnlyMutation()) return;
     final l10n = AppLocalizations.of(context)!;
     final synced = _syncedTacticBoards();
+    _rememberTacticUndoState();
     final next = ManagedTacticBoard.create(
       title: l10n.teamManagementTacticBoardDefaultTitle(synced.length + 1),
     );
@@ -563,6 +620,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
       playerPlacements: source.playerPlacements,
       tacticLines: source.tacticLines,
     );
+    _rememberTacticUndoState();
     setState(() {
       _tacticBoards = [...synced, duplicate];
       _activeTacticBoardId = duplicate.id;
@@ -577,6 +635,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
     if (_blockReadOnlyMutation()) return;
     final trimmed = title.trim();
     if (trimmed.isEmpty) return;
+    _rememberTacticUndoState();
     setState(() {
       _tacticBoards = [
         for (final board in _syncedTacticBoards())
@@ -589,19 +648,53 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
     _scheduleAutoSave();
   }
 
-  void _deleteActiveTacticBoard() {
+  Future<void> _deleteActiveTacticBoard() async {
     if (_blockReadOnlyMutation()) return;
+    final l10n = AppLocalizations.of(context)!;
     final synced = _syncedTacticBoards();
     if (synced.length <= 1) return;
     final currentIndex = synced.indexWhere(
       (board) => board.id == _activeTacticBoardId,
     );
+    final activeBoard = TeamManagementService.activeTacticBoard(
+      synced,
+      _activeTacticBoardId,
+    );
+    final activeTitle = _tacticBoardDisplayTitle(
+      l10n,
+      activeBoard,
+      currentIndex < 0 ? 0 : currentIndex,
+    );
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.teamManagementTacticBoardDeleteDialogTitle),
+        content: Text(
+          l10n.teamManagementTacticBoardDeleteDialogBody(activeTitle),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.error,
+            ),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.delete),
+          ),
+        ],
+      ),
+    );
+    if (!mounted || shouldDelete != true) return;
     final nextBoards = synced
         .where((board) => board.id != _activeTacticBoardId)
         .toList(growable: false);
     final nextIndex = currentIndex <= 0
         ? 0
         : math.min(currentIndex - 1, nextBoards.length - 1);
+    _rememberTacticUndoState();
     setState(() {
       _tacticBoards = nextBoards;
       _activeTacticBoardId = nextBoards[nextIndex].id;
@@ -610,6 +703,12 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
       _boardMode = _TacticBoardMode.assign;
     });
     _scheduleAutoSave();
+    AppFeedback.showUndo(
+      context,
+      text: l10n.teamManagementTacticBoardDeletedFeedback,
+      undoLabel: l10n.undo,
+      onUndo: _undoLastTacticAction,
+    );
   }
 
   void _removePlayer(ManagedTeamPlayer player) {
@@ -644,6 +743,9 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
     if (_blockReadOnlyMutation()) return;
     final normalizedPlayerId = playerId.trim();
     if (!_players.any((player) => player.id == normalizedPlayerId)) return;
+    if (_activePlacementUndoPlayerId != normalizedPlayerId) {
+      _beginPlayerPlacementUndo(normalizedPlayerId);
+    }
     final placement = ManagedPlayerPlacement.create(
       playerId: normalizedPlayerId,
       x: point.dx,
@@ -657,6 +759,21 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
       _syncActiveTacticBoardState();
     });
     _scheduleAutoSave();
+  }
+
+  void _beginPlayerPlacementUndo(String playerId) {
+    if (_isReadOnlySupportMode) return;
+    final normalizedPlayerId = playerId.trim();
+    if (normalizedPlayerId.isEmpty ||
+        _activePlacementUndoPlayerId == normalizedPlayerId) {
+      return;
+    }
+    _rememberTacticUndoState();
+    _activePlacementUndoPlayerId = normalizedPlayerId;
+  }
+
+  void _finishPlayerPlacementUndo() {
+    _activePlacementUndoPlayerId = null;
   }
 
   void _changeBoardMode(_TacticBoardMode mode) {
@@ -706,6 +823,9 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
       math.pow(draft.endX - draft.startX, 2) +
           math.pow(draft.endY - draft.startY, 2),
     );
+    if (distance >= 0.04) {
+      _rememberTacticUndoState();
+    }
     setState(() {
       if (distance >= 0.04) {
         _tacticLines = TeamManagementService.normalizeTacticLines([
@@ -726,6 +846,8 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
 
   void _clearTacticLines() {
     if (_blockReadOnlyMutation()) return;
+    if (_tacticLines.isEmpty && _draftTacticLine == null) return;
+    _rememberTacticUndoState();
     setState(() {
       _tacticLines = const <ManagedTacticLine>[];
       _draftTacticLine = null;
@@ -916,9 +1038,13 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
           onAddTacticBoard: _addTacticBoard,
           onDuplicateTacticBoard: _duplicateTacticBoard,
           onRenameTacticBoard: _renameTacticBoard,
-          onDeleteTacticBoard: _deleteActiveTacticBoard,
+          onDeleteTacticBoard: () => unawaited(_deleteActiveTacticBoard()),
           onPlayerPlaced: _placePlayerOnBoard,
+          onPlayerMoveStarted: _beginPlayerPlacementUndo,
+          onPlayerMoveFinished: _finishPlayerPlacementUndo,
           onBoardModeChanged: _changeBoardMode,
+          canUndoTacticAction: _tacticUndoStack.isNotEmpty,
+          onUndoTacticAction: _undoLastTacticAction,
           onTacticLineStarted: _startTacticLine,
           onTacticLineUpdated: _updateTacticLine,
           onTacticLineFinished: _finishTacticLine,
@@ -1182,7 +1308,11 @@ class _TacticsBoardPanel extends StatelessWidget {
   final void Function(String boardId, String title) onRenameTacticBoard;
   final VoidCallback onDeleteTacticBoard;
   final _PlayerBoardDropCallback onPlayerPlaced;
+  final ValueChanged<String> onPlayerMoveStarted;
+  final VoidCallback onPlayerMoveFinished;
   final ValueChanged<_TacticBoardMode> onBoardModeChanged;
+  final bool canUndoTacticAction;
+  final VoidCallback onUndoTacticAction;
   final ValueChanged<Offset> onTacticLineStarted;
   final ValueChanged<Offset> onTacticLineUpdated;
   final VoidCallback onTacticLineFinished;
@@ -1204,7 +1334,11 @@ class _TacticsBoardPanel extends StatelessWidget {
     required this.onRenameTacticBoard,
     required this.onDeleteTacticBoard,
     required this.onPlayerPlaced,
+    required this.onPlayerMoveStarted,
+    required this.onPlayerMoveFinished,
     required this.onBoardModeChanged,
+    required this.canUndoTacticAction,
+    required this.onUndoTacticAction,
     required this.onTacticLineStarted,
     required this.onTacticLineUpdated,
     required this.onTacticLineFinished,
@@ -1215,19 +1349,24 @@ class _TacticsBoardPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final sideBySide = landscapeMode && constraints.maxWidth >= 700;
-        final listPanel = _TacticListPanel(
-          boards: tacticBoards,
-          activeBoardId: activeTacticBoardId,
-          readOnly: readOnly,
-          vertical: sideBySide,
-          onBoardSelected: onTacticBoardSelected,
-          onAddBoard: onAddTacticBoard,
-          onDuplicateBoard: onDuplicateTacticBoard,
-          onRenameBoard: onRenameTacticBoard,
-          onDeleteBoard: onDeleteTacticBoard,
+        final activeBoard = TeamManagementService.activeTacticBoard(
+          tacticBoards,
+          activeTacticBoardId,
         );
+        final activeBoardIndex = tacticBoards.indexWhere(
+          (board) => board.id == activeBoard.id,
+        );
+        final l10n = AppLocalizations.of(context)!;
         final detailPanel = _TacticDetailPanel(
+          activeTitle: _tacticBoardDisplayTitle(
+            l10n,
+            activeBoard,
+            activeBoardIndex < 0 ? 0 : activeBoardIndex,
+          ),
+          activeMeta: l10n.teamManagementTacticBoardPageMeta(
+            activeBoard.playerPlacements.length,
+            activeBoard.tacticLines.length,
+          ),
           players: players,
           playerPlacements: playerPlacements,
           tacticLines: tacticLines,
@@ -1235,34 +1374,68 @@ class _TacticsBoardPanel extends StatelessWidget {
           boardMode: boardMode,
           landscapeMode: landscapeMode,
           readOnly: readOnly,
+          canUndoTacticAction: canUndoTacticAction,
           onPlayerPlaced: onPlayerPlaced,
+          onPlayerMoveStarted: onPlayerMoveStarted,
+          onPlayerMoveFinished: onPlayerMoveFinished,
+          onOpenTacticList: () => _showTacticListSheet(context),
+          onUndoTacticAction: onUndoTacticAction,
           onBoardModeChanged: onBoardModeChanged,
           onTacticLineStarted: onTacticLineStarted,
           onTacticLineUpdated: onTacticLineUpdated,
           onTacticLineFinished: onTacticLineFinished,
           onClearTacticLines: onClearTacticLines,
         );
-        if (sideBySide) {
-          final listWidth = math.min(260.0, constraints.maxWidth * 0.30);
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SizedBox(width: listWidth, child: listPanel),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(child: detailPanel),
-            ],
-          );
+        if (constraints.maxHeight.isFinite) return detailPanel;
+        return SizedBox(height: 560, child: detailPanel);
+      },
+    );
+  }
+
+  void _showTacticListSheet(BuildContext context) {
+    final heightFactor = landscapeMode ? 0.86 : 0.72;
+    final sheetHeight = MediaQuery.sizeOf(context).height * heightFactor;
+    showModalBottomSheet<void>(
+      context: context,
+      useSafeArea: true,
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        void closeThen(VoidCallback action) {
+          Navigator.of(sheetContext).pop();
+          WidgetsBinding.instance.addPostFrameCallback((_) => action());
         }
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            listPanel,
-            const SizedBox(height: AppSpacing.sm),
-            if (constraints.maxHeight.isFinite)
-              Expanded(child: detailPanel)
-            else
-              detailPanel,
-          ],
+
+        return SizedBox(
+          height: sheetHeight,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.sm,
+              AppSpacing.xs,
+              AppSpacing.sm,
+              AppSpacing.sm,
+            ),
+            child: _TacticListPanel(
+              boards: tacticBoards,
+              activeBoardId: activeTacticBoardId,
+              readOnly: readOnly,
+              vertical: true,
+              onBoardSelected: (boardId) {
+                closeThen(() => onTacticBoardSelected(boardId));
+              },
+              onAddBoard: () {
+                closeThen(onAddTacticBoard);
+              },
+              onDuplicateBoard: () {
+                closeThen(onDuplicateTacticBoard);
+              },
+              onRenameBoard: (boardId, title) {
+                closeThen(() => onRenameTacticBoard(boardId, title));
+              },
+              onDeleteBoard: () {
+                closeThen(onDeleteTacticBoard);
+              },
+            ),
+          ),
         );
       },
     );
@@ -1454,7 +1627,80 @@ class _TacticListPanel extends StatelessWidget {
   }
 }
 
+class _TacticDetailHeader extends StatelessWidget {
+  final String title;
+  final String meta;
+  final bool canUndo;
+  final VoidCallback onOpenList;
+  final VoidCallback onUndo;
+
+  const _TacticDetailHeader({
+    required this.title,
+    required this.meta,
+    required this.canUndo,
+    required this.onOpenList,
+    required this.onUndo,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Row(
+      children: [
+        Icon(Icons.account_tree_outlined, color: scheme.primary, size: 20),
+        const SizedBox(width: AppSpacing.xs),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              Text(
+                meta,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: AppSpacing.xs),
+        AppBarActionButton.label(
+          key: const ValueKey('team-tactic-board-list-open'),
+          icon: const Icon(Icons.list_alt_outlined),
+          label: l10n.teamManagementTacticBookTitle,
+          tooltip: l10n.teamManagementTacticBookTitle,
+          onPressed: onOpenList,
+          maxLabelWidth: 96,
+        ),
+        AppBarActionButton.label(
+          key: const ValueKey('team-tactic-board-undo'),
+          icon: const Icon(Icons.undo_outlined),
+          label: l10n.undo,
+          tooltip: l10n.undo,
+          onPressed: canUndo ? onUndo : null,
+          margin: EdgeInsets.zero,
+          maxLabelWidth: 76,
+        ),
+      ],
+    );
+  }
+}
+
 class _TacticDetailPanel extends StatelessWidget {
+  final String activeTitle;
+  final String activeMeta;
   final List<ManagedTeamPlayer> players;
   final Map<String, ManagedPlayerPlacement> playerPlacements;
   final List<ManagedTacticLine> tacticLines;
@@ -1462,7 +1708,12 @@ class _TacticDetailPanel extends StatelessWidget {
   final _TacticBoardMode boardMode;
   final bool landscapeMode;
   final bool readOnly;
+  final bool canUndoTacticAction;
   final _PlayerBoardDropCallback onPlayerPlaced;
+  final ValueChanged<String> onPlayerMoveStarted;
+  final VoidCallback onPlayerMoveFinished;
+  final VoidCallback onOpenTacticList;
+  final VoidCallback onUndoTacticAction;
   final ValueChanged<_TacticBoardMode> onBoardModeChanged;
   final ValueChanged<Offset> onTacticLineStarted;
   final ValueChanged<Offset> onTacticLineUpdated;
@@ -1470,6 +1721,8 @@ class _TacticDetailPanel extends StatelessWidget {
   final VoidCallback onClearTacticLines;
 
   const _TacticDetailPanel({
+    required this.activeTitle,
+    required this.activeMeta,
     required this.players,
     required this.playerPlacements,
     required this.tacticLines,
@@ -1477,7 +1730,12 @@ class _TacticDetailPanel extends StatelessWidget {
     required this.boardMode,
     required this.landscapeMode,
     required this.readOnly,
+    required this.canUndoTacticAction,
     required this.onPlayerPlaced,
+    required this.onPlayerMoveStarted,
+    required this.onPlayerMoveFinished,
+    required this.onOpenTacticList,
+    required this.onUndoTacticAction,
     required this.onBoardModeChanged,
     required this.onTacticLineStarted,
     required this.onTacticLineUpdated,
@@ -1499,6 +1757,8 @@ class _TacticDetailPanel extends StatelessWidget {
       landscapeMode: landscapeMode,
       readOnly: readOnly,
       onPlayerPlaced: onPlayerPlaced,
+      onPlayerMoveStarted: onPlayerMoveStarted,
+      onPlayerMoveFinished: onPlayerMoveFinished,
       onTacticLineStarted: onTacticLineStarted,
       onTacticLineUpdated: onTacticLineUpdated,
       onTacticLineFinished: onTacticLineFinished,
@@ -1509,6 +1769,14 @@ class _TacticDetailPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          _TacticDetailHeader(
+            title: activeTitle,
+            meta: activeMeta,
+            canUndo: canUndoTacticAction,
+            onOpenList: onOpenTacticList,
+            onUndo: onUndoTacticAction,
+          ),
+          const SizedBox(height: AppSpacing.sm),
           if (landscapeMode)
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1996,6 +2264,8 @@ class _TacticsPitch extends StatelessWidget {
   final bool landscapeMode;
   final bool readOnly;
   final _PlayerBoardDropCallback onPlayerPlaced;
+  final ValueChanged<String> onPlayerMoveStarted;
+  final VoidCallback onPlayerMoveFinished;
   final ValueChanged<Offset> onTacticLineStarted;
   final ValueChanged<Offset> onTacticLineUpdated;
   final VoidCallback onTacticLineFinished;
@@ -2009,6 +2279,8 @@ class _TacticsPitch extends StatelessWidget {
     required this.landscapeMode,
     required this.readOnly,
     required this.onPlayerPlaced,
+    required this.onPlayerMoveStarted,
+    required this.onPlayerMoveFinished,
     required this.onTacticLineStarted,
     required this.onTacticLineUpdated,
     required this.onTacticLineFinished,
@@ -2019,133 +2291,147 @@ class _TacticsPitch extends StatelessWidget {
     final playerById = {for (final player in players) player.id: player};
     return LayoutBuilder(
       builder: (context, outerConstraints) {
-        final boardWidth = outerConstraints.maxWidth;
-        final preferredHeight = landscapeMode
-            ? math.max(300.0, boardWidth * 0.52)
-            : boardWidth >= 860
-                ? 640.0
-                : boardWidth >= 600
-                    ? 560.0
-                    : math.max(380.0, boardWidth * 0.92);
-        final minimumHeight = landscapeMode ? 260.0 : 340.0;
-        final boardHeight = outerConstraints.maxHeight.isFinite
-            ? math.min(
-                math.max(minimumHeight, preferredHeight),
-                outerConstraints.maxHeight,
-              )
-            : preferredHeight;
-        return SizedBox(
-          height: boardHeight,
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final markerWidth = landscapeMode
-                  ? 46.0
-                  : constraints.maxWidth < 420
-                      ? 50.0
-                      : 56.0;
-              final markerHeight = markerWidth * 0.78;
-              Offset normalizeFromGlobal(Offset globalPosition) {
-                final renderObject = context.findRenderObject();
-                if (renderObject is! RenderBox) {
-                  return Offset.zero;
-                }
-                return _normalizeBoardPoint(
-                  renderObject.globalToLocal(globalPosition),
-                  constraints.biggest,
-                );
-              }
-
-              return DragTarget<String>(
-                onWillAcceptWithDetails: (details) {
-                  return !readOnly &&
-                      boardMode == _TacticBoardMode.assign &&
-                      playerById.containsKey(details.data);
-                },
-                onAcceptWithDetails: readOnly
-                    ? null
-                    : (details) => onPlayerPlaced(
-                          playerId: details.data,
-                          point: normalizeFromGlobal(details.offset),
-                        ),
-                builder: (context, candidateData, rejectedData) {
-                  final dropHighlighted = candidateData.isNotEmpty;
-                  return ClipRRect(
-                    borderRadius: AppRadius.surface,
-                    child: GestureDetector(
-                      key: const ValueKey('team-tactics-board-pitch'),
-                      behavior: HitTestBehavior.opaque,
-                      onPanStart:
-                          !readOnly && boardMode != _TacticBoardMode.assign
-                              ? (details) => onTacticLineStarted(
-                                    _normalizeBoardPoint(
-                                      details.localPosition,
-                                      constraints.biggest,
-                                    ),
-                                  )
-                              : null,
-                      onPanUpdate:
-                          !readOnly && boardMode != _TacticBoardMode.assign
-                              ? (details) => onTacticLineUpdated(
-                                    _normalizeBoardPoint(
-                                      details.localPosition,
-                                      constraints.biggest,
-                                    ),
-                                  )
-                              : null,
-                      onPanEnd:
-                          !readOnly && boardMode != _TacticBoardMode.assign
-                              ? (_) => onTacticLineFinished()
-                              : null,
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          CustomPaint(painter: _PitchPainter()),
-                          if (dropHighlighted)
-                            DecoratedBox(
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.12),
-                                border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.62),
-                                  width: 3,
-                                ),
-                              ),
-                            ),
-                          CustomPaint(
-                            painter: _TacticLinesPainter(
-                              lines: tacticLines,
-                              draftLine: draftTacticLine,
-                            ),
-                          ),
-                          for (final placement in playerPlacements.values)
-                            if (playerById[placement.playerId] != null)
-                              Positioned(
-                                left: (constraints.maxWidth * placement.x) -
-                                    (markerWidth / 2),
-                                top: (constraints.maxHeight * placement.y) -
-                                    (markerHeight / 2),
-                                width: markerWidth,
-                                height: markerHeight,
-                                child: _BoardPlacedPlayer(
-                                  player: playerById[placement.playerId]!,
-                                  draggable: !readOnly &&
-                                      boardMode == _TacticBoardMode.assign,
-                                  onMoveToGlobal: (globalPosition) {
-                                    onPlayerPlaced(
-                                      playerId: placement.playerId,
-                                      point: normalizeFromGlobal(
-                                        globalPosition,
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                        ],
-                      ),
-                    ),
+        final targetAspectRatio = landscapeMode
+            ? 16 / 9
+            : outerConstraints.maxWidth >= 600
+                ? 1.35
+                : 1.05;
+        var boardWidth = outerConstraints.maxWidth;
+        var boardHeight = boardWidth / targetAspectRatio;
+        if (!landscapeMode && boardHeight < 380) {
+          boardHeight = 380;
+          boardWidth = math.min(boardWidth, boardHeight * targetAspectRatio);
+        }
+        if (outerConstraints.maxHeight.isFinite &&
+            boardHeight > outerConstraints.maxHeight) {
+          boardHeight = outerConstraints.maxHeight;
+          boardWidth = math.min(
+            outerConstraints.maxWidth,
+            boardHeight * targetAspectRatio,
+          );
+        }
+        return Center(
+          child: SizedBox(
+            width: boardWidth,
+            height: boardHeight,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final markerWidth = landscapeMode
+                    ? 46.0
+                    : constraints.maxWidth < 420
+                        ? 50.0
+                        : 56.0;
+                final markerHeight = markerWidth * 0.78;
+                Offset normalizeFromGlobal(Offset globalPosition) {
+                  final renderObject = context.findRenderObject();
+                  if (renderObject is! RenderBox) {
+                    return Offset.zero;
+                  }
+                  return _normalizeBoardPoint(
+                    renderObject.globalToLocal(globalPosition),
+                    constraints.biggest,
                   );
-                },
-              );
-            },
+                }
+
+                return DragTarget<String>(
+                  onWillAcceptWithDetails: (details) {
+                    return !readOnly &&
+                        boardMode == _TacticBoardMode.assign &&
+                        playerById.containsKey(details.data);
+                  },
+                  onAcceptWithDetails: readOnly
+                      ? null
+                      : (details) {
+                          onPlayerMoveStarted(details.data);
+                          onPlayerPlaced(
+                            playerId: details.data,
+                            point: normalizeFromGlobal(details.offset),
+                          );
+                          onPlayerMoveFinished();
+                        },
+                  builder: (context, candidateData, rejectedData) {
+                    final dropHighlighted = candidateData.isNotEmpty;
+                    return ClipRRect(
+                      borderRadius: AppRadius.surface,
+                      child: GestureDetector(
+                        key: const ValueKey('team-tactics-board-pitch'),
+                        behavior: HitTestBehavior.opaque,
+                        onPanStart:
+                            !readOnly && boardMode != _TacticBoardMode.assign
+                                ? (details) => onTacticLineStarted(
+                                      _normalizeBoardPoint(
+                                        details.localPosition,
+                                        constraints.biggest,
+                                      ),
+                                    )
+                                : null,
+                        onPanUpdate:
+                            !readOnly && boardMode != _TacticBoardMode.assign
+                                ? (details) => onTacticLineUpdated(
+                                      _normalizeBoardPoint(
+                                        details.localPosition,
+                                        constraints.biggest,
+                                      ),
+                                    )
+                                : null,
+                        onPanEnd:
+                            !readOnly && boardMode != _TacticBoardMode.assign
+                                ? (_) => onTacticLineFinished()
+                                : null,
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            CustomPaint(painter: _PitchPainter()),
+                            if (dropHighlighted)
+                              DecoratedBox(
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.12),
+                                  border: Border.all(
+                                    color: Colors.white.withValues(alpha: 0.62),
+                                    width: 3,
+                                  ),
+                                ),
+                              ),
+                            CustomPaint(
+                              painter: _TacticLinesPainter(
+                                lines: tacticLines,
+                                draftLine: draftTacticLine,
+                              ),
+                            ),
+                            for (final placement in playerPlacements.values)
+                              if (playerById[placement.playerId] != null)
+                                Positioned(
+                                  left: (constraints.maxWidth * placement.x) -
+                                      (markerWidth / 2),
+                                  top: (constraints.maxHeight * placement.y) -
+                                      (markerHeight / 2),
+                                  width: markerWidth,
+                                  height: markerHeight,
+                                  child: _BoardPlacedPlayer(
+                                    player: playerById[placement.playerId]!,
+                                    draggable: !readOnly &&
+                                        boardMode == _TacticBoardMode.assign,
+                                    onMoveStarted: () =>
+                                        onPlayerMoveStarted(placement.playerId),
+                                    onMoveFinished: onPlayerMoveFinished,
+                                    onMoveToGlobal: (globalPosition) {
+                                      onPlayerPlaced(
+                                        playerId: placement.playerId,
+                                        point: normalizeFromGlobal(
+                                          globalPosition,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
           ),
         );
       },
@@ -2156,11 +2442,15 @@ class _TacticsPitch extends StatelessWidget {
 class _BoardPlacedPlayer extends StatelessWidget {
   final ManagedTeamPlayer player;
   final bool draggable;
+  final VoidCallback onMoveStarted;
+  final VoidCallback onMoveFinished;
   final ValueChanged<Offset> onMoveToGlobal;
 
   const _BoardPlacedPlayer({
     required this.player,
     required this.draggable,
+    required this.onMoveStarted,
+    required this.onMoveFinished,
     required this.onMoveToGlobal,
   });
 
@@ -2170,8 +2460,13 @@ class _BoardPlacedPlayer extends StatelessWidget {
     if (!draggable) return marker;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onPanStart: (details) => onMoveToGlobal(details.globalPosition),
+      onPanStart: (details) {
+        onMoveStarted();
+        onMoveToGlobal(details.globalPosition);
+      },
       onPanUpdate: (details) => onMoveToGlobal(details.globalPosition),
+      onPanEnd: (_) => onMoveFinished(),
+      onPanCancel: onMoveFinished,
       child: marker,
     );
   }
