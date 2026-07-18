@@ -6805,6 +6805,15 @@
   "teamManagementTacticBoardRenameDialogTitle": "전술 이름 변경",
   "teamManagementTacticBoardNameLabel": "전술 이름",
   "teamManagementTacticBoardRenameSaveButton": "저장",
+  "teamManagementTacticBoardDeleteDialogTitle": "전술 삭제",
+  "teamManagementTacticBoardDeleteDialogBody": "\"{title}\" 전술을 삭제할까요?",
+  "@teamManagementTacticBoardDeleteDialogBody": {
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "teamManagementTacticBoardDeletedFeedback": "전술을 삭제했어요.",
+  "teamManagementTacticBoardUndoFeedback": "전술 변경을 되돌렸어요.",
   "teamManagementTacticBoardPageMeta": "{players}명 · 마커 {markers}개",
   "@teamManagementTacticBoardPageMeta": {
     "placeholders": {

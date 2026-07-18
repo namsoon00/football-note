@@ -6805,6 +6805,15 @@
   "teamManagementTacticBoardRenameDialogTitle": "戦術名を変更",
   "teamManagementTacticBoardNameLabel": "戦術名",
   "teamManagementTacticBoardRenameSaveButton": "保存",
+  "teamManagementTacticBoardDeleteDialogTitle": "戦術を削除",
+  "teamManagementTacticBoardDeleteDialogBody": "「{title}」の戦術を削除しますか?",
+  "@teamManagementTacticBoardDeleteDialogBody": {
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "teamManagementTacticBoardDeletedFeedback": "戦術を削除しました。",
+  "teamManagementTacticBoardUndoFeedback": "戦術の変更を取り消しました。",
   "teamManagementTacticBoardPageMeta": "{players}人 · マーカー{markers}件",
   "@teamManagementTacticBoardPageMeta": {
     "placeholders": {

@@ -12177,6 +12177,20 @@ class AppLocalizationsKo extends AppLocalizations {
   String get teamManagementTacticBoardRenameSaveButton => '저장';
 
   @override
+  String get teamManagementTacticBoardDeleteDialogTitle => '전술 삭제';
+
+  @override
+  String teamManagementTacticBoardDeleteDialogBody(Object title) {
+    return '\"$title\" 전술을 삭제할까요?';
+  }
+
+  @override
+  String get teamManagementTacticBoardDeletedFeedback => '전술을 삭제했어요.';
+
+  @override
+  String get teamManagementTacticBoardUndoFeedback => '전술 변경을 되돌렸어요.';
+
+  @override
   String teamManagementTacticBoardPageMeta(int players, int markers) {
     return '$players명 · 마커 $markers개';
   }

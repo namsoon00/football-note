@@ -6805,6 +6805,15 @@
   "teamManagementTacticBoardRenameDialogTitle": "Rename tactic",
   "teamManagementTacticBoardNameLabel": "Tactic name",
   "teamManagementTacticBoardRenameSaveButton": "Save",
+  "teamManagementTacticBoardDeleteDialogTitle": "Delete tactic",
+  "teamManagementTacticBoardDeleteDialogBody": "Delete \"{title}\"?",
+  "@teamManagementTacticBoardDeleteDialogBody": {
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "teamManagementTacticBoardDeletedFeedback": "Tactic deleted.",
+  "teamManagementTacticBoardUndoFeedback": "Tactic change undone.",
   "teamManagementTacticBoardPageMeta": "{players} players · {markers} markers",
   "@teamManagementTacticBoardPageMeta": {
     "placeholders": {

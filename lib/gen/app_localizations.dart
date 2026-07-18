@@ -21556,6 +21556,30 @@ abstract class AppLocalizations {
   /// **'Save'**
   String get teamManagementTacticBoardRenameSaveButton;
 
+  /// No description provided for @teamManagementTacticBoardDeleteDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete tactic'**
+  String get teamManagementTacticBoardDeleteDialogTitle;
+
+  /// No description provided for @teamManagementTacticBoardDeleteDialogBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{title}\"?'**
+  String teamManagementTacticBoardDeleteDialogBody(Object title);
+
+  /// No description provided for @teamManagementTacticBoardDeletedFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Tactic deleted.'**
+  String get teamManagementTacticBoardDeletedFeedback;
+
+  /// No description provided for @teamManagementTacticBoardUndoFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Tactic change undone.'**
+  String get teamManagementTacticBoardUndoFeedback;
+
   /// No description provided for @teamManagementTacticBoardPageMeta.
   ///
   /// In en, this message translates to:
