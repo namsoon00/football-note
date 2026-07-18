@@ -180,7 +180,7 @@ void main() {
     expect(matches.single.status, FifaAMatchStatus.live);
   });
 
-  test('parseFifaMatchDetail extracts scorers and possession', () {
+  test('parseFifaMatchDetail extracts scorers assists and possession', () {
     final raw = _match(
       matchId: 'detail-match',
       gender: 1,
@@ -212,9 +212,22 @@ void main() {
         ],
         'PlayerPicture': {'PictureUrl': 'https://example.com/son.png'},
       },
+      {
+        'IdPlayer': 'home-18',
+        'ShirtNumber': 18,
+        'Status': 1,
+        'Captain': false,
+        'Position': 2,
+        'ShortName': [
+          {'Locale': 'en-gb', 'Description': 'K. Lee'},
+        ],
+        'PlayerName': [
+          {'Locale': 'en-gb', 'Description': 'Lee Kang-in'},
+        ],
+      },
     ];
     homeTeam['Goals'] = [
-      {'IdPlayer': 'home-9', 'Minute': "21'"},
+      {'IdPlayer': 'home-9', 'IdAssistPlayer': 'home-18', 'Minute': "21'"},
       {'IdPlayer': 'home-9', 'Minute': "64'"},
     ];
     awayTeam['Players'] = [
@@ -247,14 +260,20 @@ void main() {
     expect(detail!.homeScorers, hasLength(2));
     expect(detail.homeScorers.first.playerName, 'S. Son');
     expect(detail.homeScorers.first.minute, "21'");
+    expect(detail.homeAssists, hasLength(1));
+    expect(detail.homeAssists.single.playerName, 'K. Lee');
+    expect(detail.homeAssists.single.minute, "21'");
+    expect(detail.awayAssists, isEmpty);
     expect(detail.awayScorers.single.playerName, 'T. Kubo');
-    expect(detail.homePlayers.single.playerName, 'S. Son');
-    expect(detail.homePlayers.single.fullName, 'Son Heungmin');
-    expect(detail.homePlayers.single.pictureUrl, 'https://example.com/son.png');
-    expect(detail.homePlayers.single.shirtNumber, 7);
-    expect(detail.homePlayers.single.isStarting, isTrue);
-    expect(detail.homePlayers.single.isCaptain, isTrue);
-    expect(detail.homePlayers.single.position, FifaMatchPlayerPosition.forward);
+    final homeScorer = detail.homePlayers.firstWhere(
+      (player) => player.playerName == 'S. Son',
+    );
+    expect(homeScorer.fullName, 'Son Heungmin');
+    expect(homeScorer.pictureUrl, 'https://example.com/son.png');
+    expect(homeScorer.shirtNumber, 7);
+    expect(homeScorer.isStarting, isTrue);
+    expect(homeScorer.isCaptain, isTrue);
+    expect(homeScorer.position, FifaMatchPlayerPosition.forward);
     expect(
       detail.awayPlayers.single.position,
       FifaMatchPlayerPosition.midfielder,

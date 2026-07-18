@@ -1289,7 +1289,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get worldCupRankingsIntro =>
-      'FIFA公式の試合詳細で確認できる選手記録を集計します。得点は公式得点者リストから集計し、アシストとファウルは公式項目が利用可能になったら表示します。';
+      'FIFA公式の試合詳細で確認できる選手記録を集計します。得点は公式得点者リストから、アシストは得点記録にアシスト選手IDが含まれる場合に集計します。';
 
   @override
   String get worldCupRankingsSourceMatchesLabel => '集計試合';
@@ -1324,7 +1324,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get worldCupAssistRankingsEmpty =>
-      '現在接続しているFIFA詳細データには、アシスト項目がないため表示できる記録がありません。';
+      'FIFA公式の得点記録にアシスト選手IDがまだないため、表示できるアシストはありません。';
 
   @override
   String get worldCupFoulRankingsEmpty =>

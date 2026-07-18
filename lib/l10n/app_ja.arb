@@ -622,7 +622,7 @@
     }
   },
   "worldCupRankingsTitle": "W杯記録順位",
-  "worldCupRankingsIntro": "FIFA公式の試合詳細で確認できる選手記録を集計します。得点は公式得点者リストから集計し、アシストとファウルは公式項目が利用可能になったら表示します。",
+  "worldCupRankingsIntro": "FIFA公式の試合詳細で確認できる選手記録を集計します。得点は公式得点者リストから、アシストは得点記録にアシスト選手IDが含まれる場合に集計します。",
   "worldCupRankingsSourceMatchesLabel": "集計試合",
   "worldCupRankingsSourceMatchesValue": "{count}試合",
   "@worldCupRankingsSourceMatchesValue": {
@@ -639,7 +639,7 @@
   "worldCupFoulRankingsTitle": "ファウルランキング",
   "worldCupRankingsNoOfficialMatches": "まだ集計できる公式終了試合がありません。FIFAデータが入ると自動で表示されます。",
   "worldCupGoalRankingsEmpty": "公式得点者の詳細はまだありません。試合詳細が更新されると得点ランキングが表示されます。",
-  "worldCupAssistRankingsEmpty": "現在接続しているFIFA詳細データには、アシスト項目がないため表示できる記録がありません。",
+  "worldCupAssistRankingsEmpty": "FIFA公式の得点記録にアシスト選手IDがまだないため、表示できるアシストはありません。",
   "worldCupFoulRankingsEmpty": "現在接続しているFIFA詳細データには、ファウル項目がないため表示できる記録がありません。",
   "worldCupRankingsGoalCount": "{count}点",
   "@worldCupRankingsGoalCount": {

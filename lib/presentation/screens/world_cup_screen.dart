@@ -498,6 +498,7 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
     required String language,
   }) async {
     final goals = <String, _WorldCupPlayerStatAccumulator>{};
+    final assists = <String, _WorldCupPlayerStatAccumulator>{};
     var detailedMatchCount = 0;
     const chunkSize = 4;
     for (var index = 0; index < matches.length; index += chunkSize) {
@@ -543,13 +544,29 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
           opponent: participants.homeTeam,
           scorers: detail.awayScorers,
         );
+        _addAssistPlayersToRankings(
+          assists: assists,
+          team: participants.homeTeam,
+          opponent: participants.awayTeam,
+          matchAssists: detail.homeAssists,
+        );
+        _addAssistPlayersToRankings(
+          assists: assists,
+          team: participants.awayTeam,
+          opponent: participants.homeTeam,
+          matchAssists: detail.awayAssists,
+        );
       }
     }
     final goalRankings = goals.values.map((entry) => entry.toEntry()).toList()
       ..sort(_compareWorldCupPlayerStatEntries);
+    final assistRankings = assists.values
+        .map((entry) => entry.toEntry())
+        .toList()
+      ..sort(_compareWorldCupPlayerStatEntries);
     return _WorldCupStatRankings(
       goals: goalRankings.toList(growable: false),
-      assists: const <_WorldCupPlayerStatEntry>[],
+      assists: assistRankings.toList(growable: false),
       fouls: const <_WorldCupPlayerStatEntry>[],
       sourceMatchCount: matches.length,
       detailedMatchCount: detailedMatchCount,
@@ -577,6 +594,32 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
         _WorldCupPlayerStatEvent(
           opponent: opponent,
           minute: scorer.minute.trim(),
+        ),
+      );
+    }
+  }
+
+  void _addAssistPlayersToRankings({
+    required Map<String, _WorldCupPlayerStatAccumulator> assists,
+    required String team,
+    required String opponent,
+    required List<FifaMatchAssist> matchAssists,
+  }) {
+    for (final assist in matchAssists) {
+      final playerName = assist.playerName.trim();
+      if (playerName.isEmpty) continue;
+      final key = '${_worldCupTeamKey(team)}|${playerName.toLowerCase()}';
+      final accumulator = assists.putIfAbsent(
+        key,
+        () => _WorldCupPlayerStatAccumulator(
+          team: team,
+          playerName: playerName,
+        ),
+      );
+      accumulator.addEvent(
+        _WorldCupPlayerStatEvent(
+          opponent: opponent,
+          minute: assist.minute.trim(),
         ),
       );
     }
