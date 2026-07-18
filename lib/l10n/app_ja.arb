@@ -6552,6 +6552,20 @@
   "matchBoardTitle": "試合ボード",
   "matchBoardHelper": "相手、スコア、勝敗、個人記録をボード上で直接調整します。",
   "matchBoardEventsTitle": "クイック記録",
+  "matchYellowCardsLabel": "警告",
+  "matchRedCardsLabel": "退場",
+  "matchDisciplineSummaryLabel": "カード",
+  "matchDisciplineSummary": "警告 {yellowCards} · 退場 {redCards}",
+  "@matchDisciplineSummary": {
+    "placeholders": {
+      "yellowCards": {
+        "type": "int"
+      },
+      "redCards": {
+        "type": "int"
+      }
+    }
+  },
   "matchDetailsSectionTitle": "詳細情報",
   "matchDetailsSectionHelper": "会場やメモなど試合後に整理する内容を残します。",
   "matchFlowBasicSectionTitle": "基本情報",

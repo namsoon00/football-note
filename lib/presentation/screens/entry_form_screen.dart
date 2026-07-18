@@ -3987,6 +3987,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         playerGoals: draftEntry.playerGoals,
         playerAssists: draftEntry.playerAssists,
         minutesPlayed: draftEntry.minutesPlayed,
+        yellowCards: draftEntry.yellowCards,
+        redCards: draftEntry.redCards,
         breakfastDone: draftEntry.breakfastDone,
         breakfastRiceBowls: draftEntry.breakfastRiceBowls,
         lunchDone: draftEntry.lunchDone,

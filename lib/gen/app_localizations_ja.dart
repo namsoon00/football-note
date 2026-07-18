@@ -11669,6 +11669,20 @@ class AppLocalizationsJa extends AppLocalizations {
   String get matchBoardEventsTitle => 'クイック記録';
 
   @override
+  String get matchYellowCardsLabel => '警告';
+
+  @override
+  String get matchRedCardsLabel => '退場';
+
+  @override
+  String get matchDisciplineSummaryLabel => 'カード';
+
+  @override
+  String matchDisciplineSummary(int yellowCards, int redCards) {
+    return '警告 $yellowCards · 退場 $redCards';
+  }
+
+  @override
   String get matchDetailsSectionTitle => '詳細情報';
 
   @override

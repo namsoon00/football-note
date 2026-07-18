@@ -2004,6 +2004,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
     var playerAssistsText = editingEntry?.playerAssists?.toString() ?? '';
     var shotsOnTargetText = editingEntry?.shotsOnTarget?.toString() ?? '';
     var ballsWonText = editingEntry?.ballsWon?.toString() ?? '';
+    var yellowCardsText = editingEntry?.yellowCards?.toString() ?? '';
+    var redCardsText = editingEntry?.redCards?.toString() ?? '';
     var minutesPlayedText = editingEntry?.minutesPlayed?.toString() ?? '';
     var memoText = editingEntry?.notes ?? '';
 
@@ -2846,6 +2848,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                       onChanged: (value) =>
                                           ballsWonText = value,
                                     ),
+                                    buildCountStepper(
+                                      label: l10n.matchYellowCardsLabel,
+                                      valueText: yellowCardsText,
+                                      onChanged: (value) =>
+                                          yellowCardsText = value,
+                                    ),
+                                    buildCountStepper(
+                                      label: l10n.matchRedCardsLabel,
+                                      valueText: redCardsText,
+                                      onChanged: (value) =>
+                                          redCardsText = value,
+                                    ),
                                   ]),
                                   const SizedBox(height: 8),
                                   TextFormField(
@@ -2981,6 +2995,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                           shotsOnTargetText,
                                         ),
                                         ballsWon: _parseSheetInt(ballsWonText),
+                                        yellowCards: _parseSheetInt(
+                                          yellowCardsText,
+                                        ),
+                                        redCards: _parseSheetInt(
+                                          redCardsText,
+                                        ),
                                         minutesPlayed: _parseSheetInt(
                                           minutesPlayedText,
                                         ),
@@ -5900,6 +5920,12 @@ class _EntryTile extends StatelessWidget {
       sportId: entry.sportId,
     );
     final parts = matchLabels.personalRecordParts(entry);
+    if (entry.yellowCards != null) {
+      parts.add('${l10n.matchYellowCardsLabel} ${entry.yellowCards}');
+    }
+    if (entry.redCards != null) {
+      parts.add('${l10n.matchRedCardsLabel} ${entry.redCards}');
+    }
     if (entry.minutesPlayed != null) {
       parts.add(
         isKo

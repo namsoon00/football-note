@@ -6552,6 +6552,20 @@
   "matchBoardTitle": "Match board",
   "matchBoardHelper": "Set the opponent, score, result, and personal stats directly on the board.",
   "matchBoardEventsTitle": "Quick events",
+  "matchYellowCardsLabel": "Yellow cards",
+  "matchRedCardsLabel": "Red cards",
+  "matchDisciplineSummaryLabel": "Cards",
+  "matchDisciplineSummary": "Yellow {yellowCards} · Red {redCards}",
+  "@matchDisciplineSummary": {
+    "placeholders": {
+      "yellowCards": {
+        "type": "int"
+      },
+      "redCards": {
+        "type": "int"
+      }
+    }
+  },
   "matchDetailsSectionTitle": "Details",
   "matchDetailsSectionHelper": "Keep venue and notes after the live match flow.",
   "matchFlowBasicSectionTitle": "Basics",

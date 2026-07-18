@@ -3161,6 +3161,14 @@ class _MatchSummaryCard extends StatelessWidget {
       0,
       (sum, entry) => sum + (entry.ballsWon ?? 0),
     );
+    final yellowCards = entries.fold<int>(
+      0,
+      (sum, entry) => sum + (entry.yellowCards ?? 0),
+    );
+    final redCards = entries.fold<int>(
+      0,
+      (sum, entry) => sum + (entry.redCards ?? 0),
+    );
     final friendlyCount = entries
         .where((entry) => !entry.isLeagueMatch && !entry.isTournamentMatch)
         .length;
@@ -3284,6 +3292,11 @@ class _MatchSummaryCard extends StatelessWidget {
           '$ballsWon',
         ),
       ),
+      if (yellowCards > 0 || redCards > 0)
+        _MetricCard(
+          label: l10n.matchDisciplineSummaryLabel,
+          value: l10n.matchDisciplineSummary(yellowCards, redCards),
+        ),
     ];
 
     return Column(
@@ -3381,6 +3394,10 @@ class _MatchHistoryTile extends StatelessWidget {
     final detailLine = [
       if (competitionLine.isNotEmpty) competitionLine,
       ...labels.personalRecordParts(entry),
+      if (entry.yellowCards != null)
+        '${l10n.matchYellowCardsLabel} ${entry.yellowCards}',
+      if (entry.redCards != null)
+        '${l10n.matchRedCardsLabel} ${entry.redCards}',
       if (entry.minutesPlayed != null)
         l10n.statsMatchMinutesPlayedValue(entry.minutesPlayed!),
     ].join(' · ');

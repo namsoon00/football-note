@@ -12014,6 +12014,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get matchBoardEventsTitle => 'Quick events';
 
   @override
+  String get matchYellowCardsLabel => 'Yellow cards';
+
+  @override
+  String get matchRedCardsLabel => 'Red cards';
+
+  @override
+  String get matchDisciplineSummaryLabel => 'Cards';
+
+  @override
+  String matchDisciplineSummary(int yellowCards, int redCards) {
+    return 'Yellow $yellowCards · Red $redCards';
+  }
+
+  @override
   String get matchDetailsSectionTitle => 'Details';
 
   @override

@@ -20669,6 +20669,30 @@ abstract class AppLocalizations {
   /// **'Quick events'**
   String get matchBoardEventsTitle;
 
+  /// No description provided for @matchYellowCardsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Yellow cards'**
+  String get matchYellowCardsLabel;
+
+  /// No description provided for @matchRedCardsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Red cards'**
+  String get matchRedCardsLabel;
+
+  /// No description provided for @matchDisciplineSummaryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cards'**
+  String get matchDisciplineSummaryLabel;
+
+  /// No description provided for @matchDisciplineSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Yellow {yellowCards} · Red {redCards}'**
+  String matchDisciplineSummary(int yellowCards, int redCards);
+
   /// No description provided for @matchDetailsSectionTitle.
   ///
   /// In en, this message translates to:

@@ -548,6 +548,20 @@ void main() {
       find.byKey(const ValueKey<String>('match-board-primary-stat-increase')),
     );
     await tester.ensureVisible(
+      find.byKey(const ValueKey<String>('match-board-yellow-cards-increase')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey<String>('match-board-yellow-cards-increase')),
+    );
+    await tester.ensureVisible(
+      find.byKey(const ValueKey<String>('match-board-red-cards-increase')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey<String>('match-board-red-cards-increase')),
+    );
+    await tester.ensureVisible(
       find.byKey(const ValueKey<String>('match-board-minutes-increase')),
     );
     await tester.pumpAndSettle();
@@ -566,6 +580,8 @@ void main() {
     expect(trainingRepository.entries.single.scoredGoals, 1);
     expect(trainingRepository.entries.single.concededGoals, 0);
     expect(trainingRepository.entries.single.playerGoals, 1);
+    expect(trainingRepository.entries.single.yellowCards, 1);
+    expect(trainingRepository.entries.single.redCards, 1);
     expect(trainingRepository.entries.single.minutesPlayed, 5);
     expect(trainingRepository.entries.single.matchKind, 'friendly');
   });
@@ -738,6 +754,8 @@ void main() {
     expect(find.widgetWithText(OutlinedButton, '팀 삭제'), findsNothing);
     expect(find.text('팀 선택'), findsNothing);
 
+    await tester.tap(find.byKey(const ValueKey('team-name-open')));
+    await tester.pumpAndSettle();
     await tester.enterText(
       find.byKey(const ValueKey('team-name-field')),
       '우리 팀 U15',
