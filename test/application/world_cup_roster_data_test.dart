@@ -24,6 +24,22 @@ void main() {
       worldCupRosterClubForPlayer('Korea Republic', '손흥민'),
       'Los Angeles FC',
     );
+    expect(
+      worldCupRosterClubForPlayer(
+        'Argentina',
+        'Unmatched player name',
+        playerId: '229397',
+      ),
+      'Inter Miami CF',
+    );
+    expect(
+      worldCupRosterClubForPlayer(
+        'Mexico',
+        'Unmatched player name',
+        playerId: '485070',
+      ),
+      'Deportivo Guadalajara',
+    );
   });
 
   test('club lookup covers non-Korean managed roster players', () {
