@@ -1060,8 +1060,21 @@ class _MatchRecordSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: theme.brightness == Brightness.dark
+            ? scheme.surfaceContainerHighest.withValues(alpha: 0.22)
+            : scheme.surfaceContainerHighest.withValues(alpha: 0.42),
+        borderRadius: AppRadius.small,
+        border: Border.all(
+          color: AppSurfaces.borderColor(
+            scheme,
+            theme.brightness,
+          ).withValues(alpha: 0.58),
+        ),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

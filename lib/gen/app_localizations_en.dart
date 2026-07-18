@@ -12473,7 +12473,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get teamManagementWorkspaceBoardTab => 'Tactics board';
 
   @override
-  String get teamManagementTacticBookTitle => 'Tactics book';
+  String get teamManagementTacticBookTitle => 'Tactic list';
 
   @override
   String teamManagementTacticBookPageCount(int count) {

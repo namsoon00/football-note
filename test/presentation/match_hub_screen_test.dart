@@ -796,7 +796,7 @@ void main() {
     expect(find.text('포메이션'), findsNothing);
     expect(find.byKey(const ValueKey('team-board-landscape-toggle')),
         findsOneWidget);
-    expect(find.text('전술 책'), findsOneWidget);
+    expect(find.text('전술 리스트'), findsOneWidget);
     expect(find.text('전술 1'), findsOneWidget);
 
     final playerChip = find.text('10 김민준').last;

@@ -910,6 +910,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
           tacticLines: _tacticLines,
           draftTacticLine: _draftTacticLine,
           boardMode: _boardMode,
+          landscapeMode: _boardLandscapeMode,
           readOnly: readOnly,
           onTacticBoardSelected: _selectTacticBoard,
           onAddTacticBoard: _addTacticBoard,
@@ -1104,61 +1105,63 @@ class _MatchManagementPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _PanelTitle(
-          icon: Icons.event_note_outlined,
-          title: l10n.teamManagementMatchSectionTitle,
-          helper: l10n.teamManagementMatchSectionHelper,
-        ),
-        const SizedBox(height: AppSpacing.md),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final columns = constraints.maxWidth >= 640 ? 2 : 1;
-            final gap = AppSpacing.sm * (columns - 1);
-            final width = (constraints.maxWidth - gap) / columns;
-            return Wrap(
-              spacing: AppSpacing.sm,
-              runSpacing: AppSpacing.sm,
-              children: [
-                SizedBox(
-                  width: width,
-                  child: FilledButton.icon(
-                    onPressed: matchActionsEnabled ? onRecordMatch : null,
-                    icon: const Icon(Icons.edit_note_outlined),
-                    label: Text(l10n.matchHubRecordButton),
+    return _StructuredSection(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _PanelTitle(
+            icon: Icons.event_note_outlined,
+            title: l10n.teamManagementMatchSectionTitle,
+            helper: l10n.teamManagementMatchSectionHelper,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final columns = constraints.maxWidth >= 640 ? 2 : 1;
+              final gap = AppSpacing.sm * (columns - 1);
+              final width = (constraints.maxWidth - gap) / columns;
+              return Wrap(
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.sm,
+                children: [
+                  SizedBox(
+                    width: width,
+                    child: FilledButton.icon(
+                      onPressed: matchActionsEnabled ? onRecordMatch : null,
+                      icon: const Icon(Icons.edit_note_outlined),
+                      label: Text(l10n.matchHubRecordButton),
+                    ),
                   ),
-                ),
-                SizedBox(
-                  width: width,
-                  child: _InlineActionButton(
-                    onPressed: recordsEnabled ? onOpenMatchRecords : null,
-                    icon: Icons.fact_check_outlined,
-                    label: l10n.matchRecordsOpenButton,
+                  SizedBox(
+                    width: width,
+                    child: _InlineActionButton(
+                      onPressed: recordsEnabled ? onOpenMatchRecords : null,
+                      icon: Icons.fact_check_outlined,
+                      label: l10n.matchRecordsOpenButton,
+                    ),
                   ),
-                ),
-                SizedBox(
-                  width: width,
-                  child: _InlineActionButton(
-                    onPressed: onOpenMatchStats,
-                    icon: Icons.analytics_outlined,
-                    label: l10n.matchHubStatsButton,
+                  SizedBox(
+                    width: width,
+                    child: _InlineActionButton(
+                      onPressed: onOpenMatchStats,
+                      icon: Icons.analytics_outlined,
+                      label: l10n.matchHubStatsButton,
+                    ),
                   ),
-                ),
-                SizedBox(
-                  width: width,
-                  child: _InlineActionButton(
-                    onPressed: onOpenSchedule,
-                    icon: Icons.calendar_month_outlined,
-                    label: l10n.clubScheduleTitle,
+                  SizedBox(
+                    width: width,
+                    child: _InlineActionButton(
+                      onPressed: onOpenSchedule,
+                      icon: Icons.calendar_month_outlined,
+                      label: l10n.clubScheduleTitle,
+                    ),
                   ),
-                ),
-              ],
-            );
-          },
-        ),
-      ],
+                ],
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 }
@@ -1171,6 +1174,7 @@ class _TacticsBoardPanel extends StatelessWidget {
   final List<ManagedTacticLine> tacticLines;
   final ManagedTacticLine? draftTacticLine;
   final _TacticBoardMode boardMode;
+  final bool landscapeMode;
   final bool readOnly;
   final ValueChanged<String> onTacticBoardSelected;
   final VoidCallback onAddTacticBoard;
@@ -1192,6 +1196,7 @@ class _TacticsBoardPanel extends StatelessWidget {
     required this.tacticLines,
     required this.draftTacticLine,
     required this.boardMode,
+    required this.landscapeMode,
     required this.readOnly,
     required this.onTacticBoardSelected,
     required this.onAddTacticBoard,
@@ -1208,64 +1213,55 @@ class _TacticsBoardPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-
     return LayoutBuilder(
       builder: (context, constraints) {
-        final pitch = _TacticsPitch(
+        final sideBySide = landscapeMode && constraints.maxWidth >= 700;
+        final listPanel = _TacticListPanel(
+          boards: tacticBoards,
+          activeBoardId: activeTacticBoardId,
+          readOnly: readOnly,
+          vertical: sideBySide,
+          onBoardSelected: onTacticBoardSelected,
+          onAddBoard: onAddTacticBoard,
+          onDuplicateBoard: onDuplicateTacticBoard,
+          onRenameBoard: onRenameTacticBoard,
+          onDeleteBoard: onDeleteTacticBoard,
+        );
+        final detailPanel = _TacticDetailPanel(
           players: players,
           playerPlacements: playerPlacements,
           tacticLines: tacticLines,
           draftTacticLine: draftTacticLine,
           boardMode: boardMode,
+          landscapeMode: landscapeMode,
           readOnly: readOnly,
           onPlayerPlaced: onPlayerPlaced,
+          onBoardModeChanged: onBoardModeChanged,
           onTacticLineStarted: onTacticLineStarted,
           onTacticLineUpdated: onTacticLineUpdated,
           onTacticLineFinished: onTacticLineFinished,
+          onClearTacticLines: onClearTacticLines,
         );
+        if (sideBySide) {
+          final listWidth = math.min(260.0, constraints.maxWidth * 0.30);
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SizedBox(width: listWidth, child: listPanel),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(child: detailPanel),
+            ],
+          );
+        }
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _TacticPlaybookPanel(
-              boards: tacticBoards,
-              activeBoardId: activeTacticBoardId,
-              readOnly: readOnly,
-              onBoardSelected: onTacticBoardSelected,
-              onAddBoard: onAddTacticBoard,
-              onDuplicateBoard: onDuplicateTacticBoard,
-              onRenameBoard: onRenameTacticBoard,
-              onDeleteBoard: onDeleteTacticBoard,
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            _BoardModeToolbar(
-              mode: boardMode,
-              tacticLineCount: tacticLines.length,
-              readOnly: readOnly,
-              onModeChanged: onBoardModeChanged,
-              onClearTacticLines: onClearTacticLines,
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            _BoardPlayerTray(
-              players: players,
-              playerPlacements: playerPlacements,
-              readOnly: readOnly,
-            ),
+            listPanel,
             const SizedBox(height: AppSpacing.sm),
             if (constraints.maxHeight.isFinite)
-              Expanded(child: pitch)
+              Expanded(child: detailPanel)
             else
-              pitch,
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              l10n.teamManagementFormationDropHint,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: scheme.onSurfaceVariant,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
+              detailPanel,
           ],
         );
       },
@@ -1273,20 +1269,22 @@ class _TacticsBoardPanel extends StatelessWidget {
   }
 }
 
-class _TacticPlaybookPanel extends StatelessWidget {
+class _TacticListPanel extends StatelessWidget {
   final List<ManagedTacticBoard> boards;
   final String activeBoardId;
   final bool readOnly;
+  final bool vertical;
   final ValueChanged<String> onBoardSelected;
   final VoidCallback onAddBoard;
   final VoidCallback onDuplicateBoard;
   final void Function(String boardId, String title) onRenameBoard;
   final VoidCallback onDeleteBoard;
 
-  const _TacticPlaybookPanel({
+  const _TacticListPanel({
     required this.boards,
     required this.activeBoardId,
     required this.readOnly,
+    required this.vertical,
     required this.onBoardSelected,
     required this.onAddBoard,
     required this.onDuplicateBoard,
@@ -1306,100 +1304,111 @@ class _TacticPlaybookPanel extends StatelessWidget {
     final activeBoardIndex = boards.indexWhere(
       (board) => board.id == activeBoard.id,
     );
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Row(
-          children: [
-            Icon(Icons.menu_book_outlined, color: scheme.primary, size: 20),
-            const SizedBox(width: AppSpacing.xs),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.teamManagementTacticBookTitle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                  Text(
-                    l10n.teamManagementTacticBookPageCount(boards.length),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            FilledButton.icon(
-              key: const ValueKey('team-tactic-board-add'),
-              onPressed: readOnly ? null : onAddBoard,
-              icon: const Icon(Icons.add_outlined),
-              label: Text(l10n.teamManagementTacticBoardAddButton),
-              style: FilledButton.styleFrom(
-                minimumSize: const Size(0, 36),
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        SizedBox(
-          height: 62,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: boards.length,
-            separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.xs),
-            itemBuilder: (context, index) {
-              final board = boards[index];
-              return _TacticPageCard(
-                index: index,
-                board: board,
-                selected: board.id == activeBoard.id,
-                onTap: () => onBoardSelected(board.id),
-              );
-            },
-          ),
-        ),
-        Wrap(
-          spacing: AppSpacing.xs,
-          runSpacing: AppSpacing.xxs,
-          children: [
-            _InlineActionButton(
-              key: const ValueKey('team-tactic-board-duplicate'),
-              onPressed: readOnly ? null : onDuplicateBoard,
-              icon: Icons.copy_all_outlined,
-              label: l10n.teamManagementTacticBoardDuplicateButton,
-            ),
-            _InlineActionButton(
-              key: const ValueKey('team-tactic-board-rename'),
-              onPressed: readOnly
-                  ? null
-                  : () => unawaited(
-                        _showRenameDialog(
-                          context,
-                          activeBoard,
-                          activeBoardIndex < 0 ? 0 : activeBoardIndex,
-                        ),
+    final boardList = ListView.separated(
+      scrollDirection: vertical ? Axis.vertical : Axis.horizontal,
+      shrinkWrap: !vertical,
+      itemCount: boards.length,
+      separatorBuilder: (_, __) => SizedBox(
+        width: vertical ? 0 : AppSpacing.xs,
+        height: vertical ? AppSpacing.xs : 0,
+      ),
+      itemBuilder: (context, index) {
+        final board = boards[index];
+        return _TacticListItem(
+          index: index,
+          board: board,
+          selected: board.id == activeBoard.id,
+          vertical: vertical,
+          onTap: () => onBoardSelected(board.id),
+        );
+      },
+    );
+    return _StructuredSection(
+      padding: const EdgeInsets.all(AppSpacing.sm),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.list_alt_outlined, color: scheme.primary, size: 20),
+              const SizedBox(width: AppSpacing.xs),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.teamManagementTacticBookTitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w900,
                       ),
-              icon: Icons.drive_file_rename_outline,
-              label: l10n.teamManagementTacticBoardRenameButton,
-            ),
-            _InlineActionButton(
-              key: const ValueKey('team-tactic-board-delete'),
-              onPressed: readOnly || boards.length <= 1 ? null : onDeleteBoard,
-              icon: Icons.delete_outline,
-              label: l10n.teamManagementTacticBoardDeleteButton,
-            ),
-          ],
-        ),
-      ],
+                    ),
+                    Text(
+                      l10n.teamManagementTacticBookPageCount(boards.length),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              FilledButton.icon(
+                key: const ValueKey('team-tactic-board-add'),
+                onPressed: readOnly ? null : onAddBoard,
+                icon: const Icon(Icons.add_outlined),
+                label: Text(l10n.teamManagementTacticBoardAddButton),
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size(0, 36),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          if (vertical)
+            Expanded(child: boardList)
+          else
+            SizedBox(height: 72, child: boardList),
+          const SizedBox(height: AppSpacing.xs),
+          Wrap(
+            spacing: AppSpacing.xs,
+            runSpacing: AppSpacing.xxs,
+            children: [
+              _InlineActionButton(
+                key: const ValueKey('team-tactic-board-duplicate'),
+                onPressed: readOnly ? null : onDuplicateBoard,
+                icon: Icons.copy_all_outlined,
+                label: l10n.teamManagementTacticBoardDuplicateButton,
+              ),
+              _InlineActionButton(
+                key: const ValueKey('team-tactic-board-rename'),
+                onPressed: readOnly
+                    ? null
+                    : () => unawaited(
+                          _showRenameDialog(
+                            context,
+                            activeBoard,
+                            activeBoardIndex < 0 ? 0 : activeBoardIndex,
+                          ),
+                        ),
+                icon: Icons.drive_file_rename_outline,
+                label: l10n.teamManagementTacticBoardRenameButton,
+              ),
+              _InlineActionButton(
+                key: const ValueKey('team-tactic-board-delete'),
+                onPressed:
+                    readOnly || boards.length <= 1 ? null : onDeleteBoard,
+                icon: Icons.delete_outline,
+                label: l10n.teamManagementTacticBoardDeleteButton,
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -1445,16 +1454,135 @@ class _TacticPlaybookPanel extends StatelessWidget {
   }
 }
 
-class _TacticPageCard extends StatelessWidget {
+class _TacticDetailPanel extends StatelessWidget {
+  final List<ManagedTeamPlayer> players;
+  final Map<String, ManagedPlayerPlacement> playerPlacements;
+  final List<ManagedTacticLine> tacticLines;
+  final ManagedTacticLine? draftTacticLine;
+  final _TacticBoardMode boardMode;
+  final bool landscapeMode;
+  final bool readOnly;
+  final _PlayerBoardDropCallback onPlayerPlaced;
+  final ValueChanged<_TacticBoardMode> onBoardModeChanged;
+  final ValueChanged<Offset> onTacticLineStarted;
+  final ValueChanged<Offset> onTacticLineUpdated;
+  final VoidCallback onTacticLineFinished;
+  final VoidCallback onClearTacticLines;
+
+  const _TacticDetailPanel({
+    required this.players,
+    required this.playerPlacements,
+    required this.tacticLines,
+    required this.draftTacticLine,
+    required this.boardMode,
+    required this.landscapeMode,
+    required this.readOnly,
+    required this.onPlayerPlaced,
+    required this.onBoardModeChanged,
+    required this.onTacticLineStarted,
+    required this.onTacticLineUpdated,
+    required this.onTacticLineFinished,
+    required this.onClearTacticLines,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final pitch = _TacticsPitch(
+      players: players,
+      playerPlacements: playerPlacements,
+      tacticLines: tacticLines,
+      draftTacticLine: draftTacticLine,
+      boardMode: boardMode,
+      landscapeMode: landscapeMode,
+      readOnly: readOnly,
+      onPlayerPlaced: onPlayerPlaced,
+      onTacticLineStarted: onTacticLineStarted,
+      onTacticLineUpdated: onTacticLineUpdated,
+      onTacticLineFinished: onTacticLineFinished,
+    );
+    return _StructuredSection(
+      accent: scheme.primary,
+      padding: const EdgeInsets.all(AppSpacing.sm),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (landscapeMode)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  flex: 7,
+                  child: _BoardModeToolbar(
+                    mode: boardMode,
+                    tacticLineCount: tacticLines.length,
+                    readOnly: readOnly,
+                    compact: true,
+                    onModeChanged: onBoardModeChanged,
+                    onClearTacticLines: onClearTacticLines,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  flex: 5,
+                  child: _BoardPlayerTray(
+                    players: players,
+                    playerPlacements: playerPlacements,
+                    readOnly: readOnly,
+                    compact: true,
+                  ),
+                ),
+              ],
+            )
+          else ...[
+            _BoardModeToolbar(
+              mode: boardMode,
+              tacticLineCount: tacticLines.length,
+              readOnly: readOnly,
+              compact: false,
+              onModeChanged: onBoardModeChanged,
+              onClearTacticLines: onClearTacticLines,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            _BoardPlayerTray(
+              players: players,
+              playerPlacements: playerPlacements,
+              readOnly: readOnly,
+              compact: false,
+            ),
+          ],
+          const SizedBox(height: AppSpacing.sm),
+          Expanded(child: pitch),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            l10n.teamManagementFormationDropHint,
+            maxLines: landscapeMode ? 1 : 2,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: scheme.onSurfaceVariant,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TacticListItem extends StatelessWidget {
   final int index;
   final ManagedTacticBoard board;
   final bool selected;
+  final bool vertical;
   final VoidCallback onTap;
 
-  const _TacticPageCard({
+  const _TacticListItem({
     required this.index,
     required this.board,
     required this.selected,
+    required this.vertical,
     required this.onTap,
   });
 
@@ -1465,33 +1593,45 @@ class _TacticPageCard extends StatelessWidget {
     final scheme = theme.colorScheme;
     final foreground = selected ? scheme.primary : scheme.onSurface;
     final title = _tacticBoardDisplayTitle(l10n, board, index);
+    final borderColor = selected
+        ? scheme.primary
+        : AppSurfaces.borderColor(scheme, theme.brightness);
     return Material(
-      color: Colors.transparent,
+      color: selected
+          ? scheme.primary.withValues(alpha: 0.08)
+          : scheme.surface.withValues(alpha: 0.72),
       borderRadius: AppRadius.small,
       child: InkWell(
         onTap: selected ? null : onTap,
         borderRadius: AppRadius.small,
         child: Container(
-          width: 160,
+          width: vertical ? double.infinity : 178,
           padding: const EdgeInsets.all(AppSpacing.xs),
           decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(
-                color: selected ? scheme.primary : Colors.transparent,
-                width: 2,
-              ),
-            ),
+            borderRadius: AppRadius.small,
+            border: Border.all(color: borderColor),
           ),
           child: Row(
             children: [
-              Text(
-                (index + 1).toString().padLeft(2, '0'),
-                style: theme.textTheme.labelLarge?.copyWith(
-                  color: selected ? scheme.primary : scheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w900,
+              Container(
+                width: 28,
+                height: 28,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: selected
+                      ? scheme.primary
+                      : scheme.surfaceContainerHighest,
+                  borderRadius: AppRadius.small,
+                ),
+                child: Text(
+                  (index + 1).toString().padLeft(2, '0'),
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: selected ? scheme.onPrimary : scheme.onSurface,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
               ),
-              const SizedBox(width: AppSpacing.sm),
+              const SizedBox(width: AppSpacing.xs),
               Expanded(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -1552,6 +1692,7 @@ class _BoardModeToolbar extends StatelessWidget {
   final _TacticBoardMode mode;
   final int tacticLineCount;
   final bool readOnly;
+  final bool compact;
   final ValueChanged<_TacticBoardMode> onModeChanged;
   final VoidCallback onClearTacticLines;
 
@@ -1559,6 +1700,7 @@ class _BoardModeToolbar extends StatelessWidget {
     required this.mode,
     required this.tacticLineCount,
     required this.readOnly,
+    required this.compact,
     required this.onModeChanged,
     required this.onClearTacticLines,
   });
@@ -1591,8 +1733,8 @@ class _BoardModeToolbar extends StatelessWidget {
       ),
     ];
     return Wrap(
-      spacing: AppSpacing.sm,
-      runSpacing: AppSpacing.xs,
+      spacing: compact ? AppSpacing.xs : AppSpacing.sm,
+      runSpacing: compact ? AppSpacing.xxs : AppSpacing.xs,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         for (final tool in tools)
@@ -1600,6 +1742,7 @@ class _BoardModeToolbar extends StatelessWidget {
             icon: tool.icon,
             label: tool.label,
             selected: mode == tool.mode,
+            compact: compact,
             onTap: readOnly ? null : () => onModeChanged(tool.mode),
           ),
         _InlineActionButton(
@@ -1671,12 +1814,14 @@ class _BoardModeButton extends StatelessWidget {
   final IconData icon;
   final String label;
   final bool selected;
+  final bool compact;
   final VoidCallback? onTap;
 
   const _BoardModeButton({
     required this.icon,
     required this.label,
     required this.selected,
+    required this.compact,
     required this.onTap,
   });
 
@@ -1692,10 +1837,13 @@ class _BoardModeButton extends StatelessWidget {
         onTap: selected ? null : onTap,
         borderRadius: AppRadius.small,
         child: Container(
-          constraints: const BoxConstraints(minHeight: 36, minWidth: 88),
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.xs,
-            vertical: AppSpacing.xs,
+          constraints: BoxConstraints(
+            minHeight: compact ? 32 : 36,
+            minWidth: compact ? 68 : 88,
+          ),
+          padding: EdgeInsets.symmetric(
+            horizontal: compact ? AppSpacing.xxs : AppSpacing.xs,
+            vertical: compact ? AppSpacing.xxs : AppSpacing.xs,
           ),
           decoration: BoxDecoration(
             borderRadius: AppRadius.small,
@@ -1704,7 +1852,7 @@ class _BoardModeButton extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 17, color: foreground),
+              Icon(icon, size: compact ? 15 : 17, color: foreground),
               const SizedBox(width: AppSpacing.xxs),
               Text(
                 label,
@@ -1713,6 +1861,7 @@ class _BoardModeButton extends StatelessWidget {
                 style: theme.textTheme.labelMedium?.copyWith(
                   color: foreground,
                   fontWeight: FontWeight.w900,
+                  fontSize: compact ? 11 : null,
                 ),
               ),
             ],
@@ -1727,11 +1876,13 @@ class _BoardPlayerTray extends StatelessWidget {
   final List<ManagedTeamPlayer> players;
   final Map<String, ManagedPlayerPlacement> playerPlacements;
   final bool readOnly;
+  final bool compact;
 
   const _BoardPlayerTray({
     required this.players,
     required this.playerPlacements,
     required this.readOnly,
+    required this.compact,
   });
 
   @override
@@ -1748,7 +1899,7 @@ class _BoardPlayerTray extends StatelessWidget {
     }
     final assignedPlayerIds = playerPlacements.keys.toSet();
     return SizedBox(
-      height: 36,
+      height: compact ? 32 : 36,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: players.length,
@@ -1758,6 +1909,7 @@ class _BoardPlayerTray extends StatelessWidget {
           final chip = _BoardPlayerChip(
             player: player,
             assigned: assignedPlayerIds.contains(player.id),
+            compact: compact,
           );
           if (readOnly) return chip;
           return Draggable<String>(
@@ -1769,6 +1921,7 @@ class _BoardPlayerTray extends StatelessWidget {
                 player: player,
                 assigned: assignedPlayerIds.contains(player.id),
                 elevated: true,
+                compact: compact,
               ),
             ),
             childWhenDragging: Opacity(opacity: 0.42, child: chip),
@@ -1784,11 +1937,13 @@ class _BoardPlayerChip extends StatelessWidget {
   final ManagedTeamPlayer player;
   final bool assigned;
   final bool elevated;
+  final bool compact;
 
   const _BoardPlayerChip({
     required this.player,
     required this.assigned,
     this.elevated = false,
+    this.compact = false,
   });
 
   @override
@@ -1811,7 +1966,7 @@ class _BoardPlayerChip extends StatelessWidget {
           children: [
             Icon(
               Icons.drag_indicator,
-              size: 16,
+              size: compact ? 14 : 16,
               color: assigned ? scheme.onPrimaryContainer : scheme.primary,
             ),
             const SizedBox(width: AppSpacing.xxs),
@@ -1822,7 +1977,7 @@ class _BoardPlayerChip extends StatelessWidget {
               style: theme.textTheme.labelLarge?.copyWith(
                 color: assigned ? scheme.onPrimaryContainer : scheme.onSurface,
                 fontWeight: FontWeight.w900,
-                fontSize: 12,
+                fontSize: compact ? 11 : 12,
               ),
             ),
           ],
@@ -1838,6 +1993,7 @@ class _TacticsPitch extends StatelessWidget {
   final List<ManagedTacticLine> tacticLines;
   final ManagedTacticLine? draftTacticLine;
   final _TacticBoardMode boardMode;
+  final bool landscapeMode;
   final bool readOnly;
   final _PlayerBoardDropCallback onPlayerPlaced;
   final ValueChanged<Offset> onTacticLineStarted;
@@ -1850,6 +2006,7 @@ class _TacticsPitch extends StatelessWidget {
     required this.tacticLines,
     required this.draftTacticLine,
     required this.boardMode,
+    required this.landscapeMode,
     required this.readOnly,
     required this.onPlayerPlaced,
     required this.onTacticLineStarted,
@@ -1863,14 +2020,17 @@ class _TacticsPitch extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, outerConstraints) {
         final boardWidth = outerConstraints.maxWidth;
-        final preferredHeight = boardWidth >= 860
-            ? 640.0
-            : boardWidth >= 600
-                ? 560.0
-                : math.max(380.0, boardWidth * 0.92);
+        final preferredHeight = landscapeMode
+            ? math.max(300.0, boardWidth * 0.52)
+            : boardWidth >= 860
+                ? 640.0
+                : boardWidth >= 600
+                    ? 560.0
+                    : math.max(380.0, boardWidth * 0.92);
+        final minimumHeight = landscapeMode ? 260.0 : 340.0;
         final boardHeight = outerConstraints.maxHeight.isFinite
             ? math.min(
-                math.max(340.0, preferredHeight),
+                math.max(minimumHeight, preferredHeight),
                 outerConstraints.maxHeight,
               )
             : preferredHeight;
@@ -1878,8 +2038,12 @@ class _TacticsPitch extends StatelessWidget {
           height: boardHeight,
           child: LayoutBuilder(
             builder: (context, constraints) {
-              const markerWidth = 58.0;
-              const markerHeight = 46.0;
+              final markerWidth = landscapeMode
+                  ? 46.0
+                  : constraints.maxWidth < 420
+                      ? 50.0
+                      : 56.0;
+              final markerHeight = markerWidth * 0.78;
               Offset normalizeFromGlobal(Offset globalPosition) {
                 final renderObject = context.findRenderObject();
                 if (renderObject is! RenderBox) {
@@ -2053,34 +2217,37 @@ class _PitchPlayerMarker extends StatelessWidget {
               ),
             ),
             Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    player.number.trim().isEmpty
-                        ? teamPlayerRoleShortLabel(player.role)
-                        : player.number.trim(),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      color: accent,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 13,
-                      height: 1.0,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      player.number.trim().isEmpty
+                          ? teamPlayerRoleShortLabel(player.role)
+                          : player.number.trim(),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: accent,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 13,
+                        height: 1.0,
+                      ),
                     ),
-                  ),
-                  Text(
-                    _playerInitialLabel(player),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: const Color(0xFF111827),
-                      fontWeight: FontWeight.w900,
-                      fontSize: 10,
-                      height: 1.0,
+                    Text(
+                      _playerInitialLabel(player),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: const Color(0xFF111827),
+                        fontWeight: FontWeight.w900,
+                        fontSize: 10,
+                        height: 1.0,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],
@@ -2428,57 +2595,59 @@ class _PlayersPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
-              child: _PanelTitle(
-                icon: Icons.groups_2_outlined,
-                title: l10n.teamManagementPlayersTitle,
-              ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 124),
-              child: FilledButton.icon(
-                onPressed: readOnly ? null : onStartPlayerRegistration,
-                icon: const Icon(Icons.person_add_alt_outlined, size: 18),
-                label: Text(
-                  l10n.teamManagementAddPlayerButton,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+    return _StructuredSection(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: _PanelTitle(
+                  icon: Icons.groups_2_outlined,
+                  title: l10n.teamManagementPlayersTitle,
                 ),
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size(0, 36),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.xs,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 124),
+                child: FilledButton.icon(
+                  onPressed: readOnly ? null : onStartPlayerRegistration,
+                  icon: const Icon(Icons.person_add_alt_outlined, size: 18),
+                  label: Text(
+                    l10n.teamManagementAddPlayerButton,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(0, 36),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.xs,
+                    ),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        if (players.isEmpty)
-          _InlineEmptyMessage(
-            icon: Icons.groups_2_outlined,
-            title: l10n.teamManagementNoPlayersTitle,
-            body: l10n.teamManagementNoPlayersBody,
-          )
-        else
-          _RosterBoard(
-            players: players,
-            lineup: lineup,
-            playerPlacements: playerPlacements,
-            onEditPlayer: onEditPlayer,
-            onRemovePlayer: onRemovePlayer,
-            readOnly: readOnly,
+            ],
           ),
-      ],
+          const SizedBox(height: AppSpacing.sm),
+          if (players.isEmpty)
+            _InlineEmptyMessage(
+              icon: Icons.groups_2_outlined,
+              title: l10n.teamManagementNoPlayersTitle,
+              body: l10n.teamManagementNoPlayersBody,
+            )
+          else
+            _RosterBoard(
+              players: players,
+              lineup: lineup,
+              playerPlacements: playerPlacements,
+              onEditPlayer: onEditPlayer,
+              onRemovePlayer: onRemovePlayer,
+              readOnly: readOnly,
+            ),
+        ],
+      ),
     );
   }
 }
@@ -3063,8 +3232,9 @@ class _PlayerRegistrationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+    return _StructuredSection(
+      padding: const EdgeInsets.all(AppSpacing.sm),
+      accent: scheme.primary,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -3907,6 +4077,39 @@ IconData _playerRoleIcon(String role) {
     ManagedTeamPlayer.roleMidfielder => Icons.hub_outlined,
     _ => Icons.sports_soccer_outlined,
   };
+}
+
+class _StructuredSection extends StatelessWidget {
+  final Widget child;
+  final EdgeInsetsGeometry padding;
+  final Color? accent;
+
+  const _StructuredSection({
+    required this.child,
+    this.padding = const EdgeInsets.all(AppSpacing.md),
+    this.accent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final brightness = theme.brightness;
+    final tint = accent ?? scheme.outline;
+    return Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        color: brightness == Brightness.dark
+            ? scheme.surfaceContainerHighest.withValues(alpha: 0.24)
+            : scheme.surfaceContainerHighest.withValues(alpha: 0.46),
+        borderRadius: AppRadius.small,
+        border: Border.all(
+          color: tint.withValues(alpha: accent == null ? 0.42 : 0.24),
+        ),
+      ),
+      child: child,
+    );
+  }
 }
 
 class _PanelTitle extends StatelessWidget {
