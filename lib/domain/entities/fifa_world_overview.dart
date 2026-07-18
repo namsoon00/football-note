@@ -186,6 +186,8 @@ class FifaAMatchDetail {
   final FifaAMatchEntry match;
   final List<FifaMatchScorer> homeScorers;
   final List<FifaMatchScorer> awayScorers;
+  final List<FifaMatchAssist> homeAssists;
+  final List<FifaMatchAssist> awayAssists;
   final List<FifaMatchPlayer> homePlayers;
   final List<FifaMatchPlayer> awayPlayers;
   final String homeTactics;
@@ -198,6 +200,8 @@ class FifaAMatchDetail {
     required this.match,
     required this.homeScorers,
     required this.awayScorers,
+    this.homeAssists = const <FifaMatchAssist>[],
+    this.awayAssists = const <FifaMatchAssist>[],
     this.homePlayers = const <FifaMatchPlayer>[],
     this.awayPlayers = const <FifaMatchPlayer>[],
     this.homeTactics = '',
@@ -228,6 +232,13 @@ class FifaMatchScorer {
   final String minute;
 
   const FifaMatchScorer({required this.playerName, required this.minute});
+}
+
+class FifaMatchAssist {
+  final String playerName;
+  final String minute;
+
+  const FifaMatchAssist({required this.playerName, required this.minute});
 }
 
 enum FifaMatchPlayerPosition {

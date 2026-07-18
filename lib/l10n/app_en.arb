@@ -622,7 +622,7 @@
     }
   },
   "worldCupRankingsTitle": "World Cup rankings",
-  "worldCupRankingsIntro": "Player rankings are gathered from the FIFA official match details available in the app. Goals come from official scorer lists; assists and fouls will fill in when those official fields are available.",
+  "worldCupRankingsIntro": "Player rankings are gathered from the FIFA official match details available in the app. Goals come from official scorer lists, and assists are counted when the goal record includes an assisting player ID.",
   "worldCupRankingsSourceMatchesLabel": "Source matches",
   "worldCupRankingsSourceMatchesValue": "{count} matches",
   "@worldCupRankingsSourceMatchesValue": {
@@ -639,7 +639,7 @@
   "worldCupFoulRankingsTitle": "Foul ranking",
   "worldCupRankingsNoOfficialMatches": "There are no finished official matches to rank yet. This fills automatically when FIFA data arrives.",
   "worldCupGoalRankingsEmpty": "Official scorer details are not available yet. Goal rankings will fill in when match details update.",
-  "worldCupAssistRankingsEmpty": "The connected FIFA detail data does not currently expose assist records for this ranking.",
+  "worldCupAssistRankingsEmpty": "FIFA official goal records do not include assisting player IDs yet, so there are no assists to show.",
   "worldCupFoulRankingsEmpty": "The connected FIFA detail data does not currently expose foul records for this ranking.",
   "worldCupRankingsGoalCount": "{count} goals",
   "@worldCupRankingsGoalCount": {

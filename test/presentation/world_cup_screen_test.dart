@@ -256,6 +256,9 @@ void main() {
           FifaMatchScorer(playerName: 'Son Heung-min', minute: '48'),
         ],
         awayScorers: const <FifaMatchScorer>[],
+        homeAssists: const [
+          FifaMatchAssist(playerName: 'Lee Kang-in', minute: '12'),
+        ],
         homePlayers: const <FifaMatchPlayer>[],
         awayPlayers: const <FifaMatchPlayer>[],
         homePossession: null,
@@ -293,11 +296,9 @@ void main() {
     expect(find.text('반칙 순위'), findsOneWidget);
     expect(find.text('손흥민'), findsOneWidget);
     expect(find.text('2골'), findsOneWidget);
-    expect(find.textContaining('체코전 12'), findsOneWidget);
-    expect(
-      find.textContaining('어시스트 항목이 없어 표시할 기록이 없습니다'),
-      findsOneWidget,
-    );
+    expect(find.text('이강인'), findsOneWidget);
+    expect(find.text('1도움'), findsOneWidget);
+    expect(find.textContaining('체코전 12'), findsWidgets);
   });
 
   testWidgets(

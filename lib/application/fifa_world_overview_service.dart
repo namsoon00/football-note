@@ -606,6 +606,8 @@ class FifaWorldOverviewService {
       match: _parseNationalMatch(item) ?? fallback,
       homeScorers: _parseGoalScorers(home),
       awayScorers: _parseGoalScorers(away),
+      homeAssists: _parseGoalAssists(home),
+      awayAssists: _parseGoalAssists(away),
       homePlayers: _parseMatchPlayers(home),
       awayPlayers: _parseMatchPlayers(away),
       homeTactics: _asString(home['Tactics']),
@@ -1146,6 +1148,36 @@ class FifaWorldOverviewService {
       );
     }
     return scorers;
+  }
+
+  static List<FifaMatchAssist> _parseGoalAssists(Map<String, dynamic> team) {
+    final rawGoals = team['Goals'];
+    if (rawGoals is! List) return const <FifaMatchAssist>[];
+    final playerNames = _playerNamesById(team);
+    final assists = <FifaMatchAssist>[];
+    for (final raw in rawGoals) {
+      if (raw is! Map) continue;
+      final goal = raw.cast<String, dynamic>();
+      final assistPlayerId = _firstNonEmpty([
+        _asString(goal['IdAssistPlayer']),
+        _asString(goal['IdPlayerAssist']),
+        _asString(goal['AssistPlayerId']),
+      ]);
+      if (assistPlayerId.isEmpty) continue;
+      final assistPlayerName = playerNames[assistPlayerId] ??
+          _firstNonEmpty([
+            _localizedDescription(goal['AssistPlayerName']),
+            _localizedDescription(goal['AssistantName']),
+          ]);
+      if (assistPlayerName.isEmpty) continue;
+      assists.add(
+        FifaMatchAssist(
+          playerName: assistPlayerName,
+          minute: _asString(goal['Minute']),
+        ),
+      );
+    }
+    return assists;
   }
 
   static Map<String, String> _playerNamesById(Map<String, dynamic> team) {
