@@ -6552,6 +6552,20 @@
   "matchBoardTitle": "시합 보드",
   "matchBoardHelper": "상대, 스코어, 승무패, 개인 기록을 경기판에서 바로 조정하세요.",
   "matchBoardEventsTitle": "빠른 기록",
+  "matchYellowCardsLabel": "옐로 카드",
+  "matchRedCardsLabel": "레드 카드",
+  "matchDisciplineSummaryLabel": "카드",
+  "matchDisciplineSummary": "옐로 {yellowCards} · 레드 {redCards}",
+  "@matchDisciplineSummary": {
+    "placeholders": {
+      "yellowCards": {
+        "type": "int"
+      },
+      "redCards": {
+        "type": "int"
+      }
+    }
+  },
   "matchDetailsSectionTitle": "상세 정보",
   "matchDetailsSectionHelper": "장소와 메모처럼 경기 후 정리할 내용을 남기세요.",
   "matchFlowBasicSectionTitle": "기본 정보",

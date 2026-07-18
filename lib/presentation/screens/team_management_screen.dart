@@ -536,6 +536,62 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
     await _persistTeam(force: true, showFeedback: true);
   }
 
+  Future<void> _openTeamNameEditor() async {
+    if (_blockReadOnlyMutation()) return;
+    final l10n = AppLocalizations.of(context)!;
+    final controller = TextEditingController(text: _teamNameController.text);
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        void submit() {
+          FocusScope.of(context).unfocus();
+          Navigator.of(context).pop(controller.text);
+        }
+
+        return AlertDialog(
+          title: Text(l10n.teamManagementTeamNameLabel),
+          content: TextField(
+            key: const ValueKey('team-name-field'),
+            controller: controller,
+            autofocus: true,
+            maxLength: 40,
+            textInputAction: TextInputAction.done,
+            decoration: InputDecoration(
+              hintText: l10n.teamManagementTeamNameHint,
+            ),
+            onSubmitted: (_) => submit(),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(l10n.cancel),
+            ),
+            FilledButton.icon(
+              key: const ValueKey('team-name-save'),
+              onPressed: submit,
+              icon: const Icon(Icons.save_outlined),
+              label: Text(l10n.save),
+            ),
+          ],
+        );
+      },
+    );
+    unawaited(
+      Future<void>.delayed(
+        const Duration(milliseconds: 350),
+        controller.dispose,
+      ),
+    );
+    if (!mounted || result == null) return;
+    final nextName = result.trim();
+    if (nextName.isEmpty) {
+      AppFeedback.showMessage(context, text: l10n.teamManagementNameRequired);
+      return;
+    }
+    _teamNameController.text = nextName;
+    await _saveTeamNameNow();
+  }
+
   Future<void> _openPlayerRegistration({
     ManagedTeamPlayer? player,
   }) async {
@@ -916,18 +972,15 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
         children: [
           _TeamManagementHeader(
             onBack: () => Navigator.of(context).maybePop(),
+            teamName: _teamNameController.text,
+            saving: _saving,
+            hasPendingChanges: _changeRevision > _savedRevision,
+            readOnly: readOnly,
+            onEditTeamName: () => unawaited(_openTeamNameEditor()),
             onOpenBoard: () => _openWorkspace(_TeamManagementWorkspace.board),
             onManageCompetitions: widget.trainingService == null
                 ? null
                 : () => unawaited(_openCompetitionManagement()),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          _TeamIdentityPanel(
-            teamNameController: _teamNameController,
-            saving: _saving,
-            hasPendingChanges: _changeRevision > _savedRevision,
-            readOnly: readOnly,
-            onSave: () => unawaited(_saveTeamNameNow()),
           ),
           const SizedBox(height: AppSpacing.sm),
           _TeamManagementSectionSwitcher(
@@ -1126,11 +1179,21 @@ class _WorkspaceScreenHeader extends StatelessWidget {
 
 class _TeamManagementHeader extends StatelessWidget {
   final VoidCallback onBack;
+  final String teamName;
+  final bool saving;
+  final bool hasPendingChanges;
+  final bool readOnly;
+  final VoidCallback onEditTeamName;
   final VoidCallback onOpenBoard;
   final VoidCallback? onManageCompetitions;
 
   const _TeamManagementHeader({
     required this.onBack,
+    required this.teamName,
+    required this.saving,
+    required this.hasPendingChanges,
+    required this.readOnly,
+    required this.onEditTeamName,
     required this.onOpenBoard,
     required this.onManageCompetitions,
   });
@@ -1151,9 +1214,19 @@ class _TeamManagementHeader extends StatelessWidget {
             children: [
               Text(
                 l10n.teamManagementTitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.w900,
                 ),
+              ),
+              const SizedBox(height: AppSpacing.xxs),
+              _TeamNameButton(
+                teamName: teamName,
+                saving: saving,
+                hasPendingChanges: hasPendingChanges,
+                readOnly: readOnly,
+                onPressed: onEditTeamName,
               ),
             ],
           ),
@@ -1182,19 +1255,19 @@ class _TeamManagementHeader extends StatelessWidget {
   }
 }
 
-class _TeamIdentityPanel extends StatelessWidget {
-  final TextEditingController teamNameController;
+class _TeamNameButton extends StatelessWidget {
+  final String teamName;
   final bool saving;
   final bool hasPendingChanges;
   final bool readOnly;
-  final VoidCallback onSave;
+  final VoidCallback onPressed;
 
-  const _TeamIdentityPanel({
-    required this.teamNameController,
+  const _TeamNameButton({
+    required this.teamName,
     required this.saving,
     required this.hasPendingChanges,
     required this.readOnly,
-    required this.onSave,
+    required this.onPressed,
   });
 
   @override
@@ -1207,91 +1280,61 @@ class _TeamIdentityPanel extends StatelessWidget {
         : hasPendingChanges
             ? l10n.teamManagementAutoSaveReady
             : l10n.teamManagementAutoSaveSaved;
-    return _StructuredSection(
-      padding: const EdgeInsets.all(AppSpacing.sm),
-      accent: scheme.primary,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final compact = constraints.maxWidth < 520;
-          final nameField = TextField(
-            key: const ValueKey('team-name-field'),
-            controller: teamNameController,
-            readOnly: readOnly,
-            textInputAction: TextInputAction.done,
-            onSubmitted: (_) {
-              if (!readOnly) onSave();
-            },
-            decoration: InputDecoration(
-              labelText: l10n.teamManagementTeamNameLabel,
-              hintText: l10n.teamManagementTeamNameHint,
-              prefixIcon: const Icon(Icons.shield_outlined),
-            ),
-          );
-          final saveButton = FilledButton.icon(
-            key: const ValueKey('team-name-save'),
-            onPressed: readOnly || saving ? null : onSave,
-            icon: saving
-                ? SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: scheme.onPrimary,
-                    ),
-                  )
-                : const Icon(Icons.save_outlined),
-            label: Text(l10n.save),
-            style: FilledButton.styleFrom(
-              minimumSize: const Size(0, AppSizes.primaryButtonHeight),
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-          );
-          final status = Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.xs,
-              vertical: AppSpacing.xxs,
-            ),
-            decoration: BoxDecoration(
-              color: scheme.primary.withValues(alpha: 0.10),
-              borderRadius: AppRadius.full,
-            ),
-            child: Text(
-              statusLabel,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: scheme.primary,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-          );
-          if (compact) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  children: [
-                    Expanded(child: status),
-                    const SizedBox(width: AppSpacing.xs),
-                    SizedBox(width: 104, child: saveButton),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                nameField,
-              ],
-            );
-          }
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
+    final visibleName = teamName.trim().isEmpty
+        ? l10n.teamManagementDefaultTeamName
+        : teamName.trim();
+    return Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: ActionChip(
+        key: const ValueKey('team-name-open'),
+        onPressed: readOnly || saving ? null : onPressed,
+        avatar: Icon(
+          saving ? Icons.sync_outlined : Icons.shield_outlined,
+          size: 17,
+          color:
+              readOnly || saving ? scheme.onSurfaceVariant : scheme.onSurface,
+        ),
+        label: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 190),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Expanded(child: nameField),
-              const SizedBox(width: AppSpacing.sm),
-              status,
-              const SizedBox(width: AppSpacing.xs),
-              SizedBox(width: 112, child: saveButton),
+              Flexible(
+                child: Text(
+                  visibleName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.xxs),
+              Text(
+                statusLabel,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: scheme.primary,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
             ],
-          );
-        },
+          ),
+        ),
+        labelStyle: theme.textTheme.labelLarge?.copyWith(
+          color: scheme.onSurface,
+          fontWeight: FontWeight.w900,
+        ),
+        backgroundColor: scheme.primary.withValues(alpha: 0.08),
+        disabledColor: scheme.surfaceContainerHighest.withValues(alpha: 0.62),
+        side: BorderSide(
+          color: scheme.primary.withValues(alpha: 0.18),
+        ),
+        shape: const StadiumBorder(),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.xs,
+          vertical: AppSpacing.xxs,
+        ),
+        visualDensity: VisualDensity.compact,
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       ),
     );
   }

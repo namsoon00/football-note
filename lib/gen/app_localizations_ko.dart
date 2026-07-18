@@ -11690,6 +11690,20 @@ class AppLocalizationsKo extends AppLocalizations {
   String get matchBoardEventsTitle => '빠른 기록';
 
   @override
+  String get matchYellowCardsLabel => '옐로 카드';
+
+  @override
+  String get matchRedCardsLabel => '레드 카드';
+
+  @override
+  String get matchDisciplineSummaryLabel => '카드';
+
+  @override
+  String matchDisciplineSummary(int yellowCards, int redCards) {
+    return '옐로 $yellowCards · 레드 $redCards';
+  }
+
+  @override
   String get matchDetailsSectionTitle => '상세 정보';
 
   @override
