@@ -957,12 +957,41 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       }
       return null;
     }
+
     for (final player in _itemsOfType(_BoardItemType.player)) {
       if (_ballRouteGivesPlayerPossession(latestRoute, player)) {
         return player;
       }
     }
     return null;
+  }
+
+  Offset _currentBallPoint(_BoardItem ball) {
+    final latestRoute = _latestBallRouteForBall(ball);
+    if (latestRoute != null && latestRoute.points.isNotEmpty) {
+      return latestRoute.points.last;
+    }
+    return _itemPosition(ball);
+  }
+
+  _BoardItem? _nearestUnownedBallNearPlayer(
+    _BoardItem player, {
+    double radius = _ballPossessionRadius,
+  }) {
+    final origin = _playerFlowOriginPoint(player);
+    final balls = _itemsOfType(_BoardItemType.ball)
+        .where((ball) => _currentBallOwner(ball) == null)
+        .toList(growable: false);
+    if (balls.isEmpty) return null;
+    balls.sort((a, b) {
+      final aDistance = (_currentBallPoint(a) - origin).distance;
+      final bDistance = (_currentBallPoint(b) - origin).distance;
+      return aDistance.compareTo(bDistance);
+    });
+    final nearest = balls.first;
+    return (_currentBallPoint(nearest) - origin).distance <= radius
+        ? nearest
+        : null;
   }
 
   bool _hasBallOwnedByAnotherPlayer(_BoardItem player) {
@@ -1077,6 +1106,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   bool _requiresBallTargetAction(_SketchTargetAction action) {
     return switch (action) {
       _SketchTargetAction.move ||
+      _SketchTargetAction.moveToBall ||
       _SketchTargetAction.stay ||
       _SketchTargetAction.receiveMove ||
       _SketchTargetAction.returnMove ||
@@ -1106,6 +1136,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   bool _requiresPlayerTargetAction(_SketchTargetAction action) {
     return switch (action) {
       _SketchTargetAction.move ||
+      _SketchTargetAction.moveToBall ||
       _SketchTargetAction.passAndMove ||
       _SketchTargetAction.receiveMove ||
       _SketchTargetAction.returnMove ||
@@ -1205,6 +1236,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     final hasBall = _playerHasBallForFlow(player);
     if (hasBall) {
       return switch (action) {
+        _SketchTargetAction.moveToBall ||
         _SketchTargetAction.receiveMove ||
         _SketchTargetAction.overlap ||
         _SketchTargetAction.cut ||
@@ -1212,6 +1244,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           false,
         _ => true,
       };
+    }
+    if (action == _SketchTargetAction.moveToBall) {
+      return _nearestUnownedBallNearPlayer(player) != null;
     }
     if (action == _SketchTargetAction.receiveMove) {
       return _currentPage.routes.any(
@@ -2832,6 +2867,15 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         route.targetItemId == actorItemId;
   }
 
+  bool _isBallPickupRoute(_BoardRoute route) {
+    final actorItemId = route.actorItemId;
+    return route.kind == _PathDrawMode.ball &&
+        actorItemId != null &&
+        route.targetItemId == actorItemId &&
+        route.points.length >= 2 &&
+        _pathDistanceMeters(route.points) <= _minPlaybackSegmentDistanceMeters;
+  }
+
   Set<String> _actionRouteIdsForDeletion(_BoardRoute route) {
     final routeIds = <String>{route.id};
     final stageIndex = _normalizedRouteStageIndex(route.stageIndex);
@@ -3360,6 +3404,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     if (selected == null) return;
     final applied = switch (action) {
       _SketchTargetAction.move => _applyMoveTargetAction(selected, target),
+      _SketchTargetAction.moveToBall => _applyMoveToBallAction(selected),
       _SketchTargetAction.stay => _applyStayTargetAction(selected),
       _SketchTargetAction.pass => _applyPassTargetAction(
           selected,
@@ -3603,6 +3648,75 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       segmentDurationsMs: <int>[durationMs],
       carryPossessedBall: carryPossessedBall,
     );
+  }
+
+  int _stageForMoveToBallAction(
+    _BoardItem player,
+    _BoardItem ball,
+    _BoardRoute? existingRoute,
+  ) {
+    final registered = _registeredStageForNextAction();
+    if (registered != null) return registered;
+    final playerStage = _stageForPlayerMoveAction(player, existingRoute);
+    final latestBallRoute = _latestBallRouteForBall(ball);
+    final ballStage = latestBallRoute == null
+        ? playerStage
+        : _normalizedRouteStageIndex(latestBallRoute.stageIndex + 1);
+    return _normalizedRouteStageIndex(math.max(playerStage, ballStage));
+  }
+
+  bool _applyMoveToBallAction(_BoardItem selected) {
+    final player = _playerForTargetAction(selected);
+    if (player == null) return false;
+    final ball = _nearestUnownedBallNearPlayer(player);
+    if (ball == null) return false;
+    _stopRoutePlayback(restoreStart: false);
+    setState(() {
+      final existingRoute = _playerRouteForChainedAction(player);
+      final basePoints = _playerActionBasePoints(player, existingRoute);
+      final start = basePoints.last;
+      final ballPoint = _currentBallPoint(ball);
+      final actionPoints = <Offset>[start, ballPoint];
+      final stageIndex = _stageForMoveToBallAction(
+        player,
+        ball,
+        existingRoute,
+      );
+      final createNewStageRoute = _shouldCreateNewPlayerStageRoute(
+        existingRoute,
+        stageIndex,
+      );
+      _upsertRouteForItem(
+        kind: _PathDrawMode.ball,
+        item: ball,
+        points: <Offset>[ballPoint, ballPoint],
+        segmentDurationsMs: const <int>[80],
+        stageIndex: stageIndex,
+        actorItemId: player.id,
+        targetItemId: player.id,
+        createNewRoute: true,
+      );
+      final route = _upsertRouteForItem(
+        kind: _PathDrawMode.player,
+        item: player,
+        points: createNewStageRoute
+            ? actionPoints
+            : <Offset>[...basePoints, ballPoint],
+        segmentDurationsMs: createNewStageRoute
+            ? const <int>[620]
+            : <int>[
+                ..._playerActionBaseDurations(existingRoute),
+                620,
+              ],
+        stageIndex: stageIndex,
+        actorItemId: player.id,
+        replacementRoute: createNewStageRoute ? null : existingRoute,
+        createNewRoute: createNewStageRoute,
+      );
+      _selectQuickActionRoute(route, player);
+    });
+    _scheduleAutoSave();
+    return true;
   }
 
   Offset _stayActionEndPoint(Offset start) {
@@ -5733,6 +5847,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     final l10n = _l10n;
     return switch (action) {
       _SketchTargetAction.move => l10n.trainingSketchQuickMoveButton,
+      _SketchTargetAction.moveToBall =>
+        l10n.trainingSketchQuickMoveToBallButton,
       _SketchTargetAction.stay => l10n.trainingSketchQuickStayButton,
       _SketchTargetAction.pass => l10n.trainingSketchQuickPassButton,
       _SketchTargetAction.passAndMove =>
@@ -5789,6 +5905,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     if (selection.action case final action?) {
       if (action == _SketchTargetAction.stay) {
         _applyStayTargetAction(player);
+        return;
+      }
+      if (action == _SketchTargetAction.moveToBall) {
+        _applyMoveToBallAction(player);
         return;
       }
       _beginTargetAction(action);
@@ -6192,6 +6312,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   IconData _targetActionIcon(_SketchTargetAction action) {
     return switch (action) {
       _SketchTargetAction.move => Icons.directions_run,
+      _SketchTargetAction.moveToBall => Icons.sports_soccer_outlined,
       _SketchTargetAction.stay => Icons.pause_circle_outline,
       _SketchTargetAction.pass => Icons.near_me_outlined,
       _SketchTargetAction.passAndMove => Icons.sync_alt,
@@ -6256,6 +6377,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     return switch (sportId) {
       SportCatalog.baseballId => <_SketchTargetAction>[
           _SketchTargetAction.move,
+          _SketchTargetAction.moveToBall,
           _SketchTargetAction.stay,
           _SketchTargetAction.runBase,
           _SketchTargetAction.fielding,
@@ -6264,6 +6386,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         ],
       SportCatalog.basketballId => <_SketchTargetAction>[
           _SketchTargetAction.move,
+          _SketchTargetAction.moveToBall,
           _SketchTargetAction.stay,
           _SketchTargetAction.cut,
           _SketchTargetAction.screen,
@@ -6272,6 +6395,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         ],
       SportCatalog.tennisId => <_SketchTargetAction>[
           _SketchTargetAction.move,
+          _SketchTargetAction.moveToBall,
           _SketchTargetAction.stay,
           _SketchTargetAction.recover,
           _SketchTargetAction.coneTurn,
@@ -6279,6 +6403,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         ],
       _ => <_SketchTargetAction>[
           _SketchTargetAction.move,
+          _SketchTargetAction.moveToBall,
           _SketchTargetAction.stay,
           _SketchTargetAction.receiveMove,
           _SketchTargetAction.returnMove,
@@ -6671,6 +6796,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         _stageItemLabel(targetItem),
       );
     }
+    if (_isBallPickupRoute(route) && actorItem != null) {
+      return _l10n.trainingSketchStageActionBallPickup(
+        _stageItemLabel(actorItem),
+      );
+    }
     if (actorItem != null) {
       return _l10n.trainingSketchStageActionBallMove(
         _stageItemLabel(actorItem),
@@ -6800,12 +6930,14 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           );
         } else if (ownerId == null &&
             (hasPriorActionByBallId[ball.id] ?? false)) {
-          warnings.add(
-            _l10n.trainingSketchFlowWarningUnownedBallUsed(
-              ballLabel,
-              _stageItemLabel(actor),
-            ),
-          );
+          if (!_isBallPickupRoute(route)) {
+            warnings.add(
+              _l10n.trainingSketchFlowWarningUnownedBallUsed(
+                ballLabel,
+                _stageItemLabel(actor),
+              ),
+            );
+          }
         }
 
         final targetId = route.targetItemId;
@@ -7671,6 +7803,7 @@ enum _PathDrawMode { player, ball }
 
 enum _SketchTargetAction {
   move,
+  moveToBall,
   stay,
   pass,
   passAndMove,

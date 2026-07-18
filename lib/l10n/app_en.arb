@@ -7275,6 +7275,12 @@
       "actor": {}
     }
   },
+  "trainingSketchStageActionBallPickup": "{actor} gains the ball",
+  "@trainingSketchStageActionBallPickup": {
+    "placeholders": {
+      "actor": {}
+    }
+  },
   "trainingSketchStageActionBallToTarget": "{actor} moves the ball to {target}",
   "@trainingSketchStageActionBallToTarget": {
     "placeholders": {
@@ -7516,6 +7522,7 @@
   "trainingSketchCreateMoveRouteButton": "Create move",
   "trainingSketchCreatePassRouteButton": "Create pass",
   "trainingSketchQuickMoveButton": "Move",
+  "trainingSketchQuickMoveToBallButton": "Move to ball",
   "trainingSketchQuickStayButton": "Stay",
   "trainingSketchQuickPassButton": "Pass",
   "trainingSketchQuickPassAndMoveButton": "Pass then move",

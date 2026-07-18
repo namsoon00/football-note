@@ -12891,6 +12891,11 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String trainingSketchStageActionBallPickup(Object actor) {
+    return '$actorがボールを確保';
+  }
+
+  @override
   String trainingSketchStageActionBallToTarget(Object actor, Object target) {
     return '$actorから$targetへボール移動';
   }
@@ -13266,6 +13271,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get trainingSketchQuickMoveButton => '移動';
+
+  @override
+  String get trainingSketchQuickMoveToBallButton => 'ボールへ移動';
 
   @override
   String get trainingSketchQuickStayButton => 'その場';

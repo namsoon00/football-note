@@ -12916,6 +12916,11 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String trainingSketchStageActionBallPickup(Object actor) {
+    return '$actor 공 확보';
+  }
+
+  @override
   String trainingSketchStageActionBallToTarget(Object actor, Object target) {
     return '$actor에서 $target로 공 이동';
   }
@@ -13292,6 +13297,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get trainingSketchQuickMoveButton => '이동';
+
+  @override
+  String get trainingSketchQuickMoveToBallButton => '공으로 이동';
 
   @override
   String get trainingSketchQuickStayButton => '제자리';
