@@ -729,7 +729,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get worldCupScheduleTab => 'Schedule';
 
   @override
-  String get worldCupStandingsTab => 'Standings';
+  String get worldCupStandingsTab => 'Groups';
+
+  @override
+  String get worldCupRankingsTab => 'Stats';
 
   @override
   String get worldCupTournamentTab => 'Tournament';
@@ -1324,6 +1327,77 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String worldCupStandingsTieReasonValue(String goalDifference, int goalsFor) {
     return 'Tie-break: GD $goalDifference · GF $goalsFor';
+  }
+
+  @override
+  String get worldCupRankingsTitle => 'World Cup rankings';
+
+  @override
+  String get worldCupRankingsIntro =>
+      'Player rankings are gathered from the FIFA official match details available in the app. Goals come from official scorer lists; assists and fouls will fill in when those official fields are available.';
+
+  @override
+  String get worldCupRankingsSourceMatchesLabel => 'Source matches';
+
+  @override
+  String worldCupRankingsSourceMatchesValue(int count) {
+    return '$count matches';
+  }
+
+  @override
+  String get worldCupRankingsUpdatedLabel => 'Updated';
+
+  @override
+  String get worldCupRankingsLoading => 'Loading FIFA player records...';
+
+  @override
+  String get worldCupGoalRankingsTitle => 'Goal ranking';
+
+  @override
+  String get worldCupAssistRankingsTitle => 'Assist ranking';
+
+  @override
+  String get worldCupFoulRankingsTitle => 'Foul ranking';
+
+  @override
+  String get worldCupRankingsNoOfficialMatches =>
+      'There are no finished official matches to rank yet. This fills automatically when FIFA data arrives.';
+
+  @override
+  String get worldCupGoalRankingsEmpty =>
+      'Official scorer details are not available yet. Goal rankings will fill in when match details update.';
+
+  @override
+  String get worldCupAssistRankingsEmpty =>
+      'The connected FIFA detail data does not currently expose assist records for this ranking.';
+
+  @override
+  String get worldCupFoulRankingsEmpty =>
+      'The connected FIFA detail data does not currently expose foul records for this ranking.';
+
+  @override
+  String worldCupRankingsGoalCount(int count) {
+    return '$count goals';
+  }
+
+  @override
+  String worldCupRankingsAssistCount(int count) {
+    return '$count assists';
+  }
+
+  @override
+  String worldCupRankingsFoulCount(int count) {
+    return '$count fouls';
+  }
+
+  @override
+  String worldCupRankingsEventWithMinute(String opponent, String minute) {
+    return 'vs $opponent $minute';
+  }
+
+  @override
+  String worldCupRankingsMoreEvents(int count) {
+    return '+$count more';
   }
 
   @override

@@ -1377,8 +1377,14 @@ abstract class AppLocalizations {
   /// No description provided for @worldCupStandingsTab.
   ///
   /// In en, this message translates to:
-  /// **'Standings'**
+  /// **'Groups'**
   String get worldCupStandingsTab;
+
+  /// No description provided for @worldCupRankingsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Stats'**
+  String get worldCupRankingsTab;
 
   /// No description provided for @worldCupTournamentTab.
   ///
@@ -2453,6 +2459,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tie-break: GD {goalDifference} · GF {goalsFor}'**
   String worldCupStandingsTieReasonValue(String goalDifference, int goalsFor);
+
+  /// No description provided for @worldCupRankingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'World Cup rankings'**
+  String get worldCupRankingsTitle;
+
+  /// No description provided for @worldCupRankingsIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Player rankings are gathered from the FIFA official match details available in the app. Goals come from official scorer lists; assists and fouls will fill in when those official fields are available.'**
+  String get worldCupRankingsIntro;
+
+  /// No description provided for @worldCupRankingsSourceMatchesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Source matches'**
+  String get worldCupRankingsSourceMatchesLabel;
+
+  /// No description provided for @worldCupRankingsSourceMatchesValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} matches'**
+  String worldCupRankingsSourceMatchesValue(int count);
+
+  /// No description provided for @worldCupRankingsUpdatedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated'**
+  String get worldCupRankingsUpdatedLabel;
+
+  /// No description provided for @worldCupRankingsLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading FIFA player records...'**
+  String get worldCupRankingsLoading;
+
+  /// No description provided for @worldCupGoalRankingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal ranking'**
+  String get worldCupGoalRankingsTitle;
+
+  /// No description provided for @worldCupAssistRankingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Assist ranking'**
+  String get worldCupAssistRankingsTitle;
+
+  /// No description provided for @worldCupFoulRankingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Foul ranking'**
+  String get worldCupFoulRankingsTitle;
+
+  /// No description provided for @worldCupRankingsNoOfficialMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'There are no finished official matches to rank yet. This fills automatically when FIFA data arrives.'**
+  String get worldCupRankingsNoOfficialMatches;
+
+  /// No description provided for @worldCupGoalRankingsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Official scorer details are not available yet. Goal rankings will fill in when match details update.'**
+  String get worldCupGoalRankingsEmpty;
+
+  /// No description provided for @worldCupAssistRankingsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'The connected FIFA detail data does not currently expose assist records for this ranking.'**
+  String get worldCupAssistRankingsEmpty;
+
+  /// No description provided for @worldCupFoulRankingsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'The connected FIFA detail data does not currently expose foul records for this ranking.'**
+  String get worldCupFoulRankingsEmpty;
+
+  /// No description provided for @worldCupRankingsGoalCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} goals'**
+  String worldCupRankingsGoalCount(int count);
+
+  /// No description provided for @worldCupRankingsAssistCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} assists'**
+  String worldCupRankingsAssistCount(int count);
+
+  /// No description provided for @worldCupRankingsFoulCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} fouls'**
+  String worldCupRankingsFoulCount(int count);
+
+  /// No description provided for @worldCupRankingsEventWithMinute.
+  ///
+  /// In en, this message translates to:
+  /// **'vs {opponent} {minute}'**
+  String worldCupRankingsEventWithMinute(String opponent, String minute);
+
+  /// No description provided for @worldCupRankingsMoreEvents.
+  ///
+  /// In en, this message translates to:
+  /// **'+{count} more'**
+  String worldCupRankingsMoreEvents(int count);
 
   /// No description provided for @worldCupGroupTeamsTitle.
   ///

@@ -692,7 +692,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get worldCupScheduleTab => '일정';
 
   @override
-  String get worldCupStandingsTab => '순위';
+  String get worldCupStandingsTab => '조별리그';
+
+  @override
+  String get worldCupRankingsTab => '기록 순위';
 
   @override
   String get worldCupTournamentTab => '토너먼트';
@@ -1275,6 +1278,77 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String worldCupStandingsTieReasonValue(String goalDifference, int goalsFor) {
     return '동률 비교: 득실차 $goalDifference · 득점 $goalsFor';
+  }
+
+  @override
+  String get worldCupRankingsTitle => '월드컵 순위';
+
+  @override
+  String get worldCupRankingsIntro =>
+      'FIFA 공식 매치 상세에서 확인되는 선수 기록을 모아 보여줘요. 득점은 공식 득점자 목록으로 집계하고, 어시스트와 반칙은 공식 데이터가 제공되면 채워집니다.';
+
+  @override
+  String get worldCupRankingsSourceMatchesLabel => '집계 경기';
+
+  @override
+  String worldCupRankingsSourceMatchesValue(int count) {
+    return '$count경기';
+  }
+
+  @override
+  String get worldCupRankingsUpdatedLabel => '업데이트';
+
+  @override
+  String get worldCupRankingsLoading => 'FIFA 선수 기록을 불러오고 있어요...';
+
+  @override
+  String get worldCupGoalRankingsTitle => '득점 순위';
+
+  @override
+  String get worldCupAssistRankingsTitle => '어시스트 순위';
+
+  @override
+  String get worldCupFoulRankingsTitle => '반칙 순위';
+
+  @override
+  String get worldCupRankingsNoOfficialMatches =>
+      '아직 집계할 공식 종료 경기가 없습니다. FIFA 데이터가 들어오면 자동으로 채워져요.';
+
+  @override
+  String get worldCupGoalRankingsEmpty =>
+      '공식 득점자 상세가 아직 없습니다. 경기 상세가 업데이트되면 득점 순위가 채워져요.';
+
+  @override
+  String get worldCupAssistRankingsEmpty =>
+      '현재 연결된 FIFA 상세 데이터에는 어시스트 항목이 없어 표시할 기록이 없습니다.';
+
+  @override
+  String get worldCupFoulRankingsEmpty =>
+      '현재 연결된 FIFA 상세 데이터에는 반칙 항목이 없어 표시할 기록이 없습니다.';
+
+  @override
+  String worldCupRankingsGoalCount(int count) {
+    return '$count골';
+  }
+
+  @override
+  String worldCupRankingsAssistCount(int count) {
+    return '$count도움';
+  }
+
+  @override
+  String worldCupRankingsFoulCount(int count) {
+    return '$count회';
+  }
+
+  @override
+  String worldCupRankingsEventWithMinute(String opponent, String minute) {
+    return '$opponent전 $minute';
+  }
+
+  @override
+  String worldCupRankingsMoreEvents(int count) {
+    return '외 $count개';
   }
 
   @override

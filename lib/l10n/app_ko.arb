@@ -304,7 +304,8 @@
   "worldCupCountdownStarted": "대회 진행 중",
   "worldCupCountdownComplete": "대회 종료",
   "worldCupScheduleTab": "일정",
-  "worldCupStandingsTab": "순위",
+  "worldCupStandingsTab": "조별리그",
+  "worldCupRankingsTab": "기록 순위",
   "worldCupTournamentTab": "토너먼트",
   "worldCupOverviewTitle": "대회 개요",
   "worldCupOverviewIntro": "이번 월드컵은 이전보다 더 커졌어요. 캐나다, 멕시코, 미국에서 48개 나라가 12개 조로 나뉘어 104경기를 치릅니다.",
@@ -616,6 +617,69 @@
         "type": "String"
       },
       "goalsFor": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupRankingsTitle": "월드컵 순위",
+  "worldCupRankingsIntro": "FIFA 공식 매치 상세에서 확인되는 선수 기록을 모아 보여줘요. 득점은 공식 득점자 목록으로 집계하고, 어시스트와 반칙은 공식 데이터가 제공되면 채워집니다.",
+  "worldCupRankingsSourceMatchesLabel": "집계 경기",
+  "worldCupRankingsSourceMatchesValue": "{count}경기",
+  "@worldCupRankingsSourceMatchesValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupRankingsUpdatedLabel": "업데이트",
+  "worldCupRankingsLoading": "FIFA 선수 기록을 불러오고 있어요...",
+  "worldCupGoalRankingsTitle": "득점 순위",
+  "worldCupAssistRankingsTitle": "어시스트 순위",
+  "worldCupFoulRankingsTitle": "반칙 순위",
+  "worldCupRankingsNoOfficialMatches": "아직 집계할 공식 종료 경기가 없습니다. FIFA 데이터가 들어오면 자동으로 채워져요.",
+  "worldCupGoalRankingsEmpty": "공식 득점자 상세가 아직 없습니다. 경기 상세가 업데이트되면 득점 순위가 채워져요.",
+  "worldCupAssistRankingsEmpty": "현재 연결된 FIFA 상세 데이터에는 어시스트 항목이 없어 표시할 기록이 없습니다.",
+  "worldCupFoulRankingsEmpty": "현재 연결된 FIFA 상세 데이터에는 반칙 항목이 없어 표시할 기록이 없습니다.",
+  "worldCupRankingsGoalCount": "{count}골",
+  "@worldCupRankingsGoalCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupRankingsAssistCount": "{count}도움",
+  "@worldCupRankingsAssistCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupRankingsFoulCount": "{count}회",
+  "@worldCupRankingsFoulCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupRankingsEventWithMinute": "{opponent}전 {minute}",
+  "@worldCupRankingsEventWithMinute": {
+    "placeholders": {
+      "opponent": {
+        "type": "String"
+      },
+      "minute": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupRankingsMoreEvents": "외 {count}개",
+  "@worldCupRankingsMoreEvents": {
+    "placeholders": {
+      "count": {
         "type": "int"
       }
     }

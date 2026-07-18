@@ -304,7 +304,8 @@
   "worldCupCountdownStarted": "大会開催中",
   "worldCupCountdownComplete": "大会終了",
   "worldCupScheduleTab": "日程",
-  "worldCupStandingsTab": "順位",
+  "worldCupStandingsTab": "グループ",
+  "worldCupRankingsTab": "記録",
   "worldCupTournamentTab": "トーナメント",
   "worldCupOverviewTitle": "大会概要",
   "worldCupOverviewIntro": "今回のワールドカップはこれまでより大きく、カナダ、メキシコ、アメリカで48か国が12グループに分かれて104試合を行います。",
@@ -616,6 +617,69 @@
         "type": "String"
       },
       "goalsFor": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupRankingsTitle": "W杯記録順位",
+  "worldCupRankingsIntro": "FIFA公式の試合詳細で確認できる選手記録を集計します。得点は公式得点者リストから集計し、アシストとファウルは公式項目が利用可能になったら表示します。",
+  "worldCupRankingsSourceMatchesLabel": "集計試合",
+  "worldCupRankingsSourceMatchesValue": "{count}試合",
+  "@worldCupRankingsSourceMatchesValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupRankingsUpdatedLabel": "更新",
+  "worldCupRankingsLoading": "FIFA選手記録を読み込んでいます...",
+  "worldCupGoalRankingsTitle": "得点ランキング",
+  "worldCupAssistRankingsTitle": "アシストランキング",
+  "worldCupFoulRankingsTitle": "ファウルランキング",
+  "worldCupRankingsNoOfficialMatches": "まだ集計できる公式終了試合がありません。FIFAデータが入ると自動で表示されます。",
+  "worldCupGoalRankingsEmpty": "公式得点者の詳細はまだありません。試合詳細が更新されると得点ランキングが表示されます。",
+  "worldCupAssistRankingsEmpty": "現在接続しているFIFA詳細データには、アシスト項目がないため表示できる記録がありません。",
+  "worldCupFoulRankingsEmpty": "現在接続しているFIFA詳細データには、ファウル項目がないため表示できる記録がありません。",
+  "worldCupRankingsGoalCount": "{count}点",
+  "@worldCupRankingsGoalCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupRankingsAssistCount": "{count}アシスト",
+  "@worldCupRankingsAssistCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupRankingsFoulCount": "{count}回",
+  "@worldCupRankingsFoulCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupRankingsEventWithMinute": "{opponent}戦 {minute}",
+  "@worldCupRankingsEventWithMinute": {
+    "placeholders": {
+      "opponent": {
+        "type": "String"
+      },
+      "minute": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupRankingsMoreEvents": "ほか{count}件",
+  "@worldCupRankingsMoreEvents": {
+    "placeholders": {
+      "count": {
         "type": "int"
       }
     }

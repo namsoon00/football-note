@@ -304,7 +304,8 @@
   "worldCupCountdownStarted": "Tournament underway",
   "worldCupCountdownComplete": "Tournament complete",
   "worldCupScheduleTab": "Schedule",
-  "worldCupStandingsTab": "Standings",
+  "worldCupStandingsTab": "Groups",
+  "worldCupRankingsTab": "Stats",
   "worldCupTournamentTab": "Tournament",
   "worldCupOverviewTitle": "Tournament overview",
   "worldCupOverviewIntro": "This World Cup is bigger than before: 48 countries, 12 groups, and 104 matches across Canada, Mexico, and the United States.",
@@ -616,6 +617,69 @@
         "type": "String"
       },
       "goalsFor": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupRankingsTitle": "World Cup rankings",
+  "worldCupRankingsIntro": "Player rankings are gathered from the FIFA official match details available in the app. Goals come from official scorer lists; assists and fouls will fill in when those official fields are available.",
+  "worldCupRankingsSourceMatchesLabel": "Source matches",
+  "worldCupRankingsSourceMatchesValue": "{count} matches",
+  "@worldCupRankingsSourceMatchesValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupRankingsUpdatedLabel": "Updated",
+  "worldCupRankingsLoading": "Loading FIFA player records...",
+  "worldCupGoalRankingsTitle": "Goal ranking",
+  "worldCupAssistRankingsTitle": "Assist ranking",
+  "worldCupFoulRankingsTitle": "Foul ranking",
+  "worldCupRankingsNoOfficialMatches": "There are no finished official matches to rank yet. This fills automatically when FIFA data arrives.",
+  "worldCupGoalRankingsEmpty": "Official scorer details are not available yet. Goal rankings will fill in when match details update.",
+  "worldCupAssistRankingsEmpty": "The connected FIFA detail data does not currently expose assist records for this ranking.",
+  "worldCupFoulRankingsEmpty": "The connected FIFA detail data does not currently expose foul records for this ranking.",
+  "worldCupRankingsGoalCount": "{count} goals",
+  "@worldCupRankingsGoalCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupRankingsAssistCount": "{count} assists",
+  "@worldCupRankingsAssistCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupRankingsFoulCount": "{count} fouls",
+  "@worldCupRankingsFoulCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupRankingsEventWithMinute": "vs {opponent} {minute}",
+  "@worldCupRankingsEventWithMinute": {
+    "placeholders": {
+      "opponent": {
+        "type": "String"
+      },
+      "minute": {
+        "type": "String"
+      }
+    }
+  },
+  "worldCupRankingsMoreEvents": "+{count} more",
+  "@worldCupRankingsMoreEvents": {
+    "placeholders": {
+      "count": {
         "type": "int"
       }
     }
