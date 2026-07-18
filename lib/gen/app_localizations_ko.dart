@@ -3702,10 +3702,24 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String statsReportSummarySentence(
+      Object totalTime, int sessions, int streak) {
+    return '선택 기간에 총 $totalTime, 훈련 $sessions회, $streak일 연속 기록을 남겼어요.';
+  }
+
+  @override
+  String statsReportActivityPeriodSummary(int activeDays, int periodDays) {
+    return '선택 기간 $periodDays일 중 $activeDays일 활동 기록';
+  }
+
+  @override
   String get statsReportInsightTitle => '기간 리포트';
 
   @override
   String get statsReportTargetLabel => '목표 달성';
+
+  @override
+  String get statsReportTargetProgressLabel => '목표 달성률';
 
   @override
   String statsReportTargetPercentValue(int percent) {

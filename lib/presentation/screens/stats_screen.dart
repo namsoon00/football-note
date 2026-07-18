@@ -1662,12 +1662,10 @@ class _TrainingReportSectionState extends State<_TrainingReportSection> {
     );
     final conditioningTotal =
         primaryMinutes + primaryCount + secondaryMinutes + secondaryCount;
+    final totalTimeText = _formatMinutesAsTime(totalMinutes, l10n: l10n);
     final planText = planPercent == null
         ? l10n.statsReportNoPlanValue
         : l10n.statsReportTargetPercentValue(planPercent);
-    final targetText = targetPercent == null
-        ? l10n.statsReportNoTargetValue
-        : l10n.statsReportTargetPercentValue(targetPercent);
     final insight = _trainingInsight(
       l10n: l10n,
       sportLabel: sportLabel,
@@ -1682,35 +1680,35 @@ class _TrainingReportSectionState extends State<_TrainingReportSection> {
       secondaryConditioningLabel: secondaryConditioningLabel,
     );
 
-    final coreCards = <_MetricCard>[
-      _MetricCard(
-        label: l10n.statsReportTotalTimeLabel,
-        value: _formatMinutesAsTime(totalMinutes, l10n: l10n),
+    final progressLabel =
+        targetPercent != null ? l10n.statsReportTargetProgressLabel : null;
+    final progressPercent = targetPercent ?? planPercent;
+    final progressValue = progressPercent == null
+        ? null
+        : l10n.statsReportTargetPercentValue(progressPercent);
+    final progressTitle = progressLabel ??
+        (planPercent != null ? l10n.statsReportPlanExecutionLabel : null);
+    final progressFraction = progressPercent == null
+        ? null
+        : (progressPercent / 100).clamp(0.0, 1.0).toDouble();
+    final coreRows = <_ReportMetric>[
+      _ReportMetric(
+        key: const ValueKey('stats-report-focus-row'),
+        icon: Icons.center_focus_strong_outlined,
+        label: l10n.statsReportFocusLabel,
+        value: focus,
       ),
-      _MetricCard(
-        label: l10n.statsReportTrainingRhythmLabel,
-        value: l10n.statsReportTrainingRhythmCompactValue(
-          widget.entries.length,
-          activeDays.length,
-          periodDays,
-          streak,
-        ),
-      ),
-      _MetricCard(
-        label: l10n.statsReportTargetPlanLabel,
-        value: l10n.statsReportTargetPlanValue(targetText, planText),
-      ),
-    ];
-    final detailCards = <_MetricCard>[
-      _MetricCard(
+      _ReportMetric(
+        key: const ValueKey('stats-report-lesson-row'),
+        icon: Icons.school_outlined,
         label: l10n.statsReportLessonCountLabel,
         value: l10n.statsReportLessonCountValue(lessonCount),
       ),
-      _MetricCard(
-        label: l10n.statsReportFocusLabel,
-        value: l10n.statsReportFocusStreakValue(focus, streak),
-      ),
-      _MetricCard(
+    ];
+    final detailRows = <_ReportMetric>[
+      _ReportMetric(
+        key: const ValueKey('stats-report-meal-row'),
+        icon: Icons.restaurant_outlined,
         label: l10n.statsReportMealCoverageLabel,
         value: l10n.statsReportMealCoverageValue(
           mealDays.length,
@@ -1718,7 +1716,9 @@ class _TrainingReportSectionState extends State<_TrainingReportSection> {
           fullMealDays,
         ),
       ),
-      _MetricCard(
+      _ReportMetric(
+        key: const ValueKey('stats-report-condition-row'),
+        icon: Icons.favorite_border,
         label: l10n.statsReportConditionLabel,
         value: l10n.statsReportConditionValue(
           _oneDecimal(avgIntensity),
@@ -1726,12 +1726,20 @@ class _TrainingReportSectionState extends State<_TrainingReportSection> {
           injuryDays,
         ),
       ),
-      _MetricCard(
+      _ReportMetric(
+        key: const ValueKey('stats-report-conditioning-row'),
+        icon: Icons.fitness_center_outlined,
         label: l10n.statsReportConditioningLabel,
         value: l10n.statsReportConditioningValue(
           primaryMinutes + secondaryMinutes,
           primaryCount + secondaryCount,
         ),
+      ),
+      _ReportMetric(
+        key: const ValueKey('stats-report-plan-row'),
+        icon: Icons.event_available_outlined,
+        label: l10n.statsReportPlanExecutionLabel,
+        value: planText,
       ),
     ];
 
@@ -1743,7 +1751,40 @@ class _TrainingReportSectionState extends State<_TrainingReportSection> {
           title: l10n.statsReportTrainingTitle(sportLabel),
         ),
         const SizedBox(height: 12),
-        _CompactMetricGrid(cards: coreCards),
+        Text(
+          l10n.statsReportSummarySentence(
+            totalTimeText,
+            widget.entries.length,
+            streak,
+          ),
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+                height: 1.35,
+              ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          l10n.statsReportActivityPeriodSummary(activeDays.length, periodDays),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                height: 1.4,
+              ),
+        ),
+        if (progressTitle != null &&
+            progressValue != null &&
+            progressFraction != null) ...[
+          const SizedBox(height: 12),
+          _ReportProgressSummary(
+            label: progressTitle,
+            value: progressValue,
+            progress: progressFraction,
+          ),
+        ],
+        const SizedBox(height: 12),
+        _ReportMetricList(
+          key: const ValueKey('stats-report-core-metric-list'),
+          metrics: coreRows,
+        ),
         const SizedBox(height: 10),
         _CoachMessage(
           icon: Icons.tips_and_updates_outlined,
@@ -1789,7 +1830,10 @@ class _TrainingReportSectionState extends State<_TrainingReportSection> {
         ),
         if (_detailsExpanded) ...[
           const SizedBox(height: 6),
-          _CompactMetricGrid(cards: detailCards),
+          _ReportMetricList(
+            key: const ValueKey('stats-report-detail-metric-list'),
+            metrics: detailRows,
+          ),
         ],
       ],
     );
@@ -1839,27 +1883,164 @@ class _TrainingReportSectionState extends State<_TrainingReportSection> {
   }
 }
 
-class _CompactMetricGrid extends StatelessWidget {
-  final List<_MetricCard> cards;
+class _ReportProgressSummary extends StatelessWidget {
+  final String label;
+  final String value;
+  final double progress;
 
-  const _CompactMetricGrid({required this.cards});
+  const _ReportProgressSummary({
+    required this.label,
+    required this.value,
+    required this.progress,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        const spacing = 8.0;
-        final columns = constraints.maxWidth >= 640 ? 3 : 2;
-        final cardWidth =
-            (constraints.maxWidth - (spacing * (columns - 1))) / columns;
-        return Wrap(
-          spacing: spacing,
-          runSpacing: spacing,
-          children: cards
-              .map((card) => SizedBox(width: cardWidth, child: card))
-              .toList(growable: false),
-        );
-      },
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Text(
+                label,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              value,
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: theme.colorScheme.primary,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(999),
+          child: LinearProgressIndicator(
+            key: const ValueKey('stats-report-progress-indicator'),
+            minHeight: 4,
+            value: progress,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ReportMetric {
+  final Key? key;
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _ReportMetric({
+    this.key,
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+}
+
+class _ReportMetricList extends StatelessWidget {
+  final List<_ReportMetric> metrics;
+
+  const _ReportMetricList({super.key, required this.metrics});
+
+  @override
+  Widget build(BuildContext context) {
+    final dividerColor =
+        Theme.of(context).colorScheme.outline.withValues(alpha: 0.18);
+    return Column(
+      children: [
+        for (var i = 0; i < metrics.length; i++) ...[
+          _ReportMetricRow(
+            key: metrics[i].key,
+            icon: metrics[i].icon,
+            label: metrics[i].label,
+            value: metrics[i].value,
+          ),
+          if (i < metrics.length - 1)
+            Divider(height: 1, thickness: 1, color: dividerColor),
+        ],
+      ],
+    );
+  }
+}
+
+class _ReportMetricRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _ReportMetricRow({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 20, color: theme.colorScheme.primary),
+          const SizedBox(width: 10),
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final labelStyle = theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                );
+                final valueStyle = theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  height: 1.35,
+                );
+                if (constraints.maxWidth < 260) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(label, style: labelStyle),
+                      const SizedBox(height: 2),
+                      Text(value, style: valueStyle),
+                    ],
+                  );
+                }
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      flex: 4,
+                      child: Text(label, style: labelStyle),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      flex: 5,
+                      child: Text(
+                        value,
+                        textAlign: TextAlign.end,
+                        style: valueStyle,
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

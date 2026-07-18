@@ -3800,10 +3800,36 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String statsReportSummarySentence(
+      Object totalTime, int sessions, int streak) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sessions,
+      locale: localeName,
+      other: '$sessions sessions',
+      one: '1 session',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      streak,
+      locale: localeName,
+      other: '$streak-day streak',
+      one: '1-day streak',
+    );
+    return 'This period has $totalTime across $_temp0 with a $_temp1.';
+  }
+
+  @override
+  String statsReportActivityPeriodSummary(int activeDays, int periodDays) {
+    return 'Logged on $activeDays/$periodDays days in the selected period';
+  }
+
+  @override
   String get statsReportInsightTitle => 'Period Report';
 
   @override
   String get statsReportTargetLabel => 'Target';
+
+  @override
+  String get statsReportTargetProgressLabel => 'Target achievement';
 
   @override
   String statsReportTargetPercentValue(int percent) {

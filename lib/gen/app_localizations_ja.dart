@@ -3704,10 +3704,24 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String statsReportSummarySentence(
+      Object totalTime, int sessions, int streak) {
+    return '選択期間で合計$totalTime、練習$sessions回、$streak日連続の記録です。';
+  }
+
+  @override
+  String statsReportActivityPeriodSummary(int activeDays, int periodDays) {
+    return '選択期間$periodDays日のうち$activeDays日を記録';
+  }
+
+  @override
   String get statsReportInsightTitle => '期間レポート';
 
   @override
   String get statsReportTargetLabel => '目標達成';
+
+  @override
+  String get statsReportTargetProgressLabel => '目標達成率';
 
   @override
   String statsReportTargetPercentValue(int percent) {

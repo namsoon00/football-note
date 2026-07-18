@@ -2172,8 +2172,32 @@
       "sport": {}
     }
   },
+  "statsReportSummarySentence": "선택 기간에 총 {totalTime}, 훈련 {sessions}회, {streak}일 연속 기록을 남겼어요.",
+  "@statsReportSummarySentence": {
+    "placeholders": {
+      "totalTime": {},
+      "sessions": {
+        "type": "int"
+      },
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
+  "statsReportActivityPeriodSummary": "선택 기간 {periodDays}일 중 {activeDays}일 활동 기록",
+  "@statsReportActivityPeriodSummary": {
+    "placeholders": {
+      "activeDays": {
+        "type": "int"
+      },
+      "periodDays": {
+        "type": "int"
+      }
+    }
+  },
   "statsReportInsightTitle": "기간 리포트",
   "statsReportTargetLabel": "목표 달성",
+  "statsReportTargetProgressLabel": "목표 달성률",
   "statsReportTargetPercentValue": "{percent}%",
   "@statsReportTargetPercentValue": {
     "placeholders": {

@@ -2172,8 +2172,32 @@
       "sport": {}
     }
   },
+  "statsReportSummarySentence": "This period has {totalTime} across {sessions, plural, =1{1 session} other{{sessions} sessions}} with a {streak, plural, =1{1-day streak} other{{streak}-day streak}}.",
+  "@statsReportSummarySentence": {
+    "placeholders": {
+      "totalTime": {},
+      "sessions": {
+        "type": "int"
+      },
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
+  "statsReportActivityPeriodSummary": "Logged on {activeDays}/{periodDays} days in the selected period",
+  "@statsReportActivityPeriodSummary": {
+    "placeholders": {
+      "activeDays": {
+        "type": "int"
+      },
+      "periodDays": {
+        "type": "int"
+      }
+    }
+  },
   "statsReportInsightTitle": "Period Report",
   "statsReportTargetLabel": "Target",
+  "statsReportTargetProgressLabel": "Target achievement",
   "statsReportTargetPercentValue": "{percent}%",
   "@statsReportTargetPercentValue": {
     "placeholders": {
