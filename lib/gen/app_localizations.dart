@@ -21493,7 +21493,7 @@ abstract class AppLocalizations {
   /// No description provided for @teamManagementTacticBookTitle.
   ///
   /// In en, this message translates to:
-  /// **'Tactics book'**
+  /// **'Tactic list'**
   String get teamManagementTacticBookTitle;
 
   /// No description provided for @teamManagementTacticBookPageCount.

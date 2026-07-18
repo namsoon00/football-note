@@ -6775,7 +6775,7 @@
   "teamManagementWorkspaceBackButton": "Back to tasks",
   "teamManagementWorkspaceRosterTab": "Roster",
   "teamManagementWorkspaceBoardTab": "Tactics board",
-  "teamManagementTacticBookTitle": "Tactics book",
+  "teamManagementTacticBookTitle": "Tactic list",
   "teamManagementTacticBookPageCount": "{count} tactic(s)",
   "@teamManagementTacticBookPageCount": {
     "placeholders": {

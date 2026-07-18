@@ -12116,7 +12116,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get teamManagementWorkspaceBoardTab => '戦術ボード';
 
   @override
-  String get teamManagementTacticBookTitle => '戦術ブック';
+  String get teamManagementTacticBookTitle => '戦術リスト';
 
   @override
   String teamManagementTacticBookPageCount(int count) {

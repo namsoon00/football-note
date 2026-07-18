@@ -6775,7 +6775,7 @@
   "teamManagementWorkspaceBackButton": "作業選択へ",
   "teamManagementWorkspaceRosterTab": "選手団",
   "teamManagementWorkspaceBoardTab": "戦術ボード",
-  "teamManagementTacticBookTitle": "戦術ブック",
+  "teamManagementTacticBookTitle": "戦術リスト",
   "teamManagementTacticBookPageCount": "戦術 {count}件",
   "@teamManagementTacticBookPageCount": {
     "placeholders": {

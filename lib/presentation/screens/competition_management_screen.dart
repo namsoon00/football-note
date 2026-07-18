@@ -525,12 +525,17 @@ class _CompetitionOperationsCard extends StatelessWidget {
     );
     final nextAction = _nextActionLabel(l10n, record, progress, entries);
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: AppSurfaces.borderColor(scheme, theme.brightness),
-          ),
+        color: theme.brightness == Brightness.dark
+            ? scheme.surfaceContainerHighest.withValues(alpha: 0.24)
+            : scheme.surfaceContainerHighest.withValues(alpha: 0.44),
+        borderRadius: AppRadius.small,
+        border: Border.all(
+          color: AppSurfaces.borderColor(
+            scheme,
+            theme.brightness,
+          ).withValues(alpha: 0.62),
         ),
       ),
       child: Column(

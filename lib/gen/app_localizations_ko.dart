@@ -12138,7 +12138,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get teamManagementWorkspaceBoardTab => '전술 보드';
 
   @override
-  String get teamManagementTacticBookTitle => '전술 책';
+  String get teamManagementTacticBookTitle => '전술 리스트';
 
   @override
   String teamManagementTacticBookPageCount(int count) {
