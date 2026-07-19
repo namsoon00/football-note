@@ -13012,9 +13012,6 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get trainingSketchRecommendedActionBadge => '추천';
-
-  @override
   String get trainingSketchPlayerFlowHint =>
       '선수의 다음 동작을 고르면 단계와 공 이동이 자동으로 이어집니다.';
 

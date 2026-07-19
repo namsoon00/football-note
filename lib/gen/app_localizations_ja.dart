@@ -12988,9 +12988,6 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get trainingSketchRecommendedActionBadge => 'おすすめ';
-
-  @override
   String get trainingSketchPlayerFlowHint => '選手の次の動作を選ぶと、段階とボールの動きが自動でつながります。';
 
   @override

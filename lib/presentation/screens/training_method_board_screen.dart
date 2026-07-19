@@ -1688,8 +1688,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   List<_PlaybackTrack> _resolvePlaybackTracks() {
     final orderedRoutes = _orderedPlaybackRoutes();
     final usesStages = _usesRouteStages(orderedRoutes);
-    final stageStartOffsetsMs =
-        usesStages ? _stageStartOffsetsMs(orderedRoutes) : const <int, int>{};
     final routeOrder = <String, int>{
       for (var index = 0; index < orderedRoutes.length; index++)
         orderedRoutes[index].id: index,
@@ -1697,6 +1695,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     final assignedUnlinkedItemIds = <String>{};
     final itemsByTrackKey = <String, _BoardItem>{};
     final routesByTrackKey = <String, List<_BoardRoute>>{};
+    final routeTrackKeys = <String, String>{};
 
     for (final route in orderedRoutes) {
       final linkedItem = _linkedItemForRoute(route);
@@ -1711,9 +1710,17 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       }
       final trackKey = '${route.kind.name}:${item.id}';
       itemsByTrackKey[trackKey] = item;
+      routeTrackKeys[route.id] = trackKey;
       routesByTrackKey.putIfAbsent(trackKey, () => <_BoardRoute>[]).add(route);
     }
 
+    final routeStartOffsetsMs = usesStages
+        ? _routeStartOffsetsForPlayback(
+            orderedRoutes: orderedRoutes,
+            routeTrackKeys: routeTrackKeys,
+            routeOrder: routeOrder,
+          )
+        : const <String, int>{};
     final tracks = <_PlaybackTrack>[];
     for (final entry in routesByTrackKey.entries) {
       final item = itemsByTrackKey[entry.key];
@@ -1721,11 +1728,15 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       final routes = entry.value.toList(growable: false)
         ..sort((a, b) {
           if (usesStages) {
-            final stageCompare = _normalizedRouteStageIndex(
-              a.stageIndex,
-            ).compareTo(_normalizedRouteStageIndex(b.stageIndex));
-            if (stageCompare != 0) return stageCompare;
+            final startCompare = (routeStartOffsetsMs[a.id] ?? 0).compareTo(
+              routeStartOffsetsMs[b.id] ?? 0,
+            );
+            if (startCompare != 0) return startCompare;
           }
+          final stageCompare = _normalizedRouteStageIndex(
+            a.stageIndex,
+          ).compareTo(_normalizedRouteStageIndex(b.stageIndex));
+          if (stageCompare != 0) return stageCompare;
           return (routeOrder[a.id] ?? 0).compareTo(routeOrder[b.id] ?? 0);
         });
       final segments = <_PlaybackSegment>[];
@@ -1747,24 +1758,22 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         );
         if (routeSegments.isEmpty) continue;
         if (usesStages) {
-          final stageStartMs = stageStartOffsetsMs[
-                  _normalizedRouteStageIndex(route.stageIndex)] ??
-              elapsedMs;
-          if (stageStartMs > elapsedMs) {
+          final routeStartMs = routeStartOffsetsMs[route.id] ?? elapsedMs;
+          if (routeStartMs > elapsedMs) {
             final waitPoint =
                 segments.isEmpty ? timing.points.first : segments.last.end;
             segments.add(
               _PlaybackSegment(
                 start: waitPoint,
                 end: waitPoint,
-                durationSeconds: (stageStartMs - elapsedMs) / 1000,
+                durationSeconds: (routeStartMs - elapsedMs) / 1000,
               ),
             );
-            elapsedMs = stageStartMs;
+            elapsedMs = routeStartMs;
           }
         }
         segments.addAll(routeSegments);
-        elapsedMs = segments.fold<int>(
+        elapsedMs += routeSegments.fold<int>(
           0,
           (sum, segment) => sum + (segment.durationSeconds * 1000).round(),
         );
@@ -1780,6 +1789,103 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       );
     }
     return tracks;
+  }
+
+  Map<String, int> _routeStartOffsetsForPlayback({
+    required List<_BoardRoute> orderedRoutes,
+    required Map<String, String> routeTrackKeys,
+    required Map<String, int> routeOrder,
+  }) {
+    final routes = orderedRoutes
+        .where(
+          (route) =>
+              route.points.length >= 2 && routeTrackKeys.containsKey(route.id),
+        )
+        .toList(growable: false)
+      ..sort((a, b) {
+        final stageCompare = _normalizedRouteStageIndex(
+          a.stageIndex,
+        ).compareTo(_normalizedRouteStageIndex(b.stageIndex));
+        if (stageCompare != 0) return stageCompare;
+        return (routeOrder[a.id] ?? 0).compareTo(routeOrder[b.id] ?? 0);
+      });
+    final startOffsets = <String, int>{};
+    final trackEndMs = <String, int>{};
+    final playerEndsByPlayerId = <String, List<_PlaybackStageEnd>>{};
+    final incomingBallEndsByPlayerId = <String, List<_PlaybackStageEnd>>{};
+
+    for (final route in routes) {
+      final trackKey = routeTrackKeys[route.id];
+      if (trackKey == null) continue;
+      final durationMs = _routePlaybackDurationMs(route);
+      if (durationMs <= 0) continue;
+      final stage = _normalizedRouteStageIndex(route.stageIndex);
+      var startMs = trackEndMs[trackKey] ?? 0;
+      if (route.kind == _PathDrawMode.ball) {
+        final actorId = route.actorItemId;
+        if (actorId != null) {
+          startMs = math.max(
+            startMs,
+            _latestPlaybackDependencyEndBeforeStage(
+              playerEndsByPlayerId[actorId],
+              stage,
+            ),
+          );
+          startMs = math.max(
+            startMs,
+            _latestPlaybackDependencyEndBeforeStage(
+              incomingBallEndsByPlayerId[actorId],
+              stage,
+            ),
+          );
+        }
+      } else {
+        final playerId = route.linkedItemId ?? route.actorItemId;
+        if (playerId != null) {
+          startMs = math.max(
+            startMs,
+            _latestPlaybackDependencyEndBeforeStage(
+              incomingBallEndsByPlayerId[playerId],
+              stage,
+            ),
+          );
+        }
+      }
+
+      startOffsets[route.id] = startMs;
+      final endMs = startMs + durationMs;
+      trackEndMs[trackKey] = math.max(trackEndMs[trackKey] ?? 0, endMs);
+      if (route.kind == _PathDrawMode.player) {
+        final playerId = route.linkedItemId ?? route.actorItemId;
+        if (playerId != null) {
+          playerEndsByPlayerId
+              .putIfAbsent(playerId, () => <_PlaybackStageEnd>[])
+              .add(_PlaybackStageEnd(stageIndex: stage, endMs: endMs));
+        }
+      } else {
+        final targetId = route.targetItemId;
+        if (targetId != null && targetId != route.actorItemId) {
+          incomingBallEndsByPlayerId
+              .putIfAbsent(targetId, () => <_PlaybackStageEnd>[])
+              .add(_PlaybackStageEnd(stageIndex: stage, endMs: endMs));
+        }
+      }
+    }
+    return startOffsets;
+  }
+
+  int _latestPlaybackDependencyEndBeforeStage(
+    List<_PlaybackStageEnd>? dependencies,
+    int stageIndex,
+  ) {
+    if (dependencies == null || dependencies.isEmpty) return 0;
+    var latestEndMs = 0;
+    for (final dependency in dependencies) {
+      if (dependency.stageIndex < stageIndex) {
+        latestEndMs = math.max(latestEndMs, dependency.endMs);
+      }
+    }
+    return latestEndMs;
   }
 
   void _moveItemWithLinkedRoutes(
@@ -3344,28 +3450,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     );
   }
 
-  Map<int, int> _stageStartOffsetsMs(List<_BoardRoute> routes) {
-    final stageDurationsMs = <int, int>{};
-    for (final route in routes) {
-      if (route.points.length < 2) continue;
-      final stageIndex = _normalizedRouteStageIndex(route.stageIndex);
-      final durationMs = _routePlaybackDurationMs(route);
-      if (durationMs <= 0) continue;
-      stageDurationsMs[stageIndex] = math.max(
-        stageDurationsMs[stageIndex] ?? 0,
-        durationMs,
-      );
-    }
-    final stages = stageDurationsMs.keys.toList(growable: false)..sort();
-    final offsets = <int, int>{};
-    var elapsedMs = 0;
-    for (final stage in stages) {
-      offsets[stage] = elapsedMs;
-      elapsedMs += stageDurationsMs[stage] ?? 0;
-    }
-    return offsets;
-  }
-
   void _setRouteStage(_BoardRoute route, int stageIndex) {
     route.stageIndex = _normalizedRouteStageIndex(stageIndex);
     _removeLeadingRouteWait(route);
@@ -4676,7 +4760,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     setState(() {
       _playbackTracks = tracks;
       for (final track in _playbackTracks) {
-        final firstPoint = track.route.points.first;
+        final firstPoint = track.segments.first.start;
         track.item.x = firstPoint.dx.clamp(0.03, 0.97);
         track.item.y = firstPoint.dy.clamp(0.03, 0.97);
       }
@@ -6012,10 +6096,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     final colors = theme.colorScheme;
     final hasBall = _playerHasBallForFlow(player);
     final entries = _playerFlowActionEntries(player);
-    final recommended = _recommendedPlayerFlowEntry(player, entries);
-    final secondaryEntries = entries
-        .where((entry) => !identical(entry, recommended))
-        .toList(growable: false);
     final nextStage = _stageForNextPlayerAction(player) ?? 1;
     return Container(
       key: ValueKey('training-player-next-action-${player.id}'),
@@ -6095,48 +6175,15 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
               ),
             ],
           ),
-          if (recommended != null) ...[
+          if (entries.isNotEmpty) ...[
             const SizedBox(height: 10),
-            Row(
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
               children: [
-                Icon(Icons.auto_awesome, size: 16, color: colors.primary),
-                const SizedBox(width: 4),
-                Text(
-                  _l10n.trainingSketchRecommendedActionBadge,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: colors.primary,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
+                for (final entry in entries)
+                  _playerFlowEntryButton(player: player, entry: entry),
               ],
-            ),
-            const SizedBox(height: 6),
-            _playerFlowEntryButton(
-              player: player,
-              entry: recommended,
-              prominent: true,
-            ),
-          ],
-          if (secondaryEntries.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            SizedBox(
-              height: 44,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    for (final entry in secondaryEntries) ...[
-                      _playerFlowEntryButton(
-                        player: player,
-                        entry: entry,
-                        prominent: false,
-                      ),
-                      if (!identical(entry, secondaryEntries.last))
-                        const SizedBox(width: 8),
-                    ],
-                  ],
-                ),
-              ),
             ),
           ],
         ],
@@ -6169,41 +6216,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       for (final propAction in propActions)
         _PlayerFlowActionEntry.target(propAction.action, propAction.target),
     ];
-  }
-
-  _PlayerFlowActionEntry? _recommendedPlayerFlowEntry(
-    _BoardItem player,
-    List<_PlayerFlowActionEntry> entries,
-  ) {
-    if (entries.isEmpty) return null;
-    _PlayerFlowActionEntry? findAction(_SketchTargetAction action) {
-      return _firstWhereOrNull(
-        entries,
-        (entry) => entry.target == null && entry.action == action,
-      );
-    }
-
-    if (_playerHasBallForFlow(player)) {
-      for (final action in <_SketchTargetAction>[
-        _SketchTargetAction.pass,
-        _SketchTargetAction.passAndMove,
-        _SketchTargetAction.dribble,
-        _SketchTargetAction.drive,
-        _SketchTargetAction.throwBall,
-        _SketchTargetAction.serve,
-        _SketchTargetAction.rally,
-        _SketchTargetAction.shot,
-        _SketchTargetAction.cross,
-      ]) {
-        final entry = findAction(action);
-        if (entry != null) return entry;
-      }
-    }
-    if (_nearestUnownedBallNearPlayer(player) != null) {
-      final moveToBall = findAction(_SketchTargetAction.moveToBall);
-      if (moveToBall != null) return moveToBall;
-    }
-    return findAction(_SketchTargetAction.move) ?? entries.first;
   }
 
   List<_PlayerFlowPropAction> _playerFlowPropActions(
@@ -6252,7 +6264,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   Widget _playerFlowEntryButton({
     required _BoardItem player,
     required _PlayerFlowActionEntry entry,
-    required bool prominent,
   }) {
     final key = entry.target == null
         ? ValueKey('training-player-flow-action-${player.id}-'
@@ -6264,27 +6275,13 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         : _playerFlowPropActionLabel(entry.action, entry.target!);
     final icon = Icon(_targetActionIcon(entry.action), size: 18);
     void handlePressed() => _handlePlayerFlowActionEntry(player, entry);
-    final minimumSize =
-        prominent ? const Size.fromHeight(44) : const Size(44, 44);
-    if (prominent) {
-      return SizedBox(
-        width: double.infinity,
-        child: FilledButton.icon(
-          key: key,
-          onPressed: handlePressed,
-          icon: icon,
-          label: Text(label),
-          style: FilledButton.styleFrom(minimumSize: minimumSize),
-        ),
-      );
-    }
     return OutlinedButton.icon(
       key: key,
       onPressed: handlePressed,
       icon: icon,
       label: Text(label),
       style: OutlinedButton.styleFrom(
-        minimumSize: minimumSize,
+        minimumSize: const Size(44, 44),
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       ),
@@ -7742,6 +7739,16 @@ class _RouteTiming {
   const _RouteTiming({
     required this.points,
     required this.segmentDurationsMs,
+  });
+}
+
+class _PlaybackStageEnd {
+  final int stageIndex;
+  final int endMs;
+
+  const _PlaybackStageEnd({
+    required this.stageIndex,
+    required this.endMs,
   });
 }
 

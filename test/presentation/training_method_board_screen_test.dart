@@ -3221,7 +3221,7 @@ void main() {
     expect(ballRoutes.last.points.last.y, closeTo(0.38, 0.02));
   });
 
-  testWidgets('selected player shows next action first with complete actions', (
+  testWidgets('selected player shows all eligible next actions immediately', (
     WidgetTester tester,
   ) async {
     _setLandscapeSurface(tester);
@@ -3287,10 +3287,19 @@ void main() {
     final nextAction =
         find.byKey(const ValueKey('training-player-next-action-player-1'));
     expect(nextAction, findsOneWidget);
-    expect(find.text('추천'), findsOneWidget);
+    expect(find.text('추천'), findsNothing);
     expect(find.text('다음 1단계'), findsOneWidget);
     expect(find.text('선수 액션'), findsNothing);
-    expect(find.widgetWithText(FilledButton, '패스'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: nextAction,
+        matching: find.byType(SingleChildScrollView),
+      ),
+      findsNothing,
+    );
+    expect(find.widgetWithText(FilledButton, '패스'), findsNothing);
+    expect(find.widgetWithText(OutlinedButton, '패스'), findsOneWidget);
+    expect(find.widgetWithText(OutlinedButton, '패스 후 이동'), findsOneWidget);
     expect(find.widgetWithText(OutlinedButton, '드리블'), findsOneWidget);
     expect(find.widgetWithText(OutlinedButton, '슈팅'), findsOneWidget);
     for (final entry in <String>[
@@ -6088,6 +6097,100 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets(
+    'playback starts passer movement with a staged pass immediately',
+    (WidgetTester tester) async {
+      _setLandscapeSurface(tester);
+      final initialLayout = const TrainingMethodLayout(
+        pages: <TrainingMethodPage>[
+          TrainingMethodPage(
+            name: 'Board',
+            items: <TrainingMethodItem>[
+              TrainingMethodItem(
+                  id: 'player-1', type: 'player', x: 0.20, y: 0.5),
+              TrainingMethodItem(
+                id: 'player-2',
+                type: 'player',
+                x: 0.58,
+                y: 0.46,
+                colorValue: 0xFF1E88E5,
+              ),
+              TrainingMethodItem(
+                id: 'ball-1',
+                type: 'ball',
+                x: 0.27,
+                y: 0.5,
+                colorValue: 0xFFFFCA28,
+              ),
+            ],
+            routes: <TrainingMethodRoute>[
+              TrainingMethodRoute(
+                id: 'route-pass',
+                kind: TrainingMethodRouteKind.ball,
+                linkedItemId: 'ball-1',
+                actorItemId: 'player-1',
+                targetItemId: 'player-2',
+                stageIndex: 1,
+                points: <TrainingMethodPoint>[
+                  TrainingMethodPoint(x: 0.27, y: 0.5),
+                  TrainingMethodPoint(x: 0.58, y: 0.46),
+                ],
+                segmentDurationsMs: <int>[680],
+              ),
+              TrainingMethodRoute(
+                id: 'route-passer-move',
+                kind: TrainingMethodRouteKind.player,
+                linkedItemId: 'player-1',
+                actorItemId: 'player-1',
+                stageIndex: 2,
+                points: <TrainingMethodPoint>[
+                  TrainingMethodPoint(x: 0.20, y: 0.5),
+                  TrainingMethodPoint(x: 0.36, y: 0.62),
+                ],
+                segmentDurationsMs: <int>[760],
+              ),
+            ],
+          ),
+        ],
+      ).encode();
+
+      await tester.pumpWidget(
+        _buildApp(
+          TrainingMethodBoardScreen(
+            boardTitle: '패스 후 이동',
+            initialLayoutJson: initialLayout,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+      final playerIcons = find.descendant(
+        of: boardFinder,
+        matching: find.byIcon(Icons.person),
+      );
+      final ballIcon = find.descendant(
+        of: boardFinder,
+        matching: find.byIcon(Icons.sports_soccer),
+      );
+      expect(playerIcons, findsNWidgets(2));
+      expect(ballIcon, findsOneWidget);
+
+      final passerBefore = tester.getCenter(playerIcons.first);
+      final ballBefore = tester.getCenter(ballIcon);
+
+      await tester.tap(find.byIcon(Icons.play_circle_outline).first);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      final passerAfter = tester.getCenter(playerIcons.first);
+      final ballAfter = tester.getCenter(ballIcon);
+
+      expect((ballAfter - ballBefore).distance, greaterThan(1));
+      expect((passerAfter - passerBefore).distance, greaterThan(1));
+    },
+  );
 
   testWidgets(
     'playback moves the ball farther than the player over equal time',

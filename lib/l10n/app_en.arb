@@ -7350,7 +7350,6 @@
       }
     }
   },
-  "trainingSketchRecommendedActionBadge": "Recommended",
   "trainingSketchPlayerFlowHint": "Choose the player's next action and the stage and ball movement will connect automatically.",
   "trainingSketchPlayerFlowPassSection": "Connect to teammate",
   "trainingSketchPlayerFlowBallSection": "Ball actions",
