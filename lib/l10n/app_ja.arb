@@ -4916,6 +4916,8 @@
   "runningCoachLiveCameraIssueTitle": "カメラチェックが必要です",
   "runningCoachLiveCameraDenied": "ライブランニングコーチングにはカメラへのアクセスが必要です。",
   "runningCoachLiveCameraFailed": "コーチのライブカメラを開けませんでした。もう一度やり直してください。",
+  "runningCoachLivePoseIssueTitle": "ライブコーチを再起動してください",
+  "runningCoachLivePoseFailed": "端末上の姿勢モデルがカメラフレームを処理できなかったため、トラッキングが停止しました。もう一度お試しください。",
   "runningCoachLiveRetryAction": "もう一度やり直してください",
   "runningCoachLiveVoiceOn": "音声コーチングオン",
   "runningCoachLiveVoiceOff": "音声コーチングはオフです",

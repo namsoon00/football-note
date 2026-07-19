@@ -6,8 +6,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import 'package:google_mlkit_pose_detection/google_mlkit_pose_detection.dart';
 
+import '../../application/mediapipe_pose_landmarker_service.dart';
 import '../../application/running_live_coaching_service.dart';
 import '../../domain/entities/running_live_coaching_state.dart';
 import '../../domain/entities/running_video_analysis_result.dart';
@@ -31,9 +31,8 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
 
   final RunningLiveCoachingService _coachingService =
       RunningLiveCoachingService();
-  final PoseDetector _poseDetector = PoseDetector(
-    options: PoseDetectorOptions(mode: PoseDetectionMode.stream),
-  );
+  final MediaPipePoseLandmarkerService _mediaPipePoseLandmarker =
+      const MediaPipePoseLandmarkerService();
   final FlutterTts _tts = FlutterTts();
 
   final Map<DeviceOrientation, int> _orientations = const {
@@ -59,6 +58,8 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
   DateTime? _lastSpokenAt;
   RunningLivePrimaryCue? _lastSpokenCue;
   String? _cameraErrorCode;
+  String? _liveCoachErrorCode;
+  int _cameraSessionId = 0;
 
   bool get _isAndroidPlatform =>
       !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
@@ -83,14 +84,16 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    final controller = _controller;
-    if (controller == null || !controller.value.isInitialized) {
-      return;
-    }
     if (state == AppLifecycleState.inactive ||
         state == AppLifecycleState.paused) {
-      unawaited(controller.dispose());
+      _cameraSessionId++;
+      _isProcessingFrame = false;
+      final controller = _controller;
       _controller = null;
+      unawaited(_mediaPipePoseLandmarker.close());
+      if (controller != null) {
+        unawaited(controller.dispose());
+      }
       return;
     }
     if (state == AppLifecycleState.resumed) {
@@ -104,10 +107,12 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     WidgetsBinding.instance.removeObserver(this);
     final controller = _controller;
     _controller = null;
+    _cameraSessionId++;
+    _isProcessingFrame = false;
     if (controller != null) {
       unawaited(controller.dispose());
     }
-    unawaited(_poseDetector.close());
+    unawaited(_mediaPipePoseLandmarker.close());
     unawaited(_tts.stop());
     super.dispose();
   }
@@ -152,6 +157,15 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
   }
 
   Widget _buildBody(BuildContext context, AppLocalizations l10n) {
+    if (_liveCoachErrorCode != null) {
+      return _StatusPane(
+        title: l10n.runningCoachLivePoseIssueTitle,
+        body: _liveCoachErrorMessage(l10n, _liveCoachErrorCode!),
+        actionLabel: l10n.runningCoachLiveRetryAction,
+        onAction: _initializeCamera,
+      );
+    }
+
     if (_cameraErrorCode != null) {
       return _StatusPane(
         title: l10n.runningCoachLiveCameraIssueTitle,
@@ -188,7 +202,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     final insightDetails = _buildInsightDetails(l10n);
     final focusPriorities =
         _coachingState.coachingReport?.focusPriorityByMetric ??
-        const <RunningCoachMetric, int>{};
+            const <RunningCoachMetric, int>{};
     final insightSections = _buildInsightSections(l10n, insightDetails);
     final panelTitle = _panelTitle(l10n);
     return Stack(
@@ -314,9 +328,13 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       return;
     }
 
+    final sessionId = ++_cameraSessionId;
+    _isProcessingFrame = false;
+
     if (!_isSupportedMobilePlatform) {
       setState(() {
         _cameraErrorCode = 'unsupported_platform';
+        _liveCoachErrorCode = null;
         _isInitializing = false;
       });
       return;
@@ -325,12 +343,17 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     setState(() {
       _isInitializing = true;
       _cameraErrorCode = null;
+      _liveCoachErrorCode = null;
     });
 
     final oldController = _controller;
     _controller = null;
     if (oldController != null) {
       await oldController.dispose();
+    }
+    await _mediaPipePoseLandmarker.close();
+    if (_isDisposed || sessionId != _cameraSessionId) {
+      return;
     }
     _coachingService.reset();
     _poseOverlayState = null;
@@ -345,12 +368,11 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       }
 
       _cameras = cameras;
-      final selectedCamera =
-          preferredCamera ??
+      final selectedCamera = preferredCamera ??
           cameras.cast<CameraDescription?>().firstWhere(
-            (camera) => camera?.lensDirection == CameraLensDirection.back,
-            orElse: () => cameras.first,
-          )!;
+                (camera) => camera?.lensDirection == CameraLensDirection.back,
+                orElse: () => cameras.first,
+              )!;
       _activeCamera = selectedCamera;
 
       final controller = CameraController(
@@ -364,7 +386,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
 
       await controller.initialize();
       await controller.startImageStream(_processCameraImage);
-      if (_isDisposed) {
+      if (_isDisposed || sessionId != _cameraSessionId) {
         await controller.dispose();
         return;
       }
@@ -373,7 +395,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
         _isInitializing = false;
       });
     } on CameraException catch (error) {
-      if (_isDisposed) {
+      if (_isDisposed || sessionId != _cameraSessionId) {
         return;
       }
       setState(() {
@@ -381,7 +403,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
         _isInitializing = false;
       });
     } catch (_) {
-      if (_isDisposed) {
+      if (_isDisposed || sessionId != _cameraSessionId) {
         return;
       }
       setState(() {
@@ -416,16 +438,17 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
   }
 
   Future<void> _processCameraImage(CameraImage image) async {
-    if (_isDisposed || _isProcessingFrame) {
+    if (_isDisposed || _isProcessingFrame || _liveCoachErrorCode != null) {
       return;
     }
+    final sessionId = _cameraSessionId;
     final now = DateTime.now();
     if (_lastProcessedAt != null &&
         now.difference(_lastProcessedAt!) < _frameProcessingInterval) {
       return;
     }
 
-    final frameInput = _inputImageFromCameraImage(image);
+    final frameInput = _cameraFrameInputFromCameraImage(image);
     if (frameInput == null) {
       return;
     }
@@ -434,18 +457,19 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     _lastProcessedAt = now;
 
     try {
-      final poses = await _poseDetector.processImage(frameInput.inputImage);
-      final observation = poses.isEmpty
-          ? null
-          : _observationFromPose(
-              poses.first,
-              Size(image.width.toDouble(), image.height.toDouble()),
-            );
+      final detection =
+          await _mediaPipePoseLandmarker.detectPoseFromCameraImage(
+        image: image,
+        rotationDegrees: frameInput.rotationDegrees,
+        timestamp: now,
+      );
+      final observation =
+          runningPoseObservationFromMediaPipeDetection(detection);
       final state = _coachingService.ingestObservation(
         observation,
         timestamp: now,
       );
-      if (_isDisposed || !mounted) {
+      if (_isDisposed || !mounted || sessionId != _cameraSessionId) {
         return;
       }
       setState(() {
@@ -454,62 +478,52 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
             ? null
             : _PoseOverlayState(
                 observation: observation,
-                rotation: frameInput.rotation,
                 lensDirection:
                     _activeCamera?.lensDirection ?? CameraLensDirection.back,
               );
       });
       await _maybeSpeakCue(state);
-    } catch (_) {
-      // Ignore transient pose errors and keep the live stream running.
+    } catch (error, stackTrace) {
+      await _showLiveCoachError(
+        error,
+        stackTrace,
+        sessionId: sessionId,
+      );
     } finally {
       _isProcessingFrame = false;
     }
   }
 
-  _CameraFrameInput? _inputImageFromCameraImage(CameraImage image) {
+  _CameraFrameInput? _cameraFrameInputFromCameraImage(CameraImage image) {
     final controller = _controller;
     final camera = _activeCamera;
     if (controller == null || camera == null) {
       return null;
     }
 
-    final rotation = _resolveImageRotation(controller, camera);
-    if (rotation == null) {
+    final rotationDegrees = _resolveImageRotationDegrees(controller, camera);
+    if (rotationDegrees == null) {
       return null;
     }
 
-    final format = InputImageFormatValue.fromRawValue(image.format.raw);
-    if (format == null ||
-        (_isAndroidPlatform && format != InputImageFormat.nv21) ||
-        (_isIosPlatform && format != InputImageFormat.bgra8888)) {
+    final format = image.format.group;
+    if ((_isAndroidPlatform && format != ImageFormatGroup.nv21) ||
+        (_isIosPlatform && format != ImageFormatGroup.bgra8888)) {
       return null;
     }
     if (image.planes.length != 1) {
       return null;
     }
 
-    final plane = image.planes.first;
-    return _CameraFrameInput(
-      inputImage: InputImage.fromBytes(
-        bytes: plane.bytes,
-        metadata: InputImageMetadata(
-          size: Size(image.width.toDouble(), image.height.toDouble()),
-          rotation: rotation,
-          format: format,
-          bytesPerRow: plane.bytesPerRow,
-        ),
-      ),
-      rotation: rotation,
-    );
+    return _CameraFrameInput(rotationDegrees: rotationDegrees);
   }
 
-  InputImageRotation? _resolveImageRotation(
+  int? _resolveImageRotationDegrees(
     CameraController controller,
     CameraDescription camera,
   ) {
     if (_isIosPlatform) {
-      return InputImageRotationValue.fromRawValue(camera.sensorOrientation);
+      return camera.sensorOrientation;
     }
 
     if (_isAndroidPlatform) {
@@ -525,68 +539,50 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
         rotationCompensation =
             (camera.sensorOrientation - rotationCompensation + 360) % 360;
       }
-      return InputImageRotationValue.fromRawValue(rotationCompensation);
+      return rotationCompensation;
     }
 
     return null;
   }
 
-  RunningPoseObservation _observationFromPose(Pose pose, Size imageSize) {
-    final landmarks = <RunningPoseLandmarkType, RunningPoseLandmark>{};
-
-    void addLandmark(PoseLandmarkType source, RunningPoseLandmarkType target) {
-      final landmark = pose.landmarks[source];
-      if (landmark == null) {
-        return;
-      }
-      landmarks[target] = RunningPoseLandmark(
-        position: Offset(landmark.x, landmark.y),
-        likelihood: landmark.likelihood,
-      );
+  Future<void> _showLiveCoachError(
+    Object error,
+    StackTrace stackTrace, {
+    required int sessionId,
+  }) async {
+    if (_isDisposed || sessionId != _cameraSessionId) {
+      return;
+    }
+    if (kDebugMode) {
+      debugPrint('Running live MediaPipe inference failed: $error');
+      debugPrintStack(stackTrace: stackTrace);
     }
 
-    addLandmark(PoseLandmarkType.nose, RunningPoseLandmarkType.nose);
-    addLandmark(PoseLandmarkType.leftEar, RunningPoseLandmarkType.leftEar);
-    addLandmark(PoseLandmarkType.rightEar, RunningPoseLandmarkType.rightEar);
-    addLandmark(
-      PoseLandmarkType.leftShoulder,
-      RunningPoseLandmarkType.leftShoulder,
-    );
-    addLandmark(
-      PoseLandmarkType.rightShoulder,
-      RunningPoseLandmarkType.rightShoulder,
-    );
-    addLandmark(PoseLandmarkType.leftElbow, RunningPoseLandmarkType.leftElbow);
-    addLandmark(
-      PoseLandmarkType.rightElbow,
-      RunningPoseLandmarkType.rightElbow,
-    );
-    addLandmark(PoseLandmarkType.leftWrist, RunningPoseLandmarkType.leftWrist);
-    addLandmark(
-      PoseLandmarkType.rightWrist,
-      RunningPoseLandmarkType.rightWrist,
-    );
-    addLandmark(PoseLandmarkType.leftHip, RunningPoseLandmarkType.leftHip);
-    addLandmark(PoseLandmarkType.rightHip, RunningPoseLandmarkType.rightHip);
-    addLandmark(PoseLandmarkType.leftKnee, RunningPoseLandmarkType.leftKnee);
-    addLandmark(PoseLandmarkType.rightKnee, RunningPoseLandmarkType.rightKnee);
-    addLandmark(PoseLandmarkType.leftAnkle, RunningPoseLandmarkType.leftAnkle);
-    addLandmark(
-      PoseLandmarkType.rightAnkle,
-      RunningPoseLandmarkType.rightAnkle,
-    );
-    addLandmark(PoseLandmarkType.leftHeel, RunningPoseLandmarkType.leftHeel);
-    addLandmark(PoseLandmarkType.rightHeel, RunningPoseLandmarkType.rightHeel);
-    addLandmark(
-      PoseLandmarkType.leftFootIndex,
-      RunningPoseLandmarkType.leftFootIndex,
-    );
-    addLandmark(
-      PoseLandmarkType.rightFootIndex,
-      RunningPoseLandmarkType.rightFootIndex,
-    );
+    _cameraSessionId++;
+    _isProcessingFrame = false;
+    final controller = _controller;
+    _controller = null;
+    _coachingService.reset();
+    _poseOverlayState = null;
+    _lastProcessedAt = null;
+    _lastSpokenAt = null;
+    _lastSpokenCue = null;
 
-    return RunningPoseObservation(imageSize: imageSize, landmarks: landmarks);
+    if (mounted) {
+      setState(() {
+        _liveCoachErrorCode = 'pose_failed';
+        _cameraErrorCode = null;
+        _isInitializing = false;
+        _coachingState = const RunningLiveCoachingState(
+          primaryCue: RunningLivePrimaryCue.keepRunning,
+        );
+      });
+    }
+
+    if (controller != null) {
+      await controller.dispose();
+    }
+    await _mediaPipePoseLandmarker.close();
   }
 
   Future<void> _maybeSpeakCue(RunningLiveCoachingState state) async {
@@ -600,9 +596,8 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     }
 
     final now = DateTime.now();
-    final cooldown = _lastSpokenCue == cue
-        ? _repeatSpeechCooldown
-        : _changeSpeechCooldown;
+    final cooldown =
+        _lastSpokenCue == cue ? _repeatSpeechCooldown : _changeSpeechCooldown;
     if (_lastSpokenAt != null && now.difference(_lastSpokenAt!) < cooldown) {
       return;
     }
@@ -822,6 +817,12 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       _ => l10n.runningCoachLiveCameraFailed,
     };
   }
+
+  String _liveCoachErrorMessage(AppLocalizations l10n, String code) {
+    return switch (code) {
+      _ => l10n.runningCoachLivePoseFailed,
+    };
+  }
 }
 
 class _CueBanner extends StatelessWidget {
@@ -865,9 +866,9 @@ class _CueBanner extends StatelessWidget {
                   Text(
                     title,
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                    ),
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                        ),
                   ),
                   const SizedBox(height: 3),
                   Text(
@@ -875,9 +876,9 @@ class _CueBanner extends StatelessWidget {
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.white70,
-                      height: 1.25,
-                    ),
+                          color: Colors.white70,
+                          height: 1.25,
+                        ),
                   ),
                 ],
               ),
@@ -945,9 +946,9 @@ class _LiveTopBar extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w800,
-                      ),
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                          ),
                     ),
                   ),
                 ],
@@ -1113,17 +1114,17 @@ class _ScoreExplanationPanel extends StatelessWidget {
               Text(
                 l10n.runningCoachResultsTitle,
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: Colors.white60,
-                  fontWeight: FontWeight.w700,
-                ),
+                      color: Colors.white60,
+                      fontWeight: FontWeight.w700,
+                    ),
               ),
               const SizedBox(height: 4),
               Text(
                 title,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
-                ),
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                    ),
               ),
               const SizedBox(height: 12),
               Wrap(
@@ -1165,25 +1166,20 @@ class _ScoreExplanationPanel extends StatelessWidget {
               ],
               if (metricSections.isNotEmpty) ...[
                 const SizedBox(height: 16),
-                for (
-                  var index = 0;
-                  index < metricSections.length;
-                  index += 1
-                ) ...[
+                for (var index = 0;
+                    index < metricSections.length;
+                    index += 1) ...[
                   _PanelSectionTitle(text: metricSections[index].title),
                   const SizedBox(height: 8),
-                  for (
-                    var itemIndex = 0;
-                    itemIndex < metricSections[index].items.length;
-                    itemIndex += 1
-                  ) ...[
+                  for (var itemIndex = 0;
+                      itemIndex < metricSections[index].items.length;
+                      itemIndex += 1) ...[
                     _LiveInsightCard(
                       data: metricSections[index].items[itemIndex],
-                      priority:
-                          focusPriorities[metricSections[index]
-                              .items[itemIndex]
-                              .insight
-                              .metric],
+                      priority: focusPriorities[metricSections[index]
+                          .items[itemIndex]
+                          .insight
+                          .metric],
                     ),
                     if (itemIndex != metricSections[index].items.length - 1)
                       const SizedBox(height: 10),
@@ -1210,9 +1206,9 @@ class _PanelSectionTitle extends StatelessWidget {
     return Text(
       text,
       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-        color: Colors.white,
-        fontWeight: FontWeight.w800,
-      ),
+            color: Colors.white,
+            fontWeight: FontWeight.w800,
+          ),
     );
   }
 }
@@ -1246,10 +1242,10 @@ class _LiveGuidanceCard extends StatelessWidget {
               Text(
                 cueText,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
-                  height: 1.3,
-                ),
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      height: 1.3,
+                    ),
               ),
             ],
             if (diagnosis.isNotEmpty) ...[
@@ -1302,9 +1298,9 @@ class _LiveInsightCard extends StatelessWidget {
             Text(
               data.copy.title,
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w800,
-              ),
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                  ),
             ),
             const SizedBox(height: 8),
             Wrap(
@@ -1321,26 +1317,26 @@ class _LiveInsightCard extends StatelessWidget {
             Text(
               data.copy.value,
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                color: accent,
-                fontWeight: FontWeight.w800,
-              ),
+                    color: accent,
+                    fontWeight: FontWeight.w800,
+                  ),
             ),
             const SizedBox(height: 6),
             Text(
               data.copy.summary,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Colors.white70,
-                height: 1.3,
-              ),
+                    color: Colors.white70,
+                    height: 1.3,
+                  ),
             ),
             const SizedBox(height: 8),
             Text(
               data.copy.cue,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-                height: 1.3,
-              ),
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                    height: 1.3,
+                  ),
             ),
           ],
         ),
@@ -1381,9 +1377,9 @@ class _CompactMetricScoreCard extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
-                ),
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                    ),
               ),
               const SizedBox(height: 8),
               Wrap(
@@ -1409,9 +1405,9 @@ class _CompactMetricScoreCard extends StatelessWidget {
               Text(
                 data.copy.value,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.white70,
-                  fontWeight: FontWeight.w600,
-                ),
+                      color: Colors.white70,
+                      fontWeight: FontWeight.w600,
+                    ),
               ),
             ],
           ),
@@ -1439,9 +1435,9 @@ class _StatusBadge extends StatelessWidget {
         child: Text(
           text,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: accent,
-            fontWeight: FontWeight.w800,
-          ),
+                color: accent,
+                fontWeight: FontWeight.w800,
+              ),
         ),
       ),
     );
@@ -1468,9 +1464,9 @@ class _PriorityBadge extends StatelessWidget {
         child: Text(
           l10n.runningCoachPriorityLabel(priority),
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: accent,
-            fontWeight: FontWeight.w800,
-          ),
+                color: accent,
+                fontWeight: FontWeight.w800,
+              ),
         ),
       ),
     );
@@ -1496,9 +1492,9 @@ class _ScoreBadge extends StatelessWidget {
         child: Text(
           l10n.runningCoachMetricScore(score),
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: Colors.white,
-            fontWeight: FontWeight.w800,
-          ),
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+              ),
         ),
       ),
     );
@@ -1521,9 +1517,9 @@ class _InfoChip extends StatelessWidget {
       child: Text(
         text,
         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-          color: Colors.white70,
-          fontWeight: FontWeight.w700,
-        ),
+              color: Colors.white70,
+              fontWeight: FontWeight.w700,
+            ),
       ),
     );
   }
@@ -1564,9 +1560,9 @@ class _StatusPane extends StatelessWidget {
                   Text(
                     title,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                    ),
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                        ),
                   ),
                   const SizedBox(height: 12),
                   Text(
@@ -1607,20 +1603,17 @@ class _LiveStatusTheme {
 }
 
 class _CameraFrameInput {
-  final InputImage inputImage;
-  final InputImageRotation rotation;
+  final int rotationDegrees;
 
-  const _CameraFrameInput({required this.inputImage, required this.rotation});
+  const _CameraFrameInput({required this.rotationDegrees});
 }
 
 class _PoseOverlayState {
   final RunningPoseObservation observation;
-  final InputImageRotation rotation;
   final CameraLensDirection lensDirection;
 
   const _PoseOverlayState({
     required this.observation,
-    required this.rotation,
     required this.lensDirection,
   });
 }
@@ -1694,14 +1687,12 @@ class _RunningPosePainter extends CustomPainter {
         point: from.position,
         imageSize: overlay.observation.imageSize,
         canvasSize: size,
-        rotation: overlay.rotation,
         lensDirection: overlay.lensDirection,
       );
       final toOffset = _translatePoint(
         point: to.position,
         imageSize: overlay.observation.imageSize,
         canvasSize: size,
-        rotation: overlay.rotation,
         lensDirection: overlay.lensDirection,
       );
       canvas.drawLine(fromOffset, toOffset, linePaint);
@@ -1716,7 +1707,6 @@ class _RunningPosePainter extends CustomPainter {
         point: landmark.position,
         imageSize: overlay.observation.imageSize,
         canvasSize: size,
-        rotation: overlay.rotation,
         lensDirection: overlay.lensDirection,
       );
       visiblePoints[entry.key] = offset;
@@ -1759,19 +1749,12 @@ class _RunningPosePainter extends CustomPainter {
     required Offset point,
     required Size imageSize,
     required Size canvasSize,
-    required InputImageRotation rotation,
     required CameraLensDirection lensDirection,
   }) {
-    final rotatedPoint = _rotatePoint(point, imageSize, rotation);
-    final rotatedImageSize = switch (rotation) {
-      InputImageRotation.rotation90deg || InputImageRotation.rotation270deg =>
-        Size(imageSize.height, imageSize.width),
-      _ => imageSize,
-    };
-    final fitted = applyBoxFit(BoxFit.cover, rotatedImageSize, canvasSize);
+    final fitted = applyBoxFit(BoxFit.cover, imageSize, canvasSize);
     final sourceRect = Alignment.center.inscribe(
       fitted.source,
-      Offset.zero & rotatedImageSize,
+      Offset.zero & imageSize,
     );
     final destinationRect = Alignment.center.inscribe(
       fitted.destination,
@@ -1780,11 +1763,11 @@ class _RunningPosePainter extends CustomPainter {
 
     var translated = Offset(
       destinationRect.left +
-          ((rotatedPoint.dx - sourceRect.left) *
+          ((point.dx - sourceRect.left) *
               destinationRect.width /
               sourceRect.width),
       destinationRect.top +
-          ((rotatedPoint.dy - sourceRect.top) *
+          ((point.dy - sourceRect.top) *
               destinationRect.height /
               sourceRect.height),
     );
@@ -1793,28 +1776,6 @@ class _RunningPosePainter extends CustomPainter {
       translated = Offset(canvasSize.width - translated.dx, translated.dy);
     }
     return translated;
-  }
-
-  Offset _rotatePoint(
-    Offset point,
-    Size imageSize,
-    InputImageRotation rotation,
-  ) {
-    return switch (rotation) {
-      InputImageRotation.rotation90deg => Offset(
-        point.dy,
-        imageSize.width - point.dx,
-      ),
-      InputImageRotation.rotation180deg => Offset(
-        imageSize.width - point.dx,
-        imageSize.height - point.dy,
-      ),
-      InputImageRotation.rotation270deg => Offset(
-        imageSize.height - point.dy,
-        point.dx,
-      ),
-      _ => point,
-    };
   }
 
   @override

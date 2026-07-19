@@ -2,6 +2,8 @@ import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
+import '../domain/entities/running_live_coaching_state.dart';
+
 class MediaPipePoseLandmarkerService {
   static const MethodChannel _channel = MethodChannel(
     'football_note/mediapipe_pose_landmarker',
@@ -142,6 +144,59 @@ class MediaPipePoseDetection {
       ],
     );
   }
+}
+
+RunningPoseObservation? runningPoseObservationFromMediaPipeDetection(
+  MediaPipePoseDetection detection,
+) {
+  if (detection.imageSize.isEmpty || detection.landmarks.isEmpty) {
+    return null;
+  }
+
+  final landmarks = <RunningPoseLandmarkType, RunningPoseLandmark>{};
+  for (final landmark in detection.landmarks) {
+    final type = runningPoseLandmarkTypeForMediaPipeIndex(landmark.index);
+    if (type == null) {
+      continue;
+    }
+    landmarks[type] = RunningPoseLandmark(
+      position: landmark.position,
+      likelihood: landmark.confidence,
+    );
+  }
+
+  if (landmarks.isEmpty) {
+    return null;
+  }
+  return RunningPoseObservation(
+    imageSize: detection.imageSize,
+    landmarks: landmarks,
+  );
+}
+
+RunningPoseLandmarkType? runningPoseLandmarkTypeForMediaPipeIndex(int index) {
+  return switch (index) {
+    0 => RunningPoseLandmarkType.nose,
+    7 => RunningPoseLandmarkType.leftEar,
+    8 => RunningPoseLandmarkType.rightEar,
+    11 => RunningPoseLandmarkType.leftShoulder,
+    12 => RunningPoseLandmarkType.rightShoulder,
+    13 => RunningPoseLandmarkType.leftElbow,
+    14 => RunningPoseLandmarkType.rightElbow,
+    15 => RunningPoseLandmarkType.leftWrist,
+    16 => RunningPoseLandmarkType.rightWrist,
+    23 => RunningPoseLandmarkType.leftHip,
+    24 => RunningPoseLandmarkType.rightHip,
+    25 => RunningPoseLandmarkType.leftKnee,
+    26 => RunningPoseLandmarkType.rightKnee,
+    27 => RunningPoseLandmarkType.leftAnkle,
+    28 => RunningPoseLandmarkType.rightAnkle,
+    29 => RunningPoseLandmarkType.leftHeel,
+    30 => RunningPoseLandmarkType.rightHeel,
+    31 => RunningPoseLandmarkType.leftFootIndex,
+    32 => RunningPoseLandmarkType.rightFootIndex,
+    _ => null,
+  };
 }
 
 class MediaPipePoseLandmark {

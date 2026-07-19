@@ -8582,6 +8582,13 @@ class AppLocalizationsKo extends AppLocalizations {
       '실시간 코치용 카메라를 열지 못했어요. 다시 시도해 주세요.';
 
   @override
+  String get runningCoachLivePoseIssueTitle => '실시간 코치를 다시 시작해야 해요';
+
+  @override
+  String get runningCoachLivePoseFailed =>
+      '기기 안의 자세 모델이 카메라 프레임을 처리하지 못해 추적이 멈췄어요. 다시 시도해 주세요.';
+
+  @override
   String get runningCoachLiveRetryAction => '다시 시도';
 
   @override

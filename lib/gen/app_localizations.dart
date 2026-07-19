@@ -15406,6 +15406,18 @@ abstract class AppLocalizations {
   /// **'The live coach camera could not be opened. Try again.'**
   String get runningCoachLiveCameraFailed;
 
+  /// No description provided for @runningCoachLivePoseIssueTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Live coach needs a restart'**
+  String get runningCoachLivePoseIssueTitle;
+
+  /// No description provided for @runningCoachLivePoseFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Pose tracking stopped because the on-device model could not process the camera frame. Try again.'**
+  String get runningCoachLivePoseFailed;
+
   /// No description provided for @runningCoachLiveRetryAction.
   ///
   /// In en, this message translates to:

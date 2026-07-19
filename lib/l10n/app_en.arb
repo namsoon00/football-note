@@ -4916,6 +4916,8 @@
   "runningCoachLiveCameraIssueTitle": "Camera check needed",
   "runningCoachLiveCameraDenied": "Camera access is required for live running coaching.",
   "runningCoachLiveCameraFailed": "The live coach camera could not be opened. Try again.",
+  "runningCoachLivePoseIssueTitle": "Live coach needs a restart",
+  "runningCoachLivePoseFailed": "Pose tracking stopped because the on-device model could not process the camera frame. Try again.",
   "runningCoachLiveRetryAction": "Try again",
   "runningCoachLiveVoiceOn": "Voice coaching on",
   "runningCoachLiveVoiceOff": "Voice coaching off",
