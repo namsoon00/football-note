@@ -622,7 +622,7 @@
     }
   },
   "worldCupRankingsTitle": "W杯記録順位",
-  "worldCupRankingsIntro": "FIFA公式の試合詳細で確認できる選手記録を集計します。得点は公式得点者リスト、アシストはFIFAがアシスト選手IDを提供している試合のみ、懲戒は公式の警告/退場記録から集計します。",
+  "worldCupRankingsIntro": "FIFA公式の試合詳細で確認できる選手記録を集計します。得点は公式得点者リスト、アシストはFIFAがアシスト選手IDを提供している試合のみ、イエローカードとレッドカードは公式カード記録から集計します。",
   "worldCupRankingsSourceMatchesLabel": "集計試合",
   "worldCupRankingsSourceMatchesValue": "{count}試合",
   "@worldCupRankingsSourceMatchesValue": {
@@ -637,10 +637,14 @@
   "worldCupGoalRankingsTitle": "得点ランキング",
   "worldCupAssistRankingsTitle": "アシストランキング",
   "worldCupDisciplineRankingsTitle": "警告/退場ランキング",
+  "worldCupYellowCardRankingsTitle": "イエローカードランキング",
+  "worldCupRedCardRankingsTitle": "レッドカードランキング",
   "worldCupRankingsNoOfficialMatches": "まだ集計できる公式終了試合がありません。FIFAデータが入ると自動で表示されます。",
   "worldCupGoalRankingsEmpty": "公式得点者の詳細はまだありません。試合詳細が更新されると得点ランキングが表示されます。",
   "worldCupAssistRankingsEmpty": "FIFAがアシスト選手IDを提供している試合のみ集計できるため、現在表示できるアシストはありません。",
   "worldCupDisciplineRankingsEmpty": "FIFA公式の警告/退場記録がまだないため、表示できる懲戒ランキングはありません。",
+  "worldCupYellowCardRankingsEmpty": "FIFA公式のイエローカード記録がまだないため、表示できる選手はいません。",
+  "worldCupRedCardRankingsEmpty": "FIFA公式のレッドカード記録がまだないため、表示できる選手はいません。",
   "worldCupRankingsGoalCount": "{count}点",
   "@worldCupRankingsGoalCount": {
     "placeholders": {
@@ -664,6 +668,22 @@
         "type": "int"
       },
       "redCards": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupRankingsYellowCardCount": "{count}枚",
+  "@worldCupRankingsYellowCardCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "worldCupRankingsRedCardCount": "{count}枚",
+  "@worldCupRankingsRedCardCount": {
+    "placeholders": {
+      "count": {
         "type": "int"
       }
     }

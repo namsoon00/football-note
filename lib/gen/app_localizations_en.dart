@@ -1334,7 +1334,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get worldCupRankingsIntro =>
-      'Player rankings are gathered from the FIFA official match details available in the app. Goals come from official scorer lists, assists are counted only for matches where FIFA provides assisting player IDs, and discipline uses official yellow/red card records.';
+      'Player rankings are gathered from the FIFA official match details available in the app. Goals come from official scorer lists, assists are counted only for matches where FIFA provides assisting player IDs, and yellow/red cards use official card records.';
 
   @override
   String get worldCupRankingsSourceMatchesLabel => 'Source matches';
@@ -1360,6 +1360,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get worldCupDisciplineRankingsTitle => 'Yellow/red card ranking';
 
   @override
+  String get worldCupYellowCardRankingsTitle => 'Yellow card ranking';
+
+  @override
+  String get worldCupRedCardRankingsTitle => 'Red card ranking';
+
+  @override
   String get worldCupRankingsNoOfficialMatches =>
       'There are no finished official matches to rank yet. This fills automatically when FIFA data arrives.';
 
@@ -1376,6 +1382,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'FIFA official yellow/red card records are not available yet, so there is no discipline ranking to show.';
 
   @override
+  String get worldCupYellowCardRankingsEmpty =>
+      'FIFA official yellow card records are not available yet, so there are no players to show.';
+
+  @override
+  String get worldCupRedCardRankingsEmpty =>
+      'FIFA official red card records are not available yet, so there are no players to show.';
+
+  @override
   String worldCupRankingsGoalCount(int count) {
     return '$count goals';
   }
@@ -1388,6 +1402,16 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String worldCupRankingsDisciplineCount(int yellowCards, int redCards) {
     return 'Yellow $yellowCards · Red $redCards';
+  }
+
+  @override
+  String worldCupRankingsYellowCardCount(int count) {
+    return '$count cards';
+  }
+
+  @override
+  String worldCupRankingsRedCardCount(int count) {
+    return '$count cards';
   }
 
   @override

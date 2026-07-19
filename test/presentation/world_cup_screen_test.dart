@@ -307,7 +307,8 @@ void main() {
     expect(find.text('월드컵 순위'), findsOneWidget);
     expect(find.text('득점 순위'), findsOneWidget);
     expect(find.text('어시스트 순위'), findsOneWidget);
-    expect(find.text('경고/퇴장 순위'), findsOneWidget);
+    expect(find.text('옐로카드 순위'), findsOneWidget);
+    expect(find.text('레드카드 순위'), findsOneWidget);
     expect(find.text('손흥민'), findsOneWidget);
     expect(find.text('2골'), findsOneWidget);
 
@@ -318,12 +319,20 @@ void main() {
     expect(find.text('1도움'), findsOneWidget);
     expect(find.textContaining('체코전 12'), findsWidgets);
 
-    await tester.tap(find.text('경고/퇴장 순위'));
+    await tester.tap(find.text('옐로카드 순위'));
     await tester.pumpAndSettle();
 
     expect(find.text('손흥민'), findsOneWidget);
-    expect(find.text('경고 1 · 퇴장 1'), findsOneWidget);
+    expect(find.text('1장'), findsOneWidget);
     expect(find.textContaining('체코전 73 경고'), findsWidgets);
+
+    await tester.ensureVisible(find.text('레드카드 순위'));
+    await tester.tap(find.text('레드카드 순위'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('손흥민'), findsOneWidget);
+    expect(find.text('1장'), findsOneWidget);
+    expect(find.textContaining('체코전 88 퇴장'), findsWidgets);
     expect(liveDataService.detailFetchCount, 1);
 
     await tester.pumpWidget(const SizedBox.shrink());
@@ -361,11 +370,12 @@ void main() {
     await tester.tap(find.text('기록 순위'));
     await tester.pumpAndSettle();
 
-    expect(find.text('경고/퇴장 순위'), findsOneWidget);
-    await tester.tap(find.text('경고/퇴장 순위'));
+    expect(find.text('옐로카드 순위'), findsOneWidget);
+    expect(find.text('레드카드 순위'), findsOneWidget);
+    await tester.tap(find.text('옐로카드 순위'));
     await tester.pumpAndSettle();
 
-    expect(find.text('경고 1 · 퇴장 1'), findsOneWidget);
+    expect(find.text('1장'), findsOneWidget);
     expect(cachedLiveDataService.detailFetchCount, 0);
   });
 

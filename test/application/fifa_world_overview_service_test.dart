@@ -233,6 +233,7 @@ void main() {
     homeTeam['Bookings'] = [
       {'IdPlayer': 'home-18', 'Minute': "33'", 'Card': 1},
       {'IdPlayer': 'home-9', 'Minute': "88'", 'Card': 2},
+      {'IdPlayer': 'home-18', 'Minute': "90'+4'", 'Card': 3},
     ];
     awayTeam['Players'] = [
       {
@@ -270,11 +271,13 @@ void main() {
     expect(detail.homeAssists, hasLength(1));
     expect(detail.homeAssists.single.playerName, 'K. Lee');
     expect(detail.homeAssists.single.minute, "21'");
-    expect(detail.homeBookings, hasLength(2));
+    expect(detail.homeBookings, hasLength(3));
     expect(detail.homeBookings.first.playerName, 'K. Lee');
     expect(detail.homeBookings.first.minute, "33'");
     expect(detail.homeBookings.first.cardType, FifaMatchCardType.yellow);
-    expect(detail.homeBookings.last.playerName, 'S. Son');
+    expect(detail.homeBookings[1].playerName, 'S. Son');
+    expect(detail.homeBookings[1].cardType, FifaMatchCardType.red);
+    expect(detail.homeBookings.last.playerName, 'K. Lee');
     expect(detail.homeBookings.last.cardType, FifaMatchCardType.red);
     expect(detail.awayAssists, isEmpty);
     expect(detail.awayScorers.single.playerName, 'T. Kubo');

@@ -1289,7 +1289,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get worldCupRankingsIntro =>
-      'FIFA公式の試合詳細で確認できる選手記録を集計します。得点は公式得点者リスト、アシストはFIFAがアシスト選手IDを提供している試合のみ、懲戒は公式の警告/退場記録から集計します。';
+      'FIFA公式の試合詳細で確認できる選手記録を集計します。得点は公式得点者リスト、アシストはFIFAがアシスト選手IDを提供している試合のみ、イエローカードとレッドカードは公式カード記録から集計します。';
 
   @override
   String get worldCupRankingsSourceMatchesLabel => '集計試合';
@@ -1315,6 +1315,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get worldCupDisciplineRankingsTitle => '警告/退場ランキング';
 
   @override
+  String get worldCupYellowCardRankingsTitle => 'イエローカードランキング';
+
+  @override
+  String get worldCupRedCardRankingsTitle => 'レッドカードランキング';
+
+  @override
   String get worldCupRankingsNoOfficialMatches =>
       'まだ集計できる公式終了試合がありません。FIFAデータが入ると自動で表示されます。';
 
@@ -1331,6 +1337,14 @@ class AppLocalizationsJa extends AppLocalizations {
       'FIFA公式の警告/退場記録がまだないため、表示できる懲戒ランキングはありません。';
 
   @override
+  String get worldCupYellowCardRankingsEmpty =>
+      'FIFA公式のイエローカード記録がまだないため、表示できる選手はいません。';
+
+  @override
+  String get worldCupRedCardRankingsEmpty =>
+      'FIFA公式のレッドカード記録がまだないため、表示できる選手はいません。';
+
+  @override
   String worldCupRankingsGoalCount(int count) {
     return '$count点';
   }
@@ -1343,6 +1357,16 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String worldCupRankingsDisciplineCount(int yellowCards, int redCards) {
     return '警告 $yellowCards · 退場 $redCards';
+  }
+
+  @override
+  String worldCupRankingsYellowCardCount(int count) {
+    return '$count枚';
+  }
+
+  @override
+  String worldCupRankingsRedCardCount(int count) {
+    return '$count枚';
   }
 
   @override
