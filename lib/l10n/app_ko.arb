@@ -4916,6 +4916,8 @@
   "runningCoachLiveCameraIssueTitle": "카메라 확인이 필요해요",
   "runningCoachLiveCameraDenied": "실시간 코칭을 쓰려면 카메라 권한이 필요해요.",
   "runningCoachLiveCameraFailed": "실시간 코치용 카메라를 열지 못했어요. 다시 시도해 주세요.",
+  "runningCoachLivePoseIssueTitle": "실시간 코치를 다시 시작해야 해요",
+  "runningCoachLivePoseFailed": "기기 안의 자세 모델이 카메라 프레임을 처리하지 못해 추적이 멈췄어요. 다시 시도해 주세요.",
   "runningCoachLiveRetryAction": "다시 시도",
   "runningCoachLiveVoiceOn": "음성 코칭 켜짐",
   "runningCoachLiveVoiceOff": "음성 코칭 꺼짐",

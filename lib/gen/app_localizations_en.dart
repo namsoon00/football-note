@@ -8805,6 +8805,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'The live coach camera could not be opened. Try again.';
 
   @override
+  String get runningCoachLivePoseIssueTitle => 'Live coach needs a restart';
+
+  @override
+  String get runningCoachLivePoseFailed =>
+      'Pose tracking stopped because the on-device model could not process the camera frame. Try again.';
+
+  @override
   String get runningCoachLiveRetryAction => 'Try again';
 
   @override

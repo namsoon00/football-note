@@ -8570,6 +8570,13 @@ class AppLocalizationsJa extends AppLocalizations {
       'コーチのライブカメラを開けませんでした。もう一度やり直してください。';
 
   @override
+  String get runningCoachLivePoseIssueTitle => 'ライブコーチを再起動してください';
+
+  @override
+  String get runningCoachLivePoseFailed =>
+      '端末上の姿勢モデルがカメラフレームを処理できなかったため、トラッキングが停止しました。もう一度お試しください。';
+
+  @override
   String get runningCoachLiveRetryAction => 'もう一度やり直してください';
 
   @override
