@@ -12869,6 +12869,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get trainingSketchPlayerFlowWithoutBall => 'ボールなし';
 
   @override
+  String trainingSketchPlayerFlowNextStageChip(int stage) {
+    return '次はステージ$stage';
+  }
+
+  @override
+  String get trainingSketchRecommendedActionBadge => 'おすすめ';
+
+  @override
   String get trainingSketchPlayerFlowHint => '選手の次の動作を選ぶと、段階とボールの動きが自動でつながります。';
 
   @override
@@ -13276,7 +13284,15 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String trainingSketchPassTargetHint(Object action) {
+    return '$actionを受ける選手をタップします。';
+  }
+
+  @override
   String get trainingSketchActionTargetCancelButton => 'キャンセル';
+
+  @override
+  String get trainingSketchActionCreatedSnack => '動作を追加しました。';
 
   @override
   String get trainingSketchSelectedItemActionsTitle => 'クイック動作';

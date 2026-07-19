@@ -13249,6 +13249,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trainingSketchPlayerFlowWithoutBall => 'No ball';
 
   @override
+  String trainingSketchPlayerFlowNextStageChip(int stage) {
+    return 'Next stage $stage';
+  }
+
+  @override
+  String get trainingSketchRecommendedActionBadge => 'Recommended';
+
+  @override
   String get trainingSketchPlayerFlowHint =>
       'Choose the player\'s next action and the stage and ball movement will connect automatically.';
 
@@ -13666,7 +13674,15 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String trainingSketchPassTargetHint(Object action) {
+    return 'Tap the player to receive $action.';
+  }
+
+  @override
   String get trainingSketchActionTargetCancelButton => 'Cancel';
+
+  @override
+  String get trainingSketchActionCreatedSnack => 'Action added.';
 
   @override
   String get trainingSketchSelectedItemActionsTitle => 'Quick actions';

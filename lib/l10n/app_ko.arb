@@ -7258,6 +7258,15 @@
   },
   "trainingSketchPlayerFlowWithBall": "공 보유",
   "trainingSketchPlayerFlowWithoutBall": "공 없음",
+  "trainingSketchPlayerFlowNextStageChip": "다음 {stage}단계",
+  "@trainingSketchPlayerFlowNextStageChip": {
+    "placeholders": {
+      "stage": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchRecommendedActionBadge": "추천",
   "trainingSketchPlayerFlowHint": "선수의 다음 동작을 고르면 단계와 공 이동이 자동으로 이어집니다.",
   "trainingSketchPlayerFlowPassSection": "동료에게 바로 연결",
   "trainingSketchPlayerFlowBallSection": "공을 쓰는 동작",
@@ -7535,7 +7544,14 @@
       "action": {}
     }
   },
+  "trainingSketchPassTargetHint": "{action} 받을 선수를 누르세요.",
+  "@trainingSketchPassTargetHint": {
+    "placeholders": {
+      "action": {}
+    }
+  },
   "trainingSketchActionTargetCancelButton": "취소",
+  "trainingSketchActionCreatedSnack": "동작을 추가했어요.",
   "trainingSketchSelectedItemActionsTitle": "빠른 동작",
   "trainingSketchPlayerActionsTitle": "선수 액션",
   "trainingSketchBallActionsTitle": "공 액션",

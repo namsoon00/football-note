@@ -22824,6 +22824,18 @@ abstract class AppLocalizations {
   /// **'No ball'**
   String get trainingSketchPlayerFlowWithoutBall;
 
+  /// No description provided for @trainingSketchPlayerFlowNextStageChip.
+  ///
+  /// In en, this message translates to:
+  /// **'Next stage {stage}'**
+  String trainingSketchPlayerFlowNextStageChip(int stage);
+
+  /// No description provided for @trainingSketchRecommendedActionBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended'**
+  String get trainingSketchRecommendedActionBadge;
+
   /// No description provided for @trainingSketchPlayerFlowHint.
   ///
   /// In en, this message translates to:
@@ -23498,11 +23510,23 @@ abstract class AppLocalizations {
   /// **'Tap the target or space for {action}.'**
   String trainingSketchActionTargetHint(Object action);
 
+  /// No description provided for @trainingSketchPassTargetHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the player to receive {action}.'**
+  String trainingSketchPassTargetHint(Object action);
+
   /// No description provided for @trainingSketchActionTargetCancelButton.
   ///
   /// In en, this message translates to:
   /// **'Cancel'**
   String get trainingSketchActionTargetCancelButton;
+
+  /// No description provided for @trainingSketchActionCreatedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Action added.'**
+  String get trainingSketchActionCreatedSnack;
 
   /// No description provided for @trainingSketchSelectedItemActionsTitle.
   ///
