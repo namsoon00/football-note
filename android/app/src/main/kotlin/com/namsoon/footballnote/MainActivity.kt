@@ -12,6 +12,7 @@ class MainActivity: FlutterActivity() {
         super.configureFlutterEngine(flutterEngine)
         if (runningPoseAnalysisChannel == null) {
             runningPoseAnalysisChannel = RunningPoseAnalysisChannel(
+                this,
                 flutterEngine.dartExecutor.binaryMessenger,
             )
         }
