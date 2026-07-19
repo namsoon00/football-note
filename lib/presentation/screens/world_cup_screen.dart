@@ -102,6 +102,10 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
   String _statRankingsCacheKey = '';
   final Map<String, String> _statRankingsCacheJsonByLanguage =
       <String, String>{};
+  final Set<String> _statRankingsHydrationKeys = <String>{};
+  final Map<String, Future<FifaCompetitionPlayerStatRankings>>
+      _officialPlayerStatRankingFutures =
+      <String, Future<FifaCompetitionPlayerStatRankings>>{};
   late final PageController _selectedDayPageController;
   final Map<String, double> _selectedDayMatchPageHeights = <String, double>{};
   double? _selectedDayPagePosition;
@@ -494,6 +498,7 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
     _statRankingsFuture = _loadWorldCupStatRankings(
       matches: matches,
       language: language,
+      cacheKey: cacheKey,
     );
     return _statRankingsFuture!;
   }
@@ -501,6 +506,7 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
   Future<_WorldCupStatRankings> _loadWorldCupStatRankings({
     required List<_WorldCupOfficialMatchForStats> matches,
     required String language,
+    required String cacheKey,
   }) async {
     final cache = _loadWorldCupStatRankingsCache(language);
     final currentMatchKeys = {
@@ -517,7 +523,84 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
         if (!contributionsByKey.containsKey(_worldCupStatMatchCacheKey(match)))
           match,
     ];
+    final officialRankingsFuture =
+        _officialPlayerStatRankingsFutureFor(language);
+    _scheduleWorldCupStatRankingsHydration(
+      missingMatches: missingMatches,
+      language: language,
+      cacheKey: cacheKey,
+    );
+    final contributions = contributionsByKey.values.toList()
+      ..sort((a, b) => a.kickoffUtc.compareTo(b.kickoffUtc));
+    if (cacheChanged) {
+      await _saveWorldCupStatRankingsCache(
+        language: language,
+        cache: _WorldCupStatRankingsCache(contributions: contributions),
+      );
+    }
+    final officialRankings = await officialRankingsFuture;
+    return _aggregateWorldCupStatRankings(
+      contributions,
+      sourceMatchCount: matches.length,
+      officialGoals: _officialTopPlayerStatEntries(
+        officialRankings.goals,
+        (entry) => entry.goals,
+      ),
+      officialAssists: _officialTopPlayerStatEntries(
+        officialRankings.assists,
+        (entry) => entry.assists,
+      ),
+    );
+  }
+
+  Future<FifaCompetitionPlayerStatRankings>
+      _officialPlayerStatRankingsFutureFor(String language) {
+    final normalizedLanguage = language.trim().toLowerCase();
+    final cacheKey = normalizedLanguage.isEmpty ? 'en' : normalizedLanguage;
+    return _officialPlayerStatRankingFutures.putIfAbsent(
+      cacheKey,
+      () => _liveDataService
+          .fetchPlayerStatRankings(language: language)
+          .catchError(
+            (_) => const FifaCompetitionPlayerStatRankings.empty(),
+          ),
+    );
+  }
+
+  void _scheduleWorldCupStatRankingsHydration({
+    required List<_WorldCupOfficialMatchForStats> missingMatches,
+    required String language,
+    required String cacheKey,
+  }) {
+    if (missingMatches.isEmpty ||
+        _statRankingsHydrationKeys.contains(cacheKey)) {
+      return;
+    }
+    _statRankingsHydrationKeys.add(cacheKey);
+    unawaited(
+      _hydrateWorldCupStatRankingsCache(
+        missingMatches: missingMatches,
+        language: language,
+        cacheKey: cacheKey,
+      ).whenComplete(() {
+        _statRankingsHydrationKeys.remove(cacheKey);
+      }),
+    );
+  }
+
+  Future<void> _hydrateWorldCupStatRankingsCache({
+    required List<_WorldCupOfficialMatchForStats> missingMatches,
+    required String language,
+    required String cacheKey,
+  }) async {
     const chunkSize = 4;
+    var cacheChanged = false;
+    var hydratedAny = false;
+    final cache = _loadWorldCupStatRankingsCache(language);
+    final contributionsByKey = <String, _WorldCupMatchStatContribution>{
+      for (final contribution in cache.contributions)
+        contribution.matchKey: contribution,
+    };
     for (var index = 0; index < missingMatches.length; index += chunkSize) {
       final chunk =
           missingMatches.skip(index).take(chunkSize).toList(growable: false);
@@ -551,20 +634,24 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
         );
         contributionsByKey[contribution.matchKey] = contribution;
         cacheChanged = true;
+        hydratedAny = true;
       }
-    }
-    final contributions = contributionsByKey.values.toList()
-      ..sort((a, b) => a.kickoffUtc.compareTo(b.kickoffUtc));
-    if (cacheChanged) {
+      if (!cacheChanged) continue;
+      final contributions = contributionsByKey.values.toList()
+        ..sort((a, b) => a.kickoffUtc.compareTo(b.kickoffUtc));
       await _saveWorldCupStatRankingsCache(
         language: language,
         cache: _WorldCupStatRankingsCache(contributions: contributions),
       );
+      cacheChanged = false;
     }
-    return _aggregateWorldCupStatRankings(
-      contributions,
-      sourceMatchCount: matches.length,
-    );
+    if (!hydratedAny || !mounted || _statRankingsCacheKey != cacheKey) {
+      return;
+    }
+    setState(() {
+      _statRankingsFuture = null;
+      _statRankingsCacheKey = '';
+    });
   }
 
   _WorldCupMatchStatContribution _buildWorldCupMatchStatContribution({
@@ -626,6 +713,10 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
   _WorldCupStatRankings _aggregateWorldCupStatRankings(
     List<_WorldCupMatchStatContribution> contributions, {
     required int sourceMatchCount,
+    List<_WorldCupPlayerStatEntry> officialGoals =
+        const <_WorldCupPlayerStatEntry>[],
+    List<_WorldCupPlayerStatEntry> officialAssists =
+        const <_WorldCupPlayerStatEntry>[],
   }) {
     final goals = <String, _WorldCupPlayerStatAccumulator>{};
     final assists = <String, _WorldCupPlayerStatAccumulator>{};
@@ -637,8 +728,12 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
     }
     final disciplineEntries = _sortedWorldCupStatEntries(disciplines);
     return _WorldCupStatRankings(
-      goals: _sortedWorldCupStatEntries(goals),
-      assists: _sortedWorldCupStatEntries(assists),
+      goals: officialGoals.isNotEmpty
+          ? officialGoals
+          : _sortedWorldCupStatEntries(goals),
+      assists: officialAssists.isNotEmpty
+          ? officialAssists
+          : _sortedWorldCupStatEntries(assists),
       yellowCards: _filteredWorldCupCardStatEntries(
         disciplineEntries,
         FifaMatchCardType.yellow,
@@ -650,6 +745,28 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
       sourceMatchCount: sourceMatchCount,
       detailedMatchCount: contributions.length,
     );
+  }
+
+  List<_WorldCupPlayerStatEntry> _officialTopPlayerStatEntries(
+    List<FifaCompetitionPlayerStatEntry> entries,
+    int Function(FifaCompetitionPlayerStatEntry entry) valueOf,
+  ) {
+    final ranked = <_WorldCupPlayerStatEntry>[];
+    for (final entry in entries) {
+      final count = valueOf(entry);
+      final playerName = entry.playerName.trim();
+      final teamName = entry.teamName.trim();
+      if (count <= 0 || playerName.isEmpty || teamName.isEmpty) continue;
+      ranked.add(
+        _WorldCupPlayerStatEntry(
+          team: teamName,
+          playerName: playerName,
+          count: count,
+          events: const <_WorldCupPlayerStatEvent>[],
+        ),
+      );
+    }
+    return ranked..sort(_compareWorldCupPlayerStatEntries);
   }
 
   List<_WorldCupPlayerStatEntry> _sortedWorldCupStatEntries(
@@ -2026,6 +2143,7 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
         _officialDataRefreshedAt = liveData.refreshedAt;
         _statRankingsFuture = null;
         _statRankingsCacheKey = '';
+        _officialPlayerStatRankingFutures.clear();
         _selectedDayMatchPageHeights.clear();
       });
     } catch (_) {

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -250,6 +251,30 @@ void main() {
         officialMatchesByFixtureNumber: {fixture.matchNumber: officialMatch},
         refreshedAt: DateTime.utc(2026, 6, 12, 4),
       ),
+      playerStatRankings: const FifaCompetitionPlayerStatRankings(
+        goals: [
+          FifaCompetitionPlayerStatEntry(
+            playerId: '307849',
+            playerName: 'Son Heung-min',
+            teamName: 'Korea Republic',
+            teamCode: 'KOR',
+            goals: 2,
+            assists: 0,
+            minutesPlayed: 180,
+          ),
+        ],
+        assists: [
+          FifaCompetitionPlayerStatEntry(
+            playerId: '418490',
+            playerName: 'Lee Kang-in',
+            teamName: 'Korea Republic',
+            teamCode: 'KOR',
+            goals: 0,
+            assists: 1,
+            minutesPlayed: 90,
+          ),
+        ],
+      ),
       detail: FifaAMatchDetail(
         match: officialMatch,
         homeScorers: const [
@@ -317,7 +342,6 @@ void main() {
 
     expect(find.text('이강인'), findsOneWidget);
     expect(find.text('1도움'), findsOneWidget);
-    expect(find.textContaining('체코전 12'), findsWidgets);
 
     await tester.tap(find.text('옐로카드 순위'));
     await tester.pumpAndSettle();
@@ -333,6 +357,7 @@ void main() {
     expect(find.text('손흥민'), findsOneWidget);
     expect(find.text('1장'), findsOneWidget);
     expect(find.textContaining('체코전 88 퇴장'), findsWidgets);
+    expect(liveDataService.playerStatFetchCount, 1);
     expect(liveDataService.detailFetchCount, 1);
 
     await tester.pumpWidget(const SizedBox.shrink());
@@ -377,6 +402,104 @@ void main() {
 
     expect(find.text('1장'), findsOneWidget);
     expect(cachedLiveDataService.detailFetchCount, 0);
+  });
+
+  testWidgets('world cup rankings show official assists before details finish',
+      (
+    tester,
+  ) async {
+    final fixture = worldCupFixtures.firstWhere(
+      (fixture) => fixture.involvesCountry('Korea Republic'),
+    );
+    final officialMatch = FifaAMatchEntry(
+      matchId: 'slow-detail-ranking-match',
+      matchNumber: fixture.matchNumber,
+      gender: FifaRankingGender.men,
+      competition: 'FIFA World Cup',
+      stage: 'First Stage',
+      venue: fixture.venue,
+      city: 'Guadalajara',
+      kickoffAt: fixture.kickoffUtc,
+      homeTeamName: fixture.homeTeam,
+      homeCountryCode: 'KOR',
+      awayTeamName: fixture.awayTeam,
+      awayCountryCode: 'CZE',
+      homeScore: 2,
+      awayScore: 1,
+      status: FifaAMatchStatus.finished,
+    );
+    final detailCompleter = Completer<FifaAMatchDetail?>();
+    final liveDataService = _FakeWorldCupLiveDataService(
+      data: WorldCupLiveData(
+        fixtures: worldCupFixtures,
+        officialMatchesByFixtureNumber: {fixture.matchNumber: officialMatch},
+        refreshedAt: DateTime.utc(2026, 6, 12, 4),
+      ),
+      detailCompleter: detailCompleter,
+      playerStatRankings: const FifaCompetitionPlayerStatRankings(
+        goals: [
+          FifaCompetitionPlayerStatEntry(
+            playerId: '307849',
+            playerName: 'Son Heung-min',
+            teamName: 'Korea Republic',
+            teamCode: 'KOR',
+            goals: 2,
+            assists: 0,
+            minutesPlayed: 180,
+          ),
+        ],
+        assists: [
+          FifaCompetitionPlayerStatEntry(
+            playerId: '418490',
+            playerName: 'Lee Kang-in',
+            teamName: 'Korea Republic',
+            teamCode: 'KOR',
+            goals: 0,
+            assists: 1,
+            minutesPlayed: 90,
+          ),
+        ],
+      ),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        theme: AppTheme.light(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: WorldCupScreen(
+          liveDataService: liveDataService,
+          currentTime: DateTime.utc(2026, 6, 20),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final scrollable = find.byType(Scrollable).first;
+    await tester.scrollUntilVisible(
+      find.text('기록 순위'),
+      180,
+      scrollable: scrollable,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('기록 순위'));
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text('득점 순위'), findsOneWidget);
+    expect(find.text('손흥민'), findsOneWidget);
+    expect(find.text('2골'), findsOneWidget);
+    await tester.tap(find.text('어시스트 순위'));
+    await tester.pump();
+
+    expect(find.text('이강인'), findsOneWidget);
+    expect(find.text('1도움'), findsOneWidget);
+    expect(liveDataService.playerStatFetchCount, 1);
+    expect(liveDataService.detailFetchCount, 1);
+
+    detailCompleter.complete(null);
+    await tester.pumpAndSettle();
   });
 
   testWidgets(
@@ -1865,10 +1988,18 @@ void main() {
 class _FakeWorldCupLiveDataService extends WorldCupLiveDataService {
   final WorldCupLiveData data;
   final FifaAMatchDetail? detail;
+  final Completer<FifaAMatchDetail?>? detailCompleter;
+  final FifaCompetitionPlayerStatRankings playerStatRankings;
   String lastDetailLanguage = '';
   int detailFetchCount = 0;
+  int playerStatFetchCount = 0;
 
-  _FakeWorldCupLiveDataService({required this.data, this.detail});
+  _FakeWorldCupLiveDataService({
+    required this.data,
+    this.detail,
+    this.detailCompleter,
+    this.playerStatRankings = const FifaCompetitionPlayerStatRankings.empty(),
+  });
 
   @override
   Future<WorldCupLiveData> fetchLatest({
@@ -1885,7 +2016,19 @@ class _FakeWorldCupLiveDataService extends WorldCupLiveDataService {
   }) async {
     lastDetailLanguage = language;
     detailFetchCount += 1;
+    final completer = detailCompleter;
+    if (completer != null) {
+      return completer.future;
+    }
     return detail;
+  }
+
+  @override
+  Future<FifaCompetitionPlayerStatRankings> fetchPlayerStatRankings({
+    String language = 'en',
+  }) async {
+    playerStatFetchCount += 1;
+    return playerStatRankings;
   }
 
   @override

@@ -94,6 +94,15 @@ class WorldCupLiveDataService {
     return _fifaService.fetchMatchDetail(match: match, language: language);
   }
 
+  Future<FifaCompetitionPlayerStatRankings> fetchPlayerStatRankings({
+    String language = 'en',
+  }) {
+    return _fifaService.fetchCompetitionPlayerStatRankings(
+      competitionId: _worldCupSeasonId,
+      language: language,
+    );
+  }
+
   Future<List<FifaAMatchEntry>> _fetchWorldCupMatches({
     required DateTime start,
     required DateTime end,

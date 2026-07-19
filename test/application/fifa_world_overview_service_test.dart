@@ -228,7 +228,13 @@ void main() {
     ];
     homeTeam['Goals'] = [
       {'IdPlayer': 'home-9', 'IdAssistPlayer': 'home-18', 'Minute': "21'"},
-      {'IdPlayer': 'home-9', 'Minute': "64'"},
+      {
+        'IdPlayer': 'home-9',
+        'Minute': "64'",
+        'AssistPlayerName': [
+          {'Locale': 'en-gb', 'Description': 'S. Son'},
+        ],
+      },
     ];
     homeTeam['Bookings'] = [
       {'IdPlayer': 'home-18', 'Minute': "33'", 'Card': 1},
@@ -268,9 +274,11 @@ void main() {
     expect(detail!.homeScorers, hasLength(2));
     expect(detail.homeScorers.first.playerName, 'S. Son');
     expect(detail.homeScorers.first.minute, "21'");
-    expect(detail.homeAssists, hasLength(1));
-    expect(detail.homeAssists.single.playerName, 'K. Lee');
-    expect(detail.homeAssists.single.minute, "21'");
+    expect(detail.homeAssists, hasLength(2));
+    expect(detail.homeAssists.first.playerName, 'K. Lee');
+    expect(detail.homeAssists.first.minute, "21'");
+    expect(detail.homeAssists.last.playerName, 'S. Son');
+    expect(detail.homeAssists.last.minute, "64'");
     expect(detail.homeBookings, hasLength(3));
     expect(detail.homeBookings.first.playerName, 'K. Lee');
     expect(detail.homeBookings.first.minute, "33'");
@@ -298,6 +306,103 @@ void main() {
     );
     expect(detail.homePossession, 58.2);
     expect(detail.awayPossession, 41.8);
+  });
+
+  test('parseCompetitionPlayerStatEntries reads FIFA GameDay stat actors', () {
+    final entries = FifaWorldOverviewService.parseCompetitionPlayerStatEntries(
+      _gameDayStatStory(
+        [
+          _gameDayStatActor(
+            playerId: '389867',
+            playerNameEn: 'Kylian Mbappe',
+            playerNameKo: '킬리안 음바페',
+            teamName: 'France',
+            teamCode: 'FRA',
+            goals: 10,
+            assists: 4,
+            minutes: 769,
+          ),
+          _gameDayStatActor(
+            playerId: '418490',
+            playerNameEn: 'Lee Kang-in',
+            playerNameKo: '이강인',
+            teamName: 'Korea Republic',
+            teamCode: 'KOR',
+            goals: 1,
+            assists: 3,
+            minutes: 312,
+          ),
+        ],
+      ),
+      language: 'ko',
+    );
+
+    expect(entries, hasLength(2));
+    expect(entries.first.playerId, '389867');
+    expect(entries.first.playerName, '킬리안 음바페');
+    expect(entries.first.teamName, 'France');
+    expect(entries.first.teamCode, 'FRA');
+    expect(entries.first.goals, 10);
+    expect(entries.first.assists, 4);
+    expect(entries.first.minutesPlayed, 769);
+    expect(entries.last.playerName, '이강인');
+    expect(entries.last.teamName, 'Korea Republic');
+    expect(entries.last.assists, 3);
+  });
+
+  test('fetchCompetitionPlayerStatRankings uses official GameDay rankings',
+      () async {
+    final storyQueries = <String>[];
+    final client = MockClient((request) async {
+      if (request.url.host == 'cxm-api.fifa.com' &&
+          request.url.path.endsWith('/gameDay/token')) {
+        return http.Response(jsonEncode({'token': 'test-token'}), 200);
+      }
+
+      if (request.url.host == 'gameday-prod.fifa.mangodev.co.uk' &&
+          request.url.path.endsWith('/stories')) {
+        expect(request.headers['Authorization'], 'Bearer test-token');
+        final query = request.url.queryParameters['query'] ?? '';
+        storyQueries.add(query);
+        final isAssists = query.contains(':assists:');
+        return http.Response(
+          jsonEncode(
+            _gameDayStatStory(
+              [
+                _gameDayStatActor(
+                  playerId: isAssists ? 'assist-1' : 'goal-1',
+                  playerNameEn: isAssists ? 'Michael Olise' : 'Kylian Mbappe',
+                  playerNameKo: isAssists ? '마이클 올리세' : '킬리안 음바페',
+                  teamName: 'France',
+                  teamCode: 'FRA',
+                  goals: isAssists ? 2 : 10,
+                  assists: isAssists ? 7 : 4,
+                  minutes: 640,
+                ),
+              ],
+            ),
+          ),
+          200,
+          headers: {'content-type': 'application/json; charset=utf-8'},
+        );
+      }
+
+      return http.Response('Not found', 404);
+    });
+
+    final service = FifaWorldOverviewService(client: client);
+    final rankings = await service.fetchCompetitionPlayerStatRankings(
+      competitionId: '285023',
+      language: 'ko',
+    );
+
+    expect(storyQueries, hasLength(2));
+    expect(storyQueries.any((query) => query.contains(':goals:')), isTrue);
+    expect(storyQueries.any((query) => query.contains(':assists:')), isTrue);
+    expect(rankings.goals.single.playerName, '킬리안 음바페');
+    expect(rankings.goals.single.goals, 10);
+    expect(rankings.assists.single.playerName, '마이클 올리세');
+    expect(rankings.assists.single.assists, 7);
   });
 
   test(
@@ -748,6 +853,40 @@ const String _kfaMatchHtml = '''
   <!-- //반복 -->
 </div>
 ''';
+
+Map<String, dynamic> _gameDayStatStory(List<Map<String, dynamic>> actors) {
+  return {
+    'items': [
+      {'actors': actors},
+    ],
+  };
+}
+
+Map<String, dynamic> _gameDayStatActor({
+  required String playerId,
+  required String playerNameEn,
+  required String playerNameKo,
+  required String teamName,
+  required String teamCode,
+  required int goals,
+  required int assists,
+  required int minutes,
+}) {
+  return {
+    'key': {'_externalSportsPersonId': playerId},
+    'name': {'eng': playerNameEn, 'kor': playerNameKo},
+    'tags': [
+      {'name': 'urn:gd:tag:story:team:name:eng', 'value': teamName},
+      {'name': 'urn:gd:tag:story:team:abbreviation', 'value': teamCode},
+      {'name': 'urn:gd:tag:football:stats:goals', 'value': goals},
+      {'name': 'urn:gd:tag:football:stats:assists', 'value': assists},
+      {
+        'name': 'urn:gd:tag:football:stats:total_competition_minutes_played',
+        'value': minutes,
+      },
+    ],
+  };
+}
 
 Map<String, dynamic> _match({
   required String matchId,

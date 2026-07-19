@@ -248,6 +248,42 @@ class FifaMatchAssist {
   const FifaMatchAssist({required this.playerName, required this.minute});
 }
 
+class FifaCompetitionPlayerStatRankings {
+  final List<FifaCompetitionPlayerStatEntry> goals;
+  final List<FifaCompetitionPlayerStatEntry> assists;
+
+  const FifaCompetitionPlayerStatRankings({
+    required this.goals,
+    required this.assists,
+  });
+
+  const FifaCompetitionPlayerStatRankings.empty()
+      : goals = const <FifaCompetitionPlayerStatEntry>[],
+        assists = const <FifaCompetitionPlayerStatEntry>[];
+
+  bool get isEmpty => goals.isEmpty && assists.isEmpty;
+}
+
+class FifaCompetitionPlayerStatEntry {
+  final String playerId;
+  final String playerName;
+  final String teamName;
+  final String teamCode;
+  final int goals;
+  final int assists;
+  final int minutesPlayed;
+
+  const FifaCompetitionPlayerStatEntry({
+    required this.playerId,
+    required this.playerName,
+    required this.teamName,
+    required this.teamCode,
+    required this.goals,
+    required this.assists,
+    required this.minutesPlayed,
+  });
+}
+
 enum FifaMatchCardType { yellow, red, unknown }
 
 class FifaMatchBooking {
