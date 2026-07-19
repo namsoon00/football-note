@@ -6385,6 +6385,55 @@
       }
     }
   },
+  "matchCompetitionNewButton": "새 대회",
+  "matchCompetitionFilterAll": "전체 {count}",
+  "@matchCompetitionFilterAll": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "matchCompetitionFilterActive": "진행 {count}",
+  "@matchCompetitionFilterActive": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "matchCompetitionFilterFinished": "종료 {count}",
+  "@matchCompetitionFilterFinished": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "matchCompetitionFilterEmptyTitle": "해당 상태의 대회가 없어요.",
+  "matchCompetitionFilterEmptyBody": "필터를 초기화하면 전체 대회를 볼 수 있습니다.",
+  "matchCompetitionCardSummary": "{teams}팀 · {matches}경기",
+  "@matchCompetitionCardSummary": {
+    "placeholders": {
+      "teams": {
+        "type": "int"
+      },
+      "matches": {
+        "type": "int"
+      }
+    }
+  },
+  "matchCompetitionDeleteDialogTitle": "대회 삭제",
+  "matchCompetitionDeleteDialogBody": "\"{name}\" 대회를 삭제할까요? 등록된 시합 기록은 삭제되지 않습니다.",
+  "@matchCompetitionDeleteDialogBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "matchCompetitionDeleteButton": "삭제",
+  "matchCompetitionDeletedFeedback": "대회를 삭제했어요.",
   "matchCompetitionCreateLeagueButton": "리그 만들기",
   "matchCompetitionCreateTournamentButton": "토너먼트 만들기",
   "matchCompetitionSeasonLabel": "시즌",

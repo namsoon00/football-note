@@ -11753,6 +11753,51 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get matchCompetitionNewButton => 'New';
+
+  @override
+  String matchCompetitionFilterAll(int count) {
+    return 'All $count';
+  }
+
+  @override
+  String matchCompetitionFilterActive(int count) {
+    return 'Active $count';
+  }
+
+  @override
+  String matchCompetitionFilterFinished(int count) {
+    return 'Finished $count';
+  }
+
+  @override
+  String get matchCompetitionFilterEmptyTitle =>
+      'No competitions match this status.';
+
+  @override
+  String get matchCompetitionFilterEmptyBody =>
+      'Reset the filter to see all competitions.';
+
+  @override
+  String matchCompetitionCardSummary(int teams, int matches) {
+    return '$teams teams · $matches matches';
+  }
+
+  @override
+  String get matchCompetitionDeleteDialogTitle => 'Delete competition';
+
+  @override
+  String matchCompetitionDeleteDialogBody(String name) {
+    return 'Delete \"$name\"? Saved match records will not be deleted.';
+  }
+
+  @override
+  String get matchCompetitionDeleteButton => 'Delete';
+
+  @override
+  String get matchCompetitionDeletedFeedback => 'Competition deleted.';
+
+  @override
   String get matchCompetitionCreateLeagueButton => 'Create league';
 
   @override

@@ -11412,6 +11412,49 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get matchCompetitionNewButton => '新規大会';
+
+  @override
+  String matchCompetitionFilterAll(int count) {
+    return 'すべて $count';
+  }
+
+  @override
+  String matchCompetitionFilterActive(int count) {
+    return '開催中 $count';
+  }
+
+  @override
+  String matchCompetitionFilterFinished(int count) {
+    return '終了 $count';
+  }
+
+  @override
+  String get matchCompetitionFilterEmptyTitle => 'この状態の大会はありません。';
+
+  @override
+  String get matchCompetitionFilterEmptyBody => 'フィルターをリセットすると、すべての大会を表示できます。';
+
+  @override
+  String matchCompetitionCardSummary(int teams, int matches) {
+    return '$teamsチーム · $matches試合';
+  }
+
+  @override
+  String get matchCompetitionDeleteDialogTitle => '大会を削除';
+
+  @override
+  String matchCompetitionDeleteDialogBody(String name) {
+    return '「$name」を削除しますか？保存済みの試合記録は削除されません。';
+  }
+
+  @override
+  String get matchCompetitionDeleteButton => '削除';
+
+  @override
+  String get matchCompetitionDeletedFeedback => '大会を削除しました。';
+
+  @override
   String get matchCompetitionCreateLeagueButton => 'リーグを作成';
 
   @override

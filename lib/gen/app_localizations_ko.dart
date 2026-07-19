@@ -11433,6 +11433,49 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get matchCompetitionNewButton => '새 대회';
+
+  @override
+  String matchCompetitionFilterAll(int count) {
+    return '전체 $count';
+  }
+
+  @override
+  String matchCompetitionFilterActive(int count) {
+    return '진행 $count';
+  }
+
+  @override
+  String matchCompetitionFilterFinished(int count) {
+    return '종료 $count';
+  }
+
+  @override
+  String get matchCompetitionFilterEmptyTitle => '해당 상태의 대회가 없어요.';
+
+  @override
+  String get matchCompetitionFilterEmptyBody => '필터를 초기화하면 전체 대회를 볼 수 있습니다.';
+
+  @override
+  String matchCompetitionCardSummary(int teams, int matches) {
+    return '$teams팀 · $matches경기';
+  }
+
+  @override
+  String get matchCompetitionDeleteDialogTitle => '대회 삭제';
+
+  @override
+  String matchCompetitionDeleteDialogBody(String name) {
+    return '\"$name\" 대회를 삭제할까요? 등록된 시합 기록은 삭제되지 않습니다.';
+  }
+
+  @override
+  String get matchCompetitionDeleteButton => '삭제';
+
+  @override
+  String get matchCompetitionDeletedFeedback => '대회를 삭제했어요.';
+
+  @override
   String get matchCompetitionCreateLeagueButton => '리그 만들기';
 
   @override

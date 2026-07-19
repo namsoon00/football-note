@@ -20194,6 +20194,72 @@ abstract class AppLocalizations {
   /// **'{count} competitions'**
   String matchCompetitionListCount(int count);
 
+  /// No description provided for @matchCompetitionNewButton.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get matchCompetitionNewButton;
+
+  /// No description provided for @matchCompetitionFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All {count}'**
+  String matchCompetitionFilterAll(int count);
+
+  /// No description provided for @matchCompetitionFilterActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active {count}'**
+  String matchCompetitionFilterActive(int count);
+
+  /// No description provided for @matchCompetitionFilterFinished.
+  ///
+  /// In en, this message translates to:
+  /// **'Finished {count}'**
+  String matchCompetitionFilterFinished(int count);
+
+  /// No description provided for @matchCompetitionFilterEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No competitions match this status.'**
+  String get matchCompetitionFilterEmptyTitle;
+
+  /// No description provided for @matchCompetitionFilterEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset the filter to see all competitions.'**
+  String get matchCompetitionFilterEmptyBody;
+
+  /// No description provided for @matchCompetitionCardSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{teams} teams · {matches} matches'**
+  String matchCompetitionCardSummary(int teams, int matches);
+
+  /// No description provided for @matchCompetitionDeleteDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete competition'**
+  String get matchCompetitionDeleteDialogTitle;
+
+  /// No description provided for @matchCompetitionDeleteDialogBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{name}\"? Saved match records will not be deleted.'**
+  String matchCompetitionDeleteDialogBody(String name);
+
+  /// No description provided for @matchCompetitionDeleteButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get matchCompetitionDeleteButton;
+
+  /// No description provided for @matchCompetitionDeletedFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Competition deleted.'**
+  String get matchCompetitionDeletedFeedback;
+
   /// No description provided for @matchCompetitionCreateLeagueButton.
   ///
   /// In en, this message translates to:

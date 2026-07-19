@@ -6385,6 +6385,55 @@
       }
     }
   },
+  "matchCompetitionNewButton": "New",
+  "matchCompetitionFilterAll": "All {count}",
+  "@matchCompetitionFilterAll": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "matchCompetitionFilterActive": "Active {count}",
+  "@matchCompetitionFilterActive": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "matchCompetitionFilterFinished": "Finished {count}",
+  "@matchCompetitionFilterFinished": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "matchCompetitionFilterEmptyTitle": "No competitions match this status.",
+  "matchCompetitionFilterEmptyBody": "Reset the filter to see all competitions.",
+  "matchCompetitionCardSummary": "{teams} teams · {matches} matches",
+  "@matchCompetitionCardSummary": {
+    "placeholders": {
+      "teams": {
+        "type": "int"
+      },
+      "matches": {
+        "type": "int"
+      }
+    }
+  },
+  "matchCompetitionDeleteDialogTitle": "Delete competition",
+  "matchCompetitionDeleteDialogBody": "Delete \"{name}\"? Saved match records will not be deleted.",
+  "@matchCompetitionDeleteDialogBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "matchCompetitionDeleteButton": "Delete",
+  "matchCompetitionDeletedFeedback": "Competition deleted.",
   "matchCompetitionCreateLeagueButton": "Create league",
   "matchCompetitionCreateTournamentButton": "Create tournament",
   "matchCompetitionSeasonLabel": "Season",
