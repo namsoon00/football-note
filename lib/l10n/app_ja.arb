@@ -7273,6 +7273,15 @@
   },
   "trainingSketchPlayerFlowWithBall": "ボール保持",
   "trainingSketchPlayerFlowWithoutBall": "ボールなし",
+  "trainingSketchPlayerFlowNextStageChip": "次はステージ{stage}",
+  "@trainingSketchPlayerFlowNextStageChip": {
+    "placeholders": {
+      "stage": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchRecommendedActionBadge": "おすすめ",
   "trainingSketchPlayerFlowHint": "選手の次の動作を選ぶと、段階とボールの動きが自動でつながります。",
   "trainingSketchPlayerFlowPassSection": "味方につなぐ",
   "trainingSketchPlayerFlowBallSection": "ボールを使う動作",
@@ -7550,7 +7559,14 @@
       "action": {}
     }
   },
+  "trainingSketchPassTargetHint": "{action}を受ける選手をタップします。",
+  "@trainingSketchPassTargetHint": {
+    "placeholders": {
+      "action": {}
+    }
+  },
   "trainingSketchActionTargetCancelButton": "キャンセル",
+  "trainingSketchActionCreatedSnack": "動作を追加しました。",
   "trainingSketchSelectedItemActionsTitle": "クイック動作",
   "trainingSketchPlayerActionsTitle": "プレイヤー動作",
   "trainingSketchBallActionsTitle": "ボール動作",

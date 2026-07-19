@@ -7273,6 +7273,15 @@
   },
   "trainingSketchPlayerFlowWithBall": "Has ball",
   "trainingSketchPlayerFlowWithoutBall": "No ball",
+  "trainingSketchPlayerFlowNextStageChip": "Next stage {stage}",
+  "@trainingSketchPlayerFlowNextStageChip": {
+    "placeholders": {
+      "stage": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchRecommendedActionBadge": "Recommended",
   "trainingSketchPlayerFlowHint": "Choose the player's next action and the stage and ball movement will connect automatically.",
   "trainingSketchPlayerFlowPassSection": "Connect to teammate",
   "trainingSketchPlayerFlowBallSection": "Ball actions",
@@ -7550,7 +7559,14 @@
       "action": {}
     }
   },
+  "trainingSketchPassTargetHint": "Tap the player to receive {action}.",
+  "@trainingSketchPassTargetHint": {
+    "placeholders": {
+      "action": {}
+    }
+  },
   "trainingSketchActionTargetCancelButton": "Cancel",
+  "trainingSketchActionCreatedSnack": "Action added.",
   "trainingSketchSelectedItemActionsTitle": "Quick actions",
   "trainingSketchPlayerActionsTitle": "Player actions",
   "trainingSketchBallActionsTitle": "Ball actions",

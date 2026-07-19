@@ -623,6 +623,111 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     return layout.encode();
   }
 
+  _BoardPageState _copyBoardPageState(_BoardPageState page) {
+    return _BoardPageState(
+      name: page.name,
+      methodText: page.methodText,
+      items: page.items
+          .map(
+            (item) => _BoardItem(
+              id: item.id,
+              type: item.type,
+              x: item.x,
+              y: item.y,
+              size: item.size,
+              rotationDeg: item.rotationDeg,
+              color: item.color,
+            ),
+          )
+          .toList(growable: true),
+      strokes: page.strokes
+          .map(
+            (stroke) => _BoardStroke(
+              points: stroke.points.toList(growable: false),
+              color: stroke.color,
+              width: stroke.width,
+            ),
+          )
+          .toList(growable: true),
+      routes: page.routes
+          .map(
+            (route) => _BoardRoute(
+              id: route.id,
+              kind: route.kind,
+              linkedItemId: route.linkedItemId,
+              actorItemId: route.actorItemId,
+              targetItemId: route.targetItemId,
+              points: route.points.toList(growable: true),
+              segmentDurationsMs: route.segmentDurationsMs.toList(
+                growable: true,
+              ),
+              stageIndex: route.stageIndex,
+              color: route.color,
+              width: route.width,
+            ),
+          )
+          .toList(growable: true),
+    );
+  }
+
+  _SketchUndoSnapshot _captureActionUndoSnapshot() {
+    return _SketchUndoSnapshot(
+      page: _copyBoardPageState(_currentPage),
+      nextId: _nextId,
+      selectedItemId: _selectedItemId,
+      selectedRouteId: _selectedRouteId,
+      registeredNextActionStageIndex: _registeredNextActionStageIndex,
+      pathDrawMode: _pathDrawMode,
+      showSelectedColorPicker: _showSelectedColorPicker,
+    );
+  }
+
+  void _restoreActionUndoSnapshot(_SketchUndoSnapshot snapshot) {
+    _stopRoutePlayback(restoreStart: false);
+    setState(() {
+      _pages = <_BoardPageState>[_copyBoardPageState(snapshot.page)];
+      _nextId = snapshot.nextId;
+      _methodController.text = _currentPage.methodText;
+      _selectedItemId = _currentPage.items.any(
+        (item) => item.id == snapshot.selectedItemId,
+      )
+          ? snapshot.selectedItemId
+          : null;
+      _selectedRouteId = _currentPage.routes.any(
+        (route) => route.id == snapshot.selectedRouteId,
+      )
+          ? snapshot.selectedRouteId
+          : null;
+      _registeredNextActionStageIndex = snapshot.registeredNextActionStageIndex;
+      _pathDrawMode = snapshot.pathDrawMode;
+      _showSelectedColorPicker = snapshot.showSelectedColorPicker;
+      _pendingTargetAction = null;
+      _pathMode = false;
+      _penMode = false;
+      _routeReplaceMode = false;
+      _activeStroke = null;
+      _activeRoutePoints = null;
+      _activeRouteSegmentDurationsMs = null;
+      _activeRouteLastPointAt = null;
+    });
+    _scheduleAutoSave();
+  }
+
+  void _showActionCreatedFeedback(_SketchUndoSnapshot snapshot) {
+    unawaited(HapticFeedback.lightImpact());
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(_l10n.trainingSketchActionCreatedSnack),
+        action: SnackBarAction(
+          label: _l10n.undo,
+          onPressed: () => _restoreActionUndoSnapshot(snapshot),
+        ),
+      ),
+    );
+  }
+
   _BoardItem? get _selectedItem {
     final id = _selectedItemId;
     if (id == null) return null;
@@ -854,6 +959,17 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     return _itemPosition(item);
   }
 
+  Offset _boardItemDisplayPoint(_BoardItem item) {
+    final action = _pendingTargetAction;
+    if (action != null &&
+        _requiresReceiverTargetAction(action) &&
+        item.type == _BoardItemType.player &&
+        _isValidBoardItemTargetForAction(action, item)) {
+      return _itemActionPoint(item);
+    }
+    return _itemPosition(item);
+  }
+
   Offset _boardPointFromLocal(
     Offset localPosition,
     double width,
@@ -937,6 +1053,23 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     });
     final nearest = players.first;
     return (_itemPosition(nearest) - point).distance <= radius ? nearest : null;
+  }
+
+  _BoardItem? _nearestPlayerActionPointToPoint(
+    Offset point, {
+    required double radius,
+  }) {
+    final players = _itemsOfType(_BoardItemType.player);
+    if (players.isEmpty) return null;
+    players.sort((a, b) {
+      final aDistance = (_itemActionPoint(a) - point).distance;
+      final bDistance = (_itemActionPoint(b) - point).distance;
+      return aDistance.compareTo(bDistance);
+    });
+    final nearest = players.first;
+    return (_itemActionPoint(nearest) - point).distance <= radius
+        ? nearest
+        : null;
   }
 
   _BoardItem? _currentBallOwner(_BoardItem ball) {
@@ -1163,6 +1296,34 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     };
   }
 
+  bool _requiresReceiverTargetAction(_SketchTargetAction action) {
+    return action == _SketchTargetAction.pass ||
+        action == _SketchTargetAction.passAndMove;
+  }
+
+  List<_BoardItem> _passTargetPlayersFor(_BoardItem player) {
+    return _itemsOfType(_BoardItemType.player, excludingId: player.id);
+  }
+
+  bool _isValidBoardItemTargetForAction(
+    _SketchTargetAction action,
+    _BoardItem target,
+  ) {
+    if (!_requiresReceiverTargetAction(action)) return true;
+    final selected = _selectedItem;
+    return selected != null &&
+        target.type == _BoardItemType.player &&
+        target.id != selected.id;
+  }
+
+  bool _isHighlightedTargetItem(_BoardItem item) {
+    final action = _pendingTargetAction;
+    if (action == null || !_requiresReceiverTargetAction(action)) {
+      return false;
+    }
+    return _isValidBoardItemTargetForAction(action, item);
+  }
+
   _BoardItem? _playerForTargetAction(_BoardItem selected) {
     return selected.type == _BoardItemType.player ? selected : null;
   }
@@ -1292,45 +1453,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       return route.points.last;
     }
     return _itemPosition(player);
-  }
-
-  Offset _suggestedPassReceiverPoint(_BoardItem player) {
-    final origin = _playerFlowOriginPoint(player);
-    final xStep = origin.dx < 0.68 ? 0.24 : -0.24;
-    final yOffsets = <double>[0, -0.10, 0.10, -0.18, 0.18];
-    final players = _itemsOfType(_BoardItemType.player);
-    Offset bestPoint = _clampedBoardPoint(origin.dx + xStep, origin.dy);
-    var bestDistance = -1.0;
-    for (final yOffset in yOffsets) {
-      final candidate = _clampedBoardPoint(
-        origin.dx + xStep,
-        origin.dy + yOffset,
-      );
-      final nearestDistance = players.fold<double>(1.0, (nearest, item) {
-        if (item.id == player.id) return nearest;
-        return math.min(nearest, (_itemPosition(item) - candidate).distance);
-      });
-      if (nearestDistance > bestDistance) {
-        bestDistance = nearestDistance;
-        bestPoint = candidate;
-      }
-    }
-    return bestPoint;
-  }
-
-  _BoardItem _createPassReceiverForPlayer(_BoardItem player) {
-    final point = _suggestedPassReceiverPoint(player);
-    final receiver = _BoardItem(
-      id: _nextBoardItemId(),
-      type: _BoardItemType.player,
-      x: point.dx,
-      y: point.dy,
-      size: 32,
-      rotationDeg: 0,
-      color: _nextItemColor(_BoardItemType.player),
-    );
-    _currentPage.items.add(receiver);
-    return receiver;
   }
 
   _PlayerBallPossession? _ballPossessionForNextPlayerAction(
@@ -1726,13 +1848,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     return null;
   }
 
-  _BoardItem? _selectablePlayerForRoute(_BoardRoute route) {
-    final itemId = _selectableItemIdForRoute(route);
-    if (itemId == null) return null;
-    final item = _itemById(itemId);
-    return item?.type == _BoardItemType.player ? item : null;
-  }
-
   int _boardItemPaintPriority(_BoardItem item) {
     if (item.id == _movingItemId || item.id == _selectedItemId) return 4;
     if (item.type == _BoardItemType.player ||
@@ -1801,6 +1916,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   void _handleBoardItemTap(_BoardItem item) {
     final action = _pendingTargetAction;
     if (action != null && !widget.readOnly && !_playController.isAnimating) {
+      if (!_isValidBoardItemTargetForAction(action, item)) {
+        return;
+      }
       _applyPendingTargetActionToItem(action: action, target: item);
       return;
     }
@@ -3344,6 +3462,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     if (_requiresPlayerTargetAction(action) && player == null) {
       return;
     }
+    if (_requiresReceiverTargetAction(action) &&
+        (player == null || _passTargetPlayersFor(player).isEmpty)) {
+      return;
+    }
     if (_requiresBallTargetAction(action)) {
       if (player == null) return;
       if (!_canStartBallActionForPlayer(player)) {
@@ -3384,24 +3506,25 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     }
   }
 
-  void _applyPendingTargetActionToItem({
+  bool _applyPendingTargetActionToItem({
     required _SketchTargetAction action,
     required _BoardItem target,
   }) {
-    _applyPendingTargetActionToPoint(
+    return _applyPendingTargetActionToPoint(
       action: action,
       target: _itemActionPoint(target),
       targetItem: target,
     );
   }
 
-  void _applyPendingTargetActionToPoint({
+  bool _applyPendingTargetActionToPoint({
     required _SketchTargetAction action,
     required Offset target,
     _BoardItem? targetItem,
   }) {
     final selected = _selectedItem;
-    if (selected == null) return;
+    if (selected == null) return false;
+    final snapshot = _captureActionUndoSnapshot();
     final applied = switch (action) {
       _SketchTargetAction.move => _applyMoveTargetAction(selected, target),
       _SketchTargetAction.moveToBall => _applyMoveToBallAction(selected),
@@ -3483,7 +3606,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           carryPossessedBall: false,
         ),
     };
-    if (!applied) return;
+    if (!applied) return false;
+    _showActionCreatedFeedback(snapshot);
+    return true;
   }
 
   void _selectQuickActionRoute(
@@ -3837,7 +3962,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         targetItem?.id != selected.id) {
       return targetItem;
     }
-    final nearest = _nearestPlayerToPoint(target, radius: 0.075);
+    final nearest = _nearestPlayerActionPointToPoint(target, radius: 0.075);
     if (nearest == null || nearest.id == selected.id) return null;
     return nearest;
   }
@@ -4386,33 +4511,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       stageIndex: _stageForNextPlayerAction(player),
       actorItemId: player.id,
       createNewRoute: true,
-    );
-  }
-
-  void _applyQuickBallToItemTemplate(_BoardItem target) {
-    final selected = _selectedItem;
-    if (selected == null) return;
-    if (target.type != _BoardItemType.player) return;
-    _applyBallTargetAction(
-      selected: selected,
-      target: _itemActionPoint(target),
-      targetItem: target,
-      durationMs: 680,
-    );
-  }
-
-  void _applyQuickBallToNewReceiverTemplate(_BoardItem player) {
-    late final _BoardItem receiver;
-    setState(() {
-      receiver = _createPassReceiverForPlayer(player);
-      _selectedItemId = player.id;
-      _selectedRouteId = null;
-    });
-    _applyBallTargetAction(
-      selected: player,
-      target: _itemActionPoint(receiver),
-      targetItem: receiver,
-      durationMs: 680,
     );
   }
 
@@ -5110,6 +5208,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     if (widget.readOnly) {
       return _buildReadOnlyInfoPanel();
     }
+    final showSelectedFirst = _selectedItem?.type == _BoardItemType.player ||
+        _pendingTargetAction != null;
     return Container(
       key: const ValueKey('training-landscape-control-panel'),
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
@@ -5125,11 +5225,17 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         ],
       ),
       child: ListView(
-        children: [
-          _buildToolButtons(isKo),
-          const SizedBox(height: 12),
-          _buildSelectedTools(isKo),
-        ],
+        children: showSelectedFirst
+            ? [
+                _buildSelectedTools(isKo),
+                const SizedBox(height: 12),
+                _buildToolButtons(isKo),
+              ]
+            : [
+                _buildToolButtons(isKo),
+                const SizedBox(height: 12),
+                _buildSelectedTools(isKo),
+              ],
       ),
     );
   }
@@ -5298,8 +5404,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                       children: [
                         for (final item in _boardItemsInPaintOrder())
                           Positioned(
-                            left: (item.x * width) - 26,
-                            top: (item.y * height) - 26,
+                            left:
+                                (_boardItemDisplayPoint(item).dx * width) - 26,
+                            top:
+                                (_boardItemDisplayPoint(item).dy * height) - 26,
                             child: IgnorePointer(
                               ignoring: item.type == _BoardItemType.ball,
                               child: GestureDetector(
@@ -5355,8 +5463,15 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                                   height: 52,
                                   child: Center(
                                     child: _BoardToken(
+                                      key: _isHighlightedTargetItem(item)
+                                          ? ValueKey(
+                                              'training-action-target-valid-${item.id}',
+                                            )
+                                          : null,
                                       item: item,
                                       selected: item.id == _selectedItemId,
+                                      highlighted:
+                                          _isHighlightedTargetItem(item),
                                       moving: item.id == _movingItemId,
                                       label: _boardTokenLabelFor(item),
                                       sportId: _currentSportIdOrDefault,
@@ -5369,6 +5484,13 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                       ],
                     ),
                   ),
+                  if (_pendingTargetAction != null)
+                    Positioned(
+                      left: 8,
+                      right: 8,
+                      top: 8,
+                      child: _buildPendingTargetActionBanner(),
+                    ),
                 ],
               ),
             ),
@@ -5877,51 +5999,28 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     };
   }
 
-  Future<void> _openPlayerFlowBuilder(_BoardItem player) async {
-    final selection = await showModalBottomSheet<_PlayerFlowSelection>(
-      context: context,
-      showDragHandle: true,
-      isScrollControlled: true,
-      builder: (context) => _buildPlayerFlowSheet(context, player),
-    );
-    if (!mounted || selection == null) return;
-    if (selection.createPassReceiver) {
-      _applyQuickBallToNewReceiverTemplate(player);
-      return;
+  String _targetActionHint(_SketchTargetAction action) {
+    final label = _targetActionLabel(action);
+    if (_requiresReceiverTargetAction(action)) {
+      return _l10n.trainingSketchPassTargetHint(label);
     }
-    if (selection.targetItemId case final targetItemId?) {
-      final target = _itemById(targetItemId);
-      if (target != null) {
-        if (selection.action case final action?) {
-          _selectedItemId = player.id;
-          _selectedRouteId = null;
-          _applyPendingTargetActionToItem(action: action, target: target);
-        } else {
-          _applyQuickBallToItemTemplate(target);
-        }
-      }
-      return;
-    }
-    if (selection.action case final action?) {
-      if (action == _SketchTargetAction.stay) {
-        _applyStayTargetAction(player);
-        return;
-      }
-      if (action == _SketchTargetAction.moveToBall) {
-        _applyMoveToBallAction(player);
-        return;
-      }
-      _beginTargetAction(action);
-    }
+    return _l10n.trainingSketchActionTargetHint(label);
   }
 
   Widget _buildPlayerFlowStarter(_BoardItem player) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     final hasBall = _playerHasBallForFlow(player);
+    final entries = _playerFlowActionEntries(player);
+    final recommended = _recommendedPlayerFlowEntry(player, entries);
+    final secondaryEntries = entries
+        .where((entry) => !identical(entry, recommended))
+        .toList(growable: false);
+    final nextStage = _stageForNextPlayerAction(player) ?? 1;
     return Container(
+      key: ValueKey('training-player-next-action-${player.id}'),
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         color: colors.primaryContainer.withValues(alpha: 0.52),
@@ -5973,6 +6072,19 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                     ),
                   ),
                 ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              Chip(
+                visualDensity: VisualDensity.compact,
+                label: Text(
+                  _l10n.trainingSketchPlayerFlowNextStageChip(nextStage),
+                ),
+              ),
               Chip(
                 visualDensity: VisualDensity.compact,
                 label: Text(
@@ -5983,37 +6095,59 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
               ),
             ],
           ),
-          const SizedBox(height: 6),
-          Text(
-            _l10n.trainingSketchPlayerFlowHint,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: colors.onPrimaryContainer,
+          if (recommended != null) ...[
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Icon(Icons.auto_awesome, size: 16, color: colors.primary),
+                const SizedBox(width: 4),
+                Text(
+                  _l10n.trainingSketchRecommendedActionBadge,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: colors.primary,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 10),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton.icon(
-              key: ValueKey('training-player-next-action-${player.id}'),
-              onPressed: () => unawaited(_openPlayerFlowBuilder(player)),
-              icon: const Icon(Icons.add_circle_outline),
-              label: Text(_l10n.trainingSketchNextActionButton),
+            const SizedBox(height: 6),
+            _playerFlowEntryButton(
+              player: player,
+              entry: recommended,
+              prominent: true,
             ),
-          ),
+          ],
+          if (secondaryEntries.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 44,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    for (final entry in secondaryEntries) ...[
+                      _playerFlowEntryButton(
+                        player: player,
+                        entry: entry,
+                        prominent: false,
+                      ),
+                      if (!identical(entry, secondaryEntries.last))
+                        const SizedBox(width: 8),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildPlayerFlowSheet(BuildContext sheetContext, _BoardItem player) {
-    final theme = Theme.of(sheetContext);
-    final hasBall = _playerHasBallForFlow(player);
+  List<_PlayerFlowActionEntry> _playerFlowActionEntries(_BoardItem player) {
     final canUseBallActions = _canUsePlayerFlowBallActions(player);
     final sportId = _currentSportIdOrDefault;
-    final targetPlayers = _itemsOfType(
-      _BoardItemType.player,
-      excludingId: player.id,
-    );
+    final targetPlayers = _passTargetPlayersFor(player);
     final ballActions = canUseBallActions
         ? _playerFlowBallActions(sportId)
             .where(
@@ -6028,127 +6162,48 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         .where((action) => _canUsePlayerFlowMovementAction(player, action))
         .toList(growable: false);
     final propActions = _playerFlowPropActions(movementActions);
-    return SafeArea(
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(
-          16,
-          0,
-          16,
-          16 + MediaQuery.viewInsetsOf(sheetContext).bottom,
-        ),
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.sizeOf(sheetContext).height * 0.78,
-          ),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        _l10n.trainingSketchPlayerFlowTitle(
-                          _itemIndexOfType(player),
-                        ),
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                    ),
-                    Chip(
-                      visualDensity: VisualDensity.compact,
-                      label: Text(
-                        hasBall
-                            ? _l10n.trainingSketchPlayerFlowWithBall
-                            : _l10n.trainingSketchPlayerFlowWithoutBall,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  _l10n.trainingSketchPlayerFlowHint,
-                  style: theme.textTheme.bodySmall,
-                ),
-                if (canUseBallActions && targetPlayers.isNotEmpty) ...[
-                  const SizedBox(height: 16),
-                  _buildPlayerFlowSectionTitle(
-                    _l10n.trainingSketchPlayerFlowPassSection,
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      for (final target in targetPlayers)
-                        _playerFlowTargetButton(
-                          sheetContext: sheetContext,
-                          player: player,
-                          target: target,
-                          sportId: sportId,
-                        ),
-                      _playerFlowNewReceiverButton(
-                        sheetContext: sheetContext,
-                        player: player,
-                        sportId: sportId,
-                      ),
-                    ],
-                  ),
-                ],
-                if (ballActions.isNotEmpty) ...[
-                  const SizedBox(height: 16),
-                  _buildPlayerFlowSectionTitle(
-                    _l10n.trainingSketchPlayerFlowBallSection,
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      for (final action in ballActions)
-                        _playerFlowActionButton(
-                          sheetContext: sheetContext,
-                          player: player,
-                          action: action,
-                          icon: _targetActionIcon(action),
-                        ),
-                    ],
-                  ),
-                ],
-                if (movementActions.isNotEmpty) ...[
-                  const SizedBox(height: 16),
-                  _buildPlayerFlowSectionTitle(
-                    _l10n.trainingSketchPlayerFlowMoveSection,
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      for (final action in movementActions)
-                        _playerFlowActionButton(
-                          sheetContext: sheetContext,
-                          player: player,
-                          action: action,
-                          icon: _targetActionIcon(action),
-                        ),
-                      for (final propAction in propActions)
-                        _playerFlowPropActionButton(
-                          sheetContext: sheetContext,
-                          player: player,
-                          propAction: propAction,
-                        ),
-                    ],
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
+    return <_PlayerFlowActionEntry>[
+      for (final action in ballActions) _PlayerFlowActionEntry.action(action),
+      for (final action in movementActions)
+        _PlayerFlowActionEntry.action(action),
+      for (final propAction in propActions)
+        _PlayerFlowActionEntry.target(propAction.action, propAction.target),
+    ];
+  }
+
+  _PlayerFlowActionEntry? _recommendedPlayerFlowEntry(
+    _BoardItem player,
+    List<_PlayerFlowActionEntry> entries,
+  ) {
+    if (entries.isEmpty) return null;
+    _PlayerFlowActionEntry? findAction(_SketchTargetAction action) {
+      return _firstWhereOrNull(
+        entries,
+        (entry) => entry.target == null && entry.action == action,
+      );
+    }
+
+    if (_playerHasBallForFlow(player)) {
+      for (final action in <_SketchTargetAction>[
+        _SketchTargetAction.pass,
+        _SketchTargetAction.passAndMove,
+        _SketchTargetAction.dribble,
+        _SketchTargetAction.drive,
+        _SketchTargetAction.throwBall,
+        _SketchTargetAction.serve,
+        _SketchTargetAction.rally,
+        _SketchTargetAction.shot,
+        _SketchTargetAction.cross,
+      ]) {
+        final entry = findAction(action);
+        if (entry != null) return entry;
+      }
+    }
+    if (_nearestUnownedBallNearPlayer(player) != null) {
+      final moveToBall = findAction(_SketchTargetAction.moveToBall);
+      if (moveToBall != null) return moveToBall;
+    }
+    return findAction(_SketchTargetAction.move) ?? entries.first;
   }
 
   List<_PlayerFlowPropAction> _playerFlowPropActions(
@@ -6178,38 +6233,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     return actions;
   }
 
-  Widget _buildPlayerFlowSectionTitle(String label) {
-    return Text(
-      label,
-      style: Theme.of(context).textTheme.labelLarge?.copyWith(
-            fontWeight: FontWeight.w900,
-          ),
-    );
-  }
-
-  Widget _playerFlowPropActionButton({
-    required BuildContext sheetContext,
-    required _BoardItem player,
-    required _PlayerFlowPropAction propAction,
-  }) {
-    return OutlinedButton.icon(
-      key: ValueKey(
-        'training-player-flow-prop-action-${player.id}-'
-        '${propAction.action.name}-${propAction.target.id}',
-      ),
-      onPressed: () => Navigator.of(sheetContext).pop(
-        _PlayerFlowSelection.targetAction(
-          propAction.action,
-          propAction.target.id,
-        ),
-      ),
-      icon: Icon(_targetActionIcon(propAction.action)),
-      label: Text(
-        _playerFlowPropActionLabel(propAction.action, propAction.target),
-      ),
-    );
-  }
-
   String _playerFlowPropActionLabel(
     _SketchTargetAction action,
     _BoardItem target,
@@ -6226,87 +6249,90 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     };
   }
 
-  Widget _playerFlowTargetButton({
-    required BuildContext sheetContext,
+  Widget _playerFlowEntryButton({
     required _BoardItem player,
-    required _BoardItem target,
-    required String sportId,
+    required _PlayerFlowActionEntry entry,
+    required bool prominent,
   }) {
-    final index = _itemIndexOfType(target);
-    late final String label;
-    late final IconData icon;
-    if (target.type == _BoardItemType.player) {
-      label = switch (sportId) {
-        SportCatalog.baseballId =>
-          _l10n.trainingSketchThrowToPlayerButton(index),
-        SportCatalog.tennisId => _l10n.trainingSketchRallyToPlayerButton(index),
-        _ => _l10n.trainingSketchPassToPlayerButton(index),
-      };
-      icon = switch (sportId) {
-        SportCatalog.baseballId => Icons.sports_baseball,
-        SportCatalog.tennisId => Icons.sports_tennis,
-        _ => Icons.near_me_outlined,
-      };
-    } else {
-      final targetName = _boardToolLabel(target.type);
-      label = switch (sportId) {
-        SportCatalog.baseballId =>
-          _l10n.trainingSketchThrowToSpotButton(targetName, index),
-        SportCatalog.tennisId =>
-          _l10n.trainingSketchRallyToSpotButton(targetName, index),
-        _ => _l10n.trainingSketchPassToSpotButton(targetName, index),
-      };
-      icon = _boardItemIcon(target.type, sportId: sportId);
+    final key = entry.target == null
+        ? ValueKey('training-player-flow-action-${player.id}-'
+            '${entry.action.name}')
+        : ValueKey('training-player-flow-prop-action-${player.id}-'
+            '${entry.action.name}-${entry.target!.id}');
+    final label = entry.target == null
+        ? _targetActionLabel(entry.action)
+        : _playerFlowPropActionLabel(entry.action, entry.target!);
+    final icon = Icon(_targetActionIcon(entry.action), size: 18);
+    void handlePressed() => _handlePlayerFlowActionEntry(player, entry);
+    final minimumSize =
+        prominent ? const Size.fromHeight(44) : const Size(44, 44);
+    if (prominent) {
+      return SizedBox(
+        width: double.infinity,
+        child: FilledButton.icon(
+          key: key,
+          onPressed: handlePressed,
+          icon: icon,
+          label: Text(label),
+          style: FilledButton.styleFrom(minimumSize: minimumSize),
+        ),
+      );
     }
-    return FilledButton.icon(
-      key: ValueKey('training-player-flow-target-${player.id}-${target.id}'),
-      onPressed: () => Navigator.of(sheetContext).pop(
-        _PlayerFlowSelection.target(target.id),
-      ),
-      icon: Icon(icon),
-      label: Text(label),
-    );
-  }
-
-  Widget _playerFlowNewReceiverButton({
-    required BuildContext sheetContext,
-    required _BoardItem player,
-    required String sportId,
-  }) {
-    final label = switch (sportId) {
-      SportCatalog.baseballId => _l10n.trainingSketchThrowToNewPlayerButton,
-      SportCatalog.tennisId => _l10n.trainingSketchRallyToNewPlayerButton,
-      _ => _l10n.trainingSketchPassToNewPlayerButton,
-    };
-    final icon = switch (sportId) {
-      SportCatalog.baseballId => Icons.person_add_alt_1,
-      SportCatalog.tennisId => Icons.person_add_alt_1,
-      _ => Icons.person_add_alt_1,
-    };
-    return FilledButton.tonalIcon(
-      key: ValueKey('training-player-flow-new-receiver-${player.id}'),
-      onPressed: () => Navigator.of(sheetContext).pop(
-        const _PlayerFlowSelection.createPassReceiver(),
-      ),
-      icon: Icon(icon),
-      label: Text(label),
-    );
-  }
-
-  Widget _playerFlowActionButton({
-    required BuildContext sheetContext,
-    required _BoardItem player,
-    required _SketchTargetAction action,
-    required IconData icon,
-  }) {
     return OutlinedButton.icon(
-      key: ValueKey('training-player-flow-action-${player.id}-${action.name}'),
-      onPressed: () => Navigator.of(sheetContext).pop(
-        _PlayerFlowSelection.action(action),
+      key: key,
+      onPressed: handlePressed,
+      icon: icon,
+      label: Text(label),
+      style: OutlinedButton.styleFrom(
+        minimumSize: minimumSize,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       ),
-      icon: Icon(icon),
-      label: Text(_targetActionLabel(action)),
     );
+  }
+
+  bool _isImmediatePlayerFlowAction(_SketchTargetAction action) {
+    return action == _SketchTargetAction.stay ||
+        action == _SketchTargetAction.moveToBall;
+  }
+
+  void _preparePlayerForFlowAction(_BoardItem player) {
+    setState(() {
+      _selectedItemId = player.id;
+      _selectedRouteId = null;
+      _showSelectedColorPicker = false;
+      _pathMode = false;
+      _penMode = false;
+      _routeReplaceMode = false;
+      _activeStroke = null;
+      _activeRoutePoints = null;
+      _activeRouteSegmentDurationsMs = null;
+      _activeRouteLastPointAt = null;
+    });
+  }
+
+  void _handlePlayerFlowActionEntry(
+    _BoardItem player,
+    _PlayerFlowActionEntry entry,
+  ) {
+    if (widget.readOnly) return;
+    _preparePlayerForFlowAction(player);
+    final target = entry.target;
+    if (target != null) {
+      _applyPendingTargetActionToItem(action: entry.action, target: target);
+      return;
+    }
+    if (_isImmediatePlayerFlowAction(entry.action)) {
+      final snapshot = _captureActionUndoSnapshot();
+      final applied = entry.action == _SketchTargetAction.stay
+          ? _applyStayTargetAction(player)
+          : _applyMoveToBallAction(player);
+      if (applied) {
+        _showActionCreatedFeedback(snapshot);
+      }
+      return;
+    }
+    _beginTargetAction(entry.action);
   }
 
   IconData _targetActionIcon(_SketchTargetAction action) {
@@ -6438,9 +6464,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              _l10n.trainingSketchActionTargetHint(
-                _targetActionLabel(action),
-              ),
+              _targetActionHint(action),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: colors.onSecondaryContainer,
                     fontWeight: FontWeight.w600,
@@ -6451,8 +6475,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           TextButton(
             onPressed: _cancelTargetAction,
             style: TextButton.styleFrom(
-              visualDensity: VisualDensity.compact,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              minimumSize: const Size(44, 44),
               foregroundColor: colors.onSecondaryContainer,
             ),
             child: Text(_l10n.trainingSketchActionTargetCancelButton),
@@ -6732,19 +6755,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _activeRouteSegmentDurationsMs = null;
       _activeRouteLastPointAt = null;
     });
-  }
-
-  void _openStageActionBuilder(
-    _BoardRoute route, {
-    required int stageIndex,
-  }) {
-    final player = _selectablePlayerForRoute(route);
-    if (player == null) return;
-    _selectStageActionRoute(
-      route,
-      registeredStage: _normalizedRouteStageIndex(stageIndex),
-    );
-    unawaited(_openPlayerFlowBuilder(player));
   }
 
   void _editStageActionRoute(_BoardRoute route) {
@@ -7105,44 +7115,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     );
   }
 
-  Widget _buildGlobalStageActionShortcut({
-    required _BoardRoute route,
-    required int stageIndex,
-    required String keySuffix,
-    required String tooltip,
-    required IconData icon,
-    required Color iconColor,
-  }) {
-    return Tooltip(
-      message: tooltip,
-      child: Semantics(
-        button: true,
-        enabled: !widget.readOnly,
-        label: tooltip,
-        child: Material(
-          color: Colors.transparent,
-          shape: const CircleBorder(),
-          child: InkWell(
-            key:
-                ValueKey('training-global-stage-action-$keySuffix-${route.id}'),
-            customBorder: const CircleBorder(),
-            onTap: widget.readOnly
-                ? null
-                : () => _openStageActionBuilder(
-                      route,
-                      stageIndex: stageIndex,
-                    ),
-            child: SizedBox(
-              width: 32,
-              height: 32,
-              child: Icon(icon, size: 16, color: iconColor),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildGlobalStageSummaryItem(
     _StageSummary summary, {
     required Color accentColor,
@@ -7249,18 +7221,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                                 ),
                               ),
                             ),
-                            if (!widget.readOnly &&
-                                _selectablePlayerForRoute(route) != null) ...[
-                              _buildGlobalStageActionShortcut(
-                                route: route,
-                                stageIndex: summary.stageIndex + 1,
-                                keySuffix: 'add-next',
-                                tooltip: _l10n
-                                    .trainingSketchAddNextStageActionTooltip,
-                                icon: Icons.add_task_outlined,
-                                iconColor: colors.primary,
-                              ),
-                            ],
                             Tooltip(
                               message:
                                   _l10n.trainingSketchDeleteStageActionTooltip,
@@ -7593,10 +7553,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildPlayerFlowStarter(selected),
-          if (_pendingTargetAction != null) ...[
-            const SizedBox(height: 10),
-            _buildPendingTargetActionBanner(),
-          ],
           const SizedBox(height: 10),
           _buildGlobalStagePlanner(),
           if (selectedStageRoute != null) ...[
@@ -7654,6 +7610,26 @@ class _BoardPageState {
     required this.items,
     required this.strokes,
     required this.routes,
+  });
+}
+
+class _SketchUndoSnapshot {
+  final _BoardPageState page;
+  final int nextId;
+  final String? selectedItemId;
+  final String? selectedRouteId;
+  final int? registeredNextActionStageIndex;
+  final _PathDrawMode pathDrawMode;
+  final bool showSelectedColorPicker;
+
+  const _SketchUndoSnapshot({
+    required this.page,
+    required this.nextId,
+    required this.selectedItemId,
+    required this.selectedRouteId,
+    required this.registeredNextActionStageIndex,
+    required this.pathDrawMode,
+    required this.showSelectedColorPicker,
   });
 }
 
@@ -7827,33 +7803,20 @@ enum _SketchTargetAction {
   recover,
 }
 
-class _PlayerFlowSelection {
-  final _SketchTargetAction? action;
-  final String? targetItemId;
-  final bool createPassReceiver;
-
-  const _PlayerFlowSelection.action(this.action)
-      : targetItemId = null,
-        createPassReceiver = false;
-
-  const _PlayerFlowSelection.target(this.targetItemId)
-      : action = null,
-        createPassReceiver = false;
-
-  const _PlayerFlowSelection.targetAction(this.action, this.targetItemId)
-      : createPassReceiver = false;
-
-  const _PlayerFlowSelection.createPassReceiver()
-      : action = null,
-        targetItemId = null,
-        createPassReceiver = true;
-}
-
 class _PlayerFlowPropAction {
   final _SketchTargetAction action;
   final _BoardItem target;
 
   const _PlayerFlowPropAction(this.action, this.target);
+}
+
+class _PlayerFlowActionEntry {
+  final _SketchTargetAction action;
+  final _BoardItem? target;
+
+  const _PlayerFlowActionEntry.action(this.action) : target = null;
+
+  const _PlayerFlowActionEntry.target(this.action, this.target);
 }
 
 enum _BoardItemType { cone, hurdle, player, ball, ladder, target, base, basket }
@@ -8003,13 +7966,16 @@ const List<Color> _penColors = <Color>[
 class _BoardToken extends StatelessWidget {
   final _BoardItem item;
   final bool selected;
+  final bool highlighted;
   final bool moving;
   final String? label;
   final String sportId;
 
   const _BoardToken({
+    super.key,
     required this.item,
     required this.selected,
+    required this.highlighted,
     required this.moving,
     required this.label,
     required this.sportId,
@@ -8018,8 +7984,11 @@ class _BoardToken extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final icon = _boardItemIcon(item.type, sportId: sportId);
-    final borderColor =
-        selected ? Colors.white : Colors.white.withValues(alpha: 0.55);
+    final borderColor = highlighted
+        ? const Color(0xFFFFF176)
+        : selected
+            ? Colors.white
+            : Colors.white.withValues(alpha: 0.55);
     final shadows = moving
         ? <BoxShadow>[
             BoxShadow(
@@ -8033,17 +8002,34 @@ class _BoardToken extends StatelessWidget {
               offset: Offset(0, 3),
             ),
           ]
-        : selected
+        : highlighted
             ? const <BoxShadow>[
+                BoxShadow(
+                  color: Color(0xAAFFF176),
+                  blurRadius: 14,
+                  spreadRadius: 2,
+                ),
                 BoxShadow(
                   color: Colors.black54,
                   blurRadius: 8,
                   offset: Offset(0, 2),
                 ),
               ]
-            : null;
+            : selected
+                ? const <BoxShadow>[
+                    BoxShadow(
+                      color: Colors.black54,
+                      blurRadius: 8,
+                      offset: Offset(0, 2),
+                    ),
+                  ]
+                : null;
     return AnimatedScale(
-      scale: moving ? 1.12 : 1.0,
+      scale: moving
+          ? 1.12
+          : highlighted
+              ? 1.08
+              : 1.0,
       duration: const Duration(milliseconds: 110),
       curve: Curves.easeOut,
       child: Transform.rotate(
@@ -8059,7 +8045,11 @@ class _BoardToken extends StatelessWidget {
                 ? null
                 : Border.all(
                     color: borderColor,
-                    width: selected ? 2.2 : 1.2,
+                    width: highlighted
+                        ? 2.8
+                        : selected
+                            ? 2.2
+                            : 1.2,
                   ),
             boxShadow: shadows,
           ),

@@ -12938,6 +12938,14 @@ class AppLocalizationsKo extends AppLocalizations {
   String get trainingSketchPlayerFlowWithoutBall => '공 없음';
 
   @override
+  String trainingSketchPlayerFlowNextStageChip(int stage) {
+    return '다음 $stage단계';
+  }
+
+  @override
+  String get trainingSketchRecommendedActionBadge => '추천';
+
+  @override
   String get trainingSketchPlayerFlowHint =>
       '선수의 다음 동작을 고르면 단계와 공 이동이 자동으로 이어집니다.';
 
@@ -13347,7 +13355,15 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String trainingSketchPassTargetHint(Object action) {
+    return '$action 받을 선수를 누르세요.';
+  }
+
+  @override
   String get trainingSketchActionTargetCancelButton => '취소';
+
+  @override
+  String get trainingSketchActionCreatedSnack => '동작을 추가했어요.';
 
   @override
   String get trainingSketchSelectedItemActionsTitle => '빠른 동작';
