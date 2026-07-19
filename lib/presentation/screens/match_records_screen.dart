@@ -11,6 +11,8 @@ import '../theme/app_theme.dart';
 import '../utils/match_entry_format.dart';
 import '../widgets/app_bar_action_button.dart';
 
+enum _MatchRecordKindFilter { all, friendly, league, tournament }
+
 class MatchRecordsScreen extends StatelessWidget {
   final TrainingService trainingService;
   final OptionRepository optionRepository;
@@ -43,10 +45,11 @@ class MatchRecordsScreen extends StatelessWidget {
   }
 }
 
-class MatchRecordsContent extends StatelessWidget {
+class MatchRecordsContent extends StatefulWidget {
   final TrainingService trainingService;
   final OptionRepository optionRepository;
   final bool showHeader;
+  final bool showSummary;
   final bool scrollable;
   final EdgeInsetsGeometry padding;
   final VoidCallback? onBack;
@@ -56,46 +59,114 @@ class MatchRecordsContent extends StatelessWidget {
     required this.trainingService,
     required this.optionRepository,
     this.showHeader = false,
+    this.showSummary = true,
     this.scrollable = false,
     this.padding = EdgeInsets.zero,
     this.onBack,
   });
 
   @override
+  State<MatchRecordsContent> createState() => _MatchRecordsContentState();
+}
+
+class _MatchRecordsContentState extends State<MatchRecordsContent> {
+  _MatchRecordKindFilter _kindFilter = _MatchRecordKindFilter.all;
+  String? _competitionFilter;
+
+  List<TrainingEntry> _filterEntries(
+    List<TrainingEntry> entries,
+    String? competitionFilter,
+  ) {
+    return entries.where((entry) {
+      final matchesKind = switch (_kindFilter) {
+        _MatchRecordKindFilter.all => true,
+        _MatchRecordKindFilter.friendly =>
+          !entry.isLeagueMatch && !entry.isTournamentMatch,
+        _MatchRecordKindFilter.league => entry.isLeagueMatch,
+        _MatchRecordKindFilter.tournament => entry.isTournamentMatch,
+      };
+      if (!matchesKind) return false;
+      if (competitionFilter == null) return true;
+      return entry.matchCompetitionName.trim() == competitionFilter;
+    }).toList(growable: false);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final sportId = SportService(optionRepository).currentSportId();
+    final sportId = SportService(widget.optionRepository).currentSportId();
     return StreamBuilder<List<TrainingEntry>>(
-      stream: trainingService.watchEntries(),
+      stream: widget.trainingService.watchEntries(),
       builder: (context, snapshot) {
         final entries = filterEntriesForSport(
           snapshot.data ?? const <TrainingEntry>[],
           sportId,
         ).where((entry) => entry.isMatch).toList(growable: false)
           ..sort((a, b) => b.date.compareTo(a.date));
+        final competitionNames = entries
+            .map((entry) => entry.matchCompetitionName.trim())
+            .where((name) => name.isNotEmpty)
+            .toSet()
+            .toList(growable: false)
+          ..sort();
+        final effectiveCompetitionFilter =
+            competitionNames.contains(_competitionFilter)
+                ? _competitionFilter
+                : null;
+        final filteredEntries = _filterEntries(
+          entries,
+          effectiveCompetitionFilter,
+        );
         final metrics = _MatchRecordsMetrics.from(entries);
         final content = Padding(
-          padding: padding,
+          padding: widget.padding,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              if (showHeader) ...[
+              if (widget.showHeader) ...[
                 _MatchRecordsHeader(
-                  onBack: onBack ?? () => Navigator.of(context).maybePop(),
+                  onBack:
+                      widget.onBack ?? () => Navigator.of(context).maybePop(),
                 ),
                 const SizedBox(height: AppSpacing.md),
               ],
-              _MatchRecordsSummary(metrics: metrics),
-              const SizedBox(height: AppSpacing.md),
-              _RecordsSectionHeader(title: l10n.matchRecordsListTitle),
+              if (widget.showSummary) ...[
+                _MatchRecordsSummary(metrics: metrics),
+                const SizedBox(height: AppSpacing.md),
+              ],
+              _RecordsSectionHeader(
+                title: l10n.matchRecordsListTitle,
+                kindFilter: _kindFilter,
+                competitionNames: competitionNames,
+                competitionFilter: effectiveCompetitionFilter,
+                onKindFilterChanged: (value) {
+                  setState(() => _kindFilter = value);
+                },
+                onCompetitionFilterChanged: (value) {
+                  setState(() => _competitionFilter = value);
+                },
+              ),
               if (entries.isEmpty)
                 _RecordsEmptyPanel(
                   icon: Icons.fact_check_outlined,
                   title: l10n.matchHubEmptyTitle,
                   body: l10n.matchHubEmptySubtitle,
                 )
+              else if (filteredEntries.isEmpty)
+                _RecordsEmptyPanel(
+                  icon: Icons.filter_alt_off_outlined,
+                  title: l10n.matchRecordsFilterEmptyTitle,
+                  body: l10n.matchRecordsFilterEmptyBody,
+                  actionLabel: l10n.filterReset,
+                  onAction: () {
+                    setState(() {
+                      _kindFilter = _MatchRecordKindFilter.all;
+                      _competitionFilter = null;
+                    });
+                  },
+                )
               else
-                ...entries.map(
+                ...filteredEntries.map(
                   (entry) => Padding(
                     padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                     child: _MatchRecordCard(entry: entry),
@@ -104,7 +175,7 @@ class MatchRecordsContent extends StatelessWidget {
             ],
           ),
         );
-        if (!scrollable) return content;
+        if (!widget.scrollable) return content;
         return SingleChildScrollView(child: content);
       },
     );
@@ -313,6 +384,7 @@ class _MatchRecordCard extends StatelessWidget {
         ? l10n.statsCompetitionOpponentUnset
         : entry.opponentTeam.trim();
     final details = [
+      matchKindLabel(entry, l10n),
       DateFormat.yMMMd(locale).format(entry.date),
       ...matchCompetitionDetailParts(entry, l10n, teamLimit: 3),
     ];
@@ -323,16 +395,18 @@ class _MatchRecordCard extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 48,
-            height: 48,
+            width: 46,
+            height: 46,
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.12),
               borderRadius: AppRadius.small,
             ),
             child: Center(
               child: Text(
-                _outcomeShortLabel(outcome, l10n),
-                style: theme.textTheme.titleMedium?.copyWith(
+                _opponentInitials(opponent),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.titleSmall?.copyWith(
                   color: color,
                   fontWeight: FontWeight.w900,
                 ),
@@ -345,7 +419,7 @@ class _MatchRecordCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${matchKindLabel(entry, l10n)} · $opponent',
+                  opponent,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.titleMedium?.copyWith(
@@ -372,16 +446,26 @@ class _MatchRecordCard extends StatelessWidget {
             children: [
               Text(
                 score,
-                style: theme.textTheme.titleMedium?.copyWith(
+                style: theme.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.w900,
                 ),
               ),
               const SizedBox(height: AppSpacing.xxs),
-              Text(
-                outcomeLabel,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.w900,
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.xs,
+                  vertical: 2,
+                ),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.10),
+                  borderRadius: AppRadius.small,
+                ),
+                child: Text(
+                  outcomeLabel,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
               ),
             ],
@@ -392,20 +476,172 @@ class _MatchRecordCard extends StatelessWidget {
   }
 }
 
+String _opponentInitials(String opponent) {
+  final trimmed = opponent.trim();
+  if (trimmed.isEmpty) return '-';
+  final parts = trimmed.split(RegExp(r'\s+'));
+  if (parts.length > 1) {
+    return parts
+        .where((part) => part.isNotEmpty)
+        .take(2)
+        .map((part) => part.characters.first)
+        .join();
+  }
+  return trimmed.characters.take(2).toString();
+}
+
 class _RecordsSectionHeader extends StatelessWidget {
   final String title;
+  final _MatchRecordKindFilter kindFilter;
+  final List<String> competitionNames;
+  final String? competitionFilter;
+  final ValueChanged<_MatchRecordKindFilter> onKindFilterChanged;
+  final ValueChanged<String?> onCompetitionFilterChanged;
 
-  const _RecordsSectionHeader({required this.title});
+  const _RecordsSectionHeader({
+    required this.title,
+    required this.kindFilter,
+    required this.competitionNames,
+    required this.competitionFilter,
+    required this.onKindFilterChanged,
+    required this.onCompetitionFilterChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            title,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Row(
+            children: [
+              Expanded(
+                child: MenuAnchor(
+                  key: const ValueKey('match-record-kind-filter'),
+                  menuChildren: [
+                    for (final value in _MatchRecordKindFilter.values)
+                      MenuItemButton(
+                        leadingIcon: kindFilter == value
+                            ? const Icon(Icons.check)
+                            : const SizedBox(width: 24),
+                        onPressed: () => onKindFilterChanged(value),
+                        child: Text(_matchRecordKindFilterLabel(l10n, value)),
+                      ),
+                  ],
+                  builder: (context, controller, child) =>
+                      _CompactRecordsFilterButton(
+                    icon: Icons.sports_soccer_outlined,
+                    label: _matchRecordKindFilterLabel(l10n, kindFilter),
+                    active: kindFilter != _MatchRecordKindFilter.all,
+                    onPressed: () => controller.isOpen
+                        ? controller.close()
+                        : controller.open(),
+                  ),
+                ),
+              ),
+              if (competitionNames.isNotEmpty) ...[
+                const SizedBox(width: AppSpacing.xs),
+                Expanded(
+                  child: MenuAnchor(
+                    key: const ValueKey('match-record-competition-filter'),
+                    menuChildren: [
+                      MenuItemButton(
+                        leadingIcon: competitionFilter == null
+                            ? const Icon(Icons.check)
+                            : const SizedBox(width: 24),
+                        onPressed: () => onCompetitionFilterChanged(null),
+                        child: Text(l10n.matchRecordsCompetitionAllFilter),
+                      ),
+                      for (final name in competitionNames)
+                        MenuItemButton(
+                          leadingIcon: competitionFilter == name
+                              ? const Icon(Icons.check)
+                              : const SizedBox(width: 24),
+                          onPressed: () => onCompetitionFilterChanged(name),
+                          child: Text(name),
+                        ),
+                    ],
+                    builder: (context, controller, child) =>
+                        _CompactRecordsFilterButton(
+                      icon: Icons.emoji_events_outlined,
+                      label: competitionFilter ??
+                          l10n.matchRecordsCompetitionAllFilter,
+                      active: competitionFilter != null,
+                      onPressed: () => controller.isOpen
+                          ? controller.close()
+                          : controller.open(),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CompactRecordsFilterButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool active;
+  final VoidCallback onPressed;
+
+  const _CompactRecordsFilterButton({
+    required this.icon,
+    required this.label,
+    required this.active,
+    required this.onPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-      child: Text(
-        title,
-        style: theme.textTheme.titleMedium?.copyWith(
-          fontWeight: FontWeight.w900,
+    final scheme = theme.colorScheme;
+    final foreground = active ? scheme.primary : scheme.onSurfaceVariant;
+    return Material(
+      color: active
+          ? scheme.primary.withValues(alpha: 0.10)
+          : scheme.surfaceContainerHighest.withValues(alpha: 0.48),
+      borderRadius: AppRadius.small,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: AppRadius.small,
+        child: SizedBox(
+          height: 38,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+            child: Row(
+              children: [
+                Icon(icon, size: 17, color: foreground),
+                const SizedBox(width: AppSpacing.xs),
+                Expanded(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: foreground,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.xxs),
+                Icon(Icons.arrow_drop_down, size: 18, color: foreground),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -416,11 +652,15 @@ class _RecordsEmptyPanel extends StatelessWidget {
   final IconData icon;
   final String title;
   final String body;
+  final String? actionLabel;
+  final VoidCallback? onAction;
 
   const _RecordsEmptyPanel({
     required this.icon,
     required this.title,
     required this.body,
+    this.actionLabel,
+    this.onAction,
   });
 
   @override
@@ -451,10 +691,29 @@ class _RecordsEmptyPanel extends StatelessWidget {
               height: 1.35,
             ),
           ),
+          if (actionLabel != null && onAction != null) ...[
+            const SizedBox(height: AppSpacing.sm),
+            TextButton(
+              onPressed: onAction,
+              child: Text(actionLabel!),
+            ),
+          ],
         ],
       ),
     );
   }
+}
+
+String _matchRecordKindFilterLabel(
+  AppLocalizations l10n,
+  _MatchRecordKindFilter filter,
+) {
+  return switch (filter) {
+    _MatchRecordKindFilter.all => l10n.filterAll,
+    _MatchRecordKindFilter.friendly => l10n.matchKindFriendly,
+    _MatchRecordKindFilter.league => l10n.matchKindLeague,
+    _MatchRecordKindFilter.tournament => l10n.matchKindTournament,
+  };
 }
 
 class _MatchRecordsMetrics {
@@ -520,15 +779,6 @@ int? _matchOutcome(TrainingEntry entry) {
   }
   if (entry.tournamentOutcome == 'eliminated') return -1;
   return null;
-}
-
-String _outcomeShortLabel(int? outcome, AppLocalizations l10n) {
-  return switch (outcome) {
-    1 => l10n.statsMatchOutcomeWinShort,
-    0 => l10n.statsMatchOutcomeDrawShort,
-    -1 => l10n.statsMatchOutcomeLossShort,
-    _ => '-',
-  };
 }
 
 Color _outcomeColor(int? outcome, ColorScheme scheme) {

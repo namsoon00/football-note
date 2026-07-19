@@ -21011,6 +21011,24 @@ abstract class AppLocalizations {
   /// **'All match records'**
   String get matchRecordsListTitle;
 
+  /// No description provided for @matchRecordsCompetitionAllFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'All competitions'**
+  String get matchRecordsCompetitionAllFilter;
+
+  /// No description provided for @matchRecordsFilterEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No matches fit these filters.'**
+  String get matchRecordsFilterEmptyTitle;
+
+  /// No description provided for @matchRecordsFilterEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset the match type or competition filter and try again.'**
+  String get matchRecordsFilterEmptyBody;
+
   /// No description provided for @matchHubCalendarButton.
   ///
   /// In en, this message translates to:
@@ -21587,6 +21605,18 @@ abstract class AppLocalizations {
   /// **'Tactics board'**
   String get teamManagementWorkspaceBoardTab;
 
+  /// No description provided for @teamManagementBoardHeaderButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Board'**
+  String get teamManagementBoardHeaderButton;
+
+  /// No description provided for @teamManagementCompetitionHeaderButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Cups'**
+  String get teamManagementCompetitionHeaderButton;
+
   /// No description provided for @teamManagementTacticBookTitle.
   ///
   /// In en, this message translates to:
@@ -21916,6 +21946,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Roster'**
   String get teamManagementPlayersTitle;
+
+  /// No description provided for @teamManagementPlayerSearchTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Search players'**
+  String get teamManagementPlayerSearchTooltip;
+
+  /// No description provided for @teamManagementPlayerSearchCloseTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Close search'**
+  String get teamManagementPlayerSearchCloseTooltip;
+
+  /// No description provided for @teamManagementPlayerSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by name, number, or grade'**
+  String get teamManagementPlayerSearchHint;
+
+  /// No description provided for @teamManagementPlayerFilterTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter player status'**
+  String get teamManagementPlayerFilterTooltip;
+
+  /// No description provided for @teamManagementPlayerFilterEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No players match these filters.'**
+  String get teamManagementPlayerFilterEmptyTitle;
+
+  /// No description provided for @teamManagementPlayerFilterEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear the search or status filter and try again.'**
+  String get teamManagementPlayerFilterEmptyBody;
+
+  /// No description provided for @teamManagementRosterSummaryAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get teamManagementRosterSummaryAll;
+
+  /// No description provided for @teamManagementRosterSummaryReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready'**
+  String get teamManagementRosterSummaryReady;
+
+  /// No description provided for @teamManagementRosterSummaryWatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch'**
+  String get teamManagementRosterSummaryWatch;
+
+  /// No description provided for @teamManagementRosterSummaryRest.
+  ///
+  /// In en, this message translates to:
+  /// **'Rest'**
+  String get teamManagementRosterSummaryRest;
 
   /// No description provided for @teamManagementPlayersHelper.
   ///

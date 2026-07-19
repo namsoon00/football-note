@@ -11880,6 +11880,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String get matchRecordsListTitle => '전체 시합 기록';
 
   @override
+  String get matchRecordsCompetitionAllFilter => '대회 전체';
+
+  @override
+  String get matchRecordsFilterEmptyTitle => '조건에 맞는 시합이 없어요.';
+
+  @override
+  String get matchRecordsFilterEmptyBody => '시합 유형이나 대회 필터를 초기화해 보세요.';
+
+  @override
   String get matchHubCalendarButton => '일정 보기';
 
   @override
@@ -12202,6 +12211,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get teamManagementWorkspaceBoardTab => '전술 보드';
 
   @override
+  String get teamManagementBoardHeaderButton => '보드';
+
+  @override
+  String get teamManagementCompetitionHeaderButton => '대회';
+
+  @override
   String get teamManagementTacticBookTitle => '전술 리스트';
 
   @override
@@ -12389,6 +12404,36 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get teamManagementPlayersTitle => '선수단';
+
+  @override
+  String get teamManagementPlayerSearchTooltip => '선수 검색';
+
+  @override
+  String get teamManagementPlayerSearchCloseTooltip => '검색 닫기';
+
+  @override
+  String get teamManagementPlayerSearchHint => '선수 이름, 등번호 또는 학년 검색';
+
+  @override
+  String get teamManagementPlayerFilterTooltip => '선수 상태 필터';
+
+  @override
+  String get teamManagementPlayerFilterEmptyTitle => '조건에 맞는 선수가 없어요.';
+
+  @override
+  String get teamManagementPlayerFilterEmptyBody => '검색어나 상태 필터를 초기화해 보세요.';
+
+  @override
+  String get teamManagementRosterSummaryAll => '전체';
+
+  @override
+  String get teamManagementRosterSummaryReady => '출전';
+
+  @override
+  String get teamManagementRosterSummaryWatch => '관리';
+
+  @override
+  String get teamManagementRosterSummaryRest => '휴식';
 
   @override
   String get teamManagementPlayersHelper =>
