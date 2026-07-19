@@ -7,6 +7,12 @@ import '../domain/entities/fifa_world_overview.dart';
 class FifaWorldOverviewService {
   static final Uri _baseApiUri = Uri.parse('https://api.fifa.com/api/v3');
   static final Uri _kfaHomeUri = Uri.parse('https://www.kfa.or.kr/');
+  static final Uri _gameDayTokenUri = Uri.parse(
+    'https://cxm-api.fifa.com/fifaplusweb/api/external/gameDay/token',
+  );
+  static final Uri _gameDayApiUri = Uri.parse(
+    'https://gameday-prod.fifa.mangodev.co.uk/1-0',
+  );
   static const int _rankingPageSize = 250;
   static const int _footballSportType = 0;
   static const int _matchPageSize = 100;
@@ -162,6 +168,33 @@ class FifaWorldOverviewService {
     }
   }
 
+  Future<FifaCompetitionPlayerStatRankings> fetchCompetitionPlayerStatRankings({
+    required String competitionId,
+    String language = 'en',
+  }) async {
+    final token = await _fetchGameDayToken();
+    if (token.isEmpty) {
+      return const FifaCompetitionPlayerStatRankings.empty();
+    }
+    final goalsFuture = _fetchCompetitionTopScorerStory(
+      token: token,
+      competitionId: competitionId,
+      stat: 'goals',
+      language: language,
+    );
+    final assistsFuture = _fetchCompetitionTopScorerStory(
+      token: token,
+      competitionId: competitionId,
+      stat: 'assists',
+      language: language,
+    );
+    final results = await Future.wait([goalsFuture, assistsFuture]);
+    return FifaCompetitionPlayerStatRankings(
+      goals: results[0],
+      assists: results[1],
+    );
+  }
+
   Future<List<FifaAMatchEntry>> fetchNationalMatches({
     required FifaRankingGender gender,
     required DateTime start,
@@ -237,6 +270,69 @@ class FifaWorldOverviewService {
     final matches = deduped.values.toList(growable: false)
       ..sort((a, b) => a.kickoffAt.compareTo(b.kickoffAt));
     return matches;
+  }
+
+  Future<String> _fetchGameDayToken() async {
+    try {
+      final response = await _client
+          .get(
+            _gameDayTokenUri,
+            headers: _gameDayHeaders(),
+          )
+          .timeout(const Duration(seconds: 8));
+      if (response.statusCode != 200) return '';
+      final decoded = jsonDecode(response.body);
+      if (decoded is! Map) return '';
+      return _asString(decoded['token']);
+    } catch (_) {
+      return '';
+    }
+  }
+
+  Future<List<FifaCompetitionPlayerStatEntry>> _fetchCompetitionTopScorerStory({
+    required String token,
+    required String competitionId,
+    required String stat,
+    required String language,
+  }) async {
+    final query = '(and resourceStatus==`urn:gd:resourceStatus:active` '
+        '_externalId~`urn:gd:story:classification:gcp_top_scorer:'
+        'competitionId:$competitionId:$stat:rank_asc:page:1\$`)';
+    final uri = _gameDayApiUri.replace(
+      path: '${_gameDayApiUri.path}/stories',
+      queryParameters: {
+        'query': query,
+        'skip': '0',
+        'limit': '1',
+        'sort': 'tags.name==urn:gd:tag:story:fifa:column_number:asc',
+      },
+    );
+    try {
+      final response = await _client
+          .get(
+            uri,
+            headers: _gameDayHeaders(token: token),
+          )
+          .timeout(const Duration(seconds: 8));
+      if (response.statusCode != 200) {
+        return const <FifaCompetitionPlayerStatEntry>[];
+      }
+      return parseCompetitionPlayerStatEntries(
+        jsonDecode(response.body),
+        language: language,
+      );
+    } catch (_) {
+      return const <FifaCompetitionPlayerStatEntry>[];
+    }
+  }
+
+  Map<String, String> _gameDayHeaders({String token = ''}) {
+    return {
+      'User-Agent': 'Mozilla/5.0',
+      'Origin': 'https://www.fifa.com',
+      'Referer': 'https://www.fifa.com/',
+      if (token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
   }
 
   Future<_FifaRankingSnapshot> _fetchRankingSnapshot(
@@ -618,6 +714,58 @@ class FifaWorldOverviewService {
       awayPossession: possession[1],
       attendance: _asInt(item['Attendance']),
     );
+  }
+
+  static List<FifaCompetitionPlayerStatEntry> parseCompetitionPlayerStatEntries(
+    dynamic decoded, {
+    String language = 'en',
+  }) {
+    if (decoded is! Map) return const <FifaCompetitionPlayerStatEntry>[];
+    final rawItems = decoded['items'];
+    if (rawItems is! List || rawItems.isEmpty) {
+      return const <FifaCompetitionPlayerStatEntry>[];
+    }
+    final firstItem = rawItems.first;
+    if (firstItem is! Map) return const <FifaCompetitionPlayerStatEntry>[];
+    final rawActors = firstItem['actors'];
+    if (rawActors is! List) {
+      return const <FifaCompetitionPlayerStatEntry>[];
+    }
+
+    final entries = <FifaCompetitionPlayerStatEntry>[];
+    final localeCode = _gameDayLocaleCode(language);
+    for (final rawActor in rawActors) {
+      if (rawActor is! Map) continue;
+      final actor = rawActor.cast<String, dynamic>();
+      final tags = _gameDayTags(actor['tags']);
+      final key = _asMap(actor['key']);
+      final playerId = _asString(key['_externalSportsPersonId']);
+      final playerName = _localizedMapValue(actor['name'], localeCode);
+      final teamName = _firstNonEmpty([
+        _asString(tags['urn:gd:tag:story:team:name:eng']),
+        _localizedMapValue(actor['team'], 'eng'),
+      ]);
+      final teamCode = _asString(tags['urn:gd:tag:story:team:abbreviation']);
+      final goals = _asInt(tags['urn:gd:tag:football:stats:goals']) ?? 0;
+      final assists = _asInt(tags['urn:gd:tag:football:stats:assists']) ?? 0;
+      final minutesPlayed = _asInt(
+            tags['urn:gd:tag:football:stats:total_competition_minutes_played'],
+          ) ??
+          0;
+      if (playerName.isEmpty || teamName.isEmpty) continue;
+      entries.add(
+        FifaCompetitionPlayerStatEntry(
+          playerId: playerId,
+          playerName: playerName,
+          teamName: teamName,
+          teamCode: teamCode,
+          goals: goals,
+          assists: assists,
+          minutesPlayed: minutesPlayed,
+        ),
+      );
+    }
+    return entries.toList(growable: false);
   }
 
   static KfaMatchOverview parseKfaMatchOverview(String html, {int limit = 8}) {
@@ -1165,12 +1313,13 @@ class FifaWorldOverviewService {
         _asString(goal['IdPlayerAssist']),
         _asString(goal['AssistPlayerId']),
       ]);
-      if (assistPlayerId.isEmpty) continue;
-      final assistPlayerName = playerNames[assistPlayerId] ??
-          _firstNonEmpty([
-            _localizedDescription(goal['AssistPlayerName']),
-            _localizedDescription(goal['AssistantName']),
-          ]);
+      final assistPlayerName = _firstNonEmpty([
+        if (assistPlayerId.isNotEmpty) playerNames[assistPlayerId] ?? '',
+        _localizedDescription(goal['AssistPlayerName']),
+        _localizedDescription(goal['AssistantName']),
+        _asString(goal['AssistPlayerName']),
+        _asString(goal['AssistantName']),
+      ]);
       if (assistPlayerName.isEmpty) continue;
       assists.add(
         FifaMatchAssist(
@@ -1347,6 +1496,58 @@ class FifaWorldOverviewService {
       }
     }
     return _asString(raw);
+  }
+
+  static Map<String, dynamic> _gameDayTags(dynamic raw) {
+    if (raw is! List) return const <String, dynamic>{};
+    return <String, dynamic>{
+      for (final item in raw)
+        if (item is Map && _asString(item['name']).isNotEmpty)
+          _asString(item['name']): item['value'],
+    };
+  }
+
+  static String _localizedMapValue(dynamic raw, String localeCode) {
+    if (raw is! Map) return '';
+    final values = raw.cast<dynamic, dynamic>();
+    final normalizedLocale = localeCode.trim().toLowerCase();
+    final candidates = [
+      normalizedLocale,
+      switch (normalizedLocale) {
+        'ko' || 'ko-kr' => 'kor',
+        'ja' || 'ja-jp' => 'jpn',
+        'en' || 'en-gb' || 'en-us' => 'eng',
+        _ => normalizedLocale,
+      },
+      'eng',
+    ];
+    for (final candidate in candidates) {
+      final text = _asString(values[candidate]);
+      if (text.isNotEmpty) return text;
+    }
+    for (final value in values.values) {
+      final text = _asString(value);
+      if (text.isNotEmpty) return text;
+    }
+    return '';
+  }
+
+  static String _gameDayLocaleCode(String language) {
+    final normalized = language.trim().toLowerCase().replaceAll('_', '-');
+    return switch (normalized) {
+      'ko' || 'ko-kr' => 'kor',
+      'ja' || 'ja-jp' => 'jpn',
+      'en' || 'en-gb' || 'en-us' => 'eng',
+      'fr' || 'fr-fr' => 'fra',
+      'de' || 'de-de' => 'deu',
+      'es' || 'es-es' => 'spa',
+      'pt' || 'pt-br' || 'pt-pt' => 'por',
+      'it' || 'it-it' => 'ita',
+      'ar' => 'ara',
+      'id' || 'id-id' => 'ind',
+      'zh' || 'zh-cn' => 'zho',
+      _ => 'eng',
+    };
   }
 
   static Map<String, dynamic> _asMap(dynamic raw) {
