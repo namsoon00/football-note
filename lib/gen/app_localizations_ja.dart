@@ -11859,6 +11859,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get matchRecordsListTitle => 'すべての試合記録';
 
   @override
+  String get matchRecordsCompetitionAllFilter => 'すべての大会';
+
+  @override
+  String get matchRecordsFilterEmptyTitle => '条件に合う試合がありません。';
+
+  @override
+  String get matchRecordsFilterEmptyBody => '試合種別または大会フィルターをリセットしてください。';
+
+  @override
   String get matchHubCalendarButton => '予定を見る';
 
   @override
@@ -12180,6 +12189,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get teamManagementWorkspaceBoardTab => '戦術ボード';
 
   @override
+  String get teamManagementBoardHeaderButton => 'ボード';
+
+  @override
+  String get teamManagementCompetitionHeaderButton => '大会';
+
+  @override
   String get teamManagementTacticBookTitle => '戦術リスト';
 
   @override
@@ -12367,6 +12382,36 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get teamManagementPlayersTitle => '選手名簿';
+
+  @override
+  String get teamManagementPlayerSearchTooltip => '選手を検索';
+
+  @override
+  String get teamManagementPlayerSearchCloseTooltip => '検索を閉じる';
+
+  @override
+  String get teamManagementPlayerSearchHint => '名前、背番号、学年で検索';
+
+  @override
+  String get teamManagementPlayerFilterTooltip => '選手状態を絞り込む';
+
+  @override
+  String get teamManagementPlayerFilterEmptyTitle => '条件に合う選手がいません。';
+
+  @override
+  String get teamManagementPlayerFilterEmptyBody => '検索または状態フィルターをリセットしてください。';
+
+  @override
+  String get teamManagementRosterSummaryAll => '全員';
+
+  @override
+  String get teamManagementRosterSummaryReady => '出場';
+
+  @override
+  String get teamManagementRosterSummaryWatch => '管理';
+
+  @override
+  String get teamManagementRosterSummaryRest => '休養';
 
   @override
   String get teamManagementPlayersHelper =>

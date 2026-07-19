@@ -9,13 +9,11 @@ import 'package:football_note/application/match_competition_service.dart';
 import 'package:football_note/application/settings_service.dart';
 import 'package:football_note/application/team_management_service.dart';
 import 'package:football_note/application/training_service.dart';
-import 'package:football_note/domain/entities/sport_definition.dart';
 import 'package:football_note/domain/entities/training_entry.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/domain/repositories/training_repository.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/competition_management_screen.dart';
-import 'package:football_note/presentation/screens/match_hub_screen.dart';
 import 'package:football_note/presentation/screens/match_record_screen.dart';
 import 'package:football_note/presentation/screens/team_management_screen.dart';
 import 'package:football_note/presentation/theme/app_theme.dart';
@@ -42,45 +40,6 @@ void main() {
   tearDown(() async {
     await trainingRepository.dispose();
   });
-
-  Future<void> pumpHub(
-    WidgetTester tester, {
-    VoidCallback? onOpenCalendar,
-    VoidCallback? onOpenMatchStats,
-    ThemeMode themeMode = ThemeMode.light,
-  }) async {
-    await tester.pumpWidget(
-      DefaultAssetBundle(
-        bundle: TestAssetBundle(),
-        child: MaterialApp(
-          locale: const Locale('ko', 'KR'),
-          theme: AppTheme.light(),
-          darkTheme: AppTheme.dark(),
-          themeMode: themeMode,
-          localizationsDelegates: const [
-            AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: const [
-            Locale('en'),
-            Locale('ko', 'KR'),
-            Locale('ja'),
-          ],
-          home: MatchHubScreen(
-            trainingService: trainingService,
-            localeService: localeService,
-            optionRepository: optionRepository,
-            settingsService: settingsService,
-            onOpenCalendar: onOpenCalendar ?? () {},
-            onOpenMatchStats: onOpenMatchStats ?? () {},
-          ),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-  }
 
   Future<void> pumpCompetitionManagement(
     WidgetTester tester, {
@@ -186,76 +145,6 @@ void main() {
     );
   }
 
-  testWidgets('Match hub keeps records out of the home overview', (
-    tester,
-  ) async {
-    await seedMatchHubRecords();
-
-    await pumpHub(tester);
-
-    expect(find.text('팀 관리'), findsWidgets);
-    expect(find.text('운영 현황'), findsOneWidget);
-    expect(find.text('운영 작업'), findsOneWidget);
-    expect(find.text('선수관리'), findsWidgets);
-    expect(find.text('시합관리'), findsOneWidget);
-    expect(find.text('팀 관리 열기'), findsNothing);
-    expect(find.text('2경기'), findsWidgets);
-    expect(find.text('1승 0무 1패'), findsNothing);
-    expect(find.text('주말 리그'), findsOneWidget);
-    expect(find.text('컵 대회'), findsOneWidget);
-    expect(find.text('우리 팀'), findsWidgets);
-    expect(find.text('우리 팀 U15'), findsWidgets);
-    expect(find.text('대회 관리'), findsWidgets);
-    expect(find.text('최근 시합'), findsNothing);
-    expect(find.text('3 : 1'), findsNothing);
-
-    await tester.tap(find.text('운영 현황'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('1승 0무 1패'), findsOneWidget);
-  });
-
-  testWidgets('Match hub opens professional competition management', (
-    tester,
-  ) async {
-    await seedMatchHubRecords();
-
-    await pumpHub(tester);
-    await tester
-        .tap(find.byKey(const ValueKey('match-hub-competition-action')));
-    await tester.pumpAndSettle();
-
-    expect(find.text('대회 운영 센터'), findsOneWidget);
-    expect(find.text('운영 요약'), findsOneWidget);
-    expect(find.text('리그 만들기'), findsOneWidget);
-    expect(find.text('토너먼트 만들기'), findsOneWidget);
-    expect(find.text('주말 리그'), findsOneWidget);
-    expect(find.text('컵 대회'), findsOneWidget);
-    expect(find.textContaining('2026 여름'), findsOneWidget);
-    expect(find.textContaining('메인 구장'), findsOneWidget);
-    expect(find.textContaining('감독 김코치'), findsOneWidget);
-    expect(find.text('리그 순위'), findsOneWidget);
-    expect(find.text('토너먼트 대진표'), findsOneWidget);
-    expect(find.text('다음 운영'), findsWidgets);
-  });
-
-  testWidgets('Match hub hides team management section for personal sports', (
-    tester,
-  ) async {
-    await optionRepository.setValue(
-      SportCatalog.currentSportOptionKey,
-      SportCatalog.tennisId,
-    );
-    await seedMatchHubRecords();
-
-    await pumpHub(tester);
-
-    expect(find.text('아직 우리 팀이 없어요.'), findsNothing);
-    expect(find.text('우리 팀 U15'), findsNothing);
-    expect(find.text('대회 관리'), findsWidgets);
-    expect(find.text('시합 기록 보기'), findsOneWidget);
-  });
-
   testWidgets('Competition management buttons keep contrast in both themes', (
     tester,
   ) async {
@@ -306,26 +195,6 @@ void main() {
     expect(find.text('대회 저장'), findsOneWidget);
   });
 
-  testWidgets('Match hub opens a dedicated records view', (
-    tester,
-  ) async {
-    await seedMatchHubRecords();
-
-    await pumpHub(tester);
-    final recordsButton = find.text('시합 기록 보기');
-    await tester.ensureVisible(recordsButton);
-    await tester.tap(recordsButton);
-    await tester.pumpAndSettle();
-
-    expect(find.text('시합 기록'), findsWidgets);
-    expect(find.text('기록 요약'), findsOneWidget);
-    expect(find.text('전체 시합 기록'), findsOneWidget);
-    expect(find.textContaining('서울 U15'), findsWidgets);
-    expect(find.text('3 : 1'), findsOneWidget);
-    expect(find.textContaining('인천 U15'), findsWidgets);
-    expect(find.text('1 : 2'), findsOneWidget);
-  });
-
   testWidgets('Team management match tab shows records inline', (
     tester,
   ) async {
@@ -358,6 +227,14 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    await tester.tap(
+      find.byKey(const ValueKey('team-header-competition')),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('대회 운영 센터'), findsOneWidget);
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
     await tester.tap(find.text('시합관리'));
     await tester.pumpAndSettle();
 
@@ -369,47 +246,67 @@ void main() {
     expect(find.text('시합 통계'), findsNothing);
     expect(find.text('클럽 일정'), findsNothing);
     expect(find.text('전체 시합 기록'), findsOneWidget);
+    expect(find.text('기록 요약'), findsNothing);
     expect(find.textContaining('서울 U15'), findsWidgets);
     expect(find.text('3 : 1'), findsOneWidget);
   });
 
-  testWidgets('Match hub quick stats action calls the host callback', (
+  testWidgets('Team management filters match records by kind and competition', (
     tester,
   ) async {
-    var openedStats = false;
+    await seedMatchHubRecords();
 
-    await pumpHub(
-      tester,
-      onOpenMatchStats: () => openedStats = true,
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en'),
+            Locale('ko', 'KR'),
+            Locale('ja'),
+          ],
+          home: TeamManagementScreen(
+            optionRepository: optionRepository,
+            trainingService: trainingService,
+            localeService: localeService,
+            settingsService: settingsService,
+          ),
+        ),
+      ),
     );
-    final statsButton = find.text('시합 통계');
-    await tester.ensureVisible(statsButton);
-    await tester.tap(statsButton);
-    await tester.pump();
-    await tester.pump();
-
-    expect(openedStats, isTrue);
-  });
-
-  testWidgets('parent mode blocks creating a new match record from hub', (
-    tester,
-  ) async {
-    await optionRepository.setValue(
-      FamilyAccessService.currentRoleLocalKey,
-      FamilyRole.parent.name,
-    );
-
-    await pumpHub(tester);
-    final recordButton = find.text('시합 기록');
-    await tester.ensureVisible(recordButton);
-    await tester.tap(recordButton);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('시합관리'));
     await tester.pumpAndSettle();
 
-    expect(find.byType(MatchRecordScreen), findsNothing);
-    expect(
-      find.text('보호자 모드에서는 선수의 핵심 데이터를 수정할 수 없어요. 선수 모드에서 변경해 주세요.'),
-      findsOneWidget,
+    await tester.tap(find.byKey(const ValueKey('match-record-kind-filter')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('리그 경기').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('서울 U15'), findsOneWidget);
+    expect(find.text('인천 U15'), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('match-record-kind-filter')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('토너먼트').last);
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('match-record-competition-filter')),
     );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('컵 대회').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('서울 U15'), findsNothing);
+    expect(find.text('인천 U15'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('parent mode team management does not auto save edits', (
@@ -442,7 +339,12 @@ void main() {
             Locale('ko', 'KR'),
             Locale('ja'),
           ],
-          home: TeamManagementScreen(optionRepository: optionRepository),
+          home: TeamManagementScreen(
+            optionRepository: optionRepository,
+            trainingService: trainingService,
+            localeService: localeService,
+            settingsService: settingsService,
+          ),
         ),
       ),
     );
@@ -455,6 +357,16 @@ void main() {
     expect(find.widgetWithText(FilledButton, '새 팀'), findsNothing);
     expect(find.widgetWithText(OutlinedButton, '팀 삭제'), findsNothing);
     expect(find.text('팀 선택'), findsNothing);
+    await tester.tap(find.text('시합관리'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('team-match-record-action')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(MatchRecordScreen), findsNothing);
+    expect(
+      find.text('보호자 모드에서는 선수의 핵심 데이터를 수정할 수 없어요. 선수 모드에서 변경해 주세요.'),
+      findsOneWidget,
+    );
     await tester.pump(const Duration(seconds: 1));
     await tester.pumpAndSettle();
 
@@ -489,7 +401,12 @@ void main() {
             Locale('ko', 'KR'),
             Locale('ja'),
           ],
-          home: TeamManagementScreen(optionRepository: optionRepository),
+          home: TeamManagementScreen(
+            optionRepository: optionRepository,
+            trainingService: trainingService,
+            localeService: localeService,
+            settingsService: settingsService,
+          ),
         ),
       ),
     );
@@ -498,12 +415,97 @@ void main() {
     expect(find.text('Team Management'), findsOneWidget);
     expect(find.text('Player management'), findsOneWidget);
     expect(find.text('Match management'), findsOneWidget);
+    expect(find.text('Board'), findsOneWidget);
+    expect(find.text('Cups'), findsOneWidget);
     expect(find.text('Roster'), findsOneWidget);
     expect(
       find.widgetWithText(FilledButton, 'Register player'),
       findsOneWidget,
     );
     expect(find.text('No players registered.'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('team management searches and filters a compact mobile roster', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    await TeamManagementService(optionRepository).upsertTeam(
+      ManagedTeam.create(
+        name: '우리 팀 U15',
+        players: [
+          ManagedTeamPlayer.create(
+            name: '김민준',
+            number: '10',
+            role: ManagedTeamPlayer.roleMidfielder,
+            condition: ManagedTeamPlayer.conditionReady,
+          ),
+          ManagedTeamPlayer.create(
+            name: '이서준',
+            number: '4',
+            role: ManagedTeamPlayer.roleDefender,
+            condition: ManagedTeamPlayer.conditionRest,
+          ),
+        ],
+      ),
+    );
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          theme: AppTheme.light(),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en'),
+            Locale('ko', 'KR'),
+            Locale('ja'),
+          ],
+          home: TeamManagementScreen(optionRepository: optionRepository),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('전체 2'), findsOneWidget);
+    expect(find.text('출전 1'), findsOneWidget);
+    expect(find.text('휴식 1'), findsOneWidget);
+    expect(find.text('김민준'), findsOneWidget);
+    expect(find.text('이서준'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('team-player-search-toggle')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('team-player-search-field')),
+      '김',
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('김민준'), findsOneWidget);
+    expect(find.text('이서준'), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('team-player-search-toggle')));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('team-player-condition-filter')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('휴식 권장').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('김민준'), findsNothing);
+    expect(find.text('이서준'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -935,7 +937,7 @@ void main() {
 
     expect(find.text('스쿼드 보드'), findsNothing);
     expect(find.text('미드필더 · 1명'), findsOneWidget);
-    expect(find.textContaining('보드 미배치'), findsOneWidget);
+    expect(find.text('출전 가능'), findsOneWidget);
 
     final boardButton = find.byKey(const ValueKey('team-header-board'));
     await tester.ensureVisible(boardButton);

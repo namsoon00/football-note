@@ -27,6 +27,8 @@ enum _TeamManagementSection { players, matches }
 
 enum _TeamManagementWorkspace { board }
 
+enum _RosterConditionFilter { all, ready, watch, rest }
+
 class _TacticUndoSnapshot {
   final List<ManagedTacticBoard> boards;
   final String activeBoardId;
@@ -981,8 +983,6 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   Widget _buildPlayersPanel(bool readOnly) {
     return _PlayersPanel(
       players: _players,
-      lineup: _lineup,
-      playerPlacements: _playerPlacements,
       readOnly: readOnly,
       onStartPlayerRegistration: () => unawaited(_openPlayerRegistration()),
       onEditPlayer: (player) => unawaited(
@@ -1158,17 +1158,15 @@ class _TeamManagementHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        BackButton(
-          onPressed: onBack,
-        ),
-        const SizedBox(width: AppSpacing.xs),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
+        Row(
+          children: [
+            BackButton(onPressed: onBack),
+            const SizedBox(width: AppSpacing.xs),
+            Expanded(
+              child: Text(
                 l10n.teamManagementTitle,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -1176,35 +1174,40 @@ class _TeamManagementHeader extends StatelessWidget {
                   fontWeight: FontWeight.w900,
                 ),
               ),
-              const SizedBox(height: AppSpacing.xxs),
-              _TeamNameButton(
-                teamName: teamName,
-                saving: saving,
-                readOnly: readOnly,
-                onPressed: onEditTeamName,
+            ),
+            AppBarActionButton.label(
+              key: const ValueKey('team-header-board'),
+              icon: const Icon(Icons.account_tree_outlined),
+              label: l10n.teamManagementBoardHeaderButton,
+              tooltip: l10n.teamManagementWorkspaceBoardTab,
+              onPressed: onOpenBoard,
+              margin: const EdgeInsetsDirectional.only(end: AppSpacing.xs),
+              maxLabelWidth: 54,
+            ),
+            if (onManageCompetitions != null)
+              AppBarActionButton.label(
+                key: const ValueKey('team-header-competition'),
+                icon: const Icon(Icons.emoji_events_outlined),
+                label: l10n.teamManagementCompetitionHeaderButton,
+                tooltip: l10n.matchCompetitionOpenButton,
+                onPressed: onManageCompetitions,
+                margin: EdgeInsets.zero,
+                maxLabelWidth: 54,
               ),
-            ],
+          ],
+        ),
+        Padding(
+          padding: const EdgeInsetsDirectional.only(
+            start: 48 + AppSpacing.xs,
+            top: AppSpacing.xxs,
+          ),
+          child: _TeamNameButton(
+            teamName: teamName,
+            saving: saving,
+            readOnly: readOnly,
+            onPressed: onEditTeamName,
           ),
         ),
-        AppBarActionButton.label(
-          key: const ValueKey('team-header-board'),
-          icon: const Icon(Icons.account_tree_outlined),
-          label: l10n.teamManagementWorkspaceBoardTab,
-          tooltip: l10n.teamManagementWorkspaceBoardTab,
-          onPressed: onOpenBoard,
-          margin: const EdgeInsetsDirectional.only(end: AppSpacing.xs),
-          maxLabelWidth: 96,
-        ),
-        if (onManageCompetitions != null)
-          AppBarActionButton.label(
-            key: const ValueKey('team-header-competition'),
-            icon: const Icon(Icons.emoji_events_outlined),
-            label: l10n.matchCompetitionOpenButton,
-            tooltip: l10n.matchCompetitionOpenButton,
-            onPressed: onManageCompetitions,
-            margin: EdgeInsets.zero,
-            maxLabelWidth: 132,
-          ),
       ],
     );
   }
@@ -1233,39 +1236,53 @@ class _TeamNameButton extends StatelessWidget {
         : teamName.trim();
     return Align(
       alignment: AlignmentDirectional.centerStart,
-      child: ActionChip(
-        key: const ValueKey('team-name-open'),
-        onPressed: readOnly || saving ? null : onPressed,
-        avatar: Icon(
-          saving ? Icons.sync_outlined : Icons.shield_outlined,
-          size: 17,
-          color:
-              readOnly || saving ? scheme.onSurfaceVariant : scheme.onSurface,
-        ),
-        label: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 190),
-          child: Text(
-            visibleName,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+      child: Tooltip(
+        message: l10n.teamManagementTeamNameLabel,
+        child: Semantics(
+          button: true,
+          child: InkWell(
+            key: const ValueKey('team-name-open'),
+            onTap: readOnly || saving ? null : onPressed,
+            borderRadius: AppRadius.small,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxs),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: Text(
+                      visibleName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.xxs),
+                  if (saving)
+                    SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: scheme.onSurfaceVariant,
+                      ),
+                    )
+                  else
+                    Icon(
+                      Icons.edit_outlined,
+                      size: 15,
+                      color: readOnly
+                          ? scheme.onSurface.withValues(alpha: 0.38)
+                          : scheme.onSurfaceVariant,
+                    ),
+                ],
+              ),
+            ),
           ),
         ),
-        labelStyle: theme.textTheme.labelLarge?.copyWith(
-          color: scheme.onSurface,
-          fontWeight: FontWeight.w900,
-        ),
-        backgroundColor: scheme.primary.withValues(alpha: 0.08),
-        disabledColor: scheme.surfaceContainerHighest.withValues(alpha: 0.62),
-        side: BorderSide(
-          color: scheme.primary.withValues(alpha: 0.18),
-        ),
-        shape: const StadiumBorder(),
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.xs,
-          vertical: AppSpacing.xxs,
-        ),
-        visualDensity: VisualDensity.compact,
-        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       ),
     );
   }
@@ -1329,47 +1346,46 @@ class _MatchManagementPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final trainingService = this.trainingService;
-    return _StructuredSection(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: _PanelTitle(
-                  icon: Icons.event_note_outlined,
-                  title: l10n.teamManagementMatchSectionTitle,
-                ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _PanelTitle(
+                icon: Icons.event_note_outlined,
+                title: l10n.teamManagementMatchSectionTitle,
               ),
-              const SizedBox(width: AppSpacing.xs),
-              AppBarActionButton.label(
-                key: const ValueKey('team-match-record-action'),
-                icon: const Icon(Icons.edit_note_outlined),
-                label: l10n.matchHubRecordButton,
-                tooltip: l10n.matchHubRecordButton,
-                onPressed: matchActionsEnabled ? onRecordMatch : null,
-                margin: EdgeInsets.zero,
-                maxLabelWidth: 112,
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          if (trainingService == null)
-            _InlineEmptyMessage(
-              icon: Icons.fact_check_outlined,
-              title: l10n.matchHubEmptyTitle,
-              body: l10n.matchHubEmptySubtitle,
-            )
-          else
-            MatchRecordsContent(
-              key: const ValueKey('team-match-records-content'),
-              trainingService: trainingService,
-              optionRepository: optionRepository,
-              showHeader: false,
-              scrollable: false,
             ),
-        ],
-      ),
+            const SizedBox(width: AppSpacing.xs),
+            AppBarActionButton.label(
+              key: const ValueKey('team-match-record-action'),
+              icon: const Icon(Icons.edit_note_outlined),
+              label: l10n.matchHubRecordButton,
+              tooltip: l10n.matchHubRecordButton,
+              onPressed: matchActionsEnabled ? onRecordMatch : null,
+              margin: EdgeInsets.zero,
+              maxLabelWidth: 112,
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        if (trainingService == null)
+          _InlineEmptyMessage(
+            icon: Icons.fact_check_outlined,
+            title: l10n.matchHubEmptyTitle,
+            body: l10n.matchHubEmptySubtitle,
+          )
+        else
+          MatchRecordsContent(
+            key: const ValueKey('team-match-records-content'),
+            trainingService: trainingService,
+            optionRepository: optionRepository,
+            showHeader: false,
+            showSummary: false,
+            scrollable: false,
+          ),
+      ],
     );
   }
 }
@@ -2950,10 +2966,8 @@ class _TacticLinesPainter extends CustomPainter {
   }
 }
 
-class _PlayersPanel extends StatelessWidget {
+class _PlayersPanel extends StatefulWidget {
   final List<ManagedTeamPlayer> players;
-  final Map<String, String> lineup;
-  final Map<String, ManagedPlayerPlacement> playerPlacements;
   final bool readOnly;
   final VoidCallback onStartPlayerRegistration;
   final ValueChanged<ManagedTeamPlayer> onEditPlayer;
@@ -2961,8 +2975,6 @@ class _PlayersPanel extends StatelessWidget {
 
   const _PlayersPanel({
     required this.players,
-    required this.lineup,
-    required this.playerPlacements,
     required this.readOnly,
     required this.onStartPlayerRegistration,
     required this.onEditPlayer,
@@ -2970,61 +2982,186 @@ class _PlayersPanel extends StatelessWidget {
   });
 
   @override
+  State<_PlayersPanel> createState() => _PlayersPanelState();
+}
+
+class _PlayersPanelState extends State<_PlayersPanel> {
+  final TextEditingController _searchController = TextEditingController();
+  _RosterConditionFilter _conditionFilter = _RosterConditionFilter.all;
+  bool _searchVisible = false;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  List<ManagedTeamPlayer> get _visiblePlayers {
+    final query = _searchController.text.trim().toLowerCase();
+    return widget.players.where((player) {
+      final matchesCondition = switch (_conditionFilter) {
+        _RosterConditionFilter.all => true,
+        _RosterConditionFilter.ready =>
+          player.condition == ManagedTeamPlayer.conditionReady,
+        _RosterConditionFilter.watch =>
+          player.condition == ManagedTeamPlayer.conditionWatch,
+        _RosterConditionFilter.rest =>
+          player.condition == ManagedTeamPlayer.conditionRest,
+      };
+      if (!matchesCondition) return false;
+      if (query.isEmpty) return true;
+      return player.name.toLowerCase().contains(query) ||
+          player.number.toLowerCase().contains(query) ||
+          player.grade.toLowerCase().contains(query);
+    }).toList(growable: false);
+  }
+
+  void _toggleSearch() {
+    setState(() {
+      _searchVisible = !_searchVisible;
+      if (!_searchVisible) _searchController.clear();
+    });
+  }
+
+  void _clearFilters() {
+    setState(() {
+      _conditionFilter = _RosterConditionFilter.all;
+      _searchController.clear();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return _StructuredSection(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                child: _PanelTitle(
-                  icon: Icons.groups_2_outlined,
-                  title: l10n.teamManagementPlayersTitle,
+    final visiblePlayers = _visiblePlayers;
+    final readyCount = widget.players
+        .where((player) => player.condition == ManagedTeamPlayer.conditionReady)
+        .length;
+    final watchCount = widget.players
+        .where((player) => player.condition == ManagedTeamPlayer.conditionWatch)
+        .length;
+    final restCount = widget.players
+        .where((player) => player.condition == ManagedTeamPlayer.conditionRest)
+        .length;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: _PanelTitle(
+                icon: Icons.groups_2_outlined,
+                title: l10n.teamManagementPlayersTitle,
+              ),
+            ),
+            AppBarActionButton.icon(
+              key: const ValueKey('team-player-search-toggle'),
+              icon: _searchVisible ? Icons.close : Icons.search,
+              tooltip: _searchVisible
+                  ? l10n.teamManagementPlayerSearchCloseTooltip
+                  : l10n.teamManagementPlayerSearchTooltip,
+              onPressed: _toggleSearch,
+              selected: _searchVisible,
+              margin: EdgeInsets.zero,
+            ),
+            const SizedBox(width: AppSpacing.xxs),
+            AppBarActionMenuButton<_RosterConditionFilter>(
+              key: const ValueKey('team-player-condition-filter'),
+              icon: Icons.filter_list_outlined,
+              tooltip: l10n.teamManagementPlayerFilterTooltip,
+              initialValue: _conditionFilter,
+              onSelected: (value) => setState(() => _conditionFilter = value),
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: _RosterConditionFilter.all,
+                  child: Text(l10n.filterAll),
+                ),
+                PopupMenuItem(
+                  value: _RosterConditionFilter.ready,
+                  child: Text(l10n.teamManagementPlayerConditionReady),
+                ),
+                PopupMenuItem(
+                  value: _RosterConditionFilter.watch,
+                  child: Text(l10n.teamManagementPlayerConditionWatch),
+                ),
+                PopupMenuItem(
+                  value: _RosterConditionFilter.rest,
+                  child: Text(l10n.teamManagementPlayerConditionRest),
+                ),
+              ],
+              margin: EdgeInsets.zero,
+            ),
+            const SizedBox(width: AppSpacing.xxs),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 116),
+              child: FilledButton.icon(
+                onPressed:
+                    widget.readOnly ? null : widget.onStartPlayerRegistration,
+                icon: const Icon(Icons.person_add_alt_outlined, size: 18),
+                label: Text(
+                  l10n.teamManagementAddPlayerButton,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size(0, 36),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.xs,
+                  ),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
               ),
-              const SizedBox(width: AppSpacing.sm),
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 124),
-                child: FilledButton.icon(
-                  onPressed: readOnly ? null : onStartPlayerRegistration,
-                  icon: const Icon(Icons.person_add_alt_outlined, size: 18),
-                  label: Text(
-                    l10n.teamManagementAddPlayerButton,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  style: FilledButton.styleFrom(
-                    minimumSize: const Size(0, 36),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.xs,
-                    ),
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                ),
-              ),
-            ],
+            ),
+          ],
+        ),
+        if (_searchVisible) ...[
+          const SizedBox(height: AppSpacing.sm),
+          TextField(
+            key: const ValueKey('team-player-search-field'),
+            controller: _searchController,
+            autofocus: true,
+            textInputAction: TextInputAction.search,
+            onChanged: (_) => setState(() {}),
+            decoration: InputDecoration(
+              hintText: l10n.teamManagementPlayerSearchHint,
+              prefixIcon: const Icon(Icons.search),
+              isDense: true,
+            ),
+          ),
+        ],
+        const SizedBox(height: AppSpacing.sm),
+        if (widget.players.isEmpty)
+          _InlineEmptyMessage(
+            icon: Icons.groups_2_outlined,
+            title: l10n.teamManagementNoPlayersTitle,
+            body: l10n.teamManagementNoPlayersBody,
+          )
+        else ...[
+          _RosterSummaryBar(
+            totalCount: widget.players.length,
+            readyCount: readyCount,
+            watchCount: watchCount,
+            restCount: restCount,
           ),
           const SizedBox(height: AppSpacing.sm),
-          if (players.isEmpty)
+          if (visiblePlayers.isEmpty)
             _InlineEmptyMessage(
-              icon: Icons.groups_2_outlined,
-              title: l10n.teamManagementNoPlayersTitle,
-              body: l10n.teamManagementNoPlayersBody,
+              icon: Icons.search_off_outlined,
+              title: l10n.teamManagementPlayerFilterEmptyTitle,
+              body: l10n.teamManagementPlayerFilterEmptyBody,
+              actionLabel: l10n.filterReset,
+              onAction: _clearFilters,
             )
           else
             _RosterBoard(
-              players: players,
-              lineup: lineup,
-              playerPlacements: playerPlacements,
-              onEditPlayer: onEditPlayer,
-              onRemovePlayer: onRemovePlayer,
-              readOnly: readOnly,
+              players: visiblePlayers,
+              onEditPlayer: widget.onEditPlayer,
+              onRemovePlayer: widget.onRemovePlayer,
+              readOnly: widget.readOnly,
             ),
         ],
-      ),
+      ],
     );
   }
 }
@@ -3875,16 +4012,12 @@ class _PlayerPhotoFrame extends StatelessWidget {
 
 class _RosterBoard extends StatelessWidget {
   final List<ManagedTeamPlayer> players;
-  final Map<String, String> lineup;
-  final Map<String, ManagedPlayerPlacement> playerPlacements;
   final ValueChanged<ManagedTeamPlayer> onEditPlayer;
   final ValueChanged<ManagedTeamPlayer> onRemovePlayer;
   final bool readOnly;
 
   const _RosterBoard({
     required this.players,
-    required this.lineup,
-    required this.playerPlacements,
     required this.onEditPlayer,
     required this.onRemovePlayer,
     required this.readOnly,
@@ -3901,78 +4034,41 @@ class _RosterBoard extends StatelessWidget {
     final visibleGroups = _playerRoles
         .where((role) => groupedPlayers[role]!.isNotEmpty)
         .toList(growable: false);
-    final placedCount =
-        players.where((player) => _assignedCountFor(player) > 0).length;
-    final readyCount = players
-        .where((player) => player.condition == ManagedTeamPlayer.conditionReady)
-        .length;
-    final watchCount = players
-        .where((player) => player.condition == ManagedTeamPlayer.conditionWatch)
-        .length;
-    final restCount = players
-        .where((player) => player.condition == ManagedTeamPlayer.conditionRest)
-        .length;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _RosterSummaryBar(
-          totalCount: players.length,
-          placedCount: placedCount,
-          readyCount: readyCount,
-          watchCount: watchCount,
-          restCount: restCount,
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final columns = constraints.maxWidth >= 920
-                ? 2
-                : constraints.maxWidth >= 620
-                    ? 2
-                    : 1;
-            final gap = AppSpacing.sm * (columns - 1);
-            final width = (constraints.maxWidth - gap) / columns;
-            return Wrap(
-              spacing: AppSpacing.sm,
-              runSpacing: AppSpacing.sm,
-              children: [
-                for (final role in visibleGroups)
-                  SizedBox(
-                    width: width,
-                    child: _RoleRosterSection(
-                      role: role,
-                      players: groupedPlayers[role]!,
-                      assignedCountFor: _assignedCountFor,
-                      onEditPlayer: onEditPlayer,
-                      onRemovePlayer: onRemovePlayer,
-                      readOnly: readOnly,
-                    ),
-                  ),
-              ],
-            );
-          },
-        ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = constraints.maxWidth >= 620 ? 2 : 1;
+        final gap = AppSpacing.sm * (columns - 1);
+        final width = (constraints.maxWidth - gap) / columns;
+        return Wrap(
+          spacing: AppSpacing.sm,
+          runSpacing: AppSpacing.sm,
+          children: [
+            for (final role in visibleGroups)
+              SizedBox(
+                width: width,
+                child: _RoleRosterSection(
+                  role: role,
+                  players: groupedPlayers[role]!,
+                  onEditPlayer: onEditPlayer,
+                  onRemovePlayer: onRemovePlayer,
+                  readOnly: readOnly,
+                ),
+              ),
+          ],
+        );
+      },
     );
-  }
-
-  int _assignedCountFor(ManagedTeamPlayer player) {
-    if (playerPlacements.containsKey(player.id)) return 1;
-    return lineup.values.where((playerId) => playerId == player.id).length;
   }
 }
 
 class _RosterSummaryBar extends StatelessWidget {
   final int totalCount;
-  final int placedCount;
   final int readyCount;
   final int watchCount;
   final int restCount;
 
   const _RosterSummaryBar({
     required this.totalCount,
-    required this.placedCount,
     required this.readyCount,
     required this.watchCount,
     required this.restCount,
@@ -3983,87 +4079,89 @@ class _RosterSummaryBar extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
     final items = [
-      _RosterSummaryChip(
+      _RosterSummaryItem(
         icon: Icons.groups_2_outlined,
-        label: l10n.teamManagementPlayerCount(totalCount),
+        label: l10n.teamManagementRosterSummaryAll,
+        value: totalCount,
         color: scheme.primary,
       ),
-      _RosterSummaryChip(
-        icon: Icons.account_tree_outlined,
-        label: l10n.teamManagementBoardPlacementValue(
-          placedCount,
-          totalCount,
-        ),
-        color: scheme.tertiary,
-      ),
-      _RosterSummaryChip(
+      _RosterSummaryItem(
         icon: Icons.verified_outlined,
-        label: l10n.teamManagementRosterReadyCount(readyCount),
+        label: l10n.teamManagementRosterSummaryReady,
+        value: readyCount,
         color: _playerConditionAccent(
           ManagedTeamPlayer.conditionReady,
         ),
       ),
-      _RosterSummaryChip(
+      _RosterSummaryItem(
         icon: Icons.monitor_heart_outlined,
-        label: l10n.teamManagementRosterManagedCount(watchCount + restCount),
-        color: watchCount + restCount > 0
+        label: l10n.teamManagementRosterSummaryWatch,
+        value: watchCount,
+        color: watchCount > 0
             ? _playerConditionAccent(ManagedTeamPlayer.conditionWatch)
             : scheme.onSurfaceVariant,
       ),
+      _RosterSummaryItem(
+        icon: Icons.bedtime_outlined,
+        label: l10n.teamManagementRosterSummaryRest,
+        value: restCount,
+        color: restCount > 0
+            ? _playerConditionAccent(ManagedTeamPlayer.conditionRest)
+            : scheme.onSurfaceVariant,
+      ),
     ];
-    return SizedBox(
-      height: 34,
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        child: Row(
-          children: [
-            for (final item in items) ...[
-              item,
-              const SizedBox(width: AppSpacing.xs),
-            ],
+    return Container(
+      height: 40,
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.46),
+        borderRadius: AppRadius.small,
+      ),
+      child: Row(
+        children: [
+          for (var index = 0; index < items.length; index++) ...[
+            Expanded(child: items[index]),
+            if (index != items.length - 1)
+              Container(
+                width: 1,
+                height: 18,
+                color: scheme.outlineVariant.withValues(alpha: 0.72),
+              ),
           ],
-        ),
+        ],
       ),
     );
   }
 }
 
-class _RosterSummaryChip extends StatelessWidget {
+class _RosterSummaryItem extends StatelessWidget {
   final IconData icon;
   final String label;
+  final int value;
   final Color color;
 
-  const _RosterSummaryChip({
+  const _RosterSummaryItem({
     required this.icon,
     required this.label,
+    required this.value,
     required this.color,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Container(
-      constraints: const BoxConstraints(minHeight: 32),
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.xs,
-        vertical: AppSpacing.xxs,
-      ),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.10),
-        borderRadius: AppRadius.small,
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 3),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 17, color: color),
-          const SizedBox(width: AppSpacing.xxs),
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 3),
           Flexible(
             child: Text(
-              label,
+              '$label $value',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.labelMedium?.copyWith(
+              style: theme.textTheme.labelSmall?.copyWith(
                 color: color,
                 fontWeight: FontWeight.w900,
               ),
@@ -4078,7 +4176,6 @@ class _RosterSummaryChip extends StatelessWidget {
 class _RoleRosterSection extends StatelessWidget {
   final String role;
   final List<ManagedTeamPlayer> players;
-  final int Function(ManagedTeamPlayer player) assignedCountFor;
   final ValueChanged<ManagedTeamPlayer> onEditPlayer;
   final ValueChanged<ManagedTeamPlayer> onRemovePlayer;
   final bool readOnly;
@@ -4086,7 +4183,6 @@ class _RoleRosterSection extends StatelessWidget {
   const _RoleRosterSection({
     required this.role,
     required this.players,
-    required this.assignedCountFor,
     required this.onEditPlayer,
     required this.onRemovePlayer,
     required this.readOnly,
@@ -4096,43 +4192,56 @@ class _RoleRosterSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final accent = _playerRoleAccent(role);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+    return Container(
+      decoration: AppSurfaces.cardDecoration(scheme, theme.brightness),
+      clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              Icon(_playerRoleIcon(role), color: accent, size: 17),
-              const SizedBox(width: AppSpacing.xs),
-              Expanded(
-                child: Text(
-                  l10n.teamManagementRoleGroupCount(
-                    teamPlayerRoleLabel(l10n, role),
-                    players.length,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    color: accent,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
+          ColoredBox(
+            color: accent.withValues(alpha: 0.08),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.sm,
+                vertical: AppSpacing.xs,
               ),
-            ],
+              child: Row(
+                children: [
+                  Icon(_playerRoleIcon(role), color: accent, size: 17),
+                  const SizedBox(width: AppSpacing.xs),
+                  Expanded(
+                    child: Text(
+                      l10n.teamManagementRoleGroupCount(
+                        teamPlayerRoleLabel(l10n, role),
+                        players.length,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: accent,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-          const SizedBox(height: AppSpacing.xs),
-          for (final player in players) ...[
+          for (var index = 0; index < players.length; index++) ...[
             _PlayerRosterCard(
-              player: player,
-              assignedCount: assignedCountFor(player),
-              accent: accent,
-              onEdit: () => onEditPlayer(player),
-              onRemove: () => onRemovePlayer(player),
+              player: players[index],
+              onEdit: () => onEditPlayer(players[index]),
+              onRemove: () => onRemovePlayer(players[index]),
               readOnly: readOnly,
             ),
-            if (player != players.last) const SizedBox(height: AppSpacing.xxs),
+            if (index != players.length - 1)
+              Divider(
+                height: 1,
+                indent: 58,
+                color: scheme.outlineVariant.withValues(alpha: 0.62),
+              ),
           ],
         ],
       ),
@@ -4142,16 +4251,12 @@ class _RoleRosterSection extends StatelessWidget {
 
 class _PlayerRosterCard extends StatelessWidget {
   final ManagedTeamPlayer player;
-  final int assignedCount;
-  final Color accent;
   final VoidCallback onEdit;
   final VoidCallback onRemove;
   final bool readOnly;
 
   const _PlayerRosterCard({
     required this.player,
-    required this.assignedCount,
-    required this.accent,
     required this.onEdit,
     required this.onRemove,
     required this.readOnly,
@@ -4164,145 +4269,175 @@ class _PlayerRosterCard extends StatelessWidget {
     final scheme = theme.colorScheme;
     final conditionAccent = _playerConditionAccent(player.condition);
     final note = player.note.trim();
-    final placementLabel = assignedCount > 0
-        ? l10n.teamManagementRosterPlacementCount(assignedCount)
-        : l10n.teamManagementRosterNoPlacement;
-    final supplementaryMeta = _teamPlayerSupplementaryMeta(l10n, player);
     final metaLabel = [
       teamPlayerRoleLabel(l10n, player.role),
-      teamPlayerFootLabel(l10n, player.foot),
-      teamPlayerConditionLabel(l10n, player.condition),
-      if (supplementaryMeta.isNotEmpty) supplementaryMeta,
-      placementLabel,
+      if (player.grade.trim().isNotEmpty) player.grade.trim(),
     ].join(' · ');
     return Material(
-      color: theme.brightness == Brightness.dark
-          ? scheme.surfaceContainerHighest.withValues(alpha: 0.30)
-          : scheme.surfaceContainerHighest.withValues(alpha: 0.30),
-      borderRadius: AppRadius.small,
-      child: Container(
-        constraints: const BoxConstraints(minHeight: 54),
-        padding: const EdgeInsetsDirectional.fromSTEB(
-          AppSpacing.xs,
-          AppSpacing.xxs,
-          AppSpacing.xxs,
-          AppSpacing.xxs,
-        ),
-        decoration: BoxDecoration(
-          borderRadius: AppRadius.small,
-          boxShadow: [
-            if (theme.brightness == Brightness.light)
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.035),
-                blurRadius: 14,
-                offset: const Offset(0, 8),
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: readOnly ? null : onEdit,
+        child: Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(
+            AppSpacing.sm,
+            AppSpacing.xs,
+            AppSpacing.xxs,
+            AppSpacing.xs,
+          ),
+          child: Row(
+            children: [
+              _PlayerPhotoFrame(
+                imageDataUrl: player.imageDataUrl,
+                playerName: player.name,
+                playerNumber: player.number,
+                playerRole: player.role,
+                size: 42,
               ),
-          ],
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Row(
-          children: [
-            _PlayerPhotoFrame(
-              imageDataUrl: player.imageDataUrl,
-              playerName: player.name,
-              playerNumber: player.number,
-              playerRole: player.role,
-              size: 42,
-            ),
-            const SizedBox(width: AppSpacing.xs),
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          player.name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0,
+              const SizedBox(width: AppSpacing.xs),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  player.name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: theme.textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 0,
+                                  ),
+                                ),
+                              ),
+                              if (note.isNotEmpty) ...[
+                                const SizedBox(width: AppSpacing.xxs),
+                                Icon(
+                                  Icons.sticky_note_2_outlined,
+                                  size: 13,
+                                  color: scheme.onSurfaceVariant,
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.xs),
+                        _RosterConditionBadge(
+                          label: teamPlayerConditionLabel(
+                            l10n,
+                            player.condition,
+                          ),
+                          color: conditionAccent,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      metaLabel,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w700,
+                        height: 1.1,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: AppSpacing.xxs),
+              MenuAnchor(
+                menuChildren: [
+                  MenuItemButton(
+                    leadingIcon: const Icon(Icons.edit_outlined),
+                    onPressed: onEdit,
+                    child: Text(l10n.teamManagementEditPlayerButton),
+                  ),
+                  MenuItemButton(
+                    leadingIcon: const Icon(Icons.delete_outline),
+                    onPressed: onRemove,
+                    child: Text(l10n.teamManagementRemovePlayerButton),
+                  ),
+                ],
+                builder: (context, controller, child) {
+                  return Tooltip(
+                    message: l10n.teamManagementEditPlayerButton,
+                    child: SizedBox(
+                      width: 34,
+                      height: 40,
+                      child: Material(
+                        color: Colors.transparent,
+                        borderRadius: AppRadius.small,
+                        child: InkWell(
+                          borderRadius: AppRadius.small,
+                          onTap: readOnly
+                              ? null
+                              : () {
+                                  if (controller.isOpen) {
+                                    controller.close();
+                                  } else {
+                                    controller.open();
+                                  }
+                                },
+                          child: Icon(
+                            Icons.more_vert,
+                            size: 20,
+                            color: readOnly
+                                ? scheme.onSurface.withValues(alpha: 0.38)
+                                : scheme.onSurfaceVariant,
                           ),
                         ),
                       ),
-                      const SizedBox(width: AppSpacing.xxs),
-                      _RosterStatusDot(color: conditionAccent),
-                      if (note.isNotEmpty) ...[
-                        const SizedBox(width: AppSpacing.xxs),
-                        Icon(
-                          Icons.sticky_note_2_outlined,
-                          size: 13,
-                          color: scheme.onSurfaceVariant,
-                        ),
-                      ],
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    metaLabel,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w700,
-                      height: 1.1,
                     ),
-                  ),
-                ],
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RosterConditionBadge extends StatelessWidget {
+  final String label;
+  final Color color;
+
+  const _RosterConditionBadge({required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 76),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: AppRadius.small,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _RosterStatusDot(color: color),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: color,
+                fontWeight: FontWeight.w900,
               ),
             ),
-            const SizedBox(width: AppSpacing.xxs),
-            MenuAnchor(
-              menuChildren: [
-                MenuItemButton(
-                  leadingIcon: const Icon(Icons.edit_outlined),
-                  onPressed: onEdit,
-                  child: Text(l10n.teamManagementEditPlayerButton),
-                ),
-                MenuItemButton(
-                  leadingIcon: const Icon(Icons.delete_outline),
-                  onPressed: onRemove,
-                  child: Text(l10n.teamManagementRemovePlayerButton),
-                ),
-              ],
-              builder: (context, controller, child) {
-                return Tooltip(
-                  message: l10n.teamManagementEditPlayerButton,
-                  child: SizedBox(
-                    width: 34,
-                    height: 40,
-                    child: Material(
-                      color: Colors.transparent,
-                      borderRadius: AppRadius.small,
-                      child: InkWell(
-                        borderRadius: AppRadius.small,
-                        onTap: readOnly
-                            ? null
-                            : () {
-                                if (controller.isOpen) {
-                                  controller.close();
-                                } else {
-                                  controller.open();
-                                }
-                              },
-                        child: Icon(
-                          Icons.more_vert,
-                          size: 20,
-                          color: readOnly
-                              ? scheme.onSurface.withValues(alpha: 0.38)
-                              : scheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -4370,25 +4505,6 @@ String _formatMeasurement(double value) {
     return rounded.toInt().toString();
   }
   return value.toStringAsFixed(1);
-}
-
-String _teamPlayerSupplementaryMeta(
-  AppLocalizations l10n,
-  ManagedTeamPlayer player,
-) {
-  final parts = <String>[
-    if (player.grade.trim().isNotEmpty)
-      l10n.teamManagementPlayerGradeMeta(player.grade.trim()),
-    if (player.heightCm > 0)
-      l10n.teamManagementPlayerHeightMeta(
-        _formatMeasurement(player.heightCm),
-      ),
-    if (player.weightKg > 0)
-      l10n.teamManagementPlayerWeightMeta(
-        _formatMeasurement(player.weightKg),
-      ),
-  ];
-  return parts.join(' · ');
 }
 
 List<ManagedTeamPlayer> _sortRosterPlayers(List<ManagedTeamPlayer> players) {
@@ -4510,11 +4626,15 @@ class _InlineEmptyMessage extends StatelessWidget {
   final IconData icon;
   final String title;
   final String body;
+  final String? actionLabel;
+  final VoidCallback? onAction;
 
   const _InlineEmptyMessage({
     required this.icon,
     required this.title,
     required this.body,
+    this.actionLabel,
+    this.onAction,
   });
 
   @override
@@ -4549,6 +4669,16 @@ class _InlineEmptyMessage extends StatelessWidget {
                     height: 1.3,
                   ),
                 ),
+                if (actionLabel != null && onAction != null) ...[
+                  const SizedBox(height: AppSpacing.xs),
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: TextButton(
+                      onPressed: onAction,
+                      child: Text(actionLabel!),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

@@ -12212,6 +12212,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get matchRecordsListTitle => 'All match records';
 
   @override
+  String get matchRecordsCompetitionAllFilter => 'All competitions';
+
+  @override
+  String get matchRecordsFilterEmptyTitle => 'No matches fit these filters.';
+
+  @override
+  String get matchRecordsFilterEmptyBody =>
+      'Reset the match type or competition filter and try again.';
+
+  @override
   String get matchHubCalendarButton => 'Open calendar';
 
   @override
@@ -12549,6 +12559,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get teamManagementWorkspaceBoardTab => 'Tactics board';
 
   @override
+  String get teamManagementBoardHeaderButton => 'Board';
+
+  @override
+  String get teamManagementCompetitionHeaderButton => 'Cups';
+
+  @override
   String get teamManagementTacticBookTitle => 'Tactic list';
 
   @override
@@ -12741,6 +12757,39 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get teamManagementPlayersTitle => 'Roster';
+
+  @override
+  String get teamManagementPlayerSearchTooltip => 'Search players';
+
+  @override
+  String get teamManagementPlayerSearchCloseTooltip => 'Close search';
+
+  @override
+  String get teamManagementPlayerSearchHint =>
+      'Search by name, number, or grade';
+
+  @override
+  String get teamManagementPlayerFilterTooltip => 'Filter player status';
+
+  @override
+  String get teamManagementPlayerFilterEmptyTitle =>
+      'No players match these filters.';
+
+  @override
+  String get teamManagementPlayerFilterEmptyBody =>
+      'Clear the search or status filter and try again.';
+
+  @override
+  String get teamManagementRosterSummaryAll => 'All';
+
+  @override
+  String get teamManagementRosterSummaryReady => 'Ready';
+
+  @override
+  String get teamManagementRosterSummaryWatch => 'Watch';
+
+  @override
+  String get teamManagementRosterSummaryRest => 'Rest';
 
   @override
   String get teamManagementPlayersHelper =>
