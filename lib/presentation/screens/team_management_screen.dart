@@ -935,7 +935,6 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
             onBack: () => Navigator.of(context).maybePop(),
             teamName: _teamNameController.text,
             saving: _saving,
-            hasPendingChanges: _changeRevision > _savedRevision,
             readOnly: readOnly,
             onEditTeamName: () => unawaited(_openTeamNameEditor()),
             onOpenBoard: () => _openWorkspace(_TeamManagementWorkspace.board),
@@ -1140,7 +1139,6 @@ class _TeamManagementHeader extends StatelessWidget {
   final VoidCallback onBack;
   final String teamName;
   final bool saving;
-  final bool hasPendingChanges;
   final bool readOnly;
   final VoidCallback onEditTeamName;
   final VoidCallback onOpenBoard;
@@ -1150,7 +1148,6 @@ class _TeamManagementHeader extends StatelessWidget {
     required this.onBack,
     required this.teamName,
     required this.saving,
-    required this.hasPendingChanges,
     required this.readOnly,
     required this.onEditTeamName,
     required this.onOpenBoard,
@@ -1183,7 +1180,6 @@ class _TeamManagementHeader extends StatelessWidget {
               _TeamNameButton(
                 teamName: teamName,
                 saving: saving,
-                hasPendingChanges: hasPendingChanges,
                 readOnly: readOnly,
                 onPressed: onEditTeamName,
               ),
@@ -1217,14 +1213,12 @@ class _TeamManagementHeader extends StatelessWidget {
 class _TeamNameButton extends StatelessWidget {
   final String teamName;
   final bool saving;
-  final bool hasPendingChanges;
   final bool readOnly;
   final VoidCallback onPressed;
 
   const _TeamNameButton({
     required this.teamName,
     required this.saving,
-    required this.hasPendingChanges,
     required this.readOnly,
     required this.onPressed,
   });
@@ -1234,11 +1228,6 @@ class _TeamNameButton extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final statusLabel = saving
-        ? l10n.teamManagementAutoSaveSaving
-        : hasPendingChanges
-            ? l10n.teamManagementAutoSaveReady
-            : l10n.teamManagementAutoSaveSaved;
     final visibleName = teamName.trim().isEmpty
         ? l10n.teamManagementDefaultTeamName
         : teamName.trim();
@@ -1255,27 +1244,10 @@ class _TeamNameButton extends StatelessWidget {
         ),
         label: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 190),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Flexible(
-                child: Text(
-                  visibleName,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.xxs),
-              Text(
-                statusLabel,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: scheme.primary,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-            ],
+          child: Text(
+            visibleName,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
         labelStyle: theme.textTheme.labelLarge?.copyWith(
@@ -4039,12 +4011,20 @@ class _RosterSummaryBar extends StatelessWidget {
             : scheme.onSurfaceVariant,
       ),
     ];
-    return Wrap(
-      spacing: AppSpacing.xs,
-      runSpacing: AppSpacing.xs,
-      children: [
-        for (final item in items) item,
-      ],
+    return SizedBox(
+      height: 34,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        child: Row(
+          children: [
+            for (final item in items) ...[
+              item,
+              const SizedBox(width: AppSpacing.xs),
+            ],
+          ],
+        ),
+      ),
     );
   }
 }
@@ -4074,6 +4054,7 @@ class _RosterSummaryChip extends StatelessWidget {
         borderRadius: AppRadius.small,
       ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 17, color: color),
           const SizedBox(width: AppSpacing.xxs),

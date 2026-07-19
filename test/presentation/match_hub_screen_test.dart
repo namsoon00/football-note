@@ -753,6 +753,76 @@ void main() {
     expect(entry.matchLocation, '메인 구장');
     expect(entry.scoredGoals, 1);
     expect(entry.concededGoals, 0);
+    expect(entry.leaguePoints, 3);
+  });
+
+  testWidgets('Match record screen calculates tournament wins from result', (
+    tester,
+  ) async {
+    await MatchCompetitionService(optionRepository).upsertCompetition(
+      MatchCompetitionRecord.create(
+        kind: MatchCompetitionRecord.kindTournament,
+        name: '여름 컵',
+        teams: const ['서울 U15', '수원 U15'],
+        venue: '컵 구장',
+      ),
+    );
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en'),
+            Locale('ko', 'KR'),
+            Locale('ja'),
+          ],
+          home: MatchRecordScreen(
+            trainingService: trainingService,
+            localeService: localeService,
+            optionRepository: optionRepository,
+            settingsService: settingsService,
+            initialDate: DateTime(2026, 7, 14),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('토너먼트'));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey<String>('match-saved-competition-loader')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('여름 컵 · 진행 중').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('수원 U15').first);
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey<String>('match-board-our-score-increase')),
+    );
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('저장'));
+    await tester.tap(find.text('저장'));
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(trainingRepository.entries, hasLength(1));
+    final entry = trainingRepository.entries.single;
+    expect(entry.matchKind, MatchCompetitionRecord.kindTournament);
+    expect(entry.matchCompetitionName, '여름 컵');
+    expect(entry.opponentTeam, '수원 U15');
+    expect(entry.matchLocation, '컵 구장');
+    expect(entry.scoredGoals, 1);
+    expect(entry.concededGoals, 0);
+    expect(entry.tournamentWins, 1);
   });
 
   testWidgets('Team management screen saves a roster and pitch assignment', (
@@ -810,6 +880,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('team-name-save')));
     await tester.pumpAndSettle();
 
+    expect(find.text('저장됨'), findsNothing);
     expect(
       TeamManagementService(optionRepository).allTeams().single.name,
       '우리 팀 U15',
