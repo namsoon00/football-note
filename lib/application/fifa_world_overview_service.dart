@@ -1213,7 +1213,7 @@ class FifaWorldOverviewService {
   static FifaMatchCardType _parseBookingCardType(int? raw) {
     return switch (raw) {
       1 => FifaMatchCardType.yellow,
-      2 => FifaMatchCardType.red,
+      2 || 3 => FifaMatchCardType.red,
       _ => FifaMatchCardType.unknown,
     };
   }

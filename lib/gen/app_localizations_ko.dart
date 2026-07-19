@@ -1285,7 +1285,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get worldCupRankingsIntro =>
-      'FIFA 공식 매치 상세에서 확인되는 선수 기록을 모아 보여줘요. 득점은 공식 득점자 목록으로, 어시스트는 FIFA가 도움 선수 ID를 제공한 경기만 집계하고, 징계는 공식 경고/퇴장 기록으로 집계합니다.';
+      'FIFA 공식 매치 상세에서 확인되는 선수 기록을 모아 보여줘요. 득점은 공식 득점자 목록으로, 어시스트는 FIFA가 도움 선수 ID를 제공한 경기만 집계하고, 옐로카드와 레드카드는 공식 카드 기록으로 집계합니다.';
 
   @override
   String get worldCupRankingsSourceMatchesLabel => '집계 경기';
@@ -1311,6 +1311,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get worldCupDisciplineRankingsTitle => '경고/퇴장 순위';
 
   @override
+  String get worldCupYellowCardRankingsTitle => '옐로카드 순위';
+
+  @override
+  String get worldCupRedCardRankingsTitle => '레드카드 순위';
+
+  @override
   String get worldCupRankingsNoOfficialMatches =>
       '아직 집계할 공식 종료 경기가 없습니다. FIFA 데이터가 들어오면 자동으로 채워져요.';
 
@@ -1327,6 +1333,14 @@ class AppLocalizationsKo extends AppLocalizations {
       'FIFA 공식 경고/퇴장 기록이 아직 없어 표시할 징계 순위가 없습니다.';
 
   @override
+  String get worldCupYellowCardRankingsEmpty =>
+      'FIFA 공식 옐로카드 기록이 아직 없어 표시할 선수가 없습니다.';
+
+  @override
+  String get worldCupRedCardRankingsEmpty =>
+      'FIFA 공식 레드카드 기록이 아직 없어 표시할 선수가 없습니다.';
+
+  @override
   String worldCupRankingsGoalCount(int count) {
     return '$count골';
   }
@@ -1339,6 +1353,16 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String worldCupRankingsDisciplineCount(int yellowCards, int redCards) {
     return '경고 $yellowCards · 퇴장 $redCards';
+  }
+
+  @override
+  String worldCupRankingsYellowCardCount(int count) {
+    return '$count장';
+  }
+
+  @override
+  String worldCupRankingsRedCardCount(int count) {
+    return '$count장';
   }
 
   @override

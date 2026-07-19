@@ -2469,7 +2469,7 @@ abstract class AppLocalizations {
   /// No description provided for @worldCupRankingsIntro.
   ///
   /// In en, this message translates to:
-  /// **'Player rankings are gathered from the FIFA official match details available in the app. Goals come from official scorer lists, assists are counted only for matches where FIFA provides assisting player IDs, and discipline uses official yellow/red card records.'**
+  /// **'Player rankings are gathered from the FIFA official match details available in the app. Goals come from official scorer lists, assists are counted only for matches where FIFA provides assisting player IDs, and yellow/red cards use official card records.'**
   String get worldCupRankingsIntro;
 
   /// No description provided for @worldCupRankingsSourceMatchesLabel.
@@ -2514,6 +2514,18 @@ abstract class AppLocalizations {
   /// **'Yellow/red card ranking'**
   String get worldCupDisciplineRankingsTitle;
 
+  /// No description provided for @worldCupYellowCardRankingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Yellow card ranking'**
+  String get worldCupYellowCardRankingsTitle;
+
+  /// No description provided for @worldCupRedCardRankingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Red card ranking'**
+  String get worldCupRedCardRankingsTitle;
+
   /// No description provided for @worldCupRankingsNoOfficialMatches.
   ///
   /// In en, this message translates to:
@@ -2538,6 +2550,18 @@ abstract class AppLocalizations {
   /// **'FIFA official yellow/red card records are not available yet, so there is no discipline ranking to show.'**
   String get worldCupDisciplineRankingsEmpty;
 
+  /// No description provided for @worldCupYellowCardRankingsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'FIFA official yellow card records are not available yet, so there are no players to show.'**
+  String get worldCupYellowCardRankingsEmpty;
+
+  /// No description provided for @worldCupRedCardRankingsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'FIFA official red card records are not available yet, so there are no players to show.'**
+  String get worldCupRedCardRankingsEmpty;
+
   /// No description provided for @worldCupRankingsGoalCount.
   ///
   /// In en, this message translates to:
@@ -2555,6 +2579,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Yellow {yellowCards} · Red {redCards}'**
   String worldCupRankingsDisciplineCount(int yellowCards, int redCards);
+
+  /// No description provided for @worldCupRankingsYellowCardCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} cards'**
+  String worldCupRankingsYellowCardCount(int count);
+
+  /// No description provided for @worldCupRankingsRedCardCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} cards'**
+  String worldCupRankingsRedCardCount(int count);
 
   /// No description provided for @worldCupYellowCardLabel.
   ///

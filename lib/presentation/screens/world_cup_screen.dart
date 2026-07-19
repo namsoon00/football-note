@@ -69,7 +69,7 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
   static const String _supportCountryKey = 'world_cup_support_country_v1';
   static const String _interestCountriesKey = 'world_cup_interest_countries_v1';
   static const String _playerStatRankingsCacheKey =
-      'world_cup_player_stat_rankings_cache_v1';
+      'world_cup_player_stat_rankings_cache_v2';
   static const double _calendarDayNumberFontSize = 17;
   static const double _selectedDayPageViewportFraction = 0.94;
   static final Uri _sourceUri = Uri.parse(
@@ -635,10 +635,18 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
       _addEntriesToRankings(assists, contribution.assists);
       _addEntriesToRankings(disciplines, contribution.disciplines);
     }
+    final disciplineEntries = _sortedWorldCupStatEntries(disciplines);
     return _WorldCupStatRankings(
       goals: _sortedWorldCupStatEntries(goals),
       assists: _sortedWorldCupStatEntries(assists),
-      disciplines: _sortedWorldCupStatEntries(disciplines),
+      yellowCards: _filteredWorldCupCardStatEntries(
+        disciplineEntries,
+        FifaMatchCardType.yellow,
+      ),
+      redCards: _filteredWorldCupCardStatEntries(
+        disciplineEntries,
+        FifaMatchCardType.red,
+      ),
       sourceMatchCount: sourceMatchCount,
       detailedMatchCount: contributions.length,
     );
@@ -649,6 +657,20 @@ class _WorldCupScreenState extends State<WorldCupScreen> {
   ) {
     return values.values.map((entry) => entry.toEntry()).toList()
       ..sort(_compareWorldCupPlayerStatEntries);
+  }
+
+  List<_WorldCupPlayerStatEntry> _filteredWorldCupCardStatEntries(
+    List<_WorldCupPlayerStatEntry> entries,
+    FifaMatchCardType cardType,
+  ) {
+    final filteredEntries = <_WorldCupPlayerStatEntry>[];
+    for (final entry in entries) {
+      final filteredEntry = entry.onlyCardType(cardType);
+      if (filteredEntry != null) {
+        filteredEntries.add(filteredEntry);
+      }
+    }
+    return filteredEntries..sort(_compareWorldCupPlayerStatEntries);
   }
 
   void _addEntriesToRankings(
@@ -2515,14 +2537,16 @@ class _WorldCupOfficialDetailForStats {
 class _WorldCupStatRankings {
   final List<_WorldCupPlayerStatEntry> goals;
   final List<_WorldCupPlayerStatEntry> assists;
-  final List<_WorldCupPlayerStatEntry> disciplines;
+  final List<_WorldCupPlayerStatEntry> yellowCards;
+  final List<_WorldCupPlayerStatEntry> redCards;
   final int sourceMatchCount;
   final int detailedMatchCount;
 
   const _WorldCupStatRankings({
     required this.goals,
     required this.assists,
-    required this.disciplines,
+    required this.yellowCards,
+    required this.redCards,
     required this.sourceMatchCount,
     required this.detailedMatchCount,
   });
@@ -2530,7 +2554,8 @@ class _WorldCupStatRankings {
   const _WorldCupStatRankings.empty()
       : goals = const <_WorldCupPlayerStatEntry>[],
         assists = const <_WorldCupPlayerStatEntry>[],
-        disciplines = const <_WorldCupPlayerStatEntry>[],
+        yellowCards = const <_WorldCupPlayerStatEntry>[],
+        redCards = const <_WorldCupPlayerStatEntry>[],
         sourceMatchCount = 0,
         detailedMatchCount = 0;
 }
@@ -2653,6 +2678,20 @@ class _WorldCupPlayerStatEntry {
       'count': count,
       'events': [for (final event in events) event.toJson()],
     };
+  }
+
+  _WorldCupPlayerStatEntry? onlyCardType(FifaMatchCardType cardType) {
+    final filteredEvents = [
+      for (final event in events)
+        if (event.cardType == cardType) event,
+    ];
+    if (filteredEvents.isEmpty) return null;
+    return _WorldCupPlayerStatEntry(
+      team: team,
+      playerName: playerName,
+      count: filteredEvents.length,
+      events: filteredEvents,
+    );
   }
 }
 
@@ -2782,12 +2821,20 @@ class _WorldCupStatRankingsPanelState
       ),
       _WorldCupPlayerStatTabData(
         icon: Icons.style_rounded,
-        title: l10n.worldCupDisciplineRankingsTitle,
-        entries: widget.rankings.disciplines,
-        emptyMessage: l10n.worldCupDisciplineRankingsEmpty,
-        countLabelBuilder: (entry) => l10n.worldCupRankingsDisciplineCount(
-          entry.yellowCardCount,
-          entry.redCardCount,
+        title: l10n.worldCupYellowCardRankingsTitle,
+        entries: widget.rankings.yellowCards,
+        emptyMessage: l10n.worldCupYellowCardRankingsEmpty,
+        countLabelBuilder: (entry) => l10n.worldCupRankingsYellowCardCount(
+          entry.count,
+        ),
+      ),
+      _WorldCupPlayerStatTabData(
+        icon: Icons.gpp_bad_rounded,
+        title: l10n.worldCupRedCardRankingsTitle,
+        entries: widget.rankings.redCards,
+        emptyMessage: l10n.worldCupRedCardRankingsEmpty,
+        countLabelBuilder: (entry) => l10n.worldCupRankingsRedCardCount(
+          entry.count,
         ),
       ),
     ];
