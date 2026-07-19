@@ -32,20 +32,22 @@ void main() {
     WidgetTester tester, {
     required DateTime initialDate,
     MealEntry? initialEntry,
+    Locale locale = const Locale('ko', 'KR'),
   }) async {
     await tester.pumpWidget(
       DefaultAssetBundle(
         bundle: TestAssetBundle(),
         child: MaterialApp(
-          locale: const Locale('ko', 'KR'),
+          locale: locale,
           localizationsDelegates: const [
             AppLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+          supportedLocales: AppLocalizations.supportedLocales,
           home: MealLogScreen(
+            key: UniqueKey(),
             mealLogService: mealLogService,
             optionRepository: optionRepository,
             settingsService: settingsService,
@@ -59,8 +61,16 @@ void main() {
   }
 
   Future<void> expandDietDetails(WidgetTester tester, String mealKey) async {
+    final expansion =
+        find.byKey(PageStorageKey<String>('meal-$mealKey-diet-expansion'));
+    await tester.scrollUntilVisible(
+      expansion,
+      220,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
     await tester.tap(
-      find.byKey(PageStorageKey<String>('meal-$mealKey-diet-expansion')),
+      expansion,
     );
     await tester.pumpAndSettle();
   }
@@ -90,6 +100,9 @@ void main() {
   testWidgets('meal coach summary appears below date and diet form folds', (
     tester,
   ) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1400));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
     final day = DateTime(2026, 3, 31);
     await mealLogService.save(
       MealEntry(date: day, breakfastRiceBowls: 1),
@@ -99,17 +112,91 @@ void main() {
 
     expect(find.text('식사 루틴을 더 채워야 합니다.'), findsOneWidget);
     expect(find.byKey(const ValueKey('meal-breakfast-menu')), findsNothing);
+    expect(find.byType(Card), findsNothing);
+    expect(find.byKey(const ValueKey('meal-log-date-section')), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('meal-coach-summary-section')),
+      findsOneWidget,
+    );
+    expect(
+        find.byKey(const ValueKey('meal-breakfast-section')), findsOneWidget);
+    expect(find.byKey(const ValueKey('meal-lunch-section')), findsOneWidget);
+    expect(find.byKey(const ValueKey('meal-dinner-section')), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('meal-coach-expected-row')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('meal-coach-actual-row')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('meal-coach-calorie-row')),
+      findsOneWidget,
+    );
+    expect(find.byKey(const ValueKey('meal-coach-xp-row')), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('meal-coach-summary-divider-0')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('meal-coach-summary-divider-1')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('meal-coach-summary-divider-2')),
+      findsOneWidget,
+    );
+    expect(find.byKey(const ValueKey('meal-log-date-card')), findsNothing);
+    expect(find.byKey(const ValueKey('meal-coach-summary-card')), findsNothing);
+    expect(find.byKey(const ValueKey('meal-breakfast-card')), findsNothing);
+    expect(
+      tester
+          .getSize(find.byKey(const ValueKey('meal-log-date-section')))
+          .height,
+      greaterThanOrEqualTo(48),
+    );
 
     final dateBottom = tester
-        .getBottomLeft(find.byKey(const ValueKey('meal-log-date-card')))
+        .getBottomLeft(find.byKey(const ValueKey('meal-log-date-section')))
+        .dy;
+    final dateDividerTop = tester
+        .getTopLeft(find.byKey(const ValueKey('meal-log-date-divider')))
         .dy;
     final coachTop = tester
-        .getTopLeft(find.byKey(const ValueKey('meal-coach-summary-card')))
+        .getTopLeft(find.byKey(const ValueKey('meal-coach-summary-section')))
         .dy;
-    final breakfastTop =
-        tester.getTopLeft(find.byKey(const ValueKey('meal-breakfast-card'))).dy;
-    expect(coachTop, greaterThan(dateBottom));
+    final coachBreakfastDividerTop = tester
+        .getTopLeft(
+          find.byKey(const ValueKey('meal-section-divider-coach-breakfast')),
+        )
+        .dy;
+    final breakfastTop = tester
+        .getTopLeft(find.byKey(const ValueKey('meal-breakfast-section')))
+        .dy;
+    final breakfastLunchDividerTop = tester
+        .getTopLeft(
+          find.byKey(const ValueKey('meal-section-divider-breakfast-lunch')),
+        )
+        .dy;
+    final lunchTop =
+        tester.getTopLeft(find.byKey(const ValueKey('meal-lunch-section'))).dy;
+    final lunchDinnerDividerTop = tester
+        .getTopLeft(
+          find.byKey(const ValueKey('meal-section-divider-lunch-dinner')),
+        )
+        .dy;
+    final dinnerTop =
+        tester.getTopLeft(find.byKey(const ValueKey('meal-dinner-section'))).dy;
+    expect(dateDividerTop, greaterThan(dateBottom));
+    expect(coachTop, greaterThan(dateDividerTop));
+    expect(coachBreakfastDividerTop, greaterThan(coachTop));
+    expect(breakfastTop, greaterThan(coachBreakfastDividerTop));
     expect(coachTop, lessThan(breakfastTop));
+    expect(breakfastLunchDividerTop, greaterThan(breakfastTop));
+    expect(lunchTop, greaterThan(breakfastLunchDividerTop));
+    expect(lunchDinnerDividerTop, greaterThan(lunchTop));
+    expect(dinnerTop, greaterThan(lunchDinnerDividerTop));
 
     await expandDietDetails(tester, 'breakfast');
 
@@ -129,7 +216,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
     await tester.scrollUntilVisible(
       find.text('약 455 kcal'),
-      500,
+      -500,
       scrollable: find.byType(Scrollable).first,
     );
 
@@ -256,6 +343,69 @@ void main() {
     expect(saved, isNotNull);
     expect(saved!.breakfastRiceBowls, 1.5);
     expect(saved.breakfastMenu, '현미밥, 달걀, 사과');
+  });
+
+  testWidgets('meal log flat sections render in narrow localized layouts', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(320, 760));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    for (final locale in const <Locale>[
+      Locale('en'),
+      Locale('ko'),
+      Locale('ja'),
+    ]) {
+      final day = DateTime(2026, 3, 31);
+      await mealLogService.save(
+        MealEntry(
+          date: day,
+          breakfastRiceBowls: 1,
+          lunchRiceBowls: 1,
+          dinnerRiceBowls: 1,
+          breakfastDishId: 'chickenBreast',
+          lunchFoodIds: const <String>['banana', 'milk'],
+        ),
+      );
+
+      await pumpMealLogScreen(
+        tester,
+        initialDate: day,
+        locale: locale,
+      );
+
+      expect(find.byType(Card), findsNothing);
+      expect(
+        find.byKey(const ValueKey('meal-log-date-section')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('meal-coach-summary-section')),
+        findsOneWidget,
+      );
+      await tester.scrollUntilVisible(
+        find.byKey(const ValueKey('meal-breakfast-section')),
+        220,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(
+        find.byKey(const ValueKey('meal-breakfast-section')),
+        findsOneWidget,
+      );
+      await tester.scrollUntilVisible(
+        find.byKey(const ValueKey('meal-lunch-section')),
+        220,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.byKey(const ValueKey('meal-lunch-section')), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.byKey(const ValueKey('meal-dinner-section')),
+        220,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.byKey(const ValueKey('meal-dinner-section')), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    }
   });
 }
 

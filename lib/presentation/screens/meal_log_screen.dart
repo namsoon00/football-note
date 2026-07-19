@@ -101,6 +101,7 @@ class _MealLogScreenState extends State<MealLogScreen> {
     );
     final status = MealStatus.fromMealEntry(currentEntry);
     final calorieEstimate = MealCalorieEstimator.estimate(currentEntry);
+    final dividerColor = theme.colorScheme.outline.withValues(alpha: 0.18);
 
     return Scaffold(
       appBar: AppBar(
@@ -119,30 +120,28 @@ class _MealLogScreenState extends State<MealLogScreen> {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
             children: [
-              Card(
-                key: const ValueKey('meal-log-date-card'),
-                child: ListTile(
-                  leading: const Icon(Icons.calendar_today_outlined),
-                  title: Text(l10n.mealLogDateLabel),
-                  subtitle: Text(
-                    DateFormat.yMMMMd(
-                      Localizations.localeOf(context).toString(),
-                    ).add_E().format(_date),
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: _pickDate,
-                ),
+              _buildDateSection(context: context, l10n: l10n, theme: theme),
+              const SizedBox(height: 10),
+              Divider(
+                key: const ValueKey('meal-log-date-divider'),
+                height: 1,
+                color: dividerColor,
               ),
               const SizedBox(height: 12),
-              _buildCoachCard(
-                context: context,
+              _buildCoachSection(
                 l10n: l10n,
                 theme: theme,
                 status: status,
                 calorieEstimate: calorieEstimate,
               ),
-              const SizedBox(height: 12),
-              _MealSelectorCard(
+              const SizedBox(height: 16),
+              Divider(
+                key: const ValueKey('meal-section-divider-coach-breakfast'),
+                height: 1,
+                color: dividerColor,
+              ),
+              const SizedBox(height: 18),
+              _MealSelectorSection(
                 mealKey: 'breakfast',
                 label: l10n.mealBreakfast,
                 value: _breakfastRiceBowls,
@@ -180,8 +179,14 @@ class _MealLogScreenState extends State<MealLogScreen> {
                   _scheduleAutoSave();
                 },
               ),
-              const SizedBox(height: 10),
-              _MealSelectorCard(
+              const SizedBox(height: 18),
+              Divider(
+                key: const ValueKey('meal-section-divider-breakfast-lunch'),
+                height: 1,
+                color: dividerColor,
+              ),
+              const SizedBox(height: 18),
+              _MealSelectorSection(
                 mealKey: 'lunch',
                 label: l10n.mealLunch,
                 value: _lunchRiceBowls,
@@ -216,8 +221,14 @@ class _MealLogScreenState extends State<MealLogScreen> {
                   _scheduleAutoSave();
                 },
               ),
-              const SizedBox(height: 10),
-              _MealSelectorCard(
+              const SizedBox(height: 18),
+              Divider(
+                key: const ValueKey('meal-section-divider-lunch-dinner'),
+                height: 1,
+                color: dividerColor,
+              ),
+              const SizedBox(height: 18),
+              _MealSelectorSection(
                 mealKey: 'dinner',
                 label: l10n.mealDinner,
                 value: _dinnerRiceBowls,
@@ -259,75 +270,146 @@ class _MealLogScreenState extends State<MealLogScreen> {
     );
   }
 
-  Widget _buildCoachCard({
+  Widget _buildDateSection({
     required BuildContext context,
+    required AppLocalizations l10n,
+    required ThemeData theme,
+  }) {
+    final dateText = DateFormat.yMMMMd(
+      Localizations.localeOf(context).toString(),
+    ).add_E().format(_date);
+    return Semantics(
+      button: true,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          key: const ValueKey('meal-log-date-section'),
+          onTap: _pickDate,
+          borderRadius: BorderRadius.circular(8),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 56),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.calendar_today_outlined,
+                    color: theme.colorScheme.primary,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.mealLogDateLabel,
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          dateText,
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCoachSection({
     required AppLocalizations l10n,
     required ThemeData theme,
     required MealStatus status,
     required MealCalorieEstimate calorieEstimate,
   }) {
-    return Card(
-      key: const ValueKey('meal-coach-summary-card'),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              _headline(l10n, status),
-              key: const ValueKey('meal-coach-headline'),
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w800,
+    return Padding(
+      key: const ValueKey('meal-coach-summary-section'),
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            _headline(l10n, status),
+            key: const ValueKey('meal-coach-headline'),
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            _body(l10n, status),
+            style: theme.textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 10),
+          _MealCoachInfoList(
+            items: [
+              _MealCoachInfoItem(
+                key: const ValueKey('meal-coach-expected-row'),
+                icon: Icons.flag_outlined,
+                label: l10n.mealAverageExpectedValue(
+                  _formatBowls(MealLogService.expectedBowlsPerDay),
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _body(l10n, status),
-              style: theme.textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _InfoPill(
-                  label: l10n.mealAverageExpectedValue(
-                    _formatBowls(MealLogService.expectedBowlsPerDay),
-                  ),
+              _MealCoachInfoItem(
+                key: const ValueKey('meal-coach-actual-row'),
+                icon: Icons.rice_bowl_outlined,
+                label: l10n.mealAverageActualValue(
+                  _formatBowls(status.totalRiceBowls),
                 ),
-                _InfoPill(
-                  label: l10n.mealAverageActualValue(
-                    _formatBowls(status.totalRiceBowls),
-                  ),
-                ),
-                _InfoPill(
-                  label: calorieEstimate.hasEstimate
-                      ? l10n.mealCalorieEstimateValue(
-                          calorieEstimate.totalKcal,
-                        )
-                      : l10n.mealCalorieEstimateEmpty,
-                ),
-                if (calorieEstimate.hasNutrition)
-                  _InfoPill(
-                    label: l10n.mealNutritionEstimateValue(
-                      calorieEstimate.totalCarbs.round(),
-                      calorieEstimate.totalProtein.round(),
-                      calorieEstimate.totalFat.round(),
-                    ),
-                  ),
-                _InfoPill(label: _xpLabel(l10n, status)),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Text(
-              _calorieCoach(l10n, calorieEstimate),
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-                height: 1.35,
               ),
+              _MealCoachInfoItem(
+                key: const ValueKey('meal-coach-calorie-row'),
+                icon: Icons.local_fire_department_outlined,
+                label: calorieEstimate.hasEstimate
+                    ? l10n.mealCalorieEstimateValue(
+                        calorieEstimate.totalKcal,
+                      )
+                    : l10n.mealCalorieEstimateEmpty,
+              ),
+              if (calorieEstimate.hasNutrition)
+                _MealCoachInfoItem(
+                  key: const ValueKey('meal-coach-nutrition-row'),
+                  icon: Icons.monitor_heart_outlined,
+                  label: l10n.mealNutritionEstimateValue(
+                    calorieEstimate.totalCarbs.round(),
+                    calorieEstimate.totalProtein.round(),
+                    calorieEstimate.totalFat.round(),
+                  ),
+                ),
+              _MealCoachInfoItem(
+                key: const ValueKey('meal-coach-xp-row'),
+                icon: Icons.bolt_outlined,
+                label: _xpLabel(l10n, status),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            _calorieCoach(l10n, calorieEstimate),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              height: 1.35,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -584,7 +666,7 @@ class _MealLogScreenState extends State<MealLogScreen> {
   }
 }
 
-class _MealSelectorCard extends StatelessWidget {
+class _MealSelectorSection extends StatelessWidget {
   final String mealKey;
   final String label;
   final double value;
@@ -600,7 +682,7 @@ class _MealSelectorCard extends StatelessWidget {
   final ValueChanged<String> onDishPortionChanged;
   final ValueChanged<List<String>> onFoodIdsChanged;
 
-  const _MealSelectorCard({
+  const _MealSelectorSection({
     required this.mealKey,
     required this.label,
     required this.value,
@@ -629,28 +711,15 @@ class _MealSelectorCard extends StatelessWidget {
     final hasDietDetails = normalizedDishId.isNotEmpty ||
         normalizedFoodIds.isNotEmpty ||
         menuController.text.trim().isNotEmpty;
-    return Container(
-      key: ValueKey('meal-$mealKey-card'),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: accent.withValues(alpha: 0.16)),
-      ),
+    return Padding(
+      key: ValueKey('meal-$mealKey-section'),
+      padding: const EdgeInsets.symmetric(vertical: 2),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Container(
-                width: 34,
-                height: 34,
-                decoration: BoxDecoration(
-                  color: accent.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(11),
-                ),
-                child: Icon(Icons.rice_bowl_outlined, color: accent, size: 20),
-              ),
+              Icon(Icons.rice_bowl_outlined, color: accent, size: 22),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
@@ -1402,24 +1471,77 @@ class _MealAdjustButton extends StatelessWidget {
   }
 }
 
-class _InfoPill extends StatelessWidget {
+class _MealCoachInfoItem {
+  final Key key;
+  final IconData icon;
   final String label;
 
-  const _InfoPill({required this.label});
+  const _MealCoachInfoItem({
+    required this.key,
+    required this.icon,
+    required this.label,
+  });
+}
+
+class _MealCoachInfoList extends StatelessWidget {
+  final List<_MealCoachInfoItem> items;
+
+  const _MealCoachInfoList({required this.items});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        label,
-        style: Theme.of(
-          context,
-        ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w700),
+    final dividerColor =
+        Theme.of(context).colorScheme.outline.withValues(alpha: 0.18);
+    return Column(
+      children: [
+        for (var i = 0; i < items.length; i++) ...[
+          _MealCoachInfoRow(
+            key: items[i].key,
+            icon: items[i].icon,
+            label: items[i].label,
+          ),
+          if (i < items.length - 1)
+            Divider(
+              key: ValueKey('meal-coach-summary-divider-$i'),
+              height: 1,
+              color: dividerColor,
+            ),
+        ],
+      ],
+    );
+  }
+}
+
+class _MealCoachInfoRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _MealCoachInfoRow({
+    super.key,
+    required this.icon,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 20, color: theme.colorScheme.primary),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              label,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+                height: 1.35,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
