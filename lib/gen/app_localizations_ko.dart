@@ -11583,6 +11583,32 @@ class AppLocalizationsKo extends AppLocalizations {
   String get matchCompetitionTeamsListTitle => '등록 팀';
 
   @override
+  String get matchCompetitionLeagueSetupTitle => '리그 참가 팀';
+
+  @override
+  String get matchCompetitionLeagueSetupBody =>
+      '팀을 등록하면 시합 기록을 기준으로 순위, 승무패, 득실과 승점이 자동 계산됩니다.';
+
+  @override
+  String get matchCompetitionTournamentSetupTitle => '토너먼트 시드';
+
+  @override
+  String get matchCompetitionTournamentSetupBody =>
+      '팀을 드래그해 시드 순서를 정하세요. 위에서부터 1라운드 대진이 구성됩니다.';
+
+  @override
+  String get matchCompetitionTournamentPreviewTitle => '1라운드 대진 미리보기';
+
+  @override
+  String matchCompetitionTournamentSeedPair(
+      int slot, String teamA, String teamB) {
+    return '$slot경기 · $teamA vs $teamB';
+  }
+
+  @override
+  String get matchCompetitionOwnTeamBadge => '우리 팀';
+
+  @override
   String matchCompetitionRemoveTeamTooltip(String team) {
     return '$team 삭제';
   }

@@ -6482,6 +6482,26 @@
   "matchCompetitionTeamNameRequired": "チーム名を入力してください。",
   "matchCompetitionTeamAlreadyAdded": "すでに登録されたチームです。",
   "matchCompetitionTeamsListTitle": "登録チーム",
+  "matchCompetitionLeagueSetupTitle": "リーグ参加チーム",
+  "matchCompetitionLeagueSetupBody": "チームを登録すると、試合結果から順位、勝敗、得失点差、勝ち点を自動計算します。",
+  "matchCompetitionTournamentSetupTitle": "トーナメントシード",
+  "matchCompetitionTournamentSetupBody": "チームをドラッグしてシード順を決めます。上から順に1回戦の対戦を構成します。",
+  "matchCompetitionTournamentPreviewTitle": "1回戦プレビュー",
+  "matchCompetitionTournamentSeedPair": "第{slot}試合 · {teamA} vs {teamB}",
+  "@matchCompetitionTournamentSeedPair": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "teamA": {
+        "type": "String"
+      },
+      "teamB": {
+        "type": "String"
+      }
+    }
+  },
+  "matchCompetitionOwnTeamBadge": "自チーム",
   "matchCompetitionRemoveTeamTooltip": "{team}を削除",
   "@matchCompetitionRemoveTeamTooltip": {
     "placeholders": {

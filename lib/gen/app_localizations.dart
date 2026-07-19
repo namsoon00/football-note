@@ -20464,6 +20464,49 @@ abstract class AppLocalizations {
   /// **'Registered teams'**
   String get matchCompetitionTeamsListTitle;
 
+  /// No description provided for @matchCompetitionLeagueSetupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'League teams'**
+  String get matchCompetitionLeagueSetupTitle;
+
+  /// No description provided for @matchCompetitionLeagueSetupBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add teams to calculate standings, records, goal difference, and points automatically from match results.'**
+  String get matchCompetitionLeagueSetupBody;
+
+  /// No description provided for @matchCompetitionTournamentSetupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tournament seeding'**
+  String get matchCompetitionTournamentSetupTitle;
+
+  /// No description provided for @matchCompetitionTournamentSetupBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag teams into seed order. The first-round bracket is built from top to bottom.'**
+  String get matchCompetitionTournamentSetupBody;
+
+  /// No description provided for @matchCompetitionTournamentPreviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'First-round preview'**
+  String get matchCompetitionTournamentPreviewTitle;
+
+  /// No description provided for @matchCompetitionTournamentSeedPair.
+  ///
+  /// In en, this message translates to:
+  /// **'Match {slot} · {teamA} vs {teamB}'**
+  String matchCompetitionTournamentSeedPair(
+      int slot, String teamA, String teamB);
+
+  /// No description provided for @matchCompetitionOwnTeamBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Our team'**
+  String get matchCompetitionOwnTeamBadge;
+
   /// No description provided for @matchCompetitionRemoveTeamTooltip.
   ///
   /// In en, this message translates to:

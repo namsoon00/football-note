@@ -6482,6 +6482,26 @@
   "matchCompetitionTeamNameRequired": "팀 이름을 입력하세요.",
   "matchCompetitionTeamAlreadyAdded": "이미 등록된 팀이에요.",
   "matchCompetitionTeamsListTitle": "등록 팀",
+  "matchCompetitionLeagueSetupTitle": "리그 참가 팀",
+  "matchCompetitionLeagueSetupBody": "팀을 등록하면 시합 기록을 기준으로 순위, 승무패, 득실과 승점이 자동 계산됩니다.",
+  "matchCompetitionTournamentSetupTitle": "토너먼트 시드",
+  "matchCompetitionTournamentSetupBody": "팀을 드래그해 시드 순서를 정하세요. 위에서부터 1라운드 대진이 구성됩니다.",
+  "matchCompetitionTournamentPreviewTitle": "1라운드 대진 미리보기",
+  "matchCompetitionTournamentSeedPair": "{slot}경기 · {teamA} vs {teamB}",
+  "@matchCompetitionTournamentSeedPair": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "teamA": {
+        "type": "String"
+      },
+      "teamB": {
+        "type": "String"
+      }
+    }
+  },
+  "matchCompetitionOwnTeamBadge": "우리 팀",
   "matchCompetitionRemoveTeamTooltip": "{team} 삭제",
   "@matchCompetitionRemoveTeamTooltip": {
     "placeholders": {

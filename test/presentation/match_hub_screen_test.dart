@@ -157,6 +157,43 @@ void main() {
       expect(find.text('전체 2'), findsOneWidget);
       expect(find.text('진행 1'), findsOneWidget);
       expect(find.text('종료 1'), findsOneWidget);
+      final records = MatchCompetitionService(
+        optionRepository,
+      ).allCompetitions();
+      final league = records.firstWhere(
+        (record) => record.kind == MatchCompetitionRecord.kindLeague,
+      );
+      final tournament = records.firstWhere(
+        (record) => record.kind == MatchCompetitionRecord.kindTournament,
+      );
+      final leagueIcon = tester.widget<Icon>(
+        find
+            .descendant(
+              of: find.byKey(ValueKey('competition-card-${league.id}')),
+              matching: find.byIcon(Icons.leaderboard_outlined),
+            )
+            .first,
+      );
+      final tournamentIcon = tester.widget<Icon>(
+        find
+            .descendant(
+              of: find.byKey(ValueKey('competition-card-${tournament.id}')),
+              matching: find.byIcon(Icons.account_tree),
+            )
+            .first,
+      );
+      expect(
+        leagueIcon.color,
+        themeMode == ThemeMode.dark
+            ? const Color(0xFF8AB4FF)
+            : const Color(0xFF1D4ED8),
+      );
+      expect(
+        tournamentIcon.color,
+        themeMode == ThemeMode.dark
+            ? const Color(0xFFFFB37A)
+            : const Color(0xFFB9380A),
+      );
 
       await tester.tap(
         find.byKey(const ValueKey('competition-create-action')),
@@ -165,8 +202,32 @@ void main() {
 
       expect(find.text('리그 경기'), findsWidgets);
       expect(find.text('토너먼트'), findsWidgets);
+      expect(
+        find.byKey(const ValueKey('competition-league-team-editor')),
+        findsOneWidget,
+      );
+      expect(find.text('우리 팀 U15'), findsOneWidget);
       _expectTextButtonContrast(tester, '대회 저장');
       _expectFilledButtonContrast(tester, '추가');
+
+      await tester.tap(find.text('토너먼트').first);
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('competition-league-team-editor')),
+        findsNothing,
+      );
+      expect(
+        find.byKey(const ValueKey('competition-tournament-seed-editor')),
+        findsOneWidget,
+      );
+      expect(find.text('1라운드 대진 미리보기'), findsOneWidget);
+      await tester.enterText(
+        find.byKey(const ValueKey('competition-team-input')),
+        '테스트 FC',
+      );
+      await tester.tap(find.widgetWithText(FilledButton, '추가'));
+      await tester.pumpAndSettle();
+      expect(find.byIcon(Icons.drag_handle), findsNWidgets(2));
 
       await tester.tap(find.byType(BackButton));
       await tester.pumpAndSettle();
@@ -193,7 +254,10 @@ void main() {
     expect(competitions, hasLength(1));
     expect(competitions.single.name, '자동 저장 리그');
 
-    await tester.enterText(find.byType(TextField).at(1), '2026 가을');
+    await tester.enterText(
+      find.byKey(const ValueKey('competition-season-field')),
+      '2026 가을',
+    );
     await tester.pump(const Duration(milliseconds: 800));
     await tester.pump();
 
@@ -224,6 +288,7 @@ void main() {
 
     expect(find.text('리그 순위'), findsOneWidget);
     expect(find.text('등록 팀'), findsWidgets);
+    expect(find.text('우리 팀 U15'), findsWidgets);
     expect(find.text('서울 U15'), findsWidgets);
     expect(find.textContaining('1승 0무 0패'), findsOneWidget);
     expect(
@@ -486,7 +551,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Team Management'), findsOneWidget);
+    expect(find.text('Our team'), findsOneWidget);
     expect(find.text('Player management'), findsOneWidget);
     expect(find.text('Match management'), findsOneWidget);
     expect(find.text('Board'), findsOneWidget);
@@ -962,6 +1027,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('저장됨'), findsNothing);
+    expect(find.text('우리 팀 U15'), findsOneWidget);
     expect(
       TeamManagementService(optionRepository).allTeams().single.name,
       '우리 팀 U15',

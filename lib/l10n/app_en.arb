@@ -6482,6 +6482,26 @@
   "matchCompetitionTeamNameRequired": "Enter a team name.",
   "matchCompetitionTeamAlreadyAdded": "That team is already registered.",
   "matchCompetitionTeamsListTitle": "Registered teams",
+  "matchCompetitionLeagueSetupTitle": "League teams",
+  "matchCompetitionLeagueSetupBody": "Add teams to calculate standings, records, goal difference, and points automatically from match results.",
+  "matchCompetitionTournamentSetupTitle": "Tournament seeding",
+  "matchCompetitionTournamentSetupBody": "Drag teams into seed order. The first-round bracket is built from top to bottom.",
+  "matchCompetitionTournamentPreviewTitle": "First-round preview",
+  "matchCompetitionTournamentSeedPair": "Match {slot} · {teamA} vs {teamB}",
+  "@matchCompetitionTournamentSeedPair": {
+    "placeholders": {
+      "slot": {
+        "type": "int"
+      },
+      "teamA": {
+        "type": "String"
+      },
+      "teamB": {
+        "type": "String"
+      }
+    }
+  },
+  "matchCompetitionOwnTeamBadge": "Our team",
   "matchCompetitionRemoveTeamTooltip": "Remove {team}",
   "@matchCompetitionRemoveTeamTooltip": {
     "placeholders": {

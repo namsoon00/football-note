@@ -11907,6 +11907,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get matchCompetitionTeamsListTitle => 'Registered teams';
 
   @override
+  String get matchCompetitionLeagueSetupTitle => 'League teams';
+
+  @override
+  String get matchCompetitionLeagueSetupBody =>
+      'Add teams to calculate standings, records, goal difference, and points automatically from match results.';
+
+  @override
+  String get matchCompetitionTournamentSetupTitle => 'Tournament seeding';
+
+  @override
+  String get matchCompetitionTournamentSetupBody =>
+      'Drag teams into seed order. The first-round bracket is built from top to bottom.';
+
+  @override
+  String get matchCompetitionTournamentPreviewTitle => 'First-round preview';
+
+  @override
+  String matchCompetitionTournamentSeedPair(
+      int slot, String teamA, String teamB) {
+    return 'Match $slot · $teamA vs $teamB';
+  }
+
+  @override
+  String get matchCompetitionOwnTeamBadge => 'Our team';
+
+  @override
   String matchCompetitionRemoveTeamTooltip(String team) {
     return 'Remove $team';
   }
