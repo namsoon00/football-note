@@ -855,7 +855,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           trainingService: widget.trainingService,
           localeService: widget.localeService,
           settingsService: widget.settingsService,
-          onOpenMatchStats: _openMatchHubStats,
         ),
       ),
     );
@@ -869,7 +868,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           trainingService: widget.trainingService,
           localeService: widget.localeService,
           settingsService: widget.settingsService,
-          onOpenMatchStats: _openMatchHubStats,
           openRecordOnStart: true,
           initialRecordDate: initialDate,
         ),
@@ -889,16 +887,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         ),
       ),
     );
-  }
-
-  void _openMatchHubStats() {
-    setState(() {
-      _builtTabIndices.add(3);
-      _statsInitialTabIndex = 1;
-      _statsInitialTabRequestKey += 1;
-      _index = 3;
-    });
-    _scheduleTabGuideIfNeeded(3);
   }
 
   Future<void> _openTrainingBoards() async {

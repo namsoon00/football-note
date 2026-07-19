@@ -23,60 +23,90 @@ class MatchRecordsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sportId = SportService(optionRepository).currentSportId();
     return Scaffold(
       body: ColoredBox(
         color: Theme.of(context).scaffoldBackgroundColor,
         child: SafeArea(
-          child: StreamBuilder<List<TrainingEntry>>(
-            stream: trainingService.watchEntries(),
-            builder: (context, snapshot) {
-              final entries = filterEntriesForSport(
-                snapshot.data ?? const <TrainingEntry>[],
-                sportId,
-              ).where((entry) => entry.isMatch).toList(growable: false)
-                ..sort((a, b) => b.date.compareTo(a.date));
-              final metrics = _MatchRecordsMetrics.from(entries);
-
-              return SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md,
-                  vertical: AppSpacing.sm,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _MatchRecordsHeader(
-                      onBack: () => Navigator.of(context).maybePop(),
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    _MatchRecordsSummary(metrics: metrics),
-                    const SizedBox(height: AppSpacing.md),
-                    _RecordsSectionHeader(
-                      title:
-                          AppLocalizations.of(context)!.matchRecordsListTitle,
-                    ),
-                    if (entries.isEmpty)
-                      _RecordsEmptyPanel(
-                        icon: Icons.fact_check_outlined,
-                        title: AppLocalizations.of(context)!.matchHubEmptyTitle,
-                        body:
-                            AppLocalizations.of(context)!.matchHubEmptySubtitle,
-                      )
-                    else
-                      ...entries.map(
-                        (entry) => Padding(
-                          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                          child: _MatchRecordCard(entry: entry),
-                        ),
-                      ),
-                  ],
-                ),
-              );
-            },
+          child: MatchRecordsContent(
+            trainingService: trainingService,
+            optionRepository: optionRepository,
+            showHeader: true,
+            scrollable: true,
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.sm,
+            ),
           ),
         ),
       ),
+    );
+  }
+}
+
+class MatchRecordsContent extends StatelessWidget {
+  final TrainingService trainingService;
+  final OptionRepository optionRepository;
+  final bool showHeader;
+  final bool scrollable;
+  final EdgeInsetsGeometry padding;
+  final VoidCallback? onBack;
+
+  const MatchRecordsContent({
+    super.key,
+    required this.trainingService,
+    required this.optionRepository,
+    this.showHeader = false,
+    this.scrollable = false,
+    this.padding = EdgeInsets.zero,
+    this.onBack,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final sportId = SportService(optionRepository).currentSportId();
+    return StreamBuilder<List<TrainingEntry>>(
+      stream: trainingService.watchEntries(),
+      builder: (context, snapshot) {
+        final entries = filterEntriesForSport(
+          snapshot.data ?? const <TrainingEntry>[],
+          sportId,
+        ).where((entry) => entry.isMatch).toList(growable: false)
+          ..sort((a, b) => b.date.compareTo(a.date));
+        final metrics = _MatchRecordsMetrics.from(entries);
+        final content = Padding(
+          padding: padding,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (showHeader) ...[
+                _MatchRecordsHeader(
+                  onBack: onBack ?? () => Navigator.of(context).maybePop(),
+                ),
+                const SizedBox(height: AppSpacing.md),
+              ],
+              _MatchRecordsSummary(metrics: metrics),
+              const SizedBox(height: AppSpacing.md),
+              _RecordsSectionHeader(title: l10n.matchRecordsListTitle),
+              if (entries.isEmpty)
+                _RecordsEmptyPanel(
+                  icon: Icons.fact_check_outlined,
+                  title: l10n.matchHubEmptyTitle,
+                  body: l10n.matchHubEmptySubtitle,
+                )
+              else
+                ...entries.map(
+                  (entry) => Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                    child: _MatchRecordCard(entry: entry),
+                  ),
+                ),
+            ],
+          ),
+        );
+        if (!scrollable) return content;
+        return SingleChildScrollView(child: content);
+      },
     );
   }
 }

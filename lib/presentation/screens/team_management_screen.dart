@@ -17,7 +17,6 @@ import '../theme/app_theme.dart';
 import '../widgets/app_page_route.dart';
 import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_feedback.dart';
-import 'club_schedule_screen.dart';
 import 'competition_management_screen.dart';
 import 'match_record_screen.dart';
 import 'match_records_screen.dart';
@@ -50,7 +49,6 @@ class TeamManagementScreen extends StatefulWidget {
   final TrainingService? trainingService;
   final LocaleService? localeService;
   final SettingsService? settingsService;
-  final VoidCallback? onOpenMatchStats;
   final String? sportId;
   final bool readOnly;
   final bool openRecordOnStart;
@@ -62,7 +60,6 @@ class TeamManagementScreen extends StatefulWidget {
     this.trainingService,
     this.localeService,
     this.settingsService,
-    this.onOpenMatchStats,
     this.sportId,
     this.readOnly = false,
     this.openRecordOnStart = false,
@@ -172,20 +169,6 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
     return true;
   }
 
-  Future<void> _openClubSchedule() async {
-    await _flushAutoSave();
-    if (!mounted) return;
-    await Navigator.of(context).push(
-      AppPageRoute(
-        builder: (_) => ClubScheduleScreen(
-          optionRepository: widget.optionRepository,
-          sportId: widget.sportId,
-          readOnly: _isReadOnlySupportMode,
-        ),
-      ),
-    );
-  }
-
   Future<void> _openMatchRecord({DateTime? initialDate}) async {
     if (_isReadOnlySupportMode) {
       AppFeedback.showMessage(
@@ -232,28 +215,6 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
         ),
       ),
     );
-  }
-
-  Future<void> _openMatchRecords() async {
-    final trainingService = widget.trainingService;
-    if (trainingService == null) return;
-    await _flushAutoSave();
-    if (!mounted) return;
-    await Navigator.of(context).push(
-      AppPageRoute(
-        builder: (_) => MatchRecordsScreen(
-          trainingService: trainingService,
-          optionRepository: widget.optionRepository,
-        ),
-      ),
-    );
-  }
-
-  void _openMatchStats() {
-    final onOpenMatchStats = widget.onOpenMatchStats;
-    if (onOpenMatchStats == null) return;
-    Navigator.of(context).maybePop();
-    WidgetsBinding.instance.addPostFrameCallback((_) => onOpenMatchStats());
   }
 
   void _loadTeam(AppLocalizations l10n) {
@@ -1006,17 +967,15 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   }
 
   Widget _buildMatchManagementHome() {
+    final trainingService = widget.trainingService;
     final matchActionsEnabled = widget.trainingService != null &&
         widget.localeService != null &&
         widget.settingsService != null;
     return _MatchManagementPanel(
       matchActionsEnabled: matchActionsEnabled,
-      recordsEnabled: widget.trainingService != null,
+      trainingService: trainingService,
+      optionRepository: widget.optionRepository,
       onRecordMatch: () => unawaited(_openMatchRecord()),
-      onOpenMatchRecords: () => unawaited(_openMatchRecords()),
-      onOpenMatchStats:
-          widget.onOpenMatchStats == null ? null : _openMatchStats,
-      onOpenSchedule: () => unawaited(_openClubSchedule()),
     );
   }
 
@@ -1383,175 +1342,61 @@ class _TeamManagementSectionSwitcher extends StatelessWidget {
 
 class _MatchManagementPanel extends StatelessWidget {
   final bool matchActionsEnabled;
-  final bool recordsEnabled;
+  final TrainingService? trainingService;
+  final OptionRepository optionRepository;
   final VoidCallback onRecordMatch;
-  final VoidCallback onOpenMatchRecords;
-  final VoidCallback? onOpenMatchStats;
-  final VoidCallback onOpenSchedule;
 
   const _MatchManagementPanel({
     required this.matchActionsEnabled,
-    required this.recordsEnabled,
+    required this.trainingService,
+    required this.optionRepository,
     required this.onRecordMatch,
-    required this.onOpenMatchRecords,
-    required this.onOpenMatchStats,
-    required this.onOpenSchedule,
   });
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
+    final trainingService = this.trainingService;
     return _StructuredSection(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _PanelTitle(
-            icon: Icons.event_note_outlined,
-            title: l10n.teamManagementMatchSectionTitle,
-          ),
-          const SizedBox(height: AppSpacing.md),
-          FilledButton.icon(
-            onPressed: matchActionsEnabled ? onRecordMatch : null,
-            icon: const Icon(Icons.edit_note_outlined),
-            label: Text(l10n.matchHubRecordButton),
-            style: FilledButton.styleFrom(
-              minimumSize: const Size(0, AppSizes.primaryButtonHeight),
-              textStyle: theme.textTheme.labelLarge?.copyWith(
-                fontWeight: FontWeight.w900,
+          Row(
+            children: [
+              Expanded(
+                child: _PanelTitle(
+                  icon: Icons.event_note_outlined,
+                  title: l10n.teamManagementMatchSectionTitle,
+                ),
               ),
-              shape: RoundedRectangleBorder(borderRadius: AppRadius.control),
-            ),
+              const SizedBox(width: AppSpacing.xs),
+              AppBarActionButton.label(
+                key: const ValueKey('team-match-record-action'),
+                icon: const Icon(Icons.edit_note_outlined),
+                label: l10n.matchHubRecordButton,
+                tooltip: l10n.matchHubRecordButton,
+                onPressed: matchActionsEnabled ? onRecordMatch : null,
+                margin: EdgeInsets.zero,
+                maxLabelWidth: 112,
+              ),
+            ],
           ),
           const SizedBox(height: AppSpacing.sm),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final columns = constraints.maxWidth >= 720 ? 3 : 1;
-              final gap = AppSpacing.sm * (columns - 1);
-              final width = (constraints.maxWidth - gap) / columns;
-              return Wrap(
-                spacing: AppSpacing.sm,
-                runSpacing: AppSpacing.sm,
-                children: [
-                  SizedBox(
-                    width: width,
-                    child: _MatchOperationTile(
-                      onPressed: recordsEnabled ? onOpenMatchRecords : null,
-                      icon: Icons.fact_check_outlined,
-                      label: l10n.matchRecordsOpenButton,
-                      accent: scheme.tertiary,
-                    ),
-                  ),
-                  SizedBox(
-                    width: width,
-                    child: _MatchOperationTile(
-                      onPressed: onOpenMatchStats,
-                      icon: Icons.analytics_outlined,
-                      label: l10n.matchHubStatsButton,
-                      accent: const Color(0xFF2563EB),
-                    ),
-                  ),
-                  SizedBox(
-                    width: width,
-                    child: _MatchOperationTile(
-                      onPressed: onOpenSchedule,
-                      icon: Icons.calendar_month_outlined,
-                      label: l10n.clubScheduleTitle,
-                      accent: const Color(0xFF0F766E),
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
+          if (trainingService == null)
+            _InlineEmptyMessage(
+              icon: Icons.fact_check_outlined,
+              title: l10n.matchHubEmptyTitle,
+              body: l10n.matchHubEmptySubtitle,
+            )
+          else
+            MatchRecordsContent(
+              key: const ValueKey('team-match-records-content'),
+              trainingService: trainingService,
+              optionRepository: optionRepository,
+              showHeader: false,
+              scrollable: false,
+            ),
         ],
-      ),
-    );
-  }
-}
-
-class _MatchOperationTile extends StatelessWidget {
-  final VoidCallback? onPressed;
-  final IconData icon;
-  final String label;
-  final Color accent;
-
-  const _MatchOperationTile({
-    required this.onPressed,
-    required this.icon,
-    required this.label,
-    required this.accent,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final enabled = onPressed != null;
-    final foreground = enabled ? scheme.onSurface : scheme.onSurfaceVariant;
-    return Semantics(
-      button: true,
-      enabled: enabled,
-      label: label,
-      child: Material(
-        color: enabled
-            ? scheme.surface.withValues(alpha: 0.72)
-            : scheme.surfaceContainerHighest.withValues(alpha: 0.36),
-        borderRadius: AppRadius.small,
-        child: InkWell(
-          onTap: onPressed,
-          borderRadius: AppRadius.small,
-          child: Container(
-            constraints: const BoxConstraints(minHeight: 70),
-            padding: const EdgeInsets.all(AppSpacing.sm),
-            decoration: BoxDecoration(
-              borderRadius: AppRadius.small,
-              border: Border.all(
-                color: enabled
-                    ? accent.withValues(alpha: 0.28)
-                    : scheme.outline.withValues(alpha: 0.16),
-              ),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 38,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    color: accent.withValues(alpha: enabled ? 0.12 : 0.06),
-                    borderRadius: AppRadius.small,
-                  ),
-                  child: Icon(
-                    icon,
-                    color: enabled
-                        ? accent
-                        : scheme.onSurfaceVariant.withValues(alpha: 0.42),
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: Text(
-                    label,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      color: foreground,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ),
-                Icon(
-                  Icons.chevron_right,
-                  color: enabled
-                      ? scheme.onSurfaceVariant
-                      : scheme.onSurfaceVariant.withValues(alpha: 0.32),
-                ),
-              ],
-            ),
-          ),
-        ),
       ),
     );
   }
@@ -4075,9 +3920,6 @@ class _RosterBoard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
     final groupedPlayers = {
       for (final role in _playerRoles)
         role: _sortRosterPlayers(
@@ -4102,36 +3944,6 @@ class _RosterBoard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: scheme.primary.withValues(alpha: 0.10),
-                borderRadius: AppRadius.small,
-              ),
-              child: Icon(
-                Icons.view_module_outlined,
-                color: scheme.primary,
-                size: 18,
-              ),
-            ),
-            const SizedBox(width: AppSpacing.xs),
-            Expanded(
-              child: Text(
-                l10n.teamManagementRosterBoardTitle,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.sm),
         _RosterSummaryBar(
           totalCount: players.length,
           placedCount: placedCount,
@@ -4227,14 +4039,12 @@ class _RosterSummaryBar extends StatelessWidget {
             : scheme.onSurfaceVariant,
       ),
     ];
-    return SizedBox(
-      height: 34,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: items.length,
-        separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.xs),
-        itemBuilder: (context, index) => items[index],
-      ),
+    return Wrap(
+      spacing: AppSpacing.xs,
+      runSpacing: AppSpacing.xs,
+      children: [
+        for (final item in items) item,
+      ],
     );
   }
 }
@@ -4254,7 +4064,7 @@ class _RosterSummaryChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      constraints: const BoxConstraints(minHeight: 32, minWidth: 104),
+      constraints: const BoxConstraints(minHeight: 32),
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.xs,
         vertical: AppSpacing.xxs,
@@ -4267,13 +4077,15 @@ class _RosterSummaryChip extends StatelessWidget {
         children: [
           Icon(icon, size: 17, color: color),
           const SizedBox(width: AppSpacing.xxs),
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.labelMedium?.copyWith(
-              color: color,
-              fontWeight: FontWeight.w900,
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: color,
+                fontWeight: FontWeight.w900,
+              ),
             ),
           ),
         ],
