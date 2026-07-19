@@ -319,7 +319,6 @@ class _MatchHubScreenState extends State<MatchHubScreen> {
           trainingService: widget.trainingService,
           localeService: widget.localeService,
           settingsService: widget.settingsService,
-          onOpenMatchStats: widget.onOpenMatchStats,
           sportId: SportService(widget.optionRepository).currentSportId(),
           readOnly: readOnly,
         ),

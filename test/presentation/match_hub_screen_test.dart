@@ -326,6 +326,53 @@ void main() {
     expect(find.text('1 : 2'), findsOneWidget);
   });
 
+  testWidgets('Team management match tab shows records inline', (
+    tester,
+  ) async {
+    await seedMatchHubRecords();
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en'),
+            Locale('ko', 'KR'),
+            Locale('ja'),
+          ],
+          home: TeamManagementScreen(
+            optionRepository: optionRepository,
+            trainingService: trainingService,
+            localeService: localeService,
+            settingsService: settingsService,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('시합관리'));
+    await tester.pumpAndSettle();
+
+    expect(
+        find.byKey(const ValueKey('team-match-record-action')), findsOneWidget);
+    expect(find.byKey(const ValueKey('team-match-records-content')),
+        findsOneWidget);
+    expect(find.text('시합 기록 보기'), findsNothing);
+    expect(find.text('시합 통계'), findsNothing);
+    expect(find.text('클럽 일정'), findsNothing);
+    expect(find.text('전체 시합 기록'), findsOneWidget);
+    expect(find.textContaining('서울 U15'), findsWidgets);
+    expect(find.text('3 : 1'), findsOneWidget);
+  });
+
   testWidgets('Match hub quick stats action calls the host callback', (
     tester,
   ) async {
@@ -815,7 +862,7 @@ void main() {
     await tester.tap(savePlayerButton);
     await tester.pumpAndSettle();
 
-    expect(find.text('스쿼드 보드'), findsOneWidget);
+    expect(find.text('스쿼드 보드'), findsNothing);
     expect(find.text('미드필더 · 1명'), findsOneWidget);
     expect(find.textContaining('보드 미배치'), findsOneWidget);
 
