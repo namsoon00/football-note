@@ -289,6 +289,55 @@ void main() {
         greaterThan(_scenarioConfig().maximumArmAsymmetryRatio),
       );
     });
+
+    test('keeps lift-off feedback available with observed low flight ratio',
+        () {
+      final config = _scenarioConfig().copyWith(minimumFlightRatio: 0.18);
+      final state = _runScenario(
+        config: config,
+        start: DateTime(2026, 4, 13, 9),
+        frames: _sequence(
+          offsetsMs: const <int>[0, 160, 320, 480, 640, 800, 960, 1120],
+          hipCenterXs: const <double>[220, 260, 300, 340, 380, 420, 460, 500],
+          trunkLeanX: 0.22,
+          kneeDriveHeight: 0.36,
+          leftAnkleXs: const <double>[
+            0.24,
+            -0.24,
+            0.24,
+            -0.24,
+            0.02,
+            -0.24,
+            0.24,
+            -0.24
+          ],
+          rightAnkleXs: const <double>[
+            -0.24,
+            0.24,
+            -0.24,
+            0.24,
+            -0.02,
+            0.24,
+            -0.24,
+            0.24
+          ],
+          leftAnkleYs: const <double>[1, 1, 1, 1, 0.78, 1, 1, 1],
+          rightAnkleYs: const <double>[1, 1, 1, 1, 0.78, 1, 1, 1],
+        ),
+      );
+
+      expect(state.stateEstimate.runningDetected, isTrue);
+      expect(
+        state.features.detectedStepEvents,
+        greaterThanOrEqualTo(config.minimumStepEventsForRunning),
+      );
+      expect(state.features.stanceFrameCount, greaterThan(0));
+      expect(state.features.flightFrameCount, 1);
+      expect(state.features.flightRatio.available, isTrue);
+      expect(state.features.estimatedFlightRatio,
+          lessThan(config.minimumFlightRatio));
+      expect(state.feedback?.code, SprintFeedbackCode.liftOffQuickly);
+    });
   });
 }
 
@@ -322,6 +371,8 @@ SprintRealtimeCoachingState _runScenario({
         kneeDriveHeight: frame.kneeDriveHeight,
         leftAnkleX: frame.leftAnkleX,
         rightAnkleX: frame.rightAnkleX,
+        leftAnkleY: frame.leftAnkleY,
+        rightAnkleY: frame.rightAnkleY,
         leftWristReach: frame.leftWristReach,
         rightWristReach: frame.rightWristReach,
         missingLandmarks: frame.missingLandmarks,
@@ -339,6 +390,8 @@ List<_SyntheticSprintFrame> _sequence({
   required double kneeDriveHeight,
   List<double>? leftAnkleXs,
   List<double>? rightAnkleXs,
+  List<double>? leftAnkleYs,
+  List<double>? rightAnkleYs,
   double leftWristReach = 0.42,
   double rightWristReach = 0.44,
 }) {
@@ -353,6 +406,10 @@ List<_SyntheticSprintFrame> _sequence({
         offsetsMs.length,
         (index) => index.isEven ? -0.24 : 0.24,
       );
+  final resolvedLeftAnkleYs =
+      leftAnkleYs ?? List<double>.filled(offsetsMs.length, 1);
+  final resolvedRightAnkleYs =
+      rightAnkleYs ?? List<double>.filled(offsetsMs.length, 1);
 
   return List<_SyntheticSprintFrame>.generate(offsetsMs.length, (index) {
     return _SyntheticSprintFrame(
@@ -362,6 +419,8 @@ List<_SyntheticSprintFrame> _sequence({
       kneeDriveHeight: kneeDriveHeight,
       leftAnkleX: resolvedLeftAnkles[index],
       rightAnkleX: resolvedRightAnkles[index],
+      leftAnkleY: resolvedLeftAnkleYs[index],
+      rightAnkleY: resolvedRightAnkleYs[index],
       leftWristReach: leftWristReach,
       rightWristReach: rightWristReach,
     );
@@ -375,6 +434,8 @@ class _SyntheticSprintFrame {
   final double kneeDriveHeight;
   final double leftAnkleX;
   final double rightAnkleX;
+  final double leftAnkleY;
+  final double rightAnkleY;
   final double leftWristReach;
   final double rightWristReach;
   final Set<SprintPoseLandmarkType> missingLandmarks;
@@ -386,6 +447,8 @@ class _SyntheticSprintFrame {
     required this.kneeDriveHeight,
     required this.leftAnkleX,
     required this.rightAnkleX,
+    this.leftAnkleY = 1,
+    this.rightAnkleY = 1,
     this.leftWristReach = 0.42,
     this.rightWristReach = 0.44,
     this.missingLandmarks = const <SprintPoseLandmarkType>{},
@@ -399,6 +462,8 @@ SprintPoseFrame _poseFrame({
   required double kneeDriveHeight,
   required double leftAnkleX,
   required double rightAnkleX,
+  double leftAnkleY = 1,
+  double rightAnkleY = 1,
   double leftWristReach = 0.42,
   double rightWristReach = 0.44,
   Set<SprintPoseLandmarkType> missingLandmarks =
@@ -442,9 +507,10 @@ SprintPoseFrame _poseFrame({
     SprintPoseLandmarkType.rightKnee: _landmarkFromOffset(
       point(0.16, -kneeDriveHeight),
     ),
-    SprintPoseLandmarkType.leftAnkle: _landmarkFromOffset(point(leftAnkleX, 1)),
+    SprintPoseLandmarkType.leftAnkle:
+        _landmarkFromOffset(point(leftAnkleX, leftAnkleY)),
     SprintPoseLandmarkType.rightAnkle: _landmarkFromOffset(
-      point(rightAnkleX, 1),
+      point(rightAnkleX, rightAnkleY),
     ),
   };
 

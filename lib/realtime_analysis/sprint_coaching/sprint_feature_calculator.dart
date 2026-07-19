@@ -52,6 +52,9 @@ class SprintFeatureCalculator {
     final rhythmStd =
         stepIntervalsMs.isEmpty ? null : _standardDeviation(stepIntervalsMs);
     final cadenceConfidence = _stepMetricConfidence(stepDetection, stepEvents);
+    final hasFlightRatioEvidence = gaitPhase.validFrameCount >= 3 &&
+        gaitPhase.stanceFrameCount > 0 &&
+        gaitPhase.flightFrameCount > 0;
 
     return SprintFeatureSnapshot(
       trunkAngle: _measurementFromSamples(
@@ -112,9 +115,10 @@ class SprintFeatureCalculator {
               confidence: landingMetrics.confidence,
               sampleCount: landingMetrics.sampleCount,
             ),
-      flightRatio: gaitPhase.validFrameCount < 3
-          ? const SprintMeasuredValue.unavailable(
+      flightRatio: !hasFlightRatioEvidence
+          ? SprintMeasuredValue.unavailable(
               reasonIfUnavailable: 'insufficient_gait_phase',
+              sampleCount: gaitPhase.validFrameCount,
             )
           : SprintMeasuredValue.available(
               value: gaitPhase.flightRatio,
