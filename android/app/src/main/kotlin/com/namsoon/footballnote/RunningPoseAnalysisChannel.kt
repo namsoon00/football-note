@@ -1,19 +1,23 @@
 package com.namsoon.footballnote
 
+import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.PointF
 import android.media.MediaMetadataRetriever
 import android.os.Handler
 import android.os.Looper
-import com.google.android.gms.tasks.Tasks
-import com.google.mlkit.vision.common.InputImage
-import com.google.mlkit.vision.pose.Pose
-import com.google.mlkit.vision.pose.PoseDetection
-import com.google.mlkit.vision.pose.PoseLandmark
-import com.google.mlkit.vision.pose.defaults.PoseDetectorOptions
+import com.google.mediapipe.framework.image.BitmapImageBuilder
+import com.google.mediapipe.tasks.components.containers.NormalizedLandmark
+import com.google.mediapipe.tasks.core.BaseOptions
+import com.google.mediapipe.tasks.vision.core.RunningMode
+import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarker
+import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarkerResult
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import java.io.File
+import java.io.IOException
+import java.util.Optional
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlin.math.abs
@@ -22,8 +26,10 @@ import kotlin.math.hypot
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
+import kotlin.math.roundToLong
 
 class RunningPoseAnalysisChannel(
+    private val context: Context,
     messenger: BinaryMessenger,
 ) : MethodChannel.MethodCallHandler {
     private val channel = MethodChannel(messenger, channelName)
@@ -76,10 +82,7 @@ class RunningPoseAnalysisChannel(
         }
 
         val retriever = MediaMetadataRetriever()
-        val options = PoseDetectorOptions.Builder()
-            .setDetectorMode(PoseDetectorOptions.STREAM_MODE)
-            .build()
-        val detector = PoseDetection.getClient(options)
+        var poseLandmarker: PoseLandmarker? = null
 
         try {
             retriever.setDataSource(path)
@@ -93,7 +96,10 @@ class RunningPoseAnalysisChannel(
                 )
             }
 
+            val landmarker = makePoseLandmarker()
+            poseLandmarker = landmarker
             val frameSamples = mutableListOf<FrameSample>()
+            var lastTimestampMs = 0L
             repeat(sampleCount) { index ->
                 val fraction = if (sampleCount == 1) {
                     0.5
@@ -102,14 +108,22 @@ class RunningPoseAnalysisChannel(
                         (sampleEndFraction - sampleStartFraction) *
                         (index.toDouble() / (sampleCount - 1))
                 }
-                val timeUs = (durationMs * 1000.0 * fraction).toLong()
+                val timeUs = (durationMs.toDouble() * 1000.0 * fraction).roundToLong()
                 val bitmap = retriever.getFrameAtTime(
                     timeUs,
                     MediaMetadataRetriever.OPTION_CLOSEST,
                 ) ?: return@repeat
                 try {
-                    val pose = Tasks.await(detector.process(InputImage.fromBitmap(bitmap, 0)))
-                    extractFrameSample(pose)?.let(frameSamples::add)
+                    val requestedTimestampMs =
+                        (durationMs.toDouble() * fraction).roundToLong()
+                    val timestampMs = max(requestedTimestampMs, lastTimestampMs + 1)
+                    lastTimestampMs = timestampMs
+                    val pose = detectPose(landmarker, bitmap, timestampMs)
+                    extractFrameSample(
+                        pose,
+                        imageWidth = bitmap.width,
+                        imageHeight = bitmap.height,
+                    )?.let(frameSamples::add)
                 } finally {
                     bitmap.recycle()
                 }
@@ -163,23 +177,97 @@ class RunningPoseAnalysisChannel(
             )
         } finally {
             retriever.release()
-            detector.close()
+            poseLandmarker?.close()
         }
     }
 
-    private fun extractFrameSample(pose: Pose): FrameSample? {
-        val leftShoulder = confidentLandmark(pose, PoseLandmark.LEFT_SHOULDER) ?: return null
-        val rightShoulder = confidentLandmark(pose, PoseLandmark.RIGHT_SHOULDER) ?: return null
-        val leftHip = confidentLandmark(pose, PoseLandmark.LEFT_HIP) ?: return null
-        val rightHip = confidentLandmark(pose, PoseLandmark.RIGHT_HIP) ?: return null
-        val leftKnee = confidentLandmark(pose, PoseLandmark.LEFT_KNEE) ?: return null
-        val rightKnee = confidentLandmark(pose, PoseLandmark.RIGHT_KNEE) ?: return null
-        val leftAnkle = confidentLandmark(pose, PoseLandmark.LEFT_ANKLE) ?: return null
-        val rightAnkle = confidentLandmark(pose, PoseLandmark.RIGHT_ANKLE) ?: return null
+    private fun makePoseLandmarker(): PoseLandmarker {
+        ensureModelAssetAvailable()
 
-        val shoulderCenter = midpoint(leftShoulder.position, rightShoulder.position)
-        val hipCenter = midpoint(leftHip.position, rightHip.position)
-        val ankleCenter = midpoint(leftAnkle.position, rightAnkle.position)
+        val baseOptions = BaseOptions.builder()
+            .setModelAssetPath(modelAssetPath)
+            .build()
+        val options = PoseLandmarker.PoseLandmarkerOptions.builder()
+            .setBaseOptions(baseOptions)
+            .setRunningMode(RunningMode.VIDEO)
+            .setNumPoses(1)
+            .setMinPoseDetectionConfidence(minimumLikelihood)
+            .setMinPosePresenceConfidence(minimumLikelihood)
+            .setMinTrackingConfidence(minimumLikelihood)
+            .build()
+
+        return try {
+            PoseLandmarker.createFromOptions(context, options)
+        } catch (error: Exception) {
+            throw mediaPipeFailure(
+                error,
+                fallbackMessage = "MediaPipe pose initialization failed.",
+            )
+        }
+    }
+
+    private fun ensureModelAssetAvailable() {
+        try {
+            context.assets.open(modelAssetPath).use { }
+        } catch (error: IOException) {
+            throw AnalysisException(
+                "model_missing",
+                "MediaPipe pose model is missing from the Android assets.",
+            )
+        }
+    }
+
+    private fun detectPose(
+        poseLandmarker: PoseLandmarker,
+        bitmap: Bitmap,
+        timestampMs: Long,
+    ): PoseLandmarkerResult {
+        return try {
+            val mpImage = BitmapImageBuilder(bitmap).build()
+            poseLandmarker.detectForVideo(mpImage, timestampMs)
+        } catch (error: Exception) {
+            throw mediaPipeFailure(
+                error,
+                fallbackMessage = "MediaPipe pose inference failed.",
+            )
+        }
+    }
+
+    private fun mediaPipeFailure(error: Exception, fallbackMessage: String): AnalysisException =
+        AnalysisException(
+            "mediapipe_pose_failed",
+            error.message ?: fallbackMessage,
+        )
+
+    private fun extractFrameSample(
+        result: PoseLandmarkerResult,
+        imageWidth: Int,
+        imageHeight: Int,
+    ): FrameSample? {
+        val landmarks = result.landmarks().firstOrNull() ?: return null
+        if (landmarks.size <= leftFootIndex) {
+            return null
+        }
+
+        val leftShoulder =
+            confidentPoint(landmarks, leftShoulderIndex, imageWidth, imageHeight) ?: return null
+        val rightShoulder =
+            confidentPoint(landmarks, rightShoulderIndex, imageWidth, imageHeight) ?: return null
+        val leftHip = confidentPoint(landmarks, leftHipIndex, imageWidth, imageHeight) ?: return null
+        val rightHip =
+            confidentPoint(landmarks, rightHipIndex, imageWidth, imageHeight) ?: return null
+        val leftKnee =
+            confidentPoint(landmarks, leftKneeIndex, imageWidth, imageHeight) ?: return null
+        val rightKnee =
+            confidentPoint(landmarks, rightKneeIndex, imageWidth, imageHeight) ?: return null
+        val leftAnkle =
+            confidentPoint(landmarks, leftAnkleIndex, imageWidth, imageHeight) ?: return null
+        val rightAnkle =
+            confidentPoint(landmarks, rightAnkleIndex, imageWidth, imageHeight) ?: return null
+
+        val shoulderCenter = midpoint(leftShoulder, rightShoulder)
+        val hipCenter = midpoint(leftHip, rightHip)
+        val ankleCenter = midpoint(leftAnkle, rightAnkle)
         val torsoScale = distance(shoulderCenter, hipCenter)
         val legScale = distance(hipCenter, ankleCenter)
         val bodyScale = max(torsoScale, legScale)
@@ -188,28 +276,64 @@ class RunningPoseAnalysisChannel(
         }
 
         return FrameSample(
-            leftShoulder = copyPoint(leftShoulder.position),
-            rightShoulder = copyPoint(rightShoulder.position),
-            leftHip = copyPoint(leftHip.position),
-            rightHip = copyPoint(rightHip.position),
-            leftKnee = copyPoint(leftKnee.position),
-            rightKnee = copyPoint(rightKnee.position),
+            leftShoulder = copyPoint(leftShoulder),
+            rightShoulder = copyPoint(rightShoulder),
+            leftHip = copyPoint(leftHip),
+            rightHip = copyPoint(rightHip),
+            leftKnee = copyPoint(leftKnee),
+            rightKnee = copyPoint(rightKnee),
             shoulderCenter = shoulderCenter,
             hipCenter = hipCenter,
-            leftAnkle = copyPoint(leftAnkle.position),
-            rightAnkle = copyPoint(rightAnkle.position),
-            leftHeel = confidentLandmark(pose, PoseLandmark.LEFT_HEEL)?.let { copyPoint(it.position) },
-            rightHeel = confidentLandmark(pose, PoseLandmark.RIGHT_HEEL)?.let { copyPoint(it.position) },
-            leftElbow = confidentLandmark(pose, PoseLandmark.LEFT_ELBOW)?.let { copyPoint(it.position) },
-            rightElbow = confidentLandmark(pose, PoseLandmark.RIGHT_ELBOW)?.let { copyPoint(it.position) },
-            leftWrist = confidentLandmark(pose, PoseLandmark.LEFT_WRIST)?.let { copyPoint(it.position) },
-            rightWrist = confidentLandmark(pose, PoseLandmark.RIGHT_WRIST)?.let { copyPoint(it.position) },
+            leftAnkle = copyPoint(leftAnkle),
+            rightAnkle = copyPoint(rightAnkle),
+            leftHeel =
+                confidentPoint(landmarks, leftHeelIndex, imageWidth, imageHeight)
+                    ?.let(::copyPoint),
+            rightHeel =
+                confidentPoint(landmarks, rightHeelIndex, imageWidth, imageHeight)
+                    ?.let(::copyPoint),
+            leftElbow =
+                confidentPoint(landmarks, leftElbowIndex, imageWidth, imageHeight)
+                    ?.let(::copyPoint),
+            rightElbow =
+                confidentPoint(landmarks, rightElbowIndex, imageWidth, imageHeight)
+                    ?.let(::copyPoint),
+            leftWrist =
+                confidentPoint(landmarks, leftWristIndex, imageWidth, imageHeight)
+                    ?.let(::copyPoint),
+            rightWrist =
+                confidentPoint(landmarks, rightWristIndex, imageWidth, imageHeight)
+                    ?.let(::copyPoint),
             bodyScale = bodyScale,
         )
     }
 
-    private fun confidentLandmark(pose: Pose, type: Int): PoseLandmark? =
-        pose.getPoseLandmark(type)?.takeIf { it.inFrameLikelihood >= minimumLikelihood }
+    private fun confidentPoint(
+        landmarks: List<NormalizedLandmark>,
+        index: Int,
+        imageWidth: Int,
+        imageHeight: Int,
+    ): PointF? {
+        if (index !in landmarks.indices) {
+            return null
+        }
+
+        val landmark = landmarks[index]
+        val confidence = max(
+            optionalFloat(landmark.visibility()) ?: 0f,
+            optionalFloat(landmark.presence()) ?: 0f,
+        )
+        if (confidence < minimumLikelihood) {
+            return null
+        }
+        return PointF(
+            landmark.x() * imageWidth.toFloat(),
+            landmark.y() * imageHeight.toFloat(),
+        )
+    }
+
+    private fun optionalFloat(value: Optional<Float>): Float? =
+        if (value.isPresent) value.get() else null
 
     private fun resolveDirection(samples: List<FrameSample>): AnalysisDirection {
         val hipMovement =
@@ -365,5 +489,21 @@ class RunningPoseAnalysisChannel(
         private const val sampleStartFraction = 0.15
         private const val sampleEndFraction = 0.85
         private const val stationaryThresholdRatio = 0.12
+        private const val modelAssetPath = "pose_landmarker_lite.task"
+        private const val leftShoulderIndex = 11
+        private const val rightShoulderIndex = 12
+        private const val leftElbowIndex = 13
+        private const val rightElbowIndex = 14
+        private const val leftWristIndex = 15
+        private const val rightWristIndex = 16
+        private const val leftHipIndex = 23
+        private const val rightHipIndex = 24
+        private const val leftKneeIndex = 25
+        private const val rightKneeIndex = 26
+        private const val leftAnkleIndex = 27
+        private const val rightAnkleIndex = 28
+        private const val leftHeelIndex = 29
+        private const val rightHeelIndex = 30
+        private const val leftFootIndex = 31
     }
 }
