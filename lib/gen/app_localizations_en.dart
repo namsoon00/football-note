@@ -13374,9 +13374,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get trainingSketchRecommendedActionBadge => 'Recommended';
-
-  @override
   String get trainingSketchPlayerFlowHint =>
       'Choose the player\'s next action and the stage and ball movement will connect automatically.';
 

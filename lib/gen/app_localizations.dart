@@ -23029,12 +23029,6 @@ abstract class AppLocalizations {
   /// **'Next stage {stage}'**
   String trainingSketchPlayerFlowNextStageChip(int stage);
 
-  /// No description provided for @trainingSketchRecommendedActionBadge.
-  ///
-  /// In en, this message translates to:
-  /// **'Recommended'**
-  String get trainingSketchRecommendedActionBadge;
-
   /// No description provided for @trainingSketchPlayerFlowHint.
   ///
   /// In en, this message translates to:
