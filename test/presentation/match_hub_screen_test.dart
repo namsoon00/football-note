@@ -145,7 +145,7 @@ void main() {
     );
   }
 
-  testWidgets('Competition management buttons keep contrast in both themes', (
+  testWidgets('Competition management actions keep contrast in both themes', (
     tester,
   ) async {
     await seedMatchHubRecords();
@@ -153,17 +153,22 @@ void main() {
     for (final themeMode in [ThemeMode.light, ThemeMode.dark]) {
       await pumpCompetitionManagement(tester, themeMode: themeMode);
 
-      _expectFilledButtonContrast(tester, '리그 만들기');
-      _expectOutlinedButtonContrast(tester, '토너먼트 만들기');
+      _expectTextButtonContrast(tester, '새 대회');
+      expect(find.text('전체 2'), findsOneWidget);
+      expect(find.text('진행 1'), findsOneWidget);
+      expect(find.text('종료 1'), findsOneWidget);
 
-      await tester.tap(find.widgetWithText(FilledButton, '리그 만들기'));
+      await tester.tap(
+        find.byKey(const ValueKey('competition-create-action')),
+      );
       await tester.pumpAndSettle();
 
-      _expectOutlinedButtonContrast(tester, '뒤로');
-      _expectFilledButtonContrast(tester, '대회 저장');
+      expect(find.text('리그 경기'), findsWidgets);
+      expect(find.text('토너먼트'), findsWidgets);
+      _expectTextButtonContrast(tester, '대회 저장');
       _expectFilledButtonContrast(tester, '추가');
 
-      await tester.tap(find.widgetWithText(OutlinedButton, '뒤로'));
+      await tester.tap(find.byType(BackButton));
       await tester.pumpAndSettle();
     }
   });
@@ -173,7 +178,9 @@ void main() {
   ) async {
     await pumpCompetitionManagement(tester, themeMode: ThemeMode.light);
 
-    await tester.tap(find.widgetWithText(FilledButton, '리그 만들기').first);
+    await tester.tap(
+      find.byKey(const ValueKey('competition-create-action')),
+    );
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField).first, '자동 저장 리그');
@@ -193,6 +200,73 @@ void main() {
     competitions = MatchCompetitionService(optionRepository).allCompetitions();
     expect(competitions.single.season, '2026 가을');
     expect(find.text('대회 저장'), findsOneWidget);
+  });
+
+  testWidgets('Competition center opens a focused mobile detail view', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    await seedMatchHubRecords();
+    await pumpCompetitionManagement(tester, themeMode: ThemeMode.light);
+
+    expect(find.text('운영 요약'), findsNothing);
+    expect(find.text('주말 리그'), findsOneWidget);
+    expect(find.text('컵 대회'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    await tester.tap(find.text('주말 리그'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('리그 순위'), findsOneWidget);
+    expect(find.text('등록 팀'), findsWidgets);
+    expect(find.text('서울 U15'), findsWidgets);
+    expect(find.textContaining('1승 0무 0패'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('competition-detail-edit')),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Competition deletion requires confirmation', (tester) async {
+    await seedMatchHubRecords();
+    await pumpCompetitionManagement(tester, themeMode: ThemeMode.light);
+
+    await tester.tap(find.text('컵 대회'));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('competition-detail-delete')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('대회 삭제'), findsOneWidget);
+    expect(find.textContaining('시합 기록은 삭제되지 않습니다'), findsOneWidget);
+    await tester.tap(find.widgetWithText(TextButton, '취소'));
+    await tester.pumpAndSettle();
+    expect(
+      MatchCompetitionService(optionRepository).allCompetitions(),
+      hasLength(2),
+    );
+
+    await tester.tap(find.text('컵 대회'));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('competition-detail-delete')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, '삭제'));
+    await tester.pumpAndSettle();
+
+    final records = MatchCompetitionService(
+      optionRepository,
+    ).allCompetitions();
+    expect(records, hasLength(1));
+    expect(records.single.name, '주말 리그');
   });
 
   testWidgets('Team management match tab shows records inline', (
@@ -232,7 +306,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text('대회 운영 센터'), findsOneWidget);
-    await tester.pageBack();
+    await tester.tap(find.byType(BackButton).first);
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('시합관리'));
@@ -519,12 +593,17 @@ void main() {
 
     await pumpCompetitionManagement(tester, themeMode: ThemeMode.light);
 
-    final createLeagueButton = tester.widget<FilledButton>(
-      find.widgetWithText(FilledButton, '리그 만들기').first,
+    final createButton = tester.widget<TextButton>(
+      find.descendant(
+        of: find.byKey(const ValueKey('competition-create-action')),
+        matching: find.byType(TextButton),
+      ),
     );
-    expect(createLeagueButton.onPressed, isNull);
+    expect(createButton.onPressed, isNull);
 
-    await tester.tap(find.widgetWithText(FilledButton, '리그 만들기').first);
+    await tester.tap(
+      find.byKey(const ValueKey('competition-create-action')),
+    );
     await tester.pumpAndSettle();
 
     expect(find.text('대회 저장'), findsNothing);
@@ -1064,12 +1143,12 @@ void _expectFilledButtonContrast(WidgetTester tester, String text) {
   _expectButtonStyleContrast(button.style, text);
 }
 
-void _expectOutlinedButtonContrast(WidgetTester tester, String text) {
-  final button = tester.widget<OutlinedButton>(
+void _expectTextButtonContrast(WidgetTester tester, String text) {
+  final button = tester.widget<TextButton>(
     find
         .ancestor(
           of: find.text(text),
-          matching: find.byType(OutlinedButton),
+          matching: find.byType(TextButton),
         )
         .first,
   );

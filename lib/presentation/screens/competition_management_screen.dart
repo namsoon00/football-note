@@ -14,6 +14,32 @@ import '../theme/app_theme.dart';
 import '../utils/match_entry_format.dart';
 import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_feedback.dart';
+import '../widgets/app_page_route.dart';
+
+enum _CompetitionStatusFilter { all, active, finished }
+
+enum _CompetitionDetailAction { edit, delete }
+
+String _competitionNextActionLabel(
+  AppLocalizations l10n,
+  MatchCompetitionRecord record,
+  _CompetitionProgress progress,
+  List<TrainingEntry> entries,
+) {
+  if (record.teams.length < 2) {
+    return l10n.matchCompetitionNextRegisterTeams;
+  }
+  if (entries.isEmpty) {
+    return l10n.matchCompetitionNextRecordFirstMatch;
+  }
+  if (record.isFinished) {
+    return l10n.matchCompetitionNextReviewArchive;
+  }
+  if (progress.isComplete) {
+    return l10n.matchCompetitionNextCloseCompetition;
+  }
+  return l10n.matchCompetitionNextRecordNextMatch;
+}
 
 ButtonStyle _competitionFilledActionStyle(BuildContext context) {
   final theme = Theme.of(context);
@@ -26,25 +52,6 @@ ButtonStyle _competitionFilledActionStyle(BuildContext context) {
     foregroundColor: scheme.onPrimary,
     disabledBackgroundColor: scheme.onSurface.withValues(alpha: 0.12),
     disabledForegroundColor: scheme.onSurface.withValues(alpha: 0.38),
-    minimumSize: const Size(0, AppSizes.primaryButtonHeight),
-    textStyle: theme.textTheme.labelLarge?.copyWith(
-      fontWeight: FontWeight.w900,
-    ),
-    shape: RoundedRectangleBorder(borderRadius: AppRadius.control),
-  );
-}
-
-ButtonStyle _competitionOutlinedActionStyle(BuildContext context) {
-  final theme = Theme.of(context);
-  final scheme = theme.colorScheme;
-  final foreground = theme.brightness == Brightness.dark
-      ? scheme.primary
-      : Color.lerp(scheme.primary, Colors.black, 0.18)!;
-  return OutlinedButton.styleFrom(
-    backgroundColor: scheme.surface,
-    foregroundColor: foreground,
-    disabledForegroundColor: scheme.onSurface.withValues(alpha: 0.38),
-    side: BorderSide(color: foreground.withValues(alpha: 0.58)),
     minimumSize: const Size(0, AppSizes.primaryButtonHeight),
     textStyle: theme.textTheme.labelLarge?.copyWith(
       fontWeight: FontWeight.w900,
@@ -75,6 +82,7 @@ class CompetitionManagementScreen extends StatefulWidget {
 class _CompetitionManagementScreenState
     extends State<CompetitionManagementScreen> {
   late final MatchCompetitionService _competitionService;
+  _CompetitionStatusFilter _statusFilter = _CompetitionStatusFilter.all;
 
   @override
   void initState() {
@@ -111,8 +119,14 @@ class _CompetitionManagementScreenState
               final records = _competitionService.allCompetitions();
               final metrics = _CompetitionOperationsMetrics.from(
                 records: records,
-                entries: matchEntries,
               );
+              final visibleRecords = records.where((record) {
+                return switch (_statusFilter) {
+                  _CompetitionStatusFilter.all => true,
+                  _CompetitionStatusFilter.active => !record.isFinished,
+                  _CompetitionStatusFilter.finished => record.isFinished,
+                };
+              }).toList(growable: false);
 
               return SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(
@@ -127,33 +141,41 @@ class _CompetitionManagementScreenState
                     _CompetitionOperationsHero(
                       metrics: metrics,
                       readOnly: readOnly,
+                      statusFilter: _statusFilter,
                       onBack: () => Navigator.of(context).maybePop(),
-                      onCreateLeague: () => _openCompetitionEditor(
+                      onCreateCompetition: () => _openCompetitionEditor(
                         initialKind: MatchCompetitionRecord.kindLeague,
                       ),
-                      onCreateTournament: () => _openCompetitionEditor(
-                        initialKind: MatchCompetitionRecord.kindTournament,
-                      ),
+                      onStatusFilterChanged: (value) {
+                        setState(() => _statusFilter = value);
+                      },
                     ),
                     const SizedBox(height: AppSpacing.md),
-                    _CompetitionListHeader(count: records.length),
-                    if (records.isEmpty)
+                    _CompetitionListHeader(count: visibleRecords.length),
+                    if (visibleRecords.isEmpty)
                       _CompetitionEmptyState(
                         readOnly: readOnly,
-                        onCreateLeague: () => _openCompetitionEditor(
+                        filtered: records.isNotEmpty,
+                        onResetFilter: () {
+                          setState(
+                            () => _statusFilter = _CompetitionStatusFilter.all,
+                          );
+                        },
+                        onCreateCompetition: () => _openCompetitionEditor(
                           initialKind: MatchCompetitionRecord.kindLeague,
                         ),
                       )
                     else
-                      ...records.map(
+                      ...visibleRecords.map(
                         (record) => Padding(
                           padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                           child: _CompetitionOperationsCard(
                             record: record,
                             matchEntries: matchEntries,
-                            readOnly: readOnly,
-                            onEdit: () =>
-                                _openCompetitionEditor(record: record),
+                            onOpen: () => _openCompetitionDetail(
+                              record: record,
+                              matchEntries: matchEntries,
+                            ),
                           ),
                         ),
                       ),
@@ -178,46 +200,98 @@ class _CompetitionManagementScreenState
       );
       return;
     }
-    final changed = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      isDismissible: true,
-      enableDrag: true,
-      showDragHandle: true,
-      builder: (context) {
-        return _CompetitionEditorSheet(
+    final changed = await Navigator.of(context).push<bool>(
+      AppPageRoute(
+        builder: (_) => _CompetitionEditorScreen(
           service: _competitionService,
           record: record,
           initialKind: record?.kind ?? initialKind,
-        );
-      },
+        ),
+      ),
     );
     if (changed == true && mounted) {
       setState(() {});
     }
+  }
+
+  Future<void> _openCompetitionDetail({
+    required MatchCompetitionRecord record,
+    required List<TrainingEntry> matchEntries,
+  }) async {
+    final action = await Navigator.of(context).push<_CompetitionDetailAction>(
+      AppPageRoute(
+        builder: (_) => _CompetitionDetailScreen(
+          record: record,
+          matchEntries: matchEntries,
+          readOnly: _isReadOnlySupportMode,
+        ),
+      ),
+    );
+    if (!mounted || action == null) return;
+    switch (action) {
+      case _CompetitionDetailAction.edit:
+        await _openCompetitionEditor(record: record);
+        break;
+      case _CompetitionDetailAction.delete:
+        await _confirmDeleteCompetition(record);
+        break;
+    }
+  }
+
+  Future<void> _confirmDeleteCompetition(
+    MatchCompetitionRecord record,
+  ) async {
+    if (_isReadOnlySupportMode) return;
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.matchCompetitionDeleteDialogTitle),
+        content: Text(l10n.matchCompetitionDeleteDialogBody(record.name)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.matchCompetitionDeleteButton),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    await _competitionService.deleteCompetition(record.id);
+    if (!mounted) return;
+    setState(() {});
+    AppFeedback.showSuccess(
+      context,
+      text: l10n.matchCompetitionDeletedFeedback,
+    );
   }
 }
 
 class _CompetitionOperationsHero extends StatelessWidget {
   final _CompetitionOperationsMetrics metrics;
   final bool readOnly;
+  final _CompetitionStatusFilter statusFilter;
   final VoidCallback onBack;
-  final VoidCallback onCreateLeague;
-  final VoidCallback onCreateTournament;
+  final VoidCallback onCreateCompetition;
+  final ValueChanged<_CompetitionStatusFilter> onStatusFilterChanged;
 
   const _CompetitionOperationsHero({
     required this.metrics,
     required this.readOnly,
+    required this.statusFilter,
     required this.onBack,
-    required this.onCreateLeague,
-    required this.onCreateTournament,
+    required this.onCreateCompetition,
+    required this.onStatusFilterChanged,
   });
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -229,220 +303,62 @@ class _CompetitionOperationsHero extends StatelessWidget {
             ),
             const SizedBox(width: AppSpacing.xs),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.matchCompetitionProTitle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xxs),
-                  Text(
-                    l10n.matchCompetitionProSubtitle,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                      height: 1.35,
-                    ),
-                  ),
-                ],
+              child: Text(
+                l10n.matchCompetitionProTitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w900,
+                ),
               ),
+            ),
+            AppBarActionButton.label(
+              key: const ValueKey('competition-create-action'),
+              icon: const Icon(Icons.add_outlined),
+              label: l10n.matchCompetitionNewButton,
+              tooltip: l10n.matchCompetitionNewButton,
+              onPressed: readOnly ? null : onCreateCompetition,
+              margin: EdgeInsets.zero,
+              maxLabelWidth: 80,
             ),
           ],
         ),
-        const SizedBox(height: AppSpacing.sm),
-        _CompetitionSurface(
-          accent: scheme.primary,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.dashboard_customize_outlined,
-                    color: scheme.primary,
-                    size: 20,
-                  ),
-                  const SizedBox(width: AppSpacing.xs),
-                  Expanded(
-                    child: Text(
-                      l10n.matchCompetitionOperationsSummaryTitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ),
-                ],
+        const SizedBox(height: AppSpacing.md),
+        SegmentedButton<_CompetitionStatusFilter>(
+          key: const ValueKey('competition-status-filter'),
+          showSelectedIcon: false,
+          segments: [
+            ButtonSegment(
+              value: _CompetitionStatusFilter.all,
+              label: Text(
+                l10n.matchCompetitionFilterAll(
+                  metrics.activeCompetitions + metrics.finishedCompetitions,
+                ),
               ),
-              const SizedBox(height: AppSpacing.sm),
-              Wrap(
-                spacing: AppSpacing.sm,
-                runSpacing: AppSpacing.sm,
-                children: [
-                  _CompetitionHeroMetricPill(
-                    label: l10n.matchCompetitionStatusActive,
-                    value: '${metrics.activeCompetitions}',
-                  ),
-                  _CompetitionHeroMetricPill(
-                    label: l10n.matchCompetitionStatusFinished,
-                    value: '${metrics.finishedCompetitions}',
-                  ),
-                  _CompetitionHeroMetricPill(
-                    label: l10n.matchCompetitionSummaryTeams,
-                    value: '${metrics.registeredTeams}',
-                  ),
-                  _CompetitionHeroMetricPill(
-                    label: l10n.matchCompetitionSummaryMatches,
-                    value: '${metrics.recordedCompetitionMatches}',
-                  ),
-                ],
+            ),
+            ButtonSegment(
+              value: _CompetitionStatusFilter.active,
+              label: Text(
+                l10n.matchCompetitionFilterActive(
+                  metrics.activeCompetitions,
+                ),
               ),
-              const SizedBox(height: AppSpacing.md),
-              _CompetitionHeroActions(
-                readOnly: readOnly,
-                onCreateLeague: onCreateLeague,
-                onCreateTournament: onCreateTournament,
+            ),
+            ButtonSegment(
+              value: _CompetitionStatusFilter.finished,
+              label: Text(
+                l10n.matchCompetitionFilterFinished(
+                  metrics.finishedCompetitions,
+                ),
               ),
-            ],
-          ),
+            ),
+          ],
+          selected: {statusFilter},
+          onSelectionChanged: (selection) {
+            onStatusFilterChanged(selection.single);
+          },
         ),
       ],
-    );
-  }
-}
-
-class _CompetitionSurface extends StatelessWidget {
-  final Widget child;
-  final Color? accent;
-
-  const _CompetitionSurface({
-    required this.child,
-    this.accent,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final color = accent ?? scheme.primary;
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: AppSurfaces.subtleDecoration(
-        scheme,
-        theme.brightness,
-        accent: color,
-        accentAlpha: 0.05,
-      ),
-      child: child,
-    );
-  }
-}
-
-class _CompetitionHeroActions extends StatelessWidget {
-  final bool readOnly;
-  final VoidCallback onCreateLeague;
-  final VoidCallback onCreateTournament;
-
-  const _CompetitionHeroActions({
-    required this.readOnly,
-    required this.onCreateLeague,
-    required this.onCreateTournament,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final primary = FilledButton.icon(
-      onPressed: readOnly ? null : onCreateLeague,
-      icon: const Icon(Icons.leaderboard_outlined),
-      label: Text(l10n.matchCompetitionCreateLeagueButton),
-      style: _competitionFilledActionStyle(context),
-    );
-    final secondary = OutlinedButton.icon(
-      onPressed: readOnly ? null : onCreateTournament,
-      icon: const Icon(Icons.account_tree_outlined),
-      label: Text(l10n.matchCompetitionCreateTournamentButton),
-      style: _competitionOutlinedActionStyle(context),
-    );
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        if (constraints.maxWidth < 360) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              primary,
-              const SizedBox(height: AppSpacing.xs),
-              secondary,
-            ],
-          );
-        }
-        return Row(
-          children: [
-            Expanded(child: primary),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(child: secondary),
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _CompetitionHeroMetricPill extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _CompetitionHeroMetricPill({
-    required this.label,
-    required this.value,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return Container(
-      constraints: const BoxConstraints(minWidth: 118),
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.xs,
-        vertical: AppSpacing.xxs,
-      ),
-      decoration: BoxDecoration(
-        color: scheme.primary.withValues(alpha: 0.08),
-        borderRadius: AppRadius.small,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: scheme.onSurfaceVariant,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: scheme.primary,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -477,11 +393,15 @@ class _CompetitionListHeader extends StatelessWidget {
 
 class _CompetitionEmptyState extends StatelessWidget {
   final bool readOnly;
-  final VoidCallback onCreateLeague;
+  final bool filtered;
+  final VoidCallback onCreateCompetition;
+  final VoidCallback onResetFilter;
 
   const _CompetitionEmptyState({
     required this.readOnly,
-    required this.onCreateLeague,
+    required this.filtered,
+    required this.onCreateCompetition,
+    required this.onResetFilter,
   });
 
   @override
@@ -496,10 +416,18 @@ class _CompetitionEmptyState extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Icon(Icons.emoji_events_outlined, color: scheme.primary, size: 34),
+          Icon(
+            filtered
+                ? Icons.filter_alt_off_outlined
+                : Icons.emoji_events_outlined,
+            color: scheme.primary,
+            size: 34,
+          ),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            l10n.matchHubNoCompetitionsTitle,
+            filtered
+                ? l10n.matchCompetitionFilterEmptyTitle
+                : l10n.matchHubNoCompetitionsTitle,
             textAlign: TextAlign.center,
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w900,
@@ -507,7 +435,9 @@ class _CompetitionEmptyState extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            l10n.matchCompetitionNoCompetitionsProBody,
+            filtered
+                ? l10n.matchCompetitionFilterEmptyBody
+                : l10n.matchCompetitionNoCompetitionsProBody,
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: scheme.onSurfaceVariant,
@@ -515,12 +445,18 @@ class _CompetitionEmptyState extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.md),
-          FilledButton.icon(
-            onPressed: readOnly ? null : onCreateLeague,
-            icon: const Icon(Icons.add_outlined),
-            label: Text(l10n.matchCompetitionCreateLeagueButton),
-            style: _competitionFilledActionStyle(context),
-          ),
+          if (filtered)
+            TextButton(
+              onPressed: onResetFilter,
+              child: Text(l10n.filterReset),
+            )
+          else
+            FilledButton.icon(
+              onPressed: readOnly ? null : onCreateCompetition,
+              icon: const Icon(Icons.add_outlined),
+              label: Text(l10n.matchCompetitionNewButton),
+              style: _competitionFilledActionStyle(context),
+            ),
         ],
       ),
     );
@@ -530,14 +466,12 @@ class _CompetitionEmptyState extends StatelessWidget {
 class _CompetitionOperationsCard extends StatelessWidget {
   final MatchCompetitionRecord record;
   final List<TrainingEntry> matchEntries;
-  final bool readOnly;
-  final VoidCallback onEdit;
+  final VoidCallback onOpen;
 
   const _CompetitionOperationsCard({
     required this.record,
     required this.matchEntries,
-    required this.readOnly,
-    required this.onEdit,
+    required this.onOpen,
   });
 
   @override
@@ -556,146 +490,520 @@ class _CompetitionOperationsCard extends StatelessWidget {
       record: record,
       entries: entries,
     );
-    final nextAction = _nextActionLabel(l10n, record, progress, entries);
+    final nextAction = _competitionNextActionLabel(
+      l10n,
+      record,
+      progress,
+      entries,
+    );
+    final details = <String>[
+      isLeague ? l10n.matchKindLeague : l10n.matchKindTournament,
+      if (record.season.trim().isNotEmpty) record.season.trim(),
+      if (record.venue.trim().isNotEmpty) record.venue.trim(),
+    ];
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: AppSurfaces.cardDecoration(
         scheme,
         theme.brightness,
       ).copyWith(
         borderRadius: AppRadius.small,
-        border: Border.all(color: accent.withValues(alpha: 0.24)),
       ),
+      clipBehavior: Clip.antiAlias,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onOpen,
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: accent.withValues(alpha: 0.10),
+                        borderRadius: AppRadius.small,
+                      ),
+                      child: Icon(
+                        isLeague
+                            ? Icons.leaderboard_outlined
+                            : Icons.account_tree,
+                        color: accent,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            record.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.xxs),
+                          Text(
+                            details.join(' · '),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: scheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.xs),
+                    _CompetitionStatusBadge(
+                      label: record.isFinished
+                          ? l10n.matchCompetitionStatusFinished
+                          : l10n.matchCompetitionStatusActive,
+                      active: !record.isFinished,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.md),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        nextAction,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      progress.label(l10n),
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                ClipRRect(
+                  borderRadius: AppRadius.full,
+                  child: LinearProgressIndicator(
+                    value: progress.value,
+                    minHeight: 5,
+                    backgroundColor:
+                        scheme.surfaceContainerHighest.withValues(alpha: 0.72),
+                    color: accent,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.groups_2_outlined,
+                      size: 16,
+                      color: scheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: AppSpacing.xxs),
+                    Expanded(
+                      child: Text(
+                        l10n.matchCompetitionCardSummary(
+                          record.teams.length,
+                          entries.length,
+                        ),
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    Icon(
+                      Icons.chevron_right,
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CompetitionStatusBadge extends StatelessWidget {
+  final String label;
+  final bool active;
+
+  const _CompetitionStatusBadge({required this.label, required this.active});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final color = active ? const Color(0xFF14805E) : scheme.onSurfaceVariant;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: AppRadius.small,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 7,
+            height: 7,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: color,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CompetitionDetailScreen extends StatelessWidget {
+  final MatchCompetitionRecord record;
+  final List<TrainingEntry> matchEntries;
+  final bool readOnly;
+
+  const _CompetitionDetailScreen({
+    required this.record,
+    required this.matchEntries,
+    required this.readOnly,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final isLeague = record.kind == MatchCompetitionRecord.kindLeague;
+    final accent = isLeague ? const Color(0xFF2563EB) : const Color(0xFFC2410C);
+    final entries = MatchCompetitionService.competitionEntries(
+      kind: record.kind,
+      competitionName: record.name,
+      entries: matchEntries,
+    );
+    final progress =
+        _CompetitionProgress.from(record: record, entries: entries);
+    final nextAction = _competitionNextActionLabel(
+      l10n,
+      record,
+      progress,
+      entries,
+    );
+
+    return Scaffold(
+      body: ColoredBox(
+        color: theme.scaffoldBackgroundColor,
+        child: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.sm,
+                  AppSpacing.sm,
+                  AppSpacing.sm,
+                  0,
+                ),
+                child: Row(
+                  children: [
+                    const BackButton(),
+                    const SizedBox(width: AppSpacing.xs),
+                    Expanded(
+                      child: Text(
+                        record.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                    AppBarActionButton.label(
+                      key: const ValueKey('competition-detail-edit'),
+                      icon: const Icon(Icons.edit_outlined),
+                      label: l10n.matchCompetitionEditButton,
+                      tooltip: l10n.matchCompetitionEditButton,
+                      onPressed: readOnly
+                          ? null
+                          : () => Navigator.of(
+                                context,
+                              ).pop(_CompetitionDetailAction.edit),
+                      maxLabelWidth: 56,
+                    ),
+                    AppBarActionButton.icon(
+                      key: const ValueKey('competition-detail-delete'),
+                      icon: Icons.delete_outline,
+                      tooltip: l10n.matchCompetitionDeleteButton,
+                      onPressed: readOnly
+                          ? null
+                          : () => Navigator.of(
+                                context,
+                              ).pop(_CompetitionDetailAction.delete),
+                      margin: EdgeInsets.zero,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.sm,
+                    0,
+                    AppSpacing.sm,
+                    AppSpacing.xl,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _CompetitionDetailSummary(
+                        record: record,
+                        entries: entries,
+                        progress: progress,
+                        nextAction: nextAction,
+                        accent: accent,
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          final resultPanel = isLeague
+                              ? _LeagueOperationsPreview(
+                                  record: record,
+                                  entries: entries,
+                                )
+                              : _TournamentOperationsPreview(
+                                  record: record,
+                                  entries: entries,
+                                );
+                          final teamsPanel = _CompetitionTeamsPreview(
+                            teams: record.teams,
+                            accent: accent,
+                          );
+                          if (constraints.maxWidth < 720) {
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                resultPanel,
+                                const SizedBox(height: AppSpacing.sm),
+                                teamsPanel,
+                              ],
+                            );
+                          }
+                          return Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(flex: 3, child: resultPanel),
+                              const SizedBox(width: AppSpacing.sm),
+                              Expanded(flex: 2, child: teamsPanel),
+                            ],
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CompetitionDetailSummary extends StatelessWidget {
+  final MatchCompetitionRecord record;
+  final List<TrainingEntry> entries;
+  final _CompetitionProgress progress;
+  final String nextAction;
+  final Color accent;
+
+  const _CompetitionDetailSummary({
+    required this.record,
+    required this.entries,
+    required this.progress,
+    required this.nextAction,
+    required this.accent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final isLeague = record.kind == MatchCompetitionRecord.kindLeague;
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: AppSurfaces.cardDecoration(
+        scheme,
+        theme.brightness,
+      ).copyWith(borderRadius: AppRadius.small),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             children: [
               Icon(
-                isLeague ? Icons.leaderboard_outlined : Icons.account_tree,
+                isLeague
+                    ? Icons.leaderboard_outlined
+                    : Icons.account_tree_outlined,
                 color: accent,
               ),
-              const SizedBox(width: AppSpacing.sm),
+              const SizedBox(width: AppSpacing.xs),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      record.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.xxs),
-                    Wrap(
-                      spacing: AppSpacing.xs,
-                      runSpacing: AppSpacing.xs,
-                      children: [
-                        _InfoPill(
-                          text: isLeague
-                              ? l10n.matchKindLeague
-                              : l10n.matchKindTournament,
-                        ),
-                        _InfoPill(
-                          text: record.isFinished
-                              ? l10n.matchCompetitionStatusFinished
-                              : l10n.matchCompetitionStatusActive,
-                        ),
-                      ],
-                    ),
-                  ],
+                child: Text(
+                  isLeague ? l10n.matchKindLeague : l10n.matchKindTournament,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: accent,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
               ),
-              _InlineCompetitionIconAction(
-                icon: Icons.edit_outlined,
-                tooltip: l10n.matchCompetitionEditButton,
-                onPressed: readOnly ? null : onEdit,
+              _CompetitionStatusBadge(
+                label: record.isFinished
+                    ? l10n.matchCompetitionStatusFinished
+                    : l10n.matchCompetitionStatusActive,
+                active: !record.isFinished,
               ),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
-          _CompetitionNextActionBanner(
-            accent: accent,
-            label: l10n.matchCompetitionNextActionLabel,
-            value: nextAction,
-            progressLabel: progress.label(l10n),
-            progressPercent: l10n.matchCompetitionProgressPercent(
-              progress.percent,
+          Text(
+            l10n.matchCompetitionNextActionLabel,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: scheme.onSurfaceVariant,
+              fontWeight: FontWeight.w800,
             ),
-            progressValue: progress.value,
+          ),
+          const SizedBox(height: AppSpacing.xxs),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  nextAction,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              Text(
+                progress.label(l10n),
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: accent,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          ClipRRect(
+            borderRadius: AppRadius.full,
+            child: LinearProgressIndicator(
+              value: progress.value,
+              minHeight: 7,
+              color: accent,
+              backgroundColor: scheme.surfaceContainerHighest,
+            ),
           ),
           const SizedBox(height: AppSpacing.md),
-          _CompetitionMetricGrid(
-            metrics: [
-              _CompetitionMetricData(
-                icon: Icons.groups_2_outlined,
-                label: l10n.matchCompetitionSummaryTeams,
-                value: '${record.teams.length}',
+          Row(
+            children: [
+              Expanded(
+                child: _CompetitionSummaryValue(
+                  icon: Icons.groups_2_outlined,
+                  value: '${record.teams.length}',
+                  label: l10n.matchCompetitionSummaryTeams,
+                ),
               ),
-              _CompetitionMetricData(
-                icon: Icons.sports_score_outlined,
-                label: l10n.matchCompetitionSummaryMatches,
-                value: '${entries.length}',
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: _CompetitionSummaryValue(
+                  icon: Icons.sports_soccer_outlined,
+                  value: '${entries.length}',
+                  label: l10n.matchCompetitionSummaryMatches,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: _CompetitionSummaryValue(
+                  icon: Icons.donut_large_outlined,
+                  value: '${progress.percent}%',
+                  label: l10n.matchCompetitionSummaryProgress,
+                ),
               ),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
           _CompetitionMetadata(record: record),
-          const SizedBox(height: AppSpacing.md),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final isWide = constraints.maxWidth >= 620;
-              final preview = isLeague
-                  ? _LeagueOperationsPreview(
-                      record: record,
-                      entries: matchEntries,
-                    )
-                  : _TournamentOperationsPreview(
-                      record: record,
-                      entries: entries,
-                    );
-              if (!isWide) return preview;
-              return Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(child: preview),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: _CompetitionTeamsPreview(
-                      teams: record.teams,
-                      accent: accent,
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
         ],
       ),
     );
   }
+}
 
-  String _nextActionLabel(
-    AppLocalizations l10n,
-    MatchCompetitionRecord record,
-    _CompetitionProgress progress,
-    List<TrainingEntry> entries,
-  ) {
-    if (record.teams.length < 2) {
-      return l10n.matchCompetitionNextRegisterTeams;
-    }
-    if (entries.isEmpty) {
-      return l10n.matchCompetitionNextRecordFirstMatch;
-    }
-    if (record.isFinished) {
-      return l10n.matchCompetitionNextReviewArchive;
-    }
-    if (progress.isComplete) {
-      return l10n.matchCompetitionNextCloseCompetition;
-    }
-    return l10n.matchCompetitionNextRecordNextMatch;
+class _CompetitionSummaryValue extends StatelessWidget {
+  final IconData icon;
+  final String value;
+  final String label;
+
+  const _CompetitionSummaryValue({
+    required this.icon,
+    required this.value,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: scheme.onSurfaceVariant),
+        const SizedBox(width: AppSpacing.xxs),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                value,
+                maxLines: 1,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 }
 
@@ -730,245 +1038,6 @@ class _CompetitionMetadata extends StatelessWidget {
   }
 }
 
-class _InlineCompetitionIconAction extends StatelessWidget {
-  final IconData icon;
-  final String tooltip;
-  final VoidCallback? onPressed;
-
-  const _InlineCompetitionIconAction({
-    required this.icon,
-    required this.tooltip,
-    required this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final enabled = onPressed != null;
-    return Semantics(
-      button: true,
-      enabled: enabled,
-      label: tooltip,
-      child: Tooltip(
-        message: tooltip,
-        child: InkResponse(
-          onTap: onPressed,
-          radius: 22,
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.xs),
-            child: Icon(
-              icon,
-              color: enabled
-                  ? scheme.onSurfaceVariant
-                  : scheme.onSurfaceVariant.withValues(alpha: 0.38),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _CompetitionNextActionBanner extends StatelessWidget {
-  final Color accent;
-  final String label;
-  final String value;
-  final String progressLabel;
-  final String progressPercent;
-  final double progressValue;
-
-  const _CompetitionNextActionBanner({
-    required this.accent,
-    required this.label,
-    required this.value,
-    required this.progressLabel,
-    required this.progressPercent,
-    required this.progressValue,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.sm),
-      decoration: BoxDecoration(
-        color: accent.withValues(alpha: 0.08),
-        borderRadius: AppRadius.small,
-        border: Border.all(color: accent.withValues(alpha: 0.22)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 34,
-                height: 34,
-                decoration: BoxDecoration(
-                  color: accent.withValues(alpha: 0.14),
-                  borderRadius: AppRadius.small,
-                ),
-                child: Icon(Icons.playlist_add_check_outlined, color: accent),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      label,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: scheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      value,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w900,
-                        height: 1.15,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: AppSpacing.xs),
-              Text(
-                progressPercent,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: accent,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          ClipRRect(
-            borderRadius: AppRadius.full,
-            child: LinearProgressIndicator(
-              value: progressValue,
-              minHeight: 8,
-              backgroundColor: scheme.surfaceContainerHighest,
-              color: accent,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            progressLabel,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: scheme.onSurfaceVariant,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CompetitionMetricData {
-  final IconData icon;
-  final String label;
-  final String value;
-
-  const _CompetitionMetricData({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
-}
-
-class _CompetitionMetricGrid extends StatelessWidget {
-  final List<_CompetitionMetricData> metrics;
-
-  const _CompetitionMetricGrid({required this.metrics});
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final itemWidth = (constraints.maxWidth - AppSpacing.sm) / 2;
-        return Wrap(
-          spacing: AppSpacing.sm,
-          runSpacing: AppSpacing.sm,
-          children: [
-            for (final metric in metrics)
-              SizedBox(
-                width: itemWidth,
-                child: _CompetitionMetricTile(metric: metric),
-              ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _CompetitionMetricTile extends StatelessWidget {
-  final _CompetitionMetricData metric;
-
-  const _CompetitionMetricTile({required this.metric});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return Container(
-      constraints: const BoxConstraints(minHeight: 64),
-      padding: const EdgeInsets.all(AppSpacing.sm),
-      decoration: BoxDecoration(
-        color: AppSurfaces.subtleColor(scheme, theme.brightness),
-        borderRadius: AppRadius.small,
-        border: Border.all(
-          color: AppSurfaces.borderColor(
-            scheme,
-            theme.brightness,
-          ).withValues(alpha: 0.34),
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(metric.icon, color: scheme.primary, size: 20),
-          const SizedBox(width: AppSpacing.xs),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  metric.label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  metric.value,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _CompetitionTeamsPreview extends StatelessWidget {
   final List<String> teams;
   final Color accent;
@@ -991,7 +1060,7 @@ class _CompetitionTeamsPreview extends StatelessWidget {
               spacing: AppSpacing.xs,
               runSpacing: AppSpacing.xs,
               children: [
-                for (final team in teams.take(8)) _InfoPill(text: team),
+                for (final team in teams) _InfoPill(text: team),
               ],
             ),
     );
@@ -1023,7 +1092,7 @@ class _LeagueOperationsPreview extends StatelessWidget {
           ? _EmptyPreview(text: l10n.matchCompetitionNoTeams)
           : Column(
               children: [
-                for (final item in standings.take(3).indexed)
+                for (final item in standings.indexed)
                   Padding(
                     padding: const EdgeInsets.only(bottom: AppSpacing.xs),
                     child: _LeagueStandingPreviewRow(
@@ -1062,13 +1131,29 @@ class _LeagueStandingPreviewRow extends StatelessWidget {
           ),
         ),
         Expanded(
-          child: Text(
-            row.team,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.labelLarge?.copyWith(
-              fontWeight: FontWeight.w800,
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                row.team,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                '${l10n.matchLeaguePlayedSummary(row.played)} · '
+                '${l10n.matchLeagueRecordSummary(row.wins, row.draws, row.losses)} · '
+                '${l10n.matchLeagueGoalDifferenceSummary(row.goalDifference)}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
           ),
         ),
         const SizedBox(width: AppSpacing.sm),
@@ -1106,18 +1191,31 @@ class _TournamentOperationsPreview extends StatelessWidget {
           ? _EmptyPreview(text: l10n.matchCompetitionNoTeams)
           : Column(
               children: [
-                for (final pair in pairs.take(4))
+                for (final pair in pairs)
                   Padding(
                     padding: const EdgeInsets.only(bottom: AppSpacing.xs),
                     child: _TournamentPairPreviewRow(pair: pair),
                   ),
-                if (entries.isNotEmpty)
-                  _InfoPill(
-                    text: matchTournamentOutcomeLabel(
-                      l10n,
-                      entries.first.tournamentOutcome,
+                if (entries.isNotEmpty) ...[
+                  const SizedBox(height: AppSpacing.xs),
+                  Divider(color: Theme.of(context).colorScheme.outlineVariant),
+                  const SizedBox(height: AppSpacing.xs),
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Text(
+                      l10n.matchTournamentRecordedProgressTitle,
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                            fontWeight: FontWeight.w900,
+                          ),
                     ),
                   ),
+                  const SizedBox(height: AppSpacing.xs),
+                  for (final entry in entries)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                      child: _TournamentProgressRow(entry: entry),
+                    ),
+                ],
               ],
             ),
     );
@@ -1136,6 +1234,16 @@ class _TournamentPairPreviewRow extends StatelessWidget {
     final teamB = pair.hasBye ? l10n.matchTournamentByeLabel : pair.teamB;
     return Row(
       children: [
+        SizedBox(
+          width: 52,
+          child: Text(
+            l10n.matchTournamentPairLabel(pair.slotNumber),
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
         Expanded(
           child: Text(
             pair.teamA,
@@ -1164,6 +1272,52 @@ class _TournamentPairPreviewRow extends StatelessWidget {
             textAlign: TextAlign.end,
             style: theme.textTheme.labelLarge?.copyWith(
               fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _TournamentProgressRow extends StatelessWidget {
+  final TrainingEntry entry;
+
+  const _TournamentProgressRow({required this.entry});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final outcome = matchTournamentOutcomeLabel(
+      l10n,
+      entry.tournamentOutcome,
+    );
+    return Row(
+      children: [
+        Icon(
+          entry.tournamentOutcome == 'eliminated'
+              ? Icons.cancel_outlined
+              : Icons.check_circle_outline,
+          size: 18,
+          color: entry.tournamentOutcome == 'eliminated'
+              ? theme.colorScheme.error
+              : const Color(0xFF14805E),
+        ),
+        const SizedBox(width: AppSpacing.xs),
+        Expanded(
+          child: Text(
+            l10n.matchTournamentRecordedProgress(
+              matchTournamentStageLabel(l10n, entry.matchStage),
+              entry.opponentTeam.trim().isEmpty
+                  ? l10n.matchCompetitionNoTeams
+                  : entry.opponentTeam.trim(),
+              outcome,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.labelMedium?.copyWith(
+              fontWeight: FontWeight.w700,
             ),
           ),
         ),
@@ -1273,23 +1427,23 @@ class _InfoPill extends StatelessWidget {
   }
 }
 
-class _CompetitionEditorSheet extends StatefulWidget {
+class _CompetitionEditorScreen extends StatefulWidget {
   final MatchCompetitionService service;
   final MatchCompetitionRecord? record;
   final String initialKind;
 
-  const _CompetitionEditorSheet({
+  const _CompetitionEditorScreen({
     required this.service,
     required this.record,
     required this.initialKind,
   });
 
   @override
-  State<_CompetitionEditorSheet> createState() =>
-      _CompetitionEditorSheetState();
+  State<_CompetitionEditorScreen> createState() =>
+      _CompetitionEditorScreenState();
 }
 
-class _CompetitionEditorSheetState extends State<_CompetitionEditorSheet> {
+class _CompetitionEditorScreenState extends State<_CompetitionEditorScreen> {
   static const Duration _autoSaveDelay = Duration(milliseconds: 700);
 
   late String _kind;
@@ -1305,6 +1459,8 @@ class _CompetitionEditorSheetState extends State<_CompetitionEditorSheet> {
   Timer? _autoSaveTimer;
   bool _autoSaveInFlight = false;
   bool _autoSaveQueued = false;
+  bool _allowPop = false;
+  bool _hasPersistedChanges = false;
   String _lastSavedSignature = '';
 
   List<TextEditingController> get _autoSaveControllers => [
@@ -1356,181 +1512,198 @@ class _CompetitionEditorSheetState extends State<_CompetitionEditorSheet> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
     final title = _nameController.text.trim().isEmpty
         ? l10n.matchCompetitionManagerNewTitle
         : l10n.matchCompetitionManagerTitle(_nameController.text.trim());
-    return SafeArea(
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(
-          AppSpacing.md,
-          AppSpacing.sm,
-          AppSpacing.md,
-          AppSpacing.md + MediaQuery.of(context).viewInsets.bottom,
-        ),
-        child: SizedBox(
-          height: MediaQuery.of(context).size.height * 0.86,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+    return PopScope(
+      canPop: _allowPop,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop || _allowPop) return;
+        await _closeEditor();
+      },
+      child: Scaffold(
+        body: ColoredBox(
+          color: theme.scaffoldBackgroundColor,
+          child: SafeArea(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.sm,
+                    AppSpacing.sm,
+                    AppSpacing.sm,
+                    0,
+                  ),
+                  child: Row(
+                    children: [
+                      BackButton(onPressed: _closeEditor),
+                      const SizedBox(width: AppSpacing.xs),
+                      Expanded(
+                        child: Text(
+                          title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.w900,
                           ),
-                    ),
-                  ),
-                  AppBarActionButton.icon(
-                    icon: Icons.keyboard_arrow_down_outlined,
-                    tooltip:
-                        MaterialLocalizations.of(context).closeButtonTooltip,
-                    onPressed: () => Navigator.of(context).maybePop(false),
-                    margin: EdgeInsets.zero,
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _EditorSectionPanel(
-                        title: l10n.matchCompetitionEditorBasicsTitle,
-                        children: [
-                          SegmentedButton<String>(
-                            segments: [
-                              ButtonSegment<String>(
-                                value: MatchCompetitionRecord.kindLeague,
-                                icon: const Icon(Icons.leaderboard_outlined),
-                                label: Text(l10n.matchKindLeague),
-                              ),
-                              ButtonSegment<String>(
-                                value: MatchCompetitionRecord.kindTournament,
-                                icon: const Icon(Icons.account_tree_outlined),
-                                label: Text(l10n.matchKindTournament),
-                              ),
-                            ],
-                            selected: {_kind},
-                            showSelectedIcon: false,
-                            onSelectionChanged: (selection) {
-                              _updateAndScheduleAutoSave(
-                                () => _kind = selection.first,
-                              );
-                            },
-                          ),
-                          const SizedBox(height: AppSpacing.sm),
-                          TextField(
-                            controller: _nameController,
-                            maxLength: 40,
-                            textInputAction: TextInputAction.next,
-                            onChanged: (_) => setState(() {}),
-                            decoration: InputDecoration(
-                              labelText: l10n.matchCompetitionNameLabel,
-                              hintText:
-                                  _kind == MatchCompetitionRecord.kindLeague
-                                      ? l10n.matchLeagueNameHint
-                                      : l10n.matchTournamentNameHint,
-                              border: const OutlineInputBorder(),
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.xs),
-                          SegmentedButton<String>(
-                            segments: [
-                              ButtonSegment<String>(
-                                value: MatchCompetitionRecord.statusActive,
-                                icon: const Icon(Icons.play_circle_outline),
-                                label: Text(l10n.matchCompetitionStatusActive),
-                              ),
-                              ButtonSegment<String>(
-                                value: MatchCompetitionRecord.statusFinished,
-                                icon: const Icon(Icons.flag_circle_outlined),
-                                label:
-                                    Text(l10n.matchCompetitionStatusFinished),
-                              ),
-                            ],
-                            selected: {_status},
-                            showSelectedIcon: false,
-                            onSelectionChanged: (selection) {
-                              _updateAndScheduleAutoSave(
-                                () => _status = selection.first,
-                              );
-                            },
-                          ),
-                        ],
+                        ),
                       ),
-                      const SizedBox(height: AppSpacing.sm),
-                      _EditorSectionPanel(
-                        title: l10n.matchCompetitionEditorOperationsTitle,
-                        children: [
-                          _EditorFieldGrid(
-                            children: [
-                              _EditorTextField(
-                                controller: _seasonController,
-                                label: l10n.matchCompetitionSeasonLabel,
-                                hint: l10n.matchCompetitionSeasonHint,
-                                maxLength: 24,
-                              ),
-                              _EditorTextField(
-                                controller: _venueController,
-                                label: l10n.matchCompetitionVenueLabel,
-                                hint: l10n.matchCompetitionVenueHint,
-                                maxLength: 40,
-                              ),
-                              _EditorTextField(
-                                controller: _organizerController,
-                                label: l10n.matchCompetitionOrganizerLabel,
-                                hint: l10n.matchCompetitionOrganizerHint,
-                                maxLength: 40,
-                              ),
-                              _EditorTextField(
-                                controller: _noteController,
-                                label: l10n.matchCompetitionNoteLabel,
-                                hint: l10n.matchCompetitionNoteHint,
-                                maxLength: 80,
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                      _EditorTeamsPanel(
-                        teams: _teams,
-                        teamController: _teamController,
-                        onAddTeam: _addTeam,
-                        onRemoveTeam: _removeTeam,
+                      AppBarActionButton.label(
+                        key: const ValueKey('competition-editor-save'),
+                        icon: _autoSaveInFlight
+                            ? const SizedBox.square(
+                                dimension: 17,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(Icons.save_outlined),
+                        label: l10n.matchCompetitionSaveCompetition,
+                        tooltip: l10n.matchCompetitionSaveCompetition,
+                        onPressed: _autoSaveInFlight ? null : _saveCompetition,
+                        margin: EdgeInsets.zero,
+                        maxLabelWidth: 88,
                       ),
                     ],
                   ),
                 ),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () => Navigator.of(context).maybePop(false),
-                      icon: const Icon(Icons.arrow_back),
-                      label: Text(l10n.matchCompetitionBackButton),
-                      style: _competitionOutlinedActionStyle(context),
+                const SizedBox(height: AppSpacing.sm),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.fromLTRB(
+                      AppSpacing.md,
+                      0,
+                      AppSpacing.md,
+                      AppSpacing.xl + MediaQuery.of(context).viewInsets.bottom,
+                    ),
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 820),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _EditorSectionPanel(
+                              title: l10n.matchCompetitionEditorBasicsTitle,
+                              children: [
+                                SegmentedButton<String>(
+                                  segments: [
+                                    ButtonSegment<String>(
+                                      value: MatchCompetitionRecord.kindLeague,
+                                      icon: const Icon(
+                                          Icons.leaderboard_outlined),
+                                      label: Text(l10n.matchKindLeague),
+                                    ),
+                                    ButtonSegment<String>(
+                                      value:
+                                          MatchCompetitionRecord.kindTournament,
+                                      icon: const Icon(
+                                          Icons.account_tree_outlined),
+                                      label: Text(l10n.matchKindTournament),
+                                    ),
+                                  ],
+                                  selected: {_kind},
+                                  showSelectedIcon: false,
+                                  onSelectionChanged: (selection) {
+                                    _updateAndScheduleAutoSave(
+                                      () => _kind = selection.first,
+                                    );
+                                  },
+                                ),
+                                const SizedBox(height: AppSpacing.sm),
+                                TextField(
+                                  controller: _nameController,
+                                  maxLength: 40,
+                                  textInputAction: TextInputAction.next,
+                                  onChanged: (_) => setState(() {}),
+                                  decoration: InputDecoration(
+                                    labelText: l10n.matchCompetitionNameLabel,
+                                    hintText: _kind ==
+                                            MatchCompetitionRecord.kindLeague
+                                        ? l10n.matchLeagueNameHint
+                                        : l10n.matchTournamentNameHint,
+                                    border: const OutlineInputBorder(),
+                                  ),
+                                ),
+                                const SizedBox(height: AppSpacing.xs),
+                                SegmentedButton<String>(
+                                  segments: [
+                                    ButtonSegment<String>(
+                                      value:
+                                          MatchCompetitionRecord.statusActive,
+                                      icon:
+                                          const Icon(Icons.play_circle_outline),
+                                      label: Text(
+                                          l10n.matchCompetitionStatusActive),
+                                    ),
+                                    ButtonSegment<String>(
+                                      value:
+                                          MatchCompetitionRecord.statusFinished,
+                                      icon: const Icon(
+                                          Icons.flag_circle_outlined),
+                                      label: Text(
+                                          l10n.matchCompetitionStatusFinished),
+                                    ),
+                                  ],
+                                  selected: {_status},
+                                  showSelectedIcon: false,
+                                  onSelectionChanged: (selection) {
+                                    _updateAndScheduleAutoSave(
+                                      () => _status = selection.first,
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                            _EditorSectionPanel(
+                              title: l10n.matchCompetitionEditorOperationsTitle,
+                              children: [
+                                _EditorFieldGrid(
+                                  children: [
+                                    _EditorTextField(
+                                      controller: _seasonController,
+                                      label: l10n.matchCompetitionSeasonLabel,
+                                      hint: l10n.matchCompetitionSeasonHint,
+                                      maxLength: 24,
+                                    ),
+                                    _EditorTextField(
+                                      controller: _venueController,
+                                      label: l10n.matchCompetitionVenueLabel,
+                                      hint: l10n.matchCompetitionVenueHint,
+                                      maxLength: 40,
+                                    ),
+                                    _EditorTextField(
+                                      controller: _organizerController,
+                                      label:
+                                          l10n.matchCompetitionOrganizerLabel,
+                                      hint: l10n.matchCompetitionOrganizerHint,
+                                      maxLength: 40,
+                                    ),
+                                    _EditorTextField(
+                                      controller: _noteController,
+                                      label: l10n.matchCompetitionNoteLabel,
+                                      hint: l10n.matchCompetitionNoteHint,
+                                      maxLength: 80,
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            _EditorTeamsPanel(
+                              teams: _teams,
+                              teamController: _teamController,
+                              onAddTeam: _addTeam,
+                              onRemoveTeam: _removeTeam,
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: FilledButton.icon(
-                      onPressed: _saveCompetition,
-                      icon: const Icon(Icons.save_outlined),
-                      label: Text(l10n.matchCompetitionSaveCompetition),
-                      style: _competitionFilledActionStyle(context),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -1570,6 +1743,22 @@ class _CompetitionEditorSheetState extends State<_CompetitionEditorSheet> {
     _scheduleAutoSave();
   }
 
+  Future<void> _closeEditor() async {
+    if (_allowPop) return;
+    _autoSaveTimer?.cancel();
+    while (_autoSaveInFlight) {
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+    }
+    final updated = _buildCompetitionRecord();
+    if (updated != null &&
+        _competitionRecordSignature(updated) != _lastSavedSignature) {
+      await _persistCompetition(updated);
+    }
+    if (!mounted) return;
+    _allowPop = true;
+    Navigator.of(context).pop(_hasPersistedChanges);
+  }
+
   Future<void> _saveCompetition() async {
     final l10n = AppLocalizations.of(context)!;
     final updated = _buildCompetitionRecord();
@@ -1587,6 +1776,7 @@ class _CompetitionEditorSheetState extends State<_CompetitionEditorSheet> {
       context,
       text: l10n.matchCompetitionSavedFeedback,
     );
+    _allowPop = true;
     Navigator.of(context).pop(true);
   }
 
@@ -1633,6 +1823,7 @@ class _CompetitionEditorSheetState extends State<_CompetitionEditorSheet> {
       if (mounted) setState(() {});
     } finally {
       _autoSaveInFlight = false;
+      if (mounted) setState(() {});
       if (_autoSaveQueued && mounted) {
         _autoSaveQueued = false;
         _scheduleAutoSave();
@@ -1665,7 +1856,8 @@ class _CompetitionEditorSheetState extends State<_CompetitionEditorSheet> {
     await widget.service.upsertCompetition(normalized);
     _persistedRecord =
         widget.service.findCompetitionById(normalized.id) ?? normalized;
-    _lastSavedSignature = _competitionRecordSignature(updated);
+    _lastSavedSignature = _competitionRecordSignature(normalized);
+    _hasPersistedChanges = true;
   }
 
   String _competitionRecordSignature(MatchCompetitionRecord record) {
@@ -1694,14 +1886,8 @@ class _EditorSectionPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: AppSurfaces.cardDecoration(
-        scheme,
-        theme.brightness,
-      ).copyWith(borderRadius: AppRadius.small),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -1712,6 +1898,11 @@ class _EditorSectionPanel extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
+          Divider(
+            height: 1,
+            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.7),
+          ),
+          const SizedBox(height: AppSpacing.md),
           ...children,
         ],
       ),
@@ -1882,30 +2073,18 @@ class _EditorTeamsPanel extends StatelessWidget {
 class _CompetitionOperationsMetrics {
   final int activeCompetitions;
   final int finishedCompetitions;
-  final int registeredTeams;
-  final int recordedCompetitionMatches;
 
   const _CompetitionOperationsMetrics({
     required this.activeCompetitions,
     required this.finishedCompetitions,
-    required this.registeredTeams,
-    required this.recordedCompetitionMatches,
   });
 
   factory _CompetitionOperationsMetrics.from({
     required List<MatchCompetitionRecord> records,
-    required List<TrainingEntry> entries,
   }) {
     return _CompetitionOperationsMetrics(
       activeCompetitions: records.where((record) => !record.isFinished).length,
       finishedCompetitions: records.where((record) => record.isFinished).length,
-      registeredTeams: records.fold<int>(
-        0,
-        (total, record) => total + record.teams.length,
-      ),
-      recordedCompetitionMatches: entries
-          .where((entry) => entry.isLeagueMatch || entry.isTournamentMatch)
-          .length,
     );
   }
 }

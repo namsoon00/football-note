@@ -6385,6 +6385,55 @@
       }
     }
   },
+  "matchCompetitionNewButton": "新規大会",
+  "matchCompetitionFilterAll": "すべて {count}",
+  "@matchCompetitionFilterAll": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "matchCompetitionFilterActive": "開催中 {count}",
+  "@matchCompetitionFilterActive": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "matchCompetitionFilterFinished": "終了 {count}",
+  "@matchCompetitionFilterFinished": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "matchCompetitionFilterEmptyTitle": "この状態の大会はありません。",
+  "matchCompetitionFilterEmptyBody": "フィルターをリセットすると、すべての大会を表示できます。",
+  "matchCompetitionCardSummary": "{teams}チーム · {matches}試合",
+  "@matchCompetitionCardSummary": {
+    "placeholders": {
+      "teams": {
+        "type": "int"
+      },
+      "matches": {
+        "type": "int"
+      }
+    }
+  },
+  "matchCompetitionDeleteDialogTitle": "大会を削除",
+  "matchCompetitionDeleteDialogBody": "「{name}」を削除しますか？保存済みの試合記録は削除されません。",
+  "@matchCompetitionDeleteDialogBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "matchCompetitionDeleteButton": "削除",
+  "matchCompetitionDeletedFeedback": "大会を削除しました。",
   "matchCompetitionCreateLeagueButton": "リーグを作成",
   "matchCompetitionCreateTournamentButton": "トーナメントを作成",
   "matchCompetitionSeasonLabel": "シーズン",
