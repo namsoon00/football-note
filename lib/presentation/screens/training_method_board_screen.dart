@@ -1674,15 +1674,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   List<_BoardRoute> _orderedPlaybackRoutes() {
-    final selectedRoute = _selectedRoute;
-    final orderedRoutes = _currentPage.routes
+    return _currentPage.routes
         .where((route) => route.points.length >= 2)
-        .toList(growable: true);
-    if (selectedRoute != null) {
-      orderedRoutes.removeWhere((route) => route.id == selectedRoute.id);
-      orderedRoutes.add(selectedRoute);
-    }
-    return orderedRoutes;
+        .toList(growable: false);
   }
 
   List<_PlaybackTrack> _resolvePlaybackTracks() {
@@ -1817,7 +1811,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     for (final route in routes) {
       final trackKey = routeTrackKeys[route.id];
       if (trackKey == null) continue;
-      final durationMs = _routePlaybackDurationMs(route);
+      final routeTiming = _routeTimingWithoutLeadingWait(route);
+      final durationMs = _routeTimingPlaybackDurationMs(
+        kind: route.kind,
+        timing: routeTiming,
+      );
       if (durationMs <= 0) continue;
       final stage = _normalizedRouteStageIndex(route.stageIndex);
       var startMs = trackEndMs[trackKey] ?? 0;
@@ -1826,9 +1824,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         if (actorId != null) {
           startMs = math.max(
             startMs,
-            _latestPlaybackDependencyEndBeforeStage(
+            _latestActorMovementDependencyEndBeforeStage(
               playerEndsByPlayerId[actorId],
               stage,
+              routeTiming.points.first,
             ),
           );
           startMs = math.max(
@@ -1860,18 +1859,61 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         if (playerId != null) {
           playerEndsByPlayerId
               .putIfAbsent(playerId, () => <_PlaybackStageEnd>[])
-              .add(_PlaybackStageEnd(stageIndex: stage, endMs: endMs));
+              .add(
+                _PlaybackStageEnd(
+                  stageIndex: stage,
+                  endMs: endMs,
+                  start: routeTiming.points.first,
+                  end: routeTiming.points.last,
+                ),
+              );
         }
       } else {
         final targetId = route.targetItemId;
         if (targetId != null && targetId != route.actorItemId) {
           incomingBallEndsByPlayerId
               .putIfAbsent(targetId, () => <_PlaybackStageEnd>[])
-              .add(_PlaybackStageEnd(stageIndex: stage, endMs: endMs));
+              .add(
+                _PlaybackStageEnd(
+                  stageIndex: stage,
+                  endMs: endMs,
+                  start: routeTiming.points.first,
+                  end: routeTiming.points.last,
+                ),
+              );
         }
       }
     }
     return startOffsets;
+  }
+
+  int _latestActorMovementDependencyEndBeforeStage(
+    List<_PlaybackStageEnd>? dependencies,
+    int stageIndex,
+    Offset ballStart,
+  ) {
+    if (dependencies == null || dependencies.isEmpty) return 0;
+    var latestEndMs = 0;
+    for (final dependency in dependencies) {
+      if (dependency.stageIndex >= stageIndex) continue;
+      if (!_ballStartFollowsPlayerRouteEnd(ballStart, dependency)) {
+        continue;
+      }
+      latestEndMs = math.max(latestEndMs, dependency.endMs);
+    }
+    return latestEndMs;
+  }
+
+  bool _ballStartFollowsPlayerRouteEnd(
+    Offset ballStart,
+    _PlaybackStageEnd dependency,
+  ) {
+    final distanceFromRouteEnd = (ballStart - dependency.end).distance;
+    if (distanceFromRouteEnd > _playbackBallCarryPointRadius) {
+      return false;
+    }
+    final distanceFromRouteStart = (ballStart - dependency.start).distance;
+    return distanceFromRouteStart > _playbackBallCarryPointRadius;
   }
 
   int _latestPlaybackDependencyEndBeforeStage(
@@ -3440,13 +3482,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     return segments.fold<int>(
       0,
       (sum, segment) => sum + (segment.durationSeconds * 1000).round(),
-    );
-  }
-
-  int _routePlaybackDurationMs(_BoardRoute route) {
-    return _routeTimingPlaybackDurationMs(
-      kind: route.kind,
-      timing: _routeTimingWithoutLeadingWait(route),
     );
   }
 
@@ -7745,10 +7780,14 @@ class _RouteTiming {
 class _PlaybackStageEnd {
   final int stageIndex;
   final int endMs;
+  final Offset start;
+  final Offset end;
 
   const _PlaybackStageEnd({
     required this.stageIndex,
     required this.endMs,
+    required this.start,
+    required this.end,
   });
 }
 
@@ -7926,6 +7965,7 @@ const double _ballPlaybackSpeedMetersPerSecond = 9.2;
 const double _playerPlaybackAccelerationFraction = 0.20;
 const double _ballPlaybackAccelerationFraction = 0.05;
 const double _minPlaybackSegmentDistanceMeters = 0.05;
+const double _playbackBallCarryPointRadius = 0.10;
 const double _stayActionBoardStep = 0.0012;
 const double _stayActionMaxDistanceMeters = 0.12;
 const int _stayActionDurationMs = 900;

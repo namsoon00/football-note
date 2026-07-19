@@ -677,6 +677,153 @@ void main() {
     expect(route.points.last.y, closeTo(0.44, 0.02));
   });
 
+  testWidgets(
+    'reselected passer move starts with the UI-created pass playback',
+    (WidgetTester tester) async {
+      _setLandscapeSurface(tester);
+      String? savedLayout;
+
+      await tester.pumpWidget(
+        _buildApp(
+          TrainingMethodBoardScreen(
+            boardTitle: '패스 후 이동',
+            initialLayoutJson: const TrainingMethodLayout(
+              pages: <TrainingMethodPage>[
+                TrainingMethodPage(
+                  name: 'Board',
+                  items: <TrainingMethodItem>[
+                    TrainingMethodItem(
+                      id: 'player-1',
+                      type: 'player',
+                      x: 0.24,
+                      y: 0.52,
+                    ),
+                    TrainingMethodItem(
+                      id: 'player-2',
+                      type: 'player',
+                      x: 0.70,
+                      y: 0.44,
+                      colorValue: 0xFF1E88E5,
+                    ),
+                  ],
+                ),
+              ],
+            ).encode(),
+            onSaved: (value) => savedLayout = value,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+      await tester.tap(
+        find
+            .descendant(of: boardFinder, matching: find.byIcon(Icons.person))
+            .first,
+      );
+      await tester.pumpAndSettle();
+      await _tapVisibleOutlinedButton(tester, '패스');
+      await _tapBoardRelativeThroughWidgets(
+        tester,
+        boardFinder,
+        const Offset(0.70, 0.44),
+      );
+      await tester.tap(
+        find
+            .descendant(of: boardFinder, matching: find.byIcon(Icons.person))
+            .first,
+      );
+      await tester.pumpAndSettle();
+      await _tapVisibleOutlinedButton(tester, '이동');
+      await _tapBoardRelative(tester, boardFinder, const Offset(0.46, 0.62));
+
+      await tester.tap(find.widgetWithText(TextButton, '저장'));
+      await tester.pumpAndSettle();
+
+      final serializedLayout = savedLayout ?? '';
+      expect(serializedLayout, isNotEmpty);
+      final saved = TrainingMethodLayout.decode(serializedLayout);
+      final page = saved.pages.single;
+      final passRoute = page.routes.singleWhere(
+        (route) =>
+            route.kind == TrainingMethodRouteKind.ball &&
+            route.actorItemId == 'player-1',
+      );
+      final passerMoveRoute = page.routes.singleWhere(
+        (route) =>
+            route.kind == TrainingMethodRouteKind.player &&
+            route.linkedItemId == 'player-1',
+      );
+      expect(passRoute.targetItemId, 'player-2');
+      expect(
+        page.routes.indexOf(passRoute),
+        lessThan(page.routes.indexOf(passerMoveRoute)),
+      );
+
+      await tester.pumpWidget(
+        _buildApp(
+          TrainingMethodBoardScreen(
+            boardTitle: '패스 후 이동',
+            initialLayoutJson: serializedLayout,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final playbackBoardFinder =
+          find.byKey(const ValueKey('training-board-canvas'));
+      final playerIcons = find.descendant(
+        of: playbackBoardFinder,
+        matching: find.byIcon(Icons.person),
+      );
+      final ballIcon = find.descendant(
+        of: playbackBoardFinder,
+        matching: find.byIcon(Icons.sports_soccer),
+      );
+      expect(playerIcons, findsNWidgets(2));
+      expect(ballIcon, findsOneWidget);
+      await tester.tap(
+        _iconNearestToBoardPoint(
+          tester,
+          playbackBoardFinder,
+          playerIcons,
+          const Offset(0.24, 0.52),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final passerBefore = tester.getCenter(
+        _iconNearestToBoardPoint(
+          tester,
+          playbackBoardFinder,
+          playerIcons,
+          const Offset(0.24, 0.52),
+        ),
+      );
+      final ballBefore = tester.getCenter(ballIcon);
+
+      await tester.tap(find.byIcon(Icons.play_circle_outline).first);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 180));
+
+      final passerAfter = tester.getCenter(
+        _iconNearestToBoardPoint(
+          tester,
+          playbackBoardFinder,
+          playerIcons,
+          const Offset(0.24, 0.52),
+        ),
+      );
+      final ballAfter = tester.getCenter(ballIcon);
+      final passerDelta = (passerAfter - passerBefore).distance;
+      final ballDelta = (ballAfter - ballBefore).distance;
+
+      expect(passerDelta, greaterThan(1));
+      expect(ballDelta, greaterThan(1));
+      expect(ballDelta, greaterThan(passerDelta));
+    },
+  );
+
   testWidgets('player dribble action creates linked player and ball routes', (
     WidgetTester tester,
   ) async {
@@ -6193,6 +6340,247 @@ void main() {
   );
 
   testWidgets(
+    'saved passer move does not delay its pass when route order is stale',
+    (WidgetTester tester) async {
+      _setLandscapeSurface(tester);
+      final initialLayout = const TrainingMethodLayout(
+        pages: <TrainingMethodPage>[
+          TrainingMethodPage(
+            name: 'Board',
+            items: <TrainingMethodItem>[
+              TrainingMethodItem(
+                id: 'player-1',
+                type: 'player',
+                x: 0.20,
+                y: 0.50,
+              ),
+              TrainingMethodItem(
+                id: 'player-2',
+                type: 'player',
+                x: 0.62,
+                y: 0.46,
+                colorValue: 0xFF1E88E5,
+              ),
+              TrainingMethodItem(
+                id: 'ball-1',
+                type: 'ball',
+                x: 0.27,
+                y: 0.50,
+                colorValue: 0xFFFFCA28,
+              ),
+            ],
+            routes: <TrainingMethodRoute>[
+              TrainingMethodRoute(
+                id: 'route-passer-move',
+                kind: TrainingMethodRouteKind.player,
+                linkedItemId: 'player-1',
+                actorItemId: 'player-1',
+                stageIndex: 1,
+                points: <TrainingMethodPoint>[
+                  TrainingMethodPoint(x: 0.20, y: 0.50),
+                  TrainingMethodPoint(x: 0.36, y: 0.62),
+                ],
+                segmentDurationsMs: <int>[760],
+              ),
+              TrainingMethodRoute(
+                id: 'route-pass',
+                kind: TrainingMethodRouteKind.ball,
+                linkedItemId: 'ball-1',
+                actorItemId: 'player-1',
+                targetItemId: 'player-2',
+                stageIndex: 2,
+                points: <TrainingMethodPoint>[
+                  TrainingMethodPoint(x: 0.27, y: 0.50),
+                  TrainingMethodPoint(x: 0.62, y: 0.46),
+                ],
+                segmentDurationsMs: <int>[680],
+              ),
+            ],
+          ),
+        ],
+      ).encode();
+
+      await tester.pumpWidget(
+        _buildApp(
+          TrainingMethodBoardScreen(
+            boardTitle: '패스 후 이동',
+            initialLayoutJson: initialLayout,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+      final playerIcons = find.descendant(
+        of: boardFinder,
+        matching: find.byIcon(Icons.person),
+      );
+      final ballIcon = find.descendant(
+        of: boardFinder,
+        matching: find.byIcon(Icons.sports_soccer),
+      );
+      expect(playerIcons, findsNWidgets(2));
+      expect(ballIcon, findsOneWidget);
+      await tester.tap(
+        _iconNearestToBoardPoint(
+          tester,
+          boardFinder,
+          playerIcons,
+          const Offset(0.20, 0.50),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final passerBefore = tester.getCenter(
+        _iconNearestToBoardPoint(
+          tester,
+          boardFinder,
+          playerIcons,
+          const Offset(0.20, 0.50),
+        ),
+      );
+      final ballBefore = tester.getCenter(ballIcon);
+
+      await tester.tap(find.byIcon(Icons.play_circle_outline).first);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      final passerAfter = tester.getCenter(
+        _iconNearestToBoardPoint(
+          tester,
+          boardFinder,
+          playerIcons,
+          const Offset(0.20, 0.50),
+        ),
+      );
+      final ballAfter = tester.getCenter(ballIcon);
+      final passerDelta = (passerAfter - passerBefore).distance;
+      final ballDelta = (ballAfter - ballBefore).distance;
+
+      expect(passerDelta, greaterThan(1));
+      expect(ballDelta, greaterThan(1));
+      expect(ballDelta, greaterThan(passerDelta));
+    },
+  );
+
+  testWidgets('receiver movement waits until the incoming pass arrives', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    final initialLayout = const TrainingMethodLayout(
+      pages: <TrainingMethodPage>[
+        TrainingMethodPage(
+          name: 'Board',
+          items: <TrainingMethodItem>[
+            TrainingMethodItem(id: 'player-1', type: 'player', x: 0.20, y: 0.5),
+            TrainingMethodItem(
+              id: 'player-2',
+              type: 'player',
+              x: 0.58,
+              y: 0.46,
+              colorValue: 0xFF1E88E5,
+            ),
+            TrainingMethodItem(
+              id: 'ball-1',
+              type: 'ball',
+              x: 0.27,
+              y: 0.5,
+              colorValue: 0xFFFFCA28,
+            ),
+          ],
+          routes: <TrainingMethodRoute>[
+            TrainingMethodRoute(
+              id: 'route-pass',
+              kind: TrainingMethodRouteKind.ball,
+              linkedItemId: 'ball-1',
+              actorItemId: 'player-1',
+              targetItemId: 'player-2',
+              stageIndex: 1,
+              points: <TrainingMethodPoint>[
+                TrainingMethodPoint(x: 0.27, y: 0.5),
+                TrainingMethodPoint(x: 0.58, y: 0.46),
+              ],
+              segmentDurationsMs: <int>[680],
+            ),
+            TrainingMethodRoute(
+              id: 'route-receiver-move',
+              kind: TrainingMethodRouteKind.player,
+              linkedItemId: 'player-2',
+              actorItemId: 'player-2',
+              stageIndex: 2,
+              points: <TrainingMethodPoint>[
+                TrainingMethodPoint(x: 0.58, y: 0.46),
+                TrainingMethodPoint(x: 0.72, y: 0.38),
+              ],
+              segmentDurationsMs: <int>[760],
+            ),
+          ],
+        ),
+      ],
+    ).encode();
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '수신 후 이동',
+          initialLayoutJson: initialLayout,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    final playerIcons = find.descendant(
+      of: boardFinder,
+      matching: find.byIcon(Icons.person),
+    );
+    final ballIcon = find.descendant(
+      of: boardFinder,
+      matching: find.byIcon(Icons.sports_soccer),
+    );
+    expect(playerIcons, findsNWidgets(2));
+    expect(ballIcon, findsOneWidget);
+
+    final receiverBefore = tester.getCenter(
+      _iconNearestToBoardPoint(
+        tester,
+        boardFinder,
+        playerIcons,
+        const Offset(0.58, 0.46),
+      ),
+    );
+    final ballBefore = tester.getCenter(ballIcon);
+
+    await tester.tap(find.byIcon(Icons.play_circle_outline).first);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    final receiverEarly = tester.getCenter(
+      _iconNearestToBoardPoint(
+        tester,
+        boardFinder,
+        playerIcons,
+        const Offset(0.58, 0.46),
+      ),
+    );
+    final ballEarly = tester.getCenter(ballIcon);
+    expect((ballEarly - ballBefore).distance, greaterThan(1));
+    expect((receiverEarly - receiverBefore).distance, lessThan(1));
+
+    await tester.pump(const Duration(milliseconds: 600));
+    final receiverLate = tester.getCenter(
+      _iconNearestToBoardPoint(
+        tester,
+        boardFinder,
+        playerIcons,
+        const Offset(0.58, 0.46),
+      ),
+    );
+
+    expect((receiverLate - receiverBefore).distance, greaterThan(1));
+  });
+
+  testWidgets(
     'playback moves the ball farther than the player over equal time',
     (WidgetTester tester) async {
       _setLandscapeSurface(tester);
@@ -6444,6 +6832,34 @@ Future<void> _tapVisibleFinder(WidgetTester tester, Finder finder) async {
   await tester.pumpAndSettle();
   await tester.tap(finder);
   await tester.pumpAndSettle();
+}
+
+Finder _iconNearestToBoardPoint(
+  WidgetTester tester,
+  Finder boardFinder,
+  Finder iconFinder,
+  Offset relativePosition,
+) {
+  final boardTopLeft = tester.getTopLeft(boardFinder);
+  final boardSize = tester.getSize(boardFinder);
+  final target = boardTopLeft +
+      Offset(
+        boardSize.width * relativePosition.dx,
+        boardSize.height * relativePosition.dy,
+      );
+  final iconCount = iconFinder.evaluate().length;
+  expect(iconCount, greaterThan(0));
+  var nearest = iconFinder.first;
+  var nearestDistance = double.infinity;
+  for (var index = 0; index < iconCount; index++) {
+    final candidate = iconFinder.at(index);
+    final distance = (tester.getCenter(candidate) - target).distance;
+    if (distance < nearestDistance) {
+      nearest = candidate;
+      nearestDistance = distance;
+    }
+  }
+  return nearest;
 }
 
 Future<void> _tapTopBarMenuItem(
