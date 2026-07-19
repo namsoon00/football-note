@@ -203,6 +203,60 @@ void main() {
     expect(pairs.last.teamA, '그린 FC');
     expect(pairs.last.hasBye, isTrue);
   });
+
+  test('팀관리의 팀명을 리그 기준 팀으로 사용하고 이전 기본 이름을 합친다', () {
+    final entries = <TrainingEntry>[
+      TrainingEntry(
+        date: DateTime(2026, 7, 1),
+        durationMinutes: 90,
+        intensity: 4,
+        type: '경기',
+        mood: 4,
+        injury: false,
+        notes: '',
+        location: '',
+        matchKind: MatchCompetitionRecord.kindLeague,
+        matchCompetitionName: '여름 리그',
+        opponentTeam: '블루 FC',
+        leagueTeamNames: const <String>['우리 팀', '블루 FC'],
+        scoredGoals: 2,
+        concededGoals: 0,
+        leaguePoints: 3,
+      ),
+    ];
+
+    final standings = MatchCompetitionService.buildLeagueStandings(
+      competitionName: '여름 리그',
+      registeredTeams: const <String>['우리 팀', '블루 FC'],
+      entries: entries,
+      ownTeamName: '남순 FC',
+      preferOwnTeamName: true,
+      ownTeamAliases: const <String>['우리 팀'],
+    );
+
+    expect(standings.map((row) => row.team), <String>['남순 FC', '블루 FC']);
+    expect(standings.first.points, 3);
+    expect(standings.first.wins, 1);
+  });
+
+  test('대회 유형에 맞춰 팀관리 팀명을 참가 팀과 시드에 반영한다', () {
+    final leagueTeams = MatchCompetitionService.teamsWithManagedTeam(
+      kind: MatchCompetitionRecord.kindLeague,
+      teams: const <String>['우리 팀', '블루 FC'],
+      managedTeamName: '남순 FC',
+      fallbackTeamName: '우리 팀',
+      replaceLeagueFirstTeam: true,
+    );
+    final tournamentTeams = MatchCompetitionService.teamsWithManagedTeam(
+      kind: MatchCompetitionRecord.kindTournament,
+      teams: const <String>['레드 FC', '우리 팀', '블루 FC'],
+      managedTeamName: '남순 FC',
+      fallbackTeamName: '우리 팀',
+    );
+
+    expect(leagueTeams, <String>['남순 FC', '블루 FC']);
+    expect(tournamentTeams, <String>['레드 FC', '남순 FC', '블루 FC']);
+  });
 }
 
 class _MemoryOptionRepository implements OptionRepository {

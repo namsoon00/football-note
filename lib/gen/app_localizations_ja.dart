@@ -11562,6 +11562,32 @@ class AppLocalizationsJa extends AppLocalizations {
   String get matchCompetitionTeamsListTitle => '登録チーム';
 
   @override
+  String get matchCompetitionLeagueSetupTitle => 'リーグ参加チーム';
+
+  @override
+  String get matchCompetitionLeagueSetupBody =>
+      'チームを登録すると、試合結果から順位、勝敗、得失点差、勝ち点を自動計算します。';
+
+  @override
+  String get matchCompetitionTournamentSetupTitle => 'トーナメントシード';
+
+  @override
+  String get matchCompetitionTournamentSetupBody =>
+      'チームをドラッグしてシード順を決めます。上から順に1回戦の対戦を構成します。';
+
+  @override
+  String get matchCompetitionTournamentPreviewTitle => '1回戦プレビュー';
+
+  @override
+  String matchCompetitionTournamentSeedPair(
+      int slot, String teamA, String teamB) {
+    return '第$slot試合 · $teamA vs $teamB';
+  }
+
+  @override
+  String get matchCompetitionOwnTeamBadge => '自チーム';
+
+  @override
   String matchCompetitionRemoveTeamTooltip(String team) {
     return '$teamを削除';
   }

@@ -363,6 +363,51 @@ class MatchCompetitionService {
     return teams;
   }
 
+  static List<String> teamsWithManagedTeam({
+    required String kind,
+    required Iterable<String> teams,
+    required String managedTeamName,
+    required String fallbackTeamName,
+    bool replaceLeagueFirstTeam = false,
+  }) {
+    final explicitManagedTeam = managedTeamName.trim();
+    final ownTeam = explicitManagedTeam.isEmpty
+        ? fallbackTeamName.trim()
+        : explicitManagedTeam;
+    final normalized = normalizeTeams(teams);
+    if (explicitManagedTeam.isEmpty && normalized.isNotEmpty) {
+      return normalized;
+    }
+    if (ownTeam.isEmpty) return normalized;
+    final ownKey = _normalizeKey(ownTeam);
+    final fallbackKey = _normalizeKey(fallbackTeamName);
+
+    if (kind == MatchCompetitionRecord.kindLeague) {
+      return normalizeTeams([
+        ownTeam,
+        for (final item in normalized.indexed)
+          if (!(replaceLeagueFirstTeam && item.$1 == 0) &&
+              _normalizeKey(item.$2) != ownKey &&
+              _normalizeKey(item.$2) != fallbackKey)
+            item.$2,
+      ]);
+    }
+
+    var foundOwnTeam = false;
+    final tournamentTeams = <String>[];
+    for (final team in normalized) {
+      final key = _normalizeKey(team);
+      if (key == ownKey || (fallbackKey.isNotEmpty && key == fallbackKey)) {
+        tournamentTeams.add(ownTeam);
+        foundOwnTeam = true;
+      } else {
+        tournamentTeams.add(team);
+      }
+    }
+    if (!foundOwnTeam) tournamentTeams.insert(0, ownTeam);
+    return normalizeTeams(tournamentTeams);
+  }
+
   static String normalizeStatus(String status) {
     return status == MatchCompetitionRecord.statusFinished
         ? MatchCompetitionRecord.statusFinished
@@ -390,18 +435,42 @@ class MatchCompetitionService {
     required List<String> registeredTeams,
     required Iterable<TrainingEntry> entries,
     required String ownTeamName,
+    bool preferOwnTeamName = false,
+    Iterable<String> ownTeamAliases = const <String>[],
   }) {
     final matchingEntries = competitionEntries(
       kind: MatchCompetitionRecord.kindLeague,
       competitionName: competitionName,
       entries: entries,
     );
+    final requestedOwnTeam = ownTeamName.trim();
+    final ownTeamKeys = <String>{
+      if (requestedOwnTeam.isNotEmpty) _normalizeKey(requestedOwnTeam),
+      for (final alias in ownTeamAliases)
+        if (alias.trim().isNotEmpty) _normalizeKey(alias),
+    };
+    String canonicalTeam(String raw) {
+      final team = raw.trim();
+      if (preferOwnTeamName &&
+          requestedOwnTeam.isNotEmpty &&
+          ownTeamKeys.contains(_normalizeKey(team))) {
+        return requestedOwnTeam;
+      }
+      return team;
+    }
+
     final teams = normalizeTeams([
-      ...registeredTeams,
-      for (final entry in matchingEntries) ...entry.leagueTeamNames,
-      for (final entry in matchingEntries) entry.opponentTeam,
+      if (preferOwnTeamName) requestedOwnTeam,
+      for (final team in registeredTeams) canonicalTeam(team),
+      for (final entry in matchingEntries)
+        for (final team in entry.leagueTeamNames) canonicalTeam(team),
+      for (final entry in matchingEntries) canonicalTeam(entry.opponentTeam),
     ]);
-    final ownTeam = teams.isNotEmpty ? teams.first : ownTeamName.trim();
+    final ownTeam = preferOwnTeamName && requestedOwnTeam.isNotEmpty
+        ? requestedOwnTeam
+        : teams.isNotEmpty
+            ? teams.first
+            : requestedOwnTeam;
     if (ownTeam.isNotEmpty && !teams.any((team) => team == ownTeam)) {
       teams.insert(0, ownTeam);
     }
@@ -411,7 +480,7 @@ class MatchCompetitionService {
     };
 
     LeagueStandingRow ensureRow(String team) {
-      final trimmed = team.trim();
+      final trimmed = canonicalTeam(team);
       return rows.putIfAbsent(trimmed, () => LeagueStandingRow(team: trimmed));
     }
 
@@ -431,7 +500,7 @@ class MatchCompetitionService {
     }
 
     for (final entry in matchingEntries) {
-      final opponent = entry.opponentTeam.trim();
+      final opponent = canonicalTeam(entry.opponentTeam);
       final scored = entry.scoredGoals;
       final conceded = entry.concededGoals;
       final inferredSelfPoints = _pointsFromScore(scored, conceded);

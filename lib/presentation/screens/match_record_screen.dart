@@ -907,9 +907,22 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
   }
 
   void _applyCompetition(MatchCompetitionRecord record) {
+    final sportId = widget.editingEntry?.sportId ??
+        SportService(widget.optionRepository).currentSportId();
+    final managedTeamName = _managedTeam(sportId)?.name.trim() ?? '';
+    final fallbackTeamName = AppLocalizations.of(
+      context,
+    )!
+        .matchCompetitionMyTeamFallback;
     _matchKind = record.kind;
     _selectedCompetitionId = record.id;
-    _teams = MatchCompetitionService.normalizeTeams(record.teams);
+    _teams = MatchCompetitionService.teamsWithManagedTeam(
+      kind: record.kind,
+      teams: record.teams,
+      managedTeamName: managedTeamName,
+      fallbackTeamName: fallbackTeamName,
+      replaceLeagueFirstTeam: true,
+    );
     if (_location.trim().isEmpty && record.venue.trim().isNotEmpty) {
       _location = record.venue.trim();
       _locationController.text = _location;
@@ -935,7 +948,17 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
   }
 
   List<String> _opponentOptions() {
-    if (_isCompetitionMatch && _teams.isNotEmpty) return _teams;
+    if (_isCompetitionMatch && _teams.isNotEmpty) {
+      final sportId = widget.editingEntry?.sportId ??
+          SportService(widget.optionRepository).currentSportId();
+      final managedTeamName = _managedTeam(sportId)?.name.trim() ?? '';
+      if (managedTeamName.isNotEmpty) {
+        return _teams
+            .where((team) => team.trim() != managedTeamName)
+            .toList(growable: false);
+      }
+      return _teams.skip(1).toList(growable: false);
+    }
     return MatchCompetitionService.normalizeTeams([
       for (final entry in _contextEntries) entry.opponentTeam,
       for (final entry in _contextEntries) entry.club,
@@ -1017,10 +1040,25 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
     }
     final competitionName =
         _isCompetitionMatch ? selectedCompetition!.name.trim() : '';
+    final managedTeamName =
+        _isCompetitionMatch ? _managedTeam(sportId)?.name.trim() ?? '' : '';
     final teams = _isCompetitionMatch
-        ? MatchCompetitionService.normalizeTeams(selectedCompetition!.teams)
+        ? MatchCompetitionService.teamsWithManagedTeam(
+            kind: selectedCompetition!.kind,
+            teams: selectedCompetition.teams,
+            managedTeamName: managedTeamName,
+            fallbackTeamName: l10n.matchCompetitionMyTeamFallback,
+            replaceLeagueFirstTeam: true,
+          )
         : MatchCompetitionService.normalizeTeams(_teams);
-    if (opponent.isEmpty && teams.isEmpty) {
+    final opponentTeams = !_isCompetitionMatch
+        ? teams
+        : managedTeamName.isNotEmpty
+            ? teams
+                .where((team) => team.trim() != managedTeamName)
+                .toList(growable: false)
+            : teams.skip(1).toList(growable: false);
+    if (opponent.isEmpty && opponentTeams.isEmpty) {
       if (closeAfterSave) {
         AppFeedback.showMessage(
           context,
@@ -1029,7 +1067,7 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
       }
       return;
     }
-    final savedOpponent = opponent.isNotEmpty ? opponent : teams.first;
+    final savedOpponent = opponent.isNotEmpty ? opponent : opponentTeams.first;
     final calculatedLeaguePoints = _calculatedLeaguePoints();
     final calculatedTournamentWins = _calculatedTournamentWins();
     final saved = TrainingEntry(

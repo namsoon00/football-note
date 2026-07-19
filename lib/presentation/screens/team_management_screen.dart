@@ -1157,50 +1157,11 @@ class _TeamManagementHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+    return Row(
       children: [
-        Row(
-          children: [
-            BackButton(onPressed: onBack),
-            const SizedBox(width: AppSpacing.xs),
-            Expanded(
-              child: Text(
-                l10n.teamManagementTitle,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-            ),
-            AppBarActionButton.label(
-              key: const ValueKey('team-header-board'),
-              icon: const Icon(Icons.account_tree_outlined),
-              label: l10n.teamManagementBoardHeaderButton,
-              tooltip: l10n.teamManagementWorkspaceBoardTab,
-              onPressed: onOpenBoard,
-              margin: const EdgeInsetsDirectional.only(end: AppSpacing.xs),
-              maxLabelWidth: 54,
-            ),
-            if (onManageCompetitions != null)
-              AppBarActionButton.label(
-                key: const ValueKey('team-header-competition'),
-                icon: const Icon(Icons.emoji_events_outlined),
-                label: l10n.teamManagementCompetitionHeaderButton,
-                tooltip: l10n.matchCompetitionOpenButton,
-                onPressed: onManageCompetitions,
-                margin: EdgeInsets.zero,
-                maxLabelWidth: 54,
-              ),
-          ],
-        ),
-        Padding(
-          padding: const EdgeInsetsDirectional.only(
-            start: 48 + AppSpacing.xs,
-            top: AppSpacing.xxs,
-          ),
+        BackButton(onPressed: onBack),
+        const SizedBox(width: AppSpacing.xs),
+        Expanded(
           child: _TeamNameButton(
             teamName: teamName,
             saving: saving,
@@ -1208,6 +1169,25 @@ class _TeamManagementHeader extends StatelessWidget {
             onPressed: onEditTeamName,
           ),
         ),
+        AppBarActionButton.label(
+          key: const ValueKey('team-header-board'),
+          icon: const Icon(Icons.account_tree_outlined),
+          label: l10n.teamManagementBoardHeaderButton,
+          tooltip: l10n.teamManagementWorkspaceBoardTab,
+          onPressed: onOpenBoard,
+          margin: const EdgeInsetsDirectional.only(end: AppSpacing.xs),
+          maxLabelWidth: 54,
+        ),
+        if (onManageCompetitions != null)
+          AppBarActionButton.label(
+            key: const ValueKey('team-header-competition'),
+            icon: const Icon(Icons.emoji_events_outlined),
+            label: l10n.teamManagementCompetitionHeaderButton,
+            tooltip: l10n.matchCompetitionOpenButton,
+            onPressed: onManageCompetitions,
+            margin: EdgeInsets.zero,
+            maxLabelWidth: 54,
+          ),
       ],
     );
   }
@@ -1254,9 +1234,9 @@ class _TeamNameButton extends StatelessWidget {
                       visibleName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: scheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w800,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        color: scheme.onSurface,
+                        fontWeight: FontWeight.w900,
                       ),
                     ),
                   ),
@@ -1276,7 +1256,7 @@ class _TeamNameButton extends StatelessWidget {
                       size: 15,
                       color: readOnly
                           ? scheme.onSurface.withValues(alpha: 0.38)
-                          : scheme.onSurfaceVariant,
+                          : scheme.onSurface,
                     ),
                 ],
               ),
