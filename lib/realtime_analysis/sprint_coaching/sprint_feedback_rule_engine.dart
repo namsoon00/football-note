@@ -123,6 +123,9 @@ class SprintFeedbackRuleEngine {
     }
 
     if (features.flightRatio.available &&
+        features.stanceFrameCount > 0 &&
+        features.flightFrameCount > 0 &&
+        features.detectedStepEvents >= config.minimumStepEventsForRunning &&
         features.flightRatio.confidence >= config.minimumFeatureConfidence &&
         (features.estimatedFlightRatio ?? 1) < config.minimumFlightRatio) {
       candidates.add(

@@ -51,13 +51,61 @@ void main() {
       expect(snapshot.armSwingAsymmetryRatio, closeTo(0.0434, 0.001));
       expect(snapshot.overstrideRatio, closeTo(0.26, 0.001));
       expect(snapshot.landingShinAngleDegrees, isNotNull);
-      expect(snapshot.estimatedFlightRatio, closeTo(0, 0.001));
+      expect(snapshot.estimatedFlightRatio, isNull);
       expect(snapshot.gaitPhase, SprintGaitPhase.doubleSupport);
       expect(snapshot.detectedStepEvents, 4);
       expect(snapshot.stepCrossoverCount, 4);
       expect(snapshot.rejectedStepEventsLowVelocity, 0);
       expect(snapshot.rejectedStepEventsMinInterval, 0);
       expect(snapshot.hasEnoughSignal, isTrue);
+    });
+
+    test('treats contact-only gait windows as insufficient flight evidence',
+        () {
+      final calculator = SprintFeatureCalculator();
+      final start = DateTime(2026, 4, 13, 9);
+
+      final snapshot = calculator.calculate(<SprintNormalizedPoseFrame>[
+        _frame(
+          timestamp: start,
+          leftAnkleX: 0.24,
+          rightAnkleX: -0.24,
+          kneeDriveHeight: 0.34,
+        ),
+        _frame(
+          timestamp: start.add(const Duration(milliseconds: 180)),
+          leftAnkleX: -0.24,
+          rightAnkleX: 0.24,
+          kneeDriveHeight: 0.36,
+        ),
+        _frame(
+          timestamp: start.add(const Duration(milliseconds: 360)),
+          leftAnkleX: 0.24,
+          rightAnkleX: -0.24,
+          kneeDriveHeight: 0.35,
+        ),
+        _frame(
+          timestamp: start.add(const Duration(milliseconds: 540)),
+          leftAnkleX: -0.24,
+          rightAnkleX: 0.24,
+          kneeDriveHeight: 0.36,
+        ),
+        _frame(
+          timestamp: start.add(const Duration(milliseconds: 720)),
+          leftAnkleX: 0.24,
+          rightAnkleX: -0.24,
+          kneeDriveHeight: 0.35,
+        ),
+      ]);
+
+      expect(snapshot.stanceFrameCount, 5);
+      expect(snapshot.flightFrameCount, 0);
+      expect(snapshot.flightRatio.available, isFalse);
+      expect(
+          snapshot.flightRatio.reasonIfUnavailable, 'insufficient_gait_phase');
+      expect(snapshot.flightRatio.sampleCount, 5);
+      expect(snapshot.estimatedFlightRatio, isNull);
+      expect(snapshot.contactBalance.available, isTrue);
     });
 
     test('estimates gait phase, flight ratio, and overstride at landing', () {
