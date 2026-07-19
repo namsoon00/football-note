@@ -19,7 +19,6 @@ import '../../domain/repositories/option_repository.dart';
 import '../theme/app_theme.dart';
 import '../utils/app_sound_effects.dart';
 import '../utils/match_entry_format.dart';
-import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/app_page_route.dart';
 import 'competition_management_screen.dart';
@@ -70,8 +69,6 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
   late int? _yellowCards;
   late int? _redCards;
   late int? _minutesPlayed;
-  late int? _leaguePoints;
-  late int? _tournamentWins;
   late String _memo;
 
   final TextEditingController _opponentController = TextEditingController();
@@ -142,8 +139,6 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
     _yellowCards = entry?.yellowCards;
     _redCards = entry?.redCards;
     _minutesPlayed = entry?.minutesPlayed;
-    _leaguePoints = entry?.leaguePoints;
-    _tournamentWins = entry?.tournamentWins;
     _memo = entry?.notes ?? '';
 
     _opponentController.text = _opponent;
@@ -241,12 +236,8 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
               children: [
                 Align(
                   alignment: AlignmentDirectional.centerStart,
-                  child: AppBarActionButton.icon(
+                  child: BackButton(
                     onPressed: () => Navigator.of(context).maybePop(),
-                    icon: Icons.arrow_back,
-                    tooltip:
-                        MaterialLocalizations.of(context).backButtonTooltip,
-                    margin: EdgeInsets.zero,
                   ),
                 ),
                 const SizedBox(height: AppSpacing.xl),
@@ -301,11 +292,8 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AppBarActionButton.icon(
+        BackButton(
           onPressed: _saving ? null : () => Navigator.of(context).maybePop(),
-          icon: Icons.arrow_back,
-          tooltip: MaterialLocalizations.of(context).backButtonTooltip,
-          margin: EdgeInsets.zero,
         ),
         const SizedBox(width: AppSpacing.xs),
         Expanded(
@@ -511,29 +499,6 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
         if (_matchKind == MatchCompetitionRecord.kindTournament) ...[
           const SizedBox(height: AppSpacing.sm),
           _buildTournamentOutcomeControl(context),
-        ],
-        if (_isCompetitionMatch) ...[
-          const SizedBox(height: AppSpacing.sm),
-          _TouchCounter(
-            label: _matchKind == MatchCompetitionRecord.kindLeague
-                ? l10n.matchLeaguePointsLabel
-                : l10n.matchTournamentWinsLabel,
-            icon: _matchKind == MatchCompetitionRecord.kindLeague
-                ? Icons.emoji_events_outlined
-                : Icons.workspace_premium_outlined,
-            value: _matchKind == MatchCompetitionRecord.kindLeague
-                ? _leaguePoints
-                : _tournamentWins,
-            onChanged: (value) {
-              _updateAndScheduleAutoSave(() {
-                if (_matchKind == MatchCompetitionRecord.kindLeague) {
-                  _leaguePoints = value;
-                } else {
-                  _tournamentWins = value;
-                }
-              });
-            },
-          ),
         ],
       ],
     );
@@ -898,10 +863,17 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
     return Row(
       children: [
         Expanded(
-          child: OutlinedButton.icon(
+          child: TextButton(
             onPressed: _saving ? null : () => Navigator.of(context).maybePop(),
-            icon: const Icon(Icons.arrow_back),
-            label: Text(l10n.matchCompetitionBackButton),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.arrow_back),
+                const SizedBox(width: AppSpacing.xs),
+                Text(l10n.matchCompetitionBackButton),
+              ],
+            ),
           ),
         ),
         const SizedBox(width: AppSpacing.xs),
@@ -996,6 +968,28 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
     }
   }
 
+  int? _calculatedLeaguePoints() {
+    return switch (_matchResultValue()) {
+      _resultWin => 3,
+      _resultDraw => 1,
+      _resultLoss => 0,
+      _ => null,
+    };
+  }
+
+  int? _calculatedTournamentWins() {
+    final scored = _ourScore;
+    final conceded = _opponentScore;
+    if (scored != null && conceded != null) {
+      return scored > conceded ? 1 : 0;
+    }
+    return switch (normalizeMatchTournamentOutcome(_tournamentOutcome)) {
+      'advanced' || 'champion' => 1,
+      'eliminated' => 0,
+      _ => null,
+    };
+  }
+
   Future<void> _saveMatch({bool closeAfterSave = true}) async {
     if (_saving) return;
     final l10n = AppLocalizations.of(context)!;
@@ -1036,6 +1030,8 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
       return;
     }
     final savedOpponent = opponent.isNotEmpty ? opponent : teams.first;
+    final calculatedLeaguePoints = _calculatedLeaguePoints();
+    final calculatedTournamentWins = _calculatedTournamentWins();
     final saved = TrainingEntry(
       date: _matchDay,
       durationMinutes: previousEntry?.durationMinutes ?? 90,
@@ -1070,10 +1066,10 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
           ? 'tournamentWins'
           : 'points',
       leaguePoints: _matchKind == MatchCompetitionRecord.kindLeague
-          ? _leaguePoints
+          ? calculatedLeaguePoints
           : null,
       tournamentWins: _matchKind == MatchCompetitionRecord.kindTournament
-          ? _tournamentWins
+          ? calculatedTournamentWins
           : null,
       matchCompetitionName: _isCompetitionMatch ? competitionName : '',
       matchStage: _matchKind == MatchCompetitionRecord.kindTournament
