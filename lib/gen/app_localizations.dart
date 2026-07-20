@@ -15058,6 +15058,18 @@ abstract class AppLocalizations {
   /// **'Score contact confidence'**
   String get runningCoachSamplePhaseContactScore;
 
+  /// No description provided for @runningCoachSamplePhaseDenseContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Validate contact frame'**
+  String get runningCoachSamplePhaseDenseContact;
+
+  /// No description provided for @runningCoachSampleContactFrameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact {time}'**
+  String runningCoachSampleContactFrameLabel(Object time);
+
   /// No description provided for @runningCoachSampleDecisionTitle.
   ///
   /// In en, this message translates to:
@@ -15352,6 +15364,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The app tracks the head and hip height band through the stride and scores the vertical change ratio.'**
   String get runningCoachSampleBounceDetailHowRead;
+
+  /// No description provided for @runningCoachDenseContactEvidenceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dense contact evidence'**
+  String get runningCoachDenseContactEvidenceTitle;
+
+  /// No description provided for @runningCoachDenseContactEvidenceBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Foot strike and stance-knee values come only from re-read MediaPipe frames around validated contact.'**
+  String get runningCoachDenseContactEvidenceBody;
+
+  /// No description provided for @runningCoachDenseContactCoarseSamplesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Coarse'**
+  String get runningCoachDenseContactCoarseSamplesLabel;
+
+  /// No description provided for @runningCoachDenseContactDenseSamplesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Dense'**
+  String get runningCoachDenseContactDenseSamplesLabel;
+
+  /// No description provided for @runningCoachDenseContactWindowsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Windows'**
+  String get runningCoachDenseContactWindowsLabel;
+
+  /// No description provided for @runningCoachDenseContactFramesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact frames'**
+  String get runningCoachDenseContactFramesLabel;
+
+  /// No description provided for @runningCoachDenseContactConfidenceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Evidence'**
+  String get runningCoachDenseContactConfidenceLabel;
+
+  /// No description provided for @runningCoachDenseContactTimesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Timestamps'**
+  String get runningCoachDenseContactTimesLabel;
+
+  /// No description provided for @runningCoachDenseContactUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No validated contact'**
+  String get runningCoachDenseContactUnavailable;
 
   /// No description provided for @runningCoachLiveCardTitle.
   ///
@@ -16436,6 +16502,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The runner could not be tracked well enough. Try a clearer side-view clip with elbows, knees, and feet visible.'**
   String get runningCoachNoPoseDetected;
+
+  /// No description provided for @runningCoachInsufficientContactEvidence.
+  ///
+  /// In en, this message translates to:
+  /// **'The clip did not include enough verified foot-contact frames. Try a clearer side view with both feet visible through landing.'**
+  String get runningCoachInsufficientContactEvidence;
 
   /// No description provided for @runningCoachAnalysisFailedGeneric.
   ///

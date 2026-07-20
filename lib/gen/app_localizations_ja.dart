@@ -8377,6 +8377,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachSamplePhaseContactScore => '接地信頼度を採点';
 
   @override
+  String get runningCoachSamplePhaseDenseContact => '接地フレームを検証';
+
+  @override
+  String runningCoachSampleContactFrameLabel(Object time) {
+    return '接地 $time';
+  }
+
+  @override
   String get runningCoachSampleDecisionTitle => '判定根拠';
 
   @override
@@ -8546,6 +8554,34 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get runningCoachSampleBounceDetailHowRead =>
       'アプリはストライド中の頭と腰の高さ帯を追跡し、垂直変化の比率を採点します。';
+
+  @override
+  String get runningCoachDenseContactEvidenceTitle => '高密度の接地根拠';
+
+  @override
+  String get runningCoachDenseContactEvidenceBody =>
+      '足の接地距離と接地膝の値は、検証済み接地の周辺で再読み取りしたMediaPipeフレームだけを使います。';
+
+  @override
+  String get runningCoachDenseContactCoarseSamplesLabel => '粗い読取';
+
+  @override
+  String get runningCoachDenseContactDenseSamplesLabel => '高密度';
+
+  @override
+  String get runningCoachDenseContactWindowsLabel => '区間';
+
+  @override
+  String get runningCoachDenseContactFramesLabel => '接地フレーム';
+
+  @override
+  String get runningCoachDenseContactConfidenceLabel => '根拠';
+
+  @override
+  String get runningCoachDenseContactTimesLabel => '時刻';
+
+  @override
+  String get runningCoachDenseContactUnavailable => '検証済み接地なし';
 
   @override
   String get runningCoachLiveCardTitle => 'ライブコーチ';
@@ -9198,6 +9234,10 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get runningCoachNoPoseDetected =>
       'ランナーを十分に追跡できませんでした。肘、膝、足が見える、より鮮明なサイドビュー クリップを試してください。';
+
+  @override
+  String get runningCoachInsufficientContactEvidence =>
+      '検証済みの足接地フレームが足りません。着地まで両足が見える、より鮮明な横向き動画でもう一度試してください。';
 
   @override
   String get runningCoachAnalysisFailedGeneric =>

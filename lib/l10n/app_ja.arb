@@ -4868,6 +4868,13 @@
   "runningCoachSamplePhaseSkeleton": "姿勢線を接続",
   "runningCoachSamplePhaseAngles": "角度を測定",
   "runningCoachSamplePhaseContactScore": "接地信頼度を採点",
+  "runningCoachSamplePhaseDenseContact": "接地フレームを検証",
+  "runningCoachSampleContactFrameLabel": "接地 {time}",
+  "@runningCoachSampleContactFrameLabel": {
+    "placeholders": {
+      "time": {}
+    }
+  },
   "runningCoachSampleDecisionTitle": "判定根拠",
   "runningCoachSampleMetricPosture": "前傾",
   "runningCoachSampleMetricArms": "腕",
@@ -4924,6 +4931,15 @@
   "runningCoachSampleBounceDetailReference": "良いサンプルは上下動が小さく、エネルギーが前方に向きます。",
   "runningCoachSampleBounceDetailReview": "確認サンプルは上下の動きが大きく、接地タイミングが不安定になります。",
   "runningCoachSampleBounceDetailHowRead": "アプリはストライド中の頭と腰の高さ帯を追跡し、垂直変化の比率を採点します。",
+  "runningCoachDenseContactEvidenceTitle": "高密度の接地根拠",
+  "runningCoachDenseContactEvidenceBody": "足の接地距離と接地膝の値は、検証済み接地の周辺で再読み取りしたMediaPipeフレームだけを使います。",
+  "runningCoachDenseContactCoarseSamplesLabel": "粗い読取",
+  "runningCoachDenseContactDenseSamplesLabel": "高密度",
+  "runningCoachDenseContactWindowsLabel": "区間",
+  "runningCoachDenseContactFramesLabel": "接地フレーム",
+  "runningCoachDenseContactConfidenceLabel": "根拠",
+  "runningCoachDenseContactTimesLabel": "時刻",
+  "runningCoachDenseContactUnavailable": "検証済み接地なし",
   "runningCoachLiveCardTitle": "ライブコーチ",
   "runningCoachLiveCardBody": "解剖学的な関節とスケルトン線をライブで追跡し、体幹の傾き、膝のドライブ、ステップのリズム、腕のバランスに関するスプリント固有のフィードバックに直接切り替えます。",
   "runningCoachLiveAction": "ライブコーチを開始する",
@@ -5431,6 +5447,7 @@
   "runningCoachVideoFileMissing": "選択したビデオ ファイルが見つかりませんでした。",
   "runningCoachVideoTooShort": "ビデオが短すぎます。少なくともいくつかのランニングステップを記録します。",
   "runningCoachNoPoseDetected": "ランナーを十分に追跡できませんでした。肘、膝、足が見える、より鮮明なサイドビュー クリップを試してください。",
+  "runningCoachInsufficientContactEvidence": "検証済みの足接地フレームが足りません。着地まで両足が見える、より鮮明な横向き動画でもう一度試してください。",
   "runningCoachAnalysisFailedGeneric": "分析の実行に失敗しました。より鮮明な側面図を持つ別のクリップを試してください。",
   "runningCoachResultsTitle": "コーチング実績",
   "runningCoachAnalysisHistoryTitle": "動画分析履歴",
