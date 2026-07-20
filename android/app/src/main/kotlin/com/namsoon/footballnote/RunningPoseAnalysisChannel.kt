@@ -591,7 +591,6 @@ class RunningPoseAnalysisChannel(
             kneeAngleDegrees = sample.contactKneeAngleDegrees(side),
             confidence = confidence,
         )
-    }
 
     private fun sampleSummaryPayload(
         attemptedFrames: Int,
