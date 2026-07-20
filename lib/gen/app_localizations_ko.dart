@@ -8393,6 +8393,11 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String runningCoachContactTimestampSeconds(String seconds) {
+    return '$seconds초';
+  }
+
+  @override
   String get runningCoachSampleDecisionTitle => '판정 근거';
 
   @override

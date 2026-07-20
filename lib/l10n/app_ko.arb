@@ -4875,6 +4875,14 @@
       "time": {}
     }
   },
+  "runningCoachContactTimestampSeconds": "{seconds}초",
+  "@runningCoachContactTimestampSeconds": {
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
   "runningCoachSampleDecisionTitle": "판정 근거",
   "runningCoachSampleMetricPosture": "전경사",
   "runningCoachSampleMetricArms": "팔",

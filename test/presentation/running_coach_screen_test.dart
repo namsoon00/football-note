@@ -564,14 +564,24 @@ void main() {
           denseSampleCount: 9,
           validatedContactTimestamps: <Duration>[
             Duration(milliseconds: 1033),
-            Duration(milliseconds: 1066),
           ],
           confidence: 0.88,
+        ),
+        RunningContactWindow(
+          start: Duration(milliseconds: 1400),
+          center: Duration(milliseconds: 1560),
+          end: Duration(milliseconds: 1740),
+          side: RunningContactSide.left,
+          denseSampleCount: 9,
+          validatedContactTimestamps: <Duration>[
+            Duration(milliseconds: 1560),
+          ],
+          confidence: 0.86,
         ),
       ],
       validatedContactFrameTimestamps: <Duration>[
         Duration(milliseconds: 1033),
-        Duration(milliseconds: 1066),
+        Duration(milliseconds: 1560),
       ],
       contactConfidence: 0.88,
     );
@@ -666,6 +676,114 @@ void main() {
       await tester.pump(const Duration(milliseconds: 250));
       expect(tester.takeException(), isNull);
     }
+  });
+
+  testWidgets('analysis result localizes dense contact timestamp units', (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1400));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    const result = RunningVideoAnalysisResult(
+      videoDuration: Duration(seconds: 4),
+      sampledFrames: 14,
+      validFrames: 12,
+      direction: RunningDirection.leftToRight,
+      forwardLeanDegrees: 10,
+      verticalBounceRatio: 0.07,
+      footStrikeDistanceRatio: 0.12,
+      stanceKneeAngleDegrees: 150,
+      elbowAngleDegrees: 96,
+      metricQualities: <RunningCoachMetric, RunningMetricQuality>{
+        RunningCoachMetric.footStrike: RunningMetricQuality(
+          confidence: 0.84,
+          sampleCount: 2,
+        ),
+        RunningCoachMetric.kneeFlexion: RunningMetricQuality(
+          confidence: 0.84,
+          sampleCount: 2,
+        ),
+      },
+      coarseSamples: RunningAnalysisSampleSummary(
+        attemptedFrames: 14,
+        validFrames: 12,
+        poseFrameCount: 6,
+      ),
+      denseSamples: RunningAnalysisSampleSummary(
+        attemptedFrames: 8,
+        validFrames: 6,
+        poseFrameCount: 6,
+        maxFrameBudget: 48,
+        targetFps: 30,
+      ),
+      contactWindows: <RunningContactWindow>[
+        RunningContactWindow(
+          start: Duration.zero,
+          center: Duration.zero,
+          end: Duration(milliseconds: 180),
+          side: RunningContactSide.right,
+          denseSampleCount: 4,
+          validatedContactTimestamps: <Duration>[Duration.zero],
+          confidence: 0.82,
+        ),
+        RunningContactWindow(
+          start: Duration(milliseconds: 320),
+          center: Duration(milliseconds: 500),
+          end: Duration(milliseconds: 680),
+          side: RunningContactSide.left,
+          denseSampleCount: 4,
+          validatedContactTimestamps: <Duration>[Duration(milliseconds: 500)],
+          confidence: 0.86,
+        ),
+      ],
+      validatedContactFrameTimestamps: <Duration>[
+        Duration.zero,
+        Duration(milliseconds: 500),
+      ],
+      contactConfidence: 0.84,
+    );
+    final report = const RunningCoachingService().buildReport(result);
+    final primary = report.primaryFocus!;
+    final session = RunningCoachSessionAnalysis(
+      id: 'localized-contact-times',
+      analyzedAt: DateTime(2026, 7, 14, 9),
+      source: RunningCoachSessionSource.uploadVideo,
+      overallScore: report.overallScore,
+      duration: result.videoDuration,
+      sampledFrames: result.sampledFrames,
+      validFrames: result.validFrames,
+      primaryMetric: primary.metric,
+      primaryFinding: primary.finding,
+      primaryStatus: primary.status,
+      primaryScore: primary.score,
+      primaryValue: primary.value,
+      primaryConfidence: primary.quality.confidence,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: runningAnalysisResultScreenForTesting(
+          result: result,
+          report: report,
+          session: session,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await tester.scrollUntilVisible(
+      find.text('0.00초, 0.50초'),
+      -400,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('0.00초, 0.50초'), findsOneWidget);
   });
 }
 

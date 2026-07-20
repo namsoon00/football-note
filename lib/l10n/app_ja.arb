@@ -4875,6 +4875,14 @@
       "time": {}
     }
   },
+  "runningCoachContactTimestampSeconds": "{seconds}秒",
+  "@runningCoachContactTimestampSeconds": {
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
   "runningCoachSampleDecisionTitle": "判定根拠",
   "runningCoachSampleMetricPosture": "前傾",
   "runningCoachSampleMetricArms": "腕",

@@ -71,6 +71,11 @@ for required in (
     "deriveContactCandidateWindows",
     "denseTimestampsForContactWindows",
     "validateDenseContactFrames",
+    "selectDenseContactFrame",
+    "hasGroundBandPersistence",
+    "enteredGroundBand",
+    "windowCenterTimestampMs",
+    "uniqueContactFrameCount",
     "mergePoseFrames",
     "maxDenseFrameBudget",
     "minimumValidatedContactFrames",
@@ -100,6 +105,11 @@ for required in (
     "deriveContactCandidateWindows",
     "denseTimestampsForContactWindows",
     "validateDenseContactFrames",
+    "selectDenseContactFrame",
+    "hasGroundBandPersistence",
+    "enteredGroundBand",
+    "windowCenterTimestampMs",
+    "uniqueContactFrameCount",
     "mergePoseFrames",
     "maxDenseFrameBudget",
     "minimumValidatedContactFrames",
@@ -183,6 +193,30 @@ require(
     re.search(r"private static let denseFrameIntervalMs\s*=\s*33\b", ios_text)
     is not None,
     "iOS dense pass must target approximately 30 fps",
+)
+require(
+    re.search(
+        r"uniqueContactFrameCount\s*=\s*contactFrames\s*\.map\s*\{\s*it\.timestampMs\s*\}\s*\.distinct\(\)\s*\.size",
+        channel_text,
+        re.DOTALL,
+    )
+    is not None,
+    "Android dense contact evidence must require at least two unique selected events",
+)
+require(
+    "Set(contactFrames.map(\\.timestampMs)).count" in ios_text,
+    "iOS dense contact evidence must require at least two unique selected events",
+)
+require(
+    "selectedByTimestamp" in channel_text and "selectedByTimestamp" in ios_text,
+    "Android/iOS dense contact validation must deduplicate selected event timestamps",
+)
+require(
+    "actualSourceTimestampMs(from: actualTime)" in ios_text
+    and "seenSourceTimestamps" in ios_text
+    and "timestampMs: sourceTimestampMs" in ios_text
+    and "max(sourceTimestampMs, lastAnalysisTimestampMs + 1)" in ios_text,
+    "iOS pose samples must use actualTime for source timestamps while keeping MediaPipe timestamps increasing",
 )
 require(
     "loadingSamples" not in channel_text and ".leadFootStrikeRatio(direction)" not in channel_text,

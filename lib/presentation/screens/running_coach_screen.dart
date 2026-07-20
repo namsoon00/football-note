@@ -1791,6 +1791,7 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame> {
                                         ? l10n
                                             .runningCoachSampleContactFrameLabel(
                                             _formatContactTimestamp(
+                                              l10n,
                                               contactTimestamp,
                                             ),
                                           )
@@ -1917,9 +1918,14 @@ String _sampleAnalysisPhaseLabel(
   };
 }
 
-String _formatContactTimestamp(Duration timestamp) {
+String _formatContactTimestamp(
+  AppLocalizations l10n,
+  Duration timestamp,
+) {
   final seconds = timestamp.inMilliseconds / 1000.0;
-  return '${seconds.toStringAsFixed(2)}s';
+  return l10n.runningCoachContactTimestampSeconds(
+    seconds.toStringAsFixed(2),
+  );
 }
 
 class _SampleDecisionMetric {
@@ -5965,7 +5971,10 @@ class _DenseContactEvidencePanel extends StatelessWidget {
     final contactTimes = result.validatedContactFrameTimestamps;
     final contactTimesText = contactTimes.isEmpty
         ? l10n.runningCoachDenseContactUnavailable
-        : contactTimes.take(4).map(_formatContactTimestamp).join(', ');
+        : contactTimes
+            .take(4)
+            .map((timestamp) => _formatContactTimestamp(l10n, timestamp))
+            .join(', ');
     return Container(
       key: const ValueKey('running-coach-dense-contact-evidence'),
       width: double.infinity,
