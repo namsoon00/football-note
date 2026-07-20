@@ -8637,6 +8637,50 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachLiveGuidanceTitle => '現在のガイダンス';
 
   @override
+  String get runningCoachLiveGaitPending => '待機中';
+
+  @override
+  String get runningCoachLiveGaitPhaseFlight => '滞空';
+
+  @override
+  String get runningCoachLiveGaitPhaseLeftContact => '左足接地';
+
+  @override
+  String get runningCoachLiveGaitPhaseRightContact => '右足接地';
+
+  @override
+  String get runningCoachLiveGaitPhaseDoubleContact => '両足接地';
+
+  @override
+  String runningCoachLiveGaitPhaseValue(Object phase) {
+    return '局面 $phase';
+  }
+
+  @override
+  String get runningCoachLiveGaitCadencePending => 'ケイデンス待機中';
+
+  @override
+  String runningCoachLiveGaitCadenceValue(int cadence) {
+    return 'ケイデンス $cadence spm';
+  }
+
+  @override
+  String get runningCoachLiveGaitSideLeft => '左足';
+
+  @override
+  String get runningCoachLiveGaitSideRight => '右足';
+
+  @override
+  String runningCoachLiveGaitContactPending(Object side) {
+    return '$side 接地待機中';
+  }
+
+  @override
+  String runningCoachLiveGaitContactValue(Object side, int milliseconds) {
+    return '$side 接地 $milliseconds ms';
+  }
+
+  @override
   String get runningCoachSprintLiveCardTitle => 'ライブスプリントコーチング';
 
   @override

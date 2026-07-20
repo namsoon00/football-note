@@ -13,6 +13,13 @@ void main() {
     expect(source, contains('runningPoseObservationFromMediaPipeDetection'));
     expect(source, contains('_showLiveCoachError'));
     expect(source, contains('runningCoachLivePoseFailed'));
+    expect(source, contains('Duration(milliseconds: 120)'));
+    expect(source, contains('_isProcessingFrame'));
+    expect(source, contains('_monotonicFrameTimestamp'));
+    expect(source, contains('state.trackedObservation'));
+    expect(source, contains('runningCoachLiveGaitCadenceValue'));
+    expect(source, contains('runningCoachLiveGaitContactValue'));
+    expect(source, isNot(contains('Duration(milliseconds: 350)')));
 
     for (final forbidden in <String>[
       'google_mlkit_pose_detection',

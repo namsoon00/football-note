@@ -8650,6 +8650,50 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachLiveGuidanceTitle => '현재 안내';
 
   @override
+  String get runningCoachLiveGaitPending => '대기 중';
+
+  @override
+  String get runningCoachLiveGaitPhaseFlight => '공중';
+
+  @override
+  String get runningCoachLiveGaitPhaseLeftContact => '왼발 접지';
+
+  @override
+  String get runningCoachLiveGaitPhaseRightContact => '오른발 접지';
+
+  @override
+  String get runningCoachLiveGaitPhaseDoubleContact => '양발 접지';
+
+  @override
+  String runningCoachLiveGaitPhaseValue(Object phase) {
+    return '국면 $phase';
+  }
+
+  @override
+  String get runningCoachLiveGaitCadencePending => '케이던스 대기 중';
+
+  @override
+  String runningCoachLiveGaitCadenceValue(int cadence) {
+    return '케이던스 $cadence spm';
+  }
+
+  @override
+  String get runningCoachLiveGaitSideLeft => '왼발';
+
+  @override
+  String get runningCoachLiveGaitSideRight => '오른발';
+
+  @override
+  String runningCoachLiveGaitContactPending(Object side) {
+    return '$side 접지 대기 중';
+  }
+
+  @override
+  String runningCoachLiveGaitContactValue(Object side, int milliseconds) {
+    return '$side 접지 $milliseconds ms';
+  }
+
+  @override
   String get runningCoachSprintLiveCardTitle => '스프린트 실시간 코칭';
 
   @override

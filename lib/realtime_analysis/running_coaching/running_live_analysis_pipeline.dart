@@ -4,16 +4,27 @@ import 'dart:ui';
 
 import '../../domain/entities/running_live_coaching_state.dart';
 import '../../domain/entities/running_video_analysis_result.dart';
+import 'running_gait_event_detector.dart';
+import 'running_temporal_pose_tracker.dart';
 
 class RunningLiveAnalysisPipeline {
   final RunningLiveAnalysisConfig config;
   final Queue<_TimedFrameSample> _samples = Queue<_TimedFrameSample>();
+  final RunningTemporalPoseTracker _poseTracker;
+  final RunningGaitEventDetector _gaitEventDetector;
 
   RunningLiveAnalysisPipeline({
     this.config = const RunningLiveAnalysisConfig(),
-  });
+    RunningTemporalPoseTracker? poseTracker,
+    RunningGaitEventDetector? gaitEventDetector,
+  })  : _poseTracker = poseTracker ?? RunningTemporalPoseTracker(),
+        _gaitEventDetector = gaitEventDetector ?? RunningGaitEventDetector();
 
-  void reset() => _samples.clear();
+  void reset() {
+    _samples.clear();
+    _poseTracker.reset();
+    _gaitEventDetector.reset();
+  }
 
   RunningLiveAnalysisSnapshot ingestObservation(
     RunningPoseObservation? observation, {
@@ -23,15 +34,19 @@ class RunningLiveAnalysisPipeline {
     _trimSamples(now);
 
     RunningLiveFramingIssue? framingIssue;
-    if (observation == null) {
+    final trackedObservation = _poseTracker.track(
+      observation,
+      timestamp: now,
+    );
+    if (trackedObservation == null) {
       framingIssue = RunningLiveFramingIssue.noRunnerDetected;
     } else {
       final extractor = _RunningFrameExtractor(config.minimumLikelihood);
-      final sample = extractor.extract(observation);
+      final sample = extractor.extract(trackedObservation);
       framingIssue = _RunningFramingPolicy(
         config.minimumLikelihood,
         extractor,
-      ).resolve(observation, sample: sample);
+      ).resolve(trackedObservation, sample: sample);
       if (framingIssue == null && sample != null) {
         _samples.add(_TimedFrameSample(sample: sample, timestamp: now));
         _trimSamples(now);
@@ -40,11 +55,19 @@ class RunningLiveAnalysisPipeline {
       }
     }
 
+    final gaitAnalysis = _gaitEventDetector.ingestObservation(
+      trackedObservation,
+      timestamp: now,
+      cameraSideViewFramingOk: framingIssue == null,
+    );
+
     return RunningLiveAnalysisSnapshot(
       framingIssue: framingIssue,
       analysisResult: _RunningMetricAggregator(
         minimumTrackedFrames: config.minimumTrackedFrames,
       ).build(_samples.toList(growable: false)),
+      trackedObservation: trackedObservation,
+      gaitAnalysis: gaitAnalysis,
       trackedFrames: _samples.length,
     );
   }
@@ -74,11 +97,15 @@ class RunningLiveAnalysisConfig {
 class RunningLiveAnalysisSnapshot {
   final RunningLiveFramingIssue? framingIssue;
   final RunningVideoAnalysisResult? analysisResult;
+  final RunningPoseObservation? trackedObservation;
+  final RunningGaitAnalysis gaitAnalysis;
   final int trackedFrames;
 
   const RunningLiveAnalysisSnapshot({
     required this.framingIssue,
     required this.analysisResult,
+    required this.trackedObservation,
+    required this.gaitAnalysis,
     required this.trackedFrames,
   });
 }
