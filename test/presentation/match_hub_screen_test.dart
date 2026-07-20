@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -17,6 +18,7 @@ import 'package:football_note/presentation/screens/competition_management_screen
 import 'package:football_note/presentation/screens/match_record_screen.dart';
 import 'package:football_note/presentation/screens/team_management_screen.dart';
 import 'package:football_note/presentation/theme/app_theme.dart';
+import 'package:football_note/presentation/utils/pdf_export.dart';
 
 import '../helpers/test_asset_bundle.dart';
 
@@ -30,6 +32,8 @@ void main() {
   late SettingsService settingsService;
 
   setUp(() {
+    debugCaptureWidgetPngOverride = null;
+    debugPngImageShareOverride = null;
     trainingRepository = _MemoryTrainingRepository();
     trainingService = TrainingService(trainingRepository);
     optionRepository = _MemoryOptionRepository();
@@ -38,6 +42,8 @@ void main() {
   });
 
   tearDown(() async {
+    debugCaptureWidgetPngOverride = null;
+    debugPngImageShareOverride = null;
     await trainingRepository.dispose();
   });
 
@@ -220,7 +226,7 @@ void main() {
         find.byKey(const ValueKey('competition-tournament-seed-editor')),
         findsOneWidget,
       );
-      expect(find.text('1라운드 대진 미리보기'), findsOneWidget);
+      expect(find.text('시드 대진 미리보기'), findsOneWidget);
       await tester.enterText(
         find.byKey(const ValueKey('competition-team-input')),
         '테스트 FC',
@@ -293,6 +299,77 @@ void main() {
     expect(find.textContaining('1승 0무 0패'), findsOneWidget);
     expect(
       find.byKey(const ValueKey('competition-detail-edit')),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Tournament detail renders and exports the full bracket', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    await seedMatchHubRecords();
+    await pumpCompetitionManagement(tester, themeMode: ThemeMode.dark);
+
+    await tester.tap(find.text('컵 대회'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(
+        const ValueKey('competition-tournament-bracket-viewport'),
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('4강'), findsOneWidget);
+    expect(find.text('결승'), findsOneWidget);
+    expect(find.text('우승'), findsOneWidget);
+    expect(find.text('우리 팀 U15'), findsWidgets);
+    expect(tester.takeException(), isNull);
+
+    Size? capturedSize;
+    Uint8List? sharedBytes;
+    String? sharedFilename;
+    debugCaptureWidgetPngOverride = ({
+      required context,
+      required child,
+      required size,
+      required pixelRatio,
+    }) async {
+      capturedSize = size;
+      return Uint8List.fromList(<int>[1, 2, 3]);
+    };
+    debugPngImageShareOverride = ({
+      required bytes,
+      required filename,
+    }) async {
+      sharedBytes = bytes;
+      sharedFilename = filename;
+    };
+
+    await tester.tap(
+      find.byKey(const ValueKey('competition-tournament-image-button')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(capturedSize, const Size(2000, 1200));
+    expect(sharedBytes, isNotEmpty);
+    expect(sharedFilename, startsWith('tournament-bracket'));
+    expect(sharedFilename, endsWith('.png'));
+    expect(find.text('대진표 이미지를 준비했어요.'), findsOneWidget);
+
+    await tester.tap(
+      find.byKey(const ValueKey('competition-tournament-expand-button')),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(
+        const ValueKey('competition-tournament-fullscreen-image-button'),
+      ),
       findsOneWidget,
     );
     expect(tester.takeException(), isNull);

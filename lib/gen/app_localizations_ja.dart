@@ -11580,10 +11580,10 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get matchCompetitionTournamentSetupBody =>
-      'チームをドラッグしてシード順を決めます。上から順に1回戦の対戦を構成します。';
+      'チームをドラッグしてシード順を決めます。上位シードを基準に対戦と不戦勝を自動で割り当てます。';
 
   @override
-  String get matchCompetitionTournamentPreviewTitle => '1回戦プレビュー';
+  String get matchCompetitionTournamentPreviewTitle => 'シード対戦プレビュー';
 
   @override
   String matchCompetitionTournamentSeedPair(
@@ -11624,6 +11624,44 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get matchTournamentBracketTitle => 'トーナメント表';
+
+  @override
+  String get matchTournamentImageAction => '画像';
+
+  @override
+  String get matchTournamentImageTooltip => 'トーナメント表を画像で書き出す';
+
+  @override
+  String get matchTournamentImageExportedFeedback => 'トーナメント表の画像を用意しました。';
+
+  @override
+  String get matchTournamentImageExportFailedFeedback =>
+      'トーナメント表の画像を作成できませんでした。';
+
+  @override
+  String get matchTournamentOpenFullScreen => 'トーナメント表を全画面で表示';
+
+  @override
+  String get matchTournamentZoomOut => 'トーナメント表を縮小';
+
+  @override
+  String get matchTournamentZoomReset => 'トーナメント表の倍率をリセット';
+
+  @override
+  String get matchTournamentZoomIn => 'トーナメント表を拡大';
+
+  @override
+  String matchTournamentRoundOf(int number) {
+    return 'ベスト$number';
+  }
+
+  @override
+  String matchTournamentWinnerSource(int number) {
+    return 'M$number 勝者';
+  }
+
+  @override
+  String get matchTournamentChampionSlot => '優勝';
 
   @override
   String get matchCompetitionNoTeams => '登録されたチームがありません。';

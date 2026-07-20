@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:football_note/gen/app_localizations.dart';
@@ -13,6 +14,7 @@ import '../../domain/entities/training_entry.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../theme/app_theme.dart';
 import '../utils/match_entry_format.dart';
+import '../utils/pdf_export.dart';
 import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/app_page_route.dart';
@@ -844,6 +846,9 @@ class _CompetitionDetailScreen extends StatelessWidget {
                               : _TournamentOperationsPreview(
                                   record: effectiveRecord,
                                   entries: entries,
+                                  ownTeamName: managedTeamName.trim().isEmpty
+                                      ? fallbackTeamName
+                                      : managedTeamName.trim(),
                                 );
                           final teamsPanel = _CompetitionTeamsPreview(
                             teams: effectiveRecord.teams,
@@ -1229,115 +1234,1001 @@ class _LeagueStandingPreviewRow extends StatelessWidget {
   }
 }
 
-class _TournamentOperationsPreview extends StatelessWidget {
+class _TournamentOperationsPreview extends StatefulWidget {
   final MatchCompetitionRecord record;
   final List<TrainingEntry> entries;
+  final String ownTeamName;
 
   const _TournamentOperationsPreview({
     required this.record,
     required this.entries,
+    required this.ownTeamName,
   });
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final pairs = MatchCompetitionService.buildTournamentBracketPairs(
-      record.teams,
-    );
-    return _PreviewPanel(
-      icon: Icons.account_tree_outlined,
-      title: l10n.matchTournamentBracketTitle,
-      child: pairs.isEmpty
-          ? _EmptyPreview(text: l10n.matchCompetitionNoTeams)
-          : Column(
-              children: [
-                for (final pair in pairs)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-                    child: _TournamentPairPreviewRow(pair: pair),
-                  ),
-                if (entries.isNotEmpty) ...[
-                  const SizedBox(height: AppSpacing.xs),
-                  Divider(color: Theme.of(context).colorScheme.outlineVariant),
-                  const SizedBox(height: AppSpacing.xs),
-                  Align(
-                    alignment: AlignmentDirectional.centerStart,
-                    child: Text(
-                      l10n.matchTournamentRecordedProgressTitle,
-                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                            fontWeight: FontWeight.w900,
-                          ),
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  for (final entry in entries)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-                      child: _TournamentProgressRow(entry: entry),
-                    ),
-                ],
-              ],
-            ),
-    );
-  }
+  State<_TournamentOperationsPreview> createState() =>
+      _TournamentOperationsPreviewState();
 }
 
-class _TournamentPairPreviewRow extends StatelessWidget {
-  final TournamentBracketPair pair;
+class _TournamentOperationsPreviewState
+    extends State<_TournamentOperationsPreview> {
+  bool _imageShareInProgress = false;
 
-  const _TournamentPairPreviewRow({required this.pair});
+  Future<void> _shareBracketImage() async {
+    if (_imageShareInProgress) return;
+    setState(() => _imageShareInProgress = true);
+    try {
+      await _shareTournamentBracketImage(
+        context: context,
+        record: widget.record,
+        ownTeamName: widget.ownTeamName,
+      );
+      if (!mounted) return;
+      AppFeedback.showSuccess(
+        context,
+        text: AppLocalizations.of(
+          context,
+        )!
+            .matchTournamentImageExportedFeedback,
+      );
+    } catch (error, stackTrace) {
+      debugPrint('Tournament bracket image export failed: $error\n$stackTrace');
+      if (!mounted) return;
+      AppFeedback.showMessage(
+        context,
+        text: AppLocalizations.of(
+          context,
+        )!
+            .matchTournamentImageExportFailedFeedback,
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _imageShareInProgress = false);
+      } else {
+        _imageShareInProgress = false;
+      }
+    }
+  }
+
+  void _openFullScreen(TournamentBracket bracket) {
+    Navigator.of(context).push<void>(
+      AppPageRoute(
+        builder: (_) => _TournamentBracketFullScreen(
+          record: widget.record,
+          bracket: bracket,
+          ownTeamName: widget.ownTeamName,
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final teamB = pair.hasBye ? l10n.matchTournamentByeLabel : pair.teamB;
-    return Row(
-      children: [
-        SizedBox(
-          width: 52,
-          child: Text(
-            l10n.matchTournamentPairLabel(pair.slotNumber),
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w800,
-            ),
+    final scheme = theme.colorScheme;
+    final accent = _competitionAccent(
+      context,
+      MatchCompetitionRecord.kindTournament,
+    );
+    final bracket = MatchCompetitionService.buildTournamentBracket(
+      widget.record.teams,
+    );
+    return Container(
+      decoration: BoxDecoration(
+        color: AppSurfaces.subtleColor(scheme, theme.brightness),
+        borderRadius: AppRadius.small,
+        border: Border.all(
+          color: accent.withValues(
+            alpha: theme.brightness == Brightness.dark ? 0.34 : 0.18,
           ),
         ),
-        Expanded(
-          child: Text(
-            pair.teamA,
+      ),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.account_tree_outlined, color: accent, size: 20),
+              const SizedBox(width: AppSpacing.xs),
+              Expanded(
+                child: Text(
+                  l10n.matchTournamentBracketTitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              AppBarActionButton.label(
+                key: const ValueKey('competition-tournament-image-button'),
+                icon: const Icon(Icons.ios_share_rounded),
+                label: l10n.matchTournamentImageAction,
+                tooltip: l10n.matchTournamentImageTooltip,
+                onPressed: bracket.rounds.isEmpty || _imageShareInProgress
+                    ? null
+                    : () => unawaited(_shareBracketImage()),
+                maxLabelWidth: 54,
+              ),
+              AppBarActionButton.icon(
+                key: const ValueKey('competition-tournament-expand-button'),
+                icon: Icons.open_in_full_rounded,
+                tooltip: l10n.matchTournamentOpenFullScreen,
+                onPressed: bracket.rounds.isEmpty
+                    ? null
+                    : () => _openFullScreen(bracket),
+                margin: EdgeInsets.zero,
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          if (bracket.rounds.isEmpty)
+            _EmptyPreview(text: l10n.matchCompetitionNoTeams)
+          else
+            _TournamentBracketViewport(
+              bracket: bracket,
+              ownTeamName: widget.ownTeamName,
+            ),
+          if (widget.entries.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.md),
+            Divider(color: scheme.outlineVariant),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              l10n.matchTournamentRecordedProgressTitle,
+              style: theme.textTheme.labelMedium?.copyWith(
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            for (final entry in widget.entries)
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                child: _TournamentProgressRow(entry: entry),
+              ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+Future<void> _shareTournamentBracketImage({
+  required BuildContext context,
+  required MatchCompetitionRecord record,
+  required String ownTeamName,
+}) async {
+  final bracket = MatchCompetitionService.buildTournamentBracket(record.teams);
+  if (bracket.rounds.isEmpty) return;
+  final bytes = await captureWidgetPng(
+    context,
+    size: const Size(2000, 1200),
+    pixelRatio: 1.5,
+    child: _TournamentBracketShareImage(
+      record: record,
+      bracket: bracket,
+      ownTeamName: ownTeamName,
+    ),
+  );
+  await sharePngImage(
+    pngImage: bytes,
+    filename: timestampedImageFilename('tournament-bracket-${record.name}'),
+    title: record.name,
+  );
+}
+
+class _TournamentBracketFullScreen extends StatefulWidget {
+  final MatchCompetitionRecord record;
+  final TournamentBracket bracket;
+  final String ownTeamName;
+
+  const _TournamentBracketFullScreen({
+    required this.record,
+    required this.bracket,
+    required this.ownTeamName,
+  });
+
+  @override
+  State<_TournamentBracketFullScreen> createState() =>
+      _TournamentBracketFullScreenState();
+}
+
+class _TournamentBracketFullScreenState
+    extends State<_TournamentBracketFullScreen> {
+  bool _imageShareInProgress = false;
+
+  Future<void> _shareBracketImage() async {
+    if (_imageShareInProgress) return;
+    setState(() => _imageShareInProgress = true);
+    try {
+      await _shareTournamentBracketImage(
+        context: context,
+        record: widget.record,
+        ownTeamName: widget.ownTeamName,
+      );
+      if (!mounted) return;
+      AppFeedback.showSuccess(
+        context,
+        text: AppLocalizations.of(
+          context,
+        )!
+            .matchTournamentImageExportedFeedback,
+      );
+    } catch (error, stackTrace) {
+      debugPrint('Tournament bracket image export failed: $error\n$stackTrace');
+      if (!mounted) return;
+      AppFeedback.showMessage(
+        context,
+        text: AppLocalizations.of(
+          context,
+        )!
+            .matchTournamentImageExportFailedFeedback,
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _imageShareInProgress = false);
+      } else {
+        _imageShareInProgress = false;
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.record.name),
+        actions: [
+          AppBarActionButton.label(
+            key: const ValueKey(
+              'competition-tournament-fullscreen-image-button',
+            ),
+            icon: const Icon(Icons.ios_share_rounded),
+            label: l10n.matchTournamentImageAction,
+            tooltip: l10n.matchTournamentImageTooltip,
+            onPressed: _imageShareInProgress
+                ? null
+                : () => unawaited(_shareBracketImage()),
+            maxLabelWidth: 54,
+          ),
+        ],
+      ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.sm),
+          child: _TournamentBracketViewport(
+            bracket: widget.bracket,
+            ownTeamName: widget.ownTeamName,
+            fullScreen: true,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TournamentBracketViewport extends StatefulWidget {
+  final TournamentBracket bracket;
+  final String ownTeamName;
+  final bool fullScreen;
+
+  const _TournamentBracketViewport({
+    required this.bracket,
+    required this.ownTeamName,
+    this.fullScreen = false,
+  });
+
+  @override
+  State<_TournamentBracketViewport> createState() =>
+      _TournamentBracketViewportState();
+}
+
+class _TournamentBracketViewportState
+    extends State<_TournamentBracketViewport> {
+  static const double _minScale = 0.24;
+  static const double _maxScale = 2.4;
+  static const double _zoomStep = 1.22;
+
+  final TransformationController _controller = TransformationController();
+  Matrix4? _initialMatrix;
+  String? _layoutSignature;
+  Size _viewportSize = const Size(360, 420);
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(_handleTransformChanged);
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_handleTransformChanged);
+    _controller.dispose();
+    super.dispose();
+  }
+
+  double get _currentScale => _controller.value
+      .getMaxScaleOnAxis()
+      .clamp(_minScale, _maxScale)
+      .toDouble();
+
+  void _handleTransformChanged() {
+    if (mounted) setState(() {});
+  }
+
+  void _scheduleInitialTransform({
+    required Size canvasSize,
+    required Size viewportSize,
+  }) {
+    final signature = '${canvasSize.width}:${canvasSize.height}:'
+        '${viewportSize.width}:${viewportSize.height}:${widget.fullScreen}';
+    if (_layoutSignature == signature) return;
+    _layoutSignature = signature;
+    final fitScale = math.min(
+      (viewportSize.width - 24) / canvasSize.width,
+      (viewportSize.height - 24) / canvasSize.height,
+    );
+    final readableFloor = widget.fullScreen ? 0.78 : 0.68;
+    final scale =
+        math.max(fitScale, readableFloor).clamp(_minScale, 1.0).toDouble();
+    final offset = Offset(
+      12,
+      math.max(12, (viewportSize.height - canvasSize.height * scale) / 2),
+    );
+    final matrix = _matrixFor(scale: scale, offset: offset);
+    _initialMatrix = Matrix4.copy(matrix);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _layoutSignature != signature) return;
+      _controller.value = Matrix4.copy(matrix);
+    });
+  }
+
+  Matrix4 _matrixFor({required double scale, required Offset offset}) {
+    final matrix = Matrix4.identity();
+    matrix.setEntry(0, 0, scale);
+    matrix.setEntry(1, 1, scale);
+    matrix.setEntry(2, 2, scale);
+    matrix.setEntry(0, 3, offset.dx);
+    matrix.setEntry(1, 3, offset.dy);
+    return matrix;
+  }
+
+  void _zoomBy(double factor) {
+    final currentScale = _currentScale;
+    final nextScale =
+        (currentScale * factor).clamp(_minScale, _maxScale).toDouble();
+    if ((nextScale - currentScale).abs() < 0.001) return;
+    final translation = _controller.value.getTranslation();
+    final focalPoint = Offset(
+      _viewportSize.width / 2,
+      _viewportSize.height / 2,
+    );
+    final worldFocalPoint = Offset(
+      (focalPoint.dx - translation.x) / currentScale,
+      (focalPoint.dy - translation.y) / currentScale,
+    );
+    _controller.value = _matrixFor(
+      scale: nextScale,
+      offset: Offset(
+        focalPoint.dx - worldFocalPoint.dx * nextScale,
+        focalPoint.dy - worldFocalPoint.dy * nextScale,
+      ),
+    );
+  }
+
+  void _resetZoom() {
+    final matrix = _initialMatrix;
+    _controller.value =
+        matrix == null ? Matrix4.identity() : Matrix4.copy(matrix);
+  }
+
+  Widget _zoomButton({
+    required String tooltip,
+    required IconData icon,
+    required VoidCallback? onPressed,
+  }) {
+    return AppBarActionButton.icon(
+      tooltip: tooltip,
+      onPressed: onPressed,
+      icon: icon,
+      margin: EdgeInsets.zero,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final geometry = _TournamentBracketGeometry(widget.bracket);
+    final content = LayoutBuilder(
+      builder: (context, constraints) {
+        final height = widget.fullScreen && constraints.maxHeight.isFinite
+            ? constraints.maxHeight
+            : 430.0;
+        final viewerHeight = math.max(220.0, height - 44);
+        _viewportSize = Size(constraints.maxWidth, viewerHeight);
+        _scheduleInitialTransform(
+          canvasSize: geometry.size,
+          viewportSize: _viewportSize,
+        );
+        return SizedBox(
+          height: height,
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  _zoomButton(
+                    tooltip: l10n.matchTournamentZoomOut,
+                    icon: Icons.zoom_out_rounded,
+                    onPressed: _currentScale > _minScale + 0.01
+                        ? () => _zoomBy(1 / _zoomStep)
+                        : null,
+                  ),
+                  const SizedBox(width: AppSpacing.xxs),
+                  _zoomButton(
+                    tooltip: l10n.matchTournamentZoomReset,
+                    icon: Icons.restart_alt_rounded,
+                    onPressed: _resetZoom,
+                  ),
+                  const SizedBox(width: AppSpacing.xxs),
+                  _zoomButton(
+                    tooltip: l10n.matchTournamentZoomIn,
+                    icon: Icons.zoom_in_rounded,
+                    onPressed: _currentScale < _maxScale - 0.01
+                        ? () => _zoomBy(_zoomStep)
+                        : null,
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: AppRadius.small,
+                  child: ColoredBox(
+                    color: scheme.surfaceContainerHighest.withValues(
+                      alpha: theme.brightness == Brightness.dark ? 0.34 : 0.48,
+                    ),
+                    child: InteractiveViewer(
+                      key: const ValueKey(
+                        'competition-tournament-bracket-viewport',
+                      ),
+                      transformationController: _controller,
+                      minScale: _minScale,
+                      maxScale: _maxScale,
+                      boundaryMargin: const EdgeInsets.all(240),
+                      constrained: false,
+                      child: _TournamentBracketCanvas(
+                        bracket: widget.bracket,
+                        ownTeamName: widget.ownTeamName,
+                        geometry: geometry,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+    return content;
+  }
+}
+
+class _TournamentBracketGeometry {
+  static const double horizontalPadding = 24;
+  static const double headerHeight = 48;
+  static const double cardWidth = 184;
+  static const double cardHeight = 80;
+  static const double horizontalGap = 72;
+  static const double firstRoundPitch = 104;
+  static const double bottomPadding = 28;
+  static const double championWidth = 150;
+
+  final TournamentBracket bracket;
+
+  const _TournamentBracketGeometry(this.bracket);
+
+  double get championX =>
+      roundX(bracket.rounds.length - 1) + cardWidth + horizontalGap;
+
+  Size get size => Size(
+        championX + championWidth + horizontalPadding,
+        headerHeight +
+            bracket.rounds.first.matches.length * firstRoundPitch +
+            bottomPadding,
+      );
+
+  double roundX(int roundIndex) =>
+      horizontalPadding + roundIndex * (cardWidth + horizontalGap);
+
+  double matchCenterY(int roundIndex, int matchIndex) {
+    final scale = math.pow(2, roundIndex).toDouble();
+    return headerHeight + firstRoundPitch * scale * (matchIndex + 0.5);
+  }
+
+  Rect matchRect(int roundIndex, int matchIndex) => Rect.fromCenter(
+        center: Offset(
+          roundX(roundIndex) + cardWidth / 2,
+          matchCenterY(roundIndex, matchIndex),
+        ),
+        width: cardWidth,
+        height: cardHeight,
+      );
+
+  Rect get championRect => Rect.fromCenter(
+        center: Offset(
+          championX + championWidth / 2,
+          matchCenterY(bracket.rounds.length - 1, 0),
+        ),
+        width: championWidth,
+        height: cardHeight,
+      );
+}
+
+class _TournamentBracketCanvas extends StatelessWidget {
+  final TournamentBracket bracket;
+  final String ownTeamName;
+  final _TournamentBracketGeometry geometry;
+
+  const _TournamentBracketCanvas({
+    required this.bracket,
+    required this.ownTeamName,
+    required this.geometry,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final accent = _competitionAccent(
+      context,
+      MatchCompetitionRecord.kindTournament,
+    );
+    return SizedBox.fromSize(
+      key: const ValueKey('competition-tournament-bracket-canvas'),
+      size: geometry.size,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: CustomPaint(
+              painter: _TournamentBracketConnectorPainter(
+                bracket: bracket,
+                geometry: geometry,
+                color: accent.withValues(
+                  alpha: theme.brightness == Brightness.dark ? 0.72 : 0.5,
+                ),
+              ),
+            ),
+          ),
+          for (var roundIndex = 0;
+              roundIndex < bracket.rounds.length;
+              roundIndex += 1)
+            Positioned(
+              left: geometry.roundX(roundIndex),
+              top: 12,
+              width: _TournamentBracketGeometry.cardWidth,
+              child: Text(
+                _tournamentRoundLabel(
+                  l10n,
+                  bracket.rounds[roundIndex].teamCapacity,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: accent,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+          Positioned(
+            left: geometry.championX,
+            top: 12,
+            width: _TournamentBracketGeometry.championWidth,
+            child: Text(
+              l10n.matchTournamentChampionSlot,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: accent,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+          for (var roundIndex = 0;
+              roundIndex < bracket.rounds.length;
+              roundIndex += 1)
+            for (var matchIndex = 0;
+                matchIndex < bracket.rounds[roundIndex].matches.length;
+                matchIndex += 1)
+              Positioned.fromRect(
+                rect: geometry.matchRect(roundIndex, matchIndex),
+                child: _TournamentBracketMatchCard(
+                  match: bracket.rounds[roundIndex].matches[matchIndex],
+                  ownTeamName: ownTeamName,
+                  accent: accent,
+                ),
+              ),
+          Positioned.fromRect(
+            rect: geometry.championRect,
+            child: _TournamentChampionCard(
+              sourceMatch: bracket.rounds.last.matches.single.slotNumber,
+              accent: accent,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TournamentBracketConnectorPainter extends CustomPainter {
+  final TournamentBracket bracket;
+  final _TournamentBracketGeometry geometry;
+  final Color color;
+
+  const _TournamentBracketConnectorPainter({
+    required this.bracket,
+    required this.geometry,
+    required this.color,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 2
+      ..style = PaintingStyle.stroke;
+    for (var roundIndex = 1;
+        roundIndex < bracket.rounds.length;
+        roundIndex += 1) {
+      final targets = bracket.rounds[roundIndex].matches;
+      for (var targetIndex = 0;
+          targetIndex < targets.length;
+          targetIndex += 1) {
+        final targetRect = geometry.matchRect(roundIndex, targetIndex);
+        final firstSource = geometry.matchRect(
+          roundIndex - 1,
+          targetIndex * 2,
+        );
+        final secondSource = geometry.matchRect(
+          roundIndex - 1,
+          targetIndex * 2 + 1,
+        );
+        final elbowX = (firstSource.right + targetRect.left) / 2;
+        final path = Path()
+          ..moveTo(firstSource.right, firstSource.center.dy)
+          ..lineTo(elbowX, firstSource.center.dy)
+          ..lineTo(elbowX, secondSource.center.dy)
+          ..lineTo(secondSource.right, secondSource.center.dy)
+          ..moveTo(elbowX, targetRect.center.dy)
+          ..lineTo(targetRect.left, targetRect.center.dy);
+        canvas.drawPath(path, paint);
+      }
+    }
+    final finalRect = geometry.matchRect(bracket.rounds.length - 1, 0);
+    canvas.drawLine(
+      Offset(finalRect.right, finalRect.center.dy),
+      Offset(geometry.championRect.left, geometry.championRect.center.dy),
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_TournamentBracketConnectorPainter oldDelegate) =>
+      oldDelegate.bracket != bracket || oldDelegate.color != color;
+}
+
+class _TournamentBracketMatchCard extends StatelessWidget {
+  final TournamentBracketPair match;
+  final String ownTeamName;
+  final Color accent;
+
+  const _TournamentBracketMatchCard({
+    required this.match,
+    required this.ownTeamName,
+    required this.accent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        borderRadius: AppRadius.small,
+        border: Border.all(color: scheme.outlineVariant),
+        boxShadow: [
+          BoxShadow(
+            color: scheme.shadow.withValues(
+              alpha: theme.brightness == Brightness.dark ? 0.2 : 0.08,
+            ),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            height: 22,
+            alignment: AlignmentDirectional.centerStart,
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+            decoration: BoxDecoration(
+              color: accent.withValues(alpha: 0.1),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(7),
+              ),
+            ),
+            child: Text(
+              l10n.matchTournamentPairLabel(match.slotNumber),
+              maxLines: 1,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: accent,
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+          Expanded(
+            child: _TournamentBracketTeamLine(
+              team: match.teamA,
+              seed: match.seedA,
+              sourceMatch: match.sourceMatchA,
+              ownTeamName: ownTeamName,
+              accent: accent,
+            ),
+          ),
+          Divider(height: 1, thickness: 1, color: scheme.outlineVariant),
+          Expanded(
+            child: _TournamentBracketTeamLine(
+              team: match.teamB,
+              seed: match.seedB,
+              sourceMatch: match.sourceMatchB,
+              ownTeamName: ownTeamName,
+              accent: accent,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TournamentBracketTeamLine extends StatelessWidget {
+  final String team;
+  final int? seed;
+  final int? sourceMatch;
+  final String ownTeamName;
+  final Color accent;
+
+  const _TournamentBracketTeamLine({
+    required this.team,
+    required this.seed,
+    required this.sourceMatch,
+    required this.ownTeamName,
+    required this.accent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final normalizedTeam = team.trim();
+    final isSource = sourceMatch != null && normalizedTeam.isEmpty;
+    final isBye = sourceMatch == null && normalizedTeam.isEmpty;
+    final isOwnTeam = normalizedTeam.isNotEmpty &&
+        normalizedTeam.toLowerCase() == ownTeamName.trim().toLowerCase();
+    final label = normalizedTeam.isNotEmpty
+        ? normalizedTeam
+        : isSource
+            ? l10n.matchTournamentWinnerSource(sourceMatch!)
+            : l10n.matchTournamentByeLabel;
+    return ColoredBox(
+      color: isOwnTeam ? accent.withValues(alpha: 0.1) : Colors.transparent,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+        child: Row(
+          children: [
+            if (seed != null) ...[
+              SizedBox(
+                width: 22,
+                child: Text(
+                  '$seed',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: accent,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+            ] else ...[
+              Icon(
+                isBye ? Icons.redo_rounded : Icons.call_merge_rounded,
+                size: 14,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 8),
+            ],
+            Expanded(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: isSource || isBye
+                      ? theme.colorScheme.onSurfaceVariant
+                      : null,
+                  fontWeight: isOwnTeam ? FontWeight.w900 : FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TournamentChampionCard extends StatelessWidget {
+  final int sourceMatch;
+  final Color accent;
+
+  const _TournamentChampionCard({
+    required this.sourceMatch,
+    required this.accent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.sm),
+      decoration: BoxDecoration(
+        color: accent.withValues(alpha: 0.14),
+        borderRadius: AppRadius.small,
+        border: Border.all(color: accent.withValues(alpha: 0.56)),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.emoji_events_rounded, color: accent, size: 24),
+          const SizedBox(height: AppSpacing.xxs),
+          Text(
+            l10n.matchTournamentWinnerSource(sourceMatch),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.labelLarge?.copyWith(
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-          child: Text(
-            l10n.matchTournamentVersusLabel,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+            style: theme.textTheme.labelMedium?.copyWith(
               fontWeight: FontWeight.w900,
             ),
           ),
-        ),
-        Expanded(
-          child: Text(
-            teamB,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.end,
-            style: theme.textTheme.labelLarge?.copyWith(
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
+}
+
+class _TournamentBracketShareImage extends StatelessWidget {
+  final MatchCompetitionRecord record;
+  final TournamentBracket bracket;
+  final String ownTeamName;
+
+  const _TournamentBracketShareImage({
+    required this.record,
+    required this.bracket,
+    required this.ownTeamName,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final accent = _competitionAccent(
+      context,
+      MatchCompetitionRecord.kindTournament,
+    );
+    final geometry = _TournamentBracketGeometry(bracket);
+    return ColoredBox(
+      color: theme.colorScheme.surface,
+      child: Padding(
+        padding: const EdgeInsets.all(48),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 52,
+                  height: 52,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: accent.withValues(alpha: 0.14),
+                    borderRadius: AppRadius.small,
+                  ),
+                  child: Icon(
+                    Icons.account_tree_rounded,
+                    color: accent,
+                    size: 30,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        record.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      Text(
+                        l10n.matchTournamentBracketTitle,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: accent,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Text(
+                  l10n.matchCompetitionTeamCount(record.teams.length),
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 28),
+            Expanded(
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerHighest.withValues(
+                    alpha: theme.brightness == Brightness.dark ? 0.34 : 0.48,
+                  ),
+                  borderRadius: AppRadius.small,
+                  border: Border.all(color: theme.colorScheme.outlineVariant),
+                ),
+                child: FittedBox(
+                  fit: BoxFit.contain,
+                  alignment: Alignment.center,
+                  child: _TournamentBracketCanvas(
+                    bracket: bracket,
+                    ownTeamName: ownTeamName,
+                    geometry: geometry,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+String _tournamentRoundLabel(AppLocalizations l10n, int teamCapacity) {
+  return switch (teamCapacity) {
+    2 => l10n.matchTournamentStageFinal,
+    4 => l10n.matchTournamentStageSemifinal,
+    8 => l10n.matchTournamentStageQuarterfinal,
+    16 => l10n.matchTournamentStageRound16,
+    _ => l10n.matchTournamentRoundOf(teamCapacity),
+  };
 }
 
 class _TournamentProgressRow extends StatelessWidget {
