@@ -20497,13 +20497,13 @@ abstract class AppLocalizations {
   /// No description provided for @matchCompetitionTournamentSetupBody.
   ///
   /// In en, this message translates to:
-  /// **'Drag teams into seed order. The first-round bracket is built from top to bottom.'**
+  /// **'Drag teams into seed order. Matchups and byes are assigned automatically from the highest seeds.'**
   String get matchCompetitionTournamentSetupBody;
 
   /// No description provided for @matchCompetitionTournamentPreviewTitle.
   ///
   /// In en, this message translates to:
-  /// **'First-round preview'**
+  /// **'Seeded bracket preview'**
   String get matchCompetitionTournamentPreviewTitle;
 
   /// No description provided for @matchCompetitionTournamentSeedPair.
@@ -20572,6 +20572,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tournament bracket'**
   String get matchTournamentBracketTitle;
+
+  /// No description provided for @matchTournamentImageAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Image'**
+  String get matchTournamentImageAction;
+
+  /// No description provided for @matchTournamentImageTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Export bracket image'**
+  String get matchTournamentImageTooltip;
+
+  /// No description provided for @matchTournamentImageExportedFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'The bracket image is ready.'**
+  String get matchTournamentImageExportedFeedback;
+
+  /// No description provided for @matchTournamentImageExportFailedFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not create the bracket image.'**
+  String get matchTournamentImageExportFailedFeedback;
+
+  /// No description provided for @matchTournamentOpenFullScreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open bracket full screen'**
+  String get matchTournamentOpenFullScreen;
+
+  /// No description provided for @matchTournamentZoomOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom bracket out'**
+  String get matchTournamentZoomOut;
+
+  /// No description provided for @matchTournamentZoomReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset bracket zoom'**
+  String get matchTournamentZoomReset;
+
+  /// No description provided for @matchTournamentZoomIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom bracket in'**
+  String get matchTournamentZoomIn;
+
+  /// No description provided for @matchTournamentRoundOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Round of {number}'**
+  String matchTournamentRoundOf(int number);
+
+  /// No description provided for @matchTournamentWinnerSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Winner M{number}'**
+  String matchTournamentWinnerSource(int number);
+
+  /// No description provided for @matchTournamentChampionSlot.
+  ///
+  /// In en, this message translates to:
+  /// **'Champion'**
+  String get matchTournamentChampionSlot;
 
   /// No description provided for @matchCompetitionNoTeams.
   ///

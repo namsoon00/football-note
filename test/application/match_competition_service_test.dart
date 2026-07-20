@@ -192,16 +192,32 @@ void main() {
     expect(standings[2].points, 0);
   });
 
-  test('토너먼트 대진표는 등록 순서대로 짝을 만들고 홀수 팀은 부전승 처리한다', () {
+  test('토너먼트 대진표는 시드 순서에 따라 상위 시드에 부전승을 배정한다', () {
     final pairs = MatchCompetitionService.buildTournamentBracketPairs(
       const <String>['레드 FC', '블루 FC', '그린 FC'],
     );
 
     expect(pairs, hasLength(2));
     expect(pairs.first.teamA, '레드 FC');
-    expect(pairs.first.teamB, '블루 FC');
-    expect(pairs.last.teamA, '그린 FC');
-    expect(pairs.last.hasBye, isTrue);
+    expect(pairs.first.seedA, 1);
+    expect(pairs.first.hasBye, isTrue);
+    expect(pairs.last.teamA, '블루 FC');
+    expect(pairs.last.teamB, '그린 FC');
+  });
+
+  test('전체 토너먼트 대진표는 모든 라운드와 이전 경기 출처를 만든다', () {
+    final bracket = MatchCompetitionService.buildTournamentBracket(
+      const <String>['A', 'B', 'C', 'D', 'E', 'F'],
+    );
+
+    expect(bracket.slotCount, 8);
+    expect(bracket.rounds.map((round) => round.teamCapacity), [8, 4, 2]);
+    expect(bracket.rounds.map((round) => round.matches.length), [4, 2, 1]);
+    expect(bracket.rounds.first.matches.first.teamA, 'A');
+    expect(bracket.rounds.first.matches.first.hasBye, isTrue);
+    expect(bracket.rounds[1].matches.first.sourceMatchA, 1);
+    expect(bracket.rounds[1].matches.first.sourceMatchB, 2);
+    expect(bracket.rounds.last.matches.single.slotNumber, 7);
   });
 
   test('팀관리의 팀명을 리그 기준 팀으로 사용하고 이전 기본 이름을 합친다', () {

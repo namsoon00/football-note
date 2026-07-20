@@ -6487,8 +6487,8 @@
   "matchCompetitionLeagueSetupTitle": "리그 참가 팀",
   "matchCompetitionLeagueSetupBody": "팀을 등록하면 시합 기록을 기준으로 순위, 승무패, 득실과 승점이 자동 계산됩니다.",
   "matchCompetitionTournamentSetupTitle": "토너먼트 시드",
-  "matchCompetitionTournamentSetupBody": "팀을 드래그해 시드 순서를 정하세요. 위에서부터 1라운드 대진이 구성됩니다.",
-  "matchCompetitionTournamentPreviewTitle": "1라운드 대진 미리보기",
+  "matchCompetitionTournamentSetupBody": "팀을 드래그해 시드 순위를 정하세요. 상위 시드를 기준으로 대진과 부전승이 자동 배정됩니다.",
+  "matchCompetitionTournamentPreviewTitle": "시드 대진 미리보기",
   "matchCompetitionTournamentSeedPair": "{slot}경기 · {teamA} vs {teamB}",
   "@matchCompetitionTournamentSeedPair": {
     "placeholders": {
@@ -6527,6 +6527,31 @@
   "matchCompetitionNameRequired": "대회 이름을 입력하세요.",
   "matchLeagueStandingsTitle": "리그 순위",
   "matchTournamentBracketTitle": "토너먼트 대진표",
+  "matchTournamentImageAction": "이미지",
+  "matchTournamentImageTooltip": "대진표 이미지로 내보내기",
+  "matchTournamentImageExportedFeedback": "대진표 이미지를 준비했어요.",
+  "matchTournamentImageExportFailedFeedback": "대진표 이미지를 만들지 못했어요.",
+  "matchTournamentOpenFullScreen": "대진표 전체 화면으로 보기",
+  "matchTournamentZoomOut": "대진표 축소",
+  "matchTournamentZoomReset": "대진표 크기 초기화",
+  "matchTournamentZoomIn": "대진표 확대",
+  "matchTournamentRoundOf": "{number}강",
+  "@matchTournamentRoundOf": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "matchTournamentWinnerSource": "M{number} 승자",
+  "@matchTournamentWinnerSource": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "matchTournamentChampionSlot": "우승",
   "matchCompetitionNoTeams": "등록된 팀이 없어요.",
   "matchCompetitionNoMatches": "아직 기록된 경기가 없어요.",
   "matchCompetitionMyTeamFallback": "우리 팀",

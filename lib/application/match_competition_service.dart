@@ -187,14 +187,55 @@ class TournamentBracketPair {
   final int slotNumber;
   final String teamA;
   final String teamB;
+  final int? seedA;
+  final int? seedB;
+  final int? sourceMatchA;
+  final int? sourceMatchB;
 
   const TournamentBracketPair({
     required this.slotNumber,
     required this.teamA,
     required this.teamB,
+    this.seedA,
+    this.seedB,
+    this.sourceMatchA,
+    this.sourceMatchB,
   });
 
   bool get hasBye => teamB.trim().isEmpty;
+
+  String get automaticWinner {
+    if (sourceMatchA != null || sourceMatchB != null) return '';
+    final first = teamA.trim();
+    final second = teamB.trim();
+    if (first.isNotEmpty == second.isNotEmpty) return '';
+    return first.isNotEmpty ? first : second;
+  }
+}
+
+class TournamentBracketRound {
+  final int teamCapacity;
+  final List<TournamentBracketPair> matches;
+
+  const TournamentBracketRound({
+    required this.teamCapacity,
+    required this.matches,
+  });
+}
+
+class TournamentBracket {
+  final int slotCount;
+  final List<TournamentBracketRound> rounds;
+
+  const TournamentBracket({
+    required this.slotCount,
+    required this.rounds,
+  });
+
+  static const empty = TournamentBracket(
+    slotCount: 0,
+    rounds: <TournamentBracketRound>[],
+  );
 }
 
 class MatchCompetitionService {
@@ -549,18 +590,86 @@ class MatchCompetitionService {
   static List<TournamentBracketPair> buildTournamentBracketPairs(
     List<String> registeredTeams,
   ) {
+    final bracket = buildTournamentBracket(registeredTeams);
+    return bracket.rounds.isEmpty
+        ? const <TournamentBracketPair>[]
+        : bracket.rounds.first.matches;
+  }
+
+  static TournamentBracket buildTournamentBracket(
+    List<String> registeredTeams,
+  ) {
     final teams = normalizeTeams(registeredTeams);
-    final pairs = <TournamentBracketPair>[];
-    for (var index = 0; index < teams.length; index += 2) {
-      pairs.add(
+    if (teams.isEmpty) return TournamentBracket.empty;
+
+    var slotCount = 2;
+    while (slotCount < teams.length) {
+      slotCount *= 2;
+    }
+
+    final seedOrder = _tournamentSeedOrder(slotCount);
+    final firstRound = <TournamentBracketPair>[];
+    var nextMatchNumber = 1;
+    for (var index = 0; index < seedOrder.length; index += 2) {
+      final seedA = seedOrder[index];
+      final seedB = seedOrder[index + 1];
+      firstRound.add(
         TournamentBracketPair(
-          slotNumber: pairs.length + 1,
-          teamA: teams[index],
-          teamB: index + 1 < teams.length ? teams[index + 1] : '',
+          slotNumber: nextMatchNumber++,
+          teamA: seedA <= teams.length ? teams[seedA - 1] : '',
+          teamB: seedB <= teams.length ? teams[seedB - 1] : '',
+          seedA: seedA <= teams.length ? seedA : null,
+          seedB: seedB <= teams.length ? seedB : null,
         ),
       );
     }
-    return pairs;
+
+    final rounds = <TournamentBracketRound>[
+      TournamentBracketRound(
+        teamCapacity: slotCount,
+        matches: firstRound,
+      ),
+    ];
+    var previousRound = firstRound;
+    var teamCapacity = slotCount ~/ 2;
+    while (previousRound.length > 1) {
+      final nextRound = <TournamentBracketPair>[];
+      for (var index = 0; index < previousRound.length; index += 2) {
+        final sourceA = previousRound[index];
+        final sourceB = previousRound[index + 1];
+        nextRound.add(
+          TournamentBracketPair(
+            slotNumber: nextMatchNumber++,
+            teamA: sourceA.automaticWinner,
+            teamB: sourceB.automaticWinner,
+            sourceMatchA: sourceA.slotNumber,
+            sourceMatchB: sourceB.slotNumber,
+          ),
+        );
+      }
+      rounds.add(
+        TournamentBracketRound(
+          teamCapacity: teamCapacity,
+          matches: nextRound,
+        ),
+      );
+      previousRound = nextRound;
+      teamCapacity ~/= 2;
+    }
+    return TournamentBracket(slotCount: slotCount, rounds: rounds);
+  }
+
+  static List<int> _tournamentSeedOrder(int slotCount) {
+    var seeds = <int>[1, 2];
+    var currentSize = 2;
+    while (currentSize < slotCount) {
+      final nextSize = currentSize * 2;
+      seeds = <int>[
+        for (final seed in seeds) ...[seed, nextSize + 1 - seed],
+      ];
+      currentSize = nextSize;
+    }
+    return seeds;
   }
 
   static bool _supportedKind(String kind) {

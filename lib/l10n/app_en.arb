@@ -6487,8 +6487,8 @@
   "matchCompetitionLeagueSetupTitle": "League teams",
   "matchCompetitionLeagueSetupBody": "Add teams to calculate standings, records, goal difference, and points automatically from match results.",
   "matchCompetitionTournamentSetupTitle": "Tournament seeding",
-  "matchCompetitionTournamentSetupBody": "Drag teams into seed order. The first-round bracket is built from top to bottom.",
-  "matchCompetitionTournamentPreviewTitle": "First-round preview",
+  "matchCompetitionTournamentSetupBody": "Drag teams into seed order. Matchups and byes are assigned automatically from the highest seeds.",
+  "matchCompetitionTournamentPreviewTitle": "Seeded bracket preview",
   "matchCompetitionTournamentSeedPair": "Match {slot} · {teamA} vs {teamB}",
   "@matchCompetitionTournamentSeedPair": {
     "placeholders": {
@@ -6527,6 +6527,31 @@
   "matchCompetitionNameRequired": "Enter a competition name.",
   "matchLeagueStandingsTitle": "League standings",
   "matchTournamentBracketTitle": "Tournament bracket",
+  "matchTournamentImageAction": "Image",
+  "matchTournamentImageTooltip": "Export bracket image",
+  "matchTournamentImageExportedFeedback": "The bracket image is ready.",
+  "matchTournamentImageExportFailedFeedback": "Could not create the bracket image.",
+  "matchTournamentOpenFullScreen": "Open bracket full screen",
+  "matchTournamentZoomOut": "Zoom bracket out",
+  "matchTournamentZoomReset": "Reset bracket zoom",
+  "matchTournamentZoomIn": "Zoom bracket in",
+  "matchTournamentRoundOf": "Round of {number}",
+  "@matchTournamentRoundOf": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "matchTournamentWinnerSource": "Winner M{number}",
+  "@matchTournamentWinnerSource": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "matchTournamentChampionSlot": "Champion",
   "matchCompetitionNoTeams": "No teams are registered.",
   "matchCompetitionNoMatches": "No matches are recorded yet.",
   "matchCompetitionMyTeamFallback": "Our team",

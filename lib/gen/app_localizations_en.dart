@@ -11925,10 +11925,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get matchCompetitionTournamentSetupBody =>
-      'Drag teams into seed order. The first-round bracket is built from top to bottom.';
+      'Drag teams into seed order. Matchups and byes are assigned automatically from the highest seeds.';
 
   @override
-  String get matchCompetitionTournamentPreviewTitle => 'First-round preview';
+  String get matchCompetitionTournamentPreviewTitle => 'Seeded bracket preview';
 
   @override
   String matchCompetitionTournamentSeedPair(
@@ -11970,6 +11970,45 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get matchTournamentBracketTitle => 'Tournament bracket';
+
+  @override
+  String get matchTournamentImageAction => 'Image';
+
+  @override
+  String get matchTournamentImageTooltip => 'Export bracket image';
+
+  @override
+  String get matchTournamentImageExportedFeedback =>
+      'The bracket image is ready.';
+
+  @override
+  String get matchTournamentImageExportFailedFeedback =>
+      'Could not create the bracket image.';
+
+  @override
+  String get matchTournamentOpenFullScreen => 'Open bracket full screen';
+
+  @override
+  String get matchTournamentZoomOut => 'Zoom bracket out';
+
+  @override
+  String get matchTournamentZoomReset => 'Reset bracket zoom';
+
+  @override
+  String get matchTournamentZoomIn => 'Zoom bracket in';
+
+  @override
+  String matchTournamentRoundOf(int number) {
+    return 'Round of $number';
+  }
+
+  @override
+  String matchTournamentWinnerSource(int number) {
+    return 'Winner M$number';
+  }
+
+  @override
+  String get matchTournamentChampionSlot => 'Champion';
 
   @override
   String get matchCompetitionNoTeams => 'No teams are registered.';

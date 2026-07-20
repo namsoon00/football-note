@@ -6487,8 +6487,8 @@
   "matchCompetitionLeagueSetupTitle": "リーグ参加チーム",
   "matchCompetitionLeagueSetupBody": "チームを登録すると、試合結果から順位、勝敗、得失点差、勝ち点を自動計算します。",
   "matchCompetitionTournamentSetupTitle": "トーナメントシード",
-  "matchCompetitionTournamentSetupBody": "チームをドラッグしてシード順を決めます。上から順に1回戦の対戦を構成します。",
-  "matchCompetitionTournamentPreviewTitle": "1回戦プレビュー",
+  "matchCompetitionTournamentSetupBody": "チームをドラッグしてシード順を決めます。上位シードを基準に対戦と不戦勝を自動で割り当てます。",
+  "matchCompetitionTournamentPreviewTitle": "シード対戦プレビュー",
   "matchCompetitionTournamentSeedPair": "第{slot}試合 · {teamA} vs {teamB}",
   "@matchCompetitionTournamentSeedPair": {
     "placeholders": {
@@ -6527,6 +6527,31 @@
   "matchCompetitionNameRequired": "大会名を入力してください。",
   "matchLeagueStandingsTitle": "リーグ順位",
   "matchTournamentBracketTitle": "トーナメント表",
+  "matchTournamentImageAction": "画像",
+  "matchTournamentImageTooltip": "トーナメント表を画像で書き出す",
+  "matchTournamentImageExportedFeedback": "トーナメント表の画像を用意しました。",
+  "matchTournamentImageExportFailedFeedback": "トーナメント表の画像を作成できませんでした。",
+  "matchTournamentOpenFullScreen": "トーナメント表を全画面で表示",
+  "matchTournamentZoomOut": "トーナメント表を縮小",
+  "matchTournamentZoomReset": "トーナメント表の倍率をリセット",
+  "matchTournamentZoomIn": "トーナメント表を拡大",
+  "matchTournamentRoundOf": "ベスト{number}",
+  "@matchTournamentRoundOf": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "matchTournamentWinnerSource": "M{number} 勝者",
+  "@matchTournamentWinnerSource": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "matchTournamentChampionSlot": "優勝",
   "matchCompetitionNoTeams": "登録されたチームがありません。",
   "matchCompetitionNoMatches": "記録された試合がまだありません。",
   "matchCompetitionMyTeamFallback": "自チーム",

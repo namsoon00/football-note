@@ -11601,10 +11601,10 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get matchCompetitionTournamentSetupBody =>
-      '팀을 드래그해 시드 순서를 정하세요. 위에서부터 1라운드 대진이 구성됩니다.';
+      '팀을 드래그해 시드 순위를 정하세요. 상위 시드를 기준으로 대진과 부전승이 자동 배정됩니다.';
 
   @override
-  String get matchCompetitionTournamentPreviewTitle => '1라운드 대진 미리보기';
+  String get matchCompetitionTournamentPreviewTitle => '시드 대진 미리보기';
 
   @override
   String matchCompetitionTournamentSeedPair(
@@ -11645,6 +11645,43 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get matchTournamentBracketTitle => '토너먼트 대진표';
+
+  @override
+  String get matchTournamentImageAction => '이미지';
+
+  @override
+  String get matchTournamentImageTooltip => '대진표 이미지로 내보내기';
+
+  @override
+  String get matchTournamentImageExportedFeedback => '대진표 이미지를 준비했어요.';
+
+  @override
+  String get matchTournamentImageExportFailedFeedback => '대진표 이미지를 만들지 못했어요.';
+
+  @override
+  String get matchTournamentOpenFullScreen => '대진표 전체 화면으로 보기';
+
+  @override
+  String get matchTournamentZoomOut => '대진표 축소';
+
+  @override
+  String get matchTournamentZoomReset => '대진표 크기 초기화';
+
+  @override
+  String get matchTournamentZoomIn => '대진표 확대';
+
+  @override
+  String matchTournamentRoundOf(int number) {
+    return '$number강';
+  }
+
+  @override
+  String matchTournamentWinnerSource(int number) {
+    return 'M$number 승자';
+  }
+
+  @override
+  String get matchTournamentChampionSlot => '우승';
 
   @override
   String get matchCompetitionNoTeams => '등록된 팀이 없어요.';
