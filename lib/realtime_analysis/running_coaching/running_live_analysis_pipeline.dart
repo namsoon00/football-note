@@ -253,6 +253,30 @@ class _RunningFrameExtractor {
       RunningPoseLandmarkType.rightAnkle,
       minimumLikelihood: minimumLikelihood,
     );
+    final leftHeel = observation.landmark(
+      RunningPoseLandmarkType.leftHeel,
+      minimumLikelihood: minimumLikelihood,
+    );
+    final rightHeel = observation.landmark(
+      RunningPoseLandmarkType.rightHeel,
+      minimumLikelihood: minimumLikelihood,
+    );
+    final leftElbow = observation.landmark(
+      RunningPoseLandmarkType.leftElbow,
+      minimumLikelihood: minimumLikelihood,
+    );
+    final rightElbow = observation.landmark(
+      RunningPoseLandmarkType.rightElbow,
+      minimumLikelihood: minimumLikelihood,
+    );
+    final leftWrist = observation.landmark(
+      RunningPoseLandmarkType.leftWrist,
+      minimumLikelihood: minimumLikelihood,
+    );
+    final rightWrist = observation.landmark(
+      RunningPoseLandmarkType.rightWrist,
+      minimumLikelihood: minimumLikelihood,
+    );
     if (leftShoulder == null ||
         rightShoulder == null ||
         leftHip == null ||
@@ -288,48 +312,36 @@ class _RunningFrameExtractor {
       hipCenter: hipCenter,
       leftAnkle: leftAnkle.position,
       rightAnkle: rightAnkle.position,
-      leftHeel: observation
-          .landmark(
-            RunningPoseLandmarkType.leftHeel,
-            minimumLikelihood: minimumLikelihood,
-          )
-          ?.position,
-      rightHeel: observation
-          .landmark(
-            RunningPoseLandmarkType.rightHeel,
-            minimumLikelihood: minimumLikelihood,
-          )
-          ?.position,
-      leftElbow: observation
-          .landmark(
-            RunningPoseLandmarkType.leftElbow,
-            minimumLikelihood: minimumLikelihood,
-          )
-          ?.position,
-      rightElbow: observation
-          .landmark(
-            RunningPoseLandmarkType.rightElbow,
-            minimumLikelihood: minimumLikelihood,
-          )
-          ?.position,
-      leftWrist: observation
-          .landmark(
-            RunningPoseLandmarkType.leftWrist,
-            minimumLikelihood: minimumLikelihood,
-          )
-          ?.position,
-      rightWrist: observation
-          .landmark(
-            RunningPoseLandmarkType.rightWrist,
-            minimumLikelihood: minimumLikelihood,
-          )
-          ?.position,
+      leftHeel: leftHeel?.position,
+      rightHeel: rightHeel?.position,
+      leftElbow: leftElbow?.position,
+      rightElbow: rightElbow?.position,
+      leftWrist: leftWrist?.position,
+      rightWrist: rightWrist?.position,
       bodyScale: bodyScale,
       shoulderSpan: _distance(
         leftShoulder.position,
         rightShoulder.position,
       ),
       hipSpan: _distance(leftHip.position, rightHip.position),
+      requiredLandmarkConfidence: _minimumLikelihood([
+        leftShoulder,
+        rightShoulder,
+        leftHip,
+        rightHip,
+        leftKnee,
+        rightKnee,
+        leftAnkle,
+        rightAnkle,
+      ]),
+      armLandmarkConfidence: _armLandmarkConfidence(
+        leftShoulder: leftShoulder,
+        rightShoulder: rightShoulder,
+        leftElbow: leftElbow,
+        rightElbow: rightElbow,
+        leftWrist: leftWrist,
+        rightWrist: rightWrist,
+      ),
     );
   }
 }
@@ -381,21 +393,38 @@ class _RunningMetricAggregator {
       for (final sample in stanceSamples)
         if (sample.leadKneeAngleDegrees(direction) case final angle?) angle,
     ];
-    final elbowAngles = <double>[
+    final elbowAngleSamples = <({double angle, double confidence})>[
       for (final sample in samples)
-        if (sample.averageElbowAngleDegrees case final angle?) angle,
+        if (sample.averageElbowAngleDegrees case final angle?)
+          (
+            angle: angle,
+            confidence: sample.armLandmarkConfidence ??
+                sample.requiredLandmarkConfidence,
+          ),
     ];
-    if (kneeAngles.isEmpty || elbowAngles.isEmpty) {
+    if (kneeAngles.isEmpty || elbowAngleSamples.isEmpty) {
       return null;
     }
     final stanceKneeAngle =
         kneeAngles.reduce((sum, value) => sum + value) / kneeAngles.length;
-    final elbowAngle =
-        elbowAngles.reduce((sum, value) => sum + value) / elbowAngles.length;
-    final sharedQuality = RunningMetricQuality(
-      confidence: (samples.length / 10).clamp(0.0, 1.0),
+    final elbowAngle = _average(
+      elbowAngleSamples.map((sample) => sample.angle).toList(growable: false),
+    );
+    final sharedQuality = _landmarkQuality(
       sampleCount: samples.length,
-      reason: samples.length < 7 ? 'limited_samples' : null,
+      landmarkConfidence: _average(
+        samples
+            .map((sample) => sample.requiredLandmarkConfidence)
+            .toList(growable: false),
+      ),
+    );
+    final armQuality = _landmarkQuality(
+      sampleCount: elbowAngleSamples.length,
+      landmarkConfidence: _average(
+        elbowAngleSamples
+            .map((sample) => sample.confidence)
+            .toList(growable: false),
+      ),
     );
     final contactQuality = _contactPhaseQuality(
       stanceSamples,
@@ -420,8 +449,27 @@ class _RunningMetricAggregator {
         RunningCoachMetric.bounce: sharedQuality,
         RunningCoachMetric.footStrike: contactQuality,
         RunningCoachMetric.kneeFlexion: contactQuality,
-        RunningCoachMetric.armCarriage: sharedQuality,
+        RunningCoachMetric.armCarriage: armQuality,
       },
+    );
+  }
+
+  RunningMetricQuality _landmarkQuality({
+    required int sampleCount,
+    required double landmarkConfidence,
+  }) {
+    final sampleFactor = (sampleCount / 10).clamp(0.0, 1.0).toDouble();
+    final confidence =
+        math.min(sampleFactor, landmarkConfidence).clamp(0.0, 1.0).toDouble();
+    final reason = sampleCount < minimumTrackedFrames
+        ? 'limited_samples'
+        : landmarkConfidence < 0.6
+            ? 'low_confidence'
+            : null;
+    return RunningMetricQuality(
+      confidence: confidence,
+      sampleCount: sampleCount,
+      reason: reason,
     );
   }
 
@@ -442,16 +490,30 @@ class _RunningMetricAggregator {
         .toList(growable: false);
     final minRatio = ratios.reduce(math.min);
     final maxRatio = ratios.reduce(math.max);
+    final landmarkConfidence = _average(
+      stanceSamples
+          .map((sample) => sample.requiredLandmarkConfidence)
+          .toList(growable: false),
+    );
     final reachSpread = (maxRatio - minRatio).abs();
     final sampleFactor = (stanceSamples.length / 3).clamp(0.0, 1.0);
     final spreadFactor = (reachSpread / 0.08).clamp(0.0, 1.0);
     final contactConfidence =
         ((sampleFactor * 0.65) + (spreadFactor * 0.20) + 0.15).clamp(0.0, 1.0);
-    final confidence = math.min(fallback.confidence, contactConfidence);
+    final confidence = math
+        .min(math.min(fallback.confidence, contactConfidence),
+            landmarkConfidence)
+        .clamp(0.0, 1.0)
+        .toDouble();
+    final reason = confidence < 0.65
+        ? landmarkConfidence < 0.6 || fallback.reason == 'low_confidence'
+            ? 'low_confidence'
+            : 'contact_phase_proxy'
+        : fallback.reason;
     return RunningMetricQuality(
       confidence: confidence,
       sampleCount: stanceSamples.length,
-      reason: confidence < 0.65 ? 'contact_phase_proxy' : fallback.reason,
+      reason: reason,
     );
   }
 
@@ -500,6 +562,8 @@ class _FrameSample {
   final double bodyScale;
   final double shoulderSpan;
   final double hipSpan;
+  final double requiredLandmarkConfidence;
+  final double? armLandmarkConfidence;
 
   const _FrameSample({
     required this.leftShoulder,
@@ -521,6 +585,8 @@ class _FrameSample {
     required this.bodyScale,
     required this.shoulderSpan,
     required this.hipSpan,
+    required this.requiredLandmarkConfidence,
+    required this.armLandmarkConfidence,
   });
 
   double forwardLeanDegrees(RunningDirection direction) {
@@ -589,6 +655,43 @@ double _distance(Offset first, Offset second) {
   final dx = first.dx - second.dx;
   final dy = first.dy - second.dy;
   return math.sqrt((dx * dx) + (dy * dy));
+}
+
+double _minimumLikelihood(Iterable<RunningPoseLandmark> landmarks) {
+  var minimum = 1.0;
+  var hasLandmark = false;
+  for (final landmark in landmarks) {
+    hasLandmark = true;
+    minimum = math.min(minimum, landmark.likelihood);
+  }
+  return hasLandmark ? minimum.clamp(0.0, 1.0).toDouble() : 0.0;
+}
+
+double? _armLandmarkConfidence({
+  required RunningPoseLandmark leftShoulder,
+  required RunningPoseLandmark rightShoulder,
+  required RunningPoseLandmark? leftElbow,
+  required RunningPoseLandmark? rightElbow,
+  required RunningPoseLandmark? leftWrist,
+  required RunningPoseLandmark? rightWrist,
+}) {
+  final armConfidences = <double>[
+    if (leftElbow != null && leftWrist != null)
+      _minimumLikelihood([leftShoulder, leftElbow, leftWrist]),
+    if (rightElbow != null && rightWrist != null)
+      _minimumLikelihood([rightShoulder, rightElbow, rightWrist]),
+  ];
+  if (armConfidences.isEmpty) {
+    return null;
+  }
+  return _average(armConfidences);
+}
+
+double _average(List<double> values) {
+  if (values.isEmpty) {
+    return 0;
+  }
+  return values.reduce((sum, value) => sum + value) / values.length;
 }
 
 double _jointAngle(Offset first, Offset vertex, Offset third) {

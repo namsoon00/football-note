@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:video_player/video_player.dart';
 
@@ -23,11 +24,55 @@ import '../widgets/app_feedback.dart';
 
 class RunningCoachScreen extends StatefulWidget {
   final OptionRepository? optionRepository;
+  final RunningVideoAnalysisService analysisService;
+  final RunningCoachSampleVideoPreparer sampleVideoPreparer;
 
-  const RunningCoachScreen({super.key, this.optionRepository});
+  const RunningCoachScreen({
+    super.key,
+    this.optionRepository,
+    this.analysisService = const RunningVideoAnalysisService(),
+    this.sampleVideoPreparer = prepareRunningCoachSampleVideoForAnalysis,
+  });
 
   @override
   State<RunningCoachScreen> createState() => _RunningCoachScreenState();
+}
+
+typedef RunningCoachSampleVideoPreparer
+    = Future<RunningCoachPreparedSampleVideo> Function(String assetPath);
+
+class RunningCoachPreparedSampleVideo {
+  final File file;
+  final Future<void> Function() dispose;
+
+  const RunningCoachPreparedSampleVideo({
+    required this.file,
+    required this.dispose,
+  });
+}
+
+Future<RunningCoachPreparedSampleVideo>
+    prepareRunningCoachSampleVideoForAnalysis(String assetPath) async {
+  final tempDirectory = await Directory.systemTemp.createTemp(
+    'football_note_running_sample_',
+  );
+  final bytes = await rootBundle.load(assetPath);
+  final file = File('${tempDirectory.path}/${assetPath.split('/').last}');
+  await file.writeAsBytes(
+    bytes.buffer.asUint8List(
+      bytes.offsetInBytes,
+      bytes.lengthInBytes,
+    ),
+    flush: true,
+  );
+  return RunningCoachPreparedSampleVideo(
+    file: file,
+    dispose: () async {
+      if (await tempDirectory.exists()) {
+        await tempDirectory.delete(recursive: true);
+      }
+    },
+  );
 }
 
 @visibleForTesting
@@ -52,8 +97,6 @@ Widget runningArchivedAnalysisVideoCardForTesting({
 
 class _RunningCoachScreenState extends State<RunningCoachScreen> {
   final ImagePicker _picker = ImagePicker();
-  final RunningVideoAnalysisService _analysisService =
-      const RunningVideoAnalysisService();
   final RunningCoachingService _coachingService =
       const RunningCoachingService();
 
@@ -61,6 +104,9 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
   XFile? _selectedVideo;
   List<RunningCoachSessionAnalysis> _recentSessions =
       const <RunningCoachSessionAnalysis>[];
+  _RunningCoachSampleAnalysisBundle? _sampleAnalysisCache;
+  Future<_RunningCoachSampleAnalysisBundle>? _sampleAnalysisFuture;
+  int _sampleAnalysisRequestId = 0;
   bool _isAnalyzing = false;
 
   @override
@@ -95,12 +141,6 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
 
   Widget _buildCoachPage(AppLocalizations l10n) {
     final mission = _missionForToday(DateTime.now());
-    final sampleResult = _sampleAnalysisResult();
-    final sampleReport = _coachingService.buildReport(sampleResult);
-    final mistakeSampleResult = _mistakeSampleAnalysisResult();
-    final mistakeSampleReport = _coachingService.buildReport(
-      mistakeSampleResult,
-    );
     return ListView(
       key: const PageStorageKey('running-coach-simple-page'),
       padding: const EdgeInsets.all(16),
@@ -119,13 +159,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
         _RunningCoachUploadGuideCard(
           title: l10n.runningCoachUploadGuideTitle,
           body: l10n.runningCoachUploadGuideBody,
-          onShowSampleGuide: () => _showSampleAnalysis(
-            l10n,
-            result: sampleResult,
-            report: sampleReport,
-            mistakeResult: mistakeSampleResult,
-            mistakeReport: mistakeSampleReport,
-          ),
+          onShowSampleGuide: _showSampleAnalysis,
         ),
         const SizedBox(height: 12),
         _VideoAnalysisIntentCard(
@@ -162,42 +196,78 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
     );
   }
 
-  Future<void> _showSampleAnalysis(
-    AppLocalizations l10n, {
-    required RunningVideoAnalysisResult result,
-    required RunningCoachingReport report,
-    required RunningVideoAnalysisResult mistakeResult,
-    required RunningCoachingReport mistakeReport,
-  }) {
+  Future<void> _showSampleAnalysis() {
     return showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
-      builder: (context) => SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-          child: _RunningCoachSampleCard(
-            title: l10n.runningCoachSampleTitle,
-            body: l10n.runningCoachSampleBody,
-            tips: [
-              l10n.runningCoachTipWholeBody,
-              l10n.runningCoachTipSideView,
-              l10n.runningCoachTipSteadyCamera,
-            ],
-            steps: [
-              l10n.runningCoachUploadGuideStepSide,
-              l10n.runningCoachUploadGuideStepDistance,
-              l10n.runningCoachUploadGuideStepDuration,
-              l10n.runningCoachUploadGuideStepLight,
-            ],
-            result: result,
-            report: report,
-            mistakeResult: mistakeResult,
-            mistakeReport: mistakeReport,
-          ),
-        ),
+      builder: (context) => _RunningCoachSampleAnalysisSheet(
+        loadAnalysis: _loadSampleAnalysis,
+        messageForException: _messageForException,
       ),
     );
+  }
+
+  Future<_RunningCoachSampleAnalysisBundle> _loadSampleAnalysis({
+    bool forceRefresh = false,
+  }) {
+    final cached = _sampleAnalysisCache;
+    if (!forceRefresh && cached != null) {
+      return Future.value(cached);
+    }
+    final inFlight = _sampleAnalysisFuture;
+    if (!forceRefresh && inFlight != null) {
+      return inFlight;
+    }
+
+    if (forceRefresh) {
+      _sampleAnalysisCache = null;
+    }
+    final requestId = ++_sampleAnalysisRequestId;
+    final future = _analyzeBundledSampleVideos().then((bundle) {
+      if (requestId == _sampleAnalysisRequestId) {
+        _sampleAnalysisCache = bundle;
+      }
+      return bundle;
+    });
+    _sampleAnalysisFuture = future;
+    unawaited(
+      future.then<void>((_) {}, onError: (_) {}).whenComplete(() {
+        if (_sampleAnalysisFuture == future) {
+          _sampleAnalysisFuture = null;
+        }
+      }),
+    );
+    return future;
+  }
+
+  Future<_RunningCoachSampleAnalysisBundle>
+      _analyzeBundledSampleVideos() async {
+    final referenceResult = await _analyzeBundledSampleVideo(
+      _sampleReferenceVideoAsset,
+    );
+    final mistakeResult = await _analyzeBundledSampleVideo(
+      _sampleMistakeVideoAsset,
+    );
+    return _RunningCoachSampleAnalysisBundle(
+      result: referenceResult,
+      report: _coachingService.buildReport(referenceResult),
+      mistakeResult: mistakeResult,
+      mistakeReport: _coachingService.buildReport(mistakeResult),
+    );
+  }
+
+  Future<RunningVideoAnalysisResult> _analyzeBundledSampleVideo(
+    String assetPath,
+  ) async {
+    final preparedVideo = await widget.sampleVideoPreparer(assetPath);
+    try {
+      return await widget.analysisService.analyzeVideo(preparedVideo.file.path);
+    } finally {
+      unawaited(
+        preparedVideo.dispose().catchError((_) {}),
+      );
+    }
   }
 
   Future<void> _showAnalysisHistory() {
@@ -229,78 +299,6 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
     );
   }
 
-  RunningVideoAnalysisResult _sampleAnalysisResult() {
-    return const RunningVideoAnalysisResult(
-      videoDuration: Duration(seconds: 4),
-      sampledFrames: 24,
-      validFrames: 24,
-      direction: RunningDirection.leftToRight,
-      forwardLeanDegrees: 10,
-      verticalBounceRatio: 0.06,
-      footStrikeDistanceRatio: 0.08,
-      stanceKneeAngleDegrees: 155,
-      elbowAngleDegrees: 90,
-      metricQualities: <RunningCoachMetric, RunningMetricQuality>{
-        RunningCoachMetric.posture: RunningMetricQuality(
-          confidence: 1,
-          sampleCount: 24,
-        ),
-        RunningCoachMetric.bounce: RunningMetricQuality(
-          confidence: 1,
-          sampleCount: 24,
-        ),
-        RunningCoachMetric.footStrike: RunningMetricQuality(
-          confidence: 1,
-          sampleCount: 24,
-        ),
-        RunningCoachMetric.kneeFlexion: RunningMetricQuality(
-          confidence: 1,
-          sampleCount: 24,
-        ),
-        RunningCoachMetric.armCarriage: RunningMetricQuality(
-          confidence: 1,
-          sampleCount: 24,
-        ),
-      },
-    );
-  }
-
-  RunningVideoAnalysisResult _mistakeSampleAnalysisResult() {
-    return const RunningVideoAnalysisResult(
-      videoDuration: Duration(seconds: 4),
-      sampledFrames: 24,
-      validFrames: 24,
-      direction: RunningDirection.leftToRight,
-      forwardLeanDegrees: 4,
-      verticalBounceRatio: 0.10,
-      footStrikeDistanceRatio: 0.20,
-      stanceKneeAngleDegrees: 172,
-      elbowAngleDegrees: 118,
-      metricQualities: <RunningCoachMetric, RunningMetricQuality>{
-        RunningCoachMetric.posture: RunningMetricQuality(
-          confidence: 1,
-          sampleCount: 24,
-        ),
-        RunningCoachMetric.bounce: RunningMetricQuality(
-          confidence: 1,
-          sampleCount: 24,
-        ),
-        RunningCoachMetric.footStrike: RunningMetricQuality(
-          confidence: 1,
-          sampleCount: 24,
-        ),
-        RunningCoachMetric.kneeFlexion: RunningMetricQuality(
-          confidence: 1,
-          sampleCount: 24,
-        ),
-        RunningCoachMetric.armCarriage: RunningMetricQuality(
-          confidence: 1,
-          sampleCount: 24,
-        ),
-      },
-    );
-  }
-
   Future<void> _pickVideo() async {
     try {
       final selected = await _picker.pickVideo(
@@ -326,7 +324,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
     setState(() => _isAnalyzing = true);
     try {
       final analyzedAt = DateTime.now();
-      final analysis = await _analysisService.analyzeVideo(selected.path);
+      final analysis = await widget.analysisService.analyzeVideo(selected.path);
       final report = _coachingService.buildReport(analysis);
       final historyService = _historyService;
       final updatedSessions = historyService == null
@@ -767,6 +765,181 @@ enum _SampleVideoMode { reference, mistake }
 
 enum _SampleDecisionMetricKind { posture, arms, landing, bounce }
 
+class _RunningCoachSampleAnalysisBundle {
+  final RunningVideoAnalysisResult result;
+  final RunningCoachingReport report;
+  final RunningVideoAnalysisResult mistakeResult;
+  final RunningCoachingReport mistakeReport;
+
+  const _RunningCoachSampleAnalysisBundle({
+    required this.result,
+    required this.report,
+    required this.mistakeResult,
+    required this.mistakeReport,
+  });
+}
+
+class _RunningCoachSampleAnalysisSheet extends StatefulWidget {
+  final Future<_RunningCoachSampleAnalysisBundle> Function({
+    bool forceRefresh,
+  }) loadAnalysis;
+  final String Function(
+    AppLocalizations l10n,
+    RunningVideoAnalysisException error,
+  ) messageForException;
+
+  const _RunningCoachSampleAnalysisSheet({
+    required this.loadAnalysis,
+    required this.messageForException,
+  });
+
+  @override
+  State<_RunningCoachSampleAnalysisSheet> createState() =>
+      _RunningCoachSampleAnalysisSheetState();
+}
+
+class _RunningCoachSampleAnalysisSheetState
+    extends State<_RunningCoachSampleAnalysisSheet> {
+  late Future<_RunningCoachSampleAnalysisBundle> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = widget.loadAnalysis();
+  }
+
+  void _retry() {
+    setState(() {
+      _future = widget.loadAnalysis(forceRefresh: true);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+        child: FutureBuilder<_RunningCoachSampleAnalysisBundle>(
+          future: _future,
+          builder: (context, snapshot) {
+            final data = snapshot.data;
+            if (snapshot.connectionState == ConnectionState.done &&
+                !snapshot.hasError &&
+                data != null) {
+              return _RunningCoachSampleCard(
+                title: l10n.runningCoachSampleTitle,
+                body: l10n.runningCoachSampleBody,
+                tips: [
+                  l10n.runningCoachTipWholeBody,
+                  l10n.runningCoachTipSideView,
+                  l10n.runningCoachTipSteadyCamera,
+                ],
+                steps: [
+                  l10n.runningCoachUploadGuideStepSide,
+                  l10n.runningCoachUploadGuideStepDistance,
+                  l10n.runningCoachUploadGuideStepDuration,
+                  l10n.runningCoachUploadGuideStepLight,
+                ],
+                result: data.result,
+                report: data.report,
+                mistakeResult: data.mistakeResult,
+                mistakeReport: data.mistakeReport,
+              );
+            }
+
+            if (snapshot.hasError) {
+              final error = snapshot.error;
+              final body = error is RunningVideoAnalysisException
+                  ? widget.messageForException(l10n, error)
+                  : l10n.runningCoachAnalysisFailedGeneric;
+              return _RunningCoachSampleStatusCard(
+                key: const ValueKey('running-coach-sample-analysis-error'),
+                title: l10n.runningCoachSampleAnalysisFailedTitle,
+                body: body,
+                actionLabel: l10n.runningCoachSampleAnalysisRetryAction,
+                onAction: _retry,
+              );
+            }
+
+            return _RunningCoachSampleStatusCard(
+              key: const ValueKey('running-coach-sample-analysis-loading'),
+              title: l10n.runningCoachSampleAnalysisLoadingTitle,
+              body: l10n.runningCoachSampleAnalysisLoadingBody,
+              showProgress: true,
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _RunningCoachSampleStatusCard extends StatelessWidget {
+  final String title;
+  final String body;
+  final bool showProgress;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+
+  const _RunningCoachSampleStatusCard({
+    super.key,
+    required this.title,
+    required this.body,
+    this.showProgress = false,
+    this.actionLabel,
+    this.onAction,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                BackButton(
+                  onPressed: () => Navigator.of(context).maybePop(),
+                ),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: Text(
+                      title,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(body, style: Theme.of(context).textTheme.bodyMedium),
+            if (showProgress) ...[
+              const SizedBox(height: 18),
+              const Center(child: CircularProgressIndicator()),
+            ],
+            if (actionLabel != null && onAction != null) ...[
+              const SizedBox(height: 16),
+              FilledButton.icon(
+                key: const ValueKey('running-coach-sample-analysis-retry'),
+                onPressed: onAction,
+                icon: const Icon(Icons.refresh_rounded),
+                label: Text(actionLabel!),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _RunningCoachSampleCard extends StatefulWidget {
   final String title;
   final String body;
@@ -824,10 +997,8 @@ class _RunningCoachSampleCardState extends State<_RunningCoachSampleCard> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                IconButton(
+                BackButton(
                   key: const ValueKey('running-coach-sample-back-button'),
-                  tooltip: MaterialLocalizations.of(context).backButtonTooltip,
-                  icon: const Icon(Icons.arrow_back_rounded),
                   onPressed: () => Navigator.of(context).maybePop(),
                 ),
                 const SizedBox(width: 4),
@@ -6588,6 +6759,7 @@ String _qualityReasonText(BuildContext context, RunningMetricQuality quality) {
     'low_coverage' => l10n.runningCoachQualityReasonLowCoverage,
     'limited_samples' => l10n.runningCoachQualityReasonLimitedSamples,
     'contact_phase_proxy' => l10n.runningCoachQualityReasonContactPhaseProxy,
+    'low_confidence' => l10n.runningCoachQualityReasonLowConfidence,
     _ => l10n.runningCoachQualityReasonGeneric,
   };
 }

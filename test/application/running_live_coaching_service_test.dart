@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/running_live_coaching_service.dart';
 import 'package:football_note/domain/entities/running_live_coaching_state.dart';
+import 'package:football_note/domain/entities/running_video_analysis_result.dart';
 
 void main() {
   group('RunningLiveCoachingService', () {
@@ -104,8 +105,8 @@ void main() {
       late RunningLiveCoachingState lastState;
       final start = DateTime(2026, 4, 11, 12);
 
-      for (var index = 0; index < 7; index++) {
-        final xOffset = 340.0 + (index * 26);
+      for (var index = 0; index < 10; index++) {
+        final xOffset = 300.0 + (index * 22);
         lastState = service.ingestObservation(
           _observation(
             nose: Offset(xOffset + 150, 182),
@@ -124,7 +125,7 @@ void main() {
             leftHeel: Offset(xOffset + 80, 772),
             rightHeel: Offset(xOffset + 228, 722),
           ),
-          timestamp: start.add(Duration(milliseconds: 320 * index)),
+          timestamp: start.add(Duration(milliseconds: 240 * index)),
         );
       }
 
@@ -135,6 +136,48 @@ void main() {
       );
     });
 
+    test('gates correction cues while required landmark confidence is low', () {
+      final service = RunningLiveCoachingService();
+      late RunningLiveCoachingState lastState;
+      final start = DateTime(2026, 4, 11, 12);
+
+      for (var index = 0; index < 10; index++) {
+        final xOffset = 300.0 + (index * 22);
+        lastState = service.ingestObservation(
+          _observation(
+            confidence: 0.50,
+            nose: Offset(xOffset + 150, 182),
+            leftShoulder: Offset(xOffset + 138, 252),
+            rightShoulder: Offset(xOffset + 170, 252),
+            leftElbow: Offset(xOffset + 138, 320),
+            rightElbow: Offset(xOffset + 170, 320),
+            leftWrist: Offset(xOffset + 88, 320),
+            rightWrist: Offset(xOffset + 225, 320),
+            leftHip: Offset(xOffset + 120, 432),
+            rightHip: Offset(xOffset + 148, 432),
+            leftKnee: Offset(xOffset + 98, 600),
+            rightKnee: Offset(xOffset + 184, 552),
+            leftAnkle: Offset(xOffset + 86, 758),
+            rightAnkle: Offset(xOffset + 240, 708),
+            leftHeel: Offset(xOffset + 80, 772),
+            rightHeel: Offset(xOffset + 228, 722),
+          ),
+          timestamp: start.add(Duration(milliseconds: 240 * index)),
+        );
+      }
+
+      expect(lastState.analysisResult, isNotNull);
+      expect(lastState.highlightedInsight, isNotNull);
+      expect(
+        lastState.highlightedInsight!.finding,
+        RunningCoachFinding.footStrikeOverstride,
+      );
+      expect(lastState.highlightedInsight!.quality.isLowConfidence, isTrue);
+      expect(lastState.highlightedInsight!.quality.reason, 'low_confidence');
+      expect(lastState.primaryCue, RunningLivePrimaryCue.keepRunning);
+      expect(lastState.hasStableAnalysis, isFalse);
+    });
+
     test('waits briefly before switching between correction cues', () {
       final service = RunningLiveCoachingService(
         cueDwellTime: const Duration(milliseconds: 600),
@@ -142,8 +185,8 @@ void main() {
       late RunningLiveCoachingState lastState;
       final start = DateTime(2026, 4, 11, 12);
 
-      for (var index = 0; index < 7; index++) {
-        final xOffset = 340.0 + (index * 26);
+      for (var index = 0; index < 10; index++) {
+        final xOffset = 300.0 + (index * 22);
         lastState = service.ingestObservation(
           _observation(
             nose: Offset(xOffset + 150, 182),
@@ -162,7 +205,7 @@ void main() {
             leftHeel: Offset(xOffset + 80, 772),
             rightHeel: Offset(xOffset + 228, 722),
           ),
-          timestamp: start.add(Duration(milliseconds: 320 * index)),
+          timestamp: start.add(Duration(milliseconds: 240 * index)),
         );
       }
 
@@ -189,7 +232,7 @@ void main() {
           leftHeel: const Offset(80, 772),
           rightHeel: const Offset(228, 722),
         ),
-        timestamp: start.add(const Duration(milliseconds: 2250)),
+        timestamp: start.add(const Duration(milliseconds: 2450)),
       );
 
       expect(
@@ -215,7 +258,7 @@ void main() {
           leftHeel: const Offset(80, 772),
           rightHeel: const Offset(228, 722),
         ),
-        timestamp: start.add(const Duration(milliseconds: 2900)),
+        timestamp: start.add(const Duration(milliseconds: 3100)),
       );
 
       expect(settledSwitch.primaryCue, RunningLivePrimaryCue.postureTooUpright);
@@ -239,6 +282,7 @@ RunningPoseObservation _observation({
   Offset? rightAnkle,
   Offset? leftHeel,
   Offset? rightHeel,
+  double confidence = 0.98,
 }) {
   final landmarks = <RunningPoseLandmarkType, RunningPoseLandmark>{};
 
@@ -246,7 +290,7 @@ RunningPoseObservation _observation({
     if (position == null) {
       return;
     }
-    landmarks[type] = _landmark(position.dx, position.dy);
+    landmarks[type] = _landmark(position.dx, position.dy, confidence);
   }
 
   put(RunningPoseLandmarkType.nose, nose);
@@ -271,9 +315,13 @@ RunningPoseObservation _observation({
   );
 }
 
-RunningPoseLandmark _landmark(double x, double y) {
+RunningPoseLandmark _landmark(
+  double x,
+  double y, [
+  double confidence = 0.98,
+]) {
   return RunningPoseLandmark(
     position: Offset(x, y),
-    likelihood: 0.98,
+    likelihood: confidence,
   );
 }

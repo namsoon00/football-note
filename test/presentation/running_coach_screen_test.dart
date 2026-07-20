@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -8,12 +9,18 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/running_coach_history_service.dart';
 import 'package:football_note/application/running_coaching_service.dart';
+import 'package:football_note/application/running_video_analysis_service.dart';
 import 'package:football_note/domain/entities/running_coach_session.dart';
 import 'package:football_note/domain/entities/running_video_analysis_result.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/running_coach_screen.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart';
+
+const _sampleReferenceVideoAssetForTest =
+    'assets/videos/running_coach_reference_sample.mp4';
+const _sampleMistakeVideoAssetForTest =
+    'assets/videos/running_coach_mistake_sample.mp4';
 
 void main() {
   late VideoPlayerPlatform previousVideoPlayerPlatform;
@@ -67,17 +74,21 @@ void main() {
   ) async {
     await tester.binding.setSurfaceSize(const Size(800, 1200));
     addTearDown(() => tester.binding.setSurfaceSize(null));
+    final analysisService = _FakeRunningVideoAnalysisService();
     await tester.pumpWidget(
-      const MaterialApp(
-        locale: Locale('en'),
-        localizationsDelegates: [
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: const [
           AppLocalizations.delegate,
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
         ],
         supportedLocales: AppLocalizations.supportedLocales,
-        home: RunningCoachScreen(),
+        home: RunningCoachScreen(
+          analysisService: analysisService,
+          sampleVideoPreparer: _prepareSampleVideoForTest,
+        ),
       ),
     );
 
@@ -88,17 +99,38 @@ void main() {
     );
     await tester.tap(find.text('Open sample video guide'));
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
+    expect(
+      find.byKey(const ValueKey('running-coach-sample-analysis-loading')),
+      findsOneWidget,
+    );
+    await tester.runAsync(() => analysisService.waitForCallCount(2));
+    await tester.pump();
+    await _pumpUntilFound(
+      tester,
+      find.byKey(const ValueKey('running-coach-sample-video-frame')),
+    );
+
+    expect(analysisService.calls, hasLength(2));
+    expect(
+      analysisService.calls,
+      everyElement(contains('football_note_running_sample_')),
+    );
+    expect(
+      analysisService.calls,
+      isNot(contains(_sampleReferenceVideoAssetForTest)),
+    );
+    expect(analysisService.fileExistsAtCall, everyElement(isTrue));
+    expect(analysisService.fileLengthAtCall, everyElement(greaterThan(0)));
 
     expect(
       find.byKey(const ValueKey('running-coach-sample-video-frame')),
       findsOneWidget,
     );
     final referenceVideo = await rootBundle.load(
-      'assets/videos/running_coach_reference_sample.mp4',
+      _sampleReferenceVideoAssetForTest,
     );
     final mistakeVideo = await rootBundle.load(
-      'assets/videos/running_coach_mistake_sample.mp4',
+      _sampleMistakeVideoAssetForTest,
     );
     expect(referenceVideo.lengthInBytes, greaterThan(1500000));
     expect(mistakeVideo.lengthInBytes, greaterThan(1000000));
@@ -172,6 +204,10 @@ void main() {
     );
     expect(find.textContaining('landing distance is 0.08'), findsOneWidget);
 
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('running-coach-sample-decision-posture')),
+    );
+    await tester.pump();
     await tester.tap(
       find.byKey(const ValueKey('running-coach-sample-decision-posture')),
     );
@@ -200,6 +236,8 @@ void main() {
     ).pop();
     await tester.pumpAndSettle();
 
+    await tester.ensureVisible(find.text('Wrong form sample'));
+    await tester.pump();
     await tester.tap(find.text('Wrong form sample'));
     await tester.pump();
 
@@ -213,6 +251,10 @@ void main() {
       findsOneWidget,
     );
 
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('running-coach-sample-decision-bounce')),
+    );
+    await tester.pump();
     await tester.tap(
       find.byKey(const ValueKey('running-coach-sample-decision-bounce')),
     );
@@ -233,6 +275,10 @@ void main() {
     ).pop();
     await tester.pumpAndSettle();
 
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('running-coach-sample-back-button')),
+    );
+    await tester.pump();
     await tester.tap(
       find.byKey(const ValueKey('running-coach-sample-back-button')),
     );
@@ -243,6 +289,83 @@ void main() {
       findsNothing,
     );
     expect(find.text('Running Coach'), findsOneWidget);
+
+    await tester.scrollUntilVisible(
+      find.text('Open sample video guide'),
+      -220,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.text('Open sample video guide'));
+    await tester.pump();
+    await _pumpUntilFound(
+      tester,
+      find.byKey(const ValueKey('running-coach-sample-video-frame')),
+    );
+    expect(analysisService.calls, hasLength(2));
+  });
+
+  testWidgets('sample sheet shows localized error and retries native analysis',
+      (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1200));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final analysisService =
+        _FakeRunningVideoAnalysisService(failFirstCall: true);
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: RunningCoachScreen(
+          analysisService: analysisService,
+          sampleVideoPreparer: _prepareSampleVideoForTest,
+        ),
+      ),
+    );
+
+    await tester.scrollUntilVisible(
+      find.text('Open sample video guide'),
+      -220,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.text('Open sample video guide'));
+    await tester.pump();
+    await tester.runAsync(() => analysisService.waitForCallCount(1));
+    await tester.pump();
+    await _pumpUntilFound(
+      tester,
+      find.byKey(const ValueKey('running-coach-sample-analysis-error')),
+    );
+
+    expect(find.text('Sample analysis unavailable'), findsOneWidget);
+    expect(
+      find.text(
+        'The runner could not be tracked well enough. Try a clearer side-view clip with elbows, knees, and feet visible.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Retry sample analysis'), findsOneWidget);
+
+    final retryButton = tester.widget<FilledButton>(
+      find.byKey(const ValueKey('running-coach-sample-analysis-retry')),
+    );
+    retryButton.onPressed!();
+    await tester.pump();
+    await tester.runAsync(() => analysisService.waitForCallCount(3));
+    await tester.pump();
+    await _pumpUntilFound(
+      tester,
+      find.byKey(const ValueKey('running-coach-sample-video-frame')),
+    );
+
+    expect(analysisService.calls, hasLength(3));
+    expect(find.text('Reference sample'), findsOneWidget);
   });
 
   testWidgets('analysis history opens a visual correction guide', (
@@ -447,6 +570,95 @@ void main() {
       expect(tester.takeException(), isNull);
     }
   });
+}
+
+Future<void> _pumpUntilFound(
+  WidgetTester tester,
+  Finder finder, {
+  int attempts = 40,
+}) async {
+  for (var attempt = 0; attempt < attempts; attempt += 1) {
+    await tester.pump(const Duration(milliseconds: 50));
+    if (finder.evaluate().isNotEmpty) {
+      return;
+    }
+  }
+  fail('Timed out waiting for $finder');
+}
+
+Future<RunningCoachPreparedSampleVideo> _prepareSampleVideoForTest(
+  String assetPath,
+) async {
+  final tempDirectory = Directory.systemTemp.createTempSync(
+    'football_note_running_sample_test_',
+  );
+  final file = File('${tempDirectory.path}/${assetPath.split('/').last}');
+  file.writeAsBytesSync(assetPath.codeUnits, flush: true);
+  return RunningCoachPreparedSampleVideo(
+    file: file,
+    dispose: () async {
+      if (tempDirectory.existsSync()) {
+        tempDirectory.deleteSync(recursive: true);
+      }
+    },
+  );
+}
+
+class _FakeRunningVideoAnalysisService extends RunningVideoAnalysisService {
+  final bool failFirstCall;
+  final List<String> calls = <String>[];
+  final List<bool> fileExistsAtCall = <bool>[];
+  final List<int> fileLengthAtCall = <int>[];
+
+  _FakeRunningVideoAnalysisService({this.failFirstCall = false});
+
+  Future<void> waitForCallCount(int count) async {
+    for (var attempt = 0; attempt < 500; attempt += 1) {
+      if (calls.length >= count) {
+        return;
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
+    throw StateError('Timed out waiting for $count analysis calls.');
+  }
+
+  @override
+  Future<RunningVideoAnalysisResult> analyzeVideo(String path) async {
+    calls.add(path);
+    final file = File(path);
+    fileExistsAtCall.add(file.existsSync());
+    fileLengthAtCall.add(file.existsSync() ? file.lengthSync() : 0);
+    if (failFirstCall && calls.length == 1) {
+      throw const RunningVideoAnalysisException(
+        'no_pose_detected',
+        'No pose detected in fixture.',
+      );
+    }
+    if (path.endsWith('running_coach_mistake_sample.mp4')) {
+      return const RunningVideoAnalysisResult(
+        videoDuration: Duration(seconds: 4),
+        sampledFrames: 14,
+        validFrames: 12,
+        direction: RunningDirection.leftToRight,
+        forwardLeanDegrees: 4,
+        verticalBounceRatio: 0.10,
+        footStrikeDistanceRatio: 0.20,
+        stanceKneeAngleDegrees: 172,
+        elbowAngleDegrees: 118,
+      );
+    }
+    return const RunningVideoAnalysisResult(
+      videoDuration: Duration(seconds: 4),
+      sampledFrames: 14,
+      validFrames: 13,
+      direction: RunningDirection.leftToRight,
+      forwardLeanDegrees: 10,
+      verticalBounceRatio: 0.06,
+      footStrikeDistanceRatio: 0.08,
+      stanceKneeAngleDegrees: 155,
+      elbowAngleDegrees: 90,
+    );
+  }
 }
 
 class _FakeVideoPlayerPlatform extends VideoPlayerPlatform {

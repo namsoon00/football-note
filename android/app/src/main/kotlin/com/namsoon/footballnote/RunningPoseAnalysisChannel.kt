@@ -319,10 +319,7 @@ class RunningPoseAnalysisChannel(
         }
 
         val landmark = landmarks[index]
-        val confidence = max(
-            optionalFloat(landmark.visibility()) ?: 0f,
-            optionalFloat(landmark.presence()) ?: 0f,
-        )
+        val confidence = landmarkConfidence(landmark)
         if (confidence < minimumLikelihood) {
             return null
         }
@@ -334,6 +331,18 @@ class RunningPoseAnalysisChannel(
 
     private fun optionalFloat(value: Optional<Float>): Float? =
         if (value.isPresent) value.get() else null
+
+    private fun landmarkConfidence(landmark: NormalizedLandmark): Float {
+        val visibility = optionalFloat(landmark.visibility())
+        val presence = optionalFloat(landmark.presence())
+        val confidence = when {
+            visibility != null && presence != null -> min(visibility, presence)
+            visibility != null -> visibility
+            presence != null -> presence
+            else -> 0f
+        }
+        return confidence.coerceIn(0f, 1f)
+    }
 
     private fun resolveDirection(samples: List<FrameSample>): AnalysisDirection {
         val hipMovement =

@@ -4816,6 +4816,10 @@
   "runningCoachSampleTitle": "サンプルビデオガイド",
   "runningCoachSampleBody": "基準ループと悪いフォームのループを切り替え、姿勢、着地、膝の負荷、腕の角度、バウンス、フレーム品質をどう読むか確認します。",
   "runningCoachSampleGuideAction": "サンプルビデオガイドを開く",
+  "runningCoachSampleAnalysisLoadingTitle": "サンプル動画を分析中",
+  "runningCoachSampleAnalysisLoadingBody": "MediaPipe が同梱の基準動画と悪いフォーム動画を読み取っています。",
+  "runningCoachSampleAnalysisFailedTitle": "サンプル分析を使用できません",
+  "runningCoachSampleAnalysisRetryAction": "サンプル分析を再試行",
   "runningCoachSampleFrameLabel": "フレーム {current}/{total}",
   "@runningCoachSampleFrameLabel": {
     "placeholders": {
@@ -5466,6 +5470,7 @@
   "runningCoachQualityReasonLowCoverage": "追跡できたフレーム比率が低いため、この指標は保守的に見てください。",
   "runningCoachQualityReasonLimitedSamples": "安定して読めたフレームが少ないため、同じ角度でもう一度確認してください。",
   "runningCoachQualityReasonContactPhaseProxy": "接地局面を推定したフレームが少ないため、着地と膝の指標をもう一度確認してください。",
+  "runningCoachQualityReasonLowConfidence": "必須ランドマークの信頼度が低いため、このキューを使う前にカメラを安定させてください。",
   "runningCoachQualityReasonGeneric": "撮影品質が低いため、同じ角度でもう一度確認してください。",
   "runningCoachOverallHeadlineStrong": "力強いランニング形状",
   "runningCoachOverallHeadlineSolid": "1 つの明確な修正を備えた強固なベース",

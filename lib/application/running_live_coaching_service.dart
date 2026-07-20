@@ -159,6 +159,10 @@ class RunningLiveCoachingService {
       return RunningLivePrimaryCue.keepRunning;
     }
 
+    if (highlightedInsight.quality.isLowConfidence) {
+      return RunningLivePrimaryCue.keepRunning;
+    }
+
     if (coachingReport.overallScore >= 88 &&
         highlightedInsight.status == RunningCoachStatus.good) {
       return RunningLivePrimaryCue.lookingGood;
