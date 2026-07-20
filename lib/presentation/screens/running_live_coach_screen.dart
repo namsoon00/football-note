@@ -15,6 +15,7 @@ import '../../application/running_live_session_metrics.dart';
 import '../../domain/entities/running_live_coaching_state.dart';
 import '../../domain/entities/running_video_analysis_result.dart';
 import '../../gen/app_localizations.dart';
+import '../../realtime_analysis/running_coaching/running_live_timing_config.dart';
 import '../../realtime_analysis/running_coaching/running_visual_pose_tracker.dart';
 import '../models/camera_viewport_transform.dart';
 import '../painters/running_pose_anatomical_painter.dart';
@@ -30,9 +31,9 @@ class RunningLiveCoachScreen extends StatefulWidget {
 
 class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     with WidgetsBindingObserver, SingleTickerProviderStateMixin {
-  // Serialized gait-event sampling target: 120 ms gives about 8 Hz timing
-  // resolution while keeping one MediaPipe inference active at a time.
-  static const _frameProcessingInterval = Duration(milliseconds: 120);
+  // Serialized inference keeps native MediaPipe backpressure intact while
+  // targeting 20 Hz contact-event resolution on capable devices.
+  static const _frameProcessingInterval = runningLiveGaitTargetFrameInterval;
   static const _repeatSpeechCooldown = Duration(seconds: 6);
   static const _changeSpeechCooldown = Duration(seconds: 2);
   static const _metricsLogInterval = Duration(seconds: 5);

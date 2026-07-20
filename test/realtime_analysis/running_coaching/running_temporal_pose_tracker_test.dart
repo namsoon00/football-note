@@ -2,10 +2,17 @@ import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/domain/entities/running_live_coaching_state.dart';
+import 'package:football_note/realtime_analysis/running_coaching/running_live_timing_config.dart';
 import 'package:football_note/realtime_analysis/running_coaching/running_temporal_pose_tracker.dart';
 
 void main() {
   group('RunningTemporalPoseTracker', () {
+    test('uses the shared live temporal resolution contract', () {
+      const config = RunningTemporalPoseTrackerConfig();
+
+      expect(config.targetFrameInterval, runningLiveGaitTargetFrameInterval);
+    });
+
     test('reduces landmark jitter with timestamp-aware smoothing', () {
       final tracker = RunningTemporalPoseTracker();
       final start = DateTime(2026, 7, 20, 9);

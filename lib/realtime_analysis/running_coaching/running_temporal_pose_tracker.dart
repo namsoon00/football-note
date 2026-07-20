@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:ui';
 
 import '../../domain/entities/running_live_coaching_state.dart';
+import 'running_live_timing_config.dart';
 
 class RunningTemporalPoseTrackerConfig {
   final double minimumInputLikelihood;
@@ -14,7 +15,7 @@ class RunningTemporalPoseTrackerConfig {
   const RunningTemporalPoseTrackerConfig({
     this.minimumInputLikelihood = 0.12,
     this.smoothingTimeConstant = const Duration(milliseconds: 140),
-    this.targetFrameInterval = const Duration(milliseconds: 120),
+    this.targetFrameInterval = runningLiveGaitTargetFrameInterval,
     this.maximumBridgeGap = const Duration(milliseconds: 180),
     this.maximumTrackingGap = const Duration(milliseconds: 650),
     this.maxOneFrameDisplacementRatio = 0.42,
