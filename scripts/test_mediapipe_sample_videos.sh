@@ -41,8 +41,10 @@ sample_end = 0.85
 min_confidence = 0.45
 minimum_valid_frames = 6
 minimum_detected_frames = 10
+minimum_pose_frame_timestamp_span_ms = 1200
 minimum_motion_ratio = 0.12
 required_indices = [11, 12, 23, 24, 25, 26, 27, 28]
+mediapipe_landmark_count = 33
 
 def confidence(landmark):
     values = []
@@ -96,7 +98,9 @@ for video in videos:
     height = int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT) or 0)
     detected = 0
     valid = 0
+    complete_pose_frames = 0
     confidence_values = []
+    pose_frame_timestamps = []
     valid_motion_samples = []
     last_timestamp_ms = 0
     with vision.PoseLandmarker.create_from_options(options()) as landmarker:
@@ -117,6 +121,9 @@ for video in videos:
                 continue
             detected += 1
             landmarks = result.pose_landmarks[0]
+            if len(landmarks) >= mediapipe_landmark_count:
+                complete_pose_frames += 1
+                pose_frame_timestamps.append(timestamp_ms)
             if len(landmarks) <= max(required_indices):
                 continue
             required_confidences = [confidence(landmarks[i]) for i in required_indices]
@@ -137,15 +144,29 @@ for video in videos:
         motion_ratio = abs(last[1][0] - first[1][0]) / max(average_scale, 1.0)
     else:
         motion_ratio = 0.0
+    timestamp_span_ms = (
+        pose_frame_timestamps[-1] - pose_frame_timestamps[0]
+        if len(pose_frame_timestamps) >= 2
+        else 0
+    )
+    timestamps_increasing = all(
+        later > earlier
+        for earlier, later in zip(pose_frame_timestamps, pose_frame_timestamps[1:])
+    )
     status = "PASS" if (
         detected >= minimum_detected_frames
+        and complete_pose_frames >= minimum_detected_frames
         and valid >= minimum_valid_frames
+        and timestamps_increasing
+        and timestamp_span_ms >= minimum_pose_frame_timestamp_span_ms
         and motion_ratio >= minimum_motion_ratio
     ) else "FAIL"
     overall_ok = overall_ok and status == "PASS"
     print(
         f"{video.name}: sampled={sample_count} detected={detected} "
-        f"valid={valid} detectionCoverage={detected / sample_count:.2f} "
+        f"poseFrames={complete_pose_frames} valid={valid} "
+        f"detectionCoverage={detected / sample_count:.2f} "
+        f"timestampSpanMs={timestamp_span_ms} "
         f"avgRequiredConfidence={avg_confidence:.3f} "
         f"hipMotionRatio={motion_ratio:.3f} status={status}"
     )

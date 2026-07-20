@@ -15,6 +15,7 @@ import '../../domain/entities/running_coach_session.dart';
 import '../../domain/entities/running_video_analysis_result.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../../gen/app_localizations.dart';
+import '../running_coach/running_pose_overlay.dart';
 import '../models/sample_runner_pose.dart';
 import 'running_coach_insight_copy.dart';
 import 'running_live_coach_screen.dart';
@@ -1038,7 +1039,12 @@ class _RunningCoachSampleCardState extends State<_RunningCoachSampleCard> {
               ),
             ),
             const SizedBox(height: 12),
-            _SampleVideoFrame(score: activeReport.overallScore, mode: _mode),
+            _SampleVideoFrame(
+              score: activeReport.overallScore,
+              mode: _mode,
+              result: activeResult,
+              report: activeReport,
+            ),
             const SizedBox(height: 12),
             _SampleAnalysisProcessPanel(
               title: l10n.runningCoachSampleProcessTitle,
@@ -1075,7 +1081,7 @@ class _RunningCoachSampleCardState extends State<_RunningCoachSampleCard> {
               panelKey: const ValueKey('running-coach-sample-joint-readouts'),
               title: modeTitle,
               body: modeBody,
-              cues: _modeReadouts(l10n, _mode),
+              cues: _modeReadouts(l10n, activeReport),
             ),
             const SizedBox(height: 12),
             _SampleFrameCuePanel(
@@ -1172,55 +1178,116 @@ class _RunningCoachSampleCardState extends State<_RunningCoachSampleCard> {
 
   List<_SampleFrameCue> _modeReadouts(
     AppLocalizations l10n,
-    _SampleVideoMode mode,
+    RunningCoachingReport report,
   ) {
-    if (mode == _SampleVideoMode.mistake) {
-      return [
-        _SampleFrameCue(
-          icon: Icons.straighten_rounded,
-          text: l10n.runningCoachSampleMistakePosture,
-        ),
-        _SampleFrameCue(
-          icon: Icons.ads_click_rounded,
-          text: l10n.runningCoachSampleMistakeFoot,
-        ),
-        _SampleFrameCue(
-          icon: Icons.timeline_rounded,
-          text: l10n.runningCoachSampleMistakeKnee,
-        ),
-        _SampleFrameCue(
-          icon: Icons.open_in_full_rounded,
-          text: l10n.runningCoachSampleMistakeArms,
-        ),
-        _SampleFrameCue(
-          icon: Icons.swap_vert_rounded,
-          text: l10n.runningCoachSampleMistakeBounce,
-        ),
-      ];
-    }
+    const order = [
+      RunningCoachMetric.posture,
+      RunningCoachMetric.footStrike,
+      RunningCoachMetric.kneeFlexion,
+      RunningCoachMetric.armCarriage,
+      RunningCoachMetric.bounce,
+    ];
     return [
-      _SampleFrameCue(
-        icon: Icons.straighten_rounded,
-        text: l10n.runningCoachSampleReferencePosture,
-      ),
-      _SampleFrameCue(
-        icon: Icons.ads_click_rounded,
-        text: l10n.runningCoachSampleReferenceFoot,
-      ),
-      _SampleFrameCue(
-        icon: Icons.timeline_rounded,
-        text: l10n.runningCoachSampleReferenceKnee,
-      ),
-      _SampleFrameCue(
-        icon: Icons.sync_alt_rounded,
-        text: l10n.runningCoachSampleReferenceArms,
-      ),
-      _SampleFrameCue(
-        icon: Icons.center_focus_strong_rounded,
-        text: l10n.runningCoachSampleReferenceFrame,
-      ),
+      for (final metric in order)
+        if (_insightForMetric(report, metric) case final insight?)
+          _SampleFrameCue(
+            icon: _sampleMetricIcon(metric),
+            text: _sampleReadoutText(l10n, insight),
+          ),
     ];
   }
+}
+
+RunningCoachingInsight? _insightForMetric(
+  RunningCoachingReport report,
+  RunningCoachMetric metric,
+) {
+  for (final insight in report.insights) {
+    if (insight.metric == metric) return insight;
+  }
+  return null;
+}
+
+IconData _sampleMetricIcon(RunningCoachMetric metric) {
+  return switch (metric) {
+    RunningCoachMetric.posture => Icons.show_chart_rounded,
+    RunningCoachMetric.bounce => Icons.swap_vert_rounded,
+    RunningCoachMetric.footStrike => Icons.ads_click_rounded,
+    RunningCoachMetric.kneeFlexion => Icons.timeline_rounded,
+    RunningCoachMetric.armCarriage => Icons.sync_alt_rounded,
+  };
+}
+
+String _sampleReadoutText(
+  AppLocalizations l10n,
+  RunningCoachingInsight insight,
+) {
+  final copy = RunningCoachInsightCopy.fromInsight(insight, l10n);
+  return l10n.runningCoachSampleReadoutValue(
+    copy.title,
+    copy.value,
+    copy.statusLabel,
+  );
+}
+
+List<_SampleDecisionMetric> _sampleDecisionMetrics(
+  AppLocalizations l10n,
+  RunningCoachingReport report,
+) {
+  final configs = <({
+    RunningCoachMetric metric,
+    _SampleDecisionMetricKind kind,
+    String label,
+  })>[
+    (
+      metric: RunningCoachMetric.posture,
+      kind: _SampleDecisionMetricKind.posture,
+      label: l10n.runningCoachSampleMetricPosture,
+    ),
+    (
+      metric: RunningCoachMetric.armCarriage,
+      kind: _SampleDecisionMetricKind.arms,
+      label: l10n.runningCoachSampleMetricArms,
+    ),
+    (
+      metric: RunningCoachMetric.footStrike,
+      kind: _SampleDecisionMetricKind.landing,
+      label: l10n.runningCoachSampleMetricLanding,
+    ),
+    (
+      metric: RunningCoachMetric.bounce,
+      kind: _SampleDecisionMetricKind.bounce,
+      label: l10n.runningCoachSampleMetricBounce,
+    ),
+  ];
+
+  return [
+    for (final config in configs)
+      if (_insightForMetric(report, config.metric) case final insight?)
+        _sampleDecisionMetricFromInsight(
+          l10n,
+          insight: insight,
+          kind: config.kind,
+          label: config.label,
+        ),
+  ];
+}
+
+_SampleDecisionMetric _sampleDecisionMetricFromInsight(
+  AppLocalizations l10n, {
+  required RunningCoachingInsight insight,
+  required _SampleDecisionMetricKind kind,
+  required String label,
+}) {
+  final copy = RunningCoachInsightCopy.fromInsight(insight, l10n);
+  return _SampleDecisionMetric(
+    kind: kind,
+    icon: _sampleMetricIcon(insight.metric),
+    label: label,
+    value: copy.value,
+    status: insight.status,
+    statusLabel: copy.statusLabel,
+  );
 }
 
 class _SampleAnalysisStep {
@@ -1548,8 +1615,15 @@ class _SampleFrameCueChip extends StatelessWidget {
 class _SampleVideoFrame extends StatefulWidget {
   final int score;
   final _SampleVideoMode mode;
+  final RunningVideoAnalysisResult result;
+  final RunningCoachingReport report;
 
-  const _SampleVideoFrame({required this.score, required this.mode});
+  const _SampleVideoFrame({
+    required this.score,
+    required this.mode,
+    required this.result,
+    required this.report,
+  });
 
   @override
   State<_SampleVideoFrame> createState() => _SampleVideoFrameState();
@@ -1617,53 +1691,11 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame> {
     final scheme = Theme.of(context).colorScheme;
     final isMistake = widget.mode == _SampleVideoMode.mistake;
     final runnerColor = isMistake ? scheme.error : scheme.primary;
-    final postureOverlay = isMistake
-        ? l10n.runningCoachSampleMistakeOverlayPosture
-        : l10n.runningCoachSampleOverlayPosture;
-    final armsOverlay = isMistake
-        ? l10n.runningCoachSampleMistakeOverlayArms
-        : l10n.runningCoachSampleOverlayArms;
-    final footOverlay = isMistake
-        ? l10n.runningCoachSampleMistakeOverlayFoot
-        : l10n.runningCoachSampleOverlayFoot;
-    final fourthOverlay = isMistake
-        ? l10n.runningCoachSampleMistakeOverlayBounce
-        : l10n.runningCoachSampleOverlayBounce;
     final videoController = _videoController;
     final hasVideo = _isVideoReady &&
         videoController != null &&
         videoController.value.isInitialized;
-    final decisionMetrics = [
-      _SampleDecisionMetric(
-        kind: _SampleDecisionMetricKind.posture,
-        icon: Icons.show_chart_rounded,
-        label: l10n.runningCoachSampleMetricPosture,
-        value: postureOverlay,
-        isPass: !isMistake,
-      ),
-      _SampleDecisionMetric(
-        kind: _SampleDecisionMetricKind.arms,
-        icon: Icons.sync_alt_rounded,
-        label: l10n.runningCoachSampleMetricArms,
-        value: armsOverlay,
-        isPass: !isMistake,
-      ),
-      _SampleDecisionMetric(
-        kind: _SampleDecisionMetricKind.landing,
-        icon: Icons.ads_click_rounded,
-        label: l10n.runningCoachSampleMetricLanding,
-        value: footOverlay,
-        isPass: !isMistake,
-      ),
-      _SampleDecisionMetric(
-        kind: _SampleDecisionMetricKind.bounce,
-        icon:
-            isMistake ? Icons.warning_amber_rounded : Icons.fact_check_outlined,
-        label: l10n.runningCoachSampleMetricBounce,
-        value: fourthOverlay,
-        isPass: !isMistake,
-      ),
-    ];
+    final decisionMetrics = _sampleDecisionMetrics(l10n, widget.report);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -1690,27 +1722,32 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame> {
                         ),
                       ),
                     ),
-                    Positioned.fill(
-                      child: IgnorePointer(
-                        child: AnimatedBuilder(
-                          animation: videoController,
-                          builder: (context, _) {
-                            final progress =
-                                _sampleProgressFor(videoController);
-                            return CustomPaint(
-                              painter: _SampleVideoAnalysisPainter(
-                                progress: progress,
-                                isMistake: isMistake,
-                                primaryColor: runnerColor,
-                                secondaryColor: scheme.secondary,
-                                contactColor: scheme.tertiary,
-                                warningColor: scheme.error,
-                              ),
-                            );
-                          },
+                    if (widget.result.poseFrames.isNotEmpty)
+                      Positioned.fill(
+                        child: IgnorePointer(
+                          child: AnimatedBuilder(
+                            animation: videoController,
+                            builder: (context, _) {
+                              final poseFrame = runningPoseFrameAtPosition(
+                                frames: widget.result.poseFrames,
+                                position: videoController.value.position,
+                              );
+                              return CustomPaint(
+                                key: const ValueKey(
+                                  'running-coach-sample-real-pose-overlay',
+                                ),
+                                painter: _RunningPoseOverlayPainter(
+                                  poseFrame: poseFrame,
+                                  primaryColor: runnerColor,
+                                  secondaryColor: scheme.secondary,
+                                  contactColor: scheme.tertiary,
+                                  warningColor: scheme.error,
+                                ),
+                              );
+                            },
+                          ),
                         ),
                       ),
-                    ),
                     Positioned(
                       left: 12,
                       right: 12,
@@ -1719,20 +1756,40 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame> {
                         animation: videoController,
                         builder: (context, _) {
                           final progress = _sampleProgressFor(videoController);
-                          final frameNumber =
-                              ((progress * _sampleTimelineFrameCount).floor() %
+                          final poseFrames = widget.result.poseFrames;
+                          final poseFrameIndex = nearestRunningPoseFrameIndex(
+                            frames: poseFrames,
+                            position: videoController.value.position,
+                          );
+                          final frameNumber = poseFrameIndex == null
+                              ? ((progress * _sampleTimelineFrameCount)
+                                          .floor() %
                                       _sampleTimelineFrameCount) +
-                                  1;
+                                  1
+                              : poseFrameIndex + 1;
+                          final frameCount = poseFrames.isEmpty
+                              ? _sampleTimelineFrameCount
+                              : poseFrames.length;
                           return Row(
                             children: [
-                              _VideoOverlayPill(
-                                text: l10n.runningCoachSampleFrameLabel(
-                                  frameNumber,
-                                  _sampleTimelineFrameCount,
+                              Flexible(
+                                flex: 3,
+                                child: Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: _VideoOverlayPill(
+                                    text: poseFrames.isEmpty
+                                        ? l10n
+                                            .runningCoachSamplePoseOverlayUnavailable
+                                        : l10n.runningCoachSampleFrameLabel(
+                                            frameNumber,
+                                            frameCount,
+                                          ),
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: 8),
-                              Expanded(
+                              Flexible(
+                                flex: 4,
                                 child: Center(
                                   child: _VideoOverlayPill(
                                     key: const ValueKey(
@@ -1746,7 +1803,15 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame> {
                                 ),
                               ),
                               const SizedBox(width: 8),
-                              _VideoOverlayPill(text: '${widget.score}'),
+                              Flexible(
+                                flex: 2,
+                                child: Align(
+                                  alignment: Alignment.centerRight,
+                                  child: _VideoOverlayPill(
+                                    text: '${widget.score}',
+                                  ),
+                                ),
+                              ),
                             ],
                           );
                         },
@@ -1791,8 +1856,6 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame> {
           score: widget.score,
           title: l10n.runningCoachSampleDecisionTitle,
           scoreLabel: l10n.runningCoachOverallScoreLabel,
-          statusPass: l10n.runningCoachSampleStatusPass,
-          statusReview: l10n.runningCoachSampleStatusReview,
           metrics: decisionMetrics,
           onMetricTap: _openMetricDetail,
         ),
@@ -1832,15 +1895,19 @@ class _SampleDecisionMetric {
   final IconData icon;
   final String label;
   final String value;
-  final bool isPass;
+  final RunningCoachStatus status;
+  final String statusLabel;
 
   const _SampleDecisionMetric({
     required this.kind,
     required this.icon,
     required this.label,
     required this.value,
-    required this.isPass,
+    required this.status,
+    required this.statusLabel,
   });
+
+  bool get isPass => status == RunningCoachStatus.good;
 }
 
 class _SampleDecisionOverlay extends StatelessWidget {
@@ -1848,8 +1915,6 @@ class _SampleDecisionOverlay extends StatelessWidget {
   final int score;
   final String title;
   final String scoreLabel;
-  final String statusPass;
-  final String statusReview;
   final List<_SampleDecisionMetric> metrics;
   final ValueChanged<_SampleDecisionMetric>? onMetricTap;
 
@@ -1858,8 +1923,6 @@ class _SampleDecisionOverlay extends StatelessWidget {
     required this.score,
     required this.title,
     required this.scoreLabel,
-    required this.statusPass,
-    required this.statusReview,
     required this.metrics,
     this.onMetricTap,
   });
@@ -1924,8 +1987,6 @@ class _SampleDecisionOverlay extends StatelessWidget {
                     _SampleDecisionMetricTile(
                       metric: metric,
                       compact: true,
-                      statusPass: statusPass,
-                      statusReview: statusReview,
                       onTap: onMetricTap == null
                           ? null
                           : () => onMetricTap!(metric),
@@ -1940,8 +2001,6 @@ class _SampleDecisionOverlay extends StatelessWidget {
                     _SampleDecisionMetricTile(
                       metric: metric,
                       compact: false,
-                      statusPass: statusPass,
-                      statusReview: statusReview,
                       onTap: onMetricTap == null
                           ? null
                           : () => onMetricTap!(metric),
@@ -1958,23 +2017,19 @@ class _SampleDecisionOverlay extends StatelessWidget {
 class _SampleDecisionMetricTile extends StatelessWidget {
   final _SampleDecisionMetric metric;
   final bool compact;
-  final String statusPass;
-  final String statusReview;
   final VoidCallback? onTap;
 
   const _SampleDecisionMetricTile({
     required this.metric,
     required this.compact,
-    required this.statusPass,
-    required this.statusReview,
     this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final statusColor = metric.isPass ? scheme.primary : scheme.error;
-    final status = metric.isPass ? statusPass : statusReview;
+    final statusColor = _statusAccentColor(metric.status);
+    final status = metric.statusLabel;
     final borderRadius = BorderRadius.circular(8);
     final tile = Material(
       color: statusColor.withValues(alpha: metric.isPass ? 0.10 : 0.14),
@@ -2079,9 +2134,7 @@ class _SampleMetricDetailScreen extends StatelessWidget {
     final sampleLabel = isMistake
         ? l10n.runningCoachSampleMistakeTab
         : l10n.runningCoachSampleReferenceTab;
-    final status = metric.isPass
-        ? l10n.runningCoachSampleStatusPass
-        : l10n.runningCoachSampleStatusReview;
+    final status = metric.statusLabel;
     final detail = _SampleMetricDetailCopy.forKind(l10n, metric.kind);
     return Scaffold(
       key: const ValueKey('running-coach-sample-metric-detail'),
@@ -2671,17 +2724,15 @@ class _VideoOverlayPill extends StatelessWidget {
   }
 }
 
-class _SampleVideoAnalysisPainter extends CustomPainter {
-  final double progress;
-  final bool isMistake;
+class _RunningPoseOverlayPainter extends CustomPainter {
+  final RunningPoseFrame? poseFrame;
   final Color primaryColor;
   final Color secondaryColor;
   final Color contactColor;
   final Color warningColor;
 
-  const _SampleVideoAnalysisPainter({
-    required this.progress,
-    required this.isMistake,
+  const _RunningPoseOverlayPainter({
+    required this.poseFrame,
     required this.primaryColor,
     required this.secondaryColor,
     required this.contactColor,
@@ -2690,636 +2741,191 @@ class _SampleVideoAnalysisPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final phasePosition = progress * _sampleAnalysisPhaseCount;
-    final activePhase =
-        phasePosition.floor().clamp(0, _sampleAnalysisPhaseCount - 1).toInt();
-    final phaseProgress = phasePosition - activePhase;
-    final runner = _SampleVideoRunnerGeometry(
-      size,
-      progress,
-      isMistake: isMistake,
-    );
-    final frameAlpha = _phaseAlpha(activePhase, 0);
-    final jointAlpha = _phaseAlpha(activePhase, 1);
-    final muscleAlpha = _phaseAlpha(activePhase, 2);
-    final skeletonAlpha = _phaseAlpha(activePhase, 3);
-    final angleAlpha = _phaseAlpha(activePhase, 4);
-    final scoreAlpha = _phaseAlpha(activePhase, 5);
+    final frame = poseFrame;
+    if (frame == null) return;
 
-    _drawFrameSampling(canvas, size, runner, phaseProgress, frameAlpha);
-    _drawMuscleMap(canvas, runner, muscleAlpha);
-    _drawLandmarks(canvas, runner, jointAlpha);
-    _drawSkeleton(canvas, runner, skeletonAlpha);
-    _drawAngles(canvas, runner, angleAlpha);
-    _drawContactRead(canvas, runner, scoreAlpha);
-    _drawFormRead(canvas, runner, scoreAlpha);
+    for (final connection in _mediaPipePoseConnections) {
+      _drawConnection(canvas, size, frame, connection);
+    }
+    for (final landmark in frame.landmarks) {
+      _drawLandmark(canvas, size, frame, landmark);
+    }
   }
 
-  double _phaseAlpha(int activePhase, int phase) {
-    if (activePhase == phase) return 1;
-    if (activePhase > phase) return 0.62;
-    return 0.18;
-  }
-
-  void _drawFrameSampling(
+  void _drawConnection(
     Canvas canvas,
     Size size,
-    _SampleVideoRunnerGeometry runner,
-    double phaseProgress,
-    double alpha,
+    RunningPoseFrame frame,
+    _PoseConnection connection,
   ) {
-    final frameColor = primaryColor.withValues(alpha: 0.48 * alpha);
-    final runnerBounds = runner.bounds;
-    final bodyRect = RRect.fromRectAndRadius(
-      Rect.fromLTRB(
-        runnerBounds.left - size.width * 0.032,
-        runnerBounds.top - size.height * 0.060,
-        runnerBounds.right + size.width * 0.052,
-        runnerBounds.bottom + size.height * 0.020,
-      ),
-      const Radius.circular(18),
-    );
-    _drawDashedRRect(
-      canvas,
-      bodyRect,
-      Paint()
-        ..color = frameColor
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = math.max(1.2, size.height * 0.006),
-      dash: math.max(5.0, size.width * 0.012),
-      gap: math.max(4.0, size.width * 0.008),
-    );
+    final first = frame.landmarkByIndex(connection.first);
+    final second = frame.landmarkByIndex(connection.second);
+    if (first == null || second == null) return;
+    final confidence = math.min(first.confidence, second.confidence);
+    if (confidence < runningPoseOverlayMinimumConnectionConfidence) return;
 
-    final scanX = math.max(
-      bodyRect.left,
-      math.min(bodyRect.right, bodyRect.left + bodyRect.width * phaseProgress),
-    );
+    final confidenceT =
+        ((confidence - runningPoseOverlayMinimumConnectionConfidence) /
+                (1.0 - runningPoseOverlayMinimumConnectionConfidence))
+            .clamp(0.0, 1.0)
+            .toDouble();
+    final alpha = _sampleLerpDouble(0.24, 0.86, confidenceT);
+    final width = switch (connection.kind) {
+      _PoseConnectionKind.face => size.shortestSide * 0.0048,
+      _PoseConnectionKind.hand ||
+      _PoseConnectionKind.foot =>
+        size.shortestSide * 0.0054,
+      _PoseConnectionKind.torso => size.shortestSide * 0.0074,
+      _ => size.shortestSide * 0.0064,
+    };
+    final color = switch (connection.kind) {
+      _PoseConnectionKind.face => secondaryColor,
+      _PoseConnectionKind.arm || _PoseConnectionKind.hand => secondaryColor,
+      _PoseConnectionKind.torso => primaryColor,
+      _PoseConnectionKind.leg || _PoseConnectionKind.foot => contactColor,
+    };
+
     canvas.drawLine(
-      Offset(scanX, bodyRect.top),
-      Offset(scanX, bodyRect.bottom),
+      _coverPoint(size, frame, first),
+      _coverPoint(size, frame, second),
       Paint()
-        ..color = primaryColor.withValues(alpha: 0.50 * alpha)
-        ..strokeWidth = math.max(1.0, size.height * 0.005)
-        ..strokeCap = StrokeCap.round,
-    );
-    canvas.drawRect(
-      Rect.fromLTRB(bodyRect.left, bodyRect.top, scanX, bodyRect.bottom),
-      Paint()..color = primaryColor.withValues(alpha: 0.045 * alpha),
+        ..color = color.withValues(alpha: alpha)
+        ..strokeWidth = math.max(1.1, width)
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round,
     );
   }
 
-  void _drawLandmarks(
+  void _drawLandmark(
     Canvas canvas,
-    _SampleVideoRunnerGeometry runner,
-    double alpha,
+    Size size,
+    RunningPoseFrame frame,
+    RunningVideoPoseLandmark landmark,
   ) {
-    final ringPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.4
-      ..color = Colors.white.withValues(alpha: 0.50 * alpha);
-    for (final joint in runner.joints) {
-      canvas.drawCircle(joint, runner.scale * 0.010, ringPaint);
+    if (landmark.confidence < runningPoseOverlayMinimumJointConfidence) {
+      return;
+    }
+    final confidenceT =
+        ((landmark.confidence - runningPoseOverlayMinimumJointConfidence) /
+                (1.0 - runningPoseOverlayMinimumJointConfidence))
+            .clamp(0.0, 1.0)
+            .toDouble();
+    final center = _coverPoint(size, frame, landmark);
+    final radius = _jointRadius(size, landmark.index);
+    final alpha = _sampleLerpDouble(0.22, 0.92, confidenceT);
+    final color = _jointColor(landmark.index);
+    canvas.drawCircle(
+      center,
+      radius * 1.62,
+      Paint()..color = Colors.black.withValues(alpha: 0.18 * alpha),
+    );
+    canvas.drawCircle(
+      center,
+      radius * 1.18,
+      Paint()
+        ..color = Colors.white.withValues(alpha: 0.54 * alpha)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = math.max(1.0, radius * 0.34),
+    );
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()..color = color.withValues(alpha: alpha),
+    );
+    if (landmark.confidence < 0.45) {
       canvas.drawCircle(
-        joint,
-        runner.scale * 0.006,
-        Paint()..color = secondaryColor.withValues(alpha: 0.92 * alpha),
+        center,
+        radius * 1.55,
+        Paint()
+          ..color = warningColor.withValues(alpha: 0.18)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = math.max(1.0, radius * 0.28),
       );
     }
   }
 
-  void _drawMuscleMap(
-    Canvas canvas,
-    _SampleVideoRunnerGeometry runner,
-    double alpha,
+  Offset _coverPoint(
+    Size size,
+    RunningPoseFrame frame,
+    RunningVideoPoseLandmark landmark,
   ) {
-    if (alpha <= 0) return;
-    final contactColorForLoad = isMistake ? warningColor : contactColor;
-    final quietColor = secondaryColor;
-
-    _drawTorsoMass(canvas, runner, alpha);
-    _drawMuscleSegment(
-      canvas,
-      runner.contactHip,
-      runner.contactKnee,
-      runner.scale * 0.048,
-      contactColorForLoad,
-      alpha,
-    );
-    _drawMuscleSegment(
-      canvas,
-      runner.contactKnee,
-      runner.contactAnkle,
-      runner.scale * 0.040,
-      contactColorForLoad,
-      alpha,
-    );
-    _drawMuscleSegment(
-      canvas,
-      runner.swingHip,
-      runner.swingKnee,
-      runner.scale * 0.043,
-      quietColor,
-      alpha * 0.82,
-    );
-    _drawMuscleSegment(
-      canvas,
-      runner.swingKnee,
-      runner.swingAnkle,
-      runner.scale * 0.034,
-      quietColor,
-      alpha * 0.82,
-    );
-    _drawMuscleSegment(
-      canvas,
-      runner.frontShoulder,
-      runner.frontElbow,
-      runner.scale * 0.030,
-      secondaryColor,
-      alpha * 0.76,
-    );
-    _drawMuscleSegment(
-      canvas,
-      runner.frontElbow,
-      runner.frontWrist,
-      runner.scale * 0.024,
-      secondaryColor,
-      alpha * 0.70,
-    );
-    _drawMuscleSegment(
-      canvas,
-      runner.rearShoulder,
-      runner.rearElbow,
-      runner.scale * 0.030,
-      primaryColor,
-      alpha * 0.70,
-    );
-    _drawMuscleSegment(
-      canvas,
-      runner.rearElbow,
-      runner.rearWrist,
-      runner.scale * 0.024,
-      primaryColor,
-      alpha * 0.64,
-    );
-    _drawLoadHalo(
-      canvas,
-      runner.contactKnee,
-      runner.scale * 0.060,
-      contactColorForLoad,
-      alpha,
-    );
-    _drawLoadHalo(
-      canvas,
-      runner.contactAnkle,
-      runner.scale * 0.046,
-      contactColorForLoad,
-      alpha * 0.74,
+    return runningPoseCoverOffset(
+      landmark: landmark,
+      imageWidth: frame.imageWidth,
+      imageHeight: frame.imageHeight,
+      outputSize: size,
     );
   }
 
-  void _drawTorsoMass(
-    Canvas canvas,
-    _SampleVideoRunnerGeometry runner,
-    double alpha,
-  ) {
-    final torsoPath = Path()
-      ..moveTo(runner.rearShoulder.dx, runner.rearShoulder.dy)
-      ..quadraticBezierTo(
-        runner.shoulderMid.dx,
-        runner.shoulderMid.dy - runner.scale * 0.022,
-        runner.frontShoulder.dx,
-        runner.frontShoulder.dy,
-      )
-      ..lineTo(
-        runner.frontHip.dx + runner.scale * 0.018,
-        runner.frontHip.dy + runner.scale * 0.010,
-      )
-      ..quadraticBezierTo(
-        runner.hip.dx,
-        runner.hip.dy + runner.scale * 0.030,
-        runner.rearHip.dx - runner.scale * 0.018,
-        runner.rearHip.dy + runner.scale * 0.010,
-      )
-      ..close();
-    canvas.drawPath(
-      torsoPath,
-      Paint()
-        ..color = primaryColor.withValues(alpha: 0.16 * alpha)
-        ..style = PaintingStyle.fill,
-    );
-    canvas.drawPath(
-      torsoPath,
-      Paint()
-        ..color = Colors.white.withValues(alpha: 0.22 * alpha)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = math.max(1.0, runner.scale * 0.004),
-    );
-    canvas.drawLine(
-      runner.shoulderMid,
-      runner.hip,
-      Paint()
-        ..color = primaryColor.withValues(alpha: 0.28 * alpha)
-        ..strokeWidth = runner.scale * 0.014
-        ..strokeCap = StrokeCap.round,
-    );
+  Color _jointColor(int index) {
+    if (index <= 10) return secondaryColor;
+    if (index >= 23) return contactColor;
+    return primaryColor;
   }
 
-  void _drawMuscleSegment(
-    Canvas canvas,
-    Offset start,
-    Offset end,
-    double width,
-    Color color,
-    double alpha,
-  ) {
-    final outerPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.16 * alpha)
-      ..strokeWidth = width * 1.18
-      ..strokeCap = StrokeCap.round;
-    final fillPaint = Paint()
-      ..color = color.withValues(alpha: 0.20 * alpha)
-      ..strokeWidth = width
-      ..strokeCap = StrokeCap.round;
-    final fiberPaint = Paint()
-      ..color = color.withValues(alpha: 0.42 * alpha)
-      ..strokeWidth = math.max(1.0, width * 0.16)
-      ..strokeCap = StrokeCap.round;
-    canvas.drawLine(start, end, outerPaint);
-    canvas.drawLine(start, end, fillPaint);
-    final delta = end - start;
-    if (delta.distance == 0) return;
-    final normal = Offset(-delta.dy, delta.dx) / delta.distance;
-    canvas.drawLine(
-      start + normal * width * 0.18,
-      end + normal * width * 0.18,
-      fiberPaint,
-    );
-    canvas.drawLine(
-      start - normal * width * 0.18,
-      end - normal * width * 0.18,
-      fiberPaint..color = color.withValues(alpha: 0.24 * alpha),
-    );
-  }
-
-  void _drawLoadHalo(
-    Canvas canvas,
-    Offset center,
-    double radius,
-    Color color,
-    double alpha,
-  ) {
-    canvas.drawCircle(
-      center,
-      radius,
-      Paint()
-        ..color = color.withValues(alpha: 0.10 * alpha)
-        ..style = PaintingStyle.fill,
-    );
-    canvas.drawCircle(
-      center,
-      radius,
-      Paint()
-        ..color = color.withValues(alpha: 0.36 * alpha)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = math.max(1.0, radius * 0.10),
-    );
-  }
-
-  void _drawSkeleton(
-    Canvas canvas,
-    _SampleVideoRunnerGeometry runner,
-    double alpha,
-  ) {
-    final bonePaint = Paint()
-      ..color = secondaryColor.withValues(alpha: 0.60 * alpha)
-      ..strokeWidth = math.max(1.4, runner.scale * 0.008)
-      ..strokeCap = StrokeCap.round;
-    for (final bone in runner.bones) {
-      canvas.drawLine(bone.$1, bone.$2, bonePaint);
+  double _jointRadius(Size size, int index) {
+    final base = size.shortestSide;
+    if (index <= 10 || index >= 17 && index <= 22) {
+      return math.max(2.0, base * 0.0060);
     }
-    canvas.drawLine(
-      runner.neck,
-      runner.hip,
-      Paint()
-        ..color = primaryColor.withValues(alpha: 0.58 * alpha)
-        ..strokeWidth = math.max(1.6, runner.scale * 0.010)
-        ..strokeCap = StrokeCap.round,
-    );
-  }
-
-  void _drawAngles(
-    Canvas canvas,
-    _SampleVideoRunnerGeometry runner,
-    double alpha,
-  ) {
-    final guidePaint = Paint()
-      ..color = primaryColor.withValues(alpha: 0.55 * alpha)
-      ..strokeWidth = math.max(1.2, runner.scale * 0.006)
-      ..strokeCap = StrokeCap.round;
-    canvas.drawLine(runner.hip, runner.postureVerticalTop, guidePaint);
-    canvas.drawLine(
-      runner.hip,
-      runner.shoulderMid,
-      guidePaint..color = primaryColor.withValues(alpha: 0.42 * alpha),
-    );
-    _drawAngleArc(
-      canvas,
-      center: runner.frontKnee,
-      start: runner.frontHip,
-      end: runner.frontAnkle,
-      radius: runner.scale * 0.060,
-      color: contactColor.withValues(alpha: 0.82 * alpha),
-      strokeWidth: runner.scale * 0.010,
-    );
-    _drawAngleArc(
-      canvas,
-      center: runner.frontElbow,
-      start: runner.frontShoulder,
-      end: runner.frontWrist,
-      radius: runner.scale * 0.046,
-      color: secondaryColor.withValues(alpha: 0.72 * alpha),
-      strokeWidth: runner.scale * 0.008,
-    );
-    _drawAngleArc(
-      canvas,
-      center: runner.rearElbow,
-      start: runner.rearShoulder,
-      end: runner.rearWrist,
-      radius: runner.scale * 0.038,
-      color: secondaryColor.withValues(alpha: 0.42 * alpha),
-      strokeWidth: runner.scale * 0.007,
-    );
-  }
-
-  void _drawContactRead(
-    Canvas canvas,
-    _SampleVideoRunnerGeometry runner,
-    double alpha,
-  ) {
-    final readColor = isMistake ? warningColor : contactColor;
-    final landingWindow = RRect.fromRectAndRadius(
-      Rect.fromCenter(
-        center: Offset(runner.hip.dx, runner.groundY),
-        width: runner.scale * 0.250,
-        height: runner.scale * 0.044,
-      ),
-      Radius.circular(runner.scale * 0.022),
-    );
-    canvas.drawRRect(
-      landingWindow,
-      Paint()
-        ..color = readColor.withValues(alpha: 0.10 * alpha)
-        ..style = PaintingStyle.fill,
-    );
-    canvas.drawRRect(
-      landingWindow,
-      Paint()
-        ..color = readColor.withValues(alpha: 0.46 * alpha)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = math.max(1.0, runner.scale * 0.005),
-    );
-    canvas.drawLine(
-      Offset(runner.hip.dx, runner.hip.dy),
-      Offset(runner.hip.dx, runner.groundY),
-      Paint()
-        ..color = primaryColor.withValues(alpha: 0.32 * alpha)
-        ..strokeWidth = math.max(1.0, runner.scale * 0.006)
-        ..strokeCap = StrokeCap.round,
-    );
-    final contactPaint = Paint()
-      ..color = readColor.withValues(alpha: 0.28 * alpha)
-      ..style = PaintingStyle.fill;
-    canvas.drawOval(
-      Rect.fromCenter(
-        center:
-            Offset(runner.contactToe.dx - runner.scale * 0.035, runner.groundY),
-        width: runner.scale * 0.150,
-        height: runner.scale * 0.038,
-      ),
-      contactPaint,
-    );
-    _drawArrow(
-      canvas,
-      Offset(runner.contactToe.dx, runner.groundY - runner.scale * 0.006),
-      Offset(
-        runner.hip.dx + (isMistake ? -runner.scale * 0.050 : 0),
-        runner.hip.dy + runner.scale * 0.030,
-      ),
-      readColor.withValues(alpha: 0.66 * alpha),
-      runner.scale * 0.011,
-    );
-    canvas.drawLine(
-      Offset(runner.hip.dx, runner.groundY + runner.scale * 0.018),
-      Offset(runner.contactAnkle.dx, runner.groundY + runner.scale * 0.018),
-      Paint()
-        ..color = readColor.withValues(alpha: 0.70 * alpha)
-        ..strokeWidth = math.max(1.3, runner.scale * 0.008)
-        ..strokeCap = StrokeCap.round,
-    );
-    _drawBracket(
-      canvas,
-      Offset(runner.hip.dx, runner.groundY + runner.scale * 0.018),
-      Offset(runner.contactAnkle.dx, runner.groundY + runner.scale * 0.018),
-      readColor.withValues(alpha: 0.72 * alpha),
-      runner.scale * 0.020,
-    );
-    for (final offset in const <double>[0.0, 0.34, 0.68]) {
-      final x = runner.head.dx + runner.scale * (0.112 + offset * 0.050);
-      final y =
-          runner.head.dy - runner.scale * 0.030 - runner.scale * offset * 0.045;
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromLTWH(
-            x,
-            y,
-            runner.scale * 0.020,
-            runner.scale * (0.052 + offset * 0.050),
-          ),
-          Radius.circular(runner.scale * 0.010),
-        ),
-        Paint()..color = primaryColor.withValues(alpha: 0.42 * alpha),
-      );
-    }
-  }
-
-  void _drawFormRead(
-    Canvas canvas,
-    _SampleVideoRunnerGeometry runner,
-    double alpha,
-  ) {
-    final readColor = isMistake ? warningColor : contactColor;
-    final readPaint = Paint()
-      ..color = readColor.withValues(alpha: (isMistake ? 0.80 : 0.56) * alpha)
-      ..strokeWidth = math.max(2.0, runner.scale * 0.016)
-      ..strokeCap = StrokeCap.round;
-    final start =
-        Offset(runner.contactToe.dx + runner.scale * 0.050, runner.groundY);
-    final end =
-        Offset(runner.contactAnkle.dx - runner.scale * 0.110, runner.groundY);
-    canvas.drawLine(start, end, readPaint);
-    canvas.drawLine(
-      end,
-      Offset(end.dx + runner.scale * 0.048, end.dy - runner.scale * 0.034),
-      readPaint,
-    );
-    canvas.drawLine(
-      end,
-      Offset(end.dx + runner.scale * 0.048, end.dy + runner.scale * 0.034),
-      readPaint,
-    );
-    canvas.drawLine(
-      runner.neck,
-      runner.contactAnkle,
-      Paint()
-        ..color = readColor.withValues(alpha: (isMistake ? 0.36 : 0.26) * alpha)
-        ..strokeWidth = math.max(1.3, runner.scale * 0.008)
-        ..strokeCap = StrokeCap.round,
-    );
-    canvas.drawOval(
-      Rect.fromCenter(
-        center:
-            Offset(runner.contactToe.dx - runner.scale * 0.036, runner.groundY),
-        width: runner.scale * 0.152,
-        height: runner.scale * 0.044,
-      ),
-      Paint()
-        ..color =
-            readColor.withValues(alpha: (isMistake ? 0.26 : 0.16) * alpha),
-    );
-  }
-
-  void _drawAngleArc(
-    Canvas canvas, {
-    required Offset center,
-    required Offset start,
-    required Offset end,
-    required double radius,
-    required Color color,
-    required double strokeWidth,
-  }) {
-    final startAngle = math.atan2(start.dy - center.dy, start.dx - center.dx);
-    final endAngle = math.atan2(end.dy - center.dy, end.dx - center.dx);
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      startAngle,
-      _shortestAngleSweep(startAngle, endAngle),
-      false,
-      Paint()
-        ..color = color
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = strokeWidth
-        ..strokeCap = StrokeCap.round,
-    );
-  }
-
-  void _drawBracket(
-    Canvas canvas,
-    Offset start,
-    Offset end,
-    Color color,
-    double height,
-  ) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = math.max(1.0, height * 0.32)
-      ..strokeCap = StrokeCap.round;
-    canvas.drawLine(Offset(start.dx, start.dy - height),
-        Offset(start.dx, start.dy + height), paint);
-    canvas.drawLine(Offset(end.dx, end.dy - height),
-        Offset(end.dx, end.dy + height), paint);
-  }
-
-  void _drawArrow(
-    Canvas canvas,
-    Offset start,
-    Offset end,
-    Color color,
-    double strokeWidth,
-  ) {
-    final delta = end - start;
-    final distance = delta.distance;
-    if (distance == 0) return;
-    final direction = delta / distance;
-    final headLength = math.max(6.0, strokeWidth * 3.8);
-    final normal = Offset(-direction.dy, direction.dx);
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = strokeWidth
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-    canvas.drawLine(start, end, paint);
-    canvas.drawLine(
-      end,
-      end - direction * headLength + normal * headLength * 0.52,
-      paint,
-    );
-    canvas.drawLine(
-      end,
-      end - direction * headLength - normal * headLength * 0.52,
-      paint,
-    );
-  }
-
-  void _drawDashedRRect(
-    Canvas canvas,
-    RRect rrect,
-    Paint paint, {
-    required double dash,
-    required double gap,
-  }) {
-    _drawDashedLine(canvas, rrect.tlRadius.x, rrect.left, rrect.top,
-        rrect.right, rrect.top, paint, dash, gap);
-    _drawDashedLine(canvas, rrect.tlRadius.x, rrect.right, rrect.top,
-        rrect.right, rrect.bottom, paint, dash, gap);
-    _drawDashedLine(canvas, rrect.tlRadius.x, rrect.right, rrect.bottom,
-        rrect.left, rrect.bottom, paint, dash, gap);
-    _drawDashedLine(canvas, rrect.tlRadius.x, rrect.left, rrect.bottom,
-        rrect.left, rrect.top, paint, dash, gap);
-  }
-
-  void _drawDashedLine(
-    Canvas canvas,
-    double radius,
-    double startX,
-    double startY,
-    double endX,
-    double endY,
-    Paint paint,
-    double dash,
-    double gap,
-  ) {
-    final start = Offset(startX, startY);
-    final end = Offset(endX, endY);
-    final delta = end - start;
-    final distance = delta.distance;
-    if (distance == 0) return;
-    final direction = delta / distance;
-    var drawn = radius;
-    while (drawn < distance - radius) {
-      final segmentEnd = math.min(drawn + dash, distance - radius);
-      canvas.drawLine(
-          start + direction * drawn, start + direction * segmentEnd, paint);
-      drawn += dash + gap;
-    }
-  }
-
-  double _shortestAngleSweep(double start, double end) {
-    var sweep = (end - start) % (math.pi * 2);
-    if (sweep > math.pi) sweep -= math.pi * 2;
-    if (sweep < -math.pi) sweep += math.pi * 2;
-    return sweep;
+    return math.max(2.4, base * 0.0072);
   }
 
   @override
-  bool shouldRepaint(covariant _SampleVideoAnalysisPainter oldDelegate) {
-    return oldDelegate.progress != progress ||
-        oldDelegate.isMistake != isMistake ||
+  bool shouldRepaint(covariant _RunningPoseOverlayPainter oldDelegate) {
+    return oldDelegate.poseFrame != poseFrame ||
         oldDelegate.primaryColor != primaryColor ||
         oldDelegate.secondaryColor != secondaryColor ||
         oldDelegate.contactColor != contactColor ||
         oldDelegate.warningColor != warningColor;
   }
 }
+
+enum _PoseConnectionKind { face, arm, hand, torso, leg, foot }
+
+class _PoseConnection {
+  final int first;
+  final int second;
+  final _PoseConnectionKind kind;
+
+  const _PoseConnection(this.first, this.second, this.kind);
+}
+
+const _mediaPipePoseConnections = <_PoseConnection>[
+  _PoseConnection(0, 2, _PoseConnectionKind.face),
+  _PoseConnection(0, 5, _PoseConnectionKind.face),
+  _PoseConnection(2, 7, _PoseConnectionKind.face),
+  _PoseConnection(5, 8, _PoseConnectionKind.face),
+  _PoseConnection(9, 10, _PoseConnectionKind.face),
+  _PoseConnection(11, 12, _PoseConnectionKind.torso),
+  _PoseConnection(11, 23, _PoseConnectionKind.torso),
+  _PoseConnection(12, 24, _PoseConnectionKind.torso),
+  _PoseConnection(23, 24, _PoseConnectionKind.torso),
+  _PoseConnection(11, 13, _PoseConnectionKind.arm),
+  _PoseConnection(13, 15, _PoseConnectionKind.arm),
+  _PoseConnection(15, 17, _PoseConnectionKind.hand),
+  _PoseConnection(15, 19, _PoseConnectionKind.hand),
+  _PoseConnection(15, 21, _PoseConnectionKind.hand),
+  _PoseConnection(17, 19, _PoseConnectionKind.hand),
+  _PoseConnection(12, 14, _PoseConnectionKind.arm),
+  _PoseConnection(14, 16, _PoseConnectionKind.arm),
+  _PoseConnection(16, 18, _PoseConnectionKind.hand),
+  _PoseConnection(16, 20, _PoseConnectionKind.hand),
+  _PoseConnection(16, 22, _PoseConnectionKind.hand),
+  _PoseConnection(18, 20, _PoseConnectionKind.hand),
+  _PoseConnection(23, 25, _PoseConnectionKind.leg),
+  _PoseConnection(25, 27, _PoseConnectionKind.leg),
+  _PoseConnection(27, 29, _PoseConnectionKind.foot),
+  _PoseConnection(29, 31, _PoseConnectionKind.foot),
+  _PoseConnection(27, 31, _PoseConnectionKind.foot),
+  _PoseConnection(24, 26, _PoseConnectionKind.leg),
+  _PoseConnection(26, 28, _PoseConnectionKind.leg),
+  _PoseConnection(28, 30, _PoseConnectionKind.foot),
+  _PoseConnection(30, 32, _PoseConnectionKind.foot),
+  _PoseConnection(28, 32, _PoseConnectionKind.foot),
+];
+
+double _sampleLerpDouble(double a, double b, double t) => a + ((b - a) * t);
 
 class _SampleVideoRunnerGeometry {
   final Size size;

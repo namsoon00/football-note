@@ -8288,36 +8288,43 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachSampleReferencePosture =>
-      '前傾: 肩の中心が腰の垂直線より10°前にあり、腰折れはありません。';
+      '前傾: コーチは肩と腰のラインを読み、現在の姿勢値を表示します。';
 
   @override
-  String get runningCoachSampleReferenceFoot => '接地点: 着地距離は0.08で、腰の下に近く収まります。';
+  String get runningCoachSampleReferenceFoot =>
+      '接地点: コーチは着地足と腰のラインを比較してからブレーキリスクを判断します。';
 
   @override
-  String get runningCoachSampleReferenceKnee => '接地膝: 155°で、ロックせず柔らかく負荷を受けます。';
+  String get runningCoachSampleReferenceKnee =>
+      '接地膝: コーチは検出された腰、膝、足首から荷重時の膝角度を表示します。';
 
   @override
-  String get runningCoachSampleReferenceArms => '腕角度: 肘は90°付近で、脚と反対に振れます。';
+  String get runningCoachSampleReferenceArms =>
+      '腕角度: コーチは各サンプルフレームで肩、肘、手首のランドマークを読みます。';
 
   @override
   String get runningCoachSampleReferenceFrame =>
-      'フレーム品質: 主要関節が見える24/24の使用可能フレーム。';
+      'フレーム品質: 使用可能フレームは固定のサンプルラベルではなく、見えているMediaPipe関節で決まります。';
 
   @override
   String get runningCoachSampleMistakePosture =>
-      '前傾: 肩の中心が腰の垂直線から4°だけで、体が立ちすぎています。';
+      '前傾: コーチはこのクリップにも同じ姿勢指標と状態を表示します。';
 
   @override
-  String get runningCoachSampleMistakeFoot => '接地点: 腰より0.20前に着き、ブレーキが増えます。';
+  String get runningCoachSampleMistakeFoot =>
+      '接地点: コーチは検出された着地距離を使ってから状態を割り当てます。';
 
   @override
-  String get runningCoachSampleMistakeKnee => '接地膝: 172°で、受けて押すには伸びすぎています。';
+  String get runningCoachSampleMistakeKnee =>
+      '接地膝: コーチはposeFramesから実際の接地区間の膝角度を読みます。';
 
   @override
-  String get runningCoachSampleMistakeArms => '腕角度: 肘が118°付近まで上がり、腕振りが高く窮屈です。';
+  String get runningCoachSampleMistakeArms =>
+      '腕角度: コーチは固定サンプル値ではなく、検出された肘角度を使います。';
 
   @override
-  String get runningCoachSampleMistakeBounce => 'バウンス: 上下動が10%まで増え、力が上へ逃げます。';
+  String get runningCoachSampleMistakeBounce =>
+      'バウンス: コーチは分析フレームから測定した上下動を表示します。';
 
   @override
   String get runningCoachSampleAnalysisMethodTitle => 'コーチの分析方法';
@@ -8394,31 +8401,40 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachSampleStatusReview => '確認';
 
   @override
-  String get runningCoachSampleOverlayPosture => 'リーン10°';
+  String get runningCoachSamplePoseOverlayUnavailable => '関節フレームなし';
 
   @override
-  String get runningCoachSampleOverlayArms => 'アーム90°';
+  String runningCoachSampleReadoutValue(
+      Object metric, Object value, Object status) {
+    return '$metric: $value · $status';
+  }
 
   @override
-  String get runningCoachSampleOverlayFoot => '着地 0.08';
+  String get runningCoachSampleOverlayPosture => '前傾値';
 
   @override
-  String get runningCoachSampleOverlayBounce => '上下 6%';
+  String get runningCoachSampleOverlayArms => '腕の値';
 
   @override
-  String get runningCoachSampleOverlayFrames => '24/24フレーム';
+  String get runningCoachSampleOverlayFoot => '着地値';
 
   @override
-  String get runningCoachSampleMistakeOverlayPosture => '直立 4°';
+  String get runningCoachSampleOverlayBounce => '上下動値';
 
   @override
-  String get runningCoachSampleMistakeOverlayArms => '腕 118°';
+  String get runningCoachSampleOverlayFrames => '関節フレーム';
 
   @override
-  String get runningCoachSampleMistakeOverlayFoot => '前 0.20';
+  String get runningCoachSampleMistakeOverlayPosture => '前傾値';
 
   @override
-  String get runningCoachSampleMistakeOverlayBounce => '上下 10%';
+  String get runningCoachSampleMistakeOverlayArms => '腕の値';
+
+  @override
+  String get runningCoachSampleMistakeOverlayFoot => '着地値';
+
+  @override
+  String get runningCoachSampleMistakeOverlayBounce => '上下動値';
 
   @override
   String get runningCoachSampleMetricDetailScreenTitle => '根拠の詳細';
@@ -8453,7 +8469,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachSamplePostureDetailGoodRange =>
-      '腰-肩の中心線で前傾8-24°。良いサンプル値は10°です。';
+      '前傾はコーチングガイド範囲と、このクリップの実測値を合わせて比較します。';
 
   @override
   String get runningCoachSamplePostureDetailKeyPosition =>
@@ -8465,7 +8481,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachSamplePostureDetailReview =>
-      '確認サンプルは4°でスプリント範囲より低く、前へ押すより体が立っています。';
+      '測定された前傾がこのランのコーチング範囲から外れると、確認状態として表示されます。';
 
   @override
   String get runningCoachSamplePostureDetailHowRead =>
@@ -8481,7 +8497,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachSampleArmsDetailReference =>
-      '良いサンプルは肘を90度付近に保ち、肋骨の近くで前後に振ります。';
+      '良いクリップは肘をコンパクトに保ち、肋骨の近くで前後に振ります。';
 
   @override
   String get runningCoachSampleArmsDetailReview =>
@@ -8493,7 +8509,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachSampleLandingDetailGoodRange =>
-      '腰の線から接地距離0.00-0.10体長。良いサンプル値は0.08です。';
+      '着地は腰のライン近くに入るコーチングガイド範囲と、このクリップの実測値を合わせて比較します。';
 
   @override
   String get runningCoachSampleLandingDetailKeyPosition =>
@@ -8513,7 +8529,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachSampleBounceDetailGoodRange =>
-      'ストライド中の頭/腰の高さ変化7%以下。良いサンプル値は6%です。';
+      '上下動は頭と腰の高さ変化に関するコーチングガイド範囲と、このクリップの実測値を合わせて比較します。';
 
   @override
   String get runningCoachSampleBounceDetailKeyPosition =>

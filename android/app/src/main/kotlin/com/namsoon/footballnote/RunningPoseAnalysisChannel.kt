@@ -75,7 +75,7 @@ class RunningPoseAnalysisChannel(
         }
     }
 
-    private fun analyzeVideo(path: String): Map<String, Any> {
+    private fun analyzeVideo(path: String): Map<String, Any?> {
         val file = File(path)
         if (!file.exists()) {
             throw AnalysisException("missing_file", "Video file is missing.")
@@ -99,6 +99,7 @@ class RunningPoseAnalysisChannel(
             val landmarker = makePoseLandmarker()
             poseLandmarker = landmarker
             val frameSamples = mutableListOf<FrameSample>()
+            val poseFrames = mutableListOf<Map<String, Any?>>()
             var lastTimestampMs = 0L
             repeat(sampleCount) { index ->
                 val fraction = if (sampleCount == 1) {
@@ -116,9 +117,15 @@ class RunningPoseAnalysisChannel(
                 try {
                     val requestedTimestampMs =
                         (durationMs.toDouble() * fraction).roundToLong()
-                    val timestampMs = max(requestedTimestampMs, lastTimestampMs + 1)
-                    lastTimestampMs = timestampMs
-                    val pose = detectPose(landmarker, bitmap, timestampMs)
+                    val analysisTimestampMs = max(requestedTimestampMs, lastTimestampMs + 1)
+                    lastTimestampMs = analysisTimestampMs
+                    val pose = detectPose(landmarker, bitmap, analysisTimestampMs)
+                    poseFrameFromResult(
+                        pose,
+                        timestampMs = requestedTimestampMs,
+                        imageWidth = bitmap.width,
+                        imageHeight = bitmap.height,
+                    )?.let(poseFrames::add)
                     extractFrameSample(
                         pose,
                         imageWidth = bitmap.width,
@@ -174,6 +181,7 @@ class RunningPoseAnalysisChannel(
                 "footStrikeDistanceRatio" to roundTo3(footStrikeRatio),
                 "stanceKneeAngleDegrees" to roundTo3(stanceKneeAngle),
                 "elbowAngleDegrees" to roundTo3(elbowAngle),
+                "poseFrames" to poseFrames,
             )
         } finally {
             retriever.release()
@@ -238,6 +246,39 @@ class RunningPoseAnalysisChannel(
             "mediapipe_pose_failed",
             error.message ?: fallbackMessage,
         )
+
+    private fun poseFrameFromResult(
+        result: PoseLandmarkerResult,
+        timestampMs: Long,
+        imageWidth: Int,
+        imageHeight: Int,
+    ): Map<String, Any?>? {
+        val landmarks = result.landmarks().firstOrNull() ?: return null
+        if (landmarks.size < mediaPipePoseLandmarkCount) {
+            return null
+        }
+
+        return mapOf(
+            "timestampMs" to timestampMs.toInt(),
+            "imageWidth" to imageWidth,
+            "imageHeight" to imageHeight,
+            "landmarks" to landmarks
+                .take(mediaPipePoseLandmarkCount)
+                .mapIndexed { index, landmark ->
+                    val visibility = optionalFloat(landmark.visibility())
+                    val presence = optionalFloat(landmark.presence())
+                    mapOf(
+                        "index" to index,
+                        "x" to landmark.x().toDouble(),
+                        "y" to landmark.y().toDouble(),
+                        "z" to landmark.z().toDouble(),
+                        "visibility" to visibility?.toDouble(),
+                        "presence" to presence?.toDouble(),
+                        "confidence" to landmarkConfidence(landmark).toDouble(),
+                    )
+                },
+        )
+    }
 
     private fun extractFrameSample(
         result: PoseLandmarkerResult,
@@ -495,6 +536,7 @@ class RunningPoseAnalysisChannel(
         private const val minVideoDurationMs = 1500L
         private const val minimumLikelihood = 0.45f
         private const val minimumBodyScalePx = 40.0
+        private const val mediaPipePoseLandmarkCount = 33
         private const val sampleStartFraction = 0.15
         private const val sampleEndFraction = 0.85
         private const val stationaryThresholdRatio = 0.12

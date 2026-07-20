@@ -91,6 +91,7 @@ final class RunningPoseAnalysisChannel {
     let poseLandmarker = try makePoseLandmarker()
 
     var frameSamples: [FrameSample] = []
+    var poseFrames: [[String: Any]] = []
     var lastTimestampMs = 0
     for index in 0..<Self.sampleCount {
       let fraction: Double
@@ -105,22 +106,44 @@ final class RunningPoseAnalysisChannel {
 
       let captureTime = CMTime(seconds: durationSeconds * fraction, preferredTimescale: 600)
       try autoreleasepool {
-        guard let cgImage = try? imageGenerator.copyCGImage(at: captureTime, actualTime: nil) else {
+        var actualTime = CMTime.invalid
+        guard let cgImage = try? imageGenerator.copyCGImage(at: captureTime, actualTime: &actualTime) else {
           return
         }
         let image = UIImage(cgImage: cgImage)
+        let imageSize = CGSize(
+          width: CGFloat(cgImage.width),
+          height: CGFloat(cgImage.height)
+        )
         let mpImage = try MPImage(uiImage: image)
-        let timestampMs = max(
-          Int((CMTimeGetSeconds(captureTime) * 1000.0).rounded()),
-          lastTimestampMs + 1
+        let actualSeconds = CMTimeGetSeconds(actualTime)
+        let captureTimestampMs = Int(
+          (((actualTime.isValid && actualSeconds.isFinite) ? actualSeconds : CMTimeGetSeconds(captureTime)) * 1000.0)
+            .rounded()
         )
-        lastTimestampMs = timestampMs
+        let analysisTimestampMs = max(captureTimestampMs, lastTimestampMs + 1)
+        lastTimestampMs = analysisTimestampMs
 
-        let result = try poseLandmarker.detect(
-          videoFrame: mpImage,
-          timestampInMilliseconds: timestampMs
-        )
-        guard let sample = extractFrameSample(from: result, imageSize: image.size) else {
+        let result: PoseLandmarkerResult
+        do {
+          result = try poseLandmarker.detect(
+            videoFrame: mpImage,
+            timestampInMilliseconds: analysisTimestampMs
+          )
+        } catch {
+          throw mediaPipeFailure(
+            error,
+            fallbackMessage: "MediaPipe pose inference failed."
+          )
+        }
+        if let poseFrame = poseFrame(
+          from: result,
+          timestampMs: captureTimestampMs,
+          imageSize: imageSize
+        ) {
+          poseFrames.append(poseFrame)
+        }
+        guard let sample = extractFrameSample(from: result, imageSize: imageSize) else {
           return
         }
         frameSamples.append(sample)
@@ -170,6 +193,7 @@ final class RunningPoseAnalysisChannel {
       "footStrikeDistanceRatio": roundTo3(footStrikeRatio),
       "stanceKneeAngleDegrees": roundTo3(stanceKneeAngle),
       "elbowAngleDegrees": roundTo3(elbowAngle),
+      "poseFrames": poseFrames,
     ]
   }
 
@@ -191,7 +215,58 @@ final class RunningPoseAnalysisChannel {
     options.minPoseDetectionConfidence = Self.minimumLikelihood
     options.minPosePresenceConfidence = Self.minimumLikelihood
     options.minTrackingConfidence = Self.minimumLikelihood
-    return try PoseLandmarker(options: options)
+    do {
+      return try PoseLandmarker(options: options)
+    } catch {
+      throw mediaPipeFailure(
+        error,
+        fallbackMessage: "MediaPipe pose initialization failed."
+      )
+    }
+  }
+
+  private func mediaPipeFailure(_ error: Error, fallbackMessage: String) -> AnalysisError {
+    let message = error.localizedDescription.isEmpty
+      ? fallbackMessage
+      : error.localizedDescription
+    return AnalysisError(code: "mediapipe_pose_failed", message: message)
+  }
+
+  private func poseFrame(
+    from result: PoseLandmarkerResult,
+    timestampMs: Int,
+    imageSize: CGSize
+  ) -> [String: Any]? {
+    guard let landmarks = result.landmarks.first,
+          landmarks.count >= Self.mediaPipePoseLandmarkCount else {
+      return nil
+    }
+
+    let landmarkPayloads = landmarks
+      .prefix(Self.mediaPipePoseLandmarkCount)
+      .enumerated()
+      .map { index, landmark -> [String: Any] in
+        [
+          "index": index,
+          "x": Double(landmark.x),
+          "y": Double(landmark.y),
+          "z": Double(landmark.z),
+          "visibility": nullableNumber(landmark.visibility),
+          "presence": nullableNumber(landmark.presence),
+          "confidence": Double(landmarkConfidence(landmark)),
+        ]
+      }
+
+    return [
+      "timestampMs": timestampMs,
+      "imageWidth": Int(imageSize.width.rounded()),
+      "imageHeight": Int(imageSize.height.rounded()),
+      "landmarks": landmarkPayloads,
+    ]
+  }
+
+  private func nullableNumber(_ value: NSNumber?) -> Any {
+    value?.doubleValue ?? NSNull()
   }
 
   private func extractFrameSample(
@@ -432,6 +507,7 @@ final class RunningPoseAnalysisChannel {
   private static let sampleEndFraction = 0.85
   private static let minimumLikelihood: Float = 0.45
   private static let minimumBodyScalePx = 40.0
+  private static let mediaPipePoseLandmarkCount = 33
   private static let stationaryThresholdRatio = 0.12
   private static let modelResourceName = "pose_landmarker_lite"
   private static let modelResourceExtension = "task"
