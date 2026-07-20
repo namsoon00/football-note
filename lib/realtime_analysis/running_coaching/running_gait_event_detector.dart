@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'dart:ui';
 
 import '../../domain/entities/running_live_coaching_state.dart';
+import 'running_live_timing_config.dart';
 
 class RunningGaitEventDetectorConfig {
   final Duration analysisWindow;
@@ -26,11 +27,11 @@ class RunningGaitEventDetectorConfig {
 
   const RunningGaitEventDetectorConfig({
     this.analysisWindow = const Duration(milliseconds: 2600),
-    this.targetFrameInterval = const Duration(milliseconds: 120),
-    this.maximumFrameGap = const Duration(milliseconds: 220),
+    this.targetFrameInterval = runningLiveGaitTargetFrameInterval,
+    this.maximumFrameGap = runningLiveGaitMaximumFrameGap,
     this.maximumTrackingGap = const Duration(milliseconds: 650),
-    this.debounceDuration = const Duration(milliseconds: 80),
-    this.minimumEventSpacing = const Duration(milliseconds: 150),
+    this.debounceDuration = const Duration(milliseconds: 50),
+    this.minimumEventSpacing = const Duration(milliseconds: 80),
     this.minimumContactDuration = const Duration(milliseconds: 90),
     this.maximumContactDuration = const Duration(milliseconds: 650),
     this.minimumValidFrames = 8,
@@ -180,10 +181,12 @@ class RunningGaitEventDetector {
       return;
     }
 
+    // Confirm a sustained state change without adding the debounce delay to
+    // the recorded touchdown or toe-off time.
     _acceptTransition(
       side,
       contact: desiredContact,
-      timestamp: sample.timestamp,
+      timestamp: pendingSince,
       confidence: foot.confidence,
     );
     tracker.contact = desiredContact;

@@ -3,9 +3,19 @@ import 'dart:ui';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/domain/entities/running_live_coaching_state.dart';
 import 'package:football_note/realtime_analysis/running_coaching/running_gait_event_detector.dart';
+import 'package:football_note/realtime_analysis/running_coaching/running_live_timing_config.dart';
 
 void main() {
   group('RunningGaitEventDetector', () {
+    test('uses the shared live temporal resolution contract', () {
+      const config = RunningGaitEventDetectorConfig();
+
+      expect(config.targetFrameInterval, runningLiveGaitTargetFrameInterval);
+      expect(config.maximumFrameGap, runningLiveGaitMaximumFrameGap);
+      expect(config.debounceDuration, const Duration(milliseconds: 50));
+      expect(config.minimumEventSpacing, const Duration(milliseconds: 80));
+    });
+
     test('orders touchdown and toe-off events by foot', () {
       final result = _runSeries(_runningSeries());
 
@@ -40,7 +50,7 @@ void main() {
       for (var index = 0; index < _runningSeries().length; index += 1) {
         final analysis = detector.ingestObservation(
           _observationFor(_runningSeries()[index]),
-          timestamp: start.add(Duration(milliseconds: 120 * index)),
+          timestamp: start.add(runningLiveGaitTargetFrameInterval * index),
           cameraSideViewFramingOk: true,
         );
         if (analysis.currentPhase != RunningGaitPhase.unknown) {
@@ -53,17 +63,40 @@ void main() {
       expect(phases, contains(RunningGaitPhase.rightContact));
     });
 
+    test('keeps the first observed transition timestamp after debounce', () {
+      final start = DateTime(2026, 7, 20, 9);
+      final analysis = _runSeries(_runningSeries());
+      final leftEvents = analysis.recentEvents
+          .where((event) => event.side == RunningFootSide.left)
+          .toList(growable: false);
+      expect(leftEvents.map((event) => event.type), [
+        RunningGaitEventType.touchdown,
+        RunningGaitEventType.toeOff,
+        RunningGaitEventType.touchdown,
+        RunningGaitEventType.toeOff,
+      ]);
+      expect(
+        leftEvents.map((event) => event.timestamp),
+        [
+          start.add(const Duration(milliseconds: 400)),
+          start.add(const Duration(milliseconds: 500)),
+          start.add(const Duration(milliseconds: 800)),
+          start.add(const Duration(milliseconds: 900)),
+        ],
+      );
+    });
+
     test('calculates cadence and per-side contact duration when gated in', () {
       final result = _runSeries(_runningSeries());
 
       expect(result.cadence.available, isTrue);
-      expect(result.cadence.value, closeTo(125, 0.001));
+      expect(result.cadence.value, closeTo(300, 0.001));
       expect(result.cadence.sampleCount, 4);
       expect(result.leftContactDuration.available, isTrue);
-      expect(result.leftContactDuration.value, closeTo(240, 0.001));
+      expect(result.leftContactDuration.value, closeTo(100, 0.001));
       expect(result.leftContactDuration.sampleCount, 2);
       expect(result.rightContactDuration.available, isTrue);
-      expect(result.rightContactDuration.value, closeTo(240, 0.001));
+      expect(result.rightContactDuration.value, closeTo(100, 0.001));
       expect(result.rightContactDuration.sampleCount, 2);
     });
 
@@ -79,6 +112,21 @@ void main() {
         'insufficient_temporal_resolution',
       );
       expect(result.leftContactDuration.available, isFalse);
+    });
+
+    test('rejects gaps that cannot support the live timing target', () {
+      final result = _runSeries(
+        _runningSeries(),
+        frameInterval: const Duration(milliseconds: 100),
+      );
+
+      expect(result.cadence.available, isFalse);
+      expect(
+        result.cadence.reasonIfUnavailable,
+        'insufficient_temporal_resolution',
+      );
+      expect(result.leftContactDuration.available, isFalse);
+      expect(result.rightContactDuration.available, isFalse);
     });
 
     test('keeps gait metrics unavailable for low-confidence frames', () {
@@ -101,17 +149,18 @@ void main() {
       for (var index = 0; index < series.length; index += 1) {
         analysis = detector.ingestObservation(
           _observationFor(series[index]),
-          timestamp: start.add(Duration(milliseconds: 120 * index)),
+          timestamp: start.add(runningLiveGaitTargetFrameInterval * index),
           cameraSideViewFramingOk: true,
         );
       }
       expect(analysis.leftContactDuration.available, isTrue);
 
-      final seriesEnd = start.add(Duration(milliseconds: 120 * series.length));
-      for (var index = 0; index < 24; index += 1) {
+      final seriesEnd =
+          start.add(runningLiveGaitTargetFrameInterval * series.length);
+      for (var index = 0; index < 60; index += 1) {
         analysis = detector.ingestObservation(
           null,
-          timestamp: seriesEnd.add(Duration(milliseconds: 120 * index)),
+          timestamp: seriesEnd.add(runningLiveGaitTargetFrameInterval * index),
           cameraSideViewFramingOk: true,
         );
       }
@@ -164,7 +213,7 @@ void main() {
       for (var index = 0; index < _runningSeries().length; index += 1) {
         analysis = detector.ingestObservation(
           _observationFor(_runningSeries()[index]),
-          timestamp: start.add(Duration(milliseconds: 120 * index)),
+          timestamp: start.add(runningLiveGaitTargetFrameInterval * index),
           cameraSideViewFramingOk: true,
         );
       }
@@ -186,7 +235,7 @@ void main() {
 
 RunningGaitAnalysis _runSeries(
   List<_SyntheticGaitState> states, {
-  Duration frameInterval = const Duration(milliseconds: 120),
+  Duration frameInterval = runningLiveGaitTargetFrameInterval,
   double landmarkLikelihood = 0.98,
 }) {
   final detector = RunningGaitEventDetector();

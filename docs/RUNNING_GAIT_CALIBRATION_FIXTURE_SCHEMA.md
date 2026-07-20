@@ -76,6 +76,25 @@ the beginning of the camera session. They also include `timestamp`,
 `absoluteTimestampMs`, and `confidence` for diagnostics; omit those extra fields
 when creating a minimal flat prediction fixture.
 
+## Live Temporal Readiness
+
+The live coach targets a 50 ms (20 Hz) gait-analysis cadence. Native MediaPipe
+inference remains serialized, so a slower device is never treated as if it had
+processed frames it skipped. Contact transitions are confirmed with debounce,
+but the logged event keeps the first observed transition timestamp rather than
+adding debounce latency to the label being evaluated.
+
+For a calibration candidate, retain the matching `end` session log and inspect
+`metrics.analyzedFrameIntervalMs.p95`, `metrics.averageConfidence.timing`, and
+`metrics.averageConfidence.sideView`. Gaps above 90 ms reduce timing confidence;
+if the resulting timing confidence is too low, cadence and contact-duration
+metrics remain unavailable. This is a capture-readiness signal, not expert
+validation of touchdown or toe-off timing.
+
+Use the same side-view recording for human labels and the app log. Do not pair
+labels from a separately exported or trimmed clip unless its zero timestamp is
+explicitly aligned to `events.timeline[].timestampMs`.
+
 Run the evaluator:
 
 ```sh

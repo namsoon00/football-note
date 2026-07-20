@@ -26,7 +26,7 @@ void main() {
     expect(source, contains('RunningPoseAnatomicalPainter'));
     expect(source, contains('_showLiveCoachError'));
     expect(source, contains('runningCoachLivePoseFailed'));
-    expect(source, contains('Duration(milliseconds: 120)'));
+    expect(source, contains('runningLiveGaitTargetFrameInterval'));
     expect(source, contains('_isProcessingFrame'));
     expect(source, contains('_monotonicFrameTimestamp'));
     expect(source, contains('RunningLiveSessionMetricsCollector'));
