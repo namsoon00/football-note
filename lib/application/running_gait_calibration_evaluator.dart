@@ -4,6 +4,8 @@ enum GaitCalibrationFootSide { left, right }
 
 enum GaitCalibrationEventType { touchdown, toeOff }
 
+enum GaitCalibrationInputFormat { flatEvents, runningLiveSessionLog }
+
 class GaitCalibrationInputException implements Exception {
   final String message;
 
@@ -29,8 +31,18 @@ class GaitCalibrationEvent {
 
 class GaitCalibrationFixture {
   final List<GaitCalibrationEvent> events;
+  final GaitCalibrationInputFormat format;
+  final String? sessionId;
+  final int sourceLogCount;
+  final int repeatedEventCount;
 
-  const GaitCalibrationFixture({required this.events});
+  const GaitCalibrationFixture({
+    required this.events,
+    this.format = GaitCalibrationInputFormat.flatEvents,
+    this.sessionId,
+    this.sourceLogCount = 0,
+    this.repeatedEventCount = 0,
+  });
 
   factory GaitCalibrationFixture.fromJsonString(
     String source, {
@@ -105,6 +117,71 @@ class GaitCalibrationFixture {
     return GaitCalibrationFixture(events: List.unmodifiable(events));
   }
 
+  factory GaitCalibrationFixture.fromPredictionSourceString(
+    String source, {
+    required String label,
+    String? sessionId,
+  }) {
+    final Object? decoded;
+    try {
+      decoded = jsonDecode(source);
+    } on FormatException {
+      return _fromRunningLiveSessionLogLines(
+        source,
+        label: label,
+        requestedSessionId: sessionId,
+      );
+    }
+
+    if (decoded is Map<String, Object?> && decoded['events'] is List<Object?>) {
+      return GaitCalibrationFixture.fromJson(decoded, label: label);
+    }
+    if (_isRunningLiveSessionPayload(decoded)) {
+      return _fromRunningLiveSessionPayloads(
+        <_RunningLiveSessionPayload>[
+          _RunningLiveSessionPayload(decoded as Map<String, Object?>, label),
+        ],
+        label: label,
+        requestedSessionId: sessionId,
+      );
+    }
+    if (decoded is List<Object?>) {
+      return _fromRunningLiveSessionPayloads(
+        [
+          for (var index = 0; index < decoded.length; index += 1)
+            _RunningLiveSessionPayload(
+              _expectJsonObject(
+                decoded[index],
+                '$label[$index]',
+              ),
+              '$label[$index]',
+            ),
+        ],
+        label: label,
+        requestedSessionId: sessionId,
+      );
+    }
+    if (decoded is Map<String, Object?> && decoded.containsKey('events')) {
+      return GaitCalibrationFixture.fromJson(decoded, label: label);
+    }
+
+    throw GaitCalibrationInputException(
+      '$label must be either a flat events JSON object or '
+      'RunningLiveSession JSON/debug-log lines.',
+    );
+  }
+
+  Map<String, Object?> sourceMetadataToJson() {
+    return <String, Object?>{
+      'format': format.name,
+      'eventCount': events.length,
+      if (sessionId != null) 'sessionId': sessionId,
+      if (sourceLogCount > 0) 'sourceLogCount': sourceLogCount,
+      if (repeatedEventCount > 0)
+        'deduplicatedRepeatedEvents': repeatedEventCount,
+    };
+  }
+
   static int _parseTimestamp(Object? value, String label, int index) {
     if (value is! int) {
       throw GaitCalibrationInputException(
@@ -151,6 +228,285 @@ class GaitCalibrationFixture {
       '$label.events[$index].type must be "touchdown" or "toeOff".',
     );
   }
+
+  static GaitCalibrationFixture _fromRunningLiveSessionLogLines(
+    String source, {
+    required String label,
+    required String? requestedSessionId,
+  }) {
+    final payloads = <_RunningLiveSessionPayload>[];
+    final lines = const LineSplitter().convert(source);
+    for (var index = 0; index < lines.length; index += 1) {
+      final line = lines[index];
+      final markerIndex = line.indexOf(_runningLiveSessionMarker);
+      if (markerIndex < 0) {
+        continue;
+      }
+      final rawPayload =
+          line.substring(markerIndex + _runningLiveSessionMarker.length).trim();
+      if (rawPayload.isEmpty) {
+        throw GaitCalibrationInputException(
+          '$label line ${index + 1} has an empty RunningLiveSession payload.',
+        );
+      }
+      final Object? decoded;
+      try {
+        decoded = jsonDecode(rawPayload);
+      } on FormatException catch (error) {
+        throw GaitCalibrationInputException(
+          '$label line ${index + 1} RunningLiveSession payload must be valid '
+          'JSON: ${error.message}',
+        );
+      }
+      payloads.add(
+        _RunningLiveSessionPayload(
+          _expectJsonObject(decoded, '$label line ${index + 1}'),
+          '$label line ${index + 1}',
+        ),
+      );
+    }
+
+    if (payloads.isEmpty) {
+      throw GaitCalibrationInputException(
+        '$label must be valid flat events JSON or contain '
+        '$_runningLiveSessionMarker JSON log lines.',
+      );
+    }
+
+    return _fromRunningLiveSessionPayloads(
+      payloads,
+      label: label,
+      requestedSessionId: requestedSessionId,
+    );
+  }
+
+  static GaitCalibrationFixture _fromRunningLiveSessionPayloads(
+    List<_RunningLiveSessionPayload> payloads, {
+    required String label,
+    required String? requestedSessionId,
+  }) {
+    final bySessionId = <String, List<_RunningLiveSessionPayload>>{};
+    for (final payload in payloads) {
+      final sessionId = payload.map['sessionId'];
+      if (sessionId is! String || sessionId.isEmpty) {
+        throw GaitCalibrationInputException(
+          '${payload.label}.sessionId must be a non-empty string.',
+        );
+      }
+      bySessionId.putIfAbsent(sessionId, () => []).add(payload);
+    }
+
+    final selectedSessionId = _selectRunningLiveSessionId(
+      bySessionId.keys.toList(growable: false),
+      requestedSessionId: requestedSessionId,
+      label: label,
+    );
+    final selectedPayloads = bySessionId[selectedSessionId]!;
+    final byEventKey = <String, _RunningLiveSessionEventRecord>{};
+    var sourceIndex = 0;
+    var repeatedEventCount = 0;
+
+    for (var payloadIndex = 0;
+        payloadIndex < selectedPayloads.length;
+        payloadIndex += 1) {
+      final payload = selectedPayloads[payloadIndex];
+      final events = payload.map['events'];
+      if (events is! Map<String, Object?>) {
+        throw GaitCalibrationInputException(
+          '${payload.label}.events must be an object with a timeline array.',
+        );
+      }
+      final timeline = events['timeline'];
+      if (timeline is! List<Object?>) {
+        throw GaitCalibrationInputException(
+          '${payload.label}.events.timeline must be an array.',
+        );
+      }
+      for (var timelineIndex = 0;
+          timelineIndex < timeline.length;
+          timelineIndex += 1) {
+        final eventLabel = '${payload.label}.events.timeline[$timelineIndex]';
+        final rawEvent = _expectJsonObject(timeline[timelineIndex], eventLabel);
+        final timestampMs = _parseTimelineTimestamp(
+          rawEvent['timestampMs'],
+          eventLabel,
+        );
+        final side = _parseTimelineSide(rawEvent['side'], eventLabel);
+        final type = _parseTimelineType(rawEvent['type'], eventLabel);
+        final eventKey = '${side.name}|${type.name}|$timestampMs';
+        final canonicalEvent = _canonicalJson(rawEvent);
+        final existing = byEventKey[eventKey];
+        if (existing != null) {
+          if (existing.canonicalEvent != canonicalEvent) {
+            throw GaitCalibrationInputException(
+              '$eventLabel conflicts with an earlier RunningLiveSession event '
+              'for side=${side.name}, type=${type.name}, '
+              'timestampMs=$timestampMs. Repeated cumulative events must be '
+              'identical to be deduplicated.',
+            );
+          }
+          repeatedEventCount += 1;
+          continue;
+        }
+        byEventKey[eventKey] = _RunningLiveSessionEventRecord(
+          event: GaitCalibrationEvent(
+            timestampMs: timestampMs,
+            side: side,
+            type: type,
+            sourceIndex: sourceIndex,
+          ),
+          canonicalEvent: canonicalEvent,
+        );
+        sourceIndex += 1;
+      }
+    }
+
+    final events = [
+      for (final record in byEventKey.values) record.event,
+    ]..sort(_compareEventsForReport);
+
+    return GaitCalibrationFixture(
+      events: List.unmodifiable(events),
+      format: GaitCalibrationInputFormat.runningLiveSessionLog,
+      sessionId: selectedSessionId,
+      sourceLogCount: selectedPayloads.length,
+      repeatedEventCount: repeatedEventCount,
+    );
+  }
+
+  static int _parseTimelineTimestamp(Object? value, String label) {
+    if (value is! int) {
+      throw GaitCalibrationInputException(
+        '$label.timestampMs must be an integer millisecond timestamp.',
+      );
+    }
+    if (value < 0) {
+      throw GaitCalibrationInputException(
+        '$label.timestampMs must be non-negative.',
+      );
+    }
+    return value;
+  }
+
+  static GaitCalibrationFootSide _parseTimelineSide(
+    Object? value,
+    String label,
+  ) {
+    if (value == 'left') {
+      return GaitCalibrationFootSide.left;
+    }
+    if (value == 'right') {
+      return GaitCalibrationFootSide.right;
+    }
+    throw GaitCalibrationInputException(
+      '$label.side must be "left" or "right".',
+    );
+  }
+
+  static GaitCalibrationEventType _parseTimelineType(
+    Object? value,
+    String label,
+  ) {
+    if (value == 'touchdown') {
+      return GaitCalibrationEventType.touchdown;
+    }
+    if (value == 'toeOff') {
+      return GaitCalibrationEventType.toeOff;
+    }
+    throw GaitCalibrationInputException(
+      '$label.type must be "touchdown" or "toeOff".',
+    );
+  }
+}
+
+const _runningLiveSessionMarker = '[RunningLiveSession]';
+
+bool _isRunningLiveSessionPayload(Object? value) {
+  return value is Map<String, Object?> &&
+      value['sessionId'] is String &&
+      value['events'] is Map<String, Object?>;
+}
+
+Map<String, Object?> _expectJsonObject(Object? value, String label) {
+  if (value is! Map<String, Object?>) {
+    throw GaitCalibrationInputException('$label must be a JSON object.');
+  }
+  return value;
+}
+
+String _selectRunningLiveSessionId(
+  List<String> sessionIds, {
+  required String? requestedSessionId,
+  required String label,
+}) {
+  sessionIds.sort();
+  if (requestedSessionId != null) {
+    if (sessionIds.contains(requestedSessionId)) {
+      return requestedSessionId;
+    }
+    throw GaitCalibrationInputException(
+      '$label does not contain RunningLiveSession session '
+      '"$requestedSessionId". Available sessions: ${sessionIds.join(', ')}.',
+    );
+  }
+  if (sessionIds.length == 1) {
+    return sessionIds.single;
+  }
+  throw GaitCalibrationInputException(
+    '$label contains multiple RunningLiveSession sessions: '
+    '${sessionIds.join(', ')}. Pass --prediction-session-id to select one.',
+  );
+}
+
+String _canonicalJson(Object? value) {
+  if (value is Map<String, Object?>) {
+    return jsonEncode(<String, Object?>{
+      for (final key in value.keys.toList(growable: false)..sort())
+        key: jsonDecode(_canonicalJson(value[key])),
+    });
+  }
+  if (value is List<Object?>) {
+    return jsonEncode([
+      for (final item in value) jsonDecode(_canonicalJson(item)),
+    ]);
+  }
+  return jsonEncode(value);
+}
+
+int _compareEventsForReport(
+  GaitCalibrationEvent first,
+  GaitCalibrationEvent second,
+) {
+  final timeCompare = first.timestampMs.compareTo(second.timestampMs);
+  if (timeCompare != 0) {
+    return timeCompare;
+  }
+  final sideCompare = first.side.index.compareTo(second.side.index);
+  if (sideCompare != 0) {
+    return sideCompare;
+  }
+  final typeCompare = first.type.index.compareTo(second.type.index);
+  if (typeCompare != 0) {
+    return typeCompare;
+  }
+  return first.sourceIndex.compareTo(second.sourceIndex);
+}
+
+class _RunningLiveSessionPayload {
+  final Map<String, Object?> map;
+  final String label;
+
+  const _RunningLiveSessionPayload(this.map, this.label);
+}
+
+class _RunningLiveSessionEventRecord {
+  final GaitCalibrationEvent event;
+  final String canonicalEvent;
+
+  const _RunningLiveSessionEventRecord({
+    required this.event,
+    required this.canonicalEvent,
+  });
 }
 
 class GaitCalibrationMatch {
@@ -216,22 +572,227 @@ class GaitCalibrationMetrics {
   }
 }
 
+class GaitCalibrationQualityGate {
+  final int? minGroundTruthEvents;
+  final double? minOverallPrecision;
+  final double? minOverallRecall;
+  final double? minOverallF1;
+  final double? maxTimingMeanAbsoluteErrorMs;
+  final double? maxTimingP95AbsoluteErrorMs;
+  final double? minTouchdownPrecision;
+  final double? minTouchdownRecall;
+  final double? minToeOffPrecision;
+  final double? minToeOffRecall;
+
+  const GaitCalibrationQualityGate({
+    this.minGroundTruthEvents,
+    this.minOverallPrecision,
+    this.minOverallRecall,
+    this.minOverallF1,
+    this.maxTimingMeanAbsoluteErrorMs,
+    this.maxTimingP95AbsoluteErrorMs,
+    this.minTouchdownPrecision,
+    this.minTouchdownRecall,
+    this.minToeOffPrecision,
+    this.minToeOffRecall,
+  })  : assert(minGroundTruthEvents == null || minGroundTruthEvents >= 0),
+        assert(minOverallPrecision == null ||
+            (minOverallPrecision >= 0 && minOverallPrecision <= 1)),
+        assert(minOverallRecall == null ||
+            (minOverallRecall >= 0 && minOverallRecall <= 1)),
+        assert(
+          minOverallF1 == null || (minOverallF1 >= 0 && minOverallF1 <= 1),
+        ),
+        assert(maxTimingMeanAbsoluteErrorMs == null ||
+            maxTimingMeanAbsoluteErrorMs >= 0),
+        assert(maxTimingP95AbsoluteErrorMs == null ||
+            maxTimingP95AbsoluteErrorMs >= 0),
+        assert(minTouchdownPrecision == null ||
+            (minTouchdownPrecision >= 0 && minTouchdownPrecision <= 1)),
+        assert(minTouchdownRecall == null ||
+            (minTouchdownRecall >= 0 && minTouchdownRecall <= 1)),
+        assert(minToeOffPrecision == null ||
+            (minToeOffPrecision >= 0 && minToeOffPrecision <= 1)),
+        assert(minToeOffRecall == null ||
+            (minToeOffRecall >= 0 && minToeOffRecall <= 1));
+
+  GaitCalibrationQualityGateReport evaluate({
+    required GaitCalibrationMetrics overall,
+    required Map<GaitCalibrationEventType, GaitCalibrationMetrics> byEventType,
+  }) {
+    final violations = <GaitCalibrationQualityGateViolation>[];
+    final groundTruthEventCount = overall.truePositive + overall.falseNegative;
+
+    _checkMinimumInt(
+      violations,
+      metric: 'groundTruth.eventCount',
+      actual: groundTruthEventCount,
+      threshold: minGroundTruthEvents,
+    );
+    _checkMinimumDouble(
+      violations,
+      metric: 'overall.precision',
+      actual: overall.precision,
+      threshold: minOverallPrecision,
+    );
+    _checkMinimumDouble(
+      violations,
+      metric: 'overall.recall',
+      actual: overall.recall,
+      threshold: minOverallRecall,
+    );
+    _checkMinimumDouble(
+      violations,
+      metric: 'overall.f1',
+      actual: overall.f1,
+      threshold: minOverallF1,
+    );
+    _checkMaximumDouble(
+      violations,
+      metric: 'overall.maeMs',
+      actual: overall.meanAbsoluteErrorMs,
+      threshold: maxTimingMeanAbsoluteErrorMs,
+    );
+    _checkMaximumDouble(
+      violations,
+      metric: 'overall.p95AbsoluteErrorMs',
+      actual: overall.p95AbsoluteErrorMs,
+      threshold: maxTimingP95AbsoluteErrorMs,
+    );
+
+    final touchdown = byEventType[GaitCalibrationEventType.touchdown]!;
+    _checkMinimumDouble(
+      violations,
+      metric: 'touchdown.precision',
+      actual: touchdown.precision,
+      threshold: minTouchdownPrecision,
+    );
+    _checkMinimumDouble(
+      violations,
+      metric: 'touchdown.recall',
+      actual: touchdown.recall,
+      threshold: minTouchdownRecall,
+    );
+
+    final toeOff = byEventType[GaitCalibrationEventType.toeOff]!;
+    _checkMinimumDouble(
+      violations,
+      metric: 'toeOff.precision',
+      actual: toeOff.precision,
+      threshold: minToeOffPrecision,
+    );
+    _checkMinimumDouble(
+      violations,
+      metric: 'toeOff.recall',
+      actual: toeOff.recall,
+      threshold: minToeOffRecall,
+    );
+
+    return GaitCalibrationQualityGateReport(
+      thresholds: this,
+      violations: List.unmodifiable(violations),
+    );
+  }
+
+  Map<String, Object?> toJson() {
+    return <String, Object?>{
+      'minGroundTruthEvents': minGroundTruthEvents,
+      'overall': <String, Object?>{
+        'minPrecision': _roundNullable(minOverallPrecision),
+        'minRecall': _roundNullable(minOverallRecall),
+        'minF1': _roundNullable(minOverallF1),
+        'maxMaeMs': _roundNullable(maxTimingMeanAbsoluteErrorMs),
+        'maxP95AbsoluteErrorMs': _roundNullable(maxTimingP95AbsoluteErrorMs),
+      },
+      'byEventType': <String, Object?>{
+        'touchdown': <String, Object?>{
+          'minPrecision': _roundNullable(minTouchdownPrecision),
+          'minRecall': _roundNullable(minTouchdownRecall),
+        },
+        'toeOff': <String, Object?>{
+          'minPrecision': _roundNullable(minToeOffPrecision),
+          'minRecall': _roundNullable(minToeOffRecall),
+        },
+      },
+    };
+  }
+}
+
+class GaitCalibrationQualityGateReport {
+  final GaitCalibrationQualityGate thresholds;
+  final List<GaitCalibrationQualityGateViolation> violations;
+
+  const GaitCalibrationQualityGateReport({
+    required this.thresholds,
+    required this.violations,
+  });
+
+  const GaitCalibrationQualityGateReport.unconfigured()
+      : thresholds = const GaitCalibrationQualityGate(),
+        violations = const <GaitCalibrationQualityGateViolation>[];
+
+  bool get passed => violations.isEmpty;
+
+  Map<String, Object?> toJson() {
+    return <String, Object?>{
+      'passed': passed,
+      'thresholds': thresholds.toJson(),
+      'violations': [
+        for (final violation in violations) violation.toJson(),
+      ],
+    };
+  }
+}
+
+class GaitCalibrationQualityGateViolation {
+  final String metric;
+  final Object? actual;
+  final Object threshold;
+  final String comparison;
+  final String message;
+
+  const GaitCalibrationQualityGateViolation({
+    required this.metric,
+    required this.actual,
+    required this.threshold,
+    required this.comparison,
+    required this.message,
+  });
+
+  Map<String, Object?> toJson() {
+    final actualValue = actual;
+    final thresholdValue = threshold;
+    return <String, Object?>{
+      'metric': metric,
+      'actual': actualValue is double ? _roundMetric(actualValue) : actualValue,
+      'comparison': comparison,
+      'threshold': thresholdValue is double
+          ? _roundMetric(thresholdValue)
+          : thresholdValue,
+      'message': message,
+    };
+  }
+}
+
 class GaitCalibrationReport {
   final int toleranceMs;
   final GaitCalibrationMetrics overall;
   final Map<GaitCalibrationEventType, GaitCalibrationMetrics> byEventType;
   final List<GaitCalibrationMatch> matches;
+  final GaitCalibrationQualityGateReport qualityGate;
 
   const GaitCalibrationReport({
     required this.toleranceMs,
     required this.overall,
     required this.byEventType,
     required this.matches,
+    this.qualityGate = const GaitCalibrationQualityGateReport.unconfigured(),
   });
 
   Map<String, Object?> toJson() {
     return <String, Object?>{
       'toleranceMs': toleranceMs,
+      'qualityGate': qualityGate.toJson(),
       'overall': overall.toJson(),
       'byEventType': <String, Object?>{
         for (final type in GaitCalibrationEventType.values)
@@ -244,9 +805,12 @@ class GaitCalibrationReport {
 
 class GaitCalibrationEvaluator {
   final int toleranceMs;
+  final GaitCalibrationQualityGate qualityGate;
 
-  const GaitCalibrationEvaluator({required this.toleranceMs})
-      : assert(toleranceMs >= 0);
+  const GaitCalibrationEvaluator({
+    required this.toleranceMs,
+    this.qualityGate = const GaitCalibrationQualityGate(),
+  }) : assert(toleranceMs >= 0);
 
   GaitCalibrationReport evaluate({
     required List<GaitCalibrationEvent> groundTruth,
@@ -285,24 +849,31 @@ class GaitCalibrationEvaluator {
       );
     });
 
+    final overall = _metricsFor(
+      groundTruth: groundTruth,
+      predictions: predictions,
+      matches: matches,
+    );
+    final byEventType = <GaitCalibrationEventType, GaitCalibrationMetrics>{
+      for (final type in GaitCalibrationEventType.values)
+        type: _metricsFor(
+          groundTruth: groundTruth.where((event) => event.type == type),
+          predictions: predictions.where((event) => event.type == type),
+          matches: matches.where(
+            (match) => match.groundTruth.type == type,
+          ),
+        ),
+    };
+
     return GaitCalibrationReport(
       toleranceMs: toleranceMs,
-      overall: _metricsFor(
-        groundTruth: groundTruth,
-        predictions: predictions,
-        matches: matches,
-      ),
-      byEventType: <GaitCalibrationEventType, GaitCalibrationMetrics>{
-        for (final type in GaitCalibrationEventType.values)
-          type: _metricsFor(
-            groundTruth: groundTruth.where((event) => event.type == type),
-            predictions: predictions.where((event) => event.type == type),
-            matches: matches.where(
-              (match) => match.groundTruth.type == type,
-            ),
-          ),
-      },
+      overall: overall,
+      byEventType: byEventType,
       matches: List.unmodifiable(matches),
+      qualityGate: qualityGate.evaluate(
+        overall: overall,
+        byEventType: byEventType,
+      ),
     );
   }
 
@@ -468,6 +1039,74 @@ bool _isBetterMatchCell(_GaitMatchCell candidate, _GaitMatchCell current) {
     return candidate.totalAbsoluteErrorMs < current.totalAbsoluteErrorMs;
   }
   return candidate.action.index > current.action.index;
+}
+
+void _checkMinimumInt(
+  List<GaitCalibrationQualityGateViolation> violations, {
+  required String metric,
+  required int actual,
+  required int? threshold,
+}) {
+  if (threshold == null || actual >= threshold) {
+    return;
+  }
+  violations.add(
+    GaitCalibrationQualityGateViolation(
+      metric: metric,
+      actual: actual,
+      comparison: '>=',
+      threshold: threshold,
+      message: '$metric must be >= $threshold but was $actual.',
+    ),
+  );
+}
+
+void _checkMinimumDouble(
+  List<GaitCalibrationQualityGateViolation> violations, {
+  required String metric,
+  required double actual,
+  required double? threshold,
+}) {
+  if (threshold == null || actual >= threshold) {
+    return;
+  }
+  violations.add(
+    GaitCalibrationQualityGateViolation(
+      metric: metric,
+      actual: actual,
+      comparison: '>=',
+      threshold: threshold,
+      message: '$metric must be >= ${_roundMetric(threshold)} but was '
+          '${_roundMetric(actual)}.',
+    ),
+  );
+}
+
+void _checkMaximumDouble(
+  List<GaitCalibrationQualityGateViolation> violations, {
+  required String metric,
+  required double? actual,
+  required double? threshold,
+}) {
+  if (threshold == null) {
+    return;
+  }
+  if (actual != null && actual <= threshold) {
+    return;
+  }
+  violations.add(
+    GaitCalibrationQualityGateViolation(
+      metric: metric,
+      actual: actual,
+      comparison: '<=',
+      threshold: threshold,
+      message: actual == null
+          ? '$metric must be <= ${_roundMetric(threshold)} but was '
+              'unavailable because no events matched.'
+          : '$metric must be <= ${_roundMetric(threshold)} but was '
+              '${_roundMetric(actual)}.',
+    ),
+  );
 }
 
 int _compareEventsForMatching(
