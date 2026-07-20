@@ -8523,7 +8523,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachLiveCardBody =>
-      'ランナーの輪郭とポーズラインをライブで追跡し、体幹の傾き、膝のドライブ、ステップのリズム、腕のバランスに関するスプリント固有のフィードバックに直接切り替えます。';
+      '解剖学的な関節とスケルトン線をライブで追跡し、体幹の傾き、膝のドライブ、ステップのリズム、腕のバランスに関するスプリント固有のフィードバックに直接切り替えます。';
 
   @override
   String get runningCoachLiveAction => 'ライブコーチを開始する';
@@ -8538,12 +8538,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachLiveGuideScreenTitle => 'ライブ撮影ガイド';
 
   @override
-  String get runningCoachLiveGuideHeroTitle =>
-      'ランナーの概要を追跡し、下部のコーチングパネルを一緒に読みます';
+  String get runningCoachLiveGuideHeroTitle => '解剖学的な関節とライブコーチングHUDを一緒に見る';
 
   @override
   String get runningCoachLiveGuideHeroBody =>
-      'ライブコーチはランナーの輪郭とポーズラインを画面上に直接マークし、下部パネルには説明と結果がまとめて表示されます。トラッキングとフィードバックを安定に保つには、以下のセットアップを使用してください。';
+      'ライブコーチはカメラ映像の上に解剖学的な関節とスケルトン線を直接描きます。コンパクトHUDはキューとスコアを見やすく保ち、歩行、指標、診断の詳細が必要なときだけ展開します。';
 
   @override
   String get runningCoachLiveGuideTipSideTitle => '側面図を表示する';
@@ -8557,21 +8556,21 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachLiveGuideTipBodyBody =>
-      'ポーズ ラインとスコアが安定するように、頭、肘、腰、足首はすべて表示されたままにする必要があります。';
+      '頭、肩、肘、腰、膝、足首、足がすべてフレーム内に残ると、関節スケルトンとスコアが安定します。';
 
   @override
-  String get runningCoachLiveGuideTipHudTitle => '上部のキューと下部の結果を一緒に読み取ります';
+  String get runningCoachLiveGuideTipHudTitle => 'コンパクトHUDを使う';
 
   @override
   String get runningCoachLiveGuideTipHudBody =>
-      '黄色のボックスの代わりに、画面には上部のステータス キューとランナーのアウトライン マークが表示され、下部のパネルには理由、修正、ボディパーツの結果がまとめて表示されます。';
+      '上部のキュー、関節スケルトンのオーバーレイ、コンパクトHUDを中心に読みます。理由、修正、歩行タイミング、指標結果が必要なときにHUDを展開します。';
 
   @override
   String get runningCoachLiveGuideTipCameraTitle => 'カメラを固定し、本体を十分な大きさに保ちます';
 
   @override
   String get runningCoachLiveGuideTipCameraBody =>
-      'カメラをしっかりと保持し、全身が画面の高さの少なくとも約半分を占めるようにランナーをフレームに収めます。フレームが充実するほど、ポーズ ラインと音声コーチングがより安定します。';
+      'カメラをしっかりと保持し、全身が画面の高さの少なくとも約半分を占めるようにランナーをフレームに収めます。フレームが充実するほど、関節スケルトンと音声コーチングがより安定します。';
 
   @override
   String get runningCoachLivePreparingTitle => 'カメラの準備中';
@@ -8604,6 +8603,33 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachLiveVoiceOff => '音声コーチングはオフです';
+
+  @override
+  String get runningCoachLiveVoiceToggleLabel => '音声コーチング';
+
+  @override
+  String get runningCoachLiveVoiceToggleOnTooltip => '音声コーチングをオフにする';
+
+  @override
+  String get runningCoachLiveVoiceToggleOffTooltip => '音声コーチングをオンにする';
+
+  @override
+  String get runningCoachLiveVoiceToggleOnHint => 'ダブルタップすると音声キューをミュートします。';
+
+  @override
+  String get runningCoachLiveVoiceToggleOffHint => 'ダブルタップすると音声キューを聞けます。';
+
+  @override
+  String get runningCoachLiveExpandDetails => '詳細を表示';
+
+  @override
+  String get runningCoachLiveCollapseDetails => '詳細を隠す';
+
+  @override
+  String get runningCoachLiveHudCollapsedLabel => 'ライブコーチングの概要';
+
+  @override
+  String get runningCoachLiveHudExpandedLabel => 'ライブコーチングの詳細';
 
   @override
   String get runningCoachLiveSwitchCamera => 'カメラを切り替える';

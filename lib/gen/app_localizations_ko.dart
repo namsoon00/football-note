@@ -8537,7 +8537,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachLiveCardBody =>
-      '러너 윤곽과 자세 선을 실시간으로 보고, 필요하면 바로 스프린트 전용 피드백으로 넘어가 전경사, 무릎 드라이브, 스텝 리듬, 팔 균형까지 확인할 수 있어요.';
+      '해부학적 관절과 스켈레톤 선을 실시간으로 보며, 필요하면 바로 스프린트 전용 피드백으로 넘어가 전경사, 무릎 드라이브, 스텝 리듬, 팔 균형까지 확인할 수 있어요.';
 
   @override
   String get runningCoachLiveAction => '실시간 코치 시작';
@@ -8552,11 +8552,11 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachLiveGuideScreenTitle => '실시간 촬영 가이드';
 
   @override
-  String get runningCoachLiveGuideHeroTitle => '러너 윤곽을 잡고 하단 코칭을 같이 봐요';
+  String get runningCoachLiveGuideHeroTitle => '해부학적 관절과 실시간 코칭 HUD를 함께 봐요';
 
   @override
   String get runningCoachLiveGuideHeroBody =>
-      '실시간 코치는 러너 윤곽과 자세 선을 화면에 바로 마킹하고, 하단 패널에서 설명과 결과를 함께 보여줘요. 아래 기준을 맞추면 추적과 코칭이 더 안정돼요.';
+      '실시간 코치는 카메라 화면 위에 해부학적 관절과 스켈레톤 선을 바로 그려요. compact HUD는 cue와 점수를 선명하게 유지하고, 보행·지표·진단 상세가 필요할 때만 펼쳐져요.';
 
   @override
   String get runningCoachLiveGuideTipSideTitle => '측면이 잘 보여야 해요';
@@ -8570,21 +8570,21 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachLiveGuideTipBodyBody =>
-      '머리, 팔꿈치, 엉덩이, 발목이 모두 프레임 안에 남아야 자세 선과 점수가 안정적으로 나와요.';
+      '머리, 어깨, 팔꿈치, 엉덩이, 무릎, 발목, 발이 모두 프레임 안에 남아야 관절 스켈레톤과 점수가 안정적으로 나와요.';
 
   @override
-  String get runningCoachLiveGuideTipHudTitle => '상단 안내와 하단 결과를 같이 보세요';
+  String get runningCoachLiveGuideTipHudTitle => 'compact HUD를 사용하세요';
 
   @override
   String get runningCoachLiveGuideTipHudBody =>
-      '노란 네모 대신 상단 상태 문구와 러너 윤곽 마킹이 먼저 보이고, 하단 패널에서는 이유와 수정 포인트, 부위별 결과를 같이 확인할 수 있어요.';
+      '상단 cue, 관절 스켈레톤 overlay, compact HUD가 중심이에요. 이유와 수정 포인트, 보행 타이밍, 지표 결과가 필요할 때 HUD를 펼치세요.';
 
   @override
   String get runningCoachLiveGuideTipCameraTitle => '카메라는 고정하고 몸 크기는 적당히';
 
   @override
   String get runningCoachLiveGuideTipCameraBody =>
-      '카메라는 흔들리지 않게 두고, 러너가 화면 높이의 절반 이상 차지하도록 맞춰 주세요. 화면을 꽉 채울수록 자세 선과 음성 코칭이 더 안정돼요.';
+      '카메라는 흔들리지 않게 두고, 러너가 화면 높이의 절반 이상 차지하도록 맞춰 주세요. 화면을 꽉 채울수록 관절 스켈레톤과 음성 코칭이 더 안정돼요.';
 
   @override
   String get runningCoachLivePreparingTitle => '카메라 준비 중';
@@ -8617,6 +8617,33 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachLiveVoiceOff => '음성 코칭 꺼짐';
+
+  @override
+  String get runningCoachLiveVoiceToggleLabel => '음성 코칭';
+
+  @override
+  String get runningCoachLiveVoiceToggleOnTooltip => '음성 코칭 끄기';
+
+  @override
+  String get runningCoachLiveVoiceToggleOffTooltip => '음성 코칭 켜기';
+
+  @override
+  String get runningCoachLiveVoiceToggleOnHint => '두 번 탭하면 음성 cue를 끕니다.';
+
+  @override
+  String get runningCoachLiveVoiceToggleOffHint => '두 번 탭하면 음성 cue를 듣습니다.';
+
+  @override
+  String get runningCoachLiveExpandDetails => '상세 펼치기';
+
+  @override
+  String get runningCoachLiveCollapseDetails => '상세 접기';
+
+  @override
+  String get runningCoachLiveHudCollapsedLabel => '실시간 코칭 요약';
+
+  @override
+  String get runningCoachLiveHudExpandedLabel => '실시간 코칭 상세';
 
   @override
   String get runningCoachLiveSwitchCamera => '카메라 전환';
