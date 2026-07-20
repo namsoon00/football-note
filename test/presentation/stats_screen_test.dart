@@ -424,6 +424,20 @@ void main() {
         minutesPlayed: 70,
       ),
     );
+    await service.add(
+      TrainingEntry(
+        date: DateTime.now().subtract(const Duration(days: 1)),
+        durationMinutes: 80,
+        intensity: 3,
+        type: '경기',
+        mood: 3,
+        injury: false,
+        notes: '',
+        location: '보조 구장',
+        opponentTeam: '미기록 FC',
+        scoredGoals: 1,
+      ),
+    );
 
     await tester.pumpWidget(
       DefaultAssetBundle(
@@ -454,6 +468,13 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('시합 요약'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('stats-match-performance-overview')),
+      findsOneWidget,
+    );
+    expect(find.text('1승 0무 0패'), findsOneWidget);
+    expect(find.text('1/2경기'), findsOneWidget);
+    expect(find.text('3 : 1'), findsOneWidget);
     expect(find.text('전체 시합 기록'), findsOneWidget);
     expect(find.textContaining('라이벌 FC'), findsOneWidget);
   });

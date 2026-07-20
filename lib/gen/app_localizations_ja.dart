@@ -4022,6 +4022,17 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get statsMatchCompletedMatchesLabel => '結果入力';
+
+  @override
+  String statsMatchCompletedMatchesValue(int completed, int total) {
+    return '$completed/$total試合';
+  }
+
+  @override
+  String get statsMatchGoalDifferenceLabel => '得失点差';
+
+  @override
   String get statsMatchAverageScoreLabel => '平均得失点';
 
   @override
@@ -11673,6 +11684,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get matchCompetitionNameRequired => '大会名を入力してください。';
 
   @override
+  String get matchCompetitionMinimumTeamsRequired =>
+      '大会を保存するには参加チームを2チーム以上登録してください。';
+
+  @override
   String get matchLeagueStandingsTitle => 'リーグ順位';
 
   @override
@@ -11846,6 +11861,17 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get matchOpponentTeamHint => '例えば水原U15';
+
+  @override
+  String get matchOpponentRequired => '相手チームを選択または入力してください。';
+
+  @override
+  String get matchScoreRequired => '両チームのスコアを入力してください。';
+
+  @override
+  String requiredFieldLabel(Object label) {
+    return '$label（必須）';
+  }
 
   @override
   String get matchLocationHint => '例: メイン競技場';

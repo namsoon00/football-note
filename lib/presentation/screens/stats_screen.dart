@@ -3135,15 +3135,12 @@ class _MatchSummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final sportLabel = SportDefaults.label(l10n: l10n, sportId: sportId);
     final labels = SportMatchLabels.forSport(
       l10n: l10n,
       sportId: sportId,
     );
     final resultEntries = entries
-        .where(
-          (entry) => entry.scoredGoals != null || entry.concededGoals != null,
-        )
+        .where((entry) => _matchOutcome(entry) != null)
         .toList(growable: false);
     final wins =
         resultEntries.where((entry) => _matchOutcome(entry) == 1).length;
@@ -3228,27 +3225,10 @@ class _MatchSummaryCard extends StatelessWidget {
     final recentResults = [...resultEntries]
       ..sort((a, b) => b.date.compareTo(a.date));
     final form = _matchFormText(recentResults.take(5).toList(), l10n);
-    final insight = winRate == null
-        ? l10n.statsMatchFormInsightNoResults(sportLabel)
-        : winRate >= 50
-            ? l10n.statsMatchFormInsightPositive(sportLabel, form, winRate)
-            : l10n.statsMatchFormInsightNeedsWork(sportLabel, form, winRate);
     final resultCards = <_MetricCard>[
       _MetricCard(
         label: l10n.statsMatchTotalMatchesLabel,
         value: l10n.statsMatchTotalMatchesValue(entries.length),
-      ),
-      _MetricCard(
-        label: l10n.statsMatchRecordLabel,
-        value: resultEntries.isEmpty
-            ? l10n.statsMatchUnsetValue
-            : l10n.statsMatchRecordValue(wins, draws, losses),
-      ),
-      _MetricCard(
-        label: l10n.statsMatchWinRateLabel,
-        value: winRate == null
-            ? l10n.statsMatchUnsetValue
-            : l10n.statsMatchWinRateValue(winRate),
       ),
       _MetricCard(
         label: l10n.statsMatchAverageScoreLabel,
@@ -3274,16 +3254,8 @@ class _MatchSummaryCard extends StatelessWidget {
           label: l10n.matchKindTournament,
           value: l10n.matchTournamentWinsValue(tournamentWins),
         ),
-      _MetricCard(
-        label: l10n.statsMatchGoalsLabel,
-        value: '$scored:$conceded',
-      ),
     ];
     final personalCards = <_MetricCard>[
-      _MetricCard(
-        label: l10n.statsMatchFormLabel,
-        value: form,
-      ),
       _MetricCard(
         label: l10n.statsMatchPersonalPerMatchLabel,
         value: l10n.statsMatchPersonalPerMatchValue(
@@ -3343,10 +3315,23 @@ class _MatchSummaryCard extends StatelessWidget {
           title: l10n.statsMatchSummaryTitle,
         ),
         const SizedBox(height: 12),
-        _CoachMessage(
-          icon: Icons.insights_outlined,
-          title: l10n.statsMatchFormInsightTitle,
-          message: insight,
+        _MatchPerformanceOverview(
+          totalMatches: entries.length,
+          completedMatches: resultEntries.length,
+          wins: wins,
+          draws: draws,
+          losses: losses,
+          winRate: winRate,
+          scored: scored,
+          conceded: conceded,
+          form: form,
+          recentOutcomes: recentResults
+              .take(5)
+              .map(_matchOutcome)
+              .whereType<int>()
+              .toList(growable: false)
+              .reversed
+              .toList(growable: false),
         ),
         const SizedBox(height: 14),
         _MetricGroup(
@@ -3378,6 +3363,226 @@ class _MatchSummaryCard extends StatelessWidget {
         _ => l10n.statsMatchOutcomeDrawShort,
       };
     }).join(' ');
+  }
+}
+
+class _MatchPerformanceOverview extends StatelessWidget {
+  final int totalMatches;
+  final int completedMatches;
+  final int wins;
+  final int draws;
+  final int losses;
+  final int? winRate;
+  final int scored;
+  final int conceded;
+  final String form;
+  final List<int> recentOutcomes;
+
+  const _MatchPerformanceOverview({
+    required this.totalMatches,
+    required this.completedMatches,
+    required this.wins,
+    required this.draws,
+    required this.losses,
+    required this.winRate,
+    required this.scored,
+    required this.conceded,
+    required this.form,
+    required this.recentOutcomes,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final goalDifference = scored - conceded;
+    final record = completedMatches == 0
+        ? l10n.statsMatchUnsetValue
+        : l10n.statsMatchRecordValue(wins, draws, losses);
+    return Container(
+      key: const ValueKey('stats-match-performance-overview'),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppSurfaces.subtleColor(scheme, theme.brightness),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.statsMatchRecordLabel,
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      record,
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    l10n.statsMatchWinRateLabel,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    winRate == null
+                        ? l10n.statsMatchUnsetValue
+                        : l10n.statsMatchWinRateValue(winRate!),
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      color: scheme.primary,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Divider(height: 1, color: scheme.outlineVariant),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _MatchOverviewMetric(
+                  label: l10n.statsMatchCompletedMatchesLabel,
+                  value: l10n.statsMatchCompletedMatchesValue(
+                    completedMatches,
+                    totalMatches,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: _MatchOverviewMetric(
+                  label: l10n.statsMatchGoalsLabel,
+                  value: '$scored : $conceded',
+                ),
+              ),
+              Expanded(
+                child: _MatchOverviewMetric(
+                  label: l10n.statsMatchGoalDifferenceLabel,
+                  value: goalDifference > 0
+                      ? '+$goalDifference'
+                      : '$goalDifference',
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Text(
+            l10n.statsMatchFormLabel,
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: scheme.onSurfaceVariant,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 7),
+          if (recentOutcomes.isEmpty)
+            Text(form, style: theme.textTheme.bodyMedium)
+          else
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: recentOutcomes
+                  .map((outcome) => _MatchFormChip(outcome: outcome))
+                  .toList(growable: false),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MatchOverviewMetric extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _MatchOverviewMetric({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 3),
+        Text(
+          value,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _MatchFormChip extends StatelessWidget {
+  final int outcome;
+
+  const _MatchFormChip({required this.outcome});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    final color = switch (outcome) {
+      1 => const Color(0xFF1F8A70),
+      0 => const Color(0xFFB7791F),
+      _ => scheme.error,
+    };
+    final label = switch (outcome) {
+      1 => l10n.statsMatchOutcomeWinShort,
+      0 => l10n.statsMatchOutcomeDrawShort,
+      _ => l10n.statsMatchOutcomeLossShort,
+    };
+    return Container(
+      width: 30,
+      height: 30,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.13),
+        shape: BoxShape.circle,
+      ),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              color: color,
+              fontWeight: FontWeight.w900,
+            ),
+      ),
+    );
   }
 }
 
@@ -3547,13 +3752,26 @@ class _MetricCard extends StatelessWidget {
   }
 }
 
-int _matchOutcome(TrainingEntry entry) {
+int? _matchOutcome(TrainingEntry entry) {
   final scored = entry.scoredGoals;
   final conceded = entry.concededGoals;
-  if (scored == null || conceded == null) return 0;
-  if (scored > conceded) return 1;
-  if (scored < conceded) return -1;
-  return 0;
+  if (scored != null && conceded != null) {
+    if (scored > conceded) return 1;
+    if (scored < conceded) return -1;
+    return 0;
+  }
+  final points = entry.leaguePoints;
+  if (points != null) {
+    if (points >= 3) return 1;
+    if (points == 1) return 0;
+    return -1;
+  }
+  if (entry.tournamentOutcome == 'advanced' ||
+      entry.tournamentOutcome == 'champion') {
+    return 1;
+  }
+  if (entry.tournamentOutcome == 'eliminated') return -1;
+  return null;
 }
 
 int? _matchRateMinutesForSport(String? sportId) {
@@ -3571,10 +3789,11 @@ String _matchResultLabel(TrainingEntry entry,
     {required AppLocalizations l10n}) {
   final scored = entry.scoredGoals;
   final conceded = entry.concededGoals;
-  if (scored == null && conceded == null) {
+  final outcome = _matchOutcome(entry);
+  if (outcome == null) {
     return l10n.statsResultUnset;
   }
-  final resultLabel = switch (_matchOutcome(entry)) {
+  final resultLabel = switch (outcome) {
     1 => l10n.statsOutcomeWin,
     -1 => l10n.statsOutcomeLoss,
     _ => l10n.statsOutcomeDraw,

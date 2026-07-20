@@ -2565,6 +2565,19 @@
       }
     }
   },
+  "statsMatchCompletedMatchesLabel": "結果入力",
+  "statsMatchCompletedMatchesValue": "{completed}/{total}試合",
+  "@statsMatchCompletedMatchesValue": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "statsMatchGoalDifferenceLabel": "得失点差",
   "statsMatchAverageScoreLabel": "平均得失点",
   "statsMatchAverageScoreValue": "{scored}:{conceded}",
   "@statsMatchAverageScoreValue": {
@@ -6565,6 +6578,7 @@
   "matchCompetitionSaveTeams": "チームを保存",
   "matchCompetitionSavedFeedback": "大会情報を保存しました。",
   "matchCompetitionNameRequired": "大会名を入力してください。",
+  "matchCompetitionMinimumTeamsRequired": "大会を保存するには参加チームを2チーム以上登録してください。",
   "matchLeagueStandingsTitle": "リーグ順位",
   "matchTournamentBracketTitle": "トーナメント表",
   "matchTournamentImageAction": "画像",
@@ -6704,6 +6718,14 @@
   "matchTournamentOutcomeChampion": "優勝",
   "matchOpponentTeamLabel": "相手チーム",
   "matchOpponentTeamHint": "例えば水原U15",
+  "matchOpponentRequired": "相手チームを選択または入力してください。",
+  "matchScoreRequired": "両チームのスコアを入力してください。",
+  "requiredFieldLabel": "{label}（必須）",
+  "@requiredFieldLabel": {
+    "placeholders": {
+      "label": {}
+    }
+  },
   "matchLocationHint": "例: メイン競技場",
   "matchBoardTitle": "試合ボード",
   "matchBoardHelper": "相手、スコア、勝敗、個人記録をボード上で直接調整します。",

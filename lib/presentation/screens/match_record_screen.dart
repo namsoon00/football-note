@@ -77,7 +77,9 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
   final TextEditingController _memoController = TextEditingController();
 
   List<TrainingEntry> _contextEntries = const <TrainingEntry>[];
+  MatchCompetitionRecord? _initialCompetition;
   bool _saving = false;
+  bool _showValidationErrors = false;
   Timer? _autoSaveTimer;
   bool _autoSaveInFlight = false;
   bool _autoSaveQueued = false;
@@ -97,6 +99,15 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
     super.initState();
     _seedFromEntry(widget.editingEntry);
     unawaited(_loadContextEntries());
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final competition = _initialCompetition;
+    if (competition == null) return;
+    _initialCompetition = null;
+    _applyCompetition(competition);
   }
 
   @override
@@ -153,7 +164,7 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
       sportId: sportId,
     ).findCompetition(kind: _matchKind, name: competitionName);
     if (competition != null) {
-      _applyCompetition(competition);
+      _initialCompetition = competition;
     }
   }
 
@@ -360,6 +371,10 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
         ],
         const SizedBox(height: AppSpacing.sm),
         _buildOpponentControl(context, opponentOptions),
+        if (_showValidationErrors && _opponent.trim().isEmpty) ...[
+          const SizedBox(height: AppSpacing.xs),
+          _RequiredFieldError(text: l10n.matchOpponentRequired),
+        ],
         const SizedBox(height: AppSpacing.sm),
         _LiveScoreboard(
           homeLabel: managedTeamName,
@@ -381,6 +396,11 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
             }
           }),
         ),
+        if (_showValidationErrors &&
+            (_ourScore == null || _opponentScore == null)) ...[
+          const SizedBox(height: AppSpacing.xs),
+          _RequiredFieldError(text: l10n.matchScoreRequired),
+        ],
         const SizedBox(height: AppSpacing.sm),
         _ResultChoiceStrip(
           selected: _matchResultValue(),
@@ -608,11 +628,10 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
       maxLength: 40,
       textInputAction: TextInputAction.next,
       onChanged: (value) {
-        _opponent = value;
-        _scheduleAutoSave();
+        _updateAndScheduleAutoSave(() => _opponent = value);
       },
       decoration: InputDecoration(
-        labelText: l10n.matchOpponentTeamLabel,
+        labelText: l10n.requiredFieldLabel(l10n.matchOpponentTeamLabel),
         hintText: l10n.matchOpponentTeamHint,
         border: const OutlineInputBorder(),
         counterText: '',
@@ -628,7 +647,7 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            l10n.matchFlowOpponentSectionTitle,
+            l10n.requiredFieldLabel(l10n.matchFlowOpponentSectionTitle),
             style: theme.textTheme.labelLarge?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.w900,
@@ -797,11 +816,16 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
       icon: _matchKind == MatchCompetitionRecord.kindTournament
           ? Icons.account_tree_outlined
           : Icons.leaderboard_outlined,
-      title: l10n.matchFlowCompetitionSectionTitle,
+      title: l10n.requiredFieldLabel(
+        l10n.matchFlowCompetitionSectionTitle,
+      ),
       helper: l10n.matchFlowCompetitionSectionHelper,
       children: [
         if (selectedCompetition == null)
-          _InlineHint(text: l10n.matchCompetitionSelectionRequired)
+          _InlineHint(
+            text: l10n.matchCompetitionSelectionRequired,
+            isError: _showValidationErrors,
+          )
         else ...[
           _SelectedCompetitionSummary(competition: selectedCompetition),
           const SizedBox(height: AppSpacing.sm),
@@ -1026,14 +1050,21 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
           ).findCompetitionById(_selectedCompetitionId)
         : null;
     final opponent = _opponent.trim();
-    if (_isCompetitionMatch &&
-        (selectedCompetition == null ||
-            selectedCompetition.kind != _matchKind ||
-            selectedCompetition.name.trim().isEmpty)) {
+    final hasValidCompetition = !_isCompetitionMatch ||
+        (selectedCompetition != null &&
+            selectedCompetition.kind == _matchKind &&
+            selectedCompetition.name.trim().isNotEmpty);
+    final hasCompleteScore = _ourScore != null && _opponentScore != null;
+    if (!hasValidCompetition || opponent.isEmpty || !hasCompleteScore) {
       if (closeAfterSave) {
+        setState(() => _showValidationErrors = true);
         AppFeedback.showMessage(
           context,
-          text: l10n.matchCompetitionSelectionRequired,
+          text: !hasValidCompetition
+              ? l10n.matchCompetitionSelectionRequired
+              : opponent.isEmpty
+                  ? l10n.matchOpponentRequired
+                  : l10n.matchScoreRequired,
         );
       }
       return;
@@ -1051,23 +1082,7 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
             replaceLeagueFirstTeam: true,
           )
         : MatchCompetitionService.normalizeTeams(_teams);
-    final opponentTeams = !_isCompetitionMatch
-        ? teams
-        : managedTeamName.isNotEmpty
-            ? teams
-                .where((team) => team.trim() != managedTeamName)
-                .toList(growable: false)
-            : teams.skip(1).toList(growable: false);
-    if (opponent.isEmpty && opponentTeams.isEmpty) {
-      if (closeAfterSave) {
-        AppFeedback.showMessage(
-          context,
-          text: l10n.matchOpponentTeamHint,
-        );
-      }
-      return;
-    }
-    final savedOpponent = opponent.isNotEmpty ? opponent : opponentTeams.first;
+    final savedOpponent = opponent;
     final calculatedLeaguePoints = _calculatedLeaguePoints();
     final calculatedTournamentWins = _calculatedTournamentWins();
     final saved = TrainingEntry(
@@ -2094,8 +2109,9 @@ class _CounterButton extends StatelessWidget {
 
 class _InlineHint extends StatelessWidget {
   final String text;
+  final bool isError;
 
-  const _InlineHint({required this.text});
+  const _InlineHint({required this.text, this.isError = false});
 
   @override
   Widget build(BuildContext context) {
@@ -2103,16 +2119,47 @@ class _InlineHint extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.sm),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        color: isError
+            ? theme.colorScheme.errorContainer.withValues(alpha: 0.6)
+            : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
         borderRadius: AppRadius.small,
       ),
       child: Text(
         text,
         style: theme.textTheme.bodySmall?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
+          color: isError
+              ? theme.colorScheme.onErrorContainer
+              : theme.colorScheme.onSurfaceVariant,
           fontWeight: FontWeight.w700,
         ),
       ),
+    );
+  }
+}
+
+class _RequiredFieldError extends StatelessWidget {
+  final String text;
+
+  const _RequiredFieldError({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(Icons.error_outline, size: 18, color: theme.colorScheme.error),
+        const SizedBox(width: AppSpacing.xs),
+        Expanded(
+          child: Text(
+            text,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.error,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

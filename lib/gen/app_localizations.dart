@@ -7210,6 +7210,24 @@ abstract class AppLocalizations {
   /// **'{percent}%'**
   String statsMatchWinRateValue(int percent);
 
+  /// No description provided for @statsMatchCompletedMatchesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Results recorded'**
+  String get statsMatchCompletedMatchesLabel;
+
+  /// No description provided for @statsMatchCompletedMatchesValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{completed}/{total}'**
+  String statsMatchCompletedMatchesValue(int completed, int total);
+
+  /// No description provided for @statsMatchGoalDifferenceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal difference'**
+  String get statsMatchGoalDifferenceLabel;
+
   /// No description provided for @statsMatchAverageScoreLabel.
   ///
   /// In en, this message translates to:
@@ -20651,6 +20669,12 @@ abstract class AppLocalizations {
   /// **'Enter a competition name.'**
   String get matchCompetitionNameRequired;
 
+  /// No description provided for @matchCompetitionMinimumTeamsRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Add at least two participating teams to save the competition.'**
+  String get matchCompetitionMinimumTeamsRequired;
+
   /// No description provided for @matchLeagueStandingsTitle.
   ///
   /// In en, this message translates to:
@@ -20957,6 +20981,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'e.g. Suwon U15'**
   String get matchOpponentTeamHint;
+
+  /// No description provided for @matchOpponentRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Select or enter an opponent team.'**
+  String get matchOpponentRequired;
+
+  /// No description provided for @matchScoreRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter both teams\' scores.'**
+  String get matchScoreRequired;
+
+  /// No description provided for @requiredFieldLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} (required)'**
+  String requiredFieldLabel(Object label);
 
   /// No description provided for @matchLocationHint.
   ///

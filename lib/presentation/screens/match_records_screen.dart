@@ -53,6 +53,7 @@ class MatchRecordsContent extends StatefulWidget {
   final bool scrollable;
   final EdgeInsetsGeometry padding;
   final VoidCallback? onBack;
+  final ValueChanged<TrainingEntry>? onEditEntry;
 
   const MatchRecordsContent({
     super.key,
@@ -63,6 +64,7 @@ class MatchRecordsContent extends StatefulWidget {
     this.scrollable = false,
     this.padding = EdgeInsets.zero,
     this.onBack,
+    this.onEditEntry,
   });
 
   @override
@@ -169,7 +171,12 @@ class _MatchRecordsContentState extends State<MatchRecordsContent> {
                 ...filteredEntries.map(
                   (entry) => Padding(
                     padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                    child: _MatchRecordCard(entry: entry),
+                    child: _MatchRecordCard(
+                      entry: entry,
+                      onEdit: widget.onEditEntry == null
+                          ? null
+                          : () => widget.onEditEntry!(entry),
+                    ),
                   ),
                 ),
             ],
@@ -357,8 +364,9 @@ class _SummaryTile extends StatelessWidget {
 
 class _MatchRecordCard extends StatelessWidget {
   final TrainingEntry entry;
+  final VoidCallback? onEdit;
 
-  const _MatchRecordCard({required this.entry});
+  const _MatchRecordCard({required this.entry, this.onEdit});
 
   @override
   Widget build(BuildContext context) {
@@ -389,88 +397,109 @@ class _MatchRecordCard extends StatelessWidget {
       ...matchCompetitionDetailParts(entry, l10n, teamLimit: 3),
     ];
 
-    return Container(
-      decoration: AppSurfaces.cardDecoration(scheme, brightness),
-      padding: const EdgeInsets.all(AppSpacing.md),
-      child: Row(
-        children: [
-          Container(
-            width: 46,
-            height: 46,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
-              borderRadius: AppRadius.small,
-            ),
-            child: Center(
-              child: Text(
-                _opponentInitials(opponent),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.w900,
-                ),
+    return Semantics(
+      button: onEdit != null,
+      label: onEdit == null ? null : l10n.matchEditTitle,
+      child: Material(
+        color: Colors.transparent,
+        child: Ink(
+          decoration: AppSurfaces.cardDecoration(scheme, brightness),
+          child: InkWell(
+            onTap: onEdit,
+            borderRadius: AppRadius.small,
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Row(
+                children: [
+                  Container(
+                    width: 46,
+                    height: 46,
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.12),
+                      borderRadius: AppRadius.small,
+                    ),
+                    child: Center(
+                      child: Text(
+                        _opponentInitials(opponent),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          color: color,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          opponent,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.xxs),
+                        Text(
+                          details.join(' · '),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: scheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w700,
+                            height: 1.3,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        score,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.xxs),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.xs,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: color.withValues(alpha: 0.10),
+                          borderRadius: AppRadius.small,
+                        ),
+                        child: Text(
+                          outcomeLabel,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: color,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (onEdit != null) ...[
+                    const SizedBox(width: AppSpacing.xs),
+                    Icon(
+                      Icons.edit_outlined,
+                      size: 18,
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ],
+                ],
               ),
             ),
           ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  opponent,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.xxs),
-                Text(
-                  details.join(' · '),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w700,
-                    height: 1.3,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                score,
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.xxs),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.xs,
-                  vertical: 2,
-                ),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.10),
-                  borderRadius: AppRadius.small,
-                ),
-                child: Text(
-                  outcomeLabel,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: color,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }
