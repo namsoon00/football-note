@@ -92,6 +92,70 @@ void main() {
       expect(result.currentPhase, RunningGaitPhase.unknown);
     });
 
+    test('drops contact durations after they leave the analysis window', () {
+      final detector = RunningGaitEventDetector();
+      final start = DateTime(2026, 7, 20, 9);
+      final series = _runningSeries();
+      RunningGaitAnalysis analysis = const RunningGaitAnalysis.empty();
+
+      for (var index = 0; index < series.length; index += 1) {
+        analysis = detector.ingestObservation(
+          _observationFor(series[index]),
+          timestamp: start.add(Duration(milliseconds: 120 * index)),
+          cameraSideViewFramingOk: true,
+        );
+      }
+      expect(analysis.leftContactDuration.available, isTrue);
+
+      final seriesEnd = start.add(Duration(milliseconds: 120 * series.length));
+      for (var index = 0; index < 24; index += 1) {
+        analysis = detector.ingestObservation(
+          null,
+          timestamp: seriesEnd.add(Duration(milliseconds: 120 * index)),
+          cameraSideViewFramingOk: true,
+        );
+      }
+
+      expect(analysis.recentEvents, isEmpty);
+      expect(analysis.leftContactDuration.available, isFalse);
+      expect(analysis.leftContactDuration.sampleCount, 0);
+      expect(analysis.rightContactDuration.sampleCount, 0);
+    });
+
+    test('discards a rapid false contact instead of keeping an event pair', () {
+      final detector = RunningGaitEventDetector(
+        config: const RunningGaitEventDetectorConfig(
+          minimumEventSpacing: Duration(milliseconds: 300),
+        ),
+      );
+      final start = DateTime(2026, 7, 20, 9);
+      const states = <_SyntheticGaitState>[
+        _SyntheticGaitState.flight,
+        _SyntheticGaitState.flight,
+        _SyntheticGaitState.leftContact,
+        _SyntheticGaitState.leftContact,
+        _SyntheticGaitState.flight,
+        _SyntheticGaitState.flight,
+      ];
+      RunningGaitAnalysis analysis = const RunningGaitAnalysis.empty();
+
+      for (var index = 0; index < states.length; index += 1) {
+        analysis = detector.ingestObservation(
+          _observationFor(states[index]),
+          timestamp: start.add(Duration(milliseconds: 120 * index)),
+          cameraSideViewFramingOk: true,
+        );
+      }
+
+      expect(
+        analysis.recentEvents.where(
+          (event) => event.side == RunningFootSide.left,
+        ),
+        isEmpty,
+      );
+      expect(analysis.leftContactDuration.sampleCount, 0);
+    });
+
     test('reset clears event history and availability', () {
       final detector = RunningGaitEventDetector();
       final start = DateTime(2026, 7, 20, 9);

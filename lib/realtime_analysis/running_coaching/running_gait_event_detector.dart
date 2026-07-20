@@ -222,24 +222,34 @@ class RunningGaitEventDetector {
     final tracker = _feet[side]!;
     final type =
         contact ? RunningGaitEventType.touchdown : RunningGaitEventType.toeOff;
+
+    if (type == RunningGaitEventType.touchdown &&
+        tracker.lastEventType == RunningGaitEventType.touchdown) {
+      _discardUnmatchedTouchdown(side);
+    }
+
     final lastEventAt = tracker.lastEventAt;
     final meetsSpacing = lastEventAt == null ||
         timestamp.difference(lastEventAt) >= config.minimumEventSpacing;
     final validOrder = tracker.lastEventType != type;
-
-    tracker.lastEventAt = timestamp;
-    tracker.lastEventType = type;
     if (type == RunningGaitEventType.toeOff &&
         tracker.lastTouchdownAt == null) {
       return;
     }
     if (!meetsSpacing || !validOrder) {
-      if (type == RunningGaitEventType.touchdown) {
-        tracker.lastTouchdownAt = timestamp;
-      } else {
-        tracker.lastTouchdownAt = null;
+      if (type == RunningGaitEventType.toeOff) {
+        _discardUnmatchedTouchdown(side);
       }
       return;
+    }
+
+    if (type == RunningGaitEventType.toeOff) {
+      final contactDuration = timestamp.difference(tracker.lastTouchdownAt!);
+      if (contactDuration < config.minimumContactDuration ||
+          contactDuration > config.maximumContactDuration) {
+        _discardUnmatchedTouchdown(side);
+        return;
+      }
     }
 
     final event = RunningGaitEvent(
@@ -250,19 +260,42 @@ class RunningGaitEventDetector {
     );
     _events.add(event);
 
+    tracker.lastEventAt = timestamp;
+    tracker.lastEventType = type;
+
     if (type == RunningGaitEventType.touchdown) {
       tracker.lastTouchdownAt = timestamp;
     } else {
-      final touchdownAt = tracker.lastTouchdownAt;
       tracker.lastTouchdownAt = null;
-      if (touchdownAt != null) {
-        final contactDuration = timestamp.difference(touchdownAt);
-        if (contactDuration >= config.minimumContactDuration &&
-            contactDuration <= config.maximumContactDuration) {
-          tracker.contactDurations.add(contactDuration);
-        }
+    }
+  }
+
+  void _discardUnmatchedTouchdown(RunningFootSide side) {
+    for (var index = _events.length - 1; index >= 0; index -= 1) {
+      final event = _events[index];
+      if (event.side != side) {
+        continue;
+      }
+      if (event.type == RunningGaitEventType.touchdown) {
+        _events.removeAt(index);
+      }
+      break;
+    }
+
+    final tracker = _feet[side]!;
+    RunningGaitEvent? previousEvent;
+    for (var index = _events.length - 1; index >= 0; index -= 1) {
+      if (_events[index].side == side) {
+        previousEvent = _events[index];
+        break;
       }
     }
+    tracker.lastEventAt = previousEvent?.timestamp;
+    tracker.lastEventType = previousEvent?.type;
+    tracker.lastTouchdownAt =
+        previousEvent?.type == RunningGaitEventType.touchdown
+            ? previousEvent?.timestamp
+            : null;
   }
 
   RunningGaitAnalysis _buildAnalysis({
@@ -402,7 +435,7 @@ class RunningGaitEventDetector {
     required double timingConfidence,
     required double sideViewConfidence,
   }) {
-    final durations = _feet[side]!.contactDurations.toList(growable: false);
+    final durations = _contactDurations(side);
     if (qualityReason != null) {
       return RunningGaitMetric.unavailable(
         reasonIfUnavailable: qualityReason,
@@ -441,6 +474,30 @@ class RunningGaitEventDetector {
       confidence: confidence,
       sampleCount: durations.length,
     );
+  }
+
+  List<Duration> _contactDurations(RunningFootSide side) {
+    final durations = <Duration>[];
+    DateTime? touchdownAt;
+    for (final event in _events) {
+      if (event.side != side) {
+        continue;
+      }
+      if (event.type == RunningGaitEventType.touchdown) {
+        touchdownAt = event.timestamp;
+        continue;
+      }
+      if (touchdownAt == null) {
+        continue;
+      }
+      final duration = event.timestamp.difference(touchdownAt);
+      touchdownAt = null;
+      if (duration >= config.minimumContactDuration &&
+          duration <= config.maximumContactDuration) {
+        durations.add(duration);
+      }
+    }
+    return durations;
   }
 
   bool _touchdownsAlternate(List<RunningGaitEvent> touchdowns) {
@@ -797,7 +854,6 @@ class _FootTracker {
   double? lastFootY;
   DateTime? lastFootTimestamp;
   double lastSignalConfidence = 0;
-  final List<Duration> contactDurations = <Duration>[];
 
   void clearPending() {
     pendingContact = null;
@@ -814,6 +870,5 @@ class _FootTracker {
     lastFootY = null;
     lastFootTimestamp = null;
     lastSignalConfidence = 0;
-    contactDurations.clear();
   }
 }
