@@ -270,6 +270,221 @@ void main() {
         ),
       );
     });
+
+    test('parses cumulative RunningLiveSession prediction logs', () {
+      final touchdown = <String, Object?>{
+        'timestampMs': 100,
+        'side': 'left',
+        'type': 'touchdown',
+        'timestamp': '2026-07-21T09:00:00.100',
+        'absoluteTimestampMs': 1784592000100,
+        'confidence': '0.900',
+      };
+      final lateToeOff = <String, Object?>{
+        'timestampMs': 240,
+        'side': 'left',
+        'type': 'toeOff',
+        'timestamp': '2026-07-21T09:00:00.240',
+        'absoluteTimestampMs': 1784592000240,
+        'confidence': '0.800',
+      };
+      final earlierRight = <String, Object?>{
+        'timestampMs': 90,
+        'side': 'right',
+        'type': 'touchdown',
+        'timestamp': '2026-07-21T09:00:00.090',
+        'absoluteTimestampMs': 1784592000090,
+        'confidence': '0.850',
+      };
+      final source = [
+        'unrelated debug line',
+        '[RunningLiveSession] ${jsonEncode({
+              'sessionId': 'running-a',
+              'event': 'periodic',
+              'events': {
+                'timeline': [touchdown],
+              },
+            })}',
+        'I/flutter (123): [RunningLiveSession] ${jsonEncode({
+              'sessionId': 'running-a',
+              'event': 'periodic',
+              'events': {
+                'timeline': [touchdown, lateToeOff, earlierRight],
+              },
+            })}',
+      ].join('\n');
+
+      final fixture = GaitCalibrationFixture.fromPredictionSourceString(
+        source,
+        label: 'predictions',
+      );
+
+      expect(fixture.format, GaitCalibrationInputFormat.runningLiveSessionLog);
+      expect(fixture.sessionId, 'running-a');
+      expect(fixture.sourceLogCount, 2);
+      expect(fixture.repeatedEventCount, 1);
+      expect(fixture.events.map((event) => event.timestampMs), [90, 100, 240]);
+      expect(fixture.events.map((event) => event.side), [
+        GaitCalibrationFootSide.right,
+        GaitCalibrationFootSide.left,
+        GaitCalibrationFootSide.left,
+      ]);
+      expect(fixture.sourceMetadataToJson(), {
+        'format': 'runningLiveSessionLog',
+        'eventCount': 3,
+        'sessionId': 'running-a',
+        'sourceLogCount': 2,
+        'deduplicatedRepeatedEvents': 1,
+      });
+    });
+
+    test('requires an explicit session id for multi-session logs', () {
+      final source = [
+        '[RunningLiveSession] ${jsonEncode({
+              'sessionId': 'running-a',
+              'events': {
+                'timeline': [
+                  {'timestampMs': 100, 'side': 'left', 'type': 'touchdown'},
+                ],
+              },
+            })}',
+        '[RunningLiveSession] ${jsonEncode({
+              'sessionId': 'running-b',
+              'events': {
+                'timeline': [
+                  {'timestampMs': 300, 'side': 'right', 'type': 'toeOff'},
+                ],
+              },
+            })}',
+      ].join('\n');
+
+      expect(
+        () => GaitCalibrationFixture.fromPredictionSourceString(
+          source,
+          label: 'predictions',
+        ),
+        throwsA(
+          isA<GaitCalibrationInputException>().having(
+            (error) => error.message,
+            'message',
+            contains('multiple RunningLiveSession sessions'),
+          ),
+        ),
+      );
+
+      final selected = GaitCalibrationFixture.fromPredictionSourceString(
+        source,
+        label: 'predictions',
+        sessionId: 'running-b',
+      );
+
+      expect(selected.sessionId, 'running-b');
+      expect(selected.events, hasLength(1));
+      expect(selected.events.single.timestampMs, 300);
+      expect(selected.events.single.type, GaitCalibrationEventType.toeOff);
+    });
+
+    test('rejects conflicting repeated live events instead of hiding them', () {
+      final first = <String, Object?>{
+        'timestampMs': 100,
+        'side': 'left',
+        'type': 'touchdown',
+        'confidence': '0.900',
+      };
+      final conflicting = <String, Object?>{
+        'timestampMs': 100,
+        'side': 'left',
+        'type': 'touchdown',
+        'confidence': '0.700',
+      };
+      final source = [
+        '[RunningLiveSession] ${jsonEncode({
+              'sessionId': 'running-a',
+              'events': {
+                'timeline': [first],
+              },
+            })}',
+        '[RunningLiveSession] ${jsonEncode({
+              'sessionId': 'running-a',
+              'events': {
+                'timeline': [conflicting],
+              },
+            })}',
+      ].join('\n');
+
+      expect(
+        () => GaitCalibrationFixture.fromPredictionSourceString(
+          source,
+          label: 'predictions',
+        ),
+        throwsA(
+          isA<GaitCalibrationInputException>().having(
+            (error) => error.message,
+            'message',
+            allOf(contains('conflicts'), contains('timestampMs=100')),
+          ),
+        ),
+      );
+    });
+
+    test('reports every configured quality gate violation', () {
+      final report = const GaitCalibrationEvaluator(
+        toleranceMs: 30,
+        qualityGate: GaitCalibrationQualityGate(
+          minGroundTruthEvents: 3,
+          minOverallPrecision: 0.9,
+          minOverallRecall: 0.9,
+          minOverallF1: 0.9,
+          maxTimingMeanAbsoluteErrorMs: 10,
+          maxTimingP95AbsoluteErrorMs: 20,
+          minTouchdownPrecision: 0.9,
+          minTouchdownRecall: 0.9,
+          minToeOffPrecision: 0.9,
+          minToeOffRecall: 0.9,
+        ),
+      ).evaluate(
+        groundTruth: <GaitCalibrationEvent>[
+          _event(100, GaitCalibrationFootSide.left,
+              GaitCalibrationEventType.touchdown, 0),
+          _event(
+            220,
+            GaitCalibrationFootSide.left,
+            GaitCalibrationEventType.toeOff,
+            1,
+          ),
+        ],
+        predictions: const <GaitCalibrationEvent>[],
+      );
+
+      expect(report.qualityGate.passed, isFalse);
+      expect(
+        report.qualityGate.violations.map((violation) => violation.metric),
+        [
+          'groundTruth.eventCount',
+          'overall.precision',
+          'overall.recall',
+          'overall.f1',
+          'overall.maeMs',
+          'overall.p95AbsoluteErrorMs',
+          'touchdown.precision',
+          'touchdown.recall',
+          'toeOff.precision',
+          'toeOff.recall',
+        ],
+      );
+      final gateJson = report.toJson()['qualityGate'] as Map<String, Object?>;
+      expect(gateJson['passed'], isFalse);
+      final violations = gateJson['violations'] as List<Object?>;
+      expect(violations, hasLength(10));
+      expect(
+        violations.cast<Map<String, Object?>>().where(
+              (violation) =>
+                  violation['metric'] == 'overall.maeMs' &&
+                  violation['actual'] == null,
+            ),
+        hasLength(1),
+      );
+    });
   });
 
   group('running gait calibration CLI', () {
@@ -334,6 +549,14 @@ void main() {
       });
       expect(decoded['byEventType'], isA<Map<String, Object?>>());
       expect(decoded['matches'], isA<List<Object?>>());
+      expect(
+        (decoded['qualityGate'] as Map<String, Object?>)['passed'],
+        isTrue,
+      );
+      expect(decoded['predictionInput'], {
+        'format': 'flatEvents',
+        'eventCount': 2,
+      });
     }, timeout: const Timeout(Duration(seconds: 60)));
   });
 }

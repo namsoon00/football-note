@@ -69,6 +69,9 @@ echo "==> web asset version stamp regression"
 echo "==> android upload mediapipe contract"
 ./scripts/test_android_upload_mediapipe_contract.sh
 
+echo "==> running gait calibration gate regression"
+./scripts/test_running_gait_calibration_gate.sh
+
 if [[ "${VERIFY_SCOPE}" == "minimal" ]]; then
   echo "==> minimal verification complete (skipping flutter test/run)"
   exit 0
