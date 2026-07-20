@@ -14806,6 +14806,30 @@ abstract class AppLocalizations {
   /// **'Open sample video guide'**
   String get runningCoachSampleGuideAction;
 
+  /// No description provided for @runningCoachSampleAnalysisLoadingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyzing sample videos'**
+  String get runningCoachSampleAnalysisLoadingTitle;
+
+  /// No description provided for @runningCoachSampleAnalysisLoadingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'MediaPipe is reading the bundled reference and wrong-form clips now.'**
+  String get runningCoachSampleAnalysisLoadingBody;
+
+  /// No description provided for @runningCoachSampleAnalysisFailedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sample analysis unavailable'**
+  String get runningCoachSampleAnalysisFailedTitle;
+
+  /// No description provided for @runningCoachSampleAnalysisRetryAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry sample analysis'**
+  String get runningCoachSampleAnalysisRetryAction;
+
   /// No description provided for @runningCoachSampleFrameLabel.
   ///
   /// In en, this message translates to:
@@ -16603,6 +16627,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The contact phase used only a small proxy window; confirm foot strike and knee metrics again.'**
   String get runningCoachQualityReasonContactPhaseProxy;
+
+  /// No description provided for @runningCoachQualityReasonLowConfidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Required landmark confidence is low, so keep the camera steady before using this cue.'**
+  String get runningCoachQualityReasonLowConfidence;
 
   /// No description provided for @runningCoachQualityReasonGeneric.
   ///

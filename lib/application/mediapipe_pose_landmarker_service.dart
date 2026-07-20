@@ -232,7 +232,10 @@ class MediaPipePoseLandmark {
         (map['y'] as num?)?.toDouble() ?? 0,
       ),
       z: (map['z'] as num?)?.toDouble() ?? 0,
-      confidence: (visibility ?? presence ?? 1).clamp(0.0, 1.0),
+      confidence: _mediaPipeLandmarkConfidence(
+        visibility: visibility,
+        presence: presence,
+      ),
       visibility: visibility,
       presence: presence,
       worldLandmark: worldX == null || worldY == null || worldZ == null
@@ -245,6 +248,20 @@ class MediaPipePoseLandmark {
             ),
     );
   }
+}
+
+double _mediaPipeLandmarkConfidence({
+  required double? visibility,
+  required double? presence,
+}) {
+  final confidence = switch ((visibility, presence)) {
+    (final visibility?, final presence?) =>
+      visibility < presence ? visibility : presence,
+    (final visibility?, null) => visibility,
+    (null, final presence?) => presence,
+    _ => 0.0,
+  };
+  return confidence.clamp(0.0, 1.0).toDouble();
 }
 
 class MediaPipeWorldLandmark {

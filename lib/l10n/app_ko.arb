@@ -4816,6 +4816,10 @@
   "runningCoachSampleTitle": "샘플 영상 가이드",
   "runningCoachSampleBody": "기준 루프와 잘못된 자세 루프를 바꿔 보며 코치가 상체, 착지, 무릎 부하, 팔 각도, 바운스, 프레임 품질을 어떻게 읽는지 확인해요.",
   "runningCoachSampleGuideAction": "샘플 영상 가이드 보기",
+  "runningCoachSampleAnalysisLoadingTitle": "샘플 영상을 분석하는 중",
+  "runningCoachSampleAnalysisLoadingBody": "MediaPipe가 번들된 기준 영상과 잘못된 자세 영상을 읽고 있어요.",
+  "runningCoachSampleAnalysisFailedTitle": "샘플 분석을 사용할 수 없어요",
+  "runningCoachSampleAnalysisRetryAction": "샘플 분석 다시 시도",
   "runningCoachSampleFrameLabel": "프레임 {current}/{total}",
   "@runningCoachSampleFrameLabel": {
     "placeholders": {
@@ -5466,6 +5470,7 @@
   "runningCoachQualityReasonLowCoverage": "추적된 프레임 비율이 낮아 이 지표는 보수적으로 봐 주세요.",
   "runningCoachQualityReasonLimitedSamples": "안정적으로 읽은 프레임이 적어 같은 구도로 한 번 더 확인하는 것이 좋아요.",
   "runningCoachQualityReasonContactPhaseProxy": "접지 구간을 추정한 프레임이 적어 착지와 무릎 지표는 한 번 더 확인해 주세요.",
+  "runningCoachQualityReasonLowConfidence": "필수 랜드마크 신뢰도가 낮아 이 큐를 쓰기 전에 카메라를 더 안정시켜 주세요.",
   "runningCoachQualityReasonGeneric": "촬영 품질이 낮아 같은 구도로 다시 확인하는 것이 좋아요.",
   "runningCoachOverallHeadlineStrong": "달리기 형태가 좋아요",
   "runningCoachOverallHeadlineSolid": "기본은 좋고 한 가지 포인트만 다듬으면 돼요",

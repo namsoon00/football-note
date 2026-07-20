@@ -8446,6 +8446,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachSampleGuideAction => 'Open sample video guide';
 
   @override
+  String get runningCoachSampleAnalysisLoadingTitle =>
+      'Analyzing sample videos';
+
+  @override
+  String get runningCoachSampleAnalysisLoadingBody =>
+      'MediaPipe is reading the bundled reference and wrong-form clips now.';
+
+  @override
+  String get runningCoachSampleAnalysisFailedTitle =>
+      'Sample analysis unavailable';
+
+  @override
+  String get runningCoachSampleAnalysisRetryAction => 'Retry sample analysis';
+
+  @override
   String runningCoachSampleFrameLabel(int current, int total) {
     return 'Frame $current/$total';
   }
@@ -9547,6 +9562,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get runningCoachQualityReasonContactPhaseProxy =>
       'The contact phase used only a small proxy window; confirm foot strike and knee metrics again.';
+
+  @override
+  String get runningCoachQualityReasonLowConfidence =>
+      'Required landmark confidence is low, so keep the camera steady before using this cue.';
 
   @override
   String get runningCoachQualityReasonGeneric =>

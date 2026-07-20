@@ -972,6 +972,9 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
           ? l10n.runningCoachLiveStatusCollecting
           : l10n.runningCoachLiveStatusFraming;
     }
+    if (_coachingState.highlightedInsight?.quality.isLowConfidence ?? false) {
+      return l10n.runningCoachLiveStatusCollecting;
+    }
     if (report.overallScore >= 85) {
       return l10n.runningCoachOverallHeadlineStrong;
     }
@@ -997,6 +1000,9 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       };
     }
     if (state.highlightedInsight case final insight?) {
+      if (insight.quality.isLowConfidence) {
+        return _runningLiveQualityReasonText(l10n, insight.quality);
+      }
       return RunningCoachInsightCopy.fromInsight(insight, l10n).summary;
     }
     return '';
@@ -1007,6 +1013,9 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       return _voiceText(l10n, state.primaryCue);
     }
     if (state.highlightedInsight case final insight?) {
+      if (insight.quality.isLowConfidence) {
+        return l10n.runningCoachLiveCueKeepRunning;
+      }
       return RunningCoachInsightCopy.fromInsight(insight, l10n).cue;
     }
     return '';
@@ -1653,6 +1662,19 @@ class _LiveInsightData {
   const _LiveInsightData({required this.insight, required this.copy});
 }
 
+String _runningLiveQualityReasonText(
+  AppLocalizations l10n,
+  RunningMetricQuality quality,
+) {
+  return switch (quality.reason) {
+    'low_coverage' => l10n.runningCoachQualityReasonLowCoverage,
+    'limited_samples' => l10n.runningCoachQualityReasonLimitedSamples,
+    'contact_phase_proxy' => l10n.runningCoachQualityReasonContactPhaseProxy,
+    'low_confidence' => l10n.runningCoachQualityReasonLowConfidence,
+    _ => l10n.runningCoachQualityReasonGeneric,
+  };
+}
+
 class _LiveInsightSection {
   final String title;
   final List<_LiveInsightData> items;
@@ -1932,6 +1954,7 @@ class _LiveInsightCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final accent = switch (data.insight.status) {
       RunningCoachStatus.good => const Color(0xFF8BC34A),
       RunningCoachStatus.watch => const Color(0xFFFFB74D),
@@ -1963,6 +1986,10 @@ class _LiveInsightCard extends StatelessWidget {
                 if (priority != null)
                   _PriorityBadge(priority: priority!, accent: accent),
                 _ScoreBadge(score: data.insight.score, accent: accent),
+                _ConfidenceBadge(
+                  quality: data.insight.quality,
+                  accent: accent,
+                ),
                 _StatusBadge(text: data.copy.statusLabel, accent: accent),
               ],
             ),
@@ -1982,6 +2009,17 @@ class _LiveInsightCard extends StatelessWidget {
                     height: 1.3,
                   ),
             ),
+            if (data.insight.quality.isLowConfidence) ...[
+              const SizedBox(height: 6),
+              Text(
+                _runningLiveQualityReasonText(l10n, data.insight.quality),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: accent,
+                      fontWeight: FontWeight.w700,
+                      height: 1.3,
+                    ),
+              ),
+            ],
             const SizedBox(height: 8),
             Text(
               data.copy.cue,
@@ -2042,6 +2080,10 @@ class _CompactMetricScoreCard extends StatelessWidget {
                   if (priority != null)
                     _PriorityBadge(priority: priority!, accent: accent),
                   _ScoreBadge(score: data.insight.score, accent: accent),
+                  _ConfidenceBadge(
+                    quality: data.insight.quality,
+                    accent: accent,
+                  ),
                 ],
               ),
               const SizedBox(height: 10),
@@ -2089,6 +2131,37 @@ class _StatusBadge extends StatelessWidget {
           text,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
                 color: accent,
+                fontWeight: FontWeight.w800,
+              ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ConfidenceBadge extends StatelessWidget {
+  final RunningMetricQuality quality;
+  final Color accent;
+
+  const _ConfidenceBadge({required this.quality, required this.accent});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final isLow = quality.isLowConfidence;
+    final color = isLow ? const Color(0xFFFF8A65) : accent;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: color.withAlpha(isLow ? 34 : 22),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withAlpha(isLow ? 120 : 70)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        child: Text(
+          l10n.runningCoachConfidenceLabel(quality.confidencePercent),
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: color,
                 fontWeight: FontWeight.w800,
               ),
         ),

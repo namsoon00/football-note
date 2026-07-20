@@ -255,10 +255,7 @@ final class RunningPoseAnalysisChannel {
       return nil
     }
     let landmark = landmarks[index]
-    let confidence = max(
-      landmark.visibility?.floatValue ?? 0,
-      landmark.presence?.floatValue ?? 0
-    )
+    let confidence = landmarkConfidence(landmark)
     guard confidence >= Self.minimumLikelihood else {
       return nil
     }
@@ -266,6 +263,23 @@ final class RunningPoseAnalysisChannel {
       x: Double(landmark.x) * Double(imageSize.width),
       y: Double(landmark.y) * Double(imageSize.height)
     )
+  }
+
+  private func landmarkConfidence(_ landmark: NormalizedLandmark) -> Float {
+    let visibility = landmark.visibility?.floatValue
+    let presence = landmark.presence?.floatValue
+    let confidence: Float
+    switch (visibility, presence) {
+    case let (visibility?, presence?):
+      confidence = min(visibility, presence)
+    case let (visibility?, nil):
+      confidence = visibility
+    case let (nil, presence?):
+      confidence = presence
+    default:
+      confidence = 0
+    }
+    return min(1, max(0, confidence))
   }
 
   private func resolveDirection(from samples: [FrameSample]) -> AnalysisDirection {

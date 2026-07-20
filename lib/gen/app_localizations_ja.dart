@@ -8230,6 +8230,19 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachSampleGuideAction => 'サンプルビデオガイドを開く';
 
   @override
+  String get runningCoachSampleAnalysisLoadingTitle => 'サンプル動画を分析中';
+
+  @override
+  String get runningCoachSampleAnalysisLoadingBody =>
+      'MediaPipe が同梱の基準動画と悪いフォーム動画を読み取っています。';
+
+  @override
+  String get runningCoachSampleAnalysisFailedTitle => 'サンプル分析を使用できません';
+
+  @override
+  String get runningCoachSampleAnalysisRetryAction => 'サンプル分析を再試行';
+
+  @override
   String runningCoachSampleFrameLabel(int current, int total) {
     return 'フレーム $current/$total';
   }
@@ -9283,6 +9296,10 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get runningCoachQualityReasonContactPhaseProxy =>
       '接地局面を推定したフレームが少ないため、着地と膝の指標をもう一度確認してください。';
+
+  @override
+  String get runningCoachQualityReasonLowConfidence =>
+      '必須ランドマークの信頼度が低いため、このキューを使う前にカメラを安定させてください。';
 
   @override
   String get runningCoachQualityReasonGeneric => '撮影品質が低いため、同じ角度でもう一度確認してください。';

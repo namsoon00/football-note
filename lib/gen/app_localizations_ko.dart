@@ -8237,6 +8237,19 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachSampleGuideAction => '샘플 영상 가이드 보기';
 
   @override
+  String get runningCoachSampleAnalysisLoadingTitle => '샘플 영상을 분석하는 중';
+
+  @override
+  String get runningCoachSampleAnalysisLoadingBody =>
+      'MediaPipe가 번들된 기준 영상과 잘못된 자세 영상을 읽고 있어요.';
+
+  @override
+  String get runningCoachSampleAnalysisFailedTitle => '샘플 분석을 사용할 수 없어요';
+
+  @override
+  String get runningCoachSampleAnalysisRetryAction => '샘플 분석 다시 시도';
+
+  @override
   String runningCoachSampleFrameLabel(int current, int total) {
     return '프레임 $current/$total';
   }
@@ -9307,6 +9320,10 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get runningCoachQualityReasonContactPhaseProxy =>
       '접지 구간을 추정한 프레임이 적어 착지와 무릎 지표는 한 번 더 확인해 주세요.';
+
+  @override
+  String get runningCoachQualityReasonLowConfidence =>
+      '필수 랜드마크 신뢰도가 낮아 이 큐를 쓰기 전에 카메라를 더 안정시켜 주세요.';
 
   @override
   String get runningCoachQualityReasonGeneric =>

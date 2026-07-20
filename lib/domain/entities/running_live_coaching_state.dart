@@ -209,5 +209,6 @@ class RunningLiveCoachingState {
       framingIssue == null &&
       analysisResult != null &&
       coachingReport != null &&
-      highlightedInsight != null;
+      highlightedInsight != null &&
+      !highlightedInsight!.quality.isLowConfidence;
 }

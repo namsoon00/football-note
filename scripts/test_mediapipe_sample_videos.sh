@@ -40,6 +40,8 @@ sample_start = 0.15
 sample_end = 0.85
 min_confidence = 0.45
 minimum_valid_frames = 6
+minimum_detected_frames = 10
+minimum_motion_ratio = 0.12
 required_indices = [11, 12, 23, 24, 25, 26, 27, 28]
 
 def confidence(landmark):
@@ -48,7 +50,7 @@ def confidence(landmark):
         values.append(float(landmark.visibility))
     if landmark.presence is not None:
         values.append(float(landmark.presence))
-    return max(values) if values else 0.0
+    return min(values) if values else 0.0
 
 def point(landmark, width, height):
     return (float(landmark.x) * width, float(landmark.y) * height)
@@ -67,6 +69,11 @@ def body_scale(landmarks, width, height):
     hip_center = ((left_hip[0] + right_hip[0]) / 2, (left_hip[1] + right_hip[1]) / 2)
     ankle_center = ((left_ankle[0] + right_ankle[0]) / 2, (left_ankle[1] + right_ankle[1]) / 2)
     return max(distance(shoulder_center, hip_center), distance(hip_center, ankle_center))
+
+def hip_center(landmarks, width, height):
+    left_hip = point(landmarks[23], width, height)
+    right_hip = point(landmarks[24], width, height)
+    return ((left_hip[0] + right_hip[0]) / 2, (left_hip[1] + right_hip[1]) / 2)
 
 def options():
     return vision.PoseLandmarkerOptions(
@@ -90,6 +97,7 @@ for video in videos:
     detected = 0
     valid = 0
     confidence_values = []
+    valid_motion_samples = []
     last_timestamp_ms = 0
     with vision.PoseLandmarker.create_from_options(options()) as landmarker:
         for index in range(sample_count):
@@ -115,16 +123,31 @@ for video in videos:
             confidence_values.extend(required_confidences)
             if min(required_confidences) < min_confidence:
                 continue
-            if body_scale(landmarks, width, height) < 40.0:
+            scale = body_scale(landmarks, width, height)
+            if scale < 40.0:
                 continue
+            valid_motion_samples.append((timestamp_ms, hip_center(landmarks, width, height), scale))
             valid += 1
     capture.release()
     avg_confidence = sum(confidence_values) / len(confidence_values) if confidence_values else 0.0
-    status = "PASS" if valid >= minimum_valid_frames else "FAIL"
+    if len(valid_motion_samples) >= 2:
+        first = valid_motion_samples[0]
+        last = valid_motion_samples[-1]
+        average_scale = sum(sample[2] for sample in valid_motion_samples) / len(valid_motion_samples)
+        motion_ratio = abs(last[1][0] - first[1][0]) / max(average_scale, 1.0)
+    else:
+        motion_ratio = 0.0
+    status = "PASS" if (
+        detected >= minimum_detected_frames
+        and valid >= minimum_valid_frames
+        and motion_ratio >= minimum_motion_ratio
+    ) else "FAIL"
     overall_ok = overall_ok and status == "PASS"
     print(
         f"{video.name}: sampled={sample_count} detected={detected} "
-        f"valid={valid} avgRequiredConfidence={avg_confidence:.3f} status={status}"
+        f"valid={valid} detectionCoverage={detected / sample_count:.2f} "
+        f"avgRequiredConfidence={avg_confidence:.3f} "
+        f"hipMotionRatio={motion_ratio:.3f} status={status}"
     )
 
 if not overall_ok:

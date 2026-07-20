@@ -4816,6 +4816,10 @@
   "runningCoachSampleTitle": "Sample video guide",
   "runningCoachSampleBody": "Switch between the reference and wrong-form loops to see how the same coach reads posture, landing, knee load, arm angle, bounce, and frame quality.",
   "runningCoachSampleGuideAction": "Open sample video guide",
+  "runningCoachSampleAnalysisLoadingTitle": "Analyzing sample videos",
+  "runningCoachSampleAnalysisLoadingBody": "MediaPipe is reading the bundled reference and wrong-form clips now.",
+  "runningCoachSampleAnalysisFailedTitle": "Sample analysis unavailable",
+  "runningCoachSampleAnalysisRetryAction": "Retry sample analysis",
   "runningCoachSampleFrameLabel": "Frame {current}/{total}",
   "@runningCoachSampleFrameLabel": {
     "placeholders": {
@@ -5466,6 +5470,7 @@
   "runningCoachQualityReasonLowCoverage": "Tracking coverage is low, so treat this metric conservatively.",
   "runningCoachQualityReasonLimitedSamples": "Only a small set of stable frames was read; confirm once more from the same angle.",
   "runningCoachQualityReasonContactPhaseProxy": "The contact phase used only a small proxy window; confirm foot strike and knee metrics again.",
+  "runningCoachQualityReasonLowConfidence": "Required landmark confidence is low, so keep the camera steady before using this cue.",
   "runningCoachQualityReasonGeneric": "Capture quality is low; confirm again from the same angle.",
   "runningCoachOverallHeadlineStrong": "Strong running shape",
   "runningCoachOverallHeadlineSolid": "Solid base with one clear fix",

@@ -35,6 +35,44 @@ void main() {
       expect(landmark.worldLandmark!.visibility, closeTo(0.66, 0.001));
     });
 
+    test('uses conservative visibility and presence confidence', () {
+      final detection = MediaPipePoseDetection.fromMap({
+        'imageWidth': 360,
+        'imageHeight': 640,
+        'landmarks': [
+          {
+            'index': 0,
+            'x': 10.0,
+            'y': 20.0,
+            'visibility': 0.84,
+            'presence': 0.31,
+          },
+          {
+            'index': 11,
+            'x': 12.0,
+            'y': 22.0,
+            'visibility': 0.63,
+          },
+          {
+            'index': 12,
+            'x': 14.0,
+            'y': 24.0,
+            'presence': 0.72,
+          },
+          {
+            'index': 23,
+            'x': 16.0,
+            'y': 26.0,
+          },
+        ],
+      });
+
+      expect(detection.landmarks[0].confidence, closeTo(0.31, 0.001));
+      expect(detection.landmarks[1].confidence, closeTo(0.63, 0.001));
+      expect(detection.landmarks[2].confidence, closeTo(0.72, 0.001));
+      expect(detection.landmarks[3].confidence, 0);
+    });
+
     test('returns null for an ordinary frame with zero detected poses', () {
       final observation = runningPoseObservationFromMediaPipeDetection(
         const MediaPipePoseDetection(
