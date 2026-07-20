@@ -355,10 +355,26 @@ void main() {
           .dy,
       lessThan(320),
     );
-    expect(find.text('4강'), findsOneWidget);
+    expect(find.text('4강'), findsNWidgets(2));
     expect(find.text('결승'), findsOneWidget);
     expect(find.text('우승'), findsOneWidget);
     expect(find.text('우리 팀 U15'), findsWidgets);
+    final leftMatchCenter = tester.getCenter(
+      find.byKey(const ValueKey('competition-tournament-match-1')),
+    );
+    final rightMatchCenter = tester.getCenter(
+      find.byKey(const ValueKey('competition-tournament-match-2')),
+    );
+    final finalMatchCenter = tester.getCenter(
+      find.byKey(const ValueKey('competition-tournament-match-3')),
+    );
+    final championCenter = tester.getCenter(
+      find.byKey(const ValueKey('competition-tournament-champion')),
+    );
+    expect(leftMatchCenter.dx, lessThan(finalMatchCenter.dx));
+    expect(rightMatchCenter.dx, greaterThan(finalMatchCenter.dx));
+    expect(championCenter.dx, closeTo(finalMatchCenter.dx, 1));
+    expect(championCenter.dy, greaterThan(finalMatchCenter.dy));
     expect(tester.takeException(), isNull);
 
     Size? capturedSize;
@@ -402,6 +418,61 @@ void main() {
       ),
       findsOneWidget,
     );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Tournament bracket mirrors both paths into a center final', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 1100);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    await MatchCompetitionService(optionRepository).upsertCompetition(
+      MatchCompetitionRecord.create(
+        kind: MatchCompetitionRecord.kindTournament,
+        name: '월드컵형 컵',
+        teams: const [
+          '우리 팀',
+          '서울',
+          '부산',
+          '대전',
+          '광주',
+          '인천',
+          '수원',
+          '울산',
+        ],
+      ),
+    );
+    await pumpCompetitionManagement(tester, themeMode: ThemeMode.light);
+
+    await tester.tap(find.text('월드컵형 컵'));
+    await tester.pumpAndSettle();
+
+    Offset centerFor(int matchNumber) => tester.getCenter(
+          find.byKey(
+            ValueKey('competition-tournament-match-$matchNumber'),
+          ),
+        );
+
+    final match1 = centerFor(1);
+    final match2 = centerFor(2);
+    final match3 = centerFor(3);
+    final match4 = centerFor(4);
+    final leftSemifinal = centerFor(5);
+    final rightSemifinal = centerFor(6);
+    final finalMatch = centerFor(7);
+
+    expect(match1.dx, lessThan(leftSemifinal.dx));
+    expect(leftSemifinal.dx, lessThan(finalMatch.dx));
+    expect(finalMatch.dx, lessThan(rightSemifinal.dx));
+    expect(rightSemifinal.dx, lessThan(match3.dx));
+    expect(match1.dy, lessThan(match2.dy));
+    expect(match3.dy, lessThan(match4.dy));
+    expect(leftSemifinal.dy, closeTo(finalMatch.dy, 1));
+    expect(rightSemifinal.dy, closeTo(finalMatch.dy, 1));
     expect(tester.takeException(), isNull);
   });
 
