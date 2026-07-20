@@ -111,7 +111,9 @@ void main() {
       expect(snapshot.toeOffEvents, 1);
       expect(snapshot.eventTimeline, hasLength(2));
       expect(snapshot.eventTimeline.first.type, RunningGaitEventType.toeOff);
+      expect(snapshot.eventTimeline.first.sessionOffsetMs, 240);
       expect(snapshot.eventTimeline.last.side, RunningFootSide.right);
+      expect(snapshot.eventTimeline.last.sessionOffsetMs, 380);
 
       final payload = collector.buildLogPayload(
         event: 'periodic',
@@ -138,6 +140,13 @@ void main() {
       });
       expect((payload['events'] as Map<String, Object?>)['touchdown'], 2);
       expect((payload['events'] as Map<String, Object?>)['toeOff'], 1);
+      final eventTimeline =
+          (payload['events'] as Map<String, Object?>)['timeline'] as List;
+      expect((eventTimeline.first as Map<String, Object?>)['timestampMs'], 240);
+      expect(
+        (eventTimeline.first as Map<String, Object?>)['absoluteTimestampMs'],
+        toeOff.timestamp.millisecondsSinceEpoch,
+      );
     });
 
     test('reset clears all session counters and bounded samples', () {
