@@ -1532,7 +1532,7 @@ class _TournamentBracketViewport extends StatefulWidget {
 
 class _TournamentBracketViewportState
     extends State<_TournamentBracketViewport> {
-  static const double _minScale = 0.24;
+  static const double _minScale = 0.14;
   static const double _maxScale = 2.4;
   static const double _zoomStep = 1.22;
 
@@ -1575,11 +1575,9 @@ class _TournamentBracketViewportState
       (viewportSize.width - 24) / canvasSize.width,
       (viewportSize.height - 24) / canvasSize.height,
     );
-    final readableFloor = widget.fullScreen ? 0.78 : 0.68;
-    final scale =
-        math.max(fitScale, readableFloor).clamp(_minScale, 1.0).toDouble();
+    final scale = fitScale.clamp(_minScale, 1.0).toDouble();
     final offset = Offset(
-      12,
+      (viewportSize.width - canvasSize.width * scale) / 2,
       math.max(12, (viewportSize.height - canvasSize.height * scale) / 2),
     );
     final matrix = _matrixFor(scale: scale, offset: offset);
@@ -1650,9 +1648,14 @@ class _TournamentBracketViewportState
     final geometry = _TournamentBracketGeometry(widget.bracket);
     final content = LayoutBuilder(
       builder: (context, constraints) {
+        final previewHeight = switch (widget.bracket.slotCount) {
+          <= 4 => 300.0,
+          <= 8 => 350.0,
+          _ => 430.0,
+        };
         final height = widget.fullScreen && constraints.maxHeight.isFinite
             ? constraints.maxHeight
-            : 430.0;
+            : previewHeight;
         final viewerHeight = math.max(220.0, height - 44);
         _viewportSize = Size(constraints.maxWidth, viewerHeight);
         _scheduleInitialTransform(
@@ -1733,46 +1736,92 @@ class _TournamentBracketGeometry {
   static const double firstRoundPitch = 104;
   static const double bottomPadding = 28;
   static const double championWidth = 150;
+  static const double championGap = 56;
 
   final TournamentBracket bracket;
 
   const _TournamentBracketGeometry(this.bracket);
 
-  double get championX =>
-      roundX(bracket.rounds.length - 1) + cardWidth + horizontalGap;
+  int get finalRoundIndex => bracket.rounds.length - 1;
 
-  Size get size => Size(
-        championX + championWidth + horizontalPadding,
-        headerHeight +
-            bracket.rounds.first.matches.length * firstRoundPitch +
-            bottomPadding,
-      );
+  int get sideRoundCount => finalRoundIndex < 0 ? 0 : finalRoundIndex;
 
-  double roundX(int roundIndex) =>
-      horizontalPadding + roundIndex * (cardWidth + horizontalGap);
+  double get width =>
+      horizontalPadding * 2 +
+      cardWidth +
+      sideRoundCount * 2 * (cardWidth + horizontalGap);
 
-  double matchCenterY(int roundIndex, int matchIndex) {
-    final scale = math.pow(2, roundIndex).toDouble();
-    return headerHeight + firstRoundPitch * scale * (matchIndex + 0.5);
+  double get finalX => (width - cardWidth) / 2;
+
+  double get bracketCenterY {
+    if (sideRoundCount == 0) return headerHeight + firstRoundPitch / 2;
+    final sideMatchCount = bracket.rounds.first.matches.length ~/ 2;
+    return headerHeight + sideMatchCount * firstRoundPitch / 2;
   }
 
-  Rect matchRect(int roundIndex, int matchIndex) => Rect.fromCenter(
-        center: Offset(
-          roundX(roundIndex) + cardWidth / 2,
-          matchCenterY(roundIndex, matchIndex),
-        ),
+  Rect get finalRect => Rect.fromCenter(
+        center: Offset(finalX + cardWidth / 2, bracketCenterY),
         width: cardWidth,
         height: cardHeight,
       );
 
   Rect get championRect => Rect.fromCenter(
         center: Offset(
-          championX + championWidth / 2,
-          matchCenterY(bracket.rounds.length - 1, 0),
+          width / 2,
+          finalRect.bottom + championGap + cardHeight / 2,
         ),
         width: championWidth,
         height: cardHeight,
       );
+
+  Size get size => Size(
+        width,
+        math.max(
+          championRect.bottom + bottomPadding,
+          headerHeight +
+              math.max(1, bracket.rounds.first.matches.length ~/ 2) *
+                  firstRoundPitch +
+              bottomPadding,
+        ),
+      );
+
+  double sideRoundX(int roundIndex, {required bool isLeft}) {
+    final distanceFromEdge =
+        horizontalPadding + roundIndex * (cardWidth + horizontalGap);
+    return isLeft ? distanceFromEdge : width - distanceFromEdge - cardWidth;
+  }
+
+  double sideMatchCenterY(int roundIndex, int localMatchIndex) {
+    final scale = math.pow(2, roundIndex).toDouble();
+    return headerHeight + firstRoundPitch * scale * (localMatchIndex + 0.5);
+  }
+
+  Rect sideMatchRect(
+    int roundIndex,
+    int localMatchIndex, {
+    required bool isLeft,
+  }) =>
+      Rect.fromCenter(
+        center: Offset(
+          sideRoundX(roundIndex, isLeft: isLeft) + cardWidth / 2,
+          sideMatchCenterY(roundIndex, localMatchIndex),
+        ),
+        width: cardWidth,
+        height: cardHeight,
+      );
+
+  TournamentBracketPair sideMatch(
+    int roundIndex,
+    int localMatchIndex, {
+    required bool isLeft,
+  }) {
+    final matches = bracket.rounds[roundIndex].matches;
+    final sideMatchCount = matches.length ~/ 2;
+    return matches[isLeft ? localMatchIndex : sideMatchCount + localMatchIndex];
+  }
+
+  int sideMatchCount(int roundIndex) =>
+      bracket.rounds[roundIndex].matches.length ~/ 2;
 }
 
 class _TournamentBracketCanvas extends StatelessWidget {
@@ -1811,30 +1860,78 @@ class _TournamentBracketCanvas extends StatelessWidget {
             ),
           ),
           for (var roundIndex = 0;
-              roundIndex < bracket.rounds.length;
+              roundIndex < geometry.sideRoundCount;
               roundIndex += 1)
-            Positioned(
-              left: geometry.roundX(roundIndex),
-              top: 12,
-              width: _TournamentBracketGeometry.cardWidth,
-              child: Text(
-                _tournamentRoundLabel(
-                  l10n,
-                  bracket.rounds[roundIndex].teamCapacity,
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.labelLarge?.copyWith(
-                  color: accent,
-                  fontWeight: FontWeight.w900,
+            for (final isLeft in const [true, false])
+              Positioned(
+                left: geometry.sideRoundX(roundIndex, isLeft: isLeft),
+                top: 12,
+                width: _TournamentBracketGeometry.cardWidth,
+                child: Text(
+                  _tournamentRoundLabel(
+                    l10n,
+                    bracket.rounds[roundIndex].teamCapacity,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: accent,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
               ),
-            ),
           Positioned(
-            left: geometry.championX,
+            left: geometry.finalX,
             top: 12,
-            width: _TournamentBracketGeometry.championWidth,
+            width: _TournamentBracketGeometry.cardWidth,
+            child: Text(
+              _tournamentRoundLabel(
+                l10n,
+                bracket.rounds.last.teamCapacity,
+              ),
+              textAlign: TextAlign.center,
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: accent,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+          for (var roundIndex = 0;
+              roundIndex < geometry.sideRoundCount;
+              roundIndex += 1)
+            for (final isLeft in const [true, false])
+              for (var localMatchIndex = 0;
+                  localMatchIndex < geometry.sideMatchCount(roundIndex);
+                  localMatchIndex += 1)
+                Positioned.fromRect(
+                  rect: geometry.sideMatchRect(
+                    roundIndex,
+                    localMatchIndex,
+                    isLeft: isLeft,
+                  ),
+                  child: _TournamentBracketMatchCard(
+                    match: geometry.sideMatch(
+                      roundIndex,
+                      localMatchIndex,
+                      isLeft: isLeft,
+                    ),
+                    ownTeamName: ownTeamName,
+                    accent: accent,
+                  ),
+                ),
+          Positioned.fromRect(
+            rect: geometry.finalRect,
+            child: _TournamentBracketMatchCard(
+              match: bracket.rounds.last.matches.single,
+              ownTeamName: ownTeamName,
+              accent: accent,
+            ),
+          ),
+          Positioned(
+            left: geometry.championRect.left,
+            top: geometry.championRect.top - 28,
+            width: geometry.championRect.width,
             child: Text(
               l10n.matchTournamentChampionSlot,
               textAlign: TextAlign.center,
@@ -1844,20 +1941,6 @@ class _TournamentBracketCanvas extends StatelessWidget {
               ),
             ),
           ),
-          for (var roundIndex = 0;
-              roundIndex < bracket.rounds.length;
-              roundIndex += 1)
-            for (var matchIndex = 0;
-                matchIndex < bracket.rounds[roundIndex].matches.length;
-                matchIndex += 1)
-              Positioned.fromRect(
-                rect: geometry.matchRect(roundIndex, matchIndex),
-                child: _TournamentBracketMatchCard(
-                  match: bracket.rounds[roundIndex].matches[matchIndex],
-                  ownTeamName: ownTeamName,
-                  accent: accent,
-                ),
-              ),
           Positioned.fromRect(
             rect: geometry.championRect,
             child: _TournamentChampionCard(
@@ -1888,37 +1971,65 @@ class _TournamentBracketConnectorPainter extends CustomPainter {
       ..color = color
       ..strokeWidth = 2
       ..style = PaintingStyle.stroke;
-    for (var roundIndex = 1;
-        roundIndex < bracket.rounds.length;
-        roundIndex += 1) {
-      final targets = bracket.rounds[roundIndex].matches;
-      for (var targetIndex = 0;
-          targetIndex < targets.length;
-          targetIndex += 1) {
-        final targetRect = geometry.matchRect(roundIndex, targetIndex);
-        final firstSource = geometry.matchRect(
-          roundIndex - 1,
-          targetIndex * 2,
+    for (final isLeft in const [true, false]) {
+      for (var roundIndex = 1;
+          roundIndex < geometry.sideRoundCount;
+          roundIndex += 1) {
+        for (var targetIndex = 0;
+            targetIndex < geometry.sideMatchCount(roundIndex);
+            targetIndex += 1) {
+          final targetRect = geometry.sideMatchRect(
+            roundIndex,
+            targetIndex,
+            isLeft: isLeft,
+          );
+          final firstSource = geometry.sideMatchRect(
+            roundIndex - 1,
+            targetIndex * 2,
+            isLeft: isLeft,
+          );
+          final secondSource = geometry.sideMatchRect(
+            roundIndex - 1,
+            targetIndex * 2 + 1,
+            isLeft: isLeft,
+          );
+          final sourceEdge = isLeft ? firstSource.right : firstSource.left;
+          final targetEdge = isLeft ? targetRect.left : targetRect.right;
+          final elbowX = (sourceEdge + targetEdge) / 2;
+          final secondSourceEdge =
+              isLeft ? secondSource.right : secondSource.left;
+          final path = Path()
+            ..moveTo(sourceEdge, firstSource.center.dy)
+            ..lineTo(elbowX, firstSource.center.dy)
+            ..lineTo(elbowX, secondSource.center.dy)
+            ..lineTo(secondSourceEdge, secondSource.center.dy)
+            ..moveTo(elbowX, targetRect.center.dy)
+            ..lineTo(targetEdge, targetRect.center.dy);
+          canvas.drawPath(path, paint);
+        }
+      }
+      if (geometry.sideRoundCount > 0) {
+        final sourceRect = geometry.sideMatchRect(
+          geometry.sideRoundCount - 1,
+          0,
+          isLeft: isLeft,
         );
-        final secondSource = geometry.matchRect(
-          roundIndex - 1,
-          targetIndex * 2 + 1,
+        canvas.drawLine(
+          Offset(
+            isLeft ? sourceRect.right : sourceRect.left,
+            sourceRect.center.dy,
+          ),
+          Offset(
+            isLeft ? geometry.finalRect.left : geometry.finalRect.right,
+            geometry.finalRect.center.dy,
+          ),
+          paint,
         );
-        final elbowX = (firstSource.right + targetRect.left) / 2;
-        final path = Path()
-          ..moveTo(firstSource.right, firstSource.center.dy)
-          ..lineTo(elbowX, firstSource.center.dy)
-          ..lineTo(elbowX, secondSource.center.dy)
-          ..lineTo(secondSource.right, secondSource.center.dy)
-          ..moveTo(elbowX, targetRect.center.dy)
-          ..lineTo(targetRect.left, targetRect.center.dy);
-        canvas.drawPath(path, paint);
       }
     }
-    final finalRect = geometry.matchRect(bracket.rounds.length - 1, 0);
     canvas.drawLine(
-      Offset(finalRect.right, finalRect.center.dy),
-      Offset(geometry.championRect.left, geometry.championRect.center.dy),
+      Offset(geometry.finalRect.center.dx, geometry.finalRect.bottom),
+      Offset(geometry.championRect.center.dx, geometry.championRect.top),
       paint,
     );
   }
@@ -1945,6 +2056,7 @@ class _TournamentBracketMatchCard extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     return DecoratedBox(
+      key: ValueKey('competition-tournament-match-${match.slotNumber}'),
       decoration: BoxDecoration(
         color: scheme.surface,
         borderRadius: AppRadius.small,
@@ -2096,6 +2208,7 @@ class _TournamentChampionCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     return Container(
+      key: const ValueKey('competition-tournament-champion'),
       padding: const EdgeInsets.all(AppSpacing.sm),
       decoration: BoxDecoration(
         color: accent.withValues(alpha: 0.14),
