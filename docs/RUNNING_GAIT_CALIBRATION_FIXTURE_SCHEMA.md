@@ -118,6 +118,8 @@ dart bin/running_gait_calibration_evaluator.dart \
 
 Threshold semantics:
 
+- Numeric thresholds must be finite; `NaN` and positive or negative infinity
+  are rejected as CLI usage errors.
 - Minimum thresholds are inclusive: the actual value must be `>=` the threshold.
 - Maximum timing thresholds are inclusive: the actual value must be `<=` the
   threshold.

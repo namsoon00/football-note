@@ -1047,6 +1047,9 @@ void _checkMinimumInt(
   required int actual,
   required int? threshold,
 }) {
+  if (threshold != null && threshold < 0) {
+    throw ArgumentError.value(threshold, metric, 'must be non-negative');
+  }
   if (threshold == null || actual >= threshold) {
     return;
   }
@@ -1067,6 +1070,10 @@ void _checkMinimumDouble(
   required double actual,
   required double? threshold,
 }) {
+  if (threshold != null &&
+      (!threshold.isFinite || threshold < 0 || threshold > 1)) {
+    throw ArgumentError.value(threshold, metric, 'must be finite and 0 to 1');
+  }
   if (threshold == null || actual >= threshold) {
     return;
   }
@@ -1088,6 +1095,13 @@ void _checkMaximumDouble(
   required double? actual,
   required double? threshold,
 }) {
+  if (threshold != null && (!threshold.isFinite || threshold < 0)) {
+    throw ArgumentError.value(
+      threshold,
+      metric,
+      'must be finite and non-negative',
+    );
+  }
   if (threshold == null) {
     return;
   }

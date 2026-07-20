@@ -319,7 +319,7 @@ class _ParsedDoubleArg {
 
 _ParsedDoubleArg _parseUnitIntervalThreshold(String raw, String flag) {
   final value = double.tryParse(raw);
-  if (value == null || value < 0 || value > 1) {
+  if (value == null || !value.isFinite || value < 0 || value > 1) {
     return _ParsedDoubleArg(error: '$flag must be a number from 0 to 1.');
   }
   return _ParsedDoubleArg(value: value);
@@ -327,7 +327,7 @@ _ParsedDoubleArg _parseUnitIntervalThreshold(String raw, String flag) {
 
 _ParsedDoubleArg _parseNonNegativeDoubleThreshold(String raw, String flag) {
   final value = double.tryParse(raw);
-  if (value == null || value < 0) {
+  if (value == null || !value.isFinite || value < 0) {
     return _ParsedDoubleArg(error: '$flag must be a non-negative number.');
   }
   return _ParsedDoubleArg(value: value);

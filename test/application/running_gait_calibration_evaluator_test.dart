@@ -485,6 +485,21 @@ void main() {
         hasLength(1),
       );
     });
+
+    test('rejects a non-finite programmatic timing threshold', () {
+      expect(
+        () => const GaitCalibrationEvaluator(
+          toleranceMs: 30,
+          qualityGate: GaitCalibrationQualityGate(
+            maxTimingMeanAbsoluteErrorMs: double.infinity,
+          ),
+        ).evaluate(
+          groundTruth: const <GaitCalibrationEvent>[],
+          predictions: const <GaitCalibrationEvent>[],
+        ),
+        throwsArgumentError,
+      );
+    });
   });
 
   group('running gait calibration CLI', () {

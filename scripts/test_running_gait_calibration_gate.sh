@@ -15,6 +15,7 @@ PASS_REPORT="$TEMP_DIR/pass_report.json"
 FAIL_REPORT="$TEMP_DIR/fail_report.json"
 FAIL_STDERR="$TEMP_DIR/fail_stderr.txt"
 BAD_STDERR="$TEMP_DIR/bad_stderr.txt"
+INVALID_THRESHOLD_STDERR="$TEMP_DIR/invalid_threshold_stderr.txt"
 
 cat >"$GROUND_TRUTH" <<'JSON'
 {
@@ -111,5 +112,30 @@ if [[ "$BAD_STATUS" -ne 65 ]]; then
   cat "$BAD_STDERR" >&2
   exit 1
 fi
+
+assert_invalid_threshold() {
+  local flag="$1"
+  local value="$2"
+
+  set +e
+  dart bin/running_gait_calibration_evaluator.dart \
+    --ground-truth "$GROUND_TRUTH" \
+    --predictions "$PREDICTIONS_LOG" \
+    --prediction-session-id running-a \
+    "$flag" "$value" \
+    >"$TEMP_DIR/invalid_threshold_stdout.txt" \
+    2>"$INVALID_THRESHOLD_STDERR"
+  local status=$?
+  set -e
+
+  if [[ "$status" -ne 64 ]]; then
+    echo "[running-gait-gate-test] expected usage error exit 64 for $flag=$value, got $status" >&2
+    cat "$INVALID_THRESHOLD_STDERR" >&2
+    exit 1
+  fi
+}
+
+assert_invalid_threshold --min-overall-f1 NaN
+assert_invalid_threshold --max-timing-mae-ms Infinity
 
 echo "[running-gait-gate-test] ok"
