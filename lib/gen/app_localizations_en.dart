@@ -237,7 +237,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get welcomeCalendarStepPlus =>
-      'Use + to add a plan, match, or training note from the selected date.';
+      'Use + to add a plan, match, training note, or meal on the selected date.';
 
   @override
   String get welcomeCalendarStepMeal =>
@@ -253,7 +253,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get welcomeStatsStepAverage =>
-      'Open average comparison to see which metric is ahead or behind.';
+      'Switch between training and match tabs to review each record flow.';
 
   @override
   String get welcomeStatsStepFocus =>
@@ -294,7 +294,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get welcomeDiaryStepSticker =>
-      'Pull in today\'s record stickers and arrange the reading order.';
+      'Open a new diary and write today\'s title and story.';
 
   @override
   String get welcomeDiaryStepSave =>
@@ -4579,6 +4579,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsGeneralSection => 'General';
+
+  @override
+  String get settingsTutorialReplayTitle => 'Replay tutorial';
+
+  @override
+  String get settingsTutorialReplaySubtitle =>
+      'Return home and restart the coach marks from the beginning.';
+
+  @override
+  String get settingsTutorialReplayReady => 'The tutorial is ready to replay.';
 
   @override
   String get settingsNewsFilterTitle => 'News Filter';

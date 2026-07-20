@@ -16,6 +16,7 @@ import '../../application/news_badge_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/sport_defaults.dart';
 import '../../application/sport_service.dart';
+import '../../application/tutorial_guide_service.dart';
 import '../../domain/entities/sport_definition.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../widgets/sport_scope.dart';
@@ -663,6 +664,16 @@ class _SettingsScreenState extends State<SettingsScreen>
                   );
                 },
               ),
+              const Divider(height: 20),
+              ListTile(
+                key: const ValueKey<String>('settings-replay-tutorial'),
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.school_outlined),
+                title: Text(l10n.settingsTutorialReplayTitle),
+                subtitle: Text(l10n.settingsTutorialReplaySubtitle),
+                trailing: const Icon(Icons.replay_rounded),
+                onTap: () => unawaited(_replayTutorial(l10n)),
+              ),
               if (parentSettingsReadOnly)
                 Padding(
                   padding: const EdgeInsets.fromLTRB(4, 2, 4, 4),
@@ -729,6 +740,20 @@ class _SettingsScreenState extends State<SettingsScreen>
           _buildApiUsageSection(l10n),
         ],
       ),
+    );
+  }
+
+  Future<void> _replayTutorial(AppLocalizations l10n) async {
+    await TutorialGuideService.resetProgress(widget.optionRepository);
+    if (!mounted) return;
+    TutorialGuideService.requestReplay();
+    final navigator = Navigator.of(context);
+    if (navigator.canPop()) {
+      navigator.pop();
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(l10n.settingsTutorialReplayReady)),
     );
   }
 

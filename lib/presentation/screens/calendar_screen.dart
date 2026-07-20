@@ -37,6 +37,7 @@ import '../widgets/app_feedback.dart';
 import '../widgets/app_page_route.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shared_tab_header.dart';
+import '../widgets/coach_mark_target.dart';
 import '../widgets/status_style.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
 import '../utils/match_entry_format.dart';
@@ -52,6 +53,8 @@ import 'meal_log_screen.dart';
 enum _CalendarCreateAction { entry, meal, plan, match }
 
 enum CalendarQuickCreateAction { plan, match }
+
+enum CalendarCoachAnchor { dateGrid, add }
 
 enum _PlanEditScope { single, afterThis, series }
 
@@ -72,6 +75,7 @@ class CalendarScreen extends StatefulWidget {
   final VoidCallback? onQuickCreateHandled;
   final VoidCallback? onOpenMatchHub;
   final ValueChanged<DateTime>? onOpenMatchRecord;
+  final Map<CalendarCoachAnchor, CoachMarkTargetHandle> coachGuideAnchors;
 
   const CalendarScreen({
     super.key,
@@ -91,6 +95,8 @@ class CalendarScreen extends StatefulWidget {
     this.onQuickCreateHandled,
     this.onOpenMatchHub,
     this.onOpenMatchRecord,
+    this.coachGuideAnchors =
+        const <CalendarCoachAnchor, CoachMarkTargetHandle>{},
   });
 
   @override
@@ -372,6 +378,38 @@ class _CalendarScreenState extends State<CalendarScreen> {
     }
   }
 
+  Widget _coachTarget(
+    CalendarCoachAnchor anchor,
+    Widget child, {
+    Key? key,
+    VoidCallback? onActivate,
+  }) {
+    final handle = widget.coachGuideAnchors[anchor];
+    if (handle == null) return child;
+    return CoachMarkTarget(
+      key: key,
+      handle: handle,
+      onActivate: onActivate,
+      child: child,
+    );
+  }
+
+  void _selectToday() {
+    final today = _normalizeDay(DateTime.now());
+    setState(() {
+      _selectedDay = today;
+      _focusedDay = today;
+    });
+    _watchFocusedTrainingRange();
+    widget.onSelectedDayChanged?.call(today);
+  }
+
+  Future<void> _openCreateActions() async {
+    final entries = await _contextEntries();
+    if (!mounted) return;
+    await _showCreateActionSheet(entries);
+  }
+
   @override
   Widget build(BuildContext context) {
     final isParentMode = FamilyAccessService(
@@ -484,40 +522,35 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                       CalendarFormat.month,
                                     ),
                                   ),
-                                  OutlinedButton.icon(
-                                    style: OutlinedButton.styleFrom(
-                                      visualDensity: VisualDensity.compact,
-                                      minimumSize: const Size(72, 40),
-                                      tapTargetSize:
-                                          MaterialTapTargetSize.shrinkWrap,
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 10,
-                                        vertical: 8,
+                                  _coachTarget(
+                                    CalendarCoachAnchor.dateGrid,
+                                    OutlinedButton.icon(
+                                      style: OutlinedButton.styleFrom(
+                                        visualDensity: VisualDensity.compact,
+                                        minimumSize: const Size(72, 40),
+                                        tapTargetSize:
+                                            MaterialTapTargetSize.shrinkWrap,
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                          vertical: 8,
+                                        ),
+                                      ),
+                                      onPressed: _selectToday,
+                                      icon: const Icon(
+                                        Icons.today_outlined,
+                                        size: 18,
+                                      ),
+                                      label: Text(
+                                        AppLocalizations.of(
+                                          context,
+                                        )!
+                                            .guideActionToday,
                                       ),
                                     ),
-                                    onPressed: () {
-                                      final today = _normalizeDay(
-                                        DateTime.now(),
-                                      );
-                                      setState(() {
-                                        _selectedDay = today;
-                                        _focusedDay = today;
-                                      });
-                                      _watchFocusedTrainingRange();
-                                      widget.onSelectedDayChanged?.call(today);
-                                    },
-                                    icon: const Icon(
-                                      Icons.today_outlined,
-                                      size: 18,
+                                    key: const ValueKey<String>(
+                                      'calendar-coach-date-target',
                                     ),
-                                    label: Text(
-                                      Localizations.localeOf(
-                                                context,
-                                              ).languageCode ==
-                                              'ko'
-                                          ? '오늘'
-                                          : 'Today',
-                                    ),
+                                    onActivate: _selectToday,
                                   ),
                                 ],
                               ),
@@ -901,14 +934,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
       ),
       floatingActionButton: widget.onCreate == null || isParentMode
           ? null
-          : FloatingActionButton(
-              heroTag: 'calendar_fab',
-              onPressed: () async {
-                final entries = await _contextEntries();
-                if (!mounted) return;
-                await _showCreateActionSheet(entries);
-              },
-              child: const Icon(Icons.add),
+          : _coachTarget(
+              CalendarCoachAnchor.add,
+              FloatingActionButton(
+                heroTag: 'calendar_fab',
+                onPressed: () => unawaited(_openCreateActions()),
+                child: const Icon(Icons.add),
+              ),
+              key: const ValueKey<String>('calendar-coach-add-target'),
+              onActivate: () => unawaited(_openCreateActions()),
             ),
     );
   }

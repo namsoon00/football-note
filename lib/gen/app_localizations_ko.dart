@@ -223,7 +223,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get welcomeCalendarStepDate => '먼저 날짜를 선택해 새 기록이 올바른 날에 붙게 해요.';
 
   @override
-  String get welcomeCalendarStepPlus => '+ 버튼으로 선택한 날짜에 계획, 시합, 훈련 노트를 추가해요.';
+  String get welcomeCalendarStepPlus =>
+      '+ 버튼으로 선택한 날짜에 계획, 시합, 훈련 노트, 식사를 추가해요.';
 
   @override
   String get welcomeCalendarStepMeal => '같은 날짜의 식사 기록도 함께 남겨 회복 흐름을 맞춰요.';
@@ -235,7 +236,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get welcomeStatsStepPeriod => '기간을 바꿔 이번 주, 지난주, 원하는 범위를 비교해요.';
 
   @override
-  String get welcomeStatsStepAverage => '평균 비교를 열어 앞선 지표와 뒤처진 지표를 구분해요.';
+  String get welcomeStatsStepAverage => '훈련과 시합 탭을 바꿔 보며 기록 흐름을 나누어 확인해요.';
 
   @override
   String get welcomeStatsStepFocus => '가장 약한 신호를 다음 계획이나 노트 목표로 바꿔요.';
@@ -271,7 +272,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get welcomeDiaryStepToday => '홈이나 다이어리 탭에서 오늘 다이어리를 열어요.';
 
   @override
-  String get welcomeDiaryStepSticker => '오늘 기록 스티커를 불러와 읽는 순서를 정리해요.';
+  String get welcomeDiaryStepSticker => '새 다이어리를 열어 오늘의 제목과 이야기를 남겨요.';
 
   @override
   String get welcomeDiaryStepSave => '제목, 이야기, 스티커 중 하나라도 준비되면 다이어리를 저장해요.';
@@ -4465,6 +4466,15 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get settingsGeneralSection => '일반 설정';
+
+  @override
+  String get settingsTutorialReplayTitle => '튜토리얼 다시 보기';
+
+  @override
+  String get settingsTutorialReplaySubtitle => '홈으로 돌아가 코칭마크를 처음부터 다시 시작해요.';
+
+  @override
+  String get settingsTutorialReplayReady => '튜토리얼을 다시 시작할 준비가 됐어요.';
 
   @override
   String get settingsNewsFilterTitle => '뉴스 필터';

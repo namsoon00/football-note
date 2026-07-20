@@ -12,6 +12,7 @@ import 'package:football_note/application/meal_log_service.dart';
 import 'package:football_note/application/settings_service.dart';
 import 'package:football_note/application/sport_state_controller.dart';
 import 'package:football_note/application/training_service.dart';
+import 'package:football_note/application/tutorial_guide_service.dart';
 import 'package:football_note/application/weather_shared_resource.dart';
 import 'package:football_note/domain/entities/sport_definition.dart';
 import 'package:football_note/domain/entities/meal_entry.dart';
@@ -620,7 +621,7 @@ void main() {
     expect(firstHighlightRect.overlaps(firstPanelRect), isFalse);
     expect(
       optionRepository.getValue<bool>('tab_quick_guide_seen_v1_0'),
-      isTrue,
+      isNull,
     );
 
     await tester.tap(find.byKey(const ValueKey('tab-coach-mark-next-button')));
@@ -672,6 +673,97 @@ void main() {
     await tester.pump(const Duration(milliseconds: 350));
 
     expect(find.byType(MealLogScreen), findsOneWidget);
+    expect(
+      optionRepository.getValue<bool>('tab_quick_guide_seen_v1_0'),
+      isNull,
+    );
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
+
+  testWidgets('coach mark controls stay usable on a small enlarged screen', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 640);
+    tester.view.devicePixelRatio = 1;
+    tester.platformDispatcher.textScaleFactorTestValue = 1.5;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    final optionRepository = _MemoryOptionRepository();
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+    final trainingService = TrainingService(_MemoryTrainingRepository());
+    final mealLogService = MealLogService(optionRepository);
+
+    await tester.pumpWidget(
+      _buildApp(
+        HomeScreen(
+          trainingService: trainingService,
+          mealLogService: mealLogService,
+          localeService: localeService,
+          optionRepository: optionRepository,
+          settingsService: settingsService,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    final nextButton = find.byKey(
+      const ValueKey('tab-coach-mark-next-button'),
+    );
+    expect(nextButton.hitTestable(), findsOneWidget);
+    expect(
+      const Rect.fromLTWH(0, 0, 360, 640).contains(
+        tester.getRect(nextButton).center,
+      ),
+      isTrue,
+    );
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
+
+  testWidgets('tutorial replay request opens the home guide again', (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _MemoryOptionRepository();
+    await optionRepository.setValue(
+      TutorialGuideService.childSeenKey(0),
+      true,
+    );
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+    final trainingService = TrainingService(_MemoryTrainingRepository());
+    final mealLogService = MealLogService(optionRepository);
+
+    await tester.pumpWidget(
+      _buildApp(
+        HomeScreen(
+          trainingService: trainingService,
+          mealLogService: mealLogService,
+          localeService: localeService,
+          optionRepository: optionRepository,
+          settingsService: settingsService,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.byKey(const ValueKey('tab-coach-mark-dialog')), findsNothing);
+
+    await TutorialGuideService.resetProgress(optionRepository);
+    TutorialGuideService.requestReplay();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pump(const Duration(milliseconds: 150));
+    await tester.pump(const Duration(milliseconds: 200));
+
+    expect(find.byKey(const ValueKey('tab-coach-mark-dialog')), findsOneWidget);
+    expect(find.text('3단계 중 1단계'), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump();
@@ -714,7 +806,232 @@ void main() {
     await tester.pump();
   });
 
-  testWidgets('unanchored tab guide steps do not draw a stray coach mark', (
+  testWidgets('tapping a highlighted home target runs its real action', (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _MemoryOptionRepository();
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+    final trainingService = TrainingService(_MemoryTrainingRepository());
+    final mealLogService = MealLogService(optionRepository);
+
+    await tester.pumpWidget(
+      _buildApp(
+        HomeScreen(
+          trainingService: trainingService,
+          mealLogService: mealLogService,
+          localeService: localeService,
+          optionRepository: optionRepository,
+          settingsService: settingsService,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.tapAt(
+      tester.getCenter(find.byKey(const ValueKey('tab-coach-mark-highlight'))),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 700));
+
+    expect(find.byType(EntryFormScreen), findsOneWidget);
+    expect(
+      optionRepository.getValue<bool>('tab_quick_guide_seen_v1_0'),
+      isNull,
+    );
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
+
+  testWidgets('home guide skips targets hidden by layout settings', (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _MemoryOptionRepository();
+    final hiddenDailyFlow = HomeHubSectionSettings.defaults().setVisible(
+      HomeHubSectionId.dailyFlow,
+      false,
+    );
+    await optionRepository.setValue(
+      HomeHubSectionSettings.storageKey,
+      hiddenDailyFlow.encode(),
+    );
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+    final trainingService = TrainingService(_MemoryTrainingRepository());
+    final mealLogService = MealLogService(optionRepository);
+
+    await tester.pumpWidget(
+      _buildApp(
+        HomeScreen(
+          trainingService: trainingService,
+          mealLogService: mealLogService,
+          localeService: localeService,
+          optionRepository: optionRepository,
+          settingsService: settingsService,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 350));
+
+    expect(find.text('1단계 중 1단계'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey<String>('home-daily-flow-log-action')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey<String>('home-daily-flow-meal-action')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey('tab-coach-mark-highlight')),
+      findsOneWidget,
+    );
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
+
+  testWidgets('stats guide tracks controls and toggles the highlighted tab', (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _MemoryOptionRepository();
+    await optionRepository.setValue('tab_quick_guide_seen_v1_0', true);
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+    final trainingService = TrainingService(_MemoryTrainingRepository());
+    final mealLogService = MealLogService(optionRepository);
+
+    await tester.pumpWidget(
+      _buildApp(
+        HomeScreen(
+          trainingService: trainingService,
+          mealLogService: mealLogService,
+          localeService: localeService,
+          optionRepository: optionRepository,
+          settingsService: settingsService,
+          initialIndex: 3,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(find.text('2단계 중 1단계'), findsOneWidget);
+    final rangeTargetRect = tester.getRect(
+      find.byKey(const ValueKey<String>('stats-coach-range-target')),
+    );
+    final rangeHighlightRect = tester.getRect(
+      find.byKey(const ValueKey('tab-coach-mark-highlight')),
+    );
+    expect(
+      (rangeHighlightRect.center - rangeTargetRect.center).distance,
+      lessThan(1),
+    );
+
+    await tester.tap(find.byKey(const ValueKey('tab-coach-mark-next-button')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    final tabsTargetRect = tester.getRect(
+      find.byKey(const ValueKey<String>('stats-coach-tabs-target')),
+    );
+    final tabsHighlightRect = tester.getRect(
+      find.byKey(const ValueKey('tab-coach-mark-highlight')),
+    );
+    expect(
+      (tabsHighlightRect.center - tabsTargetRect.center).distance,
+      lessThan(1),
+    );
+    expect(
+      tester
+          .widget<SegmentedButton<int>>(find.byType(SegmentedButton<int>))
+          .selected,
+      <int>{0},
+    );
+
+    await tester.tapAt(
+      tester.getCenter(find.byKey(const ValueKey('tab-coach-mark-highlight'))),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(
+      tester
+          .widget<SegmentedButton<int>>(find.byType(SegmentedButton<int>))
+          .selected,
+      <int>{1},
+    );
+    expect(
+      optionRepository.getValue<bool>('tab_quick_guide_seen_v1_3'),
+      isTrue,
+    );
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
+
+  testWidgets('diary guide tracks the available create control', (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _MemoryOptionRepository();
+    await optionRepository.setValue('tab_quick_guide_seen_v1_0', true);
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+    final trainingService = TrainingService(_MemoryTrainingRepository());
+    final mealLogService = MealLogService(optionRepository);
+
+    await tester.pumpWidget(
+      _buildApp(
+        HomeScreen(
+          trainingService: trainingService,
+          mealLogService: mealLogService,
+          localeService: localeService,
+          optionRepository: optionRepository,
+          settingsService: settingsService,
+          initialIndex: 4,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 450));
+
+    expect(find.text('1단계 중 1단계'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey<String>('diary-coach-date-target')),
+      findsNothing,
+    );
+    final createTargetRect = tester.getRect(
+      find.byKey(const ValueKey<String>('diary-coach-new-target')),
+    );
+    final createHighlightRect = tester.getRect(
+      find.byKey(const ValueKey('tab-coach-mark-highlight')),
+    );
+    expect(
+      (createHighlightRect.center - createTargetRect.center).distance,
+      lessThan(1),
+    );
+
+    await tester.tapAt(
+      tester.getCenter(find.byKey(const ValueKey('tab-coach-mark-highlight'))),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 450));
+
+    expect(find.byType(BottomSheet), findsOneWidget);
+    expect(
+      optionRepository.getValue<bool>('tab_quick_guide_seen_v1_4'),
+      isTrue,
+    );
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
+
+  testWidgets('calendar guide tracks real controls and runs the target action',
+      (
     WidgetTester tester,
   ) async {
     final optionRepository = _MemoryOptionRepository();
@@ -744,28 +1061,49 @@ void main() {
       find.byKey(const ValueKey('tab-coach-mark-dialog')),
       findsOneWidget,
     );
-    expect(find.text('3단계 중 1단계'), findsOneWidget);
+    expect(find.text('2단계 중 1단계'), findsOneWidget);
     expect(
       find.byKey(const ValueKey('tab-coach-mark-highlight')),
       findsOneWidget,
+    );
+    final dateTargetRect = tester.getRect(
+      find.byKey(const ValueKey<String>('calendar-coach-date-target')),
+    );
+    final dateHighlightRect = tester.getRect(
+      find.byKey(const ValueKey('tab-coach-mark-highlight')),
+    );
+    expect(
+      (dateHighlightRect.center - dateTargetRect.center).distance,
+      lessThan(1),
     );
 
     await tester.tap(find.byKey(const ValueKey('tab-coach-mark-next-button')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 260));
 
-    expect(find.text('3단계 중 2단계'), findsOneWidget);
-    expect(
+    expect(find.text('2단계 중 2단계'), findsOneWidget);
+    final addTargetRect = tester.getRect(
+      find.byKey(const ValueKey<String>('calendar-coach-add-target')),
+    );
+    final addHighlightRect = tester.getRect(
       find.byKey(const ValueKey('tab-coach-mark-highlight')),
-      findsNothing,
     );
     expect(
-      find.byKey(const ValueKey('tab-coach-mark-floating-target')),
-      findsNothing,
+      (addHighlightRect.center - addTargetRect.center).distance,
+      lessThan(1),
     );
+
+    await tester.tapAt(
+      tester.getCenter(find.byKey(const ValueKey('tab-coach-mark-highlight'))),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 350));
+
+    expect(find.byKey(const ValueKey('tab-coach-mark-dialog')), findsNothing);
+    expect(find.byType(BottomSheet), findsOneWidget);
     expect(
-      find.byKey(const ValueKey('tab-coach-mark-explanation-panel')),
-      findsOneWidget,
+      optionRepository.getValue<bool>('tab_quick_guide_seen_v1_2'),
+      isTrue,
     );
 
     await tester.pumpWidget(const SizedBox.shrink());

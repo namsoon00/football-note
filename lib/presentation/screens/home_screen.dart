@@ -16,6 +16,7 @@ import '../../application/notification_app_link.dart';
 import '../../application/sport_capabilities.dart';
 import '../../application/sport_service.dart';
 import '../../application/training_plan_reminder_service.dart';
+import '../../application/tutorial_guide_service.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'calendar_screen.dart';
 import 'logs_screen.dart';
@@ -23,6 +24,7 @@ import 'stats_screen.dart';
 import 'entry_form_screen.dart';
 import 'meal_log_screen.dart';
 import '../widgets/app_page_route.dart';
+import '../widgets/coach_mark_target.dart';
 import '../widgets/sport_scope.dart';
 import 'skill_quiz_screen.dart';
 import 'home_hub_screen.dart';
@@ -41,6 +43,12 @@ enum _HomeCoachAnchor {
   homeDailyTrainingLog,
   homeDailyMeal,
   homeMeal,
+  calendarDate,
+  calendarAdd,
+  statsRange,
+  statsTabs,
+  diaryDate,
+  diaryNew,
 }
 
 class HomeScreen extends StatefulWidget {
@@ -93,10 +101,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   StreamSubscription<void>? _backupDataChangeSubscription;
   int _dataRevision = 0;
   String? _activeSportId;
-  final Map<_HomeCoachAnchor, GlobalKey> _coachAnchorKeys =
-      <_HomeCoachAnchor, GlobalKey>{
+  final Map<_HomeCoachAnchor, CoachMarkTargetHandle> _coachTargets =
+      <_HomeCoachAnchor, CoachMarkTargetHandle>{
     for (final anchor in _HomeCoachAnchor.values)
-      anchor: GlobalKey(debugLabel: 'home-coach-anchor-${anchor.name}'),
+      anchor: CoachMarkTargetHandle(
+        debugLabel: 'home-coach-anchor-${anchor.name}',
+      ),
   };
 
   @override
@@ -105,6 +115,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _activeSportId = SportService(widget.optionRepository).currentSportId();
     _index = widget.initialIndex;
+    _attachNavigationCoachActions();
+    TutorialGuideService.replayRequests.addListener(_handleTutorialReplay);
     _calendarSelectedDay = widget.initialCalendarSelectedDay == null
         ? null
         : DateTime(
@@ -143,6 +155,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    TutorialGuideService.replayRequests.removeListener(_handleTutorialReplay);
+    for (final anchor in const <_HomeCoachAnchor>[
+      _HomeCoachAnchor.tabHome,
+      _HomeCoachAnchor.tabLogs,
+      _HomeCoachAnchor.tabCalendar,
+      _HomeCoachAnchor.tabStats,
+      _HomeCoachAnchor.tabDiary,
+    ]) {
+      _coachTarget(anchor).detach(this);
+    }
     _familySyncTimer?.cancel();
     unawaited(_backupDataChangeSubscription?.cancel());
     super.dispose();
@@ -156,31 +178,73 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   GlobalKey _coachAnchorKey(_HomeCoachAnchor anchor) {
-    return _coachAnchorKeys[anchor]!;
+    return _coachTarget(anchor).key;
   }
 
-  Map<HomeHubCoachAnchor, GlobalKey> get _homeHubCoachAnchors {
-    return <HomeHubCoachAnchor, GlobalKey>{
+  CoachMarkTargetHandle _coachTarget(_HomeCoachAnchor anchor) {
+    return _coachTargets[anchor]!;
+  }
+
+  void _attachNavigationCoachActions() {
+    _coachTarget(_HomeCoachAnchor.tabHome).attach(
+      this,
+      () => _onDestinationSelected(0),
+    );
+    _coachTarget(_HomeCoachAnchor.tabLogs).attach(
+      this,
+      () => _onDestinationSelected(1),
+    );
+    _coachTarget(_HomeCoachAnchor.tabCalendar).attach(
+      this,
+      () => _onDestinationSelected(2),
+    );
+    _coachTarget(_HomeCoachAnchor.tabStats).attach(
+      this,
+      () => _onDestinationSelected(3),
+    );
+    _coachTarget(_HomeCoachAnchor.tabDiary).attach(
+      this,
+      () => _onDestinationSelected(4),
+    );
+  }
+
+  Map<HomeHubCoachAnchor, CoachMarkTargetHandle> get _homeHubCoachAnchors {
+    return <HomeHubCoachAnchor, CoachMarkTargetHandle>{
       HomeHubCoachAnchor.dailyFlow:
-          _coachAnchorKey(_HomeCoachAnchor.homeDailyFlow),
+          _coachTarget(_HomeCoachAnchor.homeDailyFlow),
       HomeHubCoachAnchor.dailyTrainingLog:
-          _coachAnchorKey(_HomeCoachAnchor.homeDailyTrainingLog),
+          _coachTarget(_HomeCoachAnchor.homeDailyTrainingLog),
       HomeHubCoachAnchor.dailyMeal:
-          _coachAnchorKey(_HomeCoachAnchor.homeDailyMeal),
-      HomeHubCoachAnchor.meal: _coachAnchorKey(_HomeCoachAnchor.homeMeal),
+          _coachTarget(_HomeCoachAnchor.homeDailyMeal),
+      HomeHubCoachAnchor.meal: _coachTarget(_HomeCoachAnchor.homeMeal),
     };
   }
 
+  Map<CalendarCoachAnchor, CoachMarkTargetHandle> get _calendarCoachAnchors =>
+      <CalendarCoachAnchor, CoachMarkTargetHandle>{
+        CalendarCoachAnchor.dateGrid:
+            _coachTarget(_HomeCoachAnchor.calendarDate),
+        CalendarCoachAnchor.add: _coachTarget(_HomeCoachAnchor.calendarAdd),
+      };
+
+  Map<StatsCoachAnchor, CoachMarkTargetHandle> get _statsCoachAnchors =>
+      <StatsCoachAnchor, CoachMarkTargetHandle>{
+        StatsCoachAnchor.range: _coachTarget(_HomeCoachAnchor.statsRange),
+        StatsCoachAnchor.tabs: _coachTarget(_HomeCoachAnchor.statsTabs),
+      };
+
+  Map<DiaryCoachAnchor, CoachMarkTargetHandle> get _diaryCoachAnchors =>
+      <DiaryCoachAnchor, CoachMarkTargetHandle>{
+        DiaryCoachAnchor.dateSelector: _coachTarget(_HomeCoachAnchor.diaryDate),
+        DiaryCoachAnchor.newDiary: _coachTarget(_HomeCoachAnchor.diaryNew),
+      };
+
   _CoachMarkAnchor _coachMarkAnchor(
     _HomeCoachAnchor anchor, {
-    Alignment fallbackAlignment = Alignment.center,
-    double fallbackTopFactor = 0.34,
     double scrollAlignment = 0.28,
   }) {
     return _CoachMarkAnchor(
-      key: _coachAnchorKey(anchor),
-      fallbackAlignment: fallbackAlignment,
-      fallbackTopFactor: fallbackTopFactor,
+      handle: _coachTarget(anchor),
       scrollAlignment: scrollAlignment,
     );
   }
@@ -190,6 +254,29 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       if (!mounted) return;
       unawaited(_showTabGuideIfNeeded(tabIndex));
     });
+  }
+
+  void _handleTutorialReplay() {
+    if (!mounted) return;
+    _guideCheckedInSession.clear();
+    setState(() {
+      _builtTabIndices.add(0);
+      _index = 0;
+    });
+    unawaited(_showReplayGuideWhenHomeIsVisible());
+  }
+
+  Future<void> _showReplayGuideWhenHomeIsVisible() async {
+    for (var attempt = 0; attempt < 30; attempt += 1) {
+      if (!mounted) return;
+      if (ModalRoute.of(context)?.isCurrent ?? true) {
+        await SchedulerBinding.instance.endOfFrame;
+        if (!mounted) return;
+        await _showTabGuideIfNeeded(0);
+        return;
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+    }
   }
 
   Future<void> _syncFamilySharedDataIfNeeded() async {
@@ -381,6 +468,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           onQuickCreateHandled: _clearCalendarQuickCreateAction,
           onOpenMatchHub: openTeamManagementHub,
           onOpenMatchRecord: openMatchRecord,
+          coachGuideAnchors: _calendarCoachAnchors,
           onSelectedDayChanged: (day) {
             _calendarSelectedDay = DateTime(day.year, day.month, day.day);
           },
@@ -402,6 +490,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           initialTabIndex: _statsInitialTabIndex,
           initialTabRequestKey: _statsInitialTabRequestKey,
           onOpenMatchHub: openTeamManagementHub,
+          coachGuideAnchors: _statsCoachAnchors,
         ),
       ),
       _buildTabChild(
@@ -418,6 +507,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           openTodayDiaryRequestKey: _openTodayDiaryRequestKey,
           dataRevision: _dataRevision,
           onOpenMatchHub: openTeamManagementHub,
+          coachGuideAnchors: _diaryCoachAnchors,
         ),
       ),
     ];
@@ -552,20 +642,22 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     ).loadState().isParentMode;
     if (!_isTabGuideEnabled(tabIndex, isParentMode: isParentMode)) return;
     final key = isParentMode
-        ? 'tab_quick_guide_seen_parent_mode_v1'
-        : 'tab_quick_guide_seen_v1_$tabIndex';
+        ? TutorialGuideService.parentSeenKey
+        : TutorialGuideService.childSeenKey(tabIndex);
     final alreadySeen = widget.optionRepository.getValue<bool>(key) ?? false;
     if (alreadySeen) return;
-    final l10n = AppLocalizations.of(context)!;
-    final guide = _tabGuideData(tabIndex, l10n, isParentMode: isParentMode);
-    if (guide.steps.isEmpty) return;
-    await widget.optionRepository.setValue(key, true);
+    await _waitForCoachTargetLayout();
     if (!mounted) return;
+    final l10n = AppLocalizations.of(context)!;
+    final guide = _availableGuideData(
+      _tabGuideData(tabIndex, l10n, isParentMode: isParentMode),
+    );
+    if (guide.steps.isEmpty) return;
     await _ensureGuideTargetVisible(
-      guide.steps.isEmpty ? null : guide.steps.first.targetAnchor,
+      guide.steps.first.targetAnchor,
     );
     if (!mounted) return;
-    final action = await showGeneralDialog<VoidCallback>(
+    final result = await showGeneralDialog<_CoachMarkResult>(
       context: context,
       barrierDismissible: true,
       barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
@@ -585,8 +677,25 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         );
       },
     );
-    if (!mounted || action == null) return;
-    action();
+    if (!mounted || result == null) return;
+    if (result.completed) {
+      await widget.optionRepository.setValue(key, true);
+      if (!mounted) return;
+    }
+    result.action?.call();
+  }
+
+  Future<void> _waitForCoachTargetLayout() async {
+    await SchedulerBinding.instance.endOfFrame;
+    await Future<void>.delayed(const Duration(milliseconds: 120));
+  }
+
+  _TabGuideData _availableGuideData(_TabGuideData guide) {
+    final steps = guide.steps.where((step) {
+      final target = step.targetAnchor;
+      return target == null || target.handle.key.currentContext != null;
+    }).toList(growable: false);
+    return _TabGuideData(title: guide.title, intro: guide.intro, steps: steps);
   }
 
   bool _isTabGuideEnabled(int tabIndex, {required bool isParentMode}) {
@@ -595,7 +704,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _ensureGuideTargetVisible(_CoachMarkAnchor? targetAnchor) async {
-    final targetContext = targetAnchor?.key.currentContext;
+    final targetContext = targetAnchor?.handle.key.currentContext;
     if (targetContext == null) return;
     await Scrollable.ensureVisible(
       targetContext,
@@ -619,21 +728,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             icon: Icons.list_alt_outlined,
             actionLabel: l10n.tabLogs,
             description: l10n.parentWelcomeGuideStepLogs,
-            targetAnchor: _coachMarkAnchor(
-              _HomeCoachAnchor.tabLogs,
-              fallbackAlignment: Alignment.bottomLeft,
-              fallbackTopFactor: 0.86,
-            ),
-          ),
-          _TabGuideStep(
-            icon: Icons.rate_review_outlined,
-            actionLabel: l10n.parentFeedbackWriteAction,
-            description: l10n.parentWelcomeGuideStepFeedback,
-          ),
-          _TabGuideStep(
-            icon: Icons.cloud_sync_outlined,
-            actionLabel: l10n.settingsDriveConnectionTitle,
-            description: l10n.parentWelcomeGuideStepSync,
+            targetAnchor: _coachMarkAnchor(_HomeCoachAnchor.tabLogs),
           ),
         ],
       );
@@ -648,33 +743,22 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               icon: Icons.today_outlined,
               actionLabel: l10n.guideActionToday,
               description: l10n.welcomeHomeStepToday,
-              targetAnchor: _coachMarkAnchor(
-                _HomeCoachAnchor.homeDailyTrainingLog,
-                fallbackAlignment: Alignment.centerLeft,
-                fallbackTopFactor: 0.42,
-              ),
+              targetAnchor:
+                  _coachMarkAnchor(_HomeCoachAnchor.homeDailyTrainingLog),
             ),
             _TabGuideStep(
               icon: Icons.rice_bowl_outlined,
               actionLabel: l10n.guideActionMeal,
               description: l10n.welcomeHomeStepMeal,
               onTry: () => unawaited(_openMealLog(initialDate: DateTime.now())),
-              targetAnchor: _coachMarkAnchor(
-                _HomeCoachAnchor.homeDailyMeal,
-                fallbackAlignment: Alignment.centerLeft,
-                fallbackTopFactor: 0.50,
-              ),
+              targetAnchor: _coachMarkAnchor(_HomeCoachAnchor.homeDailyMeal),
             ),
             _TabGuideStep(
               icon: Icons.bar_chart_outlined,
               actionLabel: l10n.homePriorityStatsAction,
               description: l10n.welcomeHomeStepStats,
               onTry: _openWeeklyStatsForCurrentWeek,
-              targetAnchor: _coachMarkAnchor(
-                _HomeCoachAnchor.tabStats,
-                fallbackAlignment: Alignment.bottomCenter,
-                fallbackTopFactor: 0.86,
-              ),
+              targetAnchor: _coachMarkAnchor(_HomeCoachAnchor.tabStats),
             ),
           ],
         );
@@ -683,28 +767,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           title: l10n.tabGuideTitle(l10n.tabLogs),
           intro: l10n.welcomeLogsOverview,
           steps: [
-            _TabGuideStep(
-              icon: Icons.add_circle_outline,
-              actionLabel: l10n.addEntry,
-              description: l10n.welcomeLogsStepAdd,
-              onTry: () => unawaited(_openCreate()),
-              targetAnchor: _coachMarkAnchor(
-                _HomeCoachAnchor.tabLogs,
-                fallbackAlignment: Alignment.bottomLeft,
-                fallbackTopFactor: 0.86,
-              ),
-            ),
-            _TabGuideStep(
-              icon: Icons.developer_board_outlined,
-              actionLabel: l10n.homePriorityBoardAction,
-              description: l10n.welcomeLogsStepBoard,
-              onTry: () => unawaited(_openCreateTrainingBoard()),
-            ),
-            _TabGuideStep(
-              icon: Icons.view_agenda_outlined,
-              actionLabel: l10n.guideActionCardList,
-              description: l10n.welcomeLogsStepReview,
-            ),
+            // The Logs tab intentionally has no automatic quick guide.
           ],
         );
       case 2:
@@ -716,23 +779,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               icon: Icons.touch_app_outlined,
               actionLabel: l10n.guideActionSelectDate,
               description: l10n.welcomeCalendarStepDate,
-              targetAnchor: _coachMarkAnchor(
-                _HomeCoachAnchor.tabCalendar,
-                fallbackAlignment: Alignment.bottomCenter,
-                fallbackTopFactor: 0.86,
-              ),
+              targetAnchor: _coachMarkAnchor(_HomeCoachAnchor.calendarDate),
             ),
             _TabGuideStep(
               icon: Icons.add,
               actionLabel: l10n.guideActionPlus,
               description: l10n.welcomeCalendarStepPlus,
-            ),
-            _TabGuideStep(
-              icon: Icons.rice_bowl_outlined,
-              actionLabel: l10n.guideActionMeal,
-              description: l10n.welcomeCalendarStepMeal,
-              onTry: () =>
-                  unawaited(_openMealLog(initialDate: _calendarSelectedDay)),
+              targetAnchor: _coachMarkAnchor(_HomeCoachAnchor.calendarAdd),
             ),
           ],
         );
@@ -745,21 +798,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               icon: Icons.date_range_outlined,
               actionLabel: l10n.guideActionPeriod,
               description: l10n.welcomeStatsStepPeriod,
-              targetAnchor: _coachMarkAnchor(
-                _HomeCoachAnchor.tabStats,
-                fallbackAlignment: Alignment.bottomCenter,
-                fallbackTopFactor: 0.86,
-              ),
+              targetAnchor: _coachMarkAnchor(_HomeCoachAnchor.statsRange),
             ),
             _TabGuideStep(
-              icon: Icons.stacked_line_chart,
-              actionLabel: l10n.guideActionBenchmark,
+              icon: Icons.swap_horiz_rounded,
+              actionLabel: l10n.statsTrainingTab,
               description: l10n.welcomeStatsStepAverage,
-            ),
-            _TabGuideStep(
-              icon: Icons.flag_outlined,
-              actionLabel: l10n.guideActionWeakPoint,
-              description: l10n.welcomeStatsStepFocus,
+              targetAnchor: _coachMarkAnchor(_HomeCoachAnchor.statsTabs),
             ),
           ],
         );
@@ -772,22 +817,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               icon: Icons.today_outlined,
               actionLabel: l10n.guideActionOpenToday,
               description: l10n.welcomeDiaryStepToday,
-              onTry: _openTodayDiary,
-              targetAnchor: _coachMarkAnchor(
-                _HomeCoachAnchor.tabDiary,
-                fallbackAlignment: Alignment.bottomRight,
-                fallbackTopFactor: 0.86,
-              ),
+              targetAnchor: _coachMarkAnchor(_HomeCoachAnchor.diaryDate),
             ),
             _TabGuideStep(
-              icon: Icons.sticky_note_2_outlined,
-              actionLabel: l10n.guideActionRecordSticker,
+              icon: Icons.add_circle_outline,
+              actionLabel: l10n.diaryNewAction,
               description: l10n.welcomeDiaryStepSticker,
-            ),
-            _TabGuideStep(
-              icon: Icons.save_outlined,
-              actionLabel: l10n.guideActionSaveDiary,
-              description: l10n.welcomeDiaryStepSave,
+              targetAnchor: _coachMarkAnchor(_HomeCoachAnchor.diaryNew),
             ),
           ],
         );
@@ -966,17 +1002,20 @@ class _TabGuideData {
 }
 
 class _CoachMarkAnchor {
-  final GlobalKey key;
-  final Alignment fallbackAlignment;
-  final double fallbackTopFactor;
+  final CoachMarkTargetHandle handle;
   final double scrollAlignment;
 
   const _CoachMarkAnchor({
-    required this.key,
-    required this.fallbackAlignment,
-    required this.fallbackTopFactor,
+    required this.handle,
     required this.scrollAlignment,
   });
+}
+
+class _CoachMarkResult {
+  final VoidCallback? action;
+  final bool completed;
+
+  const _CoachMarkResult({this.action, required this.completed});
 }
 
 class _CoachMarkPanelSlot {
@@ -1025,12 +1064,13 @@ class _TabCoachMarkDialog extends StatefulWidget {
 class _TabCoachMarkDialogState extends State<_TabCoachMarkDialog> {
   static const double _screenPadding = 14;
   static const double _targetInflate = 8;
-  static const Size _fallbackTargetSize = Size(220, 76);
   static const double _floatingWidth = 260;
   static const double _floatingHeightEstimate = 78;
   static const double _panelGap = 14;
   final GlobalKey _overlayKey = GlobalKey(debugLabel: 'tab-coach-mark-overlay');
   int _stepIndex = 0;
+  Timer? _targetTrackingTimer;
+  Rect? _lastMeasuredTargetRect;
 
   @override
   void initState() {
@@ -1038,6 +1078,16 @@ class _TabCoachMarkDialogState extends State<_TabCoachMarkDialog> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(_refreshCurrentTarget());
     });
+    _targetTrackingTimer = Timer.periodic(
+      const Duration(milliseconds: 160),
+      (_) => _trackCurrentTarget(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _targetTrackingTimer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -1049,6 +1099,7 @@ class _TabCoachMarkDialogState extends State<_TabCoachMarkDialog> {
     }
     final step = steps[_stepIndex];
     final isLast = _stepIndex == steps.length - 1;
+    final stepAction = step.onTry ?? step.targetAnchor?.handle.action;
     return Material(
       key: const ValueKey('tab-coach-mark-dialog'),
       color: Colors.transparent,
@@ -1057,8 +1108,6 @@ class _TabCoachMarkDialogState extends State<_TabCoachMarkDialog> {
           final viewport = Size(constraints.maxWidth, constraints.maxHeight);
           final spotlightRect = _spotlightRectForStep(
             step: step,
-            stepIndex: _stepIndex,
-            totalSteps: steps.length,
             viewport: viewport,
           );
           final safePadding = MediaQuery.paddingOf(context);
@@ -1083,7 +1132,12 @@ class _TabCoachMarkDialogState extends State<_TabCoachMarkDialog> {
                 Positioned.fill(
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
-                    onTap: () => Navigator.of(context).pop(),
+                    onTapUp: (details) => _handleOverlayTap(
+                      details.localPosition,
+                      spotlightRect: spotlightRect,
+                      action: stepAction,
+                      completed: isLast,
+                    ),
                     child: CustomPaint(
                       painter: _CoachMarkScrimPainter(
                         spotlightRect: spotlightRect,
@@ -1132,14 +1186,16 @@ class _TabCoachMarkDialogState extends State<_TabCoachMarkDialog> {
                     left: floatingOffset.dx,
                     top: floatingOffset.dy,
                     width: _floatingWidth,
-                    child: Align(
-                      child: _CoachMarkFloatingTarget(
-                        key: const ValueKey('tab-coach-mark-floating-target'),
-                        step: step,
-                        label: AppLocalizations.of(
-                          context,
-                        )!
-                            .welcomeGuideCoachMarkLabel,
+                    child: IgnorePointer(
+                      child: Align(
+                        child: _CoachMarkFloatingTarget(
+                          key: const ValueKey('tab-coach-mark-floating-target'),
+                          step: step,
+                          label: AppLocalizations.of(
+                            context,
+                          )!
+                              .welcomeGuideCoachMarkLabel,
+                        ),
                       ),
                     ),
                   ),
@@ -1150,29 +1206,49 @@ class _TabCoachMarkDialogState extends State<_TabCoachMarkDialog> {
                   right: 16,
                   top: panelSlot.top,
                   bottom: panelSlot.bottom,
-                  child: Align(
-                    alignment: panelSlot.alignment,
-                    child: SingleChildScrollView(
-                      reverse: panelSlot.isAboveTarget,
-                      child: _CoachMarkExplanationPanel(
-                        key: const ValueKey('tab-coach-mark-explanation-panel'),
-                        guide: widget.guide,
-                        step: step,
-                        currentStep: _stepIndex + 1,
-                        totalSteps: steps.length,
-                        isLast: isLast,
-                        onSkip: () => Navigator.of(context).pop(),
-                        onBack: _stepIndex == 0
-                            ? null
-                            : () => unawaited(_showStep(_stepIndex - 1)),
-                        onTry: step.onTry == null
-                            ? null
-                            : () => Navigator.of(context).pop(step.onTry),
-                        onNext: isLast
-                            ? () => Navigator.of(context).pop()
-                            : () => unawaited(_showStep(_stepIndex + 1)),
-                      ),
-                    ),
+                  child: LayoutBuilder(
+                    builder: (context, panelConstraints) {
+                      return SingleChildScrollView(
+                        reverse: panelSlot.isAboveTarget,
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: panelConstraints.maxHeight,
+                          ),
+                          child: Align(
+                            alignment: panelSlot.alignment,
+                            child: _CoachMarkExplanationPanel(
+                              key: const ValueKey(
+                                'tab-coach-mark-explanation-panel',
+                              ),
+                              guide: widget.guide,
+                              step: step,
+                              currentStep: _stepIndex + 1,
+                              totalSteps: steps.length,
+                              isLast: isLast,
+                              onSkip: () => Navigator.of(context).pop(
+                                const _CoachMarkResult(completed: false),
+                              ),
+                              onBack: _stepIndex == 0
+                                  ? null
+                                  : () => unawaited(_showStep(_stepIndex - 1)),
+                              onTry: stepAction == null
+                                  ? null
+                                  : () => Navigator.of(context).pop(
+                                        _CoachMarkResult(
+                                          action: stepAction,
+                                          completed: isLast,
+                                        ),
+                                      ),
+                              onNext: isLast
+                                  ? () => Navigator.of(context).pop(
+                                        const _CoachMarkResult(completed: true),
+                                      )
+                                  : () => unawaited(_showStep(_stepIndex + 1)),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ],
@@ -1192,6 +1268,33 @@ class _TabCoachMarkDialogState extends State<_TabCoachMarkDialog> {
     if (mounted) setState(() {});
   }
 
+  void _trackCurrentTarget() {
+    if (!mounted || widget.guide.steps.isEmpty) return;
+    final nextRect = _targetRectForStep(widget.guide.steps[_stepIndex]);
+    if (nextRect == _lastMeasuredTargetRect) return;
+    _lastMeasuredTargetRect = nextRect;
+    setState(() {});
+  }
+
+  void _handleOverlayTap(
+    Offset position, {
+    required Rect? spotlightRect,
+    required VoidCallback? action,
+    required bool completed,
+  }) {
+    if (spotlightRect != null &&
+        spotlightRect.contains(position) &&
+        action != null) {
+      Navigator.of(context).pop(
+        _CoachMarkResult(action: action, completed: completed),
+      );
+      return;
+    }
+    Navigator.of(context).pop(
+      const _CoachMarkResult(completed: false),
+    );
+  }
+
   Future<void> _showStep(int nextIndex) async {
     final steps = widget.guide.steps;
     if (nextIndex < 0 || nextIndex >= steps.length || nextIndex == _stepIndex) {
@@ -1206,7 +1309,7 @@ class _TabCoachMarkDialogState extends State<_TabCoachMarkDialog> {
     _CoachMarkAnchor? targetAnchor, {
     Duration duration = const Duration(milliseconds: 220),
   }) async {
-    final targetContext = targetAnchor?.key.currentContext;
+    final targetContext = targetAnchor?.handle.key.currentContext;
     if (targetContext == null) return;
     await Scrollable.ensureVisible(
       targetContext,
@@ -1218,25 +1321,16 @@ class _TabCoachMarkDialogState extends State<_TabCoachMarkDialog> {
 
   Rect? _spotlightRectForStep({
     required _TabGuideStep step,
-    required int stepIndex,
-    required int totalSteps,
     required Size viewport,
   }) {
     final targetRect = _targetRectForStep(step);
-    if (targetRect == null && step.targetAnchor == null) return null;
-    final rect = (targetRect ??
-            _fallbackRectForStep(
-              step: step,
-              stepIndex: stepIndex,
-              totalSteps: totalSteps,
-              viewport: viewport,
-            ))
-        .inflate(_targetInflate);
+    if (targetRect == null) return null;
+    final rect = targetRect.inflate(_targetInflate);
     return _clampRect(rect, viewport, margin: 0);
   }
 
   Rect? _targetRectForStep(_TabGuideStep step) {
-    final targetContext = step.targetAnchor?.key.currentContext;
+    final targetContext = step.targetAnchor?.handle.key.currentContext;
     if (targetContext == null) return null;
     final renderObject = targetContext.findRenderObject();
     if (renderObject is! RenderBox ||
@@ -1261,41 +1355,6 @@ class _TabCoachMarkDialogState extends State<_TabCoachMarkDialog> {
     return Rect.fromPoints(
       overlayObject.globalToLocal(targetTopLeft),
       overlayObject.globalToLocal(targetBottomRight),
-    );
-  }
-
-  Rect _fallbackRectForStep({
-    required _TabGuideStep step,
-    required int stepIndex,
-    required int totalSteps,
-    required Size viewport,
-  }) {
-    final anchor = step.targetAnchor;
-    final top = anchor == null
-        ? _spotlightTopForStep(
-            stepIndex: stepIndex,
-            totalSteps: totalSteps,
-            maxHeight: viewport.height,
-          )
-        : ((viewport.height * anchor.fallbackTopFactor) -
-            (_fallbackTargetSize.height / 2));
-    final availableWidth =
-        (viewport.width - (_screenPadding * 2) - _fallbackTargetSize.width)
-            .clamp(0.0, double.infinity)
-            .toDouble();
-    final horizontalProgress = anchor == null
-        ? switch (stepIndex % 3) {
-            0 => 0.0,
-            1 => 0.5,
-            _ => 1.0,
-          }
-        : ((anchor.fallbackAlignment.x + 1) / 2).clamp(0.0, 1.0).toDouble();
-    final left = _screenPadding + (availableWidth * horizontalProgress);
-    return Rect.fromLTWH(
-      left,
-      top,
-      _fallbackTargetSize.width,
-      _fallbackTargetSize.height,
     );
   }
 
@@ -1419,19 +1478,6 @@ class _TabCoachMarkDialogState extends State<_TabCoachMarkDialog> {
   double _clampDouble(double value, double min, double max) {
     if (max < min) return min;
     return value.clamp(min, max).toDouble();
-  }
-
-  double _spotlightTopForStep({
-    required int stepIndex,
-    required int totalSteps,
-    required double maxHeight,
-  }) {
-    final safeMax = maxHeight <= 0 ? 640.0 : maxHeight;
-    const upper = 72.0;
-    final lower = (safeMax - 318).clamp(upper, safeMax).toDouble();
-    if (totalSteps <= 1) return safeMax * 0.24;
-    final progress = stepIndex / (totalSteps - 1);
-    return upper + ((lower - upper) * progress);
   }
 }
 
