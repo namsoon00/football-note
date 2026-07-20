@@ -59,12 +59,21 @@ for required in (
     "landmarkConfidence(landmark)",
     "min(visibility, presence)",
     "else -> 0f",
-    "poseLandmarker?.close()",
+    "coarsePoseLandmarker?.close()",
+    "densePoseLandmarker?.close()",
     "bitmap.recycle()",
     "\"model_missing\"",
     "\"mediapipe_pose_failed\"",
     "\"video_too_short\"",
     "\"no_pose_detected\"",
+    "\"insufficient_contact_evidence\"",
+    "coarseSampleTimestamps",
+    "deriveContactCandidateWindows",
+    "denseTimestampsForContactWindows",
+    "validateDenseContactFrames",
+    "mergePoseFrames",
+    "maxDenseFrameBudget",
+    "minimumValidatedContactFrames",
 ):
     require(required in channel_text, f"upload channel is missing required token: {required}")
 
@@ -86,11 +95,29 @@ for required in (
     '"mediapipe_pose_failed"',
     '"video_too_short"',
     '"no_pose_detected"',
+    '"insufficient_contact_evidence"',
+    "coarseSampleTimestamps",
+    "deriveContactCandidateWindows",
+    "denseTimestampsForContactWindows",
+    "validateDenseContactFrames",
+    "mergePoseFrames",
+    "maxDenseFrameBudget",
+    "minimumValidatedContactFrames",
 ):
     require(required in ios_text, f"iOS running channel is missing required token: {required}")
 
 for required in (
     '"poseFrames"',
+    '"coarseSamples"',
+    '"denseSamples"',
+    '"contactWindows"',
+    '"validatedContactFrameTimestampsMs"',
+    '"contactConfidence"',
+    '"metricQualities"',
+    '"footStrike"',
+    '"kneeFlexion"',
+    '"maxFrameBudget"',
+    '"targetFps"',
     '"timestampMs"',
     '"imageWidth"',
     '"imageHeight"',
@@ -138,6 +165,32 @@ require(
     re.search(r"private static let mediaPipePoseLandmarkCount\s*=\s*33\b", ios_text)
     is not None,
     "iOS poseFrames must serialize 33 MediaPipe landmarks",
+)
+android_budget = re.search(r"private const val maxDenseFrameBudget\s*=\s*(\d+)\b", channel_text)
+ios_budget = re.search(r"private static let maxDenseFrameBudget\s*=\s*(\d+)\b", ios_text)
+require(android_budget is not None, "Android dense pass must define a hard maxDenseFrameBudget")
+require(ios_budget is not None, "iOS dense pass must define a hard maxDenseFrameBudget")
+if android_budget is not None:
+    require(int(android_budget.group(1)) <= 48, "Android dense frame budget must stay at or below 48")
+if ios_budget is not None:
+    require(int(ios_budget.group(1)) <= 48, "iOS dense frame budget must stay at or below 48")
+require(
+    re.search(r"private const val denseFrameIntervalMs\s*=\s*33L\b", channel_text)
+    is not None,
+    "Android dense pass must target approximately 30 fps",
+)
+require(
+    re.search(r"private static let denseFrameIntervalMs\s*=\s*33\b", ios_text)
+    is not None,
+    "iOS dense pass must target approximately 30 fps",
+)
+require(
+    "loadingSamples" not in channel_text and ".leadFootStrikeRatio(direction)" not in channel_text,
+    "Android foot/knee upload metrics must not use the old largest-forward-reach proxy",
+)
+require(
+    "loadingSamples" not in ios_text and ".leadFootStrikeRatio(direction: direction)" not in ios_text,
+    "iOS foot/knee upload metrics must not use the old largest-forward-reach proxy",
 )
 require(
     re.search(

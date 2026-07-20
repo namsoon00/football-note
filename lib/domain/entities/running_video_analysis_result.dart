@@ -1,5 +1,7 @@
 enum RunningDirection { leftToRight, rightToLeft, stationary }
 
+enum RunningContactSide { left, right, unknown }
+
 enum RunningCoachMetric {
   posture,
   bounce,
@@ -147,6 +149,108 @@ class RunningPoseFrame {
   }
 }
 
+class RunningAnalysisSampleSummary {
+  final int attemptedFrames;
+  final int validFrames;
+  final int poseFrameCount;
+  final int? maxFrameBudget;
+  final double? targetFps;
+
+  const RunningAnalysisSampleSummary({
+    required this.attemptedFrames,
+    required this.validFrames,
+    required this.poseFrameCount,
+    this.maxFrameBudget,
+    this.targetFps,
+  });
+
+  static const empty = RunningAnalysisSampleSummary(
+    attemptedFrames: 0,
+    validFrames: 0,
+    poseFrameCount: 0,
+  );
+
+  double get coverage => attemptedFrames == 0
+      ? 0.0
+      : (validFrames / attemptedFrames).clamp(0.0, 1.0).toDouble();
+
+  static RunningAnalysisSampleSummary fromObject(
+    Object? raw, {
+    required RunningAnalysisSampleSummary fallback,
+  }) {
+    final map = _asObjectMap(raw);
+    if (map == null) return fallback;
+    return RunningAnalysisSampleSummary(
+      attemptedFrames:
+          (_finiteInt(map['attemptedFrames']) ?? fallback.attemptedFrames)
+              .clamp(0, 1 << 30)
+              .toInt(),
+      validFrames: (_finiteInt(map['validFrames']) ?? fallback.validFrames)
+          .clamp(0, 1 << 30)
+          .toInt(),
+      poseFrameCount:
+          (_finiteInt(map['poseFrameCount']) ?? fallback.poseFrameCount)
+              .clamp(0, 1 << 30)
+              .toInt(),
+      maxFrameBudget: _finiteInt(map['maxFrameBudget']),
+      targetFps: _finiteDouble(map['targetFps']),
+    );
+  }
+}
+
+class RunningContactWindow {
+  final Duration start;
+  final Duration center;
+  final Duration end;
+  final RunningContactSide side;
+  final int denseSampleCount;
+  final List<Duration> validatedContactTimestamps;
+  final double confidence;
+
+  const RunningContactWindow({
+    required this.start,
+    required this.center,
+    required this.end,
+    required this.side,
+    required this.denseSampleCount,
+    required this.validatedContactTimestamps,
+    required this.confidence,
+  });
+
+  int get startMs => start.inMilliseconds;
+  int get centerMs => center.inMilliseconds;
+  int get endMs => end.inMilliseconds;
+
+  static RunningContactWindow? fromObject(Object? raw) {
+    final map = _asObjectMap(raw);
+    if (map == null) return null;
+    final startMs = _finiteInt(map['startTimestampMs']);
+    final centerMs = _finiteInt(map['centerTimestampMs']);
+    final endMs = _finiteInt(map['endTimestampMs']);
+    if (startMs == null ||
+        centerMs == null ||
+        endMs == null ||
+        startMs < 0 ||
+        centerMs < startMs ||
+        endMs < centerMs) {
+      return null;
+    }
+    return RunningContactWindow(
+      start: Duration(milliseconds: startMs),
+      center: Duration(milliseconds: centerMs),
+      end: Duration(milliseconds: endMs),
+      side: _contactSideFromToken(map['side']?.toString()),
+      denseSampleCount:
+          (_finiteInt(map['denseSampleCount']) ?? 0).clamp(0, 1 << 30).toInt(),
+      validatedContactTimestamps: _parseTimestampList(
+        map['validatedContactFrameTimestampsMs'],
+      ),
+      confidence:
+          (_finiteDouble(map['confidence']) ?? 0).clamp(0.0, 1.0).toDouble(),
+    );
+  }
+}
+
 class RunningVideoAnalysisResult {
   final Duration videoDuration;
   final int sampledFrames;
@@ -159,6 +263,11 @@ class RunningVideoAnalysisResult {
   final double elbowAngleDegrees;
   final Map<RunningCoachMetric, RunningMetricQuality> metricQualities;
   final List<RunningPoseFrame> poseFrames;
+  final RunningAnalysisSampleSummary coarseSamples;
+  final RunningAnalysisSampleSummary denseSamples;
+  final List<RunningContactWindow> contactWindows;
+  final List<Duration> validatedContactFrameTimestamps;
+  final double contactConfidence;
 
   const RunningVideoAnalysisResult({
     required this.videoDuration,
@@ -172,6 +281,11 @@ class RunningVideoAnalysisResult {
     required this.elbowAngleDegrees,
     this.metricQualities = const <RunningCoachMetric, RunningMetricQuality>{},
     this.poseFrames = const <RunningPoseFrame>[],
+    this.coarseSamples = RunningAnalysisSampleSummary.empty,
+    this.denseSamples = RunningAnalysisSampleSummary.empty,
+    this.contactWindows = const <RunningContactWindow>[],
+    this.validatedContactFrameTimestamps = const <Duration>[],
+    this.contactConfidence = 0,
   });
 
   double get validFrameCoverage =>
@@ -191,12 +305,39 @@ class RunningVideoAnalysisResult {
     return metricQualities[metric];
   }
 
+  bool get hasDenseContactEvidence =>
+      validatedContactFrameTimestamps.isNotEmpty &&
+      denseSamples.validFrames > 0;
+
+  Duration? nearestValidatedContactTimestamp(
+    Duration position, {
+    Duration tolerance = const Duration(milliseconds: 90),
+  }) {
+    Duration? nearest;
+    var nearestDistanceMs = tolerance.inMilliseconds + 1;
+    for (final timestamp in validatedContactFrameTimestamps) {
+      final distanceMs =
+          (timestamp.inMilliseconds - position.inMilliseconds).abs();
+      if (distanceMs < nearestDistanceMs) {
+        nearest = timestamp;
+        nearestDistanceMs = distanceMs;
+      }
+    }
+    return nearestDistanceMs <= tolerance.inMilliseconds ? nearest : null;
+  }
+
   factory RunningVideoAnalysisResult.fromMap(Map<Object?, Object?> map) {
     final durationMs = _finiteInt(map['durationMs']) ?? 0;
     final sampledFrames = _finiteInt(map['sampledFrames']) ?? 0;
     final validFrames = _finiteInt(map['validFrames']) ?? 0;
     final rawDirection = map['direction'];
     final directionToken = rawDirection is String ? rawDirection : 'stationary';
+    final poseFrames = _parsePoseFrames(map['poseFrames']);
+    final coarseFallback = RunningAnalysisSampleSummary(
+      attemptedFrames: sampledFrames,
+      validFrames: validFrames,
+      poseFrameCount: poseFrames.length,
+    );
     return RunningVideoAnalysisResult(
       videoDuration: Duration(milliseconds: durationMs),
       sampledFrames: sampledFrames,
@@ -212,7 +353,23 @@ class RunningVideoAnalysisResult {
           _finiteDouble(map['footStrikeDistanceRatio']) ?? 0,
       stanceKneeAngleDegrees: _finiteDouble(map['stanceKneeAngleDegrees']) ?? 0,
       elbowAngleDegrees: _finiteDouble(map['elbowAngleDegrees']) ?? 0,
-      poseFrames: _parsePoseFrames(map['poseFrames']),
+      metricQualities: _parseMetricQualities(map['metricQualities']),
+      poseFrames: poseFrames,
+      coarseSamples: RunningAnalysisSampleSummary.fromObject(
+        map['coarseSamples'],
+        fallback: coarseFallback,
+      ),
+      denseSamples: RunningAnalysisSampleSummary.fromObject(
+        map['denseSamples'],
+        fallback: RunningAnalysisSampleSummary.empty,
+      ),
+      contactWindows: _parseContactWindows(map['contactWindows']),
+      validatedContactFrameTimestamps: _parseTimestampList(
+        map['validatedContactFrameTimestampsMs'],
+      ),
+      contactConfidence: (_finiteDouble(map['contactConfidence']) ?? 0)
+          .clamp(0.0, 1.0)
+          .toDouble(),
     );
   }
 }
@@ -221,15 +378,80 @@ List<RunningPoseFrame> _parsePoseFrames(Object? raw) {
   if (raw is! Iterable<Object?>) {
     return const <RunningPoseFrame>[];
   }
-  final frames = <RunningPoseFrame>[];
+  final framesByTimestamp = <int, RunningPoseFrame>{};
   for (final item in raw) {
     final frame = RunningPoseFrame.fromObject(item);
     if (frame != null) {
-      frames.add(frame);
+      framesByTimestamp[frame.timestampMs] = frame;
     }
   }
+  final frames = framesByTimestamp.values.toList(growable: false);
   frames.sort((a, b) => a.timestampMs.compareTo(b.timestampMs));
   return List<RunningPoseFrame>.unmodifiable(frames);
+}
+
+List<RunningContactWindow> _parseContactWindows(Object? raw) {
+  if (raw is! Iterable<Object?>) {
+    return const <RunningContactWindow>[];
+  }
+  final windows = <RunningContactWindow>[];
+  for (final item in raw) {
+    final window = RunningContactWindow.fromObject(item);
+    if (window != null) {
+      windows.add(window);
+    }
+  }
+  windows.sort((a, b) => a.centerMs.compareTo(b.centerMs));
+  return List<RunningContactWindow>.unmodifiable(windows);
+}
+
+List<Duration> _parseTimestampList(Object? raw) {
+  if (raw is! Iterable<Object?>) {
+    return const <Duration>[];
+  }
+  final timestamps = <int>{};
+  for (final item in raw) {
+    final timestampMs = _finiteInt(item);
+    if (timestampMs != null && timestampMs >= 0) {
+      timestamps.add(timestampMs);
+    }
+  }
+  final sorted = timestamps.toList(growable: false)..sort();
+  return List<Duration>.unmodifiable(
+    sorted.map((timestampMs) => Duration(milliseconds: timestampMs)),
+  );
+}
+
+Map<RunningCoachMetric, RunningMetricQuality> _parseMetricQualities(
+  Object? raw,
+) {
+  final map = _asObjectMap(raw);
+  if (map == null) return const <RunningCoachMetric, RunningMetricQuality>{};
+  final qualities = <RunningCoachMetric, RunningMetricQuality>{};
+  for (final entry in map.entries) {
+    final metric = _metricFromToken(entry.key?.toString());
+    final quality = RunningMetricQuality.fromObject(entry.value);
+    if (metric != null && quality != null) {
+      qualities[metric] = quality;
+    }
+  }
+  return Map<RunningCoachMetric, RunningMetricQuality>.unmodifiable(qualities);
+}
+
+RunningCoachMetric? _metricFromToken(String? token) {
+  if (token == null) return null;
+  for (final metric in RunningCoachMetric.values) {
+    if (metric.name == token) return metric;
+  }
+  return null;
+}
+
+RunningContactSide _contactSideFromToken(String? token) {
+  return switch (token) {
+    'left' => RunningContactSide.left,
+    'right' => RunningContactSide.right,
+    _ => RunningContactSide.unknown,
+  };
 }
 
 Map<Object?, Object?>? _asObjectMap(Object? raw) {
@@ -264,6 +486,22 @@ class RunningMetricQuality {
   });
 
   static const high = RunningMetricQuality(confidence: 1, sampleCount: 0);
+
+  static RunningMetricQuality? fromObject(Object? raw) {
+    final map = _asObjectMap(raw);
+    if (map == null) return null;
+    final confidence = _finiteDouble(map['confidence']);
+    final sampleCount = _finiteInt(map['sampleCount']);
+    if (confidence == null || sampleCount == null || sampleCount < 0) {
+      return null;
+    }
+    final reason = map['reason']?.toString().trim();
+    return RunningMetricQuality(
+      confidence: confidence.clamp(0.0, 1.0).toDouble(),
+      sampleCount: sampleCount,
+      reason: reason == null || reason.isEmpty ? null : reason,
+    );
+  }
 
   int get confidencePercent => (confidence.clamp(0.0, 1.0) * 100).round();
 

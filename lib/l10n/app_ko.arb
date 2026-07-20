@@ -4868,6 +4868,13 @@
   "runningCoachSamplePhaseSkeleton": "자세선 연결",
   "runningCoachSamplePhaseAngles": "각도 측정",
   "runningCoachSamplePhaseContactScore": "착지 신뢰도 점수",
+  "runningCoachSamplePhaseDenseContact": "접지 프레임 검증",
+  "runningCoachSampleContactFrameLabel": "접지 {time}",
+  "@runningCoachSampleContactFrameLabel": {
+    "placeholders": {
+      "time": {}
+    }
+  },
   "runningCoachSampleDecisionTitle": "판정 근거",
   "runningCoachSampleMetricPosture": "전경사",
   "runningCoachSampleMetricArms": "팔",
@@ -4924,6 +4931,15 @@
   "runningCoachSampleBounceDetailReference": "좋은 샘플은 위아래 움직임이 작아 에너지가 앞으로 유지돼요.",
   "runningCoachSampleBounceDetailReview": "확인 샘플은 몸이 더 크게 뜨고 내려와 접지 타이밍이 불안정해져요.",
   "runningCoachSampleBounceDetailHowRead": "앱은 보폭 전체에서 머리와 엉덩이 높이 범위를 추적하고 수직 변화 비율을 점수화해요.",
+  "runningCoachDenseContactEvidenceTitle": "정밀 접지 근거",
+  "runningCoachDenseContactEvidenceBody": "발 착지와 접지 무릎 값은 검증된 접지 주변에서 다시 읽은 MediaPipe 프레임만 사용해요.",
+  "runningCoachDenseContactCoarseSamplesLabel": "1차",
+  "runningCoachDenseContactDenseSamplesLabel": "정밀",
+  "runningCoachDenseContactWindowsLabel": "구간",
+  "runningCoachDenseContactFramesLabel": "접지 프레임",
+  "runningCoachDenseContactConfidenceLabel": "근거",
+  "runningCoachDenseContactTimesLabel": "시각",
+  "runningCoachDenseContactUnavailable": "검증된 접지 없음",
   "runningCoachLiveCardTitle": "실시간 코치",
   "runningCoachLiveCardBody": "해부학적 관절과 스켈레톤 선을 실시간으로 보며, 필요하면 바로 스프린트 전용 피드백으로 넘어가 전경사, 무릎 드라이브, 스텝 리듬, 팔 균형까지 확인할 수 있어요.",
   "runningCoachLiveAction": "실시간 코치 시작",
@@ -5431,6 +5447,7 @@
   "runningCoachVideoFileMissing": "선택한 영상 파일을 찾지 못했어요.",
   "runningCoachVideoTooShort": "영상이 너무 짧아요. 몇 걸음 이상 달리는 장면을 찍어 주세요.",
   "runningCoachNoPoseDetected": "러너 자세를 충분히 추적하지 못했어요. 팔꿈치, 무릎, 발이 잘 보이는 더 선명한 측면 영상을 사용해 주세요.",
+  "runningCoachInsufficientContactEvidence": "검증된 발 접지 프레임이 부족해요. 착지 순간까지 양발이 보이는 더 선명한 측면 영상으로 다시 시도해 주세요.",
   "runningCoachAnalysisFailedGeneric": "달리기 분석에 실패했어요. 측면이 더 잘 보이는 영상으로 다시 시도해 주세요.",
   "runningCoachResultsTitle": "코칭 결과",
   "runningCoachAnalysisHistoryTitle": "영상 분석 히스토리",

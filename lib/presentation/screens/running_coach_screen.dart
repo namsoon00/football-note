@@ -421,6 +421,8 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
       'missing_file' => l10n.runningCoachVideoFileMissing,
       'video_too_short' => l10n.runningCoachVideoTooShort,
       'no_pose_detected' => l10n.runningCoachNoPoseDetected,
+      'insufficient_contact_evidence' =>
+        l10n.runningCoachInsufficientContactEvidence,
       _ => l10n.runningCoachAnalysisFailedGeneric,
     };
   }
@@ -1156,6 +1158,11 @@ class _RunningCoachSampleCardState extends State<_RunningCoachSampleCard> {
                 ),
               ],
             ),
+            if (activeResult.denseSamples.attemptedFrames > 0 ||
+                activeResult.contactWindows.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              _DenseContactEvidencePanel(result: activeResult),
+            ],
             if (focusCopy != null) ...[
               const SizedBox(height: 12),
               Text(
@@ -1755,12 +1762,15 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame> {
                       child: AnimatedBuilder(
                         animation: videoController,
                         builder: (context, _) {
+                          final position = videoController.value.position;
                           final progress = _sampleProgressFor(videoController);
                           final poseFrames = widget.result.poseFrames;
                           final poseFrameIndex = nearestRunningPoseFrameIndex(
                             frames: poseFrames,
-                            position: videoController.value.position,
+                            position: position,
                           );
+                          final contactTimestamp = widget.result
+                              .nearestValidatedContactTimestamp(position);
                           final frameNumber = poseFrameIndex == null
                               ? ((progress * _sampleTimelineFrameCount)
                                           .floor() %
@@ -1777,13 +1787,20 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame> {
                                 child: Align(
                                   alignment: Alignment.centerLeft,
                                   child: _VideoOverlayPill(
-                                    text: poseFrames.isEmpty
+                                    text: contactTimestamp != null
                                         ? l10n
-                                            .runningCoachSamplePoseOverlayUnavailable
-                                        : l10n.runningCoachSampleFrameLabel(
-                                            frameNumber,
-                                            frameCount,
-                                          ),
+                                            .runningCoachSampleContactFrameLabel(
+                                            _formatContactTimestamp(
+                                              contactTimestamp,
+                                            ),
+                                          )
+                                        : poseFrames.isEmpty
+                                            ? l10n
+                                                .runningCoachSamplePoseOverlayUnavailable
+                                            : l10n.runningCoachSampleFrameLabel(
+                                                frameNumber,
+                                                frameCount,
+                                              ),
                                   ),
                                 ),
                               ),
@@ -1797,7 +1814,9 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame> {
                                     ),
                                     text: _sampleAnalysisPhaseLabel(
                                       l10n,
-                                      progress,
+                                      result: widget.result,
+                                      position: position,
+                                      progress: progress,
                                     ),
                                   ),
                                 ),
@@ -1875,7 +1894,15 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame> {
   }
 }
 
-String _sampleAnalysisPhaseLabel(AppLocalizations l10n, double progress) {
+String _sampleAnalysisPhaseLabel(
+  AppLocalizations l10n, {
+  required RunningVideoAnalysisResult result,
+  required Duration position,
+  required double progress,
+}) {
+  if (result.nearestValidatedContactTimestamp(position) != null) {
+    return l10n.runningCoachSamplePhaseDenseContact;
+  }
   final phase = (progress * _sampleAnalysisPhaseCount)
       .floor()
       .clamp(0, _sampleAnalysisPhaseCount - 1)
@@ -1888,6 +1915,11 @@ String _sampleAnalysisPhaseLabel(AppLocalizations l10n, double progress) {
     4 => l10n.runningCoachSamplePhaseAngles,
     _ => l10n.runningCoachSamplePhaseContactScore,
   };
+}
+
+String _formatContactTimestamp(Duration timestamp) {
+  final seconds = timestamp.inMilliseconds / 1000.0;
+  return '${seconds.toStringAsFixed(2)}s';
 }
 
 class _SampleDecisionMetric {
@@ -5866,6 +5898,11 @@ class _ResultsSummaryCard extends StatelessWidget {
                 ),
               ],
             ),
+            if (result.denseSamples.attemptedFrames > 0 ||
+                result.contactWindows.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              _DenseContactEvidencePanel(result: result),
+            ],
             if (report.primaryFocus case final primaryFocus?) ...[
               const SizedBox(height: 16),
               _PrimaryFocusCard(insight: primaryFocus),
@@ -5913,6 +5950,82 @@ class _ResultsSummaryCard extends StatelessWidget {
     final seconds = duration.inSeconds % 60;
     if (minutes == 0) return '${seconds}s';
     return '${minutes}m ${seconds}s';
+  }
+}
+
+class _DenseContactEvidencePanel extends StatelessWidget {
+  final RunningVideoAnalysisResult result;
+
+  const _DenseContactEvidencePanel({required this.result});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    final contactTimes = result.validatedContactFrameTimestamps;
+    final contactTimesText = contactTimes.isEmpty
+        ? l10n.runningCoachDenseContactUnavailable
+        : contactTimes.take(4).map(_formatContactTimestamp).join(', ');
+    return Container(
+      key: const ValueKey('running-coach-dense-contact-evidence'),
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: scheme.tertiaryContainer.withValues(alpha: 0.48),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: scheme.tertiary.withValues(alpha: 0.24)),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.runningCoachDenseContactEvidenceTitle,
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            l10n.runningCoachDenseContactEvidenceBody,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _StatChip(
+                label: l10n.runningCoachDenseContactCoarseSamplesLabel,
+                value:
+                    '${result.coarseSamples.validFrames}/${result.coarseSamples.attemptedFrames}',
+              ),
+              _StatChip(
+                label: l10n.runningCoachDenseContactDenseSamplesLabel,
+                value:
+                    '${result.denseSamples.validFrames}/${result.denseSamples.attemptedFrames}',
+              ),
+              _StatChip(
+                label: l10n.runningCoachDenseContactWindowsLabel,
+                value: '${result.contactWindows.length}',
+              ),
+              _StatChip(
+                label: l10n.runningCoachDenseContactFramesLabel,
+                value: '${contactTimes.length}',
+              ),
+              _StatChip(
+                label: l10n.runningCoachDenseContactConfidenceLabel,
+                value:
+                    '${(result.contactConfidence * 100).clamp(0, 100).toStringAsFixed(0)}%',
+              ),
+              _StatChip(
+                label: l10n.runningCoachDenseContactTimesLabel,
+                value: contactTimesText,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }
 

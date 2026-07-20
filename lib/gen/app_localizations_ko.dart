@@ -8385,6 +8385,14 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachSamplePhaseContactScore => '착지 신뢰도 점수';
 
   @override
+  String get runningCoachSamplePhaseDenseContact => '접지 프레임 검증';
+
+  @override
+  String runningCoachSampleContactFrameLabel(Object time) {
+    return '접지 $time';
+  }
+
+  @override
   String get runningCoachSampleDecisionTitle => '판정 근거';
 
   @override
@@ -8554,6 +8562,34 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get runningCoachSampleBounceDetailHowRead =>
       '앱은 보폭 전체에서 머리와 엉덩이 높이 범위를 추적하고 수직 변화 비율을 점수화해요.';
+
+  @override
+  String get runningCoachDenseContactEvidenceTitle => '정밀 접지 근거';
+
+  @override
+  String get runningCoachDenseContactEvidenceBody =>
+      '발 착지와 접지 무릎 값은 검증된 접지 주변에서 다시 읽은 MediaPipe 프레임만 사용해요.';
+
+  @override
+  String get runningCoachDenseContactCoarseSamplesLabel => '1차';
+
+  @override
+  String get runningCoachDenseContactDenseSamplesLabel => '정밀';
+
+  @override
+  String get runningCoachDenseContactWindowsLabel => '구간';
+
+  @override
+  String get runningCoachDenseContactFramesLabel => '접지 프레임';
+
+  @override
+  String get runningCoachDenseContactConfidenceLabel => '근거';
+
+  @override
+  String get runningCoachDenseContactTimesLabel => '시각';
+
+  @override
+  String get runningCoachDenseContactUnavailable => '검증된 접지 없음';
 
   @override
   String get runningCoachLiveCardTitle => '실시간 코치';
@@ -9212,6 +9248,10 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get runningCoachNoPoseDetected =>
       '러너 자세를 충분히 추적하지 못했어요. 팔꿈치, 무릎, 발이 잘 보이는 더 선명한 측면 영상을 사용해 주세요.';
+
+  @override
+  String get runningCoachInsufficientContactEvidence =>
+      '검증된 발 접지 프레임이 부족해요. 착지 순간까지 양발이 보이는 더 선명한 측면 영상으로 다시 시도해 주세요.';
 
   @override
   String get runningCoachAnalysisFailedGeneric =>

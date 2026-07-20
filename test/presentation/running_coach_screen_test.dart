@@ -189,7 +189,11 @@ void main() {
     expect(find.text('What to compare in the video'), findsOneWidget);
     expect(find.text('Reference readouts'), findsOneWidget);
     expect(find.text('Analysis process on the real clip'), findsOneWidget);
-    expect(find.text('Sample frame'), findsWidgets);
+    expect(find.text('Dense contact evidence'), findsOneWidget);
+    expect(find.text('Validate contact frame'), findsOneWidget);
+    expect(find.text('Contact 0.00s'), findsOneWidget);
+    expect(find.text('0.00s, 0.50s'), findsOneWidget);
+    expect(find.text('Contact frames'), findsOneWidget);
     expect(find.textContaining('Track joints'), findsOneWidget);
     expect(find.textContaining('Map muscle load'), findsOneWidget);
     expect(find.textContaining('Connect pose lines'), findsOneWidget);
@@ -198,7 +202,6 @@ void main() {
     expect(find.text('Decision evidence'), findsOneWidget);
     expect(find.text('Forward lean'), findsWidgets);
     expect(find.text('Bounce'), findsOneWidget);
-    expect(find.textContaining('Frame '), findsWidgets);
     expect(find.text('Landing 0.08'), findsNothing);
     expect(find.text('Lean 10°'), findsNothing);
     expect(find.text('Arms 90°'), findsNothing);
@@ -540,6 +543,37 @@ void main() {
           sampleCount: 28,
         ),
       },
+      coarseSamples: RunningAnalysisSampleSummary(
+        attemptedFrames: 14,
+        validFrames: 12,
+        poseFrameCount: 12,
+      ),
+      denseSamples: RunningAnalysisSampleSummary(
+        attemptedFrames: 18,
+        validFrames: 16,
+        poseFrameCount: 16,
+        maxFrameBudget: 48,
+        targetFps: 30,
+      ),
+      contactWindows: <RunningContactWindow>[
+        RunningContactWindow(
+          start: Duration(milliseconds: 900),
+          center: Duration(milliseconds: 1030),
+          end: Duration(milliseconds: 1190),
+          side: RunningContactSide.right,
+          denseSampleCount: 9,
+          validatedContactTimestamps: <Duration>[
+            Duration(milliseconds: 1033),
+            Duration(milliseconds: 1066),
+          ],
+          confidence: 0.88,
+        ),
+      ],
+      validatedContactFrameTimestamps: <Duration>[
+        Duration(milliseconds: 1033),
+        Duration(milliseconds: 1066),
+      ],
+      contactConfidence: 0.88,
     );
     final report = const RunningCoachingService().buildReport(result);
     final primary = report.primaryFocus!;
@@ -619,6 +653,10 @@ void main() {
     );
     await tester.pump();
     expect(tester.takeException(), isNull);
+    expect(
+      find.byKey(const ValueKey('running-coach-dense-contact-evidence')),
+      findsOneWidget,
+    );
 
     for (var scrollStep = 0; scrollStep < 8; scrollStep += 1) {
       await tester.drag(
@@ -708,6 +746,27 @@ class _FakeRunningVideoAnalysisService extends RunningVideoAnalysisService {
         footStrikeDistanceRatio: 0.22,
         stanceKneeAngleDegrees: 172,
         elbowAngleDegrees: 126,
+        metricQualities: _testDenseMetricQualities(),
+        coarseSamples: const RunningAnalysisSampleSummary(
+          attemptedFrames: 14,
+          validFrames: 12,
+          poseFrameCount: 6,
+        ),
+        denseSamples: omitPoseFrames
+            ? RunningAnalysisSampleSummary.empty
+            : const RunningAnalysisSampleSummary(
+                attemptedFrames: 8,
+                validFrames: 6,
+                poseFrameCount: 6,
+                maxFrameBudget: 48,
+                targetFps: 30,
+              ),
+        contactWindows: omitPoseFrames
+            ? const <RunningContactWindow>[]
+            : _testContactWindows(),
+        validatedContactFrameTimestamps:
+            omitPoseFrames ? const <Duration>[] : _testContactTimestamps(),
+        contactConfidence: omitPoseFrames ? 0 : 0.82,
         poseFrames: omitPoseFrames
             ? const <RunningPoseFrame>[]
             : _testPoseFrames(
@@ -727,6 +786,27 @@ class _FakeRunningVideoAnalysisService extends RunningVideoAnalysisService {
       footStrikeDistanceRatio: 0.11,
       stanceKneeAngleDegrees: 150,
       elbowAngleDegrees: 96,
+      metricQualities: _testDenseMetricQualities(),
+      coarseSamples: const RunningAnalysisSampleSummary(
+        attemptedFrames: 14,
+        validFrames: 13,
+        poseFrameCount: 6,
+      ),
+      denseSamples: omitPoseFrames
+          ? RunningAnalysisSampleSummary.empty
+          : const RunningAnalysisSampleSummary(
+              attemptedFrames: 8,
+              validFrames: 6,
+              poseFrameCount: 6,
+              maxFrameBudget: 48,
+              targetFps: 30,
+            ),
+      contactWindows: omitPoseFrames
+          ? const <RunningContactWindow>[]
+          : _testContactWindows(),
+      validatedContactFrameTimestamps:
+          omitPoseFrames ? const <Duration>[] : _testContactTimestamps(),
+      contactConfidence: omitPoseFrames ? 0 : 0.84,
       poseFrames: omitPoseFrames
           ? const <RunningPoseFrame>[]
           : _testPoseFrames(
@@ -736,6 +816,49 @@ class _FakeRunningVideoAnalysisService extends RunningVideoAnalysisService {
             ),
     );
   }
+}
+
+Map<RunningCoachMetric, RunningMetricQuality> _testDenseMetricQualities() {
+  return const <RunningCoachMetric, RunningMetricQuality>{
+    RunningCoachMetric.footStrike: RunningMetricQuality(
+      confidence: 0.84,
+      sampleCount: 2,
+    ),
+    RunningCoachMetric.kneeFlexion: RunningMetricQuality(
+      confidence: 0.84,
+      sampleCount: 2,
+    ),
+  };
+}
+
+List<Duration> _testContactTimestamps() {
+  return const <Duration>[
+    Duration.zero,
+    Duration(milliseconds: 500),
+  ];
+}
+
+List<RunningContactWindow> _testContactWindows() {
+  return const <RunningContactWindow>[
+    RunningContactWindow(
+      start: Duration.zero,
+      center: Duration.zero,
+      end: Duration(milliseconds: 180),
+      side: RunningContactSide.right,
+      denseSampleCount: 4,
+      validatedContactTimestamps: <Duration>[Duration.zero],
+      confidence: 0.82,
+    ),
+    RunningContactWindow(
+      start: Duration(milliseconds: 320),
+      center: Duration(milliseconds: 500),
+      end: Duration(milliseconds: 680),
+      side: RunningContactSide.left,
+      denseSampleCount: 4,
+      validatedContactTimestamps: <Duration>[Duration(milliseconds: 500)],
+      confidence: 0.86,
+    ),
+  ];
 }
 
 List<RunningPoseFrame> _testPoseFrames({

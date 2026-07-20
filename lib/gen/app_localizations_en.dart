@@ -8603,6 +8603,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachSamplePhaseContactScore => 'Score contact confidence';
 
   @override
+  String get runningCoachSamplePhaseDenseContact => 'Validate contact frame';
+
+  @override
+  String runningCoachSampleContactFrameLabel(Object time) {
+    return 'Contact $time';
+  }
+
+  @override
   String get runningCoachSampleDecisionTitle => 'Decision evidence';
 
   @override
@@ -8773,6 +8781,34 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get runningCoachSampleBounceDetailHowRead =>
       'The app tracks the head and hip height band through the stride and scores the vertical change ratio.';
+
+  @override
+  String get runningCoachDenseContactEvidenceTitle => 'Dense contact evidence';
+
+  @override
+  String get runningCoachDenseContactEvidenceBody =>
+      'Foot strike and stance-knee values come only from re-read MediaPipe frames around validated contact.';
+
+  @override
+  String get runningCoachDenseContactCoarseSamplesLabel => 'Coarse';
+
+  @override
+  String get runningCoachDenseContactDenseSamplesLabel => 'Dense';
+
+  @override
+  String get runningCoachDenseContactWindowsLabel => 'Windows';
+
+  @override
+  String get runningCoachDenseContactFramesLabel => 'Contact frames';
+
+  @override
+  String get runningCoachDenseContactConfidenceLabel => 'Evidence';
+
+  @override
+  String get runningCoachDenseContactTimesLabel => 'Timestamps';
+
+  @override
+  String get runningCoachDenseContactUnavailable => 'No validated contact';
 
   @override
   String get runningCoachLiveCardTitle => 'Live coach';
@@ -9451,6 +9487,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get runningCoachNoPoseDetected =>
       'The runner could not be tracked well enough. Try a clearer side-view clip with elbows, knees, and feet visible.';
+
+  @override
+  String get runningCoachInsufficientContactEvidence =>
+      'The clip did not include enough verified foot-contact frames. Try a clearer side view with both feet visible through landing.';
 
   @override
   String get runningCoachAnalysisFailedGeneric =>
