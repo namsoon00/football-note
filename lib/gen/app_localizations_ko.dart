@@ -4021,6 +4021,17 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get statsMatchCompletedMatchesLabel => '결과 입력';
+
+  @override
+  String statsMatchCompletedMatchesValue(int completed, int total) {
+    return '$completed/$total경기';
+  }
+
+  @override
+  String get statsMatchGoalDifferenceLabel => '득실차';
+
+  @override
   String get statsMatchAverageScoreLabel => '평균 득실';
 
   @override
@@ -11695,6 +11706,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get matchCompetitionNameRequired => '대회 이름을 입력하세요.';
 
   @override
+  String get matchCompetitionMinimumTeamsRequired =>
+      '대회를 저장하려면 참가 팀을 2팀 이상 등록하세요.';
+
+  @override
   String get matchLeagueStandingsTitle => '리그 순위';
 
   @override
@@ -11867,6 +11882,17 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get matchOpponentTeamHint => '예) 수원 U15';
+
+  @override
+  String get matchOpponentRequired => '상대 팀을 선택하거나 입력하세요.';
+
+  @override
+  String get matchScoreRequired => '양 팀의 스코어를 모두 입력하세요.';
+
+  @override
+  String requiredFieldLabel(Object label) {
+    return '$label (필수)';
+  }
 
   @override
   String get matchLocationHint => '예) 메인 구장';

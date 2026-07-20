@@ -2565,6 +2565,19 @@
       }
     }
   },
+  "statsMatchCompletedMatchesLabel": "Results recorded",
+  "statsMatchCompletedMatchesValue": "{completed}/{total}",
+  "@statsMatchCompletedMatchesValue": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "statsMatchGoalDifferenceLabel": "Goal difference",
   "statsMatchAverageScoreLabel": "Avg score",
   "statsMatchAverageScoreValue": "{scored}:{conceded}",
   "@statsMatchAverageScoreValue": {
@@ -6565,6 +6578,7 @@
   "matchCompetitionSaveTeams": "Save teams",
   "matchCompetitionSavedFeedback": "Competition details saved.",
   "matchCompetitionNameRequired": "Enter a competition name.",
+  "matchCompetitionMinimumTeamsRequired": "Add at least two participating teams to save the competition.",
   "matchLeagueStandingsTitle": "League standings",
   "matchTournamentBracketTitle": "Tournament bracket",
   "matchTournamentImageAction": "Image",
@@ -6704,6 +6718,14 @@
   "matchTournamentOutcomeChampion": "Champion",
   "matchOpponentTeamLabel": "Opponent team",
   "matchOpponentTeamHint": "e.g. Suwon U15",
+  "matchOpponentRequired": "Select or enter an opponent team.",
+  "matchScoreRequired": "Enter both teams' scores.",
+  "requiredFieldLabel": "{label} (required)",
+  "@requiredFieldLabel": {
+    "placeholders": {
+      "label": {}
+    }
+  },
   "matchLocationHint": "e.g. Main stadium",
   "matchBoardTitle": "Match board",
   "matchBoardHelper": "Set the opponent, score, result, and personal stats directly on the board.",

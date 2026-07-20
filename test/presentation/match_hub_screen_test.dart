@@ -240,7 +240,7 @@ void main() {
     }
   });
 
-  testWidgets('Competition editor auto saves after name is entered', (
+  testWidgets('Competition editor validates teams before auto save', (
     tester,
   ) async {
     await pumpCompetitionManagement(tester, themeMode: ThemeMode.light);
@@ -257,6 +257,26 @@ void main() {
     var competitions = MatchCompetitionService(
       optionRepository,
     ).allCompetitions();
+    expect(competitions, isEmpty);
+
+    await tester.tap(
+      find.byKey(const ValueKey('competition-editor-save')),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.text('대회를 저장하려면 참가 팀을 2팀 이상 등록하세요.'),
+      findsWidgets,
+    );
+
+    await tester.enterText(
+      find.byKey(const ValueKey('competition-team-input')),
+      '서울 U15',
+    );
+    await tester.tap(find.widgetWithText(FilledButton, '추가'));
+    await tester.pump(const Duration(milliseconds: 800));
+    await tester.pump();
+
+    competitions = MatchCompetitionService(optionRepository).allCompetitions();
     expect(competitions, hasLength(1));
     expect(competitions.single.name, '자동 저장 리그');
 
@@ -324,6 +344,16 @@ void main() {
         const ValueKey('competition-tournament-bracket-viewport'),
       ),
       findsOneWidget,
+    );
+    expect(
+      tester
+          .getTopLeft(
+            find.byKey(
+              const ValueKey('competition-tournament-bracket-viewport'),
+            ),
+          )
+          .dy,
+      lessThan(320),
     );
     expect(find.text('4강'), findsOneWidget);
     expect(find.text('결승'), findsOneWidget);
@@ -465,6 +495,12 @@ void main() {
     expect(find.text('기록 요약'), findsNothing);
     expect(find.textContaining('서울 U15'), findsWidgets);
     expect(find.text('3 : 1'), findsOneWidget);
+
+    await tester.tap(find.text('서울 U15').first);
+    await tester.pumpAndSettle();
+    expect(find.text('시합 수정'), findsOneWidget);
+    expect(find.byType(MatchRecordScreen), findsOneWidget);
+    expect(find.widgetWithText(ChoiceChip, '서울 U15'), findsOneWidget);
   });
 
   testWidgets('Team management filters match records by kind and competition', (
@@ -854,6 +890,56 @@ void main() {
     expect(trainingRepository.entries.single.redCards, 1);
     expect(trainingRepository.entries.single.minutesPlayed, 5);
     expect(trainingRepository.entries.single.matchKind, 'friendly');
+  });
+
+  testWidgets('Match record screen blocks missing opponent and score', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en'),
+            Locale('ko', 'KR'),
+            Locale('ja'),
+          ],
+          home: MatchRecordScreen(
+            trainingService: trainingService,
+            localeService: localeService,
+            optionRepository: optionRepository,
+            settingsService: settingsService,
+            initialDate: DateTime(2026, 7, 20),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final saveButton = find.widgetWithText(FilledButton, '저장');
+    tester.widget<FilledButton>(saveButton).onPressed!();
+    await tester.pumpAndSettle();
+
+    expect(find.text('상대 팀을 선택하거나 입력하세요.'), findsWidgets);
+    expect(find.text('양 팀의 스코어를 모두 입력하세요.'), findsOneWidget);
+    expect(trainingRepository.entries, isEmpty);
+
+    await tester.enterText(
+      find.byKey(const ValueKey<String>('match-opponent-field')),
+      '서울 U15',
+    );
+    tester.widget<FilledButton>(saveButton).onPressed!();
+    await tester.pumpAndSettle();
+
+    expect(find.text('양 팀의 스코어를 모두 입력하세요.'), findsWidgets);
+    expect(trainingRepository.entries, isEmpty);
   });
 
   testWidgets('Match record screen requires a managed league competition', (

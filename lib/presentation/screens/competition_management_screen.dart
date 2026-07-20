@@ -755,6 +755,26 @@ class _CompetitionDetailScreen extends StatelessWidget {
       progress,
       entries,
     );
+    final ownTeamName = managedTeamName.trim().isEmpty
+        ? fallbackTeamName
+        : managedTeamName.trim();
+    final resultPanel = isLeague
+        ? _LeagueOperationsPreview(
+            record: effectiveRecord,
+            entries: entries,
+            ownTeamName: ownTeamName,
+            fallbackTeamName: fallbackTeamName,
+            preferManagedTeamName: managedTeamName.trim().isNotEmpty,
+          )
+        : _TournamentOperationsPreview(
+            record: effectiveRecord,
+            entries: entries,
+            ownTeamName: ownTeamName,
+          );
+    final teamsPanel = _CompetitionTeamsPreview(
+      teams: effectiveRecord.teams,
+      accent: accent,
+    );
 
     return Scaffold(
       body: ColoredBox(
@@ -822,6 +842,10 @@ class _CompetitionDetailScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      if (!isLeague) ...[
+                        resultPanel,
+                        const SizedBox(height: AppSpacing.sm),
+                      ],
                       _CompetitionDetailSummary(
                         record: effectiveRecord,
                         entries: entries,
@@ -830,50 +854,31 @@ class _CompetitionDetailScreen extends StatelessWidget {
                         accent: accent,
                       ),
                       const SizedBox(height: AppSpacing.sm),
-                      LayoutBuilder(
-                        builder: (context, constraints) {
-                          final resultPanel = isLeague
-                              ? _LeagueOperationsPreview(
-                                  record: effectiveRecord,
-                                  entries: entries,
-                                  ownTeamName: managedTeamName.trim().isEmpty
-                                      ? fallbackTeamName
-                                      : managedTeamName.trim(),
-                                  fallbackTeamName: fallbackTeamName,
-                                  preferManagedTeamName:
-                                      managedTeamName.trim().isNotEmpty,
-                                )
-                              : _TournamentOperationsPreview(
-                                  record: effectiveRecord,
-                                  entries: entries,
-                                  ownTeamName: managedTeamName.trim().isEmpty
-                                      ? fallbackTeamName
-                                      : managedTeamName.trim(),
-                                );
-                          final teamsPanel = _CompetitionTeamsPreview(
-                            teams: effectiveRecord.teams,
-                            accent: accent,
-                          );
-                          if (constraints.maxWidth < 720) {
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                      if (!isLeague)
+                        teamsPanel
+                      else
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            if (constraints.maxWidth < 720) {
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  resultPanel,
+                                  const SizedBox(height: AppSpacing.sm),
+                                  teamsPanel,
+                                ],
+                              );
+                            }
+                            return Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                resultPanel,
-                                const SizedBox(height: AppSpacing.sm),
-                                teamsPanel,
+                                Expanded(flex: 3, child: resultPanel),
+                                const SizedBox(width: AppSpacing.sm),
+                                Expanded(flex: 2, child: teamsPanel),
                               ],
                             );
-                          }
-                          return Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(flex: 3, child: resultPanel),
-                              const SizedBox(width: AppSpacing.sm),
-                              Expanded(flex: 2, child: teamsPanel),
-                            ],
-                          );
-                        },
-                      ),
+                          },
+                        ),
                     ],
                   ),
                 ),
@@ -2416,6 +2421,7 @@ class _CompetitionEditorScreenState extends State<_CompetitionEditorScreen> {
   bool _autoSaveQueued = false;
   bool _allowPop = false;
   bool _hasPersistedChanges = false;
+  bool _showValidationErrors = false;
   String _lastSavedSignature = '';
 
   String get _ownTeamName => widget.managedTeamName.trim().isEmpty
@@ -2581,11 +2587,17 @@ class _CompetitionEditorScreenState extends State<_CompetitionEditorScreen> {
                                   textInputAction: TextInputAction.next,
                                   onChanged: (_) => setState(() {}),
                                   decoration: InputDecoration(
-                                    labelText: l10n.matchCompetitionNameLabel,
+                                    labelText: l10n.requiredFieldLabel(
+                                      l10n.matchCompetitionNameLabel,
+                                    ),
                                     hintText: _kind ==
                                             MatchCompetitionRecord.kindLeague
                                         ? l10n.matchLeagueNameHint
                                         : l10n.matchTournamentNameHint,
+                                    errorText: _showValidationErrors &&
+                                            _nameController.text.trim().isEmpty
+                                        ? l10n.matchCompetitionNameRequired
+                                        : null,
                                     border: const OutlineInputBorder(),
                                   ),
                                 ),
@@ -2626,6 +2638,7 @@ class _CompetitionEditorScreenState extends State<_CompetitionEditorScreen> {
                                 teamController: _teamController,
                                 onAddTeam: _addTeam,
                                 onRemoveTeam: _removeTeam,
+                                errorText: _competitionTeamsError(l10n),
                               )
                             else
                               _TournamentSeedsEditor(
@@ -2635,6 +2648,7 @@ class _CompetitionEditorScreenState extends State<_CompetitionEditorScreen> {
                                 onAddTeam: _addTeam,
                                 onRemoveTeam: _removeTeam,
                                 onReorder: _reorderTeam,
+                                errorText: _competitionTeamsError(l10n),
                               ),
                             _EditorSectionPanel(
                               title: l10n.matchCompetitionEditorOperationsTitle,
@@ -2772,14 +2786,23 @@ class _CompetitionEditorScreenState extends State<_CompetitionEditorScreen> {
 
   Future<void> _saveCompetition() async {
     final l10n = AppLocalizations.of(context)!;
-    final updated = _buildCompetitionRecord();
-    if (updated == null) {
+    setState(() => _showValidationErrors = true);
+    if (_nameController.text.trim().isEmpty) {
       AppFeedback.showMessage(
         context,
         text: l10n.matchCompetitionNameRequired,
       );
       return;
     }
+    if (_teams.length < 2) {
+      AppFeedback.showMessage(
+        context,
+        text: l10n.matchCompetitionMinimumTeamsRequired,
+      );
+      return;
+    }
+    final updated = _buildCompetitionRecord();
+    if (updated == null) return;
     _autoSaveTimer?.cancel();
     await _persistCompetition(updated);
     if (!mounted) return;
@@ -2844,7 +2867,7 @@ class _CompetitionEditorScreenState extends State<_CompetitionEditorScreen> {
 
   MatchCompetitionRecord? _buildCompetitionRecord() {
     final name = _nameController.text.trim();
-    if (name.isEmpty) return null;
+    if (name.isEmpty || _teams.length < 2) return null;
     return MatchCompetitionRecord.create(
       kind: _kind,
       name: name,
@@ -2855,6 +2878,11 @@ class _CompetitionEditorScreenState extends State<_CompetitionEditorScreen> {
       organizer: _organizerController.text,
       note: _noteController.text,
     );
+  }
+
+  String? _competitionTeamsError(AppLocalizations l10n) {
+    if (!_showValidationErrors || _teams.length >= 2) return null;
+    return l10n.matchCompetitionMinimumTeamsRequired;
   }
 
   Future<void> _persistCompetition(MatchCompetitionRecord updated) async {
@@ -2990,6 +3018,7 @@ class _LeagueTeamsEditor extends StatelessWidget {
   final TextEditingController teamController;
   final VoidCallback onAddTeam;
   final ValueChanged<String> onRemoveTeam;
+  final String? errorText;
 
   const _LeagueTeamsEditor({
     required this.teams,
@@ -2997,6 +3026,7 @@ class _LeagueTeamsEditor extends StatelessWidget {
     required this.teamController,
     required this.onAddTeam,
     required this.onRemoveTeam,
+    this.errorText,
   });
 
   @override
@@ -3077,6 +3107,10 @@ class _LeagueTeamsEditor extends StatelessWidget {
             controller: teamController,
             onAddTeam: onAddTeam,
           ),
+          if (errorText != null) ...[
+            const SizedBox(height: AppSpacing.xs),
+            _CompetitionRequiredFieldError(text: errorText!),
+          ],
         ],
       ),
     );
@@ -3090,6 +3124,7 @@ class _TournamentSeedsEditor extends StatelessWidget {
   final VoidCallback onAddTeam;
   final ValueChanged<String> onRemoveTeam;
   final ReorderCallback onReorder;
+  final String? errorText;
 
   const _TournamentSeedsEditor({
     required this.teams,
@@ -3098,6 +3133,7 @@ class _TournamentSeedsEditor extends StatelessWidget {
     required this.onAddTeam,
     required this.onRemoveTeam,
     required this.onReorder,
+    this.errorText,
   });
 
   @override
@@ -3155,6 +3191,10 @@ class _TournamentSeedsEditor extends StatelessWidget {
             controller: teamController,
             onAddTeam: onAddTeam,
           ),
+          if (errorText != null) ...[
+            const SizedBox(height: AppSpacing.xs),
+            _CompetitionRequiredFieldError(text: errorText!),
+          ],
           const SizedBox(height: AppSpacing.md),
           if (teams.isEmpty)
             Text(
@@ -3348,6 +3388,34 @@ class _CompetitionRowAction extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _CompetitionRequiredFieldError extends StatelessWidget {
+  final String text;
+
+  const _CompetitionRequiredFieldError({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      key: const ValueKey('competition-team-validation-error'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(Icons.error_outline, size: 18, color: theme.colorScheme.error),
+        const SizedBox(width: AppSpacing.xs),
+        Expanded(
+          child: Text(
+            text,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.error,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

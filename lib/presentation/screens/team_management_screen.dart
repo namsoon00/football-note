@@ -12,6 +12,7 @@ import '../../application/locale_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/team_management_service.dart';
 import '../../application/training_service.dart';
+import '../../domain/entities/training_entry.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_page_route.dart';
@@ -171,7 +172,10 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
     return true;
   }
 
-  Future<void> _openMatchRecord({DateTime? initialDate}) async {
+  Future<void> _openMatchRecord({
+    DateTime? initialDate,
+    TrainingEntry? editingEntry,
+  }) async {
     if (_isReadOnlySupportMode) {
       AppFeedback.showMessage(
         context,
@@ -197,6 +201,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
           optionRepository: widget.optionRepository,
           settingsService: settingsService,
           initialDate: initialDate,
+          editingEntry: editingEntry,
         ),
       ),
     );
@@ -977,6 +982,9 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
       trainingService: trainingService,
       optionRepository: widget.optionRepository,
       onRecordMatch: () => unawaited(_openMatchRecord()),
+      onEditMatch: _isReadOnlySupportMode
+          ? null
+          : (entry) => unawaited(_openMatchRecord(editingEntry: entry)),
     );
   }
 
@@ -1314,12 +1322,14 @@ class _MatchManagementPanel extends StatelessWidget {
   final TrainingService? trainingService;
   final OptionRepository optionRepository;
   final VoidCallback onRecordMatch;
+  final ValueChanged<TrainingEntry>? onEditMatch;
 
   const _MatchManagementPanel({
     required this.matchActionsEnabled,
     required this.trainingService,
     required this.optionRepository,
     required this.onRecordMatch,
+    required this.onEditMatch,
   });
 
   @override
@@ -1364,6 +1374,7 @@ class _MatchManagementPanel extends StatelessWidget {
             showHeader: false,
             showSummary: false,
             scrollable: false,
+            onEditEntry: onEditMatch,
           ),
       ],
     );

@@ -4130,6 +4130,17 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get statsMatchCompletedMatchesLabel => 'Results recorded';
+
+  @override
+  String statsMatchCompletedMatchesValue(int completed, int total) {
+    return '$completed/$total';
+  }
+
+  @override
+  String get statsMatchGoalDifferenceLabel => 'Goal difference';
+
+  @override
   String get statsMatchAverageScoreLabel => 'Avg score';
 
   @override
@@ -12020,6 +12031,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get matchCompetitionNameRequired => 'Enter a competition name.';
 
   @override
+  String get matchCompetitionMinimumTeamsRequired =>
+      'Add at least two participating teams to save the competition.';
+
+  @override
   String get matchLeagueStandingsTitle => 'League standings';
 
   @override
@@ -12194,6 +12209,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get matchOpponentTeamHint => 'e.g. Suwon U15';
+
+  @override
+  String get matchOpponentRequired => 'Select or enter an opponent team.';
+
+  @override
+  String get matchScoreRequired => 'Enter both teams\' scores.';
+
+  @override
+  String requiredFieldLabel(Object label) {
+    return '$label (required)';
+  }
 
   @override
   String get matchLocationHint => 'e.g. Main stadium';

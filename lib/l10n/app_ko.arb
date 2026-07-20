@@ -2565,6 +2565,19 @@
       }
     }
   },
+  "statsMatchCompletedMatchesLabel": "결과 입력",
+  "statsMatchCompletedMatchesValue": "{completed}/{total}경기",
+  "@statsMatchCompletedMatchesValue": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "statsMatchGoalDifferenceLabel": "득실차",
   "statsMatchAverageScoreLabel": "평균 득실",
   "statsMatchAverageScoreValue": "{scored}:{conceded}",
   "@statsMatchAverageScoreValue": {
@@ -6565,6 +6578,7 @@
   "matchCompetitionSaveTeams": "팀 저장",
   "matchCompetitionSavedFeedback": "대회 정보를 저장했어요.",
   "matchCompetitionNameRequired": "대회 이름을 입력하세요.",
+  "matchCompetitionMinimumTeamsRequired": "대회를 저장하려면 참가 팀을 2팀 이상 등록하세요.",
   "matchLeagueStandingsTitle": "리그 순위",
   "matchTournamentBracketTitle": "토너먼트 대진표",
   "matchTournamentImageAction": "이미지",
@@ -6704,6 +6718,14 @@
   "matchTournamentOutcomeChampion": "우승",
   "matchOpponentTeamLabel": "상대 팀",
   "matchOpponentTeamHint": "예) 수원 U15",
+  "matchOpponentRequired": "상대 팀을 선택하거나 입력하세요.",
+  "matchScoreRequired": "양 팀의 스코어를 모두 입력하세요.",
+  "requiredFieldLabel": "{label} (필수)",
+  "@requiredFieldLabel": {
+    "placeholders": {
+      "label": {}
+    }
+  },
   "matchLocationHint": "예) 메인 구장",
   "matchBoardTitle": "시합 보드",
   "matchBoardHelper": "상대, 스코어, 승무패, 개인 기록을 경기판에서 바로 조정하세요.",
