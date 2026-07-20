@@ -355,14 +355,14 @@ void main() {
           .dy,
       lessThan(320),
     );
-    expect(find.text('4강'), findsNWidgets(2));
+    expect(find.text('4강'), findsOneWidget);
     expect(find.text('결승'), findsOneWidget);
     expect(find.text('우승'), findsOneWidget);
     expect(find.text('우리 팀 U15'), findsWidgets);
-    final leftMatchCenter = tester.getCenter(
+    final firstMatchCenter = tester.getCenter(
       find.byKey(const ValueKey('competition-tournament-match-1')),
     );
-    final rightMatchCenter = tester.getCenter(
+    final secondMatchCenter = tester.getCenter(
       find.byKey(const ValueKey('competition-tournament-match-2')),
     );
     final finalMatchCenter = tester.getCenter(
@@ -371,10 +371,10 @@ void main() {
     final championCenter = tester.getCenter(
       find.byKey(const ValueKey('competition-tournament-champion')),
     );
-    expect(leftMatchCenter.dx, lessThan(finalMatchCenter.dx));
-    expect(rightMatchCenter.dx, greaterThan(finalMatchCenter.dx));
+    expect(firstMatchCenter.dy, greaterThan(finalMatchCenter.dy));
+    expect(secondMatchCenter.dy, greaterThan(finalMatchCenter.dy));
     expect(championCenter.dx, closeTo(finalMatchCenter.dx, 1));
-    expect(championCenter.dy, greaterThan(finalMatchCenter.dy));
+    expect(championCenter.dy, lessThan(finalMatchCenter.dy));
     expect(tester.takeException(), isNull);
 
     Size? capturedSize;
@@ -421,7 +421,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('Tournament bracket mirrors both paths into a center final', (
+  testWidgets('Tournament bracket climbs from lower rounds into the final', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(900, 1100);
@@ -465,14 +465,14 @@ void main() {
     final rightSemifinal = centerFor(6);
     final finalMatch = centerFor(7);
 
-    expect(match1.dx, lessThan(leftSemifinal.dx));
-    expect(leftSemifinal.dx, lessThan(finalMatch.dx));
-    expect(finalMatch.dx, lessThan(rightSemifinal.dx));
-    expect(rightSemifinal.dx, lessThan(match3.dx));
-    expect(match1.dy, lessThan(match2.dy));
-    expect(match3.dy, lessThan(match4.dy));
-    expect(leftSemifinal.dy, closeTo(finalMatch.dy, 1));
-    expect(rightSemifinal.dy, closeTo(finalMatch.dy, 1));
+    expect(match1.dy, closeTo(match2.dy, 1));
+    expect(match2.dy, closeTo(match3.dy, 1));
+    expect(match3.dy, closeTo(match4.dy, 1));
+    expect(match1.dy, greaterThan(leftSemifinal.dy));
+    expect(match3.dy, greaterThan(rightSemifinal.dy));
+    expect(leftSemifinal.dy, greaterThan(finalMatch.dy));
+    expect(rightSemifinal.dy, greaterThan(finalMatch.dy));
+    expect(finalMatch.dx, closeTo((match1.dx + match4.dx) / 2, 1));
     expect(tester.takeException(), isNull);
   });
 
