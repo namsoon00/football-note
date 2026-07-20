@@ -314,43 +314,90 @@ class GaitCalibrationEvaluator {
       ..sort(_compareEventsForMatching);
     final predicted = predictions.toList(growable: false)
       ..sort(_compareEventsForMatching);
-    final usedPredictionIndexes = <int>{};
-    final matches = <GaitCalibrationMatch>[];
+    final table = List<List<_GaitMatchCell?>>.generate(
+      truth.length + 1,
+      (_) => List<_GaitMatchCell?>.filled(predicted.length + 1, null),
+      growable: false,
+    );
 
-    for (final truthEvent in truth) {
-      int? bestPredictionIndex;
-      int? bestAbsoluteError;
-      int? bestSignedError;
-      for (var index = 0; index < predicted.length; index += 1) {
-        if (usedPredictionIndexes.contains(index)) {
+    for (var truthIndex = truth.length; truthIndex >= 0; truthIndex -= 1) {
+      for (var predictionIndex = predicted.length;
+          predictionIndex >= 0;
+          predictionIndex -= 1) {
+        if (truthIndex == truth.length && predictionIndex == predicted.length) {
+          table[truthIndex][predictionIndex] = const _GaitMatchCell(
+            matchCount: 0,
+            totalAbsoluteErrorMs: 0,
+            action: _GaitMatchAction.end,
+          );
           continue;
         }
-        final prediction = predicted[index];
-        final signedError = prediction.timestampMs - truthEvent.timestampMs;
-        final absoluteError = signedError.abs();
-        if (absoluteError > toleranceMs) {
-          continue;
+
+        final candidates = <_GaitMatchCell>[];
+        if (truthIndex < truth.length) {
+          final next = table[truthIndex + 1][predictionIndex]!;
+          candidates.add(
+            _GaitMatchCell(
+              matchCount: next.matchCount,
+              totalAbsoluteErrorMs: next.totalAbsoluteErrorMs,
+              action: _GaitMatchAction.skipTruth,
+            ),
+          );
         }
-        if (bestAbsoluteError == null ||
-            absoluteError < bestAbsoluteError ||
-            (absoluteError == bestAbsoluteError &&
-                signedError < (bestSignedError ?? signedError))) {
-          bestPredictionIndex = index;
-          bestAbsoluteError = absoluteError;
-          bestSignedError = signedError;
+        if (predictionIndex < predicted.length) {
+          final next = table[truthIndex][predictionIndex + 1]!;
+          candidates.add(
+            _GaitMatchCell(
+              matchCount: next.matchCount,
+              totalAbsoluteErrorMs: next.totalAbsoluteErrorMs,
+              action: _GaitMatchAction.skipPrediction,
+            ),
+          );
         }
+        if (truthIndex < truth.length && predictionIndex < predicted.length) {
+          final absoluteError = (predicted[predictionIndex].timestampMs -
+                  truth[truthIndex].timestampMs)
+              .abs();
+          if (absoluteError <= toleranceMs) {
+            final next = table[truthIndex + 1][predictionIndex + 1]!;
+            candidates.add(
+              _GaitMatchCell(
+                matchCount: next.matchCount + 1,
+                totalAbsoluteErrorMs: next.totalAbsoluteErrorMs + absoluteError,
+                action: _GaitMatchAction.match,
+              ),
+            );
+          }
+        }
+
+        table[truthIndex][predictionIndex] = candidates.reduce(
+          (best, candidate) =>
+              _isBetterMatchCell(candidate, best) ? candidate : best,
+        );
       }
-      final matchedPredictionIndex = bestPredictionIndex;
-      if (matchedPredictionIndex == null) {
-        continue;
+    }
+
+    final matches = <GaitCalibrationMatch>[];
+    var truthIndex = 0;
+    var predictionIndex = 0;
+    while (truthIndex < truth.length || predictionIndex < predicted.length) {
+      switch (table[truthIndex][predictionIndex]!.action) {
+        case _GaitMatchAction.match:
+          matches.add(
+            GaitCalibrationMatch(
+              groundTruth: truth[truthIndex],
+              prediction: predicted[predictionIndex],
+            ),
+          );
+          truthIndex += 1;
+          predictionIndex += 1;
+        case _GaitMatchAction.skipTruth:
+          truthIndex += 1;
+        case _GaitMatchAction.skipPrediction:
+          predictionIndex += 1;
+        case _GaitMatchAction.end:
+          return matches;
       }
-      usedPredictionIndexes.add(matchedPredictionIndex);
-      matches.add(
-        GaitCalibrationMatch(
-          groundTruth: truthEvent,
-          prediction: predicted[matchedPredictionIndex],
-        ),
-      );
     }
 
     return matches;
@@ -397,6 +444,30 @@ class GaitCalibrationEvaluator {
           absoluteErrors.isEmpty ? null : _percentile(absoluteErrors, 0.95),
     );
   }
+}
+
+enum _GaitMatchAction { end, skipTruth, skipPrediction, match }
+
+class _GaitMatchCell {
+  final int matchCount;
+  final int totalAbsoluteErrorMs;
+  final _GaitMatchAction action;
+
+  const _GaitMatchCell({
+    required this.matchCount,
+    required this.totalAbsoluteErrorMs,
+    required this.action,
+  });
+}
+
+bool _isBetterMatchCell(_GaitMatchCell candidate, _GaitMatchCell current) {
+  if (candidate.matchCount != current.matchCount) {
+    return candidate.matchCount > current.matchCount;
+  }
+  if (candidate.totalAbsoluteErrorMs != current.totalAbsoluteErrorMs) {
+    return candidate.totalAbsoluteErrorMs < current.totalAbsoluteErrorMs;
+  }
+  return candidate.action.index > current.action.index;
 }
 
 int _compareEventsForMatching(

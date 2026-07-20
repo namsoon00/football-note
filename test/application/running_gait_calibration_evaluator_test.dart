@@ -91,6 +91,55 @@ void main() {
       ]);
     });
 
+    test('maximizes one-to-one matches before minimizing timing error', () {
+      final groundTruth = <GaitCalibrationEvent>[
+        _event(100, GaitCalibrationFootSide.left,
+            GaitCalibrationEventType.touchdown, 0),
+        _event(160, GaitCalibrationFootSide.left,
+            GaitCalibrationEventType.touchdown, 1),
+      ];
+      final predictions = <GaitCalibrationEvent>[
+        _event(40, GaitCalibrationFootSide.left,
+            GaitCalibrationEventType.touchdown, 0),
+        _event(120, GaitCalibrationFootSide.left,
+            GaitCalibrationEventType.touchdown, 1),
+      ];
+
+      final report = const GaitCalibrationEvaluator(
+        toleranceMs: 60,
+      ).evaluate(groundTruth: groundTruth, predictions: predictions);
+
+      expect(report.overall.truePositive, 2);
+      expect(report.overall.falsePositive, 0);
+      expect(report.overall.falseNegative, 0);
+      expect(report.matches.map((match) => match.signedErrorMs), [-60, -40]);
+    });
+
+    test('minimizes total timing error when match counts are equal', () {
+      final groundTruth = <GaitCalibrationEvent>[
+        _event(100, GaitCalibrationFootSide.right,
+            GaitCalibrationEventType.toeOff, 0),
+        _event(200, GaitCalibrationFootSide.right,
+            GaitCalibrationEventType.toeOff, 1),
+      ];
+      final predictions = <GaitCalibrationEvent>[
+        _event(90, GaitCalibrationFootSide.right,
+            GaitCalibrationEventType.toeOff, 0),
+        _event(130, GaitCalibrationFootSide.right,
+            GaitCalibrationEventType.toeOff, 1),
+        _event(210, GaitCalibrationFootSide.right,
+            GaitCalibrationEventType.toeOff, 2),
+      ];
+
+      final report = const GaitCalibrationEvaluator(
+        toleranceMs: 50,
+      ).evaluate(groundTruth: groundTruth, predictions: predictions);
+
+      expect(report.overall.truePositive, 2);
+      expect(report.overall.meanAbsoluteErrorMs, 10);
+      expect(report.matches.map((match) => match.signedErrorMs), [-10, 10]);
+    });
+
     test('counts missing ground truth and extra predictions', () {
       final groundTruth = <GaitCalibrationEvent>[
         _event(100, GaitCalibrationFootSide.left,

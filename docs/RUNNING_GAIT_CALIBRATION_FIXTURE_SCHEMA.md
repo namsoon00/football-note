@@ -30,6 +30,12 @@ Fields:
 - `side`: required foot side, either `left` or `right`.
 - `type`: required gait event type, either `touchdown` or `toeOff`.
 
+RunningLive session logs use a session-relative value for
+`events.timeline[].timestampMs`, compatible with fixtures whose clip starts at
+the beginning of the camera session. They also include `timestamp` and
+`absoluteTimestampMs` for diagnostics; omit those extra fields when creating a
+minimal prediction fixture.
+
 Validation rules:
 
 - The root value must be an object containing an `events` array.
@@ -48,6 +54,7 @@ dart run bin/running_gait_calibration_evaluator.dart \
   --pretty
 ```
 
-Matching is deterministic and one-to-one within each `(side, type)` group.
-For each ground-truth event, the nearest unused prediction inside the tolerance
-window is selected, with earlier predictions winning equal-error ties.
+Within each `(side, type)` group, matching preserves event order and maximizes
+the number of one-to-one matches within the tolerance. Among solutions with
+the same match count, it minimizes total absolute timing error. Remaining ties
+use a fixed earlier-ground-truth traversal order, so matching is deterministic.

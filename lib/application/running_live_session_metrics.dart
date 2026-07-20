@@ -14,12 +14,14 @@ class RunningLiveGaitEventLogEntry {
   final RunningFootSide side;
   final RunningGaitEventType type;
   final DateTime timestamp;
+  final int sessionOffsetMs;
   final double confidence;
 
   const RunningLiveGaitEventLogEntry({
     required this.side,
     required this.type,
     required this.timestamp,
+    required this.sessionOffsetMs,
     required this.confidence,
   });
 
@@ -28,7 +30,8 @@ class RunningLiveGaitEventLogEntry {
       'side': side.name,
       'type': type.name,
       'timestamp': timestamp.toIso8601String(),
-      'timestampMs': timestamp.millisecondsSinceEpoch,
+      'timestampMs': sessionOffsetMs,
+      'absoluteTimestampMs': timestamp.millisecondsSinceEpoch,
       'confidence': confidence.toStringAsFixed(3),
     };
   }
@@ -427,6 +430,7 @@ class RunningLiveSessionMetricsCollector {
           side: event.side,
           type: event.type,
           timestamp: event.timestamp,
+          sessionOffsetMs: _sessionOffsetMs(event.timestamp),
           confidence: event.confidence,
         ),
       );
@@ -469,5 +473,11 @@ class RunningLiveSessionMetricsCollector {
   String _eventKey(RunningGaitEvent event) {
     return '${event.side.name}|${event.type.name}|'
         '${event.timestamp.microsecondsSinceEpoch}';
+  }
+
+  int _sessionOffsetMs(DateTime timestamp) {
+    final startedAt = _startedAt ?? timestamp;
+    final offsetMs = timestamp.difference(startedAt).inMilliseconds;
+    return offsetMs < 0 ? 0 : offsetMs;
   }
 }
