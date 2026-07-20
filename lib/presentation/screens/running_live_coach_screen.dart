@@ -37,6 +37,10 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
   static const _changeSpeechCooldown = Duration(seconds: 2);
   static const _metricsLogInterval = Duration(seconds: 5);
   static const _skipEventLogInterval = Duration(seconds: 2);
+  static const _uiStateThrottleInterval = Duration(milliseconds: 500);
+  static const _initialCoachingState = RunningLiveCoachingState(
+    primaryCue: RunningLivePrimaryCue.keepRunning,
+  );
 
   final RunningLiveCoachingService _coachingService =
       RunningLiveCoachingService();
@@ -62,11 +66,11 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
   List<CameraDescription> _cameras = const [];
   CameraController? _controller;
   CameraDescription? _activeCamera;
-  RunningLiveCoachingState _coachingState = const RunningLiveCoachingState(
-    primaryCue: RunningLivePrimaryCue.keepRunning,
-  );
+  RunningLiveCoachingState _coachingState = _initialCoachingState;
+  RunningLiveCoachingState _latestCoachingState = _initialCoachingState;
   bool _isInitializing = true;
   bool _isSpeechEnabled = true;
+  bool _isHudExpanded = false;
   bool _isDisposed = false;
   bool _isProcessingFrame = false;
   String? _configuredTtsLanguage;
@@ -74,6 +78,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
   DateTime? _lastProcessedAt;
   DateTime? _lastSpokenAt;
   DateTime? _lastMetricsLoggedAt;
+  DateTime? _lastUiStatePublishedAt;
   RunningLivePrimaryCue? _lastSpokenCue;
   String? _cameraErrorCode;
   String? _liveCoachErrorCode;
@@ -269,64 +274,88 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   final overlayWidth = math.min(560.0, constraints.maxWidth);
-                  final panelHeight = math.min(
-                    440.0,
-                    constraints.maxHeight * 0.58,
+                  final textScale = MediaQuery.textScalerOf(context).scale(1.0);
+                  final isShortHeight = constraints.maxHeight < 430;
+                  final isVeryShortHeight = constraints.maxHeight < 300;
+                  final isCompactChrome = constraints.maxWidth < 360 ||
+                      isShortHeight ||
+                      textScale >= 1.5;
+                  final topGap = isShortHeight ? 6.0 : 10.0;
+                  final topReserve = isVeryShortHeight
+                      ? 64.0
+                      : isCompactChrome
+                          ? 130.0
+                          : 168.0;
+                  final expandedPanelMaxHeight = math.max(
+                    96.0,
+                    math.min(440.0, constraints.maxHeight - topReserve),
                   );
-                  return Stack(
+                  return Column(
                     children: [
                       Align(
                         alignment: Alignment.topCenter,
                         child: ConstrainedBox(
                           constraints: BoxConstraints(maxWidth: overlayWidth),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              _LiveTopBar(
-                                title: l10n.runningCoachLiveScreenTitle,
-                                canSwitchCamera: _cameras.length > 1,
-                                isInitializing: _isInitializing,
-                                isSpeechEnabled: _isSpeechEnabled,
-                                onBack: () => Navigator.of(context).maybePop(),
-                                onGuide: _openGuide,
-                                onToggleSpeech: _toggleSpeech,
-                                onSwitchCamera: _switchCamera,
-                                guideTooltip: l10n.runningCoachLiveGuideAction,
-                                speechTooltip: _isSpeechEnabled
-                                    ? l10n.runningCoachLiveVoiceOn
-                                    : l10n.runningCoachLiveVoiceOff,
-                                switchTooltip:
-                                    l10n.runningCoachLiveSwitchCamera,
-                              ),
-                              const SizedBox(height: 10),
-                              _CueBanner(
-                                theme: statusTheme,
-                                title: statusTheme.title,
-                                body: cueText,
-                              ),
-                            ],
+                          child: _LiveTopBar(
+                            title: l10n.runningCoachLiveScreenTitle,
+                            showTitle: !isCompactChrome,
+                            canSwitchCamera: _cameras.length > 1,
+                            isInitializing: _isInitializing,
+                            isSpeechEnabled: _isSpeechEnabled,
+                            onBack: () => Navigator.of(context).maybePop(),
+                            onGuide: _openGuide,
+                            onToggleSpeech: _toggleSpeech,
+                            onSwitchCamera: _switchCamera,
+                            guideTooltip: l10n.runningCoachLiveGuideAction,
+                            switchTooltip: l10n.runningCoachLiveSwitchCamera,
                           ),
                         ),
                       ),
-                      Align(
-                        alignment: Alignment.bottomCenter,
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(
-                            maxWidth: overlayWidth,
-                            maxHeight: panelHeight,
+                      if (!isVeryShortHeight) ...[
+                        SizedBox(height: topGap),
+                        Align(
+                          alignment: Alignment.topCenter,
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(maxWidth: overlayWidth),
+                            child: RunningLiveCoachCueBanner(
+                              icon: statusTheme.icon,
+                              color: statusTheme.color,
+                              background: statusTheme.background,
+                              title: statusTheme.title,
+                              body: cueText,
+                              compact: isCompactChrome,
+                            ),
                           ),
-                          child: _ScoreExplanationPanel(
-                            title: panelTitle,
-                            scoreLabel: scoreLabel,
-                            trackedFramesLabel: trackedFramesLabel,
-                            speechLabel: speechLabel,
-                            cueText: cueText,
-                            diagnosis: diagnosis,
-                            actionTip: actionTip,
-                            gaitAnalysis: _coachingState.gaitAnalysis,
-                            metricScores: insightDetails,
-                            focusPriorities: focusPriorities,
-                            metricSections: insightSections,
+                        ),
+                      ],
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.bottomCenter,
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(maxWidth: overlayWidth),
+                            child: RunningLiveCoachHud(
+                              isExpanded: _isHudExpanded,
+                              compact: isCompactChrome,
+                              statusTitle: statusTheme.title,
+                              scoreLabel: scoreLabel,
+                              cueText: cueText,
+                              maxExpandedHeight: expandedPanelMaxHeight,
+                              onToggleExpanded: _toggleHudExpanded,
+                              expandedDetails: _ScoreExplanationPanel(
+                                title: panelTitle,
+                                scoreLabel: scoreLabel,
+                                trackedFramesLabel: trackedFramesLabel,
+                                speechLabel: speechLabel,
+                                cueText: cueText,
+                                diagnosis: diagnosis,
+                                actionTip: actionTip,
+                                gaitAnalysis: _coachingState.gaitAnalysis,
+                                metricScores: insightDetails,
+                                focusPriorities: focusPriorities,
+                                metricSections: insightSections,
+                                compact: isCompactChrome,
+                              ),
+                            ),
                           ),
                         ),
                       ),
@@ -383,17 +412,25 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     if (!_isSupportedMobilePlatform) {
       _resetVisualPoseOverlay();
       setState(() {
+        _coachingState = _initialCoachingState;
+        _latestCoachingState = _initialCoachingState;
         _cameraErrorCode = 'unsupported_platform';
         _liveCoachErrorCode = null;
         _isInitializing = false;
+        _isHudExpanded = false;
+        _lastUiStatePublishedAt = null;
       });
       return;
     }
 
     setState(() {
+      _coachingState = _initialCoachingState;
+      _latestCoachingState = _initialCoachingState;
       _isInitializing = true;
       _cameraErrorCode = null;
       _liveCoachErrorCode = null;
+      _isHudExpanded = false;
+      _lastUiStatePublishedAt = null;
     });
 
     final oldController = _controller;
@@ -411,6 +448,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     _lastProcessedAt = null;
     _lastSpokenAt = null;
     _lastMetricsLoggedAt = null;
+    _lastUiStatePublishedAt = null;
     _lastSpokenCue = null;
     _sessionId = null;
     _lastSkipLogAtByReason.clear();
@@ -486,6 +524,12 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     }
   }
 
+  void _toggleHudExpanded() {
+    setState(() {
+      _isHudExpanded = !_isHudExpanded;
+    });
+  }
+
   void _openGuide() {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const RunningLiveCoachGuideScreen()),
@@ -543,7 +587,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       timestamp: timestamp,
       targetFrameInterval: _frameProcessingInterval,
       snapshot: snapshot,
-      state: _coachingState,
+      state: _latestCoachingState,
       details: details,
     );
     if (kDebugMode) {
@@ -674,9 +718,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       _poseOverlayFrame.value =
           _visualPoseTracker.frameAt(_currentFrameClockTimestamp()) ??
               visualFrame;
-      setState(() {
-        _coachingState = state;
-      });
+      _publishCoachingState(state, now);
       _emitSessionLog(event: 'periodic', force: false, now: now);
       await _maybeSpeakCue(state);
     } catch (error, stackTrace) {
@@ -705,6 +747,36 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     } finally {
       _isProcessingFrame = false;
     }
+  }
+
+  void _publishCoachingState(
+    RunningLiveCoachingState state,
+    DateTime timestamp,
+  ) {
+    _latestCoachingState = state;
+    if (_isDisposed || !mounted) {
+      return;
+    }
+    if (!_shouldPublishCoachingUiState(state, timestamp)) {
+      return;
+    }
+    setState(() {
+      _coachingState = state;
+      _lastUiStatePublishedAt = timestamp;
+    });
+  }
+
+  bool _shouldPublishCoachingUiState(
+    RunningLiveCoachingState state,
+    DateTime timestamp,
+  ) {
+    if (state.primaryCue != _coachingState.primaryCue ||
+        state.framingIssue != _coachingState.framingIssue) {
+      return true;
+    }
+    final lastPublishedAt = _lastUiStatePublishedAt;
+    return lastPublishedAt == null ||
+        timestamp.difference(lastPublishedAt) >= _uiStateThrottleInterval;
   }
 
   void _resetFrameClock() {
@@ -826,16 +898,17 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     _resetVisualPoseOverlay();
     _lastProcessedAt = null;
     _lastSpokenAt = null;
+    _lastUiStatePublishedAt = null;
     _lastSpokenCue = null;
+    _latestCoachingState = _initialCoachingState;
 
     if (mounted) {
       setState(() {
         _liveCoachErrorCode = 'pose_failed';
         _cameraErrorCode = null;
         _isInitializing = false;
-        _coachingState = const RunningLiveCoachingState(
-          primaryCue: RunningLivePrimaryCue.keepRunning,
-        );
+        _coachingState = _initialCoachingState;
+        _isHudExpanded = false;
       });
     }
 
@@ -1085,66 +1158,326 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
   }
 }
 
-class _CueBanner extends StatelessWidget {
-  final _LiveStatusTheme theme;
+class RunningLiveCoachCueBanner extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final Color background;
   final String title;
   final String body;
+  final bool compact;
 
-  const _CueBanner({
-    required this.theme,
+  const RunningLiveCoachCueBanner({
+    super.key,
+    required this.icon,
+    required this.color,
+    required this.background,
     required this.title,
     required this.body,
+    this.compact = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: theme.background,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: theme.color.withAlpha(170)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x33000000),
-            blurRadius: 12,
-            offset: Offset(0, 8),
+    final semanticsLabel = body.isEmpty ? title : '$title. $body';
+    return Semantics(
+      container: true,
+      liveRegion: true,
+      label: semanticsLabel,
+      child: ExcludeSemantics(
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: background,
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: color.withAlpha(170)),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x33000000),
+                blurRadius: 12,
+                offset: Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: compact ? 9 : 12,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(icon, color: color, size: 20),
+                const SizedBox(width: 10),
+                Flexible(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
+                            ),
+                      ),
+                      if (!compact && body.isNotEmpty)
+                        const SizedBox(height: 3),
+                      if (body.isNotEmpty)
+                        Text(
+                          body,
+                          maxLines: compact ? 1 : 2,
+                          overflow: TextOverflow.ellipsis,
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Colors.white70,
+                                    height: 1.25,
+                                  ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class RunningLiveCoachVoiceToggleButton extends StatelessWidget {
+  final bool isSpeechEnabled;
+  final VoidCallback onToggleSpeech;
+
+  const RunningLiveCoachVoiceToggleButton({
+    super.key,
+    required this.isSpeechEnabled,
+    required this.onToggleSpeech,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final tooltip = isSpeechEnabled
+        ? l10n.runningCoachLiveVoiceToggleOnTooltip
+        : l10n.runningCoachLiveVoiceToggleOffTooltip;
+    final hint = isSpeechEnabled
+        ? l10n.runningCoachLiveVoiceToggleOnHint
+        : l10n.runningCoachLiveVoiceToggleOffHint;
+    return Semantics(
+      key: const ValueKey('running-live-coach-voice-toggle-semantics'),
+      button: true,
+      enabled: true,
+      toggled: isSpeechEnabled,
+      label: l10n.runningCoachLiveVoiceToggleLabel,
+      hint: hint,
+      onTap: onToggleSpeech,
+      child: ExcludeSemantics(
+        child: _OverlayActionButton(
+          key: const ValueKey('running-live-coach-voice-toggle'),
+          icon: isSpeechEnabled
+              ? Icons.volume_up_rounded
+              : Icons.volume_off_rounded,
+          onPressed: onToggleSpeech,
+          tooltip: tooltip,
+        ),
+      ),
+    );
+  }
+}
+
+@visibleForTesting
+class RunningLiveCoachHud extends StatelessWidget {
+  final bool isExpanded;
+  final bool compact;
+  final String statusTitle;
+  final String scoreLabel;
+  final String cueText;
+  final double maxExpandedHeight;
+  final VoidCallback onToggleExpanded;
+  final Widget expandedDetails;
+
+  const RunningLiveCoachHud({
+    super.key,
+    required this.isExpanded,
+    required this.statusTitle,
+    required this.scoreLabel,
+    required this.cueText,
+    required this.maxExpandedHeight,
+    required this.onToggleExpanded,
+    required this.expandedDetails,
+    this.compact = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final toggleLabel = isExpanded
+        ? l10n.runningCoachLiveCollapseDetails
+        : l10n.runningCoachLiveExpandDetails;
+    final semanticLabel = isExpanded
+        ? l10n.runningCoachLiveHudExpandedLabel
+        : l10n.runningCoachLiveHudCollapsedLabel;
+    final textScale = MediaQuery.textScalerOf(context).scale(1.0);
+    final compactHeight = textScale >= 1.5
+        ? 140.0
+        : compact
+            ? 116.0
+            : 132.0;
+    final panelRadius = BorderRadius.circular(24);
+    return Semantics(
+      key: const ValueKey('running-live-coach-hud-semantics'),
+      container: true,
+      label: '$semanticLabel. $statusTitle. $scoreLabel. $cueText',
+      child: AnimatedSize(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOutCubic,
+        alignment: Alignment.bottomCenter,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: isExpanded ? maxExpandedHeight : compactHeight,
+          ),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: const Color(0xDD121820),
+              borderRadius: panelRadius,
+              border: Border.all(color: Colors.white12),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x44000000),
+                  blurRadius: 18,
+                  offset: Offset(0, 10),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: panelRadius,
+              child: isExpanded
+                  ? Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _LiveCoachHudHeader(
+                          compact: compact,
+                          statusTitle: statusTitle,
+                          scoreLabel: scoreLabel,
+                          cueText: cueText,
+                          toggleLabel: toggleLabel,
+                          isExpanded: isExpanded,
+                          onToggleExpanded: onToggleExpanded,
+                        ),
+                        const Divider(height: 1, color: Colors.white12),
+                        Flexible(
+                          fit: FlexFit.loose,
+                          child: SingleChildScrollView(
+                            key: const ValueKey(
+                              'running-live-coach-expanded-scroll',
+                            ),
+                            padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+                            child: expandedDetails,
+                          ),
+                        ),
+                      ],
+                    )
+                  : SizedBox(
+                      key: const ValueKey('running-live-coach-compact-hud'),
+                      height: compactHeight,
+                      child: _LiveCoachHudHeader(
+                        compact: compact,
+                        statusTitle: statusTitle,
+                        scoreLabel: scoreLabel,
+                        cueText: cueText,
+                        toggleLabel: toggleLabel,
+                        isExpanded: isExpanded,
+                        onToggleExpanded: onToggleExpanded,
+                      ),
+                    ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LiveCoachHudHeader extends StatelessWidget {
+  final bool compact;
+  final String statusTitle;
+  final String scoreLabel;
+  final String cueText;
+  final String toggleLabel;
+  final bool isExpanded;
+  final VoidCallback onToggleExpanded;
+
+  const _LiveCoachHudHeader({
+    required this.compact,
+    required this.statusTitle,
+    required this.scoreLabel,
+    required this.cueText,
+    required this.toggleLabel,
+    required this.isExpanded,
+    required this.onToggleExpanded,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cueMaxLines = compact ? 1 : 2;
+    return Padding(
+      padding:
+          EdgeInsets.fromLTRB(14, compact ? 10 : 12, 10, compact ? 10 : 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  statusTitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  cueText,
+                  maxLines: cueMaxLines,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        height: 1.15,
+                      ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  scoreLabel,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: const Color(0xFFB8F28B),
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          IconButton.filledTonal(
+            key: const ValueKey('running-live-coach-hud-toggle'),
+            onPressed: onToggleExpanded,
+            tooltip: toggleLabel,
+            icon: Icon(
+              isExpanded
+                  ? Icons.keyboard_arrow_down_rounded
+                  : Icons.keyboard_arrow_up_rounded,
+            ),
           ),
         ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(theme.icon, color: theme.color, size: 20),
-            const SizedBox(width: 10),
-            Flexible(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w800,
-                        ),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    body,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.white70,
-                          height: 1.25,
-                        ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -1152,6 +1485,7 @@ class _CueBanner extends StatelessWidget {
 
 class _LiveTopBar extends StatelessWidget {
   final String title;
+  final bool showTitle;
   final bool canSwitchCamera;
   final bool isInitializing;
   final bool isSpeechEnabled;
@@ -1160,11 +1494,11 @@ class _LiveTopBar extends StatelessWidget {
   final VoidCallback onToggleSpeech;
   final Future<void> Function() onSwitchCamera;
   final String guideTooltip;
-  final String speechTooltip;
   final String switchTooltip;
 
   const _LiveTopBar({
     required this.title,
+    required this.showTitle,
     required this.canSwitchCamera,
     required this.isInitializing,
     required this.isSpeechEnabled,
@@ -1173,7 +1507,6 @@ class _LiveTopBar extends StatelessWidget {
     required this.onToggleSpeech,
     required this.onSwitchCamera,
     required this.guideTooltip,
-    required this.speechTooltip,
     required this.switchTooltip,
   });
 
@@ -1181,7 +1514,8 @@ class _LiveTopBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Expanded(
+        Flexible(
+          fit: showTitle ? FlexFit.tight : FlexFit.loose,
           child: DecoratedBox(
             decoration: BoxDecoration(
               color: Colors.black.withAlpha(150),
@@ -1191,6 +1525,7 @@ class _LiveTopBar extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
               child: Row(
+                mainAxisSize: showTitle ? MainAxisSize.max : MainAxisSize.min,
                 children: [
                   _OverlayActionButton(
                     icon: Icons.arrow_back_rounded,
@@ -1199,18 +1534,21 @@ class _LiveTopBar extends StatelessWidget {
                       context,
                     ).backButtonTooltip,
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800,
-                          ),
+                  if (showTitle) ...[
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                      ),
                     ),
-                  ),
+                  ],
                 ],
               ),
             ),
@@ -1223,12 +1561,9 @@ class _LiveTopBar extends StatelessWidget {
           tooltip: guideTooltip,
         ),
         const SizedBox(width: 8),
-        _OverlayActionButton(
-          icon: isSpeechEnabled
-              ? Icons.volume_up_rounded
-              : Icons.volume_off_rounded,
-          onPressed: onToggleSpeech,
-          tooltip: speechTooltip,
+        RunningLiveCoachVoiceToggleButton(
+          isSpeechEnabled: isSpeechEnabled,
+          onToggleSpeech: onToggleSpeech,
         ),
         if (canSwitchCamera) ...[
           const SizedBox(width: 8),
@@ -1253,6 +1588,7 @@ class _OverlayActionButton extends StatelessWidget {
   final String tooltip;
 
   const _OverlayActionButton({
+    super.key,
     required this.icon,
     required this.onPressed,
     required this.tooltip,
@@ -1336,6 +1672,7 @@ class _ScoreExplanationPanel extends StatelessWidget {
   final List<_LiveInsightData> metricScores;
   final Map<RunningCoachMetric, int> focusPriorities;
   final List<_LiveInsightSection> metricSections;
+  final bool compact;
 
   const _ScoreExplanationPanel({
     required this.title,
@@ -1349,113 +1686,92 @@ class _ScoreExplanationPanel extends StatelessWidget {
     required this.metricScores,
     required this.focusPriorities,
     required this.metricSections,
+    this.compact = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: const Color(0xCC121820),
-        borderRadius: BorderRadius.circular(26),
-        border: Border.all(color: Colors.white10),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x33000000),
-            blurRadius: 18,
-            offset: Offset(0, 10),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (!compact) ...[
+          Text(
+            l10n.runningCoachResultsTitle,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: Colors.white60,
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            title,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                ),
+          ),
+          const SizedBox(height: 12),
+        ],
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            if (!compact) _InfoChip(text: scoreLabel),
+            _InfoChip(text: trackedFramesLabel),
+            _InfoChip(text: speechLabel),
+          ],
+        ),
+        const SizedBox(height: 10),
+        _GaitStatusChips(gaitAnalysis: gaitAnalysis),
+        if (cueText.isNotEmpty ||
+            diagnosis.isNotEmpty ||
+            actionTip.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          _PanelSectionTitle(text: l10n.runningCoachLiveGuidanceTitle),
+          const SizedBox(height: 8),
+          _LiveGuidanceCard(
+            cueText: cueText,
+            diagnosis: diagnosis,
+            actionTip: actionTip,
           ),
         ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        if (metricScores.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          _PanelSectionTitle(text: l10n.runningCoachMetricScoresTitle),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
             children: [
-              Text(
-                l10n.runningCoachResultsTitle,
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: Colors.white60,
-                      fontWeight: FontWeight.w700,
-                    ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                title,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                    ),
-              ),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  _InfoChip(text: scoreLabel),
-                  _InfoChip(text: trackedFramesLabel),
-                  _InfoChip(text: speechLabel),
-                ],
-              ),
-              const SizedBox(height: 10),
-              _GaitStatusChips(gaitAnalysis: gaitAnalysis),
-              if (cueText.isNotEmpty ||
-                  diagnosis.isNotEmpty ||
-                  actionTip.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                _PanelSectionTitle(text: l10n.runningCoachLiveGuidanceTitle),
-                const SizedBox(height: 8),
-                _LiveGuidanceCard(
-                  cueText: cueText,
-                  diagnosis: diagnosis,
-                  actionTip: actionTip,
+              for (final metricScore in metricScores)
+                _CompactMetricScoreCard(
+                  data: metricScore,
+                  priority: focusPriorities[metricScore.insight.metric],
                 ),
-              ],
-              if (metricScores.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                _PanelSectionTitle(text: l10n.runningCoachMetricScoresTitle),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    for (final metricScore in metricScores)
-                      _CompactMetricScoreCard(
-                        data: metricScore,
-                        priority: focusPriorities[metricScore.insight.metric],
-                      ),
-                  ],
-                ),
-              ],
-              if (metricSections.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                for (var index = 0;
-                    index < metricSections.length;
-                    index += 1) ...[
-                  _PanelSectionTitle(text: metricSections[index].title),
-                  const SizedBox(height: 8),
-                  for (var itemIndex = 0;
-                      itemIndex < metricSections[index].items.length;
-                      itemIndex += 1) ...[
-                    _LiveInsightCard(
-                      data: metricSections[index].items[itemIndex],
-                      priority: focusPriorities[metricSections[index]
-                          .items[itemIndex]
-                          .insight
-                          .metric],
-                    ),
-                    if (itemIndex != metricSections[index].items.length - 1)
-                      const SizedBox(height: 10),
-                  ],
-                  if (index != metricSections.length - 1)
-                    const SizedBox(height: 16),
-                ],
-              ],
             ],
           ),
-        ),
-      ),
+        ],
+        if (metricSections.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          for (var index = 0; index < metricSections.length; index += 1) ...[
+            _PanelSectionTitle(text: metricSections[index].title),
+            const SizedBox(height: 8),
+            for (var itemIndex = 0;
+                itemIndex < metricSections[index].items.length;
+                itemIndex += 1) ...[
+              _LiveInsightCard(
+                data: metricSections[index].items[itemIndex],
+                priority: focusPriorities[
+                    metricSections[index].items[itemIndex].insight.metric],
+              ),
+              if (itemIndex != metricSections[index].items.length - 1)
+                const SizedBox(height: 10),
+            ],
+            if (index != metricSections.length - 1) const SizedBox(height: 16),
+          ],
+        ],
+      ],
     );
   }
 }
@@ -1877,49 +2193,68 @@ class _StatusPane extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 420),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: const Color(0xFF11161C),
-              borderRadius: BorderRadius.circular(28),
-              border: Border.all(color: Colors.white10),
+    return SafeArea(
+      child: Stack(
+        children: [
+          Positioned(
+            top: 12,
+            left: 12,
+            child: _OverlayActionButton(
+              icon: Icons.arrow_back_rounded,
+              onPressed: () => Navigator.of(context).maybePop(),
+              tooltip: MaterialLocalizations.of(context).backButtonTooltip,
             ),
-            child: Padding(
+          ),
+          Center(
+            child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w800,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF11161C),
+                    borderRadius: BorderRadius.circular(28),
+                    border: Border.all(color: Colors.white10),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineSmall
+                              ?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                              ),
                         ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    body,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyLarge?.copyWith(color: Colors.white70),
-                  ),
-                  if (actionLabel != null && onAction != null) ...[
-                    const SizedBox(height: 18),
-                    FilledButton(
-                      onPressed: () => onAction!.call(),
-                      child: Text(actionLabel!),
+                        const SizedBox(height: 12),
+                        Text(
+                          body,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyLarge
+                              ?.copyWith(color: Colors.white70),
+                        ),
+                        if (actionLabel != null && onAction != null) ...[
+                          const SizedBox(height: 18),
+                          FilledButton(
+                            onPressed: () => onAction!.call(),
+                            child: Text(actionLabel!),
+                          ),
+                        ],
+                      ],
                     ),
-                  ],
-                ],
+                  ),
+                ),
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }

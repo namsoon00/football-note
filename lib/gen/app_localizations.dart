@@ -15325,7 +15325,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachLiveCardBody.
   ///
   /// In en, this message translates to:
-  /// **'Track the runner outline and pose line live, then switch straight into sprint-specific feedback for trunk lean, knee drive, step rhythm, and arm balance.'**
+  /// **'Track anatomical joints and skeleton lines live, then switch straight into sprint-specific feedback for trunk lean, knee drive, step rhythm, and arm balance.'**
   String get runningCoachLiveCardBody;
 
   /// No description provided for @runningCoachLiveAction.
@@ -15355,13 +15355,13 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachLiveGuideHeroTitle.
   ///
   /// In en, this message translates to:
-  /// **'Track the runner outline and read the lower coaching panel together'**
+  /// **'Track anatomical joints and the live coaching HUD'**
   String get runningCoachLiveGuideHeroTitle;
 
   /// No description provided for @runningCoachLiveGuideHeroBody.
   ///
   /// In en, this message translates to:
-  /// **'The live coach now marks the runner outline and pose line directly on screen, while the lower panel keeps the explanation and results together. Use the setup below to keep tracking and feedback stable.'**
+  /// **'The live coach draws anatomical joints and skeleton lines directly over the camera feed. The compact HUD keeps the cue and score clear, and expands only when you need gait, metric, and diagnosis details.'**
   String get runningCoachLiveGuideHeroBody;
 
   /// No description provided for @runningCoachLiveGuideTipSideTitle.
@@ -15385,19 +15385,19 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachLiveGuideTipBodyBody.
   ///
   /// In en, this message translates to:
-  /// **'The head, elbows, hips, and ankles all need to stay visible so the pose line and score can stay stable.'**
+  /// **'The head, shoulders, elbows, hips, knees, ankles, and feet all need to stay visible so the joint skeleton and score can stay stable.'**
   String get runningCoachLiveGuideTipBodyBody;
 
   /// No description provided for @runningCoachLiveGuideTipHudTitle.
   ///
   /// In en, this message translates to:
-  /// **'Read the top cue and lower results together'**
+  /// **'Use the compact HUD'**
   String get runningCoachLiveGuideTipHudTitle;
 
   /// No description provided for @runningCoachLiveGuideTipHudBody.
   ///
   /// In en, this message translates to:
-  /// **'Instead of a yellow box, the screen leads with the top status cue and runner outline marking, while the lower panel keeps the why, the fix, and the body-part results together.'**
+  /// **'The screen centers the top cue, joint skeleton overlay, and compact HUD. Expand the HUD for the why, fix, gait timing, and metric results.'**
   String get runningCoachLiveGuideTipHudBody;
 
   /// No description provided for @runningCoachLiveGuideTipCameraTitle.
@@ -15409,7 +15409,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachLiveGuideTipCameraBody.
   ///
   /// In en, this message translates to:
-  /// **'Hold the camera steady and frame the runner so the full body fills at least about half of the screen height. The fuller the frame, the steadier the pose line and voice coaching become.'**
+  /// **'Hold the camera steady and frame the runner so the full body fills at least about half of the screen height. The fuller the frame, the steadier the joint skeleton and voice coaching become.'**
   String get runningCoachLiveGuideTipCameraBody;
 
   /// No description provided for @runningCoachLivePreparingTitle.
@@ -15471,6 +15471,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Voice coaching off'**
   String get runningCoachLiveVoiceOff;
+
+  /// No description provided for @runningCoachLiveVoiceToggleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice coaching'**
+  String get runningCoachLiveVoiceToggleLabel;
+
+  /// No description provided for @runningCoachLiveVoiceToggleOnTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn voice coaching off'**
+  String get runningCoachLiveVoiceToggleOnTooltip;
+
+  /// No description provided for @runningCoachLiveVoiceToggleOffTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn voice coaching on'**
+  String get runningCoachLiveVoiceToggleOffTooltip;
+
+  /// No description provided for @runningCoachLiveVoiceToggleOnHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Double tap to mute voice cues.'**
+  String get runningCoachLiveVoiceToggleOnHint;
+
+  /// No description provided for @runningCoachLiveVoiceToggleOffHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Double tap to hear voice cues.'**
+  String get runningCoachLiveVoiceToggleOffHint;
+
+  /// No description provided for @runningCoachLiveExpandDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Show details'**
+  String get runningCoachLiveExpandDetails;
+
+  /// No description provided for @runningCoachLiveCollapseDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide details'**
+  String get runningCoachLiveCollapseDetails;
+
+  /// No description provided for @runningCoachLiveHudCollapsedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Live coaching summary'**
+  String get runningCoachLiveHudCollapsedLabel;
+
+  /// No description provided for @runningCoachLiveHudExpandedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Live coaching details'**
+  String get runningCoachLiveHudExpandedLabel;
 
   /// No description provided for @runningCoachLiveSwitchCamera.
   ///

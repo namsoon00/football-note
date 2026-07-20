@@ -208,83 +208,61 @@ class _GuidePreviewPainter extends CustomPainter {
     final labelPaint = Paint()
       ..color = Colors.white.withAlpha(38)
       ..style = PaintingStyle.fill;
-    final leftHud = RRect.fromRectAndRadius(
-      Rect.fromLTWH(12, size.height - 104, 92, 72),
-      const Radius.circular(18),
+    final topCue = RRect.fromRectAndRadius(
+      Rect.fromLTWH(16, 16, size.width - 32, 38),
+      const Radius.circular(16),
     );
-    final rightHud = RRect.fromRectAndRadius(
-      Rect.fromLTWH(size.width - 104, size.height * 0.28, 92, 124),
-      const Radius.circular(18),
+    final compactHud = RRect.fromRectAndRadius(
+      Rect.fromLTWH(16, size.height - 82, size.width - 32, 54),
+      const Radius.circular(20),
     );
-    canvas.drawRRect(leftHud, labelPaint);
-    canvas.drawRRect(rightHud, labelPaint);
+    canvas.drawRRect(topCue, labelPaint);
+    canvas.drawRRect(compactHud, labelPaint);
 
     final bodyPaint = Paint()
       ..color = accentColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = 4
       ..strokeCap = StrokeCap.round;
+    final jointPaint = Paint()
+      ..color = accentColor
+      ..style = PaintingStyle.fill;
 
     final shoulderCenter = Offset(size.width / 2, size.height * 0.32);
+    final leftShoulder = shoulderCenter.translate(-22, 0);
+    final rightShoulder = shoulderCenter.translate(22, 2);
     final hipCenter = Offset(size.width / 2, size.height * 0.52);
     final frontKnee = Offset(size.width * 0.58, size.height * 0.65);
     final rearKnee = Offset(size.width * 0.46, size.height * 0.7);
     final frontFoot = Offset(size.width * 0.62, size.height * 0.82);
     final rearFoot = Offset(size.width * 0.44, size.height * 0.84);
     final head = Offset(size.width / 2, size.height * 0.19);
-    final bodyOutline = Path()
-      ..moveTo(size.width * 0.47, size.height * 0.12)
-      ..quadraticBezierTo(
-        size.width * 0.62,
-        size.height * 0.18,
-        size.width * 0.62,
-        size.height * 0.44,
-      )
-      ..quadraticBezierTo(
-        size.width * 0.66,
-        size.height * 0.68,
-        size.width * 0.62,
-        size.height * 0.86,
-      )
-      ..lineTo(size.width * 0.42, size.height * 0.88)
-      ..quadraticBezierTo(
-        size.width * 0.36,
-        size.height * 0.62,
-        size.width * 0.38,
-        size.height * 0.28,
-      )
-      ..close();
-    final outlineFillPaint = Paint()
-      ..color = accentColor.withAlpha(20)
-      ..style = PaintingStyle.fill;
-    final outlineStrokePaint = Paint()
-      ..color = accentColor.withAlpha(170)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.5;
-    canvas.drawPath(bodyOutline, outlineFillPaint);
-    canvas.drawPath(bodyOutline, outlineStrokePaint);
+    final leftElbow = shoulderCenter.translate(-42, 34);
+    final rightElbow = shoulderCenter.translate(36, 42);
 
     canvas.drawCircle(head, 14, bodyPaint);
-    canvas.drawLine(
-      shoulderCenter.translate(-22, 0),
-      shoulderCenter.translate(22, 2),
-      bodyPaint,
-    );
+    canvas.drawLine(leftShoulder, rightShoulder, bodyPaint);
     canvas.drawLine(shoulderCenter, hipCenter, bodyPaint);
-    canvas.drawLine(
-      shoulderCenter.translate(-18, 8),
-      shoulderCenter.translate(-42, 34),
-      bodyPaint,
-    );
-    canvas.drawLine(
-      shoulderCenter.translate(18, 8),
-      shoulderCenter.translate(36, 42),
-      bodyPaint,
-    );
+    canvas.drawLine(shoulderCenter.translate(-18, 8), leftElbow, bodyPaint);
+    canvas.drawLine(shoulderCenter.translate(18, 8), rightElbow, bodyPaint);
     canvas.drawLine(hipCenter, frontKnee, bodyPaint);
     canvas.drawLine(frontKnee, frontFoot, bodyPaint);
     canvas.drawLine(hipCenter, rearKnee, bodyPaint);
     canvas.drawLine(rearKnee, rearFoot, bodyPaint);
+    for (final joint in [
+      head,
+      leftShoulder,
+      rightShoulder,
+      hipCenter,
+      leftElbow,
+      rightElbow,
+      frontKnee,
+      rearKnee,
+      frontFoot,
+      rearFoot,
+    ]) {
+      canvas.drawCircle(joint, 5, jointPaint);
+    }
   }
 
   @override

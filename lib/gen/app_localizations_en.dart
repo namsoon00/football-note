@@ -8755,7 +8755,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachLiveCardBody =>
-      'Track the runner outline and pose line live, then switch straight into sprint-specific feedback for trunk lean, knee drive, step rhythm, and arm balance.';
+      'Track anatomical joints and skeleton lines live, then switch straight into sprint-specific feedback for trunk lean, knee drive, step rhythm, and arm balance.';
 
   @override
   String get runningCoachLiveAction => 'Start live coach';
@@ -8771,11 +8771,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachLiveGuideHeroTitle =>
-      'Track the runner outline and read the lower coaching panel together';
+      'Track anatomical joints and the live coaching HUD';
 
   @override
   String get runningCoachLiveGuideHeroBody =>
-      'The live coach now marks the runner outline and pose line directly on screen, while the lower panel keeps the explanation and results together. Use the setup below to keep tracking and feedback stable.';
+      'The live coach draws anatomical joints and skeleton lines directly over the camera feed. The compact HUD keeps the cue and score clear, and expands only when you need gait, metric, and diagnosis details.';
 
   @override
   String get runningCoachLiveGuideTipSideTitle => 'Show a side view';
@@ -8789,15 +8789,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachLiveGuideTipBodyBody =>
-      'The head, elbows, hips, and ankles all need to stay visible so the pose line and score can stay stable.';
+      'The head, shoulders, elbows, hips, knees, ankles, and feet all need to stay visible so the joint skeleton and score can stay stable.';
 
   @override
-  String get runningCoachLiveGuideTipHudTitle =>
-      'Read the top cue and lower results together';
+  String get runningCoachLiveGuideTipHudTitle => 'Use the compact HUD';
 
   @override
   String get runningCoachLiveGuideTipHudBody =>
-      'Instead of a yellow box, the screen leads with the top status cue and runner outline marking, while the lower panel keeps the why, the fix, and the body-part results together.';
+      'The screen centers the top cue, joint skeleton overlay, and compact HUD. Expand the HUD for the why, fix, gait timing, and metric results.';
 
   @override
   String get runningCoachLiveGuideTipCameraTitle =>
@@ -8805,7 +8804,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachLiveGuideTipCameraBody =>
-      'Hold the camera steady and frame the runner so the full body fills at least about half of the screen height. The fuller the frame, the steadier the pose line and voice coaching become.';
+      'Hold the camera steady and frame the runner so the full body fills at least about half of the screen height. The fuller the frame, the steadier the joint skeleton and voice coaching become.';
 
   @override
   String get runningCoachLivePreparingTitle => 'Preparing camera';
@@ -8840,6 +8839,35 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachLiveVoiceOff => 'Voice coaching off';
+
+  @override
+  String get runningCoachLiveVoiceToggleLabel => 'Voice coaching';
+
+  @override
+  String get runningCoachLiveVoiceToggleOnTooltip => 'Turn voice coaching off';
+
+  @override
+  String get runningCoachLiveVoiceToggleOffTooltip => 'Turn voice coaching on';
+
+  @override
+  String get runningCoachLiveVoiceToggleOnHint =>
+      'Double tap to mute voice cues.';
+
+  @override
+  String get runningCoachLiveVoiceToggleOffHint =>
+      'Double tap to hear voice cues.';
+
+  @override
+  String get runningCoachLiveExpandDetails => 'Show details';
+
+  @override
+  String get runningCoachLiveCollapseDetails => 'Hide details';
+
+  @override
+  String get runningCoachLiveHudCollapsedLabel => 'Live coaching summary';
+
+  @override
+  String get runningCoachLiveHudExpandedLabel => 'Live coaching details';
 
   @override
   String get runningCoachLiveSwitchCamera => 'Switch camera';
