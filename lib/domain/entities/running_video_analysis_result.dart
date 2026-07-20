@@ -28,6 +28,125 @@ enum RunningCoachFinding {
   armTooTight,
 }
 
+const int mediaPipePoseLandmarkCount = 33;
+
+class RunningVideoPoseLandmark {
+  final int index;
+  final double x;
+  final double y;
+  final double z;
+  final double? visibility;
+  final double? presence;
+  final double confidence;
+
+  const RunningVideoPoseLandmark({
+    required this.index,
+    required this.x,
+    required this.y,
+    required this.z,
+    required this.visibility,
+    required this.presence,
+    required this.confidence,
+  });
+
+  static RunningVideoPoseLandmark? fromObject(Object? raw) {
+    final map = _asObjectMap(raw);
+    if (map == null) return null;
+    final index = _finiteInt(map['index']);
+    final x = _finiteDouble(map['x']);
+    final y = _finiteDouble(map['y']);
+    final z = _finiteDouble(map['z']);
+    final confidence = _finiteDouble(map['confidence']);
+    if (index == null ||
+        index < 0 ||
+        index >= mediaPipePoseLandmarkCount ||
+        x == null ||
+        y == null ||
+        z == null ||
+        confidence == null) {
+      return null;
+    }
+    return RunningVideoPoseLandmark(
+      index: index,
+      x: x,
+      y: y,
+      z: z,
+      visibility: _finiteDouble(map['visibility']),
+      presence: _finiteDouble(map['presence']),
+      confidence: confidence.clamp(0.0, 1.0).toDouble(),
+    );
+  }
+}
+
+class RunningPoseFrame {
+  final Duration timestamp;
+  final int imageWidth;
+  final int imageHeight;
+  final List<RunningVideoPoseLandmark> landmarks;
+
+  const RunningPoseFrame({
+    required this.timestamp,
+    required this.imageWidth,
+    required this.imageHeight,
+    required this.landmarks,
+  });
+
+  int get timestampMs => timestamp.inMilliseconds;
+
+  RunningVideoPoseLandmark? landmarkByIndex(int index) {
+    if (index < 0 || index >= landmarks.length) return null;
+    final landmark = landmarks[index];
+    if (landmark.index == index) return landmark;
+    for (final item in landmarks) {
+      if (item.index == index) return item;
+    }
+    return null;
+  }
+
+  static RunningPoseFrame? fromObject(Object? raw) {
+    final map = _asObjectMap(raw);
+    if (map == null) return null;
+    final timestampMs = _finiteInt(map['timestampMs']);
+    final imageWidth = _finiteInt(map['imageWidth']);
+    final imageHeight = _finiteInt(map['imageHeight']);
+    final rawLandmarks = map['landmarks'];
+    if (timestampMs == null ||
+        timestampMs < 0 ||
+        imageWidth == null ||
+        imageWidth <= 0 ||
+        imageHeight == null ||
+        imageHeight <= 0 ||
+        rawLandmarks is! Iterable<Object?>) {
+      return null;
+    }
+
+    final landmarks = <RunningVideoPoseLandmark>[];
+    for (final item in rawLandmarks) {
+      final landmark = RunningVideoPoseLandmark.fromObject(item);
+      if (landmark == null) {
+        return null;
+      }
+      landmarks.add(landmark);
+    }
+    if (landmarks.length != mediaPipePoseLandmarkCount) {
+      return null;
+    }
+    landmarks.sort((a, b) => a.index.compareTo(b.index));
+    for (var index = 0; index < mediaPipePoseLandmarkCount; index += 1) {
+      if (landmarks[index].index != index) {
+        return null;
+      }
+    }
+
+    return RunningPoseFrame(
+      timestamp: Duration(milliseconds: timestampMs),
+      imageWidth: imageWidth,
+      imageHeight: imageHeight,
+      landmarks: List<RunningVideoPoseLandmark>.unmodifiable(landmarks),
+    );
+  }
+}
+
 class RunningVideoAnalysisResult {
   final Duration videoDuration;
   final int sampledFrames;
@@ -39,6 +158,7 @@ class RunningVideoAnalysisResult {
   final double stanceKneeAngleDegrees;
   final double elbowAngleDegrees;
   final Map<RunningCoachMetric, RunningMetricQuality> metricQualities;
+  final List<RunningPoseFrame> poseFrames;
 
   const RunningVideoAnalysisResult({
     required this.videoDuration,
@@ -51,6 +171,7 @@ class RunningVideoAnalysisResult {
     required this.stanceKneeAngleDegrees,
     required this.elbowAngleDegrees,
     this.metricQualities = const <RunningCoachMetric, RunningMetricQuality>{},
+    this.poseFrames = const <RunningPoseFrame>[],
   });
 
   double get validFrameCoverage =>
@@ -71,10 +192,11 @@ class RunningVideoAnalysisResult {
   }
 
   factory RunningVideoAnalysisResult.fromMap(Map<Object?, Object?> map) {
-    final durationMs = (map['durationMs'] as num?)?.toInt() ?? 0;
-    final sampledFrames = (map['sampledFrames'] as num?)?.toInt() ?? 0;
-    final validFrames = (map['validFrames'] as num?)?.toInt() ?? 0;
-    final directionToken = (map['direction'] as String?) ?? 'stationary';
+    final durationMs = _finiteInt(map['durationMs']) ?? 0;
+    final sampledFrames = _finiteInt(map['sampledFrames']) ?? 0;
+    final validFrames = _finiteInt(map['validFrames']) ?? 0;
+    final rawDirection = map['direction'];
+    final directionToken = rawDirection is String ? rawDirection : 'stationary';
     return RunningVideoAnalysisResult(
       videoDuration: Duration(milliseconds: durationMs),
       sampledFrames: sampledFrames,
@@ -84,16 +206,50 @@ class RunningVideoAnalysisResult {
         'rightToLeft' => RunningDirection.rightToLeft,
         _ => RunningDirection.stationary,
       },
-      forwardLeanDegrees: (map['forwardLeanDegrees'] as num?)?.toDouble() ?? 0,
-      verticalBounceRatio:
-          (map['verticalBounceRatio'] as num?)?.toDouble() ?? 0,
+      forwardLeanDegrees: _finiteDouble(map['forwardLeanDegrees']) ?? 0,
+      verticalBounceRatio: _finiteDouble(map['verticalBounceRatio']) ?? 0,
       footStrikeDistanceRatio:
-          (map['footStrikeDistanceRatio'] as num?)?.toDouble() ?? 0,
-      stanceKneeAngleDegrees:
-          (map['stanceKneeAngleDegrees'] as num?)?.toDouble() ?? 0,
-      elbowAngleDegrees: (map['elbowAngleDegrees'] as num?)?.toDouble() ?? 0,
+          _finiteDouble(map['footStrikeDistanceRatio']) ?? 0,
+      stanceKneeAngleDegrees: _finiteDouble(map['stanceKneeAngleDegrees']) ?? 0,
+      elbowAngleDegrees: _finiteDouble(map['elbowAngleDegrees']) ?? 0,
+      poseFrames: _parsePoseFrames(map['poseFrames']),
     );
   }
+}
+
+List<RunningPoseFrame> _parsePoseFrames(Object? raw) {
+  if (raw is! Iterable<Object?>) {
+    return const <RunningPoseFrame>[];
+  }
+  final frames = <RunningPoseFrame>[];
+  for (final item in raw) {
+    final frame = RunningPoseFrame.fromObject(item);
+    if (frame != null) {
+      frames.add(frame);
+    }
+  }
+  frames.sort((a, b) => a.timestampMs.compareTo(b.timestampMs));
+  return List<RunningPoseFrame>.unmodifiable(frames);
+}
+
+Map<Object?, Object?>? _asObjectMap(Object? raw) {
+  if (raw is Map<Object?, Object?>) return raw;
+  if (raw is Map) {
+    return raw.map<Object?, Object?>(
+      (key, value) => MapEntry<Object?, Object?>(key, value),
+    );
+  }
+  return null;
+}
+
+int? _finiteInt(Object? value) {
+  if (value is! num || !value.isFinite) return null;
+  return value.toInt();
+}
+
+double? _finiteDouble(Object? value) {
+  if (value is! num || !value.isFinite) return null;
+  return value.toDouble();
 }
 
 class RunningMetricQuality {

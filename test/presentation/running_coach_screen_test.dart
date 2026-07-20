@@ -172,6 +172,10 @@ void main() {
       findsOneWidget,
     );
     expect(
+      find.byKey(const ValueKey('running-coach-sample-real-pose-overlay')),
+      findsOneWidget,
+    );
+    expect(
       find.byKey(const ValueKey('running-coach-sample-fake-video-view')),
       findsOneWidget,
     );
@@ -195,14 +199,19 @@ void main() {
     expect(find.text('Forward lean'), findsWidgets);
     expect(find.text('Bounce'), findsOneWidget);
     expect(find.textContaining('Frame '), findsWidgets);
-    expect(find.text('Landing 0.08'), findsOneWidget);
-    expect(find.text('Bounce 6%'), findsOneWidget);
-    expect(find.text('Pass'), findsWidgets);
+    expect(find.text('Landing 0.08'), findsNothing);
+    expect(find.text('Lean 10°'), findsNothing);
+    expect(find.text('Arms 90°'), findsNothing);
+    expect(find.text('Bounce 6%'), findsNothing);
+    expect(find.text('12.4° forward lean'), findsWidgets);
+    expect(find.text('0.11x ahead of hips'), findsWidgets);
+    expect(find.text('7.0% vertical bounce'), findsWidgets);
+    expect(find.text('Good'), findsWidgets);
     expect(
       find.text('Foot lands under the hip with toes forward'),
       findsOneWidget,
     );
-    expect(find.textContaining('landing distance is 0.08'), findsOneWidget);
+    expect(find.textContaining('landing distance is 0.08'), findsNothing);
 
     await tester.ensureVisible(
       find.byKey(const ValueKey('running-coach-sample-decision-posture')),
@@ -225,8 +234,8 @@ void main() {
     expect(find.text('Evidence detail'), findsOneWidget);
     expect(find.text('Measured value'), findsOneWidget);
     expect(find.text('Good range'), findsOneWidget);
-    expect(find.text('Lean 10°'), findsWidgets);
-    expect(find.textContaining('8-24°'), findsWidgets);
+    expect(find.text('12.4° forward lean'), findsWidgets);
+    expect(find.textContaining("this clip's measured value"), findsWidgets);
     expect(find.textContaining('vertical hip line'), findsWidgets);
 
     Navigator.of(
@@ -242,13 +251,13 @@ void main() {
     await tester.pump();
 
     expect(find.text('Wrong-form readouts'), findsOneWidget);
-    expect(find.text('Ahead 0.20'), findsOneWidget);
+    expect(find.text('0.22x ahead of hips'), findsWidgets);
     expect(find.text('Bounce'), findsOneWidget);
-    expect(find.text('Bounce 10%'), findsWidgets);
-    expect(find.text('Review'), findsWidgets);
+    expect(find.text('10.0% vertical bounce'), findsWidgets);
+    expect(find.text('Needs work'), findsWidgets);
     expect(
       find.textContaining('landing is 0.20 ahead of the hip'),
-      findsOneWidget,
+      findsNothing,
     );
 
     await tester.ensureVisible(
@@ -265,7 +274,7 @@ void main() {
       find.byKey(const ValueKey('running-coach-sample-metric-detail')),
       findsOneWidget,
     );
-    expect(find.text('Bounce 10%'), findsWidgets);
+    expect(find.text('10.0% vertical bounce'), findsWidgets);
     expect(find.textContaining('head and hip height band'), findsOneWidget);
 
     Navigator.of(
@@ -302,6 +311,56 @@ void main() {
       find.byKey(const ValueKey('running-coach-sample-video-frame')),
     );
     expect(analysisService.calls, hasLength(2));
+  });
+
+  testWidgets('sample sheet does not draw a fake skeleton without poseFrames', (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1200));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final analysisService = _FakeRunningVideoAnalysisService(
+      omitPoseFrames: true,
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: RunningCoachScreen(
+          analysisService: analysisService,
+          sampleVideoPreparer: _prepareSampleVideoForTest,
+        ),
+      ),
+    );
+
+    await tester.scrollUntilVisible(
+      find.text('Open sample video guide'),
+      -220,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.text('Open sample video guide'));
+    await tester.pump();
+    await tester.runAsync(() => analysisService.waitForCallCount(2));
+    await tester.pump();
+    await _pumpUntilFound(
+      tester,
+      find.byKey(const ValueKey('running-coach-sample-video-frame')),
+    );
+    await tester.binding.setSurfaceSize(const Size(360, 780));
+    await tester.pump();
+
+    expect(
+      find.byKey(const ValueKey('running-coach-sample-real-pose-overlay')),
+      findsNothing,
+    );
+    expect(find.text('No pose frames'), findsOneWidget);
+    expect(find.text('12.4° forward lean'), findsWidgets);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('sample sheet shows localized error and retries native analysis',
@@ -606,11 +665,15 @@ Future<RunningCoachPreparedSampleVideo> _prepareSampleVideoForTest(
 
 class _FakeRunningVideoAnalysisService extends RunningVideoAnalysisService {
   final bool failFirstCall;
+  final bool omitPoseFrames;
   final List<String> calls = <String>[];
   final List<bool> fileExistsAtCall = <bool>[];
   final List<int> fileLengthAtCall = <int>[];
 
-  _FakeRunningVideoAnalysisService({this.failFirstCall = false});
+  _FakeRunningVideoAnalysisService({
+    this.failFirstCall = false,
+    this.omitPoseFrames = false,
+  });
 
   Future<void> waitForCallCount(int count) async {
     for (var attempt = 0; attempt < 500; attempt += 1) {
@@ -635,30 +698,101 @@ class _FakeRunningVideoAnalysisService extends RunningVideoAnalysisService {
       );
     }
     if (path.endsWith('running_coach_mistake_sample.mp4')) {
-      return const RunningVideoAnalysisResult(
-        videoDuration: Duration(seconds: 4),
+      return RunningVideoAnalysisResult(
+        videoDuration: const Duration(seconds: 4),
         sampledFrames: 14,
         validFrames: 12,
         direction: RunningDirection.leftToRight,
         forwardLeanDegrees: 4,
         verticalBounceRatio: 0.10,
-        footStrikeDistanceRatio: 0.20,
+        footStrikeDistanceRatio: 0.22,
         stanceKneeAngleDegrees: 172,
-        elbowAngleDegrees: 118,
+        elbowAngleDegrees: 126,
+        poseFrames: omitPoseFrames
+            ? const <RunningPoseFrame>[]
+            : _testPoseFrames(
+                startX: 0.22,
+                dxPerFrame: 0.055,
+                confidence: 0.88,
+              ),
       );
     }
-    return const RunningVideoAnalysisResult(
-      videoDuration: Duration(seconds: 4),
+    return RunningVideoAnalysisResult(
+      videoDuration: const Duration(seconds: 4),
       sampledFrames: 14,
       validFrames: 13,
       direction: RunningDirection.leftToRight,
-      forwardLeanDegrees: 10,
-      verticalBounceRatio: 0.06,
-      footStrikeDistanceRatio: 0.08,
-      stanceKneeAngleDegrees: 155,
-      elbowAngleDegrees: 90,
+      forwardLeanDegrees: 12.4,
+      verticalBounceRatio: 0.07,
+      footStrikeDistanceRatio: 0.11,
+      stanceKneeAngleDegrees: 150,
+      elbowAngleDegrees: 96,
+      poseFrames: omitPoseFrames
+          ? const <RunningPoseFrame>[]
+          : _testPoseFrames(
+              startX: 0.34,
+              dxPerFrame: -0.018,
+              confidence: 0.93,
+            ),
     );
   }
+}
+
+List<RunningPoseFrame> _testPoseFrames({
+  required double startX,
+  required double dxPerFrame,
+  required double confidence,
+}) {
+  return List<RunningPoseFrame>.unmodifiable([
+    for (var frameIndex = 0; frameIndex < 6; frameIndex += 1)
+      RunningPoseFrame(
+        timestamp: Duration(milliseconds: frameIndex * 500),
+        imageWidth: 1280,
+        imageHeight: 720,
+        landmarks: List<RunningVideoPoseLandmark>.unmodifiable([
+          for (var index = 0; index < mediaPipePoseLandmarkCount; index += 1)
+            _testPoseLandmark(
+              index,
+              baseX: startX + (frameIndex * dxPerFrame),
+              confidence: confidence,
+            ),
+        ]),
+      ),
+  ]);
+}
+
+RunningVideoPoseLandmark _testPoseLandmark(
+  int index, {
+  required double baseX,
+  required double confidence,
+}) {
+  final bodyY = switch (index) {
+    0 => 0.22,
+    >= 1 && <= 10 => 0.24,
+    11 || 12 => 0.38,
+    13 || 14 => 0.48,
+    15 || 16 => 0.58,
+    >= 17 && <= 22 => 0.61,
+    23 || 24 => 0.58,
+    25 || 26 => 0.72,
+    27 || 28 => 0.86,
+    29 || 30 => 0.89,
+    _ => 0.91,
+  };
+  final sideOffset = switch (index) {
+    11 || 13 || 15 || 17 || 19 || 21 || 23 || 25 || 27 || 29 || 31 => -0.04,
+    12 || 14 || 16 || 18 || 20 || 22 || 24 || 26 || 28 || 30 || 32 => 0.04,
+    _ => 0.0,
+  };
+  return RunningVideoPoseLandmark(
+    index: index,
+    x: (baseX + sideOffset).clamp(0.05, 0.95).toDouble(),
+    y: bodyY,
+    z: -0.01 * index,
+    visibility: confidence,
+    presence: confidence,
+    confidence: confidence,
+  );
 }
 
 class _FakeVideoPlayerPlatform extends VideoPlayerPlatform {

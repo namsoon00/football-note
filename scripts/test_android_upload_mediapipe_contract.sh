@@ -12,11 +12,13 @@ from pathlib import Path
 
 root = Path(".")
 channel = root / "android/app/src/main/kotlin/com/namsoon/footballnote/RunningPoseAnalysisChannel.kt"
+ios_channel = root / "ios/Runner/RunningPoseAnalysisChannel.swift"
 main_activity = root / "android/app/src/main/kotlin/com/namsoon/footballnote/MainActivity.kt"
 gradle = root / "android/app/build.gradle"
 model = root / "android/app/src/main/assets/pose_landmarker_lite.task"
 
 channel_text = channel.read_text()
+ios_text = ios_channel.read_text()
 main_text = main_activity.read_text()
 gradle_text = gradle.read_text()
 failures: list[str] = []
@@ -37,6 +39,10 @@ for forbidden in (
     require(
         re.search(rf"\b{re.escape(forbidden)}\b", channel_text) is None,
         f"upload channel must not use ML Kit token: {forbidden}",
+    )
+    require(
+        re.search(rf"\b{re.escape(forbidden)}\b", ios_text) is None,
+        f"iOS running channel must not use ML Kit token: {forbidden}",
     )
 
 for required in (
@@ -62,6 +68,44 @@ for required in (
 ):
     require(required in channel_text, f"upload channel is missing required token: {required}")
 
+for required in (
+    "MediaPipeTasksVision",
+    "PoseLandmarkerOptions",
+    "options.runningMode = .video",
+    "options.numPoses = 1",
+    "options.minPoseDetectionConfidence = Self.minimumLikelihood",
+    "options.minPosePresenceConfidence = Self.minimumLikelihood",
+    "options.minTrackingConfidence = Self.minimumLikelihood",
+    "poseLandmarker.detect",
+    "landmarkConfidence(landmark)",
+    "min(visibility, presence)",
+    "confidence = 0",
+    "actualTime: &actualTime",
+    "NSNull()",
+    '"model_missing"',
+    '"mediapipe_pose_failed"',
+    '"video_too_short"',
+    '"no_pose_detected"',
+):
+    require(required in ios_text, f"iOS running channel is missing required token: {required}")
+
+for required in (
+    '"poseFrames"',
+    '"timestampMs"',
+    '"imageWidth"',
+    '"imageHeight"',
+    '"landmarks"',
+    '"index"',
+    '"x"',
+    '"y"',
+    '"z"',
+    '"visibility"',
+    '"presence"',
+    '"confidence"',
+):
+    require(required in channel_text, f"Android poseFrames schema is missing token: {required}")
+    require(required in ios_text, f"iOS poseFrames schema is missing token: {required}")
+
 require(
     re.search(r"class RunningPoseAnalysisChannel\(\s*private val context: Context,", channel_text)
     is not None,
@@ -72,9 +116,28 @@ require(
     "upload channel must keep the 14-frame sampling window",
 )
 require(
+    re.search(r"private static let sampleCount\s*=\s*14\b", ios_text) is not None,
+    "iOS running channel must keep the 14-frame sampling window",
+)
+require(
     re.search(r"private const val minimumLikelihood\s*=\s*0\.45f\b", channel_text)
     is not None,
     "upload channel must keep the 0.45 MediaPipe confidence threshold",
+)
+require(
+    re.search(r"private static let minimumLikelihood:\s*Float\s*=\s*0\.45\b", ios_text)
+    is not None,
+    "iOS running channel must keep the 0.45 MediaPipe confidence threshold",
+)
+require(
+    re.search(r"private const val mediaPipePoseLandmarkCount\s*=\s*33\b", channel_text)
+    is not None,
+    "Android poseFrames must serialize 33 MediaPipe landmarks",
+)
+require(
+    re.search(r"private static let mediaPipePoseLandmarkCount\s*=\s*33\b", ios_text)
+    is not None,
+    "iOS poseFrames must serialize 33 MediaPipe landmarks",
 )
 require(
     re.search(

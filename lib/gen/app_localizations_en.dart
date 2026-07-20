@@ -8511,43 +8511,43 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSampleReferencePosture =>
-      'Forward lean: shoulder center is 10° ahead of the vertical hip line without waist folding.';
+      'Forward lean: the coach reads the shoulder-to-hip line and reports the current posture value.';
 
   @override
   String get runningCoachSampleReferenceFoot =>
-      'Contact point: landing distance is 0.08, close enough to stay under the hip.';
+      'Contact point: the coach compares the landing foot with the hip line before judging braking risk.';
 
   @override
   String get runningCoachSampleReferenceKnee =>
-      'Stance knee: 155° at contact, softly loaded instead of locked.';
+      'Stance knee: the coach reports the loaded knee angle from the detected hip, knee, and ankle.';
 
   @override
   String get runningCoachSampleReferenceArms =>
-      'Arm angle: elbows stay near 90° and swing opposite the legs.';
+      'Arm angle: the coach reads shoulder, elbow, and wrist landmarks on each sampled frame.';
 
   @override
   String get runningCoachSampleReferenceFrame =>
-      'Frame quality: 24/24 usable frames with all main joints visible.';
+      'Frame quality: usable frames depend on visible MediaPipe joints, not on a preset sample label.';
 
   @override
   String get runningCoachSampleMistakePosture =>
-      'Forward lean: shoulder center is only 4° from the vertical hip line, so the runner sits tall.';
+      'Forward lean: the coach reports the same posture metric and status for this clip.';
 
   @override
   String get runningCoachSampleMistakeFoot =>
-      'Contact point: landing is 0.20 ahead of the hip, increasing braking.';
+      'Contact point: the coach uses the detected landing distance before assigning the status.';
 
   @override
   String get runningCoachSampleMistakeKnee =>
-      'Stance knee: 172° at contact, too straight to absorb and push.';
+      'Stance knee: the coach reads the actual contact-window knee angle from the pose frames.';
 
   @override
   String get runningCoachSampleMistakeArms =>
-      'Arm angle: elbows rise near 118°, making the swing high and tight.';
+      'Arm angle: the coach uses the detected elbow angle instead of a fixed sample value.';
 
   @override
   String get runningCoachSampleMistakeBounce =>
-      'Bounce: vertical motion rises to 10%, wasting force upward.';
+      'Bounce: the coach reports the measured vertical motion from the analyzed frames.';
 
   @override
   String get runningCoachSampleAnalysisMethodTitle =>
@@ -8627,31 +8627,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachSampleStatusReview => 'Review';
 
   @override
-  String get runningCoachSampleOverlayPosture => 'Lean 10°';
+  String get runningCoachSamplePoseOverlayUnavailable => 'No pose frames';
 
   @override
-  String get runningCoachSampleOverlayArms => 'Arms 90°';
+  String runningCoachSampleReadoutValue(
+      Object metric, Object value, Object status) {
+    return '$metric: $value · $status';
+  }
 
   @override
-  String get runningCoachSampleOverlayFoot => 'Landing 0.08';
+  String get runningCoachSampleOverlayPosture => 'Lean value';
 
   @override
-  String get runningCoachSampleOverlayBounce => 'Bounce 6%';
+  String get runningCoachSampleOverlayArms => 'Arm value';
 
   @override
-  String get runningCoachSampleOverlayFrames => '24/24 frames';
+  String get runningCoachSampleOverlayFoot => 'Landing value';
 
   @override
-  String get runningCoachSampleMistakeOverlayPosture => 'Upright 4°';
+  String get runningCoachSampleOverlayBounce => 'Bounce value';
 
   @override
-  String get runningCoachSampleMistakeOverlayArms => 'Arms 118°';
+  String get runningCoachSampleOverlayFrames => 'Pose frames';
 
   @override
-  String get runningCoachSampleMistakeOverlayFoot => 'Ahead 0.20';
+  String get runningCoachSampleMistakeOverlayPosture => 'Lean value';
 
   @override
-  String get runningCoachSampleMistakeOverlayBounce => 'Bounce 10%';
+  String get runningCoachSampleMistakeOverlayArms => 'Arm value';
+
+  @override
+  String get runningCoachSampleMistakeOverlayFoot => 'Landing value';
+
+  @override
+  String get runningCoachSampleMistakeOverlayBounce => 'Bounce value';
 
   @override
   String get runningCoachSampleMetricDetailScreenTitle => 'Evidence detail';
@@ -8687,7 +8696,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSamplePostureDetailGoodRange =>
-      '8-24° forward lean from the hip-to-shoulder center line. The sample value is 10°.';
+      'Use the coaching guide range for forward lean, then compare it with this clip\'s measured value.';
 
   @override
   String get runningCoachSamplePostureDetailKeyPosition =>
@@ -8699,7 +8708,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSamplePostureDetailReview =>
-      'The review clip is only 4°, below the sprint range, so the runner looks tall instead of driving forward.';
+      'A clip is marked for review when its measured lean falls outside the coaching range for this run.';
 
   @override
   String get runningCoachSamplePostureDetailHowRead =>
@@ -8715,7 +8724,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSampleArmsDetailReference =>
-      'The reference clip keeps the elbows near 90 degrees and swings front-to-back close to the ribs.';
+      'A strong clip keeps the elbows compact and swings front-to-back close to the ribs.';
 
   @override
   String get runningCoachSampleArmsDetailReview =>
@@ -8727,7 +8736,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSampleLandingDetailGoodRange =>
-      'Foot contact within 0.00-0.10 body-length of the hip line. The sample value is 0.08.';
+      'Use the coaching guide range for foot contact near the hip line, then compare it with this clip\'s measured value.';
 
   @override
   String get runningCoachSampleLandingDetailKeyPosition =>
@@ -8747,7 +8756,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSampleBounceDetailGoodRange =>
-      'Vertical head/hip change under 7% through the stride. The sample value is 6%.';
+      'Use the coaching guide range for vertical head and hip change, then compare it with this clip\'s measured value.';
 
   @override
   String get runningCoachSampleBounceDetailKeyPosition =>

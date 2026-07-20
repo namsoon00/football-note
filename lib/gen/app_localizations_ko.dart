@@ -8295,42 +8295,43 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachSampleReferencePosture =>
-      '전경사: 어깨 중심이 엉덩이 수직선보다 10도 앞에 있고, 허리 접힘은 없음.';
+      '전경사: 코치는 어깨-엉덩이 선을 읽고 현재 자세 값을 표시해요.';
 
   @override
   String get runningCoachSampleReferenceFoot =>
-      '접지 지점: 착지 거리 0.08, 엉덩이 아래에 가깝게 착지.';
+      '접지 지점: 코치는 착지 발과 엉덩이 선을 비교한 뒤 제동 위험을 판단해요.';
 
   @override
   String get runningCoachSampleReferenceKnee =>
-      '접지 무릎: 155도, 잠그지 않고 부드럽게 부하를 받음.';
+      '접지 무릎: 코치는 감지된 엉덩이, 무릎, 발목으로 부하를 받는 무릎 각도를 표시해요.';
 
   @override
   String get runningCoachSampleReferenceArms =>
-      '팔 각도: 팔꿈치가 90도 근처에서 다리와 반대로 스윙.';
+      '팔 각도: 코치는 샘플 프레임마다 어깨, 팔꿈치, 손목 랜드마크를 읽어요.';
 
   @override
   String get runningCoachSampleReferenceFrame =>
-      '프레임 품질: 주요 관절이 보이는 24/24 사용 가능 프레임.';
+      '프레임 품질: 사용 가능 프레임은 미리 정한 샘플 라벨이 아니라 보이는 MediaPipe 관절에 따라 달라져요.';
 
   @override
   String get runningCoachSampleMistakePosture =>
-      '전경사: 어깨 중심이 엉덩이 수직선에서 4도만 벗어나 몸이 너무 선 상태.';
+      '전경사: 코치는 이 클립에도 같은 자세 지표와 상태를 표시해요.';
 
   @override
   String get runningCoachSampleMistakeFoot =>
-      '접지 지점: 엉덩이보다 0.20 앞에 떨어져 제동이 커짐.';
+      '접지 지점: 코치는 감지된 착지 거리를 사용한 뒤 상태를 매겨요.';
 
   @override
   String get runningCoachSampleMistakeKnee =>
-      '접지 무릎: 172도, 충격을 받고 밀기에는 너무 곧게 펴짐.';
+      '접지 무릎: 코치는 poseFrames에서 실제 접지 구간 무릎 각도를 읽어요.';
 
   @override
   String get runningCoachSampleMistakeArms =>
-      '팔 각도: 팔꿈치가 118도 근처까지 올라와 스윙이 높고 좁아짐.';
+      '팔 각도: 코치는 고정 샘플값 대신 감지된 팔꿈치 각도를 사용해요.';
 
   @override
-  String get runningCoachSampleMistakeBounce => '바운스: 수직 움직임 10%, 힘이 위로 새어 나감.';
+  String get runningCoachSampleMistakeBounce =>
+      '바운스: 코치는 분석된 프레임에서 측정한 수직 움직임을 표시해요.';
 
   @override
   String get runningCoachSampleAnalysisMethodTitle => '코치가 분석하는 방식';
@@ -8408,31 +8409,40 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachSampleStatusReview => '확인';
 
   @override
-  String get runningCoachSampleOverlayPosture => '전경사 10도';
+  String get runningCoachSamplePoseOverlayUnavailable => '관절 프레임 없음';
 
   @override
-  String get runningCoachSampleOverlayArms => '팔 90도';
+  String runningCoachSampleReadoutValue(
+      Object metric, Object value, Object status) {
+    return '$metric: $value · $status';
+  }
 
   @override
-  String get runningCoachSampleOverlayFoot => '착지 0.08';
+  String get runningCoachSampleOverlayPosture => '전경사 값';
 
   @override
-  String get runningCoachSampleOverlayBounce => '바운스 6%';
+  String get runningCoachSampleOverlayArms => '팔 값';
 
   @override
-  String get runningCoachSampleOverlayFrames => '24/24프레임';
+  String get runningCoachSampleOverlayFoot => '착지 값';
 
   @override
-  String get runningCoachSampleMistakeOverlayPosture => '상체 4도';
+  String get runningCoachSampleOverlayBounce => '바운스 값';
 
   @override
-  String get runningCoachSampleMistakeOverlayArms => '팔 118도';
+  String get runningCoachSampleOverlayFrames => '관절 프레임';
 
   @override
-  String get runningCoachSampleMistakeOverlayFoot => '앞착지 0.20';
+  String get runningCoachSampleMistakeOverlayPosture => '전경사 값';
 
   @override
-  String get runningCoachSampleMistakeOverlayBounce => '바운스 10%';
+  String get runningCoachSampleMistakeOverlayArms => '팔 값';
+
+  @override
+  String get runningCoachSampleMistakeOverlayFoot => '착지 값';
+
+  @override
+  String get runningCoachSampleMistakeOverlayBounce => '바운스 값';
 
   @override
   String get runningCoachSampleMetricDetailScreenTitle => '근거 상세';
@@ -8467,7 +8477,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachSamplePostureDetailGoodRange =>
-      '엉덩이-어깨 중심선 기준 전경사 8-24도. 좋은 샘플 값은 10도예요.';
+      '전경사는 코칭 가이드 범위와 이 클립의 실제 측정값을 함께 비교해요.';
 
   @override
   String get runningCoachSamplePostureDetailKeyPosition =>
@@ -8479,7 +8489,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachSamplePostureDetailReview =>
-      '확인 샘플은 4도로 스프린트 범위보다 낮아 앞으로 밀기보다 몸이 서 있는 형태예요.';
+      '측정된 전경사가 이 러닝의 코칭 범위를 벗어나면 확인 상태로 표시돼요.';
 
   @override
   String get runningCoachSamplePostureDetailHowRead =>
@@ -8495,7 +8505,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachSampleArmsDetailReference =>
-      '좋은 샘플은 팔꿈치를 90도에 가깝게 유지하고 갈비뼈 옆에서 앞뒤로 흔들어요.';
+      '좋은 클립은 팔꿈치를 compact하게 두고 갈비뼈 옆에서 앞뒤로 흔들어요.';
 
   @override
   String get runningCoachSampleArmsDetailReview =>
@@ -8507,7 +8517,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachSampleLandingDetailGoodRange =>
-      '엉덩이 선 기준 착지 거리 0.00-0.10 몸길이. 좋은 샘플 값은 0.08이에요.';
+      '착지는 엉덩이 선 가까이 닿는 코칭 가이드 범위와 이 클립의 실제 측정값을 함께 비교해요.';
 
   @override
   String get runningCoachSampleLandingDetailKeyPosition =>
@@ -8527,7 +8537,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachSampleBounceDetailGoodRange =>
-      '보폭 중 머리/엉덩이 높이 변화 7% 이하. 좋은 샘플 값은 6%예요.';
+      '바운스는 머리와 엉덩이 높이 변화에 대한 코칭 가이드 범위와 이 클립의 실제 측정값을 함께 비교해요.';
 
   @override
   String get runningCoachSampleBounceDetailKeyPosition =>

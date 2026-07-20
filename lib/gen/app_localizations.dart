@@ -14911,61 +14911,61 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleReferencePosture.
   ///
   /// In en, this message translates to:
-  /// **'Forward lean: shoulder center is 10° ahead of the vertical hip line without waist folding.'**
+  /// **'Forward lean: the coach reads the shoulder-to-hip line and reports the current posture value.'**
   String get runningCoachSampleReferencePosture;
 
   /// No description provided for @runningCoachSampleReferenceFoot.
   ///
   /// In en, this message translates to:
-  /// **'Contact point: landing distance is 0.08, close enough to stay under the hip.'**
+  /// **'Contact point: the coach compares the landing foot with the hip line before judging braking risk.'**
   String get runningCoachSampleReferenceFoot;
 
   /// No description provided for @runningCoachSampleReferenceKnee.
   ///
   /// In en, this message translates to:
-  /// **'Stance knee: 155° at contact, softly loaded instead of locked.'**
+  /// **'Stance knee: the coach reports the loaded knee angle from the detected hip, knee, and ankle.'**
   String get runningCoachSampleReferenceKnee;
 
   /// No description provided for @runningCoachSampleReferenceArms.
   ///
   /// In en, this message translates to:
-  /// **'Arm angle: elbows stay near 90° and swing opposite the legs.'**
+  /// **'Arm angle: the coach reads shoulder, elbow, and wrist landmarks on each sampled frame.'**
   String get runningCoachSampleReferenceArms;
 
   /// No description provided for @runningCoachSampleReferenceFrame.
   ///
   /// In en, this message translates to:
-  /// **'Frame quality: 24/24 usable frames with all main joints visible.'**
+  /// **'Frame quality: usable frames depend on visible MediaPipe joints, not on a preset sample label.'**
   String get runningCoachSampleReferenceFrame;
 
   /// No description provided for @runningCoachSampleMistakePosture.
   ///
   /// In en, this message translates to:
-  /// **'Forward lean: shoulder center is only 4° from the vertical hip line, so the runner sits tall.'**
+  /// **'Forward lean: the coach reports the same posture metric and status for this clip.'**
   String get runningCoachSampleMistakePosture;
 
   /// No description provided for @runningCoachSampleMistakeFoot.
   ///
   /// In en, this message translates to:
-  /// **'Contact point: landing is 0.20 ahead of the hip, increasing braking.'**
+  /// **'Contact point: the coach uses the detected landing distance before assigning the status.'**
   String get runningCoachSampleMistakeFoot;
 
   /// No description provided for @runningCoachSampleMistakeKnee.
   ///
   /// In en, this message translates to:
-  /// **'Stance knee: 172° at contact, too straight to absorb and push.'**
+  /// **'Stance knee: the coach reads the actual contact-window knee angle from the pose frames.'**
   String get runningCoachSampleMistakeKnee;
 
   /// No description provided for @runningCoachSampleMistakeArms.
   ///
   /// In en, this message translates to:
-  /// **'Arm angle: elbows rise near 118°, making the swing high and tight.'**
+  /// **'Arm angle: the coach uses the detected elbow angle instead of a fixed sample value.'**
   String get runningCoachSampleMistakeArms;
 
   /// No description provided for @runningCoachSampleMistakeBounce.
   ///
   /// In en, this message translates to:
-  /// **'Bounce: vertical motion rises to 10%, wasting force upward.'**
+  /// **'Bounce: the coach reports the measured vertical motion from the analyzed frames.'**
   String get runningCoachSampleMistakeBounce;
 
   /// No description provided for @runningCoachSampleAnalysisMethodTitle.
@@ -15106,58 +15106,71 @@ abstract class AppLocalizations {
   /// **'Review'**
   String get runningCoachSampleStatusReview;
 
+  /// No description provided for @runningCoachSamplePoseOverlayUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No pose frames'**
+  String get runningCoachSamplePoseOverlayUnavailable;
+
+  /// No description provided for @runningCoachSampleReadoutValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{metric}: {value} · {status}'**
+  String runningCoachSampleReadoutValue(
+      Object metric, Object value, Object status);
+
   /// No description provided for @runningCoachSampleOverlayPosture.
   ///
   /// In en, this message translates to:
-  /// **'Lean 10°'**
+  /// **'Lean value'**
   String get runningCoachSampleOverlayPosture;
 
   /// No description provided for @runningCoachSampleOverlayArms.
   ///
   /// In en, this message translates to:
-  /// **'Arms 90°'**
+  /// **'Arm value'**
   String get runningCoachSampleOverlayArms;
 
   /// No description provided for @runningCoachSampleOverlayFoot.
   ///
   /// In en, this message translates to:
-  /// **'Landing 0.08'**
+  /// **'Landing value'**
   String get runningCoachSampleOverlayFoot;
 
   /// No description provided for @runningCoachSampleOverlayBounce.
   ///
   /// In en, this message translates to:
-  /// **'Bounce 6%'**
+  /// **'Bounce value'**
   String get runningCoachSampleOverlayBounce;
 
   /// No description provided for @runningCoachSampleOverlayFrames.
   ///
   /// In en, this message translates to:
-  /// **'24/24 frames'**
+  /// **'Pose frames'**
   String get runningCoachSampleOverlayFrames;
 
   /// No description provided for @runningCoachSampleMistakeOverlayPosture.
   ///
   /// In en, this message translates to:
-  /// **'Upright 4°'**
+  /// **'Lean value'**
   String get runningCoachSampleMistakeOverlayPosture;
 
   /// No description provided for @runningCoachSampleMistakeOverlayArms.
   ///
   /// In en, this message translates to:
-  /// **'Arms 118°'**
+  /// **'Arm value'**
   String get runningCoachSampleMistakeOverlayArms;
 
   /// No description provided for @runningCoachSampleMistakeOverlayFoot.
   ///
   /// In en, this message translates to:
-  /// **'Ahead 0.20'**
+  /// **'Landing value'**
   String get runningCoachSampleMistakeOverlayFoot;
 
   /// No description provided for @runningCoachSampleMistakeOverlayBounce.
   ///
   /// In en, this message translates to:
-  /// **'Bounce 10%'**
+  /// **'Bounce value'**
   String get runningCoachSampleMistakeOverlayBounce;
 
   /// No description provided for @runningCoachSampleMetricDetailScreenTitle.
@@ -15223,7 +15236,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSamplePostureDetailGoodRange.
   ///
   /// In en, this message translates to:
-  /// **'8-24° forward lean from the hip-to-shoulder center line. The sample value is 10°.'**
+  /// **'Use the coaching guide range for forward lean, then compare it with this clip\'s measured value.'**
   String get runningCoachSamplePostureDetailGoodRange;
 
   /// No description provided for @runningCoachSamplePostureDetailKeyPosition.
@@ -15241,7 +15254,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSamplePostureDetailReview.
   ///
   /// In en, this message translates to:
-  /// **'The review clip is only 4°, below the sprint range, so the runner looks tall instead of driving forward.'**
+  /// **'A clip is marked for review when its measured lean falls outside the coaching range for this run.'**
   String get runningCoachSamplePostureDetailReview;
 
   /// No description provided for @runningCoachSamplePostureDetailHowRead.
@@ -15265,7 +15278,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleArmsDetailReference.
   ///
   /// In en, this message translates to:
-  /// **'The reference clip keeps the elbows near 90 degrees and swings front-to-back close to the ribs.'**
+  /// **'A strong clip keeps the elbows compact and swings front-to-back close to the ribs.'**
   String get runningCoachSampleArmsDetailReference;
 
   /// No description provided for @runningCoachSampleArmsDetailReview.
@@ -15283,7 +15296,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleLandingDetailGoodRange.
   ///
   /// In en, this message translates to:
-  /// **'Foot contact within 0.00-0.10 body-length of the hip line. The sample value is 0.08.'**
+  /// **'Use the coaching guide range for foot contact near the hip line, then compare it with this clip\'s measured value.'**
   String get runningCoachSampleLandingDetailGoodRange;
 
   /// No description provided for @runningCoachSampleLandingDetailKeyPosition.
@@ -15313,7 +15326,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleBounceDetailGoodRange.
   ///
   /// In en, this message translates to:
-  /// **'Vertical head/hip change under 7% through the stride. The sample value is 6%.'**
+  /// **'Use the coaching guide range for vertical head and hip change, then compare it with this clip\'s measured value.'**
   String get runningCoachSampleBounceDetailGoodRange;
 
   /// No description provided for @runningCoachSampleBounceDetailKeyPosition.
