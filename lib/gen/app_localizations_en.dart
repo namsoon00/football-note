@@ -8611,6 +8611,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String runningCoachContactTimestampSeconds(String seconds) {
+    return '${seconds}s';
+  }
+
+  @override
   String get runningCoachSampleDecisionTitle => 'Decision evidence';
 
   @override

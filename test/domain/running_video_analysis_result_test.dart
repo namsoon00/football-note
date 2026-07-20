@@ -91,11 +91,20 @@ void main() {
           'centerTimestampMs': 1030,
           'endTimestampMs': 1190,
           'denseSampleCount': 9,
-          'validatedContactFrameTimestampsMs': [1066, 1033, 1033],
+          'validatedContactFrameTimestampsMs': [1033, 1033],
           'confidence': 0.82,
         },
+        {
+          'side': 'left',
+          'startTimestampMs': 1400,
+          'centerTimestampMs': 1560,
+          'endTimestampMs': 1740,
+          'denseSampleCount': 9,
+          'validatedContactFrameTimestampsMs': [1560],
+          'confidence': 0.84,
+        },
       ],
-      'validatedContactFrameTimestampsMs': [1066, 1033, 1066],
+      'validatedContactFrameTimestampsMs': [1560, 1033, 1033],
       'contactConfidence': 0.81,
       'metricQualities': {
         'footStrike': {'confidence': 0.82, 'sampleCount': 2},
@@ -105,6 +114,7 @@ void main() {
         _poseFrameMap(timestampMs: 1033, imageWidth: 640, imageHeight: 360),
         _poseFrameMap(timestampMs: 1000, imageWidth: 640, imageHeight: 360),
         _poseFrameMap(timestampMs: 1033, imageWidth: 1280, imageHeight: 720),
+        _poseFrameMap(timestampMs: 1560, imageWidth: 640, imageHeight: 360),
       ],
     });
 
@@ -112,30 +122,42 @@ void main() {
     expect(result.denseSamples.attemptedFrames, 18);
     expect(result.denseSamples.maxFrameBudget, 48);
     expect(result.denseSamples.targetFps, 30);
-    expect(result.contactWindows, hasLength(1));
-    expect(result.contactWindows.single.side, RunningContactSide.right);
+    expect(result.contactWindows, hasLength(2));
+    expect(result.contactWindows.first.side, RunningContactSide.right);
     expect(
-      result.contactWindows.single.validatedContactTimestamps
+      result.contactWindows.first.validatedContactTimestamps
           .map((timestamp) => timestamp.inMilliseconds),
-      [1033, 1066],
+      [1033],
+    );
+    expect(
+      result.contactWindows.last.validatedContactTimestamps
+          .map((timestamp) => timestamp.inMilliseconds),
+      [1560],
     );
     expect(
       result.validatedContactFrameTimestamps
           .map((timestamp) => timestamp.inMilliseconds),
-      [1033, 1066],
+      [1033, 1560],
+    );
+    expect(
+      result.validatedContactFrameTimestamps.length,
+      lessThanOrEqualTo(result.contactWindows.length),
     );
     expect(result.contactConfidence, closeTo(0.81, 0.0001));
     expect(
       result.qualityFor(RunningCoachMetric.footStrike)!.confidence,
       closeTo(0.82, 0.0001),
     );
-    expect(result.poseFrames.map((frame) => frame.timestampMs), [1000, 1033]);
-    expect(result.poseFrames.last.imageWidth, 1280);
+    expect(
+      result.poseFrames.map((frame) => frame.timestampMs),
+      [1000, 1033, 1560],
+    );
+    expect(result.poseFrames[1].imageWidth, 1280);
     expect(
       result.nearestValidatedContactTimestamp(
         const Duration(milliseconds: 1050),
       ),
-      const Duration(milliseconds: 1066),
+      const Duration(milliseconds: 1033),
     );
     expect(
       result.nearestValidatedContactTimestamp(

@@ -15070,6 +15070,12 @@ abstract class AppLocalizations {
   /// **'Contact {time}'**
   String runningCoachSampleContactFrameLabel(Object time);
 
+  /// No description provided for @runningCoachContactTimestampSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'{seconds}s'**
+  String runningCoachContactTimestampSeconds(String seconds);
+
   /// No description provided for @runningCoachSampleDecisionTitle.
   ///
   /// In en, this message translates to:

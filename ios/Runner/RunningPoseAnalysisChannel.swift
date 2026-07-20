@@ -137,7 +137,8 @@ final class RunningPoseAnalysisChannel {
       groundY: candidateSet.groundY,
       direction: direction
     )
-    guard contactFrames.count >= Self.minimumValidatedContactFrames else {
+    let uniqueContactFrameCount = Set(contactFrames.map(\.timestampMs)).count
+    guard uniqueContactFrameCount >= Self.minimumValidatedContactFrames else {
       throw insufficientContactEvidence()
     }
     let footStrikeRatio =
@@ -271,6 +272,7 @@ final class RunningPoseAnalysisChannel {
     var frameSamples: [FrameSample] = []
     var poseFrames: [[String: Any]] = []
     var lastAnalysisTimestampMs = -1
+    var seenSourceTimestamps: Set<Int> = []
 
     for timestampMs in Array(Set(timestampsMs)).sorted() {
       let captureTime = CMTime(
@@ -285,13 +287,20 @@ final class RunningPoseAnalysisChannel {
         ) else {
           return
         }
+        guard
+          let sourceTimestampMs = actualSourceTimestampMs(from: actualTime),
+          !seenSourceTimestamps.contains(sourceTimestampMs)
+        else {
+          return
+        }
+        seenSourceTimestamps.insert(sourceTimestampMs)
         let image = UIImage(cgImage: cgImage)
         let imageSize = CGSize(
           width: CGFloat(cgImage.width),
           height: CGFloat(cgImage.height)
         )
         let mpImage = try MPImage(uiImage: image)
-        let analysisTimestampMs = max(timestampMs, lastAnalysisTimestampMs + 1)
+        let analysisTimestampMs = max(sourceTimestampMs, lastAnalysisTimestampMs + 1)
         lastAnalysisTimestampMs = analysisTimestampMs
 
         let result: PoseLandmarkerResult
@@ -308,14 +317,14 @@ final class RunningPoseAnalysisChannel {
         }
         if let poseFrame = poseFrame(
           from: result,
-          timestampMs: timestampMs,
+          timestampMs: sourceTimestampMs,
           imageSize: imageSize
         ) {
           poseFrames.append(poseFrame)
         }
         if let sample = extractFrameSample(
           from: result,
-          timestampMs: timestampMs,
+          timestampMs: sourceTimestampMs,
           imageSize: imageSize
         ) {
           frameSamples.append(sample)
@@ -323,7 +332,25 @@ final class RunningPoseAnalysisChannel {
       }
     }
 
-    return PosePassResult(samples: frameSamples, poseFrames: poseFrames)
+    return PosePassResult(
+      samples: frameSamples.sorted { $0.timestampMs < $1.timestampMs },
+      poseFrames: poseFrames.sorted {
+        let first = $0["timestampMs"] as? Int ?? 0
+        let second = $1["timestampMs"] as? Int ?? 0
+        return first < second
+      }
+    )
+  }
+
+  private func actualSourceTimestampMs(from actualTime: CMTime) -> Int? {
+    guard actualTime.isValid, actualTime.isNumeric else {
+      return nil
+    }
+    let seconds = CMTimeGetSeconds(actualTime)
+    guard seconds.isFinite, seconds >= 0 else {
+      return nil
+    }
+    return max(0, Int((seconds * 1000.0).rounded()))
   }
 
   private func deriveContactCandidateWindows(
@@ -390,8 +417,12 @@ final class RunningPoseAnalysisChannel {
     for candidate in rankedCandidates {
       let overlapsExisting = selected.contains { selectedCandidate in
         selectedCandidate.side == candidate.side &&
-        abs(selectedCandidate.centerTimestampMs - candidate.centerTimestampMs) <
-          Self.minimumContactCenterSeparationMs
+        (
+          abs(selectedCandidate.centerTimestampMs - candidate.centerTimestampMs) <
+            Self.minimumContactCenterSeparationMs ||
+            candidate.startTimestampMs <= selectedCandidate.endTimestampMs &&
+            candidate.endTimestampMs >= selectedCandidate.startTimestampMs
+        )
       }
       if !overlapsExisting {
         selected.append(candidate)
@@ -458,49 +489,150 @@ final class RunningPoseAnalysisChannel {
     groundY: Double,
     direction: AnalysisDirection
   ) -> [ContactFrameAnalysis] {
-    var byTimestamp: [Int: ContactFrameAnalysis] = [:]
-    for sample in samples.sorted(by: { $0.timestampMs < $1.timestampMs }) {
-      for side in FootSide.allCases {
-        let isInsideWindow = windows.contains { window in
-          window.side == side &&
-          sample.timestampMs >= window.startTimestampMs &&
-          sample.timestampMs <= window.endTimestampMs
-        }
-        guard isInsideWindow, let evidence = sample.footBottom(side) else {
-          continue
-        }
-        let tolerance = max(1.0, sample.bodyScale * Self.denseContactGroundToleranceRatio)
-        let proximity = groundY - Double(evidence.bottomPoint.y)
-        guard proximity >= -tolerance * 0.35, proximity <= tolerance else {
-          continue
-        }
-        let proximityFactor = min(1.0, max(0.0, 1.0 - (max(0.0, proximity) / tolerance)))
-        let confidence = min(
-          1.0,
-          max(
-            0.0,
-            sample.contactLandmarkConfidence(side, footEvidence: evidence) *
-              (0.75 + (0.25 * proximityFactor))
-          )
+    let orderedSamples = samples.sorted { $0.timestampMs < $1.timestampMs }
+    var selectedByTimestamp: [Int: ContactFrameAnalysis] = [:]
+    for window in windows.sorted(by: { $0.centerTimestampMs < $1.centerTimestampMs }) {
+      guard
+        let contactFrame = selectDenseContactFrame(
+          for: window,
+          orderedSamples: orderedSamples,
+          groundY: groundY,
+          direction: direction
         )
-        guard confidence >= Self.minimumContactFrameConfidence else {
-          continue
-        }
-        let contactFrame = ContactFrameAnalysis(
-          timestampMs: sample.timestampMs,
-          side: side,
-          footStrikeRatio: sample.contactFootStrikeRatio(side, direction: direction),
-          kneeAngleDegrees: sample.contactKneeAngleDegrees(side),
-          confidence: confidence
-        )
-        if let existing = byTimestamp[sample.timestampMs],
-           existing.confidence >= contactFrame.confidence {
-          continue
-        }
-        byTimestamp[sample.timestampMs] = contactFrame
+      else {
+        continue
+      }
+      if let existing = selectedByTimestamp[contactFrame.timestampMs],
+         existing.confidence >= contactFrame.confidence {
+        continue
+      }
+      selectedByTimestamp[contactFrame.timestampMs] = contactFrame
+    }
+    return selectedByTimestamp.keys.sorted().compactMap { selectedByTimestamp[$0] }
+  }
+
+  private func selectDenseContactFrame(
+    for window: ContactCandidate,
+    orderedSamples: [FrameSample],
+    groundY: Double,
+    direction: AnalysisDirection
+  ) -> ContactFrameAnalysis? {
+    let candidates = orderedSamples
+      .filter { sample in
+        sample.timestampMs >= window.startTimestampMs &&
+        sample.timestampMs <= window.endTimestampMs
+      }
+      .compactMap { sample in
+        denseContactCandidate(sample, side: window.side, groundY: groundY)
+      }
+    var persistentCandidates: [ContactFrameCandidate] = []
+    for index in candidates.indices {
+      let current = candidates[index]
+      guard isEligibleContact(current) else {
+        continue
+      }
+      let previous = index > 0 ? candidates[index - 1] : nil
+      let next = index + 1 < candidates.count ? candidates[index + 1] : nil
+      if enteredGroundBand(current, previous: previous) {
+        return contactFrame(from: current, window: window, direction: direction)
+      }
+      if hasGroundBandPersistence(current, previous: previous, next: next) {
+        persistentCandidates.append(current)
       }
     }
-    return byTimestamp.values.sorted { $0.timestampMs < $1.timestampMs }
+    guard
+      let selected = persistentCandidates.sorted(by: { first, second in
+        if first.confidence != second.confidence {
+          return first.confidence > second.confidence
+        }
+        let firstDistance = abs(first.sample.timestampMs - window.centerTimestampMs)
+        let secondDistance = abs(second.sample.timestampMs - window.centerTimestampMs)
+        if firstDistance != secondDistance {
+          return firstDistance < secondDistance
+        }
+        return first.sample.timestampMs < second.sample.timestampMs
+      }).first
+    else {
+      return nil
+    }
+    return contactFrame(from: selected, window: window, direction: direction)
+  }
+
+  private func denseContactCandidate(
+    _ sample: FrameSample,
+    side: FootSide,
+    groundY: Double
+  ) -> ContactFrameCandidate? {
+    guard let evidence = sample.footBottom(side) else {
+      return nil
+    }
+    let tolerance = max(1.0, sample.bodyScale * Self.denseContactGroundToleranceRatio)
+    let proximity = groundY - Double(evidence.bottomPoint.y)
+    let inGroundBand = proximity >= -tolerance * 0.35 && proximity <= tolerance
+    let proximityFactor = min(1.0, max(0.0, 1.0 - (max(0.0, proximity) / tolerance)))
+    let confidence = min(
+      1.0,
+      max(
+        0.0,
+        sample.contactLandmarkConfidence(side, footEvidence: evidence) *
+          (0.75 + (0.25 * proximityFactor))
+      )
+    )
+    return ContactFrameCandidate(
+      sample: sample,
+      side: side,
+      footEvidence: evidence,
+      proximity: proximity,
+      tolerance: tolerance,
+      confidence: confidence,
+      inGroundBand: inGroundBand
+    )
+  }
+
+  private func isEligibleContact(_ candidate: ContactFrameCandidate) -> Bool {
+    candidate.inGroundBand && candidate.confidence >= Self.minimumContactFrameConfidence
+  }
+
+  private func enteredGroundBand(
+    _ current: ContactFrameCandidate,
+    previous: ContactFrameCandidate?
+  ) -> Bool {
+    guard let previous else {
+      return false
+    }
+    return previous.proximity > current.tolerance &&
+      abs(previous.sample.timestampMs - current.sample.timestampMs) <=
+      Self.denseFrameIntervalMs * 2
+  }
+
+  private func hasGroundBandPersistence(
+    _ current: ContactFrameCandidate,
+    previous: ContactFrameCandidate?,
+    next: ContactFrameCandidate?
+  ) -> Bool {
+    [previous, next].compactMap { $0 }.contains { neighbor in
+      isEligibleContact(neighbor) &&
+        abs(neighbor.sample.timestampMs - current.sample.timestampMs) <=
+        Self.denseFrameIntervalMs * 2
+    }
+  }
+
+  private func contactFrame(
+    from candidate: ContactFrameCandidate,
+    window: ContactCandidate,
+    direction: AnalysisDirection
+  ) -> ContactFrameAnalysis {
+    ContactFrameAnalysis(
+      timestampMs: candidate.sample.timestampMs,
+      windowCenterTimestampMs: window.centerTimestampMs,
+      side: candidate.side,
+      footStrikeRatio: candidate.sample.contactFootStrikeRatio(
+        candidate.side,
+        direction: direction
+      ),
+      kneeAngleDegrees: candidate.sample.contactKneeAngleDegrees(candidate.side),
+      confidence: candidate.confidence
+    )
   }
 
   private func sampleSummaryPayload(
@@ -542,6 +674,7 @@ final class RunningPoseAnalysisChannel {
     windows.map { window in
       let validated = contactFrames.filter { frame in
         frame.side == window.side &&
+        frame.windowCenterTimestampMs == window.centerTimestampMs &&
         frame.timestampMs >= window.startTimestampMs &&
         frame.timestampMs <= window.endTimestampMs
       }
@@ -773,10 +906,21 @@ final class RunningPoseAnalysisChannel {
 
   private struct ContactFrameAnalysis {
     let timestampMs: Int
+    let windowCenterTimestampMs: Int
     let side: FootSide
     let footStrikeRatio: Double
     let kneeAngleDegrees: Double
     let confidence: Double
+  }
+
+  private struct ContactFrameCandidate {
+    let sample: FrameSample
+    let side: FootSide
+    let footEvidence: FootBottomEvidence
+    let proximity: Double
+    let tolerance: Double
+    let confidence: Double
+    let inGroundBand: Bool
   }
 
   private struct FootBottomEvidence {

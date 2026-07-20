@@ -148,7 +148,11 @@ class RunningPoseAnalysisChannel(
                 groundY = candidateSet.groundY,
                 direction = direction,
             )
-            if (contactFrames.size < minimumValidatedContactFrames) {
+            val uniqueContactFrameCount = contactFrames
+                .map { it.timestampMs }
+                .distinct()
+                .size
+            if (uniqueContactFrameCount < minimumValidatedContactFrames) {
                 throw insufficientContactEvidence()
             }
 
@@ -400,8 +404,12 @@ class RunningPoseAnalysisChannel(
         for (candidate in rankedCandidates) {
             val overlapsExisting = selected.any { selectedCandidate ->
                 selectedCandidate.side == candidate.side &&
-                    abs(selectedCandidate.centerTimestampMs - candidate.centerTimestampMs) <
-                    minimumContactCenterSeparationMs
+                    (
+                        abs(selectedCandidate.centerTimestampMs - candidate.centerTimestampMs) <
+                            minimumContactCenterSeparationMs ||
+                            candidate.startTimestampMs <= selectedCandidate.endTimestampMs &&
+                            candidate.endTimestampMs >= selectedCandidate.startTimestampMs
+                        )
             }
             if (!overlapsExisting) {
                 selected.add(candidate)
@@ -464,50 +472,125 @@ class RunningPoseAnalysisChannel(
         groundY: Double,
         direction: AnalysisDirection,
     ): List<ContactFrameAnalysis> {
-        val byTimestamp = TreeMap<Long, ContactFrameAnalysis>()
-        for (sample in samples.sortedBy { it.timestampMs }) {
-            for (side in FootSide.values()) {
-                if (windows.none { window ->
-                        window.side == side &&
-                            sample.timestampMs >= window.startTimestampMs &&
-                            sample.timestampMs <= window.endTimestampMs
-                    }
-                ) {
-                    continue
-                }
-                val evidence = sample.footBottom(side) ?: continue
-                val tolerance = (sample.bodyScale * denseContactGroundToleranceRatio)
-                    .coerceAtLeast(1.0)
-                val proximity = groundY - evidence.bottomPoint.y.toDouble()
-                if (proximity < -tolerance * 0.35 || proximity > tolerance) {
-                    continue
-                }
-                val kneeAngle = sample.contactKneeAngleDegrees(side)
-                val footStrikeRatio = sample.contactFootStrikeRatio(side, direction)
-                val proximityFactor = (
-                    1.0 - (proximity.coerceAtLeast(0.0) / tolerance)
-                    ).coerceIn(0.0, 1.0)
-                val confidence = (
-                    sample.contactLandmarkConfidence(side, evidence) *
-                        (0.75 + (0.25 * proximityFactor))
-                    ).coerceIn(0.0, 1.0)
-                if (confidence < minimumContactFrameConfidence) {
-                    continue
-                }
-                val contactFrame = ContactFrameAnalysis(
-                    timestampMs = sample.timestampMs,
-                    side = side,
-                    footStrikeRatio = footStrikeRatio,
-                    kneeAngleDegrees = kneeAngle,
-                    confidence = confidence,
-                )
-                val existing = byTimestamp[sample.timestampMs]
-                if (existing == null || contactFrame.confidence > existing.confidence) {
-                    byTimestamp[sample.timestampMs] = contactFrame
-                }
+        val orderedSamples = samples.sortedBy { it.timestampMs }
+        val selectedByTimestamp = TreeMap<Long, ContactFrameAnalysis>()
+        for (window in windows.sortedBy { it.centerTimestampMs }) {
+            val contactFrame = selectDenseContactFrame(
+                window = window,
+                orderedSamples = orderedSamples,
+                groundY = groundY,
+                direction = direction,
+            ) ?: continue
+            val existing = selectedByTimestamp[contactFrame.timestampMs]
+            if (existing == null || contactFrame.confidence > existing.confidence) {
+                selectedByTimestamp[contactFrame.timestampMs] = contactFrame
             }
         }
-        return byTimestamp.values.toList()
+        return selectedByTimestamp.values.toList()
+    }
+
+    private fun selectDenseContactFrame(
+        window: ContactCandidate,
+        orderedSamples: List<FrameSample>,
+        groundY: Double,
+        direction: AnalysisDirection,
+    ): ContactFrameAnalysis? {
+        val candidates = orderedSamples
+            .filter { sample ->
+                sample.timestampMs >= window.startTimestampMs &&
+                    sample.timestampMs <= window.endTimestampMs
+            }
+            .mapNotNull { sample ->
+                denseContactCandidate(sample, window.side, groundY)
+            }
+        val persistentCandidates = mutableListOf<ContactFrameCandidate>()
+        for (index in candidates.indices) {
+            val current = candidates[index]
+            if (!current.isEligibleContact()) {
+                continue
+            }
+            val previous = candidates.getOrNull(index - 1)
+            val next = candidates.getOrNull(index + 1)
+            if (enteredGroundBand(current, previous)) {
+                return current.toContactFrame(window, direction)
+            }
+            if (hasGroundBandPersistence(current, previous, next)) {
+                persistentCandidates.add(current)
+            }
+        }
+        return persistentCandidates
+            .sortedWith(
+                compareByDescending<ContactFrameCandidate> { it.confidence }
+                    .thenBy { abs(it.sample.timestampMs - window.centerTimestampMs) }
+                    .thenBy { it.sample.timestampMs },
+            )
+            .firstOrNull()
+            ?.toContactFrame(window, direction)
+    }
+
+    private fun denseContactCandidate(
+        sample: FrameSample,
+        side: FootSide,
+        groundY: Double,
+    ): ContactFrameCandidate? {
+        val evidence = sample.footBottom(side) ?: return null
+        val tolerance = (sample.bodyScale * denseContactGroundToleranceRatio)
+            .coerceAtLeast(1.0)
+        val proximity = groundY - evidence.bottomPoint.y.toDouble()
+        val inGroundBand = proximity >= -tolerance * 0.35 && proximity <= tolerance
+        val proximityFactor = (
+            1.0 - (proximity.coerceAtLeast(0.0) / tolerance)
+            ).coerceIn(0.0, 1.0)
+        val confidence = (
+            sample.contactLandmarkConfidence(side, evidence) *
+                (0.75 + (0.25 * proximityFactor))
+            ).coerceIn(0.0, 1.0)
+        return ContactFrameCandidate(
+            sample = sample,
+            side = side,
+            evidence = evidence,
+            proximity = proximity,
+            tolerance = tolerance,
+            confidence = confidence,
+            inGroundBand = inGroundBand,
+        )
+    }
+
+    private fun ContactFrameCandidate.isEligibleContact(): Boolean =
+        inGroundBand && confidence >= minimumContactFrameConfidence
+
+    private fun enteredGroundBand(
+        current: ContactFrameCandidate,
+        previous: ContactFrameCandidate?,
+    ): Boolean =
+        previous != null &&
+            previous.proximity > current.tolerance &&
+            abs(previous.sample.timestampMs - current.sample.timestampMs) <=
+            denseFrameIntervalMs * 2
+
+    private fun hasGroundBandPersistence(
+        current: ContactFrameCandidate,
+        previous: ContactFrameCandidate?,
+        next: ContactFrameCandidate?,
+    ): Boolean =
+        listOfNotNull(previous, next).any { neighbor ->
+            neighbor.isEligibleContact() &&
+                abs(neighbor.sample.timestampMs - current.sample.timestampMs) <=
+                denseFrameIntervalMs * 2
+        }
+
+    private fun ContactFrameCandidate.toContactFrame(
+        window: ContactCandidate,
+        direction: AnalysisDirection,
+    ): ContactFrameAnalysis =
+        ContactFrameAnalysis(
+            timestampMs = sample.timestampMs,
+            windowCenterTimestampMs = window.centerTimestampMs,
+            side = side,
+            footStrikeRatio = sample.contactFootStrikeRatio(side, direction),
+            kneeAngleDegrees = sample.contactKneeAngleDegrees(side),
+            confidence = confidence,
+        )
     }
 
     private fun sampleSummaryPayload(
@@ -548,6 +631,7 @@ class RunningPoseAnalysisChannel(
         windows.map { window ->
             val validated = contactFrames.filter { frame ->
                 frame.side == window.side &&
+                    frame.windowCenterTimestampMs == window.centerTimestampMs &&
                     frame.timestampMs >= window.startTimestampMs &&
                     frame.timestampMs <= window.endTimestampMs
             }
@@ -857,10 +941,21 @@ class RunningPoseAnalysisChannel(
 
     private data class ContactFrameAnalysis(
         val timestampMs: Long,
+        val windowCenterTimestampMs: Long,
         val side: FootSide,
         val footStrikeRatio: Double,
         val kneeAngleDegrees: Double,
         val confidence: Double,
+    )
+
+    private data class ContactFrameCandidate(
+        val sample: FrameSample,
+        val side: FootSide,
+        val evidence: FootBottomEvidence,
+        val proximity: Double,
+        val tolerance: Double,
+        val confidence: Double,
+        val inGroundBand: Boolean,
     )
 
     private data class FootBottomEvidence(

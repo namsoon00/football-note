@@ -101,10 +101,22 @@ class ContactWindow:
 @dataclass(frozen=True)
 class ContactFrame:
     timestamp_ms: int
+    window_center_timestamp_ms: int
     side: str
     foot_strike_ratio: float
     knee_angle_degrees: float
     confidence: float
+
+
+@dataclass(frozen=True)
+class ContactFrameCandidate:
+    sample: Sample
+    side: str
+    evidence: dict
+    proximity: float
+    tolerance: float
+    confidence: float
+    in_ground_band: bool
 
 
 def confidence(landmark) -> float:
@@ -342,7 +354,14 @@ def derive_contact_windows(samples: list[Sample], duration_ms: int):
     for candidate in sorted(candidates, key=lambda item: (-item.confidence, item.center_timestamp_ms)):
         overlaps = any(
             existing.side == candidate.side
-            and abs(existing.center_timestamp_ms - candidate.center_timestamp_ms) < minimum_contact_center_separation_ms
+            and (
+                abs(existing.center_timestamp_ms - candidate.center_timestamp_ms)
+                < minimum_contact_center_separation_ms
+                or (
+                    candidate.start_timestamp_ms <= existing.end_timestamp_ms
+                    and candidate.end_timestamp_ms >= existing.start_timestamp_ms
+                )
+            )
             for existing in selected
         )
         if not overlaps:
@@ -377,44 +396,126 @@ def validate_contact_frames(
     ground_y: float,
     direction: str,
 ) -> list[ContactFrame]:
-    by_timestamp: dict[int, ContactFrame] = {}
-    for sample in sorted(samples, key=lambda item: item.timestamp_ms):
-        for side in FOOT_SIDES:
-            if not any(
-                window.side == side
-                and window.start_timestamp_ms <= sample.timestamp_ms <= window.end_timestamp_ms
-                for window in windows
-            ):
-                continue
-            evidence = foot_bottom(sample, side)
-            if evidence is None:
-                continue
-            tolerance = max(1.0, sample.body_scale * dense_ground_tolerance_ratio)
-            proximity = ground_y - evidence["bottom"][1]
-            if proximity < -tolerance * 0.35 or proximity > tolerance:
-                continue
-            proximity_factor = max(0.0, min(1.0, 1.0 - (max(0.0, proximity) / tolerance)))
-            contact_confidence = max(
-                0.0,
-                min(
-                    1.0,
-                    contact_landmark_confidence(sample, side, evidence)
-                    * (0.75 + (0.25 * proximity_factor)),
-                ),
-            )
-            if contact_confidence < minimum_contact_confidence:
-                continue
-            frame = ContactFrame(
-                timestamp_ms=sample.timestamp_ms,
-                side=side,
-                foot_strike_ratio=contact_foot_strike_ratio(sample, side, direction),
-                knee_angle_degrees=contact_knee_angle(sample, side),
-                confidence=contact_confidence,
-            )
-            existing = by_timestamp.get(frame.timestamp_ms)
-            if existing is None or frame.confidence > existing.confidence:
-                by_timestamp[frame.timestamp_ms] = frame
-    return [by_timestamp[key] for key in sorted(by_timestamp)]
+    selected_by_timestamp: dict[int, ContactFrame] = {}
+    ordered_samples = sorted(samples, key=lambda item: item.timestamp_ms)
+    for window in sorted(windows, key=lambda item: item.center_timestamp_ms):
+        frame = select_contact_frame_for_window(
+            window,
+            ordered_samples=ordered_samples,
+            ground_y=ground_y,
+            direction=direction,
+        )
+        if frame is None:
+            continue
+        existing = selected_by_timestamp.get(frame.timestamp_ms)
+        if existing is None or frame.confidence > existing.confidence:
+            selected_by_timestamp[frame.timestamp_ms] = frame
+    return [selected_by_timestamp[key] for key in sorted(selected_by_timestamp)]
+
+
+def select_contact_frame_for_window(
+    window: ContactWindow,
+    ordered_samples: list[Sample],
+    ground_y: float,
+    direction: str,
+) -> ContactFrame | None:
+    candidates = [
+        candidate
+        for sample in ordered_samples
+        if window.start_timestamp_ms <= sample.timestamp_ms <= window.end_timestamp_ms
+        for candidate in [dense_contact_candidate(sample, window.side, ground_y)]
+        if candidate is not None
+    ]
+    persistent_candidates: list[ContactFrameCandidate] = []
+    for index, current in enumerate(candidates):
+        if not is_eligible_contact(current):
+            continue
+        previous = candidates[index - 1] if index > 0 else None
+        next_candidate = candidates[index + 1] if index + 1 < len(candidates) else None
+        if entered_ground_band(current, previous):
+            return contact_frame_from_candidate(current, window, direction)
+        if has_ground_band_persistence(current, previous, next_candidate):
+            persistent_candidates.append(current)
+    if not persistent_candidates:
+        return None
+    selected = sorted(
+        persistent_candidates,
+        key=lambda item: (
+            -item.confidence,
+            abs(item.sample.timestamp_ms - window.center_timestamp_ms),
+            item.sample.timestamp_ms,
+        ),
+    )[0]
+    return contact_frame_from_candidate(selected, window, direction)
+
+
+def dense_contact_candidate(sample: Sample, side: str, ground_y: float):
+    evidence = foot_bottom(sample, side)
+    if evidence is None:
+        return None
+    tolerance = max(1.0, sample.body_scale * dense_ground_tolerance_ratio)
+    proximity = ground_y - evidence["bottom"][1]
+    proximity_factor = max(0.0, min(1.0, 1.0 - (max(0.0, proximity) / tolerance)))
+    contact_confidence = max(
+        0.0,
+        min(
+            1.0,
+            contact_landmark_confidence(sample, side, evidence)
+            * (0.75 + (0.25 * proximity_factor)),
+        ),
+    )
+    return ContactFrameCandidate(
+        sample=sample,
+        side=side,
+        evidence=evidence,
+        proximity=proximity,
+        tolerance=tolerance,
+        confidence=contact_confidence,
+        in_ground_band=proximity >= -tolerance * 0.35 and proximity <= tolerance,
+    )
+
+
+def is_eligible_contact(candidate: ContactFrameCandidate) -> bool:
+    return candidate.in_ground_band and candidate.confidence >= minimum_contact_confidence
+
+
+def entered_ground_band(
+    current: ContactFrameCandidate,
+    previous: ContactFrameCandidate | None,
+) -> bool:
+    return (
+        previous is not None
+        and previous.proximity > current.tolerance
+        and abs(previous.sample.timestamp_ms - current.sample.timestamp_ms) <= dense_interval_ms * 2
+    )
+
+
+def has_ground_band_persistence(
+    current: ContactFrameCandidate,
+    previous: ContactFrameCandidate | None,
+    next_candidate: ContactFrameCandidate | None,
+) -> bool:
+    return any(
+        neighbor is not None
+        and is_eligible_contact(neighbor)
+        and abs(neighbor.sample.timestamp_ms - current.sample.timestamp_ms) <= dense_interval_ms * 2
+        for neighbor in (previous, next_candidate)
+    )
+
+
+def contact_frame_from_candidate(
+    candidate: ContactFrameCandidate,
+    window: ContactWindow,
+    direction: str,
+) -> ContactFrame:
+    return ContactFrame(
+        timestamp_ms=candidate.sample.timestamp_ms,
+        window_center_timestamp_ms=window.center_timestamp_ms,
+        side=candidate.side,
+        foot_strike_ratio=contact_foot_strike_ratio(candidate.sample, candidate.side, direction),
+        knee_angle_degrees=contact_knee_angle(candidate.sample, candidate.side),
+        confidence=candidate.confidence,
+    )
 
 
 overall_ok = True
@@ -467,6 +568,8 @@ for video in videos:
     )
     dense_budget_ok = len(dense_timestamps) <= max_dense_frame_budget
     dense_source_timestamps = {frame.timestamp_ms for frame in contact_frames}
+    unique_contact_event_count = len(dense_source_timestamps)
+    bounded_event_selection = len(contact_frames) <= len(windows)
     foot_knee_from_dense = (
         bool(contact_frames)
         and dense_source_timestamps.issubset(set(dense_timestamps))
@@ -500,7 +603,8 @@ for video in videos:
         and len(dense_timestamps) > 0
         and dense_budget_ok
         and dense_timestamps_increasing
-        and len(contact_frames) >= minimum_validated_contact_frames
+        and unique_contact_event_count >= minimum_validated_contact_frames
+        and bounded_event_selection
         and foot_knee_from_dense
         and timestamps_increasing
         and timestamp_span_ms >= minimum_pose_frame_timestamp_span_ms
@@ -512,6 +616,7 @@ for video in videos:
         f"dense={len(dense_pass['samples'])}/{len(dense_timestamps)} "
         f"budget={len(dense_timestamps)}/{max_dense_frame_budget} "
         f"windows={len(windows)} contactFrames={len(contact_frames)} "
+        f"boundedEvents={len(contact_frames)}/{len(windows)} "
         f"contactConfidence={contact_confidence:.3f} "
         f"footStrike={foot_strike:.3f} stanceKnee={stance_knee:.1f} "
         f"footKneeSource=dense_contact_frames "

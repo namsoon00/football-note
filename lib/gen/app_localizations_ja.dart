@@ -8385,6 +8385,11 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String runningCoachContactTimestampSeconds(String seconds) {
+    return '$seconds秒';
+  }
+
+  @override
   String get runningCoachSampleDecisionTitle => '判定根拠';
 
   @override
