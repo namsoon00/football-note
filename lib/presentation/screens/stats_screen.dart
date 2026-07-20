@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 
@@ -28,6 +29,7 @@ import '../../application/locale_service.dart';
 import '../widgets/app_drawer.dart';
 import '../utils/match_entry_format.dart';
 import '../widgets/shared_tab_header.dart';
+import '../widgets/coach_mark_target.dart';
 import '../../domain/repositories/option_repository.dart';
 import 'average_benchmark_screen.dart';
 import 'profile_screen.dart';
@@ -35,6 +37,8 @@ import 'settings_screen.dart';
 import 'news_screen.dart';
 import 'skill_quiz_screen.dart';
 import 'notification_center_screen.dart';
+
+enum StatsCoachAnchor { range, tabs }
 
 class StatsScreen extends StatefulWidget {
   final TrainingService trainingService;
@@ -49,6 +53,7 @@ class StatsScreen extends StatefulWidget {
   final int initialTabIndex;
   final int initialTabRequestKey;
   final VoidCallback? onOpenMatchHub;
+  final Map<StatsCoachAnchor, CoachMarkTargetHandle> coachGuideAnchors;
 
   const StatsScreen({
     super.key,
@@ -64,6 +69,7 @@ class StatsScreen extends StatefulWidget {
     this.initialTabIndex = 0,
     this.initialTabRequestKey = 0,
     this.onOpenMatchHub,
+    this.coachGuideAnchors = const <StatsCoachAnchor, CoachMarkTargetHandle>{},
   });
 
   @override
@@ -76,6 +82,26 @@ class _StatsScreenState extends State<StatsScreen> {
   late Stream<List<TrainingEntry>> _trainingEntriesStream;
   int _statsTabIndex = 0;
   bool _routePushInFlight = false;
+
+  Widget _coachTarget(
+    StatsCoachAnchor anchor,
+    Widget child, {
+    Key? key,
+    VoidCallback? onActivate,
+  }) {
+    final handle = widget.coachGuideAnchors[anchor];
+    if (handle == null) return child;
+    return CoachMarkTarget(
+      key: key,
+      handle: handle,
+      onActivate: onActivate,
+      child: child,
+    );
+  }
+
+  void _toggleStatsTab() {
+    setState(() => _statsTabIndex = _statsTabIndex == 0 ? 1 : 0);
+  }
 
   String get _plansStorageKey =>
       TrainingPlanReminderService.plansStorageKeyFor(widget.optionRepository);
@@ -295,19 +321,24 @@ class _StatsScreenState extends State<StatsScreen> {
                       child: Text(l10n.statsRecent7),
                     ),
                     const SizedBox(width: 8),
-                    OutlinedButton.icon(
-                      onPressed: () => _pickRange(context),
-                      icon: const Icon(Icons.date_range_outlined, size: 18),
-                      label: Text(_rangeLabel()),
-                      style: OutlinedButton.styleFrom(
-                        visualDensity: VisualDensity.compact,
-                        minimumSize: const Size(1, 38),
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 8,
+                    _coachTarget(
+                      StatsCoachAnchor.range,
+                      OutlinedButton.icon(
+                        onPressed: () => _pickRange(context),
+                        icon: const Icon(Icons.date_range_outlined, size: 18),
+                        label: Text(_rangeLabel()),
+                        style: OutlinedButton.styleFrom(
+                          visualDensity: VisualDensity.compact,
+                          minimumSize: const Size(1, 38),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 8,
+                          ),
                         ),
                       ),
+                      key: const ValueKey<String>('stats-coach-range-target'),
+                      onActivate: () => unawaited(_pickRange(context)),
                     ),
                   ],
                 ),
@@ -347,26 +378,31 @@ class _StatsScreenState extends State<StatsScreen> {
 
   Widget _buildStatsTabBar(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return SegmentedButton<int>(
-      segments: [
-        ButtonSegment<int>(
-          value: 0,
-          icon: const Icon(Icons.fitness_center_outlined),
-          label: Text(l10n.statsTrainingTab),
-        ),
-        ButtonSegment<int>(
-          value: 1,
-          icon: const Icon(Icons.sports_soccer_outlined),
-          label: Text(l10n.statsMatchesTab),
-        ),
-      ],
-      selected: {_statsTabIndex},
-      onSelectionChanged: (selection) {
-        setState(() {
-          _statsTabIndex = selection.first;
-        });
-      },
-      showSelectedIcon: false,
+    return _coachTarget(
+      StatsCoachAnchor.tabs,
+      SegmentedButton<int>(
+        segments: [
+          ButtonSegment<int>(
+            value: 0,
+            icon: const Icon(Icons.fitness_center_outlined),
+            label: Text(l10n.statsTrainingTab),
+          ),
+          ButtonSegment<int>(
+            value: 1,
+            icon: const Icon(Icons.sports_soccer_outlined),
+            label: Text(l10n.statsMatchesTab),
+          ),
+        ],
+        selected: {_statsTabIndex},
+        onSelectionChanged: (selection) {
+          setState(() {
+            _statsTabIndex = selection.first;
+          });
+        },
+        showSelectedIcon: false,
+      ),
+      key: const ValueKey<String>('stats-coach-tabs-target'),
+      onActivate: _toggleStatsTab,
     );
   }
 

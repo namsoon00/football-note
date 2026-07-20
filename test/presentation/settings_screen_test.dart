@@ -7,6 +7,7 @@ import 'package:football_note/application/family_access_service.dart';
 import 'package:football_note/application/locale_service.dart';
 import 'package:football_note/application/settings_service.dart';
 import 'package:football_note/application/sport_state_controller.dart';
+import 'package:football_note/application/tutorial_guide_service.dart';
 import 'package:football_note/domain/repositories/backup_repository.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/domain/entities/sport_definition.dart';
@@ -17,6 +18,72 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  testWidgets('tutorial replay clears every guide completion flag', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(800, 4000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final optionRepository = _MemoryOptionRepository();
+    await optionRepository.setValue(
+      TutorialGuideService.parentSeenKey,
+      true,
+    );
+    for (final tabIndex in TutorialGuideService.guidedTabIndexes) {
+      await optionRepository.setValue(
+        TutorialGuideService.childSeenKey(tabIndex),
+        true,
+      );
+    }
+    final replayRequestBefore = TutorialGuideService.replayRequests.value;
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: SettingsScreen(
+          localeService: localeService,
+          settingsService: settingsService,
+          optionRepository: optionRepository,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('일반 설정'));
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey<String>('settings-replay-tutorial')),
+      findsOneWidget,
+    );
+    await tester.tap(
+      find.byKey(const ValueKey<String>('settings-replay-tutorial')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      optionRepository.getValue<bool>(TutorialGuideService.parentSeenKey),
+      isFalse,
+    );
+    for (final tabIndex in TutorialGuideService.guidedTabIndexes) {
+      expect(
+        optionRepository.getValue<bool>(
+          TutorialGuideService.childSeenKey(tabIndex),
+        ),
+        isFalse,
+      );
+    }
+    expect(
+      TutorialGuideService.replayRequests.value,
+      replayRequestBefore + 1,
+    );
+    expect(find.text('튜토리얼을 다시 시작할 준비가 됐어요.'), findsOneWidget);
+  });
+
   testWidgets('backup health details stay hidden until expanded', (
     WidgetTester tester,
   ) async {

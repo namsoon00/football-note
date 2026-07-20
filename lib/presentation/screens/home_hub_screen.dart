@@ -41,6 +41,7 @@ import '../widgets/app_background.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_page_route.dart';
+import '../widgets/coach_mark_target.dart';
 import '../widgets/player_level_visuals.dart';
 import '../widgets/progress_star_gauge.dart';
 import '../widgets/rinzy_mascot.dart';
@@ -94,7 +95,7 @@ class HomeHubScreen extends StatefulWidget {
   final ValueChanged<TrainingEntry> onEdit;
   final ValueChanged<TrainingEntry> onEditTrainingBoard;
   final Future<void> Function({DateTime? initialDate}) onCreateTrainingBoard;
-  final Map<HomeHubCoachAnchor, GlobalKey> coachGuideAnchors;
+  final Map<HomeHubCoachAnchor, CoachMarkTargetHandle> coachGuideAnchors;
 
   const HomeHubScreen({
     super.key,
@@ -118,7 +119,8 @@ class HomeHubScreen extends StatefulWidget {
     required this.onEdit,
     required this.onEditTrainingBoard,
     required this.onCreateTrainingBoard,
-    this.coachGuideAnchors = const <HomeHubCoachAnchor, GlobalKey>{},
+    this.coachGuideAnchors =
+        const <HomeHubCoachAnchor, CoachMarkTargetHandle>{},
   });
 
   @override
@@ -329,15 +331,17 @@ class _HomeHubScreenState extends State<HomeHubScreen>
                   Widget keyedSection(
                     String key,
                     Widget child, {
-                    GlobalKey? guideKey,
+                    CoachMarkTargetHandle? guideTarget,
+                    VoidCallback? onGuideActivate,
                   }) {
                     final keyedChild = KeyedSubtree(
                       key: ValueKey<String>(key),
                       child: child,
                     );
-                    if (guideKey == null) return keyedChild;
-                    return KeyedSubtree(
-                      key: guideKey,
+                    if (guideTarget == null) return keyedChild;
+                    return CoachMarkTarget(
+                      handle: guideTarget,
+                      onActivate: onGuideActivate,
                       child: keyedChild,
                     );
                   }
@@ -470,8 +474,9 @@ class _HomeHubScreenState extends State<HomeHubScreen>
                           context,
                         ).colorScheme.surface.withValues(alpha: 0.86),
                       ),
-                      guideKey:
+                      guideTarget:
                           widget.coachGuideAnchors[HomeHubCoachAnchor.meal],
+                      onGuideActivate: widget.onQuickMeal,
                     ),
                     HomeHubSectionId.dailyFlow: keyedSection(
                       'home-layout-daily-flow-section',
@@ -529,7 +534,7 @@ class _HomeHubScreenState extends State<HomeHubScreen>
                           section: HomeHubSectionId.dailyFlow,
                         ),
                       ),
-                      guideKey: widget
+                      guideTarget: widget
                           .coachGuideAnchors[HomeHubCoachAnchor.dailyFlow],
                     ),
                     HomeHubSectionId.quickActions: keyedSection(
@@ -1753,7 +1758,7 @@ class _DailyFlowCard extends StatelessWidget {
   final _HomeHubData data;
   final AppLocalizations l10n;
   final String sportId;
-  final Map<HomeHubCoachAnchor, GlobalKey> coachGuideAnchors;
+  final Map<HomeHubCoachAnchor, CoachMarkTargetHandle> coachGuideAnchors;
   final VoidCallback? onLog;
   final VoidCallback? onLifting;
   final VoidCallback? onJumpRope;
@@ -1801,10 +1806,18 @@ class _DailyFlowCard extends StatelessWidget {
     final completedCount = visibleTaskStates.where((done) => done).length;
     final totalCount = visibleTaskStates.length;
     final progress = completedCount / totalCount;
-    Widget coachTarget(HomeHubCoachAnchor anchor, Widget child) {
-      final guideKey = coachGuideAnchors[anchor];
-      if (guideKey == null) return child;
-      return KeyedSubtree(key: guideKey, child: child);
+    Widget coachTarget(
+      HomeHubCoachAnchor anchor,
+      Widget child, {
+      VoidCallback? onActivate,
+    }) {
+      final guideTarget = coachGuideAnchors[anchor];
+      if (guideTarget == null) return child;
+      return CoachMarkTarget(
+        handle: guideTarget,
+        onActivate: onActivate,
+        child: child,
+      );
     }
 
     return WatchCartCard(
@@ -1855,6 +1868,7 @@ class _DailyFlowCard extends StatelessWidget {
                   label: l10n.homeTodoTrainingLogShort,
                   onTap: onLog,
                 ),
+                onActivate: onLog,
               ),
               _TodoChip(
                 done: data.loggedLiftingToday,
@@ -1877,6 +1891,7 @@ class _DailyFlowCard extends StatelessWidget {
                   label: l10n.mealShortLabel,
                   onTap: onMeal,
                 ),
+                onActivate: onMeal,
               ),
               _TodoChip(
                 done: data.quizCompletedToday,
@@ -2401,35 +2416,37 @@ class _TodayWeatherButton extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 110),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      parts.primary,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: palette.foreground,
-                        fontWeight: FontWeight.w900,
-                        height: 1.0,
-                      ),
-                    ),
-                    if (parts.secondary != null) ...[
-                      const SizedBox(height: 1),
+              Flexible(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 110),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
                       Text(
-                        parts.secondary!,
+                        parts.primary,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: palette.foreground.withValues(alpha: 0.78),
-                          fontWeight: FontWeight.w700,
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          color: palette.foreground,
+                          fontWeight: FontWeight.w900,
+                          height: 1.0,
                         ),
                       ),
+                      if (parts.secondary != null) ...[
+                        const SizedBox(height: 1),
+                        Text(
+                          parts.secondary!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: palette.foreground.withValues(alpha: 0.78),
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
               const SizedBox(width: 2),

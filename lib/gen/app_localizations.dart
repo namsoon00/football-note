@@ -499,7 +499,7 @@ abstract class AppLocalizations {
   /// No description provided for @welcomeCalendarStepPlus.
   ///
   /// In en, this message translates to:
-  /// **'Use + to add a plan, match, or training note from the selected date.'**
+  /// **'Use + to add a plan, match, training note, or meal on the selected date.'**
   String get welcomeCalendarStepPlus;
 
   /// No description provided for @welcomeCalendarStepMeal.
@@ -523,7 +523,7 @@ abstract class AppLocalizations {
   /// No description provided for @welcomeStatsStepAverage.
   ///
   /// In en, this message translates to:
-  /// **'Open average comparison to see which metric is ahead or behind.'**
+  /// **'Switch between training and match tabs to review each record flow.'**
   String get welcomeStatsStepAverage;
 
   /// No description provided for @welcomeStatsStepFocus.
@@ -589,7 +589,7 @@ abstract class AppLocalizations {
   /// No description provided for @welcomeDiaryStepSticker.
   ///
   /// In en, this message translates to:
-  /// **'Pull in today\'s record stickers and arrange the reading order.'**
+  /// **'Open a new diary and write today\'s title and story.'**
   String get welcomeDiaryStepSticker;
 
   /// No description provided for @welcomeDiaryStepSave.
@@ -8027,6 +8027,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'General'**
   String get settingsGeneralSection;
+
+  /// No description provided for @settingsTutorialReplayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay tutorial'**
+  String get settingsTutorialReplayTitle;
+
+  /// No description provided for @settingsTutorialReplaySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Return home and restart the coach marks from the beginning.'**
+  String get settingsTutorialReplaySubtitle;
+
+  /// No description provided for @settingsTutorialReplayReady.
+  ///
+  /// In en, this message translates to:
+  /// **'The tutorial is ready to replay.'**
+  String get settingsTutorialReplayReady;
 
   /// No description provided for @settingsNewsFilterTitle.
   ///

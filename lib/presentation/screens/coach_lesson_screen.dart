@@ -39,6 +39,7 @@ import '../widgets/app_background.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/app_page_route.dart';
+import '../widgets/coach_mark_target.dart';
 import '../widgets/rice_bowl_summary.dart';
 import '../widgets/fortune_card.dart';
 import '../widgets/shared_tab_header.dart';
@@ -55,6 +56,8 @@ import 'skill_quiz_screen.dart';
 import 'notification_center_screen.dart';
 import 'weather_detail_screen.dart';
 
+enum DiaryCoachAnchor { dateSelector, newDiary }
+
 class CoachLessonScreen extends StatefulWidget {
   static const String todayViewedDiaryDayKey = 'coach_diary_completed_day_v2';
 
@@ -68,6 +71,7 @@ class CoachLessonScreen extends StatefulWidget {
   final int openTodayDiaryRequestKey;
   final int dataRevision;
   final VoidCallback? onOpenMatchHub;
+  final Map<DiaryCoachAnchor, CoachMarkTargetHandle> coachGuideAnchors;
 
   const CoachLessonScreen({
     super.key,
@@ -81,6 +85,7 @@ class CoachLessonScreen extends StatefulWidget {
     this.openTodayDiaryRequestKey = 0,
     this.dataRevision = 0,
     this.onOpenMatchHub,
+    this.coachGuideAnchors = const <DiaryCoachAnchor, CoachMarkTargetHandle>{},
   });
 
   static String todayViewedDayToken(DateTime date) =>
@@ -105,6 +110,22 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   String? _lastCompletedDiaryToken;
   late Map<String, _CustomDiaryEntryData> _customDiaryEntries;
   int _lastHandledOpenTodayDiaryRequestKey = 0;
+
+  Widget _coachTarget(
+    DiaryCoachAnchor anchor,
+    Widget child, {
+    Key? key,
+    VoidCallback? onActivate,
+  }) {
+    final handle = widget.coachGuideAnchors[anchor];
+    if (handle == null) return child;
+    return CoachMarkTarget(
+      key: key,
+      handle: handle,
+      onActivate: onActivate,
+      child: child,
+    );
+  }
 
   String get _languageCode => Localizations.localeOf(context).languageCode;
   bool get _isKo => _languageCode == 'ko';
@@ -340,8 +361,28 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                                   label: Text(_l10n.theme),
                                 ),
                                 const SizedBox(width: 8),
-                                OutlinedButton.icon(
-                                  onPressed: isParentMode
+                                _coachTarget(
+                                  DiaryCoachAnchor.newDiary,
+                                  OutlinedButton.icon(
+                                    onPressed: isParentMode
+                                        ? null
+                                        : () => _openNewDiaryComposer(
+                                              entriesByDay: sportEntriesByDay,
+                                              mealEntriesByDay:
+                                                  mealEntriesByDay,
+                                              plansByDay: plansByDay,
+                                              boardMap: boardMap,
+                                            ),
+                                    icon: const Icon(
+                                      Icons.add_circle_outline,
+                                      size: 18,
+                                    ),
+                                    label: Text(_l10n.diaryNewAction),
+                                  ),
+                                  key: const ValueKey<String>(
+                                    'diary-coach-new-target',
+                                  ),
+                                  onActivate: isParentMode
                                       ? null
                                       : () => _openNewDiaryComposer(
                                             entriesByDay: sportEntriesByDay,
@@ -349,11 +390,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                                             plansByDay: plansByDay,
                                             boardMap: boardMap,
                                           ),
-                                  icon: const Icon(
-                                    Icons.add_circle_outline,
-                                    size: 18,
-                                  ),
-                                  label: Text(_l10n.diaryNewAction),
                                 ),
                               ],
                             ),
@@ -362,11 +398,18 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                       ),
                       Padding(
                         padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                        child: _buildPagerCard(
-                          days: days,
-                          dayCount: days.length,
-                          selectedIndex: selectedIndex,
-                          selectedLabel: _formatDiaryDate(selectedDay.date),
+                        child: _coachTarget(
+                          DiaryCoachAnchor.dateSelector,
+                          _buildPagerCard(
+                            days: days,
+                            dayCount: days.length,
+                            selectedIndex: selectedIndex,
+                            selectedLabel: _formatDiaryDate(selectedDay.date),
+                          ),
+                          key: const ValueKey<String>(
+                            'diary-coach-date-target',
+                          ),
+                          onActivate: () => _pickDiaryDate(days, selectedIndex),
                         ),
                       ),
                       Expanded(
@@ -1935,11 +1978,16 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             ).textTheme.bodyMedium?.copyWith(color: _bodyInk, height: 1.5),
           ),
           const SizedBox(height: 14),
-          FilledButton.icon(
-            key: const ValueKey('diary-create-first-button'),
-            onPressed: onCreateDiary,
-            icon: const Icon(Icons.add_circle_outline),
-            label: Text(_l10n.diaryCreateFirstAction),
+          _coachTarget(
+            DiaryCoachAnchor.newDiary,
+            FilledButton.icon(
+              key: const ValueKey('diary-create-first-button'),
+              onPressed: onCreateDiary,
+              icon: const Icon(Icons.add_circle_outline),
+              label: Text(_l10n.diaryCreateFirstAction),
+            ),
+            key: const ValueKey<String>('diary-coach-new-target'),
+            onActivate: onCreateDiary,
           ),
         ],
       ),

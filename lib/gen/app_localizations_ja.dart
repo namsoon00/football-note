@@ -225,7 +225,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get welcomeCalendarStepPlus =>
-      '+ を使用して、選択した日付の計画、試合、またはトレーニングのメモを追加します。';
+      '+ を使用して、選択した日付の計画、試合、トレーニングノート、食事を追加します。';
 
   @override
   String get welcomeCalendarStepMeal => '回復が一日の一部である場合は、同じ日付の食事記録を追加します。';
@@ -238,7 +238,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get welcomeStatsStepPeriod => '今週、先週、またはカスタム範囲を比較する期間を変更します。';
 
   @override
-  String get welcomeStatsStepAverage => '平均比較を開いて、どのメトリクスが進んでいるか遅れているかを確認します。';
+  String get welcomeStatsStepAverage => 'トレーニングと試合のタブを切り替えて、それぞれの記録の流れを確認します。';
 
   @override
   String get welcomeStatsStepFocus => '最も弱いシグナルを次の計画またはメモの目標に変えます。';
@@ -274,7 +274,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get welcomeDiaryStepToday => '記録後、ホームまたは日記タブから今日の日記を開きます。';
 
   @override
-  String get welcomeDiaryStepSticker => '今日の記録シールを引いて、読む順番を並べます。';
+  String get welcomeDiaryStepSticker => '新しい日記を開いて、今日のタイトルとストーリーを書きます。';
 
   @override
   String get welcomeDiaryStepSave => 'タイトル、ストーリー、またはステッカーの選択の準備ができたら、日記を保存します。';
@@ -4467,6 +4467,15 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settingsGeneralSection => '一般設定';
+
+  @override
+  String get settingsTutorialReplayTitle => 'チュートリアルをもう一度見る';
+
+  @override
+  String get settingsTutorialReplaySubtitle => 'ホームに戻り、コーチマークを最初からやり直します。';
+
+  @override
+  String get settingsTutorialReplayReady => 'チュートリアルをもう一度始める準備ができました。';
 
   @override
   String get settingsNewsFilterTitle => 'ニュースフィルター';
