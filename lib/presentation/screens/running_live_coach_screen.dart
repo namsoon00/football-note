@@ -5,6 +5,7 @@ import 'dart:math' as math;
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
@@ -14,7 +15,9 @@ import '../../application/running_live_session_metrics.dart';
 import '../../domain/entities/running_live_coaching_state.dart';
 import '../../domain/entities/running_video_analysis_result.dart';
 import '../../gen/app_localizations.dart';
-import '../models/running_pose_outline_frame.dart';
+import '../../realtime_analysis/running_coaching/running_visual_pose_tracker.dart';
+import '../models/camera_viewport_transform.dart';
+import '../painters/running_pose_anatomical_painter.dart';
 import 'running_coach_insight_copy.dart';
 import 'running_live_coach_guide_screen.dart';
 
@@ -26,7 +29,7 @@ class RunningLiveCoachScreen extends StatefulWidget {
 }
 
 class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, SingleTickerProviderStateMixin {
   // Serialized gait-event sampling target: 120 ms gives about 8 Hz timing
   // resolution while keeping one MediaPipe inference active at a time.
   static const _frameProcessingInterval = Duration(milliseconds: 120);
@@ -41,8 +44,13 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       RunningLiveSessionMetricsCollector();
   final MediaPipePoseLandmarkerService _mediaPipePoseLandmarker =
       const MediaPipePoseLandmarkerService();
+  final RunningVisualPoseTracker _visualPoseTracker =
+      RunningVisualPoseTracker();
+  final ValueNotifier<RunningVisualPoseFrame?> _poseOverlayFrame =
+      ValueNotifier<RunningVisualPoseFrame?>(null);
   final FlutterTts _tts = FlutterTts();
   final Stopwatch _frameClock = Stopwatch();
+  late final Ticker _poseOverlayTicker;
 
   final Map<DeviceOrientation, int> _orientations = const {
     DeviceOrientation.portraitUp: 0,
@@ -57,7 +65,6 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
   RunningLiveCoachingState _coachingState = const RunningLiveCoachingState(
     primaryCue: RunningLivePrimaryCue.keepRunning,
   );
-  _PoseOverlayState? _poseOverlayState;
   bool _isInitializing = true;
   bool _isSpeechEnabled = true;
   bool _isDisposed = false;
@@ -87,6 +94,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _poseOverlayTicker = createTicker(_handlePoseOverlayTick)..start();
     _resetFrameClock();
     unawaited(_initializeCamera());
   }
@@ -105,6 +113,8 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       _cameraSessionId++;
       _isProcessingFrame = false;
       _frameClock.stop();
+      _poseOverlayTicker.stop();
+      _resetVisualPoseOverlay();
       final controller = _controller;
       _controller = null;
       unawaited(_mediaPipePoseLandmarker.close());
@@ -114,6 +124,9 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       return;
     }
     if (state == AppLifecycleState.resumed) {
+      if (!_poseOverlayTicker.isActive) {
+        _poseOverlayTicker.start();
+      }
       unawaited(_initializeCamera(preferredCamera: _activeCamera));
     }
   }
@@ -128,6 +141,9 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     _cameraSessionId++;
     _isProcessingFrame = false;
     _frameClock.stop();
+    _poseOverlayTicker.dispose();
+    _resetVisualPoseOverlay();
+    _poseOverlayFrame.dispose();
     if (controller != null) {
       unawaited(controller.dispose());
     }
@@ -159,18 +175,25 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       return CameraPreview(controller);
     }
 
-    final portraitPreviewSize = Size(previewSize.height, previewSize.width);
     return ClipRect(
-      child: SizedBox.expand(
-        child: FittedBox(
-          fit: BoxFit.cover,
-          alignment: Alignment.center,
-          child: SizedBox(
-            width: portraitPreviewSize.width,
-            height: portraitPreviewSize.height,
-            child: CameraPreview(controller),
-          ),
-        ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final previewSourceSize = cameraPreviewSourceSizeForViewport(
+            controllerPreviewSize: previewSize,
+            viewportSize: constraints.biggest,
+          );
+          return SizedBox.expand(
+            child: FittedBox(
+              fit: BoxFit.cover,
+              alignment: Alignment.center,
+              child: SizedBox(
+                width: previewSourceSize.width,
+                height: previewSourceSize.height,
+                child: CameraPreview(controller),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -231,7 +254,11 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
         Positioned.fill(
           child: IgnorePointer(
             child: CustomPaint(
-              painter: _RunningPosePainter(overlay: _poseOverlayState),
+              painter: RunningPoseAnatomicalPainter(
+                frameListenable: _poseOverlayFrame,
+                mirrorHorizontally:
+                    _activeCamera?.lensDirection == CameraLensDirection.front,
+              ),
             ),
           ),
         ),
@@ -354,6 +381,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     _resetFrameClock();
 
     if (!_isSupportedMobilePlatform) {
+      _resetVisualPoseOverlay();
       setState(() {
         _cameraErrorCode = 'unsupported_platform';
         _liveCoachErrorCode = null;
@@ -379,7 +407,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     }
     _coachingService.reset();
     _sessionMetricsCollector.reset();
-    _poseOverlayState = null;
+    _resetVisualPoseOverlay();
     _lastProcessedAt = null;
     _lastSpokenAt = null;
     _lastMetricsLoggedAt = null;
@@ -618,6 +646,15 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
         rotationDegrees: frameInput.rotationDegrees,
         timestamp: now,
       );
+      if (_isDisposed || !mounted || sessionId != _cameraSessionId) {
+        stopwatch.stop();
+        return;
+      }
+      final visualFrame = _visualPoseTracker.ingestDetection(
+        detection,
+        timestamp: now,
+        fallbackImageSize: frameInput.detectorImageSize,
+      );
       final observation =
           runningPoseObservationFromMediaPipeDetection(detection);
       final state = _coachingService.ingestObservation(
@@ -633,16 +670,12 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       if (_isDisposed || !mounted || sessionId != _cameraSessionId) {
         return;
       }
+      _visualPoseTracker.ingestGaitEvents(state.gaitAnalysis.recentEvents);
+      _poseOverlayFrame.value =
+          _visualPoseTracker.frameAt(_currentFrameClockTimestamp()) ??
+              visualFrame;
       setState(() {
         _coachingState = state;
-        final overlayObservation = state.trackedObservation;
-        _poseOverlayState = overlayObservation == null
-            ? null
-            : _PoseOverlayState(
-                observation: overlayObservation,
-                lensDirection:
-                    _activeCamera?.lensDirection ?? CameraLensDirection.back,
-              );
       });
       _emitSessionLog(event: 'periodic', force: false, now: now);
       await _maybeSpeakCue(state);
@@ -681,6 +714,27 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     _frameClockEpoch = DateTime.now();
   }
 
+  void _handlePoseOverlayTick(Duration _) {
+    if (_isDisposed || !_frameClock.isRunning) {
+      return;
+    }
+    _poseOverlayFrame.value = _visualPoseTracker.frameAt(
+      _currentFrameClockTimestamp(),
+    );
+  }
+
+  DateTime _currentFrameClockTimestamp() {
+    if (!_frameClock.isRunning) {
+      return _frameClockEpoch;
+    }
+    return _frameClockEpoch.add(_frameClock.elapsed);
+  }
+
+  void _resetVisualPoseOverlay() {
+    _visualPoseTracker.reset();
+    _poseOverlayFrame.value = null;
+  }
+
   DateTime _monotonicFrameTimestamp() {
     if (!_frameClock.isRunning) {
       _frameClock.start();
@@ -714,7 +768,13 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       return null;
     }
 
-    return _CameraFrameInput(rotationDegrees: rotationDegrees);
+    return _CameraFrameInput(
+      rotationDegrees: rotationDegrees,
+      detectorImageSize: detectorImageSizeForRotation(
+        Size(image.width.toDouble(), image.height.toDouble()),
+        rotationDegrees,
+      ),
+    );
   }
 
   int? _resolveImageRotationDegrees(
@@ -763,7 +823,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     final controller = _controller;
     _controller = null;
     _coachingService.reset();
-    _poseOverlayState = null;
+    _resetVisualPoseOverlay();
     _lastProcessedAt = null;
     _lastSpokenAt = null;
     _lastSpokenCue = null;
@@ -1881,182 +1941,10 @@ class _LiveStatusTheme {
 
 class _CameraFrameInput {
   final int rotationDegrees;
+  final Size detectorImageSize;
 
-  const _CameraFrameInput({required this.rotationDegrees});
-}
-
-class _PoseOverlayState {
-  final RunningPoseObservation observation;
-  final CameraLensDirection lensDirection;
-
-  const _PoseOverlayState({
-    required this.observation,
-    required this.lensDirection,
+  const _CameraFrameInput({
+    required this.rotationDegrees,
+    required this.detectorImageSize,
   });
-}
-
-class _RunningPosePainter extends CustomPainter {
-  final _PoseOverlayState? overlay;
-
-  const _RunningPosePainter({required this.overlay});
-
-  static const _outlineMinimumLikelihood = 0.35;
-
-  static const _connections = [
-    (
-      RunningPoseLandmarkType.leftShoulder,
-      RunningPoseLandmarkType.rightShoulder,
-    ),
-    (RunningPoseLandmarkType.leftShoulder, RunningPoseLandmarkType.leftElbow),
-    (RunningPoseLandmarkType.leftElbow, RunningPoseLandmarkType.leftWrist),
-    (RunningPoseLandmarkType.rightShoulder, RunningPoseLandmarkType.rightElbow),
-    (RunningPoseLandmarkType.rightElbow, RunningPoseLandmarkType.rightWrist),
-    (RunningPoseLandmarkType.leftShoulder, RunningPoseLandmarkType.leftHip),
-    (RunningPoseLandmarkType.rightShoulder, RunningPoseLandmarkType.rightHip),
-    (RunningPoseLandmarkType.leftHip, RunningPoseLandmarkType.rightHip),
-    (RunningPoseLandmarkType.leftHip, RunningPoseLandmarkType.leftKnee),
-    (RunningPoseLandmarkType.rightHip, RunningPoseLandmarkType.rightKnee),
-    (RunningPoseLandmarkType.leftKnee, RunningPoseLandmarkType.leftAnkle),
-    (RunningPoseLandmarkType.rightKnee, RunningPoseLandmarkType.rightAnkle),
-    (RunningPoseLandmarkType.leftAnkle, RunningPoseLandmarkType.leftHeel),
-    (RunningPoseLandmarkType.leftHeel, RunningPoseLandmarkType.leftFootIndex),
-    (RunningPoseLandmarkType.rightAnkle, RunningPoseLandmarkType.rightHeel),
-    (RunningPoseLandmarkType.rightHeel, RunningPoseLandmarkType.rightFootIndex),
-  ];
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final overlay = this.overlay;
-    if (overlay == null) {
-      return;
-    }
-
-    final visiblePoints = <RunningPoseLandmarkType, Offset>{};
-    final linePaint = Paint()
-      ..color = const Color(0xFF73F3B4)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3
-      ..strokeCap = StrokeCap.round;
-    final outlinePaint = Paint()
-      ..color = const Color(0xFF73F3B4).withAlpha(180)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.2;
-    final outlineFillPaint = Paint()
-      ..color = const Color(0xFF73F3B4).withAlpha(24)
-      ..style = PaintingStyle.fill;
-    final jointPaint = Paint()
-      ..color = const Color(0xFFE8FFF4)
-      ..style = PaintingStyle.fill;
-
-    for (final (fromType, toType) in _connections) {
-      final from = overlay.observation.landmark(
-        fromType,
-        minimumLikelihood: _outlineMinimumLikelihood,
-      );
-      final to = overlay.observation.landmark(
-        toType,
-        minimumLikelihood: _outlineMinimumLikelihood,
-      );
-      if (from == null || to == null) {
-        continue;
-      }
-      final fromOffset = _translatePoint(
-        point: from.position,
-        imageSize: overlay.observation.imageSize,
-        canvasSize: size,
-        lensDirection: overlay.lensDirection,
-      );
-      final toOffset = _translatePoint(
-        point: to.position,
-        imageSize: overlay.observation.imageSize,
-        canvasSize: size,
-        lensDirection: overlay.lensDirection,
-      );
-      canvas.drawLine(fromOffset, toOffset, linePaint);
-    }
-
-    for (final entry in overlay.observation.landmarks.entries) {
-      final landmark = entry.value;
-      if (landmark.likelihood < _outlineMinimumLikelihood) {
-        continue;
-      }
-      final offset = _translatePoint(
-        point: landmark.position,
-        imageSize: overlay.observation.imageSize,
-        canvasSize: size,
-        lensDirection: overlay.lensDirection,
-      );
-      visiblePoints[entry.key] = offset;
-      canvas.drawCircle(offset, 3.4, jointPaint);
-    }
-
-    _drawRunnerOutline(
-      canvas,
-      size,
-      visiblePoints,
-      outlinePaint,
-      outlineFillPaint,
-    );
-  }
-
-  void _drawRunnerOutline(
-    Canvas canvas,
-    Size canvasSize,
-    Map<RunningPoseLandmarkType, Offset> visiblePoints,
-    Paint outlinePaint,
-    Paint outlineFillPaint,
-  ) {
-    final outlineFrame = buildRunningPoseOutlineFrame(
-      visiblePoints: visiblePoints,
-      canvasSize: canvasSize,
-    );
-    if (outlineFrame == null) {
-      return;
-    }
-
-    final frame = RRect.fromRectAndRadius(
-      outlineFrame.rect,
-      outlineFrame.radius,
-    );
-    canvas.drawRRect(frame, outlineFillPaint);
-    canvas.drawRRect(frame, outlinePaint);
-  }
-
-  Offset _translatePoint({
-    required Offset point,
-    required Size imageSize,
-    required Size canvasSize,
-    required CameraLensDirection lensDirection,
-  }) {
-    final fitted = applyBoxFit(BoxFit.cover, imageSize, canvasSize);
-    final sourceRect = Alignment.center.inscribe(
-      fitted.source,
-      Offset.zero & imageSize,
-    );
-    final destinationRect = Alignment.center.inscribe(
-      fitted.destination,
-      Offset.zero & canvasSize,
-    );
-
-    var translated = Offset(
-      destinationRect.left +
-          ((point.dx - sourceRect.left) *
-              destinationRect.width /
-              sourceRect.width),
-      destinationRect.top +
-          ((point.dy - sourceRect.top) *
-              destinationRect.height /
-              sourceRect.height),
-    );
-
-    if (lensDirection == CameraLensDirection.front) {
-      translated = Offset(canvasSize.width - translated.dx, translated.dy);
-    }
-    return translated;
-  }
-
-  @override
-  bool shouldRepaint(covariant _RunningPosePainter oldDelegate) {
-    return oldDelegate.overlay != overlay;
-  }
 }
