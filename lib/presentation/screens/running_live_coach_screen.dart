@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:camera/camera.dart';
@@ -9,6 +10,7 @@ import 'package:flutter_tts/flutter_tts.dart';
 
 import '../../application/mediapipe_pose_landmarker_service.dart';
 import '../../application/running_live_coaching_service.dart';
+import '../../application/running_live_session_metrics.dart';
 import '../../domain/entities/running_live_coaching_state.dart';
 import '../../domain/entities/running_video_analysis_result.dart';
 import '../../gen/app_localizations.dart';
@@ -30,9 +32,13 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
   static const _frameProcessingInterval = Duration(milliseconds: 120);
   static const _repeatSpeechCooldown = Duration(seconds: 6);
   static const _changeSpeechCooldown = Duration(seconds: 2);
+  static const _metricsLogInterval = Duration(seconds: 5);
+  static const _skipEventLogInterval = Duration(seconds: 2);
 
   final RunningLiveCoachingService _coachingService =
       RunningLiveCoachingService();
+  final RunningLiveSessionMetricsCollector _sessionMetricsCollector =
+      RunningLiveSessionMetricsCollector();
   final MediaPipePoseLandmarkerService _mediaPipePoseLandmarker =
       const MediaPipePoseLandmarkerService();
   final FlutterTts _tts = FlutterTts();
@@ -60,10 +66,14 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
   DateTime _frameClockEpoch = DateTime.now();
   DateTime? _lastProcessedAt;
   DateTime? _lastSpokenAt;
+  DateTime? _lastMetricsLoggedAt;
   RunningLivePrimaryCue? _lastSpokenCue;
   String? _cameraErrorCode;
   String? _liveCoachErrorCode;
+  String? _sessionId;
   int _cameraSessionId = 0;
+  final Map<RunningLiveSkippedFrameReason, DateTime> _lastSkipLogAtByReason =
+      <RunningLiveSkippedFrameReason, DateTime>{};
 
   bool get _isAndroidPlatform =>
       !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
@@ -91,6 +101,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.inactive ||
         state == AppLifecycleState.paused) {
+      _endSessionLogging(reason: 'lifecycle_${state.name}');
       _cameraSessionId++;
       _isProcessingFrame = false;
       _frameClock.stop();
@@ -109,6 +120,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
 
   @override
   void dispose() {
+    _endSessionLogging(reason: 'dispose');
     _isDisposed = true;
     WidgetsBinding.instance.removeObserver(this);
     final controller = _controller;
@@ -337,6 +349,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     }
 
     final sessionId = ++_cameraSessionId;
+    _endSessionLogging(reason: 'reinitialize');
     _isProcessingFrame = false;
     _resetFrameClock();
 
@@ -365,10 +378,14 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       return;
     }
     _coachingService.reset();
+    _sessionMetricsCollector.reset();
     _poseOverlayState = null;
     _lastProcessedAt = null;
     _lastSpokenAt = null;
+    _lastMetricsLoggedAt = null;
     _lastSpokenCue = null;
+    _sessionId = null;
+    _lastSkipLogAtByReason.clear();
 
     try {
       final cameras = await availableCameras();
@@ -403,6 +420,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
         _controller = controller;
         _isInitializing = false;
       });
+      _startSessionLogging();
     } on CameraException catch (error) {
       if (_isDisposed || sessionId != _cameraSessionId) {
         return;
@@ -446,24 +464,152 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     );
   }
 
-  Future<void> _processCameraImage(CameraImage image) async {
-    if (_isDisposed || _isProcessingFrame || _liveCoachErrorCode != null) {
+  void _startSessionLogging() {
+    final now = DateTime.now();
+    _sessionId = 'running-${now.microsecondsSinceEpoch}';
+    _emitSessionLog(
+      event: 'start',
+      force: true,
+      now: now,
+      details: <String, Object?>{
+        'cameraLensDirection': _activeCamera?.lensDirection.name,
+        'targetFrameIntervalMs': _frameProcessingInterval.inMilliseconds,
+      },
+    );
+  }
+
+  void _endSessionLogging({required String reason}) {
+    if (_sessionId == null) {
       return;
     }
+    _emitSessionLog(
+      event: 'end',
+      force: true,
+      details: <String, Object?>{'reason': reason},
+    );
+    _sessionId = null;
+  }
+
+  void _emitSessionLog({
+    required String event,
+    required bool force,
+    DateTime? now,
+    Map<String, Object?>? details,
+  }) {
+    if (_isDisposed && event != 'end') {
+      return;
+    }
+
+    final timestamp = now ?? DateTime.now();
+    if (event == 'periodic' &&
+        !force &&
+        _lastMetricsLoggedAt != null &&
+        timestamp.difference(_lastMetricsLoggedAt!) < _metricsLogInterval) {
+      return;
+    }
+
+    final snapshot = _sessionMetricsCollector.snapshot(now: timestamp);
+    final payload = _sessionMetricsCollector.buildLogPayload(
+      event: event,
+      sessionId: _sessionId ?? 'inactive',
+      timestamp: timestamp,
+      targetFrameInterval: _frameProcessingInterval,
+      snapshot: snapshot,
+      state: _coachingState,
+      details: details,
+    );
+    if (kDebugMode) {
+      debugPrint('[RunningLiveSession] ${jsonEncode(payload)}');
+    }
+    if (event == 'periodic') {
+      _lastMetricsLoggedAt = timestamp;
+    }
+  }
+
+  void _emitSkippedFrameEvent(
+    RunningLiveSkippedFrameReason reason,
+    DateTime timestamp,
+  ) {
+    final lastLoggedAt = _lastSkipLogAtByReason[reason];
+    if (lastLoggedAt != null &&
+        timestamp.difference(lastLoggedAt) < _skipEventLogInterval) {
+      return;
+    }
+
+    _emitSessionLog(
+      event: 'analysis_skipped',
+      force: true,
+      now: timestamp,
+      details: <String, Object?>{
+        'reason': reason.name,
+        'count': _skippedFrameCount(reason),
+      },
+    );
+    _lastSkipLogAtByReason[reason] = timestamp;
+  }
+
+  int _skippedFrameCount(RunningLiveSkippedFrameReason reason) {
+    final snapshot = _sessionMetricsCollector.snapshot();
+    return switch (reason) {
+      RunningLiveSkippedFrameReason.detectorBusy => snapshot.busySkippedFrames,
+      RunningLiveSkippedFrameReason.throttled =>
+        snapshot.throttledSkippedFrames,
+      RunningLiveSkippedFrameReason.invalidInput => snapshot.invalidInputFrames,
+      RunningLiveSkippedFrameReason.analysisError =>
+        snapshot.analysisErrorFrames,
+    };
+  }
+
+  Future<void> _processCameraImage(CameraImage image) async {
+    if (_isDisposed || _liveCoachErrorCode != null) {
+      return;
+    }
+    final receivedAt = DateTime.now();
+    _sessionMetricsCollector.recordCameraInputFrame(timestamp: receivedAt);
+
+    if (_isProcessingFrame) {
+      _sessionMetricsCollector.recordSkippedFrame(
+        RunningLiveSkippedFrameReason.detectorBusy,
+      );
+      _emitSkippedFrameEvent(
+        RunningLiveSkippedFrameReason.detectorBusy,
+        receivedAt,
+      );
+      _emitSessionLog(event: 'periodic', force: false, now: receivedAt);
+      return;
+    }
+
     final sessionId = _cameraSessionId;
     final now = _monotonicFrameTimestamp();
     if (_lastProcessedAt != null &&
         now.difference(_lastProcessedAt!) < _frameProcessingInterval) {
+      _sessionMetricsCollector.recordSkippedFrame(
+        RunningLiveSkippedFrameReason.throttled,
+      );
+      _emitSkippedFrameEvent(
+        RunningLiveSkippedFrameReason.throttled,
+        receivedAt,
+      );
+      _emitSessionLog(event: 'periodic', force: false, now: receivedAt);
       return;
     }
 
     final frameInput = _cameraFrameInputFromCameraImage(image);
     if (frameInput == null) {
+      _sessionMetricsCollector.recordSkippedFrame(
+        RunningLiveSkippedFrameReason.invalidInput,
+      );
+      _emitSkippedFrameEvent(
+        RunningLiveSkippedFrameReason.invalidInput,
+        receivedAt,
+      );
+      _emitSessionLog(event: 'periodic', force: false, now: receivedAt);
       return;
     }
 
     _isProcessingFrame = true;
     _lastProcessedAt = now;
+    final stopwatch = Stopwatch()..start();
 
     try {
       final detection =
@@ -477,6 +623,12 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       final state = _coachingService.ingestObservation(
         observation,
         timestamp: now,
+      );
+      stopwatch.stop();
+      _sessionMetricsCollector.recordAnalyzedFrame(
+        timestamp: now,
+        processingTime: stopwatch.elapsed,
+        state: state,
       );
       if (_isDisposed || !mounted || sessionId != _cameraSessionId) {
         return;
@@ -492,8 +644,26 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
                     _activeCamera?.lensDirection ?? CameraLensDirection.back,
               );
       });
+      _emitSessionLog(event: 'periodic', force: false, now: now);
       await _maybeSpeakCue(state);
     } catch (error, stackTrace) {
+      stopwatch.stop();
+      _sessionMetricsCollector.recordSkippedFrame(
+        RunningLiveSkippedFrameReason.analysisError,
+      );
+      _emitSkippedFrameEvent(
+        RunningLiveSkippedFrameReason.analysisError,
+        receivedAt,
+      );
+      _emitSessionLog(
+        event: 'mediapipe_error',
+        force: true,
+        now: now,
+        details: <String, Object?>{
+          'errorType': error.runtimeType.toString(),
+          'message': error.toString(),
+        },
+      );
       await _showLiveCoachError(
         error,
         stackTrace,
@@ -587,6 +757,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       debugPrintStack(stackTrace: stackTrace);
     }
 
+    _endSessionLogging(reason: 'pose_failed');
     _cameraSessionId++;
     _isProcessingFrame = false;
     final controller = _controller;

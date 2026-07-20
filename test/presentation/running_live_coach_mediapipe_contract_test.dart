@@ -16,6 +16,16 @@ void main() {
     expect(source, contains('Duration(milliseconds: 120)'));
     expect(source, contains('_isProcessingFrame'));
     expect(source, contains('_monotonicFrameTimestamp'));
+    expect(source, contains('RunningLiveSessionMetricsCollector'));
+    expect(source, contains('RunningLiveSkippedFrameReason.detectorBusy'));
+    expect(source, contains('RunningLiveSkippedFrameReason.throttled'));
+    expect(source, contains('RunningLiveSkippedFrameReason.invalidInput'));
+    expect(source, contains('RunningLiveSkippedFrameReason.analysisError'));
+    expect(source, contains('recordAnalyzedFrame'));
+    expect(source, contains('[RunningLiveSession]'));
+    expect(source, contains('jsonEncode(payload)'));
+    expect(source, contains('_startSessionLogging'));
+    expect(source, contains('_endSessionLogging'));
     expect(source, contains('state.trackedObservation'));
     expect(source, contains('runningCoachLiveGaitCadenceValue'));
     expect(source, contains('runningCoachLiveGaitContactValue'));
