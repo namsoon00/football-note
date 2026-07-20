@@ -6,6 +6,35 @@ import 'package:football_note/domain/entities/running_live_coaching_state.dart';
 
 void main() {
   group('runningPoseObservationFromMediaPipeDetection', () {
+    test('parses MediaPipe z and world-depth fields from native maps', () {
+      final detection = MediaPipePoseDetection.fromMap({
+        'imageWidth': 360,
+        'imageHeight': 640,
+        'landmarks': [
+          {
+            'index': 0,
+            'x': 10.0,
+            'y': 20.0,
+            'z': -0.12,
+            'visibility': 0.67,
+            'presence': 0.87,
+            'worldX': 0.1,
+            'worldY': 0.2,
+            'worldZ': -0.72,
+            'worldVisibility': 0.66,
+          },
+        ],
+      });
+
+      final landmark = detection.landmarks.single;
+      expect(landmark.z, closeTo(-0.12, 0.001));
+      expect(landmark.visibility, closeTo(0.67, 0.001));
+      expect(landmark.presence, closeTo(0.87, 0.001));
+      expect(landmark.worldLandmark, isNotNull);
+      expect(landmark.worldLandmark!.z, closeTo(-0.72, 0.001));
+      expect(landmark.worldLandmark!.visibility, closeTo(0.66, 0.001));
+    });
+
     test('returns null for an ordinary frame with zero detected poses', () {
       final observation = runningPoseObservationFromMediaPipeDetection(
         const MediaPipePoseDetection(
