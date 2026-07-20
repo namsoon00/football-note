@@ -8877,6 +8877,50 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachLiveGuidanceTitle => 'Current guidance';
 
   @override
+  String get runningCoachLiveGaitPending => 'Pending';
+
+  @override
+  String get runningCoachLiveGaitPhaseFlight => 'Flight';
+
+  @override
+  String get runningCoachLiveGaitPhaseLeftContact => 'Left contact';
+
+  @override
+  String get runningCoachLiveGaitPhaseRightContact => 'Right contact';
+
+  @override
+  String get runningCoachLiveGaitPhaseDoubleContact => 'Double contact';
+
+  @override
+  String runningCoachLiveGaitPhaseValue(Object phase) {
+    return 'Phase $phase';
+  }
+
+  @override
+  String get runningCoachLiveGaitCadencePending => 'Cadence pending';
+
+  @override
+  String runningCoachLiveGaitCadenceValue(int cadence) {
+    return 'Cadence $cadence spm';
+  }
+
+  @override
+  String get runningCoachLiveGaitSideLeft => 'Left';
+
+  @override
+  String get runningCoachLiveGaitSideRight => 'Right';
+
+  @override
+  String runningCoachLiveGaitContactPending(Object side) {
+    return '$side contact pending';
+  }
+
+  @override
+  String runningCoachLiveGaitContactValue(Object side, int milliseconds) {
+    return '$side contact $milliseconds ms';
+  }
+
+  @override
   String get runningCoachSprintLiveCardTitle => 'Live sprint coaching';
 
   @override

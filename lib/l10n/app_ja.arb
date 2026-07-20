@@ -4950,6 +4950,43 @@
     }
   },
   "runningCoachLiveGuidanceTitle": "現在のガイダンス",
+  "runningCoachLiveGaitPending": "待機中",
+  "runningCoachLiveGaitPhaseFlight": "滞空",
+  "runningCoachLiveGaitPhaseLeftContact": "左足接地",
+  "runningCoachLiveGaitPhaseRightContact": "右足接地",
+  "runningCoachLiveGaitPhaseDoubleContact": "両足接地",
+  "runningCoachLiveGaitPhaseValue": "局面 {phase}",
+  "@runningCoachLiveGaitPhaseValue": {
+    "placeholders": {
+      "phase": {}
+    }
+  },
+  "runningCoachLiveGaitCadencePending": "ケイデンス待機中",
+  "runningCoachLiveGaitCadenceValue": "ケイデンス {cadence} spm",
+  "@runningCoachLiveGaitCadenceValue": {
+    "placeholders": {
+      "cadence": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachLiveGaitSideLeft": "左足",
+  "runningCoachLiveGaitSideRight": "右足",
+  "runningCoachLiveGaitContactPending": "{side} 接地待機中",
+  "@runningCoachLiveGaitContactPending": {
+    "placeholders": {
+      "side": {}
+    }
+  },
+  "runningCoachLiveGaitContactValue": "{side} 接地 {milliseconds} ms",
+  "@runningCoachLiveGaitContactValue": {
+    "placeholders": {
+      "side": {},
+      "milliseconds": {
+        "type": "int"
+      }
+    }
+  },
   "runningCoachSprintLiveCardTitle": "ライブスプリントコーチング",
   "runningCoachSprintLiveCardBody": "サイドビュー カメラで全身の捕捉状態を先に確認し、関節信頼度が安定した区間だけ体幹、膝、リズムのキューを表示します。",
   "runningCoachSprintLiveAction": "スプリントコーチングを始める",

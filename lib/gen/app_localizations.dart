@@ -15526,6 +15526,78 @@ abstract class AppLocalizations {
   /// **'Current guidance'**
   String get runningCoachLiveGuidanceTitle;
 
+  /// No description provided for @runningCoachLiveGaitPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get runningCoachLiveGaitPending;
+
+  /// No description provided for @runningCoachLiveGaitPhaseFlight.
+  ///
+  /// In en, this message translates to:
+  /// **'Flight'**
+  String get runningCoachLiveGaitPhaseFlight;
+
+  /// No description provided for @runningCoachLiveGaitPhaseLeftContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Left contact'**
+  String get runningCoachLiveGaitPhaseLeftContact;
+
+  /// No description provided for @runningCoachLiveGaitPhaseRightContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Right contact'**
+  String get runningCoachLiveGaitPhaseRightContact;
+
+  /// No description provided for @runningCoachLiveGaitPhaseDoubleContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Double contact'**
+  String get runningCoachLiveGaitPhaseDoubleContact;
+
+  /// No description provided for @runningCoachLiveGaitPhaseValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Phase {phase}'**
+  String runningCoachLiveGaitPhaseValue(Object phase);
+
+  /// No description provided for @runningCoachLiveGaitCadencePending.
+  ///
+  /// In en, this message translates to:
+  /// **'Cadence pending'**
+  String get runningCoachLiveGaitCadencePending;
+
+  /// No description provided for @runningCoachLiveGaitCadenceValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Cadence {cadence} spm'**
+  String runningCoachLiveGaitCadenceValue(int cadence);
+
+  /// No description provided for @runningCoachLiveGaitSideLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'Left'**
+  String get runningCoachLiveGaitSideLeft;
+
+  /// No description provided for @runningCoachLiveGaitSideRight.
+  ///
+  /// In en, this message translates to:
+  /// **'Right'**
+  String get runningCoachLiveGaitSideRight;
+
+  /// No description provided for @runningCoachLiveGaitContactPending.
+  ///
+  /// In en, this message translates to:
+  /// **'{side} contact pending'**
+  String runningCoachLiveGaitContactPending(Object side);
+
+  /// No description provided for @runningCoachLiveGaitContactValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{side} contact {milliseconds} ms'**
+  String runningCoachLiveGaitContactValue(Object side, int milliseconds);
+
   /// No description provided for @runningCoachSprintLiveCardTitle.
   ///
   /// In en, this message translates to:

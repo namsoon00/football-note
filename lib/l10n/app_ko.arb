@@ -4950,6 +4950,43 @@
     }
   },
   "runningCoachLiveGuidanceTitle": "현재 안내",
+  "runningCoachLiveGaitPending": "대기 중",
+  "runningCoachLiveGaitPhaseFlight": "공중",
+  "runningCoachLiveGaitPhaseLeftContact": "왼발 접지",
+  "runningCoachLiveGaitPhaseRightContact": "오른발 접지",
+  "runningCoachLiveGaitPhaseDoubleContact": "양발 접지",
+  "runningCoachLiveGaitPhaseValue": "국면 {phase}",
+  "@runningCoachLiveGaitPhaseValue": {
+    "placeholders": {
+      "phase": {}
+    }
+  },
+  "runningCoachLiveGaitCadencePending": "케이던스 대기 중",
+  "runningCoachLiveGaitCadenceValue": "케이던스 {cadence} spm",
+  "@runningCoachLiveGaitCadenceValue": {
+    "placeholders": {
+      "cadence": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachLiveGaitSideLeft": "왼발",
+  "runningCoachLiveGaitSideRight": "오른발",
+  "runningCoachLiveGaitContactPending": "{side} 접지 대기 중",
+  "@runningCoachLiveGaitContactPending": {
+    "placeholders": {
+      "side": {}
+    }
+  },
+  "runningCoachLiveGaitContactValue": "{side} 접지 {milliseconds} ms",
+  "@runningCoachLiveGaitContactValue": {
+    "placeholders": {
+      "side": {},
+      "milliseconds": {
+        "type": "int"
+      }
+    }
+  },
   "runningCoachSprintLiveCardTitle": "스프린트 실시간 코칭",
   "runningCoachSprintLiveCardBody": "측면 카메라로 전신 포착 상태를 먼저 확인하고, 관절 신뢰도가 안정된 구간에서만 전경사·무릎·리듬 cue를 알려줘요.",
   "runningCoachSprintLiveAction": "스프린트 코칭 시작",

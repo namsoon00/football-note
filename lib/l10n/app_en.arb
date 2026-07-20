@@ -4950,6 +4950,43 @@
     }
   },
   "runningCoachLiveGuidanceTitle": "Current guidance",
+  "runningCoachLiveGaitPending": "Pending",
+  "runningCoachLiveGaitPhaseFlight": "Flight",
+  "runningCoachLiveGaitPhaseLeftContact": "Left contact",
+  "runningCoachLiveGaitPhaseRightContact": "Right contact",
+  "runningCoachLiveGaitPhaseDoubleContact": "Double contact",
+  "runningCoachLiveGaitPhaseValue": "Phase {phase}",
+  "@runningCoachLiveGaitPhaseValue": {
+    "placeholders": {
+      "phase": {}
+    }
+  },
+  "runningCoachLiveGaitCadencePending": "Cadence pending",
+  "runningCoachLiveGaitCadenceValue": "Cadence {cadence} spm",
+  "@runningCoachLiveGaitCadenceValue": {
+    "placeholders": {
+      "cadence": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachLiveGaitSideLeft": "Left",
+  "runningCoachLiveGaitSideRight": "Right",
+  "runningCoachLiveGaitContactPending": "{side} contact pending",
+  "@runningCoachLiveGaitContactPending": {
+    "placeholders": {
+      "side": {}
+    }
+  },
+  "runningCoachLiveGaitContactValue": "{side} contact {milliseconds} ms",
+  "@runningCoachLiveGaitContactValue": {
+    "placeholders": {
+      "side": {},
+      "milliseconds": {
+        "type": "int"
+      }
+    }
+  },
   "runningCoachSprintLiveCardTitle": "Live sprint coaching",
   "runningCoachSprintLiveCardBody": "Use the side-view camera to check full-body capture first, then show trunk, knee, and rhythm cues only when joint confidence is stable.",
   "runningCoachSprintLiveAction": "Start sprint coaching",

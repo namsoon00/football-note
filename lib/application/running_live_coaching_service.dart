@@ -67,6 +67,8 @@ class RunningLiveCoachingService {
       analysisResult: analysisResult,
       coachingReport: coachingReport,
       highlightedInsight: highlightedInsight,
+      trackedObservation: snapshot.trackedObservation,
+      gaitAnalysis: snapshot.gaitAnalysis,
       trackedFrames: snapshot.trackedFrames,
     );
   }

@@ -25,7 +25,9 @@ class RunningLiveCoachScreen extends StatefulWidget {
 
 class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     with WidgetsBindingObserver {
-  static const _frameProcessingInterval = Duration(milliseconds: 350);
+  // Serialized gait-event sampling target: 120 ms gives about 8 Hz timing
+  // resolution while keeping one MediaPipe inference active at a time.
+  static const _frameProcessingInterval = Duration(milliseconds: 120);
   static const _repeatSpeechCooldown = Duration(seconds: 6);
   static const _changeSpeechCooldown = Duration(seconds: 2);
 
@@ -34,6 +36,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
   final MediaPipePoseLandmarkerService _mediaPipePoseLandmarker =
       const MediaPipePoseLandmarkerService();
   final FlutterTts _tts = FlutterTts();
+  final Stopwatch _frameClock = Stopwatch();
 
   final Map<DeviceOrientation, int> _orientations = const {
     DeviceOrientation.portraitUp: 0,
@@ -54,6 +57,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
   bool _isDisposed = false;
   bool _isProcessingFrame = false;
   String? _configuredTtsLanguage;
+  DateTime _frameClockEpoch = DateTime.now();
   DateTime? _lastProcessedAt;
   DateTime? _lastSpokenAt;
   RunningLivePrimaryCue? _lastSpokenCue;
@@ -73,6 +77,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _resetFrameClock();
     unawaited(_initializeCamera());
   }
 
@@ -88,6 +93,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
         state == AppLifecycleState.paused) {
       _cameraSessionId++;
       _isProcessingFrame = false;
+      _frameClock.stop();
       final controller = _controller;
       _controller = null;
       unawaited(_mediaPipePoseLandmarker.close());
@@ -109,6 +115,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     _controller = null;
     _cameraSessionId++;
     _isProcessingFrame = false;
+    _frameClock.stop();
     if (controller != null) {
       unawaited(controller.dispose());
     }
@@ -277,6 +284,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
                             cueText: cueText,
                             diagnosis: diagnosis,
                             actionTip: actionTip,
+                            gaitAnalysis: _coachingState.gaitAnalysis,
                             metricScores: insightDetails,
                             focusPriorities: focusPriorities,
                             metricSections: insightSections,
@@ -330,6 +338,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
 
     final sessionId = ++_cameraSessionId;
     _isProcessingFrame = false;
+    _resetFrameClock();
 
     if (!_isSupportedMobilePlatform) {
       setState(() {
@@ -442,7 +451,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       return;
     }
     final sessionId = _cameraSessionId;
-    final now = DateTime.now();
+    final now = _monotonicFrameTimestamp();
     if (_lastProcessedAt != null &&
         now.difference(_lastProcessedAt!) < _frameProcessingInterval) {
       return;
@@ -474,10 +483,11 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       }
       setState(() {
         _coachingState = state;
-        _poseOverlayState = observation == null
+        final overlayObservation = state.trackedObservation;
+        _poseOverlayState = overlayObservation == null
             ? null
             : _PoseOverlayState(
-                observation: observation,
+                observation: overlayObservation,
                 lensDirection:
                     _activeCamera?.lensDirection ?? CameraLensDirection.back,
               );
@@ -492,6 +502,25 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     } finally {
       _isProcessingFrame = false;
     }
+  }
+
+  void _resetFrameClock() {
+    _frameClock
+      ..reset()
+      ..start();
+    _frameClockEpoch = DateTime.now();
+  }
+
+  DateTime _monotonicFrameTimestamp() {
+    if (!_frameClock.isRunning) {
+      _frameClock.start();
+    }
+    final candidate = _frameClockEpoch.add(_frameClock.elapsed);
+    final lastProcessedAt = _lastProcessedAt;
+    if (lastProcessedAt != null && !candidate.isAfter(lastProcessedAt)) {
+      return lastProcessedAt.add(const Duration(milliseconds: 1));
+    }
+    return candidate;
   }
 
   _CameraFrameInput? _cameraFrameInputFromCameraImage(CameraImage image) {
@@ -1072,6 +1101,7 @@ class _ScoreExplanationPanel extends StatelessWidget {
   final String cueText;
   final String diagnosis;
   final String actionTip;
+  final RunningGaitAnalysis gaitAnalysis;
   final List<_LiveInsightData> metricScores;
   final Map<RunningCoachMetric, int> focusPriorities;
   final List<_LiveInsightSection> metricSections;
@@ -1084,6 +1114,7 @@ class _ScoreExplanationPanel extends StatelessWidget {
     required this.cueText,
     required this.diagnosis,
     required this.actionTip,
+    required this.gaitAnalysis,
     required this.metricScores,
     required this.focusPriorities,
     required this.metricSections,
@@ -1136,6 +1167,8 @@ class _ScoreExplanationPanel extends StatelessWidget {
                   _InfoChip(text: speechLabel),
                 ],
               ),
+              const SizedBox(height: 10),
+              _GaitStatusChips(gaitAnalysis: gaitAnalysis),
               if (cueText.isNotEmpty ||
                   diagnosis.isNotEmpty ||
                   actionTip.isNotEmpty) ...[
@@ -1193,6 +1226,79 @@ class _ScoreExplanationPanel extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _GaitStatusChips extends StatelessWidget {
+  final RunningGaitAnalysis gaitAnalysis;
+
+  const _GaitStatusChips({required this.gaitAnalysis});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        _InfoChip(
+          text: l10n.runningCoachLiveGaitPhaseValue(
+            _phaseLabel(l10n, gaitAnalysis.currentPhase),
+          ),
+        ),
+        _InfoChip(text: _cadenceLabel(l10n, gaitAnalysis.cadence)),
+        _InfoChip(
+          text: _contactLabel(
+            l10n,
+            side: RunningFootSide.left,
+            metric: gaitAnalysis.leftContactDuration,
+          ),
+        ),
+        _InfoChip(
+          text: _contactLabel(
+            l10n,
+            side: RunningFootSide.right,
+            metric: gaitAnalysis.rightContactDuration,
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _phaseLabel(AppLocalizations l10n, RunningGaitPhase phase) {
+    return switch (phase) {
+      RunningGaitPhase.unknown => l10n.runningCoachLiveGaitPending,
+      RunningGaitPhase.flight => l10n.runningCoachLiveGaitPhaseFlight,
+      RunningGaitPhase.leftContact => l10n.runningCoachLiveGaitPhaseLeftContact,
+      RunningGaitPhase.rightContact =>
+        l10n.runningCoachLiveGaitPhaseRightContact,
+      RunningGaitPhase.doubleContact =>
+        l10n.runningCoachLiveGaitPhaseDoubleContact,
+    };
+  }
+
+  String _cadenceLabel(AppLocalizations l10n, RunningGaitMetric metric) {
+    final value = metric.value;
+    if (!metric.available || value == null) {
+      return l10n.runningCoachLiveGaitCadencePending;
+    }
+    return l10n.runningCoachLiveGaitCadenceValue(value.round());
+  }
+
+  String _contactLabel(
+    AppLocalizations l10n, {
+    required RunningFootSide side,
+    required RunningGaitMetric metric,
+  }) {
+    final sideLabel = switch (side) {
+      RunningFootSide.left => l10n.runningCoachLiveGaitSideLeft,
+      RunningFootSide.right => l10n.runningCoachLiveGaitSideRight,
+    };
+    final value = metric.value;
+    if (!metric.available || value == null) {
+      return l10n.runningCoachLiveGaitContactPending(sideLabel);
+    }
+    return l10n.runningCoachLiveGaitContactValue(sideLabel, value.round());
   }
 }
 
