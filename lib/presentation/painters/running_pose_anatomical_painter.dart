@@ -11,10 +11,12 @@ import '../models/running_pose_anatomy.dart';
 class RunningPoseAnatomicalPainter extends CustomPainter {
   final ValueListenable<RunningVisualPoseFrame?> frameListenable;
   final bool mirrorHorizontally;
+  final BoxFit fit;
 
   RunningPoseAnatomicalPainter({
     required this.frameListenable,
     required this.mirrorHorizontally,
+    this.fit = BoxFit.cover,
   }) : super(repaint: frameListenable);
 
   static const Color _nearColor = Color(0xFF79F2BA);
@@ -29,9 +31,10 @@ class RunningPoseAnatomicalPainter extends CustomPainter {
       return;
     }
 
-    final transform = CameraViewportTransform.cover(
+    final transform = CameraViewportTransform.fit(
       sourceSize: frame.imageSize,
       viewportSize: size,
+      fit: fit,
       mirrorHorizontally: mirrorHorizontally,
     );
     if (!transform.isValid) {

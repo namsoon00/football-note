@@ -1,4 +1,5 @@
 import 'running_video_analysis_result.dart';
+import 'running_live_coaching_state.dart';
 import 'sprint_realtime_coaching_state.dart';
 
 enum RunningCoachSessionSource { uploadVideo, liveRun, sprintLive }
@@ -270,6 +271,113 @@ class LiveSprintMetricSummary {
   }
 }
 
+enum LiveSprintPoseEvidencePhase { touchdown, support, flight }
+
+class LiveSprintPoseEvidenceJoint {
+  final RunningPoseLandmarkType type;
+  final double x;
+  final double y;
+  final double z;
+  final double confidence;
+  final bool observed;
+
+  const LiveSprintPoseEvidenceJoint({
+    required this.type,
+    required this.x,
+    required this.y,
+    required this.z,
+    required this.confidence,
+    required this.observed,
+  });
+
+  Map<String, Object?> toMap() {
+    return <String, Object?>{
+      'type': type.name,
+      'x': x,
+      'y': y,
+      'z': z,
+      'confidence': confidence,
+      'observed': observed,
+    };
+  }
+
+  factory LiveSprintPoseEvidenceJoint.fromMap(Map<String, dynamic> map) {
+    return LiveSprintPoseEvidenceJoint(
+      type: _enumByName(
+        RunningPoseLandmarkType.values,
+        map['type']?.toString(),
+        RunningPoseLandmarkType.nose,
+      ),
+      x: _doubleValue(map['x']).clamp(0.0, 1.0),
+      y: _doubleValue(map['y']).clamp(0.0, 1.0),
+      z: _doubleValue(map['z']),
+      confidence: _doubleValue(map['confidence']).clamp(0.0, 1.0),
+      observed: map['observed'] == true,
+    );
+  }
+}
+
+class LiveSprintPoseEvidenceFrame {
+  final LiveSprintPoseEvidencePhase phase;
+  final int capturedOffsetMs;
+  final double quality;
+  final double sideViewConfidence;
+  final double imageAspectRatio;
+  final RunningFootSide? leadFoot;
+  final List<LiveSprintPoseEvidenceJoint> joints;
+
+  const LiveSprintPoseEvidenceFrame({
+    required this.phase,
+    required this.capturedOffsetMs,
+    required this.quality,
+    required this.sideViewConfidence,
+    required this.imageAspectRatio,
+    required this.leadFoot,
+    required this.joints,
+  });
+
+  LiveSprintPoseEvidenceJoint? joint(RunningPoseLandmarkType type) {
+    for (final candidate in joints) {
+      if (candidate.type == type) {
+        return candidate;
+      }
+    }
+    return null;
+  }
+
+  Map<String, Object?> toMap() {
+    return <String, Object?>{
+      'phase': phase.name,
+      'capturedOffsetMs': capturedOffsetMs,
+      'quality': quality,
+      'sideViewConfidence': sideViewConfidence,
+      'imageAspectRatio': imageAspectRatio,
+      if (leadFoot != null) 'leadFoot': leadFoot!.name,
+      'joints': joints.map((joint) => joint.toMap()).toList(growable: false),
+    };
+  }
+
+  factory LiveSprintPoseEvidenceFrame.fromMap(Map<String, dynamic> map) {
+    return LiveSprintPoseEvidenceFrame(
+      phase: _enumByName(
+        LiveSprintPoseEvidencePhase.values,
+        map['phase']?.toString(),
+        LiveSprintPoseEvidencePhase.support,
+      ),
+      capturedOffsetMs: _intValue(map['capturedOffsetMs']).clamp(0, 1 << 31),
+      quality: _doubleValue(map['quality']).clamp(0.0, 1.0),
+      sideViewConfidence:
+          _doubleValue(map['sideViewConfidence']).clamp(0.0, 1.0),
+      imageAspectRatio: _doubleValue(map['imageAspectRatio']).clamp(0.2, 4.0),
+      leadFoot: _nullableEnumByName(
+        RunningFootSide.values,
+        map['leadFoot']?.toString(),
+      ),
+      joints: _liveSprintPoseEvidenceJointsFromMap(map['joints']),
+    );
+  }
+}
+
 class LiveSprintSessionReport {
   final int runningTrackedFrames;
   final int runningAnalyzedFrames;
@@ -290,6 +398,7 @@ class LiveSprintSessionReport {
   final SprintFeedbackSeverity? feedbackSeverity;
   final double feedbackConfidence;
   final List<LiveSprintMetricSummary> metrics;
+  final List<LiveSprintPoseEvidenceFrame> poseEvidence;
 
   const LiveSprintSessionReport({
     required this.runningTrackedFrames,
@@ -311,6 +420,7 @@ class LiveSprintSessionReport {
     required this.feedbackSeverity,
     required this.feedbackConfidence,
     required this.metrics,
+    this.poseEvidence = const <LiveSprintPoseEvidenceFrame>[],
   });
 
   double get analysisConfidence =>
@@ -348,6 +458,10 @@ class LiveSprintSessionReport {
       'feedbackConfidence': feedbackConfidence,
       'metrics':
           metrics.map((metric) => metric.toMap()).toList(growable: false),
+      if (poseEvidence.isNotEmpty)
+        'poseEvidence': poseEvidence
+            .map((evidence) => evidence.toMap())
+            .toList(growable: false),
     };
   }
 
@@ -390,6 +504,7 @@ class LiveSprintSessionReport {
       feedbackConfidence:
           _doubleValue(map['feedbackConfidence']).clamp(0.0, 1.0),
       metrics: _liveSprintMetricsFromMap(map['metrics']),
+      poseEvidence: _liveSprintPoseEvidenceFromMap(map['poseEvidence']),
     );
   }
 }
@@ -426,6 +541,42 @@ List<LiveSprintMetricSummary> _liveSprintMetricsFromMap(Object? value) {
         .whereType<Map>()
         .map(
           (item) => LiveSprintMetricSummary.fromMap(
+            item.cast<String, dynamic>(),
+          ),
+        )
+        .toList(growable: false),
+  );
+}
+
+List<LiveSprintPoseEvidenceFrame> _liveSprintPoseEvidenceFromMap(
+  Object? value,
+) {
+  if (value is! List) {
+    return const <LiveSprintPoseEvidenceFrame>[];
+  }
+  return List<LiveSprintPoseEvidenceFrame>.unmodifiable(
+    value
+        .whereType<Map>()
+        .map(
+          (item) => LiveSprintPoseEvidenceFrame.fromMap(
+            item.cast<String, dynamic>(),
+          ),
+        )
+        .toList(growable: false),
+  );
+}
+
+List<LiveSprintPoseEvidenceJoint> _liveSprintPoseEvidenceJointsFromMap(
+  Object? value,
+) {
+  if (value is! List) {
+    return const <LiveSprintPoseEvidenceJoint>[];
+  }
+  return List<LiveSprintPoseEvidenceJoint>.unmodifiable(
+    value
+        .whereType<Map>()
+        .map(
+          (item) => LiveSprintPoseEvidenceJoint.fromMap(
             item.cast<String, dynamic>(),
           ),
         )

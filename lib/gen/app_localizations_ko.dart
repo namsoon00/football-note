@@ -8838,6 +8838,37 @@ class AppLocalizationsKo extends AppLocalizations {
       '스프린트 메커닉을 정리할 만큼 안정적인 신호가 부족해요. 같은 구도에서 몇 걸음 더 달린 뒤 다시 마쳐 주세요.';
 
   @override
+  String get runningCoachLiveSessionReportEvidenceTitle => '관절 추적 근거';
+
+  @override
+  String get runningCoachLiveSessionReportEvidenceBody =>
+      '안정적으로 추적된 관절 좌표로 만든 대표 자세예요. 카메라 사진은 저장하지 않아요.';
+
+  @override
+  String get runningCoachLiveSessionReportEvidenceUnavailable =>
+      '이번 세션에는 전신과 측면 신뢰도 기준을 모두 통과한 관절 프레임이 없어요. 같은 측면 구도에서 몇 걸음 더 달려 주세요.';
+
+  @override
+  String get runningCoachLiveSessionReportEvidenceTouchdown => '착지';
+
+  @override
+  String get runningCoachLiveSessionReportEvidenceSupport => '지지';
+
+  @override
+  String get runningCoachLiveSessionReportEvidenceFlight => '비행';
+
+  @override
+  String runningCoachLiveSessionReportEvidenceSideView(int percent) {
+    return '측면 $percent%';
+  }
+
+  @override
+  String get runningCoachLiveSessionReportEvidenceLeftLead => '왼발 선행';
+
+  @override
+  String get runningCoachLiveSessionReportEvidenceRightLead => '오른발 선행';
+
+  @override
   String get runningCoachLiveSessionReportQualityTitle => '분석 품질';
 
   @override

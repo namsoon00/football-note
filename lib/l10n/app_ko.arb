@@ -5059,6 +5059,22 @@
   "runningCoachLiveSessionReportFormTitle": "러닝 자세",
   "runningCoachLiveSessionReportNoFormData": "안정적인 러닝 자세 점수를 만들지 못했어요. 전신이 보이는 측면 구도를 더 오래 유지해 주세요.",
   "runningCoachLiveSessionReportNoSprintData": "스프린트 메커닉을 정리할 만큼 안정적인 신호가 부족해요. 같은 구도에서 몇 걸음 더 달린 뒤 다시 마쳐 주세요.",
+  "runningCoachLiveSessionReportEvidenceTitle": "관절 추적 근거",
+  "runningCoachLiveSessionReportEvidenceBody": "안정적으로 추적된 관절 좌표로 만든 대표 자세예요. 카메라 사진은 저장하지 않아요.",
+  "runningCoachLiveSessionReportEvidenceUnavailable": "이번 세션에는 전신과 측면 신뢰도 기준을 모두 통과한 관절 프레임이 없어요. 같은 측면 구도에서 몇 걸음 더 달려 주세요.",
+  "runningCoachLiveSessionReportEvidenceTouchdown": "착지",
+  "runningCoachLiveSessionReportEvidenceSupport": "지지",
+  "runningCoachLiveSessionReportEvidenceFlight": "비행",
+  "runningCoachLiveSessionReportEvidenceSideView": "측면 {percent}%",
+  "@runningCoachLiveSessionReportEvidenceSideView": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachLiveSessionReportEvidenceLeftLead": "왼발 선행",
+  "runningCoachLiveSessionReportEvidenceRightLead": "오른발 선행",
   "runningCoachLiveSessionReportQualityTitle": "분석 품질",
   "runningCoachLiveSessionReportDurationLabel": "세션 시간",
   "runningCoachLiveSessionReportDurationValue": "{minutes}분 {seconds}초",

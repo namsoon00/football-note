@@ -8829,6 +8829,37 @@ class AppLocalizationsJa extends AppLocalizations {
       'スプリント動作をまとめるには安定した信号が不足しています。同じフレーミングであと数歩走ってから、もう一度終了してください。';
 
   @override
+  String get runningCoachLiveSessionReportEvidenceTitle => '関節トラッキングの根拠';
+
+  @override
+  String get runningCoachLiveSessionReportEvidenceBody =>
+      '安定して追跡された関節座標から作成した代表姿勢です。カメラ写真は保存しません。';
+
+  @override
+  String get runningCoachLiveSessionReportEvidenceUnavailable =>
+      'このセッションでは、全身と側面ビューの信頼度基準を満たす姿勢フレームがありませんでした。同じ側面構図であと数歩走ってください。';
+
+  @override
+  String get runningCoachLiveSessionReportEvidenceTouchdown => '接地';
+
+  @override
+  String get runningCoachLiveSessionReportEvidenceSupport => '支持';
+
+  @override
+  String get runningCoachLiveSessionReportEvidenceFlight => '空中';
+
+  @override
+  String runningCoachLiveSessionReportEvidenceSideView(int percent) {
+    return '側面 $percent%';
+  }
+
+  @override
+  String get runningCoachLiveSessionReportEvidenceLeftLead => '左足リード';
+
+  @override
+  String get runningCoachLiveSessionReportEvidenceRightLead => '右足リード';
+
+  @override
   String get runningCoachLiveSessionReportQualityTitle => '分析品質';
 
   @override

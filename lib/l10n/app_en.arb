@@ -5059,6 +5059,22 @@
   "runningCoachLiveSessionReportFormTitle": "Running form",
   "runningCoachLiveSessionReportNoFormData": "No stable running-form score was captured. Keep the full body in a steady side view for a longer run.",
   "runningCoachLiveSessionReportNoSprintData": "There was not enough stable signal to summarize sprint mechanics. Keep the same framing for a few more steps, then finish again.",
+  "runningCoachLiveSessionReportEvidenceTitle": "Joint-tracking evidence",
+  "runningCoachLiveSessionReportEvidenceBody": "Representative poses use stable tracked-joint geometry. Camera photos are not saved.",
+  "runningCoachLiveSessionReportEvidenceUnavailable": "No pose frame met the full-body and side-view confidence threshold in this session. Keep a steady side view for a few more steps.",
+  "runningCoachLiveSessionReportEvidenceTouchdown": "Touchdown",
+  "runningCoachLiveSessionReportEvidenceSupport": "Support",
+  "runningCoachLiveSessionReportEvidenceFlight": "Flight",
+  "runningCoachLiveSessionReportEvidenceSideView": "Side view {percent}%",
+  "@runningCoachLiveSessionReportEvidenceSideView": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachLiveSessionReportEvidenceLeftLead": "Left lead",
+  "runningCoachLiveSessionReportEvidenceRightLead": "Right lead",
   "runningCoachLiveSessionReportQualityTitle": "Analysis quality",
   "runningCoachLiveSessionReportDurationLabel": "Session time",
   "runningCoachLiveSessionReportDurationValue": "{minutes}m {seconds}s",

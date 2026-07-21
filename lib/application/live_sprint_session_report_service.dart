@@ -15,6 +15,8 @@ class LiveSprintSessionReportService {
     required SprintLiveSessionMetricsSnapshot sprintSnapshot,
     required RunningLiveCoachingState runningState,
     required SprintRealtimeCoachingState sprintState,
+    List<LiveSprintPoseEvidenceFrame> poseEvidence =
+        const <LiveSprintPoseEvidenceFrame>[],
   }) {
     final runningReport = runningState.coachingReport;
     final insights =
@@ -46,6 +48,7 @@ class LiveSprintSessionReportService {
         sprintSnapshot: sprintSnapshot,
         runningState: runningState,
         sprintState: sprintState,
+        poseEvidence: poseEvidence,
       ),
     );
   }
@@ -55,6 +58,7 @@ class LiveSprintSessionReportService {
     required SprintLiveSessionMetricsSnapshot sprintSnapshot,
     required RunningLiveCoachingState runningState,
     required SprintRealtimeCoachingState sprintState,
+    required List<LiveSprintPoseEvidenceFrame> poseEvidence,
   }) {
     final features = sprintState.features;
     final feedback = sprintState.feedback;
@@ -79,6 +83,7 @@ class LiveSprintSessionReportService {
       feedbackCode: actionableFeedback?.code,
       feedbackSeverity: actionableFeedback?.severity,
       feedbackConfidence: actionableFeedback?.confidence ?? 0,
+      poseEvidence: poseEvidence,
       metrics: <LiveSprintMetricSummary>[
         _metric(LiveSprintMetricKind.trunkAngle, features.trunkAngle),
         _metric(LiveSprintMetricKind.kneeDrive, features.kneeDrive),

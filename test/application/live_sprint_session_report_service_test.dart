@@ -22,6 +22,7 @@ void main() {
       sprintSnapshot: fixture.sprintSnapshot,
       runningState: fixture.runningState,
       sprintState: fixture.sprintState,
+      poseEvidence: fixture.poseEvidence,
     );
 
     expect(session.id, fixture.sessionId);
@@ -36,6 +37,8 @@ void main() {
     expect(report.sprintAnalyzedFrames, 72);
     expect(report.detectedSteps, 8);
     expect(report.feedbackCode, SprintFeedbackCode.landUnderHips);
+    expect(
+        report.poseEvidence.single.phase, LiveSprintPoseEvidencePhase.flight);
     expect(report.analysisConfidence, closeTo(0.8, 0.0001));
     expect(
       report.metricFor(LiveSprintMetricKind.cadence)!.value,
@@ -49,6 +52,10 @@ void main() {
     final restored = RunningCoachSessionAnalysis.fromMap(session.toMap());
     expect(restored.insights, hasLength(2));
     expect(restored.liveSprintReport!.detectedSteps, 8);
+    expect(
+      restored.liveSprintReport!.poseEvidence.single.quality,
+      closeTo(0.84, 0.0001),
+    );
     expect(
       restored.liveSprintReport!.metricFor(LiveSprintMetricKind.rhythm)!.value,
       closeTo(13, 0.0001),
@@ -67,6 +74,7 @@ void main() {
       sprintSnapshot: fixture.sprintSnapshot,
       runningState: fixture.runningState,
       sprintState: fixture.sprintState,
+      poseEvidence: fixture.poseEvidence,
     );
 
     expect(saved, hasLength(1));
@@ -77,6 +85,10 @@ void main() {
     expect(restored, hasLength(1));
     expect(restored.single.source, RunningCoachSessionSource.sprintLive);
     expect(restored.single.liveSprintReport!.feedbackChanges, 4);
+    expect(
+      restored.single.liveSprintReport!.poseEvidence.single.phase,
+      LiveSprintPoseEvidencePhase.flight,
+    );
     expect(
       restored.single.liveSprintReport!
           .metricFor(LiveSprintMetricKind.kneeDrive)!
@@ -94,6 +106,28 @@ class _LiveSessionFixture {
   String get sessionId => 'live-sprint-1784597400000000';
 
   DateTime get completedAt => _completedAt;
+
+  List<LiveSprintPoseEvidenceFrame> get poseEvidence =>
+      const <LiveSprintPoseEvidenceFrame>[
+        LiveSprintPoseEvidenceFrame(
+          phase: LiveSprintPoseEvidencePhase.flight,
+          capturedOffsetMs: 1800,
+          quality: 0.84,
+          sideViewConfidence: 0.8,
+          imageAspectRatio: 0.5625,
+          leadFoot: null,
+          joints: <LiveSprintPoseEvidenceJoint>[
+            LiveSprintPoseEvidenceJoint(
+              type: RunningPoseLandmarkType.leftHip,
+              x: 0.42,
+              y: 0.5,
+              z: 0.1,
+              confidence: 0.9,
+              observed: true,
+            ),
+          ],
+        ),
+      ];
 
   RunningLiveSessionMetricsSnapshot get runningSnapshot =>
       const RunningLiveSessionMetricsSnapshot(
