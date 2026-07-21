@@ -8971,6 +8971,96 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get runningCoachFieldValidationTitle => 'フィールド検証';
+
+  @override
+  String get runningCoachFieldValidationPrivacyNote =>
+      '保存済みのカウンターと関節根拠だけを使います。カメラフレームは保存しません。';
+
+  @override
+  String get runningCoachFieldValidationStatusInsufficient => '根拠不足';
+
+  @override
+  String get runningCoachFieldValidationStatusNeedsReview => '確認が必要';
+
+  @override
+  String get runningCoachFieldValidationStatusReady => 'キャリブレーション準備完了';
+
+  @override
+  String get runningCoachFieldValidationBodyInsufficient =>
+      'しきい値調整に使える安定したフィールド根拠が不足しています。下の項目を直して再度キャプチャしてください。';
+
+  @override
+  String get runningCoachFieldValidationBodyNeedsReview =>
+      'フィールド根拠はありますが、しきい値を調整する前に測定項目を確認してください。';
+
+  @override
+  String get runningCoachFieldValidationBodyReady =>
+      'この走行はしきい値キャリブレーションの比較に使えます。基準を変える前に同じプロファイルでもう一度繰り返してください。';
+
+  @override
+  String runningCoachFieldValidationProfileValue(Object profile) {
+    return 'プロファイル: $profile';
+  }
+
+  @override
+  String runningCoachFieldValidationQualityValue(int score) {
+    return 'フィールド品質 $score%';
+  }
+
+  @override
+  String get runningCoachFieldValidationNextChecksTitle => '次のキャプチャ確認';
+
+  @override
+  String get runningCoachFieldValidationAllChecksPassed =>
+      '測定可能なフィールド確認をすべて通過しました。';
+
+  @override
+  String get runningCoachFieldValidationCheckCaptureReadiness => 'キャプチャ準備度';
+
+  @override
+  String get runningCoachFieldValidationCheckPhaseCoverage => 'フェーズ網羅';
+
+  @override
+  String get runningCoachFieldValidationCheckTrackedFrames => '追跡フレーム';
+
+  @override
+  String get runningCoachFieldValidationCheckUsableSamples => '使用可能な姿勢サンプル';
+
+  @override
+  String get runningCoachFieldValidationCheckTimingConfidence => 'タイミング信頼度';
+
+  @override
+  String get runningCoachFieldValidationCheckSideViewConfidence => '側面ビュー信頼度';
+
+  @override
+  String get runningCoachFieldValidationCheckTrackingConfidence => 'トラッキング信頼度';
+
+  @override
+  String get runningCoachFieldValidationCheckBodyVisibility => '全身ロスト';
+
+  @override
+  String get runningCoachFieldValidationCheckStepEvidence => 'ステップ根拠';
+
+  @override
+  String get runningCoachFieldValidationCheckLandingEvidence => '接地根拠';
+
+  @override
+  String runningCoachFieldValidationCountValue(int observed, int required) {
+    return '$observed / 目標 $required';
+  }
+
+  @override
+  String runningCoachFieldValidationPercentValue(int current, int target) {
+    return '$current% / 目標 $target%';
+  }
+
+  @override
+  String runningCoachFieldValidationPercentMaxValue(int current, int target) {
+    return '$current% / 最大 $target%';
+  }
+
+  @override
   String get runningCoachLiveSessionReportQualityTitle => '分析品質';
 
   @override

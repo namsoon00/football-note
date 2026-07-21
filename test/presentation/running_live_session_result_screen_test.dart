@@ -26,16 +26,32 @@ void main() {
     expect(find.text('Live sprint report'), findsOneWidget);
     expect(find.text('Saved to coaching history'), findsOneWidget);
     expect(
+      find.byKey(
+          const ValueKey('running-live-session-report-field-validation')),
+      findsOneWidget,
+    );
+    expect(find.text('Field validation'), findsOneWidget);
+    expect(find.text('Ready for calibration'), findsOneWidget);
+    expect(find.text('Profile: Balanced'), findsOneWidget);
+    await _scrollReportUntilVisible(
+      tester,
+      find.byKey(const ValueKey('running-live-session-report-focus')),
+    );
+    expect(
       find.byKey(const ValueKey('running-live-session-report-focus')),
       findsOneWidget,
     );
     expect(find.text('Next focus'), findsOneWidget);
+    await _scrollReportUntilVisible(
+      tester,
+      find.text('Joint-tracking evidence'),
+    );
     expect(
       find.byKey(const ValueKey('running-live-session-report-pose-evidence')),
       findsOneWidget,
     );
     expect(find.text('Joint-tracking evidence'), findsOneWidget);
-    expect(find.text('Touchdown'), findsOneWidget);
+    expect(find.text('Touchdown'), findsWidgets);
     await _scrollReportUntilVisible(tester, find.text('Sprint mechanics'));
     expect(find.text('Sprint mechanics'), findsWidgets);
 
@@ -178,6 +194,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    await _scrollReportUntilVisible(tester, find.text('Sprint progress'));
     expect(
       find.byKey(const ValueKey('running-live-session-report-trend')),
       findsOneWidget,
@@ -265,31 +282,68 @@ RunningCoachSessionAnalysis _session() {
         ),
       ],
       poseEvidence: _poseEvidence(),
+      poseEvidenceDiagnostic: const LiveSprintPoseEvidenceDiagnostic(
+        evaluatedFrames: 36,
+        eligibleFrames: 18,
+        capturedPhaseCount: 3,
+        fullBodyBlockedFrames: 0,
+        sideViewBlockedFrames: 0,
+        coreJointsBlockedFrames: 0,
+        gaitPhaseBlockedFrames: 0,
+        currentBlocker: null,
+        readinessSummary: LiveSprintCaptureReadinessSummary(
+          framing: LiveSprintCaptureReadinessCheck(
+            ready: true,
+            value: 1,
+            threshold: 1,
+          ),
+          sideView: LiveSprintCaptureReadinessCheck(
+            ready: true,
+            value: 0.82,
+            threshold: 0.65,
+          ),
+          coreJointConfidence: LiveSprintCaptureReadinessCheck(
+            ready: true,
+            value: 0.84,
+            threshold: 0.70,
+            observedCount: 15,
+            requiredCount: 15,
+          ),
+          gaitPhase: LiveSprintCaptureReadinessCheck(
+            ready: true,
+            value: 0.82,
+            threshold: 0.62,
+          ),
+        ),
+      ),
     ),
   );
 }
 
 List<LiveSprintPoseEvidenceFrame> _poseEvidence() {
   return <LiveSprintPoseEvidenceFrame>[
-    LiveSprintPoseEvidenceFrame(
-      phase: LiveSprintPoseEvidencePhase.touchdown,
-      capturedOffsetMs: 2400,
-      quality: 0.88,
-      sideViewConfidence: 0.84,
-      imageAspectRatio: 0.5625,
-      leadFoot: RunningFootSide.left,
-      joints: <LiveSprintPoseEvidenceJoint>[
-        for (final type in RunningPoseLandmarkType.values)
-          LiveSprintPoseEvidenceJoint(
-            type: type,
-            x: 0.2 + ((type.index % 5) * 0.12),
-            y: 0.1 + ((type.index ~/ 5) * 0.16),
-            z: type.index / 100,
-            confidence: 0.9,
-            observed: true,
-          ),
-      ],
-    ),
+    for (final phase in LiveSprintPoseEvidencePhase.values)
+      LiveSprintPoseEvidenceFrame(
+        phase: phase,
+        capturedOffsetMs: 2400 + (phase.index * 220),
+        quality: 0.88,
+        sideViewConfidence: 0.84,
+        imageAspectRatio: 0.5625,
+        leadFoot: phase == LiveSprintPoseEvidencePhase.touchdown
+            ? RunningFootSide.left
+            : null,
+        joints: <LiveSprintPoseEvidenceJoint>[
+          for (final type in RunningPoseLandmarkType.values)
+            LiveSprintPoseEvidenceJoint(
+              type: type,
+              x: 0.2 + ((type.index % 5) * 0.12),
+              y: 0.1 + ((type.index ~/ 5) * 0.16),
+              z: type.index / 100,
+              confidence: 0.9,
+              observed: true,
+            ),
+        ],
+      ),
   ];
 }
 

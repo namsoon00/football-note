@@ -16087,6 +16087,156 @@ abstract class AppLocalizations {
   /// **'Main capture limit: {reason}'**
   String runningCoachLiveSessionReportEvidenceLimit(Object reason);
 
+  /// No description provided for @runningCoachFieldValidationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Field validation'**
+  String get runningCoachFieldValidationTitle;
+
+  /// No description provided for @runningCoachFieldValidationPrivacyNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Uses saved counters and pose-joint evidence only. Camera frames are not stored.'**
+  String get runningCoachFieldValidationPrivacyNote;
+
+  /// No description provided for @runningCoachFieldValidationStatusInsufficient.
+  ///
+  /// In en, this message translates to:
+  /// **'Insufficient'**
+  String get runningCoachFieldValidationStatusInsufficient;
+
+  /// No description provided for @runningCoachFieldValidationStatusNeedsReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs review'**
+  String get runningCoachFieldValidationStatusNeedsReview;
+
+  /// No description provided for @runningCoachFieldValidationStatusReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready for calibration'**
+  String get runningCoachFieldValidationStatusReady;
+
+  /// No description provided for @runningCoachFieldValidationBodyInsufficient.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough stable field evidence for threshold tuning. Repeat capture after the checks below.'**
+  String get runningCoachFieldValidationBodyInsufficient;
+
+  /// No description provided for @runningCoachFieldValidationBodyNeedsReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Useful field evidence was captured, but review the measurable checks before tuning thresholds.'**
+  String get runningCoachFieldValidationBodyNeedsReview;
+
+  /// No description provided for @runningCoachFieldValidationBodyReady.
+  ///
+  /// In en, this message translates to:
+  /// **'This run is ready to compare during threshold calibration. Repeat the same profile before changing thresholds.'**
+  String get runningCoachFieldValidationBodyReady;
+
+  /// No description provided for @runningCoachFieldValidationProfileValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile: {profile}'**
+  String runningCoachFieldValidationProfileValue(Object profile);
+
+  /// No description provided for @runningCoachFieldValidationQualityValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Field quality {score}%'**
+  String runningCoachFieldValidationQualityValue(int score);
+
+  /// No description provided for @runningCoachFieldValidationNextChecksTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Next capture checks'**
+  String get runningCoachFieldValidationNextChecksTitle;
+
+  /// No description provided for @runningCoachFieldValidationAllChecksPassed.
+  ///
+  /// In en, this message translates to:
+  /// **'All measurable field checks passed.'**
+  String get runningCoachFieldValidationAllChecksPassed;
+
+  /// No description provided for @runningCoachFieldValidationCheckCaptureReadiness.
+  ///
+  /// In en, this message translates to:
+  /// **'Capture readiness'**
+  String get runningCoachFieldValidationCheckCaptureReadiness;
+
+  /// No description provided for @runningCoachFieldValidationCheckPhaseCoverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Phase coverage'**
+  String get runningCoachFieldValidationCheckPhaseCoverage;
+
+  /// No description provided for @runningCoachFieldValidationCheckTrackedFrames.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracked frames'**
+  String get runningCoachFieldValidationCheckTrackedFrames;
+
+  /// No description provided for @runningCoachFieldValidationCheckUsableSamples.
+  ///
+  /// In en, this message translates to:
+  /// **'Usable pose samples'**
+  String get runningCoachFieldValidationCheckUsableSamples;
+
+  /// No description provided for @runningCoachFieldValidationCheckTimingConfidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Timing confidence'**
+  String get runningCoachFieldValidationCheckTimingConfidence;
+
+  /// No description provided for @runningCoachFieldValidationCheckSideViewConfidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Side-view confidence'**
+  String get runningCoachFieldValidationCheckSideViewConfidence;
+
+  /// No description provided for @runningCoachFieldValidationCheckTrackingConfidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracking confidence'**
+  String get runningCoachFieldValidationCheckTrackingConfidence;
+
+  /// No description provided for @runningCoachFieldValidationCheckBodyVisibility.
+  ///
+  /// In en, this message translates to:
+  /// **'Body loss'**
+  String get runningCoachFieldValidationCheckBodyVisibility;
+
+  /// No description provided for @runningCoachFieldValidationCheckStepEvidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Step evidence'**
+  String get runningCoachFieldValidationCheckStepEvidence;
+
+  /// No description provided for @runningCoachFieldValidationCheckLandingEvidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Landing evidence'**
+  String get runningCoachFieldValidationCheckLandingEvidence;
+
+  /// No description provided for @runningCoachFieldValidationCountValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{observed} / target {required}'**
+  String runningCoachFieldValidationCountValue(int observed, int required);
+
+  /// No description provided for @runningCoachFieldValidationPercentValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{current}% / target {target}%'**
+  String runningCoachFieldValidationPercentValue(int current, int target);
+
+  /// No description provided for @runningCoachFieldValidationPercentMaxValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{current}% / max {target}%'**
+  String runningCoachFieldValidationPercentMaxValue(int current, int target);
+
   /// No description provided for @runningCoachLiveSessionReportQualityTitle.
   ///
   /// In en, this message translates to:

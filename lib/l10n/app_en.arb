@@ -5166,6 +5166,73 @@
       "reason": {}
     }
   },
+  "runningCoachFieldValidationTitle": "Field validation",
+  "runningCoachFieldValidationPrivacyNote": "Uses saved counters and pose-joint evidence only. Camera frames are not stored.",
+  "runningCoachFieldValidationStatusInsufficient": "Insufficient",
+  "runningCoachFieldValidationStatusNeedsReview": "Needs review",
+  "runningCoachFieldValidationStatusReady": "Ready for calibration",
+  "runningCoachFieldValidationBodyInsufficient": "Not enough stable field evidence for threshold tuning. Repeat capture after the checks below.",
+  "runningCoachFieldValidationBodyNeedsReview": "Useful field evidence was captured, but review the measurable checks before tuning thresholds.",
+  "runningCoachFieldValidationBodyReady": "This run is ready to compare during threshold calibration. Repeat the same profile before changing thresholds.",
+  "runningCoachFieldValidationProfileValue": "Profile: {profile}",
+  "@runningCoachFieldValidationProfileValue": {
+    "placeholders": {
+      "profile": {}
+    }
+  },
+  "runningCoachFieldValidationQualityValue": "Field quality {score}%",
+  "@runningCoachFieldValidationQualityValue": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachFieldValidationNextChecksTitle": "Next capture checks",
+  "runningCoachFieldValidationAllChecksPassed": "All measurable field checks passed.",
+  "runningCoachFieldValidationCheckCaptureReadiness": "Capture readiness",
+  "runningCoachFieldValidationCheckPhaseCoverage": "Phase coverage",
+  "runningCoachFieldValidationCheckTrackedFrames": "Tracked frames",
+  "runningCoachFieldValidationCheckUsableSamples": "Usable pose samples",
+  "runningCoachFieldValidationCheckTimingConfidence": "Timing confidence",
+  "runningCoachFieldValidationCheckSideViewConfidence": "Side-view confidence",
+  "runningCoachFieldValidationCheckTrackingConfidence": "Tracking confidence",
+  "runningCoachFieldValidationCheckBodyVisibility": "Body loss",
+  "runningCoachFieldValidationCheckStepEvidence": "Step evidence",
+  "runningCoachFieldValidationCheckLandingEvidence": "Landing evidence",
+  "runningCoachFieldValidationCountValue": "{observed} / target {required}",
+  "@runningCoachFieldValidationCountValue": {
+    "placeholders": {
+      "observed": {
+        "type": "int"
+      },
+      "required": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachFieldValidationPercentValue": "{current}% / target {target}%",
+  "@runningCoachFieldValidationPercentValue": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachFieldValidationPercentMaxValue": "{current}% / max {target}%",
+  "@runningCoachFieldValidationPercentMaxValue": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
   "runningCoachLiveSessionReportQualityTitle": "Analysis quality",
   "runningCoachLiveSessionReportDurationLabel": "Session time",
   "runningCoachLiveSessionReportDurationValue": "{minutes}m {seconds}s",

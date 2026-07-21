@@ -5166,6 +5166,73 @@
       "reason": {}
     }
   },
+  "runningCoachFieldValidationTitle": "현장 검증",
+  "runningCoachFieldValidationPrivacyNote": "저장된 카운터와 관절 근거만 사용합니다. 카메라 프레임은 저장하지 않습니다.",
+  "runningCoachFieldValidationStatusInsufficient": "근거 부족",
+  "runningCoachFieldValidationStatusNeedsReview": "리뷰 필요",
+  "runningCoachFieldValidationStatusReady": "보정 준비됨",
+  "runningCoachFieldValidationBodyInsufficient": "임계값 튜닝에 쓸 안정적인 현장 근거가 부족해요. 아래 항목을 고친 뒤 다시 캡처해 주세요.",
+  "runningCoachFieldValidationBodyNeedsReview": "현장 근거는 확보됐지만, 임계값을 조정하기 전에 측정 항목을 확인해 주세요.",
+  "runningCoachFieldValidationBodyReady": "이 기록은 임계값 보정 비교에 사용할 수 있어요. 기준을 바꾸기 전에 같은 프로필로 한 번 더 반복해 주세요.",
+  "runningCoachFieldValidationProfileValue": "프로필: {profile}",
+  "@runningCoachFieldValidationProfileValue": {
+    "placeholders": {
+      "profile": {}
+    }
+  },
+  "runningCoachFieldValidationQualityValue": "현장 품질 {score}%",
+  "@runningCoachFieldValidationQualityValue": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachFieldValidationNextChecksTitle": "다음 캡처 확인",
+  "runningCoachFieldValidationAllChecksPassed": "측정 가능한 현장 확인을 모두 통과했어요.",
+  "runningCoachFieldValidationCheckCaptureReadiness": "캡처 준비도",
+  "runningCoachFieldValidationCheckPhaseCoverage": "구간 확보",
+  "runningCoachFieldValidationCheckTrackedFrames": "추적 프레임",
+  "runningCoachFieldValidationCheckUsableSamples": "사용 가능한 자세 샘플",
+  "runningCoachFieldValidationCheckTimingConfidence": "타이밍 신뢰도",
+  "runningCoachFieldValidationCheckSideViewConfidence": "측면 신뢰도",
+  "runningCoachFieldValidationCheckTrackingConfidence": "트래킹 신뢰도",
+  "runningCoachFieldValidationCheckBodyVisibility": "전신 이탈",
+  "runningCoachFieldValidationCheckStepEvidence": "스텝 근거",
+  "runningCoachFieldValidationCheckLandingEvidence": "착지 근거",
+  "runningCoachFieldValidationCountValue": "{observed} / 목표 {required}",
+  "@runningCoachFieldValidationCountValue": {
+    "placeholders": {
+      "observed": {
+        "type": "int"
+      },
+      "required": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachFieldValidationPercentValue": "{current}% / 목표 {target}%",
+  "@runningCoachFieldValidationPercentValue": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachFieldValidationPercentMaxValue": "{current}% / 최대 {target}%",
+  "@runningCoachFieldValidationPercentMaxValue": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
   "runningCoachLiveSessionReportQualityTitle": "분석 품질",
   "runningCoachLiveSessionReportDurationLabel": "세션 시간",
   "runningCoachLiveSessionReportDurationValue": "{minutes}분 {seconds}초",

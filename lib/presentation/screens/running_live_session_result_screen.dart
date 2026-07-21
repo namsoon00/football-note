@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../application/live_sprint_field_validation_service.dart';
 import '../../application/live_sprint_trend_service.dart';
 import '../../domain/entities/running_coach_session.dart';
+import '../../domain/entities/sprint_capture_calibration_profile.dart';
 import '../../domain/entities/running_video_analysis_result.dart';
 import '../../domain/entities/sprint_realtime_coaching_state.dart';
 import '../../gen/app_localizations.dart';
@@ -25,6 +27,9 @@ class RunningLiveSessionResultScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final report = session.liveSprintReport;
+    final fieldValidation = report == null
+        ? null
+        : const LiveSprintFieldValidationService().build(report);
     final insights = session.insights;
     return Scaffold(
       appBar: AppBar(
@@ -39,6 +44,10 @@ class RunningLiveSessionResultScreen extends StatelessWidget {
             report: report,
             isPersisted: isPersisted,
           ),
+          if (fieldValidation != null) ...[
+            const SizedBox(height: 16),
+            _FieldValidationCard(summary: fieldValidation),
+          ],
           if (trendSummary?.hasLiveSessions == true) ...[
             const SizedBox(height: 16),
             LiveSprintTrendCard(
@@ -182,6 +191,160 @@ class _SessionHeadlineCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _FieldValidationCard extends StatelessWidget {
+  final LiveSprintFieldValidationSummary summary;
+
+  const _FieldValidationCard({required this.summary});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    final statusColor = _fieldValidationStatusColor(scheme, summary.status);
+    final checks = summary.nextCaptureChecks;
+    return Card(
+      key: const ValueKey('running-live-session-report-field-validation'),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.fact_check_outlined, color: statusColor),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.runningCoachFieldValidationTitle,
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        _fieldValidationStatusLabel(l10n, summary.status),
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                              color: statusColor,
+                              fontWeight: FontWeight.w800,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+                _CompactPill(
+                  text: l10n.runningCoachFieldValidationQualityValue(
+                    summary.qualityScore,
+                  ),
+                  foreground: statusColor,
+                  background: statusColor.withValues(alpha: 0.12),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 6,
+              children: [
+                _CompactPill(
+                  text: l10n.runningCoachFieldValidationProfileValue(
+                    _calibrationProfileLabel(
+                      l10n,
+                      summary.calibrationProfile,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              _fieldValidationStatusBody(l10n, summary.status),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              l10n.runningCoachFieldValidationPrivacyNote,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                    height: 1.25,
+                  ),
+            ),
+            const SizedBox(height: 12),
+            if (checks.isEmpty)
+              Text(
+                l10n.runningCoachFieldValidationAllChecksPassed,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w700,
+                    ),
+              )
+            else ...[
+              Text(
+                l10n.runningCoachFieldValidationNextChecksTitle,
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              for (var index = 0; index < checks.length; index += 1) ...[
+                _FieldValidationCheckRow(check: checks[index]),
+                if (index != checks.length - 1) const SizedBox(height: 8),
+              ],
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FieldValidationCheckRow extends StatelessWidget {
+  final LiveSprintFieldValidationCheck check;
+
+  const _FieldValidationCheckRow({required this.check});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          Icons.radio_button_unchecked_rounded,
+          size: 18,
+          color: scheme.onSurfaceVariant,
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                _fieldValidationCheckLabel(l10n, check.kind),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                _fieldValidationCheckValue(l10n, check),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -765,6 +928,108 @@ String _sprintFeedbackCue(AppLocalizations l10n, SprintFeedbackCode code) {
       l10n.runningCoachSprintCueLiftOffQuickly,
     SprintFeedbackCode.holdLateForm => l10n.runningCoachSprintCueHoldLateForm,
     SprintFeedbackCode.keepPushing => l10n.runningCoachSprintCueKeepPushing,
+  };
+}
+
+String _fieldValidationStatusLabel(
+  AppLocalizations l10n,
+  LiveSprintFieldValidationStatus status,
+) {
+  return switch (status) {
+    LiveSprintFieldValidationStatus.insufficient =>
+      l10n.runningCoachFieldValidationStatusInsufficient,
+    LiveSprintFieldValidationStatus.needsReview =>
+      l10n.runningCoachFieldValidationStatusNeedsReview,
+    LiveSprintFieldValidationStatus.readyForCalibration =>
+      l10n.runningCoachFieldValidationStatusReady,
+  };
+}
+
+String _fieldValidationStatusBody(
+  AppLocalizations l10n,
+  LiveSprintFieldValidationStatus status,
+) {
+  return switch (status) {
+    LiveSprintFieldValidationStatus.insufficient =>
+      l10n.runningCoachFieldValidationBodyInsufficient,
+    LiveSprintFieldValidationStatus.needsReview =>
+      l10n.runningCoachFieldValidationBodyNeedsReview,
+    LiveSprintFieldValidationStatus.readyForCalibration =>
+      l10n.runningCoachFieldValidationBodyReady,
+  };
+}
+
+Color _fieldValidationStatusColor(
+  ColorScheme scheme,
+  LiveSprintFieldValidationStatus status,
+) {
+  return switch (status) {
+    LiveSprintFieldValidationStatus.readyForCalibration => scheme.tertiary,
+    LiveSprintFieldValidationStatus.needsReview => scheme.primary,
+    LiveSprintFieldValidationStatus.insufficient => scheme.error,
+  };
+}
+
+String _fieldValidationCheckLabel(
+  AppLocalizations l10n,
+  LiveSprintFieldValidationCheckKind kind,
+) {
+  return switch (kind) {
+    LiveSprintFieldValidationCheckKind.captureReadiness =>
+      l10n.runningCoachFieldValidationCheckCaptureReadiness,
+    LiveSprintFieldValidationCheckKind.phaseCoverage =>
+      l10n.runningCoachFieldValidationCheckPhaseCoverage,
+    LiveSprintFieldValidationCheckKind.trackedFrames =>
+      l10n.runningCoachFieldValidationCheckTrackedFrames,
+    LiveSprintFieldValidationCheckKind.usablePoseSamples =>
+      l10n.runningCoachFieldValidationCheckUsableSamples,
+    LiveSprintFieldValidationCheckKind.timingConfidence =>
+      l10n.runningCoachFieldValidationCheckTimingConfidence,
+    LiveSprintFieldValidationCheckKind.sideViewConfidence =>
+      l10n.runningCoachFieldValidationCheckSideViewConfidence,
+    LiveSprintFieldValidationCheckKind.trackingConfidence =>
+      l10n.runningCoachFieldValidationCheckTrackingConfidence,
+    LiveSprintFieldValidationCheckKind.bodyVisibility =>
+      l10n.runningCoachFieldValidationCheckBodyVisibility,
+    LiveSprintFieldValidationCheckKind.stepEvidence =>
+      l10n.runningCoachFieldValidationCheckStepEvidence,
+    LiveSprintFieldValidationCheckKind.landingEvidence =>
+      l10n.runningCoachFieldValidationCheckLandingEvidence,
+  };
+}
+
+String _fieldValidationCheckValue(
+  AppLocalizations l10n,
+  LiveSprintFieldValidationCheck check,
+) {
+  final observedCount = check.observedCount;
+  final requiredCount = check.requiredCount;
+  if (observedCount != null && requiredCount != null) {
+    return l10n.runningCoachFieldValidationCountValue(
+      observedCount,
+      requiredCount,
+    );
+  }
+
+  final current = (check.value * 100).round();
+  final target = (check.target * 100).round();
+  if (check.lowerIsBetter) {
+    return l10n.runningCoachFieldValidationPercentMaxValue(current, target);
+  }
+  return l10n.runningCoachFieldValidationPercentValue(current, target);
+}
+
+String _calibrationProfileLabel(
+  AppLocalizations l10n,
+  SprintCaptureCalibrationProfile profile,
+) {
+  return switch (profile) {
+    SprintCaptureCalibrationProfile.conservative =>
+      l10n.runningCoachSprintCalibrationProfileConservative,
+    SprintCaptureCalibrationProfile.balanced =>
+      l10n.runningCoachSprintCalibrationProfileBalanced,
+    SprintCaptureCalibrationProfile.responsive =>
+      l10n.runningCoachSprintCalibrationProfileResponsive,
   };
 }
 
