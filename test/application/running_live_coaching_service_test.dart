@@ -42,6 +42,106 @@ void main() {
       expect(state.primaryCue, RunningLivePrimaryCue.stepBack);
     });
 
+    test('treats brief ankle dropout as tracking uncertainty after stable body',
+        () {
+      final service = RunningLiveCoachingService();
+      final start = DateTime(2026, 4, 11, 12);
+
+      for (var index = 0; index < 4; index++) {
+        service.ingestObservation(
+          _observation(
+            nose: const Offset(500, 160),
+            leftShoulder: const Offset(470, 245),
+            rightShoulder: const Offset(530, 245),
+            leftElbow: const Offset(448, 330),
+            rightElbow: const Offset(552, 330),
+            leftWrist: const Offset(430, 420),
+            rightWrist: const Offset(570, 420),
+            leftHip: const Offset(480, 455),
+            rightHip: const Offset(520, 455),
+            leftKnee: const Offset(466, 625),
+            rightKnee: const Offset(535, 610),
+            leftAnkle: const Offset(450, 790),
+            rightAnkle: const Offset(552, 775),
+            leftHeel: const Offset(438, 805),
+            rightHeel: const Offset(540, 790),
+          ),
+          timestamp: start.add(Duration(milliseconds: 160 * index)),
+        );
+      }
+
+      final dropout = service.ingestObservation(
+        _observation(
+          nose: const Offset(500, 160),
+          leftShoulder: const Offset(470, 245),
+          rightShoulder: const Offset(530, 245),
+          leftElbow: const Offset(448, 330),
+          rightElbow: const Offset(552, 330),
+          leftWrist: const Offset(430, 420),
+          rightWrist: const Offset(570, 420),
+          leftHip: const Offset(480, 455),
+          rightHip: const Offset(520, 455),
+          leftKnee: const Offset(466, 625),
+          rightKnee: const Offset(535, 610),
+        ),
+        timestamp: start.add(const Duration(milliseconds: 720)),
+      );
+
+      expect(dropout.framingIssue, RunningLiveFramingIssue.trackingUncertain);
+      expect(dropout.primaryCue, RunningLivePrimaryCue.trackingUncertain);
+    });
+
+    test('still asks runner to step back when ankle dropout persists', () {
+      final service = RunningLiveCoachingService();
+      final start = DateTime(2026, 4, 11, 12);
+
+      for (var index = 0; index < 4; index++) {
+        service.ingestObservation(
+          _observation(
+            nose: const Offset(500, 160),
+            leftShoulder: const Offset(470, 245),
+            rightShoulder: const Offset(530, 245),
+            leftElbow: const Offset(448, 330),
+            rightElbow: const Offset(552, 330),
+            leftWrist: const Offset(430, 420),
+            rightWrist: const Offset(570, 420),
+            leftHip: const Offset(480, 455),
+            rightHip: const Offset(520, 455),
+            leftKnee: const Offset(466, 625),
+            rightKnee: const Offset(535, 610),
+            leftAnkle: const Offset(450, 790),
+            rightAnkle: const Offset(552, 775),
+            leftHeel: const Offset(438, 805),
+            rightHeel: const Offset(540, 790),
+          ),
+          timestamp: start.add(Duration(milliseconds: 160 * index)),
+        );
+      }
+
+      late RunningLiveCoachingState state;
+      for (var index = 0; index < 4; index++) {
+        state = service.ingestObservation(
+          _observation(
+            nose: const Offset(500, 160),
+            leftShoulder: const Offset(470, 245),
+            rightShoulder: const Offset(530, 245),
+            leftElbow: const Offset(448, 330),
+            rightElbow: const Offset(552, 330),
+            leftWrist: const Offset(430, 420),
+            rightWrist: const Offset(570, 420),
+            leftHip: const Offset(480, 455),
+            rightHip: const Offset(520, 455),
+            leftKnee: const Offset(466, 625),
+            rightKnee: const Offset(535, 610),
+          ),
+          timestamp: start.add(Duration(milliseconds: 720 + 160 * index)),
+        );
+      }
+
+      expect(state.framingIssue, RunningLiveFramingIssue.stepBack);
+      expect(state.primaryCue, RunningLivePrimaryCue.stepBack);
+    });
+
     test('asks runner to move closer when the body is too small', () {
       final service = RunningLiveCoachingService();
 

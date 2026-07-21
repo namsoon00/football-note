@@ -31,12 +31,18 @@ class RunningPoseAnatomicalPainter extends CustomPainter {
       return;
     }
 
-    final transform = CameraViewportTransform.fit(
-      sourceSize: frame.imageSize,
-      viewportSize: size,
-      fit: fit,
-      mirrorHorizontally: mirrorHorizontally,
-    );
+    final transform = fit == BoxFit.cover
+        ? CameraViewportTransform.cover(
+            sourceSize: frame.imageSize,
+            viewportSize: size,
+            mirrorHorizontally: mirrorHorizontally,
+          )
+        : CameraViewportTransform.fit(
+            sourceSize: frame.imageSize,
+            viewportSize: size,
+            fit: fit,
+            mirrorHorizontally: mirrorHorizontally,
+          );
     if (!transform.isValid) {
       return;
     }
@@ -279,6 +285,7 @@ class RunningPoseAnatomicalPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant RunningPoseAnatomicalPainter oldDelegate) {
     return oldDelegate.frameListenable != frameListenable ||
-        oldDelegate.mirrorHorizontally != mirrorHorizontally;
+        oldDelegate.mirrorHorizontally != mirrorHorizontally ||
+        oldDelegate.fit != fit;
   }
 }

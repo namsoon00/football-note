@@ -8827,7 +8827,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachLiveCardBody =>
-      'Track anatomical joints, gait timing, and sprint mechanics in one live coach for trunk lean, knee drive, landing, rhythm, and arm balance.';
+      'Use one live coach to check body lean, knee lift, landing, rhythm, and arm balance.';
 
   @override
   String get runningCoachLiveAction => 'Start live sprint coach';
@@ -8847,36 +8847,35 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachLiveGuideHeroBody =>
-      'The live sprint coach draws anatomical joints and skeleton lines directly over the camera feed, then combines gait timing with trunk, knee, landing, rhythm, and arm metrics in one expandable result panel.';
+      'The live sprint coach draws your body outline over the camera feed, then shows simple cues for lean, knees, landing, rhythm, and arms.';
 
   @override
   String get runningCoachLiveGuideTipSideTitle => 'Show a side view';
 
   @override
   String get runningCoachLiveGuideTipSideBody =>
-      'The runner should move across the frame from the side, not straight toward the camera or on a heavy diagonal.';
+      'Run across the camera from the side. Avoid running straight toward the lens.';
 
   @override
   String get runningCoachLiveGuideTipBodyTitle => 'Keep the full body in frame';
 
   @override
   String get runningCoachLiveGuideTipBodyBody =>
-      'The head, shoulders, elbows, hips, knees, ankles, and feet all need to stay visible so the joint skeleton and score can stay stable.';
+      'Keep your head, arms, hips, knees, and both feet on screen. This helps the coach read each step.';
 
   @override
   String get runningCoachLiveGuideTipHudTitle => 'Use the compact HUD';
 
   @override
   String get runningCoachLiveGuideTipHudBody =>
-      'The screen centers the top cue, joint skeleton overlay, and compact HUD. Expand the HUD for the why, fix, gait timing, and metric results.';
+      'Watch the top cue first. Open the panel only when you want more detail.';
 
   @override
-  String get runningCoachLiveGuideTipCameraTitle =>
-      'Keep the camera fixed and the body large enough';
+  String get runningCoachLiveGuideTipCameraTitle => 'Keep the camera still';
 
   @override
   String get runningCoachLiveGuideTipCameraBody =>
-      'Hold the camera steady and frame the runner so the full body fills at least about half of the screen height. The fuller the frame, the steadier the joint skeleton and voice coaching become.';
+      'Hold the camera still. Let the runner fill about half the screen, with space above the head and below both feet.';
 
   @override
   String get runningCoachLivePreparingTitle => 'Preparing camera';
@@ -8955,11 +8954,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachLiveCueNoRunner =>
-      'The runner is not clear enough yet. Step into the frame.';
+      'I cannot see the runner clearly. Step into the frame and hold steady.';
+
+  @override
+  String get runningCoachLiveCueTrackingUncertain =>
+      'Hold steady. I am finding your joints again.';
 
   @override
   String get runningCoachLiveCueStepBack =>
-      'Step back and fit the whole body in frame from head to toe.';
+      'Step back. Keep your head and both feet in the frame.';
 
   @override
   String get runningCoachLiveCueMoveCloser =>
@@ -8971,7 +8974,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachLiveCueTurnSideways =>
-      'Turn more to the side so the running shape is easier to read.';
+      'Turn more to the side so the coach can read your stride.';
 
   @override
   String get runningCoachLiveCueKeepRunning =>
@@ -9101,8 +9104,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachLiveSessionReportEvidenceRightLead => 'Right lead';
 
   @override
+  String get runningCoachLiveTrackingUncertainBody =>
+      'Stay in the same spot for a moment. You do not need to step back unless your feet leave the screen.';
+
+  @override
   String get runningCoachPoseEvidenceBlockerFullBody =>
-      'Step back until your head and both feet stay in frame.';
+      'Step back until your head and both feet stay on screen.';
 
   @override
   String get runningCoachPoseEvidenceBlockerSideView =>
@@ -9110,7 +9117,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachPoseEvidenceBlockerCoreJoints =>
-      'Hold steady so the joint outline can lock.';
+      'Hold the camera steady so the coach can find your joints.';
 
   @override
   String get runningCoachPoseEvidenceBlockerGaitPhase =>
@@ -9691,7 +9698,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSprintLiveCardBody =>
-      'Use the side-view camera to check full-body capture first, then show trunk, knee, and rhythm cues only when joint confidence is stable.';
+      'Use the side-view camera to check full-body capture first. Coaching appears when the body is clear enough.';
 
   @override
   String get runningCoachSprintLiveAction => 'Start sprint coaching';
@@ -9972,7 +9979,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachSprintMetricPending => '--';
 
   @override
-  String get runningCoachSprintMetricTrunkLabel => 'Trunk lean';
+  String get runningCoachSprintMetricTrunkLabel => 'Body lean';
 
   @override
   String runningCoachSprintMetricTrunkValue(Object value) {
@@ -10073,39 +10080,39 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSprintCueBodyVisible =>
-      'Adjust one more step so the full body stays inside the frame.';
+      'Adjust one step so your full body stays on screen.';
 
   @override
   String get runningCoachSprintCueLeanForward =>
-      'Bring the shoulder center slightly ahead of the hip line without folding at the waist.';
+      'Lean forward a little. Keep your chest tall.';
 
   @override
   String get runningCoachSprintCueDriveKnee =>
-      'After the push-off, drive the knee forward a little more aggressively.';
+      'Push back hard and bring the next knee through.';
 
   @override
   String get runningCoachSprintCueKeepRhythm =>
-      'The left-right rhythm is drifting. Try to keep the ground contacts more even.';
+      'Keep left and right steps even.';
 
   @override
   String get runningCoachSprintCueBalanceArms =>
-      'The arm swing is unbalanced. Match the backward drive on both sides more closely.';
+      'Swing both arms the same way.';
 
   @override
   String get runningCoachSprintCueLandUnderHips =>
-      'Let the foot land closer under the hip instead of reaching out in front.';
+      'Put the foot down closer under the hips.';
 
   @override
   String get runningCoachSprintCueLiftOffQuickly =>
-      'Get off the ground a little quicker and keep the next step light.';
+      'Leave the ground quicker and keep the next step light.';
 
   @override
   String get runningCoachSprintCueHoldLateForm =>
-      'Hold the same knee drive and forward lean through the end of the sprint.';
+      'Keep the same knee lift and body lean to the finish.';
 
   @override
   String get runningCoachSprintCueKeepPushing =>
-      'Good. Keep pushing with the same rhythm and forward lean.';
+      'Good. Keep the same rhythm and push back.';
 
   @override
   String get runningCoachSelectedVideoLabel => 'Selected video';
@@ -10206,7 +10213,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachAnalysisGuideBody =>
-      'Compare the measured value with the good range using body lines, joint angles, and landing zones.';
+      'Use the picture to see what to change first.';
 
   @override
   String get runningCoachAnalysisGuideRangeLabel => 'Good range';
@@ -10222,23 +10229,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachGuideRangePosture =>
-      'Target: 8-15° whole-body forward lean from the ankles';
+      'Goal: slight forward lean, without bending at the waist';
 
   @override
   String get runningCoachGuideRangeBounce =>
-      'Target: low, quick vertical motion around 5-9% of body height';
+      'Goal: quick steps with little up-down motion';
 
   @override
   String get runningCoachGuideRangeFootStrike =>
-      'Target: lead foot lands under the hips within 0.00-0.18x ahead';
+      'Goal: foot lands close under the hips';
 
   @override
   String get runningCoachGuideRangeKnee =>
-      'Target: support knee accepts contact softly around 145-165°';
+      'Goal: landing knee stays soft, not locked';
 
   @override
   String get runningCoachGuideRangeArm =>
-      'Target: elbows move compactly front to back around 70-110°';
+      'Goal: elbows stay bent and hands move front to back';
 
   @override
   String get runningCoachMetricScoreLabel => 'Metric score';
@@ -10259,23 +10266,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachQualityReasonLowCoverage =>
-      'Tracking coverage is low, so treat this metric conservatively.';
+      'The runner was not clear for enough of the clip. Check this again with a clearer video.';
 
   @override
   String get runningCoachQualityReasonLimitedSamples =>
-      'Only a small set of stable frames was read; confirm once more from the same angle.';
+      'Only a few clear frames were read. Record once more from the same side.';
 
   @override
   String get runningCoachQualityReasonContactPhaseProxy =>
-      'The contact phase used only a small proxy window; confirm foot strike and knee metrics again.';
+      'Foot landing was hard to confirm. Check the landing and knee again.';
 
   @override
   String get runningCoachQualityReasonLowConfidence =>
-      'Required landmark confidence is low, so keep the camera steady before using this cue.';
+      'The camera did not see the joints clearly. Hold the camera steady.';
 
   @override
   String get runningCoachQualityReasonGeneric =>
-      'Capture quality is low; confirm again from the same angle.';
+      'The video was not clear enough. Record again from the same side.';
 
   @override
   String get runningCoachOverallHeadlineStrong => 'Strong running shape';
@@ -10347,27 +10354,27 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String runningCoachLeanValue(Object value) {
-    return '$value° forward lean';
+    return '$value° body lean';
   }
 
   @override
   String runningCoachBounceValue(Object value) {
-    return '$value% vertical bounce';
+    return '$value% up-down motion';
   }
 
   @override
   String runningCoachFootStrikeValue(Object value) {
-    return '${value}x ahead of hips';
+    return '${value}x foot reach';
   }
 
   @override
   String runningCoachKneeValue(Object value) {
-    return '$value° support knee angle';
+    return '$value° landing knee';
   }
 
   @override
   String runningCoachArmValue(Object value) {
-    return '$value° elbow angle';
+    return '$value° arm bend';
   }
 
   @override
@@ -10380,171 +10387,169 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachPostureGoodSummary =>
-      'Your body angle is close to a clean sprint posture with a slight forward lean.';
+      'Your body leans forward a little and stays tall.';
 
   @override
   String get runningCoachPostureGoodCue =>
-      'Keep the chest tall and let the whole body fall forward together.';
+      'Keep your chest tall. Let the whole body lean forward together.';
 
   @override
-  String get runningCoachPostureGoodDrill =>
-      'Drill: 2 x 15m wall-lean marches to lock in the same body line.';
+  String get runningCoachPostureGoodDrill => 'Drill: Do two 15 m wall marches.';
 
   @override
   String get runningCoachPostureUprightSummary =>
-      'Your torso stays too upright, so you may be losing forward intent on each step.';
+      'You are too upright. It can slow the next step.';
 
   @override
   String get runningCoachPostureUprightCue =>
-      'Think \"nose over toes\" and let the lean come from the ankles, not the waist.';
+      'Lean forward from the ankles. Keep your chest tall.';
 
   @override
   String get runningCoachPostureUprightDrill =>
-      'Drill: 2 x 15m falling starts, then 2 x 15m wall-lean marches.';
+      'Drill: Do two 15 m falling starts.';
 
   @override
   String get runningCoachPostureLeanSummary =>
-      'Your torso is leaning too much, which can make the stride collapse and slow recovery.';
+      'You are leaning too far forward. Your steps may feel rushed.';
 
   @override
   String get runningCoachPostureLeanCue =>
-      'Run tall through the hips and keep the ribs stacked over the pelvis.';
+      'Stand a little taller. Keep the hips under your chest.';
 
   @override
   String get runningCoachPostureLeanDrill =>
-      'Drill: 2 x 20m tall posture runs with light quick steps.';
+      'Drill: Do two 20 m tall runs with quick light steps.';
 
   @override
   String get runningCoachInsightBounceTitle => 'Bounce';
 
   @override
   String get runningCoachBounceGoodSummary =>
-      'Your vertical movement looks controlled, which helps keep energy moving forward.';
+      'You stay low and move forward well.';
 
   @override
   String get runningCoachBounceGoodCue =>
-      'Keep pushing backward into the ground instead of bouncing upward.';
+      'Keep pushing the ground back. Do not jump upward.';
 
   @override
   String get runningCoachBounceGoodDrill =>
-      'Drill: 2 x 20m ankle dribbles before your next sprint set.';
+      'Drill: Do two 20 m ankle dribbles.';
 
   @override
   String get runningCoachBounceHighSummary =>
-      'There is extra up-and-down bounce in the clip, which can waste energy.';
+      'You are moving up and down too much.';
 
   @override
   String get runningCoachBounceHighCue =>
-      'Think quick contacts and push the ground behind you, not straight down.';
+      'Keep steps quick. Push the ground back, not down.';
 
   @override
   String get runningCoachBounceHighDrill =>
-      'Drill: 3 x 20m ankle dribbles and straight-leg runs with short contacts.';
+      'Drill: Do three 20 m ankle dribbles with short ground time.';
 
   @override
   String get runningCoachInsightFootStrikeTitle => 'Foot strike';
 
   @override
   String get runningCoachFootStrikeGoodSummary =>
-      'The lead foot is landing close enough to the hips that the step can keep rolling forward.';
+      'Your foot lands close under your hips.';
 
   @override
   String get runningCoachFootStrikeGoodCue =>
-      'Keep landing under the hips and let speed come from push-off, not reaching.';
+      'Keep putting the foot down under you.';
 
   @override
   String get runningCoachFootStrikeGoodDrill =>
-      'Drill: 2 x 20m wicket-style runs with short, quick contacts.';
+      'Drill: Do two 20 m quick-step runs.';
 
   @override
   String get runningCoachFootStrikeOverSummary =>
-      'The lead foot is reaching too far in front of the hips, which can create braking at contact.';
+      'Your foot lands too far in front.';
 
   @override
   String get runningCoachFootStrikeOverCue =>
-      'Bring the landing point back under the hips and think push back, not reach forward.';
+      'Put the foot down closer under the hips.';
 
   @override
   String get runningCoachFootStrikeOverDrill =>
-      'Drill: 2 x 20m A-march plus 2 x 20m wicket-style runs with shorter contacts.';
+      'Drill: Do two 20 m A-marches, then two 20 m quick-step runs.';
 
   @override
   String get runningCoachInsightKneeTitle => 'Knee flexion';
 
   @override
   String get runningCoachKneeGoodSummary =>
-      'The support knee is bending enough to stay springy without collapsing.';
+      'Your landing knee bends enough to stay light.';
 
   @override
   String get runningCoachKneeGoodCue =>
-      'Keep the stance leg soft and reactive instead of locking on landing.';
+      'Keep the knee soft when the foot lands.';
 
   @override
   String get runningCoachKneeGoodDrill =>
-      'Drill: 2 x 20m pogo runs, then 2 x 20m dribble runs.';
+      'Drill: Do two 20 m pogo runs, then two 20 m dribble runs.';
 
   @override
   String get runningCoachKneeStraightSummary =>
-      'The support knee is landing too straight, which can make the step look stiff and heavy.';
+      'Your landing knee is too straight. The step may feel heavy.';
 
   @override
   String get runningCoachKneeStraightCue =>
-      'Soften the landing knee and let the leg accept the ground under the hips.';
+      'Bend the knee a little as the foot lands.';
 
   @override
   String get runningCoachKneeStraightDrill =>
-      'Drill: 2 x 20m dribble runs with bent-knee contacts and quick steps.';
+      'Drill: Do two 20 m dribble runs with soft knees.';
 
   @override
   String get runningCoachKneeCollapseSummary =>
-      'The support knee is folding too much after contact, so the stance leg is losing stiffness.';
+      'Your knee bends too much after landing.';
 
   @override
   String get runningCoachKneeCollapseCue =>
-      'Stay springy through the stance leg and keep the hips stacked over the foot.';
+      'Keep the knee soft, but do not sink down.';
 
   @override
   String get runningCoachKneeCollapseDrill =>
-      'Drill: 2 x 15m single-leg pogo hops per side, then 2 x 20m dribble runs.';
+      'Drill: Do two 15 m single-leg pogo hops each side.';
 
   @override
   String get runningCoachInsightArmTitle => 'Arm carriage';
 
   @override
   String get runningCoachArmGoodSummary =>
-      'Your elbows stay in a compact range that supports rhythm without over-tensing the upper body.';
+      'Your arms stay bent and help your rhythm.';
 
   @override
-  String get runningCoachArmGoodCue =>
-      'Keep the elbows bent and let the hands travel front to back with the same rhythm as the legs.';
+  String get runningCoachArmGoodCue => 'Keep hands moving front to back.';
 
   @override
   String get runningCoachArmGoodDrill =>
-      'Drill: 2 x 20s wall arm switches, then 2 x 20m arm-drive marches.';
+      'Drill: Do two 20 second wall arm switches.';
 
   @override
   String get runningCoachArmOpenSummary =>
-      'Your elbows are opening too much, so the arms may be leaking rhythm instead of helping it.';
+      'Your arms open too much. The rhythm can get loose.';
 
   @override
   String get runningCoachArmOpenCue =>
-      'Keep the elbows more bent and drive the hands back past the hips instead of reaching long.';
+      'Keep elbows more bent. Drive the hands back.';
 
   @override
   String get runningCoachArmOpenDrill =>
-      'Drill: 2 x 20s wall arm switches while holding a compact 80-100 degree elbow bend.';
+      'Drill: Do two 20 second wall arm switches with bent elbows.';
 
   @override
   String get runningCoachArmTightSummary =>
-      'Your elbows are staying too tight, which can shorten the arm swing and make the stride feel forced.';
+      'Your arms are too tight. The swing may feel short.';
 
   @override
   String get runningCoachArmTightCue =>
-      'Relax the shoulders and let the elbows open a little more while the hands keep moving backward.';
+      'Relax the shoulders. Let the hands swing back.';
 
   @override
   String get runningCoachArmTightDrill =>
-      'Drill: 2 x 20m marching arm swings with relaxed shoulders and a smoother back drive.';
+      'Drill: Do two 20 m arm-swing marches with relaxed shoulders.';
 
   @override
   String get runningCoachInsightStrideTitle => 'Stride reach';
@@ -10648,7 +10653,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSprintTrackingDiagnosisBodyTooSmall =>
-      'The current body box is too small for stable trunk, knee, and rhythm measurements on device.';
+      'The runner is too small on screen for steady coaching.';
 
   @override
   String get runningCoachSprintTrackingDiagnosisBodyOutOfFrame =>
@@ -10656,7 +10661,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSprintTrackingDiagnosisLowConfidence =>
-      'Visible joints or average landmark confidence are below the quality gate for coaching.';
+      'The camera cannot see enough clear joints yet.';
 
   @override
   String get runningCoachSprintTrackingDiagnosisSideViewUnstable =>
@@ -10745,67 +10750,67 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSprintDiagnosisLeanForward =>
-      'The trunk is rising too early, so the first acceleration steps lose forward push.';
+      'You are standing up too soon in the first steps.';
 
   @override
   String get runningCoachSprintDiagnosisDriveKnee =>
-      'The knee drive is staying low relative to the hips, so the front-side step does not connect strongly.';
+      'The next knee is staying too low.';
 
   @override
   String get runningCoachSprintDiagnosisKeepRhythm =>
-      'Step timing is varying too much, so the left-right sprint rhythm is drifting.';
+      'Your left and right steps are not even yet.';
 
   @override
   String get runningCoachSprintDiagnosisBalanceArms =>
-      'One arm is contributing less backward drive, so rhythm support from the upper body is uneven.';
+      'One arm is not swinging back as much as the other.';
 
   @override
   String get runningCoachSprintDiagnosisLandUnderHips =>
-      'The lead foot is reaching too far ahead of the hip line, which can create a braking contact.';
+      'Your foot is landing too far in front.';
 
   @override
   String get runningCoachSprintDiagnosisLiftOffQuickly =>
-      'The gait phase has too little flight time, so the contact pattern looks heavy.';
+      'Your foot is staying on the ground too long.';
 
   @override
   String get runningCoachSprintDiagnosisHoldLateForm =>
-      'Your current stride is dropping below the session reference for knee drive, lean, or rhythm.';
+      'Your form is dropping near the end of the sprint.';
 
   @override
   String get runningCoachSprintDiagnosisKeepPushing =>
-      'The main sprint metrics are inside the stable range, so the app is holding the current cue.';
+      'Your sprint shape is steady right now.';
 
   @override
   String get runningCoachSprintActionLeanForward =>
-      'Keep the chest low for the first three steps so the hip-to-shoulder axis stays inside the 8-24° range.';
+      'Keep the chest slightly forward for the first three steps.';
 
   @override
   String get runningCoachSprintActionDriveKnee =>
-      'Push the ground harder and let the knee come through instead of trying to lift it by itself.';
+      'Push the ground back and let the knee come through.';
 
   @override
   String get runningCoachSprintActionKeepRhythm =>
-      'Do not reach for a longer step. Keep ground contacts evenly spaced for the next few strides.';
+      'Do not reach for a longer step. Keep the next few steps even.';
 
   @override
   String get runningCoachSprintActionBalanceArms =>
-      'Match the backward arm drive on both sides and keep the shoulders quieter.';
+      'Drive both hands back the same amount.';
 
   @override
   String get runningCoachSprintActionLandUnderHips =>
-      'Think quick down-and-back under the hip instead of casting the foot forward.';
+      'Put the foot down under you, then push back.';
 
   @override
   String get runningCoachSprintActionLiftOffQuickly =>
-      'Push back and leave the ground sharply, keeping the ankle stiff through contact.';
+      'Push back and leave the ground quickly.';
 
   @override
   String get runningCoachSprintActionHoldLateForm =>
-      'Shorten the effort slightly and keep the same knee punch and trunk angle for the final steps.';
+      'Ease off a little and keep the same shape to the finish.';
 
   @override
   String get runningCoachSprintActionKeepPushing =>
-      'Stay with the same shape for another few steps so the app can confirm stability.';
+      'Hold this shape for a few more steps.';
 
   @override
   String get runningCoachSprintSessionTrackingStateLabel => 'Tracking state';

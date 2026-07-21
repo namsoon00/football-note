@@ -152,7 +152,7 @@ void main() {
     await _scrollReportUntilVisible(
       tester,
       find.text(
-        'Main capture limit: Step back until your head and both feet stay in frame.',
+        'Main capture limit: Step back until your head and both feet stay on screen.',
       ),
     );
     expect(find.text('Touchdown: not captured'), findsOneWidget);

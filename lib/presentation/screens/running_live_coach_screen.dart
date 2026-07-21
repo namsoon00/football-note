@@ -135,6 +135,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
   DateTime? _lastMetricsLoggedAt;
   DateTime? _lastUiStatePublishedAt;
   String? _lastSpokenGuidanceKey;
+  Size? _latestDetectorImageSize;
   String? _cameraErrorCode;
   String? _liveCoachErrorCode;
   String? _sessionId;
@@ -190,6 +191,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       _isProcessingFrame = false;
       _frameClock.stop();
       _poseOverlayTicker.stop();
+      _latestDetectorImageSize = null;
       _resetVisualPoseOverlay();
       final controller = _controller;
       _controller = null;
@@ -263,10 +265,18 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     return ClipRect(
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final previewSourceSize = cameraPreviewSourceSizeForViewport(
-            controllerPreviewSize: previewSize,
-            viewportSize: constraints.biggest,
-          );
+          final detectorImageSize = _latestDetectorImageSize;
+          final previewSourceSize = detectorImageSize == null
+              ? cameraPreviewSourceSizeForViewport(
+                  controllerPreviewSize: previewSize,
+                  viewportSize: constraints.biggest,
+                )
+              : CameraDisplayGeometry.fromDetectorImageSize(
+                  detectorImageSize: detectorImageSize,
+                  controllerPreviewSize: previewSize,
+                  mirrorHorizontally:
+                      _activeCamera?.lensDirection == CameraLensDirection.front,
+                ).previewSourceSize;
           return SizedBox.expand(
             child: FittedBox(
               fit: BoxFit.cover,
@@ -533,6 +543,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
         _isInitializing = false;
         _isHudExpanded = false;
         _lastUiStatePublishedAt = null;
+        _latestDetectorImageSize = null;
       });
       return;
     }
@@ -547,6 +558,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       _liveCoachErrorCode = null;
       _isHudExpanded = false;
       _lastUiStatePublishedAt = null;
+      _latestDetectorImageSize = null;
     });
 
     final oldController = _controller;
@@ -1013,6 +1025,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       _emitSessionLog(event: 'periodic', force: false, now: receivedAt);
       return;
     }
+    _rememberDetectorImageSize(frameInput.detectorImageSize);
 
     _isProcessingFrame = true;
     _lastProcessedAt = now;
@@ -1177,6 +1190,17 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     _poseOverlayFrame.value = null;
   }
 
+  void _rememberDetectorImageSize(Size detectorImageSize) {
+    if (_latestDetectorImageSize == detectorImageSize) {
+      return;
+    }
+    _latestDetectorImageSize = detectorImageSize;
+    if (_isDisposed || !mounted) {
+      return;
+    }
+    setState(() {});
+  }
+
   DateTime _monotonicFrameTimestamp() {
     if (!_frameClock.isRunning) {
       _frameClock.start();
@@ -1270,6 +1294,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     _lastSpokenAt = null;
     _lastUiStatePublishedAt = null;
     _lastSpokenGuidanceKey = null;
+    _latestDetectorImageSize = null;
     _latestCoachingState = _initialCoachingState;
     _latestSprintCoachingState = _initialSprintCoachingState;
 
@@ -1281,6 +1306,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
         _coachingState = _initialCoachingState;
         _sprintCoachingState = _initialSprintCoachingState;
         _isHudExpanded = false;
+        _latestDetectorImageSize = null;
       });
     }
 
@@ -1342,6 +1368,8 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       return switch (framingIssue) {
         RunningLiveFramingIssue.noRunnerDetected =>
           l10n.runningCoachLiveGuideTipBodyBody,
+        RunningLiveFramingIssue.trackingUncertain =>
+          l10n.runningCoachLiveTrackingUncertainBody,
         RunningLiveFramingIssue.stepBack =>
           l10n.runningCoachLiveGuideTipBodyBody,
         RunningLiveFramingIssue.moveCloser =>
@@ -1539,6 +1567,8 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     return switch (cue) {
       RunningLivePrimaryCue.noRunnerDetected =>
         l10n.runningCoachLiveCueNoRunner,
+      RunningLivePrimaryCue.trackingUncertain =>
+        l10n.runningCoachLiveCueTrackingUncertain,
       RunningLivePrimaryCue.stepBack => l10n.runningCoachLiveCueStepBack,
       RunningLivePrimaryCue.moveCloser => l10n.runningCoachLiveCueMoveCloser,
       RunningLivePrimaryCue.centerRunner =>
@@ -1565,6 +1595,8 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     return switch (cue) {
       RunningLivePrimaryCue.noRunnerDetected =>
         l10n.runningCoachLiveCueNoRunner,
+      RunningLivePrimaryCue.trackingUncertain =>
+        l10n.runningCoachLiveCueTrackingUncertain,
       RunningLivePrimaryCue.stepBack => l10n.runningCoachLiveCueStepBack,
       RunningLivePrimaryCue.moveCloser => l10n.runningCoachLiveCueMoveCloser,
       RunningLivePrimaryCue.centerRunner =>

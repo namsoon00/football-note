@@ -146,6 +146,8 @@ class RunningLiveCoachingService {
       return switch (framingIssue) {
         RunningLiveFramingIssue.noRunnerDetected =>
           RunningLivePrimaryCue.noRunnerDetected,
+        RunningLiveFramingIssue.trackingUncertain =>
+          RunningLivePrimaryCue.trackingUncertain,
         RunningLiveFramingIssue.stepBack => RunningLivePrimaryCue.stepBack,
         RunningLiveFramingIssue.moveCloser => RunningLivePrimaryCue.moveCloser,
         RunningLiveFramingIssue.centerRunner =>
