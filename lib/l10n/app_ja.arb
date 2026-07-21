@@ -2838,6 +2838,8 @@
   "languageSystemDefault": "システム標準",
   "settings": "設定",
   "settingsGeneralSection": "一般設定",
+  "settingsSoundEffectsTitle": "効果音",
+  "settingsSoundEffectsSubtitle": "ボタンや報酬など、アプリ内の操作で効果音を再生します。",
   "settingsTutorialReplayTitle": "チュートリアルをもう一度見る",
   "settingsTutorialReplaySubtitle": "ホームに戻り、コーチマークを最初からやり直します。",
   "settingsTutorialReplayReady": "チュートリアルをもう一度始める準備ができました。",

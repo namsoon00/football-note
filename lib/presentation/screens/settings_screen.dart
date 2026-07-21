@@ -664,6 +664,20 @@ class _SettingsScreenState extends State<SettingsScreen>
                   );
                 },
               ),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                secondary: Icon(
+                  widget.settingsService.soundEffectsEnabled
+                      ? Icons.volume_up_outlined
+                      : Icons.volume_off_outlined,
+                ),
+                title: Text(l10n.settingsSoundEffectsTitle),
+                subtitle: Text(l10n.settingsSoundEffectsSubtitle),
+                value: widget.settingsService.soundEffectsEnabled,
+                onChanged: (value) => unawaited(
+                  widget.settingsService.setSoundEffectsEnabled(value),
+                ),
+              ),
               const Divider(height: 20),
               ListTile(
                 key: const ValueKey<String>('settings-replay-tutorial'),

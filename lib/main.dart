@@ -40,6 +40,7 @@ import 'presentation/screens/sport_start_selection_screen.dart';
 import 'presentation/screens/welcome_screen.dart';
 import 'presentation/theme/app_theme.dart';
 import 'presentation/navigation/notification_tap_router.dart';
+import 'presentation/utils/app_sound_effects.dart';
 import 'presentation/widgets/football_loading_bar.dart';
 import 'presentation/widgets/keyboard_dismiss_overlay.dart';
 import 'presentation/widgets/sport_scope.dart';
@@ -147,6 +148,7 @@ Future<_FootballNoteDependencies> _initializeAppDependencies() async {
   localeService.load();
   final settingsService = SettingsService(optionRepository);
   settingsService.load();
+  AppSoundEffects.setEnabled(settingsService.soundEffectsEnabled);
   final sportController = SportStateController(optionRepository);
   final mealLogService = MealLogService(optionRepository);
   final trainingService = TrainingService(
@@ -205,6 +207,7 @@ Future<_FootballNoteDependencies> _initializeAppDependencies() async {
   HealthConnectJumpRopeImportNotificationService.onNotificationPayloadTap =
       NotificationTapRouter.handlePayload;
   settingsService.addListener(() {
+    AppSoundEffects.setEnabled(settingsService.soundEffectsEnabled);
     unawaited(reminderService.syncSettingsDrivenReminders());
     unawaited(weatherReminderService.syncSettingsDrivenReminders());
     unawaited(clubTrainingReminderService.syncSettingsDrivenReminders());

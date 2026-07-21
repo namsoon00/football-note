@@ -18,6 +18,7 @@ class SettingsService extends ChangeNotifier {
   bool _disposed = false;
 
   ThemeMode _themeMode = ThemeMode.light;
+  bool _soundEffectsEnabled = true;
   bool _reminderEnabled = false;
   bool _reminderVibrationEnabled = true;
   TimeOfDay _reminderTime = const TimeOfDay(hour: 19, minute: 0);
@@ -40,6 +41,7 @@ class SettingsService extends ChangeNotifier {
   SettingsService(this._repository);
 
   ThemeMode get themeMode => _themeMode;
+  bool get soundEffectsEnabled => _soundEffectsEnabled;
   bool get reminderEnabled => _reminderEnabled;
   bool get reminderVibrationEnabled => _reminderVibrationEnabled;
   TimeOfDay get reminderTime => _reminderTime;
@@ -61,6 +63,8 @@ class SettingsService extends ChangeNotifier {
   void load() {
     final theme = _repository.getValue<String>('theme_mode');
     _themeMode = _parseThemeMode(theme) ?? ThemeMode.light;
+    _soundEffectsEnabled =
+        _repository.getValue<bool>('sound_effects_enabled') ?? true;
     _reminderEnabled = _repository.getValue<bool>('reminder_enabled') ?? false;
     _reminderVibrationEnabled =
         _repository.getValue<bool>('reminder_vibration_enabled') ?? true;
@@ -120,6 +124,12 @@ class SettingsService extends ChangeNotifier {
   Future<void> setThemeMode(ThemeMode mode) async {
     _themeMode = mode;
     await _repository.setValue('theme_mode', mode.name);
+    _notifyListenersSafely();
+  }
+
+  Future<void> setSoundEffectsEnabled(bool enabled) async {
+    _soundEffectsEnabled = enabled;
+    await _repository.setValue('sound_effects_enabled', enabled);
     _notifyListenersSafely();
   }
 

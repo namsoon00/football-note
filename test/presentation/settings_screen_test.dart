@@ -18,6 +18,50 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  testWidgets('general settings can disable sound effects', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(800, 1200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final optionRepository = _MemoryOptionRepository();
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: SettingsScreen(
+          localeService: localeService,
+          settingsService: settingsService,
+          optionRepository: optionRepository,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('일반 설정'));
+    await tester.pumpAndSettle();
+
+    final soundEffectsTile = find.widgetWithText(SwitchListTile, '효과음');
+    expect(soundEffectsTile, findsOneWidget);
+    expect(tester.widget<SwitchListTile>(soundEffectsTile).value, isTrue);
+
+    await tester.tap(
+      find.descendant(of: soundEffectsTile, matching: find.byType(Switch)),
+    );
+    await tester.pumpAndSettle();
+
+    expect(settingsService.soundEffectsEnabled, isFalse);
+    expect(
+      optionRepository.getValue<bool>('sound_effects_enabled'),
+      isFalse,
+    );
+  });
+
   testWidgets('tutorial replay clears every guide completion flag', (
     WidgetTester tester,
   ) async {
