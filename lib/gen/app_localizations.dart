@@ -14737,7 +14737,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachAnalyzeBody.
   ///
   /// In en, this message translates to:
-  /// **'Choose a side-view clip to see the score, measured joint angles, contact cues, and the first movement issue to fix.'**
+  /// **'Choose one side-view clip. The result starts with the video frame that supports the first coaching focus.'**
   String get runningCoachAnalyzeBody;
 
   /// No description provided for @runningCoachTipsTitle.
@@ -14773,7 +14773,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachUploadGuideBody.
   ///
   /// In en, this message translates to:
-  /// **'Open the sample guide to compare a good loop with a wrong-form loop and see exactly which joints, angles, and contact points the coach reads.'**
+  /// **'Open the example playback only to learn the overlay. Your uploaded result is judged from your own video frames.'**
   String get runningCoachUploadGuideBody;
 
   /// No description provided for @runningCoachUploadGuideStepSide.
@@ -14809,7 +14809,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleBody.
   ///
   /// In en, this message translates to:
-  /// **'Switch between the reference and wrong-form loops to see how the same coach reads posture, landing, knee load, arm angle, bounce, and frame quality.'**
+  /// **'These are example clips from different runners and locations. Use them only to learn the overlay; they are not a controlled correct-vs-wrong comparison.'**
   String get runningCoachSampleBody;
 
   /// No description provided for @runningCoachSampleGuideAction.
@@ -14827,7 +14827,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleAnalysisLoadingBody.
   ///
   /// In en, this message translates to:
-  /// **'MediaPipe is reading the bundled reference and wrong-form clips now.'**
+  /// **'The app is reading the bundled example clips now.'**
   String get runningCoachSampleAnalysisLoadingBody;
 
   /// No description provided for @runningCoachSampleAnalysisFailedTitle.
@@ -14851,13 +14851,13 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleFrameGuideTitle.
   ///
   /// In en, this message translates to:
-  /// **'What to compare in the video'**
+  /// **'What the overlay shows'**
   String get runningCoachSampleFrameGuideTitle;
 
   /// No description provided for @runningCoachSampleFrameGuideBody.
   ///
   /// In en, this message translates to:
-  /// **'Read the overlays with the runner: posture, landing, arm timing, and frame coverage are shown on top of the sample instead of only as a text list.'**
+  /// **'Read the overlays with the example runner: posture, landing, arm timing, and frame coverage appear on top of the clip.'**
   String get runningCoachSampleFrameGuideBody;
 
   /// No description provided for @runningCoachSampleCueLean.
@@ -14887,37 +14887,37 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleReferenceTab.
   ///
   /// In en, this message translates to:
-  /// **'Reference sample'**
+  /// **'Example A'**
   String get runningCoachSampleReferenceTab;
 
   /// No description provided for @runningCoachSampleMistakeTab.
   ///
   /// In en, this message translates to:
-  /// **'Wrong form sample'**
+  /// **'Example B'**
   String get runningCoachSampleMistakeTab;
 
   /// No description provided for @runningCoachSampleReferenceTitle.
   ///
   /// In en, this message translates to:
-  /// **'Reference readouts'**
+  /// **'Example A readouts'**
   String get runningCoachSampleReferenceTitle;
 
   /// No description provided for @runningCoachSampleMistakeTitle.
   ///
   /// In en, this message translates to:
-  /// **'Wrong-form readouts'**
+  /// **'Example B readouts'**
   String get runningCoachSampleMistakeTitle;
 
   /// No description provided for @runningCoachSampleReferenceBody.
   ///
   /// In en, this message translates to:
-  /// **'This is the target loop: the runner keeps a slight whole-body lean, lands close to the hip, loads the knee softly, and keeps the arms compact.'**
+  /// **'This clip shows how the overlay follows one runner\'s lean, landing, knee bend, arms, and bounce.'**
   String get runningCoachSampleReferenceBody;
 
   /// No description provided for @runningCoachSampleMistakeBody.
   ///
   /// In en, this message translates to:
-  /// **'This loop shows the review pattern: upright torso, foot landing ahead of the hip, a stiff contact knee, a high arm swing, and extra vertical bounce.'**
+  /// **'This separate clip shows another runner and setting. Review the readouts without treating it as a matched comparison.'**
   String get runningCoachSampleMistakeBody;
 
   /// No description provided for @runningCoachSampleReferencePosture.
@@ -14941,13 +14941,13 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleReferenceArms.
   ///
   /// In en, this message translates to:
-  /// **'Arm angle: the coach reads shoulder, elbow, and wrist landmarks on each sampled frame.'**
+  /// **'Arm angle: the coach reads shoulder, elbow, and wrist positions on each sampled frame.'**
   String get runningCoachSampleReferenceArms;
 
   /// No description provided for @runningCoachSampleReferenceFrame.
   ///
   /// In en, this message translates to:
-  /// **'Frame quality: usable frames depend on visible MediaPipe joints, not on a preset sample label.'**
+  /// **'Frame quality: usable frames depend on visible body points, not on a preset sample label.'**
   String get runningCoachSampleReferenceFrame;
 
   /// No description provided for @runningCoachSampleMistakePosture.
@@ -14989,13 +14989,13 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleAnalysisMethodBody.
   ///
   /// In en, this message translates to:
-  /// **'The coach samples stable side-view frames, tracks pose landmarks, estimates contact windows, and scores each metric with confidence.'**
+  /// **'The coach samples stable side-view frames, checks visible body points, estimates contact windows, and scores each metric with confidence.'**
   String get runningCoachSampleAnalysisMethodBody;
 
   /// No description provided for @runningCoachSampleMethodPose.
   ///
   /// In en, this message translates to:
-  /// **'Pose landmarks: shoulders, hips, knees, ankles, elbows, wrists, and head must stay visible.'**
+  /// **'Visible body points: shoulders, hips, knees, ankles, elbows, wrists, and head must stay visible.'**
   String get runningCoachSampleMethodPose;
 
   /// No description provided for @runningCoachSampleMethodAngles.
@@ -15019,7 +15019,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleRecordingGuideTitle.
   ///
   /// In en, this message translates to:
-  /// **'Record like the sample'**
+  /// **'Recording setup guide'**
   String get runningCoachSampleRecordingGuideTitle;
 
   /// No description provided for @runningCoachSampleProcessTitle.
@@ -15031,7 +15031,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleProcessBody.
   ///
   /// In en, this message translates to:
-  /// **'The overlay now shows the same order the coach follows: sample a stable frame, lock visible joints, connect the pose, measure angles, then compare contact and confidence.'**
+  /// **'The overlay shows the same order the coach follows: sample a stable frame, lock visible body points, connect body lines, measure angles, then check contact evidence.'**
   String get runningCoachSampleProcessBody;
 
   /// No description provided for @runningCoachSamplePhaseFrame.
@@ -15043,19 +15043,19 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSamplePhaseJoints.
   ///
   /// In en, this message translates to:
-  /// **'Track joints'**
+  /// **'Find body points'**
   String get runningCoachSamplePhaseJoints;
 
   /// No description provided for @runningCoachSamplePhaseMuscles.
   ///
   /// In en, this message translates to:
-  /// **'Map muscle load'**
+  /// **'Mark body load'**
   String get runningCoachSamplePhaseMuscles;
 
   /// No description provided for @runningCoachSamplePhaseSkeleton.
   ///
   /// In en, this message translates to:
-  /// **'Connect pose lines'**
+  /// **'Connect body lines'**
   String get runningCoachSamplePhaseSkeleton;
 
   /// No description provided for @runningCoachSamplePhaseAngles.
@@ -15067,7 +15067,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSamplePhaseContactScore.
   ///
   /// In en, this message translates to:
-  /// **'Score contact confidence'**
+  /// **'Check contact evidence'**
   String get runningCoachSamplePhaseContactScore;
 
   /// No description provided for @runningCoachSamplePhaseDenseContact.
@@ -15230,7 +15230,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleMetricDetailStatusLabel.
   ///
   /// In en, this message translates to:
-  /// **'Judgment'**
+  /// **'Readout'**
   String get runningCoachSampleMetricDetailStatusLabel;
 
   /// No description provided for @runningCoachSampleMetricDetailKeyPositionTitle.
@@ -15242,13 +15242,13 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleMetricDetailReferenceTitle.
   ///
   /// In en, this message translates to:
-  /// **'Reference motion'**
+  /// **'Example A motion'**
   String get runningCoachSampleMetricDetailReferenceTitle;
 
   /// No description provided for @runningCoachSampleMetricDetailReviewTitle.
   ///
   /// In en, this message translates to:
-  /// **'Review trigger'**
+  /// **'Example B motion'**
   String get runningCoachSampleMetricDetailReviewTitle;
 
   /// No description provided for @runningCoachSampleMetricDetailHowReadTitle.
@@ -15278,7 +15278,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSamplePostureDetailReference.
   ///
   /// In en, this message translates to:
-  /// **'The reference clip keeps the shoulders slightly ahead of the hips without folding at the waist.'**
+  /// **'Example A shows the shoulders slightly ahead of the hips without folding at the waist.'**
   String get runningCoachSamplePostureDetailReference;
 
   /// No description provided for @runningCoachSamplePostureDetailReview.
@@ -15308,7 +15308,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleArmsDetailReference.
   ///
   /// In en, this message translates to:
-  /// **'A strong clip keeps the elbows compact and swings front-to-back close to the ribs.'**
+  /// **'Example A shows compact elbows swinging front-to-back close to the ribs.'**
   String get runningCoachSampleArmsDetailReference;
 
   /// No description provided for @runningCoachSampleArmsDetailReview.
@@ -15320,7 +15320,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleArmsDetailHowRead.
   ///
   /// In en, this message translates to:
-  /// **'The app connects shoulder, elbow, and wrist landmarks and flags the frame when the elbow opens too far.'**
+  /// **'The app connects shoulder, elbow, and wrist positions and flags the frame when the elbow opens too far.'**
   String get runningCoachSampleArmsDetailHowRead;
 
   /// No description provided for @runningCoachSampleLandingDetailGoodRange.
@@ -15338,7 +15338,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleLandingDetailReference.
   ///
   /// In en, this message translates to:
-  /// **'The reference clip lands close to the hip line, so contact supports forward movement.'**
+  /// **'Example A lands close to the hip line, so contact supports forward movement.'**
   String get runningCoachSampleLandingDetailReference;
 
   /// No description provided for @runningCoachSampleLandingDetailReview.
@@ -15368,7 +15368,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleBounceDetailReference.
   ///
   /// In en, this message translates to:
-  /// **'The reference clip keeps vertical motion compact, so energy stays directed forward.'**
+  /// **'Example A keeps vertical motion compact, so energy stays directed forward.'**
   String get runningCoachSampleBounceDetailReference;
 
   /// No description provided for @runningCoachSampleBounceDetailReview.
@@ -15392,7 +15392,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachDenseContactEvidenceBody.
   ///
   /// In en, this message translates to:
-  /// **'Foot strike and stance-knee values come only from re-read MediaPipe frames around validated contact.'**
+  /// **'Foot strike and stance-knee values come only from re-read frames around validated contact.'**
   String get runningCoachDenseContactEvidenceBody;
 
   /// No description provided for @runningCoachDenseContactCoarseSamplesLabel.
@@ -15437,6 +15437,180 @@ abstract class AppLocalizations {
   /// **'No validated contact'**
   String get runningCoachDenseContactUnavailable;
 
+  /// No description provided for @runningCoachEvidenceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Evidence from your video'**
+  String get runningCoachEvidenceTitle;
+
+  /// No description provided for @runningCoachEvidenceBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This frame is from the analyzed clip and supports the selected coaching focus.'**
+  String get runningCoachEvidenceBody;
+
+  /// No description provided for @runningCoachEvidenceInsufficientTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Retake this clip'**
+  String get runningCoachEvidenceInsufficientTitle;
+
+  /// No description provided for @runningCoachEvidenceInsufficientBody.
+  ///
+  /// In en, this message translates to:
+  /// **'There were not enough stable frames for this focus, so the app is not showing a precise score.'**
+  String get runningCoachEvidenceInsufficientBody;
+
+  /// No description provided for @runningCoachEvidenceVideoUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The saved video file is unavailable. The pose overlay still shows the analyzed frame.'**
+  String get runningCoachEvidenceVideoUnavailable;
+
+  /// No description provided for @runningCoachEvidencePoseFrameOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing the analyzed pose frame. The video file was not saved with this view.'**
+  String get runningCoachEvidencePoseFrameOnly;
+
+  /// No description provided for @runningCoachEvidenceTimestamp.
+  ///
+  /// In en, this message translates to:
+  /// **'Evidence frame {time}'**
+  String runningCoachEvidenceTimestamp(Object time);
+
+  /// No description provided for @runningCoachEvidencePreviousFrame.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous evidence frame'**
+  String get runningCoachEvidencePreviousFrame;
+
+  /// No description provided for @runningCoachEvidenceNextFrame.
+  ///
+  /// In en, this message translates to:
+  /// **'Next evidence frame'**
+  String get runningCoachEvidenceNextFrame;
+
+  /// No description provided for @runningCoachEvidencePlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Play evidence video'**
+  String get runningCoachEvidencePlay;
+
+  /// No description provided for @runningCoachEvidencePause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause evidence video'**
+  String get runningCoachEvidencePause;
+
+  /// No description provided for @runningCoachEvidenceFrameCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Evidence {current}/{total}'**
+  String runningCoachEvidenceFrameCount(int current, int total);
+
+  /// No description provided for @runningCoachEvidenceWhatSeenLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'What I saw'**
+  String get runningCoachEvidenceWhatSeenLabel;
+
+  /// No description provided for @runningCoachEvidenceWhatSeenBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{metric} at {time} in your clip.'**
+  String runningCoachEvidenceWhatSeenBody(Object metric, Object time);
+
+  /// No description provided for @runningCoachEvidenceWhyMattersLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Why it matters'**
+  String get runningCoachEvidenceWhyMattersLabel;
+
+  /// No description provided for @runningCoachEvidenceTryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Try this'**
+  String get runningCoachEvidenceTryLabel;
+
+  /// No description provided for @runningCoachEvidenceRetakeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Retake setup'**
+  String get runningCoachEvidenceRetakeLabel;
+
+  /// No description provided for @runningCoachEvidenceRetakeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Record from the side with the whole body and both feet visible. Keep the phone still for a few clean steps.'**
+  String get runningCoachEvidenceRetakeBody;
+
+  /// No description provided for @runningCoachEvidenceQualityLimitedBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Evidence limited'**
+  String get runningCoachEvidenceQualityLimitedBadge;
+
+  /// No description provided for @runningCoachEvidenceReasonLowConfidence.
+  ///
+  /// In en, this message translates to:
+  /// **'The body points moved or blurred too much for a confident read.'**
+  String get runningCoachEvidenceReasonLowConfidence;
+
+  /// No description provided for @runningCoachEvidenceReasonLimitedFrames.
+  ///
+  /// In en, this message translates to:
+  /// **'There were too few stable frames for this metric.'**
+  String get runningCoachEvidenceReasonLimitedFrames;
+
+  /// No description provided for @runningCoachEvidenceReasonMissingPoseFrames.
+  ///
+  /// In en, this message translates to:
+  /// **'No analyzed pose frames were saved for this clip.'**
+  String get runningCoachEvidenceReasonMissingPoseFrames;
+
+  /// No description provided for @runningCoachEvidenceReasonMissingContact.
+  ///
+  /// In en, this message translates to:
+  /// **'The contact frame was not stable enough to support this lower-body metric.'**
+  String get runningCoachEvidenceReasonMissingContact;
+
+  /// No description provided for @runningCoachEvidenceContactLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact evidence'**
+  String get runningCoachEvidenceContactLabel;
+
+  /// No description provided for @runningCoachEvidencePostureLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Posture frame'**
+  String get runningCoachEvidencePostureLabel;
+
+  /// No description provided for @runningCoachEvidenceBounceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Bounce frame'**
+  String get runningCoachEvidenceBounceLabel;
+
+  /// No description provided for @runningCoachEvidenceLandingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Landing frame'**
+  String get runningCoachEvidenceLandingLabel;
+
+  /// No description provided for @runningCoachEvidenceKneeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Knee frame'**
+  String get runningCoachEvidenceKneeLabel;
+
+  /// No description provided for @runningCoachEvidenceArmLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Arm frame'**
+  String get runningCoachEvidenceArmLabel;
+
   /// No description provided for @runningCoachLiveCardTitle.
   ///
   /// In en, this message translates to:
@@ -15454,6 +15628,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Start live sprint coach'**
   String get runningCoachLiveAction;
+
+  /// No description provided for @runningCoachLiveSetupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Before live capture'**
+  String get runningCoachLiveSetupTitle;
+
+  /// No description provided for @runningCoachLiveSetupBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a side view, keep the whole body including both feet on screen, and hold the phone steady on a tripod or with a helper.'**
+  String get runningCoachLiveSetupBody;
 
   /// No description provided for @runningCoachLiveGuideAction.
   ///
@@ -15476,13 +15662,13 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachLiveGuideHeroTitle.
   ///
   /// In en, this message translates to:
-  /// **'Track anatomical joints and the live coaching HUD'**
+  /// **'See your outline and live coaching cues'**
   String get runningCoachLiveGuideHeroTitle;
 
   /// No description provided for @runningCoachLiveGuideHeroBody.
   ///
   /// In en, this message translates to:
-  /// **'The live sprint coach draws your body outline over the camera feed, then shows simple cues for lean, knees, landing, rhythm, and arms.'**
+  /// **'The live sprint coach draws your body outline over the camera feed, then shows simple cues for setup, rhythm, landing, and arms.'**
   String get runningCoachLiveGuideHeroBody;
 
   /// No description provided for @runningCoachLiveGuideTipSideTitle.
@@ -15542,7 +15728,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachLivePreparingBody.
   ///
   /// In en, this message translates to:
-  /// **'Opening the rear camera and getting live pose tracking ready.'**
+  /// **'Opening the rear camera and preparing live coaching.'**
   String get runningCoachLivePreparingBody;
 
   /// No description provided for @runningCoachLiveCameraIssueTitle.
@@ -15572,7 +15758,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachLivePoseFailed.
   ///
   /// In en, this message translates to:
-  /// **'Pose tracking stopped because the on-device model could not process the camera frame. Try again.'**
+  /// **'The live coach could not read the camera frames. Try again.'**
   String get runningCoachLivePoseFailed;
 
   /// No description provided for @runningCoachLiveRetryAction.
@@ -15671,6 +15857,132 @@ abstract class AppLocalizations {
   /// **'Live coaching active'**
   String get runningCoachLiveStatusCoaching;
 
+  /// No description provided for @runningCoachLiveStatusReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready'**
+  String get runningCoachLiveStatusReady;
+
+  /// No description provided for @runningCoachLiveStatusStabilizing.
+  ///
+  /// In en, this message translates to:
+  /// **'Stabilizing'**
+  String get runningCoachLiveStatusStabilizing;
+
+  /// No description provided for @runningCoachLiveStatusFixSetup.
+  ///
+  /// In en, this message translates to:
+  /// **'Fix setup'**
+  String get runningCoachLiveStatusFixSetup;
+
+  /// No description provided for @runningCoachLiveRuntimeScoreReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready for coaching'**
+  String get runningCoachLiveRuntimeScoreReady;
+
+  /// No description provided for @runningCoachLiveRuntimeScoreStabilizing.
+  ///
+  /// In en, this message translates to:
+  /// **'Coaching paused'**
+  String get runningCoachLiveRuntimeScoreStabilizing;
+
+  /// No description provided for @runningCoachLiveRuntimeScoreFixSetup.
+  ///
+  /// In en, this message translates to:
+  /// **'Fix setup first'**
+  String get runningCoachLiveRuntimeScoreFixSetup;
+
+  /// No description provided for @runningCoachLiveRuntimeCueWarmingUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the same rhythm for a few steps.'**
+  String get runningCoachLiveRuntimeCueWarmingUp;
+
+  /// No description provided for @runningCoachLiveRuntimeCueSlowProcessing.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold steady while the phone catches up.'**
+  String get runningCoachLiveRuntimeCueSlowProcessing;
+
+  /// No description provided for @runningCoachLiveRuntimeCueFrameGaps.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep moving smoothly and hold the camera still.'**
+  String get runningCoachLiveRuntimeCueFrameGaps;
+
+  /// No description provided for @runningCoachLiveRuntimeCueUnstableTracking.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a steady side view with the whole body visible.'**
+  String get runningCoachLiveRuntimeCueUnstableTracking;
+
+  /// No description provided for @runningCoachLiveRuntimeCueFixSetup.
+  ///
+  /// In en, this message translates to:
+  /// **'Set the camera so the whole runner stays in frame.'**
+  String get runningCoachLiveRuntimeCueFixSetup;
+
+  /// No description provided for @runningCoachLiveRuntimeDiagnosisWarmingUp.
+  ///
+  /// In en, this message translates to:
+  /// **'The coach is waiting for a short stable window before giving form cues.'**
+  String get runningCoachLiveRuntimeDiagnosisWarmingUp;
+
+  /// No description provided for @runningCoachLiveRuntimeDiagnosisSlowProcessing.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent frame processing is too slow for reliable live coaching.'**
+  String get runningCoachLiveRuntimeDiagnosisSlowProcessing;
+
+  /// No description provided for @runningCoachLiveRuntimeDiagnosisFrameGaps.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyzed frames are arriving with gaps, so form cues are paused.'**
+  String get runningCoachLiveRuntimeDiagnosisFrameGaps;
+
+  /// No description provided for @runningCoachLiveRuntimeDiagnosisUnstableTracking.
+  ///
+  /// In en, this message translates to:
+  /// **'The body points are not stable enough for a fair cue yet.'**
+  String get runningCoachLiveRuntimeDiagnosisUnstableTracking;
+
+  /// No description provided for @runningCoachLiveRuntimeDiagnosisFixSetup.
+  ///
+  /// In en, this message translates to:
+  /// **'The camera setup needs a clearer side view before coaching starts.'**
+  String get runningCoachLiveRuntimeDiagnosisFixSetup;
+
+  /// No description provided for @runningCoachLiveRuntimeActionWarmingUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Run through the frame at the same speed for a few more steps.'**
+  String get runningCoachLiveRuntimeActionWarmingUp;
+
+  /// No description provided for @runningCoachLiveRuntimeActionSlowProcessing.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause other apps and keep the phone still.'**
+  String get runningCoachLiveRuntimeActionSlowProcessing;
+
+  /// No description provided for @runningCoachLiveRuntimeActionFrameGaps.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a tripod or helper and avoid quick camera movement.'**
+  String get runningCoachLiveRuntimeActionFrameGaps;
+
+  /// No description provided for @runningCoachLiveRuntimeActionUnstableTracking.
+  ///
+  /// In en, this message translates to:
+  /// **'Step into brighter light and keep head-to-feet visible.'**
+  String get runningCoachLiveRuntimeActionUnstableTracking;
+
+  /// No description provided for @runningCoachLiveRuntimeActionFixSetup.
+  ///
+  /// In en, this message translates to:
+  /// **'Show a side view with head, hips, knees, and both feet on screen.'**
+  String get runningCoachLiveRuntimeActionFixSetup;
+
   /// No description provided for @runningCoachLiveCueNoRunner.
   ///
   /// In en, this message translates to:
@@ -15680,7 +15992,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachLiveCueTrackingUncertain.
   ///
   /// In en, this message translates to:
-  /// **'Hold steady. I am finding your joints again.'**
+  /// **'Hold steady. I am reading your body again.'**
   String get runningCoachLiveCueTrackingUncertain;
 
   /// No description provided for @runningCoachLiveCueStepBack.

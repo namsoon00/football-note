@@ -91,6 +91,11 @@ void main() {
     );
 
     expect(find.text('Start live sprint coach'), findsOneWidget);
+    expect(find.text('Before live capture'), findsOneWidget);
+    expect(
+      find.textContaining('whole body including both feet'),
+      findsOneWidget,
+    );
     expect(find.text('Check form live'), findsNothing);
     expect(
       find.widgetWithText(FilledButton, 'Start live sprint coach'),
@@ -297,21 +302,27 @@ void main() {
       find.byKey(const ValueKey('running-coach-sample-back-button')),
       findsOneWidget,
     );
-    expect(find.text('Reference sample'), findsOneWidget);
-    expect(find.text('Wrong form sample'), findsOneWidget);
-    expect(find.text('What to compare in the video'), findsOneWidget);
-    expect(find.text('Reference readouts'), findsOneWidget);
+    expect(find.text('Example A'), findsOneWidget);
+    expect(find.text('Example B'), findsOneWidget);
+    expect(find.text('Reference sample'), findsNothing);
+    expect(find.text('Wrong form sample'), findsNothing);
+    expect(
+      find.textContaining('not a controlled correct-vs-wrong comparison'),
+      findsOneWidget,
+    );
+    expect(find.text('What the overlay shows'), findsOneWidget);
+    expect(find.text('Example A readouts'), findsOneWidget);
     expect(find.text('Analysis process on the real clip'), findsOneWidget);
     expect(find.text('Dense contact evidence'), findsOneWidget);
     expect(find.text('Validate contact frame'), findsOneWidget);
     expect(find.text('Contact 0.00s'), findsOneWidget);
     expect(find.text('0.00s, 0.50s'), findsOneWidget);
     expect(find.text('Contact frames'), findsOneWidget);
-    expect(find.textContaining('Track joints'), findsOneWidget);
-    expect(find.textContaining('Map muscle load'), findsOneWidget);
-    expect(find.textContaining('Connect pose lines'), findsOneWidget);
+    expect(find.textContaining('Find body points'), findsOneWidget);
+    expect(find.textContaining('Mark body load'), findsOneWidget);
+    expect(find.textContaining('Connect body lines'), findsOneWidget);
     expect(find.textContaining('Measure angles'), findsOneWidget);
-    expect(find.textContaining('Score contact confidence'), findsOneWidget);
+    expect(find.textContaining('Check contact evidence'), findsOneWidget);
     expect(find.text('Decision evidence'), findsOneWidget);
     expect(find.text('Forward lean'), findsWidgets);
     expect(find.text('Bounce'), findsOneWidget);
@@ -361,12 +372,12 @@ void main() {
     ).pop();
     await tester.pumpAndSettle();
 
-    await tester.ensureVisible(find.text('Wrong form sample'));
+    await tester.ensureVisible(find.text('Example B'));
     await tester.pump();
-    await tester.tap(find.text('Wrong form sample'));
+    await tester.tap(find.text('Example B'));
     await tester.pump();
 
-    expect(find.text('Wrong-form readouts'), findsOneWidget);
+    expect(find.text('Example B readouts'), findsOneWidget);
     expect(find.text('0.22x foot reach'), findsWidgets);
     expect(find.text('Bounce'), findsOneWidget);
     expect(find.text('10.0% up-down motion'), findsWidgets);
@@ -540,7 +551,7 @@ void main() {
     );
 
     expect(analysisService.calls, hasLength(3));
-    expect(find.text('Reference sample'), findsOneWidget);
+    expect(find.text('Example A'), findsOneWidget);
   });
 
   testWidgets('analysis history opens a visual correction guide', (
@@ -988,6 +999,170 @@ void main() {
     );
     expect(find.text('0.00초, 0.50초'), findsOneWidget);
   });
+
+  testWidgets('analysis result shows navigable evidence at 320px portrait', (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(320, 780));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final result = RunningVideoAnalysisResult(
+      videoDuration: const Duration(seconds: 4),
+      sampledFrames: 14,
+      validFrames: 13,
+      direction: RunningDirection.leftToRight,
+      forwardLeanDegrees: 10,
+      verticalBounceRatio: 0.06,
+      footStrikeDistanceRatio: 0.24,
+      stanceKneeAngleDegrees: 155,
+      elbowAngleDegrees: 92,
+      metricQualities: _testDenseMetricQualities(),
+      coarseSamples: const RunningAnalysisSampleSummary(
+        attemptedFrames: 14,
+        validFrames: 13,
+        poseFrameCount: 6,
+      ),
+      denseSamples: const RunningAnalysisSampleSummary(
+        attemptedFrames: 8,
+        validFrames: 6,
+        poseFrameCount: 6,
+        maxFrameBudget: 48,
+        targetFps: 30,
+      ),
+      contactWindows: _testContactWindows(),
+      validatedContactFrameTimestamps: _testContactTimestamps(),
+      contactConfidence: 0.84,
+      poseFrames: _testPoseFrames(
+        startX: 0.34,
+        dxPerFrame: -0.018,
+        confidence: 0.93,
+        imageWidth: 720,
+        imageHeight: 1280,
+      ),
+    );
+    final report = const RunningCoachingService().buildReport(result);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: runningAnalysisResultScreenForTesting(
+          result: result,
+          report: report,
+          session: _sessionForReport(
+            id: 'portrait-evidence',
+            result: result,
+            report: report,
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(
+      find.byKey(const ValueKey('running-coach-analysis-evidence-card')),
+      findsOneWidget,
+    );
+    expect(find.text('Evidence from your video'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('running-coach-analysis-evidence-overlay')),
+      findsOneWidget,
+    );
+    expect(find.text('Evidence 1/2'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    await tester.tap(
+      find.byKey(const ValueKey('running-coach-evidence-next')),
+    );
+    await tester.pump();
+
+    expect(find.text('Evidence 2/2'), findsOneWidget);
+    expect(find.text('What I saw'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('analysis result recommends retake and hides low-evidence score',
+      (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(360, 780));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final result = RunningVideoAnalysisResult(
+      videoDuration: const Duration(seconds: 4),
+      sampledFrames: 14,
+      validFrames: 12,
+      direction: RunningDirection.leftToRight,
+      forwardLeanDegrees: 10,
+      verticalBounceRatio: 0.06,
+      footStrikeDistanceRatio: 0.35,
+      stanceKneeAngleDegrees: 155,
+      elbowAngleDegrees: 92,
+      metricQualities: const <RunningCoachMetric, RunningMetricQuality>{
+        RunningCoachMetric.footStrike: RunningMetricQuality(
+          confidence: 0.42,
+          sampleCount: 1,
+          reason: 'limited_samples',
+        ),
+        RunningCoachMetric.kneeFlexion: RunningMetricQuality(
+          confidence: 0.84,
+          sampleCount: 2,
+        ),
+      },
+      coarseSamples: const RunningAnalysisSampleSummary(
+        attemptedFrames: 14,
+        validFrames: 12,
+        poseFrameCount: 6,
+      ),
+      denseSamples: RunningAnalysisSampleSummary.empty,
+      contactConfidence: 0,
+      poseFrames: _testPoseFrames(
+        startX: 0.32,
+        dxPerFrame: -0.012,
+        confidence: 0.5,
+      ),
+    );
+    final report = const RunningCoachingService().buildReport(result);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: runningAnalysisResultScreenForTesting(
+          result: result,
+          report: report,
+          session: _sessionForReport(
+            id: 'limited-evidence',
+            result: result,
+            report: report,
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(
+      find.byKey(const ValueKey('running-coach-analysis-evidence-retake')),
+      findsOneWidget,
+    );
+    expect(find.text('Retake this clip'), findsOneWidget);
+    expect(find.text('Evidence limited'), findsWidgets);
+    expect(find.textContaining('Metric score 14'), findsNothing);
+    expect(
+      find.byKey(const ValueKey('running-coach-analysis-evidence-overlay')),
+      findsNothing,
+    );
+    expect(tester.takeException(), isNull);
+  });
 }
 
 Future<void> _pumpUntilFound(
@@ -1019,6 +1194,29 @@ Future<RunningCoachPreparedSampleVideo> _prepareSampleVideoForTest(
         tempDirectory.deleteSync(recursive: true);
       }
     },
+  );
+}
+
+RunningCoachSessionAnalysis _sessionForReport({
+  required String id,
+  required RunningVideoAnalysisResult result,
+  required RunningCoachingReport report,
+}) {
+  final primary = report.primaryFocus!;
+  return RunningCoachSessionAnalysis(
+    id: id,
+    analyzedAt: DateTime(2026, 7, 14, 9),
+    source: RunningCoachSessionSource.uploadVideo,
+    overallScore: report.overallScore,
+    duration: result.videoDuration,
+    sampledFrames: result.sampledFrames,
+    validFrames: result.validFrames,
+    primaryMetric: primary.metric,
+    primaryFinding: primary.finding,
+    primaryStatus: primary.status,
+    primaryScore: primary.score,
+    primaryValue: primary.value,
+    primaryConfidence: primary.quality.confidence,
   );
 }
 
@@ -1186,13 +1384,15 @@ List<RunningPoseFrame> _testPoseFrames({
   required double startX,
   required double dxPerFrame,
   required double confidence,
+  int imageWidth = 1280,
+  int imageHeight = 720,
 }) {
   return List<RunningPoseFrame>.unmodifiable([
     for (var frameIndex = 0; frameIndex < 6; frameIndex += 1)
       RunningPoseFrame(
         timestamp: Duration(milliseconds: frameIndex * 500),
-        imageWidth: 1280,
-        imageHeight: 720,
+        imageWidth: imageWidth,
+        imageHeight: imageHeight,
         landmarks: List<RunningVideoPoseLandmark>.unmodifiable([
           for (var index = 0; index < mediaPipePoseLandmarkCount; index += 1)
             _testPoseLandmark(

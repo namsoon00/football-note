@@ -107,8 +107,21 @@ class RunningLiveAnalysisPipeline {
       _sameRawFramingIssueFrames = 1;
     }
 
-    if (rawIssue == RunningLiveFramingIssue.noRunnerDetected ||
-        decision.hardFailure) {
+    if (rawIssue == RunningLiveFramingIssue.noRunnerDetected) {
+      return rawIssue;
+    }
+
+    if (rawIssue == RunningLiveFramingIssue.stepBack) {
+      if (!decision.stepBackCropSupported) {
+        return RunningLiveFramingIssue.trackingUncertain;
+      }
+      if (_sameRawFramingIssueFrames < config.sustainedStepBackFrames) {
+        return RunningLiveFramingIssue.trackingUncertain;
+      }
+      return rawIssue;
+    }
+
+    if (decision.hardFailure) {
       return rawIssue;
     }
 
@@ -137,12 +150,14 @@ class RunningLiveAnalysisConfig {
   final int minimumTrackedFrames;
   final double minimumLikelihood;
   final Duration cueDwellTime;
+  final int sustainedStepBackFrames;
 
   const RunningLiveAnalysisConfig({
     this.analysisWindow = const Duration(milliseconds: 2400),
     this.minimumTrackedFrames = 7,
     this.minimumLikelihood = 0.45,
     this.cueDwellTime = const Duration(milliseconds: 600),
+    this.sustainedStepBackFrames = 3,
   });
 }
 
@@ -222,21 +237,33 @@ class _RunningFramingPolicy {
       RunningPoseLandmarkType.rightAnkle,
       minimumLikelihood: minimumLikelihood,
     );
+    final leftKnee = observation.landmark(
+      RunningPoseLandmarkType.leftKnee,
+      minimumLikelihood: minimumLikelihood,
+    );
+    final rightKnee = observation.landmark(
+      RunningPoseLandmarkType.rightKnee,
+      minimumLikelihood: minimumLikelihood,
+    );
     if (leftAnkle == null || rightAnkle == null) {
-      final hasKneeEvidence = observation.landmark(
-                RunningPoseLandmarkType.leftKnee,
-                minimumLikelihood: minimumLikelihood,
-              ) !=
-              null &&
-          observation.landmark(
-                RunningPoseLandmarkType.rightKnee,
-                minimumLikelihood: minimumLikelihood,
-              ) !=
-              null;
+      final hasKneeEvidence = leftKnee != null && rightKnee != null;
+      final kneeBottomRatio = hasKneeEvidence
+          ? math.max(leftKnee.position.dy, rightKnee.position.dy) /
+              imageSize.height
+          : 0.0;
+      final visibleBottomRatio = visibleLandmarks
+              .map((landmark) => landmark.position.dy)
+              .reduce(math.max) /
+          imageSize.height;
+      final cropSupported = hasKneeEvidence &&
+          visibleLandmarks.length >= 8 &&
+          (kneeBottomRatio >= 0.84 || visibleBottomRatio >= 0.92);
       return _RunningFramingDecision(
-        issue: RunningLiveFramingIssue.stepBack,
-        trackingUncertainCandidate:
-            hasKneeEvidence && visibleLandmarks.length >= 8,
+        issue: cropSupported
+            ? RunningLiveFramingIssue.stepBack
+            : RunningLiveFramingIssue.trackingUncertain,
+        trackingUncertainCandidate: true,
+        stepBackCropSupported: cropSupported,
       );
     }
 
@@ -279,6 +306,7 @@ class _RunningFramingPolicy {
         reliableFullBodyEvidence: reliableFullBodyEvidence,
         softFailure: !hardFitFailure && reliableFullBodyEvidence,
         hardFailure: hardFitFailure,
+        stepBackCropSupported: true,
       );
     }
 
@@ -332,6 +360,7 @@ class _RunningFramingDecision {
   final bool trackingUncertainCandidate;
   final bool softFailure;
   final bool hardFailure;
+  final bool stepBackCropSupported;
 
   const _RunningFramingDecision({
     this.issue,
@@ -339,6 +368,7 @@ class _RunningFramingDecision {
     this.trackingUncertainCandidate = false,
     this.softFailure = false,
     this.hardFailure = false,
+    this.stepBackCropSupported = false,
   });
 }
 

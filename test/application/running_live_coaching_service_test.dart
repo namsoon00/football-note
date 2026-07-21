@@ -25,21 +25,27 @@ void main() {
       expect(state.primaryCue, RunningLivePrimaryCue.noRunnerDetected);
     });
 
-    test('asks runner to step back when lower body is clipped', () {
+    test('waits for sustained lower-body crop before step back', () {
       final service = RunningLiveCoachingService();
+      final start = DateTime(2026, 4, 11, 12);
 
-      final state = service.ingestObservation(
-        _observation(
-          leftShoulder: const Offset(470, 260),
-          rightShoulder: const Offset(530, 265),
-          leftHip: const Offset(480, 470),
-          rightHip: const Offset(520, 470),
-        ),
-        timestamp: DateTime(2026, 4, 11, 12),
+      final first = service.ingestObservation(
+        _cropSupportedMissingAnklesObservation(),
+        timestamp: start,
+      );
+      service.ingestObservation(
+        _cropSupportedMissingAnklesObservation(),
+        timestamp: start.add(const Duration(milliseconds: 160)),
+      );
+      final sustained = service.ingestObservation(
+        _cropSupportedMissingAnklesObservation(),
+        timestamp: start.add(const Duration(milliseconds: 320)),
       );
 
-      expect(state.framingIssue, RunningLiveFramingIssue.stepBack);
-      expect(state.primaryCue, RunningLivePrimaryCue.stepBack);
+      expect(first.framingIssue, RunningLiveFramingIssue.trackingUncertain);
+      expect(first.primaryCue, RunningLivePrimaryCue.trackingUncertain);
+      expect(sustained.framingIssue, RunningLiveFramingIssue.stepBack);
+      expect(sustained.primaryCue, RunningLivePrimaryCue.stepBack);
     });
 
     test('treats brief ankle dropout as tracking uncertainty after stable body',
@@ -91,7 +97,7 @@ void main() {
       expect(dropout.primaryCue, RunningLivePrimaryCue.trackingUncertain);
     });
 
-    test('still asks runner to step back when ankle dropout persists', () {
+    test('keeps sustained ankle dropout as tracking uncertainty', () {
       final service = RunningLiveCoachingService();
       final start = DateTime(2026, 4, 11, 12);
 
@@ -135,6 +141,22 @@ void main() {
             rightKnee: const Offset(535, 610),
           ),
           timestamp: start.add(Duration(milliseconds: 720 + 160 * index)),
+        );
+      }
+
+      expect(state.framingIssue, RunningLiveFramingIssue.trackingUncertain);
+      expect(state.primaryCue, RunningLivePrimaryCue.trackingUncertain);
+    });
+
+    test('asks runner to step back when missing ankles are crop-supported', () {
+      final service = RunningLiveCoachingService();
+      final start = DateTime(2026, 4, 11, 12);
+
+      late RunningLiveCoachingState state;
+      for (var index = 0; index < 4; index++) {
+        state = service.ingestObservation(
+          _cropSupportedMissingAnklesObservation(),
+          timestamp: start.add(Duration(milliseconds: 160 * index)),
         );
       }
 
@@ -364,6 +386,22 @@ void main() {
       expect(settledSwitch.primaryCue, RunningLivePrimaryCue.postureTooUpright);
     });
   });
+}
+
+RunningPoseObservation _cropSupportedMissingAnklesObservation() {
+  return _observation(
+    nose: const Offset(500, 120),
+    leftShoulder: const Offset(470, 205),
+    rightShoulder: const Offset(530, 205),
+    leftElbow: const Offset(448, 315),
+    rightElbow: const Offset(552, 315),
+    leftWrist: const Offset(430, 430),
+    rightWrist: const Offset(570, 430),
+    leftHip: const Offset(480, 610),
+    rightHip: const Offset(520, 610),
+    leftKnee: const Offset(466, 880),
+    rightKnee: const Offset(535, 895),
+  );
 }
 
 RunningPoseObservation _observation({

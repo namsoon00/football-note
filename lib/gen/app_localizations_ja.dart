@@ -8186,7 +8186,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachAnalyzeBody =>
-      '横から撮ったクリップを選ぶと、スコア、関節角度、接地の目安、最初に直す動きが一緒に表示されます。';
+      '横から撮ったクリップを1つ選びます。結果は、最初のコーチング重点を支える実際の動画フレームから表示します。';
 
   @override
   String get runningCoachTipsTitle => '録音方法';
@@ -8207,7 +8207,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachUploadGuideBody =>
-      'サンプルガイドで良いフォームと悪いフォームのループを比較し、コーチが読む関節、角度、接地点を確認します。';
+      '例の再生はオーバーレイを覚えるためだけに使います。アップロード結果は自分の動画フレームから判断します。';
 
   @override
   String get runningCoachUploadGuideStepSide =>
@@ -8230,7 +8230,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachSampleBody =>
-      '基準ループと悪いフォームのループを切り替え、姿勢、着地、膝の負荷、腕の角度、バウンス、フレーム品質をどう読むか確認します。';
+      'これは別々のランナーと場所で撮った例の動画です。オーバーレイを覚えるためだけに使い、管理された正誤比較として扱わないでください。';
 
   @override
   String get runningCoachSampleGuideAction => 'サンプルビデオガイドを開く';
@@ -8239,8 +8239,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachSampleAnalysisLoadingTitle => 'サンプル動画を分析中';
 
   @override
-  String get runningCoachSampleAnalysisLoadingBody =>
-      'MediaPipe が同梱の基準動画と悪いフォーム動画を読み取っています。';
+  String get runningCoachSampleAnalysisLoadingBody => 'アプリが同梱の例動画を読み取っています。';
 
   @override
   String get runningCoachSampleAnalysisFailedTitle => 'サンプル分析を使用できません';
@@ -8254,11 +8253,11 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get runningCoachSampleFrameGuideTitle => '動画で比較するもの';
+  String get runningCoachSampleFrameGuideTitle => 'オーバーレイが示すもの';
 
   @override
   String get runningCoachSampleFrameGuideBody =>
-      'ランナーと一緒にオーバーレイを読み取ります。姿勢、着地、腕のタイミング、フレーム カバレッジが、単なるテキスト リストとしてではなく、サンプルの上に表示されます。';
+      '例のランナー上に、姿勢、着地、腕のタイミング、フレームの見え方が表示されます。';
 
   @override
   String get runningCoachSampleCueLean => '腰-肩の中心線が腰の垂直線から前に傾く角度';
@@ -8273,24 +8272,24 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachSampleCueArms => '肘は曲げたままにし、足とは反対側に振ります';
 
   @override
-  String get runningCoachSampleReferenceTab => '基準サンプル';
+  String get runningCoachSampleReferenceTab => '例A';
 
   @override
-  String get runningCoachSampleMistakeTab => '悪いフォーム';
+  String get runningCoachSampleMistakeTab => '例B';
 
   @override
-  String get runningCoachSampleReferenceTitle => '基準フォームの読み取り';
+  String get runningCoachSampleReferenceTitle => '例Aの読み取り';
 
   @override
-  String get runningCoachSampleMistakeTitle => '悪いフォームの読み取り';
+  String get runningCoachSampleMistakeTitle => '例Bの読み取り';
 
   @override
   String get runningCoachSampleReferenceBody =>
-      '目標のループです。全身を少し前傾させ、腰の近くに着地し、膝で柔らかく受け、腕はコンパクトに保ちます。';
+      'このクリップでは、1人のランナーの前傾、着地、膝、腕、上下動をオーバーレイが追う様子を確認できます。';
 
   @override
   String get runningCoachSampleMistakeBody =>
-      '確認が必要なパターンです。胴体が立ち、足が腰より前に着き、接地膝が硬く、腕振りが高くなり、上下のバウンスが増えます。';
+      'このクリップは別のランナーと環境の例です。対になる比較ではなく、読み取り表示だけを確認してください。';
 
   @override
   String get runningCoachSampleReferencePosture =>
@@ -8306,11 +8305,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachSampleReferenceArms =>
-      '腕角度: コーチは各サンプルフレームで肩、肘、手首のランドマークを読みます。';
+      '腕角度: コーチは各サンプルフレームで肩、肘、手首の位置を読みます。';
 
   @override
   String get runningCoachSampleReferenceFrame =>
-      'フレーム品質: 使用可能フレームは固定のサンプルラベルではなく、見えているMediaPipe関節で決まります。';
+      'フレーム品質: 使用可能フレームは固定のサンプルラベルではなく、見えている体の点で決まります。';
 
   @override
   String get runningCoachSampleMistakePosture =>
@@ -8337,11 +8336,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachSampleAnalysisMethodBody =>
-      '安定した横向きフレームをサンプリングし、ポーズランドマークを追跡し、接地区間を推定して、各指標を信頼度付きで採点します。';
+      '安定した横向きフレームをサンプリングし、見えている体の点を確認し、接地区間を推定して、各指標を信頼度付きで採点します。';
 
   @override
   String get runningCoachSampleMethodPose =>
-      'ポーズランドマーク: 肩、腰、膝、足首、肘、手首、頭が見えている必要があります。';
+      '見えている体の点: 肩、腰、膝、足首、肘、手首、頭が見えている必要があります。';
 
   @override
   String get runningCoachSampleMethodAngles => '角度: 前傾、接地膝、肘の角度をフレームごとに測定します。';
@@ -8355,32 +8354,32 @@ class AppLocalizationsJa extends AppLocalizations {
       '信頼度: 追跡範囲が低い、または安定フレームが少ない場合は再確認を促します。';
 
   @override
-  String get runningCoachSampleRecordingGuideTitle => 'サンプルのように録音する';
+  String get runningCoachSampleRecordingGuideTitle => '撮影設定ガイド';
 
   @override
   String get runningCoachSampleProcessTitle => '実際の映像での分析手順';
 
   @override
   String get runningCoachSampleProcessBody =>
-      'オーバーレイはコーチが見る順序を示します。安定フレームを選び、見えている関節を固定し、姿勢線をつなぎ、角度を測り、接地と信頼度を比較します。';
+      'オーバーレイはコーチが見る順序を示します。安定フレームを選び、見えている体の点を固定し、体の線をつなぎ、角度を測り、接地の根拠を確認します。';
 
   @override
   String get runningCoachSamplePhaseFrame => 'フレーム抽出';
 
   @override
-  String get runningCoachSamplePhaseJoints => '関節を追跡';
+  String get runningCoachSamplePhaseJoints => '体の点を探す';
 
   @override
-  String get runningCoachSamplePhaseMuscles => '筋負荷を表示';
+  String get runningCoachSamplePhaseMuscles => '体の負荷を表示';
 
   @override
-  String get runningCoachSamplePhaseSkeleton => '姿勢線を接続';
+  String get runningCoachSamplePhaseSkeleton => '体の線を接続';
 
   @override
   String get runningCoachSamplePhaseAngles => '角度を測定';
 
   @override
-  String get runningCoachSamplePhaseContactScore => '接地信頼度を採点';
+  String get runningCoachSamplePhaseContactScore => '接地根拠を確認';
 
   @override
   String get runningCoachSamplePhaseDenseContact => '接地フレームを検証';
@@ -8469,16 +8468,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachSampleMetricDetailValueLabel => '測定値';
 
   @override
-  String get runningCoachSampleMetricDetailStatusLabel => '判定';
+  String get runningCoachSampleMetricDetailStatusLabel => '読み取り';
 
   @override
   String get runningCoachSampleMetricDetailKeyPositionTitle => '重要な位置';
 
   @override
-  String get runningCoachSampleMetricDetailReferenceTitle => '良い動き';
+  String get runningCoachSampleMetricDetailReferenceTitle => '例Aの動き';
 
   @override
-  String get runningCoachSampleMetricDetailReviewTitle => '確認する動き';
+  String get runningCoachSampleMetricDetailReviewTitle => '例Bの動き';
 
   @override
   String get runningCoachSampleMetricDetailHowReadTitle => 'オーバーレイの読み取り方';
@@ -8496,7 +8495,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachSamplePostureDetailReference =>
-      '良いサンプルは腰を折らず、肩が腰より少し前にあります。';
+      '例Aは腰を折らず、肩が腰より少し前にある様子を示します。';
 
   @override
   String get runningCoachSamplePostureDetailReview =>
@@ -8516,7 +8515,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachSampleArmsDetailReference =>
-      '良いクリップは肘をコンパクトに保ち、肋骨の近くで前後に振ります。';
+      '例Aは肘をコンパクトに保ち、肋骨の近くで前後に振る様子を示します。';
 
   @override
   String get runningCoachSampleArmsDetailReview =>
@@ -8524,7 +8523,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachSampleArmsDetailHowRead =>
-      'アプリは肩、肘、手首のランドマークを結び、肘が開きすぎるフレームを示します。';
+      'アプリは肩、肘、手首の位置を結び、肘が開きすぎるフレームを示します。';
 
   @override
   String get runningCoachSampleLandingDetailGoodRange =>
@@ -8536,7 +8535,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachSampleLandingDetailReference =>
-      '良いサンプルは足が腰の線に近く着き、接地が前進を支えます。';
+      '例Aは足が腰の線に近く着き、接地が前進につながる様子を示します。';
 
   @override
   String get runningCoachSampleLandingDetailReview =>
@@ -8556,7 +8555,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachSampleBounceDetailReference =>
-      '良いサンプルは上下動が小さく、エネルギーが前方に向きます。';
+      '例Aは上下動が小さく、エネルギーが前方に向く様子を示します。';
 
   @override
   String get runningCoachSampleBounceDetailReview =>
@@ -8571,7 +8570,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachDenseContactEvidenceBody =>
-      '足の接地距離と接地膝の値は、検証済み接地の周辺で再読み取りしたMediaPipeフレームだけを使います。';
+      '足の接地距離と接地膝の値は、検証済み接地の周辺で再読み取りしたフレームだけを使います。';
 
   @override
   String get runningCoachDenseContactCoarseSamplesLabel => '粗い読取';
@@ -8595,6 +8594,108 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachDenseContactUnavailable => '検証済み接地なし';
 
   @override
+  String get runningCoachEvidenceTitle => '自分の動画の根拠';
+
+  @override
+  String get runningCoachEvidenceBody =>
+      'このフレームは分析したクリップから取り出され、選択したコーチング重点を支えます。';
+
+  @override
+  String get runningCoachEvidenceInsufficientTitle => 'このクリップを撮り直してください';
+
+  @override
+  String get runningCoachEvidenceInsufficientBody =>
+      'この重点を支える安定フレームが足りないため、正確なスコアは表示しません。';
+
+  @override
+  String get runningCoachEvidenceVideoUnavailable =>
+      '保存済み動画ファイルを使用できません。分析フレームの姿勢オーバーレイは表示します。';
+
+  @override
+  String get runningCoachEvidencePoseFrameOnly =>
+      '分析した姿勢フレームを表示しています。この画面には動画ファイルが保存されていません。';
+
+  @override
+  String runningCoachEvidenceTimestamp(Object time) {
+    return '根拠フレーム $time';
+  }
+
+  @override
+  String get runningCoachEvidencePreviousFrame => '前の根拠フレーム';
+
+  @override
+  String get runningCoachEvidenceNextFrame => '次の根拠フレーム';
+
+  @override
+  String get runningCoachEvidencePlay => '根拠動画を再生';
+
+  @override
+  String get runningCoachEvidencePause => '根拠動画を一時停止';
+
+  @override
+  String runningCoachEvidenceFrameCount(int current, int total) {
+    return '根拠 $current/$total';
+  }
+
+  @override
+  String get runningCoachEvidenceWhatSeenLabel => '見えたこと';
+
+  @override
+  String runningCoachEvidenceWhatSeenBody(Object metric, Object time) {
+    return '自分のクリップ $time の $metric です。';
+  }
+
+  @override
+  String get runningCoachEvidenceWhyMattersLabel => 'なぜ大切か';
+
+  @override
+  String get runningCoachEvidenceTryLabel => '試すこと';
+
+  @override
+  String get runningCoachEvidenceRetakeLabel => '撮り直し設定';
+
+  @override
+  String get runningCoachEvidenceRetakeBody =>
+      '横から全身と両足が見えるように撮ります。数歩の間、スマートフォンを動かさないでください。';
+
+  @override
+  String get runningCoachEvidenceQualityLimitedBadge => '根拠不足';
+
+  @override
+  String get runningCoachEvidenceReasonLowConfidence =>
+      '体の点が揺れたりぼけたりして、確信を持って読めませんでした。';
+
+  @override
+  String get runningCoachEvidenceReasonLimitedFrames =>
+      'この指標を判断する安定フレームが少なすぎました。';
+
+  @override
+  String get runningCoachEvidenceReasonMissingPoseFrames =>
+      'このクリップには保存済みの分析姿勢フレームがありません。';
+
+  @override
+  String get runningCoachEvidenceReasonMissingContact =>
+      'この下半身指標を支える接地フレームが十分に安定していませんでした。';
+
+  @override
+  String get runningCoachEvidenceContactLabel => '接地の根拠';
+
+  @override
+  String get runningCoachEvidencePostureLabel => '姿勢フレーム';
+
+  @override
+  String get runningCoachEvidenceBounceLabel => '上下動フレーム';
+
+  @override
+  String get runningCoachEvidenceLandingLabel => '着地フレーム';
+
+  @override
+  String get runningCoachEvidenceKneeLabel => '膝フレーム';
+
+  @override
+  String get runningCoachEvidenceArmLabel => '腕フレーム';
+
+  @override
   String get runningCoachLiveCardTitle => 'ライブコーチ';
 
   @override
@@ -8603,6 +8704,13 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachLiveAction => 'ライブスプリントコーチ開始';
+
+  @override
+  String get runningCoachLiveSetupTitle => 'ライブ撮影の前に';
+
+  @override
+  String get runningCoachLiveSetupBody =>
+      '横から撮り、両足を含む全身が画面に入るようにして、三脚または補助者でスマートフォンを固定します。';
 
   @override
   String get runningCoachLiveGuideAction => '撮影ガイド';
@@ -8614,11 +8722,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachLiveGuideScreenTitle => 'ライブ撮影ガイド';
 
   @override
-  String get runningCoachLiveGuideHeroTitle => '解剖学的な関節とライブコーチングHUDを一緒に見る';
+  String get runningCoachLiveGuideHeroTitle => '体の輪郭とライブ案内を見る';
 
   @override
   String get runningCoachLiveGuideHeroBody =>
-      'ライブスプリントコーチはカメラ映像の上に体の輪郭を描き、傾き、膝、着地、リズム、腕をわかりやすく案内します。';
+      'ライブスプリントコーチはカメラ映像の上に体の輪郭を描き、設定、リズム、着地、腕をわかりやすく案内します。';
 
   @override
   String get runningCoachLiveGuideTipSideTitle => '側面図を表示する';
@@ -8652,7 +8760,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachLivePreparingTitle => 'カメラの準備中';
 
   @override
-  String get runningCoachLivePreparingBody => '背面カメラを開いて、ライブポーズ追跡を準備します。';
+  String get runningCoachLivePreparingBody => '背面カメラを開いて、ライブコーチングを準備します。';
 
   @override
   String get runningCoachLiveCameraIssueTitle => 'カメラチェックが必要です';
@@ -8669,7 +8777,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachLivePoseFailed =>
-      '端末上の姿勢モデルがカメラフレームを処理できなかったため、トラッキングが停止しました。もう一度お試しください。';
+      'ライブコーチがカメラフレームを読み取れませんでした。もう一度お試しください。';
 
   @override
   String get runningCoachLiveRetryAction => 'もう一度やり直してください';
@@ -8720,11 +8828,87 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachLiveStatusCoaching => 'ライブコーチングがアクティブです';
 
   @override
+  String get runningCoachLiveStatusReady => '準備完了';
+
+  @override
+  String get runningCoachLiveStatusStabilizing => '安定化中';
+
+  @override
+  String get runningCoachLiveStatusFixSetup => '設定を直す';
+
+  @override
+  String get runningCoachLiveRuntimeScoreReady => 'コーチング準備完了';
+
+  @override
+  String get runningCoachLiveRuntimeScoreStabilizing => 'コーチング一時停止';
+
+  @override
+  String get runningCoachLiveRuntimeScoreFixSetup => 'まず設定を直す';
+
+  @override
+  String get runningCoachLiveRuntimeCueWarmingUp => '同じリズムでもう数歩走ってください。';
+
+  @override
+  String get runningCoachLiveRuntimeCueSlowProcessing =>
+      '端末の処理が追いつくまで、安定して待ってください。';
+
+  @override
+  String get runningCoachLiveRuntimeCueFrameGaps => 'なめらかに動き、カメラを固定してください。';
+
+  @override
+  String get runningCoachLiveRuntimeCueUnstableTracking =>
+      '全身が見える安定した側面ビューにしてください。';
+
+  @override
+  String get runningCoachLiveRuntimeCueFixSetup =>
+      'ランナー全体が画面に入るようにカメラを合わせてください。';
+
+  @override
+  String get runningCoachLiveRuntimeDiagnosisWarmingUp =>
+      'コーチはフォームの案内前に短い安定区間を待っています。';
+
+  @override
+  String get runningCoachLiveRuntimeDiagnosisSlowProcessing =>
+      '最近のフレーム処理が遅く、ライブコーチングの信頼性が足りません。';
+
+  @override
+  String get runningCoachLiveRuntimeDiagnosisFrameGaps =>
+      '分析フレームに間隔があるため、フォーム案内を一時停止しています。';
+
+  @override
+  String get runningCoachLiveRuntimeDiagnosisUnstableTracking =>
+      '体の点がまだ安定していないため、公平なキューを出せません。';
+
+  @override
+  String get runningCoachLiveRuntimeDiagnosisFixSetup =>
+      'コーチングを始めるには、より明確な側面ビューが必要です。';
+
+  @override
+  String get runningCoachLiveRuntimeActionWarmingUp =>
+      '同じ速さで画面を通過し、もう数歩走ってください。';
+
+  @override
+  String get runningCoachLiveRuntimeActionSlowProcessing =>
+      '他のアプリを閉じ、スマートフォンを固定してください。';
+
+  @override
+  String get runningCoachLiveRuntimeActionFrameGaps =>
+      '三脚か補助者を使い、カメラを急に動かさないでください。';
+
+  @override
+  String get runningCoachLiveRuntimeActionUnstableTracking =>
+      '明るい場所で頭から足まで見えるようにしてください。';
+
+  @override
+  String get runningCoachLiveRuntimeActionFixSetup =>
+      '頭、腰、膝、両足が見える側面ビューにしてください。';
+
+  @override
   String get runningCoachLiveCueNoRunner => 'ランナーがはっきり見えません。画面に入り、少し止まってください。';
 
   @override
   String get runningCoachLiveCueTrackingUncertain =>
-      'そのまま安定してください。関節をもう一度探しています。';
+      'そのまま安定してください。体をもう一度読み取っています。';
 
   @override
   String get runningCoachLiveCueStepBack => '後ろに下がってください。頭と両足を画面に入れます。';

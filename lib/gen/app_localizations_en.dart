@@ -8402,7 +8402,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachAnalyzeBody =>
-      'Choose a side-view clip to see the score, measured joint angles, contact cues, and the first movement issue to fix.';
+      'Choose one side-view clip. The result starts with the video frame that supports the first coaching focus.';
 
   @override
   String get runningCoachTipsTitle => 'How to record';
@@ -8424,7 +8424,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachUploadGuideBody =>
-      'Open the sample guide to compare a good loop with a wrong-form loop and see exactly which joints, angles, and contact points the coach reads.';
+      'Open the example playback only to learn the overlay. Your uploaded result is judged from your own video frames.';
 
   @override
   String get runningCoachUploadGuideStepSide =>
@@ -8447,7 +8447,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSampleBody =>
-      'Switch between the reference and wrong-form loops to see how the same coach reads posture, landing, knee load, arm angle, bounce, and frame quality.';
+      'These are example clips from different runners and locations. Use them only to learn the overlay; they are not a controlled correct-vs-wrong comparison.';
 
   @override
   String get runningCoachSampleGuideAction => 'Open sample video guide';
@@ -8458,7 +8458,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSampleAnalysisLoadingBody =>
-      'MediaPipe is reading the bundled reference and wrong-form clips now.';
+      'The app is reading the bundled example clips now.';
 
   @override
   String get runningCoachSampleAnalysisFailedTitle =>
@@ -8473,12 +8473,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get runningCoachSampleFrameGuideTitle =>
-      'What to compare in the video';
+  String get runningCoachSampleFrameGuideTitle => 'What the overlay shows';
 
   @override
   String get runningCoachSampleFrameGuideBody =>
-      'Read the overlays with the runner: posture, landing, arm timing, and frame coverage are shown on top of the sample instead of only as a text list.';
+      'Read the overlays with the example runner: posture, landing, arm timing, and frame coverage appear on top of the clip.';
 
   @override
   String get runningCoachSampleCueLean =>
@@ -8497,24 +8496,24 @@ class AppLocalizationsEn extends AppLocalizations {
       'Elbows stay bent and swing opposite the legs';
 
   @override
-  String get runningCoachSampleReferenceTab => 'Reference sample';
+  String get runningCoachSampleReferenceTab => 'Example A';
 
   @override
-  String get runningCoachSampleMistakeTab => 'Wrong form sample';
+  String get runningCoachSampleMistakeTab => 'Example B';
 
   @override
-  String get runningCoachSampleReferenceTitle => 'Reference readouts';
+  String get runningCoachSampleReferenceTitle => 'Example A readouts';
 
   @override
-  String get runningCoachSampleMistakeTitle => 'Wrong-form readouts';
+  String get runningCoachSampleMistakeTitle => 'Example B readouts';
 
   @override
   String get runningCoachSampleReferenceBody =>
-      'This is the target loop: the runner keeps a slight whole-body lean, lands close to the hip, loads the knee softly, and keeps the arms compact.';
+      'This clip shows how the overlay follows one runner\'s lean, landing, knee bend, arms, and bounce.';
 
   @override
   String get runningCoachSampleMistakeBody =>
-      'This loop shows the review pattern: upright torso, foot landing ahead of the hip, a stiff contact knee, a high arm swing, and extra vertical bounce.';
+      'This separate clip shows another runner and setting. Review the readouts without treating it as a matched comparison.';
 
   @override
   String get runningCoachSampleReferencePosture =>
@@ -8530,11 +8529,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSampleReferenceArms =>
-      'Arm angle: the coach reads shoulder, elbow, and wrist landmarks on each sampled frame.';
+      'Arm angle: the coach reads shoulder, elbow, and wrist positions on each sampled frame.';
 
   @override
   String get runningCoachSampleReferenceFrame =>
-      'Frame quality: usable frames depend on visible MediaPipe joints, not on a preset sample label.';
+      'Frame quality: usable frames depend on visible body points, not on a preset sample label.';
 
   @override
   String get runningCoachSampleMistakePosture =>
@@ -8562,11 +8561,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSampleAnalysisMethodBody =>
-      'The coach samples stable side-view frames, tracks pose landmarks, estimates contact windows, and scores each metric with confidence.';
+      'The coach samples stable side-view frames, checks visible body points, estimates contact windows, and scores each metric with confidence.';
 
   @override
   String get runningCoachSampleMethodPose =>
-      'Pose landmarks: shoulders, hips, knees, ankles, elbows, wrists, and head must stay visible.';
+      'Visible body points: shoulders, hips, knees, ankles, elbows, wrists, and head must stay visible.';
 
   @override
   String get runningCoachSampleMethodAngles =>
@@ -8581,7 +8580,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Confidence: low coverage or too few stable frames makes the coach warn you to recheck.';
 
   @override
-  String get runningCoachSampleRecordingGuideTitle => 'Record like the sample';
+  String get runningCoachSampleRecordingGuideTitle => 'Recording setup guide';
 
   @override
   String get runningCoachSampleProcessTitle =>
@@ -8589,25 +8588,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSampleProcessBody =>
-      'The overlay now shows the same order the coach follows: sample a stable frame, lock visible joints, connect the pose, measure angles, then compare contact and confidence.';
+      'The overlay shows the same order the coach follows: sample a stable frame, lock visible body points, connect body lines, measure angles, then check contact evidence.';
 
   @override
   String get runningCoachSamplePhaseFrame => 'Sample frame';
 
   @override
-  String get runningCoachSamplePhaseJoints => 'Track joints';
+  String get runningCoachSamplePhaseJoints => 'Find body points';
 
   @override
-  String get runningCoachSamplePhaseMuscles => 'Map muscle load';
+  String get runningCoachSamplePhaseMuscles => 'Mark body load';
 
   @override
-  String get runningCoachSamplePhaseSkeleton => 'Connect pose lines';
+  String get runningCoachSamplePhaseSkeleton => 'Connect body lines';
 
   @override
   String get runningCoachSamplePhaseAngles => 'Measure angles';
 
   @override
-  String get runningCoachSamplePhaseContactScore => 'Score contact confidence';
+  String get runningCoachSamplePhaseContactScore => 'Check contact evidence';
 
   @override
   String get runningCoachSamplePhaseDenseContact => 'Validate contact frame';
@@ -8696,16 +8695,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachSampleMetricDetailValueLabel => 'Measured value';
 
   @override
-  String get runningCoachSampleMetricDetailStatusLabel => 'Judgment';
+  String get runningCoachSampleMetricDetailStatusLabel => 'Readout';
 
   @override
   String get runningCoachSampleMetricDetailKeyPositionTitle => 'Key position';
 
   @override
-  String get runningCoachSampleMetricDetailReferenceTitle => 'Reference motion';
+  String get runningCoachSampleMetricDetailReferenceTitle => 'Example A motion';
 
   @override
-  String get runningCoachSampleMetricDetailReviewTitle => 'Review trigger';
+  String get runningCoachSampleMetricDetailReviewTitle => 'Example B motion';
 
   @override
   String get runningCoachSampleMetricDetailHowReadTitle =>
@@ -8724,7 +8723,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSamplePostureDetailReference =>
-      'The reference clip keeps the shoulders slightly ahead of the hips without folding at the waist.';
+      'Example A shows the shoulders slightly ahead of the hips without folding at the waist.';
 
   @override
   String get runningCoachSamplePostureDetailReview =>
@@ -8744,7 +8743,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSampleArmsDetailReference =>
-      'A strong clip keeps the elbows compact and swings front-to-back close to the ribs.';
+      'Example A shows compact elbows swinging front-to-back close to the ribs.';
 
   @override
   String get runningCoachSampleArmsDetailReview =>
@@ -8752,7 +8751,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSampleArmsDetailHowRead =>
-      'The app connects shoulder, elbow, and wrist landmarks and flags the frame when the elbow opens too far.';
+      'The app connects shoulder, elbow, and wrist positions and flags the frame when the elbow opens too far.';
 
   @override
   String get runningCoachSampleLandingDetailGoodRange =>
@@ -8764,7 +8763,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSampleLandingDetailReference =>
-      'The reference clip lands close to the hip line, so contact supports forward movement.';
+      'Example A lands close to the hip line, so contact supports forward movement.';
 
   @override
   String get runningCoachSampleLandingDetailReview =>
@@ -8784,7 +8783,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSampleBounceDetailReference =>
-      'The reference clip keeps vertical motion compact, so energy stays directed forward.';
+      'Example A keeps vertical motion compact, so energy stays directed forward.';
 
   @override
   String get runningCoachSampleBounceDetailReview =>
@@ -8799,7 +8798,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachDenseContactEvidenceBody =>
-      'Foot strike and stance-knee values come only from re-read MediaPipe frames around validated contact.';
+      'Foot strike and stance-knee values come only from re-read frames around validated contact.';
 
   @override
   String get runningCoachDenseContactCoarseSamplesLabel => 'Coarse';
@@ -8823,6 +8822,108 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachDenseContactUnavailable => 'No validated contact';
 
   @override
+  String get runningCoachEvidenceTitle => 'Evidence from your video';
+
+  @override
+  String get runningCoachEvidenceBody =>
+      'This frame is from the analyzed clip and supports the selected coaching focus.';
+
+  @override
+  String get runningCoachEvidenceInsufficientTitle => 'Retake this clip';
+
+  @override
+  String get runningCoachEvidenceInsufficientBody =>
+      'There were not enough stable frames for this focus, so the app is not showing a precise score.';
+
+  @override
+  String get runningCoachEvidenceVideoUnavailable =>
+      'The saved video file is unavailable. The pose overlay still shows the analyzed frame.';
+
+  @override
+  String get runningCoachEvidencePoseFrameOnly =>
+      'Showing the analyzed pose frame. The video file was not saved with this view.';
+
+  @override
+  String runningCoachEvidenceTimestamp(Object time) {
+    return 'Evidence frame $time';
+  }
+
+  @override
+  String get runningCoachEvidencePreviousFrame => 'Previous evidence frame';
+
+  @override
+  String get runningCoachEvidenceNextFrame => 'Next evidence frame';
+
+  @override
+  String get runningCoachEvidencePlay => 'Play evidence video';
+
+  @override
+  String get runningCoachEvidencePause => 'Pause evidence video';
+
+  @override
+  String runningCoachEvidenceFrameCount(int current, int total) {
+    return 'Evidence $current/$total';
+  }
+
+  @override
+  String get runningCoachEvidenceWhatSeenLabel => 'What I saw';
+
+  @override
+  String runningCoachEvidenceWhatSeenBody(Object metric, Object time) {
+    return '$metric at $time in your clip.';
+  }
+
+  @override
+  String get runningCoachEvidenceWhyMattersLabel => 'Why it matters';
+
+  @override
+  String get runningCoachEvidenceTryLabel => 'Try this';
+
+  @override
+  String get runningCoachEvidenceRetakeLabel => 'Retake setup';
+
+  @override
+  String get runningCoachEvidenceRetakeBody =>
+      'Record from the side with the whole body and both feet visible. Keep the phone still for a few clean steps.';
+
+  @override
+  String get runningCoachEvidenceQualityLimitedBadge => 'Evidence limited';
+
+  @override
+  String get runningCoachEvidenceReasonLowConfidence =>
+      'The body points moved or blurred too much for a confident read.';
+
+  @override
+  String get runningCoachEvidenceReasonLimitedFrames =>
+      'There were too few stable frames for this metric.';
+
+  @override
+  String get runningCoachEvidenceReasonMissingPoseFrames =>
+      'No analyzed pose frames were saved for this clip.';
+
+  @override
+  String get runningCoachEvidenceReasonMissingContact =>
+      'The contact frame was not stable enough to support this lower-body metric.';
+
+  @override
+  String get runningCoachEvidenceContactLabel => 'Contact evidence';
+
+  @override
+  String get runningCoachEvidencePostureLabel => 'Posture frame';
+
+  @override
+  String get runningCoachEvidenceBounceLabel => 'Bounce frame';
+
+  @override
+  String get runningCoachEvidenceLandingLabel => 'Landing frame';
+
+  @override
+  String get runningCoachEvidenceKneeLabel => 'Knee frame';
+
+  @override
+  String get runningCoachEvidenceArmLabel => 'Arm frame';
+
+  @override
   String get runningCoachLiveCardTitle => 'Live coach';
 
   @override
@@ -8831,6 +8932,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachLiveAction => 'Start live sprint coach';
+
+  @override
+  String get runningCoachLiveSetupTitle => 'Before live capture';
+
+  @override
+  String get runningCoachLiveSetupBody =>
+      'Use a side view, keep the whole body including both feet on screen, and hold the phone steady on a tripod or with a helper.';
 
   @override
   String get runningCoachLiveGuideAction => 'Shooting guide';
@@ -8843,11 +8951,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachLiveGuideHeroTitle =>
-      'Track anatomical joints and the live coaching HUD';
+      'See your outline and live coaching cues';
 
   @override
   String get runningCoachLiveGuideHeroBody =>
-      'The live sprint coach draws your body outline over the camera feed, then shows simple cues for lean, knees, landing, rhythm, and arms.';
+      'The live sprint coach draws your body outline over the camera feed, then shows simple cues for setup, rhythm, landing, and arms.';
 
   @override
   String get runningCoachLiveGuideTipSideTitle => 'Show a side view';
@@ -8882,7 +8990,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachLivePreparingBody =>
-      'Opening the rear camera and getting live pose tracking ready.';
+      'Opening the rear camera and preparing live coaching.';
 
   @override
   String get runningCoachLiveCameraIssueTitle => 'Camera check needed';
@@ -8900,7 +9008,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachLivePoseFailed =>
-      'Pose tracking stopped because the on-device model could not process the camera frame. Try again.';
+      'The live coach could not read the camera frames. Try again.';
 
   @override
   String get runningCoachLiveRetryAction => 'Try again';
@@ -8953,12 +9061,90 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachLiveStatusCoaching => 'Live coaching active';
 
   @override
+  String get runningCoachLiveStatusReady => 'Ready';
+
+  @override
+  String get runningCoachLiveStatusStabilizing => 'Stabilizing';
+
+  @override
+  String get runningCoachLiveStatusFixSetup => 'Fix setup';
+
+  @override
+  String get runningCoachLiveRuntimeScoreReady => 'Ready for coaching';
+
+  @override
+  String get runningCoachLiveRuntimeScoreStabilizing => 'Coaching paused';
+
+  @override
+  String get runningCoachLiveRuntimeScoreFixSetup => 'Fix setup first';
+
+  @override
+  String get runningCoachLiveRuntimeCueWarmingUp =>
+      'Keep the same rhythm for a few steps.';
+
+  @override
+  String get runningCoachLiveRuntimeCueSlowProcessing =>
+      'Hold steady while the phone catches up.';
+
+  @override
+  String get runningCoachLiveRuntimeCueFrameGaps =>
+      'Keep moving smoothly and hold the camera still.';
+
+  @override
+  String get runningCoachLiveRuntimeCueUnstableTracking =>
+      'Use a steady side view with the whole body visible.';
+
+  @override
+  String get runningCoachLiveRuntimeCueFixSetup =>
+      'Set the camera so the whole runner stays in frame.';
+
+  @override
+  String get runningCoachLiveRuntimeDiagnosisWarmingUp =>
+      'The coach is waiting for a short stable window before giving form cues.';
+
+  @override
+  String get runningCoachLiveRuntimeDiagnosisSlowProcessing =>
+      'Recent frame processing is too slow for reliable live coaching.';
+
+  @override
+  String get runningCoachLiveRuntimeDiagnosisFrameGaps =>
+      'Analyzed frames are arriving with gaps, so form cues are paused.';
+
+  @override
+  String get runningCoachLiveRuntimeDiagnosisUnstableTracking =>
+      'The body points are not stable enough for a fair cue yet.';
+
+  @override
+  String get runningCoachLiveRuntimeDiagnosisFixSetup =>
+      'The camera setup needs a clearer side view before coaching starts.';
+
+  @override
+  String get runningCoachLiveRuntimeActionWarmingUp =>
+      'Run through the frame at the same speed for a few more steps.';
+
+  @override
+  String get runningCoachLiveRuntimeActionSlowProcessing =>
+      'Pause other apps and keep the phone still.';
+
+  @override
+  String get runningCoachLiveRuntimeActionFrameGaps =>
+      'Use a tripod or helper and avoid quick camera movement.';
+
+  @override
+  String get runningCoachLiveRuntimeActionUnstableTracking =>
+      'Step into brighter light and keep head-to-feet visible.';
+
+  @override
+  String get runningCoachLiveRuntimeActionFixSetup =>
+      'Show a side view with head, hips, knees, and both feet on screen.';
+
+  @override
   String get runningCoachLiveCueNoRunner =>
       'I cannot see the runner clearly. Step into the frame and hold steady.';
 
   @override
   String get runningCoachLiveCueTrackingUncertain =>
-      'Hold steady. I am finding your joints again.';
+      'Hold steady. I am reading your body again.';
 
   @override
   String get runningCoachLiveCueStepBack =>
