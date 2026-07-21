@@ -4,13 +4,19 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 
 import '../domain/entities/running_coach_session.dart';
+import '../domain/entities/running_live_coaching_state.dart';
 import '../domain/entities/running_video_analysis_result.dart';
+import '../domain/entities/sprint_realtime_coaching_state.dart';
 import '../domain/repositories/option_repository.dart';
+import 'live_sprint_session_report_service.dart';
+import 'running_live_session_metrics.dart';
 import 'sport_scoped_storage.dart';
+import 'sprint_live_session_metrics.dart';
 
 class RunningCoachHistoryService {
   static const storageKey = 'running_coach_sessions_v1';
   static const maxStoredSessions = 8;
+  static const _liveSprintReportService = LiveSprintSessionReportService();
 
   final OptionRepository _options;
   final String? _sportId;
@@ -78,10 +84,41 @@ class RunningCoachHistoryService {
         primaryScore: primary.score,
         primaryValue: primary.value,
         primaryConfidence: primary.quality.confidence,
+        metricSnapshots: report.rankedInsights
+            .map(RunningCoachSessionMetric.fromInsight)
+            .toList(growable: false),
         videoPath: archivedVideo?.path,
         videoName: archivedVideo?.name ?? sourceVideoName,
       ),
       ...existingSessions,
+    ];
+    final trimmed = next.take(maxStoredSessions).toList(growable: false);
+    final removed = next.skip(maxStoredSessions).toList(growable: false);
+    await _persist(trimmed);
+    await _deleteArchivedVideos(removed);
+    return List<RunningCoachSessionAnalysis>.unmodifiable(trimmed);
+  }
+
+  Future<List<RunningCoachSessionAnalysis>> saveLiveSprintSession({
+    required String sessionId,
+    required DateTime completedAt,
+    required RunningLiveSessionMetricsSnapshot runningSnapshot,
+    required SprintLiveSessionMetricsSnapshot sprintSnapshot,
+    required RunningLiveCoachingState runningState,
+    required SprintRealtimeCoachingState sprintState,
+  }) async {
+    final liveSession = _liveSprintReportService.buildSession(
+      sessionId: sessionId,
+      completedAt: completedAt,
+      runningSnapshot: runningSnapshot,
+      sprintSnapshot: sprintSnapshot,
+      runningState: runningState,
+      sprintState: sprintState,
+    );
+    final existingSessions = allSessions();
+    final next = <RunningCoachSessionAnalysis>[
+      liveSession,
+      ...existingSessions
     ];
     final trimmed = next.take(maxStoredSessions).toList(growable: false);
     final removed = next.skip(maxStoredSessions).toList(growable: false);

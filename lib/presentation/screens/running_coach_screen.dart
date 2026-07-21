@@ -19,6 +19,7 @@ import '../running_coach/running_pose_overlay.dart';
 import '../models/sample_runner_pose.dart';
 import 'running_coach_insight_copy.dart';
 import 'running_live_coach_screen.dart';
+import 'running_live_session_result_screen.dart';
 import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_feedback.dart';
 
@@ -152,7 +153,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
         const SizedBox(height: 12),
         _RunningMissionCard(
           mission: mission,
-          onStartLiveSprintCoach: _openLiveCoach,
+          onStartLiveSprintCoach: () => unawaited(_openLiveCoach()),
         ),
         const SizedBox(height: 12),
         _RunningCoachUploadGuideCard(
@@ -183,10 +184,25 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
 
   bool get _canAnalyze => !_isAnalyzing && _selectedVideo != null;
 
-  void _openLiveCoach() {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const RunningLiveCoachScreen()),
+  Future<void> _openLiveCoach() async {
+    final optionRepository = widget.optionRepository;
+    final sportId = optionRepository == null
+        ? null
+        : SportService(optionRepository).currentSportId();
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => RunningLiveCoachScreen(
+          optionRepository: optionRepository,
+          sportId: sportId,
+        ),
+      ),
     );
+    if (!mounted || _historyService == null) {
+      return;
+    }
+    setState(() {
+      _recentSessions = _historyService!.allSessions();
+    });
   }
 
   Future<void> _showSampleAnalysis() {
@@ -287,7 +303,9 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
   void _openAnalysisHistoryDetail(RunningCoachSessionAnalysis session) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => _AnalysisHistoryDetailScreen(session: session),
+        builder: (_) => session.liveSprintReport == null
+            ? _AnalysisHistoryDetailScreen(session: session)
+            : RunningLiveSessionResultScreen(session: session),
       ),
     );
   }

@@ -15815,6 +15815,115 @@ abstract class AppLocalizations {
   /// **'Sprint mechanics'**
   String get runningCoachLiveSprintMetricsTitle;
 
+  /// No description provided for @runningCoachLiveSessionReportScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Live sprint report'**
+  String get runningCoachLiveSessionReportScreenTitle;
+
+  /// No description provided for @runningCoachLiveSessionReportSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved to coaching history'**
+  String get runningCoachLiveSessionReportSaved;
+
+  /// No description provided for @runningCoachLiveSessionReportScoreUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Form score unavailable'**
+  String get runningCoachLiveSessionReportScoreUnavailable;
+
+  /// No description provided for @runningCoachLiveSessionReportFocusTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Next focus'**
+  String get runningCoachLiveSessionReportFocusTitle;
+
+  /// No description provided for @runningCoachLiveSessionReportFormTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Running form'**
+  String get runningCoachLiveSessionReportFormTitle;
+
+  /// No description provided for @runningCoachLiveSessionReportNoFormData.
+  ///
+  /// In en, this message translates to:
+  /// **'No stable running-form score was captured. Keep the full body in a steady side view for a longer run.'**
+  String get runningCoachLiveSessionReportNoFormData;
+
+  /// No description provided for @runningCoachLiveSessionReportNoSprintData.
+  ///
+  /// In en, this message translates to:
+  /// **'There was not enough stable signal to summarize sprint mechanics. Keep the same framing for a few more steps, then finish again.'**
+  String get runningCoachLiveSessionReportNoSprintData;
+
+  /// No description provided for @runningCoachLiveSessionReportQualityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysis quality'**
+  String get runningCoachLiveSessionReportQualityTitle;
+
+  /// No description provided for @runningCoachLiveSessionReportDurationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Session time'**
+  String get runningCoachLiveSessionReportDurationLabel;
+
+  /// No description provided for @runningCoachLiveSessionReportDurationValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes}m {seconds}s'**
+  String runningCoachLiveSessionReportDurationValue(int minutes, int seconds);
+
+  /// No description provided for @runningCoachLiveSessionReportAnalyzedFramesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyzed frames'**
+  String get runningCoachLiveSessionReportAnalyzedFramesLabel;
+
+  /// No description provided for @runningCoachLiveSessionReportGaitEventsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Gait events'**
+  String get runningCoachLiveSessionReportGaitEventsLabel;
+
+  /// No description provided for @runningCoachLiveSessionReportGaitEventsValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Touchdown {touchdown} · toe-off {toeOff}'**
+  String runningCoachLiveSessionReportGaitEventsValue(
+      int touchdown, int toeOff);
+
+  /// No description provided for @runningCoachLiveSessionReportStepEventsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Step events'**
+  String get runningCoachLiveSessionReportStepEventsLabel;
+
+  /// No description provided for @runningCoachLiveSessionReportCaptureLostLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Body loss'**
+  String get runningCoachLiveSessionReportCaptureLostLabel;
+
+  /// No description provided for @runningCoachLiveSessionReportCaptureLostValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}%'**
+  String runningCoachLiveSessionReportCaptureLostValue(int percent);
+
+  /// No description provided for @runningCoachLiveSessionReportFeedbackChangesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Feedback changes'**
+  String get runningCoachLiveSessionReportFeedbackChangesLabel;
+
+  /// No description provided for @runningCoachLiveSessionReportFeedbackChangesValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} changes'**
+  String runningCoachLiveSessionReportFeedbackChangesValue(int count);
+
   /// No description provided for @runningCoachSprintLiveCardTitle.
   ///
   /// In en, this message translates to:
@@ -16548,13 +16657,13 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachAnalysisHistoryTitle.
   ///
   /// In en, this message translates to:
-  /// **'Video analysis history'**
+  /// **'Coaching analysis history'**
   String get runningCoachAnalysisHistoryTitle;
 
   /// No description provided for @runningCoachAnalysisHistoryBody.
   ///
   /// In en, this message translates to:
-  /// **'Review each analyzed video with its key decision and correction guide.'**
+  /// **'Review each uploaded video and live sprint session with its key coaching focus and correction guide.'**
   String get runningCoachAnalysisHistoryBody;
 
   /// No description provided for @runningCoachAnalysisHistoryAction.
@@ -16566,19 +16675,19 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachAnalysisHistoryEmpty.
   ///
   /// In en, this message translates to:
-  /// **'No saved video analyses yet.'**
+  /// **'No saved coaching analyses yet.'**
   String get runningCoachAnalysisHistoryEmpty;
 
   /// No description provided for @runningCoachAnalysisHistoryDetailTitle.
   ///
   /// In en, this message translates to:
-  /// **'Analysis guide'**
+  /// **'Analysis review'**
   String get runningCoachAnalysisHistoryDetailTitle;
 
   /// No description provided for @runningCoachAnalysisHistoryPrimaryFocus.
   ///
   /// In en, this message translates to:
-  /// **'Key decision for this clip'**
+  /// **'Key coaching focus'**
   String get runningCoachAnalysisHistoryPrimaryFocus;
 
   /// No description provided for @runningCoachAnalysisResultScreenTitle.

@@ -501,17 +501,17 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Video analysis history'), findsOneWidget);
+    expect(find.text('Coaching analysis history'), findsOneWidget);
     expect(find.text('All 1'), findsOneWidget);
     expect(find.text('Video saved'), findsOneWidget);
 
     await tester.tap(find.text('All 1'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Video analysis history'), findsWidgets);
+    expect(find.text('Coaching analysis history'), findsWidgets);
     expect(
         find.text(
-            'Review each analyzed video with its key decision and correction guide.'),
+            'Review each uploaded video and live sprint session with its key coaching focus and correction guide.'),
         findsWidgets);
     expect(find.text('Posture'), findsWidgets);
     expect(find.byType(CustomPaint), findsWidgets);
@@ -520,7 +520,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
 
-    expect(find.text('Analysis guide'), findsOneWidget);
+    expect(find.text('Analysis review'), findsOneWidget);
     expect(find.text('Analyzed video'), findsOneWidget);
     expect(find.text('side-view-test.mp4'), findsOneWidget);
     expect(find.text('Correction point in pictures'), findsOneWidget);

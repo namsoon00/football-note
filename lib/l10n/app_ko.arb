@@ -5052,6 +5052,58 @@
     }
   },
   "runningCoachLiveSprintMetricsTitle": "스프린트 메커닉",
+  "runningCoachLiveSessionReportScreenTitle": "실시간 스프린트 리포트",
+  "runningCoachLiveSessionReportSaved": "코칭 기록에 저장됨",
+  "runningCoachLiveSessionReportScoreUnavailable": "자세 점수 없음",
+  "runningCoachLiveSessionReportFocusTitle": "다음 집중 포인트",
+  "runningCoachLiveSessionReportFormTitle": "러닝 자세",
+  "runningCoachLiveSessionReportNoFormData": "안정적인 러닝 자세 점수를 만들지 못했어요. 전신이 보이는 측면 구도를 더 오래 유지해 주세요.",
+  "runningCoachLiveSessionReportNoSprintData": "스프린트 메커닉을 정리할 만큼 안정적인 신호가 부족해요. 같은 구도에서 몇 걸음 더 달린 뒤 다시 마쳐 주세요.",
+  "runningCoachLiveSessionReportQualityTitle": "분석 품질",
+  "runningCoachLiveSessionReportDurationLabel": "세션 시간",
+  "runningCoachLiveSessionReportDurationValue": "{minutes}분 {seconds}초",
+  "@runningCoachLiveSessionReportDurationValue": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      },
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachLiveSessionReportAnalyzedFramesLabel": "분석 프레임",
+  "runningCoachLiveSessionReportGaitEventsLabel": "보행 이벤트",
+  "runningCoachLiveSessionReportGaitEventsValue": "착지 {touchdown} · 발 떼기 {toeOff}",
+  "@runningCoachLiveSessionReportGaitEventsValue": {
+    "placeholders": {
+      "touchdown": {
+        "type": "int"
+      },
+      "toeOff": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachLiveSessionReportStepEventsLabel": "스텝 이벤트",
+  "runningCoachLiveSessionReportCaptureLostLabel": "전신 이탈",
+  "runningCoachLiveSessionReportCaptureLostValue": "{percent}%",
+  "@runningCoachLiveSessionReportCaptureLostValue": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachLiveSessionReportFeedbackChangesLabel": "피드백 전환",
+  "runningCoachLiveSessionReportFeedbackChangesValue": "{count}회",
+  "@runningCoachLiveSessionReportFeedbackChangesValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "runningCoachSprintLiveCardTitle": "스프린트 실시간 코칭",
   "runningCoachSprintLiveCardBody": "측면 카메라로 전신 포착 상태를 먼저 확인하고, 관절 신뢰도가 안정된 구간에서만 전경사·무릎·리듬 cue를 알려줘요.",
   "runningCoachSprintLiveAction": "스프린트 코칭 시작",
@@ -5461,8 +5513,8 @@
   "runningCoachInsufficientContactEvidence": "검증된 발 접지 프레임이 부족해요. 착지 순간까지 양발이 보이는 더 선명한 측면 영상으로 다시 시도해 주세요.",
   "runningCoachAnalysisFailedGeneric": "달리기 분석에 실패했어요. 측면이 더 잘 보이는 영상으로 다시 시도해 주세요.",
   "runningCoachResultsTitle": "코칭 결과",
-  "runningCoachAnalysisHistoryTitle": "영상 분석 히스토리",
-  "runningCoachAnalysisHistoryBody": "분석한 영상의 핵심 판정과 교정 가이드를 다시 볼 수 있어요.",
+  "runningCoachAnalysisHistoryTitle": "코칭 분석 기록",
+  "runningCoachAnalysisHistoryBody": "업로드 영상과 실시간 스프린트 세션의 핵심 코칭 포인트와 교정 가이드를 다시 볼 수 있어요.",
   "runningCoachAnalysisHistoryAction": "전체 {count}개",
   "@runningCoachAnalysisHistoryAction": {
     "placeholders": {
@@ -5471,9 +5523,9 @@
       }
     }
   },
-  "runningCoachAnalysisHistoryEmpty": "아직 저장된 영상 분석 기록이 없어요.",
-  "runningCoachAnalysisHistoryDetailTitle": "분석 가이드",
-  "runningCoachAnalysisHistoryPrimaryFocus": "이 기록의 핵심 판정",
+  "runningCoachAnalysisHistoryEmpty": "아직 저장된 코칭 분석 기록이 없어요.",
+  "runningCoachAnalysisHistoryDetailTitle": "분석 리포트",
+  "runningCoachAnalysisHistoryPrimaryFocus": "핵심 코칭 포인트",
   "runningCoachAnalysisResultScreenTitle": "달리기 분석 결과",
   "runningCoachHistoryVideoSaved": "영상 저장됨",
   "runningCoachArchivedVideoTitle": "분석 영상",

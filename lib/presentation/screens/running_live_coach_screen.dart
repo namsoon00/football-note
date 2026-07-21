@@ -10,12 +10,15 @@ import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
 import '../../application/live_sprint_coaching_service.dart';
+import '../../application/live_sprint_session_report_service.dart';
 import '../../application/mediapipe_pose_landmarker_service.dart';
+import '../../application/running_coach_history_service.dart';
 import '../../application/running_live_calibration_capture_contract.dart';
 import '../../application/running_live_session_metrics.dart';
 import '../../application/sprint_live_session_metrics.dart';
 import '../../domain/entities/running_live_coaching_state.dart';
 import '../../domain/entities/running_video_analysis_result.dart';
+import '../../domain/repositories/option_repository.dart';
 import '../../domain/entities/sprint_realtime_coaching_state.dart';
 import '../../gen/app_localizations.dart';
 import '../../realtime_analysis/running_coaching/running_live_timing_config.dart';
@@ -25,9 +28,17 @@ import '../models/camera_viewport_transform.dart';
 import '../painters/running_pose_anatomical_painter.dart';
 import 'running_coach_insight_copy.dart';
 import 'running_live_coach_guide_screen.dart';
+import 'running_live_session_result_screen.dart';
 
 class RunningLiveCoachScreen extends StatefulWidget {
-  const RunningLiveCoachScreen({super.key});
+  final OptionRepository? optionRepository;
+  final String? sportId;
+
+  const RunningLiveCoachScreen({
+    super.key,
+    this.optionRepository,
+    this.sportId,
+  });
 
   @override
   State<RunningLiveCoachScreen> createState() => _RunningLiveCoachScreenState();
@@ -65,6 +76,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
   final FlutterTts _tts = FlutterTts();
   final Stopwatch _frameClock = Stopwatch();
   late final Ticker _poseOverlayTicker;
+  RunningCoachHistoryService? _historyService;
 
   final Map<DeviceOrientation, int> _orientations = const {
     DeviceOrientation.portraitUp: 0,
@@ -86,6 +98,8 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
   bool _isSpeechEnabled = true;
   bool _isHudExpanded = false;
   bool _isDisposed = false;
+  bool _isFinalizingSession = false;
+  bool _allowRoutePop = false;
   bool _isProcessingFrame = false;
   String? _configuredTtsLanguage;
   DateTime _frameClockEpoch = DateTime.now();
@@ -112,6 +126,13 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
   @override
   void initState() {
     super.initState();
+    final optionRepository = widget.optionRepository;
+    if (optionRepository != null) {
+      _historyService = RunningCoachHistoryService(
+        optionRepository,
+        sportId: widget.sportId,
+      );
+    }
     WidgetsBinding.instance.addObserver(this);
     _poseOverlayTicker = createTicker(_handlePoseOverlayTick)..start();
     _resetFrameClock();
@@ -174,11 +195,20 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
-      child: Scaffold(
-        backgroundColor: Colors.black,
-        body: _buildBody(context, l10n),
+    return PopScope(
+      canPop: _allowRoutePop,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop || _isFinalizingSession) {
+          return;
+        }
+        unawaited(_finishSessionOrBack());
+      },
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle.light,
+        child: Scaffold(
+          backgroundColor: Colors.black,
+          body: _buildBody(context, l10n),
+        ),
       ),
     );
   }
@@ -321,7 +351,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
                             canSwitchCamera: _cameras.length > 1,
                             isInitializing: _isInitializing,
                             isSpeechEnabled: _isSpeechEnabled,
-                            onBack: () => Navigator.of(context).maybePop(),
+                            onBack: () => unawaited(_finishSessionOrBack()),
                             onGuide: _openGuide,
                             onToggleSpeech: _toggleSpeech,
                             onSwitchCamera: _switchCamera,
@@ -426,6 +456,8 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
 
     final sessionId = ++_cameraSessionId;
     _endSessionLogging(reason: 'reinitialize');
+    _isFinalizingSession = false;
+    _allowRoutePop = false;
     _isProcessingFrame = false;
     _resetFrameClock();
 
@@ -575,6 +607,91 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     );
   }
 
+  bool get _hasReportableSession {
+    return _latestCoachingState.coachingReport != null ||
+        _latestSprintCoachingState.features.hasEnoughSignal ||
+        _sessionMetricsCollector.snapshot().eventCount >= 2;
+  }
+
+  Future<void> _finishSessionOrBack() async {
+    if (_isFinalizingSession) {
+      return;
+    }
+    if (!_hasReportableSession) {
+      _endSessionLogging(reason: 'user_exit_without_report');
+      if (mounted) {
+        setState(() {
+          _allowRoutePop = true;
+        });
+        await Navigator.of(context).maybePop();
+      }
+      return;
+    }
+
+    setState(() {
+      _isFinalizingSession = true;
+    });
+    final completedAt = DateTime.now();
+    final sessionId =
+        _sessionId ?? 'live-sprint-${completedAt.microsecondsSinceEpoch}';
+    final runningSnapshot = _sessionMetricsCollector.snapshot(now: completedAt);
+    final sprintSnapshot = _sprintSessionMetricsCollector.snapshot(
+      now: completedAt,
+    );
+    final runningState = _latestCoachingState;
+    final sprintState = _latestSprintCoachingState;
+    final fallbackSession = const LiveSprintSessionReportService().buildSession(
+      sessionId: sessionId,
+      completedAt: completedAt,
+      runningSnapshot: runningSnapshot,
+      sprintSnapshot: sprintSnapshot,
+      runningState: runningState,
+      sprintState: sprintState,
+    );
+    _endSessionLogging(reason: 'completed');
+
+    var session = fallbackSession;
+    var isPersisted = false;
+    final historyService = _historyService;
+    if (historyService != null) {
+      try {
+        final savedSessions = await historyService.saveLiveSprintSession(
+          sessionId: sessionId,
+          completedAt: completedAt,
+          runningSnapshot: runningSnapshot,
+          sprintSnapshot: sprintSnapshot,
+          runningState: runningState,
+          sprintState: sprintState,
+        );
+        if (savedSessions.isNotEmpty) {
+          session = savedSessions.first;
+          isPersisted = true;
+        }
+      } catch (error, stackTrace) {
+        if (kDebugMode) {
+          debugPrint('Saving live sprint session report failed: $error');
+          debugPrintStack(stackTrace: stackTrace);
+        }
+      }
+    }
+
+    if (!mounted || _isDisposed) {
+      return;
+    }
+    await _tts.stop();
+    if (!mounted || _isDisposed) {
+      return;
+    }
+    await Navigator.of(context).pushReplacement<void, void>(
+      MaterialPageRoute<void>(
+        builder: (_) => RunningLiveSessionResultScreen(
+          session: session,
+          isPersisted: isPersisted,
+        ),
+      ),
+    );
+  }
+
   void _endSessionLogging({required String reason}) {
     if (_sessionId == null) {
       return;
@@ -697,7 +814,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
   }
 
   Future<void> _processCameraImage(CameraImage image) async {
-    if (_isDisposed || _liveCoachErrorCode != null) {
+    if (_isDisposed || _isFinalizingSession || _liveCoachErrorCode != null) {
       return;
     }
     final receivedAt = DateTime.now();
@@ -751,7 +868,10 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
         rotationDegrees: frameInput.rotationDegrees,
         timestamp: now,
       );
-      if (_isDisposed || !mounted || sessionId != _cameraSessionId) {
+      if (_isDisposed ||
+          _isFinalizingSession ||
+          !mounted ||
+          sessionId != _cameraSessionId) {
         stopwatch.stop();
         return;
       }
@@ -784,7 +904,10 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
           SprintSkippedFrameReason.throttled,
         );
       }
-      if (_isDisposed || !mounted || sessionId != _cameraSessionId) {
+      if (_isDisposed ||
+          _isFinalizingSession ||
+          !mounted ||
+          sessionId != _cameraSessionId) {
         return;
       }
       _visualPoseTracker.ingestGaitEvents(state.gaitAnalysis.recentEvents);

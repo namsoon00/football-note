@@ -8806,6 +8806,71 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachLiveSprintMetricsTitle => 'スプリント動作';
 
   @override
+  String get runningCoachLiveSessionReportScreenTitle => 'ライブスプリントレポート';
+
+  @override
+  String get runningCoachLiveSessionReportSaved => 'コーチング履歴に保存済み';
+
+  @override
+  String get runningCoachLiveSessionReportScoreUnavailable => 'フォームスコアなし';
+
+  @override
+  String get runningCoachLiveSessionReportFocusTitle => '次の重点';
+
+  @override
+  String get runningCoachLiveSessionReportFormTitle => 'ランニングフォーム';
+
+  @override
+  String get runningCoachLiveSessionReportNoFormData =>
+      '安定したランニングフォームのスコアを取得できませんでした。全身が入る安定した側面ビューで、もう少し長く走ってください。';
+
+  @override
+  String get runningCoachLiveSessionReportNoSprintData =>
+      'スプリント動作をまとめるには安定した信号が不足しています。同じフレーミングであと数歩走ってから、もう一度終了してください。';
+
+  @override
+  String get runningCoachLiveSessionReportQualityTitle => '分析品質';
+
+  @override
+  String get runningCoachLiveSessionReportDurationLabel => 'セッション時間';
+
+  @override
+  String runningCoachLiveSessionReportDurationValue(int minutes, int seconds) {
+    return '$minutes分 $seconds秒';
+  }
+
+  @override
+  String get runningCoachLiveSessionReportAnalyzedFramesLabel => '分析フレーム';
+
+  @override
+  String get runningCoachLiveSessionReportGaitEventsLabel => '歩行イベント';
+
+  @override
+  String runningCoachLiveSessionReportGaitEventsValue(
+      int touchdown, int toeOff) {
+    return '接地 $touchdown · トーオフ $toeOff';
+  }
+
+  @override
+  String get runningCoachLiveSessionReportStepEventsLabel => 'ステップイベント';
+
+  @override
+  String get runningCoachLiveSessionReportCaptureLostLabel => '全身ロスト';
+
+  @override
+  String runningCoachLiveSessionReportCaptureLostValue(int percent) {
+    return '$percent%';
+  }
+
+  @override
+  String get runningCoachLiveSessionReportFeedbackChangesLabel => 'フィードバック切替';
+
+  @override
+  String runningCoachLiveSessionReportFeedbackChangesValue(int count) {
+    return '$count回';
+  }
+
+  @override
   String get runningCoachSprintLiveCardTitle => 'ライブスプリントコーチング';
 
   @override
@@ -9261,10 +9326,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachResultsTitle => 'コーチング実績';
 
   @override
-  String get runningCoachAnalysisHistoryTitle => '動画分析履歴';
+  String get runningCoachAnalysisHistoryTitle => 'コーチング分析履歴';
 
   @override
-  String get runningCoachAnalysisHistoryBody => '分析済み動画の主な判定と修正ガイドをもう一度確認できます。';
+  String get runningCoachAnalysisHistoryBody =>
+      'アップロード動画とライブスプリントセッションの主要なコーチングポイントと修正ガイドを確認できます。';
 
   @override
   String runningCoachAnalysisHistoryAction(int count) {
@@ -9272,13 +9338,13 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get runningCoachAnalysisHistoryEmpty => '保存された動画分析はまだありません。';
+  String get runningCoachAnalysisHistoryEmpty => '保存されたコーチング分析はまだありません。';
 
   @override
-  String get runningCoachAnalysisHistoryDetailTitle => '分析ガイド';
+  String get runningCoachAnalysisHistoryDetailTitle => '分析レポート';
 
   @override
-  String get runningCoachAnalysisHistoryPrimaryFocus => 'この動画の主な判定';
+  String get runningCoachAnalysisHistoryPrimaryFocus => '主要なコーチングポイント';
 
   @override
   String get runningCoachAnalysisResultScreenTitle => 'ランニング分析結果';

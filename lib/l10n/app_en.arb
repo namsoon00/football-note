@@ -5052,6 +5052,58 @@
     }
   },
   "runningCoachLiveSprintMetricsTitle": "Sprint mechanics",
+  "runningCoachLiveSessionReportScreenTitle": "Live sprint report",
+  "runningCoachLiveSessionReportSaved": "Saved to coaching history",
+  "runningCoachLiveSessionReportScoreUnavailable": "Form score unavailable",
+  "runningCoachLiveSessionReportFocusTitle": "Next focus",
+  "runningCoachLiveSessionReportFormTitle": "Running form",
+  "runningCoachLiveSessionReportNoFormData": "No stable running-form score was captured. Keep the full body in a steady side view for a longer run.",
+  "runningCoachLiveSessionReportNoSprintData": "There was not enough stable signal to summarize sprint mechanics. Keep the same framing for a few more steps, then finish again.",
+  "runningCoachLiveSessionReportQualityTitle": "Analysis quality",
+  "runningCoachLiveSessionReportDurationLabel": "Session time",
+  "runningCoachLiveSessionReportDurationValue": "{minutes}m {seconds}s",
+  "@runningCoachLiveSessionReportDurationValue": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      },
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachLiveSessionReportAnalyzedFramesLabel": "Analyzed frames",
+  "runningCoachLiveSessionReportGaitEventsLabel": "Gait events",
+  "runningCoachLiveSessionReportGaitEventsValue": "Touchdown {touchdown} · toe-off {toeOff}",
+  "@runningCoachLiveSessionReportGaitEventsValue": {
+    "placeholders": {
+      "touchdown": {
+        "type": "int"
+      },
+      "toeOff": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachLiveSessionReportStepEventsLabel": "Step events",
+  "runningCoachLiveSessionReportCaptureLostLabel": "Body loss",
+  "runningCoachLiveSessionReportCaptureLostValue": "{percent}%",
+  "@runningCoachLiveSessionReportCaptureLostValue": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachLiveSessionReportFeedbackChangesLabel": "Feedback changes",
+  "runningCoachLiveSessionReportFeedbackChangesValue": "{count} changes",
+  "@runningCoachLiveSessionReportFeedbackChangesValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "runningCoachSprintLiveCardTitle": "Live sprint coaching",
   "runningCoachSprintLiveCardBody": "Use the side-view camera to check full-body capture first, then show trunk, knee, and rhythm cues only when joint confidence is stable.",
   "runningCoachSprintLiveAction": "Start sprint coaching",
@@ -5461,8 +5513,8 @@
   "runningCoachInsufficientContactEvidence": "The clip did not include enough verified foot-contact frames. Try a clearer side view with both feet visible through landing.",
   "runningCoachAnalysisFailedGeneric": "Running analysis failed. Try another clip with a clearer side view.",
   "runningCoachResultsTitle": "Coaching results",
-  "runningCoachAnalysisHistoryTitle": "Video analysis history",
-  "runningCoachAnalysisHistoryBody": "Review each analyzed video with its key decision and correction guide.",
+  "runningCoachAnalysisHistoryTitle": "Coaching analysis history",
+  "runningCoachAnalysisHistoryBody": "Review each uploaded video and live sprint session with its key coaching focus and correction guide.",
   "runningCoachAnalysisHistoryAction": "All {count}",
   "@runningCoachAnalysisHistoryAction": {
     "placeholders": {
@@ -5471,9 +5523,9 @@
       }
     }
   },
-  "runningCoachAnalysisHistoryEmpty": "No saved video analyses yet.",
-  "runningCoachAnalysisHistoryDetailTitle": "Analysis guide",
-  "runningCoachAnalysisHistoryPrimaryFocus": "Key decision for this clip",
+  "runningCoachAnalysisHistoryEmpty": "No saved coaching analyses yet.",
+  "runningCoachAnalysisHistoryDetailTitle": "Analysis review",
+  "runningCoachAnalysisHistoryPrimaryFocus": "Key coaching focus",
   "runningCoachAnalysisResultScreenTitle": "Running analysis result",
   "runningCoachHistoryVideoSaved": "Video saved",
   "runningCoachArchivedVideoTitle": "Analyzed video",

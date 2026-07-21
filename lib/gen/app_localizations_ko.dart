@@ -8815,6 +8815,71 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachLiveSprintMetricsTitle => '스프린트 메커닉';
 
   @override
+  String get runningCoachLiveSessionReportScreenTitle => '실시간 스프린트 리포트';
+
+  @override
+  String get runningCoachLiveSessionReportSaved => '코칭 기록에 저장됨';
+
+  @override
+  String get runningCoachLiveSessionReportScoreUnavailable => '자세 점수 없음';
+
+  @override
+  String get runningCoachLiveSessionReportFocusTitle => '다음 집중 포인트';
+
+  @override
+  String get runningCoachLiveSessionReportFormTitle => '러닝 자세';
+
+  @override
+  String get runningCoachLiveSessionReportNoFormData =>
+      '안정적인 러닝 자세 점수를 만들지 못했어요. 전신이 보이는 측면 구도를 더 오래 유지해 주세요.';
+
+  @override
+  String get runningCoachLiveSessionReportNoSprintData =>
+      '스프린트 메커닉을 정리할 만큼 안정적인 신호가 부족해요. 같은 구도에서 몇 걸음 더 달린 뒤 다시 마쳐 주세요.';
+
+  @override
+  String get runningCoachLiveSessionReportQualityTitle => '분석 품질';
+
+  @override
+  String get runningCoachLiveSessionReportDurationLabel => '세션 시간';
+
+  @override
+  String runningCoachLiveSessionReportDurationValue(int minutes, int seconds) {
+    return '$minutes분 $seconds초';
+  }
+
+  @override
+  String get runningCoachLiveSessionReportAnalyzedFramesLabel => '분석 프레임';
+
+  @override
+  String get runningCoachLiveSessionReportGaitEventsLabel => '보행 이벤트';
+
+  @override
+  String runningCoachLiveSessionReportGaitEventsValue(
+      int touchdown, int toeOff) {
+    return '착지 $touchdown · 발 떼기 $toeOff';
+  }
+
+  @override
+  String get runningCoachLiveSessionReportStepEventsLabel => '스텝 이벤트';
+
+  @override
+  String get runningCoachLiveSessionReportCaptureLostLabel => '전신 이탈';
+
+  @override
+  String runningCoachLiveSessionReportCaptureLostValue(int percent) {
+    return '$percent%';
+  }
+
+  @override
+  String get runningCoachLiveSessionReportFeedbackChangesLabel => '피드백 전환';
+
+  @override
+  String runningCoachLiveSessionReportFeedbackChangesValue(int count) {
+    return '$count회';
+  }
+
+  @override
   String get runningCoachSprintLiveCardTitle => '스프린트 실시간 코칭';
 
   @override
@@ -9275,11 +9340,11 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachResultsTitle => '코칭 결과';
 
   @override
-  String get runningCoachAnalysisHistoryTitle => '영상 분석 히스토리';
+  String get runningCoachAnalysisHistoryTitle => '코칭 분석 기록';
 
   @override
   String get runningCoachAnalysisHistoryBody =>
-      '분석한 영상의 핵심 판정과 교정 가이드를 다시 볼 수 있어요.';
+      '업로드 영상과 실시간 스프린트 세션의 핵심 코칭 포인트와 교정 가이드를 다시 볼 수 있어요.';
 
   @override
   String runningCoachAnalysisHistoryAction(int count) {
@@ -9287,13 +9352,13 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get runningCoachAnalysisHistoryEmpty => '아직 저장된 영상 분석 기록이 없어요.';
+  String get runningCoachAnalysisHistoryEmpty => '아직 저장된 코칭 분석 기록이 없어요.';
 
   @override
-  String get runningCoachAnalysisHistoryDetailTitle => '분석 가이드';
+  String get runningCoachAnalysisHistoryDetailTitle => '분석 리포트';
 
   @override
-  String get runningCoachAnalysisHistoryPrimaryFocus => '이 기록의 핵심 판정';
+  String get runningCoachAnalysisHistoryPrimaryFocus => '핵심 코칭 포인트';
 
   @override
   String get runningCoachAnalysisResultScreenTitle => '달리기 분석 결과';
