@@ -5233,6 +5233,86 @@
       }
     }
   },
+  "runningCoachCalibrationReadinessTitle": "キャリブレーション反復性",
+  "runningCoachCalibrationReadinessStatusCurrentNotReady": "現在のキャプチャは未準備",
+  "runningCoachCalibrationReadinessStatusNeedsMore": "同じプロファイルのセッションが必要",
+  "runningCoachCalibrationReadinessStatusVariationReview": "ばらつき確認が必要",
+  "runningCoachCalibrationReadinessStatusReady": "しきい値キャリブレーション準備完了",
+  "runningCoachCalibrationReadinessBodyCurrentNotReady": "この走行はまだフィールド検証準備ができていません。反復性に使う前にフィールド確認を直してください。",
+  "runningCoachCalibrationReadinessBodyNeedsMore": "しきい値キャリブレーションの前に、同じプロファイルでフィールド検証準備済みのセッションを3件以上保存してください。",
+  "runningCoachCalibrationReadinessBodyVariationReview": "同じプロファイルのキャプチャのばらつきが、有料品質のしきい値キャリブレーションには大きすぎます。調整前に確認項目を見直してください。",
+  "runningCoachCalibrationReadinessBodyReady": "このプロファイルには、しきい値キャリブレーションに使える反復可能なフィールド根拠が十分あります。",
+  "runningCoachCalibrationReadinessPrivacyNote": "保存済みライブスプリントレポートのカウンターと関節根拠サマリーだけを使います。カメラフレーム、アップロード、元動画は使わず、プロファイルとしきい値は変更しません。",
+  "runningCoachCalibrationReadinessScoreValue": "反復性 {score}%",
+  "@runningCoachCalibrationReadinessScoreValue": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachCalibrationReadinessReadySessionsValue": "準備 {ready}/{required}",
+  "@runningCoachCalibrationReadinessReadySessionsValue": {
+    "placeholders": {
+      "ready": {
+        "type": "int"
+      },
+      "required": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachCalibrationReadinessSameProfileSessionsValue": "同じプロファイル {count}",
+  "@runningCoachCalibrationReadinessSameProfileSessionsValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachCalibrationReadinessChecksTitle": "簡易チェック",
+  "runningCoachCalibrationReadinessCheckCurrentFieldValidation": "現在のフィールド検証",
+  "runningCoachCalibrationReadinessCheckSameProfileReadySessions": "同じプロファイルの準備済みセッション",
+  "runningCoachCalibrationReadinessCheckAverageFieldQuality": "平均フィールド品質",
+  "runningCoachCalibrationReadinessCheckTimingVariation": "タイミング信頼度のばらつき",
+  "runningCoachCalibrationReadinessCheckSideViewVariation": "側面ビュー信頼度のばらつき",
+  "runningCoachCalibrationReadinessCheckTrackingVariation": "トラッキング信頼度のばらつき",
+  "runningCoachCalibrationReadinessCheckTrackedFrameVariation": "追跡フレーム率のばらつき",
+  "runningCoachCalibrationReadinessCheckEligiblePoseVariation": "有効姿勢率のばらつき",
+  "runningCoachCalibrationReadinessCheckLandingContactVariation": "接地/接触率のばらつき",
+  "runningCoachCalibrationReadinessCheckCountValue": "{observed} / 必要 {required}",
+  "@runningCoachCalibrationReadinessCheckCountValue": {
+    "placeholders": {
+      "observed": {
+        "type": "int"
+      },
+      "required": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachCalibrationReadinessCheckPercentValue": "{current}% / 目標 {target}%",
+  "@runningCoachCalibrationReadinessCheckPercentValue": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachCalibrationReadinessCheckPercentMaxValue": "{current}% / 最大 {target}%",
+  "@runningCoachCalibrationReadinessCheckPercentMaxValue": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
   "runningCoachLiveSessionReportQualityTitle": "分析品質",
   "runningCoachLiveSessionReportDurationLabel": "セッション時間",
   "runningCoachLiveSessionReportDurationValue": "{minutes}分 {seconds}秒",

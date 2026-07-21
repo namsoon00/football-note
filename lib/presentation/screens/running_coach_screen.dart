@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:video_player/video_player.dart';
 
+import '../../application/live_sprint_calibration_readiness_service.dart';
 import '../../application/live_sprint_trend_service.dart';
 import '../../application/running_coach_history_service.dart';
 import '../../application/running_coaching_service.dart';
@@ -104,6 +105,9 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
       const RunningCoachingService();
   final LiveSprintTrendService _liveSprintTrendService =
       const LiveSprintTrendService();
+  final LiveSprintCalibrationReadinessService
+      _liveSprintCalibrationReadinessService =
+      const LiveSprintCalibrationReadinessService();
 
   RunningCoachHistoryService? _historyService;
   XFile? _selectedVideo;
@@ -317,6 +321,11 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
       _recentSessions,
       currentSessionId: session.id,
     );
+    final calibrationReadinessSummary =
+        _liveSprintCalibrationReadinessService.build(
+      _recentSessions,
+      currentSessionId: session.id,
+    );
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => session.liveSprintReport == null
@@ -324,6 +333,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
             : RunningLiveSessionResultScreen(
                 session: session,
                 trendSummary: trendSummary,
+                calibrationReadinessSummary: calibrationReadinessSummary,
               ),
       ),
     );

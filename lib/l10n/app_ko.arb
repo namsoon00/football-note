@@ -5233,6 +5233,86 @@
       }
     }
   },
+  "runningCoachCalibrationReadinessTitle": "보정 반복 준비도",
+  "runningCoachCalibrationReadinessStatusCurrentNotReady": "현재 캡처 준비 안 됨",
+  "runningCoachCalibrationReadinessStatusNeedsMore": "같은 프로필 세션 더 필요",
+  "runningCoachCalibrationReadinessStatusVariationReview": "변동 리뷰 필요",
+  "runningCoachCalibrationReadinessStatusReady": "임계값 보정 준비됨",
+  "runningCoachCalibrationReadinessBodyCurrentNotReady": "이 기록은 아직 현장 검증 준비가 되지 않았어요. 반복성에 쓰기 전에 현장 확인을 먼저 고쳐 주세요.",
+  "runningCoachCalibrationReadinessBodyNeedsMore": "임계값 보정 전에 같은 프로필로 현장 검증 준비가 된 세션을 최소 3개 저장해 주세요.",
+  "runningCoachCalibrationReadinessBodyVariationReview": "같은 프로필의 캡처 변동이 유료 품질 임계값 보정에 쓰기에는 커요. 조정 전에 확인 항목을 검토해 주세요.",
+  "runningCoachCalibrationReadinessBodyReady": "이 프로필은 임계값 보정에 쓸 반복 가능한 현장 근거가 충분해요.",
+  "runningCoachCalibrationReadinessPrivacyNote": "저장된 실시간 스프린트 리포트 카운터와 관절 근거 요약만 사용합니다. 카메라 프레임, 업로드, 원본 영상은 사용하지 않으며 프로필과 임계값은 변경하지 않습니다.",
+  "runningCoachCalibrationReadinessScoreValue": "반복성 {score}%",
+  "@runningCoachCalibrationReadinessScoreValue": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachCalibrationReadinessReadySessionsValue": "준비 {ready}/{required}",
+  "@runningCoachCalibrationReadinessReadySessionsValue": {
+    "placeholders": {
+      "ready": {
+        "type": "int"
+      },
+      "required": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachCalibrationReadinessSameProfileSessionsValue": "같은 프로필 {count}",
+  "@runningCoachCalibrationReadinessSameProfileSessionsValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachCalibrationReadinessChecksTitle": "간단 확인",
+  "runningCoachCalibrationReadinessCheckCurrentFieldValidation": "현재 현장 검증",
+  "runningCoachCalibrationReadinessCheckSameProfileReadySessions": "같은 프로필 준비 세션",
+  "runningCoachCalibrationReadinessCheckAverageFieldQuality": "평균 현장 품질",
+  "runningCoachCalibrationReadinessCheckTimingVariation": "타이밍 신뢰도 변동",
+  "runningCoachCalibrationReadinessCheckSideViewVariation": "측면 신뢰도 변동",
+  "runningCoachCalibrationReadinessCheckTrackingVariation": "트래킹 신뢰도 변동",
+  "runningCoachCalibrationReadinessCheckTrackedFrameVariation": "추적 프레임 비율 변동",
+  "runningCoachCalibrationReadinessCheckEligiblePoseVariation": "적격 자세 비율 변동",
+  "runningCoachCalibrationReadinessCheckLandingContactVariation": "착지/접촉 비율 변동",
+  "runningCoachCalibrationReadinessCheckCountValue": "{observed} / 필요 {required}",
+  "@runningCoachCalibrationReadinessCheckCountValue": {
+    "placeholders": {
+      "observed": {
+        "type": "int"
+      },
+      "required": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachCalibrationReadinessCheckPercentValue": "{current}% / 목표 {target}%",
+  "@runningCoachCalibrationReadinessCheckPercentValue": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachCalibrationReadinessCheckPercentMaxValue": "{current}% / 최대 {target}%",
+  "@runningCoachCalibrationReadinessCheckPercentMaxValue": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
   "runningCoachLiveSessionReportQualityTitle": "분석 품질",
   "runningCoachLiveSessionReportDurationLabel": "세션 시간",
   "runningCoachLiveSessionReportDurationValue": "{minutes}분 {seconds}초",

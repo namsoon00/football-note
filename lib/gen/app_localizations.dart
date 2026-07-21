@@ -16237,6 +16237,166 @@ abstract class AppLocalizations {
   /// **'{current}% / max {target}%'**
   String runningCoachFieldValidationPercentMaxValue(int current, int target);
 
+  /// No description provided for @runningCoachCalibrationReadinessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration repeatability'**
+  String get runningCoachCalibrationReadinessTitle;
+
+  /// No description provided for @runningCoachCalibrationReadinessStatusCurrentNotReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Current capture not ready'**
+  String get runningCoachCalibrationReadinessStatusCurrentNotReady;
+
+  /// No description provided for @runningCoachCalibrationReadinessStatusNeedsMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Need more same-profile sessions'**
+  String get runningCoachCalibrationReadinessStatusNeedsMore;
+
+  /// No description provided for @runningCoachCalibrationReadinessStatusVariationReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Review variation'**
+  String get runningCoachCalibrationReadinessStatusVariationReview;
+
+  /// No description provided for @runningCoachCalibrationReadinessStatusReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready for threshold calibration'**
+  String get runningCoachCalibrationReadinessStatusReady;
+
+  /// No description provided for @runningCoachCalibrationReadinessBodyCurrentNotReady.
+  ///
+  /// In en, this message translates to:
+  /// **'This run is not field-validation-ready yet. Fix the field checks before using it for repeatability.'**
+  String get runningCoachCalibrationReadinessBodyCurrentNotReady;
+
+  /// No description provided for @runningCoachCalibrationReadinessBodyNeedsMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Save at least 3 field-validation-ready sessions with this same profile before threshold calibration.'**
+  String get runningCoachCalibrationReadinessBodyNeedsMore;
+
+  /// No description provided for @runningCoachCalibrationReadinessBodyVariationReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Same-profile captures vary too much for paid-quality threshold calibration. Review the checks before tuning.'**
+  String get runningCoachCalibrationReadinessBodyVariationReview;
+
+  /// No description provided for @runningCoachCalibrationReadinessBodyReady.
+  ///
+  /// In en, this message translates to:
+  /// **'This profile has enough repeatable field evidence for threshold calibration.'**
+  String get runningCoachCalibrationReadinessBodyReady;
+
+  /// No description provided for @runningCoachCalibrationReadinessPrivacyNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Uses saved live sprint report counters and joint-evidence summaries only. No camera frames, uploads, or raw video are used; profiles and thresholds are not changed.'**
+  String get runningCoachCalibrationReadinessPrivacyNote;
+
+  /// No description provided for @runningCoachCalibrationReadinessScoreValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeatability {score}%'**
+  String runningCoachCalibrationReadinessScoreValue(int score);
+
+  /// No description provided for @runningCoachCalibrationReadinessReadySessionsValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready {ready}/{required}'**
+  String runningCoachCalibrationReadinessReadySessionsValue(
+      int ready, int required);
+
+  /// No description provided for @runningCoachCalibrationReadinessSameProfileSessionsValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Same profile {count}'**
+  String runningCoachCalibrationReadinessSameProfileSessionsValue(int count);
+
+  /// No description provided for @runningCoachCalibrationReadinessChecksTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Compact checks'**
+  String get runningCoachCalibrationReadinessChecksTitle;
+
+  /// No description provided for @runningCoachCalibrationReadinessCheckCurrentFieldValidation.
+  ///
+  /// In en, this message translates to:
+  /// **'Current field validation'**
+  String get runningCoachCalibrationReadinessCheckCurrentFieldValidation;
+
+  /// No description provided for @runningCoachCalibrationReadinessCheckSameProfileReadySessions.
+  ///
+  /// In en, this message translates to:
+  /// **'Same-profile ready sessions'**
+  String get runningCoachCalibrationReadinessCheckSameProfileReadySessions;
+
+  /// No description provided for @runningCoachCalibrationReadinessCheckAverageFieldQuality.
+  ///
+  /// In en, this message translates to:
+  /// **'Average field quality'**
+  String get runningCoachCalibrationReadinessCheckAverageFieldQuality;
+
+  /// No description provided for @runningCoachCalibrationReadinessCheckTimingVariation.
+  ///
+  /// In en, this message translates to:
+  /// **'Timing confidence spread'**
+  String get runningCoachCalibrationReadinessCheckTimingVariation;
+
+  /// No description provided for @runningCoachCalibrationReadinessCheckSideViewVariation.
+  ///
+  /// In en, this message translates to:
+  /// **'Side-view confidence spread'**
+  String get runningCoachCalibrationReadinessCheckSideViewVariation;
+
+  /// No description provided for @runningCoachCalibrationReadinessCheckTrackingVariation.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracking confidence spread'**
+  String get runningCoachCalibrationReadinessCheckTrackingVariation;
+
+  /// No description provided for @runningCoachCalibrationReadinessCheckTrackedFrameVariation.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracked-frame rate spread'**
+  String get runningCoachCalibrationReadinessCheckTrackedFrameVariation;
+
+  /// No description provided for @runningCoachCalibrationReadinessCheckEligiblePoseVariation.
+  ///
+  /// In en, this message translates to:
+  /// **'Eligible-pose rate spread'**
+  String get runningCoachCalibrationReadinessCheckEligiblePoseVariation;
+
+  /// No description provided for @runningCoachCalibrationReadinessCheckLandingContactVariation.
+  ///
+  /// In en, this message translates to:
+  /// **'Landing/contact rate spread'**
+  String get runningCoachCalibrationReadinessCheckLandingContactVariation;
+
+  /// No description provided for @runningCoachCalibrationReadinessCheckCountValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{observed} / required {required}'**
+  String runningCoachCalibrationReadinessCheckCountValue(
+      int observed, int required);
+
+  /// No description provided for @runningCoachCalibrationReadinessCheckPercentValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{current}% / target {target}%'**
+  String runningCoachCalibrationReadinessCheckPercentValue(
+      int current, int target);
+
+  /// No description provided for @runningCoachCalibrationReadinessCheckPercentMaxValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{current}% / max {target}%'**
+  String runningCoachCalibrationReadinessCheckPercentMaxValue(
+      int current, int target);
+
   /// No description provided for @runningCoachLiveSessionReportQualityTitle.
   ///
   /// In en, this message translates to:

@@ -9312,6 +9312,119 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get runningCoachCalibrationReadinessTitle =>
+      'Calibration repeatability';
+
+  @override
+  String get runningCoachCalibrationReadinessStatusCurrentNotReady =>
+      'Current capture not ready';
+
+  @override
+  String get runningCoachCalibrationReadinessStatusNeedsMore =>
+      'Need more same-profile sessions';
+
+  @override
+  String get runningCoachCalibrationReadinessStatusVariationReview =>
+      'Review variation';
+
+  @override
+  String get runningCoachCalibrationReadinessStatusReady =>
+      'Ready for threshold calibration';
+
+  @override
+  String get runningCoachCalibrationReadinessBodyCurrentNotReady =>
+      'This run is not field-validation-ready yet. Fix the field checks before using it for repeatability.';
+
+  @override
+  String get runningCoachCalibrationReadinessBodyNeedsMore =>
+      'Save at least 3 field-validation-ready sessions with this same profile before threshold calibration.';
+
+  @override
+  String get runningCoachCalibrationReadinessBodyVariationReview =>
+      'Same-profile captures vary too much for paid-quality threshold calibration. Review the checks before tuning.';
+
+  @override
+  String get runningCoachCalibrationReadinessBodyReady =>
+      'This profile has enough repeatable field evidence for threshold calibration.';
+
+  @override
+  String get runningCoachCalibrationReadinessPrivacyNote =>
+      'Uses saved live sprint report counters and joint-evidence summaries only. No camera frames, uploads, or raw video are used; profiles and thresholds are not changed.';
+
+  @override
+  String runningCoachCalibrationReadinessScoreValue(int score) {
+    return 'Repeatability $score%';
+  }
+
+  @override
+  String runningCoachCalibrationReadinessReadySessionsValue(
+      int ready, int required) {
+    return 'Ready $ready/$required';
+  }
+
+  @override
+  String runningCoachCalibrationReadinessSameProfileSessionsValue(int count) {
+    return 'Same profile $count';
+  }
+
+  @override
+  String get runningCoachCalibrationReadinessChecksTitle => 'Compact checks';
+
+  @override
+  String get runningCoachCalibrationReadinessCheckCurrentFieldValidation =>
+      'Current field validation';
+
+  @override
+  String get runningCoachCalibrationReadinessCheckSameProfileReadySessions =>
+      'Same-profile ready sessions';
+
+  @override
+  String get runningCoachCalibrationReadinessCheckAverageFieldQuality =>
+      'Average field quality';
+
+  @override
+  String get runningCoachCalibrationReadinessCheckTimingVariation =>
+      'Timing confidence spread';
+
+  @override
+  String get runningCoachCalibrationReadinessCheckSideViewVariation =>
+      'Side-view confidence spread';
+
+  @override
+  String get runningCoachCalibrationReadinessCheckTrackingVariation =>
+      'Tracking confidence spread';
+
+  @override
+  String get runningCoachCalibrationReadinessCheckTrackedFrameVariation =>
+      'Tracked-frame rate spread';
+
+  @override
+  String get runningCoachCalibrationReadinessCheckEligiblePoseVariation =>
+      'Eligible-pose rate spread';
+
+  @override
+  String get runningCoachCalibrationReadinessCheckLandingContactVariation =>
+      'Landing/contact rate spread';
+
+  @override
+  String runningCoachCalibrationReadinessCheckCountValue(
+      int observed, int required) {
+    return '$observed / required $required';
+  }
+
+  @override
+  String runningCoachCalibrationReadinessCheckPercentValue(
+      int current, int target) {
+    return '$current% / target $target%';
+  }
+
+  @override
+  String runningCoachCalibrationReadinessCheckPercentMaxValue(
+      int current, int target) {
+    return '$current% / max $target%';
+  }
+
+  @override
   String get runningCoachLiveSessionReportQualityTitle => 'Analysis quality';
 
   @override

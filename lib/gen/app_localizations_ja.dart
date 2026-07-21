@@ -9061,6 +9061,117 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get runningCoachCalibrationReadinessTitle => 'キャリブレーション反復性';
+
+  @override
+  String get runningCoachCalibrationReadinessStatusCurrentNotReady =>
+      '現在のキャプチャは未準備';
+
+  @override
+  String get runningCoachCalibrationReadinessStatusNeedsMore =>
+      '同じプロファイルのセッションが必要';
+
+  @override
+  String get runningCoachCalibrationReadinessStatusVariationReview =>
+      'ばらつき確認が必要';
+
+  @override
+  String get runningCoachCalibrationReadinessStatusReady => 'しきい値キャリブレーション準備完了';
+
+  @override
+  String get runningCoachCalibrationReadinessBodyCurrentNotReady =>
+      'この走行はまだフィールド検証準備ができていません。反復性に使う前にフィールド確認を直してください。';
+
+  @override
+  String get runningCoachCalibrationReadinessBodyNeedsMore =>
+      'しきい値キャリブレーションの前に、同じプロファイルでフィールド検証準備済みのセッションを3件以上保存してください。';
+
+  @override
+  String get runningCoachCalibrationReadinessBodyVariationReview =>
+      '同じプロファイルのキャプチャのばらつきが、有料品質のしきい値キャリブレーションには大きすぎます。調整前に確認項目を見直してください。';
+
+  @override
+  String get runningCoachCalibrationReadinessBodyReady =>
+      'このプロファイルには、しきい値キャリブレーションに使える反復可能なフィールド根拠が十分あります。';
+
+  @override
+  String get runningCoachCalibrationReadinessPrivacyNote =>
+      '保存済みライブスプリントレポートのカウンターと関節根拠サマリーだけを使います。カメラフレーム、アップロード、元動画は使わず、プロファイルとしきい値は変更しません。';
+
+  @override
+  String runningCoachCalibrationReadinessScoreValue(int score) {
+    return '反復性 $score%';
+  }
+
+  @override
+  String runningCoachCalibrationReadinessReadySessionsValue(
+      int ready, int required) {
+    return '準備 $ready/$required';
+  }
+
+  @override
+  String runningCoachCalibrationReadinessSameProfileSessionsValue(int count) {
+    return '同じプロファイル $count';
+  }
+
+  @override
+  String get runningCoachCalibrationReadinessChecksTitle => '簡易チェック';
+
+  @override
+  String get runningCoachCalibrationReadinessCheckCurrentFieldValidation =>
+      '現在のフィールド検証';
+
+  @override
+  String get runningCoachCalibrationReadinessCheckSameProfileReadySessions =>
+      '同じプロファイルの準備済みセッション';
+
+  @override
+  String get runningCoachCalibrationReadinessCheckAverageFieldQuality =>
+      '平均フィールド品質';
+
+  @override
+  String get runningCoachCalibrationReadinessCheckTimingVariation =>
+      'タイミング信頼度のばらつき';
+
+  @override
+  String get runningCoachCalibrationReadinessCheckSideViewVariation =>
+      '側面ビュー信頼度のばらつき';
+
+  @override
+  String get runningCoachCalibrationReadinessCheckTrackingVariation =>
+      'トラッキング信頼度のばらつき';
+
+  @override
+  String get runningCoachCalibrationReadinessCheckTrackedFrameVariation =>
+      '追跡フレーム率のばらつき';
+
+  @override
+  String get runningCoachCalibrationReadinessCheckEligiblePoseVariation =>
+      '有効姿勢率のばらつき';
+
+  @override
+  String get runningCoachCalibrationReadinessCheckLandingContactVariation =>
+      '接地/接触率のばらつき';
+
+  @override
+  String runningCoachCalibrationReadinessCheckCountValue(
+      int observed, int required) {
+    return '$observed / 必要 $required';
+  }
+
+  @override
+  String runningCoachCalibrationReadinessCheckPercentValue(
+      int current, int target) {
+    return '$current% / 目標 $target%';
+  }
+
+  @override
+  String runningCoachCalibrationReadinessCheckPercentMaxValue(
+      int current, int target) {
+    return '$current% / 最大 $target%';
+  }
+
+  @override
   String get runningCoachLiveSessionReportQualityTitle => '分析品質';
 
   @override
