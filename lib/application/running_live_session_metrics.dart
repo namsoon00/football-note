@@ -2,6 +2,7 @@ import 'dart:collection';
 import 'dart:math' as math;
 
 import '../domain/entities/running_live_coaching_state.dart';
+import 'running_live_calibration_capture_contract.dart';
 
 enum RunningLiveSkippedFrameReason {
   detectorBusy,
@@ -389,6 +390,52 @@ class RunningLiveSessionMetricsCollector {
     };
   }
 
+  /// Builds a compact, final-session record for offline calibration tooling.
+  ///
+  /// The regular debug payload is intentionally verbose for diagnosis and can
+  /// exceed a platform log-line limit. This representation retains the data
+  /// needed for capture readiness and event evaluation in a single short line.
+  Map<String, Object?> buildCalibrationCapturePayload({
+    required String sessionId,
+    required Duration targetFrameInterval,
+    required RunningLiveSessionMetricsSnapshot snapshot,
+  }) {
+    return <String, Object?>{
+      'schemaVersion': runningLiveCalibrationCaptureSchemaVersion,
+      'sessionId': sessionId,
+      'event': 'end',
+      'elapsedMs': snapshot.elapsed.inMilliseconds,
+      'targetFrameIntervalMs': targetFrameInterval.inMilliseconds,
+      'metrics': <String, Object?>{
+        'analyzedFrames': snapshot.analyzedFrames,
+        'analyzedFrameIntervalMs': <String, Object?>{
+          'sampleCount': snapshot.analyzedFrameIntervalSampleCount,
+          'p95': _compactDouble(snapshot.analyzedFrameIntervalP95Ms, 2),
+        },
+        'averageConfidence': <String, Object?>{
+          'timing': _compactDouble(snapshot.averageTimingConfidence, 3),
+          'sideView': _compactDouble(snapshot.averageSideViewConfidence, 3),
+        },
+        'skippedFrames': <String, Object?>{
+          'analysisError': snapshot.analysisErrorFrames,
+        },
+      },
+      'events': <String, Object?>{
+        'total': snapshot.eventCount,
+        // [session offset ms, side, event type, confidence per mille].
+        'timeline': <List<Object>>[
+          for (final event in snapshot.eventTimeline)
+            <Object>[
+              event.sessionOffsetMs,
+              event.side.name,
+              event.type.name,
+              (event.confidence.clamp(0.0, 1.0) * 1000).round(),
+            ],
+        ],
+      },
+    };
+  }
+
   void _recordAvailability(RunningGaitAnalysis gait) {
     if (gait.cadence.available) {
       _cadenceAvailableFrames += 1;
@@ -468,6 +515,10 @@ class RunningLiveSessionMetricsCollector {
     }
     final rank = ((values.length - 1) * percentile).ceil();
     return values[rank.clamp(0, values.length - 1)] / 1000;
+  }
+
+  double _compactDouble(double value, int fractionDigits) {
+    return double.parse(value.toStringAsFixed(fractionDigits));
   }
 
   String _eventKey(RunningGaitEvent event) {

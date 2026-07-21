@@ -1,10 +1,16 @@
 import 'dart:convert';
 
+import 'running_live_calibration_capture_contract.dart';
+
 enum GaitCalibrationFootSide { left, right }
 
 enum GaitCalibrationEventType { touchdown, toeOff }
 
-enum GaitCalibrationInputFormat { flatEvents, runningLiveSessionLog }
+enum GaitCalibrationInputFormat {
+  flatEvents,
+  runningLiveSessionLog,
+  runningLiveCalibrationCapture,
+}
 
 class GaitCalibrationInputException implements Exception {
   final String message;
@@ -13,6 +19,60 @@ class GaitCalibrationInputException implements Exception {
 
   @override
   String toString() => message;
+}
+
+/// Final-session diagnostics carried by live-running debug output.
+///
+/// Values are nullable because older session logs may contain an event
+/// timeline without the corresponding terminal metrics payload.
+class RunningLiveCaptureDiagnostics {
+  final bool hasEndEvent;
+  final int? elapsedMs;
+  final int? targetFrameIntervalMs;
+  final int? analyzedFrames;
+  final int? analyzedFrameIntervalSampleCount;
+  final double? analyzedFrameIntervalP95Ms;
+  final double? averageTimingConfidence;
+  final double? averageSideViewConfidence;
+  final int? analysisErrorFrames;
+  final int? reportedEventCount;
+  final int loggedTimelineEventCount;
+
+  const RunningLiveCaptureDiagnostics({
+    required this.hasEndEvent,
+    required this.elapsedMs,
+    required this.targetFrameIntervalMs,
+    required this.analyzedFrames,
+    required this.analyzedFrameIntervalSampleCount,
+    required this.analyzedFrameIntervalP95Ms,
+    required this.averageTimingConfidence,
+    required this.averageSideViewConfidence,
+    required this.analysisErrorFrames,
+    required this.reportedEventCount,
+    required this.loggedTimelineEventCount,
+  });
+
+  Map<String, Object?> toJson() {
+    return <String, Object?>{
+      'hasEndEvent': hasEndEvent,
+      'elapsedMs': elapsedMs,
+      'targetFrameIntervalMs': targetFrameIntervalMs,
+      'analyzedFrames': analyzedFrames,
+      'analyzedFrameIntervalMs': <String, Object?>{
+        'sampleCount': analyzedFrameIntervalSampleCount,
+        'p95': _roundNullable(analyzedFrameIntervalP95Ms),
+      },
+      'averageConfidence': <String, Object?>{
+        'timing': _roundNullable(averageTimingConfidence),
+        'sideView': _roundNullable(averageSideViewConfidence),
+      },
+      'analysisErrorFrames': analysisErrorFrames,
+      'events': <String, Object?>{
+        'reportedTotal': reportedEventCount,
+        'loggedTimelineCount': loggedTimelineEventCount,
+      },
+    };
+  }
 }
 
 class GaitCalibrationEvent {
@@ -35,6 +95,7 @@ class GaitCalibrationFixture {
   final String? sessionId;
   final int sourceLogCount;
   final int repeatedEventCount;
+  final RunningLiveCaptureDiagnostics? liveSessionDiagnostics;
 
   const GaitCalibrationFixture({
     required this.events,
@@ -42,6 +103,7 @@ class GaitCalibrationFixture {
     this.sessionId,
     this.sourceLogCount = 0,
     this.repeatedEventCount = 0,
+    this.liveSessionDiagnostics,
   });
 
   factory GaitCalibrationFixture.fromJsonString(
@@ -122,6 +184,14 @@ class GaitCalibrationFixture {
     required String label,
     String? sessionId,
   }) {
+    if (source.contains(runningLiveCalibrationCaptureLogMarker)) {
+      return _fromRunningLiveCalibrationCaptureLogLines(
+        source,
+        label: label,
+        requestedSessionId: sessionId,
+      );
+    }
+
     final Object? decoded;
     try {
       decoded = jsonDecode(source);
@@ -136,6 +206,18 @@ class GaitCalibrationFixture {
     if (decoded is Map<String, Object?> && decoded['events'] is List<Object?>) {
       return GaitCalibrationFixture.fromJson(decoded, label: label);
     }
+    if (_isRunningLiveCalibrationCapturePayload(decoded)) {
+      return _fromRunningLiveCalibrationCapturePayloads(
+        <_RunningLiveCalibrationCapturePayload>[
+          _RunningLiveCalibrationCapturePayload(
+            decoded as Map<String, Object?>,
+            label,
+          ),
+        ],
+        label: label,
+        requestedSessionId: sessionId,
+      );
+    }
     if (_isRunningLiveSessionPayload(decoded)) {
       return _fromRunningLiveSessionPayloads(
         <_RunningLiveSessionPayload>[
@@ -146,14 +228,32 @@ class GaitCalibrationFixture {
       );
     }
     if (decoded is List<Object?>) {
-      return _fromRunningLiveSessionPayloads(
-        [
-          for (var index = 0; index < decoded.length; index += 1)
-            _RunningLiveSessionPayload(
-              _expectJsonObject(
-                decoded[index],
+      final payloads = [
+        for (var index = 0; index < decoded.length; index += 1)
+          _expectJsonObject(
+            decoded[index],
+            '$label[$index]',
+          ),
+      ];
+      if (payloads.isNotEmpty &&
+          payloads.every(_isRunningLiveCalibrationCapturePayload)) {
+        return _fromRunningLiveCalibrationCapturePayloads(
+          [
+            for (var index = 0; index < payloads.length; index += 1)
+              _RunningLiveCalibrationCapturePayload(
+                payloads[index],
                 '$label[$index]',
               ),
+          ],
+          label: label,
+          requestedSessionId: sessionId,
+        );
+      }
+      return _fromRunningLiveSessionPayloads(
+        [
+          for (var index = 0; index < payloads.length; index += 1)
+            _RunningLiveSessionPayload(
+              payloads[index],
               '$label[$index]',
             ),
         ],
@@ -167,7 +267,8 @@ class GaitCalibrationFixture {
 
     throw GaitCalibrationInputException(
       '$label must be either a flat events JSON object or '
-      'RunningLiveSession JSON/debug-log lines.',
+      'RunningLiveSession or RunningLiveCalibrationCapture JSON/debug-log '
+      'lines.',
     );
   }
 
@@ -238,12 +339,13 @@ class GaitCalibrationFixture {
     final lines = const LineSplitter().convert(source);
     for (var index = 0; index < lines.length; index += 1) {
       final line = lines[index];
-      final markerIndex = line.indexOf(_runningLiveSessionMarker);
+      final markerIndex = line.indexOf(runningLiveSessionLogMarker);
       if (markerIndex < 0) {
         continue;
       }
-      final rawPayload =
-          line.substring(markerIndex + _runningLiveSessionMarker.length).trim();
+      final rawPayload = line
+          .substring(markerIndex + runningLiveSessionLogMarker.length)
+          .trim();
       if (rawPayload.isEmpty) {
         throw GaitCalibrationInputException(
           '$label line ${index + 1} has an empty RunningLiveSession payload.',
@@ -269,7 +371,7 @@ class GaitCalibrationFixture {
     if (payloads.isEmpty) {
       throw GaitCalibrationInputException(
         '$label must be valid flat events JSON or contain '
-        '$_runningLiveSessionMarker JSON log lines.',
+        '$runningLiveSessionLogMarker JSON log lines.',
       );
     }
 
@@ -277,6 +379,174 @@ class GaitCalibrationFixture {
       payloads,
       label: label,
       requestedSessionId: requestedSessionId,
+    );
+  }
+
+  static GaitCalibrationFixture _fromRunningLiveCalibrationCaptureLogLines(
+    String source, {
+    required String label,
+    required String? requestedSessionId,
+  }) {
+    final payloads = <_RunningLiveCalibrationCapturePayload>[];
+    final lines = const LineSplitter().convert(source);
+    for (var index = 0; index < lines.length; index += 1) {
+      final line = lines[index];
+      final markerIndex = line.indexOf(runningLiveCalibrationCaptureLogMarker);
+      if (markerIndex < 0) {
+        continue;
+      }
+      final rawPayload = line
+          .substring(
+            markerIndex + runningLiveCalibrationCaptureLogMarker.length,
+          )
+          .trim();
+      if (rawPayload.isEmpty) {
+        throw GaitCalibrationInputException(
+          '$label line ${index + 1} has an empty '
+          'RunningLiveCalibrationCapture payload.',
+        );
+      }
+      final Object? decoded;
+      try {
+        decoded = jsonDecode(rawPayload);
+      } on FormatException catch (error) {
+        throw GaitCalibrationInputException(
+          '$label line ${index + 1} RunningLiveCalibrationCapture payload '
+          'must be valid JSON: ${error.message}',
+        );
+      }
+      payloads.add(
+        _RunningLiveCalibrationCapturePayload(
+          _expectJsonObject(decoded, '$label line ${index + 1}'),
+          '$label line ${index + 1}',
+        ),
+      );
+    }
+
+    if (payloads.isEmpty) {
+      throw GaitCalibrationInputException(
+        '$label must contain $runningLiveCalibrationCaptureLogMarker JSON '
+        'log lines.',
+      );
+    }
+
+    return _fromRunningLiveCalibrationCapturePayloads(
+      payloads,
+      label: label,
+      requestedSessionId: requestedSessionId,
+    );
+  }
+
+  static GaitCalibrationFixture _fromRunningLiveCalibrationCapturePayloads(
+    List<_RunningLiveCalibrationCapturePayload> payloads, {
+    required String label,
+    required String? requestedSessionId,
+  }) {
+    final bySessionId = <String, List<_RunningLiveCalibrationCapturePayload>>{};
+    for (final payload in payloads) {
+      final sessionId = payload.map['sessionId'];
+      if (sessionId is! String || sessionId.isEmpty) {
+        throw GaitCalibrationInputException(
+          '${payload.label}.sessionId must be a non-empty string.',
+        );
+      }
+      final schemaVersion = _optionalInt(payload.map['schemaVersion']);
+      if (schemaVersion != null &&
+          schemaVersion != runningLiveCalibrationCaptureSchemaVersion) {
+        throw GaitCalibrationInputException(
+          '${payload.label}.schemaVersion must be '
+          '$runningLiveCalibrationCaptureSchemaVersion.',
+        );
+      }
+      bySessionId.putIfAbsent(sessionId, () => []).add(payload);
+    }
+
+    final selectedSessionId = _selectRunningLiveSessionId(
+      bySessionId.keys.toList(growable: false),
+      requestedSessionId: requestedSessionId,
+      label: label,
+    );
+    final selectedPayloads = bySessionId[selectedSessionId]!;
+    var terminalPayload = selectedPayloads.last;
+    for (final payload in selectedPayloads) {
+      if (payload.map['event'] == 'end') {
+        terminalPayload = payload;
+      }
+    }
+
+    final byEventKey = <String, _RunningLiveSessionEventRecord>{};
+    var sourceIndex = 0;
+    var repeatedEventCount = 0;
+    for (final payload in selectedPayloads) {
+      final events = _expectJsonObject(
+        payload.map['events'],
+        '${payload.label}.events',
+      );
+      final timeline = events['timeline'];
+      if (timeline is! List<Object?>) {
+        throw GaitCalibrationInputException(
+          '${payload.label}.events.timeline must be an array.',
+        );
+      }
+      for (var timelineIndex = 0;
+          timelineIndex < timeline.length;
+          timelineIndex += 1) {
+        final eventLabel = '${payload.label}.events.timeline[$timelineIndex]';
+        final rawEvent = timeline[timelineIndex];
+        if (rawEvent is! List<Object?> || rawEvent.length < 3) {
+          throw GaitCalibrationInputException(
+            '$eventLabel must be a compact event array with timestamp, side, '
+            'and type.',
+          );
+        }
+        final timestampMs = _parseTimelineTimestamp(rawEvent[0], eventLabel);
+        final side = _parseTimelineSide(rawEvent[1], eventLabel);
+        final type = _parseTimelineType(rawEvent[2], eventLabel);
+        final eventKey = '${side.name}|${type.name}|$timestampMs';
+        final canonicalEvent = _canonicalJson(rawEvent);
+        final existing = byEventKey[eventKey];
+        if (existing != null) {
+          if (existing.canonicalEvent != canonicalEvent) {
+            throw GaitCalibrationInputException(
+              '$eventLabel conflicts with an earlier '
+              'RunningLiveCalibrationCapture event for side=${side.name}, '
+              'type=${type.name}, timestampMs=$timestampMs.',
+            );
+          }
+          repeatedEventCount += 1;
+          continue;
+        }
+        byEventKey[eventKey] = _RunningLiveSessionEventRecord(
+          event: GaitCalibrationEvent(
+            timestampMs: timestampMs,
+            side: side,
+            type: type,
+            sourceIndex: sourceIndex,
+          ),
+          canonicalEvent: canonicalEvent,
+        );
+        sourceIndex += 1;
+      }
+    }
+
+    final events = [
+      for (final record in byEventKey.values) record.event,
+    ]..sort(_compareEventsForReport);
+    final hasEndEvent = selectedPayloads.any(
+      (payload) => payload.map['event'] == 'end',
+    );
+
+    return GaitCalibrationFixture(
+      events: List.unmodifiable(events),
+      format: GaitCalibrationInputFormat.runningLiveCalibrationCapture,
+      sessionId: selectedSessionId,
+      sourceLogCount: selectedPayloads.length,
+      repeatedEventCount: repeatedEventCount,
+      liveSessionDiagnostics: _diagnosticsFromPayload(
+        terminalPayload.map,
+        hasEndEvent: hasEndEvent,
+        loggedTimelineEventCount: events.length,
+      ),
     );
   }
 
@@ -364,6 +634,12 @@ class GaitCalibrationFixture {
     final events = [
       for (final record in byEventKey.values) record.event,
     ]..sort(_compareEventsForReport);
+    var terminalPayload = selectedPayloads.last;
+    for (final payload in selectedPayloads) {
+      if (payload.map['event'] == 'end') {
+        terminalPayload = payload;
+      }
+    }
 
     return GaitCalibrationFixture(
       events: List.unmodifiable(events),
@@ -371,6 +647,13 @@ class GaitCalibrationFixture {
       sessionId: selectedSessionId,
       sourceLogCount: selectedPayloads.length,
       repeatedEventCount: repeatedEventCount,
+      liveSessionDiagnostics: _diagnosticsFromPayload(
+        terminalPayload.map,
+        hasEndEvent: selectedPayloads.any(
+          (payload) => payload.map['event'] == 'end',
+        ),
+        loggedTimelineEventCount: events.length,
+      ),
     );
   }
 
@@ -417,9 +700,88 @@ class GaitCalibrationFixture {
       '$label.type must be "touchdown" or "toeOff".',
     );
   }
+
+  static RunningLiveCaptureDiagnostics _diagnosticsFromPayload(
+    Map<String, Object?> payload, {
+    required bool hasEndEvent,
+    required int loggedTimelineEventCount,
+  }) {
+    final metrics = _optionalJsonObject(payload['metrics']);
+    final analyzedFrameInterval =
+        _optionalJsonObject(metrics?['analyzedFrameIntervalMs']);
+    final averageConfidence =
+        _optionalJsonObject(metrics?['averageConfidence']);
+    final skippedFrames = _optionalJsonObject(metrics?['skippedFrames']);
+    final events = _optionalJsonObject(payload['events']);
+
+    return RunningLiveCaptureDiagnostics(
+      hasEndEvent: hasEndEvent,
+      elapsedMs: _optionalInt(payload['elapsedMs']),
+      targetFrameIntervalMs: _optionalInt(payload['targetFrameIntervalMs']),
+      analyzedFrames: _optionalInt(metrics?['analyzedFrames']),
+      analyzedFrameIntervalSampleCount:
+          _optionalInt(analyzedFrameInterval?['sampleCount']),
+      analyzedFrameIntervalP95Ms:
+          _optionalDouble(analyzedFrameInterval?['p95']),
+      averageTimingConfidence: _optionalDouble(averageConfidence?['timing']),
+      averageSideViewConfidence:
+          _optionalDouble(averageConfidence?['sideView']),
+      analysisErrorFrames: _optionalInt(skippedFrames?['analysisError']),
+      reportedEventCount:
+          _optionalInt(events?['total']) ?? loggedTimelineEventCount,
+      loggedTimelineEventCount: loggedTimelineEventCount,
+    );
+  }
+
+  static Map<String, Object?>? _optionalJsonObject(Object? value) {
+    return value is Map<String, Object?> ? value : null;
+  }
+
+  static int? _optionalInt(Object? value) {
+    if (value is int) {
+      return value;
+    }
+    if (value is double && value.isFinite && value == value.roundToDouble()) {
+      return value.toInt();
+    }
+    if (value is String) {
+      final integer = int.tryParse(value);
+      if (integer != null) {
+        return integer;
+      }
+      final decimal = double.tryParse(value);
+      if (decimal != null &&
+          decimal.isFinite &&
+          decimal == decimal.roundToDouble()) {
+        return decimal.toInt();
+      }
+    }
+    return null;
+  }
+
+  static double? _optionalDouble(Object? value) {
+    if (value is int) {
+      return value.toDouble();
+    }
+    if (value is double && value.isFinite) {
+      return value;
+    }
+    if (value is String) {
+      final parsed = double.tryParse(value);
+      if (parsed != null && parsed.isFinite) {
+        return parsed;
+      }
+    }
+    return null;
+  }
 }
 
-const _runningLiveSessionMarker = '[RunningLiveSession]';
+bool _isRunningLiveCalibrationCapturePayload(Object? value) {
+  return value is Map<String, Object?> &&
+      value['schemaVersion'] != null &&
+      value['sessionId'] is String &&
+      value['events'] is Map<String, Object?>;
+}
 
 bool _isRunningLiveSessionPayload(Object? value) {
   return value is Map<String, Object?> &&
@@ -497,6 +859,13 @@ class _RunningLiveSessionPayload {
   final String label;
 
   const _RunningLiveSessionPayload(this.map, this.label);
+}
+
+class _RunningLiveCalibrationCapturePayload {
+  final Map<String, Object?> map;
+  final String label;
+
+  const _RunningLiveCalibrationCapturePayload(this.map, this.label);
 }
 
 class _RunningLiveSessionEventRecord {

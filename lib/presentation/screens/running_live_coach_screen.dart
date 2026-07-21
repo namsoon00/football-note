@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
 import '../../application/mediapipe_pose_landmarker_service.dart';
+import '../../application/running_live_calibration_capture_contract.dart';
 import '../../application/running_live_coaching_service.dart';
 import '../../application/running_live_session_metrics.dart';
 import '../../domain/entities/running_live_coaching_state.dart';
@@ -593,6 +594,18 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     );
     if (kDebugMode) {
       debugPrint('[RunningLiveSession] ${jsonEncode(payload)}');
+      final sessionId = _sessionId;
+      if (event == 'end' && sessionId != null) {
+        final capture = _sessionMetricsCollector.buildCalibrationCapturePayload(
+          sessionId: sessionId,
+          targetFrameInterval: _frameProcessingInterval,
+          snapshot: snapshot,
+        );
+        debugPrint(
+          '$runningLiveCalibrationCaptureLogMarker ${jsonEncode(capture)}',
+          wrapWidth: 4096,
+        );
+      }
     }
     if (event == 'periodic') {
       _lastMetricsLoggedAt = timestamp;
