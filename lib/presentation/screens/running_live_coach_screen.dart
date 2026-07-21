@@ -9,15 +9,18 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
+import '../../application/live_sprint_coaching_service.dart';
 import '../../application/mediapipe_pose_landmarker_service.dart';
 import '../../application/running_live_calibration_capture_contract.dart';
-import '../../application/running_live_coaching_service.dart';
 import '../../application/running_live_session_metrics.dart';
+import '../../application/sprint_live_session_metrics.dart';
 import '../../domain/entities/running_live_coaching_state.dart';
 import '../../domain/entities/running_video_analysis_result.dart';
+import '../../domain/entities/sprint_realtime_coaching_state.dart';
 import '../../gen/app_localizations.dart';
 import '../../realtime_analysis/running_coaching/running_live_timing_config.dart';
 import '../../realtime_analysis/running_coaching/running_visual_pose_tracker.dart';
+import '../../realtime_analysis/sprint_coaching/sprint_pipeline_config.dart';
 import '../models/camera_viewport_transform.dart';
 import '../painters/running_pose_anatomical_painter.dart';
 import 'running_coach_insight_copy.dart';
@@ -40,14 +43,19 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
   static const _metricsLogInterval = Duration(seconds: 5);
   static const _skipEventLogInterval = Duration(seconds: 2);
   static const _uiStateThrottleInterval = Duration(milliseconds: 500);
+  static const _sprintPipelineConfig = SprintPipelineConfig();
   static const _initialCoachingState = RunningLiveCoachingState(
     primaryCue: RunningLivePrimaryCue.keepRunning,
   );
+  static const _initialSprintCoachingState =
+      SprintRealtimeCoachingState.initial();
 
-  final RunningLiveCoachingService _coachingService =
-      RunningLiveCoachingService();
+  final LiveSprintCoachingService _coachingService =
+      LiveSprintCoachingService(sprintConfig: _sprintPipelineConfig);
   final RunningLiveSessionMetricsCollector _sessionMetricsCollector =
       RunningLiveSessionMetricsCollector();
+  final SprintLiveSessionMetricsCollector _sprintSessionMetricsCollector =
+      SprintLiveSessionMetricsCollector();
   final MediaPipePoseLandmarkerService _mediaPipePoseLandmarker =
       const MediaPipePoseLandmarkerService();
   final RunningVisualPoseTracker _visualPoseTracker =
@@ -70,6 +78,10 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
   CameraDescription? _activeCamera;
   RunningLiveCoachingState _coachingState = _initialCoachingState;
   RunningLiveCoachingState _latestCoachingState = _initialCoachingState;
+  SprintRealtimeCoachingState _sprintCoachingState =
+      _initialSprintCoachingState;
+  SprintRealtimeCoachingState _latestSprintCoachingState =
+      _initialSprintCoachingState;
   bool _isInitializing = true;
   bool _isSpeechEnabled = true;
   bool _isHudExpanded = false;
@@ -81,7 +93,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
   DateTime? _lastSpokenAt;
   DateTime? _lastMetricsLoggedAt;
   DateTime? _lastUiStatePublishedAt;
-  RunningLivePrimaryCue? _lastSpokenCue;
+  String? _lastSpokenGuidanceKey;
   String? _cameraErrorCode;
   String? _liveCoachErrorCode;
   String? _sessionId;
@@ -245,9 +257,14 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     final speechLabel = _isSpeechEnabled
         ? l10n.runningCoachLiveVoiceOn
         : l10n.runningCoachLiveVoiceOff;
-    final cueText = _cueText(l10n, _coachingState.primaryCue);
-    final diagnosis = _diagnosisText(l10n, _coachingState);
-    final actionTip = _actionTipText(l10n, _coachingState);
+    final guidance = _guidanceFor(
+      l10n,
+      runningState: _coachingState,
+      sprintState: _sprintCoachingState,
+    );
+    final cueText = guidance.cueText;
+    final diagnosis = guidance.diagnosis;
+    final actionTip = guidance.actionTip;
     final insightDetails = _buildInsightDetails(l10n);
     final focusPriorities =
         _coachingState.coachingReport?.focusPriorityByMetric ??
@@ -352,6 +369,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
                                 diagnosis: diagnosis,
                                 actionTip: actionTip,
                                 gaitAnalysis: _coachingState.gaitAnalysis,
+                                sprintState: _sprintCoachingState,
                                 metricScores: insightDetails,
                                 focusPriorities: focusPriorities,
                                 metricSections: insightSections,
@@ -416,6 +434,8 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       setState(() {
         _coachingState = _initialCoachingState;
         _latestCoachingState = _initialCoachingState;
+        _sprintCoachingState = _initialSprintCoachingState;
+        _latestSprintCoachingState = _initialSprintCoachingState;
         _cameraErrorCode = 'unsupported_platform';
         _liveCoachErrorCode = null;
         _isInitializing = false;
@@ -428,6 +448,8 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     setState(() {
       _coachingState = _initialCoachingState;
       _latestCoachingState = _initialCoachingState;
+      _sprintCoachingState = _initialSprintCoachingState;
+      _latestSprintCoachingState = _initialSprintCoachingState;
       _isInitializing = true;
       _cameraErrorCode = null;
       _liveCoachErrorCode = null;
@@ -446,12 +468,13 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     }
     _coachingService.reset();
     _sessionMetricsCollector.reset();
+    _sprintSessionMetricsCollector.reset();
     _resetVisualPoseOverlay();
     _lastProcessedAt = null;
     _lastSpokenAt = null;
     _lastMetricsLoggedAt = null;
     _lastUiStatePublishedAt = null;
-    _lastSpokenCue = null;
+    _lastSpokenGuidanceKey = null;
     _sessionId = null;
     _lastSkipLogAtByReason.clear();
 
@@ -540,7 +563,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
 
   void _startSessionLogging() {
     final now = DateTime.now();
-    _sessionId = 'running-${now.microsecondsSinceEpoch}';
+    _sessionId = 'live-sprint-${now.microsecondsSinceEpoch}';
     _emitSessionLog(
       event: 'start',
       force: true,
@@ -591,6 +614,17 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       snapshot: snapshot,
       state: _latestCoachingState,
       details: details,
+    );
+    final sprintSnapshot = _sprintSessionMetricsCollector.snapshot(
+      now: timestamp,
+    );
+    payload['sprint'] = _sprintSessionMetricsCollector.buildLogPayload(
+      event: event,
+      sessionId: _sessionId ?? 'inactive',
+      timestamp: timestamp,
+      config: _sprintPipelineConfig,
+      snapshot: sprintSnapshot,
+      state: _latestSprintCoachingState,
     );
     if (kDebugMode) {
       debugPrint('[RunningLiveSession] ${jsonEncode(payload)}');
@@ -646,17 +680,34 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     };
   }
 
+  void _recordSkippedFrame(RunningLiveSkippedFrameReason reason) {
+    _sessionMetricsCollector.recordSkippedFrame(reason);
+    _sprintSessionMetricsCollector.recordSkippedFrame(
+      switch (reason) {
+        RunningLiveSkippedFrameReason.detectorBusy =>
+          SprintSkippedFrameReason.detectorBusy,
+        RunningLiveSkippedFrameReason.throttled =>
+          SprintSkippedFrameReason.throttled,
+        RunningLiveSkippedFrameReason.invalidInput =>
+          SprintSkippedFrameReason.invalidInput,
+        RunningLiveSkippedFrameReason.analysisError =>
+          SprintSkippedFrameReason.analysisError,
+      },
+    );
+  }
+
   Future<void> _processCameraImage(CameraImage image) async {
     if (_isDisposed || _liveCoachErrorCode != null) {
       return;
     }
     final receivedAt = DateTime.now();
     _sessionMetricsCollector.recordCameraInputFrame(timestamp: receivedAt);
+    _sprintSessionMetricsCollector.recordCameraInputFrame(
+      timestamp: receivedAt,
+    );
 
     if (_isProcessingFrame) {
-      _sessionMetricsCollector.recordSkippedFrame(
-        RunningLiveSkippedFrameReason.detectorBusy,
-      );
+      _recordSkippedFrame(RunningLiveSkippedFrameReason.detectorBusy);
       _emitSkippedFrameEvent(
         RunningLiveSkippedFrameReason.detectorBusy,
         receivedAt,
@@ -669,9 +720,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     final now = _monotonicFrameTimestamp();
     if (_lastProcessedAt != null &&
         now.difference(_lastProcessedAt!) < _frameProcessingInterval) {
-      _sessionMetricsCollector.recordSkippedFrame(
-        RunningLiveSkippedFrameReason.throttled,
-      );
+      _recordSkippedFrame(RunningLiveSkippedFrameReason.throttled);
       _emitSkippedFrameEvent(
         RunningLiveSkippedFrameReason.throttled,
         receivedAt,
@@ -682,9 +731,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
 
     final frameInput = _cameraFrameInputFromCameraImage(image);
     if (frameInput == null) {
-      _sessionMetricsCollector.recordSkippedFrame(
-        RunningLiveSkippedFrameReason.invalidInput,
-      );
+      _recordSkippedFrame(RunningLiveSkippedFrameReason.invalidInput);
       _emitSkippedFrameEvent(
         RunningLiveSkippedFrameReason.invalidInput,
         receivedAt,
@@ -713,18 +760,30 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
         timestamp: now,
         fallbackImageSize: frameInput.detectorImageSize,
       );
-      final observation =
-          runningPoseObservationFromMediaPipeDetection(detection);
-      final state = _coachingService.ingestObservation(
-        observation,
+      final coachingSnapshot = _coachingService.ingestDetection(
+        detection,
         timestamp: now,
       );
+      final state = coachingSnapshot.runningState;
+      final sprintState = coachingSnapshot.sprintState;
       stopwatch.stop();
       _sessionMetricsCollector.recordAnalyzedFrame(
         timestamp: now,
         processingTime: stopwatch.elapsed,
         state: state,
       );
+      if (coachingSnapshot.sprintAnalysisUpdated) {
+        _sprintSessionMetricsCollector.recordAnalyzedFrame(
+          timestamp: now,
+          processingTime: stopwatch.elapsed,
+          frame: coachingSnapshot.sprintPoseFrame,
+          state: sprintState,
+        );
+      } else {
+        _sprintSessionMetricsCollector.recordSkippedFrame(
+          SprintSkippedFrameReason.throttled,
+        );
+      }
       if (_isDisposed || !mounted || sessionId != _cameraSessionId) {
         return;
       }
@@ -732,14 +791,18 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       _poseOverlayFrame.value =
           _visualPoseTracker.frameAt(_currentFrameClockTimestamp()) ??
               visualFrame;
-      _publishCoachingState(state, now);
+      _publishCoachingState(state, sprintState, now);
       _emitSessionLog(event: 'periodic', force: false, now: now);
-      await _maybeSpeakCue(state);
+      await _maybeSpeakGuidance(
+        _guidanceFor(
+          AppLocalizations.of(context)!,
+          runningState: state,
+          sprintState: sprintState,
+        ),
+      );
     } catch (error, stackTrace) {
       stopwatch.stop();
-      _sessionMetricsCollector.recordSkippedFrame(
-        RunningLiveSkippedFrameReason.analysisError,
-      );
+      _recordSkippedFrame(RunningLiveSkippedFrameReason.analysisError);
       _emitSkippedFrameEvent(
         RunningLiveSkippedFrameReason.analysisError,
         receivedAt,
@@ -765,27 +828,33 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
 
   void _publishCoachingState(
     RunningLiveCoachingState state,
+    SprintRealtimeCoachingState sprintState,
     DateTime timestamp,
   ) {
     _latestCoachingState = state;
+    _latestSprintCoachingState = sprintState;
     if (_isDisposed || !mounted) {
       return;
     }
-    if (!_shouldPublishCoachingUiState(state, timestamp)) {
+    if (!_shouldPublishCoachingUiState(state, sprintState, timestamp)) {
       return;
     }
     setState(() {
       _coachingState = state;
+      _sprintCoachingState = sprintState;
       _lastUiStatePublishedAt = timestamp;
     });
   }
 
   bool _shouldPublishCoachingUiState(
     RunningLiveCoachingState state,
+    SprintRealtimeCoachingState sprintState,
     DateTime timestamp,
   ) {
     if (state.primaryCue != _coachingState.primaryCue ||
-        state.framingIssue != _coachingState.framingIssue) {
+        state.framingIssue != _coachingState.framingIssue ||
+        sprintState.status != _sprintCoachingState.status ||
+        sprintState.feedback?.code != _sprintCoachingState.feedback?.code) {
       return true;
     }
     final lastPublishedAt = _lastUiStatePublishedAt;
@@ -913,8 +982,9 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     _lastProcessedAt = null;
     _lastSpokenAt = null;
     _lastUiStatePublishedAt = null;
-    _lastSpokenCue = null;
+    _lastSpokenGuidanceKey = null;
     _latestCoachingState = _initialCoachingState;
+    _latestSprintCoachingState = _initialSprintCoachingState;
 
     if (mounted) {
       setState(() {
@@ -922,6 +992,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
         _cameraErrorCode = null;
         _isInitializing = false;
         _coachingState = _initialCoachingState;
+        _sprintCoachingState = _initialSprintCoachingState;
         _isHudExpanded = false;
       });
     }
@@ -932,54 +1003,35 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     await _mediaPipePoseLandmarker.close();
   }
 
-  Future<void> _maybeSpeakCue(RunningLiveCoachingState state) async {
+  Future<void> _maybeSpeakGuidance(_LiveCoachingGuidance guidance) async {
     if (!_isSpeechEnabled || _isDisposed || !mounted) {
       return;
     }
-
-    final cue = state.primaryCue;
-    if (cue == RunningLivePrimaryCue.keepRunning) {
+    if (!guidance.shouldSpeak || guidance.cueText.isEmpty) {
       return;
     }
 
     final now = DateTime.now();
-    final cooldown =
-        _lastSpokenCue == cue ? _repeatSpeechCooldown : _changeSpeechCooldown;
+    final cooldown = _lastSpokenGuidanceKey == guidance.key
+        ? _repeatSpeechCooldown
+        : _changeSpeechCooldown;
     if (_lastSpokenAt != null && now.difference(_lastSpokenAt!) < cooldown) {
       return;
     }
 
-    final l10n = AppLocalizations.of(context)!;
-    final message = _coachSpeechMessage(l10n, state);
-    if (message.isEmpty) {
-      return;
-    }
-
-    _lastSpokenCue = cue;
+    _lastSpokenGuidanceKey = guidance.key;
     _lastSpokenAt = now;
     await _tts.stop();
-    await _tts.speak(message);
-  }
-
-  String _coachSpeechMessage(
-    AppLocalizations l10n,
-    RunningLiveCoachingState state,
-  ) {
-    if (state.framingIssue != null) {
-      return _voiceText(l10n, state.primaryCue);
-    }
-    final insight = state.highlightedInsight;
-    if (insight == null) {
-      return _voiceText(l10n, state.primaryCue);
-    }
-    final copy = RunningCoachInsightCopy.fromInsight(insight, l10n);
-    if (state.primaryCue == RunningLivePrimaryCue.lookingGood) {
-      return '${copy.title}. ${copy.cue}';
-    }
-    return '${copy.title}. ${copy.cue}';
+    await _tts.speak(guidance.cueText);
   }
 
   String _panelTitle(AppLocalizations l10n) {
+    if (_sprintCoachingState.status == SprintCoachingStatus.coaching) {
+      return l10n.runningCoachSprintLiveStatusCoaching;
+    }
+    if (_sprintCoachingState.status == SprintCoachingStatus.ready) {
+      return l10n.runningCoachSprintLiveStatusReady;
+    }
     final report = _coachingState.coachingReport;
     if (report == null) {
       return _coachingState.framingIssue == null
@@ -1033,6 +1085,120 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       return RunningCoachInsightCopy.fromInsight(insight, l10n).cue;
     }
     return '';
+  }
+
+  _LiveCoachingGuidance _guidanceFor(
+    AppLocalizations l10n, {
+    required RunningLiveCoachingState runningState,
+    required SprintRealtimeCoachingState sprintState,
+  }) {
+    final sprintFeedback = sprintState.feedback;
+    if (runningState.framingIssue == null &&
+        sprintFeedback != null &&
+        sprintFeedback.severity != SprintFeedbackSeverity.info) {
+      final cueText = _localizedSprintFeedbackCue(
+        l10n,
+        sprintFeedback.localizationKey,
+      );
+      if (cueText.isNotEmpty) {
+        return _LiveCoachingGuidance(
+          key: 'sprint-${sprintFeedback.cooldownKey}',
+          cueText: cueText,
+          diagnosis: _localizedSprintFeedbackDiagnosis(
+            l10n,
+            sprintFeedback.diagnosisKey,
+          ),
+          actionTip: _localizedSprintFeedbackActionTip(
+            l10n,
+            sprintFeedback.actionTipKey,
+          ),
+        );
+      }
+    }
+
+    final cue = runningState.primaryCue;
+    return _LiveCoachingGuidance(
+      key: 'running-${cue.name}',
+      cueText: _cueText(l10n, cue),
+      diagnosis: _diagnosisText(l10n, runningState),
+      actionTip: _actionTipText(l10n, runningState),
+      shouldSpeak: cue != RunningLivePrimaryCue.keepRunning,
+    );
+  }
+
+  String _localizedSprintFeedbackCue(
+    AppLocalizations l10n,
+    String? localizationKey,
+  ) {
+    return switch (localizationKey) {
+      'runningCoachSprintCueBodyVisible' =>
+        l10n.runningCoachSprintCueBodyVisible,
+      'runningCoachSprintCueLeanForward' =>
+        l10n.runningCoachSprintCueLeanForward,
+      'runningCoachSprintCueDriveKnee' => l10n.runningCoachSprintCueDriveKnee,
+      'runningCoachSprintCueKeepRhythm' => l10n.runningCoachSprintCueKeepRhythm,
+      'runningCoachSprintCueBalanceArms' =>
+        l10n.runningCoachSprintCueBalanceArms,
+      'runningCoachSprintCueLandUnderHips' =>
+        l10n.runningCoachSprintCueLandUnderHips,
+      'runningCoachSprintCueLiftOffQuickly' =>
+        l10n.runningCoachSprintCueLiftOffQuickly,
+      'runningCoachSprintCueHoldLateForm' =>
+        l10n.runningCoachSprintCueHoldLateForm,
+      'runningCoachSprintCueKeepPushing' =>
+        l10n.runningCoachSprintCueKeepPushing,
+      _ => '',
+    };
+  }
+
+  String _localizedSprintFeedbackDiagnosis(
+    AppLocalizations l10n,
+    String? localizationKey,
+  ) {
+    return switch (localizationKey) {
+      'runningCoachSprintDiagnosisLeanForward' =>
+        l10n.runningCoachSprintDiagnosisLeanForward,
+      'runningCoachSprintDiagnosisDriveKnee' =>
+        l10n.runningCoachSprintDiagnosisDriveKnee,
+      'runningCoachSprintDiagnosisKeepRhythm' =>
+        l10n.runningCoachSprintDiagnosisKeepRhythm,
+      'runningCoachSprintDiagnosisBalanceArms' =>
+        l10n.runningCoachSprintDiagnosisBalanceArms,
+      'runningCoachSprintDiagnosisLandUnderHips' =>
+        l10n.runningCoachSprintDiagnosisLandUnderHips,
+      'runningCoachSprintDiagnosisLiftOffQuickly' =>
+        l10n.runningCoachSprintDiagnosisLiftOffQuickly,
+      'runningCoachSprintDiagnosisHoldLateForm' =>
+        l10n.runningCoachSprintDiagnosisHoldLateForm,
+      'runningCoachSprintDiagnosisKeepPushing' =>
+        l10n.runningCoachSprintDiagnosisKeepPushing,
+      _ => '',
+    };
+  }
+
+  String _localizedSprintFeedbackActionTip(
+    AppLocalizations l10n,
+    String? localizationKey,
+  ) {
+    return switch (localizationKey) {
+      'runningCoachSprintActionLeanForward' =>
+        l10n.runningCoachSprintActionLeanForward,
+      'runningCoachSprintActionDriveKnee' =>
+        l10n.runningCoachSprintActionDriveKnee,
+      'runningCoachSprintActionKeepRhythm' =>
+        l10n.runningCoachSprintActionKeepRhythm,
+      'runningCoachSprintActionBalanceArms' =>
+        l10n.runningCoachSprintActionBalanceArms,
+      'runningCoachSprintActionLandUnderHips' =>
+        l10n.runningCoachSprintActionLandUnderHips,
+      'runningCoachSprintActionLiftOffQuickly' =>
+        l10n.runningCoachSprintActionLiftOffQuickly,
+      'runningCoachSprintActionHoldLateForm' =>
+        l10n.runningCoachSprintActionHoldLateForm,
+      'runningCoachSprintActionKeepPushing' =>
+        l10n.runningCoachSprintActionKeepPushing,
+      _ => '',
+    };
   }
 
   List<_LiveInsightData> _buildInsightDetails(AppLocalizations l10n) {
@@ -1676,6 +1842,22 @@ class _LiveInsightData {
   const _LiveInsightData({required this.insight, required this.copy});
 }
 
+class _LiveCoachingGuidance {
+  final String key;
+  final String cueText;
+  final String diagnosis;
+  final String actionTip;
+  final bool shouldSpeak;
+
+  const _LiveCoachingGuidance({
+    required this.key,
+    required this.cueText,
+    required this.diagnosis,
+    required this.actionTip,
+    this.shouldSpeak = true,
+  });
+}
+
 String _runningLiveQualityReasonText(
   AppLocalizations l10n,
   RunningMetricQuality quality,
@@ -1705,6 +1887,7 @@ class _ScoreExplanationPanel extends StatelessWidget {
   final String diagnosis;
   final String actionTip;
   final RunningGaitAnalysis gaitAnalysis;
+  final SprintRealtimeCoachingState sprintState;
   final List<_LiveInsightData> metricScores;
   final Map<RunningCoachMetric, int> focusPriorities;
   final List<_LiveInsightSection> metricSections;
@@ -1719,6 +1902,7 @@ class _ScoreExplanationPanel extends StatelessWidget {
     required this.diagnosis,
     required this.actionTip,
     required this.gaitAnalysis,
+    required this.sprintState,
     required this.metricScores,
     required this.focusPriorities,
     required this.metricSections,
@@ -1760,6 +1944,10 @@ class _ScoreExplanationPanel extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         _GaitStatusChips(gaitAnalysis: gaitAnalysis),
+        const SizedBox(height: 16),
+        _PanelSectionTitle(text: l10n.runningCoachLiveSprintMetricsTitle),
+        const SizedBox(height: 8),
+        _SprintMetricSummary(state: sprintState),
         if (cueText.isNotEmpty ||
             diagnosis.isNotEmpty ||
             actionTip.isNotEmpty) ...[
@@ -1882,6 +2070,182 @@ class _GaitStatusChips extends StatelessWidget {
       return l10n.runningCoachLiveGaitContactPending(sideLabel);
     }
     return l10n.runningCoachLiveGaitContactValue(sideLabel, value.round());
+  }
+}
+
+class _SprintMetricSummary extends StatelessWidget {
+  final SprintRealtimeCoachingState state;
+
+  const _SprintMetricSummary({required this.state});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final features = state.features;
+    final metrics = <_SprintMetricSummaryItem>[
+      _SprintMetricSummaryItem(
+        label: l10n.runningCoachSprintMetricTrunkLabel,
+        value: features.trunkAngleDegrees == null
+            ? l10n.runningCoachSprintMetricPending
+            : l10n.runningCoachSprintMetricTrunkValue(
+                features.trunkAngleDegrees!.toStringAsFixed(1),
+              ),
+      ),
+      _SprintMetricSummaryItem(
+        label: l10n.runningCoachSprintMetricKneeDriveLabel,
+        value: features.kneeDriveHeightRatio == null
+            ? l10n.runningCoachSprintMetricPending
+            : l10n.runningCoachSprintMetricKneeDriveValue(
+                (features.kneeDriveHeightRatio! * 100).round().toString(),
+              ),
+      ),
+      _SprintMetricSummaryItem(
+        label: l10n.runningCoachSprintMetricCadenceLabel,
+        value: features.cadenceStepsPerMinute == null
+            ? l10n.runningCoachSprintMetricPending
+            : l10n.runningCoachSprintMetricCadenceValue(
+                features.cadenceStepsPerMinute!.round().toString(),
+              ),
+      ),
+      _SprintMetricSummaryItem(
+        label: l10n.runningCoachSprintMetricRhythmLabel,
+        value: features.stepIntervalStdMs == null
+            ? l10n.runningCoachSprintMetricPending
+            : l10n.runningCoachSprintMetricRhythmValue(
+                features.stepIntervalStdMs!.round().toString(),
+              ),
+      ),
+      _SprintMetricSummaryItem(
+        label: l10n.runningCoachSprintMetricLandingLabel,
+        value: features.overstrideRatio == null ||
+                features.landingShinAngleDegrees == null
+            ? l10n.runningCoachSprintMetricPending
+            : l10n.runningCoachSprintMetricLandingValue(
+                (features.overstrideRatio! * 100).round().toString(),
+                features.landingShinAngleDegrees!.round().toString(),
+              ),
+      ),
+      _SprintMetricSummaryItem(
+        label: l10n.runningCoachSprintMetricFlightLabel,
+        value: features.estimatedFlightRatio == null
+            ? l10n.runningCoachSprintMetricPending
+            : l10n.runningCoachSprintMetricFlightValue(
+                (features.estimatedFlightRatio! * 100).round().toString(),
+              ),
+      ),
+      _SprintMetricSummaryItem(
+        label: l10n.runningCoachSprintMetricArmBalanceLabel,
+        value: features.armSwingAsymmetryRatio == null
+            ? l10n.runningCoachSprintMetricPending
+            : l10n.runningCoachSprintMetricArmBalanceValue(
+                (features.armSwingAsymmetryRatio! * 100).round().toString(),
+              ),
+      ),
+      _SprintMetricSummaryItem(
+        label: l10n.runningCoachSprintMetricLateFormLabel,
+        value: features.lateFormDropScore == null
+            ? l10n.runningCoachSprintMetricPending
+            : l10n.runningCoachSprintMetricLateFormValue(
+                (features.lateFormDropScore! * 100).round().toString(),
+              ),
+      ),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _InfoChip(
+              text: l10n.runningCoachSprintTrackingConfidenceValue(
+                (state.stateEstimate.trackingConfidence * 100).round(),
+              ),
+            ),
+            _InfoChip(
+              text: l10n.runningCoachSprintTrackedFrames(state.trackedFrames),
+            ),
+            _InfoChip(
+              text: l10n.runningCoachSprintDetectedSteps(
+                features.detectedStepEvents,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final useTwoColumns = constraints.maxWidth >= 360;
+            final itemWidth = useTwoColumns
+                ? (constraints.maxWidth - 8) / 2
+                : constraints.maxWidth;
+            return Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final metric in metrics)
+                  SizedBox(
+                    width: itemWidth,
+                    child: _SprintMetricTile(item: metric),
+                  ),
+              ],
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _SprintMetricSummaryItem {
+  final String label;
+  final String value;
+
+  const _SprintMetricSummaryItem({required this.label, required this.value});
+}
+
+class _SprintMetricTile extends StatelessWidget {
+  final _SprintMetricSummaryItem item;
+
+  const _SprintMetricTile({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.white.withAlpha(8),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              item.label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: Colors.white60,
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              item.value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                  ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

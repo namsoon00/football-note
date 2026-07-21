@@ -4694,7 +4694,7 @@
       }
     }
   },
-  "runningCoachMissionStartSprint": "Start sprint coach",
+  "runningCoachMissionStartSprint": "Start live sprint coach",
   "runningCoachMissionStartLive": "Check form live",
   "runningCoachMissionBreakawayTitle": "Break the defensive line",
   "runningCoachMissionBreakawayBody": "Run 20m as if you are attacking the space behind the back line. Keep it to three sharp attempts.",
@@ -4951,13 +4951,13 @@
   "runningCoachDenseContactTimesLabel": "Timestamps",
   "runningCoachDenseContactUnavailable": "No validated contact",
   "runningCoachLiveCardTitle": "Live coach",
-  "runningCoachLiveCardBody": "Track anatomical joints and skeleton lines live, then switch straight into sprint-specific feedback for trunk lean, knee drive, step rhythm, and arm balance.",
-  "runningCoachLiveAction": "Start live coach",
+  "runningCoachLiveCardBody": "Track anatomical joints, gait timing, and sprint mechanics in one live coach for trunk lean, knee drive, landing, rhythm, and arm balance.",
+  "runningCoachLiveAction": "Start live sprint coach",
   "runningCoachLiveGuideAction": "Shooting guide",
-  "runningCoachLiveScreenTitle": "Live running coach",
+  "runningCoachLiveScreenTitle": "Live sprint coach",
   "runningCoachLiveGuideScreenTitle": "Live shooting guide",
   "runningCoachLiveGuideHeroTitle": "Track anatomical joints and the live coaching HUD",
-  "runningCoachLiveGuideHeroBody": "The live coach draws anatomical joints and skeleton lines directly over the camera feed. The compact HUD keeps the cue and score clear, and expands only when you need gait, metric, and diagnosis details.",
+  "runningCoachLiveGuideHeroBody": "The live sprint coach draws anatomical joints and skeleton lines directly over the camera feed, then combines gait timing with trunk, knee, landing, rhythm, and arm metrics in one expandable result panel.",
   "runningCoachLiveGuideTipSideTitle": "Show a side view",
   "runningCoachLiveGuideTipSideBody": "The runner should move across the frame from the side, not straight toward the camera or on a heavy diagonal.",
   "runningCoachLiveGuideTipBodyTitle": "Keep the full body in frame",
@@ -5051,6 +5051,7 @@
       }
     }
   },
+  "runningCoachLiveSprintMetricsTitle": "Sprint mechanics",
   "runningCoachSprintLiveCardTitle": "Live sprint coaching",
   "runningCoachSprintLiveCardBody": "Use the side-view camera to check full-body capture first, then show trunk, knee, and rhythm cues only when joint confidence is stable.",
   "runningCoachSprintLiveAction": "Start sprint coaching",

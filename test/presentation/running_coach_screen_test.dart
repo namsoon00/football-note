@@ -69,6 +69,34 @@ void main() {
     expect(find.text('Open sample video guide'), findsOneWidget);
   });
 
+  testWidgets('mission exposes one unified live sprint coach action', (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1200));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: RunningCoachScreen(optionRepository: _MemoryOptionRepository()),
+      ),
+    );
+
+    expect(find.text('Start live sprint coach'), findsOneWidget);
+    expect(find.text('Check form live'), findsNothing);
+    expect(
+      find.widgetWithText(FilledButton, 'Start live sprint coach'),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('sample sheet shows framed runner posture cues', (
     WidgetTester tester,
   ) async {
