@@ -23,8 +23,8 @@ class LiveSprintCoachingSnapshot {
 /// Fans one MediaPipe detection out to the running and sprint evaluators.
 class LiveSprintCoachingService {
   final RunningLiveCoachingService _runningService;
-  final SprintLiveCoachingService _sprintService;
-  final SprintPipelineConfig _sprintConfig;
+  SprintLiveCoachingService _sprintService;
+  SprintPipelineConfig _sprintConfig;
 
   SprintRealtimeCoachingState _latestSprintState =
       const SprintRealtimeCoachingState.initial();
@@ -42,6 +42,13 @@ class LiveSprintCoachingService {
   void reset() {
     _runningService.reset();
     _sprintService.reset();
+    _latestSprintState = const SprintRealtimeCoachingState.initial();
+    _lastSprintAnalysisAt = null;
+  }
+
+  void updateSprintConfig(SprintPipelineConfig sprintConfig) {
+    _sprintConfig = sprintConfig;
+    _sprintService = SprintLiveCoachingService(config: sprintConfig);
     _latestSprintState = const SprintRealtimeCoachingState.initial();
     _lastSprintAnalysisAt = null;
   }

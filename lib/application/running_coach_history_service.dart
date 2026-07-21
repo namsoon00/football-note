@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import '../domain/entities/running_coach_session.dart';
 import '../domain/entities/running_live_coaching_state.dart';
 import '../domain/entities/running_video_analysis_result.dart';
+import '../domain/entities/sprint_capture_calibration_profile.dart';
 import '../domain/entities/sprint_realtime_coaching_state.dart';
 import '../domain/repositories/option_repository.dart';
 import 'live_sprint_session_report_service.dart';
@@ -103,6 +104,8 @@ class RunningCoachHistoryService {
     required SprintLiveSessionMetricsSnapshot sprintSnapshot,
     required RunningLiveCoachingState runningState,
     required SprintRealtimeCoachingState sprintState,
+    SprintCaptureCalibrationProfile calibrationProfile =
+        SprintCaptureCalibrationProfile.balanced,
     List<LiveSprintPoseEvidenceFrame> poseEvidence =
         const <LiveSprintPoseEvidenceFrame>[],
     LiveSprintPoseEvidenceDiagnostic poseEvidenceDiagnostic =
@@ -115,6 +118,7 @@ class RunningCoachHistoryService {
       sprintSnapshot: sprintSnapshot,
       runningState: runningState,
       sprintState: sprintState,
+      calibrationProfile: calibrationProfile,
       poseEvidence: poseEvidence,
       poseEvidenceDiagnostic: poseEvidenceDiagnostic,
     );

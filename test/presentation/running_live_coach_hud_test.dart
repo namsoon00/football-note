@@ -3,6 +3,8 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:football_note/domain/entities/running_coach_session.dart';
+import 'package:football_note/domain/entities/sprint_capture_calibration_profile.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/running_live_coach_screen.dart';
 
@@ -158,6 +160,46 @@ void main() {
       semantics.dispose();
     }
   });
+
+  testWidgets('calibration panel fits a 320px mobile viewport', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(320, 640));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(
+      _LocalizedHarness(
+        child: Center(
+          child: SizedBox(
+            width: 320,
+            child: SingleChildScrollView(
+              child: RunningLiveSprintCalibrationPanel(
+                selectedProfile: SprintCaptureCalibrationProfile.balanced,
+                onProfileChanged: (_) {},
+                diagnostic: _captureDiagnostic(),
+                compact: true,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(
+        const ValueKey('running-live-sprint-calibration-profile-selector'),
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Balanced'), findsOneWidget);
+    expect(find.text('Capture readiness'), findsOneWidget);
+    expect(find.text('Framing'), findsOneWidget);
+    expect(find.text('Side view'), findsOneWidget);
+    expect(find.text('Core joints'), findsOneWidget);
+    expect(find.text('Gait phase'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }
 
 Future<void> _pumpHud(
@@ -244,6 +286,43 @@ class _TestHudDetails extends StatelessWidget {
       ],
     );
   }
+}
+
+LiveSprintPoseEvidenceDiagnostic _captureDiagnostic() {
+  return const LiveSprintPoseEvidenceDiagnostic(
+    evaluatedFrames: 24,
+    eligibleFrames: 7,
+    capturedPhaseCount: 1,
+    fullBodyBlockedFrames: 2,
+    sideViewBlockedFrames: 4,
+    coreJointsBlockedFrames: 8,
+    gaitPhaseBlockedFrames: 3,
+    currentBlocker: LiveSprintPoseEvidenceBlocker.observedCoreJoints,
+    readinessSummary: LiveSprintCaptureReadinessSummary(
+      framing: LiveSprintCaptureReadinessCheck(
+        ready: true,
+        value: 1,
+        threshold: 1,
+      ),
+      sideView: LiveSprintCaptureReadinessCheck(
+        ready: true,
+        value: 0.72,
+        threshold: 0.65,
+      ),
+      coreJointConfidence: LiveSprintCaptureReadinessCheck(
+        ready: false,
+        value: 0.61,
+        threshold: 0.70,
+        observedCount: 12,
+        requiredCount: 15,
+      ),
+      gaitPhase: LiveSprintCaptureReadinessCheck(
+        ready: true,
+        value: 0.76,
+        threshold: 0.62,
+      ),
+    ),
+  );
 }
 
 class _LocalizedHarness extends StatelessWidget {

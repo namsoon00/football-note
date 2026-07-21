@@ -8900,6 +8900,63 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachLivePoseEvidenceReady => '안정적인 관절 근거를 수집하고 있어요.';
 
   @override
+  String get runningCoachSprintCalibrationProfileLabel => '캡처 프로필';
+
+  @override
+  String get runningCoachSprintCalibrationProfileConservative => '정밀';
+
+  @override
+  String get runningCoachSprintCalibrationProfileBalanced => '균형';
+
+  @override
+  String get runningCoachSprintCalibrationProfileResponsive => '반응';
+
+  @override
+  String get runningCoachSprintCalibrationProfileConservativeDescription =>
+      '삼각대와 밝은 조명에서 더 엄격한 기준을 사용합니다. 카메라 프레임은 저장하지 않습니다.';
+
+  @override
+  String get runningCoachSprintCalibrationProfileBalancedDescription =>
+      '대부분의 야외 휴대폰 촬영에 맞춘 균형 기준을 사용합니다. 카메라 프레임은 저장하지 않습니다.';
+
+  @override
+  String get runningCoachSprintCalibrationProfileResponsiveDescription =>
+      '손에 들고 흔들리는 촬영에 맞춰 더 관대한 기준을 사용합니다. 카메라 프레임은 저장하지 않습니다.';
+
+  @override
+  String get runningCoachSprintCaptureReadinessTitle => '캡처 준비도';
+
+  @override
+  String get runningCoachSprintCaptureReadinessFraming => '프레이밍';
+
+  @override
+  String get runningCoachSprintCaptureReadinessSideView => '측면 구도';
+
+  @override
+  String get runningCoachSprintCaptureReadinessCoreJoints => '핵심 관절';
+
+  @override
+  String get runningCoachSprintCaptureReadinessGaitPhase => '보행 구간';
+
+  @override
+  String get runningCoachSprintCaptureReadinessReady => '준비됨';
+
+  @override
+  String get runningCoachSprintCaptureReadinessAdjust => '조정';
+
+  @override
+  String runningCoachSprintCaptureReadinessPercentValue(
+      int current, int target) {
+    return '$current% / 목표 $target%';
+  }
+
+  @override
+  String runningCoachSprintCaptureReadinessCoreValue(
+      int current, int target, int observed, int required) {
+    return '$current% / 목표 $target% - 관절 $observed/$required';
+  }
+
+  @override
   String runningCoachLiveSessionReportEvidenceCoverage(int count) {
     return '확보 $count/3 구간';
   }

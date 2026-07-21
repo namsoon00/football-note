@@ -1,5 +1,6 @@
 import '../domain/entities/running_coach_session.dart';
 import '../domain/entities/running_live_coaching_state.dart';
+import '../domain/entities/sprint_capture_calibration_profile.dart';
 import '../domain/entities/running_video_analysis_result.dart';
 import '../domain/entities/sprint_realtime_coaching_state.dart';
 import 'running_live_session_metrics.dart';
@@ -15,6 +16,8 @@ class LiveSprintSessionReportService {
     required SprintLiveSessionMetricsSnapshot sprintSnapshot,
     required RunningLiveCoachingState runningState,
     required SprintRealtimeCoachingState sprintState,
+    SprintCaptureCalibrationProfile calibrationProfile =
+        SprintCaptureCalibrationProfile.balanced,
     List<LiveSprintPoseEvidenceFrame> poseEvidence =
         const <LiveSprintPoseEvidenceFrame>[],
     LiveSprintPoseEvidenceDiagnostic poseEvidenceDiagnostic =
@@ -50,6 +53,7 @@ class LiveSprintSessionReportService {
         sprintSnapshot: sprintSnapshot,
         runningState: runningState,
         sprintState: sprintState,
+        calibrationProfile: calibrationProfile,
         poseEvidence: poseEvidence,
         poseEvidenceDiagnostic: poseEvidenceDiagnostic,
       ),
@@ -61,6 +65,7 @@ class LiveSprintSessionReportService {
     required SprintLiveSessionMetricsSnapshot sprintSnapshot,
     required RunningLiveCoachingState runningState,
     required SprintRealtimeCoachingState sprintState,
+    required SprintCaptureCalibrationProfile calibrationProfile,
     required List<LiveSprintPoseEvidenceFrame> poseEvidence,
     required LiveSprintPoseEvidenceDiagnostic poseEvidenceDiagnostic,
   }) {
@@ -69,6 +74,7 @@ class LiveSprintSessionReportService {
     final actionableFeedback =
         feedback?.severity == SprintFeedbackSeverity.info ? null : feedback;
     return LiveSprintSessionReport(
+      calibrationProfile: calibrationProfile,
       runningTrackedFrames: runningState.trackedFrames,
       runningAnalyzedFrames: runningSnapshot.analyzedFrames,
       sprintTrackedFrames: sprintState.trackedFrames,

@@ -5097,6 +5097,48 @@
     }
   },
   "runningCoachLivePoseEvidenceReady": "安定した関節の根拠を収集中です。",
+  "runningCoachSprintCalibrationProfileLabel": "キャプチャプロファイル",
+  "runningCoachSprintCalibrationProfileConservative": "厳密",
+  "runningCoachSprintCalibrationProfileBalanced": "標準",
+  "runningCoachSprintCalibrationProfileResponsive": "反応優先",
+  "runningCoachSprintCalibrationProfileConservativeDescription": "三脚と明るい環境向けに、より厳しい基準を使います。カメラフレームは保存しません。",
+  "runningCoachSprintCalibrationProfileBalancedDescription": "多くの屋外スマートフォン撮影向けの標準基準を使います。カメラフレームは保存しません。",
+  "runningCoachSprintCalibrationProfileResponsiveDescription": "手持ちで揺れやすい撮影向けに、より許容度の高い基準を使います。カメラフレームは保存しません。",
+  "runningCoachSprintCaptureReadinessTitle": "キャプチャ準備度",
+  "runningCoachSprintCaptureReadinessFraming": "フレーミング",
+  "runningCoachSprintCaptureReadinessSideView": "側面ビュー",
+  "runningCoachSprintCaptureReadinessCoreJoints": "主要関節",
+  "runningCoachSprintCaptureReadinessGaitPhase": "歩行フェーズ",
+  "runningCoachSprintCaptureReadinessReady": "準備完了",
+  "runningCoachSprintCaptureReadinessAdjust": "調整",
+  "runningCoachSprintCaptureReadinessPercentValue": "{current}% / 目標 {target}%",
+  "@runningCoachSprintCaptureReadinessPercentValue": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintCaptureReadinessCoreValue": "{current}% / 目標 {target}% - 関節 {observed}/{required}",
+  "@runningCoachSprintCaptureReadinessCoreValue": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      },
+      "observed": {
+        "type": "int"
+      },
+      "required": {
+        "type": "int"
+      }
+    }
+  },
   "runningCoachLiveSessionReportEvidenceCoverage": "取得 {count}/3 フェーズ",
   "@runningCoachLiveSessionReportEvidenceCoverage": {
     "placeholders": {

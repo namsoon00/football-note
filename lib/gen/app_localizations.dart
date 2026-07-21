@@ -15959,6 +15959,104 @@ abstract class AppLocalizations {
   /// **'Stable joint evidence is being collected.'**
   String get runningCoachLivePoseEvidenceReady;
 
+  /// No description provided for @runningCoachSprintCalibrationProfileLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Capture profile'**
+  String get runningCoachSprintCalibrationProfileLabel;
+
+  /// No description provided for @runningCoachSprintCalibrationProfileConservative.
+  ///
+  /// In en, this message translates to:
+  /// **'Strict'**
+  String get runningCoachSprintCalibrationProfileConservative;
+
+  /// No description provided for @runningCoachSprintCalibrationProfileBalanced.
+  ///
+  /// In en, this message translates to:
+  /// **'Balanced'**
+  String get runningCoachSprintCalibrationProfileBalanced;
+
+  /// No description provided for @runningCoachSprintCalibrationProfileResponsive.
+  ///
+  /// In en, this message translates to:
+  /// **'Responsive'**
+  String get runningCoachSprintCalibrationProfileResponsive;
+
+  /// No description provided for @runningCoachSprintCalibrationProfileConservativeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Uses stricter thresholds for tripod captures with clear light. No camera frames are saved.'**
+  String get runningCoachSprintCalibrationProfileConservativeDescription;
+
+  /// No description provided for @runningCoachSprintCalibrationProfileBalancedDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Uses balanced thresholds for most outdoor phone captures. No camera frames are saved.'**
+  String get runningCoachSprintCalibrationProfileBalancedDescription;
+
+  /// No description provided for @runningCoachSprintCalibrationProfileResponsiveDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Uses more forgiving thresholds for shaky handheld captures. No camera frames are saved.'**
+  String get runningCoachSprintCalibrationProfileResponsiveDescription;
+
+  /// No description provided for @runningCoachSprintCaptureReadinessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Capture readiness'**
+  String get runningCoachSprintCaptureReadinessTitle;
+
+  /// No description provided for @runningCoachSprintCaptureReadinessFraming.
+  ///
+  /// In en, this message translates to:
+  /// **'Framing'**
+  String get runningCoachSprintCaptureReadinessFraming;
+
+  /// No description provided for @runningCoachSprintCaptureReadinessSideView.
+  ///
+  /// In en, this message translates to:
+  /// **'Side view'**
+  String get runningCoachSprintCaptureReadinessSideView;
+
+  /// No description provided for @runningCoachSprintCaptureReadinessCoreJoints.
+  ///
+  /// In en, this message translates to:
+  /// **'Core joints'**
+  String get runningCoachSprintCaptureReadinessCoreJoints;
+
+  /// No description provided for @runningCoachSprintCaptureReadinessGaitPhase.
+  ///
+  /// In en, this message translates to:
+  /// **'Gait phase'**
+  String get runningCoachSprintCaptureReadinessGaitPhase;
+
+  /// No description provided for @runningCoachSprintCaptureReadinessReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready'**
+  String get runningCoachSprintCaptureReadinessReady;
+
+  /// No description provided for @runningCoachSprintCaptureReadinessAdjust.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust'**
+  String get runningCoachSprintCaptureReadinessAdjust;
+
+  /// No description provided for @runningCoachSprintCaptureReadinessPercentValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{current}% / target {target}%'**
+  String runningCoachSprintCaptureReadinessPercentValue(
+      int current, int target);
+
+  /// No description provided for @runningCoachSprintCaptureReadinessCoreValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{current}% / target {target}% - {observed}/{required} joints'**
+  String runningCoachSprintCaptureReadinessCoreValue(
+      int current, int target, int observed, int required);
+
   /// No description provided for @runningCoachLiveSessionReportEvidenceCoverage.
   ///
   /// In en, this message translates to:
