@@ -423,6 +423,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
                                 gaitAnalysis: _coachingState.gaitAnalysis,
                                 sprintState: _sprintCoachingState,
                                 calibrationProfile: _sprintCalibrationProfile,
+                                profileSelectionEnabled: !_isInitializing,
                                 onCalibrationProfileChanged:
                                     _selectSprintCalibrationProfile,
                                 poseEvidenceDiagnostic: poseEvidenceDiagnostic,
@@ -641,21 +642,24 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     if (profile == _sprintCalibrationProfile) {
       return;
     }
+    final preferredCamera = _activeCamera;
     setState(() {
-      _applySprintCalibrationProfile(profile, resetSprintState: true);
+      _applySprintCalibrationProfile(profile, resetSprintState: false);
     });
     unawaited(
       SprintCaptureCalibrationProfileService(
         widget.optionRepository,
       ).saveSelectedProfile(profile),
     );
-    if (_sessionId != null) {
-      _emitSessionLog(
-        event: 'calibration_profile_changed',
-        force: true,
-        details: <String, Object?>{'profile': profile.name},
+    final l10n = AppLocalizations.of(context)!;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(l10n.runningCoachSprintCalibrationProfileRestarted),
+        ),
       );
-    }
+    unawaited(_initializeCamera(preferredCamera: preferredCamera));
   }
 
   void _openGuide() {
@@ -2184,6 +2188,7 @@ class _ScoreExplanationPanel extends StatelessWidget {
   final RunningGaitAnalysis gaitAnalysis;
   final SprintRealtimeCoachingState sprintState;
   final SprintCaptureCalibrationProfile calibrationProfile;
+  final bool profileSelectionEnabled;
   final ValueChanged<SprintCaptureCalibrationProfile>
       onCalibrationProfileChanged;
   final LiveSprintPoseEvidenceDiagnostic poseEvidenceDiagnostic;
@@ -2203,6 +2208,7 @@ class _ScoreExplanationPanel extends StatelessWidget {
     required this.gaitAnalysis,
     required this.sprintState,
     required this.calibrationProfile,
+    required this.profileSelectionEnabled,
     required this.onCalibrationProfileChanged,
     required this.poseEvidenceDiagnostic,
     required this.metricScores,
@@ -2251,6 +2257,7 @@ class _ScoreExplanationPanel extends StatelessWidget {
         const SizedBox(height: 8),
         RunningLiveSprintCalibrationPanel(
           selectedProfile: calibrationProfile,
+          profileSelectionEnabled: profileSelectionEnabled,
           onProfileChanged: onCalibrationProfileChanged,
           diagnostic: poseEvidenceDiagnostic,
           compact: compact,
@@ -2314,6 +2321,7 @@ class _ScoreExplanationPanel extends StatelessWidget {
 @visibleForTesting
 class RunningLiveSprintCalibrationPanel extends StatelessWidget {
   final SprintCaptureCalibrationProfile selectedProfile;
+  final bool profileSelectionEnabled;
   final ValueChanged<SprintCaptureCalibrationProfile> onProfileChanged;
   final LiveSprintPoseEvidenceDiagnostic diagnostic;
   final bool compact;
@@ -2321,6 +2329,7 @@ class RunningLiveSprintCalibrationPanel extends StatelessWidget {
   const RunningLiveSprintCalibrationPanel({
     super.key,
     required this.selectedProfile,
+    this.profileSelectionEnabled = true,
     required this.onProfileChanged,
     required this.diagnostic,
     this.compact = false,
@@ -2382,11 +2391,13 @@ class RunningLiveSprintCalibrationPanel extends StatelessWidget {
                 ),
               ),
           ],
-          onChanged: (profile) {
-            if (profile != null) {
-              onProfileChanged(profile);
-            }
-          },
+          onChanged: profileSelectionEnabled
+              ? (profile) {
+                  if (profile != null) {
+                    onProfileChanged(profile);
+                  }
+                }
+              : null,
         ),
         const SizedBox(height: 8),
         Text(

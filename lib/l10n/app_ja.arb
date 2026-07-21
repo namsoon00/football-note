@@ -5104,6 +5104,7 @@
   "runningCoachSprintCalibrationProfileConservativeDescription": "三脚と明るい環境向けに、より厳しい基準を使います。カメラフレームは保存しません。",
   "runningCoachSprintCalibrationProfileBalancedDescription": "多くの屋外スマートフォン撮影向けの標準基準を使います。カメラフレームは保存しません。",
   "runningCoachSprintCalibrationProfileResponsiveDescription": "手持ちで揺れやすい撮影向けに、より許容度の高い基準を使います。カメラフレームは保存しません。",
+  "runningCoachSprintCalibrationProfileRestarted": "新しいプロファイルでキャプチャを再開しました。",
   "runningCoachSprintCaptureReadinessTitle": "キャプチャ準備度",
   "runningCoachSprintCaptureReadinessFraming": "フレーミング",
   "runningCoachSprintCaptureReadinessSideView": "側面ビュー",
