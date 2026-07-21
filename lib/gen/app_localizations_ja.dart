@@ -8890,6 +8890,63 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachLivePoseEvidenceReady => '安定した関節の根拠を収集中です。';
 
   @override
+  String get runningCoachSprintCalibrationProfileLabel => 'キャプチャプロファイル';
+
+  @override
+  String get runningCoachSprintCalibrationProfileConservative => '厳密';
+
+  @override
+  String get runningCoachSprintCalibrationProfileBalanced => '標準';
+
+  @override
+  String get runningCoachSprintCalibrationProfileResponsive => '反応優先';
+
+  @override
+  String get runningCoachSprintCalibrationProfileConservativeDescription =>
+      '三脚と明るい環境向けに、より厳しい基準を使います。カメラフレームは保存しません。';
+
+  @override
+  String get runningCoachSprintCalibrationProfileBalancedDescription =>
+      '多くの屋外スマートフォン撮影向けの標準基準を使います。カメラフレームは保存しません。';
+
+  @override
+  String get runningCoachSprintCalibrationProfileResponsiveDescription =>
+      '手持ちで揺れやすい撮影向けに、より許容度の高い基準を使います。カメラフレームは保存しません。';
+
+  @override
+  String get runningCoachSprintCaptureReadinessTitle => 'キャプチャ準備度';
+
+  @override
+  String get runningCoachSprintCaptureReadinessFraming => 'フレーミング';
+
+  @override
+  String get runningCoachSprintCaptureReadinessSideView => '側面ビュー';
+
+  @override
+  String get runningCoachSprintCaptureReadinessCoreJoints => '主要関節';
+
+  @override
+  String get runningCoachSprintCaptureReadinessGaitPhase => '歩行フェーズ';
+
+  @override
+  String get runningCoachSprintCaptureReadinessReady => '準備完了';
+
+  @override
+  String get runningCoachSprintCaptureReadinessAdjust => '調整';
+
+  @override
+  String runningCoachSprintCaptureReadinessPercentValue(
+      int current, int target) {
+    return '$current% / 目標 $target%';
+  }
+
+  @override
+  String runningCoachSprintCaptureReadinessCoreValue(
+      int current, int target, int observed, int required) {
+    return '$current% / 目標 $target% - 関節 $observed/$required';
+  }
+
+  @override
   String runningCoachLiveSessionReportEvidenceCoverage(int count) {
     return '取得 $count/3 フェーズ';
   }

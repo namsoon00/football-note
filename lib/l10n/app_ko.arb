@@ -5097,6 +5097,48 @@
     }
   },
   "runningCoachLivePoseEvidenceReady": "안정적인 관절 근거를 수집하고 있어요.",
+  "runningCoachSprintCalibrationProfileLabel": "캡처 프로필",
+  "runningCoachSprintCalibrationProfileConservative": "정밀",
+  "runningCoachSprintCalibrationProfileBalanced": "균형",
+  "runningCoachSprintCalibrationProfileResponsive": "반응",
+  "runningCoachSprintCalibrationProfileConservativeDescription": "삼각대와 밝은 조명에서 더 엄격한 기준을 사용합니다. 카메라 프레임은 저장하지 않습니다.",
+  "runningCoachSprintCalibrationProfileBalancedDescription": "대부분의 야외 휴대폰 촬영에 맞춘 균형 기준을 사용합니다. 카메라 프레임은 저장하지 않습니다.",
+  "runningCoachSprintCalibrationProfileResponsiveDescription": "손에 들고 흔들리는 촬영에 맞춰 더 관대한 기준을 사용합니다. 카메라 프레임은 저장하지 않습니다.",
+  "runningCoachSprintCaptureReadinessTitle": "캡처 준비도",
+  "runningCoachSprintCaptureReadinessFraming": "프레이밍",
+  "runningCoachSprintCaptureReadinessSideView": "측면 구도",
+  "runningCoachSprintCaptureReadinessCoreJoints": "핵심 관절",
+  "runningCoachSprintCaptureReadinessGaitPhase": "보행 구간",
+  "runningCoachSprintCaptureReadinessReady": "준비됨",
+  "runningCoachSprintCaptureReadinessAdjust": "조정",
+  "runningCoachSprintCaptureReadinessPercentValue": "{current}% / 목표 {target}%",
+  "@runningCoachSprintCaptureReadinessPercentValue": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintCaptureReadinessCoreValue": "{current}% / 목표 {target}% - 관절 {observed}/{required}",
+  "@runningCoachSprintCaptureReadinessCoreValue": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      },
+      "observed": {
+        "type": "int"
+      },
+      "required": {
+        "type": "int"
+      }
+    }
+  },
   "runningCoachLiveSessionReportEvidenceCoverage": "확보 {count}/3 구간",
   "@runningCoachLiveSessionReportEvidenceCoverage": {
     "placeholders": {

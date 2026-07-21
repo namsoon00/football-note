@@ -5097,6 +5097,48 @@
     }
   },
   "runningCoachLivePoseEvidenceReady": "Stable joint evidence is being collected.",
+  "runningCoachSprintCalibrationProfileLabel": "Capture profile",
+  "runningCoachSprintCalibrationProfileConservative": "Strict",
+  "runningCoachSprintCalibrationProfileBalanced": "Balanced",
+  "runningCoachSprintCalibrationProfileResponsive": "Responsive",
+  "runningCoachSprintCalibrationProfileConservativeDescription": "Uses stricter thresholds for tripod captures with clear light. No camera frames are saved.",
+  "runningCoachSprintCalibrationProfileBalancedDescription": "Uses balanced thresholds for most outdoor phone captures. No camera frames are saved.",
+  "runningCoachSprintCalibrationProfileResponsiveDescription": "Uses more forgiving thresholds for shaky handheld captures. No camera frames are saved.",
+  "runningCoachSprintCaptureReadinessTitle": "Capture readiness",
+  "runningCoachSprintCaptureReadinessFraming": "Framing",
+  "runningCoachSprintCaptureReadinessSideView": "Side view",
+  "runningCoachSprintCaptureReadinessCoreJoints": "Core joints",
+  "runningCoachSprintCaptureReadinessGaitPhase": "Gait phase",
+  "runningCoachSprintCaptureReadinessReady": "Ready",
+  "runningCoachSprintCaptureReadinessAdjust": "Adjust",
+  "runningCoachSprintCaptureReadinessPercentValue": "{current}% / target {target}%",
+  "@runningCoachSprintCaptureReadinessPercentValue": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintCaptureReadinessCoreValue": "{current}% / target {target}% - {observed}/{required} joints",
+  "@runningCoachSprintCaptureReadinessCoreValue": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      },
+      "observed": {
+        "type": "int"
+      },
+      "required": {
+        "type": "int"
+      }
+    }
+  },
   "runningCoachLiveSessionReportEvidenceCoverage": "Captured {count}/3 phases",
   "@runningCoachLiveSessionReportEvidenceCoverage": {
     "placeholders": {

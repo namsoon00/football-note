@@ -1,5 +1,6 @@
 import 'running_video_analysis_result.dart';
 import 'running_live_coaching_state.dart';
+import 'sprint_capture_calibration_profile.dart';
 import 'sprint_realtime_coaching_state.dart';
 
 enum RunningCoachSessionSource { uploadVideo, liveRun, sprintLive }
@@ -280,6 +281,129 @@ enum LiveSprintPoseEvidenceBlocker {
   gaitPhaseReadiness,
 }
 
+class LiveSprintCaptureReadinessCheck {
+  final bool ready;
+  final double value;
+  final double threshold;
+  final int observedCount;
+  final int requiredCount;
+
+  const LiveSprintCaptureReadinessCheck({
+    required this.ready,
+    required this.value,
+    required this.threshold,
+    this.observedCount = 0,
+    this.requiredCount = 0,
+  });
+
+  Map<String, Object?> toMap() {
+    return <String, Object?>{
+      'ready': ready,
+      'value': value,
+      'threshold': threshold,
+      if (requiredCount > 0) 'observedCount': observedCount,
+      if (requiredCount > 0) 'requiredCount': requiredCount,
+    };
+  }
+
+  factory LiveSprintCaptureReadinessCheck.fromMap(
+    Map<String, dynamic> map, {
+    required LiveSprintCaptureReadinessCheck fallback,
+  }) {
+    final threshold = _doubleValue(map['threshold']);
+    return LiveSprintCaptureReadinessCheck(
+      ready: map['ready'] == true,
+      value: _doubleValue(map['value']).clamp(0.0, 1.0).toDouble(),
+      threshold: (threshold <= 0 ? fallback.threshold : threshold)
+          .clamp(0.0, 1.0)
+          .toDouble(),
+      observedCount:
+          _intValue(map['observedCount'] ?? fallback.observedCount)
+              .clamp(0, 1 << 16),
+      requiredCount:
+          _intValue(map['requiredCount'] ?? fallback.requiredCount)
+              .clamp(0, 1 << 16),
+    );
+  }
+}
+
+class LiveSprintCaptureReadinessSummary {
+  final LiveSprintCaptureReadinessCheck framing;
+  final LiveSprintCaptureReadinessCheck sideView;
+  final LiveSprintCaptureReadinessCheck coreJointConfidence;
+  final LiveSprintCaptureReadinessCheck gaitPhase;
+
+  const LiveSprintCaptureReadinessSummary({
+    required this.framing,
+    required this.sideView,
+    required this.coreJointConfidence,
+    required this.gaitPhase,
+  });
+
+  const LiveSprintCaptureReadinessSummary.initial()
+      : framing = const LiveSprintCaptureReadinessCheck(
+          ready: false,
+          value: 0,
+          threshold: 1,
+        ),
+        sideView = const LiveSprintCaptureReadinessCheck(
+          ready: false,
+          value: 0,
+          threshold: 0.65,
+        ),
+        coreJointConfidence = const LiveSprintCaptureReadinessCheck(
+          ready: false,
+          value: 0,
+          threshold: 0.70,
+          observedCount: 0,
+          requiredCount: 15,
+        ),
+        gaitPhase = const LiveSprintCaptureReadinessCheck(
+          ready: false,
+          value: 0,
+          threshold: 0.62,
+        );
+
+  bool get allReady =>
+      framing.ready &&
+      sideView.ready &&
+      coreJointConfidence.ready &&
+      gaitPhase.ready;
+
+  Map<String, Object?> toMap() {
+    return <String, Object?>{
+      'framing': framing.toMap(),
+      'sideView': sideView.toMap(),
+      'coreJointConfidence': coreJointConfidence.toMap(),
+      'gaitPhase': gaitPhase.toMap(),
+    };
+  }
+
+  factory LiveSprintCaptureReadinessSummary.fromMap(
+    Map<String, dynamic> map,
+  ) {
+    const fallback = LiveSprintCaptureReadinessSummary.initial();
+    return LiveSprintCaptureReadinessSummary(
+      framing: _liveSprintCaptureReadinessCheckFromMap(
+        map['framing'],
+        fallback: fallback.framing,
+      ),
+      sideView: _liveSprintCaptureReadinessCheckFromMap(
+        map['sideView'],
+        fallback: fallback.sideView,
+      ),
+      coreJointConfidence: _liveSprintCaptureReadinessCheckFromMap(
+        map['coreJointConfidence'],
+        fallback: fallback.coreJointConfidence,
+      ),
+      gaitPhase: _liveSprintCaptureReadinessCheckFromMap(
+        map['gaitPhase'],
+        fallback: fallback.gaitPhase,
+      ),
+    );
+  }
+}
+
 class LiveSprintPoseEvidenceDiagnostic {
   final int evaluatedFrames;
   final int eligibleFrames;
@@ -289,6 +413,7 @@ class LiveSprintPoseEvidenceDiagnostic {
   final int coreJointsBlockedFrames;
   final int gaitPhaseBlockedFrames;
   final LiveSprintPoseEvidenceBlocker? currentBlocker;
+  final LiveSprintCaptureReadinessSummary readinessSummary;
 
   const LiveSprintPoseEvidenceDiagnostic({
     required this.evaluatedFrames,
@@ -299,6 +424,7 @@ class LiveSprintPoseEvidenceDiagnostic {
     required this.coreJointsBlockedFrames,
     required this.gaitPhaseBlockedFrames,
     required this.currentBlocker,
+    this.readinessSummary = const LiveSprintCaptureReadinessSummary.initial(),
   });
 
   const LiveSprintPoseEvidenceDiagnostic.initial()
@@ -309,7 +435,8 @@ class LiveSprintPoseEvidenceDiagnostic {
         sideViewBlockedFrames = 0,
         coreJointsBlockedFrames = 0,
         gaitPhaseBlockedFrames = 0,
-        currentBlocker = null;
+        currentBlocker = null,
+        readinessSummary = const LiveSprintCaptureReadinessSummary.initial();
 
   int get blockedFrames =>
       fullBodyBlockedFrames +
@@ -348,6 +475,7 @@ class LiveSprintPoseEvidenceDiagnostic {
       'sideViewBlockedFrames': sideViewBlockedFrames,
       'coreJointsBlockedFrames': coreJointsBlockedFrames,
       'gaitPhaseBlockedFrames': gaitPhaseBlockedFrames,
+      'readinessSummary': readinessSummary.toMap(),
       if (currentBlocker != null) 'currentBlocker': currentBlocker!.name,
     };
   }
@@ -368,6 +496,9 @@ class LiveSprintPoseEvidenceDiagnostic {
       currentBlocker: _nullableEnumByName(
         LiveSprintPoseEvidenceBlocker.values,
         map['currentBlocker']?.toString(),
+      ),
+      readinessSummary: _liveSprintCaptureReadinessSummaryFromMap(
+        map['readinessSummary'],
       ),
     );
   }
@@ -479,6 +610,7 @@ class LiveSprintPoseEvidenceFrame {
 }
 
 class LiveSprintSessionReport {
+  final SprintCaptureCalibrationProfile calibrationProfile;
   final int runningTrackedFrames;
   final int runningAnalyzedFrames;
   final int sprintTrackedFrames;
@@ -502,6 +634,7 @@ class LiveSprintSessionReport {
   final LiveSprintPoseEvidenceDiagnostic poseEvidenceDiagnostic;
 
   const LiveSprintSessionReport({
+    this.calibrationProfile = SprintCaptureCalibrationProfile.balanced,
     required this.runningTrackedFrames,
     required this.runningAnalyzedFrames,
     required this.sprintTrackedFrames,
@@ -542,6 +675,7 @@ class LiveSprintSessionReport {
   Map<String, Object?> toMap() {
     return <String, Object?>{
       'runningTrackedFrames': runningTrackedFrames,
+      'calibrationProfile': calibrationProfile.name,
       'runningAnalyzedFrames': runningAnalyzedFrames,
       'sprintTrackedFrames': sprintTrackedFrames,
       'sprintAnalyzedFrames': sprintAnalyzedFrames,
@@ -573,6 +707,9 @@ class LiveSprintSessionReport {
   factory LiveSprintSessionReport.fromMap(Map<String, dynamic> map) {
     return LiveSprintSessionReport(
       runningTrackedFrames: _intValue(map['runningTrackedFrames']),
+      calibrationProfile: sprintCaptureCalibrationProfileFromName(
+        map['calibrationProfile']?.toString(),
+      ),
       runningAnalyzedFrames: _intValue(map['runningAnalyzedFrames']),
       sprintTrackedFrames: _intValue(map['sprintTrackedFrames']),
       sprintAnalyzedFrames: _intValue(map['sprintAnalyzedFrames']),
@@ -682,6 +819,30 @@ LiveSprintPoseEvidenceDiagnostic _liveSprintPoseEvidenceDiagnosticFromMap(
   }
   return LiveSprintPoseEvidenceDiagnostic.fromMap(
       value.cast<String, dynamic>());
+}
+
+LiveSprintCaptureReadinessSummary _liveSprintCaptureReadinessSummaryFromMap(
+  Object? value,
+) {
+  if (value is! Map) {
+    return const LiveSprintCaptureReadinessSummary.initial();
+  }
+  return LiveSprintCaptureReadinessSummary.fromMap(
+    value.cast<String, dynamic>(),
+  );
+}
+
+LiveSprintCaptureReadinessCheck _liveSprintCaptureReadinessCheckFromMap(
+  Object? value, {
+  required LiveSprintCaptureReadinessCheck fallback,
+}) {
+  if (value is! Map) {
+    return fallback;
+  }
+  return LiveSprintCaptureReadinessCheck.fromMap(
+    value.cast<String, dynamic>(),
+    fallback: fallback,
+  );
 }
 
 List<LiveSprintPoseEvidenceJoint> _liveSprintPoseEvidenceJointsFromMap(

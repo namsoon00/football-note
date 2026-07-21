@@ -9134,6 +9134,63 @@ class AppLocalizationsEn extends AppLocalizations {
       'Stable joint evidence is being collected.';
 
   @override
+  String get runningCoachSprintCalibrationProfileLabel => 'Capture profile';
+
+  @override
+  String get runningCoachSprintCalibrationProfileConservative => 'Strict';
+
+  @override
+  String get runningCoachSprintCalibrationProfileBalanced => 'Balanced';
+
+  @override
+  String get runningCoachSprintCalibrationProfileResponsive => 'Responsive';
+
+  @override
+  String get runningCoachSprintCalibrationProfileConservativeDescription =>
+      'Uses stricter thresholds for tripod captures with clear light. No camera frames are saved.';
+
+  @override
+  String get runningCoachSprintCalibrationProfileBalancedDescription =>
+      'Uses balanced thresholds for most outdoor phone captures. No camera frames are saved.';
+
+  @override
+  String get runningCoachSprintCalibrationProfileResponsiveDescription =>
+      'Uses more forgiving thresholds for shaky handheld captures. No camera frames are saved.';
+
+  @override
+  String get runningCoachSprintCaptureReadinessTitle => 'Capture readiness';
+
+  @override
+  String get runningCoachSprintCaptureReadinessFraming => 'Framing';
+
+  @override
+  String get runningCoachSprintCaptureReadinessSideView => 'Side view';
+
+  @override
+  String get runningCoachSprintCaptureReadinessCoreJoints => 'Core joints';
+
+  @override
+  String get runningCoachSprintCaptureReadinessGaitPhase => 'Gait phase';
+
+  @override
+  String get runningCoachSprintCaptureReadinessReady => 'Ready';
+
+  @override
+  String get runningCoachSprintCaptureReadinessAdjust => 'Adjust';
+
+  @override
+  String runningCoachSprintCaptureReadinessPercentValue(
+      int current, int target) {
+    return '$current% / target $target%';
+  }
+
+  @override
+  String runningCoachSprintCaptureReadinessCoreValue(
+      int current, int target, int observed, int required) {
+    return '$current% / target $target% - $observed/$required joints';
+  }
+
+  @override
   String runningCoachLiveSessionReportEvidenceCoverage(int count) {
     return 'Captured $count/3 phases';
   }

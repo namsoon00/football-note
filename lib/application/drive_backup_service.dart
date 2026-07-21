@@ -32,6 +32,7 @@ import 'player_level_service.dart';
 import 'player_profile_service.dart';
 import 'running_coach_history_service.dart';
 import 'running_growth_service.dart';
+import 'sprint_capture_calibration_service.dart';
 import 'team_management_service.dart';
 import 'training_board_service.dart';
 import 'training_plan_reminder_service.dart';
@@ -556,6 +557,7 @@ class DriveBackupService implements BackupRepository {
     'league_standings_last_selected_type_v1',
     'league_standings_favorite_fixture_filter_types_v1',
     'news_title_translate_enabled',
+    SprintCaptureCalibrationProfileService.selectedProfileOptionKey,
   };
   static const List<String> _localDeviceOptionKeyPrefixes = [
     'drive_',

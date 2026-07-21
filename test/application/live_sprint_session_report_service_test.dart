@@ -8,6 +8,7 @@ import 'package:football_note/application/sprint_live_session_metrics.dart';
 import 'package:football_note/domain/entities/running_coach_session.dart';
 import 'package:football_note/domain/entities/running_live_coaching_state.dart';
 import 'package:football_note/domain/entities/running_video_analysis_result.dart';
+import 'package:football_note/domain/entities/sprint_capture_calibration_profile.dart';
 import 'package:football_note/domain/entities/sprint_realtime_coaching_state.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 
@@ -22,6 +23,7 @@ void main() {
       sprintSnapshot: fixture.sprintSnapshot,
       runningState: fixture.runningState,
       sprintState: fixture.sprintState,
+      calibrationProfile: SprintCaptureCalibrationProfile.responsive,
       poseEvidence: fixture.poseEvidence,
       poseEvidenceDiagnostic: fixture.poseEvidenceDiagnostic,
     );
@@ -34,6 +36,8 @@ void main() {
     expect(session.primaryMetric, RunningCoachMetric.footStrike);
 
     final report = session.liveSprintReport!;
+    expect(
+        report.calibrationProfile, SprintCaptureCalibrationProfile.responsive);
     expect(report.runningAnalyzedFrames, 180);
     expect(report.sprintAnalyzedFrames, 72);
     expect(report.detectedSteps, 8);
@@ -57,6 +61,10 @@ void main() {
     final restored = RunningCoachSessionAnalysis.fromMap(session.toMap());
     expect(restored.insights, hasLength(2));
     expect(restored.liveSprintReport!.detectedSteps, 8);
+    expect(
+      restored.liveSprintReport!.calibrationProfile,
+      SprintCaptureCalibrationProfile.responsive,
+    );
     expect(
       restored.liveSprintReport!.poseEvidence.single.quality,
       closeTo(0.84, 0.0001),
@@ -83,6 +91,7 @@ void main() {
       sprintSnapshot: fixture.sprintSnapshot,
       runningState: fixture.runningState,
       sprintState: fixture.sprintState,
+      calibrationProfile: SprintCaptureCalibrationProfile.conservative,
       poseEvidence: fixture.poseEvidence,
       poseEvidenceDiagnostic: fixture.poseEvidenceDiagnostic,
     );
@@ -96,6 +105,10 @@ void main() {
     expect(restored.single.source, RunningCoachSessionSource.sprintLive);
     expect(restored.single.liveSprintReport!.feedbackChanges, 4);
     expect(
+      restored.single.liveSprintReport!.calibrationProfile,
+      SprintCaptureCalibrationProfile.conservative,
+    );
+    expect(
       restored.single.liveSprintReport!.poseEvidence.single.phase,
       LiveSprintPoseEvidencePhase.flight,
     );
@@ -108,6 +121,33 @@ void main() {
           .metricFor(LiveSprintMetricKind.kneeDrive)!
           .value,
       closeTo(0.42, 0.0001),
+    );
+  });
+
+  test('loads legacy live sprint sessions without calibration metadata', () {
+    final session = const LiveSprintSessionReportService()
+        .buildSession(
+          sessionId: fixture.sessionId,
+          completedAt: fixture.completedAt,
+          runningSnapshot: fixture.runningSnapshot,
+          sprintSnapshot: fixture.sprintSnapshot,
+          runningState: fixture.runningState,
+          sprintState: fixture.sprintState,
+        )
+        .toMap();
+    final report = session['liveSprintReport']! as Map<String, Object?>;
+    report.remove('calibrationProfile');
+    report.remove('poseEvidenceDiagnostic');
+
+    final restored = RunningCoachSessionAnalysis.fromMap(session);
+
+    expect(
+      restored.liveSprintReport!.calibrationProfile,
+      SprintCaptureCalibrationProfile.balanced,
+    );
+    expect(
+      restored.liveSprintReport!.poseEvidenceDiagnostic.readinessSummary,
+      isA<LiveSprintCaptureReadinessSummary>(),
     );
   });
 }

@@ -17,10 +17,12 @@ import '../../application/mediapipe_pose_landmarker_service.dart';
 import '../../application/running_coach_history_service.dart';
 import '../../application/running_live_calibration_capture_contract.dart';
 import '../../application/running_live_session_metrics.dart';
+import '../../application/sprint_capture_calibration_service.dart';
 import '../../application/sprint_live_session_metrics.dart';
 import '../../domain/entities/running_coach_session.dart';
 import '../../domain/entities/running_live_coaching_state.dart';
 import '../../domain/entities/running_video_analysis_result.dart';
+import '../../domain/entities/sprint_capture_calibration_profile.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../../domain/entities/sprint_realtime_coaching_state.dart';
 import '../../gen/app_localizations.dart';
@@ -57,7 +59,6 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
   static const _metricsLogInterval = Duration(seconds: 5);
   static const _skipEventLogInterval = Duration(seconds: 2);
   static const _uiStateThrottleInterval = Duration(milliseconds: 500);
-  static const _sprintPipelineConfig = SprintPipelineConfig();
   static const _initialCoachingState = RunningLiveCoachingState(
     primaryCue: RunningLivePrimaryCue.keepRunning,
   );
@@ -65,7 +66,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       SprintRealtimeCoachingState.initial();
 
   final LiveSprintCoachingService _coachingService =
-      LiveSprintCoachingService(sprintConfig: _sprintPipelineConfig);
+      LiveSprintCoachingService();
   final LiveSprintTrendService _liveSprintTrendService =
       const LiveSprintTrendService();
   final RunningLiveSessionMetricsCollector _sessionMetricsCollector =
@@ -101,6 +102,9 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       _initialSprintCoachingState;
   SprintRealtimeCoachingState _latestSprintCoachingState =
       _initialSprintCoachingState;
+  SprintCaptureCalibrationProfile _sprintCalibrationProfile =
+      SprintCaptureCalibrationProfile.balanced;
+  SprintPipelineConfig _sprintPipelineConfig = const SprintPipelineConfig();
   bool _isInitializing = true;
   bool _isSpeechEnabled = true;
   bool _isHudExpanded = false;
@@ -140,6 +144,12 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
         sportId: widget.sportId,
       );
     }
+    _applySprintCalibrationProfile(
+      SprintCaptureCalibrationProfileService(
+        optionRepository,
+      ).loadSelectedProfile(),
+      resetSprintState: false,
+    );
     WidgetsBinding.instance.addObserver(this);
     _poseOverlayTicker = createTicker(_handlePoseOverlayTick)..start();
     _resetFrameClock();
@@ -412,6 +422,9 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
                                 actionTip: actionTip,
                                 gaitAnalysis: _coachingState.gaitAnalysis,
                                 sprintState: _sprintCoachingState,
+                                calibrationProfile: _sprintCalibrationProfile,
+                                onCalibrationProfileChanged:
+                                    _selectSprintCalibrationProfile,
                                 poseEvidenceDiagnostic: poseEvidenceDiagnostic,
                                 metricScores: insightDetails,
                                 focusPriorities: focusPriorities,
@@ -601,6 +614,50 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     });
   }
 
+  void _applySprintCalibrationProfile(
+    SprintCaptureCalibrationProfile profile, {
+    required bool resetSprintState,
+  }) {
+    _sprintCalibrationProfile = profile;
+    _sprintPipelineConfig =
+        SprintCaptureCalibrationProfileService.pipelineConfigFor(profile);
+    _coachingService.updateSprintConfig(_sprintPipelineConfig);
+    _poseEvidenceCollector.updateThresholds(
+      SprintCaptureCalibrationProfileService.evidenceThresholdsFor(profile),
+    );
+    if (!resetSprintState) {
+      return;
+    }
+    _sprintSessionMetricsCollector.reset();
+    _poseEvidenceCollector.reset(startedAt: DateTime.now());
+    _sprintCoachingState = _initialSprintCoachingState;
+    _latestSprintCoachingState = _initialSprintCoachingState;
+    _lastUiStatePublishedAt = null;
+  }
+
+  void _selectSprintCalibrationProfile(
+    SprintCaptureCalibrationProfile profile,
+  ) {
+    if (profile == _sprintCalibrationProfile) {
+      return;
+    }
+    setState(() {
+      _applySprintCalibrationProfile(profile, resetSprintState: true);
+    });
+    unawaited(
+      SprintCaptureCalibrationProfileService(
+        widget.optionRepository,
+      ).saveSelectedProfile(profile),
+    );
+    if (_sessionId != null) {
+      _emitSessionLog(
+        event: 'calibration_profile_changed',
+        force: true,
+        details: <String, Object?>{'profile': profile.name},
+      );
+    }
+  }
+
   void _openGuide() {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const RunningLiveCoachGuideScreen()),
@@ -618,6 +675,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       details: <String, Object?>{
         'cameraLensDirection': _activeCamera?.lensDirection.name,
         'targetFrameIntervalMs': _frameProcessingInterval.inMilliseconds,
+        'sprintCalibrationProfile': _sprintCalibrationProfile.name,
       },
     );
   }
@@ -664,6 +722,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       sprintSnapshot: sprintSnapshot,
       runningState: runningState,
       sprintState: sprintState,
+      calibrationProfile: _sprintCalibrationProfile,
       poseEvidence: poseEvidence,
       poseEvidenceDiagnostic: poseEvidenceDiagnostic,
     );
@@ -682,6 +741,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
           sprintSnapshot: sprintSnapshot,
           runningState: runningState,
           sprintState: sprintState,
+          calibrationProfile: _sprintCalibrationProfile,
           poseEvidence: poseEvidence,
           poseEvidenceDiagnostic: poseEvidenceDiagnostic,
         );
@@ -770,6 +830,11 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       snapshot: sprintSnapshot,
       state: _latestSprintCoachingState,
     );
+    payload['sprintCapture'] = <String, Object?>{
+      'calibrationProfile': _sprintCalibrationProfile.name,
+      'poseEvidenceDiagnostic':
+          _poseEvidenceCollector.diagnosticSnapshot().toMap(),
+    };
     if (kDebugMode) {
       debugPrint('[RunningLiveSession] ${jsonEncode(payload)}');
       final sessionId = _sessionId;
@@ -2045,6 +2110,62 @@ String? _poseEvidenceBlockerCue(
   };
 }
 
+String _sprintCalibrationProfileLabel(
+  AppLocalizations l10n,
+  SprintCaptureCalibrationProfile profile,
+) {
+  return switch (profile) {
+    SprintCaptureCalibrationProfile.conservative =>
+      l10n.runningCoachSprintCalibrationProfileConservative,
+    SprintCaptureCalibrationProfile.balanced =>
+      l10n.runningCoachSprintCalibrationProfileBalanced,
+    SprintCaptureCalibrationProfile.responsive =>
+      l10n.runningCoachSprintCalibrationProfileResponsive,
+  };
+}
+
+String _sprintCalibrationProfileDescription(
+  AppLocalizations l10n,
+  SprintCaptureCalibrationProfile profile,
+) {
+  return switch (profile) {
+    SprintCaptureCalibrationProfile.conservative =>
+      l10n.runningCoachSprintCalibrationProfileConservativeDescription,
+    SprintCaptureCalibrationProfile.balanced =>
+      l10n.runningCoachSprintCalibrationProfileBalancedDescription,
+    SprintCaptureCalibrationProfile.responsive =>
+      l10n.runningCoachSprintCalibrationProfileResponsiveDescription,
+  };
+}
+
+String _readinessStatusLabel(AppLocalizations l10n, bool ready) {
+  return ready
+      ? l10n.runningCoachSprintCaptureReadinessReady
+      : l10n.runningCoachSprintCaptureReadinessAdjust;
+}
+
+String _readinessValueText(
+  AppLocalizations l10n,
+  LiveSprintCaptureReadinessCheck check, {
+  bool includeJointCount = false,
+}) {
+  final current = _readinessPercent(check.value);
+  final target = _readinessPercent(check.threshold);
+  if (includeJointCount) {
+    return l10n.runningCoachSprintCaptureReadinessCoreValue(
+      current,
+      target,
+      check.observedCount,
+      check.requiredCount,
+    );
+  }
+  return l10n.runningCoachSprintCaptureReadinessPercentValue(current, target);
+}
+
+int _readinessPercent(double value) {
+  return (value.clamp(0.0, 1.0).toDouble() * 100).round();
+}
+
 class _LiveInsightSection {
   final String title;
   final List<_LiveInsightData> items;
@@ -2062,6 +2183,9 @@ class _ScoreExplanationPanel extends StatelessWidget {
   final String actionTip;
   final RunningGaitAnalysis gaitAnalysis;
   final SprintRealtimeCoachingState sprintState;
+  final SprintCaptureCalibrationProfile calibrationProfile;
+  final ValueChanged<SprintCaptureCalibrationProfile>
+      onCalibrationProfileChanged;
   final LiveSprintPoseEvidenceDiagnostic poseEvidenceDiagnostic;
   final List<_LiveInsightData> metricScores;
   final Map<RunningCoachMetric, int> focusPriorities;
@@ -2078,6 +2202,8 @@ class _ScoreExplanationPanel extends StatelessWidget {
     required this.actionTip,
     required this.gaitAnalysis,
     required this.sprintState,
+    required this.calibrationProfile,
+    required this.onCalibrationProfileChanged,
     required this.poseEvidenceDiagnostic,
     required this.metricScores,
     required this.focusPriorities,
@@ -2123,8 +2249,11 @@ class _ScoreExplanationPanel extends StatelessWidget {
         const SizedBox(height: 16),
         _PanelSectionTitle(text: l10n.runningCoachLivePoseEvidenceTitle),
         const SizedBox(height: 8),
-        _LivePoseEvidenceDiagnosticSummary(
+        RunningLiveSprintCalibrationPanel(
+          selectedProfile: calibrationProfile,
+          onProfileChanged: onCalibrationProfileChanged,
           diagnostic: poseEvidenceDiagnostic,
+          compact: compact,
         ),
         const SizedBox(height: 16),
         _PanelSectionTitle(text: l10n.runningCoachLiveSprintMetricsTitle),
@@ -2182,21 +2311,92 @@ class _ScoreExplanationPanel extends StatelessWidget {
   }
 }
 
-class _LivePoseEvidenceDiagnosticSummary extends StatelessWidget {
+@visibleForTesting
+class RunningLiveSprintCalibrationPanel extends StatelessWidget {
+  final SprintCaptureCalibrationProfile selectedProfile;
+  final ValueChanged<SprintCaptureCalibrationProfile> onProfileChanged;
   final LiveSprintPoseEvidenceDiagnostic diagnostic;
+  final bool compact;
 
-  const _LivePoseEvidenceDiagnosticSummary({required this.diagnostic});
+  const RunningLiveSprintCalibrationPanel({
+    super.key,
+    required this.selectedProfile,
+    required this.onProfileChanged,
+    required this.diagnostic,
+    this.compact = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final textTheme = Theme.of(context).textTheme;
     final blockerText = _poseEvidenceBlockerCue(
       l10n,
       diagnostic.currentBlocker,
     );
+    final readiness = diagnostic.readinessSummary;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        DropdownButtonFormField<SprintCaptureCalibrationProfile>(
+          key: const ValueKey(
+            'running-live-sprint-calibration-profile-selector',
+          ),
+          initialValue: selectedProfile,
+          isExpanded: true,
+          dropdownColor: const Color(0xFF1B2430),
+          iconEnabledColor: Colors.white70,
+          decoration: InputDecoration(
+            labelText: l10n.runningCoachSprintCalibrationProfileLabel,
+            labelStyle: textTheme.labelMedium?.copyWith(
+              color: Colors.white70,
+              fontWeight: FontWeight.w700,
+            ),
+            filled: true,
+            fillColor: Colors.white.withAlpha(8),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.white12),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFB8F28B)),
+            ),
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: compact ? 8 : 10,
+            ),
+          ),
+          style: textTheme.bodySmall?.copyWith(
+            color: Colors.white,
+            fontWeight: FontWeight.w800,
+          ),
+          items: [
+            for (final profile in SprintCaptureCalibrationProfile.values)
+              DropdownMenuItem<SprintCaptureCalibrationProfile>(
+                value: profile,
+                child: Text(
+                  _sprintCalibrationProfileLabel(l10n, profile),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+          ],
+          onChanged: (profile) {
+            if (profile != null) {
+              onProfileChanged(profile);
+            }
+          },
+        ),
+        const SizedBox(height: 8),
+        Text(
+          _sprintCalibrationProfileDescription(l10n, selectedProfile),
+          style: textTheme.bodySmall?.copyWith(
+            color: Colors.white60,
+            height: 1.25,
+          ),
+        ),
+        const SizedBox(height: 10),
         Wrap(
           spacing: 8,
           runSpacing: 8,
@@ -2214,6 +2414,53 @@ class _LivePoseEvidenceDiagnosticSummary extends StatelessWidget {
               ),
           ],
         ),
+        const SizedBox(height: 12),
+        Text(
+          l10n.runningCoachSprintCaptureReadinessTitle,
+          style: textTheme.labelLarge?.copyWith(
+            color: Colors.white,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(height: 8),
+        _SprintReadinessRow(
+          icon: Icons.center_focus_strong_rounded,
+          label: l10n.runningCoachSprintCaptureReadinessFraming,
+          statusLabel: _readinessStatusLabel(l10n, readiness.framing.ready),
+          valueText: _readinessValueText(l10n, readiness.framing),
+          check: readiness.framing,
+        ),
+        const SizedBox(height: 8),
+        _SprintReadinessRow(
+          icon: Icons.switch_video_rounded,
+          label: l10n.runningCoachSprintCaptureReadinessSideView,
+          statusLabel: _readinessStatusLabel(l10n, readiness.sideView.ready),
+          valueText: _readinessValueText(l10n, readiness.sideView),
+          check: readiness.sideView,
+        ),
+        const SizedBox(height: 8),
+        _SprintReadinessRow(
+          icon: Icons.hub_outlined,
+          label: l10n.runningCoachSprintCaptureReadinessCoreJoints,
+          statusLabel: _readinessStatusLabel(
+            l10n,
+            readiness.coreJointConfidence.ready,
+          ),
+          valueText: _readinessValueText(
+            l10n,
+            readiness.coreJointConfidence,
+            includeJointCount: true,
+          ),
+          check: readiness.coreJointConfidence,
+        ),
+        const SizedBox(height: 8),
+        _SprintReadinessRow(
+          icon: Icons.directions_run_rounded,
+          label: l10n.runningCoachSprintCaptureReadinessGaitPhase,
+          statusLabel: _readinessStatusLabel(l10n, readiness.gaitPhase.ready),
+          valueText: _readinessValueText(l10n, readiness.gaitPhase),
+          check: readiness.gaitPhase,
+        ),
         const SizedBox(height: 8),
         Text(
           blockerText ??
@@ -2226,6 +2473,85 @@ class _LivePoseEvidenceDiagnosticSummary extends StatelessWidget {
               ),
         ),
       ],
+    );
+  }
+}
+
+class _SprintReadinessRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String statusLabel;
+  final String valueText;
+  final LiveSprintCaptureReadinessCheck check;
+
+  const _SprintReadinessRow({
+    required this.icon,
+    required this.label,
+    required this.statusLabel,
+    required this.valueText,
+    required this.check,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color =
+        check.ready ? const Color(0xFFB8F28B) : const Color(0xFFFFCC80);
+    final value = check.value.clamp(0.0, 1.0).toDouble();
+    return Semantics(
+      label: '$label. $statusLabel. $valueText',
+      child: ExcludeSemantics(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Icon(icon, color: color, size: 17),
+                const SizedBox(width: 7),
+                Expanded(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                        ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  statusLabel,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: color,
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            LinearProgressIndicator(
+              value: value,
+              minHeight: 5,
+              backgroundColor: Colors.white12,
+              valueColor: AlwaysStoppedAnimation<Color>(color),
+              borderRadius: BorderRadius.circular(99),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              valueText,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: Colors.white60,
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -2,6 +2,8 @@ import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/live_sprint_pose_evidence_collector.dart';
+import 'package:football_note/application/sprint_capture_calibration_service.dart';
+import 'package:football_note/domain/entities/sprint_capture_calibration_profile.dart';
 import 'package:football_note/domain/entities/running_coach_session.dart';
 import 'package:football_note/domain/entities/running_live_coaching_state.dart';
 import 'package:football_note/domain/entities/sprint_realtime_coaching_state.dart';
@@ -147,12 +149,89 @@ void main() {
       LiveSprintPoseEvidenceBlocker.fullBodyVisibility,
     );
   });
+
+  test('summarizes every real-device capture readiness gate', () {
+    final collector = LiveSprintPoseEvidenceCollector();
+    final timestamp = DateTime(2026, 7, 21, 10);
+
+    collector.record(
+      visualFrame: _frame(timestamp, confidence: 0.55),
+      gaitAnalysis: _gait(
+        phase: RunningGaitPhase.unknown,
+        phaseConfidence: 0.4,
+        timingConfidence: 0.5,
+      ),
+      sprintState: _sprintState(
+        trackingReadiness: SprintTrackingReadiness.bodyPartiallyOutOfFrame,
+        bodyFullyVisible: false,
+        bodyVisibilityRatio: 0.72,
+        trackingConfidence: 0.6,
+        sideViewConfidence: 0.5,
+        averageLandmarkConfidence: 0.55,
+      ),
+      timestamp: timestamp,
+    );
+
+    final readiness = collector.diagnosticSnapshot().readinessSummary;
+    expect(readiness.allReady, isFalse);
+    expect(readiness.framing.ready, isFalse);
+    expect(readiness.framing.value, closeTo(0.72, 0.0001));
+    expect(readiness.sideView.ready, isFalse);
+    expect(readiness.sideView.threshold, closeTo(0.65, 0.0001));
+    expect(readiness.coreJointConfidence.ready, isFalse);
+    expect(readiness.coreJointConfidence.observedCount, 0);
+    expect(readiness.coreJointConfidence.requiredCount, 15);
+    expect(readiness.gaitPhase.ready, isFalse);
+    expect(readiness.gaitPhase.value, closeTo(0.4, 0.0001));
+  });
+
+  test('responsive profile accepts lower-confidence capture evidence', () {
+    final timestamp = DateTime(2026, 7, 21, 10);
+    final balanced = LiveSprintPoseEvidenceCollector();
+    final responsive = LiveSprintPoseEvidenceCollector(
+      thresholds: SprintCaptureCalibrationProfileService.evidenceThresholdsFor(
+        SprintCaptureCalibrationProfile.responsive,
+      ),
+    );
+    final gait = _gait(
+      phase: RunningGaitPhase.flight,
+      phaseConfidence: 0.58,
+      timingConfidence: 0.58,
+    );
+    final sprintState = _sprintState(
+      trackingConfidence: 0.64,
+      sideViewConfidence: 0.6,
+      averageLandmarkConfidence: 0.65,
+    );
+
+    balanced.record(
+      visualFrame: _frame(timestamp, confidence: 0.65),
+      gaitAnalysis: gait,
+      sprintState: sprintState,
+      timestamp: timestamp,
+    );
+    responsive.record(
+      visualFrame: _frame(timestamp, confidence: 0.65),
+      gaitAnalysis: gait,
+      sprintState: sprintState,
+      timestamp: timestamp,
+    );
+
+    expect(balanced.snapshot(), isEmpty);
+    expect(
+      balanced.diagnosticSnapshot().currentBlocker,
+      LiveSprintPoseEvidenceBlocker.stableSideView,
+    );
+    expect(responsive.snapshot(), hasLength(1));
+    expect(responsive.diagnosticSnapshot().readinessSummary.allReady, isTrue);
+  });
 }
 
 RunningVisualPoseFrame _frame(
   DateTime timestamp, {
   RunningVisualPoseLandmarkState state =
       RunningVisualPoseLandmarkState.observed,
+  double confidence = 0.91,
 }) {
   return RunningVisualPoseFrame(
     imageSize: const Size(720, 1280),
@@ -165,12 +244,12 @@ RunningVisualPoseFrame _frame(
             120 + ((type.index % 5) * 90),
             100 + ((type.index ~/ 5) * 170),
           ),
-          confidence: 0.91,
-          rawConfidence: 0.91,
+          confidence: confidence,
+          rawConfidence: confidence,
           z: type.index / 100,
           worldZ: null,
-          visibility: 0.91,
-          presence: 0.91,
+          visibility: confidence,
+          presence: confidence,
           state: state,
         ),
     },
@@ -202,6 +281,10 @@ SprintRealtimeCoachingState _sprintState({
   SprintTrackingReadiness trackingReadiness =
       SprintTrackingReadiness.readyForAnalysis,
   bool bodyFullyVisible = true,
+  double trackingConfidence = 0.9,
+  double sideViewConfidence = 0.9,
+  double averageLandmarkConfidence = 0.91,
+  double bodyVisibilityRatio = 1,
 }) {
   return SprintRealtimeCoachingState(
     status: SprintCoachingStatus.coaching,
@@ -216,17 +299,17 @@ SprintRealtimeCoachingState _sprintState({
           ? SprintBodyVisibilityStatus.full
           : SprintBodyVisibilityStatus.partial,
       trackingReadiness: trackingReadiness,
-      trackingConfidence: 0.9,
+      trackingConfidence: trackingConfidence,
       stableFrameCount: 20,
       visibleLandmarkCount: 33,
       visibleCoreLandmarkCount: 11,
       missingCoreLandmarkCount: 0,
-      bodyVisibilityRatio: 1,
+      bodyVisibilityRatio: bodyVisibilityRatio,
       hipTravelRatio: 0.12,
       personHeightRatio: 0.66,
       personAreaRatio: 0.24,
-      averageLandmarkConfidence: 0.91,
-      sideViewConfidence: 0.9,
+      averageLandmarkConfidence: averageLandmarkConfidence,
+      sideViewConfidence: sideViewConfidence,
       personBounds: null,
       suggestedCropRect: null,
     ),
