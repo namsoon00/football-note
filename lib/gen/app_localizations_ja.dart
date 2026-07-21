@@ -10050,6 +10050,10 @@ class AppLocalizationsJa extends AppLocalizations {
       'ビデオが短すぎます。少なくともいくつかのランニングステップを記録します。';
 
   @override
+  String get runningCoachVideoTooBlurry =>
+      'この動画はぼやけていて正確に分析できません。スマートフォンを固定し、全身と両足が見える鮮明な横向き動画を撮り直してください。';
+
+  @override
   String get runningCoachNoPoseDetected =>
       'ランナーを十分に追跡できませんでした。肘、膝、足が見える、より鮮明なサイドビュー クリップを試してください。';
 
@@ -10063,6 +10067,23 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachResultsTitle => 'コーチング実績';
+
+  @override
+  String get runningCoachResultOneChangeTitle => 'まず一つだけ変えましょう';
+
+  @override
+  String get runningCoachResultNextRunCueLabel => '次のランで行うこと';
+
+  @override
+  String get runningCoachResultOneChangeBody =>
+      '数歩の間はこの一つのキューだけに集中し、もう一度撮影して変化を確認してください。';
+
+  @override
+  String get runningCoachResultKeepOneThingBody =>
+      '次の数歩でもこの良さを保ち、もう一度撮影して一貫しているか確認してください。';
+
+  @override
+  String get runningCoachResultDetailsTitle => '詳しい分析';
 
   @override
   String get runningCoachAnalysisHistoryTitle => 'コーチング分析履歴';

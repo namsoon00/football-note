@@ -496,8 +496,10 @@ void main() {
   ) async {
     await tester.binding.setSurfaceSize(const Size(800, 1200));
     addTearDown(() => tester.binding.setSurfaceSize(null));
-    final analysisService =
-        _FakeRunningVideoAnalysisService(failFirstCall: true);
+    final analysisService = _FakeRunningVideoAnalysisService(
+      failFirstCall: true,
+      failureCode: 'video_too_blurry',
+    );
     await tester.pumpWidget(
       MaterialApp(
         locale: const Locale('en'),
@@ -532,7 +534,7 @@ void main() {
     expect(find.text('Sample analysis unavailable'), findsOneWidget);
     expect(
       find.text(
-        'The runner could not be tracked well enough. Try a clearer side-view clip with elbows, knees, and feet visible.',
+        'This video is too blurry for a precise result. Keep the phone still and record a clearer side view with your whole body and both feet visible.',
       ),
       findsOneWidget,
     );
@@ -787,6 +789,11 @@ void main() {
     );
     await tester.pump();
     expect(tester.takeException(), isNull);
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('running-coach-dense-contact-evidence')),
+      260,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(
       find.byKey(const ValueKey('running-coach-dense-contact-evidence')),
       findsOneWidget,
@@ -876,6 +883,13 @@ void main() {
       ),
     );
     await tester.pump();
+
+    expect(
+      find.byKey(const ValueKey('running-coach-beginner-action-card')),
+      findsOneWidget,
+    );
+    expect(find.text('Change one thing first'), findsOneWidget);
+    expect(find.text('On your next run'), findsOneWidget);
 
     final guideVisual = find.byKey(
       const ValueKey('running-coach-insight-guide-visual-footStrike'),
@@ -1073,12 +1087,29 @@ void main() {
       find.byKey(const ValueKey('running-coach-analysis-evidence-overlay')),
       findsOneWidget,
     );
+    expect(
+      tester
+          .getSize(
+            find.byKey(
+              const ValueKey('running-coach-analysis-evidence-preview'),
+            ),
+          )
+          .height,
+      lessThanOrEqualTo(320),
+    );
     expect(find.text('Evidence 1/2'), findsOneWidget);
     expect(tester.takeException(), isNull);
 
-    await tester.tap(
-      find.byKey(const ValueKey('running-coach-evidence-next')),
+    final nextEvidence = find.byKey(
+      const ValueKey('running-coach-evidence-next'),
     );
+    await tester.drag(
+      find.byType(Scrollable).first,
+      const Offset(0, -260),
+    );
+    await tester.pump();
+    expect(tester.widget<IconButton>(nextEvidence).onPressed, isNotNull);
+    await tester.tap(nextEvidence);
     await tester.pump();
 
     expect(find.text('Evidence 2/2'), findsOneWidget);
@@ -1223,6 +1254,7 @@ RunningCoachSessionAnalysis _sessionForReport({
 class _FakeRunningVideoAnalysisService extends RunningVideoAnalysisService {
   final bool failFirstCall;
   final bool omitPoseFrames;
+  final String failureCode;
   final List<String> calls = <String>[];
   final List<bool> fileExistsAtCall = <bool>[];
   final List<int> fileLengthAtCall = <int>[];
@@ -1230,6 +1262,7 @@ class _FakeRunningVideoAnalysisService extends RunningVideoAnalysisService {
   _FakeRunningVideoAnalysisService({
     this.failFirstCall = false,
     this.omitPoseFrames = false,
+    this.failureCode = 'no_pose_detected',
   });
 
   Future<void> waitForCallCount(int count) async {
@@ -1249,8 +1282,8 @@ class _FakeRunningVideoAnalysisService extends RunningVideoAnalysisService {
     fileExistsAtCall.add(file.existsSync());
     fileLengthAtCall.add(file.existsSync() ? file.lengthSync() : 0);
     if (failFirstCall && calls.length == 1) {
-      throw const RunningVideoAnalysisException(
-        'no_pose_detected',
+      throw RunningVideoAnalysisException(
+        failureCode,
         'No pose detected in fixture.',
       );
     }

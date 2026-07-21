@@ -17814,6 +17814,12 @@ abstract class AppLocalizations {
   /// **'The video is too short. Record at least a few running steps.'**
   String get runningCoachVideoTooShort;
 
+  /// No description provided for @runningCoachVideoTooBlurry.
+  ///
+  /// In en, this message translates to:
+  /// **'This video is too blurry for a precise result. Keep the phone still and record a clearer side view with your whole body and both feet visible.'**
+  String get runningCoachVideoTooBlurry;
+
   /// No description provided for @runningCoachNoPoseDetected.
   ///
   /// In en, this message translates to:
@@ -17837,6 +17843,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Coaching results'**
   String get runningCoachResultsTitle;
+
+  /// No description provided for @runningCoachResultOneChangeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Change one thing first'**
+  String get runningCoachResultOneChangeTitle;
+
+  /// No description provided for @runningCoachResultNextRunCueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'On your next run'**
+  String get runningCoachResultNextRunCueLabel;
+
+  /// No description provided for @runningCoachResultOneChangeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this one cue for a few steps, then record again to see the change.'**
+  String get runningCoachResultOneChangeBody;
+
+  /// No description provided for @runningCoachResultKeepOneThingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep this strength through the next few steps, then record again to make sure it stays consistent.'**
+  String get runningCoachResultKeepOneThingBody;
+
+  /// No description provided for @runningCoachResultDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Detailed review'**
+  String get runningCoachResultDetailsTitle;
 
   /// No description provided for @runningCoachAnalysisHistoryTitle.
   ///

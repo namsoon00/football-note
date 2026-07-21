@@ -92,7 +92,8 @@ final class RunningPoseAnalysisChannel {
     let coarsePass = try runPosePass(
       poseLandmarker: coarsePoseLandmarker,
       imageGenerator: imageGenerator,
-      timestampsMs: coarseSampleTimestamps(durationMs: durationMs)
+      timestampsMs: coarseSampleTimestamps(durationMs: durationMs),
+      collectSharpness: true
     )
     let frameSamples = coarsePass.samples
 
@@ -101,6 +102,9 @@ final class RunningPoseAnalysisChannel {
         code: "no_pose_detected",
         message: "We could not detect a clear running pose in this video."
       )
+    }
+    guard hasSufficientSharpness(coarsePass.sharpnessValues) else {
+      throw videoTooBlurry()
     }
 
     let direction = resolveDirection(from: frameSamples)
@@ -129,7 +133,8 @@ final class RunningPoseAnalysisChannel {
     let densePass = try runPosePass(
       poseLandmarker: densePoseLandmarker,
       imageGenerator: imageGenerator,
-      timestampsMs: denseTimestamps
+      timestampsMs: denseTimestamps,
+      collectSharpness: false
     )
     let contactFrames = validateDenseContactFrames(
       densePass.samples,
@@ -249,6 +254,13 @@ final class RunningPoseAnalysisChannel {
     )
   }
 
+  private func videoTooBlurry() -> AnalysisError {
+    AnalysisError(
+      code: "video_too_blurry",
+      message: "This video is too blurry for precise running coaching."
+    )
+  }
+
   private func coarseSampleTimestamps(durationMs: Int) -> [Int] {
     (0..<Self.sampleCount).map { index in
       let fraction: Double
@@ -267,10 +279,12 @@ final class RunningPoseAnalysisChannel {
   private func runPosePass(
     poseLandmarker: PoseLandmarker,
     imageGenerator: AVAssetImageGenerator,
-    timestampsMs: [Int]
+    timestampsMs: [Int],
+    collectSharpness: Bool
   ) throws -> PosePassResult {
     var frameSamples: [FrameSample] = []
     var poseFrames: [[String: Any]] = []
+    var sharpnessValues: [Double] = []
     var lastAnalysisTimestampMs = -1
     var seenSourceTimestamps: Set<Int> = []
 
@@ -294,6 +308,9 @@ final class RunningPoseAnalysisChannel {
           return
         }
         seenSourceTimestamps.insert(sourceTimestampMs)
+        if collectSharpness, let sharpness = frameSharpness(cgImage) {
+          sharpnessValues.append(sharpness)
+        }
         let image = UIImage(cgImage: cgImage)
         let imageSize = CGSize(
           width: CGFloat(cgImage.width),
@@ -338,8 +355,117 @@ final class RunningPoseAnalysisChannel {
         let first = $0["timestampMs"] as? Int ?? 0
         let second = $1["timestampMs"] as? Int ?? 0
         return first < second
-      }
+      },
+      sharpnessValues: sharpnessValues
     )
+  }
+
+  private func hasSufficientSharpness(_ values: [Double]) -> Bool {
+    guard
+      values.count >= Self.minimumSharpnessSampleCount,
+      let medianSharpness = median(values)
+    else {
+      return false
+    }
+    return medianSharpness >= Self.minimumMedianSharpness
+  }
+
+  private func frameSharpness(_ image: CGImage) -> Double? {
+    let imageWidth = image.width
+    let imageHeight = image.height
+    let cropLeft = Int((Double(imageWidth) * Self.sharpnessHorizontalInsetFraction).rounded(.down))
+    let cropRight = imageWidth - cropLeft
+    let cropTop = Int((Double(imageHeight) * Self.sharpnessTopFraction).rounded(.down))
+    let cropBottom = Int((Double(imageHeight) * Self.sharpnessBottomFraction).rounded(.down))
+    let cropWidth = cropRight - cropLeft
+    let cropHeight = cropBottom - cropTop
+    guard cropWidth >= 3, cropHeight >= 3 else {
+      return nil
+    }
+    guard let croppedImage = image.cropping(
+      to: CGRect(x: cropLeft, y: cropTop, width: cropWidth, height: cropHeight)
+    ) else {
+      return nil
+    }
+
+    let bytesPerPixel = 4
+    let bytesPerRow = Self.sharpnessSampleWidth * bytesPerPixel
+    let bitmapInfo =
+      CGImageAlphaInfo.premultipliedLast.rawValue |
+      CGBitmapInfo.byteOrder32Big.rawValue
+    guard let context = CGContext(
+      data: nil,
+      width: Self.sharpnessSampleWidth,
+      height: Self.sharpnessSampleHeight,
+      bitsPerComponent: 8,
+      bytesPerRow: bytesPerRow,
+      space: CGColorSpaceCreateDeviceRGB(),
+      bitmapInfo: bitmapInfo
+    ) else {
+      return nil
+    }
+    context.interpolationQuality = .none
+    context.draw(
+      croppedImage,
+      in: CGRect(
+        x: 0,
+        y: 0,
+        width: Self.sharpnessSampleWidth,
+        height: Self.sharpnessSampleHeight
+      )
+    )
+    guard let data = context.data else {
+      return nil
+    }
+
+    let pixels = data.assumingMemoryBound(to: UInt8.self)
+    var luminance = [Double](
+      repeating: 0,
+      count: Self.sharpnessSampleWidth * Self.sharpnessSampleHeight
+    )
+    for y in 0..<Self.sharpnessSampleHeight {
+      for x in 0..<Self.sharpnessSampleWidth {
+        let pixelOffset = (y * bytesPerRow) + (x * bytesPerPixel)
+        let red = Double(pixels[pixelOffset]) / 255.0
+        let green = Double(pixels[pixelOffset + 1]) / 255.0
+        let blue = Double(pixels[pixelOffset + 2]) / 255.0
+        luminance[(y * Self.sharpnessSampleWidth) + x] =
+          (0.299 * red) + (0.587 * green) + (0.114 * blue)
+      }
+    }
+
+    var sum = 0.0
+    var squaredSum = 0.0
+    var count = 0
+    for y in 1..<(Self.sharpnessSampleHeight - 1) {
+      for x in 1..<(Self.sharpnessSampleWidth - 1) {
+        let index = (y * Self.sharpnessSampleWidth) + x
+        let laplacian =
+          (4.0 * luminance[index]) -
+          luminance[index - 1] -
+          luminance[index + 1] -
+          luminance[index - Self.sharpnessSampleWidth] -
+          luminance[index + Self.sharpnessSampleWidth]
+        sum += laplacian
+        squaredSum += laplacian * laplacian
+        count += 1
+      }
+    }
+    guard count > 0 else {
+      return nil
+    }
+    let mean = sum / Double(count)
+    return max(0, (squaredSum / Double(count)) - (mean * mean))
+  }
+
+  private func median(_ values: [Double]) -> Double? {
+    guard !values.isEmpty else {
+      return nil
+    }
+    let sortedValues = values.sorted()
+    let upperIndex = sortedValues.count / 2
+    let lowerIndex = (sortedValues.count - 1) / 2
+    return (sortedValues[lowerIndex] + sortedValues[upperIndex]) / 2.0
   }
 
   private func actualSourceTimestampMs(from actualTime: CMTime) -> Int? {
@@ -884,6 +1010,7 @@ final class RunningPoseAnalysisChannel {
   private struct PosePassResult {
     let samples: [FrameSample]
     let poseFrames: [[String: Any]]
+    let sharpnessValues: [Double]
   }
 
   private struct ConfidentPoint {
@@ -1128,6 +1255,13 @@ final class RunningPoseAnalysisChannel {
   private static let methodName = "analyzeRunningVideo"
   private static let sampleCount = 14
   private static let minimumValidFrames = 6
+  private static let minimumSharpnessSampleCount = 6
+  private static let minimumMedianSharpness = 0.018
+  private static let sharpnessHorizontalInsetFraction = 0.10
+  private static let sharpnessTopFraction = 0.32
+  private static let sharpnessBottomFraction = 0.68
+  private static let sharpnessSampleWidth = 96
+  private static let sharpnessSampleHeight = 64
   private static let minVideoDurationMs = 1500
   private static let sampleStartFraction = 0.15
   private static let sampleEndFraction = 0.85

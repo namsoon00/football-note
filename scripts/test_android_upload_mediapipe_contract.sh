@@ -65,6 +65,7 @@ for required in (
     "\"model_missing\"",
     "\"mediapipe_pose_failed\"",
     "\"video_too_short\"",
+    "\"video_too_blurry\"",
     "\"no_pose_detected\"",
     "\"insufficient_contact_evidence\"",
     "coarseSampleTimestamps",
@@ -79,6 +80,9 @@ for required in (
     "mergePoseFrames",
     "maxDenseFrameBudget",
     "minimumValidatedContactFrames",
+    "frameSharpness",
+    "sharpnessValues",
+    "minimumMedianSharpness",
 ):
     require(required in channel_text, f"upload channel is missing required token: {required}")
 
@@ -99,6 +103,7 @@ for required in (
     '"model_missing"',
     '"mediapipe_pose_failed"',
     '"video_too_short"',
+    '"video_too_blurry"',
     '"no_pose_detected"',
     '"insufficient_contact_evidence"',
     "coarseSampleTimestamps",
@@ -113,6 +118,9 @@ for required in (
     "mergePoseFrames",
     "maxDenseFrameBudget",
     "minimumValidatedContactFrames",
+    "frameSharpness",
+    "sharpnessValues",
+    "minimumMedianSharpness",
 ):
     require(required in ios_text, f"iOS running channel is missing required token: {required}")
 
@@ -147,6 +155,16 @@ require(
     re.search(r"class RunningPoseAnalysisChannel\(\s*private val context: Context,", channel_text)
     is not None,
     "upload channel must receive Android Context",
+)
+require(
+    re.search(r"private const val minimumMedianSharpness\s*=\s*0\.018\b", channel_text)
+    is not None,
+    "Android sharpness gate must keep the calibrated 0.018 threshold",
+)
+require(
+    re.search(r"private static let minimumMedianSharpness\s*=\s*0\.018\b", ios_text)
+    is not None,
+    "iOS sharpness gate must keep the calibrated 0.018 threshold",
 )
 require(
     re.search(r"private const val sampleCount\s*=\s*14\b", channel_text) is not None,
