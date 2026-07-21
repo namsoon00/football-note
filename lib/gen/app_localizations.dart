@@ -15857,6 +15857,60 @@ abstract class AppLocalizations {
   /// **'There was not enough stable signal to summarize sprint mechanics. Keep the same framing for a few more steps, then finish again.'**
   String get runningCoachLiveSessionReportNoSprintData;
 
+  /// No description provided for @runningCoachLiveSessionReportEvidenceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Joint-tracking evidence'**
+  String get runningCoachLiveSessionReportEvidenceTitle;
+
+  /// No description provided for @runningCoachLiveSessionReportEvidenceBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Representative poses use stable tracked-joint geometry. Camera photos are not saved.'**
+  String get runningCoachLiveSessionReportEvidenceBody;
+
+  /// No description provided for @runningCoachLiveSessionReportEvidenceUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No pose frame met the full-body and side-view confidence threshold in this session. Keep a steady side view for a few more steps.'**
+  String get runningCoachLiveSessionReportEvidenceUnavailable;
+
+  /// No description provided for @runningCoachLiveSessionReportEvidenceTouchdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Touchdown'**
+  String get runningCoachLiveSessionReportEvidenceTouchdown;
+
+  /// No description provided for @runningCoachLiveSessionReportEvidenceSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Support'**
+  String get runningCoachLiveSessionReportEvidenceSupport;
+
+  /// No description provided for @runningCoachLiveSessionReportEvidenceFlight.
+  ///
+  /// In en, this message translates to:
+  /// **'Flight'**
+  String get runningCoachLiveSessionReportEvidenceFlight;
+
+  /// No description provided for @runningCoachLiveSessionReportEvidenceSideView.
+  ///
+  /// In en, this message translates to:
+  /// **'Side view {percent}%'**
+  String runningCoachLiveSessionReportEvidenceSideView(int percent);
+
+  /// No description provided for @runningCoachLiveSessionReportEvidenceLeftLead.
+  ///
+  /// In en, this message translates to:
+  /// **'Left lead'**
+  String get runningCoachLiveSessionReportEvidenceLeftLead;
+
+  /// No description provided for @runningCoachLiveSessionReportEvidenceRightLead.
+  ///
+  /// In en, this message translates to:
+  /// **'Right lead'**
+  String get runningCoachLiveSessionReportEvidenceRightLead;
+
   /// No description provided for @runningCoachLiveSessionReportQualityTitle.
   ///
   /// In en, this message translates to:

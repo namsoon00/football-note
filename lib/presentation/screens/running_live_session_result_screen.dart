@@ -7,6 +7,7 @@ import '../../domain/entities/sprint_realtime_coaching_state.dart';
 import '../../gen/app_localizations.dart';
 import 'running_coach_insight_copy.dart';
 import '../widgets/live_sprint_trend_card.dart';
+import '../widgets/live_sprint_pose_evidence_card.dart';
 
 class RunningLiveSessionResultScreen extends StatelessWidget {
   final RunningCoachSessionAnalysis session;
@@ -50,6 +51,15 @@ class RunningLiveSessionResultScreen extends StatelessWidget {
             insight: insights.isEmpty ? null : insights.first,
             report: report,
           ),
+          if (report != null) ...[
+            const SizedBox(height: 16),
+            _ReportSectionTitle(
+              icon: Icons.accessibility_new_rounded,
+              title: l10n.runningCoachLiveSessionReportEvidenceTitle,
+            ),
+            const SizedBox(height: 8),
+            LiveSprintPoseEvidenceCard(report: report),
+          ],
           const SizedBox(height: 16),
           _ReportSectionTitle(
             icon: Icons.accessibility_new_rounded,

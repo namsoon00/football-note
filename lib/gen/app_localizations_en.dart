@@ -9069,6 +9069,38 @@ class AppLocalizationsEn extends AppLocalizations {
       'There was not enough stable signal to summarize sprint mechanics. Keep the same framing for a few more steps, then finish again.';
 
   @override
+  String get runningCoachLiveSessionReportEvidenceTitle =>
+      'Joint-tracking evidence';
+
+  @override
+  String get runningCoachLiveSessionReportEvidenceBody =>
+      'Representative poses use stable tracked-joint geometry. Camera photos are not saved.';
+
+  @override
+  String get runningCoachLiveSessionReportEvidenceUnavailable =>
+      'No pose frame met the full-body and side-view confidence threshold in this session. Keep a steady side view for a few more steps.';
+
+  @override
+  String get runningCoachLiveSessionReportEvidenceTouchdown => 'Touchdown';
+
+  @override
+  String get runningCoachLiveSessionReportEvidenceSupport => 'Support';
+
+  @override
+  String get runningCoachLiveSessionReportEvidenceFlight => 'Flight';
+
+  @override
+  String runningCoachLiveSessionReportEvidenceSideView(int percent) {
+    return 'Side view $percent%';
+  }
+
+  @override
+  String get runningCoachLiveSessionReportEvidenceLeftLead => 'Left lead';
+
+  @override
+  String get runningCoachLiveSessionReportEvidenceRightLead => 'Right lead';
+
+  @override
   String get runningCoachLiveSessionReportQualityTitle => 'Analysis quality';
 
   @override

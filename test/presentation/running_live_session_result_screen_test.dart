@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/live_sprint_trend_service.dart';
 import 'package:football_note/domain/entities/running_coach_session.dart';
+import 'package:football_note/domain/entities/running_live_coaching_state.dart';
 import 'package:football_note/domain/entities/running_video_analysis_result.dart';
 import 'package:football_note/domain/entities/sprint_realtime_coaching_state.dart';
 import 'package:football_note/gen/app_localizations.dart';
@@ -29,12 +30,18 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Next focus'), findsOneWidget);
-    await _scrollReport(tester);
+    expect(
+      find.byKey(const ValueKey('running-live-session-report-pose-evidence')),
+      findsOneWidget,
+    );
+    expect(find.text('Joint-tracking evidence'), findsOneWidget);
+    expect(find.text('Touchdown'), findsOneWidget);
+    await _scrollReportUntilVisible(tester, find.text('Sprint mechanics'));
     expect(find.text('Sprint mechanics'), findsWidgets);
 
-    await _scrollReport(tester);
+    await _scrollReportUntilVisible(tester, find.text('Analysis quality'));
     expect(find.text('Analysis quality'), findsOneWidget);
-    await _scrollReport(tester);
+    await _scrollReportUntilVisible(tester, find.text('Gait events'));
     expect(find.text('Gait events'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
@@ -195,7 +202,7 @@ RunningCoachSessionAnalysis _session() {
         sampleCount: 20,
       ),
     ],
-    liveSprintReport: const LiveSprintSessionReport(
+    liveSprintReport: LiveSprintSessionReport(
       runningTrackedFrames: 176,
       runningAnalyzedFrames: 200,
       sprintTrackedFrames: 72,
@@ -215,28 +222,53 @@ RunningCoachSessionAnalysis _session() {
       feedbackSeverity: SprintFeedbackSeverity.warning,
       feedbackConfidence: 0.84,
       metrics: <LiveSprintMetricSummary>[
-        LiveSprintMetricSummary(
+        const LiveSprintMetricSummary(
           kind: LiveSprintMetricKind.cadence,
           value: 218,
           confidence: 0.84,
           sampleCount: 8,
         ),
-        LiveSprintMetricSummary(
+        const LiveSprintMetricSummary(
           kind: LiveSprintMetricKind.landing,
           value: 0.22,
           secondaryValue: 68,
           confidence: 0.82,
           sampleCount: 6,
         ),
-        LiveSprintMetricSummary(
+        const LiveSprintMetricSummary(
           kind: LiveSprintMetricKind.trunkAngle,
           value: 12.4,
           confidence: 0.8,
           sampleCount: 12,
         ),
       ],
+      poseEvidence: _poseEvidence(),
     ),
   );
+}
+
+List<LiveSprintPoseEvidenceFrame> _poseEvidence() {
+  return <LiveSprintPoseEvidenceFrame>[
+    LiveSprintPoseEvidenceFrame(
+      phase: LiveSprintPoseEvidencePhase.touchdown,
+      capturedOffsetMs: 2400,
+      quality: 0.88,
+      sideViewConfidence: 0.84,
+      imageAspectRatio: 0.5625,
+      leadFoot: RunningFootSide.left,
+      joints: <LiveSprintPoseEvidenceJoint>[
+        for (final type in RunningPoseLandmarkType.values)
+          LiveSprintPoseEvidenceJoint(
+            type: type,
+            x: 0.2 + ((type.index % 5) * 0.12),
+            y: 0.1 + ((type.index ~/ 5) * 0.16),
+            z: type.index / 100,
+            confidence: 0.9,
+            observed: true,
+          ),
+      ],
+    ),
+  ];
 }
 
 class _LocalizedHarness extends StatelessWidget {
@@ -265,5 +297,23 @@ Future<void> _scrollReport(WidgetTester tester) async {
     const ValueKey('running-live-session-report-list'),
   );
   await tester.drag(reportList, const Offset(0, -520));
+  await tester.pumpAndSettle();
+}
+
+Future<void> _scrollReportUntilVisible(
+  WidgetTester tester,
+  Finder target,
+) async {
+  await tester.scrollUntilVisible(
+    target,
+    320,
+    scrollable: find.descendant(
+      of: find.byKey(const ValueKey('running-live-session-report-list')),
+      matching: find.byWidgetPredicate(
+        (widget) =>
+            widget is Scrollable && widget.axisDirection == AxisDirection.down,
+      ),
+    ),
+  );
   await tester.pumpAndSettle();
 }

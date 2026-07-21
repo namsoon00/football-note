@@ -20,6 +20,20 @@ class CameraViewportTransform {
     required Size viewportSize,
     bool mirrorHorizontally = false,
   }) {
+    return CameraViewportTransform.fit(
+      sourceSize: sourceSize,
+      viewportSize: viewportSize,
+      fit: BoxFit.cover,
+      mirrorHorizontally: mirrorHorizontally,
+    );
+  }
+
+  factory CameraViewportTransform.fit({
+    required Size sourceSize,
+    required Size viewportSize,
+    required BoxFit fit,
+    bool mirrorHorizontally = false,
+  }) {
     if (sourceSize.isEmpty || viewportSize.isEmpty) {
       return CameraViewportTransform._(
         sourceSize: sourceSize,
@@ -30,7 +44,7 @@ class CameraViewportTransform {
       );
     }
 
-    final fitted = applyBoxFit(BoxFit.cover, sourceSize, viewportSize);
+    final fitted = applyBoxFit(fit, sourceSize, viewportSize);
     return CameraViewportTransform._(
       sourceSize: sourceSize,
       viewportSize: viewportSize,

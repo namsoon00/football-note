@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
 import '../../application/live_sprint_coaching_service.dart';
+import '../../application/live_sprint_pose_evidence_collector.dart';
 import '../../application/live_sprint_session_report_service.dart';
 import '../../application/live_sprint_trend_service.dart';
 import '../../application/mediapipe_pose_landmarker_service.dart';
@@ -71,6 +72,8 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       RunningLiveSessionMetricsCollector();
   final SprintLiveSessionMetricsCollector _sprintSessionMetricsCollector =
       SprintLiveSessionMetricsCollector();
+  final LiveSprintPoseEvidenceCollector _poseEvidenceCollector =
+      LiveSprintPoseEvidenceCollector();
   final MediaPipePoseLandmarkerService _mediaPipePoseLandmarker =
       const MediaPipePoseLandmarkerService();
   final RunningVisualPoseTracker _visualPoseTracker =
@@ -505,6 +508,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     _coachingService.reset();
     _sessionMetricsCollector.reset();
     _sprintSessionMetricsCollector.reset();
+    _poseEvidenceCollector.reset();
     _resetVisualPoseOverlay();
     _lastProcessedAt = null;
     _lastSpokenAt = null;
@@ -599,6 +603,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
 
   void _startSessionLogging() {
     final now = DateTime.now();
+    _poseEvidenceCollector.reset(startedAt: now);
     _sessionId = 'live-sprint-${now.microsecondsSinceEpoch}';
     _emitSessionLog(
       event: 'start',
@@ -644,6 +649,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     );
     final runningState = _latestCoachingState;
     final sprintState = _latestSprintCoachingState;
+    final poseEvidence = _poseEvidenceCollector.snapshot();
     final fallbackSession = const LiveSprintSessionReportService().buildSession(
       sessionId: sessionId,
       completedAt: completedAt,
@@ -651,6 +657,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       sprintSnapshot: sprintSnapshot,
       runningState: runningState,
       sprintState: sprintState,
+      poseEvidence: poseEvidence,
     );
     _endSessionLogging(reason: 'completed');
 
@@ -667,6 +674,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
           sprintSnapshot: sprintSnapshot,
           runningState: runningState,
           sprintState: sprintState,
+          poseEvidence: poseEvidence,
         );
         if (savedSessions.isNotEmpty) {
           session = savedSessions.first;
@@ -921,9 +929,16 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
         return;
       }
       _visualPoseTracker.ingestGaitEvents(state.gaitAnalysis.recentEvents);
-      _poseOverlayFrame.value =
+      final poseFrame =
           _visualPoseTracker.frameAt(_currentFrameClockTimestamp()) ??
               visualFrame;
+      _poseOverlayFrame.value = poseFrame;
+      _poseEvidenceCollector.record(
+        visualFrame: poseFrame,
+        gaitAnalysis: state.gaitAnalysis,
+        sprintState: sprintState,
+        timestamp: now,
+      );
       _publishCoachingState(state, sprintState, now);
       _emitSessionLog(event: 'periodic', force: false, now: now);
       await _maybeSpeakGuidance(
