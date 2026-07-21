@@ -12,6 +12,7 @@ import 'package:football_note/application/running_coaching_service.dart';
 import 'package:football_note/application/running_video_analysis_service.dart';
 import 'package:football_note/domain/entities/running_coach_session.dart';
 import 'package:football_note/domain/entities/running_video_analysis_result.dart';
+import 'package:football_note/domain/entities/sprint_realtime_coaching_state.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/running_coach_screen.dart';
@@ -95,6 +96,90 @@ void main() {
       find.widgetWithText(FilledButton, 'Start live sprint coach'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('coach home explains when live trend needs more stable sessions',
+      (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(360, 780));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final optionRepository = _MemoryOptionRepository();
+    final session = RunningCoachSessionAnalysis(
+      id: 'live-trend-start',
+      analyzedAt: DateTime(2026, 7, 21, 10),
+      source: RunningCoachSessionSource.sprintLive,
+      overallScore: 76,
+      duration: const Duration(seconds: 14),
+      sampledFrames: 180,
+      validFrames: 160,
+      primaryMetric: RunningCoachMetric.footStrike,
+      primaryFinding: RunningCoachFinding.footStrikeOverstride,
+      primaryStatus: RunningCoachStatus.watch,
+      primaryScore: 72,
+      primaryValue: 0.2,
+      primaryConfidence: 0.84,
+      liveSprintReport: const LiveSprintSessionReport(
+        runningTrackedFrames: 160,
+        runningAnalyzedFrames: 180,
+        sprintTrackedFrames: 60,
+        sprintAnalyzedFrames: 60,
+        touchdownEvents: 8,
+        toeOffEvents: 8,
+        detectedSteps: 8,
+        landingEvents: 6,
+        feedbackChanges: 2,
+        timingConfidence: 0.86,
+        sideViewConfidence: 0.84,
+        sprintTrackingConfidence: 0.82,
+        bodyNotVisibleRatio: 0.08,
+        status: SprintCoachingStatus.coaching,
+        trackingReadiness: SprintTrackingReadiness.readyForAnalysis,
+        feedbackCode: null,
+        feedbackSeverity: null,
+        feedbackConfidence: 0,
+        metrics: <LiveSprintMetricSummary>[
+          LiveSprintMetricSummary(
+            kind: LiveSprintMetricKind.trunkAngle,
+            value: 12,
+            confidence: 0.86,
+            sampleCount: 10,
+          ),
+        ],
+      ),
+    );
+    await optionRepository.setValue(
+      RunningCoachHistoryService.storageKey,
+      jsonEncode(<Map<String, Object?>>[session.toMap()]),
+    );
+    expect(RunningCoachHistoryService(optionRepository).allSessions(),
+        hasLength(1));
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: RunningCoachScreen(optionRepository: optionRepository),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey('running-coach-live-trend-card')),
+      findsOneWidget,
+    );
+    expect(find.text('Sprint progress'), findsOneWidget);
+    expect(
+      find.text('Record 2 more stable sessions to establish a trend.'),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('sample sheet shows framed runner posture cues', (

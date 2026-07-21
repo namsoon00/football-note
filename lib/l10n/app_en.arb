@@ -5104,6 +5104,43 @@
       }
     }
   },
+  "runningCoachLiveTrendTitle": "Sprint progress",
+  "runningCoachLiveTrendReadyBody": "Compared with {count} recent stable sessions.",
+  "@runningCoachLiveTrendReadyBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachLiveTrendNeedOneSessionBody": "Record 1 more stable session to establish a trend.",
+  "runningCoachLiveTrendNeedSessionsBody": "Record {count} more stable sessions to establish a trend.",
+  "@runningCoachLiveTrendNeedSessionsBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachLiveTrendQualityBody": "These sessions do not have enough stable full-body evidence to compare progress yet.",
+  "runningCoachLiveTrendImproved": "Improving",
+  "runningCoachLiveTrendSteady": "Stable",
+  "runningCoachLiveTrendNeedsAttention": "Needs attention",
+  "runningCoachLiveTrendComparison": "Current {current} · baseline {baseline}",
+  "@runningCoachLiveTrendComparison": {
+    "placeholders": {
+      "current": {},
+      "baseline": {}
+    }
+  },
+  "runningCoachLiveTrendLandingValue": "Over {value}%",
+  "@runningCoachLiveTrendLandingValue": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
   "runningCoachSprintLiveCardTitle": "Live sprint coaching",
   "runningCoachSprintLiveCardBody": "Use the side-view camera to check full-body capture first, then show trunk, knee, and rhythm cues only when joint confidence is stable.",
   "runningCoachSprintLiveAction": "Start sprint coaching",

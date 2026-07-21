@@ -8871,6 +8871,46 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get runningCoachLiveTrendTitle => 'スプリントの変化';
+
+  @override
+  String runningCoachLiveTrendReadyBody(int count) {
+    return '直近の安定した $count セッションと比較しています。';
+  }
+
+  @override
+  String get runningCoachLiveTrendNeedOneSessionBody =>
+      '傾向を作るには、安定したセッションをあと 1 回記録してください。';
+
+  @override
+  String runningCoachLiveTrendNeedSessionsBody(int count) {
+    return '傾向を作るには、安定したセッションをあと $count 回記録してください。';
+  }
+
+  @override
+  String get runningCoachLiveTrendQualityBody =>
+      'これらのセッションには、変化を比較するための安定した全身関節データが十分にありません。';
+
+  @override
+  String get runningCoachLiveTrendImproved => '改善中';
+
+  @override
+  String get runningCoachLiveTrendSteady => '安定';
+
+  @override
+  String get runningCoachLiveTrendNeedsAttention => '要注意';
+
+  @override
+  String runningCoachLiveTrendComparison(Object current, Object baseline) {
+    return '現在 $current · 基準 $baseline';
+  }
+
+  @override
+  String runningCoachLiveTrendLandingValue(int value) {
+    return '前方 $value%';
+  }
+
+  @override
   String get runningCoachSprintLiveCardTitle => 'ライブスプリントコーチング';
 
   @override

@@ -1,19 +1,23 @@
 import 'package:flutter/material.dart';
 
+import '../../application/live_sprint_trend_service.dart';
 import '../../domain/entities/running_coach_session.dart';
 import '../../domain/entities/running_video_analysis_result.dart';
 import '../../domain/entities/sprint_realtime_coaching_state.dart';
 import '../../gen/app_localizations.dart';
 import 'running_coach_insight_copy.dart';
+import '../widgets/live_sprint_trend_card.dart';
 
 class RunningLiveSessionResultScreen extends StatelessWidget {
   final RunningCoachSessionAnalysis session;
   final bool isPersisted;
+  final LiveSprintTrendSummary? trendSummary;
 
   const RunningLiveSessionResultScreen({
     super.key,
     required this.session,
     this.isPersisted = true,
+    this.trendSummary,
   });
 
   @override
@@ -34,6 +38,13 @@ class RunningLiveSessionResultScreen extends StatelessWidget {
             report: report,
             isPersisted: isPersisted,
           ),
+          if (trendSummary?.hasLiveSessions == true) ...[
+            const SizedBox(height: 16),
+            LiveSprintTrendCard(
+              summary: trendSummary!,
+              cardKey: const ValueKey('running-live-session-report-trend'),
+            ),
+          ],
           const SizedBox(height: 16),
           _FocusCard(
             insight: insights.isEmpty ? null : insights.first,

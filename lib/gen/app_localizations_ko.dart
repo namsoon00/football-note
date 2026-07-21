@@ -8880,6 +8880,46 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get runningCoachLiveTrendTitle => '스프린트 변화';
+
+  @override
+  String runningCoachLiveTrendReadyBody(int count) {
+    return '최근 안정적인 세션 $count회와 비교했어요.';
+  }
+
+  @override
+  String get runningCoachLiveTrendNeedOneSessionBody =>
+      '추세를 만들려면 안정적인 세션을 한 번 더 기록해 주세요.';
+
+  @override
+  String runningCoachLiveTrendNeedSessionsBody(int count) {
+    return '추세를 만들려면 안정적인 세션을 $count회 더 기록해 주세요.';
+  }
+
+  @override
+  String get runningCoachLiveTrendQualityBody =>
+      '저장된 세션들 사이에서 변화를 비교할 만큼 안정적인 전신 관절 근거가 부족해요.';
+
+  @override
+  String get runningCoachLiveTrendImproved => '개선 중';
+
+  @override
+  String get runningCoachLiveTrendSteady => '유지됨';
+
+  @override
+  String get runningCoachLiveTrendNeedsAttention => '주의 필요';
+
+  @override
+  String runningCoachLiveTrendComparison(Object current, Object baseline) {
+    return '현재 $current · 기준 $baseline';
+  }
+
+  @override
+  String runningCoachLiveTrendLandingValue(int value) {
+    return '전방 $value%';
+  }
+
+  @override
   String get runningCoachSprintLiveCardTitle => '스프린트 실시간 코칭';
 
   @override

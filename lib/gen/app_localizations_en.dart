@@ -9113,6 +9113,46 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get runningCoachLiveTrendTitle => 'Sprint progress';
+
+  @override
+  String runningCoachLiveTrendReadyBody(int count) {
+    return 'Compared with $count recent stable sessions.';
+  }
+
+  @override
+  String get runningCoachLiveTrendNeedOneSessionBody =>
+      'Record 1 more stable session to establish a trend.';
+
+  @override
+  String runningCoachLiveTrendNeedSessionsBody(int count) {
+    return 'Record $count more stable sessions to establish a trend.';
+  }
+
+  @override
+  String get runningCoachLiveTrendQualityBody =>
+      'These sessions do not have enough stable full-body evidence to compare progress yet.';
+
+  @override
+  String get runningCoachLiveTrendImproved => 'Improving';
+
+  @override
+  String get runningCoachLiveTrendSteady => 'Stable';
+
+  @override
+  String get runningCoachLiveTrendNeedsAttention => 'Needs attention';
+
+  @override
+  String runningCoachLiveTrendComparison(Object current, Object baseline) {
+    return 'Current $current · baseline $baseline';
+  }
+
+  @override
+  String runningCoachLiveTrendLandingValue(int value) {
+    return 'Over $value%';
+  }
+
+  @override
   String get runningCoachSprintLiveCardTitle => 'Live sprint coaching';
 
   @override

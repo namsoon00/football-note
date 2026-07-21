@@ -11,11 +11,13 @@ import 'package:flutter_tts/flutter_tts.dart';
 
 import '../../application/live_sprint_coaching_service.dart';
 import '../../application/live_sprint_session_report_service.dart';
+import '../../application/live_sprint_trend_service.dart';
 import '../../application/mediapipe_pose_landmarker_service.dart';
 import '../../application/running_coach_history_service.dart';
 import '../../application/running_live_calibration_capture_contract.dart';
 import '../../application/running_live_session_metrics.dart';
 import '../../application/sprint_live_session_metrics.dart';
+import '../../domain/entities/running_coach_session.dart';
 import '../../domain/entities/running_live_coaching_state.dart';
 import '../../domain/entities/running_video_analysis_result.dart';
 import '../../domain/repositories/option_repository.dart';
@@ -63,6 +65,8 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
 
   final LiveSprintCoachingService _coachingService =
       LiveSprintCoachingService(sprintConfig: _sprintPipelineConfig);
+  final LiveSprintTrendService _liveSprintTrendService =
+      const LiveSprintTrendService();
   final RunningLiveSessionMetricsCollector _sessionMetricsCollector =
       RunningLiveSessionMetricsCollector();
   final SprintLiveSessionMetricsCollector _sprintSessionMetricsCollector =
@@ -652,6 +656,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
 
     var session = fallbackSession;
     var isPersisted = false;
+    var trendSessions = <RunningCoachSessionAnalysis>[session];
     final historyService = _historyService;
     if (historyService != null) {
       try {
@@ -666,6 +671,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
         if (savedSessions.isNotEmpty) {
           session = savedSessions.first;
           isPersisted = true;
+          trendSessions = savedSessions;
         }
       } catch (error, stackTrace) {
         if (kDebugMode) {
@@ -687,6 +693,10 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
         builder: (_) => RunningLiveSessionResultScreen(
           session: session,
           isPersisted: isPersisted,
+          trendSummary: _liveSprintTrendService.build(
+            trendSessions,
+            currentSessionId: session.id,
+          ),
         ),
       ),
     );

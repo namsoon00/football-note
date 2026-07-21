@@ -15924,6 +15924,66 @@ abstract class AppLocalizations {
   /// **'{count} changes'**
   String runningCoachLiveSessionReportFeedbackChangesValue(int count);
 
+  /// No description provided for @runningCoachLiveTrendTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sprint progress'**
+  String get runningCoachLiveTrendTitle;
+
+  /// No description provided for @runningCoachLiveTrendReadyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Compared with {count} recent stable sessions.'**
+  String runningCoachLiveTrendReadyBody(int count);
+
+  /// No description provided for @runningCoachLiveTrendNeedOneSessionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Record 1 more stable session to establish a trend.'**
+  String get runningCoachLiveTrendNeedOneSessionBody;
+
+  /// No description provided for @runningCoachLiveTrendNeedSessionsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Record {count} more stable sessions to establish a trend.'**
+  String runningCoachLiveTrendNeedSessionsBody(int count);
+
+  /// No description provided for @runningCoachLiveTrendQualityBody.
+  ///
+  /// In en, this message translates to:
+  /// **'These sessions do not have enough stable full-body evidence to compare progress yet.'**
+  String get runningCoachLiveTrendQualityBody;
+
+  /// No description provided for @runningCoachLiveTrendImproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Improving'**
+  String get runningCoachLiveTrendImproved;
+
+  /// No description provided for @runningCoachLiveTrendSteady.
+  ///
+  /// In en, this message translates to:
+  /// **'Stable'**
+  String get runningCoachLiveTrendSteady;
+
+  /// No description provided for @runningCoachLiveTrendNeedsAttention.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs attention'**
+  String get runningCoachLiveTrendNeedsAttention;
+
+  /// No description provided for @runningCoachLiveTrendComparison.
+  ///
+  /// In en, this message translates to:
+  /// **'Current {current} · baseline {baseline}'**
+  String runningCoachLiveTrendComparison(Object current, Object baseline);
+
+  /// No description provided for @runningCoachLiveTrendLandingValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Over {value}%'**
+  String runningCoachLiveTrendLandingValue(int value);
+
   /// No description provided for @runningCoachSprintLiveCardTitle.
   ///
   /// In en, this message translates to:

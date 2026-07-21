@@ -16,6 +16,7 @@ import 'sprint_live_session_metrics.dart';
 class RunningCoachHistoryService {
   static const storageKey = 'running_coach_sessions_v1';
   static const maxStoredSessions = 8;
+  static const maxStoredLiveSprintSessions = 24;
   static const _liveSprintReportService = LiveSprintSessionReportService();
 
   final OptionRepository _options;
@@ -92,11 +93,7 @@ class RunningCoachHistoryService {
       ),
       ...existingSessions,
     ];
-    final trimmed = next.take(maxStoredSessions).toList(growable: false);
-    final removed = next.skip(maxStoredSessions).toList(growable: false);
-    await _persist(trimmed);
-    await _deleteArchivedVideos(removed);
-    return List<RunningCoachSessionAnalysis>.unmodifiable(trimmed);
+    return _saveTrimmedSessions(next);
   }
 
   Future<List<RunningCoachSessionAnalysis>> saveLiveSprintSession({
@@ -120,11 +117,7 @@ class RunningCoachHistoryService {
       liveSession,
       ...existingSessions
     ];
-    final trimmed = next.take(maxStoredSessions).toList(growable: false);
-    final removed = next.skip(maxStoredSessions).toList(growable: false);
-    await _persist(trimmed);
-    await _deleteArchivedVideos(removed);
-    return List<RunningCoachSessionAnalysis>.unmodifiable(trimmed);
+    return _saveTrimmedSessions(next);
   }
 
   Future<void> clear() async {
@@ -138,6 +131,52 @@ class RunningCoachHistoryService {
       sessions.map((session) => session.toMap()).toList(growable: false),
     );
     await _options.setValue(_storageKey, payload);
+  }
+
+  Future<List<RunningCoachSessionAnalysis>> _saveTrimmedSessions(
+    List<RunningCoachSessionAnalysis> sessions,
+  ) async {
+    final trimmed = _trimSessions(sessions);
+    await _persist(trimmed.retained);
+    await _deleteArchivedVideos(trimmed.removed);
+    return List<RunningCoachSessionAnalysis>.unmodifiable(trimmed.retained);
+  }
+
+  _RunningCoachHistoryTrim _trimSessions(
+    List<RunningCoachSessionAnalysis> sessions,
+  ) {
+    final ordered = List<RunningCoachSessionAnalysis>.from(sessions)
+      ..sort((left, right) => right.analyzedAt.compareTo(left.analyzedAt));
+    final uploadSessions = ordered
+        .where(
+          (session) => session.source == RunningCoachSessionSource.uploadVideo,
+        )
+        .take(maxStoredSessions);
+    final liveSprintSessions = ordered
+        .where(
+          (session) => session.source == RunningCoachSessionSource.sprintLive,
+        )
+        .take(maxStoredLiveSprintSessions);
+    final otherSessions = ordered
+        .where(
+          (session) =>
+              session.source != RunningCoachSessionSource.uploadVideo &&
+              session.source != RunningCoachSessionSource.sprintLive,
+        )
+        .take(maxStoredSessions);
+    final retained = <RunningCoachSessionAnalysis>[
+      ...uploadSessions,
+      ...liveSprintSessions,
+      ...otherSessions,
+    ]..sort((left, right) => right.analyzedAt.compareTo(left.analyzedAt));
+    final retainedIds = retained.map((session) => session.id).toSet();
+    final removed = ordered
+        .where((session) => !retainedIds.contains(session.id))
+        .toList(growable: false);
+    return _RunningCoachHistoryTrim(
+      retained: List<RunningCoachSessionAnalysis>.unmodifiable(retained),
+      removed: removed,
+    );
   }
 
   Future<_ArchivedRunningVideo?> _archiveVideo({
@@ -212,4 +251,14 @@ class _ArchivedRunningVideo {
   final String name;
 
   const _ArchivedRunningVideo({required this.path, required this.name});
+}
+
+class _RunningCoachHistoryTrim {
+  final List<RunningCoachSessionAnalysis> retained;
+  final List<RunningCoachSessionAnalysis> removed;
+
+  const _RunningCoachHistoryTrim({
+    required this.retained,
+    required this.removed,
+  });
 }

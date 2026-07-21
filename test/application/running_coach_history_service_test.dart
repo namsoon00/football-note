@@ -1,6 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/running_coach_history_service.dart';
+import 'package:football_note/application/running_live_session_metrics.dart';
+import 'package:football_note/application/sprint_live_session_metrics.dart';
+import 'package:football_note/domain/entities/running_live_coaching_state.dart';
 import 'package:football_note/domain/entities/running_video_analysis_result.dart';
+import 'package:football_note/domain/entities/sprint_realtime_coaching_state.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 
 void main() {
@@ -43,6 +47,38 @@ void main() {
     expect(sessions.first.overallScore, 62);
     expect(sessions.first.primaryMetric, RunningCoachMetric.footStrike);
     expect(sessions.first.primaryConfidence, 0.72);
+  });
+
+  test('retains a longer lightweight live sprint history for trends', () async {
+    final repository = _MemoryOptionRepository();
+    final service = RunningCoachHistoryService(repository);
+    const runningSnapshot = RunningLiveSessionMetricsSnapshot.initial();
+    const sprintSnapshot = SprintLiveSessionMetricsSnapshot.initial();
+    const runningState = RunningLiveCoachingState(
+      primaryCue: RunningLivePrimaryCue.keepRunning,
+    );
+    const sprintState = SprintRealtimeCoachingState.initial();
+
+    for (var index = 0;
+        index <= RunningCoachHistoryService.maxStoredLiveSprintSessions;
+        index += 1) {
+      await service.saveLiveSprintSession(
+        sessionId: 'live-$index',
+        completedAt: DateTime(2026, 7, 1).add(Duration(minutes: index)),
+        runningSnapshot: runningSnapshot,
+        sprintSnapshot: sprintSnapshot,
+        runningState: runningState,
+        sprintState: sprintState,
+      );
+    }
+
+    final sessions = service.allSessions();
+    expect(
+      sessions,
+      hasLength(RunningCoachHistoryService.maxStoredLiveSprintSessions),
+    );
+    expect(sessions.first.id, 'live-24');
+    expect(sessions.map((session) => session.id), isNot(contains('live-0')));
   });
 }
 

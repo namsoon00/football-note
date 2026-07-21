@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:video_player/video_player.dart';
 
+import '../../application/live_sprint_trend_service.dart';
 import '../../application/running_coach_history_service.dart';
 import '../../application/running_coaching_service.dart';
 import '../../application/running_video_analysis_service.dart';
@@ -22,6 +23,7 @@ import 'running_live_coach_screen.dart';
 import 'running_live_session_result_screen.dart';
 import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_feedback.dart';
+import '../widgets/live_sprint_trend_card.dart';
 
 class RunningCoachScreen extends StatefulWidget {
   final OptionRepository? optionRepository;
@@ -100,6 +102,8 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
   final ImagePicker _picker = ImagePicker();
   final RunningCoachingService _coachingService =
       const RunningCoachingService();
+  final LiveSprintTrendService _liveSprintTrendService =
+      const LiveSprintTrendService();
 
   RunningCoachHistoryService? _historyService;
   XFile? _selectedVideo;
@@ -142,6 +146,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
 
   Widget _buildCoachPage(AppLocalizations l10n) {
     final mission = _missionForToday(DateTime.now());
+    final trendSummary = _liveSprintTrendService.build(_recentSessions);
     return ListView(
       key: const PageStorageKey('running-coach-simple-page'),
       padding: const EdgeInsets.all(16),
@@ -150,6 +155,13 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
           title: l10n.runningCoachHeroTitle,
           body: l10n.runningCoachHeroBody,
         ),
+        if (trendSummary.hasLiveSessions) ...[
+          const SizedBox(height: 12),
+          LiveSprintTrendCard(
+            summary: trendSummary,
+            cardKey: const ValueKey('running-coach-live-trend-card'),
+          ),
+        ],
         const SizedBox(height: 12),
         _RunningMissionCard(
           mission: mission,
@@ -301,11 +313,18 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
   }
 
   void _openAnalysisHistoryDetail(RunningCoachSessionAnalysis session) {
+    final trendSummary = _liveSprintTrendService.build(
+      _recentSessions,
+      currentSessionId: session.id,
+    );
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => session.liveSprintReport == null
             ? _AnalysisHistoryDetailScreen(session: session)
-            : RunningLiveSessionResultScreen(session: session),
+            : RunningLiveSessionResultScreen(
+                session: session,
+                trendSummary: trendSummary,
+              ),
       ),
     );
   }
