@@ -319,9 +319,9 @@ void main() {
     expect(find.text('Lean 10°'), findsNothing);
     expect(find.text('Arms 90°'), findsNothing);
     expect(find.text('Bounce 6%'), findsNothing);
-    expect(find.text('12.4° forward lean'), findsWidgets);
-    expect(find.text('0.11x ahead of hips'), findsWidgets);
-    expect(find.text('7.0% vertical bounce'), findsWidgets);
+    expect(find.text('12.4° body lean'), findsWidgets);
+    expect(find.text('0.11x foot reach'), findsWidgets);
+    expect(find.text('7.0% up-down motion'), findsWidgets);
     expect(find.text('Good'), findsWidgets);
     expect(
       find.text('Foot lands under the hip with toes forward'),
@@ -350,7 +350,7 @@ void main() {
     expect(find.text('Evidence detail'), findsOneWidget);
     expect(find.text('Measured value'), findsOneWidget);
     expect(find.text('Good range'), findsOneWidget);
-    expect(find.text('12.4° forward lean'), findsWidgets);
+    expect(find.text('12.4° body lean'), findsWidgets);
     expect(find.textContaining("this clip's measured value"), findsWidgets);
     expect(find.textContaining('vertical hip line'), findsWidgets);
 
@@ -367,9 +367,9 @@ void main() {
     await tester.pump();
 
     expect(find.text('Wrong-form readouts'), findsOneWidget);
-    expect(find.text('0.22x ahead of hips'), findsWidgets);
+    expect(find.text('0.22x foot reach'), findsWidgets);
     expect(find.text('Bounce'), findsOneWidget);
-    expect(find.text('10.0% vertical bounce'), findsWidgets);
+    expect(find.text('10.0% up-down motion'), findsWidgets);
     expect(find.text('Needs work'), findsWidgets);
     expect(
       find.textContaining('landing is 0.20 ahead of the hip'),
@@ -390,7 +390,7 @@ void main() {
       find.byKey(const ValueKey('running-coach-sample-metric-detail')),
       findsOneWidget,
     );
-    expect(find.text('10.0% vertical bounce'), findsWidgets);
+    expect(find.text('10.0% up-down motion'), findsWidgets);
     expect(find.textContaining('head and hip height band'), findsOneWidget);
 
     Navigator.of(
@@ -475,7 +475,7 @@ void main() {
       findsNothing,
     );
     expect(find.text('No pose frames'), findsOneWidget);
-    expect(find.text('12.4° forward lean'), findsWidgets);
+    expect(find.text('12.4° body lean'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
 
@@ -610,7 +610,7 @@ void main() {
     expect(find.text('side-view-test.mp4'), findsOneWidget);
     expect(find.text('Correction point in pictures'), findsOneWidget);
     expect(
-      find.text('Target: 8-15° whole-body forward lean from the ankles'),
+      find.text('Goal: slight forward lean, without bending at the waist'),
       findsWidgets,
     );
     expect(find.text('Action cue'), findsOneWidget);
@@ -789,6 +789,96 @@ void main() {
       await tester.pump(const Duration(milliseconds: 250));
       expect(tester.takeException(), isNull);
     }
+  });
+
+  testWidgets('analysis guide uses beginner copy at 320px portrait', (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(320, 780));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    const result = RunningVideoAnalysisResult(
+      videoDuration: Duration(seconds: 5),
+      sampledFrames: 18,
+      validFrames: 16,
+      direction: RunningDirection.leftToRight,
+      forwardLeanDegrees: 12,
+      verticalBounceRatio: 0.07,
+      footStrikeDistanceRatio: 0.25,
+      stanceKneeAngleDegrees: 152,
+      elbowAngleDegrees: 92,
+      metricQualities: <RunningCoachMetric, RunningMetricQuality>{
+        RunningCoachMetric.posture: RunningMetricQuality(
+          confidence: 1,
+          sampleCount: 16,
+        ),
+        RunningCoachMetric.bounce: RunningMetricQuality(
+          confidence: 1,
+          sampleCount: 16,
+        ),
+        RunningCoachMetric.footStrike: RunningMetricQuality(
+          confidence: 1,
+          sampleCount: 16,
+        ),
+        RunningCoachMetric.kneeFlexion: RunningMetricQuality(
+          confidence: 1,
+          sampleCount: 16,
+        ),
+        RunningCoachMetric.armCarriage: RunningMetricQuality(
+          confidence: 1,
+          sampleCount: 16,
+        ),
+      },
+    );
+    final report = const RunningCoachingService().buildReport(result);
+    final primary = report.primaryFocus!;
+    final session = RunningCoachSessionAnalysis(
+      id: 'beginner-copy-320',
+      analyzedAt: DateTime(2026, 7, 14, 9),
+      source: RunningCoachSessionSource.uploadVideo,
+      overallScore: report.overallScore,
+      duration: result.videoDuration,
+      sampledFrames: result.sampledFrames,
+      validFrames: result.validFrames,
+      primaryMetric: primary.metric,
+      primaryFinding: primary.finding,
+      primaryStatus: primary.status,
+      primaryScore: primary.score,
+      primaryValue: primary.value,
+      primaryConfidence: primary.quality.confidence,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: runningAnalysisResultScreenForTesting(
+          result: result,
+          report: report,
+          session: session,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final guideVisual = find.byKey(
+      const ValueKey('running-coach-insight-guide-visual-footStrike'),
+    );
+    for (var step = 0; step < 12 && guideVisual.evaluate().isEmpty; step++) {
+      await tester.drag(find.byType(Scrollable).first, const Offset(0, -360));
+      await tester.pump(const Duration(milliseconds: 120));
+    }
+    expect(
+      guideVisual,
+      findsOneWidget,
+    );
+    expect(find.text('Put the foot down closer under the hips.'), findsWidgets);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('analysis result localizes dense contact timestamp units', (

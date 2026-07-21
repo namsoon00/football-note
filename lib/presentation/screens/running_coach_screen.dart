@@ -5373,8 +5373,23 @@ class _RunningInsightGuidePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final scale = math.min(size.width / 300, size.height / 178);
-    final center = Offset(size.width * 0.50, size.height * 0.54);
+    if (size.isEmpty) {
+      return;
+    }
+
+    canvas.save();
+    canvas.clipRect(Offset.zero & size);
+
+    final horizontalPadding = compact ? 8.0 : 18.0;
+    final verticalPadding = compact ? 8.0 : 12.0;
+    final scale = math.min(
+      math.max(1, size.width - horizontalPadding * 2) / 320,
+      math.max(1, size.height - verticalPadding * 2) / 190,
+    );
+    final center = Offset(
+      size.width * (compact ? 0.50 : 0.47),
+      size.height * 0.55,
+    );
     final groundY = center.dy + 54 * scale;
     final lean = switch (finding) {
       RunningCoachFinding.postureTooUpright => 8.0,
@@ -5447,7 +5462,7 @@ class _RunningInsightGuidePainter extends CustomPainter {
       ..strokeWidth = compact ? 1.5 : 2;
 
     if (!compact) {
-      _drawBiomechanicsGrid(canvas, size, guidePaint);
+      _drawCoachingDiagramBase(canvas, size, groundY, guidePaint);
     }
     canvas.drawLine(
       Offset(size.width * 0.08, groundY),
@@ -5618,6 +5633,8 @@ class _RunningInsightGuidePainter extends CustomPainter {
         canvas.drawCircle(
             frontElbow, compact ? 7 * scale : 9 * scale, accentJointStroke);
     }
+
+    canvas.restore();
   }
 
   void _drawShoulderPelvisBars(
@@ -5747,7 +5764,25 @@ class _RunningInsightGuidePainter extends CustomPainter {
     }
   }
 
-  void _drawBiomechanicsGrid(Canvas canvas, Size size, Paint guidePaint) {
+  void _drawCoachingDiagramBase(
+    Canvas canvas,
+    Size size,
+    double groundY,
+    Paint guidePaint,
+  ) {
+    final laneRect = Rect.fromLTRB(
+      size.width * 0.08,
+      groundY - 10,
+      size.width * 0.92,
+      groundY + 10,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(laneRect, const Radius.circular(10)),
+      Paint()
+        ..color = guidePaint.color.withValues(alpha: 0.10)
+        ..style = PaintingStyle.fill,
+    );
+
     final gridPaint = Paint()
       ..color = guidePaint.color.withValues(alpha: 0.28)
       ..style = PaintingStyle.stroke
@@ -6386,10 +6421,10 @@ class _PrimaryFocusCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(width: 8),
-                _QualityBadge(quality: insight.quality),
               ],
             ),
+            const SizedBox(height: 8),
+            _QualityBadge(quality: insight.quality),
             const SizedBox(height: 12),
             Text(copy.summary, style: Theme.of(context).textTheme.bodyMedium),
             const SizedBox(height: 10),

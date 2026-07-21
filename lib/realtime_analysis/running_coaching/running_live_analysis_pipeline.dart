@@ -12,6 +12,9 @@ class RunningLiveAnalysisPipeline {
   final Queue<_TimedFrameSample> _samples = Queue<_TimedFrameSample>();
   final RunningTemporalPoseTracker _poseTracker;
   final RunningGaitEventDetector _gaitEventDetector;
+  DateTime? _lastReliableFullBodyEvidenceAt;
+  RunningLiveFramingIssue? _lastRawFramingIssue;
+  int _sameRawFramingIssueFrames = 0;
 
   RunningLiveAnalysisPipeline({
     this.config = const RunningLiveAnalysisConfig(),
@@ -24,6 +27,9 @@ class RunningLiveAnalysisPipeline {
     _samples.clear();
     _poseTracker.reset();
     _gaitEventDetector.reset();
+    _lastReliableFullBodyEvidenceAt = null;
+    _lastRawFramingIssue = null;
+    _sameRawFramingIssueFrames = 0;
   }
 
   RunningLiveAnalysisSnapshot ingestObservation(
@@ -43,10 +49,11 @@ class RunningLiveAnalysisPipeline {
     } else {
       final extractor = _RunningFrameExtractor(config.minimumLikelihood);
       final sample = extractor.extract(trackedObservation);
-      framingIssue = _RunningFramingPolicy(
+      final framingDecision = _RunningFramingPolicy(
         config.minimumLikelihood,
         extractor,
       ).resolve(trackedObservation, sample: sample);
+      framingIssue = _stabilizeFramingIssue(framingDecision, now);
       if (framingIssue == null && sample != null) {
         _samples.add(_TimedFrameSample(sample: sample, timestamp: now));
         _trimSamples(now);
@@ -77,6 +84,51 @@ class RunningLiveAnalysisPipeline {
         now.difference(_samples.first.timestamp) > config.analysisWindow) {
       _samples.removeFirst();
     }
+  }
+
+  RunningLiveFramingIssue? _stabilizeFramingIssue(
+    _RunningFramingDecision decision,
+    DateTime now,
+  ) {
+    final rawIssue = decision.issue;
+    if (decision.reliableFullBodyEvidence) {
+      _lastReliableFullBodyEvidenceAt = now;
+    }
+    if (rawIssue == null) {
+      _lastRawFramingIssue = null;
+      _sameRawFramingIssueFrames = 0;
+      return null;
+    }
+
+    if (_lastRawFramingIssue == rawIssue) {
+      _sameRawFramingIssueFrames += 1;
+    } else {
+      _lastRawFramingIssue = rawIssue;
+      _sameRawFramingIssueFrames = 1;
+    }
+
+    if (rawIssue == RunningLiveFramingIssue.noRunnerDetected ||
+        decision.hardFailure) {
+      return rawIssue;
+    }
+
+    final lastReliableAt = _lastReliableFullBodyEvidenceAt;
+    final hasRecentReliableBodyEvidence = lastReliableAt != null &&
+        now.difference(lastReliableAt) <= const Duration(milliseconds: 1200);
+
+    if (decision.trackingUncertainCandidate &&
+        hasRecentReliableBodyEvidence &&
+        _sameRawFramingIssueFrames <= 3) {
+      return RunningLiveFramingIssue.trackingUncertain;
+    }
+
+    if (decision.softFailure &&
+        hasRecentReliableBodyEvidence &&
+        _sameRawFramingIssueFrames <= 2) {
+      return null;
+    }
+
+    return rawIssue;
   }
 }
 
@@ -116,13 +168,16 @@ class _RunningFramingPolicy {
 
   const _RunningFramingPolicy(this.minimumLikelihood, this.extractor);
 
-  RunningLiveFramingIssue? resolve(
+  _RunningFramingDecision resolve(
     RunningPoseObservation observation, {
     required _FrameSample? sample,
   }) {
     final imageSize = observation.imageSize;
     if (imageSize.width <= 0 || imageSize.height <= 0) {
-      return RunningLiveFramingIssue.noRunnerDetected;
+      return const _RunningFramingDecision(
+        issue: RunningLiveFramingIssue.noRunnerDetected,
+        hardFailure: true,
+      );
     }
 
     final leftShoulder = observation.landmark(
@@ -146,8 +201,18 @@ class _RunningFramingPolicy {
         rightShoulder == null ||
         leftHip == null ||
         rightHip == null) {
-      return RunningLiveFramingIssue.noRunnerDetected;
+      return const _RunningFramingDecision(
+        issue: RunningLiveFramingIssue.noRunnerDetected,
+        hardFailure: true,
+      );
     }
+
+    final visibleLandmarks = <RunningPoseLandmark>[
+      for (final type in RunningPoseLandmarkType.values)
+        if (observation.landmark(type, minimumLikelihood: minimumLikelihood)
+            case final landmark?)
+          landmark,
+    ];
 
     final leftAnkle = observation.landmark(
       RunningPoseLandmarkType.leftAnkle,
@@ -158,17 +223,28 @@ class _RunningFramingPolicy {
       minimumLikelihood: minimumLikelihood,
     );
     if (leftAnkle == null || rightAnkle == null) {
-      return RunningLiveFramingIssue.stepBack;
+      final hasKneeEvidence = observation.landmark(
+                RunningPoseLandmarkType.leftKnee,
+                minimumLikelihood: minimumLikelihood,
+              ) !=
+              null &&
+          observation.landmark(
+                RunningPoseLandmarkType.rightKnee,
+                minimumLikelihood: minimumLikelihood,
+              ) !=
+              null;
+      return _RunningFramingDecision(
+        issue: RunningLiveFramingIssue.stepBack,
+        trackingUncertainCandidate:
+            hasKneeEvidence && visibleLandmarks.length >= 8,
+      );
     }
 
-    final visibleLandmarks = <RunningPoseLandmark>[
-      for (final type in RunningPoseLandmarkType.values)
-        if (observation.landmark(type, minimumLikelihood: minimumLikelihood)
-            case final landmark?)
-          landmark,
-    ];
     if (visibleLandmarks.length < 6) {
-      return RunningLiveFramingIssue.noRunnerDetected;
+      return const _RunningFramingDecision(
+        issue: RunningLiveFramingIssue.noRunnerDetected,
+        hardFailure: true,
+      );
     }
 
     final xs = visibleLandmarks.map((landmark) => landmark.position.dx);
@@ -183,24 +259,54 @@ class _RunningFramingPolicy {
     final topMarginRatio = minY / imageSize.height;
     final bottomMarginRatio = (imageSize.height - maxY) / imageSize.height;
 
-    if (boxHeightRatio > 0.9 ||
+    final extractedSample = sample ?? extractor.extract(observation);
+    final reliableFullBodyEvidence = extractedSample != null &&
+        visibleLandmarks.length >= 10 &&
+        extractedSample.requiredLandmarkConfidence >=
+            math.max(0.62, minimumLikelihood + 0.15);
+
+    final hardFitFailure = boxHeightRatio > 0.94 ||
+        boxWidthRatio > 0.88 ||
+        topMarginRatio < 0.015 ||
+        bottomMarginRatio < 0.015;
+    final softFitFailure = boxHeightRatio > 0.9 ||
         boxWidthRatio > 0.82 ||
         topMarginRatio < 0.03 ||
-        bottomMarginRatio < 0.03) {
-      return RunningLiveFramingIssue.stepBack;
+        bottomMarginRatio < 0.03;
+    if (hardFitFailure || softFitFailure) {
+      return _RunningFramingDecision(
+        issue: RunningLiveFramingIssue.stepBack,
+        reliableFullBodyEvidence: reliableFullBodyEvidence,
+        softFailure: !hardFitFailure && reliableFullBodyEvidence,
+        hardFailure: hardFitFailure,
+      );
     }
 
     if (boxHeightRatio < 0.36) {
-      return RunningLiveFramingIssue.moveCloser;
+      final hardSmallFailure = boxHeightRatio < 0.32;
+      return _RunningFramingDecision(
+        issue: RunningLiveFramingIssue.moveCloser,
+        reliableFullBodyEvidence: reliableFullBodyEvidence,
+        softFailure: !hardSmallFailure && reliableFullBodyEvidence,
+        hardFailure: hardSmallFailure,
+      );
     }
 
     if (centerXRatio < 0.28 || centerXRatio > 0.72) {
-      return RunningLiveFramingIssue.centerRunner;
+      final hardCenterFailure = centerXRatio < 0.22 || centerXRatio > 0.78;
+      return _RunningFramingDecision(
+        issue: RunningLiveFramingIssue.centerRunner,
+        reliableFullBodyEvidence: reliableFullBodyEvidence,
+        softFailure: !hardCenterFailure && reliableFullBodyEvidence,
+        hardFailure: hardCenterFailure,
+      );
     }
 
-    final extractedSample = sample ?? extractor.extract(observation);
     if (extractedSample == null) {
-      return RunningLiveFramingIssue.noRunnerDetected;
+      return const _RunningFramingDecision(
+        issue: RunningLiveFramingIssue.noRunnerDetected,
+        hardFailure: true,
+      );
     }
 
     final bodyHeight = maxY - minY;
@@ -208,11 +314,32 @@ class _RunningFramingPolicy {
         extractedSample.shoulderSpan / math.max(bodyHeight, 1);
     final hipWidthRatio = extractedSample.hipSpan / math.max(bodyHeight, 1);
     if (math.max(shoulderWidthRatio, hipWidthRatio) > 0.34) {
-      return RunningLiveFramingIssue.turnSideways;
+      return _RunningFramingDecision(
+        issue: RunningLiveFramingIssue.turnSideways,
+        reliableFullBodyEvidence: reliableFullBodyEvidence,
+      );
     }
 
-    return null;
+    return _RunningFramingDecision(
+      reliableFullBodyEvidence: reliableFullBodyEvidence,
+    );
   }
+}
+
+class _RunningFramingDecision {
+  final RunningLiveFramingIssue? issue;
+  final bool reliableFullBodyEvidence;
+  final bool trackingUncertainCandidate;
+  final bool softFailure;
+  final bool hardFailure;
+
+  const _RunningFramingDecision({
+    this.issue,
+    this.reliableFullBodyEvidence = false,
+    this.trackingUncertainCandidate = false,
+    this.softFailure = false,
+    this.hardFailure = false,
+  });
 }
 
 class _RunningFrameExtractor {

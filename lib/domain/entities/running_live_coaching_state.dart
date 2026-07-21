@@ -57,6 +57,7 @@ class RunningPoseObservation {
 
 enum RunningLiveFramingIssue {
   noRunnerDetected,
+  trackingUncertain,
   stepBack,
   moveCloser,
   centerRunner,
@@ -65,6 +66,7 @@ enum RunningLiveFramingIssue {
 
 enum RunningLivePrimaryCue {
   noRunnerDetected,
+  trackingUncertain,
   stepBack,
   moveCloser,
   centerRunner,

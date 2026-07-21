@@ -88,6 +88,55 @@ void main() {
       );
     });
 
+    test('normalizes portrait display geometry from a landscape sensor frame',
+        () {
+      final geometry = CameraDisplayGeometry.fromCameraFrame(
+        rawImageSize: const Size(1920, 1080),
+        controllerPreviewSize: const Size(1280, 720),
+        rotationDegrees: 90,
+        mirrorHorizontally: false,
+      );
+
+      expect(geometry.detectorImageSize, const Size(1080, 1920));
+      expect(geometry.previewSourceSize, const Size(720, 1280));
+
+      final transform = geometry.transformFor(
+        viewportSize: const Size(360, 640),
+      );
+      expect(
+          transform.project(const Offset(540, 120)),
+          closeToOffset(
+            const Offset(180, 40),
+          ));
+      expect(
+          transform.project(const Offset(540, 1800)),
+          closeToOffset(
+            const Offset(180, 600),
+          ));
+    });
+
+    test('applies front camera mirror after portrait normalization', () {
+      final back = CameraDisplayGeometry.fromCameraFrame(
+        rawImageSize: const Size(1920, 1080),
+        controllerPreviewSize: const Size(1280, 720),
+        rotationDegrees: 90,
+        mirrorHorizontally: false,
+      ).transformFor(viewportSize: const Size(360, 640));
+      final front = CameraDisplayGeometry.fromCameraFrame(
+        rawImageSize: const Size(1920, 1080),
+        controllerPreviewSize: const Size(1280, 720),
+        rotationDegrees: 90,
+        mirrorHorizontally: true,
+      ).transformFor(viewportSize: const Size(360, 640));
+
+      final backPoint = back.project(const Offset(270, 960));
+      final frontPoint = front.project(const Offset(270, 960));
+
+      expect(backPoint.dx, closeTo(90, 0.001));
+      expect(frontPoint.dx, closeTo(270, 0.001));
+      expect(frontPoint.dy, closeTo(backPoint.dy, 0.001));
+    });
+
     test('orients camera preview source size to the viewport', () {
       expect(
         cameraPreviewSourceSizeForViewport(
@@ -100,6 +149,23 @@ void main() {
         cameraPreviewSourceSizeForViewport(
           controllerPreviewSize: const Size(1280, 720),
           viewportSize: const Size(640, 360),
+        ),
+        const Size(1280, 720),
+      );
+    });
+
+    test('orients camera preview source size to detector geometry', () {
+      expect(
+        cameraPreviewSourceSizeForDetector(
+          controllerPreviewSize: const Size(1280, 720),
+          detectorImageSize: const Size(405, 720),
+        ),
+        const Size(720, 1280),
+      );
+      expect(
+        cameraPreviewSourceSizeForDetector(
+          controllerPreviewSize: const Size(1280, 720),
+          detectorImageSize: const Size(720, 405),
         ),
         const Size(1280, 720),
       );

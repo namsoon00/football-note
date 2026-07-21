@@ -85,12 +85,86 @@ class CameraViewportTransform {
   }
 }
 
+class CameraDisplayGeometry {
+  final Size detectorImageSize;
+  final Size previewSourceSize;
+  final bool mirrorHorizontally;
+
+  const CameraDisplayGeometry({
+    required this.detectorImageSize,
+    required this.previewSourceSize,
+    required this.mirrorHorizontally,
+  });
+
+  factory CameraDisplayGeometry.fromCameraFrame({
+    required Size rawImageSize,
+    required Size controllerPreviewSize,
+    required int rotationDegrees,
+    required bool mirrorHorizontally,
+  }) {
+    final detectorImageSize = detectorImageSizeForRotation(
+      rawImageSize,
+      rotationDegrees,
+    );
+    return CameraDisplayGeometry.fromDetectorImageSize(
+      detectorImageSize: detectorImageSize,
+      controllerPreviewSize: controllerPreviewSize,
+      mirrorHorizontally: mirrorHorizontally,
+    );
+  }
+
+  factory CameraDisplayGeometry.fromDetectorImageSize({
+    required Size detectorImageSize,
+    required Size controllerPreviewSize,
+    bool mirrorHorizontally = false,
+  }) {
+    return CameraDisplayGeometry(
+      detectorImageSize: detectorImageSize,
+      previewSourceSize: cameraPreviewSourceSizeForDetector(
+        controllerPreviewSize: controllerPreviewSize,
+        detectorImageSize: detectorImageSize,
+      ),
+      mirrorHorizontally: mirrorHorizontally,
+    );
+  }
+
+  CameraViewportTransform transformFor({
+    required Size viewportSize,
+    BoxFit fit = BoxFit.cover,
+  }) {
+    return CameraViewportTransform.fit(
+      sourceSize: detectorImageSize,
+      viewportSize: viewportSize,
+      fit: fit,
+      mirrorHorizontally: mirrorHorizontally,
+    );
+  }
+}
+
 Size detectorImageSizeForRotation(Size rawImageSize, int rotationDegrees) {
   final normalizedRotation = ((rotationDegrees % 360) + 360) % 360;
   if (normalizedRotation == 90 || normalizedRotation == 270) {
     return Size(rawImageSize.height, rawImageSize.width);
   }
   return rawImageSize;
+}
+
+Size cameraPreviewSourceSizeForDetector({
+  required Size controllerPreviewSize,
+  required Size detectorImageSize,
+}) {
+  if (controllerPreviewSize.isEmpty || detectorImageSize.isEmpty) {
+    return controllerPreviewSize;
+  }
+
+  final previewIsPortrait =
+      controllerPreviewSize.height >= controllerPreviewSize.width;
+  final detectorIsPortrait =
+      detectorImageSize.height >= detectorImageSize.width;
+  if (previewIsPortrait == detectorIsPortrait) {
+    return controllerPreviewSize;
+  }
+  return Size(controllerPreviewSize.height, controllerPreviewSize.width);
 }
 
 Size cameraPreviewSourceSizeForViewport({

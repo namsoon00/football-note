@@ -8599,7 +8599,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachLiveCardBody =>
-      '解剖学的な関節、接地タイミング、スプリント動作を一つのライブコーチで確認し、体幹の傾き、膝のドライブ、着地、リズム、腕のバランスをまとめて読み取ります。';
+      '一つのライブコーチで体の傾き、膝上げ、着地、リズム、腕のバランスを確認します。';
 
   @override
   String get runningCoachLiveAction => 'ライブスプリントコーチ開始';
@@ -8618,35 +8618,35 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachLiveGuideHeroBody =>
-      'ライブスプリントコーチはカメラ映像の上に解剖学的な関節とスケルトン線を直接描きます。展開できる結果パネルで、接地タイミングと体幹、膝、着地、リズム、腕の指標を一度に確認できます。';
+      'ライブスプリントコーチはカメラ映像の上に体の輪郭を描き、傾き、膝、着地、リズム、腕をわかりやすく案内します。';
 
   @override
   String get runningCoachLiveGuideTipSideTitle => '側面図を表示する';
 
   @override
   String get runningCoachLiveGuideTipSideBody =>
-      'ランナーは、カメラに向かってまっすぐに移動したり、斜めに移動したりするのではなく、横からフレームを横切って移動する必要があります。';
+      'カメラの横を通るように走ってください。レンズに向かってまっすぐ走らないでください。';
 
   @override
   String get runningCoachLiveGuideTipBodyTitle => '全身をフレーム内に収める';
 
   @override
   String get runningCoachLiveGuideTipBodyBody =>
-      '頭、肩、肘、腰、膝、足首、足がすべてフレーム内に残ると、関節スケルトンとスコアが安定します。';
+      '頭、腕、腰、膝、両足が画面に入るようにしてください。コーチが一歩ずつ読みやすくなります。';
 
   @override
   String get runningCoachLiveGuideTipHudTitle => 'コンパクトHUDを使う';
 
   @override
   String get runningCoachLiveGuideTipHudBody =>
-      '上部のキュー、関節スケルトンのオーバーレイ、コンパクトHUDを中心に読みます。理由、修正、歩行タイミング、指標結果が必要なときにHUDを展開します。';
+      'まず上の案内を見てください。詳しく見たいときだけパネルを開いてください。';
 
   @override
-  String get runningCoachLiveGuideTipCameraTitle => 'カメラを固定し、本体を十分な大きさに保ちます';
+  String get runningCoachLiveGuideTipCameraTitle => 'カメラを動かさない';
 
   @override
   String get runningCoachLiveGuideTipCameraBody =>
-      'カメラをしっかりと保持し、全身が画面の高さの少なくとも約半分を占めるようにランナーをフレームに収めます。フレームが充実するほど、関節スケルトンと音声コーチングがより安定します。';
+      'カメラを固定してください。ランナーが画面の半分ほどに見え、頭の上と両足の下に余白があるようにします。';
 
   @override
   String get runningCoachLivePreparingTitle => 'カメラの準備中';
@@ -8720,11 +8720,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachLiveStatusCoaching => 'ライブコーチングがアクティブです';
 
   @override
-  String get runningCoachLiveCueNoRunner =>
-      'ランナーはまだ十分に明確ではありません。フレームに足を踏み入れます。';
+  String get runningCoachLiveCueNoRunner => 'ランナーがはっきり見えません。画面に入り、少し止まってください。';
 
   @override
-  String get runningCoachLiveCueStepBack => '後ろに下がり、頭からつま先まで全身をフレームに収めます。';
+  String get runningCoachLiveCueTrackingUncertain =>
+      'そのまま安定してください。関節をもう一度探しています。';
+
+  @override
+  String get runningCoachLiveCueStepBack => '後ろに下がってください。頭と両足を画面に入れます。';
 
   @override
   String get runningCoachLiveCueMoveCloser => 'ランナーが小さく見えます。もう少しカメラに近づきます。';
@@ -8733,7 +8736,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachLiveCueCenterRunner => 'ランナーをフレームの中央にはっきりと配置します。';
 
   @override
-  String get runningCoachLiveCueTurnSideways => 'より横に回すと走行形状が読みやすくなります。';
+  String get runningCoachLiveCueTurnSideways => '歩幅を読みやすいように、もう少し横向きにしてください。';
 
   @override
   String get runningCoachLiveCueKeepRunning =>
@@ -8860,15 +8863,19 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachLiveSessionReportEvidenceRightLead => '右足リード';
 
   @override
+  String get runningCoachLiveTrackingUncertainBody =>
+      '少し同じ場所で安定してください。足が画面外に出ていなければ、後ろに下がる必要はありません。';
+
+  @override
   String get runningCoachPoseEvidenceBlockerFullBody =>
-      '頭と両足が画面内に入るよう、一歩下がってください。';
+      '頭と両足が画面に残るまで後ろに下がってください。';
 
   @override
   String get runningCoachPoseEvidenceBlockerSideView => '安定した側面ビューを保ってください。';
 
   @override
   String get runningCoachPoseEvidenceBlockerCoreJoints =>
-      '関節の輪郭が安定するまで動きを落ち着かせてください。';
+      'コーチが関節を見つけられるよう、カメラを動かさないでください。';
 
   @override
   String get runningCoachPoseEvidenceBlockerGaitPhase => '同じ側面構図であと数歩走ってください。';
@@ -9426,7 +9433,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachSprintLiveCardBody =>
-      'サイドビュー カメラで全身の捕捉状態を先に確認し、関節信頼度が安定した区間だけ体幹、膝、リズムのキューを表示します。';
+      '横向きカメラで全身が見えるか先に確認します。体が十分にはっきり見えるとコーチングが出ます。';
 
   @override
   String get runningCoachSprintLiveAction => 'スプリントコーチングを始める';
@@ -9700,7 +9707,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachSprintMetricPending => '--';
 
   @override
-  String get runningCoachSprintMetricTrunkLabel => '体幹スリム';
+  String get runningCoachSprintMetricTrunkLabel => '体の傾き';
 
   @override
   String runningCoachSprintMetricTrunkValue(Object value) {
@@ -9799,34 +9806,31 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachSprintBodyVisibilityNotVisible => '身体が失われた';
 
   @override
-  String get runningCoachSprintCueBodyVisible => '全身がフレーム内に収まるようにもう 1 段階調整します。';
+  String get runningCoachSprintCueBodyVisible => '全身が画面に残るように一歩だけ調整してください。';
 
   @override
-  String get runningCoachSprintCueLeanForward =>
-      '腰を折らず、肩の中心が腰の線より少し前に来るように保ちます。';
+  String get runningCoachSprintCueLeanForward => '少し前へ傾きます。胸は高く保ちます。';
 
   @override
-  String get runningCoachSprintCueDriveKnee => '押し出した後、膝をもう少し積極的に前に動かします。';
+  String get runningCoachSprintCueDriveKnee => '地面を強く後ろに押し、次の膝を前へ通します。';
 
   @override
-  String get runningCoachSprintCueKeepRhythm =>
-      '左右のリズムが漂います。接地接触をより均一に保つようにしてください。';
+  String get runningCoachSprintCueKeepRhythm => '左右のステップをそろえます。';
 
   @override
-  String get runningCoachSprintCueBalanceArms =>
-      '腕の振りがアンバランスです。両側の後進ドライブをより厳密に一致させます。';
+  String get runningCoachSprintCueBalanceArms => '両腕を同じように振ります。';
 
   @override
-  String get runningCoachSprintCueLandUnderHips => '足を前に伸ばしすぎず、腰の下に近い位置へ接地します。';
+  String get runningCoachSprintCueLandUnderHips => '足を腰の下に近づけて置きます。';
 
   @override
-  String get runningCoachSprintCueLiftOffQuickly => '地面から少し早く離れ、次の一歩を軽く保ちます。';
+  String get runningCoachSprintCueLiftOffQuickly => '地面から早く離れ、次の一歩を軽くします。';
 
   @override
-  String get runningCoachSprintCueHoldLateForm => 'スプリントの最後まで同じ膝のドライブと前傾を保ちます。';
+  String get runningCoachSprintCueHoldLateForm => 'ゴールまで同じ膝上げと体の傾きを保ちます。';
 
   @override
-  String get runningCoachSprintCueKeepPushing => '良い。同じリズムで前傾姿勢で押し続けます。';
+  String get runningCoachSprintCueKeepPushing => '良いです。同じリズムで後ろへ押し続けます。';
 
   @override
   String get runningCoachSelectedVideoLabel => '選択したビデオ';
@@ -9924,8 +9928,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachAnalysisGuideTitle => '図で見る修正ポイント';
 
   @override
-  String get runningCoachAnalysisGuideBody =>
-      '測定値が良い範囲にどれだけ近いかを、身体ライン、関節角度、着地点で確認します。';
+  String get runningCoachAnalysisGuideBody => '絵を見て、最初に直す点を確認してください。';
 
   @override
   String get runningCoachAnalysisGuideRangeLabel => '良い範囲';
@@ -9940,20 +9943,19 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachAnalysisGuideDrillLabel => 'おすすめドリル';
 
   @override
-  String get runningCoachGuideRangePosture => '目標: 足首から身体全体が前へ8〜15°傾く前傾';
+  String get runningCoachGuideRangePosture => '目標: 腰を折らずに少し前へ傾く';
 
   @override
-  String get runningCoachGuideRangeBounce => '目標: 身長の約5〜9%に収まる低く速い上下動';
+  String get runningCoachGuideRangeBounce => '目標: 上下動を小さくし、足をすばやく動かす';
 
   @override
-  String get runningCoachGuideRangeFootStrike =>
-      '目標: 前足が腰の下から前方0.00〜0.18倍以内に着地';
+  String get runningCoachGuideRangeFootStrike => '目標: 足を腰の近くの下に着く';
 
   @override
-  String get runningCoachGuideRangeKnee => '目標: 接地時の支持膝が約145〜165°で柔らかく受ける範囲';
+  String get runningCoachGuideRangeKnee => '目標: 着地の膝は固めず、やわらかく';
 
   @override
-  String get runningCoachGuideRangeArm => '目標: 肘が約70〜110°でコンパクトに前後へ動く範囲';
+  String get runningCoachGuideRangeArm => '目標: 肘を曲げ、手を前後に動かす';
 
   @override
   String get runningCoachMetricScoreLabel => '項目スコア';
@@ -9974,22 +9976,23 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachQualityReasonLowCoverage =>
-      '追跡できたフレーム比率が低いため、この指標は保守的に見てください。';
+      '動画内のランナーが十分にはっきり見えませんでした。より見やすい動画で確認してください。';
 
   @override
   String get runningCoachQualityReasonLimitedSamples =>
-      '安定して読めたフレームが少ないため、同じ角度でもう一度確認してください。';
+      'はっきり読めた場面が少なめでした。同じ横向きでもう一度撮ってください。';
 
   @override
   String get runningCoachQualityReasonContactPhaseProxy =>
-      '接地局面を推定したフレームが少ないため、着地と膝の指標をもう一度確認してください。';
+      '足が着く瞬間を確認しにくい動画でした。着地と膝をもう一度確認してください。';
 
   @override
   String get runningCoachQualityReasonLowConfidence =>
-      '必須ランドマークの信頼度が低いため、このキューを使う前にカメラを安定させてください。';
+      'カメラが関節をはっきり見られませんでした。カメラを動かさないでください。';
 
   @override
-  String get runningCoachQualityReasonGeneric => '撮影品質が低いため、同じ角度でもう一度確認してください。';
+  String get runningCoachQualityReasonGeneric =>
+      '動画が十分にはっきりしていません。同じ横向きでもう一度撮ってください。';
 
   @override
   String get runningCoachOverallHeadlineStrong => '力強いランニング形状';
@@ -10059,27 +10062,27 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String runningCoachLeanValue(Object value) {
-    return '$value° 前傾';
+    return '体の傾き $value°';
   }
 
   @override
   String runningCoachBounceValue(Object value) {
-    return '$value% 垂直バウンド';
+    return '上下動 $value%';
   }
 
   @override
   String runningCoachFootStrikeValue(Object value) {
-    return '${value}x 腰より前';
+    return '足の伸び $value倍';
   }
 
   @override
   String runningCoachKneeValue(Object value) {
-    return '$value°サポート膝角度';
+    return '着地膝 $value°';
   }
 
   @override
   String runningCoachArmValue(Object value) {
-    return '$value° エルボ角度';
+    return '腕の曲げ $value°';
   }
 
   @override
@@ -10091,165 +10094,136 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachInsightPostureTitle => '姿勢';
 
   @override
-  String get runningCoachPostureGoodSummary =>
-      '体の角度は、わずかに前傾したきれいなスプリント姿勢に近いです。';
+  String get runningCoachPostureGoodSummary => '体が少し前に傾き、姿勢は高く保てています。';
 
   @override
-  String get runningCoachPostureGoodCue => '胸を高く保ち、体全体を前に倒します。';
+  String get runningCoachPostureGoodCue => '胸を高く保ちます。体全体を一緒に前へ傾けます。';
 
   @override
-  String get runningCoachPostureGoodDrill =>
-      'ドリル: 同じボディラインを固定するために、15m の壁沿いの行進を 2 回行います。';
+  String get runningCoachPostureGoodDrill => 'ドリル: 15 mの壁マーチを2本行います。';
 
   @override
   String get runningCoachPostureUprightSummary =>
-      '胴体が直立しすぎているため、一歩ごとに前向きな姿勢が失われている可能性があります。';
+      '体が起きすぎています。次の一歩が遅くなることがあります。';
 
   @override
-  String get runningCoachPostureUprightCue =>
-      '「つま先よりも鼻」を考えて、ウエストではなく足首から痩せるようにしましょう。';
+  String get runningCoachPostureUprightCue => '足首から前へ傾きます。胸は高く保ちます。';
 
   @override
-  String get runningCoachPostureUprightDrill =>
-      'ドリル: 15m の落下スタートを 2 回、その後 15m の壁沿いの行進を 2 回。';
+  String get runningCoachPostureUprightDrill => 'ドリル: 15 mのフォーリングスタートを2本行います。';
 
   @override
-  String get runningCoachPostureLeanSummary =>
-      '上体が傾きすぎると、歩幅が崩れ、回復が遅くなることがあります。';
+  String get runningCoachPostureLeanSummary => '前に傾きすぎています。歩きが急ぎすぎることがあります。';
 
   @override
-  String get runningCoachPostureLeanCue => '腰から背を高く伸ばし、肋骨が骨盤の上に重なるようにします。';
+  String get runningCoachPostureLeanCue => '少し高く立ちます。腰を胸の下に置きます。';
 
   @override
-  String get runningCoachPostureLeanDrill =>
-      'ドリル: 高さ 20 メートル x 2 回の姿勢で、軽く素早いステップで走ります。';
+  String get runningCoachPostureLeanDrill => 'ドリル: 軽く速い20 mのトールランを2本行います。';
 
   @override
   String get runningCoachInsightBounceTitle => 'バウンス';
 
   @override
-  String get runningCoachBounceGoodSummary =>
-      '垂直方向の動きが制御されているように見え、エネルギーを前に進めるのに役立ちます。';
+  String get runningCoachBounceGoodSummary => '低く前へ進めています。';
 
   @override
-  String get runningCoachBounceGoodCue => '上に跳ね返るのではなく、地面を後ろに押し続けます。';
+  String get runningCoachBounceGoodCue => '地面を後ろに押します。上に跳ばないようにします。';
 
   @override
-  String get runningCoachBounceGoodDrill =>
-      'ドリル: 次のスプリントセットの前に、20m の足首ドリブルを 2 回実行します。';
+  String get runningCoachBounceGoodDrill => 'ドリル: 20 mの足首ドリブルを2本行います。';
 
   @override
-  String get runningCoachBounceHighSummary =>
-      'クリップには余分な上下のバウンスがあり、エネルギーを浪費する可能性があります。';
+  String get runningCoachBounceHighSummary => '上下に動きすぎています。';
 
   @override
-  String get runningCoachBounceHighCue =>
-      '素早いコンタクトを考えて、まっすぐ下にではなく、地面を後ろに押してください。';
+  String get runningCoachBounceHighCue => '足をすばやく。地面を下ではなく後ろに押します。';
 
   @override
-  String get runningCoachBounceHighDrill =>
-      'ドリル: 3 x 20mの足首ドリブルと短いコンタクトでのストレートレッグラン。';
+  String get runningCoachBounceHighDrill => 'ドリル: 接地を短くして20 mの足首ドリブルを3本行います。';
 
   @override
   String get runningCoachInsightFootStrikeTitle => 'フットストライク';
 
   @override
-  String get runningCoachFootStrikeGoodSummary =>
-      '先頭の足は、ステップが前方に転がり続けることができるほど十分に腰の近くで着地します。';
+  String get runningCoachFootStrikeGoodSummary => '足が腰の下に近い場所に着いています。';
 
   @override
-  String get runningCoachFootStrikeGoodCue =>
-      '腰の下で着地を続け、手を伸ばすのではなく、押し出すことからスピードを出しましょう。';
+  String get runningCoachFootStrikeGoodCue => '足を体の下に置く感覚を続けます。';
 
   @override
-  String get runningCoachFootStrikeGoodDrill =>
-      'ドリル: 短く素早いコンタクトを伴う 2 x 20m のウィケットスタイルのラン。';
+  String get runningCoachFootStrikeGoodDrill => 'ドリル: 20 mのクイックステップ走を2本行います。';
 
   @override
-  String get runningCoachFootStrikeOverSummary =>
-      '先頭の足が腰の前に伸びすぎているため、接地時にブレーキがかかる可能性があります。';
+  String get runningCoachFootStrikeOverSummary => '足が前に出すぎて着いています。';
 
   @override
-  String get runningCoachFootStrikeOverCue =>
-      '着地点を腰の下に戻し、前方に手を伸ばすのではなく、後ろに押すことを考えてください。';
+  String get runningCoachFootStrikeOverCue => '足を腰の下に近づけて置きます。';
 
   @override
   String get runningCoachFootStrikeOverDrill =>
-      'ドリル: 20m の A マーチ 2 回と、コンタクトが短い 20m のウィケットスタイルのラン 2 回。';
+      'ドリル: 20 mのAマーチを2本、その後20 mのクイックステップ走を2本行います。';
 
   @override
   String get runningCoachInsightKneeTitle => '膝の屈曲';
 
   @override
-  String get runningCoachKneeGoodSummary =>
-      'サポート膝は十分に曲がっており、崩れることなく弾力性を保っています。';
+  String get runningCoachKneeGoodSummary => '着地の膝が軽く走れるだけ曲がっています。';
 
   @override
-  String get runningCoachKneeGoodCue =>
-      '着地時にロックするのではなく、スタンス脚を柔らかく反応性のある状態に保ちます。';
+  String get runningCoachKneeGoodCue => '足が着くとき、膝をやわらかく保ちます。';
 
   @override
   String get runningCoachKneeGoodDrill =>
-      'ドリル: 20m ポゴラン 2 回、その後 20m ドリブルラン 2 回。';
+      'ドリル: 20 mのポゴ走を2本、その後20 mのドリブル走を2本行います。';
 
   @override
-  String get runningCoachKneeStraightSummary =>
-      'サポート膝が真っすぐに着地しすぎると、ステップが硬くて重く見えることがあります。';
+  String get runningCoachKneeStraightSummary => '着地の膝がまっすぐすぎます。重い一歩になりやすいです。';
 
   @override
-  String get runningCoachKneeStraightCue => '着地の膝を柔らかくし、脚が腰の下で地面を受け入れるようにします。';
+  String get runningCoachKneeStraightCue => '足が着くとき、膝を少し曲げます。';
 
   @override
-  String get runningCoachKneeStraightDrill =>
-      'ドリル: 膝を曲げたコンタクトと素早いステップでの 20m ドリブル ランを 2 回実行します。';
+  String get runningCoachKneeStraightDrill => 'ドリル: やわらかい膝で20 mのドリブル走を2本行います。';
 
   @override
-  String get runningCoachKneeCollapseSummary =>
-      'サポート膝が接地後に折りすぎているため、スタンス脚の剛性が失われています。';
+  String get runningCoachKneeCollapseSummary => '着地後に膝が曲がりすぎています。';
 
   @override
-  String get runningCoachKneeCollapseCue => 'スタンスレッグ全体で弾力を保ち、腰を足の上に重ねた状態に保ちます。';
+  String get runningCoachKneeCollapseCue => '膝はやわらかく。でも沈み込みすぎないようにします。';
 
   @override
-  String get runningCoachKneeCollapseDrill =>
-      'ドリル: 片側あたり 15 メートルの片足ポゴホップを 2 回、その後 20 メートルのドリブルランを 2 回行います。';
+  String get runningCoachKneeCollapseDrill => 'ドリル: 片脚ポゴホップ15 mを左右2本ずつ行います。';
 
   @override
   String get runningCoachInsightArmTitle => 'アームキャリッジ';
 
   @override
-  String get runningCoachArmGoodSummary =>
-      '肘はコンパクトな範囲に留まり、上半身を過度に緊張させることなくリズムをサポートします。';
+  String get runningCoachArmGoodSummary => '腕が曲がり、リズムを助けています。';
 
   @override
-  String get runningCoachArmGoodCue => '肘を曲げたまま、脚と同じリズムで手を前から後ろに動かします。';
+  String get runningCoachArmGoodCue => '手を前後に動かします。';
 
   @override
-  String get runningCoachArmGoodDrill =>
-      'ドリル：20秒の壁アームスイッチ×2、次に20メートルアームドライブ行進×2。';
+  String get runningCoachArmGoodDrill => 'ドリル: 壁アームスイッチを20秒ずつ2回行います。';
 
   @override
-  String get runningCoachArmOpenSummary =>
-      '肘が開きすぎているため、腕がリズムを​​助けるどころか漏れている可能性があります。';
+  String get runningCoachArmOpenSummary => '腕が開きすぎています。リズムがゆるくなることがあります。';
 
   @override
-  String get runningCoachArmOpenCue =>
-      '肘をさらに曲げたままにし、手を長く伸ばすのではなく、腰の後ろを後ろに動かします。';
+  String get runningCoachArmOpenCue => '肘をもっと曲げます。手を後ろに振ります。';
 
   @override
-  String get runningCoachArmOpenDrill =>
-      'ドリル: 肘を 80 ～ 100 度コンパクトに曲げた状態で、20 秒の壁アーム スイッチを 2 回実行します。';
+  String get runningCoachArmOpenDrill => 'ドリル: 肘を曲げて壁アームスイッチを20秒ずつ2回行います。';
 
   @override
-  String get runningCoachArmTightSummary =>
-      '肘が固すぎると腕の振りが短くなり、ストライドが無理に感じられることがあります。';
+  String get runningCoachArmTightSummary => '腕が固すぎます。振りが短くなることがあります。';
 
   @override
-  String get runningCoachArmTightCue => '肩をリラックスさせ、肘をもう少し開きながら、手を後ろに動かし続けます。';
+  String get runningCoachArmTightCue => '肩の力を抜きます。手を後ろへ振ります。';
 
   @override
-  String get runningCoachArmTightDrill =>
-      'ドリル: 肩をリラックスさせてバックドライブをスムーズにして、20m のマーチングアームを 2 回振ります。';
+  String get runningCoachArmTightDrill => 'ドリル: 肩を楽にして20 mの腕振りマーチを2本行います。';
 
   @override
   String get runningCoachInsightStrideTitle => 'ストライドリーチ';
@@ -10347,7 +10321,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachSprintTrackingDiagnosisBodyTooSmall =>
-      '現在のボディボックスは小さすぎるため、デバイス上で体幹、膝、リズムを安定して測定できません。';
+      'ランナーが画面で小さすぎて、安定したコーチングができません。';
 
   @override
   String get runningCoachSprintTrackingDiagnosisBodyOutOfFrame =>
@@ -10355,7 +10329,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachSprintTrackingDiagnosisLowConfidence =>
-      '目に見える関節やランドマークの信頼度の平均は、コーチングの品質基準を下回っています。';
+      'カメラがまだ十分にはっきりした関節を見られていません。';
 
   @override
   String get runningCoachSprintTrackingDiagnosisSideViewUnstable =>
@@ -10440,68 +10414,52 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachSprintSpeechSkipCooldownActive => 'スピーチのクールダウンが有効です';
 
   @override
-  String get runningCoachSprintDiagnosisLeanForward =>
-      '体幹の立ち上がりが早すぎるため、最初の加速ステップで前方への推進力が失われます。';
+  String get runningCoachSprintDiagnosisLeanForward => '最初の数歩で体が早く起きています。';
 
   @override
-  String get runningCoachSprintDiagnosisDriveKnee =>
-      '膝ドライブが腰に対して低い位置にあるため、フロントサイドステップが強くつながりません。';
+  String get runningCoachSprintDiagnosisDriveKnee => '次の膝が低く通っています。';
 
   @override
-  String get runningCoachSprintDiagnosisKeepRhythm =>
-      'ステップのタイミングがばらつきすぎて、左右のスプリントのリズムがズレてしまいます。';
+  String get runningCoachSprintDiagnosisKeepRhythm => '左右のステップがまだそろっていません。';
 
   @override
-  String get runningCoachSprintDiagnosisBalanceArms =>
-      '片方の腕は後方への駆動にあまり貢献していないため、上半身からのリズムサポートが不均一になります。';
+  String get runningCoachSprintDiagnosisBalanceArms => '片方の腕がもう片方ほど後ろに振れていません。';
 
   @override
-  String get runningCoachSprintDiagnosisLandUnderHips =>
-      'リード足が腰のラインより前に出すぎており、接地でブレーキが起きる可能性があります。';
+  String get runningCoachSprintDiagnosisLandUnderHips => '足が前に出すぎて着いています。';
 
   @override
-  String get runningCoachSprintDiagnosisLiftOffQuickly =>
-      'ランニング局面の浮遊時間が短く、接地パターンが重く見えます。';
+  String get runningCoachSprintDiagnosisLiftOffQuickly => '足が地面に長く残っています。';
 
   @override
-  String get runningCoachSprintDiagnosisHoldLateForm =>
-      '現在のストライドは、膝ドライブ、前傾、リズムのいずれかでセッション基準を下回っています。';
+  String get runningCoachSprintDiagnosisHoldLateForm => 'スプリントの終盤でフォームが落ちています。';
 
   @override
-  String get runningCoachSprintDiagnosisKeepPushing =>
-      '主要なスプリント指標は安定範囲内にあるため、アプリは現在のキューを保持しています。';
+  String get runningCoachSprintDiagnosisKeepPushing => '今のスプリント姿勢は安定しています。';
 
   @override
-  String get runningCoachSprintActionLeanForward =>
-      '最初の3歩は胸を低く保ち、腰-肩の軸が8-24°の範囲に残るようにします。';
+  String get runningCoachSprintActionLeanForward => '最初の3歩は胸を少し前に保ちます。';
 
   @override
-  String get runningCoachSprintActionDriveKnee =>
-      '地面を強く押して、膝を自分で持ち上げようとするのではなく、膝を通すようにします。';
+  String get runningCoachSprintActionDriveKnee => '地面を後ろに押し、膝が自然に前へ通るようにします。';
 
   @override
-  String get runningCoachSprintActionKeepRhythm =>
-      'それ以上長いステップに手を伸ばさないでください。次の数歩の間、接地点を等間隔に保ちます。';
+  String get runningCoachSprintActionKeepRhythm => '歩幅を無理に伸ばさず、次の数歩をそろえます。';
 
   @override
-  String get runningCoachSprintActionBalanceArms =>
-      '両側の後方アームドライブを一致させ、肩を静かに保ちます。';
+  String get runningCoachSprintActionBalanceArms => '両手を同じくらい後ろへ振ります。';
 
   @override
-  String get runningCoachSprintActionLandUnderHips =>
-      '足を前へ投げ出さず、腰の下へ素早く下ろして後ろへ押す意識にします。';
+  String get runningCoachSprintActionLandUnderHips => '足を体の下に置き、すぐ後ろへ押します。';
 
   @override
-  String get runningCoachSprintActionLiftOffQuickly =>
-      '足首を固く保ち、後ろへ押して接地後すぐに地面から離れます。';
+  String get runningCoachSprintActionLiftOffQuickly => '後ろに押し、地面からすばやく離れます。';
 
   @override
-  String get runningCoachSprintActionHoldLateForm =>
-      '出力を少し抑えても、最後の数歩で同じ膝のパンチと体幹角度を保ちます。';
+  String get runningCoachSprintActionHoldLateForm => '少し力を抑えても、最後まで同じ姿勢を保ちます。';
 
   @override
-  String get runningCoachSprintActionKeepPushing =>
-      'アプリが安定性を確認できるように、さらに数ステップ同じ形状を維持します。';
+  String get runningCoachSprintActionKeepPushing => 'この姿勢をあと数歩保ちます。';
 
   @override
   String get runningCoachSprintSessionTrackingStateLabel => '追跡状態';
