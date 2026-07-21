@@ -28,7 +28,7 @@ MIN_ANKLE_FOOT_FRAMES = 4
 MIN_TIMESTAMP_SPAN_MS = 800
 MIN_HIP_TRAVEL_TO_TORSO_RATIO = 0.12
 MAX_SAMPLED_FRAMES = 30
-SHARPNESS_RATIO_THRESHOLD = 0.45
+MINIMUM_NATIVE_SHARPNESS = 0.018
 MAX_ANKLE_REGION_DARK_RATIO = 0.55
 
 FULL_BODY_INDICES = (11, 12, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32)
@@ -113,15 +113,32 @@ def foreground_bounds(fixture: dict) -> tuple[int, int]:
     return top, bottom
 
 
-def frame_sharpness(frame: object) -> float:
+def native_frame_sharpness(frame: object) -> float:
     height, width = frame.shape[:2]
-    # The clear source plane is centered in this fixture format. Exclude most
-    # of the intentionally blurred portrait backdrop from the image metric.
-    crop_top = round(height * 0.32)
-    crop_bottom = round(height * 0.68)
-    crop = frame[crop_top:crop_bottom, :width]
-    gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
-    return float(cv2.Laplacian(gray, cv2.CV_64F).var())
+    # Match the mobile analyzers: inspect the central runner band, sample it at
+    # a fixed resolution without smoothing, then measure luma Laplacian spread.
+    crop_left = int(width * 0.10)
+    crop_right = width - crop_left
+    crop_top = int(height * 0.32)
+    crop_bottom = int(height * 0.68)
+    crop = frame[crop_top:crop_bottom, crop_left:crop_right]
+    if crop.shape[0] < 3 or crop.shape[1] < 3:
+        return 0.0
+    sample = cv2.resize(crop, (96, 64), interpolation=cv2.INTER_NEAREST)
+    luminance = (
+        sample[:, :, 2].astype("float64") * 0.299
+        + sample[:, :, 1].astype("float64") * 0.587
+        + sample[:, :, 0].astype("float64") * 0.114
+    ) / 255.0
+    center = luminance[1:-1, 1:-1]
+    laplacian = (
+        4.0 * center
+        - luminance[1:-1, :-2]
+        - luminance[1:-1, 2:]
+        - luminance[:-2, 1:-1]
+        - luminance[2:, 1:-1]
+    )
+    return float(laplacian.var())
 
 
 def ankle_region_dark_ratio(frame: object, fixture: dict) -> float:
@@ -185,7 +202,7 @@ def analyze_fixture(fixture: dict, output_dir: Path, model_path: Path, repo_root
     lower_body_confidences: list[float] = []
     ankle_foot_confidences: list[float] = []
     motion_samples: list[dict] = []
-    sharpness_values: list[float] = []
+    native_sharpness_values: list[float] = []
     ankle_dark_ratios: list[float] = []
 
     try:
@@ -204,7 +221,7 @@ def analyze_fixture(fixture: dict, output_dir: Path, model_path: Path, repo_root
                 image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
                 result = landmarker.detect_for_video(image, timestamp_ms)
                 sampled_frames += 1
-                sharpness_values.append(frame_sharpness(frame))
+                native_sharpness_values.append(native_frame_sharpness(frame))
 
                 if result.pose_landmarks:
                     landmarks = result.pose_landmarks[0]
@@ -291,8 +308,8 @@ def analyze_fixture(fixture: dict, output_dir: Path, model_path: Path, repo_root
             "hipTravelToTorsoRatio": hip_travel_to_torso_ratio,
         },
         "imageEvidence": {
-            "medianLaplacianVariance": statistics.median(sharpness_values)
-            if sharpness_values
+            "medianNativeSharpness": statistics.median(native_sharpness_values)
+            if native_sharpness_values
             else 0.0,
             "medianAnkleRegionDarkRatio": statistics.median(ankle_dark_ratios)
             if ankle_dark_ratios
@@ -301,7 +318,7 @@ def analyze_fixture(fixture: dict, output_dir: Path, model_path: Path, repo_root
     }
 
 
-def quality_gate(result: dict, minimum_sharpness: float) -> dict:
+def quality_gate(result: dict) -> dict:
     pose = result["poseEvidence"]
     image = result["imageEvidence"]
     reasons: list[str] = []
@@ -321,14 +338,14 @@ def quality_gate(result: dict, minimum_sharpness: float) -> dict:
         reasons.append("insufficient_pose_time_span")
     if pose["hipTravelToTorsoRatio"] < MIN_HIP_TRAVEL_TO_TORSO_RATIO:
         reasons.append("insufficient_motion_evidence")
-    if image["medianLaplacianVariance"] < minimum_sharpness:
+    if image["medianNativeSharpness"] < MINIMUM_NATIVE_SHARPNESS:
         reasons.append("image_too_blurry")
     if image["medianAnkleRegionDarkRatio"] > MAX_ANKLE_REGION_DARK_RATIO:
         reasons.append("ankle_region_occluded")
     return {
         "scoringAllowed": not reasons,
         "reasons": reasons,
-        "minimumLaplacianVariance": minimum_sharpness,
+        "minimumNativeSharpness": MINIMUM_NATIVE_SHARPNESS,
         "maximumAnkleRegionDarkRatio": MAX_ANKLE_REGION_DARK_RATIO,
     }
 
@@ -379,17 +396,9 @@ def main() -> int:
         raise SystemExit("Fixture manifest must contain at least one fixture.")
 
     results = [analyze_fixture(fixture, fixture_dir, model_path, repo_root) for fixture in fixtures]
-    reference = next(
-        (item for item in results if item["id"] == "portrait_reference_full_body"), None
-    )
-    if reference is None:
-        raise SystemExit("Fixture manifest is missing portrait_reference_full_body.")
-    reference_sharpness = reference["imageEvidence"]["medianLaplacianVariance"]
-    minimum_sharpness = max(1.0, reference_sharpness * SHARPNESS_RATIO_THRESHOLD)
-
     all_matches = True
     for result in results:
-        gate = quality_gate(result, minimum_sharpness)
+        gate = quality_gate(result)
         expected = result["expected"]
         expected_reasons = [
             reason for reason in expected.get("rejectionReasons", []) if reason
@@ -420,8 +429,7 @@ def main() -> int:
                 "minimumAnkleFootFrames": MIN_ANKLE_FOOT_FRAMES,
                 "minimumTimestampSpanMs": MIN_TIMESTAMP_SPAN_MS,
                 "minimumHipTravelToTorsoRatio": MIN_HIP_TRAVEL_TO_TORSO_RATIO,
-                "sharpnessRatioToReference": SHARPNESS_RATIO_THRESHOLD,
-                "minimumLaplacianVariance": minimum_sharpness,
+                "minimumNativeSharpness": MINIMUM_NATIVE_SHARPNESS,
                 "maximumAnkleRegionDarkRatio": MAX_ANKLE_REGION_DARK_RATIO,
             },
         },

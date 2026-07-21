@@ -10335,6 +10335,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'The video is too short. Record at least a few running steps.';
 
   @override
+  String get runningCoachVideoTooBlurry =>
+      'This video is too blurry for a precise result. Keep the phone still and record a clearer side view with your whole body and both feet visible.';
+
+  @override
   String get runningCoachNoPoseDetected =>
       'The runner could not be tracked well enough. Try a clearer side-view clip with elbows, knees, and feet visible.';
 
@@ -10348,6 +10352,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachResultsTitle => 'Coaching results';
+
+  @override
+  String get runningCoachResultOneChangeTitle => 'Change one thing first';
+
+  @override
+  String get runningCoachResultNextRunCueLabel => 'On your next run';
+
+  @override
+  String get runningCoachResultOneChangeBody =>
+      'Use this one cue for a few steps, then record again to see the change.';
+
+  @override
+  String get runningCoachResultKeepOneThingBody =>
+      'Keep this strength through the next few steps, then record again to make sure it stays consistent.';
+
+  @override
+  String get runningCoachResultDetailsTitle => 'Detailed review';
 
   @override
   String get runningCoachAnalysisHistoryTitle => 'Coaching analysis history';

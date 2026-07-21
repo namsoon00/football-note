@@ -19,20 +19,28 @@ Usage:
 EOF
 }
 
+run_flutter_build() {
+  if [[ ${#FLUTTER_DEFINE_ARGS[@]} -gt 0 ]]; then
+    flutter "$@" "${FLUTTER_DEFINE_ARGS[@]}"
+  else
+    flutter "$@"
+  fi
+}
+
 build_ios() {
   echo "==> flutter build ios --release"
-  flutter build ios --release "${FLUTTER_DEFINE_ARGS[@]}"
+  run_flutter_build build ios --release
 
   echo "==> flutter build ipa --release"
-  flutter build ipa --release "${FLUTTER_DEFINE_ARGS[@]}"
+  run_flutter_build build ipa --release
 }
 
 build_android() {
   echo "==> flutter build appbundle --release"
-  flutter build appbundle --release "${FLUTTER_DEFINE_ARGS[@]}"
+  run_flutter_build build appbundle --release
 
   echo "==> flutter build apk --release"
-  flutter build apk --release "${FLUTTER_DEFINE_ARGS[@]}"
+  run_flutter_build build apk --release
 }
 
 target="${1:-all}"

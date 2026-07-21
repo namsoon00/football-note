@@ -21,7 +21,7 @@ real-video frames and writes all generated MP4 files and reports under
 | `portrait_track_full_body` | track side-view sample | 9:16, full body | Allow pose scoring only with sufficient full-body evidence. |
 | `portrait_lower_body_cropped` | beach side-view sample | 9:16, lower third removed | Reject precise scoring because lower-body evidence is missing. |
 | `portrait_ankle_occluded` | beach side-view sample | 9:16, lower-leg/ankle foreground occlusion | Reject precise scoring when ankles/feet are not confidently visible. |
-| `portrait_strong_motion_blur` | beach side-view sample | 9:16, strong horizontal blur | Reject precise scoring when image sharpness is below the reference-relative gate. |
+| `portrait_strong_motion_blur` | beach side-view sample | 9:16, strong horizontal blur | Reject precise scoring when image sharpness is below the mobile analyzer's fixed sharpness gate. |
 
 The source SHA-256 digest is placed in `fixture_manifest.json` and verified by
 the analyzer so that a report can be traced to the bundled sample used. The
@@ -72,6 +72,12 @@ transformations. It also means the test quality gate found enough full-body and
 motion evidence in the reference portrait fixtures, while blocking precise
 scoring for intentionally incomplete, ankle-obscured, or blurred inputs.
 
+The blur check mirrors the uploaded-video analyzers on both mobile platforms:
+it samples the central 80% by 36% runner band at `96x64` without smoothing,
+converts it to luma, and uses the median Laplacian variance across coarse
+frames. The calibrated minimum is `0.018`. This is a conservative safeguard
+for the tested input format, not a universal camera-quality certification.
+
 It does **not** label either sample as a technically correct or incorrect
 sprint, and it is not a biomechanics accuracy study.
 
@@ -101,19 +107,18 @@ Executed on 2026-07-22 with the bundled model and the generated fixtures.
 
 | Fixture | Pose evidence | Quality-gate result |
 | --- | --- | --- |
-| `portrait_reference_full_body` | 30/30 full-body frames, median confidence 0.839 | Allowed as expected. |
-| `portrait_track_full_body` | 29/29 full-body frames, median confidence 0.812 | Allowed as expected. |
+| `portrait_reference_full_body` | 30/30 full-body frames, median confidence 0.839 | Allowed as expected; median native sharpness `0.02384`. |
+| `portrait_track_full_body` | 29/29 full-body frames, median confidence 0.812 | Allowed as expected; median native sharpness `0.07163`. |
 | `portrait_lower_body_cropped` | 0 full-body and 0 lower-body frames | Rejected as expected. |
 | `portrait_ankle_occluded` | 0 full-body and 0 lower-body frames | Rejected as expected. |
-| `portrait_strong_motion_blur` | 30/30 full-body frames, median confidence 0.853 | **Incorrectly allowed.** |
+| `portrait_strong_motion_blur` | 30/30 full-body frames, median confidence 0.853 | Rejected as expected; median native sharpness `0.01497` is below `0.018`. |
 
-The reference fixture's median Laplacian variance was `46.365`; the strong
-motion-blur fixture measured `29.847`, above the current reference-relative
-cutoff of `20.864`. The model still returned confident landmarks, so pose
-confidence alone is not a sufficient blur safeguard.
+The blurred fixture still produces confident pose landmarks, so pose confidence
+alone is not a sufficient blur safeguard. The fixed native-aligned sharpness
+gate blocks this fixture before precise running metrics are returned.
 
-**Current release verdict: FAILED.** The native iOS and Android uploaded-video
-analyzers currently validate pose and contact evidence but do not calculate a
-frame-sharpness gate. Add and calibrate the same pixel-quality safeguard in
-both native analyzers, then rerun this command and complete physical-device
-validation before changing the verdict to conditional approval.
+**Current automated verdict: CONDITIONAL_NOT_DEVICE_APPROVED.** The generated
+fixture suite now passes, but that does not replace the physical-device
+validation listed above. The running coach should not be described as ready for
+paid release until the iPhone and Android camera, upload, overlay, thermal, and
+latency checks are recorded.

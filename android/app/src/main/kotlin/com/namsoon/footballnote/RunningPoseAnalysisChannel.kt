@@ -104,6 +104,7 @@ class RunningPoseAnalysisChannel(
                 poseLandmarker = coarseLandmarker,
                 retriever = retriever,
                 timestampsMs = coarseSampleTimestamps(durationMs),
+                collectSharpness = true,
             )
             val frameSamples = coarsePass.samples
 
@@ -112,6 +113,9 @@ class RunningPoseAnalysisChannel(
                     "no_pose_detected",
                     "We could not detect a clear running pose in this video.",
                 )
+            }
+            if (!hasSufficientSharpness(coarsePass.sharpnessValues)) {
+                throw videoTooBlurry()
             }
 
             val direction = resolveDirection(frameSamples)
@@ -141,6 +145,7 @@ class RunningPoseAnalysisChannel(
                 poseLandmarker = denseLandmarker,
                 retriever = retriever,
                 timestampsMs = denseTimestamps,
+                collectSharpness = false,
             )
             val contactFrames = validateDenseContactFrames(
                 samples = densePass.samples,
@@ -292,6 +297,12 @@ class RunningPoseAnalysisChannel(
             "We could not verify enough dense foot-contact frames in this video.",
         )
 
+    private fun videoTooBlurry(): AnalysisException =
+        AnalysisException(
+            "video_too_blurry",
+            "This video is too blurry for precise running coaching.",
+        )
+
     private fun coarseSampleTimestamps(durationMs: Long): List<Long> =
         (0 until sampleCount).map { index ->
             val fraction = if (sampleCount == 1) {
@@ -310,9 +321,11 @@ class RunningPoseAnalysisChannel(
         poseLandmarker: PoseLandmarker,
         retriever: MediaMetadataRetriever,
         timestampsMs: List<Long>,
+        collectSharpness: Boolean,
     ): PosePassResult {
         val samples = mutableListOf<FrameSample>()
         val poseFrames = mutableListOf<Map<String, Any?>>()
+        val sharpnessValues = mutableListOf<Double>()
         var lastAnalysisTimestampMs = -1L
         for (timestampMs in timestampsMs.distinct().sorted()) {
             val bitmap = retriever.getFrameAtTime(
@@ -320,6 +333,9 @@ class RunningPoseAnalysisChannel(
                 MediaMetadataRetriever.OPTION_CLOSEST,
             ) ?: continue
             try {
+                if (collectSharpness) {
+                    frameSharpness(bitmap)?.let(sharpnessValues::add)
+                }
                 val analysisTimestampMs = max(timestampMs, lastAnalysisTimestampMs + 1)
                 lastAnalysisTimestampMs = analysisTimestampMs
                 val pose = detectPose(poseLandmarker, bitmap, analysisTimestampMs)
@@ -342,7 +358,75 @@ class RunningPoseAnalysisChannel(
         return PosePassResult(
             samples = samples.toList(),
             poseFrames = poseFrames.toList(),
+            sharpnessValues = sharpnessValues.toList(),
         )
+    }
+
+    private fun hasSufficientSharpness(values: List<Double>): Boolean {
+        if (values.size < minimumSharpnessSampleCount) {
+            return false
+        }
+        val medianSharpness = median(values) ?: return false
+        return medianSharpness >= minimumMedianSharpness
+    }
+
+    private fun frameSharpness(bitmap: Bitmap): Double? {
+        val cropLeft = (bitmap.width * sharpnessHorizontalInsetFraction).toInt()
+        val cropRight = bitmap.width - cropLeft
+        val cropTop = (bitmap.height * sharpnessTopFraction).toInt()
+        val cropBottom = (bitmap.height * sharpnessBottomFraction).toInt()
+        val cropWidth = cropRight - cropLeft
+        val cropHeight = cropBottom - cropTop
+        if (cropWidth < 3 || cropHeight < 3) {
+            return null
+        }
+
+        val luminance = DoubleArray(sharpnessSampleWidth * sharpnessSampleHeight)
+        for (y in 0 until sharpnessSampleHeight) {
+            val sourceY = cropTop + (y * cropHeight / sharpnessSampleHeight)
+            for (x in 0 until sharpnessSampleWidth) {
+                val sourceX = cropLeft + (x * cropWidth / sharpnessSampleWidth)
+                val color = bitmap.getPixel(sourceX, sourceY)
+                val red = ((color shr 16) and 0xFF) / 255.0
+                val green = ((color shr 8) and 0xFF) / 255.0
+                val blue = (color and 0xFF) / 255.0
+                luminance[(y * sharpnessSampleWidth) + x] =
+                    (0.299 * red) + (0.587 * green) + (0.114 * blue)
+            }
+        }
+
+        var sum = 0.0
+        var squaredSum = 0.0
+        var count = 0
+        for (y in 1 until sharpnessSampleHeight - 1) {
+            for (x in 1 until sharpnessSampleWidth - 1) {
+                val index = (y * sharpnessSampleWidth) + x
+                val laplacian =
+                    (4.0 * luminance[index]) -
+                        luminance[index - 1] -
+                        luminance[index + 1] -
+                        luminance[index - sharpnessSampleWidth] -
+                        luminance[index + sharpnessSampleWidth]
+                sum += laplacian
+                squaredSum += laplacian * laplacian
+                count += 1
+            }
+        }
+        if (count == 0) {
+            return null
+        }
+        val mean = sum / count.toDouble()
+        return max(0.0, (squaredSum / count.toDouble()) - (mean * mean))
+    }
+
+    private fun median(values: List<Double>): Double? {
+        if (values.isEmpty()) {
+            return null
+        }
+        val sortedValues = values.sorted()
+        val upperIndex = sortedValues.size / 2
+        val lowerIndex = (sortedValues.size - 1) / 2
+        return (sortedValues[lowerIndex] + sortedValues[upperIndex]) / 2.0
     }
 
     private fun deriveContactCandidateWindows(
@@ -918,6 +1002,7 @@ class RunningPoseAnalysisChannel(
     private data class PosePassResult(
         val samples: List<FrameSample>,
         val poseFrames: List<Map<String, Any?>>,
+        val sharpnessValues: List<Double>,
     )
 
     private data class ConfidentPoint(
@@ -1172,6 +1257,13 @@ class RunningPoseAnalysisChannel(
         private const val methodName = "analyzeRunningVideo"
         private const val sampleCount = 14
         private const val minimumValidFrames = 6
+        private const val minimumSharpnessSampleCount = 6
+        private const val minimumMedianSharpness = 0.018
+        private const val sharpnessHorizontalInsetFraction = 0.10
+        private const val sharpnessTopFraction = 0.32
+        private const val sharpnessBottomFraction = 0.68
+        private const val sharpnessSampleWidth = 96
+        private const val sharpnessSampleHeight = 64
         private const val minVideoDurationMs = 1500L
         private const val minimumLikelihood = 0.45f
         private const val minimumBodyScalePx = 40.0

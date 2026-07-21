@@ -10063,6 +10063,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachVideoTooShort => '영상이 너무 짧아요. 몇 걸음 이상 달리는 장면을 찍어 주세요.';
 
   @override
+  String get runningCoachVideoTooBlurry =>
+      '영상이 흔들리거나 흐려서 정확히 분석할 수 없어요. 휴대폰을 고정하고 전신과 양발이 보이는 선명한 측면 영상으로 다시 찍어 주세요.';
+
+  @override
   String get runningCoachNoPoseDetected =>
       '러너 자세를 충분히 추적하지 못했어요. 팔꿈치, 무릎, 발이 잘 보이는 더 선명한 측면 영상을 사용해 주세요.';
 
@@ -10076,6 +10080,23 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachResultsTitle => '코칭 결과';
+
+  @override
+  String get runningCoachResultOneChangeTitle => '먼저 한 가지만 바꿔 보세요';
+
+  @override
+  String get runningCoachResultNextRunCueLabel => '다음 달리기에서 할 동작';
+
+  @override
+  String get runningCoachResultOneChangeBody =>
+      '몇 걸음 동안 이 한 가지에만 집중한 뒤 다시 촬영해 변화를 확인해 보세요.';
+
+  @override
+  String get runningCoachResultKeepOneThingBody =>
+      '다음 몇 걸음에서도 이 장점을 유지한 뒤 다시 촬영해 계속 잘 되는지 확인해 보세요.';
+
+  @override
+  String get runningCoachResultDetailsTitle => '세부 분석';
 
   @override
   String get runningCoachAnalysisHistoryTitle => '코칭 분석 기록';
