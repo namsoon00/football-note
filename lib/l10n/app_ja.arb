@@ -4694,7 +4694,7 @@
       }
     }
   },
-  "runningCoachMissionStartSprint": "スプリントコーチ開始",
+  "runningCoachMissionStartSprint": "ライブスプリントコーチ開始",
   "runningCoachMissionStartLive": "フォームをライブ確認",
   "runningCoachMissionBreakawayTitle": "守備ラインを破る",
   "runningCoachMissionBreakawayBody": "最終ラインの裏へ抜けるつもりで20m走ります。長くせず、鋭い3本で十分です。",
@@ -4951,13 +4951,13 @@
   "runningCoachDenseContactTimesLabel": "時刻",
   "runningCoachDenseContactUnavailable": "検証済み接地なし",
   "runningCoachLiveCardTitle": "ライブコーチ",
-  "runningCoachLiveCardBody": "解剖学的な関節とスケルトン線をライブで追跡し、体幹の傾き、膝のドライブ、ステップのリズム、腕のバランスに関するスプリント固有のフィードバックに直接切り替えます。",
-  "runningCoachLiveAction": "ライブコーチを開始する",
+  "runningCoachLiveCardBody": "解剖学的な関節、接地タイミング、スプリント動作を一つのライブコーチで確認し、体幹の傾き、膝のドライブ、着地、リズム、腕のバランスをまとめて読み取ります。",
+  "runningCoachLiveAction": "ライブスプリントコーチ開始",
   "runningCoachLiveGuideAction": "撮影ガイド",
-  "runningCoachLiveScreenTitle": "ライブランニングコーチ",
+  "runningCoachLiveScreenTitle": "ライブスプリントコーチ",
   "runningCoachLiveGuideScreenTitle": "ライブ撮影ガイド",
   "runningCoachLiveGuideHeroTitle": "解剖学的な関節とライブコーチングHUDを一緒に見る",
-  "runningCoachLiveGuideHeroBody": "ライブコーチはカメラ映像の上に解剖学的な関節とスケルトン線を直接描きます。コンパクトHUDはキューとスコアを見やすく保ち、歩行、指標、診断の詳細が必要なときだけ展開します。",
+  "runningCoachLiveGuideHeroBody": "ライブスプリントコーチはカメラ映像の上に解剖学的な関節とスケルトン線を直接描きます。展開できる結果パネルで、接地タイミングと体幹、膝、着地、リズム、腕の指標を一度に確認できます。",
   "runningCoachLiveGuideTipSideTitle": "側面図を表示する",
   "runningCoachLiveGuideTipSideBody": "ランナーは、カメラに向かってまっすぐに移動したり、斜めに移動したりするのではなく、横からフレームを横切って移動する必要があります。",
   "runningCoachLiveGuideTipBodyTitle": "全身をフレーム内に収める",
@@ -5051,6 +5051,7 @@
       }
     }
   },
+  "runningCoachLiveSprintMetricsTitle": "スプリント動作",
   "runningCoachSprintLiveCardTitle": "ライブスプリントコーチング",
   "runningCoachSprintLiveCardBody": "サイドビュー カメラで全身の捕捉状態を先に確認し、関節信頼度が安定した区間だけ体幹、膝、リズムのキューを表示します。",
   "runningCoachSprintLiveAction": "スプリントコーチングを始める",

@@ -14455,7 +14455,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachMissionStartSprint.
   ///
   /// In en, this message translates to:
-  /// **'Start sprint coach'**
+  /// **'Start live sprint coach'**
   String get runningCoachMissionStartSprint;
 
   /// No description provided for @runningCoachMissionStartLive.
@@ -15446,13 +15446,13 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachLiveCardBody.
   ///
   /// In en, this message translates to:
-  /// **'Track anatomical joints and skeleton lines live, then switch straight into sprint-specific feedback for trunk lean, knee drive, step rhythm, and arm balance.'**
+  /// **'Track anatomical joints, gait timing, and sprint mechanics in one live coach for trunk lean, knee drive, landing, rhythm, and arm balance.'**
   String get runningCoachLiveCardBody;
 
   /// No description provided for @runningCoachLiveAction.
   ///
   /// In en, this message translates to:
-  /// **'Start live coach'**
+  /// **'Start live sprint coach'**
   String get runningCoachLiveAction;
 
   /// No description provided for @runningCoachLiveGuideAction.
@@ -15464,7 +15464,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachLiveScreenTitle.
   ///
   /// In en, this message translates to:
-  /// **'Live running coach'**
+  /// **'Live sprint coach'**
   String get runningCoachLiveScreenTitle;
 
   /// No description provided for @runningCoachLiveGuideScreenTitle.
@@ -15482,7 +15482,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachLiveGuideHeroBody.
   ///
   /// In en, this message translates to:
-  /// **'The live coach draws anatomical joints and skeleton lines directly over the camera feed. The compact HUD keeps the cue and score clear, and expands only when you need gait, metric, and diagnosis details.'**
+  /// **'The live sprint coach draws anatomical joints and skeleton lines directly over the camera feed, then combines gait timing with trunk, knee, landing, rhythm, and arm metrics in one expandable result panel.'**
   String get runningCoachLiveGuideHeroBody;
 
   /// No description provided for @runningCoachLiveGuideTipSideTitle.
@@ -15808,6 +15808,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{side} contact {milliseconds} ms'**
   String runningCoachLiveGaitContactValue(Object side, int milliseconds);
+
+  /// No description provided for @runningCoachLiveSprintMetricsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sprint mechanics'**
+  String get runningCoachLiveSprintMetricsTitle;
 
   /// No description provided for @runningCoachSprintLiveCardTitle.
   ///

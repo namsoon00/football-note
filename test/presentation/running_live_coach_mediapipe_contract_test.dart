@@ -10,14 +10,31 @@ void main() {
     final visualTrackerSource = File(
       'lib/realtime_analysis/running_coaching/running_visual_pose_tracker.dart',
     ).readAsStringSync();
+    final unifiedServiceSource = File(
+      'lib/application/live_sprint_coaching_service.dart',
+    ).readAsStringSync();
     final painterSource = File(
       'lib/presentation/painters/running_pose_anatomical_painter.dart',
     ).readAsStringSync();
-    final combinedSource = '$source\n$visualTrackerSource\n$painterSource';
+    final combinedSource =
+        '$source\n$unifiedServiceSource\n$visualTrackerSource\n$painterSource';
 
     expect(source, contains('MediaPipePoseLandmarkerService'));
     expect(source, contains('detectPoseFromCameraImage'));
-    expect(source, contains('runningPoseObservationFromMediaPipeDetection'));
+    expect(
+      RegExp('detectPoseFromCameraImage').allMatches(source),
+      hasLength(1),
+      reason:
+          'The unified live coach must request one MediaPipe detection per frame.',
+    );
+    expect(source, contains('LiveSprintCoachingService'));
+    expect(source, contains('ingestDetection'));
+    expect(unifiedServiceSource, contains('RunningLiveCoachingService'));
+    expect(unifiedServiceSource, contains('SprintLiveCoachingService'));
+    expect(
+      unifiedServiceSource,
+      contains('runningPoseObservationFromMediaPipeDetection'),
+    );
     expect(source, contains('RunningVisualPoseTracker'));
     expect(source, contains('ingestDetection'));
     expect(source, contains('ingestGaitEvents'));
@@ -30,6 +47,7 @@ void main() {
     expect(source, contains('_isProcessingFrame'));
     expect(source, contains('_monotonicFrameTimestamp'));
     expect(source, contains('RunningLiveSessionMetricsCollector'));
+    expect(source, contains('SprintLiveSessionMetricsCollector'));
     expect(source, contains('RunningLiveSkippedFrameReason.detectorBusy'));
     expect(source, contains('RunningLiveSkippedFrameReason.throttled'));
     expect(source, contains('RunningLiveSkippedFrameReason.invalidInput'));

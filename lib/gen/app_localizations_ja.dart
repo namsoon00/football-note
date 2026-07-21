@@ -8020,7 +8020,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get runningCoachMissionStartSprint => 'スプリントコーチ開始';
+  String get runningCoachMissionStartSprint => 'ライブスプリントコーチ開始';
 
   @override
   String get runningCoachMissionStartLive => 'フォームをライブ確認';
@@ -8599,16 +8599,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachLiveCardBody =>
-      '解剖学的な関節とスケルトン線をライブで追跡し、体幹の傾き、膝のドライブ、ステップのリズム、腕のバランスに関するスプリント固有のフィードバックに直接切り替えます。';
+      '解剖学的な関節、接地タイミング、スプリント動作を一つのライブコーチで確認し、体幹の傾き、膝のドライブ、着地、リズム、腕のバランスをまとめて読み取ります。';
 
   @override
-  String get runningCoachLiveAction => 'ライブコーチを開始する';
+  String get runningCoachLiveAction => 'ライブスプリントコーチ開始';
 
   @override
   String get runningCoachLiveGuideAction => '撮影ガイド';
 
   @override
-  String get runningCoachLiveScreenTitle => 'ライブランニングコーチ';
+  String get runningCoachLiveScreenTitle => 'ライブスプリントコーチ';
 
   @override
   String get runningCoachLiveGuideScreenTitle => 'ライブ撮影ガイド';
@@ -8618,7 +8618,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachLiveGuideHeroBody =>
-      'ライブコーチはカメラ映像の上に解剖学的な関節とスケルトン線を直接描きます。コンパクトHUDはキューとスコアを見やすく保ち、歩行、指標、診断の詳細が必要なときだけ展開します。';
+      'ライブスプリントコーチはカメラ映像の上に解剖学的な関節とスケルトン線を直接描きます。展開できる結果パネルで、接地タイミングと体幹、膝、着地、リズム、腕の指標を一度に確認できます。';
 
   @override
   String get runningCoachLiveGuideTipSideTitle => '側面図を表示する';
@@ -8801,6 +8801,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String runningCoachLiveGaitContactValue(Object side, int milliseconds) {
     return '$side 接地 $milliseconds ms';
   }
+
+  @override
+  String get runningCoachLiveSprintMetricsTitle => 'スプリント動作';
 
   @override
   String get runningCoachSprintLiveCardTitle => 'ライブスプリントコーチング';

@@ -19,7 +19,6 @@ import '../running_coach/running_pose_overlay.dart';
 import '../models/sample_runner_pose.dart';
 import 'running_coach_insight_copy.dart';
 import 'running_live_coach_screen.dart';
-import 'sprint_live_coaching_screen.dart';
 import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_feedback.dart';
 
@@ -153,8 +152,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
         const SizedBox(height: 12),
         _RunningMissionCard(
           mission: mission,
-          onStartLiveCoach: _openLiveCoach,
-          onStartSprintCoach: _openSprintCoach,
+          onStartLiveSprintCoach: _openLiveCoach,
         ),
         const SizedBox(height: 12),
         _RunningCoachUploadGuideCard(
@@ -188,12 +186,6 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
   void _openLiveCoach() {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const RunningLiveCoachScreen()),
-    );
-  }
-
-  void _openSprintCoach() {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const SprintLiveCoachingScreen()),
     );
   }
 
@@ -561,13 +553,11 @@ _RunningMission _missionForToday(DateTime now) {
 
 class _RunningMissionCard extends StatelessWidget {
   final _RunningMission mission;
-  final VoidCallback onStartLiveCoach;
-  final VoidCallback onStartSprintCoach;
+  final VoidCallback onStartLiveSprintCoach;
 
   const _RunningMissionCard({
     required this.mission,
-    required this.onStartLiveCoach,
-    required this.onStartSprintCoach,
+    required this.onStartLiveSprintCoach,
   });
 
   @override
@@ -647,14 +637,9 @@ class _RunningMissionCard extends StatelessWidget {
               runSpacing: 10,
               children: [
                 FilledButton.icon(
-                  onPressed: onStartSprintCoach,
+                  onPressed: onStartLiveSprintCoach,
                   icon: const Icon(Icons.bolt_outlined),
                   label: Text(l10n.runningCoachMissionStartSprint),
-                ),
-                OutlinedButton.icon(
-                  onPressed: onStartLiveCoach,
-                  icon: const Icon(Icons.videocam_outlined),
-                  label: Text(l10n.runningCoachMissionStartLive),
                 ),
               ],
             ),

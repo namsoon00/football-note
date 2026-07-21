@@ -8026,7 +8026,7 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get runningCoachMissionStartSprint => '스프린트 코치 시작';
+  String get runningCoachMissionStartSprint => '실시간 스프린트 코치 시작';
 
   @override
   String get runningCoachMissionStartLive => '자세 실시간 확인';
@@ -8607,16 +8607,16 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachLiveCardBody =>
-      '해부학적 관절과 스켈레톤 선을 실시간으로 보며, 필요하면 바로 스프린트 전용 피드백으로 넘어가 전경사, 무릎 드라이브, 스텝 리듬, 팔 균형까지 확인할 수 있어요.';
+      '해부학적 관절, 접지 타이밍, 스프린트 메커닉을 하나의 실시간 코치에서 보고 전경사, 무릎 드라이브, 착지, 리듬, 팔 균형까지 함께 확인해요.';
 
   @override
-  String get runningCoachLiveAction => '실시간 코치 시작';
+  String get runningCoachLiveAction => '실시간 스프린트 코치 시작';
 
   @override
   String get runningCoachLiveGuideAction => '촬영 가이드';
 
   @override
-  String get runningCoachLiveScreenTitle => '실시간 달리기 코치';
+  String get runningCoachLiveScreenTitle => '실시간 스프린트 코치';
 
   @override
   String get runningCoachLiveGuideScreenTitle => '실시간 촬영 가이드';
@@ -8626,7 +8626,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachLiveGuideHeroBody =>
-      '실시간 코치는 카메라 화면 위에 해부학적 관절과 스켈레톤 선을 바로 그려요. compact HUD는 cue와 점수를 선명하게 유지하고, 보행·지표·진단 상세가 필요할 때만 펼쳐져요.';
+      '실시간 스프린트 코치는 카메라 화면 위에 해부학적 관절과 스켈레톤 선을 바로 그려요. 확장 결과 패널에서 접지 타이밍과 전경사, 무릎, 착지, 리듬, 팔 지표를 한 번에 확인할 수 있어요.';
 
   @override
   String get runningCoachLiveGuideTipSideTitle => '측면이 잘 보여야 해요';
@@ -8810,6 +8810,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String runningCoachLiveGaitContactValue(Object side, int milliseconds) {
     return '$side 접지 $milliseconds ms';
   }
+
+  @override
+  String get runningCoachLiveSprintMetricsTitle => '스프린트 메커닉';
 
   @override
   String get runningCoachSprintLiveCardTitle => '스프린트 실시간 코칭';

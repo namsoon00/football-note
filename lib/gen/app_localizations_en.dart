@@ -8235,7 +8235,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get runningCoachMissionStartSprint => 'Start sprint coach';
+  String get runningCoachMissionStartSprint => 'Start live sprint coach';
 
   @override
   String get runningCoachMissionStartLive => 'Check form live';
@@ -8827,16 +8827,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachLiveCardBody =>
-      'Track anatomical joints and skeleton lines live, then switch straight into sprint-specific feedback for trunk lean, knee drive, step rhythm, and arm balance.';
+      'Track anatomical joints, gait timing, and sprint mechanics in one live coach for trunk lean, knee drive, landing, rhythm, and arm balance.';
 
   @override
-  String get runningCoachLiveAction => 'Start live coach';
+  String get runningCoachLiveAction => 'Start live sprint coach';
 
   @override
   String get runningCoachLiveGuideAction => 'Shooting guide';
 
   @override
-  String get runningCoachLiveScreenTitle => 'Live running coach';
+  String get runningCoachLiveScreenTitle => 'Live sprint coach';
 
   @override
   String get runningCoachLiveGuideScreenTitle => 'Live shooting guide';
@@ -8847,7 +8847,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachLiveGuideHeroBody =>
-      'The live coach draws anatomical joints and skeleton lines directly over the camera feed. The compact HUD keeps the cue and score clear, and expands only when you need gait, metric, and diagnosis details.';
+      'The live sprint coach draws anatomical joints and skeleton lines directly over the camera feed, then combines gait timing with trunk, knee, landing, rhythm, and arm metrics in one expandable result panel.';
 
   @override
   String get runningCoachLiveGuideTipSideTitle => 'Show a side view';
@@ -9040,6 +9040,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String runningCoachLiveGaitContactValue(Object side, int milliseconds) {
     return '$side contact $milliseconds ms';
   }
+
+  @override
+  String get runningCoachLiveSprintMetricsTitle => 'Sprint mechanics';
 
   @override
   String get runningCoachSprintLiveCardTitle => 'Live sprint coaching';

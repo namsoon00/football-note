@@ -7,18 +7,12 @@ class RunningLiveCoachGuideScreen extends StatelessWidget {
   final VoidCallback? onStart;
   final String? primaryStartLabel;
   final IconData? primaryStartIcon;
-  final VoidCallback? secondaryStart;
-  final String? secondaryStartLabel;
-  final IconData? secondaryStartIcon;
 
   const RunningLiveCoachGuideScreen({
     super.key,
     this.onStart,
     this.primaryStartLabel,
     this.primaryStartIcon,
-    this.secondaryStart,
-    this.secondaryStartLabel,
-    this.secondaryStartIcon,
   });
 
   @override
@@ -84,37 +78,15 @@ class RunningLiveCoachGuideScreen extends StatelessWidget {
             title: l10n.runningCoachLiveGuideTipCameraTitle,
             body: l10n.runningCoachLiveGuideTipCameraBody,
           ),
-          if (onStart != null || secondaryStart != null) ...[
+          if (onStart != null) ...[
             const SizedBox(height: 20),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: [
-                if (onStart != null)
-                  FilledButton.icon(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      onStart?.call();
-                    },
-                    icon: Icon(primaryStartIcon ?? Icons.videocam_outlined),
-                    label: Text(
-                      primaryStartLabel ?? l10n.runningCoachLiveAction,
-                    ),
-                  ),
-                if (secondaryStart != null)
-                  FilledButton.tonalIcon(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      secondaryStart?.call();
-                    },
-                    icon: Icon(
-                      secondaryStartIcon ?? Icons.directions_run_rounded,
-                    ),
-                    label: Text(
-                      secondaryStartLabel ?? l10n.runningCoachSprintLiveAction,
-                    ),
-                  ),
-              ],
+            FilledButton.icon(
+              onPressed: () {
+                Navigator.of(context).pop();
+                onStart?.call();
+              },
+              icon: Icon(primaryStartIcon ?? Icons.directions_run_rounded),
+              label: Text(primaryStartLabel ?? l10n.runningCoachLiveAction),
             ),
           ],
         ],
