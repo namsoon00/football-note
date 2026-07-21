@@ -8860,6 +8860,56 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachLiveSessionReportEvidenceRightLead => '右足リード';
 
   @override
+  String get runningCoachPoseEvidenceBlockerFullBody =>
+      '頭と両足が画面内に入るよう、一歩下がってください。';
+
+  @override
+  String get runningCoachPoseEvidenceBlockerSideView => '安定した側面ビューを保ってください。';
+
+  @override
+  String get runningCoachPoseEvidenceBlockerCoreJoints =>
+      '関節の輪郭が安定するまで動きを落ち着かせてください。';
+
+  @override
+  String get runningCoachPoseEvidenceBlockerGaitPhase => '同じ側面構図であと数歩走ってください。';
+
+  @override
+  String get runningCoachLivePoseEvidenceTitle => '姿勢キャプチャ';
+
+  @override
+  String runningCoachLivePoseEvidenceProgress(int count) {
+    return '$count/3 フェーズ取得';
+  }
+
+  @override
+  String runningCoachLivePoseEvidenceStableFrames(int count) {
+    return '安定フレーム $count';
+  }
+
+  @override
+  String get runningCoachLivePoseEvidenceReady => '安定した関節の根拠を収集中です。';
+
+  @override
+  String runningCoachLiveSessionReportEvidenceCoverage(int count) {
+    return '取得 $count/3 フェーズ';
+  }
+
+  @override
+  String runningCoachLiveSessionReportEvidencePhaseCaptured(Object phase) {
+    return '$phase: 取得済み';
+  }
+
+  @override
+  String runningCoachLiveSessionReportEvidencePhaseMissing(Object phase) {
+    return '$phase: 未取得';
+  }
+
+  @override
+  String runningCoachLiveSessionReportEvidenceLimit(Object reason) {
+    return '主な取得制限: $reason';
+  }
+
+  @override
   String get runningCoachLiveSessionReportQualityTitle => '分析品質';
 
   @override

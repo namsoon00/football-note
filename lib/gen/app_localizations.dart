@@ -15911,6 +15911,78 @@ abstract class AppLocalizations {
   /// **'Right lead'**
   String get runningCoachLiveSessionReportEvidenceRightLead;
 
+  /// No description provided for @runningCoachPoseEvidenceBlockerFullBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Step back until your head and both feet stay in frame.'**
+  String get runningCoachPoseEvidenceBlockerFullBody;
+
+  /// No description provided for @runningCoachPoseEvidenceBlockerSideView.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn to a steady side view and keep it there.'**
+  String get runningCoachPoseEvidenceBlockerSideView;
+
+  /// No description provided for @runningCoachPoseEvidenceBlockerCoreJoints.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold steady so the joint outline can lock.'**
+  String get runningCoachPoseEvidenceBlockerCoreJoints;
+
+  /// No description provided for @runningCoachPoseEvidenceBlockerGaitPhase.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep running in the same view for a few more steps.'**
+  String get runningCoachPoseEvidenceBlockerGaitPhase;
+
+  /// No description provided for @runningCoachLivePoseEvidenceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pose capture'**
+  String get runningCoachLivePoseEvidenceTitle;
+
+  /// No description provided for @runningCoachLivePoseEvidenceProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}/3 pose phases'**
+  String runningCoachLivePoseEvidenceProgress(int count);
+
+  /// No description provided for @runningCoachLivePoseEvidenceStableFrames.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} stable frames'**
+  String runningCoachLivePoseEvidenceStableFrames(int count);
+
+  /// No description provided for @runningCoachLivePoseEvidenceReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Stable joint evidence is being collected.'**
+  String get runningCoachLivePoseEvidenceReady;
+
+  /// No description provided for @runningCoachLiveSessionReportEvidenceCoverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Captured {count}/3 phases'**
+  String runningCoachLiveSessionReportEvidenceCoverage(int count);
+
+  /// No description provided for @runningCoachLiveSessionReportEvidencePhaseCaptured.
+  ///
+  /// In en, this message translates to:
+  /// **'{phase}: captured'**
+  String runningCoachLiveSessionReportEvidencePhaseCaptured(Object phase);
+
+  /// No description provided for @runningCoachLiveSessionReportEvidencePhaseMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'{phase}: not captured'**
+  String runningCoachLiveSessionReportEvidencePhaseMissing(Object phase);
+
+  /// No description provided for @runningCoachLiveSessionReportEvidenceLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Main capture limit: {reason}'**
+  String runningCoachLiveSessionReportEvidenceLimit(Object reason);
+
   /// No description provided for @runningCoachLiveSessionReportQualityTitle.
   ///
   /// In en, this message translates to:

@@ -5075,6 +5075,54 @@
   },
   "runningCoachLiveSessionReportEvidenceLeftLead": "左足リード",
   "runningCoachLiveSessionReportEvidenceRightLead": "右足リード",
+  "runningCoachPoseEvidenceBlockerFullBody": "頭と両足が画面内に入るよう、一歩下がってください。",
+  "runningCoachPoseEvidenceBlockerSideView": "安定した側面ビューを保ってください。",
+  "runningCoachPoseEvidenceBlockerCoreJoints": "関節の輪郭が安定するまで動きを落ち着かせてください。",
+  "runningCoachPoseEvidenceBlockerGaitPhase": "同じ側面構図であと数歩走ってください。",
+  "runningCoachLivePoseEvidenceTitle": "姿勢キャプチャ",
+  "runningCoachLivePoseEvidenceProgress": "{count}/3 フェーズ取得",
+  "@runningCoachLivePoseEvidenceProgress": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachLivePoseEvidenceStableFrames": "安定フレーム {count}",
+  "@runningCoachLivePoseEvidenceStableFrames": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachLivePoseEvidenceReady": "安定した関節の根拠を収集中です。",
+  "runningCoachLiveSessionReportEvidenceCoverage": "取得 {count}/3 フェーズ",
+  "@runningCoachLiveSessionReportEvidenceCoverage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachLiveSessionReportEvidencePhaseCaptured": "{phase}: 取得済み",
+  "@runningCoachLiveSessionReportEvidencePhaseCaptured": {
+    "placeholders": {
+      "phase": {}
+    }
+  },
+  "runningCoachLiveSessionReportEvidencePhaseMissing": "{phase}: 未取得",
+  "@runningCoachLiveSessionReportEvidencePhaseMissing": {
+    "placeholders": {
+      "phase": {}
+    }
+  },
+  "runningCoachLiveSessionReportEvidenceLimit": "主な取得制限: {reason}",
+  "@runningCoachLiveSessionReportEvidenceLimit": {
+    "placeholders": {
+      "reason": {}
+    }
+  },
   "runningCoachLiveSessionReportQualityTitle": "分析品質",
   "runningCoachLiveSessionReportDurationLabel": "セッション時間",
   "runningCoachLiveSessionReportDurationValue": "{minutes}分 {seconds}秒",

@@ -299,7 +299,12 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       runningState: _coachingState,
       sprintState: _sprintCoachingState,
     );
-    final cueText = guidance.cueText;
+    final poseEvidenceDiagnostic = _poseEvidenceCollector.diagnosticSnapshot();
+    final poseEvidenceCue = _poseEvidenceBlockerCue(
+      l10n,
+      poseEvidenceDiagnostic.currentBlocker,
+    );
+    final cueText = poseEvidenceCue ?? guidance.cueText;
     final diagnosis = guidance.diagnosis;
     final actionTip = guidance.actionTip;
     final insightDetails = _buildInsightDetails(l10n);
@@ -407,6 +412,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
                                 actionTip: actionTip,
                                 gaitAnalysis: _coachingState.gaitAnalysis,
                                 sprintState: _sprintCoachingState,
+                                poseEvidenceDiagnostic: poseEvidenceDiagnostic,
                                 metricScores: insightDetails,
                                 focusPriorities: focusPriorities,
                                 metricSections: insightSections,
@@ -650,6 +656,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     final runningState = _latestCoachingState;
     final sprintState = _latestSprintCoachingState;
     final poseEvidence = _poseEvidenceCollector.snapshot();
+    final poseEvidenceDiagnostic = _poseEvidenceCollector.diagnosticSnapshot();
     final fallbackSession = const LiveSprintSessionReportService().buildSession(
       sessionId: sessionId,
       completedAt: completedAt,
@@ -658,6 +665,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       runningState: runningState,
       sprintState: sprintState,
       poseEvidence: poseEvidence,
+      poseEvidenceDiagnostic: poseEvidenceDiagnostic,
     );
     _endSessionLogging(reason: 'completed');
 
@@ -675,6 +683,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
           runningState: runningState,
           sprintState: sprintState,
           poseEvidence: poseEvidence,
+          poseEvidenceDiagnostic: poseEvidenceDiagnostic,
         );
         if (savedSessions.isNotEmpty) {
           session = savedSessions.first;
@@ -2019,6 +2028,23 @@ String _runningLiveQualityReasonText(
   };
 }
 
+String? _poseEvidenceBlockerCue(
+  AppLocalizations l10n,
+  LiveSprintPoseEvidenceBlocker? blocker,
+) {
+  return switch (blocker) {
+    LiveSprintPoseEvidenceBlocker.fullBodyVisibility =>
+      l10n.runningCoachPoseEvidenceBlockerFullBody,
+    LiveSprintPoseEvidenceBlocker.stableSideView =>
+      l10n.runningCoachPoseEvidenceBlockerSideView,
+    LiveSprintPoseEvidenceBlocker.observedCoreJoints =>
+      l10n.runningCoachPoseEvidenceBlockerCoreJoints,
+    LiveSprintPoseEvidenceBlocker.gaitPhaseReadiness =>
+      l10n.runningCoachPoseEvidenceBlockerGaitPhase,
+    null => null,
+  };
+}
+
 class _LiveInsightSection {
   final String title;
   final List<_LiveInsightData> items;
@@ -2036,6 +2062,7 @@ class _ScoreExplanationPanel extends StatelessWidget {
   final String actionTip;
   final RunningGaitAnalysis gaitAnalysis;
   final SprintRealtimeCoachingState sprintState;
+  final LiveSprintPoseEvidenceDiagnostic poseEvidenceDiagnostic;
   final List<_LiveInsightData> metricScores;
   final Map<RunningCoachMetric, int> focusPriorities;
   final List<_LiveInsightSection> metricSections;
@@ -2051,6 +2078,7 @@ class _ScoreExplanationPanel extends StatelessWidget {
     required this.actionTip,
     required this.gaitAnalysis,
     required this.sprintState,
+    required this.poseEvidenceDiagnostic,
     required this.metricScores,
     required this.focusPriorities,
     required this.metricSections,
@@ -2092,6 +2120,12 @@ class _ScoreExplanationPanel extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         _GaitStatusChips(gaitAnalysis: gaitAnalysis),
+        const SizedBox(height: 16),
+        _PanelSectionTitle(text: l10n.runningCoachLivePoseEvidenceTitle),
+        const SizedBox(height: 8),
+        _LivePoseEvidenceDiagnosticSummary(
+          diagnostic: poseEvidenceDiagnostic,
+        ),
         const SizedBox(height: 16),
         _PanelSectionTitle(text: l10n.runningCoachLiveSprintMetricsTitle),
         const SizedBox(height: 8),
@@ -2143,6 +2177,54 @@ class _ScoreExplanationPanel extends StatelessWidget {
             if (index != metricSections.length - 1) const SizedBox(height: 16),
           ],
         ],
+      ],
+    );
+  }
+}
+
+class _LivePoseEvidenceDiagnosticSummary extends StatelessWidget {
+  final LiveSprintPoseEvidenceDiagnostic diagnostic;
+
+  const _LivePoseEvidenceDiagnosticSummary({required this.diagnostic});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final blockerText = _poseEvidenceBlockerCue(
+      l10n,
+      diagnostic.currentBlocker,
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _InfoChip(
+              text: l10n.runningCoachLivePoseEvidenceProgress(
+                diagnostic.capturedPhaseCount,
+              ),
+            ),
+            if (diagnostic.eligibleFrames > 0)
+              _InfoChip(
+                text: l10n.runningCoachLivePoseEvidenceStableFrames(
+                  diagnostic.eligibleFrames,
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text(
+          blockerText ??
+              (diagnostic.hasCompleteEvidence
+                  ? l10n.runningCoachLivePoseEvidenceReady
+                  : l10n.runningCoachPoseEvidenceBlockerGaitPhase),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: blockerText == null ? Colors.white70 : Colors.amber,
+                height: 1.3,
+              ),
+        ),
       ],
     );
   }

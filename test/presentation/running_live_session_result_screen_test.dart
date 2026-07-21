@@ -86,6 +86,16 @@ void main() {
         feedbackSeverity: null,
         feedbackConfidence: 0,
         metrics: <LiveSprintMetricSummary>[],
+        poseEvidenceDiagnostic: LiveSprintPoseEvidenceDiagnostic(
+          evaluatedFrames: 18,
+          eligibleFrames: 0,
+          capturedPhaseCount: 0,
+          fullBodyBlockedFrames: 12,
+          sideViewBlockedFrames: 2,
+          coreJointsBlockedFrames: 2,
+          gaitPhaseBlockedFrames: 2,
+          currentBlocker: LiveSprintPoseEvidenceBlocker.fullBodyVisibility,
+        ),
       ),
     );
 
@@ -100,7 +110,19 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Form score unavailable'), findsOneWidget);
-    await _scrollReport(tester);
+    await _scrollReportUntilVisible(
+      tester,
+      find.text(
+        'Main capture limit: Step back until your head and both feet stay in frame.',
+      ),
+    );
+    expect(find.text('Touchdown: not captured'), findsOneWidget);
+    await _scrollReportUntilVisible(
+      tester,
+      find.text(
+        'There was not enough stable signal to summarize sprint mechanics. Keep the same framing for a few more steps, then finish again.',
+      ),
+    );
     expect(
       find.text(
         'There was not enough stable signal to summarize sprint mechanics. Keep the same framing for a few more steps, then finish again.',
@@ -290,14 +312,6 @@ class _LocalizedHarness extends StatelessWidget {
       home: child,
     );
   }
-}
-
-Future<void> _scrollReport(WidgetTester tester) async {
-  final reportList = find.byKey(
-    const ValueKey('running-live-session-report-list'),
-  );
-  await tester.drag(reportList, const Offset(0, -520));
-  await tester.pumpAndSettle();
 }
 
 Future<void> _scrollReportUntilVisible(

@@ -5075,6 +5075,54 @@
   },
   "runningCoachLiveSessionReportEvidenceLeftLead": "왼발 선행",
   "runningCoachLiveSessionReportEvidenceRightLead": "오른발 선행",
+  "runningCoachPoseEvidenceBlockerFullBody": "머리와 양발이 모두 화면 안에 오도록 한 걸음 뒤로 가세요.",
+  "runningCoachPoseEvidenceBlockerSideView": "안정적인 측면 자세를 유지해 주세요.",
+  "runningCoachPoseEvidenceBlockerCoreJoints": "관절 윤곽이 고정되도록 잠시 안정적으로 움직여 주세요.",
+  "runningCoachPoseEvidenceBlockerGaitPhase": "같은 측면 구도에서 몇 걸음 더 달려 보세요.",
+  "runningCoachLivePoseEvidenceTitle": "자세 캡처",
+  "runningCoachLivePoseEvidenceProgress": "{count}/3 구간 확보",
+  "@runningCoachLivePoseEvidenceProgress": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachLivePoseEvidenceStableFrames": "안정 프레임 {count}개",
+  "@runningCoachLivePoseEvidenceStableFrames": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachLivePoseEvidenceReady": "안정적인 관절 근거를 수집하고 있어요.",
+  "runningCoachLiveSessionReportEvidenceCoverage": "확보 {count}/3 구간",
+  "@runningCoachLiveSessionReportEvidenceCoverage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachLiveSessionReportEvidencePhaseCaptured": "{phase}: 확보됨",
+  "@runningCoachLiveSessionReportEvidencePhaseCaptured": {
+    "placeholders": {
+      "phase": {}
+    }
+  },
+  "runningCoachLiveSessionReportEvidencePhaseMissing": "{phase}: 미확보",
+  "@runningCoachLiveSessionReportEvidencePhaseMissing": {
+    "placeholders": {
+      "phase": {}
+    }
+  },
+  "runningCoachLiveSessionReportEvidenceLimit": "주요 캡처 제한: {reason}",
+  "@runningCoachLiveSessionReportEvidenceLimit": {
+    "placeholders": {
+      "reason": {}
+    }
+  },
   "runningCoachLiveSessionReportQualityTitle": "분석 품질",
   "runningCoachLiveSessionReportDurationLabel": "세션 시간",
   "runningCoachLiveSessionReportDurationValue": "{minutes}분 {seconds}초",

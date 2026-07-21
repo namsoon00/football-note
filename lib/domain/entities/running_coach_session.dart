@@ -273,6 +273,106 @@ class LiveSprintMetricSummary {
 
 enum LiveSprintPoseEvidencePhase { touchdown, support, flight }
 
+enum LiveSprintPoseEvidenceBlocker {
+  fullBodyVisibility,
+  stableSideView,
+  observedCoreJoints,
+  gaitPhaseReadiness,
+}
+
+class LiveSprintPoseEvidenceDiagnostic {
+  final int evaluatedFrames;
+  final int eligibleFrames;
+  final int capturedPhaseCount;
+  final int fullBodyBlockedFrames;
+  final int sideViewBlockedFrames;
+  final int coreJointsBlockedFrames;
+  final int gaitPhaseBlockedFrames;
+  final LiveSprintPoseEvidenceBlocker? currentBlocker;
+
+  const LiveSprintPoseEvidenceDiagnostic({
+    required this.evaluatedFrames,
+    required this.eligibleFrames,
+    required this.capturedPhaseCount,
+    required this.fullBodyBlockedFrames,
+    required this.sideViewBlockedFrames,
+    required this.coreJointsBlockedFrames,
+    required this.gaitPhaseBlockedFrames,
+    required this.currentBlocker,
+  });
+
+  const LiveSprintPoseEvidenceDiagnostic.initial()
+      : evaluatedFrames = 0,
+        eligibleFrames = 0,
+        capturedPhaseCount = 0,
+        fullBodyBlockedFrames = 0,
+        sideViewBlockedFrames = 0,
+        coreJointsBlockedFrames = 0,
+        gaitPhaseBlockedFrames = 0,
+        currentBlocker = null;
+
+  int get blockedFrames =>
+      fullBodyBlockedFrames +
+      sideViewBlockedFrames +
+      coreJointsBlockedFrames +
+      gaitPhaseBlockedFrames;
+
+  bool get hasCompleteEvidence =>
+      capturedPhaseCount >= LiveSprintPoseEvidencePhase.values.length;
+
+  LiveSprintPoseEvidenceBlocker? get dominantBlocker {
+    final counts = <LiveSprintPoseEvidenceBlocker, int>{
+      LiveSprintPoseEvidenceBlocker.fullBodyVisibility: fullBodyBlockedFrames,
+      LiveSprintPoseEvidenceBlocker.stableSideView: sideViewBlockedFrames,
+      LiveSprintPoseEvidenceBlocker.observedCoreJoints: coreJointsBlockedFrames,
+      LiveSprintPoseEvidenceBlocker.gaitPhaseReadiness: gaitPhaseBlockedFrames,
+    };
+    LiveSprintPoseEvidenceBlocker? selected;
+    var highestCount = 0;
+    for (final blocker in LiveSprintPoseEvidenceBlocker.values) {
+      final count = counts[blocker] ?? 0;
+      if (count > highestCount) {
+        highestCount = count;
+        selected = blocker;
+      }
+    }
+    return selected;
+  }
+
+  Map<String, Object?> toMap() {
+    return <String, Object?>{
+      'evaluatedFrames': evaluatedFrames,
+      'eligibleFrames': eligibleFrames,
+      'capturedPhaseCount': capturedPhaseCount,
+      'fullBodyBlockedFrames': fullBodyBlockedFrames,
+      'sideViewBlockedFrames': sideViewBlockedFrames,
+      'coreJointsBlockedFrames': coreJointsBlockedFrames,
+      'gaitPhaseBlockedFrames': gaitPhaseBlockedFrames,
+      if (currentBlocker != null) 'currentBlocker': currentBlocker!.name,
+    };
+  }
+
+  factory LiveSprintPoseEvidenceDiagnostic.fromMap(Map<String, dynamic> map) {
+    return LiveSprintPoseEvidenceDiagnostic(
+      evaluatedFrames: _intValue(map['evaluatedFrames']).clamp(0, 1 << 31),
+      eligibleFrames: _intValue(map['eligibleFrames']).clamp(0, 1 << 31),
+      capturedPhaseCount: _intValue(map['capturedPhaseCount']).clamp(0, 3),
+      fullBodyBlockedFrames:
+          _intValue(map['fullBodyBlockedFrames']).clamp(0, 1 << 31),
+      sideViewBlockedFrames:
+          _intValue(map['sideViewBlockedFrames']).clamp(0, 1 << 31),
+      coreJointsBlockedFrames:
+          _intValue(map['coreJointsBlockedFrames']).clamp(0, 1 << 31),
+      gaitPhaseBlockedFrames:
+          _intValue(map['gaitPhaseBlockedFrames']).clamp(0, 1 << 31),
+      currentBlocker: _nullableEnumByName(
+        LiveSprintPoseEvidenceBlocker.values,
+        map['currentBlocker']?.toString(),
+      ),
+    );
+  }
+}
+
 class LiveSprintPoseEvidenceJoint {
   final RunningPoseLandmarkType type;
   final double x;
@@ -399,6 +499,7 @@ class LiveSprintSessionReport {
   final double feedbackConfidence;
   final List<LiveSprintMetricSummary> metrics;
   final List<LiveSprintPoseEvidenceFrame> poseEvidence;
+  final LiveSprintPoseEvidenceDiagnostic poseEvidenceDiagnostic;
 
   const LiveSprintSessionReport({
     required this.runningTrackedFrames,
@@ -421,6 +522,8 @@ class LiveSprintSessionReport {
     required this.feedbackConfidence,
     required this.metrics,
     this.poseEvidence = const <LiveSprintPoseEvidenceFrame>[],
+    this.poseEvidenceDiagnostic =
+        const LiveSprintPoseEvidenceDiagnostic.initial(),
   });
 
   double get analysisConfidence =>
@@ -462,6 +565,8 @@ class LiveSprintSessionReport {
         'poseEvidence': poseEvidence
             .map((evidence) => evidence.toMap())
             .toList(growable: false),
+      if (poseEvidenceDiagnostic.evaluatedFrames > 0)
+        'poseEvidenceDiagnostic': poseEvidenceDiagnostic.toMap(),
     };
   }
 
@@ -505,6 +610,9 @@ class LiveSprintSessionReport {
           _doubleValue(map['feedbackConfidence']).clamp(0.0, 1.0),
       metrics: _liveSprintMetricsFromMap(map['metrics']),
       poseEvidence: _liveSprintPoseEvidenceFromMap(map['poseEvidence']),
+      poseEvidenceDiagnostic: _liveSprintPoseEvidenceDiagnosticFromMap(
+        map['poseEvidenceDiagnostic'],
+      ),
     );
   }
 }
@@ -564,6 +672,16 @@ List<LiveSprintPoseEvidenceFrame> _liveSprintPoseEvidenceFromMap(
         )
         .toList(growable: false),
   );
+}
+
+LiveSprintPoseEvidenceDiagnostic _liveSprintPoseEvidenceDiagnosticFromMap(
+  Object? value,
+) {
+  if (value is! Map) {
+    return const LiveSprintPoseEvidenceDiagnostic.initial();
+  }
+  return LiveSprintPoseEvidenceDiagnostic.fromMap(
+      value.cast<String, dynamic>());
 }
 
 List<LiveSprintPoseEvidenceJoint> _liveSprintPoseEvidenceJointsFromMap(

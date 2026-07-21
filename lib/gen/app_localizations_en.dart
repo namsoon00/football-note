@@ -9101,6 +9101,59 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachLiveSessionReportEvidenceRightLead => 'Right lead';
 
   @override
+  String get runningCoachPoseEvidenceBlockerFullBody =>
+      'Step back until your head and both feet stay in frame.';
+
+  @override
+  String get runningCoachPoseEvidenceBlockerSideView =>
+      'Turn to a steady side view and keep it there.';
+
+  @override
+  String get runningCoachPoseEvidenceBlockerCoreJoints =>
+      'Hold steady so the joint outline can lock.';
+
+  @override
+  String get runningCoachPoseEvidenceBlockerGaitPhase =>
+      'Keep running in the same view for a few more steps.';
+
+  @override
+  String get runningCoachLivePoseEvidenceTitle => 'Pose capture';
+
+  @override
+  String runningCoachLivePoseEvidenceProgress(int count) {
+    return '$count/3 pose phases';
+  }
+
+  @override
+  String runningCoachLivePoseEvidenceStableFrames(int count) {
+    return '$count stable frames';
+  }
+
+  @override
+  String get runningCoachLivePoseEvidenceReady =>
+      'Stable joint evidence is being collected.';
+
+  @override
+  String runningCoachLiveSessionReportEvidenceCoverage(int count) {
+    return 'Captured $count/3 phases';
+  }
+
+  @override
+  String runningCoachLiveSessionReportEvidencePhaseCaptured(Object phase) {
+    return '$phase: captured';
+  }
+
+  @override
+  String runningCoachLiveSessionReportEvidencePhaseMissing(Object phase) {
+    return '$phase: not captured';
+  }
+
+  @override
+  String runningCoachLiveSessionReportEvidenceLimit(Object reason) {
+    return 'Main capture limit: $reason';
+  }
+
+  @override
   String get runningCoachLiveSessionReportQualityTitle => 'Analysis quality';
 
   @override

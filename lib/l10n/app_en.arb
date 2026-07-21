@@ -5075,6 +5075,54 @@
   },
   "runningCoachLiveSessionReportEvidenceLeftLead": "Left lead",
   "runningCoachLiveSessionReportEvidenceRightLead": "Right lead",
+  "runningCoachPoseEvidenceBlockerFullBody": "Step back until your head and both feet stay in frame.",
+  "runningCoachPoseEvidenceBlockerSideView": "Turn to a steady side view and keep it there.",
+  "runningCoachPoseEvidenceBlockerCoreJoints": "Hold steady so the joint outline can lock.",
+  "runningCoachPoseEvidenceBlockerGaitPhase": "Keep running in the same view for a few more steps.",
+  "runningCoachLivePoseEvidenceTitle": "Pose capture",
+  "runningCoachLivePoseEvidenceProgress": "{count}/3 pose phases",
+  "@runningCoachLivePoseEvidenceProgress": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachLivePoseEvidenceStableFrames": "{count} stable frames",
+  "@runningCoachLivePoseEvidenceStableFrames": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachLivePoseEvidenceReady": "Stable joint evidence is being collected.",
+  "runningCoachLiveSessionReportEvidenceCoverage": "Captured {count}/3 phases",
+  "@runningCoachLiveSessionReportEvidenceCoverage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachLiveSessionReportEvidencePhaseCaptured": "{phase}: captured",
+  "@runningCoachLiveSessionReportEvidencePhaseCaptured": {
+    "placeholders": {
+      "phase": {}
+    }
+  },
+  "runningCoachLiveSessionReportEvidencePhaseMissing": "{phase}: not captured",
+  "@runningCoachLiveSessionReportEvidencePhaseMissing": {
+    "placeholders": {
+      "phase": {}
+    }
+  },
+  "runningCoachLiveSessionReportEvidenceLimit": "Main capture limit: {reason}",
+  "@runningCoachLiveSessionReportEvidenceLimit": {
+    "placeholders": {
+      "reason": {}
+    }
+  },
   "runningCoachLiveSessionReportQualityTitle": "Analysis quality",
   "runningCoachLiveSessionReportDurationLabel": "Session time",
   "runningCoachLiveSessionReportDurationValue": "{minutes}m {seconds}s",

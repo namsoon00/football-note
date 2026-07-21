@@ -21,14 +21,25 @@ class LiveSprintPoseEvidenceCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final evidence = report.poseEvidence;
+    final diagnostic = report.poseEvidenceDiagnostic;
     if (evidence.isEmpty) {
       return Card(
         key: const ValueKey('running-live-session-report-pose-evidence'),
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: Text(
-            l10n.runningCoachLiveSessionReportEvidenceUnavailable,
-            style: Theme.of(context).textTheme.bodyMedium,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.runningCoachLiveSessionReportEvidenceUnavailable,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 12),
+              _EvidenceCaptureSummary(
+                evidence: evidence,
+                diagnostic: diagnostic,
+              ),
+            ],
           ),
         ),
       );
@@ -47,6 +58,11 @@ class LiveSprintPoseEvidenceCard extends StatelessWidget {
               Text(
                 l10n.runningCoachLiveSessionReportEvidenceBody,
                 style: Theme.of(context).textTheme.bodySmall,
+              ),
+              const SizedBox(height: 12),
+              _EvidenceCaptureSummary(
+                evidence: evidence,
+                diagnostic: diagnostic,
               ),
               if (evidence.length > 1) ...[
                 const SizedBox(height: 12),
@@ -152,16 +168,85 @@ class _EvidencePill extends StatelessWidget {
           children: [
             Icon(icon, size: 15, color: color),
             const SizedBox(width: 4),
-            Text(
-              label,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: color,
-                    fontWeight: FontWeight.w700,
-                  ),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: color,
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _EvidenceCaptureSummary extends StatelessWidget {
+  final List<LiveSprintPoseEvidenceFrame> evidence;
+  final LiveSprintPoseEvidenceDiagnostic diagnostic;
+
+  const _EvidenceCaptureSummary({
+    required this.evidence,
+    required this.diagnostic,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    final captured = evidence.map((frame) => frame.phase).toSet();
+    final blocker = diagnostic.dominantBlocker;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Wrap(
+          spacing: 8,
+          runSpacing: 6,
+          children: [
+            _EvidencePill(
+              icon: Icons.flag_outlined,
+              label: l10n.runningCoachLiveSessionReportEvidenceCoverage(
+                captured.length,
+              ),
+              foreground: scheme.primary,
+            ),
+            for (final phase in LiveSprintPoseEvidencePhase.values)
+              _EvidencePill(
+                icon: captured.contains(phase)
+                    ? Icons.check_circle_outline_rounded
+                    : Icons.radio_button_unchecked_rounded,
+                label: captured.contains(phase)
+                    ? l10n.runningCoachLiveSessionReportEvidencePhaseCaptured(
+                        _phaseLabel(l10n, phase),
+                      )
+                    : l10n.runningCoachLiveSessionReportEvidencePhaseMissing(
+                        _phaseLabel(l10n, phase),
+                      ),
+                foreground: captured.contains(phase)
+                    ? scheme.primary
+                    : scheme.onSurfaceVariant,
+              ),
+          ],
+        ),
+        if (blocker != null &&
+            captured.length < LiveSprintPoseEvidencePhase.values.length) ...[
+          const SizedBox(height: 10),
+          Text(
+            l10n.runningCoachLiveSessionReportEvidenceLimit(
+              _poseEvidenceBlockerText(l10n, blocker),
+            ),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                  height: 1.3,
+                ),
+          ),
+        ],
+      ],
     );
   }
 }
@@ -403,6 +488,22 @@ String _leadFootLabel(AppLocalizations l10n, RunningFootSide side) {
     RunningFootSide.left => l10n.runningCoachLiveSessionReportEvidenceLeftLead,
     RunningFootSide.right =>
       l10n.runningCoachLiveSessionReportEvidenceRightLead,
+  };
+}
+
+String _poseEvidenceBlockerText(
+  AppLocalizations l10n,
+  LiveSprintPoseEvidenceBlocker blocker,
+) {
+  return switch (blocker) {
+    LiveSprintPoseEvidenceBlocker.fullBodyVisibility =>
+      l10n.runningCoachPoseEvidenceBlockerFullBody,
+    LiveSprintPoseEvidenceBlocker.stableSideView =>
+      l10n.runningCoachPoseEvidenceBlockerSideView,
+    LiveSprintPoseEvidenceBlocker.observedCoreJoints =>
+      l10n.runningCoachPoseEvidenceBlockerCoreJoints,
+    LiveSprintPoseEvidenceBlocker.gaitPhaseReadiness =>
+      l10n.runningCoachPoseEvidenceBlockerGaitPhase,
   };
 }
 
