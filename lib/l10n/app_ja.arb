@@ -5166,6 +5166,73 @@
       "reason": {}
     }
   },
+  "runningCoachFieldValidationTitle": "フィールド検証",
+  "runningCoachFieldValidationPrivacyNote": "保存済みのカウンターと関節根拠だけを使います。カメラフレームは保存しません。",
+  "runningCoachFieldValidationStatusInsufficient": "根拠不足",
+  "runningCoachFieldValidationStatusNeedsReview": "確認が必要",
+  "runningCoachFieldValidationStatusReady": "キャリブレーション準備完了",
+  "runningCoachFieldValidationBodyInsufficient": "しきい値調整に使える安定したフィールド根拠が不足しています。下の項目を直して再度キャプチャしてください。",
+  "runningCoachFieldValidationBodyNeedsReview": "フィールド根拠はありますが、しきい値を調整する前に測定項目を確認してください。",
+  "runningCoachFieldValidationBodyReady": "この走行はしきい値キャリブレーションの比較に使えます。基準を変える前に同じプロファイルでもう一度繰り返してください。",
+  "runningCoachFieldValidationProfileValue": "プロファイル: {profile}",
+  "@runningCoachFieldValidationProfileValue": {
+    "placeholders": {
+      "profile": {}
+    }
+  },
+  "runningCoachFieldValidationQualityValue": "フィールド品質 {score}%",
+  "@runningCoachFieldValidationQualityValue": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachFieldValidationNextChecksTitle": "次のキャプチャ確認",
+  "runningCoachFieldValidationAllChecksPassed": "測定可能なフィールド確認をすべて通過しました。",
+  "runningCoachFieldValidationCheckCaptureReadiness": "キャプチャ準備度",
+  "runningCoachFieldValidationCheckPhaseCoverage": "フェーズ網羅",
+  "runningCoachFieldValidationCheckTrackedFrames": "追跡フレーム",
+  "runningCoachFieldValidationCheckUsableSamples": "使用可能な姿勢サンプル",
+  "runningCoachFieldValidationCheckTimingConfidence": "タイミング信頼度",
+  "runningCoachFieldValidationCheckSideViewConfidence": "側面ビュー信頼度",
+  "runningCoachFieldValidationCheckTrackingConfidence": "トラッキング信頼度",
+  "runningCoachFieldValidationCheckBodyVisibility": "全身ロスト",
+  "runningCoachFieldValidationCheckStepEvidence": "ステップ根拠",
+  "runningCoachFieldValidationCheckLandingEvidence": "接地根拠",
+  "runningCoachFieldValidationCountValue": "{observed} / 目標 {required}",
+  "@runningCoachFieldValidationCountValue": {
+    "placeholders": {
+      "observed": {
+        "type": "int"
+      },
+      "required": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachFieldValidationPercentValue": "{current}% / 目標 {target}%",
+  "@runningCoachFieldValidationPercentValue": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachFieldValidationPercentMaxValue": "{current}% / 最大 {target}%",
+  "@runningCoachFieldValidationPercentMaxValue": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
   "runningCoachLiveSessionReportQualityTitle": "分析品質",
   "runningCoachLiveSessionReportDurationLabel": "セッション時間",
   "runningCoachLiveSessionReportDurationValue": "{minutes}分 {seconds}秒",

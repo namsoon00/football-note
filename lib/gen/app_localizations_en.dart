@@ -9215,6 +9215,103 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get runningCoachFieldValidationTitle => 'Field validation';
+
+  @override
+  String get runningCoachFieldValidationPrivacyNote =>
+      'Uses saved counters and pose-joint evidence only. Camera frames are not stored.';
+
+  @override
+  String get runningCoachFieldValidationStatusInsufficient => 'Insufficient';
+
+  @override
+  String get runningCoachFieldValidationStatusNeedsReview => 'Needs review';
+
+  @override
+  String get runningCoachFieldValidationStatusReady => 'Ready for calibration';
+
+  @override
+  String get runningCoachFieldValidationBodyInsufficient =>
+      'Not enough stable field evidence for threshold tuning. Repeat capture after the checks below.';
+
+  @override
+  String get runningCoachFieldValidationBodyNeedsReview =>
+      'Useful field evidence was captured, but review the measurable checks before tuning thresholds.';
+
+  @override
+  String get runningCoachFieldValidationBodyReady =>
+      'This run is ready to compare during threshold calibration. Repeat the same profile before changing thresholds.';
+
+  @override
+  String runningCoachFieldValidationProfileValue(Object profile) {
+    return 'Profile: $profile';
+  }
+
+  @override
+  String runningCoachFieldValidationQualityValue(int score) {
+    return 'Field quality $score%';
+  }
+
+  @override
+  String get runningCoachFieldValidationNextChecksTitle =>
+      'Next capture checks';
+
+  @override
+  String get runningCoachFieldValidationAllChecksPassed =>
+      'All measurable field checks passed.';
+
+  @override
+  String get runningCoachFieldValidationCheckCaptureReadiness =>
+      'Capture readiness';
+
+  @override
+  String get runningCoachFieldValidationCheckPhaseCoverage => 'Phase coverage';
+
+  @override
+  String get runningCoachFieldValidationCheckTrackedFrames => 'Tracked frames';
+
+  @override
+  String get runningCoachFieldValidationCheckUsableSamples =>
+      'Usable pose samples';
+
+  @override
+  String get runningCoachFieldValidationCheckTimingConfidence =>
+      'Timing confidence';
+
+  @override
+  String get runningCoachFieldValidationCheckSideViewConfidence =>
+      'Side-view confidence';
+
+  @override
+  String get runningCoachFieldValidationCheckTrackingConfidence =>
+      'Tracking confidence';
+
+  @override
+  String get runningCoachFieldValidationCheckBodyVisibility => 'Body loss';
+
+  @override
+  String get runningCoachFieldValidationCheckStepEvidence => 'Step evidence';
+
+  @override
+  String get runningCoachFieldValidationCheckLandingEvidence =>
+      'Landing evidence';
+
+  @override
+  String runningCoachFieldValidationCountValue(int observed, int required) {
+    return '$observed / target $required';
+  }
+
+  @override
+  String runningCoachFieldValidationPercentValue(int current, int target) {
+    return '$current% / target $target%';
+  }
+
+  @override
+  String runningCoachFieldValidationPercentMaxValue(int current, int target) {
+    return '$current% / max $target%';
+  }
+
+  @override
   String get runningCoachLiveSessionReportQualityTitle => 'Analysis quality';
 
   @override

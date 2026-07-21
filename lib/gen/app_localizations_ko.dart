@@ -8981,6 +8981,96 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get runningCoachFieldValidationTitle => '현장 검증';
+
+  @override
+  String get runningCoachFieldValidationPrivacyNote =>
+      '저장된 카운터와 관절 근거만 사용합니다. 카메라 프레임은 저장하지 않습니다.';
+
+  @override
+  String get runningCoachFieldValidationStatusInsufficient => '근거 부족';
+
+  @override
+  String get runningCoachFieldValidationStatusNeedsReview => '리뷰 필요';
+
+  @override
+  String get runningCoachFieldValidationStatusReady => '보정 준비됨';
+
+  @override
+  String get runningCoachFieldValidationBodyInsufficient =>
+      '임계값 튜닝에 쓸 안정적인 현장 근거가 부족해요. 아래 항목을 고친 뒤 다시 캡처해 주세요.';
+
+  @override
+  String get runningCoachFieldValidationBodyNeedsReview =>
+      '현장 근거는 확보됐지만, 임계값을 조정하기 전에 측정 항목을 확인해 주세요.';
+
+  @override
+  String get runningCoachFieldValidationBodyReady =>
+      '이 기록은 임계값 보정 비교에 사용할 수 있어요. 기준을 바꾸기 전에 같은 프로필로 한 번 더 반복해 주세요.';
+
+  @override
+  String runningCoachFieldValidationProfileValue(Object profile) {
+    return '프로필: $profile';
+  }
+
+  @override
+  String runningCoachFieldValidationQualityValue(int score) {
+    return '현장 품질 $score%';
+  }
+
+  @override
+  String get runningCoachFieldValidationNextChecksTitle => '다음 캡처 확인';
+
+  @override
+  String get runningCoachFieldValidationAllChecksPassed =>
+      '측정 가능한 현장 확인을 모두 통과했어요.';
+
+  @override
+  String get runningCoachFieldValidationCheckCaptureReadiness => '캡처 준비도';
+
+  @override
+  String get runningCoachFieldValidationCheckPhaseCoverage => '구간 확보';
+
+  @override
+  String get runningCoachFieldValidationCheckTrackedFrames => '추적 프레임';
+
+  @override
+  String get runningCoachFieldValidationCheckUsableSamples => '사용 가능한 자세 샘플';
+
+  @override
+  String get runningCoachFieldValidationCheckTimingConfidence => '타이밍 신뢰도';
+
+  @override
+  String get runningCoachFieldValidationCheckSideViewConfidence => '측면 신뢰도';
+
+  @override
+  String get runningCoachFieldValidationCheckTrackingConfidence => '트래킹 신뢰도';
+
+  @override
+  String get runningCoachFieldValidationCheckBodyVisibility => '전신 이탈';
+
+  @override
+  String get runningCoachFieldValidationCheckStepEvidence => '스텝 근거';
+
+  @override
+  String get runningCoachFieldValidationCheckLandingEvidence => '착지 근거';
+
+  @override
+  String runningCoachFieldValidationCountValue(int observed, int required) {
+    return '$observed / 목표 $required';
+  }
+
+  @override
+  String runningCoachFieldValidationPercentValue(int current, int target) {
+    return '$current% / 목표 $target%';
+  }
+
+  @override
+  String runningCoachFieldValidationPercentMaxValue(int current, int target) {
+    return '$current% / 최대 $target%';
+  }
+
+  @override
   String get runningCoachLiveSessionReportQualityTitle => '분석 품질';
 
   @override
