@@ -75,6 +75,9 @@ echo "==> running gait calibration gate regression"
 echo "==> running live capture readiness regression"
 ./scripts/test_running_live_capture_readiness.sh
 
+echo "==> running release video fixture contract"
+./scripts/test_running_release_video_fixtures_contract.sh
+
 if [[ "${VERIFY_SCOPE}" == "minimal" ]]; then
   echo "==> minimal verification complete (skipping flutter test/run)"
   exit 0
