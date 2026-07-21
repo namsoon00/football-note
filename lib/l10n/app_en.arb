@@ -5104,6 +5104,7 @@
   "runningCoachSprintCalibrationProfileConservativeDescription": "Uses stricter thresholds for tripod captures with clear light. No camera frames are saved.",
   "runningCoachSprintCalibrationProfileBalancedDescription": "Uses balanced thresholds for most outdoor phone captures. No camera frames are saved.",
   "runningCoachSprintCalibrationProfileResponsiveDescription": "Uses more forgiving thresholds for shaky handheld captures. No camera frames are saved.",
+  "runningCoachSprintCalibrationProfileRestarted": "Capture restarted with the new profile.",
   "runningCoachSprintCaptureReadinessTitle": "Capture readiness",
   "runningCoachSprintCaptureReadinessFraming": "Framing",
   "runningCoachSprintCaptureReadinessSideView": "Side view",

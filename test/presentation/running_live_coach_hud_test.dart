@@ -166,6 +166,7 @@ void main() {
   ) async {
     await tester.binding.setSurfaceSize(const Size(320, 640));
     addTearDown(() => tester.binding.setSurfaceSize(null));
+    SprintCaptureCalibrationProfile? changedProfile;
 
     await tester.pumpWidget(
       _LocalizedHarness(
@@ -175,7 +176,7 @@ void main() {
             child: SingleChildScrollView(
               child: RunningLiveSprintCalibrationPanel(
                 selectedProfile: SprintCaptureCalibrationProfile.balanced,
-                onProfileChanged: (_) {},
+                onProfileChanged: (profile) => changedProfile = profile,
                 diagnostic: _captureDiagnostic(),
                 compact: true,
               ),
@@ -198,6 +199,16 @@ void main() {
     expect(find.text('Side view'), findsOneWidget);
     expect(find.text('Core joints'), findsOneWidget);
     expect(find.text('Gait phase'), findsOneWidget);
+
+    await tester.tap(
+      find.byKey(
+        const ValueKey('running-live-sprint-calibration-profile-selector'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Responsive').last);
+    await tester.pumpAndSettle();
+    expect(changedProfile, SprintCaptureCalibrationProfile.responsive);
     expect(tester.takeException(), isNull);
   });
 }

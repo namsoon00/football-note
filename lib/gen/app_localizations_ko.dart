@@ -8924,6 +8924,10 @@ class AppLocalizationsKo extends AppLocalizations {
       '손에 들고 흔들리는 촬영에 맞춰 더 관대한 기준을 사용합니다. 카메라 프레임은 저장하지 않습니다.';
 
   @override
+  String get runningCoachSprintCalibrationProfileRestarted =>
+      '새 프로필로 캡처를 다시 시작했어요.';
+
+  @override
   String get runningCoachSprintCaptureReadinessTitle => '캡처 준비도';
 
   @override

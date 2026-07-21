@@ -9158,6 +9158,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Uses more forgiving thresholds for shaky handheld captures. No camera frames are saved.';
 
   @override
+  String get runningCoachSprintCalibrationProfileRestarted =>
+      'Capture restarted with the new profile.';
+
+  @override
   String get runningCoachSprintCaptureReadinessTitle => 'Capture readiness';
 
   @override

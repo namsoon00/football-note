@@ -16001,6 +16001,12 @@ abstract class AppLocalizations {
   /// **'Uses more forgiving thresholds for shaky handheld captures. No camera frames are saved.'**
   String get runningCoachSprintCalibrationProfileResponsiveDescription;
 
+  /// No description provided for @runningCoachSprintCalibrationProfileRestarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Capture restarted with the new profile.'**
+  String get runningCoachSprintCalibrationProfileRestarted;
+
   /// No description provided for @runningCoachSprintCaptureReadinessTitle.
   ///
   /// In en, this message translates to:

@@ -8914,6 +8914,10 @@ class AppLocalizationsJa extends AppLocalizations {
       '手持ちで揺れやすい撮影向けに、より許容度の高い基準を使います。カメラフレームは保存しません。';
 
   @override
+  String get runningCoachSprintCalibrationProfileRestarted =>
+      '新しいプロファイルでキャプチャを再開しました。';
+
+  @override
   String get runningCoachSprintCaptureReadinessTitle => 'キャプチャ準備度';
 
   @override

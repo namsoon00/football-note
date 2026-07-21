@@ -5104,6 +5104,7 @@
   "runningCoachSprintCalibrationProfileConservativeDescription": "삼각대와 밝은 조명에서 더 엄격한 기준을 사용합니다. 카메라 프레임은 저장하지 않습니다.",
   "runningCoachSprintCalibrationProfileBalancedDescription": "대부분의 야외 휴대폰 촬영에 맞춘 균형 기준을 사용합니다. 카메라 프레임은 저장하지 않습니다.",
   "runningCoachSprintCalibrationProfileResponsiveDescription": "손에 들고 흔들리는 촬영에 맞춰 더 관대한 기준을 사용합니다. 카메라 프레임은 저장하지 않습니다.",
+  "runningCoachSprintCalibrationProfileRestarted": "새 프로필로 캡처를 다시 시작했어요.",
   "runningCoachSprintCaptureReadinessTitle": "캡처 준비도",
   "runningCoachSprintCaptureReadinessFraming": "프레이밍",
   "runningCoachSprintCaptureReadinessSideView": "측면 구도",
