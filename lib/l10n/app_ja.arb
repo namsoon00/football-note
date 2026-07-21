@@ -5052,6 +5052,58 @@
     }
   },
   "runningCoachLiveSprintMetricsTitle": "スプリント動作",
+  "runningCoachLiveSessionReportScreenTitle": "ライブスプリントレポート",
+  "runningCoachLiveSessionReportSaved": "コーチング履歴に保存済み",
+  "runningCoachLiveSessionReportScoreUnavailable": "フォームスコアなし",
+  "runningCoachLiveSessionReportFocusTitle": "次の重点",
+  "runningCoachLiveSessionReportFormTitle": "ランニングフォーム",
+  "runningCoachLiveSessionReportNoFormData": "安定したランニングフォームのスコアを取得できませんでした。全身が入る安定した側面ビューで、もう少し長く走ってください。",
+  "runningCoachLiveSessionReportNoSprintData": "スプリント動作をまとめるには安定した信号が不足しています。同じフレーミングであと数歩走ってから、もう一度終了してください。",
+  "runningCoachLiveSessionReportQualityTitle": "分析品質",
+  "runningCoachLiveSessionReportDurationLabel": "セッション時間",
+  "runningCoachLiveSessionReportDurationValue": "{minutes}分 {seconds}秒",
+  "@runningCoachLiveSessionReportDurationValue": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      },
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachLiveSessionReportAnalyzedFramesLabel": "分析フレーム",
+  "runningCoachLiveSessionReportGaitEventsLabel": "歩行イベント",
+  "runningCoachLiveSessionReportGaitEventsValue": "接地 {touchdown} · トーオフ {toeOff}",
+  "@runningCoachLiveSessionReportGaitEventsValue": {
+    "placeholders": {
+      "touchdown": {
+        "type": "int"
+      },
+      "toeOff": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachLiveSessionReportStepEventsLabel": "ステップイベント",
+  "runningCoachLiveSessionReportCaptureLostLabel": "全身ロスト",
+  "runningCoachLiveSessionReportCaptureLostValue": "{percent}%",
+  "@runningCoachLiveSessionReportCaptureLostValue": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachLiveSessionReportFeedbackChangesLabel": "フィードバック切替",
+  "runningCoachLiveSessionReportFeedbackChangesValue": "{count}回",
+  "@runningCoachLiveSessionReportFeedbackChangesValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "runningCoachSprintLiveCardTitle": "ライブスプリントコーチング",
   "runningCoachSprintLiveCardBody": "サイドビュー カメラで全身の捕捉状態を先に確認し、関節信頼度が安定した区間だけ体幹、膝、リズムのキューを表示します。",
   "runningCoachSprintLiveAction": "スプリントコーチングを始める",
@@ -5461,8 +5513,8 @@
   "runningCoachInsufficientContactEvidence": "検証済みの足接地フレームが足りません。着地まで両足が見える、より鮮明な横向き動画でもう一度試してください。",
   "runningCoachAnalysisFailedGeneric": "分析の実行に失敗しました。より鮮明な側面図を持つ別のクリップを試してください。",
   "runningCoachResultsTitle": "コーチング実績",
-  "runningCoachAnalysisHistoryTitle": "動画分析履歴",
-  "runningCoachAnalysisHistoryBody": "分析済み動画の主な判定と修正ガイドをもう一度確認できます。",
+  "runningCoachAnalysisHistoryTitle": "コーチング分析履歴",
+  "runningCoachAnalysisHistoryBody": "アップロード動画とライブスプリントセッションの主要なコーチングポイントと修正ガイドを確認できます。",
   "runningCoachAnalysisHistoryAction": "すべて {count}件",
   "@runningCoachAnalysisHistoryAction": {
     "placeholders": {
@@ -5471,9 +5523,9 @@
       }
     }
   },
-  "runningCoachAnalysisHistoryEmpty": "保存された動画分析はまだありません。",
-  "runningCoachAnalysisHistoryDetailTitle": "分析ガイド",
-  "runningCoachAnalysisHistoryPrimaryFocus": "この動画の主な判定",
+  "runningCoachAnalysisHistoryEmpty": "保存されたコーチング分析はまだありません。",
+  "runningCoachAnalysisHistoryDetailTitle": "分析レポート",
+  "runningCoachAnalysisHistoryPrimaryFocus": "主要なコーチングポイント",
   "runningCoachAnalysisResultScreenTitle": "ランニング分析結果",
   "runningCoachHistoryVideoSaved": "動画保存済み",
   "runningCoachArchivedVideoTitle": "分析動画",

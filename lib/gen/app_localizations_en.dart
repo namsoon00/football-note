@@ -9045,6 +9045,74 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachLiveSprintMetricsTitle => 'Sprint mechanics';
 
   @override
+  String get runningCoachLiveSessionReportScreenTitle => 'Live sprint report';
+
+  @override
+  String get runningCoachLiveSessionReportSaved => 'Saved to coaching history';
+
+  @override
+  String get runningCoachLiveSessionReportScoreUnavailable =>
+      'Form score unavailable';
+
+  @override
+  String get runningCoachLiveSessionReportFocusTitle => 'Next focus';
+
+  @override
+  String get runningCoachLiveSessionReportFormTitle => 'Running form';
+
+  @override
+  String get runningCoachLiveSessionReportNoFormData =>
+      'No stable running-form score was captured. Keep the full body in a steady side view for a longer run.';
+
+  @override
+  String get runningCoachLiveSessionReportNoSprintData =>
+      'There was not enough stable signal to summarize sprint mechanics. Keep the same framing for a few more steps, then finish again.';
+
+  @override
+  String get runningCoachLiveSessionReportQualityTitle => 'Analysis quality';
+
+  @override
+  String get runningCoachLiveSessionReportDurationLabel => 'Session time';
+
+  @override
+  String runningCoachLiveSessionReportDurationValue(int minutes, int seconds) {
+    return '${minutes}m ${seconds}s';
+  }
+
+  @override
+  String get runningCoachLiveSessionReportAnalyzedFramesLabel =>
+      'Analyzed frames';
+
+  @override
+  String get runningCoachLiveSessionReportGaitEventsLabel => 'Gait events';
+
+  @override
+  String runningCoachLiveSessionReportGaitEventsValue(
+      int touchdown, int toeOff) {
+    return 'Touchdown $touchdown · toe-off $toeOff';
+  }
+
+  @override
+  String get runningCoachLiveSessionReportStepEventsLabel => 'Step events';
+
+  @override
+  String get runningCoachLiveSessionReportCaptureLostLabel => 'Body loss';
+
+  @override
+  String runningCoachLiveSessionReportCaptureLostValue(int percent) {
+    return '$percent%';
+  }
+
+  @override
+  String get runningCoachLiveSessionReportFeedbackChangesLabel =>
+      'Feedback changes';
+
+  @override
+  String runningCoachLiveSessionReportFeedbackChangesValue(int count) {
+    return '$count changes';
+  }
+
+  @override
   String get runningCoachSprintLiveCardTitle => 'Live sprint coaching';
 
   @override
@@ -9515,11 +9583,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachResultsTitle => 'Coaching results';
 
   @override
-  String get runningCoachAnalysisHistoryTitle => 'Video analysis history';
+  String get runningCoachAnalysisHistoryTitle => 'Coaching analysis history';
 
   @override
   String get runningCoachAnalysisHistoryBody =>
-      'Review each analyzed video with its key decision and correction guide.';
+      'Review each uploaded video and live sprint session with its key coaching focus and correction guide.';
 
   @override
   String runningCoachAnalysisHistoryAction(int count) {
@@ -9527,14 +9595,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get runningCoachAnalysisHistoryEmpty => 'No saved video analyses yet.';
+  String get runningCoachAnalysisHistoryEmpty =>
+      'No saved coaching analyses yet.';
 
   @override
-  String get runningCoachAnalysisHistoryDetailTitle => 'Analysis guide';
+  String get runningCoachAnalysisHistoryDetailTitle => 'Analysis review';
 
   @override
-  String get runningCoachAnalysisHistoryPrimaryFocus =>
-      'Key decision for this clip';
+  String get runningCoachAnalysisHistoryPrimaryFocus => 'Key coaching focus';
 
   @override
   String get runningCoachAnalysisResultScreenTitle => 'Running analysis result';
