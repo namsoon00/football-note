@@ -2840,6 +2840,122 @@ void main() {
     expect(saved.pages.single.routes, isEmpty);
   });
 
+  testWidgets('target spotlight filters props and space actions show a guide', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '대상 스포트라이트',
+          initialLayoutJson: const TrainingMethodLayout(
+            pages: <TrainingMethodPage>[
+              TrainingMethodPage(
+                name: 'Board',
+                items: <TrainingMethodItem>[
+                  TrainingMethodItem(
+                    id: 'player-1',
+                    type: 'player',
+                    x: 0.22,
+                    y: 0.52,
+                  ),
+                  TrainingMethodItem(
+                    id: 'player-2',
+                    type: 'player',
+                    x: 0.58,
+                    y: 0.42,
+                    colorValue: 0xFF1E88E5,
+                  ),
+                  TrainingMethodItem(
+                    id: 'ball-1',
+                    type: 'ball',
+                    x: 0.29,
+                    y: 0.52,
+                    colorValue: 0xFFFFCA28,
+                  ),
+                  TrainingMethodItem(
+                    id: 'cone-1',
+                    type: 'cone',
+                    x: 0.48,
+                    y: 0.40,
+                  ),
+                  TrainingMethodItem(
+                    id: 'hurdle-1',
+                    type: 'hurdle',
+                    x: 0.66,
+                    y: 0.46,
+                  ),
+                ],
+              ),
+            ],
+          ).encode(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    await _tapBoardRelativeThroughWidgets(
+      tester,
+      boardFinder,
+      const Offset(0.22, 0.52),
+    );
+
+    await _tapVisibleOutlinedButton(tester, '콘 돌기');
+    expect(
+      find.byKey(const ValueKey('training-action-target-valid-cone-1')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('training-action-target-valid-hurdle-1')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey('training-action-target-valid-player-2')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey('training-action-destination-guide')),
+      findsNothing,
+    );
+
+    await tester.tap(find.widgetWithText(TextButton, '취소'));
+    await tester.pumpAndSettle();
+    await _tapVisibleOutlinedButton(tester, '뜀틀 넘기');
+    expect(
+      find.byKey(const ValueKey('training-action-target-valid-hurdle-1')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('training-action-target-valid-cone-1')),
+      findsNothing,
+    );
+
+    await tester.tap(find.widgetWithText(TextButton, '취소'));
+    await tester.pumpAndSettle();
+    await _tapVisibleOutlinedButton(tester, '이동');
+    expect(
+      find.byKey(const ValueKey('training-action-destination-guide')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('training-action-target-valid-cone-1')),
+      findsNothing,
+    );
+
+    await tester.tap(find.widgetWithText(TextButton, '취소'));
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('training-action-destination-guide')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey('training-action-target-valid-hurdle-1')),
+      findsNothing,
+    );
+  });
+
   testWidgets(
       'player flow target prop action jumps an existing hurdle with owned ball',
       (WidgetTester tester) async {
@@ -5849,6 +5965,14 @@ void main() {
     );
 
     expect(find.text('1단계 · 액션 1개'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('training-global-stage-active-1')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('training-global-stage-add-next-button')),
+      findsOneWidget,
+    );
     expect(find.text('사람 1에서 사람 2로 공 이동'), findsOneWidget);
     expect(find.text('공 소유 관계'), findsOneWidget);
     expect(find.text('공 1: 사람 2 보유'), findsOneWidget);
@@ -5862,6 +5986,10 @@ void main() {
     await _tapBoardRelative(tester, boardFinder, const Offset(0.82, 0.34));
 
     expect(find.text('2단계 · 액션 1개'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('training-global-stage-active-2')),
+      findsOneWidget,
+    );
     expect(find.text('사람 2 공 이동'), findsOneWidget);
 
     await tester.tap(find.widgetWithText(TextButton, '저장'));
@@ -6174,6 +6302,132 @@ void main() {
       expect((ballAfter - ballBefore).distance, greaterThan(1));
     },
   );
+
+  testWidgets('created action preview animates only the touched route', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    final initialLayout = const TrainingMethodLayout(
+      pages: <TrainingMethodPage>[
+        TrainingMethodPage(
+          name: 'Board',
+          items: <TrainingMethodItem>[
+            TrainingMethodItem(
+                id: 'player-1', type: 'player', x: 0.20, y: 0.50),
+            TrainingMethodItem(
+              id: 'player-2',
+              type: 'player',
+              x: 0.22,
+              y: 0.72,
+              colorValue: 0xFF1E88E5,
+            ),
+          ],
+          routes: <TrainingMethodRoute>[
+            TrainingMethodRoute(
+              id: 'route-player-2',
+              kind: TrainingMethodRouteKind.player,
+              linkedItemId: 'player-2',
+              stageIndex: 1,
+              points: <TrainingMethodPoint>[
+                TrainingMethodPoint(x: 0.22, y: 0.72),
+                TrainingMethodPoint(x: 0.66, y: 0.74),
+              ],
+            ),
+          ],
+        ),
+      ],
+    ).encode();
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '즉시 미리보기',
+          initialLayoutJson: initialLayout,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    final playerIcons = find.descendant(
+      of: boardFinder,
+      matching: find.byIcon(Icons.person),
+    );
+    await tester.tap(
+      _iconNearestToBoardPoint(
+        tester,
+        boardFinder,
+        playerIcons,
+        const Offset(0.20, 0.50),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final player1Before = tester.getCenter(
+      _iconNearestToBoardPoint(
+        tester,
+        boardFinder,
+        playerIcons,
+        const Offset(0.20, 0.50),
+      ),
+    );
+    final player2Before = tester.getCenter(
+      _iconNearestToBoardPoint(
+        tester,
+        boardFinder,
+        playerIcons,
+        const Offset(0.22, 0.72),
+      ),
+    );
+
+    await _tapVisibleOutlinedButton(tester, '이동');
+    final boardTopLeft = tester.getTopLeft(boardFinder);
+    final boardSize = tester.getSize(boardFinder);
+    await tester.tapAt(
+      boardTopLeft + Offset(boardSize.width * 0.48, boardSize.height * 0.38),
+    );
+    await tester.pump();
+    expect(
+      find.byKey(const ValueKey('training-action-preview-active')),
+      findsOneWidget,
+    );
+
+    await tester.pump(const Duration(milliseconds: 220));
+    final player1During = tester.getCenter(
+      _iconNearestToBoardPoint(
+        tester,
+        boardFinder,
+        playerIcons,
+        const Offset(0.20, 0.50),
+      ),
+    );
+    final player2During = tester.getCenter(
+      _iconNearestToBoardPoint(
+        tester,
+        boardFinder,
+        playerIcons,
+        const Offset(0.22, 0.72),
+      ),
+    );
+
+    expect((player1During - player1Before).distance, greaterThan(1));
+    expect((player2During - player2Before).distance, lessThan(1));
+
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('training-action-preview-active')),
+      findsNothing,
+    );
+    final player1Reset = tester.getCenter(
+      _iconNearestToBoardPoint(
+        tester,
+        boardFinder,
+        playerIcons,
+        const Offset(0.20, 0.50),
+      ),
+    );
+    expect((player1Reset - player1Before).distance, lessThan(1.5));
+  });
 
   testWidgets('playback keeps the selected player next action panel', (
     WidgetTester tester,
