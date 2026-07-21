@@ -16397,6 +16397,266 @@ abstract class AppLocalizations {
   String runningCoachCalibrationReadinessCheckPercentMaxValue(
       int current, int target);
 
+  /// No description provided for @runningCoachFieldMatrixTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Field coverage matrix'**
+  String get runningCoachFieldMatrixTitle;
+
+  /// No description provided for @runningCoachFieldMatrixStatusNotReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Not ready'**
+  String get runningCoachFieldMatrixStatusNotReady;
+
+  /// No description provided for @runningCoachFieldMatrixStatusBuilding.
+  ///
+  /// In en, this message translates to:
+  /// **'Building coverage'**
+  String get runningCoachFieldMatrixStatusBuilding;
+
+  /// No description provided for @runningCoachFieldMatrixStatusRecommendationReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready for recommendation coverage'**
+  String get runningCoachFieldMatrixStatusRecommendationReady;
+
+  /// No description provided for @runningCoachFieldMatrixStatusComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Matrix coverage complete'**
+  String get runningCoachFieldMatrixStatusComplete;
+
+  /// No description provided for @runningCoachFieldMatrixBodyNotReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved field-ready sessions do not yet cover the required rear-phone baseline.'**
+  String get runningCoachFieldMatrixBodyNotReady;
+
+  /// No description provided for @runningCoachFieldMatrixBodyBuilding.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep adding field-ready runs in the missing setup bands before using this for a stronger recommendation.'**
+  String get runningCoachFieldMatrixBodyBuilding;
+
+  /// No description provided for @runningCoachFieldMatrixBodyRecommendationReady.
+  ///
+  /// In en, this message translates to:
+  /// **'The baseline and a meaningful geometry variation are covered. Remaining matrix gaps are still listed.'**
+  String get runningCoachFieldMatrixBodyRecommendationReady;
+
+  /// No description provided for @runningCoachFieldMatrixBodyComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'All required setup bands are represented by field-ready saved sessions.'**
+  String get runningCoachFieldMatrixBodyComplete;
+
+  /// No description provided for @runningCoachFieldMatrixPrivacyNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Uses only saved setup summaries. Unknown legacy context does not count, and no camera frames, model names, uploads, or video are stored.'**
+  String get runningCoachFieldMatrixPrivacyNote;
+
+  /// No description provided for @runningCoachFieldMatrixCoverageValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{covered}/{required} scenarios'**
+  String runningCoachFieldMatrixCoverageValue(int covered, int required);
+
+  /// No description provided for @runningCoachFieldMatrixScoreValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Coverage {score}%'**
+  String runningCoachFieldMatrixScoreValue(int score);
+
+  /// No description provided for @runningCoachFieldMatrixEligibleSessionsValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} field-ready'**
+  String runningCoachFieldMatrixEligibleSessionsValue(int count);
+
+  /// No description provided for @runningCoachFieldMatrixUnknownContextValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} unknown context'**
+  String runningCoachFieldMatrixUnknownContextValue(int count);
+
+  /// No description provided for @runningCoachFieldMatrixMissingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing scenarios'**
+  String get runningCoachFieldMatrixMissingTitle;
+
+  /// No description provided for @runningCoachFieldMatrixMissingNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No required setup bands are missing.'**
+  String get runningCoachFieldMatrixMissingNone;
+
+  /// No description provided for @runningCoachFieldMatrixScenarioRearPhoneNormalClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Rear phone · normal distance · clear side'**
+  String get runningCoachFieldMatrixScenarioRearPhoneNormalClear;
+
+  /// No description provided for @runningCoachFieldMatrixScenarioRearPhoneCloseClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Rear phone · close distance · clear side'**
+  String get runningCoachFieldMatrixScenarioRearPhoneCloseClear;
+
+  /// No description provided for @runningCoachFieldMatrixScenarioRearPhoneFarClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Rear phone · far distance · clear side'**
+  String get runningCoachFieldMatrixScenarioRearPhoneFarClear;
+
+  /// No description provided for @runningCoachFieldMatrixScenarioRearPhoneNormalPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Rear phone · normal distance · partial side'**
+  String get runningCoachFieldMatrixScenarioRearPhoneNormalPartial;
+
+  /// No description provided for @runningCoachCalibrationCandidateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration recommendation'**
+  String get runningCoachCalibrationCandidateTitle;
+
+  /// No description provided for @runningCoachCalibrationCandidateStatusNotReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Not ready'**
+  String get runningCoachCalibrationCandidateStatusNotReady;
+
+  /// No description provided for @runningCoachCalibrationCandidateStatusKeepCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep current profile'**
+  String get runningCoachCalibrationCandidateStatusKeepCurrent;
+
+  /// No description provided for @runningCoachCalibrationCandidateStatusRecommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'Safe recommendation only'**
+  String get runningCoachCalibrationCandidateStatusRecommendation;
+
+  /// No description provided for @runningCoachCalibrationCandidateBodyNotReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeatability or field coverage is not ready enough to recommend a stricter capture profile.'**
+  String get runningCoachCalibrationCandidateBodyNotReady;
+
+  /// No description provided for @runningCoachCalibrationCandidateBodyKeepCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'The current profile remains the safer choice based on saved summaries.'**
+  String get runningCoachCalibrationCandidateBodyKeepCurrent;
+
+  /// No description provided for @runningCoachCalibrationCandidateBodyRecommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'A stricter profile passed the saved-session checks. Treat this as a recommendation only.'**
+  String get runningCoachCalibrationCandidateBodyRecommendation;
+
+  /// No description provided for @runningCoachCalibrationCandidatePrivacyNote.
+  ///
+  /// In en, this message translates to:
+  /// **'No profile, threshold, user setting, upload, raw video, or camera frame is changed automatically.'**
+  String get runningCoachCalibrationCandidatePrivacyNote;
+
+  /// No description provided for @runningCoachCalibrationCandidateScoreValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommendation {score}%'**
+  String runningCoachCalibrationCandidateScoreValue(int score);
+
+  /// No description provided for @runningCoachCalibrationCandidateEligibleValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} eligible sessions'**
+  String runningCoachCalibrationCandidateEligibleValue(int count);
+
+  /// No description provided for @runningCoachCalibrationCandidateCoverageValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{passed}/{eligible} pass candidate'**
+  String runningCoachCalibrationCandidateCoverageValue(
+      int passed, int eligible);
+
+  /// No description provided for @runningCoachCalibrationCandidateMarginValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Evidence margin {percent}%'**
+  String runningCoachCalibrationCandidateMarginValue(int percent);
+
+  /// No description provided for @runningCoachCalibrationCandidateComparisonValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{current} → recommend {candidate}'**
+  String runningCoachCalibrationCandidateComparisonValue(
+      Object current, Object candidate);
+
+  /// No description provided for @runningCoachCalibrationCandidateComparisonKeep.
+  ///
+  /// In en, this message translates to:
+  /// **'Current: {profile}'**
+  String runningCoachCalibrationCandidateComparisonKeep(Object profile);
+
+  /// No description provided for @runningCoachCalibrationCandidateBlockersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Blockers'**
+  String get runningCoachCalibrationCandidateBlockersTitle;
+
+  /// No description provided for @runningCoachCalibrationCandidateNoBlockers.
+  ///
+  /// In en, this message translates to:
+  /// **'No blockers in the saved summaries.'**
+  String get runningCoachCalibrationCandidateNoBlockers;
+
+  /// No description provided for @runningCoachCalibrationCandidateBlockerRepeatability.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeatability not ready'**
+  String get runningCoachCalibrationCandidateBlockerRepeatability;
+
+  /// No description provided for @runningCoachCalibrationCandidateBlockerFieldMatrix.
+  ///
+  /// In en, this message translates to:
+  /// **'Field matrix incomplete'**
+  String get runningCoachCalibrationCandidateBlockerFieldMatrix;
+
+  /// No description provided for @runningCoachCalibrationCandidateBlockerNoStricter.
+  ///
+  /// In en, this message translates to:
+  /// **'Already strictest profile'**
+  String get runningCoachCalibrationCandidateBlockerNoStricter;
+
+  /// No description provided for @runningCoachCalibrationCandidateBlockerEvidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Candidate evidence failed'**
+  String get runningCoachCalibrationCandidateBlockerEvidence;
+
+  /// No description provided for @runningCoachCalibrationCandidateBlockerMargin.
+  ///
+  /// In en, this message translates to:
+  /// **'Evidence margin too small'**
+  String get runningCoachCalibrationCandidateBlockerMargin;
+
+  /// No description provided for @runningCoachCalibrationCandidateBlockerCoverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Coverage regression'**
+  String get runningCoachCalibrationCandidateBlockerCoverage;
+
+  /// No description provided for @runningCoachCalibrationCandidateBlockerHoldout.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest holdout failed'**
+  String get runningCoachCalibrationCandidateBlockerHoldout;
+
   /// No description provided for @runningCoachLiveSessionReportQualityTitle.
   ///
   /// In en, this message translates to:

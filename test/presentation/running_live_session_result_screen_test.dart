@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/live_sprint_calibration_readiness_service.dart';
+import 'package:football_note/application/live_sprint_calibration_candidate_service.dart';
+import 'package:football_note/application/live_sprint_field_validation_matrix_service.dart';
 import 'package:football_note/application/live_sprint_trend_service.dart';
 import 'package:football_note/domain/entities/running_coach_session.dart';
 import 'package:football_note/domain/entities/running_live_coaching_state.dart';
 import 'package:football_note/domain/entities/running_video_analysis_result.dart';
+import 'package:football_note/domain/entities/sprint_capture_calibration_profile.dart';
 import 'package:football_note/domain/entities/sprint_realtime_coaching_state.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/running_live_session_result_screen.dart';
@@ -222,6 +225,74 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('shows calibration matrix and candidate cards at 320px', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(320, 820));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final current = _session(
+      id: 'current',
+      analyzedAt: DateTime(2026, 7, 21, 10, 30),
+      captureContext: _context(
+        distanceBand: LiveSprintCaptureDistanceBand.close,
+      ),
+    );
+    final sessions = <RunningCoachSessionAnalysis>[
+      current,
+      _session(
+        id: 'baseline',
+        analyzedAt: DateTime(2026, 7, 20, 10, 30),
+        captureContext: _context(),
+      ),
+      _session(
+        id: 'far',
+        analyzedAt: DateTime(2026, 7, 19, 10, 30),
+        captureContext: _context(
+          distanceBand: LiveSprintCaptureDistanceBand.far,
+        ),
+      ),
+    ];
+
+    await tester.pumpWidget(
+      _LocalizedHarness(
+        child: RunningLiveSessionResultScreen(
+          session: current,
+          calibrationReadinessSummary:
+              const LiveSprintCalibrationReadinessService().build(
+            sessions,
+            currentSessionId: 'current',
+          ),
+          fieldValidationMatrixSummary:
+              const LiveSprintFieldValidationMatrixService().build(
+            sessions,
+            currentSessionId: 'current',
+          ),
+          calibrationCandidateSummary:
+              const LiveSprintCalibrationCandidateService().build(
+            sessions,
+            currentSessionId: 'current',
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await _scrollReportUntilVisible(
+      tester,
+      find.text('Field coverage matrix'),
+    );
+    expect(find.text('Field coverage matrix'), findsOneWidget);
+    expect(find.text('Ready for recommendation coverage'), findsOneWidget);
+    await _scrollReportUntilVisible(
+      tester,
+      find.text('Calibration recommendation'),
+    );
+    expect(find.text('Calibration recommendation'), findsOneWidget);
+    expect(find.text('Safe recommendation only'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('shows confidence-gated progress in the live report', (
     tester,
   ) async {
@@ -282,6 +353,10 @@ void main() {
 RunningCoachSessionAnalysis _session({
   String id = 'live-report',
   DateTime? analyzedAt,
+  SprintCaptureCalibrationProfile profile =
+      SprintCaptureCalibrationProfile.balanced,
+  LiveSprintCaptureContext captureContext =
+      const LiveSprintCaptureContext.unknown(),
 }) {
   return RunningCoachSessionAnalysis(
     id: id,
@@ -318,6 +393,7 @@ RunningCoachSessionAnalysis _session({
       ),
     ],
     liveSprintReport: LiveSprintSessionReport(
+      calibrationProfile: profile,
       runningTrackedFrames: 176,
       runningAnalyzedFrames: 200,
       sprintTrackedFrames: 72,
@@ -392,7 +468,21 @@ RunningCoachSessionAnalysis _session({
           ),
         ),
       ),
+      captureContext: captureContext,
     ),
+  );
+}
+
+LiveSprintCaptureContext _context({
+  LiveSprintCaptureDistanceBand distanceBand =
+      LiveSprintCaptureDistanceBand.normal,
+  LiveSprintViewBand viewBand = LiveSprintViewBand.clearSide,
+}) {
+  return LiveSprintCaptureContext(
+    deviceClass: LiveSprintDeviceClass.phone,
+    cameraLensDirection: LiveSprintCameraLensDirection.rear,
+    distanceBand: distanceBand,
+    viewBand: viewBand,
   );
 }
 

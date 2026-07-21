@@ -110,6 +110,8 @@ class RunningCoachHistoryService {
         const <LiveSprintPoseEvidenceFrame>[],
     LiveSprintPoseEvidenceDiagnostic poseEvidenceDiagnostic =
         const LiveSprintPoseEvidenceDiagnostic.initial(),
+    LiveSprintCaptureContext captureContext =
+        const LiveSprintCaptureContext.unknown(),
   }) async {
     final liveSession = _liveSprintReportService.buildSession(
       sessionId: sessionId,
@@ -121,6 +123,7 @@ class RunningCoachHistoryService {
       calibrationProfile: calibrationProfile,
       poseEvidence: poseEvidence,
       poseEvidenceDiagnostic: poseEvidenceDiagnostic,
+      captureContext: captureContext,
     );
     final existingSessions = allSessions();
     final next = <RunningCoachSessionAnalysis>[

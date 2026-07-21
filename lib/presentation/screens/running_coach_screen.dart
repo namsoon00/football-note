@@ -8,6 +8,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:video_player/video_player.dart';
 
 import '../../application/live_sprint_calibration_readiness_service.dart';
+import '../../application/live_sprint_calibration_candidate_service.dart';
+import '../../application/live_sprint_field_validation_matrix_service.dart';
 import '../../application/live_sprint_trend_service.dart';
 import '../../application/running_coach_history_service.dart';
 import '../../application/running_coaching_service.dart';
@@ -108,6 +110,12 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
   final LiveSprintCalibrationReadinessService
       _liveSprintCalibrationReadinessService =
       const LiveSprintCalibrationReadinessService();
+  final LiveSprintFieldValidationMatrixService
+      _liveSprintFieldValidationMatrixService =
+      const LiveSprintFieldValidationMatrixService();
+  final LiveSprintCalibrationCandidateService
+      _liveSprintCalibrationCandidateService =
+      const LiveSprintCalibrationCandidateService();
 
   RunningCoachHistoryService? _historyService;
   XFile? _selectedVideo;
@@ -326,6 +334,16 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
       _recentSessions,
       currentSessionId: session.id,
     );
+    final fieldValidationMatrixSummary =
+        _liveSprintFieldValidationMatrixService.build(
+      _recentSessions,
+      currentSessionId: session.id,
+    );
+    final calibrationCandidateSummary =
+        _liveSprintCalibrationCandidateService.build(
+      _recentSessions,
+      currentSessionId: session.id,
+    );
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => session.liveSprintReport == null
@@ -334,6 +352,8 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
                 session: session,
                 trendSummary: trendSummary,
                 calibrationReadinessSummary: calibrationReadinessSummary,
+                fieldValidationMatrixSummary: fieldValidationMatrixSummary,
+                calibrationCandidateSummary: calibrationCandidateSummary,
               ),
       ),
     );

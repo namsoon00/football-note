@@ -9172,6 +9172,174 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get runningCoachFieldMatrixTitle => 'フィールド網羅マトリクス';
+
+  @override
+  String get runningCoachFieldMatrixStatusNotReady => '未準備';
+
+  @override
+  String get runningCoachFieldMatrixStatusBuilding => '網羅を構築中';
+
+  @override
+  String get runningCoachFieldMatrixStatusRecommendationReady => '推奨用の網羅が準備完了';
+
+  @override
+  String get runningCoachFieldMatrixStatusComplete => 'マトリクス網羅完了';
+
+  @override
+  String get runningCoachFieldMatrixBodyNotReady =>
+      '保存済みのフィールド準備済みセッションが、必須の背面スマートフォン基準をまだ満たしていません。';
+
+  @override
+  String get runningCoachFieldMatrixBodyBuilding =>
+      'より強い推奨に使う前に、不足している設定バンドでフィールド準備済みの走行を追加してください。';
+
+  @override
+  String get runningCoachFieldMatrixBodyRecommendationReady =>
+      '基準条件と意味のある構図変化がそろっています。残りのマトリクス不足は表示し続けます。';
+
+  @override
+  String get runningCoachFieldMatrixBodyComplete =>
+      '必須の設定バンドがすべてフィールド準備済みセッションで表されています。';
+
+  @override
+  String get runningCoachFieldMatrixPrivacyNote =>
+      '保存済みの設定サマリーだけを使います。不明な旧コンテキストは数えず、カメラフレーム、モデル名、アップロード、動画は保存しません。';
+
+  @override
+  String runningCoachFieldMatrixCoverageValue(int covered, int required) {
+    return '$covered/$required シナリオ';
+  }
+
+  @override
+  String runningCoachFieldMatrixScoreValue(int score) {
+    return '網羅 $score%';
+  }
+
+  @override
+  String runningCoachFieldMatrixEligibleSessionsValue(int count) {
+    return 'フィールド準備 $count件';
+  }
+
+  @override
+  String runningCoachFieldMatrixUnknownContextValue(int count) {
+    return '不明コンテキスト $count件';
+  }
+
+  @override
+  String get runningCoachFieldMatrixMissingTitle => '不足シナリオ';
+
+  @override
+  String get runningCoachFieldMatrixMissingNone => '必須の設定バンドに不足はありません。';
+
+  @override
+  String get runningCoachFieldMatrixScenarioRearPhoneNormalClear =>
+      '背面スマートフォン · 通常距離 · 明確な側面';
+
+  @override
+  String get runningCoachFieldMatrixScenarioRearPhoneCloseClear =>
+      '背面スマートフォン · 近い距離 · 明確な側面';
+
+  @override
+  String get runningCoachFieldMatrixScenarioRearPhoneFarClear =>
+      '背面スマートフォン · 遠い距離 · 明確な側面';
+
+  @override
+  String get runningCoachFieldMatrixScenarioRearPhoneNormalPartial =>
+      '背面スマートフォン · 通常距離 · 部分的な側面';
+
+  @override
+  String get runningCoachCalibrationCandidateTitle => 'キャリブレーション推奨';
+
+  @override
+  String get runningCoachCalibrationCandidateStatusNotReady => '未準備';
+
+  @override
+  String get runningCoachCalibrationCandidateStatusKeepCurrent =>
+      '現在のプロファイルを維持';
+
+  @override
+  String get runningCoachCalibrationCandidateStatusRecommendation => '安全な推奨のみ';
+
+  @override
+  String get runningCoachCalibrationCandidateBodyNotReady =>
+      '反復性またはフィールド網羅が、より厳しいキャプチャプロファイルを推奨できるほど整っていません。';
+
+  @override
+  String get runningCoachCalibrationCandidateBodyKeepCurrent =>
+      '保存済みサマリー上は、現在のプロファイルを保つほうが安全です。';
+
+  @override
+  String get runningCoachCalibrationCandidateBodyRecommendation =>
+      'より厳しいプロファイルが保存済みセッションの確認を通過しました。推奨としてのみ扱ってください。';
+
+  @override
+  String get runningCoachCalibrationCandidatePrivacyNote =>
+      'プロファイル、しきい値、ユーザー設定、アップロード、元動画、カメラフレームは自動変更しません。';
+
+  @override
+  String runningCoachCalibrationCandidateScoreValue(int score) {
+    return '推奨 $score%';
+  }
+
+  @override
+  String runningCoachCalibrationCandidateEligibleValue(int count) {
+    return '対象セッション $count件';
+  }
+
+  @override
+  String runningCoachCalibrationCandidateCoverageValue(
+      int passed, int eligible) {
+    return '$passed/$eligible 候補通過';
+  }
+
+  @override
+  String runningCoachCalibrationCandidateMarginValue(int percent) {
+    return '根拠余裕 $percent%';
+  }
+
+  @override
+  String runningCoachCalibrationCandidateComparisonValue(
+      Object current, Object candidate) {
+    return '$current → $candidate を推奨';
+  }
+
+  @override
+  String runningCoachCalibrationCandidateComparisonKeep(Object profile) {
+    return '現在: $profile';
+  }
+
+  @override
+  String get runningCoachCalibrationCandidateBlockersTitle => 'ブロッカー';
+
+  @override
+  String get runningCoachCalibrationCandidateNoBlockers =>
+      '保存済みサマリーにブロッカーはありません。';
+
+  @override
+  String get runningCoachCalibrationCandidateBlockerRepeatability => '反復性が未準備';
+
+  @override
+  String get runningCoachCalibrationCandidateBlockerFieldMatrix =>
+      'フィールドマトリクス未完了';
+
+  @override
+  String get runningCoachCalibrationCandidateBlockerNoStricter =>
+      'すでに最も厳しいプロファイル';
+
+  @override
+  String get runningCoachCalibrationCandidateBlockerEvidence => '候補根拠が不合格';
+
+  @override
+  String get runningCoachCalibrationCandidateBlockerMargin => '根拠余裕が不足';
+
+  @override
+  String get runningCoachCalibrationCandidateBlockerCoverage => '網羅が後退';
+
+  @override
+  String get runningCoachCalibrationCandidateBlockerHoldout => '最新ホールドアウト失敗';
+
+  @override
   String get runningCoachLiveSessionReportQualityTitle => '分析品質';
 
   @override

@@ -5313,6 +5313,122 @@
       }
     }
   },
+  "runningCoachFieldMatrixTitle": "현장 커버리지 매트릭스",
+  "runningCoachFieldMatrixStatusNotReady": "준비 안 됨",
+  "runningCoachFieldMatrixStatusBuilding": "커버리지 구축 중",
+  "runningCoachFieldMatrixStatusRecommendationReady": "추천 커버리지 준비됨",
+  "runningCoachFieldMatrixStatusComplete": "매트릭스 커버리지 완료",
+  "runningCoachFieldMatrixBodyNotReady": "저장된 현장 준비 세션이 아직 필수 후면 폰 기준 조건을 채우지 못했어요.",
+  "runningCoachFieldMatrixBodyBuilding": "더 강한 추천에 쓰기 전에 빠진 설정 밴드에서 현장 준비 세션을 더 저장해 주세요.",
+  "runningCoachFieldMatrixBodyRecommendationReady": "기준 조건과 의미 있는 구도 변화가 확보됐어요. 남은 매트릭스 공백은 계속 표시됩니다.",
+  "runningCoachFieldMatrixBodyComplete": "필수 설정 밴드가 모두 현장 준비 세션으로 확보됐어요.",
+  "runningCoachFieldMatrixPrivacyNote": "저장된 설정 요약만 사용합니다. 알 수 없는 과거 컨텍스트는 포함하지 않으며 카메라 프레임, 모델명, 업로드, 영상은 저장하지 않습니다.",
+  "runningCoachFieldMatrixCoverageValue": "{covered}/{required} 시나리오",
+  "@runningCoachFieldMatrixCoverageValue": {
+    "placeholders": {
+      "covered": {
+        "type": "int"
+      },
+      "required": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachFieldMatrixScoreValue": "커버리지 {score}%",
+  "@runningCoachFieldMatrixScoreValue": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachFieldMatrixEligibleSessionsValue": "현장 준비 {count}개",
+  "@runningCoachFieldMatrixEligibleSessionsValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachFieldMatrixUnknownContextValue": "알 수 없음 {count}개",
+  "@runningCoachFieldMatrixUnknownContextValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachFieldMatrixMissingTitle": "빠진 시나리오",
+  "runningCoachFieldMatrixMissingNone": "필수 설정 밴드가 모두 확보됐어요.",
+  "runningCoachFieldMatrixScenarioRearPhoneNormalClear": "후면 폰 · 보통 거리 · 선명한 측면",
+  "runningCoachFieldMatrixScenarioRearPhoneCloseClear": "후면 폰 · 가까운 거리 · 선명한 측면",
+  "runningCoachFieldMatrixScenarioRearPhoneFarClear": "후면 폰 · 먼 거리 · 선명한 측면",
+  "runningCoachFieldMatrixScenarioRearPhoneNormalPartial": "후면 폰 · 보통 거리 · 부분 측면",
+  "runningCoachCalibrationCandidateTitle": "보정 추천",
+  "runningCoachCalibrationCandidateStatusNotReady": "준비 안 됨",
+  "runningCoachCalibrationCandidateStatusKeepCurrent": "현재 프로필 유지",
+  "runningCoachCalibrationCandidateStatusRecommendation": "안전 추천만 표시",
+  "runningCoachCalibrationCandidateBodyNotReady": "반복성 또는 현장 커버리지가 더 엄격한 캡처 프로필을 추천할 만큼 준비되지 않았어요.",
+  "runningCoachCalibrationCandidateBodyKeepCurrent": "저장된 요약 기준으로는 현재 프로필이 더 안전한 선택이에요.",
+  "runningCoachCalibrationCandidateBodyRecommendation": "더 엄격한 프로필이 저장 세션 확인을 통과했어요. 추천으로만 다뤄 주세요.",
+  "runningCoachCalibrationCandidatePrivacyNote": "프로필, 임계값, 사용자 설정, 업로드, 원본 영상, 카메라 프레임은 자동으로 바꾸지 않습니다.",
+  "runningCoachCalibrationCandidateScoreValue": "추천 {score}%",
+  "@runningCoachCalibrationCandidateScoreValue": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachCalibrationCandidateEligibleValue": "대상 세션 {count}개",
+  "@runningCoachCalibrationCandidateEligibleValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachCalibrationCandidateCoverageValue": "{passed}/{eligible} 후보 통과",
+  "@runningCoachCalibrationCandidateCoverageValue": {
+    "placeholders": {
+      "passed": {
+        "type": "int"
+      },
+      "eligible": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachCalibrationCandidateMarginValue": "근거 여유 {percent}%",
+  "@runningCoachCalibrationCandidateMarginValue": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachCalibrationCandidateComparisonValue": "{current} → {candidate} 추천",
+  "@runningCoachCalibrationCandidateComparisonValue": {
+    "placeholders": {
+      "current": {},
+      "candidate": {}
+    }
+  },
+  "runningCoachCalibrationCandidateComparisonKeep": "현재: {profile}",
+  "@runningCoachCalibrationCandidateComparisonKeep": {
+    "placeholders": {
+      "profile": {}
+    }
+  },
+  "runningCoachCalibrationCandidateBlockersTitle": "막힌 항목",
+  "runningCoachCalibrationCandidateNoBlockers": "저장된 요약에서 막힌 항목이 없어요.",
+  "runningCoachCalibrationCandidateBlockerRepeatability": "반복성 준비 안 됨",
+  "runningCoachCalibrationCandidateBlockerFieldMatrix": "현장 매트릭스 미완료",
+  "runningCoachCalibrationCandidateBlockerNoStricter": "이미 가장 엄격한 프로필",
+  "runningCoachCalibrationCandidateBlockerEvidence": "후보 근거 실패",
+  "runningCoachCalibrationCandidateBlockerMargin": "근거 여유 부족",
+  "runningCoachCalibrationCandidateBlockerCoverage": "커버리지 후퇴",
+  "runningCoachCalibrationCandidateBlockerHoldout": "최신 홀드아웃 실패",
   "runningCoachLiveSessionReportQualityTitle": "분석 품질",
   "runningCoachLiveSessionReportDurationLabel": "세션 시간",
   "runningCoachLiveSessionReportDurationValue": "{minutes}분 {seconds}초",
