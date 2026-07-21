@@ -36,6 +36,9 @@ void main() {
     expect(source, contains('RunningLiveSkippedFrameReason.analysisError'));
     expect(source, contains('recordAnalyzedFrame'));
     expect(source, contains('[RunningLiveSession]'));
+    expect(source, contains('runningLiveCalibrationCaptureLogMarker'));
+    expect(source, contains('buildCalibrationCapturePayload'));
+    expect(source, contains('wrapWidth: 4096'));
     expect(source, contains('jsonEncode(payload)'));
     expect(source, contains('_startSessionLogging'));
     expect(source, contains('_endSessionLogging'));

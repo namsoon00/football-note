@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:football_note/application/running_live_calibration_capture_contract.dart';
 import 'package:football_note/application/running_live_session_metrics.dart';
 import 'package:football_note/domain/entities/running_live_coaching_state.dart';
 
@@ -147,6 +150,28 @@ void main() {
         (eventTimeline.first as Map<String, Object?>)['absoluteTimestampMs'],
         toeOff.timestamp.millisecondsSinceEpoch,
       );
+
+      final capture = collector.buildCalibrationCapturePayload(
+        sessionId: 'running-session',
+        targetFrameInterval: const Duration(milliseconds: 50),
+        snapshot: snapshot,
+      );
+      expect(
+          capture['schemaVersion'], runningLiveCalibrationCaptureSchemaVersion);
+      expect(capture['sessionId'], 'running-session');
+      expect(capture['event'], 'end');
+      expect(capture['targetFrameIntervalMs'], 50);
+      expect((capture['metrics'] as Map<String, Object?>)['analyzedFrames'], 4);
+      expect(
+        ((capture['metrics'] as Map<String, Object?>)['analyzedFrameIntervalMs']
+            as Map<String, Object?>)['p95'],
+        240.0,
+      );
+      expect(
+        ((capture['events'] as Map<String, Object?>)['timeline'] as List).first,
+        [240, 'left', 'toeOff', 800],
+      );
+      expect(jsonEncode(capture).length, lessThan(4096));
     });
 
     test('reset clears all session counters and bounded samples', () {
@@ -178,6 +203,52 @@ void main() {
       expect(snapshot.eventCount, initial.eventCount);
       expect(snapshot.processingLatencySampleCount, 0);
       expect(snapshot.eventTimeline, isEmpty);
+    });
+
+    test('keeps a full compact calibration capture within one log line', () {
+      final collector = RunningLiveSessionMetricsCollector();
+      final start = DateTime(2026, 7, 20, 9);
+
+      for (var index = 0; index < 96; index += 1) {
+        final timestamp = start.add(Duration(milliseconds: index * 50));
+        collector.recordAnalyzedFrame(
+          timestamp: timestamp,
+          processingTime: const Duration(milliseconds: 35),
+          state: _state(
+            cadenceAvailable: true,
+            leftContactAvailable: true,
+            rightContactAvailable: true,
+            timingConfidence: 0.9,
+            sideViewConfidence: 0.9,
+            events: <RunningGaitEvent>[
+              RunningGaitEvent(
+                side:
+                    index.isEven ? RunningFootSide.left : RunningFootSide.right,
+                type: index.isEven
+                    ? RunningGaitEventType.touchdown
+                    : RunningGaitEventType.toeOff,
+                timestamp: timestamp,
+                confidence: 0.999,
+              ),
+            ],
+          ),
+        );
+      }
+
+      final snapshot = collector.snapshot(
+        now: start.add(const Duration(seconds: 5)),
+      );
+      final capture = collector.buildCalibrationCapturePayload(
+        sessionId: 'running-1784592000000000',
+        targetFrameInterval: const Duration(milliseconds: 50),
+        snapshot: snapshot,
+      );
+
+      expect(
+        ((capture['events'] as Map<String, Object?>)['timeline'] as List),
+        hasLength(96),
+      );
+      expect(jsonEncode(capture).length, lessThanOrEqualTo(4096));
     });
   });
 }

@@ -72,6 +72,9 @@ echo "==> android upload mediapipe contract"
 echo "==> running gait calibration gate regression"
 ./scripts/test_running_gait_calibration_gate.sh
 
+echo "==> running live capture readiness regression"
+./scripts/test_running_live_capture_readiness.sh
+
 if [[ "${VERIFY_SCOPE}" == "minimal" ]]; then
   echo "==> minimal verification complete (skipping flutter test/run)"
   exit 0
