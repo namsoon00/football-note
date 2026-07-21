@@ -26,6 +26,7 @@ void main() {
       calibrationProfile: SprintCaptureCalibrationProfile.responsive,
       poseEvidence: fixture.poseEvidence,
       poseEvidenceDiagnostic: fixture.poseEvidenceDiagnostic,
+      captureContext: fixture.captureContext,
     );
 
     expect(session.id, fixture.sessionId);
@@ -44,6 +45,16 @@ void main() {
     expect(report.feedbackCode, SprintFeedbackCode.landUnderHips);
     expect(
         report.poseEvidence.single.phase, LiveSprintPoseEvidencePhase.flight);
+    expect(report.captureContext.deviceClass, LiveSprintDeviceClass.phone);
+    expect(
+      report.captureContext.cameraLensDirection,
+      LiveSprintCameraLensDirection.rear,
+    );
+    expect(
+      report.captureContext.distanceBand,
+      LiveSprintCaptureDistanceBand.normal,
+    );
+    expect(report.captureContext.viewBand, LiveSprintViewBand.clearSide);
     expect(
       report.poseEvidenceDiagnostic.dominantBlocker,
       LiveSprintPoseEvidenceBlocker.stableSideView,
@@ -74,6 +85,10 @@ void main() {
       12,
     );
     expect(
+      restored.liveSprintReport!.captureContext.distanceBand,
+      LiveSprintCaptureDistanceBand.normal,
+    );
+    expect(
       restored.liveSprintReport!.metricFor(LiveSprintMetricKind.rhythm)!.value,
       closeTo(13, 0.0001),
     );
@@ -94,6 +109,7 @@ void main() {
       calibrationProfile: SprintCaptureCalibrationProfile.conservative,
       poseEvidence: fixture.poseEvidence,
       poseEvidenceDiagnostic: fixture.poseEvidenceDiagnostic,
+      captureContext: fixture.captureContext,
     );
 
     expect(saved, hasLength(1));
@@ -117,6 +133,10 @@ void main() {
       LiveSprintPoseEvidenceBlocker.stableSideView,
     );
     expect(
+      restored.single.liveSprintReport!.captureContext.cameraLensDirection,
+      LiveSprintCameraLensDirection.rear,
+    );
+    expect(
       restored.single.liveSprintReport!
           .metricFor(LiveSprintMetricKind.kneeDrive)!
           .value,
@@ -138,6 +158,7 @@ void main() {
     final report = session['liveSprintReport']! as Map<String, Object?>;
     report.remove('calibrationProfile');
     report.remove('poseEvidenceDiagnostic');
+    report.remove('captureContext');
 
     final restored = RunningCoachSessionAnalysis.fromMap(session);
 
@@ -148,6 +169,10 @@ void main() {
     expect(
       restored.liveSprintReport!.poseEvidenceDiagnostic.readinessSummary,
       isA<LiveSprintCaptureReadinessSummary>(),
+    );
+    expect(
+      restored.liveSprintReport!.captureContext.deviceClass,
+      LiveSprintDeviceClass.unknown,
     );
   });
 }
@@ -182,6 +207,13 @@ class _LiveSessionFixture {
           ],
         ),
       ];
+
+  LiveSprintCaptureContext get captureContext => const LiveSprintCaptureContext(
+        deviceClass: LiveSprintDeviceClass.phone,
+        cameraLensDirection: LiveSprintCameraLensDirection.rear,
+        distanceBand: LiveSprintCaptureDistanceBand.normal,
+        viewBand: LiveSprintViewBand.clearSide,
+      );
 
   LiveSprintPoseEvidenceDiagnostic get poseEvidenceDiagnostic =>
       const LiveSprintPoseEvidenceDiagnostic(

@@ -9425,6 +9425,184 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get runningCoachFieldMatrixTitle => 'Field coverage matrix';
+
+  @override
+  String get runningCoachFieldMatrixStatusNotReady => 'Not ready';
+
+  @override
+  String get runningCoachFieldMatrixStatusBuilding => 'Building coverage';
+
+  @override
+  String get runningCoachFieldMatrixStatusRecommendationReady =>
+      'Ready for recommendation coverage';
+
+  @override
+  String get runningCoachFieldMatrixStatusComplete =>
+      'Matrix coverage complete';
+
+  @override
+  String get runningCoachFieldMatrixBodyNotReady =>
+      'Saved field-ready sessions do not yet cover the required rear-phone baseline.';
+
+  @override
+  String get runningCoachFieldMatrixBodyBuilding =>
+      'Keep adding field-ready runs in the missing setup bands before using this for a stronger recommendation.';
+
+  @override
+  String get runningCoachFieldMatrixBodyRecommendationReady =>
+      'The baseline and a meaningful geometry variation are covered. Remaining matrix gaps are still listed.';
+
+  @override
+  String get runningCoachFieldMatrixBodyComplete =>
+      'All required setup bands are represented by field-ready saved sessions.';
+
+  @override
+  String get runningCoachFieldMatrixPrivacyNote =>
+      'Uses only saved setup summaries. Unknown legacy context does not count, and no camera frames, model names, uploads, or video are stored.';
+
+  @override
+  String runningCoachFieldMatrixCoverageValue(int covered, int required) {
+    return '$covered/$required scenarios';
+  }
+
+  @override
+  String runningCoachFieldMatrixScoreValue(int score) {
+    return 'Coverage $score%';
+  }
+
+  @override
+  String runningCoachFieldMatrixEligibleSessionsValue(int count) {
+    return '$count field-ready';
+  }
+
+  @override
+  String runningCoachFieldMatrixUnknownContextValue(int count) {
+    return '$count unknown context';
+  }
+
+  @override
+  String get runningCoachFieldMatrixMissingTitle => 'Missing scenarios';
+
+  @override
+  String get runningCoachFieldMatrixMissingNone =>
+      'No required setup bands are missing.';
+
+  @override
+  String get runningCoachFieldMatrixScenarioRearPhoneNormalClear =>
+      'Rear phone · normal distance · clear side';
+
+  @override
+  String get runningCoachFieldMatrixScenarioRearPhoneCloseClear =>
+      'Rear phone · close distance · clear side';
+
+  @override
+  String get runningCoachFieldMatrixScenarioRearPhoneFarClear =>
+      'Rear phone · far distance · clear side';
+
+  @override
+  String get runningCoachFieldMatrixScenarioRearPhoneNormalPartial =>
+      'Rear phone · normal distance · partial side';
+
+  @override
+  String get runningCoachCalibrationCandidateTitle =>
+      'Calibration recommendation';
+
+  @override
+  String get runningCoachCalibrationCandidateStatusNotReady => 'Not ready';
+
+  @override
+  String get runningCoachCalibrationCandidateStatusKeepCurrent =>
+      'Keep current profile';
+
+  @override
+  String get runningCoachCalibrationCandidateStatusRecommendation =>
+      'Safe recommendation only';
+
+  @override
+  String get runningCoachCalibrationCandidateBodyNotReady =>
+      'Repeatability or field coverage is not ready enough to recommend a stricter capture profile.';
+
+  @override
+  String get runningCoachCalibrationCandidateBodyKeepCurrent =>
+      'The current profile remains the safer choice based on saved summaries.';
+
+  @override
+  String get runningCoachCalibrationCandidateBodyRecommendation =>
+      'A stricter profile passed the saved-session checks. Treat this as a recommendation only.';
+
+  @override
+  String get runningCoachCalibrationCandidatePrivacyNote =>
+      'No profile, threshold, user setting, upload, raw video, or camera frame is changed automatically.';
+
+  @override
+  String runningCoachCalibrationCandidateScoreValue(int score) {
+    return 'Recommendation $score%';
+  }
+
+  @override
+  String runningCoachCalibrationCandidateEligibleValue(int count) {
+    return '$count eligible sessions';
+  }
+
+  @override
+  String runningCoachCalibrationCandidateCoverageValue(
+      int passed, int eligible) {
+    return '$passed/$eligible pass candidate';
+  }
+
+  @override
+  String runningCoachCalibrationCandidateMarginValue(int percent) {
+    return 'Evidence margin $percent%';
+  }
+
+  @override
+  String runningCoachCalibrationCandidateComparisonValue(
+      Object current, Object candidate) {
+    return '$current → recommend $candidate';
+  }
+
+  @override
+  String runningCoachCalibrationCandidateComparisonKeep(Object profile) {
+    return 'Current: $profile';
+  }
+
+  @override
+  String get runningCoachCalibrationCandidateBlockersTitle => 'Blockers';
+
+  @override
+  String get runningCoachCalibrationCandidateNoBlockers =>
+      'No blockers in the saved summaries.';
+
+  @override
+  String get runningCoachCalibrationCandidateBlockerRepeatability =>
+      'Repeatability not ready';
+
+  @override
+  String get runningCoachCalibrationCandidateBlockerFieldMatrix =>
+      'Field matrix incomplete';
+
+  @override
+  String get runningCoachCalibrationCandidateBlockerNoStricter =>
+      'Already strictest profile';
+
+  @override
+  String get runningCoachCalibrationCandidateBlockerEvidence =>
+      'Candidate evidence failed';
+
+  @override
+  String get runningCoachCalibrationCandidateBlockerMargin =>
+      'Evidence margin too small';
+
+  @override
+  String get runningCoachCalibrationCandidateBlockerCoverage =>
+      'Coverage regression';
+
+  @override
+  String get runningCoachCalibrationCandidateBlockerHoldout =>
+      'Latest holdout failed';
+
+  @override
   String get runningCoachLiveSessionReportQualityTitle => 'Analysis quality';
 
   @override

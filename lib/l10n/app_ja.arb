@@ -5313,6 +5313,122 @@
       }
     }
   },
+  "runningCoachFieldMatrixTitle": "フィールド網羅マトリクス",
+  "runningCoachFieldMatrixStatusNotReady": "未準備",
+  "runningCoachFieldMatrixStatusBuilding": "網羅を構築中",
+  "runningCoachFieldMatrixStatusRecommendationReady": "推奨用の網羅が準備完了",
+  "runningCoachFieldMatrixStatusComplete": "マトリクス網羅完了",
+  "runningCoachFieldMatrixBodyNotReady": "保存済みのフィールド準備済みセッションが、必須の背面スマートフォン基準をまだ満たしていません。",
+  "runningCoachFieldMatrixBodyBuilding": "より強い推奨に使う前に、不足している設定バンドでフィールド準備済みの走行を追加してください。",
+  "runningCoachFieldMatrixBodyRecommendationReady": "基準条件と意味のある構図変化がそろっています。残りのマトリクス不足は表示し続けます。",
+  "runningCoachFieldMatrixBodyComplete": "必須の設定バンドがすべてフィールド準備済みセッションで表されています。",
+  "runningCoachFieldMatrixPrivacyNote": "保存済みの設定サマリーだけを使います。不明な旧コンテキストは数えず、カメラフレーム、モデル名、アップロード、動画は保存しません。",
+  "runningCoachFieldMatrixCoverageValue": "{covered}/{required} シナリオ",
+  "@runningCoachFieldMatrixCoverageValue": {
+    "placeholders": {
+      "covered": {
+        "type": "int"
+      },
+      "required": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachFieldMatrixScoreValue": "網羅 {score}%",
+  "@runningCoachFieldMatrixScoreValue": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachFieldMatrixEligibleSessionsValue": "フィールド準備 {count}件",
+  "@runningCoachFieldMatrixEligibleSessionsValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachFieldMatrixUnknownContextValue": "不明コンテキスト {count}件",
+  "@runningCoachFieldMatrixUnknownContextValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachFieldMatrixMissingTitle": "不足シナリオ",
+  "runningCoachFieldMatrixMissingNone": "必須の設定バンドに不足はありません。",
+  "runningCoachFieldMatrixScenarioRearPhoneNormalClear": "背面スマートフォン · 通常距離 · 明確な側面",
+  "runningCoachFieldMatrixScenarioRearPhoneCloseClear": "背面スマートフォン · 近い距離 · 明確な側面",
+  "runningCoachFieldMatrixScenarioRearPhoneFarClear": "背面スマートフォン · 遠い距離 · 明確な側面",
+  "runningCoachFieldMatrixScenarioRearPhoneNormalPartial": "背面スマートフォン · 通常距離 · 部分的な側面",
+  "runningCoachCalibrationCandidateTitle": "キャリブレーション推奨",
+  "runningCoachCalibrationCandidateStatusNotReady": "未準備",
+  "runningCoachCalibrationCandidateStatusKeepCurrent": "現在のプロファイルを維持",
+  "runningCoachCalibrationCandidateStatusRecommendation": "安全な推奨のみ",
+  "runningCoachCalibrationCandidateBodyNotReady": "反復性またはフィールド網羅が、より厳しいキャプチャプロファイルを推奨できるほど整っていません。",
+  "runningCoachCalibrationCandidateBodyKeepCurrent": "保存済みサマリー上は、現在のプロファイルを保つほうが安全です。",
+  "runningCoachCalibrationCandidateBodyRecommendation": "より厳しいプロファイルが保存済みセッションの確認を通過しました。推奨としてのみ扱ってください。",
+  "runningCoachCalibrationCandidatePrivacyNote": "プロファイル、しきい値、ユーザー設定、アップロード、元動画、カメラフレームは自動変更しません。",
+  "runningCoachCalibrationCandidateScoreValue": "推奨 {score}%",
+  "@runningCoachCalibrationCandidateScoreValue": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachCalibrationCandidateEligibleValue": "対象セッション {count}件",
+  "@runningCoachCalibrationCandidateEligibleValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachCalibrationCandidateCoverageValue": "{passed}/{eligible} 候補通過",
+  "@runningCoachCalibrationCandidateCoverageValue": {
+    "placeholders": {
+      "passed": {
+        "type": "int"
+      },
+      "eligible": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachCalibrationCandidateMarginValue": "根拠余裕 {percent}%",
+  "@runningCoachCalibrationCandidateMarginValue": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachCalibrationCandidateComparisonValue": "{current} → {candidate} を推奨",
+  "@runningCoachCalibrationCandidateComparisonValue": {
+    "placeholders": {
+      "current": {},
+      "candidate": {}
+    }
+  },
+  "runningCoachCalibrationCandidateComparisonKeep": "現在: {profile}",
+  "@runningCoachCalibrationCandidateComparisonKeep": {
+    "placeholders": {
+      "profile": {}
+    }
+  },
+  "runningCoachCalibrationCandidateBlockersTitle": "ブロッカー",
+  "runningCoachCalibrationCandidateNoBlockers": "保存済みサマリーにブロッカーはありません。",
+  "runningCoachCalibrationCandidateBlockerRepeatability": "反復性が未準備",
+  "runningCoachCalibrationCandidateBlockerFieldMatrix": "フィールドマトリクス未完了",
+  "runningCoachCalibrationCandidateBlockerNoStricter": "すでに最も厳しいプロファイル",
+  "runningCoachCalibrationCandidateBlockerEvidence": "候補根拠が不合格",
+  "runningCoachCalibrationCandidateBlockerMargin": "根拠余裕が不足",
+  "runningCoachCalibrationCandidateBlockerCoverage": "網羅が後退",
+  "runningCoachCalibrationCandidateBlockerHoldout": "最新ホールドアウト失敗",
   "runningCoachLiveSessionReportQualityTitle": "分析品質",
   "runningCoachLiveSessionReportDurationLabel": "セッション時間",
   "runningCoachLiveSessionReportDurationValue": "{minutes}分 {seconds}秒",

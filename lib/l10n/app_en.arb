@@ -5313,6 +5313,122 @@
       }
     }
   },
+  "runningCoachFieldMatrixTitle": "Field coverage matrix",
+  "runningCoachFieldMatrixStatusNotReady": "Not ready",
+  "runningCoachFieldMatrixStatusBuilding": "Building coverage",
+  "runningCoachFieldMatrixStatusRecommendationReady": "Ready for recommendation coverage",
+  "runningCoachFieldMatrixStatusComplete": "Matrix coverage complete",
+  "runningCoachFieldMatrixBodyNotReady": "Saved field-ready sessions do not yet cover the required rear-phone baseline.",
+  "runningCoachFieldMatrixBodyBuilding": "Keep adding field-ready runs in the missing setup bands before using this for a stronger recommendation.",
+  "runningCoachFieldMatrixBodyRecommendationReady": "The baseline and a meaningful geometry variation are covered. Remaining matrix gaps are still listed.",
+  "runningCoachFieldMatrixBodyComplete": "All required setup bands are represented by field-ready saved sessions.",
+  "runningCoachFieldMatrixPrivacyNote": "Uses only saved setup summaries. Unknown legacy context does not count, and no camera frames, model names, uploads, or video are stored.",
+  "runningCoachFieldMatrixCoverageValue": "{covered}/{required} scenarios",
+  "@runningCoachFieldMatrixCoverageValue": {
+    "placeholders": {
+      "covered": {
+        "type": "int"
+      },
+      "required": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachFieldMatrixScoreValue": "Coverage {score}%",
+  "@runningCoachFieldMatrixScoreValue": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachFieldMatrixEligibleSessionsValue": "{count} field-ready",
+  "@runningCoachFieldMatrixEligibleSessionsValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachFieldMatrixUnknownContextValue": "{count} unknown context",
+  "@runningCoachFieldMatrixUnknownContextValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachFieldMatrixMissingTitle": "Missing scenarios",
+  "runningCoachFieldMatrixMissingNone": "No required setup bands are missing.",
+  "runningCoachFieldMatrixScenarioRearPhoneNormalClear": "Rear phone · normal distance · clear side",
+  "runningCoachFieldMatrixScenarioRearPhoneCloseClear": "Rear phone · close distance · clear side",
+  "runningCoachFieldMatrixScenarioRearPhoneFarClear": "Rear phone · far distance · clear side",
+  "runningCoachFieldMatrixScenarioRearPhoneNormalPartial": "Rear phone · normal distance · partial side",
+  "runningCoachCalibrationCandidateTitle": "Calibration recommendation",
+  "runningCoachCalibrationCandidateStatusNotReady": "Not ready",
+  "runningCoachCalibrationCandidateStatusKeepCurrent": "Keep current profile",
+  "runningCoachCalibrationCandidateStatusRecommendation": "Safe recommendation only",
+  "runningCoachCalibrationCandidateBodyNotReady": "Repeatability or field coverage is not ready enough to recommend a stricter capture profile.",
+  "runningCoachCalibrationCandidateBodyKeepCurrent": "The current profile remains the safer choice based on saved summaries.",
+  "runningCoachCalibrationCandidateBodyRecommendation": "A stricter profile passed the saved-session checks. Treat this as a recommendation only.",
+  "runningCoachCalibrationCandidatePrivacyNote": "No profile, threshold, user setting, upload, raw video, or camera frame is changed automatically.",
+  "runningCoachCalibrationCandidateScoreValue": "Recommendation {score}%",
+  "@runningCoachCalibrationCandidateScoreValue": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachCalibrationCandidateEligibleValue": "{count} eligible sessions",
+  "@runningCoachCalibrationCandidateEligibleValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachCalibrationCandidateCoverageValue": "{passed}/{eligible} pass candidate",
+  "@runningCoachCalibrationCandidateCoverageValue": {
+    "placeholders": {
+      "passed": {
+        "type": "int"
+      },
+      "eligible": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachCalibrationCandidateMarginValue": "Evidence margin {percent}%",
+  "@runningCoachCalibrationCandidateMarginValue": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachCalibrationCandidateComparisonValue": "{current} → recommend {candidate}",
+  "@runningCoachCalibrationCandidateComparisonValue": {
+    "placeholders": {
+      "current": {},
+      "candidate": {}
+    }
+  },
+  "runningCoachCalibrationCandidateComparisonKeep": "Current: {profile}",
+  "@runningCoachCalibrationCandidateComparisonKeep": {
+    "placeholders": {
+      "profile": {}
+    }
+  },
+  "runningCoachCalibrationCandidateBlockersTitle": "Blockers",
+  "runningCoachCalibrationCandidateNoBlockers": "No blockers in the saved summaries.",
+  "runningCoachCalibrationCandidateBlockerRepeatability": "Repeatability not ready",
+  "runningCoachCalibrationCandidateBlockerFieldMatrix": "Field matrix incomplete",
+  "runningCoachCalibrationCandidateBlockerNoStricter": "Already strictest profile",
+  "runningCoachCalibrationCandidateBlockerEvidence": "Candidate evidence failed",
+  "runningCoachCalibrationCandidateBlockerMargin": "Evidence margin too small",
+  "runningCoachCalibrationCandidateBlockerCoverage": "Coverage regression",
+  "runningCoachCalibrationCandidateBlockerHoldout": "Latest holdout failed",
   "runningCoachLiveSessionReportQualityTitle": "Analysis quality",
   "runningCoachLiveSessionReportDurationLabel": "Session time",
   "runningCoachLiveSessionReportDurationValue": "{minutes}m {seconds}s",

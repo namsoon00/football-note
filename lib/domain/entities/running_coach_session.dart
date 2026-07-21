@@ -281,6 +281,74 @@ enum LiveSprintPoseEvidenceBlocker {
   gaitPhaseReadiness,
 }
 
+enum LiveSprintDeviceClass { phone, tablet, unknown }
+
+enum LiveSprintCameraLensDirection { rear, front, external, unknown }
+
+enum LiveSprintCaptureDistanceBand { close, normal, far, unknown }
+
+enum LiveSprintViewBand { clearSide, partialSide, oblique, unknown }
+
+class LiveSprintCaptureContext {
+  final LiveSprintDeviceClass deviceClass;
+  final LiveSprintCameraLensDirection cameraLensDirection;
+  final LiveSprintCaptureDistanceBand distanceBand;
+  final LiveSprintViewBand viewBand;
+
+  const LiveSprintCaptureContext({
+    required this.deviceClass,
+    required this.cameraLensDirection,
+    required this.distanceBand,
+    required this.viewBand,
+  });
+
+  const LiveSprintCaptureContext.unknown()
+      : deviceClass = LiveSprintDeviceClass.unknown,
+        cameraLensDirection = LiveSprintCameraLensDirection.unknown,
+        distanceBand = LiveSprintCaptureDistanceBand.unknown,
+        viewBand = LiveSprintViewBand.unknown;
+
+  bool get hasKnownMatrixContext =>
+      deviceClass != LiveSprintDeviceClass.unknown &&
+      cameraLensDirection != LiveSprintCameraLensDirection.unknown &&
+      distanceBand != LiveSprintCaptureDistanceBand.unknown &&
+      viewBand != LiveSprintViewBand.unknown;
+
+  Map<String, Object?> toMap() {
+    return <String, Object?>{
+      'deviceClass': deviceClass.name,
+      'cameraLensDirection': cameraLensDirection.name,
+      'distanceBand': distanceBand.name,
+      'viewBand': viewBand.name,
+    };
+  }
+
+  factory LiveSprintCaptureContext.fromMap(Map<String, dynamic> map) {
+    return LiveSprintCaptureContext(
+      deviceClass: _enumByName(
+        LiveSprintDeviceClass.values,
+        map['deviceClass']?.toString(),
+        LiveSprintDeviceClass.unknown,
+      ),
+      cameraLensDirection: _enumByName(
+        LiveSprintCameraLensDirection.values,
+        map['cameraLensDirection']?.toString(),
+        LiveSprintCameraLensDirection.unknown,
+      ),
+      distanceBand: _enumByName(
+        LiveSprintCaptureDistanceBand.values,
+        map['distanceBand']?.toString(),
+        LiveSprintCaptureDistanceBand.unknown,
+      ),
+      viewBand: _enumByName(
+        LiveSprintViewBand.values,
+        map['viewBand']?.toString(),
+        LiveSprintViewBand.unknown,
+      ),
+    );
+  }
+}
+
 class LiveSprintCaptureReadinessCheck {
   final bool ready;
   final double value;
@@ -317,12 +385,10 @@ class LiveSprintCaptureReadinessCheck {
       threshold: (threshold <= 0 ? fallback.threshold : threshold)
           .clamp(0.0, 1.0)
           .toDouble(),
-      observedCount:
-          _intValue(map['observedCount'] ?? fallback.observedCount)
-              .clamp(0, 1 << 16),
-      requiredCount:
-          _intValue(map['requiredCount'] ?? fallback.requiredCount)
-              .clamp(0, 1 << 16),
+      observedCount: _intValue(map['observedCount'] ?? fallback.observedCount)
+          .clamp(0, 1 << 16),
+      requiredCount: _intValue(map['requiredCount'] ?? fallback.requiredCount)
+          .clamp(0, 1 << 16),
     );
   }
 }
@@ -632,6 +698,7 @@ class LiveSprintSessionReport {
   final List<LiveSprintMetricSummary> metrics;
   final List<LiveSprintPoseEvidenceFrame> poseEvidence;
   final LiveSprintPoseEvidenceDiagnostic poseEvidenceDiagnostic;
+  final LiveSprintCaptureContext captureContext;
 
   const LiveSprintSessionReport({
     this.calibrationProfile = SprintCaptureCalibrationProfile.balanced,
@@ -657,6 +724,7 @@ class LiveSprintSessionReport {
     this.poseEvidence = const <LiveSprintPoseEvidenceFrame>[],
     this.poseEvidenceDiagnostic =
         const LiveSprintPoseEvidenceDiagnostic.initial(),
+    this.captureContext = const LiveSprintCaptureContext.unknown(),
   });
 
   double get analysisConfidence =>
@@ -701,6 +769,7 @@ class LiveSprintSessionReport {
             .toList(growable: false),
       if (poseEvidenceDiagnostic.evaluatedFrames > 0)
         'poseEvidenceDiagnostic': poseEvidenceDiagnostic.toMap(),
+      'captureContext': captureContext.toMap(),
     };
   }
 
@@ -749,6 +818,9 @@ class LiveSprintSessionReport {
       poseEvidence: _liveSprintPoseEvidenceFromMap(map['poseEvidence']),
       poseEvidenceDiagnostic: _liveSprintPoseEvidenceDiagnosticFromMap(
         map['poseEvidenceDiagnostic'],
+      ),
+      captureContext: _liveSprintCaptureContextFromMap(
+        map['captureContext'],
       ),
     );
   }
@@ -819,6 +891,13 @@ LiveSprintPoseEvidenceDiagnostic _liveSprintPoseEvidenceDiagnosticFromMap(
   }
   return LiveSprintPoseEvidenceDiagnostic.fromMap(
       value.cast<String, dynamic>());
+}
+
+LiveSprintCaptureContext _liveSprintCaptureContextFromMap(Object? value) {
+  if (value is! Map) {
+    return const LiveSprintCaptureContext.unknown();
+  }
+  return LiveSprintCaptureContext.fromMap(value.cast<String, dynamic>());
 }
 
 LiveSprintCaptureReadinessSummary _liveSprintCaptureReadinessSummaryFromMap(

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../application/live_sprint_calibration_readiness_service.dart';
+import '../../application/live_sprint_calibration_candidate_service.dart';
+import '../../application/live_sprint_field_validation_matrix_service.dart';
 import '../../application/live_sprint_field_validation_service.dart';
 import '../../application/live_sprint_trend_service.dart';
 import '../../domain/entities/running_coach_session.dart';
@@ -9,6 +11,7 @@ import '../../domain/entities/running_video_analysis_result.dart';
 import '../../domain/entities/sprint_realtime_coaching_state.dart';
 import '../../gen/app_localizations.dart';
 import 'running_coach_insight_copy.dart';
+import '../widgets/live_sprint_calibration_summary_cards.dart';
 import '../widgets/live_sprint_trend_card.dart';
 import '../widgets/live_sprint_pose_evidence_card.dart';
 
@@ -17,6 +20,8 @@ class RunningLiveSessionResultScreen extends StatelessWidget {
   final bool isPersisted;
   final LiveSprintTrendSummary? trendSummary;
   final LiveSprintCalibrationReadinessSummary? calibrationReadinessSummary;
+  final LiveSprintFieldValidationMatrixSummary? fieldValidationMatrixSummary;
+  final LiveSprintCalibrationCandidateSummary? calibrationCandidateSummary;
 
   const RunningLiveSessionResultScreen({
     super.key,
@@ -24,6 +29,8 @@ class RunningLiveSessionResultScreen extends StatelessWidget {
     this.isPersisted = true,
     this.trendSummary,
     this.calibrationReadinessSummary,
+    this.fieldValidationMatrixSummary,
+    this.calibrationCandidateSummary,
   });
 
   @override
@@ -37,6 +44,20 @@ class RunningLiveSessionResultScreen extends StatelessWidget {
         ? null
         : calibrationReadinessSummary ??
             const LiveSprintCalibrationReadinessService().build(
+              <RunningCoachSessionAnalysis>[session],
+              currentSessionId: session.id,
+            );
+    final fieldMatrix = report == null
+        ? null
+        : fieldValidationMatrixSummary ??
+            const LiveSprintFieldValidationMatrixService().build(
+              <RunningCoachSessionAnalysis>[session],
+              currentSessionId: session.id,
+            );
+    final calibrationCandidate = report == null
+        ? null
+        : calibrationCandidateSummary ??
+            const LiveSprintCalibrationCandidateService().build(
               <RunningCoachSessionAnalysis>[session],
               currentSessionId: session.id,
             );
@@ -61,6 +82,16 @@ class RunningLiveSessionResultScreen extends StatelessWidget {
           if (calibrationReadiness != null) ...[
             const SizedBox(height: 16),
             _CalibrationReadinessCard(summary: calibrationReadiness),
+          ],
+          if (fieldMatrix != null) ...[
+            const SizedBox(height: 16),
+            LiveSprintFieldValidationMatrixCard(summary: fieldMatrix),
+          ],
+          if (calibrationCandidate != null) ...[
+            const SizedBox(height: 16),
+            LiveSprintCalibrationCandidateCard(
+              summary: calibrationCandidate,
+            ),
           ],
           if (trendSummary?.hasLiveSessions == true) ...[
             const SizedBox(height: 16),

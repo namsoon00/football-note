@@ -11,6 +11,9 @@ import 'package:flutter_tts/flutter_tts.dart';
 
 import '../../application/live_sprint_coaching_service.dart';
 import '../../application/live_sprint_calibration_readiness_service.dart';
+import '../../application/live_sprint_calibration_candidate_service.dart';
+import '../../application/live_sprint_capture_context_service.dart';
+import '../../application/live_sprint_field_validation_matrix_service.dart';
 import '../../application/live_sprint_pose_evidence_collector.dart';
 import '../../application/live_sprint_session_report_service.dart';
 import '../../application/live_sprint_trend_service.dart';
@@ -35,6 +38,7 @@ import '../painters/running_pose_anatomical_painter.dart';
 import 'running_coach_insight_copy.dart';
 import 'running_live_coach_guide_screen.dart';
 import 'running_live_session_result_screen.dart';
+import '../widgets/live_sprint_calibration_summary_cards.dart';
 
 class RunningLiveCoachScreen extends StatefulWidget {
   final OptionRepository? optionRepository;
@@ -73,6 +77,14 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
   final LiveSprintCalibrationReadinessService
       _liveSprintCalibrationReadinessService =
       const LiveSprintCalibrationReadinessService();
+  final LiveSprintFieldValidationMatrixService
+      _liveSprintFieldValidationMatrixService =
+      const LiveSprintFieldValidationMatrixService();
+  final LiveSprintCalibrationCandidateService
+      _liveSprintCalibrationCandidateService =
+      const LiveSprintCalibrationCandidateService();
+  final LiveSprintCaptureContextService _liveSprintCaptureContextService =
+      const LiveSprintCaptureContextService();
   final RunningLiveSessionMetricsCollector _sessionMetricsCollector =
       RunningLiveSessionMetricsCollector();
   final SprintLiveSessionMetricsCollector _sprintSessionMetricsCollector =
@@ -129,6 +141,8 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
   int _cameraSessionId = 0;
   final Map<RunningLiveSkippedFrameReason, DateTime> _lastSkipLogAtByReason =
       <RunningLiveSkippedFrameReason, DateTime>{};
+  List<RunningCoachSessionAnalysis> _recentSessions =
+      const <RunningCoachSessionAnalysis>[];
 
   bool get _isAndroidPlatform =>
       !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
@@ -147,6 +161,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
         optionRepository,
         sportId: widget.sportId,
       );
+      _recentSessions = _historyService!.allSessions();
     }
     _applySprintCalibrationProfile(
       SprintCaptureCalibrationProfileService(
@@ -327,6 +342,17 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
             const <RunningCoachMetric, int>{};
     final insightSections = _buildInsightSections(l10n, insightDetails);
     final panelTitle = _panelTitle(l10n);
+    final hasPersistedLiveSessions = _recentSessions.any(
+      (session) =>
+          session.source == RunningCoachSessionSource.sprintLive &&
+          session.liveSprintReport != null,
+    );
+    final fieldMatrixSummary = hasPersistedLiveSessions
+        ? _liveSprintFieldValidationMatrixService.build(_recentSessions)
+        : null;
+    final calibrationCandidateSummary = hasPersistedLiveSessions
+        ? _liveSprintCalibrationCandidateService.build(_recentSessions)
+        : null;
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -431,6 +457,9 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
                                 onCalibrationProfileChanged:
                                     _selectSprintCalibrationProfile,
                                 poseEvidenceDiagnostic: poseEvidenceDiagnostic,
+                                fieldMatrixSummary: fieldMatrixSummary,
+                                calibrationCandidateSummary:
+                                    calibrationCandidateSummary,
                                 metricScores: insightDetails,
                                 focusPriorities: focusPriorities,
                                 metricSections: insightSections,
@@ -723,6 +752,16 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     final sprintState = _latestSprintCoachingState;
     final poseEvidence = _poseEvidenceCollector.snapshot();
     final poseEvidenceDiagnostic = _poseEvidenceCollector.diagnosticSnapshot();
+    final captureContext = _liveSprintCaptureContextService.build(
+      deviceClass: LiveSprintCaptureContextService.deviceClassForShortestSide(
+        MediaQuery.sizeOf(context).shortestSide,
+      ),
+      cameraLensDirection: _captureLensDirectionFor(
+        _activeCamera?.lensDirection,
+      ),
+      poseEvidence: poseEvidence,
+      poseEvidenceDiagnostic: poseEvidenceDiagnostic,
+    );
     final fallbackSession = const LiveSprintSessionReportService().buildSession(
       sessionId: sessionId,
       completedAt: completedAt,
@@ -733,6 +772,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       calibrationProfile: _sprintCalibrationProfile,
       poseEvidence: poseEvidence,
       poseEvidenceDiagnostic: poseEvidenceDiagnostic,
+      captureContext: captureContext,
     );
     _endSessionLogging(reason: 'completed');
 
@@ -752,11 +792,13 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
           calibrationProfile: _sprintCalibrationProfile,
           poseEvidence: poseEvidence,
           poseEvidenceDiagnostic: poseEvidenceDiagnostic,
+          captureContext: captureContext,
         );
         if (savedSessions.isNotEmpty) {
           session = savedSessions.first;
           isPersisted = true;
           trendSessions = savedSessions;
+          _recentSessions = savedSessions;
         }
       } catch (error, stackTrace) {
         if (kDebugMode) {
@@ -784,6 +826,16 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
           ),
           calibrationReadinessSummary:
               _liveSprintCalibrationReadinessService.build(
+            trendSessions,
+            currentSessionId: session.id,
+          ),
+          fieldValidationMatrixSummary:
+              _liveSprintFieldValidationMatrixService.build(
+            trendSessions,
+            currentSessionId: session.id,
+          ),
+          calibrationCandidateSummary:
+              _liveSprintCalibrationCandidateService.build(
             trendSessions,
             currentSessionId: session.id,
           ),
@@ -2123,6 +2175,17 @@ String? _poseEvidenceBlockerCue(
   };
 }
 
+LiveSprintCameraLensDirection _captureLensDirectionFor(
+  CameraLensDirection? direction,
+) {
+  return switch (direction) {
+    CameraLensDirection.back => LiveSprintCameraLensDirection.rear,
+    CameraLensDirection.front => LiveSprintCameraLensDirection.front,
+    CameraLensDirection.external => LiveSprintCameraLensDirection.external,
+    null => LiveSprintCameraLensDirection.unknown,
+  };
+}
+
 String _sprintCalibrationProfileLabel(
   AppLocalizations l10n,
   SprintCaptureCalibrationProfile profile,
@@ -2201,6 +2264,8 @@ class _ScoreExplanationPanel extends StatelessWidget {
   final ValueChanged<SprintCaptureCalibrationProfile>
       onCalibrationProfileChanged;
   final LiveSprintPoseEvidenceDiagnostic poseEvidenceDiagnostic;
+  final LiveSprintFieldValidationMatrixSummary? fieldMatrixSummary;
+  final LiveSprintCalibrationCandidateSummary? calibrationCandidateSummary;
   final List<_LiveInsightData> metricScores;
   final Map<RunningCoachMetric, int> focusPriorities;
   final List<_LiveInsightSection> metricSections;
@@ -2220,6 +2285,8 @@ class _ScoreExplanationPanel extends StatelessWidget {
     required this.profileSelectionEnabled,
     required this.onCalibrationProfileChanged,
     required this.poseEvidenceDiagnostic,
+    required this.fieldMatrixSummary,
+    required this.calibrationCandidateSummary,
     required this.metricScores,
     required this.focusPriorities,
     required this.metricSections,
@@ -2271,6 +2338,20 @@ class _ScoreExplanationPanel extends StatelessWidget {
           diagnostic: poseEvidenceDiagnostic,
           compact: compact,
         ),
+        if (fieldMatrixSummary != null) ...[
+          const SizedBox(height: 12),
+          LiveSprintFieldValidationMatrixCard(
+            summary: fieldMatrixSummary!,
+            dark: true,
+          ),
+        ],
+        if (calibrationCandidateSummary != null) ...[
+          const SizedBox(height: 12),
+          LiveSprintCalibrationCandidateCard(
+            summary: calibrationCandidateSummary!,
+            dark: true,
+          ),
+        ],
         const SizedBox(height: 16),
         _PanelSectionTitle(text: l10n.runningCoachLiveSprintMetricsTitle),
         const SizedBox(height: 8),

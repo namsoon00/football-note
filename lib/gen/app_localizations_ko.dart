@@ -9182,6 +9182,175 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get runningCoachFieldMatrixTitle => '현장 커버리지 매트릭스';
+
+  @override
+  String get runningCoachFieldMatrixStatusNotReady => '준비 안 됨';
+
+  @override
+  String get runningCoachFieldMatrixStatusBuilding => '커버리지 구축 중';
+
+  @override
+  String get runningCoachFieldMatrixStatusRecommendationReady => '추천 커버리지 준비됨';
+
+  @override
+  String get runningCoachFieldMatrixStatusComplete => '매트릭스 커버리지 완료';
+
+  @override
+  String get runningCoachFieldMatrixBodyNotReady =>
+      '저장된 현장 준비 세션이 아직 필수 후면 폰 기준 조건을 채우지 못했어요.';
+
+  @override
+  String get runningCoachFieldMatrixBodyBuilding =>
+      '더 강한 추천에 쓰기 전에 빠진 설정 밴드에서 현장 준비 세션을 더 저장해 주세요.';
+
+  @override
+  String get runningCoachFieldMatrixBodyRecommendationReady =>
+      '기준 조건과 의미 있는 구도 변화가 확보됐어요. 남은 매트릭스 공백은 계속 표시됩니다.';
+
+  @override
+  String get runningCoachFieldMatrixBodyComplete =>
+      '필수 설정 밴드가 모두 현장 준비 세션으로 확보됐어요.';
+
+  @override
+  String get runningCoachFieldMatrixPrivacyNote =>
+      '저장된 설정 요약만 사용합니다. 알 수 없는 과거 컨텍스트는 포함하지 않으며 카메라 프레임, 모델명, 업로드, 영상은 저장하지 않습니다.';
+
+  @override
+  String runningCoachFieldMatrixCoverageValue(int covered, int required) {
+    return '$covered/$required 시나리오';
+  }
+
+  @override
+  String runningCoachFieldMatrixScoreValue(int score) {
+    return '커버리지 $score%';
+  }
+
+  @override
+  String runningCoachFieldMatrixEligibleSessionsValue(int count) {
+    return '현장 준비 $count개';
+  }
+
+  @override
+  String runningCoachFieldMatrixUnknownContextValue(int count) {
+    return '알 수 없음 $count개';
+  }
+
+  @override
+  String get runningCoachFieldMatrixMissingTitle => '빠진 시나리오';
+
+  @override
+  String get runningCoachFieldMatrixMissingNone => '필수 설정 밴드가 모두 확보됐어요.';
+
+  @override
+  String get runningCoachFieldMatrixScenarioRearPhoneNormalClear =>
+      '후면 폰 · 보통 거리 · 선명한 측면';
+
+  @override
+  String get runningCoachFieldMatrixScenarioRearPhoneCloseClear =>
+      '후면 폰 · 가까운 거리 · 선명한 측면';
+
+  @override
+  String get runningCoachFieldMatrixScenarioRearPhoneFarClear =>
+      '후면 폰 · 먼 거리 · 선명한 측면';
+
+  @override
+  String get runningCoachFieldMatrixScenarioRearPhoneNormalPartial =>
+      '후면 폰 · 보통 거리 · 부분 측면';
+
+  @override
+  String get runningCoachCalibrationCandidateTitle => '보정 추천';
+
+  @override
+  String get runningCoachCalibrationCandidateStatusNotReady => '준비 안 됨';
+
+  @override
+  String get runningCoachCalibrationCandidateStatusKeepCurrent => '현재 프로필 유지';
+
+  @override
+  String get runningCoachCalibrationCandidateStatusRecommendation =>
+      '안전 추천만 표시';
+
+  @override
+  String get runningCoachCalibrationCandidateBodyNotReady =>
+      '반복성 또는 현장 커버리지가 더 엄격한 캡처 프로필을 추천할 만큼 준비되지 않았어요.';
+
+  @override
+  String get runningCoachCalibrationCandidateBodyKeepCurrent =>
+      '저장된 요약 기준으로는 현재 프로필이 더 안전한 선택이에요.';
+
+  @override
+  String get runningCoachCalibrationCandidateBodyRecommendation =>
+      '더 엄격한 프로필이 저장 세션 확인을 통과했어요. 추천으로만 다뤄 주세요.';
+
+  @override
+  String get runningCoachCalibrationCandidatePrivacyNote =>
+      '프로필, 임계값, 사용자 설정, 업로드, 원본 영상, 카메라 프레임은 자동으로 바꾸지 않습니다.';
+
+  @override
+  String runningCoachCalibrationCandidateScoreValue(int score) {
+    return '추천 $score%';
+  }
+
+  @override
+  String runningCoachCalibrationCandidateEligibleValue(int count) {
+    return '대상 세션 $count개';
+  }
+
+  @override
+  String runningCoachCalibrationCandidateCoverageValue(
+      int passed, int eligible) {
+    return '$passed/$eligible 후보 통과';
+  }
+
+  @override
+  String runningCoachCalibrationCandidateMarginValue(int percent) {
+    return '근거 여유 $percent%';
+  }
+
+  @override
+  String runningCoachCalibrationCandidateComparisonValue(
+      Object current, Object candidate) {
+    return '$current → $candidate 추천';
+  }
+
+  @override
+  String runningCoachCalibrationCandidateComparisonKeep(Object profile) {
+    return '현재: $profile';
+  }
+
+  @override
+  String get runningCoachCalibrationCandidateBlockersTitle => '막힌 항목';
+
+  @override
+  String get runningCoachCalibrationCandidateNoBlockers =>
+      '저장된 요약에서 막힌 항목이 없어요.';
+
+  @override
+  String get runningCoachCalibrationCandidateBlockerRepeatability =>
+      '반복성 준비 안 됨';
+
+  @override
+  String get runningCoachCalibrationCandidateBlockerFieldMatrix =>
+      '현장 매트릭스 미완료';
+
+  @override
+  String get runningCoachCalibrationCandidateBlockerNoStricter =>
+      '이미 가장 엄격한 프로필';
+
+  @override
+  String get runningCoachCalibrationCandidateBlockerEvidence => '후보 근거 실패';
+
+  @override
+  String get runningCoachCalibrationCandidateBlockerMargin => '근거 여유 부족';
+
+  @override
+  String get runningCoachCalibrationCandidateBlockerCoverage => '커버리지 후퇴';
+
+  @override
+  String get runningCoachCalibrationCandidateBlockerHoldout => '최신 홀드아웃 실패';
+
+  @override
   String get runningCoachLiveSessionReportQualityTitle => '분석 품질';
 
   @override
