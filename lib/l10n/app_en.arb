@@ -2838,6 +2838,8 @@
   "languageSystemDefault": "System default",
   "settings": "Settings",
   "settingsGeneralSection": "General",
+  "settingsSoundEffectsTitle": "Sound effects",
+  "settingsSoundEffectsSubtitle": "Play sounds for buttons, rewards, and other in-app actions.",
   "settingsTutorialReplayTitle": "Replay tutorial",
   "settingsTutorialReplaySubtitle": "Return home and restart the coach marks from the beginning.",
   "settingsTutorialReplayReady": "The tutorial is ready to replay.",

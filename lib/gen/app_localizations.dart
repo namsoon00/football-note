@@ -8046,6 +8046,18 @@ abstract class AppLocalizations {
   /// **'General'**
   String get settingsGeneralSection;
 
+  /// No description provided for @settingsSoundEffectsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sound effects'**
+  String get settingsSoundEffectsTitle;
+
+  /// No description provided for @settingsSoundEffectsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Play sounds for buttons, rewards, and other in-app actions.'**
+  String get settingsSoundEffectsSubtitle;
+
   /// No description provided for @settingsTutorialReplayTitle.
   ///
   /// In en, this message translates to:

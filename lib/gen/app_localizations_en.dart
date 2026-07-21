@@ -4592,6 +4592,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsGeneralSection => 'General';
 
   @override
+  String get settingsSoundEffectsTitle => 'Sound effects';
+
+  @override
+  String get settingsSoundEffectsSubtitle =>
+      'Play sounds for buttons, rewards, and other in-app actions.';
+
+  @override
   String get settingsTutorialReplayTitle => 'Replay tutorial';
 
   @override

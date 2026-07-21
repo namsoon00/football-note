@@ -4479,6 +4479,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get settingsGeneralSection => '일반 설정';
 
   @override
+  String get settingsSoundEffectsTitle => '효과음';
+
+  @override
+  String get settingsSoundEffectsSubtitle => '버튼과 보상 등 앱 안의 효과음을 재생합니다.';
+
+  @override
   String get settingsTutorialReplayTitle => '튜토리얼 다시 보기';
 
   @override

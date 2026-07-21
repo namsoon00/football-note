@@ -2838,6 +2838,8 @@
   "languageSystemDefault": "시스템 기본값",
   "settings": "설정",
   "settingsGeneralSection": "일반 설정",
+  "settingsSoundEffectsTitle": "효과음",
+  "settingsSoundEffectsSubtitle": "버튼과 보상 등 앱 안의 효과음을 재생합니다.",
   "settingsTutorialReplayTitle": "튜토리얼 다시 보기",
   "settingsTutorialReplaySubtitle": "홈으로 돌아가 코칭마크를 처음부터 다시 시작해요.",
   "settingsTutorialReplayReady": "튜토리얼을 다시 시작할 준비가 됐어요.",

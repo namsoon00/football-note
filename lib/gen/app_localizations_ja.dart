@@ -4480,6 +4480,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsGeneralSection => '一般設定';
 
   @override
+  String get settingsSoundEffectsTitle => '効果音';
+
+  @override
+  String get settingsSoundEffectsSubtitle => 'ボタンや報酬など、アプリ内の操作で効果音を再生します。';
+
+  @override
   String get settingsTutorialReplayTitle => 'チュートリアルをもう一度見る';
 
   @override
