@@ -20,6 +20,7 @@ import '../../application/live_sprint_trend_service.dart';
 import '../../application/mediapipe_pose_landmarker_service.dart';
 import '../../application/running_coach_history_service.dart';
 import '../../application/running_live_calibration_capture_contract.dart';
+import '../../application/running_live_runtime_quality_gate.dart';
 import '../../application/running_live_session_metrics.dart';
 import '../../application/sprint_capture_calibration_service.dart';
 import '../../application/sprint_live_session_metrics.dart';
@@ -87,6 +88,8 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       const LiveSprintCaptureContextService();
   final RunningLiveSessionMetricsCollector _sessionMetricsCollector =
       RunningLiveSessionMetricsCollector();
+  final RunningLiveRuntimeQualityGate _runtimeQualityGate =
+      const RunningLiveRuntimeQualityGate();
   final SprintLiveSessionMetricsCollector _sprintSessionMetricsCollector =
       SprintLiveSessionMetricsCollector();
   final LiveSprintPoseEvidenceCollector _poseEvidenceCollector =
@@ -114,6 +117,8 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
   CameraDescription? _activeCamera;
   RunningLiveCoachingState _coachingState = _initialCoachingState;
   RunningLiveCoachingState _latestCoachingState = _initialCoachingState;
+  RunningLiveRuntimeReadiness _runtimeReadiness =
+      const RunningLiveRuntimeReadiness.initial();
   SprintRealtimeCoachingState _sprintCoachingState =
       _initialSprintCoachingState;
   SprintRealtimeCoachingState _latestSprintCoachingState =
@@ -321,12 +326,15 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       );
     }
 
-    final statusTheme = _statusTheme(context, _coachingState);
-    final scoreLabel = _coachingState.coachingReport == null
-        ? l10n.runningCoachLiveScorePending
-        : l10n.runningCoachLiveOverallScore(
-            _coachingState.coachingReport!.overallScore,
-          );
+    final statusTheme =
+        _statusTheme(context, _coachingState, _runtimeReadiness);
+    final scoreLabel = !_runtimeReadiness.canEmitFormCoaching
+        ? _runtimeScoreLabel(l10n, _runtimeReadiness)
+        : _coachingState.coachingReport == null
+            ? l10n.runningCoachLiveScorePending
+            : l10n.runningCoachLiveOverallScore(
+                _coachingState.coachingReport!.overallScore,
+              );
     final trackedFramesLabel = l10n.runningCoachLiveTrackedFrames(
       _coachingState.trackedFrames,
     );
@@ -337,6 +345,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       l10n,
       runningState: _coachingState,
       sprintState: _sprintCoachingState,
+      runtimeReadiness: _runtimeReadiness,
     );
     final poseEvidenceDiagnostic = _poseEvidenceCollector.diagnosticSnapshot();
     final poseEvidenceCue = _poseEvidenceBlockerCue(
@@ -538,6 +547,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
         _latestCoachingState = _initialCoachingState;
         _sprintCoachingState = _initialSprintCoachingState;
         _latestSprintCoachingState = _initialSprintCoachingState;
+        _runtimeReadiness = const RunningLiveRuntimeReadiness.initial();
         _cameraErrorCode = 'unsupported_platform';
         _liveCoachErrorCode = null;
         _isInitializing = false;
@@ -553,6 +563,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       _latestCoachingState = _initialCoachingState;
       _sprintCoachingState = _initialSprintCoachingState;
       _latestSprintCoachingState = _initialSprintCoachingState;
+      _runtimeReadiness = const RunningLiveRuntimeReadiness.initial();
       _isInitializing = true;
       _cameraErrorCode = null;
       _liveCoachErrorCode = null;
@@ -1062,6 +1073,10 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
         processingTime: stopwatch.elapsed,
         state: state,
       );
+      final runtimeReadiness = _runtimeQualityGate.evaluate(
+        snapshot: _sessionMetricsCollector.snapshot(now: now),
+        state: state,
+      );
       if (coachingSnapshot.sprintAnalysisUpdated) {
         _sprintSessionMetricsCollector.recordAnalyzedFrame(
           timestamp: now,
@@ -1091,13 +1106,14 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
         sprintState: sprintState,
         timestamp: now,
       );
-      _publishCoachingState(state, sprintState, now);
+      _publishCoachingState(state, sprintState, runtimeReadiness, now);
       _emitSessionLog(event: 'periodic', force: false, now: now);
       await _maybeSpeakGuidance(
         _guidanceFor(
           AppLocalizations.of(context)!,
           runningState: state,
           sprintState: sprintState,
+          runtimeReadiness: runtimeReadiness,
         ),
       );
     } catch (error, stackTrace) {
@@ -1129,6 +1145,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
   void _publishCoachingState(
     RunningLiveCoachingState state,
     SprintRealtimeCoachingState sprintState,
+    RunningLiveRuntimeReadiness runtimeReadiness,
     DateTime timestamp,
   ) {
     _latestCoachingState = state;
@@ -1142,6 +1159,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     setState(() {
       _coachingState = state;
       _sprintCoachingState = sprintState;
+      _runtimeReadiness = runtimeReadiness;
       _lastUiStatePublishedAt = timestamp;
     });
   }
@@ -1151,10 +1169,16 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     SprintRealtimeCoachingState sprintState,
     DateTime timestamp,
   ) {
+    final runtimeReadiness = _runtimeQualityGate.evaluate(
+      snapshot: _sessionMetricsCollector.snapshot(now: timestamp),
+      state: state,
+    );
     if (state.primaryCue != _coachingState.primaryCue ||
         state.framingIssue != _coachingState.framingIssue ||
         sprintState.status != _sprintCoachingState.status ||
-        sprintState.feedback?.code != _sprintCoachingState.feedback?.code) {
+        sprintState.feedback?.code != _sprintCoachingState.feedback?.code ||
+        runtimeReadiness.status != _runtimeReadiness.status ||
+        runtimeReadiness.reason != _runtimeReadiness.reason) {
       return true;
     }
     final lastPublishedAt = _lastUiStatePublishedAt;
@@ -1297,6 +1321,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     _latestDetectorImageSize = null;
     _latestCoachingState = _initialCoachingState;
     _latestSprintCoachingState = _initialSprintCoachingState;
+    _runtimeReadiness = const RunningLiveRuntimeReadiness.initial();
 
     if (mounted) {
       setState(() {
@@ -1305,6 +1330,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
         _isInitializing = false;
         _coachingState = _initialCoachingState;
         _sprintCoachingState = _initialSprintCoachingState;
+        _runtimeReadiness = const RunningLiveRuntimeReadiness.initial();
         _isHudExpanded = false;
         _latestDetectorImageSize = null;
       });
@@ -1406,9 +1432,23 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     AppLocalizations l10n, {
     required RunningLiveCoachingState runningState,
     required SprintRealtimeCoachingState sprintState,
+    required RunningLiveRuntimeReadiness runtimeReadiness,
   }) {
+    if (!runtimeReadiness.canEmitFormCoaching &&
+        runningState.framingIssue == null) {
+      return _LiveCoachingGuidance(
+        key:
+            'runtime-${runtimeReadiness.status.name}-${runtimeReadiness.reason.name}',
+        cueText: _runtimeReadinessCue(l10n, runtimeReadiness),
+        diagnosis: _runtimeReadinessDiagnosis(l10n, runtimeReadiness),
+        actionTip: _runtimeReadinessAction(l10n, runtimeReadiness),
+        shouldSpeak: false,
+      );
+    }
+
     final sprintFeedback = sprintState.feedback;
     if (runningState.framingIssue == null &&
+        runtimeReadiness.canEmitFormCoaching &&
         sprintFeedback != null &&
         sprintFeedback.severity != SprintFeedbackSeverity.info) {
       final cueText = _localizedSprintFeedbackCue(
@@ -1622,27 +1662,29 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
   _LiveStatusTheme _statusTheme(
     BuildContext context,
     RunningLiveCoachingState state,
+    RunningLiveRuntimeReadiness runtimeReadiness,
   ) {
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
-    if (state.framingIssue != null) {
+    if (state.framingIssue != null ||
+        runtimeReadiness.status == RunningLiveRuntimeReadinessStatus.fixSetup) {
       return _LiveStatusTheme(
-        title: l10n.runningCoachLiveStatusFraming,
+        title: l10n.runningCoachLiveStatusFixSetup,
         icon: Icons.center_focus_strong_rounded,
         color: const Color(0xFFFFB74D),
         background: Colors.black.withAlpha(170),
       );
     }
-    if (!state.hasStableAnalysis) {
+    if (!runtimeReadiness.canEmitFormCoaching || !state.hasStableAnalysis) {
       return _LiveStatusTheme(
-        title: l10n.runningCoachLiveStatusCollecting,
+        title: l10n.runningCoachLiveStatusStabilizing,
         icon: Icons.directions_run_rounded,
         color: scheme.secondary,
         background: Colors.black.withAlpha(170),
       );
     }
     return _LiveStatusTheme(
-      title: l10n.runningCoachLiveStatusCoaching,
+      title: l10n.runningCoachLiveStatusReady,
       icon: Icons.check_circle_rounded,
       color: const Color(0xFF8BC34A),
       background: Colors.black.withAlpha(170),
@@ -2187,6 +2229,77 @@ String _runningLiveQualityReasonText(
     'contact_phase_proxy' => l10n.runningCoachQualityReasonContactPhaseProxy,
     'low_confidence' => l10n.runningCoachQualityReasonLowConfidence,
     _ => l10n.runningCoachQualityReasonGeneric,
+  };
+}
+
+String _runtimeScoreLabel(
+  AppLocalizations l10n,
+  RunningLiveRuntimeReadiness readiness,
+) {
+  return switch (readiness.status) {
+    RunningLiveRuntimeReadinessStatus.ready =>
+      l10n.runningCoachLiveRuntimeScoreReady,
+    RunningLiveRuntimeReadinessStatus.stabilizing =>
+      l10n.runningCoachLiveRuntimeScoreStabilizing,
+    RunningLiveRuntimeReadinessStatus.fixSetup =>
+      l10n.runningCoachLiveRuntimeScoreFixSetup,
+  };
+}
+
+String _runtimeReadinessCue(
+  AppLocalizations l10n,
+  RunningLiveRuntimeReadiness readiness,
+) {
+  return switch (readiness.reason) {
+    RunningLiveRuntimeReadinessReason.slowProcessing =>
+      l10n.runningCoachLiveRuntimeCueSlowProcessing,
+    RunningLiveRuntimeReadinessReason.frameGaps =>
+      l10n.runningCoachLiveRuntimeCueFrameGaps,
+    RunningLiveRuntimeReadinessReason.unstableTracking =>
+      l10n.runningCoachLiveRuntimeCueUnstableTracking,
+    RunningLiveRuntimeReadinessReason.setup ||
+    RunningLiveRuntimeReadinessReason.noRunner =>
+      l10n.runningCoachLiveRuntimeCueFixSetup,
+    RunningLiveRuntimeReadinessReason.warmingUp =>
+      l10n.runningCoachLiveRuntimeCueWarmingUp,
+  };
+}
+
+String _runtimeReadinessDiagnosis(
+  AppLocalizations l10n,
+  RunningLiveRuntimeReadiness readiness,
+) {
+  return switch (readiness.reason) {
+    RunningLiveRuntimeReadinessReason.slowProcessing =>
+      l10n.runningCoachLiveRuntimeDiagnosisSlowProcessing,
+    RunningLiveRuntimeReadinessReason.frameGaps =>
+      l10n.runningCoachLiveRuntimeDiagnosisFrameGaps,
+    RunningLiveRuntimeReadinessReason.unstableTracking =>
+      l10n.runningCoachLiveRuntimeDiagnosisUnstableTracking,
+    RunningLiveRuntimeReadinessReason.setup ||
+    RunningLiveRuntimeReadinessReason.noRunner =>
+      l10n.runningCoachLiveRuntimeDiagnosisFixSetup,
+    RunningLiveRuntimeReadinessReason.warmingUp =>
+      l10n.runningCoachLiveRuntimeDiagnosisWarmingUp,
+  };
+}
+
+String _runtimeReadinessAction(
+  AppLocalizations l10n,
+  RunningLiveRuntimeReadiness readiness,
+) {
+  return switch (readiness.reason) {
+    RunningLiveRuntimeReadinessReason.slowProcessing =>
+      l10n.runningCoachLiveRuntimeActionSlowProcessing,
+    RunningLiveRuntimeReadinessReason.frameGaps =>
+      l10n.runningCoachLiveRuntimeActionFrameGaps,
+    RunningLiveRuntimeReadinessReason.unstableTracking =>
+      l10n.runningCoachLiveRuntimeActionUnstableTracking,
+    RunningLiveRuntimeReadinessReason.setup ||
+    RunningLiveRuntimeReadinessReason.noRunner =>
+      l10n.runningCoachLiveRuntimeActionFixSetup,
+    RunningLiveRuntimeReadinessReason.warmingUp =>
+      l10n.runningCoachLiveRuntimeActionWarmingUp,
   };
 }
 
@@ -3027,6 +3140,7 @@ class _LiveInsightCard extends StatelessWidget {
       RunningCoachStatus.watch => const Color(0xFFFFB74D),
       RunningCoachStatus.needsWork => const Color(0xFFFF8A65),
     };
+    final isMetricReliable = !data.insight.quality.isLowConfidence;
     return DecoratedBox(
       decoration: BoxDecoration(
         color: Colors.white.withAlpha(8),
@@ -3052,7 +3166,11 @@ class _LiveInsightCard extends StatelessWidget {
               children: [
                 if (priority != null)
                   _PriorityBadge(priority: priority!, accent: accent),
-                _ScoreBadge(score: data.insight.score, accent: accent),
+                _ScoreBadge(
+                  score: data.insight.score,
+                  accent: accent,
+                  isReliable: isMetricReliable,
+                ),
                 _ConfidenceBadge(
                   quality: data.insight.quality,
                   accent: accent,
@@ -3062,7 +3180,9 @@ class _LiveInsightCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              data.copy.value,
+              isMetricReliable
+                  ? data.copy.value
+                  : l10n.runningCoachEvidenceQualityLimitedBadge,
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
                     color: accent,
                     fontWeight: FontWeight.w800,
@@ -3111,11 +3231,13 @@ class _CompactMetricScoreCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final accent = switch (data.insight.status) {
       RunningCoachStatus.good => const Color(0xFF8BC34A),
       RunningCoachStatus.watch => const Color(0xFFFFB74D),
       RunningCoachStatus.needsWork => const Color(0xFFFF8A65),
     };
+    final isMetricReliable = !data.insight.quality.isLowConfidence;
 
     return SizedBox(
       width: 148,
@@ -3146,26 +3268,34 @@ class _CompactMetricScoreCard extends StatelessWidget {
                 children: [
                   if (priority != null)
                     _PriorityBadge(priority: priority!, accent: accent),
-                  _ScoreBadge(score: data.insight.score, accent: accent),
+                  _ScoreBadge(
+                    score: data.insight.score,
+                    accent: accent,
+                    isReliable: isMetricReliable,
+                  ),
                   _ConfidenceBadge(
                     quality: data.insight.quality,
                     accent: accent,
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(999),
-                child: LinearProgressIndicator(
-                  value: data.insight.score / 100,
-                  minHeight: 6,
-                  color: accent,
-                  backgroundColor: Colors.white12,
+              if (isMetricReliable) ...[
+                const SizedBox(height: 10),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(999),
+                  child: LinearProgressIndicator(
+                    value: data.insight.score / 100,
+                    minHeight: 6,
+                    color: accent,
+                    backgroundColor: Colors.white12,
+                  ),
                 ),
-              ),
+              ],
               const SizedBox(height: 8),
               Text(
-                data.copy.value,
+                isMetricReliable
+                    ? data.copy.value
+                    : l10n.runningCoachEvidenceQualityLimitedBadge,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Colors.white70,
                       fontWeight: FontWeight.w600,
@@ -3269,8 +3399,13 @@ class _PriorityBadge extends StatelessWidget {
 class _ScoreBadge extends StatelessWidget {
   final int score;
   final Color accent;
+  final bool isReliable;
 
-  const _ScoreBadge({required this.score, required this.accent});
+  const _ScoreBadge({
+    required this.score,
+    required this.accent,
+    this.isReliable = true,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -3283,7 +3418,9 @@ class _ScoreBadge extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         child: Text(
-          l10n.runningCoachMetricScore(score),
+          isReliable
+              ? l10n.runningCoachMetricScore(score)
+              : l10n.runningCoachEvidenceQualityLimitedBadge,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
                 color: Colors.white,
                 fontWeight: FontWeight.w800,
