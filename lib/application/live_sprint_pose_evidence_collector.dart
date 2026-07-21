@@ -41,11 +41,25 @@ class LiveSprintPoseEvidenceCollector {
       <LiveSprintPoseEvidencePhase, LiveSprintPoseEvidenceFrame>{};
   final Set<String> _seenTouchdowns = <String>{};
   DateTime? _sessionStartedAt;
+  int _evaluatedFrames = 0;
+  int _eligibleFrames = 0;
+  int _fullBodyBlockedFrames = 0;
+  int _sideViewBlockedFrames = 0;
+  int _coreJointsBlockedFrames = 0;
+  int _gaitPhaseBlockedFrames = 0;
+  LiveSprintPoseEvidenceBlocker? _currentBlocker;
 
   void reset({DateTime? startedAt}) {
     _bestByPhase.clear();
     _seenTouchdowns.clear();
     _sessionStartedAt = startedAt;
+    _evaluatedFrames = 0;
+    _eligibleFrames = 0;
+    _fullBodyBlockedFrames = 0;
+    _sideViewBlockedFrames = 0;
+    _coreJointsBlockedFrames = 0;
+    _gaitPhaseBlockedFrames = 0;
+    _currentBlocker = null;
   }
 
   void record({
@@ -55,17 +69,22 @@ class LiveSprintPoseEvidenceCollector {
     required DateTime timestamp,
   }) {
     final frame = visualFrame;
+    _evaluatedFrames += 1;
     if (frame == null || frame.imageSize.isEmpty) {
+      _recordBlocker(LiveSprintPoseEvidenceBlocker.fullBodyVisibility);
       return;
     }
-    final quality = _qualityFor(
+    final validation = _validationFor(
       frame: frame,
       gaitAnalysis: gaitAnalysis,
       sprintState: sprintState,
     );
-    if (quality == null) {
+    if (validation.blocker case final blocker?) {
+      _recordBlocker(blocker);
       return;
     }
+    final quality = validation.quality!;
+    _eligibleFrames += 1;
     _sessionStartedAt ??= timestamp;
 
     final touchdown = _recentTouchdown(gaitAnalysis.recentEvents, timestamp);
@@ -84,6 +103,7 @@ class LiveSprintPoseEvidenceCollector {
           ),
         );
       }
+      _currentBlocker = null;
       return;
     }
 
@@ -96,6 +116,7 @@ class LiveSprintPoseEvidenceCollector {
       RunningGaitPhase.unknown => null,
     };
     if (phase == null) {
+      _recordBlocker(LiveSprintPoseEvidenceBlocker.gaitPhaseReadiness);
       return;
     }
     _consider(
@@ -112,6 +133,7 @@ class LiveSprintPoseEvidenceCollector {
         },
       ),
     );
+    _currentBlocker = null;
   }
 
   List<LiveSprintPoseEvidenceFrame> snapshot() {
@@ -123,18 +145,62 @@ class LiveSprintPoseEvidenceCollector {
     );
   }
 
-  double? _qualityFor({
+  LiveSprintPoseEvidenceDiagnostic diagnosticSnapshot() {
+    return LiveSprintPoseEvidenceDiagnostic(
+      evaluatedFrames: _evaluatedFrames,
+      eligibleFrames: _eligibleFrames,
+      capturedPhaseCount: _bestByPhase.length,
+      fullBodyBlockedFrames: _fullBodyBlockedFrames,
+      sideViewBlockedFrames: _sideViewBlockedFrames,
+      coreJointsBlockedFrames: _coreJointsBlockedFrames,
+      gaitPhaseBlockedFrames: _gaitPhaseBlockedFrames,
+      currentBlocker: _currentBlocker,
+    );
+  }
+
+  _EvidenceValidation _validationFor({
     required RunningVisualPoseFrame frame,
     required RunningGaitAnalysis gaitAnalysis,
     required SprintRealtimeCoachingState sprintState,
   }) {
     final state = sprintState.stateEstimate;
-    if (state.trackingReadiness != SprintTrackingReadiness.readyForAnalysis ||
-        !state.bodyFullyVisible ||
-        state.trackingConfidence < _minimumTrackingConfidence ||
-        state.sideViewConfidence < _minimumSideViewConfidence ||
-        gaitAnalysis.phaseConfidence < _minimumPhaseConfidence) {
-      return null;
+    switch (state.trackingReadiness) {
+      case SprintTrackingReadiness.bodyTooSmall:
+      case SprintTrackingReadiness.bodyPartiallyOutOfFrame:
+        return const _EvidenceValidation.blocked(
+          LiveSprintPoseEvidenceBlocker.fullBodyVisibility,
+        );
+      case SprintTrackingReadiness.sideViewUnstable:
+        return const _EvidenceValidation.blocked(
+          LiveSprintPoseEvidenceBlocker.stableSideView,
+        );
+      case SprintTrackingReadiness.lowConfidence:
+        return const _EvidenceValidation.blocked(
+          LiveSprintPoseEvidenceBlocker.observedCoreJoints,
+        );
+      case SprintTrackingReadiness.readyForAnalysis:
+        break;
+    }
+    if (!state.bodyFullyVisible) {
+      return const _EvidenceValidation.blocked(
+        LiveSprintPoseEvidenceBlocker.fullBodyVisibility,
+      );
+    }
+    if (state.sideViewConfidence < _minimumSideViewConfidence) {
+      return const _EvidenceValidation.blocked(
+        LiveSprintPoseEvidenceBlocker.stableSideView,
+      );
+    }
+    if (state.trackingConfidence < _minimumTrackingConfidence) {
+      return const _EvidenceValidation.blocked(
+        LiveSprintPoseEvidenceBlocker.observedCoreJoints,
+      );
+    }
+    if (gaitAnalysis.phaseConfidence < _minimumPhaseConfidence ||
+        gaitAnalysis.timingConfidence < _minimumPhaseConfidence) {
+      return const _EvidenceValidation.blocked(
+        LiveSprintPoseEvidenceBlocker.gaitPhaseReadiness,
+      );
     }
 
     var totalConfidence = 0.0;
@@ -143,21 +209,27 @@ class LiveSprintPoseEvidenceCollector {
       if (joint == null ||
           joint.state != RunningVisualPoseLandmarkState.observed ||
           joint.confidence < _minimumLandmarkConfidence) {
-        return null;
+        return const _EvidenceValidation.blocked(
+          LiveSprintPoseEvidenceBlocker.observedCoreJoints,
+        );
       }
       totalConfidence += joint.confidence;
     }
     final averageConfidence = totalConfidence / _requiredJoints.length;
     if (averageConfidence < _minimumAverageLandmarkConfidence) {
-      return null;
+      return const _EvidenceValidation.blocked(
+        LiveSprintPoseEvidenceBlocker.observedCoreJoints,
+      );
     }
-    return <double>[
-      averageConfidence,
-      state.trackingConfidence,
-      state.sideViewConfidence,
-      gaitAnalysis.phaseConfidence,
-      gaitAnalysis.timingConfidence,
-    ].reduce(math.min);
+    return _EvidenceValidation.eligible(
+      <double>[
+        averageConfidence,
+        state.trackingConfidence,
+        state.sideViewConfidence,
+        gaitAnalysis.phaseConfidence,
+        gaitAnalysis.timingConfidence,
+      ].reduce(math.min),
+    );
   }
 
   RunningGaitEvent? _recentTouchdown(
@@ -224,4 +296,27 @@ class LiveSprintPoseEvidenceCollector {
       _bestByPhase[candidate.phase] = candidate;
     }
   }
+
+  void _recordBlocker(LiveSprintPoseEvidenceBlocker blocker) {
+    _currentBlocker = blocker;
+    switch (blocker) {
+      case LiveSprintPoseEvidenceBlocker.fullBodyVisibility:
+        _fullBodyBlockedFrames += 1;
+      case LiveSprintPoseEvidenceBlocker.stableSideView:
+        _sideViewBlockedFrames += 1;
+      case LiveSprintPoseEvidenceBlocker.observedCoreJoints:
+        _coreJointsBlockedFrames += 1;
+      case LiveSprintPoseEvidenceBlocker.gaitPhaseReadiness:
+        _gaitPhaseBlockedFrames += 1;
+    }
+  }
+}
+
+class _EvidenceValidation {
+  final double? quality;
+  final LiveSprintPoseEvidenceBlocker? blocker;
+
+  const _EvidenceValidation.eligible(this.quality) : blocker = null;
+
+  const _EvidenceValidation.blocked(this.blocker) : quality = null;
 }

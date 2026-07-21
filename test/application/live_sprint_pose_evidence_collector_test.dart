@@ -57,6 +57,8 @@ void main() {
     expect(
         evidence[0].joints, hasLength(RunningPoseLandmarkType.values.length));
     expect(evidence.every((frame) => frame.quality >= 0.7), isTrue);
+    expect(collector.diagnosticSnapshot().capturedPhaseCount, 3);
+    expect(collector.diagnosticSnapshot().eligibleFrames, 3);
 
     final restored =
         LiveSprintPoseEvidenceFrame.fromMap(evidence.first.toMap());
@@ -80,6 +82,70 @@ void main() {
     );
 
     expect(collector.snapshot(), isEmpty);
+    final diagnostic = collector.diagnosticSnapshot();
+    expect(
+      diagnostic.currentBlocker,
+      LiveSprintPoseEvidenceBlocker.observedCoreJoints,
+    );
+    expect(diagnostic.coreJointsBlockedFrames, 1);
+  });
+
+  test('records each actionable capture blocker without retaining pose data',
+      () {
+    final collector = LiveSprintPoseEvidenceCollector();
+    final timestamp = DateTime(2026, 7, 21, 10);
+
+    collector.record(
+      visualFrame: _frame(timestamp),
+      gaitAnalysis: _gait(phase: RunningGaitPhase.flight),
+      sprintState: _sprintState(
+        trackingReadiness: SprintTrackingReadiness.bodyPartiallyOutOfFrame,
+        bodyFullyVisible: false,
+      ),
+      timestamp: timestamp,
+    );
+    collector.record(
+      visualFrame: _frame(timestamp.add(const Duration(milliseconds: 50))),
+      gaitAnalysis: _gait(phase: RunningGaitPhase.flight),
+      sprintState: _sprintState(
+        trackingReadiness: SprintTrackingReadiness.sideViewUnstable,
+      ),
+      timestamp: timestamp.add(const Duration(milliseconds: 50)),
+    );
+    collector.record(
+      visualFrame: _frame(timestamp.add(const Duration(milliseconds: 100))),
+      gaitAnalysis: _gait(phase: RunningGaitPhase.flight),
+      sprintState: _sprintState(
+        trackingReadiness: SprintTrackingReadiness.lowConfidence,
+      ),
+      timestamp: timestamp.add(const Duration(milliseconds: 100)),
+    );
+    collector.record(
+      visualFrame: _frame(timestamp.add(const Duration(milliseconds: 150))),
+      gaitAnalysis: _gait(
+        phase: RunningGaitPhase.flight,
+        phaseConfidence: 0.3,
+      ),
+      sprintState: _sprintState(),
+      timestamp: timestamp.add(const Duration(milliseconds: 150)),
+    );
+
+    final diagnostic = collector.diagnosticSnapshot();
+    expect(collector.snapshot(), isEmpty);
+    expect(diagnostic.evaluatedFrames, 4);
+    expect(diagnostic.eligibleFrames, 0);
+    expect(diagnostic.fullBodyBlockedFrames, 1);
+    expect(diagnostic.sideViewBlockedFrames, 1);
+    expect(diagnostic.coreJointsBlockedFrames, 1);
+    expect(diagnostic.gaitPhaseBlockedFrames, 1);
+    expect(
+      diagnostic.currentBlocker,
+      LiveSprintPoseEvidenceBlocker.gaitPhaseReadiness,
+    );
+    expect(
+      diagnostic.dominantBlocker,
+      LiveSprintPoseEvidenceBlocker.fullBodyVisibility,
+    );
   });
 }
 
@@ -114,10 +180,12 @@ RunningVisualPoseFrame _frame(
 RunningGaitAnalysis _gait({
   required RunningGaitPhase phase,
   List<RunningGaitEvent> events = const <RunningGaitEvent>[],
+  double phaseConfidence = 0.88,
+  double timingConfidence = 0.86,
 }) {
   return RunningGaitAnalysis(
     currentPhase: phase,
-    phaseConfidence: 0.88,
+    phaseConfidence: phaseConfidence,
     cadence: const RunningGaitMetric.unavailable(),
     leftContactDuration: const RunningGaitMetric.unavailable(),
     rightContactDuration: const RunningGaitMetric.unavailable(),
@@ -125,23 +193,29 @@ RunningGaitAnalysis _gait({
     touchdownCount: 4,
     toeOffCount: 4,
     validFrameCount: 40,
-    timingConfidence: 0.86,
+    timingConfidence: timingConfidence,
     sideViewConfidence: 0.9,
   );
 }
 
-SprintRealtimeCoachingState _sprintState() {
-  return const SprintRealtimeCoachingState(
+SprintRealtimeCoachingState _sprintState({
+  SprintTrackingReadiness trackingReadiness =
+      SprintTrackingReadiness.readyForAnalysis,
+  bool bodyFullyVisible = true,
+}) {
+  return SprintRealtimeCoachingState(
     status: SprintCoachingStatus.coaching,
-    features: SprintFeatureSnapshot.empty(),
+    features: const SprintFeatureSnapshot.empty(),
     stateEstimate: SprintStateEstimate(
       runningDetected: true,
       accelerationPhaseDetected: true,
       feedbackCooldownActive: false,
-      lowConfidence: false,
-      bodyFullyVisible: true,
-      bodyVisibilityStatus: SprintBodyVisibilityStatus.full,
-      trackingReadiness: SprintTrackingReadiness.readyForAnalysis,
+      lowConfidence: trackingReadiness == SprintTrackingReadiness.lowConfidence,
+      bodyFullyVisible: bodyFullyVisible,
+      bodyVisibilityStatus: bodyFullyVisible
+          ? SprintBodyVisibilityStatus.full
+          : SprintBodyVisibilityStatus.partial,
+      trackingReadiness: trackingReadiness,
       trackingConfidence: 0.9,
       stableFrameCount: 20,
       visibleLandmarkCount: 33,

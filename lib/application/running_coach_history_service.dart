@@ -105,6 +105,8 @@ class RunningCoachHistoryService {
     required SprintRealtimeCoachingState sprintState,
     List<LiveSprintPoseEvidenceFrame> poseEvidence =
         const <LiveSprintPoseEvidenceFrame>[],
+    LiveSprintPoseEvidenceDiagnostic poseEvidenceDiagnostic =
+        const LiveSprintPoseEvidenceDiagnostic.initial(),
   }) async {
     final liveSession = _liveSprintReportService.buildSession(
       sessionId: sessionId,
@@ -114,6 +116,7 @@ class RunningCoachHistoryService {
       runningState: runningState,
       sprintState: sprintState,
       poseEvidence: poseEvidence,
+      poseEvidenceDiagnostic: poseEvidenceDiagnostic,
     );
     final existingSessions = allSessions();
     final next = <RunningCoachSessionAnalysis>[

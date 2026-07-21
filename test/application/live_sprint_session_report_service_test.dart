@@ -23,6 +23,7 @@ void main() {
       runningState: fixture.runningState,
       sprintState: fixture.sprintState,
       poseEvidence: fixture.poseEvidence,
+      poseEvidenceDiagnostic: fixture.poseEvidenceDiagnostic,
     );
 
     expect(session.id, fixture.sessionId);
@@ -39,6 +40,10 @@ void main() {
     expect(report.feedbackCode, SprintFeedbackCode.landUnderHips);
     expect(
         report.poseEvidence.single.phase, LiveSprintPoseEvidencePhase.flight);
+    expect(
+      report.poseEvidenceDiagnostic.dominantBlocker,
+      LiveSprintPoseEvidenceBlocker.stableSideView,
+    );
     expect(report.analysisConfidence, closeTo(0.8, 0.0001));
     expect(
       report.metricFor(LiveSprintMetricKind.cadence)!.value,
@@ -55,6 +60,10 @@ void main() {
     expect(
       restored.liveSprintReport!.poseEvidence.single.quality,
       closeTo(0.84, 0.0001),
+    );
+    expect(
+      restored.liveSprintReport!.poseEvidenceDiagnostic.sideViewBlockedFrames,
+      12,
     );
     expect(
       restored.liveSprintReport!.metricFor(LiveSprintMetricKind.rhythm)!.value,
@@ -75,6 +84,7 @@ void main() {
       runningState: fixture.runningState,
       sprintState: fixture.sprintState,
       poseEvidence: fixture.poseEvidence,
+      poseEvidenceDiagnostic: fixture.poseEvidenceDiagnostic,
     );
 
     expect(saved, hasLength(1));
@@ -88,6 +98,10 @@ void main() {
     expect(
       restored.single.liveSprintReport!.poseEvidence.single.phase,
       LiveSprintPoseEvidencePhase.flight,
+    );
+    expect(
+      restored.single.liveSprintReport!.poseEvidenceDiagnostic.currentBlocker,
+      LiveSprintPoseEvidenceBlocker.stableSideView,
     );
     expect(
       restored.single.liveSprintReport!
@@ -128,6 +142,18 @@ class _LiveSessionFixture {
           ],
         ),
       ];
+
+  LiveSprintPoseEvidenceDiagnostic get poseEvidenceDiagnostic =>
+      const LiveSprintPoseEvidenceDiagnostic(
+        evaluatedFrames: 30,
+        eligibleFrames: 18,
+        capturedPhaseCount: 1,
+        fullBodyBlockedFrames: 3,
+        sideViewBlockedFrames: 12,
+        coreJointsBlockedFrames: 1,
+        gaitPhaseBlockedFrames: 2,
+        currentBlocker: LiveSprintPoseEvidenceBlocker.stableSideView,
+      );
 
   RunningLiveSessionMetricsSnapshot get runningSnapshot =>
       const RunningLiveSessionMetricsSnapshot(
