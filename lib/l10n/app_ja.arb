@@ -5104,6 +5104,43 @@
       }
     }
   },
+  "runningCoachLiveTrendTitle": "スプリントの変化",
+  "runningCoachLiveTrendReadyBody": "直近の安定した {count} セッションと比較しています。",
+  "@runningCoachLiveTrendReadyBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachLiveTrendNeedOneSessionBody": "傾向を作るには、安定したセッションをあと 1 回記録してください。",
+  "runningCoachLiveTrendNeedSessionsBody": "傾向を作るには、安定したセッションをあと {count} 回記録してください。",
+  "@runningCoachLiveTrendNeedSessionsBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachLiveTrendQualityBody": "これらのセッションには、変化を比較するための安定した全身関節データが十分にありません。",
+  "runningCoachLiveTrendImproved": "改善中",
+  "runningCoachLiveTrendSteady": "安定",
+  "runningCoachLiveTrendNeedsAttention": "要注意",
+  "runningCoachLiveTrendComparison": "現在 {current} · 基準 {baseline}",
+  "@runningCoachLiveTrendComparison": {
+    "placeholders": {
+      "current": {},
+      "baseline": {}
+    }
+  },
+  "runningCoachLiveTrendLandingValue": "前方 {value}%",
+  "@runningCoachLiveTrendLandingValue": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
   "runningCoachSprintLiveCardTitle": "ライブスプリントコーチング",
   "runningCoachSprintLiveCardBody": "サイドビュー カメラで全身の捕捉状態を先に確認し、関節信頼度が安定した区間だけ体幹、膝、リズムのキューを表示します。",
   "runningCoachSprintLiveAction": "スプリントコーチングを始める",

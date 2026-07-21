@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:football_note/application/live_sprint_trend_service.dart';
 import 'package:football_note/domain/entities/running_coach_session.dart';
 import 'package:football_note/domain/entities/running_video_analysis_result.dart';
 import 'package:football_note/domain/entities/sprint_realtime_coaching_state.dart';
@@ -100,6 +101,61 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Saved to coaching history'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('shows confidence-gated progress in the live report', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(320, 780));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(
+      _LocalizedHarness(
+        child: RunningLiveSessionResultScreen(
+          session: _session(),
+          trendSummary: const LiveSprintTrendSummary(
+            status: LiveSprintTrendStatus.ready,
+            currentSession: null,
+            liveSessionCount: 3,
+            comparableSessionCount: 3,
+            baselineSessionCount: 2,
+            requiredComparableSessions: 3,
+            metricTrends: <LiveSprintMetricTrend>[
+              LiveSprintMetricTrend(
+                kind: LiveSprintMetricKind.trunkAngle,
+                currentValue: 10,
+                baselineValue: 6,
+                baselineSessionCount: 2,
+                confidence: 0.85,
+                currentTargetGap: 0,
+                baselineTargetGap: 2,
+                signal: LiveSprintTrendSignal.improved,
+              ),
+              LiveSprintMetricTrend(
+                kind: LiveSprintMetricKind.landing,
+                currentValue: 0.44,
+                baselineValue: 0.38,
+                baselineSessionCount: 2,
+                confidence: 0.84,
+                currentTargetGap: 0.08,
+                baselineTargetGap: 0.02,
+                signal: LiveSprintTrendSignal.needsAttention,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey('running-live-session-report-trend')),
+      findsOneWidget,
+    );
+    expect(find.text('Sprint progress'), findsOneWidget);
+    expect(find.text('Improving'), findsOneWidget);
+    expect(find.text('Needs attention'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

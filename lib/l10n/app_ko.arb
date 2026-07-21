@@ -5104,6 +5104,43 @@
       }
     }
   },
+  "runningCoachLiveTrendTitle": "스프린트 변화",
+  "runningCoachLiveTrendReadyBody": "최근 안정적인 세션 {count}회와 비교했어요.",
+  "@runningCoachLiveTrendReadyBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachLiveTrendNeedOneSessionBody": "추세를 만들려면 안정적인 세션을 한 번 더 기록해 주세요.",
+  "runningCoachLiveTrendNeedSessionsBody": "추세를 만들려면 안정적인 세션을 {count}회 더 기록해 주세요.",
+  "@runningCoachLiveTrendNeedSessionsBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachLiveTrendQualityBody": "저장된 세션들 사이에서 변화를 비교할 만큼 안정적인 전신 관절 근거가 부족해요.",
+  "runningCoachLiveTrendImproved": "개선 중",
+  "runningCoachLiveTrendSteady": "유지됨",
+  "runningCoachLiveTrendNeedsAttention": "주의 필요",
+  "runningCoachLiveTrendComparison": "현재 {current} · 기준 {baseline}",
+  "@runningCoachLiveTrendComparison": {
+    "placeholders": {
+      "current": {},
+      "baseline": {}
+    }
+  },
+  "runningCoachLiveTrendLandingValue": "전방 {value}%",
+  "@runningCoachLiveTrendLandingValue": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
   "runningCoachSprintLiveCardTitle": "스프린트 실시간 코칭",
   "runningCoachSprintLiveCardBody": "측면 카메라로 전신 포착 상태를 먼저 확인하고, 관절 신뢰도가 안정된 구간에서만 전경사·무릎·리듬 cue를 알려줘요.",
   "runningCoachSprintLiveAction": "스프린트 코칭 시작",
