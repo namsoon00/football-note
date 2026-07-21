@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
 import '../../application/live_sprint_coaching_service.dart';
+import '../../application/live_sprint_calibration_readiness_service.dart';
 import '../../application/live_sprint_pose_evidence_collector.dart';
 import '../../application/live_sprint_session_report_service.dart';
 import '../../application/live_sprint_trend_service.dart';
@@ -69,6 +70,9 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       LiveSprintCoachingService();
   final LiveSprintTrendService _liveSprintTrendService =
       const LiveSprintTrendService();
+  final LiveSprintCalibrationReadinessService
+      _liveSprintCalibrationReadinessService =
+      const LiveSprintCalibrationReadinessService();
   final RunningLiveSessionMetricsCollector _sessionMetricsCollector =
       RunningLiveSessionMetricsCollector();
   final SprintLiveSessionMetricsCollector _sprintSessionMetricsCollector =
@@ -775,6 +779,11 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
           session: session,
           isPersisted: isPersisted,
           trendSummary: _liveSprintTrendService.build(
+            trendSessions,
+            currentSessionId: session.id,
+          ),
+          calibrationReadinessSummary:
+              _liveSprintCalibrationReadinessService.build(
             trendSessions,
             currentSessionId: session.id,
           ),

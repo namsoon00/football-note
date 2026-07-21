@@ -5233,6 +5233,86 @@
       }
     }
   },
+  "runningCoachCalibrationReadinessTitle": "Calibration repeatability",
+  "runningCoachCalibrationReadinessStatusCurrentNotReady": "Current capture not ready",
+  "runningCoachCalibrationReadinessStatusNeedsMore": "Need more same-profile sessions",
+  "runningCoachCalibrationReadinessStatusVariationReview": "Review variation",
+  "runningCoachCalibrationReadinessStatusReady": "Ready for threshold calibration",
+  "runningCoachCalibrationReadinessBodyCurrentNotReady": "This run is not field-validation-ready yet. Fix the field checks before using it for repeatability.",
+  "runningCoachCalibrationReadinessBodyNeedsMore": "Save at least 3 field-validation-ready sessions with this same profile before threshold calibration.",
+  "runningCoachCalibrationReadinessBodyVariationReview": "Same-profile captures vary too much for paid-quality threshold calibration. Review the checks before tuning.",
+  "runningCoachCalibrationReadinessBodyReady": "This profile has enough repeatable field evidence for threshold calibration.",
+  "runningCoachCalibrationReadinessPrivacyNote": "Uses saved live sprint report counters and joint-evidence summaries only. No camera frames, uploads, or raw video are used; profiles and thresholds are not changed.",
+  "runningCoachCalibrationReadinessScoreValue": "Repeatability {score}%",
+  "@runningCoachCalibrationReadinessScoreValue": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachCalibrationReadinessReadySessionsValue": "Ready {ready}/{required}",
+  "@runningCoachCalibrationReadinessReadySessionsValue": {
+    "placeholders": {
+      "ready": {
+        "type": "int"
+      },
+      "required": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachCalibrationReadinessSameProfileSessionsValue": "Same profile {count}",
+  "@runningCoachCalibrationReadinessSameProfileSessionsValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachCalibrationReadinessChecksTitle": "Compact checks",
+  "runningCoachCalibrationReadinessCheckCurrentFieldValidation": "Current field validation",
+  "runningCoachCalibrationReadinessCheckSameProfileReadySessions": "Same-profile ready sessions",
+  "runningCoachCalibrationReadinessCheckAverageFieldQuality": "Average field quality",
+  "runningCoachCalibrationReadinessCheckTimingVariation": "Timing confidence spread",
+  "runningCoachCalibrationReadinessCheckSideViewVariation": "Side-view confidence spread",
+  "runningCoachCalibrationReadinessCheckTrackingVariation": "Tracking confidence spread",
+  "runningCoachCalibrationReadinessCheckTrackedFrameVariation": "Tracked-frame rate spread",
+  "runningCoachCalibrationReadinessCheckEligiblePoseVariation": "Eligible-pose rate spread",
+  "runningCoachCalibrationReadinessCheckLandingContactVariation": "Landing/contact rate spread",
+  "runningCoachCalibrationReadinessCheckCountValue": "{observed} / required {required}",
+  "@runningCoachCalibrationReadinessCheckCountValue": {
+    "placeholders": {
+      "observed": {
+        "type": "int"
+      },
+      "required": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachCalibrationReadinessCheckPercentValue": "{current}% / target {target}%",
+  "@runningCoachCalibrationReadinessCheckPercentValue": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachCalibrationReadinessCheckPercentMaxValue": "{current}% / max {target}%",
+  "@runningCoachCalibrationReadinessCheckPercentMaxValue": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
   "runningCoachLiveSessionReportQualityTitle": "Analysis quality",
   "runningCoachLiveSessionReportDurationLabel": "Session time",
   "runningCoachLiveSessionReportDurationValue": "{minutes}m {seconds}s",

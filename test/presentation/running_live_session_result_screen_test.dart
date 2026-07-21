@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:football_note/application/live_sprint_calibration_readiness_service.dart';
 import 'package:football_note/application/live_sprint_trend_service.dart';
 import 'package:football_note/domain/entities/running_coach_session.dart';
 import 'package:football_note/domain/entities/running_live_coaching_state.dart';
@@ -33,6 +34,25 @@ void main() {
     expect(find.text('Field validation'), findsOneWidget);
     expect(find.text('Ready for calibration'), findsOneWidget);
     expect(find.text('Profile: Balanced'), findsOneWidget);
+    await _scrollReportUntilVisible(
+      tester,
+      find.byKey(
+        const ValueKey(
+          'running-live-session-report-calibration-readiness',
+        ),
+      ),
+    );
+    expect(
+      find.byKey(
+        const ValueKey(
+          'running-live-session-report-calibration-readiness',
+        ),
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Calibration repeatability'), findsOneWidget);
+    expect(find.text('Need more same-profile sessions'), findsOneWidget);
+    expect(find.text('Ready 1/3'), findsOneWidget);
     await _scrollReportUntilVisible(
       tester,
       find.byKey(const ValueKey('running-live-session-report-focus')),
@@ -149,6 +169,59 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('shows calibration repeatability ready state at narrow width', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(320, 760));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final current = _session(
+      id: 'current',
+      analyzedAt: DateTime(2026, 7, 21, 10, 30),
+    );
+    final summary = const LiveSprintCalibrationReadinessService().build(
+      <RunningCoachSessionAnalysis>[
+        current,
+        _session(
+          id: 'baseline-2',
+          analyzedAt: DateTime(2026, 7, 20, 10, 30),
+        ),
+        _session(
+          id: 'baseline-1',
+          analyzedAt: DateTime(2026, 7, 19, 10, 30),
+        ),
+      ],
+      currentSessionId: 'current',
+    );
+
+    await tester.pumpWidget(
+      _LocalizedHarness(
+        child: RunningLiveSessionResultScreen(
+          session: current,
+          calibrationReadinessSummary: summary,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await _scrollReportUntilVisible(
+      tester,
+      find.text('Ready for threshold calibration'),
+    );
+    expect(
+      find.byKey(
+        const ValueKey(
+          'running-live-session-report-calibration-readiness',
+        ),
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Calibration repeatability'), findsOneWidget);
+    expect(find.text('Ready for threshold calibration'), findsOneWidget);
+    expect(find.text('Ready 3/3'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('shows confidence-gated progress in the live report', (
     tester,
   ) async {
@@ -206,10 +279,13 @@ void main() {
   });
 }
 
-RunningCoachSessionAnalysis _session() {
+RunningCoachSessionAnalysis _session({
+  String id = 'live-report',
+  DateTime? analyzedAt,
+}) {
   return RunningCoachSessionAnalysis(
-    id: 'live-report',
-    analyzedAt: DateTime(2026, 7, 21, 10, 30),
+    id: id,
+    analyzedAt: analyzedAt ?? DateTime(2026, 7, 21, 10, 30),
     source: RunningCoachSessionSource.sprintLive,
     overallScore: 76,
     duration: const Duration(seconds: 18),

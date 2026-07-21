@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../application/live_sprint_calibration_readiness_service.dart';
 import '../../application/live_sprint_field_validation_service.dart';
 import '../../application/live_sprint_trend_service.dart';
 import '../../domain/entities/running_coach_session.dart';
@@ -15,12 +16,14 @@ class RunningLiveSessionResultScreen extends StatelessWidget {
   final RunningCoachSessionAnalysis session;
   final bool isPersisted;
   final LiveSprintTrendSummary? trendSummary;
+  final LiveSprintCalibrationReadinessSummary? calibrationReadinessSummary;
 
   const RunningLiveSessionResultScreen({
     super.key,
     required this.session,
     this.isPersisted = true,
     this.trendSummary,
+    this.calibrationReadinessSummary,
   });
 
   @override
@@ -30,6 +33,13 @@ class RunningLiveSessionResultScreen extends StatelessWidget {
     final fieldValidation = report == null
         ? null
         : const LiveSprintFieldValidationService().build(report);
+    final calibrationReadiness = report == null
+        ? null
+        : calibrationReadinessSummary ??
+            const LiveSprintCalibrationReadinessService().build(
+              <RunningCoachSessionAnalysis>[session],
+              currentSessionId: session.id,
+            );
     final insights = session.insights;
     return Scaffold(
       appBar: AppBar(
@@ -47,6 +57,10 @@ class RunningLiveSessionResultScreen extends StatelessWidget {
           if (fieldValidation != null) ...[
             const SizedBox(height: 16),
             _FieldValidationCard(summary: fieldValidation),
+          ],
+          if (calibrationReadiness != null) ...[
+            const SizedBox(height: 16),
+            _CalibrationReadinessCard(summary: calibrationReadiness),
           ],
           if (trendSummary?.hasLiveSessions == true) ...[
             const SizedBox(height: 16),
@@ -337,6 +351,172 @@ class _FieldValidationCheckRow extends StatelessWidget {
               const SizedBox(height: 2),
               Text(
                 _fieldValidationCheckValue(l10n, check),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _CalibrationReadinessCard extends StatelessWidget {
+  final LiveSprintCalibrationReadinessSummary summary;
+
+  const _CalibrationReadinessCard({required this.summary});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    final statusColor = _calibrationReadinessStatusColor(
+      scheme,
+      summary.status,
+    );
+    final checks = summary.compactChecks;
+    return Card(
+      key: const ValueKey(
+        'running-live-session-report-calibration-readiness',
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.tune_rounded, color: statusColor),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.runningCoachCalibrationReadinessTitle,
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        _calibrationReadinessStatusLabel(
+                          l10n,
+                          summary.status,
+                        ),
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                              color: statusColor,
+                              fontWeight: FontWeight.w800,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 6,
+              children: [
+                _CompactPill(
+                  text: l10n.runningCoachFieldValidationProfileValue(
+                    _calibrationProfileLabel(
+                      l10n,
+                      summary.calibrationProfile,
+                    ),
+                  ),
+                ),
+                _CompactPill(
+                  text: l10n.runningCoachCalibrationReadinessScoreValue(
+                    summary.score,
+                  ),
+                  foreground: statusColor,
+                  background: statusColor.withValues(alpha: 0.12),
+                ),
+                _CompactPill(
+                  text: l10n.runningCoachCalibrationReadinessReadySessionsValue(
+                    summary.readySessionCount,
+                    summary.requiredReadySessionCount,
+                  ),
+                ),
+                _CompactPill(
+                  text: l10n
+                      .runningCoachCalibrationReadinessSameProfileSessionsValue(
+                    summary.sameProfileSessionCount,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              _calibrationReadinessStatusBody(l10n, summary.status),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              l10n.runningCoachCalibrationReadinessPrivacyNote,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                    height: 1.25,
+                  ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              l10n.runningCoachCalibrationReadinessChecksTitle,
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            for (var index = 0; index < checks.length; index += 1) ...[
+              _CalibrationReadinessCheckRow(check: checks[index]),
+              if (index != checks.length - 1) const SizedBox(height: 8),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CalibrationReadinessCheckRow extends StatelessWidget {
+  final LiveSprintCalibrationReadinessCheck check;
+
+  const _CalibrationReadinessCheckRow({required this.check});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          check.passed
+              ? Icons.check_circle_outline_rounded
+              : Icons.radio_button_unchecked_rounded,
+          size: 18,
+          color: check.passed ? scheme.primary : scheme.onSurfaceVariant,
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                _calibrationReadinessCheckLabel(l10n, check.kind),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                _calibrationReadinessCheckValue(l10n, check),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: scheme.onSurfaceVariant,
                     ),
@@ -1017,6 +1197,105 @@ String _fieldValidationCheckValue(
     return l10n.runningCoachFieldValidationPercentMaxValue(current, target);
   }
   return l10n.runningCoachFieldValidationPercentValue(current, target);
+}
+
+String _calibrationReadinessStatusLabel(
+  AppLocalizations l10n,
+  LiveSprintCalibrationReadinessStatus status,
+) {
+  return switch (status) {
+    LiveSprintCalibrationReadinessStatus.currentCaptureNotReady =>
+      l10n.runningCoachCalibrationReadinessStatusCurrentNotReady,
+    LiveSprintCalibrationReadinessStatus.needsMoreSameProfileSessions =>
+      l10n.runningCoachCalibrationReadinessStatusNeedsMore,
+    LiveSprintCalibrationReadinessStatus.needsVariationReview =>
+      l10n.runningCoachCalibrationReadinessStatusVariationReview,
+    LiveSprintCalibrationReadinessStatus.readyForThresholdCalibration =>
+      l10n.runningCoachCalibrationReadinessStatusReady,
+  };
+}
+
+String _calibrationReadinessStatusBody(
+  AppLocalizations l10n,
+  LiveSprintCalibrationReadinessStatus status,
+) {
+  return switch (status) {
+    LiveSprintCalibrationReadinessStatus.currentCaptureNotReady =>
+      l10n.runningCoachCalibrationReadinessBodyCurrentNotReady,
+    LiveSprintCalibrationReadinessStatus.needsMoreSameProfileSessions =>
+      l10n.runningCoachCalibrationReadinessBodyNeedsMore,
+    LiveSprintCalibrationReadinessStatus.needsVariationReview =>
+      l10n.runningCoachCalibrationReadinessBodyVariationReview,
+    LiveSprintCalibrationReadinessStatus.readyForThresholdCalibration =>
+      l10n.runningCoachCalibrationReadinessBodyReady,
+  };
+}
+
+Color _calibrationReadinessStatusColor(
+  ColorScheme scheme,
+  LiveSprintCalibrationReadinessStatus status,
+) {
+  return switch (status) {
+    LiveSprintCalibrationReadinessStatus.readyForThresholdCalibration =>
+      scheme.tertiary,
+    LiveSprintCalibrationReadinessStatus.needsMoreSameProfileSessions ||
+    LiveSprintCalibrationReadinessStatus.needsVariationReview =>
+      scheme.primary,
+    LiveSprintCalibrationReadinessStatus.currentCaptureNotReady => scheme.error,
+  };
+}
+
+String _calibrationReadinessCheckLabel(
+  AppLocalizations l10n,
+  LiveSprintCalibrationReadinessCheckKind kind,
+) {
+  return switch (kind) {
+    LiveSprintCalibrationReadinessCheckKind.currentFieldValidation =>
+      l10n.runningCoachCalibrationReadinessCheckCurrentFieldValidation,
+    LiveSprintCalibrationReadinessCheckKind.sameProfileReadySessions =>
+      l10n.runningCoachCalibrationReadinessCheckSameProfileReadySessions,
+    LiveSprintCalibrationReadinessCheckKind.averageFieldQuality =>
+      l10n.runningCoachCalibrationReadinessCheckAverageFieldQuality,
+    LiveSprintCalibrationReadinessCheckKind.timingConfidenceVariation =>
+      l10n.runningCoachCalibrationReadinessCheckTimingVariation,
+    LiveSprintCalibrationReadinessCheckKind.sideViewConfidenceVariation =>
+      l10n.runningCoachCalibrationReadinessCheckSideViewVariation,
+    LiveSprintCalibrationReadinessCheckKind.trackingConfidenceVariation =>
+      l10n.runningCoachCalibrationReadinessCheckTrackingVariation,
+    LiveSprintCalibrationReadinessCheckKind.trackedFrameRateVariation =>
+      l10n.runningCoachCalibrationReadinessCheckTrackedFrameVariation,
+    LiveSprintCalibrationReadinessCheckKind.eligiblePoseRateVariation =>
+      l10n.runningCoachCalibrationReadinessCheckEligiblePoseVariation,
+    LiveSprintCalibrationReadinessCheckKind.landingContactRateVariation =>
+      l10n.runningCoachCalibrationReadinessCheckLandingContactVariation,
+  };
+}
+
+String _calibrationReadinessCheckValue(
+  AppLocalizations l10n,
+  LiveSprintCalibrationReadinessCheck check,
+) {
+  final observedCount = check.observedCount;
+  final requiredCount = check.requiredCount;
+  if (observedCount != null && requiredCount != null) {
+    return l10n.runningCoachCalibrationReadinessCheckCountValue(
+      observedCount,
+      requiredCount,
+    );
+  }
+
+  final current = (check.value * 100).round();
+  final target = (check.target * 100).round();
+  if (check.lowerIsBetter) {
+    return l10n.runningCoachCalibrationReadinessCheckPercentMaxValue(
+      current,
+      target,
+    );
+  }
+  return l10n.runningCoachCalibrationReadinessCheckPercentValue(
+    current,
+    target,
+  );
 }
 
 String _calibrationProfileLabel(

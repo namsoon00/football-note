@@ -9071,6 +9071,117 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get runningCoachCalibrationReadinessTitle => '보정 반복 준비도';
+
+  @override
+  String get runningCoachCalibrationReadinessStatusCurrentNotReady =>
+      '현재 캡처 준비 안 됨';
+
+  @override
+  String get runningCoachCalibrationReadinessStatusNeedsMore =>
+      '같은 프로필 세션 더 필요';
+
+  @override
+  String get runningCoachCalibrationReadinessStatusVariationReview =>
+      '변동 리뷰 필요';
+
+  @override
+  String get runningCoachCalibrationReadinessStatusReady => '임계값 보정 준비됨';
+
+  @override
+  String get runningCoachCalibrationReadinessBodyCurrentNotReady =>
+      '이 기록은 아직 현장 검증 준비가 되지 않았어요. 반복성에 쓰기 전에 현장 확인을 먼저 고쳐 주세요.';
+
+  @override
+  String get runningCoachCalibrationReadinessBodyNeedsMore =>
+      '임계값 보정 전에 같은 프로필로 현장 검증 준비가 된 세션을 최소 3개 저장해 주세요.';
+
+  @override
+  String get runningCoachCalibrationReadinessBodyVariationReview =>
+      '같은 프로필의 캡처 변동이 유료 품질 임계값 보정에 쓰기에는 커요. 조정 전에 확인 항목을 검토해 주세요.';
+
+  @override
+  String get runningCoachCalibrationReadinessBodyReady =>
+      '이 프로필은 임계값 보정에 쓸 반복 가능한 현장 근거가 충분해요.';
+
+  @override
+  String get runningCoachCalibrationReadinessPrivacyNote =>
+      '저장된 실시간 스프린트 리포트 카운터와 관절 근거 요약만 사용합니다. 카메라 프레임, 업로드, 원본 영상은 사용하지 않으며 프로필과 임계값은 변경하지 않습니다.';
+
+  @override
+  String runningCoachCalibrationReadinessScoreValue(int score) {
+    return '반복성 $score%';
+  }
+
+  @override
+  String runningCoachCalibrationReadinessReadySessionsValue(
+      int ready, int required) {
+    return '준비 $ready/$required';
+  }
+
+  @override
+  String runningCoachCalibrationReadinessSameProfileSessionsValue(int count) {
+    return '같은 프로필 $count';
+  }
+
+  @override
+  String get runningCoachCalibrationReadinessChecksTitle => '간단 확인';
+
+  @override
+  String get runningCoachCalibrationReadinessCheckCurrentFieldValidation =>
+      '현재 현장 검증';
+
+  @override
+  String get runningCoachCalibrationReadinessCheckSameProfileReadySessions =>
+      '같은 프로필 준비 세션';
+
+  @override
+  String get runningCoachCalibrationReadinessCheckAverageFieldQuality =>
+      '평균 현장 품질';
+
+  @override
+  String get runningCoachCalibrationReadinessCheckTimingVariation =>
+      '타이밍 신뢰도 변동';
+
+  @override
+  String get runningCoachCalibrationReadinessCheckSideViewVariation =>
+      '측면 신뢰도 변동';
+
+  @override
+  String get runningCoachCalibrationReadinessCheckTrackingVariation =>
+      '트래킹 신뢰도 변동';
+
+  @override
+  String get runningCoachCalibrationReadinessCheckTrackedFrameVariation =>
+      '추적 프레임 비율 변동';
+
+  @override
+  String get runningCoachCalibrationReadinessCheckEligiblePoseVariation =>
+      '적격 자세 비율 변동';
+
+  @override
+  String get runningCoachCalibrationReadinessCheckLandingContactVariation =>
+      '착지/접촉 비율 변동';
+
+  @override
+  String runningCoachCalibrationReadinessCheckCountValue(
+      int observed, int required) {
+    return '$observed / 필요 $required';
+  }
+
+  @override
+  String runningCoachCalibrationReadinessCheckPercentValue(
+      int current, int target) {
+    return '$current% / 목표 $target%';
+  }
+
+  @override
+  String runningCoachCalibrationReadinessCheckPercentMaxValue(
+      int current, int target) {
+    return '$current% / 최대 $target%';
+  }
+
+  @override
   String get runningCoachLiveSessionReportQualityTitle => '분석 품질';
 
   @override
