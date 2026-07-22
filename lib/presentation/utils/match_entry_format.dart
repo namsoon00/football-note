@@ -79,6 +79,10 @@ List<String> matchCompetitionDetailParts(
     if (stage.isNotEmpty) {
       parts.add(matchTournamentStageLabel(l10n, stage));
     }
+    final shootout = matchTournamentShootoutLabel(entry, l10n);
+    if (shootout != null) {
+      parts.add(shootout);
+    }
     final outcome = entry.tournamentOutcome.trim();
     if (outcome.isNotEmpty) {
       parts.add(matchTournamentOutcomeLabel(l10n, outcome));
@@ -92,4 +96,15 @@ List<String> matchCompetitionDetailParts(
   }
 
   return parts;
+}
+
+String? matchTournamentShootoutLabel(
+  TrainingEntry entry,
+  AppLocalizations l10n,
+) {
+  if (!entry.hasPenaltyShootout) return null;
+  return l10n.matchTournamentShootoutSummary(
+    entry.penaltyShootoutGoalsFor!,
+    entry.penaltyShootoutGoalsAgainst!,
+  );
 }

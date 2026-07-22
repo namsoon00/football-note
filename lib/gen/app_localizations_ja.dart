@@ -12807,6 +12807,25 @@ class AppLocalizationsJa extends AppLocalizations {
   String get matchTournamentOutcomeChampion => '優勝';
 
   @override
+  String get matchTournamentShootoutTitle => 'PK戦';
+
+  @override
+  String get matchTournamentShootoutHelper =>
+      'トーナメント戦が引き分けの場合は、PK戦のスコアで勝ち上がるチームを決めます。';
+
+  @override
+  String get matchTournamentShootoutRequired =>
+      '引き分けのトーナメント戦は、PK戦のスコアで勝者を決めてください。';
+
+  @override
+  String get matchTournamentShootoutTie => 'PK戦のスコアは同点にできません。';
+
+  @override
+  String matchTournamentShootoutSummary(int homeScore, int awayScore) {
+    return 'PK戦 $homeScore : $awayScore';
+  }
+
+  @override
   String get matchOpponentTeamLabel => '相手チーム';
 
   @override

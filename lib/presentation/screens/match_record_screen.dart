@@ -62,6 +62,8 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
   late List<String> _teams;
   late int? _ourScore;
   late int? _opponentScore;
+  late int? _penaltyShootoutGoalsFor;
+  late int? _penaltyShootoutGoalsAgainst;
   late int? _playerGoals;
   late int? _playerAssists;
   late int? _shotsOnTarget;
@@ -143,6 +145,8 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
         MatchCompetitionService.normalizeTeams(entry?.leagueTeamNames ?? []);
     _ourScore = entry?.scoredGoals;
     _opponentScore = entry?.concededGoals;
+    _penaltyShootoutGoalsFor = entry?.penaltyShootoutGoalsFor;
+    _penaltyShootoutGoalsAgainst = entry?.penaltyShootoutGoalsAgainst;
     _playerGoals = entry?.playerGoals;
     _playerAssists = entry?.playerAssists;
     _shotsOnTarget = entry?.shotsOnTarget;
@@ -388,18 +392,46 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
             if (value != null && _opponentScore == null) {
               _opponentScore = 0;
             }
+            _clearTournamentShootoutIfNotRequired();
           }),
           onAwayScoreChanged: (value) => _updateAndScheduleAutoSave(() {
             _opponentScore = value;
             if (value != null && _ourScore == null) {
               _ourScore = 0;
             }
+            _clearTournamentShootoutIfNotRequired();
           }),
         ),
         if (_showValidationErrors &&
             (_ourScore == null || _opponentScore == null)) ...[
           const SizedBox(height: AppSpacing.xs),
           _RequiredFieldError(text: l10n.matchScoreRequired),
+        ],
+        if (_requiresTournamentShootout) ...[
+          const SizedBox(height: AppSpacing.sm),
+          _TournamentShootoutScoreboard(
+            title: l10n.matchTournamentShootoutTitle,
+            helper: l10n.matchTournamentShootoutHelper,
+            homeLabel: managedTeamName,
+            awayLabel: _opponent.trim().isEmpty
+                ? l10n.matchOpponentTeamLabel
+                : _opponent.trim(),
+            homeScore: _penaltyShootoutGoalsFor,
+            awayScore: _penaltyShootoutGoalsAgainst,
+            onHomeScoreChanged: (value) => _updateAndScheduleAutoSave(
+              () => _penaltyShootoutGoalsFor = value,
+            ),
+            onAwayScoreChanged: (value) => _updateAndScheduleAutoSave(
+              () => _penaltyShootoutGoalsAgainst = value,
+            ),
+          ),
+          if (_showValidationErrors &&
+              _tournamentShootoutValidationMessage(l10n) != null) ...[
+            const SizedBox(height: AppSpacing.xs),
+            _RequiredFieldError(
+              text: _tournamentShootoutValidationMessage(l10n)!,
+            ),
+          ],
         ],
         const SizedBox(height: AppSpacing.sm),
         _ResultChoiceStrip(
@@ -586,6 +618,8 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
                 _selectedCompetitionId = '';
                 _teams = const <String>[];
                 _opponent = '';
+                _penaltyShootoutGoalsFor = null;
+                _penaltyShootoutGoalsAgainst = null;
                 _opponentController.clear();
               });
             },
@@ -995,6 +1029,11 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
     if (scored == null || conceded == null) return _resultUnset;
     if (scored > conceded) return _resultWin;
     if (scored < conceded) return _resultLoss;
+    if (_hasDecisiveTournamentShootout) {
+      return _penaltyShootoutGoalsFor! > _penaltyShootoutGoalsAgainst!
+          ? _resultWin
+          : _resultLoss;
+    }
     return _resultDraw;
   }
 
@@ -1013,6 +1052,7 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
         _ourScore = null;
         _opponentScore = null;
     }
+    _clearTournamentShootoutIfNotRequired();
   }
 
   int? _calculatedLeaguePoints() {
@@ -1025,16 +1065,45 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
   }
 
   int? _calculatedTournamentWins() {
-    final scored = _ourScore;
-    final conceded = _opponentScore;
-    if (scored != null && conceded != null) {
-      return scored > conceded ? 1 : 0;
+    final result = _matchResultValue();
+    if (result != _resultUnset) {
+      return result == _resultWin ? 1 : 0;
     }
     return switch (normalizeMatchTournamentOutcome(_tournamentOutcome)) {
       'advanced' || 'champion' => 1,
       'eliminated' => 0,
       _ => null,
     };
+  }
+
+  bool get _requiresTournamentShootout =>
+      _matchKind == MatchCompetitionRecord.kindTournament &&
+      _ourScore != null &&
+      _opponentScore != null &&
+      _ourScore == _opponentScore;
+
+  bool get _hasDecisiveTournamentShootout =>
+      _requiresTournamentShootout &&
+      _penaltyShootoutGoalsFor != null &&
+      _penaltyShootoutGoalsAgainst != null &&
+      _penaltyShootoutGoalsFor != _penaltyShootoutGoalsAgainst;
+
+  void _clearTournamentShootoutIfNotRequired() {
+    if (_requiresTournamentShootout) return;
+    _penaltyShootoutGoalsFor = null;
+    _penaltyShootoutGoalsAgainst = null;
+  }
+
+  String? _tournamentShootoutValidationMessage(AppLocalizations l10n) {
+    if (!_requiresTournamentShootout) return null;
+    if (_penaltyShootoutGoalsFor == null ||
+        _penaltyShootoutGoalsAgainst == null) {
+      return l10n.matchTournamentShootoutRequired;
+    }
+    if (_penaltyShootoutGoalsFor == _penaltyShootoutGoalsAgainst) {
+      return l10n.matchTournamentShootoutTie;
+    }
+    return null;
   }
 
   Future<void> _saveMatch({bool closeAfterSave = true}) async {
@@ -1055,7 +1124,12 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
             selectedCompetition.kind == _matchKind &&
             selectedCompetition.name.trim().isNotEmpty);
     final hasCompleteScore = _ourScore != null && _opponentScore != null;
-    if (!hasValidCompetition || opponent.isEmpty || !hasCompleteScore) {
+    final shootoutValidationMessage =
+        hasCompleteScore ? _tournamentShootoutValidationMessage(l10n) : null;
+    if (!hasValidCompetition ||
+        opponent.isEmpty ||
+        !hasCompleteScore ||
+        shootoutValidationMessage != null) {
       if (closeAfterSave) {
         setState(() => _showValidationErrors = true);
         AppFeedback.showMessage(
@@ -1064,7 +1138,9 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
               ? l10n.matchCompetitionSelectionRequired
               : opponent.isEmpty
                   ? l10n.matchOpponentRequired
-                  : l10n.matchScoreRequired,
+                  : !hasCompleteScore
+                      ? l10n.matchScoreRequired
+                      : shootoutValidationMessage!,
         );
       }
       return;
@@ -1105,6 +1181,10 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
       createdAt: previousEntry?.createdAt,
       scoredGoals: _ourScore,
       concededGoals: _opponentScore,
+      penaltyShootoutGoalsFor:
+          _requiresTournamentShootout ? _penaltyShootoutGoalsFor : null,
+      penaltyShootoutGoalsAgainst:
+          _requiresTournamentShootout ? _penaltyShootoutGoalsAgainst : null,
       playerGoals: _playerGoals,
       playerAssists: _playerAssists,
       shotsOnTarget: _shotsOnTarget,
@@ -1746,6 +1826,97 @@ class _LiveScoreboard extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+class _TournamentShootoutScoreboard extends StatelessWidget {
+  final String title;
+  final String helper;
+  final String homeLabel;
+  final String awayLabel;
+  final int? homeScore;
+  final int? awayScore;
+  final ValueChanged<int?> onHomeScoreChanged;
+  final ValueChanged<int?> onAwayScoreChanged;
+
+  const _TournamentShootoutScoreboard({
+    required this.title,
+    required this.helper,
+    required this.homeLabel,
+    required this.awayLabel,
+    required this.homeScore,
+    required this.awayScore,
+    required this.onHomeScoreChanged,
+    required this.onAwayScoreChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.sports_soccer_rounded, size: 18, color: scheme.primary),
+            const SizedBox(width: AppSpacing.xs),
+            Text(
+              title,
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.xxs),
+        Text(
+          helper,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: scheme.onSurfaceVariant,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Row(
+          children: [
+            Expanded(
+              child: _ScorePanel(
+                label: homeLabel,
+                value: homeScore,
+                accent: scheme.primary,
+                increaseKey: const ValueKey<String>(
+                  'match-board-penalty-home-increase',
+                ),
+                decreaseKey: const ValueKey<String>(
+                  'match-board-penalty-home-decrease',
+                ),
+                onChanged: onHomeScoreChanged,
+              ),
+            ),
+            _ScoreSeparator(
+              vertical: true,
+              homeScore: homeScore,
+              awayScore: awayScore,
+            ),
+            Expanded(
+              child: _ScorePanel(
+                label: awayLabel,
+                value: awayScore,
+                accent: scheme.tertiary,
+                increaseKey: const ValueKey<String>(
+                  'match-board-penalty-away-increase',
+                ),
+                decreaseKey: const ValueKey<String>(
+                  'match-board-penalty-away-decrease',
+                ),
+                onChanged: onAwayScoreChanged,
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

@@ -7324,6 +7324,21 @@
   "matchTournamentOutcomeAdvanced": "다음 라운드 진출",
   "matchTournamentOutcomeEliminated": "탈락",
   "matchTournamentOutcomeChampion": "우승",
+  "matchTournamentShootoutTitle": "승부차기",
+  "matchTournamentShootoutHelper": "토너먼트가 무승부면 승부차기 점수로 진출 팀을 확정하세요.",
+  "matchTournamentShootoutRequired": "토너먼트 무승부는 승부차기 점수로 승자를 정하세요.",
+  "matchTournamentShootoutTie": "승부차기 점수는 같을 수 없어요.",
+  "matchTournamentShootoutSummary": "승부차기 {homeScore} : {awayScore}",
+  "@matchTournamentShootoutSummary": {
+    "placeholders": {
+      "homeScore": {
+        "type": "int"
+      },
+      "awayScore": {
+        "type": "int"
+      }
+    }
+  },
   "matchOpponentTeamLabel": "상대 팀",
   "matchOpponentTeamHint": "예) 수원 U15",
   "matchOpponentRequired": "상대 팀을 선택하거나 입력하세요.",

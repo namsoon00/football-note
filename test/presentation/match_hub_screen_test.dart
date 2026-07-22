@@ -1205,6 +1205,124 @@ void main() {
     expect(entry.tournamentWins, 1);
   });
 
+  testWidgets('Tournament draw requires a decisive penalty shootout', (
+    tester,
+  ) async {
+    await MatchCompetitionService(optionRepository).upsertCompetition(
+      MatchCompetitionRecord.create(
+        kind: MatchCompetitionRecord.kindTournament,
+        name: '승부차기 컵',
+        teams: const ['서울 U15', '수원 U15'],
+      ),
+    );
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en'),
+            Locale('ko', 'KR'),
+            Locale('ja'),
+          ],
+          home: MatchRecordScreen(
+            trainingService: trainingService,
+            localeService: localeService,
+            optionRepository: optionRepository,
+            settingsService: settingsService,
+            initialDate: DateTime(2026, 7, 15),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('토너먼트'));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey<String>('match-saved-competition-loader')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('승부차기 컵 · 진행 중').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('수원 U15').first);
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey<String>('match-board-our-score-increase')),
+    );
+    await tester.tap(
+      find.byKey(
+        const ValueKey<String>('match-board-opponent-score-increase'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('승부차기'), findsOneWidget);
+    await tester.ensureVisible(find.text('저장'));
+    await tester.tap(find.text('저장'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('토너먼트 무승부는 승부차기 점수로 승자를 정하세요.'),
+      findsWidgets,
+    );
+    expect(trainingRepository.entries, isEmpty);
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(
+      find.byKey(
+        const ValueKey<String>('match-board-penalty-home-increase'),
+      ),
+    );
+    for (var count = 0; count < 4; count += 1) {
+      await tester.tap(
+        find.byKey(
+          const ValueKey<String>('match-board-penalty-home-increase'),
+        ),
+      );
+      await tester.pump();
+    }
+    for (var count = 0; count < 3; count += 1) {
+      await tester.tap(
+        find.byKey(
+          const ValueKey<String>('match-board-penalty-away-increase'),
+        ),
+      );
+      await tester.pump();
+    }
+    await tester.pumpAndSettle();
+    await tester.fling(
+      find.byType(SingleChildScrollView),
+      const Offset(0, -1200),
+      1200,
+    );
+    await tester.pumpAndSettle();
+    final saveButton = find.widgetWithText(FilledButton, '저장');
+    await tester.ensureVisible(saveButton);
+    await tester.tap(saveButton);
+    await tester.pump(const Duration(seconds: 1));
+    expect(
+      find.text('토너먼트 무승부는 승부차기 점수로 승자를 정하세요.'),
+      findsNothing,
+    );
+    expect(find.text('승부차기 점수는 같을 수 없어요.'), findsNothing);
+
+    final entry = trainingRepository.entries.single;
+    expect(entry.scoredGoals, 1);
+    expect(entry.concededGoals, 1);
+    expect(entry.penaltyShootoutGoalsFor, 4);
+    expect(entry.penaltyShootoutGoalsAgainst, 3);
+    expect(entry.resolvedMatchOutcome, 1);
+    expect(entry.tournamentWins, 1);
+  });
+
   testWidgets('Team management screen saves a roster and pitch assignment', (
     tester,
   ) async {

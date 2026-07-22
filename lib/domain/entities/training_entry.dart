@@ -199,6 +199,12 @@ class TrainingEntry extends HiveObject {
   @HiveField(70)
   final int? redCards;
 
+  @HiveField(71)
+  final int? penaltyShootoutGoalsFor;
+
+  @HiveField(72)
+  final int? penaltyShootoutGoalsAgainst;
+
   TrainingEntry({
     required this.date,
     required this.durationMinutes,
@@ -264,6 +270,8 @@ class TrainingEntry extends HiveObject {
     this.lessonDetail = '',
     this.yellowCards,
     this.redCards,
+    this.penaltyShootoutGoalsFor,
+    this.penaltyShootoutGoalsAgainst,
     String sportId = SportCatalog.defaultSportId,
   })  : sportId = SportCatalog.normalizeSportId(sportId),
         createdAt = createdAt ?? DateTime.now();
@@ -286,13 +294,34 @@ class TrainingEntry extends HiveObject {
       shotsOnTarget != null ||
       ballsWon != null ||
       yellowCards != null ||
-      redCards != null;
+      redCards != null ||
+      penaltyShootoutGoalsFor != null ||
+      penaltyShootoutGoalsAgainst != null;
 
   bool get isTournamentMatch =>
       matchKind == 'tournament' ||
       (matchKind == 'league' && leagueResultMode == 'tournamentWins');
 
   bool get isLeagueMatch => matchKind == 'league' && !isTournamentMatch;
+
+  bool get hasPenaltyShootout =>
+      penaltyShootoutGoalsFor != null && penaltyShootoutGoalsAgainst != null;
+
+  bool get hasDecisivePenaltyShootout =>
+      hasPenaltyShootout &&
+      penaltyShootoutGoalsFor != penaltyShootoutGoalsAgainst;
+
+  int? get resolvedMatchOutcome {
+    final scored = scoredGoals;
+    final conceded = concededGoals;
+    if (scored == null || conceded == null) return null;
+    if (scored > conceded) return 1;
+    if (scored < conceded) return -1;
+    if (isTournamentMatch && hasDecisivePenaltyShootout) {
+      return penaltyShootoutGoalsFor! > penaltyShootoutGoalsAgainst! ? 1 : -1;
+    }
+    return 0;
+  }
 
   Map<String, int> get effectiveTrainingProgramMinutes {
     final normalized = _normalizeProgramMinutes(trainingProgramMinutes);
@@ -419,13 +448,15 @@ class TrainingEntryAdapter extends TypeAdapter<TrainingEntry> {
       lessonDetail: (fields[68] as String?) ?? '',
       yellowCards: (fields[69] as num?)?.toInt(),
       redCards: (fields[70] as num?)?.toInt(),
+      penaltyShootoutGoalsFor: (fields[71] as num?)?.toInt(),
+      penaltyShootoutGoalsAgainst: (fields[72] as num?)?.toInt(),
     );
   }
 
   @override
   void write(BinaryWriter writer, TrainingEntry obj) {
     writer
-      ..writeByte(65)
+      ..writeByte(67)
       ..writeByte(0)
       ..write(obj.date)
       ..writeByte(1)
@@ -555,7 +586,11 @@ class TrainingEntryAdapter extends TypeAdapter<TrainingEntry> {
       ..writeByte(69)
       ..write(obj.yellowCards)
       ..writeByte(70)
-      ..write(obj.redCards);
+      ..write(obj.redCards)
+      ..writeByte(71)
+      ..write(obj.penaltyShootoutGoalsFor)
+      ..writeByte(72)
+      ..write(obj.penaltyShootoutGoalsAgainst);
   }
 
   Map<String, int> _readProgramMinutes(Object? raw) {

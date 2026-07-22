@@ -7324,6 +7324,21 @@
   "matchTournamentOutcomeAdvanced": "Advanced",
   "matchTournamentOutcomeEliminated": "Eliminated",
   "matchTournamentOutcomeChampion": "Champion",
+  "matchTournamentShootoutTitle": "Penalty shootout",
+  "matchTournamentShootoutHelper": "When a tournament match is level, use the shootout score to decide who advances.",
+  "matchTournamentShootoutRequired": "A drawn tournament match needs a penalty shootout score to decide the winner.",
+  "matchTournamentShootoutTie": "Penalty shootout scores cannot be level.",
+  "matchTournamentShootoutSummary": "Penalty shootout {homeScore} : {awayScore}",
+  "@matchTournamentShootoutSummary": {
+    "placeholders": {
+      "homeScore": {
+        "type": "int"
+      },
+      "awayScore": {
+        "type": "int"
+      }
+    }
+  },
   "matchOpponentTeamLabel": "Opponent team",
   "matchOpponentTeamHint": "e.g. Suwon U15",
   "matchOpponentRequired": "Select or enter an opponent team.",
