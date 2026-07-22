@@ -26,6 +26,18 @@ const _sampleMistakeVideoAssetForTest =
 void main() {
   late VideoPlayerPlatform previousVideoPlayerPlatform;
 
+  test('target guide illustration assets are bundled', () async {
+    const guideAssets = <String>[
+      'assets/images/running_guides/target_posture.png',
+      'assets/images/running_guides/target_landing.png',
+    ];
+
+    for (final asset in guideAssets) {
+      final bytes = await rootBundle.load(asset);
+      expect(bytes.lengthInBytes, greaterThan(100000));
+    }
+  });
+
   setUp(() {
     previousVideoPlayerPlatform = VideoPlayerPlatform.instance;
     VideoPlayerPlatform.instance = _FakeVideoPlayerPlatform();
