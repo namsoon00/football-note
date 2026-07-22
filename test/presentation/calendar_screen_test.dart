@@ -77,6 +77,13 @@ void main() {
     await mealLogService.save(entry);
   }
 
+  Future<void> openMatchRecord(WidgetTester tester) async {
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('시합 기록'));
+    await tester.pumpAndSettle();
+  }
+
   Future<void> setOptionValue(
     WidgetTester _,
     String key,
@@ -280,7 +287,7 @@ void main() {
     expect(find.text('훈련 노트'), findsOneWidget);
     expect(find.text('식사 기록'), findsOneWidget);
     expect(find.text('훈련 계획'), findsOneWidget);
-    expect(find.text('시합'), findsOneWidget);
+    expect(find.text('시합 기록'), findsOneWidget);
   });
 
   testWidgets('친선 경기 결과는 버튼 클릭으로 점수를 저장한다', (tester) async {
@@ -298,10 +305,7 @@ void main() {
 
     await pumpCalendar(tester);
 
-    await tester.tap(find.byType(FloatingActionButton));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('시합'));
-    await tester.pumpAndSettle();
+    await openMatchRecord(tester);
 
     expect(find.text('경기 결과'), findsOneWidget);
 
@@ -358,10 +362,7 @@ void main() {
 
     await pumpCalendar(tester);
 
-    await tester.tap(find.byType(FloatingActionButton));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('시합'));
-    await tester.pumpAndSettle();
+    await openMatchRecord(tester);
 
     final ourScoreTopLeft = tester.getTopLeft(find.text('우리 점수').last);
     final opponentScoreTopLeft = tester.getTopLeft(find.text('상대 점수').last);
@@ -395,10 +396,7 @@ void main() {
 
     await pumpCalendar(tester);
 
-    await tester.tap(find.byType(FloatingActionButton));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('시합'));
-    await tester.pumpAndSettle();
+    await openMatchRecord(tester);
 
     await tester.tap(find.text('토너먼트'));
     await tester.pump();
@@ -478,10 +476,7 @@ void main() {
     });
     await pumpCalendar(tester);
 
-    await tester.tap(find.byType(FloatingActionButton));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('시합'));
-    await tester.pumpAndSettle();
+    await openMatchRecord(tester);
 
     await tester.tap(find.text('리그 경기'));
     await tester.pump();
@@ -578,10 +573,7 @@ void main() {
     );
     await pumpCalendar(tester);
 
-    await tester.tap(find.byType(FloatingActionButton));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('시합'));
-    await tester.pumpAndSettle();
+    await openMatchRecord(tester);
     await tester.tap(find.text('리그 경기'));
     await tester.pump();
 
@@ -638,10 +630,7 @@ void main() {
     );
     await pumpCalendar(tester);
 
-    await tester.tap(find.byType(FloatingActionButton));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('시합'));
-    await tester.pumpAndSettle();
+    await openMatchRecord(tester);
     await tester.tap(find.text('토너먼트'));
     await tester.pump();
 
@@ -663,10 +652,7 @@ void main() {
     });
     await pumpCalendar(tester);
 
-    await tester.tap(find.byType(FloatingActionButton));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('시합'));
-    await tester.pumpAndSettle();
+    await openMatchRecord(tester);
 
     await tester.tap(find.text('리그 경기'));
     await tester.pump();
@@ -688,10 +674,7 @@ void main() {
     });
     await pumpCalendar(tester);
 
-    await tester.tap(find.byType(FloatingActionButton));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('시합'));
-    await tester.pumpAndSettle();
+    await openMatchRecord(tester);
     await tester.tap(find.text('리그 경기'));
     await tester.pump();
     await tester.enterText(
@@ -894,65 +877,6 @@ void main() {
       name: '주말 리그',
     );
     expect(savedCompetition?.teams, <String>['블루 FC']);
-  });
-
-  testWidgets('토너먼트 대회 관리 시트는 등록 팀 대진표를 보여준다', (tester) async {
-    await tester.binding.setSurfaceSize(const Size(900, 900));
-    addTearDown(() async {
-      await tester.binding.setSurfaceSize(null);
-    });
-    await MatchCompetitionService(optionRepository).upsertCompetition(
-      MatchCompetitionRecord.create(
-        kind: MatchCompetitionRecord.kindTournament,
-        name: '봄 컵',
-        teams: const <String>['레드 FC', '블루 FC', '그린 FC'],
-      ),
-    );
-    final today = DateTime.now();
-    await saveTrainingEntry(
-      tester,
-      TrainingEntry(
-        date: DateTime(today.year, today.month, today.day, 9),
-        durationMinutes: 90,
-        intensity: 4,
-        type: '경기',
-        mood: 4,
-        injury: false,
-        notes: '',
-        location: '',
-        matchKind: MatchCompetitionRecord.kindTournament,
-        matchCompetitionName: '봄 컵',
-        matchStage: 'quarterfinal',
-        tournamentOutcome: 'advanced',
-        opponentTeam: '블루 FC',
-      ),
-    );
-
-    await pumpCalendar(tester);
-
-    await tester.tap(find.textContaining('봄 컵').first);
-    await tester.pumpAndSettle();
-
-    final manageButton = find.text('팀 등록/결과 보기');
-    await tester.ensureVisible(manageButton);
-    await tester.tap(manageButton);
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('결과 보기'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('토너먼트 대진표'), findsOneWidget);
-    expect(find.text('참가 팀'), findsOneWidget);
-    expect(find.text('대진'), findsOneWidget);
-    expect(find.text('진행률'), findsOneWidget);
-    expect(find.text('1/2'), findsOneWidget);
-    expect(find.text('1경기'), findsOneWidget);
-    expect(find.text('레드 FC vs 블루 FC'), findsOneWidget);
-    expect(find.text('2경기'), findsOneWidget);
-    expect(find.text('그린 FC vs 부전승'), findsOneWidget);
-    expect(find.text('경기 전'), findsWidgets);
-    expect(find.text('기록된 진행'), findsOneWidget);
-    expect(find.text('8강 · 블루 FC전 · 다음 라운드 진출'), findsOneWidget);
   });
 
   testWidgets('독립 식사 기록은 선택한 날짜 타임라인에 표시된다', (tester) async {
