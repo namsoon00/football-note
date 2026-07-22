@@ -15521,6 +15521,42 @@ abstract class AppLocalizations {
   /// **'Colored lines mark the joints used for this coaching point. The original video is unchanged.'**
   String get runningCoachEvidenceOverlayBody;
 
+  /// No description provided for @runningCoachEvidenceCurrentOverlayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Current joints on your video'**
+  String get runningCoachEvidenceCurrentOverlayTitle;
+
+  /// No description provided for @runningCoachEvidenceCurrentOverlayBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The red joints show your current posture detected in this evidence frame.'**
+  String get runningCoachEvidenceCurrentOverlayBody;
+
+  /// No description provided for @runningCoachEvidenceTransitionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'From current to next'**
+  String get runningCoachEvidenceTransitionTitle;
+
+  /// No description provided for @runningCoachEvidenceTransitionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The blue target is the direction to use on your next step, not a pose drawn over the video.'**
+  String get runningCoachEvidenceTransitionBody;
+
+  /// No description provided for @runningCoachEvidenceCurrentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Current'**
+  String get runningCoachEvidenceCurrentLabel;
+
+  /// No description provided for @runningCoachEvidenceNextLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get runningCoachEvidenceNextLabel;
+
   /// No description provided for @runningCoachEvidenceWhatSeenBody.
   ///
   /// In en, this message translates to:

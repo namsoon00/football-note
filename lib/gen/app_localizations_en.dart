@@ -8873,6 +8873,27 @@ class AppLocalizationsEn extends AppLocalizations {
       'Colored lines mark the joints used for this coaching point. The original video is unchanged.';
 
   @override
+  String get runningCoachEvidenceCurrentOverlayTitle =>
+      'Current joints on your video';
+
+  @override
+  String get runningCoachEvidenceCurrentOverlayBody =>
+      'The red joints show your current posture detected in this evidence frame.';
+
+  @override
+  String get runningCoachEvidenceTransitionTitle => 'From current to next';
+
+  @override
+  String get runningCoachEvidenceTransitionBody =>
+      'The blue target is the direction to use on your next step, not a pose drawn over the video.';
+
+  @override
+  String get runningCoachEvidenceCurrentLabel => 'Current';
+
+  @override
+  String get runningCoachEvidenceNextLabel => 'Next';
+
+  @override
   String runningCoachEvidenceWhatSeenBody(Object metric, Object time) {
     return '$metric at $time in your clip.';
   }

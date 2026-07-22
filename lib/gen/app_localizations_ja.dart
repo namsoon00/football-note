@@ -8645,6 +8645,26 @@ class AppLocalizationsJa extends AppLocalizations {
       '色の線はこのコーチング項目に使った関節を示します。元の動画は変更されません。';
 
   @override
+  String get runningCoachEvidenceCurrentOverlayTitle => '実際の動画上の現在の関節';
+
+  @override
+  String get runningCoachEvidenceCurrentOverlayBody =>
+      '赤い関節は、この根拠フレームで検出された現在の姿勢です。';
+
+  @override
+  String get runningCoachEvidenceTransitionTitle => '現在から次へ';
+
+  @override
+  String get runningCoachEvidenceTransitionBody =>
+      '青い目標は動画に重ねた姿勢ではなく、次の一歩で合わせる方向です。';
+
+  @override
+  String get runningCoachEvidenceCurrentLabel => '現在';
+
+  @override
+  String get runningCoachEvidenceNextLabel => '次';
+
+  @override
   String runningCoachEvidenceWhatSeenBody(Object metric, Object time) {
     return '自分のクリップ $time の $metric です。';
   }

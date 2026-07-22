@@ -1123,10 +1123,29 @@ void main() {
     );
     expect(
       find.text(
-        'Colored lines mark the joints used for this coaching point. The original video is unchanged.',
+        'The red joints show your current posture detected in this evidence frame.',
       ),
       findsOneWidget,
     );
+    expect(
+      find.text('Current joints on your video'),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('running-coach-evidence-pose-transition')),
+      findsOneWidget,
+    );
+    expect(find.text('From current to next'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('running-coach-evidence-current-state')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('running-coach-evidence-next-state')),
+      findsOneWidget,
+    );
+    expect(find.text('Current'), findsOneWidget);
+    expect(find.text('Next'), findsOneWidget);
     expect(find.text('Evidence 1/2'), findsOneWidget);
     expect(tester.takeException(), isNull);
 
@@ -1198,13 +1217,7 @@ void main() {
         'running-coach-target-guide-artwork-${report.primaryFocus!.metric.name}',
       ),
     );
-    expect(targetGuideArtwork, findsOneWidget);
-    final targetGuideImage = tester.widget<Image>(targetGuideArtwork);
-    expect(targetGuideImage.image, isA<AssetImage>());
-    expect(
-      (targetGuideImage.image as AssetImage).assetName,
-      'assets/images/running_guides/target_landing.png',
-    );
+    expect(targetGuideArtwork, findsNothing);
     expect(tester.takeException(), isNull);
   });
 
