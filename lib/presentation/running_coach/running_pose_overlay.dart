@@ -6,11 +6,12 @@ import '../../domain/entities/running_video_analysis_result.dart';
 const double runningPoseOverlayMinimumJointConfidence = 0.18;
 const double runningPoseOverlayMinimumConnectionConfidence = 0.24;
 
+enum RunningPoseOverlayPresentation { refinedJoints, sportsAvatar }
+
 /// Visual styling for an anatomical pose layer derived from MediaPipe joints.
 ///
-/// The geometry follows measured landmarks. Optional colors distinguish a
-/// generic sports avatar from a skeleton without implying the runner's real
-/// appearance when a limb is occluded or only partially detected.
+/// The default presentation is a refined biomechanical joint layer. It only
+/// joins measured landmarks, so it does not infer a runner's body shape.
 class RunningPoseHumanFormStyle {
   final Color bodyColor;
   final Color leftSideColor;
@@ -22,6 +23,7 @@ class RunningPoseHumanFormStyle {
   final Color? shortsColor;
   final Color? shoeColor;
   final Color? hairColor;
+  final RunningPoseOverlayPresentation presentation;
   final double opacity;
 
   const RunningPoseHumanFormStyle({
@@ -35,6 +37,7 @@ class RunningPoseHumanFormStyle {
     this.shortsColor,
     this.shoeColor,
     this.hairColor,
+    this.presentation = RunningPoseOverlayPresentation.refinedJoints,
     this.opacity = 1,
   });
 
@@ -45,7 +48,7 @@ class RunningPoseHumanFormStyle {
   Color get resolvedHairColor => hairColor ?? leftSideColor;
 }
 
-/// Paints a lightweight human-form overlay from MediaPipe's measured points.
+/// Paints a refined joint overlay from MediaPipe's measured points.
 ///
 /// The map uses MediaPipe landmark indices. Missing points simply omit the
 /// affected body part so the drawing never implies a pose the camera did not
@@ -62,6 +65,18 @@ void paintRunningPoseHumanForm(
   final bodyScale = _humanBodyScale(points, canvasSize);
   final opacity = style.opacity.clamp(0.0, 1.0).toDouble();
   if (opacity <= 0) return;
+
+  if (style.presentation == RunningPoseOverlayPresentation.refinedJoints) {
+    _drawRefinedJointOverlay(
+      canvas,
+      points,
+      bodyScale,
+      style,
+      opacity,
+      focusIndices,
+    );
+    return;
+  }
 
   // Each contour begins and ends at measured joints. The larger, rearward
   // masses are painted first to keep the overlay readable without inventing
@@ -105,6 +120,298 @@ void paintRunningPoseHumanForm(
     opacity,
     focusIndices,
   );
+}
+
+void _drawRefinedJointOverlay(
+  Canvas canvas,
+  Map<int, Offset> points,
+  double bodyScale,
+  RunningPoseHumanFormStyle style,
+  double opacity,
+  Set<int> focusIndices,
+) {
+  _drawRefinedJointTorso(canvas, points, bodyScale, style, opacity);
+  for (final connection in _refinedJointConnections) {
+    final from = points[connection.from];
+    final to = points[connection.to];
+    if (from == null || to == null) continue;
+    final accentColor = switch (connection.side) {
+      _HumanPoseSide.left => style.leftSideColor,
+      _HumanPoseSide.right => style.rightSideColor,
+    };
+    _drawRefinedJointStroke(
+      canvas,
+      from: from,
+      to: to,
+      bodyScale: bodyScale,
+      style: style,
+      opacity: opacity,
+      accentColor: accentColor,
+      weight: connection.weight,
+      isFocused: focusIndices.contains(connection.from) &&
+          focusIndices.contains(connection.to),
+    );
+  }
+  _drawRefinedJointHead(canvas, points, bodyScale, style, opacity);
+  _drawRefinedJointNodes(
+    canvas,
+    points,
+    bodyScale,
+    style,
+    opacity,
+    focusIndices,
+  );
+}
+
+void _drawRefinedJointTorso(
+  Canvas canvas,
+  Map<int, Offset> points,
+  double bodyScale,
+  RunningPoseHumanFormStyle style,
+  double opacity,
+) {
+  final leftShoulder = points[11];
+  final rightShoulder = points[12];
+  final leftHip = points[23];
+  final rightHip = points[24];
+  if (leftShoulder == null ||
+      rightShoulder == null ||
+      leftHip == null ||
+      rightHip == null) {
+    return;
+  }
+
+  final shoulderCenter = _humanMidpoint(leftShoulder, rightShoulder);
+  final hipCenter = _humanMidpoint(leftHip, rightHip);
+  final frame = Path()
+    ..moveTo(leftShoulder.dx, leftShoulder.dy)
+    ..lineTo(rightShoulder.dx, rightShoulder.dy)
+    ..lineTo(rightHip.dx, rightHip.dy)
+    ..lineTo(leftHip.dx, leftHip.dy)
+    ..close();
+  canvas.drawPath(
+    frame,
+    Paint()
+      ..color = style.bodyColor.withValues(alpha: 0.055 * opacity)
+      ..style = PaintingStyle.fill,
+  );
+  canvas.drawPath(
+    frame,
+    Paint()
+      ..color = style.bodyColor.withValues(alpha: 0.24 * opacity)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = (bodyScale * 0.007).clamp(0.65, 1.6)
+      ..strokeJoin = StrokeJoin.round,
+  );
+  _drawRefinedJointStroke(
+    canvas,
+    from: leftShoulder,
+    to: rightShoulder,
+    bodyScale: bodyScale,
+    style: style,
+    opacity: opacity,
+    accentColor: style.bodyColor,
+    weight: 0.58,
+  );
+  _drawRefinedJointStroke(
+    canvas,
+    from: leftHip,
+    to: rightHip,
+    bodyScale: bodyScale,
+    style: style,
+    opacity: opacity,
+    accentColor: style.bodyColor,
+    weight: 0.60,
+  );
+  _drawRefinedJointStroke(
+    canvas,
+    from: shoulderCenter,
+    to: hipCenter,
+    bodyScale: bodyScale,
+    style: style,
+    opacity: opacity,
+    accentColor: style.bodyColor,
+    weight: 0.52,
+  );
+}
+
+void _drawRefinedJointStroke(
+  Canvas canvas, {
+  required Offset from,
+  required Offset to,
+  required double bodyScale,
+  required RunningPoseHumanFormStyle style,
+  required double opacity,
+  required Color accentColor,
+  required double weight,
+  bool isFocused = false,
+}) {
+  if ((to - from).distance < 1) return;
+  final width = (bodyScale * 0.050 * weight).clamp(2.3, 13.0).toDouble();
+  final guideColor = isFocused ? style.focusColor : accentColor;
+  canvas.drawLine(
+    from,
+    to,
+    Paint()
+      ..color = style.bodyColor.withValues(alpha: 0.24 * opacity)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = width * 1.92
+      ..strokeCap = StrokeCap.round,
+  );
+  canvas.drawLine(
+    from,
+    to,
+    Paint()
+      ..color = guideColor.withValues(alpha: 0.76 * opacity)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = width
+      ..strokeCap = StrokeCap.round,
+  );
+  canvas.drawLine(
+    from,
+    to,
+    Paint()
+      ..color = style.jointColor.withValues(alpha: 0.66 * opacity)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(0.8, width * 0.24)
+      ..strokeCap = StrokeCap.round,
+  );
+}
+
+void _drawRefinedJointHead(
+  Canvas canvas,
+  Map<int, Offset> points,
+  double bodyScale,
+  RunningPoseHumanFormStyle style,
+  double opacity,
+) {
+  final nose = points[0];
+  final leftEar = points[7];
+  final rightEar = points[8];
+  final leftShoulder = points[11];
+  final rightShoulder = points[12];
+  final shoulderCenter = leftShoulder != null && rightShoulder != null
+      ? _humanMidpoint(leftShoulder, rightShoulder)
+      : null;
+  final earCenter = leftEar != null && rightEar != null
+      ? _humanMidpoint(leftEar, rightEar)
+      : null;
+  final anchor = earCenter ?? nose ?? leftEar ?? rightEar;
+  if (anchor == null) return;
+
+  final earSpan = leftEar != null && rightEar != null
+      ? (leftEar - rightEar).distance * 1.42
+      : 0.0;
+  final headWidth = earSpan > 0
+      ? earSpan.clamp(bodyScale * 0.18, bodyScale * 0.34).toDouble()
+      : (bodyScale * 0.24).clamp(14.0, 48.0).toDouble();
+  final headHeight = headWidth * 1.30;
+  final rawAxis =
+      shoulderCenter == null ? const Offset(0, -1) : anchor - shoulderCenter;
+  final headAxis = _humanUnitVector(rawAxis);
+  final rawDistance = rawAxis.distance;
+  final maxCenterDistance = math.max(headHeight * 0.74, bodyScale * 0.29);
+  final center = shoulderCenter != null && rawDistance > maxCenterDistance
+      ? shoulderCenter + _humanScale(headAxis, maxCenterDistance)
+      : anchor;
+
+  if (shoulderCenter != null) {
+    final neckTop = center - _humanScale(headAxis, headHeight * 0.40);
+    _drawRefinedJointStroke(
+      canvas,
+      from: shoulderCenter,
+      to: neckTop,
+      bodyScale: bodyScale,
+      style: style,
+      opacity: opacity,
+      accentColor: style.bodyColor,
+      weight: 0.48,
+    );
+  }
+
+  final rotation = math.atan2(headAxis.dx, -headAxis.dy);
+  canvas.save();
+  canvas.translate(center.dx, center.dy);
+  canvas.rotate(rotation);
+  final headRect = Rect.fromCenter(
+    center: Offset.zero,
+    width: headWidth,
+    height: headHeight,
+  );
+  canvas.drawOval(
+    headRect,
+    Paint()
+      ..color = style.bodyColor.withValues(alpha: 0.075 * opacity)
+      ..style = PaintingStyle.fill,
+  );
+  canvas.drawOval(
+    headRect,
+    Paint()
+      ..color = style.bodyColor.withValues(alpha: 0.82 * opacity)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = (bodyScale * 0.010).clamp(0.9, 2.1),
+  );
+  final innerRect = headRect.deflate((bodyScale * 0.020).clamp(1.2, 4.0));
+  canvas.drawOval(
+    innerRect,
+    Paint()
+      ..color = style.jointColor.withValues(alpha: 0.46 * opacity)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = (bodyScale * 0.0045).clamp(0.45, 1.0),
+  );
+  canvas.restore();
+}
+
+void _drawRefinedJointNodes(
+  Canvas canvas,
+  Map<int, Offset> points,
+  double bodyScale,
+  RunningPoseHumanFormStyle style,
+  double opacity,
+  Set<int> focusIndices,
+) {
+  for (final node in _refinedJointNodes) {
+    final point = points[node.index];
+    if (point == null) continue;
+    final accentColor = switch (node.side) {
+      _HumanPoseSide.left => style.leftSideColor,
+      _HumanPoseSide.right => style.rightSideColor,
+    };
+    final focused = focusIndices.contains(node.index);
+    final radius =
+        (bodyScale * 0.023 * node.radiusFactor).clamp(2.0, 7.0).toDouble();
+    canvas.drawCircle(
+      point,
+      radius * 1.62,
+      Paint()
+        ..color = (focused ? style.focusColor : style.bodyColor)
+            .withValues(alpha: 0.17 * opacity)
+        ..style = PaintingStyle.fill,
+    );
+    canvas.drawCircle(
+      point,
+      radius,
+      Paint()
+        ..color = style.bodyColor.withValues(alpha: 0.82 * opacity)
+        ..style = PaintingStyle.fill,
+    );
+    canvas.drawCircle(
+      point,
+      radius,
+      Paint()
+        ..color = (focused ? style.focusColor : accentColor)
+            .withValues(alpha: 0.96 * opacity)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = (bodyScale * 0.0055).clamp(0.55, 1.4),
+    );
+    canvas.drawCircle(
+      point,
+      radius * 0.34,
+      Paint()
+        ..color = style.jointColor.withValues(alpha: 0.96 * opacity)
+        ..style = PaintingStyle.fill,
+    );
+  }
 }
 
 void _drawHumanTorso(
@@ -1090,6 +1397,57 @@ class _HumanFoot {
 
   const _HumanFoot(this.ankle, this.heel, this.toe, this.side);
 }
+
+class _RefinedJointConnection {
+  final int from;
+  final int to;
+  final _HumanPoseSide side;
+  final double weight;
+
+  const _RefinedJointConnection(this.from, this.to, this.side, this.weight);
+}
+
+class _RefinedJointNode {
+  final int index;
+  final _HumanPoseSide side;
+  final double radiusFactor;
+
+  const _RefinedJointNode(this.index, this.side, this.radiusFactor);
+}
+
+const _refinedJointConnections = <_RefinedJointConnection>[
+  _RefinedJointConnection(11, 13, _HumanPoseSide.left, 0.76),
+  _RefinedJointConnection(13, 15, _HumanPoseSide.left, 0.64),
+  _RefinedJointConnection(12, 14, _HumanPoseSide.right, 0.76),
+  _RefinedJointConnection(14, 16, _HumanPoseSide.right, 0.64),
+  _RefinedJointConnection(23, 25, _HumanPoseSide.left, 0.96),
+  _RefinedJointConnection(25, 27, _HumanPoseSide.left, 0.82),
+  _RefinedJointConnection(24, 26, _HumanPoseSide.right, 0.96),
+  _RefinedJointConnection(26, 28, _HumanPoseSide.right, 0.82),
+  _RefinedJointConnection(27, 29, _HumanPoseSide.left, 0.48),
+  _RefinedJointConnection(29, 31, _HumanPoseSide.left, 0.48),
+  _RefinedJointConnection(28, 30, _HumanPoseSide.right, 0.48),
+  _RefinedJointConnection(30, 32, _HumanPoseSide.right, 0.48),
+];
+
+const _refinedJointNodes = <_RefinedJointNode>[
+  _RefinedJointNode(11, _HumanPoseSide.left, 1.16),
+  _RefinedJointNode(12, _HumanPoseSide.right, 1.16),
+  _RefinedJointNode(13, _HumanPoseSide.left, 0.94),
+  _RefinedJointNode(14, _HumanPoseSide.right, 0.94),
+  _RefinedJointNode(15, _HumanPoseSide.left, 0.70),
+  _RefinedJointNode(16, _HumanPoseSide.right, 0.70),
+  _RefinedJointNode(23, _HumanPoseSide.left, 1.18),
+  _RefinedJointNode(24, _HumanPoseSide.right, 1.18),
+  _RefinedJointNode(25, _HumanPoseSide.left, 1.02),
+  _RefinedJointNode(26, _HumanPoseSide.right, 1.02),
+  _RefinedJointNode(27, _HumanPoseSide.left, 0.88),
+  _RefinedJointNode(28, _HumanPoseSide.right, 0.88),
+  _RefinedJointNode(29, _HumanPoseSide.left, 0.52),
+  _RefinedJointNode(30, _HumanPoseSide.right, 0.52),
+  _RefinedJointNode(31, _HumanPoseSide.left, 0.58),
+  _RefinedJointNode(32, _HumanPoseSide.right, 0.58),
+];
 
 const _humanArmSegments = <_HumanLimbSegment>[
   _HumanLimbSegment(
