@@ -1247,10 +1247,13 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(TeamManagementScreen), findsOneWidget);
-    expect(find.text('운영 현황'), findsOneWidget);
+    expect(find.text('우리 팀'), findsOneWidget);
     expect(find.text('선수관리'), findsOneWidget);
     expect(find.text('시합관리'), findsOneWidget);
-    expect(find.widgetWithText(TextButton, '대회 관리'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey<String>('team-header-competition')),
+      findsOneWidget,
+    );
 
     await tester.tap(find.byIcon(Icons.arrow_back).last);
     await tester.pump();

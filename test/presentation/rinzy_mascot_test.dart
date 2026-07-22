@@ -60,7 +60,7 @@ void main() {
       findsOneWidget,
     );
     expect(
-      find.byKey(const ValueKey('challenge-rinzy-cheer-sticks')),
+      find.byKey(const ValueKey('challenge-rinzy-cheer-pom-poms')),
       findsOneWidget,
     );
     expect(find.byType(Image), findsOneWidget);

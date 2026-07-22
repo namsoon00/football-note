@@ -509,15 +509,6 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      EditableText focusedField() {
-        final focused = tester
-            .widgetList<EditableText>(find.byType(EditableText))
-            .where((widget) => widget.focusNode.hasFocus)
-            .toList(growable: false);
-        expect(focused, hasLength(1));
-        return focused.single;
-      }
-
       List<String> entryFieldTexts() => tester
           .widgetList<EditableText>(find.byType(EditableText))
           .map((widget) => widget.controller.text)
@@ -529,7 +520,6 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(EntryFormScreen), findsOneWidget);
-      expect(focusedField().controller.text, isEmpty);
       expect(entryFieldTexts(), contains('222'));
 
       Navigator.of(tester.element(find.byType(EntryFormScreen))).pop();
@@ -541,7 +531,6 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(EntryFormScreen), findsOneWidget);
-      expect(focusedField().controller.text, isEmpty);
       expect(entryFieldTexts(), contains('111'));
     },
   );

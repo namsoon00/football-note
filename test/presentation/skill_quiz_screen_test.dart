@@ -27,13 +27,11 @@ void main() {
       expect(find.text('오늘의 퀴즈'), findsOneWidget);
       expect(find.text('오늘의 문제'), findsOneWidget);
       expect(find.byTooltip('퀴즈 모드 선택'), findsNothing);
-      expect(find.widgetWithText(OutlinedButton, '문제'), findsOneWidget);
-      expect(find.widgetWithText(OutlinedButton, '기록'), findsOneWidget);
+      expect(find.byTooltip('문제'), findsOneWidget);
+      expect(find.byTooltip('기록'), findsOneWidget);
       expect(find.text('챌린지 모드'), findsOneWidget);
-      expect(find.text('문제'), findsOneWidget);
-      expect(find.text('기록'), findsOneWidget);
 
-      await tester.tap(find.widgetWithText(OutlinedButton, '문제'));
+      await tester.tap(find.byTooltip('문제'));
       await tester.pumpAndSettle();
 
       expect(find.text('코치용 퀴즈 라이브러리'), findsOneWidget);
@@ -43,7 +41,7 @@ void main() {
       await tester.tap(find.byType(BackButton));
       await tester.pumpAndSettle();
 
-      expect(find.widgetWithText(OutlinedButton, '기록'), findsOneWidget);
+      expect(find.byTooltip('기록'), findsOneWidget);
       expect(find.text('오늘의 문제'), findsOneWidget);
     },
   );
@@ -63,7 +61,7 @@ void main() {
       );
       await tester.pump();
 
-      await tester.tap(find.widgetWithText(OutlinedButton, '문제'));
+      await tester.tap(find.byTooltip('문제'));
       await tester.pumpAndSettle();
 
       await tester.enterText(find.byType(TextField), '쥘 리메');
@@ -89,7 +87,7 @@ void main() {
     );
     await tester.pump();
 
-    await tester.tap(find.widgetWithText(OutlinedButton, '문제'));
+    await tester.tap(find.byTooltip('문제'));
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField), '보스만 판결');
@@ -121,7 +119,7 @@ void main() {
         ),
       );
       await tester.pump();
-      await tester.tap(find.widgetWithText(OutlinedButton, '문제'));
+      await tester.tap(find.byTooltip('문제'));
       await tester.pumpAndSettle();
     }
 
@@ -172,7 +170,7 @@ void main() {
         ),
       );
       await tester.pump();
-      await tester.tap(find.widgetWithText(OutlinedButton, '문제'));
+      await tester.tap(find.byTooltip('문제'));
       await tester.pumpAndSettle();
     }
 
@@ -224,7 +222,7 @@ void main() {
     );
     await tester.pump();
 
-    await tester.tap(find.widgetWithText(OutlinedButton, '문제'));
+    await tester.tap(find.byTooltip('문제'));
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField), '글리코겐');
@@ -251,7 +249,7 @@ void main() {
     );
     await tester.pump();
 
-    await tester.tap(find.widgetWithText(OutlinedButton, '문제'));
+    await tester.tap(find.byTooltip('문제'));
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField), '4-2-3-1');
@@ -278,7 +276,7 @@ void main() {
     );
     await tester.pump();
 
-    await tester.tap(find.widgetWithText(OutlinedButton, '문제'));
+    await tester.tap(find.byTooltip('문제'));
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField), '커버 섀도');
@@ -305,7 +303,7 @@ void main() {
     );
     await tester.pump();
 
-    await tester.tap(find.widgetWithText(OutlinedButton, '문제'));
+    await tester.tap(find.byTooltip('문제'));
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField), '해트트릭');
@@ -621,7 +619,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.widgetWithText(OutlinedButton, '문제'));
+      await tester.tap(find.byTooltip('문제'));
       await tester.pumpAndSettle();
 
       await tester.enterText(find.byType(TextField), '지원 각도');
@@ -888,7 +886,7 @@ void main() {
     );
     await tester.pump();
 
-    await tester.tap(find.widgetWithText(OutlinedButton, '기록'));
+    await tester.tap(find.byTooltip('기록'));
     await tester.pumpAndSettle();
 
     expect(find.text('퀴즈 히스토리'), findsWidgets);
@@ -928,7 +926,7 @@ void main() {
     expect(find.text('오늘의 문제'), findsOneWidget);
     expect(find.textContaining('진행 '), findsNothing);
 
-    await tester.tap(find.widgetWithText(OutlinedButton, '문제'));
+    await tester.tap(find.byTooltip('문제'));
     await tester.pumpAndSettle();
 
     expect(find.text('코치용 퀴즈 라이브러리'), findsOneWidget);
