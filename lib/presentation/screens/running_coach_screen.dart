@@ -7061,21 +7061,32 @@ class _PoseMovementLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, size: 18, color: color),
-        const SizedBox(width: 6),
-        Expanded(
-          child: Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
-          ),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withValues(alpha: 0.42)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+        child: Row(
+          children: [
+            Icon(icon, size: 18, color: color),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: color,
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }
@@ -7115,8 +7126,7 @@ class _MeasuredPoseMovementMapPainter extends CustomPainter {
       canvas,
       size,
       actualPoints,
-      focusColor: actualAccent,
-      baseColor: mutedColor,
+      currentAccent: actualAccent,
     );
     _drawMovementMap(canvas, panel, actualPoints);
   }
@@ -7205,19 +7215,22 @@ class _MeasuredPoseMovementMapPainter extends CustomPainter {
     Canvas canvas,
     Size size,
     Map<int, Offset> points, {
-    required Color focusColor,
-    required Color baseColor,
+    required Color currentAccent,
   }) {
     paintRunningPoseHumanForm(
       canvas,
       points: points,
       canvasSize: size,
       style: RunningPoseHumanFormStyle(
-        bodyColor: const Color(0xFFC7D8F3),
-        leftSideColor: baseColor,
-        rightSideColor: baseColor,
+        bodyColor: Color.lerp(
+          currentAccent,
+          const Color(0xFFF8FBFF),
+          0.48,
+        )!,
+        leftSideColor: currentAccent,
+        rightSideColor: currentAccent,
         jointColor: const Color(0xFFF8FBFF),
-        focusColor: focusColor,
+        focusColor: currentAccent,
       ),
     );
   }
@@ -7278,7 +7291,7 @@ class _MeasuredPoseMovementMapPainter extends CustomPainter {
       targetFan,
       Paint()..color = targetAccent.withValues(alpha: 0.12),
     );
-    canvas.drawLine(torso.hip, targetShoulder, targetPaint);
+    _drawDashedLine(canvas, torso.hip, targetShoulder, targetPaint);
     _drawArc(
       canvas,
       torso.hip,
@@ -7635,35 +7648,48 @@ class _MeasuredPoseMovementMapPainter extends CustomPainter {
   void _drawCurrentDot(Canvas canvas, Offset point) {
     canvas.drawCircle(
       point,
-      6.4,
-      Paint()..color = actualAccent.withValues(alpha: 0.16),
+      7.2,
+      Paint()..color = actualAccent.withValues(alpha: 0.18),
     );
     canvas.drawCircle(
       point,
-      3.9,
-      Paint()
-        ..color = actualAccent
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.7,
+      4.2,
+      Paint()..color = actualAccent.withValues(alpha: 0.94),
     );
-    canvas.drawCircle(point, 1.8, Paint()..color = actualAccent);
+    canvas.drawCircle(
+      point,
+      1.45,
+      Paint()..color = const Color(0xFFF8FBFF),
+    );
   }
 
   void _drawTargetDot(Canvas canvas, Offset point) {
     canvas.drawCircle(
       point,
-      7.6,
+      8.6,
       Paint()..color = targetAccent.withValues(alpha: 0.14),
     );
-    canvas.drawCircle(
-      point,
-      4.7,
+    canvas.save();
+    canvas.translate(point.dx, point.dy);
+    canvas.rotate(math.pi / 4);
+    final targetShape = RRect.fromRectAndRadius(
+      Rect.fromCenter(center: Offset.zero, width: 9.5, height: 9.5),
+      const Radius.circular(1.6),
+    );
+    canvas.drawRRect(
+      targetShape,
+      Paint()
+        ..color = targetAccent.withValues(alpha: 0.12)
+        ..style = PaintingStyle.fill,
+    );
+    canvas.drawRRect(
+      targetShape,
       Paint()
         ..color = targetAccent
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.8,
     );
-    canvas.drawCircle(point, 1.9, Paint()..color = targetAccent);
+    canvas.restore();
   }
 
   void _drawDirectionalArrow(
