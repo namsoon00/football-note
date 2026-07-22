@@ -1097,16 +1097,23 @@ void main() {
           .height,
       lessThanOrEqualTo(320),
     );
+    expect(
+      find.byKey(const ValueKey('running-coach-analysis-evidence-caption')),
+      findsOneWidget,
+    );
+    expect(
+      find.text(
+        'Colored lines mark the joints used for this coaching point. The original video is unchanged.',
+      ),
+      findsOneWidget,
+    );
     expect(find.text('Evidence 1/2'), findsOneWidget);
     expect(tester.takeException(), isNull);
 
     final nextEvidence = find.byKey(
       const ValueKey('running-coach-evidence-next'),
     );
-    await tester.drag(
-      find.byType(Scrollable).first,
-      const Offset(0, -260),
-    );
+    await tester.ensureVisible(nextEvidence);
     await tester.pump();
     expect(tester.widget<IconButton>(nextEvidence).onPressed, isNotNull);
     await tester.tap(nextEvidence);
@@ -1114,6 +1121,43 @@ void main() {
 
     expect(find.text('Evidence 2/2'), findsOneWidget);
     expect(find.text('What I saw'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    final measuredPoseDiagram = find.byKey(
+      ValueKey(
+        'running-coach-insight-evidence-diagram-${report.primaryFocus!.metric.name}',
+      ),
+    );
+    for (var scrollStep = 0; scrollStep < 24; scrollStep += 1) {
+      if (measuredPoseDiagram.evaluate().isNotEmpty) break;
+      await tester.drag(
+        find.byType(Scrollable).first,
+        const Offset(0, -360),
+      );
+      await tester.pump(const Duration(milliseconds: 120));
+    }
+    expect(measuredPoseDiagram, findsOneWidget);
+    expect(
+      find.descendant(
+        of: measuredPoseDiagram,
+        matching: find.text('Measured pose and target'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: measuredPoseDiagram,
+        matching: find.text('Your measured pose'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: measuredPoseDiagram,
+        matching: find.text('Target direction'),
+      ),
+      findsOneWidget,
+    );
     expect(tester.takeException(), isNull);
   });
 

@@ -4978,6 +4978,7 @@
     }
   },
   "runningCoachEvidenceWhatSeenLabel": "What I saw",
+  "runningCoachEvidenceOverlayBody": "Colored lines mark the joints used for this coaching point. The original video is unchanged.",
   "runningCoachEvidenceWhatSeenBody": "{metric} at {time} in your clip.",
   "@runningCoachEvidenceWhatSeenBody": {
     "placeholders": {
@@ -4990,6 +4991,8 @@
   "runningCoachEvidenceRetakeLabel": "Retake setup",
   "runningCoachEvidenceRetakeBody": "Record from the side with the whole body and both feet visible. Keep the phone still for a few clean steps.",
   "runningCoachEvidenceQualityLimitedBadge": "Evidence limited",
+  "runningCoachEvidenceQualityStableBadge": "Body tracking stable",
+  "runningCoachEvidenceQualityCheckBadge": "Tracking needs review",
   "runningCoachEvidenceReasonLowConfidence": "The body points moved or blurred too much for a confident read.",
   "runningCoachEvidenceReasonLimitedFrames": "There were too few stable frames for this metric.",
   "runningCoachEvidenceReasonMissingPoseFrames": "No analyzed pose frames were saved for this clip.",
@@ -6027,6 +6030,11 @@
   "runningCoachAnalysisGuideFindingLabel": "Why it was flagged",
   "runningCoachAnalysisGuideCueLabel": "Action cue",
   "runningCoachAnalysisGuideDrillLabel": "Recommended drill",
+  "runningCoachMeasuredPoseTitle": "Measured pose and target",
+  "runningCoachMeasuredPoseBody": "The left image uses joints from your video. The right image shows the direction to aim for.",
+  "runningCoachMeasuredPoseActualLabel": "Your measured pose",
+  "runningCoachMeasuredPoseTargetLabel": "Target direction",
+  "runningCoachMeasuredPoseFootnote": "The target is a guide, not a simulated replacement of your body.",
   "runningCoachGuideRangePosture": "Goal: slight forward lean, without bending at the waist",
   "runningCoachGuideRangeBounce": "Goal: quick steps with little up-down motion",
   "runningCoachGuideRangeFootStrike": "Goal: foot lands close under the hips",

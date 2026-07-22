@@ -8641,6 +8641,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachEvidenceWhatSeenLabel => '見えたこと';
 
   @override
+  String get runningCoachEvidenceOverlayBody =>
+      '色の線はこのコーチング項目に使った関節を示します。元の動画は変更されません。';
+
+  @override
   String runningCoachEvidenceWhatSeenBody(Object metric, Object time) {
     return '自分のクリップ $time の $metric です。';
   }
@@ -8660,6 +8664,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachEvidenceQualityLimitedBadge => '根拠不足';
+
+  @override
+  String get runningCoachEvidenceQualityStableBadge => '関節トラッキングは安定';
+
+  @override
+  String get runningCoachEvidenceQualityCheckBadge => '関節トラッキングを確認';
 
   @override
   String get runningCoachEvidenceReasonLowConfidence =>
@@ -10146,6 +10156,22 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachAnalysisGuideDrillLabel => 'おすすめドリル';
+
+  @override
+  String get runningCoachMeasuredPoseTitle => '測定した姿勢と目標方向';
+
+  @override
+  String get runningCoachMeasuredPoseBody => '左は自分の動画から読み取った関節、右は目標にする方向です。';
+
+  @override
+  String get runningCoachMeasuredPoseActualLabel => '自分の測定姿勢';
+
+  @override
+  String get runningCoachMeasuredPoseTargetLabel => '目標方向';
+
+  @override
+  String get runningCoachMeasuredPoseFootnote =>
+      '右側は体を置き換えるシミュレーションではなく、次に目指す方向のガイドです。';
 
   @override
   String get runningCoachGuideRangePosture => '目標: 腰を折らずに少し前へ傾く';

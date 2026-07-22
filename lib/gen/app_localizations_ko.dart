@@ -8649,6 +8649,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachEvidenceWhatSeenLabel => '본 내용';
 
   @override
+  String get runningCoachEvidenceOverlayBody =>
+      '색 선은 이 코칭 포인트에 사용한 관절을 표시합니다. 원본 영상은 바뀌지 않습니다.';
+
+  @override
   String runningCoachEvidenceWhatSeenBody(Object metric, Object time) {
     return '내 클립 $time의 $metric입니다.';
   }
@@ -8668,6 +8672,12 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachEvidenceQualityLimitedBadge => '근거 부족';
+
+  @override
+  String get runningCoachEvidenceQualityStableBadge => '관절 추적 안정적';
+
+  @override
+  String get runningCoachEvidenceQualityCheckBadge => '관절 추적 확인 필요';
 
   @override
   String get runningCoachEvidenceReasonLowConfidence =>
@@ -10159,6 +10169,23 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachAnalysisGuideDrillLabel => '추천 드릴';
+
+  @override
+  String get runningCoachMeasuredPoseTitle => '내 자세와 목표 방향';
+
+  @override
+  String get runningCoachMeasuredPoseBody =>
+      '왼쪽은 내 영상에서 읽은 관절이고, 오른쪽은 바꿔 갈 방향입니다.';
+
+  @override
+  String get runningCoachMeasuredPoseActualLabel => '내 측정 자세';
+
+  @override
+  String get runningCoachMeasuredPoseTargetLabel => '목표 방향';
+
+  @override
+  String get runningCoachMeasuredPoseFootnote =>
+      '오른쪽은 내 몸을 새로 만든 그림이 아니라, 다음에 맞출 방향을 보여 주는 안내입니다.';
 
   @override
   String get runningCoachGuideRangePosture => '목표: 허리를 접지 않고 몸을 살짝 앞으로 기울이기';

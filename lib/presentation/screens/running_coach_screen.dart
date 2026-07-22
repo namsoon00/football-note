@@ -2862,6 +2862,10 @@ class _RunningPoseOverlayPainter extends CustomPainter {
   final Color secondaryColor;
   final Color contactColor;
   final Color warningColor;
+  final RunningCoachMetric? highlightedMetric;
+  final RunningCoachFinding? finding;
+  final RunningDirection direction;
+  final bool useContainFit;
 
   const _RunningPoseOverlayPainter({
     required this.poseFrame,
@@ -2869,6 +2873,10 @@ class _RunningPoseOverlayPainter extends CustomPainter {
     required this.secondaryColor,
     required this.contactColor,
     required this.warningColor,
+    this.highlightedMetric,
+    this.finding,
+    this.direction = RunningDirection.stationary,
+    this.useContainFit = false,
   });
 
   @override
@@ -2881,6 +2889,306 @@ class _RunningPoseOverlayPainter extends CustomPainter {
     }
     for (final landmark in frame.landmarks) {
       _drawLandmark(canvas, size, frame, landmark);
+    }
+    final metric = highlightedMetric;
+    if (metric != null) {
+      _drawMetricGuide(canvas, size, frame, metric);
+    }
+  }
+
+  void _drawMetricGuide(
+    Canvas canvas,
+    Size size,
+    RunningPoseFrame frame,
+    RunningCoachMetric metric,
+  ) {
+    final accent = _usesWarningAccent ? warningColor : contactColor;
+    final accentPaint = Paint()
+      ..color = accent.withValues(alpha: 0.94)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(2.0, size.shortestSide * 0.009)
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    final guidePaint = Paint()
+      ..color = primaryColor.withValues(alpha: 0.76)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(1.2, size.shortestSide * 0.0048)
+      ..strokeCap = StrokeCap.round;
+
+    switch (metric) {
+      case RunningCoachMetric.posture:
+        final torso = _torsoPoints(size, frame);
+        if (torso == null) return;
+        final verticalTop = torso.hip - Offset(0, size.shortestSide * 0.20);
+        _drawDashedLine(
+          canvas,
+          verticalTop,
+          torso.hip + Offset(0, size.shortestSide * 0.055),
+          guidePaint,
+        );
+        canvas.drawLine(torso.hip, torso.shoulder, accentPaint);
+        _drawMetricArc(
+          canvas: canvas,
+          center: torso.hip,
+          start: verticalTop,
+          end: torso.shoulder,
+          radius: math.max(14, size.shortestSide * 0.075),
+          paint: accentPaint,
+        );
+      case RunningCoachMetric.bounce:
+        final torso = _torsoPoints(size, frame);
+        if (torso == null) return;
+        final horizontalOffset = direction == RunningDirection.rightToLeft
+            ? -size.shortestSide * 0.10
+            : size.shortestSide * 0.10;
+        final x = torso.shoulder.dx + horizontalOffset;
+        final upper = Offset(x, torso.shoulder.dy - size.shortestSide * 0.065);
+        final lower = Offset(x, torso.shoulder.dy + size.shortestSide * 0.065);
+        _drawDoubleArrow(canvas, upper, lower, accentPaint);
+        canvas.drawLine(
+          Offset(x - size.shortestSide * 0.032, upper.dy),
+          Offset(x + size.shortestSide * 0.032, upper.dy),
+          guidePaint,
+        );
+        canvas.drawLine(
+          Offset(x - size.shortestSide * 0.032, lower.dy),
+          Offset(x + size.shortestSide * 0.032, lower.dy),
+          guidePaint,
+        );
+      case RunningCoachMetric.footStrike:
+        final torso = _torsoPoints(size, frame);
+        final leg = _leadLegPoints(size, frame);
+        if (torso == null || leg == null) return;
+        final groundY = math.max(leg.toe.dy, leg.ankle.dy);
+        final targetWidth = math.max(18.0, size.shortestSide * 0.11);
+        final target = Rect.fromCenter(
+          center: Offset(torso.hip.dx, groundY),
+          width: targetWidth,
+          height: math.max(12.0, size.shortestSide * 0.042),
+        );
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(target, const Radius.circular(999)),
+          Paint()..color = contactColor.withValues(alpha: 0.24),
+        );
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(target, const Radius.circular(999)),
+          guidePaint,
+        );
+        _drawDashedLine(
+          canvas,
+          torso.hip,
+          Offset(torso.hip.dx, groundY),
+          guidePaint,
+        );
+        canvas.drawLine(
+          Offset(torso.hip.dx, groundY),
+          leg.toe,
+          accentPaint,
+        );
+        _drawFocusPoint(canvas, leg.toe, accent, size);
+      case RunningCoachMetric.kneeFlexion:
+        final leg = _leadLegPoints(size, frame);
+        if (leg == null) return;
+        canvas.drawLine(leg.hip, leg.knee, accentPaint);
+        canvas.drawLine(leg.knee, leg.ankle, accentPaint);
+        _drawMetricArc(
+          canvas: canvas,
+          center: leg.knee,
+          start: leg.hip,
+          end: leg.ankle,
+          radius: math.max(14, size.shortestSide * 0.065),
+          paint: accentPaint,
+        );
+        _drawFocusPoint(canvas, leg.knee, accent, size);
+      case RunningCoachMetric.armCarriage:
+        final arm = _leadArmPoints(size, frame);
+        if (arm == null) return;
+        canvas.drawLine(arm.shoulder, arm.elbow, accentPaint);
+        canvas.drawLine(arm.elbow, arm.wrist, accentPaint);
+        _drawMetricArc(
+          canvas: canvas,
+          center: arm.elbow,
+          start: arm.shoulder,
+          end: arm.wrist,
+          radius: math.max(12, size.shortestSide * 0.058),
+          paint: accentPaint,
+        );
+        _drawFocusPoint(canvas, arm.elbow, accent, size);
+    }
+  }
+
+  bool get _usesWarningAccent => switch (finding) {
+        RunningCoachFinding.postureAligned ||
+        RunningCoachFinding.bounceEfficient ||
+        RunningCoachFinding.footStrikeUnderBody ||
+        RunningCoachFinding.kneeFlexionLoaded ||
+        RunningCoachFinding.armCompact =>
+          false,
+        _ => true,
+      };
+
+  ({Offset shoulder, Offset hip})? _torsoPoints(
+    Size size,
+    RunningPoseFrame frame,
+  ) {
+    final leftShoulder = _pointForIndex(size, frame, 11);
+    final rightShoulder = _pointForIndex(size, frame, 12);
+    final leftHip = _pointForIndex(size, frame, 23);
+    final rightHip = _pointForIndex(size, frame, 24);
+    if (leftShoulder == null ||
+        rightShoulder == null ||
+        leftHip == null ||
+        rightHip == null) {
+      return null;
+    }
+    return (
+      shoulder: Offset.lerp(leftShoulder, rightShoulder, 0.5)!,
+      hip: Offset.lerp(leftHip, rightHip, 0.5)!,
+    );
+  }
+
+  ({Offset hip, Offset knee, Offset ankle, Offset toe})? _leadLegPoints(
+    Size size,
+    RunningPoseFrame frame,
+  ) {
+    final left = _legPointsForSide(size, frame, isLeft: true);
+    final right = _legPointsForSide(size, frame, isLeft: false);
+    if (left == null) return right;
+    if (right == null) return left;
+    return switch (direction) {
+      RunningDirection.leftToRight =>
+        left.toe.dx >= right.toe.dx ? left : right,
+      RunningDirection.rightToLeft =>
+        left.toe.dx <= right.toe.dx ? left : right,
+      RunningDirection.stationary => left.toe.dy >= right.toe.dy ? left : right,
+    };
+  }
+
+  ({Offset hip, Offset knee, Offset ankle, Offset toe})? _legPointsForSide(
+    Size size,
+    RunningPoseFrame frame, {
+    required bool isLeft,
+  }) {
+    final hip = _pointForIndex(size, frame, isLeft ? 23 : 24);
+    final knee = _pointForIndex(size, frame, isLeft ? 25 : 26);
+    final ankle = _pointForIndex(size, frame, isLeft ? 27 : 28);
+    if (hip == null || knee == null || ankle == null) return null;
+    final toe = _pointForIndex(size, frame, isLeft ? 31 : 32) ?? ankle;
+    return (hip: hip, knee: knee, ankle: ankle, toe: toe);
+  }
+
+  ({Offset shoulder, Offset elbow, Offset wrist})? _leadArmPoints(
+    Size size,
+    RunningPoseFrame frame,
+  ) {
+    final left = _armPointsForSide(size, frame, isLeft: true);
+    final right = _armPointsForSide(size, frame, isLeft: false);
+    if (left == null) return right;
+    if (right == null) return left;
+    return switch (direction) {
+      RunningDirection.leftToRight =>
+        left.wrist.dx >= right.wrist.dx ? left : right,
+      RunningDirection.rightToLeft =>
+        left.wrist.dx <= right.wrist.dx ? left : right,
+      RunningDirection.stationary =>
+        left.elbow.dy >= right.elbow.dy ? left : right,
+    };
+  }
+
+  ({Offset shoulder, Offset elbow, Offset wrist})? _armPointsForSide(
+    Size size,
+    RunningPoseFrame frame, {
+    required bool isLeft,
+  }) {
+    final shoulder = _pointForIndex(size, frame, isLeft ? 11 : 12);
+    final elbow = _pointForIndex(size, frame, isLeft ? 13 : 14);
+    final wrist = _pointForIndex(size, frame, isLeft ? 15 : 16);
+    if (shoulder == null || elbow == null || wrist == null) return null;
+    return (shoulder: shoulder, elbow: elbow, wrist: wrist);
+  }
+
+  Offset? _pointForIndex(Size size, RunningPoseFrame frame, int index) {
+    final landmark = frame.landmarkByIndex(index);
+    if (landmark == null ||
+        landmark.confidence < runningPoseOverlayMinimumJointConfidence) {
+      return null;
+    }
+    return _coverPoint(size, frame, landmark);
+  }
+
+  void _drawFocusPoint(Canvas canvas, Offset point, Color color, Size size) {
+    final radius = math.max(5.0, size.shortestSide * 0.018);
+    canvas.drawCircle(
+      point,
+      radius * 1.8,
+      Paint()..color = color.withValues(alpha: 0.16),
+    );
+    canvas.drawCircle(
+      point,
+      radius,
+      Paint()
+        ..color = color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = math.max(1.6, radius * 0.34),
+    );
+  }
+
+  void _drawDashedLine(
+    Canvas canvas,
+    Offset start,
+    Offset end,
+    Paint paint,
+  ) {
+    final distance = (end - start).distance;
+    if (distance <= 0) return;
+    final direction = (end - start) / distance;
+    const dashLength = 6.0;
+    const gapLength = 4.0;
+    for (var offset = 0.0;
+        offset < distance;
+        offset += dashLength + gapLength) {
+      canvas.drawLine(
+        start + direction * offset,
+        start + direction * math.min(offset + dashLength, distance),
+        paint,
+      );
+    }
+  }
+
+  void _drawMetricArc({
+    required Canvas canvas,
+    required Offset center,
+    required Offset start,
+    required Offset end,
+    required double radius,
+    required Paint paint,
+  }) {
+    final startAngle = math.atan2(start.dy - center.dy, start.dx - center.dx);
+    final endAngle = math.atan2(end.dy - center.dy, end.dx - center.dx);
+    var sweep = (endAngle - startAngle) % (math.pi * 2);
+    if (sweep > math.pi) sweep -= math.pi * 2;
+    if (sweep < -math.pi) sweep += math.pi * 2;
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      startAngle,
+      sweep,
+      false,
+      paint,
+    );
+  }
+
+  void _drawDoubleArrow(Canvas canvas, Offset start, Offset end, Paint paint) {
+    canvas.drawLine(start, end, paint);
+    final direction = (end - start);
+    if (direction.distance <= 0) return;
+    final unit = direction / direction.distance;
+    final perpendicular = Offset(-unit.dy, unit.dx);
+    const arrowSize = 7.0;
+    for (final point in <Offset>[start, end]) {
+      final facing = point == start ? unit : -unit;
+      final base = point + facing * arrowSize;
+      canvas.drawLine(point, base + perpendicular * (arrowSize * 0.58), paint);
+      canvas.drawLine(point, base - perpendicular * (arrowSize * 0.58), paint);
     }
   }
 
@@ -2981,6 +3289,14 @@ class _RunningPoseOverlayPainter extends CustomPainter {
     RunningPoseFrame frame,
     RunningVideoPoseLandmark landmark,
   ) {
+    if (useContainFit) {
+      return runningPoseContainOffset(
+        landmark: landmark,
+        imageWidth: frame.imageWidth,
+        imageHeight: frame.imageHeight,
+        outputSize: size,
+      );
+    }
     return runningPoseCoverOffset(
       landmark: landmark,
       imageWidth: frame.imageWidth,
@@ -3009,7 +3325,11 @@ class _RunningPoseOverlayPainter extends CustomPainter {
         oldDelegate.primaryColor != primaryColor ||
         oldDelegate.secondaryColor != secondaryColor ||
         oldDelegate.contactColor != contactColor ||
-        oldDelegate.warningColor != warningColor;
+        oldDelegate.warningColor != warningColor ||
+        oldDelegate.highlightedMetric != highlightedMetric ||
+        oldDelegate.finding != finding ||
+        oldDelegate.direction != direction ||
+        oldDelegate.useContainFit != useContainFit;
   }
 }
 
@@ -4877,6 +5197,7 @@ class _RunningAnalysisResultScreen extends StatelessWidget {
               title: insightSections[sectionIndex].title,
               insights: insightSections[sectionIndex].insights,
               priorities: report.focusPriorityByMetric,
+              result: result,
             ),
             if (sectionIndex != insightSections.length - 1)
               const SizedBox(height: 12),
@@ -5170,9 +5491,15 @@ class _AnalysisEvidenceCardState extends State<_AnalysisEvidenceCard> {
             else ...[
               _EvidenceVideoPreview(
                 result: widget.result,
+                insight: widget.insight,
                 selectedFrame: _selectedFrame,
                 controller: _isVideoReady ? _controller : null,
                 isVideoUnavailable: _isVideoUnavailable,
+              ),
+              const SizedBox(height: 10),
+              _EvidenceFrameCaption(
+                frame: _selectedFrame,
+                value: copy.value,
               ),
               const SizedBox(height: 10),
               _EvidenceControls(
@@ -5220,12 +5547,14 @@ class _AnalysisEvidenceCardState extends State<_AnalysisEvidenceCard> {
 
 class _EvidenceVideoPreview extends StatelessWidget {
   final RunningVideoAnalysisResult result;
+  final RunningCoachingInsight insight;
   final _AnalysisEvidenceFrame selectedFrame;
   final VideoPlayerController? controller;
   final bool isVideoUnavailable;
 
   const _EvidenceVideoPreview({
     required this.result,
+    required this.insight,
     required this.selectedFrame,
     required this.controller,
     required this.isVideoUnavailable,
@@ -5273,7 +5602,7 @@ class _EvidenceVideoPreview extends StatelessWidget {
                     if (videoController != null &&
                         videoController.value.isInitialized)
                       FittedBox(
-                        fit: BoxFit.cover,
+                        fit: BoxFit.contain,
                         child: SizedBox(
                           width: videoController.value.size.width,
                           height: videoController.value.size.height,
@@ -5319,30 +5648,14 @@ class _EvidenceVideoPreview extends StatelessWidget {
                                 secondaryColor: scheme.secondary,
                                 contactColor: scheme.tertiary,
                                 warningColor: scheme.error,
+                                highlightedMetric: insight.metric,
+                                finding: insight.finding,
+                                direction: result.direction,
+                                useContainFit: true,
                               ),
                             );
                           },
                         ),
-                      ),
-                    ),
-                    Positioned(
-                      left: 10,
-                      right: 10,
-                      top: 10,
-                      child: Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          _VideoOverlayPill(
-                            text: l10n.runningCoachEvidenceTimestamp(
-                              _formatContactTimestamp(
-                                l10n,
-                                selectedFrame.timestamp,
-                              ),
-                            ),
-                          ),
-                          _VideoOverlayPill(text: selectedFrame.label(l10n)),
-                        ],
                       ),
                     ),
                   ],
@@ -5352,6 +5665,68 @@ class _EvidenceVideoPreview extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _EvidenceFrameCaption extends StatelessWidget {
+  final _AnalysisEvidenceFrame frame;
+  final String value;
+
+  const _EvidenceFrameCaption({required this.frame, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      key: const ValueKey('running-coach-analysis-evidence-caption'),
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.56),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: scheme.outlineVariant),
+      ),
+      padding: const EdgeInsets.all(10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Icon(Icons.straighten_rounded, size: 18, color: scheme.primary),
+              Text(
+                l10n.runningCoachEvidenceTimestamp(
+                  _formatContactTimestamp(l10n, frame.timestamp),
+                ),
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: scheme.primary,
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+              Text(
+                frame.label(l10n),
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+              Text(
+                value,
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 5),
+          Text(
+            l10n.runningCoachEvidenceOverlayBody,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ],
+      ),
     );
   }
 }
@@ -6191,6 +6566,572 @@ class _InsightGuideVisual extends StatelessWidget {
   }
 }
 
+class _MeasuredPoseGuideVisual extends StatelessWidget {
+  final RunningCoachingInsight insight;
+  final RunningPoseFrame poseFrame;
+  final RunningDirection direction;
+
+  const _MeasuredPoseGuideVisual({
+    required this.insight,
+    required this.poseFrame,
+    required this.direction,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    final actualAccent = _statusAccentColor(insight.status);
+    return Container(
+      key: ValueKey(
+        'running-coach-insight-evidence-diagram-${insight.metric.name}',
+      ),
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.52),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.runningCoachMeasuredPoseTitle,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w900,
+                ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            l10n.runningCoachMeasuredPoseBody,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: _PoseComparisonLabel(
+                  icon: Icons.person_pin_circle_outlined,
+                  color: actualAccent,
+                  label: l10n.runningCoachMeasuredPoseActualLabel,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _PoseComparisonLabel(
+                  icon: Icons.track_changes_outlined,
+                  color: scheme.tertiary,
+                  label: l10n.runningCoachMeasuredPoseTargetLabel,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 218,
+            width: double.infinity,
+            child: CustomPaint(
+              painter: _MeasuredPoseComparisonPainter(
+                frame: poseFrame,
+                metric: insight.metric,
+                direction: direction,
+                mutedColor: scheme.outline,
+                actualAccent: actualAccent,
+                targetAccent: scheme.tertiary,
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            l10n.runningCoachMeasuredPoseFootnote,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PoseComparisonLabel extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final String label;
+
+  const _PoseComparisonLabel({
+    required this.icon,
+    required this.color,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: color),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            label,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _MeasuredPoseComparisonPainter extends CustomPainter {
+  final RunningPoseFrame frame;
+  final RunningCoachMetric metric;
+  final RunningDirection direction;
+  final Color mutedColor;
+  final Color actualAccent;
+  final Color targetAccent;
+
+  const _MeasuredPoseComparisonPainter({
+    required this.frame,
+    required this.metric,
+    required this.direction,
+    required this.mutedColor,
+    required this.actualAccent,
+    required this.targetAccent,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (size.isEmpty) return;
+    final gap = math.min(16.0, size.width * 0.06);
+    final panelWidth = math.max(1.0, (size.width - gap) / 2);
+    final actualRect = Rect.fromLTWH(0, 0, panelWidth, size.height);
+    final targetRect =
+        Rect.fromLTWH(panelWidth + gap, 0, panelWidth, size.height);
+    _drawPanel(canvas, actualRect, actualAccent.withValues(alpha: 0.08));
+    _drawPanel(canvas, targetRect, targetAccent.withValues(alpha: 0.08));
+
+    final actualPoints = _mapPoints(actualRect);
+    final targetPoints = _mapPoints(targetRect);
+    _drawSkeleton(
+      canvas,
+      actualPoints,
+      focusColor: actualAccent,
+      baseColor: mutedColor,
+    );
+    _drawSkeleton(
+      canvas,
+      targetPoints,
+      focusColor: mutedColor.withValues(alpha: 0.56),
+      baseColor: mutedColor.withValues(alpha: 0.50),
+    );
+    _drawMetricAnnotation(
+      canvas,
+      actualRect,
+      actualPoints,
+      accent: actualAccent,
+      isTarget: false,
+    );
+    _drawMetricAnnotation(
+      canvas,
+      targetRect,
+      targetPoints,
+      accent: targetAccent,
+      isTarget: true,
+    );
+  }
+
+  void _drawPanel(Canvas canvas, Rect rect, Color fillColor) {
+    final rrect = RRect.fromRectAndRadius(rect, const Radius.circular(8));
+    canvas.drawRRect(rrect, Paint()..color = fillColor);
+    canvas.drawRRect(
+      rrect,
+      Paint()
+        ..color = mutedColor.withValues(alpha: 0.30)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1,
+    );
+    canvas.drawLine(
+      Offset(rect.left + 10, rect.bottom - 14),
+      Offset(rect.right - 10, rect.bottom - 14),
+      Paint()
+        ..color = mutedColor.withValues(alpha: 0.30)
+        ..strokeWidth = 1.2,
+    );
+  }
+
+  Map<int, Offset> _mapPoints(Rect panel) {
+    final visible = frame.landmarks
+        .where(
+          (landmark) =>
+              landmark.confidence >= runningPoseOverlayMinimumJointConfidence,
+        )
+        .toList(growable: false);
+    if (visible.isEmpty) return const <int, Offset>{};
+
+    var minX = visible.first.x;
+    var maxX = visible.first.x;
+    var minY = visible.first.y;
+    var maxY = visible.first.y;
+    for (final landmark in visible.skip(1)) {
+      minX = math.min(minX, landmark.x);
+      maxX = math.max(maxX, landmark.x);
+      minY = math.min(minY, landmark.y);
+      maxY = math.max(maxY, landmark.y);
+    }
+    final bodyWidth = math.max(0.08, maxX - minX);
+    final bodyHeight = math.max(0.12, maxY - minY);
+    final content = panel.deflate(12);
+    final scale =
+        math.min(content.width / bodyWidth, content.height / bodyHeight);
+    final displayWidth = bodyWidth * scale;
+    final displayHeight = bodyHeight * scale;
+    final origin = Offset(
+      content.left + (content.width - displayWidth) / 2 - minX * scale,
+      content.top + (content.height - displayHeight) / 2 - minY * scale,
+    );
+    return <int, Offset>{
+      for (final landmark in visible)
+        landmark.index: origin + Offset(landmark.x * scale, landmark.y * scale),
+    };
+  }
+
+  void _drawSkeleton(
+    Canvas canvas,
+    Map<int, Offset> points, {
+    required Color focusColor,
+    required Color baseColor,
+  }) {
+    final focus = _focusIndices;
+    for (final connection in _mediaPipePoseConnections) {
+      final first = points[connection.first];
+      final second = points[connection.second];
+      if (first == null || second == null) continue;
+      final active =
+          focus.contains(connection.first) || focus.contains(connection.second);
+      canvas.drawLine(
+        first,
+        second,
+        Paint()
+          ..color = (active ? focusColor : baseColor).withValues(
+            alpha: active ? 0.92 : 0.48,
+          )
+          ..strokeWidth = active ? 3.4 : 2.1
+          ..strokeCap = StrokeCap.round,
+      );
+    }
+    for (final entry in points.entries) {
+      final active = focus.contains(entry.key);
+      final radius = entry.key <= 10 ? 2.3 : 3.1;
+      canvas.drawCircle(
+        entry.value,
+        radius,
+        Paint()
+          ..color = (active ? focusColor : baseColor).withValues(
+            alpha: active ? 0.96 : 0.62,
+          ),
+      );
+    }
+  }
+
+  Set<int> get _focusIndices => switch (metric) {
+        RunningCoachMetric.posture => const <int>{11, 12, 23, 24},
+        RunningCoachMetric.bounce => const <int>{
+            11,
+            12,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28
+          },
+        RunningCoachMetric.footStrike => const <int>{
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32
+          },
+        RunningCoachMetric.kneeFlexion => const <int>{23, 24, 25, 26, 27, 28},
+        RunningCoachMetric.armCarriage => const <int>{11, 12, 13, 14, 15, 16},
+      };
+
+  void _drawMetricAnnotation(
+    Canvas canvas,
+    Rect panel,
+    Map<int, Offset> points, {
+    required Color accent,
+    required bool isTarget,
+  }) {
+    final accentPaint = Paint()
+      ..color = accent.withValues(alpha: 0.95)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3.0
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    final guidePaint = Paint()
+      ..color = accent.withValues(alpha: 0.70)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.4
+      ..strokeCap = StrokeCap.round;
+    switch (metric) {
+      case RunningCoachMetric.posture:
+        final torso = _torso(points);
+        if (torso == null) return;
+        final verticalTop = torso.hip - Offset(0, panel.height * 0.28);
+        _drawDashedLine(canvas, verticalTop, torso.hip, guidePaint);
+        if (isTarget) {
+          final targetShoulder = torso.hip +
+              Offset(
+                _forwardSign(torso) * panel.width * 0.13,
+                -panel.height * 0.30,
+              );
+          canvas.drawLine(torso.hip, targetShoulder, accentPaint);
+          _drawArc(
+              canvas, torso.hip, verticalTop, targetShoulder, 18, accentPaint);
+        } else {
+          canvas.drawLine(torso.hip, torso.shoulder, accentPaint);
+          _drawArc(
+              canvas, torso.hip, verticalTop, torso.shoulder, 18, accentPaint);
+        }
+      case RunningCoachMetric.bounce:
+        final torso = _torso(points);
+        if (torso == null) return;
+        final x = torso.shoulder.dx + _forwardSign(torso) * panel.width * 0.14;
+        final span = panel.height * (isTarget ? 0.12 : 0.20);
+        _drawDoubleArrow(
+          canvas,
+          Offset(x, torso.shoulder.dy - span / 2),
+          Offset(x, torso.shoulder.dy + span / 2),
+          accentPaint,
+        );
+      case RunningCoachMetric.footStrike:
+        final torso = _torso(points);
+        final leg = _leadLeg(points);
+        if (torso == null || leg == null) return;
+        final groundY = math.max(leg.toe.dy, leg.ankle.dy);
+        final target = Rect.fromCenter(
+          center: Offset(torso.hip.dx, groundY),
+          width: panel.width * 0.24,
+          height: 13,
+        );
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(target, const Radius.circular(99)),
+          Paint()..color = accent.withValues(alpha: isTarget ? 0.25 : 0.14),
+        );
+        _drawDashedLine(
+          canvas,
+          torso.hip,
+          Offset(torso.hip.dx, groundY),
+          guidePaint,
+        );
+        if (!isTarget) {
+          canvas.drawLine(
+            Offset(torso.hip.dx, groundY),
+            leg.toe,
+            accentPaint,
+          );
+          _drawFocusDot(canvas, leg.toe, accent);
+        }
+      case RunningCoachMetric.kneeFlexion:
+        final leg = _leadLeg(points);
+        if (leg == null) return;
+        canvas.drawLine(leg.hip, leg.knee, accentPaint);
+        canvas.drawLine(leg.knee, leg.ankle, accentPaint);
+        _drawArc(
+          canvas,
+          leg.knee,
+          leg.hip,
+          leg.ankle,
+          isTarget ? 22 : 18,
+          accentPaint,
+        );
+        _drawFocusDot(canvas, leg.knee, accent);
+      case RunningCoachMetric.armCarriage:
+        final arm = _leadArm(points);
+        if (arm == null) return;
+        canvas.drawLine(arm.shoulder, arm.elbow, accentPaint);
+        canvas.drawLine(arm.elbow, arm.wrist, accentPaint);
+        _drawArc(
+          canvas,
+          arm.elbow,
+          arm.shoulder,
+          arm.wrist,
+          isTarget ? 18 : 15,
+          accentPaint,
+        );
+        _drawFocusDot(canvas, arm.elbow, accent);
+    }
+  }
+
+  ({Offset shoulder, Offset hip})? _torso(Map<int, Offset> points) {
+    final leftShoulder = points[11];
+    final rightShoulder = points[12];
+    final leftHip = points[23];
+    final rightHip = points[24];
+    if (leftShoulder == null ||
+        rightShoulder == null ||
+        leftHip == null ||
+        rightHip == null) {
+      return null;
+    }
+    return (
+      shoulder: Offset.lerp(leftShoulder, rightShoulder, 0.5)!,
+      hip: Offset.lerp(leftHip, rightHip, 0.5)!,
+    );
+  }
+
+  ({Offset hip, Offset knee, Offset ankle, Offset toe})? _leadLeg(
+    Map<int, Offset> points,
+  ) {
+    final left = _leg(points, isLeft: true);
+    final right = _leg(points, isLeft: false);
+    if (left == null) return right;
+    if (right == null) return left;
+    return switch (direction) {
+      RunningDirection.leftToRight =>
+        left.toe.dx >= right.toe.dx ? left : right,
+      RunningDirection.rightToLeft =>
+        left.toe.dx <= right.toe.dx ? left : right,
+      RunningDirection.stationary => left.toe.dy >= right.toe.dy ? left : right,
+    };
+  }
+
+  ({Offset hip, Offset knee, Offset ankle, Offset toe})? _leg(
+    Map<int, Offset> points, {
+    required bool isLeft,
+  }) {
+    final hip = points[isLeft ? 23 : 24];
+    final knee = points[isLeft ? 25 : 26];
+    final ankle = points[isLeft ? 27 : 28];
+    if (hip == null || knee == null || ankle == null) return null;
+    final toe = points[isLeft ? 31 : 32] ?? ankle;
+    return (hip: hip, knee: knee, ankle: ankle, toe: toe);
+  }
+
+  ({Offset shoulder, Offset elbow, Offset wrist})? _leadArm(
+    Map<int, Offset> points,
+  ) {
+    final left = _arm(points, isLeft: true);
+    final right = _arm(points, isLeft: false);
+    if (left == null) return right;
+    if (right == null) return left;
+    return switch (direction) {
+      RunningDirection.leftToRight =>
+        left.wrist.dx >= right.wrist.dx ? left : right,
+      RunningDirection.rightToLeft =>
+        left.wrist.dx <= right.wrist.dx ? left : right,
+      RunningDirection.stationary =>
+        left.elbow.dy >= right.elbow.dy ? left : right,
+    };
+  }
+
+  ({Offset shoulder, Offset elbow, Offset wrist})? _arm(
+    Map<int, Offset> points, {
+    required bool isLeft,
+  }) {
+    final shoulder = points[isLeft ? 11 : 12];
+    final elbow = points[isLeft ? 13 : 14];
+    final wrist = points[isLeft ? 15 : 16];
+    if (shoulder == null || elbow == null || wrist == null) return null;
+    return (shoulder: shoulder, elbow: elbow, wrist: wrist);
+  }
+
+  double _forwardSign(({Offset shoulder, Offset hip}) torso) {
+    return switch (direction) {
+      RunningDirection.leftToRight => 1,
+      RunningDirection.rightToLeft => -1,
+      RunningDirection.stationary => torso.shoulder.dx >= torso.hip.dx ? 1 : -1,
+    };
+  }
+
+  void _drawFocusDot(Canvas canvas, Offset point, Color color) {
+    canvas.drawCircle(
+        point, 6.2, Paint()..color = color.withValues(alpha: 0.16));
+    canvas.drawCircle(
+      point,
+      3.8,
+      Paint()
+        ..color = color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.8,
+    );
+  }
+
+  void _drawDashedLine(
+    Canvas canvas,
+    Offset start,
+    Offset end,
+    Paint paint,
+  ) {
+    final vector = end - start;
+    final distance = vector.distance;
+    if (distance <= 0) return;
+    final unit = vector / distance;
+    for (var offset = 0.0; offset < distance; offset += 9) {
+      canvas.drawLine(
+        start + unit * offset,
+        start + unit * math.min(offset + 5, distance),
+        paint,
+      );
+    }
+  }
+
+  void _drawArc(
+    Canvas canvas,
+    Offset center,
+    Offset start,
+    Offset end,
+    double radius,
+    Paint paint,
+  ) {
+    final startAngle = math.atan2(start.dy - center.dy, start.dx - center.dx);
+    final endAngle = math.atan2(end.dy - center.dy, end.dx - center.dx);
+    var sweep = (endAngle - startAngle) % (math.pi * 2);
+    if (sweep > math.pi) sweep -= math.pi * 2;
+    if (sweep < -math.pi) sweep += math.pi * 2;
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      startAngle,
+      sweep,
+      false,
+      paint,
+    );
+  }
+
+  void _drawDoubleArrow(Canvas canvas, Offset start, Offset end, Paint paint) {
+    canvas.drawLine(start, end, paint);
+    final vector = end - start;
+    final distance = vector.distance;
+    if (distance <= 0) return;
+    final unit = vector / distance;
+    final perpendicular = Offset(-unit.dy, unit.dx);
+    for (final point in <Offset>[start, end]) {
+      final facing = point == start ? unit : -unit;
+      final base = point + facing * 7;
+      canvas.drawLine(point, base + perpendicular * 4, paint);
+      canvas.drawLine(point, base - perpendicular * 4, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _MeasuredPoseComparisonPainter oldDelegate) {
+    return oldDelegate.frame != frame ||
+        oldDelegate.metric != metric ||
+        oldDelegate.direction != direction ||
+        oldDelegate.mutedColor != mutedColor ||
+        oldDelegate.actualAccent != actualAccent ||
+        oldDelegate.targetAccent != targetAccent;
+  }
+}
+
 class _InsightGuideThumbnail extends StatelessWidget {
   final RunningCoachingInsight insight;
 
@@ -7013,47 +7954,67 @@ class _InsightRegionSectionCard extends StatelessWidget {
   final String title;
   final List<RunningCoachingInsight> insights;
   final Map<RunningCoachMetric, int> priorities;
+  final RunningVideoAnalysisResult result;
 
   const _InsightRegionSectionCard({
     required this.title,
     required this.insights,
     required this.priorities,
+    required this.result,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
-            ),
-            const SizedBox(height: 12),
-            for (var index = 0; index < insights.length; index += 1) ...[
-              _InsightCard(
-                insight: insights[index],
-                priority: priorities[insights[index].metric],
-              ),
-              if (index != insights.length - 1) const SizedBox(height: 12),
-            ],
-          ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 2),
+          child: Text(
+            title,
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+          ),
         ),
-      ),
+        const SizedBox(height: 10),
+        for (var index = 0; index < insights.length; index += 1) ...[
+          _InsightCard(
+            insight: insights[index],
+            priority: priorities[insights[index].metric],
+            poseFrame: _detailPoseFrameFor(result, insights[index]),
+            direction: result.direction,
+          ),
+          if (index != insights.length - 1) const SizedBox(height: 12),
+        ],
+      ],
     );
   }
+}
+
+RunningPoseFrame? _detailPoseFrameFor(
+  RunningVideoAnalysisResult result,
+  RunningCoachingInsight insight,
+) {
+  if (!_metricEvidenceGate(result, insight).isReliable) {
+    return null;
+  }
+  final frames = _analysisEvidenceFramesFor(result: result, insight: insight);
+  return frames.isEmpty ? null : frames.first.poseFrame;
 }
 
 class _InsightCard extends StatelessWidget {
   final RunningCoachingInsight insight;
   final int? priority;
+  final RunningPoseFrame? poseFrame;
+  final RunningDirection direction;
 
-  const _InsightCard({required this.insight, this.priority});
+  const _InsightCard({
+    required this.insight,
+    required this.poseFrame,
+    required this.direction,
+    this.priority,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -7119,7 +8080,14 @@ class _InsightCard extends StatelessWidget {
                   : l10n.runningCoachEvidenceQualityLimitedBadge,
             ),
             const SizedBox(height: 12),
-            _InsightGuideVisual(insight: insight),
+            if (poseFrame != null)
+              _MeasuredPoseGuideVisual(
+                insight: insight,
+                poseFrame: poseFrame!,
+                direction: direction,
+              )
+            else
+              _InsightGuideVisual(insight: insight),
             if (insight.quality.isLowConfidence) ...[
               const SizedBox(height: 10),
               Text(
@@ -7240,6 +8208,12 @@ class _QualityBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final isLow = quality.isLowConfidence;
+    final l10n = AppLocalizations.of(context)!;
+    final label = isLow
+        ? l10n.runningCoachEvidenceQualityLimitedBadge
+        : quality.confidence >= 0.82
+            ? l10n.runningCoachEvidenceQualityStableBadge
+            : l10n.runningCoachEvidenceQualityCheckBadge;
     return DecoratedBox(
       decoration: BoxDecoration(
         color: isLow ? scheme.errorContainer : scheme.surfaceContainerHighest,
@@ -7251,10 +8225,7 @@ class _QualityBadge extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         child: Text(
-          AppLocalizations.of(
-            context,
-          )!
-              .runningCoachConfidenceLabel(quality.confidencePercent),
+          label,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: isLow ? scheme.onErrorContainer : null,
                 fontWeight: FontWeight.w700,

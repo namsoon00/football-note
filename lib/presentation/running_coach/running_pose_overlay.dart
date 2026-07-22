@@ -58,6 +58,32 @@ Offset runningPoseCoverOffset({
   );
 }
 
+/// Maps a normalized pose point into a video area rendered with BoxFit.contain.
+/// Evidence playback intentionally preserves the whole frame so coaching marks
+/// stay aligned even when the source and panel aspect ratios differ.
+Offset runningPoseContainOffset({
+  required RunningVideoPoseLandmark landmark,
+  required int imageWidth,
+  required int imageHeight,
+  required Size outputSize,
+}) {
+  if (imageWidth <= 0 || imageHeight <= 0 || outputSize.isEmpty) {
+    return Offset.zero;
+  }
+  final scale = math.min(
+    outputSize.width / imageWidth,
+    outputSize.height / imageHeight,
+  );
+  final displayWidth = imageWidth * scale;
+  final displayHeight = imageHeight * scale;
+  final dx = (outputSize.width - displayWidth) / 2;
+  final dy = (outputSize.height - displayHeight) / 2;
+  return Offset(
+    dx + (landmark.x * imageWidth * scale),
+    dy + (landmark.y * imageHeight * scale),
+  );
+}
+
 int? nearestRunningPoseFrameIndex({
   required List<RunningPoseFrame> frames,
   required Duration position,

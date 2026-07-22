@@ -15515,6 +15515,12 @@ abstract class AppLocalizations {
   /// **'What I saw'**
   String get runningCoachEvidenceWhatSeenLabel;
 
+  /// No description provided for @runningCoachEvidenceOverlayBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Colored lines mark the joints used for this coaching point. The original video is unchanged.'**
+  String get runningCoachEvidenceOverlayBody;
+
   /// No description provided for @runningCoachEvidenceWhatSeenBody.
   ///
   /// In en, this message translates to:
@@ -15550,6 +15556,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Evidence limited'**
   String get runningCoachEvidenceQualityLimitedBadge;
+
+  /// No description provided for @runningCoachEvidenceQualityStableBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Body tracking stable'**
+  String get runningCoachEvidenceQualityStableBadge;
+
+  /// No description provided for @runningCoachEvidenceQualityCheckBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracking needs review'**
+  String get runningCoachEvidenceQualityCheckBadge;
 
   /// No description provided for @runningCoachEvidenceReasonLowConfidence.
   ///
@@ -17987,6 +18005,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Recommended drill'**
   String get runningCoachAnalysisGuideDrillLabel;
+
+  /// No description provided for @runningCoachMeasuredPoseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Measured pose and target'**
+  String get runningCoachMeasuredPoseTitle;
+
+  /// No description provided for @runningCoachMeasuredPoseBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The left image uses joints from your video. The right image shows the direction to aim for.'**
+  String get runningCoachMeasuredPoseBody;
+
+  /// No description provided for @runningCoachMeasuredPoseActualLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Your measured pose'**
+  String get runningCoachMeasuredPoseActualLabel;
+
+  /// No description provided for @runningCoachMeasuredPoseTargetLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Target direction'**
+  String get runningCoachMeasuredPoseTargetLabel;
+
+  /// No description provided for @runningCoachMeasuredPoseFootnote.
+  ///
+  /// In en, this message translates to:
+  /// **'The target is a guide, not a simulated replacement of your body.'**
+  String get runningCoachMeasuredPoseFootnote;
 
   /// No description provided for @runningCoachGuideRangePosture.
   ///
