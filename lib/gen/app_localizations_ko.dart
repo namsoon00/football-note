@@ -10178,21 +10178,24 @@ class AppLocalizationsKo extends AppLocalizations {
       '목표 자세 예시입니다. 내 몸 모양이 아니라 파란 표시의 움직임만 따라 해 보세요.';
 
   @override
-  String get runningCoachMeasuredPoseTitle => '내 자세와 목표 방향';
+  String get runningCoachMeasuredPoseTitle => '내 자세에서 이렇게 옮기기';
 
   @override
   String get runningCoachMeasuredPoseBody =>
-      '왼쪽은 내 영상에서 읽은 관절이고, 오른쪽은 바꿔 갈 방향입니다.';
+      '빨간 표시는 현재 위치, 파란 표시는 다음에 맞출 곳이에요. 화살표 하나만 따라 움직여 보세요.';
 
   @override
-  String get runningCoachMeasuredPoseActualLabel => '내 측정 자세';
+  String get runningCoachMeasuredPoseActualLabel => '현재 위치';
 
   @override
-  String get runningCoachMeasuredPoseTargetLabel => '목표 방향';
+  String get runningCoachMeasuredPoseTargetLabel => '다음 목표';
+
+  @override
+  String get runningCoachMeasuredPoseCueLabel => '이렇게 움직여 보세요';
 
   @override
   String get runningCoachMeasuredPoseFootnote =>
-      '오른쪽은 내 몸을 새로 만든 그림이 아니라, 다음에 맞출 방향을 보여 주는 안내입니다.';
+      '파란 표시는 내 몸을 바꿔 만든 자세가 아니라, 다음 동작에서 관절을 옮길 위치 또는 범위예요.';
 
   @override
   String get runningCoachGuideRangePosture => '목표: 허리를 접지 않고 몸을 살짝 앞으로 기울이기';

@@ -10452,21 +10452,24 @@ class AppLocalizationsEn extends AppLocalizations {
       'This is a form example. Copy the blue marker, not the model\'s exact body shape.';
 
   @override
-  String get runningCoachMeasuredPoseTitle => 'Measured pose and target';
+  String get runningCoachMeasuredPoseTitle => 'Move this way from your pose';
 
   @override
   String get runningCoachMeasuredPoseBody =>
-      'The left image uses joints from your video. The right image shows the direction to aim for.';
+      'Red marks the current point; blue marks the next target. Follow one arrow at a time.';
 
   @override
-  String get runningCoachMeasuredPoseActualLabel => 'Your measured pose';
+  String get runningCoachMeasuredPoseActualLabel => 'Current point';
 
   @override
-  String get runningCoachMeasuredPoseTargetLabel => 'Target direction';
+  String get runningCoachMeasuredPoseTargetLabel => 'Next target';
+
+  @override
+  String get runningCoachMeasuredPoseCueLabel => 'Try this movement';
 
   @override
   String get runningCoachMeasuredPoseFootnote =>
-      'The target is a guide, not a simulated replacement of your body.';
+      'The blue marker is a location or range to move a joint toward on your next step. It does not replace your measured pose.';
 
   @override
   String get runningCoachGuideRangePosture =>
