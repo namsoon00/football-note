@@ -4978,6 +4978,7 @@
     }
   },
   "runningCoachEvidenceWhatSeenLabel": "見えたこと",
+  "runningCoachEvidenceOverlayBody": "色の線はこのコーチング項目に使った関節を示します。元の動画は変更されません。",
   "runningCoachEvidenceWhatSeenBody": "自分のクリップ {time} の {metric} です。",
   "@runningCoachEvidenceWhatSeenBody": {
     "placeholders": {
@@ -4990,6 +4991,8 @@
   "runningCoachEvidenceRetakeLabel": "撮り直し設定",
   "runningCoachEvidenceRetakeBody": "横から全身と両足が見えるように撮ります。数歩の間、スマートフォンを動かさないでください。",
   "runningCoachEvidenceQualityLimitedBadge": "根拠不足",
+  "runningCoachEvidenceQualityStableBadge": "関節トラッキングは安定",
+  "runningCoachEvidenceQualityCheckBadge": "関節トラッキングを確認",
   "runningCoachEvidenceReasonLowConfidence": "体の点が揺れたりぼけたりして、確信を持って読めませんでした。",
   "runningCoachEvidenceReasonLimitedFrames": "この指標を判断する安定フレームが少なすぎました。",
   "runningCoachEvidenceReasonMissingPoseFrames": "このクリップには保存済みの分析姿勢フレームがありません。",
@@ -6027,6 +6030,11 @@
   "runningCoachAnalysisGuideFindingLabel": "判定理由",
   "runningCoachAnalysisGuideCueLabel": "実行キュー",
   "runningCoachAnalysisGuideDrillLabel": "おすすめドリル",
+  "runningCoachMeasuredPoseTitle": "測定した姿勢と目標方向",
+  "runningCoachMeasuredPoseBody": "左は自分の動画から読み取った関節、右は目標にする方向です。",
+  "runningCoachMeasuredPoseActualLabel": "自分の測定姿勢",
+  "runningCoachMeasuredPoseTargetLabel": "目標方向",
+  "runningCoachMeasuredPoseFootnote": "右側は体を置き換えるシミュレーションではなく、次に目指す方向のガイドです。",
   "runningCoachGuideRangePosture": "目標: 腰を折らずに少し前へ傾く",
   "runningCoachGuideRangeBounce": "目標: 上下動を小さくし、足をすばやく動かす",
   "runningCoachGuideRangeFootStrike": "目標: 足を腰の近くの下に着く",

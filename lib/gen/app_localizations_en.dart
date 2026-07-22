@@ -8869,6 +8869,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachEvidenceWhatSeenLabel => 'What I saw';
 
   @override
+  String get runningCoachEvidenceOverlayBody =>
+      'Colored lines mark the joints used for this coaching point. The original video is unchanged.';
+
+  @override
   String runningCoachEvidenceWhatSeenBody(Object metric, Object time) {
     return '$metric at $time in your clip.';
   }
@@ -8888,6 +8892,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachEvidenceQualityLimitedBadge => 'Evidence limited';
+
+  @override
+  String get runningCoachEvidenceQualityStableBadge => 'Body tracking stable';
+
+  @override
+  String get runningCoachEvidenceQualityCheckBadge => 'Tracking needs review';
 
   @override
   String get runningCoachEvidenceReasonLowConfidence =>
@@ -10433,6 +10443,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachAnalysisGuideDrillLabel => 'Recommended drill';
+
+  @override
+  String get runningCoachMeasuredPoseTitle => 'Measured pose and target';
+
+  @override
+  String get runningCoachMeasuredPoseBody =>
+      'The left image uses joints from your video. The right image shows the direction to aim for.';
+
+  @override
+  String get runningCoachMeasuredPoseActualLabel => 'Your measured pose';
+
+  @override
+  String get runningCoachMeasuredPoseTargetLabel => 'Target direction';
+
+  @override
+  String get runningCoachMeasuredPoseFootnote =>
+      'The target is a guide, not a simulated replacement of your body.';
 
   @override
   String get runningCoachGuideRangePosture =>

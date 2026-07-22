@@ -64,6 +64,26 @@ void main() {
     expect(point.dx, closeTo(150, 0.0001));
     expect(point.dy, closeTo(-150, 0.0001));
   });
+
+  test('maps normalized landmarks through BoxFit.contain without cropping', () {
+    final point = runningPoseContainOffset(
+      landmark: const RunningVideoPoseLandmark(
+        index: 0,
+        x: 0.5,
+        y: 0.0,
+        z: 0,
+        visibility: 1,
+        presence: 1,
+        confidence: 1,
+      ),
+      imageWidth: 100,
+      imageHeight: 200,
+      outputSize: const Size(300, 300),
+    );
+
+    expect(point.dx, closeTo(150, 0.0001));
+    expect(point.dy, closeTo(0, 0.0001));
+  });
 }
 
 RunningPoseFrame _poseFrame({
