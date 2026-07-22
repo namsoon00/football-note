@@ -6030,6 +6030,8 @@
   "runningCoachAnalysisGuideFindingLabel": "판정 근거",
   "runningCoachAnalysisGuideCueLabel": "실행 cue",
   "runningCoachAnalysisGuideDrillLabel": "추천 드릴",
+  "runningCoachTargetGuideTitle": "목표 움직임 예시",
+  "runningCoachTargetGuideBody": "목표 자세 예시입니다. 내 몸 모양이 아니라 파란 표시의 움직임만 따라 해 보세요.",
   "runningCoachMeasuredPoseTitle": "내 자세와 목표 방향",
   "runningCoachMeasuredPoseBody": "왼쪽은 내 영상에서 읽은 관절이고, 오른쪽은 바꿔 갈 방향입니다.",
   "runningCoachMeasuredPoseActualLabel": "내 측정 자세",

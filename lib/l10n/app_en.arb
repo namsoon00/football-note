@@ -6030,6 +6030,8 @@
   "runningCoachAnalysisGuideFindingLabel": "Why it was flagged",
   "runningCoachAnalysisGuideCueLabel": "Action cue",
   "runningCoachAnalysisGuideDrillLabel": "Recommended drill",
+  "runningCoachTargetGuideTitle": "Target movement example",
+  "runningCoachTargetGuideBody": "This is a form example. Copy the blue marker, not the model's exact body shape.",
   "runningCoachMeasuredPoseTitle": "Measured pose and target",
   "runningCoachMeasuredPoseBody": "The left image uses joints from your video. The right image shows the direction to aim for.",
   "runningCoachMeasuredPoseActualLabel": "Your measured pose",

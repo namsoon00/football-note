@@ -6516,8 +6516,8 @@ class _InsightGuideVisual extends StatelessWidget {
       key:
           ValueKey('running-coach-insight-guide-visual-${insight.metric.name}'),
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest.withValues(alpha: 0.72),
-        borderRadius: BorderRadius.circular(16),
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.56),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(color: scheme.outlineVariant),
       ),
       child: Padding(
@@ -6528,14 +6528,14 @@ class _InsightGuideVisual extends StatelessWidget {
             Row(
               children: [
                 Icon(
-                  _metricGuideIcon(insight.metric),
+                  Icons.track_changes_outlined,
                   size: 18,
-                  color: _statusAccentColor(insight.status),
+                  color: scheme.primary,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    _metricGoodRange(l10n, insight.metric),
+                    l10n.runningCoachTargetGuideTitle,
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
                           fontWeight: FontWeight.w900,
                         ),
@@ -6543,26 +6543,340 @@ class _InsightGuideVisual extends StatelessWidget {
                 ),
               ],
             ),
+            const SizedBox(height: 4),
+            Text(
+              _metricGoodRange(l10n, insight.metric),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
             const SizedBox(height: 10),
             SizedBox(
-              height: 190,
               width: double.infinity,
-              child: CustomPaint(
-                painter: _RunningInsightGuidePainter(
-                  metric: insight.metric,
-                  finding: insight.finding,
-                  status: insight.status,
-                  surfaceColor: scheme.surface,
-                  mutedColor: scheme.outline,
-                  guideColor: scheme.primary.withValues(alpha: 0.34),
-                  accentColor: _statusAccentColor(insight.status),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: ColoredBox(
+                  color: scheme.surface.withValues(alpha: 0.34),
+                  child: _RunningTargetGuideArtwork(insight: insight),
                 ),
               ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              l10n.runningCoachTargetGuideBody,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
             ),
           ],
         ),
       ),
     );
+  }
+}
+
+class _RunningTargetGuideArtwork extends StatelessWidget {
+  final RunningCoachingInsight insight;
+  final bool compact;
+
+  const _RunningTargetGuideArtwork({
+    required this.insight,
+    this.compact = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final targetAsset = _targetGuideAssetFor(insight.metric);
+    final fallback = CustomPaint(
+      painter: _RunningInsightGuidePainter(
+        metric: insight.metric,
+        finding: insight.finding,
+        status: insight.status,
+        surfaceColor: scheme.surface,
+        mutedColor: scheme.outline,
+        guideColor: scheme.primary.withValues(alpha: 0.28),
+        accentColor: scheme.primary,
+        compact: compact,
+      ),
+    );
+
+    return Semantics(
+      image: true,
+      child: AspectRatio(
+        aspectRatio: compact ? 1 : 4 / 3,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Image.asset(
+              targetAsset,
+              key: ValueKey(
+                'running-coach-target-guide-artwork-${insight.metric.name}',
+              ),
+              fit: compact ? BoxFit.cover : BoxFit.contain,
+              filterQuality: FilterQuality.high,
+              errorBuilder: (_, __, ___) => fallback,
+            ),
+            if (!compact)
+              IgnorePointer(
+                child: CustomPaint(
+                  painter: _RunningTargetGuideAnnotationPainter(
+                    metric: insight.metric,
+                    accentColor: scheme.primary,
+                    guideColor: scheme.primary.withValues(alpha: 0.38),
+                    mutedColor: scheme.outline.withValues(alpha: 0.52),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+String _targetGuideAssetFor(RunningCoachMetric metric) {
+  return switch (metric) {
+    RunningCoachMetric.posture =>
+      'assets/images/running_guides/target_posture.png',
+    RunningCoachMetric.armCarriage =>
+      'assets/images/running_guides/target_posture.png',
+    RunningCoachMetric.bounce =>
+      'assets/images/running_guides/target_landing.png',
+    RunningCoachMetric.footStrike =>
+      'assets/images/running_guides/target_landing.png',
+    RunningCoachMetric.kneeFlexion =>
+      'assets/images/running_guides/target_landing.png',
+  };
+}
+
+class _RunningTargetGuideAnnotationPainter extends CustomPainter {
+  final RunningCoachMetric metric;
+  final Color accentColor;
+  final Color guideColor;
+  final Color mutedColor;
+
+  const _RunningTargetGuideAnnotationPainter({
+    required this.metric,
+    required this.accentColor,
+    required this.guideColor,
+    required this.mutedColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (size.isEmpty) return;
+    final isLandingGuide = metric != RunningCoachMetric.posture &&
+        metric != RunningCoachMetric.armCarriage;
+    Offset point(double x, double y) => Offset(size.width * x, size.height * y);
+    final shoulder = point(
+      isLandingGuide ? 0.54 : 0.545,
+      isLandingGuide ? 0.20 : 0.185,
+    );
+    final hip = point(
+      isLandingGuide ? 0.515 : 0.489,
+      isLandingGuide ? 0.43 : 0.42,
+    );
+    final knee = point(
+      isLandingGuide ? 0.60 : 0.613,
+      isLandingGuide ? 0.60 : 0.59,
+    );
+    final ankle = point(
+      isLandingGuide ? 0.56 : 0.555,
+      isLandingGuide ? 0.85 : 0.79,
+    );
+    final frontElbow = point(
+      isLandingGuide ? 0.62 : 0.64,
+      isLandingGuide ? 0.32 : 0.35,
+    );
+    final frontHand = point(
+      isLandingGuide ? 0.67 : 0.69,
+      isLandingGuide ? 0.29 : 0.28,
+    );
+    final basePaint = Paint()
+      ..color = accentColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(2.0, size.shortestSide * 0.014)
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    final guidePaint = Paint()
+      ..color = guideColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(1.2, size.shortestSide * 0.007)
+      ..strokeCap = StrokeCap.round;
+
+    switch (metric) {
+      case RunningCoachMetric.posture:
+        _drawFocusRing(canvas, shoulder, basePaint);
+        _drawFocusRing(canvas, hip, basePaint);
+        _drawFocusRing(canvas, ankle, basePaint);
+        _drawDashedLine(
+          canvas,
+          ankle + Offset(-size.width * 0.014, 0),
+          shoulder + Offset(size.width * 0.012, 0),
+          guidePaint,
+        );
+      case RunningCoachMetric.bounce:
+        final top = point(0.24, 0.32);
+        final bottom = point(0.24, 0.56);
+        _drawDoubleArrow(canvas, top, bottom, basePaint);
+        final band = Rect.fromCenter(
+          center: hip,
+          width: size.width * 0.17,
+          height: size.height * 0.11,
+        );
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(band, Radius.circular(band.height / 2)),
+          Paint()..color = accentColor.withValues(alpha: 0.13),
+        );
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(band, Radius.circular(band.height / 2)),
+          guidePaint,
+        );
+        _drawFocusRing(canvas, hip, basePaint);
+      case RunningCoachMetric.footStrike:
+        final groundY = size.height * 0.91;
+        final landingZone = Rect.fromCenter(
+          center: Offset(hip.dx, groundY),
+          width: size.width * 0.18,
+          height: math.max(12.0, size.height * 0.06),
+        );
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            landingZone,
+            Radius.circular(landingZone.height / 2),
+          ),
+          Paint()..color = accentColor.withValues(alpha: 0.14),
+        );
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            landingZone,
+            Radius.circular(landingZone.height / 2),
+          ),
+          basePaint,
+        );
+        _drawDashedLine(
+          canvas,
+          hip,
+          Offset(hip.dx, groundY - landingZone.height * 0.54),
+          guidePaint,
+        );
+        _drawFocusRing(canvas, ankle, basePaint);
+      case RunningCoachMetric.kneeFlexion:
+        _drawFocusRing(canvas, knee, basePaint);
+        canvas.drawArc(
+          Rect.fromCircle(
+            center: knee,
+            radius: math.max(18.0, size.shortestSide * 0.14),
+          ),
+          -2.1,
+          1.2,
+          false,
+          basePaint,
+        );
+        canvas.drawLine(knee, hip, guidePaint);
+        canvas.drawLine(knee, ankle, guidePaint);
+      case RunningCoachMetric.armCarriage:
+        _drawFocusRing(canvas, shoulder, basePaint);
+        _drawFocusRing(canvas, frontElbow, basePaint);
+        _drawCurvedArrow(
+          canvas,
+          shoulder + Offset(-size.width * 0.055, size.height * 0.025),
+          frontHand,
+          basePaint,
+        );
+    }
+  }
+
+  void _drawFocusRing(Canvas canvas, Offset center, Paint paint) {
+    final outer = paint.strokeWidth * 2.25;
+    canvas.drawCircle(
+      center,
+      outer,
+      Paint()..color = paint.color.withValues(alpha: 0.15),
+    );
+    canvas.drawCircle(center, outer, paint);
+    canvas.drawCircle(
+      center,
+      math.max(2.0, paint.strokeWidth * 0.6),
+      Paint()..color = paint.color,
+    );
+  }
+
+  void _drawDashedLine(
+    Canvas canvas,
+    Offset from,
+    Offset to,
+    Paint paint,
+  ) {
+    final vector = to - from;
+    final distance = vector.distance;
+    if (distance == 0) return;
+    final direction = vector / distance;
+    const dash = 7.0;
+    const gap = 5.0;
+    for (var offset = 0.0; offset < distance; offset += dash + gap) {
+      canvas.drawLine(
+        from + direction * offset,
+        from + direction * math.min(offset + dash, distance),
+        paint,
+      );
+    }
+  }
+
+  void _drawDoubleArrow(
+    Canvas canvas,
+    Offset from,
+    Offset to,
+    Paint paint,
+  ) {
+    canvas.drawLine(from, to, paint);
+    _drawArrowHead(canvas, from, to - from, paint);
+    _drawArrowHead(canvas, to, from - to, paint);
+  }
+
+  void _drawCurvedArrow(
+    Canvas canvas,
+    Offset from,
+    Offset to,
+    Paint paint,
+  ) {
+    final control = Offset(
+      (from.dx + to.dx) / 2,
+      math.min(from.dy, to.dy) - (to - from).distance * 0.18,
+    );
+    final path = Path()
+      ..moveTo(from.dx, from.dy)
+      ..quadraticBezierTo(control.dx, control.dy, to.dx, to.dy);
+    canvas.drawPath(path, paint);
+    _drawArrowHead(canvas, to, to - control, paint);
+  }
+
+  void _drawArrowHead(
+    Canvas canvas,
+    Offset tip,
+    Offset direction,
+    Paint paint,
+  ) {
+    final length = direction.distance;
+    if (length == 0) return;
+    final unit = direction / length;
+    final perpendicular = Offset(-unit.dy, unit.dx);
+    final head = paint.strokeWidth * 3.2;
+    canvas.drawLine(
+        tip, tip - unit * head + perpendicular * (head * 0.5), paint);
+    canvas.drawLine(
+        tip, tip - unit * head - perpendicular * (head * 0.5), paint);
+  }
+
+  @override
+  bool shouldRepaint(
+      covariant _RunningTargetGuideAnnotationPainter oldDelegate) {
+    return oldDelegate.metric != metric ||
+        oldDelegate.accentColor != accentColor ||
+        oldDelegate.guideColor != guideColor ||
+        oldDelegate.mutedColor != mutedColor;
   }
 }
 
@@ -7149,15 +7463,10 @@ class _InsightGuideThumbnail extends StatelessWidget {
       child: SizedBox(
         width: 72,
         height: 72,
-        child: CustomPaint(
-          painter: _RunningInsightGuidePainter(
-            metric: insight.metric,
-            finding: insight.finding,
-            status: insight.status,
-            surfaceColor: scheme.surface,
-            mutedColor: scheme.outline,
-            guideColor: scheme.primary.withValues(alpha: 0.28),
-            accentColor: _statusAccentColor(insight.status),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(13),
+          child: _RunningTargetGuideArtwork(
+            insight: insight,
             compact: true,
           ),
         ),
@@ -8088,6 +8397,11 @@ class _InsightCard extends StatelessWidget {
               )
             else
               _InsightGuideVisual(insight: insight),
+            if (poseFrame != null &&
+                insight.status != RunningCoachStatus.good) ...[
+              const SizedBox(height: 12),
+              _InsightGuideVisual(insight: insight),
+            ],
             if (insight.quality.isLowConfidence) ...[
               const SizedBox(height: 10),
               Text(

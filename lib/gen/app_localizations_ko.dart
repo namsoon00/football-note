@@ -10171,6 +10171,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachAnalysisGuideDrillLabel => '추천 드릴';
 
   @override
+  String get runningCoachTargetGuideTitle => '목표 움직임 예시';
+
+  @override
+  String get runningCoachTargetGuideBody =>
+      '목표 자세 예시입니다. 내 몸 모양이 아니라 파란 표시의 움직임만 따라 해 보세요.';
+
+  @override
   String get runningCoachMeasuredPoseTitle => '내 자세와 목표 방향';
 
   @override

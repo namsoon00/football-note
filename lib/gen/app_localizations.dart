@@ -18006,6 +18006,18 @@ abstract class AppLocalizations {
   /// **'Recommended drill'**
   String get runningCoachAnalysisGuideDrillLabel;
 
+  /// No description provided for @runningCoachTargetGuideTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Target movement example'**
+  String get runningCoachTargetGuideTitle;
+
+  /// No description provided for @runningCoachTargetGuideBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This is a form example. Copy the blue marker, not the model\'s exact body shape.'**
+  String get runningCoachTargetGuideBody;
+
   /// No description provided for @runningCoachMeasuredPoseTitle.
   ///
   /// In en, this message translates to:
