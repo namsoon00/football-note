@@ -10158,6 +10158,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachAnalysisGuideDrillLabel => 'おすすめドリル';
 
   @override
+  String get runningCoachTargetGuideTitle => '目標の動きの例';
+
+  @override
+  String get runningCoachTargetGuideBody =>
+      '目標フォームの例です。モデルの体型ではなく、青いマークの動きだけをまねてください。';
+
+  @override
   String get runningCoachMeasuredPoseTitle => '測定した姿勢と目標方向';
 
   @override

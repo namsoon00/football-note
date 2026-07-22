@@ -6030,6 +6030,8 @@
   "runningCoachAnalysisGuideFindingLabel": "判定理由",
   "runningCoachAnalysisGuideCueLabel": "実行キュー",
   "runningCoachAnalysisGuideDrillLabel": "おすすめドリル",
+  "runningCoachTargetGuideTitle": "目標の動きの例",
+  "runningCoachTargetGuideBody": "目標フォームの例です。モデルの体型ではなく、青いマークの動きだけをまねてください。",
   "runningCoachMeasuredPoseTitle": "測定した姿勢と目標方向",
   "runningCoachMeasuredPoseBody": "左は自分の動画から読み取った関節、右は目標にする方向です。",
   "runningCoachMeasuredPoseActualLabel": "自分の測定姿勢",

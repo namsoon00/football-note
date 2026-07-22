@@ -10445,6 +10445,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachAnalysisGuideDrillLabel => 'Recommended drill';
 
   @override
+  String get runningCoachTargetGuideTitle => 'Target movement example';
+
+  @override
+  String get runningCoachTargetGuideBody =>
+      'This is a form example. Copy the blue marker, not the model\'s exact body shape.';
+
+  @override
   String get runningCoachMeasuredPoseTitle => 'Measured pose and target';
 
   @override

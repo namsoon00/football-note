@@ -902,6 +902,14 @@ void main() {
       guideVisual,
       findsOneWidget,
     );
+    final targetGuideArtwork = find.byKey(
+      const ValueKey('running-coach-target-guide-artwork-footStrike'),
+    );
+    expect(targetGuideArtwork, findsOneWidget);
+    expect(
+      (tester.widget<Image>(targetGuideArtwork).image as AssetImage).assetName,
+      'assets/images/running_guides/target_landing.png',
+    );
     expect(find.text('Put the foot down closer under the hips.'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
@@ -1157,6 +1165,18 @@ void main() {
         matching: find.text('Target direction'),
       ),
       findsOneWidget,
+    );
+    final targetGuideArtwork = find.byKey(
+      ValueKey(
+        'running-coach-target-guide-artwork-${report.primaryFocus!.metric.name}',
+      ),
+    );
+    expect(targetGuideArtwork, findsOneWidget);
+    final targetGuideImage = tester.widget<Image>(targetGuideArtwork);
+    expect(targetGuideImage.image, isA<AssetImage>());
+    expect(
+      (targetGuideImage.image as AssetImage).assetName,
+      'assets/images/running_guides/target_landing.png',
     );
     expect(tester.takeException(), isNull);
   });
