@@ -6895,7 +6895,9 @@ class _MeasuredPoseGuideVisual extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
-    final actualAccent = _statusAccentColor(insight.status);
+    final copy = RunningCoachInsightCopy.fromInsight(insight, l10n);
+    final actualAccent = scheme.error;
+    final targetAccent = scheme.primary;
     return Container(
       key: ValueKey(
         'running-coach-insight-evidence-diagram-${insight.metric.name}',
@@ -6924,17 +6926,22 @@ class _MeasuredPoseGuideVisual extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: _PoseComparisonLabel(
-                  icon: Icons.person_pin_circle_outlined,
+                child: _PoseMovementLabel(
+                  icon: Icons.radio_button_checked_rounded,
                   color: actualAccent,
                   label: l10n.runningCoachMeasuredPoseActualLabel,
                 ),
               ),
-              const SizedBox(width: 12),
+              Icon(
+                Icons.arrow_forward_rounded,
+                size: 18,
+                color: scheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 8),
               Expanded(
-                child: _PoseComparisonLabel(
-                  icon: Icons.track_changes_outlined,
-                  color: scheme.tertiary,
+                child: _PoseMovementLabel(
+                  icon: Icons.adjust_rounded,
+                  color: targetAccent,
                   label: l10n.runningCoachMeasuredPoseTargetLabel,
                 ),
               ),
@@ -6942,20 +6949,65 @@ class _MeasuredPoseGuideVisual extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           SizedBox(
-            height: 218,
+            key: ValueKey(
+              'running-coach-insight-change-map-${insight.metric.name}',
+            ),
+            height: 264,
             width: double.infinity,
             child: CustomPaint(
-              painter: _MeasuredPoseComparisonPainter(
+              painter: _MeasuredPoseMovementMapPainter(
                 frame: poseFrame,
-                metric: insight.metric,
+                insight: insight,
                 direction: direction,
+                surfaceColor: scheme.surface,
                 mutedColor: scheme.outline,
                 actualAccent: actualAccent,
-                targetAccent: scheme.tertiary,
+                targetAccent: targetAccent,
               ),
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 10),
+          DecoratedBox(
+            decoration: BoxDecoration(
+              color: targetAccent.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(10),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.near_me_outlined,
+                    size: 18,
+                    color: targetAccent,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.runningCoachMeasuredPoseCueLabel,
+                          style:
+                              Theme.of(context).textTheme.labelLarge?.copyWith(
+                                    color: targetAccent,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          copy.cue,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
           Text(
             l10n.runningCoachMeasuredPoseFootnote,
             style: Theme.of(context).textTheme.bodySmall,
@@ -6966,12 +7018,12 @@ class _MeasuredPoseGuideVisual extends StatelessWidget {
   }
 }
 
-class _PoseComparisonLabel extends StatelessWidget {
+class _PoseMovementLabel extends StatelessWidget {
   final IconData icon;
   final Color color;
   final String label;
 
-  const _PoseComparisonLabel({
+  const _PoseMovementLabel({
     required this.icon,
     required this.color,
     required this.label,
@@ -6986,7 +7038,7 @@ class _PoseComparisonLabel extends StatelessWidget {
         Expanded(
           child: Text(
             label,
-            maxLines: 2,
+            maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
                   fontWeight: FontWeight.w800,
@@ -6998,67 +7050,52 @@ class _PoseComparisonLabel extends StatelessWidget {
   }
 }
 
-class _MeasuredPoseComparisonPainter extends CustomPainter {
+class _MeasuredPoseMovementMapPainter extends CustomPainter {
   final RunningPoseFrame frame;
-  final RunningCoachMetric metric;
+  final RunningCoachingInsight insight;
   final RunningDirection direction;
+  final Color surfaceColor;
   final Color mutedColor;
   final Color actualAccent;
   final Color targetAccent;
 
-  const _MeasuredPoseComparisonPainter({
+  const _MeasuredPoseMovementMapPainter({
     required this.frame,
-    required this.metric,
+    required this.insight,
     required this.direction,
+    required this.surfaceColor,
     required this.mutedColor,
     required this.actualAccent,
     required this.targetAccent,
   });
 
+  RunningCoachMetric get metric => insight.metric;
+
+  bool get _needsMovement => insight.status != RunningCoachStatus.good;
+
   @override
   void paint(Canvas canvas, Size size) {
     if (size.isEmpty) return;
-    final gap = math.min(16.0, size.width * 0.06);
-    final panelWidth = math.max(1.0, (size.width - gap) / 2);
-    final actualRect = Rect.fromLTWH(0, 0, panelWidth, size.height);
-    final targetRect =
-        Rect.fromLTWH(panelWidth + gap, 0, panelWidth, size.height);
-    _drawPanel(canvas, actualRect, actualAccent.withValues(alpha: 0.08));
-    _drawPanel(canvas, targetRect, targetAccent.withValues(alpha: 0.08));
-
-    final actualPoints = _mapPoints(actualRect);
-    final targetPoints = _mapPoints(targetRect);
+    final panel = Offset.zero & size;
+    _drawPanel(canvas, panel);
+    final actualPoints = _mapPoints(panel);
+    if (actualPoints.isEmpty) return;
+    _drawGround(canvas, panel, actualPoints);
     _drawSkeleton(
       canvas,
       actualPoints,
       focusColor: actualAccent,
       baseColor: mutedColor,
     );
-    _drawSkeleton(
-      canvas,
-      targetPoints,
-      focusColor: mutedColor.withValues(alpha: 0.56),
-      baseColor: mutedColor.withValues(alpha: 0.50),
-    );
-    _drawMetricAnnotation(
-      canvas,
-      actualRect,
-      actualPoints,
-      accent: actualAccent,
-      isTarget: false,
-    );
-    _drawMetricAnnotation(
-      canvas,
-      targetRect,
-      targetPoints,
-      accent: targetAccent,
-      isTarget: true,
-    );
+    _drawMovementMap(canvas, panel, actualPoints);
   }
 
-  void _drawPanel(Canvas canvas, Rect rect, Color fillColor) {
+  void _drawPanel(Canvas canvas, Rect rect) {
     final rrect = RRect.fromRectAndRadius(rect, const Radius.circular(8));
-    canvas.drawRRect(rrect, Paint()..color = fillColor);
+    canvas.drawRRect(
+      rrect,
+      Paint()..color = surfaceColor.withValues(alpha: 0.52),
+    );
     canvas.drawRRect(
       rrect,
       Paint()
@@ -7066,12 +7103,34 @@ class _MeasuredPoseComparisonPainter extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1,
     );
+  }
+
+  void _drawGround(
+    Canvas canvas,
+    Rect panel,
+    Map<int, Offset> points,
+  ) {
+    final contactPoints = <Offset>[
+      if (points[31] case final Offset point) point,
+      if (points[32] case final Offset point) point,
+      if (points[27] case final Offset point) point,
+      if (points[28] case final Offset point) point,
+    ];
+    final lowestContact = contactPoints.isEmpty
+        ? panel.top + panel.height * 0.78
+        : contactPoints
+            .map((point) => point.dy)
+            .reduce((current, next) => math.max(current, next));
+    final groundY = math.min(
+      panel.bottom - 16,
+      math.max(panel.top + panel.height * 0.66, lowestContact + 8),
+    );
     canvas.drawLine(
-      Offset(rect.left + 10, rect.bottom - 14),
-      Offset(rect.right - 10, rect.bottom - 14),
+      Offset(panel.left + 14, groundY),
+      Offset(panel.right - 14, groundY),
       Paint()
-        ..color = mutedColor.withValues(alpha: 0.30)
-        ..strokeWidth = 1.2,
+        ..color = mutedColor.withValues(alpha: 0.32)
+        ..strokeWidth = 1.4,
     );
   }
 
@@ -7096,7 +7155,7 @@ class _MeasuredPoseComparisonPainter extends CustomPainter {
     }
     final bodyWidth = math.max(0.08, maxX - minX);
     final bodyHeight = math.max(0.12, maxY - minY);
-    final content = panel.deflate(12);
+    final content = panel.deflate(22);
     final scale =
         math.min(content.width / bodyWidth, content.height / bodyHeight);
     final displayWidth = bodyWidth * scale;
@@ -7177,111 +7236,264 @@ class _MeasuredPoseComparisonPainter extends CustomPainter {
         RunningCoachMetric.armCarriage => const <int>{11, 12, 13, 14, 15, 16},
       };
 
-  void _drawMetricAnnotation(
+  void _drawMovementMap(
     Canvas canvas,
     Rect panel,
-    Map<int, Offset> points, {
-    required Color accent,
-    required bool isTarget,
-  }) {
-    final accentPaint = Paint()
-      ..color = accent.withValues(alpha: 0.95)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3.0
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-    final guidePaint = Paint()
-      ..color = accent.withValues(alpha: 0.70)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.4
-      ..strokeCap = StrokeCap.round;
+    Map<int, Offset> points,
+  ) {
     switch (metric) {
       case RunningCoachMetric.posture:
-        final torso = _torso(points);
-        if (torso == null) return;
-        final verticalTop = torso.hip - Offset(0, panel.height * 0.28);
-        _drawDashedLine(canvas, verticalTop, torso.hip, guidePaint);
-        if (isTarget) {
-          final targetShoulder = torso.hip +
-              Offset(
-                _forwardSign(torso) * panel.width * 0.13,
-                -panel.height * 0.30,
-              );
-          canvas.drawLine(torso.hip, targetShoulder, accentPaint);
-          _drawArc(
-              canvas, torso.hip, verticalTop, targetShoulder, 18, accentPaint);
-        } else {
-          canvas.drawLine(torso.hip, torso.shoulder, accentPaint);
-          _drawArc(
-              canvas, torso.hip, verticalTop, torso.shoulder, 18, accentPaint);
-        }
+        _drawPostureMovement(canvas, panel, points);
       case RunningCoachMetric.bounce:
-        final torso = _torso(points);
-        if (torso == null) return;
-        final x = torso.shoulder.dx + _forwardSign(torso) * panel.width * 0.14;
-        final span = panel.height * (isTarget ? 0.12 : 0.20);
-        _drawDoubleArrow(
-          canvas,
-          Offset(x, torso.shoulder.dy - span / 2),
-          Offset(x, torso.shoulder.dy + span / 2),
-          accentPaint,
-        );
+        _drawBounceMovement(canvas, panel, points);
       case RunningCoachMetric.footStrike:
-        final torso = _torso(points);
-        final leg = _leadLeg(points);
-        if (torso == null || leg == null) return;
-        final groundY = math.max(leg.toe.dy, leg.ankle.dy);
-        final target = Rect.fromCenter(
-          center: Offset(torso.hip.dx, groundY),
-          width: panel.width * 0.24,
-          height: 13,
-        );
-        canvas.drawRRect(
-          RRect.fromRectAndRadius(target, const Radius.circular(99)),
-          Paint()..color = accent.withValues(alpha: isTarget ? 0.25 : 0.14),
-        );
-        _drawDashedLine(
-          canvas,
-          torso.hip,
-          Offset(torso.hip.dx, groundY),
-          guidePaint,
-        );
-        if (!isTarget) {
-          canvas.drawLine(
-            Offset(torso.hip.dx, groundY),
-            leg.toe,
-            accentPaint,
-          );
-          _drawFocusDot(canvas, leg.toe, accent);
-        }
+        _drawFootStrikeMovement(canvas, panel, points);
       case RunningCoachMetric.kneeFlexion:
-        final leg = _leadLeg(points);
-        if (leg == null) return;
-        canvas.drawLine(leg.hip, leg.knee, accentPaint);
-        canvas.drawLine(leg.knee, leg.ankle, accentPaint);
-        _drawArc(
-          canvas,
-          leg.knee,
-          leg.hip,
-          leg.ankle,
-          isTarget ? 22 : 18,
-          accentPaint,
-        );
-        _drawFocusDot(canvas, leg.knee, accent);
+        _drawKneeMovement(canvas, panel, points);
       case RunningCoachMetric.armCarriage:
-        final arm = _leadArm(points);
-        if (arm == null) return;
-        canvas.drawLine(arm.shoulder, arm.elbow, accentPaint);
-        canvas.drawLine(arm.elbow, arm.wrist, accentPaint);
-        _drawArc(
-          canvas,
-          arm.elbow,
-          arm.shoulder,
-          arm.wrist,
-          isTarget ? 18 : 15,
-          accentPaint,
-        );
-        _drawFocusDot(canvas, arm.elbow, accent);
+        _drawArmMovement(canvas, panel, points);
+    }
+  }
+
+  void _drawPostureMovement(
+    Canvas canvas,
+    Rect panel,
+    Map<int, Offset> points,
+  ) {
+    final torso = _torso(points);
+    if (torso == null) return;
+    final torsoLength = math.max(32.0, (torso.shoulder - torso.hip).distance);
+    final verticalTop = _constrainPoint(
+      panel,
+      torso.hip - Offset(0, torsoLength),
+    );
+    const targetLeanRadians = 10 * math.pi / 180;
+    final targetShoulder = _constrainPoint(
+      panel,
+      torso.hip +
+          Offset(
+            _forwardSign(torso) * torsoLength * math.sin(targetLeanRadians),
+            -torsoLength * math.cos(targetLeanRadians),
+          ),
+    );
+    final targetPaint = _stroke(targetAccent, width: 3.2);
+    _drawDashedLine(
+      canvas,
+      verticalTop,
+      torso.hip,
+      _stroke(mutedColor, width: 1.4, opacity: 0.50),
+    );
+    final targetFan = Path()
+      ..moveTo(torso.hip.dx, torso.hip.dy)
+      ..lineTo(verticalTop.dx, verticalTop.dy)
+      ..lineTo(targetShoulder.dx, targetShoulder.dy)
+      ..close();
+    canvas.drawPath(
+      targetFan,
+      Paint()..color = targetAccent.withValues(alpha: 0.12),
+    );
+    canvas.drawLine(torso.hip, targetShoulder, targetPaint);
+    _drawArc(
+      canvas,
+      torso.hip,
+      verticalTop,
+      targetShoulder,
+      math.min(24, torsoLength * 0.28),
+      targetPaint,
+    );
+    _drawCurrentDot(canvas, torso.shoulder);
+    _drawTargetDot(canvas, targetShoulder);
+    if (_needsMovement) {
+      _drawDirectionalArrow(
+        canvas,
+        torso.shoulder,
+        targetShoulder,
+        targetPaint,
+      );
+    }
+  }
+
+  void _drawBounceMovement(
+    Canvas canvas,
+    Rect panel,
+    Map<int, Offset> points,
+  ) {
+    final torso = _torso(points);
+    if (torso == null) return;
+    final markerSign = _annotationSign(
+      panel,
+      torso.shoulder,
+      _forwardSign(torso),
+    );
+    final currentSpan = (panel.height * (insight.value / 100) * 2.6)
+        .clamp(36.0, 96.0)
+        .toDouble();
+    final targetSpan = _needsMovement
+        ? (currentSpan * 0.48).clamp(20.0, 42.0).toDouble()
+        : currentSpan;
+    final currentX = _constrainPoint(
+      panel,
+      Offset(
+        torso.shoulder.dx + markerSign * math.min(panel.width * 0.08, 24),
+        torso.shoulder.dy,
+      ),
+    ).dx;
+    final targetX = _constrainPoint(
+      panel,
+      Offset(
+        currentX + markerSign * math.min(panel.width * 0.17, 48),
+        torso.shoulder.dy,
+      ),
+    ).dx;
+    final currentPaint = _stroke(actualAccent, width: 2.8);
+    final targetPaint = _stroke(targetAccent, width: 2.4);
+    _drawDoubleArrow(
+      canvas,
+      Offset(currentX, torso.shoulder.dy - currentSpan / 2),
+      Offset(currentX, torso.shoulder.dy + currentSpan / 2),
+      currentPaint,
+    );
+    _drawCurrentDot(canvas, Offset(currentX, torso.shoulder.dy));
+    final targetRect = Rect.fromCenter(
+      center: Offset(targetX, torso.shoulder.dy),
+      width: 18,
+      height: targetSpan,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(targetRect, const Radius.circular(99)),
+      Paint()..color = targetAccent.withValues(alpha: 0.22),
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(targetRect, const Radius.circular(99)),
+      targetPaint,
+    );
+    if (_needsMovement) {
+      _drawDirectionalArrow(
+        canvas,
+        Offset(currentX, torso.shoulder.dy),
+        Offset(targetX, torso.shoulder.dy),
+        targetPaint,
+      );
+    }
+  }
+
+  void _drawFootStrikeMovement(
+    Canvas canvas,
+    Rect panel,
+    Map<int, Offset> points,
+  ) {
+    final torso = _torso(points);
+    final leg = _leadLeg(points);
+    if (torso == null || leg == null) return;
+    final groundY = math.min(
+      panel.bottom - 18,
+      math.max(
+        panel.top + panel.height * 0.66,
+        math.max(leg.toe.dy, leg.ankle.dy) + 8,
+      ),
+    );
+    final targetCenter = _constrainPoint(
+      panel,
+      Offset(torso.hip.dx, groundY - 7),
+    );
+    final targetRect = Rect.fromCenter(
+      center: targetCenter,
+      width: math.min(panel.width * 0.30, 96),
+      height: 16,
+    );
+    final targetPaint = _stroke(targetAccent, width: 2.2);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(targetRect, const Radius.circular(99)),
+      Paint()..color = targetAccent.withValues(alpha: 0.22),
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(targetRect, const Radius.circular(99)),
+      targetPaint,
+    );
+    _drawDashedLine(
+      canvas,
+      torso.hip,
+      Offset(torso.hip.dx, targetCenter.dy),
+      _stroke(targetAccent, width: 1.6, opacity: 0.70),
+    );
+    _drawCurrentDot(canvas, leg.toe);
+    if (_needsMovement) {
+      _drawDirectionalArrow(canvas, leg.toe, targetCenter, targetPaint);
+    }
+  }
+
+  void _drawKneeMovement(
+    Canvas canvas,
+    Rect panel,
+    Map<int, Offset> points,
+  ) {
+    final leg = _leadLeg(points);
+    if (leg == null) return;
+    final targetAngle =
+        _needsMovement ? 155.0 : insight.value.clamp(60.0, 175.0).toDouble();
+    final targetAnkle = _targetJointPoint(
+      pivot: leg.knee,
+      fixed: leg.hip,
+      moving: leg.ankle,
+      targetAngleDegrees: targetAngle,
+      panel: panel,
+    );
+    if (targetAnkle == null) return;
+    final targetPaint = _stroke(targetAccent, width: 2.6);
+    _drawDashedLine(canvas, leg.knee, targetAnkle, targetPaint);
+    _drawArc(
+      canvas,
+      leg.knee,
+      leg.ankle,
+      targetAnkle,
+      math.min(30, (leg.ankle - leg.knee).distance * 0.32),
+      targetPaint,
+    );
+    _drawCurrentDot(canvas, leg.ankle);
+    _drawTargetDot(canvas, targetAnkle);
+    if (_needsMovement) {
+      _drawCurvedArrow(canvas, leg.ankle, targetAnkle, targetPaint);
+    }
+  }
+
+  void _drawArmMovement(
+    Canvas canvas,
+    Rect panel,
+    Map<int, Offset> points,
+  ) {
+    final arm = _leadArm(points);
+    if (arm == null) return;
+    final targetAngle =
+        _needsMovement ? 90.0 : insight.value.clamp(50.0, 135.0).toDouble();
+    final targetWrist = _targetJointPoint(
+      pivot: arm.elbow,
+      fixed: arm.shoulder,
+      moving: arm.wrist,
+      targetAngleDegrees: targetAngle,
+      panel: panel,
+    );
+    if (targetWrist == null) return;
+    final targetPaint = _stroke(targetAccent, width: 2.6);
+    _drawDashedLine(canvas, arm.elbow, targetWrist, targetPaint);
+    _drawArc(
+      canvas,
+      arm.elbow,
+      arm.wrist,
+      targetWrist,
+      math.min(28, (arm.wrist - arm.elbow).distance * 0.34),
+      targetPaint,
+    );
+    final laneHalfWidth = math.min(28.0, panel.width * 0.10);
+    _drawDoubleArrow(
+      canvas,
+      targetWrist - Offset(laneHalfWidth, 0),
+      targetWrist + Offset(laneHalfWidth, 0),
+      _stroke(targetAccent, width: 1.8, opacity: 0.76),
+    );
+    _drawCurrentDot(canvas, arm.wrist);
+    _drawTargetDot(canvas, targetWrist);
+    if (_needsMovement) {
+      _drawCurvedArrow(canvas, arm.wrist, targetWrist, targetPaint);
     }
   }
 
@@ -7366,16 +7578,166 @@ class _MeasuredPoseComparisonPainter extends CustomPainter {
     };
   }
 
-  void _drawFocusDot(Canvas canvas, Offset point, Color color) {
-    canvas.drawCircle(
-        point, 6.2, Paint()..color = color.withValues(alpha: 0.16));
+  Paint _stroke(
+    Color color, {
+    required double width,
+    double opacity = 1,
+  }) {
+    return Paint()
+      ..color = color.withValues(alpha: opacity)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = width
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+  }
+
+  double _annotationSign(Rect panel, Offset anchor, double preferred) {
+    final room =
+        preferred >= 0 ? panel.right - anchor.dx : anchor.dx - panel.left;
+    return room >= panel.width * 0.24 ? preferred : -preferred;
+  }
+
+  Offset _constrainPoint(Rect panel, Offset point, {double inset = 10}) {
+    final bounds = panel.deflate(inset);
+    return Offset(
+      point.dx.clamp(bounds.left, bounds.right).toDouble(),
+      point.dy.clamp(bounds.top, bounds.bottom).toDouble(),
+    );
+  }
+
+  Offset? _targetJointPoint({
+    required Offset pivot,
+    required Offset fixed,
+    required Offset moving,
+    required double targetAngleDegrees,
+    required Rect panel,
+  }) {
+    final fixedVector = fixed - pivot;
+    final movingVector = moving - pivot;
+    final fixedLength = fixedVector.distance;
+    final movingLength = movingVector.distance;
+    if (fixedLength < 1 || movingLength < 1) return null;
+    final signedAngle = _signedAngle(fixedVector, movingVector);
+    final turn = signedAngle.abs() < 0.001
+        ? _fallbackTurnSign
+        : signedAngle >= 0
+            ? 1.0
+            : -1.0;
+    final targetRadians =
+        targetAngleDegrees.clamp(1.0, 179.0).toDouble() * math.pi / 180;
+    final fixedRadians = math.atan2(fixedVector.dy, fixedVector.dx);
+    final targetVector = Offset(
+      math.cos(fixedRadians + turn * targetRadians) * movingLength,
+      math.sin(fixedRadians + turn * targetRadians) * movingLength,
+    );
+    return _constrainPoint(panel, pivot + targetVector);
+  }
+
+  double _signedAngle(Offset first, Offset second) {
+    return math.atan2(
+      first.dx * second.dy - first.dy * second.dx,
+      first.dx * second.dx + first.dy * second.dy,
+    );
+  }
+
+  double get _fallbackTurnSign => switch (direction) {
+        RunningDirection.leftToRight => 1,
+        RunningDirection.rightToLeft => -1,
+        RunningDirection.stationary => 1,
+      };
+
+  void _drawCurrentDot(Canvas canvas, Offset point) {
     canvas.drawCircle(
       point,
-      3.8,
+      9,
+      Paint()..color = actualAccent.withValues(alpha: 0.16),
+    );
+    canvas.drawCircle(
+      point,
+      5.5,
       Paint()
-        ..color = color
+        ..color = actualAccent
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.8,
+        ..strokeWidth = 2,
+    );
+    canvas.drawCircle(point, 2.6, Paint()..color = actualAccent);
+  }
+
+  void _drawTargetDot(Canvas canvas, Offset point) {
+    canvas.drawCircle(
+      point,
+      11,
+      Paint()..color = targetAccent.withValues(alpha: 0.14),
+    );
+    canvas.drawCircle(
+      point,
+      6.5,
+      Paint()
+        ..color = targetAccent
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.2,
+    );
+    canvas.drawCircle(point, 2.6, Paint()..color = targetAccent);
+  }
+
+  void _drawDirectionalArrow(
+    Canvas canvas,
+    Offset from,
+    Offset to,
+    Paint paint,
+  ) {
+    final vector = to - from;
+    final distance = vector.distance;
+    if (distance < 20) return;
+    final unit = vector / distance;
+    final start = from + unit * 9;
+    final end = to - unit * 11;
+    canvas.drawLine(start, end, paint);
+    _drawArrowHead(canvas, end, unit, paint);
+  }
+
+  void _drawCurvedArrow(
+    Canvas canvas,
+    Offset from,
+    Offset to,
+    Paint paint,
+  ) {
+    final vector = to - from;
+    final distance = vector.distance;
+    if (distance < 20) return;
+    final unit = vector / distance;
+    final start = from + unit * 9;
+    final end = to - unit * 11;
+    final perpendicular = Offset(-unit.dy, unit.dx);
+    final control = Offset.lerp(start, end, 0.5)! +
+        perpendicular * math.min(24, distance * 0.24);
+    final path = Path()
+      ..moveTo(start.dx, start.dy)
+      ..quadraticBezierTo(control.dx, control.dy, end.dx, end.dy);
+    canvas.drawPath(path, paint);
+    _drawArrowHead(canvas, end, end - control, paint);
+  }
+
+  void _drawArrowHead(
+    Canvas canvas,
+    Offset tip,
+    Offset direction,
+    Paint paint,
+  ) {
+    final length = direction.distance;
+    if (length == 0) return;
+    final unit = direction / length;
+    final perpendicular = Offset(-unit.dy, unit.dx);
+    final head = math.max(7.0, paint.strokeWidth * 3.1);
+    canvas.drawLine(
+      tip,
+      tip - unit * head + perpendicular * (head * 0.5),
+      paint,
+    );
+    canvas.drawLine(
+      tip,
+      tip - unit * head - perpendicular * (head * 0.5),
+      paint,
     );
   }
 
@@ -7436,10 +7798,11 @@ class _MeasuredPoseComparisonPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _MeasuredPoseComparisonPainter oldDelegate) {
+  bool shouldRepaint(covariant _MeasuredPoseMovementMapPainter oldDelegate) {
     return oldDelegate.frame != frame ||
-        oldDelegate.metric != metric ||
+        oldDelegate.insight != insight ||
         oldDelegate.direction != direction ||
+        oldDelegate.surfaceColor != surfaceColor ||
         oldDelegate.mutedColor != mutedColor ||
         oldDelegate.actualAccent != actualAccent ||
         oldDelegate.targetAccent != targetAccent;

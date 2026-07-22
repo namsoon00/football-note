@@ -18021,31 +18021,37 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachMeasuredPoseTitle.
   ///
   /// In en, this message translates to:
-  /// **'Measured pose and target'**
+  /// **'Move this way from your pose'**
   String get runningCoachMeasuredPoseTitle;
 
   /// No description provided for @runningCoachMeasuredPoseBody.
   ///
   /// In en, this message translates to:
-  /// **'The left image uses joints from your video. The right image shows the direction to aim for.'**
+  /// **'Red marks the current point; blue marks the next target. Follow one arrow at a time.'**
   String get runningCoachMeasuredPoseBody;
 
   /// No description provided for @runningCoachMeasuredPoseActualLabel.
   ///
   /// In en, this message translates to:
-  /// **'Your measured pose'**
+  /// **'Current point'**
   String get runningCoachMeasuredPoseActualLabel;
 
   /// No description provided for @runningCoachMeasuredPoseTargetLabel.
   ///
   /// In en, this message translates to:
-  /// **'Target direction'**
+  /// **'Next target'**
   String get runningCoachMeasuredPoseTargetLabel;
+
+  /// No description provided for @runningCoachMeasuredPoseCueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Try this movement'**
+  String get runningCoachMeasuredPoseCueLabel;
 
   /// No description provided for @runningCoachMeasuredPoseFootnote.
   ///
   /// In en, this message translates to:
-  /// **'The target is a guide, not a simulated replacement of your body.'**
+  /// **'The blue marker is a location or range to move a joint toward on your next step. It does not replace your measured pose.'**
   String get runningCoachMeasuredPoseFootnote;
 
   /// No description provided for @runningCoachGuideRangePosture.

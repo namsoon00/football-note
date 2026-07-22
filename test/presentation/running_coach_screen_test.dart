@@ -1160,21 +1160,36 @@ void main() {
     expect(
       find.descendant(
         of: measuredPoseDiagram,
-        matching: find.text('Measured pose and target'),
+        matching: find.text('Move this way from your pose'),
       ),
       findsOneWidget,
     );
     expect(
       find.descendant(
         of: measuredPoseDiagram,
-        matching: find.text('Your measured pose'),
+        matching: find.text('Current point'),
       ),
       findsOneWidget,
     );
     expect(
       find.descendant(
         of: measuredPoseDiagram,
-        matching: find.text('Target direction'),
+        matching: find.text('Next target'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(
+        ValueKey(
+          'running-coach-insight-change-map-${report.primaryFocus!.metric.name}',
+        ),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: measuredPoseDiagram,
+        matching: find.text('Try this movement'),
       ),
       findsOneWidget,
     );
@@ -1191,6 +1206,148 @@ void main() {
       'assets/images/running_guides/target_landing.png',
     );
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('analysis result renders movement maps for every tracked metric',
+      (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(360, 780));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    for (final metric in RunningCoachMetric.values) {
+      final values = switch (metric) {
+        RunningCoachMetric.posture => (
+            forwardLean: 0.0,
+            bounce: 0.06,
+            footStrike: 0.08,
+            knee: 155.0,
+            elbow: 90.0,
+          ),
+        RunningCoachMetric.bounce => (
+            forwardLean: 10.0,
+            bounce: 0.16,
+            footStrike: 0.08,
+            knee: 155.0,
+            elbow: 90.0,
+          ),
+        RunningCoachMetric.footStrike => (
+            forwardLean: 10.0,
+            bounce: 0.06,
+            footStrike: 0.40,
+            knee: 155.0,
+            elbow: 90.0,
+          ),
+        RunningCoachMetric.kneeFlexion => (
+            forwardLean: 10.0,
+            bounce: 0.06,
+            footStrike: 0.08,
+            knee: 180.0,
+            elbow: 90.0,
+          ),
+        RunningCoachMetric.armCarriage => (
+            forwardLean: 10.0,
+            bounce: 0.06,
+            footStrike: 0.08,
+            knee: 155.0,
+            elbow: 170.0,
+          ),
+      };
+      final result = RunningVideoAnalysisResult(
+        videoDuration: const Duration(seconds: 4),
+        sampledFrames: 14,
+        validFrames: 13,
+        direction: RunningDirection.leftToRight,
+        forwardLeanDegrees: values.forwardLean,
+        verticalBounceRatio: values.bounce,
+        footStrikeDistanceRatio: values.footStrike,
+        stanceKneeAngleDegrees: values.knee,
+        elbowAngleDegrees: values.elbow,
+        metricQualities: const <RunningCoachMetric, RunningMetricQuality>{
+          RunningCoachMetric.posture: RunningMetricQuality(
+            confidence: 0.90,
+            sampleCount: 8,
+          ),
+          RunningCoachMetric.bounce: RunningMetricQuality(
+            confidence: 0.90,
+            sampleCount: 8,
+          ),
+          RunningCoachMetric.footStrike: RunningMetricQuality(
+            confidence: 0.90,
+            sampleCount: 8,
+          ),
+          RunningCoachMetric.kneeFlexion: RunningMetricQuality(
+            confidence: 0.90,
+            sampleCount: 8,
+          ),
+          RunningCoachMetric.armCarriage: RunningMetricQuality(
+            confidence: 0.90,
+            sampleCount: 8,
+          ),
+        },
+        coarseSamples: const RunningAnalysisSampleSummary(
+          attemptedFrames: 14,
+          validFrames: 13,
+          poseFrameCount: 6,
+        ),
+        denseSamples: const RunningAnalysisSampleSummary(
+          attemptedFrames: 8,
+          validFrames: 6,
+          poseFrameCount: 6,
+          maxFrameBudget: 48,
+          targetFps: 30,
+        ),
+        contactWindows: _testContactWindows(),
+        validatedContactFrameTimestamps: _testContactTimestamps(),
+        contactConfidence: 0.88,
+        poseFrames: _testPoseFrames(
+          startX: 0.22,
+          dxPerFrame: 0.04,
+          confidence: 0.94,
+        ),
+      );
+      final report = const RunningCoachingService().buildReport(result);
+      expect(report.primaryFocus!.metric, metric);
+      await tester.pumpWidget(
+        MaterialApp(
+          key: ValueKey('movement-map-preview-${metric.name}'),
+          locale: const Locale('en'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: runningAnalysisResultScreenForTesting(
+            result: result,
+            report: report,
+            session: _sessionForReport(
+              id: '${metric.name}-movement-map',
+              result: result,
+              report: report,
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      final movementMap = find.byKey(
+        ValueKey('running-coach-insight-change-map-${metric.name}'),
+      );
+      for (var scrollStep = 0;
+          scrollStep < 48 && movementMap.evaluate().isEmpty;
+          scrollStep += 1) {
+        await tester.drag(
+          find.byKey(const ValueKey('running-coach-analysis-result-list')),
+          const Offset(0, -360),
+        );
+        await tester.pump(const Duration(milliseconds: 120));
+      }
+      expect(movementMap, findsOneWidget);
+      await tester.ensureVisible(movementMap);
+      await tester.pump();
+      expect(tester.getSize(movementMap).height, 264);
+      expect(tester.takeException(), isNull);
+    }
   });
 
   testWidgets('analysis result recommends retake and hides low-evidence score',

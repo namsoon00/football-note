@@ -10165,20 +10165,24 @@ class AppLocalizationsJa extends AppLocalizations {
       '目標フォームの例です。モデルの体型ではなく、青いマークの動きだけをまねてください。';
 
   @override
-  String get runningCoachMeasuredPoseTitle => '測定した姿勢と目標方向';
+  String get runningCoachMeasuredPoseTitle => '自分の姿勢からこう動かす';
 
   @override
-  String get runningCoachMeasuredPoseBody => '左は自分の動画から読み取った関節、右は目標にする方向です。';
+  String get runningCoachMeasuredPoseBody =>
+      '赤が現在位置、青が次に合わせる場所です。一度に一つの矢印だけをたどってください。';
 
   @override
-  String get runningCoachMeasuredPoseActualLabel => '自分の測定姿勢';
+  String get runningCoachMeasuredPoseActualLabel => '現在位置';
 
   @override
-  String get runningCoachMeasuredPoseTargetLabel => '目標方向';
+  String get runningCoachMeasuredPoseTargetLabel => '次の目標';
+
+  @override
+  String get runningCoachMeasuredPoseCueLabel => 'こう動かしてみましょう';
 
   @override
   String get runningCoachMeasuredPoseFootnote =>
-      '右側は体を置き換えるシミュレーションではなく、次に目指す方向のガイドです。';
+      '青い表示は、次の動作で関節を動かす位置または範囲です。測定された姿勢を置き換えるものではありません。';
 
   @override
   String get runningCoachGuideRangePosture => '目標: 腰を折らずに少し前へ傾く';
