@@ -5,7 +5,7 @@ import 'package:football_note/domain/entities/running_video_analysis_result.dart
 import 'package:football_note/presentation/running_coach/running_pose_overlay.dart';
 
 void main() {
-  test('renders an anatomical human form from measured pose joints', () async {
+  test('renders a refined joint overlay from measured pose joints', () async {
     final recorder = PictureRecorder();
     final canvas = Canvas(recorder);
 

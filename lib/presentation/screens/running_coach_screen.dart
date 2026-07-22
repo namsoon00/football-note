@@ -2921,11 +2921,6 @@ class _RunningPoseOverlayPainter extends CustomPainter {
             : _usesWarningAccent
                 ? warningColor
                 : contactColor,
-        skinColor: Colors.white,
-        apparelColor: primaryColor,
-        shortsColor: secondaryColor,
-        shoeColor: secondaryColor,
-        hairColor: primaryColor,
         opacity: useContainFit ? 0.70 : 0.62,
       ),
     );
@@ -7218,16 +7213,11 @@ class _MeasuredPoseMovementMapPainter extends CustomPainter {
       points: points,
       canvasSize: size,
       style: RunningPoseHumanFormStyle(
-        bodyColor: const Color(0xFFECC2A0),
+        bodyColor: const Color(0xFFC7D8F3),
         leftSideColor: baseColor,
         rightSideColor: baseColor,
         jointColor: const Color(0xFFF8FBFF),
         focusColor: focusColor,
-        skinColor: const Color(0xFFECC2A0),
-        apparelColor: const Color(0xFF5776B4),
-        shortsColor: const Color(0xFF36547F),
-        shoeColor: const Color(0xFF263B59),
-        hairColor: const Color(0xFF1F2B3C),
       ),
     );
   }
