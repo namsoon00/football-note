@@ -2921,6 +2921,11 @@ class _RunningPoseOverlayPainter extends CustomPainter {
             : _usesWarningAccent
                 ? warningColor
                 : contactColor,
+        skinColor: Colors.white,
+        apparelColor: primaryColor,
+        shortsColor: secondaryColor,
+        shoeColor: secondaryColor,
+        hairColor: primaryColor,
         opacity: useContainFit ? 0.70 : 0.62,
       ),
     );
@@ -7213,43 +7218,19 @@ class _MeasuredPoseMovementMapPainter extends CustomPainter {
       points: points,
       canvasSize: size,
       style: RunningPoseHumanFormStyle(
-        bodyColor: Colors.white,
+        bodyColor: const Color(0xFFECC2A0),
         leftSideColor: baseColor,
         rightSideColor: baseColor,
-        jointColor: Colors.white,
+        jointColor: const Color(0xFFF8FBFF),
         focusColor: focusColor,
+        skinColor: const Color(0xFFECC2A0),
+        apparelColor: const Color(0xFF5776B4),
+        shortsColor: const Color(0xFF36547F),
+        shoeColor: const Color(0xFF263B59),
+        hairColor: const Color(0xFF1F2B3C),
       ),
-      focusIndices: _focusIndices,
     );
   }
-
-  Set<int> get _focusIndices => switch (metric) {
-        RunningCoachMetric.posture => const <int>{11, 12, 23, 24},
-        RunningCoachMetric.bounce => const <int>{
-            11,
-            12,
-            23,
-            24,
-            25,
-            26,
-            27,
-            28
-          },
-        RunningCoachMetric.footStrike => const <int>{
-            23,
-            24,
-            25,
-            26,
-            27,
-            28,
-            29,
-            30,
-            31,
-            32
-          },
-        RunningCoachMetric.kneeFlexion => const <int>{23, 24, 25, 26, 27, 28},
-        RunningCoachMetric.armCarriage => const <int>{11, 12, 13, 14, 15, 16},
-      };
 
   void _drawMovementMap(
     Canvas canvas,
@@ -7664,35 +7645,35 @@ class _MeasuredPoseMovementMapPainter extends CustomPainter {
   void _drawCurrentDot(Canvas canvas, Offset point) {
     canvas.drawCircle(
       point,
-      9,
+      6.4,
       Paint()..color = actualAccent.withValues(alpha: 0.16),
     );
     canvas.drawCircle(
       point,
-      5.5,
+      3.9,
       Paint()
         ..color = actualAccent
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 2,
+        ..strokeWidth = 1.7,
     );
-    canvas.drawCircle(point, 2.6, Paint()..color = actualAccent);
+    canvas.drawCircle(point, 1.8, Paint()..color = actualAccent);
   }
 
   void _drawTargetDot(Canvas canvas, Offset point) {
     canvas.drawCircle(
       point,
-      11,
+      7.6,
       Paint()..color = targetAccent.withValues(alpha: 0.14),
     );
     canvas.drawCircle(
       point,
-      6.5,
+      4.7,
       Paint()
         ..color = targetAccent
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.2,
+        ..strokeWidth = 1.8,
     );
-    canvas.drawCircle(point, 2.6, Paint()..color = targetAccent);
+    canvas.drawCircle(point, 1.9, Paint()..color = targetAccent);
   }
 
   void _drawDirectionalArrow(
