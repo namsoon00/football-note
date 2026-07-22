@@ -2884,6 +2884,7 @@ class _RunningPoseOverlayPainter extends CustomPainter {
     final frame = poseFrame;
     if (frame == null) return;
 
+    _drawHumanForm(canvas, size, frame);
     for (final connection in _mediaPipePoseConnections) {
       _drawConnection(canvas, size, frame, connection);
     }
@@ -2894,6 +2895,35 @@ class _RunningPoseOverlayPainter extends CustomPainter {
     if (metric != null) {
       _drawMetricGuide(canvas, size, frame, metric);
     }
+  }
+
+  void _drawHumanForm(
+    Canvas canvas,
+    Size size,
+    RunningPoseFrame frame,
+  ) {
+    final points = <int, Offset>{
+      for (final landmark in frame.landmarks)
+        if (landmark.confidence >= runningPoseOverlayMinimumJointConfidence)
+          landmark.index: _coverPoint(size, frame, landmark),
+    };
+    paintRunningPoseHumanForm(
+      canvas,
+      points: points,
+      canvasSize: size,
+      style: RunningPoseHumanFormStyle(
+        bodyColor: Colors.white,
+        leftSideColor: primaryColor,
+        rightSideColor: secondaryColor,
+        jointColor: Colors.white,
+        focusColor: highlightedMetric == null
+            ? contactColor
+            : _usesWarningAccent
+                ? warningColor
+                : contactColor,
+        opacity: useContainFit ? 0.70 : 0.62,
+      ),
+    );
   }
 
   void _drawMetricGuide(
@@ -3209,7 +3239,7 @@ class _RunningPoseOverlayPainter extends CustomPainter {
                 (1.0 - runningPoseOverlayMinimumConnectionConfidence))
             .clamp(0.0, 1.0)
             .toDouble();
-    final alpha = _sampleLerpDouble(0.24, 0.86, confidenceT);
+    final alpha = _sampleLerpDouble(0.20, 0.64, confidenceT);
     final width = switch (connection.kind) {
       _PoseConnectionKind.face => size.shortestSide * 0.0048,
       _PoseConnectionKind.hand ||
@@ -3230,7 +3260,7 @@ class _RunningPoseOverlayPainter extends CustomPainter {
       _coverPoint(size, frame, second),
       Paint()
         ..color = color.withValues(alpha: alpha)
-        ..strokeWidth = math.max(1.1, width)
+        ..strokeWidth = math.max(1.0, width * 0.82)
         ..strokeCap = StrokeCap.round
         ..strokeJoin = StrokeJoin.round,
     );
@@ -7083,6 +7113,7 @@ class _MeasuredPoseMovementMapPainter extends CustomPainter {
     _drawGround(canvas, panel, actualPoints);
     _drawSkeleton(
       canvas,
+      size,
       actualPoints,
       focusColor: actualAccent,
       baseColor: mutedColor,
@@ -7172,40 +7203,24 @@ class _MeasuredPoseMovementMapPainter extends CustomPainter {
 
   void _drawSkeleton(
     Canvas canvas,
+    Size size,
     Map<int, Offset> points, {
     required Color focusColor,
     required Color baseColor,
   }) {
-    final focus = _focusIndices;
-    for (final connection in _mediaPipePoseConnections) {
-      final first = points[connection.first];
-      final second = points[connection.second];
-      if (first == null || second == null) continue;
-      final active =
-          focus.contains(connection.first) || focus.contains(connection.second);
-      canvas.drawLine(
-        first,
-        second,
-        Paint()
-          ..color = (active ? focusColor : baseColor).withValues(
-            alpha: active ? 0.92 : 0.48,
-          )
-          ..strokeWidth = active ? 3.4 : 2.1
-          ..strokeCap = StrokeCap.round,
-      );
-    }
-    for (final entry in points.entries) {
-      final active = focus.contains(entry.key);
-      final radius = entry.key <= 10 ? 2.3 : 3.1;
-      canvas.drawCircle(
-        entry.value,
-        radius,
-        Paint()
-          ..color = (active ? focusColor : baseColor).withValues(
-            alpha: active ? 0.96 : 0.62,
-          ),
-      );
-    }
+    paintRunningPoseHumanForm(
+      canvas,
+      points: points,
+      canvasSize: size,
+      style: RunningPoseHumanFormStyle(
+        bodyColor: Colors.white,
+        leftSideColor: baseColor,
+        rightSideColor: baseColor,
+        jointColor: Colors.white,
+        focusColor: focusColor,
+      ),
+      focusIndices: _focusIndices,
+    );
   }
 
   Set<int> get _focusIndices => switch (metric) {
