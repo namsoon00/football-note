@@ -154,6 +154,8 @@ void main() {
         concededGoals: 1,
         yellowCards: 1,
         redCards: 1,
+        penaltyShootoutGoalsFor: 4,
+        penaltyShootoutGoalsAgainst: 3,
         matchKind: 'league',
         leagueTeamNames: const <String>['Blue FC', 'Red FC'],
         leaguePoints: 3,
@@ -203,6 +205,8 @@ void main() {
     expect(backedUpEntry['leaguePoints'], 3);
     expect(backedUpEntry['yellowCards'], 1);
     expect(backedUpEntry['redCards'], 1);
+    expect(backedUpEntry['penaltyShootoutGoalsFor'], 4);
+    expect(backedUpEntry['penaltyShootoutGoalsAgainst'], 3);
     expect(backedUpEntry['isLesson'], isTrue);
     expect(backedUpEntry['lessonDetail'], 'Dribbling private lesson');
     expect(backupOptions['profile_name'], 'Lee');
@@ -248,6 +252,8 @@ void main() {
     expect(trainingBox.values.first.concededGoals, 1);
     expect(trainingBox.values.first.yellowCards, 1);
     expect(trainingBox.values.first.redCards, 1);
+    expect(trainingBox.values.first.penaltyShootoutGoalsFor, 4);
+    expect(trainingBox.values.first.penaltyShootoutGoalsAgainst, 3);
     expect(trainingBox.values.first.matchCompetitionName, 'Weekend League');
     expect(trainingBox.values.first.matchStage, 'Round 2');
     expect(trainingBox.values.first.leaguePoints, 3);

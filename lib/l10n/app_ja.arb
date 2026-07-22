@@ -7324,6 +7324,21 @@
   "matchTournamentOutcomeAdvanced": "次ラウンド進出",
   "matchTournamentOutcomeEliminated": "敗退",
   "matchTournamentOutcomeChampion": "優勝",
+  "matchTournamentShootoutTitle": "PK戦",
+  "matchTournamentShootoutHelper": "トーナメント戦が引き分けの場合は、PK戦のスコアで勝ち上がるチームを決めます。",
+  "matchTournamentShootoutRequired": "引き分けのトーナメント戦は、PK戦のスコアで勝者を決めてください。",
+  "matchTournamentShootoutTie": "PK戦のスコアは同点にできません。",
+  "matchTournamentShootoutSummary": "PK戦 {homeScore} : {awayScore}",
+  "@matchTournamentShootoutSummary": {
+    "placeholders": {
+      "homeScore": {
+        "type": "int"
+      },
+      "awayScore": {
+        "type": "int"
+      }
+    }
+  },
   "matchOpponentTeamLabel": "相手チーム",
   "matchOpponentTeamHint": "例えば水原U15",
   "matchOpponentRequired": "相手チームを選択または入力してください。",

@@ -3753,13 +3753,8 @@ class _MetricCard extends StatelessWidget {
 }
 
 int? _matchOutcome(TrainingEntry entry) {
-  final scored = entry.scoredGoals;
-  final conceded = entry.concededGoals;
-  if (scored != null && conceded != null) {
-    if (scored > conceded) return 1;
-    if (scored < conceded) return -1;
-    return 0;
-  }
+  final scoreOutcome = entry.resolvedMatchOutcome;
+  if (scoreOutcome != null) return scoreOutcome;
   final points = entry.leaguePoints;
   if (points != null) {
     if (points >= 3) return 1;
@@ -3798,7 +3793,11 @@ String _matchResultLabel(TrainingEntry entry,
     -1 => l10n.statsOutcomeLoss,
     _ => l10n.statsOutcomeDraw,
   };
-  return '$resultLabel ${scored ?? '-'}:${conceded ?? '-'}';
+  final shootout = matchTournamentShootoutLabel(entry, l10n);
+  final score = '${scored ?? '-'}:${conceded ?? '-'}';
+  return shootout == null
+      ? '$resultLabel $score'
+      : '$resultLabel $score · $shootout';
 }
 
 class _InlineNotice extends StatelessWidget {

@@ -13228,6 +13228,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get matchTournamentOutcomeChampion => 'Champion';
 
   @override
+  String get matchTournamentShootoutTitle => 'Penalty shootout';
+
+  @override
+  String get matchTournamentShootoutHelper =>
+      'When a tournament match is level, use the shootout score to decide who advances.';
+
+  @override
+  String get matchTournamentShootoutRequired =>
+      'A drawn tournament match needs a penalty shootout score to decide the winner.';
+
+  @override
+  String get matchTournamentShootoutTie =>
+      'Penalty shootout scores cannot be level.';
+
+  @override
+  String matchTournamentShootoutSummary(int homeScore, int awayScore) {
+    return 'Penalty shootout $homeScore : $awayScore';
+  }
+
+  @override
   String get matchOpponentTeamLabel => 'Opponent team';
 
   @override

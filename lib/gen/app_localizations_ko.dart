@@ -12824,6 +12824,24 @@ class AppLocalizationsKo extends AppLocalizations {
   String get matchTournamentOutcomeChampion => '우승';
 
   @override
+  String get matchTournamentShootoutTitle => '승부차기';
+
+  @override
+  String get matchTournamentShootoutHelper =>
+      '토너먼트가 무승부면 승부차기 점수로 진출 팀을 확정하세요.';
+
+  @override
+  String get matchTournamentShootoutRequired => '토너먼트 무승부는 승부차기 점수로 승자를 정하세요.';
+
+  @override
+  String get matchTournamentShootoutTie => '승부차기 점수는 같을 수 없어요.';
+
+  @override
+  String matchTournamentShootoutSummary(int homeScore, int awayScore) {
+    return '승부차기 $homeScore : $awayScore';
+  }
+
+  @override
   String get matchOpponentTeamLabel => '상대 팀';
 
   @override

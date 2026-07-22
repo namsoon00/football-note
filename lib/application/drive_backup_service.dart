@@ -2845,6 +2845,8 @@ class DriveBackupService implements BackupRepository {
       ballsWon: entry.ballsWon,
       yellowCards: entry.yellowCards,
       redCards: entry.redCards,
+      penaltyShootoutGoalsFor: entry.penaltyShootoutGoalsFor,
+      penaltyShootoutGoalsAgainst: entry.penaltyShootoutGoalsAgainst,
       matchKind: entry.matchKind,
       leagueTeamNames: entry.leagueTeamNames,
       leagueResultMode: entry.leagueResultMode,
@@ -4242,6 +4244,8 @@ class DriveBackupService implements BackupRepository {
       'ballsWon': entry.ballsWon,
       'yellowCards': entry.yellowCards,
       'redCards': entry.redCards,
+      'penaltyShootoutGoalsFor': entry.penaltyShootoutGoalsFor,
+      'penaltyShootoutGoalsAgainst': entry.penaltyShootoutGoalsAgainst,
       'matchKind': entry.matchKind,
       'leagueTeamNames': entry.leagueTeamNames,
       'leagueResultMode': entry.leagueResultMode,
@@ -4341,6 +4345,10 @@ class DriveBackupService implements BackupRepository {
       ballsWon: (map['ballsWon'] as num?)?.toInt(),
       yellowCards: (map['yellowCards'] as num?)?.toInt(),
       redCards: (map['redCards'] as num?)?.toInt(),
+      penaltyShootoutGoalsFor:
+          (map['penaltyShootoutGoalsFor'] as num?)?.toInt(),
+      penaltyShootoutGoalsAgainst:
+          (map['penaltyShootoutGoalsAgainst'] as num?)?.toInt(),
       matchKind: map['matchKind'] as String? ?? 'friendly',
       leagueTeamNames: (map['leagueTeamNames'] as List?)
               ?.map((e) => e.toString())

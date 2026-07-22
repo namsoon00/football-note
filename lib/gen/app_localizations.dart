@@ -22594,6 +22594,36 @@ abstract class AppLocalizations {
   /// **'Champion'**
   String get matchTournamentOutcomeChampion;
 
+  /// No description provided for @matchTournamentShootoutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Penalty shootout'**
+  String get matchTournamentShootoutTitle;
+
+  /// No description provided for @matchTournamentShootoutHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'When a tournament match is level, use the shootout score to decide who advances.'**
+  String get matchTournamentShootoutHelper;
+
+  /// No description provided for @matchTournamentShootoutRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'A drawn tournament match needs a penalty shootout score to decide the winner.'**
+  String get matchTournamentShootoutRequired;
+
+  /// No description provided for @matchTournamentShootoutTie.
+  ///
+  /// In en, this message translates to:
+  /// **'Penalty shootout scores cannot be level.'**
+  String get matchTournamentShootoutTie;
+
+  /// No description provided for @matchTournamentShootoutSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Penalty shootout {homeScore} : {awayScore}'**
+  String matchTournamentShootoutSummary(int homeScore, int awayScore);
+
   /// No description provided for @matchOpponentTeamLabel.
   ///
   /// In en, this message translates to:

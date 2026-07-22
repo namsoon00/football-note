@@ -3035,6 +3035,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                         redCards: _parseSheetInt(
                                           redCardsText,
                                         ),
+                                        penaltyShootoutGoalsFor: editingEntry
+                                            ?.penaltyShootoutGoalsFor,
+                                        penaltyShootoutGoalsAgainst:
+                                            editingEntry
+                                                ?.penaltyShootoutGoalsAgainst,
                                         minutesPlayed: _parseSheetInt(
                                           minutesPlayedText,
                                         ),
@@ -4209,6 +4214,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final stage = matchTournamentStageLabel(l10n, entry.matchStage);
     final outcome = matchTournamentOutcomeLabel(l10n, entry.tournamentOutcome);
     final score = _formatMatchScore(entry);
+    final shootout = matchTournamentShootoutLabel(entry, l10n);
     return DecoratedBox(
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest,
@@ -4246,7 +4252,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
               ),
               style: theme.textTheme.bodyMedium,
             ),
-            if (score != null || entry.tournamentWins != null) ...[
+            if (score != null ||
+                shootout != null ||
+                entry.tournamentWins != null) ...[
               const SizedBox(height: 8),
               Wrap(
                 spacing: 6,
@@ -4256,6 +4264,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     _buildCompetitionInfoPill(
                       context: context,
                       text: score,
+                    ),
+                  if (shootout != null)
+                    _buildCompetitionInfoPill(
+                      context: context,
+                      text: shootout,
                     ),
                   if (entry.tournamentWins != null)
                     _buildCompetitionInfoPill(
@@ -5893,12 +5906,11 @@ class _EntryTile extends StatelessWidget {
   }
 
   Color _matchOutcomeColor(TrainingEntry entry) {
-    final scored = entry.scoredGoals;
-    final conceded = entry.concededGoals;
-    if (scored != null && conceded != null && scored > conceded) {
+    final outcome = entry.resolvedMatchOutcome;
+    if (outcome == 1) {
       return const Color(0xFF0FA968);
     }
-    if (scored != null && conceded != null && scored < conceded) {
+    if (outcome == -1) {
       return const Color(0xFFEB5757);
     }
     return const Color(0xFF2F80ED);
@@ -5930,15 +5942,14 @@ class _EntryTile extends StatelessWidget {
   }
 
   String _matchOutcomeLabel(TrainingEntry entry, {required bool isKo}) {
-    final scored = entry.scoredGoals;
-    final conceded = entry.concededGoals;
-    if (scored == null || conceded == null) {
+    final outcome = entry.resolvedMatchOutcome;
+    if (outcome == null) {
       return isKo ? '결과 미입력' : 'Result unset';
     }
-    if (scored > conceded) {
+    if (outcome == 1) {
       return isKo ? '승' : 'Win';
     }
-    if (scored < conceded) {
+    if (outcome == -1) {
       return isKo ? '패' : 'Loss';
     }
     return isKo ? '무' : 'Draw';
@@ -6107,17 +6118,16 @@ class _MatchResultIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scored = entry.scoredGoals;
-    final conceded = entry.concededGoals;
+    final outcome = entry.resolvedMatchOutcome;
     IconData icon;
     Color bg;
     Color fg;
 
-    if (scored != null && conceded != null && scored > conceded) {
+    if (outcome == 1) {
       icon = Icons.emoji_events;
       bg = const Color(0x1A0FA968);
       fg = const Color(0xFF0FA968);
-    } else if (scored != null && conceded != null && scored < conceded) {
+    } else if (outcome == -1) {
       icon = Icons.sentiment_dissatisfied_outlined;
       bg = const Color(0x1AEB5757);
       fg = const Color(0xFFEB5757);

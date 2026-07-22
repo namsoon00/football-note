@@ -388,6 +388,7 @@ class _MatchRecordCard extends StatelessWidget {
     final score = scored == null || conceded == null
         ? l10n.matchResultUnset
         : '$scored : $conceded';
+    final shootout = matchTournamentShootoutLabel(entry, l10n);
     final opponent = entry.opponentTeam.trim().isEmpty
         ? l10n.statsCompetitionOpponentUnset
         : entry.opponentTeam.trim();
@@ -467,6 +468,18 @@ class _MatchRecordCard extends StatelessWidget {
                           fontWeight: FontWeight.w900,
                         ),
                       ),
+                      if (shootout != null) ...[
+                        const SizedBox(height: AppSpacing.xxs),
+                        Text(
+                          shootout,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: scheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: AppSpacing.xxs),
                       Container(
                         padding: const EdgeInsets.symmetric(
@@ -789,13 +802,8 @@ class _MatchRecordsMetrics {
 }
 
 int? _matchOutcome(TrainingEntry entry) {
-  final scored = entry.scoredGoals;
-  final conceded = entry.concededGoals;
-  if (scored != null && conceded != null) {
-    if (scored > conceded) return 1;
-    if (scored == conceded) return 0;
-    return -1;
-  }
+  final scoreOutcome = entry.resolvedMatchOutcome;
+  if (scoreOutcome != null) return scoreOutcome;
   final points = entry.leaguePoints;
   if (points != null) {
     if (points >= 3) return 1;
