@@ -886,8 +886,20 @@ void main() {
     expect(_isItemAheadOf(ball, player, const Offset(0.62, 0.42)), isTrue);
     expect(playerRoute.points.last.x, closeTo(0.62, 0.02));
     expect(playerRoute.points.last.y, closeTo(0.42, 0.02));
-    expect(ballRoute.points.last.x, closeTo(0.62, 0.02));
-    expect(ballRoute.points.last.y, closeTo(0.42, 0.02));
+    final playerEnd = Offset(
+      playerRoute.points.last.x,
+      playerRoute.points.last.y,
+    );
+    final previousPlayerPoint =
+        playerRoute.points[playerRoute.points.length - 2];
+    final previousPlayerOffset = Offset(
+      previousPlayerPoint.x,
+      previousPlayerPoint.y,
+    );
+    final ballEnd = Offset(ballRoute.points.last.x, ballRoute.points.last.y);
+    final tangentTarget = playerEnd + (playerEnd - previousPlayerOffset);
+    expect((ballEnd - playerEnd).distance, greaterThan(0.045));
+    expect(_isPointAheadOf(ballEnd, playerEnd, tangentTarget), isTrue);
   });
 
   testWidgets('created next action can be undone from snackbar', (
@@ -932,8 +944,12 @@ void main() {
     await _tapBoardRelative(tester, boardFinder, const Offset(0.62, 0.42));
 
     expect(find.text('동작을 추가했어요.'), findsOneWidget);
+    final snackBar = tester.widget<SnackBar>(find.byType(SnackBar));
+    expect(snackBar.duration, const Duration(seconds: 3));
     await tester.tap(find.text('되돌리기'));
     await tester.pumpAndSettle();
+    expect(find.text('동작을 추가했어요.'), findsNothing);
+    expect(find.text('되돌리기'), findsNothing);
 
     await tester.tap(find.widgetWithText(TextButton, '저장'));
     await tester.pumpAndSettle();
@@ -1101,7 +1117,7 @@ void main() {
     expect(ballRoutes.single.linkedItemId, 'ball-1');
     expect(ballRoutes.single.targetItemId, 'player-2');
     expect(playerRoute.stageIndex, 1);
-    expect(playerRoute.points.length, greaterThanOrEqualTo(3));
+    expect(playerRoute.points, hasLength(2));
     expect(playerRoute.points.last.x, closeTo(0.64, 0.02));
     expect(playerRoute.points.last.y, closeTo(0.38, 0.02));
   });
@@ -1754,6 +1770,10 @@ void main() {
       playerRoute.points.last.x,
       playerRoute.points.last.y,
     );
+    final dribbleEnd = Offset(
+      dribbleRoute.points.last.x,
+      dribbleRoute.points.last.y,
+    );
     final shotStart =
         Offset(shotRoute.points.first.x, shotRoute.points.first.y);
 
@@ -1764,8 +1784,7 @@ void main() {
     expect(shotRoute.stageIndex, 2);
     expect(playerRoute.points.last.x, closeTo(0.62, 0.02));
     expect(playerRoute.points.last.y, closeTo(0.42, 0.02));
-    expect(dribbleRoute.points.last.x, closeTo(0.62, 0.02));
-    expect(dribbleRoute.points.last.y, closeTo(0.42, 0.02));
+    expect((dribbleEnd - playerEnd).distance, closeTo(0.07, 0.02));
     expect((shotStart - playerEnd).distance, closeTo(0.07, 0.02));
     expect(shotRoute.points.last.x, closeTo(0.84, 0.02));
     expect(shotRoute.points.last.y, closeTo(0.34, 0.02));
@@ -2440,7 +2459,7 @@ void main() {
     expect(route.points.last.y, closeTo(0.36, 0.02));
   });
 
-  testWidgets('quick pass then move creates staged ball and player routes', (
+  testWidgets('quick pass then move waits for an explicit move target', (
     WidgetTester tester,
   ) async {
     _setLandscapeSurface(tester);
@@ -2495,6 +2514,11 @@ void main() {
     await _tapVisibleOutlinedButton(tester, '패스 후 이동');
     expect(find.text('패스 후 이동 받을 선수를 누르세요.'), findsOneWidget);
     await _tapBoardRelative(tester, boardFinder, const Offset(0.62, 0.46));
+    expect(find.text('이동 대상이나 공간을 누르세요.'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('training-action-destination-guide')),
+      findsNothing,
+    );
 
     await tester.tap(find.widgetWithText(TextButton, '저장'));
     await tester.pumpAndSettle();
@@ -2504,14 +2528,12 @@ void main() {
     final ballRoute = routes.singleWhere(
       (route) => route.kind == TrainingMethodRouteKind.ball,
     );
-    final playerRoute = routes.singleWhere(
-      (route) => route.kind == TrainingMethodRouteKind.player,
-    );
 
     expect(ballRoute.linkedItemId, 'ball-1');
     expect(ballRoute.stageIndex, 1);
-    expect(playerRoute.linkedItemId, 'player-1');
-    expect(playerRoute.stageIndex, 1);
+    expect(
+        routes.where((route) => route.kind == TrainingMethodRouteKind.player),
+        isEmpty);
   });
 
   testWidgets('pass then move to a player keeps the passer move connected', (
@@ -2594,6 +2616,7 @@ void main() {
     expect(ballRoute.points.last.y, closeTo(0.44, 0.001));
     expect(playerRoute.linkedItemId, 'player-1');
     expect(playerRoute.stageIndex, 1);
+    expect(playerRoute.points, hasLength(2));
     expect(playerRoute.points.first.x, closeTo(0.22, 0.001));
     expect(playerRoute.points.first.y, closeTo(0.52, 0.001));
     expect(playerRoute.points.last.x, closeTo(0.72, 0.02));
@@ -2687,7 +2710,7 @@ void main() {
     expect(passRoute.stageIndex, 1);
     expect(playerRoute.linkedItemId, 'player-1');
     expect(playerRoute.stageIndex, 1);
-    expect(playerRoute.points.length, greaterThan(6));
+    expect(playerRoute.points.length, greaterThanOrEqualTo(6));
   });
 
   testWidgets('targeted pass action creates a ball route to player number', (
@@ -2937,6 +2960,22 @@ void main() {
     await _tapVisibleOutlinedButton(tester, '이동');
     expect(
       find.byKey(const ValueKey('training-action-destination-guide')),
+      findsNothing,
+    );
+    final detector = tester.widget<GestureDetector>(boardFinder);
+    final boardSize = tester.getSize(boardFinder);
+    final boardTopLeft = tester.getTopLeft(boardFinder);
+    final localPoint = Offset(boardSize.width * 0.46, boardSize.height * 0.36);
+    detector.onTapDown!(
+      TapDownDetails(
+        kind: PointerDeviceKind.touch,
+        localPosition: localPoint,
+        globalPosition: boardTopLeft + localPoint,
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('training-action-destination-guide')),
       findsOneWidget,
     );
     expect(
@@ -3105,7 +3144,20 @@ void main() {
     expect(ballRoute.actorItemId, 'player-1');
     expect(ballRoute.targetItemId, 'player-1');
     expect(ballRoute.stageIndex, playerRoute.stageIndex);
-    expect(ballRoute.points.last.x, greaterThan(playerRoute.points.last.x));
+    final playerEnd = Offset(
+      playerRoute.points.last.x,
+      playerRoute.points.last.y,
+    );
+    final playerStart = Offset(
+      playerRoute.points.first.x,
+      playerRoute.points.first.y,
+    );
+    final ballEnd = Offset(ballRoute.points.last.x, ballRoute.points.last.y);
+    expect((ballEnd - playerEnd).distance, greaterThan(0.045));
+    expect(
+        _isPointAheadOf(
+            ballEnd, playerEnd, playerEnd + (playerEnd - playerStart)),
+        isTrue);
   });
 
   testWidgets('pass to a player selects receiver for the next action stage', (
@@ -7156,8 +7208,20 @@ bool _isItemAheadOf(
   TrainingMethodItem origin,
   Offset target,
 ) {
-  final itemVector = Offset(item.x - origin.x, item.y - origin.y);
-  final targetVector = Offset(target.dx - origin.x, target.dy - origin.y);
+  return _isPointAheadOf(
+    Offset(item.x, item.y),
+    Offset(origin.x, origin.y),
+    target,
+  );
+}
+
+bool _isPointAheadOf(
+  Offset point,
+  Offset origin,
+  Offset target,
+) {
+  final itemVector = point - origin;
+  final targetVector = target - origin;
   final dot =
       (itemVector.dx * targetVector.dx) + (itemVector.dy * targetVector.dy);
   return dot > 0 && itemVector.distance > 0.045;

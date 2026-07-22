@@ -729,10 +729,14 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     messenger.hideCurrentSnackBar();
     messenger.showSnackBar(
       SnackBar(
+        duration: const Duration(seconds: 3),
         content: Text(_l10n.trainingSketchActionCreatedSnack),
         action: SnackBarAction(
           label: _l10n.undo,
-          onPressed: () => _restoreActionUndoSnapshot(snapshot),
+          onPressed: () {
+            _restoreActionUndoSnapshot(snapshot);
+            messenger.hideCurrentSnackBar(reason: SnackBarClosedReason.action);
+          },
         ),
       ),
     );
@@ -1031,7 +1035,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     final selected = _selectedItem;
     _pendingTargetGuidePoint = action != null &&
             selected != null &&
-            _usesDestinationGuideForAction(action)
+            _usesDestinationGuideForAction(action) &&
+            action != _SketchTargetAction.move
         ? _initialTargetGuidePointForAction(action, selected)
         : null;
   }
@@ -4278,21 +4283,13 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     if (possession == null) return false;
     final ball = possession.ball;
     final resolvedBallStart = possession.start;
-    final supportY = start.dy < 0.5 ? 0.08 : -0.08;
-    final moveEnd = targetItem?.type == _BoardItemType.player
-        ? _midTargetPoint(start, passEnd, yOffset: supportY)
-        : passEnd;
     _stopRoutePlayback(restoreStart: false);
     setState(() {
       final kickStage = _stageForNextPlayerAction(player) ??
           (existingRoute == null
               ? 1
               : _normalizedRouteStageIndex(existingRoute.stageIndex + 1));
-      final createNewStageRoute = _shouldCreateNewPlayerStageRoute(
-        existingRoute,
-        kickStage,
-      );
-      _upsertRouteForItem(
+      final passRoute = _upsertRouteForItem(
         kind: _PathDrawMode.ball,
         item: ball,
         points: <Offset>[resolvedBallStart, passEnd],
@@ -4302,24 +4299,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         targetItemId: targetItem?.id,
         createNewRoute: true,
       );
-      final moveRoute = _upsertRouteForItem(
-        kind: _PathDrawMode.player,
-        item: player,
-        points: createNewStageRoute
-            ? <Offset>[start, moveEnd]
-            : <Offset>[...basePoints, moveEnd],
-        segmentDurationsMs: createNewStageRoute
-            ? const <int>[760]
-            : <int>[
-                ..._playerActionBaseDurations(existingRoute),
-                760,
-              ],
-        stageIndex: kickStage,
-        actorItemId: player.id,
-        replacementRoute: createNewStageRoute ? null : existingRoute,
-        createNewRoute: createNewStageRoute,
-      );
-      _selectQuickActionRoute(moveRoute, player);
+      _selectQuickActionRoute(passRoute, ball, selectedItemOverride: player);
       _pendingTargetAction = _SketchTargetAction.move;
       _refreshPendingTargetGuidePoint();
     });
@@ -4385,11 +4365,20 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     final existingRoute = _playerRouteForChainedAction(player);
     final basePoints = _playerActionBasePoints(player, existingRoute);
     final playerStart = basePoints.last;
+    final playerMiddle = _midTargetPoint(
+      playerStart,
+      target,
+      yOffset: curveYOffset,
+    );
+    final actionPoints = <Offset>[playerStart, playerMiddle, target];
+    final projectedBallStart = _projectedCarryPoint(
+      actionPoints,
+      0,
+      fallbackTarget: target,
+    );
     final ballStart = existingRoute == null
-        ? (_stageAfterSelectedRoute() == null
-            ? null
-            : _ballCarryPointForPlayer(player, toward: target))
-        : _ballCarryPointFromOrigin(playerStart, toward: target);
+        ? (_stageAfterSelectedRoute() == null ? null : projectedBallStart)
+        : projectedBallStart;
     final possession = _ballPossessionForNextPlayerAction(
       player,
       target: target,
@@ -4399,16 +4388,15 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     final ball = possession.ball;
     final resolvedBallStart = possession.start;
     final possessionRoute = _latestBallRouteForBall(ball);
-    final playerMiddle = _midTargetPoint(
-      playerStart,
-      target,
-      yOffset: curveYOffset,
-    );
-    final ballMiddle = _midTargetPoint(
+    final ballPoints = <Offset>[
       resolvedBallStart,
-      target,
-      yOffset: curveYOffset,
-    );
+      for (var i = 1; i < actionPoints.length; i++)
+        _projectedCarryPoint(
+          actionPoints,
+          i,
+          fallbackTarget: target,
+        ),
+    ];
     final pairedStage = _pairedCarryStageFor(player: player, ball: ball);
     final continueUnownedPossessionRoute = possessionRoute != null &&
         possessionRoute.actorItemId == null &&
@@ -4426,7 +4414,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _upsertRouteForItem(
         kind: _PathDrawMode.ball,
         item: ball,
-        points: <Offset>[resolvedBallStart, ballMiddle, target],
+        points: ballPoints,
         segmentDurationsMs: segmentDurationsMs,
         stageIndex: stageIndex,
         actorItemId: player.id,
@@ -4436,8 +4424,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         kind: _PathDrawMode.player,
         item: player,
         points: createNewStageRoute
-            ? <Offset>[playerStart, playerMiddle, target]
-            : <Offset>[...basePoints, playerMiddle, target],
+            ? actionPoints
+            : <Offset>[...basePoints, ...actionPoints.skip(1)],
         segmentDurationsMs: createNewStageRoute
             ? segmentDurationsMs
             : <int>[
