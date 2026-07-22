@@ -4979,6 +4979,12 @@
   },
   "runningCoachEvidenceWhatSeenLabel": "What I saw",
   "runningCoachEvidenceOverlayBody": "Colored lines mark the joints used for this coaching point. The original video is unchanged.",
+  "runningCoachEvidenceCurrentOverlayTitle": "Current joints on your video",
+  "runningCoachEvidenceCurrentOverlayBody": "The red joints show your current posture detected in this evidence frame.",
+  "runningCoachEvidenceTransitionTitle": "From current to next",
+  "runningCoachEvidenceTransitionBody": "The blue target is the direction to use on your next step, not a pose drawn over the video.",
+  "runningCoachEvidenceCurrentLabel": "Current",
+  "runningCoachEvidenceNextLabel": "Next",
   "runningCoachEvidenceWhatSeenBody": "{metric} at {time} in your clip.",
   "@runningCoachEvidenceWhatSeenBody": {
     "placeholders": {

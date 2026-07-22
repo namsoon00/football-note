@@ -4979,6 +4979,12 @@
   },
   "runningCoachEvidenceWhatSeenLabel": "見えたこと",
   "runningCoachEvidenceOverlayBody": "色の線はこのコーチング項目に使った関節を示します。元の動画は変更されません。",
+  "runningCoachEvidenceCurrentOverlayTitle": "実際の動画上の現在の関節",
+  "runningCoachEvidenceCurrentOverlayBody": "赤い関節は、この根拠フレームで検出された現在の姿勢です。",
+  "runningCoachEvidenceTransitionTitle": "現在から次へ",
+  "runningCoachEvidenceTransitionBody": "青い目標は動画に重ねた姿勢ではなく、次の一歩で合わせる方向です。",
+  "runningCoachEvidenceCurrentLabel": "現在",
+  "runningCoachEvidenceNextLabel": "次",
   "runningCoachEvidenceWhatSeenBody": "自分のクリップ {time} の {metric} です。",
   "@runningCoachEvidenceWhatSeenBody": {
     "placeholders": {

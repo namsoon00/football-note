@@ -8653,6 +8653,26 @@ class AppLocalizationsKo extends AppLocalizations {
       '색 선은 이 코칭 포인트에 사용한 관절을 표시합니다. 원본 영상은 바뀌지 않습니다.';
 
   @override
+  String get runningCoachEvidenceCurrentOverlayTitle => '실제 영상 위 현재 관절';
+
+  @override
+  String get runningCoachEvidenceCurrentOverlayBody =>
+      '빨간 관절은 이 근거 프레임에서 찾은 현재 자세예요.';
+
+  @override
+  String get runningCoachEvidenceTransitionTitle => '현재에서 다음으로';
+
+  @override
+  String get runningCoachEvidenceTransitionBody =>
+      '파란 목표는 영상 위가 아니라 다음 동작에서 맞출 방향이에요.';
+
+  @override
+  String get runningCoachEvidenceCurrentLabel => '현재';
+
+  @override
+  String get runningCoachEvidenceNextLabel => '다음';
+
+  @override
   String runningCoachEvidenceWhatSeenBody(Object metric, Object time) {
     return '내 클립 $time의 $metric입니다.';
   }

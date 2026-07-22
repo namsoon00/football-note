@@ -4979,6 +4979,12 @@
   },
   "runningCoachEvidenceWhatSeenLabel": "본 내용",
   "runningCoachEvidenceOverlayBody": "색 선은 이 코칭 포인트에 사용한 관절을 표시합니다. 원본 영상은 바뀌지 않습니다.",
+  "runningCoachEvidenceCurrentOverlayTitle": "실제 영상 위 현재 관절",
+  "runningCoachEvidenceCurrentOverlayBody": "빨간 관절은 이 근거 프레임에서 찾은 현재 자세예요.",
+  "runningCoachEvidenceTransitionTitle": "현재에서 다음으로",
+  "runningCoachEvidenceTransitionBody": "파란 목표는 영상 위가 아니라 다음 동작에서 맞출 방향이에요.",
+  "runningCoachEvidenceCurrentLabel": "현재",
+  "runningCoachEvidenceNextLabel": "다음",
   "runningCoachEvidenceWhatSeenBody": "내 클립 {time}의 {metric}입니다.",
   "@runningCoachEvidenceWhatSeenBody": {
     "placeholders": {

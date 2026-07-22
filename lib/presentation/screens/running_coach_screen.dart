@@ -5204,13 +5204,13 @@ class _RunningAnalysisResultScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         children: [
           if (primaryInsight != null) ...[
-            _BeginnerActionCard(insight: primaryInsight),
-            const SizedBox(height: 12),
             _AnalysisEvidenceCard(
               result: result,
               session: session,
               insight: primaryInsight,
             ),
+            const SizedBox(height: 12),
+            _BeginnerActionCard(insight: primaryInsight),
             const SizedBox(height: 12),
           ],
           _ResultsSummaryCard(result: result, report: report),
@@ -5532,6 +5532,8 @@ class _AnalysisEvidenceCardState extends State<_AnalysisEvidenceCard> {
                 value: copy.value,
               ),
               const SizedBox(height: 10),
+              _EvidencePoseTransition(copy: copy),
+              const SizedBox(height: 12),
               _EvidenceControls(
                 frames: _evidenceFrames,
                 selectedIndex: _selectedIndex,
@@ -5594,6 +5596,7 @@ class _EvidenceVideoPreview extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
+    final actualAccent = scheme.error;
     final videoController = controller;
     final poseAspectRatio = selectedFrame.poseFrame == null
         ? 16 / 9
@@ -5674,10 +5677,10 @@ class _EvidenceVideoPreview extends StatelessWidget {
                               ),
                               painter: _RunningPoseOverlayPainter(
                                 poseFrame: poseFrame,
-                                primaryColor: scheme.primary,
-                                secondaryColor: scheme.secondary,
-                                contactColor: scheme.tertiary,
-                                warningColor: scheme.error,
+                                primaryColor: actualAccent,
+                                secondaryColor: actualAccent,
+                                contactColor: actualAccent,
+                                warningColor: actualAccent,
                                 highlightedMetric: insight.metric,
                                 finding: insight.finding,
                                 direction: result.direction,
@@ -5709,6 +5712,7 @@ class _EvidenceFrameCaption extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
+    final actualAccent = scheme.error;
     return Container(
       key: const ValueKey('running-coach-analysis-evidence-caption'),
       width: double.infinity,
@@ -5721,41 +5725,249 @@ class _EvidenceFrameCaption extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Wrap(
-            spacing: 8,
-            runSpacing: 6,
-            crossAxisAlignment: WrapCrossAlignment.center,
+          Row(
             children: [
-              Icon(Icons.straighten_rounded, size: 18, color: scheme.primary),
-              Text(
-                l10n.runningCoachEvidenceTimestamp(
-                  _formatContactTimestamp(l10n, frame.timestamp),
+              Icon(
+                Icons.radio_button_checked_rounded,
+                size: 18,
+                color: actualAccent,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  l10n.runningCoachEvidenceCurrentOverlayTitle,
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: actualAccent,
+                        fontWeight: FontWeight.w900,
+                      ),
                 ),
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: scheme.primary,
-                      fontWeight: FontWeight.w800,
-                    ),
-              ),
-              Text(
-                frame.label(l10n),
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
-              ),
-              Text(
-                value,
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      fontWeight: FontWeight.w900,
-                    ),
               ),
             ],
           ),
           const SizedBox(height: 5),
           Text(
-            l10n.runningCoachEvidenceOverlayBody,
+            l10n.runningCoachEvidenceCurrentOverlayBody,
             style: Theme.of(context).textTheme.bodySmall,
           ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: [
+              _EvidenceCaptionPill(
+                icon: Icons.schedule_rounded,
+                color: scheme.primary,
+                label: l10n.runningCoachEvidenceTimestamp(
+                  _formatContactTimestamp(l10n, frame.timestamp),
+                ),
+              ),
+              _EvidenceCaptionPill(
+                icon: Icons.fact_check_outlined,
+                color: actualAccent,
+                label: frame.label(l10n),
+              ),
+              _EvidenceCaptionPill(
+                icon: Icons.straighten_rounded,
+                color: scheme.onSurfaceVariant,
+                label: value,
+              ),
+            ],
+          ),
         ],
+      ),
+    );
+  }
+}
+
+class _EvidenceCaptionPill extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final String label;
+
+  const _EvidenceCaptionPill({
+    required this.icon,
+    required this.color,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withValues(alpha: 0.28)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 15, color: color),
+            const SizedBox(width: 5),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      color: color,
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _EvidencePoseTransition extends StatelessWidget {
+  final RunningCoachInsightCopy copy;
+
+  const _EvidencePoseTransition({required this.copy});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    final actualAccent = scheme.error;
+    final targetAccent = scheme.primary;
+    return Semantics(
+      container: true,
+      label: l10n.runningCoachEvidenceTransitionTitle,
+      child: DecoratedBox(
+        key: const ValueKey('running-coach-evidence-pose-transition'),
+        decoration: BoxDecoration(
+          color: scheme.surfaceContainerHighest.withValues(alpha: 0.56),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: scheme.outlineVariant),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.compare_arrows_rounded,
+                    size: 19,
+                    color: targetAccent,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      l10n.runningCoachEvidenceTransitionTitle,
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                            fontWeight: FontWeight.w900,
+                          ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                l10n.runningCoachEvidenceTransitionBody,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              const SizedBox(height: 10),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: _EvidencePoseTransitionState(
+                      key: const ValueKey(
+                          'running-coach-evidence-current-state'),
+                      icon: Icons.radio_button_checked_rounded,
+                      color: actualAccent,
+                      label: l10n.runningCoachEvidenceCurrentLabel,
+                      body: copy.value,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    child: Center(
+                      child: Icon(
+                        Icons.arrow_forward_rounded,
+                        size: 22,
+                        color: scheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: _EvidencePoseTransitionState(
+                      key: const ValueKey('running-coach-evidence-next-state'),
+                      icon: Icons.near_me_outlined,
+                      color: targetAccent,
+                      label: l10n.runningCoachEvidenceNextLabel,
+                      body: copy.cue,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _EvidencePoseTransitionState extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final String label;
+  final String body;
+
+  const _EvidencePoseTransitionState({
+    super.key,
+    required this.icon,
+    required this.color,
+    required this.label,
+    required this.body,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: 0.42)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, size: 17, color: color),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: color,
+                          fontWeight: FontWeight.w900,
+                        ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 7),
+            Text(
+              body,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -8772,11 +8984,6 @@ class _InsightCard extends StatelessWidget {
               )
             else
               _InsightGuideVisual(insight: insight),
-            if (poseFrame != null &&
-                insight.status != RunningCoachStatus.good) ...[
-              const SizedBox(height: 12),
-              _InsightGuideVisual(insight: insight),
-            ],
             if (insight.quality.isLowConfidence) ...[
               const SizedBox(height: 10),
               Text(
