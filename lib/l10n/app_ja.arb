@@ -8080,6 +8080,8 @@
       }
     }
   },
+  "trainingSketchStageActionSelectedLabel": "選択中",
+  "trainingSketchInsertActionAfterTooltip": "この動作の後に動作を挿入",
   "trainingSketchStageActionUnknownItem": "要素",
   "trainingSketchStageActionPlayerMove": "{actor}が移動",
   "@trainingSketchStageActionPlayerMove": {

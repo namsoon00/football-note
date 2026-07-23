@@ -24941,6 +24941,18 @@ abstract class AppLocalizations {
   /// **'Stage {stage} · {count} actions'**
   String trainingSketchGlobalStageChip(int stage, int count);
 
+  /// No description provided for @trainingSketchStageActionSelectedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected'**
+  String get trainingSketchStageActionSelectedLabel;
+
+  /// No description provided for @trainingSketchInsertActionAfterTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Insert action after this'**
+  String get trainingSketchInsertActionAfterTooltip;
+
   /// No description provided for @trainingSketchStageActionUnknownItem.
   ///
   /// In en, this message translates to:

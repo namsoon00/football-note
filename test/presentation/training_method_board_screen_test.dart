@@ -432,7 +432,7 @@ void main() {
 
     final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
     await _tapVisibleOutlinedButton(tester, '이동');
-    expect(find.text('이동 대상이나 공간을 누르세요.'), findsOneWidget);
+    expect(find.text('이동 대상이나 공간을 누르세요.'), findsNothing);
     await _tapBoardRelative(tester, boardFinder, const Offset(0.72, 0.38));
     await tester.tap(find.widgetWithText(TextButton, '저장'));
     await tester.pumpAndSettle();
@@ -902,7 +902,7 @@ void main() {
     expect(_isPointAheadOf(ballEnd, playerEnd, tangentTarget), isTrue);
   });
 
-  testWidgets('created next action can be undone from snackbar', (
+  testWidgets('created next action can be undone from bottom button', (
     WidgetTester tester,
   ) async {
     _setLandscapeSurface(tester);
@@ -943,13 +943,17 @@ void main() {
     await _tapVisibleOutlinedButton(tester, '이동');
     await _tapBoardRelative(tester, boardFinder, const Offset(0.62, 0.42));
 
-    expect(find.text('동작을 추가했어요.'), findsOneWidget);
-    final snackBar = tester.widget<SnackBar>(find.byType(SnackBar));
-    expect(snackBar.duration, const Duration(seconds: 3));
-    await tester.tap(find.text('되돌리기'));
+    expect(find.byType(SnackBar), findsNothing);
+    expect(
+      find.byKey(const ValueKey('training-action-undo-button')),
+      findsOneWidget,
+    );
+    await tester.tap(find.byKey(const ValueKey('training-action-undo-button')));
     await tester.pumpAndSettle();
-    expect(find.text('동작을 추가했어요.'), findsNothing);
-    expect(find.text('되돌리기'), findsNothing);
+    expect(
+      find.byKey(const ValueKey('training-action-undo-button')),
+      findsNothing,
+    );
 
     await tester.tap(find.widgetWithText(TextButton, '저장'));
     await tester.pumpAndSettle();
@@ -959,6 +963,57 @@ void main() {
     expect(
       find.byKey(const ValueKey('training-player-next-action-player-1')),
       findsOneWidget,
+    );
+  });
+
+  testWidgets('created action undo button disappears after a short delay', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '되돌리기 자동 숨김',
+          initialLayoutJson: const TrainingMethodLayout(
+            pages: <TrainingMethodPage>[
+              TrainingMethodPage(
+                name: 'Board',
+                items: <TrainingMethodItem>[
+                  TrainingMethodItem(
+                    id: 'player-1',
+                    type: 'player',
+                    x: 0.30,
+                    y: 0.55,
+                  ),
+                ],
+              ),
+            ],
+          ).encode(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    await tester.tap(
+      find
+          .descendant(of: boardFinder, matching: find.byIcon(Icons.person))
+          .first,
+    );
+    await tester.pumpAndSettle();
+    await _tapVisibleOutlinedButton(tester, '이동');
+    await _tapBoardRelative(tester, boardFinder, const Offset(0.62, 0.42));
+
+    expect(
+      find.byKey(const ValueKey('training-action-undo-button')),
+      findsOneWidget,
+    );
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('training-action-undo-button')),
+      findsNothing,
     );
   });
 
@@ -1161,7 +1216,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     await _tapVisibleOutlinedButton(tester, '콘 돌기');
-    expect(find.text('콘 돌기 대상이나 공간을 누르세요.'), findsOneWidget);
+    expect(find.text('콘 돌기 대상이나 공간을 누르세요.'), findsNothing);
     await _tapBoardRelative(tester, boardFinder, const Offset(0.58, 0.43));
 
     await tester.tap(find.widgetWithText(TextButton, '저장'));
@@ -1371,7 +1426,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     await _tapVisibleOutlinedButton(tester, '뜀틀 넘기');
-    expect(find.text('뜀틀 넘기 대상이나 공간을 누르세요.'), findsOneWidget);
+    expect(find.text('뜀틀 넘기 대상이나 공간을 누르세요.'), findsNothing);
     await _tapBoardRelative(tester, boardFinder, const Offset(0.60, 0.44));
 
     await tester.tap(find.widgetWithText(TextButton, '저장'));
@@ -2121,7 +2176,7 @@ void main() {
     player1Detector.onTap!();
     await tester.pumpAndSettle();
     await _tapVisibleOutlinedButton(tester, '이동');
-    expect(find.text('이동 대상이나 공간을 누르세요.'), findsOneWidget);
+    expect(find.text('이동 대상이나 공간을 누르세요.'), findsNothing);
     await _tapBoardRelative(tester, boardFinder, const Offset(0.46, 0.36));
 
     await tester.tap(find.widgetWithText(TextButton, '저장'));
@@ -2512,9 +2567,9 @@ void main() {
     );
     await tester.pumpAndSettle();
     await _tapVisibleOutlinedButton(tester, '패스 후 이동');
-    expect(find.text('패스 후 이동 받을 선수를 누르세요.'), findsOneWidget);
+    expect(find.text('패스 후 이동 받을 선수를 누르세요.'), findsNothing);
     await _tapBoardRelative(tester, boardFinder, const Offset(0.62, 0.46));
-    expect(find.text('이동 대상이나 공간을 누르세요.'), findsOneWidget);
+    expect(find.text('이동 대상이나 공간을 누르세요.'), findsNothing);
     expect(
       find.byKey(const ValueKey('training-action-destination-guide')),
       findsNothing,
@@ -2595,7 +2650,7 @@ void main() {
       const Offset(0.54, 0.44),
     );
 
-    expect(find.text('이동 대상이나 공간을 누르세요.'), findsOneWidget);
+    expect(find.text('이동 대상이나 공간을 누르세요.'), findsNothing);
     await _tapBoardRelative(tester, boardFinder, const Offset(0.72, 0.36));
 
     await tester.tap(find.widgetWithText(TextButton, '저장'));
@@ -2769,7 +2824,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     await _tapVisibleOutlinedButton(tester, '패스');
-    expect(find.text('패스 받을 선수를 누르세요.'), findsOneWidget);
+    expect(find.text('패스 받을 선수를 누르세요.'), findsNothing);
     expect(
       find.byKey(const ValueKey('training-action-target-valid-player-2')),
       findsOneWidget,
@@ -2856,7 +2911,7 @@ void main() {
     );
     await _tapBoardRelative(tester, boardFinder, const Offset(0.68, 0.42));
 
-    expect(find.text('패스 받을 선수를 누르세요.'), findsOneWidget);
+    expect(find.text('패스 받을 선수를 누르세요.'), findsNothing);
     await tester.tap(find.widgetWithText(TextButton, '저장'));
     await tester.pumpAndSettle();
     final saved = TrainingMethodLayout.decode(savedLayout ?? '');
@@ -2943,8 +2998,6 @@ void main() {
       findsNothing,
     );
 
-    await tester.tap(find.widgetWithText(TextButton, '취소'));
-    await tester.pumpAndSettle();
     await _tapVisibleOutlinedButton(tester, '뜀틀 넘기');
     expect(
       find.byKey(const ValueKey('training-action-target-valid-hurdle-1')),
@@ -2955,8 +3008,6 @@ void main() {
       findsNothing,
     );
 
-    await tester.tap(find.widgetWithText(TextButton, '취소'));
-    await tester.pumpAndSettle();
     await _tapVisibleOutlinedButton(tester, '이동');
     expect(
       find.byKey(const ValueKey('training-action-destination-guide')),
@@ -2983,7 +3034,7 @@ void main() {
       findsNothing,
     );
 
-    await tester.tap(find.widgetWithText(TextButton, '취소'));
+    await _tapBoardRelative(tester, boardFinder, const Offset(0.46, 0.36));
     await tester.pumpAndSettle();
     expect(
       find.byKey(const ValueKey('training-action-destination-guide')),
@@ -4034,7 +4085,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     await _tapVisibleOutlinedButton(tester, '서브');
-    expect(find.text('서브 대상이나 공간을 누르세요.'), findsOneWidget);
+    expect(find.text('서브 대상이나 공간을 누르세요.'), findsNothing);
     await _tapBoardRelative(tester, boardFinder, const Offset(0.70, 0.34));
 
     await tester.tap(find.widgetWithText(TextButton, '저장'));
@@ -4395,6 +4446,20 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    final actionRow = find.byKey(
+      const ValueKey('training-global-stage-action-row-route-shot'),
+    );
+    expect(actionRow, findsOneWidget);
+    await tester.tap(actionRow);
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(
+        const ValueKey('training-global-stage-action-selected-route-shot'),
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('선택됨'), findsOneWidget);
+
     final editAction = find.byKey(
       const ValueKey('training-global-stage-action-edit-route-shot'),
     );
@@ -4486,6 +4551,12 @@ void main() {
       ),
       findsNothing,
     );
+    expect(
+      find.byKey(
+        const ValueKey('training-global-stage-action-insert-route-pass'),
+      ),
+      findsOneWidget,
+    );
     await _tapBoardRelativeThroughWidgets(
       tester,
       boardFinder,
@@ -4521,7 +4592,104 @@ void main() {
     expect(player2Route.points.last.y, closeTo(0.38, 0.02));
   });
 
-  testWidgets('flow review warns when another player uses owned ball', (
+  testWidgets('stage action insert shifts later stages and fills the gap', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    String? savedLayout;
+    final initialLayout = const TrainingMethodLayout(
+      pages: <TrainingMethodPage>[
+        TrainingMethodPage(
+          name: 'Board',
+          items: <TrainingMethodItem>[
+            TrainingMethodItem(id: 'player-1', type: 'player', x: 0.2, y: 0.5),
+            TrainingMethodItem(
+              id: 'player-2',
+              type: 'player',
+              x: 0.58,
+              y: 0.46,
+            ),
+            TrainingMethodItem(id: 'ball-1', type: 'ball', x: 0.27, y: 0.5),
+          ],
+          routes: <TrainingMethodRoute>[
+            TrainingMethodRoute(
+              id: 'route-pass',
+              kind: TrainingMethodRouteKind.ball,
+              linkedItemId: 'ball-1',
+              actorItemId: 'player-1',
+              targetItemId: 'player-2',
+              stageIndex: 1,
+              points: <TrainingMethodPoint>[
+                TrainingMethodPoint(x: 0.27, y: 0.5),
+                TrainingMethodPoint(x: 0.58, y: 0.46),
+              ],
+            ),
+            TrainingMethodRoute(
+              id: 'route-later',
+              kind: TrainingMethodRouteKind.player,
+              linkedItemId: 'player-1',
+              actorItemId: 'player-1',
+              stageIndex: 2,
+              points: <TrainingMethodPoint>[
+                TrainingMethodPoint(x: 0.2, y: 0.5),
+                TrainingMethodPoint(x: 0.36, y: 0.60),
+              ],
+            ),
+          ],
+        ),
+      ],
+    ).encode();
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '중간 삽입',
+          initialLayoutJson: initialLayout,
+          onSaved: (value) => savedLayout = value,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final insertAction = find.byKey(
+      const ValueKey('training-global-stage-action-insert-route-pass'),
+    );
+    expect(insertAction, findsOneWidget);
+    await tester.tap(insertAction);
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(
+        const ValueKey('training-global-stage-action-selected-route-pass'),
+      ),
+      findsOneWidget,
+    );
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    await _tapVisibleOutlinedButton(tester, '이동');
+    await _tapBoardRelative(tester, boardFinder, const Offset(0.72, 0.40));
+
+    await tester.tap(find.widgetWithText(TextButton, '저장'));
+    await tester.pumpAndSettle();
+
+    final saved = TrainingMethodLayout.decode(savedLayout ?? '');
+    final routes = saved.pages.single.routes;
+    expect(
+      routes.singleWhere((route) => route.id == 'route-pass').stageIndex,
+      1,
+    );
+    expect(
+      routes.singleWhere((route) => route.id == 'route-later').stageIndex,
+      3,
+    );
+    expect(
+      routes.where(
+        (route) => route.actorItemId == 'player-2' && route.stageIndex == 2,
+      ),
+      isNotEmpty,
+    );
+  });
+
+  testWidgets('global stages omit flow review warnings below ball ownership', (
     WidgetTester tester,
   ) async {
     _setLandscapeSurface(tester);
@@ -4575,14 +4743,14 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('흐름 점검'), findsOneWidget);
+    expect(find.text('공 소유 관계'), findsOneWidget);
     expect(
       find.text('공 1는 사람 1 보유인데 사람 2가 사용합니다.'),
-      findsOneWidget,
+      findsNothing,
     );
   });
 
-  testWidgets('flow review warns when unowned shot ball is reused', (
+  testWidgets('global stages hide unowned ball reuse warning copy', (
     WidgetTester tester,
   ) async {
     _setLandscapeSurface(tester);
@@ -4649,7 +4817,7 @@ void main() {
 
     expect(
       find.text('공 1는 소유자 없음 상태인데 사람 2가 사용합니다.'),
-      findsOneWidget,
+      findsNothing,
     );
   });
 
@@ -6023,7 +6191,7 @@ void main() {
     );
     expect(
       find.byKey(const ValueKey('training-global-stage-add-next-button')),
-      findsOneWidget,
+      findsNothing,
     );
     expect(find.text('사람 1에서 사람 2로 공 이동'), findsOneWidget);
     expect(find.text('공 소유 관계'), findsOneWidget);
@@ -6034,6 +6202,12 @@ void main() {
           key.value.startsWith('training-global-stage-action-add-next-');
     });
     expect(addNextAction, findsNothing);
+    final insertAction = find.byWidgetPredicate((widget) {
+      final key = widget.key;
+      return key is ValueKey<String> &&
+          key.value.startsWith('training-global-stage-action-insert-');
+    });
+    expect(insertAction, findsOneWidget);
     await _tapVisibleOutlinedButton(tester, '슈팅');
     await _tapBoardRelative(tester, boardFinder, const Offset(0.82, 0.34));
 
