@@ -6402,9 +6402,18 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         ),
       );
     }
+    final activeDrag = _activeRouteHandleDrag;
     for (var index = 0; index < route.points.length - 1; index++) {
       final handleKey =
           ValueKey('training-route-segment-handle-${route.id}-$index');
+      // After a segment drag inserts its midpoint, keep the original pointer
+      // listener on that new point instead of rebuilding a duplicate key.
+      if (activeDrag != null &&
+          activeDrag.routeId == route.id &&
+          activeDrag.pointIndex != null &&
+          activeDrag.handleKey == handleKey) {
+        continue;
+      }
       handles.add(
         _buildRouteHandle(
           key: handleKey,

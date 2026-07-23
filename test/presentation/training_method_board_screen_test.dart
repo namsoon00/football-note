@@ -1935,7 +1935,11 @@ void main() {
     );
     expect(handleFinder, findsOneWidget);
 
-    await tester.drag(handleFinder, const Offset(0, -72));
+    final drag = await tester.startGesture(tester.getCenter(handleFinder));
+    await drag.moveBy(const Offset(0, -72));
+    await tester.pump();
+    expect(handleFinder, findsOneWidget);
+    await drag.up();
     await tester.pumpAndSettle();
 
     await tester.tap(find.widgetWithText(TextButton, '저장'));
