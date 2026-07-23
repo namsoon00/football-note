@@ -7285,86 +7285,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     return lastDistance <= _stayActionMaxDistanceMeters;
   }
 
-  String _ballOwnershipDescription(_BoardItem ball) {
-    final ballLabel = _stageItemLabel(ball);
-    final owner = _currentBallOwner(ball);
-    if (owner != null) {
-      return _l10n.trainingSketchBallOwnedBy(
-        ballLabel,
-        _stageItemLabel(owner),
-      );
-    }
-    final latestRoute = _latestBallRouteForBall(ball);
-    final actorItem = latestRoute?.actorItemId == null
-        ? null
-        : _itemById(latestRoute!.actorItemId!);
-    final targetItem = latestRoute?.targetItemId == null
-        ? null
-        : _itemById(latestRoute!.targetItemId!);
-    if (actorItem != null &&
-        targetItem != null &&
-        actorItem.id != targetItem.id) {
-      return _l10n.trainingSketchBallMovingToTarget(
-        ballLabel,
-        _stageItemLabel(actorItem),
-        _stageItemLabel(targetItem),
-      );
-    }
-    return _l10n.trainingSketchBallUnowned(ballLabel);
-  }
-
-  Widget _buildBallOwnershipSummary({
-    required ThemeData theme,
-    required ColorScheme colors,
-  }) {
-    final balls = _itemsOfType(_BoardItemType.ball);
-    if (balls.isEmpty) return const SizedBox.shrink();
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        color: colors.secondaryContainer.withValues(alpha: 0.42),
-        border: Border.all(
-          color: colors.secondary.withValues(alpha: 0.24),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.sports_soccer_outlined,
-                size: 16,
-                color: colors.onSecondaryContainer,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                _l10n.trainingSketchBallOwnershipTitle,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: colors.onSecondaryContainer,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          for (final ball in balls)
-            Padding(
-              padding: const EdgeInsets.only(top: 3),
-              child: Text(
-                _ballOwnershipDescription(ball),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: colors.onSecondaryContainer,
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildGlobalStageSummaryItem(
     _StageSummary summary, {
     required Color accentColor,
@@ -7689,10 +7609,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                   ),
               ],
             ),
-          if (_itemsOfType(_BoardItemType.ball).isNotEmpty) ...[
-            const SizedBox(height: 8),
-            _buildBallOwnershipSummary(theme: theme, colors: colors),
-          ],
         ],
       ),
     );
