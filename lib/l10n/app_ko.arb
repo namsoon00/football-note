@@ -8080,6 +8080,8 @@
       }
     }
   },
+  "trainingSketchStageActionSelectedLabel": "선택됨",
+  "trainingSketchInsertActionAfterTooltip": "이 액션 뒤에 새 액션 삽입",
   "trainingSketchStageActionUnknownItem": "요소",
   "trainingSketchStageActionPlayerMove": "{actor} 이동",
   "@trainingSketchStageActionPlayerMove": {

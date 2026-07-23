@@ -14109,6 +14109,12 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get trainingSketchStageActionSelectedLabel => '選択中';
+
+  @override
+  String get trainingSketchInsertActionAfterTooltip => 'この動作の後に動作を挿入';
+
+  @override
   String get trainingSketchStageActionUnknownItem => '要素';
 
   @override

@@ -8080,6 +8080,8 @@
       }
     }
   },
+  "trainingSketchStageActionSelectedLabel": "Selected",
+  "trainingSketchInsertActionAfterTooltip": "Insert action after this",
   "trainingSketchStageActionUnknownItem": "Item",
   "trainingSketchStageActionPlayerMove": "{actor} moves",
   "@trainingSketchStageActionPlayerMove": {

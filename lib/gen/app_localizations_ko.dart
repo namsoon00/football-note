@@ -14129,6 +14129,12 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get trainingSketchStageActionSelectedLabel => '선택됨';
+
+  @override
+  String get trainingSketchInsertActionAfterTooltip => '이 액션 뒤에 새 액션 삽입';
+
+  @override
   String get trainingSketchStageActionUnknownItem => '요소';
 
   @override

@@ -54,6 +54,8 @@ class TrainingMethodBoardScreen extends StatefulWidget {
 
 class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     with SingleTickerProviderStateMixin {
+  static const Duration _actionUndoVisibleDuration = Duration(seconds: 3);
+
   late List<_BoardPageState> _pages;
   final TextEditingController _methodController = TextEditingController();
   TrainingBoardService? _managedBoardService;
@@ -99,6 +101,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   int? _recentActionStageIndex;
   bool _isActionPreviewPlayback = false;
   Timer? _autoSaveTimer;
+  Timer? _actionUndoTimer;
+  _SketchUndoSnapshot? _pendingActionUndoSnapshot;
   bool _autoSaveInProgress = false;
   bool _pdfExportInProgress = false;
 
@@ -725,18 +729,91 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   void _showActionCreatedFeedback(_SketchUndoSnapshot snapshot) {
     _startCreatedActionPreview(snapshot);
     AppSoundEffects.playSketchMove();
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(
-      SnackBar(
-        duration: const Duration(seconds: 3),
-        content: Text(_l10n.trainingSketchActionCreatedSnack),
-        action: SnackBarAction(
-          label: _l10n.undo,
-          onPressed: () {
-            _restoreActionUndoSnapshot(snapshot);
-            messenger.hideCurrentSnackBar(reason: SnackBarClosedReason.action);
-          },
+    _actionUndoTimer?.cancel();
+    if (!mounted) return;
+    setState(() {
+      _pendingActionUndoSnapshot = snapshot;
+    });
+    _actionUndoTimer = Timer(_actionUndoVisibleDuration, () {
+      if (!mounted) return;
+      setState(() {
+        _pendingActionUndoSnapshot = null;
+      });
+    });
+  }
+
+  void _handleActionUndoPressed() {
+    final snapshot = _pendingActionUndoSnapshot;
+    if (snapshot == null) return;
+    _actionUndoTimer?.cancel();
+    _actionUndoTimer = null;
+    _restoreActionUndoSnapshot(snapshot);
+    if (!mounted) return;
+    setState(() {
+      _pendingActionUndoSnapshot = null;
+    });
+  }
+
+  Widget _buildActionUndoOverlay() {
+    final hasUndoSnapshot = _pendingActionUndoSnapshot != null;
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final bottomPadding = MediaQuery.viewPaddingOf(context).bottom + 12;
+    return Positioned(
+      left: 16,
+      right: 16,
+      bottom: bottomPadding,
+      child: IgnorePointer(
+        ignoring: !hasUndoSnapshot,
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 180),
+          switchInCurve: Curves.easeOut,
+          switchOutCurve: Curves.easeIn,
+          child: hasUndoSnapshot
+              ? Align(
+                  key: const ValueKey('training-action-undo-overlay'),
+                  alignment: Alignment.bottomCenter,
+                  child: Material(
+                    elevation: 8,
+                    borderRadius: BorderRadius.circular(999),
+                    color: colors.inverseSurface,
+                    child: Semantics(
+                      button: true,
+                      label: _l10n.undo,
+                      child: InkWell(
+                        key: const ValueKey('training-action-undo-button'),
+                        onTap: _handleActionUndoPressed,
+                        borderRadius: BorderRadius.circular(999),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 18,
+                            vertical: 12,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.undo,
+                                color: colors.onInverseSurface,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                _l10n.undo,
+                                style: theme.textTheme.labelLarge?.copyWith(
+                                  color: colors.onInverseSurface,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                )
+              : const SizedBox.shrink(
+                  key: ValueKey('training-action-undo-empty'),
+                ),
         ),
       ),
     );
@@ -3474,11 +3551,44 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     return registered == null ? null : _normalizedRouteStageIndex(registered);
   }
 
-  void _registerGlobalStageForNextAction(int stageIndex) {
+  bool _canInsertActionAfterRoute(_BoardRoute route) {
+    final sourceStage = _normalizedRouteStageIndex(route.stageIndex);
+    if (sourceStage >= _maxRouteStageIndex) return false;
+    return !_currentPage.routes.any(
+      (candidate) =>
+          candidate.id != route.id &&
+          _normalizedRouteStageIndex(candidate.stageIndex) >=
+              _maxRouteStageIndex,
+    );
+  }
+
+  void _insertActionAfterRoute(_BoardRoute route) {
+    if (widget.readOnly || !_canInsertActionAfterRoute(route)) return;
+    final sourceStage = _normalizedRouteStageIndex(route.stageIndex);
+    final insertStage = _normalizedRouteStageIndex(sourceStage + 1);
+    _stopRoutePlayback(restoreStart: false);
     setState(() {
-      _registeredNextActionStageIndex = _normalizedRouteStageIndex(stageIndex);
+      for (final candidate in _currentPage.routes) {
+        final stage = _normalizedRouteStageIndex(candidate.stageIndex);
+        candidate.stageIndex =
+            stage > sourceStage ? _normalizedRouteStageIndex(stage + 1) : stage;
+      }
+      _selectedItemId = _selectableItemIdForRoute(route);
+      _selectedRouteId = route.id;
+      _registeredNextActionStageIndex = insertStage;
       _recentActionStageIndex = null;
+      _pathDrawMode = route.kind;
+      _showSelectedColorPicker = false;
+      _pathMode = false;
+      _penMode = false;
+      _clearPendingTargetActionState();
+      _routeReplaceMode = false;
+      _activeStroke = null;
+      _activeRoutePoints = null;
+      _activeRouteSegmentDurationsMs = null;
+      _activeRouteLastPointAt = null;
     });
+    _scheduleAutoSave();
   }
 
   int _nextGlobalStageForNewAction() {
@@ -3751,11 +3861,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _activeRouteSegmentDurationsMs = null;
       _activeRouteLastPointAt = null;
     });
-  }
-
-  void _cancelTargetAction() {
-    if (_pendingTargetAction == null) return;
-    setState(_clearPendingTargetActionState);
   }
 
   void _handleBoardTap(Offset localPosition, double width, double height) {
@@ -5468,6 +5573,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   void dispose() {
     _memoSession++;
     _autoSaveTimer?.cancel();
+    _actionUndoTimer?.cancel();
     unawaited(_speech.cancel());
     unawaited(_clearSketchOrientationLock());
     _playController
@@ -5512,9 +5618,16 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         body: GestureDetector(
           behavior: HitTestBehavior.translucent,
           onTap: _dismissKeyboard,
-          child: isLandscape
-              ? _buildLandscapeBody(isKo)
-              : _buildPortraitBody(isKo),
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: isLandscape
+                    ? _buildLandscapeBody(isKo)
+                    : _buildPortraitBody(isKo),
+              ),
+              if (!widget.readOnly) _buildActionUndoOverlay(),
+            ],
+          ),
         ),
       ),
     );
@@ -5960,13 +6073,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                     if (_isActionPreviewPlayback)
                       const SizedBox(
                         key: ValueKey('training-action-preview-active'),
-                      ),
-                    if (_pendingTargetAction != null)
-                      Positioned(
-                        left: 8,
-                        right: 8,
-                        top: 8,
-                        child: _buildPendingTargetActionBanner(),
                       ),
                   ],
                 ),
@@ -6477,14 +6583,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     };
   }
 
-  String _targetActionHint(_SketchTargetAction action) {
-    final label = _targetActionLabel(action);
-    if (_requiresReceiverTargetAction(action)) {
-      return _l10n.trainingSketchPassTargetHint(label);
-    }
-    return _l10n.trainingSketchActionTargetHint(label);
-  }
-
   Widget _buildPlayerFlowStarter(_BoardItem player) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
@@ -6830,50 +6928,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           _SketchTargetAction.hurdleJump,
         ],
     };
-  }
-
-  Widget _buildPendingTargetActionBanner() {
-    final action = _pendingTargetAction;
-    if (action == null) return const SizedBox.shrink();
-    final colors = Theme.of(context).colorScheme;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        color: colors.secondaryContainer,
-        border: Border.all(color: colors.secondary.withValues(alpha: 0.42)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            Icons.touch_app_outlined,
-            size: 20,
-            color: colors.onSecondaryContainer,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              _targetActionHint(action),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: colors.onSecondaryContainer,
-                    fontWeight: FontWeight.w600,
-                  ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          TextButton(
-            onPressed: _cancelTargetAction,
-            style: TextButton.styleFrom(
-              minimumSize: const Size(44, 44),
-              foregroundColor: colors.onSecondaryContainer,
-            ),
-            child: Text(_l10n.trainingSketchActionTargetCancelButton),
-          ),
-        ],
-      ),
-    );
   }
 
   Widget _buildSelectedTools(bool isKo) {
@@ -7259,201 +7313,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     return _l10n.trainingSketchBallUnowned(ballLabel);
   }
 
-  _BoardItem? _initialBallOwner(_BoardItem ball) {
-    return _nearestPlayerToPoint(
-      _itemPosition(ball),
-      radius: _ballPossessionRadius,
-    );
-  }
-
-  List<String> _sketchFlowWarnings() {
-    final balls = _itemsOfType(_BoardItemType.ball);
-    if (balls.isEmpty) return const <String>[];
-    final ownerByBallId = <String, String?>{
-      for (final ball in balls) ball.id: _initialBallOwner(ball)?.id,
-    };
-    final hasPriorActionByBallId = <String, bool>{
-      for (final ball in balls) ball.id: false,
-    };
-    final ballRoutes = _currentPage.routes
-        .where(
-          (route) =>
-              route.kind == _PathDrawMode.ball &&
-              route.linkedItemId != null &&
-              route.points.length >= 2,
-        )
-        .toList(growable: false);
-    ballRoutes.sort((a, b) {
-      final stageCompare = _normalizedRouteStageIndex(
-        a.stageIndex,
-      ).compareTo(_normalizedRouteStageIndex(b.stageIndex));
-      if (stageCompare != 0) return stageCompare;
-      return _currentPage.routes.indexOf(a).compareTo(
-            _currentPage.routes.indexOf(b),
-          );
-    });
-
-    final warnings = <String>{};
-    var index = 0;
-    while (index < ballRoutes.length) {
-      final stage = _normalizedRouteStageIndex(ballRoutes[index].stageIndex);
-      final stageRoutes = <_BoardRoute>[];
-      while (index < ballRoutes.length &&
-          _normalizedRouteStageIndex(ballRoutes[index].stageIndex) == stage) {
-        stageRoutes.add(ballRoutes[index]);
-        index += 1;
-      }
-
-      final actorsByBallId = <String, Set<String>>{};
-      for (final route in stageRoutes) {
-        final ball = _itemById(route.linkedItemId!);
-        if (ball == null || ball.type != _BoardItemType.ball) continue;
-        final ballLabel = _stageItemLabel(ball);
-        final actorId = route.actorItemId;
-        final actor = actorId == null ? null : _itemById(actorId);
-        if (actorId == null ||
-            actor == null ||
-            actor.type != _BoardItemType.player) {
-          warnings
-              .add(_l10n.trainingSketchFlowWarningBallWithoutActor(ballLabel));
-          continue;
-        }
-
-        actorsByBallId.putIfAbsent(ball.id, () => <String>{}).add(actor.id);
-        final ownerId = ownerByBallId[ball.id];
-        if (ownerId != null && ownerId != actor.id) {
-          warnings.add(
-            _l10n.trainingSketchFlowWarningWrongOwner(
-              ballLabel,
-              _stageItemLabel(_itemById(ownerId)),
-              _stageItemLabel(actor),
-            ),
-          );
-        } else if (ownerId == null &&
-            (hasPriorActionByBallId[ball.id] ?? false)) {
-          if (!_isBallPickupRoute(route)) {
-            warnings.add(
-              _l10n.trainingSketchFlowWarningUnownedBallUsed(
-                ballLabel,
-                _stageItemLabel(actor),
-              ),
-            );
-          }
-        }
-
-        final targetId = route.targetItemId;
-        if (targetId != null && targetId != actor.id) {
-          final target = _itemById(targetId);
-          if (target == null || target.type != _BoardItemType.player) {
-            warnings.add(
-              _l10n.trainingSketchFlowWarningInvalidTarget(
-                ballLabel,
-                _stageItemLabel(target),
-              ),
-            );
-          }
-        }
-      }
-
-      for (final entry in actorsByBallId.entries) {
-        if (entry.value.length > 1) {
-          warnings.add(
-            _l10n.trainingSketchFlowWarningMultipleActors(
-              _stageItemLabel(_itemById(entry.key)),
-              stage,
-            ),
-          );
-        }
-      }
-
-      for (final route in stageRoutes) {
-        final ball = _itemById(route.linkedItemId!);
-        if (ball == null || ball.type != _BoardItemType.ball) continue;
-        hasPriorActionByBallId[ball.id] = true;
-        final actorId = route.actorItemId;
-        final actor = actorId == null ? null : _itemById(actorId);
-        if (actor == null || actor.type != _BoardItemType.player) {
-          ownerByBallId[ball.id] = null;
-          continue;
-        }
-        final targetId = route.targetItemId;
-        final target = targetId == null ? null : _itemById(targetId);
-        if (target != null && target.type == _BoardItemType.player) {
-          ownerByBallId[ball.id] = target.id;
-        } else if (targetId == actor.id) {
-          ownerByBallId[ball.id] = actor.id;
-        } else {
-          ownerByBallId[ball.id] = null;
-        }
-      }
-    }
-
-    return warnings.toList(growable: false);
-  }
-
-  Widget _buildFlowReviewSummary({
-    required ThemeData theme,
-    required ColorScheme colors,
-  }) {
-    final warnings = _sketchFlowWarnings();
-    final hasWarnings = warnings.isNotEmpty;
-    final foreground = hasWarnings ? colors.onErrorContainer : colors.tertiary;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        color: hasWarnings
-            ? colors.errorContainer.withValues(alpha: 0.56)
-            : colors.tertiaryContainer.withValues(alpha: 0.34),
-        border: Border.all(
-          color: (hasWarnings ? colors.error : colors.tertiary).withValues(
-            alpha: 0.32,
-          ),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                hasWarnings ? Icons.error_outline : Icons.verified_outlined,
-                size: 16,
-                color: foreground,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                _l10n.trainingSketchFlowReviewTitle,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: foreground,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          if (hasWarnings)
-            for (final warning in warnings)
-              Padding(
-                padding: const EdgeInsets.only(top: 3),
-                child: Text(
-                  warning,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: colors.onErrorContainer,
-                  ),
-                ),
-              )
-          else
-            Text(
-              _l10n.trainingSketchFlowReviewOk,
-              style: theme.textTheme.bodySmall?.copyWith(color: foreground),
-            ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildBallOwnershipSummary({
     required ThemeData theme,
     required ColorScheme colors,
@@ -7570,91 +7429,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                     ),
                     const SizedBox(height: 3),
                     for (final route in summary.routes)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 2),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.subdirectory_arrow_right,
-                              size: 14,
-                              color: accentColor,
-                            ),
-                            const SizedBox(width: 4),
-                            Expanded(
-                              child: Text(
-                                _stageRouteActionDescription(route),
-                                style: theme.textTheme.bodySmall,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            Tooltip(
-                              message:
-                                  _l10n.trainingSketchEditStageActionTooltip,
-                              child: Semantics(
-                                button: true,
-                                enabled: !widget.readOnly,
-                                label:
-                                    _l10n.trainingSketchEditStageActionTooltip,
-                                child: Material(
-                                  color: Colors.transparent,
-                                  shape: const CircleBorder(),
-                                  child: InkWell(
-                                    key: ValueKey(
-                                      'training-global-stage-action-edit-${route.id}',
-                                    ),
-                                    customBorder: const CircleBorder(),
-                                    onTap: widget.readOnly
-                                        ? null
-                                        : () => _editStageActionRoute(route),
-                                    child: SizedBox(
-                                      width: 32,
-                                      height: 32,
-                                      child: Icon(
-                                        Icons.edit_outlined,
-                                        size: 16,
-                                        color: colors.primary,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Tooltip(
-                              message:
-                                  _l10n.trainingSketchDeleteStageActionTooltip,
-                              child: Semantics(
-                                button: true,
-                                enabled: !widget.readOnly,
-                                label: _l10n
-                                    .trainingSketchDeleteStageActionTooltip,
-                                child: Material(
-                                  color: Colors.transparent,
-                                  shape: const CircleBorder(),
-                                  child: InkWell(
-                                    key: ValueKey(
-                                      'training-global-stage-action-delete-${route.id}',
-                                    ),
-                                    customBorder: const CircleBorder(),
-                                    onTap: widget.readOnly
-                                        ? null
-                                        : () => _deleteRouteById(route.id),
-                                    child: SizedBox(
-                                      width: 32,
-                                      height: 32,
-                                      child: Icon(
-                                        Icons.close,
-                                        size: 16,
-                                        color: colors.error,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                      _buildGlobalStageRouteAction(
+                        route,
+                        accentColor: accentColor,
+                        stageIndex: summary.stageIndex,
+                        theme: theme,
                       ),
                   ],
                 ),
@@ -7666,17 +7445,200 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     );
   }
 
+  Widget _buildGlobalStageRouteAction(
+    _BoardRoute route, {
+    required Color accentColor,
+    required int stageIndex,
+    required ThemeData theme,
+  }) {
+    final colors = theme.colorScheme;
+    final isSelected = route.id == _selectedRouteId;
+    final canInsert = _canInsertActionAfterRoute(route);
+    return Padding(
+      padding: const EdgeInsets.only(top: 2),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          key: ValueKey('training-global-stage-action-row-${route.id}'),
+          onTap: () =>
+              _selectStageActionRoute(route, registeredStage: stageIndex),
+          borderRadius: BorderRadius.circular(8),
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(6, 4, 0, 4),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              color: isSelected
+                  ? colors.primaryContainer.withValues(alpha: 0.56)
+                  : Colors.transparent,
+              border: Border.all(
+                color: isSelected
+                    ? colors.primary.withValues(alpha: 0.72)
+                    : Colors.transparent,
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Icon(
+                  isSelected
+                      ? Icons.check_circle_outline
+                      : Icons.subdirectory_arrow_right,
+                  size: 14,
+                  color: isSelected ? colors.primary : accentColor,
+                ),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _stageRouteActionDescription(route),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontWeight:
+                              isSelected ? FontWeight.w800 : FontWeight.w500,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (isSelected)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: Row(
+                            key: ValueKey(
+                              'training-global-stage-action-selected-${route.id}',
+                            ),
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.touch_app_outlined,
+                                size: 12,
+                                color: colors.primary,
+                              ),
+                              const SizedBox(width: 3),
+                              Text(
+                                _l10n.trainingSketchStageActionSelectedLabel,
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: colors.primary,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                if (!widget.readOnly)
+                  Tooltip(
+                    message: _l10n.trainingSketchInsertActionAfterTooltip,
+                    child: Semantics(
+                      button: true,
+                      enabled: canInsert,
+                      label: _l10n.trainingSketchInsertActionAfterTooltip,
+                      child: Material(
+                        color: Colors.transparent,
+                        shape: const CircleBorder(),
+                        child: InkWell(
+                          key: ValueKey(
+                            'training-global-stage-action-insert-${route.id}',
+                          ),
+                          customBorder: const CircleBorder(),
+                          onTap: canInsert
+                              ? () => _insertActionAfterRoute(route)
+                              : null,
+                          child: SizedBox(
+                            width: 32,
+                            height: 32,
+                            child: Icon(
+                              Icons.add_circle_outline,
+                              size: 17,
+                              color: canInsert
+                                  ? colors.primary
+                                  : colors.onSurfaceVariant.withValues(
+                                      alpha: 0.42,
+                                    ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                Tooltip(
+                  message: _l10n.trainingSketchEditStageActionTooltip,
+                  child: Semantics(
+                    button: true,
+                    enabled: !widget.readOnly,
+                    label: _l10n.trainingSketchEditStageActionTooltip,
+                    child: Material(
+                      color: Colors.transparent,
+                      shape: const CircleBorder(),
+                      child: InkWell(
+                        key: ValueKey(
+                          'training-global-stage-action-edit-${route.id}',
+                        ),
+                        customBorder: const CircleBorder(),
+                        onTap: widget.readOnly
+                            ? null
+                            : () => _editStageActionRoute(route),
+                        child: SizedBox(
+                          width: 32,
+                          height: 32,
+                          child: Icon(
+                            Icons.edit_outlined,
+                            size: 16,
+                            color: colors.primary,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Tooltip(
+                  message: _l10n.trainingSketchDeleteStageActionTooltip,
+                  child: Semantics(
+                    button: true,
+                    enabled: !widget.readOnly,
+                    label: _l10n.trainingSketchDeleteStageActionTooltip,
+                    child: Material(
+                      color: Colors.transparent,
+                      shape: const CircleBorder(),
+                      child: InkWell(
+                        key: ValueKey(
+                          'training-global-stage-action-delete-${route.id}',
+                        ),
+                        customBorder: const CircleBorder(),
+                        onTap: widget.readOnly
+                            ? null
+                            : () => _deleteRouteById(route.id),
+                        child: SizedBox(
+                          width: 32,
+                          height: 32,
+                          child: Icon(
+                            Icons.close,
+                            size: 16,
+                            color: colors.error,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildGlobalStagePlanner() {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     final summaries = _globalStageSummaries();
     final registeredStage = _registeredStageForNextAction();
-    final nextActionStage = _activeStageForNextAction();
-    final activeStage =
-        registeredStage ?? _recentActionStageIndex ?? nextActionStage;
-    final nextGlobalStage = _nextGlobalStageForNewAction();
-    final selectedPlayer =
-        _selectedItem?.type == _BoardItemType.player ? _selectedItem : null;
+    final activeStage = registeredStage ??
+        _recentActionStageIndex ??
+        _activeStageForNextAction();
     final accentColor = colors.primary;
     return Container(
       width: double.infinity,
@@ -7730,50 +7692,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           if (_itemsOfType(_BoardItemType.ball).isNotEmpty) ...[
             const SizedBox(height: 8),
             _buildBallOwnershipSummary(theme: theme, colors: colors),
-            const SizedBox(height: 8),
-            _buildFlowReviewSummary(theme: theme, colors: colors),
           ],
-          const SizedBox(height: 8),
-          if (selectedPlayer != null &&
-              !widget.readOnly &&
-              summaries.isNotEmpty) ...[
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                FilledButton.tonalIcon(
-                  key: const ValueKey('training-global-stage-add-next-button'),
-                  onPressed: () =>
-                      _registerGlobalStageForNextAction(nextGlobalStage),
-                  icon: const Icon(Icons.add),
-                  label: Text(
-                    _l10n.trainingSketchAddNextStageButton(nextGlobalStage),
-                  ),
-                ),
-                OutlinedButton.icon(
-                  key: const ValueKey('training-global-stage-add-same-button'),
-                  onPressed: () =>
-                      _registerGlobalStageForNextAction(activeStage),
-                  icon: const Icon(Icons.add_link),
-                  label: Text(
-                    _l10n.trainingSketchAddSameStageButton(activeStage),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-          ],
-          Text(
-            _l10n.trainingSketchRegisteredNextGlobalStageHint(
-              nextActionStage,
-            ),
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: registeredStage == null
-                  ? theme.colorScheme.onSurfaceVariant
-                  : theme.colorScheme.primary,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
         ],
       ),
     );
