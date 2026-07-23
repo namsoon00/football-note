@@ -77,6 +77,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   List<Offset>? _activeRoutePoints;
   List<int>? _activeRouteSegmentDurationsMs;
   DateTime? _activeRouteLastPointAt;
+  _RouteHandleDrag? _activeRouteHandleDrag;
   late final AnimationController _playController;
   final GlobalKey _boardPdfBoundaryKey = GlobalKey();
   List<_PlaybackTrack> _playbackTracks = const <_PlaybackTrack>[];
@@ -99,7 +100,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   bool _showSelectedColorPicker = false;
   int? _registeredNextActionStageIndex;
   int? _recentActionStageIndex;
+  int? _playbackActiveStageIndex;
   bool _isActionPreviewPlayback = false;
+  Set<String> _hiddenPlaybackItemIds = <String>{};
   Timer? _autoSaveTimer;
   Timer? _actionUndoTimer;
   _SketchUndoSnapshot? _pendingActionUndoSnapshot;
@@ -431,8 +434,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     _activeRoutePoints = null;
     _activeRouteSegmentDurationsMs = null;
     _activeRouteLastPointAt = null;
+    _activeRouteHandleDrag = null;
     _routeReplaceMode = false;
     _playbackTracks = const <_PlaybackTrack>[];
+    _hiddenPlaybackItemIds = <String>{};
+    _playbackActiveStageIndex = null;
     _methodController.text = _currentPage.methodText;
     _lastSavedLayout = _serialize();
   }
@@ -717,6 +723,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _activeRoutePoints = null;
       _activeRouteSegmentDurationsMs = null;
       _activeRouteLastPointAt = null;
+      _activeRouteHandleDrag = null;
+      _hiddenPlaybackItemIds = <String>{};
+      _playbackActiveStageIndex = null;
     });
     _scheduleAutoSave();
   }
@@ -773,35 +782,38 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
               ? Align(
                   key: const ValueKey('training-action-undo-overlay'),
                   alignment: Alignment.bottomCenter,
-                  child: Material(
-                    elevation: 8,
-                    borderRadius: BorderRadius.circular(999),
-                    color: colors.inverseSurface,
-                    child: Semantics(
-                      button: true,
-                      label: _l10n.undo,
+                  child: Semantics(
+                    button: true,
+                    label: _l10n.undo,
+                    child: Material(
+                      elevation: 0,
+                      borderRadius: BorderRadius.circular(8),
+                      color: colors.surfaceContainerHighest.withValues(
+                        alpha: 0.94,
+                      ),
                       child: InkWell(
                         key: const ValueKey('training-action-undo-button'),
                         onTap: _handleActionUndoPressed,
-                        borderRadius: BorderRadius.circular(999),
+                        borderRadius: BorderRadius.circular(8),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 18,
-                            vertical: 12,
+                            horizontal: 12,
+                            vertical: 9,
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
                                 Icons.undo,
-                                color: colors.onInverseSurface,
+                                size: 18,
+                                color: colors.onSurfaceVariant,
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: 6),
                               Text(
                                 _l10n.undo,
-                                style: theme.textTheme.labelLarge?.copyWith(
-                                  color: colors.onInverseSurface,
-                                  fontWeight: FontWeight.w900,
+                                style: theme.textTheme.labelMedium?.copyWith(
+                                  color: colors.onSurfaceVariant,
+                                  fontWeight: FontWeight.w800,
                                 ),
                               ),
                             ],
@@ -831,6 +843,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   _BoardRoute? get _selectedRoute {
     final id = _selectedRouteId;
     if (id == null) return null;
+    return _firstWhereOrNull(_currentPage.routes, (route) => route.id == id);
+  }
+
+  _BoardRoute? _routeById(String id) {
     return _firstWhereOrNull(_currentPage.routes, (route) => route.id == id);
   }
 
@@ -1950,6 +1966,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       final segments = <_PlaybackSegment>[];
       var elapsedMs = 0;
       for (final route in routes) {
+        final routeStage = _normalizedRouteStageIndex(route.stageIndex);
         final timing = usesStages
             ? _routeTimingWithoutLeadingWait(route)
             : _RouteTiming(
@@ -1963,6 +1980,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           segmentDurationsMs: timing.segmentDurationsMs,
           totalDistanceMeters: totalDistanceMeters,
           speedMetersPerSecond: _playbackSpeedMetersPerSecond(route.kind),
+          stageIndex: routeStage,
         );
         if (routeSegments.isEmpty) continue;
         if (usesStages) {
@@ -1970,11 +1988,17 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           if (routeStartMs > elapsedMs) {
             final waitPoint =
                 segments.isEmpty ? timing.points.first : segments.last.end;
+            final hideWait = segments.isEmpty &&
+                _shouldHidePlaybackWaitForRoute(
+                  route: route,
+                  routeStartMs: routeStartMs,
+                );
             segments.add(
               _PlaybackSegment(
                 start: waitPoint,
                 end: waitPoint,
                 durationSeconds: (routeStartMs - elapsedMs) / 1000,
+                visible: !hideWait,
               ),
             );
             elapsedMs = routeStartMs;
@@ -1997,6 +2021,27 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       );
     }
     return tracks;
+  }
+
+  bool _shouldHidePlaybackWaitForRoute({
+    required _BoardRoute route,
+    required int routeStartMs,
+  }) {
+    if (routeStartMs <= 0 ||
+        route.kind != _PathDrawMode.ball ||
+        route.actorItemId == null ||
+        route.targetItemId == route.actorItemId) {
+      return false;
+    }
+    return !_currentPage.routes.any(
+      (candidate) =>
+          candidate.id != route.id &&
+          candidate.kind == _PathDrawMode.ball &&
+          candidate.linkedItemId == route.linkedItemId &&
+          candidate.points.length >= 2 &&
+          _normalizedRouteStageIndex(candidate.stageIndex) <
+              _normalizedRouteStageIndex(route.stageIndex),
+    );
   }
 
   Map<String, int> _routeStartOffsetsForPlayback({
@@ -2149,35 +2194,108 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     required double nextX,
     required double nextY,
   }) {
+    final oldPosition = _itemPosition(item);
     final dx = nextX - item.x;
     final dy = nextY - item.y;
     if (dx.abs() < 0.0001 && dy.abs() < 0.0001) return;
+    final delta = Offset(dx, dy);
     item.x = nextX;
     item.y = nextY;
     for (final route in _currentPage.routes) {
       if (route.points.isEmpty) continue;
       if (route.linkedItemId == item.id) {
-        for (var i = 0; i < route.points.length; i++) {
-          final point = route.points[i];
-          route.points[i] = Offset(
-            (point.dx + dx).clamp(0.0, 1.0).toDouble(),
-            (point.dy + dy).clamp(0.0, 1.0).toDouble(),
-          );
+        if (_linkedRouteUsesSetupAnchor(route, item, oldPosition)) {
+          _shiftRoutePoints(route, delta, endIndex: 0);
+        } else if (route.actorItemId == null) {
+          _shiftRoutePoints(route, delta);
         }
         continue;
       }
+      if (route.actorItemId == item.id &&
+          route.kind == _PathDrawMode.ball &&
+          _routeEndpointFollowsItemSetup(route.points.first, oldPosition)) {
+        _shiftRoutePoints(route, delta, endIndex: 0);
+      }
       if (route.targetItemId == item.id) {
-        final moveWholeRoute =
-            route.kind == _PathDrawMode.ball && route.actorItemId == item.id;
-        final startIndex = moveWholeRoute ? 0 : route.points.length - 1;
-        for (var i = startIndex; i < route.points.length; i++) {
-          final point = route.points[i];
-          route.points[i] = Offset(
-            (point.dx + dx).clamp(0.0, 1.0).toDouble(),
-            (point.dy + dy).clamp(0.0, 1.0).toDouble(),
-          );
+        if (_isTargetProp(item) && route.kind == _PathDrawMode.player) {
+          _shiftRoutePoints(route, delta, startIndex: 1);
+          _shiftPossessedBallRoutesForTargetedPlayerRoute(route, delta);
+        } else if (_isTargetProp(item)) {
+          _shiftRoutePoints(route, delta, startIndex: route.points.length - 1);
+        } else if (route.actorItemId != item.id ||
+            _routeEndpointFollowsItemSetup(route.points.last, oldPosition)) {
+          _shiftRoutePoints(route, delta, startIndex: route.points.length - 1);
         }
       }
+    }
+  }
+
+  bool _linkedRouteUsesSetupAnchor(
+    _BoardRoute route,
+    _BoardItem item,
+    Offset oldPosition,
+  ) {
+    if (route.kind != _PathDrawMode.player ||
+        item.type != _BoardItemType.player ||
+        route.actorItemId == null) {
+      return false;
+    }
+    return _routeEndpointFollowsItemSetup(route.points.first, oldPosition);
+  }
+
+  bool _routeEndpointFollowsItemSetup(Offset point, Offset oldPosition) {
+    return (point - oldPosition).distance <= 0.09;
+  }
+
+  bool _isTargetProp(_BoardItem item) {
+    return switch (item.type) {
+      _BoardItemType.cone ||
+      _BoardItemType.hurdle ||
+      _BoardItemType.ladder ||
+      _BoardItemType.target ||
+      _BoardItemType.base ||
+      _BoardItemType.basket =>
+        true,
+      _BoardItemType.player || _BoardItemType.ball => false,
+    };
+  }
+
+  void _shiftRoutePoints(
+    _BoardRoute route,
+    Offset delta, {
+    int startIndex = 0,
+    int? endIndex,
+  }) {
+    if (route.points.isEmpty) return;
+    final start = startIndex.clamp(0, route.points.length - 1).toInt();
+    final end = (endIndex ?? route.points.length - 1)
+        .clamp(start, route.points.length - 1)
+        .toInt();
+    for (var index = start; index <= end; index++) {
+      final point = route.points[index];
+      route.points[index] = Offset(
+        (point.dx + delta.dx).clamp(0.0, 1.0).toDouble(),
+        (point.dy + delta.dy).clamp(0.0, 1.0).toDouble(),
+      );
+    }
+  }
+
+  void _shiftPossessedBallRoutesForTargetedPlayerRoute(
+    _BoardRoute playerRoute,
+    Offset delta,
+  ) {
+    final actorId = playerRoute.actorItemId ?? playerRoute.linkedItemId;
+    if (actorId == null) return;
+    final stageIndex = _normalizedRouteStageIndex(playerRoute.stageIndex);
+    for (final route in _currentPage.routes) {
+      if (route.kind != _PathDrawMode.ball ||
+          route.actorItemId != actorId ||
+          route.targetItemId != actorId ||
+          _normalizedRouteStageIndex(route.stageIndex) != stageIndex ||
+          route.points.length < 2) {
+        continue;
+      }
+      _shiftRoutePoints(route, delta, startIndex: 1);
     }
   }
 
@@ -2265,6 +2383,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _activeRoutePoints = null;
       _activeRouteSegmentDurationsMs = null;
       _activeRouteLastPointAt = null;
+      _activeRouteHandleDrag = null;
       if (kind != null) {
         if (_pathMode) {
           _pathDrawMode = kind;
@@ -2305,6 +2424,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _activeRoutePoints = null;
       _activeRouteSegmentDurationsMs = null;
       _activeRouteLastPointAt = null;
+      _activeRouteHandleDrag = null;
       if (kind != null) {
         if (_pathMode) {
           _pathDrawMode = kind;
@@ -2388,6 +2508,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _activeRoutePoints = null;
       _activeRouteSegmentDurationsMs = null;
       _activeRouteLastPointAt = null;
+      _activeRouteHandleDrag = null;
     });
     _scheduleAutoSave();
   }
@@ -2796,8 +2917,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _activeRoutePoints = null;
       _activeRouteSegmentDurationsMs = null;
       _activeRouteLastPointAt = null;
+      _activeRouteHandleDrag = null;
       _routeReplaceMode = false;
       _playbackTracks = const <_PlaybackTrack>[];
+      _hiddenPlaybackItemIds = <String>{};
+      _playbackActiveStageIndex = null;
     });
     _scheduleAutoSave();
 
@@ -3090,6 +3214,114 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     return Offset(point.dx * width, point.dy * height);
   }
 
+  double _distanceToSegment(Offset point, Offset start, Offset end) {
+    final segment = end - start;
+    final lengthSquared = segment.distanceSquared;
+    if (lengthSquared <= 0.0001) return (point - start).distance;
+    final t =
+        ((point - start).dx * segment.dx + (point - start).dy * segment.dy) /
+            lengthSquared;
+    final projected = start + segment * t.clamp(0.0, 1.0).toDouble();
+    return (point - projected).distance;
+  }
+
+  double _distanceToRouteLocal(
+    _BoardRoute route,
+    Offset localPosition,
+    double width,
+    double height,
+  ) {
+    if (route.points.length < 2) return double.infinity;
+    var nearest = double.infinity;
+    for (var index = 0; index < route.points.length - 1; index++) {
+      final start = _routePointToLocal(route.points[index], width, height);
+      final end = _routePointToLocal(route.points[index + 1], width, height);
+      nearest = math.min(
+        nearest,
+        _distanceToSegment(localPosition, start, end),
+      );
+    }
+    return nearest;
+  }
+
+  _BoardRoute? _routeNearLocalPoint(
+    Offset localPosition,
+    double width,
+    double height, {
+    double hitRadius = 24,
+  }) {
+    _BoardRoute? nearest;
+    var nearestDistance = hitRadius;
+    for (final route in _currentPage.routes.reversed) {
+      if (route.points.length < 2) continue;
+      final distance = _distanceToRouteLocal(
+        route,
+        localPosition,
+        width,
+        height,
+      );
+      if (distance <= nearestDistance) {
+        nearest = route;
+        nearestDistance = distance;
+      }
+    }
+    return nearest;
+  }
+
+  _BoardItem? _boardItemNearLocalPoint(
+    Offset localPosition,
+    double width,
+    double height,
+  ) {
+    for (final item in _boardItemsInPaintOrder().reversed) {
+      if (_hiddenPlaybackItemIds.contains(item.id)) continue;
+      final itemLocal = _routePointToLocal(
+        _boardItemDisplayPoint(item),
+        width,
+        height,
+      );
+      if ((itemLocal - localPosition).distance <= 30) {
+        return item;
+      }
+    }
+    return null;
+  }
+
+  void _selectRouteFromBoard(_BoardRoute route) {
+    if (widget.readOnly || _playController.isAnimating) return;
+    _stopRoutePlayback(restoreStart: false);
+    setState(() {
+      _selectedItemId = _selectableItemIdForRoute(route);
+      _selectedRouteId = route.id;
+      _registeredNextActionStageIndex =
+          _normalizedRouteStageIndex(route.stageIndex);
+      _recentActionStageIndex = null;
+      _pathDrawMode = route.kind;
+      _showSelectedColorPicker = false;
+      _pathMode = false;
+      _penMode = false;
+      _clearPendingTargetActionState();
+      _routeReplaceMode = false;
+      _activeStroke = null;
+      _activeRoutePoints = null;
+      _activeRouteSegmentDurationsMs = null;
+      _activeRouteLastPointAt = null;
+      _activeRouteHandleDrag = null;
+    });
+  }
+
+  void _handleBoardSelectionTap(
+    Offset localPosition,
+    double width,
+    double height,
+  ) {
+    if (widget.readOnly || _playController.isAnimating) return;
+    if (_boardItemNearLocalPoint(localPosition, width, height) != null) return;
+    final route = _routeNearLocalPoint(localPosition, width, height);
+    if (route == null) return;
+    _selectRouteFromBoard(route);
+  }
+
   _BoardRoute? _routeWithEndNearLocalPoint(
     Offset localPosition,
     double width,
@@ -3212,11 +3444,148 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         _activeRoutePoints = null;
         _activeRouteSegmentDurationsMs = null;
         _activeRouteLastPointAt = null;
+        _activeRouteHandleDrag = null;
         _routeReplaceMode = false;
       });
       return;
     }
     _endPlayerPath();
+  }
+
+  void _selectRouteForHandleDrag(_BoardRoute route) {
+    _selectedRouteId = route.id;
+    _selectedItemId = _selectableItemIdForRoute(route);
+    _registeredNextActionStageIndex =
+        _normalizedRouteStageIndex(route.stageIndex);
+    _recentActionStageIndex = null;
+    _pathDrawMode = route.kind;
+    _showSelectedColorPicker = false;
+    _pathMode = false;
+    _penMode = false;
+    _clearPendingTargetActionState();
+    _routeReplaceMode = false;
+    _activeStroke = null;
+    _activeRoutePoints = null;
+    _activeRouteSegmentDurationsMs = null;
+    _activeRouteLastPointAt = null;
+    _activeRouteHandleDrag = null;
+  }
+
+  void _startRoutePointHandleDrag(
+    _BoardRoute route,
+    int pointIndex, {
+    required Key handleKey,
+  }) {
+    if (widget.readOnly ||
+        _playController.isAnimating ||
+        pointIndex <= 0 ||
+        pointIndex >= route.points.length - 1) {
+      return;
+    }
+    unawaited(HapticFeedback.selectionClick());
+    _selectRouteForHandleDrag(route);
+    _activeRouteHandleDrag = _RouteHandleDrag(
+      routeId: route.id,
+      pointIndex: pointIndex,
+      handleKey: handleKey,
+    );
+  }
+
+  void _startRouteSegmentHandleDrag(
+    _BoardRoute route,
+    int segmentIndex, {
+    required Key handleKey,
+  }) {
+    if (widget.readOnly ||
+        _playController.isAnimating ||
+        segmentIndex < 0 ||
+        segmentIndex >= route.points.length - 1) {
+      return;
+    }
+    unawaited(HapticFeedback.selectionClick());
+    _selectRouteForHandleDrag(route);
+    _activeRouteHandleDrag = _RouteHandleDrag(
+      routeId: route.id,
+      segmentIndex: segmentIndex,
+      handleKey: handleKey,
+    );
+  }
+
+  void _updateRouteHandleDragByDelta(
+    Offset delta, {
+    required double boardWidth,
+    required double boardHeight,
+  }) {
+    if (widget.readOnly || _playController.isAnimating) return;
+    final drag = _activeRouteHandleDrag;
+    if (drag == null || delta.distance < 0.5) return;
+    final route = _routeById(drag.routeId);
+    if (route == null) return;
+    setState(() {
+      var pointIndex = drag.pointIndex;
+      if (pointIndex == null) {
+        final segmentIndex = drag.segmentIndex;
+        if (segmentIndex == null ||
+            segmentIndex < 0 ||
+            segmentIndex >= route.points.length - 1) {
+          return;
+        }
+        final originalDurations = _normalizedRouteSegmentDurations(
+          pointCount: route.points.length,
+          rawDurationsMs: route.segmentDurationsMs,
+        ).toList(growable: true);
+        final originalDurationMs = originalDurations[segmentIndex];
+        final firstDurationMs = math.max(
+          16,
+          (originalDurationMs / 2).round(),
+        );
+        final secondDurationMs = math.max(
+          16,
+          originalDurationMs - firstDurationMs,
+        );
+        final insertIndex = segmentIndex + 1;
+        route.points.insert(
+          insertIndex,
+          Offset.lerp(
+            route.points[segmentIndex],
+            route.points[insertIndex],
+            0.5,
+          )!,
+        );
+        originalDurations.replaceRange(
+          segmentIndex,
+          segmentIndex + 1,
+          <int>[firstDurationMs, secondDurationMs],
+        );
+        route.segmentDurationsMs
+          ..clear()
+          ..addAll(originalDurations);
+        pointIndex = insertIndex;
+        _activeRouteHandleDrag = _RouteHandleDrag(
+          routeId: drag.routeId,
+          pointIndex: pointIndex,
+          handleKey: drag.handleKey,
+        );
+      }
+      if (pointIndex <= 0 || pointIndex >= route.points.length - 1) {
+        return;
+      }
+      final current = route.points[pointIndex];
+      final next = Offset(
+        (current.dx + delta.dx / boardWidth).clamp(0.0, 1.0).toDouble(),
+        (current.dy + delta.dy / boardHeight).clamp(0.0, 1.0).toDouble(),
+      );
+      route.points[pointIndex] = next;
+      _trimRouteDurations(route);
+    });
+  }
+
+  void _endRouteHandleDrag() {
+    if (_activeRouteHandleDrag == null) return;
+    setState(() {
+      _activeRouteHandleDrag = null;
+    });
+    _scheduleAutoSave();
   }
 
   void _appendRoutePoint(Offset point, {int? durationMs}) {
@@ -3288,6 +3657,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         _activeRoutePoints = null;
         _activeRouteSegmentDurationsMs = null;
         _activeRouteLastPointAt = null;
+        _activeRouteHandleDrag = null;
         _routeReplaceMode = false;
       });
       return;
@@ -3316,6 +3686,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         _activeRoutePoints = null;
         _activeRouteSegmentDurationsMs = null;
         _activeRouteLastPointAt = null;
+        _activeRouteHandleDrag = null;
         _routeReplaceMode = false;
       });
       _showRouteCapacitySnackBar(_pathDrawMode);
@@ -3335,6 +3706,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _activeRoutePoints = null;
       _activeRouteSegmentDurationsMs = null;
       _activeRouteLastPointAt = null;
+      _activeRouteHandleDrag = null;
       _routeReplaceMode = false;
     });
     _scheduleAutoSave();
@@ -3439,6 +3811,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _activeRoutePoints = null;
       _activeRouteSegmentDurationsMs = null;
       _activeRouteLastPointAt = null;
+      _activeRouteHandleDrag = null;
       _clearPendingTargetActionState();
     });
     _scheduleAutoSave();
@@ -3587,6 +3960,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _activeRoutePoints = null;
       _activeRouteSegmentDurationsMs = null;
       _activeRouteLastPointAt = null;
+      _activeRouteHandleDrag = null;
     });
     _scheduleAutoSave();
   }
@@ -3733,6 +4107,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       segmentDurationsMs: timing.segmentDurationsMs,
       totalDistanceMeters: totalDistanceMeters,
       speedMetersPerSecond: _playbackSpeedMetersPerSecond(kind),
+      stageIndex: 1,
     );
     return segments.fold<int>(
       0,
@@ -3755,6 +4130,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _activeRoutePoints = null;
       _activeRouteSegmentDurationsMs = null;
       _activeRouteLastPointAt = null;
+      _activeRouteHandleDrag = null;
       _clearPendingTargetActionState();
     });
     _scheduleAutoSave();
@@ -3788,6 +4164,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _activeRoutePoints = null;
       _activeRouteSegmentDurationsMs = null;
       _activeRouteLastPointAt = null;
+      _activeRouteHandleDrag = null;
       _routeReplaceMode = false;
       _clearPendingTargetActionState();
     });
@@ -3826,6 +4203,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _activeRoutePoints = null;
       _activeRouteSegmentDurationsMs = null;
       _activeRouteLastPointAt = null;
+      _activeRouteHandleDrag = null;
     });
   }
 
@@ -3860,6 +4238,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _activeRoutePoints = null;
       _activeRouteSegmentDurationsMs = null;
       _activeRouteLastPointAt = null;
+      _activeRouteHandleDrag = null;
     });
   }
 
@@ -3925,8 +4304,16 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           selected,
           target,
         ),
-      _SketchTargetAction.shot => _applyShotTargetAction(selected, target),
-      _SketchTargetAction.cross => _applyCrossTargetAction(selected, target),
+      _SketchTargetAction.shot => _applyShotTargetAction(
+          selected,
+          target,
+          targetItem: targetItem,
+        ),
+      _SketchTargetAction.cross => _applyCrossTargetAction(
+          selected,
+          target,
+          targetItem: targetItem,
+        ),
       _SketchTargetAction.drive => _applyDriveTargetAction(selected, target),
       _SketchTargetAction.cut => _applyMoveTargetAction(
           selected,
@@ -3966,9 +4353,18 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           selected: selected,
           target: target,
           durationMs: 620,
+          targetItem: targetItem,
         ),
-      _SketchTargetAction.serve => _applyServeTargetAction(selected, target),
-      _SketchTargetAction.rally => _applyRallyTargetAction(selected, target),
+      _SketchTargetAction.serve => _applyServeTargetAction(
+          selected,
+          target,
+          targetItem: targetItem,
+        ),
+      _SketchTargetAction.rally => _applyRallyTargetAction(
+          selected,
+          target,
+          targetItem: targetItem,
+        ),
       _SketchTargetAction.recover => _applyMoveTargetAction(
           selected,
           target,
@@ -4001,6 +4397,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     _activeRoutePoints = null;
     _activeRouteSegmentDurationsMs = null;
     _activeRouteLastPointAt = null;
+    _activeRouteHandleDrag = null;
     AppSoundEffects.playSketchMove();
   }
 
@@ -4557,16 +4954,25 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     );
   }
 
-  bool _applyShotTargetAction(_BoardItem selected, Offset target) {
+  bool _applyShotTargetAction(
+    _BoardItem selected,
+    Offset target, {
+    _BoardItem? targetItem,
+  }) {
     return _applyBallTargetAction(
       selected: selected,
       target: target,
       durationMs: 620,
+      targetItem: targetItem,
       retainActorPossessionWhenUntargeted: false,
     );
   }
 
-  bool _applyCrossTargetAction(_BoardItem selected, Offset target) {
+  bool _applyCrossTargetAction(
+    _BoardItem selected,
+    Offset target, {
+    _BoardItem? targetItem,
+  }) {
     final player = _playerForTargetAction(selected);
     if (player == null) return false;
     final possession = _ballPossessionForNextPlayerAction(
@@ -4586,6 +4992,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           selected.type == _BoardItemType.player ? selected : null,
       stageIndex: _stageForNextPlayerAction(player),
       actorItemId: player.id,
+      targetItemId: targetItem?.id,
       createNewRoute: true,
     );
   }
@@ -4709,6 +5116,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
               ],
         stageIndex: stageIndex,
         actorItemId: player.id,
+        targetItemId: cone.id,
         replacementRoute: createNewStageRoute ? null : existingRoute,
         createNewRoute: createNewStageRoute,
       );
@@ -4805,6 +5213,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
               ],
         stageIndex: stageIndex,
         actorItemId: player.id,
+        targetItemId: obstacle.id,
         replacementRoute: createNewStageRoute ? null : existingRoute,
         createNewRoute: createNewStageRoute,
       );
@@ -4814,7 +5223,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     return true;
   }
 
-  bool _applyServeTargetAction(_BoardItem selected, Offset target) {
+  bool _applyServeTargetAction(
+    _BoardItem selected,
+    Offset target, {
+    _BoardItem? targetItem,
+  }) {
     final player = _playerForTargetAction(selected);
     if (player == null) return false;
     final possession = _ballPossessionForNextPlayerAction(
@@ -4837,11 +5250,16 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           selected.type == _BoardItemType.player ? selected : null,
       stageIndex: _stageForNextPlayerAction(player),
       actorItemId: player.id,
+      targetItemId: targetItem?.id,
       createNewRoute: true,
     );
   }
 
-  bool _applyRallyTargetAction(_BoardItem selected, Offset target) {
+  bool _applyRallyTargetAction(
+    _BoardItem selected,
+    Offset target, {
+    _BoardItem? targetItem,
+  }) {
     final player = _playerForTargetAction(selected);
     if (player == null) return false;
     final possession = _ballPossessionForNextPlayerAction(
@@ -4864,6 +5282,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           selected.type == _BoardItemType.player ? selected : null,
       stageIndex: _stageForNextPlayerAction(player),
       actorItemId: player.id,
+      targetItemId: targetItem?.id,
       createNewRoute: true,
     );
   }
@@ -5095,6 +5514,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                       segment.durationSeconds * scale,
                       0.016,
                     ),
+                    stageIndex: segment.stageIndex,
+                    visible: segment.visible,
                   ),
                 )
                 .toList(growable: false),
@@ -5138,6 +5559,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _recentActionStageIndex = previewStage;
       _isActionPreviewPlayback = true;
       _playbackTracks = tracks;
+      _playbackActiveStageIndex = _activeStageForPlaybackElapsed(tracks, 0);
+      _hiddenPlaybackItemIds = _hiddenPlaybackItemIdsForPlaybackElapsed(
+        tracks,
+        0,
+      );
       for (final track in _playbackTracks) {
         final firstPoint = track.segments.first.start;
         track.item.x = firstPoint.dx.clamp(0.03, 0.97);
@@ -5223,6 +5649,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _recentActionStageIndex = null;
       _isActionPreviewPlayback = false;
       _playbackTracks = tracks;
+      _playbackActiveStageIndex = _activeStageForPlaybackElapsed(tracks, 0);
+      _hiddenPlaybackItemIds = _hiddenPlaybackItemIdsForPlaybackElapsed(
+        tracks,
+        0,
+      );
       for (final track in _playbackTracks) {
         final firstPoint = track.segments.first.start;
         track.item.x = firstPoint.dx.clamp(0.03, 0.97);
@@ -5245,6 +5676,14 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     final routeElapsedSeconds =
         elapsedSeconds * _playSpeed.clamp(0.75, 1.5).toDouble();
     setState(() {
+      _playbackActiveStageIndex = _activeStageForPlaybackElapsed(
+        _playbackTracks,
+        routeElapsedSeconds,
+      );
+      _hiddenPlaybackItemIds = _hiddenPlaybackItemIdsForPlaybackElapsed(
+        _playbackTracks,
+        routeElapsedSeconds,
+      );
       for (final track in _playbackTracks) {
         if (track.segments.isEmpty) continue;
         final position = _samplePlaybackTrack(track, routeElapsedSeconds);
@@ -5265,6 +5704,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       }
       _playbackTracks = const <_PlaybackTrack>[];
       _isActionPreviewPlayback = false;
+      _hiddenPlaybackItemIds = <String>{};
+      _playbackActiveStageIndex = null;
     });
     _playController.reset();
   }
@@ -5281,6 +5722,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       }
       _playbackTracks = const <_PlaybackTrack>[];
       _isActionPreviewPlayback = false;
+      _hiddenPlaybackItemIds = <String>{};
+      _playbackActiveStageIndex = null;
     });
   }
 
@@ -5416,6 +5859,60 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     );
   }
 
+  _PlaybackSegment? _segmentForPlaybackElapsed(
+    _PlaybackTrack track,
+    double elapsedSeconds,
+  ) {
+    if (track.segments.isEmpty) return null;
+    if (elapsedSeconds > track.durationSeconds) return null;
+    final adjustedElapsedSeconds = _acceleratedPlaybackElapsedSeconds(
+      elapsedSeconds: elapsedSeconds,
+      durationSeconds: track.durationSeconds,
+      kind: track.route.kind,
+    );
+    final target = adjustedElapsedSeconds.clamp(0.0, 1000000.0).toDouble();
+    var walkedSeconds = 0.0;
+    for (final segment in track.segments) {
+      final next = walkedSeconds + segment.durationSeconds;
+      if (next >= target) {
+        return segment;
+      }
+      walkedSeconds = next;
+    }
+    return track.segments.last;
+  }
+
+  int? _activeStageForPlaybackElapsed(
+    List<_PlaybackTrack> tracks,
+    double elapsedSeconds,
+  ) {
+    int? activeStage;
+    for (final track in tracks) {
+      final stage = _segmentForPlaybackElapsed(
+        track,
+        elapsedSeconds,
+      )?.stageIndex;
+      if (stage == null) continue;
+      activeStage =
+          activeStage == null ? stage : math.min(activeStage, stage).toInt();
+    }
+    return activeStage;
+  }
+
+  Set<String> _hiddenPlaybackItemIdsForPlaybackElapsed(
+    List<_PlaybackTrack> tracks,
+    double elapsedSeconds,
+  ) {
+    final hiddenItemIds = <String>{};
+    for (final track in tracks) {
+      final segment = _segmentForPlaybackElapsed(track, elapsedSeconds);
+      if (segment != null && !segment.visible) {
+        hiddenItemIds.add(track.item.id);
+      }
+    }
+    return hiddenItemIds;
+  }
+
   double _playbackSpeedMetersPerSecond(_PathDrawMode kind) {
     return switch (kind) {
       _PathDrawMode.player => _playerPlaybackSpeedMetersPerSecond,
@@ -5441,6 +5938,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     required List<int> segmentDurationsMs,
     required double totalDistanceMeters,
     required double speedMetersPerSecond,
+    required int stageIndex,
   }) {
     if (points.length < 2 || totalDistanceMeters <= 0) {
       return const <_PlaybackSegment>[];
@@ -5466,6 +5964,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           start: points[index],
           end: points[index + 1],
           durationSeconds: math.max(durationSeconds, 0.016),
+          stageIndex: stageIndex,
         ),
       );
     }
@@ -5475,6 +5974,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           start: points.first,
           end: points.last,
           durationSeconds: totalDistanceMeters / speedMetersPerSecond,
+          stageIndex: stageIndex,
         ),
       ];
     }
@@ -5865,6 +6365,125 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     );
   }
 
+  List<Widget> _buildSelectedRouteHandles(double width, double height) {
+    if (widget.readOnly ||
+        _playController.isAnimating ||
+        _pathMode ||
+        _penMode ||
+        _pendingTargetAction != null ||
+        _activeRoutePoints != null) {
+      return const <Widget>[];
+    }
+    final route = _selectedRoute;
+    if (route == null || route.points.length < 2) return const <Widget>[];
+    final handles = <Widget>[];
+    for (var index = 1; index < route.points.length - 1; index++) {
+      final defaultKey =
+          ValueKey('training-route-point-handle-${route.id}-$index');
+      final activeDrag = _activeRouteHandleDrag;
+      final handleKey = activeDrag != null &&
+              activeDrag.routeId == route.id &&
+              activeDrag.pointIndex == index
+          ? activeDrag.handleKey
+          : defaultKey;
+      handles.add(
+        _buildRouteHandle(
+          key: handleKey,
+          point: route.points[index],
+          width: width,
+          height: height,
+          color: route.color,
+          filled: true,
+          onPanStart: () => _startRoutePointHandleDrag(
+            route,
+            index,
+            handleKey: handleKey,
+          ),
+        ),
+      );
+    }
+    for (var index = 0; index < route.points.length - 1; index++) {
+      final handleKey =
+          ValueKey('training-route-segment-handle-${route.id}-$index');
+      handles.add(
+        _buildRouteHandle(
+          key: handleKey,
+          point:
+              Offset.lerp(route.points[index], route.points[index + 1], 0.5)!,
+          width: width,
+          height: height,
+          color: route.color,
+          filled: false,
+          onPanStart: () => _startRouteSegmentHandleDrag(
+            route,
+            index,
+            handleKey: handleKey,
+          ),
+        ),
+      );
+    }
+    return handles;
+  }
+
+  Widget _buildRouteHandle({
+    required Key key,
+    required Offset point,
+    required double width,
+    required double height,
+    required Color color,
+    required bool filled,
+    required VoidCallback onPanStart,
+  }) {
+    const handleSize = 30.0;
+    return Positioned(
+      left: (point.dx * width) - handleSize / 2,
+      top: (point.dy * height) - handleSize / 2,
+      child: Listener(
+        key: key,
+        behavior: HitTestBehavior.opaque,
+        onPointerDown: (_) => onPanStart(),
+        onPointerMove: (event) => _updateRouteHandleDragByDelta(
+          event.delta,
+          boardWidth: width,
+          boardHeight: height,
+        ),
+        onPointerUp: (_) => _endRouteHandleDrag(),
+        onPointerCancel: (_) => _endRouteHandleDrag(),
+        child: SizedBox(
+          width: handleSize,
+          height: handleSize,
+          child: Center(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: filled
+                    ? color.withValues(alpha: 0.94)
+                    : Colors.white.withValues(alpha: 0.92),
+                border: Border.all(
+                  color: filled
+                      ? Colors.white.withValues(alpha: 0.96)
+                      : color.withValues(alpha: 0.96),
+                  width: filled ? 2.2 : 2.0,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.22),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: SizedBox(
+                width: filled ? 16 : 13,
+                height: filled ? 16 : 13,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildBoardCanvas() {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -5917,13 +6536,21 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                           : (_) => _endSelectedRouteEndDrag(),
               onTapUp: widget.readOnly
                   ? null
-                  : (_pathMode || _pendingTargetAction != null)
-                      ? (details) => _handleBoardTap(
-                            details.localPosition,
-                            width,
-                            height,
-                          )
-                      : null,
+                  : (details) {
+                      if (_pathMode || _pendingTargetAction != null) {
+                        _handleBoardTap(
+                          details.localPosition,
+                          width,
+                          height,
+                        );
+                      } else {
+                        _handleBoardSelectionTap(
+                          details.localPosition,
+                          width,
+                          height,
+                        );
+                      }
+                    },
               onTapDown: widget.readOnly || _pendingTargetAction == null
                   ? null
                   : (details) => _updatePendingTargetGuidePoint(
@@ -5989,84 +6616,88 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                       child: Stack(
                         children: [
                           for (final item in _boardItemsInPaintOrder())
-                            Positioned(
-                              left: (_boardItemDisplayPoint(item).dx * width) -
-                                  26,
-                              top: (_boardItemDisplayPoint(item).dy * height) -
-                                  26,
-                              child: IgnorePointer(
-                                ignoring: item.type == _BoardItemType.ball,
-                                child: GestureDetector(
-                                  behavior: HitTestBehavior.opaque,
-                                  onTap: item.type == _BoardItemType.ball
-                                      ? null
-                                      : () => _handleBoardItemTap(item),
-                                  onPanStart: widget.readOnly ||
-                                          item.type == _BoardItemType.ball
-                                      ? null
-                                      : (_) => _startItemMove(item),
-                                  onPanUpdate: widget.readOnly ||
-                                          item.type == _BoardItemType.ball
-                                      ? null
-                                      : (details) => _updateItemMoveByDelta(
-                                            item,
-                                            delta: details.delta,
-                                            boardWidth: width,
-                                            boardHeight: height,
-                                          ),
-                                  onPanEnd: widget.readOnly ||
-                                          item.type == _BoardItemType.ball
-                                      ? null
-                                      : (_) => _endItemMove(),
-                                  onPanCancel: widget.readOnly ||
-                                          item.type == _BoardItemType.ball
-                                      ? null
-                                      : _endItemMove,
-                                  onLongPressStart: widget.readOnly ||
-                                          item.type == _BoardItemType.ball
-                                      ? null
-                                      : (_) => _startLongPressItemMove(item),
-                                  onLongPressMoveUpdate: widget.readOnly ||
-                                          item.type == _BoardItemType.ball
-                                      ? null
-                                      : (details) => _updateLongPressItemMove(
-                                            item,
-                                            offsetFromOrigin:
-                                                details.offsetFromOrigin,
-                                            boardWidth: width,
-                                            boardHeight: height,
-                                          ),
-                                  onLongPressEnd: widget.readOnly ||
-                                          item.type == _BoardItemType.ball
-                                      ? null
-                                      : (_) => _endItemMove(),
-                                  onLongPressCancel: widget.readOnly ||
-                                          item.type == _BoardItemType.ball
-                                      ? null
-                                      : _endItemMove,
-                                  child: SizedBox(
-                                    width: 52,
-                                    height: 52,
-                                    child: Center(
-                                      child: _BoardToken(
-                                        key: _isHighlightedTargetItem(item)
-                                            ? ValueKey(
-                                                'training-action-target-valid-${item.id}',
-                                              )
-                                            : null,
-                                        item: item,
-                                        selected: item.id == _selectedItemId,
-                                        highlighted:
-                                            _isHighlightedTargetItem(item),
-                                        moving: item.id == _movingItemId,
-                                        label: _boardTokenLabelFor(item),
-                                        sportId: _currentSportIdOrDefault,
+                            if (!_hiddenPlaybackItemIds.contains(item.id))
+                              Positioned(
+                                left:
+                                    (_boardItemDisplayPoint(item).dx * width) -
+                                        26,
+                                top:
+                                    (_boardItemDisplayPoint(item).dy * height) -
+                                        26,
+                                child: IgnorePointer(
+                                  ignoring: item.type == _BoardItemType.ball,
+                                  child: GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: item.type == _BoardItemType.ball
+                                        ? null
+                                        : () => _handleBoardItemTap(item),
+                                    onPanStart: widget.readOnly ||
+                                            item.type == _BoardItemType.ball
+                                        ? null
+                                        : (_) => _startItemMove(item),
+                                    onPanUpdate: widget.readOnly ||
+                                            item.type == _BoardItemType.ball
+                                        ? null
+                                        : (details) => _updateItemMoveByDelta(
+                                              item,
+                                              delta: details.delta,
+                                              boardWidth: width,
+                                              boardHeight: height,
+                                            ),
+                                    onPanEnd: widget.readOnly ||
+                                            item.type == _BoardItemType.ball
+                                        ? null
+                                        : (_) => _endItemMove(),
+                                    onPanCancel: widget.readOnly ||
+                                            item.type == _BoardItemType.ball
+                                        ? null
+                                        : _endItemMove,
+                                    onLongPressStart: widget.readOnly ||
+                                            item.type == _BoardItemType.ball
+                                        ? null
+                                        : (_) => _startLongPressItemMove(item),
+                                    onLongPressMoveUpdate: widget.readOnly ||
+                                            item.type == _BoardItemType.ball
+                                        ? null
+                                        : (details) => _updateLongPressItemMove(
+                                              item,
+                                              offsetFromOrigin:
+                                                  details.offsetFromOrigin,
+                                              boardWidth: width,
+                                              boardHeight: height,
+                                            ),
+                                    onLongPressEnd: widget.readOnly ||
+                                            item.type == _BoardItemType.ball
+                                        ? null
+                                        : (_) => _endItemMove(),
+                                    onLongPressCancel: widget.readOnly ||
+                                            item.type == _BoardItemType.ball
+                                        ? null
+                                        : _endItemMove,
+                                    child: SizedBox(
+                                      width: 52,
+                                      height: 52,
+                                      child: Center(
+                                        child: _BoardToken(
+                                          key: _isHighlightedTargetItem(item)
+                                              ? ValueKey(
+                                                  'training-action-target-valid-${item.id}',
+                                                )
+                                              : null,
+                                          item: item,
+                                          selected: item.id == _selectedItemId,
+                                          highlighted:
+                                              _isHighlightedTargetItem(item),
+                                          moving: item.id == _movingItemId,
+                                          label: _boardTokenLabelFor(item),
+                                          sportId: _currentSportIdOrDefault,
+                                        ),
                                       ),
                                     ),
                                   ),
                                 ),
                               ),
-                            ),
+                          ..._buildSelectedRouteHandles(width, height),
                         ],
                       ),
                     ),
@@ -6463,6 +7094,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           _activeRoutePoints = null;
           _activeRouteSegmentDurationsMs = null;
           _activeRouteLastPointAt = null;
+          _activeRouteHandleDrag = null;
           _routeReplaceMode = false;
           _clearPendingTargetActionState();
         }),
@@ -6505,6 +7137,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             _activeRoutePoints = null;
             _activeRouteSegmentDurationsMs = null;
             _activeRouteLastPointAt = null;
+            _activeRouteHandleDrag = null;
             _selectedItemId = null;
             _selectedRouteId = null;
             _showSelectedColorPicker = false;
@@ -6797,6 +7430,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _activeRoutePoints = null;
       _activeRouteSegmentDurationsMs = null;
       _activeRouteLastPointAt = null;
+      _activeRouteHandleDrag = null;
     });
   }
 
@@ -7199,6 +7833,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _activeRoutePoints = null;
       _activeRouteSegmentDurationsMs = null;
       _activeRouteLastPointAt = null;
+      _activeRouteHandleDrag = null;
     });
   }
 
@@ -7219,6 +7854,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _activeRoutePoints = null;
       _activeRouteSegmentDurationsMs = null;
       _activeRouteLastPointAt = null;
+      _activeRouteHandleDrag = null;
     });
   }
 
@@ -7556,9 +8192,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     final colors = theme.colorScheme;
     final summaries = _globalStageSummaries();
     final registeredStage = _registeredStageForNextAction();
-    final activeStage = registeredStage ??
-        _recentActionStageIndex ??
-        _activeStageForNextAction();
+    final activeStage = _playController.isAnimating
+        ? _playbackActiveStageIndex
+        : registeredStage ??
+            _recentActionStageIndex ??
+            _activeStageForNextAction();
     final accentColor = colors.primary;
     return Container(
       width: double.infinity,
@@ -8014,6 +8652,20 @@ class _RouteTiming {
   });
 }
 
+class _RouteHandleDrag {
+  final String routeId;
+  final int? pointIndex;
+  final int? segmentIndex;
+  final Key handleKey;
+
+  const _RouteHandleDrag({
+    required this.routeId,
+    this.pointIndex,
+    this.segmentIndex,
+    required this.handleKey,
+  });
+}
+
 class _PlaybackStageEnd {
   final int stageIndex;
   final int endMs;
@@ -8032,11 +8684,15 @@ class _PlaybackSegment {
   final Offset start;
   final Offset end;
   final double durationSeconds;
+  final int? stageIndex;
+  final bool visible;
 
   const _PlaybackSegment({
     required this.start,
     required this.end,
     required this.durationSeconds,
+    this.stageIndex,
+    this.visible = true,
   });
 }
 
