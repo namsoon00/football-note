@@ -4689,7 +4689,7 @@ void main() {
     );
   });
 
-  testWidgets('global stages omit flow review warnings below ball ownership', (
+  testWidgets('global stages hide the ball ownership relationship panel', (
     WidgetTester tester,
   ) async {
     _setLandscapeSurface(tester);
@@ -4743,7 +4743,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('공 소유 관계'), findsOneWidget);
+    expect(find.text('공 소유 관계'), findsNothing);
+    expect(find.text('공 1: 사람 1 보유'), findsNothing);
     expect(
       find.text('공 1는 사람 1 보유인데 사람 2가 사용합니다.'),
       findsNothing,
