@@ -6001,7 +6001,7 @@
   "runningCoachVideoFileMissing": "選択したビデオ ファイルが見つかりませんでした。",
   "runningCoachVideoTooShort": "ビデオが短すぎます。少なくともいくつかのランニングステップを記録します。",
   "runningCoachVideoTooBlurry": "この動画はぼやけていて正確に分析できません。スマートフォンを固定し、全身と両足が見える鮮明な横向き動画を撮り直してください。",
-  "runningCoachNoPoseDetected": "ランナーを十分に追跡できませんでした。肘、膝、足が見える、より鮮明なサイドビュー クリップを試してください。",
+  "runningCoachNoPoseDetected": "服装は判定条件ではありませんが、関節を十分に追跡できませんでした。肘、膝、足が見える鮮明な横向き動画をもう一度撮影してください。",
   "runningCoachInsufficientContactEvidence": "検証済みの足接地フレームが足りません。着地まで両足が見える、より鮮明な横向き動画でもう一度試してください。",
   "runningCoachAnalysisFailedGeneric": "分析の実行に失敗しました。より鮮明な側面図を持つ別のクリップを試してください。",
   "runningCoachResultsTitle": "コーチング実績",

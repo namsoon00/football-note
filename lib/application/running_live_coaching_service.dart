@@ -16,9 +16,10 @@ class RunningLiveCoachingService {
     RunningCoachingService coachingService = const RunningCoachingService(),
     Duration analysisWindow = const Duration(milliseconds: 2400),
     int minimumTrackedFrames = 7,
-    double minimumLikelihood = 0.45,
+    double minimumLikelihood = 0.35,
     Duration cueDwellTime = const Duration(milliseconds: 600),
     int sustainedStepBackFrames = 3,
+    int sustainedMoveCloserFrames = 4,
   })  : _coachingService = coachingService,
         _analysisPipeline = RunningLiveAnalysisPipeline(
           config: RunningLiveAnalysisConfig(
@@ -27,6 +28,7 @@ class RunningLiveCoachingService {
             minimumLikelihood: minimumLikelihood,
             cueDwellTime: cueDwellTime,
             sustainedStepBackFrames: sustainedStepBackFrames,
+            sustainedMoveCloserFrames: sustainedMoveCloserFrames,
           ),
         ),
         _cueDwellTime = cueDwellTime;

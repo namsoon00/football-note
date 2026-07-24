@@ -21,7 +21,12 @@ class RunningLiveAnalysisPipeline {
     RunningTemporalPoseTracker? poseTracker,
     RunningGaitEventDetector? gaitEventDetector,
   })  : _poseTracker = poseTracker ?? RunningTemporalPoseTracker(),
-        _gaitEventDetector = gaitEventDetector ?? RunningGaitEventDetector();
+        _gaitEventDetector = gaitEventDetector ??
+            RunningGaitEventDetector(
+              config: RunningGaitEventDetectorConfig(
+                minimumLandmarkLikelihood: config.minimumLikelihood,
+              ),
+            );
 
   void reset() {
     _samples.clear();
@@ -121,6 +126,18 @@ class RunningLiveAnalysisPipeline {
       return rawIssue;
     }
 
+    if (rawIssue == RunningLiveFramingIssue.moveCloser) {
+      final lastReliableAt = _lastReliableFullBodyEvidenceAt;
+      final hasRecentReliableBodyEvidence = lastReliableAt != null &&
+          now.difference(lastReliableAt) <= const Duration(milliseconds: 1200);
+      if (_sameRawFramingIssueFrames < config.sustainedMoveCloserFrames) {
+        return hasRecentReliableBodyEvidence
+            ? null
+            : RunningLiveFramingIssue.trackingUncertain;
+      }
+      return rawIssue;
+    }
+
     if (decision.hardFailure) {
       return rawIssue;
     }
@@ -151,13 +168,15 @@ class RunningLiveAnalysisConfig {
   final double minimumLikelihood;
   final Duration cueDwellTime;
   final int sustainedStepBackFrames;
+  final int sustainedMoveCloserFrames;
 
   const RunningLiveAnalysisConfig({
     this.analysisWindow = const Duration(milliseconds: 2400),
     this.minimumTrackedFrames = 7,
-    this.minimumLikelihood = 0.45,
+    this.minimumLikelihood = 0.35,
     this.cueDwellTime = const Duration(milliseconds: 600),
     this.sustainedStepBackFrames = 3,
+    this.sustainedMoveCloserFrames = 4,
   });
 }
 
@@ -310,8 +329,13 @@ class _RunningFramingPolicy {
       );
     }
 
-    if (boxHeightRatio < 0.36) {
-      final hardSmallFailure = boxHeightRatio < 0.32;
+    final bodyScaleRatio = extractedSample == null
+        ? 0.0
+        : extractedSample.bodyScale / imageSize.height;
+    final sufficientMetricScale =
+        reliableFullBodyEvidence && bodyScaleRatio >= 0.14;
+    if (boxHeightRatio < 0.28 && !sufficientMetricScale) {
+      final hardSmallFailure = boxHeightRatio < 0.22;
       return _RunningFramingDecision(
         issue: RunningLiveFramingIssue.moveCloser,
         reliableFullBodyEvidence: reliableFullBodyEvidence,

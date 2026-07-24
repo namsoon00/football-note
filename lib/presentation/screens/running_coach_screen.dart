@@ -5305,6 +5305,13 @@ class _BeginnerActionCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
+              copy.summary,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: foreground,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Text(
               l10n.runningCoachResultNextRunCueLabel,
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
                     color: foreground,
@@ -5317,6 +5324,14 @@ class _BeginnerActionCard extends StatelessWidget {
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: foreground,
                     fontWeight: FontWeight.w800,
+                  ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              copy.drill,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: foreground,
+                    fontWeight: FontWeight.w700,
                   ),
             ),
             const SizedBox(height: 10),
@@ -6417,7 +6432,7 @@ class _AnalysisHistoryDetailScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          _InsightGuidePanel(insight: insight),
+          _BeginnerActionCard(insight: insight),
         ],
       ),
     );
@@ -6620,83 +6635,6 @@ class _ArchivedAnalysisVideoCardState
             Text(
               l10n.runningCoachArchivedVideoBody,
               style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _InsightGuidePanel extends StatelessWidget {
-  final RunningCoachingInsight insight;
-
-  const _InsightGuidePanel({required this.insight});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final copy = RunningCoachInsightCopy.fromInsight(insight, l10n);
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(
-                  _metricGuideIcon(insight.metric),
-                  color: _statusAccentColor(insight.status),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.runningCoachAnalysisGuideTitle,
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w900,
-                                ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        l10n.runningCoachAnalysisGuideBody,
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            _InsightGuideVisual(insight: insight),
-            const SizedBox(height: 14),
-            _GuideTextRow(
-              icon: Icons.analytics_outlined,
-              label: l10n.runningCoachAnalysisGuideRangeLabel,
-              body: _metricGoodRange(l10n, insight.metric),
-            ),
-            const SizedBox(height: 10),
-            _GuideTextRow(
-              icon: Icons.notes_outlined,
-              label: l10n.runningCoachAnalysisGuideFindingLabel,
-              body: copy.summary,
-            ),
-            const SizedBox(height: 10),
-            _GuideTextRow(
-              icon: Icons.flag_outlined,
-              label: l10n.runningCoachAnalysisGuideCueLabel,
-              body: copy.cue,
-            ),
-            const SizedBox(height: 10),
-            _GuideTextRow(
-              icon: Icons.fitness_center_outlined,
-              label: l10n.runningCoachAnalysisGuideDrillLabel,
-              body: copy.drill,
             ),
           ],
         ),
@@ -9181,16 +9119,6 @@ String _sessionSourceLabel(
     RunningCoachSessionSource.liveRun => l10n.runningCoachSessionSourceLiveRun,
     RunningCoachSessionSource.sprintLive =>
       l10n.runningCoachSessionSourceSprintLive,
-  };
-}
-
-IconData _metricGuideIcon(RunningCoachMetric metric) {
-  return switch (metric) {
-    RunningCoachMetric.posture => Icons.accessibility_new_rounded,
-    RunningCoachMetric.bounce => Icons.height_rounded,
-    RunningCoachMetric.footStrike => Icons.directions_run_rounded,
-    RunningCoachMetric.kneeFlexion => Icons.sports_gymnastics_rounded,
-    RunningCoachMetric.armCarriage => Icons.sync_alt_rounded,
   };
 }
 

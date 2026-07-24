@@ -120,14 +120,18 @@ final class RunningPoseAnalysisChannel {
       durationMs: durationMs
     )
     guard !candidateSet.windows.isEmpty else {
-      throw insufficientContactEvidence()
+      throw insufficientContactEvidence(
+        "coarseValid=\(frameSamples.count); candidates=0"
+      )
     }
     let denseTimestamps = denseTimestampsForContactWindows(
       candidateSet.windows,
       durationMs: durationMs
     )
     guard !denseTimestamps.isEmpty else {
-      throw insufficientContactEvidence()
+      throw insufficientContactEvidence(
+        "coarseValid=\(frameSamples.count); candidates=\(candidateSet.windows.count); dense=0"
+      )
     }
     let densePoseLandmarker = try makePoseLandmarker()
     let densePass = try runPosePass(
@@ -143,13 +147,23 @@ final class RunningPoseAnalysisChannel {
       direction: direction
     )
     let uniqueContactFrameCount = Set(contactFrames.map(\.timestampMs)).count
-    guard uniqueContactFrameCount >= Self.minimumValidatedContactFrames else {
-      throw insufficientContactEvidence()
+    let usesContactProxy = uniqueContactFrameCount < Self.minimumValidatedContactFrames
+    let metricContactFrames = usesContactProxy
+      ? contactProxyFrames(
+        from: densePass.samples,
+        windows: candidateSet.windows,
+        direction: direction
+      )
+      : contactFrames
+    guard !metricContactFrames.isEmpty else {
+      throw insufficientContactEvidence(
+        "coarseValid=\(frameSamples.count); candidates=\(candidateSet.windows.count); denseValid=\(densePass.samples.count); contacts=\(uniqueContactFrameCount); proxies=0"
+      )
     }
     let footStrikeRatio =
-      contactFrames.map(\.footStrikeRatio).reduce(0, +) /
-      Double(contactFrames.count)
-    let kneeAngles = contactFrames.map(\.kneeAngleDegrees)
+      metricContactFrames.map(\.footStrikeRatio).reduce(0, +) /
+      Double(metricContactFrames.count)
+    let kneeAngles = metricContactFrames.map(\.kneeAngleDegrees)
     let elbowAngles = frameSamples.compactMap { $0.averageElbowAngleDegrees }
     guard !elbowAngles.isEmpty else {
       throw AnalysisError(
@@ -161,8 +175,18 @@ final class RunningPoseAnalysisChannel {
     let elbowAngle = elbowAngles.reduce(0, +) / Double(elbowAngles.count)
     let contactConfidence = min(
       1.0,
-      max(0.0, contactFrames.map(\.confidence).reduce(0, +) / Double(contactFrames.count))
+      max(
+        0.0,
+        metricContactFrames.map(\.confidence).reduce(0, +) /
+          Double(metricContactFrames.count)
+      )
     )
+    let contactQualityReason = usesContactProxy ? "contact_phase_proxy" : nil
+    let coreConfidence = frameSamples.map(\.coreLandmarkConfidence).reduce(0, +) /
+      Double(frameSamples.count)
+    let armConfidenceValues = frameSamples.compactMap(\.armLandmarkConfidence)
+    let armConfidence = armConfidenceValues.reduce(0, +) /
+      Double(armConfidenceValues.count)
 
     return [
       "durationMs": durationMs,
@@ -175,13 +199,27 @@ final class RunningPoseAnalysisChannel {
       "stanceKneeAngleDegrees": roundTo3(stanceKneeAngle),
       "elbowAngleDegrees": roundTo3(elbowAngle),
       "metricQualities": [
+        "posture": metricQualityPayload(
+          confidence: coreConfidence,
+          sampleCount: frameSamples.count
+        ),
+        "bounce": metricQualityPayload(
+          confidence: coreConfidence,
+          sampleCount: frameSamples.count
+        ),
         "footStrike": metricQualityPayload(
           confidence: contactConfidence,
-          sampleCount: contactFrames.count
+          sampleCount: metricContactFrames.count,
+          reason: contactQualityReason
         ),
         "kneeFlexion": metricQualityPayload(
           confidence: contactConfidence,
-          sampleCount: contactFrames.count
+          sampleCount: metricContactFrames.count,
+          reason: contactQualityReason
+        ),
+        "armCarriage": metricQualityPayload(
+          confidence: armConfidence,
+          sampleCount: armConfidenceValues.count
         ),
       ],
       "coarseSamples": sampleSummaryPayload(
@@ -247,10 +285,11 @@ final class RunningPoseAnalysisChannel {
     return AnalysisError(code: "mediapipe_pose_failed", message: message)
   }
 
-  private func insufficientContactEvidence() -> AnalysisError {
-    AnalysisError(
+  private func insufficientContactEvidence(_ detail: String? = nil) -> AnalysisError {
+    let suffix = detail.map { " (\($0))" } ?? ""
+    return AnalysisError(
       code: "insufficient_contact_evidence",
-      message: "We could not verify enough dense foot-contact frames in this video."
+      message: "We could not verify enough dense foot-contact frames in this video.\(suffix)"
     )
   }
 
@@ -637,6 +676,69 @@ final class RunningPoseAnalysisChannel {
     return selectedByTimestamp.keys.sorted().compactMap { selectedByTimestamp[$0] }
   }
 
+  private func contactProxyFrames(
+    from samples: [FrameSample],
+    windows: [ContactCandidate],
+    direction: AnalysisDirection
+  ) -> [ContactFrameAnalysis] {
+    var selectedByTimestamp: [Int: ContactFrameAnalysis] = [:]
+    for window in windows.sorted(by: { $0.centerTimestampMs < $1.centerTimestampMs }) {
+      let candidate = samples
+        .filter { sample in
+          sample.timestampMs >= window.startTimestampMs &&
+            sample.timestampMs <= window.endTimestampMs
+        }
+        .compactMap { sample -> (sample: FrameSample, evidence: FootBottomEvidence)? in
+          guard let evidence = sample.footBottom(window.side) else {
+            return nil
+          }
+          return (sample, evidence)
+        }
+        .sorted { first, second in
+          let firstDistance = abs(first.sample.timestampMs - window.centerTimestampMs)
+          let secondDistance = abs(second.sample.timestampMs - window.centerTimestampMs)
+          if firstDistance != secondDistance {
+            return firstDistance < secondDistance
+          }
+          return first.sample.timestampMs < second.sample.timestampMs
+        }
+        .first
+      guard let candidate else {
+        continue
+      }
+      let confidence = min(
+        1.0,
+        max(
+          0.0,
+          min(
+            window.confidence,
+            candidate.sample.contactLandmarkConfidence(
+              window.side,
+              footEvidence: candidate.evidence
+            )
+          ) * Self.contactProxyConfidencePenalty
+        )
+      )
+      let proxy = ContactFrameAnalysis(
+        timestampMs: candidate.sample.timestampMs,
+        windowCenterTimestampMs: window.centerTimestampMs,
+        side: window.side,
+        footStrikeRatio: candidate.sample.contactFootStrikeRatio(
+          window.side,
+          direction: direction
+        ),
+        kneeAngleDegrees: candidate.sample.contactKneeAngleDegrees(window.side),
+        confidence: confidence
+      )
+      if let existing = selectedByTimestamp[proxy.timestampMs],
+         existing.confidence >= proxy.confidence {
+        continue
+      }
+      selectedByTimestamp[proxy.timestampMs] = proxy
+    }
+    return selectedByTimestamp.keys.sorted().compactMap { selectedByTimestamp[$0] }
+  }
+
   private func selectDenseContactFrame(
     for window: ContactCandidate,
     orderedSamples: [FrameSample],
@@ -651,12 +753,14 @@ final class RunningPoseAnalysisChannel {
       .compactMap { sample in
         denseContactCandidate(sample, side: window.side, groundY: groundY)
       }
+    var eligibleCandidates: [ContactFrameCandidate] = []
     var persistentCandidates: [ContactFrameCandidate] = []
     for index in candidates.indices {
       let current = candidates[index]
       guard isEligibleContact(current) else {
         continue
       }
+      eligibleCandidates.append(current)
       let previous = index > 0 ? candidates[index - 1] : nil
       let next = index + 1 < candidates.count ? candidates[index + 1] : nil
       if enteredGroundBand(current, previous: previous) {
@@ -666,8 +770,11 @@ final class RunningPoseAnalysisChannel {
         persistentCandidates.append(current)
       }
     }
+    let candidatesForSelection = persistentCandidates.isEmpty
+      ? eligibleCandidates
+      : persistentCandidates
     guard
-      let selected = persistentCandidates.sorted(by: { first, second in
+      let selected = candidatesForSelection.sorted(by: { first, second in
         if first.confidence != second.confidence {
           return first.confidence > second.confidence
         }
@@ -784,12 +891,17 @@ final class RunningPoseAnalysisChannel {
 
   private func metricQualityPayload(
     confidence: Double,
-    sampleCount: Int
+    sampleCount: Int,
+    reason: String? = nil
   ) -> [String: Any] {
-    [
+    var payload: [String: Any] = [
       "confidence": roundTo3(min(1.0, max(0.0, confidence))),
       "sampleCount": sampleCount,
     ]
+    if let reason {
+      payload["reason"] = reason
+    }
+    return payload
   }
 
   private func contactWindowPayloads(
@@ -908,6 +1020,15 @@ final class RunningPoseAnalysisChannel {
       return nil
     }
 
+    let leftHeel = confidentLandmarkPoint(Self.leftHeelIndex, in: landmarks, imageSize: imageSize)
+    let rightHeel = confidentLandmarkPoint(Self.rightHeelIndex, in: landmarks, imageSize: imageSize)
+    let leftToe = confidentLandmarkPoint(Self.leftFootIndex, in: landmarks, imageSize: imageSize)
+    let rightToe = confidentLandmarkPoint(Self.rightFootIndex, in: landmarks, imageSize: imageSize)
+    let leftElbow = confidentLandmarkPoint(Self.leftElbowIndex, in: landmarks, imageSize: imageSize)
+    let rightElbow = confidentLandmarkPoint(Self.rightElbowIndex, in: landmarks, imageSize: imageSize)
+    let leftWrist = confidentLandmarkPoint(Self.leftWristIndex, in: landmarks, imageSize: imageSize)
+    let rightWrist = confidentLandmarkPoint(Self.rightWristIndex, in: landmarks, imageSize: imageSize)
+
     return FrameSample(
       timestampMs: timestampMs,
       leftShoulder: leftShoulder.point,
@@ -920,24 +1041,30 @@ final class RunningPoseAnalysisChannel {
       hipCenter: hipCenter,
       leftAnkle: leftAnkle.point,
       rightAnkle: rightAnkle.point,
-      leftHeel: confidentLandmarkPoint(Self.leftHeelIndex, in: landmarks, imageSize: imageSize)?.point,
-      rightHeel: confidentLandmarkPoint(Self.rightHeelIndex, in: landmarks, imageSize: imageSize)?.point,
-      leftToe: confidentLandmarkPoint(Self.leftFootIndex, in: landmarks, imageSize: imageSize)?.point,
-      rightToe: confidentLandmarkPoint(Self.rightFootIndex, in: landmarks, imageSize: imageSize)?.point,
-      leftElbow: confidentLandmarkPoint(Self.leftElbowIndex, in: landmarks, imageSize: imageSize)?.point,
-      rightElbow: confidentLandmarkPoint(Self.rightElbowIndex, in: landmarks, imageSize: imageSize)?.point,
-      leftWrist: confidentLandmarkPoint(Self.leftWristIndex, in: landmarks, imageSize: imageSize)?.point,
-      rightWrist: confidentLandmarkPoint(Self.rightWristIndex, in: landmarks, imageSize: imageSize)?.point,
+      leftHeel: leftHeel?.point,
+      rightHeel: rightHeel?.point,
+      leftToe: leftToe?.point,
+      rightToe: rightToe?.point,
+      leftElbow: leftElbow?.point,
+      rightElbow: rightElbow?.point,
+      leftWrist: leftWrist?.point,
+      rightWrist: rightWrist?.point,
+      leftShoulderConfidence: leftShoulder.confidence,
+      rightShoulderConfidence: rightShoulder.confidence,
       leftHipConfidence: leftHip.confidence,
       rightHipConfidence: rightHip.confidence,
       leftKneeConfidence: leftKnee.confidence,
       rightKneeConfidence: rightKnee.confidence,
       leftAnkleConfidence: leftAnkle.confidence,
       rightAnkleConfidence: rightAnkle.confidence,
-      leftHeelConfidence: confidentLandmarkPoint(Self.leftHeelIndex, in: landmarks, imageSize: imageSize)?.confidence,
-      rightHeelConfidence: confidentLandmarkPoint(Self.rightHeelIndex, in: landmarks, imageSize: imageSize)?.confidence,
-      leftToeConfidence: confidentLandmarkPoint(Self.leftFootIndex, in: landmarks, imageSize: imageSize)?.confidence,
-      rightToeConfidence: confidentLandmarkPoint(Self.rightFootIndex, in: landmarks, imageSize: imageSize)?.confidence,
+      leftHeelConfidence: leftHeel?.confidence,
+      rightHeelConfidence: rightHeel?.confidence,
+      leftToeConfidence: leftToe?.confidence,
+      rightToeConfidence: rightToe?.confidence,
+      leftElbowConfidence: leftElbow?.confidence,
+      rightElbowConfidence: rightElbow?.confidence,
+      leftWristConfidence: leftWrist?.confidence,
+      rightWristConfidence: rightWrist?.confidence,
       bodyScale: bodyScale
     )
   }
@@ -1078,6 +1205,8 @@ final class RunningPoseAnalysisChannel {
     let rightElbow: CGPoint?
     let leftWrist: CGPoint?
     let rightWrist: CGPoint?
+    let leftShoulderConfidence: Double
+    let rightShoulderConfidence: Double
     let leftHipConfidence: Double
     let rightHipConfidence: Double
     let leftKneeConfidence: Double
@@ -1088,7 +1217,39 @@ final class RunningPoseAnalysisChannel {
     let rightHeelConfidence: Double?
     let leftToeConfidence: Double?
     let rightToeConfidence: Double?
+    let leftElbowConfidence: Double?
+    let rightElbowConfidence: Double?
+    let leftWristConfidence: Double?
+    let rightWristConfidence: Double?
     let bodyScale: Double
+
+    var coreLandmarkConfidence: Double {
+      let values = [
+        leftShoulderConfidence,
+        rightShoulderConfidence,
+        leftHipConfidence,
+        rightHipConfidence,
+        leftKneeConfidence,
+        rightKneeConfidence,
+        leftAnkleConfidence,
+        rightAnkleConfidence,
+      ]
+      return values.reduce(0, +) / Double(values.count)
+    }
+
+    var armLandmarkConfidence: Double? {
+      var values: [Double] = []
+      if let leftElbowConfidence, let leftWristConfidence {
+        values.append((leftShoulderConfidence + leftElbowConfidence + leftWristConfidence) / 3)
+      }
+      if let rightElbowConfidence, let rightWristConfidence {
+        values.append((rightShoulderConfidence + rightElbowConfidence + rightWristConfidence) / 3)
+      }
+      guard !values.isEmpty else {
+        return nil
+      }
+      return values.reduce(0, +) / Double(values.count)
+    }
 
     func forwardLeanDegrees(direction: AnalysisDirection) -> Double {
       let verticalTravel = max(1.0, Double(hipCenter.y - shoulderCenter.y))
@@ -1128,26 +1289,24 @@ final class RunningPoseAnalysisChannel {
 
     func footBottom(_ side: FootSide) -> FootBottomEvidence? {
       let ankle = side == .left ? leftAnkle : rightAnkle
-      guard
-        let heel = side == .left ? leftHeel : rightHeel,
-        let toe = side == .left ? leftToe : rightToe,
-        let heelConfidence = side == .left ? leftHeelConfidence : rightHeelConfidence,
-        let toeConfidence = side == .left ? leftToeConfidence : rightToeConfidence
-      else {
-        return nil
-      }
+      let heel = side == .left ? leftHeel : rightHeel
+      let toe = side == .left ? leftToe : rightToe
       let ankleConfidence = side == .left
         ? leftAnkleConfidence
         : rightAnkleConfidence
-      let bottomPoint = [ankle, heel, toe].max { first, second in
+      let heelConfidence = side == .left ? leftHeelConfidence : rightHeelConfidence
+      let toeConfidence = side == .left ? leftToeConfidence : rightToeConfidence
+      let bottomPoint = ([ankle] + [heel, toe].compactMap { $0 }).max { first, second in
         first.y < second.y
       } ?? ankle
+      let confidence = ([ankleConfidence] + [heelConfidence, toeConfidence].compactMap { $0 })
+        .min() ?? ankleConfidence
       return FootBottomEvidence(
         bottomPoint: bottomPoint,
         ankle: ankle,
-        heel: heel,
-        toe: toe,
-        confidence: min(ankleConfidence, min(heelConfidence, toeConfidence))
+        heel: heel ?? ankle,
+        toe: toe ?? ankle,
+        confidence: confidence
       )
     }
 
@@ -1265,7 +1424,7 @@ final class RunningPoseAnalysisChannel {
   private static let minVideoDurationMs = 1500
   private static let sampleStartFraction = 0.15
   private static let sampleEndFraction = 0.85
-  private static let minimumLikelihood: Float = 0.45
+  private static let minimumLikelihood: Float = 0.35
   private static let minimumBodyScalePx = 40.0
   private static let mediaPipePoseLandmarkCount = 33
   private static let stationaryThresholdRatio = 0.12
@@ -1277,6 +1436,7 @@ final class RunningPoseAnalysisChannel {
   private static let minimumContactCenterSeparationMs = 120
   private static let minimumValidatedContactFrames = 2
   private static let minimumContactFrameConfidence = 0.34
+  private static let contactProxyConfidencePenalty = 0.60
   private static let coarseContactGroundToleranceRatio = 0.12
   private static let denseContactGroundToleranceRatio = 0.13
   private static let localFootExtremumToleranceRatio = 0.025

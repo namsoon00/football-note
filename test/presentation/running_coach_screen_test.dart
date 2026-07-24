@@ -633,13 +633,17 @@ void main() {
     expect(find.text('Analysis review'), findsOneWidget);
     expect(find.text('Analyzed video'), findsOneWidget);
     expect(find.text('side-view-test.mp4'), findsOneWidget);
-    expect(find.text('Correction point in pictures'), findsOneWidget);
+    expect(find.text('Change one thing first'), findsOneWidget);
     expect(
-      find.text('Goal: slight forward lean, without bending at the waist'),
-      findsWidgets,
+      find.text('You are too upright. It can slow the next step.'),
+      findsOneWidget,
     );
-    expect(find.text('Action cue'), findsOneWidget);
-    expect(find.text('Recommended drill'), findsOneWidget);
+    expect(find.text('On your next run'), findsOneWidget);
+    expect(
+      find.text('Lean forward from the ankles. Keep your chest tall.'),
+      findsOneWidget,
+    );
+    expect(find.text('Drill: Do two 15 m falling starts.'), findsOneWidget);
   });
 
   testWidgets('analysis result layout stays readable on narrow phones', (

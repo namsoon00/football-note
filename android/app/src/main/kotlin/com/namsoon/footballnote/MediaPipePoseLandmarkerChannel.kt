@@ -214,9 +214,9 @@ class MediaPipePoseLandmarkerChannel(
         private const val detectMethodName = "detectPoseFromNv21"
         private const val closeMethodName = "close"
         private const val modelAssetPath = "pose_landmarker_lite.task"
-        private const val minimumPoseDetectionConfidence = 0.45f
-        private const val minimumPosePresenceConfidence = 0.45f
-        private const val minimumTrackingConfidence = 0.45f
+        private const val minimumPoseDetectionConfidence = 0.35f
+        private const val minimumPosePresenceConfidence = 0.35f
+        private const val minimumTrackingConfidence = 0.35f
         private const val jpegQuality = 95
         private const val maxAnalysisLongEdgePx = 720
     }

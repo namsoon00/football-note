@@ -17877,7 +17877,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachNoPoseDetected.
   ///
   /// In en, this message translates to:
-  /// **'The runner could not be tracked well enough. Try a clearer side-view clip with elbows, knees, and feet visible.'**
+  /// **'Clothing is not used for this check, but the runner\'s joints could not be tracked well enough. Try a clearer side-view clip with elbows, knees, and feet visible.'**
   String get runningCoachNoPoseDetected;
 
   /// No description provided for @runningCoachInsufficientContactEvidence.

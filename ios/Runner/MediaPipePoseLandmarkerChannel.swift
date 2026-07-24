@@ -296,9 +296,9 @@ final class MediaPipePoseLandmarkerChannel {
   private static let closeMethodName = "close"
   private static let modelResourceName = "pose_landmarker_lite"
   private static let modelResourceExtension = "task"
-  private static let minimumPoseDetectionConfidence: Float = 0.45
-  private static let minimumPosePresenceConfidence: Float = 0.45
-  private static let minimumTrackingConfidence: Float = 0.45
+  private static let minimumPoseDetectionConfidence: Float = 0.35
+  private static let minimumPosePresenceConfidence: Float = 0.35
+  private static let minimumTrackingConfidence: Float = 0.35
   private static let bytesPerPixel = 4
   private static let maxAnalysisLongEdge: CGFloat = 720
 }

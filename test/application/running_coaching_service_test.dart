@@ -116,6 +116,49 @@ void main() {
     );
   });
 
+  test('prefers a reliable focus over a lower-scored contact proxy', () {
+    const result = RunningVideoAnalysisResult(
+      videoDuration: Duration(seconds: 6),
+      sampledFrames: 14,
+      validFrames: 14,
+      direction: RunningDirection.leftToRight,
+      forwardLeanDegrees: 3.8,
+      verticalBounceRatio: 0.058,
+      footStrikeDistanceRatio: 0.28,
+      stanceKneeAngleDegrees: 174,
+      elbowAngleDegrees: 92,
+      metricQualities: <RunningCoachMetric, RunningMetricQuality>{
+        RunningCoachMetric.posture: RunningMetricQuality(
+          confidence: 0.88,
+          sampleCount: 14,
+        ),
+        RunningCoachMetric.bounce: RunningMetricQuality(
+          confidence: 0.88,
+          sampleCount: 14,
+        ),
+        RunningCoachMetric.footStrike: RunningMetricQuality(
+          confidence: 0.42,
+          sampleCount: 2,
+          reason: 'contact_phase_proxy',
+        ),
+        RunningCoachMetric.kneeFlexion: RunningMetricQuality(
+          confidence: 0.42,
+          sampleCount: 2,
+          reason: 'contact_phase_proxy',
+        ),
+        RunningCoachMetric.armCarriage: RunningMetricQuality(
+          confidence: 0.88,
+          sampleCount: 14,
+        ),
+      },
+    );
+
+    final report = service.buildReport(result);
+
+    expect(report.primaryFocus?.metric, RunningCoachMetric.posture);
+    expect(report.primaryFocus?.quality.isLowConfidence, isFalse);
+  });
+
   test('custom thresholds can tune the coaching report', () {
     const tunedService = RunningCoachingService(
       thresholds: RunningCoachingThresholds(maximumFootStrikeRatio: 0.12),

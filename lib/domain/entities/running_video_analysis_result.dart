@@ -573,7 +573,10 @@ extension RunningCoachingReportInsights on RunningCoachingReport {
   RunningCoachingInsight? get primaryFocus {
     final focus = focusInsights;
     if (focus.isNotEmpty) {
-      return focus.first;
+      final reliableFocus = focus
+          .where((insight) => !insight.quality.isLowConfidence)
+          .toList(growable: false);
+      return reliableFocus.isNotEmpty ? reliableFocus.first : focus.first;
     }
     final ranked = rankedInsights;
     return ranked.isEmpty ? null : ranked.first;
