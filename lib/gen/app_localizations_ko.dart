@@ -14120,6 +14120,9 @@ class AppLocalizationsKo extends AppLocalizations {
       '보드 전체 순서로 이어서 만들고, 필요하면 같은 단계에 여러 액션을 함께 넣을 수 있어요.';
 
   @override
+  String get trainingSketchReorderStageTooltip => '단계 순서 변경';
+
+  @override
   String get trainingSketchGlobalStagesEmpty =>
       '아직 등록된 단계가 없어요. 첫 액션은 1단계로 시작합니다.';
 

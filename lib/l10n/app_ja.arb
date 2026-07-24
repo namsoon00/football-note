@@ -8068,6 +8068,7 @@
   "trainingSketchPlayerFlowMoveSection": "動き",
   "trainingSketchGlobalStagesTitle": "全体ステージ",
   "trainingSketchGlobalStagesHint": "ボード全体を1つの順序として作成し、同時に動くものは同じステージに追加できます。",
+  "trainingSketchReorderStageTooltip": "ステージの順序を変更",
   "trainingSketchGlobalStagesEmpty": "まだステージがありません。最初の動作はステージ1から始まります。",
   "trainingSketchGlobalStageChip": "ステージ{stage} · 動作{count}件",
   "@trainingSketchGlobalStageChip": {

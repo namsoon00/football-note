@@ -136,7 +136,8 @@ void main() {
     expect(decoded.pages.single.routes.single.targetItemId, 'player-2');
   });
 
-  testWidgets('route stages can be changed with compact stage chips', (
+  testWidgets(
+      'route stages stay in the global stage list without compact chips', (
     WidgetTester tester,
   ) async {
     _setLandscapeSurface(tester);
@@ -231,7 +232,13 @@ void main() {
           .first,
     );
     await tester.pumpAndSettle();
-    await _tapRouteStageChip(tester, 2);
+    expect(
+        find.byKey(const ValueKey('training-global-stage-1')), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('training-global-stage-reorderable-list')),
+      findsNothing,
+    );
+    expect(find.text('동작 단계'), findsNothing);
 
     await tester.tap(find.widgetWithText(TextButton, '저장'));
     await tester.pumpAndSettle();
@@ -242,7 +249,7 @@ void main() {
     expect(_samePoint(routes[0].points[0], routes[0].points[1]), isFalse);
     expect(_samePoint(routes[2].points[0], routes[2].points[1]), isFalse);
     expect(_samePoint(routes[3].points[0], routes[3].points[1]), isFalse);
-    expect(routes.map((route) => route.stageIndex), [2, 1, 1, 1]);
+    expect(routes.map((route) => route.stageIndex), [1, 1, 1, 1]);
   });
 
   testWidgets('ball tokens show their own numbers', (
@@ -1213,7 +1220,8 @@ void main() {
     expect(playerRoute.points.last.y, closeTo(0.38, 0.02));
   });
 
-  testWidgets('player cone turn action creates a cone and curved route', (
+  testWidgets('player cone turn action uses an existing cone and curved route',
+      (
     WidgetTester tester,
   ) async {
     _setLandscapeSurface(tester);
@@ -1233,6 +1241,12 @@ void main() {
                     type: 'player',
                     x: 0.28,
                     y: 0.54,
+                  ),
+                  TrainingMethodItem(
+                    id: 'cone-1',
+                    type: 'cone',
+                    x: 0.58,
+                    y: 0.43,
                   ),
                 ],
               ),
@@ -1303,6 +1317,12 @@ void main() {
                     x: 0.35,
                     y: 0.54,
                     colorValue: 0xFFFFCA28,
+                  ),
+                  TrainingMethodItem(
+                    id: 'cone-1',
+                    type: 'cone',
+                    x: 0.58,
+                    y: 0.43,
                   ),
                 ],
               ),
@@ -1427,7 +1447,8 @@ void main() {
     expect(route.points[2].y, closeTo(cone.y, 0.001));
   });
 
-  testWidgets('player hurdle jump action creates a hurdle and jump route', (
+  testWidgets(
+      'player hurdle jump action uses an existing hurdle and jump route', (
     WidgetTester tester,
   ) async {
     _setLandscapeSurface(tester);
@@ -1447,6 +1468,12 @@ void main() {
                     type: 'player',
                     x: 0.28,
                     y: 0.54,
+                  ),
+                  TrainingMethodItem(
+                    id: 'hurdle-1',
+                    type: 'hurdle',
+                    x: 0.60,
+                    y: 0.44,
                   ),
                 ],
               ),
@@ -1687,7 +1714,7 @@ void main() {
     expect(ballRoutes.map((route) => route.stageIndex).toSet(), {1, 2});
   });
 
-  testWidgets('single selected route offers the next editable stage', (
+  testWidgets('single selected route appears in its only global stage', (
     WidgetTester tester,
   ) async {
     _setLandscapeSurface(tester);
@@ -1733,13 +1760,17 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('1단계'), findsOneWidget);
-    expect(find.text('2단계'), findsOneWidget);
-    expect(find.text('3단계'), findsNothing);
+    expect(find.text('1단계 · 액션 1개'), findsOneWidget);
+    expect(
+        find.byKey(const ValueKey('training-global-stage-1')), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('training-global-stage-reorderable-list')),
+      findsNothing,
+    );
+    expect(find.text('동작 단계'), findsNothing);
   });
 
-  testWidgets('selected player stage controls hide advanced route edit buttons',
-      (
+  testWidgets('selected player keeps stage controls in the global stage list', (
     WidgetTester tester,
   ) async {
     _setLandscapeSurface(tester);
@@ -1788,7 +1819,13 @@ void main() {
     expect(find.widgetWithText(OutlinedButton, '끝에 이어 그리기'), findsNothing);
     expect(find.widgetWithText(OutlinedButton, '방향 뒤집기'), findsNothing);
     expect(find.widgetWithText(OutlinedButton, '선택 이동선 다시 그리기'), findsNothing);
-    expect(find.widgetWithText(OutlinedButton, '단계 액션 삭제'), findsOneWidget);
+    expect(find.widgetWithText(OutlinedButton, '단계 액션 삭제'), findsNothing);
+    expect(
+      find.byKey(
+        const ValueKey('training-global-stage-action-delete-route-player-1'),
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('dragging a route end extends the route directly', (
@@ -1961,7 +1998,7 @@ void main() {
     expect(route.points[1].y, lessThan(0.40));
   });
 
-  testWidgets('selected route can be removed from compact stage controls', (
+  testWidgets('selected route can be removed from global stage controls', (
     WidgetTester tester,
   ) async {
     _setLandscapeSurface(tester);
@@ -2010,7 +2047,12 @@ void main() {
       find.descendant(of: boardFinder, matching: find.byIcon(Icons.person)),
     );
     await tester.pumpAndSettle();
-    await _tapVisibleOutlinedButton(tester, '단계 액션 삭제');
+    await tester.tap(
+      find.byKey(
+        const ValueKey('training-global-stage-action-delete-route-player-1'),
+      ),
+    );
+    await tester.pumpAndSettle();
 
     await tester.tap(find.widgetWithText(TextButton, '저장'));
     await tester.pumpAndSettle();
@@ -2973,6 +3015,12 @@ void main() {
                     y: 0.52,
                     colorValue: 0xFFFFCA28,
                   ),
+                  TrainingMethodItem(
+                    id: 'cone-1',
+                    type: 'cone',
+                    x: 0.64,
+                    y: 0.34,
+                  ),
                 ],
               ),
             ],
@@ -3506,6 +3554,12 @@ void main() {
                     y: 0.52,
                     colorValue: 0xFFFFCA28,
                   ),
+                  TrainingMethodItem(
+                    id: 'hurdle-1',
+                    type: 'hurdle',
+                    x: 0.72,
+                    y: 0.36,
+                  ),
                 ],
               ),
             ],
@@ -3968,6 +4022,57 @@ void main() {
         findsOneWidget,
       );
     }
+  });
+
+  testWidgets('player flow hides prop actions until matching targets exist', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '장애물 조건',
+          initialLayoutJson: const TrainingMethodLayout(
+            pages: <TrainingMethodPage>[
+              TrainingMethodPage(
+                name: 'Board',
+                items: <TrainingMethodItem>[
+                  TrainingMethodItem(
+                    id: 'player-1',
+                    type: 'player',
+                    x: 0.22,
+                    y: 0.52,
+                  ),
+                ],
+              ),
+            ],
+          ).encode(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    await tester.tap(
+      find.descendant(of: boardFinder, matching: find.byIcon(Icons.person)),
+    );
+    await tester.pumpAndSettle();
+
+    for (final action in <String>['coneTurn', 'coneJump', 'hurdleJump']) {
+      expect(
+        find.byKey(ValueKey('training-player-flow-action-player-1-$action')),
+        findsNothing,
+      );
+    }
+    expect(
+      find.byWidgetPredicate((widget) {
+        final key = widget.key;
+        return key is ValueKey<String> &&
+            key.value.startsWith('training-player-flow-prop-action-player-1-');
+      }),
+      findsNothing,
+    );
   });
 
   testWidgets('player flow stay action pauses player and owned ball', (
@@ -4562,7 +4667,12 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await _tapVisibleOutlinedButton(tester, '단계 액션 삭제');
+    await tester.tap(
+      find.byKey(
+        const ValueKey('training-global-stage-action-delete-route-2'),
+      ),
+    );
+    await tester.pumpAndSettle();
 
     await tester.tap(find.widgetWithText(TextButton, '저장'));
     await tester.pumpAndSettle();
@@ -4658,8 +4768,7 @@ void main() {
     expect(routeIds, contains('route-move'));
   });
 
-  testWidgets('global stage action selects compact stage controls from summary',
-      (
+  testWidgets('global stage action keeps editing in the stage summary', (
     WidgetTester tester,
   ) async {
     _setLandscapeSurface(tester);
@@ -4718,15 +4827,26 @@ void main() {
     );
     expect(find.text('선택됨'), findsOneWidget);
 
-    final editAction = find.byKey(
-      const ValueKey('training-global-stage-action-edit-route-shot'),
+    expect(
+      find.byKey(
+        const ValueKey('training-global-stage-action-edit-route-shot'),
+      ),
+      findsNothing,
     );
-    expect(editAction, findsOneWidget);
-    await tester.tap(editAction);
-    await tester.pumpAndSettle();
-
-    expect(find.text('동작 단계'), findsOneWidget);
-    expect(find.widgetWithText(OutlinedButton, '단계 액션 삭제'), findsOneWidget);
+    expect(
+      find.byKey(
+        const ValueKey('training-global-stage-action-insert-route-shot'),
+      ),
+      findsNothing,
+    );
+    expect(find.text('동작 단계'), findsNothing);
+    expect(find.widgetWithText(OutlinedButton, '단계 액션 삭제'), findsNothing);
+    expect(
+      find.byKey(
+        const ValueKey('training-global-stage-action-delete-route-shot'),
+      ),
+      findsOneWidget,
+    );
     expect(find.widgetWithText(OutlinedButton, '이동선 완료'), findsNothing);
     expect(
       find.text('도착 지점을 누르고 이동선 완료를 누르면 선택한 이동선이 바뀝니다.'),
@@ -4809,12 +4929,6 @@ void main() {
       ),
       findsNothing,
     );
-    expect(
-      find.byKey(
-        const ValueKey('training-global-stage-action-insert-route-pass'),
-      ),
-      findsOneWidget,
-    );
     await _tapBoardRelativeThroughWidgets(
       tester,
       boardFinder,
@@ -4850,7 +4964,7 @@ void main() {
     expect(player2Route.points.last.y, closeTo(0.38, 0.02));
   });
 
-  testWidgets('stage action insert shifts later stages and fills the gap', (
+  testWidgets('global stages can be reordered as a unit', (
     WidgetTester tester,
   ) async {
     _setLandscapeSurface(tester);
@@ -4883,6 +4997,17 @@ void main() {
               ],
             ),
             TrainingMethodRoute(
+              id: 'route-first-move',
+              kind: TrainingMethodRouteKind.player,
+              linkedItemId: 'player-1',
+              actorItemId: 'player-1',
+              stageIndex: 1,
+              points: <TrainingMethodPoint>[
+                TrainingMethodPoint(x: 0.2, y: 0.5),
+                TrainingMethodPoint(x: 0.30, y: 0.42),
+              ],
+            ),
+            TrainingMethodRoute(
               id: 'route-later',
               kind: TrainingMethodRouteKind.player,
               linkedItemId: 'player-1',
@@ -4901,7 +5026,7 @@ void main() {
     await tester.pumpWidget(
       _buildApp(
         TrainingMethodBoardScreen(
-          boardTitle: '중간 삽입',
+          boardTitle: '단계 순서',
           initialLayoutJson: initialLayout,
           onSaved: (value) => savedLayout = value,
         ),
@@ -4909,22 +5034,19 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final insertAction = find.byKey(
-      const ValueKey('training-global-stage-action-insert-route-pass'),
+    final reorderableStages = tester.widget<ReorderableListView>(
+      find.byKey(const ValueKey('training-global-stage-reorderable-list')),
     );
-    expect(insertAction, findsOneWidget);
-    await tester.tap(insertAction);
-    await tester.pumpAndSettle();
     expect(
-      find.byKey(
-        const ValueKey('training-global-stage-action-selected-route-pass'),
-      ),
+      find.byKey(const ValueKey('training-global-stage-reorder-handle-1')),
       findsOneWidget,
     );
-
-    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
-    await _tapVisibleOutlinedButton(tester, '이동');
-    await _tapBoardRelative(tester, boardFinder, const Offset(0.72, 0.40));
+    expect(
+      find.byKey(const ValueKey('training-global-stage-reorder-handle-2')),
+      findsOneWidget,
+    );
+    reorderableStages.onReorder(0, 2);
+    await tester.pumpAndSettle();
 
     await tester.tap(find.widgetWithText(TextButton, '저장'));
     await tester.pumpAndSettle();
@@ -4933,17 +5055,15 @@ void main() {
     final routes = saved.pages.single.routes;
     expect(
       routes.singleWhere((route) => route.id == 'route-pass').stageIndex,
-      1,
+      2,
+    );
+    expect(
+      routes.singleWhere((route) => route.id == 'route-first-move').stageIndex,
+      2,
     );
     expect(
       routes.singleWhere((route) => route.id == 'route-later').stageIndex,
-      3,
-    );
-    expect(
-      routes.where(
-        (route) => route.actorItemId == 'player-2' && route.stageIndex == 2,
-      ),
-      isNotEmpty,
+      1,
     );
   });
 
@@ -6208,7 +6328,7 @@ void main() {
   });
 
   testWidgets(
-    'selected player shooting action can set the ball route stage',
+    'selected player shooting action uses the automatic global stage',
     (WidgetTester tester) async {
       _setLandscapeSurface(tester);
       String? savedLayout;
@@ -6247,8 +6367,11 @@ void main() {
       await _tapVisibleOutlinedButton(tester, '슈팅');
       await _tapBoardRelative(tester, boardFinder, const Offset(0.82, 0.34));
 
-      expect(find.text('동작 단계'), findsOneWidget);
-      await _tapRouteStageChip(tester, 2);
+      expect(find.text('동작 단계'), findsNothing);
+      expect(
+        find.byKey(const ValueKey('training-global-stage-active-1')),
+        findsOneWidget,
+      );
 
       await tester.tap(find.widgetWithText(TextButton, '저장'));
       await tester.pumpAndSettle();
@@ -6260,7 +6383,7 @@ void main() {
       );
 
       expect(page.items.where((item) => item.type == 'ball'), hasLength(1));
-      expect(ballRoute.stageIndex, 2);
+      expect(ballRoute.stageIndex, 1);
     },
   );
 
@@ -6609,7 +6732,7 @@ void main() {
       return key is ValueKey<String> &&
           key.value.startsWith('training-global-stage-action-insert-');
     });
-    expect(insertAction, findsOneWidget);
+    expect(insertAction, findsNothing);
     await _tapVisibleOutlinedButton(tester, '슈팅');
     await _tapBoardRelative(tester, boardFinder, const Offset(0.82, 0.34));
 
@@ -7620,20 +7743,6 @@ Future<void> _tapBoardRelative(
       globalPosition: localPosition,
     ),
   );
-  await tester.pumpAndSettle();
-}
-
-Future<void> _tapRouteStageChip(WidgetTester tester, int stageIndex) async {
-  final chipFinder = find.byWidgetPredicate((widget) {
-    if (widget is! ChoiceChip) return false;
-    final label = widget.label;
-    return label is Text && label.data == '$stageIndex단계';
-  });
-  expect(chipFinder, findsWidgets);
-  final targetChip = chipFinder.last;
-  await tester.ensureVisible(targetChip);
-  await tester.pumpAndSettle();
-  await tester.tap(targetChip);
   await tester.pumpAndSettle();
 }
 
