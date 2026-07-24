@@ -10098,7 +10098,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachNoPoseDetected =>
-      '러너 자세를 충분히 추적하지 못했어요. 팔꿈치, 무릎, 발이 잘 보이는 더 선명한 측면 영상을 사용해 주세요.';
+      '옷차림은 판단 기준이 아니지만, 관절을 충분히 추적하지 못했어요. 팔꿈치, 무릎, 발이 잘 보이는 선명한 측면 영상을 다시 찍어 주세요.';
 
   @override
   String get runningCoachInsufficientContactEvidence =>

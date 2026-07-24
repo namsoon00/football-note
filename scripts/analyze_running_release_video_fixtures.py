@@ -20,7 +20,7 @@ from mediapipe.tasks.python import vision
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 TMP_ROOT = REPO_ROOT / ".tmp"
-MIN_LANDMARK_CONFIDENCE = 0.45
+MIN_LANDMARK_CONFIDENCE = 0.35
 MIN_POSE_FRAMES = 8
 MIN_FULL_BODY_FRAMES = 5
 MIN_LOWER_BODY_FRAMES = 4

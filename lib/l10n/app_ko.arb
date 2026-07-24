@@ -6001,7 +6001,7 @@
   "runningCoachVideoFileMissing": "선택한 영상 파일을 찾지 못했어요.",
   "runningCoachVideoTooShort": "영상이 너무 짧아요. 몇 걸음 이상 달리는 장면을 찍어 주세요.",
   "runningCoachVideoTooBlurry": "영상이 흔들리거나 흐려서 정확히 분석할 수 없어요. 휴대폰을 고정하고 전신과 양발이 보이는 선명한 측면 영상으로 다시 찍어 주세요.",
-  "runningCoachNoPoseDetected": "러너 자세를 충분히 추적하지 못했어요. 팔꿈치, 무릎, 발이 잘 보이는 더 선명한 측면 영상을 사용해 주세요.",
+  "runningCoachNoPoseDetected": "옷차림은 판단 기준이 아니지만, 관절을 충분히 추적하지 못했어요. 팔꿈치, 무릎, 발이 잘 보이는 선명한 측면 영상을 다시 찍어 주세요.",
   "runningCoachInsufficientContactEvidence": "검증된 발 접지 프레임이 부족해요. 착지 순간까지 양발이 보이는 더 선명한 측면 영상으로 다시 시도해 주세요.",
   "runningCoachAnalysisFailedGeneric": "달리기 분석에 실패했어요. 측면이 더 잘 보이는 영상으로 다시 시도해 주세요.",
   "runningCoachResultsTitle": "코칭 결과",

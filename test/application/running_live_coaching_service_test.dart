@@ -164,22 +164,38 @@ void main() {
       expect(state.primaryCue, RunningLivePrimaryCue.stepBack);
     });
 
-    test('asks runner to move closer when the body is too small', () {
+    test('does not ask a sufficiently detailed runner to move closer', () {
       final service = RunningLiveCoachingService();
+      final start = DateTime(2026, 4, 11, 12);
+
+      late RunningLiveCoachingState state;
+      for (var index = 0; index < 5; index++) {
+        state = service.ingestObservation(
+          _moderatelySmallDetailedObservation(),
+          timestamp: start.add(Duration(milliseconds: 160 * index)),
+        );
+      }
+
+      expect(state.framingIssue, isNull);
+      expect(state.primaryCue, isNot(RunningLivePrimaryCue.moveCloser));
+    });
+
+    test('asks runner to move closer only after sustained distant framing', () {
+      final service = RunningLiveCoachingService();
+      final start = DateTime(2026, 4, 11, 12);
+
+      for (var index = 0; index < 3; index++) {
+        final initial = service.ingestObservation(
+          _distantDetailedObservation(),
+          timestamp: start.add(Duration(milliseconds: 160 * index)),
+        );
+        expect(initial.framingIssue, isNull);
+        expect(initial.primaryCue, isNot(RunningLivePrimaryCue.moveCloser));
+      }
 
       final state = service.ingestObservation(
-        _observation(
-          nose: const Offset(500, 340),
-          leftShoulder: const Offset(485, 390),
-          rightShoulder: const Offset(515, 390),
-          leftHip: const Offset(490, 470),
-          rightHip: const Offset(510, 470),
-          leftKnee: const Offset(492, 540),
-          rightKnee: const Offset(508, 540),
-          leftAnkle: const Offset(494, 615),
-          rightAnkle: const Offset(506, 615),
-        ),
-        timestamp: DateTime(2026, 4, 11, 12),
+        _distantDetailedObservation(),
+        timestamp: start.add(const Duration(milliseconds: 480)),
       );
 
       expect(state.framingIssue, RunningLiveFramingIssue.moveCloser);
@@ -401,6 +417,46 @@ RunningPoseObservation _cropSupportedMissingAnklesObservation() {
     rightHip: const Offset(520, 610),
     leftKnee: const Offset(466, 880),
     rightKnee: const Offset(535, 895),
+  );
+}
+
+RunningPoseObservation _moderatelySmallDetailedObservation() {
+  return _observation(
+    nose: const Offset(500, 350),
+    leftShoulder: const Offset(485, 395),
+    rightShoulder: const Offset(515, 395),
+    leftElbow: const Offset(470, 438),
+    rightElbow: const Offset(530, 438),
+    leftWrist: const Offset(462, 472),
+    rightWrist: const Offset(538, 472),
+    leftHip: const Offset(490, 475),
+    rightHip: const Offset(510, 475),
+    leftKnee: const Offset(486, 548),
+    rightKnee: const Offset(516, 540),
+    leftAnkle: const Offset(480, 620),
+    rightAnkle: const Offset(522, 612),
+    leftHeel: const Offset(474, 625),
+    rightHeel: const Offset(516, 617),
+  );
+}
+
+RunningPoseObservation _distantDetailedObservation() {
+  return _observation(
+    nose: const Offset(500, 390),
+    leftShoulder: const Offset(487, 425),
+    rightShoulder: const Offset(513, 425),
+    leftElbow: const Offset(475, 452),
+    rightElbow: const Offset(525, 452),
+    leftWrist: const Offset(468, 477),
+    rightWrist: const Offset(532, 477),
+    leftHip: const Offset(491, 482),
+    rightHip: const Offset(509, 482),
+    leftKnee: const Offset(488, 538),
+    rightKnee: const Offset(512, 532),
+    leftAnkle: const Offset(484, 590),
+    rightAnkle: const Offset(516, 584),
+    leftHeel: const Offset(479, 595),
+    rightHeel: const Offset(511, 589),
   );
 }
 

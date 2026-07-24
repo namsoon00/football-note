@@ -175,14 +175,14 @@ require(
     "iOS running channel must keep the 14-frame sampling window",
 )
 require(
-    re.search(r"private const val minimumLikelihood\s*=\s*0\.45f\b", channel_text)
+    re.search(r"private const val minimumLikelihood\s*=\s*0\.35f\b", channel_text)
     is not None,
-    "upload channel must keep the 0.45 MediaPipe confidence threshold",
+    "upload channel must keep the 0.35 MediaPipe confidence threshold",
 )
 require(
-    re.search(r"private static let minimumLikelihood:\s*Float\s*=\s*0\.45\b", ios_text)
+    re.search(r"private static let minimumLikelihood:\s*Float\s*=\s*0\.35\b", ios_text)
     is not None,
-    "iOS running channel must keep the 0.45 MediaPipe confidence threshold",
+    "iOS running channel must keep the 0.35 MediaPipe confidence threshold",
 )
 require(
     re.search(r"private const val mediaPipePoseLandmarkCount\s*=\s*33\b", channel_text)

@@ -37,7 +37,7 @@ class RunningGaitEventDetectorConfig {
     this.minimumValidFrames = 8,
     this.minimumTouchdownsForCadence = 4,
     this.minimumContactDurationsPerSide = 2,
-    this.minimumLandmarkLikelihood = 0.45,
+    this.minimumLandmarkLikelihood = 0.35,
     this.minimumMetricConfidence = 0.55,
     this.minimumSideViewConfidence = 0.55,
     this.touchdownClearanceRatio = 0.045,

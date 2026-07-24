@@ -130,14 +130,18 @@ class RunningPoseAnalysisChannel(
                 ) / averageScale
             val candidateSet = deriveContactCandidateWindows(frameSamples, durationMs)
             if (candidateSet.windows.isEmpty()) {
-                throw insufficientContactEvidence()
+                throw insufficientContactEvidence(
+                    "coarseValid=${frameSamples.size}; candidates=0",
+                )
             }
             val denseTimestamps = denseTimestampsForContactWindows(
                 candidateSet.windows,
                 durationMs,
             )
             if (denseTimestamps.isEmpty()) {
-                throw insufficientContactEvidence()
+                throw insufficientContactEvidence(
+                    "coarseValid=${frameSamples.size}; candidates=${candidateSet.windows.size}; dense=0",
+                )
             }
             val denseLandmarker = makePoseLandmarker()
             densePoseLandmarker = denseLandmarker
@@ -157,14 +161,27 @@ class RunningPoseAnalysisChannel(
                 .map { it.timestampMs }
                 .distinct()
                 .size
-            if (uniqueContactFrameCount < minimumValidatedContactFrames) {
-                throw insufficientContactEvidence()
+            val usesContactProxy = uniqueContactFrameCount < minimumValidatedContactFrames
+            val metricContactFrames = if (usesContactProxy) {
+                contactProxyFrames(
+                    samples = densePass.samples,
+                    windows = candidateSet.windows,
+                    direction = direction,
+                )
+            } else {
+                contactFrames
+            }
+            if (metricContactFrames.isEmpty()) {
+                throw insufficientContactEvidence(
+                    "coarseValid=${frameSamples.size}; candidates=${candidateSet.windows.size}; " +
+                        "denseValid=${densePass.samples.size}; contacts=$uniqueContactFrameCount; proxies=0",
+                )
             }
 
-            val footStrikeRatio = contactFrames
+            val footStrikeRatio = metricContactFrames
                 .map { it.footStrikeRatio }
                 .average()
-            val kneeAngles = contactFrames.map { it.kneeAngleDegrees }
+            val kneeAngles = metricContactFrames.map { it.kneeAngleDegrees }
             val elbowAngles = frameSamples.mapNotNull { it.averageElbowAngleDegrees() }
             if (elbowAngles.isEmpty()) {
                 throw AnalysisException(
@@ -174,10 +191,17 @@ class RunningPoseAnalysisChannel(
             }
             val stanceKneeAngle = kneeAngles.average()
             val elbowAngle = elbowAngles.average()
-            val contactConfidence = contactFrames
+            val contactConfidence = metricContactFrames
                 .map { it.confidence }
                 .average()
                 .coerceIn(0.0, 1.0)
+            val contactQualityReason = if (usesContactProxy) "contact_phase_proxy" else null
+            val coreConfidence = frameSamples
+                .map { it.coreLandmarkConfidence }
+                .average()
+            val armConfidenceValues = frameSamples
+                .mapNotNull { it.armLandmarkConfidence() }
+            val armConfidence = armConfidenceValues.average()
 
             return mapOf(
                 "durationMs" to durationMs.toInt(),
@@ -190,13 +214,27 @@ class RunningPoseAnalysisChannel(
                 "stanceKneeAngleDegrees" to roundTo3(stanceKneeAngle),
                 "elbowAngleDegrees" to roundTo3(elbowAngle),
                 "metricQualities" to mapOf(
+                    "posture" to metricQualityPayload(
+                        coreConfidence,
+                        frameSamples.size,
+                    ),
+                    "bounce" to metricQualityPayload(
+                        coreConfidence,
+                        frameSamples.size,
+                    ),
                     "footStrike" to metricQualityPayload(
                         contactConfidence,
-                        contactFrames.size,
+                        metricContactFrames.size,
+                        contactQualityReason,
                     ),
                     "kneeFlexion" to metricQualityPayload(
                         contactConfidence,
-                        contactFrames.size,
+                        metricContactFrames.size,
+                        contactQualityReason,
+                    ),
+                    "armCarriage" to metricQualityPayload(
+                        armConfidence,
+                        armConfidenceValues.size,
                     ),
                 ),
                 "coarseSamples" to sampleSummaryPayload(
@@ -291,10 +329,11 @@ class RunningPoseAnalysisChannel(
             error.message ?: fallbackMessage,
         )
 
-    private fun insufficientContactEvidence(): AnalysisException =
+    private fun insufficientContactEvidence(detail: String? = null): AnalysisException =
         AnalysisException(
             "insufficient_contact_evidence",
-            "We could not verify enough dense foot-contact frames in this video.",
+            "We could not verify enough dense foot-contact frames in this video." +
+                (detail?.let { " ($it)" } ?: ""),
         )
 
     private fun videoTooBlurry(): AnalysisException =
@@ -573,6 +612,49 @@ class RunningPoseAnalysisChannel(
         return selectedByTimestamp.values.toList()
     }
 
+    private fun contactProxyFrames(
+        samples: List<FrameSample>,
+        windows: List<ContactCandidate>,
+        direction: AnalysisDirection,
+    ): List<ContactFrameAnalysis> {
+        val selectedByTimestamp = TreeMap<Long, ContactFrameAnalysis>()
+        for (window in windows.sortedBy { it.centerTimestampMs }) {
+            val candidate = samples
+                .asSequence()
+                .filter { sample ->
+                    sample.timestampMs >= window.startTimestampMs &&
+                        sample.timestampMs <= window.endTimestampMs
+                }
+                .mapNotNull { sample ->
+                    sample.footBottom(window.side)?.let { evidence -> sample to evidence }
+                }
+                .sortedWith(
+                    compareBy<Pair<FrameSample, FootBottomEvidence>> {
+                        abs(it.first.timestampMs - window.centerTimestampMs)
+                    }.thenBy { it.first.timestampMs },
+                )
+                .firstOrNull() ?: continue
+            val (sample, evidence) = candidate
+            val confidence = (
+                min(window.confidence, sample.contactLandmarkConfidence(window.side, evidence)) *
+                    contactProxyConfidencePenalty
+                ).coerceIn(0.0, 1.0)
+            val proxy = ContactFrameAnalysis(
+                timestampMs = sample.timestampMs,
+                windowCenterTimestampMs = window.centerTimestampMs,
+                side = window.side,
+                footStrikeRatio = sample.contactFootStrikeRatio(window.side, direction),
+                kneeAngleDegrees = sample.contactKneeAngleDegrees(window.side),
+                confidence = confidence,
+            )
+            val existing = selectedByTimestamp[proxy.timestampMs]
+            if (existing == null || proxy.confidence > existing.confidence) {
+                selectedByTimestamp[proxy.timestampMs] = proxy
+            }
+        }
+        return selectedByTimestamp.values.toList()
+    }
+
     private fun selectDenseContactFrame(
         window: ContactCandidate,
         orderedSamples: List<FrameSample>,
@@ -587,12 +669,14 @@ class RunningPoseAnalysisChannel(
             .mapNotNull { sample ->
                 denseContactCandidate(sample, window.side, groundY)
             }
+        val eligibleCandidates = mutableListOf<ContactFrameCandidate>()
         val persistentCandidates = mutableListOf<ContactFrameCandidate>()
         for (index in candidates.indices) {
             val current = candidates[index]
             if (!current.isEligibleContact()) {
                 continue
             }
+            eligibleCandidates.add(current)
             val previous = candidates.getOrNull(index - 1)
             val next = candidates.getOrNull(index + 1)
             if (enteredGroundBand(current, previous)) {
@@ -602,7 +686,12 @@ class RunningPoseAnalysisChannel(
                 persistentCandidates.add(current)
             }
         }
-        return persistentCandidates
+        val candidatesForSelection = if (persistentCandidates.isEmpty()) {
+            eligibleCandidates
+        } else {
+            persistentCandidates
+        }
+        return candidatesForSelection
             .sortedWith(
                 compareByDescending<ContactFrameCandidate> { it.confidence }
                     .thenBy { abs(it.sample.timestampMs - window.centerTimestampMs) }
@@ -700,11 +789,14 @@ class RunningPoseAnalysisChannel(
     private fun metricQualityPayload(
         confidence: Double,
         sampleCount: Int,
-    ): Map<String, Any?> =
-        mapOf(
-            "confidence" to roundTo3(confidence.coerceIn(0.0, 1.0)),
-            "sampleCount" to sampleCount,
-        )
+        reason: String? = null,
+    ): Map<String, Any?> = buildMap {
+        put("confidence", roundTo3(confidence.coerceIn(0.0, 1.0)))
+        put("sampleCount", sampleCount)
+        if (reason != null) {
+            put("reason", reason)
+        }
+    }
 
     private fun contactWindowPayloads(
         windows: List<ContactCandidate>,
@@ -909,6 +1001,8 @@ class RunningPoseAnalysisChannel(
                 confidentLandmarkPoint(landmarks, rightWristIndex, imageWidth, imageHeight)
                     ?.point
                     ?.let(::copyPoint),
+            leftShoulderConfidence = leftShoulder.confidence,
+            rightShoulderConfidence = rightShoulder.confidence,
             leftHipConfidence = leftHip.confidence,
             rightHipConfidence = rightHip.confidence,
             leftKneeConfidence = leftKnee.confidence,
@@ -926,6 +1020,18 @@ class RunningPoseAnalysisChannel(
                     ?.confidence,
             rightToeConfidence =
                 confidentLandmarkPoint(landmarks, rightFootIndex, imageWidth, imageHeight)
+                    ?.confidence,
+            leftElbowConfidence =
+                confidentLandmarkPoint(landmarks, leftElbowIndex, imageWidth, imageHeight)
+                    ?.confidence,
+            rightElbowConfidence =
+                confidentLandmarkPoint(landmarks, rightElbowIndex, imageWidth, imageHeight)
+                    ?.confidence,
+            leftWristConfidence =
+                confidentLandmarkPoint(landmarks, leftWristIndex, imageWidth, imageHeight)
+                    ?.confidence,
+            rightWristConfidence =
+                confidentLandmarkPoint(landmarks, rightWristIndex, imageWidth, imageHeight)
                     ?.confidence,
             bodyScale = bodyScale,
         )
@@ -1070,6 +1176,8 @@ class RunningPoseAnalysisChannel(
         val rightElbow: PointF?,
         val leftWrist: PointF?,
         val rightWrist: PointF?,
+        val leftShoulderConfidence: Double,
+        val rightShoulderConfidence: Double,
         val leftHipConfidence: Double,
         val rightHipConfidence: Double,
         val leftKneeConfidence: Double,
@@ -1080,8 +1188,41 @@ class RunningPoseAnalysisChannel(
         val rightHeelConfidence: Double?,
         val leftToeConfidence: Double?,
         val rightToeConfidence: Double?,
+        val leftElbowConfidence: Double?,
+        val rightElbowConfidence: Double?,
+        val leftWristConfidence: Double?,
+        val rightWristConfidence: Double?,
         val bodyScale: Double,
     ) {
+        val coreLandmarkConfidence: Double
+            get() = listOf(
+                leftShoulderConfidence,
+                rightShoulderConfidence,
+                leftHipConfidence,
+                rightHipConfidence,
+                leftKneeConfidence,
+                rightKneeConfidence,
+                leftAnkleConfidence,
+                rightAnkleConfidence,
+            ).average()
+
+        fun armLandmarkConfidence(): Double? {
+            val confidences = mutableListOf<Double>()
+            if (leftElbowConfidence != null && leftWristConfidence != null) {
+                confidences.add(
+                    listOf(leftShoulderConfidence, leftElbowConfidence, leftWristConfidence)
+                        .average(),
+                )
+            }
+            if (rightElbowConfidence != null && rightWristConfidence != null) {
+                confidences.add(
+                    listOf(rightShoulderConfidence, rightElbowConfidence, rightWristConfidence)
+                        .average(),
+                )
+            }
+            return confidences.takeIf { it.isNotEmpty() }?.average()
+        }
+
         fun forwardLeanDegrees(direction: AnalysisDirection): Double {
             val verticalTravel = max(1.0, hipCenter.y.toDouble() - shoulderCenter.y.toDouble())
             val forwardOffset = when (direction) {
@@ -1129,11 +1270,11 @@ class RunningPoseAnalysisChannel(
             val heel = when (side) {
                 FootSide.left -> leftHeel
                 FootSide.right -> rightHeel
-            } ?: return null
+            }
             val toe = when (side) {
                 FootSide.left -> leftToe
                 FootSide.right -> rightToe
-            } ?: return null
+            }
             val ankleConfidence = when (side) {
                 FootSide.left -> leftAnkleConfidence
                 FootSide.right -> rightAnkleConfidence
@@ -1141,18 +1282,20 @@ class RunningPoseAnalysisChannel(
             val heelConfidence = when (side) {
                 FootSide.left -> leftHeelConfidence
                 FootSide.right -> rightHeelConfidence
-            } ?: return null
+            }
             val toeConfidence = when (side) {
                 FootSide.left -> leftToeConfidence
                 FootSide.right -> rightToeConfidence
-            } ?: return null
-            val bottomPoint = listOf(ankle, heel, toe).maxByOrNull { it.y } ?: ankle
+            }
+            val bottomPoint = listOfNotNull(ankle, heel, toe).maxByOrNull { it.y } ?: ankle
+            val confidence = listOfNotNull(ankleConfidence, heelConfidence, toeConfidence)
+                .minOrNull() ?: ankleConfidence
             return FootBottomEvidence(
                 bottomPoint = bottomPoint,
                 ankle = ankle,
-                heel = heel,
-                toe = toe,
-                confidence = min(ankleConfidence, min(heelConfidence, toeConfidence)),
+                heel = heel ?: ankle,
+                toe = toe ?: ankle,
+                confidence = confidence,
             )
         }
 
@@ -1265,7 +1408,7 @@ class RunningPoseAnalysisChannel(
         private const val sharpnessSampleWidth = 96
         private const val sharpnessSampleHeight = 64
         private const val minVideoDurationMs = 1500L
-        private const val minimumLikelihood = 0.45f
+        private const val minimumLikelihood = 0.35f
         private const val minimumBodyScalePx = 40.0
         private const val mediaPipePoseLandmarkCount = 33
         private const val sampleStartFraction = 0.15
@@ -1279,6 +1422,7 @@ class RunningPoseAnalysisChannel(
         private const val minimumContactCenterSeparationMs = 120L
         private const val minimumValidatedContactFrames = 2
         private const val minimumContactFrameConfidence = 0.34
+        private const val contactProxyConfidencePenalty = 0.60
         private const val coarseContactGroundToleranceRatio = 0.12
         private const val denseContactGroundToleranceRatio = 0.13
         private const val localFootExtremumToleranceRatio = 0.025

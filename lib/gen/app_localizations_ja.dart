@@ -10085,7 +10085,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachNoPoseDetected =>
-      'ランナーを十分に追跡できませんでした。肘、膝、足が見える、より鮮明なサイドビュー クリップを試してください。';
+      '服装は判定条件ではありませんが、関節を十分に追跡できませんでした。肘、膝、足が見える鮮明な横向き動画をもう一度撮影してください。';
 
   @override
   String get runningCoachInsufficientContactEvidence =>

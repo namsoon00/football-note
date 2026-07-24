@@ -40,7 +40,7 @@ videos = [
 sample_count = 14
 sample_start = 0.15
 sample_end = 0.85
-min_confidence = 0.45
+min_confidence = 0.35
 minimum_valid_frames = 6
 minimum_detected_frames = 10
 minimum_pose_frame_timestamp_span_ms = 1200
@@ -185,20 +185,28 @@ def side_name(side: str, part: str) -> str:
 
 def foot_bottom(sample: Sample, side: str):
     ankle = point(sample.landmarks, side_name(side, "ankle"), sample.width, sample.height)
+    if ankle is None:
+        return None
     heel = point(sample.landmarks, side_name(side, "heel"), sample.width, sample.height)
     toe = point(sample.landmarks, side_name(side, "toe"), sample.width, sample.height)
-    if ankle is None or heel is None or toe is None:
-        return None
     ankle_conf = confidence(sample.landmarks[LANDMARK[side_name(side, "ankle")]])
-    heel_conf = confidence(sample.landmarks[LANDMARK[side_name(side, "heel")]])
-    toe_conf = confidence(sample.landmarks[LANDMARK[side_name(side, "toe")]])
-    bottom = max([ankle, heel, toe], key=lambda item: item[1])
+    heel_conf = (
+        confidence(sample.landmarks[LANDMARK[side_name(side, "heel")]])
+        if heel is not None
+        else None
+    )
+    toe_conf = (
+        confidence(sample.landmarks[LANDMARK[side_name(side, "toe")]])
+        if toe is not None
+        else None
+    )
+    bottom = max([point for point in (ankle, heel, toe) if point is not None], key=lambda item: item[1])
     return {
         "bottom": bottom,
         "ankle": ankle,
-        "heel": heel,
-        "toe": toe,
-        "confidence": min(ankle_conf, heel_conf, toe_conf),
+        "heel": heel or ankle,
+        "toe": toe or ankle,
+        "confidence": min(value for value in (ankle_conf, heel_conf, toe_conf) if value is not None),
     }
 
 
@@ -426,20 +434,23 @@ def select_contact_frame_for_window(
         for candidate in [dense_contact_candidate(sample, window.side, ground_y)]
         if candidate is not None
     ]
+    eligible_candidates: list[ContactFrameCandidate] = []
     persistent_candidates: list[ContactFrameCandidate] = []
     for index, current in enumerate(candidates):
         if not is_eligible_contact(current):
             continue
+        eligible_candidates.append(current)
         previous = candidates[index - 1] if index > 0 else None
         next_candidate = candidates[index + 1] if index + 1 < len(candidates) else None
         if entered_ground_band(current, previous):
             return contact_frame_from_candidate(current, window, direction)
         if has_ground_band_persistence(current, previous, next_candidate):
             persistent_candidates.append(current)
-    if not persistent_candidates:
+    candidates_for_selection = persistent_candidates or eligible_candidates
+    if not candidates_for_selection:
         return None
     selected = sorted(
-        persistent_candidates,
+        candidates_for_selection,
         key=lambda item: (
             -item.confidence,
             abs(item.sample.timestamp_ms - window.center_timestamp_ms),
