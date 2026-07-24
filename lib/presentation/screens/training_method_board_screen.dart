@@ -3817,37 +3817,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     _scheduleAutoSave();
   }
 
-  List<_BoardRoute> _sequenceableRoutes() {
-    return _currentPage.routes
-        .where((route) => route.points.length >= 2)
-        .toList(growable: false);
-  }
-
   int _normalizedRouteStageIndex(int value) {
     return value.clamp(1, _maxRouteStageIndex).toInt();
-  }
-
-  int _maxRouteStageInPage() {
-    var maxStage = 1;
-    for (final route in _currentPage.routes) {
-      maxStage =
-          math.max(maxStage, _normalizedRouteStageIndex(route.stageIndex));
-    }
-    final registered = _registeredStageForNextAction();
-    if (registered != null) {
-      maxStage = math.max(maxStage, registered);
-    }
-    return maxStage;
-  }
-
-  List<int> _visibleRouteStages() {
-    final routes = _sequenceableRoutes();
-    final maxStage = _maxRouteStageInPage();
-    final count = math.min(
-      _maxRouteStageIndex,
-      routes.isEmpty ? maxStage : math.max(2, maxStage + 1),
-    );
-    return List<int>.generate(count, (index) => index + 1, growable: false);
   }
 
   bool _usesRouteStages(List<_BoardRoute> routes) {
@@ -3919,50 +3890,50 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         .toList(growable: false);
   }
 
+  void _reorderGlobalStages(int oldIndex, int newIndex) {
+    if (widget.readOnly ||
+        _playController.isAnimating ||
+        _pendingTargetAction != null) {
+      return;
+    }
+    final summaries = _globalStageSummaries();
+    if (oldIndex < 0 ||
+        oldIndex >= summaries.length ||
+        newIndex < 0 ||
+        newIndex > summaries.length) {
+      return;
+    }
+    if (newIndex > oldIndex) newIndex -= 1;
+    if (oldIndex == newIndex) return;
+
+    final reordered = List<_StageSummary>.from(summaries);
+    final moved = reordered.removeAt(oldIndex);
+    reordered.insert(newIndex, moved);
+    final stageByRouteId = <String, int>{
+      for (var index = 0; index < reordered.length; index++)
+        for (final route in reordered[index].routes) route.id: index + 1,
+    };
+    final selectedStage =
+        _selectedRouteId == null ? null : stageByRouteId[_selectedRouteId!];
+
+    _stopRoutePlayback(restoreStart: false);
+    setState(() {
+      for (final route in _currentPage.routes) {
+        final stage = stageByRouteId[route.id];
+        if (stage != null) {
+          route.stageIndex = stage;
+        }
+      }
+      _registeredNextActionStageIndex = selectedStage;
+      _recentActionStageIndex = null;
+    });
+    unawaited(HapticFeedback.selectionClick());
+    _scheduleAutoSave();
+  }
+
   int? _registeredStageForNextAction() {
     final registered = _registeredNextActionStageIndex;
     return registered == null ? null : _normalizedRouteStageIndex(registered);
-  }
-
-  bool _canInsertActionAfterRoute(_BoardRoute route) {
-    final sourceStage = _normalizedRouteStageIndex(route.stageIndex);
-    if (sourceStage >= _maxRouteStageIndex) return false;
-    return !_currentPage.routes.any(
-      (candidate) =>
-          candidate.id != route.id &&
-          _normalizedRouteStageIndex(candidate.stageIndex) >=
-              _maxRouteStageIndex,
-    );
-  }
-
-  void _insertActionAfterRoute(_BoardRoute route) {
-    if (widget.readOnly || !_canInsertActionAfterRoute(route)) return;
-    final sourceStage = _normalizedRouteStageIndex(route.stageIndex);
-    final insertStage = _normalizedRouteStageIndex(sourceStage + 1);
-    _stopRoutePlayback(restoreStart: false);
-    setState(() {
-      for (final candidate in _currentPage.routes) {
-        final stage = _normalizedRouteStageIndex(candidate.stageIndex);
-        candidate.stageIndex =
-            stage > sourceStage ? _normalizedRouteStageIndex(stage + 1) : stage;
-      }
-      _selectedItemId = _selectableItemIdForRoute(route);
-      _selectedRouteId = route.id;
-      _registeredNextActionStageIndex = insertStage;
-      _recentActionStageIndex = null;
-      _pathDrawMode = route.kind;
-      _showSelectedColorPicker = false;
-      _pathMode = false;
-      _penMode = false;
-      _clearPendingTargetActionState();
-      _routeReplaceMode = false;
-      _activeStroke = null;
-      _activeRoutePoints = null;
-      _activeRouteSegmentDurationsMs = null;
-      _activeRouteLastPointAt = null;
-      _activeRouteHandleDrag = null;
-    });
-    _scheduleAutoSave();
   }
 
   int _nextGlobalStageForNewAction() {
@@ -4051,12 +4022,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         _nextStageForPlayerFlow(player);
   }
 
-  String _routeStageLabel(int stageIndex) {
-    return _l10n.trainingSketchRouteStageChip(
-      _normalizedRouteStageIndex(stageIndex),
-    );
-  }
-
   void _trimRouteDurations(_BoardRoute route) {
     final expectedCount = math.max(0, route.points.length - 1);
     if (route.segmentDurationsMs.length > expectedCount) {
@@ -4065,18 +4030,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         route.segmentDurationsMs.length,
       );
     }
-  }
-
-  void _removeLeadingRouteWait(_BoardRoute route) {
-    while (route.points.length >= 2 &&
-        _segmentDistanceMeters(route.points[0], route.points[1]) <=
-            _minPlaybackSegmentDistanceMeters) {
-      route.points.removeAt(0);
-      if (route.segmentDurationsMs.isNotEmpty) {
-        route.segmentDurationsMs.removeAt(0);
-      }
-    }
-    _trimRouteDurations(route);
   }
 
   _RouteTiming _routeTimingWithoutLeadingWait(_BoardRoute route) {
@@ -4113,27 +4066,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       0,
       (sum, segment) => sum + (segment.durationSeconds * 1000).round(),
     );
-  }
-
-  void _setRouteStage(_BoardRoute route, int stageIndex) {
-    route.stageIndex = _normalizedRouteStageIndex(stageIndex);
-    _removeLeadingRouteWait(route);
-  }
-
-  void _setRouteStageAndSelect(_BoardRoute route, int stageIndex) {
-    _stopRoutePlayback(restoreStart: false);
-    setState(() {
-      _selectedRouteId = route.id;
-      _pathDrawMode = route.kind;
-      _setRouteStage(route, stageIndex);
-      _routeReplaceMode = false;
-      _activeRoutePoints = null;
-      _activeRouteSegmentDurationsMs = null;
-      _activeRouteLastPointAt = null;
-      _activeRouteHandleDrag = null;
-      _clearPendingTargetActionState();
-    });
-    _scheduleAutoSave();
   }
 
   Future<void> _setSketchOrientationLock({required bool landscape}) async {
@@ -7340,7 +7272,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             .toList(growable: false)
         : const <_SketchTargetAction>[];
     final movementActions = _playerFlowMovementActions(sportId)
-        .where((action) => _canUsePlayerFlowMovementAction(player, action))
+        .where(
+          (action) =>
+              _canUsePlayerFlowMovementAction(player, action) &&
+              _hasPlayerFlowActionTarget(action),
+        )
         .toList(growable: false);
     final propActions = _playerFlowPropActions(movementActions);
     return <_PlayerFlowActionEntry>[
@@ -7350,6 +7286,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       for (final propAction in propActions)
         _PlayerFlowActionEntry.target(propAction.action, propAction.target),
     ];
+  }
+
+  bool _hasPlayerFlowActionTarget(_SketchTargetAction action) {
+    final targetType = _requiredBoardItemTargetTypeForAction(action);
+    return targetType == null || _itemsOfType(targetType).isNotEmpty;
   }
 
   List<_PlayerFlowPropAction> _playerFlowPropActions(
@@ -7605,105 +7546,21 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     );
   }
 
-  _BoardRoute? _stageRouteForSelectedItem(
-    _BoardItem selected,
-    _BoardRoute? selectedRoute,
-  ) {
-    if (selectedRoute != null) {
-      return selectedRoute;
-    }
-    final kind = _routeKindForItem(selected);
-    if (kind == null) return null;
-    return _routeForItem(selected.id, kind);
-  }
-
-  Widget _buildRouteStageControls({
-    required _BoardRoute? route,
-    required List<int> visibleStages,
-    required Color accentColor,
-    required bool showStageChoices,
-    required bool includeActiveRouteControls,
-  }) {
+  Widget _buildActiveRouteControls() {
     final l10n = _l10n;
-    final stageRoute = route;
-    final hasRoute = stageRoute != null;
-    final selectedRouteStage = stageRoute == null
-        ? 1
-        : _normalizedRouteStageIndex(stageRoute.stageIndex);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
       children: [
-        if (showStageChoices) ...[
-          Text(
-            l10n.trainingSketchRouteStageTitle,
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-          const SizedBox(height: 6),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: visibleStages
-                .map(
-                  (stage) => ChoiceChip(
-                    selected: hasRoute && selectedRouteStage == stage,
-                    showCheckmark: false,
-                    label: Text(_routeStageLabel(stage)),
-                    avatar: CircleAvatar(
-                      radius: 10,
-                      backgroundColor: hasRoute && stage == selectedRouteStage
-                          ? accentColor
-                          : accentColor.withValues(alpha: 0.18),
-                      child: Text(
-                        '$stage',
-                        style: TextStyle(
-                          color: hasRoute && stage == selectedRouteStage
-                              ? Colors.white
-                              : accentColor,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ),
-                    onSelected: stageRoute == null
-                        ? null
-                        : (_) => _setRouteStageAndSelect(stageRoute, stage),
-                  ),
-                )
-                .toList(growable: false),
-          ),
-          if (!hasRoute) ...[
-            const SizedBox(height: 6),
-            Text(
-              l10n.trainingSketchSelectRouteForStageHint,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ],
-          const SizedBox(height: 10),
-        ],
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            if (includeActiveRouteControls) ...[
-              OutlinedButton.icon(
-                onPressed: _canFinishActiveRoute ? _finishActiveRoute : null,
-                icon: const Icon(Icons.check_circle_outline),
-                label: Text(l10n.trainingSketchFinishRouteButton),
-              ),
-              OutlinedButton.icon(
-                onPressed: _canUndoLastRoutePoint ? _undoLastRoutePoint : null,
-                icon: const Icon(Icons.undo),
-                label: Text(l10n.trainingSketchUndoLastRoutePointButton),
-              ),
-            ],
-            if (stageRoute != null)
-              OutlinedButton.icon(
-                key: ValueKey('training-route-stage-delete-${stageRoute.id}'),
-                onPressed: () => _deleteRouteById(stageRoute.id),
-                icon: const Icon(Icons.delete_outline),
-                label: Text(l10n.trainingSketchDeleteStageActionTooltip),
-              ),
-          ],
+        OutlinedButton.icon(
+          onPressed: _canFinishActiveRoute ? _finishActiveRoute : null,
+          icon: const Icon(Icons.check_circle_outline),
+          label: Text(l10n.trainingSketchFinishRouteButton),
+        ),
+        OutlinedButton.icon(
+          onPressed: _canUndoLastRoutePoint ? _undoLastRoutePoint : null,
+          icon: const Icon(Icons.undo),
+          label: Text(l10n.trainingSketchUndoLastRoutePointButton),
         ),
       ],
     );
@@ -7846,27 +7703,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     });
   }
 
-  void _editStageActionRoute(_BoardRoute route) {
-    setState(() {
-      _selectedItemId = _selectableItemIdForRoute(route);
-      _selectedRouteId = route.id;
-      _registeredNextActionStageIndex = _normalizedRouteStageIndex(
-        route.stageIndex,
-      );
-      _pathDrawMode = route.kind;
-      _pathMode = false;
-      _penMode = false;
-      _clearPendingTargetActionState();
-      _showSelectedColorPicker = false;
-      _routeReplaceMode = false;
-      _activeStroke = null;
-      _activeRoutePoints = null;
-      _activeRouteSegmentDurationsMs = null;
-      _activeRouteLastPointAt = null;
-      _activeRouteHandleDrag = null;
-    });
-  }
-
   String _stageItemLabel(_BoardItem? item) {
     if (item == null) return _l10n.trainingSketchStageActionUnknownItem;
     return '${_boardToolLabel(item.type)} ${_itemIndexOfType(item)}';
@@ -7935,6 +7771,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     required Color accentColor,
     required bool isActive,
     required ThemeData theme,
+    int? reorderIndex,
   }) {
     final colors = theme.colorScheme;
     return InkWell(
@@ -7970,6 +7807,32 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                   ),
                 ),
               ),
+              if (reorderIndex != null) ...[
+                const SizedBox(width: 4),
+                Tooltip(
+                  message: _l10n.trainingSketchReorderStageTooltip,
+                  child: ReorderableDelayedDragStartListener(
+                    index: reorderIndex,
+                    child: Semantics(
+                      button: true,
+                      label: _l10n.trainingSketchReorderStageTooltip,
+                      child: SizedBox(
+                        key: ValueKey(
+                          'training-global-stage-reorder-handle-'
+                          '${summary.stageIndex}',
+                        ),
+                        width: 28,
+                        height: 28,
+                        child: Icon(
+                          Icons.drag_indicator,
+                          size: 18,
+                          color: colors.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
               const SizedBox(width: 8),
               Expanded(
                 child: Column(
@@ -8018,7 +7881,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }) {
     final colors = theme.colorScheme;
     final isSelected = route.id == _selectedRouteId;
-    final canInsert = _canInsertActionAfterRoute(route);
     return Padding(
       padding: const EdgeInsets.only(top: 2),
       child: Material(
@@ -8093,71 +7955,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                     ],
                   ),
                 ),
-                if (!widget.readOnly)
-                  Tooltip(
-                    message: _l10n.trainingSketchInsertActionAfterTooltip,
-                    child: Semantics(
-                      button: true,
-                      enabled: canInsert,
-                      label: _l10n.trainingSketchInsertActionAfterTooltip,
-                      child: Material(
-                        color: Colors.transparent,
-                        shape: const CircleBorder(),
-                        child: InkWell(
-                          key: ValueKey(
-                            'training-global-stage-action-insert-${route.id}',
-                          ),
-                          customBorder: const CircleBorder(),
-                          onTap: canInsert
-                              ? () => _insertActionAfterRoute(route)
-                              : null,
-                          child: SizedBox(
-                            width: 32,
-                            height: 32,
-                            child: Icon(
-                              Icons.add_circle_outline,
-                              size: 17,
-                              color: canInsert
-                                  ? colors.primary
-                                  : colors.onSurfaceVariant.withValues(
-                                      alpha: 0.42,
-                                    ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                Tooltip(
-                  message: _l10n.trainingSketchEditStageActionTooltip,
-                  child: Semantics(
-                    button: true,
-                    enabled: !widget.readOnly,
-                    label: _l10n.trainingSketchEditStageActionTooltip,
-                    child: Material(
-                      color: Colors.transparent,
-                      shape: const CircleBorder(),
-                      child: InkWell(
-                        key: ValueKey(
-                          'training-global-stage-action-edit-${route.id}',
-                        ),
-                        customBorder: const CircleBorder(),
-                        onTap: widget.readOnly
-                            ? null
-                            : () => _editStageActionRoute(route),
-                        child: SizedBox(
-                          width: 32,
-                          height: 32,
-                          child: Icon(
-                            Icons.edit_outlined,
-                            size: 16,
-                            color: colors.primary,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
                 Tooltip(
                   message: _l10n.trainingSketchDeleteStageActionTooltip,
                   child: Semantics(
@@ -8207,6 +8004,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             _recentActionStageIndex ??
             _activeStageForNextAction();
     final accentColor = colors.primary;
+    final canReorder = !widget.readOnly &&
+        summaries.length > 1 &&
+        !_playController.isAnimating &&
+        _pendingTargetAction == null;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
@@ -8243,6 +8044,24 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
               _l10n.trainingSketchGlobalStagesEmpty,
               style: theme.textTheme.bodySmall,
             )
+          else if (canReorder)
+            ReorderableListView(
+              key: const ValueKey('training-global-stage-reorderable-list'),
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              buildDefaultDragHandles: false,
+              onReorder: _reorderGlobalStages,
+              children: [
+                for (var index = 0; index < summaries.length; index++)
+                  _buildGlobalStageSummaryItem(
+                    summaries[index],
+                    accentColor: accentColor,
+                    isActive: summaries[index].stageIndex == activeStage,
+                    theme: theme,
+                    reorderIndex: index,
+                  ),
+              ],
+            )
           else
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -8263,7 +8082,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
 
   Widget _buildSelectedToolsContent(bool isKo) {
     final selected = _selectedItem;
-    final selectedRoute = _selectedRoute;
     final l10n = _l10n;
     final colorChoices = _colorChoicesForItemType(selected?.type);
     if (_penMode) {
@@ -8319,11 +8137,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       final routes = _routesForKind(_pathDrawMode);
       final routeableItems = _routeableItems(_pathDrawMode);
       final routeableCount = routeableItems.length;
-      final hasSelectedCurrentRoute =
-          selectedRoute != null && selectedRoute.kind == _pathDrawMode;
-      final pathStageRoute = hasSelectedCurrentRoute ? selectedRoute : null;
       final accentColor = _routeGroupAccentColor(_pathDrawMode);
-      final visibleStages = _visibleRouteStages();
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -8437,13 +8251,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
               style: Theme.of(context).textTheme.bodySmall,
             ),
           const SizedBox(height: 10),
-          _buildRouteStageControls(
-            route: pathStageRoute,
-            visibleStages: visibleStages,
-            accentColor: accentColor,
-            showStageChoices: routes.isNotEmpty,
-            includeActiveRouteControls: true,
-          ),
+          _buildActiveRouteControls(),
         ],
       );
     }
@@ -8460,10 +8268,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         ],
       );
     }
-    final selectedStageRoute = _stageRouteForSelectedItem(
-      selected,
-      selectedRoute,
-    );
     if (selected.type == _BoardItemType.player) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -8471,16 +8275,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           _buildPlayerFlowStarter(selected),
           const SizedBox(height: 10),
           _buildGlobalStagePlanner(),
-          if (selectedStageRoute != null) ...[
-            const SizedBox(height: 10),
-            _buildRouteStageControls(
-              route: selectedStageRoute,
-              visibleStages: _visibleRouteStages(),
-              accentColor: _routeGroupAccentColor(selectedStageRoute.kind),
-              showStageChoices: true,
-              includeActiveRouteControls: false,
-            ),
-          ],
         ],
       );
     }

@@ -8068,6 +8068,7 @@
   "trainingSketchPlayerFlowMoveSection": "Movement",
   "trainingSketchGlobalStagesTitle": "Overall stages",
   "trainingSketchGlobalStagesHint": "Build the board as one sequence, and add several actions to the same stage when they should happen together.",
+  "trainingSketchReorderStageTooltip": "Reorder stage",
   "trainingSketchGlobalStagesEmpty": "No stages yet. The first action starts as stage 1.",
   "trainingSketchGlobalStageChip": "Stage {stage} · {count} actions",
   "@trainingSketchGlobalStageChip": {

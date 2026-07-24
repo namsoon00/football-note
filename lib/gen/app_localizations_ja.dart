@@ -14100,6 +14100,9 @@ class AppLocalizationsJa extends AppLocalizations {
       'ボード全体を1つの順序として作成し、同時に動くものは同じステージに追加できます。';
 
   @override
+  String get trainingSketchReorderStageTooltip => 'ステージの順序を変更';
+
+  @override
   String get trainingSketchGlobalStagesEmpty =>
       'まだステージがありません。最初の動作はステージ1から始まります。';
 

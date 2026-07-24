@@ -14563,6 +14563,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Build the board as one sequence, and add several actions to the same stage when they should happen together.';
 
   @override
+  String get trainingSketchReorderStageTooltip => 'Reorder stage';
+
+  @override
   String get trainingSketchGlobalStagesEmpty =>
       'No stages yet. The first action starts as stage 1.';
 

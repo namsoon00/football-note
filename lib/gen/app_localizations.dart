@@ -24929,6 +24929,12 @@ abstract class AppLocalizations {
   /// **'Build the board as one sequence, and add several actions to the same stage when they should happen together.'**
   String get trainingSketchGlobalStagesHint;
 
+  /// No description provided for @trainingSketchReorderStageTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Reorder stage'**
+  String get trainingSketchReorderStageTooltip;
+
   /// No description provided for @trainingSketchGlobalStagesEmpty.
   ///
   /// In en, this message translates to:
