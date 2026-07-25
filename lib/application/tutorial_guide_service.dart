@@ -4,7 +4,7 @@ import '../domain/repositories/option_repository.dart';
 
 class TutorialGuideService {
   static const String parentSeenKey = 'tab_quick_guide_seen_parent_mode_v1';
-  static const List<int> guidedTabIndexes = <int>[0, 2, 3, 4];
+  static const List<int> guidedTabIndexes = <int>[0, 1, 2, 3, 4];
   static final ValueNotifier<int> replayRequests = ValueNotifier<int>(0);
 
   static String childSeenKey(int tabIndex) =>
