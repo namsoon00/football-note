@@ -560,6 +560,7 @@ void main() {
       find.byKey(const ValueKey('team-match-friendly-action')),
       findsOneWidget,
     );
+    expect(find.byType(FloatingActionButton), findsOneWidget);
     expect(
       find.byKey(const ValueKey('team-match-hub-view-switcher')),
       findsOneWidget,
@@ -586,6 +587,10 @@ void main() {
     expect(find.text('시합 수정'), findsOneWidget);
     expect(find.byType(MatchRecordScreen), findsOneWidget);
     expect(find.widgetWithText(ChoiceChip, '서울 U15'), findsOneWidget);
+    final kindSelector = tester.widget<SegmentedButton<String>>(
+      find.byKey(const ValueKey('match-record-kind-selector')),
+    );
+    expect(kindSelector.onSelectionChanged, isNull);
   });
 
   testWidgets('Team management records a competition fixture from its schedule',

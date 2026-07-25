@@ -617,6 +617,7 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
       ),
     );
     final kindSelector = SegmentedButton<String>(
+      key: const ValueKey<String>('match-record-kind-selector'),
       segments: [
         ButtonSegment<String>(
           value: 'friendly',
@@ -643,7 +644,7 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
           const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
         ),
       ),
-      onSelectionChanged: _saving
+      onSelectionChanged: _saving || widget.editingEntry != null
           ? null
           : (selection) {
               _updateAndScheduleAutoSave(() {
@@ -1319,16 +1320,16 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
       setState(() => _saving = true);
     }
     try {
-      await MatchCompetitionService(
-        widget.optionRepository,
-        sportId: saved.sportId,
-      ).upsertFromEntry(saved);
       if (previousEntry?.key is int) {
         await widget.trainingService.update(previousEntry!.key as int, saved);
       } else {
         if (!closeAfterSave) return;
         await widget.trainingService.add(saved);
       }
+      await MatchCompetitionService(
+        widget.optionRepository,
+        sportId: saved.sportId,
+      ).upsertFromEntry(saved);
       if (!closeAfterSave) return;
       final award = await PlayerLevelService(
         widget.optionRepository,
