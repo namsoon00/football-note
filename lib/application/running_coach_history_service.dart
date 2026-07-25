@@ -89,6 +89,7 @@ class RunningCoachHistoryService {
         metricSnapshots: report.rankedInsights
             .map(RunningCoachSessionMetric.fromInsight)
             .toList(growable: false),
+        analysisResult: result.historySnapshot(),
         videoPath: archivedVideo?.path,
         videoName: archivedVideo?.name ?? sourceVideoName,
       ),

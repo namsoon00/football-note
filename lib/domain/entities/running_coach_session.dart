@@ -22,6 +22,7 @@ class RunningCoachSessionAnalysis {
   final String? videoPath;
   final String? videoName;
   final List<RunningCoachSessionMetric> metricSnapshots;
+  final RunningVideoAnalysisResult? analysisResult;
   final LiveSprintSessionReport? liveSprintReport;
 
   const RunningCoachSessionAnalysis({
@@ -41,6 +42,7 @@ class RunningCoachSessionAnalysis {
     this.videoPath,
     this.videoName,
     this.metricSnapshots = const <RunningCoachSessionMetric>[],
+    this.analysisResult,
     this.liveSprintReport,
   });
 
@@ -91,6 +93,8 @@ class RunningCoachSessionAnalysis {
         'insights': metricSnapshots
             .map((snapshot) => snapshot.toMap())
             .toList(growable: false),
+      if (analysisResult != null)
+        'analysisResult': analysisResult!.historySnapshot().toMap(),
       if (liveSprintReport != null)
         'liveSprintReport': liveSprintReport!.toMap(),
     };
@@ -131,9 +135,17 @@ class RunningCoachSessionAnalysis {
       videoPath: _optionalString(map['videoPath']),
       videoName: _optionalString(map['videoName']),
       metricSnapshots: _metricSnapshotsFromMap(map['insights']),
+      analysisResult: _analysisResultFromMap(map['analysisResult']),
       liveSprintReport: _liveSprintReportFromMap(map['liveSprintReport']),
     );
   }
+}
+
+RunningVideoAnalysisResult? _analysisResultFromMap(Object? raw) {
+  if (raw is! Map) return null;
+  return RunningVideoAnalysisResult.fromMap(
+    raw.map<Object?, Object?>((key, value) => MapEntry(key, value)),
+  );
 }
 
 class RunningCoachSessionMetric {
