@@ -8104,11 +8104,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachScreenTitle => 'Running Coach';
 
   @override
-  String get runningCoachHeroTitle => 'Side-view running form coach';
+  String get runningCoachHeroTitle => 'Run, review, improve';
 
   @override
   String get runningCoachHeroBody =>
-      'Make running feel like a weapon for the next match: take a tiny football sprint mission, log a time, then use form coaching to find the next tenth of a second.';
+      'Use live cues while you run, or upload one clear side-view clip for a full form report.';
+
+  @override
+  String get runningCoachStartTitle => 'Choose how you want to train';
+
+  @override
+  String get runningCoachStartBody =>
+      'Start live coaching now, or check the exact camera setup before recording a clip.';
 
   @override
   String get runningCoachSectionToday => 'Mission';
@@ -8402,7 +8409,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachAnalyzeBody =>
-      'Choose one side-view clip. The result starts with the video frame that supports the first coaching focus.';
+      'Choose a 5-15 second side-view clip. You will get one priority cue first, followed by the full five-metric report.';
 
   @override
   String get runningCoachTipsTitle => 'How to record';
@@ -8447,18 +8454,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSampleBody =>
-      'These are example clips from different runners and locations. Use them only to learn the overlay; they are not a controlled correct-vs-wrong comparison.';
+      'Play the analysis-ready side-view example first, then match its framing when you record your own run.';
 
   @override
   String get runningCoachSampleGuideAction => 'Open sample video guide';
 
   @override
   String get runningCoachSampleAnalysisLoadingTitle =>
-      'Analyzing sample videos';
+      'Adding the measured overlay';
 
   @override
   String get runningCoachSampleAnalysisLoadingBody =>
-      'The app is reading the bundled example clips now.';
+      'The video is ready to play. The app is analyzing its joints and contact frames in the background.';
 
   @override
   String get runningCoachSampleAnalysisFailedTitle =>
@@ -8466,6 +8473,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSampleAnalysisRetryAction => 'Retry sample analysis';
+
+  @override
+  String get runningCoachSampleTechnicalDetailsTitle =>
+      'How the analysis works';
+
+  @override
+  String get runningCoachSampleVideoPlay => 'Play sample video';
+
+  @override
+  String get runningCoachSampleVideoPause => 'Pause sample video';
+
+  @override
+  String get runningCoachSampleVideoUnavailable =>
+      'The sample video could not be loaded. You can still use the recording guide below.';
+
+  @override
+  String get runningCoachSampleVideoRetryAction => 'Retry video';
+
+  @override
+  String runningCoachSampleScoreValue(int score) {
+    return 'Score $score';
+  }
 
   @override
   String runningCoachSampleFrameLabel(int current, int total) {
@@ -8502,14 +8531,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachSampleMistakeTab => 'Example B';
 
   @override
-  String get runningCoachSampleReferenceTitle => 'Example A readouts';
+  String get runningCoachSampleReferenceTitle =>
+      'Analysis-ready outdoor example';
 
   @override
   String get runningCoachSampleMistakeTitle => 'Example B readouts';
 
   @override
   String get runningCoachSampleReferenceBody =>
-      'This clip shows how the overlay follows one runner\'s lean, landing, knee bend, arms, and bounce.';
+      'The phone is fixed at a true side angle, the whole runner stays visible, and the runner fills enough of the frame for joint tracking.';
 
   @override
   String get runningCoachSampleMistakeBody =>
@@ -8581,6 +8611,62 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSampleRecordingGuideTitle => 'Recording setup guide';
+
+  @override
+  String get runningCoachCaptureTreadmillTab => 'Treadmill';
+
+  @override
+  String get runningCoachCaptureOutdoorTab => 'Outdoor pass';
+
+  @override
+  String get runningCoachCaptureTreadmillTitle => 'Best setup for a treadmill';
+
+  @override
+  String get runningCoachCaptureTreadmillBody =>
+      'A fixed landscape side view is the most repeatable setup. Portrait is acceptable only when the full body and treadmill remain visible.';
+
+  @override
+  String get runningCoachCaptureTreadmillStepCamera =>
+      'Place the phone exactly perpendicular to the belt, with the lens at hip height. Do not film from the front or rear.';
+
+  @override
+  String get runningCoachCaptureTreadmillStepDistance =>
+      'Start about 3 m away, then adjust until the runner is 50-75% of the frame height.';
+
+  @override
+  String get runningCoachCaptureTreadmillStepFrame =>
+      'Keep the head, both hands, both knees, and both shoes inside the frame for every step. Leave a little space above the head and below the belt.';
+
+  @override
+  String get runningCoachCaptureTreadmillStepClip =>
+      'Record 5-10 seconds at a steady speed. Use 1080p/60 fps when available; 30 fps is the minimum.';
+
+  @override
+  String get runningCoachCaptureOutdoorTitle => 'Fixed side-pass setup';
+
+  @override
+  String get runningCoachCaptureOutdoorBody =>
+      'A runner may pass farther from the phone, but distance is acceptable only while the whole body remains large and sharp enough to track.';
+
+  @override
+  String get runningCoachCaptureOutdoorStepCamera =>
+      'Fix the phone at hip height, perpendicular to the running line. Do not pan, zoom, or follow the runner.';
+
+  @override
+  String get runningCoachCaptureOutdoorStepDistance =>
+      'Set the running line so the runner occupies 40-70% of frame height while crossing the center.';
+
+  @override
+  String get runningCoachCaptureOutdoorStepFrame =>
+      'Leave entry and exit space, but trim the clip to 3-6 clean strides with every joint visible.';
+
+  @override
+  String get runningCoachCaptureOutdoorStepClip =>
+      'Use bright, even light and a plain background. Avoid motion blur, shadows, cropped feet, and people crossing behind.';
+
+  @override
+  String get runningCoachCaptureOutdoorDistanceWarning =>
+      'Far-away footage is not recommended when the runner is below 40% of frame height. Move the running line closer or use optical zoom before recording.';
 
   @override
   String get runningCoachSampleProcessTitle =>
@@ -10341,6 +10427,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachPickVideoAction => 'Pick video';
 
   @override
+  String get runningCoachChangeVideoAction => 'Change';
+
+  @override
   String get runningCoachAnalyzeAction => 'Analyze run';
 
   @override
@@ -10422,6 +10511,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachAnalysisHistoryPrimaryFocus => 'Key coaching focus';
+
+  @override
+  String runningCoachHistoryMetricCount(int count) {
+    return '$count metrics';
+  }
+
+  @override
+  String get runningCoachHistoryFullReportTitle => 'Full form report';
+
+  @override
+  String runningCoachHistoryFullReportBody(int count) {
+    return 'This saved report includes all $count measured coaching metrics. Open each item for the same cue and drill shown after analysis.';
+  }
 
   @override
   String get runningCoachAnalysisResultScreenTitle => 'Running analysis result';

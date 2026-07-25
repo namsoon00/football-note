@@ -167,22 +167,11 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
           title: l10n.runningCoachHeroTitle,
           body: l10n.runningCoachHeroBody,
         ),
-        if (trendSummary.hasLiveSessions) ...[
-          const SizedBox(height: 12),
-          LiveSprintTrendCard(
-            summary: trendSummary,
-            cardKey: const ValueKey('running-coach-live-trend-card'),
-          ),
-        ],
-        const SizedBox(height: 12),
-        _RunningMissionCard(
-          mission: mission,
-          onStartLiveSprintCoach: () => unawaited(_openLiveCoach()),
-        ),
         const SizedBox(height: 12),
         _RunningCoachUploadGuideCard(
-          title: l10n.runningCoachUploadGuideTitle,
-          body: l10n.runningCoachUploadGuideBody,
+          title: l10n.runningCoachStartTitle,
+          body: l10n.runningCoachStartBody,
+          onStartLiveSprintCoach: () => unawaited(_openLiveCoach()),
           onShowSampleGuide: _showSampleAnalysis,
         ),
         const SizedBox(height: 12),
@@ -202,6 +191,17 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
             onSessionTap: _openAnalysisHistoryDetail,
           ),
         ],
+        if (trendSummary.hasLiveSessions) ...[
+          const SizedBox(height: 12),
+          LiveSprintTrendCard(
+            summary: trendSummary,
+            cardKey: const ValueKey('running-coach-live-trend-card'),
+          ),
+        ],
+        const SizedBox(height: 12),
+        _RunningMissionCard(
+          mission: mission,
+        ),
       ],
     );
   }
@@ -279,14 +279,9 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
     final referenceResult = await _analyzeBundledSampleVideo(
       _sampleReferenceVideoAsset,
     );
-    final mistakeResult = await _analyzeBundledSampleVideo(
-      _sampleMistakeVideoAsset,
-    );
     return _RunningCoachSampleAnalysisBundle(
       result: referenceResult,
       report: _coachingService.buildReport(referenceResult),
-      mistakeResult: mistakeResult,
-      mistakeReport: _coachingService.buildReport(mistakeResult),
     );
   }
 
@@ -448,6 +443,9 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
       primaryScore: primary.score,
       primaryValue: primary.value,
       primaryConfidence: primary.quality.confidence,
+      metricSnapshots: report.rankedInsights
+          .map(RunningCoachSessionMetric.fromInsight)
+          .toList(growable: false),
       videoPath: selectedVideo.path,
       videoName: selectedVideo.name,
     );
@@ -621,11 +619,9 @@ _RunningMission _missionForToday(DateTime now) {
 
 class _RunningMissionCard extends StatelessWidget {
   final _RunningMission mission;
-  final VoidCallback onStartLiveSprintCoach;
 
   const _RunningMissionCard({
     required this.mission,
-    required this.onStartLiveSprintCoach,
   });
 
   @override
@@ -634,126 +630,62 @@ class _RunningMissionCard extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     return Card(
       key: const ValueKey('running-coach-today-mission-card'),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: scheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Icon(mission.icon, color: scheme.onPrimaryContainer),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.runningCoachMissionCardTitle,
-                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                              color: scheme.primary,
-                              fontWeight: FontWeight.w900,
-                            ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        mission.title(l10n),
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.w900,
-                            ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+      margin: EdgeInsets.zero,
+      child: ExpansionTile(
+        key: const PageStorageKey('running-coach-mission-expansion'),
+        shape: const RoundedRectangleBorder(),
+        collapsedShape: const RoundedRectangleBorder(),
+        leading: SizedBox.square(
+          dimension: 42,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: scheme.primaryContainer,
+              borderRadius: BorderRadius.circular(8),
             ),
-            const SizedBox(height: 10),
-            Text(mission.body(l10n),
-                style: Theme.of(context).textTheme.bodyMedium),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _MissionChip(
-                  icon: Icons.straighten_rounded,
-                  label: l10n.runningCoachMissionDistance(
-                    mission.distanceMeters,
-                  ),
-                ),
-                _MissionChip(
-                  icon: Icons.center_focus_strong_rounded,
-                  label: mission.focus(l10n),
-                ),
-                _MissionChip(
-                  icon: Icons.auto_awesome_outlined,
-                  label: mission.reward(l10n),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            DecoratedBox(
-              decoration: BoxDecoration(
-                color: scheme.surfaceContainerHighest.withValues(alpha: 0.72),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: scheme.outlineVariant),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      Icons.center_focus_strong_outlined,
-                      size: 20,
-                      color: scheme.primary,
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            l10n.runningCoachLiveSetupTitle,
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelLarge
-                                ?.copyWith(fontWeight: FontWeight.w900),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            l10n.runningCoachLiveSetupBody,
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 14),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: [
-                FilledButton.icon(
-                  onPressed: onStartLiveSprintCoach,
-                  icon: const Icon(Icons.bolt_outlined),
-                  label: Text(l10n.runningCoachMissionStartSprint),
-                ),
-              ],
-            ),
-          ],
+            child: Icon(mission.icon, color: scheme.onPrimaryContainer),
+          ),
         ),
+        title: Text(
+          l10n.runningCoachMissionCardTitle,
+          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                color: scheme.primary,
+                fontWeight: FontWeight.w900,
+              ),
+        ),
+        subtitle: Text(
+          mission.title(l10n),
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w900,
+              ),
+        ),
+        childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        children: [
+          Text(
+            mission.body(l10n),
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _MissionChip(
+                icon: Icons.straighten_rounded,
+                label: l10n.runningCoachMissionDistance(
+                  mission.distanceMeters,
+                ),
+              ),
+              _MissionChip(
+                icon: Icons.center_focus_strong_rounded,
+                label: mission.focus(l10n),
+              ),
+              _MissionChip(
+                icon: Icons.auto_awesome_outlined,
+                label: mission.reward(l10n),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -799,42 +731,93 @@ class _MissionChip extends StatelessWidget {
 class _RunningCoachUploadGuideCard extends StatelessWidget {
   final String title;
   final String body;
+  final VoidCallback onStartLiveSprintCoach;
   final VoidCallback onShowSampleGuide;
 
   const _RunningCoachUploadGuideCard({
     required this.title,
     required this.body,
+    required this.onStartLiveSprintCoach,
     required this.onShowSampleGuide,
   });
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return Card(
+    final scheme = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: scheme.outlineVariant),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text(
+              title,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              body,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
+            ),
+            const SizedBox(height: 12),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Icon(
+                  Icons.center_focus_strong_outlined,
+                  size: 19,
+                  color: scheme.primary,
+                ),
+                const SizedBox(width: 8),
                 Expanded(
-                  child: Text(
-                    title,
-                    style: Theme.of(context).textTheme.titleMedium,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.runningCoachLiveSetupTitle,
+                        style:
+                            Theme.of(context).textTheme.labelMedium?.copyWith(
+                                  fontWeight: FontWeight.w900,
+                                ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        l10n.runningCoachLiveSetupBody,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 6),
-            Text(body, style: Theme.of(context).textTheme.bodyMedium),
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
-              child: FilledButton(
+              child: FilledButton.icon(
+                key: const ValueKey('running-coach-live-start-action'),
+                onPressed: onStartLiveSprintCoach,
+                icon: const Icon(Icons.bolt_rounded),
+                label: Text(l10n.runningCoachMissionStartSprint),
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                key: const ValueKey('running-coach-capture-guide-action'),
                 onPressed: onShowSampleGuide,
-                child: Text(l10n.runningCoachSampleGuideAction),
+                icon: const Icon(Icons.video_camera_back_outlined),
+                label: Text(l10n.runningCoachSampleGuideAction),
               ),
             ),
           ],
@@ -852,7 +835,6 @@ String _formatRunningDuration(Duration duration) {
 }
 
 const int _sampleTimelineFrameCount = 24;
-const int _sampleAnalysisPhaseCount = 6;
 const String _sampleReferenceVideoAsset =
     'assets/videos/running_coach_reference_sample.mp4';
 const String _sampleMistakeVideoAsset =
@@ -865,14 +847,10 @@ enum _SampleDecisionMetricKind { posture, arms, landing, bounce }
 class _RunningCoachSampleAnalysisBundle {
   final RunningVideoAnalysisResult result;
   final RunningCoachingReport report;
-  final RunningVideoAnalysisResult mistakeResult;
-  final RunningCoachingReport mistakeReport;
 
   const _RunningCoachSampleAnalysisBundle({
     required this.result,
     required this.report,
-    required this.mistakeResult,
-    required this.mistakeReport,
   });
 }
 
@@ -921,49 +899,21 @@ class _RunningCoachSampleAnalysisSheetState
           future: _future,
           builder: (context, snapshot) {
             final data = snapshot.data;
-            if (snapshot.connectionState == ConnectionState.done &&
-                !snapshot.hasError &&
-                data != null) {
-              return _RunningCoachSampleCard(
-                title: l10n.runningCoachSampleTitle,
-                body: l10n.runningCoachSampleBody,
-                tips: [
-                  l10n.runningCoachTipWholeBody,
-                  l10n.runningCoachTipSideView,
-                  l10n.runningCoachTipSteadyCamera,
-                ],
-                steps: [
-                  l10n.runningCoachUploadGuideStepSide,
-                  l10n.runningCoachUploadGuideStepDistance,
-                  l10n.runningCoachUploadGuideStepDuration,
-                  l10n.runningCoachUploadGuideStepLight,
-                ],
-                result: data.result,
-                report: data.report,
-                mistakeResult: data.mistakeResult,
-                mistakeReport: data.mistakeReport,
-              );
-            }
-
-            if (snapshot.hasError) {
-              final error = snapshot.error;
-              final body = error is RunningVideoAnalysisException
-                  ? widget.messageForException(l10n, error)
-                  : l10n.runningCoachAnalysisFailedGeneric;
-              return _RunningCoachSampleStatusCard(
-                key: const ValueKey('running-coach-sample-analysis-error'),
-                title: l10n.runningCoachSampleAnalysisFailedTitle,
-                body: body,
-                actionLabel: l10n.runningCoachSampleAnalysisRetryAction,
-                onAction: _retry,
-              );
-            }
-
-            return _RunningCoachSampleStatusCard(
-              key: const ValueKey('running-coach-sample-analysis-loading'),
-              title: l10n.runningCoachSampleAnalysisLoadingTitle,
-              body: l10n.runningCoachSampleAnalysisLoadingBody,
-              showProgress: true,
+            final error = snapshot.error;
+            final errorBody = error is RunningVideoAnalysisException
+                ? widget.messageForException(l10n, error)
+                : error == null
+                    ? null
+                    : l10n.runningCoachAnalysisFailedGeneric;
+            return _RunningCoachSampleCard(
+              title: l10n.runningCoachSampleTitle,
+              body: l10n.runningCoachSampleBody,
+              result: data?.result,
+              report: data?.report,
+              isAnalyzing: snapshot.connectionState != ConnectionState.done &&
+                  data == null,
+              analysisError: errorBody,
+              onRetry: _retry,
             );
           },
         ),
@@ -990,48 +940,62 @@ class _RunningCoachSampleStatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: showProgress
+            ? scheme.primaryContainer.withValues(alpha: 0.48)
+            : scheme.errorContainer.withValues(alpha: 0.62),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: showProgress
+              ? scheme.primary.withValues(alpha: 0.22)
+              : scheme.error.withValues(alpha: 0.28),
+        ),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (showProgress)
+            const Padding(
+              padding: EdgeInsets.only(top: 2),
+              child: SizedBox.square(
+                dimension: 20,
+                child: CircularProgressIndicator(strokeWidth: 2.2),
+              ),
+            )
+          else
+            Icon(Icons.error_outline_rounded, color: scheme.error),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                BackButton(
-                  onPressed: () => Navigator.of(context).maybePop(),
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
                 ),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 12),
-                    child: Text(
-                      title,
-                      style: Theme.of(context).textTheme.titleMedium,
+                const SizedBox(height: 3),
+                Text(body, style: Theme.of(context).textTheme.bodySmall),
+                if (actionLabel != null && onAction != null) ...[
+                  const SizedBox(height: 8),
+                  OutlinedButton.icon(
+                    key: const ValueKey(
+                      'running-coach-sample-analysis-retry',
                     ),
+                    onPressed: onAction,
+                    icon: const Icon(Icons.refresh_rounded),
+                    label: Text(actionLabel!),
                   ),
-                ),
+                ],
               ],
             ),
-            const SizedBox(height: 8),
-            Text(body, style: Theme.of(context).textTheme.bodyMedium),
-            if (showProgress) ...[
-              const SizedBox(height: 18),
-              const Center(child: CircularProgressIndicator()),
-            ],
-            if (actionLabel != null && onAction != null) ...[
-              const SizedBox(height: 16),
-              FilledButton.icon(
-                key: const ValueKey('running-coach-sample-analysis-retry'),
-                onPressed: onAction,
-                icon: const Icon(Icons.refresh_rounded),
-                label: Text(actionLabel!),
-              ),
-            ],
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -1040,22 +1004,20 @@ class _RunningCoachSampleStatusCard extends StatelessWidget {
 class _RunningCoachSampleCard extends StatefulWidget {
   final String title;
   final String body;
-  final List<String> tips;
-  final List<String> steps;
-  final RunningVideoAnalysisResult result;
-  final RunningCoachingReport report;
-  final RunningVideoAnalysisResult mistakeResult;
-  final RunningCoachingReport mistakeReport;
+  final RunningVideoAnalysisResult? result;
+  final RunningCoachingReport? report;
+  final bool isAnalyzing;
+  final String? analysisError;
+  final VoidCallback onRetry;
 
   const _RunningCoachSampleCard({
     required this.title,
     required this.body,
-    required this.tips,
-    required this.steps,
     required this.result,
     required this.report,
-    required this.mistakeResult,
-    required this.mistakeReport,
+    required this.isAnalyzing,
+    required this.analysisError,
+    required this.onRetry,
   });
 
   @override
@@ -1064,84 +1026,144 @@ class _RunningCoachSampleCard extends StatefulWidget {
 }
 
 class _RunningCoachSampleCardState extends State<_RunningCoachSampleCard> {
-  _SampleVideoMode _mode = _SampleVideoMode.reference;
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final activeResult = _mode == _SampleVideoMode.reference
-        ? widget.result
-        : widget.mistakeResult;
-    final activeReport = _mode == _SampleVideoMode.reference
-        ? widget.report
-        : widget.mistakeReport;
-    final modeTitle = _mode == _SampleVideoMode.reference
-        ? l10n.runningCoachSampleReferenceTitle
-        : l10n.runningCoachSampleMistakeTitle;
-    final modeBody = _mode == _SampleVideoMode.reference
-        ? l10n.runningCoachSampleReferenceBody
-        : l10n.runningCoachSampleMistakeBody;
-    final primaryFocus = activeReport.primaryFocus;
+    final result = widget.result;
+    final report = widget.report;
+    final primaryFocus = report?.primaryFocus;
     final focusCopy = primaryFocus == null
         ? null
         : RunningCoachInsightCopy.fromInsight(primaryFocus, l10n);
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                BackButton(
-                  key: const ValueKey('running-coach-sample-back-button'),
-                  onPressed: () => Navigator.of(context).maybePop(),
-                ),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 12),
-                    child: Text(
-                      widget.title,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                  ),
-                ),
-              ],
+            BackButton(
+              key: const ValueKey('running-coach-sample-back-button'),
+              onPressed: () => Navigator.of(context).maybePop(),
             ),
-            const SizedBox(height: 6),
-            Text(widget.body, style: Theme.of(context).textTheme.bodyMedium),
-            const SizedBox(height: 14),
-            SizedBox(
-              width: double.infinity,
-              child: SegmentedButton<_SampleVideoMode>(
-                segments: [
-                  ButtonSegment<_SampleVideoMode>(
-                    value: _SampleVideoMode.reference,
-                    icon: const Icon(Icons.check_circle_outline_rounded),
-                    label: Text(l10n.runningCoachSampleReferenceTab),
-                  ),
-                  ButtonSegment<_SampleVideoMode>(
-                    value: _SampleVideoMode.mistake,
-                    icon: const Icon(Icons.report_problem_outlined),
-                    label: Text(l10n.runningCoachSampleMistakeTab),
-                  ),
-                ],
-                selected: {_mode},
-                onSelectionChanged: (selection) {
-                  setState(() => _mode = selection.first);
-                },
+            const SizedBox(width: 4),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: Text(
+                  widget.title,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                ),
               ),
             ),
-            const SizedBox(height: 12),
-            _SampleVideoFrame(
-              score: activeReport.overallScore,
-              mode: _mode,
-              result: activeResult,
-              report: activeReport,
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(widget.body, style: Theme.of(context).textTheme.bodyMedium),
+        const SizedBox(height: 14),
+        Text(
+          l10n.runningCoachSampleReferenceTitle,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w900,
+              ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          l10n.runningCoachSampleReferenceBody,
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+        const SizedBox(height: 10),
+        _SampleVideoFrame(
+          score: report?.overallScore,
+          mode: _SampleVideoMode.reference,
+          result: result,
+          report: report,
+        ),
+        if (widget.isAnalyzing) ...[
+          const SizedBox(height: 10),
+          _RunningCoachSampleStatusCard(
+            key: const ValueKey('running-coach-sample-analysis-loading'),
+            title: l10n.runningCoachSampleAnalysisLoadingTitle,
+            body: l10n.runningCoachSampleAnalysisLoadingBody,
+            showProgress: true,
+          ),
+        ],
+        if (widget.analysisError != null) ...[
+          const SizedBox(height: 10),
+          _RunningCoachSampleStatusCard(
+            key: const ValueKey('running-coach-sample-analysis-error'),
+            title: l10n.runningCoachSampleAnalysisFailedTitle,
+            body: widget.analysisError!,
+            actionLabel: l10n.runningCoachSampleAnalysisRetryAction,
+            onAction: widget.onRetry,
+          ),
+        ],
+        const SizedBox(height: 14),
+        _SampleRecordingGuidePanel(
+          title: l10n.runningCoachSampleRecordingGuideTitle,
+        ),
+        if (result != null && report != null) ...[
+          const SizedBox(height: 12),
+          _SampleFrameCuePanel(
+            panelKey: const ValueKey(
+              'running-coach-sample-joint-readouts',
             ),
+            title: l10n.runningCoachSampleReferenceTitle,
+            body: l10n.runningCoachSampleReferenceBody,
+            cues: _modeReadouts(l10n, report),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _StatChip(
+                label: l10n.runningCoachDurationLabel,
+                value: _formatRunningDuration(result.videoDuration),
+              ),
+              _StatChip(
+                label: l10n.runningCoachFramesAnalyzedLabel,
+                value: '${result.validFrames}/${result.sampledFrames}',
+              ),
+              _StatChip(
+                label: l10n.runningCoachOverallScoreLabel,
+                value: '${report.overallScore}',
+              ),
+            ],
+          ),
+          if (result.denseSamples.attemptedFrames > 0 ||
+              result.contactWindows.isNotEmpty) ...[
             const SizedBox(height: 12),
+            _DenseContactEvidencePanel(result: result),
+          ],
+          if (focusCopy != null) ...[
+            const SizedBox(height: 12),
+            Text(
+              focusCopy.title,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              focusCopy.summary,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+        ],
+        const SizedBox(height: 10),
+        ExpansionTile(
+          key: const ValueKey('running-coach-sample-technical-details'),
+          tilePadding: EdgeInsets.zero,
+          childrenPadding: const EdgeInsets.only(bottom: 8),
+          title: Text(
+            l10n.runningCoachSampleTechnicalDetailsTitle,
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w900,
+                ),
+          ),
+          children: [
             _SampleAnalysisProcessPanel(
               title: l10n.runningCoachSampleProcessTitle,
               body: l10n.runningCoachSampleProcessBody,
@@ -1153,10 +1175,6 @@ class _RunningCoachSampleCardState extends State<_RunningCoachSampleCard> {
                 _SampleAnalysisStep(
                   icon: Icons.scatter_plot_outlined,
                   label: l10n.runningCoachSamplePhaseJoints,
-                ),
-                _SampleAnalysisStep(
-                  icon: Icons.accessibility_new_rounded,
-                  label: l10n.runningCoachSamplePhaseMuscles,
                 ),
                 _SampleAnalysisStep(
                   icon: Icons.polyline_outlined,
@@ -1172,14 +1190,7 @@ class _RunningCoachSampleCardState extends State<_RunningCoachSampleCard> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            _SampleFrameCuePanel(
-              panelKey: const ValueKey('running-coach-sample-joint-readouts'),
-              title: modeTitle,
-              body: modeBody,
-              cues: _modeReadouts(l10n, activeReport),
-            ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             _SampleFrameCuePanel(
               title: l10n.runningCoachSampleFrameGuideTitle,
               body: l10n.runningCoachSampleFrameGuideBody,
@@ -1202,9 +1213,11 @@ class _RunningCoachSampleCardState extends State<_RunningCoachSampleCard> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             _SampleFrameCuePanel(
-              panelKey: const ValueKey('running-coach-sample-analysis-method'),
+              panelKey: const ValueKey(
+                'running-coach-sample-analysis-method',
+              ),
               title: l10n.runningCoachSampleAnalysisMethodTitle,
               body: l10n.runningCoachSampleAnalysisMethodBody,
               cues: [
@@ -1226,54 +1239,9 @@ class _RunningCoachSampleCardState extends State<_RunningCoachSampleCard> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            _SampleRecordingGuidePanel(
-              title: l10n.runningCoachSampleRecordingGuideTitle,
-              tips: widget.tips,
-              steps: widget.steps,
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _StatChip(
-                  label: l10n.runningCoachDurationLabel,
-                  value: _formatRunningDuration(activeResult.videoDuration),
-                ),
-                _StatChip(
-                  label: l10n.runningCoachFramesAnalyzedLabel,
-                  value:
-                      '${activeResult.validFrames}/${activeResult.sampledFrames}',
-                ),
-                _StatChip(
-                  label: l10n.runningCoachOverallScoreLabel,
-                  value: '${activeReport.overallScore}',
-                ),
-              ],
-            ),
-            if (activeResult.denseSamples.attemptedFrames > 0 ||
-                activeResult.contactWindows.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              _DenseContactEvidencePanel(result: activeResult),
-            ],
-            if (focusCopy != null) ...[
-              const SizedBox(height: 12),
-              Text(
-                focusCopy.title,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w900),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                focusCopy.summary,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
           ],
         ),
-      ),
+      ],
     );
   }
 
@@ -1564,26 +1532,48 @@ class _SampleFrameCuePanel extends StatelessWidget {
   }
 }
 
-class _SampleRecordingGuidePanel extends StatelessWidget {
+enum _CaptureGuideMode { treadmill, outdoor }
+
+class _SampleRecordingGuidePanel extends StatefulWidget {
   final String title;
-  final List<String> tips;
-  final List<String> steps;
 
   const _SampleRecordingGuidePanel({
     required this.title,
-    required this.tips,
-    required this.steps,
   });
 
   @override
+  State<_SampleRecordingGuidePanel> createState() =>
+      _SampleRecordingGuidePanelState();
+}
+
+class _SampleRecordingGuidePanelState
+    extends State<_SampleRecordingGuidePanel> {
+  _CaptureGuideMode _mode = _CaptureGuideMode.treadmill;
+
+  @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
+    final isTreadmill = _mode == _CaptureGuideMode.treadmill;
+    final steps = isTreadmill
+        ? <String>[
+            l10n.runningCoachCaptureTreadmillStepCamera,
+            l10n.runningCoachCaptureTreadmillStepDistance,
+            l10n.runningCoachCaptureTreadmillStepFrame,
+            l10n.runningCoachCaptureTreadmillStepClip,
+          ]
+        : <String>[
+            l10n.runningCoachCaptureOutdoorStepCamera,
+            l10n.runningCoachCaptureOutdoorStepDistance,
+            l10n.runningCoachCaptureOutdoorStepFrame,
+            l10n.runningCoachCaptureOutdoorStepClip,
+          ];
     return Container(
       key: const ValueKey('running-coach-sample-recording-guide'),
       width: double.infinity,
       decoration: BoxDecoration(
         color: scheme.surfaceContainerHighest.withValues(alpha: 0.72),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(color: scheme.outlineVariant),
       ),
       padding: const EdgeInsets.all(12),
@@ -1591,43 +1581,287 @@ class _SampleRecordingGuidePanel extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            title,
+            widget.title,
             style: Theme.of(
               context,
             ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 10),
-          for (final tip in tips) ...[
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 2),
-                  child: Icon(
-                    Icons.check_circle_outline,
-                    size: 17,
-                    color: scheme.primary,
-                  ),
+          SizedBox(
+            width: double.infinity,
+            child: SegmentedButton<_CaptureGuideMode>(
+              segments: [
+                ButtonSegment<_CaptureGuideMode>(
+                  value: _CaptureGuideMode.treadmill,
+                  icon: const Icon(Icons.directions_run_rounded),
+                  label: Text(l10n.runningCoachCaptureTreadmillTab),
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    tip,
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
+                ButtonSegment<_CaptureGuideMode>(
+                  value: _CaptureGuideMode.outdoor,
+                  icon: const Icon(Icons.landscape_outlined),
+                  label: Text(l10n.runningCoachCaptureOutdoorTab),
                 ),
               ],
+              selected: <_CaptureGuideMode>{_mode},
+              onSelectionChanged: (selection) {
+                setState(() => _mode = selection.first);
+              },
             ),
-            const SizedBox(height: 8),
-          ],
-          const SizedBox(height: 2),
+          ),
+          const SizedBox(height: 12),
+          _CaptureFramingDiagram(mode: _mode),
+          const SizedBox(height: 12),
+          Text(
+            isTreadmill
+                ? l10n.runningCoachCaptureTreadmillTitle
+                : l10n.runningCoachCaptureOutdoorTitle,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w900,
+                ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            isTreadmill
+                ? l10n.runningCoachCaptureTreadmillBody
+                : l10n.runningCoachCaptureOutdoorBody,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(height: 12),
           for (var index = 0; index < steps.length; index += 1) ...[
             _SampleGuideStep(number: index + 1, text: steps[index]),
             if (index != steps.length - 1) const SizedBox(height: 8),
           ],
+          if (!isTreadmill) ...[
+            const SizedBox(height: 12),
+            DecoratedBox(
+              decoration: BoxDecoration(
+                color: scheme.errorContainer.withValues(alpha: 0.54),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.zoom_out_map_rounded,
+                      size: 19,
+                      color: scheme.error,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        l10n.runningCoachCaptureOutdoorDistanceWarning,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
+  }
+}
+
+class _CaptureFramingDiagram extends StatelessWidget {
+  final _CaptureGuideMode mode;
+
+  const _CaptureFramingDiagram({required this.mode});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return AspectRatio(
+      aspectRatio: 16 / 9,
+      child: CustomPaint(
+        key: ValueKey('running-coach-capture-diagram-${mode.name}'),
+        painter: _CaptureFramingPainter(
+          mode: mode,
+          frameColor: scheme.outline,
+          safeColor: scheme.primary,
+          runnerColor: scheme.onSurface,
+          surfaceColor: scheme.surface,
+        ),
+      ),
+    );
+  }
+}
+
+class _CaptureFramingPainter extends CustomPainter {
+  final _CaptureGuideMode mode;
+  final Color frameColor;
+  final Color safeColor;
+  final Color runnerColor;
+  final Color surfaceColor;
+
+  const _CaptureFramingPainter({
+    required this.mode,
+    required this.frameColor,
+    required this.safeColor,
+    required this.runnerColor,
+    required this.surfaceColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final bounds = Offset.zero & size;
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(bounds, const Radius.circular(8)),
+      Paint()..color = surfaceColor,
+    );
+    final frame = Rect.fromLTWH(
+      size.width * 0.16,
+      size.height * 0.08,
+      size.width * 0.76,
+      size.height * 0.84,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(frame, const Radius.circular(6)),
+      Paint()
+        ..color = frameColor.withValues(alpha: 0.28)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.4,
+    );
+    final safeFrame = Rect.fromLTWH(
+      frame.left + frame.width * 0.15,
+      frame.top + frame.height * 0.09,
+      frame.width * 0.70,
+      frame.height * 0.82,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(safeFrame, const Radius.circular(4)),
+      Paint()
+        ..color = safeColor.withValues(alpha: 0.58)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5,
+    );
+
+    final groundY = frame.bottom - frame.height * 0.11;
+    canvas.drawLine(
+      Offset(frame.left + 10, groundY),
+      Offset(frame.right - 10, groundY),
+      Paint()
+        ..color = frameColor.withValues(alpha: 0.44)
+        ..strokeWidth = 1.2,
+    );
+    if (mode == _CaptureGuideMode.treadmill) {
+      final belt = Rect.fromLTWH(
+        safeFrame.left + safeFrame.width * 0.04,
+        groundY - 3,
+        safeFrame.width * 0.92,
+        7,
+      );
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(belt, const Radius.circular(4)),
+        Paint()..color = frameColor.withValues(alpha: 0.24),
+      );
+    }
+
+    final center = Offset(
+      safeFrame.center.dx,
+      safeFrame.top + safeFrame.height * 0.47,
+    );
+    final bodyHeight = safeFrame.height * 0.78;
+    _drawGuideRunner(canvas, center, bodyHeight);
+    _drawGuideCamera(canvas, size, frame.center.dy);
+  }
+
+  void _drawGuideRunner(Canvas canvas, Offset center, double height) {
+    final stroke = Paint()
+      ..color = runnerColor.withValues(alpha: 0.82)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(2.2, height * 0.025)
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    final head = Offset(center.dx, center.dy - height * 0.39);
+    final shoulder =
+        Offset(center.dx - height * 0.03, center.dy - height * 0.23);
+    final hip = Offset(center.dx, center.dy + height * 0.02);
+    final frontKnee =
+        Offset(center.dx + height * 0.15, center.dy + height * 0.18);
+    final frontFoot =
+        Offset(center.dx + height * 0.27, center.dy + height * 0.39);
+    final rearKnee =
+        Offset(center.dx - height * 0.12, center.dy + height * 0.19);
+    final rearFoot =
+        Offset(center.dx - height * 0.22, center.dy + height * 0.39);
+    final frontElbow =
+        Offset(center.dx + height * 0.10, center.dy - height * 0.11);
+    final frontHand =
+        Offset(center.dx + height * 0.16, center.dy - height * 0.01);
+    final rearElbow =
+        Offset(center.dx - height * 0.12, center.dy - height * 0.10);
+    final rearHand =
+        Offset(center.dx - height * 0.17, center.dy - height * 0.20);
+    canvas.drawCircle(
+      head,
+      height * 0.055,
+      Paint()
+        ..color = runnerColor.withValues(alpha: 0.10)
+        ..style = PaintingStyle.fill,
+    );
+    canvas.drawCircle(head, height * 0.055, stroke);
+    canvas.drawLine(shoulder, hip, stroke);
+    canvas.drawLine(shoulder, frontElbow, stroke);
+    canvas.drawLine(frontElbow, frontHand, stroke);
+    canvas.drawLine(shoulder, rearElbow, stroke);
+    canvas.drawLine(rearElbow, rearHand, stroke);
+    canvas.drawLine(hip, frontKnee, stroke);
+    canvas.drawLine(frontKnee, frontFoot, stroke);
+    canvas.drawLine(hip, rearKnee, stroke);
+    canvas.drawLine(rearKnee, rearFoot, stroke);
+  }
+
+  void _drawGuideCamera(Canvas canvas, Size size, double centerY) {
+    final body = Rect.fromCenter(
+      center: Offset(size.width * 0.075, centerY),
+      width: size.width * 0.09,
+      height: size.height * 0.17,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(body, const Radius.circular(4)),
+      Paint()..color = safeColor.withValues(alpha: 0.14),
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(body, const Radius.circular(4)),
+      Paint()
+        ..color = safeColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5,
+    );
+    canvas.drawCircle(
+      body.center,
+      math.min(body.width, body.height) * 0.18,
+      Paint()..color = safeColor,
+    );
+    final guidePaint = Paint()
+      ..color = safeColor.withValues(alpha: 0.34)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+    canvas.drawLine(
+      Offset(body.right, body.top),
+      Offset(size.width * 0.16, size.height * 0.08),
+      guidePaint,
+    );
+    canvas.drawLine(
+      Offset(body.right, body.bottom),
+      Offset(size.width * 0.16, size.height * 0.92),
+      guidePaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _CaptureFramingPainter oldDelegate) {
+    return oldDelegate.mode != mode ||
+        oldDelegate.frameColor != frameColor ||
+        oldDelegate.safeColor != safeColor ||
+        oldDelegate.runnerColor != runnerColor ||
+        oldDelegate.surfaceColor != surfaceColor;
   }
 }
 
@@ -1714,10 +1948,10 @@ class _SampleFrameCueChip extends StatelessWidget {
 }
 
 class _SampleVideoFrame extends StatefulWidget {
-  final int score;
+  final int? score;
   final _SampleVideoMode mode;
-  final RunningVideoAnalysisResult result;
-  final RunningCoachingReport report;
+  final RunningVideoAnalysisResult? result;
+  final RunningCoachingReport? report;
 
   const _SampleVideoFrame({
     required this.score,
@@ -1733,6 +1967,7 @@ class _SampleVideoFrame extends StatefulWidget {
 class _SampleVideoFrameState extends State<_SampleVideoFrame> {
   VideoPlayerController? _videoController;
   bool _isVideoReady = false;
+  bool _videoLoadFailed = false;
 
   @override
   void initState() {
@@ -1758,6 +1993,7 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame> {
     final previousController = _videoController;
     _videoController = null;
     _isVideoReady = false;
+    _videoLoadFailed = false;
     unawaited(previousController?.dispose());
 
     final asset = widget.mode == _SampleVideoMode.mistake
@@ -1773,8 +2009,24 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame> {
       setState(() => _isVideoReady = true);
     }).catchError((Object _) {
       if (!mounted || _videoController != controller) return;
-      setState(() => _isVideoReady = false);
+      setState(() {
+        _isVideoReady = false;
+        _videoLoadFailed = true;
+      });
     });
+  }
+
+  Future<void> _togglePlayback() async {
+    final controller = _videoController;
+    if (controller == null || !controller.value.isInitialized) return;
+    if (controller.value.isPlaying) {
+      await controller.pause();
+    } else {
+      await controller.play();
+    }
+    if (mounted && _videoController == controller) {
+      setState(() {});
+    }
   }
 
   double _sampleProgressFor(VideoPlayerController controller) {
@@ -1796,7 +2048,11 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame> {
     final hasVideo = _isVideoReady &&
         videoController != null &&
         videoController.value.isInitialized;
-    final decisionMetrics = _sampleDecisionMetrics(l10n, widget.report);
+    final result = widget.result;
+    final report = widget.report;
+    final decisionMetrics = report == null
+        ? const <_SampleDecisionMetric>[]
+        : _sampleDecisionMetrics(l10n, report);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -1804,10 +2060,10 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame> {
           key: const ValueKey('running-coach-sample-video-frame'),
           aspectRatio: 16 / 9,
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(8),
             child: DecoratedBox(
               decoration: BoxDecoration(
-                color: scheme.surfaceContainerHighest,
+                color: Colors.black,
                 border: Border.all(color: scheme.outlineVariant),
               ),
               child: Stack(
@@ -1815,7 +2071,7 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame> {
                   if (hasVideo) ...[
                     Positioned.fill(
                       child: FittedBox(
-                        fit: BoxFit.cover,
+                        fit: BoxFit.contain,
                         child: SizedBox(
                           width: videoController.value.size.width,
                           height: videoController.value.size.height,
@@ -1823,14 +2079,14 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame> {
                         ),
                       ),
                     ),
-                    if (widget.result.poseFrames.isNotEmpty)
+                    if (result != null && result.poseFrames.isNotEmpty)
                       Positioned.fill(
                         child: IgnorePointer(
                           child: AnimatedBuilder(
                             animation: videoController,
                             builder: (context, _) {
                               final poseFrame = runningPoseFrameAtPosition(
-                                frames: widget.result.poseFrames,
+                                frames: result.poseFrames,
                                 position: videoController.value.position,
                               );
                               return CustomPaint(
@@ -1843,94 +2099,13 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame> {
                                   secondaryColor: scheme.secondary,
                                   contactColor: scheme.tertiary,
                                   warningColor: scheme.error,
+                                  useContainFit: true,
                                 ),
                               );
                             },
                           ),
                         ),
                       ),
-                    Positioned(
-                      left: 12,
-                      right: 12,
-                      top: 12,
-                      child: AnimatedBuilder(
-                        animation: videoController,
-                        builder: (context, _) {
-                          final position = videoController.value.position;
-                          final progress = _sampleProgressFor(videoController);
-                          final poseFrames = widget.result.poseFrames;
-                          final poseFrameIndex = nearestRunningPoseFrameIndex(
-                            frames: poseFrames,
-                            position: position,
-                          );
-                          final contactTimestamp = widget.result
-                              .nearestValidatedContactTimestamp(position);
-                          final frameNumber = poseFrameIndex == null
-                              ? ((progress * _sampleTimelineFrameCount)
-                                          .floor() %
-                                      _sampleTimelineFrameCount) +
-                                  1
-                              : poseFrameIndex + 1;
-                          final frameCount = poseFrames.isEmpty
-                              ? _sampleTimelineFrameCount
-                              : poseFrames.length;
-                          return Row(
-                            children: [
-                              Flexible(
-                                flex: 3,
-                                child: Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: _VideoOverlayPill(
-                                    text: contactTimestamp != null
-                                        ? l10n
-                                            .runningCoachSampleContactFrameLabel(
-                                            _formatContactTimestamp(
-                                              l10n,
-                                              contactTimestamp,
-                                            ),
-                                          )
-                                        : poseFrames.isEmpty
-                                            ? l10n
-                                                .runningCoachSamplePoseOverlayUnavailable
-                                            : l10n.runningCoachSampleFrameLabel(
-                                                frameNumber,
-                                                frameCount,
-                                              ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Flexible(
-                                flex: 4,
-                                child: Center(
-                                  child: _VideoOverlayPill(
-                                    key: const ValueKey(
-                                      'running-coach-sample-analysis-phase',
-                                    ),
-                                    text: _sampleAnalysisPhaseLabel(
-                                      l10n,
-                                      result: widget.result,
-                                      position: position,
-                                      progress: progress,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Flexible(
-                                flex: 2,
-                                child: Align(
-                                  alignment: Alignment.centerRight,
-                                  child: _VideoOverlayPill(
-                                    text: '${widget.score}',
-                                  ),
-                                ),
-                              ),
-                            ],
-                          );
-                        },
-                      ),
-                    ),
                     Positioned(
                       left: 12,
                       right: 12,
@@ -1949,6 +2124,63 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame> {
                         ),
                       ),
                     ),
+                    Positioned.fill(
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          key: const ValueKey(
+                            'running-coach-sample-video-toggle',
+                          ),
+                          onTap: _togglePlayback,
+                          child: AnimatedBuilder(
+                            animation: videoController,
+                            builder: (context, _) {
+                              if (videoController.value.isPlaying) {
+                                return const SizedBox.expand();
+                              }
+                              return Center(
+                                child: Icon(
+                                  Icons.play_circle_fill_rounded,
+                                  size: 54,
+                                  color: Colors.white.withValues(alpha: 0.92),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
+                  ] else if (_videoLoadFailed) ...[
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.video_file_outlined,
+                              color: scheme.error,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              l10n.runningCoachSampleVideoUnavailable,
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(color: Colors.white),
+                            ),
+                            const SizedBox(height: 8),
+                            OutlinedButton.icon(
+                              onPressed: _loadVideo,
+                              icon: const Icon(Icons.refresh_rounded),
+                              label:
+                                  Text(l10n.runningCoachSampleVideoRetryAction),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ] else
                     Center(
                       child: SizedBox.square(
@@ -1964,15 +2196,88 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame> {
             ),
           ),
         ),
-        const SizedBox(height: 8),
-        _SampleDecisionOverlay(
-          compact: true,
-          score: widget.score,
-          title: l10n.runningCoachSampleDecisionTitle,
-          scoreLabel: l10n.runningCoachOverallScoreLabel,
-          metrics: decisionMetrics,
-          onMetricTap: _openMetricDetail,
-        ),
+        if (hasVideo && result != null) ...[
+          const SizedBox(height: 8),
+          AnimatedBuilder(
+            animation: videoController,
+            builder: (context, _) {
+              final position = videoController.value.position;
+              final progress = _sampleProgressFor(videoController);
+              final poseFrames = result.poseFrames;
+              final poseFrameIndex = nearestRunningPoseFrameIndex(
+                frames: poseFrames,
+                position: position,
+              );
+              final contactTimestamp =
+                  result.nearestValidatedContactTimestamp(position);
+              final frameNumber = poseFrameIndex == null
+                  ? ((progress * _sampleTimelineFrameCount).floor() %
+                          _sampleTimelineFrameCount) +
+                      1
+                  : poseFrameIndex + 1;
+              final frameCount = poseFrames.isEmpty
+                  ? _sampleTimelineFrameCount
+                  : poseFrames.length;
+              return Row(
+                children: [
+                  IconButton.filledTonal(
+                    tooltip: videoController.value.isPlaying
+                        ? l10n.runningCoachSampleVideoPause
+                        : l10n.runningCoachSampleVideoPlay,
+                    onPressed: _togglePlayback,
+                    icon: Icon(
+                      videoController.value.isPlaying
+                          ? Icons.pause_rounded
+                          : Icons.play_arrow_rounded,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      contactTimestamp != null
+                          ? l10n.runningCoachSampleContactFrameLabel(
+                              _formatContactTimestamp(
+                                l10n,
+                                contactTimestamp,
+                              ),
+                            )
+                          : poseFrames.isEmpty
+                              ? l10n.runningCoachSamplePoseOverlayUnavailable
+                              : l10n.runningCoachSampleFrameLabel(
+                                  frameNumber,
+                                  frameCount,
+                                ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.labelMedium,
+                    ),
+                  ),
+                  if (widget.score != null) ...[
+                    const SizedBox(width: 8),
+                    Text(
+                      l10n.runningCoachSampleScoreValue(widget.score!),
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                            color: scheme.primary,
+                            fontWeight: FontWeight.w900,
+                          ),
+                    ),
+                  ],
+                ],
+              );
+            },
+          ),
+        ],
+        if (report != null) ...[
+          const SizedBox(height: 8),
+          _SampleDecisionOverlay(
+            compact: true,
+            score: widget.score ?? report.overallScore,
+            title: l10n.runningCoachSampleDecisionTitle,
+            scoreLabel: l10n.runningCoachOverallScoreLabel,
+            metrics: decisionMetrics,
+            onMetricTap: _openMetricDetail,
+          ),
+        ],
       ],
     );
   }
@@ -1987,29 +2292,6 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame> {
       ),
     );
   }
-}
-
-String _sampleAnalysisPhaseLabel(
-  AppLocalizations l10n, {
-  required RunningVideoAnalysisResult result,
-  required Duration position,
-  required double progress,
-}) {
-  if (result.nearestValidatedContactTimestamp(position) != null) {
-    return l10n.runningCoachSamplePhaseDenseContact;
-  }
-  final phase = (progress * _sampleAnalysisPhaseCount)
-      .floor()
-      .clamp(0, _sampleAnalysisPhaseCount - 1)
-      .toInt();
-  return switch (phase) {
-    0 => l10n.runningCoachSamplePhaseFrame,
-    1 => l10n.runningCoachSamplePhaseJoints,
-    2 => l10n.runningCoachSamplePhaseMuscles,
-    3 => l10n.runningCoachSamplePhaseSkeleton,
-    4 => l10n.runningCoachSamplePhaseAngles,
-    _ => l10n.runningCoachSamplePhaseContactScore,
-  };
 }
 
 String _formatContactTimestamp(
@@ -2826,36 +3108,6 @@ class _SampleMetricDetailPainter extends CustomPainter {
   }
 }
 
-class _VideoOverlayPill extends StatelessWidget {
-  final String text;
-
-  const _VideoOverlayPill({super.key, required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: scheme.surface.withValues(alpha: 0.88),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.32)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        child: Text(
-          text,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                color: scheme.onSurface,
-                fontWeight: FontWeight.w900,
-              ),
-        ),
-      ),
-    );
-  }
-}
-
 class _RunningPoseOverlayPainter extends CustomPainter {
   final RunningPoseFrame? poseFrame;
   final Color primaryColor;
@@ -2886,10 +3138,16 @@ class _RunningPoseOverlayPainter extends CustomPainter {
 
     _drawHumanForm(canvas, size, frame);
     for (final connection in _mediaPipePoseConnections) {
-      _drawConnection(canvas, size, frame, connection);
+      if (connection.kind == _PoseConnectionKind.face ||
+          connection.kind == _PoseConnectionKind.hand) {
+        _drawConnection(canvas, size, frame, connection);
+      }
     }
     for (final landmark in frame.landmarks) {
-      _drawLandmark(canvas, size, frame, landmark);
+      if (landmark.index <= 10 ||
+          landmark.index >= 17 && landmark.index <= 22) {
+        _drawLandmark(canvas, size, frame, landmark);
+      }
     }
     final metric = highlightedMetric;
     if (metric != null) {
@@ -2921,9 +3179,30 @@ class _RunningPoseOverlayPainter extends CustomPainter {
             : _usesWarningAccent
                 ? warningColor
                 : contactColor,
-        opacity: useContainFit ? 0.70 : 0.62,
+        opacity: useContainFit ? 0.88 : 0.76,
       ),
+      focusIndices: _focusIndicesForMetric(highlightedMetric),
     );
+  }
+
+  Set<int> _focusIndicesForMetric(RunningCoachMetric? metric) {
+    return switch (metric) {
+      RunningCoachMetric.posture => const <int>{11, 12, 23, 24},
+      RunningCoachMetric.bounce => const <int>{0, 7, 8, 23, 24},
+      RunningCoachMetric.footStrike => const <int>{
+          23,
+          24,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32
+        },
+      RunningCoachMetric.kneeFlexion => const <int>{23, 24, 25, 26, 27, 28},
+      RunningCoachMetric.armCarriage => const <int>{11, 12, 13, 14, 15, 16},
+      null => const <int>{},
+    };
   }
 
   void _drawMetricGuide(
@@ -3239,7 +3518,7 @@ class _RunningPoseOverlayPainter extends CustomPainter {
                 (1.0 - runningPoseOverlayMinimumConnectionConfidence))
             .clamp(0.0, 1.0)
             .toDouble();
-    final alpha = _sampleLerpDouble(0.20, 0.64, confidenceT);
+    final alpha = _sampleLerpDouble(0.16, 0.48, confidenceT);
     final width = switch (connection.kind) {
       _PoseConnectionKind.face => size.shortestSide * 0.0048,
       _PoseConnectionKind.hand ||
@@ -3260,7 +3539,7 @@ class _RunningPoseOverlayPainter extends CustomPainter {
       _coverPoint(size, frame, second),
       Paint()
         ..color = color.withValues(alpha: alpha)
-        ..strokeWidth = math.max(1.0, width * 0.82)
+        ..strokeWidth = math.max(0.9, width * 0.66)
         ..strokeCap = StrokeCap.round
         ..strokeJoin = StrokeJoin.round,
     );
@@ -3282,7 +3561,7 @@ class _RunningPoseOverlayPainter extends CustomPainter {
             .toDouble();
     final center = _coverPoint(size, frame, landmark);
     final radius = _jointRadius(size, landmark.index);
-    final alpha = _sampleLerpDouble(0.22, 0.92, confidenceT);
+    final alpha = _sampleLerpDouble(0.18, 0.68, confidenceT);
     final color = _jointColor(landmark.index);
     canvas.drawCircle(
       center,
@@ -4738,6 +5017,7 @@ class _VideoAnalysisIntentCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
     return Card(
+      margin: EdgeInsets.zero,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -4749,10 +5029,10 @@ class _VideoAnalysisIntentCard extends StatelessWidget {
                 DecoratedBox(
                   decoration: BoxDecoration(
                     color: scheme.tertiaryContainer,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(8),
                     child: Icon(
                       Icons.video_library_outlined,
                       color: scheme.onTertiaryContainer,
@@ -4782,7 +5062,7 @@ class _VideoAnalysisIntentCard extends StatelessWidget {
             DecoratedBox(
               decoration: BoxDecoration(
                 color: scheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(8),
               ),
               child: Padding(
                 padding: const EdgeInsets.symmetric(
@@ -4806,32 +5086,42 @@ class _VideoAnalysisIntentCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 14),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: [
-                OutlinedButton.icon(
+            if (selectedVideoName == null)
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
                   onPressed: isAnalyzing ? null : onPickVideo,
                   icon: const Icon(Icons.video_library_outlined),
                   label: Text(l10n.runningCoachPickVideoAction),
                 ),
-                FilledButton.icon(
-                  onPressed: canAnalyze ? onAnalyzeVideo : null,
-                  icon: isAnalyzing
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.play_circle_outline),
-                  label: Text(
-                    isAnalyzing
-                        ? l10n.runningCoachAnalysisInProgress
-                        : l10n.runningCoachAnalyzeAction,
+              )
+            else
+              Row(
+                children: [
+                  OutlinedButton(
+                    onPressed: isAnalyzing ? null : onPickVideo,
+                    child: Text(l10n.runningCoachChangeVideoAction),
                   ),
-                ),
-              ],
-            ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: canAnalyze ? onAnalyzeVideo : null,
+                      icon: isAnalyzing
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.play_circle_outline),
+                      label: Text(
+                        isAnalyzing
+                            ? l10n.runningCoachAnalysisInProgress
+                            : l10n.runningCoachAnalyzeAction,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
           ],
         ),
       ),
@@ -4966,6 +5256,11 @@ class _RecentSessionTile extends StatelessWidget {
                     children: [
                       _TinySessionPill(
                         text: _sessionSourceLabel(l10n, session),
+                      ),
+                      _TinySessionPill(
+                        text: l10n.runningCoachHistoryMetricCount(
+                          session.insights.length,
+                        ),
                       ),
                       if (session.videoPath != null)
                         _TinySessionPill(
@@ -5150,6 +5445,11 @@ class _AnalysisHistoryTile extends StatelessWidget {
                       children: [
                         _TinySessionPill(
                           text: _sessionSourceLabel(l10n, session),
+                        ),
+                        _TinySessionPill(
+                          text: l10n.runningCoachHistoryMetricCount(
+                            session.insights.length,
+                          ),
                         ),
                         if (session.videoPath != null)
                           _TinySessionPill(
@@ -6433,7 +6733,195 @@ class _AnalysisHistoryDetailScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           _BeginnerActionCard(insight: insight),
+          const SizedBox(height: 20),
+          Text(
+            l10n.runningCoachHistoryFullReportTitle,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w900,
+                ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            l10n.runningCoachHistoryFullReportBody(session.insights.length),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+          ),
+          const SizedBox(height: 12),
+          for (var index = 0; index < session.insights.length; index += 1) ...[
+            _HistoryMetricReportTile(
+              insight: session.insights[index],
+              priority: index + 1,
+            ),
+            if (index != session.insights.length - 1) const SizedBox(height: 8),
+          ],
         ],
+      ),
+    );
+  }
+}
+
+class _HistoryMetricReportTile extends StatelessWidget {
+  final RunningCoachingInsight insight;
+  final int priority;
+
+  const _HistoryMetricReportTile({
+    required this.insight,
+    required this.priority,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    final copy = RunningCoachInsightCopy.fromInsight(insight, l10n);
+    final accent = _statusAccentColor(insight.status);
+    final isReliable = !insight.quality.isLowConfidence;
+    return DecoratedBox(
+      key: ValueKey(
+        'running-coach-history-metric-${insight.metric.name}',
+      ),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: scheme.outlineVariant),
+      ),
+      child: ExpansionTile(
+        key: PageStorageKey(
+          'running-coach-history-metric-expansion-${insight.metric.name}',
+        ),
+        shape: const RoundedRectangleBorder(),
+        collapsedShape: const RoundedRectangleBorder(),
+        tilePadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+        childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+        leading: SizedBox.square(
+          dimension: 38,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: accent.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(_sampleMetricIcon(insight.metric), color: accent),
+          ),
+        ),
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(
+                copy.title,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              l10n.runningCoachPriorityLabel(priority),
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: accent,
+                    fontWeight: FontWeight.w900,
+                  ),
+            ),
+          ],
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 5),
+          child: Text(
+            copy.summary,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ),
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: _HistoryMetricValue(
+                  label: l10n.runningCoachMetricValueLabel,
+                  value: isReliable
+                      ? copy.value
+                      : l10n.runningCoachEvidenceQualityLimitedBadge,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _HistoryMetricValue(
+                  label: l10n.runningCoachMetricScoreLabel,
+                  value: isReliable
+                      ? '${insight.score}'
+                      : l10n.runningCoachEvidenceQualityLimitedBadge,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _GuideTextRow(
+            icon: Icons.directions_run_rounded,
+            label: l10n.runningCoachResultNextRunCueLabel,
+            body: copy.cue,
+          ),
+          const SizedBox(height: 10),
+          _GuideTextRow(
+            icon: Icons.fitness_center_rounded,
+            label: l10n.runningCoachAnalysisGuideDrillLabel,
+            body: copy.drill,
+          ),
+          if (insight.quality.isLowConfidence) ...[
+            const SizedBox(height: 10),
+            _GuideTextRow(
+              icon: Icons.visibility_off_outlined,
+              label: l10n.runningCoachEvidenceQualityLimitedBadge,
+              body: _qualityReasonText(context, insight.quality),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _HistoryMetricValue extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _HistoryMetricValue({
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.64),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 9),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              value,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -8554,38 +9042,25 @@ class _HeroCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [scheme.primary.withAlpha(220), scheme.secondaryContainer],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w900,
+                ),
           ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: scheme.onPrimary,
-                      fontWeight: FontWeight.w800,
-                    ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                body,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyLarge?.copyWith(color: scheme.onPrimary),
-              ),
-            ],
+          const SizedBox(height: 6),
+          Text(
+            body,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
           ),
-        ),
+        ],
       ),
     );
   }

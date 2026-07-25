@@ -4641,8 +4641,10 @@
   "mealStatsNoTrainingOrMealEntries": "No training or meal entries in the selected period.",
   "drawerRunningCoach": "Running Coach",
   "runningCoachScreenTitle": "Running Coach",
-  "runningCoachHeroTitle": "Side-view running form coach",
-  "runningCoachHeroBody": "Make running feel like a weapon for the next match: take a tiny football sprint mission, log a time, then use form coaching to find the next tenth of a second.",
+  "runningCoachHeroTitle": "Run, review, improve",
+  "runningCoachHeroBody": "Use live cues while you run, or upload one clear side-view clip for a full form report.",
+  "runningCoachStartTitle": "Choose how you want to train",
+  "runningCoachStartBody": "Start live coaching now, or check the exact camera setup before recording a clip.",
   "runningCoachSectionToday": "Mission",
   "runningCoachSectionRecords": "Records",
   "runningCoachSectionAnalysis": "Analysis",
@@ -4804,7 +4806,7 @@
   "runningCoachBadgeRecordBreaker": "Record breaker",
   "runningCoachBadgeThreeDaySpark": "3-day spark",
   "runningCoachBadgeAllRounder": "10/20/30m runner",
-  "runningCoachAnalyzeBody": "Choose one side-view clip. The result starts with the video frame that supports the first coaching focus.",
+  "runningCoachAnalyzeBody": "Choose a 5-15 second side-view clip. You will get one priority cue first, followed by the full five-metric report.",
   "runningCoachTipsTitle": "How to record",
   "runningCoachTipWholeBody": "Keep the full body in frame from head to foot strike, with shoulders, hips, knees, ankles, elbows, and wrists visible.",
   "runningCoachTipSideView": "Record from a true side view while the runner moves across the frame, not toward or away from the camera.",
@@ -4816,12 +4818,25 @@
   "runningCoachUploadGuideStepDuration": "Use a 5-15 second clip with 3-6 clean strides, then trim away walking setup, turns, and stopped frames.",
   "runningCoachUploadGuideStepLight": "Record in bright, even light with a plain background; avoid shadows, cropped feet, and people crossing behind the runner.",
   "runningCoachSampleTitle": "Sample video guide",
-  "runningCoachSampleBody": "These are example clips from different runners and locations. Use them only to learn the overlay; they are not a controlled correct-vs-wrong comparison.",
+  "runningCoachSampleBody": "Play the analysis-ready side-view example first, then match its framing when you record your own run.",
   "runningCoachSampleGuideAction": "Open sample video guide",
-  "runningCoachSampleAnalysisLoadingTitle": "Analyzing sample videos",
-  "runningCoachSampleAnalysisLoadingBody": "The app is reading the bundled example clips now.",
+  "runningCoachSampleAnalysisLoadingTitle": "Adding the measured overlay",
+  "runningCoachSampleAnalysisLoadingBody": "The video is ready to play. The app is analyzing its joints and contact frames in the background.",
   "runningCoachSampleAnalysisFailedTitle": "Sample analysis unavailable",
   "runningCoachSampleAnalysisRetryAction": "Retry sample analysis",
+  "runningCoachSampleTechnicalDetailsTitle": "How the analysis works",
+  "runningCoachSampleVideoPlay": "Play sample video",
+  "runningCoachSampleVideoPause": "Pause sample video",
+  "runningCoachSampleVideoUnavailable": "The sample video could not be loaded. You can still use the recording guide below.",
+  "runningCoachSampleVideoRetryAction": "Retry video",
+  "runningCoachSampleScoreValue": "Score {score}",
+  "@runningCoachSampleScoreValue": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
   "runningCoachSampleFrameLabel": "Frame {current}/{total}",
   "@runningCoachSampleFrameLabel": {
     "placeholders": {
@@ -4841,9 +4856,9 @@
   "runningCoachSampleCueArms": "Elbows stay bent and swing opposite the legs",
   "runningCoachSampleReferenceTab": "Example A",
   "runningCoachSampleMistakeTab": "Example B",
-  "runningCoachSampleReferenceTitle": "Example A readouts",
+  "runningCoachSampleReferenceTitle": "Analysis-ready outdoor example",
   "runningCoachSampleMistakeTitle": "Example B readouts",
-  "runningCoachSampleReferenceBody": "This clip shows how the overlay follows one runner's lean, landing, knee bend, arms, and bounce.",
+  "runningCoachSampleReferenceBody": "The phone is fixed at a true side angle, the whole runner stays visible, and the runner fills enough of the frame for joint tracking.",
   "runningCoachSampleMistakeBody": "This separate clip shows another runner and setting. Review the readouts without treating it as a matched comparison.",
   "runningCoachSampleReferencePosture": "Forward lean: the coach reads the shoulder-to-hip line and reports the current posture value.",
   "runningCoachSampleReferenceFoot": "Contact point: the coach compares the landing foot with the hip line before judging braking risk.",
@@ -4862,6 +4877,21 @@
   "runningCoachSampleMethodContact": "Contact: the closest landing frames estimate foot strike distance from the hip line.",
   "runningCoachSampleMethodConfidence": "Confidence: low coverage or too few stable frames makes the coach warn you to recheck.",
   "runningCoachSampleRecordingGuideTitle": "Recording setup guide",
+  "runningCoachCaptureTreadmillTab": "Treadmill",
+  "runningCoachCaptureOutdoorTab": "Outdoor pass",
+  "runningCoachCaptureTreadmillTitle": "Best setup for a treadmill",
+  "runningCoachCaptureTreadmillBody": "A fixed landscape side view is the most repeatable setup. Portrait is acceptable only when the full body and treadmill remain visible.",
+  "runningCoachCaptureTreadmillStepCamera": "Place the phone exactly perpendicular to the belt, with the lens at hip height. Do not film from the front or rear.",
+  "runningCoachCaptureTreadmillStepDistance": "Start about 3 m away, then adjust until the runner is 50-75% of the frame height.",
+  "runningCoachCaptureTreadmillStepFrame": "Keep the head, both hands, both knees, and both shoes inside the frame for every step. Leave a little space above the head and below the belt.",
+  "runningCoachCaptureTreadmillStepClip": "Record 5-10 seconds at a steady speed. Use 1080p/60 fps when available; 30 fps is the minimum.",
+  "runningCoachCaptureOutdoorTitle": "Fixed side-pass setup",
+  "runningCoachCaptureOutdoorBody": "A runner may pass farther from the phone, but distance is acceptable only while the whole body remains large and sharp enough to track.",
+  "runningCoachCaptureOutdoorStepCamera": "Fix the phone at hip height, perpendicular to the running line. Do not pan, zoom, or follow the runner.",
+  "runningCoachCaptureOutdoorStepDistance": "Set the running line so the runner occupies 40-70% of frame height while crossing the center.",
+  "runningCoachCaptureOutdoorStepFrame": "Leave entry and exit space, but trim the clip to 3-6 clean strides with every joint visible.",
+  "runningCoachCaptureOutdoorStepClip": "Use bright, even light and a plain background. Avoid motion blur, shadows, cropped feet, and people crossing behind.",
+  "runningCoachCaptureOutdoorDistanceWarning": "Far-away footage is not recommended when the runner is below 40% of frame height. Move the running line closer or use optical zoom before recording.",
   "runningCoachSampleProcessTitle": "Analysis process on the real clip",
   "runningCoachSampleProcessBody": "The overlay shows the same order the coach follows: sample a stable frame, lock visible body points, connect body lines, measure angles, then check contact evidence.",
   "runningCoachSamplePhaseFrame": "Sample frame",
@@ -5993,6 +6023,7 @@
   "runningCoachSelectedVideoLabel": "Selected video",
   "runningCoachNoVideoSelected": "No video selected yet.",
   "runningCoachPickVideoAction": "Pick video",
+  "runningCoachChangeVideoAction": "Change",
   "runningCoachAnalyzeAction": "Analyze run",
   "runningCoachAnalysisInProgress": "Analyzing...",
   "runningCoachPickVideoFailed": "Could not open the video picker.",
@@ -6023,6 +6054,23 @@
   "runningCoachAnalysisHistoryEmpty": "No saved coaching analyses yet.",
   "runningCoachAnalysisHistoryDetailTitle": "Analysis review",
   "runningCoachAnalysisHistoryPrimaryFocus": "Key coaching focus",
+  "runningCoachHistoryMetricCount": "{count} metrics",
+  "@runningCoachHistoryMetricCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachHistoryFullReportTitle": "Full form report",
+  "runningCoachHistoryFullReportBody": "This saved report includes all {count} measured coaching metrics. Open each item for the same cue and drill shown after analysis.",
+  "@runningCoachHistoryFullReportBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "runningCoachAnalysisResultScreenTitle": "Running analysis result",
   "runningCoachHistoryVideoSaved": "Video saved",
   "runningCoachArchivedVideoTitle": "Analyzed video",

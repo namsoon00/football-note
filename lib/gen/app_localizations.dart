@@ -14221,14 +14221,26 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachHeroTitle.
   ///
   /// In en, this message translates to:
-  /// **'Side-view running form coach'**
+  /// **'Run, review, improve'**
   String get runningCoachHeroTitle;
 
   /// No description provided for @runningCoachHeroBody.
   ///
   /// In en, this message translates to:
-  /// **'Make running feel like a weapon for the next match: take a tiny football sprint mission, log a time, then use form coaching to find the next tenth of a second.'**
+  /// **'Use live cues while you run, or upload one clear side-view clip for a full form report.'**
   String get runningCoachHeroBody;
+
+  /// No description provided for @runningCoachStartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose how you want to train'**
+  String get runningCoachStartTitle;
+
+  /// No description provided for @runningCoachStartBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Start live coaching now, or check the exact camera setup before recording a clip.'**
+  String get runningCoachStartBody;
 
   /// No description provided for @runningCoachSectionToday.
   ///
@@ -14737,7 +14749,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachAnalyzeBody.
   ///
   /// In en, this message translates to:
-  /// **'Choose one side-view clip. The result starts with the video frame that supports the first coaching focus.'**
+  /// **'Choose a 5-15 second side-view clip. You will get one priority cue first, followed by the full five-metric report.'**
   String get runningCoachAnalyzeBody;
 
   /// No description provided for @runningCoachTipsTitle.
@@ -14809,7 +14821,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleBody.
   ///
   /// In en, this message translates to:
-  /// **'These are example clips from different runners and locations. Use them only to learn the overlay; they are not a controlled correct-vs-wrong comparison.'**
+  /// **'Play the analysis-ready side-view example first, then match its framing when you record your own run.'**
   String get runningCoachSampleBody;
 
   /// No description provided for @runningCoachSampleGuideAction.
@@ -14821,13 +14833,13 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleAnalysisLoadingTitle.
   ///
   /// In en, this message translates to:
-  /// **'Analyzing sample videos'**
+  /// **'Adding the measured overlay'**
   String get runningCoachSampleAnalysisLoadingTitle;
 
   /// No description provided for @runningCoachSampleAnalysisLoadingBody.
   ///
   /// In en, this message translates to:
-  /// **'The app is reading the bundled example clips now.'**
+  /// **'The video is ready to play. The app is analyzing its joints and contact frames in the background.'**
   String get runningCoachSampleAnalysisLoadingBody;
 
   /// No description provided for @runningCoachSampleAnalysisFailedTitle.
@@ -14841,6 +14853,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Retry sample analysis'**
   String get runningCoachSampleAnalysisRetryAction;
+
+  /// No description provided for @runningCoachSampleTechnicalDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How the analysis works'**
+  String get runningCoachSampleTechnicalDetailsTitle;
+
+  /// No description provided for @runningCoachSampleVideoPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Play sample video'**
+  String get runningCoachSampleVideoPlay;
+
+  /// No description provided for @runningCoachSampleVideoPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause sample video'**
+  String get runningCoachSampleVideoPause;
+
+  /// No description provided for @runningCoachSampleVideoUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The sample video could not be loaded. You can still use the recording guide below.'**
+  String get runningCoachSampleVideoUnavailable;
+
+  /// No description provided for @runningCoachSampleVideoRetryAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry video'**
+  String get runningCoachSampleVideoRetryAction;
+
+  /// No description provided for @runningCoachSampleScoreValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Score {score}'**
+  String runningCoachSampleScoreValue(int score);
 
   /// No description provided for @runningCoachSampleFrameLabel.
   ///
@@ -14899,7 +14947,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleReferenceTitle.
   ///
   /// In en, this message translates to:
-  /// **'Example A readouts'**
+  /// **'Analysis-ready outdoor example'**
   String get runningCoachSampleReferenceTitle;
 
   /// No description provided for @runningCoachSampleMistakeTitle.
@@ -14911,7 +14959,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleReferenceBody.
   ///
   /// In en, this message translates to:
-  /// **'This clip shows how the overlay follows one runner\'s lean, landing, knee bend, arms, and bounce.'**
+  /// **'The phone is fixed at a true side angle, the whole runner stays visible, and the runner fills enough of the frame for joint tracking.'**
   String get runningCoachSampleReferenceBody;
 
   /// No description provided for @runningCoachSampleMistakeBody.
@@ -15021,6 +15069,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Recording setup guide'**
   String get runningCoachSampleRecordingGuideTitle;
+
+  /// No description provided for @runningCoachCaptureTreadmillTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Treadmill'**
+  String get runningCoachCaptureTreadmillTab;
+
+  /// No description provided for @runningCoachCaptureOutdoorTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Outdoor pass'**
+  String get runningCoachCaptureOutdoorTab;
+
+  /// No description provided for @runningCoachCaptureTreadmillTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Best setup for a treadmill'**
+  String get runningCoachCaptureTreadmillTitle;
+
+  /// No description provided for @runningCoachCaptureTreadmillBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A fixed landscape side view is the most repeatable setup. Portrait is acceptable only when the full body and treadmill remain visible.'**
+  String get runningCoachCaptureTreadmillBody;
+
+  /// No description provided for @runningCoachCaptureTreadmillStepCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Place the phone exactly perpendicular to the belt, with the lens at hip height. Do not film from the front or rear.'**
+  String get runningCoachCaptureTreadmillStepCamera;
+
+  /// No description provided for @runningCoachCaptureTreadmillStepDistance.
+  ///
+  /// In en, this message translates to:
+  /// **'Start about 3 m away, then adjust until the runner is 50-75% of the frame height.'**
+  String get runningCoachCaptureTreadmillStepDistance;
+
+  /// No description provided for @runningCoachCaptureTreadmillStepFrame.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the head, both hands, both knees, and both shoes inside the frame for every step. Leave a little space above the head and below the belt.'**
+  String get runningCoachCaptureTreadmillStepFrame;
+
+  /// No description provided for @runningCoachCaptureTreadmillStepClip.
+  ///
+  /// In en, this message translates to:
+  /// **'Record 5-10 seconds at a steady speed. Use 1080p/60 fps when available; 30 fps is the minimum.'**
+  String get runningCoachCaptureTreadmillStepClip;
+
+  /// No description provided for @runningCoachCaptureOutdoorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixed side-pass setup'**
+  String get runningCoachCaptureOutdoorTitle;
+
+  /// No description provided for @runningCoachCaptureOutdoorBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A runner may pass farther from the phone, but distance is acceptable only while the whole body remains large and sharp enough to track.'**
+  String get runningCoachCaptureOutdoorBody;
+
+  /// No description provided for @runningCoachCaptureOutdoorStepCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Fix the phone at hip height, perpendicular to the running line. Do not pan, zoom, or follow the runner.'**
+  String get runningCoachCaptureOutdoorStepCamera;
+
+  /// No description provided for @runningCoachCaptureOutdoorStepDistance.
+  ///
+  /// In en, this message translates to:
+  /// **'Set the running line so the runner occupies 40-70% of frame height while crossing the center.'**
+  String get runningCoachCaptureOutdoorStepDistance;
+
+  /// No description provided for @runningCoachCaptureOutdoorStepFrame.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave entry and exit space, but trim the clip to 3-6 clean strides with every joint visible.'**
+  String get runningCoachCaptureOutdoorStepFrame;
+
+  /// No description provided for @runningCoachCaptureOutdoorStepClip.
+  ///
+  /// In en, this message translates to:
+  /// **'Use bright, even light and a plain background. Avoid motion blur, shadows, cropped feet, and people crossing behind.'**
+  String get runningCoachCaptureOutdoorStepClip;
+
+  /// No description provided for @runningCoachCaptureOutdoorDistanceWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Far-away footage is not recommended when the runner is below 40% of frame height. Move the running line closer or use optical zoom before recording.'**
+  String get runningCoachCaptureOutdoorDistanceWarning;
 
   /// No description provided for @runningCoachSampleProcessTitle.
   ///
@@ -17826,6 +17964,12 @@ abstract class AppLocalizations {
   /// **'Pick video'**
   String get runningCoachPickVideoAction;
 
+  /// No description provided for @runningCoachChangeVideoAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get runningCoachChangeVideoAction;
+
   /// No description provided for @runningCoachAnalyzeAction.
   ///
   /// In en, this message translates to:
@@ -17963,6 +18107,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Key coaching focus'**
   String get runningCoachAnalysisHistoryPrimaryFocus;
+
+  /// No description provided for @runningCoachHistoryMetricCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} metrics'**
+  String runningCoachHistoryMetricCount(int count);
+
+  /// No description provided for @runningCoachHistoryFullReportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Full form report'**
+  String get runningCoachHistoryFullReportTitle;
+
+  /// No description provided for @runningCoachHistoryFullReportBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This saved report includes all {count} measured coaching metrics. Open each item for the same cue and drill shown after analysis.'**
+  String runningCoachHistoryFullReportBody(int count);
 
   /// No description provided for @runningCoachAnalysisResultScreenTitle.
   ///

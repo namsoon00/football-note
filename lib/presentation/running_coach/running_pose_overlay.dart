@@ -10,8 +10,9 @@ enum RunningPoseOverlayPresentation { refinedJoints, sportsAvatar }
 
 /// Visual styling for an anatomical pose layer derived from MediaPipe joints.
 ///
-/// The default presentation is a refined biomechanical joint layer. It only
-/// joins measured landmarks, so it does not infer a runner's body shape.
+/// The default presentation is a refined biomechanical joint layer. Its
+/// understated body envelope is anchored to measured landmarks and never
+/// changes their position.
 class RunningPoseHumanFormStyle {
   final Color bodyColor;
   final Color leftSideColor;
@@ -130,6 +131,14 @@ void _drawRefinedJointOverlay(
   double opacity,
   Set<int> focusIndices,
 ) {
+  _drawMeasuredBodyEnvelope(
+    canvas,
+    points,
+    bodyScale,
+    style,
+    opacity,
+    focusIndices,
+  );
   _drawRefinedJointTorso(canvas, points, bodyScale, style, opacity);
   for (final connection in _refinedJointConnections) {
     final from = points[connection.from];
@@ -160,6 +169,114 @@ void _drawRefinedJointOverlay(
     style,
     opacity,
     focusIndices,
+  );
+}
+
+void _drawMeasuredBodyEnvelope(
+  Canvas canvas,
+  Map<int, Offset> points,
+  double bodyScale,
+  RunningPoseHumanFormStyle style,
+  double opacity,
+  Set<int> focusIndices,
+) {
+  for (final segment in <_HumanLimbSegment>[
+    ..._humanLegSegments,
+    ..._humanArmSegments,
+  ]) {
+    final from = points[segment.from];
+    final to = points[segment.to];
+    if (from == null || to == null || (to - from).distance < 1) continue;
+    final sideColor = switch (segment.side) {
+      _HumanPoseSide.left => style.leftSideColor,
+      _HumanPoseSide.right => style.rightSideColor,
+    };
+    final baseRadius = (bodyScale * 0.044).clamp(2.8, 11.0).toDouble();
+    final fromRadius =
+        (baseRadius * segment.fromRadiusFactor).clamp(2.2, 14.0).toDouble();
+    final toRadius =
+        (baseRadius * segment.toRadiusFactor).clamp(1.8, 12.0).toDouble();
+    final path = _humanTaperedPath(from, to, fromRadius, toRadius);
+    final focused = focusIndices.contains(segment.from) ||
+        focusIndices.contains(segment.to);
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = style.bodyColor.withValues(alpha: 0.10 * opacity)
+        ..style = PaintingStyle.fill,
+    );
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = (focused ? style.focusColor : sideColor).withValues(
+          alpha: (focused ? 0.38 : 0.20) * opacity,
+        )
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = (bodyScale * 0.0048).clamp(0.5, 1.2)
+        ..strokeJoin = StrokeJoin.round,
+    );
+  }
+
+  final leftShoulder = points[11];
+  final rightShoulder = points[12];
+  final leftHip = points[23];
+  final rightHip = points[24];
+  if (leftShoulder == null ||
+      rightShoulder == null ||
+      leftHip == null ||
+      rightHip == null) {
+    return;
+  }
+  final shoulderCenter = _humanMidpoint(leftShoulder, rightShoulder);
+  final hipCenter = _humanMidpoint(leftHip, rightHip);
+  final axis = _humanUnitVector(hipCenter - shoulderCenter);
+  final side = _humanPerpendicular(axis);
+  final shoulderWidth = (leftShoulder - rightShoulder).distance;
+  final hipWidth = (leftHip - rightHip).distance;
+  final leftWaist = _humanLerp(leftShoulder, leftHip, 0.58) -
+      _humanScale(side, math.min(shoulderWidth, hipWidth) * 0.04);
+  final rightWaist = _humanLerp(rightShoulder, rightHip, 0.58) +
+      _humanScale(side, math.min(shoulderWidth, hipWidth) * 0.04);
+  final torso = Path()
+    ..moveTo(leftShoulder.dx, leftShoulder.dy)
+    ..quadraticBezierTo(
+      shoulderCenter.dx,
+      shoulderCenter.dy - bodyScale * 0.012,
+      rightShoulder.dx,
+      rightShoulder.dy,
+    )
+    ..quadraticBezierTo(
+      rightWaist.dx,
+      rightWaist.dy,
+      rightHip.dx,
+      rightHip.dy,
+    )
+    ..quadraticBezierTo(
+      hipCenter.dx,
+      hipCenter.dy + bodyScale * 0.008,
+      leftHip.dx,
+      leftHip.dy,
+    )
+    ..quadraticBezierTo(
+      leftWaist.dx,
+      leftWaist.dy,
+      leftShoulder.dx,
+      leftShoulder.dy,
+    )
+    ..close();
+  canvas.drawPath(
+    torso,
+    Paint()
+      ..color = style.bodyColor.withValues(alpha: 0.11 * opacity)
+      ..style = PaintingStyle.fill,
+  );
+  canvas.drawPath(
+    torso,
+    Paint()
+      ..color = style.bodyColor.withValues(alpha: 0.28 * opacity)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = (bodyScale * 0.006).clamp(0.6, 1.45)
+      ..strokeJoin = StrokeJoin.round,
   );
 }
 
