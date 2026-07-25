@@ -118,10 +118,31 @@ void main() {
       find.byKey(const ValueKey('meal-coach-summary-section')),
       findsOneWidget,
     );
+    expect(find.byKey(const ValueKey('meal-coach-body')), findsNothing);
     expect(
         find.byKey(const ValueKey('meal-breakfast-section')), findsOneWidget);
     expect(find.byKey(const ValueKey('meal-lunch-section')), findsOneWidget);
     expect(find.byKey(const ValueKey('meal-dinner-section')), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('meal-coach-expected-row')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey('meal-coach-actual-row')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey('meal-coach-calorie-row')),
+      findsNothing,
+    );
+    expect(find.byKey(const ValueKey('meal-coach-xp-row')), findsNothing);
+
+    await tester.tap(
+      find.byKey(const ValueKey('meal-coach-details-false')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('meal-coach-body')), findsOneWidget);
     expect(
       find.byKey(const ValueKey('meal-coach-expected-row')),
       findsOneWidget,

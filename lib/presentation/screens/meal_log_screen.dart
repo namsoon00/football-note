@@ -133,6 +133,7 @@ class _MealLogScreenState extends State<MealLogScreen> {
                 theme: theme,
                 status: status,
                 calorieEstimate: calorieEstimate,
+                hasDietDetails: currentEntry.hasMealPlan,
               ),
               const SizedBox(height: 16),
               Divider(
@@ -339,77 +340,90 @@ class _MealLogScreenState extends State<MealLogScreen> {
     required ThemeData theme,
     required MealStatus status,
     required MealCalorieEstimate calorieEstimate,
+    required bool hasDietDetails,
   }) {
     return Padding(
       key: const ValueKey('meal-coach-summary-section'),
       padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
+      child: Theme(
+        data: theme.copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          key: ValueKey('meal-coach-details-$hasDietDetails'),
+          initiallyExpanded: hasDietDetails,
+          maintainState: true,
+          tilePadding: EdgeInsets.zero,
+          childrenPadding: const EdgeInsets.only(top: 2),
+          title: Text(
             _headline(l10n, status),
             key: const ValueKey('meal-coach-headline'),
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w800,
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            _body(l10n, status),
-            style: theme.textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 10),
-          _MealCoachInfoList(
-            items: [
-              _MealCoachInfoItem(
-                key: const ValueKey('meal-coach-expected-row'),
-                icon: Icons.flag_outlined,
-                label: l10n.mealAverageExpectedValue(
-                  _formatBowls(MealLogService.expectedBowlsPerDay),
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _body(l10n, status),
+                  key: const ValueKey('meal-coach-body'),
+                  style: theme.textTheme.bodyMedium,
                 ),
-              ),
-              _MealCoachInfoItem(
-                key: const ValueKey('meal-coach-actual-row'),
-                icon: Icons.rice_bowl_outlined,
-                label: l10n.mealAverageActualValue(
-                  _formatBowls(status.totalRiceBowls),
+                const SizedBox(height: 10),
+                _MealCoachInfoList(
+                  items: [
+                    _MealCoachInfoItem(
+                      key: const ValueKey('meal-coach-expected-row'),
+                      icon: Icons.flag_outlined,
+                      label: l10n.mealAverageExpectedValue(
+                        _formatBowls(MealLogService.expectedBowlsPerDay),
+                      ),
+                    ),
+                    _MealCoachInfoItem(
+                      key: const ValueKey('meal-coach-actual-row'),
+                      icon: Icons.rice_bowl_outlined,
+                      label: l10n.mealAverageActualValue(
+                        _formatBowls(status.totalRiceBowls),
+                      ),
+                    ),
+                    _MealCoachInfoItem(
+                      key: const ValueKey('meal-coach-calorie-row'),
+                      icon: Icons.local_fire_department_outlined,
+                      label: calorieEstimate.hasEstimate
+                          ? l10n.mealCalorieEstimateValue(
+                              calorieEstimate.totalKcal,
+                            )
+                          : l10n.mealCalorieEstimateEmpty,
+                    ),
+                    if (calorieEstimate.hasNutrition)
+                      _MealCoachInfoItem(
+                        key: const ValueKey('meal-coach-nutrition-row'),
+                        icon: Icons.monitor_heart_outlined,
+                        label: l10n.mealNutritionEstimateValue(
+                          calorieEstimate.totalCarbs.round(),
+                          calorieEstimate.totalProtein.round(),
+                          calorieEstimate.totalFat.round(),
+                        ),
+                      ),
+                    _MealCoachInfoItem(
+                      key: const ValueKey('meal-coach-xp-row'),
+                      icon: Icons.bolt_outlined,
+                      label: _xpLabel(l10n, status),
+                    ),
+                  ],
                 ),
-              ),
-              _MealCoachInfoItem(
-                key: const ValueKey('meal-coach-calorie-row'),
-                icon: Icons.local_fire_department_outlined,
-                label: calorieEstimate.hasEstimate
-                    ? l10n.mealCalorieEstimateValue(
-                        calorieEstimate.totalKcal,
-                      )
-                    : l10n.mealCalorieEstimateEmpty,
-              ),
-              if (calorieEstimate.hasNutrition)
-                _MealCoachInfoItem(
-                  key: const ValueKey('meal-coach-nutrition-row'),
-                  icon: Icons.monitor_heart_outlined,
-                  label: l10n.mealNutritionEstimateValue(
-                    calorieEstimate.totalCarbs.round(),
-                    calorieEstimate.totalProtein.round(),
-                    calorieEstimate.totalFat.round(),
+                const SizedBox(height: 10),
+                Text(
+                  _calorieCoach(l10n, calorieEstimate),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    height: 1.35,
                   ),
                 ),
-              _MealCoachInfoItem(
-                key: const ValueKey('meal-coach-xp-row'),
-                icon: Icons.bolt_outlined,
-                label: _xpLabel(l10n, status),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Text(
-            _calorieCoach(l10n, calorieEstimate),
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-              height: 1.35,
+              ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
