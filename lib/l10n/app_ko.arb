@@ -3987,8 +3987,6 @@
   "mealLogDateLabel": "기록 날짜",
   "mealLogDatePickerHelp": "식사 기록 날짜 선택",
   "mealDietDetailsTitle": "식단 입력",
-  "mealDietDetailsHint": "메인요리, 같이 먹은 음식, 메모는 필요할 때만 펼쳐요.",
-  "mealDietDetailsFilled": "입력된 식단 정보가 있어요.",
   "mealMenuInputLabel": "추가 메모",
   "mealMenuInputHint": "{label}에 목록에 없는 음식이나 느낌을 메모하세요",
   "@mealMenuInputHint": {

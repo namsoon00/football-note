@@ -3987,8 +3987,6 @@
   "mealLogDateLabel": "Log date",
   "mealLogDatePickerHelp": "Select meal log date",
   "mealDietDetailsTitle": "Diet details",
-  "mealDietDetailsHint": "Open only when adding a main dish, extra foods, or notes.",
-  "mealDietDetailsFilled": "Diet details are entered.",
   "mealMenuInputLabel": "Additional note",
   "mealMenuInputHint": "Add foods not on the list or notes for {label}",
   "@mealMenuInputHint": {
