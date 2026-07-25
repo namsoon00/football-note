@@ -25343,6 +25343,18 @@ abstract class AppLocalizations {
   /// **'Build the board as one sequence, and add several actions to the same stage when they should happen together.'**
   String get trainingSketchGlobalStagesHint;
 
+  /// No description provided for @trainingSketchActionTimelineTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'All actions'**
+  String get trainingSketchActionTimelineTitle;
+
+  /// No description provided for @trainingSketchActionTimelineEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No actions yet. Select a player to add the next action.'**
+  String get trainingSketchActionTimelineEmpty;
+
   /// No description provided for @trainingSketchReorderStageTooltip.
   ///
   /// In en, this message translates to:
@@ -25354,6 +25366,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reorder action'**
   String get trainingSketchReorderActionTooltip;
+
+  /// No description provided for @trainingSketchRunWithPreviousTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Run with previous action'**
+  String get trainingSketchRunWithPreviousTooltip;
+
+  /// No description provided for @trainingSketchRunAfterPreviousTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Run after previous action'**
+  String get trainingSketchRunAfterPreviousTooltip;
+
+  /// No description provided for @trainingSketchDeleteActionTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete action'**
+  String get trainingSketchDeleteActionTooltip;
 
   /// No description provided for @trainingSketchGlobalStagesEmpty.
   ///
@@ -26076,6 +26106,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Move then pass'**
   String get trainingSketchMoveThenPassButton;
+
+  /// No description provided for @trainingSketchMoveThenPassReceiverPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Move point set. Select the player to receive the pass.'**
+  String get trainingSketchMoveThenPassReceiverPrompt;
 
   /// No description provided for @trainingSketchQuickPassButton.
   ///

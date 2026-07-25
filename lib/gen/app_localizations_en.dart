@@ -14807,10 +14807,27 @@ class AppLocalizationsEn extends AppLocalizations {
       'Build the board as one sequence, and add several actions to the same stage when they should happen together.';
 
   @override
+  String get trainingSketchActionTimelineTitle => 'All actions';
+
+  @override
+  String get trainingSketchActionTimelineEmpty =>
+      'No actions yet. Select a player to add the next action.';
+
+  @override
   String get trainingSketchReorderStageTooltip => 'Reorder stage';
 
   @override
   String get trainingSketchReorderActionTooltip => 'Reorder action';
+
+  @override
+  String get trainingSketchRunWithPreviousTooltip => 'Run with previous action';
+
+  @override
+  String get trainingSketchRunAfterPreviousTooltip =>
+      'Run after previous action';
+
+  @override
+  String get trainingSketchDeleteActionTooltip => 'Delete action';
 
   @override
   String get trainingSketchGlobalStagesEmpty =>
@@ -15253,6 +15270,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trainingSketchMoveThenPassButton => 'Move then pass';
+
+  @override
+  String get trainingSketchMoveThenPassReceiverPrompt =>
+      'Move point set. Select the player to receive the pass.';
 
   @override
   String get trainingSketchQuickPassButton => 'Pass';

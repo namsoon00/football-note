@@ -136,8 +136,7 @@ void main() {
     expect(decoded.pages.single.routes.single.targetItemId, 'player-2');
   });
 
-  testWidgets(
-      'route stages stay in the global stage list without compact chips', (
+  testWidgets('routes appear in the action timeline without stage headers', (
     WidgetTester tester,
   ) async {
     _setLandscapeSurface(tester);
@@ -233,11 +232,21 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(
-        find.byKey(const ValueKey('training-global-stage-1')), findsOneWidget);
-    expect(
-      find.byKey(const ValueKey('training-global-stage-reorderable-list')),
-      findsNothing,
+      find.byKey(const ValueKey('training-action-timeline-reorderable-list')),
+      findsOneWidget,
     );
+    for (final routeId in <String>[
+      'route-player-1',
+      'route-ball-1',
+      'route-player-2',
+      'route-player-3',
+    ]) {
+      expect(
+        find.byKey(ValueKey('training-action-timeline-item-$routeId')),
+        findsOneWidget,
+      );
+    }
+    expect(find.text('전체 액션'), findsOneWidget);
     expect(find.text('동작 단계'), findsNothing);
 
     await tester.tap(find.widgetWithText(TextButton, '저장'));
@@ -529,6 +538,72 @@ void main() {
       saved.pages.single.items.where((item) => item.type == 'player'),
       hasLength(3),
     );
+    final playerColors = saved.pages.single.items
+        .where((item) => item.type == 'player')
+        .map((item) => item.colorValue)
+        .toSet();
+    expect(playerColors, hasLength(3));
+  });
+
+  testWidgets('moving a player keeps their controlled ball in front', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    String? savedLayout;
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '공 동반 위치 조정',
+          initialLayoutJson: const TrainingMethodLayout(
+            pages: <TrainingMethodPage>[
+              TrainingMethodPage(
+                name: 'Board',
+                items: <TrainingMethodItem>[
+                  TrainingMethodItem(
+                    id: 'player-1',
+                    type: 'player',
+                    x: 0.28,
+                    y: 0.58,
+                  ),
+                  TrainingMethodItem(
+                    id: 'ball-1',
+                    type: 'ball',
+                    x: 0.35,
+                    y: 0.58,
+                    colorValue: 0xFFFFCA28,
+                  ),
+                ],
+              ),
+            ],
+          ).encode(),
+          onSaved: (value) => savedLayout = value,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    final playerFinder = find.descendant(
+      of: boardFinder,
+      matching: find.byIcon(Icons.person),
+    );
+    await tester.drag(playerFinder, const Offset(70, -36));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(TextButton, '저장'));
+    await tester.pumpAndSettle();
+
+    final items =
+        TrainingMethodLayout.decode(savedLayout ?? '').pages.single.items;
+    final player = items.singleWhere((item) => item.id == 'player-1');
+    final ball = items.singleWhere((item) => item.id == 'ball-1');
+    final playerToBall = Offset(ball.x - player.x, ball.y - player.y);
+    expect(player.x, greaterThan(0.28));
+    expect(player.y, lessThan(0.58));
+    expect(playerToBall.dx, greaterThan(0));
+    expect(playerToBall.dy, lessThan(0));
+    expect(playerToBall.distance, closeTo(0.07, 0.015));
   });
 
   testWidgets('same player actions append to one connected route', (
@@ -1120,7 +1195,7 @@ void main() {
     await tester.pump();
     expect(ballIcon, findsNothing);
     expect(
-      find.byKey(const ValueKey('training-global-stage-active-1')),
+      find.byKey(const ValueKey('training-action-timeline-active-stage-1')),
       findsOneWidget,
     );
 
@@ -1130,7 +1205,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 620));
     expect(ballIcon, findsOneWidget);
     expect(
-      find.byKey(const ValueKey('training-global-stage-active-2')),
+      find.byKey(const ValueKey('training-action-timeline-active-stage-2')),
       findsOneWidget,
     );
   });
@@ -1714,7 +1789,7 @@ void main() {
     expect(ballRoutes.map((route) => route.stageIndex).toSet(), {1, 2});
   });
 
-  testWidgets('single selected route appears in its only global stage', (
+  testWidgets('single selected route appears in the action timeline', (
     WidgetTester tester,
   ) async {
     _setLandscapeSurface(tester);
@@ -1760,17 +1835,21 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('1단계 · 액션 1개'), findsOneWidget);
     expect(
-        find.byKey(const ValueKey('training-global-stage-1')), findsOneWidget);
+      find.byKey(
+        const ValueKey('training-action-timeline-item-route-player-1'),
+      ),
+      findsOneWidget,
+    );
     expect(
-      find.byKey(const ValueKey('training-global-stage-reorderable-list')),
+      find.byKey(const ValueKey('training-action-timeline-reorderable-list')),
       findsNothing,
     );
+    expect(find.text('전체 액션'), findsOneWidget);
     expect(find.text('동작 단계'), findsNothing);
   });
 
-  testWidgets('selected player keeps stage controls in the global stage list', (
+  testWidgets('selected player keeps action controls in the action timeline', (
     WidgetTester tester,
   ) async {
     _setLandscapeSurface(tester);
@@ -1822,7 +1901,7 @@ void main() {
     expect(find.widgetWithText(OutlinedButton, '단계 액션 삭제'), findsNothing);
     expect(
       find.byKey(
-        const ValueKey('training-global-stage-action-delete-route-player-1'),
+        const ValueKey('training-action-timeline-delete-route-player-1'),
       ),
       findsOneWidget,
     );
@@ -1963,7 +2042,7 @@ void main() {
 
     expect(
       find.byKey(
-        const ValueKey('training-global-stage-action-selected-route-shot'),
+        const ValueKey('training-action-timeline-selected-route-shot'),
       ),
       findsOneWidget,
     );
@@ -1998,7 +2077,7 @@ void main() {
     expect(route.points[1].y, lessThan(0.40));
   });
 
-  testWidgets('selected route can be removed from global stage controls', (
+  testWidgets('selected route can be removed from action timeline controls', (
     WidgetTester tester,
   ) async {
     _setLandscapeSurface(tester);
@@ -2049,7 +2128,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(
       find.byKey(
-        const ValueKey('training-global-stage-action-delete-route-player-1'),
+        const ValueKey('training-action-timeline-delete-route-player-1'),
       ),
     );
     await tester.pumpAndSettle();
@@ -4209,9 +4288,15 @@ void main() {
     expect(playerMove.points.last.y, closeTo(0.34, 0.02));
     expect(ballRoutes, hasLength(2));
     expect(ballRoutes.any((route) => route.stageIndex == 1), isTrue);
+    final carryRoute = ballRoutes.singleWhere((route) => route.stageIndex == 1);
+    final passRoute = ballRoutes.singleWhere((route) => route.stageIndex == 2);
+    expect(passRoute.targetItemId, 'player-2');
     expect(
-      ballRoutes.singleWhere((route) => route.stageIndex == 2).targetItemId,
-      'player-2',
+      Offset(
+        carryRoute.points.last.x - passRoute.points.first.x,
+        carryRoute.points.last.y - passRoute.points.first.y,
+      ).distance,
+      closeTo(0, 0.0001),
     );
   });
 
@@ -4734,7 +4819,7 @@ void main() {
 
     await tester.tap(
       find.byKey(
-        const ValueKey('training-global-stage-action-delete-route-2'),
+        const ValueKey('training-action-timeline-delete-route-2'),
       ),
     );
     await tester.pumpAndSettle();
@@ -4750,7 +4835,7 @@ void main() {
     );
   });
 
-  testWidgets('global stage action can be deleted directly from summary', (
+  testWidgets('timeline action can be deleted directly from summary', (
     WidgetTester tester,
   ) async {
     _setLandscapeSurface(tester);
@@ -4818,7 +4903,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final deletePassAction = find.byKey(
-      const ValueKey('training-global-stage-action-delete-route-pass'),
+      const ValueKey('training-action-timeline-delete-route-pass'),
     );
     expect(deletePassAction, findsOneWidget);
     await tester.tap(deletePassAction);
@@ -4833,7 +4918,7 @@ void main() {
     expect(routeIds, contains('route-move'));
   });
 
-  testWidgets('global stage action keeps editing in the stage summary', (
+  testWidgets('timeline action keeps editing in the action summary', (
     WidgetTester tester,
   ) async {
     _setLandscapeSurface(tester);
@@ -4879,28 +4964,27 @@ void main() {
     await tester.pumpAndSettle();
 
     final actionRow = find.byKey(
-      const ValueKey('training-global-stage-action-row-route-shot'),
+      const ValueKey('training-action-timeline-row-route-shot'),
     );
     expect(actionRow, findsOneWidget);
     await tester.tap(actionRow);
     await tester.pumpAndSettle();
     expect(
       find.byKey(
-        const ValueKey('training-global-stage-action-selected-route-shot'),
+        const ValueKey('training-action-timeline-selected-route-shot'),
       ),
       findsOneWidget,
     );
-    expect(find.text('선택됨'), findsOneWidget);
 
     expect(
       find.byKey(
-        const ValueKey('training-global-stage-action-edit-route-shot'),
+        const ValueKey('training-action-timeline-edit-route-shot'),
       ),
       findsNothing,
     );
     expect(
       find.byKey(
-        const ValueKey('training-global-stage-action-insert-route-shot'),
+        const ValueKey('training-action-timeline-insert-route-shot'),
       ),
       findsNothing,
     );
@@ -4908,7 +4992,7 @@ void main() {
     expect(find.widgetWithText(OutlinedButton, '단계 액션 삭제'), findsNothing);
     expect(
       find.byKey(
-        const ValueKey('training-global-stage-action-delete-route-shot'),
+        const ValueKey('training-action-timeline-delete-route-shot'),
       ),
       findsOneWidget,
     );
@@ -5029,7 +5113,7 @@ void main() {
     expect(player2Route.points.last.y, closeTo(0.38, 0.02));
   });
 
-  testWidgets('global stages can be reordered as a unit', (
+  testWidgets('action timeline can reorder every action', (
     WidgetTester tester,
   ) async {
     _setLandscapeSurface(tester);
@@ -5099,18 +5183,24 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final reorderableStages = tester.widget<ReorderableListView>(
-      find.byKey(const ValueKey('training-global-stage-reorderable-list')),
+    final reorderableActions = tester.widget<ReorderableListView>(
+      find.byKey(const ValueKey('training-action-timeline-reorderable-list')),
     );
     expect(
-      find.byKey(const ValueKey('training-global-stage-reorder-handle-1')),
+      find.byKey(
+        const ValueKey('training-action-timeline-reorder-handle-route-pass'),
+      ),
       findsOneWidget,
     );
     expect(
-      find.byKey(const ValueKey('training-global-stage-reorder-handle-2')),
+      find.byKey(
+        const ValueKey(
+          'training-action-timeline-reorder-handle-route-later',
+        ),
+      ),
       findsOneWidget,
     );
-    reorderableStages.onReorder(0, 2);
+    reorderableActions.onReorder(0, 3);
     await tester.pumpAndSettle();
 
     await tester.tap(find.widgetWithText(TextButton, '저장'));
@@ -5120,19 +5210,19 @@ void main() {
     final routes = saved.pages.single.routes;
     expect(
       routes.singleWhere((route) => route.id == 'route-pass').stageIndex,
-      2,
+      3,
     );
     expect(
       routes.singleWhere((route) => route.id == 'route-first-move').stageIndex,
-      2,
+      1,
     );
     expect(
       routes.singleWhere((route) => route.id == 'route-later').stageIndex,
-      1,
+      2,
     );
   });
 
-  testWidgets('actions in the same stage can be reordered', (
+  testWidgets('concurrent actions can be reordered in the action timeline', (
     WidgetTester tester,
   ) async {
     _setLandscapeSurface(tester);
@@ -5186,13 +5276,13 @@ void main() {
 
     final reorderableActions = tester.widget<ReorderableListView>(
       find.byKey(
-        const ValueKey('training-global-stage-action-reorderable-list-1'),
+        const ValueKey('training-action-timeline-reorderable-list'),
       ),
     );
     expect(
       find.byKey(
         const ValueKey(
-          'training-global-stage-action-reorder-handle-route-pass',
+          'training-action-timeline-reorder-handle-route-pass',
         ),
       ),
       findsOneWidget,
@@ -5209,6 +5299,10 @@ void main() {
       'route-move',
       'route-pass',
     ]);
+    expect(
+      routes.take(2).map((route) => route.stageIndex),
+      <int>[1, 2],
+    );
   });
 
   testWidgets('global stages hide the ball ownership relationship panel', (
@@ -5404,7 +5498,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final deleteCarryAction = find.byKey(
-      const ValueKey('training-global-stage-action-delete-route-ball-carry'),
+      const ValueKey('training-action-timeline-delete-route-ball-carry'),
     );
     expect(deleteCarryAction, findsOneWidget);
     await tester.tap(deleteCarryAction);
@@ -6012,14 +6106,14 @@ void main() {
       await tester.pump(const Duration(milliseconds: 360));
       expect(ballIcon, findsNothing);
       expect(
-        find.byKey(const ValueKey('training-global-stage-active-1')),
+        find.byKey(const ValueKey('training-action-timeline-active-stage-1')),
         findsOneWidget,
       );
 
       await tester.pump(const Duration(milliseconds: 620));
       expect(ballIcon, findsOneWidget);
       expect(
-        find.byKey(const ValueKey('training-global-stage-active-2')),
+        find.byKey(const ValueKey('training-action-timeline-active-stage-2')),
         findsOneWidget,
       );
     },
@@ -6513,7 +6607,11 @@ void main() {
 
       expect(find.text('동작 단계'), findsNothing);
       expect(
-        find.byKey(const ValueKey('training-global-stage-active-1')),
+        find.byWidgetPredicate((widget) {
+          final key = widget.key;
+          return key is ValueKey<String> &&
+              key.value.startsWith('training-action-timeline-selected-');
+        }),
         findsOneWidget,
       );
 
@@ -6802,7 +6900,7 @@ void main() {
     );
   });
 
-  testWidgets('selected player can add actions to global sketch stages', (
+  testWidgets('selected player can add actions to the action timeline', (
     WidgetTester tester,
   ) async {
     _setLandscapeSurface(tester);
@@ -6811,7 +6909,7 @@ void main() {
     await tester.pumpWidget(
       _buildApp(
         TrainingMethodBoardScreen(
-          boardTitle: '전체 단계',
+          boardTitle: '전체 액션',
           initialLayoutJson: const TrainingMethodLayout(
             pages: <TrainingMethodPage>[
               TrainingMethodPage(
@@ -6847,7 +6945,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('전체 단계'), findsWidgets);
+    expect(find.text('전체 액션'), findsWidgets);
     await _tapVisibleOutlinedButton(tester, '패스');
     await _tapBoardRelativeThroughWidgets(
       tester,
@@ -6855,11 +6953,12 @@ void main() {
       const Offset(0.48, 0.42),
     );
 
-    expect(find.text('1단계 · 액션 1개'), findsOneWidget);
-    expect(
-      find.byKey(const ValueKey('training-global-stage-active-1')),
-      findsOneWidget,
-    );
+    final timelineItems = find.byWidgetPredicate((widget) {
+      final key = widget.key;
+      return key is ValueKey<String> &&
+          key.value.startsWith('training-action-timeline-item-');
+    });
+    expect(timelineItems, findsOneWidget);
     expect(
       find.byKey(const ValueKey('training-global-stage-add-next-button')),
       findsNothing,
@@ -6880,11 +6979,7 @@ void main() {
     await _tapVisibleOutlinedButton(tester, '슈팅');
     await _tapBoardRelative(tester, boardFinder, const Offset(0.82, 0.34));
 
-    expect(find.text('2단계 · 액션 1개'), findsOneWidget);
-    expect(
-      find.byKey(const ValueKey('training-global-stage-active-2')),
-      findsOneWidget,
-    );
+    expect(timelineItems, findsNWidgets(2));
     expect(find.text('사람 2 공 이동'), findsOneWidget);
 
     await tester.tap(find.widgetWithText(TextButton, '저장'));
