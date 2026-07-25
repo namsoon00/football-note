@@ -3870,6 +3870,193 @@ void main() {
     expect(passEnd.y, closeTo(receiverEnd.y, 0.0001));
   });
 
+  testWidgets('deleting a receiver move restores the previous pass target', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    String? savedLayout;
+    final initialLayout = const TrainingMethodLayout(
+      pages: <TrainingMethodPage>[
+        TrainingMethodPage(
+          name: 'Board',
+          items: <TrainingMethodItem>[
+            TrainingMethodItem(
+              id: 'player-1',
+              type: 'player',
+              x: 0.22,
+              y: 0.52,
+            ),
+            TrainingMethodItem(
+              id: 'player-2',
+              type: 'player',
+              x: 0.52,
+              y: 0.46,
+              colorValue: 0xFF1E88E5,
+            ),
+            TrainingMethodItem(
+              id: 'ball-1',
+              type: 'ball',
+              x: 0.29,
+              y: 0.52,
+              colorValue: 0xFFFFCA28,
+            ),
+          ],
+          routes: <TrainingMethodRoute>[
+            TrainingMethodRoute(
+              id: 'route-player-2-move',
+              kind: TrainingMethodRouteKind.player,
+              linkedItemId: 'player-2',
+              actorItemId: 'player-2',
+              stageIndex: 1,
+              points: <TrainingMethodPoint>[
+                TrainingMethodPoint(x: 0.52, y: 0.46),
+                TrainingMethodPoint(x: 0.72, y: 0.36),
+              ],
+            ),
+            TrainingMethodRoute(
+              id: 'route-pass',
+              kind: TrainingMethodRouteKind.ball,
+              linkedItemId: 'ball-1',
+              actorItemId: 'player-1',
+              targetItemId: 'player-2',
+              stageIndex: 2,
+              points: <TrainingMethodPoint>[
+                TrainingMethodPoint(x: 0.29, y: 0.52),
+                TrainingMethodPoint(x: 0.72, y: 0.36),
+              ],
+            ),
+          ],
+        ),
+      ],
+    ).encode();
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '수신 위치 복구',
+          initialLayoutJson: initialLayout,
+          onSaved: (value) => savedLayout = value,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(
+      find
+          .descendant(
+            of: find.byKey(const ValueKey('training-board-canvas')),
+            matching: find.byIcon(Icons.person),
+          )
+          .first,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(
+        const ValueKey(
+          'training-action-timeline-delete-route-player-2-move',
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(TextButton, '저장'));
+    await tester.pumpAndSettle();
+
+    final routes =
+        TrainingMethodLayout.decode(savedLayout ?? '').pages.single.routes;
+    final pass = routes.singleWhere((route) => route.id == 'route-pass');
+    expect(pass.points.last.x, closeTo(0.52, 0.0001));
+    expect(pass.points.last.y, closeTo(0.46, 0.0001));
+  });
+
+  testWidgets('reordering actions refreshes the pass receiver position', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    String? savedLayout;
+    final initialLayout = const TrainingMethodLayout(
+      pages: <TrainingMethodPage>[
+        TrainingMethodPage(
+          name: 'Board',
+          items: <TrainingMethodItem>[
+            TrainingMethodItem(
+              id: 'player-1',
+              type: 'player',
+              x: 0.22,
+              y: 0.52,
+            ),
+            TrainingMethodItem(
+              id: 'player-2',
+              type: 'player',
+              x: 0.52,
+              y: 0.46,
+              colorValue: 0xFF1E88E5,
+            ),
+            TrainingMethodItem(
+              id: 'ball-1',
+              type: 'ball',
+              x: 0.29,
+              y: 0.52,
+              colorValue: 0xFFFFCA28,
+            ),
+          ],
+          routes: <TrainingMethodRoute>[
+            TrainingMethodRoute(
+              id: 'route-pass',
+              kind: TrainingMethodRouteKind.ball,
+              linkedItemId: 'ball-1',
+              actorItemId: 'player-1',
+              targetItemId: 'player-2',
+              stageIndex: 1,
+              points: <TrainingMethodPoint>[
+                TrainingMethodPoint(x: 0.29, y: 0.52),
+                TrainingMethodPoint(x: 0.52, y: 0.46),
+              ],
+            ),
+            TrainingMethodRoute(
+              id: 'route-player-2-move',
+              kind: TrainingMethodRouteKind.player,
+              linkedItemId: 'player-2',
+              actorItemId: 'player-2',
+              stageIndex: 2,
+              points: <TrainingMethodPoint>[
+                TrainingMethodPoint(x: 0.52, y: 0.46),
+                TrainingMethodPoint(x: 0.72, y: 0.36),
+              ],
+            ),
+          ],
+        ),
+      ],
+    ).encode();
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '순서 변경 수신 위치',
+          initialLayoutJson: initialLayout,
+          onSaved: (value) => savedLayout = value,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final reorderable = tester.widget<ReorderableListView>(
+      find.byKey(const ValueKey('training-action-timeline-reorderable-list')),
+    );
+    reorderable.onReorder(1, 0);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(TextButton, '저장'));
+    await tester.pumpAndSettle();
+
+    final routes =
+        TrainingMethodLayout.decode(savedLayout ?? '').pages.single.routes;
+    final pass = routes.singleWhere((route) => route.id == 'route-pass');
+    expect(pass.stageIndex, 2);
+    expect(pass.points.last.x, closeTo(0.72, 0.0001));
+    expect(pass.points.last.y, closeTo(0.36, 0.0001));
+  });
+
   testWidgets('player flow connects passes across multiple board targets', (
     WidgetTester tester,
   ) async {
@@ -5305,6 +5492,95 @@ void main() {
     );
   });
 
+  testWidgets('long pressing an action row starts a highlighted reorder', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    final initialLayout = const TrainingMethodLayout(
+      pages: <TrainingMethodPage>[
+        TrainingMethodPage(
+          name: 'Board',
+          items: <TrainingMethodItem>[
+            TrainingMethodItem(
+              id: 'player-1',
+              type: 'player',
+              x: 0.2,
+              y: 0.5,
+            ),
+            TrainingMethodItem(
+              id: 'ball-1',
+              type: 'ball',
+              x: 0.27,
+              y: 0.5,
+            ),
+          ],
+          routes: <TrainingMethodRoute>[
+            TrainingMethodRoute(
+              id: 'route-pass',
+              kind: TrainingMethodRouteKind.ball,
+              linkedItemId: 'ball-1',
+              actorItemId: 'player-1',
+              stageIndex: 1,
+              points: <TrainingMethodPoint>[
+                TrainingMethodPoint(x: 0.27, y: 0.5),
+                TrainingMethodPoint(x: 0.65, y: 0.42),
+              ],
+            ),
+            TrainingMethodRoute(
+              id: 'route-move',
+              kind: TrainingMethodRouteKind.player,
+              linkedItemId: 'player-1',
+              actorItemId: 'player-1',
+              stageIndex: 2,
+              points: <TrainingMethodPoint>[
+                TrainingMethodPoint(x: 0.2, y: 0.5),
+                TrainingMethodPoint(x: 0.35, y: 0.44),
+              ],
+            ),
+          ],
+        ),
+      ],
+    ).encode();
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '길게 눌러 순서 변경',
+          initialLayoutJson: initialLayout,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final passRow = find.byKey(
+      const ValueKey('training-action-timeline-row-route-pass'),
+    );
+    final moveRow = find.byKey(
+      const ValueKey('training-action-timeline-row-route-move'),
+    );
+    final gesture = await tester.startGesture(tester.getCenter(passRow));
+    await tester.pump(const Duration(milliseconds: 650));
+    await gesture.moveTo(
+      Offset(
+        tester.getCenter(moveRow).dx,
+        tester.getBottomRight(moveRow).dy - 2,
+      ),
+    );
+    await tester.pump();
+
+    expect(
+      find.byKey(const ValueKey('training-action-timeline-drag-proxy')),
+      findsOneWidget,
+    );
+
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('training-action-timeline-drag-proxy')),
+      findsNothing,
+    );
+  });
+
   testWidgets('global stages hide the ball ownership relationship panel', (
     WidgetTester tester,
   ) async {
@@ -5970,6 +6246,59 @@ void main() {
     expect(route.points[0].y, closeTo(0.5 + dy, 0.0001));
     expect(route.points[1].x, closeTo(0.45 + dx, 0.0001));
     expect(route.points[1].y, closeTo(0.35 + dy, 0.0001));
+  });
+
+  testWidgets('a ladder can be moved independently on the board', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    String? savedLayout;
+    final initialLayout = const TrainingMethodLayout(
+      pages: <TrainingMethodPage>[
+        TrainingMethodPage(
+          name: 'Board',
+          items: <TrainingMethodItem>[
+            TrainingMethodItem(
+              id: 'ladder-1',
+              type: 'ladder',
+              x: 0.44,
+              y: 0.56,
+            ),
+          ],
+        ),
+      ],
+    ).encode();
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '사다리 위치 조정',
+          initialLayoutJson: initialLayout,
+          onSaved: (value) => savedLayout = value,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    final ladderFinder = find.descendant(
+      of: boardFinder,
+      matching: find.byIcon(Icons.view_week),
+    );
+    expect(ladderFinder, findsOneWidget);
+    await tester.drag(ladderFinder, const Offset(64, -30));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(TextButton, '저장'));
+    await tester.pumpAndSettle();
+
+    final ladder = TrainingMethodLayout.decode(savedLayout ?? '')
+        .pages
+        .single
+        .items
+        .singleWhere((item) => item.id == 'ladder-1');
+    expect(ladder.x, greaterThan(0.44));
+    expect(ladder.y, lessThan(0.56));
   });
 
   testWidgets(
