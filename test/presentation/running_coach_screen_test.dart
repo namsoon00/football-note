@@ -47,7 +47,8 @@ void main() {
     VideoPlayerPlatform.instance = previousVideoPlayerPlatform;
   });
 
-  testWidgets('coach screen omits the personal record chase area', (
+  testWidgets('coach screen presents one running flow without football mission',
+      (
     WidgetTester tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(800, 1200));
@@ -68,21 +69,22 @@ void main() {
     );
 
     expect(
-      find.byKey(const ValueKey('running-coach-today-mission-card')),
+      find.byKey(const ValueKey('running-coach-primary-action-card')),
       findsOneWidget,
     );
-    expect(find.text("Today's speed mission"), findsOneWidget);
-    expect(find.text('Session plan'), findsNothing);
-    expect(find.text('Coach checkpoint'), findsNothing);
+    expect(find.text('Live'), findsOneWidget);
+    expect(find.text('Video analysis'), findsOneWidget);
+    expect(find.text('Check your form while running'), findsOneWidget);
+    expect(find.text('Start live coaching'), findsOneWidget);
     expect(
-      find.byKey(const ValueKey('running-coach-growth-record-card')),
+      find.byKey(const ValueKey('running-coach-today-mission-card')),
       findsNothing,
     );
-    expect(find.text('Beat your own runner'), findsNothing);
+    expect(find.text("Today's speed mission"), findsNothing);
     expect(find.text('Open sample video guide'), findsOneWidget);
   });
 
-  testWidgets('mission exposes one unified live sprint coach action', (
+  testWidgets('coach switches cleanly between live and uploaded video', (
     WidgetTester tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(800, 1200));
@@ -102,21 +104,28 @@ void main() {
       ),
     );
 
-    expect(find.text('Start live sprint coach'), findsOneWidget);
-    expect(find.text('Before live capture'), findsOneWidget);
+    expect(find.text('Start live coaching'), findsOneWidget);
+    await tester.tap(find.text('Video analysis'));
+    await tester.pump();
+
+    expect(find.text('Analyze form from a video'), findsOneWidget);
     expect(
-      find.textContaining('whole body including both feet'),
-      findsOneWidget,
+        find.text(
+            'Choose a 5-15 second side-view video to create a form report.'),
+        findsOneWidget);
+    expect(find.text('Pick video'), findsOneWidget);
+    expect(
+      find.widgetWithText(FilledButton, 'Start live coaching'),
+      findsNothing,
     );
-    expect(find.text('Check form live'), findsNothing);
     expect(
-      find.widgetWithText(FilledButton, 'Start live sprint coach'),
+      find.byKey(const ValueKey('running-coach-capture-guide-action')),
       findsOneWidget,
     );
   });
 
-  testWidgets('coach home explains when live trend needs more stable sessions',
-      (
+  testWidgets(
+      'coach home keeps the latest running result without a trend panel', (
     WidgetTester tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(360, 780));
@@ -187,22 +196,13 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    for (var index = 0; index < 3; index += 1) {
-      await tester.drag(
-        find.byKey(const PageStorageKey('running-coach-simple-page')),
-        const Offset(0, -320),
-      );
-      await tester.pump();
-    }
+    expect(find.text('Coaching analysis history'), findsOneWidget);
+    expect(find.text('All 1'), findsOneWidget);
     expect(
       find.byKey(const ValueKey('running-coach-live-trend-card')),
-      findsOneWidget,
+      findsNothing,
     );
-    expect(find.text('Sprint progress'), findsOneWidget);
-    expect(
-      find.text('Record 2 more stable sessions to establish a trend.'),
-      findsOneWidget,
-    );
+    expect(find.text('Foot strike'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -254,7 +254,7 @@ void main() {
     expect(analysisService.calls, hasLength(1));
     expect(
       analysisService.calls,
-      everyElement(contains('football_note_running_sample_')),
+      everyElement(contains('running_coach_sample_')),
     );
     expect(
       analysisService.calls,
@@ -293,10 +293,6 @@ void main() {
       findsOneWidget,
     );
     expect(
-      find.byKey(const ValueKey('running-coach-sample-joint-readouts')),
-      findsOneWidget,
-    );
-    expect(
       find.byKey(const ValueKey('running-coach-sample-real-pose-overlay')),
       findsOneWidget,
     );
@@ -310,47 +306,20 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Analysis-ready outdoor example'), findsWidgets);
-    expect(find.text('Example B'), findsNothing);
-    expect(
-      find.textContaining('match its framing'),
-      findsOneWidget,
-    );
     expect(find.text('Treadmill'), findsOneWidget);
     expect(find.text('Outdoor pass'), findsOneWidget);
     expect(find.text('Best setup for a treadmill'), findsOneWidget);
-    expect(find.textContaining('50-75%'), findsOneWidget);
     await tester.ensureVisible(find.text('Outdoor pass'));
     await tester.pump();
     await tester.tap(find.text('Outdoor pass'));
     await tester.pump();
     expect(find.text('Fixed side-pass setup'), findsOneWidget);
-    expect(find.textContaining('40-70%'), findsOneWidget);
-    expect(
-      find.textContaining('below 40% of frame height'),
-      findsOneWidget,
-    );
     expect(
       find.byKey(
         const ValueKey('running-coach-capture-diagram-outdoor'),
       ),
       findsOneWidget,
     );
-    expect(find.text('Dense contact evidence'), findsOneWidget);
-    expect(find.text('Contact 0.00s'), findsOneWidget);
-    expect(find.text('0.00s, 0.50s'), findsOneWidget);
-    expect(find.text('Contact frames'), findsOneWidget);
-    expect(find.text('Decision evidence'), findsOneWidget);
-    expect(find.text('Forward lean'), findsWidgets);
-    expect(find.text('Bounce'), findsOneWidget);
-    expect(find.text('Landing 0.08'), findsNothing);
-    expect(find.text('Lean 10°'), findsNothing);
-    expect(find.text('Arms 90°'), findsNothing);
-    expect(find.text('Bounce 6%'), findsNothing);
-    expect(find.text('12.4° body lean'), findsWidgets);
-    expect(find.text('0.11x foot reach'), findsWidgets);
-    expect(find.text('7.0% up-down motion'), findsWidgets);
-    expect(find.text('Good'), findsWidgets);
-    expect(find.textContaining('landing distance is 0.08'), findsNothing);
 
     await tester.ensureVisible(find.text('How the analysis works'));
     await tester.pumpAndSettle();
@@ -368,46 +337,6 @@ void main() {
       find.byKey(const ValueKey('running-coach-sample-analysis-process')),
       findsOneWidget,
     );
-    expect(find.textContaining('Find body points'), findsOneWidget);
-    expect(find.textContaining('Connect body lines'), findsOneWidget);
-    expect(find.textContaining('Measure angles'), findsOneWidget);
-    expect(find.textContaining('Check contact evidence'), findsOneWidget);
-    expect(
-      find.text('Foot lands under the hip with toes forward'),
-      findsOneWidget,
-    );
-
-    await tester.ensureVisible(
-      find.byKey(const ValueKey('running-coach-sample-decision-posture')),
-    );
-    await tester.pump();
-    await tester.tap(
-      find.byKey(const ValueKey('running-coach-sample-decision-posture')),
-    );
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
-
-    expect(
-      find.byKey(const ValueKey('running-coach-sample-metric-detail')),
-      findsOneWidget,
-    );
-    expect(
-      find.byKey(const ValueKey('running-coach-sample-metric-detail-visual')),
-      findsOneWidget,
-    );
-    expect(find.text('Evidence detail'), findsOneWidget);
-    expect(find.text('Measured value'), findsOneWidget);
-    expect(find.text('Good range'), findsOneWidget);
-    expect(find.text('12.4° body lean'), findsWidgets);
-    expect(find.textContaining("this clip's measured value"), findsWidgets);
-    expect(find.textContaining('vertical hip line'), findsWidgets);
-
-    Navigator.of(
-      tester.element(
-        find.byKey(const ValueKey('running-coach-sample-metric-detail')),
-      ),
-    ).pop();
-    await tester.pumpAndSettle();
 
     await tester.ensureVisible(
       find.byKey(const ValueKey('running-coach-sample-back-button')),
@@ -693,46 +622,36 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Coaching analysis history'), findsWidgets);
-    expect(
-        find.text(
-            'Review each uploaded video and live sprint session with its key coaching focus and correction guide.'),
-        findsWidgets);
     expect(find.text('Posture'), findsWidgets);
-    expect(find.byType(CustomPaint), findsWidgets);
 
     await tester.tap(find.text('Posture').last);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
 
-    expect(find.text('Analysis review'), findsOneWidget);
-    expect(find.text('Analyzed video'), findsOneWidget);
-    expect(find.text('side-view-test.mp4'), findsOneWidget);
-    expect(find.text('Change one thing first'), findsOneWidget);
+    expect(find.text('Running analysis result'), findsOneWidget);
+    expect(find.text('Next goal'), findsOneWidget);
     expect(
-      find.text('You are too upright. It can slow the next step.'),
-      findsWidgets,
-    );
-    expect(find.text('On your next run'), findsOneWidget);
-    expect(
-      find.text('Lean forward from the ankles. Keep your chest tall.'),
-      findsOneWidget,
-    );
-    expect(find.text('Drill: Do two 15 m falling starts.'), findsOneWidget);
-    expect(find.text('Full form report'), findsOneWidget);
-    expect(
-        find.textContaining('all 3 measured coaching metrics'), findsOneWidget);
-    expect(
-      find.byKey(const ValueKey('running-coach-history-metric-posture')),
+      find.byKey(const ValueKey('running-coach-beginner-action-card')),
       findsOneWidget,
     );
     expect(
-      find.byKey(const ValueKey('running-coach-history-metric-footStrike')),
+      find.byKey(const ValueKey('running-coach-history-evidence-unavailable')),
       findsOneWidget,
     );
     expect(
-      find.byKey(const ValueKey('running-coach-history-metric-armCarriage')),
+      find.byKey(const ValueKey('running-coach-report-details')),
       findsOneWidget,
     );
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('running-coach-report-details')),
+      -320,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester
+        .tap(find.byKey(const ValueKey('running-coach-report-details')));
+    await tester.pump();
+    expect(find.text('Foot strike'), findsWidgets);
+    expect(find.text('Arm carriage'), findsWidgets);
   });
 
   testWidgets('analysis result layout stays readable on narrow phones', (
@@ -894,24 +813,10 @@ void main() {
     );
     await tester.pump();
     expect(tester.takeException(), isNull);
-    await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('running-coach-dense-contact-evidence')),
-      260,
-      scrollable: find.byType(Scrollable).first,
-    );
     expect(
-      find.byKey(const ValueKey('running-coach-dense-contact-evidence')),
+      find.byKey(const ValueKey('running-coach-beginner-action-card')),
       findsOneWidget,
     );
-
-    for (var scrollStep = 0; scrollStep < 8; scrollStep += 1) {
-      await tester.drag(
-        find.byType(Scrollable).first,
-        const Offset(0, -520),
-      );
-      await tester.pump(const Duration(milliseconds: 250));
-      expect(tester.takeException(), isNull);
-    }
   });
 
   testWidgets('analysis guide uses beginner copy at 320px portrait', (
@@ -993,29 +898,9 @@ void main() {
       find.byKey(const ValueKey('running-coach-beginner-action-card')),
       findsOneWidget,
     );
-    expect(find.text('Change one thing first'), findsOneWidget);
-    expect(find.text('On your next run'), findsOneWidget);
-
-    final guideVisual = find.byKey(
-      const ValueKey('running-coach-insight-guide-visual-footStrike'),
-    );
-    for (var step = 0; step < 12 && guideVisual.evaluate().isEmpty; step++) {
-      await tester.drag(find.byType(Scrollable).first, const Offset(0, -360));
-      await tester.pump(const Duration(milliseconds: 120));
-    }
-    expect(
-      guideVisual,
-      findsOneWidget,
-    );
-    final targetGuideArtwork = find.byKey(
-      const ValueKey('running-coach-target-guide-artwork-footStrike'),
-    );
-    expect(targetGuideArtwork, findsOneWidget);
-    expect(
-      (tester.widget<Image>(targetGuideArtwork).image as AssetImage).assetName,
-      'assets/images/running_guides/target_landing.png',
-    );
-    expect(find.text('Put the foot down closer under the hips.'), findsWidgets);
+    expect(find.text('Next goal'), findsOneWidget);
+    expect(find.text('For your next three runs, focus on this one movement.'),
+        findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -1117,6 +1002,15 @@ void main() {
         ),
       ),
     );
+    await tester.pump();
+
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('running-coach-report-details')),
+      -320,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester
+        .tap(find.byKey(const ValueKey('running-coach-report-details')));
     await tester.pump();
 
     await tester.scrollUntilVisible(
@@ -1228,17 +1122,17 @@ void main() {
       find.byKey(const ValueKey('running-coach-evidence-pose-transition')),
       findsOneWidget,
     );
-    expect(find.text('From current to next'), findsOneWidget);
+    expect(find.text('Compare current and goal'), findsOneWidget);
     expect(
-      find.byKey(const ValueKey('running-coach-evidence-current-state')),
+      find.byKey(const ValueKey('running-coach-goal-motion')),
       findsOneWidget,
     );
     expect(
-      find.byKey(const ValueKey('running-coach-evidence-next-state')),
+      find.byKey(const ValueKey('running-coach-goal-motion-toggle')),
       findsOneWidget,
     );
-    expect(find.text('Current'), findsOneWidget);
-    expect(find.text('Next'), findsOneWidget);
+    expect(find.text('Current form'), findsOneWidget);
+    expect(find.text('Goal movement'), findsOneWidget);
     expect(find.text('Evidence 1/2'), findsOneWidget);
     expect(tester.takeException(), isNull);
 
@@ -1253,64 +1147,6 @@ void main() {
 
     expect(find.text('Evidence 2/2'), findsOneWidget);
     expect(find.text('What I saw'), findsOneWidget);
-    expect(tester.takeException(), isNull);
-
-    final measuredPoseDiagram = find.byKey(
-      ValueKey(
-        'running-coach-insight-evidence-diagram-${report.primaryFocus!.metric.name}',
-      ),
-    );
-    for (var scrollStep = 0; scrollStep < 24; scrollStep += 1) {
-      if (measuredPoseDiagram.evaluate().isNotEmpty) break;
-      await tester.drag(
-        find.byType(Scrollable).first,
-        const Offset(0, -360),
-      );
-      await tester.pump(const Duration(milliseconds: 120));
-    }
-    expect(measuredPoseDiagram, findsOneWidget);
-    expect(
-      find.descendant(
-        of: measuredPoseDiagram,
-        matching: find.text('Move this way from your pose'),
-      ),
-      findsOneWidget,
-    );
-    expect(
-      find.descendant(
-        of: measuredPoseDiagram,
-        matching: find.text('Current point'),
-      ),
-      findsOneWidget,
-    );
-    expect(
-      find.descendant(
-        of: measuredPoseDiagram,
-        matching: find.text('Next target'),
-      ),
-      findsOneWidget,
-    );
-    expect(
-      find.byKey(
-        ValueKey(
-          'running-coach-insight-change-map-${report.primaryFocus!.metric.name}',
-        ),
-      ),
-      findsOneWidget,
-    );
-    expect(
-      find.descendant(
-        of: measuredPoseDiagram,
-        matching: find.text('Try this movement'),
-      ),
-      findsOneWidget,
-    );
-    final targetGuideArtwork = find.byKey(
-      ValueKey(
-        'running-coach-target-guide-artwork-${report.primaryFocus!.metric.name}',
-      ),
-    );
-    expect(targetGuideArtwork, findsNothing);
     expect(tester.takeException(), isNull);
   });
 
@@ -1436,22 +1272,11 @@ void main() {
         ),
       );
       await tester.pump();
-      final movementMap = find.byKey(
-        ValueKey('running-coach-insight-change-map-${metric.name}'),
+      final goalMotion = find.byKey(
+        const ValueKey('running-coach-goal-motion'),
       );
-      for (var scrollStep = 0;
-          scrollStep < 48 && movementMap.evaluate().isEmpty;
-          scrollStep += 1) {
-        await tester.drag(
-          find.byKey(const ValueKey('running-coach-analysis-result-list')),
-          const Offset(0, -360),
-        );
-        await tester.pump(const Duration(milliseconds: 120));
-      }
-      expect(movementMap, findsOneWidget);
-      await tester.ensureVisible(movementMap);
-      await tester.pump();
-      expect(tester.getSize(movementMap).height, 264);
+      expect(goalMotion, findsOneWidget);
+      expect(tester.getSize(goalMotion).height, 214);
       expect(tester.takeException(), isNull);
     }
   });
@@ -1553,7 +1378,7 @@ Future<RunningCoachPreparedSampleVideo> _prepareSampleVideoForTest(
   String assetPath,
 ) async {
   final tempDirectory = Directory.systemTemp.createTempSync(
-    'football_note_running_sample_test_',
+    'running_coach_sample_test_',
   );
   final file = File('${tempDirectory.path}/${assetPath.split('/').last}');
   file.writeAsBytesSync(assetPath.codeUnits, flush: true);

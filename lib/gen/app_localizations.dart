@@ -14452,126 +14452,6 @@ abstract class AppLocalizations {
   /// **'Side-view if needed'**
   String get runningCoachControlPanelReviewValue;
 
-  /// No description provided for @runningCoachMissionCardTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Today\'s speed mission'**
-  String get runningCoachMissionCardTitle;
-
-  /// No description provided for @runningCoachMissionDistance.
-  ///
-  /// In en, this message translates to:
-  /// **'{meters}m mission'**
-  String runningCoachMissionDistance(int meters);
-
-  /// No description provided for @runningCoachMissionStartSprint.
-  ///
-  /// In en, this message translates to:
-  /// **'Start live sprint coach'**
-  String get runningCoachMissionStartSprint;
-
-  /// No description provided for @runningCoachMissionStartLive.
-  ///
-  /// In en, this message translates to:
-  /// **'Check form live'**
-  String get runningCoachMissionStartLive;
-
-  /// No description provided for @runningCoachMissionBreakawayTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Break the defensive line'**
-  String get runningCoachMissionBreakawayTitle;
-
-  /// No description provided for @runningCoachMissionBreakawayBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Run 20m as if you are attacking the space behind the back line. Keep it to three sharp attempts.'**
-  String get runningCoachMissionBreakawayBody;
-
-  /// No description provided for @runningCoachMissionBreakawayFocus.
-  ///
-  /// In en, this message translates to:
-  /// **'First 3 steps'**
-  String get runningCoachMissionBreakawayFocus;
-
-  /// No description provided for @runningCoachMissionBreakawayReward.
-  ///
-  /// In en, this message translates to:
-  /// **'Beat yesterday\'s start'**
-  String get runningCoachMissionBreakawayReward;
-
-  /// No description provided for @runningCoachMissionPressureTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Escape pressure'**
-  String get runningCoachMissionPressureTitle;
-
-  /// No description provided for @runningCoachMissionPressureBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Turn out of pressure and burst for 10m. The goal is a fast first push, not a long workout.'**
-  String get runningCoachMissionPressureBody;
-
-  /// No description provided for @runningCoachMissionPressureFocus.
-  ///
-  /// In en, this message translates to:
-  /// **'Low body lean'**
-  String get runningCoachMissionPressureFocus;
-
-  /// No description provided for @runningCoachMissionPressureReward.
-  ///
-  /// In en, this message translates to:
-  /// **'Sharper getaway'**
-  String get runningCoachMissionPressureReward;
-
-  /// No description provided for @runningCoachMissionLooseBallTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Win the loose ball'**
-  String get runningCoachMissionLooseBallTitle;
-
-  /// No description provided for @runningCoachMissionLooseBallBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Chase a 30m loose ball with match energy. Log the best attempt and try to trim one small piece off it next time.'**
-  String get runningCoachMissionLooseBallBody;
-
-  /// No description provided for @runningCoachMissionLooseBallFocus.
-  ///
-  /// In en, this message translates to:
-  /// **'Hold speed late'**
-  String get runningCoachMissionLooseBallFocus;
-
-  /// No description provided for @runningCoachMissionLooseBallReward.
-  ///
-  /// In en, this message translates to:
-  /// **'New chase target'**
-  String get runningCoachMissionLooseBallReward;
-
-  /// No description provided for @runningCoachMissionFirstStepsTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Own the first three steps'**
-  String get runningCoachMissionFirstStepsTitle;
-
-  /// No description provided for @runningCoachMissionFirstStepsBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Sprint only the first 10m and stop. Make the start feel quick, light, and repeatable.'**
-  String get runningCoachMissionFirstStepsBody;
-
-  /// No description provided for @runningCoachMissionFirstStepsFocus.
-  ///
-  /// In en, this message translates to:
-  /// **'Explosive start'**
-  String get runningCoachMissionFirstStepsFocus;
-
-  /// No description provided for @runningCoachMissionFirstStepsReward.
-  ///
-  /// In en, this message translates to:
-  /// **'Start badge progress'**
-  String get runningCoachMissionFirstStepsReward;
-
   /// No description provided for @runningCoachGrowthTitle.
   ///
   /// In en, this message translates to:
@@ -14751,6 +14631,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose a 5-15 second side-view clip. You will get one priority cue first, followed by the full five-metric report.'**
   String get runningCoachAnalyzeBody;
+
+  /// No description provided for @runningCoachModeLive.
+  ///
+  /// In en, this message translates to:
+  /// **'Live'**
+  String get runningCoachModeLive;
+
+  /// No description provided for @runningCoachModeVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Video analysis'**
+  String get runningCoachModeVideo;
+
+  /// No description provided for @runningCoachModeLiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your form while running'**
+  String get runningCoachModeLiveTitle;
+
+  /// No description provided for @runningCoachModeVideoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyze form from a video'**
+  String get runningCoachModeVideoTitle;
+
+  /// No description provided for @runningCoachModeLiveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Run a few steps in a full-body side view for immediate guidance.'**
+  String get runningCoachModeLiveBody;
+
+  /// No description provided for @runningCoachModeVideoBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a 5-15 second side-view video to create a form report.'**
+  String get runningCoachModeVideoBody;
+
+  /// No description provided for @runningCoachModeLiveAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Start live coaching'**
+  String get runningCoachModeLiveAction;
 
   /// No description provided for @runningCoachTipsTitle.
   ///
@@ -15159,6 +15081,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Far-away footage is not recommended when the runner is below 40% of frame height. Move the running line closer or use optical zoom before recording.'**
   String get runningCoachCaptureOutdoorDistanceWarning;
+
+  /// No description provided for @runningCoachCaptureMoreDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'More recording details'**
+  String get runningCoachCaptureMoreDetails;
 
   /// No description provided for @runningCoachSampleProcessTitle.
   ///
@@ -15682,6 +15610,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The blue target is the direction to use on your next step, not a pose drawn over the video.'**
   String get runningCoachEvidenceTransitionBody;
+
+  /// No description provided for @runningCoachGoalMotionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare current and goal'**
+  String get runningCoachGoalMotionTitle;
+
+  /// No description provided for @runningCoachGoalMotionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The left shows measured joints. The right shows the direction for your next movement.'**
+  String get runningCoachGoalMotionBody;
+
+  /// No description provided for @runningCoachGoalMotionActualLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Current form'**
+  String get runningCoachGoalMotionActualLabel;
+
+  /// No description provided for @runningCoachGoalMotionTargetLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal movement'**
+  String get runningCoachGoalMotionTargetLabel;
+
+  /// No description provided for @runningCoachGoalMotionFootnote.
+  ///
+  /// In en, this message translates to:
+  /// **'The right side is a coaching target built from your joint coordinates, not a second video measurement.'**
+  String get runningCoachGoalMotionFootnote;
+
+  /// No description provided for @runningCoachGoalMotionPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Play goal movement'**
+  String get runningCoachGoalMotionPlay;
+
+  /// No description provided for @runningCoachGoalMotionPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause goal movement'**
+  String get runningCoachGoalMotionPause;
+
+  /// No description provided for @runningCoachHistoryEvidenceUnavailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No saved joint evidence'**
+  String get runningCoachHistoryEvidenceUnavailableTitle;
+
+  /// No description provided for @runningCoachHistoryEvidenceUnavailableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This older record has no saved pose frames. Its score and coaching goal are still available.'**
+  String get runningCoachHistoryEvidenceUnavailableBody;
 
   /// No description provided for @runningCoachEvidenceCurrentLabel.
   ///
@@ -18048,6 +18030,18 @@ abstract class AppLocalizations {
   /// **'Change one thing first'**
   String get runningCoachResultOneChangeTitle;
 
+  /// No description provided for @runningCoachNextGoalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Next goal'**
+  String get runningCoachNextGoalTitle;
+
+  /// No description provided for @runningCoachNextGoalRepeat.
+  ///
+  /// In en, this message translates to:
+  /// **'For your next three runs, focus on this one movement.'**
+  String get runningCoachNextGoalRepeat;
+
   /// No description provided for @runningCoachResultNextRunCueLabel.
   ///
   /// In en, this message translates to:
@@ -18071,6 +18065,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Detailed review'**
   String get runningCoachResultDetailsTitle;
+
+  /// No description provided for @runningCoachReportDetailsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the full measurements and joint evidence only when you need them.'**
+  String get runningCoachReportDetailsBody;
 
   /// No description provided for @runningCoachAnalysisHistoryTitle.
   ///
@@ -18579,7 +18579,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachBounceGoodDrill.
   ///
   /// In en, this message translates to:
-  /// **'Drill: Do two 20 m ankle dribbles.'**
+  /// **'Drill: Do two 20 m ankle-bounce runs.'**
   String get runningCoachBounceGoodDrill;
 
   /// No description provided for @runningCoachBounceHighSummary.
@@ -18597,7 +18597,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachBounceHighDrill.
   ///
   /// In en, this message translates to:
-  /// **'Drill: Do three 20 m ankle dribbles with short ground time.'**
+  /// **'Drill: Do three 20 m quick-contact runs.'**
   String get runningCoachBounceHighDrill;
 
   /// No description provided for @runningCoachInsightFootStrikeTitle.
@@ -18663,7 +18663,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachKneeGoodDrill.
   ///
   /// In en, this message translates to:
-  /// **'Drill: Do two 20 m pogo runs, then two 20 m dribble runs.'**
+  /// **'Drill: Do two 20 m pogo runs, then two 20 m quick-contact runs.'**
   String get runningCoachKneeGoodDrill;
 
   /// No description provided for @runningCoachKneeStraightSummary.
@@ -18681,7 +18681,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachKneeStraightDrill.
   ///
   /// In en, this message translates to:
-  /// **'Drill: Do two 20 m dribble runs with soft knees.'**
+  /// **'Drill: Do two 20 m quick-contact runs with soft knees.'**
   String get runningCoachKneeStraightDrill;
 
   /// No description provided for @runningCoachKneeCollapseSummary.

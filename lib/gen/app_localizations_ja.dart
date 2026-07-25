@@ -8018,72 +8018,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachControlPanelReviewValue => '必要時に横映像';
 
   @override
-  String get runningCoachMissionCardTitle => '今日のスピードミッション';
-
-  @override
-  String runningCoachMissionDistance(int meters) {
-    return '${meters}mミッション';
-  }
-
-  @override
-  String get runningCoachMissionStartSprint => 'ライブスプリントコーチ開始';
-
-  @override
-  String get runningCoachMissionStartLive => 'フォームをライブ確認';
-
-  @override
-  String get runningCoachMissionBreakawayTitle => '守備ラインを破る';
-
-  @override
-  String get runningCoachMissionBreakawayBody =>
-      '最終ラインの裏へ抜けるつもりで20m走ります。長くせず、鋭い3本で十分です。';
-
-  @override
-  String get runningCoachMissionBreakawayFocus => '最初の3歩';
-
-  @override
-  String get runningCoachMissionBreakawayReward => '昨日の出だしを超える';
-
-  @override
-  String get runningCoachMissionPressureTitle => 'プレッシャーから抜ける';
-
-  @override
-  String get runningCoachMissionPressureBody =>
-      'プレッシャーを外して10mだけ加速します。長い練習ではなく、最初の押し出しを速くすることが目標です。';
-
-  @override
-  String get runningCoachMissionPressureFocus => '低い前傾';
-
-  @override
-  String get runningCoachMissionPressureReward => '鋭い抜け出し';
-
-  @override
-  String get runningCoachMissionLooseBallTitle => 'ルーズボールを先に取る';
-
-  @override
-  String get runningCoachMissionLooseBallBody =>
-      '試合の強度で30mのルーズボールを追います。ベストを残し、次は少しだけ縮めます。';
-
-  @override
-  String get runningCoachMissionLooseBallFocus => '後半の速度維持';
-
-  @override
-  String get runningCoachMissionLooseBallReward => '新しい追走目標';
-
-  @override
-  String get runningCoachMissionFirstStepsTitle => '最初の3歩をものにする';
-
-  @override
-  String get runningCoachMissionFirstStepsBody =>
-      '最初の10mだけ全力で走って止まります。スタートが速く、軽く、繰り返せる感覚を作ります。';
-
-  @override
-  String get runningCoachMissionFirstStepsFocus => '爆発的なスタート';
-
-  @override
-  String get runningCoachMissionFirstStepsReward => 'スタートバッジ進行';
-
-  @override
   String get runningCoachGrowthTitle => '自分の記録を破る';
 
   @override
@@ -8193,6 +8127,27 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get runningCoachAnalyzeBody =>
       '5〜15秒の横向き動画を1本選びます。最優先のキューに続いて、5項目すべてのレポートを表示します。';
+
+  @override
+  String get runningCoachModeLive => 'ライブ';
+
+  @override
+  String get runningCoachModeVideo => '動画分析';
+
+  @override
+  String get runningCoachModeLiveTitle => '走りながらフォームを確認';
+
+  @override
+  String get runningCoachModeVideoTitle => '動画でフォームを分析';
+
+  @override
+  String get runningCoachModeLiveBody => '全身が入る横向きの構図で数歩走ると、すぐにガイドを表示します。';
+
+  @override
+  String get runningCoachModeVideoBody => '横から撮影した5〜15秒の動画を選ぶと、フォームレポートを作成します。';
+
+  @override
+  String get runningCoachModeLiveAction => 'ライブコーチングを開始';
 
   @override
   String get runningCoachTipsTitle => '録音方法';
@@ -8439,6 +8394,9 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get runningCoachCaptureOutdoorDistanceWarning =>
       'ランナーが画面高の40%未満になる遠距離撮影は推奨しません。走路を近づけるか、撮影前に光学ズームを合わせてください。';
+
+  @override
+  String get runningCoachCaptureMoreDetails => '撮影の詳細を見る';
 
   @override
   String get runningCoachSampleProcessTitle => '実際の映像での分析手順';
@@ -8741,6 +8699,35 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get runningCoachEvidenceTransitionBody =>
       '青い目標は動画に重ねた姿勢ではなく、次の一歩で合わせる方向です。';
+
+  @override
+  String get runningCoachGoalMotionTitle => '現在と目標を比較';
+
+  @override
+  String get runningCoachGoalMotionBody => '左は測定された現在の関節、右は次の動きの目標方向です。';
+
+  @override
+  String get runningCoachGoalMotionActualLabel => '現在のフォーム';
+
+  @override
+  String get runningCoachGoalMotionTargetLabel => '目標の動き';
+
+  @override
+  String get runningCoachGoalMotionFootnote =>
+      '右側は関節座標から作ったコーチング目標であり、2本目の動画測定値ではありません。';
+
+  @override
+  String get runningCoachGoalMotionPlay => '目標の動きを再生';
+
+  @override
+  String get runningCoachGoalMotionPause => '目標の動きを一時停止';
+
+  @override
+  String get runningCoachHistoryEvidenceUnavailableTitle => '保存済みの関節根拠なし';
+
+  @override
+  String get runningCoachHistoryEvidenceUnavailableBody =>
+      '以前のバージョンで保存された記録のため姿勢フレームはありません。スコアとコーチング目標は確認できます。';
 
   @override
   String get runningCoachEvidenceCurrentLabel => '現在';
@@ -10189,6 +10176,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachResultOneChangeTitle => 'まず一つだけ変えましょう';
 
   @override
+  String get runningCoachNextGoalTitle => '次の目標';
+
+  @override
+  String get runningCoachNextGoalRepeat => '次の3回は、この動きだけを意識してください。';
+
+  @override
   String get runningCoachResultNextRunCueLabel => '次のランで行うこと';
 
   @override
@@ -10201,6 +10194,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachResultDetailsTitle => '詳しい分析';
+
+  @override
+  String get runningCoachReportDetailsBody => '必要なときだけ、すべての測定値と関節根拠を開いて確認できます。';
 
   @override
   String get runningCoachAnalysisHistoryTitle => 'コーチング分析履歴';
@@ -10493,7 +10489,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachBounceGoodCue => '地面を後ろに押します。上に跳ばないようにします。';
 
   @override
-  String get runningCoachBounceGoodDrill => 'ドリル: 20 mの足首ドリブルを2本行います。';
+  String get runningCoachBounceGoodDrill => 'ドリル: 足首の反発を使う20 m走を2本行います。';
 
   @override
   String get runningCoachBounceHighSummary => '上下に動きすぎています。';
@@ -10502,7 +10498,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachBounceHighCue => '足をすばやく。地面を下ではなく後ろに押します。';
 
   @override
-  String get runningCoachBounceHighDrill => 'ドリル: 接地を短くして20 mの足首ドリブルを3本行います。';
+  String get runningCoachBounceHighDrill => 'ドリル: 接地を短くした20 m走を3本行います。';
 
   @override
   String get runningCoachInsightFootStrikeTitle => 'フットストライク';
@@ -10537,7 +10533,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachKneeGoodDrill =>
-      'ドリル: 20 mのポゴ走を2本、その後20 mのドリブル走を2本行います。';
+      'ドリル: 20 mのポゴ走を2本、その後接地を短くした20 m走を2本行います。';
 
   @override
   String get runningCoachKneeStraightSummary => '着地の膝がまっすぐすぎます。重い一歩になりやすいです。';
@@ -10546,7 +10542,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachKneeStraightCue => '足が着くとき、膝を少し曲げます。';
 
   @override
-  String get runningCoachKneeStraightDrill => 'ドリル: やわらかい膝で20 mのドリブル走を2本行います。';
+  String get runningCoachKneeStraightDrill =>
+      'ドリル: やわらかい膝で接地を短くした20 m走を2本行います。';
 
   @override
   String get runningCoachKneeCollapseSummary => '着地後に膝が曲がりすぎています。';

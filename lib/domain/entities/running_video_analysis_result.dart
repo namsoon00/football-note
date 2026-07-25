@@ -51,6 +51,18 @@ class RunningVideoPoseLandmark {
     required this.confidence,
   });
 
+  Map<String, Object?> toMap() {
+    return <String, Object?>{
+      'index': index,
+      'x': x,
+      'y': y,
+      'z': z,
+      if (visibility != null) 'visibility': visibility,
+      if (presence != null) 'presence': presence,
+      'confidence': confidence,
+    };
+  }
+
   static RunningVideoPoseLandmark? fromObject(Object? raw) {
     final map = _asObjectMap(raw);
     if (map == null) return null;
@@ -103,6 +115,17 @@ class RunningPoseFrame {
       if (item.index == index) return item;
     }
     return null;
+  }
+
+  Map<String, Object?> toMap() {
+    return <String, Object?>{
+      'timestampMs': timestampMs,
+      'imageWidth': imageWidth,
+      'imageHeight': imageHeight,
+      'landmarks': landmarks.map((landmark) => landmark.toMap()).toList(
+            growable: false,
+          ),
+    };
   }
 
   static RunningPoseFrame? fromObject(Object? raw) {
@@ -174,6 +197,16 @@ class RunningAnalysisSampleSummary {
       ? 0.0
       : (validFrames / attemptedFrames).clamp(0.0, 1.0).toDouble();
 
+  Map<String, Object?> toMap() {
+    return <String, Object?>{
+      'attemptedFrames': attemptedFrames,
+      'validFrames': validFrames,
+      'poseFrameCount': poseFrameCount,
+      if (maxFrameBudget != null) 'maxFrameBudget': maxFrameBudget,
+      if (targetFps != null) 'targetFps': targetFps,
+    };
+  }
+
   static RunningAnalysisSampleSummary fromObject(
     Object? raw, {
     required RunningAnalysisSampleSummary fallback,
@@ -220,6 +253,20 @@ class RunningContactWindow {
   int get startMs => start.inMilliseconds;
   int get centerMs => center.inMilliseconds;
   int get endMs => end.inMilliseconds;
+
+  Map<String, Object?> toMap() {
+    return <String, Object?>{
+      'startTimestampMs': startMs,
+      'centerTimestampMs': centerMs,
+      'endTimestampMs': endMs,
+      'side': side.name,
+      'denseSampleCount': denseSampleCount,
+      'validatedContactFrameTimestampsMs': validatedContactTimestamps
+          .map((timestamp) => timestamp.inMilliseconds)
+          .toList(growable: false),
+      'confidence': confidence,
+    };
+  }
 
   static RunningContactWindow? fromObject(Object? raw) {
     final map = _asObjectMap(raw);
@@ -326,6 +373,64 @@ class RunningVideoAnalysisResult {
     return nearestDistanceMs <= tolerance.inMilliseconds ? nearest : null;
   }
 
+  /// Keeps enough measured frames for an archived coaching replay without
+  /// persisting every sampled frame with each history entry.
+  RunningVideoAnalysisResult historySnapshot({int maxPoseFrames = 8}) {
+    final frames = _historyPoseFrames(
+      poseFrames,
+      contactTimestamps: validatedContactFrameTimestamps,
+      maxFrames: maxPoseFrames,
+    );
+    return RunningVideoAnalysisResult(
+      videoDuration: videoDuration,
+      sampledFrames: sampledFrames,
+      validFrames: validFrames,
+      direction: direction,
+      forwardLeanDegrees: forwardLeanDegrees,
+      verticalBounceRatio: verticalBounceRatio,
+      footStrikeDistanceRatio: footStrikeDistanceRatio,
+      stanceKneeAngleDegrees: stanceKneeAngleDegrees,
+      elbowAngleDegrees: elbowAngleDegrees,
+      metricQualities: metricQualities,
+      poseFrames: frames,
+      coarseSamples: coarseSamples,
+      denseSamples: denseSamples,
+      contactWindows: contactWindows,
+      validatedContactFrameTimestamps: validatedContactFrameTimestamps,
+      contactConfidence: contactConfidence,
+    );
+  }
+
+  Map<String, Object?> toMap() {
+    return <String, Object?>{
+      'durationMs': videoDuration.inMilliseconds,
+      'sampledFrames': sampledFrames,
+      'validFrames': validFrames,
+      'direction': direction.name,
+      'forwardLeanDegrees': forwardLeanDegrees,
+      'verticalBounceRatio': verticalBounceRatio,
+      'footStrikeDistanceRatio': footStrikeDistanceRatio,
+      'stanceKneeAngleDegrees': stanceKneeAngleDegrees,
+      'elbowAngleDegrees': elbowAngleDegrees,
+      'metricQualities': <String, Object?>{
+        for (final entry in metricQualities.entries)
+          entry.key.name: entry.value.toMap(),
+      },
+      'poseFrames': poseFrames.map((frame) => frame.toMap()).toList(
+            growable: false,
+          ),
+      'coarseSamples': coarseSamples.toMap(),
+      'denseSamples': denseSamples.toMap(),
+      'contactWindows': contactWindows.map((window) => window.toMap()).toList(
+            growable: false,
+          ),
+      'validatedContactFrameTimestampsMs': validatedContactFrameTimestamps
+          .map((timestamp) => timestamp.inMilliseconds)
+          .toList(growable: false),
+      'contactConfidence': contactConfidence,
+    };
+  }
+
   factory RunningVideoAnalysisResult.fromMap(Map<Object?, Object?> map) {
     final durationMs = _finiteInt(map['durationMs']) ?? 0;
     final sampledFrames = _finiteInt(map['sampledFrames']) ?? 0;
@@ -372,6 +477,46 @@ class RunningVideoAnalysisResult {
           .toDouble(),
     );
   }
+}
+
+List<RunningPoseFrame> _historyPoseFrames(
+  List<RunningPoseFrame> frames, {
+  required List<Duration> contactTimestamps,
+  required int maxFrames,
+}) {
+  if (maxFrames <= 0) {
+    return const <RunningPoseFrame>[];
+  }
+  if (frames.length <= maxFrames) {
+    return List<RunningPoseFrame>.unmodifiable(frames);
+  }
+
+  final selectedIndexes = <int>{0, frames.length - 1};
+  for (final timestamp in contactTimestamps) {
+    var closestIndex = 0;
+    var closestDistance =
+        (frames.first.timestampMs - timestamp.inMilliseconds).abs();
+    for (var index = 1; index < frames.length; index += 1) {
+      final distance =
+          (frames[index].timestampMs - timestamp.inMilliseconds).abs();
+      if (distance < closestDistance) {
+        closestIndex = index;
+        closestDistance = distance;
+      }
+    }
+    if (selectedIndexes.length < maxFrames) {
+      selectedIndexes.add(closestIndex);
+    }
+  }
+  for (var slot = 1;
+      selectedIndexes.length < maxFrames && slot < maxFrames - 1;
+      slot += 1) {
+    selectedIndexes.add(((frames.length - 1) * slot / (maxFrames - 1)).round());
+  }
+  final selected = selectedIndexes.toList(growable: false)..sort();
+  return List<RunningPoseFrame>.unmodifiable(
+    selected.take(maxFrames).map((index) => frames[index]),
+  );
 }
 
 List<RunningPoseFrame> _parsePoseFrames(Object? raw) {
@@ -501,6 +646,14 @@ class RunningMetricQuality {
       sampleCount: sampleCount,
       reason: reason == null || reason.isEmpty ? null : reason,
     );
+  }
+
+  Map<String, Object?> toMap() {
+    return <String, Object?>{
+      'confidence': confidence,
+      'sampleCount': sampleCount,
+      if (reason != null) 'reason': reason,
+    };
   }
 
   int get confidencePercent => (confidence.clamp(0.0, 1.0) * 100).round();

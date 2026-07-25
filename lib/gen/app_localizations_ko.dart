@@ -8025,72 +8025,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachControlPanelReviewValue => '필요 시 측면 분석';
 
   @override
-  String get runningCoachMissionCardTitle => '오늘의 스피드 미션';
-
-  @override
-  String runningCoachMissionDistance(int meters) {
-    return '${meters}m 미션';
-  }
-
-  @override
-  String get runningCoachMissionStartSprint => '실시간 스프린트 코치 시작';
-
-  @override
-  String get runningCoachMissionStartLive => '자세 실시간 확인';
-
-  @override
-  String get runningCoachMissionBreakawayTitle => '수비 라인 깨기';
-
-  @override
-  String get runningCoachMissionBreakawayBody =>
-      '수비 뒤 공간으로 침투한다고 생각하고 20m를 뛰어요. 길게 하지 말고 날카로운 3번이면 충분해요.';
-
-  @override
-  String get runningCoachMissionBreakawayFocus => '첫 3보';
-
-  @override
-  String get runningCoachMissionBreakawayReward => '어제 출발 넘기';
-
-  @override
-  String get runningCoachMissionPressureTitle => '압박 벗어나기';
-
-  @override
-  String get runningCoachMissionPressureBody =>
-      '압박에서 돌아나와 10m만 폭발해요. 오래 뛰는 것보다 첫 밀어내기를 빠르게 만드는 게 목표예요.';
-
-  @override
-  String get runningCoachMissionPressureFocus => '낮은 전경사';
-
-  @override
-  String get runningCoachMissionPressureReward => '더 빠른 탈압박';
-
-  @override
-  String get runningCoachMissionLooseBallTitle => '루즈볼 먼저 잡기';
-
-  @override
-  String get runningCoachMissionLooseBallBody =>
-      '경기처럼 30m 루즈볼을 쫓아가요. 가장 좋은 기록을 남기고 다음엔 아주 조금만 줄여 봅니다.';
-
-  @override
-  String get runningCoachMissionLooseBallFocus => '후반 속도 유지';
-
-  @override
-  String get runningCoachMissionLooseBallReward => '새 추격 목표';
-
-  @override
-  String get runningCoachMissionFirstStepsTitle => '첫 세 걸음 잡기';
-
-  @override
-  String get runningCoachMissionFirstStepsBody =>
-      '처음 10m만 전력으로 뛰고 멈춰요. 출발이 빠르고 가볍고 반복 가능하게 느껴지는 게 목표예요.';
-
-  @override
-  String get runningCoachMissionFirstStepsFocus => '폭발적인 출발';
-
-  @override
-  String get runningCoachMissionFirstStepsReward => '출발 배지 진도';
-
-  @override
   String get runningCoachGrowthTitle => '내 기록 깨기';
 
   @override
@@ -8200,6 +8134,28 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get runningCoachAnalyzeBody =>
       '5~15초 측면 영상 하나를 고르세요. 먼저 가장 중요한 동작 하나를 알려주고, 이어서 5개 지표 전체 리포트를 보여줘요.';
+
+  @override
+  String get runningCoachModeLive => '실시간';
+
+  @override
+  String get runningCoachModeVideo => '영상 분석';
+
+  @override
+  String get runningCoachModeLiveTitle => '달리는 동안 자세 확인';
+
+  @override
+  String get runningCoachModeVideoTitle => '영상으로 자세 분석';
+
+  @override
+  String get runningCoachModeLiveBody => '전신이 보이는 측면 구도에서 몇 걸음 달리면 바로 안내해요.';
+
+  @override
+  String get runningCoachModeVideoBody =>
+      '측면으로 찍은 5~15초 영상을 선택하면 자세 리포트를 만들어요.';
+
+  @override
+  String get runningCoachModeLiveAction => '실시간 코칭 시작';
 
   @override
   String get runningCoachTipsTitle => '촬영 팁';
@@ -8448,6 +8404,9 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get runningCoachCaptureOutdoorDistanceWarning =>
       '러너 키가 화면 높이의 40%보다 작으면 멀리서 촬영하지 않는 것이 좋아요. 달리는 선을 가까이 옮기거나 촬영 전에 광학 줌을 맞추세요.';
+
+  @override
+  String get runningCoachCaptureMoreDetails => '촬영 세부 설정 보기';
 
   @override
   String get runningCoachSampleProcessTitle => '실제 영상 분석 흐름';
@@ -8750,6 +8709,36 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get runningCoachEvidenceTransitionBody =>
       '파란 목표는 영상 위가 아니라 다음 동작에서 맞출 방향이에요.';
+
+  @override
+  String get runningCoachGoalMotionTitle => '현재와 목표 비교';
+
+  @override
+  String get runningCoachGoalMotionBody =>
+      '왼쪽은 측정된 현재 관절, 오른쪽은 다음 동작의 목표 방향입니다.';
+
+  @override
+  String get runningCoachGoalMotionActualLabel => '현재 자세';
+
+  @override
+  String get runningCoachGoalMotionTargetLabel => '목표 움직임';
+
+  @override
+  String get runningCoachGoalMotionFootnote =>
+      '오른쪽은 내 관절 좌표를 바탕으로 만든 코칭 목표이며, 두 번째 영상 측정값은 아니에요.';
+
+  @override
+  String get runningCoachGoalMotionPlay => '목표 움직임 재생';
+
+  @override
+  String get runningCoachGoalMotionPause => '목표 움직임 일시정지';
+
+  @override
+  String get runningCoachHistoryEvidenceUnavailableTitle => '저장된 관절 근거 없음';
+
+  @override
+  String get runningCoachHistoryEvidenceUnavailableBody =>
+      '이전 버전에서 저장한 기록이라 자세 프레임은 없어요. 점수와 코칭 목표는 그대로 볼 수 있어요.';
 
   @override
   String get runningCoachEvidenceCurrentLabel => '현재';
@@ -10203,6 +10192,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachResultOneChangeTitle => '먼저 한 가지만 바꿔 보세요';
 
   @override
+  String get runningCoachNextGoalTitle => '다음 목표';
+
+  @override
+  String get runningCoachNextGoalRepeat => '다음 3번은 이 동작 하나만 의식해 보세요.';
+
+  @override
   String get runningCoachResultNextRunCueLabel => '다음 달리기에서 할 동작';
 
   @override
@@ -10215,6 +10210,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachResultDetailsTitle => '세부 분석';
+
+  @override
+  String get runningCoachReportDetailsBody => '모든 측정값과 관절 근거를 필요할 때만 확인하세요.';
 
   @override
   String get runningCoachAnalysisHistoryTitle => '코칭 분석 기록';
@@ -10509,7 +10507,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachBounceGoodCue => '땅을 뒤로 밀어 주세요. 위로 뛰지 마세요.';
 
   @override
-  String get runningCoachBounceGoodDrill => '드릴: 앵클 드리블 20m를 2번 하세요.';
+  String get runningCoachBounceGoodDrill => '드릴: 발목 탄성을 살린 20m 달리기를 2번 하세요.';
 
   @override
   String get runningCoachBounceHighSummary => '위아래 움직임이 너무 커요.';
@@ -10518,7 +10516,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachBounceHighCue => '발은 빠르게. 땅을 아래가 아니라 뒤로 밀어 주세요.';
 
   @override
-  String get runningCoachBounceHighDrill => '드릴: 짧게 딛는 앵클 드리블 20m를 3번 하세요.';
+  String get runningCoachBounceHighDrill => '드릴: 짧게 딛는 20m 달리기를 3번 하세요.';
 
   @override
   String get runningCoachInsightFootStrikeTitle => '발 착지';
@@ -10553,7 +10551,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachKneeGoodDrill =>
-      '드릴: 포고 런 20m를 2번, 드리블 런 20m를 2번 하세요.';
+      '드릴: 포고 런 20m를 2번, 짧게 딛는 20m 달리기를 2번 하세요.';
 
   @override
   String get runningCoachKneeStraightSummary =>
@@ -10564,7 +10562,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachKneeStraightDrill =>
-      '드릴: 부드러운 무릎으로 드리블 런 20m를 2번 하세요.';
+      '드릴: 부드러운 무릎으로 짧게 딛는 20m 달리기를 2번 하세요.';
 
   @override
   String get runningCoachKneeCollapseSummary => '착지 뒤에 무릎이 너무 많이 접혀요.';

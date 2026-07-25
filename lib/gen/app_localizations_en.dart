@@ -8234,72 +8234,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachControlPanelReviewValue => 'Side-view if needed';
 
   @override
-  String get runningCoachMissionCardTitle => 'Today\'s speed mission';
-
-  @override
-  String runningCoachMissionDistance(int meters) {
-    return '${meters}m mission';
-  }
-
-  @override
-  String get runningCoachMissionStartSprint => 'Start live sprint coach';
-
-  @override
-  String get runningCoachMissionStartLive => 'Check form live';
-
-  @override
-  String get runningCoachMissionBreakawayTitle => 'Break the defensive line';
-
-  @override
-  String get runningCoachMissionBreakawayBody =>
-      'Run 20m as if you are attacking the space behind the back line. Keep it to three sharp attempts.';
-
-  @override
-  String get runningCoachMissionBreakawayFocus => 'First 3 steps';
-
-  @override
-  String get runningCoachMissionBreakawayReward => 'Beat yesterday\'s start';
-
-  @override
-  String get runningCoachMissionPressureTitle => 'Escape pressure';
-
-  @override
-  String get runningCoachMissionPressureBody =>
-      'Turn out of pressure and burst for 10m. The goal is a fast first push, not a long workout.';
-
-  @override
-  String get runningCoachMissionPressureFocus => 'Low body lean';
-
-  @override
-  String get runningCoachMissionPressureReward => 'Sharper getaway';
-
-  @override
-  String get runningCoachMissionLooseBallTitle => 'Win the loose ball';
-
-  @override
-  String get runningCoachMissionLooseBallBody =>
-      'Chase a 30m loose ball with match energy. Log the best attempt and try to trim one small piece off it next time.';
-
-  @override
-  String get runningCoachMissionLooseBallFocus => 'Hold speed late';
-
-  @override
-  String get runningCoachMissionLooseBallReward => 'New chase target';
-
-  @override
-  String get runningCoachMissionFirstStepsTitle => 'Own the first three steps';
-
-  @override
-  String get runningCoachMissionFirstStepsBody =>
-      'Sprint only the first 10m and stop. Make the start feel quick, light, and repeatable.';
-
-  @override
-  String get runningCoachMissionFirstStepsFocus => 'Explosive start';
-
-  @override
-  String get runningCoachMissionFirstStepsReward => 'Start badge progress';
-
-  @override
   String get runningCoachGrowthTitle => 'Beat your own runner';
 
   @override
@@ -8410,6 +8344,29 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get runningCoachAnalyzeBody =>
       'Choose a 5-15 second side-view clip. You will get one priority cue first, followed by the full five-metric report.';
+
+  @override
+  String get runningCoachModeLive => 'Live';
+
+  @override
+  String get runningCoachModeVideo => 'Video analysis';
+
+  @override
+  String get runningCoachModeLiveTitle => 'Check your form while running';
+
+  @override
+  String get runningCoachModeVideoTitle => 'Analyze form from a video';
+
+  @override
+  String get runningCoachModeLiveBody =>
+      'Run a few steps in a full-body side view for immediate guidance.';
+
+  @override
+  String get runningCoachModeVideoBody =>
+      'Choose a 5-15 second side-view video to create a form report.';
+
+  @override
+  String get runningCoachModeLiveAction => 'Start live coaching';
 
   @override
   String get runningCoachTipsTitle => 'How to record';
@@ -8667,6 +8624,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get runningCoachCaptureOutdoorDistanceWarning =>
       'Far-away footage is not recommended when the runner is below 40% of frame height. Move the running line closer or use optical zoom before recording.';
+
+  @override
+  String get runningCoachCaptureMoreDetails => 'More recording details';
 
   @override
   String get runningCoachSampleProcessTitle =>
@@ -8972,6 +8932,37 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get runningCoachEvidenceTransitionBody =>
       'The blue target is the direction to use on your next step, not a pose drawn over the video.';
+
+  @override
+  String get runningCoachGoalMotionTitle => 'Compare current and goal';
+
+  @override
+  String get runningCoachGoalMotionBody =>
+      'The left shows measured joints. The right shows the direction for your next movement.';
+
+  @override
+  String get runningCoachGoalMotionActualLabel => 'Current form';
+
+  @override
+  String get runningCoachGoalMotionTargetLabel => 'Goal movement';
+
+  @override
+  String get runningCoachGoalMotionFootnote =>
+      'The right side is a coaching target built from your joint coordinates, not a second video measurement.';
+
+  @override
+  String get runningCoachGoalMotionPlay => 'Play goal movement';
+
+  @override
+  String get runningCoachGoalMotionPause => 'Pause goal movement';
+
+  @override
+  String get runningCoachHistoryEvidenceUnavailableTitle =>
+      'No saved joint evidence';
+
+  @override
+  String get runningCoachHistoryEvidenceUnavailableBody =>
+      'This older record has no saved pose frames. Its score and coaching goal are still available.';
 
   @override
   String get runningCoachEvidenceCurrentLabel => 'Current';
@@ -10477,6 +10468,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachResultOneChangeTitle => 'Change one thing first';
 
   @override
+  String get runningCoachNextGoalTitle => 'Next goal';
+
+  @override
+  String get runningCoachNextGoalRepeat =>
+      'For your next three runs, focus on this one movement.';
+
+  @override
   String get runningCoachResultNextRunCueLabel => 'On your next run';
 
   @override
@@ -10489,6 +10487,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachResultDetailsTitle => 'Detailed review';
+
+  @override
+  String get runningCoachReportDetailsBody =>
+      'Open the full measurements and joint evidence only when you need them.';
 
   @override
   String get runningCoachAnalysisHistoryTitle => 'Coaching analysis history';
@@ -10800,7 +10802,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachBounceGoodDrill =>
-      'Drill: Do two 20 m ankle dribbles.';
+      'Drill: Do two 20 m ankle-bounce runs.';
 
   @override
   String get runningCoachBounceHighSummary =>
@@ -10812,7 +10814,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachBounceHighDrill =>
-      'Drill: Do three 20 m ankle dribbles with short ground time.';
+      'Drill: Do three 20 m quick-contact runs.';
 
   @override
   String get runningCoachInsightFootStrikeTitle => 'Foot strike';
@@ -10854,7 +10856,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachKneeGoodDrill =>
-      'Drill: Do two 20 m pogo runs, then two 20 m dribble runs.';
+      'Drill: Do two 20 m pogo runs, then two 20 m quick-contact runs.';
 
   @override
   String get runningCoachKneeStraightSummary =>
@@ -10866,7 +10868,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachKneeStraightDrill =>
-      'Drill: Do two 20 m dribble runs with soft knees.';
+      'Drill: Do two 20 m quick-contact runs with soft knees.';
 
   @override
   String get runningCoachKneeCollapseSummary =>
