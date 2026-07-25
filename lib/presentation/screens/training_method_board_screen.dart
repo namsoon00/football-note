@@ -121,6 +121,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   ScrollController? _reorderAutoScrollController;
   double _reorderAutoScrollVelocity = 0;
   bool _reorderPointerRouteAttached = false;
+  String? _reorderingActionRouteId;
 
   bool get _isManagedMode => widget.optionRepository != null;
   _BoardPageState get _currentPage => _pages.first;
@@ -1223,6 +1224,48 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     return _itemPosition(item);
   }
 
+  Offset _playerActionPointAtStage(_BoardItem player, int stageIndex) {
+    final candidates = _currentPage.routes
+        .where(
+          (route) =>
+              route.kind == _PathDrawMode.player &&
+              route.points.isNotEmpty &&
+              _normalizedRouteStageIndex(route.stageIndex) <= stageIndex &&
+              (route.linkedItemId == player.id ||
+                  route.actorItemId == player.id),
+        )
+        .toList(growable: false)
+      ..sort((a, b) {
+        final stageComparison = _normalizedRouteStageIndex(
+          a.stageIndex,
+        ).compareTo(_normalizedRouteStageIndex(b.stageIndex));
+        if (stageComparison != 0) return stageComparison;
+        return _currentPage.routes.indexOf(a).compareTo(
+              _currentPage.routes.indexOf(b),
+            );
+      });
+    return candidates.isEmpty
+        ? _itemPosition(player)
+        : candidates.last.points.last;
+  }
+
+  void _refreshTargetedPassRouteEndpoints() {
+    for (final route in _currentPage.routes) {
+      if (route.kind != _PathDrawMode.ball ||
+          route.points.length < 2 ||
+          route.targetItemId == null ||
+          route.targetItemId == route.actorItemId) {
+        continue;
+      }
+      final target = _itemById(route.targetItemId!);
+      if (target == null || target.type != _BoardItemType.player) continue;
+      route.points[route.points.length - 1] = _playerActionPointAtStage(
+        target,
+        _normalizedRouteStageIndex(route.stageIndex),
+      );
+    }
+  }
+
   Offset _boardItemDisplayPoint(_BoardItem item) {
     final action = _pendingTargetAction;
     if (action != null &&
@@ -1931,6 +1974,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       route.targetItemId = targetItemId;
       route.stageIndex = nextStage;
       route.color = item.color;
+      _refreshTargetedPassRouteEndpoints();
       return route;
     }
     final created = _BoardRoute(
@@ -1946,6 +1990,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       width: _defaultRouteWidth(kind),
     );
     _currentPage.routes.add(created);
+    _refreshTargetedPassRouteEndpoints();
     return created;
   }
 
@@ -2601,6 +2646,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       setState(() {
         _movingItemId = item.id;
         _lastLongPressMoveOffset = Offset.zero;
+        _selectedItemId = item.id;
+        _selectedRouteId = null;
+        _showSelectedColorPicker = false;
+        _clearPendingTargetActionState();
       });
       return;
     }
@@ -3991,6 +4040,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     }
     setState(() {
       _currentPage.routes.removeWhere((entry) => routeIds.contains(entry.id));
+      _refreshTargetedPassRouteEndpoints();
       if (_selectedRouteId != null && routeIds.contains(_selectedRouteId)) {
         _selectedRouteId = null;
       }
@@ -4126,6 +4176,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       route.stageIndex = stageByRouteId[route.id] ?? 1;
       _currentPage.routes[index] = route;
     }
+    _refreshTargetedPassRouteEndpoints();
     final selectedRouteId = _selectedRouteId;
     _registeredNextActionStageIndex =
         selectedRouteId == null ? null : stageByRouteId[selectedRouteId];
@@ -8154,12 +8205,12 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     final isPlaying = _playController.isAnimating &&
         _normalizedRouteStageIndex(route.stageIndex) ==
             _playbackActiveStageIndex;
-    final isHighlighted = isSelected || isPlaying;
+    final isReordering = route.id == _reorderingActionRouteId;
+    final isHighlighted = isSelected || isPlaying || isReordering;
     final simultaneousTooltip = runsWithPrevious
         ? _l10n.trainingSketchRunAfterPreviousTooltip
         : _l10n.trainingSketchRunWithPreviousTooltip;
-    return Padding(
-      key: ValueKey('training-action-timeline-item-${route.id}'),
+    final timelineItem = Padding(
       padding: const EdgeInsets.only(top: 2),
       child: Material(
         color: Colors.transparent,
@@ -8167,37 +8218,51 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           key: ValueKey('training-action-timeline-row-${route.id}'),
           onTap: () => _selectStageActionRoute(route),
           borderRadius: BorderRadius.circular(8),
-          child: Container(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 160),
             padding: EdgeInsets.fromLTRB(compact ? 2 : 6, 4, 0, 4),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
-              color: isHighlighted
-                  ? colors.primaryContainer.withValues(alpha: 0.56)
-                  : Colors.transparent,
+              color: isReordering
+                  ? colors.secondaryContainer.withValues(alpha: 0.82)
+                  : isHighlighted
+                      ? colors.primaryContainer.withValues(alpha: 0.56)
+                      : Colors.transparent,
               border: Border.all(
-                color: isHighlighted
-                    ? colors.primary.withValues(alpha: 0.72)
-                    : Colors.transparent,
+                color: isReordering
+                    ? colors.secondary.withValues(alpha: 0.96)
+                    : isHighlighted
+                        ? colors.primary.withValues(alpha: 0.72)
+                        : Colors.transparent,
+                width: isReordering ? 2 : 1,
               ),
+              boxShadow: isReordering
+                  ? <BoxShadow>[
+                      BoxShadow(
+                        color: colors.secondary.withValues(alpha: 0.30),
+                        blurRadius: 12,
+                        spreadRadius: 1,
+                      ),
+                    ]
+                  : null,
             ),
             child: Row(
               children: [
                 if (canReorder)
                   Tooltip(
                     message: _l10n.trainingSketchReorderActionTooltip,
-                    child: ReorderableDelayedDragStartListener(
-                      index: index,
-                      child: SizedBox(
-                        key: ValueKey(
-                          'training-action-timeline-reorder-handle-${route.id}',
-                        ),
-                        width: compact ? 24 : 30,
-                        height: 32,
-                        child: Icon(
-                          Icons.drag_indicator,
-                          size: 18,
-                          color: colors.onSurfaceVariant,
-                        ),
+                    child: SizedBox(
+                      key: ValueKey(
+                        'training-action-timeline-reorder-handle-${route.id}',
+                      ),
+                      width: compact ? 24 : 30,
+                      height: 32,
+                      child: Icon(
+                        Icons.drag_indicator,
+                        size: 18,
+                        color: isReordering
+                            ? colors.secondary
+                            : colors.onSurfaceVariant,
                       ),
                     ),
                   ),
@@ -8308,6 +8373,17 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         ),
       ),
     );
+    if (!canReorder) {
+      return KeyedSubtree(
+        key: ValueKey('training-action-timeline-item-${route.id}'),
+        child: timelineItem,
+      );
+    }
+    return ReorderableDelayedDragStartListener(
+      key: ValueKey('training-action-timeline-item-${route.id}'),
+      index: index,
+      child: timelineItem,
+    );
   }
 
   Widget _buildGlobalStagePlanner() {
@@ -8365,8 +8441,52 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
               physics: const NeverScrollableScrollPhysics(),
               buildDefaultDragHandles: false,
               onReorder: _reorderActionTimeline,
-              onReorderStart: (_) => _startReorderAutoScroll(),
-              onReorderEnd: (_) => _stopReorderAutoScroll(),
+              onReorderStart: (index) {
+                setState(() => _reorderingActionRouteId = routes[index].id);
+                _startReorderAutoScroll();
+              },
+              onReorderEnd: (_) {
+                _stopReorderAutoScroll();
+                if (mounted) {
+                  setState(() => _reorderingActionRouteId = null);
+                }
+              },
+              proxyDecorator: (child, _, animation) {
+                return AnimatedBuilder(
+                  animation: animation,
+                  child: child,
+                  builder: (context, child) {
+                    final progress = Curves.easeOutCubic.transform(
+                      animation.value,
+                    );
+                    return Transform.scale(
+                      scale: 1 + (progress * 0.035),
+                      child: Container(
+                        key: const ValueKey(
+                          'training-action-timeline-drag-proxy',
+                        ),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          color: colors.secondaryContainer,
+                          border: Border.all(
+                            color: colors.secondary,
+                            width: 2,
+                          ),
+                          boxShadow: <BoxShadow>[
+                            BoxShadow(
+                              color: colors.secondary.withValues(alpha: 0.34),
+                              blurRadius: 18,
+                              spreadRadius: 2,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: child,
+                      ),
+                    );
+                  },
+                );
+              },
               children: [
                 for (var index = 0; index < routes.length; index++)
                   _buildActionTimelineItem(
