@@ -796,11 +796,6 @@ class _MealSelectorSection extends StatelessWidget {
                   fontWeight: FontWeight.w900,
                 ),
               ),
-              subtitle: Text(
-                hasDietDetails
-                    ? l10n.mealDietDetailsFilled
-                    : l10n.mealDietDetailsHint,
-              ),
               children: [
                 _MainDishSelector(
                   mealKey: mealKey,

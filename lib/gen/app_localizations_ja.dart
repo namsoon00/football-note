@@ -6602,12 +6602,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get mealDietDetailsTitle => '食事内容の入力';
 
   @override
-  String get mealDietDetailsHint => 'メイン料理、追加の食べ物、メモが必要なときだけ開きます。';
-
-  @override
-  String get mealDietDetailsFilled => '食事内容が入力されています。';
-
-  @override
   String get mealMenuInputLabel => '追加メモ';
 
   @override

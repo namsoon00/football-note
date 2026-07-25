@@ -81,6 +81,10 @@ void main() {
     await pumpMealLogScreen(tester, initialDate: day);
 
     expect(find.text('저장'), findsNothing);
+    expect(
+      find.text('메인요리, 같이 먹은 음식, 메모는 필요할 때만 펼쳐요.'),
+      findsNothing,
+    );
 
     final increment = find.byKey(const ValueKey('meal-breakfast-increment'));
     await tester.tap(increment);
