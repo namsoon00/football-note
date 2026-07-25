@@ -769,7 +769,7 @@ void main() {
     await tester.pump();
   });
 
-  testWidgets('logs tab does not open the tab quick guide', (
+  testWidgets('logs guide tracks real controls and toggles the layout', (
     WidgetTester tester,
   ) async {
     final optionRepository = _MemoryOptionRepository();
@@ -793,10 +793,82 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    expect(
-      find.byKey(const ValueKey('tab-coach-mark-dialog')),
-      findsNothing,
+    expect(find.byKey(const ValueKey('tab-coach-mark-dialog')), findsOneWidget);
+    expect(find.text('2단계 중 1단계'), findsOneWidget);
+    final addTargetRect = tester.getRect(
+      find.byKey(const ValueKey<String>('logs-coach-add-target')),
     );
+    final addHighlightRect = tester.getRect(
+      find.byKey(const ValueKey('tab-coach-mark-highlight')),
+    );
+    expect(
+      (addHighlightRect.center - addTargetRect.center).distance,
+      lessThan(1),
+    );
+
+    await tester.tap(find.byKey(const ValueKey('tab-coach-mark-next-button')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('2단계 중 2단계'), findsOneWidget);
+    final layoutTargetRect = tester.getRect(
+      find.byKey(const ValueKey<String>('logs-coach-layout-target')),
+    );
+    final layoutHighlightRect = tester.getRect(
+      find.byKey(const ValueKey('tab-coach-mark-highlight')),
+    );
+    expect(
+      (layoutHighlightRect.center - layoutTargetRect.center).distance,
+      lessThan(1),
+    );
+
+    await tester.tapAt(
+      tester.getCenter(find.byKey(const ValueKey('tab-coach-mark-highlight'))),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(optionRepository.getValue<String>('logs_layout'), 'list');
+    expect(
+      optionRepository.getValue<bool>('tab_quick_guide_seen_v1_1'),
+      isTrue,
+    );
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
+
+  testWidgets('tapping the logs guide add target opens record creation', (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _MemoryOptionRepository();
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+    final trainingService = TrainingService(_MemoryTrainingRepository());
+    final mealLogService = MealLogService(optionRepository);
+
+    await tester.pumpWidget(
+      _buildApp(
+        HomeScreen(
+          trainingService: trainingService,
+          mealLogService: mealLogService,
+          localeService: localeService,
+          optionRepository: optionRepository,
+          settingsService: settingsService,
+          initialIndex: 1,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 350));
+
+    await tester.tapAt(
+      tester.getCenter(find.byKey(const ValueKey('tab-coach-mark-highlight'))),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 700));
+
+    expect(find.byType(EntryFormScreen), findsOneWidget);
     expect(
       optionRepository.getValue<bool>('tab_quick_guide_seen_v1_1'),
       isNull,

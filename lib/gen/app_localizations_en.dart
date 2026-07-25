@@ -14479,6 +14479,21 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not create the sketch PDF.';
 
   @override
+  String get trainingSketchVideoExportTooltip => 'Create motion video';
+
+  @override
+  String get trainingSketchVideoExportedSnack =>
+      'Sketch motion video is ready.';
+
+  @override
+  String get trainingSketchVideoExportFailedSnack =>
+      'Could not create the sketch motion video.';
+
+  @override
+  String get trainingSketchVideoExportUnavailableSnack =>
+      'Motion video export is not supported on this device.';
+
+  @override
   String get trainingSketchLandscapeModeTooltip => 'Landscape mode';
 
   @override
@@ -14606,6 +14621,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trainingSketchReorderStageTooltip => 'Reorder stage';
+
+  @override
+  String get trainingSketchReorderActionTooltip => 'Reorder action';
 
   @override
   String get trainingSketchGlobalStagesEmpty =>
@@ -15045,6 +15063,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trainingSketchQuickStayButton => 'Stay';
+
+  @override
+  String get trainingSketchMoveThenPassButton => 'Move then pass';
 
   @override
   String get trainingSketchQuickPassButton => 'Pass';

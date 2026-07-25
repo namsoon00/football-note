@@ -24773,6 +24773,30 @@ abstract class AppLocalizations {
   /// **'Could not create the sketch PDF.'**
   String get trainingSketchPdfExportFailedSnack;
 
+  /// No description provided for @trainingSketchVideoExportTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Create motion video'**
+  String get trainingSketchVideoExportTooltip;
+
+  /// No description provided for @trainingSketchVideoExportedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Sketch motion video is ready.'**
+  String get trainingSketchVideoExportedSnack;
+
+  /// No description provided for @trainingSketchVideoExportFailedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not create the sketch motion video.'**
+  String get trainingSketchVideoExportFailedSnack;
+
+  /// No description provided for @trainingSketchVideoExportUnavailableSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Motion video export is not supported on this device.'**
+  String get trainingSketchVideoExportUnavailableSnack;
+
   /// No description provided for @trainingSketchLandscapeModeTooltip.
   ///
   /// In en, this message translates to:
@@ -25012,6 +25036,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reorder stage'**
   String get trainingSketchReorderStageTooltip;
+
+  /// No description provided for @trainingSketchReorderActionTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Reorder action'**
+  String get trainingSketchReorderActionTooltip;
 
   /// No description provided for @trainingSketchGlobalStagesEmpty.
   ///
@@ -25728,6 +25758,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Stay'**
   String get trainingSketchQuickStayButton;
+
+  /// No description provided for @trainingSketchMoveThenPassButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Move then pass'**
+  String get trainingSketchMoveThenPassButton;
 
   /// No description provided for @trainingSketchQuickPassButton.
   ///
