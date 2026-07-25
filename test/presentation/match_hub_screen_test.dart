@@ -586,6 +586,14 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('시합 수정'), findsOneWidget);
     expect(find.byType(MatchRecordScreen), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey<String>('match-record-save-action')),
+      findsOneWidget,
+    );
+    expect(find.widgetWithText(FilledButton, '저장'), findsNothing);
+    final backButtonCenter = tester.getCenter(find.byType(BackButton).first);
+    final titleCenter = tester.getCenter(find.text('시합 수정'));
+    expect((backButtonCenter.dy - titleCenter.dy).abs(), lessThan(1));
     expect(find.widgetWithText(ChoiceChip, '서울 U15'), findsOneWidget);
     final kindSelector = tester.widget<SegmentedButton<String>>(
       find.byKey(const ValueKey('match-record-kind-selector')),
@@ -1047,6 +1055,11 @@ void main() {
 
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey<String>('match-record-save-action')),
+      findsOneWidget,
+    );
+    expect(find.widgetWithText(FilledButton, '저장'), findsNothing);
     await tester.enterText(
       find.byKey(const ValueKey<String>('match-opponent-field')),
       '서울 U15',
@@ -1084,9 +1097,13 @@ void main() {
     );
     await tester.ensureVisible(find.text('승'));
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('저장'));
+    await tester.ensureVisible(
+      find.byKey(const ValueKey<String>('match-record-save-action')),
+    );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('저장'));
+    await tester.tap(
+      find.byKey(const ValueKey<String>('match-record-save-action')),
+    );
     await tester.pump(const Duration(seconds: 1));
 
     expect(trainingRepository.entries, hasLength(1));
@@ -1131,8 +1148,11 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final saveButton = find.widgetWithText(FilledButton, '저장');
-    tester.widget<FilledButton>(saveButton).onPressed!();
+    final saveButton = find.descendant(
+      of: find.byKey(const ValueKey<String>('match-record-save-action')),
+      matching: find.byType(TextButton),
+    );
+    tester.widget<TextButton>(saveButton).onPressed!();
     await tester.pumpAndSettle();
 
     expect(find.text('상대 팀을 선택하거나 입력하세요.'), findsWidgets);
@@ -1143,7 +1163,7 @@ void main() {
       find.byKey(const ValueKey<String>('match-opponent-field')),
       '서울 U15',
     );
-    tester.widget<FilledButton>(saveButton).onPressed!();
+    tester.widget<TextButton>(saveButton).onPressed!();
     await tester.pumpAndSettle();
 
     expect(find.text('양 팀의 스코어를 모두 입력하세요.'), findsWidgets);

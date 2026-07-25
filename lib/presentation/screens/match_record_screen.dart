@@ -19,6 +19,7 @@ import '../../domain/repositories/option_repository.dart';
 import '../theme/app_theme.dart';
 import '../utils/app_sound_effects.dart';
 import '../utils/match_entry_format.dart';
+import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/app_page_route.dart';
 import 'competition_management_screen.dart';
@@ -312,8 +313,6 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
                 ],
                 const SizedBox(height: AppSpacing.sm),
                 _buildMatchDetailsSection(context),
-                const SizedBox(height: AppSpacing.lg),
-                _buildActions(context),
               ],
             ),
           ),
@@ -326,7 +325,7 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         BackButton(
           onPressed: _saving ? null : () => Navigator.of(context).maybePop(),
@@ -340,7 +339,24 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
             style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.w900,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
+        ),
+        const SizedBox(width: AppSpacing.xs),
+        AppBarActionButton.label(
+          key: const ValueKey('match-record-save-action'),
+          icon: _saving
+              ? const SizedBox.square(
+                  dimension: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.save_outlined),
+          label: l10n.save,
+          tooltip: l10n.save,
+          onPressed: _saving ? null : _saveMatch,
+          margin: EdgeInsets.zero,
+          maxLabelWidth: 56,
         ),
       ],
     );
@@ -946,41 +962,6 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
               ),
             ),
         ],
-      ],
-    );
-  }
-
-  Widget _buildActions(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    return Row(
-      children: [
-        Expanded(
-          child: TextButton(
-            onPressed: _saving ? null : () => Navigator.of(context).maybePop(),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.arrow_back),
-                const SizedBox(width: AppSpacing.xs),
-                Text(l10n.matchCompetitionBackButton),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(width: AppSpacing.xs),
-        Expanded(
-          child: FilledButton.icon(
-            onPressed: _saving ? null : _saveMatch,
-            icon: _saving
-                ? const SizedBox.square(
-                    dimension: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.check),
-            label: Text(l10n.save),
-          ),
-        ),
       ],
     );
   }
