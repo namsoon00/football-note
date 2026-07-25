@@ -775,6 +775,11 @@ class _CompetitionDetailScreen extends StatelessWidget {
       teams: effectiveRecord.teams,
       accent: accent,
     );
+    final fixturesPanel = _CompetitionFixturesPreview(
+      record: effectiveRecord,
+      entries: entries,
+      accent: accent,
+    );
 
     return Scaffold(
       body: ColoredBox(
@@ -853,6 +858,8 @@ class _CompetitionDetailScreen extends StatelessWidget {
                         nextAction: nextAction,
                         accent: accent,
                       ),
+                      const SizedBox(height: AppSpacing.sm),
+                      fixturesPanel,
                       const SizedBox(height: AppSpacing.sm),
                       if (!isLeague)
                         teamsPanel
@@ -1129,6 +1136,172 @@ class _CompetitionTeamsPreview extends StatelessWidget {
   }
 }
 
+class _CompetitionFixturesPreview extends StatelessWidget {
+  final MatchCompetitionRecord record;
+  final List<TrainingEntry> entries;
+  final Color accent;
+
+  const _CompetitionFixturesPreview({
+    required this.record,
+    required this.entries,
+    required this.accent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final isLeague = record.kind == MatchCompetitionRecord.kindLeague;
+    final fixtures = MatchCompetitionService.resolveFixtureStates(
+      competition: record,
+      entries: entries,
+    );
+    return _PreviewPanel(
+      icon: Icons.event_note_outlined,
+      title: l10n.matchCompetitionFixturesTitle,
+      accent: accent,
+      child: fixtures.isEmpty
+          ? _EmptyPreview(text: l10n.matchCompetitionFixturesEmpty)
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (var index = 0; index < fixtures.length; index++) ...[
+                  if (index == 0 ||
+                      fixtures[index - 1].fixture.roundNumber !=
+                          fixtures[index].fixture.roundNumber)
+                    Padding(
+                      padding: EdgeInsets.only(
+                        top: index == 0 ? 0 : AppSpacing.sm,
+                        bottom: AppSpacing.xs,
+                      ),
+                      child: Text(
+                        isLeague
+                            ? l10n.matchCompetitionFixtureRound(
+                                fixtures[index].fixture.roundNumber,
+                              )
+                            : matchTournamentStageLabel(
+                                l10n,
+                                fixtures[index].fixture.stage,
+                              ),
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: accent,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  _CompetitionFixtureRow(
+                    fixture: fixtures[index],
+                    showDivider: index < fixtures.length - 1 &&
+                        fixtures[index].fixture.roundNumber ==
+                            fixtures[index + 1].fixture.roundNumber,
+                    dividerColor: scheme.outlineVariant,
+                  ),
+                ],
+              ],
+            ),
+    );
+  }
+}
+
+class _CompetitionFixtureRow extends StatelessWidget {
+  final CompetitionFixtureState fixture;
+  final bool showDivider;
+  final Color dividerColor;
+
+  const _CompetitionFixtureRow({
+    required this.fixture,
+    required this.showDivider,
+    required this.dividerColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final homeScore = fixture.scoreFor(fixture.homeTeam);
+    final awayScore = fixture.scoreFor(fixture.awayTeam);
+    final date = fixture.fixture.scheduledAt == null
+        ? null
+        : MaterialLocalizations.of(
+            context,
+          ).formatShortDate(fixture.fixture.scheduledAt!);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxs),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          border: showDivider
+              ? Border(bottom: BorderSide(color: dividerColor))
+              : null,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: AppSpacing.xxs),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  fixture.homeTeam.isEmpty
+                      ? l10n.matchCompetitionFixtureTbd
+                      : fixture.homeTeam,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.end,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    fontWeight: fixture.winner == fixture.homeTeam
+                        ? FontWeight.w900
+                        : FontWeight.w700,
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              SizedBox(
+                width: 58,
+                child: Text(
+                  fixture.isRecorded
+                      ? '${homeScore ?? '-'} : ${awayScore ?? '-'}'
+                      : l10n.matchCompetitionFixtureVersus,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: fixture.isRecorded
+                        ? scheme.onSurface
+                        : scheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Expanded(
+                child: Text(
+                  fixture.awayTeam.isEmpty
+                      ? l10n.matchCompetitionFixtureTbd
+                      : fixture.awayTeam,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    fontWeight: fixture.winner == fixture.awayTeam
+                        ? FontWeight.w900
+                        : FontWeight.w700,
+                  ),
+                ),
+              ),
+              if (date != null) ...[
+                const SizedBox(width: AppSpacing.xs),
+                Text(
+                  date,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _LeagueOperationsPreview extends StatelessWidget {
   final MatchCompetitionRecord record;
   final List<TrainingEntry> entries;
@@ -1147,14 +1320,19 @@ class _LeagueOperationsPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final standings = MatchCompetitionService.buildLeagueStandings(
-      competitionName: record.name,
-      registeredTeams: record.teams,
-      entries: entries,
-      ownTeamName: ownTeamName,
-      preferOwnTeamName: preferManagedTeamName,
-      ownTeamAliases: [fallbackTeamName],
-    );
+    final standings = record.fixtures.isEmpty
+        ? MatchCompetitionService.buildLeagueStandings(
+            competitionName: record.name,
+            registeredTeams: record.teams,
+            entries: entries,
+            ownTeamName: ownTeamName,
+            preferOwnTeamName: preferManagedTeamName,
+            ownTeamAliases: [fallbackTeamName],
+          )
+        : MatchCompetitionService.buildLeagueStandingsForCompetition(
+            competition: record,
+            entries: entries,
+          );
     return _PreviewPanel(
       icon: Icons.leaderboard_outlined,
       title: l10n.matchLeagueStandingsTitle,
@@ -1266,6 +1444,10 @@ class _TournamentOperationsPreviewState
       await _shareTournamentBracketImage(
         context: context,
         record: widget.record,
+        bracket: MatchCompetitionService.resolveTournamentBracket(
+          competition: widget.record,
+          entries: widget.entries,
+        ),
         ownTeamName: widget.ownTeamName,
       );
       if (!mounted) return;
@@ -1316,8 +1498,9 @@ class _TournamentOperationsPreviewState
       context,
       MatchCompetitionRecord.kindTournament,
     );
-    final bracket = MatchCompetitionService.buildTournamentBracket(
-      widget.record.teams,
+    final bracket = MatchCompetitionService.resolveTournamentBracket(
+      competition: widget.record,
+      entries: widget.entries,
     );
     return Container(
       decoration: BoxDecoration(
@@ -1402,9 +1585,9 @@ class _TournamentOperationsPreviewState
 Future<void> _shareTournamentBracketImage({
   required BuildContext context,
   required MatchCompetitionRecord record,
+  required TournamentBracket bracket,
   required String ownTeamName,
 }) async {
-  final bracket = MatchCompetitionService.buildTournamentBracket(record.teams);
   if (bracket.rounds.isEmpty) return;
   final bytes = await captureWidgetPng(
     context,
@@ -1450,6 +1633,7 @@ class _TournamentBracketFullScreenState
       await _shareTournamentBracketImage(
         context: context,
         record: widget.record,
+        bracket: widget.bracket,
         ownTeamName: widget.ownTeamName,
       );
       if (!mounted) return;
@@ -3514,6 +3698,22 @@ class _CompetitionProgress {
     required MatchCompetitionRecord record,
     required List<TrainingEntry> entries,
   }) {
+    if (record.fixtures.isNotEmpty) {
+      final fixtures = MatchCompetitionService.resolveFixtureStates(
+        competition: record,
+        entries: entries,
+      );
+      return _CompetitionProgress(
+        recorded: fixtures.where((fixture) => fixture.isRecorded).length,
+        target: fixtures
+            .where(
+              (fixture) =>
+                  !fixture.fixture.isCancelled &&
+                  (fixture.fixture.hasSourceSlots || !fixture.isBye),
+            )
+            .length,
+      );
+    }
     final target = record.kind == MatchCompetitionRecord.kindLeague
         ? _leagueTarget(record.teams.length)
         : MatchCompetitionService.buildTournamentBracketPairs(record.teams)

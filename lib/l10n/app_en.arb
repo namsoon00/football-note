@@ -7264,6 +7264,19 @@
   "matchTournamentChampionSlot": "Champion",
   "matchCompetitionNoTeams": "No teams are registered.",
   "matchCompetitionNoMatches": "No matches are recorded yet.",
+  "matchCompetitionFixtureRecordContext": "Loaded from competition schedule",
+  "matchCompetitionFixtureRound": "Round {round}",
+  "@matchCompetitionFixtureRound": {
+    "placeholders": {
+      "round": {
+        "type": "int"
+      }
+    }
+  },
+  "matchCompetitionFixturesTitle": "Schedule",
+  "matchCompetitionFixturesEmpty": "No fixtures have been generated yet.",
+  "matchCompetitionFixtureVersus": "vs",
+  "matchCompetitionFixtureTbd": "TBD",
   "matchCompetitionMyTeamFallback": "Our team",
   "matchTournamentByeLabel": "Bye",
   "matchTournamentPairLabel": "Match {number}",
@@ -7481,6 +7494,13 @@
   "matchHubOverviewTitle": "Operations snapshot",
   "matchHubRecentFormLabel": "Recent form",
   "matchHubRecordButton": "Record match",
+  "teamMatchHubUpcomingTab": "Upcoming",
+  "teamMatchHubResultsTab": "Results",
+  "teamMatchHubUpcomingTitle": "Matches to record",
+  "teamMatchHubUpcomingEmptyTitle": "No competition matches are ready to record.",
+  "teamMatchHubUpcomingEmptyBody": "Create a competition to record our matches from its schedule or bracket.",
+  "teamMatchHubDateUnset": "Date not set",
+  "teamMatchHubRecordFixtureAction": "Record result",
   "matchEntryManagedInHubTitle": "Match records are managed in Team Management.",
   "matchEntryManagedInHubBody": "Training notes no longer show match details. View and edit matches from the top Team Management area.",
   "matchHubRecordHelper": "Enter today's result quickly",

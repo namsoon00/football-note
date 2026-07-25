@@ -12806,6 +12806,26 @@ class AppLocalizationsKo extends AppLocalizations {
   String get matchCompetitionNoMatches => '아직 기록된 경기가 없어요.';
 
   @override
+  String get matchCompetitionFixtureRecordContext => '대회 일정에서 불러옴';
+
+  @override
+  String matchCompetitionFixtureRound(int round) {
+    return '$round라운드';
+  }
+
+  @override
+  String get matchCompetitionFixturesTitle => '경기 일정';
+
+  @override
+  String get matchCompetitionFixturesEmpty => '생성된 경기 일정이 없어요.';
+
+  @override
+  String get matchCompetitionFixtureVersus => 'vs';
+
+  @override
+  String get matchCompetitionFixtureTbd => '대기';
+
+  @override
   String get matchCompetitionMyTeamFallback => '우리 팀';
 
   @override
@@ -13108,6 +13128,28 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get matchHubRecordButton => '시합 기록';
+
+  @override
+  String get teamMatchHubUpcomingTab => '예정 경기';
+
+  @override
+  String get teamMatchHubResultsTab => '경기 결과';
+
+  @override
+  String get teamMatchHubUpcomingTitle => '기록할 경기';
+
+  @override
+  String get teamMatchHubUpcomingEmptyTitle => '기록할 대회 경기가 없어요.';
+
+  @override
+  String get teamMatchHubUpcomingEmptyBody =>
+      '대회를 만들면 일정과 대진에서 우리 팀 경기를 바로 기록할 수 있어요.';
+
+  @override
+  String get teamMatchHubDateUnset => '일정 미정';
+
+  @override
+  String get teamMatchHubRecordFixtureAction => '결과 기록';
 
   @override
   String get matchEntryManagedInHubTitle => '시합 기록은 팀 관리에서 관리합니다.';

@@ -7264,6 +7264,19 @@
   "matchTournamentChampionSlot": "우승",
   "matchCompetitionNoTeams": "등록된 팀이 없어요.",
   "matchCompetitionNoMatches": "아직 기록된 경기가 없어요.",
+  "matchCompetitionFixtureRecordContext": "대회 일정에서 불러옴",
+  "matchCompetitionFixtureRound": "{round}라운드",
+  "@matchCompetitionFixtureRound": {
+    "placeholders": {
+      "round": {
+        "type": "int"
+      }
+    }
+  },
+  "matchCompetitionFixturesTitle": "경기 일정",
+  "matchCompetitionFixturesEmpty": "생성된 경기 일정이 없어요.",
+  "matchCompetitionFixtureVersus": "vs",
+  "matchCompetitionFixtureTbd": "대기",
   "matchCompetitionMyTeamFallback": "우리 팀",
   "matchTournamentByeLabel": "부전승",
   "matchTournamentPairLabel": "{number}경기",
@@ -7481,6 +7494,13 @@
   "matchHubOverviewTitle": "운영 현황",
   "matchHubRecentFormLabel": "최근 폼",
   "matchHubRecordButton": "시합 기록",
+  "teamMatchHubUpcomingTab": "예정 경기",
+  "teamMatchHubResultsTab": "경기 결과",
+  "teamMatchHubUpcomingTitle": "기록할 경기",
+  "teamMatchHubUpcomingEmptyTitle": "기록할 대회 경기가 없어요.",
+  "teamMatchHubUpcomingEmptyBody": "대회를 만들면 일정과 대진에서 우리 팀 경기를 바로 기록할 수 있어요.",
+  "teamMatchHubDateUnset": "일정 미정",
+  "teamMatchHubRecordFixtureAction": "결과 기록",
   "matchEntryManagedInHubTitle": "시합 기록은 팀 관리에서 관리합니다.",
   "matchEntryManagedInHubBody": "훈련 노트에서는 시합 정보를 보여주지 않습니다. 시합 확인과 수정은 상단 팀 관리에서 진행해 주세요.",
   "matchHubRecordHelper": "오늘 경기 결과를 바로 입력",

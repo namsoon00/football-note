@@ -13211,6 +13211,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get matchCompetitionNoMatches => 'No matches are recorded yet.';
 
   @override
+  String get matchCompetitionFixtureRecordContext =>
+      'Loaded from competition schedule';
+
+  @override
+  String matchCompetitionFixtureRound(int round) {
+    return 'Round $round';
+  }
+
+  @override
+  String get matchCompetitionFixturesTitle => 'Schedule';
+
+  @override
+  String get matchCompetitionFixturesEmpty =>
+      'No fixtures have been generated yet.';
+
+  @override
+  String get matchCompetitionFixtureVersus => 'vs';
+
+  @override
+  String get matchCompetitionFixtureTbd => 'TBD';
+
+  @override
   String get matchCompetitionMyTeamFallback => 'Our team';
 
   @override
@@ -13522,6 +13544,29 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get matchHubRecordButton => 'Record match';
+
+  @override
+  String get teamMatchHubUpcomingTab => 'Upcoming';
+
+  @override
+  String get teamMatchHubResultsTab => 'Results';
+
+  @override
+  String get teamMatchHubUpcomingTitle => 'Matches to record';
+
+  @override
+  String get teamMatchHubUpcomingEmptyTitle =>
+      'No competition matches are ready to record.';
+
+  @override
+  String get teamMatchHubUpcomingEmptyBody =>
+      'Create a competition to record our matches from its schedule or bracket.';
+
+  @override
+  String get teamMatchHubDateUnset => 'Date not set';
+
+  @override
+  String get teamMatchHubRecordFixtureAction => 'Record result';
 
   @override
   String get matchEntryManagedInHubTitle =>

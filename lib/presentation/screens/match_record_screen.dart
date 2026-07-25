@@ -30,6 +30,8 @@ class MatchRecordScreen extends StatefulWidget {
   final SettingsService settingsService;
   final DateTime? initialDate;
   final TrainingEntry? editingEntry;
+  final MatchCompetitionRecord? initialCompetition;
+  final CompetitionFixture? initialFixture;
 
   const MatchRecordScreen({
     super.key,
@@ -39,6 +41,8 @@ class MatchRecordScreen extends StatefulWidget {
     required this.settingsService,
     this.initialDate,
     this.editingEntry,
+    this.initialCompetition,
+    this.initialFixture,
   });
 
   @override
@@ -80,6 +84,7 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
 
   List<TrainingEntry> _contextEntries = const <TrainingEntry>[];
   MatchCompetitionRecord? _initialCompetition;
+  CompetitionFixture? _initialFixture;
   bool _saving = false;
   bool _showValidationErrors = false;
   Timer? _autoSaveTimer;
@@ -89,6 +94,9 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
   bool get _isCompetitionMatch =>
       _matchKind == MatchCompetitionRecord.kindLeague ||
       _matchKind == MatchCompetitionRecord.kindTournament;
+
+  bool get _isFixtureBound =>
+      widget.initialCompetition != null && widget.initialFixture != null;
 
   bool get _isParentMode =>
       FamilyAccessService(widget.optionRepository).loadState().isParentMode;
@@ -107,9 +115,11 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final competition = _initialCompetition;
+    final fixture = _initialFixture;
     if (competition == null) return;
     _initialCompetition = null;
     _applyCompetition(competition);
+    if (fixture != null) _applyFixture(competition, fixture);
   }
 
   @override
@@ -170,6 +180,10 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
     if (competition != null) {
       _initialCompetition = competition;
     }
+    if (widget.initialCompetition != null && widget.initialFixture != null) {
+      _initialCompetition = widget.initialCompetition;
+      _initialFixture = widget.initialFixture;
+    }
   }
 
   Future<void> _loadContextEntries() async {
@@ -180,7 +194,14 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
       sportId: sportId,
     );
     if (!mounted) return;
-    setState(() => _contextEntries = entries);
+    setState(() {
+      _contextEntries = entries;
+      final competition = widget.initialCompetition;
+      final fixture = widget.initialFixture;
+      if (competition != null && fixture != null) {
+        _applyFixture(competition, fixture);
+      }
+    });
   }
 
   Future<void> _openCompetitionManagement() async {
@@ -285,7 +306,7 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
                 _buildHeader(context),
                 const SizedBox(height: AppSpacing.md),
                 _buildMatchBoardSection(context),
-                if (_isCompetitionMatch) ...[
+                if (_isCompetitionMatch && !_isFixtureBound) ...[
                   const SizedBox(height: AppSpacing.sm),
                   _buildCompetitionSection(context),
                 ],
@@ -357,12 +378,14 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
           competitionName: selectedCompetition?.name ?? '',
           opponentName: _opponent,
         ),
-        if (_isCompetitionMatch && savedCompetitions.isEmpty) ...[
+        if (!_isFixtureBound &&
+            _isCompetitionMatch &&
+            savedCompetitions.isEmpty) ...[
           const SizedBox(height: AppSpacing.sm),
           _ManagedCompetitionRequiredNotice(
             onOpenCompetitionManagement: _openCompetitionManagement,
           ),
-        ] else if (savedCompetitions.isNotEmpty) ...[
+        ] else if (!_isFixtureBound && savedCompetitions.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.sm),
           _SavedCompetitionLoader(
             competitions: savedCompetitions,
@@ -373,8 +396,10 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
             },
           ),
         ],
-        const SizedBox(height: AppSpacing.sm),
-        _buildOpponentControl(context, opponentOptions),
+        if (!_isFixtureBound) ...[
+          const SizedBox(height: AppSpacing.sm),
+          _buildOpponentControl(context, opponentOptions),
+        ],
         if (_showValidationErrors && _opponent.trim().isEmpty) ...[
           const SizedBox(height: AppSpacing.xs),
           _RequiredFieldError(text: l10n.matchOpponentRequired),
@@ -548,7 +573,8 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
             ),
           ],
         ),
-        if (_matchKind == MatchCompetitionRecord.kindTournament) ...[
+        if (_matchKind == MatchCompetitionRecord.kindTournament &&
+            !_isFixtureBound) ...[
           const SizedBox(height: AppSpacing.sm),
           _buildTournamentOutcomeControl(context),
         ],
@@ -574,6 +600,13 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
 
   Widget _buildMatchSetupControls(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    if (_isFixtureBound) {
+      return _ScheduledFixtureContext(
+        date: _matchDay,
+        matchKindLabel: _matchKindLabel(l10n),
+        label: l10n.matchCompetitionFixtureRecordContext,
+      );
+    }
     final dateButton = OutlinedButton.icon(
       onPressed: _saving ? null : _pickMatchDate,
       icon: const Icon(Icons.calendar_today_outlined),
@@ -991,6 +1024,62 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
     }
   }
 
+  void _applyFixture(
+    MatchCompetitionRecord competition,
+    CompetitionFixture fixture,
+  ) {
+    final sportId = widget.editingEntry?.sportId ??
+        SportService(widget.optionRepository).currentSportId();
+    final l10n = AppLocalizations.of(context)!;
+    final managedTeam = _managedTeam(sportId);
+    final managedTeamName = managedTeam?.name.trim().isNotEmpty == true
+        ? managedTeam!.name.trim()
+        : l10n.matchCompetitionMyTeamFallback;
+    final states = MatchCompetitionService.resolveFixtureStates(
+      competition: competition,
+      entries: _contextEntries,
+    );
+    final state = states.firstWhere(
+      (item) => item.fixture.id == fixture.id,
+      orElse: () => CompetitionFixtureState(
+        competition: competition,
+        fixture: fixture,
+        homeTeam: fixture.homeTeam,
+        awayTeam: fixture.awayTeam,
+      ),
+    );
+    final fixtureTeamName = state.involvesTeam(managedTeamName)
+        ? managedTeamName
+        : state.involvesTeam(l10n.matchCompetitionMyTeamFallback)
+            ? l10n.matchCompetitionMyTeamFallback
+            : managedTeamName;
+    final opponent = state.opponentFor(fixtureTeamName);
+    _matchKind = competition.kind;
+    _selectedCompetitionId = competition.id;
+    _teams = MatchCompetitionService.normalizeTeams([
+      ...competition.teams,
+      state.homeTeam,
+      state.awayTeam,
+    ]);
+    _opponent = opponent;
+    _opponentController.text = opponent;
+    if (state.fixture.scheduledAt != null) {
+      final date = state.fixture.scheduledAt!;
+      _matchDay = DateTime(date.year, date.month, date.day);
+    }
+    if (state.fixture.venue.trim().isNotEmpty) {
+      _location = state.fixture.venue.trim();
+      _locationController.text = _location;
+    }
+    if (competition.kind == MatchCompetitionRecord.kindLeague) {
+      _leagueRound = state.fixture.stage;
+      _roundController.text = _leagueRound;
+    } else {
+      _tournamentStage = normalizeMatchTournamentStage(state.fixture.stage);
+      _tournamentOutcome = 'ongoing';
+    }
+  }
+
   MatchCompetitionRecord? _selectedManagedCompetition() {
     if (!_isCompetitionMatch || _selectedCompetitionId.trim().isEmpty) {
       return null;
@@ -1205,6 +1294,12 @@ class _MatchRecordScreenState extends State<MatchRecordScreen> {
           ? calculatedTournamentWins
           : null,
       matchCompetitionName: _isCompetitionMatch ? competitionName : '',
+      matchCompetitionId: _isCompetitionMatch
+          ? selectedCompetition?.id ?? previousEntry?.matchCompetitionId ?? ''
+          : '',
+      matchFixtureId: _isFixtureBound
+          ? widget.initialFixture!.id
+          : previousEntry?.matchFixtureId ?? '',
       matchStage: _matchKind == MatchCompetitionRecord.kindTournament
           ? _tournamentStage
           : _matchKind == MatchCompetitionRecord.kindLeague
@@ -1354,6 +1449,59 @@ class _MatchRecordSection extends StatelessWidget {
           ],
           const SizedBox(height: AppSpacing.sm),
           ...children,
+        ],
+      ),
+    );
+  }
+}
+
+class _ScheduledFixtureContext extends StatelessWidget {
+  final DateTime date;
+  final String matchKindLabel;
+  final String label;
+
+  const _ScheduledFixtureContext({
+    required this.date,
+    required this.matchKindLabel,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: scheme.secondaryContainer.withValues(alpha: 0.42),
+        borderRadius: AppRadius.small,
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.event_available_outlined,
+              color: scheme.onSecondaryContainer),
+          const SizedBox(width: AppSpacing.xs),
+          Expanded(
+            child: Text(
+              '$matchKindLabel · ${DateFormat('yyyy-MM-dd').format(date)}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: scheme.onSecondaryContainer,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.xs),
+          Text(
+            label,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: scheme.onSecondaryContainer,
+            ),
+          ),
         ],
       ),
     );

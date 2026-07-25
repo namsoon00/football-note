@@ -12788,6 +12788,26 @@ class AppLocalizationsJa extends AppLocalizations {
   String get matchCompetitionNoMatches => '記録された試合がまだありません。';
 
   @override
+  String get matchCompetitionFixtureRecordContext => '大会日程から読み込み';
+
+  @override
+  String matchCompetitionFixtureRound(int round) {
+    return '第$round節';
+  }
+
+  @override
+  String get matchCompetitionFixturesTitle => '試合日程';
+
+  @override
+  String get matchCompetitionFixturesEmpty => '生成された試合日程がありません。';
+
+  @override
+  String get matchCompetitionFixtureVersus => 'vs';
+
+  @override
+  String get matchCompetitionFixtureTbd => '未定';
+
+  @override
   String get matchCompetitionMyTeamFallback => '自チーム';
 
   @override
@@ -13091,6 +13111,28 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get matchHubRecordButton => '試合を記録';
+
+  @override
+  String get teamMatchHubUpcomingTab => '予定試合';
+
+  @override
+  String get teamMatchHubResultsTab => '試合結果';
+
+  @override
+  String get teamMatchHubUpcomingTitle => '記録する試合';
+
+  @override
+  String get teamMatchHubUpcomingEmptyTitle => '記録できる大会試合がありません。';
+
+  @override
+  String get teamMatchHubUpcomingEmptyBody =>
+      '大会を作成すると、日程や対戦表から自チームの試合を記録できます。';
+
+  @override
+  String get teamMatchHubDateUnset => '日程未定';
+
+  @override
+  String get teamMatchHubRecordFixtureAction => '結果を記録';
 
   @override
   String get matchEntryManagedInHubTitle => '試合記録はチーム管理で管理します。';

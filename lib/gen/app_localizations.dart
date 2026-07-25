@@ -22551,6 +22551,42 @@ abstract class AppLocalizations {
   /// **'No matches are recorded yet.'**
   String get matchCompetitionNoMatches;
 
+  /// No description provided for @matchCompetitionFixtureRecordContext.
+  ///
+  /// In en, this message translates to:
+  /// **'Loaded from competition schedule'**
+  String get matchCompetitionFixtureRecordContext;
+
+  /// No description provided for @matchCompetitionFixtureRound.
+  ///
+  /// In en, this message translates to:
+  /// **'Round {round}'**
+  String matchCompetitionFixtureRound(int round);
+
+  /// No description provided for @matchCompetitionFixturesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule'**
+  String get matchCompetitionFixturesTitle;
+
+  /// No description provided for @matchCompetitionFixturesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No fixtures have been generated yet.'**
+  String get matchCompetitionFixturesEmpty;
+
+  /// No description provided for @matchCompetitionFixtureVersus.
+  ///
+  /// In en, this message translates to:
+  /// **'vs'**
+  String get matchCompetitionFixtureVersus;
+
+  /// No description provided for @matchCompetitionFixtureTbd.
+  ///
+  /// In en, this message translates to:
+  /// **'TBD'**
+  String get matchCompetitionFixtureTbd;
+
   /// No description provided for @matchCompetitionMyTeamFallback.
   ///
   /// In en, this message translates to:
@@ -23091,6 +23127,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Record match'**
   String get matchHubRecordButton;
+
+  /// No description provided for @teamMatchHubUpcomingTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming'**
+  String get teamMatchHubUpcomingTab;
+
+  /// No description provided for @teamMatchHubResultsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Results'**
+  String get teamMatchHubResultsTab;
+
+  /// No description provided for @teamMatchHubUpcomingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Matches to record'**
+  String get teamMatchHubUpcomingTitle;
+
+  /// No description provided for @teamMatchHubUpcomingEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No competition matches are ready to record.'**
+  String get teamMatchHubUpcomingEmptyTitle;
+
+  /// No description provided for @teamMatchHubUpcomingEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a competition to record our matches from its schedule or bracket.'**
+  String get teamMatchHubUpcomingEmptyBody;
+
+  /// No description provided for @teamMatchHubDateUnset.
+  ///
+  /// In en, this message translates to:
+  /// **'Date not set'**
+  String get teamMatchHubDateUnset;
+
+  /// No description provided for @teamMatchHubRecordFixtureAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Record result'**
+  String get teamMatchHubRecordFixtureAction;
 
   /// No description provided for @matchEntryManagedInHubTitle.
   ///
