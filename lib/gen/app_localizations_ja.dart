@@ -14330,10 +14330,26 @@ class AppLocalizationsJa extends AppLocalizations {
       'ボード全体を1つの順序として作成し、同時に動くものは同じステージに追加できます。';
 
   @override
+  String get trainingSketchActionTimelineTitle => '全体アクション';
+
+  @override
+  String get trainingSketchActionTimelineEmpty =>
+      'まだアクションがありません。選手を選んで次の動きを追加してください。';
+
+  @override
   String get trainingSketchReorderStageTooltip => 'ステージの順序を変更';
 
   @override
   String get trainingSketchReorderActionTooltip => 'アクションの順序を変更';
+
+  @override
+  String get trainingSketchRunWithPreviousTooltip => '前のアクションと同時に実行';
+
+  @override
+  String get trainingSketchRunAfterPreviousTooltip => '前のアクションの後に実行';
+
+  @override
+  String get trainingSketchDeleteActionTooltip => 'アクションを削除';
 
   @override
   String get trainingSketchGlobalStagesEmpty =>
@@ -14766,6 +14782,10 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get trainingSketchMoveThenPassButton => '動いてからパス';
+
+  @override
+  String get trainingSketchMoveThenPassReceiverPrompt =>
+      '移動地点を決めました。パスを受ける選手を選んでください。';
 
   @override
   String get trainingSketchQuickPassButton => 'パス';

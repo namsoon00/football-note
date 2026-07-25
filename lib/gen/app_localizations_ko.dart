@@ -14352,10 +14352,26 @@ class AppLocalizationsKo extends AppLocalizations {
       '보드 전체 순서로 이어서 만들고, 필요하면 같은 단계에 여러 액션을 함께 넣을 수 있어요.';
 
   @override
+  String get trainingSketchActionTimelineTitle => '전체 액션';
+
+  @override
+  String get trainingSketchActionTimelineEmpty =>
+      '아직 액션이 없어요. 선수를 선택해 다음 동작을 추가하세요.';
+
+  @override
   String get trainingSketchReorderStageTooltip => '단계 순서 변경';
 
   @override
   String get trainingSketchReorderActionTooltip => '액션 순서 변경';
+
+  @override
+  String get trainingSketchRunWithPreviousTooltip => '앞 액션과 동시에 실행';
+
+  @override
+  String get trainingSketchRunAfterPreviousTooltip => '앞 액션 다음에 실행';
+
+  @override
+  String get trainingSketchDeleteActionTooltip => '액션 삭제';
 
   @override
   String get trainingSketchGlobalStagesEmpty =>
@@ -14789,6 +14805,10 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get trainingSketchMoveThenPassButton => '이동 후 패스';
+
+  @override
+  String get trainingSketchMoveThenPassReceiverPrompt =>
+      '이동 지점을 정했어요. 패스할 선수를 선택하세요.';
 
   @override
   String get trainingSketchQuickPassButton => '패스';
