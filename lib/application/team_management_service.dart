@@ -8,6 +8,18 @@ class ManagedTeamPlayer {
   static const String roleDefender = 'defender';
   static const String roleMidfielder = 'midfielder';
   static const String roleForward = 'forward';
+  static const String positionGoalkeeper = 'gk';
+  static const String positionLeftBack = 'lb';
+  static const String positionCenterBack = 'cb';
+  static const String positionRightBack = 'rb';
+  static const String positionDefensiveMidfielder = 'dm';
+  static const String positionLeftMidfielder = 'lm';
+  static const String positionCentralMidfielder = 'cm';
+  static const String positionRightMidfielder = 'rm';
+  static const String positionAttackingMidfielder = 'am';
+  static const String positionLeftWinger = 'lw';
+  static const String positionStriker = 'st';
+  static const String positionRightWinger = 'rw';
   static const String footRight = 'right';
   static const String footLeft = 'left';
   static const String footBoth = 'both';
@@ -19,6 +31,7 @@ class ManagedTeamPlayer {
   final String name;
   final String number;
   final String role;
+  final String position;
   final String foot;
   final String condition;
   final String note;
@@ -32,6 +45,7 @@ class ManagedTeamPlayer {
     required this.name,
     this.number = '',
     this.role = roleForward,
+    this.position = '',
     this.foot = footRight,
     this.condition = conditionReady,
     this.note = '',
@@ -45,6 +59,7 @@ class ManagedTeamPlayer {
     required String name,
     String number = '',
     String role = roleForward,
+    String position = '',
     String foot = footRight,
     String condition = conditionReady,
     String note = '',
@@ -55,11 +70,16 @@ class ManagedTeamPlayer {
     DateTime? now,
   }) {
     final timestamp = now ?? DateTime.now();
+    final normalizedRole = TeamManagementService.normalizePlayerRole(role);
     return ManagedTeamPlayer(
       id: TeamManagementService.playerId(name: name, now: timestamp),
       name: name.trim(),
       number: number.trim(),
-      role: TeamManagementService.normalizePlayerRole(role),
+      role: normalizedRole,
+      position: TeamManagementService.normalizePlayerPosition(
+        position,
+        role: normalizedRole,
+      ),
       foot: TeamManagementService.normalizePlayerFoot(foot),
       condition: TeamManagementService.normalizePlayerCondition(condition),
       note: note.trim(),
@@ -71,12 +91,17 @@ class ManagedTeamPlayer {
   }
 
   factory ManagedTeamPlayer.fromMap(Map<String, dynamic> map) {
+    final normalizedRole = TeamManagementService.normalizePlayerRole(
+      map['role']?.toString() ?? '',
+    );
     return ManagedTeamPlayer(
       id: map['id']?.toString().trim() ?? '',
       name: map['name']?.toString().trim() ?? '',
       number: map['number']?.toString().trim() ?? '',
-      role: TeamManagementService.normalizePlayerRole(
-        map['role']?.toString() ?? '',
+      role: normalizedRole,
+      position: TeamManagementService.normalizePlayerPosition(
+        map['position']?.toString() ?? '',
+        role: normalizedRole,
       ),
       foot: TeamManagementService.normalizePlayerFoot(
         map['foot']?.toString() ?? '',
@@ -101,6 +126,7 @@ class ManagedTeamPlayer {
     String? name,
     String? number,
     String? role,
+    String? position,
     String? foot,
     String? condition,
     String? note,
@@ -109,11 +135,18 @@ class ManagedTeamPlayer {
     double? weightKg,
     String? imageDataUrl,
   }) {
+    final normalizedRole = TeamManagementService.normalizePlayerRole(
+      role ?? this.role,
+    );
     return ManagedTeamPlayer(
       id: id ?? this.id,
       name: name ?? this.name,
       number: number ?? this.number,
-      role: TeamManagementService.normalizePlayerRole(role ?? this.role),
+      role: normalizedRole,
+      position: TeamManagementService.normalizePlayerPosition(
+        position ?? this.position,
+        role: normalizedRole,
+      ),
       foot: TeamManagementService.normalizePlayerFoot(foot ?? this.foot),
       condition: TeamManagementService.normalizePlayerCondition(
         condition ?? this.condition,
@@ -136,6 +169,7 @@ class ManagedTeamPlayer {
       'name': name,
       'number': number,
       'role': role,
+      'position': position,
       'foot': foot,
       'condition': condition,
       'note': note,
@@ -145,6 +179,11 @@ class ManagedTeamPlayer {
       'imageDataUrl': imageDataUrl,
     };
   }
+
+  String get effectivePosition => TeamManagementService.normalizePlayerPosition(
+        position,
+        role: role,
+      );
 }
 
 class ManagedTacticLine {
@@ -876,6 +915,57 @@ class TeamManagementService {
       ManagedTeamPlayer.roleMidfielder => ManagedTeamPlayer.roleMidfielder,
       _ => ManagedTeamPlayer.roleForward,
     };
+  }
+
+  static List<String> playerPositionsForRole(String role) {
+    return switch (normalizePlayerRole(role)) {
+      ManagedTeamPlayer.roleGoalkeeper => const [
+          ManagedTeamPlayer.positionGoalkeeper,
+        ],
+      ManagedTeamPlayer.roleDefender => const [
+          ManagedTeamPlayer.positionLeftBack,
+          ManagedTeamPlayer.positionCenterBack,
+          ManagedTeamPlayer.positionRightBack,
+        ],
+      ManagedTeamPlayer.roleMidfielder => const [
+          ManagedTeamPlayer.positionDefensiveMidfielder,
+          ManagedTeamPlayer.positionLeftMidfielder,
+          ManagedTeamPlayer.positionCentralMidfielder,
+          ManagedTeamPlayer.positionRightMidfielder,
+          ManagedTeamPlayer.positionAttackingMidfielder,
+        ],
+      _ => const [
+          ManagedTeamPlayer.positionLeftWinger,
+          ManagedTeamPlayer.positionStriker,
+          ManagedTeamPlayer.positionRightWinger,
+        ],
+    };
+  }
+
+  static String defaultPlayerPositionForRole(String role) {
+    return switch (normalizePlayerRole(role)) {
+      ManagedTeamPlayer.roleGoalkeeper => ManagedTeamPlayer.positionGoalkeeper,
+      ManagedTeamPlayer.roleDefender => ManagedTeamPlayer.positionCenterBack,
+      ManagedTeamPlayer.roleMidfielder =>
+        ManagedTeamPlayer.positionCentralMidfielder,
+      _ => ManagedTeamPlayer.positionStriker,
+    };
+  }
+
+  static String normalizePlayerPosition(
+    String position, {
+    required String role,
+  }) {
+    final normalizedRole = normalizePlayerRole(role);
+    final normalizedPosition = position.trim().toLowerCase();
+    if (playerPositionsForRole(normalizedRole).contains(normalizedPosition)) {
+      return normalizedPosition;
+    }
+    return defaultPlayerPositionForRole(normalizedRole);
+  }
+
+  static String playerPositionCode(String position, {required String role}) {
+    return normalizePlayerPosition(position, role: role).toUpperCase();
   }
 
   static String normalizePlayerFoot(String foot) {

@@ -2321,10 +2321,15 @@ class _BoardPlayerChip extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.drag_indicator,
-              size: compact ? 14 : 16,
-              color: assigned ? scheme.onPrimaryContainer : scheme.primary,
+            _PositionCodeGlyph(
+              player: player,
+              size: compact ? 18 : 20,
+              fill: assigned
+                  ? scheme.primaryContainer
+                  : scheme.surfaceContainerHighest,
+              stroke: assigned ? scheme.primary : scheme.outlineVariant,
+              foreground:
+                  assigned ? scheme.onPrimaryContainer : scheme.onSurface,
             ),
             const SizedBox(width: AppSpacing.xxs),
             Text(
@@ -2569,72 +2574,73 @@ class _PitchPlayerMarker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final accent = _playerRoleAccent(player.role);
+    final scheme = theme.colorScheme;
     final condition = _playerConditionAccent(player.condition);
-    return Material(
-      color: Colors.white,
-      elevation: 8,
-      borderRadius: AppRadius.small,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: AppRadius.small,
-          border: Border.all(color: accent, width: 2),
-        ),
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.xxs,
-          vertical: 2,
-        ),
-        child: Stack(
-          children: [
-            PositionedDirectional(
-              top: 0,
-              end: 0,
-              child: Container(
-                width: 7,
-                height: 7,
-                decoration: BoxDecoration(
-                  color: condition,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 1.5),
+    return Semantics(
+      label:
+          '${player.name}, ${teamPlayerPositionCode(player.effectivePosition, role: player.role)}',
+      child: Material(
+        color: Colors.transparent,
+        elevation: 8,
+        child: _PositionMarkerSurface(
+          player: player,
+          fill: Colors.white,
+          stroke: scheme.primary,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              PositionedDirectional(
+                top: 2,
+                end: 4,
+                child: Container(
+                  width: 7,
+                  height: 7,
+                  decoration: BoxDecoration(
+                    color: condition,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 1.5),
+                  ),
                 ),
               ),
-            ),
-            Center(
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      player.number.trim().isEmpty
-                          ? teamPlayerRoleShortLabel(player.role)
-                          : player.number.trim(),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: accent,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 13,
-                        height: 1.0,
+              Center(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        player.number.trim().isEmpty
+                            ? _playerInitialLabel(player)
+                            : player.number.trim(),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          color: scheme.onSurface,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 13,
+                          height: 1.0,
+                        ),
                       ),
-                    ),
-                    Text(
-                      _playerInitialLabel(player),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: const Color(0xFF111827),
-                        fontWeight: FontWeight.w900,
-                        fontSize: 10,
-                        height: 1.0,
+                      Text(
+                        teamPlayerPositionCode(
+                          player.effectivePosition,
+                          role: player.role,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: scheme.primary,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 9,
+                          height: 1.0,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -3180,6 +3186,7 @@ class _PlayerRegistrationScreenState extends State<_PlayerRegistrationScreen> {
   final TextEditingController _noteController = TextEditingController();
 
   late String _role;
+  late String _position;
   late String _foot;
   late String _condition;
   String _imageDataUrl = '';
@@ -3196,6 +3203,10 @@ class _PlayerRegistrationScreenState extends State<_PlayerRegistrationScreen> {
     _weightController.text = _measurementFieldText(player?.weightKg ?? 0);
     _noteController.text = player?.note ?? '';
     _role = player?.role ?? ManagedTeamPlayer.roleForward;
+    _position = TeamManagementService.normalizePlayerPosition(
+      player?.position ?? '',
+      role: _role,
+    );
     _foot = player?.foot ?? ManagedTeamPlayer.footRight;
     _condition = player?.condition ?? ManagedTeamPlayer.conditionReady;
     _imageDataUrl = player?.imageDataUrl ?? '';
@@ -3260,6 +3271,7 @@ class _PlayerRegistrationScreenState extends State<_PlayerRegistrationScreen> {
             name: name,
             number: _numberController.text.trim(),
             role: _role,
+            position: _position,
             foot: _foot,
             condition: _condition,
             note: _noteController.text.trim(),
@@ -3272,6 +3284,7 @@ class _PlayerRegistrationScreenState extends State<_PlayerRegistrationScreen> {
             name: name,
             number: _numberController.text.trim(),
             role: _role,
+            position: _position,
             foot: _foot,
             condition: _condition,
             note: _noteController.text.trim(),
@@ -3338,6 +3351,7 @@ class _PlayerRegistrationScreenState extends State<_PlayerRegistrationScreen> {
                 playerName: _nameController.text,
                 playerNumber: _numberController.text,
                 playerRole: _role,
+                playerPosition: _position,
                 pickingImage: _pickingImage,
                 readOnly: widget.readOnly,
                 onPickImage: _pickImage,
@@ -3473,9 +3487,39 @@ class _PlayerRegistrationScreenState extends State<_PlayerRegistrationScreen> {
                           selected: _role == role,
                           onSelected: widget.readOnly
                               ? null
-                              : (_) => setState(() => _role = role),
+                              : (_) => setState(() {
+                                    _role = role;
+                                    _position = TeamManagementService
+                                        .defaultPlayerPositionForRole(role);
+                                  }),
                         ),
                     ],
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  DropdownButtonFormField<String>(
+                    key: ValueKey<String>(
+                      'team-player-position-field-$_role',
+                    ),
+                    initialValue: _position,
+                    decoration: InputDecoration(
+                      labelText: l10n.teamManagementPlayerPositionLabel,
+                    ),
+                    items: [
+                      for (final position
+                          in TeamManagementService.playerPositionsForRole(
+                        _role,
+                      ))
+                        DropdownMenuItem<String>(
+                          value: position,
+                          child: Text(teamPlayerPositionLabel(l10n, position)),
+                        ),
+                    ],
+                    onChanged: widget.readOnly
+                        ? null
+                        : (position) {
+                            if (position == null) return;
+                            setState(() => _position = position);
+                          },
                   ),
                 ],
               ),
@@ -3772,6 +3816,7 @@ class _PlayerImagePickerPanel extends StatelessWidget {
   final String playerName;
   final String playerNumber;
   final String playerRole;
+  final String playerPosition;
   final bool pickingImage;
   final bool readOnly;
   final VoidCallback onPickImage;
@@ -3782,6 +3827,7 @@ class _PlayerImagePickerPanel extends StatelessWidget {
     required this.playerName,
     required this.playerNumber,
     required this.playerRole,
+    required this.playerPosition,
     required this.pickingImage,
     required this.readOnly,
     required this.onPickImage,
@@ -3793,7 +3839,6 @@ class _PlayerImagePickerPanel extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final accent = _playerRoleAccent(playerRole);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -3802,6 +3847,7 @@ class _PlayerImagePickerPanel extends StatelessWidget {
           playerName: playerName,
           playerNumber: playerNumber,
           playerRole: playerRole,
+          playerPosition: playerPosition,
           size: 96,
         ),
         const SizedBox(width: AppSpacing.sm),
@@ -3827,7 +3873,7 @@ class _PlayerImagePickerPanel extends StatelessWidget {
                       : l10n.teamManagementPlayerNumberPreview(
                           playerNumber.trim(),
                         ),
-                  teamPlayerRoleLabel(l10n, playerRole),
+                  teamPlayerPositionLabel(l10n, playerPosition),
                 ].join(' · '),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -3859,8 +3905,8 @@ class _PlayerImagePickerPanel extends StatelessWidget {
                           : l10n.teamManagementPlayerImageReplaceButton,
                     ),
                     style: FilledButton.styleFrom(
-                      backgroundColor: accent,
-                      foregroundColor: Colors.white,
+                      backgroundColor: scheme.primary,
+                      foregroundColor: scheme.onPrimary,
                     ),
                   ),
                   if (onRemoveImage != null)
@@ -3886,6 +3932,7 @@ class _PlayerPhotoFrame extends StatelessWidget {
   final String playerName;
   final String playerNumber;
   final String playerRole;
+  final String playerPosition;
   final double size;
 
   const _PlayerPhotoFrame({
@@ -3893,13 +3940,14 @@ class _PlayerPhotoFrame extends StatelessWidget {
     required this.playerName,
     required this.playerNumber,
     required this.playerRole,
+    required this.playerPosition,
     required this.size,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final accent = _playerRoleAccent(playerRole);
+    final scheme = theme.colorScheme;
     final imageProvider = _teamPlayerImageProvider(imageDataUrl);
     final compact = size < 64;
     final borderRadius = AppRadius.small;
@@ -3910,9 +3958,9 @@ class _PlayerPhotoFrame extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: accent.withValues(alpha: 0.12),
+        color: scheme.surfaceContainerHighest,
         borderRadius: borderRadius,
-        border: Border.all(color: accent.withValues(alpha: 0.24)),
+        border: Border.all(color: scheme.outlineVariant),
       ),
       clipBehavior: Clip.antiAlias,
       child: Stack(
@@ -3930,18 +3978,18 @@ class _PlayerPhotoFrame extends StatelessWidget {
                           ? theme.textTheme.titleMedium
                           : theme.textTheme.headlineSmall)
                       ?.copyWith(
-                    color: accent,
+                    color: scheme.onSurface,
                     fontWeight: FontWeight.w900,
                     height: 1.0,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  teamPlayerRoleShortLabel(playerRole),
+                  teamPlayerPositionCode(playerPosition, role: playerRole),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.labelSmall?.copyWith(
-                    color: accent,
+                    color: scheme.primary,
                     fontWeight: FontWeight.w900,
                     height: 1.0,
                   ),
@@ -3959,7 +4007,7 @@ class _PlayerPhotoFrame extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.titleMedium?.copyWith(
-                      color: accent,
+                      color: scheme.onSurface,
                       fontWeight: FontWeight.w900,
                     ),
                   ),
@@ -3983,7 +4031,10 @@ class _PlayerPhotoFrame extends StatelessWidget {
                 ),
                 child: Text(
                   playerNumber.trim().isEmpty
-                      ? teamPlayerRoleShortLabel(playerRole)
+                      ? teamPlayerPositionCode(
+                          playerPosition,
+                          role: playerRole,
+                        )
                       : playerNumber.trim(),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -3999,6 +4050,266 @@ class _PlayerPhotoFrame extends StatelessWidget {
       ),
     );
   }
+}
+
+enum _PositionMarkerShape { hexagon, square, circle, diamond }
+
+class _PlayerPositionCoordinate {
+  final double x;
+  final double y;
+  final _PositionMarkerShape shape;
+
+  const _PlayerPositionCoordinate({
+    required this.x,
+    required this.y,
+    required this.shape,
+  });
+}
+
+class _PlayerPositionMiniPitch extends StatelessWidget {
+  final ManagedTeamPlayer player;
+
+  const _PlayerPositionMiniPitch({required this.player});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    final coordinate = _playerPositionCoordinate(player);
+    const markerSize = 10.0;
+    return Semantics(
+      label: teamPlayerPositionLabel(l10n, player.effectivePosition),
+      child: SizedBox(
+        key: ValueKey<String>('team-player-mini-pitch-${player.id}'),
+        width: 34,
+        height: 42,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final markerLeft =
+                (constraints.maxWidth * coordinate.x) - (markerSize / 2);
+            final markerTop =
+                (constraints.maxHeight * coordinate.y) - (markerSize / 2);
+            return Stack(
+              fit: StackFit.expand,
+              children: [
+                CustomPaint(
+                  painter: _MiniPitchCoordinatePainter(
+                    lineColor: scheme.outlineVariant,
+                  ),
+                ),
+                Positioned(
+                  left: markerLeft
+                      .clamp(0.0, constraints.maxWidth - markerSize)
+                      .toDouble(),
+                  top: markerTop
+                      .clamp(0.0, constraints.maxHeight - markerSize)
+                      .toDouble(),
+                  width: markerSize,
+                  height: markerSize,
+                  child: _PositionMarkerSurface(
+                    player: player,
+                    fill: scheme.primary,
+                    stroke: scheme.primary,
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _PositionCodeGlyph extends StatelessWidget {
+  final ManagedTeamPlayer player;
+  final double size;
+  final Color fill;
+  final Color stroke;
+  final Color foreground;
+
+  const _PositionCodeGlyph({
+    required this.player,
+    required this.size,
+    required this.fill,
+    required this.stroke,
+    required this.foreground,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return SizedBox(
+      width: size,
+      height: size,
+      child: _PositionMarkerSurface(
+        player: player,
+        fill: fill,
+        stroke: stroke,
+        child: Center(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              teamPlayerPositionCode(
+                player.effectivePosition,
+                role: player.role,
+              ),
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: foreground,
+                fontWeight: FontWeight.w900,
+                fontSize: size < 20 ? 8 : 9,
+                height: 1.0,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PositionMarkerSurface extends StatelessWidget {
+  final ManagedTeamPlayer player;
+  final Color fill;
+  final Color stroke;
+  final Widget? child;
+
+  const _PositionMarkerSurface({
+    required this.player,
+    required this.fill,
+    required this.stroke,
+    this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      painter: _PositionMarkerPainter(
+        shape: _playerPositionCoordinate(player).shape,
+        fill: fill,
+        stroke: stroke,
+      ),
+      child: child,
+    );
+  }
+}
+
+class _MiniPitchCoordinatePainter extends CustomPainter {
+  final Color lineColor;
+
+  const _MiniPitchCoordinatePainter({required this.lineColor});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final field = Rect.fromLTWH(0.5, 0.5, size.width - 1, size.height - 1);
+    final line = Paint()
+      ..color = lineColor.withValues(alpha: 0.82)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(field, const Radius.circular(3)),
+      line,
+    );
+    for (final fraction in const <double>[1 / 3, 2 / 3]) {
+      final x = field.left + (field.width * fraction);
+      canvas.drawLine(Offset(x, field.top), Offset(x, field.bottom), line);
+    }
+    for (final fraction in const <double>[1 / 4, 2 / 4, 3 / 4]) {
+      final y = field.top + (field.height * fraction);
+      canvas.drawLine(Offset(field.left, y), Offset(field.right, y), line);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _MiniPitchCoordinatePainter oldDelegate) {
+    return oldDelegate.lineColor != lineColor;
+  }
+}
+
+class _PositionMarkerPainter extends CustomPainter {
+  final _PositionMarkerShape shape;
+  final Color fill;
+  final Color stroke;
+
+  const _PositionMarkerPainter({
+    required this.shape,
+    required this.fill,
+    required this.stroke,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = _markerPath(shape, Offset.zero & size);
+    final fillPaint = Paint()
+      ..color = fill
+      ..style = PaintingStyle.fill;
+    final strokePaint = Paint()
+      ..color = stroke
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(1, size.shortestSide * 0.09);
+    canvas.drawPath(path, fillPaint);
+    canvas.drawPath(path, strokePaint);
+  }
+
+  Path _markerPath(_PositionMarkerShape shape, Rect rect) {
+    switch (shape) {
+      case _PositionMarkerShape.hexagon:
+        return Path()
+          ..moveTo(rect.left + (rect.width * 0.25), rect.top)
+          ..lineTo(rect.left + (rect.width * 0.75), rect.top)
+          ..lineTo(rect.right, rect.center.dy)
+          ..lineTo(rect.left + (rect.width * 0.75), rect.bottom)
+          ..lineTo(rect.left + (rect.width * 0.25), rect.bottom)
+          ..lineTo(rect.left, rect.center.dy)
+          ..close();
+      case _PositionMarkerShape.square:
+        return Path()
+          ..addRRect(
+            RRect.fromRectAndRadius(rect, const Radius.circular(3)),
+          );
+      case _PositionMarkerShape.circle:
+        return Path()..addOval(rect);
+      case _PositionMarkerShape.diamond:
+        return Path()
+          ..moveTo(rect.center.dx, rect.top)
+          ..lineTo(rect.right, rect.center.dy)
+          ..lineTo(rect.center.dx, rect.bottom)
+          ..lineTo(rect.left, rect.center.dy)
+          ..close();
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _PositionMarkerPainter oldDelegate) {
+    return oldDelegate.shape != shape ||
+        oldDelegate.fill != fill ||
+        oldDelegate.stroke != stroke;
+  }
+}
+
+_PlayerPositionCoordinate _playerPositionCoordinate(ManagedTeamPlayer player) {
+  final position = player.effectivePosition;
+  final shape = switch (player.role) {
+    ManagedTeamPlayer.roleGoalkeeper => _PositionMarkerShape.hexagon,
+    ManagedTeamPlayer.roleDefender => _PositionMarkerShape.square,
+    ManagedTeamPlayer.roleMidfielder => _PositionMarkerShape.circle,
+    _ => _PositionMarkerShape.diamond,
+  };
+  final point = switch (position) {
+    ManagedTeamPlayer.positionGoalkeeper => const Offset(0.5, 0.88),
+    ManagedTeamPlayer.positionLeftBack => const Offset(0.22, 0.67),
+    ManagedTeamPlayer.positionCenterBack => const Offset(0.5, 0.67),
+    ManagedTeamPlayer.positionRightBack => const Offset(0.78, 0.67),
+    ManagedTeamPlayer.positionDefensiveMidfielder => const Offset(0.5, 0.54),
+    ManagedTeamPlayer.positionLeftMidfielder => const Offset(0.22, 0.46),
+    ManagedTeamPlayer.positionCentralMidfielder => const Offset(0.5, 0.44),
+    ManagedTeamPlayer.positionRightMidfielder => const Offset(0.78, 0.46),
+    ManagedTeamPlayer.positionAttackingMidfielder => const Offset(0.5, 0.33),
+    ManagedTeamPlayer.positionLeftWinger => const Offset(0.2, 0.18),
+    ManagedTeamPlayer.positionRightWinger => const Offset(0.8, 0.18),
+    _ => const Offset(0.5, 0.15),
+  };
+  return _PlayerPositionCoordinate(x: point.dx, y: point.dy, shape: shape);
 }
 
 class _RosterBoard extends StatelessWidget {
@@ -4184,7 +4495,6 @@ class _RoleRosterSection extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final accent = _playerRoleAccent(role);
     return Container(
       decoration: AppSurfaces.cardDecoration(scheme, theme.brightness),
       clipBehavior: Clip.antiAlias,
@@ -4192,7 +4502,7 @@ class _RoleRosterSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           ColoredBox(
-            color: accent.withValues(alpha: 0.08),
+            color: scheme.surfaceContainerHighest.withValues(alpha: 0.62),
             child: Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.sm,
@@ -4200,7 +4510,7 @@ class _RoleRosterSection extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Icon(_playerRoleIcon(role), color: accent, size: 17),
+                  Icon(_playerRoleIcon(role), color: scheme.primary, size: 17),
                   const SizedBox(width: AppSpacing.xs),
                   Expanded(
                     child: Text(
@@ -4211,7 +4521,7 @@ class _RoleRosterSection extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.labelLarge?.copyWith(
-                        color: accent,
+                        color: scheme.onSurface,
                         fontWeight: FontWeight.w900,
                       ),
                     ),
@@ -4261,7 +4571,7 @@ class _PlayerRosterCard extends StatelessWidget {
     final conditionAccent = _playerConditionAccent(player.condition);
     final note = player.note.trim();
     final metaLabel = [
-      teamPlayerRoleLabel(l10n, player.role),
+      teamPlayerPositionLabel(l10n, player.effectivePosition),
       if (player.grade.trim().isNotEmpty) player.grade.trim(),
     ].join(' · ');
     return Material(
@@ -4282,8 +4592,11 @@ class _PlayerRosterCard extends StatelessWidget {
                 playerName: player.name,
                 playerNumber: player.number,
                 playerRole: player.role,
+                playerPosition: player.effectivePosition,
                 size: 42,
               ),
+              const SizedBox(width: AppSpacing.xs),
+              _PlayerPositionMiniPitch(player: player),
               const SizedBox(width: AppSpacing.xs),
               Expanded(
                 child: Column(
@@ -4501,6 +4814,10 @@ String _formatMeasurement(double value) {
 List<ManagedTeamPlayer> _sortRosterPlayers(List<ManagedTeamPlayer> players) {
   final sorted = List<ManagedTeamPlayer>.from(players);
   sorted.sort((a, b) {
+    final positionOrder = _playerPositionSortIndex(a).compareTo(
+      _playerPositionSortIndex(b),
+    );
+    if (positionOrder != 0) return positionOrder;
     final numberA = int.tryParse(a.number.trim());
     final numberB = int.tryParse(b.number.trim());
     if (numberA != null && numberB != null && numberA != numberB) {
@@ -4513,12 +4830,21 @@ List<ManagedTeamPlayer> _sortRosterPlayers(List<ManagedTeamPlayer> players) {
   return sorted;
 }
 
-Color _playerRoleAccent(String role) {
-  return switch (role) {
-    ManagedTeamPlayer.roleGoalkeeper => const Color(0xFFD97706),
-    ManagedTeamPlayer.roleDefender => const Color(0xFF0F766E),
-    ManagedTeamPlayer.roleMidfielder => const Color(0xFF2563EB),
-    _ => const Color(0xFFDC2626),
+int _playerPositionSortIndex(ManagedTeamPlayer player) {
+  return switch (player.effectivePosition) {
+    ManagedTeamPlayer.positionGoalkeeper => 0,
+    ManagedTeamPlayer.positionLeftBack => 10,
+    ManagedTeamPlayer.positionCenterBack => 20,
+    ManagedTeamPlayer.positionRightBack => 30,
+    ManagedTeamPlayer.positionDefensiveMidfielder => 40,
+    ManagedTeamPlayer.positionLeftMidfielder => 50,
+    ManagedTeamPlayer.positionCentralMidfielder => 60,
+    ManagedTeamPlayer.positionRightMidfielder => 70,
+    ManagedTeamPlayer.positionAttackingMidfielder => 80,
+    ManagedTeamPlayer.positionLeftWinger => 90,
+    ManagedTeamPlayer.positionStriker => 100,
+    ManagedTeamPlayer.positionRightWinger => 110,
+    _ => 999,
   };
 }
 
@@ -4707,6 +5033,36 @@ String teamPlayerRoleLabel(AppLocalizations l10n, String role) {
   };
 }
 
+String teamPlayerPositionLabel(AppLocalizations l10n, String position) {
+  return switch (position) {
+    ManagedTeamPlayer.positionGoalkeeper =>
+      l10n.teamManagementPositionGoalkeeper,
+    ManagedTeamPlayer.positionLeftBack => l10n.teamManagementPositionLeftBack,
+    ManagedTeamPlayer.positionCenterBack =>
+      l10n.teamManagementPositionCenterBack,
+    ManagedTeamPlayer.positionRightBack => l10n.teamManagementPositionRightBack,
+    ManagedTeamPlayer.positionDefensiveMidfielder =>
+      l10n.teamManagementPositionDefensiveMidfielder,
+    ManagedTeamPlayer.positionLeftMidfielder =>
+      l10n.teamManagementPositionLeftMidfielder,
+    ManagedTeamPlayer.positionCentralMidfielder =>
+      l10n.teamManagementPositionCentralMidfielder,
+    ManagedTeamPlayer.positionRightMidfielder =>
+      l10n.teamManagementPositionRightMidfielder,
+    ManagedTeamPlayer.positionAttackingMidfielder =>
+      l10n.teamManagementPositionAttackingMidfielder,
+    ManagedTeamPlayer.positionLeftWinger =>
+      l10n.teamManagementPositionLeftWinger,
+    ManagedTeamPlayer.positionRightWinger =>
+      l10n.teamManagementPositionRightWinger,
+    _ => l10n.teamManagementPositionStriker,
+  };
+}
+
+String teamPlayerPositionCode(String position, {required String role}) {
+  return TeamManagementService.playerPositionCode(position, role: role);
+}
+
 String teamPlayerFootLabel(AppLocalizations l10n, String foot) {
   return switch (foot) {
     ManagedTeamPlayer.footLeft => l10n.teamManagementPlayerFootLeft,
@@ -4720,15 +5076,6 @@ String teamPlayerConditionLabel(AppLocalizations l10n, String condition) {
     ManagedTeamPlayer.conditionWatch => l10n.teamManagementPlayerConditionWatch,
     ManagedTeamPlayer.conditionRest => l10n.teamManagementPlayerConditionRest,
     _ => l10n.teamManagementPlayerConditionReady,
-  };
-}
-
-String teamPlayerRoleShortLabel(String role) {
-  return switch (role) {
-    ManagedTeamPlayer.roleGoalkeeper => 'GK',
-    ManagedTeamPlayer.roleDefender => 'DF',
-    ManagedTeamPlayer.roleMidfielder => 'MF',
-    _ => 'FW',
   };
 }
 

@@ -13734,6 +13734,45 @@ class AppLocalizationsKo extends AppLocalizations {
   String get teamManagementPlayerRoleLabel => '기본 포지션';
 
   @override
+  String get teamManagementPlayerPositionLabel => '세부 포지션';
+
+  @override
+  String get teamManagementPositionGoalkeeper => 'GK · 골키퍼';
+
+  @override
+  String get teamManagementPositionLeftBack => 'LB · 왼쪽 풀백';
+
+  @override
+  String get teamManagementPositionCenterBack => 'CB · 센터백';
+
+  @override
+  String get teamManagementPositionRightBack => 'RB · 오른쪽 풀백';
+
+  @override
+  String get teamManagementPositionDefensiveMidfielder => 'DM · 수비형 미드필더';
+
+  @override
+  String get teamManagementPositionLeftMidfielder => 'LM · 왼쪽 미드필더';
+
+  @override
+  String get teamManagementPositionCentralMidfielder => 'CM · 중앙 미드필더';
+
+  @override
+  String get teamManagementPositionRightMidfielder => 'RM · 오른쪽 미드필더';
+
+  @override
+  String get teamManagementPositionAttackingMidfielder => 'AM · 공격형 미드필더';
+
+  @override
+  String get teamManagementPositionLeftWinger => 'LW · 왼쪽 윙';
+
+  @override
+  String get teamManagementPositionStriker => 'ST · 스트라이커';
+
+  @override
+  String get teamManagementPositionRightWinger => 'RW · 오른쪽 윙';
+
+  @override
   String get teamManagementPlayerFootLabel => '주발';
 
   @override

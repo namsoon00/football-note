@@ -13716,6 +13716,45 @@ class AppLocalizationsJa extends AppLocalizations {
   String get teamManagementPlayerRoleLabel => '基本ポジション';
 
   @override
+  String get teamManagementPlayerPositionLabel => '詳細ポジション';
+
+  @override
+  String get teamManagementPositionGoalkeeper => 'GK · ゴールキーパー';
+
+  @override
+  String get teamManagementPositionLeftBack => 'LB · 左サイドバック';
+
+  @override
+  String get teamManagementPositionCenterBack => 'CB · センターバック';
+
+  @override
+  String get teamManagementPositionRightBack => 'RB · 右サイドバック';
+
+  @override
+  String get teamManagementPositionDefensiveMidfielder => 'DM · 守備的ミッドフィールダー';
+
+  @override
+  String get teamManagementPositionLeftMidfielder => 'LM · 左ミッドフィールダー';
+
+  @override
+  String get teamManagementPositionCentralMidfielder => 'CM · セントラルミッドフィールダー';
+
+  @override
+  String get teamManagementPositionRightMidfielder => 'RM · 右ミッドフィールダー';
+
+  @override
+  String get teamManagementPositionAttackingMidfielder => 'AM · 攻撃的ミッドフィールダー';
+
+  @override
+  String get teamManagementPositionLeftWinger => 'LW · 左ウイング';
+
+  @override
+  String get teamManagementPositionStriker => 'ST · ストライカー';
+
+  @override
+  String get teamManagementPositionRightWinger => 'RW · 右ウイング';
+
+  @override
   String get teamManagementPlayerFootLabel => '利き足';
 
   @override
