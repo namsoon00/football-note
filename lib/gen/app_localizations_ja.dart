@@ -13124,10 +13124,31 @@ class AppLocalizationsJa extends AppLocalizations {
   String get matchRecordsCompetitionAllFilter => 'すべての大会';
 
   @override
+  String get matchRecordsSearchHint => '相手、大会、ラウンド、会場、メモを検索';
+
+  @override
+  String get matchRecordsSearchClearTooltip => '検索語をクリア';
+
+  @override
+  String get matchRecordsOutcomeAllFilter => 'すべての結果';
+
+  @override
+  String get matchRecordsOutcomeUnsetFilter => '結果未入力';
+
+  @override
+  String get matchRecordsDateAllFilter => 'すべての期間';
+
+  @override
+  String get matchRecordsDateLast30DaysFilter => '直近30日';
+
+  @override
+  String get matchRecordsDateThisYearFilter => '今年';
+
+  @override
   String get matchRecordsFilterEmptyTitle => '条件に合う試合がありません。';
 
   @override
-  String get matchRecordsFilterEmptyBody => '試合種別または大会フィルターをリセットしてください。';
+  String get matchRecordsFilterEmptyBody => '検索語とフィルターをリセットしてください。';
 
   @override
   String get matchHubCalendarButton => '予定を見る';
@@ -13484,13 +13505,25 @@ class AppLocalizationsJa extends AppLocalizations {
   String get teamManagementTacticBoardRenameButton => '名前変更';
 
   @override
+  String get teamManagementTacticBoardEditButton => '戦術情報';
+
+  @override
   String get teamManagementTacticBoardDeleteButton => '削除';
 
   @override
   String get teamManagementTacticBoardRenameDialogTitle => '戦術名を変更';
 
   @override
+  String get teamManagementTacticBoardEditDialogTitle => '戦術情報を編集';
+
+  @override
   String get teamManagementTacticBoardNameLabel => '戦術名';
+
+  @override
+  String get teamManagementTacticBoardDescriptionLabel => '戦術の説明';
+
+  @override
+  String get teamManagementTacticBoardDescriptionHint => '例) ハーフスペースを使い右へ展開';
 
   @override
   String get teamManagementTacticBoardRenameSaveButton => '保存';
@@ -13958,6 +13991,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get teamManagementBoardClearMarkersButton => 'マーカーを消去';
+
+  @override
+  String get teamManagementBoardDeleteSelectedMarkerButton => '選択を削除';
 
   @override
   String get teamManagementBoardLandscapeButton => '横画面';

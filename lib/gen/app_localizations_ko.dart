@@ -13141,10 +13141,31 @@ class AppLocalizationsKo extends AppLocalizations {
   String get matchRecordsCompetitionAllFilter => '대회 전체';
 
   @override
+  String get matchRecordsSearchHint => '상대, 대회, 라운드, 장소, 메모 검색';
+
+  @override
+  String get matchRecordsSearchClearTooltip => '검색어 지우기';
+
+  @override
+  String get matchRecordsOutcomeAllFilter => '결과 전체';
+
+  @override
+  String get matchRecordsOutcomeUnsetFilter => '결과 미입력';
+
+  @override
+  String get matchRecordsDateAllFilter => '기간 전체';
+
+  @override
+  String get matchRecordsDateLast30DaysFilter => '최근 30일';
+
+  @override
+  String get matchRecordsDateThisYearFilter => '올해';
+
+  @override
   String get matchRecordsFilterEmptyTitle => '조건에 맞는 시합이 없어요.';
 
   @override
-  String get matchRecordsFilterEmptyBody => '시합 유형이나 대회 필터를 초기화해 보세요.';
+  String get matchRecordsFilterEmptyBody => '검색어와 필터를 초기화해 보세요.';
 
   @override
   String get matchHubCalendarButton => '일정 보기';
@@ -13502,13 +13523,26 @@ class AppLocalizationsKo extends AppLocalizations {
   String get teamManagementTacticBoardRenameButton => '이름 변경';
 
   @override
+  String get teamManagementTacticBoardEditButton => '전술 정보';
+
+  @override
   String get teamManagementTacticBoardDeleteButton => '삭제';
 
   @override
   String get teamManagementTacticBoardRenameDialogTitle => '전술 이름 변경';
 
   @override
+  String get teamManagementTacticBoardEditDialogTitle => '전술 정보 편집';
+
+  @override
   String get teamManagementTacticBoardNameLabel => '전술 이름';
+
+  @override
+  String get teamManagementTacticBoardDescriptionLabel => '전술 설명';
+
+  @override
+  String get teamManagementTacticBoardDescriptionHint =>
+      '예) 하프스페이스 점유 후 오른쪽 전환';
 
   @override
   String get teamManagementTacticBoardRenameSaveButton => '저장';
@@ -13978,6 +14012,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get teamManagementBoardClearMarkersButton => '마커 지우기';
+
+  @override
+  String get teamManagementBoardDeleteSelectedMarkerButton => '선택 삭제';
 
   @override
   String get teamManagementBoardLandscapeButton => '가로모드';

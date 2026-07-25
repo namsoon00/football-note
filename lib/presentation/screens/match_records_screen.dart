@@ -13,6 +13,10 @@ import '../widgets/app_bar_action_button.dart';
 
 enum _MatchRecordKindFilter { all, friendly, league, tournament }
 
+enum _MatchRecordOutcomeFilter { all, win, draw, loss, unset }
+
+enum _MatchRecordDateFilter { all, recent30Days, thisYear }
+
 class MatchRecordsScreen extends StatelessWidget {
   final TrainingService trainingService;
   final OptionRepository optionRepository;
@@ -72,13 +76,42 @@ class MatchRecordsContent extends StatefulWidget {
 }
 
 class _MatchRecordsContentState extends State<MatchRecordsContent> {
+  final TextEditingController _searchController = TextEditingController();
   _MatchRecordKindFilter _kindFilter = _MatchRecordKindFilter.all;
+  _MatchRecordOutcomeFilter _outcomeFilter = _MatchRecordOutcomeFilter.all;
+  _MatchRecordDateFilter _dateFilter = _MatchRecordDateFilter.all;
   String? _competitionFilter;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  bool get _hasActiveFilters =>
+      _searchController.text.trim().isNotEmpty ||
+      _kindFilter != _MatchRecordKindFilter.all ||
+      _outcomeFilter != _MatchRecordOutcomeFilter.all ||
+      _dateFilter != _MatchRecordDateFilter.all ||
+      _competitionFilter != null;
+
+  void _clearFilters() {
+    setState(() {
+      _searchController.clear();
+      _kindFilter = _MatchRecordKindFilter.all;
+      _outcomeFilter = _MatchRecordOutcomeFilter.all;
+      _dateFilter = _MatchRecordDateFilter.all;
+      _competitionFilter = null;
+    });
+  }
 
   List<TrainingEntry> _filterEntries(
     List<TrainingEntry> entries,
     String? competitionFilter,
   ) {
+    final query = _searchController.text.trim().toLowerCase();
+    final now = DateTime.now();
+    final startOfToday = DateTime(now.year, now.month, now.day);
     return entries.where((entry) {
       final matchesKind = switch (_kindFilter) {
         _MatchRecordKindFilter.all => true,
@@ -88,8 +121,27 @@ class _MatchRecordsContentState extends State<MatchRecordsContent> {
         _MatchRecordKindFilter.tournament => entry.isTournamentMatch,
       };
       if (!matchesKind) return false;
-      if (competitionFilter == null) return true;
-      return entry.matchCompetitionName.trim() == competitionFilter;
+      final outcome = _matchOutcome(entry);
+      final matchesOutcome = switch (_outcomeFilter) {
+        _MatchRecordOutcomeFilter.all => true,
+        _MatchRecordOutcomeFilter.win => outcome == 1,
+        _MatchRecordOutcomeFilter.draw => outcome == 0,
+        _MatchRecordOutcomeFilter.loss => outcome == -1,
+        _MatchRecordOutcomeFilter.unset => outcome == null,
+      };
+      if (!matchesOutcome) return false;
+      final matchesDate = switch (_dateFilter) {
+        _MatchRecordDateFilter.all => true,
+        _MatchRecordDateFilter.recent30Days =>
+          !entry.date.isBefore(startOfToday.subtract(const Duration(days: 30))),
+        _MatchRecordDateFilter.thisYear => entry.date.year == now.year,
+      };
+      if (!matchesDate) return false;
+      if (competitionFilter != null &&
+          entry.matchCompetitionName.trim() != competitionFilter) {
+        return false;
+      }
+      return query.isEmpty || _matchRecordSearchText(entry).contains(query);
     }).toList(growable: false);
   }
 
@@ -139,14 +191,26 @@ class _MatchRecordsContentState extends State<MatchRecordsContent> {
               _RecordsSectionHeader(
                 title: l10n.matchRecordsListTitle,
                 kindFilter: _kindFilter,
+                outcomeFilter: _outcomeFilter,
+                dateFilter: _dateFilter,
                 competitionNames: competitionNames,
                 competitionFilter: effectiveCompetitionFilter,
+                searchController: _searchController,
+                hasActiveFilters: _hasActiveFilters,
+                onSearchChanged: (_) => setState(() {}),
                 onKindFilterChanged: (value) {
                   setState(() => _kindFilter = value);
+                },
+                onOutcomeFilterChanged: (value) {
+                  setState(() => _outcomeFilter = value);
+                },
+                onDateFilterChanged: (value) {
+                  setState(() => _dateFilter = value);
                 },
                 onCompetitionFilterChanged: (value) {
                   setState(() => _competitionFilter = value);
                 },
+                onResetFilters: _clearFilters,
               ),
               if (entries.isEmpty)
                 _RecordsEmptyPanel(
@@ -160,12 +224,7 @@ class _MatchRecordsContentState extends State<MatchRecordsContent> {
                   title: l10n.matchRecordsFilterEmptyTitle,
                   body: l10n.matchRecordsFilterEmptyBody,
                   actionLabel: l10n.filterReset,
-                  onAction: () {
-                    setState(() {
-                      _kindFilter = _MatchRecordKindFilter.all;
-                      _competitionFilter = null;
-                    });
-                  },
+                  onAction: _clearFilters,
                 )
               else
                 ...filteredEntries.map(
@@ -535,18 +594,34 @@ String _opponentInitials(String opponent) {
 class _RecordsSectionHeader extends StatelessWidget {
   final String title;
   final _MatchRecordKindFilter kindFilter;
+  final _MatchRecordOutcomeFilter outcomeFilter;
+  final _MatchRecordDateFilter dateFilter;
   final List<String> competitionNames;
   final String? competitionFilter;
+  final TextEditingController searchController;
+  final bool hasActiveFilters;
+  final ValueChanged<String> onSearchChanged;
   final ValueChanged<_MatchRecordKindFilter> onKindFilterChanged;
+  final ValueChanged<_MatchRecordOutcomeFilter> onOutcomeFilterChanged;
+  final ValueChanged<_MatchRecordDateFilter> onDateFilterChanged;
   final ValueChanged<String?> onCompetitionFilterChanged;
+  final VoidCallback onResetFilters;
 
   const _RecordsSectionHeader({
     required this.title,
     required this.kindFilter,
+    required this.outcomeFilter,
+    required this.dateFilter,
     required this.competitionNames,
     required this.competitionFilter,
+    required this.searchController,
+    required this.hasActiveFilters,
+    required this.onSearchChanged,
     required this.onKindFilterChanged,
+    required this.onOutcomeFilterChanged,
+    required this.onDateFilterChanged,
     required this.onCompetitionFilterChanged,
+    required this.onResetFilters,
   });
 
   @override
@@ -562,6 +637,37 @@ class _RecordsSectionHeader extends StatelessWidget {
             title,
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          TextField(
+            key: const ValueKey('match-record-search-field'),
+            controller: searchController,
+            onChanged: onSearchChanged,
+            textInputAction: TextInputAction.search,
+            decoration: InputDecoration(
+              hintText: l10n.matchRecordsSearchHint,
+              prefixIcon: const Icon(Icons.search_outlined),
+              suffixIcon: hasActiveFilters
+                  ? Tooltip(
+                      message: l10n.filterReset,
+                      child: Semantics(
+                        button: true,
+                        label: l10n.filterReset,
+                        child: InkResponse(
+                          key: const ValueKey('match-record-filters-reset'),
+                          radius: 20,
+                          onTap: onResetFilters,
+                          child: const SizedBox(
+                            width: 48,
+                            height: 48,
+                            child: Icon(Icons.filter_alt_off_outlined),
+                          ),
+                        ),
+                      ),
+                    )
+                  : null,
+              isDense: true,
             ),
           ),
           const SizedBox(height: AppSpacing.xs),
@@ -626,6 +732,62 @@ class _RecordsSectionHeader extends StatelessWidget {
                   ),
                 ),
               ],
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Row(
+            children: [
+              Expanded(
+                child: MenuAnchor(
+                  key: const ValueKey('match-record-outcome-filter'),
+                  menuChildren: [
+                    for (final value in _MatchRecordOutcomeFilter.values)
+                      MenuItemButton(
+                        leadingIcon: outcomeFilter == value
+                            ? const Icon(Icons.check)
+                            : const SizedBox(width: 24),
+                        onPressed: () => onOutcomeFilterChanged(value),
+                        child: Text(
+                          _matchRecordOutcomeFilterLabel(l10n, value),
+                        ),
+                      ),
+                  ],
+                  builder: (context, controller, child) =>
+                      _CompactRecordsFilterButton(
+                    icon: Icons.flag_outlined,
+                    label: _matchRecordOutcomeFilterLabel(l10n, outcomeFilter),
+                    active: outcomeFilter != _MatchRecordOutcomeFilter.all,
+                    onPressed: () => controller.isOpen
+                        ? controller.close()
+                        : controller.open(),
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Expanded(
+                child: MenuAnchor(
+                  key: const ValueKey('match-record-date-filter'),
+                  menuChildren: [
+                    for (final value in _MatchRecordDateFilter.values)
+                      MenuItemButton(
+                        leadingIcon: dateFilter == value
+                            ? const Icon(Icons.check)
+                            : const SizedBox(width: 24),
+                        onPressed: () => onDateFilterChanged(value),
+                        child: Text(_matchRecordDateFilterLabel(l10n, value)),
+                      ),
+                  ],
+                  builder: (context, controller, child) =>
+                      _CompactRecordsFilterButton(
+                    icon: Icons.calendar_month_outlined,
+                    label: _matchRecordDateFilterLabel(l10n, dateFilter),
+                    active: dateFilter != _MatchRecordDateFilter.all,
+                    onPressed: () => controller.isOpen
+                        ? controller.close()
+                        : controller.open(),
+                  ),
+                ),
+              ),
             ],
           ),
         ],
@@ -756,6 +918,42 @@ String _matchRecordKindFilterLabel(
     _MatchRecordKindFilter.league => l10n.matchKindLeague,
     _MatchRecordKindFilter.tournament => l10n.matchKindTournament,
   };
+}
+
+String _matchRecordOutcomeFilterLabel(
+  AppLocalizations l10n,
+  _MatchRecordOutcomeFilter filter,
+) {
+  return switch (filter) {
+    _MatchRecordOutcomeFilter.all => l10n.matchRecordsOutcomeAllFilter,
+    _MatchRecordOutcomeFilter.win => l10n.matchResultWin,
+    _MatchRecordOutcomeFilter.draw => l10n.matchResultDraw,
+    _MatchRecordOutcomeFilter.loss => l10n.matchResultLoss,
+    _MatchRecordOutcomeFilter.unset => l10n.matchRecordsOutcomeUnsetFilter,
+  };
+}
+
+String _matchRecordDateFilterLabel(
+  AppLocalizations l10n,
+  _MatchRecordDateFilter filter,
+) {
+  return switch (filter) {
+    _MatchRecordDateFilter.all => l10n.matchRecordsDateAllFilter,
+    _MatchRecordDateFilter.recent30Days =>
+      l10n.matchRecordsDateLast30DaysFilter,
+    _MatchRecordDateFilter.thisYear => l10n.matchRecordsDateThisYearFilter,
+  };
+}
+
+String _matchRecordSearchText(TrainingEntry entry) {
+  return [
+    entry.opponentTeam,
+    entry.matchCompetitionName,
+    entry.matchStage,
+    entry.effectiveMatchLocation,
+    entry.notes,
+    entry.club,
+  ].join(' ').toLowerCase();
 }
 
 class _MatchRecordsMetrics {

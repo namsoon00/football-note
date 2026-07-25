@@ -23152,6 +23152,48 @@ abstract class AppLocalizations {
   /// **'All competitions'**
   String get matchRecordsCompetitionAllFilter;
 
+  /// No description provided for @matchRecordsSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search opponent, competition, round, venue, or notes'**
+  String get matchRecordsSearchHint;
+
+  /// No description provided for @matchRecordsSearchClearTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get matchRecordsSearchClearTooltip;
+
+  /// No description provided for @matchRecordsOutcomeAllFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'All results'**
+  String get matchRecordsOutcomeAllFilter;
+
+  /// No description provided for @matchRecordsOutcomeUnsetFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Result not recorded'**
+  String get matchRecordsOutcomeUnsetFilter;
+
+  /// No description provided for @matchRecordsDateAllFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'All dates'**
+  String get matchRecordsDateAllFilter;
+
+  /// No description provided for @matchRecordsDateLast30DaysFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 30 days'**
+  String get matchRecordsDateLast30DaysFilter;
+
+  /// No description provided for @matchRecordsDateThisYearFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'This year'**
+  String get matchRecordsDateThisYearFilter;
+
   /// No description provided for @matchRecordsFilterEmptyTitle.
   ///
   /// In en, this message translates to:
@@ -23161,7 +23203,7 @@ abstract class AppLocalizations {
   /// No description provided for @matchRecordsFilterEmptyBody.
   ///
   /// In en, this message translates to:
-  /// **'Reset the match type or competition filter and try again.'**
+  /// **'Reset the search and filters, then try again.'**
   String get matchRecordsFilterEmptyBody;
 
   /// No description provided for @matchHubCalendarButton.
@@ -23794,6 +23836,12 @@ abstract class AppLocalizations {
   /// **'Rename'**
   String get teamManagementTacticBoardRenameButton;
 
+  /// No description provided for @teamManagementTacticBoardEditButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Tactic details'**
+  String get teamManagementTacticBoardEditButton;
+
   /// No description provided for @teamManagementTacticBoardDeleteButton.
   ///
   /// In en, this message translates to:
@@ -23806,11 +23854,29 @@ abstract class AppLocalizations {
   /// **'Rename tactic'**
   String get teamManagementTacticBoardRenameDialogTitle;
 
+  /// No description provided for @teamManagementTacticBoardEditDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit tactic details'**
+  String get teamManagementTacticBoardEditDialogTitle;
+
   /// No description provided for @teamManagementTacticBoardNameLabel.
   ///
   /// In en, this message translates to:
   /// **'Tactic name'**
   String get teamManagementTacticBoardNameLabel;
+
+  /// No description provided for @teamManagementTacticBoardDescriptionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tactic description'**
+  String get teamManagementTacticBoardDescriptionLabel;
+
+  /// No description provided for @teamManagementTacticBoardDescriptionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Occupy the half space, then switch right'**
+  String get teamManagementTacticBoardDescriptionHint;
 
   /// No description provided for @teamManagementTacticBoardRenameSaveButton.
   ///
@@ -24646,6 +24712,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clear markers'**
   String get teamManagementBoardClearMarkersButton;
+
+  /// No description provided for @teamManagementBoardDeleteSelectedMarkerButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete selected'**
+  String get teamManagementBoardDeleteSelectedMarkerButton;
 
   /// No description provided for @teamManagementBoardLandscapeButton.
   ///
