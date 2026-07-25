@@ -11,14 +11,11 @@ import '../../application/family_access_service.dart';
 import '../../application/locale_service.dart';
 import '../../application/match_competition_service.dart';
 import '../../application/settings_service.dart';
-import '../../application/sport_capabilities.dart';
-import '../../application/sport_service.dart';
 import '../../application/team_management_service.dart';
 import '../../application/training_service.dart';
 import '../../domain/entities/training_entry.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../theme/app_theme.dart';
-import '../utils/match_entry_format.dart';
 import '../widgets/app_page_route.dart';
 import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_feedback.dart';
@@ -33,8 +30,6 @@ enum _TeamManagementSection { players, matches }
 enum _TeamManagementWorkspace { board }
 
 enum _RosterConditionFilter { all, ready, watch, rest }
-
-enum _MatchHubView { upcoming, results }
 
 class _TacticUndoSnapshot {
   final List<ManagedTacticBoard> boards;
@@ -230,6 +225,13 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
           optionRepository: widget.optionRepository,
           sportId: widget.sportId,
           readOnly: _isReadOnlySupportMode,
+          onOpenFixtureRecord: _isReadOnlySupportMode
+              ? null
+              : (competition, fixture, editingEntry) => _openMatchRecord(
+                    editingEntry: editingEntry,
+                    initialCompetition: competition,
+                    initialFixture: fixture,
+                  ),
         ),
       ),
     );
@@ -939,8 +941,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
     final workspace = _activeWorkspace;
     final showFriendlyMatchAction =
         workspace == null && _activeSection == _TeamManagementSection.matches;
-    final friendlyMatchEnabled = !readOnly &&
-        widget.trainingService != null &&
+    final friendlyMatchEnabled = widget.trainingService != null &&
         widget.localeService != null &&
         widget.settingsService != null;
     final l10n = AppLocalizations.of(context)!;
@@ -1048,21 +1049,9 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
 
   Widget _buildMatchManagementHome() {
     final trainingService = widget.trainingService;
-    final matchActionsEnabled = widget.trainingService != null &&
-        widget.localeService != null &&
-        widget.settingsService != null;
     return _MatchManagementPanel(
-      matchActionsEnabled: matchActionsEnabled,
       trainingService: trainingService,
       optionRepository: widget.optionRepository,
-      teamName: _teamNameController.text,
-      onRecordFixture: (competition, fixture) => unawaited(
-        _openMatchRecord(
-          initialCompetition: competition,
-          initialFixture: fixture,
-        ),
-      ),
-      onManageCompetitions: () => unawaited(_openCompetitionManagement()),
       onEditMatch: _isReadOnlySupportMode
           ? null
           : (entry) => unawaited(_openMatchRecord(editingEntry: entry)),
@@ -1423,269 +1412,36 @@ class _TeamManagementSectionSwitcher extends StatelessWidget {
   }
 }
 
-class _MatchManagementPanel extends StatefulWidget {
-  final bool matchActionsEnabled;
+class _MatchManagementPanel extends StatelessWidget {
   final TrainingService? trainingService;
   final OptionRepository optionRepository;
-  final String teamName;
-  final void Function(MatchCompetitionRecord, CompetitionFixture)
-      onRecordFixture;
-  final VoidCallback onManageCompetitions;
   final ValueChanged<TrainingEntry>? onEditMatch;
 
   const _MatchManagementPanel({
-    required this.matchActionsEnabled,
     required this.trainingService,
     required this.optionRepository,
-    required this.teamName,
-    required this.onRecordFixture,
-    required this.onManageCompetitions,
     required this.onEditMatch,
   });
 
   @override
-  State<_MatchManagementPanel> createState() => _MatchManagementPanelState();
-}
-
-class _MatchManagementPanelState extends State<_MatchManagementPanel> {
-  _MatchHubView _view = _MatchHubView.upcoming;
-
-  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final trainingService = widget.trainingService;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (trainingService == null)
-          _InlineEmptyMessage(
-            icon: Icons.fact_check_outlined,
-            title: l10n.matchHubEmptyTitle,
-            body: l10n.matchHubEmptySubtitle,
-          )
-        else ...[
-          SegmentedButton<_MatchHubView>(
-            key: const ValueKey('team-match-hub-view-switcher'),
-            showSelectedIcon: false,
-            segments: [
-              ButtonSegment<_MatchHubView>(
-                value: _MatchHubView.upcoming,
-                icon: const Icon(Icons.event_available_outlined),
-                label: Text(l10n.teamMatchHubUpcomingTab),
-              ),
-              ButtonSegment<_MatchHubView>(
-                value: _MatchHubView.results,
-                icon: const Icon(Icons.history_outlined),
-                label: Text(l10n.teamMatchHubResultsTab),
-              ),
-            ],
-            selected: {_view},
-            onSelectionChanged: (selection) {
-              setState(() => _view = selection.single);
-            },
-          ),
-          const SizedBox(height: AppSpacing.md),
-          if (_view == _MatchHubView.upcoming)
-            _UpcomingCompetitionFixtures(
-              trainingService: trainingService,
-              optionRepository: widget.optionRepository,
-              teamName: widget.teamName,
-              canRecord: widget.matchActionsEnabled,
-              onRecordFixture: widget.onRecordFixture,
-              onManageCompetitions: widget.onManageCompetitions,
-            )
-          else
-            MatchRecordsContent(
-              key: const ValueKey('team-match-records-content'),
-              trainingService: trainingService,
-              optionRepository: widget.optionRepository,
-              showHeader: false,
-              showSummary: false,
-              scrollable: false,
-              onEditEntry: widget.onEditMatch,
-            ),
-        ],
-      ],
-    );
-  }
-}
-
-class _UpcomingCompetitionFixtures extends StatelessWidget {
-  final TrainingService trainingService;
-  final OptionRepository optionRepository;
-  final String teamName;
-  final bool canRecord;
-  final void Function(MatchCompetitionRecord, CompetitionFixture)
-      onRecordFixture;
-  final VoidCallback onManageCompetitions;
-
-  const _UpcomingCompetitionFixtures({
-    required this.trainingService,
-    required this.optionRepository,
-    required this.teamName,
-    required this.canRecord,
-    required this.onRecordFixture,
-    required this.onManageCompetitions,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final sportId = SportService(optionRepository).currentSportId();
-    final competitionService = MatchCompetitionService(
-      optionRepository,
-      sportId: sportId,
-    );
-    return StreamBuilder<List<TrainingEntry>>(
-      stream: trainingService.watchEntries(),
-      builder: (context, snapshot) {
-        final entries = filterEntriesForSport(
-          snapshot.data ?? const <TrainingEntry>[],
-          sportId,
-        ).where((entry) => entry.isMatch);
-        final activeCompetitions = competitionService
-            .allCompetitions()
-            .where((record) => !record.isFinished);
-        final ownTeamName = teamName.trim().isEmpty
-            ? l10n.matchCompetitionMyTeamFallback
-            : teamName.trim();
-        final fixtures = MatchCompetitionService.fixturesForTeam(
-          competitions: activeCompetitions,
-          entries: entries,
-          teamName: ownTeamName,
-          teamAliases: [l10n.matchCompetitionMyTeamFallback],
-          includeRecorded: false,
-        ).where((fixture) => fixture.isReady).toList(growable: false);
-        if (fixtures.isEmpty) {
-          return _InlineEmptyMessage(
-            icon: Icons.event_available_outlined,
-            title: l10n.teamMatchHubUpcomingEmptyTitle,
-            body: l10n.teamMatchHubUpcomingEmptyBody,
-            actionLabel: l10n.matchCompetitionManagerNewTitle,
-            onAction: onManageCompetitions,
-          );
-        }
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              l10n.teamMatchHubUpcomingTitle,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w900,
-                  ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            for (final fixture in fixtures)
-              Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                child: _UpcomingFixtureCard(
-                  fixture: fixture,
-                  canRecord: canRecord,
-                  onRecord: () => onRecordFixture(
-                    fixture.competition,
-                    fixture.fixture,
-                  ),
-                ),
-              ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _UpcomingFixtureCard extends StatelessWidget {
-  final CompetitionFixtureState fixture;
-  final bool canRecord;
-  final VoidCallback onRecord;
-
-  const _UpcomingFixtureCard({
-    required this.fixture,
-    required this.canRecord,
-    required this.onRecord,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final isLeague =
-        fixture.competition.kind == MatchCompetitionRecord.kindLeague;
-    final stage = isLeague
-        ? l10n.matchCompetitionFixtureRound(fixture.fixture.roundNumber)
-        : matchTournamentStageLabel(l10n, fixture.fixture.stage);
-    final date = fixture.fixture.scheduledAt == null
-        ? l10n.teamMatchHubDateUnset
-        : MaterialLocalizations.of(
-            context,
-          ).formatMediumDate(fixture.fixture.scheduledAt!);
-    final venue = fixture.fixture.venue.trim();
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: AppSurfaces.cardDecoration(scheme, theme.brightness)
-          .copyWith(borderRadius: AppRadius.small),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Icon(
-                isLeague
-                    ? Icons.leaderboard_outlined
-                    : Icons.account_tree_outlined,
-                color: isLeague ? scheme.primary : scheme.tertiary,
-                size: 19,
-              ),
-              const SizedBox(width: AppSpacing.xs),
-              Expanded(
-                child: Text(
-                  fixture.competition.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-              Text(
-                stage,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            '${fixture.homeTeam}  vs  ${fixture.awayTeam}',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.xxs),
-          Text(
-            venue.isEmpty ? date : '$date · $venue',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: scheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Align(
-            alignment: AlignmentDirectional.centerEnd,
-            child: FilledButton.icon(
-              onPressed: canRecord ? onRecord : null,
-              icon: const Icon(Icons.edit_note_outlined, size: 18),
-              label: Text(l10n.teamMatchHubRecordFixtureAction),
-            ),
-          ),
-        ],
-      ),
+    final trainingService = this.trainingService;
+    if (trainingService == null) {
+      return _InlineEmptyMessage(
+        icon: Icons.fact_check_outlined,
+        title: l10n.matchHubEmptyTitle,
+        body: l10n.matchHubEmptySubtitle,
+      );
+    }
+    return MatchRecordsContent(
+      key: const ValueKey('team-match-records-content'),
+      trainingService: trainingService,
+      optionRepository: optionRepository,
+      showHeader: false,
+      showSummary: false,
+      scrollable: false,
+      onEditEntry: onEditMatch,
     );
   }
 }
