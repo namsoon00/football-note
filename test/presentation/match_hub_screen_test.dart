@@ -50,6 +50,7 @@ void main() {
   Future<void> pumpCompetitionManagement(
     WidgetTester tester, {
     required ThemeMode themeMode,
+    CompetitionFixtureRecordHandler? onOpenFixtureRecord,
   }) async {
     await tester.pumpWidget(
       DefaultAssetBundle(
@@ -73,6 +74,7 @@ void main() {
           home: CompetitionManagementScreen(
             trainingService: trainingService,
             optionRepository: optionRepository,
+            onOpenFixtureRecord: onOpenFixtureRecord,
           ),
         ),
       ),
@@ -358,6 +360,7 @@ void main() {
     expect(find.text('4강'), findsWidgets);
     expect(find.text('결승'), findsWidgets);
     expect(find.text('우승'), findsOneWidget);
+    expect(find.text('경기 일정'), findsNothing);
     expect(find.text('우리 팀 U15'), findsWidgets);
     final firstMatchCenter = tester.getCenter(
       find.byKey(const ValueKey('competition-tournament-match-1')),
@@ -476,6 +479,32 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('Tournament bracket opens the managed fixture record action', (
+    tester,
+  ) async {
+    await seedMatchHubRecords();
+    MatchCompetitionRecord? selectedCompetition;
+    CompetitionFixture? selectedFixture;
+    await pumpCompetitionManagement(
+      tester,
+      themeMode: ThemeMode.light,
+      onOpenFixtureRecord: (competition, fixture, _) async {
+        selectedCompetition = competition;
+        selectedFixture = fixture;
+      },
+    );
+
+    await tester.tap(find.text('컵 대회'));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('competition-tournament-match-1')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(selectedCompetition?.name, '컵 대회');
+    expect(selectedFixture?.slotNumber, 1);
+  });
+
   testWidgets('Competition deletion requires confirmation', (tester) async {
     await seedMatchHubRecords();
     await pumpCompetitionManagement(tester, themeMode: ThemeMode.light);
@@ -512,8 +541,7 @@ void main() {
     expect(records.single.name, '주말 리그');
   });
 
-  testWidgets('Team management match tab projects fixtures then shows results',
-      (
+  testWidgets('Team management match tab directly shows match records', (
     tester,
   ) async {
     await seedMatchHubRecords();
@@ -563,17 +591,12 @@ void main() {
     expect(find.byType(FloatingActionButton), findsOneWidget);
     expect(
       find.byKey(const ValueKey('team-match-hub-view-switcher')),
-      findsOneWidget,
+      findsNothing,
     );
-    expect(find.text('기록할 경기'), findsOneWidget);
-    expect(find.widgetWithText(FilledButton, '결과 기록'), findsWidgets);
-    expect(
-        find.byKey(const ValueKey('team-match-records-content')), findsNothing);
-
-    await tester.tap(find.text('경기 결과'));
-    await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('team-match-records-content')),
         findsOneWidget);
+    expect(find.text('기록할 경기'), findsNothing);
+    expect(find.widgetWithText(FilledButton, '결과 기록'), findsNothing);
     expect(find.text('시합 기록 보기'), findsNothing);
     expect(find.text('시합 통계'), findsNothing);
     expect(find.text('클럽 일정'), findsNothing);
@@ -601,8 +624,7 @@ void main() {
     expect(kindSelector.onSelectionChanged, isNull);
   });
 
-  testWidgets('Team management records a competition fixture from its schedule',
-      (
+  testWidgets('Competition detail records a fixture from its league schedule', (
     tester,
   ) async {
     await seedMatchHubRecords();
@@ -634,9 +656,25 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('시합관리'));
+    await tester.tap(
+      find.byKey(const ValueKey('team-header-competition')),
+    );
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilledButton, '결과 기록').first);
+    await tester.tap(find.text('주말 리그'));
+    await tester.pumpAndSettle();
+
+    final league =
+        MatchCompetitionService(optionRepository).allCompetitions().firstWhere(
+              (record) => record.kind == MatchCompetitionRecord.kindLeague,
+            );
+    final fixture = league.fixtures.firstWhere(
+      (item) => item.homeTeam == '우리 팀' || item.awayTeam == '우리 팀',
+    );
+    await tester.tap(
+      find.byKey(
+        ValueKey<String>('competition-fixture-action-${fixture.id}'),
+      ),
+    );
     await tester.pumpAndSettle();
 
     expect(find.byType(MatchRecordScreen), findsOneWidget);
@@ -675,8 +713,6 @@ void main() {
     );
     await tester.pumpAndSettle();
     await tester.tap(find.text('시합관리'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('경기 결과'));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const ValueKey('match-record-kind-filter')));
@@ -736,8 +772,6 @@ void main() {
     );
     await tester.pumpAndSettle();
     await tester.tap(find.text('시합관리'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('경기 결과'));
     await tester.pumpAndSettle();
 
     await tester.enterText(
@@ -1211,8 +1245,12 @@ void main() {
       find.byKey(const ValueKey<String>('match-opponent-field')),
       '서울 U15',
     );
-    await tester.ensureVisible(find.text('저장'));
-    await tester.tap(find.text('저장'));
+    await tester.ensureVisible(
+      find.byKey(const ValueKey<String>('match-record-save-action')),
+    );
+    await tester.tap(
+      find.byKey(const ValueKey<String>('match-record-save-action')),
+    );
     await tester.pump(const Duration(seconds: 1));
 
     expect(trainingRepository.entries, isEmpty);
@@ -1277,8 +1315,12 @@ void main() {
       find.byKey(const ValueKey<String>('match-board-our-score-increase')),
     );
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('저장'));
-    await tester.tap(find.text('저장'));
+    await tester.ensureVisible(
+      find.byKey(const ValueKey<String>('match-record-save-action')),
+    );
+    await tester.tap(
+      find.byKey(const ValueKey<String>('match-record-save-action')),
+    );
     await tester.pump(const Duration(seconds: 1));
 
     expect(trainingRepository.entries, hasLength(1));
@@ -1347,8 +1389,12 @@ void main() {
       find.byKey(const ValueKey<String>('match-board-our-score-increase')),
     );
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('저장'));
-    await tester.tap(find.text('저장'));
+    await tester.ensureVisible(
+      find.byKey(const ValueKey<String>('match-record-save-action')),
+    );
+    await tester.tap(
+      find.byKey(const ValueKey<String>('match-record-save-action')),
+    );
     await tester.pump(const Duration(seconds: 1));
 
     expect(trainingRepository.entries, hasLength(1));
@@ -1422,8 +1468,12 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('승부차기'), findsOneWidget);
-    await tester.ensureVisible(find.text('저장'));
-    await tester.tap(find.text('저장'));
+    await tester.ensureVisible(
+      find.byKey(const ValueKey<String>('match-record-save-action')),
+    );
+    await tester.tap(
+      find.byKey(const ValueKey<String>('match-record-save-action')),
+    );
     await tester.pumpAndSettle();
     expect(
       find.text('토너먼트 무승부는 승부차기 점수로 승자를 정하세요.'),
@@ -1461,7 +1511,8 @@ void main() {
       1200,
     );
     await tester.pumpAndSettle();
-    final saveButton = find.widgetWithText(FilledButton, '저장');
+    final saveButton =
+        find.byKey(const ValueKey<String>('match-record-save-action'));
     await tester.ensureVisible(saveButton);
     await tester.tap(saveButton);
     await tester.pump(const Duration(seconds: 1));
