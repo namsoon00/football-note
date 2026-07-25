@@ -773,6 +773,7 @@ void main() {
     WidgetTester tester,
   ) async {
     final optionRepository = _MemoryOptionRepository();
+    await optionRepository.setValue('tab_quick_guide_seen_v1_1', true);
     final localeService = LocaleService(optionRepository)..load();
     final settingsService = SettingsService(optionRepository)..load();
     final trainingService = TrainingService(_MemoryTrainingRepository());
@@ -830,7 +831,7 @@ void main() {
 
     expect(optionRepository.getValue<String>('logs_layout'), 'list');
     expect(
-      optionRepository.getValue<bool>('tab_quick_guide_seen_v1_1'),
+      optionRepository.getValue<bool>(TutorialGuideService.childSeenKey(1)),
       isTrue,
     );
 
@@ -870,7 +871,7 @@ void main() {
 
     expect(find.byType(EntryFormScreen), findsOneWidget);
     expect(
-      optionRepository.getValue<bool>('tab_quick_guide_seen_v1_1'),
+      optionRepository.getValue<bool>(TutorialGuideService.childSeenKey(1)),
       isNull,
     );
 
