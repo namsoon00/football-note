@@ -379,6 +379,47 @@ void main() {
     expect(standings.last.points, 0);
   });
 
+  test('같은 경기 일정의 결과를 수정하면 리그 순위도 새 결과로 갱신한다', () {
+    final base = MatchCompetitionRecord.create(
+      kind: MatchCompetitionRecord.kindLeague,
+      name: '수정 리그',
+      teams: const <String>['우리 팀', '블루 FC'],
+    );
+    final record = base.copyWith(
+      fixtures: MatchCompetitionService.buildFixtures(base),
+    );
+    final fixture = record.fixtures.single;
+
+    List<LeagueStandingRow> standingsFor({
+      required int scored,
+      required int conceded,
+    }) {
+      return MatchCompetitionService.buildLeagueStandingsForCompetition(
+        competition: record,
+        entries: [
+          _matchEntry(
+            kind: MatchCompetitionRecord.kindLeague,
+            competitionName: record.name,
+            competitionId: record.id,
+            fixtureId: fixture.id,
+            stage: fixture.stage,
+            opponent: fixture.awayTeam,
+            scored: scored,
+            conceded: conceded,
+          ),
+        ],
+      );
+    }
+
+    final before = standingsFor(scored: 2, conceded: 0);
+    final after = standingsFor(scored: 0, conceded: 2);
+
+    expect(before.first.team, fixture.homeTeam);
+    expect(before.first.points, 3);
+    expect(after.first.team, fixture.awayTeam);
+    expect(after.first.points, 3);
+  });
+
   test('기존 기본 팀명도 현재 팀명의 예정 경기 목록에서 조회한다', () {
     final base = MatchCompetitionRecord.create(
       kind: MatchCompetitionRecord.kindLeague,

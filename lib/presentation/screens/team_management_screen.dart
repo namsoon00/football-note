@@ -937,7 +937,25 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
     final theme = Theme.of(context);
     final readOnly = _isReadOnlySupportMode;
     final workspace = _activeWorkspace;
+    final showFriendlyMatchAction =
+        workspace == null && _activeSection == _TeamManagementSection.matches;
+    final friendlyMatchEnabled = !readOnly &&
+        widget.trainingService != null &&
+        widget.localeService != null &&
+        widget.settingsService != null;
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
+      floatingActionButton: showFriendlyMatchAction
+          ? FloatingActionButton.extended(
+              key: const ValueKey('team-match-friendly-action'),
+              onPressed: friendlyMatchEnabled
+                  ? () => unawaited(_openMatchRecord())
+                  : null,
+              icon: const Icon(Icons.handshake_outlined),
+              label: Text(l10n.matchKindFriendly),
+            )
+          : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: ColoredBox(
         color: theme.scaffoldBackgroundColor,
         child: SafeArea(
@@ -980,13 +998,16 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   }
 
   Widget _buildMainManagementScrollView(bool readOnly) {
+    final bottomPadding = _activeSection == _TeamManagementSection.matches
+        ? AppSpacing.xxl + 80
+        : AppSpacing.xl;
     return SingleChildScrollView(
       controller: _scrollController,
-      padding: const EdgeInsets.fromLTRB(
+      padding: EdgeInsets.fromLTRB(
         AppSpacing.sm,
         AppSpacing.sm,
         AppSpacing.sm,
-        AppSpacing.xl,
+        bottomPadding,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1035,7 +1056,6 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
       trainingService: trainingService,
       optionRepository: widget.optionRepository,
       teamName: _teamNameController.text,
-      onRecordMatch: () => unawaited(_openMatchRecord()),
       onRecordFixture: (competition, fixture) => unawaited(
         _openMatchRecord(
           initialCompetition: competition,
@@ -1408,7 +1428,6 @@ class _MatchManagementPanel extends StatefulWidget {
   final TrainingService? trainingService;
   final OptionRepository optionRepository;
   final String teamName;
-  final VoidCallback onRecordMatch;
   final void Function(MatchCompetitionRecord, CompetitionFixture)
       onRecordFixture;
   final VoidCallback onManageCompetitions;
@@ -1419,7 +1438,6 @@ class _MatchManagementPanel extends StatefulWidget {
     required this.trainingService,
     required this.optionRepository,
     required this.teamName,
-    required this.onRecordMatch,
     required this.onRecordFixture,
     required this.onManageCompetitions,
     required this.onEditMatch,
@@ -1439,28 +1457,6 @@ class _MatchManagementPanelState extends State<_MatchManagementPanel> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: _PanelTitle(
-                icon: Icons.event_note_outlined,
-                title: l10n.teamManagementMatchSectionTitle,
-              ),
-            ),
-            const SizedBox(width: AppSpacing.xs),
-            AppBarActionButton.label(
-              key: const ValueKey('team-match-friendly-action'),
-              icon: const Icon(Icons.handshake_outlined),
-              label: l10n.matchKindFriendly,
-              tooltip: l10n.matchKindFriendly,
-              onPressed:
-                  widget.matchActionsEnabled ? widget.onRecordMatch : null,
-              margin: EdgeInsets.zero,
-              maxLabelWidth: 96,
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.sm),
         if (trainingService == null)
           _InlineEmptyMessage(
             icon: Icons.fact_check_outlined,
