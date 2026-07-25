@@ -4641,8 +4641,10 @@
   "mealStatsNoTrainingOrMealEntries": "選択した期間にトレーニングや食事のエントリーはありません。",
   "drawerRunningCoach": "ランニングコーチ",
   "runningCoachScreenTitle": "ランニングコーチ",
-  "runningCoachHeroTitle": "サイドビューランニングフォームコーチ",
-  "runningCoachHeroBody": "走ることを次の試合の武器にします。短いサッカー型スプリントミッションを走って記録し、フォームコーチで次の0.1秒を探します。",
+  "runningCoachHeroTitle": "走る、確認する、改善する",
+  "runningCoachHeroBody": "走りながらリアルタイムのキューを受けるか、鮮明な横向き動画1本でフォーム全体のレポートを確認できます。",
+  "runningCoachStartTitle": "トレーニング方法を選ぶ",
+  "runningCoachStartBody": "今すぐライブコーチングを始めるか、撮影前に正確なカメラ設定を確認します。",
   "runningCoachSectionToday": "ミッション",
   "runningCoachSectionRecords": "記録",
   "runningCoachSectionAnalysis": "分析",
@@ -4804,7 +4806,7 @@
   "runningCoachBadgeRecordBreaker": "記録更新",
   "runningCoachBadgeThreeDaySpark": "3日連続",
   "runningCoachBadgeAllRounder": "10/20/30mランナー",
-  "runningCoachAnalyzeBody": "横から撮ったクリップを1つ選びます。結果は、最初のコーチング重点を支える実際の動画フレームから表示します。",
+  "runningCoachAnalyzeBody": "5〜15秒の横向き動画を1本選びます。最優先のキューに続いて、5項目すべてのレポートを表示します。",
   "runningCoachTipsTitle": "録音方法",
   "runningCoachTipWholeBody": "頭から接地する足まで全身を入れ、肩、腰、膝、足首、肘、手首が見えるようにします。",
   "runningCoachTipSideView": "ランナーがカメラに近づいたり離れたりせず、画面を横切る真横の映像にします。",
@@ -4816,12 +4818,25 @@
   "runningCoachUploadGuideStepDuration": "3〜6歩のきれいなストライドを含む5〜15秒を使い、準備歩き、ターン、停止フレームは切ります。",
   "runningCoachUploadGuideStepLight": "明るく均一な光とシンプルな背景で撮影し、影、切れた足、背後を横切る人を避けます。",
   "runningCoachSampleTitle": "サンプルビデオガイド",
-  "runningCoachSampleBody": "これは別々のランナーと場所で撮った例の動画です。オーバーレイを覚えるためだけに使い、管理された正誤比較として扱わないでください。",
+  "runningCoachSampleBody": "分析に適した横向きの例を再生し、同じ構図で自分のランニングを撮影してください。",
   "runningCoachSampleGuideAction": "サンプルビデオガイドを開く",
-  "runningCoachSampleAnalysisLoadingTitle": "サンプル動画を分析中",
-  "runningCoachSampleAnalysisLoadingBody": "アプリが同梱の例動画を読み取っています。",
+  "runningCoachSampleAnalysisLoadingTitle": "計測オーバーレイを追加中",
+  "runningCoachSampleAnalysisLoadingBody": "動画はすぐ再生できます。関節と接地フレームはバックグラウンドで分析しています。",
   "runningCoachSampleAnalysisFailedTitle": "サンプル分析を使用できません",
   "runningCoachSampleAnalysisRetryAction": "サンプル分析を再試行",
+  "runningCoachSampleTechnicalDetailsTitle": "分析の仕組みを見る",
+  "runningCoachSampleVideoPlay": "サンプル動画を再生",
+  "runningCoachSampleVideoPause": "サンプル動画を一時停止",
+  "runningCoachSampleVideoUnavailable": "サンプル動画を読み込めませんでした。下の撮影ガイドは引き続き確認できます。",
+  "runningCoachSampleVideoRetryAction": "動画を再読み込み",
+  "runningCoachSampleScoreValue": "スコア {score}",
+  "@runningCoachSampleScoreValue": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
   "runningCoachSampleFrameLabel": "フレーム {current}/{total}",
   "@runningCoachSampleFrameLabel": {
     "placeholders": {
@@ -4841,9 +4856,9 @@
   "runningCoachSampleCueArms": "肘は曲げたままにし、足とは反対側に振ります",
   "runningCoachSampleReferenceTab": "例A",
   "runningCoachSampleMistakeTab": "例B",
-  "runningCoachSampleReferenceTitle": "例Aの読み取り",
+  "runningCoachSampleReferenceTitle": "分析に適した屋外サイドビュー例",
   "runningCoachSampleMistakeTitle": "例Bの読み取り",
-  "runningCoachSampleReferenceBody": "このクリップでは、1人のランナーの前傾、着地、膝、腕、上下動をオーバーレイが追う様子を確認できます。",
+  "runningCoachSampleReferenceBody": "スマートフォンを真横に固定し、全身が常に見え、関節追跡に十分な大きさでランナーを収めた動画です。",
   "runningCoachSampleMistakeBody": "このクリップは別のランナーと環境の例です。対になる比較ではなく、読み取り表示だけを確認してください。",
   "runningCoachSampleReferencePosture": "前傾: コーチは肩と腰のラインを読み、現在の姿勢値を表示します。",
   "runningCoachSampleReferenceFoot": "接地点: コーチは着地足と腰のラインを比較してからブレーキリスクを判断します。",
@@ -4862,6 +4877,21 @@
   "runningCoachSampleMethodContact": "接地: 着地に近いフレームから、腰の線に対する足の距離を推定します。",
   "runningCoachSampleMethodConfidence": "信頼度: 追跡範囲が低い、または安定フレームが少ない場合は再確認を促します。",
   "runningCoachSampleRecordingGuideTitle": "撮影設定ガイド",
+  "runningCoachCaptureTreadmillTab": "トレッドミル",
+  "runningCoachCaptureOutdoorTab": "屋外通過",
+  "runningCoachCaptureTreadmillTitle": "トレッドミルの推奨撮影方法",
+  "runningCoachCaptureTreadmillBody": "固定した横画面の正確なサイドビューが最も安定します。縦撮影は全身とトレッドミルが収まる場合のみ使用してください。",
+  "runningCoachCaptureTreadmillStepCamera": "ベルトに対してスマートフォンを正確に直角に置き、レンズを腰の高さに合わせます。前後から斜めに撮らないでください。",
+  "runningCoachCaptureTreadmillStepDistance": "約3mから始め、ランナーの身長が画面高の50〜75%になるよう距離を調整します。",
+  "runningCoachCaptureTreadmillStepFrame": "頭、両手、両膝、両方のシューズが毎ステップ画面内に入るようにします。頭上とベルト下に少し余白を残します。",
+  "runningCoachCaptureTreadmillStepClip": "一定速度で5〜10秒撮影します。可能なら1080p/60fps、最低30fpsを使用します。",
+  "runningCoachCaptureOutdoorTitle": "固定カメラでの横通過撮影",
+  "runningCoachCaptureOutdoorBody": "遠くを走っても構いませんが、全身が関節追跡できる大きさと鮮明さを保てる距離までです。",
+  "runningCoachCaptureOutdoorStepCamera": "スマートフォンを腰の高さに固定し、走路に対して直角に置きます。ランナーを追ってパンやズームをしないでください。",
+  "runningCoachCaptureOutdoorStepDistance": "画面中央を通過する時、ランナーの身長が画面高の40〜70%になるよう走路を決めます。",
+  "runningCoachCaptureOutdoorStepFrame": "進入と退出の余白を残しつつ、全関節が見えるきれいな3〜6歩だけに動画を切ります。",
+  "runningCoachCaptureOutdoorStepClip": "明るく均一な光と単純な背景を使います。動体ブレ、影、切れた足、背後を横切る人を避けます。",
+  "runningCoachCaptureOutdoorDistanceWarning": "ランナーが画面高の40%未満になる遠距離撮影は推奨しません。走路を近づけるか、撮影前に光学ズームを合わせてください。",
   "runningCoachSampleProcessTitle": "実際の映像での分析手順",
   "runningCoachSampleProcessBody": "オーバーレイはコーチが見る順序を示します。安定フレームを選び、見えている体の点を固定し、体の線をつなぎ、角度を測り、接地の根拠を確認します。",
   "runningCoachSamplePhaseFrame": "フレーム抽出",
@@ -5993,6 +6023,7 @@
   "runningCoachSelectedVideoLabel": "選択したビデオ",
   "runningCoachNoVideoSelected": "まだビデオが選択されていません。",
   "runningCoachPickVideoAction": "ビデオを選択",
+  "runningCoachChangeVideoAction": "変更",
   "runningCoachAnalyzeAction": "分析実行",
   "runningCoachAnalysisInProgress": "分析中...",
   "runningCoachPickVideoFailed": "ビデオピッカーを開けませんでした。",
@@ -6023,6 +6054,23 @@
   "runningCoachAnalysisHistoryEmpty": "保存されたコーチング分析はまだありません。",
   "runningCoachAnalysisHistoryDetailTitle": "分析レポート",
   "runningCoachAnalysisHistoryPrimaryFocus": "主要なコーチングポイント",
+  "runningCoachHistoryMetricCount": "{count}項目",
+  "@runningCoachHistoryMetricCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachHistoryFullReportTitle": "フォーム全体レポート",
+  "runningCoachHistoryFullReportBody": "保存済みの{count}個の測定項目をすべて表示します。各項目を開くと、分析直後と同じキューとドリルを確認できます。",
+  "@runningCoachHistoryFullReportBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "runningCoachAnalysisResultScreenTitle": "ランニング分析結果",
   "runningCoachHistoryVideoSaved": "動画保存済み",
   "runningCoachArchivedVideoTitle": "分析動画",

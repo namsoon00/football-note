@@ -4641,8 +4641,10 @@
   "mealStatsNoTrainingOrMealEntries": "선택한 기간에 훈련 기록과 식사 기록이 없습니다.",
   "drawerRunningCoach": "달리기 코치",
   "runningCoachScreenTitle": "달리기 코치",
-  "runningCoachHeroTitle": "측면 달리기 자세 코칭",
-  "runningCoachHeroBody": "달리기를 다음 경기의 무기로 느끼게 해요. 짧은 축구형 스프린트 미션을 뛰고 기록을 남긴 뒤, 자세 코칭으로 다음 0.1초를 찾습니다.",
+  "runningCoachHeroTitle": "달리고, 확인하고, 좋아지기",
+  "runningCoachHeroBody": "달리는 동안 실시간 코칭을 받거나, 선명한 측면 영상 하나로 전체 자세 리포트를 확인하세요.",
+  "runningCoachStartTitle": "원하는 코칭 방식을 고르세요",
+  "runningCoachStartBody": "바로 실시간 코칭을 시작하거나, 영상을 찍기 전에 정확한 카메라 구도를 확인할 수 있어요.",
   "runningCoachSectionToday": "미션",
   "runningCoachSectionRecords": "기록",
   "runningCoachSectionAnalysis": "분석",
@@ -4804,7 +4806,7 @@
   "runningCoachBadgeRecordBreaker": "기록 단축",
   "runningCoachBadgeThreeDaySpark": "3일 불씨",
   "runningCoachBadgeAllRounder": "10/20/30m 러너",
-  "runningCoachAnalyzeBody": "측면 영상 하나를 고르세요. 결과는 첫 코칭 포인트를 뒷받침하는 실제 영상 프레임부터 보여 줍니다.",
+  "runningCoachAnalyzeBody": "5~15초 측면 영상 하나를 고르세요. 먼저 가장 중요한 동작 하나를 알려주고, 이어서 5개 지표 전체 리포트를 보여줘요.",
   "runningCoachTipsTitle": "촬영 팁",
   "runningCoachTipWholeBody": "머리부터 접지하는 발까지 전신이 들어오고, 어깨, 엉덩이, 무릎, 발목, 팔꿈치, 손목이 계속 보이게 촬영해 주세요.",
   "runningCoachTipSideView": "러너가 카메라 쪽으로 오거나 멀어지지 않고 화면을 가로지르도록 정확한 측면에서 촬영해 주세요.",
@@ -4816,12 +4818,25 @@
   "runningCoachUploadGuideStepDuration": "깨끗한 보폭이 3~6번 들어간 5~15초 영상을 쓰고, 준비 걸음, 회전, 멈춘 프레임은 잘라 주세요.",
   "runningCoachUploadGuideStepLight": "밝고 고른 빛과 단순한 배경에서 촬영하고, 그림자, 잘린 발, 뒤로 지나가는 사람을 피해주세요.",
   "runningCoachSampleTitle": "샘플 영상 가이드",
-  "runningCoachSampleBody": "서로 다른 러너와 장소에서 찍은 예시 영상입니다. 오버레이를 익히는 용도로만 보고, 통제된 맞고 틀린 비교로 보지 마세요.",
+  "runningCoachSampleBody": "분석에 적합한 측면 예시를 먼저 재생하고, 같은 구도로 내 달리기 영상을 촬영하세요.",
   "runningCoachSampleGuideAction": "샘플 영상 가이드 보기",
-  "runningCoachSampleAnalysisLoadingTitle": "샘플 영상을 분석하는 중",
-  "runningCoachSampleAnalysisLoadingBody": "앱이 번들된 예시 영상을 읽고 있어요.",
+  "runningCoachSampleAnalysisLoadingTitle": "측정 오버레이를 추가하는 중",
+  "runningCoachSampleAnalysisLoadingBody": "영상은 바로 재생할 수 있어요. 관절과 접지 프레임은 백그라운드에서 분석하고 있어요.",
   "runningCoachSampleAnalysisFailedTitle": "샘플 분석을 사용할 수 없어요",
   "runningCoachSampleAnalysisRetryAction": "샘플 분석 다시 시도",
+  "runningCoachSampleTechnicalDetailsTitle": "분석 원리 자세히 보기",
+  "runningCoachSampleVideoPlay": "샘플 영상 재생",
+  "runningCoachSampleVideoPause": "샘플 영상 일시정지",
+  "runningCoachSampleVideoUnavailable": "샘플 영상을 불러오지 못했어요. 아래 촬영 가이드는 계속 확인할 수 있어요.",
+  "runningCoachSampleVideoRetryAction": "영상 다시 불러오기",
+  "runningCoachSampleScoreValue": "점수 {score}",
+  "@runningCoachSampleScoreValue": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
   "runningCoachSampleFrameLabel": "프레임 {current}/{total}",
   "@runningCoachSampleFrameLabel": {
     "placeholders": {
@@ -4841,9 +4856,9 @@
   "runningCoachSampleCueArms": "팔꿈치를 접고 다리와 반대로 스윙",
   "runningCoachSampleReferenceTab": "예시 A",
   "runningCoachSampleMistakeTab": "예시 B",
-  "runningCoachSampleReferenceTitle": "예시 A 판독",
+  "runningCoachSampleReferenceTitle": "분석에 적합한 야외 측면 예시",
   "runningCoachSampleMistakeTitle": "예시 B 판독",
-  "runningCoachSampleReferenceBody": "이 클립은 한 러너의 전경사, 착지, 무릎, 팔, 바운스를 오버레이가 따라가는 모습을 보여 줍니다.",
+  "runningCoachSampleReferenceBody": "휴대폰이 정확한 측면에 고정되어 있고, 전신이 계속 보이며, 관절을 추적하기에 러너가 충분히 크게 담긴 영상이에요.",
   "runningCoachSampleMistakeBody": "이 클립은 다른 러너와 환경에서 촬영된 별도 예시입니다. 짝지어진 비교로 보지 말고 판독 표시만 확인하세요.",
   "runningCoachSampleReferencePosture": "전경사: 코치는 어깨-엉덩이 선을 읽고 현재 자세 값을 표시해요.",
   "runningCoachSampleReferenceFoot": "접지 지점: 코치는 착지 발과 엉덩이 선을 비교한 뒤 제동 위험을 판단해요.",
@@ -4862,6 +4877,21 @@
   "runningCoachSampleMethodContact": "접지: 착지에 가까운 프레임으로 엉덩이 선 대비 발 착지 거리를 추정해요.",
   "runningCoachSampleMethodConfidence": "신뢰도: 추적 범위가 낮거나 안정 프레임이 적으면 다시 확인하라고 알려줘요.",
   "runningCoachSampleRecordingGuideTitle": "촬영 설정 가이드",
+  "runningCoachCaptureTreadmillTab": "러닝머신",
+  "runningCoachCaptureOutdoorTab": "야외 통과",
+  "runningCoachCaptureTreadmillTitle": "러닝머신 권장 촬영법",
+  "runningCoachCaptureTreadmillBody": "고정된 가로 화면의 정확한 측면 구도가 가장 안정적이에요. 세로 촬영은 전신과 러닝머신이 모두 보일 때만 사용하세요.",
+  "runningCoachCaptureTreadmillStepCamera": "휴대폰을 벨트와 정확히 직각으로 두고 렌즈를 엉덩이 높이에 맞추세요. 앞이나 뒤에서 비스듬히 찍지 마세요.",
+  "runningCoachCaptureTreadmillStepDistance": "약 3m 거리에서 시작한 뒤, 러너 키가 화면 높이의 50~75%가 되도록 거리를 조절하세요.",
+  "runningCoachCaptureTreadmillStepFrame": "매 순간 머리, 양손, 양쪽 무릎, 양쪽 신발이 화면 안에 있어야 해요. 머리 위와 벨트 아래에 약간의 여백을 두세요.",
+  "runningCoachCaptureTreadmillStepClip": "일정한 속도로 5~10초 촬영하세요. 가능하면 1080p 60fps, 최소 30fps를 사용하세요.",
+  "runningCoachCaptureOutdoorTitle": "고정 카메라 측면 통과 촬영",
+  "runningCoachCaptureOutdoorBody": "멀리서 달려도 되지만, 전신이 관절을 추적할 만큼 크고 선명하게 보이는 거리까지만 가능해요.",
+  "runningCoachCaptureOutdoorStepCamera": "휴대폰을 엉덩이 높이에 고정하고 달리는 선과 직각으로 두세요. 러너를 따라 회전하거나 확대하지 마세요.",
+  "runningCoachCaptureOutdoorStepDistance": "러너가 화면 중앙을 지날 때 키가 화면 높이의 40~70%가 되도록 달리는 선을 정하세요.",
+  "runningCoachCaptureOutdoorStepFrame": "들어오고 나갈 공간은 남기되, 모든 관절이 보이는 깨끗한 3~6보만 남도록 영상을 잘라 주세요.",
+  "runningCoachCaptureOutdoorStepClip": "밝고 고른 빛과 단순한 배경을 사용하세요. 잔상, 그림자, 잘린 발, 뒤로 지나가는 사람을 피하세요.",
+  "runningCoachCaptureOutdoorDistanceWarning": "러너 키가 화면 높이의 40%보다 작으면 멀리서 촬영하지 않는 것이 좋아요. 달리는 선을 가까이 옮기거나 촬영 전에 광학 줌을 맞추세요.",
   "runningCoachSampleProcessTitle": "실제 영상 분석 흐름",
   "runningCoachSampleProcessBody": "오버레이는 코치가 보는 순서대로 보여줘요. 안정 프레임을 고르고, 보이는 신체 지점을 고정하고, 몸 선을 잇고, 각도를 잰 뒤 착지 근거를 확인해요.",
   "runningCoachSamplePhaseFrame": "프레임 샘플",
@@ -5993,6 +6023,7 @@
   "runningCoachSelectedVideoLabel": "선택한 영상",
   "runningCoachNoVideoSelected": "아직 선택한 영상이 없어요.",
   "runningCoachPickVideoAction": "영상 선택",
+  "runningCoachChangeVideoAction": "바꾸기",
   "runningCoachAnalyzeAction": "달리기 분석",
   "runningCoachAnalysisInProgress": "분석 중...",
   "runningCoachPickVideoFailed": "영상 선택기를 열지 못했어요.",
@@ -6023,6 +6054,23 @@
   "runningCoachAnalysisHistoryEmpty": "아직 저장된 코칭 분석 기록이 없어요.",
   "runningCoachAnalysisHistoryDetailTitle": "분석 리포트",
   "runningCoachAnalysisHistoryPrimaryFocus": "핵심 코칭 포인트",
+  "runningCoachHistoryMetricCount": "지표 {count}개",
+  "@runningCoachHistoryMetricCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachHistoryFullReportTitle": "전체 자세 리포트",
+  "runningCoachHistoryFullReportBody": "저장된 {count}개 측정 지표를 모두 보여줘요. 각 항목을 열면 분석 직후와 같은 설명, 다음 동작, 추천 드릴을 확인할 수 있어요.",
+  "@runningCoachHistoryFullReportBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "runningCoachAnalysisResultScreenTitle": "달리기 분석 결과",
   "runningCoachHistoryVideoSaved": "영상 저장됨",
   "runningCoachArchivedVideoTitle": "분석 영상",

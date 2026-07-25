@@ -187,6 +187,13 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    for (var index = 0; index < 3; index += 1) {
+      await tester.drag(
+        find.byKey(const PageStorageKey('running-coach-simple-page')),
+        const Offset(0, -320),
+      );
+      await tester.pump();
+    }
     expect(
       find.byKey(const ValueKey('running-coach-live-trend-card')),
       findsOneWidget,
@@ -233,14 +240,18 @@ void main() {
       find.byKey(const ValueKey('running-coach-sample-analysis-loading')),
       findsOneWidget,
     );
-    await tester.runAsync(() => analysisService.waitForCallCount(2));
+    expect(
+      find.byKey(const ValueKey('running-coach-sample-video-frame')),
+      findsOneWidget,
+    );
+    await tester.runAsync(() => analysisService.waitForCallCount(1));
     await tester.pump();
     await _pumpUntilFound(
       tester,
       find.byKey(const ValueKey('running-coach-sample-video-frame')),
     );
 
-    expect(analysisService.calls, hasLength(2));
+    expect(analysisService.calls, hasLength(1));
     expect(
       analysisService.calls,
       everyElement(contains('football_note_running_sample_')),
@@ -278,27 +289,11 @@ void main() {
       isFalse,
     );
     expect(
-      find.byKey(const ValueKey('running-coach-sample-frame-guide')),
-      findsOneWidget,
-    );
-    expect(
       find.byKey(const ValueKey('running-coach-sample-recording-guide')),
       findsOneWidget,
     );
     expect(
       find.byKey(const ValueKey('running-coach-sample-joint-readouts')),
-      findsOneWidget,
-    );
-    expect(
-      find.byKey(const ValueKey('running-coach-sample-analysis-method')),
-      findsOneWidget,
-    );
-    expect(
-      find.byKey(const ValueKey('running-coach-sample-analysis-process')),
-      findsOneWidget,
-    );
-    expect(
-      find.byKey(const ValueKey('running-coach-sample-analysis-phase')),
       findsOneWidget,
     );
     expect(
@@ -314,27 +309,36 @@ void main() {
       find.byKey(const ValueKey('running-coach-sample-back-button')),
       findsOneWidget,
     );
-    expect(find.text('Example A'), findsOneWidget);
-    expect(find.text('Example B'), findsOneWidget);
-    expect(find.text('Reference sample'), findsNothing);
-    expect(find.text('Wrong form sample'), findsNothing);
+    expect(find.text('Analysis-ready outdoor example'), findsWidgets);
+    expect(find.text('Example B'), findsNothing);
     expect(
-      find.textContaining('not a controlled correct-vs-wrong comparison'),
+      find.textContaining('match its framing'),
       findsOneWidget,
     );
-    expect(find.text('What the overlay shows'), findsOneWidget);
-    expect(find.text('Example A readouts'), findsOneWidget);
-    expect(find.text('Analysis process on the real clip'), findsOneWidget);
+    expect(find.text('Treadmill'), findsOneWidget);
+    expect(find.text('Outdoor pass'), findsOneWidget);
+    expect(find.text('Best setup for a treadmill'), findsOneWidget);
+    expect(find.textContaining('50-75%'), findsOneWidget);
+    await tester.ensureVisible(find.text('Outdoor pass'));
+    await tester.pump();
+    await tester.tap(find.text('Outdoor pass'));
+    await tester.pump();
+    expect(find.text('Fixed side-pass setup'), findsOneWidget);
+    expect(find.textContaining('40-70%'), findsOneWidget);
+    expect(
+      find.textContaining('below 40% of frame height'),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(
+        const ValueKey('running-coach-capture-diagram-outdoor'),
+      ),
+      findsOneWidget,
+    );
     expect(find.text('Dense contact evidence'), findsOneWidget);
-    expect(find.text('Validate contact frame'), findsOneWidget);
     expect(find.text('Contact 0.00s'), findsOneWidget);
     expect(find.text('0.00s, 0.50s'), findsOneWidget);
     expect(find.text('Contact frames'), findsOneWidget);
-    expect(find.textContaining('Find body points'), findsOneWidget);
-    expect(find.textContaining('Mark body load'), findsOneWidget);
-    expect(find.textContaining('Connect body lines'), findsOneWidget);
-    expect(find.textContaining('Measure angles'), findsOneWidget);
-    expect(find.textContaining('Check contact evidence'), findsOneWidget);
     expect(find.text('Decision evidence'), findsOneWidget);
     expect(find.text('Forward lean'), findsWidgets);
     expect(find.text('Bounce'), findsOneWidget);
@@ -346,11 +350,32 @@ void main() {
     expect(find.text('0.11x foot reach'), findsWidgets);
     expect(find.text('7.0% up-down motion'), findsWidgets);
     expect(find.text('Good'), findsWidgets);
+    expect(find.textContaining('landing distance is 0.08'), findsNothing);
+
+    await tester.ensureVisible(find.text('How the analysis works'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('How the analysis works'));
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('running-coach-sample-frame-guide')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('running-coach-sample-analysis-method')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('running-coach-sample-analysis-process')),
+      findsOneWidget,
+    );
+    expect(find.textContaining('Find body points'), findsOneWidget);
+    expect(find.textContaining('Connect body lines'), findsOneWidget);
+    expect(find.textContaining('Measure angles'), findsOneWidget);
+    expect(find.textContaining('Check contact evidence'), findsOneWidget);
     expect(
       find.text('Foot lands under the hip with toes forward'),
       findsOneWidget,
     );
-    expect(find.textContaining('landing distance is 0.08'), findsNothing);
 
     await tester.ensureVisible(
       find.byKey(const ValueKey('running-coach-sample-decision-posture')),
@@ -376,45 +401,6 @@ void main() {
     expect(find.text('12.4° body lean'), findsWidgets);
     expect(find.textContaining("this clip's measured value"), findsWidgets);
     expect(find.textContaining('vertical hip line'), findsWidgets);
-
-    Navigator.of(
-      tester.element(
-        find.byKey(const ValueKey('running-coach-sample-metric-detail')),
-      ),
-    ).pop();
-    await tester.pumpAndSettle();
-
-    await tester.ensureVisible(find.text('Example B'));
-    await tester.pump();
-    await tester.tap(find.text('Example B'));
-    await tester.pump();
-
-    expect(find.text('Example B readouts'), findsOneWidget);
-    expect(find.text('0.22x foot reach'), findsWidgets);
-    expect(find.text('Bounce'), findsOneWidget);
-    expect(find.text('10.0% up-down motion'), findsWidgets);
-    expect(find.text('Needs work'), findsWidgets);
-    expect(
-      find.textContaining('landing is 0.20 ahead of the hip'),
-      findsNothing,
-    );
-
-    await tester.ensureVisible(
-      find.byKey(const ValueKey('running-coach-sample-decision-bounce')),
-    );
-    await tester.pump();
-    await tester.tap(
-      find.byKey(const ValueKey('running-coach-sample-decision-bounce')),
-    );
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
-
-    expect(
-      find.byKey(const ValueKey('running-coach-sample-metric-detail')),
-      findsOneWidget,
-    );
-    expect(find.text('10.0% up-down motion'), findsWidgets);
-    expect(find.textContaining('head and hip height band'), findsOneWidget);
 
     Navigator.of(
       tester.element(
@@ -449,7 +435,65 @@ void main() {
       tester,
       find.byKey(const ValueKey('running-coach-sample-video-frame')),
     );
-    expect(analysisService.calls, hasLength(2));
+    expect(analysisService.calls, hasLength(1));
+  });
+
+  testWidgets('sample video stays usable while native analysis is pending', (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final analysisService = _PendingRunningVideoAnalysisService();
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: RunningCoachScreen(
+          analysisService: analysisService,
+          sampleVideoPreparer: _prepareSampleVideoForTest,
+        ),
+      ),
+    );
+
+    await tester.ensureVisible(find.text('Open sample video guide'));
+    await tester.pump();
+    await tester.tap(find.text('Open sample video guide'));
+    await tester.pump();
+    await tester.runAsync(analysisService.waitUntilCalled);
+    await tester.pump();
+
+    expect(analysisService.callCount, 1);
+    expect(
+      find.byKey(const ValueKey('running-coach-sample-video-frame')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('running-coach-sample-fake-video-view')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('running-coach-sample-analysis-loading')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('running-coach-sample-recording-guide')),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+
+    analysisService.complete();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(
+      find.byKey(const ValueKey('running-coach-sample-analysis-loading')),
+      findsNothing,
+    );
   });
 
   testWidgets('sample sheet does not draw a fake skeleton without poseFrames', (
@@ -484,7 +528,7 @@ void main() {
     );
     await tester.tap(find.text('Open sample video guide'));
     await tester.pump();
-    await tester.runAsync(() => analysisService.waitForCallCount(2));
+    await tester.runAsync(() => analysisService.waitForCallCount(1));
     await tester.pump();
     await _pumpUntilFound(
       tester,
@@ -552,20 +596,21 @@ void main() {
     );
     expect(find.text('Retry sample analysis'), findsOneWidget);
 
-    final retryButton = tester.widget<FilledButton>(
-      find.byKey(const ValueKey('running-coach-sample-analysis-retry')),
-    );
-    retryButton.onPressed!();
+    final retryFinder =
+        find.byKey(const ValueKey('running-coach-sample-analysis-retry'));
+    await tester.ensureVisible(retryFinder);
+    await tester.pumpAndSettle();
+    await tester.tap(retryFinder);
     await tester.pump();
-    await tester.runAsync(() => analysisService.waitForCallCount(3));
+    await tester.runAsync(() => analysisService.waitForCallCount(2));
     await tester.pump();
     await _pumpUntilFound(
       tester,
       find.byKey(const ValueKey('running-coach-sample-video-frame')),
     );
 
-    expect(analysisService.calls, hasLength(3));
-    expect(find.text('Example A'), findsOneWidget);
+    expect(analysisService.calls, hasLength(2));
+    expect(find.text('Analysis-ready outdoor example'), findsWidgets);
   });
 
   testWidgets('analysis history opens a visual correction guide', (
@@ -588,6 +633,35 @@ void main() {
       primaryScore: 70,
       primaryValue: 4,
       primaryConfidence: 0.86,
+      metricSnapshots: const <RunningCoachSessionMetric>[
+        RunningCoachSessionMetric(
+          metric: RunningCoachMetric.posture,
+          finding: RunningCoachFinding.postureTooUpright,
+          status: RunningCoachStatus.watch,
+          score: 70,
+          value: 4,
+          confidence: 0.86,
+          sampleCount: 21,
+        ),
+        RunningCoachSessionMetric(
+          metric: RunningCoachMetric.footStrike,
+          finding: RunningCoachFinding.footStrikeOverstride,
+          status: RunningCoachStatus.needsWork,
+          score: 58,
+          value: 0.24,
+          confidence: 0.82,
+          sampleCount: 8,
+        ),
+        RunningCoachSessionMetric(
+          metric: RunningCoachMetric.armCarriage,
+          finding: RunningCoachFinding.armTooOpen,
+          status: RunningCoachStatus.watch,
+          score: 68,
+          value: 118,
+          confidence: 0.79,
+          sampleCount: 18,
+        ),
+      ],
       videoPath: '/missing/running-coach-test.mp4',
       videoName: 'side-view-test.mp4',
     );
@@ -636,7 +710,7 @@ void main() {
     expect(find.text('Change one thing first'), findsOneWidget);
     expect(
       find.text('You are too upright. It can slow the next step.'),
-      findsOneWidget,
+      findsWidgets,
     );
     expect(find.text('On your next run'), findsOneWidget);
     expect(
@@ -644,6 +718,21 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Drill: Do two 15 m falling starts.'), findsOneWidget);
+    expect(find.text('Full form report'), findsOneWidget);
+    expect(
+        find.textContaining('all 3 measured coaching metrics'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('running-coach-history-metric-posture')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('running-coach-history-metric-footStrike')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('running-coach-history-metric-armCarriage')),
+      findsOneWidget,
+    );
   });
 
   testWidgets('analysis result layout stays readable on narrow phones', (
@@ -1616,6 +1705,42 @@ class _FakeRunningVideoAnalysisService extends RunningVideoAnalysisService {
               dxPerFrame: -0.018,
               confidence: 0.93,
             ),
+    );
+  }
+}
+
+class _PendingRunningVideoAnalysisService extends RunningVideoAnalysisService {
+  final Completer<RunningVideoAnalysisResult> _result =
+      Completer<RunningVideoAnalysisResult>();
+  int callCount = 0;
+
+  @override
+  Future<RunningVideoAnalysisResult> analyzeVideo(String path) {
+    callCount += 1;
+    return _result.future;
+  }
+
+  Future<void> waitUntilCalled() async {
+    for (var attempt = 0; attempt < 100; attempt += 1) {
+      if (callCount > 0) return;
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
+    throw StateError('Timed out waiting for sample analysis.');
+  }
+
+  void complete() {
+    _result.complete(
+      const RunningVideoAnalysisResult(
+        videoDuration: Duration(seconds: 4),
+        sampledFrames: 14,
+        validFrames: 13,
+        direction: RunningDirection.leftToRight,
+        forwardLeanDegrees: 12.4,
+        verticalBounceRatio: 0.07,
+        footStrikeDistanceRatio: 0.11,
+        stanceKneeAngleDegrees: 150,
+        elbowAngleDegrees: 96,
+      ),
     );
   }
 }

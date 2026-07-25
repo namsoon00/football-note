@@ -32,7 +32,16 @@ void main() {
       for (var offset = 3; offset < pixels.length; offset += 4)
         if (pixels[offset] > 0) pixels[offset],
     ];
-    expect(paintedPixels.length, greaterThan(900));
+    expect(paintedPixels.length, greaterThan(1400));
+    for (final index in <int>[11, 12, 13, 14, 23, 24, 25, 26, 27, 28]) {
+      final point = _humanFormPoints[index]!;
+      expect(
+        _alphaAt(pixels, 240, point.dx.round(), point.dy.round()),
+        greaterThan(0),
+        reason: 'Measured joint $index must remain on its exact coordinate.',
+      );
+    }
+    expect(_alphaAt(pixels, 240, 5, 5), 0);
     image.dispose();
   });
 
@@ -115,6 +124,10 @@ void main() {
     expect(point.dx, closeTo(150, 0.0001));
     expect(point.dy, closeTo(0, 0.0001));
   });
+}
+
+int _alphaAt(List<int> pixels, int width, int x, int y) {
+  return pixels[((y * width + x) * 4) + 3];
 }
 
 const Map<int, Offset> _humanFormPoints = <int, Offset>{

@@ -7892,11 +7892,17 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachScreenTitle => 'ランニングコーチ';
 
   @override
-  String get runningCoachHeroTitle => 'サイドビューランニングフォームコーチ';
+  String get runningCoachHeroTitle => '走る、確認する、改善する';
 
   @override
   String get runningCoachHeroBody =>
-      '走ることを次の試合の武器にします。短いサッカー型スプリントミッションを走って記録し、フォームコーチで次の0.1秒を探します。';
+      '走りながらリアルタイムのキューを受けるか、鮮明な横向き動画1本でフォーム全体のレポートを確認できます。';
+
+  @override
+  String get runningCoachStartTitle => 'トレーニング方法を選ぶ';
+
+  @override
+  String get runningCoachStartBody => '今すぐライブコーチングを始めるか、撮影前に正確なカメラ設定を確認します。';
 
   @override
   String get runningCoachSectionToday => 'ミッション';
@@ -8186,7 +8192,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachAnalyzeBody =>
-      '横から撮ったクリップを1つ選びます。結果は、最初のコーチング重点を支える実際の動画フレームから表示します。';
+      '5〜15秒の横向き動画を1本選びます。最優先のキューに続いて、5項目すべてのレポートを表示します。';
 
   @override
   String get runningCoachTipsTitle => '録音方法';
@@ -8230,22 +8236,44 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachSampleBody =>
-      'これは別々のランナーと場所で撮った例の動画です。オーバーレイを覚えるためだけに使い、管理された正誤比較として扱わないでください。';
+      '分析に適した横向きの例を再生し、同じ構図で自分のランニングを撮影してください。';
 
   @override
   String get runningCoachSampleGuideAction => 'サンプルビデオガイドを開く';
 
   @override
-  String get runningCoachSampleAnalysisLoadingTitle => 'サンプル動画を分析中';
+  String get runningCoachSampleAnalysisLoadingTitle => '計測オーバーレイを追加中';
 
   @override
-  String get runningCoachSampleAnalysisLoadingBody => 'アプリが同梱の例動画を読み取っています。';
+  String get runningCoachSampleAnalysisLoadingBody =>
+      '動画はすぐ再生できます。関節と接地フレームはバックグラウンドで分析しています。';
 
   @override
   String get runningCoachSampleAnalysisFailedTitle => 'サンプル分析を使用できません';
 
   @override
   String get runningCoachSampleAnalysisRetryAction => 'サンプル分析を再試行';
+
+  @override
+  String get runningCoachSampleTechnicalDetailsTitle => '分析の仕組みを見る';
+
+  @override
+  String get runningCoachSampleVideoPlay => 'サンプル動画を再生';
+
+  @override
+  String get runningCoachSampleVideoPause => 'サンプル動画を一時停止';
+
+  @override
+  String get runningCoachSampleVideoUnavailable =>
+      'サンプル動画を読み込めませんでした。下の撮影ガイドは引き続き確認できます。';
+
+  @override
+  String get runningCoachSampleVideoRetryAction => '動画を再読み込み';
+
+  @override
+  String runningCoachSampleScoreValue(int score) {
+    return 'スコア $score';
+  }
 
   @override
   String runningCoachSampleFrameLabel(int current, int total) {
@@ -8278,14 +8306,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachSampleMistakeTab => '例B';
 
   @override
-  String get runningCoachSampleReferenceTitle => '例Aの読み取り';
+  String get runningCoachSampleReferenceTitle => '分析に適した屋外サイドビュー例';
 
   @override
   String get runningCoachSampleMistakeTitle => '例Bの読み取り';
 
   @override
   String get runningCoachSampleReferenceBody =>
-      'このクリップでは、1人のランナーの前傾、着地、膝、腕、上下動をオーバーレイが追う様子を確認できます。';
+      'スマートフォンを真横に固定し、全身が常に見え、関節追跡に十分な大きさでランナーを収めた動画です。';
 
   @override
   String get runningCoachSampleMistakeBody =>
@@ -8355,6 +8383,62 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachSampleRecordingGuideTitle => '撮影設定ガイド';
+
+  @override
+  String get runningCoachCaptureTreadmillTab => 'トレッドミル';
+
+  @override
+  String get runningCoachCaptureOutdoorTab => '屋外通過';
+
+  @override
+  String get runningCoachCaptureTreadmillTitle => 'トレッドミルの推奨撮影方法';
+
+  @override
+  String get runningCoachCaptureTreadmillBody =>
+      '固定した横画面の正確なサイドビューが最も安定します。縦撮影は全身とトレッドミルが収まる場合のみ使用してください。';
+
+  @override
+  String get runningCoachCaptureTreadmillStepCamera =>
+      'ベルトに対してスマートフォンを正確に直角に置き、レンズを腰の高さに合わせます。前後から斜めに撮らないでください。';
+
+  @override
+  String get runningCoachCaptureTreadmillStepDistance =>
+      '約3mから始め、ランナーの身長が画面高の50〜75%になるよう距離を調整します。';
+
+  @override
+  String get runningCoachCaptureTreadmillStepFrame =>
+      '頭、両手、両膝、両方のシューズが毎ステップ画面内に入るようにします。頭上とベルト下に少し余白を残します。';
+
+  @override
+  String get runningCoachCaptureTreadmillStepClip =>
+      '一定速度で5〜10秒撮影します。可能なら1080p/60fps、最低30fpsを使用します。';
+
+  @override
+  String get runningCoachCaptureOutdoorTitle => '固定カメラでの横通過撮影';
+
+  @override
+  String get runningCoachCaptureOutdoorBody =>
+      '遠くを走っても構いませんが、全身が関節追跡できる大きさと鮮明さを保てる距離までです。';
+
+  @override
+  String get runningCoachCaptureOutdoorStepCamera =>
+      'スマートフォンを腰の高さに固定し、走路に対して直角に置きます。ランナーを追ってパンやズームをしないでください。';
+
+  @override
+  String get runningCoachCaptureOutdoorStepDistance =>
+      '画面中央を通過する時、ランナーの身長が画面高の40〜70%になるよう走路を決めます。';
+
+  @override
+  String get runningCoachCaptureOutdoorStepFrame =>
+      '進入と退出の余白を残しつつ、全関節が見えるきれいな3〜6歩だけに動画を切ります。';
+
+  @override
+  String get runningCoachCaptureOutdoorStepClip =>
+      '明るく均一な光と単純な背景を使います。動体ブレ、影、切れた足、背後を横切る人を避けます。';
+
+  @override
+  String get runningCoachCaptureOutdoorDistanceWarning =>
+      'ランナーが画面高の40%未満になる遠距離撮影は推奨しません。走路を近づけるか、撮影前に光学ズームを合わせてください。';
 
   @override
   String get runningCoachSampleProcessTitle => '実際の映像での分析手順';
@@ -10056,6 +10140,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachPickVideoAction => 'ビデオを選択';
 
   @override
+  String get runningCoachChangeVideoAction => '変更';
+
+  @override
   String get runningCoachAnalyzeAction => '分析実行';
 
   @override
@@ -10135,6 +10222,19 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachAnalysisHistoryPrimaryFocus => '主要なコーチングポイント';
+
+  @override
+  String runningCoachHistoryMetricCount(int count) {
+    return '$count項目';
+  }
+
+  @override
+  String get runningCoachHistoryFullReportTitle => 'フォーム全体レポート';
+
+  @override
+  String runningCoachHistoryFullReportBody(int count) {
+    return '保存済みの$count個の測定項目をすべて表示します。各項目を開くと、分析直後と同じキューとドリルを確認できます。';
+  }
 
   @override
   String get runningCoachAnalysisResultScreenTitle => 'ランニング分析結果';
