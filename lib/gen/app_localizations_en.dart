@@ -13455,11 +13455,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get matchRecordsCompetitionAllFilter => 'All competitions';
 
   @override
+  String get matchRecordsSearchHint =>
+      'Search opponent, competition, round, venue, or notes';
+
+  @override
+  String get matchRecordsSearchClearTooltip => 'Clear search';
+
+  @override
+  String get matchRecordsOutcomeAllFilter => 'All results';
+
+  @override
+  String get matchRecordsOutcomeUnsetFilter => 'Result not recorded';
+
+  @override
+  String get matchRecordsDateAllFilter => 'All dates';
+
+  @override
+  String get matchRecordsDateLast30DaysFilter => 'Last 30 days';
+
+  @override
+  String get matchRecordsDateThisYearFilter => 'This year';
+
+  @override
   String get matchRecordsFilterEmptyTitle => 'No matches fit these filters.';
 
   @override
   String get matchRecordsFilterEmptyBody =>
-      'Reset the match type or competition filter and try again.';
+      'Reset the search and filters, then try again.';
 
   @override
   String get matchHubCalendarButton => 'Open calendar';
@@ -13832,13 +13854,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get teamManagementTacticBoardRenameButton => 'Rename';
 
   @override
+  String get teamManagementTacticBoardEditButton => 'Tactic details';
+
+  @override
   String get teamManagementTacticBoardDeleteButton => 'Delete';
 
   @override
   String get teamManagementTacticBoardRenameDialogTitle => 'Rename tactic';
 
   @override
+  String get teamManagementTacticBoardEditDialogTitle => 'Edit tactic details';
+
+  @override
   String get teamManagementTacticBoardNameLabel => 'Tactic name';
+
+  @override
+  String get teamManagementTacticBoardDescriptionLabel => 'Tactic description';
+
+  @override
+  String get teamManagementTacticBoardDescriptionHint =>
+      'e.g. Occupy the half space, then switch right';
 
   @override
   String get teamManagementTacticBoardRenameSaveButton => 'Save';
@@ -14320,6 +14355,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get teamManagementBoardClearMarkersButton => 'Clear markers';
+
+  @override
+  String get teamManagementBoardDeleteSelectedMarkerButton => 'Delete selected';
 
   @override
   String get teamManagementBoardLandscapeButton => 'Landscape';

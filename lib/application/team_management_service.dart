@@ -328,6 +328,7 @@ class ManagedPlayerPlacement {
 class ManagedTacticBoard {
   final String id;
   final String title;
+  final String description;
   final Map<String, ManagedPlayerPlacement> playerPlacements;
   final List<ManagedTacticLine> tacticLines;
   final DateTime createdAt;
@@ -336,6 +337,7 @@ class ManagedTacticBoard {
   const ManagedTacticBoard({
     required this.id,
     required this.title,
+    this.description = '',
     this.playerPlacements = const <String, ManagedPlayerPlacement>{},
     this.tacticLines = const <ManagedTacticLine>[],
     required this.createdAt,
@@ -344,6 +346,7 @@ class ManagedTacticBoard {
 
   factory ManagedTacticBoard.create({
     required String title,
+    String description = '',
     Map<String, ManagedPlayerPlacement> playerPlacements =
         const <String, ManagedPlayerPlacement>{},
     List<ManagedTacticLine> tacticLines = const <ManagedTacticLine>[],
@@ -353,6 +356,7 @@ class ManagedTacticBoard {
     return ManagedTacticBoard(
       id: TeamManagementService.tacticBoardId(title: title, now: timestamp),
       title: title.trim(),
+      description: description.trim(),
       playerPlacements: playerPlacements,
       tacticLines: TeamManagementService.normalizeTacticLines(tacticLines),
       createdAt: timestamp,
@@ -392,6 +396,7 @@ class ManagedTacticBoard {
     return ManagedTacticBoard(
       id: map['id']?.toString().trim() ?? '',
       title: map['title']?.toString().trim() ?? '',
+      description: map['description']?.toString().trim() ?? '',
       playerPlacements: playerPlacements,
       tacticLines: TeamManagementService.normalizeTacticLines(tacticLines),
       createdAt: createdAt,
@@ -402,6 +407,7 @@ class ManagedTacticBoard {
   ManagedTacticBoard copyWith({
     String? id,
     String? title,
+    String? description,
     Map<String, ManagedPlayerPlacement>? playerPlacements,
     List<ManagedTacticLine>? tacticLines,
     DateTime? createdAt,
@@ -410,6 +416,7 @@ class ManagedTacticBoard {
     return ManagedTacticBoard(
       id: id ?? this.id,
       title: title ?? this.title,
+      description: description ?? this.description,
       playerPlacements: playerPlacements ?? this.playerPlacements,
       tacticLines: TeamManagementService.normalizeTacticLines(
         tacticLines ?? this.tacticLines,
@@ -423,6 +430,7 @@ class ManagedTacticBoard {
     return <String, dynamic>{
       'id': id,
       'title': title,
+      'description': description,
       'playerPlacements': playerPlacements.map(
         (key, value) => MapEntry(key, value.toMap()),
       ),

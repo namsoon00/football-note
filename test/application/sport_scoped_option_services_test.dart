@@ -147,6 +147,30 @@ void main() {
       );
     });
 
+    test('preserves tactic board descriptions in storage', () async {
+      final repository = _MemoryOptionRepository();
+      final board = ManagedTacticBoard.create(
+        title: 'Right switch press',
+        description: 'Win the half space, then press the next pass.',
+        now: DateTime(2026, 7, 25),
+      );
+
+      await TeamManagementService(repository).upsertTeam(
+        ManagedTeam.create(
+          name: 'Tactics Team',
+          tacticBoards: [board],
+          activeTacticBoardId: board.id,
+        ),
+      );
+
+      final restored = TeamManagementService(repository).allTeams().single;
+      expect(restored.tacticBoards.single.title, 'Right switch press');
+      expect(
+        restored.tacticBoards.single.description,
+        'Win the half space, then press the next pass.',
+      );
+    });
+
     test('separates match competitions by sport', () async {
       final repository = _MemoryOptionRepository();
       final football = MatchCompetitionService(repository);

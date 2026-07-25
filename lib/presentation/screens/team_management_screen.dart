@@ -88,6 +88,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   List<ManagedTacticLine> _tacticLines = const <ManagedTacticLine>[];
   List<ManagedTacticBoard> _tacticBoards = const <ManagedTacticBoard>[];
   String _activeTacticBoardId = '';
+  String? _selectedTacticLineId;
   String _formation = ManagedTeam.defaultFormation;
   _TeamManagementSection _activeSection = _TeamManagementSection.players;
   _TeamManagementWorkspace? _activeWorkspace;
@@ -272,6 +273,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
     _loadActiveTacticBoardState();
     _boardMode = _TacticBoardMode.assign;
     _draftTacticLine = null;
+    _selectedTacticLineId = null;
     _tacticUndoStack.clear();
     _activePlacementUndoPlayerId = null;
     _changeRevision = 0;
@@ -414,6 +416,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
       _loadActiveTacticBoardState();
       _boardMode = snapshot.boardMode;
       _draftTacticLine = null;
+      _selectedTacticLineId = null;
       _activePlacementUndoPlayerId = null;
     });
     _scheduleAutoSave();
@@ -604,6 +607,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
       _activeTacticBoardId = key;
       _loadActiveTacticBoardState();
       _draftTacticLine = null;
+      _selectedTacticLineId = null;
       _boardMode = _TacticBoardMode.assign;
     });
     if (_isReadOnlySupportMode) return;
@@ -623,6 +627,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
       _activeTacticBoardId = next.id;
       _loadActiveTacticBoardState();
       _draftTacticLine = null;
+      _selectedTacticLineId = null;
       _boardMode = _TacticBoardMode.assign;
     });
     _scheduleAutoSave();
@@ -654,12 +659,17 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
       _activeTacticBoardId = duplicate.id;
       _loadActiveTacticBoardState();
       _draftTacticLine = null;
+      _selectedTacticLineId = null;
       _boardMode = _TacticBoardMode.assign;
     });
     _scheduleAutoSave();
   }
 
-  void _renameTacticBoard(String boardId, String title) {
+  void _updateTacticBoard(
+    String boardId,
+    String title,
+    String description,
+  ) {
     if (_blockReadOnlyMutation()) return;
     final trimmed = title.trim();
     if (trimmed.isEmpty) return;
@@ -668,7 +678,11 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
       _tacticBoards = [
         for (final board in _syncedTacticBoards())
           if (board.id == boardId)
-            board.copyWith(title: trimmed, updatedAt: DateTime.now())
+            board.copyWith(
+              title: trimmed,
+              description: description.trim(),
+              updatedAt: DateTime.now(),
+            )
           else
             board,
       ];
@@ -728,6 +742,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
       _activeTacticBoardId = nextBoards[nextIndex].id;
       _loadActiveTacticBoardState();
       _draftTacticLine = null;
+      _selectedTacticLineId = null;
       _boardMode = _TacticBoardMode.assign;
     });
     _scheduleAutoSave();
@@ -809,7 +824,29 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
     setState(() {
       _boardMode = mode;
       _draftTacticLine = null;
+      _selectedTacticLineId = null;
     });
+  }
+
+  void _selectTacticLine(String? lineId) {
+    if (_selectedTacticLineId == lineId) return;
+    setState(() => _selectedTacticLineId = lineId);
+  }
+
+  void _deleteSelectedTacticLine() {
+    if (_blockReadOnlyMutation()) return;
+    final lineId = _selectedTacticLineId;
+    if (lineId == null || lineId.isEmpty) return;
+    if (!_tacticLines.any((line) => line.id == lineId)) return;
+    _rememberTacticUndoState();
+    setState(() {
+      _tacticLines = _tacticLines
+          .where((line) => line.id != lineId)
+          .toList(growable: false);
+      _selectedTacticLineId = null;
+      _syncActiveTacticBoardState();
+    });
+    _scheduleAutoSave();
   }
 
   String _markerTypeForBoardMode(_TacticBoardMode mode) {
@@ -879,6 +916,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
     setState(() {
       _tacticLines = const <ManagedTacticLine>[];
       _draftTacticLine = null;
+      _selectedTacticLineId = null;
       _syncActiveTacticBoardState();
     });
     _scheduleAutoSave();
@@ -908,6 +946,11 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
                         onBackToMenu: _closeWorkspace,
                         landscapeMode: _boardLandscapeMode,
                         onToggleLandscape: _toggleBoardLandscapeMode,
+                        saving: _saving,
+                        readOnly: readOnly,
+                        onSave: () => unawaited(
+                          _persistTeam(force: true, showFeedback: true),
+                        ),
                       ),
                       const SizedBox(height: AppSpacing.sm),
                       Expanded(
@@ -1062,13 +1105,14 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
           playerPlacements: _playerPlacements,
           tacticLines: _tacticLines,
           draftTacticLine: _draftTacticLine,
+          selectedTacticLineId: _selectedTacticLineId,
           boardMode: _boardMode,
           landscapeMode: _boardLandscapeMode,
           readOnly: readOnly,
           onTacticBoardSelected: _selectTacticBoard,
           onAddTacticBoard: _addTacticBoard,
           onDuplicateTacticBoard: _duplicateTacticBoard,
-          onRenameTacticBoard: _renameTacticBoard,
+          onUpdateTacticBoard: _updateTacticBoard,
           onDeleteTacticBoard: () => unawaited(_deleteActiveTacticBoard()),
           onPlayerPlaced: _placePlayerOnBoard,
           onPlayerMoveStarted: _beginPlayerPlacementUndo,
@@ -1079,6 +1123,8 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
           onTacticLineStarted: _startTacticLine,
           onTacticLineUpdated: _updateTacticLine,
           onTacticLineFinished: _finishTacticLine,
+          onTacticLineSelected: _selectTacticLine,
+          onDeleteSelectedTacticLine: _deleteSelectedTacticLine,
           onClearTacticLines: _clearTacticLines,
         );
     }
@@ -1089,11 +1135,17 @@ class _WorkspaceScreenHeader extends StatelessWidget {
   final VoidCallback onBackToMenu;
   final bool landscapeMode;
   final VoidCallback onToggleLandscape;
+  final bool saving;
+  final bool readOnly;
+  final VoidCallback onSave;
 
   const _WorkspaceScreenHeader({
     required this.onBackToMenu,
     required this.landscapeMode,
     required this.onToggleLandscape,
+    required this.saving,
+    required this.readOnly,
+    required this.onSave,
   });
 
   @override
@@ -1137,6 +1189,22 @@ class _WorkspaceScreenHeader extends StatelessWidget {
           onPressed: onToggleLandscape,
           margin: EdgeInsets.zero,
           maxLabelWidth: 88,
+        ),
+        const SizedBox(width: AppSpacing.xs),
+        AppBarActionButton.label(
+          key: const ValueKey('team-board-save'),
+          icon: saving
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.save_outlined),
+          label: l10n.save,
+          tooltip: l10n.save,
+          onPressed: readOnly || saving ? null : onSave,
+          margin: EdgeInsets.zero,
+          maxLabelWidth: 64,
         ),
       ],
     );
@@ -1388,13 +1456,15 @@ class _TacticsBoardPanel extends StatelessWidget {
   final Map<String, ManagedPlayerPlacement> playerPlacements;
   final List<ManagedTacticLine> tacticLines;
   final ManagedTacticLine? draftTacticLine;
+  final String? selectedTacticLineId;
   final _TacticBoardMode boardMode;
   final bool landscapeMode;
   final bool readOnly;
   final ValueChanged<String> onTacticBoardSelected;
   final VoidCallback onAddTacticBoard;
   final VoidCallback onDuplicateTacticBoard;
-  final void Function(String boardId, String title) onRenameTacticBoard;
+  final void Function(String boardId, String title, String description)
+      onUpdateTacticBoard;
   final VoidCallback onDeleteTacticBoard;
   final _PlayerBoardDropCallback onPlayerPlaced;
   final ValueChanged<String> onPlayerMoveStarted;
@@ -1405,6 +1475,8 @@ class _TacticsBoardPanel extends StatelessWidget {
   final ValueChanged<Offset> onTacticLineStarted;
   final ValueChanged<Offset> onTacticLineUpdated;
   final VoidCallback onTacticLineFinished;
+  final ValueChanged<String?> onTacticLineSelected;
+  final VoidCallback onDeleteSelectedTacticLine;
   final VoidCallback onClearTacticLines;
 
   const _TacticsBoardPanel({
@@ -1414,13 +1486,14 @@ class _TacticsBoardPanel extends StatelessWidget {
     required this.playerPlacements,
     required this.tacticLines,
     required this.draftTacticLine,
+    required this.selectedTacticLineId,
     required this.boardMode,
     required this.landscapeMode,
     required this.readOnly,
     required this.onTacticBoardSelected,
     required this.onAddTacticBoard,
     required this.onDuplicateTacticBoard,
-    required this.onRenameTacticBoard,
+    required this.onUpdateTacticBoard,
     required this.onDeleteTacticBoard,
     required this.onPlayerPlaced,
     required this.onPlayerMoveStarted,
@@ -1431,6 +1504,8 @@ class _TacticsBoardPanel extends StatelessWidget {
     required this.onTacticLineStarted,
     required this.onTacticLineUpdated,
     required this.onTacticLineFinished,
+    required this.onTacticLineSelected,
+    required this.onDeleteSelectedTacticLine,
     required this.onClearTacticLines,
   });
 
@@ -1456,10 +1531,12 @@ class _TacticsBoardPanel extends StatelessWidget {
             activeBoard.playerPlacements.length,
             activeBoard.tacticLines.length,
           ),
+          activeDescription: activeBoard.description,
           players: players,
           playerPlacements: playerPlacements,
           tacticLines: tacticLines,
           draftTacticLine: draftTacticLine,
+          selectedTacticLineId: selectedTacticLineId,
           boardMode: boardMode,
           landscapeMode: landscapeMode,
           readOnly: readOnly,
@@ -1473,6 +1550,8 @@ class _TacticsBoardPanel extends StatelessWidget {
           onTacticLineStarted: onTacticLineStarted,
           onTacticLineUpdated: onTacticLineUpdated,
           onTacticLineFinished: onTacticLineFinished,
+          onTacticLineSelected: onTacticLineSelected,
+          onDeleteSelectedTacticLine: onDeleteSelectedTacticLine,
           onClearTacticLines: onClearTacticLines,
         );
         if (constraints.maxHeight.isFinite) return detailPanel;
@@ -1517,8 +1596,10 @@ class _TacticsBoardPanel extends StatelessWidget {
               onDuplicateBoard: () {
                 closeThen(onDuplicateTacticBoard);
               },
-              onRenameBoard: (boardId, title) {
-                closeThen(() => onRenameTacticBoard(boardId, title));
+              onUpdateBoard: (boardId, title, description) {
+                closeThen(
+                  () => onUpdateTacticBoard(boardId, title, description),
+                );
               },
               onDeleteBoard: () {
                 closeThen(onDeleteTacticBoard);
@@ -1539,7 +1620,8 @@ class _TacticListPanel extends StatelessWidget {
   final ValueChanged<String> onBoardSelected;
   final VoidCallback onAddBoard;
   final VoidCallback onDuplicateBoard;
-  final void Function(String boardId, String title) onRenameBoard;
+  final void Function(String boardId, String title, String description)
+      onUpdateBoard;
   final VoidCallback onDeleteBoard;
 
   const _TacticListPanel({
@@ -1550,7 +1632,7 @@ class _TacticListPanel extends StatelessWidget {
     required this.onBoardSelected,
     required this.onAddBoard,
     required this.onDuplicateBoard,
-    required this.onRenameBoard,
+    required this.onUpdateBoard,
     required this.onDeleteBoard,
   });
 
@@ -1651,14 +1733,14 @@ class _TacticListPanel extends StatelessWidget {
                 onPressed: readOnly
                     ? null
                     : () => unawaited(
-                          _showRenameDialog(
+                          _showTacticDetailsDialog(
                             context,
                             activeBoard,
                             activeBoardIndex < 0 ? 0 : activeBoardIndex,
                           ),
                         ),
-                icon: Icons.drive_file_rename_outline,
-                label: l10n.teamManagementTacticBoardRenameButton,
+                icon: Icons.edit_note_outlined,
+                label: l10n.teamManagementTacticBoardEditButton,
               ),
               _InlineActionButton(
                 key: const ValueKey('team-tactic-board-delete'),
@@ -1674,28 +1756,50 @@ class _TacticListPanel extends StatelessWidget {
     );
   }
 
-  Future<void> _showRenameDialog(
+  Future<void> _showTacticDetailsDialog(
     BuildContext context,
     ManagedTacticBoard board,
     int boardIndex,
   ) async {
     final l10n = AppLocalizations.of(context)!;
-    final controller = TextEditingController(
+    final titleController = TextEditingController(
       text: _tacticBoardDisplayTitle(l10n, board, boardIndex),
     );
-    final title = await showDialog<String>(
+    final descriptionController = TextEditingController(
+      text: board.description,
+    );
+    final shouldSave = await showDialog<bool>(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text(l10n.teamManagementTacticBoardRenameDialogTitle),
-          content: TextField(
-            controller: controller,
-            autofocus: true,
-            textInputAction: TextInputAction.done,
-            decoration: InputDecoration(
-              labelText: l10n.teamManagementTacticBoardNameLabel,
-            ),
-            onSubmitted: (value) => Navigator.of(context).pop(value),
+          title: Text(l10n.teamManagementTacticBoardEditDialogTitle),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                key: const ValueKey('team-tactic-board-name-field'),
+                controller: titleController,
+                autofocus: true,
+                textInputAction: TextInputAction.next,
+                decoration: InputDecoration(
+                  labelText: l10n.teamManagementTacticBoardNameLabel,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              TextField(
+                key: const ValueKey('team-tactic-board-description-field'),
+                controller: descriptionController,
+                minLines: 3,
+                maxLines: 5,
+                textInputAction: TextInputAction.done,
+                decoration: InputDecoration(
+                  labelText: l10n.teamManagementTacticBoardDescriptionLabel,
+                  hintText: l10n.teamManagementTacticBoardDescriptionHint,
+                  alignLabelWithHint: true,
+                ),
+                onSubmitted: (_) => Navigator.of(context).pop(true),
+              ),
+            ],
           ),
           actions: [
             TextButton(
@@ -1703,22 +1807,30 @@ class _TacticListPanel extends StatelessWidget {
               child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
             ),
             FilledButton(
-              onPressed: () => Navigator.of(context).pop(controller.text),
-              child: Text(l10n.teamManagementTacticBoardRenameSaveButton),
+              key: const ValueKey('team-tactic-board-details-save'),
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(l10n.save),
             ),
           ],
         );
       },
     );
-    controller.dispose();
-    if (title == null) return;
-    onRenameBoard(board.id, title);
+    final title = titleController.text;
+    final description = descriptionController.text;
+    if (shouldSave == true) {
+      onUpdateBoard(board.id, title, description);
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      titleController.dispose();
+      descriptionController.dispose();
+    });
   }
 }
 
 class _TacticDetailHeader extends StatelessWidget {
   final String title;
   final String meta;
+  final String description;
   final bool canUndo;
   final VoidCallback onOpenList;
   final VoidCallback onUndo;
@@ -1726,6 +1838,7 @@ class _TacticDetailHeader extends StatelessWidget {
   const _TacticDetailHeader({
     required this.title,
     required this.meta,
+    required this.description,
     required this.canUndo,
     required this.onOpenList,
     required this.onUndo,
@@ -1752,6 +1865,16 @@ class _TacticDetailHeader extends StatelessWidget {
                   fontWeight: FontWeight.w900,
                 ),
               ),
+              if (description.trim().isNotEmpty)
+                Text(
+                  description,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               Text(
                 meta,
                 maxLines: 1,
@@ -1790,10 +1913,12 @@ class _TacticDetailHeader extends StatelessWidget {
 class _TacticDetailPanel extends StatelessWidget {
   final String activeTitle;
   final String activeMeta;
+  final String activeDescription;
   final List<ManagedTeamPlayer> players;
   final Map<String, ManagedPlayerPlacement> playerPlacements;
   final List<ManagedTacticLine> tacticLines;
   final ManagedTacticLine? draftTacticLine;
+  final String? selectedTacticLineId;
   final _TacticBoardMode boardMode;
   final bool landscapeMode;
   final bool readOnly;
@@ -1807,15 +1932,19 @@ class _TacticDetailPanel extends StatelessWidget {
   final ValueChanged<Offset> onTacticLineStarted;
   final ValueChanged<Offset> onTacticLineUpdated;
   final VoidCallback onTacticLineFinished;
+  final ValueChanged<String?> onTacticLineSelected;
+  final VoidCallback onDeleteSelectedTacticLine;
   final VoidCallback onClearTacticLines;
 
   const _TacticDetailPanel({
     required this.activeTitle,
     required this.activeMeta,
+    required this.activeDescription,
     required this.players,
     required this.playerPlacements,
     required this.tacticLines,
     required this.draftTacticLine,
+    required this.selectedTacticLineId,
     required this.boardMode,
     required this.landscapeMode,
     required this.readOnly,
@@ -1829,6 +1958,8 @@ class _TacticDetailPanel extends StatelessWidget {
     required this.onTacticLineStarted,
     required this.onTacticLineUpdated,
     required this.onTacticLineFinished,
+    required this.onTacticLineSelected,
+    required this.onDeleteSelectedTacticLine,
     required this.onClearTacticLines,
   });
 
@@ -1842,6 +1973,7 @@ class _TacticDetailPanel extends StatelessWidget {
       playerPlacements: playerPlacements,
       tacticLines: tacticLines,
       draftTacticLine: draftTacticLine,
+      selectedTacticLineId: selectedTacticLineId,
       boardMode: boardMode,
       landscapeMode: landscapeMode,
       readOnly: readOnly,
@@ -1851,6 +1983,7 @@ class _TacticDetailPanel extends StatelessWidget {
       onTacticLineStarted: onTacticLineStarted,
       onTacticLineUpdated: onTacticLineUpdated,
       onTacticLineFinished: onTacticLineFinished,
+      onTacticLineSelected: onTacticLineSelected,
     );
     return _StructuredSection(
       accent: scheme.primary,
@@ -1861,6 +1994,7 @@ class _TacticDetailPanel extends StatelessWidget {
           _TacticDetailHeader(
             title: activeTitle,
             meta: activeMeta,
+            description: activeDescription,
             canUndo: canUndoTacticAction,
             onOpenList: onOpenTacticList,
             onUndo: onUndoTacticAction,
@@ -1875,10 +2009,12 @@ class _TacticDetailPanel extends StatelessWidget {
                   child: _BoardModeToolbar(
                     mode: boardMode,
                     tacticLineCount: tacticLines.length,
+                    selectedTacticLineId: selectedTacticLineId,
                     readOnly: readOnly,
                     compact: true,
                     onModeChanged: onBoardModeChanged,
                     onClearTacticLines: onClearTacticLines,
+                    onDeleteSelectedTacticLine: onDeleteSelectedTacticLine,
                   ),
                 ),
                 const SizedBox(width: AppSpacing.sm),
@@ -1897,10 +2033,12 @@ class _TacticDetailPanel extends StatelessWidget {
             _BoardModeToolbar(
               mode: boardMode,
               tacticLineCount: tacticLines.length,
+              selectedTacticLineId: selectedTacticLineId,
               readOnly: readOnly,
               compact: false,
               onModeChanged: onBoardModeChanged,
               onClearTacticLines: onClearTacticLines,
+              onDeleteSelectedTacticLine: onDeleteSelectedTacticLine,
             ),
             const SizedBox(height: AppSpacing.sm),
             _BoardPlayerTray(
@@ -1950,6 +2088,12 @@ class _TacticListItem extends StatelessWidget {
     final scheme = theme.colorScheme;
     final foreground = selected ? scheme.primary : scheme.onSurface;
     final title = _tacticBoardDisplayTitle(l10n, board, index);
+    final secondary = board.description.trim().isEmpty
+        ? l10n.teamManagementTacticBoardPageMeta(
+            board.playerPlacements.length,
+            board.tacticLines.length,
+          )
+        : board.description.trim();
     final borderColor = selected
         ? scheme.primary
         : AppSurfaces.borderColor(scheme, theme.brightness);
@@ -2005,10 +2149,7 @@ class _TacticListItem extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      l10n.teamManagementTacticBoardPageMeta(
-                        board.playerPlacements.length,
-                        board.tacticLines.length,
-                      ),
+                      secondary,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.labelSmall?.copyWith(
@@ -2048,18 +2189,22 @@ String _tacticBoardDisplayTitle(
 class _BoardModeToolbar extends StatelessWidget {
   final _TacticBoardMode mode;
   final int tacticLineCount;
+  final String? selectedTacticLineId;
   final bool readOnly;
   final bool compact;
   final ValueChanged<_TacticBoardMode> onModeChanged;
   final VoidCallback onClearTacticLines;
+  final VoidCallback onDeleteSelectedTacticLine;
 
   const _BoardModeToolbar({
     required this.mode,
     required this.tacticLineCount,
+    required this.selectedTacticLineId,
     required this.readOnly,
     required this.compact,
     required this.onModeChanged,
     required this.onClearTacticLines,
+    required this.onDeleteSelectedTacticLine,
   });
 
   @override
@@ -2102,6 +2247,14 @@ class _BoardModeToolbar extends StatelessWidget {
             compact: compact,
             onTap: readOnly ? null : () => onModeChanged(tool.mode),
           ),
+        _InlineActionButton(
+          key: const ValueKey('team-tactic-board-delete-selected'),
+          onPressed: readOnly || selectedTacticLineId == null
+              ? null
+              : onDeleteSelectedTacticLine,
+          icon: Icons.delete_outline,
+          label: l10n.teamManagementBoardDeleteSelectedMarkerButton,
+        ),
         _InlineActionButton(
           onPressed:
               readOnly || tacticLineCount == 0 ? null : onClearTacticLines,
@@ -2354,6 +2507,7 @@ class _TacticsPitch extends StatelessWidget {
   final Map<String, ManagedPlayerPlacement> playerPlacements;
   final List<ManagedTacticLine> tacticLines;
   final ManagedTacticLine? draftTacticLine;
+  final String? selectedTacticLineId;
   final _TacticBoardMode boardMode;
   final bool landscapeMode;
   final bool readOnly;
@@ -2363,12 +2517,14 @@ class _TacticsPitch extends StatelessWidget {
   final ValueChanged<Offset> onTacticLineStarted;
   final ValueChanged<Offset> onTacticLineUpdated;
   final VoidCallback onTacticLineFinished;
+  final ValueChanged<String?> onTacticLineSelected;
 
   const _TacticsPitch({
     required this.players,
     required this.playerPlacements,
     required this.tacticLines,
     required this.draftTacticLine,
+    required this.selectedTacticLineId,
     required this.boardMode,
     required this.landscapeMode,
     required this.readOnly,
@@ -2378,6 +2534,7 @@ class _TacticsPitch extends StatelessWidget {
     required this.onTacticLineStarted,
     required this.onTacticLineUpdated,
     required this.onTacticLineFinished,
+    required this.onTacticLineSelected,
   });
 
   @override
@@ -2472,6 +2629,13 @@ class _TacticsPitch extends StatelessWidget {
                             !readOnly && boardMode != _TacticBoardMode.assign
                                 ? (_) => onTacticLineFinished()
                                 : null,
+                        onTapUp: (details) => onTacticLineSelected(
+                          _findTacticLineAt(
+                            tacticLines,
+                            details.localPosition,
+                            constraints.biggest,
+                          ),
+                        ),
                         child: Stack(
                           fit: StackFit.expand,
                           children: [
@@ -2490,6 +2654,7 @@ class _TacticsPitch extends StatelessWidget {
                               painter: _TacticLinesPainter(
                                 lines: tacticLines,
                                 draftLine: draftTacticLine,
+                                selectedLineId: selectedTacticLineId,
                               ),
                             ),
                             for (final placement in playerPlacements.values)
@@ -2584,7 +2749,7 @@ class _PitchPlayerMarker extends StatelessWidget {
         elevation: 8,
         child: _PositionMarkerSurface(
           player: player,
-          fill: Colors.white,
+          fill: scheme.surface,
           stroke: scheme.primary,
           child: Stack(
             fit: StackFit.expand,
@@ -2617,8 +2782,14 @@ class _PitchPlayerMarker extends StatelessWidget {
                         style: theme.textTheme.labelLarge?.copyWith(
                           color: scheme.onSurface,
                           fontWeight: FontWeight.w900,
-                          fontSize: 13,
+                          fontSize: 14,
                           height: 1.0,
+                          shadows: [
+                            Shadow(
+                              color: scheme.surfaceContainerHighest,
+                              blurRadius: 1,
+                            ),
+                          ],
                         ),
                       ),
                       Text(
@@ -2824,30 +2995,82 @@ class _PitchPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
+String? _findTacticLineAt(
+  List<ManagedTacticLine> lines,
+  Offset point,
+  Size size,
+) {
+  if (size.isEmpty) return null;
+  for (final line in lines.reversed) {
+    final start = Offset(line.startX * size.width, line.startY * size.height);
+    final end = Offset(line.endX * size.width, line.endY * size.height);
+    if (line.type == ManagedTacticLine.typeZone) {
+      final zone = Rect.fromLTRB(
+        math.min(start.dx, end.dx),
+        math.min(start.dy, end.dy),
+        math.max(start.dx, end.dx),
+        math.max(start.dy, end.dy),
+      ).inflate(10);
+      if (zone.contains(point)) return line.id;
+      continue;
+    }
+    final distance = _distanceToSegment(point, start, end);
+    final threshold = math.max(16.0, size.shortestSide * 0.04);
+    if (distance <= threshold) return line.id;
+  }
+  return null;
+}
+
+double _distanceToSegment(Offset point, Offset start, Offset end) {
+  final segment = end - start;
+  final lengthSquared = segment.dx * segment.dx + segment.dy * segment.dy;
+  if (lengthSquared == 0) return (point - start).distance;
+  final relative = point - start;
+  final projection =
+      ((relative.dx * segment.dx) + (relative.dy * segment.dy)) / lengthSquared;
+  final clamped = projection.clamp(0.0, 1.0).toDouble();
+  final closest = start + segment * clamped;
+  return (point - closest).distance;
+}
+
 class _TacticLinesPainter extends CustomPainter {
   final List<ManagedTacticLine> lines;
   final ManagedTacticLine? draftLine;
+  final String? selectedLineId;
 
   const _TacticLinesPainter({
     required this.lines,
     required this.draftLine,
+    required this.selectedLineId,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     final draft = draftLine;
     for (final line in lines.where(_isZoneMarker)) {
-      _drawZone(canvas, size, line, draft: false);
+      _drawZone(
+        canvas,
+        size,
+        line,
+        draft: false,
+        selected: line.id == selectedLineId,
+      );
     }
     if (draft != null && _isZoneMarker(draft)) {
-      _drawZone(canvas, size, draft, draft: true);
+      _drawZone(canvas, size, draft, draft: true, selected: false);
     }
     for (final line in lines.where((line) => !_isZoneMarker(line))) {
-      _drawMarkerLine(canvas, size, line, draft: false);
+      _drawMarkerLine(
+        canvas,
+        size,
+        line,
+        draft: false,
+        selected: line.id == selectedLineId,
+      );
     }
     if (draft != null) {
       if (!_isZoneMarker(draft)) {
-        _drawMarkerLine(canvas, size, draft, draft: true);
+        _drawMarkerLine(canvas, size, draft, draft: true, selected: false);
       }
     }
   }
@@ -2861,6 +3084,7 @@ class _TacticLinesPainter extends CustomPainter {
     Size size,
     ManagedTacticLine line, {
     required bool draft,
+    required bool selected,
   }) {
     final isPress = line.type == ManagedTacticLine.typePress;
     final color = draft
@@ -2875,6 +3099,14 @@ class _TacticLinesPainter extends CustomPainter {
       ..style = PaintingStyle.stroke;
     final start = Offset(line.startX * size.width, line.startY * size.height);
     final end = Offset(line.endX * size.width, line.endY * size.height);
+    if (selected) {
+      final selectionPaint = Paint()
+        ..color = Colors.white.withValues(alpha: 0.94)
+        ..strokeWidth = paint.strokeWidth + 5
+        ..strokeCap = StrokeCap.round
+        ..style = PaintingStyle.stroke;
+      canvas.drawLine(start, end, selectionPaint);
+    }
     if (isPress) {
       _drawDashedLine(canvas, start, end, paint);
     } else {
@@ -2929,6 +3161,7 @@ class _TacticLinesPainter extends CustomPainter {
     Size size,
     ManagedTacticLine line, {
     required bool draft,
+    required bool selected,
   }) {
     final start = Offset(line.startX * size.width, line.startY * size.height);
     final end = Offset(line.endX * size.width, line.endY * size.height);
@@ -2955,11 +3188,23 @@ class _TacticLinesPainter extends CustomPainter {
       RRect.fromRectAndRadius(rect, const Radius.circular(12)),
       stroke,
     );
+    if (selected) {
+      final selectedStroke = Paint()
+        ..color = Colors.white.withValues(alpha: 0.94)
+        ..strokeWidth = 4
+        ..style = PaintingStyle.stroke;
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(rect.inflate(3), const Radius.circular(14)),
+        selectedStroke,
+      );
+    }
   }
 
   @override
   bool shouldRepaint(covariant _TacticLinesPainter oldDelegate) {
-    return oldDelegate.lines != lines || oldDelegate.draftLine != draftLine;
+    return oldDelegate.lines != lines ||
+        oldDelegate.draftLine != draftLine ||
+        oldDelegate.selectedLineId != selectedLineId;
   }
 }
 
