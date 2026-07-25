@@ -273,6 +273,162 @@ void main() {
     expect(leagueTeams, <String>['남순 FC', '블루 FC']);
     expect(tournamentTeams, <String>['레드 FC', '남순 FC', '블루 FC']);
   });
+
+  test('리그를 저장하면 모든 팀 조합의 경기 일정이 자동으로 편성된다', () async {
+    final repository = _MemoryOptionRepository();
+    final service = MatchCompetitionService(repository);
+    final record = MatchCompetitionRecord.create(
+      kind: MatchCompetitionRecord.kindLeague,
+      name: '여름 리그',
+      teams: const <String>['우리 팀', '블루 FC', '그린 FC', '레드 FC'],
+      fixtureStartDate: DateTime(2026, 8, 1),
+    );
+
+    await service.upsertCompetition(record);
+
+    final saved = service.findCompetitionById(record.id)!;
+    expect(saved.fixtures, hasLength(6));
+    expect(saved.fixtures.map((fixture) => fixture.roundNumber).toSet(),
+        <int>{1, 2, 3});
+    expect(
+      saved.fixtures
+          .map(
+            (fixture) =>
+                ([fixture.homeTeam, fixture.awayTeam]..sort()).join('|'),
+          )
+          .toSet(),
+      hasLength(6),
+    );
+    expect(saved.fixtures.first.scheduledAt, DateTime(2026, 8, 1));
+  });
+
+  test('토너먼트 결과를 기록하면 다음 경기 참가 팀이 대진표에 진출한다', () {
+    final record = MatchCompetitionRecord.create(
+      kind: MatchCompetitionRecord.kindTournament,
+      name: '여름 컵',
+      teams: const <String>['우리 팀', '블루 FC', '그린 FC'],
+    ).copyWith();
+    final scheduled = record.copyWith(
+      fixtures: MatchCompetitionService.buildFixtures(record),
+    );
+    final preliminary = scheduled.fixtures.firstWhere(
+      (fixture) =>
+          fixture.stage != 'final' &&
+          fixture.homeTeam.isNotEmpty &&
+          fixture.awayTeam.isNotEmpty,
+    );
+    final finalFixture = scheduled.fixtures.firstWhere(
+      (fixture) => fixture.stage == 'final',
+    );
+    final entries = <TrainingEntry>[
+      _matchEntry(
+        kind: MatchCompetitionRecord.kindTournament,
+        competitionName: scheduled.name,
+        competitionId: scheduled.id,
+        fixtureId: preliminary.id,
+        stage: preliminary.stage,
+        opponent: preliminary.awayTeam,
+        scored: 2,
+        conceded: 0,
+      ),
+    ];
+
+    final states = MatchCompetitionService.resolveFixtureStates(
+      competition: scheduled,
+      entries: entries,
+    );
+    final resolvedFinal = states.firstWhere(
+      (state) => state.fixture.id == finalFixture.id,
+    );
+
+    expect(resolvedFinal.homeTeam, '우리 팀');
+    expect(resolvedFinal.awayTeam, preliminary.homeTeam);
+    expect(resolvedFinal.isReady, isTrue);
+  });
+
+  test('경기 일정 ID의 결과만 리그 순위에 반영한다', () {
+    final base = MatchCompetitionRecord.create(
+      kind: MatchCompetitionRecord.kindLeague,
+      name: '가을 리그',
+      teams: const <String>['우리 팀', '블루 FC'],
+    );
+    final record = base.copyWith(
+      fixtures: MatchCompetitionService.buildFixtures(base),
+    );
+    final fixture = record.fixtures.single;
+    final standings =
+        MatchCompetitionService.buildLeagueStandingsForCompetition(
+      competition: record,
+      entries: [
+        _matchEntry(
+          kind: MatchCompetitionRecord.kindLeague,
+          competitionName: record.name,
+          competitionId: record.id,
+          fixtureId: fixture.id,
+          stage: fixture.stage,
+          opponent: fixture.awayTeam,
+          scored: 3,
+          conceded: 1,
+        ),
+      ],
+    );
+
+    expect(standings.first.team, fixture.homeTeam);
+    expect(standings.first.points, 3);
+    expect(standings.last.team, fixture.awayTeam);
+    expect(standings.last.points, 0);
+  });
+
+  test('기존 기본 팀명도 현재 팀명의 예정 경기 목록에서 조회한다', () {
+    final base = MatchCompetitionRecord.create(
+      kind: MatchCompetitionRecord.kindLeague,
+      name: '호환 리그',
+      teams: const <String>['우리 팀', '블루 FC'],
+    );
+    final record = base.copyWith(
+      fixtures: MatchCompetitionService.buildFixtures(base),
+    );
+
+    final fixtures = MatchCompetitionService.fixturesForTeam(
+      competitions: [record],
+      entries: const <TrainingEntry>[],
+      teamName: '남순 FC',
+      teamAliases: const <String>['우리 팀'],
+    );
+
+    expect(fixtures, hasLength(1));
+    expect(fixtures.single.opponentFor('우리 팀'), '블루 FC');
+  });
+}
+
+TrainingEntry _matchEntry({
+  required String kind,
+  required String competitionName,
+  required String competitionId,
+  required String fixtureId,
+  required String stage,
+  required String opponent,
+  required int scored,
+  required int conceded,
+}) {
+  return TrainingEntry(
+    date: DateTime(2026, 8, 1),
+    durationMinutes: 90,
+    intensity: 4,
+    type: '경기',
+    mood: 4,
+    injury: false,
+    notes: '',
+    location: '',
+    matchKind: kind,
+    matchCompetitionName: competitionName,
+    matchCompetitionId: competitionId,
+    matchFixtureId: fixtureId,
+    matchStage: stage,
+    opponentTeam: opponent,
+    scoredGoals: scored,
+    concededGoals: conceded,
+  );
 }
 
 class _MemoryOptionRepository implements OptionRepository {

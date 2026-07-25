@@ -7264,6 +7264,19 @@
   "matchTournamentChampionSlot": "優勝",
   "matchCompetitionNoTeams": "登録されたチームがありません。",
   "matchCompetitionNoMatches": "記録された試合がまだありません。",
+  "matchCompetitionFixtureRecordContext": "大会日程から読み込み",
+  "matchCompetitionFixtureRound": "第{round}節",
+  "@matchCompetitionFixtureRound": {
+    "placeholders": {
+      "round": {
+        "type": "int"
+      }
+    }
+  },
+  "matchCompetitionFixturesTitle": "試合日程",
+  "matchCompetitionFixturesEmpty": "生成された試合日程がありません。",
+  "matchCompetitionFixtureVersus": "vs",
+  "matchCompetitionFixtureTbd": "未定",
   "matchCompetitionMyTeamFallback": "自チーム",
   "matchTournamentByeLabel": "不戦勝",
   "matchTournamentPairLabel": "{number}試合",
@@ -7481,6 +7494,13 @@
   "matchHubOverviewTitle": "運営状況",
   "matchHubRecentFormLabel": "最近のフォーム",
   "matchHubRecordButton": "試合を記録",
+  "teamMatchHubUpcomingTab": "予定試合",
+  "teamMatchHubResultsTab": "試合結果",
+  "teamMatchHubUpcomingTitle": "記録する試合",
+  "teamMatchHubUpcomingEmptyTitle": "記録できる大会試合がありません。",
+  "teamMatchHubUpcomingEmptyBody": "大会を作成すると、日程や対戦表から自チームの試合を記録できます。",
+  "teamMatchHubDateUnset": "日程未定",
+  "teamMatchHubRecordFixtureAction": "結果を記録",
   "matchEntryManagedInHubTitle": "試合記録はチーム管理で管理します。",
   "matchEntryManagedInHubBody": "トレーニングノートでは試合情報を表示しません。試合の確認と編集は上部のチーム管理で行ってください。",
   "matchHubRecordHelper": "今日の結果をすばやく入力",

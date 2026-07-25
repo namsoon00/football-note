@@ -205,6 +205,12 @@ class TrainingEntry extends HiveObject {
   @HiveField(72)
   final int? penaltyShootoutGoalsAgainst;
 
+  @HiveField(73)
+  final String matchCompetitionId;
+
+  @HiveField(74)
+  final String matchFixtureId;
+
   TrainingEntry({
     required this.date,
     required this.durationMinutes,
@@ -272,6 +278,8 @@ class TrainingEntry extends HiveObject {
     this.redCards,
     this.penaltyShootoutGoalsFor,
     this.penaltyShootoutGoalsAgainst,
+    this.matchCompetitionId = '',
+    this.matchFixtureId = '',
     String sportId = SportCatalog.defaultSportId,
   })  : sportId = SportCatalog.normalizeSportId(sportId),
         createdAt = createdAt ?? DateTime.now();
@@ -284,6 +292,8 @@ class TrainingEntry extends HiveObject {
       club.trim().isNotEmpty ||
       matchKind.trim().isNotEmpty && matchKind != 'friendly' ||
       matchCompetitionName.trim().isNotEmpty ||
+      matchCompetitionId.trim().isNotEmpty ||
+      matchFixtureId.trim().isNotEmpty ||
       matchStage.trim().isNotEmpty ||
       tournamentOutcome.trim().isNotEmpty ||
       scoredGoals != null ||
@@ -450,13 +460,15 @@ class TrainingEntryAdapter extends TypeAdapter<TrainingEntry> {
       redCards: (fields[70] as num?)?.toInt(),
       penaltyShootoutGoalsFor: (fields[71] as num?)?.toInt(),
       penaltyShootoutGoalsAgainst: (fields[72] as num?)?.toInt(),
+      matchCompetitionId: (fields[73] as String?) ?? '',
+      matchFixtureId: (fields[74] as String?) ?? '',
     );
   }
 
   @override
   void write(BinaryWriter writer, TrainingEntry obj) {
     writer
-      ..writeByte(67)
+      ..writeByte(69)
       ..writeByte(0)
       ..write(obj.date)
       ..writeByte(1)
@@ -590,7 +602,11 @@ class TrainingEntryAdapter extends TypeAdapter<TrainingEntry> {
       ..writeByte(71)
       ..write(obj.penaltyShootoutGoalsFor)
       ..writeByte(72)
-      ..write(obj.penaltyShootoutGoalsAgainst);
+      ..write(obj.penaltyShootoutGoalsAgainst)
+      ..writeByte(73)
+      ..write(obj.matchCompetitionId)
+      ..writeByte(74)
+      ..write(obj.matchFixtureId);
   }
 
   Map<String, int> _readProgramMinutes(Object? raw) {

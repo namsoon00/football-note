@@ -355,8 +355,8 @@ void main() {
           .dy,
       lessThan(320),
     );
-    expect(find.text('4강'), findsOneWidget);
-    expect(find.text('결승'), findsOneWidget);
+    expect(find.text('4강'), findsWidgets);
+    expect(find.text('결승'), findsWidgets);
     expect(find.text('우승'), findsOneWidget);
     expect(find.text('우리 팀 U15'), findsWidgets);
     final firstMatchCenter = tester.getCenter(
@@ -512,7 +512,8 @@ void main() {
     expect(records.single.name, '주말 리그');
   });
 
-  testWidgets('Team management match tab shows records inline', (
+  testWidgets('Team management match tab projects fixtures then shows results',
+      (
     tester,
   ) async {
     await seedMatchHubRecords();
@@ -556,7 +557,20 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-        find.byKey(const ValueKey('team-match-record-action')), findsOneWidget);
+      find.byKey(const ValueKey('team-match-friendly-action')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('team-match-hub-view-switcher')),
+      findsOneWidget,
+    );
+    expect(find.text('기록할 경기'), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, '결과 기록'), findsWidgets);
+    expect(
+        find.byKey(const ValueKey('team-match-records-content')), findsNothing);
+
+    await tester.tap(find.text('경기 결과'));
+    await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('team-match-records-content')),
         findsOneWidget);
     expect(find.text('시합 기록 보기'), findsNothing);
@@ -572,6 +586,48 @@ void main() {
     expect(find.text('시합 수정'), findsOneWidget);
     expect(find.byType(MatchRecordScreen), findsOneWidget);
     expect(find.widgetWithText(ChoiceChip, '서울 U15'), findsOneWidget);
+  });
+
+  testWidgets('Team management records a competition fixture from its schedule',
+      (
+    tester,
+  ) async {
+    await seedMatchHubRecords();
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en'),
+            Locale('ko', 'KR'),
+            Locale('ja'),
+          ],
+          home: TeamManagementScreen(
+            optionRepository: optionRepository,
+            trainingService: trainingService,
+            localeService: localeService,
+            settingsService: settingsService,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('시합관리'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, '결과 기록').first);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(MatchRecordScreen), findsOneWidget);
+    expect(find.text('대회 일정에서 불러옴'), findsOneWidget);
   });
 
   testWidgets('Team management filters match records by kind and competition', (
@@ -606,6 +662,8 @@ void main() {
     );
     await tester.pumpAndSettle();
     await tester.tap(find.text('시합관리'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('경기 결과'));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const ValueKey('match-record-kind-filter')));
@@ -665,6 +723,8 @@ void main() {
     );
     await tester.pumpAndSettle();
     await tester.tap(find.text('시합관리'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('경기 결과'));
     await tester.pumpAndSettle();
 
     await tester.enterText(
@@ -741,7 +801,9 @@ void main() {
     expect(find.text('팀 선택'), findsNothing);
     await tester.tap(find.text('시합관리'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('team-match-record-action')));
+    await tester.tap(
+      find.byKey(const ValueKey('team-match-friendly-action')),
+    );
     await tester.pumpAndSettle();
 
     expect(find.byType(MatchRecordScreen), findsNothing);
