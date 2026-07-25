@@ -43,6 +43,8 @@ enum _HomeCoachAnchor {
   homeDailyTrainingLog,
   homeDailyMeal,
   homeMeal,
+  logsAdd,
+  logsLayout,
   calendarDate,
   calendarAdd,
   statsRange,
@@ -219,6 +221,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       HomeHubCoachAnchor.meal: _coachTarget(_HomeCoachAnchor.homeMeal),
     };
   }
+
+  Map<LogsCoachAnchor, CoachMarkTargetHandle> get _logsCoachAnchors =>
+      <LogsCoachAnchor, CoachMarkTargetHandle>{
+        LogsCoachAnchor.add: _coachTarget(_HomeCoachAnchor.logsAdd),
+        LogsCoachAnchor.layout: _coachTarget(_HomeCoachAnchor.logsLayout),
+      };
 
   Map<CalendarCoachAnchor, CoachMarkTargetHandle> get _calendarCoachAnchors =>
       <CalendarCoachAnchor, CoachMarkTargetHandle>{
@@ -446,6 +454,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           onQuickMatch: () => openMatchRecord(DateTime.now()),
           onQuickQuiz: _openQuiz,
           onOpenMatchHub: openTeamManagementHub,
+          coachGuideAnchors: _logsCoachAnchors,
         ),
       ),
       _buildTabChild(
@@ -700,7 +709,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   bool _isTabGuideEnabled(int tabIndex, {required bool isParentMode}) {
     if (isParentMode) return true;
-    return tabIndex != 1;
+    return true;
   }
 
   Future<void> _ensureGuideTargetVisible(_CoachMarkAnchor? targetAnchor) async {
@@ -767,7 +776,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           title: l10n.tabGuideTitle(l10n.tabLogs),
           intro: l10n.welcomeLogsOverview,
           steps: [
-            // The Logs tab intentionally has no automatic quick guide.
+            _TabGuideStep(
+              icon: Icons.add_circle_outline,
+              actionLabel: l10n.addEntry,
+              description: l10n.welcomeLogsStepAdd,
+              targetAnchor: _coachMarkAnchor(_HomeCoachAnchor.logsAdd),
+            ),
+            _TabGuideStep(
+              icon: Icons.view_agenda_outlined,
+              actionLabel: l10n.guideActionCardList,
+              description: l10n.welcomeLogsStepReview,
+              targetAnchor: _coachMarkAnchor(_HomeCoachAnchor.logsLayout),
+            ),
           ],
         );
       case 2:

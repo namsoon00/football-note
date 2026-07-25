@@ -34,6 +34,7 @@ import '../widgets/app_background.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_page_route.dart';
+import '../widgets/coach_mark_target.dart';
 import '../theme/app_theme.dart';
 import '../utils/training_entry_summary.dart';
 import '../theme/app_motion.dart';
@@ -44,6 +45,8 @@ import 'news_screen.dart';
 import 'skill_quiz_screen.dart';
 import 'notification_center_screen.dart';
 import 'parent_feedback_screen.dart';
+
+enum LogsCoachAnchor { add, layout }
 
 class LogsScreen extends StatefulWidget {
   final TrainingService trainingService;
@@ -57,6 +60,7 @@ class LogsScreen extends StatefulWidget {
   final VoidCallback? onQuickMatch;
   final VoidCallback? onQuickQuiz;
   final VoidCallback? onOpenMatchHub;
+  final Map<LogsCoachAnchor, CoachMarkTargetHandle> coachGuideAnchors;
 
   const LogsScreen({
     super.key,
@@ -71,6 +75,7 @@ class LogsScreen extends StatefulWidget {
     this.onQuickMatch,
     this.onQuickQuiz,
     this.onOpenMatchHub,
+    this.coachGuideAnchors = const <LogsCoachAnchor, CoachMarkTargetHandle>{},
   });
 
   @override
@@ -103,6 +108,22 @@ class _LogsScreenState extends State<LogsScreen> {
   int _loadedEntryLimit = _pageSize * 4;
   late Stream<List<TrainingEntry>> _entriesStream;
   final MealCoachingService _mealCoachingService = const MealCoachingService();
+
+  Widget _coachTarget(
+    LogsCoachAnchor anchor,
+    Widget child, {
+    Key? key,
+    VoidCallback? onActivate,
+  }) {
+    final handle = widget.coachGuideAnchors[anchor];
+    if (handle == null) return child;
+    return CoachMarkTarget(
+      key: key,
+      handle: handle,
+      onActivate: onActivate,
+      child: child,
+    );
+  }
 
   @override
   void initState() {
@@ -446,11 +467,16 @@ class _LogsScreenState extends State<LogsScreen> {
       ),
       floatingActionButton: _isParentMode
           ? null
-          : FloatingActionButton.extended(
-              heroTag: 'logs_fab',
-              onPressed: widget.onCreate,
-              icon: const Icon(Icons.add),
-              label: Text(AppLocalizations.of(context)!.addEntry),
+          : _coachTarget(
+              LogsCoachAnchor.add,
+              FloatingActionButton.extended(
+                heroTag: 'logs_fab',
+                onPressed: widget.onCreate,
+                icon: const Icon(Icons.add),
+                label: Text(AppLocalizations.of(context)!.addEntry),
+              ),
+              key: const ValueKey<String>('logs-coach-add-target'),
+              onActivate: widget.onCreate,
             ),
     );
   }
@@ -477,16 +503,7 @@ class _LogsScreenState extends State<LogsScreen> {
       final selected = _layout == type;
       return InkWell(
         borderRadius: AppRadius.small,
-        onTap: () async {
-          setState(() {
-            _layout = type;
-            _resetPagination();
-          });
-          await widget.optionRepository.setValue(
-            _layoutKey,
-            type == _LogsLayout.list ? 'list' : 'card',
-          );
-        },
+        onTap: () => unawaited(_setLayout(type)),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 140),
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
@@ -520,21 +537,43 @@ class _LogsScreenState extends State<LogsScreen> {
       );
     }
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        layoutToggle(
-          type: _LogsLayout.card,
-          icon: Icons.grid_view_rounded,
-          label: l10n.logsLayoutCard,
-        ),
-        const SizedBox(width: 6),
-        layoutToggle(
-          type: _LogsLayout.list,
-          icon: Icons.view_list_rounded,
-          label: l10n.logsLayoutList,
-        ),
-      ],
+    return _coachTarget(
+      LogsCoachAnchor.layout,
+      Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          layoutToggle(
+            type: _LogsLayout.card,
+            icon: Icons.grid_view_rounded,
+            label: l10n.logsLayoutCard,
+          ),
+          const SizedBox(width: 6),
+          layoutToggle(
+            type: _LogsLayout.list,
+            icon: Icons.view_list_rounded,
+            label: l10n.logsLayoutList,
+          ),
+        ],
+      ),
+      key: const ValueKey<String>('logs-coach-layout-target'),
+      onActivate: () => unawaited(_toggleLayout()),
+    );
+  }
+
+  Future<void> _setLayout(_LogsLayout layout) async {
+    setState(() {
+      _layout = layout;
+      _resetPagination();
+    });
+    await widget.optionRepository.setValue(
+      _layoutKey,
+      layout == _LogsLayout.list ? 'list' : 'card',
+    );
+  }
+
+  Future<void> _toggleLayout() {
+    return _setLayout(
+      _layout == _LogsLayout.card ? _LogsLayout.list : _LogsLayout.card,
     );
   }
 
