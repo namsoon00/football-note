@@ -628,7 +628,66 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('서울 U15'), findsNothing);
+    expect(find.text('인천 U15'), findsWidgets);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+      'Team management searches match records across details and result', (
+    tester,
+  ) async {
+    await seedMatchHubRecords();
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en'),
+            Locale('ko', 'KR'),
+            Locale('ja'),
+          ],
+          home: TeamManagementScreen(
+            optionRepository: optionRepository,
+            trainingService: trainingService,
+            localeService: localeService,
+            settingsService: settingsService,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('시합관리'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byKey(const ValueKey('match-record-search-field')),
+      '메인 구장',
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('서울 U15'), findsOneWidget);
+    expect(find.text('인천 U15'), findsNothing);
+
+    await tester.tap(
+      find.byKey(const ValueKey('match-record-filters-reset')),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('서울 U15'), findsOneWidget);
     expect(find.text('인천 U15'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('match-record-outcome-filter')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('패').last);
+    await tester.pumpAndSettle();
+    expect(find.text('서울 U15'), findsNothing);
+    expect(find.text('인천 U15'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
 
@@ -1502,6 +1561,14 @@ void main() {
       const Offset(160, 130),
     );
     await tester.pumpAndSettle();
+    await tester.tapAt(pitchRect.center + const Offset(50, 40));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('team-tactic-board-delete-selected')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('team-tactic-board-undo')));
+    await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const ValueKey('team-tactic-board-list-open')));
     await tester.pumpAndSettle();
@@ -1510,13 +1577,30 @@ void main() {
     expect(find.text('전술 2'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('team-tactic-board-list-open')));
     await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('team-tactic-board-rename')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('team-tactic-board-name-field')),
+      '우측 전환 압박',
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('team-tactic-board-description-field')),
+      '하프스페이스 점유 후 오른쪽 전환',
+    );
+    await tester.tap(
+      find.byKey(const ValueKey('team-tactic-board-details-save')),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('우측 전환 압박'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('team-tactic-board-list-open')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('team-tactic-board-delete')));
     await tester.pumpAndSettle();
     expect(find.text('전술 삭제'), findsOneWidget);
-    expect(find.textContaining('전술 2'), findsWidgets);
+    expect(find.textContaining('우측 전환 압박'), findsWidgets);
     await tester.tap(find.text('취소').last);
     await tester.pumpAndSettle();
-    expect(find.text('전술 2'), findsOneWidget);
+    expect(find.text('우측 전환 압박'), findsOneWidget);
     final secondBoardPlayerChip = find.text('10 김민준').last;
     await tester.ensureVisible(secondBoardPlayerChip);
     await tester.drag(
@@ -1556,7 +1640,11 @@ void main() {
     expect(teams.single.tacticLines, hasLength(3));
     expect(teams.single.tacticBoards, hasLength(2));
     expect(teams.single.tacticBoards.first.tacticLines, hasLength(3));
-    expect(teams.single.tacticBoards.last.title, '전술 2');
+    expect(teams.single.tacticBoards.last.title, '우측 전환 압박');
+    expect(
+      teams.single.tacticBoards.last.description,
+      '하프스페이스 점유 후 오른쪽 전환',
+    );
     expect(teams.single.tacticBoards.last.playerPlacements, hasLength(1));
     expect(
       teams.single.tacticLines.map((line) => line.type),
