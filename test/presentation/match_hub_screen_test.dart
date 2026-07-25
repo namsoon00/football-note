@@ -758,23 +758,24 @@ void main() {
       tester.view.resetPhysicalSize();
       tester.view.resetDevicePixelRatio();
     });
+    final midfielder = ManagedTeamPlayer.create(
+      name: '김민준',
+      number: '10',
+      role: ManagedTeamPlayer.roleMidfielder,
+      position: ManagedTeamPlayer.positionCentralMidfielder,
+      condition: ManagedTeamPlayer.conditionReady,
+    );
+    final defender = ManagedTeamPlayer.create(
+      name: '이서준',
+      number: '4',
+      role: ManagedTeamPlayer.roleDefender,
+      position: ManagedTeamPlayer.positionRightBack,
+      condition: ManagedTeamPlayer.conditionRest,
+    );
     await TeamManagementService(optionRepository).upsertTeam(
       ManagedTeam.create(
         name: '우리 팀 U15',
-        players: [
-          ManagedTeamPlayer.create(
-            name: '김민준',
-            number: '10',
-            role: ManagedTeamPlayer.roleMidfielder,
-            condition: ManagedTeamPlayer.conditionReady,
-          ),
-          ManagedTeamPlayer.create(
-            name: '이서준',
-            number: '4',
-            role: ManagedTeamPlayer.roleDefender,
-            condition: ManagedTeamPlayer.conditionRest,
-          ),
-        ],
+        players: [midfielder, defender],
       ),
     );
 
@@ -806,6 +807,16 @@ void main() {
     expect(find.text('휴식 1'), findsOneWidget);
     expect(find.text('김민준'), findsOneWidget);
     expect(find.text('이서준'), findsOneWidget);
+    expect(find.text('CM · 중앙 미드필더'), findsOneWidget);
+    expect(find.text('RB · 오른쪽 풀백'), findsOneWidget);
+    expect(
+      find.byKey(ValueKey('team-player-mini-pitch-${midfielder.id}')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(ValueKey('team-player-mini-pitch-${defender.id}')),
+      findsOneWidget,
+    );
 
     await tester.tap(find.byKey(const ValueKey('team-player-search-toggle')));
     await tester.pumpAndSettle();
@@ -1393,6 +1404,11 @@ void main() {
     expect(find.text('선수 등록'), findsWidgets);
     await tester.tap(find.text('미드필더').first);
     await tester.pumpAndSettle();
+    await _selectDropdownValue(
+      tester,
+      const ValueKey('team-player-position-field-midfielder'),
+      'AM · 공격형 미드필더',
+    );
     await tester.enterText(
       find.byKey(const ValueKey('team-player-name-field')),
       '김민준',
@@ -1524,6 +1540,10 @@ void main() {
     expect(teams.single.strategy, isEmpty);
     expect(teams.single.players.single.name, '김민준');
     expect(teams.single.players.single.role, ManagedTeamPlayer.roleMidfielder);
+    expect(
+      teams.single.players.single.position,
+      ManagedTeamPlayer.positionAttackingMidfielder,
+    );
     expect(teams.single.players.single.grade, '초등 5학년');
     expect(teams.single.players.single.heightCm, 152);
     expect(teams.single.players.single.weightKg, 43);

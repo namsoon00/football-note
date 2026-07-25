@@ -101,6 +101,52 @@ void main() {
       expect(team.tacticLines, hasLength(1));
     });
 
+    test('normalizes detailed player positions and preserves them in storage',
+        () async {
+      final repository = _MemoryOptionRepository();
+      final legacyMidfielder = ManagedTeamPlayer.fromMap({
+        'id': 'player:legacy-midfielder',
+        'name': 'Legacy midfielder',
+        'role': ManagedTeamPlayer.roleMidfielder,
+      });
+      final rightWinger = ManagedTeamPlayer.create(
+        name: 'Right winger',
+        role: ManagedTeamPlayer.roleForward,
+        position: ManagedTeamPlayer.positionRightWinger,
+        now: DateTime(2026, 7, 25),
+      );
+
+      expect(
+        legacyMidfielder.effectivePosition,
+        ManagedTeamPlayer.positionCentralMidfielder,
+      );
+      expect(
+        rightWinger.effectivePosition,
+        ManagedTeamPlayer.positionRightWinger,
+      );
+      expect(
+        rightWinger.copyWith(role: ManagedTeamPlayer.roleDefender).position,
+        ManagedTeamPlayer.positionCenterBack,
+      );
+
+      await TeamManagementService(repository).upsertTeam(
+        ManagedTeam.create(
+          name: 'Position Team',
+          players: [legacyMidfielder, rightWinger],
+        ),
+      );
+
+      final restored = TeamManagementService(repository).allTeams().single;
+      expect(
+        restored.players.first.effectivePosition,
+        ManagedTeamPlayer.positionCentralMidfielder,
+      );
+      expect(
+        restored.players.last.effectivePosition,
+        ManagedTeamPlayer.positionRightWinger,
+      );
+    });
+
     test('separates match competitions by sport', () async {
       final repository = _MemoryOptionRepository();
       final football = MatchCompetitionService(repository);

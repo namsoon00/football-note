@@ -24220,6 +24220,84 @@ abstract class AppLocalizations {
   /// **'Default position'**
   String get teamManagementPlayerRoleLabel;
 
+  /// No description provided for @teamManagementPlayerPositionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Detailed position'**
+  String get teamManagementPlayerPositionLabel;
+
+  /// No description provided for @teamManagementPositionGoalkeeper.
+  ///
+  /// In en, this message translates to:
+  /// **'GK · Goalkeeper'**
+  String get teamManagementPositionGoalkeeper;
+
+  /// No description provided for @teamManagementPositionLeftBack.
+  ///
+  /// In en, this message translates to:
+  /// **'LB · Left back'**
+  String get teamManagementPositionLeftBack;
+
+  /// No description provided for @teamManagementPositionCenterBack.
+  ///
+  /// In en, this message translates to:
+  /// **'CB · Center back'**
+  String get teamManagementPositionCenterBack;
+
+  /// No description provided for @teamManagementPositionRightBack.
+  ///
+  /// In en, this message translates to:
+  /// **'RB · Right back'**
+  String get teamManagementPositionRightBack;
+
+  /// No description provided for @teamManagementPositionDefensiveMidfielder.
+  ///
+  /// In en, this message translates to:
+  /// **'DM · Defensive midfielder'**
+  String get teamManagementPositionDefensiveMidfielder;
+
+  /// No description provided for @teamManagementPositionLeftMidfielder.
+  ///
+  /// In en, this message translates to:
+  /// **'LM · Left midfielder'**
+  String get teamManagementPositionLeftMidfielder;
+
+  /// No description provided for @teamManagementPositionCentralMidfielder.
+  ///
+  /// In en, this message translates to:
+  /// **'CM · Central midfielder'**
+  String get teamManagementPositionCentralMidfielder;
+
+  /// No description provided for @teamManagementPositionRightMidfielder.
+  ///
+  /// In en, this message translates to:
+  /// **'RM · Right midfielder'**
+  String get teamManagementPositionRightMidfielder;
+
+  /// No description provided for @teamManagementPositionAttackingMidfielder.
+  ///
+  /// In en, this message translates to:
+  /// **'AM · Attacking midfielder'**
+  String get teamManagementPositionAttackingMidfielder;
+
+  /// No description provided for @teamManagementPositionLeftWinger.
+  ///
+  /// In en, this message translates to:
+  /// **'LW · Left winger'**
+  String get teamManagementPositionLeftWinger;
+
+  /// No description provided for @teamManagementPositionStriker.
+  ///
+  /// In en, this message translates to:
+  /// **'ST · Striker'**
+  String get teamManagementPositionStriker;
+
+  /// No description provided for @teamManagementPositionRightWinger.
+  ///
+  /// In en, this message translates to:
+  /// **'RW · Right winger'**
+  String get teamManagementPositionRightWinger;
+
   /// No description provided for @teamManagementPlayerFootLabel.
   ///
   /// In en, this message translates to:

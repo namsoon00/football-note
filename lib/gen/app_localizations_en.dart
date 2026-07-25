@@ -14173,6 +14173,48 @@ class AppLocalizationsEn extends AppLocalizations {
   String get teamManagementPlayerRoleLabel => 'Default position';
 
   @override
+  String get teamManagementPlayerPositionLabel => 'Detailed position';
+
+  @override
+  String get teamManagementPositionGoalkeeper => 'GK · Goalkeeper';
+
+  @override
+  String get teamManagementPositionLeftBack => 'LB · Left back';
+
+  @override
+  String get teamManagementPositionCenterBack => 'CB · Center back';
+
+  @override
+  String get teamManagementPositionRightBack => 'RB · Right back';
+
+  @override
+  String get teamManagementPositionDefensiveMidfielder =>
+      'DM · Defensive midfielder';
+
+  @override
+  String get teamManagementPositionLeftMidfielder => 'LM · Left midfielder';
+
+  @override
+  String get teamManagementPositionCentralMidfielder =>
+      'CM · Central midfielder';
+
+  @override
+  String get teamManagementPositionRightMidfielder => 'RM · Right midfielder';
+
+  @override
+  String get teamManagementPositionAttackingMidfielder =>
+      'AM · Attacking midfielder';
+
+  @override
+  String get teamManagementPositionLeftWinger => 'LW · Left winger';
+
+  @override
+  String get teamManagementPositionStriker => 'ST · Striker';
+
+  @override
+  String get teamManagementPositionRightWinger => 'RW · Right winger';
+
+  @override
   String get teamManagementPlayerFootLabel => 'Preferred foot';
 
   @override
