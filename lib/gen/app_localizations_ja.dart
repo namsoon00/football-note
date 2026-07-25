@@ -13977,6 +13977,19 @@ class AppLocalizationsJa extends AppLocalizations {
   String get trainingSketchPdfExportFailedSnack => 'スケッチPDFを作成できませんでした。';
 
   @override
+  String get trainingSketchVideoExportTooltip => '動画を作成';
+
+  @override
+  String get trainingSketchVideoExportedSnack => 'スケッチの動き動画を準備しました。';
+
+  @override
+  String get trainingSketchVideoExportFailedSnack => 'スケッチの動き動画を作成できませんでした。';
+
+  @override
+  String get trainingSketchVideoExportUnavailableSnack =>
+      'この端末では動き動画の書き出しに対応していません。';
+
+  @override
   String get trainingSketchLandscapeModeTooltip => '横向きモード';
 
   @override
@@ -14101,6 +14114,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get trainingSketchReorderStageTooltip => 'ステージの順序を変更';
+
+  @override
+  String get trainingSketchReorderActionTooltip => 'アクションの順序を変更';
 
   @override
   String get trainingSketchGlobalStagesEmpty =>
@@ -14530,6 +14546,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get trainingSketchQuickStayButton => 'その場';
+
+  @override
+  String get trainingSketchMoveThenPassButton => '動いてからパス';
 
   @override
   String get trainingSketchQuickPassButton => 'パス';

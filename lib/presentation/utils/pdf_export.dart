@@ -239,6 +239,10 @@ String timestampedPdfFilename(String prefix) {
   return _timestampedFilename(prefix, 'pdf');
 }
 
+String timestampedVideoFilename(String prefix) {
+  return _timestampedFilename(prefix, 'mp4');
+}
+
 String timestampedImageFilename(String prefix) {
   return _timestampedFilename(prefix, 'png');
 }

@@ -13996,6 +13996,19 @@ class AppLocalizationsKo extends AppLocalizations {
   String get trainingSketchPdfExportFailedSnack => '스케치 PDF를 만들지 못했어요.';
 
   @override
+  String get trainingSketchVideoExportTooltip => '움직이는 영상 만들기';
+
+  @override
+  String get trainingSketchVideoExportedSnack => '스케치 움직임 영상을 준비했어요.';
+
+  @override
+  String get trainingSketchVideoExportFailedSnack => '스케치 움직임 영상을 만들지 못했어요.';
+
+  @override
+  String get trainingSketchVideoExportUnavailableSnack =>
+      '이 기기에서는 움직임 영상 내보내기를 지원하지 않아요.';
+
+  @override
   String get trainingSketchLandscapeModeTooltip => '가로 모드';
 
   @override
@@ -14121,6 +14134,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get trainingSketchReorderStageTooltip => '단계 순서 변경';
+
+  @override
+  String get trainingSketchReorderActionTooltip => '액션 순서 변경';
 
   @override
   String get trainingSketchGlobalStagesEmpty =>
@@ -14551,6 +14567,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get trainingSketchQuickStayButton => '제자리';
+
+  @override
+  String get trainingSketchMoveThenPassButton => '이동 후 패스';
 
   @override
   String get trainingSketchQuickPassButton => '패스';
