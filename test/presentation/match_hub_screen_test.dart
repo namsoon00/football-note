@@ -858,6 +858,94 @@ void main() {
   });
 
   testWidgets(
+    'Competition schedule board shows scheduled fixtures in a month calendar',
+    (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+      final competition = MatchCompetitionRecord.create(
+        kind: MatchCompetitionRecord.kindLeague,
+        name: '캘린더 검증 리그',
+        teams: const <String>['우리 팀', '서울 FC', '부산 FC', '인천 FC'],
+      ).copyWith(
+        fixtures: [
+          CompetitionFixture(
+            id: 'calendar-early',
+            roundNumber: 1,
+            slotNumber: 1,
+            homeTeam: '우리 팀',
+            awayTeam: '서울 FC',
+            scheduledAt: DateTime(2026, 10, 5, 10),
+          ),
+          CompetitionFixture(
+            id: 'calendar-later',
+            roundNumber: 2,
+            slotNumber: 2,
+            homeTeam: '부산 FC',
+            awayTeam: '인천 FC',
+            scheduledAt: DateTime(2026, 10, 12, 14),
+          ),
+        ],
+      );
+      await MatchCompetitionService(optionRepository).upsertCompetition(
+        competition,
+      );
+      await pumpCompetitionManagement(tester, themeMode: ThemeMode.dark);
+
+      await tester.tap(find.text('캘린더 검증 리그'));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(const ValueKey('competition-schedule-board-action')),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('캘린더'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('대회 캘린더'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('competition-schedule-month-calendar')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(
+          const ValueKey(
+            'competition-schedule-calendar-marker-2026-10-05',
+          ),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(
+          const ValueKey(
+            'competition-schedule-calendar-marker-2026-10-12',
+          ),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('competition-schedule-card-calendar-early')),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.text('12'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const ValueKey('competition-schedule-card-calendar-later')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('competition-schedule-card-calendar-early')),
+        findsNothing,
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
       'Operational schedule data highlights conflicts and sorts cards by time',
       (
     tester,

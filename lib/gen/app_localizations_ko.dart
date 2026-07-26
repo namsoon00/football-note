@@ -16119,6 +16119,18 @@ class AppLocalizationsKo extends AppLocalizations {
   String get matchCompetitionScheduleBoardTitle => '일정 보드';
 
   @override
+  String get matchCompetitionScheduleBoardView => '보드';
+
+  @override
+  String get matchCompetitionScheduleCalendarView => '캘린더';
+
+  @override
+  String get matchCompetitionScheduleCalendarTitle => '대회 캘린더';
+
+  @override
+  String get matchCompetitionScheduleCalendarEmptyDay => '이 날짜에는 경기가 없어요.';
+
+  @override
   String get matchCompetitionSchedulePreviousWeekTooltip => '이전 주';
 
   @override

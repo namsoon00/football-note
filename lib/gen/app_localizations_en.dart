@@ -16626,6 +16626,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get matchCompetitionScheduleBoardTitle => 'Schedule board';
 
   @override
+  String get matchCompetitionScheduleBoardView => 'Board';
+
+  @override
+  String get matchCompetitionScheduleCalendarView => 'Calendar';
+
+  @override
+  String get matchCompetitionScheduleCalendarTitle => 'Competition calendar';
+
+  @override
+  String get matchCompetitionScheduleCalendarEmptyDay =>
+      'No matches are scheduled for this day.';
+
+  @override
   String get matchCompetitionSchedulePreviousWeekTooltip => 'Previous week';
 
   @override

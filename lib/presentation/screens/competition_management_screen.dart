@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:football_note/gen/app_localizations.dart';
+import 'package:table_calendar/table_calendar.dart';
 
 import '../../application/family_access_service.dart';
 import '../../application/match_competition_service.dart';
@@ -24,6 +25,8 @@ enum _CompetitionStatusFilter { all, active, finished }
 enum _CompetitionDetailAction { edit, delete }
 
 enum _CompetitionDetailView { schedule, standings, bracket, teams }
+
+enum _CompetitionScheduleView { board, calendar }
 
 typedef CompetitionFixtureRecordHandler = Future<void> Function(
   MatchCompetitionRecord competition,
@@ -4900,6 +4903,10 @@ class _CompetitionScheduleBoardScreenState
     extends State<_CompetitionScheduleBoardScreen> {
   late MatchCompetitionRecord _record;
   late DateTime _weekStart;
+  late DateTime _focusedDay;
+  late DateTime _selectedDay;
+  _CompetitionScheduleView _selectedView = _CompetitionScheduleView.board;
+  final ScrollController _contentScrollController = ScrollController();
   bool _saving = false;
   bool _hasChanges = false;
   bool _allowPop = false;
@@ -4915,14 +4922,57 @@ class _CompetitionScheduleBoardScreenState
       if (previous == null || current.isBefore(previous)) return current;
       return previous;
     });
-    _weekStart = _startOfWeek(
+    final initialDay = _normalizeDay(
       firstScheduled ?? _record.fixtureStartDate ?? DateTime.now(),
     );
+    _weekStart = _startOfWeek(initialDay);
+    _focusedDay = initialDay;
+    _selectedDay = initialDay;
+  }
+
+  @override
+  void dispose() {
+    _contentScrollController.dispose();
+    super.dispose();
   }
 
   DateTime _startOfWeek(DateTime date) {
-    final normalized = DateTime(date.year, date.month, date.day);
+    final normalized = _normalizeDay(date);
     return normalized.subtract(Duration(days: normalized.weekday - 1));
+  }
+
+  DateTime _normalizeDay(DateTime date) =>
+      DateTime(date.year, date.month, date.day);
+
+  DateTime _calendarFirstDay(Iterable<CompetitionFixture> fixtures) {
+    var earliest = _selectedDay;
+    for (final fixture in fixtures) {
+      final scheduledAt = fixture.scheduledAt;
+      if (scheduledAt != null && scheduledAt.isBefore(earliest)) {
+        earliest = scheduledAt;
+      }
+    }
+    return DateTime(earliest.year, earliest.month - 1, 1);
+  }
+
+  DateTime _calendarLastDay(Iterable<CompetitionFixture> fixtures) {
+    var latest = _selectedDay;
+    for (final fixture in fixtures) {
+      final scheduledAt = fixture.scheduledAt;
+      if (scheduledAt != null && scheduledAt.isAfter(latest)) {
+        latest = scheduledAt;
+      }
+    }
+    return DateTime(latest.year, latest.month + 2, 0);
+  }
+
+  void _selectView(Set<_CompetitionScheduleView> selection) {
+    final nextView = selection.first;
+    if (nextView == _selectedView) return;
+    setState(() => _selectedView = nextView);
+    if (_contentScrollController.hasClients) {
+      _contentScrollController.jumpTo(0);
+    }
   }
 
   void _close() {
@@ -5013,6 +5063,32 @@ class _CompetitionScheduleBoardScreenState
         MatchCompetitionService.scheduleIssueTypesByFixture(
       competition: _record,
     );
+    final scheduledFixtures = fixturesByDate.values
+        .expand((fixtures) => fixtures)
+        .toList(growable: false);
+    final activeContent = _selectedView == _CompetitionScheduleView.board
+        ? _buildBoardView(
+            context,
+            l10n: l10n,
+            scheme: scheme,
+            accent: accent,
+            weekDates: weekDates,
+            fixturesByDate: fixturesByDate,
+            unscheduled: unscheduled,
+            fixtureStatesById: fixtureStatesById,
+            scheduleIssueTypesByFixture: scheduleIssueTypesByFixture,
+          )
+        : _buildCalendarView(
+            context,
+            l10n: l10n,
+            scheme: scheme,
+            accent: accent,
+            scheduledFixtures: scheduledFixtures,
+            fixturesByDate: fixturesByDate,
+            unscheduled: unscheduled,
+            fixtureStatesById: fixtureStatesById,
+            scheduleIssueTypesByFixture: scheduleIssueTypesByFixture,
+          );
 
     return PopScope(
       canPop: _allowPop,
@@ -5039,7 +5115,9 @@ class _CompetitionScheduleBoardScreenState
                       const SizedBox(width: AppSpacing.xs),
                       Expanded(
                         child: Text(
-                          l10n.matchCompetitionScheduleBoardTitle,
+                          _selectedView == _CompetitionScheduleView.board
+                              ? l10n.matchCompetitionScheduleBoardTitle
+                              : l10n.matchCompetitionScheduleCalendarTitle,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.titleLarge?.copyWith(
@@ -5047,134 +5125,90 @@ class _CompetitionScheduleBoardScreenState
                           ),
                         ),
                       ),
-                      AppBarActionButton.icon(
-                        key: const ValueKey(
-                          'competition-schedule-board-previous-week',
+                      if (_selectedView == _CompetitionScheduleView.board) ...[
+                        AppBarActionButton.icon(
+                          key: const ValueKey(
+                            'competition-schedule-board-previous-week',
+                          ),
+                          icon: Icons.chevron_left_rounded,
+                          tooltip:
+                              l10n.matchCompetitionSchedulePreviousWeekTooltip,
+                          onPressed: _saving
+                              ? null
+                              : () => setState(() {
+                                    _weekStart = _weekStart.subtract(
+                                      const Duration(days: 7),
+                                    );
+                                  }),
+                          margin: EdgeInsets.zero,
                         ),
-                        icon: Icons.chevron_left_rounded,
-                        tooltip:
-                            l10n.matchCompetitionSchedulePreviousWeekTooltip,
-                        onPressed: _saving
-                            ? null
-                            : () => setState(() {
-                                  _weekStart = _weekStart.subtract(
-                                    const Duration(days: 7),
-                                  );
-                                }),
-                        margin: EdgeInsets.zero,
-                      ),
-                      AppBarActionButton.icon(
-                        key: const ValueKey(
-                          'competition-schedule-board-next-week',
+                        AppBarActionButton.icon(
+                          key: const ValueKey(
+                            'competition-schedule-board-next-week',
+                          ),
+                          icon: Icons.chevron_right_rounded,
+                          tooltip: l10n.matchCompetitionScheduleNextWeekTooltip,
+                          onPressed: _saving
+                              ? null
+                              : () => setState(() {
+                                    _weekStart = _weekStart.add(
+                                      const Duration(days: 7),
+                                    );
+                                  }),
+                          margin: EdgeInsets.zero,
                         ),
-                        icon: Icons.chevron_right_rounded,
-                        tooltip: l10n.matchCompetitionScheduleNextWeekTooltip,
-                        onPressed: _saving
-                            ? null
-                            : () => setState(() {
-                                  _weekStart = _weekStart.add(
-                                    const Duration(days: 7),
-                                  );
-                                }),
-                        margin: EdgeInsets.zero,
-                      ),
+                      ],
                     ],
                   ),
                 ),
                 const SizedBox(height: AppSpacing.sm),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sm,
+                  ),
+                  child: SegmentedButton<_CompetitionScheduleView>(
+                    key: const ValueKey('competition-schedule-view-tabs'),
+                    segments: [
+                      ButtonSegment<_CompetitionScheduleView>(
+                        value: _CompetitionScheduleView.board,
+                        icon: const Icon(Icons.view_week_outlined),
+                        label: Text(l10n.matchCompetitionScheduleBoardView),
+                      ),
+                      ButtonSegment<_CompetitionScheduleView>(
+                        value: _CompetitionScheduleView.calendar,
+                        icon: const Icon(Icons.calendar_month_outlined),
+                        label: Text(
+                          l10n.matchCompetitionScheduleCalendarView,
+                        ),
+                      ),
+                    ],
+                    selected: {_selectedView},
+                    showSelectedIcon: false,
+                    onSelectionChanged: _selectView,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xs),
                 Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.sm,
-                      0,
-                      AppSpacing.sm,
-                      AppSpacing.xl,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        if (issues.isNotEmpty) ...[
-                          _CompetitionScheduleIssuesPanel(
-                            issues: issues,
-                          ),
-                          const SizedBox(height: AppSpacing.sm),
+                  child: ClipRect(
+                    child: SingleChildScrollView(
+                      key: const ValueKey('competition-schedule-content'),
+                      controller: _contentScrollController,
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.sm,
+                        AppSpacing.sm,
+                        AppSpacing.sm,
+                        AppSpacing.xl,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          if (issues.isNotEmpty) ...[
+                            _CompetitionScheduleIssuesPanel(issues: issues),
+                            const SizedBox(height: AppSpacing.sm),
+                          ],
+                          activeContent,
                         ],
-                        Text(
-                          l10n.matchCompetitionScheduleWeekRange(
-                            MaterialLocalizations.of(
-                              context,
-                            ).formatMediumDate(weekDates.first),
-                            MaterialLocalizations.of(
-                              context,
-                            ).formatMediumDate(weekDates.last),
-                          ),
-                          style: theme.textTheme.labelLarge?.copyWith(
-                            color: scheme.onSurfaceVariant,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.xs),
-                        SizedBox(
-                          height: 420,
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                for (final date in weekDates) ...[
-                                  _CompetitionScheduleBoardDay(
-                                    key: ValueKey(
-                                      'competition-schedule-board-day-${_calendarDateKey(date)}',
-                                    ),
-                                    date: date,
-                                    fixtures: fixturesByDate[
-                                            _calendarDateKey(date)] ??
-                                        const <CompetitionFixture>[],
-                                    accent: accent,
-                                    scheduleIssueTypesByFixture:
-                                        scheduleIssueTypesByFixture,
-                                    fixtureStatesById: fixtureStatesById,
-                                    readOnly: widget.readOnly || _saving,
-                                    onMoveFixture: _moveFixture,
-                                  ),
-                                  if (date != weekDates.last)
-                                    const SizedBox(width: AppSpacing.xs),
-                                ],
-                              ],
-                            ),
-                          ),
-                        ),
-                        if (unscheduled.isNotEmpty) ...[
-                          const SizedBox(height: AppSpacing.md),
-                          Text(
-                            l10n.matchCompetitionScheduleUnscheduledLane,
-                            style: theme.textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.xs),
-                          Wrap(
-                            spacing: AppSpacing.xs,
-                            runSpacing: AppSpacing.xs,
-                            children: [
-                              for (final fixture in unscheduled)
-                                SizedBox(
-                                  width: 180,
-                                  child: _CompetitionScheduleBoardFixtureCard(
-                                    fixture: fixture,
-                                    scheduleIssueTypes:
-                                        scheduleIssueTypesByFixture[
-                                                fixture.id] ??
-                                            const <String>[],
-                                    resolvedFixture:
-                                        fixtureStatesById[fixture.id],
-                                    readOnly: widget.readOnly || _saving,
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ],
-                      ],
+                      ),
                     ),
                   ),
                 ),
@@ -5183,6 +5217,239 @@ class _CompetitionScheduleBoardScreenState
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildBoardView(
+    BuildContext context, {
+    required AppLocalizations l10n,
+    required ColorScheme scheme,
+    required Color accent,
+    required List<DateTime> weekDates,
+    required Map<String, List<CompetitionFixture>> fixturesByDate,
+    required List<CompetitionFixture> unscheduled,
+    required Map<String, CompetitionFixtureState> fixtureStatesById,
+    required Map<String, List<String>> scheduleIssueTypesByFixture,
+  }) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          l10n.matchCompetitionScheduleWeekRange(
+            MaterialLocalizations.of(context).formatMediumDate(weekDates.first),
+            MaterialLocalizations.of(context).formatMediumDate(weekDates.last),
+          ),
+          style: theme.textTheme.labelLarge?.copyWith(
+            color: scheme.onSurfaceVariant,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        SizedBox(
+          height: 420,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (final date in weekDates) ...[
+                  _CompetitionScheduleBoardDay(
+                    key: ValueKey(
+                      'competition-schedule-board-day-${_calendarDateKey(date)}',
+                    ),
+                    date: date,
+                    fixtures: fixturesByDate[_calendarDateKey(date)] ??
+                        const <CompetitionFixture>[],
+                    accent: accent,
+                    scheduleIssueTypesByFixture: scheduleIssueTypesByFixture,
+                    fixtureStatesById: fixtureStatesById,
+                    readOnly: widget.readOnly || _saving,
+                    onMoveFixture: _moveFixture,
+                  ),
+                  if (date != weekDates.last)
+                    const SizedBox(width: AppSpacing.xs),
+                ],
+              ],
+            ),
+          ),
+        ),
+        _buildUnscheduledLane(
+          context,
+          l10n: l10n,
+          unscheduled: unscheduled,
+          fixtureStatesById: fixtureStatesById,
+          scheduleIssueTypesByFixture: scheduleIssueTypesByFixture,
+          readOnly: widget.readOnly || _saving,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCalendarView(
+    BuildContext context, {
+    required AppLocalizations l10n,
+    required ColorScheme scheme,
+    required Color accent,
+    required List<CompetitionFixture> scheduledFixtures,
+    required Map<String, List<CompetitionFixture>> fixturesByDate,
+    required List<CompetitionFixture> unscheduled,
+    required Map<String, CompetitionFixtureState> fixtureStatesById,
+    required Map<String, List<String>> scheduleIssueTypesByFixture,
+  }) {
+    final theme = Theme.of(context);
+    final selectedDayForeground = ThemeData.estimateBrightnessForColor(
+              accent,
+            ) ==
+            Brightness.dark
+        ? Colors.white
+        : Colors.black;
+    final selectedFixtures = fixturesByDate[_calendarDateKey(_selectedDay)] ??
+        const <CompetitionFixture>[];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          key: const ValueKey('competition-schedule-month-calendar'),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.xs,
+            AppSpacing.xs,
+            AppSpacing.xs,
+            AppSpacing.sm,
+          ),
+          decoration: BoxDecoration(
+            color: scheme.surfaceContainerLow,
+            borderRadius: AppRadius.small,
+            border: Border.all(color: scheme.outlineVariant),
+          ),
+          child: TableCalendar<CompetitionFixture>(
+            locale: Localizations.localeOf(context).toString(),
+            firstDay: _calendarFirstDay(scheduledFixtures),
+            lastDay: _calendarLastDay(scheduledFixtures),
+            focusedDay: _focusedDay,
+            selectedDayPredicate: (day) => isSameDay(day, _selectedDay),
+            eventLoader: (day) =>
+                fixturesByDate[_calendarDateKey(day)] ??
+                const <CompetitionFixture>[],
+            calendarFormat: CalendarFormat.month,
+            startingDayOfWeek: StartingDayOfWeek.monday,
+            availableCalendarFormats: {
+              CalendarFormat.month: l10n.calendarFormatMonth,
+            },
+            onDaySelected: (selectedDay, focusedDay) {
+              setState(() {
+                _selectedDay = _normalizeDay(selectedDay);
+                _focusedDay = _normalizeDay(focusedDay);
+              });
+            },
+            onPageChanged: (focusedDay) {
+              setState(() => _focusedDay = _normalizeDay(focusedDay));
+            },
+            headerStyle: HeaderStyle(
+              titleCentered: true,
+              formatButtonVisible: false,
+              titleTextStyle: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ) ??
+                  const TextStyle(fontWeight: FontWeight.w900),
+            ),
+            calendarStyle: CalendarStyle(
+              markersMaxCount: 0,
+              outsideDaysVisible: false,
+              todayDecoration: BoxDecoration(
+                color: accent.withValues(alpha: 0.18),
+                shape: BoxShape.circle,
+              ),
+              selectedDecoration: BoxDecoration(
+                color: accent,
+                shape: BoxShape.circle,
+              ),
+              selectedTextStyle: TextStyle(
+                color: selectedDayForeground,
+                fontWeight: FontWeight.w900,
+              ),
+              todayTextStyle: TextStyle(
+                color: scheme.onSurface,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            calendarBuilders: CalendarBuilders<CompetitionFixture>(
+              markerBuilder: (context, day, fixtures) {
+                if (fixtures.isEmpty) return null;
+                return _CompetitionScheduleCalendarMarker(
+                  key: ValueKey(
+                    'competition-schedule-calendar-marker-${_calendarDateKey(day)}',
+                  ),
+                  fixtures: fixtures,
+                  accent: accent,
+                  fixtureStatesById: fixtureStatesById,
+                  scheduleIssueTypesByFixture: scheduleIssueTypesByFixture,
+                );
+              },
+            ),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        _CompetitionScheduleCalendarDayPanel(
+          key: const ValueKey('competition-schedule-calendar-day-panel'),
+          date: _selectedDay,
+          fixtures: selectedFixtures,
+          accent: accent,
+          fixtureStatesById: fixtureStatesById,
+          scheduleIssueTypesByFixture: scheduleIssueTypesByFixture,
+          emptyLabel: l10n.matchCompetitionScheduleCalendarEmptyDay,
+        ),
+        _buildUnscheduledLane(
+          context,
+          l10n: l10n,
+          unscheduled: unscheduled,
+          fixtureStatesById: fixtureStatesById,
+          scheduleIssueTypesByFixture: scheduleIssueTypesByFixture,
+          readOnly: true,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildUnscheduledLane(
+    BuildContext context, {
+    required AppLocalizations l10n,
+    required List<CompetitionFixture> unscheduled,
+    required Map<String, CompetitionFixtureState> fixtureStatesById,
+    required Map<String, List<String>> scheduleIssueTypesByFixture,
+    required bool readOnly,
+  }) {
+    if (unscheduled.isEmpty) return const SizedBox.shrink();
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SizedBox(height: AppSpacing.md),
+        Text(
+          l10n.matchCompetitionScheduleUnscheduledLane,
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Wrap(
+          spacing: AppSpacing.xs,
+          runSpacing: AppSpacing.xs,
+          children: [
+            for (final fixture in unscheduled)
+              SizedBox(
+                width: 180,
+                child: _CompetitionScheduleBoardFixtureCard(
+                  fixture: fixture,
+                  scheduleIssueTypes: scheduleIssueTypesByFixture[fixture.id] ??
+                      const <String>[],
+                  resolvedFixture: fixtureStatesById[fixture.id],
+                  readOnly: readOnly,
+                ),
+              ),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -5290,6 +5557,141 @@ class _CompetitionScheduleBoardDay extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _CompetitionScheduleCalendarMarker extends StatelessWidget {
+  final List<CompetitionFixture> fixtures;
+  final Color accent;
+  final Map<String, CompetitionFixtureState> fixtureStatesById;
+  final Map<String, List<String>> scheduleIssueTypesByFixture;
+
+  const _CompetitionScheduleCalendarMarker({
+    super.key,
+    required this.fixtures,
+    required this.accent,
+    required this.fixtureStatesById,
+    required this.scheduleIssueTypesByFixture,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final hasIssue = fixtures.any(
+      (fixture) => (scheduleIssueTypesByFixture[fixture.id] ?? const <String>[])
+          .isNotEmpty,
+    );
+    final hasRecorded = fixtures.any(
+      (fixture) =>
+          fixtureStatesById[fixture.id]?.isRecorded ?? fixture.hasResult,
+    );
+    final color = hasIssue
+        ? scheme.error
+        : hasRecorded
+            ? _competitionPositiveColor(context)
+            : accent;
+    final foreground =
+        ThemeData.estimateBrightnessForColor(color) == Brightness.dark
+            ? Colors.white
+            : Colors.black;
+
+    return PositionedDirectional(
+      bottom: 3,
+      start: 0,
+      end: 0,
+      child: Center(
+        child: Container(
+          constraints: const BoxConstraints(minWidth: 15, minHeight: 15),
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+          decoration: BoxDecoration(color: color, borderRadius: AppRadius.full),
+          child: Text(
+            '${fixtures.length}',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: foreground,
+              fontSize: 9,
+              fontWeight: FontWeight.w900,
+              height: 1.0,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CompetitionScheduleCalendarDayPanel extends StatelessWidget {
+  final DateTime date;
+  final List<CompetitionFixture> fixtures;
+  final Color accent;
+  final Map<String, CompetitionFixtureState> fixtureStatesById;
+  final Map<String, List<String>> scheduleIssueTypesByFixture;
+  final String emptyLabel;
+
+  const _CompetitionScheduleCalendarDayPanel({
+    super.key,
+    required this.date,
+    required this.fixtures,
+    required this.accent,
+    required this.fixtureStatesById,
+    required this.scheduleIssueTypesByFixture,
+    required this.emptyLabel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Container(
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerLow,
+        borderRadius: AppRadius.small,
+        border: Border.all(color: scheme.outlineVariant),
+      ),
+      padding: const EdgeInsets.all(AppSpacing.sm),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.event_note_outlined, color: accent, size: 18),
+              const SizedBox(width: AppSpacing.xs),
+              Expanded(
+                child: Text(
+                  MaterialLocalizations.of(context).formatFullDate(date),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          if (fixtures.isEmpty)
+            Text(
+              emptyLabel,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
+            )
+          else
+            for (var index = 0; index < fixtures.length; index += 1) ...[
+              _CompetitionScheduleBoardFixtureCard(
+                fixture: fixtures[index],
+                scheduleIssueTypes:
+                    scheduleIssueTypesByFixture[fixtures[index].id] ??
+                        const <String>[],
+                resolvedFixture: fixtureStatesById[fixtures[index].id],
+                readOnly: true,
+              ),
+              if (index != fixtures.length - 1)
+                const SizedBox(height: AppSpacing.xs),
+            ],
+        ],
+      ),
     );
   }
 }
