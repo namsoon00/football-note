@@ -8123,6 +8123,60 @@ class AppLocalizationsJa extends AppLocalizations {
       '5〜15秒の横向き動画を1本選びます。最優先のキューに続いて、5項目すべてのレポートを表示します。';
 
   @override
+  String get runningCoachCaptureFlowTitle => 'ランニング動画を分析';
+
+  @override
+  String get runningCoachCaptureFlowBody =>
+      '横から撮影した5〜15秒の動画を使って、ストライドごとにフォームを分析します。';
+
+  @override
+  String get runningCoachCaptureAction => '今すぐ撮影';
+
+  @override
+  String get runningCoachCaptureAgainAction => '撮り直す';
+
+  @override
+  String get runningCoachCaptureTitle => 'ランニングを撮影';
+
+  @override
+  String get runningCoachCaptureGuide => '横から、全身と両足がガイド内に入るように撮影してください。';
+
+  @override
+  String get runningCoachCaptureStart => '撮影開始';
+
+  @override
+  String get runningCoachCaptureStop => '撮影終了';
+
+  @override
+  String runningCoachCaptureRecording(int elapsed, int maximum) {
+    return '撮影中 $elapsed/$maximum秒';
+  }
+
+  @override
+  String runningCoachCaptureMinimumDuration(int seconds) {
+    return '少なくとも$seconds秒撮影してください。';
+  }
+
+  @override
+  String get runningCoachCaptureSwitchCamera => 'カメラを切り替える';
+
+  @override
+  String get runningCoachCaptureUnsupportedPlatform => 'この端末ではアプリ内撮影を利用できません。';
+
+  @override
+  String get runningCoachCapturePermissionDenied =>
+      'カメラの許可が必要です。設定で許可してからもう一度試してください。';
+
+  @override
+  String get runningCoachCaptureUnavailable => '利用できるカメラが見つかりません。';
+
+  @override
+  String get runningCoachCaptureFailed => '撮影を開始できませんでした。カメラを確認してもう一度試してください。';
+
+  @override
+  String get runningCoachCaptureRetry => 'カメラをもう一度開く';
+
+  @override
   String get runningCoachModeLive => 'ライブ';
 
   @override
@@ -10169,6 +10223,35 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachResultsTitle => 'コーチング実績';
+
+  @override
+  String get runningCoachAnalysisQualityTitle => '分析品質';
+
+  @override
+  String get runningCoachAnalysisQualityStrong => '十分な根拠を取得しました';
+
+  @override
+  String runningCoachAnalysisQualityStrongBody(int count) {
+    return '信頼できる$count個の測定値と検証済みの着地根拠から今回の目標を決めました。';
+  }
+
+  @override
+  String get runningCoachAnalysisQualityLimited => '一部の測定値は参考として確認してください';
+
+  @override
+  String runningCoachAnalysisQualityLimitedBody(int count) {
+    return '信頼できる測定値は$count個です。足と膝のフィードバックは根拠が十分な場合だけ使います。';
+  }
+
+  @override
+  String get runningCoachAnalysisQualityRetake => '撮り直しをおすすめします';
+
+  @override
+  String get runningCoachAnalysisQualityRetakeBody =>
+      '関節または着地の根拠が不足しており、この動画から信頼できる目標を決められません。';
+
+  @override
+  String get runningCoachVerifiedContactsLabel => '検証済みの着地';
 
   @override
   String get runningCoachResultOneChangeTitle => 'まず一つだけ変えましょう';

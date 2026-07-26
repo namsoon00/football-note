@@ -4778,6 +4778,39 @@
   "runningCoachBadgeThreeDaySpark": "3일 불씨",
   "runningCoachBadgeAllRounder": "10/20/30m 러너",
   "runningCoachAnalyzeBody": "5~15초 측면 영상 하나를 고르세요. 먼저 가장 중요한 동작 하나를 알려주고, 이어서 5개 지표 전체 리포트를 보여줘요.",
+  "runningCoachCaptureFlowTitle": "달리기 영상 분석",
+  "runningCoachCaptureFlowBody": "측면에서 찍은 5~15초 영상으로 한 보폭씩 자세를 분석해요.",
+  "runningCoachCaptureAction": "바로 촬영",
+  "runningCoachCaptureAgainAction": "다시 촬영",
+  "runningCoachCaptureTitle": "달리기 촬영",
+  "runningCoachCaptureGuide": "측면에서 전신과 양발이 안내선 안에 보이게 촬영하세요.",
+  "runningCoachCaptureStart": "촬영 시작",
+  "runningCoachCaptureStop": "촬영 끝내기",
+  "runningCoachCaptureRecording": "촬영 중 {elapsed}/{maximum}초",
+  "@runningCoachCaptureRecording": {
+    "placeholders": {
+      "elapsed": {
+        "type": "int"
+      },
+      "maximum": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachCaptureMinimumDuration": "최소 {seconds}초를 촬영해 주세요.",
+  "@runningCoachCaptureMinimumDuration": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachCaptureSwitchCamera": "카메라 전환",
+  "runningCoachCaptureUnsupportedPlatform": "이 기기에서는 앱 내 촬영을 사용할 수 없어요.",
+  "runningCoachCapturePermissionDenied": "카메라 권한이 필요해요. 설정에서 권한을 허용한 뒤 다시 시도해 주세요.",
+  "runningCoachCaptureUnavailable": "사용할 수 있는 카메라를 찾지 못했어요.",
+  "runningCoachCaptureFailed": "촬영을 시작하지 못했어요. 카메라 상태를 확인한 뒤 다시 시도해 주세요.",
+  "runningCoachCaptureRetry": "카메라 다시 열기",
   "runningCoachModeLive": "실시간",
   "runningCoachModeVideo": "영상 분석",
   "runningCoachModeLiveTitle": "달리는 동안 자세 확인",
@@ -6025,6 +6058,28 @@
   "runningCoachAnalysisFailedGeneric": "달리기 분석에 실패했어요. 측면이 더 잘 보이는 영상으로 다시 시도해 주세요.",
   "runningCoachLowerBodyEvidenceLimited": "착지와 무릎 평가는 참고용이에요. 접지 근거가 부족해 이번 점수와 다음 목표에는 반영하지 않았어요.",
   "runningCoachResultsTitle": "코칭 결과",
+  "runningCoachAnalysisQualityTitle": "분석 품질",
+  "runningCoachAnalysisQualityStrong": "측정 근거가 충분해요",
+  "runningCoachAnalysisQualityStrongBody": "신뢰할 수 있는 {count}개 지표와 착지 근거로 이번 목표를 정했어요.",
+  "@runningCoachAnalysisQualityStrongBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachAnalysisQualityLimited": "일부 지표만 참고하세요",
+  "runningCoachAnalysisQualityLimitedBody": "신뢰할 수 있는 지표는 {count}개예요. 발과 무릎 평가는 근거가 충분할 때만 반영해요.",
+  "@runningCoachAnalysisQualityLimitedBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachAnalysisQualityRetake": "재촬영을 권장해요",
+  "runningCoachAnalysisQualityRetakeBody": "관절 또는 착지 근거가 부족해 이번 영상으로는 신뢰할 만한 목표를 정하기 어려워요.",
+  "runningCoachVerifiedContactsLabel": "검증된 착지",
   "runningCoachResultOneChangeTitle": "먼저 한 가지만 바꿔 보세요",
   "runningCoachNextGoalTitle": "다음 목표",
   "runningCoachNextGoalRepeat": "다음 3번은 이 동작 하나만 의식해 보세요.",

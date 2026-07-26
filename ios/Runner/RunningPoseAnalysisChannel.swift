@@ -1502,7 +1502,7 @@ final class RunningPoseAnalysisChannel {
   private static let coarseContactGroundToleranceRatio = 0.12
   private static let denseContactGroundToleranceRatio = 0.13
   private static let localFootExtremumToleranceRatio = 0.025
-  private static let modelResourceName = "pose_landmarker_lite"
+  private static let modelResourceName = "pose_landmarker_full"
   private static let modelResourceExtension = "task"
   private static let leftShoulderIndex = 11
   private static let rightShoulderIndex = 12

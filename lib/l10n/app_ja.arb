@@ -4778,6 +4778,39 @@
   "runningCoachBadgeThreeDaySpark": "3日連続",
   "runningCoachBadgeAllRounder": "10/20/30mランナー",
   "runningCoachAnalyzeBody": "5〜15秒の横向き動画を1本選びます。最優先のキューに続いて、5項目すべてのレポートを表示します。",
+  "runningCoachCaptureFlowTitle": "ランニング動画を分析",
+  "runningCoachCaptureFlowBody": "横から撮影した5〜15秒の動画を使って、ストライドごとにフォームを分析します。",
+  "runningCoachCaptureAction": "今すぐ撮影",
+  "runningCoachCaptureAgainAction": "撮り直す",
+  "runningCoachCaptureTitle": "ランニングを撮影",
+  "runningCoachCaptureGuide": "横から、全身と両足がガイド内に入るように撮影してください。",
+  "runningCoachCaptureStart": "撮影開始",
+  "runningCoachCaptureStop": "撮影終了",
+  "runningCoachCaptureRecording": "撮影中 {elapsed}/{maximum}秒",
+  "@runningCoachCaptureRecording": {
+    "placeholders": {
+      "elapsed": {
+        "type": "int"
+      },
+      "maximum": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachCaptureMinimumDuration": "少なくとも{seconds}秒撮影してください。",
+  "@runningCoachCaptureMinimumDuration": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachCaptureSwitchCamera": "カメラを切り替える",
+  "runningCoachCaptureUnsupportedPlatform": "この端末ではアプリ内撮影を利用できません。",
+  "runningCoachCapturePermissionDenied": "カメラの許可が必要です。設定で許可してからもう一度試してください。",
+  "runningCoachCaptureUnavailable": "利用できるカメラが見つかりません。",
+  "runningCoachCaptureFailed": "撮影を開始できませんでした。カメラを確認してもう一度試してください。",
+  "runningCoachCaptureRetry": "カメラをもう一度開く",
   "runningCoachModeLive": "ライブ",
   "runningCoachModeVideo": "動画分析",
   "runningCoachModeLiveTitle": "走りながらフォームを確認",
@@ -6025,6 +6058,28 @@
   "runningCoachAnalysisFailedGeneric": "分析の実行に失敗しました。より鮮明な側面図を持つ別のクリップを試してください。",
   "runningCoachLowerBodyEvidenceLimited": "接地と膝の評価は参考値です。接地の根拠が不足しているため、今回のスコアと次の目標には反映していません。",
   "runningCoachResultsTitle": "コーチング実績",
+  "runningCoachAnalysisQualityTitle": "分析品質",
+  "runningCoachAnalysisQualityStrong": "十分な根拠を取得しました",
+  "runningCoachAnalysisQualityStrongBody": "信頼できる{count}個の測定値と検証済みの着地根拠から今回の目標を決めました。",
+  "@runningCoachAnalysisQualityStrongBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachAnalysisQualityLimited": "一部の測定値は参考として確認してください",
+  "runningCoachAnalysisQualityLimitedBody": "信頼できる測定値は{count}個です。足と膝のフィードバックは根拠が十分な場合だけ使います。",
+  "@runningCoachAnalysisQualityLimitedBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachAnalysisQualityRetake": "撮り直しをおすすめします",
+  "runningCoachAnalysisQualityRetakeBody": "関節または着地の根拠が不足しており、この動画から信頼できる目標を決められません。",
+  "runningCoachVerifiedContactsLabel": "検証済みの着地",
   "runningCoachResultOneChangeTitle": "まず一つだけ変えましょう",
   "runningCoachNextGoalTitle": "次の目標",
   "runningCoachNextGoalRepeat": "次の3回は、この動きだけを意識してください。",
