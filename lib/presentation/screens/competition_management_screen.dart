@@ -2065,16 +2065,14 @@ class _InlineFixtureScoreStepper extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Tooltip(
-          message: decreaseTooltip,
-          child: IconButton(
-            key: decreaseKey,
-            visualDensity: VisualDensity.compact,
-            onPressed: value <= 0 || onChanged == null
-                ? null
-                : () => onChanged!(value - 1),
-            icon: const Icon(Icons.remove_circle_outline),
-          ),
+        AppBarActionButton.icon(
+          key: decreaseKey,
+          tooltip: decreaseTooltip,
+          onPressed: value <= 0 || onChanged == null
+              ? null
+              : () => onChanged!(value - 1),
+          icon: Icons.remove_circle_outline,
+          margin: EdgeInsets.zero,
         ),
         SizedBox(
           width: 22,
@@ -2086,14 +2084,12 @@ class _InlineFixtureScoreStepper extends StatelessWidget {
             ),
           ),
         ),
-        Tooltip(
-          message: increaseTooltip,
-          child: IconButton(
-            key: increaseKey,
-            visualDensity: VisualDensity.compact,
-            onPressed: onChanged == null ? null : () => onChanged!(value + 1),
-            icon: const Icon(Icons.add_circle_outline),
-          ),
+        AppBarActionButton.icon(
+          key: increaseKey,
+          tooltip: increaseTooltip,
+          onPressed: onChanged == null ? null : () => onChanged!(value + 1),
+          icon: Icons.add_circle_outline,
+          margin: EdgeInsets.zero,
         ),
       ],
     );
