@@ -26,6 +26,8 @@ void main() {
 
   test('target guide illustration assets are bundled', () async {
     const guideAssets = <String>[
+      'assets/images/running_guides/capture_treadmill_side_reference.jpg',
+      'assets/images/running_guides/capture_outdoor_side_reference.jpg',
       'assets/images/running_guides/target_posture.png',
       'assets/images/running_guides/target_landing.png',
     ];
@@ -285,7 +287,7 @@ void main() {
     );
     expect(
       find.byKey(const ValueKey('running-coach-sample-real-pose-overlay')),
-      findsOneWidget,
+      findsNothing,
     );
     expect(
       find.byKey(const ValueKey('running-coach-sample-fake-video-view')),
@@ -307,7 +309,7 @@ void main() {
     expect(find.text('Fixed side-pass setup'), findsOneWidget);
     expect(
       find.byKey(
-        const ValueKey('running-coach-capture-diagram-outdoor'),
+        const ValueKey('running-coach-capture-reference-outdoor'),
       ),
       findsOneWidget,
     );
@@ -1083,6 +1085,12 @@ void main() {
     expect(find.text('Evidence from your video'), findsOneWidget);
     expect(
       find.byKey(const ValueKey('running-coach-analysis-evidence-overlay')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(
+        const ValueKey('running-coach-analysis-evidence-measurement'),
+      ),
       findsOneWidget,
     );
     expect(
@@ -1101,12 +1109,12 @@ void main() {
     );
     expect(
       find.text(
-        'The red joints show your current posture detected in this evidence frame.',
+        'The red guide marks only the body area used for this coaching call.',
       ),
       findsOneWidget,
     );
     expect(
-      find.text('Current joints on your video'),
+      find.text('Measurement in this frame'),
       findsOneWidget,
     );
     expect(

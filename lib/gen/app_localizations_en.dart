@@ -8966,15 +8966,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachEvidenceOverlayBody =>
-      'Colored lines mark the joints used for this coaching point. The original video is unchanged.';
+      'Colored guides show only the movement used for this coaching call. Your original video is unchanged.';
 
   @override
   String get runningCoachEvidenceCurrentOverlayTitle =>
-      'Current joints on your video';
+      'Measurement in this frame';
 
   @override
   String get runningCoachEvidenceCurrentOverlayBody =>
-      'The red joints show your current posture detected in this evidence frame.';
+      'The red guide marks only the body area used for this coaching call.';
 
   @override
   String get runningCoachEvidenceTransitionTitle => 'From current to next';

@@ -8732,14 +8732,14 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachEvidenceOverlayBody =>
-      '色の線はこのコーチング項目に使った関節を示します。元の動画は変更されません。';
+      '色のガイドは、このコーチング判断に使った動きだけを示します。元の動画は変更されません。';
 
   @override
-  String get runningCoachEvidenceCurrentOverlayTitle => '実際の動画上の現在の関節';
+  String get runningCoachEvidenceCurrentOverlayTitle => 'このフレームの測定箇所';
 
   @override
   String get runningCoachEvidenceCurrentOverlayBody =>
-      '赤い関節は、この根拠フレームで検出された現在の姿勢です。';
+      '赤いガイドは、今回のコーチング判断に使った部位だけを示します。';
 
   @override
   String get runningCoachEvidenceTransitionTitle => '現在から次へ';

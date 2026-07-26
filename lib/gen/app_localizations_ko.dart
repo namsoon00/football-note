@@ -8744,14 +8744,14 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachEvidenceOverlayBody =>
-      '색 선은 이 코칭 포인트에 사용한 관절을 표시합니다. 원본 영상은 바뀌지 않습니다.';
+      '색 가이드는 이번 코칭 판단에 사용한 움직임만 보여 줍니다. 원본 영상은 바뀌지 않습니다.';
 
   @override
-  String get runningCoachEvidenceCurrentOverlayTitle => '실제 영상 위 현재 관절';
+  String get runningCoachEvidenceCurrentOverlayTitle => '이 프레임에서 본 측정 지점';
 
   @override
   String get runningCoachEvidenceCurrentOverlayBody =>
-      '빨간 관절은 이 근거 프레임에서 찾은 현재 자세예요.';
+      '빨간 선과 표시점은 이번 코칭 판단에 쓴 부위만 보여 줍니다.';
 
   @override
   String get runningCoachEvidenceTransitionTitle => '현재에서 다음으로';

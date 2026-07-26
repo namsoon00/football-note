@@ -1344,7 +1344,7 @@ class _SampleRecordingGuidePanelState
             ),
           ),
           const SizedBox(height: 12),
-          _CaptureFramingDiagram(mode: _mode),
+          _CaptureReferenceVisual(mode: _mode),
           const SizedBox(height: 12),
           Text(
             isTreadmill
@@ -1424,200 +1424,36 @@ class _SampleRecordingGuidePanelState
   }
 }
 
-class _CaptureFramingDiagram extends StatelessWidget {
+class _CaptureReferenceVisual extends StatelessWidget {
   final _CaptureGuideMode mode;
 
-  const _CaptureFramingDiagram({required this.mode});
+  const _CaptureReferenceVisual({required this.mode});
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final assetPath = switch (mode) {
+      _CaptureGuideMode.treadmill =>
+        'assets/images/running_guides/capture_treadmill_side_reference.jpg',
+      _CaptureGuideMode.outdoor =>
+        'assets/images/running_guides/capture_outdoor_side_reference.jpg',
+    };
     return AspectRatio(
       aspectRatio: 16 / 9,
-      child: CustomPaint(
-        key: ValueKey('running-coach-capture-diagram-${mode.name}'),
-        painter: _CaptureFramingPainter(
-          mode: mode,
-          frameColor: scheme.outline,
-          safeColor: scheme.primary,
-          runnerColor: scheme.onSurface,
-          surfaceColor: scheme.surface,
+      child: Container(
+        key: ValueKey('running-coach-capture-reference-${mode.name}'),
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: scheme.outlineVariant),
+        ),
+        child: Image.asset(
+          assetPath,
+          fit: BoxFit.cover,
+          filterQuality: FilterQuality.high,
         ),
       ),
     );
-  }
-}
-
-class _CaptureFramingPainter extends CustomPainter {
-  final _CaptureGuideMode mode;
-  final Color frameColor;
-  final Color safeColor;
-  final Color runnerColor;
-  final Color surfaceColor;
-
-  const _CaptureFramingPainter({
-    required this.mode,
-    required this.frameColor,
-    required this.safeColor,
-    required this.runnerColor,
-    required this.surfaceColor,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final bounds = Offset.zero & size;
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(bounds, const Radius.circular(8)),
-      Paint()..color = surfaceColor,
-    );
-    final frame = Rect.fromLTWH(
-      size.width * 0.16,
-      size.height * 0.08,
-      size.width * 0.76,
-      size.height * 0.84,
-    );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(frame, const Radius.circular(6)),
-      Paint()
-        ..color = frameColor.withValues(alpha: 0.28)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.4,
-    );
-    final safeFrame = Rect.fromLTWH(
-      frame.left + frame.width * 0.15,
-      frame.top + frame.height * 0.09,
-      frame.width * 0.70,
-      frame.height * 0.82,
-    );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(safeFrame, const Radius.circular(4)),
-      Paint()
-        ..color = safeColor.withValues(alpha: 0.58)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5,
-    );
-
-    final groundY = frame.bottom - frame.height * 0.11;
-    canvas.drawLine(
-      Offset(frame.left + 10, groundY),
-      Offset(frame.right - 10, groundY),
-      Paint()
-        ..color = frameColor.withValues(alpha: 0.44)
-        ..strokeWidth = 1.2,
-    );
-    if (mode == _CaptureGuideMode.treadmill) {
-      final belt = Rect.fromLTWH(
-        safeFrame.left + safeFrame.width * 0.04,
-        groundY - 3,
-        safeFrame.width * 0.92,
-        7,
-      );
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(belt, const Radius.circular(4)),
-        Paint()..color = frameColor.withValues(alpha: 0.24),
-      );
-    }
-
-    final center = Offset(
-      safeFrame.center.dx,
-      safeFrame.top + safeFrame.height * 0.47,
-    );
-    final bodyHeight = safeFrame.height * 0.78;
-    _drawGuideRunner(canvas, center, bodyHeight);
-    _drawGuideCamera(canvas, size, frame.center.dy);
-  }
-
-  void _drawGuideRunner(Canvas canvas, Offset center, double height) {
-    final stroke = Paint()
-      ..color = runnerColor.withValues(alpha: 0.82)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = math.max(2.2, height * 0.025)
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-    final head = Offset(center.dx, center.dy - height * 0.39);
-    final shoulder =
-        Offset(center.dx - height * 0.03, center.dy - height * 0.23);
-    final hip = Offset(center.dx, center.dy + height * 0.02);
-    final frontKnee =
-        Offset(center.dx + height * 0.15, center.dy + height * 0.18);
-    final frontFoot =
-        Offset(center.dx + height * 0.27, center.dy + height * 0.39);
-    final rearKnee =
-        Offset(center.dx - height * 0.12, center.dy + height * 0.19);
-    final rearFoot =
-        Offset(center.dx - height * 0.22, center.dy + height * 0.39);
-    final frontElbow =
-        Offset(center.dx + height * 0.10, center.dy - height * 0.11);
-    final frontHand =
-        Offset(center.dx + height * 0.16, center.dy - height * 0.01);
-    final rearElbow =
-        Offset(center.dx - height * 0.12, center.dy - height * 0.10);
-    final rearHand =
-        Offset(center.dx - height * 0.17, center.dy - height * 0.20);
-    canvas.drawCircle(
-      head,
-      height * 0.055,
-      Paint()
-        ..color = runnerColor.withValues(alpha: 0.10)
-        ..style = PaintingStyle.fill,
-    );
-    canvas.drawCircle(head, height * 0.055, stroke);
-    canvas.drawLine(shoulder, hip, stroke);
-    canvas.drawLine(shoulder, frontElbow, stroke);
-    canvas.drawLine(frontElbow, frontHand, stroke);
-    canvas.drawLine(shoulder, rearElbow, stroke);
-    canvas.drawLine(rearElbow, rearHand, stroke);
-    canvas.drawLine(hip, frontKnee, stroke);
-    canvas.drawLine(frontKnee, frontFoot, stroke);
-    canvas.drawLine(hip, rearKnee, stroke);
-    canvas.drawLine(rearKnee, rearFoot, stroke);
-  }
-
-  void _drawGuideCamera(Canvas canvas, Size size, double centerY) {
-    final body = Rect.fromCenter(
-      center: Offset(size.width * 0.075, centerY),
-      width: size.width * 0.09,
-      height: size.height * 0.17,
-    );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(body, const Radius.circular(4)),
-      Paint()..color = safeColor.withValues(alpha: 0.14),
-    );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(body, const Radius.circular(4)),
-      Paint()
-        ..color = safeColor
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5,
-    );
-    canvas.drawCircle(
-      body.center,
-      math.min(body.width, body.height) * 0.18,
-      Paint()..color = safeColor,
-    );
-    final guidePaint = Paint()
-      ..color = safeColor.withValues(alpha: 0.34)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
-    canvas.drawLine(
-      Offset(body.right, body.top),
-      Offset(size.width * 0.16, size.height * 0.08),
-      guidePaint,
-    );
-    canvas.drawLine(
-      Offset(body.right, body.bottom),
-      Offset(size.width * 0.16, size.height * 0.92),
-      guidePaint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _CaptureFramingPainter oldDelegate) {
-    return oldDelegate.mode != mode ||
-        oldDelegate.frameColor != frameColor ||
-        oldDelegate.safeColor != safeColor ||
-        oldDelegate.runnerColor != runnerColor ||
-        oldDelegate.surfaceColor != surfaceColor;
   }
 }
 
@@ -1824,33 +1660,6 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame> {
                             ),
                           ),
                         ),
-                        if (result != null && result.poseFrames.isNotEmpty)
-                          Positioned.fill(
-                            child: IgnorePointer(
-                              child: AnimatedBuilder(
-                                animation: videoController,
-                                builder: (context, _) {
-                                  final poseFrame = runningPoseFrameAtPosition(
-                                    frames: result.poseFrames,
-                                    position: videoController.value.position,
-                                  );
-                                  return CustomPaint(
-                                    key: const ValueKey(
-                                      'running-coach-sample-real-pose-overlay',
-                                    ),
-                                    painter: _RunningPoseOverlayPainter(
-                                      poseFrame: poseFrame,
-                                      primaryColor: runnerColor,
-                                      secondaryColor: scheme.secondary,
-                                      contactColor: scheme.tertiary,
-                                      warningColor: scheme.error,
-                                      useContainFit: true,
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                          ),
                         Positioned(
                           left: 12,
                           right: 12,
@@ -2859,6 +2668,7 @@ class _RunningPoseOverlayPainter extends CustomPainter {
   final RunningCoachFinding? finding;
   final RunningDirection direction;
   final bool useContainFit;
+  final bool showRawPose;
 
   const _RunningPoseOverlayPainter({
     required this.poseFrame,
@@ -2870,6 +2680,7 @@ class _RunningPoseOverlayPainter extends CustomPainter {
     this.finding,
     this.direction = RunningDirection.stationary,
     this.useContainFit = false,
+    this.showRawPose = false,
   });
 
   @override
@@ -2877,17 +2688,19 @@ class _RunningPoseOverlayPainter extends CustomPainter {
     final frame = poseFrame;
     if (frame == null) return;
 
-    _drawHumanForm(canvas, size, frame);
-    for (final connection in _mediaPipePoseConnections) {
-      if (connection.kind == _PoseConnectionKind.face ||
-          connection.kind == _PoseConnectionKind.hand) {
-        _drawConnection(canvas, size, frame, connection);
+    if (showRawPose) {
+      _drawHumanForm(canvas, size, frame);
+      for (final connection in _mediaPipePoseConnections) {
+        if (connection.kind == _PoseConnectionKind.face ||
+            connection.kind == _PoseConnectionKind.hand) {
+          _drawConnection(canvas, size, frame, connection);
+        }
       }
-    }
-    for (final landmark in frame.landmarks) {
-      if (landmark.index <= 10 ||
-          landmark.index >= 17 && landmark.index <= 22) {
-        _drawLandmark(canvas, size, frame, landmark);
+      for (final landmark in frame.landmarks) {
+        if (landmark.index <= 10 ||
+            landmark.index >= 17 && landmark.index <= 22) {
+          _drawLandmark(canvas, size, frame, landmark);
+        }
       }
     }
     final metric = highlightedMetric;
@@ -3379,7 +3192,8 @@ class _RunningPoseOverlayPainter extends CustomPainter {
         oldDelegate.highlightedMetric != highlightedMetric ||
         oldDelegate.finding != finding ||
         oldDelegate.direction != direction ||
-        oldDelegate.useContainFit != useContainFit;
+        oldDelegate.useContainFit != useContainFit ||
+        oldDelegate.showRawPose != showRawPose;
   }
 }
 
@@ -5599,7 +5413,7 @@ class _EvidenceVideoPreview extends StatelessWidget {
                                 selectedFrame.poseFrame;
                             return CustomPaint(
                               key: const ValueKey(
-                                'running-coach-analysis-evidence-overlay',
+                                'running-coach-analysis-evidence-measurement',
                               ),
                               painter: _RunningPoseOverlayPainter(
                                 poseFrame: poseFrame,
@@ -5611,6 +5425,7 @@ class _EvidenceVideoPreview extends StatelessWidget {
                                 finding: insight.finding,
                                 direction: result.direction,
                                 useContainFit: true,
+                                showRawPose: false,
                               ),
                             );
                           },
