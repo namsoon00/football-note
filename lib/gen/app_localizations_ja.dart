@@ -16088,6 +16088,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get matchCompetitionScheduleBoardTitle => '日程ボード';
 
   @override
+  String get matchCompetitionScheduleBoardView => 'ボード';
+
+  @override
+  String get matchCompetitionScheduleCalendarView => 'カレンダー';
+
+  @override
+  String get matchCompetitionScheduleCalendarTitle => '大会カレンダー';
+
+  @override
+  String get matchCompetitionScheduleCalendarEmptyDay => 'この日に予定された試合はありません。';
+
+  @override
   String get matchCompetitionSchedulePreviousWeekTooltip => '前の週';
 
   @override

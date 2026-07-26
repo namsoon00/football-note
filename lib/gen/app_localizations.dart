@@ -28363,6 +28363,30 @@ abstract class AppLocalizations {
   /// **'Schedule board'**
   String get matchCompetitionScheduleBoardTitle;
 
+  /// No description provided for @matchCompetitionScheduleBoardView.
+  ///
+  /// In en, this message translates to:
+  /// **'Board'**
+  String get matchCompetitionScheduleBoardView;
+
+  /// No description provided for @matchCompetitionScheduleCalendarView.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar'**
+  String get matchCompetitionScheduleCalendarView;
+
+  /// No description provided for @matchCompetitionScheduleCalendarTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Competition calendar'**
+  String get matchCompetitionScheduleCalendarTitle;
+
+  /// No description provided for @matchCompetitionScheduleCalendarEmptyDay.
+  ///
+  /// In en, this message translates to:
+  /// **'No matches are scheduled for this day.'**
+  String get matchCompetitionScheduleCalendarEmptyDay;
+
   /// No description provided for @matchCompetitionSchedulePreviousWeekTooltip.
   ///
   /// In en, this message translates to:
