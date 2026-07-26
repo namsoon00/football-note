@@ -15,7 +15,7 @@ channel = root / "android/app/src/main/kotlin/com/namsoon/footballnote/RunningPo
 ios_channel = root / "ios/Runner/RunningPoseAnalysisChannel.swift"
 main_activity = root / "android/app/src/main/kotlin/com/namsoon/footballnote/MainActivity.kt"
 gradle = root / "android/app/build.gradle"
-model = root / "android/app/src/main/assets/pose_landmarker_lite.task"
+model = root / "android/app/src/main/assets/pose_landmarker_full.task"
 
 channel_text = channel.read_text()
 ios_text = ios_channel.read_text()
@@ -288,6 +288,14 @@ require(
     "Android MediaPipe tasks-vision dependency must remain",
 )
 require(model.exists(), "Android pose landmarker model asset must be packaged")
+require(
+    'private const val modelAssetPath = "pose_landmarker_full.task"' in channel_text,
+    "Android upload analysis must select the Full pose model",
+)
+require(
+    'private static let modelResourceName = "pose_landmarker_full"' in ios_text,
+    "iOS upload analysis must select the Full pose model",
+)
 
 if failures:
     print("Android upload MediaPipe contract check failed:", file=sys.stderr)

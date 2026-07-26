@@ -12,7 +12,7 @@ usage() {
 Usage: ./scripts/test_running_release_video_fixtures.sh [options]
 
 Creates portrait fixtures from the repository's real runner sample MP4s and
-checks them with the bundled MediaPipe pose_landmarker_lite.task model.
+checks them with the bundled MediaPipe pose_landmarker_full.task model.
 
 Options:
   --output-dir <path>  Directory under .tmp for derived MP4s, JSON reports, and logs.
@@ -102,7 +102,7 @@ echo "==> generate derived real-video fixtures"
 echo "==> analyze fixtures with bundled Pose Landmarker"
 "$VENV_DIR/bin/python" scripts/analyze_running_release_video_fixtures.py \
   --fixture-dir "$OUTPUT_DIR" \
-  --model ios/Runner/pose_landmarker_lite.task \
+  --model ios/Runner/pose_landmarker_full.task \
   --repo-root "$ROOT_DIR" \
   --report "$OUTPUT_DIR/release_validation_report.json"
 

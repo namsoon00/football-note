@@ -184,6 +184,39 @@ void main() {
       throwsUnsupportedError,
     );
   });
+
+  test('history snapshot keeps the beginning, end, and contact frames', () {
+    final result = RunningVideoAnalysisResult.fromMap({
+      'durationMs': 4000,
+      'sampledFrames': 40,
+      'validFrames': 40,
+      'direction': 'leftToRight',
+      'forwardLeanDegrees': 10,
+      'verticalBounceRatio': 0.06,
+      'footStrikeDistanceRatio': 0.10,
+      'stanceKneeAngleDegrees': 152,
+      'elbowAngleDegrees': 94,
+      'poseFrames': [
+        for (var frameIndex = 0; frameIndex < 40; frameIndex += 1)
+          _poseFrameMap(
+            timestampMs: frameIndex * 100,
+            imageWidth: 720,
+            imageHeight: 1280,
+          ),
+      ],
+      'validatedContactFrameTimestampsMs': [300, 1900, 3900],
+    });
+
+    final snapshot = result.historySnapshot();
+    final timestamps = snapshot.poseFrames
+        .map((frame) => frame.timestamp.inMilliseconds)
+        .toList(growable: false);
+
+    expect(snapshot.poseFrames.length, lessThanOrEqualTo(24));
+    expect(timestamps, containsAll(<int>[0, 300, 1900, 3900]));
+    expect(snapshot.validatedContactFrameTimestamps,
+        result.validatedContactFrameTimestamps);
+  });
 }
 
 Map<String, Object?> _poseFrameMap({

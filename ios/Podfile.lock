@@ -51,6 +51,8 @@ PODS:
   - Flutter (1.0.0)
   - flutter_local_notifications (0.0.1):
     - Flutter
+  - flutter_quick_video_encoder (0.0.1):
+    - Flutter
   - flutter_timezone (0.0.1):
     - Flutter
   - flutter_tts (0.0.1):
@@ -188,6 +190,7 @@ DEPENDENCIES:
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
   - Flutter (from `Flutter`)
   - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
+  - flutter_quick_video_encoder (from `.symlinks/plugins/flutter_quick_video_encoder/ios`)
   - flutter_timezone (from `.symlinks/plugins/flutter_timezone/ios`)
   - flutter_tts (from `.symlinks/plugins/flutter_tts/ios`)
   - geocoding_ios (from `.symlinks/plugins/geocoding_ios/ios`)
@@ -249,6 +252,8 @@ EXTERNAL SOURCES:
     :path: Flutter
   flutter_local_notifications:
     :path: ".symlinks/plugins/flutter_local_notifications/ios"
+  flutter_quick_video_encoder:
+    :path: ".symlinks/plugins/flutter_quick_video_encoder/ios"
   flutter_timezone:
     :path: ".symlinks/plugins/flutter_timezone/ios"
   flutter_tts:
@@ -294,6 +299,7 @@ SPEC CHECKSUMS:
   FirebaseCoreInternal: 9afa45b1159304c963da48addb78275ef701c6b4
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   flutter_local_notifications: ad39620c743ea4c15127860f4b5641649a988100
+  flutter_quick_video_encoder: c012b1523f40093feeffa90cebfe71b32b7b6d25
   flutter_timezone: ee50ce7786b5fde27e2fe5375bbc8c9661ffc13f
   flutter_tts: 35ac3c7d42412733e795ea96ad2d7e05d0a75113
   geocoding_ios: 33776c9ebb98d037b5e025bb0e7537f6dd19646e

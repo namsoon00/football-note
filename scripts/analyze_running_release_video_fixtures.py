@@ -361,7 +361,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--model",
         type=Path,
-        default=Path("ios/Runner/pose_landmarker_lite.task"),
+        default=Path("ios/Runner/pose_landmarker_full.task"),
         help="MediaPipe Pose Landmarker task model",
     )
     parser.add_argument(

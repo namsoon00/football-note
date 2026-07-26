@@ -14620,6 +14620,102 @@ abstract class AppLocalizations {
   /// **'Choose a 5-15 second side-view clip. You will get one priority cue first, followed by the full five-metric report.'**
   String get runningCoachAnalyzeBody;
 
+  /// No description provided for @runningCoachCaptureFlowTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyze a running video'**
+  String get runningCoachCaptureFlowTitle;
+
+  /// No description provided for @runningCoachCaptureFlowBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Record or choose a 5-15 second side-view clip for stride-by-stride form analysis.'**
+  String get runningCoachCaptureFlowBody;
+
+  /// No description provided for @runningCoachCaptureAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Record now'**
+  String get runningCoachCaptureAction;
+
+  /// No description provided for @runningCoachCaptureAgainAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Record again'**
+  String get runningCoachCaptureAgainAction;
+
+  /// No description provided for @runningCoachCaptureTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Record a run'**
+  String get runningCoachCaptureTitle;
+
+  /// No description provided for @runningCoachCaptureGuide.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep your full body and both feet inside the guide from a side view.'**
+  String get runningCoachCaptureGuide;
+
+  /// No description provided for @runningCoachCaptureStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start recording'**
+  String get runningCoachCaptureStart;
+
+  /// No description provided for @runningCoachCaptureStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish recording'**
+  String get runningCoachCaptureStop;
+
+  /// No description provided for @runningCoachCaptureRecording.
+  ///
+  /// In en, this message translates to:
+  /// **'Recording {elapsed}/{maximum}s'**
+  String runningCoachCaptureRecording(int elapsed, int maximum);
+
+  /// No description provided for @runningCoachCaptureMinimumDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Record for at least {seconds} seconds.'**
+  String runningCoachCaptureMinimumDuration(int seconds);
+
+  /// No description provided for @runningCoachCaptureSwitchCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch camera'**
+  String get runningCoachCaptureSwitchCamera;
+
+  /// No description provided for @runningCoachCaptureUnsupportedPlatform.
+  ///
+  /// In en, this message translates to:
+  /// **'In-app recording is not available on this device.'**
+  String get runningCoachCaptureUnsupportedPlatform;
+
+  /// No description provided for @runningCoachCapturePermissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera permission is required. Allow it in Settings and try again.'**
+  String get runningCoachCapturePermissionDenied;
+
+  /// No description provided for @runningCoachCaptureUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No camera is available.'**
+  String get runningCoachCaptureUnavailable;
+
+  /// No description provided for @runningCoachCaptureFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not start recording. Check the camera and try again.'**
+  String get runningCoachCaptureFailed;
+
+  /// No description provided for @runningCoachCaptureRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Open camera again'**
+  String get runningCoachCaptureRetry;
+
   /// No description provided for @runningCoachModeLive.
   ///
   /// In en, this message translates to:
@@ -18017,6 +18113,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Coaching results'**
   String get runningCoachResultsTitle;
+
+  /// No description provided for @runningCoachAnalysisQualityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysis quality'**
+  String get runningCoachAnalysisQualityTitle;
+
+  /// No description provided for @runningCoachAnalysisQualityStrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Enough evidence was captured'**
+  String get runningCoachAnalysisQualityStrong;
+
+  /// No description provided for @runningCoachAnalysisQualityStrongBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This goal uses {count} reliable measurements and verified landing evidence.'**
+  String runningCoachAnalysisQualityStrongBody(int count);
+
+  /// No description provided for @runningCoachAnalysisQualityLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Use some readings as reference'**
+  String get runningCoachAnalysisQualityLimited;
+
+  /// No description provided for @runningCoachAnalysisQualityLimitedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} measurements are reliable. Foot and knee feedback is used only when its evidence is sufficient.'**
+  String runningCoachAnalysisQualityLimitedBody(int count);
+
+  /// No description provided for @runningCoachAnalysisQualityRetake.
+  ///
+  /// In en, this message translates to:
+  /// **'A retake is recommended'**
+  String get runningCoachAnalysisQualityRetake;
+
+  /// No description provided for @runningCoachAnalysisQualityRetakeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The clip does not contain enough joint or landing evidence to set a reliable goal.'**
+  String get runningCoachAnalysisQualityRetakeBody;
+
+  /// No description provided for @runningCoachVerifiedContactsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified landings'**
+  String get runningCoachVerifiedContactsLabel;
 
   /// No description provided for @runningCoachResultOneChangeTitle.
   ///

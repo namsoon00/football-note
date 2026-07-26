@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:football_note/application/running_coach_history_service.dart';
 import 'package:football_note/application/running_coaching_service.dart';
 import 'package:football_note/application/running_video_analysis_service.dart';
@@ -47,8 +48,7 @@ void main() {
     VideoPlayerPlatform.instance = previousVideoPlayerPlatform;
   });
 
-  testWidgets('coach screen presents one running flow without football mission',
-      (
+  testWidgets('coach screen presents one recording and analysis flow', (
     WidgetTester tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(800, 1200));
@@ -72,10 +72,11 @@ void main() {
       find.byKey(const ValueKey('running-coach-primary-action-card')),
       findsOneWidget,
     );
-    expect(find.text('Live'), findsOneWidget);
-    expect(find.text('Video analysis'), findsOneWidget);
-    expect(find.text('Check your form while running'), findsOneWidget);
-    expect(find.text('Start live coaching'), findsOneWidget);
+    expect(find.text('Analyze a running video'), findsOneWidget);
+    expect(find.text('Record now'), findsOneWidget);
+    expect(find.text('Pick video'), findsOneWidget);
+    expect(find.text('Live'), findsNothing);
+    expect(find.text('Start live coaching'), findsNothing);
     expect(
       find.byKey(const ValueKey('running-coach-today-mission-card')),
       findsNothing,
@@ -84,7 +85,8 @@ void main() {
     expect(find.text('Open sample video guide'), findsOneWidget);
   });
 
-  testWidgets('coach switches cleanly between live and uploaded video', (
+  testWidgets('coach uses an in-app capture result in the video analysis flow',
+      (
     WidgetTester tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(800, 1200));
@@ -100,22 +102,27 @@ void main() {
           GlobalCupertinoLocalizations.delegate,
         ],
         supportedLocales: AppLocalizations.supportedLocales,
-        home: RunningCoachScreen(optionRepository: _MemoryOptionRepository()),
+        home: RunningCoachScreen(
+          optionRepository: _MemoryOptionRepository(),
+          captureLauncher: (_) async => XFile(
+            '/tmp/captured-running-video.mp4',
+            name: 'captured-running-video.mp4',
+          ),
+        ),
       ),
     );
 
-    expect(find.text('Start live coaching'), findsOneWidget);
-    await tester.tap(find.text('Video analysis'));
+    expect(find.text('Record now'), findsOneWidget);
+    await tester.tap(find.text('Record now'));
     await tester.pump();
 
-    expect(find.text('Analyze form from a video'), findsOneWidget);
+    expect(find.text('captured-running-video.mp4'), findsOneWidget);
     expect(
-        find.text(
-            'Choose a 5-15 second side-view video to create a form report.'),
-        findsOneWidget);
-    expect(find.text('Pick video'), findsOneWidget);
+      find.text('Analyze run'),
+      findsOneWidget,
+    );
     expect(
-      find.widgetWithText(FilledButton, 'Start live coaching'),
+      find.byKey(const ValueKey('running-coach-capture-primary-action')),
       findsNothing,
     );
     expect(
