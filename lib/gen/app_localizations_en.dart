@@ -8339,6 +8339,63 @@ class AppLocalizationsEn extends AppLocalizations {
       'Choose a 5-15 second side-view clip. You will get one priority cue first, followed by the full five-metric report.';
 
   @override
+  String get runningCoachCaptureFlowTitle => 'Analyze a running video';
+
+  @override
+  String get runningCoachCaptureFlowBody =>
+      'Record or choose a 5-15 second side-view clip for stride-by-stride form analysis.';
+
+  @override
+  String get runningCoachCaptureAction => 'Record now';
+
+  @override
+  String get runningCoachCaptureAgainAction => 'Record again';
+
+  @override
+  String get runningCoachCaptureTitle => 'Record a run';
+
+  @override
+  String get runningCoachCaptureGuide =>
+      'Keep your full body and both feet inside the guide from a side view.';
+
+  @override
+  String get runningCoachCaptureStart => 'Start recording';
+
+  @override
+  String get runningCoachCaptureStop => 'Finish recording';
+
+  @override
+  String runningCoachCaptureRecording(int elapsed, int maximum) {
+    return 'Recording $elapsed/${maximum}s';
+  }
+
+  @override
+  String runningCoachCaptureMinimumDuration(int seconds) {
+    return 'Record for at least $seconds seconds.';
+  }
+
+  @override
+  String get runningCoachCaptureSwitchCamera => 'Switch camera';
+
+  @override
+  String get runningCoachCaptureUnsupportedPlatform =>
+      'In-app recording is not available on this device.';
+
+  @override
+  String get runningCoachCapturePermissionDenied =>
+      'Camera permission is required. Allow it in Settings and try again.';
+
+  @override
+  String get runningCoachCaptureUnavailable => 'No camera is available.';
+
+  @override
+  String get runningCoachCaptureFailed =>
+      'Could not start recording. Check the camera and try again.';
+
+  @override
+  String get runningCoachCaptureRetry => 'Open camera again';
+
+  @override
   String get runningCoachModeLive => 'Live';
 
   @override
@@ -10460,6 +10517,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachResultsTitle => 'Coaching results';
+
+  @override
+  String get runningCoachAnalysisQualityTitle => 'Analysis quality';
+
+  @override
+  String get runningCoachAnalysisQualityStrong =>
+      'Enough evidence was captured';
+
+  @override
+  String runningCoachAnalysisQualityStrongBody(int count) {
+    return 'This goal uses $count reliable measurements and verified landing evidence.';
+  }
+
+  @override
+  String get runningCoachAnalysisQualityLimited =>
+      'Use some readings as reference';
+
+  @override
+  String runningCoachAnalysisQualityLimitedBody(int count) {
+    return '$count measurements are reliable. Foot and knee feedback is used only when its evidence is sufficient.';
+  }
+
+  @override
+  String get runningCoachAnalysisQualityRetake => 'A retake is recommended';
+
+  @override
+  String get runningCoachAnalysisQualityRetakeBody =>
+      'The clip does not contain enough joint or landing evidence to set a reliable goal.';
+
+  @override
+  String get runningCoachVerifiedContactsLabel => 'Verified landings';
 
   @override
   String get runningCoachResultOneChangeTitle => 'Change one thing first';

@@ -4778,6 +4778,39 @@
   "runningCoachBadgeThreeDaySpark": "3-day spark",
   "runningCoachBadgeAllRounder": "10/20/30m runner",
   "runningCoachAnalyzeBody": "Choose a 5-15 second side-view clip. You will get one priority cue first, followed by the full five-metric report.",
+  "runningCoachCaptureFlowTitle": "Analyze a running video",
+  "runningCoachCaptureFlowBody": "Record or choose a 5-15 second side-view clip for stride-by-stride form analysis.",
+  "runningCoachCaptureAction": "Record now",
+  "runningCoachCaptureAgainAction": "Record again",
+  "runningCoachCaptureTitle": "Record a run",
+  "runningCoachCaptureGuide": "Keep your full body and both feet inside the guide from a side view.",
+  "runningCoachCaptureStart": "Start recording",
+  "runningCoachCaptureStop": "Finish recording",
+  "runningCoachCaptureRecording": "Recording {elapsed}/{maximum}s",
+  "@runningCoachCaptureRecording": {
+    "placeholders": {
+      "elapsed": {
+        "type": "int"
+      },
+      "maximum": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachCaptureMinimumDuration": "Record for at least {seconds} seconds.",
+  "@runningCoachCaptureMinimumDuration": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachCaptureSwitchCamera": "Switch camera",
+  "runningCoachCaptureUnsupportedPlatform": "In-app recording is not available on this device.",
+  "runningCoachCapturePermissionDenied": "Camera permission is required. Allow it in Settings and try again.",
+  "runningCoachCaptureUnavailable": "No camera is available.",
+  "runningCoachCaptureFailed": "Could not start recording. Check the camera and try again.",
+  "runningCoachCaptureRetry": "Open camera again",
   "runningCoachModeLive": "Live",
   "runningCoachModeVideo": "Video analysis",
   "runningCoachModeLiveTitle": "Check your form while running",
@@ -6025,6 +6058,28 @@
   "runningCoachAnalysisFailedGeneric": "Running analysis failed. Try another clip with a clearer side view.",
   "runningCoachLowerBodyEvidenceLimited": "Foot-strike and knee readings are reference only. Contact evidence was limited, so they are not used for this score or next goal.",
   "runningCoachResultsTitle": "Coaching results",
+  "runningCoachAnalysisQualityTitle": "Analysis quality",
+  "runningCoachAnalysisQualityStrong": "Enough evidence was captured",
+  "runningCoachAnalysisQualityStrongBody": "This goal uses {count} reliable measurements and verified landing evidence.",
+  "@runningCoachAnalysisQualityStrongBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachAnalysisQualityLimited": "Use some readings as reference",
+  "runningCoachAnalysisQualityLimitedBody": "{count} measurements are reliable. Foot and knee feedback is used only when its evidence is sufficient.",
+  "@runningCoachAnalysisQualityLimitedBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachAnalysisQualityRetake": "A retake is recommended",
+  "runningCoachAnalysisQualityRetakeBody": "The clip does not contain enough joint or landing evidence to set a reliable goal.",
+  "runningCoachVerifiedContactsLabel": "Verified landings",
   "runningCoachResultOneChangeTitle": "Change one thing first",
   "runningCoachNextGoalTitle": "Next goal",
   "runningCoachNextGoalRepeat": "For your next three runs, focus on this one movement.",

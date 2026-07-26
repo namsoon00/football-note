@@ -50,7 +50,7 @@ for expected in (
 for expected in (
     "mediapipe==0.10.21",
     "opencv-python-headless==4.10.0.84",
-    "pose_landmarker_lite.task",
+    "pose_landmarker_full.task",
     "--output-dir",
     "release_validation.log",
 ):

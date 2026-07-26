@@ -1481,7 +1481,7 @@ class RunningPoseAnalysisChannel(
         private const val coarseContactGroundToleranceRatio = 0.12
         private const val denseContactGroundToleranceRatio = 0.13
         private const val localFootExtremumToleranceRatio = 0.025
-        private const val modelAssetPath = "pose_landmarker_lite.task"
+        private const val modelAssetPath = "pose_landmarker_full.task"
         private const val leftShoulderIndex = 11
         private const val rightShoulderIndex = 12
         private const val leftElbowIndex = 13

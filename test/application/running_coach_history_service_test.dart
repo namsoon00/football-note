@@ -100,7 +100,7 @@ void main() {
 
     final restored = service.allSessions().single.analysisResult;
     expect(restored, isNotNull);
-    expect(restored!.poseFrames, hasLength(8));
+    expect(restored!.poseFrames, hasLength(12));
     expect(restored.poseFrames.first.timestamp, Duration.zero);
     expect(
       restored.poseFrames.map((frame) => frame.timestamp.inMilliseconds),

@@ -376,7 +376,7 @@ class RunningVideoAnalysisResult {
 
   /// Keeps enough measured frames for an archived coaching replay without
   /// persisting every sampled frame with each history entry.
-  RunningVideoAnalysisResult historySnapshot({int maxPoseFrames = 8}) {
+  RunningVideoAnalysisResult historySnapshot({int maxPoseFrames = 24}) {
     final frames = _historyPoseFrames(
       poseFrames,
       contactTimestamps: validatedContactFrameTimestamps,

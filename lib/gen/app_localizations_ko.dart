@@ -8130,6 +8130,62 @@ class AppLocalizationsKo extends AppLocalizations {
       '5~15초 측면 영상 하나를 고르세요. 먼저 가장 중요한 동작 하나를 알려주고, 이어서 5개 지표 전체 리포트를 보여줘요.';
 
   @override
+  String get runningCoachCaptureFlowTitle => '달리기 영상 분석';
+
+  @override
+  String get runningCoachCaptureFlowBody =>
+      '측면에서 찍은 5~15초 영상으로 한 보폭씩 자세를 분석해요.';
+
+  @override
+  String get runningCoachCaptureAction => '바로 촬영';
+
+  @override
+  String get runningCoachCaptureAgainAction => '다시 촬영';
+
+  @override
+  String get runningCoachCaptureTitle => '달리기 촬영';
+
+  @override
+  String get runningCoachCaptureGuide => '측면에서 전신과 양발이 안내선 안에 보이게 촬영하세요.';
+
+  @override
+  String get runningCoachCaptureStart => '촬영 시작';
+
+  @override
+  String get runningCoachCaptureStop => '촬영 끝내기';
+
+  @override
+  String runningCoachCaptureRecording(int elapsed, int maximum) {
+    return '촬영 중 $elapsed/$maximum초';
+  }
+
+  @override
+  String runningCoachCaptureMinimumDuration(int seconds) {
+    return '최소 $seconds초를 촬영해 주세요.';
+  }
+
+  @override
+  String get runningCoachCaptureSwitchCamera => '카메라 전환';
+
+  @override
+  String get runningCoachCaptureUnsupportedPlatform =>
+      '이 기기에서는 앱 내 촬영을 사용할 수 없어요.';
+
+  @override
+  String get runningCoachCapturePermissionDenied =>
+      '카메라 권한이 필요해요. 설정에서 권한을 허용한 뒤 다시 시도해 주세요.';
+
+  @override
+  String get runningCoachCaptureUnavailable => '사용할 수 있는 카메라를 찾지 못했어요.';
+
+  @override
+  String get runningCoachCaptureFailed =>
+      '촬영을 시작하지 못했어요. 카메라 상태를 확인한 뒤 다시 시도해 주세요.';
+
+  @override
+  String get runningCoachCaptureRetry => '카메라 다시 열기';
+
+  @override
   String get runningCoachModeLive => '실시간';
 
   @override
@@ -10185,6 +10241,35 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachResultsTitle => '코칭 결과';
+
+  @override
+  String get runningCoachAnalysisQualityTitle => '분석 품질';
+
+  @override
+  String get runningCoachAnalysisQualityStrong => '측정 근거가 충분해요';
+
+  @override
+  String runningCoachAnalysisQualityStrongBody(int count) {
+    return '신뢰할 수 있는 $count개 지표와 착지 근거로 이번 목표를 정했어요.';
+  }
+
+  @override
+  String get runningCoachAnalysisQualityLimited => '일부 지표만 참고하세요';
+
+  @override
+  String runningCoachAnalysisQualityLimitedBody(int count) {
+    return '신뢰할 수 있는 지표는 $count개예요. 발과 무릎 평가는 근거가 충분할 때만 반영해요.';
+  }
+
+  @override
+  String get runningCoachAnalysisQualityRetake => '재촬영을 권장해요';
+
+  @override
+  String get runningCoachAnalysisQualityRetakeBody =>
+      '관절 또는 착지 근거가 부족해 이번 영상으로는 신뢰할 만한 목표를 정하기 어려워요.';
+
+  @override
+  String get runningCoachVerifiedContactsLabel => '검증된 착지';
 
   @override
   String get runningCoachResultOneChangeTitle => '먼저 한 가지만 바꿔 보세요';

@@ -36,7 +36,7 @@ fixtures can be spotted in the release report.
 
 The runner creates an isolated MediaPipe/OpenCV environment using the same
 versions as `scripts/test_mediapipe_sample_videos.sh`, then invokes the iOS
-bundled `ios/Runner/pose_landmarker_lite.task` in MediaPipe Tasks `VIDEO` mode.
+bundled `ios/Runner/pose_landmarker_full.task` in MediaPipe Tasks `VIDEO` mode.
 The report is written to:
 
 ```text

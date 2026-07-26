@@ -32,7 +32,7 @@ import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 
-model_path = Path("ios/Runner/pose_landmarker_lite.task")
+model_path = Path("ios/Runner/pose_landmarker_full.task")
 videos = [
     Path("assets/videos/running_coach_reference_sample.mp4"),
     Path("assets/videos/running_coach_mistake_sample.mp4"),

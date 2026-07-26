@@ -16,7 +16,7 @@ import 'sprint_live_session_metrics.dart';
 
 class RunningCoachHistoryService {
   static const storageKey = 'running_coach_sessions_v1';
-  static const maxStoredSessions = 8;
+  static const maxStoredSessions = 20;
   static const maxStoredLiveSprintSessions = 24;
   static const _liveSprintReportService = LiveSprintSessionReportService();
 

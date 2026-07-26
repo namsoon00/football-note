@@ -22,7 +22,7 @@ import '../../gen/app_localizations.dart';
 import '../running_coach/running_pose_overlay.dart';
 import '../models/sample_runner_pose.dart';
 import 'running_coach_insight_copy.dart';
-import 'running_live_coach_screen.dart';
+import 'running_capture_screen.dart';
 import 'running_live_session_result_screen.dart';
 import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_feedback.dart';
@@ -31,12 +31,14 @@ class RunningCoachScreen extends StatefulWidget {
   final OptionRepository? optionRepository;
   final RunningVideoAnalysisService analysisService;
   final RunningCoachSampleVideoPreparer sampleVideoPreparer;
+  final RunningCoachCaptureLauncher captureLauncher;
 
   const RunningCoachScreen({
     super.key,
     this.optionRepository,
     this.analysisService = const RunningVideoAnalysisService(),
     this.sampleVideoPreparer = prepareRunningCoachSampleVideoForAnalysis,
+    this.captureLauncher = captureRunningCoachVideo,
   });
 
   @override
@@ -45,8 +47,9 @@ class RunningCoachScreen extends StatefulWidget {
 
 typedef RunningCoachSampleVideoPreparer
     = Future<RunningCoachPreparedSampleVideo> Function(String assetPath);
-
-enum _RunningCoachMode { live, video }
+typedef RunningCoachCaptureLauncher = Future<XFile?> Function(
+  BuildContext context,
+);
 
 class RunningCoachPreparedSampleVideo {
   final File file;
@@ -126,7 +129,6 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
   Future<_RunningCoachSampleAnalysisBundle>? _sampleAnalysisFuture;
   int _sampleAnalysisRequestId = 0;
   bool _isAnalyzing = false;
-  _RunningCoachMode _mode = _RunningCoachMode.live;
 
   @override
   void initState() {
@@ -164,13 +166,11 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
       padding: const EdgeInsets.all(16),
       children: [
         _RunningCoachUploadGuideCard(
-          mode: _mode,
           selectedVideoName: _selectedVideo?.name,
           isAnalyzing: _isAnalyzing,
           canAnalyze: _canAnalyze,
-          onModeChanged: (mode) => setState(() => _mode = mode),
-          onStartLiveSprintCoach: () => unawaited(_openLiveCoach()),
           onShowSampleGuide: _showSampleAnalysis,
+          onCaptureVideo: _captureVideo,
           onPickVideo: _pickVideo,
           onAnalyzeVideo: _analyzeVideo,
         ),
@@ -188,27 +188,6 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
   }
 
   bool get _canAnalyze => !_isAnalyzing && _selectedVideo != null;
-
-  Future<void> _openLiveCoach() async {
-    final optionRepository = widget.optionRepository;
-    final sportId = optionRepository == null
-        ? null
-        : SportService(optionRepository).currentSportId();
-    await Navigator.of(context).push<void>(
-      MaterialPageRoute<void>(
-        builder: (_) => RunningLiveCoachScreen(
-          optionRepository: optionRepository,
-          sportId: sportId,
-        ),
-      ),
-    );
-    if (!mounted || _historyService == null) {
-      return;
-    }
-    setState(() {
-      _recentSessions = _historyService!.allSessions();
-    });
-  }
 
   Future<void> _showSampleAnalysis() {
     return showModalBottomSheet<void>(
@@ -350,6 +329,26 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
       AppFeedback.showMessage(
         context,
         text: AppLocalizations.of(context)!.runningCoachPickVideoFailed,
+      );
+    }
+  }
+
+  Future<void> _captureVideo() async {
+    try {
+      final captured = await widget.captureLauncher(context);
+      if (!mounted || captured == null) {
+        return;
+      }
+      setState(() {
+        _selectedVideo = captured;
+      });
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      AppFeedback.showMessage(
+        context,
+        text: AppLocalizations.of(context)!.runningCoachCaptureFailed,
       );
     }
   }
@@ -507,24 +506,20 @@ String _bodyRegionTitle(AppLocalizations l10n, RunningCoachBodyRegion region) {
 }
 
 class _RunningCoachUploadGuideCard extends StatelessWidget {
-  final _RunningCoachMode mode;
   final String? selectedVideoName;
   final bool isAnalyzing;
   final bool canAnalyze;
-  final ValueChanged<_RunningCoachMode> onModeChanged;
-  final VoidCallback onStartLiveSprintCoach;
   final VoidCallback onShowSampleGuide;
+  final VoidCallback onCaptureVideo;
   final VoidCallback onPickVideo;
   final VoidCallback onAnalyzeVideo;
 
   const _RunningCoachUploadGuideCard({
-    required this.mode,
     required this.selectedVideoName,
     required this.isAnalyzing,
     required this.canAnalyze,
-    required this.onModeChanged,
-    required this.onStartLiveSprintCoach,
     required this.onShowSampleGuide,
+    required this.onCaptureVideo,
     required this.onPickVideo,
     required this.onAnalyzeVideo,
   });
@@ -533,7 +528,7 @@ class _RunningCoachUploadGuideCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
-    final isLive = mode == _RunningCoachMode.live;
+    final hasSelectedVideo = selectedVideoName != null;
     return Card(
       key: const ValueKey('running-coach-primary-action-card'),
       margin: EdgeInsets.zero,
@@ -544,52 +539,41 @@ class _RunningCoachUploadGuideCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SegmentedButton<_RunningCoachMode>(
-              segments: [
-                ButtonSegment<_RunningCoachMode>(
-                  value: _RunningCoachMode.live,
-                  icon: const Icon(Icons.videocam_outlined),
-                  label: Text(l10n.runningCoachModeLive),
-                ),
-                ButtonSegment<_RunningCoachMode>(
-                  value: _RunningCoachMode.video,
-                  icon: const Icon(Icons.video_library_outlined),
-                  label: Text(l10n.runningCoachModeVideo),
-                ),
-              ],
-              selected: <_RunningCoachMode>{mode},
-              onSelectionChanged: (selection) => onModeChanged(selection.first),
-            ),
-            const SizedBox(height: 18),
             Text(
-              isLive
-                  ? l10n.runningCoachModeLiveTitle
-                  : l10n.runningCoachModeVideoTitle,
+              l10n.runningCoachCaptureFlowTitle,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w900,
                   ),
             ),
             const SizedBox(height: 6),
             Text(
-              isLive
-                  ? l10n.runningCoachModeLiveBody
-                  : l10n.runningCoachModeVideoBody,
+              l10n.runningCoachCaptureFlowBody,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: scheme.onSurfaceVariant,
                   ),
             ),
             const SizedBox(height: 16),
-            if (isLive)
+            if (!hasSelectedVideo) ...[
               SizedBox(
                 width: double.infinity,
                 child: FilledButton.icon(
-                  key: const ValueKey('running-coach-live-start-action'),
-                  onPressed: onStartLiveSprintCoach,
-                  icon: const Icon(Icons.play_circle_outline_rounded),
-                  label: Text(l10n.runningCoachModeLiveAction),
+                  key: const ValueKey('running-coach-capture-primary-action'),
+                  onPressed: isAnalyzing ? null : onCaptureVideo,
+                  icon: const Icon(Icons.videocam_rounded),
+                  label: Text(l10n.runningCoachCaptureAction),
                 ),
-              )
-            else ...[
+              ),
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  key: const ValueKey('running-coach-pick-video-action'),
+                  onPressed: isAnalyzing ? null : onPickVideo,
+                  icon: const Icon(Icons.video_library_outlined),
+                  label: Text(l10n.runningCoachPickVideoAction),
+                ),
+              ),
+            ] else ...[
               DecoratedBox(
                 decoration: BoxDecoration(
                   color: scheme.surfaceContainerHighest,
@@ -621,25 +605,19 @@ class _RunningCoachUploadGuideCard extends StatelessWidget {
                 width: double.infinity,
                 child: FilledButton.icon(
                   key: const ValueKey('running-coach-video-primary-action'),
-                  onPressed: selectedVideoName == null
-                      ? (isAnalyzing ? null : onPickVideo)
-                      : (canAnalyze ? onAnalyzeVideo : null),
+                  onPressed: canAnalyze ? onAnalyzeVideo : null,
                   icon: isAnalyzing
                       ? const SizedBox.square(
                           dimension: 18,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : Icon(
-                          selectedVideoName == null
-                              ? Icons.video_library_outlined
-                              : Icons.play_circle_outline_rounded,
+                      : const Icon(
+                          Icons.play_circle_outline_rounded,
                         ),
                   label: Text(
                     isAnalyzing
                         ? l10n.runningCoachAnalysisInProgress
-                        : selectedVideoName == null
-                            ? l10n.runningCoachPickVideoAction
-                            : l10n.runningCoachAnalyzeAction,
+                        : l10n.runningCoachAnalyzeAction,
                   ),
                 ),
               ),
@@ -647,9 +625,18 @@ class _RunningCoachUploadGuideCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Align(
                   alignment: AlignmentDirectional.centerEnd,
-                  child: TextButton(
-                    onPressed: isAnalyzing ? null : onPickVideo,
-                    child: Text(l10n.runningCoachChangeVideoAction),
+                  child: Wrap(
+                    spacing: 4,
+                    children: [
+                      TextButton(
+                        onPressed: isAnalyzing ? null : onCaptureVideo,
+                        child: Text(l10n.runningCoachCaptureAgainAction),
+                      ),
+                      TextButton(
+                        onPressed: isAnalyzing ? null : onPickVideo,
+                        child: Text(l10n.runningCoachChangeVideoAction),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -9127,6 +9114,8 @@ class _ReportDetailsCard extends StatelessWidget {
   }
 }
 
+enum _AnalysisQualityLevel { strong, limited, retake }
+
 class _ResultsSummaryCard extends StatelessWidget {
   final RunningVideoAnalysisResult result;
   final RunningCoachingReport report;
@@ -9137,9 +9126,10 @@ class _ResultsSummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final score = report.overallScore;
-    final hasReliableMetrics = report.insights.any(
-      (insight) => insight.quality.isReliableForCoaching,
-    );
+    final reliableMetricCount = report.insights
+        .where((insight) => insight.quality.isReliableForCoaching)
+        .length;
+    final hasReliableMetrics = reliableMetricCount > 0;
     final hasLimitedLowerBodyEvidence = hasReliableMetrics &&
         report.insights.any(
           (insight) =>
@@ -9147,34 +9137,74 @@ class _ResultsSummaryCard extends StatelessWidget {
                   insight.metric == RunningCoachMetric.kneeFlexion) &&
               !insight.quality.isReliableForCoaching,
         );
-    final headline = score >= 85
-        ? l10n.runningCoachOverallHeadlineStrong
-        : score >= 70
-            ? l10n.runningCoachOverallHeadlineSolid
-            : l10n.runningCoachOverallHeadlineNeedsWork;
+    final quality = reliableMetricCount == 0
+        ? _AnalysisQualityLevel.retake
+        : reliableMetricCount >= 3 && result.hasDenseContactEvidence
+            ? _AnalysisQualityLevel.strong
+            : _AnalysisQualityLevel.limited;
+    final qualityTitle = switch (quality) {
+      _AnalysisQualityLevel.strong => l10n.runningCoachAnalysisQualityStrong,
+      _AnalysisQualityLevel.limited => l10n.runningCoachAnalysisQualityLimited,
+      _AnalysisQualityLevel.retake => l10n.runningCoachAnalysisQualityRetake,
+    };
+    final qualityBody = switch (quality) {
+      _AnalysisQualityLevel.strong =>
+        l10n.runningCoachAnalysisQualityStrongBody(reliableMetricCount),
+      _AnalysisQualityLevel.limited =>
+        l10n.runningCoachAnalysisQualityLimitedBody(reliableMetricCount),
+      _AnalysisQualityLevel.retake =>
+        l10n.runningCoachAnalysisQualityRetakeBody,
+    };
+    final qualityColor = switch (quality) {
+      _AnalysisQualityLevel.strong => Theme.of(context).colorScheme.tertiary,
+      _AnalysisQualityLevel.limited => Theme.of(context).colorScheme.secondary,
+      _AnalysisQualityLevel.retake => Theme.of(context).colorScheme.error,
+    };
+    final qualityIcon = switch (quality) {
+      _AnalysisQualityLevel.strong => Icons.verified_outlined,
+      _AnalysisQualityLevel.limited => Icons.info_outline_rounded,
+      _AnalysisQualityLevel.retake => Icons.videocam_off_outlined,
+    };
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    headline,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w900,
-                        ),
+            Text(
+              l10n.runningCoachAnalysisQualityTitle,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
                   ),
-                ),
-                _StatChip(
-                  label: l10n.runningCoachOverallScoreLabel,
-                  value: '$score',
+            ),
+            const SizedBox(height: 8),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(qualityIcon, color: qualityColor),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        qualityTitle,
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w900,
+                                ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        qualityBody,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             Wrap(
               spacing: 10,
               runSpacing: 10,
@@ -9184,10 +9214,14 @@ class _ResultsSummaryCard extends StatelessWidget {
                   value: '${result.validFrames}/${result.sampledFrames}',
                 ),
                 _StatChip(
-                  label: l10n.runningCoachCoverageLabel,
-                  value:
-                      '${(result.validFrameCoverage * 100).clamp(0, 100).toStringAsFixed(0)}%',
+                  label: l10n.runningCoachVerifiedContactsLabel,
+                  value: '${result.validatedContactFrameTimestamps.length}',
                 ),
+                if (quality != _AnalysisQualityLevel.retake)
+                  _StatChip(
+                    label: l10n.runningCoachOverallScoreLabel,
+                    value: '$score',
+                  ),
               ],
             ),
             if (hasLimitedLowerBodyEvidence) ...[
