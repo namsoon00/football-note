@@ -18006,6 +18006,12 @@ abstract class AppLocalizations {
   /// **'Running analysis failed. Try another clip with a clearer side view.'**
   String get runningCoachAnalysisFailedGeneric;
 
+  /// No description provided for @runningCoachLowerBodyEvidenceLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Foot-strike and knee readings are reference only. Contact evidence was limited, so they are not used for this score or next goal.'**
+  String get runningCoachLowerBodyEvidenceLimited;
+
   /// No description provided for @runningCoachResultsTitle.
   ///
   /// In en, this message translates to:

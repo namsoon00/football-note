@@ -10180,6 +10180,10 @@ class AppLocalizationsKo extends AppLocalizations {
       '달리기 분석에 실패했어요. 측면이 더 잘 보이는 영상으로 다시 시도해 주세요.';
 
   @override
+  String get runningCoachLowerBodyEvidenceLimited =>
+      '착지와 무릎 평가는 참고용이에요. 접지 근거가 부족해 이번 점수와 다음 목표에는 반영하지 않았어요.';
+
+  @override
   String get runningCoachResultsTitle => '코칭 결과';
 
   @override

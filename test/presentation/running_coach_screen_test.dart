@@ -1351,6 +1351,11 @@ void main() {
     );
     expect(find.text('Retake this clip'), findsOneWidget);
     expect(find.text('Evidence limited'), findsWidgets);
+    final limitedEvidenceNotice = find.byKey(
+      const ValueKey('running-coach-lower-body-evidence-limited'),
+    );
+    await tester.scrollUntilVisible(limitedEvidenceNotice, 300);
+    expect(limitedEvidenceNotice, findsOneWidget);
     expect(find.textContaining('Metric score 14'), findsNothing);
     expect(
       find.byKey(const ValueKey('running-coach-analysis-evidence-overlay')),

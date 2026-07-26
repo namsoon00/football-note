@@ -115,10 +115,16 @@ final class RunningPoseAnalysisChannel {
     let shoulderYs = frameSamples.map { Double($0.shoulderCenter.y) }
     let bounceRatio =
       ((shoulderYs.max() ?? 0) - (shoulderYs.min() ?? 0)) / averageScale
-    let candidateSet = deriveContactCandidateWindows(
+    let detectedCandidateSet = deriveContactCandidateWindows(
       from: frameSamples,
       durationMs: durationMs
     )
+    let candidateSet = detectedCandidateSet.windows.isEmpty
+      ? fallbackContactCandidateWindows(
+        from: frameSamples,
+        durationMs: durationMs
+      )
+      : detectedCandidateSet
     guard !candidateSet.windows.isEmpty else {
       throw insufficientContactEvidence(
         "coarseValid=\(frameSamples.count); candidates=0"
@@ -148,16 +154,33 @@ final class RunningPoseAnalysisChannel {
     )
     let uniqueContactFrameCount = Set(contactFrames.map(\.timestampMs)).count
     let usesContactProxy = uniqueContactFrameCount < Self.minimumValidatedContactFrames
-    let metricContactFrames = usesContactProxy
+    let denseContactProxyFrames: [ContactFrameAnalysis] = usesContactProxy
       ? contactProxyFrames(
         from: densePass.samples,
         windows: candidateSet.windows,
-        direction: direction
+        direction: direction,
+        confidencePenalty: Self.contactProxyConfidencePenalty
       )
-      : contactFrames
+      : []
+    let usesCoarseContactProxy =
+      usesContactProxy && denseContactProxyFrames.isEmpty
+    let contactProxySource = usesCoarseContactProxy ? "coarse" : "dense"
+    let metricContactFrames: [ContactFrameAnalysis]
+    if !usesContactProxy {
+      metricContactFrames = contactFrames
+    } else if !denseContactProxyFrames.isEmpty {
+      metricContactFrames = denseContactProxyFrames
+    } else {
+      metricContactFrames = contactProxyFrames(
+        from: frameSamples,
+        windows: candidateSet.windows,
+        direction: direction,
+        confidencePenalty: Self.coarseContactProxyConfidencePenalty
+      )
+    }
     guard !metricContactFrames.isEmpty else {
       throw insufficientContactEvidence(
-        "coarseValid=\(frameSamples.count); candidates=\(candidateSet.windows.count); denseValid=\(densePass.samples.count); contacts=\(uniqueContactFrameCount); proxies=0"
+        "coarseValid=\(frameSamples.count); candidates=\(candidateSet.windows.count); denseValid=\(densePass.samples.count); contacts=\(uniqueContactFrameCount); proxySource=\(contactProxySource); proxies=0"
       )
     }
     let footStrikeRatio =
@@ -603,6 +626,43 @@ final class RunningPoseAnalysisChannel {
     )
   }
 
+  private func fallbackContactCandidateWindows(
+    from samples: [FrameSample],
+    durationMs: Int
+  ) -> ContactCandidateSet {
+    let footBottoms = samples.flatMap { sample in
+      FootSide.allCases.compactMap { side in
+        sample.footBottom(side).map { evidence in (sample, evidence) }
+      }
+    }
+    guard let groundY = footBottoms.map({ Double($0.1.bottomPoint.y) }).max() else {
+      return ContactCandidateSet(windows: [], groundY: 0)
+    }
+
+    let windows = FootSide.allCases.compactMap { side -> ContactCandidate? in
+      let sideEvidence = samples.compactMap { sample in
+        sample.footBottom(side).map { evidence in (sample, evidence) }
+      }
+      guard let candidate = sideEvidence.max(by: {
+        $0.1.bottomPoint.y < $1.1.bottomPoint.y
+      }) else {
+        return nil
+      }
+      return ContactCandidate(
+        side: side,
+        centerTimestampMs: candidate.0.timestampMs,
+        startTimestampMs: max(0, candidate.0.timestampMs - Self.denseWindowRadiusMs),
+        endTimestampMs: min(durationMs, candidate.0.timestampMs + Self.denseWindowRadiusMs),
+        confidence: min(1.0, max(0.0, candidate.1.confidence))
+      )
+    }
+
+    return ContactCandidateSet(
+      windows: windows.sorted { $0.centerTimestampMs < $1.centerTimestampMs },
+      groundY: groundY
+    )
+  }
+
   private func denseTimestampsForContactWindows(
     _ windows: [ContactCandidate],
     durationMs: Int
@@ -679,7 +739,8 @@ final class RunningPoseAnalysisChannel {
   private func contactProxyFrames(
     from samples: [FrameSample],
     windows: [ContactCandidate],
-    direction: AnalysisDirection
+    direction: AnalysisDirection,
+    confidencePenalty: Double
   ) -> [ContactFrameAnalysis] {
     var selectedByTimestamp: [Int: ContactFrameAnalysis] = [:]
     for window in windows.sorted(by: { $0.centerTimestampMs < $1.centerTimestampMs }) {
@@ -716,7 +777,7 @@ final class RunningPoseAnalysisChannel {
               window.side,
               footEvidence: candidate.evidence
             )
-          ) * Self.contactProxyConfidencePenalty
+          ) * confidencePenalty
         )
       )
       let proxy = ContactFrameAnalysis(
@@ -1437,6 +1498,7 @@ final class RunningPoseAnalysisChannel {
   private static let minimumValidatedContactFrames = 2
   private static let minimumContactFrameConfidence = 0.34
   private static let contactProxyConfidencePenalty = 0.60
+  private static let coarseContactProxyConfidencePenalty = 0.42
   private static let coarseContactGroundToleranceRatio = 0.12
   private static let denseContactGroundToleranceRatio = 0.13
   private static let localFootExtremumToleranceRatio = 0.025

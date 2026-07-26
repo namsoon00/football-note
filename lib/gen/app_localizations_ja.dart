@@ -10164,6 +10164,10 @@ class AppLocalizationsJa extends AppLocalizations {
       '分析の実行に失敗しました。より鮮明な側面図を持つ別のクリップを試してください。';
 
   @override
+  String get runningCoachLowerBodyEvidenceLimited =>
+      '接地と膝の評価は参考値です。接地の根拠が不足しているため、今回のスコアと次の目標には反映していません。';
+
+  @override
   String get runningCoachResultsTitle => 'コーチング実績';
 
   @override

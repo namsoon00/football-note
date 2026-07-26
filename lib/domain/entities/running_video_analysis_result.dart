@@ -31,6 +31,7 @@ enum RunningCoachFinding {
 }
 
 const int mediaPipePoseLandmarkCount = 33;
+const double runningCoachReliableMetricConfidence = 0.65;
 
 class RunningVideoPoseLandmark {
   final int index;
@@ -659,6 +660,9 @@ class RunningMetricQuality {
   int get confidencePercent => (confidence.clamp(0.0, 1.0) * 100).round();
 
   bool get isLowConfidence => confidence < 0.6;
+
+  bool get isReliableForCoaching =>
+      confidence >= runningCoachReliableMetricConfidence;
 }
 
 class RunningCoachingInsight {
@@ -727,9 +731,12 @@ extension RunningCoachingReportInsights on RunningCoachingReport {
     final focus = focusInsights;
     if (focus.isNotEmpty) {
       final reliableFocus = focus
-          .where((insight) => !insight.quality.isLowConfidence)
+          .where((insight) => insight.quality.isReliableForCoaching)
           .toList(growable: false);
-      return reliableFocus.isNotEmpty ? reliableFocus.first : focus.first;
+      if (reliableFocus.isNotEmpty) {
+        return reliableFocus.first;
+      }
+      return focus.first;
     }
     final ranked = rankedInsights;
     return ranked.isEmpty ? null : ranked.first;
@@ -738,8 +745,19 @@ extension RunningCoachingReportInsights on RunningCoachingReport {
   Map<RunningCoachMetric, int> get focusPriorityByMetric {
     final priorities = <RunningCoachMetric, int>{};
     final focus = focusInsights;
-    for (var index = 0; index < focus.length; index += 1) {
-      priorities[focus[index].metric] = index + 1;
+    final reliableFocus = focus
+        .where((insight) => insight.quality.isReliableForCoaching)
+        .toList(growable: false);
+    final hasReliableMetrics = insights.any(
+      (insight) => insight.quality.isReliableForCoaching,
+    );
+    final prioritizedFocus = reliableFocus.isNotEmpty
+        ? reliableFocus
+        : hasReliableMetrics
+            ? const <RunningCoachingInsight>[]
+            : focus;
+    for (var index = 0; index < prioritizedFocus.length; index += 1) {
+      priorities[prioritizedFocus[index].metric] = index + 1;
     }
     return Map<RunningCoachMetric, int>.unmodifiable(priorities);
   }

@@ -128,7 +128,12 @@ class RunningPoseAnalysisChannel(
                 (shoulderYs.maxOrNull() ?: 0.0) -
                     (shoulderYs.minOrNull() ?: 0.0)
                 ) / averageScale
-            val candidateSet = deriveContactCandidateWindows(frameSamples, durationMs)
+            val detectedCandidateSet = deriveContactCandidateWindows(frameSamples, durationMs)
+            val candidateSet = if (detectedCandidateSet.windows.isEmpty()) {
+                fallbackContactCandidateWindows(frameSamples, durationMs)
+            } else {
+                detectedCandidateSet
+            }
             if (candidateSet.windows.isEmpty()) {
                 throw insufficientContactEvidence(
                     "coarseValid=${frameSamples.size}; candidates=0",
@@ -162,19 +167,34 @@ class RunningPoseAnalysisChannel(
                 .distinct()
                 .size
             val usesContactProxy = uniqueContactFrameCount < minimumValidatedContactFrames
-            val metricContactFrames = if (usesContactProxy) {
+            val denseContactProxyFrames = if (usesContactProxy) {
                 contactProxyFrames(
                     samples = densePass.samples,
                     windows = candidateSet.windows,
                     direction = direction,
+                    confidencePenalty = contactProxyConfidencePenalty,
                 )
             } else {
-                contactFrames
+                emptyList()
+            }
+            val usesCoarseContactProxy =
+                usesContactProxy && denseContactProxyFrames.isEmpty()
+            val contactProxySource = if (usesCoarseContactProxy) "coarse" else "dense"
+            val metricContactFrames = when {
+                !usesContactProxy -> contactFrames
+                denseContactProxyFrames.isNotEmpty() -> denseContactProxyFrames
+                else -> contactProxyFrames(
+                    samples = frameSamples,
+                    windows = candidateSet.windows,
+                    direction = direction,
+                    confidencePenalty = coarseContactProxyConfidencePenalty,
+                )
             }
             if (metricContactFrames.isEmpty()) {
                 throw insufficientContactEvidence(
                     "coarseValid=${frameSamples.size}; candidates=${candidateSet.windows.size}; " +
-                        "denseValid=${densePass.samples.size}; contacts=$uniqueContactFrameCount; proxies=0",
+                        "denseValid=${densePass.samples.size}; contacts=$uniqueContactFrameCount; " +
+                        "proxySource=$contactProxySource; proxies=0",
                 )
             }
 
@@ -548,6 +568,39 @@ class RunningPoseAnalysisChannel(
         )
     }
 
+    private fun fallbackContactCandidateWindows(
+        samples: List<FrameSample>,
+        durationMs: Long,
+    ): ContactCandidateSet {
+        val footBottoms = samples.flatMap { sample ->
+            FootSide.values().mapNotNull { side ->
+                sample.footBottom(side)?.let { evidence -> sample to evidence }
+            }
+        }
+        val groundY = footBottoms.maxOfOrNull { it.second.bottomPoint.y.toDouble() }
+            ?: return ContactCandidateSet(emptyList(), 0.0)
+        val windows = FootSide.values().mapNotNull { side ->
+            val candidate = samples
+                .mapNotNull { sample ->
+                    sample.footBottom(side)?.let { evidence -> sample to evidence }
+                }
+                .maxByOrNull { it.second.bottomPoint.y }
+                ?: return@mapNotNull null
+            val (sample, evidence) = candidate
+            ContactCandidate(
+                side = side,
+                centerTimestampMs = sample.timestampMs,
+                startTimestampMs = max(0L, sample.timestampMs - denseWindowRadiusMs),
+                endTimestampMs = min(durationMs, sample.timestampMs + denseWindowRadiusMs),
+                confidence = evidence.confidence.coerceIn(0.0, 1.0),
+            )
+        }
+        return ContactCandidateSet(
+            windows = windows.sortedBy { it.centerTimestampMs },
+            groundY = groundY,
+        )
+    }
+
     private fun denseTimestampsForContactWindows(
         windows: List<ContactCandidate>,
         durationMs: Long,
@@ -616,6 +669,7 @@ class RunningPoseAnalysisChannel(
         samples: List<FrameSample>,
         windows: List<ContactCandidate>,
         direction: AnalysisDirection,
+        confidencePenalty: Double,
     ): List<ContactFrameAnalysis> {
         val selectedByTimestamp = TreeMap<Long, ContactFrameAnalysis>()
         for (window in windows.sortedBy { it.centerTimestampMs }) {
@@ -637,7 +691,7 @@ class RunningPoseAnalysisChannel(
             val (sample, evidence) = candidate
             val confidence = (
                 min(window.confidence, sample.contactLandmarkConfidence(window.side, evidence)) *
-                    contactProxyConfidencePenalty
+                    confidencePenalty
                 ).coerceIn(0.0, 1.0)
             val proxy = ContactFrameAnalysis(
                 timestampMs = sample.timestampMs,
@@ -1423,6 +1477,7 @@ class RunningPoseAnalysisChannel(
         private const val minimumValidatedContactFrames = 2
         private const val minimumContactFrameConfidence = 0.34
         private const val contactProxyConfidencePenalty = 0.60
+        private const val coarseContactProxyConfidencePenalty = 0.42
         private const val coarseContactGroundToleranceRatio = 0.12
         private const val denseContactGroundToleranceRatio = 0.13
         private const val localFootExtremumToleranceRatio = 0.025

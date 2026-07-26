@@ -159,6 +159,53 @@ void main() {
     expect(report.primaryFocus?.quality.isLowConfidence, isFalse);
   });
 
+  test('excludes low-confidence contact proxies from score and next goal', () {
+    const result = RunningVideoAnalysisResult(
+      videoDuration: Duration(seconds: 6),
+      sampledFrames: 14,
+      validFrames: 14,
+      direction: RunningDirection.leftToRight,
+      forwardLeanDegrees: 10,
+      verticalBounceRatio: 0.06,
+      footStrikeDistanceRatio: 0.5,
+      stanceKneeAngleDegrees: 180,
+      elbowAngleDegrees: 90,
+      metricQualities: <RunningCoachMetric, RunningMetricQuality>{
+        RunningCoachMetric.posture: RunningMetricQuality(
+          confidence: 0.88,
+          sampleCount: 14,
+        ),
+        RunningCoachMetric.bounce: RunningMetricQuality(
+          confidence: 0.88,
+          sampleCount: 14,
+        ),
+        RunningCoachMetric.footStrike: RunningMetricQuality(
+          confidence: 0.42,
+          sampleCount: 2,
+          reason: 'contact_phase_proxy',
+        ),
+        RunningCoachMetric.kneeFlexion: RunningMetricQuality(
+          confidence: 0.42,
+          sampleCount: 2,
+          reason: 'contact_phase_proxy',
+        ),
+        RunningCoachMetric.armCarriage: RunningMetricQuality(
+          confidence: 0.88,
+          sampleCount: 14,
+        ),
+      },
+    );
+
+    final report = service.buildReport(result);
+
+    expect(report.overallScore, 100);
+    expect(report.primaryFocus?.metric, RunningCoachMetric.footStrike);
+    expect(report.primaryFocus?.quality.isReliableForCoaching, isFalse);
+    expect(report.focusPriorityByMetric[RunningCoachMetric.footStrike], isNull);
+    expect(
+        report.focusPriorityByMetric[RunningCoachMetric.kneeFlexion], isNull);
+  });
+
   test('custom thresholds can tune the coaching report', () {
     const tunedService = RunningCoachingService(
       thresholds: RunningCoachingThresholds(maximumFootStrikeRatio: 0.12),
