@@ -1099,6 +1099,31 @@ class MatchCompetitionService {
     return List<CompetitionScheduleIssue>.unmodifiable(issues);
   }
 
+  static Map<String, List<String>> scheduleIssueTypesByFixture({
+    required MatchCompetitionRecord competition,
+    int minimumRestDays = 2,
+  }) {
+    final typesByFixture = <String, List<String>>{};
+    for (final issue in scheduleIssues(
+      competition: competition,
+      minimumRestDays: minimumRestDays,
+    )) {
+      for (final fixtureId in issue.fixtureIds) {
+        final fixtureTypes = typesByFixture.putIfAbsent(
+          fixtureId,
+          () => <String>[],
+        );
+        if (!fixtureTypes.contains(issue.type)) {
+          fixtureTypes.add(issue.type);
+        }
+      }
+    }
+    return Map<String, List<String>>.unmodifiable({
+      for (final entry in typesByFixture.entries)
+        entry.key: List<String>.unmodifiable(entry.value),
+    });
+  }
+
   static List<CompetitionFixture> normalizeFixtures(
     Iterable<CompetitionFixture> fixtures,
   ) {

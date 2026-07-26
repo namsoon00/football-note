@@ -851,6 +851,7 @@ class _CompetitionDetailScreenState extends State<_CompetitionDetailScreen> {
             entries: entries,
             ownTeamName: ownTeamName,
             onOpenFixture: widget.readOnly ? null : _openFixture,
+            onOpenScheduleBoard: () => _openScheduleBoard(entries),
           );
     final teamsPanel = _CompetitionTeamsPreview(
       teams: effectiveRecord.teams,
@@ -863,7 +864,7 @@ class _CompetitionDetailScreenState extends State<_CompetitionDetailScreen> {
       accent: accent,
       onOpenFixture: widget.readOnly ? null : _openFixture,
       onOpenSchedulePlanner: widget.readOnly ? null : _openSchedulePlanner,
-      onOpenScheduleBoard: _openScheduleBoard,
+      onOpenScheduleBoard: () => _openScheduleBoard(entries),
       onQuickRecord: widget.readOnly || !isLeague ? null : _quickRecordFixture,
     );
 
@@ -1025,12 +1026,13 @@ class _CompetitionDetailScreenState extends State<_CompetitionDetailScreen> {
     setState(() => _record = updated);
   }
 
-  Future<void> _openScheduleBoard() async {
+  Future<void> _openScheduleBoard(List<TrainingEntry> entries) async {
     final updated = await Navigator.of(context).push<MatchCompetitionRecord>(
       AppPageRoute(
         builder: (_) => _CompetitionScheduleBoardScreen(
           service: widget.competitionService,
           competition: _record,
+          entries: entries,
           readOnly: widget.readOnly,
         ),
       ),
@@ -1408,6 +1410,10 @@ class _CompetitionFixturesPreview extends StatelessWidget {
     final scheduleIssues = MatchCompetitionService.scheduleIssues(
       competition: record,
     );
+    final scheduleIssueTypesByFixture =
+        MatchCompetitionService.scheduleIssueTypesByFixture(
+      competition: record,
+    );
     final scheduledCount = fixtures
         .where(
           (fixture) =>
@@ -1480,6 +1486,7 @@ class _CompetitionFixturesPreview extends StatelessWidget {
                           ),
                     fixtures: round.value,
                     accent: accent,
+                    scheduleIssueTypesByFixture: scheduleIssueTypesByFixture,
                     onOpenFixture: onOpenFixture,
                     onQuickRecord: onQuickRecord,
                   ),
@@ -1625,16 +1632,6 @@ class _CompetitionScheduleIssuesPanel extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    String issueLabel(CompetitionScheduleIssue issue) {
-      return switch (issue.type) {
-        CompetitionScheduleIssue.typeVenueOverlap =>
-          l10n.matchCompetitionScheduleIssueVenueOverlap,
-        CompetitionScheduleIssue.typeTeamOverlap =>
-          l10n.matchCompetitionScheduleIssueTeamOverlap,
-        _ => l10n.matchCompetitionScheduleIssueShortRest,
-      };
-    }
-
     return Container(
       padding: const EdgeInsets.all(AppSpacing.sm),
       decoration: BoxDecoration(
@@ -1660,7 +1657,13 @@ class _CompetitionScheduleIssuesPanel extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  issues.map(issueLabel).toSet().join(' · '),
+                  issues
+                      .map((issue) => _competitionScheduleIssueLabel(
+                            l10n,
+                            issue.type,
+                          ))
+                      .toSet()
+                      .join(' · '),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.labelSmall?.copyWith(
@@ -1677,10 +1680,34 @@ class _CompetitionScheduleIssuesPanel extends StatelessWidget {
   }
 }
 
+String _competitionScheduleIssueLabel(
+  AppLocalizations l10n,
+  String type,
+) {
+  return switch (type) {
+    CompetitionScheduleIssue.typeVenueOverlap =>
+      l10n.matchCompetitionScheduleIssueVenueOverlap,
+    CompetitionScheduleIssue.typeTeamOverlap =>
+      l10n.matchCompetitionScheduleIssueTeamOverlap,
+    _ => l10n.matchCompetitionScheduleIssueShortRest,
+  };
+}
+
+String _competitionScheduleIssueDescription(
+  AppLocalizations l10n,
+  Iterable<String> types,
+) {
+  return types
+      .map((type) => _competitionScheduleIssueLabel(l10n, type))
+      .toSet()
+      .join('\n');
+}
+
 class _CompetitionFixtureRoundGroup extends StatelessWidget {
   final String label;
   final List<CompetitionFixtureState> fixtures;
   final Color accent;
+  final Map<String, List<String>> scheduleIssueTypesByFixture;
   final ValueChanged<CompetitionFixtureState>? onOpenFixture;
   final CompetitionFixtureQuickRecordHandler? onQuickRecord;
 
@@ -1688,6 +1715,7 @@ class _CompetitionFixtureRoundGroup extends StatelessWidget {
     required this.label,
     required this.fixtures,
     required this.accent,
+    required this.scheduleIssueTypesByFixture,
     this.onOpenFixture,
     this.onQuickRecord,
   });
@@ -1733,6 +1761,9 @@ class _CompetitionFixtureRoundGroup extends StatelessWidget {
                     fixture: item.$2,
                     showDivider: item.$1 < fixtures.length - 1,
                     dividerColor: scheme.outlineVariant,
+                    scheduleIssueTypes:
+                        scheduleIssueTypesByFixture[item.$2.fixture.id] ??
+                            const <String>[],
                     onOpenFixture: onOpenFixture,
                     onQuickRecord: onQuickRecord,
                   ),
@@ -1749,6 +1780,7 @@ class _CompetitionFixtureRow extends StatefulWidget {
   final CompetitionFixtureState fixture;
   final bool showDivider;
   final Color dividerColor;
+  final List<String> scheduleIssueTypes;
   final ValueChanged<CompetitionFixtureState>? onOpenFixture;
   final CompetitionFixtureQuickRecordHandler? onQuickRecord;
 
@@ -1756,6 +1788,7 @@ class _CompetitionFixtureRow extends StatefulWidget {
     required this.fixture,
     required this.showDivider,
     required this.dividerColor,
+    required this.scheduleIssueTypes,
     this.onOpenFixture,
     this.onQuickRecord,
   });
@@ -1819,6 +1852,7 @@ class _CompetitionFixtureRowState extends State<_CompetitionFixtureRow> {
     final statusLabel = _fixtureStatusLabel(l10n, fixture);
     final statusColor = _fixtureStatusColor(context, fixture);
     final canOpen = widget.onOpenFixture != null;
+    final hasScheduleIssue = widget.scheduleIssueTypes.isNotEmpty;
     final canQuickRecord = widget.onQuickRecord != null &&
         fixture.competition.kind == MatchCompetitionRecord.kindLeague &&
         fixture.isReady &&
@@ -1902,6 +1936,29 @@ class _CompetitionFixtureRowState extends State<_CompetitionFixtureRow> {
                             label: statusLabel,
                             color: statusColor,
                           ),
+                          if (hasScheduleIssue) ...[
+                            const SizedBox(width: AppSpacing.xs),
+                            Tooltip(
+                              message: _competitionScheduleIssueDescription(
+                                l10n,
+                                widget.scheduleIssueTypes,
+                              ),
+                              child: Semantics(
+                                label: _competitionScheduleIssueDescription(
+                                  l10n,
+                                  widget.scheduleIssueTypes,
+                                ),
+                                child: Icon(
+                                  key: ValueKey(
+                                    'competition-fixture-warning-${fixture.fixture.id}',
+                                  ),
+                                  Icons.warning_amber_rounded,
+                                  color: scheme.error,
+                                  size: 18,
+                                ),
+                              ),
+                            ),
+                          ],
                           const SizedBox(width: AppSpacing.xs),
                           Expanded(
                             child: Text(
@@ -2436,12 +2493,14 @@ class _TournamentOperationsPreview extends StatefulWidget {
   final List<TrainingEntry> entries;
   final String ownTeamName;
   final ValueChanged<CompetitionFixtureState>? onOpenFixture;
+  final VoidCallback? onOpenScheduleBoard;
 
   const _TournamentOperationsPreview({
     required this.record,
     required this.entries,
     required this.ownTeamName,
     this.onOpenFixture,
+    this.onOpenScheduleBoard,
   });
 
   @override
@@ -2575,6 +2634,14 @@ class _TournamentOperationsPreviewState
                     ? null
                     : () => unawaited(_shareBracketImage()),
                 maxLabelWidth: 54,
+              ),
+              AppBarActionButton.icon(
+                key: const ValueKey('competition-tournament-schedule-board'),
+                icon: Icons.calendar_view_week_outlined,
+                tooltip: l10n.matchCompetitionScheduleBoardAction,
+                onPressed:
+                    bracket.rounds.isEmpty ? null : widget.onOpenScheduleBoard,
+                margin: EdgeInsets.zero,
               ),
               AppBarActionButton.icon(
                 key: const ValueKey('competition-tournament-expand-button'),
@@ -4775,11 +4842,13 @@ class _SchedulePlanPreviewRow extends StatelessWidget {
 class _CompetitionScheduleBoardScreen extends StatefulWidget {
   final MatchCompetitionService service;
   final MatchCompetitionRecord competition;
+  final List<TrainingEntry> entries;
   final bool readOnly;
 
   const _CompetitionScheduleBoardScreen({
     required this.service,
     required this.competition,
+    required this.entries,
     required this.readOnly,
   });
 
@@ -4885,7 +4954,26 @@ class _CompetitionScheduleBoardScreenState
       final key = _calendarDateKey(scheduledAt);
       (fixturesByDate[key] ??= <CompetitionFixture>[]).add(fixture);
     }
+    for (final fixtures in fixturesByDate.values) {
+      fixtures.sort((first, second) {
+        final scheduledCompare =
+            first.scheduledAt!.compareTo(second.scheduledAt!);
+        if (scheduledCompare != 0) return scheduledCompare;
+        return first.slotNumber.compareTo(second.slotNumber);
+      });
+    }
+    final fixtureStatesById = <String, CompetitionFixtureState>{
+      for (final state in MatchCompetitionService.resolveFixtureStates(
+        competition: _record,
+        entries: widget.entries,
+      ))
+        state.fixture.id: state,
+    };
     final issues = MatchCompetitionService.scheduleIssues(competition: _record);
+    final scheduleIssueTypesByFixture =
+        MatchCompetitionService.scheduleIssueTypesByFixture(
+      competition: _record,
+    );
 
     return PopScope(
       canPop: _allowPop,
@@ -5004,6 +5092,9 @@ class _CompetitionScheduleBoardScreenState
                                             _calendarDateKey(date)] ??
                                         const <CompetitionFixture>[],
                                     accent: accent,
+                                    scheduleIssueTypesByFixture:
+                                        scheduleIssueTypesByFixture,
+                                    fixtureStatesById: fixtureStatesById,
                                     readOnly: widget.readOnly || _saving,
                                     onMoveFixture: _moveFixture,
                                   ),
@@ -5032,6 +5123,12 @@ class _CompetitionScheduleBoardScreenState
                                   width: 180,
                                   child: _CompetitionScheduleBoardFixtureCard(
                                     fixture: fixture,
+                                    scheduleIssueTypes:
+                                        scheduleIssueTypesByFixture[
+                                                fixture.id] ??
+                                            const <String>[],
+                                    resolvedFixture:
+                                        fixtureStatesById[fixture.id],
                                     readOnly: widget.readOnly || _saving,
                                   ),
                                 ),
@@ -5059,6 +5156,8 @@ class _CompetitionScheduleBoardDay extends StatelessWidget {
   final DateTime date;
   final List<CompetitionFixture> fixtures;
   final Color accent;
+  final Map<String, List<String>> scheduleIssueTypesByFixture;
+  final Map<String, CompetitionFixtureState> fixtureStatesById;
   final bool readOnly;
   final Future<void> Function(CompetitionFixture fixture, DateTime targetDate)
       onMoveFixture;
@@ -5068,6 +5167,8 @@ class _CompetitionScheduleBoardDay extends StatelessWidget {
     required this.date,
     required this.fixtures,
     required this.accent,
+    required this.scheduleIssueTypesByFixture,
+    required this.fixtureStatesById,
     required this.readOnly,
     required this.onMoveFixture,
   });
@@ -5137,6 +5238,11 @@ class _CompetitionScheduleBoardDay extends StatelessWidget {
                         itemBuilder: (context, index) =>
                             _CompetitionScheduleBoardFixtureCard(
                           fixture: fixtures[index],
+                          scheduleIssueTypes:
+                              scheduleIssueTypesByFixture[fixtures[index].id] ??
+                                  const <String>[],
+                          resolvedFixture:
+                              fixtureStatesById[fixtures[index].id],
                           readOnly: readOnly,
                         ),
                       ),
@@ -5151,10 +5257,14 @@ class _CompetitionScheduleBoardDay extends StatelessWidget {
 
 class _CompetitionScheduleBoardFixtureCard extends StatelessWidget {
   final CompetitionFixture fixture;
+  final List<String> scheduleIssueTypes;
+  final CompetitionFixtureState? resolvedFixture;
   final bool readOnly;
 
   const _CompetitionScheduleBoardFixtureCard({
     required this.fixture,
+    this.scheduleIssueTypes = const <String>[],
+    this.resolvedFixture,
     required this.readOnly,
   });
 
@@ -5163,14 +5273,19 @@ class _CompetitionScheduleBoardFixtureCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final score = fixture.hasResult
-        ? '${fixture.homeScore ?? '-'} : ${fixture.awayScore ?? '-'}'
+    final homeTeam = resolvedFixture?.homeTeam ?? fixture.homeTeam;
+    final awayTeam = resolvedFixture?.awayTeam ?? fixture.awayTeam;
+    final isRecorded = resolvedFixture?.isRecorded ?? fixture.hasResult;
+    final score = isRecorded
+        ? '${resolvedFixture?.homeScore ?? fixture.homeScore ?? '-'} : '
+            '${resolvedFixture?.awayScore ?? fixture.awayScore ?? '-'}'
         : l10n.matchCompetitionFixtureVersus;
     final time = fixture.scheduledAt == null
         ? l10n.matchCompetitionFixtureUnscheduled
         : MaterialLocalizations.of(
             context,
           ).formatTimeOfDay(TimeOfDay.fromDateTime(fixture.scheduledAt!));
+    final hasScheduleIssue = scheduleIssueTypes.isNotEmpty;
     Widget buildCard({bool withKey = false}) {
       return Container(
         key: withKey
@@ -5178,25 +5293,55 @@ class _CompetitionScheduleBoardFixtureCard extends StatelessWidget {
             : null,
         padding: const EdgeInsets.all(AppSpacing.xs),
         decoration: BoxDecoration(
-          color: scheme.surface,
+          color: hasScheduleIssue
+              ? scheme.errorContainer.withValues(alpha: 0.38)
+              : scheme.surface,
           borderRadius: AppRadius.small,
-          border: Border.all(color: scheme.outlineVariant),
+          border: Border.all(
+            color: hasScheduleIssue ? scheme.error : scheme.outlineVariant,
+            width: hasScheduleIssue ? 2 : 1,
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              time,
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: scheme.onSurfaceVariant,
-                fontWeight: FontWeight.w700,
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    time,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                if (hasScheduleIssue)
+                  Tooltip(
+                    message: _competitionScheduleIssueDescription(
+                      l10n,
+                      scheduleIssueTypes,
+                    ),
+                    child: Semantics(
+                      label: _competitionScheduleIssueDescription(
+                        l10n,
+                        scheduleIssueTypes,
+                      ),
+                      child: Icon(
+                        key: ValueKey(
+                          'competition-schedule-card-warning-${fixture.id}',
+                        ),
+                        Icons.warning_amber_rounded,
+                        color: scheme.error,
+                        size: 16,
+                      ),
+                    ),
+                  ),
+              ],
             ),
             const SizedBox(height: 2),
             Text(
-              fixture.homeTeam.isEmpty
-                  ? l10n.matchCompetitionFixtureTbd
-                  : fixture.homeTeam,
+              homeTeam.isEmpty ? l10n.matchCompetitionFixtureTbd : homeTeam,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: theme.textTheme.labelMedium?.copyWith(
@@ -5208,16 +5353,14 @@ class _CompetitionScheduleBoardFixtureCard extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: theme.textTheme.labelMedium?.copyWith(
-                color: fixture.hasResult
+                color: isRecorded
                     ? _competitionPositiveColor(context)
                     : scheme.onSurfaceVariant,
                 fontWeight: FontWeight.w900,
               ),
             ),
             Text(
-              fixture.awayTeam.isEmpty
-                  ? l10n.matchCompetitionFixtureTbd
-                  : fixture.awayTeam,
+              awayTeam.isEmpty ? l10n.matchCompetitionFixtureTbd : awayTeam,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: theme.textTheme.labelMedium?.copyWith(
