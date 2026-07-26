@@ -16496,4 +16496,102 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get matchCompetitionParticipantTeamColumn => 'Team';
+
+  @override
+  String get matchCompetitionLeagueTieBreakerLabel => 'Tiebreak rule';
+
+  @override
+  String get matchCompetitionTieBreakerGoalDifference =>
+      'Points, goal difference, goals scored';
+
+  @override
+  String get matchCompetitionTieBreakerWins => 'Points, wins, goal difference';
+
+  @override
+  String get matchCompetitionTieBreakerGoalsFor =>
+      'Points, goals scored, goal difference';
+
+  @override
+  String get matchCompetitionRebuildDialogTitle =>
+      'Rebuild fixtures and bracket?';
+
+  @override
+  String matchCompetitionRebuildDialogBody(int fixtures, int results) {
+    return 'This rebuilds $fixtures fixtures for the new setup. $results recorded results may be cleared.';
+  }
+
+  @override
+  String get matchCompetitionRebuildConfirm => 'Rebuild';
+
+  @override
+  String get matchCompetitionRebuildFeedback =>
+      'Fixtures and bracket were rebuilt.';
+
+  @override
+  String get matchCompetitionRebuildUndoneFeedback =>
+      'Restored the previous fixtures and bracket.';
+
+  @override
+  String get matchCompetitionScheduleBoardAction => 'Schedule board';
+
+  @override
+  String get matchCompetitionScheduleBoardTitle => 'Schedule board';
+
+  @override
+  String get matchCompetitionSchedulePreviousWeekTooltip => 'Previous week';
+
+  @override
+  String get matchCompetitionScheduleNextWeekTooltip => 'Next week';
+
+  @override
+  String get matchCompetitionScheduleUnscheduledLane => 'Unscheduled matches';
+
+  @override
+  String get matchCompetitionFixtureMovedFeedback =>
+      'Moved the match schedule.';
+
+  @override
+  String matchCompetitionScheduleIssuesCount(int count) {
+    return '$count items need attention';
+  }
+
+  @override
+  String get matchCompetitionScheduleIssueVenueOverlap => 'Venue conflict';
+
+  @override
+  String get matchCompetitionScheduleIssueTeamOverlap =>
+      'Team plays twice on the same day';
+
+  @override
+  String get matchCompetitionScheduleIssueShortRest =>
+      'Insufficient rest between matches';
+
+  @override
+  String matchCompetitionScheduleWeekRange(Object start, Object end) {
+    return '$start - $end';
+  }
+
+  @override
+  String get matchCompetitionQuickResultAction => 'Quick result entry';
+
+  @override
+  String get matchCompetitionQuickResultSave => 'Save result';
+
+  @override
+  String get matchCompetitionQuickResultCancel => 'Close result entry';
+
+  @override
+  String get matchCompetitionProgressRemaining => 'Remaining matches';
+
+  @override
+  String get matchCompetitionProgressNextMatches => 'Next matches';
+
+  @override
+  String get matchCompetitionProgressChampion => 'Champion';
+
+  @override
+  String get matchCompetitionProgressLeader => 'Current leader';
+
+  @override
+  String get matchCompetitionProgressAdvanced => 'Advancement confirmed';
 }

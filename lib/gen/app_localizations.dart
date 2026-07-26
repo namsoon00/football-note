@@ -28152,6 +28152,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Team'**
   String get matchCompetitionParticipantTeamColumn;
+
+  /// No description provided for @matchCompetitionLeagueTieBreakerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tiebreak rule'**
+  String get matchCompetitionLeagueTieBreakerLabel;
+
+  /// No description provided for @matchCompetitionTieBreakerGoalDifference.
+  ///
+  /// In en, this message translates to:
+  /// **'Points, goal difference, goals scored'**
+  String get matchCompetitionTieBreakerGoalDifference;
+
+  /// No description provided for @matchCompetitionTieBreakerWins.
+  ///
+  /// In en, this message translates to:
+  /// **'Points, wins, goal difference'**
+  String get matchCompetitionTieBreakerWins;
+
+  /// No description provided for @matchCompetitionTieBreakerGoalsFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Points, goals scored, goal difference'**
+  String get matchCompetitionTieBreakerGoalsFor;
+
+  /// No description provided for @matchCompetitionRebuildDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rebuild fixtures and bracket?'**
+  String get matchCompetitionRebuildDialogTitle;
+
+  /// No description provided for @matchCompetitionRebuildDialogBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This rebuilds {fixtures} fixtures for the new setup. {results} recorded results may be cleared.'**
+  String matchCompetitionRebuildDialogBody(int fixtures, int results);
+
+  /// No description provided for @matchCompetitionRebuildConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Rebuild'**
+  String get matchCompetitionRebuildConfirm;
+
+  /// No description provided for @matchCompetitionRebuildFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixtures and bracket were rebuilt.'**
+  String get matchCompetitionRebuildFeedback;
+
+  /// No description provided for @matchCompetitionRebuildUndoneFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Restored the previous fixtures and bracket.'**
+  String get matchCompetitionRebuildUndoneFeedback;
+
+  /// No description provided for @matchCompetitionScheduleBoardAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule board'**
+  String get matchCompetitionScheduleBoardAction;
+
+  /// No description provided for @matchCompetitionScheduleBoardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule board'**
+  String get matchCompetitionScheduleBoardTitle;
+
+  /// No description provided for @matchCompetitionSchedulePreviousWeekTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous week'**
+  String get matchCompetitionSchedulePreviousWeekTooltip;
+
+  /// No description provided for @matchCompetitionScheduleNextWeekTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Next week'**
+  String get matchCompetitionScheduleNextWeekTooltip;
+
+  /// No description provided for @matchCompetitionScheduleUnscheduledLane.
+  ///
+  /// In en, this message translates to:
+  /// **'Unscheduled matches'**
+  String get matchCompetitionScheduleUnscheduledLane;
+
+  /// No description provided for @matchCompetitionFixtureMovedFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Moved the match schedule.'**
+  String get matchCompetitionFixtureMovedFeedback;
+
+  /// No description provided for @matchCompetitionScheduleIssuesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} items need attention'**
+  String matchCompetitionScheduleIssuesCount(int count);
+
+  /// No description provided for @matchCompetitionScheduleIssueVenueOverlap.
+  ///
+  /// In en, this message translates to:
+  /// **'Venue conflict'**
+  String get matchCompetitionScheduleIssueVenueOverlap;
+
+  /// No description provided for @matchCompetitionScheduleIssueTeamOverlap.
+  ///
+  /// In en, this message translates to:
+  /// **'Team plays twice on the same day'**
+  String get matchCompetitionScheduleIssueTeamOverlap;
+
+  /// No description provided for @matchCompetitionScheduleIssueShortRest.
+  ///
+  /// In en, this message translates to:
+  /// **'Insufficient rest between matches'**
+  String get matchCompetitionScheduleIssueShortRest;
+
+  /// No description provided for @matchCompetitionScheduleWeekRange.
+  ///
+  /// In en, this message translates to:
+  /// **'{start} - {end}'**
+  String matchCompetitionScheduleWeekRange(Object start, Object end);
+
+  /// No description provided for @matchCompetitionQuickResultAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick result entry'**
+  String get matchCompetitionQuickResultAction;
+
+  /// No description provided for @matchCompetitionQuickResultSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save result'**
+  String get matchCompetitionQuickResultSave;
+
+  /// No description provided for @matchCompetitionQuickResultCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Close result entry'**
+  String get matchCompetitionQuickResultCancel;
+
+  /// No description provided for @matchCompetitionProgressRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining matches'**
+  String get matchCompetitionProgressRemaining;
+
+  /// No description provided for @matchCompetitionProgressNextMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'Next matches'**
+  String get matchCompetitionProgressNextMatches;
+
+  /// No description provided for @matchCompetitionProgressChampion.
+  ///
+  /// In en, this message translates to:
+  /// **'Champion'**
+  String get matchCompetitionProgressChampion;
+
+  /// No description provided for @matchCompetitionProgressLeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Current leader'**
+  String get matchCompetitionProgressLeader;
+
+  /// No description provided for @matchCompetitionProgressAdvanced.
+  ///
+  /// In en, this message translates to:
+  /// **'Advancement confirmed'**
+  String get matchCompetitionProgressAdvanced;
 }
 
 class _AppLocalizationsDelegate

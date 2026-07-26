@@ -9235,5 +9235,50 @@
   "matchCompetitionStandingsGoalDifferenceColumn": "得失",
   "matchCompetitionStandingsPointsColumn": "勝点",
   "matchCompetitionParticipantOrderColumn": "順番",
-  "matchCompetitionParticipantTeamColumn": "参加チーム"
+  "matchCompetitionParticipantTeamColumn": "参加チーム",
+  "matchCompetitionLeagueTieBreakerLabel": "同率順位の基準",
+  "matchCompetitionTieBreakerGoalDifference": "勝点、得失点差、総得点",
+  "matchCompetitionTieBreakerWins": "勝点、勝利数、得失点差",
+  "matchCompetitionTieBreakerGoalsFor": "勝点、総得点、得失点差",
+  "matchCompetitionRebuildDialogTitle": "日程と組み合わせを組み直しますか？",
+  "matchCompetitionRebuildDialogBody": "変更後の構成に合わせて{fixtures}試合を組み直します。記録済みの結果{results}件が初期化される場合があります。",
+  "@matchCompetitionRebuildDialogBody": {
+    "placeholders": {
+      "fixtures": { "type": "int" },
+      "results": { "type": "int" }
+    }
+  },
+  "matchCompetitionRebuildConfirm": "組み直す",
+  "matchCompetitionRebuildFeedback": "日程と組み合わせを組み直しました。",
+  "matchCompetitionRebuildUndoneFeedback": "以前の日程と組み合わせに戻しました。",
+  "matchCompetitionScheduleBoardAction": "日程ボード",
+  "matchCompetitionScheduleBoardTitle": "日程ボード",
+  "matchCompetitionSchedulePreviousWeekTooltip": "前の週",
+  "matchCompetitionScheduleNextWeekTooltip": "次の週",
+  "matchCompetitionScheduleUnscheduledLane": "日程未定の試合",
+  "matchCompetitionFixtureMovedFeedback": "試合日程を移動しました。",
+  "matchCompetitionScheduleIssuesCount": "確認が必要な項目 {count}件",
+  "@matchCompetitionScheduleIssuesCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "matchCompetitionScheduleIssueVenueOverlap": "会場の予定が重複しています",
+  "matchCompetitionScheduleIssueTeamOverlap": "同じ日に同じチームの試合があります",
+  "matchCompetitionScheduleIssueShortRest": "試合間の休息日が不足しています",
+  "matchCompetitionScheduleWeekRange": "{start} - {end}",
+  "@matchCompetitionScheduleWeekRange": {
+    "placeholders": {
+      "start": {},
+      "end": {}
+    }
+  },
+  "matchCompetitionQuickResultAction": "結果をすぐ入力",
+  "matchCompetitionQuickResultSave": "結果を保存",
+  "matchCompetitionQuickResultCancel": "結果入力を閉じる",
+  "matchCompetitionProgressRemaining": "残り試合",
+  "matchCompetitionProgressNextMatches": "次の試合",
+  "matchCompetitionProgressChampion": "優勝確定",
+  "matchCompetitionProgressLeader": "現在の首位",
+  "matchCompetitionProgressAdvanced": "勝ち上がり確定"
 }

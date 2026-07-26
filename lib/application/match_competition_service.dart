@@ -9,6 +9,9 @@ class MatchCompetitionRecord {
   static const String kindTournament = 'tournament';
   static const String statusActive = 'active';
   static const String statusFinished = 'finished';
+  static const String tieBreakerGoalDifference = 'goal_difference';
+  static const String tieBreakerWins = 'wins';
+  static const String tieBreakerGoalsFor = 'goals_for';
 
   final String id;
   final String kind;
@@ -20,6 +23,7 @@ class MatchCompetitionRecord {
   final String organizer;
   final String note;
   final int leagueLegs;
+  final String leagueTieBreaker;
   final DateTime? fixtureStartDate;
   final int fixtureIntervalDays;
   final List<CompetitionFixture> fixtures;
@@ -37,6 +41,7 @@ class MatchCompetitionRecord {
     this.organizer = '',
     this.note = '',
     this.leagueLegs = 1,
+    this.leagueTieBreaker = tieBreakerGoalDifference,
     this.fixtureStartDate,
     this.fixtureIntervalDays = 7,
     this.fixtures = const <CompetitionFixture>[],
@@ -56,6 +61,7 @@ class MatchCompetitionRecord {
     String organizer = '',
     String note = '',
     int leagueLegs = 1,
+    String leagueTieBreaker = tieBreakerGoalDifference,
     DateTime? fixtureStartDate,
     int fixtureIntervalDays = 7,
     List<CompetitionFixture> fixtures = const <CompetitionFixture>[],
@@ -73,6 +79,9 @@ class MatchCompetitionRecord {
       organizer: organizer.trim(),
       note: note.trim(),
       leagueLegs: MatchCompetitionService.normalizeLeagueLegs(leagueLegs),
+      leagueTieBreaker: MatchCompetitionService.normalizeLeagueTieBreaker(
+        leagueTieBreaker,
+      ),
       fixtureStartDate: fixtureStartDate,
       fixtureIntervalDays:
           MatchCompetitionService.normalizeFixtureInterval(fixtureIntervalDays),
@@ -120,6 +129,9 @@ class MatchCompetitionRecord {
       leagueLegs: MatchCompetitionService.normalizeLeagueLegs(
         (map['leagueLegs'] as num?)?.toInt() ?? 1,
       ),
+      leagueTieBreaker: MatchCompetitionService.normalizeLeagueTieBreaker(
+        map['leagueTieBreaker']?.toString() ?? '',
+      ),
       fixtureStartDate: DateTime.tryParse(
         map['fixtureStartDate']?.toString() ?? '',
       ),
@@ -143,6 +155,7 @@ class MatchCompetitionRecord {
     String? organizer,
     String? note,
     int? leagueLegs,
+    String? leagueTieBreaker,
     DateTime? fixtureStartDate,
     bool clearFixtureStartDate = false,
     int? fixtureIntervalDays,
@@ -164,6 +177,9 @@ class MatchCompetitionRecord {
       note: note?.trim() ?? this.note,
       leagueLegs: MatchCompetitionService.normalizeLeagueLegs(
         leagueLegs ?? this.leagueLegs,
+      ),
+      leagueTieBreaker: MatchCompetitionService.normalizeLeagueTieBreaker(
+        leagueTieBreaker ?? this.leagueTieBreaker,
       ),
       fixtureStartDate: clearFixtureStartDate
           ? null
@@ -191,6 +207,7 @@ class MatchCompetitionRecord {
       'organizer': organizer,
       'note': note,
       'leagueLegs': leagueLegs,
+      'leagueTieBreaker': leagueTieBreaker,
       'fixtureStartDate': fixtureStartDate?.toIso8601String(),
       'fixtureIntervalDays': fixtureIntervalDays,
       'fixtures': fixtures.map((fixture) => fixture.toMap()).toList(),
@@ -491,6 +508,38 @@ class LeagueStandingRow {
   }
 }
 
+class CompetitionFixtureRebuildImpact {
+  final bool requiresRebuild;
+  final int currentFixtureCount;
+  final int nextFixtureCount;
+  final int changedFixtureCount;
+  final int clearedResultCount;
+
+  const CompetitionFixtureRebuildImpact({
+    required this.requiresRebuild,
+    required this.currentFixtureCount,
+    required this.nextFixtureCount,
+    required this.changedFixtureCount,
+    required this.clearedResultCount,
+  });
+
+  bool get hasSavedResultsAtRisk => clearedResultCount > 0;
+}
+
+class CompetitionScheduleIssue {
+  static const String typeVenueOverlap = 'venue_overlap';
+  static const String typeTeamOverlap = 'team_overlap';
+  static const String typeShortRest = 'short_rest';
+
+  final String type;
+  final List<String> fixtureIds;
+
+  const CompetitionScheduleIssue({
+    required this.type,
+    required this.fixtureIds,
+  });
+}
+
 class TournamentBracketPair {
   final int slotNumber;
   final String teamA;
@@ -723,6 +772,7 @@ class MatchCompetitionService {
         organizer: existing.organizer,
         note: existing.note,
         leagueLegs: existing.leagueLegs,
+        leagueTieBreaker: existing.leagueTieBreaker,
         fixtureStartDate: existing.fixtureStartDate,
         fixtureIntervalDays: existing.fixtureIntervalDays,
         fixtures: fixtures,
@@ -890,9 +940,164 @@ class MatchCompetitionService {
 
   static int normalizeLeagueLegs(int value) => value == 2 ? 2 : 1;
 
+  static String normalizeLeagueTieBreaker(String value) {
+    switch (value.trim()) {
+      case MatchCompetitionRecord.tieBreakerWins:
+        return MatchCompetitionRecord.tieBreakerWins;
+      case MatchCompetitionRecord.tieBreakerGoalsFor:
+        return MatchCompetitionRecord.tieBreakerGoalsFor;
+      case MatchCompetitionRecord.tieBreakerGoalDifference:
+      default:
+        return MatchCompetitionRecord.tieBreakerGoalDifference;
+    }
+  }
+
   static int normalizeFixtureInterval(int value) => value.clamp(1, 30);
 
   static String normalizeTeamKey(String value) => _normalizeKey(value);
+
+  static CompetitionFixtureRebuildImpact fixtureRebuildImpact({
+    required MatchCompetitionRecord existing,
+    required MatchCompetitionRecord updated,
+  }) {
+    final normalizedUpdated = updated.copyWith(
+      teams: normalizeTeams(updated.teams),
+      leagueLegs: normalizeLeagueLegs(updated.leagueLegs),
+    );
+    final structureChanged = _fixtureStructureChanged(
+      existing,
+      normalizedUpdated,
+    );
+    if (!structureChanged) {
+      return CompetitionFixtureRebuildImpact(
+        requiresRebuild: false,
+        currentFixtureCount: existing.fixtures.length,
+        nextFixtureCount: existing.fixtures.length,
+        changedFixtureCount: 0,
+        clearedResultCount: 0,
+      );
+    }
+
+    final rebuilt = _rebuildFixtures(
+      existing: existing,
+      updated: normalizedUpdated,
+      fixtureStructureChanged: true,
+      fixtureScheduleChanged:
+          _fixtureScheduleChanged(existing, normalizedUpdated),
+    );
+    final nextByDefinition = <String, CompetitionFixture>{
+      for (final fixture in rebuilt) _fixtureDefinitionKey(fixture): fixture,
+    };
+    var changedFixtureCount = 0;
+    var clearedResultCount = 0;
+    for (final fixture in existing.fixtures) {
+      final next = nextByDefinition[_fixtureDefinitionKey(fixture)];
+      if (next == null ||
+          _fixtureResultSignature(next) != _fixtureResultSignature(fixture)) {
+        changedFixtureCount += 1;
+      }
+      if (fixture.hasResult &&
+          (next == null ||
+              _fixtureResultSignature(next) !=
+                  _fixtureResultSignature(fixture))) {
+        clearedResultCount += 1;
+      }
+    }
+    changedFixtureCount += (rebuilt.length - existing.fixtures.length)
+        .clamp(0, rebuilt.length)
+        .toInt();
+    return CompetitionFixtureRebuildImpact(
+      requiresRebuild: true,
+      currentFixtureCount: existing.fixtures.length,
+      nextFixtureCount: rebuilt.length,
+      changedFixtureCount: changedFixtureCount,
+      clearedResultCount: clearedResultCount,
+    );
+  }
+
+  static List<CompetitionScheduleIssue> scheduleIssues({
+    required MatchCompetitionRecord competition,
+    int minimumRestDays = 2,
+  }) {
+    final fixtures = competition.fixtures
+        .where(
+          (fixture) => fixture.scheduledAt != null && !fixture.isCancelled,
+        )
+        .toList(growable: false);
+    if (fixtures.length < 2) return const <CompetitionScheduleIssue>[];
+
+    final issues = <CompetitionScheduleIssue>[];
+    final issueKeys = <String>{};
+    void addIssue(String type, Iterable<String> fixtureIds) {
+      final ids = fixtureIds.toSet().toList()..sort();
+      if (ids.length < 2) return;
+      final key = '$type:${ids.join(',')}';
+      if (!issueKeys.add(key)) return;
+      issues.add(CompetitionScheduleIssue(type: type, fixtureIds: ids));
+    }
+
+    String dateKey(DateTime date) =>
+        '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+
+    final venueByTime = <String, List<CompetitionFixture>>{};
+    final teamByDate = <String, List<CompetitionFixture>>{};
+    final fixturesByTeam = <String, List<CompetitionFixture>>{};
+    for (final fixture in fixtures) {
+      final scheduledAt = fixture.scheduledAt!;
+      final day = dateKey(scheduledAt);
+      final venue = fixture.venue.trim();
+      if (venue.isNotEmpty) {
+        final time =
+            '${scheduledAt.hour.toString().padLeft(2, '0')}:${scheduledAt.minute.toString().padLeft(2, '0')}';
+        venueByTime
+            .putIfAbsent('$day:$time:${_normalizeKey(venue)}', () => [])
+            .add(fixture);
+      }
+      for (final team in [fixture.homeTeam, fixture.awayTeam]) {
+        final teamKey = _normalizeKey(team);
+        if (teamKey.isEmpty) continue;
+        teamByDate.putIfAbsent('$day:$teamKey', () => []).add(fixture);
+        fixturesByTeam.putIfAbsent(teamKey, () => []).add(fixture);
+      }
+    }
+
+    for (final sameVenue in venueByTime.values) {
+      addIssue(
+        CompetitionScheduleIssue.typeVenueOverlap,
+        sameVenue.map((fixture) => fixture.id),
+      );
+    }
+    for (final sameTeam in teamByDate.values) {
+      addIssue(
+        CompetitionScheduleIssue.typeTeamOverlap,
+        sameTeam.map((fixture) => fixture.id),
+      );
+    }
+    final normalizedRestDays = minimumRestDays.clamp(1, 14).toInt();
+    for (final teamFixtures in fixturesByTeam.values) {
+      final ordered = [...teamFixtures]..sort(
+          (first, second) => first.scheduledAt!.compareTo(second.scheduledAt!),
+        );
+      for (var index = 1; index < ordered.length; index += 1) {
+        final previous = ordered[index - 1].scheduledAt!;
+        final current = ordered[index].scheduledAt!;
+        final gap = DateTime(
+          current.year,
+          current.month,
+          current.day,
+        )
+            .difference(DateTime(previous.year, previous.month, previous.day))
+            .inDays;
+        if (gap < normalizedRestDays) {
+          addIssue(
+            CompetitionScheduleIssue.typeShortRest,
+            [ordered[index - 1].id, ordered[index].id],
+          );
+        }
+      }
+    }
+    return List<CompetitionScheduleIssue>.unmodifiable(issues);
+  }
 
   static List<CompetitionFixture> normalizeFixtures(
     Iterable<CompetitionFixture> fixtures,
@@ -1317,6 +1522,7 @@ class MatchCompetitionService {
     required String ownTeamName,
     bool preferOwnTeamName = false,
     Iterable<String> ownTeamAliases = const <String>[],
+    String leagueTieBreaker = MatchCompetitionRecord.tieBreakerGoalDifference,
   }) {
     final matchingEntries = competitionEntries(
       kind: MatchCompetitionRecord.kindLeague,
@@ -1411,19 +1617,10 @@ class MatchCompetitionService {
       }
     }
 
-    final sorted = rows.values
-        .where((row) => row.team.trim().isNotEmpty)
-        .toList(growable: false)
-      ..sort((a, b) {
-        final pointsCompare = b.points.compareTo(a.points);
-        if (pointsCompare != 0) return pointsCompare;
-        final goalDiffCompare = b.goalDifference.compareTo(a.goalDifference);
-        if (goalDiffCompare != 0) return goalDiffCompare;
-        final goalsForCompare = b.goalsFor.compareTo(a.goalsFor);
-        if (goalsForCompare != 0) return goalsForCompare;
-        return a.team.compareTo(b.team);
-      });
-    return sorted;
+    return _sortLeagueStandings(
+      rows.values.where((row) => row.team.trim().isNotEmpty),
+      leagueTieBreaker: leagueTieBreaker,
+    );
   }
 
   static List<LeagueStandingRow> buildLeagueStandingsForCompetition({
@@ -1505,15 +1702,51 @@ class MatchCompetitionService {
       );
     }
 
-    final sorted = rows.values.toList(growable: false)
-      ..sort((a, b) {
-        final pointsCompare = b.points.compareTo(a.points);
+    return _sortLeagueStandings(
+      rows.values,
+      leagueTieBreaker: competition.leagueTieBreaker,
+    );
+  }
+
+  static List<LeagueStandingRow> _sortLeagueStandings(
+    Iterable<LeagueStandingRow> rows, {
+    required String leagueTieBreaker,
+  }) {
+    final tieBreaker = normalizeLeagueTieBreaker(leagueTieBreaker);
+    final sorted = rows.toList(growable: false)
+      ..sort((first, second) {
+        final pointsCompare = second.points.compareTo(first.points);
         if (pointsCompare != 0) return pointsCompare;
-        final goalDiffCompare = b.goalDifference.compareTo(a.goalDifference);
-        if (goalDiffCompare != 0) return goalDiffCompare;
-        final goalsForCompare = b.goalsFor.compareTo(a.goalsFor);
-        if (goalsForCompare != 0) return goalsForCompare;
-        return a.team.compareTo(b.team);
+
+        int compareBy(int Function(LeagueStandingRow row) selector) =>
+            selector(second).compareTo(selector(first));
+
+        final firstTieCompare = switch (tieBreaker) {
+          MatchCompetitionRecord.tieBreakerWins => compareBy((row) => row.wins),
+          MatchCompetitionRecord.tieBreakerGoalsFor =>
+            compareBy((row) => row.goalsFor),
+          _ => compareBy((row) => row.goalDifference),
+        };
+        if (firstTieCompare != 0) return firstTieCompare;
+
+        final secondTieCompare = switch (tieBreaker) {
+          MatchCompetitionRecord.tieBreakerWins =>
+            compareBy((row) => row.goalDifference),
+          MatchCompetitionRecord.tieBreakerGoalsFor =>
+            compareBy((row) => row.goalDifference),
+          _ => compareBy((row) => row.goalsFor),
+        };
+        if (secondTieCompare != 0) return secondTieCompare;
+
+        final finalTieCompare = switch (tieBreaker) {
+          MatchCompetitionRecord.tieBreakerWins =>
+            compareBy((row) => row.goalsFor),
+          MatchCompetitionRecord.tieBreakerGoalsFor =>
+            compareBy((row) => row.wins),
+          _ => compareBy((row) => row.wins),
+        };
+        if (finalTieCompare != 0) return finalTieCompare;
+        return first.team.compareTo(second.team);
       });
     return sorted;
   }
