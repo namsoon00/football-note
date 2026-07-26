@@ -35,11 +35,30 @@ class RunningCoachingService {
       ),
     ];
 
-    final weightedTotal = _weightedInsight(insights[0], weights.postureWeight) +
-        _weightedInsight(insights[1], weights.bounceWeight) +
-        _weightedInsight(insights[2], weights.footStrikeWeight) +
-        _weightedInsight(insights[3], weights.kneeWeight) +
-        _weightedInsight(insights[4], weights.armWeight);
+    final weightedInsights = <MapEntry<RunningCoachingInsight, double>>[
+      MapEntry(insights[0], weights.postureWeight),
+      MapEntry(insights[1], weights.bounceWeight),
+      MapEntry(insights[2], weights.footStrikeWeight),
+      MapEntry(insights[3], weights.kneeWeight),
+      MapEntry(insights[4], weights.armWeight),
+    ];
+    final reliableWeightedInsights = weightedInsights
+        .where((entry) => entry.key.quality.isReliableForCoaching)
+        .toList(growable: false);
+    final scoringInsights = reliableWeightedInsights.isEmpty
+        ? weightedInsights
+        : reliableWeightedInsights;
+    final scoringWeight = scoringInsights.fold<double>(
+      0,
+      (total, entry) => total + entry.value,
+    );
+    final weightedTotal = scoringWeight == 0
+        ? 0.0
+        : scoringInsights.fold<double>(
+              0,
+              (total, entry) => total + (entry.key.score * entry.value),
+            ) /
+            scoringWeight;
     final coveragePenalty =
         result.validFrameCoverage < thresholds.minimumReliableCoverage
             ? thresholds.lowCoveragePenalty
@@ -241,10 +260,6 @@ class RunningCoachingService {
     if (score >= 85) return RunningCoachStatus.good;
     if (score >= 65) return RunningCoachStatus.watch;
     return RunningCoachStatus.needsWork;
-  }
-
-  double _weightedInsight(RunningCoachingInsight insight, double weight) {
-    return insight.score * weight;
   }
 
   RunningMetricQuality _qualityForResult(

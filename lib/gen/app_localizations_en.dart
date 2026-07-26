@@ -10455,6 +10455,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Running analysis failed. Try another clip with a clearer side view.';
 
   @override
+  String get runningCoachLowerBodyEvidenceLimited =>
+      'Foot-strike and knee readings are reference only. Contact evidence was limited, so they are not used for this score or next goal.';
+
+  @override
   String get runningCoachResultsTitle => 'Coaching results';
 
   @override

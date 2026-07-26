@@ -5031,7 +5031,7 @@ class _AnalysisHistoryTile extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final insight = session.primaryInsight;
     final copy = RunningCoachInsightCopy.fromInsight(insight, l10n);
-    final isMetricReliable = !insight.quality.isLowConfidence;
+    final isMetricReliable = insight.quality.isReliableForCoaching;
     return Material(
       color: scheme.surfaceContainerHighest.withValues(alpha: 0.58),
       borderRadius: BorderRadius.circular(16),
@@ -5171,17 +5171,31 @@ class _BeginnerActionCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
     final copy = RunningCoachInsightCopy.fromInsight(insight, l10n);
+    final needsRetake = !insight.quality.isReliableForCoaching;
     final needsChange = insight.status != RunningCoachStatus.good;
-    final foreground =
-        needsChange ? scheme.onPrimaryContainer : scheme.onTertiaryContainer;
-    final background =
-        needsChange ? scheme.primaryContainer : scheme.tertiaryContainer;
-    final actionTitle = needsChange
-        ? l10n.runningCoachNextGoalTitle
-        : l10n.runningCoachMaintainTitle;
-    final actionBody = needsChange
-        ? l10n.runningCoachNextGoalRepeat
-        : l10n.runningCoachResultKeepOneThingBody;
+    final foreground = needsRetake
+        ? scheme.onErrorContainer
+        : needsChange
+            ? scheme.onPrimaryContainer
+            : scheme.onTertiaryContainer;
+    final background = needsRetake
+        ? scheme.errorContainer
+        : needsChange
+            ? scheme.primaryContainer
+            : scheme.tertiaryContainer;
+    final actionTitle = needsRetake
+        ? l10n.runningCoachEvidenceRetakeLabel
+        : needsChange
+            ? l10n.runningCoachNextGoalTitle
+            : l10n.runningCoachMaintainTitle;
+    final actionTopic = needsRetake ? null : copy.title;
+    final actionCue =
+        needsRetake ? l10n.runningCoachEvidenceRetakeBody : copy.cue;
+    final actionBody = needsRetake
+        ? l10n.runningCoachEvidenceInsufficientBody
+        : needsChange
+            ? l10n.runningCoachNextGoalRepeat
+            : l10n.runningCoachResultKeepOneThingBody;
     return Semantics(
       container: true,
       label: actionTitle,
@@ -5201,9 +5215,11 @@ class _BeginnerActionCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Icon(
-                  needsChange
-                      ? Icons.directions_run_rounded
-                      : Icons.check_circle_outline_rounded,
+                  needsRetake
+                      ? Icons.videocam_outlined
+                      : needsChange
+                          ? Icons.directions_run_rounded
+                          : Icons.check_circle_outline_rounded,
                   color: foreground,
                 ),
                 const SizedBox(width: 10),
@@ -5219,16 +5235,18 @@ class _BeginnerActionCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 10),
+            if (actionTopic != null) ...[
+              Text(
+                actionTopic,
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: foreground,
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+              const SizedBox(height: 4),
+            ],
             Text(
-              copy.title,
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: foreground,
-                    fontWeight: FontWeight.w800,
-                  ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              copy.cue,
+              actionCue,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: foreground,
                     fontWeight: FontWeight.w800,
@@ -5241,16 +5259,18 @@ class _BeginnerActionCard extends StatelessWidget {
                 context,
               ).textTheme.bodySmall?.copyWith(color: foreground),
             ),
-            const SizedBox(height: 8),
-            Text(
-              copy.drill,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: foreground,
-                    fontWeight: FontWeight.w700,
-                  ),
-            ),
+            if (!needsRetake) ...[
+              const SizedBox(height: 8),
+              Text(
+                copy.drill,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: foreground,
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+            ],
           ],
         ),
       ),
@@ -6770,7 +6790,7 @@ _MetricEvidenceGate _metricEvidenceGate(
   RunningCoachingInsight insight,
 ) {
   final quality = result.qualityFor(insight.metric) ?? insight.quality;
-  if (quality.confidence < 0.65 || quality.isLowConfidence) {
+  if (!quality.isReliableForCoaching) {
     return const _MetricEvidenceGate(
       isReliable: false,
       reason: _MetricEvidenceGateReason.lowConfidence,
@@ -9117,6 +9137,16 @@ class _ResultsSummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final score = report.overallScore;
+    final hasReliableMetrics = report.insights.any(
+      (insight) => insight.quality.isReliableForCoaching,
+    );
+    final hasLimitedLowerBodyEvidence = hasReliableMetrics &&
+        report.insights.any(
+          (insight) =>
+              (insight.metric == RunningCoachMetric.footStrike ||
+                  insight.metric == RunningCoachMetric.kneeFlexion) &&
+              !insight.quality.isReliableForCoaching,
+        );
     final headline = score >= 85
         ? l10n.runningCoachOverallHeadlineStrong
         : score >= 70
@@ -9160,6 +9190,39 @@ class _ResultsSummaryCard extends StatelessWidget {
                 ),
               ],
             ),
+            if (hasLimitedLowerBodyEvidence) ...[
+              const SizedBox(height: 12),
+              Container(
+                key: const ValueKey(
+                  'running-coach-lower-body-evidence-limited',
+                ),
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.secondaryContainer.withValues(alpha: 0.56),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.all(10),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.info_outline_rounded,
+                      size: 18,
+                      color: Theme.of(context).colorScheme.onSecondaryContainer,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        l10n.runningCoachLowerBodyEvidenceLimited,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -9347,7 +9410,7 @@ class _InsightCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
     final copy = RunningCoachInsightCopy.fromInsight(insight, l10n);
-    final isMetricReliable = !insight.quality.isLowConfidence;
+    final isMetricReliable = insight.quality.isReliableForCoaching;
     final badgeColor = switch (insight.status) {
       RunningCoachStatus.good => Colors.green.shade100,
       RunningCoachStatus.watch => Colors.orange.shade100,
@@ -9414,7 +9477,7 @@ class _InsightCard extends StatelessWidget {
               )
             else
               _InsightGuideVisual(insight: insight),
-            if (insight.quality.isLowConfidence) ...[
+            if (!isMetricReliable) ...[
               const SizedBox(height: 10),
               Text(
                 _qualityReasonText(context, insight.quality),
@@ -9458,7 +9521,7 @@ class _QualityBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final isLow = quality.isLowConfidence;
+    final isLow = !quality.isReliableForCoaching;
     final l10n = AppLocalizations.of(context)!;
     final label = isLow
         ? l10n.runningCoachEvidenceQualityLimitedBadge

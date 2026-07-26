@@ -70,6 +70,7 @@ for required in (
     "\"insufficient_contact_evidence\"",
     "coarseSampleTimestamps",
     "deriveContactCandidateWindows",
+    "fallbackContactCandidateWindows",
     "denseTimestampsForContactWindows",
     "validateDenseContactFrames",
     "selectDenseContactFrame",
@@ -80,6 +81,7 @@ for required in (
     "mergePoseFrames",
     "maxDenseFrameBudget",
     "minimumValidatedContactFrames",
+    "coarseContactProxyConfidencePenalty",
     "frameSharpness",
     "sharpnessValues",
     "minimumMedianSharpness",
@@ -108,6 +110,7 @@ for required in (
     '"insufficient_contact_evidence"',
     "coarseSampleTimestamps",
     "deriveContactCandidateWindows",
+    "fallbackContactCandidateWindows",
     "denseTimestampsForContactWindows",
     "validateDenseContactFrames",
     "selectDenseContactFrame",
@@ -118,6 +121,7 @@ for required in (
     "mergePoseFrames",
     "maxDenseFrameBudget",
     "minimumValidatedContactFrames",
+    "coarseContactProxyConfidencePenalty",
     "frameSharpness",
     "sharpnessValues",
     "minimumMedianSharpness",
@@ -228,6 +232,28 @@ require(
 require(
     "selectedByTimestamp" in channel_text and "selectedByTimestamp" in ios_text,
     "Android/iOS dense contact validation must deduplicate selected event timestamps",
+)
+require(
+    re.search(
+        r"fallbackContactCandidateWindows\(frameSamples,\s*durationMs\).*?"
+        r"contactProxyFrames\(\s*samples\s*=\s*frameSamples,.*?"
+        r"confidencePenalty\s*=\s*coarseContactProxyConfidencePenalty",
+        channel_text,
+        re.DOTALL,
+    )
+    is not None,
+    "Android must retain a low-confidence coarse contact proxy when dense contact frames are absent",
+)
+require(
+    re.search(
+        r"fallbackContactCandidateWindows\(\s*from:\s*frameSamples,\s*"
+        r"durationMs:\s*durationMs.*?contactProxyFrames\(\s*from:\s*frameSamples,.*?"
+        r"confidencePenalty:\s*Self\.coarseContactProxyConfidencePenalty",
+        ios_text,
+        re.DOTALL,
+    )
+    is not None,
+    "iOS must retain a low-confidence coarse contact proxy when dense contact frames are absent",
 )
 require(
     "actualSourceTimestampMs(from: actualTime)" in ios_text

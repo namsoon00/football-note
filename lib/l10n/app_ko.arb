@@ -6023,6 +6023,7 @@
   "runningCoachNoPoseDetected": "옷차림은 판단 기준이 아니지만, 관절을 충분히 추적하지 못했어요. 팔꿈치, 무릎, 발이 잘 보이는 선명한 측면 영상을 다시 찍어 주세요.",
   "runningCoachInsufficientContactEvidence": "검증된 발 접지 프레임이 부족해요. 착지 순간까지 양발이 보이는 더 선명한 측면 영상으로 다시 시도해 주세요.",
   "runningCoachAnalysisFailedGeneric": "달리기 분석에 실패했어요. 측면이 더 잘 보이는 영상으로 다시 시도해 주세요.",
+  "runningCoachLowerBodyEvidenceLimited": "착지와 무릎 평가는 참고용이에요. 접지 근거가 부족해 이번 점수와 다음 목표에는 반영하지 않았어요.",
   "runningCoachResultsTitle": "코칭 결과",
   "runningCoachResultOneChangeTitle": "먼저 한 가지만 바꿔 보세요",
   "runningCoachNextGoalTitle": "다음 목표",

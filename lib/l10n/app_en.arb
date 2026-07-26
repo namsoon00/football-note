@@ -6023,6 +6023,7 @@
   "runningCoachNoPoseDetected": "Clothing is not used for this check, but the runner's joints could not be tracked well enough. Try a clearer side-view clip with elbows, knees, and feet visible.",
   "runningCoachInsufficientContactEvidence": "The clip did not include enough verified foot-contact frames. Try a clearer side view with both feet visible through landing.",
   "runningCoachAnalysisFailedGeneric": "Running analysis failed. Try another clip with a clearer side view.",
+  "runningCoachLowerBodyEvidenceLimited": "Foot-strike and knee readings are reference only. Contact evidence was limited, so they are not used for this score or next goal.",
   "runningCoachResultsTitle": "Coaching results",
   "runningCoachResultOneChangeTitle": "Change one thing first",
   "runningCoachNextGoalTitle": "Next goal",
