@@ -8309,14 +8309,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachSampleMistakeTab => '例B';
 
   @override
-  String get runningCoachSampleReferenceTitle => '分析に適した屋外サイドビュー例';
+  String get runningCoachSampleReferenceTitle => '縦向き・全身サイドビューの例';
 
   @override
   String get runningCoachSampleMistakeTitle => '例Bの読み取り';
 
   @override
   String get runningCoachSampleReferenceBody =>
-      'スマートフォンを真横に固定し、全身が常に見え、関節追跡に十分な大きさでランナーを収めた動画です。';
+      '頭から両足のシューズまで見え、ランナーが画面高の約60%を占めるため、関節追跡に十分な大きさです。';
 
   @override
   String get runningCoachSampleMistakeBody =>

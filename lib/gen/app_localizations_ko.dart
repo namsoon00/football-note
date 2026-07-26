@@ -8320,14 +8320,14 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachSampleMistakeTab => '예시 B';
 
   @override
-  String get runningCoachSampleReferenceTitle => '분석에 적합한 야외 측면 예시';
+  String get runningCoachSampleReferenceTitle => '세로 전신 측면 예시';
 
   @override
   String get runningCoachSampleMistakeTitle => '예시 B 판독';
 
   @override
   String get runningCoachSampleReferenceBody =>
-      '휴대폰이 정확한 측면에 고정되어 있고, 전신이 계속 보이며, 관절을 추적하기에 러너가 충분히 크게 담긴 영상이에요.';
+      '머리부터 양쪽 신발까지 보이고, 러너가 화면 높이의 약 60%를 차지해 관절을 추적하기에 충분한 구도예요.';
 
   @override
   String get runningCoachSampleMistakeBody =>

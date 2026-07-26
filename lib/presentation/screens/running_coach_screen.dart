@@ -660,11 +660,7 @@ class _RunningCoachUploadGuideCard extends StatelessWidget {
 
 const int _sampleTimelineFrameCount = 24;
 const String _sampleReferenceVideoAsset =
-    'assets/videos/running_coach_reference_sample.mp4';
-const String _sampleMistakeVideoAsset =
-    'assets/videos/running_coach_mistake_sample.mp4';
-
-enum _SampleVideoMode { reference, mistake }
+    'assets/videos/running_coach_portrait_side_view_sample.mp4';
 
 enum _SampleDecisionMetricKind { posture, arms, landing, bounce }
 
@@ -896,7 +892,6 @@ class _RunningCoachSampleCardState extends State<_RunningCoachSampleCard> {
         const SizedBox(height: 10),
         _SampleVideoFrame(
           score: report?.overallScore,
-          mode: _SampleVideoMode.reference,
           result: result,
           report: report,
         ),
@@ -1710,13 +1705,11 @@ class _SampleFrameCueChip extends StatelessWidget {
 
 class _SampleVideoFrame extends StatefulWidget {
   final int? score;
-  final _SampleVideoMode mode;
   final RunningVideoAnalysisResult? result;
   final RunningCoachingReport? report;
 
   const _SampleVideoFrame({
     required this.score,
-    required this.mode,
     required this.result,
     required this.report,
   });
@@ -1737,14 +1730,6 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame> {
   }
 
   @override
-  void didUpdateWidget(covariant _SampleVideoFrame oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.mode != widget.mode) {
-      _loadVideo();
-    }
-  }
-
-  @override
   void dispose() {
     _videoController?.dispose();
     super.dispose();
@@ -1757,10 +1742,7 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame> {
     _videoLoadFailed = false;
     unawaited(previousController?.dispose());
 
-    final asset = widget.mode == _SampleVideoMode.mistake
-        ? _sampleMistakeVideoAsset
-        : _sampleReferenceVideoAsset;
-    final controller = VideoPlayerController.asset(asset);
+    final controller = VideoPlayerController.asset(_sampleReferenceVideoAsset);
     _videoController = controller;
     controller.initialize().then((_) async {
       await controller.setLooping(true);
@@ -1803,8 +1785,7 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
-    final isMistake = widget.mode == _SampleVideoMode.mistake;
-    final runnerColor = isMistake ? scheme.error : scheme.primary;
+    final runnerColor = scheme.primary;
     final videoController = _videoController;
     final hasVideo = _isVideoReady &&
         videoController != null &&
@@ -1817,142 +1798,148 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        AspectRatio(
-          key: const ValueKey('running-coach-sample-video-frame'),
-          aspectRatio: 16 / 9,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: Colors.black,
-                border: Border.all(color: scheme.outlineVariant),
-              ),
-              child: Stack(
-                children: [
-                  if (hasVideo) ...[
-                    Positioned.fill(
-                      child: FittedBox(
-                        fit: BoxFit.contain,
-                        child: SizedBox(
-                          width: videoController.value.size.width,
-                          height: videoController.value.size.height,
-                          child: VideoPlayer(videoController),
+        Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 280),
+            child: AspectRatio(
+              key: const ValueKey('running-coach-sample-video-frame'),
+              aspectRatio: 9 / 16,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: Colors.black,
+                    border: Border.all(color: scheme.outlineVariant),
+                  ),
+                  child: Stack(
+                    children: [
+                      if (hasVideo) ...[
+                        Positioned.fill(
+                          child: FittedBox(
+                            fit: BoxFit.contain,
+                            child: SizedBox(
+                              width: videoController.value.size.width,
+                              height: videoController.value.size.height,
+                              child: VideoPlayer(videoController),
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                    if (result != null && result.poseFrames.isNotEmpty)
-                      Positioned.fill(
-                        child: IgnorePointer(
+                        if (result != null && result.poseFrames.isNotEmpty)
+                          Positioned.fill(
+                            child: IgnorePointer(
+                              child: AnimatedBuilder(
+                                animation: videoController,
+                                builder: (context, _) {
+                                  final poseFrame = runningPoseFrameAtPosition(
+                                    frames: result.poseFrames,
+                                    position: videoController.value.position,
+                                  );
+                                  return CustomPaint(
+                                    key: const ValueKey(
+                                      'running-coach-sample-real-pose-overlay',
+                                    ),
+                                    painter: _RunningPoseOverlayPainter(
+                                      poseFrame: poseFrame,
+                                      primaryColor: runnerColor,
+                                      secondaryColor: scheme.secondary,
+                                      contactColor: scheme.tertiary,
+                                      warningColor: scheme.error,
+                                      useContainFit: true,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                        Positioned(
+                          left: 12,
+                          right: 12,
+                          bottom: 10,
                           child: AnimatedBuilder(
                             animation: videoController,
-                            builder: (context, _) {
-                              final poseFrame = runningPoseFrameAtPosition(
-                                frames: result.poseFrames,
-                                position: videoController.value.position,
-                              );
-                              return CustomPaint(
-                                key: const ValueKey(
-                                  'running-coach-sample-real-pose-overlay',
-                                ),
-                                painter: _RunningPoseOverlayPainter(
-                                  poseFrame: poseFrame,
-                                  primaryColor: runnerColor,
-                                  secondaryColor: scheme.secondary,
-                                  contactColor: scheme.tertiary,
-                                  warningColor: scheme.error,
-                                  useContainFit: true,
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ),
-                    Positioned(
-                      left: 12,
-                      right: 12,
-                      bottom: 10,
-                      child: AnimatedBuilder(
-                        animation: videoController,
-                        builder: (context, _) => ClipRRect(
-                          borderRadius: BorderRadius.circular(999),
-                          child: LinearProgressIndicator(
-                            value: _sampleProgressFor(videoController),
-                            minHeight: 4,
-                            backgroundColor:
-                                Colors.white.withValues(alpha: 0.20),
-                            color: scheme.primary,
-                          ),
-                        ),
-                      ),
-                    ),
-                    Positioned.fill(
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          key: const ValueKey(
-                            'running-coach-sample-video-toggle',
-                          ),
-                          onTap: _togglePlayback,
-                          child: AnimatedBuilder(
-                            animation: videoController,
-                            builder: (context, _) {
-                              if (videoController.value.isPlaying) {
-                                return const SizedBox.expand();
-                              }
-                              return Center(
-                                child: Icon(
-                                  Icons.play_circle_fill_rounded,
-                                  size: 54,
-                                  color: Colors.white.withValues(alpha: 0.92),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ),
-                    ),
-                  ] else if (_videoLoadFailed) ...[
-                    Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.video_file_outlined,
-                              color: scheme.error,
+                            builder: (context, _) => ClipRRect(
+                              borderRadius: BorderRadius.circular(999),
+                              child: LinearProgressIndicator(
+                                value: _sampleProgressFor(videoController),
+                                minHeight: 4,
+                                backgroundColor:
+                                    Colors.white.withValues(alpha: 0.20),
+                                color: scheme.primary,
+                              ),
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              l10n.runningCoachSampleVideoUnavailable,
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(color: Colors.white),
-                            ),
-                            const SizedBox(height: 8),
-                            OutlinedButton.icon(
-                              onPressed: _loadVideo,
-                              icon: const Icon(Icons.refresh_rounded),
-                              label:
-                                  Text(l10n.runningCoachSampleVideoRetryAction),
-                            ),
-                          ],
+                          ),
                         ),
-                      ),
-                    ),
-                  ] else
-                    Center(
-                      child: SizedBox.square(
-                        dimension: 28,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.4,
-                          color: runnerColor,
+                        Positioned.fill(
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              key: const ValueKey(
+                                'running-coach-sample-video-toggle',
+                              ),
+                              onTap: _togglePlayback,
+                              child: AnimatedBuilder(
+                                animation: videoController,
+                                builder: (context, _) {
+                                  if (videoController.value.isPlaying) {
+                                    return const SizedBox.expand();
+                                  }
+                                  return Center(
+                                    child: Icon(
+                                      Icons.play_circle_fill_rounded,
+                                      size: 54,
+                                      color:
+                                          Colors.white.withValues(alpha: 0.92),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                ],
+                      ] else if (_videoLoadFailed) ...[
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.video_file_outlined,
+                                  color: scheme.error,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  l10n.runningCoachSampleVideoUnavailable,
+                                  textAlign: TextAlign.center,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(color: Colors.white),
+                                ),
+                                const SizedBox(height: 8),
+                                OutlinedButton.icon(
+                                  onPressed: _loadVideo,
+                                  icon: const Icon(Icons.refresh_rounded),
+                                  label: Text(
+                                      l10n.runningCoachSampleVideoRetryAction),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ] else
+                        Center(
+                          child: SizedBox.square(
+                            dimension: 28,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.4,
+                              color: runnerColor,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
@@ -2048,7 +2035,6 @@ class _SampleVideoFrameState extends State<_SampleVideoFrame> {
       MaterialPageRoute<void>(
         builder: (_) => _SampleMetricDetailScreen(
           metric: metric,
-          mode: widget.mode,
         ),
       ),
     );
@@ -2294,21 +2280,15 @@ class _SampleDecisionMetricTile extends StatelessWidget {
 
 class _SampleMetricDetailScreen extends StatelessWidget {
   final _SampleDecisionMetric metric;
-  final _SampleVideoMode mode;
 
   const _SampleMetricDetailScreen({
     required this.metric,
-    required this.mode,
   });
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
-    final isMistake = mode == _SampleVideoMode.mistake;
-    final sampleLabel = isMistake
-        ? l10n.runningCoachSampleMistakeTab
-        : l10n.runningCoachSampleReferenceTab;
     final status = metric.statusLabel;
     final detail = _SampleMetricDetailCopy.forKind(l10n, metric.kind);
     return Scaffold(
@@ -2332,7 +2312,7 @@ class _SampleMetricDetailScreen extends StatelessWidget {
           const SizedBox(height: 14),
           _SampleMetricDetailVisual(
             kind: metric.kind,
-            isMistake: isMistake,
+            isMistake: false,
           ),
           const SizedBox(height: 12),
           Wrap(
@@ -2341,7 +2321,7 @@ class _SampleMetricDetailScreen extends StatelessWidget {
             children: [
               _StatChip(
                 label: l10n.runningCoachSampleMetricDetailSampleLabel,
-                value: sampleLabel,
+                value: l10n.runningCoachSampleReferenceTab,
               ),
               _StatChip(
                 label: l10n.runningCoachSampleMetricDetailValueLabel,

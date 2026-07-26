@@ -34,7 +34,7 @@ from mediapipe.tasks.python import vision
 
 model_path = Path("ios/Runner/pose_landmarker_full.task")
 videos = [
-    Path("assets/videos/running_coach_reference_sample.mp4"),
+    Path("assets/videos/running_coach_portrait_side_view_sample.mp4"),
     Path("assets/videos/running_coach_mistake_sample.mp4"),
 ]
 sample_count = 14

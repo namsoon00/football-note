@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/services.dart';
@@ -19,10 +18,8 @@ import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/running_coach_screen.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart';
 
-const _sampleReferenceVideoAssetForTest =
-    'assets/videos/running_coach_reference_sample.mp4';
-const _sampleMistakeVideoAssetForTest =
-    'assets/videos/running_coach_mistake_sample.mp4';
+const _samplePortraitVideoAssetForTest =
+    'assets/videos/running_coach_portrait_side_view_sample.mp4';
 
 void main() {
   late VideoPlayerPlatform previousVideoPlayerPlatform;
@@ -265,7 +262,7 @@ void main() {
     );
     expect(
       analysisService.calls,
-      isNot(contains(_sampleReferenceVideoAssetForTest)),
+      isNot(contains(_samplePortraitVideoAssetForTest)),
     );
     expect(analysisService.fileExistsAtCall, everyElement(isTrue));
     expect(analysisService.fileLengthAtCall, everyElement(greaterThan(0)));
@@ -275,26 +272,13 @@ void main() {
       findsOneWidget,
     );
     final referenceVideo = await rootBundle.load(
-      _sampleReferenceVideoAssetForTest,
+      _samplePortraitVideoAssetForTest,
     );
-    final mistakeVideo = await rootBundle.load(
-      _sampleMistakeVideoAssetForTest,
+    expect(referenceVideo.lengthInBytes, greaterThan(1000000));
+    final sampleFrame = tester.getSize(
+      find.byKey(const ValueKey('running-coach-sample-video-frame')),
     );
-    expect(referenceVideo.lengthInBytes, greaterThan(1500000));
-    expect(mistakeVideo.lengthInBytes, greaterThan(1000000));
-    expect(
-      listEquals(
-        referenceVideo.buffer.asUint8List(
-          referenceVideo.offsetInBytes,
-          referenceVideo.lengthInBytes,
-        ),
-        mistakeVideo.buffer.asUint8List(
-          mistakeVideo.offsetInBytes,
-          mistakeVideo.lengthInBytes,
-        ),
-      ),
-      isFalse,
-    );
+    expect(sampleFrame.height / sampleFrame.width, closeTo(16 / 9, 0.01));
     expect(
       find.byKey(const ValueKey('running-coach-sample-recording-guide')),
       findsOneWidget,
@@ -312,7 +296,7 @@ void main() {
       find.byKey(const ValueKey('running-coach-sample-back-button')),
       findsOneWidget,
     );
-    expect(find.text('Analysis-ready outdoor example'), findsWidgets);
+    expect(find.text('Portrait full-body side-view example'), findsWidgets);
     expect(find.text('Treadmill'), findsOneWidget);
     expect(find.text('Outdoor pass'), findsOneWidget);
     expect(find.text('Best setup for a treadmill'), findsOneWidget);
@@ -546,7 +530,7 @@ void main() {
     );
 
     expect(analysisService.calls, hasLength(2));
-    expect(find.text('Analysis-ready outdoor example'), findsWidgets);
+    expect(find.text('Portrait full-body side-view example'), findsWidgets);
   });
 
   testWidgets('analysis history opens a visual correction guide', (

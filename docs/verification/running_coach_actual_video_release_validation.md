@@ -3,10 +3,16 @@
 ## Scope
 
 `./scripts/test_running_release_video_fixtures.sh` creates reproducible test
-videos from the two real human-runner clips already bundled with the app:
+videos from the two real human-runner source clips kept in the repository:
 
 - `assets/videos/running_coach_reference_sample.mp4`
 - `assets/videos/running_coach_mistake_sample.mp4`
+
+The in-app guide instead uses
+`assets/videos/running_coach_portrait_side_view_sample.mp4`. It is a
+portrait full-body render derived from the clothed beach source. The two source
+clips are deliberately excluded from the Flutter asset manifest so the app
+does not ship an unused landscape clip or the shirtless track clip.
 
 The script does **not** claim that it has newly recorded a runner or performed
 a physical-device camera test. It builds transformed fixtures from existing
@@ -24,7 +30,7 @@ real-video frames and writes all generated MP4 files and reports under
 | `portrait_strong_motion_blur` | beach side-view sample | 9:16, strong horizontal blur | Reject precise scoring when image sharpness is below the mobile analyzer's fixed sharpness gate. |
 
 The source SHA-256 digest is placed in `fixture_manifest.json` and verified by
-the analyzer so that a report can be traced to the bundled sample used. The
+the analyzer so that a report can be traced to the repository source used. The
 generated MP4 SHA-256 digest is also recorded so stale or edited derived
 fixtures can be spotted in the release report.
 
