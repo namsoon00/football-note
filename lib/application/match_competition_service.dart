@@ -619,16 +619,18 @@ class MatchCompetitionService {
     final currentRecords = allCompetitions();
     MatchCompetitionRecord? existing;
     for (final current in currentRecords) {
-      final sameRecord = current.id == record.id ||
-          (current.kind == record.kind &&
-              _normalizeKey(current.name) == _normalizeKey(record.name));
-      if (sameRecord) {
+      if (current.id == record.id) {
         existing = current;
         break;
       }
     }
+    existing ??= _competitionWithSameName(currentRecords, record);
+    final recordId = record.id.trim();
     final normalizedBase = record.copyWith(
-      id: competitionId(kind: record.kind, name: record.name),
+      id: existing?.id ??
+          (recordId.isEmpty
+              ? competitionId(kind: record.kind, name: record.name)
+              : recordId),
       name: record.name.trim(),
       teams: normalizeTeams(record.teams),
       status: normalizeStatus(record.status),
@@ -638,10 +640,25 @@ class MatchCompetitionService {
       return;
     }
 
-    final fixtures = normalizedBase.fixtures.isNotEmpty
-        ? normalizedBase.fixtures
+    final suppliedFixtures = normalizeFixtures(normalizedBase.fixtures);
+    final fixtureStructureChanged =
+        existing != null && _fixtureStructureChanged(existing, normalizedBase);
+    final fixtureScheduleChanged =
+        existing != null && _fixtureScheduleChanged(existing, normalizedBase);
+    final fixtures = suppliedFixtures.isNotEmpty
+        ? suppliedFixtures
         : existing?.fixtures.isNotEmpty == true
-            ? existing!.fixtures
+            ? fixtureStructureChanged || fixtureScheduleChanged
+                ? _rebuildFixtures(
+                    existing: existing,
+                    updated: normalizedBase,
+                    fixtureStructureChanged: fixtureStructureChanged,
+                    fixtureScheduleChanged: fixtureScheduleChanged,
+                  )
+                : _synchronizeFixtureVenue(
+                    existing: existing!,
+                    updated: normalizedBase,
+                  )
             : buildFixtures(normalizedBase);
     final normalized = normalizedBase.copyWith(fixtures: fixtures);
 
@@ -907,6 +924,134 @@ class MatchCompetitionService {
     return record.kind == MatchCompetitionRecord.kindTournament
         ? _buildTournamentFixtures(record)
         : _buildLeagueFixtures(record);
+  }
+
+  static MatchCompetitionRecord? _competitionWithSameName(
+    Iterable<MatchCompetitionRecord> records,
+    MatchCompetitionRecord record,
+  ) {
+    final nameKey = _normalizeKey(record.name);
+    if (nameKey.isEmpty) return null;
+    for (final current in records) {
+      if (current.kind == record.kind &&
+          _normalizeKey(current.name) == nameKey) {
+        return current;
+      }
+    }
+    return null;
+  }
+
+  static bool _fixtureStructureChanged(
+    MatchCompetitionRecord existing,
+    MatchCompetitionRecord updated,
+  ) {
+    if (existing.kind != updated.kind ||
+        existing.leagueLegs != updated.leagueLegs) {
+      return true;
+    }
+    final previousTeams = normalizeTeams(existing.teams);
+    final nextTeams = normalizeTeams(updated.teams);
+    if (previousTeams.length != nextTeams.length) return true;
+    for (var index = 0; index < previousTeams.length; index += 1) {
+      if (normalizeTeamKey(previousTeams[index]) !=
+          normalizeTeamKey(nextTeams[index])) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  static bool _fixtureScheduleChanged(
+    MatchCompetitionRecord existing,
+    MatchCompetitionRecord updated,
+  ) {
+    return !_sameScheduleDate(
+          existing.fixtureStartDate,
+          updated.fixtureStartDate,
+        ) ||
+        existing.fixtureIntervalDays != updated.fixtureIntervalDays;
+  }
+
+  static bool _sameScheduleDate(DateTime? first, DateTime? second) {
+    if (first == null || second == null) return first == second;
+    return first.isAtSameMomentAs(second);
+  }
+
+  static List<CompetitionFixture> _rebuildFixtures({
+    required MatchCompetitionRecord existing,
+    required MatchCompetitionRecord updated,
+    required bool fixtureStructureChanged,
+    required bool fixtureScheduleChanged,
+  }) {
+    final previousByDefinition = <String, CompetitionFixture>{
+      for (final fixture in existing.fixtures)
+        _fixtureDefinitionKey(fixture): fixture,
+    };
+    return buildFixtures(updated).map((fixture) {
+      final previous = previousByDefinition[_fixtureDefinitionKey(fixture)];
+      if (previous == null) return fixture;
+      return _carryFixtureDetails(
+        generated: fixture,
+        previous: previous,
+        existing: existing,
+        fixtureStructureChanged: fixtureStructureChanged,
+        fixtureScheduleChanged: fixtureScheduleChanged,
+      );
+    }).toList(growable: false);
+  }
+
+  static List<CompetitionFixture> _synchronizeFixtureVenue({
+    required MatchCompetitionRecord existing,
+    required MatchCompetitionRecord updated,
+  }) {
+    if (existing.venue.trim() == updated.venue.trim()) {
+      return existing.fixtures;
+    }
+    return existing.fixtures.map((fixture) {
+      if (fixture.venue.trim() != existing.venue.trim()) return fixture;
+      return fixture.copyWith(venue: updated.venue);
+    }).toList(growable: false);
+  }
+
+  static CompetitionFixture _carryFixtureDetails({
+    required CompetitionFixture generated,
+    required CompetitionFixture previous,
+    required MatchCompetitionRecord existing,
+    required bool fixtureStructureChanged,
+    required bool fixtureScheduleChanged,
+  }) {
+    var carried = generated;
+    if (!fixtureScheduleChanged && previous.scheduledAt != null) {
+      carried = carried.copyWith(scheduledAt: previous.scheduledAt);
+    }
+    if (previous.venue.trim() != existing.venue.trim()) {
+      carried = carried.copyWith(venue: previous.venue);
+    }
+
+    final canKeepResult = !fixtureStructureChanged ||
+        generated.stage.isEmpty ||
+        generated.sourceHomeFixtureId == null &&
+            generated.sourceAwayFixtureId == null;
+    if (!canKeepResult) return carried;
+
+    return carried.copyWith(
+      status: previous.status,
+      homeScore: previous.homeScore,
+      awayScore: previous.awayScore,
+      homePenaltyScore: previous.homePenaltyScore,
+      awayPenaltyScore: previous.awayPenaltyScore,
+    );
+  }
+
+  static String _fixtureDefinitionKey(CompetitionFixture fixture) {
+    return [
+      fixture.roundNumber,
+      fixture.stage.trim(),
+      normalizeTeamKey(fixture.homeTeam),
+      normalizeTeamKey(fixture.awayTeam),
+      fixture.sourceHomeFixtureId?.trim() ?? '',
+      fixture.sourceAwayFixtureId?.trim() ?? '',
+    ].join('|');
   }
 
   static List<CompetitionFixtureState> resolveFixtureStates({
@@ -1558,12 +1703,7 @@ class MatchCompetitionService {
     int roundIndex,
   ) {
     if (startDate == null) return null;
-    final normalized = DateTime(
-      startDate.year,
-      startDate.month,
-      startDate.day,
-    );
-    return normalized.add(
+    return startDate.add(
       Duration(days: normalizeFixtureInterval(intervalDays) * roundIndex),
     );
   }

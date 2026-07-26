@@ -9226,5 +9226,14 @@
     }
   },
   "matchCompetitionFixtureDecreaseScore": "得点を減らす",
-  "matchCompetitionFixtureIncreaseScore": "得点を増やす"
+  "matchCompetitionFixtureIncreaseScore": "得点を増やす",
+  "matchCompetitionAutoSavedFeedback": "大会情報を自動保存しました。",
+  "matchCompetitionStandingsRankColumn": "順位",
+  "matchCompetitionStandingsTeamColumn": "チーム",
+  "matchCompetitionStandingsPlayedColumn": "試合",
+  "matchCompetitionStandingsRecordColumn": "勝・分・敗",
+  "matchCompetitionStandingsGoalDifferenceColumn": "得失",
+  "matchCompetitionStandingsPointsColumn": "勝点",
+  "matchCompetitionParticipantOrderColumn": "順番",
+  "matchCompetitionParticipantTeamColumn": "参加チーム"
 }

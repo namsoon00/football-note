@@ -15941,4 +15941,31 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get matchCompetitionFixtureIncreaseScore => '得点を増やす';
+
+  @override
+  String get matchCompetitionAutoSavedFeedback => '大会情報を自動保存しました。';
+
+  @override
+  String get matchCompetitionStandingsRankColumn => '順位';
+
+  @override
+  String get matchCompetitionStandingsTeamColumn => 'チーム';
+
+  @override
+  String get matchCompetitionStandingsPlayedColumn => '試合';
+
+  @override
+  String get matchCompetitionStandingsRecordColumn => '勝・分・敗';
+
+  @override
+  String get matchCompetitionStandingsGoalDifferenceColumn => '得失';
+
+  @override
+  String get matchCompetitionStandingsPointsColumn => '勝点';
+
+  @override
+  String get matchCompetitionParticipantOrderColumn => '順番';
+
+  @override
+  String get matchCompetitionParticipantTeamColumn => '参加チーム';
 }

@@ -15970,4 +15970,31 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get matchCompetitionFixtureIncreaseScore => '점수 증가';
+
+  @override
+  String get matchCompetitionAutoSavedFeedback => '대회 정보를 자동 저장했어요.';
+
+  @override
+  String get matchCompetitionStandingsRankColumn => '순위';
+
+  @override
+  String get matchCompetitionStandingsTeamColumn => '팀';
+
+  @override
+  String get matchCompetitionStandingsPlayedColumn => '경기';
+
+  @override
+  String get matchCompetitionStandingsRecordColumn => '승·무·패';
+
+  @override
+  String get matchCompetitionStandingsGoalDifferenceColumn => '득실';
+
+  @override
+  String get matchCompetitionStandingsPointsColumn => '승점';
+
+  @override
+  String get matchCompetitionParticipantOrderColumn => '순번';
+
+  @override
+  String get matchCompetitionParticipantTeamColumn => '참가 팀';
 }
