@@ -839,6 +839,7 @@ class _CompetitionDetailScreenState extends State<_CompetitionDetailScreen> {
     final teamsPanel = _CompetitionTeamsPreview(
       teams: effectiveRecord.teams,
       accent: accent,
+      ownTeamName: ownTeamName,
     );
     final fixturesPanel = _CompetitionFixturesPreview(
       record: effectiveRecord,
@@ -1005,28 +1006,158 @@ class _CompetitionDetailScreenState extends State<_CompetitionDetailScreen> {
 class _CompetitionTeamsPreview extends StatelessWidget {
   final List<String> teams;
   final Color accent;
+  final String ownTeamName;
 
   const _CompetitionTeamsPreview({
     required this.teams,
     required this.accent,
+    required this.ownTeamName,
   });
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     return _PreviewPanel(
       icon: Icons.groups_2_outlined,
       title: l10n.matchCompetitionTeamsListTitle,
       accent: accent,
       child: teams.isEmpty
           ? _EmptyPreview(text: l10n.matchCompetitionNoTeams)
-          : Wrap(
-              spacing: AppSpacing.xs,
-              runSpacing: AppSpacing.xs,
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                for (final team in teams) _InfoPill(text: team),
+                Text(
+                  l10n.matchCompetitionTeamCount(teams.length),
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                ClipRRect(
+                  borderRadius: AppRadius.small,
+                  child: Column(
+                    children: [
+                      Container(
+                        color: accent.withValues(alpha: 0.12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.sm,
+                          vertical: AppSpacing.xs,
+                        ),
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: 42,
+                              child: Text(
+                                l10n.matchCompetitionParticipantOrderColumn,
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: accent,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Text(
+                                l10n.matchCompetitionParticipantTeamColumn,
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: accent,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      for (final item in teams.indexed)
+                        _CompetitionParticipantRow(
+                          index: item.$1,
+                          team: item.$2,
+                          isOwnTeam: MatchCompetitionService.normalizeTeamKey(
+                                item.$2,
+                              ) ==
+                              MatchCompetitionService.normalizeTeamKey(
+                                ownTeamName,
+                              ),
+                          accent: accent,
+                          showDivider: item.$1 < teams.length - 1,
+                        ),
+                    ],
+                  ),
+                ),
               ],
             ),
+    );
+  }
+}
+
+class _CompetitionParticipantRow extends StatelessWidget {
+  final int index;
+  final String team;
+  final bool isOwnTeam;
+  final Color accent;
+  final bool showDivider;
+
+  const _CompetitionParticipantRow({
+    required this.index,
+    required this.team,
+    required this.isOwnTeam,
+    required this.accent,
+    required this.showDivider,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: isOwnTeam ? accent.withValues(alpha: 0.07) : null,
+        border: showDivider
+            ? Border(bottom: BorderSide(color: scheme.outlineVariant))
+            : null,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm,
+          vertical: AppSpacing.sm,
+        ),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 42,
+              child: Text(
+                '${index + 1}'.padLeft(2, '0'),
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: accent,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+            Expanded(
+              child: Row(
+                children: [
+                  Flexible(
+                    child: Text(
+                      team,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  if (isOwnTeam) ...[
+                    const SizedBox(width: AppSpacing.xs),
+                    _CompetitionOwnTeamBadge(accent: accent),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -1049,15 +1180,31 @@ class _CompetitionFixturesPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
     final isLeague = record.kind == MatchCompetitionRecord.kindLeague;
     final fixtures = MatchCompetitionService.resolveFixtureStates(
       competition: record,
       entries: entries,
     );
-    final scheduledCount =
-        fixtures.where((fixture) => fixture.fixture.scheduledAt != null).length;
+    final scheduledCount = fixtures
+        .where(
+          (fixture) =>
+              fixture.fixture.scheduledAt != null && !fixture.isRecorded,
+        )
+        .length;
+    final completedCount =
+        fixtures.where((fixture) => fixture.isRecorded).length;
+    final unscheduledCount = fixtures
+        .where(
+          (fixture) =>
+              fixture.fixture.scheduledAt == null && !fixture.isRecorded,
+        )
+        .length;
+    final fixturesByRound = <int, List<CompetitionFixtureState>>{};
+    for (final fixture in fixtures) {
+      (fixturesByRound[fixture.fixture.roundNumber] ??=
+              <CompetitionFixtureState>[])
+          .add(fixture);
+    }
     return _PreviewPanel(
       icon: Icons.event_note_outlined,
       title: l10n.matchCompetitionFixturesTitle,
@@ -1076,52 +1223,217 @@ class _CompetitionFixturesPreview extends StatelessWidget {
           : Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  l10n.matchCompetitionFixtureScheduleCount(
-                    scheduledCount,
-                    fixtures.length,
-                  ),
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w800,
-                  ),
+                _CompetitionFixtureSummary(
+                  scheduledCount: scheduledCount,
+                  completedCount: completedCount,
+                  unscheduledCount: unscheduledCount,
+                  totalCount: fixtures.length,
+                  accent: accent,
                 ),
                 const SizedBox(height: AppSpacing.sm),
-                for (var index = 0; index < fixtures.length; index++) ...[
-                  if (index == 0 ||
-                      fixtures[index - 1].fixture.roundNumber !=
-                          fixtures[index].fixture.roundNumber)
-                    Padding(
-                      padding: EdgeInsets.only(
-                        top: index == 0 ? 0 : AppSpacing.sm,
-                        bottom: AppSpacing.xs,
-                      ),
-                      child: Text(
-                        isLeague
-                            ? l10n.matchCompetitionFixtureRound(
-                                fixtures[index].fixture.roundNumber,
-                              )
-                            : matchTournamentStageLabel(
-                                l10n,
-                                fixtures[index].fixture.stage,
-                              ),
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: accent,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                    ),
-                  _CompetitionFixtureRow(
-                    fixture: fixtures[index],
-                    showDivider: index < fixtures.length - 1 &&
-                        fixtures[index].fixture.roundNumber ==
-                            fixtures[index + 1].fixture.roundNumber,
-                    dividerColor: scheme.outlineVariant,
+                for (final round in fixturesByRound.entries) ...[
+                  _CompetitionFixtureRoundGroup(
+                    label: isLeague
+                        ? l10n.matchCompetitionFixtureRound(round.key)
+                        : matchTournamentStageLabel(
+                            l10n,
+                            round.value.first.fixture.stage,
+                          ),
+                    fixtures: round.value,
+                    accent: accent,
                     onOpenFixture: onOpenFixture,
                   ),
+                  if (round.key != fixturesByRound.keys.last)
+                    const SizedBox(height: AppSpacing.sm),
                 ],
               ],
             ),
+    );
+  }
+}
+
+class _CompetitionFixtureSummary extends StatelessWidget {
+  final int scheduledCount;
+  final int completedCount;
+  final int unscheduledCount;
+  final int totalCount;
+  final Color accent;
+
+  const _CompetitionFixtureSummary({
+    required this.scheduledCount,
+    required this.completedCount,
+    required this.unscheduledCount,
+    required this.totalCount,
+    required this.accent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.sm),
+      decoration: BoxDecoration(
+        color: accent.withValues(alpha: 0.07),
+        borderRadius: AppRadius.small,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            l10n.matchCompetitionFixtureScheduleCount(
+              scheduledCount,
+              totalCount,
+            ),
+            textAlign: TextAlign.end,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: scheme.onSurfaceVariant,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Row(
+            children: [
+              Expanded(
+                child: _CompetitionFixtureSummaryMetric(
+                  value: scheduledCount,
+                  label: l10n.matchCompetitionFixtureStatusScheduled,
+                  color: accent,
+                ),
+              ),
+              Container(
+                width: 1,
+                height: 32,
+                color: scheme.outlineVariant,
+              ),
+              Expanded(
+                child: _CompetitionFixtureSummaryMetric(
+                  value: completedCount,
+                  label: l10n.matchCompetitionFixtureStatusCompleted,
+                  color: _competitionPositiveColor(context),
+                ),
+              ),
+              Container(
+                width: 1,
+                height: 32,
+                color: scheme.outlineVariant,
+              ),
+              Expanded(
+                child: _CompetitionFixtureSummaryMetric(
+                  value: unscheduledCount,
+                  label: l10n.matchCompetitionFixtureUnscheduled,
+                  color: scheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CompetitionFixtureSummaryMetric extends StatelessWidget {
+  final int value;
+  final String label;
+  final Color color;
+
+  const _CompetitionFixtureSummaryMetric({
+    required this.value,
+    required this.label,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      children: [
+        Text(
+          '$value',
+          style: theme.textTheme.titleSmall?.copyWith(
+            color: color,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: color,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _CompetitionFixtureRoundGroup extends StatelessWidget {
+  final String label;
+  final List<CompetitionFixtureState> fixtures;
+  final Color accent;
+  final ValueChanged<CompetitionFixtureState>? onOpenFixture;
+
+  const _CompetitionFixtureRoundGroup({
+    required this.label,
+    required this.fixtures,
+    required this.accent,
+    this.onOpenFixture,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Container(
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        borderRadius: AppRadius.small,
+        border: Border.all(color: scheme.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm,
+              vertical: AppSpacing.xs,
+            ),
+            decoration: BoxDecoration(
+              color: accent.withValues(alpha: 0.10),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(AppRadius.sm),
+              ),
+            ),
+            child: Text(
+              label,
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: accent,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+            child: Column(
+              children: [
+                for (final item in fixtures.indexed)
+                  _CompetitionFixtureRow(
+                    fixture: item.$2,
+                    showDivider: item.$1 < fixtures.length - 1,
+                    dividerColor: scheme.outlineVariant,
+                    onOpenFixture: onOpenFixture,
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -1151,6 +1463,8 @@ class _CompetitionFixtureRow extends StatelessWidget {
         ? l10n.matchCompetitionFixtureUnscheduled
         : '${MaterialLocalizations.of(context).formatShortDate(scheduledAt)} · '
             '${MaterialLocalizations.of(context).formatTimeOfDay(TimeOfDay.fromDateTime(scheduledAt))}';
+    final statusLabel = _fixtureStatusLabel(l10n, fixture);
+    final statusColor = _fixtureStatusColor(context, fixture);
     final canOpen = onOpenFixture != null;
     void openFixture() {
       if (!canOpen) return;
@@ -1222,15 +1536,26 @@ class _CompetitionFixtureRow extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: AppSpacing.xxs),
-                  Text(
-                    '${_fixtureStatusLabel(l10n, fixture)} · $date',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w700,
-                    ),
+                  Row(
+                    children: [
+                      _CompetitionFixtureStatusBadge(
+                        label: statusLabel,
+                        color: statusColor,
+                      ),
+                      const SizedBox(width: AppSpacing.xs),
+                      Expanded(
+                        child: Text(
+                          date,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.end,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: scheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -1256,6 +1581,46 @@ class _CompetitionFixtureRow extends StatelessWidget {
       child: GestureDetector(onTap: canOpen ? openFixture : null, child: row),
     );
   }
+}
+
+class _CompetitionFixtureStatusBadge extends StatelessWidget {
+  final String label;
+  final Color color;
+
+  const _CompetitionFixtureStatusBadge({
+    required this.label,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: AppRadius.full,
+      ),
+      child: Text(
+        label,
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: color,
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+    );
+  }
+}
+
+Color _fixtureStatusColor(
+  BuildContext context,
+  CompetitionFixtureState fixture,
+) {
+  final scheme = Theme.of(context).colorScheme;
+  if (fixture.isCancelled) return scheme.error;
+  if (fixture.fixture.isPostponed) return scheme.tertiary;
+  if (fixture.isRecorded) return _competitionPositiveColor(context);
+  return scheme.primary;
 }
 
 String _fixtureStatusLabel(
@@ -1288,6 +1653,11 @@ class _LeagueOperationsPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    final accent = _competitionAccent(
+      context,
+      MatchCompetitionRecord.kindLeague,
+    );
     final standings = record.fixtures.isEmpty
         ? MatchCompetitionService.buildLeagueStandings(
             competitionName: record.name,
@@ -1304,20 +1674,97 @@ class _LeagueOperationsPreview extends StatelessWidget {
     return _PreviewPanel(
       icon: Icons.leaderboard_outlined,
       title: l10n.matchLeagueStandingsTitle,
+      accent: accent,
       child: standings.isEmpty
           ? _EmptyPreview(text: l10n.matchCompetitionNoTeams)
-          : Column(
-              children: [
-                for (final item in standings.indexed)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-                    child: _LeagueStandingPreviewRow(
-                      rank: item.$1 + 1,
-                      row: item.$2,
+          : ClipRRect(
+              borderRadius: AppRadius.small,
+              child: Column(
+                children: [
+                  Container(
+                    color: accent.withValues(alpha: 0.12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.xs,
+                      vertical: AppSpacing.xs,
+                    ),
+                    child: _LeagueStandingsTableHeader(
+                      rank: l10n.matchCompetitionStandingsRankColumn,
+                      team: l10n.matchCompetitionStandingsTeamColumn,
+                      played: l10n.matchCompetitionStandingsPlayedColumn,
+                      record: l10n.matchCompetitionStandingsRecordColumn,
+                      difference:
+                          l10n.matchCompetitionStandingsGoalDifferenceColumn,
+                      points: l10n.matchCompetitionStandingsPointsColumn,
+                      color: accent,
                     ),
                   ),
-              ],
+                  for (final item in standings.indexed)
+                    _LeagueStandingPreviewRow(
+                      rank: item.$1 + 1,
+                      row: item.$2,
+                      accent: accent,
+                      showDivider: item.$1 < standings.length - 1,
+                      dividerColor: scheme.outlineVariant,
+                    ),
+                ],
+              ),
             ),
+    );
+  }
+}
+
+class _LeagueStandingsTableHeader extends StatelessWidget {
+  final String rank;
+  final String team;
+  final String played;
+  final String record;
+  final String difference;
+  final String points;
+  final Color color;
+
+  const _LeagueStandingsTableHeader({
+    required this.rank,
+    required this.team,
+    required this.played,
+    required this.record,
+    required this.difference,
+    required this.points,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final textStyle = Theme.of(context).textTheme.labelSmall?.copyWith(
+          color: color,
+          fontWeight: FontWeight.w900,
+        );
+    return Row(
+      children: [
+        SizedBox(width: 34, child: Text(rank, style: textStyle)),
+        Expanded(child: Text(team, style: textStyle)),
+        SizedBox(
+          width: 28,
+          child: Text(played, textAlign: TextAlign.center, style: textStyle),
+        ),
+        SizedBox(
+          width: 50,
+          child: Text(record, textAlign: TextAlign.center, style: textStyle),
+        ),
+        SizedBox(
+          width: 34,
+          child: Text(
+            difference,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: textStyle,
+          ),
+        ),
+        SizedBox(
+          width: 34,
+          child: Text(points, textAlign: TextAlign.center, style: textStyle),
+        ),
+      ],
     );
   }
 }
@@ -1325,32 +1772,65 @@ class _LeagueOperationsPreview extends StatelessWidget {
 class _LeagueStandingPreviewRow extends StatelessWidget {
   final int rank;
   final LeagueStandingRow row;
+  final Color accent;
+  final bool showDivider;
+  final Color dividerColor;
 
   const _LeagueStandingPreviewRow({
     required this.rank,
     required this.row,
+    required this.accent,
+    required this.showDivider,
+    required this.dividerColor,
   });
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    return Row(
-      children: [
-        SizedBox(
-          width: 28,
-          child: Text(
-            '$rank',
-            style: theme.textTheme.labelMedium?.copyWith(
-              fontWeight: FontWeight.w900,
-            ),
-          ),
+    final scheme = theme.colorScheme;
+    final goalDifference = row.goalDifference > 0
+        ? '+${row.goalDifference}'
+        : '${row.goalDifference}';
+    final textStyle = theme.textTheme.labelMedium?.copyWith(
+      fontWeight: FontWeight.w800,
+    );
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        border: showDivider
+            ? Border(bottom: BorderSide(color: dividerColor))
+            : null,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.xs,
+          vertical: AppSpacing.sm,
         ),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
+        child: Row(
+          children: [
+            SizedBox(
+              width: 34,
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Container(
+                  width: 26,
+                  height: 26,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: accent.withValues(alpha: 0.10),
+                    borderRadius: AppRadius.small,
+                  ),
+                  child: Text(
+                    '$rank',
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: accent,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              child: Text(
                 row.team,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -1358,29 +1838,51 @@ class _LeagueStandingPreviewRow extends StatelessWidget {
                   fontWeight: FontWeight.w800,
                 ),
               ),
-              const SizedBox(height: 2),
-              Text(
-                '${l10n.matchLeaguePlayedSummary(row.played)} · '
-                '${l10n.matchLeagueRecordSummary(row.wins, row.draws, row.losses)} · '
-                '${l10n.matchLeagueGoalDifferenceSummary(row.goalDifference)}',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+            ),
+            SizedBox(
+              width: 28,
+              child: Text(
+                '${row.played}',
+                textAlign: TextAlign.center,
+                style: textStyle,
+              ),
+            ),
+            SizedBox(
+              width: 50,
+              child: Text(
+                '${row.wins}-${row.draws}-${row.losses}',
+                textAlign: TextAlign.center,
+                style: textStyle,
+              ),
+            ),
+            SizedBox(
+              width: 34,
+              child: Text(
+                goalDifference,
+                textAlign: TextAlign.center,
+                style: textStyle?.copyWith(
+                  color: row.goalDifference == 0
+                      ? scheme.onSurfaceVariant
+                      : row.goalDifference > 0
+                          ? _competitionPositiveColor(context)
+                          : scheme.error,
                 ),
               ),
-            ],
-          ),
+            ),
+            SizedBox(
+              width: 34,
+              child: Text(
+                '${row.points}',
+                textAlign: TextAlign.center,
+                style: textStyle?.copyWith(
+                  color: accent,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: AppSpacing.sm),
-        Text(
-          l10n.matchLeaguePointsSummary(row.points),
-          style: theme.textTheme.labelMedium?.copyWith(
-            color: theme.colorScheme.primary,
-            fontWeight: FontWeight.w900,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
@@ -4197,7 +4699,13 @@ class _CompetitionEditorScreenState extends State<_CompetitionEditorScreen> {
     _autoSaveInFlight = true;
     try {
       await _persistCompetition(updated);
-      if (mounted) setState(() {});
+      if (mounted) {
+        setState(() {});
+        AppFeedback.showSuccess(
+          context,
+          text: AppLocalizations.of(context)!.matchCompetitionAutoSavedFeedback,
+        );
+      }
     } finally {
       _autoSaveInFlight = false;
       if (mounted) setState(() {});
@@ -4211,7 +4719,8 @@ class _CompetitionEditorScreenState extends State<_CompetitionEditorScreen> {
   MatchCompetitionRecord? _buildCompetitionRecord() {
     final name = _nameController.text.trim();
     if (name.isEmpty || _teams.length < 2) return null;
-    return MatchCompetitionRecord.create(
+    final existing = _persistedRecord ?? widget.record;
+    final record = MatchCompetitionRecord.create(
       kind: _kind,
       name: name,
       teams: _teams,
@@ -4220,6 +4729,14 @@ class _CompetitionEditorScreenState extends State<_CompetitionEditorScreen> {
       venue: _venueController.text,
       organizer: _organizerController.text,
       note: _noteController.text,
+      leagueLegs: existing?.leagueLegs ?? 1,
+      fixtureStartDate: existing?.fixtureStartDate,
+      fixtureIntervalDays: existing?.fixtureIntervalDays ?? 7,
+    );
+    if (existing == null) return record;
+    return record.copyWith(
+      id: existing.id,
+      createdAt: existing.createdAt,
     );
   }
 
@@ -4230,15 +4747,19 @@ class _CompetitionEditorScreenState extends State<_CompetitionEditorScreen> {
 
   Future<void> _persistCompetition(MatchCompetitionRecord updated) async {
     final existing = _persistedRecord ?? widget.record;
-    if (existing != null && existing.id != updated.id) {
-      await widget.service.deleteCompetition(existing.id);
-    }
     final createdAt = existing?.createdAt ?? updated.createdAt;
-    final normalized = updated.copyWith(createdAt: createdAt);
+    final normalized = updated.copyWith(
+      id: existing?.id ?? updated.id,
+      createdAt: createdAt,
+    );
     await widget.service.upsertCompetition(normalized);
-    _persistedRecord =
-        widget.service.findCompetitionById(normalized.id) ?? normalized;
-    _lastSavedSignature = _competitionRecordSignature(normalized);
+    _persistedRecord = widget.service.findCompetitionById(normalized.id) ??
+        widget.service.findCompetition(
+          kind: normalized.kind,
+          name: normalized.name,
+        ) ??
+        normalized;
+    _lastSavedSignature = _competitionRecordSignature(_persistedRecord!);
     _hasPersistedChanges = true;
   }
 
@@ -4553,79 +5074,122 @@ class _TournamentSeedsEditor extends StatelessWidget {
               buildDefaultDragHandles: false,
               itemCount: teams.length,
               onReorder: onReorder,
+              proxyDecorator: (child, _, animation) {
+                return AnimatedBuilder(
+                  animation: animation,
+                  child: child,
+                  builder: (context, child) {
+                    final progress = Curves.easeOutCubic.transform(
+                      animation.value,
+                    );
+                    return Transform.scale(
+                      scale: 1 + (0.035 * progress),
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: Color.alphaBlend(
+                            accent.withValues(alpha: 0.22),
+                            scheme.surface,
+                          ),
+                          borderRadius: AppRadius.small,
+                          border: Border.all(color: accent, width: 2),
+                          boxShadow: [
+                            BoxShadow(
+                              color: accent.withValues(alpha: 0.34),
+                              blurRadius: 18,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.xs,
+                          ),
+                          child: child,
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
               itemBuilder: (context, index) {
                 final team = teams[index];
                 final isOwnTeam = team == ownTeamName;
-                return Container(
+                return ReorderableDelayedDragStartListener(
                   key: ValueKey('competition-seed-$team'),
-                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-                  decoration: BoxDecoration(
-                    border: index == teams.length - 1
-                        ? null
-                        : Border(
-                            bottom: BorderSide(
-                              color: scheme.outlineVariant.withValues(
-                                alpha: 0.72,
-                              ),
-                            ),
-                          ),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 34,
-                        height: 34,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: accent.withValues(alpha: 0.12),
-                          borderRadius: AppRadius.small,
-                        ),
-                        child: Text(
-                          '${index + 1}',
-                          style: theme.textTheme.labelLarge?.copyWith(
-                            color: accent,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                      Expanded(
-                        child: Row(
-                          children: [
-                            Flexible(
-                              child: Text(
-                                team,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: theme.textTheme.labelLarge?.copyWith(
-                                  fontWeight: FontWeight.w800,
+                  index: index,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: AppSpacing.xs,
+                      horizontal: AppSpacing.xxs,
+                    ),
+                    decoration: BoxDecoration(
+                      borderRadius: AppRadius.small,
+                      border: index == teams.length - 1
+                          ? null
+                          : Border(
+                              bottom: BorderSide(
+                                color: scheme.outlineVariant.withValues(
+                                  alpha: 0.72,
                                 ),
                               ),
                             ),
-                            if (isOwnTeam) ...[
-                              const SizedBox(width: AppSpacing.xs),
-                              _CompetitionOwnTeamBadge(accent: accent),
-                            ],
-                          ],
-                        ),
-                      ),
-                      if (!isOwnTeam)
-                        _CompetitionRowAction(
-                          onPressed: () => onRemoveTeam(team),
-                          icon: Icons.close,
-                          tooltip: l10n.matchCompetitionRemoveTeamTooltip(team),
-                        ),
-                      ReorderableDragStartListener(
-                        index: index,
-                        child: Padding(
-                          padding: const EdgeInsets.all(AppSpacing.xs),
-                          child: Icon(
-                            Icons.drag_handle,
-                            color: scheme.onSurfaceVariant,
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 34,
+                          height: 34,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: accent.withValues(alpha: 0.12),
+                            borderRadius: AppRadius.small,
+                          ),
+                          child: Text(
+                            '${index + 1}',
+                            style: theme.textTheme.labelLarge?.copyWith(
+                              color: accent,
+                              fontWeight: FontWeight.w900,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: AppSpacing.sm),
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  team,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: theme.textTheme.labelLarge?.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ),
+                              if (isOwnTeam) ...[
+                                const SizedBox(width: AppSpacing.xs),
+                                _CompetitionOwnTeamBadge(accent: accent),
+                              ],
+                            ],
+                          ),
+                        ),
+                        if (!isOwnTeam)
+                          _CompetitionRowAction(
+                            onPressed: () => onRemoveTeam(team),
+                            icon: Icons.close,
+                            tooltip: l10n.matchCompetitionRemoveTeamTooltip(
+                              team,
+                            ),
+                          ),
+                        Padding(
+                          padding: const EdgeInsets.all(AppSpacing.xs),
+                          child: Icon(
+                            Icons.drag_indicator,
+                            color: accent,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },

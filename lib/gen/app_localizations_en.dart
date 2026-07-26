@@ -16468,4 +16468,32 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get matchCompetitionFixtureIncreaseScore => 'Increase score';
+
+  @override
+  String get matchCompetitionAutoSavedFeedback =>
+      'Competition changes were saved automatically.';
+
+  @override
+  String get matchCompetitionStandingsRankColumn => 'Rank';
+
+  @override
+  String get matchCompetitionStandingsTeamColumn => 'Team';
+
+  @override
+  String get matchCompetitionStandingsPlayedColumn => 'P';
+
+  @override
+  String get matchCompetitionStandingsRecordColumn => 'W-D-L';
+
+  @override
+  String get matchCompetitionStandingsGoalDifferenceColumn => 'GD';
+
+  @override
+  String get matchCompetitionStandingsPointsColumn => 'Pts';
+
+  @override
+  String get matchCompetitionParticipantOrderColumn => 'No.';
+
+  @override
+  String get matchCompetitionParticipantTeamColumn => 'Team';
 }

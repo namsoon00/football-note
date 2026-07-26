@@ -9226,5 +9226,14 @@
     }
   },
   "matchCompetitionFixtureDecreaseScore": "Decrease score",
-  "matchCompetitionFixtureIncreaseScore": "Increase score"
+  "matchCompetitionFixtureIncreaseScore": "Increase score",
+  "matchCompetitionAutoSavedFeedback": "Competition changes were saved automatically.",
+  "matchCompetitionStandingsRankColumn": "Rank",
+  "matchCompetitionStandingsTeamColumn": "Team",
+  "matchCompetitionStandingsPlayedColumn": "P",
+  "matchCompetitionStandingsRecordColumn": "W-D-L",
+  "matchCompetitionStandingsGoalDifferenceColumn": "GD",
+  "matchCompetitionStandingsPointsColumn": "Pts",
+  "matchCompetitionParticipantOrderColumn": "No.",
+  "matchCompetitionParticipantTeamColumn": "Team"
 }

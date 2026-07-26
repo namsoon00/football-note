@@ -28098,6 +28098,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Increase score'**
   String get matchCompetitionFixtureIncreaseScore;
+
+  /// No description provided for @matchCompetitionAutoSavedFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Competition changes were saved automatically.'**
+  String get matchCompetitionAutoSavedFeedback;
+
+  /// No description provided for @matchCompetitionStandingsRankColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Rank'**
+  String get matchCompetitionStandingsRankColumn;
+
+  /// No description provided for @matchCompetitionStandingsTeamColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Team'**
+  String get matchCompetitionStandingsTeamColumn;
+
+  /// No description provided for @matchCompetitionStandingsPlayedColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'P'**
+  String get matchCompetitionStandingsPlayedColumn;
+
+  /// No description provided for @matchCompetitionStandingsRecordColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'W-D-L'**
+  String get matchCompetitionStandingsRecordColumn;
+
+  /// No description provided for @matchCompetitionStandingsGoalDifferenceColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'GD'**
+  String get matchCompetitionStandingsGoalDifferenceColumn;
+
+  /// No description provided for @matchCompetitionStandingsPointsColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Pts'**
+  String get matchCompetitionStandingsPointsColumn;
+
+  /// No description provided for @matchCompetitionParticipantOrderColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'No.'**
+  String get matchCompetitionParticipantOrderColumn;
+
+  /// No description provided for @matchCompetitionParticipantTeamColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Team'**
+  String get matchCompetitionParticipantTeamColumn;
 }
 
 class _AppLocalizationsDelegate

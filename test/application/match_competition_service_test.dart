@@ -39,6 +39,151 @@ void main() {
     );
   });
 
+  test('참가 팀 변경은 리그 일정과 토너먼트 대진을 다시 편성한다', () async {
+    final repository = _MemoryOptionRepository();
+    final service = MatchCompetitionService(repository);
+    final league = MatchCompetitionRecord.create(
+      kind: MatchCompetitionRecord.kindLeague,
+      name: '일정 재편성 리그',
+      teams: const <String>['우리 팀', '블루 FC', '그린 FC', '레드 FC'],
+      fixtureStartDate: DateTime(2026, 9, 3, 18, 30),
+      fixtureIntervalDays: 7,
+    );
+    await service.upsertCompetition(league);
+    final savedLeague = service.findCompetitionById(league.id)!;
+
+    await service.upsertCompetition(
+      savedLeague.copyWith(
+        teams: const <String>['우리 팀', '블루 FC', '옐로 FC', '레드 FC'],
+        fixtures: const <CompetitionFixture>[],
+      ),
+    );
+
+    final rebuiltLeague = service.findCompetitionById(league.id)!;
+    expect(rebuiltLeague.fixtures, hasLength(6));
+    expect(
+      rebuiltLeague.fixtures.any(
+        (fixture) => fixture.homeTeam == '그린 FC' || fixture.awayTeam == '그린 FC',
+      ),
+      isFalse,
+    );
+    expect(
+      rebuiltLeague.fixtures.any(
+        (fixture) => fixture.homeTeam == '옐로 FC' || fixture.awayTeam == '옐로 FC',
+      ),
+      isTrue,
+    );
+    expect(
+      rebuiltLeague.fixtures.first.scheduledAt,
+      DateTime(2026, 9, 3, 18, 30),
+    );
+
+    final tournament = MatchCompetitionRecord.create(
+      kind: MatchCompetitionRecord.kindTournament,
+      name: '대진 재편성 컵',
+      teams: const <String>['우리 팀', '블루 FC', '그린 FC', '레드 FC'],
+    );
+    await service.upsertCompetition(tournament);
+    final savedTournament = service.findCompetitionById(tournament.id)!;
+    final firstFixture = savedTournament.fixtures.first;
+    final recordedTournament = await service.updateFixture(
+      competition: savedTournament,
+      fixture: firstFixture.copyWith(
+        homeScore: 2,
+        awayScore: 0,
+        status: CompetitionFixture.statusCompleted,
+      ),
+    );
+
+    await service.upsertCompetition(
+      recordedTournament!.copyWith(
+        teams: const <String>['레드 FC', '블루 FC', '그린 FC', '우리 팀'],
+        fixtures: const <CompetitionFixture>[],
+      ),
+    );
+
+    final rebuiltTournament = service.findCompetitionById(tournament.id)!;
+    final expectedFixtures = MatchCompetitionService.buildFixtures(
+      recordedTournament.copyWith(
+        teams: const <String>['레드 FC', '블루 FC', '그린 FC', '우리 팀'],
+        fixtures: const <CompetitionFixture>[],
+      ),
+    );
+    expect(
+      rebuiltTournament.fixtures
+          .map((fixture) => '${fixture.homeTeam}:${fixture.awayTeam}')
+          .toList(),
+      expectedFixtures
+          .map((fixture) => '${fixture.homeTeam}:${fixture.awayTeam}')
+          .toList(),
+    );
+    expect(rebuiltTournament.fixtures.every((fixture) => !fixture.hasResult),
+        isTrue);
+  });
+
+  test('운영 정보만 변경하면 대회 일정과 기록을 유지한다', () async {
+    final repository = _MemoryOptionRepository();
+    final service = MatchCompetitionService(repository);
+    final base = MatchCompetitionRecord.create(
+      kind: MatchCompetitionRecord.kindLeague,
+      name: '운영 정보 리그',
+      teams: const <String>['우리 팀', '블루 FC'],
+      venue: '기존 구장',
+      fixtureStartDate: DateTime(2026, 10, 1, 19),
+    );
+    await service.upsertCompetition(base);
+    final saved = service.findCompetitionById(base.id)!;
+    final recorded = await service.updateFixture(
+      competition: saved,
+      fixture: saved.fixtures.single.copyWith(
+        homeScore: 3,
+        awayScore: 1,
+        status: CompetitionFixture.statusCompleted,
+      ),
+    );
+
+    await service.upsertCompetition(
+      recorded!.copyWith(
+        venue: '새 구장',
+        organizer: '운영진',
+        fixtures: const <CompetitionFixture>[],
+      ),
+    );
+
+    final updated = service.findCompetitionById(base.id)!;
+    expect(updated.id, base.id);
+    expect(updated.organizer, '운영진');
+    expect(updated.fixtures.single.scheduledAt, DateTime(2026, 10, 1, 19));
+    expect(updated.fixtures.single.homeScore, 3);
+    expect(updated.fixtures.single.awayScore, 1);
+    expect(updated.fixtures.single.venue, '새 구장');
+  });
+
+  test('대회 이름을 변경해도 기존 일정의 연결 식별자를 유지한다', () async {
+    final repository = _MemoryOptionRepository();
+    final service = MatchCompetitionService(repository);
+    final base = MatchCompetitionRecord.create(
+      kind: MatchCompetitionRecord.kindLeague,
+      name: '변경 전 리그',
+      teams: const <String>['우리 팀', '블루 FC'],
+    );
+    await service.upsertCompetition(base);
+    final saved = service.findCompetitionById(base.id)!;
+
+    await service.upsertCompetition(
+      saved.copyWith(
+        name: '변경 후 리그',
+        fixtures: const <CompetitionFixture>[],
+      ),
+    );
+
+    final updated = service.findCompetitionById(base.id)!;
+    expect(service.allCompetitions(), hasLength(1));
+    expect(updated.name, '변경 후 리그');
+    expect(updated.id, base.id);
+    expect(updated.fixtures.single.id, saved.fixtures.single.id);
+  });
+
   test('대회 상태는 저장하고 진행 중 대회를 먼저 정렬한다', () async {
     final repository = _MemoryOptionRepository();
     final service = MatchCompetitionService(repository);

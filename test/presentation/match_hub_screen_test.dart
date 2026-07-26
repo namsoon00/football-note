@@ -235,7 +235,11 @@ void main() {
       );
       await tester.tap(find.widgetWithText(FilledButton, '추가'));
       await tester.pumpAndSettle();
-      expect(find.byIcon(Icons.drag_handle), findsNWidgets(2));
+      expect(find.byIcon(Icons.drag_indicator), findsNWidgets(2));
+      expect(
+        find.byType(ReorderableDelayedDragStartListener),
+        findsNWidgets(2),
+      );
 
       await tester.tap(find.byType(BackButton));
       await tester.pumpAndSettle();
@@ -281,6 +285,7 @@ void main() {
     competitions = MatchCompetitionService(optionRepository).allCompetitions();
     expect(competitions, hasLength(1));
     expect(competitions.single.name, '자동 저장 리그');
+    expect(find.text('대회 정보를 자동 저장했어요.'), findsOneWidget);
 
     await tester.enterText(
       find.byKey(const ValueKey('competition-season-field')),
@@ -320,10 +325,13 @@ void main() {
     await tester.tap(find.text('순위'));
     await tester.pumpAndSettle();
     expect(find.text('리그 순위'), findsOneWidget);
-    expect(find.textContaining('1승 0무 0패'), findsOneWidget);
+    expect(find.text('승·무·패'), findsOneWidget);
+    expect(find.text('1-0-0'), findsOneWidget);
     await tester.tap(find.text('참가 팀'));
     await tester.pumpAndSettle();
     expect(find.text('등록 팀'), findsOneWidget);
+    expect(find.text('순번'), findsOneWidget);
+    expect(find.text('참가 팀'), findsNWidgets(2));
     expect(find.text('우리 팀 U15'), findsWidgets);
     expect(find.text('서울 U15'), findsWidgets);
     expect(

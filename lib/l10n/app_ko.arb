@@ -9226,5 +9226,14 @@
     }
   },
   "matchCompetitionFixtureDecreaseScore": "점수 감소",
-  "matchCompetitionFixtureIncreaseScore": "점수 증가"
+  "matchCompetitionFixtureIncreaseScore": "점수 증가",
+  "matchCompetitionAutoSavedFeedback": "대회 정보를 자동 저장했어요.",
+  "matchCompetitionStandingsRankColumn": "순위",
+  "matchCompetitionStandingsTeamColumn": "팀",
+  "matchCompetitionStandingsPlayedColumn": "경기",
+  "matchCompetitionStandingsRecordColumn": "승·무·패",
+  "matchCompetitionStandingsGoalDifferenceColumn": "득실",
+  "matchCompetitionStandingsPointsColumn": "승점",
+  "matchCompetitionParticipantOrderColumn": "순번",
+  "matchCompetitionParticipantTeamColumn": "참가 팀"
 }
