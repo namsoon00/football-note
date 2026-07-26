@@ -9174,5 +9174,56 @@
   },
   "xpHistoryReasonChallengeRoundCompleted": "challenge round complete",
   "xpHistoryReasonChallengeRoundStreakBonus": "challenge streak bonus",
-  "xpHistoryReasonChallengeCompletionBonus": "challenge finish bonus"
+  "xpHistoryReasonChallengeCompletionBonus": "challenge finish bonus",
+  "matchCompetitionScheduleTab": "Schedule & results",
+  "matchCompetitionStandingsTab": "Standings",
+  "matchCompetitionBracketTab": "Bracket",
+  "matchCompetitionTeamsViewTab": "Teams",
+  "matchCompetitionFixtureManageAction": "Manage match",
+  "matchCompetitionFixtureEditorTitle": "Manage match",
+  "matchCompetitionFixtureScheduleSection": "Match schedule",
+  "matchCompetitionFixtureResultSection": "Match result",
+  "matchCompetitionFixtureResultEnabled": "Enter result",
+  "matchCompetitionFixtureResultUnavailable": "Enter a result after both participating teams are confirmed.",
+  "matchCompetitionFixtureStatusScheduled": "Scheduled",
+  "matchCompetitionFixtureStatusPostponed": "Postponed",
+  "matchCompetitionFixtureStatusCancelled": "Cancelled",
+  "matchCompetitionFixtureStatusCompleted": "Completed",
+  "matchCompetitionFixtureDateAction": "Select date",
+  "matchCompetitionFixtureTimeAction": "Select time",
+  "matchCompetitionFixtureClearSchedule": "Clear schedule",
+  "matchCompetitionFixtureVenueDefault": "Competition default venue",
+  "matchCompetitionFixtureVenueUnset": "Venue undecided",
+  "matchCompetitionFixturePenaltyTitle": "Penalty shootout",
+  "matchCompetitionFixturePenaltyRequired": "Enter a penalty shootout result for a drawn tournament match.",
+  "matchCompetitionFixtureSave": "Save match",
+  "matchCompetitionFixtureSavedFeedback": "Saved the match schedule and result.",
+  "matchCompetitionFixtureOpenTeamRecord": "Open our team record",
+  "matchCompetitionFixtureUnscheduled": "Schedule pending",
+  "matchCompetitionFixtureSchedulePlanAction": "Plan schedule",
+  "matchCompetitionFixtureSchedulePlanTitle": "Plan competition schedule",
+  "matchCompetitionFixtureScheduleStartLabel": "First match",
+  "matchCompetitionFixtureScheduleIntervalLabel": "Round interval",
+  "matchCompetitionFixtureScheduleIntervalDays": "{days} days",
+  "@matchCompetitionFixtureScheduleIntervalDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "matchCompetitionFixtureScheduleApply": "Apply schedule",
+  "matchCompetitionFixtureScheduleCount": "{scheduled}/{total} scheduled",
+  "@matchCompetitionFixtureScheduleCount": {
+    "placeholders": {
+      "scheduled": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "matchCompetitionFixtureDecreaseScore": "Decrease score",
+  "matchCompetitionFixtureIncreaseScore": "Increase score"
 }

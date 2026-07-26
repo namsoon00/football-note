@@ -9174,5 +9174,56 @@
   },
   "xpHistoryReasonChallengeRoundCompleted": "チャレンジラウンド完了",
   "xpHistoryReasonChallengeRoundStreakBonus": "チャレンジ連続ボーナス",
-  "xpHistoryReasonChallengeCompletionBonus": "チャレンジ完走ボーナス"
+  "xpHistoryReasonChallengeCompletionBonus": "チャレンジ完走ボーナス",
+  "matchCompetitionScheduleTab": "日程・結果",
+  "matchCompetitionStandingsTab": "順位",
+  "matchCompetitionBracketTab": "組み合わせ",
+  "matchCompetitionTeamsViewTab": "参加チーム",
+  "matchCompetitionFixtureManageAction": "試合管理",
+  "matchCompetitionFixtureEditorTitle": "試合管理",
+  "matchCompetitionFixtureScheduleSection": "試合日程",
+  "matchCompetitionFixtureResultSection": "試合結果",
+  "matchCompetitionFixtureResultEnabled": "結果を入力",
+  "matchCompetitionFixtureResultUnavailable": "参加チームが確定すると結果を入力できます。",
+  "matchCompetitionFixtureStatusScheduled": "予定",
+  "matchCompetitionFixtureStatusPostponed": "延期",
+  "matchCompetitionFixtureStatusCancelled": "中止",
+  "matchCompetitionFixtureStatusCompleted": "完了",
+  "matchCompetitionFixtureDateAction": "日付を選択",
+  "matchCompetitionFixtureTimeAction": "時間を選択",
+  "matchCompetitionFixtureClearSchedule": "日程を削除",
+  "matchCompetitionFixtureVenueDefault": "大会の基本会場",
+  "matchCompetitionFixtureVenueUnset": "会場未定",
+  "matchCompetitionFixturePenaltyTitle": "PK戦",
+  "matchCompetitionFixturePenaltyRequired": "トーナメントの引き分け試合はPK戦の結果を入力してください。",
+  "matchCompetitionFixtureSave": "試合を保存",
+  "matchCompetitionFixtureSavedFeedback": "試合日程と結果を保存しました。",
+  "matchCompetitionFixtureOpenTeamRecord": "自チーム記録を開く",
+  "matchCompetitionFixtureUnscheduled": "日程未定",
+  "matchCompetitionFixtureSchedulePlanAction": "日程を組む",
+  "matchCompetitionFixtureSchedulePlanTitle": "大会日程を組む",
+  "matchCompetitionFixtureScheduleStartLabel": "初戦",
+  "matchCompetitionFixtureScheduleIntervalLabel": "ラウンド間隔",
+  "matchCompetitionFixtureScheduleIntervalDays": "{days}日",
+  "@matchCompetitionFixtureScheduleIntervalDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "matchCompetitionFixtureScheduleApply": "日程を適用",
+  "matchCompetitionFixtureScheduleCount": "{scheduled}/{total} 日程設定済み",
+  "@matchCompetitionFixtureScheduleCount": {
+    "placeholders": {
+      "scheduled": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "matchCompetitionFixtureDecreaseScore": "得点を減らす",
+  "matchCompetitionFixtureIncreaseScore": "得点を増やす"
 }

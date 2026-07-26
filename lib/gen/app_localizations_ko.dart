@@ -15858,4 +15858,112 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get xpHistoryReasonChallengeCompletionBonus => '챌린지 완주 보너스';
+
+  @override
+  String get matchCompetitionScheduleTab => '일정·결과';
+
+  @override
+  String get matchCompetitionStandingsTab => '순위';
+
+  @override
+  String get matchCompetitionBracketTab => '대진표';
+
+  @override
+  String get matchCompetitionTeamsViewTab => '참가 팀';
+
+  @override
+  String get matchCompetitionFixtureManageAction => '경기 관리';
+
+  @override
+  String get matchCompetitionFixtureEditorTitle => '경기 관리';
+
+  @override
+  String get matchCompetitionFixtureScheduleSection => '경기 일정';
+
+  @override
+  String get matchCompetitionFixtureResultSection => '경기 결과';
+
+  @override
+  String get matchCompetitionFixtureResultEnabled => '결과 입력';
+
+  @override
+  String get matchCompetitionFixtureResultUnavailable =>
+      '참가 팀이 확정되면 결과를 입력할 수 있어요.';
+
+  @override
+  String get matchCompetitionFixtureStatusScheduled => '예정';
+
+  @override
+  String get matchCompetitionFixtureStatusPostponed => '연기';
+
+  @override
+  String get matchCompetitionFixtureStatusCancelled => '취소';
+
+  @override
+  String get matchCompetitionFixtureStatusCompleted => '완료';
+
+  @override
+  String get matchCompetitionFixtureDateAction => '날짜 선택';
+
+  @override
+  String get matchCompetitionFixtureTimeAction => '시간 선택';
+
+  @override
+  String get matchCompetitionFixtureClearSchedule => '일정 지우기';
+
+  @override
+  String get matchCompetitionFixtureVenueDefault => '대회 기본 장소';
+
+  @override
+  String get matchCompetitionFixtureVenueUnset => '장소 미정';
+
+  @override
+  String get matchCompetitionFixturePenaltyTitle => '승부차기';
+
+  @override
+  String get matchCompetitionFixturePenaltyRequired =>
+      '토너먼트 동점 경기는 승부차기 결과를 입력하세요.';
+
+  @override
+  String get matchCompetitionFixtureSave => '경기 저장';
+
+  @override
+  String get matchCompetitionFixtureSavedFeedback => '경기 일정과 결과를 저장했어요.';
+
+  @override
+  String get matchCompetitionFixtureOpenTeamRecord => '우리 팀 기록 열기';
+
+  @override
+  String get matchCompetitionFixtureUnscheduled => '일정 미정';
+
+  @override
+  String get matchCompetitionFixtureSchedulePlanAction => '일정 편성';
+
+  @override
+  String get matchCompetitionFixtureSchedulePlanTitle => '대회 일정 편성';
+
+  @override
+  String get matchCompetitionFixtureScheduleStartLabel => '첫 경기';
+
+  @override
+  String get matchCompetitionFixtureScheduleIntervalLabel => '라운드 간격';
+
+  @override
+  String matchCompetitionFixtureScheduleIntervalDays(int days) {
+    return '$days일';
+  }
+
+  @override
+  String get matchCompetitionFixtureScheduleApply => '일정 적용';
+
+  @override
+  String matchCompetitionFixtureScheduleCount(int scheduled, int total) {
+    return '$scheduled/$total 일정';
+  }
+
+  @override
+  String get matchCompetitionFixtureDecreaseScore => '점수 감소';
+
+  @override
+  String get matchCompetitionFixtureIncreaseScore => '점수 증가';
 }
