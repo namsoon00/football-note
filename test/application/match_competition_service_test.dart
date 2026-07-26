@@ -894,6 +894,197 @@ void main() {
     expect(issueTypes, contains(CompetitionScheduleIssue.typeTeamOverlap));
     expect(issueTypes, contains(CompetitionScheduleIssue.typeShortRest));
   });
+
+  test('운영형 6팀 리그 데이터는 순위와 경기별 일정 경고를 함께 계산한다', () {
+    final record = MatchCompetitionRecord.create(
+      kind: MatchCompetitionRecord.kindLeague,
+      name: '2026 가을 주말리그',
+      teams: const <String>[
+        '우리 팀',
+        '서울 FC',
+        '부산 FC',
+        '인천 FC',
+        '수원 FC',
+        '대전 FC',
+      ],
+      venue: '메인 구장',
+    ).copyWith(
+      fixtures: [
+        CompetitionFixture(
+          id: 'league-2',
+          roundNumber: 1,
+          slotNumber: 2,
+          homeTeam: '부산 FC',
+          awayTeam: '인천 FC',
+          scheduledAt: DateTime(2026, 10, 5, 10),
+          venue: '메인 구장',
+          homeScore: 1,
+          awayScore: 1,
+          status: CompetitionFixture.statusCompleted,
+        ),
+        CompetitionFixture(
+          id: 'league-1',
+          roundNumber: 1,
+          slotNumber: 1,
+          homeTeam: '우리 팀',
+          awayTeam: '서울 FC',
+          scheduledAt: DateTime(2026, 10, 5, 10),
+          venue: '메인 구장',
+          homeScore: 3,
+          awayScore: 1,
+          status: CompetitionFixture.statusCompleted,
+        ),
+        CompetitionFixture(
+          id: 'league-3',
+          roundNumber: 1,
+          slotNumber: 3,
+          homeTeam: '우리 팀',
+          awayTeam: '수원 FC',
+          scheduledAt: DateTime(2026, 10, 5, 15),
+          venue: '보조 구장',
+        ),
+        CompetitionFixture(
+          id: 'league-4',
+          roundNumber: 2,
+          slotNumber: 4,
+          homeTeam: '대전 FC',
+          awayTeam: '부산 FC',
+          scheduledAt: DateTime(2026, 10, 6, 10),
+          venue: '메인 구장',
+          homeScore: 0,
+          awayScore: 2,
+          status: CompetitionFixture.statusCompleted,
+        ),
+        CompetitionFixture(
+          id: 'league-5',
+          roundNumber: 2,
+          slotNumber: 5,
+          homeTeam: '인천 FC',
+          awayTeam: '서울 FC',
+          scheduledAt: DateTime(2026, 10, 8, 10),
+          venue: '메인 구장',
+          homeScore: 2,
+          awayScore: 1,
+          status: CompetitionFixture.statusCompleted,
+        ),
+        CompetitionFixture(
+          id: 'league-6',
+          roundNumber: 3,
+          slotNumber: 6,
+          homeTeam: '수원 FC',
+          awayTeam: '대전 FC',
+          scheduledAt: DateTime(2026, 10, 12, 10),
+          venue: '메인 구장',
+        ),
+      ],
+    );
+
+    final standings =
+        MatchCompetitionService.buildLeagueStandingsForCompetition(
+      competition: record,
+      entries: const <TrainingEntry>[],
+    );
+    final issuesByFixture = MatchCompetitionService.scheduleIssueTypesByFixture(
+      competition: record,
+    );
+
+    expect(standings.first.team, '부산 FC');
+    expect(
+      standings.first,
+      isA<LeagueStandingRow>()
+          .having((row) => row.points, 'points', 4)
+          .having((row) => row.played, 'played', 2),
+    );
+    expect(
+      issuesByFixture['league-1'],
+      containsAll(<String>[
+        CompetitionScheduleIssue.typeVenueOverlap,
+        CompetitionScheduleIssue.typeTeamOverlap,
+        CompetitionScheduleIssue.typeShortRest,
+      ]),
+    );
+    expect(
+      issuesByFixture['league-2'],
+      containsAll(<String>[
+        CompetitionScheduleIssue.typeVenueOverlap,
+        CompetitionScheduleIssue.typeShortRest,
+      ]),
+    );
+    expect(issuesByFixture.containsKey('league-5'), isFalse);
+  });
+
+  test('운영형 8팀 토너먼트 결과는 준결승과 결승 대진에 반영된다', () async {
+    final repository = _MemoryOptionRepository();
+    final service = MatchCompetitionService(repository);
+    final competition = MatchCompetitionRecord.create(
+      kind: MatchCompetitionRecord.kindTournament,
+      name: '2026 챔피언십 컵',
+      teams: const <String>[
+        '우리 팀',
+        '서울 FC',
+        '부산 FC',
+        '인천 FC',
+        '수원 FC',
+        '대전 FC',
+        '광주 FC',
+        '제주 FC',
+      ],
+      fixtureStartDate: DateTime(2026, 10, 5, 10),
+      fixtureIntervalDays: 7,
+    );
+    await service.upsertCompetition(competition);
+    var saved = service.findCompetitionById(competition.id)!;
+    final firstRound = saved.fixtures
+        .where((fixture) => fixture.roundNumber == 1)
+        .toList(growable: false);
+
+    expect(firstRound, hasLength(4));
+    for (final fixture in firstRound) {
+      saved = (await service.updateFixture(
+        competition: saved,
+        fixture: fixture.copyWith(
+          homeScore: 2,
+          awayScore: 0,
+          status: CompetitionFixture.statusCompleted,
+        ),
+      ))!;
+    }
+
+    final semifinals = MatchCompetitionService.resolveFixtureStates(
+      competition: saved,
+      entries: const <TrainingEntry>[],
+    )
+        .where((fixture) => fixture.fixture.roundNumber == 2)
+        .toList(growable: false);
+    expect(semifinals, hasLength(2));
+    expect(
+      semifinals.every((fixture) => fixture.isReady),
+      isTrue,
+    );
+
+    final firstSemifinal = semifinals.first;
+    saved = (await service.updateFixture(
+      competition: saved,
+      fixture: firstSemifinal.fixture.copyWith(
+        homeScore: 1,
+        awayScore: 1,
+        homePenaltyScore: 4,
+        awayPenaltyScore: 3,
+        status: CompetitionFixture.statusCompleted,
+      ),
+    ))!;
+
+    final finalFixture = MatchCompetitionService.resolveFixtureStates(
+      competition: saved,
+      entries: const <TrainingEntry>[],
+    ).singleWhere(
+      (fixture) => fixture.fixture.roundNumber == 3,
+    );
+    expect(
+      [finalFixture.homeTeam, finalFixture.awayTeam],
+      contains(firstSemifinal.winner),
+    );
+  });
 }
 
 TrainingEntry _matchEntry({

@@ -771,6 +771,152 @@ void main() {
     expect(find.text('일정 미정 경기'), findsOneWidget);
   });
 
+  testWidgets(
+      'Operational schedule data highlights conflicts and sorts cards by time',
+      (
+    tester,
+  ) async {
+    final competition = MatchCompetitionRecord.create(
+      kind: MatchCompetitionRecord.kindLeague,
+      name: '운영 검증 리그',
+      teams: const <String>[
+        '우리 팀',
+        '서울 FC',
+        '부산 FC',
+        '인천 FC',
+        '수원 FC',
+        '대전 FC',
+      ],
+    ).copyWith(
+      fixtures: [
+        CompetitionFixture(
+          id: 'ops-late',
+          roundNumber: 1,
+          slotNumber: 1,
+          homeTeam: '우리 팀',
+          awayTeam: '서울 FC',
+          scheduledAt: DateTime(2026, 10, 5, 14),
+          venue: '메인 구장',
+        ),
+        CompetitionFixture(
+          id: 'ops-early',
+          roundNumber: 1,
+          slotNumber: 2,
+          homeTeam: '부산 FC',
+          awayTeam: '인천 FC',
+          scheduledAt: DateTime(2026, 10, 5, 10),
+          venue: '보조 구장',
+        ),
+        CompetitionFixture(
+          id: 'ops-conflict',
+          roundNumber: 1,
+          slotNumber: 3,
+          homeTeam: '수원 FC',
+          awayTeam: '대전 FC',
+          scheduledAt: DateTime(2026, 10, 5, 14),
+          venue: '메인 구장',
+        ),
+      ],
+    );
+    await MatchCompetitionService(optionRepository).upsertCompetition(
+      competition,
+    );
+    await pumpCompetitionManagement(tester, themeMode: ThemeMode.dark);
+
+    await tester.tap(find.text('운영 검증 리그'));
+    await tester.pumpAndSettle();
+    final listWarning = find.byKey(
+      const ValueKey<String>('competition-fixture-warning-ops-late'),
+    );
+    await tester.ensureVisible(listWarning);
+    expect(listWarning, findsOneWidget);
+
+    await tester.tap(
+      find.byKey(const ValueKey('competition-schedule-board-action')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(
+        const ValueKey<String>('competition-schedule-card-warning-ops-late'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(
+        const ValueKey<String>(
+          'competition-schedule-card-warning-ops-conflict',
+        ),
+      ),
+      findsOneWidget,
+    );
+    final earlyCard = find.byKey(
+      const ValueKey<String>('competition-schedule-card-ops-early'),
+    );
+    final lateCard = find.byKey(
+      const ValueKey<String>('competition-schedule-card-ops-late'),
+    );
+    expect(tester.getTopLeft(earlyCard).dy,
+        lessThan(tester.getTopLeft(lateCard).dy));
+  });
+
+  testWidgets(
+      'Tournament schedule board resolves advancing teams from saved results', (
+    tester,
+  ) async {
+    final competitionService = MatchCompetitionService(optionRepository);
+    final tournament = MatchCompetitionRecord.create(
+      kind: MatchCompetitionRecord.kindTournament,
+      name: '운영 검증 컵',
+      teams: const <String>['우리 팀', '서울 FC', '부산 FC', '인천 FC'],
+      fixtureStartDate: DateTime(2026, 10, 5, 10),
+      fixtureIntervalDays: 7,
+    );
+    await competitionService.upsertCompetition(tournament);
+    final savedTournament = competitionService.findCompetitionById(
+      tournament.id,
+    )!;
+    final semifinal = savedTournament.fixtures.firstWhere(
+      (fixture) => fixture.roundNumber == 1,
+    );
+    final winner = semifinal.homeTeam;
+    await competitionService.updateFixture(
+      competition: savedTournament,
+      fixture: semifinal.copyWith(
+        homeScore: 2,
+        awayScore: 0,
+        status: CompetitionFixture.statusCompleted,
+      ),
+    );
+    final updatedTournament = competitionService.findCompetitionById(
+      tournament.id,
+    )!;
+    final finalFixture = updatedTournament.fixtures.firstWhere(
+      (fixture) => fixture.roundNumber == 2,
+    );
+
+    await pumpCompetitionManagement(tester, themeMode: ThemeMode.light);
+    await tester.tap(find.text('운영 검증 컵'));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('competition-tournament-schedule-board')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('competition-schedule-board-next-week')),
+    );
+    await tester.pumpAndSettle();
+
+    final finalCard = find.byKey(
+      ValueKey<String>('competition-schedule-card-${finalFixture.id}'),
+    );
+    await tester.ensureVisible(finalCard);
+    expect(
+      find.descendant(of: finalCard, matching: find.text(winner)),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('Competition detail saves a league result from the schedule row',
       (
     tester,
