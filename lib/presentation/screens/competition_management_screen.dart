@@ -26,8 +26,6 @@ enum _CompetitionDetailAction { edit, delete }
 
 enum _CompetitionDetailView { schedule, standings, bracket, teams }
 
-enum _CompetitionScheduleView { board, calendar }
-
 typedef CompetitionFixtureRecordHandler = Future<void> Function(
   MatchCompetitionRecord competition,
   CompetitionFixture fixture,
@@ -870,7 +868,7 @@ class _CompetitionDetailScreenState extends State<_CompetitionDetailScreen> {
             entries: entries,
             ownTeamName: ownTeamName,
             onOpenFixture: widget.readOnly ? null : _openFixture,
-            onOpenScheduleBoard: () => _openScheduleBoard(entries),
+            onOpenScheduleCalendar: () => _openScheduleCalendar(entries),
           );
     final teamsPanel = _CompetitionTeamsPreview(
       teams: effectiveRecord.teams,
@@ -883,7 +881,7 @@ class _CompetitionDetailScreenState extends State<_CompetitionDetailScreen> {
       accent: accent,
       onOpenFixture: widget.readOnly ? null : _openFixture,
       onOpenSchedulePlanner: widget.readOnly ? null : _openSchedulePlanner,
-      onOpenScheduleBoard: () => _openScheduleBoard(entries),
+      onOpenScheduleCalendar: () => _openScheduleCalendar(entries),
       onQuickRecord: widget.readOnly || !isLeague ? null : _quickRecordFixture,
     );
 
@@ -1050,14 +1048,19 @@ class _CompetitionDetailScreenState extends State<_CompetitionDetailScreen> {
     setState(() => _record = updated);
   }
 
-  Future<void> _openScheduleBoard(List<TrainingEntry> entries) async {
+  Future<void> _openScheduleCalendar(List<TrainingEntry> entries) async {
     final updated = await Navigator.of(context).push<MatchCompetitionRecord>(
       AppPageRoute(
-        builder: (_) => _CompetitionScheduleBoardScreen(
+        builder: (_) => _CompetitionScheduleCalendarScreen(
           service: widget.competitionService,
           competition: _record,
           entries: entries,
           readOnly: widget.readOnly,
+          managedTeamAliases: [
+            widget.managedTeamName,
+            widget.fallbackTeamName,
+          ],
+          onOpenFixtureRecord: widget.onOpenFixtureRecord,
         ),
       ),
     );
@@ -1410,7 +1413,7 @@ class _CompetitionFixturesPreview extends StatelessWidget {
   final Color accent;
   final ValueChanged<CompetitionFixtureState>? onOpenFixture;
   final VoidCallback? onOpenSchedulePlanner;
-  final VoidCallback? onOpenScheduleBoard;
+  final VoidCallback? onOpenScheduleCalendar;
   final CompetitionFixtureQuickRecordHandler? onQuickRecord;
 
   const _CompetitionFixturesPreview({
@@ -1419,7 +1422,7 @@ class _CompetitionFixturesPreview extends StatelessWidget {
     required this.accent,
     this.onOpenFixture,
     this.onOpenSchedulePlanner,
-    this.onOpenScheduleBoard,
+    this.onOpenScheduleCalendar,
     this.onQuickRecord,
   });
 
@@ -1466,10 +1469,10 @@ class _CompetitionFixturesPreview extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           AppBarActionButton.icon(
-            key: const ValueKey('competition-schedule-board-action'),
-            icon: Icons.calendar_view_week_outlined,
-            tooltip: l10n.matchCompetitionScheduleBoardAction,
-            onPressed: onOpenScheduleBoard,
+            key: const ValueKey('competition-schedule-calendar-action'),
+            icon: Icons.calendar_month_outlined,
+            tooltip: l10n.matchCompetitionScheduleCalendarAction,
+            onPressed: onOpenScheduleCalendar,
             margin: EdgeInsets.zero,
           ),
           AppBarActionButton.icon(
@@ -2517,14 +2520,14 @@ class _TournamentOperationsPreview extends StatefulWidget {
   final List<TrainingEntry> entries;
   final String ownTeamName;
   final ValueChanged<CompetitionFixtureState>? onOpenFixture;
-  final VoidCallback? onOpenScheduleBoard;
+  final VoidCallback? onOpenScheduleCalendar;
 
   const _TournamentOperationsPreview({
     required this.record,
     required this.entries,
     required this.ownTeamName,
     this.onOpenFixture,
-    this.onOpenScheduleBoard,
+    this.onOpenScheduleCalendar,
   });
 
   @override
@@ -2647,11 +2650,11 @@ class _TournamentOperationsPreviewState
               maxLabelWidth: 54,
             ),
             AppBarActionButton.icon(
-              key: const ValueKey('competition-tournament-schedule-board'),
-              icon: Icons.calendar_view_week_outlined,
-              tooltip: l10n.matchCompetitionScheduleBoardAction,
+              key: const ValueKey('competition-tournament-schedule-calendar'),
+              icon: Icons.calendar_month_outlined,
+              tooltip: l10n.matchCompetitionScheduleCalendarAction,
               onPressed:
-                  bracket.rounds.isEmpty ? null : widget.onOpenScheduleBoard,
+                  bracket.rounds.isEmpty ? null : widget.onOpenScheduleCalendar,
               margin: EdgeInsets.zero,
             ),
             AppBarActionButton.icon(
@@ -3926,20 +3929,25 @@ class _CompetitionFixtureEditorScreenState
                         ),
                       ),
                     ),
-                    AppBarActionButton.label(
-                      key: const ValueKey('competition-fixture-save-action'),
-                      icon: _saving
-                          ? const SizedBox.square(
-                              dimension: 17,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.save_outlined),
-                      label: l10n.matchCompetitionFixtureSave,
-                      tooltip: l10n.matchCompetitionFixtureSave,
-                      onPressed: widget.readOnly || _saving ? null : _save,
-                      margin: EdgeInsets.zero,
-                      maxLabelWidth: 78,
-                    ),
+                    if (!widget.readOnly)
+                      AppBarActionButton.label(
+                        key: const ValueKey(
+                          'competition-fixture-save-action',
+                        ),
+                        icon: _saving
+                            ? const SizedBox.square(
+                                dimension: 17,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(Icons.save_outlined),
+                        label: l10n.matchCompetitionFixtureSave,
+                        tooltip: l10n.matchCompetitionFixtureSave,
+                        onPressed: _saving ? null : _save,
+                        margin: EdgeInsets.zero,
+                        maxLabelWidth: 78,
+                      ),
                   ],
                 ),
               ),
@@ -4042,49 +4050,53 @@ class _CompetitionFixtureEditorScreenState
                                         setState(() => _venue = value ?? '');
                                       },
                               ),
-                              const SizedBox(height: AppSpacing.sm),
-                              SegmentedButton<String>(
-                                key: const ValueKey(
-                                  'competition-fixture-status-selector',
+                              if (!_recordResult) ...[
+                                const SizedBox(height: AppSpacing.sm),
+                                SegmentedButton<String>(
+                                  key: const ValueKey(
+                                    'competition-fixture-status-selector',
+                                  ),
+                                  showSelectedIcon: false,
+                                  segments: [
+                                    ButtonSegment<String>(
+                                      value: CompetitionFixture.statusScheduled,
+                                      icon: const Icon(Icons.event_available),
+                                      label: Text(
+                                        l10n.matchCompetitionFixtureStatusScheduled,
+                                      ),
+                                    ),
+                                    ButtonSegment<String>(
+                                      value: CompetitionFixture.statusPostponed,
+                                      icon: const Icon(Icons.update_outlined),
+                                      label: Text(
+                                        l10n.matchCompetitionFixtureStatusPostponed,
+                                      ),
+                                    ),
+                                    ButtonSegment<String>(
+                                      value: CompetitionFixture.statusCancelled,
+                                      icon: const Icon(
+                                        Icons.event_busy_outlined,
+                                      ),
+                                      label: Text(
+                                        l10n.matchCompetitionFixtureStatusCancelled,
+                                      ),
+                                    ),
+                                  ],
+                                  selected: {_status},
+                                  onSelectionChanged: widget.readOnly
+                                      ? null
+                                      : (selection) {
+                                          setState(() {
+                                            _status = selection.first;
+                                            if (_status ==
+                                                CompetitionFixture
+                                                    .statusCancelled) {
+                                              _recordResult = false;
+                                            }
+                                          });
+                                        },
                                 ),
-                                showSelectedIcon: false,
-                                segments: [
-                                  ButtonSegment<String>(
-                                    value: CompetitionFixture.statusScheduled,
-                                    icon: const Icon(Icons.event_available),
-                                    label: Text(
-                                      l10n.matchCompetitionFixtureStatusScheduled,
-                                    ),
-                                  ),
-                                  ButtonSegment<String>(
-                                    value: CompetitionFixture.statusPostponed,
-                                    icon: const Icon(Icons.update_outlined),
-                                    label: Text(
-                                      l10n.matchCompetitionFixtureStatusPostponed,
-                                    ),
-                                  ),
-                                  ButtonSegment<String>(
-                                    value: CompetitionFixture.statusCancelled,
-                                    icon: const Icon(Icons.event_busy_outlined),
-                                    label: Text(
-                                      l10n.matchCompetitionFixtureStatusCancelled,
-                                    ),
-                                  ),
-                                ],
-                                selected: {_status},
-                                onSelectionChanged: widget.readOnly
-                                    ? null
-                                    : (selection) {
-                                        setState(() {
-                                          _status = selection.first;
-                                          if (_status ==
-                                              CompetitionFixture
-                                                  .statusCancelled) {
-                                            _recordResult = false;
-                                          }
-                                        });
-                                      },
-                              ),
+                              ],
                             ],
                           ),
                           const SizedBox(height: AppSpacing.sm),
@@ -4881,33 +4893,33 @@ class _SchedulePlanPreviewRow extends StatelessWidget {
   }
 }
 
-class _CompetitionScheduleBoardScreen extends StatefulWidget {
+class _CompetitionScheduleCalendarScreen extends StatefulWidget {
   final MatchCompetitionService service;
   final MatchCompetitionRecord competition;
   final List<TrainingEntry> entries;
   final bool readOnly;
+  final List<String> managedTeamAliases;
+  final CompetitionFixtureRecordHandler? onOpenFixtureRecord;
 
-  const _CompetitionScheduleBoardScreen({
+  const _CompetitionScheduleCalendarScreen({
     required this.service,
     required this.competition,
     required this.entries,
     required this.readOnly,
+    required this.managedTeamAliases,
+    this.onOpenFixtureRecord,
   });
 
   @override
-  State<_CompetitionScheduleBoardScreen> createState() =>
-      _CompetitionScheduleBoardScreenState();
+  State<_CompetitionScheduleCalendarScreen> createState() =>
+      _CompetitionScheduleCalendarScreenState();
 }
 
-class _CompetitionScheduleBoardScreenState
-    extends State<_CompetitionScheduleBoardScreen> {
+class _CompetitionScheduleCalendarScreenState
+    extends State<_CompetitionScheduleCalendarScreen> {
   late MatchCompetitionRecord _record;
-  late DateTime _weekStart;
   late DateTime _focusedDay;
   late DateTime _selectedDay;
-  _CompetitionScheduleView _selectedView = _CompetitionScheduleView.board;
-  final ScrollController _contentScrollController = ScrollController();
-  bool _saving = false;
   bool _hasChanges = false;
   bool _allowPop = false;
 
@@ -4925,20 +4937,8 @@ class _CompetitionScheduleBoardScreenState
     final initialDay = _normalizeDay(
       firstScheduled ?? _record.fixtureStartDate ?? DateTime.now(),
     );
-    _weekStart = _startOfWeek(initialDay);
     _focusedDay = initialDay;
     _selectedDay = initialDay;
-  }
-
-  @override
-  void dispose() {
-    _contentScrollController.dispose();
-    super.dispose();
-  }
-
-  DateTime _startOfWeek(DateTime date) {
-    final normalized = _normalizeDay(date);
-    return normalized.subtract(Duration(days: normalized.weekday - 1));
   }
 
   DateTime _normalizeDay(DateTime date) =>
@@ -4966,59 +4966,31 @@ class _CompetitionScheduleBoardScreenState
     return DateTime(latest.year, latest.month + 2, 0);
   }
 
-  void _selectView(Set<_CompetitionScheduleView> selection) {
-    final nextView = selection.first;
-    if (nextView == _selectedView) return;
-    setState(() => _selectedView = nextView);
-    if (_contentScrollController.hasClients) {
-      _contentScrollController.jumpTo(0);
-    }
-  }
-
   void _close() {
     if (_allowPop) return;
     _allowPop = true;
     Navigator.of(context).pop(_hasChanges ? _record : null);
   }
 
-  Future<void> _moveFixture(
-    CompetitionFixture fixture,
-    DateTime targetDate,
-  ) async {
-    if (_saving || widget.readOnly) return;
-    final scheduledAt = fixture.scheduledAt;
-    final movedAt = DateTime(
-      targetDate.year,
-      targetDate.month,
-      targetDate.day,
-      scheduledAt?.hour ?? 10,
-      scheduledAt?.minute ?? 0,
+  Future<void> _openFixture(CompetitionFixtureState fixtureState) async {
+    if (widget.readOnly) return;
+    final updated = await Navigator.of(context).push<MatchCompetitionRecord>(
+      AppPageRoute(
+        builder: (_) => _CompetitionFixtureEditorScreen(
+          service: widget.service,
+          competition: _record,
+          fixtureState: fixtureState,
+          managedTeamAliases: widget.managedTeamAliases,
+          readOnly: widget.readOnly,
+          onOpenFixtureRecord: widget.onOpenFixtureRecord,
+        ),
+      ),
     );
-    if (scheduledAt != null &&
-        scheduledAt.year == movedAt.year &&
-        scheduledAt.month == movedAt.month &&
-        scheduledAt.day == movedAt.day) {
-      return;
-    }
-    setState(() => _saving = true);
-    try {
-      final updated = await widget.service.updateFixture(
-        competition: _record,
-        fixture: fixture.copyWith(scheduledAt: movedAt),
-      );
-      if (updated == null || !mounted) return;
-      setState(() {
-        _record = updated;
-        _hasChanges = true;
-      });
-      AppFeedback.showSuccess(
-        context,
-        text:
-            AppLocalizations.of(context)!.matchCompetitionFixtureMovedFeedback,
-      );
-    } finally {
-      if (mounted) setState(() => _saving = false);
-    }
+    if (updated == null || !mounted) return;
+    setState(() {
+      _record = updated;
+      _hasChanges = true;
+    });
   }
 
   @override
@@ -5027,11 +4999,6 @@ class _CompetitionScheduleBoardScreenState
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final accent = _competitionAccent(context, _record.kind);
-    final weekDates = List<DateTime>.generate(
-      7,
-      (index) => _weekStart.add(Duration(days: index)),
-      growable: false,
-    );
     final fixturesByDate = <String, List<CompetitionFixture>>{};
     final unscheduled = <CompetitionFixture>[];
     for (final fixture in _record.fixtures) {
@@ -5066,29 +5033,17 @@ class _CompetitionScheduleBoardScreenState
     final scheduledFixtures = fixturesByDate.values
         .expand((fixtures) => fixtures)
         .toList(growable: false);
-    final activeContent = _selectedView == _CompetitionScheduleView.board
-        ? _buildBoardView(
-            context,
-            l10n: l10n,
-            scheme: scheme,
-            accent: accent,
-            weekDates: weekDates,
-            fixturesByDate: fixturesByDate,
-            unscheduled: unscheduled,
-            fixtureStatesById: fixtureStatesById,
-            scheduleIssueTypesByFixture: scheduleIssueTypesByFixture,
-          )
-        : _buildCalendarView(
-            context,
-            l10n: l10n,
-            scheme: scheme,
-            accent: accent,
-            scheduledFixtures: scheduledFixtures,
-            fixturesByDate: fixturesByDate,
-            unscheduled: unscheduled,
-            fixtureStatesById: fixtureStatesById,
-            scheduleIssueTypesByFixture: scheduleIssueTypesByFixture,
-          );
+    final activeContent = _buildCalendarView(
+      context,
+      l10n: l10n,
+      scheme: scheme,
+      accent: accent,
+      scheduledFixtures: scheduledFixtures,
+      fixturesByDate: fixturesByDate,
+      unscheduled: unscheduled,
+      fixtureStatesById: fixtureStatesById,
+      scheduleIssueTypesByFixture: scheduleIssueTypesByFixture,
+    );
 
     return PopScope(
       canPop: _allowPop,
@@ -5111,13 +5066,11 @@ class _CompetitionScheduleBoardScreenState
                   ),
                   child: Row(
                     children: [
-                      BackButton(onPressed: _saving ? null : _close),
+                      BackButton(onPressed: _close),
                       const SizedBox(width: AppSpacing.xs),
                       Expanded(
                         child: Text(
-                          _selectedView == _CompetitionScheduleView.board
-                              ? l10n.matchCompetitionScheduleBoardTitle
-                              : l10n.matchCompetitionScheduleCalendarTitle,
+                          l10n.matchCompetitionScheduleCalendarTitle,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.titleLarge?.copyWith(
@@ -5125,66 +5078,7 @@ class _CompetitionScheduleBoardScreenState
                           ),
                         ),
                       ),
-                      if (_selectedView == _CompetitionScheduleView.board) ...[
-                        AppBarActionButton.icon(
-                          key: const ValueKey(
-                            'competition-schedule-board-previous-week',
-                          ),
-                          icon: Icons.chevron_left_rounded,
-                          tooltip:
-                              l10n.matchCompetitionSchedulePreviousWeekTooltip,
-                          onPressed: _saving
-                              ? null
-                              : () => setState(() {
-                                    _weekStart = _weekStart.subtract(
-                                      const Duration(days: 7),
-                                    );
-                                  }),
-                          margin: EdgeInsets.zero,
-                        ),
-                        AppBarActionButton.icon(
-                          key: const ValueKey(
-                            'competition-schedule-board-next-week',
-                          ),
-                          icon: Icons.chevron_right_rounded,
-                          tooltip: l10n.matchCompetitionScheduleNextWeekTooltip,
-                          onPressed: _saving
-                              ? null
-                              : () => setState(() {
-                                    _weekStart = _weekStart.add(
-                                      const Duration(days: 7),
-                                    );
-                                  }),
-                          margin: EdgeInsets.zero,
-                        ),
-                      ],
                     ],
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.sm,
-                  ),
-                  child: SegmentedButton<_CompetitionScheduleView>(
-                    key: const ValueKey('competition-schedule-view-tabs'),
-                    segments: [
-                      ButtonSegment<_CompetitionScheduleView>(
-                        value: _CompetitionScheduleView.board,
-                        icon: const Icon(Icons.view_week_outlined),
-                        label: Text(l10n.matchCompetitionScheduleBoardView),
-                      ),
-                      ButtonSegment<_CompetitionScheduleView>(
-                        value: _CompetitionScheduleView.calendar,
-                        icon: const Icon(Icons.calendar_month_outlined),
-                        label: Text(
-                          l10n.matchCompetitionScheduleCalendarView,
-                        ),
-                      ),
-                    ],
-                    selected: {_selectedView},
-                    showSelectedIcon: false,
-                    onSelectionChanged: _selectView,
                   ),
                 ),
                 const SizedBox(height: AppSpacing.xs),
@@ -5192,7 +5086,6 @@ class _CompetitionScheduleBoardScreenState
                   child: ClipRect(
                     child: SingleChildScrollView(
                       key: const ValueKey('competition-schedule-content'),
-                      controller: _contentScrollController,
                       padding: const EdgeInsets.fromLTRB(
                         AppSpacing.sm,
                         AppSpacing.sm,
@@ -5217,72 +5110,6 @@ class _CompetitionScheduleBoardScreenState
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildBoardView(
-    BuildContext context, {
-    required AppLocalizations l10n,
-    required ColorScheme scheme,
-    required Color accent,
-    required List<DateTime> weekDates,
-    required Map<String, List<CompetitionFixture>> fixturesByDate,
-    required List<CompetitionFixture> unscheduled,
-    required Map<String, CompetitionFixtureState> fixtureStatesById,
-    required Map<String, List<String>> scheduleIssueTypesByFixture,
-  }) {
-    final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(
-          l10n.matchCompetitionScheduleWeekRange(
-            MaterialLocalizations.of(context).formatMediumDate(weekDates.first),
-            MaterialLocalizations.of(context).formatMediumDate(weekDates.last),
-          ),
-          style: theme.textTheme.labelLarge?.copyWith(
-            color: scheme.onSurfaceVariant,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        SizedBox(
-          height: 420,
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                for (final date in weekDates) ...[
-                  _CompetitionScheduleBoardDay(
-                    key: ValueKey(
-                      'competition-schedule-board-day-${_calendarDateKey(date)}',
-                    ),
-                    date: date,
-                    fixtures: fixturesByDate[_calendarDateKey(date)] ??
-                        const <CompetitionFixture>[],
-                    accent: accent,
-                    scheduleIssueTypesByFixture: scheduleIssueTypesByFixture,
-                    fixtureStatesById: fixtureStatesById,
-                    readOnly: widget.readOnly || _saving,
-                    onMoveFixture: _moveFixture,
-                  ),
-                  if (date != weekDates.last)
-                    const SizedBox(width: AppSpacing.xs),
-                ],
-              ],
-            ),
-          ),
-        ),
-        _buildUnscheduledLane(
-          context,
-          l10n: l10n,
-          unscheduled: unscheduled,
-          fixtureStatesById: fixtureStatesById,
-          scheduleIssueTypesByFixture: scheduleIssueTypesByFixture,
-          readOnly: widget.readOnly || _saving,
-        ),
-      ],
     );
   }
 
@@ -5390,7 +5217,7 @@ class _CompetitionScheduleBoardScreenState
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
-        _CompetitionScheduleCalendarDayPanel(
+        _CompetitionScheduleCalendarDayList(
           key: const ValueKey('competition-schedule-calendar-day-panel'),
           date: _selectedDay,
           fixtures: selectedFixtures,
@@ -5398,167 +5225,90 @@ class _CompetitionScheduleBoardScreenState
           fixtureStatesById: fixtureStatesById,
           scheduleIssueTypesByFixture: scheduleIssueTypesByFixture,
           emptyLabel: l10n.matchCompetitionScheduleCalendarEmptyDay,
+          onOpenFixture: widget.readOnly ? null : _openFixture,
         ),
-        _buildUnscheduledLane(
-          context,
-          l10n: l10n,
-          unscheduled: unscheduled,
-          fixtureStatesById: fixtureStatesById,
-          scheduleIssueTypesByFixture: scheduleIssueTypesByFixture,
-          readOnly: true,
-        ),
+        if (unscheduled.isNotEmpty) ...[
+          const SizedBox(height: AppSpacing.md),
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: OutlinedButton.icon(
+              key: const ValueKey('competition-schedule-unscheduled-action'),
+              onPressed: () => _showUnscheduledFixtures(
+                unscheduled: unscheduled,
+                fixtureStatesById: fixtureStatesById,
+                scheduleIssueTypesByFixture: scheduleIssueTypesByFixture,
+              ),
+              icon: const Icon(Icons.event_busy_outlined),
+              label: Text(
+                l10n.matchCompetitionScheduleUnscheduledCount(
+                  unscheduled.length,
+                ),
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }
 
-  Widget _buildUnscheduledLane(
-    BuildContext context, {
-    required AppLocalizations l10n,
+  Future<void> _showUnscheduledFixtures({
     required List<CompetitionFixture> unscheduled,
     required Map<String, CompetitionFixtureState> fixtureStatesById,
     required Map<String, List<String>> scheduleIssueTypesByFixture,
-    required bool readOnly,
-  }) {
-    if (unscheduled.isEmpty) return const SizedBox.shrink();
-    final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const SizedBox(height: AppSpacing.md),
-        Text(
-          l10n.matchCompetitionScheduleUnscheduledLane,
-          style: theme.textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.w900,
+  }) async {
+    final l10n = AppLocalizations.of(context)!;
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        top: false,
+        child: ListView.separated(
+          shrinkWrap: true,
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.md,
+            0,
+            AppSpacing.md,
+            AppSpacing.lg,
           ),
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        Wrap(
-          spacing: AppSpacing.xs,
-          runSpacing: AppSpacing.xs,
-          children: [
-            for (final fixture in unscheduled)
-              SizedBox(
-                width: 180,
-                child: _CompetitionScheduleBoardFixtureCard(
-                  fixture: fixture,
-                  scheduleIssueTypes: scheduleIssueTypesByFixture[fixture.id] ??
-                      const <String>[],
-                  resolvedFixture: fixtureStatesById[fixture.id],
-                  readOnly: readOnly,
+          itemCount: unscheduled.length + 1,
+          separatorBuilder: (_, index) => index == 0
+              ? const SizedBox(height: AppSpacing.sm)
+              : Divider(
+                  height: 1,
+                  color: Theme.of(context).colorScheme.outlineVariant,
                 ),
-              ),
-          ],
+          itemBuilder: (context, index) {
+            if (index == 0) {
+              return Text(
+                l10n.matchCompetitionScheduleUnscheduledLane,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
+              );
+            }
+            final fixture = unscheduled[index - 1];
+            final fixtureState = fixtureStatesById[fixture.id];
+            return _CompetitionScheduleCalendarFixtureRow(
+              fixture: fixture,
+              scheduleIssueTypes:
+                  scheduleIssueTypesByFixture[fixture.id] ?? const <String>[],
+              resolvedFixture: fixtureState,
+              onTap: widget.readOnly || fixtureState == null
+                  ? null
+                  : () {
+                      Navigator.of(sheetContext).pop();
+                      unawaited(_openFixture(fixtureState));
+                    },
+            );
+          },
         ),
-      ],
+      ),
     );
   }
 }
 
 String _calendarDateKey(DateTime date) {
   return '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-}
-
-class _CompetitionScheduleBoardDay extends StatelessWidget {
-  final DateTime date;
-  final List<CompetitionFixture> fixtures;
-  final Color accent;
-  final Map<String, List<String>> scheduleIssueTypesByFixture;
-  final Map<String, CompetitionFixtureState> fixtureStatesById;
-  final bool readOnly;
-  final Future<void> Function(CompetitionFixture fixture, DateTime targetDate)
-      onMoveFixture;
-
-  const _CompetitionScheduleBoardDay({
-    super.key,
-    required this.date,
-    required this.fixtures,
-    required this.accent,
-    required this.scheduleIssueTypesByFixture,
-    required this.fixtureStatesById,
-    required this.readOnly,
-    required this.onMoveFixture,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final localizations = MaterialLocalizations.of(context);
-    return DragTarget<CompetitionFixture>(
-      onWillAcceptWithDetails: (details) => !readOnly,
-      onAcceptWithDetails: (details) {
-        unawaited(onMoveFixture(details.data, date));
-      },
-      builder: (context, candidateData, _) {
-        final highlighted = candidateData.isNotEmpty;
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 140),
-          width: 176,
-          decoration: BoxDecoration(
-            color: highlighted
-                ? accent.withValues(alpha: 0.16)
-                : scheme.surfaceContainerLowest,
-            borderRadius: AppRadius.small,
-            border: Border.all(
-              color: highlighted ? accent : scheme.outlineVariant,
-              width: highlighted ? 2 : 1,
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(AppSpacing.sm),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      localizations
-                          .narrowWeekdays[date.weekday % DateTime.daysPerWeek],
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        color: accent,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    Text(
-                      localizations.formatMediumDate(date),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: scheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Divider(height: 1, color: scheme.outlineVariant),
-              Expanded(
-                child: fixtures.isEmpty
-                    ? const SizedBox.expand()
-                    : ListView.separated(
-                        padding: const EdgeInsets.all(AppSpacing.xs),
-                        itemCount: fixtures.length,
-                        separatorBuilder: (_, __) =>
-                            const SizedBox(height: AppSpacing.xs),
-                        itemBuilder: (context, index) =>
-                            _CompetitionScheduleBoardFixtureCard(
-                          fixture: fixtures[index],
-                          scheduleIssueTypes:
-                              scheduleIssueTypesByFixture[fixtures[index].id] ??
-                                  const <String>[],
-                          resolvedFixture:
-                              fixtureStatesById[fixtures[index].id],
-                          readOnly: readOnly,
-                        ),
-                      ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
 }
 
 class _CompetitionScheduleCalendarMarker extends StatelessWidget {
@@ -5621,15 +5371,16 @@ class _CompetitionScheduleCalendarMarker extends StatelessWidget {
   }
 }
 
-class _CompetitionScheduleCalendarDayPanel extends StatelessWidget {
+class _CompetitionScheduleCalendarDayList extends StatelessWidget {
   final DateTime date;
   final List<CompetitionFixture> fixtures;
   final Color accent;
   final Map<String, CompetitionFixtureState> fixtureStatesById;
   final Map<String, List<String>> scheduleIssueTypesByFixture;
   final String emptyLabel;
+  final ValueChanged<CompetitionFixtureState>? onOpenFixture;
 
-  const _CompetitionScheduleCalendarDayPanel({
+  const _CompetitionScheduleCalendarDayList({
     super.key,
     required this.date,
     required this.fixtures,
@@ -5637,76 +5388,76 @@ class _CompetitionScheduleCalendarDayPanel extends StatelessWidget {
     required this.fixtureStatesById,
     required this.scheduleIssueTypesByFixture,
     required this.emptyLabel,
+    this.onOpenFixture,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    return Container(
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerLow,
-        borderRadius: AppRadius.small,
-        border: Border.all(color: scheme.outlineVariant),
-      ),
-      padding: const EdgeInsets.all(AppSpacing.sm),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.event_note_outlined, color: accent, size: 18),
-              const SizedBox(width: AppSpacing.xs),
-              Expanded(
-                child: Text(
-                  MaterialLocalizations.of(context).formatFullDate(date),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w900,
-                  ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.event_note_outlined, color: accent, size: 18),
+            const SizedBox(width: AppSpacing.xs),
+            Expanded(
+              child: Text(
+                MaterialLocalizations.of(context).formatFullDate(date),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w900,
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          if (fixtures.isEmpty)
-            Text(
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        if (fixtures.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+            child: Text(
               emptyLabel,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: scheme.onSurfaceVariant,
               ),
-            )
-          else
-            for (var index = 0; index < fixtures.length; index += 1) ...[
-              _CompetitionScheduleBoardFixtureCard(
-                fixture: fixtures[index],
-                scheduleIssueTypes:
-                    scheduleIssueTypesByFixture[fixtures[index].id] ??
-                        const <String>[],
-                resolvedFixture: fixtureStatesById[fixtures[index].id],
-                readOnly: true,
-              ),
-              if (index != fixtures.length - 1)
-                const SizedBox(height: AppSpacing.xs),
-            ],
-        ],
-      ),
+            ),
+          )
+        else
+          for (var index = 0; index < fixtures.length; index += 1) ...[
+            _CompetitionScheduleCalendarFixtureRow(
+              fixture: fixtures[index],
+              scheduleIssueTypes:
+                  scheduleIssueTypesByFixture[fixtures[index].id] ??
+                      const <String>[],
+              resolvedFixture: fixtureStatesById[fixtures[index].id],
+              onTap: fixtureStatesById[fixtures[index].id] == null
+                  ? null
+                  : () => onOpenFixture?.call(
+                        fixtureStatesById[fixtures[index].id]!,
+                      ),
+            ),
+            if (index != fixtures.length - 1)
+              Divider(height: 1, color: scheme.outlineVariant),
+          ],
+      ],
     );
   }
 }
 
-class _CompetitionScheduleBoardFixtureCard extends StatelessWidget {
+class _CompetitionScheduleCalendarFixtureRow extends StatelessWidget {
   final CompetitionFixture fixture;
   final List<String> scheduleIssueTypes;
   final CompetitionFixtureState? resolvedFixture;
-  final bool readOnly;
+  final VoidCallback? onTap;
 
-  const _CompetitionScheduleBoardFixtureCard({
+  const _CompetitionScheduleCalendarFixtureRow({
     required this.fixture,
     this.scheduleIssueTypes = const <String>[],
     this.resolvedFixture,
-    required this.readOnly,
+    this.onTap,
   });
 
   @override
@@ -5720,44 +5471,102 @@ class _CompetitionScheduleBoardFixtureCard extends StatelessWidget {
     final score = isRecorded
         ? '${resolvedFixture?.homeScore ?? fixture.homeScore ?? '-'} : '
             '${resolvedFixture?.awayScore ?? fixture.awayScore ?? '-'}'
-        : l10n.matchCompetitionFixtureVersus;
+        : '';
     final time = fixture.scheduledAt == null
         ? l10n.matchCompetitionFixtureUnscheduled
         : MaterialLocalizations.of(
             context,
           ).formatTimeOfDay(TimeOfDay.fromDateTime(fixture.scheduledAt!));
     final hasScheduleIssue = scheduleIssueTypes.isNotEmpty;
-    Widget buildCard({bool withKey = false}) {
-      return Container(
-        key: withKey
-            ? ValueKey('competition-schedule-card-${fixture.id}')
-            : null,
-        padding: const EdgeInsets.all(AppSpacing.xs),
-        decoration: BoxDecoration(
-          color: hasScheduleIssue
-              ? scheme.errorContainer.withValues(alpha: 0.38)
-              : scheme.surface,
+    final stage =
+        resolvedFixture?.competition.kind == MatchCompetitionRecord.kindLeague
+            ? l10n.matchCompetitionFixtureRound(fixture.roundNumber)
+            : matchTournamentStageLabel(l10n, fixture.stage);
+    final details = [
+      stage,
+      if (fixture.venue.trim().isNotEmpty) fixture.venue.trim(),
+    ].join(' · ');
+    final pair = l10n.matchTournamentPairText(
+      homeTeam.isEmpty ? l10n.matchCompetitionFixtureTbd : homeTeam,
+      awayTeam.isEmpty ? l10n.matchCompetitionFixtureTbd : awayTeam,
+    );
+
+    return Semantics(
+      key: ValueKey('competition-schedule-row-${fixture.id}'),
+      button: onTap != null,
+      label: '$time $pair',
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
           borderRadius: AppRadius.small,
-          border: Border.all(
-            color: hasScheduleIssue ? scheme.error : scheme.outlineVariant,
-            width: hasScheduleIssue ? 2 : 1,
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+            child: Row(
               children: [
-                Expanded(
+                Container(
+                  width: 3,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: hasScheduleIssue
+                        ? scheme.error
+                        : isRecorded
+                            ? _competitionPositiveColor(context)
+                            : scheme.outlineVariant,
+                    borderRadius: AppRadius.full,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                SizedBox(
+                  width: 68,
                   child: Text(
                     time,
-                    style: theme.textTheme.labelSmall?.copyWith(
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelMedium?.copyWith(
                       color: scheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
                 ),
-                if (hasScheduleIssue)
+                const SizedBox(width: AppSpacing.xs),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        pair,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        details,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (isRecorded) ...[
+                  const SizedBox(width: AppSpacing.xs),
+                  Text(
+                    score,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: _competitionPositiveColor(context),
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ],
+                if (hasScheduleIssue) ...[
+                  const SizedBox(width: AppSpacing.xs),
                   Tooltip(
                     message: _competitionScheduleIssueDescription(
                       l10n,
@@ -5770,62 +5579,27 @@ class _CompetitionScheduleBoardFixtureCard extends StatelessWidget {
                       ),
                       child: Icon(
                         key: ValueKey(
-                          'competition-schedule-card-warning-${fixture.id}',
+                          'competition-schedule-row-warning-${fixture.id}',
                         ),
                         Icons.warning_amber_rounded,
                         color: scheme.error,
-                        size: 16,
+                        size: 18,
                       ),
                     ),
                   ),
+                ],
+                if (onTap != null) ...[
+                  const SizedBox(width: AppSpacing.xxs),
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ],
               ],
             ),
-            const SizedBox(height: 2),
-            Text(
-              homeTeam.isEmpty ? l10n.matchCompetitionFixtureTbd : homeTeam,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.labelMedium?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            Text(
-              score,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: isRecorded
-                    ? _competitionPositiveColor(context)
-                    : scheme.onSurfaceVariant,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-            Text(
-              awayTeam.isEmpty ? l10n.matchCompetitionFixtureTbd : awayTeam,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.labelMedium?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    if (readOnly) return buildCard(withKey: true);
-    return LongPressDraggable<CompetitionFixture>(
-      data: fixture,
-      dragAnchorStrategy: pointerDragAnchorStrategy,
-      feedback: Material(
-        color: Colors.transparent,
-        child: SizedBox(
-          width: 176,
-          child: Opacity(opacity: 0.88, child: buildCard()),
+          ),
         ),
       ),
-      childWhenDragging: Opacity(opacity: 0.35, child: buildCard()),
-      child: buildCard(withKey: true),
     );
   }
 }
@@ -5871,7 +5645,16 @@ class _CompetitionEditorScreenState extends State<_CompetitionEditorScreen> {
   bool _allowPop = false;
   bool _hasPersistedChanges = false;
   bool _showValidationErrors = false;
+  bool _showParticipantsEditor = false;
   String _lastSavedSignature = '';
+
+  bool get _isEditingExisting => widget.record != null;
+
+  bool get _hasRecordedFixtureResults =>
+      (_persistedRecord ?? widget.record)?.fixtures.any(
+            (fixture) => fixture.hasResult,
+          ) ??
+      false;
 
   String get _ownTeamName => widget.managedTeamName.trim().isEmpty
       ? widget.fallbackTeamName.trim()
@@ -5909,6 +5692,7 @@ class _CompetitionEditorScreenState extends State<_CompetitionEditorScreen> {
     );
     _noteController = TextEditingController(text: record?.note ?? '');
     _teamController = TextEditingController();
+    _showParticipantsEditor = record == null;
     _lastSavedSignature =
         record == null ? '' : _competitionRecordSignature(record);
     for (final controller in _autoSaveControllers) {
@@ -6009,29 +5793,37 @@ class _CompetitionEditorScreenState extends State<_CompetitionEditorScreen> {
                             _EditorSectionPanel(
                               title: l10n.matchCompetitionEditorBasicsTitle,
                               children: [
-                                SegmentedButton<String>(
-                                  segments: [
-                                    ButtonSegment<String>(
-                                      value: MatchCompetitionRecord.kindLeague,
-                                      icon: const Icon(
-                                          Icons.leaderboard_outlined),
-                                      label: Text(l10n.matchKindLeague),
+                                if (!_isEditingExisting) ...[
+                                  SegmentedButton<String>(
+                                    key: const ValueKey(
+                                      'competition-kind-selector',
                                     ),
-                                    ButtonSegment<String>(
-                                      value:
-                                          MatchCompetitionRecord.kindTournament,
-                                      icon: const Icon(
-                                          Icons.account_tree_outlined),
-                                      label: Text(l10n.matchKindTournament),
-                                    ),
-                                  ],
-                                  selected: {_kind},
-                                  showSelectedIcon: false,
-                                  onSelectionChanged: (selection) {
-                                    _changeCompetitionKind(selection.first);
-                                  },
-                                ),
-                                const SizedBox(height: AppSpacing.sm),
+                                    segments: [
+                                      ButtonSegment<String>(
+                                        value:
+                                            MatchCompetitionRecord.kindLeague,
+                                        icon: const Icon(
+                                          Icons.leaderboard_outlined,
+                                        ),
+                                        label: Text(l10n.matchKindLeague),
+                                      ),
+                                      ButtonSegment<String>(
+                                        value: MatchCompetitionRecord
+                                            .kindTournament,
+                                        icon: const Icon(
+                                          Icons.account_tree_outlined,
+                                        ),
+                                        label: Text(l10n.matchKindTournament),
+                                      ),
+                                    ],
+                                    selected: {_kind},
+                                    showSelectedIcon: false,
+                                    onSelectionChanged: (selection) {
+                                      _changeCompetitionKind(selection.first);
+                                    },
+                                  ),
+                                  const SizedBox(height: AppSpacing.sm),
+                                ],
                                 TextField(
                                   controller: _nameController,
                                   maxLength: 40,
@@ -6082,30 +5874,41 @@ class _CompetitionEditorScreenState extends State<_CompetitionEditorScreen> {
                                 ),
                               ],
                             ),
-                            if (_kind == MatchCompetitionRecord.kindLeague)
-                              _LeagueTeamsEditor(
-                                teams: _teams,
-                                ownTeamName: _ownTeamName,
-                                teamController: _teamController,
-                                onAddTeam: _addTeam,
-                                onRemoveTeam: _removeTeam,
-                                errorText: _competitionTeamsError(l10n),
-                              )
+                            if (_showParticipantsEditor)
+                              if (_kind == MatchCompetitionRecord.kindLeague)
+                                _LeagueTeamsEditor(
+                                  teams: _teams,
+                                  ownTeamName: _ownTeamName,
+                                  teamController: _teamController,
+                                  onAddTeam: _addTeam,
+                                  onRemoveTeam: _removeTeam,
+                                  errorText: _competitionTeamsError(l10n),
+                                )
+                              else
+                                _TournamentSeedsEditor(
+                                  teams: _teams,
+                                  ownTeamName: _ownTeamName,
+                                  teamController: _teamController,
+                                  onAddTeam: _addTeam,
+                                  onRemoveTeam: _removeTeam,
+                                  onReorder: _reorderTeam,
+                                  errorText: _competitionTeamsError(l10n),
+                                )
                             else
-                              _TournamentSeedsEditor(
+                              _CompetitionParticipantsSummary(
+                                kind: _kind,
                                 teams: _teams,
                                 ownTeamName: _ownTeamName,
-                                teamController: _teamController,
-                                onAddTeam: _addTeam,
-                                onRemoveTeam: _removeTeam,
-                                onReorder: _reorderTeam,
-                                errorText: _competitionTeamsError(l10n),
+                                onEdit: () => setState(
+                                  () => _showParticipantsEditor = true,
+                                ),
                               ),
                             _EditorSectionPanel(
                               title: l10n.matchCompetitionEditorOperationsTitle,
                               children: [
                                 if (_kind ==
-                                    MatchCompetitionRecord.kindLeague) ...[
+                                        MatchCompetitionRecord.kindLeague &&
+                                    !_hasRecordedFixtureResults) ...[
                                   DropdownButtonFormField<String>(
                                     key: const ValueKey(
                                       'competition-league-tiebreaker-selector',
@@ -6671,6 +6474,88 @@ class _EditorTextField extends StatelessWidget {
           border: const OutlineInputBorder(),
         ),
       ),
+    );
+  }
+}
+
+class _CompetitionParticipantsSummary extends StatelessWidget {
+  final String kind;
+  final List<String> teams;
+  final String ownTeamName;
+  final VoidCallback onEdit;
+
+  const _CompetitionParticipantsSummary({
+    required this.kind,
+    required this.teams,
+    required this.ownTeamName,
+    required this.onEdit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final accent = _competitionAccent(context, kind);
+    return _EditorSectionPanel(
+      title: l10n.matchCompetitionTeamsListTitle,
+      children: [
+        Row(
+          children: [
+            Icon(
+              kind == MatchCompetitionRecord.kindLeague
+                  ? Icons.leaderboard_outlined
+                  : Icons.account_tree_outlined,
+              color: accent,
+              size: 20,
+            ),
+            const SizedBox(width: AppSpacing.xs),
+            Expanded(
+              child: Text(
+                l10n.matchCompetitionTeamCount(teams.length),
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+            AppBarActionButton.label(
+              key: const ValueKey('competition-participants-edit-action'),
+              onPressed: onEdit,
+              icon: const Icon(Icons.edit_outlined),
+              label: l10n.matchCompetitionEditParticipantsAction,
+              tooltip: l10n.matchCompetitionEditParticipantsAction,
+              margin: EdgeInsets.zero,
+              maxLabelWidth: 108,
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        if (teams.isEmpty)
+          Text(
+            l10n.matchCompetitionNoTeams,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: scheme.onSurfaceVariant,
+            ),
+          )
+        else
+          Wrap(
+            spacing: AppSpacing.xs,
+            runSpacing: AppSpacing.xs,
+            children: [
+              for (final team in teams)
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _InfoPill(text: team),
+                    if (team == ownTeamName) ...[
+                      const SizedBox(width: AppSpacing.xxs),
+                      _CompetitionOwnTeamBadge(accent: accent),
+                    ],
+                  ],
+                ),
+            ],
+          ),
+      ],
     );
   }
 }

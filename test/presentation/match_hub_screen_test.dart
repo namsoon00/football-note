@@ -299,6 +299,44 @@ void main() {
     expect(find.text('대회 저장'), findsOneWidget);
   });
 
+  testWidgets(
+      'Existing competition editor separates structural participant editing', (
+    tester,
+  ) async {
+    await seedMatchHubRecords();
+    await pumpCompetitionManagement(tester, themeMode: ThemeMode.light);
+
+    await tester.tap(find.text('주말 리그'));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('competition-detail-edit')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey('competition-kind-selector')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey('competition-league-team-editor')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey('competition-participants-edit-action')),
+      findsOneWidget,
+    );
+
+    await tester.tap(
+      find.byKey(const ValueKey('competition-participants-edit-action')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey('competition-league-team-editor')),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('Competition center opens a focused mobile detail view', (
     tester,
   ) async {
@@ -483,7 +521,7 @@ void main() {
 
       for (final key in const [
         ValueKey('competition-tournament-image-button'),
-        ValueKey('competition-tournament-schedule-board'),
+        ValueKey('competition-tournament-schedule-calendar'),
         ValueKey('competition-tournament-expand-button'),
       ]) {
         await tester.ensureVisible(find.byKey(key));
@@ -834,7 +872,7 @@ void main() {
         isTrue);
   });
 
-  testWidgets('Competition detail opens the weekly schedule board', (
+  testWidgets('Competition detail opens the competition calendar', (
     tester,
   ) async {
     await seedMatchHubRecords();
@@ -843,22 +881,36 @@ void main() {
     await tester.tap(find.text('주말 리그'));
     await tester.pumpAndSettle();
     await tester.tap(
-      find.byKey(const ValueKey('competition-schedule-board-action')),
+      find.byKey(const ValueKey('competition-schedule-calendar-action')),
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('일정 보드'), findsOneWidget);
+    expect(find.text('대회 캘린더'), findsOneWidget);
     expect(
       find.byKey(
-        const ValueKey('competition-schedule-board-previous-week'),
+        const ValueKey('competition-schedule-month-calendar'),
       ),
       findsOneWidget,
     );
+    expect(
+      find.byKey(const ValueKey('competition-schedule-view-tabs')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey('competition-schedule-unscheduled-action')),
+      findsOneWidget,
+    );
+
+    await tester.tap(
+      find.byKey(const ValueKey('competition-schedule-unscheduled-action')),
+    );
+    await tester.pumpAndSettle();
+
     expect(find.text('일정 미정 경기'), findsOneWidget);
   });
 
   testWidgets(
-    'Competition schedule board shows scheduled fixtures in a month calendar',
+    'Competition calendar shows scheduled fixtures by selected date',
     (tester) async {
       tester.view.physicalSize = const Size(390, 844);
       tester.view.devicePixelRatio = 1;
@@ -898,10 +950,8 @@ void main() {
       await tester.tap(find.text('캘린더 검증 리그'));
       await tester.pumpAndSettle();
       await tester.tap(
-        find.byKey(const ValueKey('competition-schedule-board-action')),
+        find.byKey(const ValueKey('competition-schedule-calendar-action')),
       );
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('캘린더'));
       await tester.pumpAndSettle();
 
       expect(find.text('대회 캘린더'), findsOneWidget);
@@ -926,7 +976,7 @@ void main() {
         findsOneWidget,
       );
       expect(
-        find.byKey(const ValueKey('competition-schedule-card-calendar-early')),
+        find.byKey(const ValueKey('competition-schedule-row-calendar-early')),
         findsOneWidget,
       );
 
@@ -934,12 +984,23 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.byKey(const ValueKey('competition-schedule-card-calendar-later')),
+        find.byKey(const ValueKey('competition-schedule-row-calendar-later')),
         findsOneWidget,
       );
       expect(
-        find.byKey(const ValueKey('competition-schedule-card-calendar-early')),
+        find.byKey(const ValueKey('competition-schedule-row-calendar-early')),
         findsNothing,
+      );
+
+      await tester.tap(
+        find.byKey(const ValueKey('competition-schedule-row-calendar-later')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('경기 관리'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('competition-fixture-save-action')),
+        findsOneWidget,
       );
       expect(tester.takeException(), isNull);
     },
@@ -1006,36 +1067,36 @@ void main() {
     expect(listWarning, findsOneWidget);
 
     await tester.tap(
-      find.byKey(const ValueKey('competition-schedule-board-action')),
+      find.byKey(const ValueKey('competition-schedule-calendar-action')),
     );
     await tester.pumpAndSettle();
 
     expect(
       find.byKey(
-        const ValueKey<String>('competition-schedule-card-warning-ops-late'),
+        const ValueKey<String>('competition-schedule-row-warning-ops-late'),
       ),
       findsOneWidget,
     );
     expect(
       find.byKey(
         const ValueKey<String>(
-          'competition-schedule-card-warning-ops-conflict',
+          'competition-schedule-row-warning-ops-conflict',
         ),
       ),
       findsOneWidget,
     );
     final earlyCard = find.byKey(
-      const ValueKey<String>('competition-schedule-card-ops-early'),
+      const ValueKey<String>('competition-schedule-row-ops-early'),
     );
     final lateCard = find.byKey(
-      const ValueKey<String>('competition-schedule-card-ops-late'),
+      const ValueKey<String>('competition-schedule-row-ops-late'),
     );
     expect(tester.getTopLeft(earlyCard).dy,
         lessThan(tester.getTopLeft(lateCard).dy));
   });
 
-  testWidgets(
-      'Tournament schedule board resolves advancing teams from saved results', (
+  testWidgets('Tournament calendar resolves advancing teams from saved results',
+      (
     tester,
   ) async {
     final competitionService = MatchCompetitionService(optionRepository);
@@ -1073,20 +1134,18 @@ void main() {
     await tester.tap(find.text('운영 검증 컵'));
     await tester.pumpAndSettle();
     await tester.tap(
-      find.byKey(const ValueKey('competition-tournament-schedule-board')),
+      find.byKey(const ValueKey('competition-tournament-schedule-calendar')),
     );
     await tester.pumpAndSettle();
-    await tester.tap(
-      find.byKey(const ValueKey('competition-schedule-board-next-week')),
-    );
+    await tester.tap(find.text('12'));
     await tester.pumpAndSettle();
 
     final finalCard = find.byKey(
-      ValueKey<String>('competition-schedule-card-${finalFixture.id}'),
+      ValueKey<String>('competition-schedule-row-${finalFixture.id}'),
     );
     await tester.ensureVisible(finalCard);
     expect(
-      find.descendant(of: finalCard, matching: find.text(winner)),
+      find.descendant(of: finalCard, matching: find.textContaining(winner)),
       findsOneWidget,
     );
   });

@@ -7240,6 +7240,7 @@
   "matchCompetitionTeamNameRequired": "Enter a team name.",
   "matchCompetitionTeamAlreadyAdded": "That team is already registered.",
   "matchCompetitionTeamsListTitle": "Registered teams",
+  "matchCompetitionEditParticipantsAction": "Edit participants",
   "matchCompetitionLeagueSetupTitle": "League teams",
   "matchCompetitionLeagueSetupBody": "Add teams to calculate standings, records, goal difference, and points automatically from match results.",
   "matchCompetitionTournamentSetupTitle": "Tournament seeding",
@@ -9306,16 +9307,16 @@
   "matchCompetitionRebuildConfirm": "Rebuild",
   "matchCompetitionRebuildFeedback": "Fixtures and bracket were rebuilt.",
   "matchCompetitionRebuildUndoneFeedback": "Restored the previous fixtures and bracket.",
-  "matchCompetitionScheduleBoardAction": "Schedule board",
-  "matchCompetitionScheduleBoardTitle": "Schedule board",
-  "matchCompetitionScheduleBoardView": "Board",
-  "matchCompetitionScheduleCalendarView": "Calendar",
+  "matchCompetitionScheduleCalendarAction": "Competition calendar",
   "matchCompetitionScheduleCalendarTitle": "Competition calendar",
   "matchCompetitionScheduleCalendarEmptyDay": "No matches are scheduled for this day.",
-  "matchCompetitionSchedulePreviousWeekTooltip": "Previous week",
-  "matchCompetitionScheduleNextWeekTooltip": "Next week",
   "matchCompetitionScheduleUnscheduledLane": "Unscheduled matches",
-  "matchCompetitionFixtureMovedFeedback": "Moved the match schedule.",
+  "matchCompetitionScheduleUnscheduledCount": "{count} unscheduled matches",
+  "@matchCompetitionScheduleUnscheduledCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
   "matchCompetitionScheduleIssuesCount": "{count} items need attention",
   "@matchCompetitionScheduleIssuesCount": {
     "placeholders": {
@@ -9325,13 +9326,6 @@
   "matchCompetitionScheduleIssueVenueOverlap": "Venue conflict",
   "matchCompetitionScheduleIssueTeamOverlap": "Team plays twice on the same day",
   "matchCompetitionScheduleIssueShortRest": "Insufficient rest between matches",
-  "matchCompetitionScheduleWeekRange": "{start} - {end}",
-  "@matchCompetitionScheduleWeekRange": {
-    "placeholders": {
-      "start": {},
-      "end": {}
-    }
-  },
   "matchCompetitionQuickResultAction": "Quick result entry",
   "matchCompetitionQuickResultSave": "Save result",
   "matchCompetitionQuickResultCancel": "Close result entry",

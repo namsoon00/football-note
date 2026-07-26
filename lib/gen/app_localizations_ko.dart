@@ -12783,6 +12783,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get matchCompetitionTeamsListTitle => '등록 팀';
 
   @override
+  String get matchCompetitionEditParticipantsAction => '참가팀 편집';
+
+  @override
   String get matchCompetitionLeagueSetupTitle => '리그 참가 팀';
 
   @override
@@ -16113,16 +16116,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get matchCompetitionRebuildUndoneFeedback => '이전 일정과 대진으로 되돌렸어요.';
 
   @override
-  String get matchCompetitionScheduleBoardAction => '일정 보드';
-
-  @override
-  String get matchCompetitionScheduleBoardTitle => '일정 보드';
-
-  @override
-  String get matchCompetitionScheduleBoardView => '보드';
-
-  @override
-  String get matchCompetitionScheduleCalendarView => '캘린더';
+  String get matchCompetitionScheduleCalendarAction => '대회 캘린더';
 
   @override
   String get matchCompetitionScheduleCalendarTitle => '대회 캘린더';
@@ -16131,16 +16125,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get matchCompetitionScheduleCalendarEmptyDay => '이 날짜에는 경기가 없어요.';
 
   @override
-  String get matchCompetitionSchedulePreviousWeekTooltip => '이전 주';
-
-  @override
-  String get matchCompetitionScheduleNextWeekTooltip => '다음 주';
-
-  @override
   String get matchCompetitionScheduleUnscheduledLane => '일정 미정 경기';
 
   @override
-  String get matchCompetitionFixtureMovedFeedback => '경기 일정을 옮겼어요.';
+  String matchCompetitionScheduleUnscheduledCount(int count) {
+    return '일정 미정 $count경기';
+  }
 
   @override
   String matchCompetitionScheduleIssuesCount(int count) {
@@ -16155,11 +16145,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get matchCompetitionScheduleIssueShortRest => '경기 사이 휴식일이 부족해요';
-
-  @override
-  String matchCompetitionScheduleWeekRange(Object start, Object end) {
-    return '$start - $end';
-  }
 
   @override
   String get matchCompetitionQuickResultAction => '빠른 결과 입력';

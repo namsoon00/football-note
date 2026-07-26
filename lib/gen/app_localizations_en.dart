@@ -13191,6 +13191,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get matchCompetitionTeamsListTitle => 'Registered teams';
 
   @override
+  String get matchCompetitionEditParticipantsAction => 'Edit participants';
+
+  @override
   String get matchCompetitionLeagueSetupTitle => 'League teams';
 
   @override
@@ -16620,16 +16623,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Restored the previous fixtures and bracket.';
 
   @override
-  String get matchCompetitionScheduleBoardAction => 'Schedule board';
-
-  @override
-  String get matchCompetitionScheduleBoardTitle => 'Schedule board';
-
-  @override
-  String get matchCompetitionScheduleBoardView => 'Board';
-
-  @override
-  String get matchCompetitionScheduleCalendarView => 'Calendar';
+  String get matchCompetitionScheduleCalendarAction => 'Competition calendar';
 
   @override
   String get matchCompetitionScheduleCalendarTitle => 'Competition calendar';
@@ -16639,17 +16633,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'No matches are scheduled for this day.';
 
   @override
-  String get matchCompetitionSchedulePreviousWeekTooltip => 'Previous week';
-
-  @override
-  String get matchCompetitionScheduleNextWeekTooltip => 'Next week';
-
-  @override
   String get matchCompetitionScheduleUnscheduledLane => 'Unscheduled matches';
 
   @override
-  String get matchCompetitionFixtureMovedFeedback =>
-      'Moved the match schedule.';
+  String matchCompetitionScheduleUnscheduledCount(int count) {
+    return '$count unscheduled matches';
+  }
 
   @override
   String matchCompetitionScheduleIssuesCount(int count) {
@@ -16666,11 +16655,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get matchCompetitionScheduleIssueShortRest =>
       'Insufficient rest between matches';
-
-  @override
-  String matchCompetitionScheduleWeekRange(Object start, Object end) {
-    return '$start - $end';
-  }
 
   @override
   String get matchCompetitionQuickResultAction => 'Quick result entry';
