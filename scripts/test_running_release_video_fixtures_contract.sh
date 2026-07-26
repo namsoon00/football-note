@@ -5,6 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
 python3 -m py_compile \
+  scripts/generate_running_coach_portrait_sample.py \
   scripts/generate_running_release_video_fixtures.py \
   scripts/analyze_running_release_video_fixtures.py
 
@@ -14,6 +15,7 @@ from pathlib import Path
 generator = Path("scripts/generate_running_release_video_fixtures.py").read_text(encoding="utf-8")
 analyzer = Path("scripts/analyze_running_release_video_fixtures.py").read_text(encoding="utf-8")
 runner = Path("scripts/test_running_release_video_fixtures.sh").read_text(encoding="utf-8")
+sample_generator = Path("scripts/generate_running_coach_portrait_sample.py").read_text(encoding="utf-8")
 
 for expected in (
     "portrait_reference_full_body",
@@ -55,6 +57,15 @@ for expected in (
     "release_validation.log",
 ):
     assert expected in runner, expected
+
+for expected in (
+    "running_coach_reference_sample.mp4",
+    "running_coach_portrait_side_view_sample.mp4",
+    "PoseLandmarkerOptions",
+    "avconvert",
+    "9 / 16",
+):
+    assert expected in sample_generator, expected
 PY
 
 echo "[running-release-video-fixtures-contract] ok"

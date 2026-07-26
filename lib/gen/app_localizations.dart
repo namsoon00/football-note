@@ -14953,7 +14953,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleReferenceTitle.
   ///
   /// In en, this message translates to:
-  /// **'Analysis-ready outdoor example'**
+  /// **'Portrait full-body side-view example'**
   String get runningCoachSampleReferenceTitle;
 
   /// No description provided for @runningCoachSampleMistakeTitle.
@@ -14965,7 +14965,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleReferenceBody.
   ///
   /// In en, this message translates to:
-  /// **'The phone is fixed at a true side angle, the whole runner stays visible, and the runner fills enough of the frame for joint tracking.'**
+  /// **'The runner stays visible from head to both shoes and occupies about 60% of the frame height, leaving enough detail for joint tracking.'**
   String get runningCoachSampleReferenceBody;
 
   /// No description provided for @runningCoachSampleMistakeBody.

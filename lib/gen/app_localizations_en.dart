@@ -8539,14 +8539,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSampleReferenceTitle =>
-      'Analysis-ready outdoor example';
+      'Portrait full-body side-view example';
 
   @override
   String get runningCoachSampleMistakeTitle => 'Example B readouts';
 
   @override
   String get runningCoachSampleReferenceBody =>
-      'The phone is fixed at a true side angle, the whole runner stays visible, and the runner fills enough of the frame for joint tracking.';
+      'The runner stays visible from head to both shoes and occupies about 60% of the frame height, leaving enough detail for joint tracking.';
 
   @override
   String get runningCoachSampleMistakeBody =>
