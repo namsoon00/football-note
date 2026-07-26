@@ -9290,5 +9290,50 @@
   "matchCompetitionStandingsGoalDifferenceColumn": "GD",
   "matchCompetitionStandingsPointsColumn": "Pts",
   "matchCompetitionParticipantOrderColumn": "No.",
-  "matchCompetitionParticipantTeamColumn": "Team"
+  "matchCompetitionParticipantTeamColumn": "Team",
+  "matchCompetitionLeagueTieBreakerLabel": "Tiebreak rule",
+  "matchCompetitionTieBreakerGoalDifference": "Points, goal difference, goals scored",
+  "matchCompetitionTieBreakerWins": "Points, wins, goal difference",
+  "matchCompetitionTieBreakerGoalsFor": "Points, goals scored, goal difference",
+  "matchCompetitionRebuildDialogTitle": "Rebuild fixtures and bracket?",
+  "matchCompetitionRebuildDialogBody": "This rebuilds {fixtures} fixtures for the new setup. {results} recorded results may be cleared.",
+  "@matchCompetitionRebuildDialogBody": {
+    "placeholders": {
+      "fixtures": { "type": "int" },
+      "results": { "type": "int" }
+    }
+  },
+  "matchCompetitionRebuildConfirm": "Rebuild",
+  "matchCompetitionRebuildFeedback": "Fixtures and bracket were rebuilt.",
+  "matchCompetitionRebuildUndoneFeedback": "Restored the previous fixtures and bracket.",
+  "matchCompetitionScheduleBoardAction": "Schedule board",
+  "matchCompetitionScheduleBoardTitle": "Schedule board",
+  "matchCompetitionSchedulePreviousWeekTooltip": "Previous week",
+  "matchCompetitionScheduleNextWeekTooltip": "Next week",
+  "matchCompetitionScheduleUnscheduledLane": "Unscheduled matches",
+  "matchCompetitionFixtureMovedFeedback": "Moved the match schedule.",
+  "matchCompetitionScheduleIssuesCount": "{count} items need attention",
+  "@matchCompetitionScheduleIssuesCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "matchCompetitionScheduleIssueVenueOverlap": "Venue conflict",
+  "matchCompetitionScheduleIssueTeamOverlap": "Team plays twice on the same day",
+  "matchCompetitionScheduleIssueShortRest": "Insufficient rest between matches",
+  "matchCompetitionScheduleWeekRange": "{start} - {end}",
+  "@matchCompetitionScheduleWeekRange": {
+    "placeholders": {
+      "start": {},
+      "end": {}
+    }
+  },
+  "matchCompetitionQuickResultAction": "Quick result entry",
+  "matchCompetitionQuickResultSave": "Save result",
+  "matchCompetitionQuickResultCancel": "Close result entry",
+  "matchCompetitionProgressRemaining": "Remaining matches",
+  "matchCompetitionProgressNextMatches": "Next matches",
+  "matchCompetitionProgressChampion": "Champion",
+  "matchCompetitionProgressLeader": "Current leader",
+  "matchCompetitionProgressAdvanced": "Advancement confirmed"
 }

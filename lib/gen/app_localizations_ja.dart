@@ -16051,4 +16051,94 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get matchCompetitionParticipantTeamColumn => '参加チーム';
+
+  @override
+  String get matchCompetitionLeagueTieBreakerLabel => '同率順位の基準';
+
+  @override
+  String get matchCompetitionTieBreakerGoalDifference => '勝点、得失点差、総得点';
+
+  @override
+  String get matchCompetitionTieBreakerWins => '勝点、勝利数、得失点差';
+
+  @override
+  String get matchCompetitionTieBreakerGoalsFor => '勝点、総得点、得失点差';
+
+  @override
+  String get matchCompetitionRebuildDialogTitle => '日程と組み合わせを組み直しますか？';
+
+  @override
+  String matchCompetitionRebuildDialogBody(int fixtures, int results) {
+    return '変更後の構成に合わせて$fixtures試合を組み直します。記録済みの結果$results件が初期化される場合があります。';
+  }
+
+  @override
+  String get matchCompetitionRebuildConfirm => '組み直す';
+
+  @override
+  String get matchCompetitionRebuildFeedback => '日程と組み合わせを組み直しました。';
+
+  @override
+  String get matchCompetitionRebuildUndoneFeedback => '以前の日程と組み合わせに戻しました。';
+
+  @override
+  String get matchCompetitionScheduleBoardAction => '日程ボード';
+
+  @override
+  String get matchCompetitionScheduleBoardTitle => '日程ボード';
+
+  @override
+  String get matchCompetitionSchedulePreviousWeekTooltip => '前の週';
+
+  @override
+  String get matchCompetitionScheduleNextWeekTooltip => '次の週';
+
+  @override
+  String get matchCompetitionScheduleUnscheduledLane => '日程未定の試合';
+
+  @override
+  String get matchCompetitionFixtureMovedFeedback => '試合日程を移動しました。';
+
+  @override
+  String matchCompetitionScheduleIssuesCount(int count) {
+    return '確認が必要な項目 $count件';
+  }
+
+  @override
+  String get matchCompetitionScheduleIssueVenueOverlap => '会場の予定が重複しています';
+
+  @override
+  String get matchCompetitionScheduleIssueTeamOverlap => '同じ日に同じチームの試合があります';
+
+  @override
+  String get matchCompetitionScheduleIssueShortRest => '試合間の休息日が不足しています';
+
+  @override
+  String matchCompetitionScheduleWeekRange(Object start, Object end) {
+    return '$start - $end';
+  }
+
+  @override
+  String get matchCompetitionQuickResultAction => '結果をすぐ入力';
+
+  @override
+  String get matchCompetitionQuickResultSave => '結果を保存';
+
+  @override
+  String get matchCompetitionQuickResultCancel => '結果入力を閉じる';
+
+  @override
+  String get matchCompetitionProgressRemaining => '残り試合';
+
+  @override
+  String get matchCompetitionProgressNextMatches => '次の試合';
+
+  @override
+  String get matchCompetitionProgressChampion => '優勝確定';
+
+  @override
+  String get matchCompetitionProgressLeader => '現在の首位';
+
+  @override
+  String get matchCompetitionProgressAdvanced => '勝ち上がり確定';
 }

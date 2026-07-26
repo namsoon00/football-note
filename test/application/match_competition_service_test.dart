@@ -741,6 +741,159 @@ void main() {
     expect(saved.fixtures.single.awayScore, 2);
     expect(standings.first.team, fixture.awayTeam);
   });
+
+  test('리그 동률 기준에 따라 순위 정렬을 바꾼다', () {
+    CompetitionFixture fixture({
+      required String id,
+      required String home,
+      required String away,
+      required int homeScore,
+      required int awayScore,
+    }) {
+      return CompetitionFixture(
+        id: id,
+        roundNumber: 1,
+        slotNumber: int.parse(id.substring(1)),
+        homeTeam: home,
+        awayTeam: away,
+        homeScore: homeScore,
+        awayScore: awayScore,
+        status: CompetitionFixture.statusCompleted,
+      );
+    }
+
+    final record = MatchCompetitionRecord.create(
+      kind: MatchCompetitionRecord.kindLeague,
+      name: '동률 기준 리그',
+      teams: const <String>['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'],
+    ).copyWith(
+      fixtures: [
+        fixture(id: 'f1', home: 'A', away: 'C', homeScore: 1, awayScore: 0),
+        fixture(id: 'f2', home: 'A', away: 'D', homeScore: 1, awayScore: 0),
+        fixture(id: 'f3', home: 'A', away: 'E', homeScore: 0, awayScore: 5),
+        fixture(id: 'f4', home: 'B', away: 'C', homeScore: 1, awayScore: 1),
+        fixture(id: 'f5', home: 'B', away: 'D', homeScore: 1, awayScore: 1),
+        fixture(id: 'f6', home: 'B', away: 'E', homeScore: 1, awayScore: 1),
+        fixture(id: 'f7', home: 'B', away: 'F', homeScore: 1, awayScore: 1),
+        fixture(id: 'f8', home: 'B', away: 'G', homeScore: 1, awayScore: 1),
+        fixture(id: 'f9', home: 'B', away: 'H', homeScore: 1, awayScore: 1),
+      ],
+    );
+
+    final byGoalDifference =
+        MatchCompetitionService.buildLeagueStandingsForCompetition(
+      competition: record,
+      entries: const <TrainingEntry>[],
+    );
+    final byWins = MatchCompetitionService.buildLeagueStandingsForCompetition(
+      competition: record.copyWith(
+        leagueTieBreaker: MatchCompetitionRecord.tieBreakerWins,
+      ),
+      entries: const <TrainingEntry>[],
+    );
+
+    expect(byGoalDifference.first.team, 'B');
+    expect(byWins.first.team, 'A');
+    expect(
+      MatchCompetitionRecord.fromMap(
+        record
+            .copyWith(
+              leagueTieBreaker: MatchCompetitionRecord.tieBreakerGoalsFor,
+            )
+            .toMap(),
+      ).leagueTieBreaker,
+      MatchCompetitionRecord.tieBreakerGoalsFor,
+    );
+  });
+
+  test('구조 변경 영향은 다시 편성되는 경기와 초기화될 결과를 계산한다', () {
+    final base = MatchCompetitionRecord.create(
+      kind: MatchCompetitionRecord.kindTournament,
+      name: '구조 변경 컵',
+      teams: const <String>['A', 'B', 'C', 'D'],
+    );
+    final existing = base.copyWith(
+      fixtures: MatchCompetitionService.buildFixtures(base)
+          .map(
+            (fixture) => fixture.slotNumber == 1
+                ? fixture.copyWith(
+                    homeScore: 2,
+                    awayScore: 0,
+                    status: CompetitionFixture.statusCompleted,
+                  )
+                : fixture,
+          )
+          .toList(growable: false),
+    );
+    final impact = MatchCompetitionService.fixtureRebuildImpact(
+      existing: existing,
+      updated: existing.copyWith(
+        teams: const <String>['D', 'C', 'B', 'A'],
+        fixtures: const <CompetitionFixture>[],
+      ),
+    );
+
+    expect(impact.requiresRebuild, isTrue);
+    expect(impact.nextFixtureCount, existing.fixtures.length);
+    expect(impact.changedFixtureCount, greaterThan(0));
+    expect(impact.clearedResultCount, 1);
+    expect(impact.hasSavedResultsAtRisk, isTrue);
+  });
+
+  test('일정 점검은 장소 중복, 팀 중복, 휴식일 부족을 찾는다', () {
+    final record = MatchCompetitionRecord.create(
+      kind: MatchCompetitionRecord.kindLeague,
+      name: '일정 점검 리그',
+      teams: const <String>['A', 'B', 'C', 'D', 'E'],
+    ).copyWith(
+      fixtures: [
+        CompetitionFixture(
+          id: 'f1',
+          roundNumber: 1,
+          slotNumber: 1,
+          homeTeam: 'A',
+          awayTeam: 'B',
+          scheduledAt: DateTime(2026, 10, 1, 10),
+          venue: '메인 구장',
+        ),
+        CompetitionFixture(
+          id: 'f2',
+          roundNumber: 1,
+          slotNumber: 2,
+          homeTeam: 'A',
+          awayTeam: 'C',
+          scheduledAt: DateTime(2026, 10, 1, 14),
+          venue: '보조 구장',
+        ),
+        CompetitionFixture(
+          id: 'f3',
+          roundNumber: 1,
+          slotNumber: 3,
+          homeTeam: 'D',
+          awayTeam: 'E',
+          scheduledAt: DateTime(2026, 10, 1, 10),
+          venue: '메인 구장',
+        ),
+        CompetitionFixture(
+          id: 'f4',
+          roundNumber: 2,
+          slotNumber: 4,
+          homeTeam: 'A',
+          awayTeam: 'D',
+          scheduledAt: DateTime(2026, 10, 2, 10),
+          venue: '메인 구장',
+        ),
+      ],
+    );
+
+    final issueTypes = MatchCompetitionService.scheduleIssues(
+      competition: record,
+    ).map((issue) => issue.type);
+
+    expect(issueTypes, contains(CompetitionScheduleIssue.typeVenueOverlap));
+    expect(issueTypes, contains(CompetitionScheduleIssue.typeTeamOverlap));
+    expect(issueTypes, contains(CompetitionScheduleIssue.typeShortRest));
+  });
 }
 
 TrainingEntry _matchEntry({

@@ -748,6 +748,75 @@ void main() {
         isTrue);
   });
 
+  testWidgets('Competition detail opens the weekly schedule board', (
+    tester,
+  ) async {
+    await seedMatchHubRecords();
+    await pumpCompetitionManagement(tester, themeMode: ThemeMode.light);
+
+    await tester.tap(find.text('주말 리그'));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('competition-schedule-board-action')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('일정 보드'), findsOneWidget);
+    expect(
+      find.byKey(
+        const ValueKey('competition-schedule-board-previous-week'),
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('일정 미정 경기'), findsOneWidget);
+  });
+
+  testWidgets('Competition detail saves a league result from the schedule row',
+      (
+    tester,
+  ) async {
+    await seedMatchHubRecords();
+    await pumpCompetitionManagement(tester, themeMode: ThemeMode.light);
+
+    await tester.tap(find.text('주말 리그'));
+    await tester.pumpAndSettle();
+    final league =
+        MatchCompetitionService(optionRepository).allCompetitions().firstWhere(
+              (record) => record.kind == MatchCompetitionRecord.kindLeague,
+            );
+    final fixture = league.fixtures.firstWhere(
+      (fixture) => fixture.homeTeam.isNotEmpty && fixture.awayTeam.isNotEmpty,
+    );
+    final quickAction = find.byKey(
+      ValueKey<String>('competition-fixture-quick-result-${fixture.id}'),
+    );
+    await tester.ensureVisible(quickAction);
+    await tester.tap(quickAction);
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(
+        ValueKey<String>(
+            'competition-fixture-quick-home-increase-${fixture.id}'),
+      ),
+    );
+    await tester.pump();
+    await tester.tap(
+      find.byKey(
+        ValueKey<String>('competition-fixture-quick-save-${fixture.id}'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final saved = MatchCompetitionService(optionRepository)
+        .findCompetitionById(league.id)!;
+    final savedFixture = saved.fixtures.firstWhere(
+      (item) => item.id == fixture.id,
+    );
+    expect(savedFixture.homeScore, 1);
+    expect(savedFixture.awayScore, 0);
+    expect(savedFixture.status, CompetitionFixture.statusCompleted);
+  });
+
   testWidgets('Team management filters match records by kind and competition', (
     tester,
   ) async {

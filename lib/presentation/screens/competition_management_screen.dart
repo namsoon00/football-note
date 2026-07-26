@@ -31,6 +31,12 @@ typedef CompetitionFixtureRecordHandler = Future<void> Function(
   TrainingEntry? editingEntry,
 );
 
+typedef CompetitionFixtureQuickRecordHandler = Future<void> Function(
+  CompetitionFixtureState fixture,
+  int homeScore,
+  int awayScore,
+);
+
 Color _competitionAccent(BuildContext context, String kind) {
   final dark = Theme.of(context).brightness == Brightness.dark;
   if (kind == MatchCompetitionRecord.kindLeague) {
@@ -43,6 +49,16 @@ Color _competitionPositiveColor(BuildContext context) {
   return Theme.of(context).brightness == Brightness.dark
       ? const Color(0xFF67DDB2)
       : const Color(0xFF087A55);
+}
+
+String _leagueTieBreakerLabel(AppLocalizations l10n, String value) {
+  return switch (MatchCompetitionService.normalizeLeagueTieBreaker(value)) {
+    MatchCompetitionRecord.tieBreakerWins =>
+      l10n.matchCompetitionTieBreakerWins,
+    MatchCompetitionRecord.tieBreakerGoalsFor =>
+      l10n.matchCompetitionTieBreakerGoalsFor,
+    _ => l10n.matchCompetitionTieBreakerGoalDifference,
+  };
 }
 
 String _competitionNextActionLabel(
@@ -847,6 +863,8 @@ class _CompetitionDetailScreenState extends State<_CompetitionDetailScreen> {
       accent: accent,
       onOpenFixture: widget.readOnly ? null : _openFixture,
       onOpenSchedulePlanner: widget.readOnly ? null : _openSchedulePlanner,
+      onOpenScheduleBoard: _openScheduleBoard,
+      onQuickRecord: widget.readOnly || !isLeague ? null : _quickRecordFixture,
     );
 
     final viewSegments = <ButtonSegment<_CompetitionDetailView>>[
@@ -957,6 +975,11 @@ class _CompetitionDetailScreenState extends State<_CompetitionDetailScreen> {
                         },
                       ),
                       const SizedBox(height: AppSpacing.sm),
+                      _CompetitionProgressOverview(
+                        record: effectiveRecord,
+                        entries: entries,
+                      ),
+                      const SizedBox(height: 2),
                       activePanel,
                     ],
                   ),
@@ -1000,6 +1023,199 @@ class _CompetitionDetailScreenState extends State<_CompetitionDetailScreen> {
     );
     if (updated == null || !mounted) return;
     setState(() => _record = updated);
+  }
+
+  Future<void> _openScheduleBoard() async {
+    final updated = await Navigator.of(context).push<MatchCompetitionRecord>(
+      AppPageRoute(
+        builder: (_) => _CompetitionScheduleBoardScreen(
+          service: widget.competitionService,
+          competition: _record,
+          readOnly: widget.readOnly,
+        ),
+      ),
+    );
+    if (updated == null || !mounted) return;
+    setState(() => _record = updated);
+  }
+
+  Future<void> _quickRecordFixture(
+    CompetitionFixtureState fixtureState,
+    int homeScore,
+    int awayScore,
+  ) async {
+    final sourceFixture = _record.fixtures.firstWhere(
+      (fixture) => fixture.id == fixtureState.fixture.id,
+      orElse: () => fixtureState.fixture,
+    );
+    final updated = await widget.competitionService.updateFixture(
+      competition: _record,
+      fixture: sourceFixture.copyWith(
+        homeScore: homeScore,
+        awayScore: awayScore,
+        clearPenaltyResult: true,
+        status: CompetitionFixture.statusCompleted,
+      ),
+    );
+    if (updated == null || !mounted) return;
+    setState(() => _record = updated);
+    AppFeedback.showSuccess(
+      context,
+      text: AppLocalizations.of(context)!.matchCompetitionFixtureSavedFeedback,
+    );
+  }
+}
+
+class _CompetitionProgressOverview extends StatelessWidget {
+  final MatchCompetitionRecord record;
+  final List<TrainingEntry> entries;
+
+  const _CompetitionProgressOverview({
+    required this.record,
+    required this.entries,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final accent = _competitionAccent(context, record.kind);
+    final progress =
+        _CompetitionProgress.from(record: record, entries: entries);
+    final remaining =
+        (progress.target - progress.recorded).clamp(0, progress.target).toInt();
+    final fixtures = MatchCompetitionService.resolveFixtureStates(
+      competition: record,
+      entries: entries,
+    );
+
+    String statusLabel = l10n.matchCompetitionProgressNextMatches;
+    String statusValue =
+        '${fixtures.where((fixture) => fixture.isReady && !fixture.isRecorded).length}';
+    if (record.kind == MatchCompetitionRecord.kindLeague) {
+      final standings =
+          MatchCompetitionService.buildLeagueStandingsForCompetition(
+        competition: record,
+        entries: entries,
+      );
+      if (standings.isNotEmpty) {
+        statusLabel = l10n.matchCompetitionProgressLeader;
+        statusValue = standings.first.team;
+      }
+    } else {
+      final finalRound = fixtures.isEmpty
+          ? 0
+          : fixtures
+              .map((fixture) => fixture.fixture.roundNumber)
+              .reduce(math.max);
+      final finalFixtures = fixtures
+          .where(
+            (fixture) =>
+                fixture.fixture.roundNumber == finalRound &&
+                fixture.winner.isNotEmpty,
+          )
+          .toList(growable: false);
+      final finalFixture = finalFixtures.isEmpty ? null : finalFixtures.first;
+      if (finalFixture != null) {
+        statusLabel = l10n.matchCompetitionProgressChampion;
+        statusValue = finalFixture.winner;
+      } else {
+        final advancingFixtures = fixtures
+            .where(
+              (fixture) =>
+                  fixture.fixture.roundNumber < finalRound &&
+                  fixture.winner.isNotEmpty,
+            )
+            .toList(growable: false)
+          ..sort(
+            (first, second) => second.fixture.roundNumber.compareTo(
+              first.fixture.roundNumber,
+            ),
+          );
+        if (advancingFixtures.isNotEmpty) {
+          statusLabel = l10n.matchCompetitionProgressAdvanced;
+          statusValue = advancingFixtures.first.winner;
+        }
+      }
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: accent.withValues(alpha: 0.08),
+        borderRadius: AppRadius.small,
+        border: Border.all(color: accent.withValues(alpha: 0.20)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.insights_outlined, color: accent, size: 19),
+          const SizedBox(width: AppSpacing.xs),
+          Expanded(
+            child: _CompetitionProgressMetric(
+              label: l10n.matchCompetitionProgressRemaining,
+              value: '$remaining',
+              valueColor: accent,
+            ),
+          ),
+          Container(width: 1, height: 32, color: scheme.outlineVariant),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            flex: 2,
+            child: _CompetitionProgressMetric(
+              label: statusLabel,
+              value: statusValue,
+              valueColor: scheme.onSurface,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CompetitionProgressMetric extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color valueColor;
+
+  const _CompetitionProgressMetric({
+    required this.label,
+    required this.value,
+    required this.valueColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: scheme.onSurfaceVariant,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.labelLarge?.copyWith(
+            color: valueColor,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+      ],
+    );
   }
 }
 
@@ -1168,6 +1384,8 @@ class _CompetitionFixturesPreview extends StatelessWidget {
   final Color accent;
   final ValueChanged<CompetitionFixtureState>? onOpenFixture;
   final VoidCallback? onOpenSchedulePlanner;
+  final VoidCallback? onOpenScheduleBoard;
+  final CompetitionFixtureQuickRecordHandler? onQuickRecord;
 
   const _CompetitionFixturesPreview({
     required this.record,
@@ -1175,6 +1393,8 @@ class _CompetitionFixturesPreview extends StatelessWidget {
     required this.accent,
     this.onOpenFixture,
     this.onOpenSchedulePlanner,
+    this.onOpenScheduleBoard,
+    this.onQuickRecord,
   });
 
   @override
@@ -1184,6 +1404,9 @@ class _CompetitionFixturesPreview extends StatelessWidget {
     final fixtures = MatchCompetitionService.resolveFixtureStates(
       competition: record,
       entries: entries,
+    );
+    final scheduleIssues = MatchCompetitionService.scheduleIssues(
+      competition: record,
     );
     final scheduledCount = fixtures
         .where(
@@ -1209,14 +1432,24 @@ class _CompetitionFixturesPreview extends StatelessWidget {
       icon: Icons.event_note_outlined,
       title: l10n.matchCompetitionFixturesTitle,
       accent: accent,
-      action: AppBarActionButton.label(
-        key: const ValueKey('competition-schedule-plan-action'),
-        icon: const Icon(Icons.calendar_month_outlined),
-        label: l10n.matchCompetitionFixtureSchedulePlanAction,
-        tooltip: l10n.matchCompetitionFixtureSchedulePlanAction,
-        onPressed: onOpenSchedulePlanner,
-        margin: EdgeInsets.zero,
-        maxLabelWidth: 76,
+      action: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AppBarActionButton.icon(
+            key: const ValueKey('competition-schedule-board-action'),
+            icon: Icons.calendar_view_week_outlined,
+            tooltip: l10n.matchCompetitionScheduleBoardAction,
+            onPressed: onOpenScheduleBoard,
+            margin: EdgeInsets.zero,
+          ),
+          AppBarActionButton.icon(
+            key: const ValueKey('competition-schedule-plan-action'),
+            icon: Icons.auto_awesome_motion_outlined,
+            tooltip: l10n.matchCompetitionFixtureSchedulePlanAction,
+            onPressed: onOpenSchedulePlanner,
+            margin: EdgeInsets.zero,
+          ),
+        ],
       ),
       child: fixtures.isEmpty
           ? _EmptyPreview(text: l10n.matchCompetitionFixturesEmpty)
@@ -1230,6 +1463,12 @@ class _CompetitionFixturesPreview extends StatelessWidget {
                   totalCount: fixtures.length,
                   accent: accent,
                 ),
+                if (scheduleIssues.isNotEmpty) ...[
+                  const SizedBox(height: AppSpacing.sm),
+                  _CompetitionScheduleIssuesPanel(
+                    issues: scheduleIssues,
+                  ),
+                ],
                 const SizedBox(height: AppSpacing.sm),
                 for (final round in fixturesByRound.entries) ...[
                   _CompetitionFixtureRoundGroup(
@@ -1242,6 +1481,7 @@ class _CompetitionFixturesPreview extends StatelessWidget {
                     fixtures: round.value,
                     accent: accent,
                     onOpenFixture: onOpenFixture,
+                    onQuickRecord: onQuickRecord,
                   ),
                   if (round.key != fixturesByRound.keys.last)
                     const SizedBox(height: AppSpacing.sm),
@@ -1373,17 +1613,83 @@ class _CompetitionFixtureSummaryMetric extends StatelessWidget {
   }
 }
 
+class _CompetitionScheduleIssuesPanel extends StatelessWidget {
+  final List<CompetitionScheduleIssue> issues;
+
+  const _CompetitionScheduleIssuesPanel({
+    required this.issues,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    String issueLabel(CompetitionScheduleIssue issue) {
+      return switch (issue.type) {
+        CompetitionScheduleIssue.typeVenueOverlap =>
+          l10n.matchCompetitionScheduleIssueVenueOverlap,
+        CompetitionScheduleIssue.typeTeamOverlap =>
+          l10n.matchCompetitionScheduleIssueTeamOverlap,
+        _ => l10n.matchCompetitionScheduleIssueShortRest,
+      };
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.sm),
+      decoration: BoxDecoration(
+        color: scheme.errorContainer.withValues(alpha: 0.42),
+        borderRadius: AppRadius.small,
+        border: Border.all(color: scheme.error.withValues(alpha: 0.24)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.warning_amber_rounded, color: scheme.error, size: 20),
+          const SizedBox(width: AppSpacing.xs),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  l10n.matchCompetitionScheduleIssuesCount(issues.length),
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: scheme.error,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  issues.map(issueLabel).toSet().join(' · '),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: scheme.onErrorContainer,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _CompetitionFixtureRoundGroup extends StatelessWidget {
   final String label;
   final List<CompetitionFixtureState> fixtures;
   final Color accent;
   final ValueChanged<CompetitionFixtureState>? onOpenFixture;
+  final CompetitionFixtureQuickRecordHandler? onQuickRecord;
 
   const _CompetitionFixtureRoundGroup({
     required this.label,
     required this.fixtures,
     required this.accent,
     this.onOpenFixture,
+    this.onQuickRecord,
   });
 
   @override
@@ -1428,6 +1734,7 @@ class _CompetitionFixtureRoundGroup extends StatelessWidget {
                     showDivider: item.$1 < fixtures.length - 1,
                     dividerColor: scheme.outlineVariant,
                     onOpenFixture: onOpenFixture,
+                    onQuickRecord: onQuickRecord,
                   ),
               ],
             ),
@@ -1438,24 +1745,70 @@ class _CompetitionFixtureRoundGroup extends StatelessWidget {
   }
 }
 
-class _CompetitionFixtureRow extends StatelessWidget {
+class _CompetitionFixtureRow extends StatefulWidget {
   final CompetitionFixtureState fixture;
   final bool showDivider;
   final Color dividerColor;
   final ValueChanged<CompetitionFixtureState>? onOpenFixture;
+  final CompetitionFixtureQuickRecordHandler? onQuickRecord;
 
   const _CompetitionFixtureRow({
     required this.fixture,
     required this.showDivider,
     required this.dividerColor,
     this.onOpenFixture,
+    this.onQuickRecord,
   });
+
+  @override
+  State<_CompetitionFixtureRow> createState() => _CompetitionFixtureRowState();
+}
+
+class _CompetitionFixtureRowState extends State<_CompetitionFixtureRow> {
+  late int _homeScore;
+  late int _awayScore;
+  bool _editingQuickResult = false;
+  bool _savingQuickResult = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _resetQuickScores();
+  }
+
+  @override
+  void didUpdateWidget(covariant _CompetitionFixtureRow oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.fixture.fixture.id != widget.fixture.fixture.id ||
+        (!_editingQuickResult &&
+            oldWidget.fixture.fixture != widget.fixture.fixture)) {
+      _resetQuickScores();
+    }
+  }
+
+  void _resetQuickScores() {
+    _homeScore = widget.fixture.scoreFor(widget.fixture.homeTeam) ?? 0;
+    _awayScore = widget.fixture.scoreFor(widget.fixture.awayTeam) ?? 0;
+  }
+
+  Future<void> _saveQuickResult() async {
+    final onQuickRecord = widget.onQuickRecord;
+    if (onQuickRecord == null || _savingQuickResult) return;
+    setState(() => _savingQuickResult = true);
+    try {
+      await onQuickRecord(widget.fixture, _homeScore, _awayScore);
+      if (mounted) setState(() => _editingQuickResult = false);
+    } finally {
+      if (mounted) setState(() => _savingQuickResult = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final fixture = widget.fixture;
     final homeScore = fixture.scoreFor(fixture.homeTeam);
     final awayScore = fixture.scoreFor(fixture.awayTeam);
     final scheduledAt = fixture.fixture.scheduledAt;
@@ -1465,110 +1818,216 @@ class _CompetitionFixtureRow extends StatelessWidget {
             '${MaterialLocalizations.of(context).formatTimeOfDay(TimeOfDay.fromDateTime(scheduledAt))}';
     final statusLabel = _fixtureStatusLabel(l10n, fixture);
     final statusColor = _fixtureStatusColor(context, fixture);
-    final canOpen = onOpenFixture != null;
+    final canOpen = widget.onOpenFixture != null;
+    final canQuickRecord = widget.onQuickRecord != null &&
+        fixture.competition.kind == MatchCompetitionRecord.kindLeague &&
+        fixture.isReady &&
+        !fixture.isCancelled;
     void openFixture() {
       if (!canOpen) return;
-      onOpenFixture?.call(fixture);
+      widget.onOpenFixture?.call(fixture);
     }
 
     final row = DecoratedBox(
       decoration: BoxDecoration(
-        border: showDivider
-            ? Border(bottom: BorderSide(color: dividerColor))
+        border: widget.showDivider
+            ? Border(bottom: BorderSide(color: widget.dividerColor))
             : null,
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Expanded(
-                        child: Text(
-                          fixture.homeTeam.isEmpty
-                              ? l10n.matchCompetitionFixtureTbd
-                              : fixture.homeTeam,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.end,
-                          style: theme.textTheme.labelLarge?.copyWith(
-                            fontWeight: fixture.winner == fixture.homeTeam
-                                ? FontWeight.w900
-                                : FontWeight.w700,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              fixture.homeTeam.isEmpty
+                                  ? l10n.matchCompetitionFixtureTbd
+                                  : fixture.homeTeam,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.end,
+                              style: theme.textTheme.labelLarge?.copyWith(
+                                fontWeight: fixture.winner == fixture.homeTeam
+                                    ? FontWeight.w900
+                                    : FontWeight.w700,
+                              ),
+                            ),
                           ),
-                        ),
+                          const SizedBox(width: AppSpacing.xs),
+                          SizedBox(
+                            width: 62,
+                            child: Text(
+                              fixture.isRecorded
+                                  ? '${homeScore ?? '-'} : ${awayScore ?? '-'}'
+                                  : l10n.matchCompetitionFixtureVersus,
+                              textAlign: TextAlign.center,
+                              style: theme.textTheme.labelLarge?.copyWith(
+                                color: fixture.isRecorded
+                                    ? scheme.onSurface
+                                    : scheme.onSurfaceVariant,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.xs),
+                          Expanded(
+                            child: Text(
+                              fixture.awayTeam.isEmpty
+                                  ? l10n.matchCompetitionFixtureTbd
+                                  : fixture.awayTeam,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.labelLarge?.copyWith(
+                                fontWeight: fixture.winner == fixture.awayTeam
+                                    ? FontWeight.w900
+                                    : FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: AppSpacing.xs),
-                      SizedBox(
-                        width: 62,
-                        child: Text(
-                          fixture.isRecorded
-                              ? '${homeScore ?? '-'} : ${awayScore ?? '-'}'
-                              : l10n.matchCompetitionFixtureVersus,
-                          textAlign: TextAlign.center,
-                          style: theme.textTheme.labelLarge?.copyWith(
-                            color: fixture.isRecorded
-                                ? scheme.onSurface
-                                : scheme.onSurfaceVariant,
-                            fontWeight: FontWeight.w900,
+                      const SizedBox(height: AppSpacing.xxs),
+                      Row(
+                        children: [
+                          _CompetitionFixtureStatusBadge(
+                            label: statusLabel,
+                            color: statusColor,
                           ),
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.xs),
-                      Expanded(
-                        child: Text(
-                          fixture.awayTeam.isEmpty
-                              ? l10n.matchCompetitionFixtureTbd
-                              : fixture.awayTeam,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.labelLarge?.copyWith(
-                            fontWeight: fixture.winner == fixture.awayTeam
-                                ? FontWeight.w900
-                                : FontWeight.w700,
+                          const SizedBox(width: AppSpacing.xs),
+                          Expanded(
+                            child: Text(
+                              date,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.end,
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: scheme.onSurfaceVariant,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                     ],
                   ),
-                  const SizedBox(height: AppSpacing.xxs),
-                  Row(
-                    children: [
-                      _CompetitionFixtureStatusBadge(
-                        label: statusLabel,
-                        color: statusColor,
-                      ),
-                      const SizedBox(width: AppSpacing.xs),
-                      Expanded(
-                        child: Text(
-                          date,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.end,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: scheme.onSurfaceVariant,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ],
+                ),
+                if (canQuickRecord) ...[
+                  const SizedBox(width: AppSpacing.xs),
+                  _CompetitionRowAction(
+                    key: ValueKey(
+                      'competition-fixture-quick-result-${fixture.fixture.id}',
+                    ),
+                    icon: Icons.edit_note_outlined,
+                    tooltip: l10n.matchCompetitionQuickResultAction,
+                    onPressed: _savingQuickResult
+                        ? () {}
+                        : () => setState(() {
+                              _resetQuickScores();
+                              _editingQuickResult = !_editingQuickResult;
+                            }),
                   ),
                 ],
-              ),
+                if (canOpen) ...[
+                  const SizedBox(width: AppSpacing.xs),
+                  _CompetitionRowAction(
+                    key: ValueKey(
+                      'competition-fixture-action-${fixture.fixture.id}',
+                    ),
+                    icon: Icons.tune_rounded,
+                    tooltip: l10n.matchCompetitionFixtureManageAction,
+                    onPressed: openFixture,
+                  ),
+                ],
+              ],
             ),
-            if (canOpen) ...[
-              const SizedBox(width: AppSpacing.xs),
-              _CompetitionRowAction(
-                key: ValueKey(
-                  'competition-fixture-action-${fixture.fixture.id}',
+            if (_editingQuickResult) ...[
+              const SizedBox(height: AppSpacing.xs),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.xs,
+                  vertical: 2,
                 ),
-                icon: Icons.tune_rounded,
-                tooltip: l10n.matchCompetitionFixtureManageAction,
-                onPressed: openFixture,
+                decoration: BoxDecoration(
+                  color: scheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                  borderRadius: AppRadius.small,
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _InlineFixtureScoreStepper(
+                        value: _homeScore,
+                        decreaseKey: ValueKey(
+                          'competition-fixture-quick-home-decrease-${fixture.fixture.id}',
+                        ),
+                        increaseKey: ValueKey(
+                          'competition-fixture-quick-home-increase-${fixture.fixture.id}',
+                        ),
+                        decreaseTooltip:
+                            l10n.matchCompetitionFixtureDecreaseScore,
+                        increaseTooltip:
+                            l10n.matchCompetitionFixtureIncreaseScore,
+                        onChanged: _savingQuickResult
+                            ? null
+                            : (value) => setState(() => _homeScore = value),
+                      ),
+                    ),
+                    Text(
+                      ':',
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    Expanded(
+                      child: _InlineFixtureScoreStepper(
+                        value: _awayScore,
+                        decreaseKey: ValueKey(
+                          'competition-fixture-quick-away-decrease-${fixture.fixture.id}',
+                        ),
+                        increaseKey: ValueKey(
+                          'competition-fixture-quick-away-increase-${fixture.fixture.id}',
+                        ),
+                        decreaseTooltip:
+                            l10n.matchCompetitionFixtureDecreaseScore,
+                        increaseTooltip:
+                            l10n.matchCompetitionFixtureIncreaseScore,
+                        onChanged: _savingQuickResult
+                            ? null
+                            : (value) => setState(() => _awayScore = value),
+                      ),
+                    ),
+                    _CompetitionRowAction(
+                      key: ValueKey(
+                        'competition-fixture-quick-save-${fixture.fixture.id}',
+                      ),
+                      icon: _savingQuickResult
+                          ? Icons.hourglass_top_rounded
+                          : Icons.check_rounded,
+                      tooltip: l10n.matchCompetitionQuickResultSave,
+                      onPressed: _savingQuickResult
+                          ? () {}
+                          : () => unawaited(_saveQuickResult()),
+                    ),
+                    _CompetitionRowAction(
+                      key: ValueKey(
+                        'competition-fixture-quick-cancel-${fixture.fixture.id}',
+                      ),
+                      icon: Icons.close_rounded,
+                      tooltip: l10n.matchCompetitionQuickResultCancel,
+                      onPressed: _savingQuickResult
+                          ? () {}
+                          : () => setState(() => _editingQuickResult = false),
+                    ),
+                  ],
+                ),
               ),
             ],
           ],
@@ -1579,6 +2038,60 @@ class _CompetitionFixtureRow extends StatelessWidget {
       button: canOpen,
       label: l10n.matchCompetitionFixtureManageAction,
       child: GestureDetector(onTap: canOpen ? openFixture : null, child: row),
+    );
+  }
+}
+
+class _InlineFixtureScoreStepper extends StatelessWidget {
+  final int value;
+  final Key decreaseKey;
+  final Key increaseKey;
+  final String decreaseTooltip;
+  final String increaseTooltip;
+  final ValueChanged<int>? onChanged;
+
+  const _InlineFixtureScoreStepper({
+    required this.value,
+    required this.decreaseKey,
+    required this.increaseKey,
+    required this.decreaseTooltip,
+    required this.increaseTooltip,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        AppBarActionButton.icon(
+          key: decreaseKey,
+          tooltip: decreaseTooltip,
+          onPressed: value <= 0 || onChanged == null
+              ? null
+              : () => onChanged!(value - 1),
+          icon: Icons.remove_circle_outline,
+          margin: EdgeInsets.zero,
+        ),
+        SizedBox(
+          width: 22,
+          child: Text(
+            '$value',
+            textAlign: TextAlign.center,
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ),
+        AppBarActionButton.icon(
+          key: increaseKey,
+          tooltip: increaseTooltip,
+          onPressed: onChanged == null ? null : () => onChanged!(value + 1),
+          icon: Icons.add_circle_outline,
+          margin: EdgeInsets.zero,
+        ),
+      ],
     );
   }
 }
@@ -1666,6 +2179,7 @@ class _LeagueOperationsPreview extends StatelessWidget {
             ownTeamName: ownTeamName,
             preferOwnTeamName: preferManagedTeamName,
             ownTeamAliases: [fallbackTeamName],
+            leagueTieBreaker: record.leagueTieBreaker,
           )
         : MatchCompetitionService.buildLeagueStandingsForCompetition(
             competition: record,
@@ -1677,37 +2191,67 @@ class _LeagueOperationsPreview extends StatelessWidget {
       accent: accent,
       child: standings.isEmpty
           ? _EmptyPreview(text: l10n.matchCompetitionNoTeams)
-          : ClipRRect(
-              borderRadius: AppRadius.small,
-              child: Column(
-                children: [
-                  Container(
-                    color: accent.withValues(alpha: 0.12),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.xs,
-                      vertical: AppSpacing.xs,
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      l10n.matchCompetitionLeagueTieBreakerLabel,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: scheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w700,
+                          ),
                     ),
-                    child: _LeagueStandingsTableHeader(
-                      rank: l10n.matchCompetitionStandingsRankColumn,
-                      team: l10n.matchCompetitionStandingsTeamColumn,
-                      played: l10n.matchCompetitionStandingsPlayedColumn,
-                      record: l10n.matchCompetitionStandingsRecordColumn,
-                      difference:
-                          l10n.matchCompetitionStandingsGoalDifferenceColumn,
-                      points: l10n.matchCompetitionStandingsPointsColumn,
-                      color: accent,
+                    const SizedBox(width: AppSpacing.xs),
+                    Expanded(
+                      child: Text(
+                        _leagueTieBreakerLabel(l10n, record.leagueTieBreaker),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.end,
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              color: accent,
+                              fontWeight: FontWeight.w900,
+                            ),
+                      ),
                     ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                ClipRRect(
+                  borderRadius: AppRadius.small,
+                  child: Column(
+                    children: [
+                      Container(
+                        color: accent.withValues(alpha: 0.12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.xs,
+                          vertical: AppSpacing.xs,
+                        ),
+                        child: _LeagueStandingsTableHeader(
+                          rank: l10n.matchCompetitionStandingsRankColumn,
+                          team: l10n.matchCompetitionStandingsTeamColumn,
+                          played: l10n.matchCompetitionStandingsPlayedColumn,
+                          record: l10n.matchCompetitionStandingsRecordColumn,
+                          difference: l10n
+                              .matchCompetitionStandingsGoalDifferenceColumn,
+                          points: l10n.matchCompetitionStandingsPointsColumn,
+                          color: accent,
+                        ),
+                      ),
+                      for (final item in standings.indexed)
+                        _LeagueStandingPreviewRow(
+                          rank: item.$1 + 1,
+                          row: item.$2,
+                          accent: accent,
+                          showDivider: item.$1 < standings.length - 1,
+                          dividerColor: scheme.outlineVariant,
+                        ),
+                    ],
                   ),
-                  for (final item in standings.indexed)
-                    _LeagueStandingPreviewRow(
-                      rank: item.$1 + 1,
-                      row: item.$2,
-                      accent: accent,
-                      showDivider: item.$1 < standings.length - 1,
-                      dividerColor: scheme.outlineVariant,
-                    ),
-                ],
-              ),
+                ),
+              ],
             ),
     );
   }
@@ -4228,6 +4772,480 @@ class _SchedulePlanPreviewRow extends StatelessWidget {
   }
 }
 
+class _CompetitionScheduleBoardScreen extends StatefulWidget {
+  final MatchCompetitionService service;
+  final MatchCompetitionRecord competition;
+  final bool readOnly;
+
+  const _CompetitionScheduleBoardScreen({
+    required this.service,
+    required this.competition,
+    required this.readOnly,
+  });
+
+  @override
+  State<_CompetitionScheduleBoardScreen> createState() =>
+      _CompetitionScheduleBoardScreenState();
+}
+
+class _CompetitionScheduleBoardScreenState
+    extends State<_CompetitionScheduleBoardScreen> {
+  late MatchCompetitionRecord _record;
+  late DateTime _weekStart;
+  bool _saving = false;
+  bool _hasChanges = false;
+  bool _allowPop = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _record = widget.competition;
+    final firstScheduled = _record.fixtures
+        .where((fixture) => fixture.scheduledAt != null)
+        .map((fixture) => fixture.scheduledAt!)
+        .fold<DateTime?>(null, (previous, current) {
+      if (previous == null || current.isBefore(previous)) return current;
+      return previous;
+    });
+    _weekStart = _startOfWeek(
+      firstScheduled ?? _record.fixtureStartDate ?? DateTime.now(),
+    );
+  }
+
+  DateTime _startOfWeek(DateTime date) {
+    final normalized = DateTime(date.year, date.month, date.day);
+    return normalized.subtract(Duration(days: normalized.weekday - 1));
+  }
+
+  void _close() {
+    if (_allowPop) return;
+    _allowPop = true;
+    Navigator.of(context).pop(_hasChanges ? _record : null);
+  }
+
+  Future<void> _moveFixture(
+    CompetitionFixture fixture,
+    DateTime targetDate,
+  ) async {
+    if (_saving || widget.readOnly) return;
+    final scheduledAt = fixture.scheduledAt;
+    final movedAt = DateTime(
+      targetDate.year,
+      targetDate.month,
+      targetDate.day,
+      scheduledAt?.hour ?? 10,
+      scheduledAt?.minute ?? 0,
+    );
+    if (scheduledAt != null &&
+        scheduledAt.year == movedAt.year &&
+        scheduledAt.month == movedAt.month &&
+        scheduledAt.day == movedAt.day) {
+      return;
+    }
+    setState(() => _saving = true);
+    try {
+      final updated = await widget.service.updateFixture(
+        competition: _record,
+        fixture: fixture.copyWith(scheduledAt: movedAt),
+      );
+      if (updated == null || !mounted) return;
+      setState(() {
+        _record = updated;
+        _hasChanges = true;
+      });
+      AppFeedback.showSuccess(
+        context,
+        text:
+            AppLocalizations.of(context)!.matchCompetitionFixtureMovedFeedback,
+      );
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final accent = _competitionAccent(context, _record.kind);
+    final weekDates = List<DateTime>.generate(
+      7,
+      (index) => _weekStart.add(Duration(days: index)),
+      growable: false,
+    );
+    final fixturesByDate = <String, List<CompetitionFixture>>{};
+    final unscheduled = <CompetitionFixture>[];
+    for (final fixture in _record.fixtures) {
+      final scheduledAt = fixture.scheduledAt;
+      if (scheduledAt == null) {
+        unscheduled.add(fixture);
+        continue;
+      }
+      final key = _calendarDateKey(scheduledAt);
+      (fixturesByDate[key] ??= <CompetitionFixture>[]).add(fixture);
+    }
+    final issues = MatchCompetitionService.scheduleIssues(competition: _record);
+
+    return PopScope(
+      canPop: _allowPop,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && !_allowPop) _close();
+      },
+      child: Scaffold(
+        body: ColoredBox(
+          color: theme.scaffoldBackgroundColor,
+          child: SafeArea(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.sm,
+                    AppSpacing.sm,
+                    AppSpacing.sm,
+                    0,
+                  ),
+                  child: Row(
+                    children: [
+                      BackButton(onPressed: _saving ? null : _close),
+                      const SizedBox(width: AppSpacing.xs),
+                      Expanded(
+                        child: Text(
+                          l10n.matchCompetitionScheduleBoardTitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
+                      AppBarActionButton.icon(
+                        key: const ValueKey(
+                          'competition-schedule-board-previous-week',
+                        ),
+                        icon: Icons.chevron_left_rounded,
+                        tooltip:
+                            l10n.matchCompetitionSchedulePreviousWeekTooltip,
+                        onPressed: _saving
+                            ? null
+                            : () => setState(() {
+                                  _weekStart = _weekStart.subtract(
+                                    const Duration(days: 7),
+                                  );
+                                }),
+                        margin: EdgeInsets.zero,
+                      ),
+                      AppBarActionButton.icon(
+                        key: const ValueKey(
+                          'competition-schedule-board-next-week',
+                        ),
+                        icon: Icons.chevron_right_rounded,
+                        tooltip: l10n.matchCompetitionScheduleNextWeekTooltip,
+                        onPressed: _saving
+                            ? null
+                            : () => setState(() {
+                                  _weekStart = _weekStart.add(
+                                    const Duration(days: 7),
+                                  );
+                                }),
+                        margin: EdgeInsets.zero,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.sm,
+                      0,
+                      AppSpacing.sm,
+                      AppSpacing.xl,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (issues.isNotEmpty) ...[
+                          _CompetitionScheduleIssuesPanel(
+                            issues: issues,
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                        ],
+                        Text(
+                          l10n.matchCompetitionScheduleWeekRange(
+                            MaterialLocalizations.of(
+                              context,
+                            ).formatMediumDate(weekDates.first),
+                            MaterialLocalizations.of(
+                              context,
+                            ).formatMediumDate(weekDates.last),
+                          ),
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            color: scheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.xs),
+                        SizedBox(
+                          height: 420,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                for (final date in weekDates) ...[
+                                  _CompetitionScheduleBoardDay(
+                                    key: ValueKey(
+                                      'competition-schedule-board-day-${_calendarDateKey(date)}',
+                                    ),
+                                    date: date,
+                                    fixtures: fixturesByDate[
+                                            _calendarDateKey(date)] ??
+                                        const <CompetitionFixture>[],
+                                    accent: accent,
+                                    readOnly: widget.readOnly || _saving,
+                                    onMoveFixture: _moveFixture,
+                                  ),
+                                  if (date != weekDates.last)
+                                    const SizedBox(width: AppSpacing.xs),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                        if (unscheduled.isNotEmpty) ...[
+                          const SizedBox(height: AppSpacing.md),
+                          Text(
+                            l10n.matchCompetitionScheduleUnscheduledLane,
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.xs),
+                          Wrap(
+                            spacing: AppSpacing.xs,
+                            runSpacing: AppSpacing.xs,
+                            children: [
+                              for (final fixture in unscheduled)
+                                SizedBox(
+                                  width: 180,
+                                  child: _CompetitionScheduleBoardFixtureCard(
+                                    fixture: fixture,
+                                    readOnly: widget.readOnly || _saving,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+String _calendarDateKey(DateTime date) {
+  return '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+}
+
+class _CompetitionScheduleBoardDay extends StatelessWidget {
+  final DateTime date;
+  final List<CompetitionFixture> fixtures;
+  final Color accent;
+  final bool readOnly;
+  final Future<void> Function(CompetitionFixture fixture, DateTime targetDate)
+      onMoveFixture;
+
+  const _CompetitionScheduleBoardDay({
+    super.key,
+    required this.date,
+    required this.fixtures,
+    required this.accent,
+    required this.readOnly,
+    required this.onMoveFixture,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final localizations = MaterialLocalizations.of(context);
+    return DragTarget<CompetitionFixture>(
+      onWillAcceptWithDetails: (details) => !readOnly,
+      onAcceptWithDetails: (details) {
+        unawaited(onMoveFixture(details.data, date));
+      },
+      builder: (context, candidateData, _) {
+        final highlighted = candidateData.isNotEmpty;
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 140),
+          width: 176,
+          decoration: BoxDecoration(
+            color: highlighted
+                ? accent.withValues(alpha: 0.16)
+                : scheme.surfaceContainerLowest,
+            borderRadius: AppRadius.small,
+            border: Border.all(
+              color: highlighted ? accent : scheme.outlineVariant,
+              width: highlighted ? 2 : 1,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(AppSpacing.sm),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      localizations
+                          .narrowWeekdays[date.weekday % DateTime.daysPerWeek],
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: accent,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    Text(
+                      localizations.formatMediumDate(date),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Divider(height: 1, color: scheme.outlineVariant),
+              Expanded(
+                child: fixtures.isEmpty
+                    ? const SizedBox.expand()
+                    : ListView.separated(
+                        padding: const EdgeInsets.all(AppSpacing.xs),
+                        itemCount: fixtures.length,
+                        separatorBuilder: (_, __) =>
+                            const SizedBox(height: AppSpacing.xs),
+                        itemBuilder: (context, index) =>
+                            _CompetitionScheduleBoardFixtureCard(
+                          fixture: fixtures[index],
+                          readOnly: readOnly,
+                        ),
+                      ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _CompetitionScheduleBoardFixtureCard extends StatelessWidget {
+  final CompetitionFixture fixture;
+  final bool readOnly;
+
+  const _CompetitionScheduleBoardFixtureCard({
+    required this.fixture,
+    required this.readOnly,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final score = fixture.hasResult
+        ? '${fixture.homeScore ?? '-'} : ${fixture.awayScore ?? '-'}'
+        : l10n.matchCompetitionFixtureVersus;
+    final time = fixture.scheduledAt == null
+        ? l10n.matchCompetitionFixtureUnscheduled
+        : MaterialLocalizations.of(
+            context,
+          ).formatTimeOfDay(TimeOfDay.fromDateTime(fixture.scheduledAt!));
+    Widget buildCard({bool withKey = false}) {
+      return Container(
+        key: withKey
+            ? ValueKey('competition-schedule-card-${fixture.id}')
+            : null,
+        padding: const EdgeInsets.all(AppSpacing.xs),
+        decoration: BoxDecoration(
+          color: scheme.surface,
+          borderRadius: AppRadius.small,
+          border: Border.all(color: scheme.outlineVariant),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              time,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: scheme.onSurfaceVariant,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              fixture.homeTeam.isEmpty
+                  ? l10n.matchCompetitionFixtureTbd
+                  : fixture.homeTeam,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            Text(
+              score,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: fixture.hasResult
+                    ? _competitionPositiveColor(context)
+                    : scheme.onSurfaceVariant,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            Text(
+              fixture.awayTeam.isEmpty
+                  ? l10n.matchCompetitionFixtureTbd
+                  : fixture.awayTeam,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (readOnly) return buildCard(withKey: true);
+    return LongPressDraggable<CompetitionFixture>(
+      data: fixture,
+      dragAnchorStrategy: pointerDragAnchorStrategy,
+      feedback: Material(
+        color: Colors.transparent,
+        child: SizedBox(
+          width: 176,
+          child: Opacity(opacity: 0.88, child: buildCard()),
+        ),
+      ),
+      childWhenDragging: Opacity(opacity: 0.35, child: buildCard()),
+      child: buildCard(withKey: true),
+    );
+  }
+}
+
 class _CompetitionEditorScreen extends StatefulWidget {
   final MatchCompetitionService service;
   final MatchCompetitionRecord? record;
@@ -4253,6 +5271,7 @@ class _CompetitionEditorScreenState extends State<_CompetitionEditorScreen> {
 
   late String _kind;
   late String _status;
+  late String _leagueTieBreaker;
   late List<String> _teams;
   late final TextEditingController _nameController;
   late final TextEditingController _seasonController;
@@ -4264,6 +5283,7 @@ class _CompetitionEditorScreenState extends State<_CompetitionEditorScreen> {
   Timer? _autoSaveTimer;
   bool _autoSaveInFlight = false;
   bool _autoSaveQueued = false;
+  bool _rebuildConfirmationOpen = false;
   bool _allowPop = false;
   bool _hasPersistedChanges = false;
   bool _showValidationErrors = false;
@@ -4288,6 +5308,8 @@ class _CompetitionEditorScreenState extends State<_CompetitionEditorScreen> {
     _persistedRecord = record;
     _kind = record?.kind ?? widget.initialKind;
     _status = record?.status ?? MatchCompetitionRecord.statusActive;
+    _leagueTieBreaker = record?.leagueTieBreaker ??
+        MatchCompetitionRecord.tieBreakerGoalDifference;
     _teams = MatchCompetitionService.teamsWithManagedTeam(
       kind: _kind,
       teams: record?.teams ?? const [],
@@ -4498,6 +5520,45 @@ class _CompetitionEditorScreenState extends State<_CompetitionEditorScreen> {
                             _EditorSectionPanel(
                               title: l10n.matchCompetitionEditorOperationsTitle,
                               children: [
+                                if (_kind ==
+                                    MatchCompetitionRecord.kindLeague) ...[
+                                  DropdownButtonFormField<String>(
+                                    key: const ValueKey(
+                                      'competition-league-tiebreaker-selector',
+                                    ),
+                                    initialValue: _leagueTieBreaker,
+                                    decoration: InputDecoration(
+                                      labelText: l10n
+                                          .matchCompetitionLeagueTieBreakerLabel,
+                                      border: const OutlineInputBorder(),
+                                    ),
+                                    items: [
+                                      MatchCompetitionRecord
+                                          .tieBreakerGoalDifference,
+                                      MatchCompetitionRecord.tieBreakerWins,
+                                      MatchCompetitionRecord.tieBreakerGoalsFor,
+                                    ]
+                                        .map(
+                                          (value) => DropdownMenuItem<String>(
+                                            value: value,
+                                            child: Text(
+                                              _leagueTieBreakerLabel(
+                                                l10n,
+                                                value,
+                                              ),
+                                            ),
+                                          ),
+                                        )
+                                        .toList(growable: false),
+                                    onChanged: (value) {
+                                      if (value == null) return;
+                                      _updateAndScheduleAutoSave(
+                                        () => _leagueTieBreaker = value,
+                                      );
+                                    },
+                                  ),
+                                  const SizedBox(height: AppSpacing.sm),
+                                ],
                                 _EditorFieldGrid(
                                   children: [
                                     _EditorTextField(
@@ -4622,7 +5683,11 @@ class _CompetitionEditorScreenState extends State<_CompetitionEditorScreen> {
     final updated = _buildCompetitionRecord();
     if (updated != null &&
         _competitionRecordSignature(updated) != _lastSavedSignature) {
-      await _persistCompetition(updated);
+      final saved = await _persistWithRebuildGuard(updated);
+      if (!saved || !mounted) {
+        _scheduleAutoSave();
+        return;
+      }
     }
     if (!mounted) return;
     _allowPop = true;
@@ -4649,8 +5714,13 @@ class _CompetitionEditorScreenState extends State<_CompetitionEditorScreen> {
     final updated = _buildCompetitionRecord();
     if (updated == null) return;
     _autoSaveTimer?.cancel();
-    await _persistCompetition(updated);
-    if (!mounted) return;
+    setState(() => _autoSaveInFlight = true);
+    final saved = await _persistWithRebuildGuard(updated);
+    if (mounted) setState(() => _autoSaveInFlight = false);
+    if (!saved || !mounted) {
+      _scheduleAutoSave();
+      return;
+    }
     AppFeedback.showSuccess(
       context,
       text: l10n.matchCompetitionSavedFeedback,
@@ -4698,13 +5768,22 @@ class _CompetitionEditorScreenState extends State<_CompetitionEditorScreen> {
     }
     _autoSaveInFlight = true;
     try {
-      await _persistCompetition(updated);
-      if (mounted) {
+      final rebuildsFixtures = _rebuildImpactFor(updated) != null;
+      final saved = await _persistWithRebuildGuard(
+        updated,
+        showUndoForRebuild: true,
+      );
+      if (saved && mounted) {
         setState(() {});
-        AppFeedback.showSuccess(
-          context,
-          text: AppLocalizations.of(context)!.matchCompetitionAutoSavedFeedback,
-        );
+        if (!rebuildsFixtures) {
+          AppFeedback.showSuccess(
+            context,
+            text:
+                AppLocalizations.of(context)!.matchCompetitionAutoSavedFeedback,
+          );
+        }
+      } else if (mounted) {
+        _scheduleAutoSave();
       }
     } finally {
       _autoSaveInFlight = false;
@@ -4730,6 +5809,7 @@ class _CompetitionEditorScreenState extends State<_CompetitionEditorScreen> {
       organizer: _organizerController.text,
       note: _noteController.text,
       leagueLegs: existing?.leagueLegs ?? 1,
+      leagueTieBreaker: _leagueTieBreaker,
       fixtureStartDate: existing?.fixtureStartDate,
       fixtureIntervalDays: existing?.fixtureIntervalDays ?? 7,
     );
@@ -4763,6 +5843,140 @@ class _CompetitionEditorScreenState extends State<_CompetitionEditorScreen> {
     _hasPersistedChanges = true;
   }
 
+  CompetitionFixtureRebuildImpact? _rebuildImpactFor(
+    MatchCompetitionRecord updated,
+  ) {
+    final existing = _persistedRecord ?? widget.record;
+    if (existing == null || existing.fixtures.isEmpty) return null;
+    final impact = MatchCompetitionService.fixtureRebuildImpact(
+      existing: existing,
+      updated: updated,
+    );
+    return impact.requiresRebuild ? impact : null;
+  }
+
+  Future<bool> _persistWithRebuildGuard(
+    MatchCompetitionRecord updated, {
+    bool showUndoForRebuild = false,
+  }) async {
+    final existing = _persistedRecord ?? widget.record;
+    final impact = _rebuildImpactFor(updated);
+    if (impact != null) {
+      final confirmed = await _confirmFixtureRebuild(
+        existing: existing!,
+        impact: impact,
+      );
+      if (!confirmed) return false;
+    }
+    await _persistCompetition(updated);
+    if (impact != null && showUndoForRebuild && mounted) {
+      final current = _persistedRecord;
+      if (current != null) {
+        final l10n = AppLocalizations.of(context)!;
+        AppFeedback.showUndo(
+          context,
+          text: l10n.matchCompetitionRebuildFeedback,
+          undoLabel: l10n.undo,
+          onUndo: () {
+            unawaited(
+              _undoFixtureRebuild(previous: existing!, current: current),
+            );
+          },
+        );
+      }
+    }
+    return true;
+  }
+
+  Future<bool> _confirmFixtureRebuild({
+    required MatchCompetitionRecord existing,
+    required CompetitionFixtureRebuildImpact impact,
+  }) async {
+    if (!mounted || _rebuildConfirmationOpen) return false;
+    _rebuildConfirmationOpen = true;
+    try {
+      final l10n = AppLocalizations.of(context)!;
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: Text(l10n.matchCompetitionRebuildDialogTitle),
+          content: Text(
+            l10n.matchCompetitionRebuildDialogBody(
+              impact.nextFixtureCount,
+              impact.clearedResultCount,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text(l10n.cancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: Text(l10n.matchCompetitionRebuildConfirm),
+            ),
+          ],
+        ),
+      );
+      if (confirmed == true) return true;
+      _restoreStructuralFields(existing);
+      return false;
+    } finally {
+      _rebuildConfirmationOpen = false;
+    }
+  }
+
+  void _restoreStructuralFields(MatchCompetitionRecord record) {
+    if (!mounted) return;
+    setState(() {
+      _kind = record.kind;
+      _leagueTieBreaker = record.leagueTieBreaker;
+      _teams = MatchCompetitionService.teamsWithManagedTeam(
+        kind: record.kind,
+        teams: record.teams,
+        managedTeamName: widget.managedTeamName,
+        fallbackTeamName: widget.fallbackTeamName,
+        replaceLeagueFirstTeam: true,
+      );
+    });
+  }
+
+  Future<void> _undoFixtureRebuild({
+    required MatchCompetitionRecord previous,
+    required MatchCompetitionRecord current,
+  }) async {
+    if (_autoSaveInFlight) return;
+    _autoSaveTimer?.cancel();
+    _autoSaveInFlight = true;
+    try {
+      final restored = previous.copyWith(
+        id: current.id,
+        name: current.name,
+        status: current.status,
+        season: current.season,
+        venue: current.venue,
+        organizer: current.organizer,
+        note: current.note,
+        leagueTieBreaker: current.leagueTieBreaker,
+        fixtures: previous.fixtures,
+        createdAt: previous.createdAt,
+      );
+      await _persistCompetition(restored);
+      if (!mounted) return;
+      _restoreStructuralFields(_persistedRecord!);
+      AppFeedback.showSuccess(
+        context,
+        text: AppLocalizations.of(
+          context,
+        )!
+            .matchCompetitionRebuildUndoneFeedback,
+      );
+    } finally {
+      _autoSaveInFlight = false;
+      if (mounted) setState(() {});
+    }
+  }
+
   String _competitionRecordSignature(MatchCompetitionRecord record) {
     return [
       record.kind,
@@ -4772,6 +5986,7 @@ class _CompetitionEditorScreenState extends State<_CompetitionEditorScreen> {
       record.venue.trim(),
       record.organizer.trim(),
       record.note.trim(),
+      record.leagueTieBreaker,
       ...MatchCompetitionService.normalizeTeams(record.teams),
     ].join('\n');
   }

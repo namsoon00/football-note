@@ -16082,4 +16082,94 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get matchCompetitionParticipantTeamColumn => '참가 팀';
+
+  @override
+  String get matchCompetitionLeagueTieBreakerLabel => '동률 순위 기준';
+
+  @override
+  String get matchCompetitionTieBreakerGoalDifference => '승점, 득실차, 다득점';
+
+  @override
+  String get matchCompetitionTieBreakerWins => '승점, 승리 수, 득실차';
+
+  @override
+  String get matchCompetitionTieBreakerGoalsFor => '승점, 다득점, 득실차';
+
+  @override
+  String get matchCompetitionRebuildDialogTitle => '일정과 대진을 다시 편성할까요?';
+
+  @override
+  String matchCompetitionRebuildDialogBody(int fixtures, int results) {
+    return '변경된 구성에 맞춰 경기 $fixtures개를 다시 편성합니다. 기록된 결과 $results개가 초기화될 수 있어요.';
+  }
+
+  @override
+  String get matchCompetitionRebuildConfirm => '다시 편성';
+
+  @override
+  String get matchCompetitionRebuildFeedback => '일정과 대진을 다시 편성했어요.';
+
+  @override
+  String get matchCompetitionRebuildUndoneFeedback => '이전 일정과 대진으로 되돌렸어요.';
+
+  @override
+  String get matchCompetitionScheduleBoardAction => '일정 보드';
+
+  @override
+  String get matchCompetitionScheduleBoardTitle => '일정 보드';
+
+  @override
+  String get matchCompetitionSchedulePreviousWeekTooltip => '이전 주';
+
+  @override
+  String get matchCompetitionScheduleNextWeekTooltip => '다음 주';
+
+  @override
+  String get matchCompetitionScheduleUnscheduledLane => '일정 미정 경기';
+
+  @override
+  String get matchCompetitionFixtureMovedFeedback => '경기 일정을 옮겼어요.';
+
+  @override
+  String matchCompetitionScheduleIssuesCount(int count) {
+    return '확인이 필요한 항목 $count건';
+  }
+
+  @override
+  String get matchCompetitionScheduleIssueVenueOverlap => '같은 장소의 경기 일정이 겹쳐요';
+
+  @override
+  String get matchCompetitionScheduleIssueTeamOverlap => '같은 날에 같은 팀 경기가 겹쳐요';
+
+  @override
+  String get matchCompetitionScheduleIssueShortRest => '경기 사이 휴식일이 부족해요';
+
+  @override
+  String matchCompetitionScheduleWeekRange(Object start, Object end) {
+    return '$start - $end';
+  }
+
+  @override
+  String get matchCompetitionQuickResultAction => '빠른 결과 입력';
+
+  @override
+  String get matchCompetitionQuickResultSave => '결과 저장';
+
+  @override
+  String get matchCompetitionQuickResultCancel => '결과 입력 닫기';
+
+  @override
+  String get matchCompetitionProgressRemaining => '남은 경기';
+
+  @override
+  String get matchCompetitionProgressNextMatches => '다음 경기';
+
+  @override
+  String get matchCompetitionProgressChampion => '우승 확정';
+
+  @override
+  String get matchCompetitionProgressLeader => '현재 1위';
+
+  @override
+  String get matchCompetitionProgressAdvanced => '진출 확정';
 }

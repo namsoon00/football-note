@@ -9290,5 +9290,50 @@
   "matchCompetitionStandingsGoalDifferenceColumn": "득실",
   "matchCompetitionStandingsPointsColumn": "승점",
   "matchCompetitionParticipantOrderColumn": "순번",
-  "matchCompetitionParticipantTeamColumn": "참가 팀"
+  "matchCompetitionParticipantTeamColumn": "참가 팀",
+  "matchCompetitionLeagueTieBreakerLabel": "동률 순위 기준",
+  "matchCompetitionTieBreakerGoalDifference": "승점, 득실차, 다득점",
+  "matchCompetitionTieBreakerWins": "승점, 승리 수, 득실차",
+  "matchCompetitionTieBreakerGoalsFor": "승점, 다득점, 득실차",
+  "matchCompetitionRebuildDialogTitle": "일정과 대진을 다시 편성할까요?",
+  "matchCompetitionRebuildDialogBody": "변경된 구성에 맞춰 경기 {fixtures}개를 다시 편성합니다. 기록된 결과 {results}개가 초기화될 수 있어요.",
+  "@matchCompetitionRebuildDialogBody": {
+    "placeholders": {
+      "fixtures": { "type": "int" },
+      "results": { "type": "int" }
+    }
+  },
+  "matchCompetitionRebuildConfirm": "다시 편성",
+  "matchCompetitionRebuildFeedback": "일정과 대진을 다시 편성했어요.",
+  "matchCompetitionRebuildUndoneFeedback": "이전 일정과 대진으로 되돌렸어요.",
+  "matchCompetitionScheduleBoardAction": "일정 보드",
+  "matchCompetitionScheduleBoardTitle": "일정 보드",
+  "matchCompetitionSchedulePreviousWeekTooltip": "이전 주",
+  "matchCompetitionScheduleNextWeekTooltip": "다음 주",
+  "matchCompetitionScheduleUnscheduledLane": "일정 미정 경기",
+  "matchCompetitionFixtureMovedFeedback": "경기 일정을 옮겼어요.",
+  "matchCompetitionScheduleIssuesCount": "확인이 필요한 항목 {count}건",
+  "@matchCompetitionScheduleIssuesCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "matchCompetitionScheduleIssueVenueOverlap": "같은 장소의 경기 일정이 겹쳐요",
+  "matchCompetitionScheduleIssueTeamOverlap": "같은 날에 같은 팀 경기가 겹쳐요",
+  "matchCompetitionScheduleIssueShortRest": "경기 사이 휴식일이 부족해요",
+  "matchCompetitionScheduleWeekRange": "{start} - {end}",
+  "@matchCompetitionScheduleWeekRange": {
+    "placeholders": {
+      "start": {},
+      "end": {}
+    }
+  },
+  "matchCompetitionQuickResultAction": "빠른 결과 입력",
+  "matchCompetitionQuickResultSave": "결과 저장",
+  "matchCompetitionQuickResultCancel": "결과 입력 닫기",
+  "matchCompetitionProgressRemaining": "남은 경기",
+  "matchCompetitionProgressNextMatches": "다음 경기",
+  "matchCompetitionProgressChampion": "우승 확정",
+  "matchCompetitionProgressLeader": "현재 1위",
+  "matchCompetitionProgressAdvanced": "진출 확정"
 }
