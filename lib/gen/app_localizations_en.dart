@@ -16354,4 +16354,114 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get xpHistoryReasonChallengeCompletionBonus =>
       'challenge finish bonus';
+
+  @override
+  String get matchCompetitionScheduleTab => 'Schedule & results';
+
+  @override
+  String get matchCompetitionStandingsTab => 'Standings';
+
+  @override
+  String get matchCompetitionBracketTab => 'Bracket';
+
+  @override
+  String get matchCompetitionTeamsViewTab => 'Teams';
+
+  @override
+  String get matchCompetitionFixtureManageAction => 'Manage match';
+
+  @override
+  String get matchCompetitionFixtureEditorTitle => 'Manage match';
+
+  @override
+  String get matchCompetitionFixtureScheduleSection => 'Match schedule';
+
+  @override
+  String get matchCompetitionFixtureResultSection => 'Match result';
+
+  @override
+  String get matchCompetitionFixtureResultEnabled => 'Enter result';
+
+  @override
+  String get matchCompetitionFixtureResultUnavailable =>
+      'Enter a result after both participating teams are confirmed.';
+
+  @override
+  String get matchCompetitionFixtureStatusScheduled => 'Scheduled';
+
+  @override
+  String get matchCompetitionFixtureStatusPostponed => 'Postponed';
+
+  @override
+  String get matchCompetitionFixtureStatusCancelled => 'Cancelled';
+
+  @override
+  String get matchCompetitionFixtureStatusCompleted => 'Completed';
+
+  @override
+  String get matchCompetitionFixtureDateAction => 'Select date';
+
+  @override
+  String get matchCompetitionFixtureTimeAction => 'Select time';
+
+  @override
+  String get matchCompetitionFixtureClearSchedule => 'Clear schedule';
+
+  @override
+  String get matchCompetitionFixtureVenueDefault => 'Competition default venue';
+
+  @override
+  String get matchCompetitionFixtureVenueUnset => 'Venue undecided';
+
+  @override
+  String get matchCompetitionFixturePenaltyTitle => 'Penalty shootout';
+
+  @override
+  String get matchCompetitionFixturePenaltyRequired =>
+      'Enter a penalty shootout result for a drawn tournament match.';
+
+  @override
+  String get matchCompetitionFixtureSave => 'Save match';
+
+  @override
+  String get matchCompetitionFixtureSavedFeedback =>
+      'Saved the match schedule and result.';
+
+  @override
+  String get matchCompetitionFixtureOpenTeamRecord => 'Open our team record';
+
+  @override
+  String get matchCompetitionFixtureUnscheduled => 'Schedule pending';
+
+  @override
+  String get matchCompetitionFixtureSchedulePlanAction => 'Plan schedule';
+
+  @override
+  String get matchCompetitionFixtureSchedulePlanTitle =>
+      'Plan competition schedule';
+
+  @override
+  String get matchCompetitionFixtureScheduleStartLabel => 'First match';
+
+  @override
+  String get matchCompetitionFixtureScheduleIntervalLabel => 'Round interval';
+
+  @override
+  String matchCompetitionFixtureScheduleIntervalDays(int days) {
+    return '$days days';
+  }
+
+  @override
+  String get matchCompetitionFixtureScheduleApply => 'Apply schedule';
+
+  @override
+  String matchCompetitionFixtureScheduleCount(int scheduled, int total) {
+    return '$scheduled/$total scheduled';
+  }
+
+  @override
+  String get matchCompetitionFixtureDecreaseScore => 'Decrease score';
+
+  @override
+  String get matchCompetitionFixtureIncreaseScore => 'Increase score';
 }

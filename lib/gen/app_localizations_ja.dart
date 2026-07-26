@@ -15829,4 +15829,112 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get xpHistoryReasonChallengeCompletionBonus => 'チャレンジ完走ボーナス';
+
+  @override
+  String get matchCompetitionScheduleTab => '日程・結果';
+
+  @override
+  String get matchCompetitionStandingsTab => '順位';
+
+  @override
+  String get matchCompetitionBracketTab => '組み合わせ';
+
+  @override
+  String get matchCompetitionTeamsViewTab => '参加チーム';
+
+  @override
+  String get matchCompetitionFixtureManageAction => '試合管理';
+
+  @override
+  String get matchCompetitionFixtureEditorTitle => '試合管理';
+
+  @override
+  String get matchCompetitionFixtureScheduleSection => '試合日程';
+
+  @override
+  String get matchCompetitionFixtureResultSection => '試合結果';
+
+  @override
+  String get matchCompetitionFixtureResultEnabled => '結果を入力';
+
+  @override
+  String get matchCompetitionFixtureResultUnavailable =>
+      '参加チームが確定すると結果を入力できます。';
+
+  @override
+  String get matchCompetitionFixtureStatusScheduled => '予定';
+
+  @override
+  String get matchCompetitionFixtureStatusPostponed => '延期';
+
+  @override
+  String get matchCompetitionFixtureStatusCancelled => '中止';
+
+  @override
+  String get matchCompetitionFixtureStatusCompleted => '完了';
+
+  @override
+  String get matchCompetitionFixtureDateAction => '日付を選択';
+
+  @override
+  String get matchCompetitionFixtureTimeAction => '時間を選択';
+
+  @override
+  String get matchCompetitionFixtureClearSchedule => '日程を削除';
+
+  @override
+  String get matchCompetitionFixtureVenueDefault => '大会の基本会場';
+
+  @override
+  String get matchCompetitionFixtureVenueUnset => '会場未定';
+
+  @override
+  String get matchCompetitionFixturePenaltyTitle => 'PK戦';
+
+  @override
+  String get matchCompetitionFixturePenaltyRequired =>
+      'トーナメントの引き分け試合はPK戦の結果を入力してください。';
+
+  @override
+  String get matchCompetitionFixtureSave => '試合を保存';
+
+  @override
+  String get matchCompetitionFixtureSavedFeedback => '試合日程と結果を保存しました。';
+
+  @override
+  String get matchCompetitionFixtureOpenTeamRecord => '自チーム記録を開く';
+
+  @override
+  String get matchCompetitionFixtureUnscheduled => '日程未定';
+
+  @override
+  String get matchCompetitionFixtureSchedulePlanAction => '日程を組む';
+
+  @override
+  String get matchCompetitionFixtureSchedulePlanTitle => '大会日程を組む';
+
+  @override
+  String get matchCompetitionFixtureScheduleStartLabel => '初戦';
+
+  @override
+  String get matchCompetitionFixtureScheduleIntervalLabel => 'ラウンド間隔';
+
+  @override
+  String matchCompetitionFixtureScheduleIntervalDays(int days) {
+    return '$days日';
+  }
+
+  @override
+  String get matchCompetitionFixtureScheduleApply => '日程を適用';
+
+  @override
+  String matchCompetitionFixtureScheduleCount(int scheduled, int total) {
+    return '$scheduled/$total 日程設定済み';
+  }
+
+  @override
+  String get matchCompetitionFixtureDecreaseScore => '得点を減らす';
+
+  @override
+  String get matchCompetitionFixtureIncreaseScore => '得点を増やす';
 }

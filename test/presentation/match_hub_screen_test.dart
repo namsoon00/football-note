@@ -314,11 +314,18 @@ void main() {
     await tester.tap(find.text('주말 리그'));
     await tester.pumpAndSettle();
 
+    expect(find.text('일정·결과'), findsOneWidget);
+    expect(find.text('경기 일정'), findsOneWidget);
+    expect(find.text('리그 순위'), findsNothing);
+    await tester.tap(find.text('순위'));
+    await tester.pumpAndSettle();
     expect(find.text('리그 순위'), findsOneWidget);
-    expect(find.text('등록 팀'), findsWidgets);
+    expect(find.textContaining('1승 0무 0패'), findsOneWidget);
+    await tester.tap(find.text('참가 팀'));
+    await tester.pumpAndSettle();
+    expect(find.text('등록 팀'), findsOneWidget);
     expect(find.text('우리 팀 U15'), findsWidgets);
     expect(find.text('서울 U15'), findsWidgets);
-    expect(find.textContaining('1승 0무 0패'), findsOneWidget);
     expect(
       find.byKey(const ValueKey('competition-detail-edit')),
       findsOneWidget,
@@ -479,30 +486,27 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('Tournament bracket opens the managed fixture record action', (
+  testWidgets('Tournament bracket opens the fixture management screen', (
     tester,
   ) async {
     await seedMatchHubRecords();
-    MatchCompetitionRecord? selectedCompetition;
-    CompetitionFixture? selectedFixture;
     await pumpCompetitionManagement(
       tester,
       themeMode: ThemeMode.light,
-      onOpenFixtureRecord: (competition, fixture, _) async {
-        selectedCompetition = competition;
-        selectedFixture = fixture;
-      },
     );
 
     await tester.tap(find.text('컵 대회'));
     await tester.pumpAndSettle();
-    await tester.tap(
-      find.byKey(const ValueKey('competition-tournament-match-1')),
-    );
+    final match = find.byKey(const ValueKey('competition-tournament-match-1'));
+    await tester.ensureVisible(match);
+    await tester.tap(match);
     await tester.pumpAndSettle();
 
-    expect(selectedCompetition?.name, '컵 대회');
-    expect(selectedFixture?.slotNumber, 1);
+    expect(find.text('경기 관리'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('competition-fixture-save-action')),
+      findsOneWidget,
+    );
   });
 
   testWidgets('Competition deletion requires confirmation', (tester) async {
@@ -624,7 +628,9 @@ void main() {
     expect(kindSelector.onSelectionChanged, isNull);
   });
 
-  testWidgets('Competition detail records a fixture from its league schedule', (
+  testWidgets(
+      'Competition detail records another team fixture from its league schedule',
+      (
     tester,
   ) async {
     await seedMatchHubRecords();
@@ -668,17 +674,70 @@ void main() {
               (record) => record.kind == MatchCompetitionRecord.kindLeague,
             );
     final fixture = league.fixtures.firstWhere(
-      (item) => item.homeTeam == '우리 팀' || item.awayTeam == '우리 팀',
+      (item) => item.homeTeam != '우리 팀' && item.awayTeam != '우리 팀',
     );
+    final fixtureAction = find.byKey(
+      ValueKey<String>('competition-fixture-action-${fixture.id}'),
+    );
+    await tester.ensureVisible(fixtureAction);
+    await tester.tap(fixtureAction);
+    await tester.pumpAndSettle();
+
+    expect(find.text('경기 관리'), findsOneWidget);
+    await tester.tap(find.byType(Switch));
+    await tester.pumpAndSettle();
     await tester.tap(
-      find.byKey(
-        ValueKey<String>('competition-fixture-action-${fixture.id}'),
-      ),
+      find.byKey(const ValueKey('competition-fixture-home-increase')).first,
+    );
+    await tester.pump();
+    await tester.tap(
+      find.byKey(const ValueKey('competition-fixture-home-increase')).first,
+    );
+    await tester.pump();
+    await tester.tap(
+      find.byKey(const ValueKey('competition-fixture-away-increase')).first,
+    );
+    await tester.pump();
+    await tester.tap(
+      find.byKey(const ValueKey('competition-fixture-save-action')),
     );
     await tester.pumpAndSettle();
 
-    expect(find.byType(MatchRecordScreen), findsOneWidget);
-    expect(find.text('대회 일정에서 불러옴'), findsOneWidget);
+    final saved = MatchCompetitionService(optionRepository)
+        .findCompetitionById(league.id)!;
+    final savedFixture = saved.fixtures.firstWhere(
+      (item) => item.id == fixture.id,
+    );
+    expect(savedFixture.homeScore, 2);
+    expect(savedFixture.awayScore, 1);
+    expect(savedFixture.status, CompetitionFixture.statusCompleted);
+  });
+
+  testWidgets('Competition detail plans fixture dates from the schedule view', (
+    tester,
+  ) async {
+    await seedMatchHubRecords();
+    await pumpCompetitionManagement(tester, themeMode: ThemeMode.light);
+
+    await tester.tap(find.text('주말 리그'));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('competition-schedule-plan-action')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('대회 일정 편성'), findsOneWidget);
+    await tester.tap(
+      find.byKey(const ValueKey('competition-schedule-plan-save')),
+    );
+    await tester.pumpAndSettle();
+
+    final league =
+        MatchCompetitionService(optionRepository).allCompetitions().firstWhere(
+              (record) => record.kind == MatchCompetitionRecord.kindLeague,
+            );
+    expect(league.fixtures.every((fixture) => fixture.scheduledAt != null),
+        isTrue);
   });
 
   testWidgets('Team management filters match records by kind and competition', (

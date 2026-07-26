@@ -9174,5 +9174,56 @@
   },
   "xpHistoryReasonChallengeRoundCompleted": "챌린지 라운드 완료",
   "xpHistoryReasonChallengeRoundStreakBonus": "챌린지 연속 보너스",
-  "xpHistoryReasonChallengeCompletionBonus": "챌린지 완주 보너스"
+  "xpHistoryReasonChallengeCompletionBonus": "챌린지 완주 보너스",
+  "matchCompetitionScheduleTab": "일정·결과",
+  "matchCompetitionStandingsTab": "순위",
+  "matchCompetitionBracketTab": "대진표",
+  "matchCompetitionTeamsViewTab": "참가 팀",
+  "matchCompetitionFixtureManageAction": "경기 관리",
+  "matchCompetitionFixtureEditorTitle": "경기 관리",
+  "matchCompetitionFixtureScheduleSection": "경기 일정",
+  "matchCompetitionFixtureResultSection": "경기 결과",
+  "matchCompetitionFixtureResultEnabled": "결과 입력",
+  "matchCompetitionFixtureResultUnavailable": "참가 팀이 확정되면 결과를 입력할 수 있어요.",
+  "matchCompetitionFixtureStatusScheduled": "예정",
+  "matchCompetitionFixtureStatusPostponed": "연기",
+  "matchCompetitionFixtureStatusCancelled": "취소",
+  "matchCompetitionFixtureStatusCompleted": "완료",
+  "matchCompetitionFixtureDateAction": "날짜 선택",
+  "matchCompetitionFixtureTimeAction": "시간 선택",
+  "matchCompetitionFixtureClearSchedule": "일정 지우기",
+  "matchCompetitionFixtureVenueDefault": "대회 기본 장소",
+  "matchCompetitionFixtureVenueUnset": "장소 미정",
+  "matchCompetitionFixturePenaltyTitle": "승부차기",
+  "matchCompetitionFixturePenaltyRequired": "토너먼트 동점 경기는 승부차기 결과를 입력하세요.",
+  "matchCompetitionFixtureSave": "경기 저장",
+  "matchCompetitionFixtureSavedFeedback": "경기 일정과 결과를 저장했어요.",
+  "matchCompetitionFixtureOpenTeamRecord": "우리 팀 기록 열기",
+  "matchCompetitionFixtureUnscheduled": "일정 미정",
+  "matchCompetitionFixtureSchedulePlanAction": "일정 편성",
+  "matchCompetitionFixtureSchedulePlanTitle": "대회 일정 편성",
+  "matchCompetitionFixtureScheduleStartLabel": "첫 경기",
+  "matchCompetitionFixtureScheduleIntervalLabel": "라운드 간격",
+  "matchCompetitionFixtureScheduleIntervalDays": "{days}일",
+  "@matchCompetitionFixtureScheduleIntervalDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "matchCompetitionFixtureScheduleApply": "일정 적용",
+  "matchCompetitionFixtureScheduleCount": "{scheduled}/{total} 일정",
+  "@matchCompetitionFixtureScheduleCount": {
+    "placeholders": {
+      "scheduled": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "matchCompetitionFixtureDecreaseScore": "점수 감소",
+  "matchCompetitionFixtureIncreaseScore": "점수 증가"
 }

@@ -27888,6 +27888,210 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'challenge finish bonus'**
   String get xpHistoryReasonChallengeCompletionBonus;
+
+  /// No description provided for @matchCompetitionScheduleTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule & results'**
+  String get matchCompetitionScheduleTab;
+
+  /// No description provided for @matchCompetitionStandingsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Standings'**
+  String get matchCompetitionStandingsTab;
+
+  /// No description provided for @matchCompetitionBracketTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Bracket'**
+  String get matchCompetitionBracketTab;
+
+  /// No description provided for @matchCompetitionTeamsViewTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Teams'**
+  String get matchCompetitionTeamsViewTab;
+
+  /// No description provided for @matchCompetitionFixtureManageAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage match'**
+  String get matchCompetitionFixtureManageAction;
+
+  /// No description provided for @matchCompetitionFixtureEditorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage match'**
+  String get matchCompetitionFixtureEditorTitle;
+
+  /// No description provided for @matchCompetitionFixtureScheduleSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Match schedule'**
+  String get matchCompetitionFixtureScheduleSection;
+
+  /// No description provided for @matchCompetitionFixtureResultSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Match result'**
+  String get matchCompetitionFixtureResultSection;
+
+  /// No description provided for @matchCompetitionFixtureResultEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter result'**
+  String get matchCompetitionFixtureResultEnabled;
+
+  /// No description provided for @matchCompetitionFixtureResultUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a result after both participating teams are confirmed.'**
+  String get matchCompetitionFixtureResultUnavailable;
+
+  /// No description provided for @matchCompetitionFixtureStatusScheduled.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled'**
+  String get matchCompetitionFixtureStatusScheduled;
+
+  /// No description provided for @matchCompetitionFixtureStatusPostponed.
+  ///
+  /// In en, this message translates to:
+  /// **'Postponed'**
+  String get matchCompetitionFixtureStatusPostponed;
+
+  /// No description provided for @matchCompetitionFixtureStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get matchCompetitionFixtureStatusCancelled;
+
+  /// No description provided for @matchCompetitionFixtureStatusCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get matchCompetitionFixtureStatusCompleted;
+
+  /// No description provided for @matchCompetitionFixtureDateAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Select date'**
+  String get matchCompetitionFixtureDateAction;
+
+  /// No description provided for @matchCompetitionFixtureTimeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Select time'**
+  String get matchCompetitionFixtureTimeAction;
+
+  /// No description provided for @matchCompetitionFixtureClearSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear schedule'**
+  String get matchCompetitionFixtureClearSchedule;
+
+  /// No description provided for @matchCompetitionFixtureVenueDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Competition default venue'**
+  String get matchCompetitionFixtureVenueDefault;
+
+  /// No description provided for @matchCompetitionFixtureVenueUnset.
+  ///
+  /// In en, this message translates to:
+  /// **'Venue undecided'**
+  String get matchCompetitionFixtureVenueUnset;
+
+  /// No description provided for @matchCompetitionFixturePenaltyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Penalty shootout'**
+  String get matchCompetitionFixturePenaltyTitle;
+
+  /// No description provided for @matchCompetitionFixturePenaltyRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a penalty shootout result for a drawn tournament match.'**
+  String get matchCompetitionFixturePenaltyRequired;
+
+  /// No description provided for @matchCompetitionFixtureSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save match'**
+  String get matchCompetitionFixtureSave;
+
+  /// No description provided for @matchCompetitionFixtureSavedFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved the match schedule and result.'**
+  String get matchCompetitionFixtureSavedFeedback;
+
+  /// No description provided for @matchCompetitionFixtureOpenTeamRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Open our team record'**
+  String get matchCompetitionFixtureOpenTeamRecord;
+
+  /// No description provided for @matchCompetitionFixtureUnscheduled.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule pending'**
+  String get matchCompetitionFixtureUnscheduled;
+
+  /// No description provided for @matchCompetitionFixtureSchedulePlanAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan schedule'**
+  String get matchCompetitionFixtureSchedulePlanAction;
+
+  /// No description provided for @matchCompetitionFixtureSchedulePlanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan competition schedule'**
+  String get matchCompetitionFixtureSchedulePlanTitle;
+
+  /// No description provided for @matchCompetitionFixtureScheduleStartLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'First match'**
+  String get matchCompetitionFixtureScheduleStartLabel;
+
+  /// No description provided for @matchCompetitionFixtureScheduleIntervalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Round interval'**
+  String get matchCompetitionFixtureScheduleIntervalLabel;
+
+  /// No description provided for @matchCompetitionFixtureScheduleIntervalDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days'**
+  String matchCompetitionFixtureScheduleIntervalDays(int days);
+
+  /// No description provided for @matchCompetitionFixtureScheduleApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply schedule'**
+  String get matchCompetitionFixtureScheduleApply;
+
+  /// No description provided for @matchCompetitionFixtureScheduleCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{scheduled}/{total} scheduled'**
+  String matchCompetitionFixtureScheduleCount(int scheduled, int total);
+
+  /// No description provided for @matchCompetitionFixtureDecreaseScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Decrease score'**
+  String get matchCompetitionFixtureDecreaseScore;
+
+  /// No description provided for @matchCompetitionFixtureIncreaseScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Increase score'**
+  String get matchCompetitionFixtureIncreaseScore;
 }
 
 class _AppLocalizationsDelegate

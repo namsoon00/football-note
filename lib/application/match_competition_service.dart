@@ -202,6 +202,8 @@ class MatchCompetitionRecord {
 
 class CompetitionFixture {
   static const String statusScheduled = 'scheduled';
+  static const String statusCompleted = 'completed';
+  static const String statusPostponed = 'postponed';
   static const String statusCancelled = 'cancelled';
 
   final String id;
@@ -215,6 +217,10 @@ class CompetitionFixture {
   final DateTime? scheduledAt;
   final String venue;
   final String status;
+  final int? homeScore;
+  final int? awayScore;
+  final int? homePenaltyScore;
+  final int? awayPenaltyScore;
 
   const CompetitionFixture({
     required this.id,
@@ -228,14 +234,32 @@ class CompetitionFixture {
     this.scheduledAt,
     this.venue = '',
     this.status = statusScheduled,
+    this.homeScore,
+    this.awayScore,
+    this.homePenaltyScore,
+    this.awayPenaltyScore,
   });
 
   bool get isCancelled => status == statusCancelled;
+
+  bool get isPostponed => status == statusPostponed;
+
+  bool get isCompleted => status == statusCompleted || hasResult;
+
+  bool get hasResult => homeScore != null && awayScore != null;
+
+  bool get hasPenaltyResult =>
+      homePenaltyScore != null && awayPenaltyScore != null;
+
+  bool get isDrawnResult => hasResult && homeScore == awayScore;
 
   bool get hasSourceSlots =>
       sourceHomeFixtureId != null || sourceAwayFixtureId != null;
 
   factory CompetitionFixture.fromMap(Map<String, dynamic> map) {
+    final homeScore = _scoreFromMap(map['homeScore']);
+    final awayScore = _scoreFromMap(map['awayScore']);
+    final rawStatus = map['status']?.toString().trim() ?? '';
     return CompetitionFixture(
       id: map['id']?.toString().trim() ?? '',
       roundNumber: (map['roundNumber'] as num?)?.toInt() ?? 1,
@@ -247,8 +271,32 @@ class CompetitionFixture {
       sourceAwayFixtureId: map['sourceAwayFixtureId']?.toString().trim(),
       scheduledAt: DateTime.tryParse(map['scheduledAt']?.toString() ?? ''),
       venue: map['venue']?.toString().trim() ?? '',
-      status: map['status']?.toString().trim() ?? statusScheduled,
+      status: normalizeStatus(
+        rawStatus,
+        hasResult: homeScore != null && awayScore != null,
+      ),
+      homeScore: homeScore,
+      awayScore: awayScore,
+      homePenaltyScore: _scoreFromMap(map['homePenaltyScore']),
+      awayPenaltyScore: _scoreFromMap(map['awayPenaltyScore']),
     );
+  }
+
+  static String normalizeStatus(String value, {bool hasResult = false}) {
+    switch (value.trim()) {
+      case statusCompleted:
+      case statusPostponed:
+      case statusCancelled:
+      case statusScheduled:
+        return value.trim();
+      default:
+        return hasResult ? statusCompleted : statusScheduled;
+    }
+  }
+
+  static int? _scoreFromMap(Object? value) {
+    final score = value is num ? value.toInt() : int.tryParse('$value');
+    return score == null || score < 0 ? null : score;
   }
 
   CompetitionFixture copyWith({
@@ -266,7 +314,21 @@ class CompetitionFixture {
     bool clearScheduledAt = false,
     String? venue,
     String? status,
+    int? homeScore,
+    int? awayScore,
+    int? homePenaltyScore,
+    int? awayPenaltyScore,
+    bool clearResult = false,
+    bool clearPenaltyResult = false,
   }) {
+    final nextHomeScore = clearResult ? null : homeScore ?? this.homeScore;
+    final nextAwayScore = clearResult ? null : awayScore ?? this.awayScore;
+    final nextStatus =
+        clearResult && status == null && this.status == statusCompleted
+            ? statusScheduled
+            : status == null || status.trim().isEmpty
+                ? this.status
+                : status.trim();
     return CompetitionFixture(
       id: id ?? this.id,
       roundNumber: roundNumber ?? this.roundNumber,
@@ -282,8 +344,16 @@ class CompetitionFixture {
           : sourceAwayFixtureId ?? this.sourceAwayFixtureId,
       scheduledAt: clearScheduledAt ? null : scheduledAt ?? this.scheduledAt,
       venue: venue?.trim() ?? this.venue,
-      status:
-          status == null || status.trim().isEmpty ? this.status : status.trim(),
+      status: normalizeStatus(
+        nextStatus,
+        hasResult: nextHomeScore != null && nextAwayScore != null,
+      ),
+      homeScore: nextHomeScore,
+      awayScore: nextAwayScore,
+      homePenaltyScore:
+          clearPenaltyResult ? null : homePenaltyScore ?? this.homePenaltyScore,
+      awayPenaltyScore:
+          clearPenaltyResult ? null : awayPenaltyScore ?? this.awayPenaltyScore,
     );
   }
 
@@ -300,6 +370,10 @@ class CompetitionFixture {
       'scheduledAt': scheduledAt?.toIso8601String(),
       'venue': venue,
       'status': status,
+      'homeScore': homeScore,
+      'awayScore': awayScore,
+      'homePenaltyScore': homePenaltyScore,
+      'awayPenaltyScore': awayPenaltyScore,
     };
   }
 }
@@ -310,6 +384,10 @@ class CompetitionFixtureState {
   final String homeTeam;
   final String awayTeam;
   final TrainingEntry? resultEntry;
+  final int? homeScore;
+  final int? awayScore;
+  final int? homePenaltyScore;
+  final int? awayPenaltyScore;
   final String winner;
 
   const CompetitionFixtureState({
@@ -318,6 +396,10 @@ class CompetitionFixtureState {
     required this.homeTeam,
     required this.awayTeam,
     this.resultEntry,
+    this.homeScore,
+    this.awayScore,
+    this.homePenaltyScore,
+    this.awayPenaltyScore,
     this.winner = '',
   });
 
@@ -331,8 +413,10 @@ class CompetitionFixtureState {
 
   bool get isReady => hasParticipants && !isCancelled;
 
-  bool get isRecorded =>
-      resultEntry?.scoredGoals != null && resultEntry?.concededGoals != null;
+  bool get isRecorded => !isCancelled && homeScore != null && awayScore != null;
+
+  bool get hasPenaltyResult =>
+      homePenaltyScore != null && awayPenaltyScore != null;
 
   bool involvesTeam(String team) {
     final key = MatchCompetitionService.normalizeTeamKey(team);
@@ -354,15 +438,15 @@ class CompetitionFixtureState {
   }
 
   int? scoreFor(String team) {
-    final entry = resultEntry;
-    if (entry == null || !isRecorded) return null;
     final key = MatchCompetitionService.normalizeTeamKey(team);
-    final opponentKey = MatchCompetitionService.normalizeTeamKey(
-      entry.opponentTeam,
-    );
-    if (key.isEmpty || opponentKey.isEmpty) return null;
-    if (key == opponentKey) return entry.concededGoals;
-    return entry.scoredGoals;
+    if (key.isEmpty || !isRecorded) return null;
+    if (key == MatchCompetitionService.normalizeTeamKey(homeTeam)) {
+      return homeScore;
+    }
+    if (key == MatchCompetitionService.normalizeTeamKey(awayTeam)) {
+      return awayScore;
+    }
+    return null;
   }
 }
 
@@ -591,6 +675,26 @@ class MatchCompetitionService {
       ...entry.leagueTeamNames,
       entry.opponentTeam,
     ]);
+    var fixtures = _fixturesWithEntryResult(
+      competition: existing,
+      entry: entry,
+    );
+    if (existing.kind == MatchCompetitionRecord.kindTournament) {
+      for (final fixture in fixtures) {
+        final previous = existing.fixtures.where(
+          (item) => item.id == fixture.id,
+        );
+        if (previous.isEmpty ||
+            _fixtureResultSignature(previous.first) ==
+                _fixtureResultSignature(fixture)) {
+          continue;
+        }
+        fixtures = _clearDependentFixtureResults(
+          fixtures: fixtures,
+          sourceFixtureId: fixture.id,
+        );
+      }
+    }
     await upsertCompetition(
       MatchCompetitionRecord.create(
         kind: kind,
@@ -604,9 +708,78 @@ class MatchCompetitionService {
         leagueLegs: existing.leagueLegs,
         fixtureStartDate: existing.fixtureStartDate,
         fixtureIntervalDays: existing.fixtureIntervalDays,
-        fixtures: existing.fixtures,
+        fixtures: fixtures,
       ),
     );
+  }
+
+  /// Saves an independently managed fixture. This is intentionally separate
+  /// from [TrainingEntry] so a manager can enter every tournament or league
+  /// result, including matches that do not involve the managed team.
+  Future<MatchCompetitionRecord?> updateFixture({
+    required MatchCompetitionRecord competition,
+    required CompetitionFixture fixture,
+  }) async {
+    final current = findCompetitionById(competition.id);
+    if (current == null) return null;
+    final existingFixture = current.fixtures.where(
+      (item) => item.id == fixture.id,
+    );
+    if (existingFixture.isEmpty) return current;
+    final previous = existingFixture.first;
+    final resultChanged =
+        _fixtureResultSignature(previous) != _fixtureResultSignature(fixture);
+    var nextFixtures = current.fixtures
+        .map((item) => item.id == fixture.id ? fixture : item)
+        .toList(growable: false);
+    if (current.kind == MatchCompetitionRecord.kindTournament &&
+        resultChanged) {
+      nextFixtures = _clearDependentFixtureResults(
+        fixtures: nextFixtures,
+        sourceFixtureId: fixture.id,
+      );
+    }
+    await upsertCompetition(current.copyWith(fixtures: nextFixtures));
+    return findCompetitionById(current.id);
+  }
+
+  /// Applies a single matchday rhythm to every fixture. Individual fixture
+  /// edits remain intact until this action is deliberately applied again.
+  Future<MatchCompetitionRecord?> scheduleFixtures({
+    required MatchCompetitionRecord competition,
+    required DateTime startAt,
+    required int intervalDays,
+    String? venue,
+  }) async {
+    final current = findCompetitionById(competition.id);
+    if (current == null) return null;
+    final normalizedInterval = normalizeFixtureInterval(intervalDays);
+    final firstRound = current.fixtures.isEmpty
+        ? 1
+        : current.fixtures
+            .map((fixture) => fixture.roundNumber)
+            .reduce((value, element) => value < element ? value : element);
+    final fixtures = current.fixtures.map((fixture) {
+      final roundOffset = fixture.roundNumber - firstRound;
+      final scheduledAt = startAt.add(
+        Duration(days: normalizedInterval * roundOffset),
+      );
+      return fixture.copyWith(
+        scheduledAt: scheduledAt,
+        venue: venue?.trim() ?? fixture.venue,
+        status: fixture.isCancelled || fixture.isCompleted
+            ? fixture.status
+            : CompetitionFixture.statusScheduled,
+      );
+    }).toList(growable: false);
+    await upsertCompetition(
+      current.copyWith(
+        fixtureStartDate: startAt,
+        fixtureIntervalDays: normalizedInterval,
+        fixtures: fixtures,
+      ),
+    );
+    return findCompetitionById(current.id);
   }
 
   Future<void> deleteCompetition(String id) async {
@@ -624,6 +797,71 @@ class MatchCompetitionService {
       _storageKey,
       jsonEncode(normalized.map((record) => record.toMap()).toList()),
     );
+  }
+
+  static List<CompetitionFixture> _fixturesWithEntryResult({
+    required MatchCompetitionRecord competition,
+    required TrainingEntry entry,
+  }) {
+    final fixtureId = entry.matchFixtureId.trim();
+    if (fixtureId.isEmpty ||
+        entry.scoredGoals == null ||
+        entry.concededGoals == null) {
+      return competition.fixtures;
+    }
+    return competition.fixtures.map((fixture) {
+      if (fixture.id != fixtureId) return fixture;
+      final result = _scoresForEntry(
+        entry: entry,
+        homeTeam: fixture.homeTeam,
+        awayTeam: fixture.awayTeam,
+      );
+      if (result == null) return fixture;
+      return fixture.copyWith(
+        homeScore: result.$1,
+        awayScore: result.$2,
+        homePenaltyScore: result.$3,
+        awayPenaltyScore: result.$4,
+        clearPenaltyResult: result.$3 == null || result.$4 == null,
+        status: CompetitionFixture.statusCompleted,
+      );
+    }).toList(growable: false);
+  }
+
+  static String _fixtureResultSignature(CompetitionFixture fixture) {
+    return '${fixture.isCancelled}:${fixture.homeScore}:${fixture.awayScore}:'
+        '${fixture.homePenaltyScore}:${fixture.awayPenaltyScore}';
+  }
+
+  static List<CompetitionFixture> _clearDependentFixtureResults({
+    required List<CompetitionFixture> fixtures,
+    required String sourceFixtureId,
+  }) {
+    final affectedIds = <String>{sourceFixtureId};
+    var added = true;
+    while (added) {
+      added = false;
+      for (final fixture in fixtures) {
+        if (affectedIds.contains(fixture.id)) continue;
+        if (affectedIds.contains(fixture.sourceHomeFixtureId) ||
+            affectedIds.contains(fixture.sourceAwayFixtureId)) {
+          affectedIds.add(fixture.id);
+          added = true;
+        }
+      }
+    }
+    return fixtures.map((fixture) {
+      if (fixture.id == sourceFixtureId || !affectedIds.contains(fixture.id)) {
+        return fixture;
+      }
+      return fixture.copyWith(
+        clearResult: true,
+        clearPenaltyResult: true,
+        status: fixture.status == CompetitionFixture.statusCompleted
+            ? CompetitionFixture.statusScheduled
+            : fixture.status,
+      );
+    }).toList(growable: false);
   }
 
   static String competitionId({
@@ -723,11 +961,26 @@ class MatchCompetitionService {
         awayTeam: awayTeam,
         entries: scopedEntries,
       );
+      final entryScores = fixture.hasResult
+          ? null
+          : _scoresForEntry(
+              entry: resultEntry,
+              homeTeam: homeTeam,
+              awayTeam: awayTeam,
+            );
+      final homeScore = fixture.homeScore ?? entryScores?.$1;
+      final awayScore = fixture.awayScore ?? entryScores?.$2;
+      final homePenaltyScore = fixture.homePenaltyScore ?? entryScores?.$3;
+      final awayPenaltyScore = fixture.awayPenaltyScore ?? entryScores?.$4;
       final winner = _winnerForFixture(
         competition: competition,
+        fixture: fixture,
         homeTeam: homeTeam,
         awayTeam: awayTeam,
-        entry: resultEntry,
+        homeScore: homeScore,
+        awayScore: awayScore,
+        homePenaltyScore: homePenaltyScore,
+        awayPenaltyScore: awayPenaltyScore,
       );
       final resolved = CompetitionFixtureState(
         competition: competition,
@@ -735,6 +988,10 @@ class MatchCompetitionService {
         homeTeam: homeTeam,
         awayTeam: awayTeam,
         resultEntry: resultEntry,
+        homeScore: homeScore,
+        awayScore: awayScore,
+        homePenaltyScore: homePenaltyScore,
+        awayPenaltyScore: awayPenaltyScore,
         winner: winner,
       );
       resolving.remove(fixture.id);
@@ -1348,35 +1605,65 @@ class MatchCompetitionService {
     );
   }
 
-  static String _winnerForFixture({
-    required MatchCompetitionRecord competition,
+  static (int, int, int?, int?)? _scoresForEntry({
+    required TrainingEntry? entry,
     required String homeTeam,
     required String awayTeam,
-    required TrainingEntry? entry,
   }) {
-    if (homeTeam.isEmpty || awayTeam.isEmpty) {
-      return homeTeam.isNotEmpty ? homeTeam : awayTeam;
-    }
     if (entry == null ||
         entry.scoredGoals == null ||
         entry.concededGoals == null ||
-        competition.kind != MatchCompetitionRecord.kindTournament) {
-      return '';
+        homeTeam.isEmpty ||
+        awayTeam.isEmpty) {
+      return null;
     }
     final opponentKey = _normalizeKey(entry.opponentTeam);
-    final teamForScore = opponentKey == _normalizeKey(homeTeam)
-        ? awayTeam
-        : opponentKey == _normalizeKey(awayTeam)
-            ? homeTeam
-            : '';
-    if (teamForScore.isEmpty) return '';
-    final result = entry.resolvedMatchOutcome;
-    if (result == null || result == 0) return '';
-    return result > 0
-        ? teamForScore
-        : _normalizeKey(teamForScore) == _normalizeKey(homeTeam)
-            ? awayTeam
-            : homeTeam;
+    final homeKey = _normalizeKey(homeTeam);
+    final awayKey = _normalizeKey(awayTeam);
+    if (opponentKey == awayKey) {
+      return (
+        entry.scoredGoals!,
+        entry.concededGoals!,
+        entry.penaltyShootoutGoalsFor,
+        entry.penaltyShootoutGoalsAgainst,
+      );
+    }
+    if (opponentKey == homeKey) {
+      return (
+        entry.concededGoals!,
+        entry.scoredGoals!,
+        entry.penaltyShootoutGoalsAgainst,
+        entry.penaltyShootoutGoalsFor,
+      );
+    }
+    return null;
+  }
+
+  static String _winnerForFixture({
+    required MatchCompetitionRecord competition,
+    required CompetitionFixture fixture,
+    required String homeTeam,
+    required String awayTeam,
+    required int? homeScore,
+    required int? awayScore,
+    required int? homePenaltyScore,
+    required int? awayPenaltyScore,
+  }) {
+    if (fixture.isCancelled) return '';
+    if (homeTeam.isEmpty || awayTeam.isEmpty) {
+      return homeTeam.isNotEmpty ? homeTeam : awayTeam;
+    }
+    if (competition.kind != MatchCompetitionRecord.kindTournament ||
+        homeScore == null ||
+        awayScore == null) {
+      return '';
+    }
+    if (homeScore > awayScore) return homeTeam;
+    if (awayScore > homeScore) return awayTeam;
+    if (homePenaltyScore == null || awayPenaltyScore == null) return '';
+    if (homePenaltyScore > awayPenaltyScore) return homeTeam;
+    if (awayPenaltyScore > homePenaltyScore) return awayTeam;
+    return '';
   }
 
   static String _tournamentStageForCapacity(int capacity) {
