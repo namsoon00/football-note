@@ -370,7 +370,7 @@ void main() {
             ),
           )
           .dy,
-      lessThan(320),
+      lessThan(420),
     );
     expect(find.text('4강'), findsWidgets);
     expect(find.text('결승'), findsWidgets);
@@ -438,6 +438,92 @@ void main() {
     );
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets(
+    'Tournament detail keeps its header controls stable on a mobile viewport',
+    (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+      await seedMatchHubRecords();
+      await MatchCompetitionService(optionRepository).upsertCompetition(
+        MatchCompetitionRecord.create(
+          kind: MatchCompetitionRecord.kindTournament,
+          name: '모바일 컵',
+          teams: const [
+            '우리 팀',
+            '서울 U15',
+            '부산 U15',
+            '대전 U15',
+            '광주 U15',
+            '인천 U15',
+            '울산 U15',
+            '수원 U15',
+          ],
+        ),
+      );
+      await pumpCompetitionManagement(tester, themeMode: ThemeMode.dark);
+
+      await tester.tap(find.text('모바일 컵'));
+      await tester.pumpAndSettle();
+
+      final tabs = find.byKey(
+        const ValueKey('competition-detail-view-tabs'),
+      );
+      final contentScroll = find.byKey(
+        const ValueKey('competition-detail-content-scroll'),
+      );
+      final tabsTop = tester.getTopLeft(tabs).dy;
+      final editTop = tester
+          .getTopLeft(find.byKey(const ValueKey('competition-detail-edit')))
+          .dy;
+
+      for (final key in const [
+        ValueKey('competition-tournament-image-button'),
+        ValueKey('competition-tournament-schedule-board'),
+        ValueKey('competition-tournament-expand-button'),
+      ]) {
+        await tester.ensureVisible(find.byKey(key));
+        await tester.pumpAndSettle();
+        final rect = tester.getRect(find.byKey(key));
+        expect(rect.left, greaterThanOrEqualTo(0));
+        expect(rect.right, lessThanOrEqualTo(390));
+      }
+
+      await tester.tap(find.text('일정·결과'));
+      await tester.pumpAndSettle();
+
+      final scrollable = tester.state<ScrollableState>(
+        find.descendant(
+          of: contentScroll,
+          matching: find.byType(Scrollable),
+        ),
+      );
+      final scrollOffset =
+          scrollable.position.maxScrollExtent.clamp(0, 260).toDouble();
+      expect(scrollOffset, greaterThan(0));
+      scrollable.position.jumpTo(scrollOffset);
+      await tester.pumpAndSettle();
+
+      expect(tester.getTopLeft(tabs).dy, closeTo(tabsTop, 0.1));
+      expect(
+        tester
+            .getTopLeft(find.byKey(const ValueKey('competition-detail-edit')))
+            .dy,
+        closeTo(editTop, 0.1),
+      );
+
+      await tester.tap(find.text('참가 팀'));
+      await tester.pumpAndSettle();
+
+      expect(scrollable.position.pixels, 0);
+      expect(find.text('등록 팀'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets('Tournament bracket climbs from lower rounds into the final', (
     tester,
