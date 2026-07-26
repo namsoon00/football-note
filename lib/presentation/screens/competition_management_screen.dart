@@ -769,6 +769,7 @@ class _CompetitionDetailScreen extends StatefulWidget {
 class _CompetitionDetailScreenState extends State<_CompetitionDetailScreen> {
   late MatchCompetitionRecord _record;
   late _CompetitionDetailView _selectedView;
+  final ScrollController _contentScrollController = ScrollController();
 
   @override
   void initState() {
@@ -777,6 +778,21 @@ class _CompetitionDetailScreenState extends State<_CompetitionDetailScreen> {
     _selectedView = _record.kind == MatchCompetitionRecord.kindLeague
         ? _CompetitionDetailView.schedule
         : _CompetitionDetailView.bracket;
+  }
+
+  @override
+  void dispose() {
+    _contentScrollController.dispose();
+    super.dispose();
+  }
+
+  void _selectView(Set<_CompetitionDetailView> selection) {
+    final nextView = selection.first;
+    if (nextView == _selectedView) return;
+    setState(() => _selectedView = nextView);
+    if (_contentScrollController.hasClients) {
+      _contentScrollController.jumpTo(0);
+    }
   }
 
   @override
@@ -955,34 +971,39 @@ class _CompetitionDetailScreenState extends State<_CompetitionDetailScreen> {
                 ),
               ),
               const SizedBox(height: AppSpacing.sm),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+                child: SegmentedButton<_CompetitionDetailView>(
+                  key: const ValueKey('competition-detail-view-tabs'),
+                  segments: viewSegments,
+                  selected: {_selectedView},
+                  showSelectedIcon: false,
+                  onSelectionChanged: _selectView,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xs),
               Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.sm,
-                    0,
-                    AppSpacing.sm,
-                    AppSpacing.xl,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      SegmentedButton<_CompetitionDetailView>(
-                        key: const ValueKey('competition-detail-view-tabs'),
-                        segments: viewSegments,
-                        selected: {_selectedView},
-                        showSelectedIcon: false,
-                        onSelectionChanged: (selection) {
-                          setState(() => _selectedView = selection.first);
-                        },
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                      _CompetitionProgressOverview(
-                        record: effectiveRecord,
-                        entries: entries,
-                      ),
-                      const SizedBox(height: 2),
-                      activePanel,
-                    ],
+                child: ClipRect(
+                  child: SingleChildScrollView(
+                    key: const ValueKey('competition-detail-content-scroll'),
+                    controller: _contentScrollController,
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.sm,
+                      AppSpacing.sm,
+                      AppSpacing.sm,
+                      AppSpacing.xl,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _CompetitionProgressOverview(
+                          record: effectiveRecord,
+                          entries: entries,
+                        ),
+                        const SizedBox(height: AppSpacing.xs),
+                        activePanel,
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -2598,6 +2619,7 @@ class _TournamentOperationsPreviewState
         if (fixture.isReady) fixture.fixture.slotNumber: fixture,
     };
     return Container(
+      key: const ValueKey('competition-tournament-operations'),
       decoration: BoxDecoration(
         color: AppSurfaces.subtleColor(scheme, theme.brightness),
         borderRadius: AppRadius.small,
@@ -2608,10 +2630,38 @@ class _TournamentOperationsPreviewState
         ),
       ),
       padding: const EdgeInsets.all(AppSpacing.md),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final actions = [
+            AppBarActionButton.label(
+              key: const ValueKey('competition-tournament-image-button'),
+              icon: const Icon(Icons.ios_share_rounded),
+              label: l10n.matchTournamentImageAction,
+              tooltip: l10n.matchTournamentImageTooltip,
+              onPressed: bracket.rounds.isEmpty || _imageShareInProgress
+                  ? null
+                  : () => unawaited(_shareBracketImage()),
+              maxLabelWidth: 54,
+            ),
+            AppBarActionButton.icon(
+              key: const ValueKey('competition-tournament-schedule-board'),
+              icon: Icons.calendar_view_week_outlined,
+              tooltip: l10n.matchCompetitionScheduleBoardAction,
+              onPressed:
+                  bracket.rounds.isEmpty ? null : widget.onOpenScheduleBoard,
+              margin: EdgeInsets.zero,
+            ),
+            AppBarActionButton.icon(
+              key: const ValueKey('competition-tournament-expand-button'),
+              icon: Icons.open_in_full_rounded,
+              tooltip: l10n.matchTournamentOpenFullScreen,
+              onPressed: bracket.rounds.isEmpty
+                  ? null
+                  : () => _openFullScreen(bracket, fixtureStatesBySlot),
+              margin: EdgeInsets.zero,
+            ),
+          ];
+          final title = Row(
             children: [
               Icon(Icons.account_tree_outlined, color: accent, size: 20),
               const SizedBox(width: AppSpacing.xs),
@@ -2625,65 +2675,54 @@ class _TournamentOperationsPreviewState
                   ),
                 ),
               ),
-              AppBarActionButton.label(
-                key: const ValueKey('competition-tournament-image-button'),
-                icon: const Icon(Icons.ios_share_rounded),
-                label: l10n.matchTournamentImageAction,
-                tooltip: l10n.matchTournamentImageTooltip,
-                onPressed: bracket.rounds.isEmpty || _imageShareInProgress
-                    ? null
-                    : () => unawaited(_shareBracketImage()),
-                maxLabelWidth: 54,
-              ),
-              AppBarActionButton.icon(
-                key: const ValueKey('competition-tournament-schedule-board'),
-                icon: Icons.calendar_view_week_outlined,
-                tooltip: l10n.matchCompetitionScheduleBoardAction,
-                onPressed:
-                    bracket.rounds.isEmpty ? null : widget.onOpenScheduleBoard,
-                margin: EdgeInsets.zero,
-              ),
-              AppBarActionButton.icon(
-                key: const ValueKey('competition-tournament-expand-button'),
-                icon: Icons.open_in_full_rounded,
-                tooltip: l10n.matchTournamentOpenFullScreen,
-                onPressed: bracket.rounds.isEmpty
-                    ? null
-                    : () => _openFullScreen(bracket, fixtureStatesBySlot),
-                margin: EdgeInsets.zero,
-              ),
             ],
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          if (bracket.rounds.isEmpty)
-            _EmptyPreview(text: l10n.matchCompetitionNoTeams)
-          else
-            _TournamentBracketViewport(
-              bracket: bracket,
-              ownTeamName: widget.ownTeamName,
-              fixtureStatesBySlot: fixtureStatesBySlot,
-              onOpenFixture: widget.onOpenFixture,
-            ),
-          if (fixtureStates.any((fixture) => fixture.isRecorded)) ...[
-            const SizedBox(height: AppSpacing.md),
-            Divider(color: scheme.outlineVariant),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              l10n.matchTournamentRecordedProgressTitle,
-              style: theme.textTheme.labelMedium?.copyWith(
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            for (final fixture in fixtureStates.where(
-              (fixture) => fixture.isRecorded,
-            ))
-              Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-                child: _TournamentFixtureProgressRow(fixture: fixture),
-              ),
-          ],
-        ],
+          );
+          final compactHeader = constraints.maxWidth < 380;
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (compactHeader) ...[
+                title,
+                const SizedBox(height: AppSpacing.xs),
+                Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: Wrap(spacing: AppSpacing.xs, children: actions),
+                ),
+              ] else
+                Row(children: [Expanded(child: title), ...actions]),
+              const SizedBox(height: AppSpacing.sm),
+              if (bracket.rounds.isEmpty)
+                _EmptyPreview(text: l10n.matchCompetitionNoTeams)
+              else
+                _TournamentBracketViewport(
+                  bracket: bracket,
+                  ownTeamName: widget.ownTeamName,
+                  fixtureStatesBySlot: fixtureStatesBySlot,
+                  onOpenFixture: widget.onOpenFixture,
+                ),
+              if (fixtureStates.any((fixture) => fixture.isRecorded)) ...[
+                const SizedBox(height: AppSpacing.md),
+                Divider(color: scheme.outlineVariant),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  l10n.matchTournamentRecordedProgressTitle,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                for (final fixture in fixtureStates.where(
+                  (fixture) => fixture.isRecorded,
+                ))
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                    child: _TournamentFixtureProgressRow(fixture: fixture),
+                  ),
+              ],
+            ],
+          );
+        },
       ),
     );
   }
