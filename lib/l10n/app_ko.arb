@@ -7240,6 +7240,7 @@
   "matchCompetitionTeamNameRequired": "팀 이름을 입력하세요.",
   "matchCompetitionTeamAlreadyAdded": "이미 등록된 팀이에요.",
   "matchCompetitionTeamsListTitle": "등록 팀",
+  "matchCompetitionEditParticipantsAction": "참가팀 편집",
   "matchCompetitionLeagueSetupTitle": "리그 참가 팀",
   "matchCompetitionLeagueSetupBody": "팀을 등록하면 시합 기록을 기준으로 순위, 승무패, 득실과 승점이 자동 계산됩니다.",
   "matchCompetitionTournamentSetupTitle": "토너먼트 시드",
@@ -9306,16 +9307,16 @@
   "matchCompetitionRebuildConfirm": "다시 편성",
   "matchCompetitionRebuildFeedback": "일정과 대진을 다시 편성했어요.",
   "matchCompetitionRebuildUndoneFeedback": "이전 일정과 대진으로 되돌렸어요.",
-  "matchCompetitionScheduleBoardAction": "일정 보드",
-  "matchCompetitionScheduleBoardTitle": "일정 보드",
-  "matchCompetitionScheduleBoardView": "보드",
-  "matchCompetitionScheduleCalendarView": "캘린더",
+  "matchCompetitionScheduleCalendarAction": "대회 캘린더",
   "matchCompetitionScheduleCalendarTitle": "대회 캘린더",
   "matchCompetitionScheduleCalendarEmptyDay": "이 날짜에는 경기가 없어요.",
-  "matchCompetitionSchedulePreviousWeekTooltip": "이전 주",
-  "matchCompetitionScheduleNextWeekTooltip": "다음 주",
   "matchCompetitionScheduleUnscheduledLane": "일정 미정 경기",
-  "matchCompetitionFixtureMovedFeedback": "경기 일정을 옮겼어요.",
+  "matchCompetitionScheduleUnscheduledCount": "일정 미정 {count}경기",
+  "@matchCompetitionScheduleUnscheduledCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
   "matchCompetitionScheduleIssuesCount": "확인이 필요한 항목 {count}건",
   "@matchCompetitionScheduleIssuesCount": {
     "placeholders": {
@@ -9325,13 +9326,6 @@
   "matchCompetitionScheduleIssueVenueOverlap": "같은 장소의 경기 일정이 겹쳐요",
   "matchCompetitionScheduleIssueTeamOverlap": "같은 날에 같은 팀 경기가 겹쳐요",
   "matchCompetitionScheduleIssueShortRest": "경기 사이 휴식일이 부족해요",
-  "matchCompetitionScheduleWeekRange": "{start} - {end}",
-  "@matchCompetitionScheduleWeekRange": {
-    "placeholders": {
-      "start": {},
-      "end": {}
-    }
-  },
   "matchCompetitionQuickResultAction": "빠른 결과 입력",
   "matchCompetitionQuickResultSave": "결과 저장",
   "matchCompetitionQuickResultCancel": "결과 입력 닫기",

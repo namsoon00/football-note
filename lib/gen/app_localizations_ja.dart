@@ -12761,6 +12761,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get matchCompetitionTeamsListTitle => '登録チーム';
 
   @override
+  String get matchCompetitionEditParticipantsAction => '参加チームを編集';
+
+  @override
   String get matchCompetitionLeagueSetupTitle => 'リーグ参加チーム';
 
   @override
@@ -16082,16 +16085,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get matchCompetitionRebuildUndoneFeedback => '以前の日程と組み合わせに戻しました。';
 
   @override
-  String get matchCompetitionScheduleBoardAction => '日程ボード';
-
-  @override
-  String get matchCompetitionScheduleBoardTitle => '日程ボード';
-
-  @override
-  String get matchCompetitionScheduleBoardView => 'ボード';
-
-  @override
-  String get matchCompetitionScheduleCalendarView => 'カレンダー';
+  String get matchCompetitionScheduleCalendarAction => '大会カレンダー';
 
   @override
   String get matchCompetitionScheduleCalendarTitle => '大会カレンダー';
@@ -16100,16 +16094,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get matchCompetitionScheduleCalendarEmptyDay => 'この日に予定された試合はありません。';
 
   @override
-  String get matchCompetitionSchedulePreviousWeekTooltip => '前の週';
-
-  @override
-  String get matchCompetitionScheduleNextWeekTooltip => '次の週';
-
-  @override
   String get matchCompetitionScheduleUnscheduledLane => '日程未定の試合';
 
   @override
-  String get matchCompetitionFixtureMovedFeedback => '試合日程を移動しました。';
+  String matchCompetitionScheduleUnscheduledCount(int count) {
+    return '日程未定 $count試合';
+  }
 
   @override
   String matchCompetitionScheduleIssuesCount(int count) {
@@ -16124,11 +16114,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get matchCompetitionScheduleIssueShortRest => '試合間の休息日が不足しています';
-
-  @override
-  String matchCompetitionScheduleWeekRange(Object start, Object end) {
-    return '$start - $end';
-  }
 
   @override
   String get matchCompetitionQuickResultAction => '結果をすぐ入力';

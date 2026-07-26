@@ -22508,6 +22508,12 @@ abstract class AppLocalizations {
   /// **'Registered teams'**
   String get matchCompetitionTeamsListTitle;
 
+  /// No description provided for @matchCompetitionEditParticipantsAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit participants'**
+  String get matchCompetitionEditParticipantsAction;
+
   /// No description provided for @matchCompetitionLeagueSetupTitle.
   ///
   /// In en, this message translates to:
@@ -28351,29 +28357,11 @@ abstract class AppLocalizations {
   /// **'Restored the previous fixtures and bracket.'**
   String get matchCompetitionRebuildUndoneFeedback;
 
-  /// No description provided for @matchCompetitionScheduleBoardAction.
+  /// No description provided for @matchCompetitionScheduleCalendarAction.
   ///
   /// In en, this message translates to:
-  /// **'Schedule board'**
-  String get matchCompetitionScheduleBoardAction;
-
-  /// No description provided for @matchCompetitionScheduleBoardTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Schedule board'**
-  String get matchCompetitionScheduleBoardTitle;
-
-  /// No description provided for @matchCompetitionScheduleBoardView.
-  ///
-  /// In en, this message translates to:
-  /// **'Board'**
-  String get matchCompetitionScheduleBoardView;
-
-  /// No description provided for @matchCompetitionScheduleCalendarView.
-  ///
-  /// In en, this message translates to:
-  /// **'Calendar'**
-  String get matchCompetitionScheduleCalendarView;
+  /// **'Competition calendar'**
+  String get matchCompetitionScheduleCalendarAction;
 
   /// No description provided for @matchCompetitionScheduleCalendarTitle.
   ///
@@ -28387,29 +28375,17 @@ abstract class AppLocalizations {
   /// **'No matches are scheduled for this day.'**
   String get matchCompetitionScheduleCalendarEmptyDay;
 
-  /// No description provided for @matchCompetitionSchedulePreviousWeekTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Previous week'**
-  String get matchCompetitionSchedulePreviousWeekTooltip;
-
-  /// No description provided for @matchCompetitionScheduleNextWeekTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Next week'**
-  String get matchCompetitionScheduleNextWeekTooltip;
-
   /// No description provided for @matchCompetitionScheduleUnscheduledLane.
   ///
   /// In en, this message translates to:
   /// **'Unscheduled matches'**
   String get matchCompetitionScheduleUnscheduledLane;
 
-  /// No description provided for @matchCompetitionFixtureMovedFeedback.
+  /// No description provided for @matchCompetitionScheduleUnscheduledCount.
   ///
   /// In en, this message translates to:
-  /// **'Moved the match schedule.'**
-  String get matchCompetitionFixtureMovedFeedback;
+  /// **'{count} unscheduled matches'**
+  String matchCompetitionScheduleUnscheduledCount(int count);
 
   /// No description provided for @matchCompetitionScheduleIssuesCount.
   ///
@@ -28434,12 +28410,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Insufficient rest between matches'**
   String get matchCompetitionScheduleIssueShortRest;
-
-  /// No description provided for @matchCompetitionScheduleWeekRange.
-  ///
-  /// In en, this message translates to:
-  /// **'{start} - {end}'**
-  String matchCompetitionScheduleWeekRange(Object start, Object end);
 
   /// No description provided for @matchCompetitionQuickResultAction.
   ///
