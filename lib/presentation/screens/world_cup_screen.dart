@@ -64,6 +64,8 @@ class WorldCupScreen extends StatefulWidget {
 
 const Size _worldCupTournamentShareImageSize = Size(2000, 1120);
 const double _worldCupTournamentShareImagePixelRatio = 1;
+const Size _worldCupTournamentShareFallbackImageSize = Size(1500, 840);
+const Duration _worldCupTournamentImageCaptureTimeout = Duration(seconds: 12);
 
 class _WorldCupScreenState extends State<WorldCupScreen> {
   static const String _supportCountryKey = 'world_cup_support_country_v1';
@@ -7571,16 +7573,28 @@ Future<bool> _shareWorldCupTournamentBracketImage({
 }) async {
   if (!context.mounted) return false;
   final l10n = AppLocalizations.of(context)!;
-  final pngBytes = await captureWidgetPng(
-    context,
-    size: _worldCupTournamentShareImageSize,
-    pixelRatio: _worldCupTournamentShareImagePixelRatio,
-    child: _WorldCupTournamentBracketShareImage(
-      rounds: rounds,
-      slotBuilder: slotBuilder,
-      scoreBuilder: scoreBuilder,
-    ),
-  );
+  Widget buildShareImage() => _WorldCupTournamentBracketShareImage(
+        rounds: rounds,
+        slotBuilder: slotBuilder,
+        scoreBuilder: scoreBuilder,
+      );
+  Uint8List pngBytes;
+  try {
+    pngBytes = await captureWidgetPng(
+      context,
+      size: _worldCupTournamentShareImageSize,
+      pixelRatio: _worldCupTournamentShareImagePixelRatio,
+      child: buildShareImage(),
+    ).timeout(_worldCupTournamentImageCaptureTimeout);
+  } catch (_) {
+    if (!context.mounted) return false;
+    pngBytes = await captureWidgetPng(
+      context,
+      size: _worldCupTournamentShareFallbackImageSize,
+      pixelRatio: _worldCupTournamentShareImagePixelRatio,
+      child: buildShareImage(),
+    ).timeout(_worldCupTournamentImageCaptureTimeout);
+  }
   await sharePngImage(
     pngImage: pngBytes,
     filename: timestampedImageFilename('world-cup-bracket'),

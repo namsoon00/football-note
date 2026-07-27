@@ -939,6 +939,8 @@ class _EntryGateState extends State<_EntryGate> with WidgetsBindingObserver {
   bool _sportSelectionInFlight = false;
   bool _welcomeSeen = false;
   bool _welcomeDismissInFlight = false;
+  bool _welcomeRemoteCheckPending = false;
+  bool _welcomeRemoteCheckComplete = false;
   bool _healthConnectSyncBusy = false;
 
   @override
@@ -960,6 +962,9 @@ class _EntryGateState extends State<_EntryGate> with WidgetsBindingObserver {
           SportCatalog.normalizeSportId(widget.sportId),
         ),
       );
+    }
+    if (_startupSportSelected) {
+      unawaited(_resolveWelcomeStateFromRemoteBackup());
     }
     unawaited(_syncHealthConnectJumpRopeIfNeeded());
   }
@@ -1048,6 +1053,38 @@ class _EntryGateState extends State<_EntryGate> with WidgetsBindingObserver {
     }
   }
 
+  Future<void> _resolveWelcomeStateFromRemoteBackup() async {
+    if (_welcomeSeen ||
+        _welcomeRemoteCheckPending ||
+        _welcomeRemoteCheckComplete) {
+      return;
+    }
+    final backup = widget.driveBackupService;
+    if (backup == null) {
+      _welcomeRemoteCheckComplete = true;
+      return;
+    }
+    _welcomeRemoteCheckPending = true;
+    try {
+      final hasExistingBackup = await backup
+          .hasRemotePlayerBackup()
+          .timeout(const Duration(seconds: 2), onTimeout: () => false);
+      if (hasExistingBackup) {
+        await widget.optionRepository.setValue(_welcomeSeenKey, true);
+        _welcomeSeen = true;
+      }
+    } catch (_) {
+      // A missing Drive session must not prevent a first-time user from
+      // entering the app and completing the local guide.
+    } finally {
+      _welcomeRemoteCheckPending = false;
+      _welcomeRemoteCheckComplete = true;
+      if (mounted) {
+        setState(() {});
+      }
+    }
+  }
+
   void _markStartupSportSelected(String sportId) {
     if (_sportSelectionInFlight) {
       return;
@@ -1059,6 +1096,7 @@ class _EntryGateState extends State<_EntryGate> with WidgetsBindingObserver {
   Future<void> _markStartupSportSelectedAsync(String sportId) async {
     try {
       await SportService(widget.optionRepository).setCurrentSportId(sportId);
+      await _resolveWelcomeStateFromRemoteBackup();
       if (!mounted) {
         return;
       }
@@ -1079,6 +1117,11 @@ class _EntryGateState extends State<_EntryGate> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     if (!_startupSportSelected) {
       return SportStartSelectionScreen(onSelected: _markStartupSportSelected);
+    }
+    if (_welcomeRemoteCheckPending) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
     }
     if (!_welcomeSeen) {
       return WelcomeScreen(onStart: _markWelcomeSeen);

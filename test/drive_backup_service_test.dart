@@ -127,7 +127,8 @@ void main() {
     );
   });
 
-  test('stores connected Drive metadata on active coach player', () async {
+  test('does not bind a connected Drive account to an active coach player',
+      () async {
     await optionBox.put(
       FamilyAccessService.currentRoleLocalKey,
       FamilyRole.coach.name,
@@ -152,9 +153,9 @@ void main() {
       HiveOptionRepository(optionBox),
     ).loadState().activePlayer;
     expect(updated?.id, player.id);
-    expect(updated?.driveEmail, 'coach-minjun@example.com');
-    expect(updated?.driveLabel, 'Coach Drive · coach-minjun@example.com');
-    expect(updated?.driveSubjectId, 'coach-subject-minjun');
+    expect(updated?.driveEmail, isEmpty);
+    expect(updated?.driveLabel, isEmpty);
+    expect(updated?.driveSubjectId, isEmpty);
   });
 
   test('backs up and restores player data while skipping local device settings',
@@ -218,7 +219,7 @@ void main() {
     final family = backup['family'] as Map<String, dynamic>;
 
     expect(backup['format'], 'teo_note_backup');
-    expect(backup['version'], 6);
+    expect(backup['version'], 7);
     expect(backedUpEntry['sportId'], SportCatalog.footballId);
     expect(backedUpEntry['matchCompetitionName'], 'Weekend League');
     expect(backedUpEntry['matchStage'], 'Round 2');
@@ -1140,7 +1141,8 @@ void main() {
     },
   );
 
-  test('stores record mode drive account separately', () async {
+  test('does not create a record Drive binding before import or empty start',
+      () async {
     service = DriveBackupService(
       trainingBox,
       optionBox,
@@ -1154,15 +1156,14 @@ void main() {
 
     await service.rememberRecordDriveConnection();
 
-    expect(service.getSavedRecordDriveEmail(), 'player@example.com');
-    expect(service.getSavedRecordDriveLabel(), 'Player · player@example.com');
+    expect(service.getSavedRecordDriveEmail(), isEmpty);
+    expect(service.getSavedRecordDriveLabel(), isEmpty);
     expect(
-      optionBox.get(DriveBackupService.recordDriveSubjectLocalKey),
-      'player-subject',
-    );
+        optionBox.get(DriveBackupService.recordDriveSubjectLocalKey), isNull);
   });
 
-  test('stores parent mode drive account separately', () async {
+  test('does not create a parent Drive binding before import or empty start',
+      () async {
     service = DriveBackupService(
       trainingBox,
       optionBox,
@@ -1176,12 +1177,10 @@ void main() {
 
     await service.rememberParentDriveConnection();
 
-    expect(service.getSavedParentDriveEmail(), 'parent@example.com');
-    expect(service.getSavedParentDriveLabel(), 'Parent · parent@example.com');
+    expect(service.getSavedParentDriveEmail(), isEmpty);
+    expect(service.getSavedParentDriveLabel(), isEmpty);
     expect(
-      optionBox.get(DriveBackupService.parentDriveSubjectLocalKey),
-      'parent-subject',
-    );
+        optionBox.get(DriveBackupService.parentDriveSubjectLocalKey), isNull);
   });
 
   test('backs up shared child drive subject id', () async {
@@ -2205,8 +2204,7 @@ void main() {
     expect(service.hasChangedPlayerDriveConnection(), isFalse);
   });
 
-  test('generic player restore is blocked while Drive account changed',
-      () async {
+  test('generic player restore allows an explicit account migration', () async {
     service = DriveBackupService(
       trainingBox,
       optionBox,
@@ -2226,13 +2224,72 @@ void main() {
       'old-subject',
     );
 
-    expect(
-      service.ensureGenericRestoreAllowedForTesting,
+    await service.ensureGenericRestoreAllowedForTesting();
+  });
+
+  test('parent backup is blocked until the connected account is restored',
+      () async {
+    service = DriveBackupService(
+      trainingBox,
+      optionBox,
+      backupAssetFileStore: assetStore,
+      driveConnectionLoader: () async => const DriveConnectionInfo(
+        email: 'new-parent@example.com',
+        displayName: 'New parent',
+        subjectId: 'new-parent-subject',
+      ),
+    );
+    await optionBox.put(FamilyAccessService.currentRoleLocalKey, 'parent');
+    await optionBox.put(
+      DriveBackupService.parentDriveEmailLocalKey,
+      'saved-parent@example.com',
+    );
+    await optionBox.put(
+      DriveBackupService.parentDriveSubjectLocalKey,
+      'saved-parent-subject',
+    );
+
+    await expectLater(
+      service.backup(),
       throwsA(
         isA<StateError>().having(
           (error) => error.message,
           'message',
-          DriveBackupService.changedPlayerDriveConnectionErrorCode,
+          DriveBackupService.driveAccountBindingRequiredErrorCode,
+        ),
+      ),
+    );
+  });
+
+  test('coach backup is blocked until the active player account is restored',
+      () async {
+    await optionBox.put(FamilyAccessService.currentRoleLocalKey, 'coach');
+    final roster = CoachRosterService(HiveOptionRepository(optionBox));
+    final player = await roster.addPlayer(displayName: 'Minjun');
+    await roster.upsertPlayer(
+      player.copyWith(
+        driveEmail: 'saved-coach@example.com',
+        driveSubjectId: 'saved-coach-subject',
+      ),
+    );
+    service = DriveBackupService(
+      trainingBox,
+      optionBox,
+      backupAssetFileStore: assetStore,
+      driveConnectionLoader: () async => const DriveConnectionInfo(
+        email: 'new-coach@example.com',
+        displayName: 'New coach',
+        subjectId: 'new-coach-subject',
+      ),
+    );
+
+    await expectLater(
+      service.backup(),
+      throwsA(
+        isA<StateError>().having(
+          (error) => error.message,
+          'message',
+          DriveBackupService.driveAccountBindingRequiredErrorCode,
         ),
       ),
     );
@@ -2450,6 +2507,129 @@ void main() {
     },
   );
 
+  test(
+      'backup blocks a remote revision that changed after this device restored',
+      () async {
+    final driveClient = _OverwriteGuardDriveClient(
+      remoteBackup: _remotePlayerBackup(profileName: 'Restored player'),
+    );
+    service = DriveBackupService(
+      trainingBox,
+      optionBox,
+      backupAssetFileStore: assetStore,
+      driveConnectionLoader: () async => const DriveConnectionInfo(
+        email: 'player@example.com',
+        displayName: 'Player',
+        subjectId: 'player-subject',
+      ),
+      driveApiLoader: ({required bool requireInteractive}) async {
+        return drive.DriveApi(driveClient);
+      },
+    );
+
+    await service.restoreLatest();
+    driveClient.remoteBackup = _remotePlayerBackup(
+      profileName: 'Changed elsewhere',
+    );
+
+    await expectLater(
+      service.backup(),
+      throwsA(
+        isA<StateError>().having(
+          (error) => error.message,
+          'message',
+          DriveBackupService.remoteBackupConflictErrorCode,
+        ),
+      ),
+    );
+    expect(driveClient.writeRequestCount, 0);
+  });
+
+  test('backup requires an explicit restore before overwriting a v2 manifest',
+      () async {
+    final remoteBackup = service.buildBackupForTesting();
+    final driveClient = _OverwriteGuardDriveClient(remoteBackup: remoteBackup);
+    service = DriveBackupService(
+      trainingBox,
+      optionBox,
+      backupAssetFileStore: assetStore,
+      driveConnectionLoader: () async => const DriveConnectionInfo(
+        email: 'player@example.com',
+        displayName: 'Player',
+        subjectId: 'player-subject',
+      ),
+      driveApiLoader: ({required bool requireInteractive}) async {
+        return drive.DriveApi(driveClient);
+      },
+    );
+    await optionBox.put(
+      DriveBackupService.recordDriveEmailLocalKey,
+      'player@example.com',
+    );
+    await optionBox.put(
+      DriveBackupService.recordDriveSubjectLocalKey,
+      'player-subject',
+    );
+
+    await expectLater(
+      service.backup(),
+      throwsA(
+        isA<StateError>().having(
+          (error) => error.message,
+          'message',
+          DriveBackupService.remoteBackupConflictErrorCode,
+        ),
+      ),
+    );
+    expect(driveClient.writeRequestCount, 0);
+  });
+
+  test('backup rejects a matching email when the Google subject differs',
+      () async {
+    final driveClient = _OverwriteGuardDriveClient(
+      remoteBackup: <String, dynamic>{
+        ..._remotePlayerBackup(profileName: 'Other identity'),
+        'driveAccount': const <String, dynamic>{
+          'email': 'player@example.com',
+          'subjectId': 'remote-subject',
+        },
+      },
+    );
+    service = DriveBackupService(
+      trainingBox,
+      optionBox,
+      backupAssetFileStore: assetStore,
+      driveConnectionLoader: () async => const DriveConnectionInfo(
+        email: 'player@example.com',
+        displayName: 'Player',
+        subjectId: 'current-subject',
+      ),
+      driveApiLoader: ({required bool requireInteractive}) async {
+        return drive.DriveApi(driveClient);
+      },
+    );
+    await optionBox.put(
+      DriveBackupService.recordDriveEmailLocalKey,
+      'player@example.com',
+    );
+    await optionBox.put(
+      DriveBackupService.recordDriveSubjectLocalKey,
+      'current-subject',
+    );
+
+    await expectLater(
+      service.backup(),
+      throwsA(
+        isA<StateError>().having(
+          (error) => error.message,
+          'message',
+          DriveBackupService.backupOwnerMismatchErrorCode,
+        ),
+      ),
+    );
+    expect(driveClient.writeRequestCount, 0);
+  });
+
   test('backup payload records connected Drive account subject id', () async {
     service = DriveBackupService(
       trainingBox,
@@ -2504,15 +2684,48 @@ void main() {
     expect(manifest['datasetId'], startsWith('dataset-'));
     expect(manifest['deviceId'], startsWith('device-'));
     expect(manifest['accountSubjectId'], 'player-subject');
+    expect(manifest['schemaVersion'], 2);
+    expect(manifest['hashAlgorithm'], 'sha256');
     expect(
         manifest['contentHash'],
         isA<String>().having(
           (value) => value.length,
           'length',
-          8,
+          64,
         ));
     expect(recordCounts['trainingEntries'], 1);
     expect(recordCounts['coreRecords'], 1);
+  });
+
+  test('rejects a backup whose SHA-256 safety hash was tampered', () async {
+    final backup = service.buildBackupForTesting();
+    (backup['entries'] as List).add(const <String, dynamic>{});
+
+    expect(
+      () => service.restoreFromMapForTesting(backup),
+      throwsA(
+        isA<StateError>().having(
+          (error) => error.message,
+          'message',
+          DriveBackupService.invalidBackupPayloadErrorCode,
+        ),
+      ),
+    );
+  });
+
+  test('keeps three local recovery points and restores a selected point',
+      () async {
+    for (final profileName in <String>['A', 'B', 'C', 'D']) {
+      await optionBox.put('profile_name', profileName);
+      await service.saveLocalPreRestoreForTesting();
+    }
+    final points = service.getLocalRecoveryPoints();
+    expect(points, hasLength(3));
+
+    await optionBox.put('profile_name', 'Temporary');
+    await service.restoreLocalRecoveryPoint(points.last.id);
+
+    expect(optionBox.get('profile_name'), 'B');
   });
 
   test('restore adopts dataset id from safety manifest', () async {
@@ -2605,10 +2818,11 @@ void main() {
 
     await service.backup();
 
-    expect(driveClient.createdHistoryCount, 1);
+    expect(driveClient.copiedHistoryCount, 1);
+    expect(driveClient.createdHistoryCount, 0);
     expect(driveClient.createdPreviousCount, 1);
     expect(driveClient.updatedActiveCount, 1);
-    expect(driveClient.deletedHistoryCount, 1);
+    expect(driveClient.trashedHistoryCount, 1);
   });
 
   test(
@@ -2623,6 +2837,9 @@ void main() {
           displayName: 'New Player',
           subjectId: 'new-subject',
         ),
+        driveApiLoader: ({required bool requireInteractive}) async {
+          return drive.DriveApi(_RemoteBackupDriveClient(hasBackup: false));
+        },
       );
       await optionBox.put(
         DriveBackupService.recordDriveEmailLocalKey,
@@ -2762,6 +2979,42 @@ void main() {
       expect(state.lastSharedSyncRole, isNull);
     },
   );
+
+  test('empty start refuses to replace a meaningful backup on the new account',
+      () async {
+    final driveClient = _OverwriteGuardDriveClient(
+      remoteBackup: _remotePlayerBackup(profileName: 'Protected player'),
+    );
+    service = DriveBackupService(
+      trainingBox,
+      optionBox,
+      backupAssetFileStore: assetStore,
+      driveConnectionLoader: () async => const DriveConnectionInfo(
+        email: 'new@example.com',
+        displayName: 'New player',
+        subjectId: 'new-subject',
+      ),
+      driveApiLoader: ({required bool requireInteractive}) async {
+        return drive.DriveApi(driveClient);
+      },
+    );
+    await optionBox.put(
+      DriveBackupService.recordDriveSubjectLocalKey,
+      'old-subject',
+    );
+
+    await expectLater(
+      service.startChangedPlayerDriveWithEmptyData(),
+      throwsA(
+        isA<StateError>().having(
+          (error) => error.message,
+          'message',
+          DriveBackupService.remoteBackupOverwriteBlockedErrorCode,
+        ),
+      ),
+    );
+    expect(driveClient.writeRequestCount, 0);
+  });
 }
 
 class _RemoteBackupDriveClient extends http.BaseClient {
@@ -2826,7 +3079,7 @@ class _RemoteBackupDriveClient extends http.BaseClient {
 class _OverwriteGuardDriveClient extends http.BaseClient {
   _OverwriteGuardDriveClient({required this.remoteBackup});
 
-  final Map<String, dynamic> remoteBackup;
+  Map<String, dynamic> remoteBackup;
   int mediaDownloadCount = 0;
   int writeRequestCount = 0;
 
@@ -2898,9 +3151,10 @@ class _HistoryPreservingDriveClient extends http.BaseClient {
   final Map<String, dynamic> remoteBackup;
   final String historyPrefix;
   int createdHistoryCount = 0;
+  int copiedHistoryCount = 0;
   int createdPreviousCount = 0;
   int updatedActiveCount = 0;
-  int deletedHistoryCount = 0;
+  int trashedHistoryCount = 0;
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
@@ -2921,7 +3175,7 @@ class _HistoryPreservingDriveClient extends http.BaseClient {
       if (query.contains("name contains '$historyPrefix'")) {
         return _jsonResponse(request, <String, Object?>{
           'files': List<Map<String, String>>.generate(
-            11,
+            13,
             (index) => <String, String>{
               'id': 'history-$index',
               'name': '$historyPrefix${index.toString().padLeft(2, '0')}.json',
@@ -2963,6 +3217,14 @@ class _HistoryPreservingDriveClient extends http.BaseClient {
       );
     }
     if (request.method == 'POST' &&
+        request.url.path.endsWith('/drive/v3/files/backup-id/copy')) {
+      copiedHistoryCount += 1;
+      return _jsonResponse(request, const <String, Object?>{
+        'id': 'copied-history-id',
+        'modifiedTime': '2026-04-20T10:01:00.000Z',
+      });
+    }
+    if (request.method == 'POST' &&
         request.url.path.endsWith('/upload/drive/v3/files')) {
       final body = await utf8.decoder.bind(request.finalize()).join();
       if (body.contains(historyPrefix)) {
@@ -2988,14 +3250,12 @@ class _HistoryPreservingDriveClient extends http.BaseClient {
         'modifiedTime': '2026-04-20T10:03:00.000Z',
       });
     }
-    if (request.method == 'DELETE' &&
+    if (request.method == 'PATCH' &&
         request.url.path.contains('/drive/v3/files/history-')) {
-      deletedHistoryCount += 1;
-      return http.StreamedResponse(
-        const Stream<List<int>>.empty(),
-        204,
-        request: request,
-      );
+      trashedHistoryCount += 1;
+      return _jsonResponse(request, const <String, Object?>{
+        'id': 'history-12',
+      });
     }
     throw StateError(
       'Unexpected Drive request: ${request.method} ${request.url}',
