@@ -66,6 +66,9 @@ echo "==> issue worker wording regression"
 echo "==> web asset version stamp regression"
 ./scripts/test_web_asset_version_stamp.sh
 
+echo "==> iOS native asset embedding regression"
+./scripts/test_ios_native_assets.sh
+
 echo "==> android upload mediapipe contract"
 ./scripts/test_android_upload_mediapipe_contract.sh
 
