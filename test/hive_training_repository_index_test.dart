@@ -415,21 +415,32 @@ void main() {
         )),
         isFalse);
 
-    final remote = Map<String, dynamic>.from(backup);
-    remote['entries'] = <Map<String, dynamic>>[
-      <String, dynamic>{
-        'date': DateTime(2026, 6, 10).toIso8601String(),
-        'createdAt': DateTime(2026, 6, 10, 9).toIso8601String(),
-        'sportId': SportCatalog.baseballId,
-        'durationMinutes': 80,
-        'intensity': 4,
-        'type': 'batting',
-        'mood': 5,
-        'injury': false,
-        'notes': 'restored',
-        'location': 'field',
-      },
-    ];
+    final remoteTrainingBox = await Hive.openBox<TrainingEntry>(
+      'remote_training_entries_index_test_${generation++}',
+    );
+    addTearDown(() async {
+      if (remoteTrainingBox.isOpen) {
+        await remoteTrainingBox.close();
+      }
+    });
+    await remoteTrainingBox.add(
+      TrainingEntry(
+        date: DateTime(2026, 6, 10),
+        createdAt: DateTime(2026, 6, 10, 9),
+        sportId: SportCatalog.baseballId,
+        durationMinutes: 80,
+        intensity: 4,
+        type: 'batting',
+        mood: 5,
+        injury: false,
+        notes: 'restored',
+        location: 'field',
+      ),
+    );
+    final remote = DriveBackupService(
+      remoteTrainingBox,
+      optionBox,
+    ).buildBackupForTesting();
 
     harness.repository.debugCounters.reset();
     await service.restoreFromMapForTesting(remote);
