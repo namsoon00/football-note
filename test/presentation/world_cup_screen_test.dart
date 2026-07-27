@@ -513,6 +513,7 @@ void main() {
     var captureCount = 0;
     Size? capturedSize;
     double? capturedPixelRatio;
+    var failFullSizeCapture = false;
     debugPngImageShareOverride = ({required bytes, required filename}) async {
       exportedBytes = List<int>.from(bytes);
       exportedFilename = filename;
@@ -525,6 +526,9 @@ void main() {
       captureCount += 1;
       capturedSize = size;
       capturedPixelRatio = pixelRatio;
+      if (failFullSizeCapture && size == const Size(2000, 1120)) {
+        throw StateError('large bracket image capture failed');
+      }
       return Uint8List.fromList(_tinyPngBytes);
     };
     await tester.pumpWidget(
@@ -615,6 +619,21 @@ void main() {
     expect(exportedFilename, startsWith('world-cup-bracket_'));
     expect(exportedFilename, endsWith('.png'));
     expect(find.text('대진표 이미지를 준비했어요.'), findsOneWidget);
+
+    exportedBytes = null;
+    captureCount = 0;
+    capturedSize = null;
+    failFullSizeCapture = true;
+    await tester.tap(imageAction);
+    await tester.pump();
+    await tester.pumpAndSettle(const Duration(milliseconds: 120));
+    for (var attempt = 0; attempt < 20 && exportedBytes == null; attempt += 1) {
+      await tester.pump(const Duration(milliseconds: 120));
+    }
+
+    expect(exportedBytes, isNotNull);
+    expect(captureCount, 2);
+    expect(capturedSize, const Size(1500, 840));
   });
 
   testWidgets('tournament bracket resolves completed group slots to countries',

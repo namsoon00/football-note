@@ -1682,6 +1682,25 @@ class _SettingsScreenState extends State<SettingsScreen>
         ),
       );
     }
+    final localRecoveryPoints =
+        widget.driveBackupService!.getLocalRecoveryPoints();
+    if (_signedIn && localRecoveryPoints.isNotEmpty) {
+      actions.add(
+        _buildDriveQuickActionButton(
+          icon: Icons.settings_backup_restore_outlined,
+          label: isSupportMode
+              ? l10n.settingsSupportRestoreLocalActionTitle
+              : l10n.settingsPlayerRestoreLocalActionTitle,
+          tone: _DriveQuickActionTone.restore,
+          onPressed: (_backupBusy || _restoreBusy)
+              ? null
+              : () => _showLocalRecoveryPoints(
+                    l10n,
+                    isSupportMode: isSupportMode,
+                  ),
+        ),
+      );
+    }
     if (_signedIn && !isSupportMode && !backupBlockedBeforeImport) {
       actions.add(
         _buildDriveQuickActionButton(
@@ -2455,12 +2474,7 @@ class _SettingsScreenState extends State<SettingsScreen>
   }) async {
     try {
       if (widget.driveBackupService != null && _signedIn) {
-        if (previousState.isChildMode &&
-            FamilyAccessService.isSupportRole(targetRole)) {
-          await widget.driveBackupService!.rememberRecordDriveConnection();
-        } else if (previousState.isSupportMode &&
-            targetRole == FamilyRole.child) {
-          await widget.driveBackupService!.rememberParentDriveConnection();
+        if (previousState.isSupportMode && targetRole == FamilyRole.child) {
           await widget.driveBackupService!.signOut();
         }
       }
@@ -2758,7 +2772,6 @@ class _SettingsScreenState extends State<SettingsScreen>
     setState(() => _signInBusy = true);
     try {
       if (wasSignedIn) {
-        await widget.driveBackupService!.rememberCurrentRoleDriveConnection();
         await widget.driveBackupService!.signOut();
       } else {
         await widget.driveBackupService!.signIn();
@@ -2807,13 +2820,8 @@ class _SettingsScreenState extends State<SettingsScreen>
   Future<void> _rememberSignedInDriveConnectionIfSafe() async {
     final backup = widget.driveBackupService;
     if (backup == null) return;
-    if (backup.needsPlayerDriveImportBeforeBackup()) {
-      return;
-    }
-    final familyState = FamilyAccessService(
-      widget.optionRepository,
-    ).loadState();
-    if (familyState.isChildMode && _savedPlayerDriveLabel().isEmpty) {
+    if (backup.needsPlayerDriveImportBeforeBackup() ||
+        backup.needsDriveImportBeforeBackup()) {
       return;
     }
     await backup.rememberCurrentRoleDriveConnection();
@@ -3027,6 +3035,49 @@ class _SettingsScreenState extends State<SettingsScreen>
     );
   }
 
+  Future<void> _showLocalRecoveryPoints(
+    AppLocalizations l10n, {
+    required bool isSupportMode,
+  }) async {
+    final backup = widget.driveBackupService;
+    if (backup == null) return;
+    final selected = await showModalBottomSheet<LocalBackupRecoveryPoint>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.settings_backup_restore_outlined),
+              title: Text(l10n.settingsRestoreRollbackTitle),
+              subtitle: Text(l10n.settingsRestoreRollbackBody),
+            ),
+            for (final point in backup.getLocalRecoveryPoints())
+              ListTile(
+                leading: const Icon(Icons.history_rounded),
+                title: Text(
+                  isSupportMode
+                      ? l10n.settingsSupportRestoreLocalActionTitle
+                      : l10n.settingsPlayerRestoreLocalActionTitle,
+                ),
+                subtitle: Text(_formatBackupTimestamp(point.createdAt)),
+                onTap: () => Navigator.of(context).pop(point),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (selected == null || !mounted) return;
+    await _restoreFromDrive(
+      l10n,
+      title: l10n.settingsRestoreRollbackTitle,
+      message: l10n.settingsRestoreRollbackBody,
+      backupCreatedAt: selected.createdAt,
+      restoreAction: () => backup.restoreLocalRecoveryPoint(selected.id),
+    );
+  }
+
   String _formatBackupTime(DateTime date) {
     final now = DateTime.now();
     final diff = now.difference(date);
@@ -3094,11 +3145,17 @@ class _SettingsScreenState extends State<SettingsScreen>
     )) {
       return l10n.driveBackupRemoteOverwriteBlocked;
     }
+    if (raw.contains(DriveBackupService.remoteBackupConflictErrorCode)) {
+      return l10n.driveBackupRemoteOverwriteBlocked;
+    }
     if (raw.contains(DriveBackupService.backupOwnerMismatchErrorCode)) {
       return l10n.driveBackupOwnerMismatch;
     }
     if (raw
         .contains(DriveBackupService.changedPlayerDriveConnectionErrorCode)) {
+      return l10n.driveBackupLockedAccountChanged;
+    }
+    if (raw.contains(DriveBackupService.driveAccountBindingRequiredErrorCode)) {
       return l10n.driveBackupLockedAccountChanged;
     }
     if (raw.contains(

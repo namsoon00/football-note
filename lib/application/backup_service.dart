@@ -101,6 +101,21 @@ class BackupService {
     throw StateError('Local restore is not available.');
   }
 
+  List<LocalBackupRecoveryPoint> getLocalRecoveryPoints() {
+    if (_repository case final DriveBackupService drive) {
+      return drive.getLocalRecoveryPoints();
+    }
+    return const <LocalBackupRecoveryPoint>[];
+  }
+
+  Future<void> restoreLocalRecoveryPoint(String id) async {
+    if (_repository case final DriveBackupService drive) {
+      await drive.restoreLocalRecoveryPoint(id);
+      return;
+    }
+    throw StateError('Local restore is not available.');
+  }
+
   Future<void> signIn() async {
     if (_repository case final DriveBackupService drive) {
       await drive.signIn();
@@ -265,6 +280,13 @@ class BackupService {
     if (_repository case final DriveBackupService drive) {
       await drive.rememberCurrentRoleDriveConnection();
     }
+  }
+
+  bool needsDriveImportBeforeBackup() {
+    if (_repository case final DriveBackupService drive) {
+      return drive.needsDriveImportBeforeBackup();
+    }
+    return false;
   }
 
   Future<void> signInForSavedRecord() async {

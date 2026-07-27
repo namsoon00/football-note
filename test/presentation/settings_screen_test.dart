@@ -656,7 +656,8 @@ void main() {
     },
   );
 
-  testWidgets('enabling parent mode keeps current player Drive connected', (
+  testWidgets('enabling parent mode does not persist the current Drive account',
+      (
     WidgetTester tester,
   ) async {
     final optionRepository = _MemoryOptionRepository();
@@ -707,7 +708,7 @@ void main() {
 
     expect(backupService.signOutCalled, isFalse);
     expect(backupService.refreshParentSharedDataIfNeededCalled, isTrue);
-    expect(backupService.getSavedRecordDriveEmail(), 'player@example.com');
+    expect(backupService.getSavedRecordDriveEmail(), isEmpty);
     expect(find.text('데이터 동기화'), findsOneWidget);
     expect(find.text('Google Drive 연결 해제'), findsOneWidget);
     expect(find.text('민수 · player@example.com'), findsWidgets);
@@ -1210,7 +1211,7 @@ void main() {
   });
 
   testWidgets(
-    'disabling parent mode stores parent mode drive separately before returning to player mode',
+    'disabling parent mode does not persist the connected parent Drive before returning to player mode',
     (WidgetTester tester) async {
       final optionRepository = _MemoryOptionRepository();
       await optionRepository.setValue(
@@ -1258,10 +1259,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(backupService.signOutCalled, isTrue);
-      expect(
-        backupService.getSavedParentDriveEmail(),
-        'parent-mode@example.com',
-      );
+      expect(backupService.getSavedParentDriveEmail(), isEmpty);
       expect(find.text('선수 모드 백업 Drive'), findsNothing);
       expect(find.text('선수 모드 Drive 다시 연결'), findsNothing);
       expect(find.text('현재 연결된 Drive 계정'), findsOneWidget);
