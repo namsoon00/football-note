@@ -69,6 +69,9 @@ echo "==> web asset version stamp regression"
 echo "==> iOS native asset embedding regression"
 ./scripts/test_ios_native_assets.sh
 
+echo "==> iOS path provider plugin compatibility"
+./scripts/test_ios_path_provider_foundation_compatibility.sh
+
 echo "==> android upload mediapipe contract"
 ./scripts/test_android_upload_mediapipe_contract.sh
 

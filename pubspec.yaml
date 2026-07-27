@@ -47,6 +47,9 @@ dependencies:
   url_launcher: ^6.3.1
   image_picker: ^1.1.2
   path_provider: ^2.1.5
+  # Keep iOS path discovery on the plugin implementation until the newer FFI
+  # implementation's native-asset loading is stable in production builds.
+  path_provider_foundation: 2.5.1
   speech_to_text: ^7.3.0
   flutter_local_notifications: ^17.2.3
   timezone: ^0.9.4
