@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/infrastructure/hive_startup_recovery.dart';
+import 'package:football_note/infrastructure/hive_startup_recovery_io.dart';
 import 'package:hive/hive.dart';
 
 void main() {
@@ -59,5 +60,35 @@ void main() {
     expect(movedFiles.single.path, endsWith('.hive'));
     expect(FileSystemEntity.typeSync(movedFiles.single.path),
         FileSystemEntityType.directory);
+  });
+
+  test('does not overwrite an existing quarantined Hive box', () async {
+    final source = File(
+      '${tempDir.path}${Platform.pathSeparator}options.hive',
+    );
+    await source.writeAsString('first');
+    await moveHiveBoxFilesAside(
+      'options',
+      path: tempDir.path,
+      recoveryId: 'fixed',
+    );
+
+    await source.writeAsString('second');
+    await moveHiveBoxFilesAside(
+      'options',
+      path: tempDir.path,
+      recoveryId: 'fixed',
+    );
+
+    final first = File(
+      '${tempDir.path}${Platform.pathSeparator}'
+      'options.startup_recovery_fixed.hive',
+    );
+    final second = File(
+      '${tempDir.path}${Platform.pathSeparator}'
+      'options.startup_recovery_fixed_1.hive',
+    );
+    expect(await first.readAsString(), 'first');
+    expect(await second.readAsString(), 'second');
   });
 }
