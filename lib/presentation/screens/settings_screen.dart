@@ -399,16 +399,15 @@ class _SettingsScreenState extends State<SettingsScreen>
     return label.toLowerCase().contains(normalizedEmail);
   }
 
-  bool _backupLockedByChangedPlayerDrive(FamilyAccessState familyState) {
+  bool _playerDriveNeedsResolution(FamilyAccessState familyState) {
     if (!familyState.isChildMode || !_signedIn) return false;
-    return widget.driveBackupService?.hasChangedPlayerDriveConnection() ??
+    return widget.driveBackupService?.needsPlayerDriveImportBeforeBackup() ??
         false;
   }
 
-  bool _playerDriveNeedsResolution(FamilyAccessState familyState) {
+  bool _hasLegacyPlayerDriveConnection(FamilyAccessState familyState) {
     if (!familyState.isChildMode || !_signedIn) return false;
-    return _backupLockedByChangedPlayerDrive(familyState) ||
-        _savedPlayerDriveLabel().isEmpty;
+    return widget.driveBackupService?.hasLegacyPlayerDriveConnection() ?? false;
   }
 
   bool _playerBackupBlockedBeforeImport(FamilyAccessState familyState) {
@@ -418,6 +417,7 @@ class _SettingsScreenState extends State<SettingsScreen>
   bool _shouldShowLatestRestoreAction(FamilyAccessState familyState) {
     if (!_signedIn) return false;
     if (familyState.isSupportMode) return true;
+    if (_hasLegacyPlayerDriveConnection(familyState)) return true;
     return !_playerBackupBlockedBeforeImport(familyState);
   }
 
@@ -1606,6 +1606,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       return const SizedBox.shrink();
     }
     final isSupportMode = familyState.isSupportMode;
+    final hasLegacyPlayerDrive = _hasLegacyPlayerDriveConnection(familyState);
     final backupBlockedBeforeImport =
         _playerBackupBlockedBeforeImport(familyState);
     final actions = <Widget>[
@@ -1624,26 +1625,36 @@ class _SettingsScreenState extends State<SettingsScreen>
       actions.add(
         _buildDriveQuickActionButton(
           icon: Icons.cloud_download_outlined,
-          label: l10n.settingsRestoreLatestActionTitle,
+          label: hasLegacyPlayerDrive
+              ? l10n.driveLegacyAccountImportAction
+              : l10n.settingsRestoreLatestActionTitle,
           tone: _DriveQuickActionTone.restore,
           onPressed: (_backupBusy || _restoreBusy)
               ? null
               : () => _restoreFromDrive(
                     l10n,
-                    title: l10n.settingsRestoreLatestActionTitle,
+                    title: hasLegacyPlayerDrive
+                        ? l10n.driveLegacyAccountImportTitle
+                        : l10n.settingsRestoreLatestActionTitle,
                     filePath: DriveBackupService.backupDisplayPath,
                     backupCreatedAt: widget.driveBackupService!.getLastBackup(),
-                    message:
-                        isSupportMode ? l10n.familySharedRestoreConfirm : null,
-                    successMessage:
-                        isSupportMode ? l10n.familySharedRestoreSuccess : null,
+                    message: hasLegacyPlayerDrive
+                        ? l10n.driveLegacyAccountImportBody
+                        : isSupportMode
+                            ? l10n.familySharedRestoreConfirm
+                            : null,
+                    successMessage: hasLegacyPlayerDrive
+                        ? l10n.driveLegacyAccountImportSuccess
+                        : isSupportMode
+                            ? l10n.familySharedRestoreSuccess
+                            : null,
                     failedMessage:
                         isSupportMode ? l10n.familySharedRestoreFailed : null,
                   ),
         ),
       );
     }
-    if (backupBlockedBeforeImport) {
+    if (backupBlockedBeforeImport && !hasLegacyPlayerDrive) {
       actions.add(
         _buildDriveQuickActionButton(
           icon: Icons.cloud_download_outlined,
@@ -2796,7 +2807,7 @@ class _SettingsScreenState extends State<SettingsScreen>
   Future<void> _rememberSignedInDriveConnectionIfSafe() async {
     final backup = widget.driveBackupService;
     if (backup == null) return;
-    if (backup.hasChangedPlayerDriveConnection()) {
+    if (backup.needsPlayerDriveImportBeforeBackup()) {
       return;
     }
     final familyState = FamilyAccessService(

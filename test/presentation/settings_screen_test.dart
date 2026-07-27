@@ -835,6 +835,71 @@ void main() {
   });
 
   testWidgets(
+    'legacy player account shows a verify-and-import action before backup',
+    (WidgetTester tester) async {
+      final optionRepository = _MemoryOptionRepository();
+      final localeService = LocaleService(optionRepository)..load();
+      final settingsService = SettingsService(optionRepository)..load();
+      final backupService = _FakeDriveBackupService(
+        signedIn: true,
+        connectionInfo: const DriveConnectionInfo(
+          email: 'player@example.com',
+          displayName: '민수',
+          subjectId: 'subject-player',
+        ),
+        sharedChildDriveLabel: '',
+        sharedChildDriveEmail: '',
+        savedRecordDriveLabel: '민수 · player@example.com',
+        savedRecordDriveEmail: 'player@example.com',
+        legacyPlayerDriveConnection: true,
+        lastBackupAt: DateTime(2026, 3, 22, 10),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('ko'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: SettingsScreen(
+            localeService: localeService,
+            settingsService: settingsService,
+            optionRepository: optionRepository,
+            driveBackupService: backupService,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final legacyImportButton = find.widgetWithText(
+        OutlinedButton,
+        '이 계정 확인 및 백업 가져오기',
+      );
+      expect(legacyImportButton, findsOneWidget);
+      expect(
+        find.widgetWithText(OutlinedButton, '이 계정 백업 가져오기'),
+        findsNothing,
+      );
+      expect(
+        find.widgetWithText(OutlinedButton, '데이터 백업하기'),
+        findsNothing,
+      );
+
+      await tester.ensureVisible(legacyImportButton);
+      await tester.pumpAndSettle();
+      await tester.tap(legacyImportButton);
+      await tester.pumpAndSettle();
+      expect(find.text('기존 계정 연결을 확인할까요?'), findsOneWidget);
+      await tester.tap(find.widgetWithText(TextButton, '확인'));
+      await tester.pumpAndSettle();
+      expect(find.text('복원 재확인'), findsOneWidget);
+      await tester.tap(find.widgetWithText(TextButton, '확인'));
+      await tester.pumpAndSettle();
+
+      expect(backupService.restoreLatestCalled, isTrue);
+    },
+  );
+
+  testWidgets(
     'player mode hides backup until remote backup is imported for unsaved Drive',
     (WidgetTester tester) async {
       final optionRepository = _MemoryOptionRepository();
@@ -1516,6 +1581,7 @@ class _FakeDriveBackupService extends BackupService {
   String _savedRecordDriveEmail;
   String _savedParentDriveLabel;
   String _savedParentDriveEmail;
+  bool _legacyPlayerDriveConnection;
   final DateTime? _lastFamilySyncPushAt;
   final DateTime? _lastFamilySyncPullAt;
   final DateTime? _localPreRestoreAt;
@@ -1549,6 +1615,7 @@ class _FakeDriveBackupService extends BackupService {
     DriveConnectionInfo? remoteSharedChildConnectionInfo,
     bool hasRemotePlayerBackup = false,
     bool pendingParentSharedChanges = false,
+    bool legacyPlayerDriveConnection = false,
     this.signInConnectionInfo,
     this.throwIsSignedInAfterSignInOnce = false,
     DateTime? lastBackupAt,
@@ -1573,6 +1640,7 @@ class _FakeDriveBackupService extends BackupService {
         _remoteSharedChildConnectionInfo = remoteSharedChildConnectionInfo,
         _hasRemotePlayerBackup = hasRemotePlayerBackup,
         _pendingParentSharedChanges = pendingParentSharedChanges,
+        _legacyPlayerDriveConnection = legacyPlayerDriveConnection,
         super(_FakeBackupRepository(lastBackupAt: lastBackupAt));
 
   bool get signedIn => _signedIn;
@@ -1654,7 +1722,21 @@ class _FakeDriveBackupService extends BackupService {
   }
 
   @override
+  bool hasLegacyPlayerDriveConnection() {
+    return _signedIn && _legacyPlayerDriveConnection;
+  }
+
+  @override
+  bool needsPlayerDriveImportBeforeBackup() {
+    if (!_signedIn || _connectionInfo == null) return false;
+    return _legacyPlayerDriveConnection ||
+        _savedRecordDriveLabel.trim().isEmpty ||
+        hasChangedPlayerDriveConnection();
+  }
+
+  @override
   Future<bool> startChangedPlayerDriveWithEmptyData() async {
+    _legacyPlayerDriveConnection = false;
     await rememberRecordDriveConnection();
     return true;
   }
@@ -1779,11 +1861,13 @@ class _FakeDriveBackupService extends BackupService {
 
   @override
   Future<void> restoreLatest() async {
+    _legacyPlayerDriveConnection = false;
     restoreLatestCalled = true;
   }
 
   @override
   Future<bool> importChangedPlayerDriveBackup() async {
+    _legacyPlayerDriveConnection = false;
     importChangedPlayerDriveBackupCalled = true;
     await rememberRecordDriveConnection();
     return true;

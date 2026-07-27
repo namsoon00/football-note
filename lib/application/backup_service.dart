@@ -146,6 +146,27 @@ class BackupService {
     return false;
   }
 
+  PlayerDriveBindingState getPlayerDriveBindingState() {
+    if (_repository case final DriveBackupService drive) {
+      return drive.getPlayerDriveBindingState();
+    }
+    return PlayerDriveBindingState.notConnected;
+  }
+
+  bool hasLegacyPlayerDriveConnection() {
+    if (_repository case final DriveBackupService drive) {
+      return drive.hasLegacyPlayerDriveConnection();
+    }
+    return false;
+  }
+
+  bool needsPlayerDriveImportBeforeBackup() {
+    if (_repository case final DriveBackupService drive) {
+      return drive.needsPlayerDriveImportBeforeBackup();
+    }
+    return false;
+  }
+
   Future<bool> importChangedPlayerDriveBackup() async {
     if (_repository case final DriveBackupService drive) {
       return drive.importChangedPlayerDriveBackup();
