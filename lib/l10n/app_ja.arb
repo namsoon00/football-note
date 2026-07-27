@@ -4998,6 +4998,7 @@
   "runningCoachDenseContactUnavailable": "検証済み接地なし",
   "runningCoachEvidenceTitle": "自分の動画の根拠",
   "runningCoachEvidenceBody": "このフレームは分析したクリップから取り出され、選択したコーチング重点を支えます。",
+  "runningCoachEvidenceDetailsTitle": "根拠と測定方法",
   "runningCoachEvidenceInsufficientTitle": "このクリップを撮り直してください",
   "runningCoachEvidenceInsufficientBody": "この重点を支える安定フレームが足りないため、正確なスコアは表示しません。",
   "runningCoachEvidenceVideoUnavailable": "保存済み動画ファイルを使用できません。分析フレームの姿勢オーバーレイは表示します。",
@@ -5006,6 +5007,13 @@
   "@runningCoachEvidenceTimestamp": {
     "placeholders": {
       "time": {}
+    }
+  },
+  "runningCoachEvidenceFrameSummary": "{frame}: {value}",
+  "@runningCoachEvidenceFrameSummary": {
+    "placeholders": {
+      "frame": {},
+      "value": {}
     }
   },
   "runningCoachEvidencePreviousFrame": "前の根拠フレーム",
@@ -5029,11 +5037,11 @@
   "runningCoachEvidenceCurrentOverlayBody": "赤いガイドは、今回のコーチング判断に使った部位だけを示します。",
   "runningCoachEvidenceTransitionTitle": "現在から次へ",
   "runningCoachEvidenceTransitionBody": "青い目標は動画に重ねた姿勢ではなく、次の一歩で合わせる方向です。",
-  "runningCoachGoalMotionTitle": "現在と目標を比較",
-  "runningCoachGoalMotionBody": "左は測定された現在の関節、右は次の動きの目標方向です。",
-  "runningCoachGoalMotionActualLabel": "現在のフォーム",
-  "runningCoachGoalMotionTargetLabel": "目標の動き",
-  "runningCoachGoalMotionFootnote": "右側は関節座標から作ったコーチング目標であり、2本目の動画測定値ではありません。",
+  "runningCoachGoalMotionTitle": "今の姿勢と次の動き",
+  "runningCoachGoalMotionBody": "左は今の姿勢、右は次に試す動きです。",
+  "runningCoachGoalMotionActualLabel": "今の姿勢",
+  "runningCoachGoalMotionTargetLabel": "次の動き",
+  "runningCoachGoalMotionFootnote": "右のガイドは、あなたの動画で測定した関節位置から作った次の動きの目標です。",
   "runningCoachGoalMotionPlay": "目標の動きを再生",
   "runningCoachGoalMotionPause": "目標の動きを一時停止",
   "runningCoachHistoryEvidenceUnavailableTitle": "保存済みの関節根拠なし",
@@ -6072,6 +6080,7 @@
       }
     }
   },
+  "runningCoachAnalysisQualityStrongSummary": "次の目標を決めるのに十分な根拠があります。",
   "runningCoachAnalysisQualityLimited": "一部の測定値は参考として確認してください",
   "runningCoachAnalysisQualityLimitedBody": "信頼できる測定値は{count}個です。足と膝のフィードバックは根拠が十分な場合だけ使います。",
   "@runningCoachAnalysisQualityLimitedBody": {
@@ -6081,17 +6090,19 @@
       }
     }
   },
+  "runningCoachAnalysisQualityLimitedSummary": "一部の姿勢項目は参考として確認してください。",
   "runningCoachAnalysisQualityRetake": "撮り直しをおすすめします",
   "runningCoachAnalysisQualityRetakeBody": "関節または着地の根拠が不足しており、この動画から信頼できる目標を決められません。",
+  "runningCoachAnalysisQualityDetailsTitle": "測定値を詳しく見る",
   "runningCoachVerifiedContactsLabel": "検証済みの着地",
   "runningCoachResultOneChangeTitle": "まず一つだけ変えましょう",
   "runningCoachNextGoalTitle": "次の目標",
-  "runningCoachNextGoalRepeat": "次の3回は、この動きだけを意識してください。",
+  "runningCoachNextGoalRepeat": "次の3回は、これだけを意識してください。",
   "runningCoachResultNextRunCueLabel": "次のランで行うこと",
   "runningCoachResultOneChangeBody": "数歩の間はこの一つのキューだけに集中し、もう一度撮影して変化を確認してください。",
   "runningCoachResultKeepOneThingBody": "次の数歩でもこの良さを保ち、もう一度撮影して一貫しているか確認してください。",
   "runningCoachResultDetailsTitle": "詳しい分析",
-  "runningCoachReportDetailsBody": "必要なときだけ、すべての測定値と関節根拠を開いて確認できます。",
+  "runningCoachReportDetailsBody": "必要なときだけ、5つの姿勢項目を確認できます。",
   "runningCoachAnalysisHistoryTitle": "コーチング分析履歴",
   "runningCoachAnalysisHistoryBody": "アップロード動画とライブスプリントセッションの主要なコーチングポイントと修正ガイドを確認できます。",
   "runningCoachAnalysisHistoryAction": "すべて {count}件",

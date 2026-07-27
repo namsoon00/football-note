@@ -15623,6 +15623,12 @@ abstract class AppLocalizations {
   /// **'This frame is from the analyzed clip and supports the selected coaching focus.'**
   String get runningCoachEvidenceBody;
 
+  /// No description provided for @runningCoachEvidenceDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Evidence details'**
+  String get runningCoachEvidenceDetailsTitle;
+
   /// No description provided for @runningCoachEvidenceInsufficientTitle.
   ///
   /// In en, this message translates to:
@@ -15652,6 +15658,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Evidence frame {time}'**
   String runningCoachEvidenceTimestamp(Object time);
+
+  /// No description provided for @runningCoachEvidenceFrameSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{frame}: {value}'**
+  String runningCoachEvidenceFrameSummary(Object frame, Object value);
 
   /// No description provided for @runningCoachEvidencePreviousFrame.
   ///
@@ -15722,31 +15734,31 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachGoalMotionTitle.
   ///
   /// In en, this message translates to:
-  /// **'Compare current and goal'**
+  /// **'My form and next movement'**
   String get runningCoachGoalMotionTitle;
 
   /// No description provided for @runningCoachGoalMotionBody.
   ///
   /// In en, this message translates to:
-  /// **'The left shows measured joints. The right shows the direction for your next movement.'**
+  /// **'The left is your form. The right is the movement to try next.'**
   String get runningCoachGoalMotionBody;
 
   /// No description provided for @runningCoachGoalMotionActualLabel.
   ///
   /// In en, this message translates to:
-  /// **'Current form'**
+  /// **'My form'**
   String get runningCoachGoalMotionActualLabel;
 
   /// No description provided for @runningCoachGoalMotionTargetLabel.
   ///
   /// In en, this message translates to:
-  /// **'Goal movement'**
+  /// **'Next move'**
   String get runningCoachGoalMotionTargetLabel;
 
   /// No description provided for @runningCoachGoalMotionFootnote.
   ///
   /// In en, this message translates to:
-  /// **'The right side is a coaching target built from your joint coordinates, not a second video measurement.'**
+  /// **'The right guide is a next-movement goal built from joints measured in your video.'**
   String get runningCoachGoalMotionFootnote;
 
   /// No description provided for @runningCoachGoalMotionPlay.
@@ -18156,6 +18168,12 @@ abstract class AppLocalizations {
   /// **'This goal uses {count} reliable measurements and verified landing evidence.'**
   String runningCoachAnalysisQualityStrongBody(int count);
 
+  /// No description provided for @runningCoachAnalysisQualityStrongSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'This video has enough reliable evidence to set your next goal.'**
+  String get runningCoachAnalysisQualityStrongSummary;
+
   /// No description provided for @runningCoachAnalysisQualityLimited.
   ///
   /// In en, this message translates to:
@@ -18168,6 +18186,12 @@ abstract class AppLocalizations {
   /// **'{count} measurements are reliable. Foot and knee feedback is used only when its evidence is sufficient.'**
   String runningCoachAnalysisQualityLimitedBody(int count);
 
+  /// No description provided for @runningCoachAnalysisQualityLimitedSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Some form checks are best used as reference only.'**
+  String get runningCoachAnalysisQualityLimitedSummary;
+
   /// No description provided for @runningCoachAnalysisQualityRetake.
   ///
   /// In en, this message translates to:
@@ -18179,6 +18203,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The clip does not contain enough joint or landing evidence to set a reliable goal.'**
   String get runningCoachAnalysisQualityRetakeBody;
+
+  /// No description provided for @runningCoachAnalysisQualityDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'View measurement details'**
+  String get runningCoachAnalysisQualityDetailsTitle;
 
   /// No description provided for @runningCoachVerifiedContactsLabel.
   ///
@@ -18201,7 +18231,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachNextGoalRepeat.
   ///
   /// In en, this message translates to:
-  /// **'For your next three runs, focus on this one movement.'**
+  /// **'For your next three runs, focus only on this.'**
   String get runningCoachNextGoalRepeat;
 
   /// No description provided for @runningCoachResultNextRunCueLabel.
@@ -18231,7 +18261,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachReportDetailsBody.
   ///
   /// In en, this message translates to:
-  /// **'Open the full measurements and joint evidence only when you need them.'**
+  /// **'Open this only when you want to inspect all five form checks.'**
   String get runningCoachReportDetailsBody;
 
   /// No description provided for @runningCoachAnalysisHistoryTitle.

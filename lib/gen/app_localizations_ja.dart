@@ -8705,6 +8705,9 @@ class AppLocalizationsJa extends AppLocalizations {
       'このフレームは分析したクリップから取り出され、選択したコーチング重点を支えます。';
 
   @override
+  String get runningCoachEvidenceDetailsTitle => '根拠と測定方法';
+
+  @override
   String get runningCoachEvidenceInsufficientTitle => 'このクリップを撮り直してください';
 
   @override
@@ -8722,6 +8725,11 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String runningCoachEvidenceTimestamp(Object time) {
     return '根拠フレーム $time';
+  }
+
+  @override
+  String runningCoachEvidenceFrameSummary(Object frame, Object value) {
+    return '$frame: $value';
   }
 
   @override
@@ -8763,20 +8771,20 @@ class AppLocalizationsJa extends AppLocalizations {
       '青い目標は動画に重ねた姿勢ではなく、次の一歩で合わせる方向です。';
 
   @override
-  String get runningCoachGoalMotionTitle => '現在と目標を比較';
+  String get runningCoachGoalMotionTitle => '今の姿勢と次の動き';
 
   @override
-  String get runningCoachGoalMotionBody => '左は測定された現在の関節、右は次の動きの目標方向です。';
+  String get runningCoachGoalMotionBody => '左は今の姿勢、右は次に試す動きです。';
 
   @override
-  String get runningCoachGoalMotionActualLabel => '現在のフォーム';
+  String get runningCoachGoalMotionActualLabel => '今の姿勢';
 
   @override
-  String get runningCoachGoalMotionTargetLabel => '目標の動き';
+  String get runningCoachGoalMotionTargetLabel => '次の動き';
 
   @override
   String get runningCoachGoalMotionFootnote =>
-      '右側は関節座標から作ったコーチング目標であり、2本目の動画測定値ではありません。';
+      '右のガイドは、あなたの動画で測定した関節位置から作った次の動きの目標です。';
 
   @override
   String get runningCoachGoalMotionPlay => '目標の動きを再生';
@@ -10250,6 +10258,10 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get runningCoachAnalysisQualityStrongSummary =>
+      '次の目標を決めるのに十分な根拠があります。';
+
+  @override
   String get runningCoachAnalysisQualityLimited => '一部の測定値は参考として確認してください';
 
   @override
@@ -10258,11 +10270,18 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get runningCoachAnalysisQualityLimitedSummary =>
+      '一部の姿勢項目は参考として確認してください。';
+
+  @override
   String get runningCoachAnalysisQualityRetake => '撮り直しをおすすめします';
 
   @override
   String get runningCoachAnalysisQualityRetakeBody =>
       '関節または着地の根拠が不足しており、この動画から信頼できる目標を決められません。';
+
+  @override
+  String get runningCoachAnalysisQualityDetailsTitle => '測定値を詳しく見る';
 
   @override
   String get runningCoachVerifiedContactsLabel => '検証済みの着地';
@@ -10274,7 +10293,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachNextGoalTitle => '次の目標';
 
   @override
-  String get runningCoachNextGoalRepeat => '次の3回は、この動きだけを意識してください。';
+  String get runningCoachNextGoalRepeat => '次の3回は、これだけを意識してください。';
 
   @override
   String get runningCoachResultNextRunCueLabel => '次のランで行うこと';
@@ -10291,7 +10310,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachResultDetailsTitle => '詳しい分析';
 
   @override
-  String get runningCoachReportDetailsBody => '必要なときだけ、すべての測定値と関節根拠を開いて確認できます。';
+  String get runningCoachReportDetailsBody => '必要なときだけ、5つの姿勢項目を確認できます。';
 
   @override
   String get runningCoachAnalysisHistoryTitle => 'コーチング分析履歴';
