@@ -45,6 +45,86 @@ void main() {
     image.dispose();
   });
 
+  test('renders a sports runner avatar from measured pose joints', () async {
+    final recorder = PictureRecorder();
+    final canvas = Canvas(recorder);
+
+    paintRunningPoseHumanForm(
+      canvas,
+      points: _humanFormPoints,
+      canvasSize: const Size(240, 360),
+      style: runningPoseSportsAvatarStyle(
+        accentColor: const Color(0xFF2E7CF6),
+        secondaryAccent: const Color(0xFF87B9FF),
+        focusColor: const Color(0xFFFF646B),
+        jointColor: const Color(0xFFF8FBFF),
+      ),
+      focusIndices: const <int>{23, 25, 27},
+    );
+
+    final image = await recorder.endRecording().toImage(240, 360);
+    final bytes = await image.toByteData(format: ImageByteFormat.rawRgba);
+
+    expect(bytes, isNotNull);
+    final pixels = bytes!.buffer.asUint8List();
+    final paintedPixels = <int>[
+      for (var offset = 3; offset < pixels.length; offset += 4)
+        if (pixels[offset] > 0) pixels[offset],
+    ];
+    expect(paintedPixels.length, greaterThan(3000));
+    expect(_alphaAt(pixels, 240, 97, 119), greaterThan(160));
+    for (final index in <int>[11, 12, 23, 24, 25, 26, 27, 28]) {
+      final point = _humanFormPoints[index]!;
+      expect(
+        _alphaAt(pixels, 240, point.dx.round(), point.dy.round()),
+        greaterThan(0),
+        reason: 'Measured joint $index must anchor the runner avatar.',
+      );
+    }
+    image.dispose();
+  });
+
+  test('keeps the runner avatar readable for a narrow side profile', () async {
+    final recorder = PictureRecorder();
+    final canvas = Canvas(recorder);
+
+    paintRunningPoseHumanForm(
+      canvas,
+      points: _sideProfileHumanFormPoints,
+      canvasSize: const Size(240, 360),
+      style: runningPoseSportsAvatarStyle(
+        accentColor: const Color(0xFF2E7CF6),
+        secondaryAccent: const Color(0xFF87B9FF),
+        focusColor: const Color(0xFFFF646B),
+        jointColor: const Color(0xFFF8FBFF),
+      ),
+    );
+
+    final image = await recorder.endRecording().toImage(240, 360);
+    final bytes = await image.toByteData(format: ImageByteFormat.rawRgba);
+
+    expect(bytes, isNotNull);
+    final pixels = bytes!.buffer.asUint8List();
+    final paintedPixels = <int>[
+      for (var offset = 3; offset < pixels.length; offset += 4)
+        if (pixels[offset] > 0) pixels[offset],
+    ];
+    expect(paintedPixels.length, greaterThan(2800));
+    // The paired shoulder points are only two pixels apart. This pixel sits
+    // inside the rendered shirt, proving that the side-profile silhouette did
+    // not collapse to a landmark line.
+    expect(_alphaAt(pixels, 240, 118, 140), greaterThan(0));
+    for (final index in <int>[11, 12, 23, 24, 25, 26, 27, 28]) {
+      final point = _sideProfileHumanFormPoints[index]!;
+      expect(
+        _alphaAt(pixels, 240, point.dx.round(), point.dy.round()),
+        greaterThan(0),
+        reason: 'Measured joint $index must remain an avatar anchor.',
+      );
+    }
+    image.dispose();
+  });
+
   test('interpolates adjacent pose frames by video timestamp', () {
     final frames = [
       _poseFrame(timestampMs: 0, x: 0.20, confidence: 0.9),
@@ -150,6 +230,28 @@ const Map<int, Offset> _humanFormPoints = <int, Offset>{
   30: Offset(170, 324),
   31: Offset(92, 338),
   32: Offset(204, 326),
+};
+
+const Map<int, Offset> _sideProfileHumanFormPoints = <int, Offset>{
+  0: Offset(128, 43),
+  7: Offset(125, 52),
+  8: Offset(131, 52),
+  11: Offset(127, 96),
+  12: Offset(129, 96),
+  13: Offset(106, 136),
+  14: Offset(150, 132),
+  15: Offset(92, 110),
+  16: Offset(176, 160),
+  23: Offset(127, 188),
+  24: Offset(129, 188),
+  25: Offset(104, 250),
+  26: Offset(152, 234),
+  27: Offset(74, 320),
+  28: Offset(176, 314),
+  29: Offset(64, 328),
+  30: Offset(166, 321),
+  31: Offset(98, 332),
+  32: Offset(201, 318),
 };
 
 RunningPoseFrame _poseFrame({

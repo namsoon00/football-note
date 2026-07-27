@@ -4,7 +4,6 @@ import 'dart:ui';
 import '../../domain/entities/running_video_analysis_result.dart';
 
 const double runningPoseOverlayMinimumJointConfidence = 0.18;
-const double runningPoseOverlayMinimumConnectionConfidence = 0.24;
 
 enum RunningPoseOverlayPresentation { refinedJoints, sportsAvatar }
 
@@ -47,6 +46,42 @@ class RunningPoseHumanFormStyle {
   Color get resolvedShortsColor => shortsColor ?? resolvedApparelColor;
   Color get resolvedShoeColor => shoeColor ?? rightSideColor;
   Color get resolvedHairColor => hairColor ?? leftSideColor;
+}
+
+/// Builds a neutral performance-running kit that remains anchored to the
+/// measured pose. It deliberately uses a technical mannequin palette rather
+/// than skin-tone rendering, so the visual communicates movement without
+/// implying an identity or body shape the camera did not observe.
+RunningPoseHumanFormStyle runningPoseSportsAvatarStyle({
+  required Color accentColor,
+  required Color secondaryAccent,
+  required Color focusColor,
+  required Color jointColor,
+  double opacity = 1,
+}) {
+  final apparelColor = Color.lerp(
+    accentColor,
+    const Color(0xFF182435),
+    0.42,
+  )!;
+  return RunningPoseHumanFormStyle(
+    bodyColor: apparelColor,
+    leftSideColor: Color.lerp(secondaryAccent, jointColor, 0.22)!,
+    rightSideColor: accentColor,
+    jointColor: jointColor,
+    focusColor: focusColor,
+    skinColor: Color.lerp(apparelColor, jointColor, 0.18)!,
+    apparelColor: apparelColor,
+    shortsColor: Color.lerp(
+      apparelColor,
+      const Color(0xFF0B1220),
+      0.62,
+    )!,
+    shoeColor: Color.lerp(accentColor, jointColor, 0.24)!,
+    hairColor: Color.lerp(apparelColor, const Color(0xFF0B1220), 0.72)!,
+    presentation: RunningPoseOverlayPresentation.sportsAvatar,
+    opacity: opacity,
+  );
 }
 
 /// Paints a refined joint overlay from MediaPipe's measured points.
@@ -539,19 +574,15 @@ void _drawHumanTorso(
   double opacity,
   Set<int> focusIndices,
 ) {
-  final leftShoulder = points[11];
-  final rightShoulder = points[12];
-  final leftHip = points[23];
-  final rightHip = points[24];
-  if (leftShoulder == null ||
-      rightShoulder == null ||
-      leftHip == null ||
-      rightHip == null) {
-    return;
-  }
+  final torsoFrame = _avatarTorsoFrame(points, bodyScale);
+  if (torsoFrame == null) return;
 
-  final shoulderCenter = _humanMidpoint(leftShoulder, rightShoulder);
-  final hipCenter = _humanMidpoint(leftHip, rightHip);
+  final leftShoulder = torsoFrame.leftShoulder;
+  final rightShoulder = torsoFrame.rightShoulder;
+  final leftHip = torsoFrame.leftHip;
+  final rightHip = torsoFrame.rightHip;
+  final shoulderCenter = torsoFrame.shoulderCenter;
+  final hipCenter = torsoFrame.hipCenter;
   final isFocused = const <int>{11, 12, 23, 24}.any(focusIndices.contains);
   final torsoColor = style.resolvedApparelColor;
   final contourColor = isFocused ? style.focusColor : style.jointColor;
@@ -688,18 +719,25 @@ void _drawHumanShorts(
   RunningPoseHumanFormStyle style,
   double opacity,
 ) {
-  final leftHip = points[23];
-  final rightHip = points[24];
+  final measuredLeftHip = points[23];
+  final measuredRightHip = points[24];
   final leftKnee = points[25];
   final rightKnee = points[26];
-  if (leftHip == null ||
-      rightHip == null ||
+  if (measuredLeftHip == null ||
+      measuredRightHip == null ||
       leftKnee == null ||
       rightKnee == null) {
     return;
   }
 
-  final hipCenter = _humanMidpoint(leftHip, rightHip);
+  // In a true side view, MediaPipe's paired hip landmarks can land only a
+  // few pixels apart. Keep the measured hip centre but use the same visual
+  // torso width as the shirt, so the kit does not collapse into a line.
+  final torsoFrame = _avatarTorsoFrame(points, bodyScale);
+  final leftHip = torsoFrame?.leftHip ?? measuredLeftHip;
+  final rightHip = torsoFrame?.rightHip ?? measuredRightHip;
+  final hipCenter = torsoFrame?.hipCenter ??
+      _humanMidpoint(measuredLeftHip, measuredRightHip);
   final kneeCenter = _humanMidpoint(leftKnee, rightKnee);
   final axis = _humanUnitVector(kneeCenter - hipCenter);
   final leftHem = _humanLerp(leftHip, leftKnee, 0.26);
@@ -852,8 +890,8 @@ void _drawHumanHead(
   // or blurred frame. Limit only the avatar connector so the head and neck do
   // not become detached; the coaching metrics keep the original landmarks.
   final maxHeadCenterDistance = math.max(
-    headHeight * 0.84,
-    torsoLength * 0.34,
+    headHeight * 0.76,
+    torsoLength * 0.30,
   );
   final center = rawHeadDistance > maxHeadCenterDistance
       ? shoulderCenter +
@@ -868,98 +906,15 @@ void _drawHumanHead(
   final headSide = _humanPerpendicular(headAxis);
   final halfWidth = headWidth / 2;
   final halfHeight = headHeight / 2;
-  final crown = center + _humanScale(headAxis, halfHeight * 0.90);
-  final leftTemple = center +
-      _humanScale(headAxis, halfHeight * 0.13) +
-      _humanScale(headSide, halfWidth * 0.94);
-  final leftJaw = center -
-      _humanScale(headAxis, halfHeight * 0.24) +
-      _humanScale(headSide, halfWidth * 0.78);
-  final chin = center - _humanScale(headAxis, halfHeight * 0.70);
-  final rightJaw = center -
-      _humanScale(headAxis, halfHeight * 0.24) -
-      _humanScale(headSide, halfWidth * 0.78);
-  final rightTemple = center +
-      _humanScale(headAxis, halfHeight * 0.13) -
-      _humanScale(headSide, halfWidth * 0.94);
-  final crownLeft = crown + _humanScale(headSide, halfWidth * 0.68);
-  final crownRight = crown - _humanScale(headSide, halfWidth * 0.68);
-  final headPath = Path()
-    ..moveTo(crown.dx, crown.dy)
-    ..cubicTo(
-      crownLeft.dx,
-      crownLeft.dy,
-      leftTemple.dx,
-      leftTemple.dy,
-      leftJaw.dx,
-      leftJaw.dy,
-    )
-    ..quadraticBezierTo(chin.dx, chin.dy, rightJaw.dx, rightJaw.dy)
-    ..cubicTo(
-      rightTemple.dx,
-      rightTemple.dy,
-      crownRight.dx,
-      crownRight.dy,
-      crown.dx,
-      crown.dy,
-    )
-    ..close();
-  final hairLeft = center +
-      _humanScale(headAxis, halfHeight * 0.015) +
-      _humanScale(headSide, halfWidth * 0.84);
-  final hairRight = center +
-      _humanScale(headAxis, halfHeight * 0.015) -
-      _humanScale(headSide, halfWidth * 0.84);
-  final hairPath = Path()
-    ..moveTo(crown.dx, crown.dy)
-    ..quadraticBezierTo(leftTemple.dx, leftTemple.dy, hairLeft.dx, hairLeft.dy)
-    ..quadraticBezierTo(
-      (center + _humanScale(headAxis, halfHeight * 0.12)).dx,
-      (center + _humanScale(headAxis, halfHeight * 0.12)).dy,
-      hairRight.dx,
-      hairRight.dy,
-    )
-    ..quadraticBezierTo(
-      rightTemple.dx,
-      rightTemple.dy,
-      crown.dx,
-      crown.dy,
-    )
-    ..close();
 
-  final neckTop = center - _humanScale(headAxis, halfHeight * 0.48);
-  final neckBase = shoulderCenter + _humanScale(headAxis, bodyScale * 0.012);
+  final neckTop = center - _humanScale(headAxis, halfHeight * 0.44);
+  final neckBase = shoulderCenter + _humanScale(headAxis, bodyScale * 0.020);
   final neckPath = _humanTaperedPath(
     neckBase,
     neckTop,
-    (bodyScale * 0.054).clamp(3.0, 10.0).toDouble(),
-    (bodyScale * 0.039).clamp(2.3, 7.4).toDouble(),
+    (bodyScale * 0.048).clamp(2.8, 9.0).toDouble(),
+    (bodyScale * 0.034).clamp(2.1, 6.6).toDouble(),
   );
-  final earRadius = (headWidth * 0.12).clamp(2.0, 7.0).toDouble();
-  final leftEarCenter = center -
-      _humanScale(headAxis, halfHeight * 0.03) +
-      _humanScale(headSide, halfWidth * 0.91);
-  final rightEarCenter = center -
-      _humanScale(headAxis, halfHeight * 0.03) -
-      _humanScale(headSide, halfWidth * 0.91);
-  for (final ear in <Offset>[leftEarCenter, rightEarCenter]) {
-    canvas.drawCircle(
-      ear,
-      earRadius,
-      Paint()
-        ..color =
-            _humanDarken(skinColor, 0.05).withValues(alpha: 0.86 * opacity)
-        ..style = PaintingStyle.fill,
-    );
-    canvas.drawCircle(
-      ear,
-      earRadius,
-      Paint()
-        ..color = style.jointColor.withValues(alpha: 0.18 * opacity)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = (bodyScale * 0.0035).clamp(0.35, 0.8),
-    );
-  }
   canvas.drawPath(
     neckPath,
     Paint()
@@ -980,34 +935,74 @@ void _drawHumanHead(
       ..style = PaintingStyle.stroke
       ..strokeWidth = (bodyScale * 0.005).clamp(0.6, 1.2),
   );
+  final rotation = math.atan2(headAxis.dx, -headAxis.dy);
+  canvas.save();
+  canvas.translate(center.dx, center.dy);
+  canvas.rotate(rotation);
+  final headRect = Rect.fromCenter(
+    center: Offset.zero,
+    width: headWidth,
+    height: headHeight,
+  );
+  canvas.drawOval(
+    headRect,
+    Paint()
+      ..shader = Gradient.radial(
+        Offset(-halfWidth * 0.20, -halfHeight * 0.24),
+        headWidth,
+        <Color>[
+          _humanLighten(skinColor, 0.14).withValues(alpha: 0.98 * opacity),
+          skinColor.withValues(alpha: 0.92 * opacity),
+          _humanDarken(skinColor, 0.12).withValues(alpha: 0.82 * opacity),
+        ],
+        const <double>[0, 0.54, 1],
+      )
+      ..style = PaintingStyle.fill,
+  );
+  final cap = Path()
+    ..moveTo(-halfWidth * 0.88, -halfHeight * 0.12)
+    ..quadraticBezierTo(
+      -halfWidth * 0.64,
+      -halfHeight * 0.88,
+      0,
+      -halfHeight * 0.92,
+    )
+    ..quadraticBezierTo(
+      halfWidth * 0.64,
+      -halfHeight * 0.88,
+      halfWidth * 0.88,
+      -halfHeight * 0.12,
+    )
+    ..quadraticBezierTo(
+      0,
+      halfHeight * 0.05,
+      -halfWidth * 0.88,
+      -halfHeight * 0.12,
+    )
+    ..close();
   canvas.drawPath(
-    headPath,
+    cap,
     Paint()
       ..shader = Gradient.linear(
-        leftTemple,
-        rightTemple,
+        Offset(-halfWidth, -halfHeight * 0.35),
+        Offset(halfWidth, -halfHeight * 0.35),
         <Color>[
-          _humanLighten(skinColor, 0.12).withValues(alpha: 0.98 * opacity),
-          skinColor.withValues(alpha: 0.92 * opacity),
-          _humanDarken(skinColor, 0.11).withValues(alpha: 0.80 * opacity),
+          _humanLighten(hairColor, 0.12).withValues(alpha: 0.90 * opacity),
+          hairColor.withValues(alpha: 0.92 * opacity),
+          _humanDarken(hairColor, 0.16).withValues(alpha: 0.88 * opacity),
         ],
         const <double>[0, 0.52, 1],
       )
       ..style = PaintingStyle.fill,
   );
-  canvas.drawPath(
-    hairPath,
+  canvas.drawOval(
+    headRect,
     Paint()
-      ..color = hairColor.withValues(alpha: 0.88 * opacity)
-      ..style = PaintingStyle.fill,
-  );
-  canvas.drawPath(
-    headPath,
-    Paint()
-      ..color = style.jointColor.withValues(alpha: 0.30 * opacity)
+      ..color = style.jointColor.withValues(alpha: 0.28 * opacity)
       ..style = PaintingStyle.stroke
       ..strokeWidth = (bodyScale * 0.006).clamp(0.65, 1.5),
   );
+  canvas.restore();
 }
 
 void _drawHumanLimbs(
@@ -1405,6 +1400,104 @@ Path _humanTaperedPath(
     ..quadraticBezierTo(fromCap.dx, fromCap.dy, fromUpper.dx, fromUpper.dy)
     ..close();
 }
+
+/// Holds the visual body envelope used by the avatar's shirt and shorts.
+///
+/// The centres remain the exact midpoint of the measured landmark pairs. For
+/// a narrow side profile, the visible outer edge is expanded along the torso's
+/// lateral axis only. Arms, legs, feet, focus markers, and all measurements
+/// continue to use their unmodified MediaPipe coordinates.
+class _AvatarTorsoFrame {
+  final Offset shoulderCenter;
+  final Offset hipCenter;
+  final Offset leftShoulder;
+  final Offset rightShoulder;
+  final Offset leftHip;
+  final Offset rightHip;
+
+  const _AvatarTorsoFrame({
+    required this.shoulderCenter,
+    required this.hipCenter,
+    required this.leftShoulder,
+    required this.rightShoulder,
+    required this.leftHip,
+    required this.rightHip,
+  });
+}
+
+_AvatarTorsoFrame? _avatarTorsoFrame(
+  Map<int, Offset> points,
+  double bodyScale,
+) {
+  final measuredLeftShoulder = points[11];
+  final measuredRightShoulder = points[12];
+  final measuredLeftHip = points[23];
+  final measuredRightHip = points[24];
+  if (measuredLeftShoulder == null ||
+      measuredRightShoulder == null ||
+      measuredLeftHip == null ||
+      measuredRightHip == null) {
+    return null;
+  }
+
+  final shoulderCenter =
+      _humanMidpoint(measuredLeftShoulder, measuredRightShoulder);
+  final hipCenter = _humanMidpoint(measuredLeftHip, measuredRightHip);
+  final torsoAxis = _humanUnitVector(hipCenter - shoulderCenter);
+  final fallbackSide = _humanPerpendicular(torsoAxis);
+  final shoulderLateral = _humanLateralVector(
+    measuredLeftShoulder - measuredRightShoulder,
+    torsoAxis,
+  );
+  final hipLateral = _humanLateralVector(
+    measuredLeftHip - measuredRightHip,
+    torsoAxis,
+  );
+  final measuredSide = shoulderLateral.distance >= hipLateral.distance
+      ? shoulderLateral
+      : hipLateral;
+  final minMeasuredSide = (bodyScale * 0.045).clamp(4.0, 9.0).toDouble();
+  final side = measuredSide.distance >= minMeasuredSide
+      ? _humanUnitVector(measuredSide)
+      : fallbackSide;
+
+  final measuredShoulderHalfSpan = _humanProjectedDistance(
+    measuredLeftShoulder,
+    shoulderCenter,
+    side,
+  );
+  final measuredHipHalfSpan = _humanProjectedDistance(
+    measuredLeftHip,
+    hipCenter,
+    side,
+  );
+  final shoulderHalfSpan = math.max(
+    measuredShoulderHalfSpan,
+    (bodyScale * 0.118).clamp(9.0, 28.0).toDouble(),
+  );
+  final hipHalfSpan = math.max(
+    measuredHipHalfSpan,
+    (bodyScale * 0.088).clamp(7.0, 22.0).toDouble(),
+  );
+
+  return _AvatarTorsoFrame(
+    shoulderCenter: shoulderCenter,
+    hipCenter: hipCenter,
+    leftShoulder: shoulderCenter + _humanScale(side, shoulderHalfSpan),
+    rightShoulder: shoulderCenter - _humanScale(side, shoulderHalfSpan),
+    leftHip: hipCenter + _humanScale(side, hipHalfSpan),
+    rightHip: hipCenter - _humanScale(side, hipHalfSpan),
+  );
+}
+
+Offset _humanLateralVector(Offset vector, Offset torsoAxis) =>
+    vector - _humanScale(torsoAxis, _humanDot(vector, torsoAxis));
+
+double _humanProjectedDistance(Offset point, Offset center, Offset axis) =>
+    _humanDot(point - center, axis).abs();
+
+double _humanDot(Offset first, Offset second) =>
+    (first.dx * second.dx) + (first.dy * second.dy);
 
 double _humanBodyScale(Map<int, Offset> points, Size canvasSize) {
   final shoulderCenter = _humanMidpointFor(points, 11, 12);

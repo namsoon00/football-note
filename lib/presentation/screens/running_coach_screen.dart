@@ -2668,7 +2668,7 @@ class _RunningPoseOverlayPainter extends CustomPainter {
   final RunningCoachFinding? finding;
   final RunningDirection direction;
   final bool useContainFit;
-  final bool showRawPose;
+  final bool showRunnerAvatar;
 
   const _RunningPoseOverlayPainter({
     required this.poseFrame,
@@ -2680,7 +2680,7 @@ class _RunningPoseOverlayPainter extends CustomPainter {
     this.finding,
     this.direction = RunningDirection.stationary,
     this.useContainFit = false,
-    this.showRawPose = false,
+    this.showRunnerAvatar = false,
   });
 
   @override
@@ -2688,20 +2688,8 @@ class _RunningPoseOverlayPainter extends CustomPainter {
     final frame = poseFrame;
     if (frame == null) return;
 
-    if (showRawPose) {
+    if (showRunnerAvatar) {
       _drawHumanForm(canvas, size, frame);
-      for (final connection in _mediaPipePoseConnections) {
-        if (connection.kind == _PoseConnectionKind.face ||
-            connection.kind == _PoseConnectionKind.hand) {
-          _drawConnection(canvas, size, frame, connection);
-        }
-      }
-      for (final landmark in frame.landmarks) {
-        if (landmark.index <= 10 ||
-            landmark.index >= 17 && landmark.index <= 22) {
-          _drawLandmark(canvas, size, frame, landmark);
-        }
-      }
     }
     final metric = highlightedMetric;
     if (metric != null) {
@@ -2723,17 +2711,16 @@ class _RunningPoseOverlayPainter extends CustomPainter {
       canvas,
       points: points,
       canvasSize: size,
-      style: RunningPoseHumanFormStyle(
-        bodyColor: Colors.white,
-        leftSideColor: primaryColor,
-        rightSideColor: secondaryColor,
-        jointColor: Colors.white,
+      style: runningPoseSportsAvatarStyle(
+        accentColor: secondaryColor,
+        secondaryAccent: primaryColor,
         focusColor: highlightedMetric == null
             ? contactColor
             : _usesWarningAccent
                 ? warningColor
                 : contactColor,
-        opacity: useContainFit ? 0.88 : 0.76,
+        jointColor: const Color(0xFFF8FBFF),
+        opacity: useContainFit ? 0.64 : 0.56,
       ),
       focusIndices: _focusIndicesForMetric(highlightedMetric),
     );
@@ -2789,7 +2776,6 @@ class _RunningPoseOverlayPainter extends CustomPainter {
           torso.hip + Offset(0, size.shortestSide * 0.055),
           guidePaint,
         );
-        canvas.drawLine(torso.hip, torso.shoulder, accentPaint);
         _drawMetricArc(
           canvas: canvas,
           center: torso.hip,
@@ -2837,23 +2823,16 @@ class _RunningPoseOverlayPainter extends CustomPainter {
           RRect.fromRectAndRadius(target, const Radius.circular(999)),
           guidePaint,
         );
-        _drawDashedLine(
+        _drawArrow(
           canvas,
-          torso.hip,
-          Offset(torso.hip.dx, groundY),
-          guidePaint,
-        );
-        canvas.drawLine(
-          Offset(torso.hip.dx, groundY),
           leg.toe,
+          target.center,
           accentPaint,
         );
         _drawFocusPoint(canvas, leg.toe, accent, size);
       case RunningCoachMetric.kneeFlexion:
         final leg = _leadLegPoints(size, frame);
         if (leg == null) return;
-        canvas.drawLine(leg.hip, leg.knee, accentPaint);
-        canvas.drawLine(leg.knee, leg.ankle, accentPaint);
         _drawMetricArc(
           canvas: canvas,
           center: leg.knee,
@@ -2866,8 +2845,6 @@ class _RunningPoseOverlayPainter extends CustomPainter {
       case RunningCoachMetric.armCarriage:
         final arm = _leadArmPoints(size, frame);
         if (arm == null) return;
-        canvas.drawLine(arm.shoulder, arm.elbow, accentPaint);
-        canvas.drawLine(arm.elbow, arm.wrist, accentPaint);
         _drawMetricArc(
           canvas: canvas,
           center: arm.elbow,
@@ -3055,96 +3032,17 @@ class _RunningPoseOverlayPainter extends CustomPainter {
     }
   }
 
-  void _drawConnection(
-    Canvas canvas,
-    Size size,
-    RunningPoseFrame frame,
-    _PoseConnection connection,
-  ) {
-    final first = frame.landmarkByIndex(connection.first);
-    final second = frame.landmarkByIndex(connection.second);
-    if (first == null || second == null) return;
-    final confidence = math.min(first.confidence, second.confidence);
-    if (confidence < runningPoseOverlayMinimumConnectionConfidence) return;
-
-    final confidenceT =
-        ((confidence - runningPoseOverlayMinimumConnectionConfidence) /
-                (1.0 - runningPoseOverlayMinimumConnectionConfidence))
-            .clamp(0.0, 1.0)
-            .toDouble();
-    final alpha = _sampleLerpDouble(0.16, 0.48, confidenceT);
-    final width = switch (connection.kind) {
-      _PoseConnectionKind.face => size.shortestSide * 0.0048,
-      _PoseConnectionKind.hand ||
-      _PoseConnectionKind.foot =>
-        size.shortestSide * 0.0054,
-      _PoseConnectionKind.torso => size.shortestSide * 0.0074,
-      _ => size.shortestSide * 0.0064,
-    };
-    final color = switch (connection.kind) {
-      _PoseConnectionKind.face => secondaryColor,
-      _PoseConnectionKind.arm || _PoseConnectionKind.hand => secondaryColor,
-      _PoseConnectionKind.torso => primaryColor,
-      _PoseConnectionKind.leg || _PoseConnectionKind.foot => contactColor,
-    };
-
-    canvas.drawLine(
-      _coverPoint(size, frame, first),
-      _coverPoint(size, frame, second),
-      Paint()
-        ..color = color.withValues(alpha: alpha)
-        ..strokeWidth = math.max(0.9, width * 0.66)
-        ..strokeCap = StrokeCap.round
-        ..strokeJoin = StrokeJoin.round,
-    );
-  }
-
-  void _drawLandmark(
-    Canvas canvas,
-    Size size,
-    RunningPoseFrame frame,
-    RunningVideoPoseLandmark landmark,
-  ) {
-    if (landmark.confidence < runningPoseOverlayMinimumJointConfidence) {
-      return;
-    }
-    final confidenceT =
-        ((landmark.confidence - runningPoseOverlayMinimumJointConfidence) /
-                (1.0 - runningPoseOverlayMinimumJointConfidence))
-            .clamp(0.0, 1.0)
-            .toDouble();
-    final center = _coverPoint(size, frame, landmark);
-    final radius = _jointRadius(size, landmark.index);
-    final alpha = _sampleLerpDouble(0.18, 0.68, confidenceT);
-    final color = _jointColor(landmark.index);
-    canvas.drawCircle(
-      center,
-      radius * 1.62,
-      Paint()..color = Colors.black.withValues(alpha: 0.18 * alpha),
-    );
-    canvas.drawCircle(
-      center,
-      radius * 1.18,
-      Paint()
-        ..color = Colors.white.withValues(alpha: 0.54 * alpha)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = math.max(1.0, radius * 0.34),
-    );
-    canvas.drawCircle(
-      center,
-      radius,
-      Paint()..color = color.withValues(alpha: alpha),
-    );
-    if (landmark.confidence < 0.45) {
-      canvas.drawCircle(
-        center,
-        radius * 1.55,
-        Paint()
-          ..color = warningColor.withValues(alpha: 0.18)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = math.max(1.0, radius * 0.28),
-      );
-    }
+  void _drawArrow(Canvas canvas, Offset start, Offset end, Paint paint) {
+    final direction = end - start;
+    final distance = direction.distance;
+    if (distance <= 0) return;
+    final unit = direction / distance;
+    final perpendicular = Offset(-unit.dy, unit.dx);
+    const arrowSize = 7.0;
+    canvas.drawLine(start, end, paint);
+    final base = end - unit * arrowSize;
+    canvas.drawLine(end, base + perpendicular * (arrowSize * 0.58), paint);
+    canvas.drawLine(end, base - perpendicular * (arrowSize * 0.58), paint);
   }
 
   Offset _coverPoint(
@@ -3168,20 +3066,6 @@ class _RunningPoseOverlayPainter extends CustomPainter {
     );
   }
 
-  Color _jointColor(int index) {
-    if (index <= 10) return secondaryColor;
-    if (index >= 23) return contactColor;
-    return primaryColor;
-  }
-
-  double _jointRadius(Size size, int index) {
-    final base = size.shortestSide;
-    if (index <= 10 || index >= 17 && index <= 22) {
-      return math.max(2.0, base * 0.0060);
-    }
-    return math.max(2.4, base * 0.0072);
-  }
-
   @override
   bool shouldRepaint(covariant _RunningPoseOverlayPainter oldDelegate) {
     return oldDelegate.poseFrame != poseFrame ||
@@ -3193,55 +3077,9 @@ class _RunningPoseOverlayPainter extends CustomPainter {
         oldDelegate.finding != finding ||
         oldDelegate.direction != direction ||
         oldDelegate.useContainFit != useContainFit ||
-        oldDelegate.showRawPose != showRawPose;
+        oldDelegate.showRunnerAvatar != showRunnerAvatar;
   }
 }
-
-enum _PoseConnectionKind { face, arm, hand, torso, leg, foot }
-
-class _PoseConnection {
-  final int first;
-  final int second;
-  final _PoseConnectionKind kind;
-
-  const _PoseConnection(this.first, this.second, this.kind);
-}
-
-const _mediaPipePoseConnections = <_PoseConnection>[
-  _PoseConnection(0, 2, _PoseConnectionKind.face),
-  _PoseConnection(0, 5, _PoseConnectionKind.face),
-  _PoseConnection(2, 7, _PoseConnectionKind.face),
-  _PoseConnection(5, 8, _PoseConnectionKind.face),
-  _PoseConnection(9, 10, _PoseConnectionKind.face),
-  _PoseConnection(11, 12, _PoseConnectionKind.torso),
-  _PoseConnection(11, 23, _PoseConnectionKind.torso),
-  _PoseConnection(12, 24, _PoseConnectionKind.torso),
-  _PoseConnection(23, 24, _PoseConnectionKind.torso),
-  _PoseConnection(11, 13, _PoseConnectionKind.arm),
-  _PoseConnection(13, 15, _PoseConnectionKind.arm),
-  _PoseConnection(15, 17, _PoseConnectionKind.hand),
-  _PoseConnection(15, 19, _PoseConnectionKind.hand),
-  _PoseConnection(15, 21, _PoseConnectionKind.hand),
-  _PoseConnection(17, 19, _PoseConnectionKind.hand),
-  _PoseConnection(12, 14, _PoseConnectionKind.arm),
-  _PoseConnection(14, 16, _PoseConnectionKind.arm),
-  _PoseConnection(16, 18, _PoseConnectionKind.hand),
-  _PoseConnection(16, 20, _PoseConnectionKind.hand),
-  _PoseConnection(16, 22, _PoseConnectionKind.hand),
-  _PoseConnection(18, 20, _PoseConnectionKind.hand),
-  _PoseConnection(23, 25, _PoseConnectionKind.leg),
-  _PoseConnection(25, 27, _PoseConnectionKind.leg),
-  _PoseConnection(27, 29, _PoseConnectionKind.foot),
-  _PoseConnection(29, 31, _PoseConnectionKind.foot),
-  _PoseConnection(27, 31, _PoseConnectionKind.foot),
-  _PoseConnection(24, 26, _PoseConnectionKind.leg),
-  _PoseConnection(26, 28, _PoseConnectionKind.leg),
-  _PoseConnection(28, 30, _PoseConnectionKind.foot),
-  _PoseConnection(30, 32, _PoseConnectionKind.foot),
-  _PoseConnection(28, 32, _PoseConnectionKind.foot),
-];
-
-double _sampleLerpDouble(double a, double b, double t) => a + ((b - a) * t);
 
 class _SampleVideoRunnerGeometry {
   final Size size;
@@ -5438,15 +5276,19 @@ class _EvidenceVideoPreview extends StatelessWidget {
                               ),
                               painter: _RunningPoseOverlayPainter(
                                 poseFrame: poseFrame,
-                                primaryColor: actualAccent,
-                                secondaryColor: actualAccent,
-                                contactColor: actualAccent,
+                                primaryColor: scheme.primary,
+                                secondaryColor: Color.lerp(
+                                  scheme.primary,
+                                  scheme.tertiary,
+                                  0.34,
+                                )!,
+                                contactColor: scheme.tertiary,
                                 warningColor: actualAccent,
                                 highlightedMetric: insight.metric,
                                 finding: insight.finding,
                                 direction: result.direction,
                                 useContainFit: true,
-                                showRawPose: false,
+                                showRunnerAvatar: true,
                               ),
                             );
                           },
@@ -5980,14 +5822,13 @@ class _PoseGoalMotionPainter extends CustomPainter {
       points: points,
       canvasSize: size,
       focusIndices: _focusIndices,
-      style: RunningPoseHumanFormStyle(
-        bodyColor: Color.lerp(accent, surfaceColor, 0.62)!,
-        leftSideColor: Color.lerp(accent, surfaceColor, 0.16)!,
-        rightSideColor: accent,
+      style: runningPoseSportsAvatarStyle(
+        accentColor: accent,
+        secondaryAccent: Color.lerp(accent, surfaceColor, 0.16)!,
+        focusColor: accent,
         jointColor: surfaceColor.computeLuminance() > 0.5
             ? Colors.white
             : const Color(0xFFF8FBFF),
-        focusColor: accent,
         opacity: opacity,
       ),
     );
@@ -7631,16 +7472,11 @@ class _MeasuredPoseMovementMapPainter extends CustomPainter {
       canvas,
       points: points,
       canvasSize: size,
-      style: RunningPoseHumanFormStyle(
-        bodyColor: Color.lerp(
-          currentAccent,
-          const Color(0xFFF8FBFF),
-          0.48,
-        )!,
-        leftSideColor: currentAccent,
-        rightSideColor: currentAccent,
+      style: runningPoseSportsAvatarStyle(
+        accentColor: currentAccent,
+        secondaryAccent: targetAccent,
+        focusColor: targetAccent,
         jointColor: const Color(0xFFF8FBFF),
-        focusColor: currentAccent,
       ),
     );
   }
