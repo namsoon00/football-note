@@ -892,8 +892,27 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Next goal'), findsOneWidget);
-    expect(find.text('For your next three runs, focus on this one movement.'),
-        findsOneWidget);
+    expect(
+      find.text('For your next three runs, focus only on this.'),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('running-coach-beginner-action-drill')),
+      findsOneWidget,
+    );
+    final qualityDetails = find.byKey(
+      const ValueKey('running-coach-analysis-quality-details'),
+    );
+    expect(qualityDetails, findsOneWidget);
+    expect(find.text('Frames analyzed'), findsNothing);
+    await tester.scrollUntilVisible(
+      qualityDetails,
+      -220,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(qualityDetails);
+    await tester.pump(const Duration(milliseconds: 250));
+    expect(find.text('Frames analyzed'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -1108,20 +1127,20 @@ void main() {
       findsOneWidget,
     );
     expect(
-      find.text(
-        'The red guide marks only the body area used for this coaching call.',
-      ),
+      find.byKey(const ValueKey('running-coach-evidence-details')),
       findsOneWidget,
     );
     expect(
-      find.text('Measurement in this frame'),
-      findsOneWidget,
+      find.text(
+        'The red guide marks only the body area used for this coaching call.',
+      ),
+      findsNothing,
     );
     expect(
       find.byKey(const ValueKey('running-coach-evidence-pose-transition')),
       findsOneWidget,
     );
-    expect(find.text('Compare current and goal'), findsOneWidget);
+    expect(find.text('My form and next movement'), findsOneWidget);
     expect(
       find.byKey(const ValueKey('running-coach-goal-motion')),
       findsOneWidget,
@@ -1130,8 +1149,8 @@ void main() {
       find.byKey(const ValueKey('running-coach-goal-motion-toggle')),
       findsOneWidget,
     );
-    expect(find.text('Current form'), findsOneWidget);
-    expect(find.text('Goal movement'), findsOneWidget);
+    expect(find.text('My form'), findsOneWidget);
+    expect(find.text('Next move'), findsOneWidget);
     expect(find.text('Evidence 1/2'), findsOneWidget);
     expect(tester.takeException(), isNull);
 
@@ -1145,7 +1164,19 @@ void main() {
     await tester.pump();
 
     expect(find.text('Evidence 2/2'), findsOneWidget);
+    final evidenceDetails = find.byKey(
+      const ValueKey('running-coach-evidence-details'),
+    );
+    await tester.ensureVisible(evidenceDetails);
+    await tester.tap(evidenceDetails);
+    await tester.pump(const Duration(milliseconds: 250));
     expect(find.text('What I saw'), findsOneWidget);
+    expect(
+      find.text(
+        'The red guide marks only the body area used for this coaching call.',
+      ),
+      findsOneWidget,
+    );
     expect(tester.takeException(), isNull);
   });
 

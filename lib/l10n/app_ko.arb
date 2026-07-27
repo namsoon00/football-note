@@ -4998,6 +4998,7 @@
   "runningCoachDenseContactUnavailable": "검증된 접지 없음",
   "runningCoachEvidenceTitle": "내 영상의 근거",
   "runningCoachEvidenceBody": "이 프레임은 분석한 클립에서 가져왔고 선택한 코칭 포인트를 뒷받침합니다.",
+  "runningCoachEvidenceDetailsTitle": "근거와 측정 방식",
   "runningCoachEvidenceInsufficientTitle": "이 클립을 다시 촬영해 주세요",
   "runningCoachEvidenceInsufficientBody": "이 포인트를 판단할 안정 프레임이 부족해 정확한 점수를 보여 주지 않습니다.",
   "runningCoachEvidenceVideoUnavailable": "저장된 영상 파일을 사용할 수 없어요. 분석된 프레임의 자세 오버레이는 보여 줍니다.",
@@ -5006,6 +5007,13 @@
   "@runningCoachEvidenceTimestamp": {
     "placeholders": {
       "time": {}
+    }
+  },
+  "runningCoachEvidenceFrameSummary": "{frame}: {value}",
+  "@runningCoachEvidenceFrameSummary": {
+    "placeholders": {
+      "frame": {},
+      "value": {}
     }
   },
   "runningCoachEvidencePreviousFrame": "이전 근거 프레임",
@@ -5029,11 +5037,11 @@
   "runningCoachEvidenceCurrentOverlayBody": "빨간 선과 표시점은 이번 코칭 판단에 쓴 부위만 보여 줍니다.",
   "runningCoachEvidenceTransitionTitle": "현재에서 다음으로",
   "runningCoachEvidenceTransitionBody": "파란 목표는 영상 위가 아니라 다음 동작에서 맞출 방향이에요.",
-  "runningCoachGoalMotionTitle": "현재와 목표 비교",
-  "runningCoachGoalMotionBody": "왼쪽은 측정된 현재 관절, 오른쪽은 다음 동작의 목표 방향입니다.",
-  "runningCoachGoalMotionActualLabel": "현재 자세",
-  "runningCoachGoalMotionTargetLabel": "목표 움직임",
-  "runningCoachGoalMotionFootnote": "오른쪽은 내 관절 좌표를 바탕으로 만든 코칭 목표이며, 두 번째 영상 측정값은 아니에요.",
+  "runningCoachGoalMotionTitle": "내 자세와 다음 동작",
+  "runningCoachGoalMotionBody": "왼쪽은 내 자세, 오른쪽은 다음에 해 볼 동작이에요.",
+  "runningCoachGoalMotionActualLabel": "내 자세",
+  "runningCoachGoalMotionTargetLabel": "다음 동작",
+  "runningCoachGoalMotionFootnote": "오른쪽 그림은 내 영상에서 측정한 관절 위치를 바탕으로 만든 다음 동작의 목표예요.",
   "runningCoachGoalMotionPlay": "목표 움직임 재생",
   "runningCoachGoalMotionPause": "목표 움직임 일시정지",
   "runningCoachHistoryEvidenceUnavailableTitle": "저장된 관절 근거 없음",
@@ -6072,6 +6080,7 @@
       }
     }
   },
+  "runningCoachAnalysisQualityStrongSummary": "이번 목표를 정할 만큼 근거가 충분해요.",
   "runningCoachAnalysisQualityLimited": "일부 지표만 참고하세요",
   "runningCoachAnalysisQualityLimitedBody": "신뢰할 수 있는 지표는 {count}개예요. 발과 무릎 평가는 근거가 충분할 때만 반영해요.",
   "@runningCoachAnalysisQualityLimitedBody": {
@@ -6081,17 +6090,19 @@
       }
     }
   },
+  "runningCoachAnalysisQualityLimitedSummary": "일부 자세 항목은 참고로만 봐 주세요.",
   "runningCoachAnalysisQualityRetake": "재촬영을 권장해요",
   "runningCoachAnalysisQualityRetakeBody": "관절 또는 착지 근거가 부족해 이번 영상으로는 신뢰할 만한 목표를 정하기 어려워요.",
+  "runningCoachAnalysisQualityDetailsTitle": "측정값 자세히 보기",
   "runningCoachVerifiedContactsLabel": "검증된 착지",
   "runningCoachResultOneChangeTitle": "먼저 한 가지만 바꿔 보세요",
   "runningCoachNextGoalTitle": "다음 목표",
-  "runningCoachNextGoalRepeat": "다음 3번은 이 동작 하나만 의식해 보세요.",
+  "runningCoachNextGoalRepeat": "다음 3번은 이것만 의식해 보세요.",
   "runningCoachResultNextRunCueLabel": "다음 달리기에서 할 동작",
   "runningCoachResultOneChangeBody": "몇 걸음 동안 이 한 가지에만 집중한 뒤 다시 촬영해 변화를 확인해 보세요.",
   "runningCoachResultKeepOneThingBody": "다음 몇 걸음에서도 이 장점을 유지한 뒤 다시 촬영해 계속 잘 되는지 확인해 보세요.",
   "runningCoachResultDetailsTitle": "세부 분석",
-  "runningCoachReportDetailsBody": "모든 측정값과 관절 근거를 필요할 때만 확인하세요.",
+  "runningCoachReportDetailsBody": "필요할 때 5개 자세 항목을 확인하세요.",
   "runningCoachAnalysisHistoryTitle": "코칭 분석 기록",
   "runningCoachAnalysisHistoryBody": "업로드 영상과 실시간 스프린트 세션의 핵심 코칭 포인트와 교정 가이드를 다시 볼 수 있어요.",
   "runningCoachAnalysisHistoryAction": "전체 {count}개",

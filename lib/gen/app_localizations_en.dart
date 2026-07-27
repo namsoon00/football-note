@@ -8940,6 +8940,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'This frame is from the analyzed clip and supports the selected coaching focus.';
 
   @override
+  String get runningCoachEvidenceDetailsTitle => 'Evidence details';
+
+  @override
   String get runningCoachEvidenceInsufficientTitle => 'Retake this clip';
 
   @override
@@ -8957,6 +8960,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String runningCoachEvidenceTimestamp(Object time) {
     return 'Evidence frame $time';
+  }
+
+  @override
+  String runningCoachEvidenceFrameSummary(Object frame, Object value) {
+    return '$frame: $value';
   }
 
   @override
@@ -8999,21 +9007,21 @@ class AppLocalizationsEn extends AppLocalizations {
       'The blue target is the direction to use on your next step, not a pose drawn over the video.';
 
   @override
-  String get runningCoachGoalMotionTitle => 'Compare current and goal';
+  String get runningCoachGoalMotionTitle => 'My form and next movement';
 
   @override
   String get runningCoachGoalMotionBody =>
-      'The left shows measured joints. The right shows the direction for your next movement.';
+      'The left is your form. The right is the movement to try next.';
 
   @override
-  String get runningCoachGoalMotionActualLabel => 'Current form';
+  String get runningCoachGoalMotionActualLabel => 'My form';
 
   @override
-  String get runningCoachGoalMotionTargetLabel => 'Goal movement';
+  String get runningCoachGoalMotionTargetLabel => 'Next move';
 
   @override
   String get runningCoachGoalMotionFootnote =>
-      'The right side is a coaching target built from your joint coordinates, not a second video measurement.';
+      'The right guide is a next-movement goal built from joints measured in your video.';
 
   @override
   String get runningCoachGoalMotionPlay => 'Play goal movement';
@@ -10546,6 +10554,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get runningCoachAnalysisQualityStrongSummary =>
+      'This video has enough reliable evidence to set your next goal.';
+
+  @override
   String get runningCoachAnalysisQualityLimited =>
       'Use some readings as reference';
 
@@ -10555,11 +10567,19 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get runningCoachAnalysisQualityLimitedSummary =>
+      'Some form checks are best used as reference only.';
+
+  @override
   String get runningCoachAnalysisQualityRetake => 'A retake is recommended';
 
   @override
   String get runningCoachAnalysisQualityRetakeBody =>
       'The clip does not contain enough joint or landing evidence to set a reliable goal.';
+
+  @override
+  String get runningCoachAnalysisQualityDetailsTitle =>
+      'View measurement details';
 
   @override
   String get runningCoachVerifiedContactsLabel => 'Verified landings';
@@ -10572,7 +10592,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachNextGoalRepeat =>
-      'For your next three runs, focus on this one movement.';
+      'For your next three runs, focus only on this.';
 
   @override
   String get runningCoachResultNextRunCueLabel => 'On your next run';
@@ -10590,7 +10610,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachReportDetailsBody =>
-      'Open the full measurements and joint evidence only when you need them.';
+      'Open this only when you want to inspect all five form checks.';
 
   @override
   String get runningCoachAnalysisHistoryTitle => 'Coaching analysis history';

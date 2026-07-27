@@ -5042,14 +5042,35 @@ class _BeginnerActionCard extends StatelessWidget {
             ),
             if (!needsRetake) ...[
               const SizedBox(height: 8),
-              Text(
-                copy.drill,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: foreground,
-                      fontWeight: FontWeight.w700,
+              ExpansionTile(
+                key: const ValueKey('running-coach-beginner-action-drill'),
+                tilePadding: EdgeInsets.zero,
+                childrenPadding: const EdgeInsets.only(bottom: 4),
+                leading: Icon(Icons.fitness_center_outlined, color: foreground),
+                iconColor: foreground,
+                collapsedIconColor: foreground,
+                shape: const Border(),
+                collapsedShape: const Border(),
+                visualDensity: VisualDensity.compact,
+                title: Text(
+                  l10n.runningCoachAnalysisGuideDrillLabel,
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: foreground,
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+                children: [
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      copy.drill,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: foreground,
+                            fontWeight: FontWeight.w700,
+                          ),
                     ),
+                  ),
+                ],
               ),
             ],
           ],
@@ -5235,15 +5256,15 @@ class _AnalysisEvidenceCardState extends State<_AnalysisEvidenceCard> {
                                   fontWeight: FontWeight.w900,
                                 ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        isLegacyHistory
-                            ? l10n.runningCoachHistoryEvidenceUnavailableBody
-                            : gate.isReliable
-                                ? l10n.runningCoachEvidenceBody
-                                : l10n.runningCoachEvidenceInsufficientBody,
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
+                      if (isLegacyHistory || !gate.isReliable) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          isLegacyHistory
+                              ? l10n.runningCoachHistoryEvidenceUnavailableBody
+                              : l10n.runningCoachEvidenceInsufficientBody,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -5284,8 +5305,8 @@ class _AnalysisEvidenceCardState extends State<_AnalysisEvidenceCard> {
                 onPlayPause: _togglePlayback,
                 onScrub: _selectNearestEvidenceFrame,
               ),
-              const SizedBox(height: 12),
-              _EvidenceTextPanel(
+              const SizedBox(height: 4),
+              _EvidenceDetailsPanel(
                 copy: copy,
                 timestamp: _selectedFrame.timestamp,
               ),
@@ -5454,111 +5475,31 @@ class _EvidenceFrameCaption extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
     final actualAccent = scheme.error;
-    return Container(
-      key: const ValueKey('running-coach-analysis-evidence-caption'),
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest.withValues(alpha: 0.56),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: scheme.outlineVariant),
-      ),
-      padding: const EdgeInsets.all(10),
-      child: Column(
+    final summary = l10n.runningCoachEvidenceFrameSummary(
+      frame.label(l10n),
+      value,
+    );
+    return Semantics(
+      label: summary,
+      child: Row(
+        key: const ValueKey('running-coach-analysis-evidence-caption'),
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(
-                Icons.radio_button_checked_rounded,
-                size: 18,
-                color: actualAccent,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  l10n.runningCoachEvidenceCurrentOverlayTitle,
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color: actualAccent,
-                        fontWeight: FontWeight.w900,
-                      ),
-                ),
-              ),
-            ],
+          Icon(
+            Icons.radio_button_checked_rounded,
+            size: 18,
+            color: actualAccent,
           ),
-          const SizedBox(height: 5),
-          Text(
-            l10n.runningCoachEvidenceCurrentOverlayBody,
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 6,
-            children: [
-              _EvidenceCaptionPill(
-                icon: Icons.schedule_rounded,
-                color: scheme.primary,
-                label: l10n.runningCoachEvidenceTimestamp(
-                  _formatContactTimestamp(l10n, frame.timestamp),
-                ),
-              ),
-              _EvidenceCaptionPill(
-                icon: Icons.fact_check_outlined,
-                color: actualAccent,
-                label: frame.label(l10n),
-              ),
-              _EvidenceCaptionPill(
-                icon: Icons.straighten_rounded,
-                color: scheme.onSurfaceVariant,
-                label: value,
-              ),
-            ],
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              summary,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+            ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _EvidenceCaptionPill extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-  final String label;
-
-  const _EvidenceCaptionPill({
-    required this.icon,
-    required this.color,
-    required this.label,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: color.withValues(alpha: 0.28)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 15, color: color),
-            const SizedBox(width: 5),
-            Flexible(
-              child: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: color,
-                      fontWeight: FontWeight.w800,
-                    ),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -5719,21 +5660,6 @@ class _EvidencePoseTransitionState extends State<_EvidencePoseTransition>
                       );
                     },
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  widget.copy.cue,
-                  key: const ValueKey('running-coach-goal-motion-cue'),
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  l10n.runningCoachGoalMotionFootnote,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: scheme.onSurfaceVariant,
-                      ),
                 ),
               ],
             ],
@@ -6432,11 +6358,11 @@ class _EvidenceControls extends StatelessWidget {
   }
 }
 
-class _EvidenceTextPanel extends StatelessWidget {
+class _EvidenceDetailsPanel extends StatelessWidget {
   final RunningCoachInsightCopy copy;
   final Duration timestamp;
 
-  const _EvidenceTextPanel({
+  const _EvidenceDetailsPanel({
     required this.copy,
     required this.timestamp,
   });
@@ -6444,7 +6370,23 @@ class _EvidenceTextPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return Column(
+    final scheme = Theme.of(context).colorScheme;
+    return ExpansionTile(
+      key: const ValueKey('running-coach-evidence-details'),
+      tilePadding: EdgeInsets.zero,
+      childrenPadding: const EdgeInsets.only(bottom: 4),
+      leading: Icon(Icons.info_outline_rounded, color: scheme.primary),
+      iconColor: scheme.primary,
+      collapsedIconColor: scheme.primary,
+      shape: const Border(),
+      collapsedShape: const Border(),
+      visualDensity: VisualDensity.compact,
+      title: Text(
+        l10n.runningCoachEvidenceDetailsTitle,
+        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+      ),
       children: [
         _GuideTextRow(
           icon: Icons.visibility_outlined,
@@ -6453,6 +6395,18 @@ class _EvidenceTextPanel extends StatelessWidget {
             copy.title,
             _formatContactTimestamp(l10n, timestamp),
           ),
+        ),
+        const SizedBox(height: 12),
+        _GuideTextRow(
+          icon: Icons.straighten_rounded,
+          label: l10n.runningCoachEvidenceCurrentOverlayTitle,
+          body: l10n.runningCoachEvidenceCurrentOverlayBody,
+        ),
+        const SizedBox(height: 12),
+        _GuideTextRow(
+          icon: Icons.auto_awesome_motion_rounded,
+          label: l10n.runningCoachEvidenceTransitionTitle,
+          body: l10n.runningCoachGoalMotionFootnote,
         ),
       ],
     );
@@ -8944,9 +8898,9 @@ class _ResultsSummaryCard extends StatelessWidget {
     };
     final qualityBody = switch (quality) {
       _AnalysisQualityLevel.strong =>
-        l10n.runningCoachAnalysisQualityStrongBody(reliableMetricCount),
+        l10n.runningCoachAnalysisQualityStrongSummary,
       _AnalysisQualityLevel.limited =>
-        l10n.runningCoachAnalysisQualityLimitedBody(reliableMetricCount),
+        l10n.runningCoachAnalysisQualityLimitedSummary,
       _AnalysisQualityLevel.retake =>
         l10n.runningCoachAnalysisQualityRetakeBody,
     };
@@ -8999,59 +8953,85 @@ class _ResultsSummaryCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 14),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
+            const SizedBox(height: 8),
+            const Divider(height: 1),
+            ExpansionTile(
+              key: const ValueKey('running-coach-analysis-quality-details'),
+              tilePadding: EdgeInsets.zero,
+              childrenPadding: const EdgeInsets.only(top: 8, bottom: 4),
+              leading: Icon(Icons.analytics_outlined, color: qualityColor),
+              iconColor: qualityColor,
+              collapsedIconColor: qualityColor,
+              shape: const Border(),
+              collapsedShape: const Border(),
+              visualDensity: VisualDensity.compact,
+              title: Text(
+                l10n.runningCoachAnalysisQualityDetailsTitle,
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
               children: [
-                _StatChip(
-                  label: l10n.runningCoachFramesAnalyzedLabel,
-                  value: '${result.validFrames}/${result.sampledFrames}',
-                ),
-                _StatChip(
-                  label: l10n.runningCoachVerifiedContactsLabel,
-                  value: '${result.validatedContactFrameTimestamps.length}',
-                ),
-                if (quality != _AnalysisQualityLevel.retake)
-                  _StatChip(
-                    label: l10n.runningCoachOverallScoreLabel,
-                    value: '$score',
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: [
+                      _StatChip(
+                        label: l10n.runningCoachFramesAnalyzedLabel,
+                        value: '${result.validFrames}/${result.sampledFrames}',
+                      ),
+                      _StatChip(
+                        label: l10n.runningCoachVerifiedContactsLabel,
+                        value:
+                            '${result.validatedContactFrameTimestamps.length}',
+                      ),
+                      if (quality != _AnalysisQualityLevel.retake)
+                        _StatChip(
+                          label: l10n.runningCoachOverallScoreLabel,
+                          value: '$score',
+                        ),
+                    ],
                   ),
+                ),
+                if (hasLimitedLowerBodyEvidence) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    key: const ValueKey(
+                      'running-coach-lower-body-evidence-limited',
+                    ),
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.secondaryContainer.withValues(alpha: 0.56),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.all(10),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.info_outline_rounded,
+                          size: 18,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSecondaryContainer,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            l10n.runningCoachLowerBodyEvidenceLimited,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
             ),
-            if (hasLimitedLowerBodyEvidence) ...[
-              const SizedBox(height: 12),
-              Container(
-                key: const ValueKey(
-                  'running-coach-lower-body-evidence-limited',
-                ),
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.secondaryContainer.withValues(alpha: 0.56),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                padding: const EdgeInsets.all(10),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      Icons.info_outline_rounded,
-                      size: 18,
-                      color: Theme.of(context).colorScheme.onSecondaryContainer,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        l10n.runningCoachLowerBodyEvidenceLimited,
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
           ],
         ),
       ),

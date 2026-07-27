@@ -4998,6 +4998,7 @@
   "runningCoachDenseContactUnavailable": "No validated contact",
   "runningCoachEvidenceTitle": "Evidence from your video",
   "runningCoachEvidenceBody": "This frame is from the analyzed clip and supports the selected coaching focus.",
+  "runningCoachEvidenceDetailsTitle": "Evidence details",
   "runningCoachEvidenceInsufficientTitle": "Retake this clip",
   "runningCoachEvidenceInsufficientBody": "There were not enough stable frames for this focus, so the app is not showing a precise score.",
   "runningCoachEvidenceVideoUnavailable": "The saved video file is unavailable. The pose overlay still shows the analyzed frame.",
@@ -5006,6 +5007,13 @@
   "@runningCoachEvidenceTimestamp": {
     "placeholders": {
       "time": {}
+    }
+  },
+  "runningCoachEvidenceFrameSummary": "{frame}: {value}",
+  "@runningCoachEvidenceFrameSummary": {
+    "placeholders": {
+      "frame": {},
+      "value": {}
     }
   },
   "runningCoachEvidencePreviousFrame": "Previous evidence frame",
@@ -5029,11 +5037,11 @@
   "runningCoachEvidenceCurrentOverlayBody": "The red guide marks only the body area used for this coaching call.",
   "runningCoachEvidenceTransitionTitle": "From current to next",
   "runningCoachEvidenceTransitionBody": "The blue target is the direction to use on your next step, not a pose drawn over the video.",
-  "runningCoachGoalMotionTitle": "Compare current and goal",
-  "runningCoachGoalMotionBody": "The left shows measured joints. The right shows the direction for your next movement.",
-  "runningCoachGoalMotionActualLabel": "Current form",
-  "runningCoachGoalMotionTargetLabel": "Goal movement",
-  "runningCoachGoalMotionFootnote": "The right side is a coaching target built from your joint coordinates, not a second video measurement.",
+  "runningCoachGoalMotionTitle": "My form and next movement",
+  "runningCoachGoalMotionBody": "The left is your form. The right is the movement to try next.",
+  "runningCoachGoalMotionActualLabel": "My form",
+  "runningCoachGoalMotionTargetLabel": "Next move",
+  "runningCoachGoalMotionFootnote": "The right guide is a next-movement goal built from joints measured in your video.",
   "runningCoachGoalMotionPlay": "Play goal movement",
   "runningCoachGoalMotionPause": "Pause goal movement",
   "runningCoachHistoryEvidenceUnavailableTitle": "No saved joint evidence",
@@ -6072,6 +6080,7 @@
       }
     }
   },
+  "runningCoachAnalysisQualityStrongSummary": "This video has enough reliable evidence to set your next goal.",
   "runningCoachAnalysisQualityLimited": "Use some readings as reference",
   "runningCoachAnalysisQualityLimitedBody": "{count} measurements are reliable. Foot and knee feedback is used only when its evidence is sufficient.",
   "@runningCoachAnalysisQualityLimitedBody": {
@@ -6081,17 +6090,19 @@
       }
     }
   },
+  "runningCoachAnalysisQualityLimitedSummary": "Some form checks are best used as reference only.",
   "runningCoachAnalysisQualityRetake": "A retake is recommended",
   "runningCoachAnalysisQualityRetakeBody": "The clip does not contain enough joint or landing evidence to set a reliable goal.",
+  "runningCoachAnalysisQualityDetailsTitle": "View measurement details",
   "runningCoachVerifiedContactsLabel": "Verified landings",
   "runningCoachResultOneChangeTitle": "Change one thing first",
   "runningCoachNextGoalTitle": "Next goal",
-  "runningCoachNextGoalRepeat": "For your next three runs, focus on this one movement.",
+  "runningCoachNextGoalRepeat": "For your next three runs, focus only on this.",
   "runningCoachResultNextRunCueLabel": "On your next run",
   "runningCoachResultOneChangeBody": "Use this one cue for a few steps, then record again to see the change.",
   "runningCoachResultKeepOneThingBody": "Keep this strength through the next few steps, then record again to make sure it stays consistent.",
   "runningCoachResultDetailsTitle": "Detailed review",
-  "runningCoachReportDetailsBody": "Open the full measurements and joint evidence only when you need them.",
+  "runningCoachReportDetailsBody": "Open this only when you want to inspect all five form checks.",
   "runningCoachAnalysisHistoryTitle": "Coaching analysis history",
   "runningCoachAnalysisHistoryBody": "Review each uploaded video and live sprint session with its key coaching focus and correction guide.",
   "runningCoachAnalysisHistoryAction": "All {count}",
