@@ -8616,6 +8616,30 @@ abstract class AppLocalizations {
   /// **'No Drive backup was found for the connected account. Start empty with this account or reconnect the saved player account.'**
   String get driveAccountSwitchNoRemoteBackup;
 
+  /// No description provided for @driveLegacyAccountImportAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify this account and import data'**
+  String get driveLegacyAccountImportAction;
+
+  /// No description provided for @driveLegacyAccountImportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify this account backup?'**
+  String get driveLegacyAccountImportTitle;
+
+  /// No description provided for @driveLegacyAccountImportBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This device has an older account connection without a Google account ID. Backups remain protected until you import the latest Drive backup for the connected account. A local safety copy is kept before current device data is replaced.'**
+  String get driveLegacyAccountImportBody;
+
+  /// No description provided for @driveLegacyAccountImportSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Account verified and Drive backup imported.'**
+  String get driveLegacyAccountImportSuccess;
+
   /// No description provided for @backupVersionUnsupported.
   ///
   /// In en, this message translates to:

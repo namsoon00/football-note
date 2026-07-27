@@ -4926,6 +4926,21 @@ class AppLocalizationsEn extends AppLocalizations {
       'No Drive backup was found for the connected account. Start empty with this account or reconnect the saved player account.';
 
   @override
+  String get driveLegacyAccountImportAction =>
+      'Verify this account and import data';
+
+  @override
+  String get driveLegacyAccountImportTitle => 'Verify this account backup?';
+
+  @override
+  String get driveLegacyAccountImportBody =>
+      'This device has an older account connection without a Google account ID. Backups remain protected until you import the latest Drive backup for the connected account. A local safety copy is kept before current device data is replaced.';
+
+  @override
+  String get driveLegacyAccountImportSuccess =>
+      'Account verified and Drive backup imported.';
+
+  @override
   String get backupVersionUnsupported =>
       'This backup was created by a newer app version and cannot be imported here yet. Update the app and try again.';
 

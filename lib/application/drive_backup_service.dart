@@ -38,6 +38,15 @@ import 'training_board_service.dart';
 import 'training_plan_reminder_service.dart';
 import 'weather_reminder_service.dart';
 
+enum PlayerDriveBindingState {
+  notApplicable,
+  notConnected,
+  unbound,
+  verified,
+  legacyEmailMatch,
+  accountMismatch,
+}
+
 class DriveBackupService implements BackupRepository {
   DriveBackupService(
     this._trainingBox,
@@ -48,6 +57,7 @@ class DriveBackupService implements BackupRepository {
     Future<DriveConnectionInfo?> Function()? driveConnectionLoader,
     Future<drive.DriveApi> Function({required bool requireInteractive})?
         driveApiLoader,
+    Future<void> Function()? driveScopeReauthenticator,
     String? webClientId,
   })  : _googleSignIn = googleSignIn ??
             GoogleSignIn(
@@ -58,7 +68,8 @@ class DriveBackupService implements BackupRepository {
         _backupAssetFileStore =
             backupAssetFileStore ?? createBackupAssetFileStore(),
         _driveConnectionLoader = driveConnectionLoader,
-        _driveApiLoader = driveApiLoader {
+        _driveApiLoader = driveApiLoader,
+        _driveScopeReauthenticator = driveScopeReauthenticator {
     _bindDriveAccountStateChanges();
   }
 
@@ -70,6 +81,7 @@ class DriveBackupService implements BackupRepository {
   final Future<DriveConnectionInfo?> Function()? _driveConnectionLoader;
   final Future<drive.DriveApi> Function({required bool requireInteractive})?
       _driveApiLoader;
+  final Future<void> Function()? _driveScopeReauthenticator;
   final StreamController<void> _driveAccountStateController =
       StreamController<void>.broadcast();
   final StreamController<void> _dataChangeController =
@@ -784,7 +796,6 @@ class DriveBackupService implements BackupRepository {
       _throwIfPlayerDriveNeedsResolutionBeforeBackup();
       await _prepareConnectedDriveDataForCurrentRole(
         throwOnChangedPlayerDrive: true,
-        rememberNewPlayerConnection: true,
       );
       await _backupWithApi(driveApi);
     } catch (e, st) {
@@ -801,7 +812,6 @@ class DriveBackupService implements BackupRepository {
       _throwIfPlayerDriveNeedsResolutionBeforeBackup();
       await _prepareConnectedDriveDataForCurrentRole(
         throwOnChangedPlayerDrive: true,
-        rememberNewPlayerConnection: true,
       );
       await _backupWithApi(retriedApi);
     }
@@ -837,9 +847,8 @@ class DriveBackupService implements BackupRepository {
         if (_playerDriveNeedsResolutionBeforeBackup()) {
           return false;
         }
-        final switchedAccount = await _prepareConnectedDriveDataForCurrentRole(
-          rememberNewPlayerConnection: true,
-        );
+        final switchedAccount =
+            await _prepareConnectedDriveDataForCurrentRole();
         if (switchedAccount) {
           return false;
         }
@@ -874,9 +883,7 @@ class DriveBackupService implements BackupRepository {
       if (_playerDriveNeedsResolutionBeforeBackup()) {
         return false;
       }
-      final switchedAccount = await _prepareConnectedDriveDataForCurrentRole(
-        rememberNewPlayerConnection: true,
-      );
+      final switchedAccount = await _prepareConnectedDriveDataForCurrentRole();
       if (switchedAccount) {
         return false;
       }
@@ -1012,17 +1019,25 @@ class DriveBackupService implements BackupRepository {
     }
   }
 
+  PlayerDriveBindingState getPlayerDriveBindingState() {
+    return _playerDriveBindingState();
+  }
+
   bool hasChangedPlayerDriveConnection() {
-    if (_familyService.loadState().currentRole != FamilyRole.child) {
-      return false;
-    }
-    final saved = _loadSavedRecordDriveConnectionInfo();
-    final current =
-        _loadCachedDriveConnectionInfo() ?? _loadRecentDriveConnection();
-    if (saved == null || current == null || saved.isEmpty || current.isEmpty) {
-      return false;
-    }
-    return !_samePlayerDriveAccount(saved, current);
+    return _playerDriveBindingState() ==
+        PlayerDriveBindingState.accountMismatch;
+  }
+
+  bool hasLegacyPlayerDriveConnection() {
+    return _playerDriveBindingState() ==
+        PlayerDriveBindingState.legacyEmailMatch;
+  }
+
+  bool needsPlayerDriveImportBeforeBackup() {
+    final state = _playerDriveBindingState();
+    return state == PlayerDriveBindingState.unbound ||
+        state == PlayerDriveBindingState.legacyEmailMatch ||
+        state == PlayerDriveBindingState.accountMismatch;
   }
 
   Future<bool> importChangedPlayerDriveBackup() {
@@ -1030,17 +1045,40 @@ class DriveBackupService implements BackupRepository {
   }
 
   Future<bool> _importChangedPlayerDriveBackup() async {
-    final driveApi = await _driveApi(requireInteractive: false);
+    try {
+      final driveApi = await _driveApi(requireInteractive: kIsWeb);
+      return _importConnectedPlayerDriveBackupWithApi(driveApi);
+    } catch (e, st) {
+      if (!_isAuthError(e)) rethrow;
+      debugPrint(
+        'Drive sign-in/scope missing. Reauthenticating and retrying account backup import.',
+      );
+      debugPrintStack(stackTrace: st);
+      await _reauthenticateForDriveScope();
+      final retriedApi = await _driveApi(requireInteractive: false);
+      return _importConnectedPlayerDriveBackupWithApi(retriedApi);
+    }
+  }
+
+  Future<bool> _importConnectedPlayerDriveBackupWithApi(
+    drive.DriveApi driveApi,
+  ) async {
     await _syncConnectedDriveAccountCache();
-    final saved = _loadSavedRecordDriveConnectionInfo();
-    if (saved != null && !saved.isEmpty && !hasChangedPlayerDriveConnection()) {
-      await rememberRecordDriveConnection();
-      await _syncSharedChildDriveMetadataIfNeeded();
+    final bindingState = _playerDriveBindingState();
+    if (bindingState == PlayerDriveBindingState.notApplicable ||
+        bindingState == PlayerDriveBindingState.notConnected) {
       return false;
     }
     final remote = await _loadLatestRemoteBackupMapWithApi(driveApi);
     if (remote == null) {
       throw StateError(changedPlayerRemoteBackupMissingErrorCode);
+    }
+    if (bindingState == PlayerDriveBindingState.verified) {
+      await _saveLocalPreRestore();
+      _validateRestoreBinding(remote);
+      await _restoreFromMap(remote);
+      await _rememberCurrentRoleDriveConnectionAfterRestore();
+      return true;
     }
     return _adoptConnectedPlayerBackup(remoteBackup: remote);
   }
@@ -1477,6 +1515,11 @@ class DriveBackupService implements BackupRepository {
   }
 
   Future<void> _reauthenticateForDriveScope() async {
+    final reauthenticator = _driveScopeReauthenticator;
+    if (reauthenticator != null) {
+      await reauthenticator();
+      return;
+    }
     if (kIsWeb) {
       _webAccessToken = null;
       final google = _googleSignIn;
@@ -1721,18 +1764,32 @@ class DriveBackupService implements BackupRepository {
     return _driveAccountIdentity(previous) == _driveAccountIdentity(current);
   }
 
-  bool _samePlayerDriveAccount(
-    DriveConnectionInfo saved,
-    DriveConnectionInfo current,
-  ) {
+  PlayerDriveBindingState _playerDriveBindingState() {
+    if (_familyService.loadState().currentRole != FamilyRole.child) {
+      return PlayerDriveBindingState.notApplicable;
+    }
+    final current =
+        _loadCachedDriveConnectionInfo() ?? _loadRecentDriveConnection();
+    if (current == null || current.isEmpty) {
+      return PlayerDriveBindingState.notConnected;
+    }
+    final saved = _loadSavedRecordDriveConnectionInfo();
+    if (saved == null || saved.isEmpty) {
+      return PlayerDriveBindingState.unbound;
+    }
     final savedSubject = saved.subjectId.trim().toLowerCase();
     final currentSubject = current.subjectId.trim().toLowerCase();
-    if (savedSubject.isNotEmpty || currentSubject.isNotEmpty) {
-      return savedSubject.isNotEmpty &&
-          currentSubject.isNotEmpty &&
-          savedSubject == currentSubject;
+    if (savedSubject.isNotEmpty && currentSubject.isNotEmpty) {
+      return savedSubject == currentSubject
+          ? PlayerDriveBindingState.verified
+          : PlayerDriveBindingState.accountMismatch;
     }
-    return _sameDriveAccount(saved, current);
+    final savedEmail = _normalizedEmail(saved.email);
+    final currentEmail = _normalizedEmail(current.email);
+    if (savedEmail.isNotEmpty && savedEmail == currentEmail) {
+      return PlayerDriveBindingState.legacyEmailMatch;
+    }
+    return PlayerDriveBindingState.accountMismatch;
   }
 
   String _driveAccountIdentity(DriveConnectionInfo? info) {
@@ -2060,24 +2117,13 @@ class DriveBackupService implements BackupRepository {
 
   Future<bool> _prepareConnectedDriveDataForCurrentRole({
     bool throwOnChangedPlayerDrive = false,
-    bool rememberNewPlayerConnection = false,
   }) async {
-    if (_familyService.loadState().currentRole != FamilyRole.child) {
+    final bindingState = _playerDriveBindingState();
+    if (bindingState == PlayerDriveBindingState.notApplicable ||
+        bindingState == PlayerDriveBindingState.notConnected) {
       return false;
     }
-    final current = _loadCachedDriveConnectionInfo();
-    if (current == null || current.email.trim().isEmpty) {
-      return false;
-    }
-    final saved = _loadSavedRecordDriveConnectionInfo();
-    if (saved == null || saved.isEmpty) {
-      if (rememberNewPlayerConnection) {
-        await rememberRecordDriveConnection();
-        await _syncSharedChildDriveMetadataIfNeeded();
-      }
-      return false;
-    }
-    if (!hasChangedPlayerDriveConnection()) {
+    if (bindingState == PlayerDriveBindingState.verified) {
       await rememberRecordDriveConnection();
       await _syncSharedChildDriveMetadataIfNeeded();
       return false;
@@ -2085,19 +2131,13 @@ class DriveBackupService implements BackupRepository {
     if (throwOnChangedPlayerDrive) {
       throw StateError(changedPlayerDriveConnectionErrorCode);
     }
+    // An unbound, legacy, or changed account must import or start empty before
+    // it can become the active write target.
     return true;
   }
 
   bool _playerDriveNeedsResolutionBeforeBackup() {
-    if (_familyService.loadState().currentRole != FamilyRole.child) {
-      return false;
-    }
-    final current = _loadCachedDriveConnectionInfo();
-    final saved = _loadSavedRecordDriveConnectionInfo();
-    if (current == null || current.isEmpty) {
-      return false;
-    }
-    return saved == null || saved.isEmpty || hasChangedPlayerDriveConnection();
+    return needsPlayerDriveImportBeforeBackup();
   }
 
   void _throwIfPlayerDriveNeedsResolutionBeforeBackup() {
@@ -3156,9 +3196,14 @@ class DriveBackupService implements BackupRepository {
     if (current == null || current.email.trim().isEmpty) {
       return false;
     }
-    if (!hasChangedPlayerDriveConnection()) {
+    final bindingState = _playerDriveBindingState();
+    if (bindingState == PlayerDriveBindingState.verified) {
       await rememberRecordDriveConnection();
       await _syncSharedChildDriveMetadataIfNeeded();
+      return false;
+    }
+    if (bindingState == PlayerDriveBindingState.notApplicable ||
+        bindingState == PlayerDriveBindingState.notConnected) {
       return false;
     }
     await _saveLocalPreRestore();

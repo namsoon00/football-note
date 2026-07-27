@@ -4799,6 +4799,20 @@ class AppLocalizationsJa extends AppLocalizations {
       '接続中のアカウントに Drive バックアップが見つかりません。このアカウントで新しく始めるか、保存済みのプレーヤー アカウントに再接続してください。';
 
   @override
+  String get driveLegacyAccountImportAction => 'このアカウントを確認してバックアップをインポート';
+
+  @override
+  String get driveLegacyAccountImportTitle => '以前のアカウント接続を確認しますか?';
+
+  @override
+  String get driveLegacyAccountImportBody =>
+      'このデバイスには Google アカウント ID のない以前の接続情報があります。接続中のアカウントの最新 Drive バックアップをインポートしてアカウントを確認します。現在のデータを置き換える前にローカルの安全コピーが保持され、確認が終わるまでバックアップは保護されます。';
+
+  @override
+  String get driveLegacyAccountImportSuccess =>
+      'アカウントを確認し、Drive バックアップをインポートしました。';
+
+  @override
   String get backupVersionUnsupported =>
       'このバックアップは新しいバージョンのアプリで作成されたため、まだここにはインポートできません。アプリを更新して、もう一度お試しください。';
 

@@ -41,6 +41,26 @@ final String _legacyBackupFormat = String.fromCharCodes(
   ],
 );
 
+Map<String, dynamic> _remotePlayerBackup({
+  String profileName = 'Remote player',
+}) {
+  return <String, dynamic>{
+    'format': 'teo_note_backup',
+    'version': 6,
+    'createdAt': '2026-07-27T09:00:00.000Z',
+    'entries': const <Map<String, dynamic>>[],
+    'options': <String, dynamic>{'profile_name': profileName},
+    'optionRecords': <Map<String, dynamic>>[
+      <String, dynamic>{'key': 'profile_name', 'value': profileName},
+    ],
+    'assetRecords': const <String, dynamic>{},
+    'family': const <String, dynamic>{
+      'updatedByRole': 'child',
+      'familyLayerOnly': false,
+    },
+  };
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -1946,7 +1966,8 @@ void main() {
     },
   );
 
-  test('changed player drive detection requires subject id when available',
+  test(
+      'player drive binding distinguishes verified, legacy, and changed accounts',
       () async {
     await optionBox.put(
       DriveBackupService.recordDriveEmailLocalKey,
@@ -1966,13 +1987,221 @@ void main() {
     );
 
     expect(service.hasChangedPlayerDriveConnection(), isTrue);
+    expect(
+      service.getPlayerDriveBindingState(),
+      PlayerDriveBindingState.accountMismatch,
+    );
 
     await optionBox.delete(DriveBackupService.recordDriveSubjectLocalKey);
 
-    expect(service.hasChangedPlayerDriveConnection(), isTrue);
+    expect(service.hasChangedPlayerDriveConnection(), isFalse);
+    expect(service.hasLegacyPlayerDriveConnection(), isTrue);
+    expect(service.needsPlayerDriveImportBeforeBackup(), isTrue);
+    expect(
+      service.getPlayerDriveBindingState(),
+      PlayerDriveBindingState.legacyEmailMatch,
+    );
 
     await optionBox.delete(DriveBackupService.connectedDriveSubjectLocalKey);
 
+    expect(service.hasChangedPlayerDriveConnection(), isFalse);
+    expect(service.hasLegacyPlayerDriveConnection(), isTrue);
+
+    await optionBox.put(
+      DriveBackupService.recordDriveSubjectLocalKey,
+      'shared-subject',
+    );
+    await optionBox.put(
+      DriveBackupService.connectedDriveSubjectLocalKey,
+      'shared-subject',
+    );
+
+    expect(
+      service.getPlayerDriveBindingState(),
+      PlayerDriveBindingState.verified,
+    );
+    expect(service.needsPlayerDriveImportBeforeBackup(), isFalse);
+  });
+
+  test(
+    'legacy matching email can restore safely before binding its Google subject id',
+    () async {
+      final driveClient = _OverwriteGuardDriveClient(
+        remoteBackup: _remotePlayerBackup(profileName: 'Legacy player'),
+      );
+      service = DriveBackupService(
+        trainingBox,
+        optionBox,
+        backupAssetFileStore: assetStore,
+        driveConnectionLoader: () async => const DriveConnectionInfo(
+          email: 'player@example.com',
+          displayName: 'Player',
+          subjectId: 'current-subject',
+        ),
+        driveApiLoader: ({required bool requireInteractive}) async {
+          return drive.DriveApi(driveClient);
+        },
+      );
+      await optionBox.put(
+        DriveBackupService.recordDriveEmailLocalKey,
+        'player@example.com',
+      );
+
+      await service.getDriveConnectionInfo();
+
+      expect(service.hasChangedPlayerDriveConnection(), isFalse);
+      expect(service.hasLegacyPlayerDriveConnection(), isTrue);
+      expect(service.needsPlayerDriveImportBeforeBackup(), isTrue);
+
+      await service.restoreLatest();
+
+      expect(optionBox.get('profile_name'), 'Legacy player');
+      expect(
+        optionBox.get(DriveBackupService.recordDriveSubjectLocalKey),
+        'current-subject',
+      );
+      expect(
+        service.getPlayerDriveBindingState(),
+        PlayerDriveBindingState.verified,
+      );
+      expect(service.needsPlayerDriveImportBeforeBackup(), isFalse);
+      expect(driveClient.writeRequestCount, 0);
+    },
+  );
+
+  test('legacy account remains blocked from backup before its first import',
+      () async {
+    var driveApiRequested = false;
+    service = DriveBackupService(
+      trainingBox,
+      optionBox,
+      backupAssetFileStore: assetStore,
+      driveConnectionLoader: () async => const DriveConnectionInfo(
+        email: 'player@example.com',
+        displayName: 'Player',
+        subjectId: 'current-subject',
+      ),
+      driveApiLoader: ({required bool requireInteractive}) async {
+        driveApiRequested = true;
+        throw StateError('Drive API must not be requested before import.');
+      },
+    );
+    await optionBox.put(
+      DriveBackupService.recordDriveEmailLocalKey,
+      'player@example.com',
+    );
+
+    await expectLater(
+      service.backup(),
+      throwsA(
+        isA<StateError>().having(
+          (error) => error.message,
+          'message',
+          DriveBackupService.changedPlayerDriveConnectionErrorCode,
+        ),
+      ),
+    );
+
+    expect(driveApiRequested, isFalse);
+  });
+
+  test('unbound connected account imports remote backup before binding',
+      () async {
+    final driveClient = _OverwriteGuardDriveClient(
+      remoteBackup: _remotePlayerBackup(profileName: 'Reinstalled player'),
+    );
+    service = DriveBackupService(
+      trainingBox,
+      optionBox,
+      backupAssetFileStore: assetStore,
+      driveConnectionLoader: () async => const DriveConnectionInfo(
+        email: 'new@example.com',
+        displayName: 'New player',
+        subjectId: 'new-subject',
+      ),
+      driveApiLoader: ({required bool requireInteractive}) async {
+        return drive.DriveApi(driveClient);
+      },
+    );
+
+    final imported = await service.importChangedPlayerDriveBackup();
+
+    expect(imported, isTrue);
+    expect(optionBox.get('profile_name'), 'Reinstalled player');
+    expect(service.getSavedRecordDriveEmail(), 'new@example.com');
+    expect(
+      optionBox.get(DriveBackupService.recordDriveSubjectLocalKey),
+      'new-subject',
+    );
+    expect(
+      service.getPlayerDriveBindingState(),
+      PlayerDriveBindingState.verified,
+    );
+    expect(driveClient.writeRequestCount, 0);
+  });
+
+  test('account backup import retries after Drive authorization expires',
+      () async {
+    final driveClient = _OverwriteGuardDriveClient(
+      remoteBackup: _remotePlayerBackup(profileName: 'New account player'),
+    );
+    var driveApiAttempts = 0;
+    var reauthenticationAttempts = 0;
+    service = DriveBackupService(
+      trainingBox,
+      optionBox,
+      backupAssetFileStore: assetStore,
+      driveConnectionLoader: () async => const DriveConnectionInfo(
+        email: 'new@example.com',
+        displayName: 'New player',
+        subjectId: 'new-subject',
+      ),
+      driveApiLoader: ({required bool requireInteractive}) async {
+        driveApiAttempts += 1;
+        if (driveApiAttempts == 1) {
+          throw StateError('Google sign-in required.');
+        }
+        return drive.DriveApi(driveClient);
+      },
+      driveScopeReauthenticator: () async {
+        reauthenticationAttempts += 1;
+      },
+    );
+    await optionBox.put(
+      DriveBackupService.recordDriveEmailLocalKey,
+      'old@example.com',
+    );
+    await optionBox.put(
+      DriveBackupService.recordDriveSubjectLocalKey,
+      'old-subject',
+    );
+
+    final imported = await service.importChangedPlayerDriveBackup();
+
+    expect(imported, isTrue);
+    expect(driveApiAttempts, 2);
+    expect(reauthenticationAttempts, 1);
+    expect(optionBox.get('profile_name'), 'New account player');
+    expect(service.getSavedRecordDriveEmail(), 'new@example.com');
+    expect(driveClient.writeRequestCount, 0);
+  });
+
+  test('parent mode does not inherit child account import blocking', () async {
+    await optionBox.put(FamilyAccessService.currentRoleLocalKey, 'parent');
+    await optionBox.put(
+      DriveBackupService.recordDriveEmailLocalKey,
+      'child@example.com',
+    );
+    await optionBox.put(
+      DriveBackupService.connectedDriveEmailLocalKey,
+      'parent@example.com',
+    );
+
+    expect(
+      service.getPlayerDriveBindingState(),
+      PlayerDriveBindingState.notApplicable,
+    );
+    expect(service.needsPlayerDriveImportBeforeBackup(), isFalse);
     expect(service.hasChangedPlayerDriveConnection(), isFalse);
   });
 
