@@ -26905,6 +26905,222 @@ abstract class AppLocalizations {
   /// **'Split step, move side to side, and recover balance'**
   String get trainingSketchTemplateTennisFootworkMethod;
 
+  /// No description provided for @trainingSketchTemplateBallMasteryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Ball mastery slalom'**
+  String get trainingSketchTemplateBallMasteryLabel;
+
+  /// No description provided for @trainingSketchTemplateBallMasteryDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Slalom dribble, change of direction, and finish'**
+  String get trainingSketchTemplateBallMasteryDescription;
+
+  /// No description provided for @trainingSketchTemplateBallMasteryMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the ball in front, change pace at each cone, then finish on target'**
+  String get trainingSketchTemplateBallMasteryMethod;
+
+  /// No description provided for @trainingSketchTemplateFirstTouchFinishLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'First touch and finish'**
+  String get trainingSketchTemplateFirstTouchFinishLabel;
+
+  /// No description provided for @trainingSketchTemplateFirstTouchFinishDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive, turn away from pressure, and shoot'**
+  String get trainingSketchTemplateFirstTouchFinishDescription;
+
+  /// No description provided for @trainingSketchTemplateFirstTouchFinishMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive on the half turn, take the first touch into space, then finish early'**
+  String get trainingSketchTemplateFirstTouchFinishMethod;
+
+  /// No description provided for @trainingSketchTemplateOneVOneLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'1v1 break and finish'**
+  String get trainingSketchTemplateOneVOneLabel;
+
+  /// No description provided for @trainingSketchTemplateOneVOneDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Attack a defender with a change of speed'**
+  String get trainingSketchTemplateOneVOneDescription;
+
+  /// No description provided for @trainingSketchTemplateOneVOneMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Commit the defender, accelerate past the shoulder, and finish with the next touch'**
+  String get trainingSketchTemplateOneVOneMethod;
+
+  /// No description provided for @trainingSketchTemplateTwoVOneLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'2v1 overlap finish'**
+  String get trainingSketchTemplateTwoVOneLabel;
+
+  /// No description provided for @trainingSketchTemplateTwoVOneDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass, overlap, receive again, and finish'**
+  String get trainingSketchTemplateTwoVOneDescription;
+
+  /// No description provided for @trainingSketchTemplateTwoVOneMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Move as the pass travels, draw the defender, and use the return pass into the finish'**
+  String get trainingSketchTemplateTwoVOneMethod;
+
+  /// No description provided for @trainingSketchTemplateThirdManLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Third-player run'**
+  String get trainingSketchTemplateThirdManLabel;
+
+  /// No description provided for @trainingSketchTemplateThirdManDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass, layoff, and a runner beyond the line'**
+  String get trainingSketchTemplateThirdManDescription;
+
+  /// No description provided for @trainingSketchTemplateThirdManMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the link player for one touch and release the third runner into space'**
+  String get trainingSketchTemplateThirdManMethod;
+
+  /// No description provided for @trainingSketchTemplateCoordinationFinishLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Coordination circuit finish'**
+  String get trainingSketchTemplateCoordinationFinishLabel;
+
+  /// No description provided for @trainingSketchTemplateCoordinationFinishDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Ladder, hurdle, turn, and a ball finish'**
+  String get trainingSketchTemplateCoordinationFinishDescription;
+
+  /// No description provided for @trainingSketchTemplateCoordinationFinishMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep posture through the ladder and hurdle, turn tightly, then finish with control'**
+  String get trainingSketchTemplateCoordinationFinishMethod;
+
+  /// No description provided for @trainingSketchTemplateBaseballDoublePlayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Double-play feed'**
+  String get trainingSketchTemplateBaseballDoublePlayLabel;
+
+  /// No description provided for @trainingSketchTemplateBaseballDoublePlayDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Field, feed second, pivot, and throw first'**
+  String get trainingSketchTemplateBaseballDoublePlayDescription;
+
+  /// No description provided for @trainingSketchTemplateBaseballDoublePlayMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Secure the ground ball, make a clean feed, then turn quickly for the throw to first'**
+  String get trainingSketchTemplateBaseballDoublePlayMethod;
+
+  /// No description provided for @trainingSketchTemplateBaseballBaseRunningLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra-base running'**
+  String get trainingSketchTemplateBaseballBaseRunningLabel;
+
+  /// No description provided for @trainingSketchTemplateBaseballBaseRunningDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Read the hit and run a full base path'**
+  String get trainingSketchTemplateBaseballBaseRunningDescription;
+
+  /// No description provided for @trainingSketchTemplateBaseballBaseRunningMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave hard, round each base under control, and read the relay before advancing'**
+  String get trainingSketchTemplateBaseballBaseRunningMethod;
+
+  /// No description provided for @trainingSketchTemplateBasketballTransitionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Three-lane transition'**
+  String get trainingSketchTemplateBasketballTransitionLabel;
+
+  /// No description provided for @trainingSketchTemplateBasketballTransitionDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Advance with two passes and finish at the rim'**
+  String get trainingSketchTemplateBasketballTransitionDescription;
+
+  /// No description provided for @trainingSketchTemplateBasketballTransitionMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill the lanes, pass ahead before pressure arrives, and finish at pace'**
+  String get trainingSketchTemplateBasketballTransitionMethod;
+
+  /// No description provided for @trainingSketchTemplateBasketballPickRollLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick and roll kick-out'**
+  String get trainingSketchTemplateBasketballPickRollLabel;
+
+  /// No description provided for @trainingSketchTemplateBasketballPickRollDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Screen, drive, kick out, and shoot'**
+  String get trainingSketchTemplateBasketballPickRollDescription;
+
+  /// No description provided for @trainingSketchTemplateBasketballPickRollMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Set the screen with balance, attack the gap, then find the open shooter'**
+  String get trainingSketchTemplateBasketballPickRollMethod;
+
+  /// No description provided for @trainingSketchTemplateTennisReturnRecoverLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Return and recover'**
+  String get trainingSketchTemplateTennisReturnRecoverLabel;
+
+  /// No description provided for @trainingSketchTemplateTennisReturnRecoverDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Return cross-court and recover for the next ball'**
+  String get trainingSketchTemplateTennisReturnRecoverDescription;
+
+  /// No description provided for @trainingSketchTemplateTennisReturnRecoverMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to the return, send the ball cross-court, then recover through the middle'**
+  String get trainingSketchTemplateTennisReturnRecoverMethod;
+
+  /// No description provided for @trainingSketchTemplateTennisApproachVolleyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Approach and volley'**
+  String get trainingSketchTemplateTennisApproachVolleyLabel;
+
+  /// No description provided for @trainingSketchTemplateTennisApproachVolleyDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Approach through the court and finish at the net'**
+  String get trainingSketchTemplateTennisApproachVolleyDescription;
+
+  /// No description provided for @trainingSketchTemplateTennisApproachVolleyMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Drive the approach into space, close with balanced steps, and play the volley forward'**
+  String get trainingSketchTemplateTennisApproachVolleyMethod;
+
   /// No description provided for @trainingSketchTemplateGalleryAction.
   ///
   /// In en, this message translates to:

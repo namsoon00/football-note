@@ -15241,6 +15241,135 @@ class AppLocalizationsJa extends AppLocalizations {
       'スプリットステップ後に左右へ動き、バランスを戻す';
 
   @override
+  String get trainingSketchTemplateBallMasteryLabel => 'ボールマスタリー・スラローム';
+
+  @override
+  String get trainingSketchTemplateBallMasteryDescription => 'ドリブル、方向転換、フィニッシュ';
+
+  @override
+  String get trainingSketchTemplateBallMasteryMethod =>
+      'ボールを前に置き、各コーンで速度を変えてから目標へフィニッシュする';
+
+  @override
+  String get trainingSketchTemplateFirstTouchFinishLabel => 'ファーストタッチからフィニッシュ';
+
+  @override
+  String get trainingSketchTemplateFirstTouchFinishDescription =>
+      '受ける、圧力からターン、シュート';
+
+  @override
+  String get trainingSketchTemplateFirstTouchFinishMethod =>
+      'ハーフターンで受け、最初のタッチをスペースへ運んで早く仕留める';
+
+  @override
+  String get trainingSketchTemplateOneVOneLabel => '1対1の突破とフィニッシュ';
+
+  @override
+  String get trainingSketchTemplateOneVOneDescription => '緩急で守備者をかわす';
+
+  @override
+  String get trainingSketchTemplateOneVOneMethod =>
+      '守備者を引きつけ、肩の外側へ加速して次のタッチでフィニッシュする';
+
+  @override
+  String get trainingSketchTemplateTwoVOneLabel => '2対1オーバーラップ・フィニッシュ';
+
+  @override
+  String get trainingSketchTemplateTwoVOneDescription => 'パス、オーバーラップ、再び受けて仕留める';
+
+  @override
+  String get trainingSketchTemplateTwoVOneMethod =>
+      'パス中に動いて守備者を引きつけ、リターンパスからフィニッシュへ入る';
+
+  @override
+  String get trainingSketchTemplateThirdManLabel => '3人目のラン';
+
+  @override
+  String get trainingSketchTemplateThirdManDescription => 'パス、落とし、ライン背後へのラン';
+
+  @override
+  String get trainingSketchTemplateThirdManMethod =>
+      'リンク役がワンタッチで落とし、3人目をスペースへ走らせる';
+
+  @override
+  String get trainingSketchTemplateCoordinationFinishLabel =>
+      'コーディネーション・フィニッシュ';
+
+  @override
+  String get trainingSketchTemplateCoordinationFinishDescription =>
+      'ラダー、ハードル、ターン、ボールフィニッシュ';
+
+  @override
+  String get trainingSketchTemplateCoordinationFinishMethod =>
+      'ラダーとハードルで姿勢を保ち、タイトにターンしてコントロールして仕留める';
+
+  @override
+  String get trainingSketchTemplateBaseballDoublePlayLabel => '併殺プレー連係';
+
+  @override
+  String get trainingSketchTemplateBaseballDoublePlayDescription =>
+      '捕球、二塁送球、ピボット、一塁送球';
+
+  @override
+  String get trainingSketchTemplateBaseballDoublePlayMethod =>
+      'ゴロを確実に処理し、正確に送球して素早く一塁へつなぐ';
+
+  @override
+  String get trainingSketchTemplateBaseballBaseRunningLabel => '長打の走塁';
+
+  @override
+  String get trainingSketchTemplateBaseballBaseRunningDescription =>
+      '打球を判断して一周する走塁';
+
+  @override
+  String get trainingSketchTemplateBaseballBaseRunningMethod =>
+      '強くスタートし、各ベースを安定して回り、中継プレーを見て次を判断する';
+
+  @override
+  String get trainingSketchTemplateBasketballTransitionLabel => '3レーン・トランジション';
+
+  @override
+  String get trainingSketchTemplateBasketballTransitionDescription =>
+      '2本の前進パスからリングでフィニッシュ';
+
+  @override
+  String get trainingSketchTemplateBasketballTransitionMethod =>
+      '各レーンを埋め、プレッシャー前に前進パスを出して速く仕留める';
+
+  @override
+  String get trainingSketchTemplateBasketballPickRollLabel => 'ピック＆ロール・キックアウト';
+
+  @override
+  String get trainingSketchTemplateBasketballPickRollDescription =>
+      'スクリーン、ドライブ、キックアウト、シュート';
+
+  @override
+  String get trainingSketchTemplateBasketballPickRollMethod =>
+      'バランス良くスクリーンをかけ、ギャップを攻めてフリーのシューターを見つける';
+
+  @override
+  String get trainingSketchTemplateTennisReturnRecoverLabel => 'リターンとリカバリー';
+
+  @override
+  String get trainingSketchTemplateTennisReturnRecoverDescription =>
+      'クロスへ返して次の球へ戻る';
+
+  @override
+  String get trainingSketchTemplateTennisReturnRecoverMethod =>
+      'リターン位置へ入り、クロスへ送り、中央を経由して次の球に備える';
+
+  @override
+  String get trainingSketchTemplateTennisApproachVolleyLabel => 'アプローチ＆ボレー';
+
+  @override
+  String get trainingSketchTemplateTennisApproachVolleyDescription =>
+      'コート内へ入りネットで仕留める';
+
+  @override
+  String get trainingSketchTemplateTennisApproachVolleyMethod =>
+      'スペースへアプローチを送り、バランス良く近づいて前へボレーする';
+
+  @override
   String get trainingSketchTemplateGalleryAction => 'テンプレートを表示する';
 
   @override

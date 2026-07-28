@@ -1995,13 +1995,16 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   void _normalizeCurrentPageRoutes() {
-    final assignedItemIdsByKind = <_PathDrawMode, Set<String>>{
+    final assignedUnlinkedItemIdsByKind = <_PathDrawMode, Set<String>>{
       _PathDrawMode.player: <String>{},
       _PathDrawMode.ball: <String>{},
     };
     final normalizedRoutes = <_BoardRoute>[];
     for (final route in _currentPage.routes.reversed) {
-      final assignedItemIds = assignedItemIdsByKind[route.kind]!;
+      final hasLinkedItem = route.linkedItemId?.trim().isNotEmpty == true;
+      final assignedItemIds = hasLinkedItem
+          ? const <String>{}
+          : assignedUnlinkedItemIdsByKind[route.kind]!;
       final linkedItem = _resolveRouteItem(
         kind: route.kind,
         points: route.points,
@@ -2012,7 +2015,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       route.linkedItemId = linkedItem.id;
       route.color = linkedItem.color;
       route.stageIndex = _normalizedRouteStageIndex(route.stageIndex);
-      assignedItemIds.add(linkedItem.id);
+      if (!hasLinkedItem) {
+        assignedUnlinkedItemIdsByKind[route.kind]!.add(linkedItem.id);
+      }
       normalizedRoutes.add(route);
     }
     _currentPage.routes
@@ -2023,6 +2028,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         !_currentPage.routes.any((route) => route.id == selectedRouteId)) {
       _selectedRouteId = null;
     }
+    _refreshTargetedPassRouteEndpoints();
   }
 
   void _showRouteCapacitySnackBar(_PathDrawMode kind) {

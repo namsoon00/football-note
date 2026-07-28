@@ -15760,6 +15760,146 @@ class AppLocalizationsEn extends AppLocalizations {
       'Split step, move side to side, and recover balance';
 
   @override
+  String get trainingSketchTemplateBallMasteryLabel => 'Ball mastery slalom';
+
+  @override
+  String get trainingSketchTemplateBallMasteryDescription =>
+      'Slalom dribble, change of direction, and finish';
+
+  @override
+  String get trainingSketchTemplateBallMasteryMethod =>
+      'Keep the ball in front, change pace at each cone, then finish on target';
+
+  @override
+  String get trainingSketchTemplateFirstTouchFinishLabel =>
+      'First touch and finish';
+
+  @override
+  String get trainingSketchTemplateFirstTouchFinishDescription =>
+      'Receive, turn away from pressure, and shoot';
+
+  @override
+  String get trainingSketchTemplateFirstTouchFinishMethod =>
+      'Receive on the half turn, take the first touch into space, then finish early';
+
+  @override
+  String get trainingSketchTemplateOneVOneLabel => '1v1 break and finish';
+
+  @override
+  String get trainingSketchTemplateOneVOneDescription =>
+      'Attack a defender with a change of speed';
+
+  @override
+  String get trainingSketchTemplateOneVOneMethod =>
+      'Commit the defender, accelerate past the shoulder, and finish with the next touch';
+
+  @override
+  String get trainingSketchTemplateTwoVOneLabel => '2v1 overlap finish';
+
+  @override
+  String get trainingSketchTemplateTwoVOneDescription =>
+      'Pass, overlap, receive again, and finish';
+
+  @override
+  String get trainingSketchTemplateTwoVOneMethod =>
+      'Move as the pass travels, draw the defender, and use the return pass into the finish';
+
+  @override
+  String get trainingSketchTemplateThirdManLabel => 'Third-player run';
+
+  @override
+  String get trainingSketchTemplateThirdManDescription =>
+      'Pass, layoff, and a runner beyond the line';
+
+  @override
+  String get trainingSketchTemplateThirdManMethod =>
+      'Use the link player for one touch and release the third runner into space';
+
+  @override
+  String get trainingSketchTemplateCoordinationFinishLabel =>
+      'Coordination circuit finish';
+
+  @override
+  String get trainingSketchTemplateCoordinationFinishDescription =>
+      'Ladder, hurdle, turn, and a ball finish';
+
+  @override
+  String get trainingSketchTemplateCoordinationFinishMethod =>
+      'Keep posture through the ladder and hurdle, turn tightly, then finish with control';
+
+  @override
+  String get trainingSketchTemplateBaseballDoublePlayLabel =>
+      'Double-play feed';
+
+  @override
+  String get trainingSketchTemplateBaseballDoublePlayDescription =>
+      'Field, feed second, pivot, and throw first';
+
+  @override
+  String get trainingSketchTemplateBaseballDoublePlayMethod =>
+      'Secure the ground ball, make a clean feed, then turn quickly for the throw to first';
+
+  @override
+  String get trainingSketchTemplateBaseballBaseRunningLabel =>
+      'Extra-base running';
+
+  @override
+  String get trainingSketchTemplateBaseballBaseRunningDescription =>
+      'Read the hit and run a full base path';
+
+  @override
+  String get trainingSketchTemplateBaseballBaseRunningMethod =>
+      'Leave hard, round each base under control, and read the relay before advancing';
+
+  @override
+  String get trainingSketchTemplateBasketballTransitionLabel =>
+      'Three-lane transition';
+
+  @override
+  String get trainingSketchTemplateBasketballTransitionDescription =>
+      'Advance with two passes and finish at the rim';
+
+  @override
+  String get trainingSketchTemplateBasketballTransitionMethod =>
+      'Fill the lanes, pass ahead before pressure arrives, and finish at pace';
+
+  @override
+  String get trainingSketchTemplateBasketballPickRollLabel =>
+      'Pick and roll kick-out';
+
+  @override
+  String get trainingSketchTemplateBasketballPickRollDescription =>
+      'Screen, drive, kick out, and shoot';
+
+  @override
+  String get trainingSketchTemplateBasketballPickRollMethod =>
+      'Set the screen with balance, attack the gap, then find the open shooter';
+
+  @override
+  String get trainingSketchTemplateTennisReturnRecoverLabel =>
+      'Return and recover';
+
+  @override
+  String get trainingSketchTemplateTennisReturnRecoverDescription =>
+      'Return cross-court and recover for the next ball';
+
+  @override
+  String get trainingSketchTemplateTennisReturnRecoverMethod =>
+      'Move to the return, send the ball cross-court, then recover through the middle';
+
+  @override
+  String get trainingSketchTemplateTennisApproachVolleyLabel =>
+      'Approach and volley';
+
+  @override
+  String get trainingSketchTemplateTennisApproachVolleyDescription =>
+      'Approach through the court and finish at the net';
+
+  @override
+  String get trainingSketchTemplateTennisApproachVolleyMethod =>
+      'Drive the approach into space, close with balanced steps, and play the volley forward';
+
+  @override
   String get trainingSketchTemplateGalleryAction => 'View templates';
 
   @override
