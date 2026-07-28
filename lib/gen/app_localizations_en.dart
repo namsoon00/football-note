@@ -9021,7 +9021,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachGoalMotionFootnote =>
-      'The target runner is a form reference for your next step, not a reconstruction of your body.';
+      'This line only shows the landing direction.';
 
   @override
   String get runningCoachGoalMotionPlay => 'Play goal movement';
@@ -9030,17 +9030,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachGoalMotionPause => 'Pause goal movement';
 
   @override
-  String get runningCoachTwoDComparisonTitle => 'Motion comparison';
+  String get runningCoachTwoDComparisonTitle => 'Joint-based motion comparison';
 
   @override
-  String get runningCoachTwoDCurrentLabel => 'Current motion';
+  String get runningCoachTwoDCurrentLabel => 'My measured pose';
 
   @override
-  String get runningCoachTwoDTargetLabel => 'Next target';
+  String get runningCoachTwoDTargetLabel => 'Next landing';
 
   @override
   String get runningCoachTwoDVideoOverlayTitle =>
       'Overlay on your uploaded video';
+
+  @override
+  String get runningCoachCoordinateRigUnavailable =>
+      'This frame does not contain enough joint coordinates to build the motion comparison.';
 
   @override
   String get runningCoachHistoryEvidenceUnavailableTitle =>

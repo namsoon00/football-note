@@ -5210,7 +5210,6 @@ class _EvidenceVideoPreview extends StatelessWidget {
         evidence: evidenceContent,
         direction: result.direction,
         currentPose: selectedFrame.poseFrame,
-        status: insight.status,
       );
     }
     final poseAspectRatio = selectedFrame.poseFrame == null

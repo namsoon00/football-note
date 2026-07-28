@@ -15,6 +15,7 @@ import 'package:football_note/domain/entities/running_video_analysis_result.dart
 import 'package:football_note/domain/entities/sprint_realtime_coaching_state.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/gen/app_localizations.dart';
+import 'package:football_note/presentation/running_coach/running_foot_strike_target_motion_proof.dart';
 import 'package:football_note/presentation/screens/running_coach_screen.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart';
 
@@ -128,6 +129,48 @@ void main() {
       find.byKey(const ValueKey('running-coach-capture-guide-action')),
       findsOneWidget,
     );
+  });
+
+  testWidgets(
+      'foot strike rig refuses to fabricate a runner without coordinate data',
+      (WidgetTester tester) async {
+    await tester.binding.setSurfaceSize(const Size(360, 760));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        locale: Locale('en'),
+        localizationsDelegates: [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: SizedBox(
+            width: 360,
+            child: RunningFootStrikeEvidenceReferencePreview(
+              evidence: ColoredBox(color: Colors.black),
+              direction: RunningDirection.leftToRight,
+              currentPose: null,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(
+      find.text(
+        'This frame does not contain enough joint coordinates to build the motion comparison.',
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('running-coach-foot-strike-coordinate-rig')),
+      findsNothing,
+    );
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets(
@@ -1149,11 +1192,17 @@ void main() {
       find.byKey(const ValueKey('running-coach-goal-motion-toggle')),
       findsOneWidget,
     );
-    expect(find.text('Next target'), findsOneWidget);
+    expect(find.text('Next landing'), findsOneWidget);
     expect(find.text('Overlay on your uploaded video'), findsOneWidget);
     expect(
       find.byKey(
         const ValueKey('running-coach-foot-strike-reference-runner'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(
+        const ValueKey('running-coach-foot-strike-coordinate-rig'),
       ),
       findsOneWidget,
     );
@@ -1329,6 +1378,12 @@ void main() {
         expect(
           find.byKey(
             const ValueKey('running-coach-foot-strike-reference-runner'),
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find.byKey(
+            const ValueKey('running-coach-foot-strike-coordinate-rig'),
           ),
           findsOneWidget,
         );
