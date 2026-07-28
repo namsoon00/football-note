@@ -9030,7 +9030,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachGoalMotionPause => 'Pause goal movement';
 
   @override
-  String get runningCoachTwoDComparisonTitle => 'Joint-based motion comparison';
+  String get runningCoachTwoDComparisonTitle => 'Runner motion comparison';
 
   @override
   String get runningCoachTwoDCurrentLabel => 'My measured pose';

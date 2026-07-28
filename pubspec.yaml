@@ -98,6 +98,7 @@ flutter:
   assets:
     - assets/images/
     - assets/images/running_guides/
+    - assets/images/running_guides/professional_runner/elite_runner_pose_reference.png
     - assets/airbnb/images/
     - assets/airbnb/svg/
     - assets/watch_cart/images/

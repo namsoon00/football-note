@@ -8803,7 +8803,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachGoalMotionPause => '목표 움직임 일시정지';
 
   @override
-  String get runningCoachTwoDComparisonTitle => '관절 기반 동작 비교';
+  String get runningCoachTwoDComparisonTitle => '러너 동작 비교';
 
   @override
   String get runningCoachTwoDCurrentLabel => '내 측정 자세';
