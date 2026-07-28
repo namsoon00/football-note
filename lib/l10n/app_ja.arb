@@ -5044,7 +5044,7 @@
   "runningCoachGoalMotionFootnote": "ここでは接地の移動方向だけを示します。",
   "runningCoachGoalMotionPlay": "目標の動きを再生",
   "runningCoachGoalMotionPause": "目標の動きを一時停止",
-  "runningCoachTwoDComparisonTitle": "関節ベースの動作比較",
+  "runningCoachTwoDComparisonTitle": "ランナー動作比較",
   "runningCoachTwoDCurrentLabel": "測定した姿勢",
   "runningCoachTwoDTargetLabel": "次の着地",
   "runningCoachTwoDVideoOverlayTitle": "アップロードした動画上の測定",

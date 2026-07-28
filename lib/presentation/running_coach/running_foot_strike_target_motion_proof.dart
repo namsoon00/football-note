@@ -1,10 +1,13 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
 import '../../domain/entities/running_video_analysis_result.dart';
 import '../../gen/app_localizations.dart';
 import 'running_pose_overlay.dart';
+import 'running_professional_runner.dart';
+import 'running_professional_runner_art.dart';
 
 /// Shows the single next action after the coordinate-driven comparison.
 ///
@@ -346,22 +349,28 @@ class _FootStrikeCoordinateRigComparison extends StatelessWidget {
                     ),
                     const SizedBox(height: 7),
                     Expanded(
-                      child: RepaintBoundary(
-                        child: SizedBox.expand(
-                          child: CustomPaint(
-                            key: const ValueKey(
-                              'running-coach-foot-strike-coordinate-rig',
+                      child: FutureBuilder<ui.Image>(
+                        future: loadProfessionalRunnerArtAtlas(),
+                        builder: (context, snapshot) {
+                          return RepaintBoundary(
+                            child: SizedBox.expand(
+                              child: CustomPaint(
+                                key: const ValueKey(
+                                  'running-coach-foot-strike-coordinate-rig',
+                                ),
+                                painter: _FootStrikeCoordinateRigPainter(
+                                  rig: rig,
+                                  artAtlas: snapshot.data,
+                                  currentAccent: scheme.error,
+                                  targetAccent: scheme.primary,
+                                  mutedColor: scheme.onSurfaceVariant,
+                                  panelColor: scheme.surface,
+                                  panelBorderColor: scheme.outlineVariant,
+                                ),
+                              ),
                             ),
-                            painter: _FootStrikeCoordinateRigPainter(
-                              rig: rig,
-                              currentAccent: scheme.error,
-                              targetAccent: scheme.primary,
-                              mutedColor: scheme.onSurfaceVariant,
-                              panelColor: scheme.surface,
-                              panelBorderColor: scheme.outlineVariant,
-                            ),
-                          ),
-                        ),
+                          );
+                        },
                       ),
                     ),
                   ],
@@ -538,11 +547,13 @@ class _FootStrikeDirectionLabel extends StatelessWidget {
   }
 }
 
-/// A small 2D rig derived from one analyzed MediaPipe pose frame.
+/// A professional runner comparison derived from one analyzed MediaPipe pose
+/// frame.
 ///
 /// The target keeps every measured point except the lead leg. Only that leg
-/// is repositioned to a controlled landing zone beneath the hip, so the UI
-/// never presents a full-body reconstruction or an unmeasured gait phase.
+/// is repositioned to a controlled landing zone beneath the hip. The art is a
+/// generic athlete retargeted to these points, never a reconstruction of the
+/// runner's identity or an unmeasured gait phase.
 class _FootStrikeCoordinateRig {
   static const _capturedIndices = <int>{
     0,
@@ -584,6 +595,7 @@ class _FootStrikeCoordinateRig {
   final int leadAnkleIndex;
   final int leadHeelIndex;
   final int leadToeIndex;
+  final double forward;
 
   const _FootStrikeCoordinateRig({
     required this.currentPoints,
@@ -593,6 +605,7 @@ class _FootStrikeCoordinateRig {
     required this.leadAnkleIndex,
     required this.leadHeelIndex,
     required this.leadToeIndex,
+    required this.forward,
   });
 
   static _FootStrikeCoordinateRig? fromPoseFrame(
@@ -679,6 +692,7 @@ class _FootStrikeCoordinateRig {
       leadAnkleIndex: leadAnkleIndex,
       leadHeelIndex: leadHeelIndex,
       leadToeIndex: leadToeIndex,
+      forward: forward,
     );
   }
 
@@ -703,6 +717,7 @@ class _FootStrikeCoordinateRig {
 
 class _FootStrikeCoordinateRigPainter extends CustomPainter {
   final _FootStrikeCoordinateRig rig;
+  final ui.Image? artAtlas;
   final Color currentAccent;
   final Color targetAccent;
   final Color mutedColor;
@@ -711,6 +726,7 @@ class _FootStrikeCoordinateRigPainter extends CustomPainter {
 
   const _FootStrikeCoordinateRigPainter({
     required this.rig,
+    required this.artAtlas,
     required this.currentAccent,
     required this.targetAccent,
     required this.mutedColor,
@@ -845,40 +861,61 @@ class _FootStrikeCoordinateRigPainter extends CustomPainter {
     final hip = _midpoint(points[23], points[24]);
     final foot = points[rig.leadToeIndex] ?? points[rig.leadAnkleIndex];
     if (hip == null || foot == null) return;
+    final athlete = retargetProfessionalRunnerPose(
+      measuredPoints: points,
+      forward: rig.forward,
+    );
+    if (athlete == null) return;
+    final focusIndices = <int>{
+      rig.leadHipIndex,
+      rig.leadKneeIndex,
+      rig.leadAnkleIndex,
+      rig.leadHeelIndex,
+      rig.leadToeIndex,
+    };
+    final atlas = artAtlas;
+    if (atlas != null) {
+      paintIllustratedProfessionalRunner(
+        canvas,
+        atlas: atlas,
+        pose: athlete,
+        accentColor: accent,
+        isTarget: isTarget,
+        focusIndices: focusIndices,
+      );
+    } else {
+      _drawIllustrationPending(canvas, panel, accent);
+    }
     _drawLandingGuide(
       canvas,
       panel,
-      hip: hip,
-      foot: foot,
+      hip: athlete.hipCenter,
+      foot: athlete.points[rig.leadToeIndex] ?? foot,
       groundY: groundY,
       isTarget: isTarget,
     );
-    final kitAccent = Color.lerp(accent, const Color(0xFF53637A), 0.38)!;
-    final kitSecondary = Color.lerp(
-      accent,
-      const Color(0xFFE9F0FA),
-      0.42,
-    )!;
-    final jointColor = Color.lerp(panelColor, const Color(0xFFF4F7FE), 0.88)!;
-    paintRunningPoseHumanForm(
-      canvas,
-      points: points,
-      canvasSize: panel.size,
-      focusIndices: <int>{
-        rig.leadHipIndex,
-        rig.leadKneeIndex,
-        rig.leadAnkleIndex,
-        rig.leadHeelIndex,
-        rig.leadToeIndex,
-      },
-      style: runningPoseStudioRunnerStyle(
-        accentColor: kitAccent,
-        secondaryAccent: kitSecondary,
-        focusColor: accent,
-        jointColor: jointColor,
-        volumeScale: 1.18,
-        opacity: 0.98,
-      ),
+  }
+
+  void _drawIllustrationPending(Canvas canvas, Rect panel, Color accent) {
+    final center = panel.center;
+    final radius = math.max(11.0, panel.shortestSide * 0.09);
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()..color = accent.withValues(alpha: 0.08),
+    );
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..color = accent.withValues(alpha: 0.46)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.2,
+    );
+    canvas.drawCircle(
+      center,
+      radius * 0.23,
+      Paint()..color = accent.withValues(alpha: 0.74),
     );
   }
 
@@ -1009,6 +1046,7 @@ class _FootStrikeCoordinateRigPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _FootStrikeCoordinateRigPainter oldDelegate) {
     return oldDelegate.rig != rig ||
+        oldDelegate.artAtlas != artAtlas ||
         oldDelegate.currentAccent != currentAccent ||
         oldDelegate.targetAccent != targetAccent ||
         oldDelegate.mutedColor != mutedColor ||

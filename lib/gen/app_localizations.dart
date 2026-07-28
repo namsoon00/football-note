@@ -15776,7 +15776,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachTwoDComparisonTitle.
   ///
   /// In en, this message translates to:
-  /// **'Joint-based motion comparison'**
+  /// **'Runner motion comparison'**
   String get runningCoachTwoDComparisonTitle;
 
   /// No description provided for @runningCoachTwoDCurrentLabel.

@@ -5044,7 +5044,7 @@
   "runningCoachGoalMotionFootnote": "This line only shows the landing direction.",
   "runningCoachGoalMotionPlay": "Play goal movement",
   "runningCoachGoalMotionPause": "Pause goal movement",
-  "runningCoachTwoDComparisonTitle": "Joint-based motion comparison",
+  "runningCoachTwoDComparisonTitle": "Runner motion comparison",
   "runningCoachTwoDCurrentLabel": "My measured pose",
   "runningCoachTwoDTargetLabel": "Next landing",
   "runningCoachTwoDVideoOverlayTitle": "Overlay on your uploaded video",
