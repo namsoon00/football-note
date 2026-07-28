@@ -8782,26 +8782,38 @@ class AppLocalizationsKo extends AppLocalizations {
       '파란 목표는 영상 위가 아니라 다음 동작에서 맞출 방향이에요.';
 
   @override
-  String get runningCoachGoalMotionTitle => '내 자세와 다음 동작';
+  String get runningCoachGoalMotionTitle => '내 프레임과 목표 동작';
 
   @override
-  String get runningCoachGoalMotionBody => '왼쪽은 내 자세, 오른쪽은 다음에 해 볼 동작이에요.';
+  String get runningCoachGoalMotionBody => '같은 착지 단계에서 비교하고 한 가지 목표만 따라 해 보세요.';
 
   @override
-  String get runningCoachGoalMotionActualLabel => '내 자세';
+  String get runningCoachGoalMotionActualLabel => '내 프레임';
 
   @override
-  String get runningCoachGoalMotionTargetLabel => '다음 동작';
+  String get runningCoachGoalMotionTargetLabel => '목표 러너';
 
   @override
   String get runningCoachGoalMotionFootnote =>
-      '오른쪽 그림은 내 영상에서 측정한 관절 위치를 바탕으로 만든 다음 동작의 목표예요.';
+      '목표 러너는 내 몸을 재현한 그림이 아니라, 다음 스텝에서 따라갈 기준입니다.';
 
   @override
   String get runningCoachGoalMotionPlay => '목표 움직임 재생';
 
   @override
   String get runningCoachGoalMotionPause => '목표 움직임 일시정지';
+
+  @override
+  String get runningCoachTwoDComparisonTitle => '동작 비교';
+
+  @override
+  String get runningCoachTwoDCurrentLabel => '현재 동작';
+
+  @override
+  String get runningCoachTwoDTargetLabel => '다음 목표';
+
+  @override
+  String get runningCoachTwoDVideoOverlayTitle => '업로드한 영상 위 측정';
 
   @override
   String get runningCoachHistoryEvidenceUnavailableTitle => '저장된 관절 근거 없음';

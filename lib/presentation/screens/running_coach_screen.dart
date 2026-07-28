@@ -19,6 +19,7 @@ import '../../domain/entities/running_coach_session.dart';
 import '../../domain/entities/running_video_analysis_result.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../../gen/app_localizations.dart';
+import '../running_coach/running_foot_strike_target_motion_proof.dart';
 import '../running_coach/running_pose_overlay.dart';
 import '../models/sample_runner_pose.dart';
 import 'running_coach_insight_copy.dart';
@@ -5193,10 +5194,25 @@ class _EvidenceVideoPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
-    final actualAccent = scheme.error;
     final videoController = controller;
+    final isFootStrike = insight.metric == RunningCoachMetric.footStrike;
+    final evidenceContent = _EvidenceVideoContent(
+      result: result,
+      insight: insight,
+      selectedFrame: selectedFrame,
+      controller: videoController,
+      isVideoUnavailable: isVideoUnavailable,
+      showRunnerAvatar: !isFootStrike,
+    );
+    if (isFootStrike) {
+      return RunningFootStrikeEvidenceReferencePreview(
+        evidence: evidenceContent,
+        direction: result.direction,
+        currentPose: selectedFrame.poseFrame,
+        status: insight.status,
+      );
+    }
     final poseAspectRatio = selectedFrame.poseFrame == null
         ? 16 / 9
         : selectedFrame.poseFrame!.imageWidth /
@@ -5228,80 +5244,108 @@ class _EvidenceVideoPreview extends StatelessWidget {
                   color: Colors.black,
                   border: Border.all(color: scheme.outlineVariant),
                 ),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    if (videoController != null &&
-                        videoController.value.isInitialized)
-                      FittedBox(
-                        fit: BoxFit.contain,
-                        child: SizedBox(
-                          width: videoController.value.size.width,
-                          height: videoController.value.size.height,
-                          child: VideoPlayer(videoController),
-                        ),
-                      )
-                    else
-                      Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Text(
-                            isVideoUnavailable
-                                ? l10n.runningCoachEvidenceVideoUnavailable
-                                : l10n.runningCoachEvidencePoseFrameOnly,
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
-                                ?.copyWith(color: Colors.white70),
-                          ),
-                        ),
-                      ),
-                    Positioned.fill(
-                      child: IgnorePointer(
-                        child: AnimatedBuilder(
-                          animation:
-                              videoController ?? kAlwaysDismissedAnimation,
-                          builder: (context, _) {
-                            final position = videoController?.value.position ??
-                                selectedFrame.timestamp;
-                            final poseFrame = runningPoseFrameAtPosition(
-                                  frames: result.poseFrames,
-                                  position: position,
-                                ) ??
-                                selectedFrame.poseFrame;
-                            return CustomPaint(
-                              key: const ValueKey(
-                                'running-coach-analysis-evidence-measurement',
-                              ),
-                              painter: _RunningPoseOverlayPainter(
-                                poseFrame: poseFrame,
-                                primaryColor: scheme.primary,
-                                secondaryColor: Color.lerp(
-                                  scheme.primary,
-                                  scheme.tertiary,
-                                  0.34,
-                                )!,
-                                contactColor: scheme.tertiary,
-                                warningColor: actualAccent,
-                                highlightedMetric: insight.metric,
-                                finding: insight.finding,
-                                direction: result.direction,
-                                useContainFit: true,
-                                showRunnerAvatar: true,
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                child: evidenceContent,
               ),
             ),
           ),
         );
       },
+    );
+  }
+}
+
+class _EvidenceVideoContent extends StatelessWidget {
+  final RunningVideoAnalysisResult result;
+  final RunningCoachingInsight insight;
+  final _AnalysisEvidenceFrame selectedFrame;
+  final VideoPlayerController? controller;
+  final bool isVideoUnavailable;
+  final bool showRunnerAvatar;
+
+  const _EvidenceVideoContent({
+    required this.result,
+    required this.insight,
+    required this.selectedFrame,
+    required this.controller,
+    required this.isVideoUnavailable,
+    required this.showRunnerAvatar,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    final actualAccent = scheme.error;
+    final videoController = controller;
+    return ColoredBox(
+      color: Colors.black,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          if (videoController != null && videoController.value.isInitialized)
+            FittedBox(
+              fit: BoxFit.contain,
+              child: SizedBox(
+                width: videoController.value.size.width,
+                height: videoController.value.size.height,
+                child: VideoPlayer(videoController),
+              ),
+            )
+          else
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  isVideoUnavailable
+                      ? l10n.runningCoachEvidenceVideoUnavailable
+                      : l10n.runningCoachEvidencePoseFrameOnly,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodySmall
+                      ?.copyWith(color: Colors.white70),
+                ),
+              ),
+            ),
+          Positioned.fill(
+            child: IgnorePointer(
+              child: AnimatedBuilder(
+                animation: videoController ?? kAlwaysDismissedAnimation,
+                builder: (context, _) {
+                  final position = videoController?.value.position ??
+                      selectedFrame.timestamp;
+                  final poseFrame = runningPoseFrameAtPosition(
+                        frames: result.poseFrames,
+                        position: position,
+                      ) ??
+                      selectedFrame.poseFrame;
+                  return CustomPaint(
+                    key: const ValueKey(
+                      'running-coach-analysis-evidence-measurement',
+                    ),
+                    painter: _RunningPoseOverlayPainter(
+                      poseFrame: poseFrame,
+                      primaryColor: scheme.primary,
+                      secondaryColor: Color.lerp(
+                        scheme.primary,
+                        scheme.tertiary,
+                        0.34,
+                      )!,
+                      contactColor: scheme.tertiary,
+                      warningColor: actualAccent,
+                      highlightedMetric: insight.metric,
+                      finding: insight.finding,
+                      direction: result.direction,
+                      useContainFit: true,
+                      showRunnerAvatar: showRunnerAvatar,
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -5398,6 +5442,14 @@ class _EvidencePoseTransitionState extends State<_EvidencePoseTransition>
 
   @override
   Widget build(BuildContext context) {
+    if (widget.insight.metric == RunningCoachMetric.footStrike) {
+      return RunningFootStrikeTargetMotionProof(
+        insight: widget.insight,
+        direction: widget.direction,
+        currentValue: widget.copy.value,
+        cue: widget.copy.cue,
+      );
+    }
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
     final actualAccent = scheme.error;

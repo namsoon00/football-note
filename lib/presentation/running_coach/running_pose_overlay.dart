@@ -24,6 +24,8 @@ class RunningPoseHumanFormStyle {
   final Color? shoeColor;
   final Color? hairColor;
   final RunningPoseOverlayPresentation presentation;
+  final bool coverLimbsWithApparel;
+  final bool showFocusLandmarks;
   final double opacity;
 
   const RunningPoseHumanFormStyle({
@@ -38,6 +40,8 @@ class RunningPoseHumanFormStyle {
     this.shoeColor,
     this.hairColor,
     this.presentation = RunningPoseOverlayPresentation.refinedJoints,
+    this.coverLimbsWithApparel = false,
+    this.showFocusLandmarks = true,
     this.opacity = 1,
   });
 
@@ -80,6 +84,41 @@ RunningPoseHumanFormStyle runningPoseSportsAvatarStyle({
     shoeColor: Color.lerp(accentColor, jointColor, 0.24)!,
     hairColor: Color.lerp(apparelColor, const Color(0xFF0B1220), 0.72)!,
     presentation: RunningPoseOverlayPresentation.sportsAvatar,
+    opacity: opacity,
+  );
+}
+
+/// Builds a neutral, fully clothed runner for the instructional comparison.
+///
+/// The outfit keeps the figure human-readable without inferring the runner's
+/// skin tone or body shape. All body surfaces still begin and end at the pose
+/// landmarks supplied by MediaPipe.
+RunningPoseHumanFormStyle runningPoseStudioRunnerStyle({
+  required Color accentColor,
+  required Color secondaryAccent,
+  required Color focusColor,
+  required Color jointColor,
+  double opacity = 1,
+}) {
+  final kitBase = Color.lerp(
+    const Color(0xFF65758B),
+    accentColor,
+    0.34,
+  )!;
+  return RunningPoseHumanFormStyle(
+    bodyColor: const Color(0xFFD8E0EA),
+    leftSideColor: Color.lerp(secondaryAccent, const Color(0xFFB8C5D8), 0.42)!,
+    rightSideColor: Color.lerp(accentColor, const Color(0xFFF2F6FC), 0.16)!,
+    jointColor: jointColor,
+    focusColor: focusColor,
+    skinColor: const Color(0xFFD8E0EA),
+    apparelColor: kitBase,
+    shortsColor: Color.lerp(kitBase, const Color(0xFF121B2A), 0.58)!,
+    shoeColor: Color.lerp(accentColor, const Color(0xFFEAF0F9), 0.34)!,
+    hairColor: const Color(0xFF182231),
+    presentation: RunningPoseOverlayPresentation.sportsAvatar,
+    coverLimbsWithApparel: true,
+    showFocusLandmarks: false,
     opacity: opacity,
   );
 }
@@ -148,14 +187,16 @@ void paintRunningPoseHumanForm(
   _drawHumanHands(canvas, points, bodyScale, style, opacity, focusIndices);
   _drawHumanFeet(canvas, points, bodyScale, style, opacity, focusIndices);
   _drawHumanHead(canvas, points, bodyScale, style, opacity);
-  _drawHumanFocusLandmarks(
-    canvas,
-    points,
-    bodyScale,
-    style,
-    opacity,
-    focusIndices,
-  );
+  if (style.showFocusLandmarks) {
+    _drawHumanFocusLandmarks(
+      canvas,
+      points,
+      bodyScale,
+      style,
+      opacity,
+      focusIndices,
+    );
+  }
 }
 
 void _drawRefinedJointOverlay(
@@ -1024,7 +1065,11 @@ void _drawHumanLimbs(
       _HumanPoseSide.left => style.leftSideColor,
       _HumanPoseSide.right => style.rightSideColor,
     };
-    final fillColor = switch (segment.material) {
+    final material = style.coverLimbsWithApparel &&
+            segment.material == _HumanFormMaterial.skin
+        ? _HumanFormMaterial.apparel
+        : segment.material;
+    final fillColor = switch (material) {
       _HumanFormMaterial.skin => style.resolvedSkinColor,
       _HumanFormMaterial.apparel => style.resolvedApparelColor,
     };
@@ -1128,7 +1173,11 @@ void _drawHumanJointBlends(
       _HumanPoseSide.left => style.leftSideColor,
       _HumanPoseSide.right => style.rightSideColor,
     };
-    final fillColor = switch (joint.material) {
+    final material =
+        style.coverLimbsWithApparel && joint.material == _HumanFormMaterial.skin
+            ? _HumanFormMaterial.apparel
+            : joint.material;
+    final fillColor = switch (material) {
       _HumanFormMaterial.skin => style.resolvedSkinColor,
       _HumanFormMaterial.apparel => style.resolvedApparelColor,
     };
@@ -1190,10 +1239,13 @@ void _drawHumanHands(
       _HumanPoseSide.left => style.leftSideColor,
       _HumanPoseSide.right => style.rightSideColor,
     };
+    final handColor = style.coverLimbsWithApparel
+        ? style.resolvedApparelColor
+        : style.resolvedSkinColor;
     canvas.drawPath(
       palm,
       Paint()
-        ..color = style.resolvedSkinColor.withValues(alpha: 0.94 * opacity)
+        ..color = handColor.withValues(alpha: 0.94 * opacity)
         ..style = PaintingStyle.fill,
     );
     canvas.drawPath(
@@ -1209,7 +1261,7 @@ void _drawHumanHands(
       base + _humanScale(side, palmRadius * 0.28),
       tip + _humanScale(side, palmRadius * 0.20),
       Paint()
-        ..color = style.resolvedSkinColor.withValues(alpha: 0.16 * opacity)
+        ..color = handColor.withValues(alpha: 0.16 * opacity)
         ..style = PaintingStyle.stroke
         ..strokeWidth = (bodyScale * 0.003).clamp(0.35, 0.8)
         ..strokeCap = StrokeCap.round,
