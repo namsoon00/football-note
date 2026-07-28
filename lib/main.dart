@@ -36,7 +36,6 @@ import 'application/training_plan_reminder_service.dart';
 import 'application/weather_reminder_service.dart';
 import 'domain/entities/sport_definition.dart';
 import 'presentation/screens/home_screen.dart';
-import 'presentation/screens/sport_start_selection_screen.dart';
 import 'presentation/screens/welcome_screen.dart';
 import 'presentation/theme/app_theme.dart';
 import 'presentation/navigation/notification_tap_router.dart';
@@ -149,7 +148,11 @@ Future<_FootballNoteDependencies> _initializeAppDependencies() async {
   final settingsService = SettingsService(optionRepository);
   settingsService.load();
   AppSoundEffects.setEnabled(settingsService.soundEffectsEnabled);
-  final sportController = SportStateController(optionRepository);
+  SportService.setFixedSportForCurrentSession(SportCatalog.defaultSportId);
+  final sportController = SportStateController(
+    optionRepository,
+    fixedSportId: SportCatalog.defaultSportId,
+  );
   final mealLogService = MealLogService(optionRepository);
   final trainingService = TrainingService(
     trainingRepository,
@@ -935,8 +938,6 @@ class _EntryGateState extends State<_EntryGate> with WidgetsBindingObserver {
   static const String _welcomeSeenKey = 'welcome_seen_v1';
 
   bool _parentRefreshBusy = false;
-  bool _startupSportSelected = false;
-  bool _sportSelectionInFlight = false;
   bool _welcomeSeen = false;
   bool _welcomeDismissInFlight = false;
   bool _welcomeRemoteCheckPending = false;
@@ -949,23 +950,7 @@ class _EntryGateState extends State<_EntryGate> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _welcomeSeen =
         widget.optionRepository.getValue<bool>(_welcomeSeenKey) ?? false;
-    final storedSportId = widget.optionRepository.getValue<String>(
-      SportCatalog.currentSportOptionKey,
-    );
-    final hasStoredSport = storedSportId?.trim().isNotEmpty == true;
-    final isSupportMode =
-        FamilyAccessService(widget.optionRepository).loadState().isSupportMode;
-    _startupSportSelected = hasStoredSport || isSupportMode || _welcomeSeen;
-    if (!hasStoredSport && _welcomeSeen && !isSupportMode) {
-      unawaited(
-        SportService(widget.optionRepository).setCurrentSportId(
-          SportCatalog.normalizeSportId(widget.sportId),
-        ),
-      );
-    }
-    if (_startupSportSelected) {
-      unawaited(_resolveWelcomeStateFromRemoteBackup());
-    }
+    unawaited(_resolveWelcomeStateFromRemoteBackup());
     unawaited(_syncHealthConnectJumpRopeIfNeeded());
   }
 
@@ -1085,39 +1070,8 @@ class _EntryGateState extends State<_EntryGate> with WidgetsBindingObserver {
     }
   }
 
-  void _markStartupSportSelected(String sportId) {
-    if (_sportSelectionInFlight) {
-      return;
-    }
-    _sportSelectionInFlight = true;
-    unawaited(_markStartupSportSelectedAsync(sportId));
-  }
-
-  Future<void> _markStartupSportSelectedAsync(String sportId) async {
-    try {
-      await SportService(widget.optionRepository).setCurrentSportId(sportId);
-      await _resolveWelcomeStateFromRemoteBackup();
-      if (!mounted) {
-        return;
-      }
-      SportScope.read(context)?.reloadFromStorage();
-      setState(() {
-        _startupSportSelected = true;
-        _sportSelectionInFlight = false;
-      });
-    } catch (_) {
-      if (!mounted) {
-        return;
-      }
-      setState(() => _sportSelectionInFlight = false);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    if (!_startupSportSelected) {
-      return SportStartSelectionScreen(onSelected: _markStartupSportSelected);
-    }
     if (_welcomeRemoteCheckPending) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),

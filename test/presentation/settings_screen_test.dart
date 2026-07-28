@@ -6,14 +6,11 @@ import 'package:football_note/application/drive_connection_info.dart';
 import 'package:football_note/application/family_access_service.dart';
 import 'package:football_note/application/locale_service.dart';
 import 'package:football_note/application/settings_service.dart';
-import 'package:football_note/application/sport_state_controller.dart';
 import 'package:football_note/application/tutorial_guide_service.dart';
 import 'package:football_note/domain/repositories/backup_repository.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
-import 'package:football_note/domain/entities/sport_definition.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/settings_screen.dart';
-import 'package:football_note/presentation/widgets/sport_scope.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -341,125 +338,22 @@ void main() {
     expect(find.byTooltip('선수 삭제'), findsNWidgets(2));
   });
 
-  testWidgets('player mode sport selector updates shared sport state', (
+  testWidgets('general settings hide the sport selector', (
     WidgetTester tester,
   ) async {
     final optionRepository = _MemoryOptionRepository();
     final localeService = LocaleService(optionRepository)..load();
     final settingsService = SettingsService(optionRepository)..load();
-    final sportController = SportStateController(optionRepository);
 
     await tester.pumpWidget(
-      SportScope(
-        controller: sportController,
-        child: MaterialApp(
-          locale: const Locale('ko'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: SettingsScreen(
-            localeService: localeService,
-            settingsService: settingsService,
-            optionRepository: optionRepository,
-          ),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('일반 설정'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byType(DropdownMenu<String>).first);
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('농구').last);
-    await tester.pumpAndSettle();
-
-    expect(sportController.currentSportId, SportCatalog.basketballId);
-    expect(
-      optionRepository.getValue<String>(SportCatalog.currentSportOptionKey),
-      SportCatalog.basketballId,
-    );
-  });
-
-  testWidgets('player mode sport change returns to the root route', (
-    WidgetTester tester,
-  ) async {
-    final optionRepository = _MemoryOptionRepository();
-    final localeService = LocaleService(optionRepository)..load();
-    final settingsService = SettingsService(optionRepository)..load();
-    final sportController = SportStateController(optionRepository);
-
-    await tester.pumpWidget(
-      SportScope(
-        controller: sportController,
-        child: MaterialApp(
-          locale: const Locale('ko'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: Builder(
-            builder: (context) => Scaffold(
-              body: TextButton(
-                key: const ValueKey<String>('open-settings-route'),
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => SettingsScreen(
-                        localeService: localeService,
-                        settingsService: settingsService,
-                        optionRepository: optionRepository,
-                      ),
-                    ),
-                  );
-                },
-                child: const Text('Open settings'),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.byKey(const ValueKey<String>('open-settings-route')));
-    await tester.pumpAndSettle();
-    expect(find.text('일반 설정'), findsOneWidget);
-
-    await tester.tap(find.text('일반 설정'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byType(DropdownMenu<String>).first);
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('농구').last);
-    await tester.pumpAndSettle();
-
-    expect(sportController.currentSportId, SportCatalog.basketballId);
-    expect(find.byKey(const ValueKey<String>('open-settings-route')),
-        findsOneWidget);
-    expect(find.text('일반 설정'), findsNothing);
-  });
-
-  testWidgets('parent mode disables sport selector', (
-    WidgetTester tester,
-  ) async {
-    final optionRepository = _MemoryOptionRepository();
-    await optionRepository.setValue(
-      FamilyAccessService.currentRoleLocalKey,
-      FamilyRole.parent.name,
-    );
-    final localeService = LocaleService(optionRepository)..load();
-    final settingsService = SettingsService(optionRepository)..load();
-    final sportController = SportStateController(optionRepository);
-
-    await tester.pumpWidget(
-      SportScope(
-        controller: sportController,
-        child: MaterialApp(
-          locale: const Locale('ko'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: SettingsScreen(
-            localeService: localeService,
-            settingsService: settingsService,
-            optionRepository: optionRepository,
-          ),
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: SettingsScreen(
+          localeService: localeService,
+          settingsService: settingsService,
+          optionRepository: optionRepository,
         ),
       ),
     );
@@ -468,17 +362,7 @@ void main() {
     await tester.tap(find.text('일반 설정'));
     await tester.pumpAndSettle();
 
-    final sportMenu = tester
-        .widgetList<DropdownMenu<String>>(find.byType(DropdownMenu<String>))
-        .firstWhere((menu) {
-      final label = menu.label;
-      return label is Text && label.data == '종목';
-    });
-    expect(sportMenu.enabled, isFalse);
-    expect(
-      find.text('보호자 모드에서는 종목, 기본값, 뉴스 필터를 수정할 수 없어요. 선수 모드에서 변경해 주세요.'),
-      findsWidgets,
-    );
+    expect(find.text('종목'), findsNothing);
   });
 
   testWidgets(

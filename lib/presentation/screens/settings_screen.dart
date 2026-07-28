@@ -12,10 +12,8 @@ import '../../application/family_access_service.dart';
 import '../../application/health_connect_jump_rope_sync_service.dart';
 import '../../application/locale_service.dart';
 import '../../application/localized_option_defaults.dart';
-import '../../application/news_badge_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/sport_defaults.dart';
-import '../../application/sport_service.dart';
 import '../../application/tutorial_guide_service.dart';
 import '../../domain/entities/sport_definition.dart';
 import '../../domain/repositories/option_repository.dart';
@@ -448,8 +446,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       _autoOnSave = widget.driveBackupService!.isAutoOnSaveEnabled();
     }
 
-    final sportId = SportScope.maybeOf(context)?.currentSportId ??
-        SportService(widget.optionRepository).currentSportId();
+    final sportId = _activeSportId(context);
     final durationOptionsKey = SportCatalog.optionKey(
       'durations',
       sportId: sportId,
@@ -585,25 +582,6 @@ class _SettingsScreenState extends State<SettingsScreen>
                     spacing: spacing,
                     runSpacing: 2,
                     children: [
-                      SizedBox(
-                        width: itemWidth,
-                        child: _buildSelectRow<String>(
-                          label: l10n.sport,
-                          value: sportId,
-                          options: SportCatalog.all
-                              .map((sport) => sport.id)
-                              .toList(growable: false),
-                          optionLabel: (value) => SportDefaults.label(
-                            l10n: l10n,
-                            sportId: value,
-                          ),
-                          onChanged: parentSettingsReadOnly
-                              ? null
-                              : (value) =>
-                                  unawaited(_changeCurrentSport(value)),
-                          height: 56,
-                        ),
-                      ),
                       SizedBox(
                         width: itemWidth,
                         child: _buildSelectRow<String>(
@@ -1895,7 +1873,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     AppLocalizations l10n, {
     bool readOnly = false,
   }) {
-    final sportId = SportService(widget.optionRepository).currentSportId();
+    final sportId = _activeSportId(context);
     final durationOptionsKey =
         SportCatalog.optionKey('durations', sportId: sportId);
     final defaultDurationKey =
@@ -1939,9 +1917,7 @@ class _SettingsScreenState extends State<SettingsScreen>
               : () => _pickDefaultString(
                     key: SportCatalog.optionKey(
                       'default_program',
-                      sportId: SportService(
-                        widget.optionRepository,
-                      ).currentSportId(),
+                      sportId: _activeSportId(context),
                     ),
                     current: _defaultProgram,
                     options: _programOptions,
@@ -2001,9 +1977,7 @@ class _SettingsScreenState extends State<SettingsScreen>
               : () => _manageStringOptions(
                     key: SportCatalog.optionKey(
                       'daily_goals',
-                      sportId: SportService(
-                        widget.optionRepository,
-                      ).currentSportId(),
+                      sportId: _activeSportId(context),
                     ),
                     title: l10n.settingsTrainingGoalOptionsManageTitle,
                     options: _dailyGoalOptions,
@@ -2076,7 +2050,7 @@ class _SettingsScreenState extends State<SettingsScreen>
 
   Future<void> _manageProgramOptions() async {
     final l10n = AppLocalizations.of(context)!;
-    final sportId = SportService(widget.optionRepository).currentSportId();
+    final sportId = _activeSportId(context);
     await _manageStringOptions(
       key: SportCatalog.optionKey('programs', sportId: sportId),
       title: l10n.settingsProgramOptionsManageTitle,
@@ -2098,7 +2072,7 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
 
   Future<void> _pickDefaultDuration(AppLocalizations l10n) async {
-    final sportId = SportService(widget.optionRepository).currentSportId();
+    final sportId = _activeSportId(context);
     await _pickDefaultInt(
       key: SportCatalog.optionKey('default_duration', sportId: sportId),
       current: _defaultDuration,
@@ -2520,53 +2494,16 @@ class _SettingsScreenState extends State<SettingsScreen>
     return host;
   }
 
-  Future<void> _changeCurrentSport(String sportId) async {
-    final familyState = FamilyAccessService(
-      widget.optionRepository,
-    ).loadState();
-    if (familyState.isSupportMode) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            AppLocalizations.of(context)!.parentReadOnlySettingsOptions,
-          ),
-        ),
-      );
-      return;
-    }
-    final normalizedSportId = SportCatalog.normalizeSportId(sportId);
-    final controller = SportScope.read(context);
-    final changed = controller == null
-        ? await _setSportWithoutController(normalizedSportId)
-        : await controller.setCurrentSportId(normalizedSportId);
-    if (!changed) return;
-    NewsBadgeService.clearUnreadCount();
-    unawaited(NewsBadgeService.refresh(widget.optionRepository, force: true));
-    if (!mounted) return;
-    setState(() {});
-    final navigator = Navigator.maybeOf(context);
-    if (navigator != null && navigator.canPop()) {
-      navigator.popUntil((route) => route.isFirst);
-    }
-  }
-
-  Future<bool> _setSportWithoutController(String sportId) async {
-    final service = SportService(widget.optionRepository);
-    final normalizedSportId = SportCatalog.normalizeSportId(sportId);
-    if (service.currentSportId() == normalizedSportId) {
-      return false;
-    }
-    await service.setCurrentSportId(normalizedSportId);
-    return true;
-  }
-
   List<String> _defaultDailyGoals(AppLocalizations l10n, {String? sportId}) {
     return SportDefaults.dailyGoals(
       l10n: l10n,
-      sportId:
-          sportId ?? SportService(widget.optionRepository).currentSportId(),
+      sportId: sportId ?? SportCatalog.defaultSportId,
     );
+  }
+
+  String _activeSportId(BuildContext context) {
+    return SportScope.maybeOf(context)?.currentSportId ??
+        SportCatalog.defaultSportId;
   }
 
   Widget _buildDriveAccountTile({
