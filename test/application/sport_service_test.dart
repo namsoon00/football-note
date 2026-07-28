@@ -5,6 +5,10 @@ import 'package:football_note/domain/entities/sport_definition.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 
 void main() {
+  tearDown(
+    () => SportService.setFixedSportForCurrentSession(null),
+  );
+
   test('current sport defaults to football', () {
     final repository = _MemoryOptionRepository();
     final service = SportService(repository);
@@ -99,6 +103,51 @@ void main() {
     expect(unchanged, isFalse);
     expect(controller.currentSportId, SportCatalog.tennisId);
     expect(notificationCount, 1);
+  });
+
+  test('fixed sport controller keeps football active without changing storage',
+      () async {
+    final repository = _MemoryOptionRepository();
+    await repository.setValue(
+      SportCatalog.currentSportOptionKey,
+      SportCatalog.basketballId,
+    );
+    final controller = SportStateController(
+      repository,
+      fixedSportId: SportCatalog.footballId,
+    );
+
+    final changed = await controller.setCurrentSportId(SportCatalog.tennisId);
+    await repository.setValue(
+      SportCatalog.currentSportOptionKey,
+      SportCatalog.baseballId,
+    );
+
+    expect(controller.currentSportId, SportCatalog.footballId);
+    expect(changed, isFalse);
+    expect(controller.reloadFromStorage(), isFalse);
+    expect(
+      repository.getValue<String>(SportCatalog.currentSportOptionKey),
+      SportCatalog.baseballId,
+    );
+  });
+
+  test('session-fixed sport preserves the stored selection', () async {
+    final repository = _MemoryOptionRepository();
+    await repository.setValue(
+      SportCatalog.currentSportOptionKey,
+      SportCatalog.basketballId,
+    );
+    SportService.setFixedSportForCurrentSession(SportCatalog.footballId);
+    final service = SportService(repository);
+
+    await service.setCurrentSportId(SportCatalog.tennisId);
+
+    expect(service.currentSportId(), SportCatalog.footballId);
+    expect(
+      repository.getValue<String>(SportCatalog.currentSportOptionKey),
+      SportCatalog.basketballId,
+    );
   });
 }
 

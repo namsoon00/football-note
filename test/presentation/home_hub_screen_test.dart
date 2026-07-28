@@ -87,6 +87,36 @@ void main() {
     await tester.pump();
   });
 
+  testWidgets('app bypasses startup sport selection with football fixed', (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _MemoryOptionRepository();
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+    final sportController = SportStateController(
+      optionRepository,
+      fixedSportId: SportCatalog.footballId,
+    );
+
+    await tester.pumpWidget(
+      app.FootballNoteApp(
+        trainingService: TrainingService(_MemoryTrainingRepository()),
+        mealLogService: MealLogService(optionRepository),
+        optionRepository: optionRepository,
+        localeService: localeService,
+        settingsService: settingsService,
+        sportController: sportController,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(sportController.currentSportId, SportCatalog.footballId);
+    expect(find.text('먼저 사용할 종목을 골라요'), findsNothing);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
+
   testWidgets(
     'home promotes incomplete meal routine to the top',
     (WidgetTester tester) async {
