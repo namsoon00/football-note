@@ -8793,6 +8793,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachGoalMotionPause => '目標の動きを一時停止';
 
   @override
+  String get runningCoachTwoDComparisonTitle => '動きの比較';
+
+  @override
+  String get runningCoachTwoDCurrentLabel => '現在の動き';
+
+  @override
+  String get runningCoachTwoDTargetLabel => '次の目標';
+
+  @override
+  String get runningCoachTwoDVideoOverlayTitle => 'アップロードした動画上の測定';
+
+  @override
   String get runningCoachHistoryEvidenceUnavailableTitle => '保存済みの関節根拠なし';
 
   @override

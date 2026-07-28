@@ -9007,27 +9007,40 @@ class AppLocalizationsEn extends AppLocalizations {
       'The blue target is the direction to use on your next step, not a pose drawn over the video.';
 
   @override
-  String get runningCoachGoalMotionTitle => 'My form and next movement';
+  String get runningCoachGoalMotionTitle => 'Your frame and target movement';
 
   @override
   String get runningCoachGoalMotionBody =>
-      'The left is your form. The right is the movement to try next.';
+      'Compare the same landing phase, then follow one target.';
 
   @override
-  String get runningCoachGoalMotionActualLabel => 'My form';
+  String get runningCoachGoalMotionActualLabel => 'My frame';
 
   @override
-  String get runningCoachGoalMotionTargetLabel => 'Next move';
+  String get runningCoachGoalMotionTargetLabel => 'Target runner';
 
   @override
   String get runningCoachGoalMotionFootnote =>
-      'The right guide is a next-movement goal built from joints measured in your video.';
+      'The target runner is a form reference for your next step, not a reconstruction of your body.';
 
   @override
   String get runningCoachGoalMotionPlay => 'Play goal movement';
 
   @override
   String get runningCoachGoalMotionPause => 'Pause goal movement';
+
+  @override
+  String get runningCoachTwoDComparisonTitle => 'Motion comparison';
+
+  @override
+  String get runningCoachTwoDCurrentLabel => 'Current motion';
+
+  @override
+  String get runningCoachTwoDTargetLabel => 'Next target';
+
+  @override
+  String get runningCoachTwoDVideoOverlayTitle =>
+      'Overlay on your uploaded video';
 
   @override
   String get runningCoachHistoryEvidenceUnavailableTitle =>

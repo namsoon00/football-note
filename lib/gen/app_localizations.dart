@@ -15734,31 +15734,31 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachGoalMotionTitle.
   ///
   /// In en, this message translates to:
-  /// **'My form and next movement'**
+  /// **'Your frame and target movement'**
   String get runningCoachGoalMotionTitle;
 
   /// No description provided for @runningCoachGoalMotionBody.
   ///
   /// In en, this message translates to:
-  /// **'The left is your form. The right is the movement to try next.'**
+  /// **'Compare the same landing phase, then follow one target.'**
   String get runningCoachGoalMotionBody;
 
   /// No description provided for @runningCoachGoalMotionActualLabel.
   ///
   /// In en, this message translates to:
-  /// **'My form'**
+  /// **'My frame'**
   String get runningCoachGoalMotionActualLabel;
 
   /// No description provided for @runningCoachGoalMotionTargetLabel.
   ///
   /// In en, this message translates to:
-  /// **'Next move'**
+  /// **'Target runner'**
   String get runningCoachGoalMotionTargetLabel;
 
   /// No description provided for @runningCoachGoalMotionFootnote.
   ///
   /// In en, this message translates to:
-  /// **'The right guide is a next-movement goal built from joints measured in your video.'**
+  /// **'The target runner is a form reference for your next step, not a reconstruction of your body.'**
   String get runningCoachGoalMotionFootnote;
 
   /// No description provided for @runningCoachGoalMotionPlay.
@@ -15772,6 +15772,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pause goal movement'**
   String get runningCoachGoalMotionPause;
+
+  /// No description provided for @runningCoachTwoDComparisonTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Motion comparison'**
+  String get runningCoachTwoDComparisonTitle;
+
+  /// No description provided for @runningCoachTwoDCurrentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Current motion'**
+  String get runningCoachTwoDCurrentLabel;
+
+  /// No description provided for @runningCoachTwoDTargetLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Next target'**
+  String get runningCoachTwoDTargetLabel;
+
+  /// No description provided for @runningCoachTwoDVideoOverlayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Overlay on your uploaded video'**
+  String get runningCoachTwoDVideoOverlayTitle;
 
   /// No description provided for @runningCoachHistoryEvidenceUnavailableTitle.
   ///

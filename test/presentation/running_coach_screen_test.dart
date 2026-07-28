@@ -1140,7 +1140,7 @@ void main() {
       find.byKey(const ValueKey('running-coach-evidence-pose-transition')),
       findsOneWidget,
     );
-    expect(find.text('My form and next movement'), findsOneWidget);
+    expect(find.text('From current to next'), findsOneWidget);
     expect(
       find.byKey(const ValueKey('running-coach-goal-motion')),
       findsOneWidget,
@@ -1149,8 +1149,26 @@ void main() {
       find.byKey(const ValueKey('running-coach-goal-motion-toggle')),
       findsOneWidget,
     );
-    expect(find.text('My form'), findsOneWidget);
-    expect(find.text('Next move'), findsOneWidget);
+    expect(find.text('Next target'), findsOneWidget);
+    expect(find.text('Overlay on your uploaded video'), findsOneWidget);
+    expect(
+      find.byKey(
+        const ValueKey('running-coach-foot-strike-reference-runner'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(
+        const ValueKey('running-coach-foot-strike-uploaded-overlay'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(
+        const ValueKey('running-coach-foot-strike-current-target'),
+      ),
+      findsOneWidget,
+    );
     expect(find.text('Evidence 1/2'), findsOneWidget);
     expect(tester.takeException(), isNull);
 
@@ -1306,7 +1324,29 @@ void main() {
         const ValueKey('running-coach-goal-motion'),
       );
       expect(goalMotion, findsOneWidget);
-      expect(tester.getSize(goalMotion).height, 214);
+      if (metric == RunningCoachMetric.footStrike) {
+        expect(tester.getSize(goalMotion).height, greaterThanOrEqualTo(222));
+        expect(
+          find.byKey(
+            const ValueKey('running-coach-foot-strike-reference-runner'),
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find.byKey(
+            const ValueKey('running-coach-foot-strike-uploaded-overlay'),
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find.byKey(
+            const ValueKey('running-coach-foot-strike-current-target'),
+          ),
+          findsOneWidget,
+        );
+      } else {
+        expect(tester.getSize(goalMotion).height, 214);
+      }
       expect(tester.takeException(), isNull);
     }
   });
