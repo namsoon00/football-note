@@ -26,6 +26,7 @@ class RunningPoseHumanFormStyle {
   final RunningPoseOverlayPresentation presentation;
   final bool coverLimbsWithApparel;
   final bool showFocusLandmarks;
+  final double volumeScale;
   final double opacity;
 
   const RunningPoseHumanFormStyle({
@@ -42,6 +43,7 @@ class RunningPoseHumanFormStyle {
     this.presentation = RunningPoseOverlayPresentation.refinedJoints,
     this.coverLimbsWithApparel = false,
     this.showFocusLandmarks = true,
+    this.volumeScale = 1,
     this.opacity = 1,
   });
 
@@ -98,6 +100,7 @@ RunningPoseHumanFormStyle runningPoseStudioRunnerStyle({
   required Color secondaryAccent,
   required Color focusColor,
   required Color jointColor,
+  double volumeScale = 1,
   double opacity = 1,
 }) {
   final kitBase = Color.lerp(
@@ -119,6 +122,7 @@ RunningPoseHumanFormStyle runningPoseStudioRunnerStyle({
     presentation: RunningPoseOverlayPresentation.sportsAvatar,
     coverLimbsWithApparel: true,
     showFocusLandmarks: false,
+    volumeScale: volumeScale,
     opacity: opacity,
   );
 }
@@ -615,7 +619,11 @@ void _drawHumanTorso(
   double opacity,
   Set<int> focusIndices,
 ) {
-  final torsoFrame = _avatarTorsoFrame(points, bodyScale);
+  final torsoFrame = _avatarTorsoFrame(
+    points,
+    bodyScale,
+    volumeScale: style.volumeScale,
+  );
   if (torsoFrame == null) return;
 
   final leftShoulder = torsoFrame.leftShoulder;
@@ -774,7 +782,11 @@ void _drawHumanShorts(
   // In a true side view, MediaPipe's paired hip landmarks can land only a
   // few pixels apart. Keep the measured hip centre but use the same visual
   // torso width as the shirt, so the kit does not collapse into a line.
-  final torsoFrame = _avatarTorsoFrame(points, bodyScale);
+  final torsoFrame = _avatarTorsoFrame(
+    points,
+    bodyScale,
+    volumeScale: style.volumeScale,
+  );
   final leftHip = torsoFrame?.leftHip ?? measuredLeftHip;
   final rightHip = torsoFrame?.rightHip ?? measuredRightHip;
   final hipCenter = torsoFrame?.hipCenter ??
@@ -918,9 +930,10 @@ void _drawHumanHead(
   final earWidth = leftEar != null && rightEar != null
       ? (leftEar - rightEar).distance * 1.36
       : 0.0;
-  final headWidth = earWidth > 0
-      ? earWidth.clamp(bodyScale * 0.21, bodyScale * 0.35).toDouble()
-      : (bodyScale * 0.27).clamp(16.0, 54.0).toDouble();
+  final headWidth = (earWidth > 0
+          ? earWidth.clamp(bodyScale * 0.21, bodyScale * 0.35).toDouble()
+          : (bodyScale * 0.27).clamp(16.0, 54.0).toDouble()) *
+      style.volumeScale;
   final headHeight = headWidth * 1.18;
   final rawHeadVector = headAnchor - shoulderCenter;
   final rawHeadDistance = rawHeadVector.distance;
@@ -953,8 +966,8 @@ void _drawHumanHead(
   final neckPath = _humanTaperedPath(
     neckBase,
     neckTop,
-    (bodyScale * 0.048).clamp(2.8, 9.0).toDouble(),
-    (bodyScale * 0.034).clamp(2.1, 6.6).toDouble(),
+    ((bodyScale * 0.048) * style.volumeScale).clamp(2.8, 9.0).toDouble(),
+    ((bodyScale * 0.034) * style.volumeScale).clamp(2.1, 6.6).toDouble(),
   );
   canvas.drawPath(
     neckPath,
@@ -1073,7 +1086,8 @@ void _drawHumanLimbs(
       _HumanFormMaterial.skin => style.resolvedSkinColor,
       _HumanFormMaterial.apparel => style.resolvedApparelColor,
     };
-    final baseRadius = (bodyScale * 0.060).clamp(3.4, 16.0).toDouble();
+    final baseRadius =
+        ((bodyScale * 0.060) * style.volumeScale).clamp(3.4, 16.0).toDouble();
     final fromRadius =
         (baseRadius * segment.fromRadiusFactor).clamp(2.8, 22.0).toDouble();
     final toRadius =
@@ -1158,7 +1172,8 @@ void _drawHumanJointBlends(
   RunningPoseHumanFormStyle style,
   double opacity,
 ) {
-  final blendRadius = (bodyScale * 0.047).clamp(2.8, 11.0).toDouble();
+  final blendRadius =
+      ((bodyScale * 0.047) * style.volumeScale).clamp(2.8, 11.0).toDouble();
   for (final joint in _humanJointBlends) {
     final previous = points[joint.previous];
     final center = points[joint.center];
@@ -1229,8 +1244,10 @@ void _drawHumanHands(
     if (elbow == null || wrist == null) continue;
     final direction = _humanUnitVector(wrist - elbow);
     final side = _humanPerpendicular(direction);
-    final palmLength = (bodyScale * 0.092).clamp(5.0, 17.0).toDouble();
-    final palmRadius = (bodyScale * 0.038).clamp(2.5, 8.0).toDouble();
+    final palmLength =
+        ((bodyScale * 0.092) * style.volumeScale).clamp(5.0, 17.0).toDouble();
+    final palmRadius =
+        ((bodyScale * 0.038) * style.volumeScale).clamp(2.5, 8.0).toDouble();
     final base = wrist - _humanScale(direction, palmLength * 0.20);
     final tip = wrist + _humanScale(direction, palmLength * 0.80);
     final palm = _humanTaperedPath(base, tip, palmRadius, palmRadius * 0.68);
@@ -1293,7 +1310,8 @@ void _drawHumanFeet(
     final shoeColor = style.resolvedShoeColor;
     final footDirection = _humanUnitVector(toe - through);
     final footSide = _humanPerpendicular(footDirection);
-    final footWidth = (bodyScale * 0.048).clamp(3.2, 12.0).toDouble();
+    final footWidth =
+        ((bodyScale * 0.048) * style.volumeScale).clamp(3.2, 12.0).toDouble();
     final heelBack = through - _humanScale(footDirection, footWidth * 0.55);
     final toeFront = toe + _humanScale(footDirection, footWidth * 0.62);
     final upperAnkle = ankle + _humanScale(footSide, footWidth * 0.42);
@@ -1479,8 +1497,9 @@ class _AvatarTorsoFrame {
 
 _AvatarTorsoFrame? _avatarTorsoFrame(
   Map<int, Offset> points,
-  double bodyScale,
-) {
+  double bodyScale, {
+  double volumeScale = 1,
+}) {
   final measuredLeftShoulder = points[11];
   final measuredRightShoulder = points[12];
   final measuredLeftHip = points[23];
@@ -1525,11 +1544,11 @@ _AvatarTorsoFrame? _avatarTorsoFrame(
   );
   final shoulderHalfSpan = math.max(
     measuredShoulderHalfSpan,
-    (bodyScale * 0.118).clamp(9.0, 28.0).toDouble(),
+    ((bodyScale * 0.118) * volumeScale).clamp(9.0, 28.0).toDouble(),
   );
   final hipHalfSpan = math.max(
     measuredHipHalfSpan,
-    (bodyScale * 0.088).clamp(7.0, 22.0).toDouble(),
+    ((bodyScale * 0.088) * volumeScale).clamp(7.0, 22.0).toDouble(),
   );
 
   return _AvatarTorsoFrame(

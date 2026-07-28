@@ -8783,8 +8783,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachGoalMotionTargetLabel => '次の動き';
 
   @override
-  String get runningCoachGoalMotionFootnote =>
-      '右のガイドは、あなたの動画で測定した関節位置から作った次の動きの目標です。';
+  String get runningCoachGoalMotionFootnote => 'ここでは接地の移動方向だけを示します。';
 
   @override
   String get runningCoachGoalMotionPlay => '目標の動きを再生';
@@ -8793,16 +8792,20 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachGoalMotionPause => '目標の動きを一時停止';
 
   @override
-  String get runningCoachTwoDComparisonTitle => '動きの比較';
+  String get runningCoachTwoDComparisonTitle => '関節ベースの動作比較';
 
   @override
-  String get runningCoachTwoDCurrentLabel => '現在の動き';
+  String get runningCoachTwoDCurrentLabel => '測定した姿勢';
 
   @override
-  String get runningCoachTwoDTargetLabel => '次の目標';
+  String get runningCoachTwoDTargetLabel => '次の着地';
 
   @override
   String get runningCoachTwoDVideoOverlayTitle => 'アップロードした動画上の測定';
+
+  @override
+  String get runningCoachCoordinateRigUnavailable =>
+      'このフレームには動作比較を作るための関節座標が十分にありません。';
 
   @override
   String get runningCoachHistoryEvidenceUnavailableTitle => '保存済みの関節根拠なし';

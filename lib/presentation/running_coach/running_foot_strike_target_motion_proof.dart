@@ -6,11 +6,10 @@ import '../../domain/entities/running_video_analysis_result.dart';
 import '../../gen/app_localizations.dart';
 import 'running_pose_overlay.dart';
 
-/// Shows the single next action after the user's video frame is compared with
-/// a fixed, clearly labelled target runner.
+/// Shows the single next action after the coordinate-driven comparison.
 ///
-/// Keeping the reference runner separate avoids pretending that sparse pose
-/// landmarks can reconstruct the runner in the user's video.
+/// The compact rail below the comparison only explains the landing direction;
+/// the body rig above is the surface that uses measured joint coordinates.
 class RunningFootStrikeTargetMotionProof extends StatefulWidget {
   final RunningCoachingInsight insight;
   final RunningDirection direction;
@@ -148,20 +147,18 @@ class _RunningFootStrikeTargetMotionProofState
   }
 }
 
-/// Shows a high-fidelity target runner while retaining the original video
+/// Shows a coordinate-driven running rig while retaining the original video
 /// evidence and its measurement overlay.
 class RunningFootStrikeEvidenceReferencePreview extends StatelessWidget {
   final Widget evidence;
   final RunningDirection direction;
   final RunningPoseFrame? currentPose;
-  final RunningCoachStatus status;
 
   const RunningFootStrikeEvidenceReferencePreview({
     super.key,
     required this.evidence,
     required this.direction,
     required this.currentPose,
-    required this.status,
   });
 
   @override
@@ -171,7 +168,7 @@ class RunningFootStrikeEvidenceReferencePreview extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isNarrow = constraints.maxWidth < 340;
-        final comparisonHeight = isNarrow ? 218.0 : 244.0;
+        final comparisonHeight = isNarrow ? 236.0 : 256.0;
         final overlayHeight = isNarrow ? 166.0 : 188.0;
         return Column(
           key: const ValueKey('running-coach-goal-motion'),
@@ -187,7 +184,7 @@ class RunningFootStrikeEvidenceReferencePreview extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    l10n.runningCoachTwoDTargetLabel,
+                    l10n.runningCoachTwoDComparisonTitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
@@ -204,42 +201,15 @@ class RunningFootStrikeEvidenceReferencePreview extends StatelessWidget {
               ),
               height: comparisonHeight,
               width: double.infinity,
-              child: DecoratedBox(
+              child: _FootStrikeCoordinateRigComparison(
                 key: const ValueKey(
                   'running-coach-foot-strike-reference-runner',
                 ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF101A2A),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: scheme.outlineVariant),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Transform(
-                    alignment: Alignment.center,
-                    transform: Matrix4.diagonal3Values(
-                      direction == RunningDirection.rightToLeft ? -1 : 1,
-                      1,
-                      1,
-                    ),
-                    child: Image.asset(
-                      'assets/images/running_guides/'
-                      'elite_foot_strike_target_reference.png',
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return _FootStrikeRenderedMotionPanel(
-                          icon: Icons.track_changes_rounded,
-                          accent: scheme.primary,
-                          label: l10n.runningCoachTwoDTargetLabel,
-                          poseFrame: currentPose,
-                          direction: direction,
-                          status: status,
-                          isTarget: true,
-                        );
-                      },
-                    ),
-                  ),
-                ),
+                poseFrame: currentPose,
+                direction: direction,
+                currentLabel: l10n.runningCoachTwoDCurrentLabel,
+                targetLabel: l10n.runningCoachTwoDTargetLabel,
+                unavailableLabel: l10n.runningCoachCoordinateRigUnavailable,
               ),
             ),
             const SizedBox(height: 14),
@@ -290,77 +260,153 @@ class RunningFootStrikeEvidenceReferencePreview extends StatelessWidget {
   }
 }
 
-class _FootStrikeRenderedMotionPanel extends StatelessWidget {
-  final IconData icon;
-  final Color accent;
-  final String label;
+class _FootStrikeCoordinateRigComparison extends StatelessWidget {
   final RunningPoseFrame? poseFrame;
   final RunningDirection direction;
-  final RunningCoachStatus status;
-  final bool isTarget;
+  final String currentLabel;
+  final String targetLabel;
+  final String unavailableLabel;
 
-  const _FootStrikeRenderedMotionPanel({
-    required this.icon,
-    required this.accent,
-    required this.label,
+  const _FootStrikeCoordinateRigComparison({
+    super.key,
     required this.poseFrame,
     required this.direction,
-    required this.status,
-    required this.isTarget,
+    required this.currentLabel,
+    required this.targetLabel,
+    required this.unavailableLabel,
   });
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final rig = _FootStrikeCoordinateRig.fromPoseFrame(
+      poseFrame,
+      direction: direction,
+    );
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: scheme.surface.withValues(alpha: 0.44),
+        color: const Color(0xFF101A2A),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: scheme.outlineVariant),
       ),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(8, 7, 8, 6),
-            child: Row(
-              children: [
-                Icon(icon, size: 15, color: accent),
-                const SizedBox(width: 5),
-                Expanded(
-                  child: Text(
-                    label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                          color: accent,
-                          fontWeight: FontWeight.w900,
-                        ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: rig == null
+            ? Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 28),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.visibility_off_outlined,
+                        color: scheme.onSurfaceVariant,
+                        size: 26,
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        unavailableLabel,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: scheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w700,
+                            ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
-          ),
-          Divider(height: 1, color: scheme.outlineVariant),
-          Expanded(
-            child: RepaintBoundary(
-              child: SizedBox.expand(
-                child: CustomPaint(
-                  painter: _FootStrike2DRunnerPainter(
-                    poseFrame: poseFrame,
-                    direction: direction,
-                    status: status,
-                    isTarget: isTarget,
-                    currentAccent: scheme.error,
-                    targetAccent: scheme.primary,
-                    mutedColor: scheme.onSurfaceVariant,
-                    surfaceColor: scheme.surface,
-                  ),
+              )
+            : Padding(
+                padding: const EdgeInsets.fromLTRB(10, 9, 10, 10),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _FootStrikeCoordinateRigCaption(
+                            icon: Icons.person_search_outlined,
+                            color: scheme.error,
+                            label: currentLabel,
+                          ),
+                        ),
+                        Container(
+                          width: 1,
+                          height: 22,
+                          color: scheme.outlineVariant,
+                        ),
+                        Expanded(
+                          child: _FootStrikeCoordinateRigCaption(
+                            icon: Icons.track_changes_rounded,
+                            color: scheme.primary,
+                            label: targetLabel,
+                            alignEnd: true,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 7),
+                    Expanded(
+                      child: RepaintBoundary(
+                        child: SizedBox.expand(
+                          child: CustomPaint(
+                            key: const ValueKey(
+                              'running-coach-foot-strike-coordinate-rig',
+                            ),
+                            painter: _FootStrikeCoordinateRigPainter(
+                              rig: rig,
+                              currentAccent: scheme.error,
+                              targetAccent: scheme.primary,
+                              mutedColor: scheme.onSurfaceVariant,
+                              panelColor: scheme.surface,
+                              panelBorderColor: scheme.outlineVariant,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-          ),
-        ],
       ),
+    );
+  }
+}
+
+class _FootStrikeCoordinateRigCaption extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final String label;
+  final bool alignEnd;
+
+  const _FootStrikeCoordinateRigCaption({
+    required this.icon,
+    required this.color,
+    required this.label,
+    this.alignEnd = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final content = <Widget>[
+      Icon(icon, size: 16, color: color),
+      const SizedBox(width: 6),
+      Flexible(
+        child: Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: alignEnd ? TextAlign.end : TextAlign.start,
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: color,
+                fontWeight: FontWeight.w900,
+              ),
+        ),
+      ),
+    ];
+    return Row(
+      mainAxisAlignment:
+          alignEnd ? MainAxisAlignment.end : MainAxisAlignment.start,
+      children: alignEnd ? content.reversed.toList(growable: false) : content,
     );
   }
 }
@@ -492,8 +538,13 @@ class _FootStrikeDirectionLabel extends StatelessWidget {
   }
 }
 
-class _FootStrike2DRunnerPainter extends CustomPainter {
-  static const _poseIndices = <int>{
+/// A small 2D rig derived from one analyzed MediaPipe pose frame.
+///
+/// The target keeps every measured point except the lead leg. Only that leg
+/// is repositioned to a controlled landing zone beneath the hip, so the UI
+/// never presents a full-body reconstruction or an unmeasured gait phase.
+class _FootStrikeCoordinateRig {
+  static const _capturedIndices = <int>{
     0,
     7,
     8,
@@ -515,181 +566,429 @@ class _FootStrike2DRunnerPainter extends CustomPainter {
     32,
   };
 
-  final RunningPoseFrame? poseFrame;
-  final RunningDirection direction;
-  final RunningCoachStatus status;
-  final bool isTarget;
-  final Color currentAccent;
-  final Color targetAccent;
-  final Color mutedColor;
-  final Color surfaceColor;
+  static const _requiredCoreIndices = <int>{
+    11,
+    12,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+  };
 
-  const _FootStrike2DRunnerPainter({
-    required this.poseFrame,
-    required this.direction,
-    required this.status,
-    required this.isTarget,
-    required this.currentAccent,
-    required this.targetAccent,
-    required this.mutedColor,
-    required this.surfaceColor,
+  final Map<int, Offset> currentPoints;
+  final Map<int, Offset> targetPoints;
+  final int leadHipIndex;
+  final int leadKneeIndex;
+  final int leadAnkleIndex;
+  final int leadHeelIndex;
+  final int leadToeIndex;
+
+  const _FootStrikeCoordinateRig({
+    required this.currentPoints,
+    required this.targetPoints,
+    required this.leadHipIndex,
+    required this.leadKneeIndex,
+    required this.leadAnkleIndex,
+    required this.leadHeelIndex,
+    required this.leadToeIndex,
   });
 
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (size.isEmpty) return;
-    canvas.drawRect(
-      Offset.zero & size,
-      Paint()..color = surfaceColor.withValues(alpha: 0.34),
-    );
-    final points = isTarget ? _presetTargetPoints(size) : _currentPoints(size);
-    if (points.isEmpty) return;
-    final groundY = _groundY(points, size);
-    final accent = isTarget ? targetAccent : currentAccent;
-    final kitAccent = Color.lerp(accent, const Color(0xFF5B6A80), 0.30)!;
-    final kitSecondary = Color.lerp(
-      accent,
-      const Color(0xFFE7EDF7),
-      0.38,
-    )!;
-    final jointColor = Color.lerp(surfaceColor, const Color(0xFFF4F7FE), 0.82)!;
-
-    canvas.drawLine(
-      Offset(size.width * 0.08, groundY),
-      Offset(size.width * 0.92, groundY),
-      Paint()
-        ..color = mutedColor.withValues(alpha: 0.42)
-        ..strokeWidth = 1.2
-        ..strokeCap = StrokeCap.round,
-    );
-    paintRunningPoseHumanForm(
-      canvas,
-      points: points,
-      canvasSize: size,
-      focusIndices: const <int>{23, 24, 25, 26, 27, 28, 31, 32},
-      style: runningPoseStudioRunnerStyle(
-        accentColor: kitAccent,
-        secondaryAccent: kitSecondary,
-        focusColor: accent,
-        jointColor: jointColor,
-        opacity: 0.96,
-      ),
-    );
-    _drawFootStrikeGuide(canvas, size, points, groundY);
-  }
-
-  Map<int, Offset> _currentPoints(Size size) {
-    final frame = poseFrame;
-    if (frame == null) return _presetCurrentPoints(size);
-    final raw = <int, Offset>{};
-    for (final index in _poseIndices) {
-      final landmark = frame.landmarkByIndex(index);
+  static _FootStrikeCoordinateRig? fromPoseFrame(
+    RunningPoseFrame? poseFrame, {
+    required RunningDirection direction,
+  }) {
+    if (poseFrame == null) return null;
+    final points = <int, Offset>{};
+    for (final index in _capturedIndices) {
+      final landmark = poseFrame.landmarkByIndex(index);
       if (landmark == null ||
           landmark.confidence < runningPoseOverlayMinimumJointConfidence ||
           !landmark.x.isFinite ||
           !landmark.y.isFinite) {
         continue;
       }
-      raw[index] = Offset(landmark.x, landmark.y);
+      points[index] = Offset(landmark.x, landmark.y);
     }
-    if (!_hasCorePose(raw)) return _presetCurrentPoints(size);
+    final hasHead =
+        points.containsKey(0) || points.containsKey(7) || points.containsKey(8);
+    if (!hasHead || !_requiredCoreIndices.every(points.containsKey)) {
+      return null;
+    }
 
-    var minX = raw.values.first.dx;
-    var maxX = raw.values.first.dx;
-    var minY = raw.values.first.dy;
-    var maxY = raw.values.first.dy;
-    for (final point in raw.values.skip(1)) {
+    final hipCenter = _midpoint(points[23]!, points[24]!);
+    final leftFoot = points[31] ?? points[27]!;
+    final rightFoot = points[32] ?? points[28]!;
+    final forward = _forwardSign(
+      direction,
+      hipCenter: hipCenter,
+      leftFoot: leftFoot,
+      rightFoot: rightFoot,
+    );
+    final leftProgress = (leftFoot.dx - hipCenter.dx) * forward;
+    final rightProgress = (rightFoot.dx - hipCenter.dx) * forward;
+    final leadIsLeft = leftProgress >= rightProgress;
+    final leadHipIndex = leadIsLeft ? 23 : 24;
+    final leadKneeIndex = leadIsLeft ? 25 : 26;
+    final leadAnkleIndex = leadIsLeft ? 27 : 28;
+    final leadHeelIndex = leadIsLeft ? 29 : 30;
+    final leadToeIndex = leadIsLeft ? 31 : 32;
+
+    final leadHip = points[leadHipIndex]!;
+    final leadKnee = points[leadKneeIndex]!;
+    final leadAnkle = points[leadAnkleIndex]!;
+    final trailingHip = points[leadIsLeft ? 24 : 23]!;
+    final trailingKnee = points[leadIsLeft ? 26 : 25]!;
+    final trailingAnkle = points[leadIsLeft ? 28 : 27]!;
+    final leadLegLength =
+        (leadHip - leadKnee).distance + (leadKnee - leadAnkle).distance;
+    final trailingLegLength = (trailingHip - trailingKnee).distance +
+        (trailingKnee - trailingAnkle).distance;
+    final legLength =
+        ((leadLegLength + trailingLegLength) / 2).clamp(0.08, 1.4).toDouble();
+    final leadToe = points[leadToeIndex];
+    final leadHeel = points[leadHeelIndex];
+    final contactY = <double>[
+      leadAnkle.dy,
+      if (leadToe != null) leadToe.dy,
+      if (leadHeel != null) leadHeel.dy,
+    ].reduce(math.max);
+
+    final targetPoints = Map<int, Offset>.from(points);
+    final targetAnkle = Offset(
+      hipCenter.dx + forward * legLength * 0.012,
+      contactY - legLength * 0.024,
+    );
+    final targetKnee = Offset.lerp(leadHip, targetAnkle, 0.53)! +
+        Offset(forward * legLength * 0.105, -legLength * 0.012);
+    final targetToe =
+        targetAnkle + Offset(forward * legLength * 0.145, legLength * 0.022);
+    final targetHeel =
+        targetAnkle + Offset(-forward * legLength * 0.078, legLength * 0.018);
+    targetPoints[leadKneeIndex] = targetKnee;
+    targetPoints[leadAnkleIndex] = targetAnkle;
+    targetPoints[leadHeelIndex] = targetHeel;
+    targetPoints[leadToeIndex] = targetToe;
+
+    return _FootStrikeCoordinateRig(
+      currentPoints: Map<int, Offset>.unmodifiable(points),
+      targetPoints: Map<int, Offset>.unmodifiable(targetPoints),
+      leadHipIndex: leadHipIndex,
+      leadKneeIndex: leadKneeIndex,
+      leadAnkleIndex: leadAnkleIndex,
+      leadHeelIndex: leadHeelIndex,
+      leadToeIndex: leadToeIndex,
+    );
+  }
+
+  static Offset _midpoint(Offset first, Offset second) {
+    return Offset((first.dx + second.dx) / 2, (first.dy + second.dy) / 2);
+  }
+
+  static double _forwardSign(
+    RunningDirection direction, {
+    required Offset hipCenter,
+    required Offset leftFoot,
+    required Offset rightFoot,
+  }) {
+    return switch (direction) {
+      RunningDirection.leftToRight => 1,
+      RunningDirection.rightToLeft => -1,
+      RunningDirection.stationary =>
+        ((leftFoot.dx + rightFoot.dx) / 2) >= hipCenter.dx ? 1 : -1,
+    };
+  }
+}
+
+class _FootStrikeCoordinateRigPainter extends CustomPainter {
+  final _FootStrikeCoordinateRig rig;
+  final Color currentAccent;
+  final Color targetAccent;
+  final Color mutedColor;
+  final Color panelColor;
+  final Color panelBorderColor;
+
+  const _FootStrikeCoordinateRigPainter({
+    required this.rig,
+    required this.currentAccent,
+    required this.targetAccent,
+    required this.mutedColor,
+    required this.panelColor,
+    required this.panelBorderColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (size.isEmpty) return;
+    final gap = (size.width * 0.042).clamp(7.0, 13.0).toDouble();
+    final panelWidth = math.max(1.0, (size.width - gap) / 2);
+    final currentPanel = Rect.fromLTWH(0, 0, panelWidth, size.height);
+    final targetPanel = Rect.fromLTWH(
+      panelWidth + gap,
+      0,
+      panelWidth,
+      size.height,
+    );
+    final bounds = _poseBounds(rig.currentPoints, rig.targetPoints);
+    final current = _projectPose(rig.currentPoints, currentPanel, bounds);
+    final target = _projectPose(rig.targetPoints, targetPanel, bounds);
+    final currentGhostInTarget =
+        _projectPose(rig.currentPoints, targetPanel, bounds);
+
+    _drawPanelSurface(canvas, currentPanel);
+    _drawPanelSurface(canvas, targetPanel);
+    _drawRunner(
+      canvas,
+      currentPanel,
+      current,
+      accent: currentAccent,
+      isTarget: false,
+    );
+    _drawTargetMotionTrail(canvas, currentGhostInTarget, target);
+    _drawRunner(
+      canvas,
+      targetPanel,
+      target,
+      accent: targetAccent,
+      isTarget: true,
+    );
+  }
+
+  Rect _poseBounds(
+    Map<int, Offset> current,
+    Map<int, Offset> target,
+  ) {
+    final all = <Offset>[...current.values, ...target.values];
+    var minX = all.first.dx;
+    var maxX = all.first.dx;
+    var minY = all.first.dy;
+    var maxY = all.first.dy;
+    for (final point in all.skip(1)) {
       minX = math.min(minX, point.dx);
       maxX = math.max(maxX, point.dx);
       minY = math.min(minY, point.dy);
       maxY = math.max(maxY, point.dy);
     }
-    final content = Rect.fromLTWH(
-      size.width * 0.07,
-      size.height * 0.04,
-      size.width * 0.86,
-      size.height * 0.84,
+    final width = math.max(maxX - minX, 0.14);
+    final height = math.max(maxY - minY, 0.20);
+    final horizontalPadding = math.max(width * 0.20, 0.045);
+    final verticalPadding = math.max(height * 0.10, 0.035);
+    return Rect.fromLTRB(
+      minX - horizontalPadding,
+      minY - verticalPadding,
+      maxX + horizontalPadding,
+      maxY + verticalPadding,
     );
-    final width = math.max(0.14, maxX - minX);
-    final height = math.max(0.18, maxY - minY);
-    final scale = math.min(content.width / width, content.height / height);
-    final displayWidth = width * scale;
-    final displayHeight = height * scale;
+  }
+
+  Map<int, Offset> _projectPose(
+    Map<int, Offset> source,
+    Rect panel,
+    Rect bounds,
+  ) {
+    final content = Rect.fromLTWH(
+      panel.left + panel.width * 0.055,
+      panel.top + panel.height * 0.025,
+      panel.width * 0.89,
+      panel.height * 0.91,
+    );
+    final scale = math.min(
+      content.width / math.max(bounds.width, 0.01),
+      content.height / math.max(bounds.height, 0.01),
+    );
+    final displayWidth = bounds.width * scale;
+    final displayHeight = bounds.height * scale;
     final origin = Offset(
-      content.left + (content.width - displayWidth) / 2 - minX * scale,
-      content.top + (content.height - displayHeight) / 2 - minY * scale,
+      content.left + (content.width - displayWidth) / 2 - bounds.left * scale,
+      content.top + (content.height - displayHeight) / 2 - bounds.top * scale,
     );
     return <int, Offset>{
-      for (final entry in raw.entries) entry.key: origin + entry.value * scale,
+      for (final entry in source.entries)
+        entry.key: origin + entry.value * scale,
     };
   }
 
-  bool _hasCorePose(Map<int, Offset> points) {
-    final hasHead =
-        points.containsKey(0) || points.containsKey(7) || points.containsKey(8);
-    return hasHead &&
-        const <int>{11, 12, 23, 24, 25, 26, 27, 28}.every(
-          points.containsKey,
-        );
+  void _drawPanelSurface(Canvas canvas, Rect panel) {
+    final panelShape = RRect.fromRectAndRadius(panel, const Radius.circular(6));
+    canvas.drawRRect(
+      panelShape,
+      Paint()..color = panelColor.withValues(alpha: 0.40),
+    );
+    canvas.drawRRect(
+      panelShape,
+      Paint()
+        ..color = panelBorderColor.withValues(alpha: 0.56)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1,
+    );
+    for (final fraction in const <double>[0.24, 0.49, 0.74]) {
+      final y = panel.top + panel.height * fraction;
+      canvas.drawLine(
+        Offset(panel.left + panel.width * 0.10, y),
+        Offset(panel.right - panel.width * 0.10, y),
+        Paint()
+          ..color = mutedColor.withValues(alpha: 0.10)
+          ..strokeWidth = 0.8,
+      );
+    }
   }
 
-  Map<int, Offset> _presetCurrentPoints(Size size) {
-    final leadFoot = switch (status) {
-      RunningCoachStatus.good => 0.68,
-      RunningCoachStatus.watch => 0.82,
-      RunningCoachStatus.needsWork => 0.92,
-    };
-    return _presetPoints(size, leadFoot: leadFoot);
-  }
-
-  Map<int, Offset> _presetTargetPoints(Size size) {
-    return _presetPoints(size, leadFoot: 0.68);
-  }
-
-  Map<int, Offset> _presetPoints(
-    Size size, {
-    required double leadFoot,
+  void _drawRunner(
+    Canvas canvas,
+    Rect panel,
+    Map<int, Offset> points, {
+    required Color accent,
+    required bool isTarget,
   }) {
-    final unit = <int, Offset>{
-      0: const Offset(0.70, 0.12),
-      7: const Offset(0.64, 0.16),
-      8: const Offset(0.67, 0.16),
-      11: const Offset(0.56, 0.31),
-      12: const Offset(0.61, 0.32),
-      13: const Offset(0.45, 0.43),
-      14: const Offset(0.74, 0.42),
-      15: const Offset(0.37, 0.37),
-      16: const Offset(0.82, 0.35),
-      23: const Offset(0.55, 0.52),
-      24: const Offset(0.60, 0.53),
-      25: const Offset(0.39, 0.68),
-      26: Offset(leadFoot - 0.04, 0.66),
-      27: const Offset(0.27, 0.84),
-      28: Offset(leadFoot - 0.05, 0.84),
-      29: const Offset(0.23, 0.87),
-      30: Offset(leadFoot - 0.07, 0.87),
-      31: const Offset(0.18, 0.88),
-      32: Offset(leadFoot, 0.88),
-    };
-    final content = Rect.fromLTWH(
-      size.width * 0.06,
-      size.height * 0.02,
-      size.width * 0.88,
-      size.height * 0.90,
+    final groundY = _groundY(points, panel);
+    final hip = _midpoint(points[23], points[24]);
+    final foot = points[rig.leadToeIndex] ?? points[rig.leadAnkleIndex];
+    if (hip == null || foot == null) return;
+    _drawLandingGuide(
+      canvas,
+      panel,
+      hip: hip,
+      foot: foot,
+      groundY: groundY,
+      isTarget: isTarget,
     );
-    final shouldMirror = direction == RunningDirection.rightToLeft;
-    return <int, Offset>{
-      for (final entry in unit.entries)
-        entry.key: Offset(
-          shouldMirror
-              ? content.right - entry.value.dx * content.width
-              : content.left + entry.value.dx * content.width,
-          content.top + entry.value.dy * content.height,
-        ),
-    };
+    final kitAccent = Color.lerp(accent, const Color(0xFF53637A), 0.38)!;
+    final kitSecondary = Color.lerp(
+      accent,
+      const Color(0xFFE9F0FA),
+      0.42,
+    )!;
+    final jointColor = Color.lerp(panelColor, const Color(0xFFF4F7FE), 0.88)!;
+    paintRunningPoseHumanForm(
+      canvas,
+      points: points,
+      canvasSize: panel.size,
+      focusIndices: <int>{
+        rig.leadHipIndex,
+        rig.leadKneeIndex,
+        rig.leadAnkleIndex,
+        rig.leadHeelIndex,
+        rig.leadToeIndex,
+      },
+      style: runningPoseStudioRunnerStyle(
+        accentColor: kitAccent,
+        secondaryAccent: kitSecondary,
+        focusColor: accent,
+        jointColor: jointColor,
+        volumeScale: 1.18,
+        opacity: 0.98,
+      ),
+    );
   }
 
-  double _groundY(Map<int, Offset> points, Size size) {
+  void _drawLandingGuide(
+    Canvas canvas,
+    Rect panel, {
+    required Offset hip,
+    required Offset foot,
+    required double groundY,
+    required bool isTarget,
+  }) {
+    final zoneHeight = math.max(7.0, panel.height * 0.052);
+    final targetCenter = Offset(hip.dx, groundY);
+    final zone = RRect.fromRectAndRadius(
+      Rect.fromCenter(
+        center: targetCenter,
+        width: math.max(24.0, panel.width * 0.38),
+        height: zoneHeight,
+      ),
+      Radius.circular(zoneHeight / 2),
+    );
+    canvas.drawLine(
+      Offset(panel.left + panel.width * 0.08, groundY),
+      Offset(panel.right - panel.width * 0.08, groundY),
+      Paint()
+        ..color = mutedColor.withValues(alpha: 0.48)
+        ..strokeWidth = 1.1
+        ..strokeCap = StrokeCap.round,
+    );
+    _drawDashedLine(
+      canvas,
+      hip,
+      Offset(hip.dx, groundY - zoneHeight * 0.62),
+      Paint()
+        ..color = targetAccent.withValues(alpha: 0.50)
+        ..strokeWidth = 1
+        ..strokeCap = StrokeCap.round,
+    );
+    canvas.drawRRect(
+      zone,
+      Paint()..color = targetAccent.withValues(alpha: 0.12),
+    );
+    canvas.drawRRect(
+      zone,
+      Paint()
+        ..color = targetAccent.withValues(alpha: 0.82)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.1,
+    );
+    if (isTarget) {
+      canvas.drawCircle(
+        targetCenter,
+        math.max(2.7, panel.shortestSide * 0.025),
+        Paint()..color = targetAccent,
+      );
+      return;
+    }
+    _drawArrow(
+      canvas,
+      Offset(foot.dx, groundY - zoneHeight * 1.35),
+      Offset(targetCenter.dx, groundY - zoneHeight * 1.35),
+      Paint()
+        ..color = targetAccent.withValues(alpha: 0.74)
+        ..strokeWidth = 1.2
+        ..strokeCap = StrokeCap.round,
+    );
+    canvas.drawCircle(
+      Offset(foot.dx, groundY),
+      math.max(2.7, panel.shortestSide * 0.025),
+      Paint()..color = currentAccent,
+    );
+  }
+
+  void _drawTargetMotionTrail(
+    Canvas canvas,
+    Map<int, Offset> current,
+    Map<int, Offset> target,
+  ) {
+    final currentKnee = current[rig.leadKneeIndex];
+    final currentAnkle = current[rig.leadAnkleIndex];
+    final targetKnee = target[rig.leadKneeIndex];
+    final targetAnkle = target[rig.leadAnkleIndex];
+    if (currentKnee == null ||
+        currentAnkle == null ||
+        targetKnee == null ||
+        targetAnkle == null) {
+      return;
+    }
+    final trailPaint = Paint()
+      ..color = targetAccent.withValues(alpha: 0.38)
+      ..strokeWidth = 1.1
+      ..strokeCap = StrokeCap.round;
+    _drawDashedLine(canvas, currentKnee, targetKnee, trailPaint);
+    _drawDashedLine(canvas, currentAnkle, targetAnkle, trailPaint);
+    canvas.drawCircle(
+      currentAnkle,
+      3.0,
+      Paint()
+        ..color = currentAccent.withValues(alpha: 0.44)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1,
+    );
+  }
+
+  Offset? _midpoint(Offset? first, Offset? second) {
+    if (first == null || second == null) return null;
+    return Offset((first.dx + second.dx) / 2, (first.dy + second.dy) / 2);
+  }
+
+  double _groundY(Map<int, Offset> points, Rect panel) {
     final contacts = <Offset>[
       if (points[31] case final Offset point) point,
       if (points[32] case final Offset point) point,
@@ -697,99 +996,24 @@ class _FootStrike2DRunnerPainter extends CustomPainter {
       if (points[28] case final Offset point) point,
     ];
     final lowest = contacts.isEmpty
-        ? size.height * 0.82
+        ? panel.top + panel.height * 0.84
         : contacts.map((point) => point.dy).reduce(math.max);
-    return lowest.clamp(size.height * 0.68, size.height * 0.93).toDouble();
-  }
-
-  void _drawFootStrikeGuide(
-    Canvas canvas,
-    Size size,
-    Map<int, Offset> points,
-    double groundY,
-  ) {
-    final hip = _midpoint(points[23], points[24]);
-    final foot = _leadFoot(points);
-    if (hip == null || foot == null) return;
-    final targetCenter = Offset(hip.dx, groundY);
-    final zoneHeight = math.max(9.0, size.height * 0.065);
-    final zone = RRect.fromRectAndRadius(
-      Rect.fromCenter(
-        center: targetCenter,
-        width: math.max(27.0, size.width * 0.24),
-        height: zoneHeight,
-      ),
-      Radius.circular(zoneHeight / 2),
-    );
-    final targetPaint = Paint()
-      ..color = targetAccent.withValues(alpha: 0.92)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.3;
-    _drawDashedLine(
-      canvas,
-      hip,
-      Offset(hip.dx, groundY - zoneHeight * 0.55),
-      Paint()
-        ..color = targetAccent.withValues(alpha: 0.70)
-        ..strokeWidth = 1.1
-        ..strokeCap = StrokeCap.round,
-    );
-    canvas.drawRRect(
-      zone,
-      Paint()..color = targetAccent.withValues(alpha: 0.13),
-    );
-    canvas.drawRRect(zone, targetPaint);
-    if (!isTarget) {
-      _drawArrow(
-        canvas,
-        Offset(foot.dx, groundY - zoneHeight * 0.90),
-        Offset(targetCenter.dx, groundY - zoneHeight * 0.90),
-        Paint()
-          ..color = targetAccent.withValues(alpha: 0.78)
-          ..strokeWidth = 1.3
-          ..strokeCap = StrokeCap.round,
-      );
-      canvas.drawCircle(
-        Offset(foot.dx, groundY),
-        math.max(3.0, size.shortestSide * 0.026),
-        Paint()..color = currentAccent,
-      );
-      return;
-    }
-    canvas.drawCircle(
-      targetCenter,
-      math.max(3.0, size.shortestSide * 0.026),
-      Paint()..color = targetAccent,
-    );
-  }
-
-  Offset? _midpoint(Offset? first, Offset? second) {
-    if (first == null || second == null) return null;
-    return Offset.lerp(first, second, 0.5);
-  }
-
-  Offset? _leadFoot(Map<int, Offset> points) {
-    final left = points[31] ?? points[27];
-    final right = points[32] ?? points[28];
-    if (left == null) return right;
-    if (right == null) return left;
-    return switch (direction) {
-      RunningDirection.leftToRight => left.dx >= right.dx ? left : right,
-      RunningDirection.rightToLeft => left.dx <= right.dx ? left : right,
-      RunningDirection.stationary => left.dy >= right.dy ? left : right,
-    };
+    return lowest
+        .clamp(
+          panel.top + panel.height * 0.62,
+          panel.bottom - panel.height * 0.05,
+        )
+        .toDouble();
   }
 
   @override
-  bool shouldRepaint(covariant _FootStrike2DRunnerPainter oldDelegate) {
-    return oldDelegate.poseFrame != poseFrame ||
-        oldDelegate.direction != direction ||
-        oldDelegate.status != status ||
-        oldDelegate.isTarget != isTarget ||
+  bool shouldRepaint(covariant _FootStrikeCoordinateRigPainter oldDelegate) {
+    return oldDelegate.rig != rig ||
         oldDelegate.currentAccent != currentAccent ||
         oldDelegate.targetAccent != targetAccent ||
         oldDelegate.mutedColor != mutedColor ||
-        oldDelegate.surfaceColor != surfaceColor;
+        oldDelegate.panelColor != panelColor ||
+        oldDelegate.panelBorderColor != panelBorderColor;
   }
 }
 

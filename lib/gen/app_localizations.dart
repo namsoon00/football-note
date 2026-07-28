@@ -15758,7 +15758,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachGoalMotionFootnote.
   ///
   /// In en, this message translates to:
-  /// **'The target runner is a form reference for your next step, not a reconstruction of your body.'**
+  /// **'This line only shows the landing direction.'**
   String get runningCoachGoalMotionFootnote;
 
   /// No description provided for @runningCoachGoalMotionPlay.
@@ -15776,19 +15776,19 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachTwoDComparisonTitle.
   ///
   /// In en, this message translates to:
-  /// **'Motion comparison'**
+  /// **'Joint-based motion comparison'**
   String get runningCoachTwoDComparisonTitle;
 
   /// No description provided for @runningCoachTwoDCurrentLabel.
   ///
   /// In en, this message translates to:
-  /// **'Current motion'**
+  /// **'My measured pose'**
   String get runningCoachTwoDCurrentLabel;
 
   /// No description provided for @runningCoachTwoDTargetLabel.
   ///
   /// In en, this message translates to:
-  /// **'Next target'**
+  /// **'Next landing'**
   String get runningCoachTwoDTargetLabel;
 
   /// No description provided for @runningCoachTwoDVideoOverlayTitle.
@@ -15796,6 +15796,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Overlay on your uploaded video'**
   String get runningCoachTwoDVideoOverlayTitle;
+
+  /// No description provided for @runningCoachCoordinateRigUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This frame does not contain enough joint coordinates to build the motion comparison.'**
+  String get runningCoachCoordinateRigUnavailable;
 
   /// No description provided for @runningCoachHistoryEvidenceUnavailableTitle.
   ///

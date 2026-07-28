@@ -8794,8 +8794,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachGoalMotionTargetLabel => '목표 러너';
 
   @override
-  String get runningCoachGoalMotionFootnote =>
-      '목표 러너는 내 몸을 재현한 그림이 아니라, 다음 스텝에서 따라갈 기준입니다.';
+  String get runningCoachGoalMotionFootnote => '이 표시는 착지 이동 방향만 보여 줍니다.';
 
   @override
   String get runningCoachGoalMotionPlay => '목표 움직임 재생';
@@ -8804,16 +8803,20 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachGoalMotionPause => '목표 움직임 일시정지';
 
   @override
-  String get runningCoachTwoDComparisonTitle => '동작 비교';
+  String get runningCoachTwoDComparisonTitle => '관절 기반 동작 비교';
 
   @override
-  String get runningCoachTwoDCurrentLabel => '현재 동작';
+  String get runningCoachTwoDCurrentLabel => '내 측정 자세';
 
   @override
-  String get runningCoachTwoDTargetLabel => '다음 목표';
+  String get runningCoachTwoDTargetLabel => '다음 착지';
 
   @override
   String get runningCoachTwoDVideoOverlayTitle => '업로드한 영상 위 측정';
+
+  @override
+  String get runningCoachCoordinateRigUnavailable =>
+      '이 프레임의 관절 좌표가 부족해 동작 비교를 만들 수 없어요.';
 
   @override
   String get runningCoachHistoryEvidenceUnavailableTitle => '저장된 관절 근거 없음';
