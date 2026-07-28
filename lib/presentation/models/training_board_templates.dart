@@ -127,6 +127,24 @@ List<TrainingBoardTemplateOption> buildTrainingBoardTemplateOptions(
         colorValue: color,
       );
 
+  TrainingMethodItem prop(
+    String type,
+    double x,
+    double y, {
+    String id = '',
+    int color = coneOrange,
+    double size = 30,
+  }) =>
+      TrainingMethodItem(
+        id: id,
+        type: type,
+        x: x,
+        y: y,
+        size: size,
+        rotationDeg: 0,
+        colorValue: color,
+      );
+
   TrainingMethodPoint point(double x, double y) =>
       TrainingMethodPoint(x: x, y: y);
 
@@ -135,6 +153,8 @@ List<TrainingBoardTemplateOption> buildTrainingBoardTemplateOptions(
     TrainingMethodRouteKind kind,
     List<TrainingMethodPoint> points, {
     String? linkedItemId,
+    String? actorItemId,
+    String? targetItemId,
     List<int> segmentDurationsMs = const <int>[],
     int stageIndex = 1,
   }) =>
@@ -142,6 +162,8 @@ List<TrainingBoardTemplateOption> buildTrainingBoardTemplateOptions(
         id: id,
         kind: kind,
         linkedItemId: linkedItemId,
+        actorItemId: actorItemId,
+        targetItemId: targetItemId,
         points: points,
         segmentDurationsMs: segmentDurationsMs,
         stageIndex: stageIndex,
@@ -1148,6 +1170,679 @@ List<TrainingBoardTemplateOption> buildTrainingBoardTemplateOptions(
         ],
       );
 
+  TrainingMethodLayout ballMastery(String title) => onePage(
+        title: title,
+        methodText: l10n.trainingSketchTemplateBallMasteryMethod,
+        items: <TrainingMethodItem>[
+          player(0.16, 0.74, id: 'mastery_player_1'),
+          player(0.16, 0.24, id: 'mastery_player_2', color: playerGreen),
+          player(0.82, 0.74, id: 'mastery_player_3', color: playerRed),
+          ball(0.22, 0.70, id: 'mastery_ball'),
+          cone(0.34, 0.64, id: 'mastery_cone_1'),
+          cone(0.48, 0.52, id: 'mastery_cone_2'),
+          cone(0.62, 0.42, id: 'mastery_cone_3'),
+          prop('target', 0.90, 0.22, id: 'mastery_goal', size: 38),
+        ],
+        routes: <TrainingMethodRoute>[
+          route(
+            'mastery_dribble_player',
+            TrainingMethodRouteKind.player,
+            <TrainingMethodPoint>[
+              point(0.16, 0.74),
+              point(0.34, 0.66),
+              point(0.50, 0.50),
+              point(0.72, 0.34),
+            ],
+            linkedItemId: 'mastery_player_1',
+            actorItemId: 'mastery_player_1',
+            stageIndex: 1,
+          ),
+          route(
+            'mastery_dribble_ball',
+            TrainingMethodRouteKind.ball,
+            <TrainingMethodPoint>[
+              point(0.22, 0.70),
+              point(0.40, 0.62),
+              point(0.56, 0.46),
+              point(0.78, 0.30),
+            ],
+            linkedItemId: 'mastery_ball',
+            actorItemId: 'mastery_player_1',
+            targetItemId: 'mastery_player_1',
+            segmentDurationsMs: const <int>[420, 460, 500],
+            stageIndex: 1,
+          ),
+          route(
+            'mastery_finish_ball',
+            TrainingMethodRouteKind.ball,
+            <TrainingMethodPoint>[point(0.78, 0.30), point(0.90, 0.22)],
+            linkedItemId: 'mastery_ball',
+            actorItemId: 'mastery_player_1',
+            targetItemId: 'mastery_goal',
+            segmentDurationsMs: const <int>[520],
+            stageIndex: 2,
+          ),
+        ],
+      );
+
+  TrainingMethodLayout firstTouchFinish(String title) => onePage(
+        title: title,
+        methodText: l10n.trainingSketchTemplateFirstTouchFinishMethod,
+        items: <TrainingMethodItem>[
+          player(0.14, 0.72, id: 'first_touch_server'),
+          player(0.46, 0.52, id: 'first_touch_receiver', color: playerGreen),
+          player(0.78, 0.28, id: 'first_touch_keeper', color: playerRed),
+          ball(0.21, 0.69, id: 'first_touch_ball'),
+          cone(0.58, 0.42, id: 'first_touch_cone'),
+          prop('target', 0.91, 0.18, id: 'first_touch_goal', size: 38),
+        ],
+        routes: <TrainingMethodRoute>[
+          route(
+            'first_touch_server_move',
+            TrainingMethodRouteKind.player,
+            <TrainingMethodPoint>[point(0.14, 0.72), point(0.30, 0.58)],
+            linkedItemId: 'first_touch_server',
+            actorItemId: 'first_touch_server',
+            stageIndex: 1,
+          ),
+          route(
+            'first_touch_pass',
+            TrainingMethodRouteKind.ball,
+            <TrainingMethodPoint>[point(0.21, 0.69), point(0.46, 0.52)],
+            linkedItemId: 'first_touch_ball',
+            actorItemId: 'first_touch_server',
+            targetItemId: 'first_touch_receiver',
+            segmentDurationsMs: const <int>[560],
+            stageIndex: 1,
+          ),
+          route(
+            'first_touch_receiver_turn',
+            TrainingMethodRouteKind.player,
+            <TrainingMethodPoint>[
+              point(0.46, 0.52),
+              point(0.62, 0.42),
+              point(0.76, 0.30),
+            ],
+            linkedItemId: 'first_touch_receiver',
+            actorItemId: 'first_touch_receiver',
+            stageIndex: 2,
+          ),
+          route(
+            'first_touch_carry',
+            TrainingMethodRouteKind.ball,
+            <TrainingMethodPoint>[
+              point(0.46, 0.52),
+              point(0.68, 0.38),
+              point(0.81, 0.27),
+            ],
+            linkedItemId: 'first_touch_ball',
+            actorItemId: 'first_touch_receiver',
+            targetItemId: 'first_touch_receiver',
+            segmentDurationsMs: const <int>[460, 440],
+            stageIndex: 2,
+          ),
+          route(
+            'first_touch_finish',
+            TrainingMethodRouteKind.ball,
+            <TrainingMethodPoint>[point(0.81, 0.27), point(0.91, 0.18)],
+            linkedItemId: 'first_touch_ball',
+            actorItemId: 'first_touch_receiver',
+            targetItemId: 'first_touch_goal',
+            segmentDurationsMs: const <int>[480],
+            stageIndex: 3,
+          ),
+        ],
+      );
+
+  TrainingMethodLayout oneVOne(String title) => onePage(
+        title: title,
+        methodText: l10n.trainingSketchTemplateOneVOneMethod,
+        items: <TrainingMethodItem>[
+          player(0.16, 0.72, id: 'one_v_one_attacker'),
+          player(0.54, 0.48, id: 'one_v_one_defender', color: playerRed),
+          player(0.80, 0.24, id: 'one_v_one_keeper', color: playerGreen),
+          ball(0.23, 0.69, id: 'one_v_one_ball'),
+          cone(0.36, 0.62, id: 'one_v_one_gate_1'),
+          cone(0.36, 0.42, id: 'one_v_one_gate_2'),
+          prop('target', 0.92, 0.18, id: 'one_v_one_goal', size: 38),
+        ],
+        routes: <TrainingMethodRoute>[
+          route(
+            'one_v_one_attacker_drive',
+            TrainingMethodRouteKind.player,
+            <TrainingMethodPoint>[
+              point(0.16, 0.72),
+              point(0.40, 0.62),
+              point(0.66, 0.36),
+              point(0.80, 0.26),
+            ],
+            linkedItemId: 'one_v_one_attacker',
+            actorItemId: 'one_v_one_attacker',
+            stageIndex: 1,
+          ),
+          route(
+            'one_v_one_dribble',
+            TrainingMethodRouteKind.ball,
+            <TrainingMethodPoint>[
+              point(0.23, 0.69),
+              point(0.46, 0.58),
+              point(0.72, 0.32),
+              point(0.85, 0.24),
+            ],
+            linkedItemId: 'one_v_one_ball',
+            actorItemId: 'one_v_one_attacker',
+            targetItemId: 'one_v_one_attacker',
+            segmentDurationsMs: const <int>[420, 500, 380],
+            stageIndex: 1,
+          ),
+          route(
+            'one_v_one_defend',
+            TrainingMethodRouteKind.player,
+            <TrainingMethodPoint>[point(0.54, 0.48), point(0.62, 0.42)],
+            linkedItemId: 'one_v_one_defender',
+            actorItemId: 'one_v_one_defender',
+            stageIndex: 1,
+          ),
+          route(
+            'one_v_one_finish',
+            TrainingMethodRouteKind.ball,
+            <TrainingMethodPoint>[point(0.85, 0.24), point(0.92, 0.18)],
+            linkedItemId: 'one_v_one_ball',
+            actorItemId: 'one_v_one_attacker',
+            targetItemId: 'one_v_one_goal',
+            segmentDurationsMs: const <int>[440],
+            stageIndex: 2,
+          ),
+        ],
+      );
+
+  TrainingMethodLayout twoVOne(String title) => onePage(
+        title: title,
+        methodText: l10n.trainingSketchTemplateTwoVOneMethod,
+        items: <TrainingMethodItem>[
+          player(0.16, 0.70, id: 'two_v_one_ball_carrier'),
+          player(0.46, 0.38, id: 'two_v_one_support', color: playerGreen),
+          player(0.64, 0.52, id: 'two_v_one_defender', color: playerRed),
+          ball(0.23, 0.68, id: 'two_v_one_ball'),
+          cone(0.76, 0.30, id: 'two_v_one_finish_gate'),
+          prop('target', 0.91, 0.20, id: 'two_v_one_goal', size: 38),
+        ],
+        routes: <TrainingMethodRoute>[
+          route(
+            'two_v_one_overlap',
+            TrainingMethodRouteKind.player,
+            <TrainingMethodPoint>[point(0.16, 0.70), point(0.42, 0.62)],
+            linkedItemId: 'two_v_one_ball_carrier',
+            actorItemId: 'two_v_one_ball_carrier',
+            stageIndex: 1,
+          ),
+          route(
+            'two_v_one_first_pass',
+            TrainingMethodRouteKind.ball,
+            <TrainingMethodPoint>[point(0.23, 0.68), point(0.46, 0.38)],
+            linkedItemId: 'two_v_one_ball',
+            actorItemId: 'two_v_one_ball_carrier',
+            targetItemId: 'two_v_one_support',
+            segmentDurationsMs: const <int>[520],
+            stageIndex: 1,
+          ),
+          route(
+            'two_v_one_return_run',
+            TrainingMethodRouteKind.player,
+            <TrainingMethodPoint>[point(0.42, 0.62), point(0.74, 0.34)],
+            linkedItemId: 'two_v_one_ball_carrier',
+            actorItemId: 'two_v_one_ball_carrier',
+            stageIndex: 2,
+          ),
+          route(
+            'two_v_one_return_pass',
+            TrainingMethodRouteKind.ball,
+            <TrainingMethodPoint>[point(0.46, 0.38), point(0.74, 0.34)],
+            linkedItemId: 'two_v_one_ball',
+            actorItemId: 'two_v_one_support',
+            targetItemId: 'two_v_one_ball_carrier',
+            segmentDurationsMs: const <int>[520],
+            stageIndex: 2,
+          ),
+          route(
+            'two_v_one_finish',
+            TrainingMethodRouteKind.ball,
+            <TrainingMethodPoint>[point(0.74, 0.34), point(0.91, 0.20)],
+            linkedItemId: 'two_v_one_ball',
+            actorItemId: 'two_v_one_ball_carrier',
+            targetItemId: 'two_v_one_goal',
+            segmentDurationsMs: const <int>[520],
+            stageIndex: 3,
+          ),
+        ],
+      );
+
+  TrainingMethodLayout thirdMan(String title) => onePage(
+        title: title,
+        methodText: l10n.trainingSketchTemplateThirdManMethod,
+        items: <TrainingMethodItem>[
+          player(0.16, 0.68, id: 'third_man_passer'),
+          player(0.46, 0.50, id: 'third_man_link', color: playerGreen),
+          player(0.72, 0.30, id: 'third_man_runner'),
+          ball(0.23, 0.65, id: 'third_man_ball'),
+          cone(0.60, 0.58, id: 'third_man_cone'),
+          prop('target', 0.91, 0.18, id: 'third_man_goal', size: 38),
+        ],
+        routes: <TrainingMethodRoute>[
+          route(
+            'third_man_passer_support',
+            TrainingMethodRouteKind.player,
+            <TrainingMethodPoint>[point(0.16, 0.68), point(0.34, 0.56)],
+            linkedItemId: 'third_man_passer',
+            actorItemId: 'third_man_passer',
+            stageIndex: 1,
+          ),
+          route(
+            'third_man_first_pass',
+            TrainingMethodRouteKind.ball,
+            <TrainingMethodPoint>[point(0.23, 0.65), point(0.46, 0.50)],
+            linkedItemId: 'third_man_ball',
+            actorItemId: 'third_man_passer',
+            targetItemId: 'third_man_link',
+            segmentDurationsMs: const <int>[500],
+            stageIndex: 1,
+          ),
+          route(
+            'third_man_runner_move',
+            TrainingMethodRouteKind.player,
+            <TrainingMethodPoint>[point(0.72, 0.30), point(0.80, 0.24)],
+            linkedItemId: 'third_man_runner',
+            actorItemId: 'third_man_runner',
+            stageIndex: 2,
+          ),
+          route(
+            'third_man_layoff',
+            TrainingMethodRouteKind.ball,
+            <TrainingMethodPoint>[point(0.46, 0.50), point(0.80, 0.24)],
+            linkedItemId: 'third_man_ball',
+            actorItemId: 'third_man_link',
+            targetItemId: 'third_man_runner',
+            segmentDurationsMs: const <int>[620],
+            stageIndex: 2,
+          ),
+          route(
+            'third_man_finish',
+            TrainingMethodRouteKind.ball,
+            <TrainingMethodPoint>[point(0.80, 0.24), point(0.91, 0.18)],
+            linkedItemId: 'third_man_ball',
+            actorItemId: 'third_man_runner',
+            targetItemId: 'third_man_goal',
+            segmentDurationsMs: const <int>[440],
+            stageIndex: 3,
+          ),
+        ],
+      );
+
+  TrainingMethodLayout coordinationFinish(String title) => onePage(
+        title: title,
+        methodText: l10n.trainingSketchTemplateCoordinationFinishMethod,
+        items: <TrainingMethodItem>[
+          player(0.14, 0.74, id: 'coordination_runner'),
+          player(0.16, 0.28, id: 'coordination_partner', color: playerGreen),
+          player(0.82, 0.24, id: 'coordination_keeper', color: playerRed),
+          ball(0.21, 0.70, id: 'coordination_ball'),
+          prop('ladder', 0.34, 0.62, id: 'coordination_ladder', size: 42),
+          prop('hurdle', 0.54, 0.48, id: 'coordination_hurdle', size: 34),
+          cone(0.68, 0.36, id: 'coordination_cone'),
+          prop('target', 0.91, 0.18, id: 'coordination_goal', size: 38),
+        ],
+        routes: <TrainingMethodRoute>[
+          route(
+            'coordination_run',
+            TrainingMethodRouteKind.player,
+            <TrainingMethodPoint>[
+              point(0.14, 0.74),
+              point(0.34, 0.62),
+              point(0.54, 0.48),
+              point(0.74, 0.30),
+            ],
+            linkedItemId: 'coordination_runner',
+            actorItemId: 'coordination_runner',
+            stageIndex: 1,
+          ),
+          route(
+            'coordination_carry',
+            TrainingMethodRouteKind.ball,
+            <TrainingMethodPoint>[
+              point(0.21, 0.70),
+              point(0.41, 0.58),
+              point(0.61, 0.44),
+              point(0.80, 0.27),
+            ],
+            linkedItemId: 'coordination_ball',
+            actorItemId: 'coordination_runner',
+            targetItemId: 'coordination_runner',
+            segmentDurationsMs: const <int>[420, 440, 500],
+            stageIndex: 1,
+          ),
+          route(
+            'coordination_finish',
+            TrainingMethodRouteKind.ball,
+            <TrainingMethodPoint>[point(0.80, 0.27), point(0.91, 0.18)],
+            linkedItemId: 'coordination_ball',
+            actorItemId: 'coordination_runner',
+            targetItemId: 'coordination_goal',
+            segmentDurationsMs: const <int>[480],
+            stageIndex: 2,
+          ),
+        ],
+      );
+
+  TrainingMethodLayout baseballDoublePlay(String title) => onePage(
+        title: title,
+        methodText: l10n.trainingSketchTemplateBaseballDoublePlayMethod,
+        items: <TrainingMethodItem>[
+          player(0.42, 0.66, id: 'double_play_shortstop'),
+          player(0.62, 0.48, id: 'double_play_second', color: playerGreen),
+          player(0.84, 0.30, id: 'double_play_first'),
+          player(0.18, 0.78, id: 'double_play_runner', color: playerRed),
+          ball(0.42, 0.66, id: 'double_play_ball'),
+          prop('base', 0.62, 0.48, id: 'double_play_second_base'),
+          prop('base', 0.84, 0.30, id: 'double_play_first_base'),
+        ],
+        routes: <TrainingMethodRoute>[
+          route(
+            'double_play_field',
+            TrainingMethodRouteKind.player,
+            <TrainingMethodPoint>[point(0.42, 0.66), point(0.48, 0.58)],
+            linkedItemId: 'double_play_shortstop',
+            actorItemId: 'double_play_shortstop',
+            stageIndex: 1,
+          ),
+          route(
+            'double_play_feed',
+            TrainingMethodRouteKind.ball,
+            <TrainingMethodPoint>[point(0.42, 0.66), point(0.62, 0.48)],
+            linkedItemId: 'double_play_ball',
+            actorItemId: 'double_play_shortstop',
+            targetItemId: 'double_play_second',
+            segmentDurationsMs: const <int>[460],
+            stageIndex: 1,
+          ),
+          route(
+            'double_play_pivot',
+            TrainingMethodRouteKind.player,
+            <TrainingMethodPoint>[point(0.62, 0.48), point(0.68, 0.40)],
+            linkedItemId: 'double_play_second',
+            actorItemId: 'double_play_second',
+            stageIndex: 2,
+          ),
+          route(
+            'double_play_throw',
+            TrainingMethodRouteKind.ball,
+            <TrainingMethodPoint>[point(0.62, 0.48), point(0.84, 0.30)],
+            linkedItemId: 'double_play_ball',
+            actorItemId: 'double_play_second',
+            targetItemId: 'double_play_first',
+            segmentDurationsMs: const <int>[440],
+            stageIndex: 2,
+          ),
+        ],
+      );
+
+  TrainingMethodLayout baseballBaseRunning(String title) => onePage(
+        title: title,
+        methodText: l10n.trainingSketchTemplateBaseballBaseRunningMethod,
+        items: <TrainingMethodItem>[
+          player(0.18, 0.76, id: 'base_running_batter'),
+          player(0.52, 0.40, id: 'base_running_pitcher', color: playerRed),
+          player(0.78, 0.26, id: 'base_running_fielder'),
+          ball(0.24, 0.72, id: 'base_running_ball'),
+          prop('base', 0.46, 0.60, id: 'base_running_first'),
+          prop('base', 0.70, 0.42, id: 'base_running_second'),
+          prop('base', 0.56, 0.22, id: 'base_running_third'),
+        ],
+        routes: <TrainingMethodRoute>[
+          route(
+            'base_running_hit',
+            TrainingMethodRouteKind.ball,
+            <TrainingMethodPoint>[point(0.24, 0.72), point(0.76, 0.28)],
+            linkedItemId: 'base_running_ball',
+            actorItemId: 'base_running_batter',
+            targetItemId: 'base_running_fielder',
+            segmentDurationsMs: const <int>[620],
+            stageIndex: 1,
+          ),
+          route(
+            'base_running_sprint',
+            TrainingMethodRouteKind.player,
+            <TrainingMethodPoint>[
+              point(0.18, 0.76),
+              point(0.46, 0.60),
+              point(0.70, 0.42),
+              point(0.56, 0.22),
+            ],
+            linkedItemId: 'base_running_batter',
+            actorItemId: 'base_running_batter',
+            stageIndex: 1,
+          ),
+          route(
+            'base_running_relay',
+            TrainingMethodRouteKind.ball,
+            <TrainingMethodPoint>[point(0.76, 0.28), point(0.52, 0.40)],
+            linkedItemId: 'base_running_ball',
+            actorItemId: 'base_running_fielder',
+            targetItemId: 'base_running_pitcher',
+            segmentDurationsMs: const <int>[460],
+            stageIndex: 2,
+          ),
+        ],
+      );
+
+  TrainingMethodLayout basketballTransition(String title) => onePage(
+        title: title,
+        methodText: l10n.trainingSketchTemplateBasketballTransitionMethod,
+        items: <TrainingMethodItem>[
+          player(0.16, 0.76, id: 'basket_transition_guard'),
+          player(0.48, 0.58,
+              id: 'basket_transition_middle', color: playerGreen),
+          player(0.80, 0.28, id: 'basket_transition_wing'),
+          player(0.56, 0.34,
+              id: 'basket_transition_defender', color: playerRed),
+          ball(0.22, 0.72, id: 'basket_transition_ball'),
+          prop('basket', 0.92, 0.16, id: 'basket_transition_basket', size: 40),
+        ],
+        routes: <TrainingMethodRoute>[
+          route(
+            'basket_transition_guard_run',
+            TrainingMethodRouteKind.player,
+            <TrainingMethodPoint>[point(0.16, 0.76), point(0.40, 0.62)],
+            linkedItemId: 'basket_transition_guard',
+            actorItemId: 'basket_transition_guard',
+            stageIndex: 1,
+          ),
+          route(
+            'basket_transition_first_pass',
+            TrainingMethodRouteKind.ball,
+            <TrainingMethodPoint>[point(0.22, 0.72), point(0.48, 0.58)],
+            linkedItemId: 'basket_transition_ball',
+            actorItemId: 'basket_transition_guard',
+            targetItemId: 'basket_transition_middle',
+            segmentDurationsMs: const <int>[440],
+            stageIndex: 1,
+          ),
+          route(
+            'basket_transition_second_pass',
+            TrainingMethodRouteKind.ball,
+            <TrainingMethodPoint>[point(0.48, 0.58), point(0.80, 0.28)],
+            linkedItemId: 'basket_transition_ball',
+            actorItemId: 'basket_transition_middle',
+            targetItemId: 'basket_transition_wing',
+            segmentDurationsMs: const <int>[500],
+            stageIndex: 2,
+          ),
+          route(
+            'basket_transition_finish',
+            TrainingMethodRouteKind.ball,
+            <TrainingMethodPoint>[point(0.80, 0.28), point(0.92, 0.16)],
+            linkedItemId: 'basket_transition_ball',
+            actorItemId: 'basket_transition_wing',
+            targetItemId: 'basket_transition_basket',
+            segmentDurationsMs: const <int>[420],
+            stageIndex: 3,
+          ),
+        ],
+      );
+
+  TrainingMethodLayout basketballPickRoll(String title) => onePage(
+        title: title,
+        methodText: l10n.trainingSketchTemplateBasketballPickRollMethod,
+        items: <TrainingMethodItem>[
+          player(0.22, 0.76, id: 'pick_roll_handler'),
+          player(0.50, 0.56, id: 'pick_roll_screener', color: playerGreen),
+          player(0.78, 0.34, id: 'pick_roll_shooter'),
+          player(0.36, 0.62, id: 'pick_roll_defender', color: playerRed),
+          ball(0.28, 0.72, id: 'pick_roll_ball'),
+          prop('basket', 0.92, 0.16, id: 'pick_roll_basket', size: 40),
+        ],
+        routes: <TrainingMethodRoute>[
+          route(
+            'pick_roll_screen',
+            TrainingMethodRouteKind.player,
+            <TrainingMethodPoint>[point(0.50, 0.56), point(0.46, 0.48)],
+            linkedItemId: 'pick_roll_screener',
+            actorItemId: 'pick_roll_screener',
+            stageIndex: 1,
+          ),
+          route(
+            'pick_roll_drive',
+            TrainingMethodRouteKind.player,
+            <TrainingMethodPoint>[point(0.22, 0.76), point(0.54, 0.48)],
+            linkedItemId: 'pick_roll_handler',
+            actorItemId: 'pick_roll_handler',
+            stageIndex: 1,
+          ),
+          route(
+            'pick_roll_carry',
+            TrainingMethodRouteKind.ball,
+            <TrainingMethodPoint>[point(0.28, 0.72), point(0.60, 0.44)],
+            linkedItemId: 'pick_roll_ball',
+            actorItemId: 'pick_roll_handler',
+            targetItemId: 'pick_roll_handler',
+            segmentDurationsMs: const <int>[540],
+            stageIndex: 1,
+          ),
+          route(
+            'pick_roll_kickout',
+            TrainingMethodRouteKind.ball,
+            <TrainingMethodPoint>[point(0.60, 0.44), point(0.78, 0.34)],
+            linkedItemId: 'pick_roll_ball',
+            actorItemId: 'pick_roll_handler',
+            targetItemId: 'pick_roll_shooter',
+            segmentDurationsMs: const <int>[420],
+            stageIndex: 2,
+          ),
+          route(
+            'pick_roll_shot',
+            TrainingMethodRouteKind.ball,
+            <TrainingMethodPoint>[point(0.78, 0.34), point(0.92, 0.16)],
+            linkedItemId: 'pick_roll_ball',
+            actorItemId: 'pick_roll_shooter',
+            targetItemId: 'pick_roll_basket',
+            segmentDurationsMs: const <int>[380],
+            stageIndex: 3,
+          ),
+        ],
+      );
+
+  TrainingMethodLayout tennisReturnRecover(String title) => onePage(
+        title: title,
+        methodText: l10n.trainingSketchTemplateTennisReturnRecoverMethod,
+        items: <TrainingMethodItem>[
+          player(0.34, 0.78, id: 'tennis_return_player'),
+          player(0.66, 0.22, id: 'tennis_return_server', color: playerRed),
+          player(0.50, 0.50, id: 'tennis_return_coach', color: playerGreen),
+          ball(0.38, 0.72, id: 'tennis_return_ball'),
+          prop('target', 0.20, 0.44, id: 'tennis_return_target', size: 34),
+        ],
+        routes: <TrainingMethodRoute>[
+          route(
+            'tennis_return_move',
+            TrainingMethodRouteKind.player,
+            <TrainingMethodPoint>[
+              point(0.34, 0.78),
+              point(0.24, 0.60),
+              point(0.50, 0.68),
+            ],
+            linkedItemId: 'tennis_return_player',
+            actorItemId: 'tennis_return_player',
+            stageIndex: 1,
+          ),
+          route(
+            'tennis_return_cross',
+            TrainingMethodRouteKind.ball,
+            <TrainingMethodPoint>[point(0.38, 0.72), point(0.20, 0.44)],
+            linkedItemId: 'tennis_return_ball',
+            actorItemId: 'tennis_return_player',
+            targetItemId: 'tennis_return_target',
+            segmentDurationsMs: const <int>[440],
+            stageIndex: 1,
+          ),
+          route(
+            'tennis_return_reply',
+            TrainingMethodRouteKind.ball,
+            <TrainingMethodPoint>[point(0.20, 0.44), point(0.50, 0.68)],
+            linkedItemId: 'tennis_return_ball',
+            actorItemId: 'tennis_return_server',
+            targetItemId: 'tennis_return_player',
+            segmentDurationsMs: const <int>[520],
+            stageIndex: 2,
+          ),
+        ],
+      );
+
+  TrainingMethodLayout tennisApproachVolley(String title) => onePage(
+        title: title,
+        methodText: l10n.trainingSketchTemplateTennisApproachVolleyMethod,
+        items: <TrainingMethodItem>[
+          player(0.22, 0.80, id: 'tennis_approach_player'),
+          player(0.78, 0.20, id: 'tennis_approach_opponent', color: playerRed),
+          player(0.50, 0.50, id: 'tennis_approach_coach', color: playerGreen),
+          ball(0.28, 0.74, id: 'tennis_approach_ball'),
+          cone(0.46, 0.56, id: 'tennis_approach_cone'),
+          prop('target', 0.72, 0.38, id: 'tennis_approach_target', size: 34),
+        ],
+        routes: <TrainingMethodRoute>[
+          route(
+            'tennis_approach_run',
+            TrainingMethodRouteKind.player,
+            <TrainingMethodPoint>[
+              point(0.22, 0.80),
+              point(0.46, 0.56),
+              point(0.62, 0.44),
+            ],
+            linkedItemId: 'tennis_approach_player',
+            actorItemId: 'tennis_approach_player',
+            stageIndex: 1,
+          ),
+          route(
+            'tennis_approach_shot',
+            TrainingMethodRouteKind.ball,
+            <TrainingMethodPoint>[point(0.28, 0.74), point(0.72, 0.38)],
+            linkedItemId: 'tennis_approach_ball',
+            actorItemId: 'tennis_approach_player',
+            targetItemId: 'tennis_approach_target',
+            segmentDurationsMs: const <int>[580],
+            stageIndex: 1,
+          ),
+          route(
+            'tennis_approach_volley',
+            TrainingMethodRouteKind.ball,
+            <TrainingMethodPoint>[point(0.72, 0.38), point(0.78, 0.20)],
+            linkedItemId: 'tennis_approach_ball',
+            actorItemId: 'tennis_approach_player',
+            targetItemId: 'tennis_approach_opponent',
+            segmentDurationsMs: const <int>[360],
+            stageIndex: 2,
+          ),
+        ],
+      );
+
   final blankTemplate = TrainingBoardTemplateOption(
     id: 'blank',
     icon: Icons.dashboard_outlined,
@@ -1181,6 +1876,21 @@ List<TrainingBoardTemplateOption> buildTrainingBoardTemplateOptions(
           description: l10n.trainingSketchTemplateBaseballFieldingDescription,
           buildLayout: baseballFielding,
         ),
+        TrainingBoardTemplateOption(
+          id: 'baseball_double_play',
+          icon: Icons.sync_alt_outlined,
+          label: l10n.trainingSketchTemplateBaseballDoublePlayLabel,
+          description: l10n.trainingSketchTemplateBaseballDoublePlayDescription,
+          buildLayout: baseballDoublePlay,
+        ),
+        TrainingBoardTemplateOption(
+          id: 'baseball_base_running',
+          icon: Icons.directions_run_outlined,
+          label: l10n.trainingSketchTemplateBaseballBaseRunningLabel,
+          description:
+              l10n.trainingSketchTemplateBaseballBaseRunningDescription,
+          buildLayout: baseballBaseRunning,
+        ),
       ];
     case SportCatalog.basketballId:
       return <TrainingBoardTemplateOption>[
@@ -1205,6 +1915,21 @@ List<TrainingBoardTemplateOption> buildTrainingBoardTemplateOptions(
           label: l10n.trainingSketchTemplateBasketballDefenseLabel,
           description: l10n.trainingSketchTemplateBasketballDefenseDescription,
           buildLayout: basketballDefense,
+        ),
+        TrainingBoardTemplateOption(
+          id: 'basketball_transition',
+          icon: Icons.fast_forward_outlined,
+          label: l10n.trainingSketchTemplateBasketballTransitionLabel,
+          description:
+              l10n.trainingSketchTemplateBasketballTransitionDescription,
+          buildLayout: basketballTransition,
+        ),
+        TrainingBoardTemplateOption(
+          id: 'basketball_pick_roll',
+          icon: Icons.account_tree_outlined,
+          label: l10n.trainingSketchTemplateBasketballPickRollLabel,
+          description: l10n.trainingSketchTemplateBasketballPickRollDescription,
+          buildLayout: basketballPickRoll,
         ),
       ];
     case SportCatalog.tennisId:
@@ -1231,17 +1956,68 @@ List<TrainingBoardTemplateOption> buildTrainingBoardTemplateOptions(
           description: l10n.trainingSketchTemplateTennisFootworkDescription,
           buildLayout: tennisFootwork,
         ),
+        TrainingBoardTemplateOption(
+          id: 'tennis_return_recover',
+          icon: Icons.reply_all_outlined,
+          label: l10n.trainingSketchTemplateTennisReturnRecoverLabel,
+          description:
+              l10n.trainingSketchTemplateTennisReturnRecoverDescription,
+          buildLayout: tennisReturnRecover,
+        ),
+        TrainingBoardTemplateOption(
+          id: 'tennis_approach_volley',
+          icon: Icons.north_east_outlined,
+          label: l10n.trainingSketchTemplateTennisApproachVolleyLabel,
+          description:
+              l10n.trainingSketchTemplateTennisApproachVolleyDescription,
+          buildLayout: tennisApproachVolley,
+        ),
       ];
   }
 
   return <TrainingBoardTemplateOption>[
     blankTemplate,
     TrainingBoardTemplateOption(
+      id: 'ball_mastery',
+      icon: Icons.sports_soccer_outlined,
+      label: l10n.trainingSketchTemplateBallMasteryLabel,
+      description: l10n.trainingSketchTemplateBallMasteryDescription,
+      buildLayout: ballMastery,
+    ),
+    TrainingBoardTemplateOption(
       id: 'pass_warmup',
       icon: Icons.sports_soccer_outlined,
       label: l10n.trainingSketchTemplatePassWarmupLabel,
       description: l10n.trainingSketchTemplatePassWarmupDescription,
       buildLayout: passWarmup,
+    ),
+    TrainingBoardTemplateOption(
+      id: 'first_touch_finish',
+      icon: Icons.touch_app_outlined,
+      label: l10n.trainingSketchTemplateFirstTouchFinishLabel,
+      description: l10n.trainingSketchTemplateFirstTouchFinishDescription,
+      buildLayout: firstTouchFinish,
+    ),
+    TrainingBoardTemplateOption(
+      id: 'one_v_one',
+      icon: Icons.person_search_outlined,
+      label: l10n.trainingSketchTemplateOneVOneLabel,
+      description: l10n.trainingSketchTemplateOneVOneDescription,
+      buildLayout: oneVOne,
+    ),
+    TrainingBoardTemplateOption(
+      id: 'two_v_one',
+      icon: Icons.group_outlined,
+      label: l10n.trainingSketchTemplateTwoVOneLabel,
+      description: l10n.trainingSketchTemplateTwoVOneDescription,
+      buildLayout: twoVOne,
+    ),
+    TrainingBoardTemplateOption(
+      id: 'third_man',
+      icon: Icons.call_split_outlined,
+      label: l10n.trainingSketchTemplateThirdManLabel,
+      description: l10n.trainingSketchTemplateThirdManDescription,
+      buildLayout: thirdMan,
     ),
     TrainingBoardTemplateOption(
       id: 'build_up',
@@ -1263,6 +2039,13 @@ List<TrainingBoardTemplateOption> buildTrainingBoardTemplateOptions(
       label: l10n.trainingSketchTemplateSetPieceLabel,
       description: l10n.trainingSketchTemplateSetPieceDescription,
       buildLayout: setPiece,
+    ),
+    TrainingBoardTemplateOption(
+      id: 'coordination_finish',
+      icon: Icons.route_outlined,
+      label: l10n.trainingSketchTemplateCoordinationFinishLabel,
+      description: l10n.trainingSketchTemplateCoordinationFinishDescription,
+      buildLayout: coordinationFinish,
     ),
     TrainingBoardTemplateOption(
       id: 'rondo',

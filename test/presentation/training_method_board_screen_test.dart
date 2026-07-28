@@ -380,7 +380,7 @@ void main() {
     expect(find.widgetWithText(OutlinedButton, '낮은 뜀틀'), findsNothing);
   });
 
-  test('football templates include coach-ready action layouts', () {
+  test('training templates cover football fundamentals and team scenarios', () {
     final templates = buildTrainingBoardTemplateOptions(
       AppLocalizationsKo(),
       sportId: SportCatalog.footballId,
@@ -391,7 +391,18 @@ void main() {
       templates.map((template) => template.id),
       contains('defensive_shift'),
     );
-    expect(templates, hasLength(11));
+    expect(
+      templates.map((template) => template.id),
+      containsAll(<String>[
+        'ball_mastery',
+        'first_touch_finish',
+        'one_v_one',
+        'two_v_one',
+        'third_man',
+        'coordination_finish',
+      ]),
+    );
+    expect(templates, hasLength(17));
 
     for (final template in templates.where((entry) => entry.id != 'blank')) {
       final page = template.buildLayout(template.label).pages.single;
@@ -411,6 +422,92 @@ void main() {
         isTrue,
       );
     }
+
+    for (final templateId in <String>[
+      'ball_mastery',
+      'first_touch_finish',
+      'one_v_one',
+      'two_v_one',
+      'third_man',
+      'coordination_finish',
+    ]) {
+      final template = templates.singleWhere((entry) => entry.id == templateId);
+      final page = template.buildLayout(template.label).pages.single;
+      final ballRoutes = page.routes
+          .where((route) => route.kind == TrainingMethodRouteKind.ball)
+          .toList(growable: false);
+      expect(ballRoutes, isNotEmpty);
+      expect(ballRoutes.every((route) => route.actorItemId?.isNotEmpty == true),
+          isTrue);
+      expect(
+        ballRoutes.every((route) => route.targetItemId?.isNotEmpty == true),
+        isTrue,
+      );
+    }
+  });
+
+  test('every supported sport has a varied template set', () {
+    final expectedIdsBySport = <String, List<String>>{
+      SportCatalog.baseballId: <String>[
+        'baseball_double_play',
+        'baseball_base_running',
+      ],
+      SportCatalog.basketballId: <String>[
+        'basketball_transition',
+        'basketball_pick_roll',
+      ],
+      SportCatalog.tennisId: <String>[
+        'tennis_return_recover',
+        'tennis_approach_volley',
+      ],
+    };
+
+    for (final entry in expectedIdsBySport.entries) {
+      final templates = buildTrainingBoardTemplateOptions(
+        AppLocalizationsKo(),
+        sportId: entry.key,
+      );
+      expect(templates, hasLength(6));
+      expect(
+          templates.map((template) => template.id), containsAll(entry.value));
+    }
+  });
+
+  testWidgets('template keeps sequential ball actions after it is restored', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+    String? savedLayout;
+    final template = buildTrainingBoardTemplateOptions(
+      AppLocalizationsKo(),
+      sportId: SportCatalog.footballId,
+    ).singleWhere((entry) => entry.id == 'third_man');
+    final expectedRoutes =
+        template.buildLayout(template.label).pages.single.routes;
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: template.label,
+          initialLayoutJson: template.buildLayout(template.label).encode(),
+          onSaved: (value) => savedLayout = value,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(TextButton, '저장'));
+    await tester.pumpAndSettle();
+
+    final restoredRoutes =
+        TrainingMethodLayout.decode(savedLayout ?? '').pages.single.routes;
+    expect(restoredRoutes.map((route) => route.id),
+        orderedEquals(expectedRoutes.map((route) => route.id)));
+    expect(
+      restoredRoutes
+          .where((route) => route.kind == TrainingMethodRouteKind.ball)
+          .map((route) => route.stageIndex),
+      orderedEquals(<int>[1, 2, 3]),
+    );
   });
 
   testWidgets('new player creates a movement route by action and target tap', (
