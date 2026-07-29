@@ -8808,6 +8808,32 @@ class AppLocalizationsJa extends AppLocalizations {
       'このフレームには動作比較を作るための関節座標が十分にありません。';
 
   @override
+  String get runningCoachThreeDComparisonTitle => '3Dランナー比較';
+
+  @override
+  String get runningCoachThreeDCurrentLabel => '現在の3Dランナー';
+
+  @override
+  String get runningCoachThreeDTargetLabel => '次の3D目標';
+
+  @override
+  String get runningCoachThreeDConfidenceLabel => '追跡';
+
+  @override
+  String get runningCoachThreeDRendererLoading => '3Dランナーを読み込み中...';
+
+  @override
+  String get runningCoachThreeDRendererUnavailable =>
+      'このフレームから3Dランナーを作れません。全身ランドマークが見える、より鮮明な横向き動画で試してください。';
+
+  @override
+  String get runningCoachThreeDRendererError => 'ローカルWebGLランナーを開始できませんでした。';
+
+  @override
+  String get runningCoachThreeDReferenceNotice =>
+      'ポーズランドマークに基づく一般的な基準アバターで、身体を再構成したものではありません。';
+
+  @override
   String get runningCoachHistoryEvidenceUnavailableTitle => '保存済みの関節根拠なし';
 
   @override

@@ -58,7 +58,17 @@ void main() {
     expect(frame.landmarkByIndex(11)!.x, closeTo(0.21, 0.0001));
     expect(frame.landmarkByIndex(11)!.visibility, closeTo(0.71, 0.0001));
     expect(frame.landmarkByIndex(11)!.presence, closeTo(0.61, 0.0001));
+    expect(frame.landmarkByIndex(11)!.worldX, closeTo(1.1, 0.0001));
+    expect(frame.landmarkByIndex(11)!.worldY, closeTo(-0.55, 0.0001));
+    expect(frame.landmarkByIndex(11)!.worldZ, closeTo(0.22, 0.0001));
+    expect(frame.landmarkByIndex(11)!.worldVisibility, closeTo(0.755, 0.0001));
+    expect(frame.landmarkByIndex(11)!.worldPresence, closeTo(0.705, 0.0001));
+    expect(frame.landmarkByIndex(11)!.worldConfidence, closeTo(0.735, 0.0001));
     expect(frame.landmarkByIndex(32)!.confidence, 1);
+    final serializedLandmarks =
+        (frame.toMap()['landmarks']! as List<Object?>).cast<Map>();
+    expect(serializedLandmarks, hasLength(mediaPipePoseLandmarkCount));
+    expect(serializedLandmarks[32]['worldX'], closeTo(3.2, 0.0001));
   });
 
   test('fromMap parses dense contact contract immutably', () {
@@ -244,5 +254,11 @@ Map<String, Object?> _landmarkMap(int index) {
     'visibility': 0.60 + (index * 0.01),
     'presence': 0.50 + (index * 0.01),
     'confidence': 0.40 + (index * 0.03),
+    'worldX': index * 0.10,
+    'worldY': index * -0.05,
+    'worldZ': index * 0.02,
+    'worldVisibility': 0.70 + (index * 0.005),
+    'worldPresence': 0.65 + (index * 0.005),
+    'worldConfidence': 0.68 + (index * 0.005),
   };
 }

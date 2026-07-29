@@ -15803,6 +15803,54 @@ abstract class AppLocalizations {
   /// **'This frame does not contain enough joint coordinates to build the motion comparison.'**
   String get runningCoachCoordinateRigUnavailable;
 
+  /// No description provided for @runningCoachThreeDComparisonTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'3D runner comparison'**
+  String get runningCoachThreeDComparisonTitle;
+
+  /// No description provided for @runningCoachThreeDCurrentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Current 3D runner'**
+  String get runningCoachThreeDCurrentLabel;
+
+  /// No description provided for @runningCoachThreeDTargetLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Next 3D target'**
+  String get runningCoachThreeDTargetLabel;
+
+  /// No description provided for @runningCoachThreeDConfidenceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracking'**
+  String get runningCoachThreeDConfidenceLabel;
+
+  /// No description provided for @runningCoachThreeDRendererLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading 3D runner...'**
+  String get runningCoachThreeDRendererLoading;
+
+  /// No description provided for @runningCoachThreeDRendererUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The 3D runner cannot be built from this frame. Try a clearer side-view clip with full-body landmarks.'**
+  String get runningCoachThreeDRendererUnavailable;
+
+  /// No description provided for @runningCoachThreeDRendererError.
+  ///
+  /// In en, this message translates to:
+  /// **'The local WebGL runner could not start.'**
+  String get runningCoachThreeDRendererError;
+
+  /// No description provided for @runningCoachThreeDReferenceNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Generic reference avatar based on pose landmarks; it is not a reconstruction of your body.'**
+  String get runningCoachThreeDReferenceNotice;
+
   /// No description provided for @runningCoachHistoryEvidenceUnavailableTitle.
   ///
   /// In en, this message translates to:

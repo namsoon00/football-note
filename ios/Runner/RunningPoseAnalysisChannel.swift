@@ -1021,12 +1021,13 @@ final class RunningPoseAnalysisChannel {
           landmarks.count >= Self.mediaPipePoseLandmarkCount else {
       return nil
     }
+    let worldLandmarks = result.worldLandmarks.first
 
     let landmarkPayloads = landmarks
       .prefix(Self.mediaPipePoseLandmarkCount)
       .enumerated()
       .map { index, landmark -> [String: Any] in
-        [
+        var payload: [String: Any] = [
           "index": index,
           "x": Double(landmark.x),
           "y": Double(landmark.y),
@@ -1035,6 +1036,18 @@ final class RunningPoseAnalysisChannel {
           "presence": nullableNumber(landmark.presence),
           "confidence": Double(landmarkConfidence(landmark)),
         ]
+        if let worldLandmarks, index < worldLandmarks.count {
+          let world = worldLandmarks[index]
+          let imageConfidence = Double(landmarkConfidence(landmark))
+          let worldConfidence = Double(landmarkConfidence(world))
+          payload["worldX"] = Double(world.x)
+          payload["worldY"] = Double(world.y)
+          payload["worldZ"] = Double(world.z)
+          payload["worldVisibility"] = nullableNumber(world.visibility)
+          payload["worldPresence"] = nullableNumber(world.presence)
+          payload["worldConfidence"] = worldConfidence > 0 ? worldConfidence : imageConfidence
+        }
+        return payload
       }
 
     return [
@@ -1153,6 +1166,23 @@ final class RunningPoseAnalysisChannel {
   }
 
   private func landmarkConfidence(_ landmark: NormalizedLandmark) -> Float {
+    let visibility = landmark.visibility?.floatValue
+    let presence = landmark.presence?.floatValue
+    let confidence: Float
+    switch (visibility, presence) {
+    case let (visibility?, presence?):
+      confidence = min(visibility, presence)
+    case let (visibility?, nil):
+      confidence = visibility
+    case let (nil, presence?):
+      confidence = presence
+    default:
+      confidence = 0
+    }
+    return min(1, max(0, confidence))
+  }
+
+  private func landmarkConfidence(_ landmark: Landmark) -> Float {
     let visibility = landmark.visibility?.floatValue
     let presence = landmark.presence?.floatValue
     let confidence: Float

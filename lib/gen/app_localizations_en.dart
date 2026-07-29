@@ -9047,6 +9047,33 @@ class AppLocalizationsEn extends AppLocalizations {
       'This frame does not contain enough joint coordinates to build the motion comparison.';
 
   @override
+  String get runningCoachThreeDComparisonTitle => '3D runner comparison';
+
+  @override
+  String get runningCoachThreeDCurrentLabel => 'Current 3D runner';
+
+  @override
+  String get runningCoachThreeDTargetLabel => 'Next 3D target';
+
+  @override
+  String get runningCoachThreeDConfidenceLabel => 'Tracking';
+
+  @override
+  String get runningCoachThreeDRendererLoading => 'Loading 3D runner...';
+
+  @override
+  String get runningCoachThreeDRendererUnavailable =>
+      'The 3D runner cannot be built from this frame. Try a clearer side-view clip with full-body landmarks.';
+
+  @override
+  String get runningCoachThreeDRendererError =>
+      'The local WebGL runner could not start.';
+
+  @override
+  String get runningCoachThreeDReferenceNotice =>
+      'Generic reference avatar based on pose landmarks; it is not a reconstruction of your body.';
+
+  @override
   String get runningCoachHistoryEvidenceUnavailableTitle =>
       'No saved joint evidence';
 

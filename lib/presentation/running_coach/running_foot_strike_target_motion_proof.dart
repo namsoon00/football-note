@@ -8,6 +8,7 @@ import '../../gen/app_localizations.dart';
 import 'running_pose_overlay.dart';
 import 'running_professional_runner.dart';
 import 'running_professional_runner_art.dart';
+import 'running_three_d_runner_view.dart';
 
 /// Shows the single next action after the coordinate-driven comparison.
 ///
@@ -181,14 +182,18 @@ double _visualForwardForPose(
 /// evidence and its measurement overlay.
 class RunningFootStrikeEvidenceReferencePreview extends StatelessWidget {
   final Widget evidence;
+  final RunningCoachingInsight insight;
   final RunningDirection direction;
   final RunningPoseFrame? currentPose;
+  final Iterable<RunningPoseFrame> poseFrames;
 
   const RunningFootStrikeEvidenceReferencePreview({
     super.key,
     required this.evidence,
+    required this.insight,
     required this.direction,
     required this.currentPose,
+    this.poseFrames = const <RunningPoseFrame>[],
   });
 
   @override
@@ -214,7 +219,7 @@ class RunningFootStrikeEvidenceReferencePreview extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    l10n.runningCoachTwoDComparisonTitle,
+                    l10n.runningCoachThreeDComparisonTitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
@@ -236,10 +241,12 @@ class RunningFootStrikeEvidenceReferencePreview extends StatelessWidget {
                   'running-coach-foot-strike-reference-runner',
                 ),
                 poseFrame: currentPose,
+                poseFrames: poseFrames,
+                insight: insight,
                 direction: direction,
-                currentLabel: l10n.runningCoachTwoDCurrentLabel,
-                targetLabel: l10n.runningCoachTwoDTargetLabel,
-                unavailableLabel: l10n.runningCoachCoordinateRigUnavailable,
+                currentLabel: l10n.runningCoachThreeDCurrentLabel,
+                targetLabel: l10n.runningCoachThreeDTargetLabel,
+                unavailableLabel: l10n.runningCoachThreeDRendererUnavailable,
               ),
             ),
             const SizedBox(height: 14),
@@ -292,6 +299,8 @@ class RunningFootStrikeEvidenceReferencePreview extends StatelessWidget {
 
 class _FootStrikeCoordinateRigComparison extends StatelessWidget {
   final RunningPoseFrame? poseFrame;
+  final Iterable<RunningPoseFrame> poseFrames;
+  final RunningCoachingInsight insight;
   final RunningDirection direction;
   final String currentLabel;
   final String targetLabel;
@@ -300,6 +309,8 @@ class _FootStrikeCoordinateRigComparison extends StatelessWidget {
   const _FootStrikeCoordinateRigComparison({
     super.key,
     required this.poseFrame,
+    required this.poseFrames,
+    required this.insight,
     required this.direction,
     required this.currentLabel,
     required this.targetLabel,
@@ -309,10 +320,7 @@ class _FootStrikeCoordinateRigComparison extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final rig = _FootStrikeCoordinateRig.fromPoseFrame(
-      poseFrame,
-      direction: direction,
-    );
+    final frame = poseFrame;
     return DecoratedBox(
       decoration: BoxDecoration(
         color: const Color(0xFF101A2A),
@@ -321,7 +329,7 @@ class _FootStrikeCoordinateRigComparison extends StatelessWidget {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
-        child: rig == null
+        child: frame == null
             ? Center(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 28),
@@ -376,28 +384,21 @@ class _FootStrikeCoordinateRigComparison extends StatelessWidget {
                     ),
                     const SizedBox(height: 7),
                     Expanded(
-                      child: FutureBuilder<ui.Image>(
-                        future: loadProfessionalRunnerArtAtlas(),
-                        builder: (context, snapshot) {
-                          return RepaintBoundary(
-                            child: SizedBox.expand(
-                              child: CustomPaint(
-                                key: const ValueKey(
-                                  'running-coach-foot-strike-coordinate-rig',
-                                ),
-                                painter: _FootStrikeCoordinateRigPainter(
-                                  rig: rig,
-                                  artAtlas: snapshot.data,
-                                  currentAccent: scheme.error,
-                                  targetAccent: scheme.primary,
-                                  mutedColor: scheme.onSurfaceVariant,
-                                  panelColor: scheme.surface,
-                                  panelBorderColor: scheme.outlineVariant,
-                                ),
-                              ),
-                            ),
-                          );
-                        },
+                      child: RunningThreeDRunnerComparisonView(
+                        key: const ValueKey(
+                          'running-coach-foot-strike-3d-runner',
+                        ),
+                        poseFrames: poseFrames.isEmpty
+                            ? <RunningPoseFrame>[frame]
+                            : poseFrames,
+                        selectedFrame: frame,
+                        insight: insight,
+                        direction: direction,
+                        currentColor: scheme.error,
+                        targetColor: scheme.primary,
+                        successColor: Colors.green.shade700,
+                        currentLabel: currentLabel,
+                        targetLabel: targetLabel,
                       ),
                     ),
                   ],
@@ -635,6 +636,7 @@ class _FootStrikeCoordinateRig {
     required this.forward,
   });
 
+  // ignore: unused_element
   static _FootStrikeCoordinateRig? fromPoseFrame(
     RunningPoseFrame? poseFrame, {
     required RunningDirection direction,
@@ -726,6 +728,7 @@ class _FootStrikeCoordinateRig {
   }
 }
 
+// ignore: unused_element
 class _FootStrikeCoordinateRigPainter extends CustomPainter {
   final _FootStrikeCoordinateRig rig;
   final ui.Image? artAtlas;
