@@ -7,7 +7,7 @@ import 'running_professional_runner.dart';
 
 const _professionalRunnerArtAsset =
     'assets/images/running_guides/professional_runner/'
-    'elite_runner_pose_reference.png';
+    'professional_runner_pose_atlas_v2.png';
 
 Future<ui.Image>? _professionalRunnerArtFuture;
 
@@ -34,7 +34,9 @@ Future<ui.Image> _loadProfessionalRunnerArtAtlas() async {
 /// The current side uses an overstride reference while the goal side uses a
 /// compact, efficient contact reference. A deliberately restrained lead-leg
 /// path keeps the visual traceable to the source coordinates without turning
-/// the athlete back into a stick figure.
+/// the athlete back into a joint avatar. The versioned asset name is
+/// intentional: a previously deployed joint-avatar comparison must never be
+/// reused from a browser asset cache after this renderer is introduced.
 void paintIllustratedProfessionalRunner(
   ui.Canvas canvas, {
   required ui.Image atlas,
