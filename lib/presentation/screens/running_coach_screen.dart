@@ -15,7 +15,6 @@ import '../../domain/entities/running_coach_session.dart';
 import '../../domain/entities/running_video_analysis_result.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../../gen/app_localizations.dart';
-import '../running_coach/running_foot_strike_target_motion_proof.dart';
 import '../running_coach/running_pose_overlay.dart';
 import '../running_coach/running_professional_runner.dart';
 import '../running_coach/running_professional_runner_art.dart';
@@ -5207,23 +5206,12 @@ class _EvidenceVideoPreview extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final videoController = controller;
-    final hasPlayableVideo =
-        videoController != null && videoController.value.isInitialized;
-    final isFootStrike = insight.metric == RunningCoachMetric.footStrike;
     final evidenceContent = _EvidenceVideoContent(
       result: result,
       insight: insight,
       selectedFrame: selectedFrame,
       controller: videoController,
-      showRunnerAvatar: hasPlayableVideo && !isFootStrike,
     );
-    if (isFootStrike) {
-      return RunningFootStrikeEvidenceReferencePreview(
-        evidence: evidenceContent,
-        direction: result.direction,
-        currentPose: selectedFrame.poseFrame,
-      );
-    }
     final poseAspectRatio = selectedFrame.poseFrame == null
         ? 16 / 9
         : selectedFrame.poseFrame!.imageWidth /
@@ -5270,14 +5258,12 @@ class _EvidenceVideoContent extends StatelessWidget {
   final RunningCoachingInsight insight;
   final _AnalysisEvidenceFrame selectedFrame;
   final VideoPlayerController? controller;
-  final bool showRunnerAvatar;
 
   const _EvidenceVideoContent({
     required this.result,
     required this.insight,
     required this.selectedFrame,
     required this.controller,
-    required this.showRunnerAvatar,
   });
 
   @override
@@ -5333,7 +5319,9 @@ class _EvidenceVideoContent extends StatelessWidget {
                       finding: insight.finding,
                       direction: result.direction,
                       useContainFit: true,
-                      showRunnerAvatar: showRunnerAvatar,
+                      // Keep the uploaded video as the evidence surface. The
+                      // overlay marks only the measured coaching points.
+                      showRunnerAvatar: false,
                       showRefinedPose: !hasPlayableVideo,
                     ),
                   );
@@ -5483,15 +5471,6 @@ class _EvidencePoseTransitionState extends State<_EvidencePoseTransition>
 
   @override
   Widget build(BuildContext context) {
-    if (widget.insight.metric == RunningCoachMetric.footStrike) {
-      return RunningFootStrikeTargetMotionProof(
-        insight: widget.insight,
-        direction: widget.direction,
-        currentPose: widget.poseFrame,
-        currentValue: widget.copy.value,
-        cue: widget.copy.cue,
-      );
-    }
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
     final actualAccent = scheme.error;
@@ -5557,7 +5536,7 @@ class _EvidencePoseTransitionState extends State<_EvidencePoseTransition>
                 const SizedBox(height: 8),
                 SizedBox(
                   key: const ValueKey('running-coach-goal-motion'),
-                  height: 232,
+                  height: 248,
                   width: double.infinity,
                   child: FutureBuilder<ui.Image>(
                     future: loadProfessionalRunnerArtAtlas(),
@@ -5756,17 +5735,6 @@ class _PoseGoalMotionPainter extends CustomPainter {
     final targetStart = _mapPoints(targetPanel);
     if (actualPoints.isEmpty || targetStart.isEmpty) return;
 
-    _drawGround(canvas, actualPanel, actualPoints);
-    _drawGround(canvas, targetPanel, targetStart);
-    _drawPose(
-      canvas,
-      actualPoints,
-      accent: actualAccent,
-      opacity: 1,
-      isTarget: false,
-      bounds: actualPanel,
-    );
-
     final targetEnd = _targetPoints(targetStart);
     final easedProgress = Curves.easeInOutCubic.transform(progress);
     final targetPoints = <int, Offset>{
@@ -5777,7 +5745,34 @@ class _PoseGoalMotionPainter extends CustomPainter {
           easedProgress,
         )!,
     };
-    _drawGoalVectors(canvas, targetStart, targetEnd);
+    _drawGround(canvas, actualPanel, actualPoints);
+    _drawGround(canvas, targetPanel, targetEnd);
+    _drawPose(
+      canvas,
+      actualPoints,
+      accent: actualAccent,
+      opacity: 1,
+      isTarget: false,
+      bounds: actualPanel,
+    );
+    _drawMetricGuide(
+      canvas,
+      actualPanel,
+      actualPoints,
+      accent: actualAccent,
+      isTarget: false,
+    );
+    if (easedProgress < 0.995 && insight.status != RunningCoachStatus.good) {
+      _drawPose(
+        canvas,
+        targetStart,
+        accent: targetAccent,
+        opacity: 0.14,
+        isTarget: true,
+        bounds: targetPanel,
+      );
+      _drawGoalVectors(canvas, targetStart, targetEnd);
+    }
     _drawPose(
       canvas,
       targetPoints,
@@ -5785,6 +5780,13 @@ class _PoseGoalMotionPainter extends CustomPainter {
       opacity: 0.98,
       isTarget: true,
       bounds: targetPanel,
+    );
+    _drawMetricGuide(
+      canvas,
+      targetPanel,
+      targetEnd,
+      accent: targetAccent,
+      isTarget: true,
     );
   }
 
@@ -5891,6 +5893,244 @@ class _PoseGoalMotionPainter extends CustomPainter {
       bounds: bounds,
     );
     canvas.restore();
+  }
+
+  void _drawMetricGuide(
+    Canvas canvas,
+    Rect panel,
+    Map<int, Offset> points, {
+    required Color accent,
+    required bool isTarget,
+  }) {
+    final paint = Paint()
+      ..color = accent.withValues(alpha: 0.94)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.15
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    final secondaryPaint = Paint()
+      ..color = mutedColor.withValues(alpha: isTarget ? 0.34 : 0.26)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0
+      ..strokeCap = StrokeCap.round;
+    switch (insight.metric) {
+      case RunningCoachMetric.posture:
+        final torso = _torso(points);
+        if (torso == null) return;
+        final length = math.max(18.0, (torso.shoulder - torso.hip).distance);
+        final vertical = torso.hip - Offset(0, length);
+        _drawDashedGuide(canvas, vertical, torso.hip, secondaryPaint);
+        canvas.drawLine(torso.hip, torso.shoulder, paint);
+        _drawGuideArc(
+          canvas,
+          center: torso.hip,
+          start: vertical,
+          end: torso.shoulder,
+          radius: math.max(12.0, length * 0.24),
+          paint: paint,
+        );
+        _drawGuideDot(canvas, torso.shoulder, accent);
+      case RunningCoachMetric.bounce:
+        final torso = _torso(points);
+        if (torso == null) return;
+        final sign = _forwardSign(points);
+        final x = (torso.shoulder.dx + sign * panel.width * 0.11).clamp(
+          panel.left + 12,
+          panel.right - 12,
+        );
+        final measuredSpan = (panel.height * (insight.value / 100) * 2.2)
+            .clamp(22.0, panel.height * 0.42)
+            .toDouble();
+        final span = isTarget && insight.status != RunningCoachStatus.good
+            ? measuredSpan * 0.48
+            : measuredSpan;
+        final center = Offset(x, torso.shoulder.dy);
+        final top = Offset(center.dx, center.dy - span / 2);
+        final bottom = Offset(center.dx, center.dy + span / 2);
+        _drawGuideDoubleArrow(canvas, top, bottom, paint);
+        canvas.drawLine(
+          Offset(top.dx - 5, top.dy),
+          Offset(top.dx + 5, top.dy),
+          secondaryPaint,
+        );
+        canvas.drawLine(
+          Offset(bottom.dx - 5, bottom.dy),
+          Offset(bottom.dx + 5, bottom.dy),
+          secondaryPaint,
+        );
+      case RunningCoachMetric.footStrike:
+        final side = _leadLegSide(points);
+        if (side == null) return;
+        final hip = points[side == 0 ? 23 : 24];
+        final ankle = points[side == 0 ? 27 : 28];
+        final toe = points[side == 0 ? 31 : 32] ?? ankle;
+        if (hip == null || ankle == null || toe == null) return;
+        final groundY = math.max(toe.dy, ankle.dy);
+        final zoneWidth = math.max(22.0, panel.width * 0.25);
+        final zone = RRect.fromRectAndRadius(
+          Rect.fromCenter(
+            center: Offset(hip.dx, groundY),
+            width: zoneWidth,
+            height: 8,
+          ),
+          const Radius.circular(99),
+        );
+        _drawDashedGuide(
+          canvas,
+          hip,
+          Offset(hip.dx, groundY - 4),
+          secondaryPaint,
+        );
+        canvas.drawRRect(
+          zone,
+          Paint()..color = accent.withValues(alpha: 0.12),
+        );
+        canvas.drawRRect(zone, paint);
+        if (!isTarget) {
+          _drawGuideArrow(
+            canvas,
+            Offset(toe.dx, groundY - 11),
+            Offset(hip.dx, groundY - 11),
+            paint,
+          );
+        }
+        _drawGuideDot(canvas, Offset(toe.dx, groundY), accent);
+      case RunningCoachMetric.kneeFlexion:
+        final side = _leadLegSide(points);
+        if (side == null) return;
+        final hip = points[side == 0 ? 23 : 24];
+        final knee = points[side == 0 ? 25 : 26];
+        final ankle = points[side == 0 ? 27 : 28];
+        if (hip == null || knee == null || ankle == null) return;
+        _drawGuideArc(
+          canvas,
+          center: knee,
+          start: hip,
+          end: ankle,
+          radius: math.max(12.0, (hip - knee).distance * 0.33),
+          paint: paint,
+        );
+        _drawGuideDot(canvas, knee, accent);
+      case RunningCoachMetric.armCarriage:
+        final side = _leadArmSide(points);
+        if (side == null) return;
+        final shoulder = points[side == 0 ? 11 : 12];
+        final elbow = points[side == 0 ? 13 : 14];
+        final wrist = points[side == 0 ? 15 : 16];
+        if (shoulder == null || elbow == null || wrist == null) return;
+        _drawGuideArc(
+          canvas,
+          center: elbow,
+          start: shoulder,
+          end: wrist,
+          radius: math.max(10.0, (shoulder - elbow).distance * 0.35),
+          paint: paint,
+        );
+        _drawGuideDot(canvas, elbow, accent);
+    }
+  }
+
+  void _drawGuideDot(Canvas canvas, Offset point, Color color) {
+    canvas.drawCircle(
+      point,
+      7,
+      Paint()..color = color.withValues(alpha: 0.16),
+    );
+    canvas.drawCircle(
+      point,
+      3.6,
+      Paint()..color = color,
+    );
+    canvas.drawCircle(
+      point,
+      1.3,
+      Paint()..color = const Color(0xFFF8FBFF),
+    );
+  }
+
+  void _drawDashedGuide(
+    Canvas canvas,
+    Offset from,
+    Offset to,
+    Paint paint,
+  ) {
+    final vector = to - from;
+    final distance = vector.distance;
+    if (distance <= 0) return;
+    final unit = vector / distance;
+    for (var offset = 0.0; offset < distance; offset += 8.5) {
+      canvas.drawLine(
+        from + unit * offset,
+        from + unit * math.min(offset + 4.5, distance),
+        paint,
+      );
+    }
+  }
+
+  void _drawGuideArc(
+    Canvas canvas, {
+    required Offset center,
+    required Offset start,
+    required Offset end,
+    required double radius,
+    required Paint paint,
+  }) {
+    final startAngle = math.atan2(start.dy - center.dy, start.dx - center.dx);
+    final endAngle = math.atan2(end.dy - center.dy, end.dx - center.dx);
+    var sweep = (endAngle - startAngle) % (math.pi * 2);
+    if (sweep > math.pi) sweep -= math.pi * 2;
+    if (sweep < -math.pi) sweep += math.pi * 2;
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      startAngle,
+      sweep,
+      false,
+      paint,
+    );
+  }
+
+  void _drawGuideDoubleArrow(
+    Canvas canvas,
+    Offset from,
+    Offset to,
+    Paint paint,
+  ) {
+    canvas.drawLine(from, to, paint);
+    _drawGuideArrowHead(canvas, from, from - to, paint);
+    _drawGuideArrowHead(canvas, to, to - from, paint);
+  }
+
+  void _drawGuideArrow(
+    Canvas canvas,
+    Offset from,
+    Offset to,
+    Paint paint,
+  ) {
+    canvas.drawLine(from, to, paint);
+    _drawGuideArrowHead(canvas, to, to - from, paint);
+  }
+
+  void _drawGuideArrowHead(
+    Canvas canvas,
+    Offset tip,
+    Offset direction,
+    Paint paint,
+  ) {
+    final distance = direction.distance;
+    if (distance <= 0) return;
+    final unit = direction / distance;
+    final perpendicular = Offset(-unit.dy, unit.dx);
+    final length = math.max(5.0, paint.strokeWidth * 3);
+    canvas.drawLine(
+      tip,
+      tip - unit * length + perpendicular * (length * 0.52),
+      paint,
+    );
+    canvas.drawLine(
+      tip,
+      tip - unit * length - perpendicular * (length * 0.52),
+      paint,
+    );
   }
 
   Set<int> get _focusIndices => switch (insight.metric) {
@@ -7229,7 +7469,7 @@ class _RunningTargetGuideAnnotationPainter extends CustomPainter {
   }
 }
 
-class _MeasuredPoseGuideVisual extends StatelessWidget {
+class _MeasuredPoseGuideVisual extends StatefulWidget {
   final RunningCoachingInsight insight;
   final RunningPoseFrame poseFrame;
   final RunningDirection direction;
@@ -7241,15 +7481,55 @@ class _MeasuredPoseGuideVisual extends StatelessWidget {
   });
 
   @override
+  State<_MeasuredPoseGuideVisual> createState() =>
+      _MeasuredPoseGuideVisualState();
+}
+
+class _MeasuredPoseGuideVisualState extends State<_MeasuredPoseGuideVisual>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _motionController;
+  bool _isMotionPlaying = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _motionController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1700),
+    )..value = 1;
+  }
+
+  @override
+  void dispose() {
+    _motionController.dispose();
+    super.dispose();
+  }
+
+  void _toggleMotion() {
+    if (_isMotionPlaying) {
+      _motionController
+        ..stop()
+        ..value = 1;
+    } else {
+      _motionController
+        ..value = 0
+        ..repeat(reverse: true);
+    }
+    setState(() {
+      _isMotionPlaying = !_isMotionPlaying;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
-    final copy = RunningCoachInsightCopy.fromInsight(insight, l10n);
+    final copy = RunningCoachInsightCopy.fromInsight(widget.insight, l10n);
     final actualAccent = scheme.error;
     final targetAccent = scheme.primary;
     return Container(
       key: ValueKey(
-        'running-coach-insight-evidence-diagram-${insight.metric.name}',
+        'running-coach-insight-evidence-diagram-${widget.insight.metric.name}',
       ),
       width: double.infinity,
       decoration: BoxDecoration(
@@ -7260,11 +7540,30 @@ class _MeasuredPoseGuideVisual extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            l10n.runningCoachMeasuredPoseTitle,
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  fontWeight: FontWeight.w900,
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  l10n.runningCoachMeasuredPoseTitle,
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
                 ),
+              ),
+              AppBarActionButton.icon(
+                key: ValueKey(
+                  'running-coach-insight-goal-motion-toggle-${widget.insight.metric.name}',
+                ),
+                tooltip: _isMotionPlaying
+                    ? l10n.runningCoachGoalMotionPause
+                    : l10n.runningCoachGoalMotionPlay,
+                onPressed: _toggleMotion,
+                margin: EdgeInsets.zero,
+                icon: _isMotionPlaying
+                    ? Icons.pause_circle_outline_rounded
+                    : Icons.play_circle_outline_rounded,
+              ),
+            ],
           ),
           const SizedBox(height: 4),
           Text(
@@ -7304,9 +7603,9 @@ class _MeasuredPoseGuideVisual extends StatelessWidget {
           const SizedBox(height: 8),
           SizedBox(
             key: ValueKey(
-              'running-coach-insight-change-map-${insight.metric.name}',
+              'running-coach-insight-change-map-${widget.insight.metric.name}',
             ),
-            height: 280,
+            height: 248,
             width: double.infinity,
             child: FutureBuilder<ui.Image>(
               future: loadProfessionalRunnerArtAtlas(),
@@ -7323,19 +7622,23 @@ class _MeasuredPoseGuideVisual extends StatelessWidget {
                     ),
                   );
                 }
-                return CustomPaint(
-                  key: const ValueKey(
-                    'running-coach-insight-professional-runner',
-                  ),
-                  painter: _MeasuredPoseMovementMapPainter(
-                    frame: poseFrame,
-                    insight: insight,
-                    direction: direction,
-                    surfaceColor: scheme.surface,
-                    mutedColor: scheme.outline,
-                    actualAccent: actualAccent,
-                    targetAccent: targetAccent,
-                    artAtlas: artAtlas,
+                return AnimatedBuilder(
+                  animation: _motionController,
+                  builder: (context, _) => CustomPaint(
+                    key: const ValueKey(
+                      'running-coach-insight-professional-runner',
+                    ),
+                    painter: _PoseGoalMotionPainter(
+                      frame: widget.poseFrame,
+                      insight: widget.insight,
+                      direction: widget.direction,
+                      progress: _motionController.value,
+                      surfaceColor: scheme.surface,
+                      mutedColor: scheme.onSurfaceVariant,
+                      actualAccent: actualAccent,
+                      targetAccent: targetAccent,
+                      artAtlas: artAtlas,
+                    ),
                   ),
                 );
               },
@@ -7393,6 +7696,7 @@ class _MeasuredPoseGuideVisual extends StatelessWidget {
   }
 }
 
+// ignore: unused_element
 class _MeasuredPoseMovementMapPainter extends CustomPainter {
   final RunningPoseFrame frame;
   final RunningCoachingInsight insight;

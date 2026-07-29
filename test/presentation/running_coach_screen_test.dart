@@ -15,6 +15,7 @@ import 'package:football_note/domain/entities/running_video_analysis_result.dart
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/running_coach/running_foot_strike_target_motion_proof.dart';
+import 'package:football_note/presentation/running_coach/running_professional_runner_art.dart';
 import 'package:football_note/presentation/screens/running_coach_screen.dart';
 import 'package:football_note/presentation/screens/running_coach_sample_video.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart';
@@ -1105,7 +1106,7 @@ void main() {
       find.byKey(const ValueKey('running-coach-evidence-pose-transition')),
       findsOneWidget,
     );
-    expect(find.text('From current to next'), findsOneWidget);
+    expect(find.text('Your frame and target movement'), findsOneWidget);
     expect(
       find.byKey(const ValueKey('running-coach-goal-motion')),
       findsOneWidget,
@@ -1117,36 +1118,55 @@ void main() {
     expect(
       tester
           .widget<IconButton>(
-            find.byKey(const ValueKey('running-coach-goal-motion-toggle')),
+            find.descendant(
+              of: find.byKey(
+                const ValueKey('running-coach-goal-motion-toggle'),
+              ),
+              matching: find.byType(IconButton),
+            ),
           )
           .tooltip,
       'Play goal movement',
     );
-    expect(find.text('Next landing'), findsOneWidget);
-    expect(find.text('Overlay on your uploaded video'), findsOneWidget);
+    final goalMotionToggle = find.byKey(
+      const ValueKey('running-coach-goal-motion-toggle'),
+    );
+    await tester.ensureVisible(goalMotionToggle);
+    await tester.pump();
+    await tester.tap(goalMotionToggle);
+    await tester.pump();
+    expect(
+      tester
+          .widget<IconButton>(
+            find.descendant(
+              of: find.byKey(
+                const ValueKey('running-coach-goal-motion-toggle'),
+              ),
+              matching: find.byType(IconButton),
+            ),
+          )
+          .tooltip,
+      'Pause goal movement',
+    );
+    await tester.tap(goalMotionToggle);
+    await tester.pump();
+    expect(find.text('My frame'), findsOneWidget);
+    expect(find.text('Target runner'), findsOneWidget);
+    await tester.runAsync(loadProfessionalRunnerArtAtlas);
+    await tester.pump();
     expect(
       find.byKey(
-        const ValueKey('running-coach-foot-strike-reference-runner'),
+        const ValueKey('running-coach-goal-motion-professional-runner'),
       ),
       findsOneWidget,
     );
     expect(
-      find.byKey(
-        const ValueKey('running-coach-foot-strike-coordinate-rig'),
-      ),
-      findsOneWidget,
-    );
-    expect(
-      find.byKey(
-        const ValueKey('running-coach-foot-strike-uploaded-overlay'),
-      ),
-      findsOneWidget,
-    );
-    expect(
-      find.byKey(
-        const ValueKey('running-coach-foot-strike-current-target'),
-      ),
-      findsOneWidget,
+      tester
+          .getSize(
+            find.byKey(const ValueKey('running-coach-goal-motion')),
+          )
+          .height,
+      248,
     );
     expect(find.text('Evidence 1/2'), findsOneWidget);
     expect(tester.takeException(), isNull);
@@ -1303,34 +1323,27 @@ void main() {
         const ValueKey('running-coach-goal-motion'),
       );
       expect(goalMotion, findsOneWidget);
-      if (metric == RunningCoachMetric.footStrike) {
-        expect(tester.getSize(goalMotion).height, greaterThanOrEqualTo(222));
+      expect(tester.getSize(goalMotion).height, 248);
+      if (metric == RunningCoachMetric.posture) {
+        final reportDetails = find.byKey(
+          const ValueKey('running-coach-report-details'),
+        );
+        await _scrollAnalysisResultUntilFound(tester, reportDetails);
+        await tester.tap(reportDetails);
+        await tester.pump();
+        final detailComparison = find.byKey(
+          const ValueKey('running-coach-insight-evidence-diagram-posture'),
+        );
+        await _scrollAnalysisResultUntilFound(tester, detailComparison);
+        expect(detailComparison, findsOneWidget);
         expect(
           find.byKey(
-            const ValueKey('running-coach-foot-strike-reference-runner'),
+            const ValueKey(
+              'running-coach-insight-goal-motion-toggle-posture',
+            ),
           ),
           findsOneWidget,
         );
-        expect(
-          find.byKey(
-            const ValueKey('running-coach-foot-strike-coordinate-rig'),
-          ),
-          findsOneWidget,
-        );
-        expect(
-          find.byKey(
-            const ValueKey('running-coach-foot-strike-uploaded-overlay'),
-          ),
-          findsOneWidget,
-        );
-        expect(
-          find.byKey(
-            const ValueKey('running-coach-foot-strike-current-target'),
-          ),
-          findsOneWidget,
-        );
-      } else {
-        expect(tester.getSize(goalMotion).height, 232);
       }
       expect(tester.takeException(), isNull);
     }
