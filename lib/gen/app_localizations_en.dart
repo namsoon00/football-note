@@ -9762,11 +9762,41 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachMeasuredPoseTargetLabel => 'Next target';
 
   @override
+  String get runningCoachMeasuredPoseTargetRangeLabel => 'Target range';
+
+  @override
   String get runningCoachMeasuredPoseCueLabel => 'Try this movement';
 
   @override
   String get runningCoachMeasuredPoseFootnote =>
       'The blue marker is a location or range to move a joint toward on your next step. It does not replace your measured pose.';
+
+  @override
+  String get runningCoachMeasuredPoseImproveLegend =>
+      'Red: current measurement · Blue: next target';
+
+  @override
+  String get runningCoachMeasuredPoseGoodLegend =>
+      'Green: your current measurement is already inside the target range';
+
+  @override
+  String get runningCoachMeasuredPoseGoodBody =>
+      'Your measured position is already inside the target range. Keep this movement.';
+
+  @override
+  String runningCoachMeasuredPoseRangeDegrees(String minimum, String maximum) {
+    return '$minimum–$maximum°';
+  }
+
+  @override
+  String runningCoachMeasuredPoseRangePercentMaximum(String maximum) {
+    return '≤ $maximum%';
+  }
+
+  @override
+  String runningCoachMeasuredPoseRangeRatioMaximum(String maximum) {
+    return '≤ $maximum×';
+  }
 
   @override
   String get runningCoachGuideRangePosture =>
