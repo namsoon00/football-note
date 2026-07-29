@@ -9784,6 +9784,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your measured position is already inside the target range. Keep this movement.';
 
   @override
+  String get runningCoachMeasuredPoseGoodCue =>
+      'Your movement is in range. Keep the same rhythm.';
+
+  @override
   String runningCoachMeasuredPoseRangeDegrees(String minimum, String maximum) {
     return '$minimum–$maximum°';
   }

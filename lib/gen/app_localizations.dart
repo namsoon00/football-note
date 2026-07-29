@@ -16961,6 +16961,12 @@ abstract class AppLocalizations {
   /// **'Your measured position is already inside the target range. Keep this movement.'**
   String get runningCoachMeasuredPoseGoodBody;
 
+  /// No description provided for @runningCoachMeasuredPoseGoodCue.
+  ///
+  /// In en, this message translates to:
+  /// **'Your movement is in range. Keep the same rhythm.'**
+  String get runningCoachMeasuredPoseGoodCue;
+
   /// No description provided for @runningCoachMeasuredPoseRangeDegrees.
   ///
   /// In en, this message translates to:

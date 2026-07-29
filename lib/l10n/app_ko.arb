@@ -5451,6 +5451,7 @@
   "runningCoachMeasuredPoseImproveLegend": "빨강: 현재 측정값 · 파랑: 다음 목표",
   "runningCoachMeasuredPoseGoodLegend": "초록: 현재 측정값이 이미 목표 범위 안에 있어요",
   "runningCoachMeasuredPoseGoodBody": "현재 측정 위치가 이미 목표 범위 안에 있어요. 이 움직임을 유지해 보세요.",
+  "runningCoachMeasuredPoseGoodCue": "현재 움직임이 목표 범위 안에 있어요. 같은 리듬을 유지하세요.",
   "runningCoachMeasuredPoseRangeDegrees": "{minimum}–{maximum}°",
   "@runningCoachMeasuredPoseRangeDegrees": {
     "placeholders": {

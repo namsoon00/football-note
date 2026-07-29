@@ -5451,6 +5451,7 @@
   "runningCoachMeasuredPoseImproveLegend": "Red: current measurement · Blue: next target",
   "runningCoachMeasuredPoseGoodLegend": "Green: your current measurement is already inside the target range",
   "runningCoachMeasuredPoseGoodBody": "Your measured position is already inside the target range. Keep this movement.",
+  "runningCoachMeasuredPoseGoodCue": "Your movement is in range. Keep the same rhythm.",
   "runningCoachMeasuredPoseRangeDegrees": "{minimum}–{maximum}°",
   "@runningCoachMeasuredPoseRangeDegrees": {
     "placeholders": {

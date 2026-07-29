@@ -4773,8 +4773,11 @@ class _BeginnerActionCard extends StatelessWidget {
             ? l10n.runningCoachNextGoalTitle
             : l10n.runningCoachMaintainTitle;
     final actionTopic = needsRetake ? null : copy.title;
-    final actionCue =
-        needsRetake ? l10n.runningCoachEvidenceRetakeBody : copy.cue;
+    final actionCue = needsRetake
+        ? l10n.runningCoachEvidenceRetakeBody
+        : needsChange
+            ? copy.cue
+            : l10n.runningCoachMeasuredPoseGoodCue;
     final actionBody = needsRetake
         ? l10n.runningCoachEvidenceInsufficientBody
         : needsChange
@@ -9369,6 +9372,9 @@ class _InsightCard extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final copy = RunningCoachInsightCopy.fromInsight(insight, l10n);
     final isMetricReliable = insight.quality.isReliableForCoaching;
+    final cue = insight.status == RunningCoachStatus.good
+        ? l10n.runningCoachMeasuredPoseGoodCue
+        : copy.cue;
     final badgeColor = switch (insight.status) {
       RunningCoachStatus.good => Colors.green.shade100,
       RunningCoachStatus.watch => Colors.orange.shade100,
@@ -9456,7 +9462,7 @@ class _InsightCard extends StatelessWidget {
               ),
               padding: const EdgeInsets.all(12),
               child: Text(
-                copy.cue,
+                cue,
                 style: Theme.of(
                   context,
                 ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
