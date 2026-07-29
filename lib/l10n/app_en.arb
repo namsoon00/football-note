@@ -5445,8 +5445,39 @@
   "runningCoachMeasuredPoseBody": "Red marks the current point; blue marks the next target. Follow one arrow at a time.",
   "runningCoachMeasuredPoseActualLabel": "Current point",
   "runningCoachMeasuredPoseTargetLabel": "Next target",
+  "runningCoachMeasuredPoseTargetRangeLabel": "Target range",
   "runningCoachMeasuredPoseCueLabel": "Try this movement",
   "runningCoachMeasuredPoseFootnote": "The blue marker is a location or range to move a joint toward on your next step. It does not replace your measured pose.",
+  "runningCoachMeasuredPoseImproveLegend": "Red: current measurement · Blue: next target",
+  "runningCoachMeasuredPoseGoodLegend": "Green: your current measurement is already inside the target range",
+  "runningCoachMeasuredPoseGoodBody": "Your measured position is already inside the target range. Keep this movement.",
+  "runningCoachMeasuredPoseRangeDegrees": "{minimum}–{maximum}°",
+  "@runningCoachMeasuredPoseRangeDegrees": {
+    "placeholders": {
+      "minimum": {
+        "type": "String"
+      },
+      "maximum": {
+        "type": "String"
+      }
+    }
+  },
+  "runningCoachMeasuredPoseRangePercentMaximum": "≤ {maximum}%",
+  "@runningCoachMeasuredPoseRangePercentMaximum": {
+    "placeholders": {
+      "maximum": {
+        "type": "String"
+      }
+    }
+  },
+  "runningCoachMeasuredPoseRangeRatioMaximum": "≤ {maximum}×",
+  "@runningCoachMeasuredPoseRangeRatioMaximum": {
+    "placeholders": {
+      "maximum": {
+        "type": "String"
+      }
+    }
+  },
   "runningCoachGuideRangePosture": "Goal: slight forward lean, without bending at the waist",
   "runningCoachGuideRangeBounce": "Goal: quick steps with little up-down motion",
   "runningCoachGuideRangeFootStrike": "Goal: foot lands close under the hips",

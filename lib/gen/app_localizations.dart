@@ -16925,6 +16925,12 @@ abstract class AppLocalizations {
   /// **'Next target'**
   String get runningCoachMeasuredPoseTargetLabel;
 
+  /// No description provided for @runningCoachMeasuredPoseTargetRangeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Target range'**
+  String get runningCoachMeasuredPoseTargetRangeLabel;
+
   /// No description provided for @runningCoachMeasuredPoseCueLabel.
   ///
   /// In en, this message translates to:
@@ -16936,6 +16942,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The blue marker is a location or range to move a joint toward on your next step. It does not replace your measured pose.'**
   String get runningCoachMeasuredPoseFootnote;
+
+  /// No description provided for @runningCoachMeasuredPoseImproveLegend.
+  ///
+  /// In en, this message translates to:
+  /// **'Red: current measurement · Blue: next target'**
+  String get runningCoachMeasuredPoseImproveLegend;
+
+  /// No description provided for @runningCoachMeasuredPoseGoodLegend.
+  ///
+  /// In en, this message translates to:
+  /// **'Green: your current measurement is already inside the target range'**
+  String get runningCoachMeasuredPoseGoodLegend;
+
+  /// No description provided for @runningCoachMeasuredPoseGoodBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your measured position is already inside the target range. Keep this movement.'**
+  String get runningCoachMeasuredPoseGoodBody;
+
+  /// No description provided for @runningCoachMeasuredPoseRangeDegrees.
+  ///
+  /// In en, this message translates to:
+  /// **'{minimum}–{maximum}°'**
+  String runningCoachMeasuredPoseRangeDegrees(String minimum, String maximum);
+
+  /// No description provided for @runningCoachMeasuredPoseRangePercentMaximum.
+  ///
+  /// In en, this message translates to:
+  /// **'≤ {maximum}%'**
+  String runningCoachMeasuredPoseRangePercentMaximum(String maximum);
+
+  /// No description provided for @runningCoachMeasuredPoseRangeRatioMaximum.
+  ///
+  /// In en, this message translates to:
+  /// **'≤ {maximum}×'**
+  String runningCoachMeasuredPoseRangeRatioMaximum(String maximum);
 
   /// No description provided for @runningCoachGuideRangePosture.
   ///

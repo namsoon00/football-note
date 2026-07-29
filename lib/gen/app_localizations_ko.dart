@@ -9504,11 +9504,40 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachMeasuredPoseTargetLabel => '다음 목표';
 
   @override
+  String get runningCoachMeasuredPoseTargetRangeLabel => '목표 범위';
+
+  @override
   String get runningCoachMeasuredPoseCueLabel => '이렇게 움직여 보세요';
 
   @override
   String get runningCoachMeasuredPoseFootnote =>
       '파란 표시는 내 몸을 바꿔 만든 자세가 아니라, 다음 동작에서 관절을 옮길 위치 또는 범위예요.';
+
+  @override
+  String get runningCoachMeasuredPoseImproveLegend => '빨강: 현재 측정값 · 파랑: 다음 목표';
+
+  @override
+  String get runningCoachMeasuredPoseGoodLegend =>
+      '초록: 현재 측정값이 이미 목표 범위 안에 있어요';
+
+  @override
+  String get runningCoachMeasuredPoseGoodBody =>
+      '현재 측정 위치가 이미 목표 범위 안에 있어요. 이 움직임을 유지해 보세요.';
+
+  @override
+  String runningCoachMeasuredPoseRangeDegrees(String minimum, String maximum) {
+    return '$minimum–$maximum°';
+  }
+
+  @override
+  String runningCoachMeasuredPoseRangePercentMaximum(String maximum) {
+    return '≤ $maximum%';
+  }
+
+  @override
+  String runningCoachMeasuredPoseRangeRatioMaximum(String maximum) {
+    return '≤ $maximum×';
+  }
 
   @override
   String get runningCoachGuideRangePosture => '목표: 허리를 접지 않고 몸을 살짝 앞으로 기울이기';

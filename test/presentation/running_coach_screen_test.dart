@@ -15,7 +15,6 @@ import 'package:football_note/domain/entities/running_video_analysis_result.dart
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/running_coach/running_foot_strike_target_motion_proof.dart';
-import 'package:football_note/presentation/running_coach/running_professional_runner_art.dart';
 import 'package:football_note/presentation/screens/running_coach_screen.dart';
 import 'package:football_note/presentation/screens/running_coach_sample_video.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart';
@@ -1150,15 +1149,19 @@ void main() {
     );
     await tester.tap(goalMotionToggle);
     await tester.pump();
-    expect(find.text('My frame'), findsOneWidget);
-    expect(find.text('Target runner'), findsOneWidget);
-    await tester.runAsync(loadProfessionalRunnerArtAtlas);
-    await tester.pump();
+    expect(find.text('Current point'), findsOneWidget);
+    expect(find.text('Target range'), findsOneWidget);
+    expect(
+      find.byKey(
+        const ValueKey('running-coach-goal-motion-coordinate-comparison'),
+      ),
+      findsOneWidget,
+    );
     expect(
       find.byKey(
         const ValueKey('running-coach-goal-motion-professional-runner'),
       ),
-      findsOneWidget,
+      findsNothing,
     );
     expect(
       tester
@@ -1336,6 +1339,14 @@ void main() {
         );
         await _scrollAnalysisResultUntilFound(tester, detailComparison);
         expect(detailComparison, findsOneWidget);
+        expect(
+          find.byKey(
+            const ValueKey(
+              'running-coach-insight-coordinate-comparison-posture',
+            ),
+          ),
+          findsOneWidget,
+        );
         expect(
           find.byKey(
             const ValueKey(

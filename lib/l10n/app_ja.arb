@@ -5445,8 +5445,39 @@
   "runningCoachMeasuredPoseBody": "赤が現在位置、青が次に合わせる場所です。一度に一つの矢印だけをたどってください。",
   "runningCoachMeasuredPoseActualLabel": "現在位置",
   "runningCoachMeasuredPoseTargetLabel": "次の目標",
+  "runningCoachMeasuredPoseTargetRangeLabel": "目標範囲",
   "runningCoachMeasuredPoseCueLabel": "こう動かしてみましょう",
   "runningCoachMeasuredPoseFootnote": "青い表示は、次の動作で関節を動かす位置または範囲です。測定された姿勢を置き換えるものではありません。",
+  "runningCoachMeasuredPoseImproveLegend": "赤: 現在の測定値 · 青: 次の目標",
+  "runningCoachMeasuredPoseGoodLegend": "緑: 現在の測定値はすでに目標範囲内です",
+  "runningCoachMeasuredPoseGoodBody": "測定した位置はすでに目標範囲内です。この動きを維持しましょう。",
+  "runningCoachMeasuredPoseRangeDegrees": "{minimum}～{maximum}°",
+  "@runningCoachMeasuredPoseRangeDegrees": {
+    "placeholders": {
+      "minimum": {
+        "type": "String"
+      },
+      "maximum": {
+        "type": "String"
+      }
+    }
+  },
+  "runningCoachMeasuredPoseRangePercentMaximum": "{maximum}%以下",
+  "@runningCoachMeasuredPoseRangePercentMaximum": {
+    "placeholders": {
+      "maximum": {
+        "type": "String"
+      }
+    }
+  },
+  "runningCoachMeasuredPoseRangeRatioMaximum": "{maximum}×以下",
+  "@runningCoachMeasuredPoseRangeRatioMaximum": {
+    "placeholders": {
+      "maximum": {
+        "type": "String"
+      }
+    }
+  },
   "runningCoachGuideRangePosture": "目標: 腰を折らずに少し前へ傾く",
   "runningCoachGuideRangeBounce": "目標: 上下動を小さくし、足をすばやく動かす",
   "runningCoachGuideRangeFootStrike": "目標: 足を腰の近くの下に着く",

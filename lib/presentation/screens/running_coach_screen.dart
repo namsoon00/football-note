@@ -16,6 +16,7 @@ import '../../domain/entities/running_video_analysis_result.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../../gen/app_localizations.dart';
 import '../running_coach/running_pose_overlay.dart';
+import '../running_coach/running_pose_comparison.dart';
 import '../running_coach/running_professional_runner.dart';
 import '../running_coach/running_professional_runner_art.dart';
 import '../models/sample_runner_pose.dart';
@@ -5473,7 +5474,9 @@ class _EvidencePoseTransitionState extends State<_EvidencePoseTransition>
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
-    final actualAccent = scheme.error;
+    final isGood = widget.insight.status == RunningCoachStatus.good;
+    final successAccent = Colors.green.shade700;
+    final actualAccent = isGood ? successAccent : scheme.error;
     final targetAccent = scheme.primary;
     final poseFrame = widget.poseFrame;
     return Semantics(
@@ -5496,7 +5499,7 @@ class _EvidencePoseTransitionState extends State<_EvidencePoseTransition>
                   Icon(
                     Icons.compare_arrows_rounded,
                     size: 19,
-                    color: targetAccent,
+                    color: isGood ? successAccent : targetAccent,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
@@ -5507,7 +5510,7 @@ class _EvidencePoseTransitionState extends State<_EvidencePoseTransition>
                           ),
                     ),
                   ),
-                  if (poseFrame != null)
+                  if (poseFrame != null && !isGood)
                     AppBarActionButton.icon(
                       key: const ValueKey('running-coach-goal-motion-toggle'),
                       tooltip: _isMotionPlaying
@@ -5523,14 +5526,20 @@ class _EvidencePoseTransitionState extends State<_EvidencePoseTransition>
               ),
               const SizedBox(height: 4),
               Text(
-                l10n.runningCoachGoalMotionBody,
+                isGood
+                    ? l10n.runningCoachMeasuredPoseGoodBody
+                    : l10n.runningCoachGoalMotionBody,
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               const SizedBox(height: 10),
-              _EvidencePoseTransitionTextFallback(
-                copy: widget.copy,
+              _CoordinateComparisonLegend(
+                currentValue: widget.copy.value,
+                targetRange:
+                    _comparisonTargetRange(l10n, widget.insight.metric),
+                isGood: isGood,
                 actualAccent: actualAccent,
                 targetAccent: targetAccent,
+                successAccent: successAccent,
               ),
               if (poseFrame != null) ...[
                 const SizedBox(height: 8),
@@ -5538,43 +5547,20 @@ class _EvidencePoseTransitionState extends State<_EvidencePoseTransition>
                   key: const ValueKey('running-coach-goal-motion'),
                   height: 248,
                   width: double.infinity,
-                  child: FutureBuilder<ui.Image>(
-                    future: loadProfessionalRunnerArtAtlas(),
-                    builder: (context, snapshot) {
-                      final artAtlas = snapshot.data;
-                      if (artAtlas == null) {
-                        return Center(
-                          child: SizedBox.square(
-                            dimension: 28,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.4,
-                              color: targetAccent,
-                            ),
-                          ),
-                        );
-                      }
-                      return AnimatedBuilder(
-                        animation: _motionController,
-                        builder: (context, _) {
-                          return CustomPaint(
-                            key: const ValueKey(
-                              'running-coach-goal-motion-professional-runner',
-                            ),
-                            painter: _PoseGoalMotionPainter(
-                              frame: poseFrame,
-                              insight: widget.insight,
-                              direction: widget.direction,
-                              progress: _motionController.value,
-                              surfaceColor: scheme.surface,
-                              mutedColor: scheme.onSurfaceVariant,
-                              actualAccent: actualAccent,
-                              targetAccent: targetAccent,
-                              artAtlas: artAtlas,
-                            ),
-                          );
-                        },
-                      );
-                    },
+                  child: RunningPoseCoordinateComparison(
+                    key: const ValueKey(
+                      'running-coach-goal-motion-coordinate-comparison',
+                    ),
+                    frame: poseFrame,
+                    insight: widget.insight,
+                    direction: widget.direction,
+                    progress: _motionController,
+                    surfaceColor: scheme.surface,
+                    mutedColor: scheme.onSurfaceVariant,
+                    actualAccent: actualAccent,
+                    targetAccent: targetAccent,
+                    successAccent: successAccent,
+                    semanticLabel: l10n.runningCoachGoalMotionTitle,
                   ),
                 ),
               ],
@@ -5586,113 +5572,142 @@ class _EvidencePoseTransitionState extends State<_EvidencePoseTransition>
   }
 }
 
-class _EvidencePoseTransitionTextFallback extends StatelessWidget {
-  final RunningCoachInsightCopy copy;
+class _CoordinateComparisonLegend extends StatelessWidget {
+  final String currentValue;
+  final String targetRange;
+  final bool isGood;
   final Color actualAccent;
   final Color targetAccent;
+  final Color successAccent;
 
-  const _EvidencePoseTransitionTextFallback({
-    required this.copy,
+  const _CoordinateComparisonLegend({
+    required this.currentValue,
+    required this.targetRange,
+    required this.isGood,
     required this.actualAccent,
     required this.targetAccent,
+    required this.successAccent,
   });
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final scheme = Theme.of(context).colorScheme;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
+    final currentColor = isGood ? successAccent : actualAccent;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: _EvidencePoseTransitionTextState(
-            key: const ValueKey('running-coach-evidence-current-state'),
-            icon: Icons.radio_button_checked_rounded,
-            color: actualAccent,
-            label: l10n.runningCoachGoalMotionActualLabel,
-            body: copy.value,
-          ),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _CoordinateComparisonValuePill(
+              icon: isGood
+                  ? Icons.check_circle_outline_rounded
+                  : Icons.radio_button_checked_rounded,
+              color: currentColor,
+              label: l10n.runningCoachMeasuredPoseActualLabel,
+              value: currentValue,
+            ),
+            _CoordinateComparisonValuePill(
+              icon: Icons.near_me_outlined,
+              color: targetAccent,
+              label: l10n.runningCoachMeasuredPoseTargetRangeLabel,
+              value: targetRange,
+            ),
+          ],
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 6),
-          child: Icon(
-            Icons.arrow_forward_rounded,
-            size: 22,
-            color: scheme.onSurfaceVariant,
-          ),
-        ),
-        Expanded(
-          child: _EvidencePoseTransitionTextState(
-            key: const ValueKey('running-coach-evidence-next-state'),
-            icon: Icons.near_me_outlined,
-            color: targetAccent,
-            label: l10n.runningCoachGoalMotionTargetLabel,
-            body: copy.cue,
-          ),
+        const SizedBox(height: 8),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              isGood
+                  ? Icons.check_circle_outline_rounded
+                  : Icons.compare_arrows_rounded,
+              size: 16,
+              color: currentColor,
+            ),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                isGood
+                    ? l10n.runningCoachMeasuredPoseGoodLegend
+                    : l10n.runningCoachMeasuredPoseImproveLegend,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+            ),
+          ],
         ),
       ],
     );
   }
 }
 
-class _EvidencePoseTransitionTextState extends StatelessWidget {
+class _CoordinateComparisonValuePill extends StatelessWidget {
   final IconData icon;
   final Color color;
   final String label;
-  final String body;
+  final String value;
 
-  const _EvidencePoseTransitionTextState({
-    super.key,
+  const _CoordinateComparisonValuePill({
     required this.icon,
     required this.color,
     required this.label,
-    required this.body,
+    required this.value,
   });
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withValues(alpha: 0.42)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(icon, size: 17, color: color),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: color,
-                          fontWeight: FontWeight.w900,
-                        ),
-                  ),
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 236),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.10),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: color.withValues(alpha: 0.38)),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, size: 17, color: color),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                            color: color,
+                            fontWeight: FontWeight.w900,
+                          ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      value,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            const SizedBox(height: 7),
-            Text(
-              body,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
+// ignore: unused_element
 class _PoseGoalMotionPainter extends CustomPainter {
   final RunningPoseFrame frame;
   final RunningCoachingInsight insight;
@@ -7525,7 +7540,9 @@ class _MeasuredPoseGuideVisualState extends State<_MeasuredPoseGuideVisual>
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
     final copy = RunningCoachInsightCopy.fromInsight(widget.insight, l10n);
-    final actualAccent = scheme.error;
+    final isGood = widget.insight.status == RunningCoachStatus.good;
+    final successAccent = Colors.green.shade700;
+    final actualAccent = isGood ? successAccent : scheme.error;
     final targetAccent = scheme.primary;
     return Container(
       key: ValueKey(
@@ -7550,55 +7567,37 @@ class _MeasuredPoseGuideVisualState extends State<_MeasuredPoseGuideVisual>
                       ),
                 ),
               ),
-              AppBarActionButton.icon(
-                key: ValueKey(
-                  'running-coach-insight-goal-motion-toggle-${widget.insight.metric.name}',
+              if (!isGood)
+                AppBarActionButton.icon(
+                  key: ValueKey(
+                    'running-coach-insight-goal-motion-toggle-${widget.insight.metric.name}',
+                  ),
+                  tooltip: _isMotionPlaying
+                      ? l10n.runningCoachGoalMotionPause
+                      : l10n.runningCoachGoalMotionPlay,
+                  onPressed: _toggleMotion,
+                  margin: EdgeInsets.zero,
+                  icon: _isMotionPlaying
+                      ? Icons.pause_circle_outline_rounded
+                      : Icons.play_circle_outline_rounded,
                 ),
-                tooltip: _isMotionPlaying
-                    ? l10n.runningCoachGoalMotionPause
-                    : l10n.runningCoachGoalMotionPlay,
-                onPressed: _toggleMotion,
-                margin: EdgeInsets.zero,
-                icon: _isMotionPlaying
-                    ? Icons.pause_circle_outline_rounded
-                    : Icons.play_circle_outline_rounded,
-              ),
             ],
           ),
           const SizedBox(height: 4),
           Text(
-            l10n.runningCoachMeasuredPoseBody,
+            isGood
+                ? l10n.runningCoachMeasuredPoseGoodBody
+                : l10n.runningCoachMeasuredPoseBody,
             style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(height: 10),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: _EvidencePoseTransitionTextState(
-                  icon: Icons.radio_button_checked_rounded,
-                  color: actualAccent,
-                  label: l10n.runningCoachMeasuredPoseActualLabel,
-                  body: copy.value,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6),
-                child: Icon(
-                  Icons.arrow_forward_rounded,
-                  size: 22,
-                  color: scheme.onSurfaceVariant,
-                ),
-              ),
-              Expanded(
-                child: _EvidencePoseTransitionTextState(
-                  icon: Icons.near_me_outlined,
-                  color: targetAccent,
-                  label: l10n.runningCoachMeasuredPoseTargetLabel,
-                  body: copy.cue,
-                ),
-              ),
-            ],
+          _CoordinateComparisonLegend(
+            currentValue: copy.value,
+            targetRange: _comparisonTargetRange(l10n, widget.insight.metric),
+            isGood: isGood,
+            actualAccent: actualAccent,
+            targetAccent: targetAccent,
+            successAccent: successAccent,
           ),
           const SizedBox(height: 8),
           SizedBox(
@@ -7607,87 +7606,27 @@ class _MeasuredPoseGuideVisualState extends State<_MeasuredPoseGuideVisual>
             ),
             height: 248,
             width: double.infinity,
-            child: FutureBuilder<ui.Image>(
-              future: loadProfessionalRunnerArtAtlas(),
-              builder: (context, snapshot) {
-                final artAtlas = snapshot.data;
-                if (artAtlas == null) {
-                  return Center(
-                    child: SizedBox.square(
-                      dimension: 28,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.4,
-                        color: targetAccent,
-                      ),
-                    ),
-                  );
-                }
-                return AnimatedBuilder(
-                  animation: _motionController,
-                  builder: (context, _) => CustomPaint(
-                    key: const ValueKey(
-                      'running-coach-insight-professional-runner',
-                    ),
-                    painter: _PoseGoalMotionPainter(
-                      frame: widget.poseFrame,
-                      insight: widget.insight,
-                      direction: widget.direction,
-                      progress: _motionController.value,
-                      surfaceColor: scheme.surface,
-                      mutedColor: scheme.onSurfaceVariant,
-                      actualAccent: actualAccent,
-                      targetAccent: targetAccent,
-                      artAtlas: artAtlas,
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          const SizedBox(height: 10),
-          DecoratedBox(
-            decoration: BoxDecoration(
-              color: targetAccent.withValues(alpha: 0.10),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(10),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(
-                    Icons.near_me_outlined,
-                    size: 18,
-                    color: targetAccent,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          l10n.runningCoachMeasuredPoseCueLabel,
-                          style:
-                              Theme.of(context).textTheme.labelLarge?.copyWith(
-                                    color: targetAccent,
-                                    fontWeight: FontWeight.w900,
-                                  ),
-                        ),
-                        const SizedBox(height: 3),
-                        Text(
-                          copy.cue,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+            child: RunningPoseCoordinateComparison(
+              key: ValueKey(
+                'running-coach-insight-coordinate-comparison-${widget.insight.metric.name}',
               ),
+              frame: widget.poseFrame,
+              insight: widget.insight,
+              direction: widget.direction,
+              progress: _motionController,
+              surfaceColor: scheme.surface,
+              mutedColor: scheme.onSurfaceVariant,
+              actualAccent: actualAccent,
+              targetAccent: targetAccent,
+              successAccent: successAccent,
+              semanticLabel: l10n.runningCoachMeasuredPoseTitle,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            l10n.runningCoachMeasuredPoseFootnote,
+            isGood
+                ? l10n.runningCoachMeasuredPoseGoodLegend
+                : l10n.runningCoachMeasuredPoseFootnote,
             style: Theme.of(context).textTheme.bodySmall,
           ),
         ],
@@ -9630,6 +9569,41 @@ String _metricGoodRange(AppLocalizations l10n, RunningCoachMetric metric) {
     RunningCoachMetric.footStrike => l10n.runningCoachGuideRangeFootStrike,
     RunningCoachMetric.kneeFlexion => l10n.runningCoachGuideRangeKnee,
     RunningCoachMetric.armCarriage => l10n.runningCoachGuideRangeArm,
+  };
+}
+
+String _comparisonTargetRange(
+  AppLocalizations l10n,
+  RunningCoachMetric metric,
+) {
+  const thresholds = RunningCoachingThresholds();
+  String formatNumber(double value) {
+    return value == value.roundToDouble()
+        ? value.toStringAsFixed(0)
+        : value.toStringAsFixed(1);
+  }
+
+  return switch (metric) {
+    RunningCoachMetric.posture => l10n.runningCoachMeasuredPoseRangeDegrees(
+        formatNumber(thresholds.minimumForwardLeanDegrees),
+        formatNumber(thresholds.maximumForwardLeanDegrees),
+      ),
+    RunningCoachMetric.bounce =>
+      l10n.runningCoachMeasuredPoseRangePercentMaximum(
+        formatNumber(thresholds.maximumVerticalBouncePercent),
+      ),
+    RunningCoachMetric.footStrike =>
+      l10n.runningCoachMeasuredPoseRangeRatioMaximum(
+        formatNumber(thresholds.maximumFootStrikeRatio),
+      ),
+    RunningCoachMetric.kneeFlexion => l10n.runningCoachMeasuredPoseRangeDegrees(
+        formatNumber(thresholds.minimumStanceKneeAngleDegrees),
+        formatNumber(thresholds.maximumStanceKneeAngleDegrees),
+      ),
+    RunningCoachMetric.armCarriage => l10n.runningCoachMeasuredPoseRangeDegrees(
+        formatNumber(thresholds.minimumElbowAngleDegrees),
+        formatNumber(thresholds.maximumElbowAngleDegrees),
+      ),
   };
 }
 
