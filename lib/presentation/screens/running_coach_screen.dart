@@ -1,16 +1,11 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:video_player/video_player.dart';
 
-import '../../application/live_sprint_calibration_readiness_service.dart';
-import '../../application/live_sprint_calibration_candidate_service.dart';
-import '../../application/live_sprint_field_validation_matrix_service.dart';
-import '../../application/live_sprint_trend_service.dart';
 import '../../application/running_coach_history_service.dart';
 import '../../application/running_coaching_service.dart';
 import '../../application/running_video_analysis_service.dart';
@@ -24,7 +19,9 @@ import '../running_coach/running_pose_overlay.dart';
 import '../models/sample_runner_pose.dart';
 import 'running_coach_insight_copy.dart';
 import 'running_capture_screen.dart';
-import 'running_live_session_result_screen.dart';
+import 'running_coach_sample_video.dart';
+import 'running_coach_sample_video_preparer.dart';
+import 'running_video_player_source.dart';
 import '../widgets/app_bar_action_button.dart';
 import '../widgets/app_feedback.dart';
 
@@ -46,45 +43,9 @@ class RunningCoachScreen extends StatefulWidget {
   State<RunningCoachScreen> createState() => _RunningCoachScreenState();
 }
 
-typedef RunningCoachSampleVideoPreparer
-    = Future<RunningCoachPreparedSampleVideo> Function(String assetPath);
 typedef RunningCoachCaptureLauncher = Future<XFile?> Function(
   BuildContext context,
 );
-
-class RunningCoachPreparedSampleVideo {
-  final File file;
-  final Future<void> Function() dispose;
-
-  const RunningCoachPreparedSampleVideo({
-    required this.file,
-    required this.dispose,
-  });
-}
-
-Future<RunningCoachPreparedSampleVideo>
-    prepareRunningCoachSampleVideoForAnalysis(String assetPath) async {
-  final tempDirectory = await Directory.systemTemp.createTemp(
-    'running_coach_sample_',
-  );
-  final bytes = await rootBundle.load(assetPath);
-  final file = File('${tempDirectory.path}/${assetPath.split('/').last}');
-  await file.writeAsBytes(
-    bytes.buffer.asUint8List(
-      bytes.offsetInBytes,
-      bytes.lengthInBytes,
-    ),
-    flush: true,
-  );
-  return RunningCoachPreparedSampleVideo(
-    file: file,
-    dispose: () async {
-      if (await tempDirectory.exists()) {
-        await tempDirectory.delete(recursive: true);
-      }
-    },
-  );
-}
 
 @visibleForTesting
 Widget runningAnalysisResultScreenForTesting({
@@ -110,18 +71,6 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
   final ImagePicker _picker = ImagePicker();
   final RunningCoachingService _coachingService =
       const RunningCoachingService();
-  final LiveSprintTrendService _liveSprintTrendService =
-      const LiveSprintTrendService();
-  final LiveSprintCalibrationReadinessService
-      _liveSprintCalibrationReadinessService =
-      const LiveSprintCalibrationReadinessService();
-  final LiveSprintFieldValidationMatrixService
-      _liveSprintFieldValidationMatrixService =
-      const LiveSprintFieldValidationMatrixService();
-  final LiveSprintCalibrationCandidateService
-      _liveSprintCalibrationCandidateService =
-      const LiveSprintCalibrationCandidateService();
-
   RunningCoachHistoryService? _historyService;
   XFile? _selectedVideo;
   List<RunningCoachSessionAnalysis> _recentSessions =
@@ -170,6 +119,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
           selectedVideoName: _selectedVideo?.name,
           isAnalyzing: _isAnalyzing,
           canAnalyze: _canAnalyze,
+          canCapture: !kIsWeb,
           onShowSampleGuide: _showSampleAnalysis,
           onCaptureVideo: _captureVideo,
           onPickVideo: _pickVideo,
@@ -251,7 +201,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
   ) async {
     final preparedVideo = await widget.sampleVideoPreparer(assetPath);
     try {
-      return await widget.analysisService.analyzeVideo(preparedVideo.file.path);
+      return await widget.analysisService.analyzeVideo(preparedVideo.file);
     } finally {
       unawaited(
         preparedVideo.dispose().catchError((_) {}),
@@ -281,36 +231,9 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
   }
 
   void _openAnalysisHistoryDetail(RunningCoachSessionAnalysis session) {
-    final trendSummary = _liveSprintTrendService.build(
-      _recentSessions,
-      currentSessionId: session.id,
-    );
-    final calibrationReadinessSummary =
-        _liveSprintCalibrationReadinessService.build(
-      _recentSessions,
-      currentSessionId: session.id,
-    );
-    final fieldValidationMatrixSummary =
-        _liveSprintFieldValidationMatrixService.build(
-      _recentSessions,
-      currentSessionId: session.id,
-    );
-    final calibrationCandidateSummary =
-        _liveSprintCalibrationCandidateService.build(
-      _recentSessions,
-      currentSessionId: session.id,
-    );
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => session.liveSprintReport == null
-            ? _AnalysisHistoryDetailScreen(session: session)
-            : RunningLiveSessionResultScreen(
-                session: session,
-                trendSummary: trendSummary,
-                calibrationReadinessSummary: calibrationReadinessSummary,
-                fieldValidationMatrixSummary: fieldValidationMatrixSummary,
-                calibrationCandidateSummary: calibrationCandidateSummary,
-              ),
+        builder: (_) => _AnalysisHistoryDetailScreen(session: session),
       ),
     );
   }
@@ -360,7 +283,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
     setState(() => _isAnalyzing = true);
     try {
       final analyzedAt = DateTime.now();
-      final analysis = await widget.analysisService.analyzeVideo(selected.path);
+      final analysis = await widget.analysisService.analyzeVideo(selected);
       final report = _coachingService.buildReport(analysis);
       final historyService = _historyService;
       final updatedSessions = historyService == null
@@ -457,6 +380,8 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
       'unsupported_platform' => l10n.runningCoachUnsupportedPlatform,
       'native_analyzer_unavailable' =>
         l10n.runningCoachNativeAnalyzerUnavailable,
+      'web_analyzer_unavailable' => l10n.runningCoachWebAnalyzerUnavailable,
+      'web_video_decode_failed' => l10n.runningCoachWebVideoDecodeFailed,
       'missing_file' => l10n.runningCoachVideoFileMissing,
       'video_too_short' => l10n.runningCoachVideoTooShort,
       'video_too_blurry' => l10n.runningCoachVideoTooBlurry,
@@ -510,6 +435,7 @@ class _RunningCoachUploadGuideCard extends StatelessWidget {
   final String? selectedVideoName;
   final bool isAnalyzing;
   final bool canAnalyze;
+  final bool canCapture;
   final VoidCallback onShowSampleGuide;
   final VoidCallback onCaptureVideo;
   final VoidCallback onPickVideo;
@@ -519,6 +445,7 @@ class _RunningCoachUploadGuideCard extends StatelessWidget {
     required this.selectedVideoName,
     required this.isAnalyzing,
     required this.canAnalyze,
+    required this.canCapture,
     required this.onShowSampleGuide,
     required this.onCaptureVideo,
     required this.onPickVideo,
@@ -555,16 +482,18 @@ class _RunningCoachUploadGuideCard extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             if (!hasSelectedVideo) ...[
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  key: const ValueKey('running-coach-capture-primary-action'),
-                  onPressed: isAnalyzing ? null : onCaptureVideo,
-                  icon: const Icon(Icons.videocam_rounded),
-                  label: Text(l10n.runningCoachCaptureAction),
+              if (canCapture) ...[
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    key: const ValueKey('running-coach-capture-primary-action'),
+                    onPressed: isAnalyzing ? null : onCaptureVideo,
+                    icon: const Icon(Icons.videocam_rounded),
+                    label: Text(l10n.runningCoachCaptureAction),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 10),
+                const SizedBox(height: 10),
+              ],
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
@@ -629,10 +558,11 @@ class _RunningCoachUploadGuideCard extends StatelessWidget {
                   child: Wrap(
                     spacing: 4,
                     children: [
-                      TextButton(
-                        onPressed: isAnalyzing ? null : onCaptureVideo,
-                        child: Text(l10n.runningCoachCaptureAgainAction),
-                      ),
+                      if (canCapture)
+                        TextButton(
+                          onPressed: isAnalyzing ? null : onCaptureVideo,
+                          child: Text(l10n.runningCoachCaptureAgainAction),
+                        ),
                       TextButton(
                         onPressed: isAnalyzing ? null : onPickVideo,
                         child: Text(l10n.runningCoachChangeVideoAction),
@@ -4987,13 +4917,12 @@ class _AnalysisEvidenceCardState extends State<_AnalysisEvidenceCard> {
       return;
     }
     try {
-      final file = File(path);
-      if (!await file.exists()) {
+      final controller = await openRunningVideoPlayer(path);
+      if (controller == null) {
         if (!mounted) return;
         setState(() => _isVideoUnavailable = true);
         return;
       }
-      final controller = VideoPlayerController.file(file);
       await controller.initialize();
       await controller.setLooping(true);
       await controller.setVolume(0);
@@ -6642,8 +6571,8 @@ class _ArchivedAnalysisVideoCardState
       return;
     }
     try {
-      final file = File(path);
-      if (!await file.exists()) {
+      final controller = await openRunningVideoPlayer(path);
+      if (controller == null) {
         if (!mounted) return;
         setState(() {
           _isInitializing = false;
@@ -6651,7 +6580,6 @@ class _ArchivedAnalysisVideoCardState
         });
         return;
       }
-      final controller = VideoPlayerController.file(file);
       await controller.initialize();
       await controller.setLooping(true);
       if (!mounted) {
@@ -9289,13 +9217,7 @@ String _sessionSourceLabel(
   AppLocalizations l10n,
   RunningCoachSessionAnalysis session,
 ) {
-  return switch (session.source) {
-    RunningCoachSessionSource.uploadVideo =>
-      l10n.runningCoachSessionSourceUploadVideo,
-    RunningCoachSessionSource.liveRun => l10n.runningCoachSessionSourceLiveRun,
-    RunningCoachSessionSource.sprintLive =>
-      l10n.runningCoachSessionSourceSprintLive,
-  };
+  return l10n.runningCoachSessionSourceUploadVideo;
 }
 
 Color _statusAccentColor(RunningCoachStatus status) {

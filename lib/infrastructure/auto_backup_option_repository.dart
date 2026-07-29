@@ -3,7 +3,6 @@ import 'dart:async';
 import '../application/backup_service.dart';
 import '../application/drive_backup_service.dart';
 import '../application/family_access_service.dart';
-import '../application/sprint_capture_calibration_service.dart';
 import '../domain/repositories/option_repository.dart';
 
 class AutoBackupOptionRepository implements OptionRepository {
@@ -19,7 +18,6 @@ class AutoBackupOptionRepository implements OptionRepository {
     DriveBackupService.parentDriveEmailLocalKey,
     DriveBackupService.parentDriveLabelLocalKey,
     DriveBackupService.parentDriveSubjectLocalKey,
-    SprintCaptureCalibrationProfileService.selectedProfileOptionKey,
     'welcome_seen_v1',
   };
 

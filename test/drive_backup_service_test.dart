@@ -9,7 +9,6 @@ import 'package:football_note/application/drive_backup_service.dart';
 import 'package:football_note/application/family_access_service.dart';
 import 'package:football_note/application/meal_log_service.dart';
 import 'package:football_note/application/player_level_service.dart';
-import 'package:football_note/application/sprint_capture_calibration_service.dart';
 import 'package:football_note/application/training_plan_reminder_service.dart';
 import 'package:football_note/domain/entities/meal_entry.dart';
 import 'package:football_note/domain/entities/sport_definition.dart';
@@ -208,8 +207,6 @@ void main() {
       'drive_last_backup': '2026-01-07T10:00:00.000',
       'local_pre_restore_backup': '{"should":"be excluded"}',
       'local_pre_restore_backup_at': '2026-01-01T00:00:00.000',
-      SprintCaptureCalibrationProfileService.selectedProfileOptionKey:
-          'responsive',
     });
 
     final backup = service.buildBackupForTesting();
@@ -236,12 +233,6 @@ void main() {
     expect(backupOptions.containsKey('theme_mode'), isFalse);
     expect(backupOptions.containsKey('reminder_enabled'), isFalse);
     expect(backupOptions.containsKey('reminder_time'), isFalse);
-    expect(
-      backupOptions.containsKey(
-        SprintCaptureCalibrationProfileService.selectedProfileOptionKey,
-      ),
-      isFalse,
-    );
     expect(
       backupOptions.containsKey('club_morning_workout_alert_enabled'),
       isFalse,
@@ -423,10 +414,6 @@ void main() {
     await optionBox.put('welcome_seen_v1', true);
     await optionBox.put('tab_quick_guide_seen_parent_mode_v1', true);
     await optionBox.put('tab_quick_guide_seen_v1_0', true);
-    await optionBox.put(
-      SprintCaptureCalibrationProfileService.selectedProfileOptionKey,
-      'responsive',
-    );
 
     await service.restoreFromMapForTesting(<String, dynamic>{
       'version': 6,
@@ -442,8 +429,6 @@ void main() {
         'club_morning_workout_alert_time': '05:00',
         'club_morning_workout_alert_weekdays': <int>[2, 4],
         'league_standings_last_selected_type_v1': 'kLeague1',
-        SprintCaptureCalibrationProfileService.selectedProfileOptionKey:
-            'conservative',
       },
       'optionRecords': <Map<String, dynamic>>[
         <String, dynamic>{
@@ -476,11 +461,6 @@ void main() {
           'key': 'league_standings_last_selected_type_v1',
           'value': 'kLeague1',
         },
-        <String, dynamic>{
-          'key':
-              SprintCaptureCalibrationProfileService.selectedProfileOptionKey,
-          'value': 'conservative',
-        },
       ],
       'family': const <String, dynamic>{
         'updatedByRole': 'child',
@@ -506,12 +486,6 @@ void main() {
     expect(optionBox.get('welcome_seen_v1'), isTrue);
     expect(optionBox.get('tab_quick_guide_seen_parent_mode_v1'), isTrue);
     expect(optionBox.get('tab_quick_guide_seen_v1_0'), isTrue);
-    expect(
-      optionBox.get(
-        SprintCaptureCalibrationProfileService.selectedProfileOptionKey,
-      ),
-      'responsive',
-    );
   });
 
   test('restore keeps local sport selection when remote omits startup sport',

@@ -58,8 +58,6 @@ dependencies:
   geocoding: ^3.0.0
   lottie: ^3.1.2
   camera: ^0.12.0+1
-  google_mlkit_pose_detection: ^0.14.1
-  flutter_tts: ^4.2.5
   video_player: ^2.11.1
   flutter_quick_video_encoder: ^1.7.2
   pdf: ^3.12.0

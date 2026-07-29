@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/backup_service.dart';
-import 'package:football_note/application/sprint_capture_calibration_service.dart';
 import 'package:football_note/domain/repositories/backup_repository.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/infrastructure/auto_backup_option_repository.dart';
@@ -37,10 +36,6 @@ void main() {
       await repository.setValue('local_pre_restore_backup', '{}');
       await repository.setValue('welcome_seen_v1', true);
       await repository.setValue('tab_quick_guide_seen_parent_mode_v1', true);
-      await repository.setValue(
-        SprintCaptureCalibrationProfileService.selectedProfileOptionKey,
-        'responsive',
-      );
       await Future<void>.delayed(Duration.zero);
       await Future<void>.delayed(Duration.zero);
 

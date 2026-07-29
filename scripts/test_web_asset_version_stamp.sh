@@ -10,6 +10,7 @@ trap 'rm -rf "${tmp_dir}"' EXIT
 
 cp web/index.html "${tmp_dir}/index.html"
 cp web/flutter_bootstrap.js "${tmp_dir}/flutter_bootstrap.js"
+cp web/running_video_pose_analysis.js "${tmp_dir}/running_video_pose_analysis.js"
 printf '{"assetVersion":"old"}\n' >"${tmp_dir}/version.json"
 
 ./scripts/stamp_web_asset_version.sh "${tmp_dir}" "feature/test@123"
@@ -25,6 +26,8 @@ fi
 
 grep -F "main.dart.js?v=${expected_version}" "${tmp_dir}/index.html" >/dev/null
 grep -F "flutter_bootstrap.js?v=${expected_version}" \
+  "${tmp_dir}/index.html" >/dev/null
+grep -F "running_video_pose_analysis.js?v=${expected_version}" \
   "${tmp_dir}/index.html" >/dev/null
 grep -F "const webAssetVersion = '${expected_version}'" \
   "${tmp_dir}/flutter_bootstrap.js" >/dev/null
