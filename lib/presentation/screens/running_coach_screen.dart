@@ -5487,6 +5487,7 @@ class _EvidencePoseTransitionState extends State<_EvidencePoseTransition>
       return RunningFootStrikeTargetMotionProof(
         insight: widget.insight,
         direction: widget.direction,
+        currentPose: widget.poseFrame,
         currentValue: widget.copy.value,
         cue: widget.copy.cue,
       );
@@ -5875,11 +5876,7 @@ class _PoseGoalMotionPainter extends CustomPainter {
   }) {
     final runner = retargetProfessionalRunnerPose(
       measuredPoints: points,
-      forward: _forwardSign(_torso(points) ??
-          (
-            shoulder: Offset.zero,
-            hip: Offset.zero,
-          )),
+      forward: _forwardSign(points),
     );
     if (runner == null) return;
     canvas.saveLayer(
@@ -5919,7 +5916,7 @@ class _PoseGoalMotionPainter extends CustomPainter {
     final torso = _torso(source);
     if (torso == null) return target;
     final torsoLength = math.max(20.0, (torso.shoulder - torso.hip).distance);
-    final forward = _forwardSign(torso);
+    final forward = _forwardSign(source);
     switch (insight.metric) {
       case RunningCoachMetric.posture:
         final moveForward =
@@ -6075,11 +6072,8 @@ class _PoseGoalMotionPainter extends CustomPainter {
     if (left == null && right == null) return null;
     if (left == null) return 1;
     if (right == null) return 0;
-    return switch (direction) {
-      RunningDirection.leftToRight => left.dx >= right.dx ? 0 : 1,
-      RunningDirection.rightToLeft => left.dx <= right.dx ? 0 : 1,
-      RunningDirection.stationary => left.dy >= right.dy ? 0 : 1,
-    };
+    final forward = _forwardSign(points);
+    return left.dx * forward >= right.dx * forward ? 0 : 1;
   }
 
   int? _leadArmSide(Map<int, Offset> points) {
@@ -6088,20 +6082,14 @@ class _PoseGoalMotionPainter extends CustomPainter {
     if (left == null && right == null) return null;
     if (left == null) return 1;
     if (right == null) return 0;
-    return switch (direction) {
-      RunningDirection.leftToRight => left.dx >= right.dx ? 0 : 1,
-      RunningDirection.rightToLeft => left.dx <= right.dx ? 0 : 1,
-      RunningDirection.stationary => left.dy >= right.dy ? 0 : 1,
-    };
+    final forward = _forwardSign(points);
+    return left.dx * forward >= right.dx * forward ? 0 : 1;
   }
 
-  double _forwardSign(({Offset shoulder, Offset hip}) torso) {
-    return switch (direction) {
-      RunningDirection.leftToRight => 1,
-      RunningDirection.rightToLeft => -1,
-      RunningDirection.stationary => torso.shoulder.dx >= torso.hip.dx ? 1 : -1,
-    };
-  }
+  double _forwardSign(Map<int, Offset> points) => resolveRunningVisualForward(
+        measuredPoints: points,
+        direction: direction,
+      );
 
   Offset? _pointAtAngle({
     required Offset pivot,
@@ -7537,7 +7525,7 @@ class _MeasuredPoseMovementMapPainter extends CustomPainter {
     if (torso == null) return;
     final runner = retargetProfessionalRunnerPose(
       measuredPoints: points,
-      forward: _forwardSign(torso),
+      forward: _forwardSign(points),
     );
     if (runner == null) return;
     paintIllustratedProfessionalRunner(
@@ -7606,7 +7594,7 @@ class _MeasuredPoseMovementMapPainter extends CustomPainter {
       panel,
       torso.hip +
           Offset(
-            _forwardSign(torso) * torsoLength * math.sin(targetLeanRadians),
+            _forwardSign(points) * torsoLength * math.sin(targetLeanRadians),
             -torsoLength * math.cos(targetLeanRadians),
           ),
     );
@@ -7659,7 +7647,7 @@ class _MeasuredPoseMovementMapPainter extends CustomPainter {
     final markerSign = _annotationSign(
       panel,
       torso.shoulder,
-      _forwardSign(torso),
+      _forwardSign(points),
     );
     final currentSpan = (panel.height * (insight.value / 100) * 2.6)
         .clamp(36.0, 96.0)
@@ -7857,13 +7845,8 @@ class _MeasuredPoseMovementMapPainter extends CustomPainter {
     final right = _leg(points, isLeft: false);
     if (left == null) return right;
     if (right == null) return left;
-    return switch (direction) {
-      RunningDirection.leftToRight =>
-        left.toe.dx >= right.toe.dx ? left : right,
-      RunningDirection.rightToLeft =>
-        left.toe.dx <= right.toe.dx ? left : right,
-      RunningDirection.stationary => left.toe.dy >= right.toe.dy ? left : right,
-    };
+    final forward = _forwardSign(points);
+    return left.toe.dx * forward >= right.toe.dx * forward ? left : right;
   }
 
   ({Offset hip, Offset knee, Offset ankle, Offset toe})? _leg(
@@ -7885,14 +7868,8 @@ class _MeasuredPoseMovementMapPainter extends CustomPainter {
     final right = _arm(points, isLeft: false);
     if (left == null) return right;
     if (right == null) return left;
-    return switch (direction) {
-      RunningDirection.leftToRight =>
-        left.wrist.dx >= right.wrist.dx ? left : right,
-      RunningDirection.rightToLeft =>
-        left.wrist.dx <= right.wrist.dx ? left : right,
-      RunningDirection.stationary =>
-        left.elbow.dy >= right.elbow.dy ? left : right,
-    };
+    final forward = _forwardSign(points);
+    return left.wrist.dx * forward >= right.wrist.dx * forward ? left : right;
   }
 
   ({Offset shoulder, Offset elbow, Offset wrist})? _arm(
@@ -7906,13 +7883,10 @@ class _MeasuredPoseMovementMapPainter extends CustomPainter {
     return (shoulder: shoulder, elbow: elbow, wrist: wrist);
   }
 
-  double _forwardSign(({Offset shoulder, Offset hip}) torso) {
-    return switch (direction) {
-      RunningDirection.leftToRight => 1,
-      RunningDirection.rightToLeft => -1,
-      RunningDirection.stationary => torso.shoulder.dx >= torso.hip.dx ? 1 : -1,
-    };
-  }
+  double _forwardSign(Map<int, Offset> points) => resolveRunningVisualForward(
+        measuredPoints: points,
+        direction: direction,
+      );
 
   Paint _stroke(
     Color color, {

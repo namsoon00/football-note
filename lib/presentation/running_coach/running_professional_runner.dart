@@ -1,6 +1,67 @@
 import 'dart:math' as math;
 import 'dart:ui';
 
+import '../../domain/entities/running_video_analysis_result.dart';
+
+/// Resolves the athlete's on-screen heading for instructional rendering.
+///
+/// Travel direction is useful for a runner moving across the frame, but a
+/// treadmill clip is intentionally classified as stationary. In that case,
+/// the face is the most direct visual indication of which way the runner is
+/// facing. The result is used only for presentation; it does not alter the
+/// analysis metrics or their travel-direction calculation.
+double resolveRunningVisualForward({
+  required Map<int, Offset> measuredPoints,
+  required RunningDirection direction,
+}) {
+  final shoulderCenter = _pairCenter(measuredPoints[11], measuredPoints[12]);
+  final hipCenter = _pairCenter(measuredPoints[23], measuredPoints[24]);
+  final faceCenter = _faceCenter(measuredPoints);
+  if (faceCenter != null && shoulderCenter != null) {
+    final torsoLength =
+        hipCenter == null ? 0.0 : (hipCenter - shoulderCenter).distance;
+    final minimumOffset = math.max(0.01, torsoLength * 0.045);
+    final faceOffset = faceCenter.dx - shoulderCenter.dx;
+    if (faceOffset.abs() >= minimumOffset) {
+      return faceOffset.isNegative ? -1 : 1;
+    }
+  }
+
+  switch (direction) {
+    case RunningDirection.leftToRight:
+      return 1;
+    case RunningDirection.rightToLeft:
+      return -1;
+    case RunningDirection.stationary:
+      if (shoulderCenter != null && hipCenter != null) {
+        return shoulderCenter.dx >= hipCenter.dx ? 1 : -1;
+      }
+      return 1;
+  }
+}
+
+Offset? _faceCenter(Map<int, Offset> points) {
+  const weightedIndices = <(int, double)>[
+    (0, 1.8),
+    (2, 1),
+    (5, 1),
+    (7, 0.65),
+    (8, 0.65),
+  ];
+  var totalWeight = 0.0;
+  var totalX = 0.0;
+  var totalY = 0.0;
+  for (final (index, weight) in weightedIndices) {
+    final point = points[index];
+    if (point == null) continue;
+    totalWeight += weight;
+    totalX += point.dx * weight;
+    totalY += point.dy * weight;
+  }
+  if (totalWeight == 0) return null;
+  return Offset(totalX / totalWeight, totalY / totalWeight);
+}
+
 /// A neutral coaching pose derived from measured MediaPipe joints.
 ///
 /// The model keeps the measured hip, hand, and foot locations and normalizes
