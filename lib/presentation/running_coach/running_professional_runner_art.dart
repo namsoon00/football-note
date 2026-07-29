@@ -32,8 +32,8 @@ Future<ui.Image> _loadProfessionalRunnerArtAtlas() async {
 /// of the runner in the uploaded video.
 ///
 /// The current side uses an overstride reference while the goal side uses a
-/// compact, efficient contact reference. A deliberately restrained lead-leg
-/// path keeps the visual traceable to the source coordinates without turning
+/// compact, efficient contact reference. A restrained focus trace keeps the
+/// selected body region traceable to the source coordinates without turning
 /// the athlete back into a joint avatar. The versioned asset name is
 /// intentional: a previously deployed joint-avatar comparison must never be
 /// reused from a browser asset cache after this renderer is introduced.
@@ -67,7 +67,7 @@ void paintIllustratedProfessionalRunner(
   );
   canvas.restore();
 
-  _drawMeasuredLeadLegTrace(
+  _drawMeasuredFocusTrace(
     canvas,
     pose: pose,
     accentColor: accentColor,
@@ -180,49 +180,74 @@ double _poseFallbackGround(Map<int, ui.Offset> points) {
   return hips.map((point) => point.dy).reduce(math.max);
 }
 
-void _drawMeasuredLeadLegTrace(
+void _drawMeasuredFocusTrace(
   ui.Canvas canvas, {
   required RunningProfessionalRunnerPose pose,
   required ui.Color accentColor,
   required Set<int> focusIndices,
 }) {
   if (focusIndices.isEmpty) return;
-  final indices = focusIndices.toList(growable: false)..sort();
-  final hip = _firstMeasuredPoint(
-    pose,
-    indices.where((index) => index == 23 || index == 24),
-  );
-  final knee = _firstMeasuredPoint(
-    pose,
-    indices.where((index) => index == 25 || index == 26),
-  );
-  final ankle = _firstMeasuredPoint(
-    pose,
-    indices.where((index) => index == 27 || index == 28),
-  );
-  final toe = _firstMeasuredPoint(
-    pose,
-    indices.where((index) => index == 31 || index == 32),
-  );
-  if (hip == null || knee == null || ankle == null) return;
+  final traces = <List<ui.Offset>>[];
 
-  final trace = ui.Path()
-    ..moveTo(hip.dx, hip.dy)
-    ..lineTo(knee.dx, knee.dy)
-    ..lineTo(ankle.dx, ankle.dy);
-  if (toe != null) trace.lineTo(toe.dx, toe.dy);
-  final width = (pose.bodyScale * 0.013).clamp(1.0, 2.4).toDouble();
-  canvas.drawPath(
-    trace,
-    ui.Paint()
-      ..color = accentColor.withValues(alpha: 0.58)
-      ..style = ui.PaintingStyle.stroke
-      ..strokeCap = ui.StrokeCap.round
-      ..strokeJoin = ui.StrokeJoin.round
-      ..strokeWidth = width,
+  final shoulders = _measuredCenter(pose, const <int>[11, 12]);
+  final hips = _measuredCenter(pose, const <int>[23, 24]);
+  final head = _firstMeasuredPoint(pose, const <int>[0, 7, 8]);
+  final torsoFocused = const <int>{11, 12, 23, 24}.any(
+    focusIndices.contains,
   );
-  final radius = (pose.bodyScale * 0.036).clamp(2.4, 8.0).toDouble();
-  for (final point in <ui.Offset>[hip, knee, ankle, if (toe != null) toe]) {
+  final headFocused = const <int>{0, 7, 8}.any(focusIndices.contains);
+  if (head != null && shoulders != null && (headFocused || torsoFocused)) {
+    traces.add(<ui.Offset>[head, shoulders]);
+  }
+  if (shoulders != null && hips != null && torsoFocused) {
+    traces.add(<ui.Offset>[shoulders, hips]);
+  }
+
+  void addChain(List<int> indices) {
+    if (!indices.any(focusIndices.contains)) return;
+    final points = <ui.Offset>[
+      for (final index in indices)
+        if (pose.measuredIndices.contains(index) && pose.points[index] != null)
+          pose.points[index]!,
+    ];
+    if (points.length >= 2) traces.add(points);
+  }
+
+  addChain(const <int>[11, 13, 15]);
+  addChain(const <int>[12, 14, 16]);
+  addChain(const <int>[23, 25, 27, 31]);
+  addChain(const <int>[24, 26, 28, 32]);
+
+  if (traces.isEmpty) return;
+  final width = (pose.bodyScale * 0.018).clamp(2.6, 5.2).toDouble();
+  final markerPoints = <ui.Offset>{};
+  for (final points in traces) {
+    markerPoints.addAll(points);
+    final trace = ui.Path()..moveTo(points.first.dx, points.first.dy);
+    for (final point in points.skip(1)) {
+      trace.lineTo(point.dx, point.dy);
+    }
+    canvas.drawPath(
+      trace,
+      ui.Paint()
+        ..color = accentColor.withValues(alpha: 0.16)
+        ..style = ui.PaintingStyle.stroke
+        ..strokeCap = ui.StrokeCap.round
+        ..strokeJoin = ui.StrokeJoin.round
+        ..strokeWidth = width * 2.25,
+    );
+    canvas.drawPath(
+      trace,
+      ui.Paint()
+        ..color = accentColor.withValues(alpha: 0.94)
+        ..style = ui.PaintingStyle.stroke
+        ..strokeCap = ui.StrokeCap.round
+        ..strokeJoin = ui.StrokeJoin.round
+        ..strokeWidth = width,
+    );
+  }
+  final radius = (pose.bodyScale * 0.040).clamp(3.4, 8.6).toDouble();
+  for (final point in markerPoints) {
     canvas.drawCircle(
       point,
       radius,
@@ -232,12 +257,33 @@ void _drawMeasuredLeadLegTrace(
     );
     canvas.drawCircle(
       point,
-      radius * 0.57,
+      radius * 0.60,
       ui.Paint()
-        ..color = accentColor.withValues(alpha: 0.86)
+        ..color = accentColor.withValues(alpha: 0.96)
         ..style = ui.PaintingStyle.fill,
     );
+    canvas.drawCircle(
+      point,
+      radius * 0.22,
+      ui.Paint()..color = const ui.Color(0xFFF8FBFF),
+    );
   }
+}
+
+ui.Offset? _measuredCenter(
+  RunningProfessionalRunnerPose pose,
+  List<int> indices,
+) {
+  final points = <ui.Offset>[
+    for (final index in indices)
+      if (pose.measuredIndices.contains(index) && pose.points[index] != null)
+        pose.points[index]!,
+  ];
+  if (points.isEmpty) return null;
+  final sum = points.fold<ui.Offset>(ui.Offset.zero, (total, point) {
+    return total + point;
+  });
+  return sum / points.length.toDouble();
 }
 
 ui.Offset? _firstMeasuredPoint(
