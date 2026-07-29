@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:football_note/domain/entities/running_video_analysis_result.dart';
 import 'package:football_note/presentation/running_coach/running_professional_runner.dart';
 import 'package:football_note/presentation/running_coach/running_professional_runner_art.dart';
 
@@ -32,6 +33,61 @@ void main() {
     );
 
     expect(pose, isNull);
+  });
+
+  test('uses face position to orient a stationary treadmill runner', () {
+    final rightFacing = <int, Offset>{
+      0: const Offset(155, 40),
+      11: const Offset(100, 90),
+      12: const Offset(112, 90),
+      23: const Offset(102, 168),
+      24: const Offset(114, 168),
+    };
+    final leftFacing = <int, Offset>{
+      0: const Offset(57, 40),
+      11: const Offset(100, 90),
+      12: const Offset(112, 90),
+      23: const Offset(102, 168),
+      24: const Offset(114, 168),
+    };
+
+    expect(
+      resolveRunningVisualForward(
+        measuredPoints: rightFacing,
+        direction: RunningDirection.stationary,
+      ),
+      1,
+    );
+    expect(
+      resolveRunningVisualForward(
+        measuredPoints: leftFacing,
+        direction: RunningDirection.stationary,
+      ),
+      -1,
+    );
+  });
+
+  test('uses travel direction when face landmarks are unavailable', () {
+    final points = <int, Offset>{
+      11: const Offset(100, 90),
+      12: const Offset(112, 90),
+      23: const Offset(102, 168),
+      24: const Offset(114, 168),
+    };
+
+    expect(
+      resolveRunningVisualForward(
+        measuredPoints: points,
+        direction: RunningDirection.rightToLeft,
+      ),
+      -1,
+    );
+  });
+
+  test('mirrors the native right-facing reference only for leftward motion',
+      () {
+    expect(shouldMirrorProfessionalRunnerArt(1), isFalse);
+    expect(shouldMirrorProfessionalRunnerArt(-1), isTrue);
   });
 
   test('keeps a readable professional reference when evidence loses limbs', () {

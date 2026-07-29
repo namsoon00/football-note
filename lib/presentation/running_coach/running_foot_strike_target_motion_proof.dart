@@ -16,6 +16,7 @@ import 'running_professional_runner_art.dart';
 class RunningFootStrikeTargetMotionProof extends StatefulWidget {
   final RunningCoachingInsight insight;
   final RunningDirection direction;
+  final RunningPoseFrame? currentPose;
   final String currentValue;
   final String cue;
 
@@ -23,6 +24,7 @@ class RunningFootStrikeTargetMotionProof extends StatefulWidget {
     super.key,
     required this.insight,
     required this.direction,
+    this.currentPose,
     required this.currentValue,
     required this.cue,
   });
@@ -129,7 +131,10 @@ class _RunningFootStrikeTargetMotionProofState
                     currentValue: widget.currentValue,
                     cue: widget.cue,
                     status: widget.insight.status,
-                    direction: widget.direction,
+                    forward: _visualForwardForPose(
+                      widget.currentPose,
+                      widget.direction,
+                    ),
                     progress: _motionController.value,
                     actualAccent: actualAccent,
                     targetAccent: targetAccent,
@@ -152,6 +157,24 @@ class _RunningFootStrikeTargetMotionProofState
       ),
     );
   }
+}
+
+double _visualForwardForPose(
+  RunningPoseFrame? poseFrame,
+  RunningDirection direction,
+) {
+  if (poseFrame == null) {
+    return direction == RunningDirection.rightToLeft ? -1 : 1;
+  }
+  final points = <int, Offset>{
+    for (final landmark in poseFrame.landmarks)
+      if (landmark.confidence >= runningPoseOverlayMinimumJointConfidence)
+        landmark.index: Offset(landmark.x, landmark.y),
+  };
+  return resolveRunningVisualForward(
+    measuredPoints: points,
+    direction: direction,
+  );
 }
 
 /// Shows a coordinate-driven running rig while retaining the original video
@@ -428,7 +451,7 @@ class _FootStrikeDirectionPanel extends StatelessWidget {
   final String currentValue;
   final String cue;
   final RunningCoachStatus status;
-  final RunningDirection direction;
+  final double forward;
   final double progress;
   final Color actualAccent;
   final Color targetAccent;
@@ -440,7 +463,7 @@ class _FootStrikeDirectionPanel extends StatelessWidget {
     required this.currentValue,
     required this.cue,
     required this.status,
-    required this.direction,
+    required this.forward,
     required this.progress,
     required this.actualAccent,
     required this.targetAccent,
@@ -486,7 +509,7 @@ class _FootStrikeDirectionPanel extends StatelessWidget {
               child: CustomPaint(
                 painter: _FootStrikeDirectionPainter(
                   status: status,
-                  direction: direction,
+                  forward: forward,
                   progress: progress,
                   actualAccent: actualAccent,
                   targetAccent: targetAccent,
@@ -637,11 +660,9 @@ class _FootStrikeCoordinateRig {
     final hipCenter = _midpoint(points[23]!, points[24]!);
     final leftFoot = points[31] ?? points[27]!;
     final rightFoot = points[32] ?? points[28]!;
-    final forward = _forwardSign(
-      direction,
-      hipCenter: hipCenter,
-      leftFoot: leftFoot,
-      rightFoot: rightFoot,
+    final forward = resolveRunningVisualForward(
+      measuredPoints: points,
+      direction: direction,
     );
     final leftProgress = (leftFoot.dx - hipCenter.dx) * forward;
     final rightProgress = (rightFoot.dx - hipCenter.dx) * forward;
@@ -702,20 +723,6 @@ class _FootStrikeCoordinateRig {
 
   static Offset _midpoint(Offset first, Offset second) {
     return Offset((first.dx + second.dx) / 2, (first.dy + second.dy) / 2);
-  }
-
-  static double _forwardSign(
-    RunningDirection direction, {
-    required Offset hipCenter,
-    required Offset leftFoot,
-    required Offset rightFoot,
-  }) {
-    return switch (direction) {
-      RunningDirection.leftToRight => 1,
-      RunningDirection.rightToLeft => -1,
-      RunningDirection.stationary =>
-        ((leftFoot.dx + rightFoot.dx) / 2) >= hipCenter.dx ? 1 : -1,
-    };
   }
 }
 
@@ -1062,7 +1069,7 @@ class _FootStrikeCoordinateRigPainter extends CustomPainter {
 
 class _FootStrikeDirectionPainter extends CustomPainter {
   final RunningCoachStatus status;
-  final RunningDirection direction;
+  final double forward;
   final double progress;
   final Color actualAccent;
   final Color targetAccent;
@@ -1070,7 +1077,7 @@ class _FootStrikeDirectionPainter extends CustomPainter {
 
   const _FootStrikeDirectionPainter({
     required this.status,
-    required this.direction,
+    required this.forward,
     required this.progress,
     required this.actualAccent,
     required this.targetAccent,
@@ -1080,16 +1087,16 @@ class _FootStrikeDirectionPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     if (size.isEmpty) return;
-    final forward = direction == RunningDirection.rightToLeft ? -1.0 : 1.0;
+    final visualForward = forward < 0 ? -1.0 : 1.0;
     final groundY = size.height * 0.72;
     final hipX = size.width * 0.5;
-    final targetX = hipX + forward * size.width * 0.035;
+    final targetX = hipX + visualForward * size.width * 0.035;
     final distance = switch (status) {
       RunningCoachStatus.good => size.width * 0.035,
       RunningCoachStatus.watch => size.width * 0.15,
       RunningCoachStatus.needsWork => size.width * 0.27,
     };
-    final currentX = targetX + forward * distance;
+    final currentX = targetX + visualForward * distance;
     final eased = Curves.easeInOutCubic.transform(progress);
     final movingX = currentX + (targetX - currentX) * eased;
     final targetZone = RRect.fromRectAndRadius(
@@ -1151,7 +1158,7 @@ class _FootStrikeDirectionPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _FootStrikeDirectionPainter oldDelegate) {
     return oldDelegate.status != status ||
-        oldDelegate.direction != direction ||
+        oldDelegate.forward != forward ||
         oldDelegate.progress != progress ||
         oldDelegate.actualAccent != actualAccent ||
         oldDelegate.targetAccent != targetAccent ||

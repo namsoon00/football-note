@@ -27,6 +27,10 @@ Future<ui.Image> _loadProfessionalRunnerArtAtlas() async {
   }
 }
 
+/// The source artwork faces to the right. Mirror it only for a runner whose
+/// measured visual heading is right-to-left.
+bool shouldMirrorProfessionalRunnerArt(double forward) => forward < 0;
+
 /// Renders a complete, generic professional runner whose placement is driven
 /// by the analyzed pose. The art is a coaching model, never a reconstruction
 /// of the runner in the uploaded video.
@@ -50,9 +54,10 @@ void paintIllustratedProfessionalRunner(
       ? _ProfessionalRunnerReference.efficientContact
       : _ProfessionalRunnerReference.overstride;
   final placement = _placementFor(pose, reference, bounds: bounds);
+  final shouldMirror = shouldMirrorProfessionalRunnerArt(pose.forward);
 
   canvas.save();
-  if (pose.forward < 0) {
+  if (shouldMirror) {
     canvas.translate(placement.rect.center.dx * 2, 0);
     canvas.scale(-1, 1);
   }
@@ -115,8 +120,9 @@ _RunnerPlacement _placementFor(
     _ProfessionalRunnerReference.overstride => 0.018,
     _ProfessionalRunnerReference.efficientContact => 0.02,
   };
-  final visualHipFraction =
-      pose.forward < 0 ? 1 - sourceHipFraction : sourceHipFraction;
+  final visualHipFraction = shouldMirrorProfessionalRunnerArt(pose.forward)
+      ? 1 - sourceHipFraction
+      : sourceHipFraction;
   var left = pose.hipCenter.dx - width * visualHipFraction;
   var placementTop = top - height * sourceTopFraction;
   if (bounds != null && !bounds.isEmpty) {
