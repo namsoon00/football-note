@@ -1,8 +1,9 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/domain/entities/running_video_analysis_result.dart';
 import 'package:football_note/presentation/running_coach/running_pose_comparison.dart';
-import 'package:football_note/presentation/running_coach/running_professional_runner_art.dart';
 
 void main() {
   const panel = Rect.fromLTWH(0, 0, 320, 248);
@@ -66,6 +67,22 @@ void main() {
     );
   });
 
+  test('bounce comparison traces only the torso, not a full skeleton', () {
+    expect(
+      comparisonTraceChainsForRunningPoseMetric(RunningCoachMetric.bounce),
+      const <List<int>>[
+        <int>[11, 23],
+        <int>[12, 24],
+      ],
+    );
+    expect(
+      comparisonTraceIndicesForRunningPoseMetric(
+        RunningCoachMetric.bounce,
+      ),
+      equals(const <int>{11, 12, 23, 24}),
+    );
+  });
+
   testWidgets('coordinate comparison paints in a narrow result card', (
     WidgetTester tester,
   ) async {
@@ -115,14 +132,32 @@ void main() {
       find.text('Next step'),
       findsOneWidget,
     );
-    await tester.runAsync(loadProfessionalRunnerArtAtlas);
-    await tester.pump();
+    expect(find.byType(FutureBuilder), findsNothing);
     final comparison = tester.widget<CustomPaint>(
       find.byKey(const ValueKey('running-coach-coordinate-pose-comparison')),
     );
     final painter =
         comparison.painter! as RunningPoseCoordinateComparisonPainter;
-    expect(painter.artAtlas, isNotNull);
+    final paintedAvatarPixels = await tester.runAsync(() async {
+      final recorder = ui.PictureRecorder();
+      final canvas = ui.Canvas(recorder);
+      painter.paint(canvas, const Size(320, 216));
+      final image = await recorder.endRecording().toImage(320, 216);
+      final bytes = await image.toByteData(format: ui.ImageByteFormat.rawRgba);
+      image.dispose();
+      final rgba = bytes!.buffer.asUint8List();
+      var brightBluePixels = 0;
+      for (var offset = 0; offset < rgba.lengthInBytes; offset += 4) {
+        final red = rgba[offset];
+        final green = rgba[offset + 1];
+        final blue = rgba[offset + 2];
+        if (blue > red + 35 && blue > green + 10 && blue > 125) {
+          brightBluePixels += 1;
+        }
+      }
+      return brightBluePixels;
+    });
+    expect(paintedAvatarPixels, greaterThan(700));
     expect(tester.takeException(), isNull);
   });
 }
