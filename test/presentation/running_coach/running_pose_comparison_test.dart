@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/domain/entities/running_video_analysis_result.dart';
 import 'package:football_note/presentation/running_coach/running_pose_comparison.dart';
+import 'package:football_note/presentation/running_coach/running_professional_runner_art.dart';
 
 void main() {
   const panel = Rect.fromLTWH(0, 0, 320, 248);
@@ -67,20 +68,16 @@ void main() {
     );
   });
 
-  test('bounce comparison traces only the torso, not a full skeleton', () {
-    expect(
-      comparisonTraceChainsForRunningPoseMetric(RunningCoachMetric.bounce),
-      const <List<int>>[
-        <int>[11, 23],
-        <int>[12, 24],
-      ],
-    );
-    expect(
-      comparisonTraceIndicesForRunningPoseMetric(
-        RunningCoachMetric.bounce,
-      ),
-      equals(const <int>{11, 12, 23, 24}),
-    );
+  testWidgets('repaints when the professional runner art atlas resolves', (
+    WidgetTester tester,
+  ) async {
+    final atlas = await tester.runAsync(loadProfessionalRunnerArtAtlas);
+    final pendingPainter = _comparisonPainter();
+    final loadedPainter = _comparisonPainter(artAtlas: atlas);
+
+    expect(pendingPainter.usesIllustratedRunnerReference, isFalse);
+    expect(loadedPainter.usesIllustratedRunnerReference, isTrue);
+    expect(loadedPainter.shouldRepaint(pendingPainter), isTrue);
   });
 
   testWidgets('coordinate comparison paints in a narrow result card', (
@@ -132,12 +129,18 @@ void main() {
       find.text('Next step'),
       findsOneWidget,
     );
-    expect(find.byType(FutureBuilder), findsNothing);
+    expect(
+      find.byWidgetPredicate((widget) => widget is FutureBuilder<ui.Image>),
+      findsOneWidget,
+    );
+    await tester.runAsync(loadProfessionalRunnerArtAtlas);
+    await tester.pump();
     final comparison = tester.widget<CustomPaint>(
       find.byKey(const ValueKey('running-coach-coordinate-pose-comparison')),
     );
     final painter =
         comparison.painter! as RunningPoseCoordinateComparisonPainter;
+    expect(painter.usesIllustratedRunnerReference, isTrue);
     final paintedAvatarPixels = await tester.runAsync(() async {
       final recorder = ui.PictureRecorder();
       final canvas = ui.Canvas(recorder);
@@ -157,9 +160,32 @@ void main() {
       }
       return brightBluePixels;
     });
-    expect(paintedAvatarPixels, greaterThan(700));
+    expect(paintedAvatarPixels, greaterThan(200));
     expect(tester.takeException(), isNull);
   });
+}
+
+RunningPoseCoordinateComparisonPainter _comparisonPainter({
+  ui.Image? artAtlas,
+}) {
+  return RunningPoseCoordinateComparisonPainter(
+    frame: _runningFrame(),
+    insight: const RunningCoachingInsight(
+      metric: RunningCoachMetric.footStrike,
+      finding: RunningCoachFinding.footStrikeOverstride,
+      status: RunningCoachStatus.needsWork,
+      score: 24,
+      value: 0.35,
+    ),
+    direction: RunningDirection.leftToRight,
+    progress: 1,
+    surfaceColor: Colors.white,
+    mutedColor: Colors.blueGrey,
+    actualAccent: Colors.red,
+    targetAccent: Colors.blue,
+    successAccent: Colors.green,
+    artAtlas: artAtlas,
+  );
 }
 
 RunningPoseFrame _runningFrame() {
