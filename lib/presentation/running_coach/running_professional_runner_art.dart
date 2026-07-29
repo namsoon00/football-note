@@ -43,12 +43,13 @@ void paintIllustratedProfessionalRunner(
   required RunningProfessionalRunnerPose pose,
   required ui.Color accentColor,
   required bool isTarget,
+  ui.Rect? bounds,
   Set<int> focusIndices = const <int>{},
 }) {
   final reference = isTarget
       ? _ProfessionalRunnerReference.efficientContact
       : _ProfessionalRunnerReference.overstride;
-  final placement = _placementFor(pose, reference);
+  final placement = _placementFor(pose, reference, bounds: bounds);
 
   canvas.save();
   if (pose.forward < 0) {
@@ -95,16 +96,17 @@ ui.Rect _sourceRect(_ProfessionalRunnerReference reference) {
 
 _RunnerPlacement _placementFor(
   RunningProfessionalRunnerPose pose,
-  _ProfessionalRunnerReference reference,
-) {
+  _ProfessionalRunnerReference reference, {
+  ui.Rect? bounds,
+}) {
   final points = pose.points;
-  final top = _topOfPose(points, pose.neck);
+  final top = _topOfPose(points, pose);
   final ground = _groundOfPose(points);
-  final bodyHeight = math.max(ground - top, pose.bodyScale * 2.85);
+  final bodyHeight = math.max(ground - top, pose.bodyScale * 3.05);
   final source = _sourceRect(reference);
   final scale = bodyHeight * 1.035 / source.height;
-  final width = source.width * scale;
-  final height = source.height * scale;
+  var width = source.width * scale;
+  var height = source.height * scale;
   final sourceHipFraction = switch (reference) {
     _ProfessionalRunnerReference.overstride => 0.445,
     _ProfessionalRunnerReference.efficientContact => 0.555,
@@ -115,16 +117,38 @@ _RunnerPlacement _placementFor(
   };
   final visualHipFraction =
       pose.forward < 0 ? 1 - sourceHipFraction : sourceHipFraction;
-  final left = pose.hipCenter.dx - width * visualHipFraction;
-  final placementTop = top - height * sourceTopFraction;
+  var left = pose.hipCenter.dx - width * visualHipFraction;
+  var placementTop = top - height * sourceTopFraction;
+  if (bounds != null && !bounds.isEmpty) {
+    final inset = math.min(10.0, bounds.shortestSide * 0.06);
+    final available = bounds.deflate(inset);
+    final fit = math.min(
+      1.0,
+      math.min(available.width / width, available.height / height),
+    );
+    width *= fit;
+    height *= fit;
+    left = pose.hipCenter.dx - width * visualHipFraction;
+    placementTop = top - height * sourceTopFraction;
+    left = left.clamp(available.left, available.right - width).toDouble();
+    placementTop =
+        placementTop.clamp(available.top, available.bottom - height).toDouble();
+  }
   return _RunnerPlacement(
     ui.Rect.fromLTWH(left, placementTop, width, height),
   );
 }
 
-double _topOfPose(Map<int, ui.Offset> points, ui.Offset fallback) {
+double _topOfPose(
+    Map<int, ui.Offset> points, RunningProfessionalRunnerPose pose) {
+  final projectedHeadTop = pose.headCenter -
+      ui.Offset(
+        pose.downAxis.dx * pose.bodyScale * 0.14,
+        pose.downAxis.dy * pose.bodyScale * 0.14,
+      );
   final candidates = <ui.Offset>[
-    fallback,
+    projectedHeadTop,
+    pose.neck,
     if (points[0] case final ui.Offset point) point,
     if (points[7] case final ui.Offset point) point,
     if (points[8] case final ui.Offset point) point,
@@ -164,14 +188,22 @@ void _drawMeasuredLeadLegTrace(
 }) {
   if (focusIndices.isEmpty) return;
   final indices = focusIndices.toList(growable: false)..sort();
-  final hip = _firstPoint(
-      pose.points, indices.where((index) => index == 23 || index == 24));
-  final knee = _firstPoint(
-      pose.points, indices.where((index) => index == 25 || index == 26));
-  final ankle = _firstPoint(
-      pose.points, indices.where((index) => index == 27 || index == 28));
-  final toe = _firstPoint(
-      pose.points, indices.where((index) => index == 31 || index == 32));
+  final hip = _firstMeasuredPoint(
+    pose,
+    indices.where((index) => index == 23 || index == 24),
+  );
+  final knee = _firstMeasuredPoint(
+    pose,
+    indices.where((index) => index == 25 || index == 26),
+  );
+  final ankle = _firstMeasuredPoint(
+    pose,
+    indices.where((index) => index == 27 || index == 28),
+  );
+  final toe = _firstMeasuredPoint(
+    pose,
+    indices.where((index) => index == 31 || index == 32),
+  );
   if (hip == null || knee == null || ankle == null) return;
 
   final trace = ui.Path()
@@ -208,12 +240,13 @@ void _drawMeasuredLeadLegTrace(
   }
 }
 
-ui.Offset? _firstPoint(
-  Map<int, ui.Offset> points,
+ui.Offset? _firstMeasuredPoint(
+  RunningProfessionalRunnerPose pose,
   Iterable<int> indices,
 ) {
   for (final index in indices) {
-    final point = points[index];
+    if (!pose.measuredIndices.contains(index)) continue;
+    final point = pose.points[index];
     if (point != null) return point;
   }
   return null;

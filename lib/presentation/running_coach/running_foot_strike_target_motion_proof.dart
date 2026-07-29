@@ -882,6 +882,7 @@ class _FootStrikeCoordinateRigPainter extends CustomPainter {
         accentColor: accent,
         isTarget: isTarget,
         focusIndices: focusIndices,
+        bounds: panel,
       );
     } else {
       _drawIllustrationPending(canvas, panel, accent);
