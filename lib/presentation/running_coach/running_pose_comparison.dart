@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
@@ -7,50 +8,10 @@ import '../../domain/entities/running_video_analysis_result.dart';
 import 'running_coach_avatar.dart';
 import 'running_pose_overlay.dart';
 import 'running_professional_runner.dart';
+import 'running_professional_runner_art.dart';
 
 const _comparisonCanvasPadding = 18.0;
 const _minimumMovedDistance = 0.75;
-
-/// The explanatory trace is intentionally narrower than the pose used to
-/// build the avatar. A bounce cue, for example, should not redraw both legs
-/// as a full skeleton just because their coordinates were available.
-@visibleForTesting
-List<List<int>> comparisonTraceChainsForRunningPoseMetric(
-  RunningCoachMetric metric,
-) {
-  return switch (metric) {
-    RunningCoachMetric.posture => const <List<int>>[
-        <int>[0, 11, 23],
-        <int>[0, 12, 24],
-      ],
-    RunningCoachMetric.bounce => const <List<int>>[
-        <int>[11, 23],
-        <int>[12, 24],
-      ],
-    RunningCoachMetric.footStrike => const <List<int>>[
-        <int>[23, 25, 27, 31],
-        <int>[24, 26, 28, 32],
-      ],
-    RunningCoachMetric.kneeFlexion => const <List<int>>[
-        <int>[23, 25, 27],
-        <int>[24, 26, 28],
-      ],
-    RunningCoachMetric.armCarriage => const <List<int>>[
-        <int>[11, 13, 15],
-        <int>[12, 14, 16],
-      ],
-  };
-}
-
-@visibleForTesting
-Set<int> comparisonTraceIndicesForRunningPoseMetric(
-  RunningCoachMetric metric,
-) {
-  return {
-    for (final chain in comparisonTraceChainsForRunningPoseMetric(metric))
-      ...chain,
-  };
-}
 
 @visibleForTesting
 class RunningPoseComparisonSnapshot {
@@ -161,26 +122,32 @@ class RunningPoseCoordinateComparison extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Expanded(
-            child: AnimatedBuilder(
-              animation: progress,
-              builder: (context, _) {
-                return SizedBox.expand(
-                  child: CustomPaint(
-                    key: const ValueKey(
-                      'running-coach-coordinate-pose-comparison',
-                    ),
-                    painter: RunningPoseCoordinateComparisonPainter(
-                      frame: frame,
-                      insight: insight,
-                      direction: direction,
-                      progress: progress.value,
-                      surfaceColor: surfaceColor,
-                      mutedColor: mutedColor,
-                      actualAccent: actualAccent,
-                      targetAccent: targetAccent,
-                      successAccent: successAccent,
-                    ),
-                  ),
+            child: FutureBuilder<ui.Image>(
+              future: loadProfessionalRunnerArtAtlas(),
+              builder: (context, artSnapshot) {
+                return AnimatedBuilder(
+                  animation: progress,
+                  builder: (context, _) {
+                    return SizedBox.expand(
+                      child: CustomPaint(
+                        key: const ValueKey(
+                          'running-coach-coordinate-pose-comparison',
+                        ),
+                        painter: RunningPoseCoordinateComparisonPainter(
+                          frame: frame,
+                          insight: insight,
+                          direction: direction,
+                          progress: progress.value,
+                          surfaceColor: surfaceColor,
+                          mutedColor: mutedColor,
+                          actualAccent: actualAccent,
+                          targetAccent: targetAccent,
+                          successAccent: successAccent,
+                          artAtlas: artSnapshot.data,
+                        ),
+                      ),
+                    );
+                  },
                 );
               },
             ),
@@ -242,6 +209,7 @@ class RunningPoseCoordinateComparisonPainter extends CustomPainter {
   final Color targetAccent;
   final Color successAccent;
   final RunningCoachingThresholds thresholds;
+  final ui.Image? artAtlas;
 
   const RunningPoseCoordinateComparisonPainter({
     required this.frame,
@@ -254,9 +222,16 @@ class RunningPoseCoordinateComparisonPainter extends CustomPainter {
     required this.targetAccent,
     required this.successAccent,
     this.thresholds = const RunningCoachingThresholds(),
+    this.artAtlas,
   });
 
   bool get _isGood => insight.status == RunningCoachStatus.good;
+
+  /// The illustrated runner is a fixed coaching reference. Measured
+  /// coordinates stay on the uploaded-video evidence surface, because a
+  /// single side-view pose does not contain limb-twist information needed to
+  /// bend a human image faithfully.
+  bool get usesIllustratedRunnerReference => artAtlas != null;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -320,7 +295,7 @@ class RunningPoseCoordinateComparisonPainter extends CustomPainter {
       accent: currentColor,
       isTarget: false,
     );
-    if (!_isGood) {
+    if (!usesIllustratedRunnerReference && !_isGood) {
       _drawMovementVectors(canvas, nextSnapshot);
     }
     _drawAvatar(
@@ -330,34 +305,22 @@ class RunningPoseCoordinateComparisonPainter extends CustomPainter {
       accent: nextColor,
       isTarget: true,
     );
-    _drawMetricGuide(
-      canvas,
-      currentSnapshot,
-      points: currentSnapshot.currentPoints,
-      accent: currentColor,
-      isTarget: false,
-    );
-    _drawMetricGuide(
-      canvas,
-      nextSnapshot,
-      points: animatedNextPoints,
-      accent: nextColor,
-      isTarget: true,
-    );
-    _drawMeasuredCoordinateTrace(
-      canvas,
-      currentSnapshot.currentPoints,
-      accent: currentColor,
-      opacity: 0.82,
-      focusIndices: _focusIndices,
-    );
-    _drawMeasuredCoordinateTrace(
-      canvas,
-      animatedNextPoints,
-      accent: nextColor,
-      opacity: 0.82,
-      focusIndices: _focusIndices,
-    );
+    if (!usesIllustratedRunnerReference) {
+      _drawMetricGuide(
+        canvas,
+        currentSnapshot,
+        points: currentSnapshot.currentPoints,
+        accent: currentColor,
+        isTarget: false,
+      );
+      _drawMetricGuide(
+        canvas,
+        nextSnapshot,
+        points: animatedNextPoints,
+        accent: nextColor,
+        isTarget: true,
+      );
+    }
     canvas.restore();
   }
 
@@ -626,19 +589,24 @@ class RunningPoseCoordinateComparisonPainter extends CustomPainter {
     required Color accent,
     required bool isTarget,
   }) {
+    final atlas = artAtlas;
     final athlete = retargetProfessionalRunnerPose(
       measuredPoints: points,
       forward: snapshot.forward,
     );
-    if (athlete == null) {
+    if (atlas == null || athlete == null) {
       _drawAvatarFallback(canvas, snapshot.panel, accent);
       return;
     }
-    paintRunningCoachAvatar(
+
+    paintIllustratedProfessionalRunner(
       canvas,
+      atlas: atlas,
       pose: athlete,
       accentColor: accent,
-      isTarget: isTarget,
+      // A green in-range comparison should not imply that the left pose is
+      // an overstride that still needs correcting.
+      isTarget: _isGood || isTarget,
       bounds: snapshot.panel,
     );
   }
@@ -649,67 +617,6 @@ class RunningPoseCoordinateComparisonPainter extends CustomPainter {
       bounds: panel,
       accentColor: accent,
     );
-  }
-
-  void _drawMeasuredCoordinateTrace(
-    Canvas canvas,
-    Map<int, Offset> points, {
-    required Color accent,
-    required double opacity,
-    required Set<int> focusIndices,
-  }) {
-    final accentHalo = _stroke(
-      accent,
-      width: 6.2,
-      opacity: opacity * 0.14,
-    );
-    final accentPaint = _stroke(
-      accent,
-      width: 2.55,
-      opacity: opacity,
-    );
-
-    for (final chain in comparisonTraceChainsForRunningPoseMetric(
-      insight.metric,
-    )) {
-      _drawCoordinateChain(canvas, points, chain, accentHalo);
-      _drawCoordinateChain(canvas, points, chain, accentPaint);
-    }
-
-    for (final index in focusIndices) {
-      final point = points[index];
-      if (point == null) continue;
-      if (!_traceMarkerIndices.contains(index)) continue;
-      canvas.drawCircle(
-        point,
-        5.8,
-        Paint()..color = accent.withValues(alpha: opacity * 0.14),
-      );
-      canvas.drawCircle(
-        point,
-        3.15,
-        Paint()..color = accent.withValues(alpha: opacity),
-      );
-      canvas.drawCircle(
-        point,
-        1.35,
-        Paint()..color = surfaceColor.withValues(alpha: opacity * 0.94),
-      );
-    }
-  }
-
-  void _drawCoordinateChain(
-    Canvas canvas,
-    Map<int, Offset> points,
-    List<int> chain,
-    Paint paint,
-  ) {
-    for (var index = 0; index < chain.length - 1; index += 1) {
-      final start = points[chain[index]];
-      final end = points[chain[index + 1]];
-      if (start == null || end == null) continue;
-      canvas.drawLine(start, end, paint);
-    }
   }
 
   void _drawMovementVectors(
@@ -747,9 +654,6 @@ class RunningPoseCoordinateComparisonPainter extends CustomPainter {
 
   Set<int> get _focusIndices =>
       focusIndicesForRunningPoseMetric(insight.metric);
-
-  Set<int> get _traceMarkerIndices =>
-      comparisonTraceIndicesForRunningPoseMetric(insight.metric);
 
   Paint _stroke(
     Color color, {
@@ -858,7 +762,8 @@ class RunningPoseCoordinateComparisonPainter extends CustomPainter {
         oldDelegate.actualAccent != actualAccent ||
         oldDelegate.targetAccent != targetAccent ||
         oldDelegate.successAccent != successAccent ||
-        oldDelegate.thresholds != thresholds;
+        oldDelegate.thresholds != thresholds ||
+        oldDelegate.artAtlas != artAtlas;
   }
 }
 
