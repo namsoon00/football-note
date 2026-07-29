@@ -5,12 +5,12 @@ import 'package:flutter/material.dart';
 
 import '../../application/running_coaching_service.dart';
 import '../../domain/entities/running_video_analysis_result.dart';
-import 'running_coordinate_athlete_art.dart';
 import 'running_pose_overlay.dart';
+import 'running_professional_runner.dart';
+import 'running_professional_runner_art.dart';
 
 const _comparisonCanvasPadding = 18.0;
 const _minimumMovedDistance = 0.75;
-const _athleteArtworkSource = Rect.fromLTWH(40, 96, 920, 1236);
 
 const _coordinateTraceChains = <List<int>>[
   <int>[0, 7, 11, 23],
@@ -64,6 +64,8 @@ class RunningPoseCoordinateComparison extends StatelessWidget {
   final Color targetAccent;
   final Color successAccent;
   final String semanticLabel;
+  final String currentLabel;
+  final String nextStepLabel;
 
   const RunningPoseCoordinateComparison({
     super.key,
@@ -77,40 +79,131 @@ class RunningPoseCoordinateComparison extends StatelessWidget {
     required this.targetAccent,
     required this.successAccent,
     required this.semanticLabel,
+    required this.currentLabel,
+    required this.nextStepLabel,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isGood = insight.status == RunningCoachStatus.good;
+    final currentColor = isGood ? successAccent : actualAccent;
+    final nextColor = isGood ? successAccent : targetAccent;
     return Semantics(
       image: true,
       label: semanticLabel,
-      child: FutureBuilder<ui.Image>(
-        future: loadRunningCoordinateAthleteArt(),
-        builder: (context, snapshot) {
-          return AnimatedBuilder(
-            animation: progress,
-            builder: (context, _) {
-              return CustomPaint(
-                key: const ValueKey(
-                  'running-coach-coordinate-pose-comparison',
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: _PoseComparisonPanelLabel(
+                  key: const ValueKey(
+                    'running-coach-coordinate-comparison-current-label',
+                  ),
+                  icon: isGood
+                      ? Icons.check_circle_outline_rounded
+                      : Icons.radio_button_checked_rounded,
+                  color: currentColor,
+                  label: currentLabel,
                 ),
-                painter: RunningPoseCoordinateComparisonPainter(
-                  frame: frame,
-                  insight: insight,
-                  direction: direction,
-                  progress: progress.value,
-                  surfaceColor: surfaceColor,
-                  mutedColor: mutedColor,
-                  actualAccent: actualAccent,
-                  targetAccent: targetAccent,
-                  successAccent: successAccent,
-                  athleteArt: snapshot.data,
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Icon(
+                  isGood ? Icons.check_rounded : Icons.arrow_forward_rounded,
+                  color: nextColor,
+                  size: 19,
                 ),
-              );
-            },
-          );
-        },
+              ),
+              Expanded(
+                child: _PoseComparisonPanelLabel(
+                  key: const ValueKey(
+                    'running-coach-coordinate-comparison-next-label',
+                  ),
+                  icon: isGood
+                      ? Icons.check_circle_outline_rounded
+                      : Icons.near_me_outlined,
+                  color: nextColor,
+                  label: nextStepLabel,
+                  alignEnd: true,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Expanded(
+            child: FutureBuilder<ui.Image>(
+              future: loadProfessionalRunnerArtAtlas(),
+              builder: (context, snapshot) {
+                return AnimatedBuilder(
+                  animation: progress,
+                  builder: (context, _) {
+                    return SizedBox.expand(
+                      child: CustomPaint(
+                        key: const ValueKey(
+                          'running-coach-coordinate-pose-comparison',
+                        ),
+                        painter: RunningPoseCoordinateComparisonPainter(
+                          frame: frame,
+                          insight: insight,
+                          direction: direction,
+                          progress: progress.value,
+                          surfaceColor: surfaceColor,
+                          mutedColor: mutedColor,
+                          actualAccent: actualAccent,
+                          targetAccent: targetAccent,
+                          successAccent: successAccent,
+                          artAtlas: snapshot.data,
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
+    );
+  }
+}
+
+class _PoseComparisonPanelLabel extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final String label;
+  final bool alignEnd;
+
+  const _PoseComparisonPanelLabel({
+    super.key,
+    required this.icon,
+    required this.color,
+    required this.label,
+    this.alignEnd = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final content = <Widget>[
+      Icon(icon, size: 15, color: color),
+      const SizedBox(width: 5),
+      Flexible(
+        child: Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: alignEnd ? TextAlign.end : TextAlign.start,
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: color,
+                fontWeight: FontWeight.w900,
+              ),
+        ),
+      ),
+    ];
+    return Row(
+      mainAxisAlignment:
+          alignEnd ? MainAxisAlignment.end : MainAxisAlignment.start,
+      children: alignEnd ? content.reversed.toList(growable: false) : content,
     );
   }
 }
@@ -125,7 +218,7 @@ class RunningPoseCoordinateComparisonPainter extends CustomPainter {
   final Color actualAccent;
   final Color targetAccent;
   final Color successAccent;
-  final ui.Image? athleteArt;
+  final ui.Image? artAtlas;
   final RunningCoachingThresholds thresholds;
 
   const RunningPoseCoordinateComparisonPainter({
@@ -138,7 +231,7 @@ class RunningPoseCoordinateComparisonPainter extends CustomPainter {
     required this.actualAccent,
     required this.targetAccent,
     required this.successAccent,
-    this.athleteArt,
+    this.artAtlas,
     this.thresholds = const RunningCoachingThresholds(),
   });
 
@@ -147,65 +240,101 @@ class RunningPoseCoordinateComparisonPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     if (size.isEmpty) return;
-    final panel = Offset.zero & size;
-    _drawPanel(canvas, panel);
-    final snapshot = buildRunningPoseComparisonSnapshot(
+    final gap = (size.width * 0.036).clamp(8.0, 12.0).toDouble();
+    final panelWidth = math.max(1.0, (size.width - gap) / 2);
+    final currentPanel = Rect.fromLTWH(0, 0, panelWidth, size.height);
+    final nextPanel = Rect.fromLTWH(
+      panelWidth + gap,
+      0,
+      panelWidth,
+      size.height,
+    );
+    _drawPanel(canvas, currentPanel);
+    _drawPanel(canvas, nextPanel);
+    final currentSnapshot = buildRunningPoseComparisonSnapshot(
       frame: frame,
       insight: insight,
       direction: direction,
-      panel: panel,
+      panel: currentPanel,
       thresholds: thresholds,
     );
-    if (snapshot.currentPoints.isEmpty) return;
+    final nextSnapshot = buildRunningPoseComparisonSnapshot(
+      frame: frame,
+      insight: insight,
+      direction: direction,
+      panel: nextPanel,
+      thresholds: thresholds,
+    );
+    if (currentSnapshot.currentPoints.isEmpty ||
+        nextSnapshot.currentPoints.isEmpty) {
+      return;
+    }
+
+    final currentColor = _isGood ? successAccent : actualAccent;
+    final nextColor = _isGood ? successAccent : targetAccent;
+    final eased = Curves.easeInOutCubic.transform(
+      progress.clamp(0.0, 1.0).toDouble(),
+    );
+    final animatedNextPoints = _isGood
+        ? nextSnapshot.currentPoints
+        : _lerpPoints(
+            nextSnapshot.currentPoints,
+            nextSnapshot.targetPoints,
+            eased,
+          );
 
     canvas.save();
-    canvas.clipRRect(
-      RRect.fromRectAndRadius(panel, const Radius.circular(8)),
+    canvas.clipRRect(RRect.fromRectAndRadius(
+      Offset.zero & size,
+      const Radius.circular(8),
+    ));
+    _drawGround(canvas, currentSnapshot);
+    _drawGround(canvas, nextSnapshot);
+    _drawAthleteArtwork(
+      canvas,
+      currentSnapshot,
+      points: currentSnapshot.currentPoints,
+      accent: currentColor,
+      isTarget: false,
     );
-    _drawGround(canvas, snapshot);
-    _drawAthleteArtwork(canvas, snapshot);
-    _drawMetricGuide(canvas, snapshot);
-
-    if (_isGood) {
-      _drawMeasuredCoordinateTrace(
-        canvas,
-        snapshot.currentPoints,
-        accent: successAccent,
-        opacity: 0.92,
-        focusIndices: _focusIndices,
-      );
-    } else {
-      final eased = Curves.easeInOutCubic.transform(
-        progress.clamp(0.0, 1.0).toDouble(),
-      );
-      final animatedPoints = _lerpPoints(
-        snapshot.currentPoints,
-        snapshot.targetPoints,
-        eased,
-      );
-      _drawMeasuredCoordinateTrace(
-        canvas,
-        snapshot.currentPoints,
-        accent: actualAccent,
-        opacity: 0.64,
-        focusIndices: _focusIndices,
-      );
-      _drawMeasuredCoordinateTrace(
-        canvas,
-        snapshot.targetPoints,
-        accent: targetAccent,
-        opacity: 0.22,
-        focusIndices: _focusIndices,
-      );
-      _drawMovementVectors(canvas, snapshot);
-      _drawMeasuredCoordinateTrace(
-        canvas,
-        animatedPoints,
-        accent: targetAccent,
-        opacity: 0.86,
-        focusIndices: _focusIndices,
-      );
+    if (!_isGood) {
+      _drawMovementVectors(canvas, nextSnapshot);
     }
+    _drawAthleteArtwork(
+      canvas,
+      nextSnapshot,
+      points: animatedNextPoints,
+      accent: nextColor,
+      isTarget: true,
+    );
+    _drawMetricGuide(
+      canvas,
+      currentSnapshot,
+      points: currentSnapshot.currentPoints,
+      accent: currentColor,
+      isTarget: false,
+    );
+    _drawMetricGuide(
+      canvas,
+      nextSnapshot,
+      points: animatedNextPoints,
+      accent: nextColor,
+      isTarget: true,
+    );
+    _drawMeasuredCoordinateTrace(
+      canvas,
+      currentSnapshot.currentPoints,
+      accent: currentColor,
+      opacity: 0.82,
+      focusIndices: _focusIndices,
+    );
+    _drawMeasuredCoordinateTrace(
+      canvas,
+      animatedNextPoints,
+      accent: nextColor,
+      opacity: 0.82,
+      focusIndices: _focusIndices,
+    );
     canvas.restore();
   }
 
@@ -239,29 +368,84 @@ class RunningPoseCoordinateComparisonPainter extends CustomPainter {
 
   void _drawMetricGuide(
     Canvas canvas,
-    RunningPoseComparisonSnapshot snapshot,
-  ) {
+    RunningPoseComparisonSnapshot snapshot, {
+    required Map<int, Offset> points,
+    required Color accent,
+    required bool isTarget,
+  }) {
     switch (insight.metric) {
       case RunningCoachMetric.posture:
-        _drawPostureGuide(canvas, snapshot);
+        _drawPostureGuide(
+          canvas,
+          snapshot,
+          points: points,
+          accent: accent,
+          isTarget: isTarget,
+        );
       case RunningCoachMetric.bounce:
-        _drawBounceGuide(canvas, snapshot);
+        _drawBounceGuide(
+          canvas,
+          snapshot,
+          points: points,
+          accent: accent,
+          isTarget: isTarget,
+        );
       case RunningCoachMetric.footStrike:
-        _drawFootStrikeGuide(canvas, snapshot);
+        _drawFootStrikeGuide(
+          canvas,
+          snapshot,
+          points: points,
+          accent: accent,
+          isTarget: isTarget,
+        );
       case RunningCoachMetric.kneeFlexion:
-        _drawJointAngleGuide(canvas, snapshot, isArm: false);
+        _drawJointAngleGuide(
+          canvas,
+          snapshot,
+          points: points,
+          accent: accent,
+          isArm: false,
+        );
       case RunningCoachMetric.armCarriage:
-        _drawJointAngleGuide(canvas, snapshot, isArm: true);
+        _drawJointAngleGuide(
+          canvas,
+          snapshot,
+          points: points,
+          accent: accent,
+          isArm: true,
+        );
     }
   }
 
   void _drawPostureGuide(
     Canvas canvas,
-    RunningPoseComparisonSnapshot snapshot,
-  ) {
-    final torso = _torso(snapshot.currentPoints);
+    RunningPoseComparisonSnapshot snapshot, {
+    required Map<int, Offset> points,
+    required Color accent,
+    required bool isTarget,
+  }) {
+    final torso = _torso(points);
     if (torso == null) return;
     final length = math.max(18.0, (torso.shoulder - torso.hip).distance);
+    final verticalTop = torso.hip - Offset(0, length);
+    _drawDashedLine(
+      canvas,
+      verticalTop,
+      torso.hip,
+      _stroke(mutedColor, width: 1.2, opacity: 0.46),
+    );
+    final guidePaint = _stroke(accent, width: 1.8, opacity: 0.82);
+    canvas.drawLine(torso.hip, torso.shoulder, guidePaint);
+    _drawArc(
+      canvas,
+      torso.hip,
+      verticalTop,
+      torso.shoulder,
+      length * 0.23,
+      guidePaint,
+    );
+    if (!isTarget) return;
+
     final minVector = Offset(
       snapshot.forward *
           length *
@@ -274,41 +458,26 @@ class RunningPoseCoordinateComparisonPainter extends CustomPainter {
           math.sin(thresholds.maximumForwardLeanDegrees * math.pi / 180),
       -length * math.cos(thresholds.maximumForwardLeanDegrees * math.pi / 180),
     );
-    final verticalTop = torso.hip - Offset(0, length);
-    final minPoint = torso.hip + minVector;
-    final maxPoint = torso.hip + maxVector;
-    final rangePaint = Paint()
-      ..color = (_isGood ? successAccent : targetAccent).withValues(alpha: 0.14)
-      ..style = PaintingStyle.fill;
-    final guidePaint = _stroke(
-      _isGood ? successAccent : targetAccent,
-      width: 1.6,
-      opacity: 0.66,
-    );
     canvas.drawPath(
       Path()
         ..moveTo(torso.hip.dx, torso.hip.dy)
-        ..lineTo(minPoint.dx, minPoint.dy)
-        ..lineTo(maxPoint.dx, maxPoint.dy)
+        ..lineTo((torso.hip + minVector).dx, (torso.hip + minVector).dy)
+        ..lineTo((torso.hip + maxVector).dx, (torso.hip + maxVector).dy)
         ..close(),
-      rangePaint,
+      Paint()
+        ..color = accent.withValues(alpha: 0.11)
+        ..style = PaintingStyle.fill,
     );
-    _drawDashedLine(
-      canvas,
-      verticalTop,
-      torso.hip,
-      _stroke(mutedColor, width: 1.2, opacity: 0.46),
-    );
-    _drawArc(
-        canvas, torso.hip, verticalTop, minPoint, length * 0.24, guidePaint);
-    _drawArc(canvas, torso.hip, minPoint, maxPoint, length * 0.29, guidePaint);
   }
 
   void _drawBounceGuide(
     Canvas canvas,
-    RunningPoseComparisonSnapshot snapshot,
-  ) {
-    final torso = _torso(snapshot.currentPoints);
+    RunningPoseComparisonSnapshot snapshot, {
+    required Map<int, Offset> points,
+    required Color accent,
+    required bool isTarget,
+  }) {
+    final torso = _torso(points);
     if (torso == null) return;
     final currentSpan = (snapshot.panel.height * (insight.value / 100) * 2.4)
         .clamp(18.0, snapshot.panel.height * 0.44)
@@ -318,179 +487,137 @@ class RunningPoseCoordinateComparisonPainter extends CustomPainter {
             2.4)
         .clamp(14.0, snapshot.panel.height * 0.30)
         .toDouble();
+    final span = isTarget && !_isGood ? targetSpan : currentSpan;
     final side =
         _annotationSign(snapshot.panel, torso.shoulder, snapshot.forward);
-    final currentX = (torso.shoulder.dx + side * snapshot.panel.width * 0.08)
-        .clamp(snapshot.panel.left + 18, snapshot.panel.right - 18)
-        .toDouble();
-    final targetX = (currentX + side * snapshot.panel.width * 0.12)
+    final x = (torso.shoulder.dx + side * snapshot.panel.width * 0.09)
         .clamp(snapshot.panel.left + 18, snapshot.panel.right - 18)
         .toDouble();
     _drawDoubleArrow(
       canvas,
-      Offset(currentX, torso.shoulder.dy - currentSpan / 2),
-      Offset(currentX, torso.shoulder.dy + currentSpan / 2),
-      _stroke(_isGood ? successAccent : actualAccent,
-          width: 2.2, opacity: 0.72),
+      Offset(x, torso.shoulder.dy - span / 2),
+      Offset(x, torso.shoulder.dy + span / 2),
+      _stroke(accent, width: 2.0, opacity: 0.76),
     );
-    final targetRect = RRect.fromRectAndRadius(
+    if (!isTarget) return;
+    final band = RRect.fromRectAndRadius(
       Rect.fromCenter(
-        center: Offset(targetX, torso.shoulder.dy),
-        width: 16,
+        center: Offset(x, torso.shoulder.dy),
+        width: 15,
         height: targetSpan,
       ),
       const Radius.circular(99),
     );
-    final color = _isGood ? successAccent : targetAccent;
-    canvas.drawRRect(
-      targetRect,
-      Paint()..color = color.withValues(alpha: 0.18),
-    );
-    canvas.drawRRect(targetRect, _stroke(color, width: 1.8, opacity: 0.78));
+    canvas.drawRRect(band, Paint()..color = accent.withValues(alpha: 0.13));
+    canvas.drawRRect(band, _stroke(accent, width: 1.6, opacity: 0.76));
   }
 
   void _drawFootStrikeGuide(
     Canvas canvas,
-    RunningPoseComparisonSnapshot snapshot,
-  ) {
-    final torso = _torso(snapshot.currentPoints);
+    RunningPoseComparisonSnapshot snapshot, {
+    required Map<int, Offset> points,
+    required Color accent,
+    required bool isTarget,
+  }) {
+    final torso = _torso(points);
+    if (torso == null) return;
     final leg = _leadLeg(
-      snapshot.currentPoints,
+      points,
       forward: snapshot.forward,
     );
-    if (torso == null || leg == null) return;
-    final ratioToPixels = _ratioToPixels(
-      metricValue: insight.value,
-      currentDistance: ((leg.toe.dx - torso.hip.dx) * snapshot.forward).abs(),
-      fallbackBodyHeight: snapshot.bodyHeight,
-    );
-    final maxDistance = thresholds.maximumFootStrikeRatio * ratioToPixels;
-    final smallBackstop = math.min(snapshot.bodyHeight * 0.035, maxDistance);
-    final startX = torso.hip.dx - snapshot.forward * smallBackstop;
-    final endX = torso.hip.dx + snapshot.forward * maxDistance;
-    final left = math.min(startX, endX);
-    final right = math.max(startX, endX);
-    final color = _isGood ? successAccent : targetAccent;
-    final zone = RRect.fromRectAndRadius(
-      Rect.fromLTRB(left, snapshot.groundY - 13, right, snapshot.groundY - 3),
-      const Radius.circular(99),
-    );
-    canvas.drawRRect(
-      zone,
-      Paint()..color = color.withValues(alpha: 0.16),
-    );
-    canvas.drawRRect(zone, _stroke(color, width: 1.8, opacity: 0.78));
+    if (leg == null) return;
     _drawDashedLine(
       canvas,
       torso.hip,
       Offset(torso.hip.dx, snapshot.groundY - 5),
       _stroke(mutedColor, width: 1.2, opacity: 0.48),
     );
+    final foot = Offset(leg.toe.dx, snapshot.groundY);
+    canvas.drawCircle(
+      foot,
+      6.2,
+      Paint()..color = accent.withValues(alpha: 0.14),
+    );
+    canvas.drawCircle(foot, 3.1, Paint()..color = accent);
+    if (!isTarget) return;
+
+    final ratioToPixels = _ratioToPixels(
+      metricValue: insight.value,
+      currentDistance: ((leg.toe.dx - torso.hip.dx) * snapshot.forward).abs(),
+      fallbackBodyHeight: snapshot.bodyHeight,
+    );
+    final maxDistance = thresholds.maximumFootStrikeRatio * ratioToPixels;
+    final backstop = math.min(snapshot.bodyHeight * 0.035, maxDistance);
+    final startX = torso.hip.dx - snapshot.forward * backstop;
+    final endX = torso.hip.dx + snapshot.forward * maxDistance;
+    final zone = RRect.fromRectAndRadius(
+      Rect.fromLTRB(
+        math.min(startX, endX),
+        snapshot.groundY - 13,
+        math.max(startX, endX),
+        snapshot.groundY - 3,
+      ),
+      const Radius.circular(99),
+    );
+    canvas.drawRRect(zone, Paint()..color = accent.withValues(alpha: 0.14));
+    canvas.drawRRect(zone, _stroke(accent, width: 1.6, opacity: 0.82));
   }
 
   void _drawJointAngleGuide(
     Canvas canvas,
     RunningPoseComparisonSnapshot snapshot, {
+    required Map<int, Offset> points,
+    required Color accent,
     required bool isArm,
   }) {
-    final color = _isGood ? successAccent : targetAccent;
     if (isArm) {
-      final current = _leadArm(
-        snapshot.currentPoints,
-        forward: snapshot.forward,
-      );
-      final target = _leadArm(
-        snapshot.targetPoints,
-        forward: snapshot.forward,
-      );
-      if (current == null || target == null) return;
+      final arm = _leadArm(points, forward: snapshot.forward);
+      if (arm == null) return;
       _drawArc(
         canvas,
-        current.elbow,
-        current.wrist,
-        target.wrist,
-        math.max(12.0, (current.wrist - current.elbow).distance * 0.32),
-        _stroke(color, width: 2.0, opacity: 0.76),
+        arm.elbow,
+        arm.shoulder,
+        arm.wrist,
+        math.max(12.0, (arm.wrist - arm.elbow).distance * 0.32),
+        _stroke(accent, width: 2.0, opacity: 0.78),
       );
       return;
     }
 
-    final current = _leadLeg(
-      snapshot.currentPoints,
-      forward: snapshot.forward,
-    );
-    final target = _leadLeg(
-      snapshot.targetPoints,
-      forward: snapshot.forward,
-    );
-    if (current == null || target == null) return;
+    final leg = _leadLeg(points, forward: snapshot.forward);
+    if (leg == null) return;
     _drawArc(
       canvas,
-      current.knee,
-      current.ankle,
-      target.ankle,
-      math.max(12.0, (current.ankle - current.knee).distance * 0.32),
-      _stroke(color, width: 2.0, opacity: 0.76),
+      leg.knee,
+      leg.hip,
+      leg.ankle,
+      math.max(12.0, (leg.ankle - leg.knee).distance * 0.32),
+      _stroke(accent, width: 2.0, opacity: 0.78),
     );
   }
 
   void _drawAthleteArtwork(
     Canvas canvas,
-    RunningPoseComparisonSnapshot snapshot,
-  ) {
-    final art = athleteArt;
+    RunningPoseComparisonSnapshot snapshot, {
+    required Map<int, Offset> points,
+    required Color accent,
+    required bool isTarget,
+  }) {
+    final art = artAtlas;
     if (art == null) return;
-    final destination = _athleteArtworkRect(snapshot);
-    if (destination.isEmpty) return;
-    final paint = Paint()
-      ..filterQuality = FilterQuality.high
-      ..isAntiAlias = true
-      ..color = Colors.white.withValues(alpha: _isGood ? 0.94 : 0.48);
-
-    canvas.save();
-    if (snapshot.forward < 0) {
-      canvas.translate(destination.center.dx * 2, 0);
-      canvas.scale(-1, 1);
-    }
-    canvas.drawImageRect(art, _athleteArtworkSource, destination, paint);
-    canvas.restore();
-  }
-
-  Rect _athleteArtworkRect(RunningPoseComparisonSnapshot snapshot) {
-    final torso = _torso(snapshot.currentPoints);
-    final panel = snapshot.panel.deflate(10);
-    if (torso == null || panel.isEmpty) return panel;
-
-    final top = _poseTop(snapshot.currentPoints, fallback: panel.top);
-    final naturalHeight = math.max(1.0, snapshot.groundY - top + 10);
-    final sourceAspect =
-        _athleteArtworkSource.width / _athleteArtworkSource.height;
-    var height = naturalHeight.clamp(panel.height * 0.68, panel.height * 0.98);
-    var width = height * sourceAspect;
-    if (width > panel.width * 0.90) {
-      width = panel.width * 0.90;
-      height = width / sourceAspect;
-    }
-
-    const sourceHipFraction = 0.51;
-    final visualHipFraction =
-        snapshot.forward < 0 ? 1 - sourceHipFraction : sourceHipFraction;
-    final left = (torso.hip.dx - width * visualHipFraction)
-        .clamp(panel.left, panel.right - width)
-        .toDouble();
-    final placementTop = (top - height * 0.02)
-        .clamp(panel.top, panel.bottom - height)
-        .toDouble();
-    return Rect.fromLTWH(left, placementTop, width, height);
-  }
-
-  double _poseTop(Map<int, Offset> points, {required double fallback}) {
-    final candidates = <Offset>[
-      for (final index in <int>[0, 7, 8, 11, 12])
-        if (points[index] case final point?) point,
-    ];
-    if (candidates.isEmpty) return fallback;
-    return candidates.map((point) => point.dy).reduce(math.min);
+    final athlete = retargetProfessionalRunnerPose(
+      measuredPoints: points,
+      forward: snapshot.forward,
+    );
+    if (athlete == null) return;
+    paintIllustratedProfessionalRunner(
+      canvas,
+      atlas: art,
+      pose: athlete,
+      accentColor: accent,
+      isTarget: isTarget,
+      bounds: snapshot.panel,
+    );
   }
 
   void _drawMeasuredCoordinateTrace(
@@ -500,31 +627,21 @@ class RunningPoseCoordinateComparisonPainter extends CustomPainter {
     required double opacity,
     required Set<int> focusIndices,
   }) {
-    final neutral = Color.lerp(mutedColor, Colors.white, 0.64)!;
-    final neutralPaint = _stroke(
-      neutral,
-      width: 1.35,
-      opacity: opacity * 0.22,
-    );
     final accentHalo = _stroke(
       accent,
-      width: 7.4,
-      opacity: opacity * 0.16,
+      width: 6.2,
+      opacity: opacity * 0.14,
     );
     final accentPaint = _stroke(
       accent,
-      width: 3.0,
+      width: 2.55,
       opacity: opacity,
     );
 
     for (final chain in _coordinateTraceChains) {
-      final isFocused = chain.any(focusIndices.contains);
-      if (isFocused) {
-        _drawCoordinateChain(canvas, points, chain, accentHalo);
-        _drawCoordinateChain(canvas, points, chain, accentPaint);
-      } else {
-        _drawCoordinateChain(canvas, points, chain, neutralPaint);
-      }
+      if (!chain.any(focusIndices.contains)) continue;
+      _drawCoordinateChain(canvas, points, chain, accentHalo);
+      _drawCoordinateChain(canvas, points, chain, accentPaint);
     }
 
     for (final index in focusIndices) {
@@ -569,22 +686,30 @@ class RunningPoseCoordinateComparisonPainter extends CustomPainter {
     if (!snapshot.hasMovement) return;
     final paint = _stroke(targetAccent, width: 2.2, opacity: 0.86);
     final haloPaint = _stroke(targetAccent, width: 5.2, opacity: 0.15);
+    int? mostMovedIndex;
+    var longestDistance = 0.0;
     for (final index in snapshot.movedIndices) {
       if (!_focusIndices.contains(index)) continue;
-      final start = snapshot.currentPoints[index];
-      final end = snapshot.targetPoints[index];
-      if (start == null || end == null) continue;
-      final vector = end - start;
-      final distance = vector.distance;
-      if (distance < 2) continue;
-      final unit = vector / distance;
-      final trimmedStart = start + unit * math.min(7.0, distance * 0.20);
-      final trimmedEnd = end - unit * math.min(7.0, distance * 0.20);
-      if ((trimmedEnd - trimmedStart).distance < 1) continue;
-      canvas.drawLine(trimmedStart, trimmedEnd, haloPaint);
-      canvas.drawLine(trimmedStart, trimmedEnd, paint);
-      _drawArrowHead(canvas, trimmedEnd, unit, paint);
+      final distance = snapshot.movementDistanceFor(index);
+      if (distance > longestDistance) {
+        longestDistance = distance;
+        mostMovedIndex = index;
+      }
     }
+    final index = mostMovedIndex;
+    if (index == null || longestDistance < 2) return;
+    final start = snapshot.currentPoints[index];
+    final end = snapshot.targetPoints[index];
+    if (start == null || end == null) return;
+    final vector = end - start;
+    final distance = vector.distance;
+    final unit = vector / distance;
+    final trimmedStart = start + unit * math.min(7.0, distance * 0.20);
+    final trimmedEnd = end - unit * math.min(7.0, distance * 0.20);
+    if ((trimmedEnd - trimmedStart).distance < 1) return;
+    canvas.drawLine(trimmedStart, trimmedEnd, haloPaint);
+    canvas.drawLine(trimmedStart, trimmedEnd, paint);
+    _drawArrowHead(canvas, trimmedEnd, unit, paint);
   }
 
   Set<int> get _focusIndices =>
@@ -697,7 +822,7 @@ class RunningPoseCoordinateComparisonPainter extends CustomPainter {
         oldDelegate.actualAccent != actualAccent ||
         oldDelegate.targetAccent != targetAccent ||
         oldDelegate.successAccent != successAccent ||
-        oldDelegate.athleteArt != athleteArt ||
+        oldDelegate.artAtlas != artAtlas ||
         oldDelegate.thresholds != thresholds;
   }
 }

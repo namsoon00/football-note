@@ -2604,6 +2604,7 @@ class _RunningPoseOverlayPainter extends CustomPainter {
   final bool useContainFit;
   final bool showRunnerAvatar;
   final bool showRefinedPose;
+  final bool showTargetDirection;
 
   const _RunningPoseOverlayPainter({
     required this.poseFrame,
@@ -2617,6 +2618,7 @@ class _RunningPoseOverlayPainter extends CustomPainter {
     this.useContainFit = false,
     this.showRunnerAvatar = false,
     this.showRefinedPose = false,
+    this.showTargetDirection = true,
   });
 
   @override
@@ -2631,6 +2633,7 @@ class _RunningPoseOverlayPainter extends CustomPainter {
     }
     final metric = highlightedMetric;
     if (metric != null) {
+      _drawFocusedEvidenceTrace(canvas, size, frame, metric);
       _drawMetricGuide(canvas, size, frame, metric);
     }
   }
@@ -2710,6 +2713,74 @@ class _RunningPoseOverlayPainter extends CustomPainter {
     };
   }
 
+  /// Draws only the measured joints relevant to this call over the original
+  /// video. The full target illustration is intentionally kept below this
+  /// evidence surface, so the video remains an honest record of the runner's
+  /// current frame.
+  void _drawFocusedEvidenceTrace(
+    Canvas canvas,
+    Size size,
+    RunningPoseFrame frame,
+    RunningCoachMetric metric,
+  ) {
+    final chains = switch (metric) {
+      RunningCoachMetric.posture => const <List<int>>[
+          <int>[0, 11, 23],
+          <int>[0, 12, 24],
+        ],
+      RunningCoachMetric.bounce => const <List<int>>[
+          <int>[0, 11, 23],
+          <int>[0, 12, 24],
+        ],
+      RunningCoachMetric.footStrike ||
+      RunningCoachMetric.kneeFlexion =>
+        const <List<int>>[
+          <int>[23, 25, 27, 31],
+          <int>[24, 26, 28, 32],
+        ],
+      RunningCoachMetric.armCarriage => const <List<int>>[
+          <int>[11, 13, 15],
+          <int>[12, 14, 16],
+        ],
+    };
+    final accent = _usesWarningAccent ? warningColor : contactColor;
+    final strokeWidth = math.max(2.0, size.shortestSide * 0.009);
+    final linePaint = Paint()
+      ..color = accent.withValues(alpha: 0.90)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    final haloPaint = Paint()
+      ..color = accent.withValues(alpha: 0.16)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth * 2.6
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    for (final chain in chains) {
+      final points = <Offset>[
+        for (final index in chain)
+          if (_pointForIndex(size, frame, index) case final point?) point,
+      ];
+      if (points.length < 2) continue;
+      final path = Path()..moveTo(points.first.dx, points.first.dy);
+      for (final point in points.skip(1)) {
+        path.lineTo(point.dx, point.dy);
+      }
+      canvas.drawPath(path, haloPaint);
+      canvas.drawPath(path, linePaint);
+      for (final point in points) {
+        canvas.drawCircle(
+          point,
+          strokeWidth * 1.72,
+          Paint()..color = accent.withValues(alpha: 0.15),
+        );
+        canvas.drawCircle(point, strokeWidth * 0.66, Paint()..color = accent);
+      }
+    }
+  }
+
   void _drawMetricGuide(
     Canvas canvas,
     Size size,
@@ -2724,7 +2795,8 @@ class _RunningPoseOverlayPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
     final guidePaint = Paint()
-      ..color = primaryColor.withValues(alpha: 0.76)
+      ..color = (showTargetDirection ? primaryColor : secondaryColor)
+          .withValues(alpha: showTargetDirection ? 0.76 : 0.62)
       ..style = PaintingStyle.stroke
       ..strokeWidth = math.max(1.2, size.shortestSide * 0.0048)
       ..strokeCap = StrokeCap.round;
@@ -2773,26 +2845,34 @@ class _RunningPoseOverlayPainter extends CustomPainter {
         final leg = _leadLegPoints(size, frame);
         if (torso == null || leg == null) return;
         final groundY = math.max(leg.toe.dy, leg.ankle.dy);
-        final targetWidth = math.max(18.0, size.shortestSide * 0.11);
-        final target = Rect.fromCenter(
-          center: Offset(torso.hip.dx, groundY),
-          width: targetWidth,
-          height: math.max(12.0, size.shortestSide * 0.042),
-        );
-        canvas.drawRRect(
-          RRect.fromRectAndRadius(target, const Radius.circular(999)),
-          Paint()..color = contactColor.withValues(alpha: 0.24),
-        );
-        canvas.drawRRect(
-          RRect.fromRectAndRadius(target, const Radius.circular(999)),
+        _drawDashedLine(
+          canvas,
+          torso.hip,
+          Offset(torso.hip.dx, groundY),
           guidePaint,
         );
-        _drawArrow(
-          canvas,
-          leg.toe,
-          target.center,
-          accentPaint,
-        );
+        if (showTargetDirection) {
+          final targetWidth = math.max(18.0, size.shortestSide * 0.11);
+          final target = Rect.fromCenter(
+            center: Offset(torso.hip.dx, groundY),
+            width: targetWidth,
+            height: math.max(12.0, size.shortestSide * 0.042),
+          );
+          canvas.drawRRect(
+            RRect.fromRectAndRadius(target, const Radius.circular(999)),
+            Paint()..color = contactColor.withValues(alpha: 0.24),
+          );
+          canvas.drawRRect(
+            RRect.fromRectAndRadius(target, const Radius.circular(999)),
+            guidePaint,
+          );
+          _drawArrow(
+            canvas,
+            leg.toe,
+            target.center,
+            accentPaint,
+          );
+        }
         _drawFocusPoint(canvas, leg.toe, accent, size);
       case RunningCoachMetric.kneeFlexion:
         final leg = _leadLegPoints(size, frame);
@@ -3042,7 +3122,8 @@ class _RunningPoseOverlayPainter extends CustomPainter {
         oldDelegate.direction != direction ||
         oldDelegate.useContainFit != useContainFit ||
         oldDelegate.showRunnerAvatar != showRunnerAvatar ||
-        oldDelegate.showRefinedPose != showRefinedPose;
+        oldDelegate.showRefinedPose != showRefinedPose ||
+        oldDelegate.showTargetDirection != showTargetDirection;
   }
 }
 
@@ -5324,9 +5405,12 @@ class _EvidenceVideoContent extends StatelessWidget {
                       direction: result.direction,
                       useContainFit: true,
                       // Keep the uploaded video as the evidence surface. The
-                      // overlay marks only the measured coaching points.
+                      // overlay marks only the measured coaching points. The
+                      // next-step target is explained below in the illustrated
+                      // comparison rather than being drawn over the video.
                       showRunnerAvatar: false,
                       showRefinedPose: !hasPlayableVideo,
+                      showTargetDirection: false,
                     ),
                   );
                 },
@@ -5548,7 +5632,7 @@ class _EvidencePoseTransitionState extends State<_EvidencePoseTransition>
                 const SizedBox(height: 8),
                 SizedBox(
                   key: const ValueKey('running-coach-goal-motion'),
-                  height: 248,
+                  height: 272,
                   width: double.infinity,
                   child: RunningPoseCoordinateComparison(
                     key: const ValueKey(
@@ -5564,6 +5648,8 @@ class _EvidencePoseTransitionState extends State<_EvidencePoseTransition>
                     targetAccent: targetAccent,
                     successAccent: successAccent,
                     semanticLabel: l10n.runningCoachGoalMotionTitle,
+                    currentLabel: l10n.runningCoachEvidenceCurrentLabel,
+                    nextStepLabel: l10n.runningCoachEvidenceNextLabel,
                   ),
                 ),
               ],
@@ -7607,7 +7693,7 @@ class _MeasuredPoseGuideVisualState extends State<_MeasuredPoseGuideVisual>
             key: ValueKey(
               'running-coach-insight-change-map-${widget.insight.metric.name}',
             ),
-            height: 248,
+            height: 272,
             width: double.infinity,
             child: RunningPoseCoordinateComparison(
               key: ValueKey(
@@ -7623,6 +7709,8 @@ class _MeasuredPoseGuideVisualState extends State<_MeasuredPoseGuideVisual>
               targetAccent: targetAccent,
               successAccent: successAccent,
               semanticLabel: l10n.runningCoachMeasuredPoseTitle,
+              currentLabel: l10n.runningCoachEvidenceCurrentLabel,
+              nextStepLabel: l10n.runningCoachEvidenceNextLabel,
             ),
           ),
           const SizedBox(height: 8),
