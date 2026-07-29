@@ -34,12 +34,13 @@
     viewProjection: gl.getUniformLocation(program, 'uViewProjection'),
     color: gl.getUniformLocation(program, 'uColor'),
     lightDirection: gl.getUniformLocation(program, 'uLightDirection'),
+    cameraPosition: gl.getUniformLocation(program, 'uCameraPosition'),
     ambient: gl.getUniformLocation(program, 'uAmbient'),
   };
 
-  const sphere = createSphereMesh(18, 14);
-  const cylinder = createCylinderMesh(18);
+  const sphere = createSphereMesh(26, 18);
   const plane = createPlaneMesh();
+  const taperedMeshCache = new Map();
 
   gl.enable(gl.DEPTH_TEST);
   gl.enable(gl.CULL_FACE);
@@ -165,130 +166,312 @@
     gl.viewport(x, y, width, height);
     gl.scissor(x, y, width, height);
     gl.enable(gl.SCISSOR_TEST);
-    gl.clearColor(0.052, 0.083, 0.145, 1);
+    gl.clearColor(0.050, 0.079, 0.135, 1);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.disable(gl.SCISSOR_TEST);
 
     const aspect = width / Math.max(1, height);
-    const projection = mat4Perspective(Math.PI / 4.7, aspect, 0.05, 30);
-    const view = mat4LookAt([0.08, 0.88, 3.15], [0.10, 0.82, 0.0], [0, 1, 0]);
+    const camera = cameraForRig(rig, aspect);
+    const projection = mat4Perspective(camera.fovy, aspect, 0.05, 60);
+    const view = mat4LookAt(camera.eye, camera.target, [0, 1, 0]);
     const viewProjection = mat4Multiply(projection, view);
 
     gl.useProgram(program);
     gl.uniformMatrix4fv(locations.viewProjection, false, viewProjection);
-    gl.uniform3fv(locations.lightDirection, normalizeVec([0.35, 0.82, 0.44]));
-    gl.uniform1f(locations.ambient, 0.36);
+    gl.uniform3fv(locations.lightDirection, normalizeVec([0.44, 0.82, 0.36]));
+    gl.uniform3fv(locations.cameraPosition, camera.eye);
+    gl.uniform1f(locations.ambient, 0.30);
 
-    drawGround(viewProjection);
+    drawGround(viewProjection, camera);
     drawShadow(rig, viewProjection, accentHex);
     drawHuman(rig, viewProjection, accentHex, isTarget);
   }
 
-  function drawGround(viewProjection) {
+  function cameraForRig(rig, aspect) {
+    const bounds = runnerBounds(rig);
+    const safeAspect = Math.max(0.34, aspect);
+    const fovy = safeAspect < 0.58 ? Math.PI / 4.05 : Math.PI / 4.35;
+    const viewTangent = Math.tan(fovy / 2);
+    const requiredHeight = Math.max(2.05, bounds.maxY - bounds.minY);
+    const requiredWidth = Math.max(1.18, bounds.maxX - bounds.minX);
+    const heightDistance = requiredHeight / (2 * viewTangent);
+    const widthDistance = requiredWidth / (2 * viewTangent * safeAspect);
+    const distance = clamp(Math.max(heightDistance, widthDistance) + 0.32, 3.15, 5.35);
+    const targetX = clamp((bounds.minX + bounds.maxX) / 2, -0.08, 0.18);
+    const targetY = clamp((bounds.minY + bounds.maxY) / 2, 0.74, 0.94);
+    const targetZ = clamp((bounds.minZ + bounds.maxZ) / 2, -0.08, 0.08);
+    const target = [targetX, targetY, targetZ];
+    return {
+      bounds,
+      fovy,
+      target,
+      eye: [targetX + 0.18, targetY + 0.06, targetZ + distance],
+    };
+  }
+
+  function runnerBounds(rig) {
+    const joints = Object.values(rig.joints || {}).filter((point) => Array.isArray(point));
+    if (joints.length === 0) {
+      return {
+        minX: -0.55,
+        maxX: 0.58,
+        minY: -0.07,
+        maxY: 1.82,
+        minZ: -0.30,
+        maxZ: 0.30,
+      };
+    }
+    let minX = joints[0][0];
+    let maxX = joints[0][0];
+    let minY = joints[0][1];
+    let maxY = joints[0][1];
+    let minZ = joints[0][2];
+    let maxZ = joints[0][2];
+    for (const point of joints) {
+      minX = Math.min(minX, point[0]);
+      maxX = Math.max(maxX, point[0]);
+      minY = Math.min(minY, point[1]);
+      maxY = Math.max(maxY, point[1]);
+      minZ = Math.min(minZ, point[2]);
+      maxZ = Math.max(maxZ, point[2]);
+    }
+    return {
+      minX: minX - 0.24,
+      maxX: maxX + 0.24,
+      minY: Math.min(-0.07, minY - 0.08),
+      maxY: maxY + 0.20,
+      minZ: minZ - 0.24,
+      maxZ: maxZ + 0.24,
+    };
+  }
+
+  function drawGround(viewProjection, camera) {
+    const groundWidth = Math.max(2.1, camera.bounds.maxX - camera.bounds.minX + 0.78);
     const model = composeBasisMatrix(
-      [-0.02, -0.012, 0],
+      [camera.target[0], -0.018, camera.target[2]],
       [1, 0, 0],
       [0, 0, 1],
       [0, 1, 0],
-      [2.15, 1.12, 1],
+      [groundWidth, 1.26, 1],
     );
-    drawMesh(plane, model, viewProjection, [0.20, 0.26, 0.34, 0.42]);
+    drawMesh(plane, model, viewProjection, [0.17, 0.23, 0.31, 0.52]);
   }
 
   function drawShadow(rig, viewProjection, accentHex) {
-    const pelvis = rig.joints.pelvisCenter || [0, 0.9, 0];
-    const color = hexToRgba(accentHex, 0.18);
+    const bounds = runnerBounds(rig);
+    const center = [
+      (bounds.minX + bounds.maxX) / 2,
+      0.008,
+      (bounds.minZ + bounds.maxZ) / 2,
+    ];
+    const width = Math.max(0.58, (bounds.maxX - bounds.minX) * 0.40);
     const model = composeBasisMatrix(
-      [pelvis[0] + 0.06, 0.006, 0],
+      center,
       [1, 0, 0],
       [0, 0, 1],
       [0, 1, 0],
-      [0.74, 0.28, 0.018],
+      [width, 0.25, 0.014],
     );
-    drawMesh(sphere, model, viewProjection, color);
+    drawMesh(sphere, model, viewProjection, [0.01, 0.014, 0.022, 0.25]);
+    drawFootShadow(rig.joints.leftHeel, rig.joints.leftToe, viewProjection);
+    drawFootShadow(rig.joints.rightHeel, rig.joints.rightToe, viewProjection);
   }
 
   function drawHuman(rig, viewProjection, accentHex, isTarget) {
     const j = rig.joints;
-    const skin = isTarget ? [0.86, 0.60, 0.42, 1] : [0.90, 0.63, 0.45, 1];
-    const skinShadow = [0.70, 0.43, 0.32, 1];
-    const shirt = isTarget ? hexToRgba(accentHex, 1) : [0.86, 0.23, 0.25, 1];
-    const shorts = [0.08, 0.13, 0.21, 1];
-    const shoe = isTarget ? [0.16, 0.31, 0.62, 1] : [0.18, 0.19, 0.23, 1];
-    const shoeSole = [0.92, 0.95, 0.98, 1];
+    const accent = hexToRgba(accentHex, 1);
+    const palette = {
+      accent,
+      skin: isTarget ? [0.86, 0.60, 0.42, 1] : [0.90, 0.63, 0.45, 1],
+      skinShadow: isTarget ? [0.70, 0.45, 0.34, 1] : [0.72, 0.45, 0.33, 1],
+      shirt: accent,
+      shirtShade: colorShade(accent, -0.16),
+      shirtLight: colorShade(accent, 0.12),
+      shorts: isTarget ? [0.06, 0.12, 0.25, 1] : [0.08, 0.10, 0.15, 1],
+      shortsTrim: colorShade(accent, -0.05),
+      shoe: isTarget ? [0.12, 0.28, 0.66, 1] : [0.20, 0.20, 0.24, 1],
+      shoeSole: [0.91, 0.94, 0.96, 1],
+      hair: isTarget ? [0.13, 0.09, 0.06, 1] : [0.08, 0.065, 0.05, 1],
+      feature: [0.055, 0.065, 0.075, 1],
+    };
+    const leftHipZ = j.leftHip ? j.leftHip[2] : 0;
+    const rightHipZ = j.rightHip ? j.rightHip[2] : 0;
+    const leftNear = leftHipZ >= rightHipZ;
+    const nearSide = leftNear ? 'left' : 'right';
+    const farSide = leftNear ? 'right' : 'left';
 
-    drawSegment(j.pelvisCenter, j.chest, 0.18, 0.115, shirt, viewProjection);
-    drawEllipsoidBetween(j.pelvisCenter, j.chest, [0.18, 0.44, 0.12], shirt, viewProjection);
-    drawEllipsoid(j.pelvisCenter, [0.19, 0.115, 0.145], shorts, viewProjection);
-    drawSegment(j.neck, j.head, 0.052, 0.040, skin, viewProjection);
-    drawEllipsoid(j.head, [0.125, 0.155, 0.116], skin, viewProjection);
-    drawEllipsoid(j.nose, [0.035, 0.025, 0.026], skinShadow, viewProjection);
-    drawEllipsoid(j.leftEye, [0.014, 0.010, 0.010], [0.08, 0.09, 0.10, 1], viewProjection);
-    drawEllipsoid(j.rightEye, [0.014, 0.010, 0.010], [0.08, 0.09, 0.10, 1], viewProjection);
+    drawLeg(j, farSide, palette, palette.skinShadow, viewProjection);
+    drawArm(j, farSide, palette, palette.skinShadow, viewProjection);
+    drawTorso(j, palette, viewProjection);
+    drawLeg(j, nearSide, palette, palette.skin, viewProjection);
+    drawArm(j, nearSide, palette, palette.skin, viewProjection);
+    drawRunnerHead(j, palette, viewProjection);
 
-    drawLimb(j.leftShoulder, j.leftElbow, j.leftWrist, skin, viewProjection, 0.052, 0.043);
-    drawLimb(j.rightShoulder, j.rightElbow, j.rightWrist, skinShadow, viewProjection, 0.050, 0.041);
-    drawHand(j, 'left', skin, viewProjection);
-    drawHand(j, 'right', skinShadow, viewProjection);
-
-    drawLimb(j.leftHip, j.leftKnee, j.leftAnkle, skin, viewProjection, 0.074, 0.058);
-    drawLimb(j.rightHip, j.rightKnee, j.rightAnkle, skinShadow, viewProjection, 0.072, 0.056);
-    drawShoe(j.leftHeel, j.leftToe, shoe, shoeSole, viewProjection);
-    drawShoe(j.rightHeel, j.rightToe, shoe, shoeSole, viewProjection);
-
-    drawJointHalo(j.pelvisCenter, accentHex, viewProjection);
     for (const decision of rig.footLocks || []) {
       if (!decision.locked) continue;
       const toe = j[`${decision.side}Toe`];
-      if (toe) drawEllipsoid(toe, [0.035, 0.012, 0.035], hexToRgba(accentHex, 0.8), viewProjection);
+      if (toe) drawEllipsoid(toe, [0.036, 0.010, 0.032], hexToRgba(accentHex, 0.64), viewProjection);
     }
   }
 
-  function drawLimb(root, joint, end, color, viewProjection, upperRadius, lowerRadius) {
-    drawSegment(root, joint, upperRadius, upperRadius * 0.76, color, viewProjection);
-    drawSegment(joint, end, lowerRadius, lowerRadius * 0.70, color, viewProjection);
-    drawEllipsoid(joint, [lowerRadius * 1.08, lowerRadius * 1.08, lowerRadius * 1.08], color, viewProjection);
+  function drawTorso(j, palette, viewProjection) {
+    if (!j.pelvisCenter || !j.chest) return;
+    const axes = bodyAxes(j.pelvisCenter, j.chest);
+    const lowerRib = lerpVec(j.pelvisCenter, j.chest, 0.43);
+    const upperChest = lerpVec(j.pelvisCenter, j.chest, 0.75);
+    drawOrientedEllipsoid(lowerRib, axes, [0.125, 0.215, 0.128], palette.shirtShade, viewProjection);
+    drawOrientedEllipsoid(upperChest, axes, [0.160, 0.245, 0.185], palette.shirt, viewProjection);
+    drawOrientedEllipsoid(j.pelvisCenter, axes, [0.155, 0.120, 0.156], palette.shorts, viewProjection);
+    drawOrientedEllipsoid(lerpVec(j.pelvisCenter, j.chest, 0.25), axes, [0.135, 0.034, 0.132], palette.shirtLight, viewProjection);
+    if (j.neck) {
+      drawSegment(j.chest, j.neck, 0.050, 0.036, palette.shirtLight, viewProjection);
+      drawEllipsoid(j.neck, [0.050, 0.036, 0.046], palette.skin, viewProjection);
+    }
+  }
+
+  function drawRunnerHead(j, palette, viewProjection) {
+    if (!j.head) return;
+    const faceVector = j.nose ? subVec(j.nose, j.head) : [1, 0, 0];
+    const forward = normalizeVecOr([faceVector[0], 0, faceVector[2]], [1, 0, 0]);
+    const sideAxis = normalizeVecOr(crossVec([0, 1, 0], forward), [0, 0, 1]);
+    const axes = {
+      xAxis: forward,
+      yAxis: [0, 1, 0],
+      zAxis: sideAxis,
+    };
+    if (j.neck) drawSegment(j.neck, j.head, 0.036, 0.030, palette.skin, viewProjection);
+    drawOrientedEllipsoid(j.head, axes, [0.103, 0.138, 0.098], palette.skin, viewProjection);
+    drawOrientedEllipsoid(
+      addVec(addVec(j.head, [0, 0.055, 0]), scaleVec(forward, -0.020)),
+      axes,
+      [0.096, 0.064, 0.100],
+      palette.hair,
+      viewProjection,
+    );
+    drawOrientedEllipsoid(
+      addVec(addVec(j.head, [0, 0.012, 0]), scaleVec(forward, -0.070)),
+      axes,
+      [0.036, 0.090, 0.088],
+      palette.hair,
+      viewProjection,
+    );
+    if (j.leftEar) drawEllipsoid(j.leftEar, [0.017, 0.027, 0.013], palette.skinShadow, viewProjection);
+    if (j.rightEar) drawEllipsoid(j.rightEar, [0.017, 0.027, 0.013], palette.skinShadow, viewProjection);
+    const noseCenter = addVec(j.head, scaleVec(forward, 0.092));
+    drawOrientedEllipsoid(noseCenter, axes, [0.020, 0.017, 0.015], palette.skinShadow, viewProjection);
+    if (j.leftEye) drawEllipsoid(j.leftEye, [0.010, 0.007, 0.008], palette.feature, viewProjection);
+    if (j.rightEye) drawEllipsoid(j.rightEye, [0.010, 0.007, 0.008], palette.feature, viewProjection);
+    if (j.mouthLeft && j.mouthRight) {
+      drawSegment(j.mouthLeft, j.mouthRight, 0.0045, 0.0045, [0.32, 0.14, 0.13, 1], viewProjection);
+    }
+  }
+
+  function drawArm(j, side, palette, skinColor, viewProjection) {
+    const shoulder = j[`${side}Shoulder`];
+    const elbow = j[`${side}Elbow`];
+    const wrist = j[`${side}Wrist`];
+    if (!shoulder || !elbow || !wrist) return;
+    const sleeveEnd = lerpVec(shoulder, elbow, 0.38);
+    const sleeveHem = lerpVec(shoulder, elbow, 0.46);
+    drawEllipsoid(shoulder, [0.066, 0.046, 0.062], palette.shirt, viewProjection);
+    drawSegment(shoulder, sleeveEnd, 0.061, 0.052, palette.shirt, viewProjection);
+    drawSegment(sleeveEnd, sleeveHem, 0.054, 0.048, palette.shirtLight, viewProjection);
+    drawSegment(sleeveHem, elbow, 0.043, 0.035, skinColor, viewProjection);
+    drawSegment(elbow, wrist, 0.038, 0.029, skinColor, viewProjection);
+    drawEllipsoid(elbow, [0.039, 0.032, 0.036], colorShade(skinColor, -0.06), viewProjection);
+    drawHand(j, side, skinColor, viewProjection);
+  }
+
+  function drawLeg(j, side, palette, skinColor, viewProjection) {
+    const hip = j[`${side}Hip`];
+    const knee = j[`${side}Knee`];
+    const ankle = j[`${side}Ankle`];
+    if (!hip || !knee || !ankle) return;
+    const shortsEnd = lerpVec(hip, knee, 0.34);
+    const shortsHem = lerpVec(hip, knee, 0.42);
+    drawEllipsoid(hip, [0.074, 0.052, 0.066], palette.shorts, viewProjection);
+    drawSegment(hip, shortsEnd, 0.088, 0.077, palette.shorts, viewProjection);
+    drawSegment(shortsEnd, shortsHem, 0.080, 0.074, palette.shortsTrim, viewProjection);
+    drawSegment(shortsHem, knee, 0.066, 0.050, skinColor, viewProjection);
+    drawSegment(knee, ankle, 0.052, 0.038, skinColor, viewProjection);
+    drawEllipsoid(knee, [0.049, 0.038, 0.045], colorShade(skinColor, -0.045), viewProjection);
+    drawEllipsoid(ankle, [0.032, 0.024, 0.030], skinColor, viewProjection);
+    drawShoe(j[`${side}Heel`], j[`${side}Toe`], palette.shoe, palette.shoeSole, palette.accent, viewProjection);
   }
 
   function drawHand(joints, side, color, viewProjection) {
     const wrist = joints[`${side}Wrist`];
     const hand = joints[`${side}Hand`];
     if (!wrist || !hand) return;
-    drawSegment(wrist, hand, 0.038, 0.030, color, viewProjection);
-    drawEllipsoid(hand, [0.045, 0.030, 0.038], color, viewProjection);
+    drawSegment(wrist, hand, 0.030, 0.024, color, viewProjection);
+    drawEllipsoid(hand, [0.039, 0.025, 0.033], color, viewProjection);
     for (const finger of ['Pinky', 'Index', 'Thumb']) {
       const tip = joints[`${side}${finger}`];
-      if (tip) drawSegment(hand, tip, 0.010, 0.007, color, viewProjection);
+      if (!tip) continue;
+      drawSegment(hand, tip, finger === 'Thumb' ? 0.009 : 0.0075, 0.0045, color, viewProjection);
+      drawEllipsoid(tip, [0.006, 0.006, 0.005], color, viewProjection);
     }
   }
 
-  function drawShoe(heel, toe, shoeColor, soleColor, viewProjection) {
+  function drawShoe(heel, toe, shoeColor, soleColor, accentColor, viewProjection) {
     if (!heel || !toe) return;
     const center = scaleVec(addVec(heel, toe), 0.5);
-    const direction = normalizeVec(subVec(toe, heel));
-    const side = normalizeVec(crossVec(direction, [0, 1, 0]));
-    const up = normalizeVec(crossVec(side, direction));
+    const direction = normalizeVecOr(subVec(toe, heel), [1, 0, 0]);
+    const side = normalizeVecOr(crossVec(direction, [0, 1, 0]), [0, 0, 1]);
+    const up = normalizeVecOr(crossVec(side, direction), [0, 1, 0]);
     const length = Math.max(0.12, lengthVec(subVec(toe, heel)));
-    const model = composeBasisMatrix(center, side, direction, up, [0.075, length * 0.60, 0.040]);
+    const bodyCenter = addVec(center, scaleVec(direction, length * 0.07));
+    const model = composeBasisMatrix(bodyCenter, side, direction, up, [0.060, length * 0.46, 0.044]);
     drawMesh(sphere, model, viewProjection, shoeColor);
-    const soleCenter = addVec(center, [0, -0.028, 0]);
-    const soleModel = composeBasisMatrix(soleCenter, side, direction, up, [0.080, length * 0.62, 0.012]);
+    const toeCenter = addVec(center, scaleVec(direction, length * 0.34));
+    const toeModel = composeBasisMatrix(toeCenter, side, direction, up, [0.066, length * 0.20, 0.041]);
+    drawMesh(sphere, toeModel, viewProjection, colorShade(shoeColor, 0.08));
+    const heelCenter = addVec(center, scaleVec(direction, -length * 0.30));
+    const heelModel = composeBasisMatrix(heelCenter, side, direction, up, [0.053, length * 0.18, 0.045]);
+    drawMesh(sphere, heelModel, viewProjection, colorShade(shoeColor, -0.12));
+    const soleCenter = addVec(center, [0, -0.030, 0]);
+    const soleModel = composeBasisMatrix(soleCenter, side, direction, up, [0.071, length * 0.56, 0.010]);
     drawMesh(sphere, soleModel, viewProjection, soleColor);
+    const stripeCenter = addVec(addVec(center, scaleVec(up, 0.016)), scaleVec(direction, length * 0.04));
+    const stripeModel = composeBasisMatrix(stripeCenter, side, direction, up, [0.014, length * 0.34, 0.009]);
+    drawMesh(sphere, stripeModel, viewProjection, accentColor);
   }
 
-  function drawJointHalo(point, accentHex, viewProjection) {
-    if (!point) return;
-    drawEllipsoid(point, [0.055, 0.055, 0.055], hexToRgba(accentHex, 0.22), viewProjection);
+  function drawFootShadow(heel, toe, viewProjection) {
+    if (!heel || !toe) return;
+    const center = [
+      (heel[0] + toe[0]) / 2,
+      0.010,
+      (heel[2] + toe[2]) / 2,
+    ];
+    const direction = normalizeVecOr([toe[0] - heel[0], 0, toe[2] - heel[2]], [1, 0, 0]);
+    const side = normalizeVecOr(crossVec([0, 1, 0], direction), [0, 0, 1]);
+    const length = Math.max(0.16, lengthVec(subVec(toe, heel)));
+    const model = composeBasisMatrix(center, side, direction, [0, 1, 0], [0.060, length * 0.40, 0.007]);
+    drawMesh(sphere, model, viewProjection, [0.005, 0.007, 0.012, 0.20]);
+  }
+
+  function bodyAxes(start, end) {
+    const yAxis = normalizeVecOr(subVec(end, start), [0, 1, 0]);
+    const xAxis = normalizeVecOr([yAxis[1], -yAxis[0], 0], [1, 0, 0]);
+    const zAxis = normalizeVecOr(crossVec(xAxis, yAxis), [0, 0, 1]);
+    return { xAxis, yAxis, zAxis };
   }
 
   function drawEllipsoidBetween(start, end, scale, color, viewProjection) {
     if (!start || !end) return;
     const center = scaleVec(addVec(start, end), 0.5);
-    const axis = normalizeVec(subVec(end, start));
+    const axis = normalizeVecOr(subVec(end, start), [0, 1, 0]);
     const fallback = Math.abs(axis[1]) > 0.92 ? [1, 0, 0] : [0, 1, 0];
-    const xAxis = normalizeVec(crossVec(fallback, axis));
-    const zAxis = normalizeVec(crossVec(xAxis, axis));
+    const xAxis = normalizeVecOr(crossVec(fallback, axis), [1, 0, 0]);
+    const zAxis = normalizeVecOr(crossVec(xAxis, axis), [0, 0, 1]);
     const model = composeBasisMatrix(center, xAxis, axis, zAxis, scale);
+    drawMesh(sphere, model, viewProjection, color);
+  }
+
+  function drawOrientedEllipsoid(center, axes, scale, color, viewProjection) {
+    if (!center) return;
+    const model = composeBasisMatrix(center, axes.xAxis, axes.yAxis, axes.zAxis, scale);
     drawMesh(sphere, model, viewProjection, color);
   }
 
@@ -299,18 +482,21 @@
   }
 
   function drawSegment(start, end, startRadius, endRadius, color, viewProjection) {
+    drawTaperedSegment(start, end, startRadius, endRadius, color, viewProjection);
+  }
+
+  function drawTaperedSegment(start, end, startRadius, endRadius, color, viewProjection) {
     if (!start || !end) return;
     const vector = subVec(end, start);
     const length = lengthVec(vector);
     if (length < 0.001) return;
     const yAxis = scaleVec(vector, 1 / length);
     const fallback = Math.abs(yAxis[1]) > 0.92 ? [1, 0, 0] : [0, 1, 0];
-    const xAxis = normalizeVec(crossVec(fallback, yAxis));
-    const zAxis = normalizeVec(crossVec(xAxis, yAxis));
+    const xAxis = normalizeVecOr(crossVec(fallback, yAxis), [1, 0, 0]);
+    const zAxis = normalizeVecOr(crossVec(xAxis, yAxis), [0, 0, 1]);
     const center = scaleVec(addVec(start, end), 0.5);
-    const radius = (startRadius + endRadius) / 2;
-    const model = composeBasisMatrix(center, xAxis, yAxis, zAxis, [radius, length, radius]);
-    drawMesh(cylinder, model, viewProjection, color);
+    const model = composeBasisMatrix(center, xAxis, yAxis, zAxis, [1, length, 1]);
+    drawMesh(taperedCylinderMesh(startRadius, endRadius), model, viewProjection, color);
   }
 
   function drawMesh(mesh, model, viewProjection, color) {
@@ -354,16 +540,28 @@
     return uploadMesh(vertices, indices);
   }
 
-  function createCylinderMesh(segments) {
+  function taperedCylinderMesh(startRadius, endRadius) {
+    const start = Math.max(0.002, startRadius);
+    const end = Math.max(0.002, endRadius);
+    const key = `${Math.round(start * 1000)}:${Math.round(end * 1000)}`;
+    if (!taperedMeshCache.has(key)) {
+      taperedMeshCache.set(key, createCylinderMesh(24, start, end));
+    }
+    return taperedMeshCache.get(key);
+  }
+
+  function createCylinderMesh(segments, startRadius, endRadius) {
     const vertices = [];
     const indices = [];
+    const normalY = startRadius - endRadius;
     for (let i = 0; i <= segments; i += 1) {
       const u = i / segments;
       const angle = u * Math.PI * 2;
       const x = Math.cos(angle);
       const z = Math.sin(angle);
-      vertices.push(x, -0.5, z, x, 0, z);
-      vertices.push(x, 0.5, z, x, 0, z);
+      const normal = normalizeVecOr([x, normalY, z], [x, 0, z]);
+      vertices.push(x * startRadius, -0.5, z * startRadius, normal[0], normal[1], normal[2]);
+      vertices.push(x * endRadius, 0.5, z * endRadius, normal[0], normal[1], normal[2]);
     }
     for (let i = 0; i < segments; i += 1) {
       const a = i * 2;
@@ -443,15 +641,20 @@
       precision mediump float;
       uniform vec4 uColor;
       uniform vec3 uLightDirection;
+      uniform vec3 uCameraPosition;
       uniform float uAmbient;
       varying vec3 vNormal;
       varying vec3 vWorld;
       void main() {
         vec3 normal = normalize(vNormal);
-        float diffuse = max(dot(normal, normalize(uLightDirection)), 0.0);
-        float rim = pow(1.0 - max(dot(normal, vec3(0.0, 0.0, 1.0)), 0.0), 2.0) * 0.18;
-        float shade = min(1.0, uAmbient + diffuse * 0.64 + rim);
-        vec3 color = uColor.rgb * shade + vec3(1.0) * diffuse * 0.045;
+        vec3 light = normalize(uLightDirection);
+        vec3 viewDir = normalize(uCameraPosition - vWorld);
+        vec3 halfDir = normalize(light + viewDir);
+        float diffuse = max(dot(normal, light), 0.0);
+        float rim = pow(1.0 - max(dot(normal, viewDir), 0.0), 2.0) * 0.16;
+        float specular = pow(max(dot(normal, halfDir), 0.0), 18.0) * 0.10;
+        float shade = min(1.0, uAmbient + diffuse * 0.66 + rim);
+        vec3 color = uColor.rgb * shade + vec3(1.0) * (diffuse * 0.035 + specular);
         gl_FragColor = vec4(color, uColor.a);
       }
     `;
@@ -547,6 +750,12 @@
     return scaleVec(a, 1 / length);
   }
 
+  function normalizeVecOr(a, fallback) {
+    const length = lengthVec(a);
+    if (!Number.isFinite(length) || length < 0.00001) return fallback;
+    return scaleVec(a, 1 / length);
+  }
+
   function lerpVec(a, b, t) {
     return [
       a[0] + (b[0] - a[0]) * t,
@@ -568,11 +777,23 @@
     const value = Number.parseInt(normalized.length === 3
       ? normalized.split('').map((part) => part + part).join('')
       : normalized, 16);
+    if (!Number.isFinite(value)) return [0.247, 0.494, 0.91, alpha];
     return [
       ((value >> 16) & 255) / 255,
       ((value >> 8) & 255) / 255,
       (value & 255) / 255,
       alpha,
+    ];
+  }
+
+  function colorShade(color, amount) {
+    const target = amount >= 0 ? [1, 1, 1] : [0, 0, 0];
+    const t = Math.min(1, Math.abs(amount));
+    return [
+      color[0] + (target[0] - color[0]) * t,
+      color[1] + (target[1] - color[1]) * t,
+      color[2] + (target[2] - color[2]) * t,
+      color[3],
     ];
   }
 }());
