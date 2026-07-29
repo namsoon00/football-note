@@ -34,6 +34,25 @@ void main() {
     expect(pose, isNull);
   });
 
+  test('keeps a readable professional reference when evidence loses limbs', () {
+    final pose = retargetProfessionalRunnerPose(
+      measuredPoints: const <int, Offset>{
+        11: Offset(48, 34),
+        12: Offset(56, 35),
+        23: Offset(50, 96),
+        24: Offset(58, 96),
+      },
+      forward: 1,
+    );
+
+    expect(pose, isNotNull);
+    expect(pose!.measuredIndices, equals(const <int>{11, 12, 23, 24}));
+    expect(pose.points[27], isNotNull);
+    expect(pose.points[28], isNotNull);
+    expect(pose.points[15], isNotNull);
+    expect(pose.points[16], isNotNull);
+  });
+
   testWidgets('loads and paints the professional runner illustration atlas',
       (tester) async {
     final paintedPixels = await tester.runAsync(() async {
@@ -101,6 +120,44 @@ void main() {
     });
 
     expect(paintedPixels, greaterThan(6000));
+  });
+
+  testWidgets('fits a sparse-evidence reference inside a report panel',
+      (tester) async {
+    final paintedPixels = await tester.runAsync(() async {
+      final atlas = await loadProfessionalRunnerArtAtlas();
+      final pose = retargetProfessionalRunnerPose(
+        measuredPoints: const <int, Offset>{
+          11: Offset(48, 34),
+          12: Offset(56, 35),
+          23: Offset(50, 96),
+          24: Offset(58, 96),
+        },
+        forward: 1,
+      )!;
+      final recorder = PictureRecorder();
+      final canvas = Canvas(recorder);
+
+      paintIllustratedProfessionalRunner(
+        canvas,
+        atlas: atlas,
+        pose: pose,
+        accentColor: const Color(0xFFFA6E7A),
+        isTarget: false,
+        bounds: const Rect.fromLTWH(0, 0, 108, 214),
+      );
+
+      final image = await recorder.endRecording().toImage(108, 214);
+      final bytes = await image.toByteData(format: ImageByteFormat.rawRgba);
+      image.dispose();
+      return <int>[
+        for (var offset = 3; offset < bytes!.lengthInBytes; offset += 4)
+          if (bytes.buffer.asUint8List()[offset] > 0)
+            bytes.buffer.asUint8List()[offset],
+      ].length;
+    });
+
+    expect(paintedPixels, greaterThan(1800));
   });
 }
 

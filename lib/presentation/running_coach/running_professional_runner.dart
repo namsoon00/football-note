@@ -8,6 +8,7 @@ import 'dart:ui';
 /// athlete without inferring the runner's body or identity.
 class RunningProfessionalRunnerPose {
   final Map<int, Offset> points;
+  final Set<int> measuredIndices;
   final Offset shoulderCenter;
   final Offset hipCenter;
   final Offset neck;
@@ -18,6 +19,7 @@ class RunningProfessionalRunnerPose {
 
   const RunningProfessionalRunnerPose._({
     required this.points,
+    required this.measuredIndices,
     required this.shoulderCenter,
     required this.hipCenter,
     required this.neck,
@@ -33,27 +35,18 @@ class RunningProfessionalRunnerPose {
 /// [forward] is positive for left-to-right running and negative for
 /// right-to-left running. It only determines orientation of the reference
 /// artwork; the coordinates used for the coaching trace remain measured.
+///
+/// Evidence frames can lose an arm or a lower leg while the torso is still
+/// stable. In that case the instructional athlete completes only the missing
+/// joints from the visible torso. This keeps the reference card readable
+/// without turning inferred locations into measured coaching evidence.
 RunningProfessionalRunnerPose? retargetProfessionalRunnerPose({
   required Map<int, Offset> measuredPoints,
   required double forward,
 }) {
-  const requiredIndices = <int>{
-    11,
-    12,
-    13,
-    14,
-    15,
-    16,
-    23,
-    24,
-    25,
-    26,
-    27,
-    28,
-  };
-  if (!requiredIndices.every(measuredPoints.containsKey)) return null;
-
   final points = Map<int, Offset>.from(measuredPoints);
+  final measuredIndices = Set<int>.unmodifiable(measuredPoints.keys);
+  if (!_completeSparsePose(points, forward: forward)) return null;
   final shoulderCenter = _midpoint(points[11]!, points[12]!);
   final hipCenter = _midpoint(points[23]!, points[24]!);
   final torsoLength = (hipCenter - shoulderCenter).distance;
@@ -85,6 +78,7 @@ RunningProfessionalRunnerPose? retargetProfessionalRunnerPose({
 
   return RunningProfessionalRunnerPose._(
     points: Map<int, Offset>.unmodifiable(points),
+    measuredIndices: measuredIndices,
     shoulderCenter: shoulderCenter,
     hipCenter: hipCenter,
     neck: neck,
@@ -93,6 +87,156 @@ RunningProfessionalRunnerPose? retargetProfessionalRunnerPose({
     bodyScale: bodyScale,
     forward: forward >= 0 ? 1 : -1,
   );
+}
+
+bool _completeSparsePose(Map<int, Offset> points, {required double forward}) {
+  final shoulderCenter = _pairCenter(points[11], points[12]);
+  final hipCenter = _pairCenter(points[23], points[24]);
+  if (shoulderCenter == null || hipCenter == null) return false;
+
+  final measuredTorso = hipCenter - shoulderCenter;
+  final torsoLength = measuredTorso.distance.clamp(12.0, 280.0).toDouble();
+  var downAxis = _unit(measuredTorso);
+  if (downAxis == Offset.zero) downAxis = const Offset(0, 1);
+
+  final lateralAxis = _perp(downAxis);
+  final shoulderHalfWidth = (torsoLength * 0.065).clamp(1.5, 22.0).toDouble();
+  final hipHalfWidth = (torsoLength * 0.075).clamp(1.5, 24.0).toDouble();
+  _completePair(
+    points,
+    firstIndex: 11,
+    secondIndex: 12,
+    center: shoulderCenter,
+    lateralAxis: lateralAxis,
+    halfWidth: shoulderHalfWidth,
+  );
+  _completePair(
+    points,
+    firstIndex: 23,
+    secondIndex: 24,
+    center: hipCenter,
+    lateralAxis: lateralAxis,
+    halfWidth: hipHalfWidth,
+  );
+
+  final forwardAxis = Offset(forward >= 0 ? 1 : -1, 0);
+  final legLength = (torsoLength * 1.72).clamp(20.0, 460.0).toDouble();
+  _completeLeg(
+    points,
+    hipIndex: 23,
+    kneeIndex: 25,
+    ankleIndex: 27,
+    downAxis: downAxis,
+    forwardAxis: forwardAxis,
+    legLength: legLength,
+    lead: true,
+  );
+  _completeLeg(
+    points,
+    hipIndex: 24,
+    kneeIndex: 26,
+    ankleIndex: 28,
+    downAxis: downAxis,
+    forwardAxis: forwardAxis,
+    legLength: legLength,
+    lead: false,
+  );
+
+  final armLength = (torsoLength * 0.86).clamp(12.0, 220.0).toDouble();
+  _completeArm(
+    points,
+    shoulderIndex: 11,
+    elbowIndex: 13,
+    wristIndex: 15,
+    downAxis: downAxis,
+    forwardAxis: forwardAxis,
+    armLength: armLength,
+    forwardSwing: true,
+  );
+  _completeArm(
+    points,
+    shoulderIndex: 12,
+    elbowIndex: 14,
+    wristIndex: 16,
+    downAxis: downAxis,
+    forwardAxis: forwardAxis,
+    armLength: armLength,
+    forwardSwing: false,
+  );
+  return true;
+}
+
+Offset? _pairCenter(Offset? first, Offset? second) {
+  if (first == null && second == null) return null;
+  if (first == null) return second;
+  if (second == null) return first;
+  return _midpoint(first, second);
+}
+
+void _completePair(
+  Map<int, Offset> points, {
+  required int firstIndex,
+  required int secondIndex,
+  required Offset center,
+  required Offset lateralAxis,
+  required double halfWidth,
+}) {
+  final first = points[firstIndex];
+  final second = points[secondIndex];
+  if (first == null && second == null) {
+    points[firstIndex] = center - _scale(lateralAxis, halfWidth);
+    points[secondIndex] = center + _scale(lateralAxis, halfWidth);
+  } else if (first == null) {
+    points[firstIndex] = second! - _scale(lateralAxis, halfWidth * 2);
+  } else if (second == null) {
+    points[secondIndex] = first + _scale(lateralAxis, halfWidth * 2);
+  }
+}
+
+void _completeLeg(
+  Map<int, Offset> points, {
+  required int hipIndex,
+  required int kneeIndex,
+  required int ankleIndex,
+  required Offset downAxis,
+  required Offset forwardAxis,
+  required double legLength,
+  required bool lead,
+}) {
+  final hip = points[hipIndex];
+  if (hip == null) return;
+  final stride = lead ? 0.34 : -0.22;
+  final knee = hip +
+      _scale(downAxis, legLength * 0.42) +
+      _scale(forwardAxis, legLength * stride);
+  final ankle = hip +
+      _scale(downAxis, legLength * (lead ? 0.96 : 0.84)) +
+      _scale(forwardAxis, legLength * (lead ? 0.52 : -0.46));
+  points.putIfAbsent(kneeIndex, () => knee);
+  points.putIfAbsent(ankleIndex, () => ankle);
+}
+
+void _completeArm(
+  Map<int, Offset> points, {
+  required int shoulderIndex,
+  required int elbowIndex,
+  required int wristIndex,
+  required Offset downAxis,
+  required Offset forwardAxis,
+  required double armLength,
+  required bool forwardSwing,
+}) {
+  final shoulder = points[shoulderIndex];
+  if (shoulder == null) return;
+  final swing = forwardSwing ? 1.0 : -1.0;
+  final elbow = shoulder +
+      _scale(downAxis, armLength * 0.38) +
+      _scale(forwardAxis, armLength * 0.28 * swing);
+  final wrist = shoulder +
+      _scale(downAxis, armLength * 0.66) +
+      _scale(forwardAxis, armLength * 0.56 * swing);
+  points.putIfAbsent(elbowIndex, () => elbow);
+  points.putIfAbsent(wristIndex, () => wrist);
 }
 
 void _retargetHinge(

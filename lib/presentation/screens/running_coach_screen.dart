@@ -5716,6 +5716,7 @@ class _PoseGoalMotionPainter extends CustomPainter {
       accent: actualAccent,
       opacity: 1,
       isTarget: false,
+      bounds: actualPanel,
     );
 
     final targetEnd = _targetPoints(targetStart);
@@ -5735,6 +5736,7 @@ class _PoseGoalMotionPainter extends CustomPainter {
       accent: targetAccent,
       opacity: 0.98,
       isTarget: true,
+      bounds: targetPanel,
     );
   }
 
@@ -5822,6 +5824,7 @@ class _PoseGoalMotionPainter extends CustomPainter {
     required Color accent,
     required double opacity,
     required bool isTarget,
+    required Rect bounds,
   }) {
     final runner = retargetProfessionalRunnerPose(
       measuredPoints: points,
@@ -5841,6 +5844,7 @@ class _PoseGoalMotionPainter extends CustomPainter {
       isTarget: isTarget,
       accentColor: accent,
       focusIndices: _focusIndices,
+      bounds: bounds,
     );
     canvas.restore();
   }
@@ -7409,6 +7413,7 @@ class _MeasuredPoseMovementMapPainter extends CustomPainter {
     _drawGround(canvas, panel, actualPoints);
     _drawSkeleton(
       canvas,
+      panel,
       actualPoints,
       currentAccent: actualAccent,
     );
@@ -7497,6 +7502,7 @@ class _MeasuredPoseMovementMapPainter extends CustomPainter {
 
   void _drawSkeleton(
     Canvas canvas,
+    Rect panel,
     Map<int, Offset> points, {
     required Color currentAccent,
   }) {
@@ -7513,6 +7519,7 @@ class _MeasuredPoseMovementMapPainter extends CustomPainter {
       pose: runner,
       accentColor: currentAccent,
       isTarget: false,
+      bounds: panel,
     );
   }
 
