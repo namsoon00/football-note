@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/domain/entities/running_video_analysis_result.dart';
+import 'package:football_note/presentation/running_coach/running_coordinate_athlete_art.dart';
 import 'package:football_note/presentation/running_coach/running_pose_comparison.dart';
 
 void main() {
@@ -104,6 +105,14 @@ void main() {
       find.byKey(const ValueKey('running-coach-coordinate-pose-comparison')),
       findsOneWidget,
     );
+    await tester.runAsync(loadRunningCoordinateAthleteArt);
+    await tester.pump();
+    final comparison = tester.widget<CustomPaint>(
+      find.byKey(const ValueKey('running-coach-coordinate-pose-comparison')),
+    );
+    final painter =
+        comparison.painter! as RunningPoseCoordinateComparisonPainter;
+    expect(painter.athleteArt, isNotNull);
     expect(tester.takeException(), isNull);
   });
 }

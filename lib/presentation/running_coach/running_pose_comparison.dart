@@ -1,12 +1,27 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 
 import '../../application/running_coaching_service.dart';
 import '../../domain/entities/running_video_analysis_result.dart';
+import 'running_coordinate_athlete_art.dart';
 import 'running_pose_overlay.dart';
 
 const _comparisonCanvasPadding = 18.0;
 const _minimumMovedDistance = 0.75;
+const _athleteArtworkSource = Rect.fromLTWH(40, 96, 920, 1236);
+
+const _coordinateTraceChains = <List<int>>[
+  <int>[0, 7, 11, 23],
+  <int>[0, 8, 12, 24],
+  <int>[11, 13, 15, 19],
+  <int>[12, 14, 16, 20],
+  <int>[23, 25, 27, 31],
+  <int>[24, 26, 28, 32],
+  <int>[27, 29, 31],
+  <int>[28, 30, 32],
+];
 
 @visibleForTesting
 class RunningPoseComparisonSnapshot {
@@ -69,22 +84,30 @@ class RunningPoseCoordinateComparison extends StatelessWidget {
     return Semantics(
       image: true,
       label: semanticLabel,
-      child: AnimatedBuilder(
-        animation: progress,
-        builder: (context, _) {
-          return CustomPaint(
-            key: const ValueKey('running-coach-coordinate-pose-comparison'),
-            painter: RunningPoseCoordinateComparisonPainter(
-              frame: frame,
-              insight: insight,
-              direction: direction,
-              progress: progress.value,
-              surfaceColor: surfaceColor,
-              mutedColor: mutedColor,
-              actualAccent: actualAccent,
-              targetAccent: targetAccent,
-              successAccent: successAccent,
-            ),
+      child: FutureBuilder<ui.Image>(
+        future: loadRunningCoordinateAthleteArt(),
+        builder: (context, snapshot) {
+          return AnimatedBuilder(
+            animation: progress,
+            builder: (context, _) {
+              return CustomPaint(
+                key: const ValueKey(
+                  'running-coach-coordinate-pose-comparison',
+                ),
+                painter: RunningPoseCoordinateComparisonPainter(
+                  frame: frame,
+                  insight: insight,
+                  direction: direction,
+                  progress: progress.value,
+                  surfaceColor: surfaceColor,
+                  mutedColor: mutedColor,
+                  actualAccent: actualAccent,
+                  targetAccent: targetAccent,
+                  successAccent: successAccent,
+                  athleteArt: snapshot.data,
+                ),
+              );
+            },
           );
         },
       ),
@@ -102,6 +125,7 @@ class RunningPoseCoordinateComparisonPainter extends CustomPainter {
   final Color actualAccent;
   final Color targetAccent;
   final Color successAccent;
+  final ui.Image? athleteArt;
   final RunningCoachingThresholds thresholds;
 
   const RunningPoseCoordinateComparisonPainter({
@@ -114,6 +138,7 @@ class RunningPoseCoordinateComparisonPainter extends CustomPainter {
     required this.actualAccent,
     required this.targetAccent,
     required this.successAccent,
+    this.athleteArt,
     this.thresholds = const RunningCoachingThresholds(),
   });
 
@@ -138,17 +163,16 @@ class RunningPoseCoordinateComparisonPainter extends CustomPainter {
       RRect.fromRectAndRadius(panel, const Radius.circular(8)),
     );
     _drawGround(canvas, snapshot);
+    _drawAthleteArtwork(canvas, snapshot);
     _drawMetricGuide(canvas, snapshot);
 
     if (_isGood) {
-      _drawPose(
+      _drawMeasuredCoordinateTrace(
         canvas,
         snapshot.currentPoints,
         accent: successAccent,
-        secondaryAccent: Color.lerp(successAccent, mutedColor, 0.32)!,
         opacity: 0.92,
         focusIndices: _focusIndices,
-        canvasSize: size,
       );
     } else {
       final eased = Curves.easeInOutCubic.transform(
@@ -159,33 +183,27 @@ class RunningPoseCoordinateComparisonPainter extends CustomPainter {
         snapshot.targetPoints,
         eased,
       );
-      _drawPose(
+      _drawMeasuredCoordinateTrace(
         canvas,
         snapshot.currentPoints,
         accent: actualAccent,
-        secondaryAccent: Color.lerp(actualAccent, mutedColor, 0.36)!,
-        opacity: 0.46,
+        opacity: 0.64,
         focusIndices: _focusIndices,
-        canvasSize: size,
       );
-      _drawPose(
+      _drawMeasuredCoordinateTrace(
         canvas,
         snapshot.targetPoints,
         accent: targetAccent,
-        secondaryAccent: Color.lerp(targetAccent, mutedColor, 0.28)!,
         opacity: 0.22,
         focusIndices: _focusIndices,
-        canvasSize: size,
       );
       _drawMovementVectors(canvas, snapshot);
-      _drawPose(
+      _drawMeasuredCoordinateTrace(
         canvas,
         animatedPoints,
         accent: targetAccent,
-        secondaryAccent: Color.lerp(targetAccent, mutedColor, 0.18)!,
         opacity: 0.86,
         focusIndices: _focusIndices,
-        canvasSize: size,
       );
     }
     canvas.restore();
@@ -416,28 +434,132 @@ class RunningPoseCoordinateComparisonPainter extends CustomPainter {
     );
   }
 
-  void _drawPose(
+  void _drawAthleteArtwork(
+    Canvas canvas,
+    RunningPoseComparisonSnapshot snapshot,
+  ) {
+    final art = athleteArt;
+    if (art == null) return;
+    final destination = _athleteArtworkRect(snapshot);
+    if (destination.isEmpty) return;
+    final paint = Paint()
+      ..filterQuality = FilterQuality.high
+      ..isAntiAlias = true
+      ..color = Colors.white.withValues(alpha: _isGood ? 0.94 : 0.48);
+
+    canvas.save();
+    if (snapshot.forward < 0) {
+      canvas.translate(destination.center.dx * 2, 0);
+      canvas.scale(-1, 1);
+    }
+    canvas.drawImageRect(art, _athleteArtworkSource, destination, paint);
+    canvas.restore();
+  }
+
+  Rect _athleteArtworkRect(RunningPoseComparisonSnapshot snapshot) {
+    final torso = _torso(snapshot.currentPoints);
+    final panel = snapshot.panel.deflate(10);
+    if (torso == null || panel.isEmpty) return panel;
+
+    final top = _poseTop(snapshot.currentPoints, fallback: panel.top);
+    final naturalHeight = math.max(1.0, snapshot.groundY - top + 10);
+    final sourceAspect =
+        _athleteArtworkSource.width / _athleteArtworkSource.height;
+    var height = naturalHeight.clamp(panel.height * 0.68, panel.height * 0.98);
+    var width = height * sourceAspect;
+    if (width > panel.width * 0.90) {
+      width = panel.width * 0.90;
+      height = width / sourceAspect;
+    }
+
+    const sourceHipFraction = 0.51;
+    final visualHipFraction =
+        snapshot.forward < 0 ? 1 - sourceHipFraction : sourceHipFraction;
+    final left = (torso.hip.dx - width * visualHipFraction)
+        .clamp(panel.left, panel.right - width)
+        .toDouble();
+    final placementTop = (top - height * 0.02)
+        .clamp(panel.top, panel.bottom - height)
+        .toDouble();
+    return Rect.fromLTWH(left, placementTop, width, height);
+  }
+
+  double _poseTop(Map<int, Offset> points, {required double fallback}) {
+    final candidates = <Offset>[
+      for (final index in <int>[0, 7, 8, 11, 12])
+        if (points[index] case final point?) point,
+    ];
+    if (candidates.isEmpty) return fallback;
+    return candidates.map((point) => point.dy).reduce(math.min);
+  }
+
+  void _drawMeasuredCoordinateTrace(
     Canvas canvas,
     Map<int, Offset> points, {
     required Color accent,
-    required Color secondaryAccent,
     required double opacity,
     required Set<int> focusIndices,
-    required Size canvasSize,
   }) {
-    paintRunningPoseHumanForm(
-      canvas,
-      points: points,
-      canvasSize: canvasSize,
-      focusIndices: focusIndices,
-      style: runningPoseStudioRunnerStyle(
-        accentColor: accent,
-        secondaryAccent: secondaryAccent,
-        focusColor: accent,
-        jointColor: Color.lerp(surfaceColor, Colors.white, 0.42)!,
-        opacity: opacity,
-      ),
+    final neutral = Color.lerp(mutedColor, Colors.white, 0.64)!;
+    final neutralPaint = _stroke(
+      neutral,
+      width: 1.35,
+      opacity: opacity * 0.22,
     );
+    final accentHalo = _stroke(
+      accent,
+      width: 7.4,
+      opacity: opacity * 0.16,
+    );
+    final accentPaint = _stroke(
+      accent,
+      width: 3.0,
+      opacity: opacity,
+    );
+
+    for (final chain in _coordinateTraceChains) {
+      final isFocused = chain.any(focusIndices.contains);
+      if (isFocused) {
+        _drawCoordinateChain(canvas, points, chain, accentHalo);
+        _drawCoordinateChain(canvas, points, chain, accentPaint);
+      } else {
+        _drawCoordinateChain(canvas, points, chain, neutralPaint);
+      }
+    }
+
+    for (final index in focusIndices) {
+      final point = points[index];
+      if (point == null) continue;
+      canvas.drawCircle(
+        point,
+        7.4,
+        Paint()..color = accent.withValues(alpha: opacity * 0.17),
+      );
+      canvas.drawCircle(
+        point,
+        4.0,
+        Paint()..color = accent.withValues(alpha: opacity),
+      );
+      canvas.drawCircle(
+        point,
+        1.8,
+        Paint()..color = surfaceColor.withValues(alpha: opacity * 0.94),
+      );
+    }
+  }
+
+  void _drawCoordinateChain(
+    Canvas canvas,
+    Map<int, Offset> points,
+    List<int> chain,
+    Paint paint,
+  ) {
+    for (var index = 0; index < chain.length - 1; index += 1) {
+      final start = points[chain[index]];
+      final end = points[chain[index + 1]];
+      if (start == null || end == null) continue;
+      canvas.drawLine(start, end, paint);
+    }
   }
 
   void _drawMovementVectors(
@@ -575,6 +697,7 @@ class RunningPoseCoordinateComparisonPainter extends CustomPainter {
         oldDelegate.actualAccent != actualAccent ||
         oldDelegate.targetAccent != targetAccent ||
         oldDelegate.successAccent != successAccent ||
+        oldDelegate.athleteArt != athleteArt ||
         oldDelegate.thresholds != thresholds;
   }
 }

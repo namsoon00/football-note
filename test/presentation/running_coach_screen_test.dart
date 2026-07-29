@@ -31,6 +31,7 @@ void main() {
       'assets/images/running_guides/capture_outdoor_side_reference.jpg',
       'assets/images/running_guides/target_posture.png',
       'assets/images/running_guides/target_landing.png',
+      'assets/images/running_guides/running_coordinate_athlete_v1.png',
     ];
 
     for (final asset in guideAssets) {

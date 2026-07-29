@@ -9525,6 +9525,10 @@ class AppLocalizationsKo extends AppLocalizations {
       '현재 측정 위치가 이미 목표 범위 안에 있어요. 이 움직임을 유지해 보세요.';
 
   @override
+  String get runningCoachMeasuredPoseGoodCue =>
+      '현재 움직임이 목표 범위 안에 있어요. 같은 리듬을 유지하세요.';
+
+  @override
   String runningCoachMeasuredPoseRangeDegrees(String minimum, String maximum) {
     return '$minimum–$maximum°';
   }

@@ -9512,6 +9512,9 @@ class AppLocalizationsJa extends AppLocalizations {
       '測定した位置はすでに目標範囲内です。この動きを維持しましょう。';
 
   @override
+  String get runningCoachMeasuredPoseGoodCue => '現在の動きは目標範囲内です。同じリズムを保ちましょう。';
+
+  @override
   String runningCoachMeasuredPoseRangeDegrees(String minimum, String maximum) {
     return '$minimum～$maximum°';
   }
