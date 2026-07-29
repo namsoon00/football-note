@@ -78,6 +78,9 @@ echo "==> android upload mediapipe contract"
 echo "==> web upload video analysis contract"
 ./scripts/test_web_running_video_analysis_contract.sh
 
+echo "==> running 3D runner renderer contract"
+./scripts/test_running_3d_runner_renderer_contract.sh
+
 echo "==> running release video fixture contract"
 ./scripts/test_running_release_video_fixtures_contract.sh
 
