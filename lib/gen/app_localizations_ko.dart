@@ -8819,6 +8819,32 @@ class AppLocalizationsKo extends AppLocalizations {
       '이 프레임의 관절 좌표가 부족해 동작 비교를 만들 수 없어요.';
 
   @override
+  String get runningCoachThreeDComparisonTitle => '3D 러너 비교';
+
+  @override
+  String get runningCoachThreeDCurrentLabel => '현재 3D 러너';
+
+  @override
+  String get runningCoachThreeDTargetLabel => '다음 3D 목표';
+
+  @override
+  String get runningCoachThreeDConfidenceLabel => '추적';
+
+  @override
+  String get runningCoachThreeDRendererLoading => '3D 러너를 불러오는 중...';
+
+  @override
+  String get runningCoachThreeDRendererUnavailable =>
+      '이 프레임으로는 3D 러너를 만들 수 없어요. 전신 랜드마크가 보이는 더 선명한 측면 영상을 사용해 주세요.';
+
+  @override
+  String get runningCoachThreeDRendererError => '로컬 WebGL 러너를 시작할 수 없어요.';
+
+  @override
+  String get runningCoachThreeDReferenceNotice =>
+      '포즈 랜드마크 기반의 일반 기준 아바타이며, 내 신체를 재구성한 것이 아니에요.';
+
+  @override
   String get runningCoachHistoryEvidenceUnavailableTitle => '저장된 관절 근거 없음';
 
   @override

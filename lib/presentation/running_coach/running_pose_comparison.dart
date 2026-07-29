@@ -9,6 +9,7 @@ import 'running_coach_avatar.dart';
 import 'running_pose_overlay.dart';
 import 'running_professional_runner.dart';
 import 'running_professional_runner_art.dart';
+import 'running_three_d_runner_view.dart';
 
 const _comparisonCanvasPadding = 18.0;
 const _minimumMovedDistance = 0.75;
@@ -45,6 +46,7 @@ class RunningPoseComparisonSnapshot {
 
 class RunningPoseCoordinateComparison extends StatelessWidget {
   final RunningPoseFrame frame;
+  final Iterable<RunningPoseFrame> poseFrames;
   final RunningCoachingInsight insight;
   final RunningDirection direction;
   final Animation<double> progress;
@@ -60,6 +62,7 @@ class RunningPoseCoordinateComparison extends StatelessWidget {
   const RunningPoseCoordinateComparison({
     super.key,
     required this.frame,
+    this.poseFrames = const <RunningPoseFrame>[],
     required this.insight,
     required this.direction,
     required this.progress,
@@ -78,6 +81,8 @@ class RunningPoseCoordinateComparison extends StatelessWidget {
     final isGood = insight.status == RunningCoachStatus.good;
     final currentColor = isGood ? successAccent : actualAccent;
     final nextColor = isGood ? successAccent : targetAccent;
+    final sequence =
+        poseFrames.isEmpty ? <RunningPoseFrame>[frame] : poseFrames;
     return Semantics(
       image: true,
       label: semanticLabel,
@@ -122,34 +127,19 @@ class RunningPoseCoordinateComparison extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Expanded(
-            child: FutureBuilder<ui.Image>(
-              future: loadProfessionalRunnerArtAtlas(),
-              builder: (context, artSnapshot) {
-                return AnimatedBuilder(
-                  animation: progress,
-                  builder: (context, _) {
-                    return SizedBox.expand(
-                      child: CustomPaint(
-                        key: const ValueKey(
-                          'running-coach-coordinate-pose-comparison',
-                        ),
-                        painter: RunningPoseCoordinateComparisonPainter(
-                          frame: frame,
-                          insight: insight,
-                          direction: direction,
-                          progress: progress.value,
-                          surfaceColor: surfaceColor,
-                          mutedColor: mutedColor,
-                          actualAccent: actualAccent,
-                          targetAccent: targetAccent,
-                          successAccent: successAccent,
-                          artAtlas: artSnapshot.data,
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
+            child: RunningThreeDRunnerComparisonView(
+              key: const ValueKey(
+                'running-coach-coordinate-pose-comparison',
+              ),
+              poseFrames: sequence,
+              selectedFrame: frame,
+              insight: insight,
+              direction: direction,
+              currentColor: currentColor,
+              targetColor: nextColor,
+              successColor: successAccent,
+              currentLabel: currentLabel,
+              targetLabel: nextStepLabel,
             ),
           ),
         ],

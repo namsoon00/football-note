@@ -41,6 +41,12 @@ class RunningVideoPoseLandmark {
   final double? visibility;
   final double? presence;
   final double confidence;
+  final double? worldX;
+  final double? worldY;
+  final double? worldZ;
+  final double? worldVisibility;
+  final double? worldPresence;
+  final double? worldConfidence;
 
   const RunningVideoPoseLandmark({
     required this.index,
@@ -50,7 +56,16 @@ class RunningVideoPoseLandmark {
     required this.visibility,
     required this.presence,
     required this.confidence,
+    this.worldX,
+    this.worldY,
+    this.worldZ,
+    this.worldVisibility,
+    this.worldPresence,
+    this.worldConfidence,
   });
+
+  bool get hasWorldCoordinates =>
+      worldX != null && worldY != null && worldZ != null;
 
   Map<String, Object?> toMap() {
     return <String, Object?>{
@@ -61,6 +76,14 @@ class RunningVideoPoseLandmark {
       if (visibility != null) 'visibility': visibility,
       if (presence != null) 'presence': presence,
       'confidence': confidence,
+      if (hasWorldCoordinates) ...<String, Object?>{
+        'worldX': worldX,
+        'worldY': worldY,
+        'worldZ': worldZ,
+      },
+      if (worldVisibility != null) 'worldVisibility': worldVisibility,
+      if (worldPresence != null) 'worldPresence': worldPresence,
+      if (worldConfidence != null) 'worldConfidence': worldConfidence,
     };
   }
 
@@ -81,6 +104,14 @@ class RunningVideoPoseLandmark {
         confidence == null) {
       return null;
     }
+    final world = _asObjectMap(map['world']);
+    final worldX = _finiteDouble(map['worldX']) ?? _finiteDouble(world?['x']);
+    final worldY = _finiteDouble(map['worldY']) ?? _finiteDouble(world?['y']);
+    final worldZ = _finiteDouble(map['worldZ']) ?? _finiteDouble(world?['z']);
+    final hasWorldCoordinates =
+        worldX != null && worldY != null && worldZ != null;
+    final worldConfidence = _finiteDouble(map['worldConfidence']) ??
+        _finiteDouble(world?['confidence']);
     return RunningVideoPoseLandmark(
       index: index,
       x: x,
@@ -89,6 +120,14 @@ class RunningVideoPoseLandmark {
       visibility: _finiteDouble(map['visibility']),
       presence: _finiteDouble(map['presence']),
       confidence: confidence.clamp(0.0, 1.0).toDouble(),
+      worldX: hasWorldCoordinates ? worldX : null,
+      worldY: hasWorldCoordinates ? worldY : null,
+      worldZ: hasWorldCoordinates ? worldZ : null,
+      worldVisibility: _finiteDouble(map['worldVisibility']) ??
+          _finiteDouble(world?['visibility']),
+      worldPresence: _finiteDouble(map['worldPresence']) ??
+          _finiteDouble(world?['presence']),
+      worldConfidence: worldConfidence?.clamp(0.0, 1.0).toDouble(),
     );
   }
 }

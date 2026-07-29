@@ -1,10 +1,9 @@
-import 'dart:ui' as ui;
-
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/domain/entities/running_video_analysis_result.dart';
+import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/running_coach/running_pose_comparison.dart';
-import 'package:football_note/presentation/running_coach/running_professional_runner_art.dart';
 
 void main() {
   const panel = Rect.fromLTWH(0, 0, 320, 248);
@@ -68,19 +67,7 @@ void main() {
     );
   });
 
-  testWidgets('repaints when the professional runner art atlas resolves', (
-    WidgetTester tester,
-  ) async {
-    final atlas = await tester.runAsync(loadProfessionalRunnerArtAtlas);
-    final pendingPainter = _comparisonPainter();
-    final loadedPainter = _comparisonPainter(artAtlas: atlas);
-
-    expect(pendingPainter.usesIllustratedRunnerReference, isFalse);
-    expect(loadedPainter.usesIllustratedRunnerReference, isTrue);
-    expect(loadedPainter.shouldRepaint(pendingPainter), isTrue);
-  });
-
-  testWidgets('coordinate comparison paints in a narrow result card', (
+  testWidgets('coordinate comparison selects the 3D runner platform view', (
     WidgetTester tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(320, 600));
@@ -88,6 +75,14 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: SizedBox(
             height: 248,
@@ -122,6 +117,10 @@ void main() {
       findsOneWidget,
     );
     expect(
+      find.byKey(const ValueKey('running-coach-3d-runner-platform-view')),
+      findsOneWidget,
+    );
+    expect(
       find.text('Current'),
       findsOneWidget,
     );
@@ -130,62 +129,11 @@ void main() {
       findsOneWidget,
     );
     expect(
-      find.byWidgetPredicate((widget) => widget is FutureBuilder<ui.Image>),
-      findsOneWidget,
+      find.byWidgetPredicate((widget) => widget is FutureBuilder),
+      findsNothing,
     );
-    await tester.runAsync(loadProfessionalRunnerArtAtlas);
-    await tester.pump();
-    final comparison = tester.widget<CustomPaint>(
-      find.byKey(const ValueKey('running-coach-coordinate-pose-comparison')),
-    );
-    final painter =
-        comparison.painter! as RunningPoseCoordinateComparisonPainter;
-    expect(painter.usesIllustratedRunnerReference, isTrue);
-    final paintedAvatarPixels = await tester.runAsync(() async {
-      final recorder = ui.PictureRecorder();
-      final canvas = ui.Canvas(recorder);
-      painter.paint(canvas, const Size(320, 216));
-      final image = await recorder.endRecording().toImage(320, 216);
-      final bytes = await image.toByteData(format: ui.ImageByteFormat.rawRgba);
-      image.dispose();
-      final rgba = bytes!.buffer.asUint8List();
-      var brightBluePixels = 0;
-      for (var offset = 0; offset < rgba.lengthInBytes; offset += 4) {
-        final red = rgba[offset];
-        final green = rgba[offset + 1];
-        final blue = rgba[offset + 2];
-        if (blue > red + 35 && blue > green + 10 && blue > 125) {
-          brightBluePixels += 1;
-        }
-      }
-      return brightBluePixels;
-    });
-    expect(paintedAvatarPixels, greaterThan(200));
     expect(tester.takeException(), isNull);
   });
-}
-
-RunningPoseCoordinateComparisonPainter _comparisonPainter({
-  ui.Image? artAtlas,
-}) {
-  return RunningPoseCoordinateComparisonPainter(
-    frame: _runningFrame(),
-    insight: const RunningCoachingInsight(
-      metric: RunningCoachMetric.footStrike,
-      finding: RunningCoachFinding.footStrikeOverstride,
-      status: RunningCoachStatus.needsWork,
-      score: 24,
-      value: 0.35,
-    ),
-    direction: RunningDirection.leftToRight,
-    progress: 1,
-    surfaceColor: Colors.white,
-    mutedColor: Colors.blueGrey,
-    actualAccent: Colors.red,
-    targetAccent: Colors.blue,
-    successAccent: Colors.green,
-    artAtlas: artAtlas,
-  );
 }
 
 RunningPoseFrame _runningFrame() {

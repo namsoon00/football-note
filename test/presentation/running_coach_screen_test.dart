@@ -154,6 +154,13 @@ void main() {
             width: 360,
             child: RunningFootStrikeEvidenceReferencePreview(
               evidence: ColoredBox(color: Colors.black),
+              insight: RunningCoachingInsight(
+                metric: RunningCoachMetric.footStrike,
+                finding: RunningCoachFinding.footStrikeOverstride,
+                status: RunningCoachStatus.needsWork,
+                score: 34,
+                value: 0.32,
+              ),
               direction: RunningDirection.leftToRight,
               currentPose: null,
             ),
@@ -164,12 +171,12 @@ void main() {
 
     expect(
       find.text(
-        'This frame does not contain enough joint coordinates to build the motion comparison.',
+        'The 3D runner cannot be built from this frame. Try a clearer side-view clip with full-body landmarks.',
       ),
       findsOneWidget,
     );
     expect(
-      find.byKey(const ValueKey('running-coach-foot-strike-coordinate-rig')),
+      find.byKey(const ValueKey('running-coach-foot-strike-3d-runner')),
       findsNothing,
     );
     expect(tester.takeException(), isNull);

@@ -6,6 +6,7 @@ import android.graphics.PointF
 import android.media.MediaMetadataRetriever
 import android.os.Handler
 import android.os.Looper
+import com.google.mediapipe.tasks.components.containers.Landmark
 import com.google.mediapipe.framework.image.BitmapImageBuilder
 import com.google.mediapipe.tasks.components.containers.NormalizedLandmark
 import com.google.mediapipe.tasks.core.BaseOptions
@@ -910,6 +911,7 @@ class RunningPoseAnalysisChannel(
         if (landmarks.size < mediaPipePoseLandmarkCount) {
             return null
         }
+        val worldLandmarks = result.worldLandmarks().firstOrNull()
 
         return mapOf(
             "timestampMs" to timestampMs.toInt(),
@@ -920,7 +922,8 @@ class RunningPoseAnalysisChannel(
                 .mapIndexed { index, landmark ->
                     val visibility = optionalFloat(landmark.visibility())
                     val presence = optionalFloat(landmark.presence())
-                    mapOf(
+                    val world = worldLandmarks?.getOrNull(index)
+                    val payload = mutableMapOf<String, Any?>(
                         "index" to index,
                         "x" to landmark.x().toDouble(),
                         "y" to landmark.y().toDouble(),
@@ -929,6 +932,18 @@ class RunningPoseAnalysisChannel(
                         "presence" to presence?.toDouble(),
                         "confidence" to landmarkConfidence(landmark).toDouble(),
                     )
+                    if (world != null) {
+                        val imageConfidence = landmarkConfidence(landmark).toDouble()
+                        payload["worldX"] = world.x().toDouble()
+                        payload["worldY"] = world.y().toDouble()
+                        payload["worldZ"] = world.z().toDouble()
+                        payload["worldVisibility"] = optionalFloat(world.visibility())?.toDouble()
+                        payload["worldPresence"] = optionalFloat(world.presence())?.toDouble()
+                        payload["worldConfidence"] =
+                            landmarkConfidence(world).takeIf { it > 0f }?.toDouble()
+                                ?: imageConfidence
+                    }
+                    payload
                 },
         )
     }
@@ -1119,6 +1134,18 @@ class RunningPoseAnalysisChannel(
         if (value.isPresent) value.get() else null
 
     private fun landmarkConfidence(landmark: NormalizedLandmark): Float {
+        val visibility = optionalFloat(landmark.visibility())
+        val presence = optionalFloat(landmark.presence())
+        val confidence = when {
+            visibility != null && presence != null -> min(visibility, presence)
+            visibility != null -> visibility
+            presence != null -> presence
+            else -> 0f
+        }
+        return confidence.coerceIn(0f, 1f)
+    }
+
+    private fun landmarkConfidence(landmark: Landmark): Float {
         val visibility = optionalFloat(landmark.visibility())
         val presence = optionalFloat(landmark.presence())
         val confidence = when {

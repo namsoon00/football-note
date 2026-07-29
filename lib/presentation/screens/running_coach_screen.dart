@@ -5227,6 +5227,7 @@ class _AnalysisEvidenceCardState extends State<_AnalysisEvidenceCard> {
                 copy: copy,
                 insight: widget.insight,
                 poseFrame: _selectedFrame.poseFrame,
+                poseFrames: widget.result.poseFrames,
                 direction: widget.result.direction,
               ),
               const SizedBox(height: 12),
@@ -5508,12 +5509,14 @@ class _EvidencePoseTransition extends StatefulWidget {
   final RunningCoachInsightCopy copy;
   final RunningCoachingInsight insight;
   final RunningPoseFrame? poseFrame;
+  final Iterable<RunningPoseFrame> poseFrames;
   final RunningDirection direction;
 
   const _EvidencePoseTransition({
     required this.copy,
     required this.insight,
     required this.poseFrame,
+    this.poseFrames = const <RunningPoseFrame>[],
     required this.direction,
   });
 
@@ -5639,6 +5642,7 @@ class _EvidencePoseTransitionState extends State<_EvidencePoseTransition>
                       'running-coach-goal-motion-coordinate-comparison',
                     ),
                     frame: poseFrame,
+                    poseFrames: widget.poseFrames,
                     insight: widget.insight,
                     direction: widget.direction,
                     progress: _motionController,
@@ -7576,11 +7580,13 @@ class _RunningTargetGuideAnnotationPainter extends CustomPainter {
 class _MeasuredPoseGuideVisual extends StatefulWidget {
   final RunningCoachingInsight insight;
   final RunningPoseFrame poseFrame;
+  final Iterable<RunningPoseFrame> poseFrames;
   final RunningDirection direction;
 
   const _MeasuredPoseGuideVisual({
     required this.insight,
     required this.poseFrame,
+    this.poseFrames = const <RunningPoseFrame>[],
     required this.direction,
   });
 
@@ -7700,6 +7706,7 @@ class _MeasuredPoseGuideVisualState extends State<_MeasuredPoseGuideVisual>
                 'running-coach-insight-coordinate-comparison-${widget.insight.metric.name}',
               ),
               frame: widget.poseFrame,
+              poseFrames: widget.poseFrames,
               insight: widget.insight,
               direction: widget.direction,
               progress: _motionController,
@@ -9421,6 +9428,7 @@ class _InsightRegionSectionCard extends StatelessWidget {
             insight: insights[index],
             priority: priorities[insights[index].metric],
             poseFrame: _detailPoseFrameFor(result, insights[index]),
+            poseFrames: result.poseFrames,
             direction: result.direction,
           ),
           if (index != insights.length - 1) const SizedBox(height: 12),
@@ -9445,11 +9453,13 @@ class _InsightCard extends StatelessWidget {
   final RunningCoachingInsight insight;
   final int? priority;
   final RunningPoseFrame? poseFrame;
+  final Iterable<RunningPoseFrame> poseFrames;
   final RunningDirection direction;
 
   const _InsightCard({
     required this.insight,
     required this.poseFrame,
+    this.poseFrames = const <RunningPoseFrame>[],
     required this.direction,
     this.priority,
   });
@@ -9525,6 +9535,7 @@ class _InsightCard extends StatelessWidget {
               _MeasuredPoseGuideVisual(
                 insight: insight,
                 poseFrame: poseFrame!,
+                poseFrames: poseFrames,
                 direction: direction,
               )
             else

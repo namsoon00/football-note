@@ -200,23 +200,45 @@
     };
   }
 
-  function poseFrame(landmarks, timestampMs, width, height) {
+  function poseFrame(landmarks, worldLandmarks, timestampMs, width, height) {
     if (!Array.isArray(landmarks) || landmarks.length < 33) return null;
     return {
       timestampMs,
       imageWidth: width,
       imageHeight: height,
-      landmarks: landmarks.slice(0, 33).map((landmark, landmarkIndex) => ({
-        index: landmarkIndex,
-        x: landmark.x,
-        y: landmark.y,
-        z: landmark.z ?? 0,
-        visibility: Number.isFinite(landmark.visibility)
-          ? landmark.visibility
-          : null,
-        presence: Number.isFinite(landmark.presence) ? landmark.presence : null,
-        confidence: landmarkConfidence(landmark),
-      })),
+      landmarks: landmarks.slice(0, 33).map((landmark, landmarkIndex) => {
+        const payload = {
+          index: landmarkIndex,
+          x: landmark.x,
+          y: landmark.y,
+          z: landmark.z ?? 0,
+          visibility: Number.isFinite(landmark.visibility)
+            ? landmark.visibility
+            : null,
+          presence: Number.isFinite(landmark.presence) ? landmark.presence : null,
+          confidence: landmarkConfidence(landmark),
+        };
+        const world = Array.isArray(worldLandmarks)
+          ? worldLandmarks[landmarkIndex]
+          : null;
+        if (
+          Number.isFinite(world?.x) &&
+          Number.isFinite(world?.y) &&
+          Number.isFinite(world?.z)
+        ) {
+          payload.worldX = world.x;
+          payload.worldY = world.y;
+          payload.worldZ = world.z;
+          payload.worldVisibility = Number.isFinite(world.visibility)
+            ? world.visibility
+            : null;
+          payload.worldPresence = Number.isFinite(world.presence)
+            ? world.presence
+            : null;
+          payload.worldConfidence = landmarkConfidence(world) || payload.confidence;
+        }
+        return payload;
+      }),
     };
   }
 
@@ -358,13 +380,14 @@
         lastDetectionTimestamp = detectionTimestamp;
         const result = landmarker.detectForVideo(video, detectionTimestamp);
         const landmarks = result?.landmarks?.[0];
+        const worldLandmarks = result?.worldLandmarks?.[0];
         if (!landmarks) {
           await nextAnimationFrame();
           continue;
         }
         const width = video.videoWidth;
         const height = video.videoHeight;
-        const frame = poseFrame(landmarks, timestampMs, width, height);
+        const frame = poseFrame(landmarks, worldLandmarks, timestampMs, width, height);
         if (frame) poseFrames.push(frame);
         const sample = extractSample(landmarks, timestampMs, width, height);
         if (sample) samples.push(sample);
