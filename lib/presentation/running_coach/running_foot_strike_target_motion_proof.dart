@@ -36,7 +36,7 @@ class _RunningFootStrikeTargetMotionProofState
     extends State<RunningFootStrikeTargetMotionProof>
     with SingleTickerProviderStateMixin {
   late final AnimationController _motionController;
-  bool _isMotionPlaying = true;
+  bool _isMotionPlaying = false;
 
   @override
   void initState() {
@@ -44,7 +44,7 @@ class _RunningFootStrikeTargetMotionProofState
     _motionController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1800),
-    )..repeat(reverse: true);
+    )..value = 1;
   }
 
   @override
@@ -54,13 +54,17 @@ class _RunningFootStrikeTargetMotionProofState
   }
 
   void _toggleMotion() {
+    if (_isMotionPlaying) {
+      _motionController
+        ..stop()
+        ..value = 1;
+    } else {
+      _motionController
+        ..value = 0
+        ..repeat(reverse: true);
+    }
     setState(() {
       _isMotionPlaying = !_isMotionPlaying;
-      if (_isMotionPlaying) {
-        _motionController.repeat(reverse: true);
-      } else {
-        _motionController.stop();
-      }
     });
   }
 

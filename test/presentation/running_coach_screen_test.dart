@@ -1082,6 +1082,15 @@ void main() {
       find.byKey(const ValueKey('running-coach-analysis-evidence-caption')),
       findsOneWidget,
     );
+    await tester.pump(const Duration(milliseconds: 100));
+    final unavailablePlay = find.byKey(
+      const ValueKey('running-coach-evidence-play-pause'),
+    );
+    expect(tester.widget<IconButton>(unavailablePlay).onPressed, isNull);
+    expect(
+      find.byKey(const ValueKey('running-coach-evidence-video-unavailable')),
+      findsOneWidget,
+    );
     expect(
       find.byKey(const ValueKey('running-coach-evidence-details')),
       findsOneWidget,
@@ -1104,6 +1113,14 @@ void main() {
     expect(
       find.byKey(const ValueKey('running-coach-goal-motion-toggle')),
       findsOneWidget,
+    );
+    expect(
+      tester
+          .widget<IconButton>(
+            find.byKey(const ValueKey('running-coach-goal-motion-toggle')),
+          )
+          .tooltip,
+      'Play goal movement',
     );
     expect(find.text('Next landing'), findsOneWidget);
     expect(find.text('Overlay on your uploaded video'), findsOneWidget);
@@ -1313,7 +1330,7 @@ void main() {
           findsOneWidget,
         );
       } else {
-        expect(tester.getSize(goalMotion).height, 214);
+        expect(tester.getSize(goalMotion).height, 232);
       }
       expect(tester.takeException(), isNull);
     }

@@ -2603,6 +2603,7 @@ class _RunningPoseOverlayPainter extends CustomPainter {
   final RunningDirection direction;
   final bool useContainFit;
   final bool showRunnerAvatar;
+  final bool showRefinedPose;
 
   const _RunningPoseOverlayPainter({
     required this.poseFrame,
@@ -2615,6 +2616,7 @@ class _RunningPoseOverlayPainter extends CustomPainter {
     this.direction = RunningDirection.stationary,
     this.useContainFit = false,
     this.showRunnerAvatar = false,
+    this.showRefinedPose = false,
   });
 
   @override
@@ -2624,6 +2626,8 @@ class _RunningPoseOverlayPainter extends CustomPainter {
 
     if (showRunnerAvatar) {
       _drawHumanForm(canvas, size, frame);
+    } else if (showRefinedPose) {
+      _drawRefinedPose(canvas, size, frame);
     }
     final metric = highlightedMetric;
     if (metric != null) {
@@ -2655,6 +2659,32 @@ class _RunningPoseOverlayPainter extends CustomPainter {
                 : contactColor,
         jointColor: const Color(0xFFF8FBFF),
         opacity: useContainFit ? 0.64 : 0.56,
+      ),
+      focusIndices: _focusIndicesForMetric(highlightedMetric),
+    );
+  }
+
+  void _drawRefinedPose(
+    Canvas canvas,
+    Size size,
+    RunningPoseFrame frame,
+  ) {
+    final points = <int, Offset>{
+      for (final landmark in frame.landmarks)
+        if (landmark.confidence >= runningPoseOverlayMinimumJointConfidence)
+          landmark.index: _coverPoint(size, frame, landmark),
+    };
+    paintRunningPoseHumanForm(
+      canvas,
+      points: points,
+      canvasSize: size,
+      style: RunningPoseHumanFormStyle(
+        bodyColor: Color.lerp(primaryColor, const Color(0xFFF7FAFF), 0.30)!,
+        leftSideColor: secondaryColor,
+        rightSideColor: primaryColor,
+        jointColor: const Color(0xFFF8FBFF),
+        focusColor: _usesWarningAccent ? warningColor : contactColor,
+        opacity: 0.92,
       ),
       focusIndices: _focusIndicesForMetric(highlightedMetric),
     );
@@ -3011,7 +3041,8 @@ class _RunningPoseOverlayPainter extends CustomPainter {
         oldDelegate.finding != finding ||
         oldDelegate.direction != direction ||
         oldDelegate.useContainFit != useContainFit ||
-        oldDelegate.showRunnerAvatar != showRunnerAvatar;
+        oldDelegate.showRunnerAvatar != showRunnerAvatar ||
+        oldDelegate.showRefinedPose != showRefinedPose;
   }
 }
 
@@ -4873,6 +4904,7 @@ class _AnalysisEvidenceCardState extends State<_AnalysisEvidenceCard> {
   VideoPlayerController? _controller;
   bool _isVideoReady = false;
   bool _isVideoUnavailable = false;
+  int _videoLoadGeneration = 0;
   late List<_AnalysisEvidenceFrame> _evidenceFrames;
   int _selectedIndex = 0;
 
@@ -4898,49 +4930,70 @@ class _AnalysisEvidenceCardState extends State<_AnalysisEvidenceCard> {
       _selectedIndex = 0;
     }
     if (oldWidget.session.videoPath != widget.session.videoPath) {
-      unawaited(_controller?.dispose());
-      _controller = null;
-      _isVideoReady = false;
-      _isVideoUnavailable = false;
+      _resetVideo();
       unawaited(_initializeVideo());
     }
   }
 
   @override
   void dispose() {
+    _videoLoadGeneration += 1;
     unawaited(_controller?.dispose());
     super.dispose();
   }
 
+  void _resetVideo() {
+    _videoLoadGeneration += 1;
+    final controller = _controller;
+    _controller = null;
+    _isVideoReady = false;
+    _isVideoUnavailable = false;
+    unawaited(controller?.dispose());
+  }
+
   Future<void> _initializeVideo() async {
+    final requestGeneration = ++_videoLoadGeneration;
     final path = widget.session.videoPath;
     if (path == null || path.isEmpty) {
-      if (!mounted) return;
-      setState(() => _isVideoUnavailable = true);
+      if (!mounted || requestGeneration != _videoLoadGeneration) return;
+      setState(() {
+        _isVideoReady = false;
+        _isVideoUnavailable = true;
+      });
       return;
     }
+    VideoPlayerController? controller;
     try {
-      final controller = await openRunningVideoPlayer(path);
+      controller = await openRunningVideoPlayer(path);
       if (controller == null) {
-        if (!mounted) return;
-        setState(() => _isVideoUnavailable = true);
+        if (!mounted || requestGeneration != _videoLoadGeneration) return;
+        setState(() {
+          _isVideoReady = false;
+          _isVideoUnavailable = true;
+        });
         return;
       }
       await controller.initialize();
       await controller.setLooping(true);
       await controller.setVolume(0);
-      if (!mounted) {
+      if (!mounted || requestGeneration != _videoLoadGeneration) {
         await controller.dispose();
         return;
       }
       setState(() {
         _controller = controller;
         _isVideoReady = true;
+        _isVideoUnavailable = false;
       });
       _seekToSelectedFrame();
     } catch (_) {
-      if (!mounted) return;
-      setState(() => _isVideoUnavailable = true);
+      await controller?.dispose();
+      if (!mounted || requestGeneration != _videoLoadGeneration) return;
+      setState(() {
+        _controller = null;
+        _isVideoReady = false;
+        _isVideoUnavailable = true;
+      });
     }
   }
 
@@ -4949,14 +5002,18 @@ class _AnalysisEvidenceCardState extends State<_AnalysisEvidenceCard> {
     if (controller == null || !controller.value.isInitialized) {
       return;
     }
-    if (controller.value.isPlaying) {
-      await controller.pause();
-    } else {
-      await controller.seekTo(_selectedFrame.timestamp);
-      await controller.play();
-    }
-    if (mounted) {
-      setState(() {});
+    try {
+      if (controller.value.isPlaying) {
+        await controller.pause();
+      } else {
+        await controller.seekTo(_selectedFrame.timestamp);
+        await controller.play();
+      }
+      if (mounted) {
+        setState(() {});
+      }
+    } catch (_) {
+      await _markVideoUnavailable(controller);
     }
   }
 
@@ -4975,11 +5032,28 @@ class _AnalysisEvidenceCardState extends State<_AnalysisEvidenceCard> {
     if (controller == null || !controller.value.isInitialized) {
       return;
     }
-    await controller.pause();
-    await controller.seekTo(_selectedFrame.timestamp);
-    if (mounted) {
-      setState(() {});
+    try {
+      await controller.pause();
+      await controller.seekTo(_selectedFrame.timestamp);
+      if (mounted) {
+        setState(() {});
+      }
+    } catch (_) {
+      await _markVideoUnavailable(controller);
     }
+  }
+
+  Future<void> _markVideoUnavailable(VideoPlayerController controller) async {
+    final isCurrent = identical(_controller, controller);
+    if (isCurrent) {
+      _controller = null;
+    }
+    await controller.dispose();
+    if (!mounted || !isCurrent) return;
+    setState(() {
+      _isVideoReady = false;
+      _isVideoUnavailable = true;
+    });
   }
 
   _AnalysisEvidenceFrame get _selectedFrame =>
@@ -4993,6 +5067,8 @@ class _AnalysisEvidenceCardState extends State<_AnalysisEvidenceCard> {
     final gate = _metricEvidenceGate(widget.result, widget.insight);
     final isLegacyHistory =
         widget.isHistorical && widget.result.poseFrames.isEmpty;
+    final canPlayVideo =
+        _isVideoReady && _controller?.value.isInitialized == true;
 
     return Card(
       key: const ValueKey('running-coach-analysis-evidence-card'),
@@ -5051,9 +5127,12 @@ class _AnalysisEvidenceCardState extends State<_AnalysisEvidenceCard> {
                 result: widget.result,
                 insight: widget.insight,
                 selectedFrame: _selectedFrame,
-                controller: _isVideoReady ? _controller : null,
-                isVideoUnavailable: _isVideoUnavailable,
+                controller: canPlayVideo ? _controller : null,
               ),
+              if (_isVideoUnavailable) ...[
+                const SizedBox(height: 10),
+                const _EvidencePlaybackUnavailableNotice(),
+              ],
               const SizedBox(height: 10),
               _EvidenceFrameCaption(
                 frame: _selectedFrame,
@@ -5070,10 +5149,12 @@ class _AnalysisEvidenceCardState extends State<_AnalysisEvidenceCard> {
               _EvidenceControls(
                 frames: _evidenceFrames,
                 selectedIndex: _selectedIndex,
-                isPlaying: _controller?.value.isPlaying ?? false,
+                isPlaying:
+                    canPlayVideo && (_controller?.value.isPlaying ?? false),
+                canPlay: canPlayVideo,
                 onPrevious: () => _selectFrame(_selectedIndex - 1),
                 onNext: () => _selectFrame(_selectedIndex + 1),
-                onPlayPause: _togglePlayback,
+                onPlayPause: canPlayVideo ? _togglePlayback : null,
                 onScrub: _selectNearestEvidenceFrame,
               ),
               const SizedBox(height: 4),
@@ -5114,28 +5195,27 @@ class _EvidenceVideoPreview extends StatelessWidget {
   final RunningCoachingInsight insight;
   final _AnalysisEvidenceFrame selectedFrame;
   final VideoPlayerController? controller;
-  final bool isVideoUnavailable;
 
   const _EvidenceVideoPreview({
     required this.result,
     required this.insight,
     required this.selectedFrame,
     required this.controller,
-    required this.isVideoUnavailable,
   });
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final videoController = controller;
+    final hasPlayableVideo =
+        videoController != null && videoController.value.isInitialized;
     final isFootStrike = insight.metric == RunningCoachMetric.footStrike;
     final evidenceContent = _EvidenceVideoContent(
       result: result,
       insight: insight,
       selectedFrame: selectedFrame,
       controller: videoController,
-      isVideoUnavailable: isVideoUnavailable,
-      showRunnerAvatar: !isFootStrike,
+      showRunnerAvatar: hasPlayableVideo && !isFootStrike,
     );
     if (isFootStrike) {
       return RunningFootStrikeEvidenceReferencePreview(
@@ -5190,7 +5270,6 @@ class _EvidenceVideoContent extends StatelessWidget {
   final RunningCoachingInsight insight;
   final _AnalysisEvidenceFrame selectedFrame;
   final VideoPlayerController? controller;
-  final bool isVideoUnavailable;
   final bool showRunnerAvatar;
 
   const _EvidenceVideoContent({
@@ -5198,44 +5277,30 @@ class _EvidenceVideoContent extends StatelessWidget {
     required this.insight,
     required this.selectedFrame,
     required this.controller,
-    required this.isVideoUnavailable,
     required this.showRunnerAvatar,
   });
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
     final actualAccent = scheme.error;
     final videoController = controller;
+    final hasPlayableVideo =
+        videoController != null && videoController.value.isInitialized;
     return ColoredBox(
-      color: Colors.black,
+      color: hasPlayableVideo
+          ? Colors.black
+          : scheme.surfaceContainerHighest.withValues(alpha: 0.82),
       child: Stack(
         fit: StackFit.expand,
         children: [
-          if (videoController != null && videoController.value.isInitialized)
+          if (hasPlayableVideo)
             FittedBox(
               fit: BoxFit.contain,
               child: SizedBox(
                 width: videoController.value.size.width,
                 height: videoController.value.size.height,
                 child: VideoPlayer(videoController),
-              ),
-            )
-          else
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  isVideoUnavailable
-                      ? l10n.runningCoachEvidenceVideoUnavailable
-                      : l10n.runningCoachEvidencePoseFrameOnly,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodySmall
-                      ?.copyWith(color: Colors.white70),
-                ),
               ),
             ),
           Positioned.fill(
@@ -5269,6 +5334,7 @@ class _EvidenceVideoContent extends StatelessWidget {
                       direction: result.direction,
                       useContainFit: true,
                       showRunnerAvatar: showRunnerAvatar,
+                      showRefinedPose: !hasPlayableVideo,
                     ),
                   );
                 },
@@ -5276,6 +5342,46 @@ class _EvidenceVideoContent extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _EvidencePlaybackUnavailableNotice extends StatelessWidget {
+  const _EvidencePlaybackUnavailableNotice();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    return Semantics(
+      liveRegion: true,
+      child: DecoratedBox(
+        key: const ValueKey('running-coach-evidence-video-unavailable'),
+        decoration: BoxDecoration(
+          color: scheme.surfaceContainerHighest.withValues(alpha: 0.62),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.image_search_outlined,
+                color: scheme.primary,
+                size: 19,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  l10n.runningCoachEvidenceVideoUnavailable,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -5343,7 +5449,7 @@ class _EvidencePoseTransition extends StatefulWidget {
 class _EvidencePoseTransitionState extends State<_EvidencePoseTransition>
     with SingleTickerProviderStateMixin {
   late final AnimationController _motionController;
-  bool _isMotionPlaying = true;
+  bool _isMotionPlaying = false;
 
   @override
   void initState() {
@@ -5351,7 +5457,7 @@ class _EvidencePoseTransitionState extends State<_EvidencePoseTransition>
     _motionController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1700),
-    )..repeat(reverse: true);
+    )..value = 1;
   }
 
   @override
@@ -5361,13 +5467,17 @@ class _EvidencePoseTransitionState extends State<_EvidencePoseTransition>
   }
 
   void _toggleMotion() {
+    if (_isMotionPlaying) {
+      _motionController
+        ..stop()
+        ..value = 1;
+    } else {
+      _motionController
+        ..value = 0
+        ..repeat(reverse: true);
+    }
     setState(() {
       _isMotionPlaying = !_isMotionPlaying;
-      if (_isMotionPlaying) {
-        _motionController.repeat(reverse: true);
-      } else {
-        _motionController.stop();
-      }
     });
   }
 
@@ -5437,36 +5547,16 @@ class _EvidencePoseTransitionState extends State<_EvidencePoseTransition>
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               const SizedBox(height: 10),
-              if (poseFrame == null)
-                _EvidencePoseTransitionTextFallback(
-                  copy: widget.copy,
-                  actualAccent: actualAccent,
-                  targetAccent: targetAccent,
-                )
-              else ...[
-                Row(
-                  children: [
-                    Expanded(
-                      child: _PoseGoalMotionLabel(
-                        icon: Icons.radio_button_checked_rounded,
-                        color: actualAccent,
-                        label: l10n.runningCoachGoalMotionActualLabel,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: _PoseGoalMotionLabel(
-                        icon: Icons.auto_awesome_motion_rounded,
-                        color: targetAccent,
-                        label: l10n.runningCoachGoalMotionTargetLabel,
-                      ),
-                    ),
-                  ],
-                ),
+              _EvidencePoseTransitionTextFallback(
+                copy: widget.copy,
+                actualAccent: actualAccent,
+                targetAccent: targetAccent,
+              ),
+              if (poseFrame != null) ...[
                 const SizedBox(height: 8),
                 SizedBox(
                   key: const ValueKey('running-coach-goal-motion'),
-                  height: 214,
+                  height: 232,
                   width: double.infinity,
                   child: FutureBuilder<ui.Image>(
                     future: loadProfessionalRunnerArtAtlas(),
@@ -5615,49 +5705,6 @@ class _EvidencePoseTransitionTextState extends StatelessWidget {
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _PoseGoalMotionLabel extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-  final String label;
-
-  const _PoseGoalMotionLabel({
-    required this.icon,
-    required this.color,
-    required this.label,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withValues(alpha: 0.30)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-        child: Row(
-          children: [
-            Icon(icon, size: 16, color: color),
-            const SizedBox(width: 6),
-            Expanded(
-              child: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: color,
-                      fontWeight: FontWeight.w900,
-                    ),
-              ),
             ),
           ],
         ),
@@ -6085,34 +6132,50 @@ class _PoseGoalMotionPainter extends CustomPainter {
     Map<int, Offset> to,
   ) {
     final paint = Paint()
-      ..color = targetAccent.withValues(alpha: 0.60)
+      ..color = targetAccent.withValues(alpha: 0.90)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.4
-      ..strokeCap = StrokeCap.round;
+      ..strokeWidth = 2.4
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
     for (final index in _focusIndices) {
       final start = from[index];
       final end = to[index];
-      if (start == null || end == null || (end - start).distance < 3) {
+      if (start == null || end == null || (end - start).distance < 1) {
         continue;
       }
       final vector = end - start;
       final distance = vector.distance;
       final unit = vector / distance;
-      for (var offset = 0.0; offset < distance - 2; offset += 7) {
+      final haloPaint = Paint()
+        ..color = targetAccent.withValues(alpha: 0.16)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = paint.strokeWidth * 2.3
+        ..strokeCap = StrokeCap.round;
+      canvas.drawLine(start, end, haloPaint);
+      for (var offset = 0.0; offset < distance - 2; offset += 8) {
         canvas.drawLine(
           start + unit * offset,
-          start + unit * math.min(offset + 3.5, distance - 2),
+          start + unit * math.min(offset + 4.5, distance - 2),
           paint,
         );
       }
+      final arrowBase = end - unit * math.min(8, distance * 0.46);
+      final perpendicular = Offset(-unit.dy, unit.dx);
+      canvas.drawLine(end, arrowBase + perpendicular * 3.6, paint);
+      canvas.drawLine(end, arrowBase - perpendicular * 3.6, paint);
       canvas.drawCircle(
         end,
-        3.2,
+        7.4,
         Paint()
-          ..color = targetAccent.withValues(alpha: 0.20)
+          ..color = targetAccent.withValues(alpha: 0.16)
           ..style = PaintingStyle.fill,
       );
-      canvas.drawCircle(end, 3.2, paint);
+      canvas.drawCircle(end, 4.5, paint);
+      canvas.drawCircle(
+        end,
+        1.8,
+        Paint()..color = const Color(0xFFF8FBFF),
+      );
     }
   }
 
@@ -6134,15 +6197,17 @@ class _EvidenceControls extends StatelessWidget {
   final List<_AnalysisEvidenceFrame> frames;
   final int selectedIndex;
   final bool isPlaying;
+  final bool canPlay;
   final VoidCallback onPrevious;
   final VoidCallback onNext;
-  final VoidCallback onPlayPause;
+  final VoidCallback? onPlayPause;
   final ValueChanged<double> onScrub;
 
   const _EvidenceControls({
     required this.frames,
     required this.selectedIndex,
     required this.isPlaying,
+    required this.canPlay,
     required this.onPrevious,
     required this.onNext,
     required this.onPlayPause,
@@ -6172,7 +6237,7 @@ class _EvidenceControls extends StatelessWidget {
               tooltip: isPlaying
                   ? l10n.runningCoachEvidencePause
                   : l10n.runningCoachEvidencePlay,
-              onPressed: onPlayPause,
+              onPressed: canPlay ? onPlayPause : null,
               icon: Icon(
                 isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
               ),
@@ -7220,25 +7285,30 @@ class _MeasuredPoseGuideVisual extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: _PoseMovementLabel(
+                child: _EvidencePoseTransitionTextState(
                   icon: Icons.radio_button_checked_rounded,
                   color: actualAccent,
                   label: l10n.runningCoachMeasuredPoseActualLabel,
+                  body: copy.value,
                 ),
               ),
-              Icon(
-                Icons.arrow_forward_rounded,
-                size: 18,
-                color: scheme.onSurfaceVariant,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6),
+                child: Icon(
+                  Icons.arrow_forward_rounded,
+                  size: 22,
+                  color: scheme.onSurfaceVariant,
+                ),
               ),
-              const SizedBox(width: 8),
               Expanded(
-                child: _PoseMovementLabel(
-                  icon: Icons.adjust_rounded,
+                child: _EvidencePoseTransitionTextState(
+                  icon: Icons.near_me_outlined,
                   color: targetAccent,
                   label: l10n.runningCoachMeasuredPoseTargetLabel,
+                  body: copy.cue,
                 ),
               ),
             ],
@@ -7248,7 +7318,7 @@ class _MeasuredPoseGuideVisual extends StatelessWidget {
             key: ValueKey(
               'running-coach-insight-change-map-${insight.metric.name}',
             ),
-            height: 264,
+            height: 280,
             width: double.infinity,
             child: FutureBuilder<ui.Image>(
               future: loadProfessionalRunnerArtAtlas(),
@@ -7330,49 +7400,6 @@ class _MeasuredPoseGuideVisual extends StatelessWidget {
             style: Theme.of(context).textTheme.bodySmall,
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _PoseMovementLabel extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-  final String label;
-
-  const _PoseMovementLabel({
-    required this.icon,
-    required this.color,
-    required this.label,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withValues(alpha: 0.42)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
-        child: Row(
-          children: [
-            Icon(icon, size: 18, color: color),
-            const SizedBox(width: 6),
-            Expanded(
-              child: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: color,
-                      fontWeight: FontWeight.w800,
-                    ),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -7520,8 +7547,28 @@ class _MeasuredPoseMovementMapPainter extends CustomPainter {
       accentColor: currentAccent,
       isTarget: false,
       bounds: panel,
+      focusIndices: _focusIndices,
     );
   }
+
+  Set<int> get _focusIndices => switch (metric) {
+        RunningCoachMetric.posture => const <int>{0, 11, 12, 23, 24},
+        RunningCoachMetric.bounce => const <int>{0, 7, 8, 23, 24},
+        RunningCoachMetric.footStrike => const <int>{
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+          },
+        RunningCoachMetric.kneeFlexion => const <int>{23, 24, 25, 26, 27, 28},
+        RunningCoachMetric.armCarriage => const <int>{11, 12, 13, 14, 15, 16},
+      };
 
   void _drawMovementMap(
     Canvas canvas,
@@ -7563,7 +7610,8 @@ class _MeasuredPoseMovementMapPainter extends CustomPainter {
             -torsoLength * math.cos(targetLeanRadians),
           ),
     );
-    final targetPaint = _stroke(targetAccent, width: 3.2);
+    final currentPaint = _stroke(actualAccent, width: 3.6, opacity: 0.94);
+    final targetPaint = _stroke(targetAccent, width: 3.4);
     _drawDashedLine(
       canvas,
       verticalTop,
@@ -7579,6 +7627,7 @@ class _MeasuredPoseMovementMapPainter extends CustomPainter {
       targetFan,
       Paint()..color = targetAccent.withValues(alpha: 0.12),
     );
+    canvas.drawLine(torso.hip, torso.shoulder, currentPaint);
     _drawDashedLine(canvas, torso.hip, targetShoulder, targetPaint);
     _drawArc(
       canvas,
@@ -7591,7 +7640,7 @@ class _MeasuredPoseMovementMapPainter extends CustomPainter {
     _drawCurrentDot(canvas, torso.shoulder);
     _drawTargetDot(canvas, targetShoulder);
     if (_needsMovement) {
-      _drawDirectionalArrow(
+      _drawCurvedArrow(
         canvas,
         torso.shoulder,
         targetShoulder,
@@ -7988,10 +8037,12 @@ class _MeasuredPoseMovementMapPainter extends CustomPainter {
   ) {
     final vector = to - from;
     final distance = vector.distance;
-    if (distance < 20) return;
+    if (distance < 4) return;
     final unit = vector / distance;
-    final start = from + unit * 9;
-    final end = to - unit * 11;
+    final trim = math.min(9.0, distance * 0.18);
+    final start = from + unit * trim;
+    final end = to - unit * trim;
+    if ((end - start).distance < 1) return;
     canvas.drawLine(start, end, paint);
     _drawArrowHead(canvas, end, unit, paint);
   }
@@ -8004,13 +8055,15 @@ class _MeasuredPoseMovementMapPainter extends CustomPainter {
   ) {
     final vector = to - from;
     final distance = vector.distance;
-    if (distance < 20) return;
+    if (distance < 4) return;
     final unit = vector / distance;
-    final start = from + unit * 9;
-    final end = to - unit * 11;
+    final trim = math.min(9.0, distance * 0.18);
+    final start = from + unit * trim;
+    final end = to - unit * trim;
+    if ((end - start).distance < 1) return;
     final perpendicular = Offset(-unit.dy, unit.dx);
     final control = Offset.lerp(start, end, 0.5)! +
-        perpendicular * math.min(24, distance * 0.24);
+        perpendicular * math.max(10, math.min(24, distance * 0.60));
     final path = Path()
       ..moveTo(start.dx, start.dy)
       ..quadraticBezierTo(control.dx, control.dy, end.dx, end.dy);
