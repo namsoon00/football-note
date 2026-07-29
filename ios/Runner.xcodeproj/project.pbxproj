@@ -12,7 +12,6 @@
 		4F1C90D72C83A1F400B8F21A /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 4F1C90D62C83A1F400B8F21A /* GoogleService-Info.plist */; };
 		5E6A7B8C9D0E1F203A4B5C62 /* RunningPoseAnalysisChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E6A7B8C9D0E1F203A4B5C61 /* RunningPoseAnalysisChannel.swift */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
-		8E9A0B1C2D3E4F5061728394 /* MediaPipePoseLandmarkerChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E9A0B1C2D3E4F5061728393 /* MediaPipePoseLandmarkerChannel.swift */; };
 		8E9A0B1C2D3E4F5061728396 /* pose_landmarker_lite.task in Resources */ = {isa = PBXBuildFile; fileRef = 8E9A0B1C2D3E4F5061728395 /* pose_landmarker_lite.task */; };
 		8E9A0B1C2D3E4F5061728398 /* pose_landmarker_full.task in Resources */ = {isa = PBXBuildFile; fileRef = 8E9A0B1C2D3E4F5061728397 /* pose_landmarker_full.task */; };
 		951396B3F904B63D7B8875B4 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 11411884E19780917B61A566 /* Pods_Runner.framework */; };
@@ -44,7 +43,6 @@
 		5E6A7B8C9D0E1F203A4B5C61 /* RunningPoseAnalysisChannel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunningPoseAnalysisChannel.swift; sourceTree = "<group>"; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		8E9A0B1C2D3E4F5061728393 /* MediaPipePoseLandmarkerChannel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPipePoseLandmarkerChannel.swift; sourceTree = "<group>"; };
 		8E9A0B1C2D3E4F5061728395 /* pose_landmarker_lite.task */ = {isa = PBXFileReference; lastKnownFileType = file; path = pose_landmarker_lite.task; sourceTree = "<group>"; };
 		8E9A0B1C2D3E4F5061728397 /* pose_landmarker_full.task */ = {isa = PBXFileReference; lastKnownFileType = file; path = pose_landmarker_full.task; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
@@ -114,7 +112,6 @@
 				1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */,
 				74858FAE1ED2DC5600515810 /* AppDelegate.swift */,
 				5E6A7B8C9D0E1F203A4B5C61 /* RunningPoseAnalysisChannel.swift */,
-				8E9A0B1C2D3E4F5061728393 /* MediaPipePoseLandmarkerChannel.swift */,
 				8E9A0B1C2D3E4F5061728395 /* pose_landmarker_lite.task */,
 				8E9A0B1C2D3E4F5061728397 /* pose_landmarker_full.task */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
@@ -338,7 +335,6 @@
 			files = (
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
 				5E6A7B8C9D0E1F203A4B5C62 /* RunningPoseAnalysisChannel.swift in Sources */,
-				8E9A0B1C2D3E4F5061728394 /* MediaPipePoseLandmarkerChannel.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -280,6 +280,10 @@ require(
     "MainActivity must pass Context into RunningPoseAnalysisChannel",
 )
 require(
+    "MediaPipePoseLandmarkerChannel" not in main_text,
+    "MainActivity must not register the retired live pose channel",
+)
+require(
     'implementation "com.google.mlkit:pose-detection' not in gradle_text,
     "direct Android ML Kit pose dependency must not remain",
 )

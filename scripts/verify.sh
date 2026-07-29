@@ -75,11 +75,8 @@ echo "==> iOS path provider plugin compatibility"
 echo "==> android upload mediapipe contract"
 ./scripts/test_android_upload_mediapipe_contract.sh
 
-echo "==> running gait calibration gate regression"
-./scripts/test_running_gait_calibration_gate.sh
-
-echo "==> running live capture readiness regression"
-./scripts/test_running_live_capture_readiness.sh
+echo "==> web upload video analysis contract"
+./scripts/test_web_running_video_analysis_contract.sh
 
 echo "==> running release video fixture contract"
 ./scripts/test_running_release_video_fixtures_contract.sh

@@ -12,11 +12,11 @@ import 'package:football_note/application/running_coaching_service.dart';
 import 'package:football_note/application/running_video_analysis_service.dart';
 import 'package:football_note/domain/entities/running_coach_session.dart';
 import 'package:football_note/domain/entities/running_video_analysis_result.dart';
-import 'package:football_note/domain/entities/sprint_realtime_coaching_state.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/running_coach/running_foot_strike_target_motion_proof.dart';
 import 'package:football_note/presentation/screens/running_coach_screen.dart';
+import 'package:football_note/presentation/screens/running_coach_sample_video.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart';
 
 const _samplePortraitVideoAssetForTest =
@@ -170,88 +170,6 @@ void main() {
       find.byKey(const ValueKey('running-coach-foot-strike-coordinate-rig')),
       findsNothing,
     );
-    expect(tester.takeException(), isNull);
-  });
-
-  testWidgets(
-      'coach home keeps the latest running result without a trend panel', (
-    WidgetTester tester,
-  ) async {
-    await tester.binding.setSurfaceSize(const Size(360, 780));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
-    final optionRepository = _MemoryOptionRepository();
-    final session = RunningCoachSessionAnalysis(
-      id: 'live-trend-start',
-      analyzedAt: DateTime(2026, 7, 21, 10),
-      source: RunningCoachSessionSource.sprintLive,
-      overallScore: 76,
-      duration: const Duration(seconds: 14),
-      sampledFrames: 180,
-      validFrames: 160,
-      primaryMetric: RunningCoachMetric.footStrike,
-      primaryFinding: RunningCoachFinding.footStrikeOverstride,
-      primaryStatus: RunningCoachStatus.watch,
-      primaryScore: 72,
-      primaryValue: 0.2,
-      primaryConfidence: 0.84,
-      liveSprintReport: const LiveSprintSessionReport(
-        runningTrackedFrames: 160,
-        runningAnalyzedFrames: 180,
-        sprintTrackedFrames: 60,
-        sprintAnalyzedFrames: 60,
-        touchdownEvents: 8,
-        toeOffEvents: 8,
-        detectedSteps: 8,
-        landingEvents: 6,
-        feedbackChanges: 2,
-        timingConfidence: 0.86,
-        sideViewConfidence: 0.84,
-        sprintTrackingConfidence: 0.82,
-        bodyNotVisibleRatio: 0.08,
-        status: SprintCoachingStatus.coaching,
-        trackingReadiness: SprintTrackingReadiness.readyForAnalysis,
-        feedbackCode: null,
-        feedbackSeverity: null,
-        feedbackConfidence: 0,
-        metrics: <LiveSprintMetricSummary>[
-          LiveSprintMetricSummary(
-            kind: LiveSprintMetricKind.trunkAngle,
-            value: 12,
-            confidence: 0.86,
-            sampleCount: 10,
-          ),
-        ],
-      ),
-    );
-    await optionRepository.setValue(
-      RunningCoachHistoryService.storageKey,
-      jsonEncode(<Map<String, Object?>>[session.toMap()]),
-    );
-    expect(RunningCoachHistoryService(optionRepository).allSessions(),
-        hasLength(1));
-
-    await tester.pumpWidget(
-      MaterialApp(
-        locale: const Locale('en'),
-        localizationsDelegates: const [
-          AppLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: RunningCoachScreen(optionRepository: optionRepository),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    expect(find.text('Coaching analysis history'), findsOneWidget);
-    expect(find.text('All 1'), findsOneWidget);
-    expect(
-      find.byKey(const ValueKey('running-coach-live-trend-card')),
-      findsNothing,
-    );
-    expect(find.text('Foot strike'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -946,16 +864,11 @@ void main() {
     final qualityDetails = find.byKey(
       const ValueKey('running-coach-analysis-quality-details'),
     );
-    expect(qualityDetails, findsOneWidget);
-    expect(find.text('Frames analyzed'), findsNothing);
-    await tester.scrollUntilVisible(
-      qualityDetails,
-      -220,
-      scrollable: find.byType(Scrollable).first,
-    );
+    expect(find.text('Frames'), findsNothing);
+    await _scrollAnalysisResultUntilFound(tester, qualityDetails);
     await tester.tap(qualityDetails);
     await tester.pump(const Duration(milliseconds: 250));
-    expect(find.text('Frames analyzed'), findsOneWidget);
+    expect(find.text('Frames'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -1476,10 +1389,16 @@ void main() {
     );
     expect(find.text('Retake this clip'), findsOneWidget);
     expect(find.text('Evidence limited'), findsWidgets);
+    final qualityDetails = find.byKey(
+      const ValueKey('running-coach-analysis-quality-details'),
+    );
+    await _scrollAnalysisResultUntilFound(tester, qualityDetails);
+    await tester.tap(qualityDetails);
+    await tester.pump(const Duration(milliseconds: 250));
     final limitedEvidenceNotice = find.byKey(
       const ValueKey('running-coach-lower-body-evidence-limited'),
     );
-    await tester.scrollUntilVisible(limitedEvidenceNotice, 300);
+    await _scrollAnalysisResultUntilFound(tester, limitedEvidenceNotice);
     expect(limitedEvidenceNotice, findsOneWidget);
     expect(find.textContaining('Metric score 14'), findsNothing);
     expect(
@@ -1504,6 +1423,21 @@ Future<void> _pumpUntilFound(
   fail('Timed out waiting for $finder');
 }
 
+Future<void> _scrollAnalysisResultUntilFound(
+  WidgetTester tester,
+  Finder finder,
+) async {
+  final resultList = find.byKey(
+    const ValueKey('running-coach-analysis-result-list'),
+  );
+  for (var attempt = 0; attempt < 12; attempt += 1) {
+    if (finder.evaluate().isNotEmpty) return;
+    await tester.drag(resultList, const Offset(0, -420));
+    await tester.pump(const Duration(milliseconds: 80));
+  }
+  expect(finder, findsOneWidget);
+}
+
 Future<RunningCoachPreparedSampleVideo> _prepareSampleVideoForTest(
   String assetPath,
 ) async {
@@ -1513,7 +1447,7 @@ Future<RunningCoachPreparedSampleVideo> _prepareSampleVideoForTest(
   final file = File('${tempDirectory.path}/${assetPath.split('/').last}');
   file.writeAsBytesSync(assetPath.codeUnits, flush: true);
   return RunningCoachPreparedSampleVideo(
-    file: file,
+    file: XFile(file.path, name: file.uri.pathSegments.last),
     dispose: () async {
       if (tempDirectory.existsSync()) {
         tempDirectory.deleteSync(recursive: true);
@@ -1570,7 +1504,8 @@ class _FakeRunningVideoAnalysisService extends RunningVideoAnalysisService {
   }
 
   @override
-  Future<RunningVideoAnalysisResult> analyzeVideo(String path) async {
+  Future<RunningVideoAnalysisResult> analyzeVideo(XFile video) async {
+    final path = video.path;
     calls.add(path);
     final file = File(path);
     fileExistsAtCall.add(file.existsSync());
@@ -1670,7 +1605,7 @@ class _PendingRunningVideoAnalysisService extends RunningVideoAnalysisService {
   int callCount = 0;
 
   @override
-  Future<RunningVideoAnalysisResult> analyzeVideo(String path) {
+  Future<RunningVideoAnalysisResult> analyzeVideo(XFile video) {
     callCount += 1;
     return _result.future;
   }
