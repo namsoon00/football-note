@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/domain/entities/running_video_analysis_result.dart';
-import 'package:football_note/presentation/running_coach/running_coordinate_athlete_art.dart';
 import 'package:football_note/presentation/running_coach/running_pose_comparison.dart';
+import 'package:football_note/presentation/running_coach/running_professional_runner_art.dart';
 
 void main() {
   const panel = Rect.fromLTWH(0, 0, 320, 248);
@@ -95,6 +95,8 @@ void main() {
               targetAccent: Colors.blue,
               successAccent: Colors.green,
               semanticLabel: 'Coordinate comparison',
+              currentLabel: 'Current',
+              nextStepLabel: 'Next step',
             ),
           ),
         ),
@@ -105,14 +107,22 @@ void main() {
       find.byKey(const ValueKey('running-coach-coordinate-pose-comparison')),
       findsOneWidget,
     );
-    await tester.runAsync(loadRunningCoordinateAthleteArt);
+    expect(
+      find.text('Current'),
+      findsOneWidget,
+    );
+    expect(
+      find.text('Next step'),
+      findsOneWidget,
+    );
+    await tester.runAsync(loadProfessionalRunnerArtAtlas);
     await tester.pump();
     final comparison = tester.widget<CustomPaint>(
       find.byKey(const ValueKey('running-coach-coordinate-pose-comparison')),
     );
     final painter =
         comparison.painter! as RunningPoseCoordinateComparisonPainter;
-    expect(painter.athleteArt, isNotNull);
+    expect(painter.artAtlas, isNotNull);
     expect(tester.takeException(), isNull);
   });
 }

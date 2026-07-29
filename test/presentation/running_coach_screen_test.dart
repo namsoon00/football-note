@@ -31,7 +31,8 @@ void main() {
       'assets/images/running_guides/capture_outdoor_side_reference.jpg',
       'assets/images/running_guides/target_posture.png',
       'assets/images/running_guides/target_landing.png',
-      'assets/images/running_guides/running_coordinate_athlete_v1.png',
+      'assets/images/running_guides/professional_runner/'
+          'professional_runner_pose_atlas_v2.png',
     ];
 
     for (final asset in guideAssets) {
@@ -1160,6 +1161,18 @@ void main() {
     );
     expect(
       find.byKey(
+        const ValueKey('running-coach-coordinate-comparison-current-label'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(
+        const ValueKey('running-coach-coordinate-comparison-next-label'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(
         const ValueKey('running-coach-goal-motion-professional-runner'),
       ),
       findsNothing,
@@ -1170,7 +1183,7 @@ void main() {
             find.byKey(const ValueKey('running-coach-goal-motion')),
           )
           .height,
-      248,
+      272,
     );
     expect(find.text('Evidence 1/2'), findsOneWidget);
     expect(tester.takeException(), isNull);
@@ -1327,7 +1340,7 @@ void main() {
         const ValueKey('running-coach-goal-motion'),
       );
       expect(goalMotion, findsOneWidget);
-      expect(tester.getSize(goalMotion).height, 248);
+      expect(tester.getSize(goalMotion).height, 272);
       if (metric == RunningCoachMetric.posture) {
         final reportDetails = find.byKey(
           const ValueKey('running-coach-report-details'),
