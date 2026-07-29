@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +17,8 @@ import '../../domain/repositories/option_repository.dart';
 import '../../gen/app_localizations.dart';
 import '../running_coach/running_foot_strike_target_motion_proof.dart';
 import '../running_coach/running_pose_overlay.dart';
+import '../running_coach/running_professional_runner.dart';
+import '../running_coach/running_professional_runner_art.dart';
 import '../models/sample_runner_pose.dart';
 import 'running_coach_insight_copy.dart';
 import 'running_capture_screen.dart';
@@ -5465,20 +5468,41 @@ class _EvidencePoseTransitionState extends State<_EvidencePoseTransition>
                   key: const ValueKey('running-coach-goal-motion'),
                   height: 214,
                   width: double.infinity,
-                  child: AnimatedBuilder(
-                    animation: _motionController,
-                    builder: (context, _) {
-                      return CustomPaint(
-                        painter: _PoseGoalMotionPainter(
-                          frame: poseFrame,
-                          insight: widget.insight,
-                          direction: widget.direction,
-                          progress: _motionController.value,
-                          surfaceColor: scheme.surface,
-                          mutedColor: scheme.onSurfaceVariant,
-                          actualAccent: actualAccent,
-                          targetAccent: targetAccent,
-                        ),
+                  child: FutureBuilder<ui.Image>(
+                    future: loadProfessionalRunnerArtAtlas(),
+                    builder: (context, snapshot) {
+                      final artAtlas = snapshot.data;
+                      if (artAtlas == null) {
+                        return Center(
+                          child: SizedBox.square(
+                            dimension: 28,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.4,
+                              color: targetAccent,
+                            ),
+                          ),
+                        );
+                      }
+                      return AnimatedBuilder(
+                        animation: _motionController,
+                        builder: (context, _) {
+                          return CustomPaint(
+                            key: const ValueKey(
+                              'running-coach-goal-motion-professional-runner',
+                            ),
+                            painter: _PoseGoalMotionPainter(
+                              frame: poseFrame,
+                              insight: widget.insight,
+                              direction: widget.direction,
+                              progress: _motionController.value,
+                              surfaceColor: scheme.surface,
+                              mutedColor: scheme.onSurfaceVariant,
+                              actualAccent: actualAccent,
+                              targetAccent: targetAccent,
+                              artAtlas: artAtlas,
+                            ),
+                          );
+                        },
                       );
                     },
                   ),
@@ -5651,6 +5675,7 @@ class _PoseGoalMotionPainter extends CustomPainter {
   final Color mutedColor;
   final Color actualAccent;
   final Color targetAccent;
+  final ui.Image artAtlas;
 
   const _PoseGoalMotionPainter({
     required this.frame,
@@ -5661,6 +5686,7 @@ class _PoseGoalMotionPainter extends CustomPainter {
     required this.mutedColor,
     required this.actualAccent,
     required this.targetAccent,
+    required this.artAtlas,
   });
 
   @override
@@ -5686,10 +5712,10 @@ class _PoseGoalMotionPainter extends CustomPainter {
     _drawGround(canvas, targetPanel, targetStart);
     _drawPose(
       canvas,
-      size,
       actualPoints,
       accent: actualAccent,
       opacity: 1,
+      isTarget: false,
     );
 
     final targetEnd = _targetPoints(targetStart);
@@ -5705,10 +5731,10 @@ class _PoseGoalMotionPainter extends CustomPainter {
     _drawGoalVectors(canvas, targetStart, targetEnd);
     _drawPose(
       canvas,
-      size,
       targetPoints,
       accent: targetAccent,
       opacity: 0.98,
+      isTarget: true,
     );
   }
 
@@ -5792,26 +5818,31 @@ class _PoseGoalMotionPainter extends CustomPainter {
 
   void _drawPose(
     Canvas canvas,
-    Size size,
     Map<int, Offset> points, {
     required Color accent,
     required double opacity,
+    required bool isTarget,
   }) {
-    paintRunningPoseHumanForm(
-      canvas,
-      points: points,
-      canvasSize: size,
-      focusIndices: _focusIndices,
-      style: runningPoseSportsAvatarStyle(
-        accentColor: accent,
-        secondaryAccent: Color.lerp(accent, surfaceColor, 0.16)!,
-        focusColor: accent,
-        jointColor: surfaceColor.computeLuminance() > 0.5
-            ? Colors.white
-            : const Color(0xFFF8FBFF),
-        opacity: opacity,
-      ),
+    final runner = retargetProfessionalRunnerPose(
+      measuredPoints: points,
+      forward: _forwardSign(_torso(points) ??
+          (
+            shoulder: Offset.zero,
+            hip: Offset.zero,
+          )),
     );
+    if (runner == null) return;
+    canvas.saveLayer(
+        null, Paint()..color = Colors.white.withValues(alpha: opacity));
+    paintIllustratedProfessionalRunner(
+      canvas,
+      atlas: artAtlas,
+      pose: runner,
+      isTarget: isTarget,
+      accentColor: accent,
+      focusIndices: _focusIndices,
+    );
+    canvas.restore();
   }
 
   Set<int> get _focusIndices => switch (insight.metric) {
@@ -6090,7 +6121,8 @@ class _PoseGoalMotionPainter extends CustomPainter {
         oldDelegate.surfaceColor != surfaceColor ||
         oldDelegate.mutedColor != mutedColor ||
         oldDelegate.actualAccent != actualAccent ||
-        oldDelegate.targetAccent != targetAccent;
+        oldDelegate.targetAccent != targetAccent ||
+        oldDelegate.artAtlas != artAtlas;
   }
 }
 
@@ -7214,16 +7246,37 @@ class _MeasuredPoseGuideVisual extends StatelessWidget {
             ),
             height: 264,
             width: double.infinity,
-            child: CustomPaint(
-              painter: _MeasuredPoseMovementMapPainter(
-                frame: poseFrame,
-                insight: insight,
-                direction: direction,
-                surfaceColor: scheme.surface,
-                mutedColor: scheme.outline,
-                actualAccent: actualAccent,
-                targetAccent: targetAccent,
-              ),
+            child: FutureBuilder<ui.Image>(
+              future: loadProfessionalRunnerArtAtlas(),
+              builder: (context, snapshot) {
+                final artAtlas = snapshot.data;
+                if (artAtlas == null) {
+                  return Center(
+                    child: SizedBox.square(
+                      dimension: 28,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.4,
+                        color: targetAccent,
+                      ),
+                    ),
+                  );
+                }
+                return CustomPaint(
+                  key: const ValueKey(
+                    'running-coach-insight-professional-runner',
+                  ),
+                  painter: _MeasuredPoseMovementMapPainter(
+                    frame: poseFrame,
+                    insight: insight,
+                    direction: direction,
+                    surfaceColor: scheme.surface,
+                    mutedColor: scheme.outline,
+                    actualAccent: actualAccent,
+                    targetAccent: targetAccent,
+                    artAtlas: artAtlas,
+                  ),
+                );
+              },
             ),
           ),
           const SizedBox(height: 10),
@@ -7329,6 +7382,7 @@ class _MeasuredPoseMovementMapPainter extends CustomPainter {
   final Color mutedColor;
   final Color actualAccent;
   final Color targetAccent;
+  final ui.Image artAtlas;
 
   const _MeasuredPoseMovementMapPainter({
     required this.frame,
@@ -7338,6 +7392,7 @@ class _MeasuredPoseMovementMapPainter extends CustomPainter {
     required this.mutedColor,
     required this.actualAccent,
     required this.targetAccent,
+    required this.artAtlas,
   });
 
   RunningCoachMetric get metric => insight.metric;
@@ -7354,7 +7409,6 @@ class _MeasuredPoseMovementMapPainter extends CustomPainter {
     _drawGround(canvas, panel, actualPoints);
     _drawSkeleton(
       canvas,
-      size,
       actualPoints,
       currentAccent: actualAccent,
     );
@@ -7443,20 +7497,22 @@ class _MeasuredPoseMovementMapPainter extends CustomPainter {
 
   void _drawSkeleton(
     Canvas canvas,
-    Size size,
     Map<int, Offset> points, {
     required Color currentAccent,
   }) {
-    paintRunningPoseHumanForm(
+    final torso = _torso(points);
+    if (torso == null) return;
+    final runner = retargetProfessionalRunnerPose(
+      measuredPoints: points,
+      forward: _forwardSign(torso),
+    );
+    if (runner == null) return;
+    paintIllustratedProfessionalRunner(
       canvas,
-      points: points,
-      canvasSize: size,
-      style: runningPoseSportsAvatarStyle(
-        accentColor: currentAccent,
-        secondaryAccent: targetAccent,
-        focusColor: targetAccent,
-        jointColor: const Color(0xFFF8FBFF),
-      ),
+      atlas: artAtlas,
+      pose: runner,
+      accentColor: currentAccent,
+      isTarget: false,
     );
   }
 
@@ -8042,7 +8098,8 @@ class _MeasuredPoseMovementMapPainter extends CustomPainter {
         oldDelegate.surfaceColor != surfaceColor ||
         oldDelegate.mutedColor != mutedColor ||
         oldDelegate.actualAccent != actualAccent ||
-        oldDelegate.targetAccent != targetAccent;
+        oldDelegate.targetAccent != targetAccent ||
+        oldDelegate.artAtlas != artAtlas;
   }
 }
 
