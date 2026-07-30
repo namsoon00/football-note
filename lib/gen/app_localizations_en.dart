@@ -9071,7 +9071,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachThreeDReferenceNotice =>
-      'Generic reference avatar based on pose landmarks; it is not a reconstruction of your body.';
+      'Fixed reference runner: tracked landmarks make small, constrained pose adjustments. This does not recreate your body or face.';
 
   @override
   String get runningCoachHistoryEvidenceUnavailableTitle =>

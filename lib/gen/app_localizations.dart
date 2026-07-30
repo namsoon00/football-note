@@ -15848,7 +15848,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachThreeDReferenceNotice.
   ///
   /// In en, this message translates to:
-  /// **'Generic reference avatar based on pose landmarks; it is not a reconstruction of your body.'**
+  /// **'Fixed reference runner: tracked landmarks make small, constrained pose adjustments. This does not recreate your body or face.'**
   String get runningCoachThreeDReferenceNotice;
 
   /// No description provided for @runningCoachHistoryEvidenceUnavailableTitle.

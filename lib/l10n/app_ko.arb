@@ -5056,7 +5056,7 @@
   "runningCoachThreeDRendererLoading": "3D 러너를 불러오는 중...",
   "runningCoachThreeDRendererUnavailable": "이 프레임으로는 3D 러너를 만들 수 없어요. 전신 랜드마크가 보이는 더 선명한 측면 영상을 사용해 주세요.",
   "runningCoachThreeDRendererError": "로컬 WebGL 러너를 시작할 수 없어요.",
-  "runningCoachThreeDReferenceNotice": "포즈 랜드마크 기반의 일반 기준 아바타이며, 내 신체를 재구성한 것이 아니에요.",
+  "runningCoachThreeDReferenceNotice": "고정된 기준 러너에 추적 좌표로 작은 자세 보정만 적용해요. 내 체형이나 얼굴을 재구성한 것은 아니에요.",
   "runningCoachHistoryEvidenceUnavailableTitle": "저장된 관절 근거 없음",
   "runningCoachHistoryEvidenceUnavailableBody": "이전 버전에서 저장한 기록이라 자세 프레임은 없어요. 점수와 코칭 목표는 그대로 볼 수 있어요.",
   "runningCoachEvidenceCurrentLabel": "현재",

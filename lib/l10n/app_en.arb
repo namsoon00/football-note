@@ -5056,7 +5056,7 @@
   "runningCoachThreeDRendererLoading": "Loading 3D runner...",
   "runningCoachThreeDRendererUnavailable": "The 3D runner cannot be built from this frame. Try a clearer side-view clip with full-body landmarks.",
   "runningCoachThreeDRendererError": "The local WebGL runner could not start.",
-  "runningCoachThreeDReferenceNotice": "Generic reference avatar based on pose landmarks; it is not a reconstruction of your body.",
+  "runningCoachThreeDReferenceNotice": "Fixed reference runner: tracked landmarks make small, constrained pose adjustments. This does not recreate your body or face.",
   "runningCoachHistoryEvidenceUnavailableTitle": "No saved joint evidence",
   "runningCoachHistoryEvidenceUnavailableBody": "This older record has no saved pose frames. Its score and coaching goal are still available.",
   "runningCoachEvidenceCurrentLabel": "Current",
