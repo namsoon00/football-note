@@ -9,6 +9,7 @@ const MIN_CONFIDENCE = 0.35;
 const canvas = document.getElementById('scene');
 const statusEl = document.getElementById('status');
 const noticeEl = document.getElementById('notice');
+const hudEl = document.getElementById('hud');
 const currentLabelEl = document.getElementById('currentLabel');
 const targetLabelEl = document.getElementById('targetLabel');
 const currentConfidenceEl = document.getElementById('currentConfidence');
@@ -18,9 +19,9 @@ const targetSwatchEl = document.getElementById('targetSwatch');
 
 let payload = null;
 let assetReady = false;
-let startTime = performance.now();
 let prototype = null;
 let avatar = null;
+let comparisonVisible = true;
 
 let renderer;
 try {
@@ -102,8 +103,10 @@ function createStage() {
 }
 
 function createCamera() {
-  const camera = new THREE.PerspectiveCamera(40, 1, 0.05, 20);
-  camera.position.set(0, 0.91, 2.85);
+  // A coaching comparison needs consistent proportions. A narrow mobile
+  // perspective camera exaggerated the head and hands at the panel edges.
+  const camera = new THREE.OrthographicCamera(-0.8, 0.8, 1.1, -0.1, 0.05, 20);
+  camera.position.set(0, 0.94, 3.15);
   camera.lookAt(0, 0.86, 0);
   return camera;
 }
@@ -135,7 +138,10 @@ function createAvatar(scene) {
 
   const rawBounds = new THREE.Box3().setFromObject(root);
   const rawHeight = rawBounds.getSize(new THREE.Vector3()).y;
-  root.scale.setScalar(1.72 / Math.max(rawHeight, 0.001));
+  // The rig's crouched landing pose is substantially shorter than its bind
+  // pose. A presentation scale closer to a standing runner keeps the athlete
+  // legible on a phone without cropping the contact foot.
+  root.scale.setScalar(2.18 / Math.max(rawHeight, 0.001));
   root.updateMatrixWorld(true);
   const fittedBounds = new THREE.Box3().setFromObject(root);
   const fittedCenter = fittedBounds.getCenter(new THREE.Vector3());
@@ -197,15 +203,32 @@ function cloneAndTuneMaterials(source, meshName, accentMaterials) {
   const tuned = materialList.map((material) => {
     const copy = material.clone();
     const description = `${meshName || ''} ${copy.name || ''}`.toLowerCase();
+    const isHair = /hair|short0?3|eyebrow|lash/.test(description);
+
+    // MakeHuman exports these opaque clothes as alpha-blended materials. In a
+    // WebGL renderer this makes skin show through the shirt and hides the
+    // short hair depending on draw order. Use alpha cutout only where the hair
+    // texture needs it; every solid garment must write depth normally.
+    copy.transparent = false;
+    copy.opacity = 1;
+    copy.depthWrite = true;
+    copy.depthTest = true;
+    copy.alphaTest = isHair ? 0.24 : 0;
+    copy.premultipliedAlpha = false;
     if (/shirt|t-shirt|crude/.test(description)) {
       copy.userData.runnerAccent = true;
       accentMaterials.push(copy);
+      copy.color.set('#1f78bd');
       copy.roughness = 0.67;
     } else if (/short|jean/.test(description)) {
       copy.color = new THREE.Color('#182132');
       copy.roughness = 0.78;
     } else if (/shoe/.test(description)) {
+      copy.color.set('#f3f5f8');
       copy.roughness = 0.56;
+    } else if (isHair) {
+      copy.color.set('#211b1a');
+      copy.roughness = 0.92;
     }
     return copy;
   });
@@ -262,7 +285,6 @@ function createGuides(scene) {
 function setPayload(rawPayload) {
   try {
     payload = typeof rawPayload === 'string' ? JSON.parse(rawPayload) : rawPayload;
-    startTime = performance.now();
     updateHud();
     if (assetReady) {
       hideStatus();
@@ -297,14 +319,16 @@ function updateHud() {
     : '';
 }
 
-function render(now) {
+function render() {
   requestAnimationFrame(render);
   resizeRenderer();
-  const currentRig = rigForTime('current', now);
-  const targetRig = rigForTime('target', now);
+  const currentRig = selectedRig('current');
+  const targetRig = selectedRig('target');
+  const showComparison = shouldShowComparison(targetRig);
+  syncComparisonLayout(showComparison);
   const colors = payload && payload.colors ? payload.colors : {};
   if (assetReady) {
-    prepareAvatarPose(avatar, currentRig, now);
+    prepareAvatarPose(avatar, currentRig);
     setAvatarAccent(avatar, colors.current || DEFAULT_CURRENT);
     updateGuides(avatar, currentRig, currentRig);
     if (payload) hideStatus();
@@ -316,32 +340,42 @@ function render(now) {
   const viewportWidth = Math.max(1, canvas.clientWidth || window.innerWidth);
   const viewportHeight = Math.max(1, canvas.clientHeight || window.innerHeight);
   const panelWidth = Math.max(1, Math.floor(viewportWidth / 2));
-  renderPanel(stage, camera, 0, panelWidth, viewportHeight, '#101929');
+  const currentWidth = showComparison ? panelWidth : viewportWidth;
+  renderPanel(stage, camera, 0, currentWidth, viewportHeight, '#101929');
 
-  if (assetReady) {
-    prepareAvatarPose(avatar, targetRig, now);
+  if (showComparison && assetReady) {
+    prepareAvatarPose(avatar, targetRig);
     setAvatarAccent(avatar, colors.target || DEFAULT_TARGET);
     updateGuides(avatar, targetRig, currentRig);
   }
-  renderPanel(stage, camera, panelWidth, viewportWidth - panelWidth, viewportHeight, '#111d32');
+  if (showComparison) {
+    renderPanel(stage, camera, panelWidth, viewportWidth - panelWidth, viewportHeight, '#111d32');
+  }
 }
 
-function prepareAvatarPose(avatar, rig, now) {
+function shouldShowComparison(targetRig) {
+  if (!payload || payload.status === 'good') return false;
+  return Array.isArray(targetRig && targetRig.modifiedChannels)
+    && targetRig.modifiedChannels.length > 0;
+}
+
+function syncComparisonLayout(showComparison) {
+  if (comparisonVisible === showComparison) return;
+  comparisonVisible = showComparison;
+  hudEl.classList.toggle('is-single', !showComparison);
+}
+
+function prepareAvatarPose(avatar, rig) {
   restoreRestPose(avatar);
-  applyNaturalRunCycle(avatar, now);
-  // Landmark data changes only the measured joints, and every correction is
-  // deliberately capped below a full retarget. The reference body remains
-  // anatomically stable even when a video landmark is noisy or occluded.
+  applySelectedFramePose(avatar, rig);
+  // The model begins from a measured selected-frame pose, then landmark data
+  // makes bounded corrections. This avoids inventing a repeating gait while
+  // retaining anatomically stable limbs when video landmarks are noisy.
   applyPoseCorrection(avatar, rig);
 }
 
 function setAvatarAccent(avatar, color) {
   const accent = new THREE.Color(color);
-  const shirt = accent.clone().lerp(new THREE.Color('#ffffff'), 0.18);
-  avatar.accentMaterials.forEach((material) => {
-    material.color.copy(shirt);
-    material.emissive.copy(accent).multiplyScalar(0.05);
-  });
   avatar.guides.markers.forEach((marker) => {
     marker.material.color.copy(accent);
     const halo = marker.children[0];
@@ -363,60 +397,46 @@ function restoreRestPose(avatar) {
 
 const localXAxis = new THREE.Vector3(1, 0, 0);
 
-function applyNaturalRunCycle(avatar, now) {
-  const phase = payload && payload.hasMotion
-    ? ((now - startTime) / 1000) * Math.PI * 2 * 2.1
-    : Math.PI / 2;
-  const leftSwing = Math.sin(phase);
-  const rightSwing = -leftSwing;
-  setLocalX(avatar, 'mixamorig:LeftUpLeg', 0.66 * leftSwing);
-  setLocalX(avatar, 'mixamorig:RightUpLeg', 0.66 * rightSwing);
-  setLocalX(avatar, 'mixamorig:LeftLeg', 0.16 + 0.78 * Math.max(0, -leftSwing));
-  setLocalX(avatar, 'mixamorig:RightLeg', 0.16 + 0.78 * Math.max(0, -rightSwing));
-  setLocalX(avatar, 'mixamorig:LeftFoot', -0.10 - 0.21 * leftSwing);
-  setLocalX(avatar, 'mixamorig:RightFoot', -0.10 - 0.21 * rightSwing);
-  setLocalX(avatar, 'mixamorig:LeftToeBase', 0.05 + 0.16 * Math.max(0, leftSwing));
-  setLocalX(avatar, 'mixamorig:RightToeBase', 0.05 + 0.16 * Math.max(0, rightSwing));
-  poseForwardLean(avatar);
-  poseArmSwing(avatar, 'Left', -leftSwing, 0.035);
-  poseArmSwing(avatar, 'Right', -rightSwing, -0.035);
+function applySelectedFramePose(avatar, rig) {
+  const { leftSwing, rightSwing } = stanceForRig(rig);
+  setLocalX(avatar, 'mixamorig:LeftUpLeg', 0.48 * leftSwing);
+  setLocalX(avatar, 'mixamorig:RightUpLeg', 0.48 * rightSwing);
+  setLocalX(avatar, 'mixamorig:LeftLeg', 0.12 + 0.50 * Math.max(0, -leftSwing));
+  setLocalX(avatar, 'mixamorig:RightLeg', 0.12 + 0.50 * Math.max(0, -rightSwing));
+  setLocalX(avatar, 'mixamorig:LeftFoot', -0.08 - 0.14 * leftSwing);
+  setLocalX(avatar, 'mixamorig:RightFoot', -0.08 - 0.14 * rightSwing);
+  setLocalX(avatar, 'mixamorig:LeftToeBase', 0.04 + 0.11 * Math.max(0, leftSwing));
+  setLocalX(avatar, 'mixamorig:RightToeBase', 0.04 + 0.11 * Math.max(0, rightSwing));
+  poseSelectedFrameArm(avatar, 'Left', -leftSwing);
+  poseSelectedFrameArm(avatar, 'Right', -rightSwing);
   avatar.root.updateMatrixWorld(true);
 }
 
-function poseForwardLean(avatar) {
-  setBoneWorldDirection(
-    avatar,
-    'mixamorig:Spine',
-    'mixamorig:Spine1',
-    new THREE.Vector3(0.006, 0.107, 0),
+function stanceForRig(rig) {
+  const joints = rig && rig.joints ? rig.joints : {};
+  const pelvis = vectorFromRig(joints.pelvisCenter);
+  const leftAnkle = vectorFromRig(joints.leftAnkle);
+  const rightAnkle = vectorFromRig(joints.rightAnkle);
+  const bodyHeight = Math.max(0.8, Number(rig && rig.bodyHeight) || 1.72);
+  if (!pelvis || !leftAnkle || !rightAnkle) {
+    return { leftSwing: 0.34, rightSwing: -0.34 };
+  }
+  const stride = clamp(
+    ((leftAnkle.x - pelvis.x) - (rightAnkle.x - pelvis.x)) / bodyHeight * 1.25,
+    -0.76,
+    0.76,
   );
-  setBoneWorldDirection(
-    avatar,
-    'mixamorig:Spine1',
-    'mixamorig:Spine2',
-    new THREE.Vector3(0.010, 0.126, 0),
-  );
+  return { leftSwing: stride, rightSwing: -stride };
 }
 
-function poseArmSwing(avatar, side, swing, depth) {
+function poseSelectedFrameArm(avatar, side, swing) {
   const upperArm = `mixamorig:${side}Arm`;
   const forearm = `mixamorig:${side}ForeArm`;
-  const hand = `mixamorig:${side}Hand`;
-  // A runner's arm swings opposite its leg. These world-space directions keep
-  // the elbow bend readable in profile instead of spinning around a raw local
-  // bone axis that varies between imported models.
-  setBoneWorldDirection(
-    avatar,
-    upperArm,
-    forearm,
-    new THREE.Vector3(0.155 * swing - 0.085, -0.36 + 0.04 * swing, depth),
-  );
-  setBoneWorldDirection(
-    avatar,
-    forearm,
-    hand,
-    new THREE.Vector3(0.11 * swing, 0.08 * swing - 0.05, depth * 0.35),
-  );
+  // Mixamo's child bones point down their local Y axis. Rotating around the
+  // local X axis moves the arm forward/back in the side profile without the
+  // world-axis spin that made the old avatar look like a zombie.
+  setLocalX(avatar, upperArm, 0.30 * swing);
+  setLocalX(avatar, forearm, 1.04 - 0.16 * swing);
 }
 
 function setBoneWorldDirection(avatar, boneName, childName, targetDirection) {
@@ -447,8 +467,16 @@ function setLocalX(avatar, boneName, radians) {
 }
 
 function renderPanel(scene, camera, x, width, height, background) {
-  camera.aspect = Math.max(0.36, width / Math.max(1, height));
-  camera.fov = camera.aspect < 0.68 ? 44 : 40;
+  // Leave room below the contact foot. The rig can extend slightly below its
+  // bind-pose floor at a long stride, and clipping the lower leg makes a
+  // runner look even more unnatural than a smaller, complete figure.
+  const halfHeight = 1.27;
+  const halfWidth = Math.max(0.64, halfHeight * width / Math.max(1, height));
+  const frameCenterY = 0.50;
+  camera.left = -halfWidth;
+  camera.right = halfWidth;
+  camera.top = frameCenterY + halfHeight;
+  camera.bottom = frameCenterY - halfHeight;
   camera.updateProjectionMatrix();
   scene.background.set(background);
   scene.fog.color.set(background);
@@ -472,54 +500,22 @@ function resizeRenderer() {
   }
 }
 
-function rigForTime(kind, now) {
+function selectedRig(kind) {
   if (!payload || !Array.isArray(payload.frames) || payload.frames.length === 0) return null;
   const frames = payload.frames;
-  if (!payload.hasMotion || frames.length === 1) {
-    const index = clamp(Number(payload.selectedFrameIndex) || 0, 0, frames.length - 1);
-    return frames[index][kind];
-  }
-  const firstTime = Number(frames[0].timestampMs) || 0;
-  const lastTime = Number(frames[frames.length - 1].timestampMs) || firstTime + 1000;
-  const duration = Math.max(700, lastTime - firstTime);
-  const timestamp = firstTime + ((now - startTime) % duration);
-  let nextIndex = frames.findIndex((frame) => Number(frame.timestampMs) >= timestamp);
-  if (nextIndex <= 0) {
-    if (nextIndex < 0) nextIndex = 0;
-    return frames[nextIndex][kind];
-  }
-  const previous = frames[nextIndex - 1];
-  const next = frames[nextIndex];
-  const span = Math.max(1, Number(next.timestampMs) - Number(previous.timestampMs));
-  const amount = smoothstep(clamp((timestamp - Number(previous.timestampMs)) / span, 0, 1));
-  return interpolateRig(previous[kind], next[kind], amount);
-}
-
-function interpolateRig(first, second, amount) {
-  if (!first || !second) return second || first || null;
-  const joints = {};
-  const before = first.joints || {};
-  const after = second.joints || {};
-  Object.keys(before).forEach((name) => {
-    if (!Array.isArray(before[name]) || !Array.isArray(after[name])) return;
-    joints[name] = [
-      lerp(Number(before[name][0]), Number(after[name][0]), amount),
-      lerp(Number(before[name][1]), Number(after[name][1]), amount),
-      lerp(Number(before[name][2]), Number(after[name][2]), amount),
-    ];
-  });
-  return { ...second, joints };
+  const index = clamp(Number(payload.selectedFrameIndex) || 0, 0, frames.length - 1);
+  return frames[index][kind];
 }
 
 const boneCorrections = [
-  { bone: 'mixamorig:LeftArm', child: 'mixamorig:LeftForeArm', start: 'leftShoulder', end: 'leftElbow', max: 5, weight: 0.16 },
-  { bone: 'mixamorig:LeftForeArm', child: 'mixamorig:LeftHand', start: 'leftElbow', end: 'leftWrist', max: 5, weight: 0.14 },
-  { bone: 'mixamorig:RightArm', child: 'mixamorig:RightForeArm', start: 'rightShoulder', end: 'rightElbow', max: 5, weight: 0.16 },
-  { bone: 'mixamorig:RightForeArm', child: 'mixamorig:RightHand', start: 'rightElbow', end: 'rightWrist', max: 5, weight: 0.14 },
-  { bone: 'mixamorig:LeftUpLeg', child: 'mixamorig:LeftLeg', start: 'leftHip', end: 'leftKnee', max: 7, weight: 0.18 },
-  { bone: 'mixamorig:LeftLeg', child: 'mixamorig:LeftFoot', start: 'leftKnee', end: 'leftAnkle', max: 6, weight: 0.15 },
-  { bone: 'mixamorig:RightUpLeg', child: 'mixamorig:RightLeg', start: 'rightHip', end: 'rightKnee', max: 7, weight: 0.18 },
-  { bone: 'mixamorig:RightLeg', child: 'mixamorig:RightFoot', start: 'rightKnee', end: 'rightAnkle', max: 6, weight: 0.15 },
+  { bone: 'mixamorig:LeftArm', child: 'mixamorig:LeftForeArm', start: 'leftShoulder', end: 'leftElbow', max: 13, weight: 0.42 },
+  { bone: 'mixamorig:LeftForeArm', child: 'mixamorig:LeftHand', start: 'leftElbow', end: 'leftWrist', max: 12, weight: 0.38 },
+  { bone: 'mixamorig:RightArm', child: 'mixamorig:RightForeArm', start: 'rightShoulder', end: 'rightElbow', max: 13, weight: 0.42 },
+  { bone: 'mixamorig:RightForeArm', child: 'mixamorig:RightHand', start: 'rightElbow', end: 'rightWrist', max: 12, weight: 0.38 },
+  { bone: 'mixamorig:LeftUpLeg', child: 'mixamorig:LeftLeg', start: 'leftHip', end: 'leftKnee', max: 16, weight: 0.52 },
+  { bone: 'mixamorig:LeftLeg', child: 'mixamorig:LeftFoot', start: 'leftKnee', end: 'leftAnkle', max: 14, weight: 0.46 },
+  { bone: 'mixamorig:RightUpLeg', child: 'mixamorig:RightLeg', start: 'rightHip', end: 'rightKnee', max: 16, weight: 0.52 },
+  { bone: 'mixamorig:RightLeg', child: 'mixamorig:RightFoot', start: 'rightKnee', end: 'rightAnkle', max: 14, weight: 0.46 },
 ];
 
 function applyPoseCorrection(avatar, rig) {
@@ -662,12 +658,4 @@ function hideStatus() {
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
-}
-
-function lerp(start, end, amount) {
-  return start + (end - start) * amount;
-}
-
-function smoothstep(value) {
-  return value * value * (3 - 2 * value);
 }
