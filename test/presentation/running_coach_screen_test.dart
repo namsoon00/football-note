@@ -1134,7 +1134,7 @@ void main() {
             ),
           )
           .tooltip,
-      'Play goal movement',
+      'Pause goal movement',
     );
     final goalMotionToggle = find.byKey(
       const ValueKey('running-coach-goal-motion-toggle'),
@@ -1154,10 +1154,23 @@ void main() {
             ),
           )
           .tooltip,
-      'Pause goal movement',
+      'Play goal movement',
     );
     await tester.tap(goalMotionToggle);
     await tester.pump();
+    expect(
+      tester
+          .widget<IconButton>(
+            find.descendant(
+              of: find.byKey(
+                const ValueKey('running-coach-goal-motion-toggle'),
+              ),
+              matching: find.byType(IconButton),
+            ),
+          )
+          .tooltip,
+      'Pause goal movement',
+    );
     expect(find.text('Current point'), findsOneWidget);
     expect(find.text('Target range'), findsOneWidget);
     expect(

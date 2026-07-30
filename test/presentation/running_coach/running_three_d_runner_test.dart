@@ -33,11 +33,13 @@ void main() {
           currentColor: '#ff0000',
           targetColor: '#0000ff',
           successColor: '#008000',
+          playbackProgress: 0.375,
         )
         .data;
 
     expect(payload['rendererVersion'], runningThreeDRendererVersion);
     expect(payload['hasMotion'], isTrue);
+    expect(payload['playbackProgress'], 0.375);
     final payloadFrames = payload['frames']! as List<Object?>;
     expect(payloadFrames, hasLength(2));
     final firstFrame = payloadFrames.first! as Map<Object?, Object?>;
