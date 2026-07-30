@@ -127,6 +127,29 @@ void main() {
       isTrue,
     );
   });
+
+  test('retains measured stride changes across a running pose sequence', () {
+    final frames = <RunningPoseFrame>[
+      for (var frameIndex = 0; frameIndex < 6; frameIndex += 1)
+        _runningFrame(
+          timestampMs: frameIndex * 33,
+          leftLegShift: -0.010 * frameIndex,
+        ),
+    ];
+    final retargeted =
+        const RunningThreeDRunnerRetargeter().retargetSequenceForTesting(
+      frames: frames,
+      insight: insight,
+      direction: RunningDirection.leftToRight,
+    );
+    final first = retargeted.first['current']! as Map<Object?, Object?>;
+    final last = retargeted.last['current']! as Map<Object?, Object?>;
+
+    expect(
+      (_jointX(last, 'leftAnkle') - _jointX(first, 'leftAnkle')).abs(),
+      greaterThan(0.055),
+    );
+  });
 }
 
 double _jointX(Map<Object?, Object?> rig, String name) {
@@ -138,6 +161,7 @@ double _jointX(Map<Object?, Object?> rig, String name) {
 RunningPoseFrame _runningFrame({
   required int timestampMs,
   double hipShift = 0,
+  double leftLegShift = 0,
   double leftWristX = 0.42,
   Set<int> lowConfidenceIndices = const <int>{},
 }) {
@@ -167,13 +191,13 @@ RunningPoseFrame _runningFrame({
     22: (x: 0.70 + hipShift, y: 0.46),
     23: (x: 0.53 + hipShift, y: 0.54),
     24: (x: 0.57 + hipShift, y: 0.54),
-    25: (x: 0.68 + hipShift, y: 0.66),
+    25: (x: 0.68 + leftLegShift + hipShift, y: 0.66),
     26: (x: 0.45 + hipShift, y: 0.67),
-    27: (x: 0.78 + hipShift, y: 0.82),
+    27: (x: 0.78 + leftLegShift + hipShift, y: 0.82),
     28: (x: 0.34 + hipShift, y: 0.85),
-    29: (x: 0.74 + hipShift, y: 0.86),
+    29: (x: 0.74 + leftLegShift + hipShift, y: 0.86),
     30: (x: 0.30 + hipShift, y: 0.89),
-    31: (x: 0.84 + hipShift, y: 0.86),
+    31: (x: 0.84 + leftLegShift + hipShift, y: 0.86),
     32: (x: 0.39 + hipShift, y: 0.90),
   };
   return RunningPoseFrame(

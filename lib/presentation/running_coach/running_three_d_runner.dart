@@ -9,9 +9,12 @@ import '../../domain/entities/running_video_analysis_result.dart';
 const double _minimumPoseConfidence = 0.35;
 const int _maximumRetargetFrameCount = 48;
 const int _maximumLowConfidenceHoldFrames = 5;
+const double _footLockMinimumConfidence = 0.55;
+const double _footLockMaximumGroundDistance = 0.14;
+const double _footLockMaximumVelocityPer33Ms = 0.018;
 
 const String runningThreeDRendererVersion =
-    'rigged-human-runner-v6-safe-playback';
+    'rigged-human-runner-v7-measured-stride';
 
 class RunningThreeDRunnerPayload {
   final Map<String, Object?> data;
@@ -970,9 +973,14 @@ _FootLockDecision _footLockDecision({
       : (footCenter - previous).length / (elapsedMs / 33.0);
   memory.rawFootCenters[side] = footCenter;
   memory.previousFootTimestampMs[side] = frame.timestampMs;
-  final locked = confidence >= 0.45 &&
-      distanceToGround <= 0.20 &&
-      (previous == null || velocity <= 0.075);
+  // A foot is held only for a confirmed, quiet contact. The old first-frame
+  // fallback locked every foot before a velocity could be measured, then the
+  // broad threshold repeatedly snapped subsequent running frames back to it.
+  // Preserve the measured stride unless this is a stable contact phase.
+  final locked = previous != null &&
+      confidence >= _footLockMinimumConfidence &&
+      distanceToGround <= _footLockMaximumGroundDistance &&
+      velocity <= _footLockMaximumVelocityPer33Ms;
   return _FootLockDecision(
     side: side,
     locked: locked,
