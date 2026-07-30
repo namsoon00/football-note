@@ -64,17 +64,26 @@ if runner.is_file() and html.is_file():
     parser.feed(html_text)
 
     require("scene" in parser.canvas_ids, "Renderer HTML must expose the WebGL canvas")
-    require(parser.scripts == ["runner.js"], "Renderer HTML must load only local runner.js")
+    require(
+        len(parser.scripts) == 1 and parser.scripts[0].startswith("runner.js"),
+        "Renderer HTML must load only local runner.js",
+    )
     require('type="module"' in html_text, "Renderer HTML must load the renderer as a module")
     require("three.module.js" in html_text, "Renderer HTML must map local Three.js")
+    require("is-single" in html_text, "Renderer HTML must support a single current-pose layout")
     require("http://" not in html_text and "https://" not in html_text, "Renderer HTML must not load network resources")
 
     for required in (
         "WebGLRenderer",
         "GLTFLoader",
         "reference_runner.glb",
-        "applyNaturalRunCycle(",
+        "OrthographicCamera",
+        "applySelectedFramePose(",
         "applyPoseCorrection(",
+        "selectedRig(",
+        "shouldShowComparison(",
+        "copy.transparent = false",
+        "copy.depthWrite = true",
         "registerBone(",
         "setBoneWorldDirection(",
         "guidePositionForRig(",
@@ -98,6 +107,11 @@ if runner.is_file() and html.is_file():
         "drawRunnerHead(",
         "drawShoe(",
         "procedural-webgl-runner-v1",
+        "applyNaturalRunCycle(",
+        "rigForTime(",
+        "interpolateRig(",
+        "startTime",
+        "Math.sin(phase)",
         "cdn",
         "http://",
         "https://",

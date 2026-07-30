@@ -10,8 +10,8 @@ const double _minimumPoseConfidence = 0.35;
 const int _maximumRetargetFrameCount = 48;
 const int _maximumLowConfidenceHoldFrames = 5;
 
-@visibleForTesting
-const String runningThreeDRendererVersion = 'rigged-human-runner-v2';
+const String runningThreeDRendererVersion =
+    'rigged-human-runner-v3-selected-frame';
 
 class RunningThreeDRunnerPayload {
   final Map<String, Object?> data;

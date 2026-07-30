@@ -42,6 +42,14 @@
       pointer-events: none;
     }
 
+    #hud.is-single {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    #hud.is-single .hud-panel[data-side="target"] {
+      display: none;
+    }
+
     .hud-panel {
       min-width: 0;
       display: flex;
@@ -84,9 +92,9 @@
       position: absolute;
       left: 12px;
       right: 12px;
-      bottom: 8px;
+      top: 27px;
       color: rgba(235, 241, 255, 0.64);
-      font-size: 9px;
+      font-size: 8px;
       font-weight: 650;
       line-height: 1.25;
       text-align: center;
@@ -114,6 +122,6 @@
   </div>
   <div id="notice" aria-hidden="true"></div>
   <div id="status" role="status"></div>
-  <script type="module" src="runner.js"></script>
+  <script type="module" src="runner.js?v=rigged-human-runner-v3-selected-frame"></script>
 </body>
 </html>

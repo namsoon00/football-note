@@ -6,6 +6,8 @@ import 'dart:ui_web' as ui_web;
 
 import 'package:flutter/widgets.dart';
 
+import 'running_three_d_runner.dart';
+
 class RunningThreeDRunnerPlatformView extends StatefulWidget {
   final String payloadJson;
   final String loadingLabel;
@@ -83,9 +85,13 @@ class _RunningThreeDRunnerPlatformViewState
   }
 
   String _rendererAssetUrl() {
-    return Uri.base
-        .resolve('assets/assets/running_coach_3d_runner/runner.html')
-        .toString();
+    final assetUri =
+        Uri.base.resolve('assets/assets/running_coach_3d_runner/runner.html');
+    return assetUri.replace(
+      queryParameters: <String, String>{
+        'v': runningThreeDRendererVersion,
+      },
+    ).toString();
   }
 
   @override
