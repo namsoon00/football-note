@@ -633,9 +633,6 @@ void main() {
       -320,
       scrollable: find.byType(Scrollable).first,
     );
-    await tester
-        .tap(find.byKey(const ValueKey('running-coach-report-details')));
-    await tester.pump();
     expect(find.text('Foot strike'), findsWidgets);
     expect(find.text('Arm carriage'), findsWidgets);
   });
@@ -1009,9 +1006,6 @@ void main() {
       -320,
       scrollable: find.byType(Scrollable).first,
     );
-    await tester
-        .tap(find.byKey(const ValueKey('running-coach-report-details')));
-    await tester.pump();
 
     await tester.scrollUntilVisible(
       find.text('0.00초, 0.50초'),
@@ -1112,7 +1106,7 @@ void main() {
     );
     expect(
       find.byKey(const ValueKey('running-coach-analysis-evidence-caption')),
-      findsOneWidget,
+      findsNothing,
     );
     await tester.pump(const Duration(milliseconds: 100));
     final unavailablePlay = find.byKey(
@@ -1124,45 +1118,20 @@ void main() {
       findsOneWidget,
     );
     expect(
-      find.byKey(const ValueKey('running-coach-evidence-details')),
-      findsOneWidget,
-    );
-    expect(
-      find.text(
-        'The red guide marks only the body area used for this coaching call.',
-      ),
+      find.byKey(const ValueKey('running-coach-evidence-pose-transition')),
       findsNothing,
     );
     expect(
-      find.byKey(const ValueKey('running-coach-evidence-pose-transition')),
-      findsOneWidget,
-    );
-    expect(find.text('Measured case and next movement'), findsOneWidget);
-    expect(
       find.byKey(const ValueKey('running-coach-goal-motion')),
-      findsOneWidget,
+      findsNothing,
     );
     expect(
       find.byKey(const ValueKey('running-coach-goal-motion-toggle')),
       findsNothing,
     );
-    expect(find.text('Current point'), findsOneWidget);
-    expect(find.text('Target range'), findsOneWidget);
-    expect(
-      find.byKey(const ValueKey('running-coach-illustrated-comparison')),
-      findsOneWidget,
-    );
     expect(
       find.byKey(const ValueKey('running-coach-3d-runner-platform-view')),
       findsNothing,
-    );
-    expect(
-      tester
-          .getSize(
-            find.byKey(const ValueKey('running-coach-goal-motion')),
-          )
-          .height,
-      212,
     );
     expect(find.text('Evidence 1/2'), findsOneWidget);
     expect(tester.takeException(), isNull);
@@ -1177,18 +1146,17 @@ void main() {
     await tester.pump();
 
     expect(find.text('Evidence 2/2'), findsOneWidget);
-    final evidenceDetails = find.byKey(
-      const ValueKey('running-coach-evidence-details'),
+    final reportDetails = find.byKey(
+      const ValueKey('running-coach-report-details'),
     );
-    await tester.ensureVisible(evidenceDetails);
-    await tester.tap(evidenceDetails);
-    await tester.pump(const Duration(milliseconds: 250));
-    expect(find.text('What I saw'), findsOneWidget);
+    await _scrollAnalysisResultUntilFound(tester, reportDetails);
+    expect(reportDetails, findsOneWidget);
     expect(
-      find.text(
-        'The red guide marks only the body area used for this coaching call.',
+      find.descendant(
+        of: reportDetails,
+        matching: find.byType(ExpansionTile),
       ),
-      findsOneWidget,
+      findsNothing,
     );
     expect(tester.takeException(), isNull);
   });
@@ -1315,18 +1283,15 @@ void main() {
         ),
       );
       await tester.pump();
-      final goalMotion = find.byKey(
-        const ValueKey('running-coach-goal-motion'),
+      expect(
+        find.byKey(const ValueKey('running-coach-evidence-pose-transition')),
+        findsNothing,
       );
-      expect(goalMotion, findsOneWidget);
-      expect(tester.getSize(goalMotion).height, 212);
       if (metric == RunningCoachMetric.posture) {
         final reportDetails = find.byKey(
           const ValueKey('running-coach-report-details'),
         );
         await _scrollAnalysisResultUntilFound(tester, reportDetails);
-        await tester.tap(reportDetails);
-        await tester.pump();
         final detailComparison = find.byKey(
           const ValueKey('running-coach-insight-evidence-diagram-posture'),
         );
@@ -1464,8 +1429,28 @@ Future<void> _scrollAnalysisResultUntilFound(
   final resultList = find.byKey(
     const ValueKey('running-coach-analysis-result-list'),
   );
-  for (var attempt = 0; attempt < 12; attempt += 1) {
-    if (finder.evaluate().isNotEmpty) return;
+  for (var attempt = 0; attempt < 40; attempt += 1) {
+    if (finder.evaluate().isNotEmpty) {
+      final targetBounds = tester.getRect(finder);
+      final viewportBounds = tester.getRect(resultList);
+      final isLargeTarget = targetBounds.height > viewportBounds.height;
+      final isVisible = isLargeTarget
+          ? targetBounds.bottom > viewportBounds.top &&
+              targetBounds.top < viewportBounds.bottom
+          : targetBounds.top >= viewportBounds.top + 16 &&
+              targetBounds.bottom <= viewportBounds.bottom - 16;
+      if (isVisible) return;
+
+      final verticalAdjustment = targetBounds.top < viewportBounds.top + 16
+          ? viewportBounds.top + 16 - targetBounds.top
+          : viewportBounds.bottom - 16 - targetBounds.bottom;
+      await tester.drag(
+        resultList,
+        Offset(0, verticalAdjustment.clamp(-420.0, 420.0).toDouble()),
+      );
+      await tester.pump(const Duration(milliseconds: 80));
+      continue;
+    }
     await tester.drag(resultList, const Offset(0, -420));
     await tester.pump(const Duration(milliseconds: 80));
   }

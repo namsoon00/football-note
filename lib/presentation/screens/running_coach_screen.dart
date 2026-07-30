@@ -2604,6 +2604,7 @@ class _RunningPoseOverlayPainter extends CustomPainter {
   final bool useContainFit;
   final bool showRunnerAvatar;
   final bool showRefinedPose;
+  final bool showFullBodyTrace;
   final bool showTargetDirection;
 
   const _RunningPoseOverlayPainter({
@@ -2618,6 +2619,7 @@ class _RunningPoseOverlayPainter extends CustomPainter {
     this.useContainFit = false,
     this.showRunnerAvatar = false,
     this.showRefinedPose = false,
+    this.showFullBodyTrace = false,
     this.showTargetDirection = true,
   });
 
@@ -2630,6 +2632,9 @@ class _RunningPoseOverlayPainter extends CustomPainter {
       _drawHumanForm(canvas, size, frame);
     } else if (showRefinedPose) {
       _drawRefinedPose(canvas, size, frame);
+    }
+    if (showFullBodyTrace) {
+      _drawFullBodyEvidenceTrace(canvas, size, frame);
     }
     final metric = highlightedMetric;
     if (metric != null) {
@@ -2691,6 +2696,72 @@ class _RunningPoseOverlayPainter extends CustomPainter {
       ),
       focusIndices: _focusIndicesForMetric(highlightedMetric),
     );
+  }
+
+  /// Draws the complete tracked body on the source video before emphasizing
+  /// the measurement-specific joints. This keeps the evidence frame legible
+  /// as a whole-body pose rather than looking like an isolated arm or leg.
+  void _drawFullBodyEvidenceTrace(
+    Canvas canvas,
+    Size size,
+    RunningPoseFrame frame,
+  ) {
+    const chains = <List<int>>[
+      <int>[0, 11],
+      <int>[0, 12],
+      <int>[11, 12],
+      <int>[11, 23],
+      <int>[12, 24],
+      <int>[23, 24],
+      <int>[11, 13, 15, 19],
+      <int>[12, 14, 16, 20],
+      <int>[23, 25, 27, 29, 31],
+      <int>[24, 26, 28, 30, 32],
+    ];
+    final strokeWidth = math.max(1.5, size.shortestSide * 0.0058);
+    final traceColor = secondaryColor.withValues(alpha: 0.72);
+    final haloPaint = Paint()
+      ..color = secondaryColor.withValues(alpha: 0.16)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth * 2.8
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    final linePaint = Paint()
+      ..color = traceColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    final pointIndices = <int>{};
+    for (final chain in chains) {
+      Offset? previous;
+      for (final index in chain) {
+        pointIndices.add(index);
+        final point = _pointForIndex(size, frame, index);
+        if (point == null) {
+          previous = null;
+          continue;
+        }
+        if (previous != null) {
+          canvas.drawLine(previous, point, haloPaint);
+          canvas.drawLine(previous, point, linePaint);
+        }
+        previous = point;
+      }
+    }
+
+    final jointRadius = math.max(2.8, size.shortestSide * 0.010);
+    final jointHaloPaint = Paint()
+      ..color = secondaryColor.withValues(alpha: 0.20);
+    final jointPaint = Paint()
+      ..color = const Color(0xFFF8FBFF).withValues(alpha: 0.88);
+    for (final index in pointIndices) {
+      final point = _pointForIndex(size, frame, index);
+      if (point == null) continue;
+      canvas.drawCircle(point, jointRadius * 1.6, jointHaloPaint);
+      canvas.drawCircle(point, jointRadius * 0.72, jointPaint);
+    }
   }
 
   Set<int> _focusIndicesForMetric(RunningCoachMetric? metric) {
@@ -3123,6 +3194,7 @@ class _RunningPoseOverlayPainter extends CustomPainter {
         oldDelegate.useContainFit != useContainFit ||
         oldDelegate.showRunnerAvatar != showRunnerAvatar ||
         oldDelegate.showRefinedPose != showRefinedPose ||
+        oldDelegate.showFullBodyTrace != showFullBodyTrace ||
         oldDelegate.showTargetDirection != showTargetDirection;
   }
 }
@@ -4813,13 +4885,13 @@ class _RunningAnalysisResultScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
           ],
-          _ResultsSummaryCard(result: result, report: report),
-          const SizedBox(height: 12),
           _ReportDetailsCard(
             result: result,
             report: report,
             sections: insightSections,
           ),
+          const SizedBox(height: 12),
+          _ResultsSummaryCard(result: result, report: report),
         ],
       ),
     );
@@ -5147,7 +5219,6 @@ class _AnalysisEvidenceCardState extends State<_AnalysisEvidenceCard> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
-    final copy = RunningCoachInsightCopy.fromInsight(widget.insight, l10n);
     final gate = _metricEvidenceGate(widget.result, widget.insight);
     final isLegacyHistory =
         widget.isHistorical && widget.result.poseFrames.isEmpty;
@@ -5217,16 +5288,6 @@ class _AnalysisEvidenceCardState extends State<_AnalysisEvidenceCard> {
                 const SizedBox(height: 10),
                 const _EvidencePlaybackUnavailableNotice(),
               ],
-              const SizedBox(height: 10),
-              _EvidenceFrameCaption(
-                frame: _selectedFrame,
-                value: copy.value,
-              ),
-              const SizedBox(height: 10),
-              _EvidencePoseTransition(
-                copy: copy,
-                insight: widget.insight,
-              ),
               const SizedBox(height: 12),
               _EvidenceControls(
                 frames: _evidenceFrames,
@@ -5238,11 +5299,6 @@ class _AnalysisEvidenceCardState extends State<_AnalysisEvidenceCard> {
                 onNext: () => _selectFrame(_selectedIndex + 1),
                 onPlayPause: canPlayVideo ? _togglePlayback : null,
                 onScrub: _selectNearestEvidenceFrame,
-              ),
-              const SizedBox(height: 4),
-              _EvidenceDetailsPanel(
-                copy: copy,
-                timestamp: _selectedFrame.timestamp,
               ),
             ],
           ],
@@ -5402,12 +5458,13 @@ class _EvidenceVideoContent extends StatelessWidget {
                       finding: insight.finding,
                       direction: result.direction,
                       useContainFit: true,
-                      // Keep the uploaded video as the evidence surface. The
-                      // overlay marks only the measured coaching points. The
-                      // next-step target is explained below in the illustrated
-                      // comparison rather than being drawn over the video.
+                      // Keep the uploaded video as the evidence surface. A
+                      // neutral full-body trace makes the complete measured
+                      // pose visible, while the accent still isolates the
+                      // coaching measurement for this frame.
                       showRunnerAvatar: false,
                       showRefinedPose: !hasPlayableVideo,
+                      showFullBodyTrace: true,
                       showTargetDirection: false,
                     ),
                   );
@@ -5451,138 +5508,6 @@ class _EvidencePlaybackUnavailableNotice extends StatelessWidget {
                 child: Text(
                   l10n.runningCoachEvidenceVideoUnavailable,
                   style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _EvidenceFrameCaption extends StatelessWidget {
-  final _AnalysisEvidenceFrame frame;
-  final String value;
-
-  const _EvidenceFrameCaption({required this.frame, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final scheme = Theme.of(context).colorScheme;
-    final actualAccent = scheme.error;
-    final summary = l10n.runningCoachEvidenceFrameSummary(
-      frame.label(l10n),
-      value,
-    );
-    return Semantics(
-      label: summary,
-      child: Row(
-        key: const ValueKey('running-coach-analysis-evidence-caption'),
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            Icons.radio_button_checked_rounded,
-            size: 18,
-            color: actualAccent,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              summary,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _EvidencePoseTransition extends StatelessWidget {
-  final RunningCoachInsightCopy copy;
-  final RunningCoachingInsight insight;
-
-  const _EvidencePoseTransition({
-    required this.copy,
-    required this.insight,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final scheme = Theme.of(context).colorScheme;
-    final isGood = insight.status == RunningCoachStatus.good;
-    final successAccent = Colors.green.shade700;
-    final actualAccent = isGood ? successAccent : scheme.error;
-    final targetAccent = scheme.primary;
-    return Semantics(
-      container: true,
-      label: l10n.runningCoachIllustrationTitle,
-      child: DecoratedBox(
-        key: const ValueKey('running-coach-evidence-pose-transition'),
-        decoration: BoxDecoration(
-          color: scheme.surfaceContainerHighest.withValues(alpha: 0.56),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: scheme.outlineVariant),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.compare_arrows_rounded,
-                    size: 19,
-                    color: isGood ? successAccent : targetAccent,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      l10n.runningCoachIllustrationTitle,
-                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                            fontWeight: FontWeight.w900,
-                          ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Text(
-                isGood
-                    ? l10n.runningCoachIllustrationGoodBody
-                    : l10n.runningCoachIllustrationBody,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-              const SizedBox(height: 10),
-              _CoordinateComparisonLegend(
-                currentValue: copy.value,
-                targetRange: _comparisonTargetRange(l10n, insight.metric),
-                isGood: isGood,
-                actualAccent: actualAccent,
-                targetAccent: targetAccent,
-                successAccent: successAccent,
-              ),
-              const SizedBox(height: 8),
-              SizedBox(
-                key: const ValueKey('running-coach-goal-motion'),
-                height: 212,
-                width: double.infinity,
-                child: RunningCoachIllustratedComparison(
-                  insight: insight,
-                  surfaceColor: scheme.surface,
-                  mutedColor: scheme.onSurfaceVariant,
-                  actualAccent: actualAccent,
-                  targetAccent: targetAccent,
-                  successAccent: successAccent,
-                  semanticLabel: l10n.runningCoachIllustrationTitle,
-                  currentLabel: l10n.runningCoachEvidenceCurrentLabel,
-                  nextStepLabel: l10n.runningCoachEvidenceNextLabel,
                 ),
               ),
             ],
@@ -6538,61 +6463,6 @@ class _EvidenceControls extends StatelessWidget {
               .clamp(minMs.round(), math.max(minMs + 1, maxMs).round())
               .toDouble(),
           onChanged: frames.length <= 1 ? null : onScrub,
-        ),
-      ],
-    );
-  }
-}
-
-class _EvidenceDetailsPanel extends StatelessWidget {
-  final RunningCoachInsightCopy copy;
-  final Duration timestamp;
-
-  const _EvidenceDetailsPanel({
-    required this.copy,
-    required this.timestamp,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final scheme = Theme.of(context).colorScheme;
-    return ExpansionTile(
-      key: const ValueKey('running-coach-evidence-details'),
-      tilePadding: EdgeInsets.zero,
-      childrenPadding: const EdgeInsets.only(bottom: 4),
-      leading: Icon(Icons.info_outline_rounded, color: scheme.primary),
-      iconColor: scheme.primary,
-      collapsedIconColor: scheme.primary,
-      shape: const Border(),
-      collapsedShape: const Border(),
-      visualDensity: VisualDensity.compact,
-      title: Text(
-        l10n.runningCoachEvidenceDetailsTitle,
-        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              fontWeight: FontWeight.w800,
-            ),
-      ),
-      children: [
-        _GuideTextRow(
-          icon: Icons.visibility_outlined,
-          label: l10n.runningCoachEvidenceWhatSeenLabel,
-          body: l10n.runningCoachEvidenceWhatSeenBody(
-            copy.title,
-            _formatContactTimestamp(l10n, timestamp),
-          ),
-        ),
-        const SizedBox(height: 12),
-        _GuideTextRow(
-          icon: Icons.straighten_rounded,
-          label: l10n.runningCoachEvidenceCurrentOverlayTitle,
-          body: l10n.runningCoachEvidenceCurrentOverlayBody,
-        ),
-        const SizedBox(height: 12),
-        _GuideTextRow(
-          icon: Icons.auto_awesome_motion_rounded,
-          label: l10n.runningCoachEvidenceTransitionTitle,
-          body: l10n.runningCoachGoalMotionFootnote,
         ),
       ],
     );
@@ -8931,44 +8801,44 @@ class _ReportDetailsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return Card(
+      key: const ValueKey('running-coach-report-details'),
       clipBehavior: Clip.antiAlias,
-      child: ExpansionTile(
-        key: const ValueKey('running-coach-report-details'),
-        tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        title: Text(
-          l10n.runningCoachResultDetailsTitle,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w900,
-              ),
-        ),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 4),
-          child: Text(
-            l10n.runningCoachReportDetailsBody,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-        ),
-        children: [
-          if (result.denseSamples.attemptedFrames > 0 ||
-              result.contactWindows.isNotEmpty) ...[
-            _DenseContactEvidencePanel(result: result),
-            const SizedBox(height: 16),
-          ],
-          for (var sectionIndex = 0;
-              sectionIndex < sections.length;
-              sectionIndex += 1) ...[
-            _InsightRegionSectionCard(
-              title: sections[sectionIndex].title,
-              insights: sections[sectionIndex].insights,
-              priorities: report.focusPriorityByMetric,
-              result: result,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.runningCoachResultDetailsTitle,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
             ),
-            if (sectionIndex != sections.length - 1) const SizedBox(height: 16),
+            const SizedBox(height: 4),
+            Text(
+              l10n.runningCoachReportDetailsBody,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 16),
+            if (result.denseSamples.attemptedFrames > 0 ||
+                result.contactWindows.isNotEmpty) ...[
+              _DenseContactEvidencePanel(result: result),
+              const SizedBox(height: 16),
+            ],
+            for (var sectionIndex = 0;
+                sectionIndex < sections.length;
+                sectionIndex += 1) ...[
+              _InsightRegionSectionCard(
+                title: sections[sectionIndex].title,
+                insights: sections[sectionIndex].insights,
+                priorities: report.focusPriorityByMetric,
+                result: result,
+              ),
+              if (sectionIndex != sections.length - 1)
+                const SizedBox(height: 16),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
