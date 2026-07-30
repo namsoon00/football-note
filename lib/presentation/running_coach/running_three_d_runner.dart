@@ -11,7 +11,7 @@ const int _maximumRetargetFrameCount = 48;
 const int _maximumLowConfidenceHoldFrames = 5;
 
 const String runningThreeDRendererVersion =
-    'rigged-human-runner-v3-selected-frame';
+    'rigged-human-runner-v4-measured-motion';
 
 class RunningThreeDRunnerPayload {
   final Map<String, Object?> data;

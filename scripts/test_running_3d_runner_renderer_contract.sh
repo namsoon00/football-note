@@ -72,16 +72,23 @@ if runner.is_file() and html.is_file():
     require("three.module.js" in html_text, "Renderer HTML must map local Three.js")
     require("is-single" in html_text, "Renderer HTML must support a single current-pose layout")
     require("http://" not in html_text and "https://" not in html_text, "Renderer HTML must not load network resources")
+    require(
+        "payload.status === 'good'" not in runner_text,
+        "Renderer must not hide the target motion when a metric is already good",
+    )
 
     for required in (
         "WebGLRenderer",
         "GLTFLoader",
         "reference_runner.glb",
         "OrthographicCamera",
-        "applySelectedFramePose(",
+        "applyMeasuredFramePose(",
         "applyPoseCorrection(",
         "selectedRig(",
         "shouldShowComparison(",
+        "rigForMeasuredPlayback(",
+        "interpolateMeasuredRig(",
+        "MEASURED_PLAYBACK_SPEED",
         "copy.transparent = false",
         "copy.depthWrite = true",
         "registerBone(",
@@ -111,7 +118,7 @@ if runner.is_file() and html.is_file():
         "rigForTime(",
         "interpolateRig(",
         "startTime",
-        "Math.sin(phase)",
+        "Math.sin(",
         "cdn",
         "http://",
         "https://",

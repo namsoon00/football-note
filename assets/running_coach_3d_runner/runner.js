@@ -5,6 +5,12 @@ const MODEL_URL = './models/reference_runner.glb';
 const DEFAULT_CURRENT = '#ef7370';
 const DEFAULT_TARGET = '#78a8ff';
 const MIN_CONFIDENCE = 0.35;
+// Motion comes from the captured pose sequence. These bounds only make a
+// very short or very long capture comfortable to inspect on a phone; they do
+// not synthesize a gait or alter the order of measured poses.
+const MEASURED_PLAYBACK_SPEED = 0.90;
+const MIN_MEASURED_PLAYBACK_CYCLE_MS = 950;
+const MAX_MEASURED_PLAYBACK_CYCLE_MS = 2800;
 
 const canvas = document.getElementById('scene');
 const statusEl = document.getElementById('status');
@@ -22,6 +28,7 @@ let assetReady = false;
 let prototype = null;
 let avatar = null;
 let comparisonVisible = true;
+let measuredPlaybackStartedAt = performance.now();
 
 let renderer;
 try {
@@ -285,6 +292,7 @@ function createGuides(scene) {
 function setPayload(rawPayload) {
   try {
     payload = typeof rawPayload === 'string' ? JSON.parse(rawPayload) : rawPayload;
+    resetMeasuredPlayback();
     updateHud();
     if (assetReady) {
       hideStatus();
@@ -319,11 +327,11 @@ function updateHud() {
     : '';
 }
 
-function render() {
+function render(now) {
   requestAnimationFrame(render);
   resizeRenderer();
-  const currentRig = selectedRig('current');
-  const targetRig = selectedRig('target');
+  const currentRig = rigForMeasuredPlayback('current', now);
+  const targetRig = rigForMeasuredPlayback('target', now);
   const showComparison = shouldShowComparison(targetRig);
   syncComparisonLayout(showComparison);
   const colors = payload && payload.colors ? payload.colors : {};
@@ -354,9 +362,10 @@ function render() {
 }
 
 function shouldShowComparison(targetRig) {
-  if (!payload || payload.status === 'good') return false;
-  return Array.isArray(targetRig && targetRig.modifiedChannels)
-    && targetRig.modifiedChannels.length > 0;
+  // Even a metric already in range needs a current-versus-target view. In
+  // that case both tracks intentionally replay the same measured movement,
+  // which is the honest target: maintain this motion.
+  return Boolean(payload && targetRig && targetRig.joints);
 }
 
 function syncComparisonLayout(showComparison) {
@@ -367,10 +376,11 @@ function syncComparisonLayout(showComparison) {
 
 function prepareAvatarPose(avatar, rig) {
   restoreRestPose(avatar);
-  applySelectedFramePose(avatar, rig);
-  // The model begins from a measured selected-frame pose, then landmark data
-  // makes bounded corrections. This avoids inventing a repeating gait while
-  // retaining anatomically stable limbs when video landmarks are noisy.
+  applyMeasuredFramePose(avatar, rig);
+  // Each rendered pose is an interpolation between adjacent captured frames,
+  // then landmark data makes bounded corrections. This avoids inventing a
+  // repeating gait while retaining stable limbs when video landmarks are
+  // noisy.
   applyPoseCorrection(avatar, rig);
 }
 
@@ -397,7 +407,7 @@ function restoreRestPose(avatar) {
 
 const localXAxis = new THREE.Vector3(1, 0, 0);
 
-function applySelectedFramePose(avatar, rig) {
+function applyMeasuredFramePose(avatar, rig) {
   const { leftSwing, rightSwing } = stanceForRig(rig);
   setLocalX(avatar, 'mixamorig:LeftUpLeg', 0.48 * leftSwing);
   setLocalX(avatar, 'mixamorig:RightUpLeg', 0.48 * rightSwing);
@@ -407,8 +417,8 @@ function applySelectedFramePose(avatar, rig) {
   setLocalX(avatar, 'mixamorig:RightFoot', -0.08 - 0.14 * rightSwing);
   setLocalX(avatar, 'mixamorig:LeftToeBase', 0.04 + 0.11 * Math.max(0, leftSwing));
   setLocalX(avatar, 'mixamorig:RightToeBase', 0.04 + 0.11 * Math.max(0, rightSwing));
-  poseSelectedFrameArm(avatar, 'Left', -leftSwing);
-  poseSelectedFrameArm(avatar, 'Right', -rightSwing);
+  poseMeasuredFrameArm(avatar, 'Left', -leftSwing);
+  poseMeasuredFrameArm(avatar, 'Right', -rightSwing);
   avatar.root.updateMatrixWorld(true);
 }
 
@@ -429,7 +439,7 @@ function stanceForRig(rig) {
   return { leftSwing: stride, rightSwing: -stride };
 }
 
-function poseSelectedFrameArm(avatar, side, swing) {
+function poseMeasuredFrameArm(avatar, side, swing) {
   const upperArm = `mixamorig:${side}Arm`;
   const forearm = `mixamorig:${side}ForeArm`;
   // Mixamo's child bones point down their local Y axis. Rotating around the
@@ -505,6 +515,132 @@ function selectedRig(kind) {
   const frames = payload.frames;
   const index = clamp(Number(payload.selectedFrameIndex) || 0, 0, frames.length - 1);
   return frames[index][kind];
+}
+
+function resetMeasuredPlayback() {
+  const range = measuredPlaybackRange();
+  if (!range || range.sourceDuration <= 0) {
+    measuredPlaybackStartedAt = performance.now();
+    return;
+  }
+  const frames = payload.frames;
+  const selectedIndex = clamp(
+    Number(payload.selectedFrameIndex) || 0,
+    0,
+    frames.length - 1,
+  );
+  const selectedTimestamp = frameTimestamp(frames[selectedIndex], range.firstTimestamp);
+  const selectedProgress = clamp(
+    (selectedTimestamp - range.firstTimestamp) / range.sourceDuration,
+    0,
+    1,
+  );
+  // Start where the result screen selected the coaching frame, then continue
+  // through the actual sequence in chronological order.
+  measuredPlaybackStartedAt = performance.now() - selectedProgress * range.displayDuration;
+}
+
+function measuredPlaybackRange() {
+  if (!payload || !Array.isArray(payload.frames) || payload.frames.length < 2) return null;
+  const frames = payload.frames;
+  const firstTimestamp = frameTimestamp(frames[0], 0);
+  const lastTimestamp = frameTimestamp(frames[frames.length - 1], firstTimestamp);
+  const sourceDuration = Math.max(0, lastTimestamp - firstTimestamp);
+  const displayDuration = clamp(
+    sourceDuration / MEASURED_PLAYBACK_SPEED,
+    MIN_MEASURED_PLAYBACK_CYCLE_MS,
+    MAX_MEASURED_PLAYBACK_CYCLE_MS,
+  );
+  return { firstTimestamp, sourceDuration, displayDuration };
+}
+
+function rigForMeasuredPlayback(kind, now) {
+  const range = measuredPlaybackRange();
+  if (!range || range.sourceDuration <= 0 || !payload.hasMotion) return selectedRig(kind);
+  const frames = payload.frames;
+  const elapsed = Math.max(0, now - measuredPlaybackStartedAt);
+  const cycleProgress = (elapsed % range.displayDuration) / range.displayDuration;
+  const measuredTimestamp = range.firstTimestamp + cycleProgress * range.sourceDuration;
+
+  let previousFrame = frames[0];
+  for (let index = 1; index < frames.length; index += 1) {
+    const nextFrame = frames[index];
+    const nextTimestamp = frameTimestamp(nextFrame, range.firstTimestamp);
+    if (measuredTimestamp <= nextTimestamp || index === frames.length - 1) {
+      const previousTimestamp = frameTimestamp(previousFrame, range.firstTimestamp);
+      const gap = Math.max(1, nextTimestamp - previousTimestamp);
+      const progress = clamp((measuredTimestamp - previousTimestamp) / gap, 0, 1);
+      return interpolateMeasuredRig(
+        previousFrame[kind],
+        nextFrame[kind],
+        smoothstep(progress),
+      );
+    }
+    previousFrame = nextFrame;
+  }
+  return selectedRig(kind);
+}
+
+function frameTimestamp(frame, fallback) {
+  const timestamp = Number(frame && frame.timestampMs);
+  return Number.isFinite(timestamp) ? timestamp : fallback;
+}
+
+function interpolateMeasuredRig(previousRig, nextRig, amount) {
+  if (!previousRig) return nextRig || null;
+  if (!nextRig) return previousRig;
+  const previousJoints = previousRig.joints || {};
+  const nextJoints = nextRig.joints || {};
+  const joints = {};
+  const jointNames = new Set([...Object.keys(previousJoints), ...Object.keys(nextJoints)]);
+  jointNames.forEach((name) => {
+    joints[name] = interpolateMeasuredJoint(
+      previousJoints[name],
+      nextJoints[name],
+      amount,
+    );
+  });
+  return {
+    ...nextRig,
+    joints,
+    confidence: interpolateMeasuredNumber(
+      previousRig.confidence,
+      nextRig.confidence,
+      amount,
+      0,
+    ),
+    bodyHeight: interpolateMeasuredNumber(
+      previousRig.bodyHeight,
+      nextRig.bodyHeight,
+      amount,
+      1.72,
+    ),
+  };
+}
+
+function interpolateMeasuredJoint(previousPoint, nextPoint, amount) {
+  if (!Array.isArray(previousPoint)) return nextPoint;
+  if (!Array.isArray(nextPoint)) return previousPoint;
+  const length = Math.max(previousPoint.length, nextPoint.length);
+  return Array.from({ length }, (_, index) => interpolateMeasuredNumber(
+    previousPoint[index],
+    nextPoint[index],
+    amount,
+    0,
+  ));
+}
+
+function interpolateMeasuredNumber(previous, next, amount, fallback) {
+  const start = Number(previous);
+  const end = Number(next);
+  if (!Number.isFinite(start)) return Number.isFinite(end) ? end : fallback;
+  if (!Number.isFinite(end)) return start;
+  return start + (end - start) * amount;
+}
+
+function smoothstep(amount) {
+  const clamped = clamp(amount, 0, 1);
+  return clamped * clamped * (3 - 2 * clamped);
 }
 
 const boneCorrections = [
