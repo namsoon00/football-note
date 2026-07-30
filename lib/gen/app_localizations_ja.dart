@@ -9512,6 +9512,21 @@ class AppLocalizationsJa extends AppLocalizations {
       '赤が現在位置、青が次に合わせる場所です。一度に一つの矢印だけをたどってください。';
 
   @override
+  String get runningCoachIllustrationTitle => '測定ケースと次の動き';
+
+  @override
+  String get runningCoachIllustrationBody =>
+      '上の動画の測定値から選んだコーチング用の参考例です。左の赤は現在の課題、右の青は次に行う動きを示します。';
+
+  @override
+  String get runningCoachIllustrationGoodBody =>
+      '上の動画の測定値は目標範囲内です。この図はそのリズムを保つための参考例です。';
+
+  @override
+  String get runningCoachIllustrationFootnote =>
+      'この図は体型を再構成したものではなく、測定結果に合わせた一般的なランナーの例です。';
+
+  @override
   String get runningCoachMeasuredPoseActualLabel => '現在位置';
 
   @override

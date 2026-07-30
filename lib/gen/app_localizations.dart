@@ -16961,6 +16961,30 @@ abstract class AppLocalizations {
   /// **'Red marks the current point; blue marks the next target. Follow one arrow at a time.'**
   String get runningCoachMeasuredPoseBody;
 
+  /// No description provided for @runningCoachIllustrationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Measured case and next movement'**
+  String get runningCoachIllustrationTitle;
+
+  /// No description provided for @runningCoachIllustrationBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This coaching reference was selected from the measurement in the video above. Red shows the current issue and blue shows the next movement.'**
+  String get runningCoachIllustrationBody;
+
+  /// No description provided for @runningCoachIllustrationGoodBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your measurement in the video above is in range. This illustration is a reference for keeping that rhythm.'**
+  String get runningCoachIllustrationGoodBody;
+
+  /// No description provided for @runningCoachIllustrationFootnote.
+  ///
+  /// In en, this message translates to:
+  /// **'This is a generic runner reference matched to your measurement, not a reconstruction of your body.'**
+  String get runningCoachIllustrationFootnote;
+
   /// No description provided for @runningCoachMeasuredPoseActualLabel.
   ///
   /// In en, this message translates to:

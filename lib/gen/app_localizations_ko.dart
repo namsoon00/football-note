@@ -9524,6 +9524,21 @@ class AppLocalizationsKo extends AppLocalizations {
       '빨간 표시는 현재 위치, 파란 표시는 다음에 맞출 곳이에요. 화살표 하나만 따라 움직여 보세요.';
 
   @override
+  String get runningCoachIllustrationTitle => '측정 케이스와 다음 동작';
+
+  @override
+  String get runningCoachIllustrationBody =>
+      '위 영상의 측정값을 바탕으로 고른 코칭 레퍼런스예요. 왼쪽 빨강은 현재 이슈, 오른쪽 파랑은 다음 동작을 보여 줍니다.';
+
+  @override
+  String get runningCoachIllustrationGoodBody =>
+      '위 영상의 측정값은 목표 범위 안에 있어요. 그림은 이 리듬을 유지하기 위한 레퍼런스입니다.';
+
+  @override
+  String get runningCoachIllustrationFootnote =>
+      '그림은 내 체형을 재구성한 것이 아니라, 측정 결과에 맞춘 일반 러너 예시입니다.';
+
+  @override
   String get runningCoachMeasuredPoseActualLabel => '현재 위치';
 
   @override

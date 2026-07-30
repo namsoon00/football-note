@@ -15,8 +15,8 @@ import '../../domain/entities/running_coach_session.dart';
 import '../../domain/entities/running_video_analysis_result.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../../gen/app_localizations.dart';
+import '../running_coach/running_coach_illustrated_comparison.dart';
 import '../running_coach/running_pose_overlay.dart';
-import '../running_coach/running_pose_comparison.dart';
 import '../running_coach/running_professional_runner.dart';
 import '../running_coach/running_professional_runner_art.dart';
 import '../models/sample_runner_pose.dart';
@@ -5226,9 +5226,6 @@ class _AnalysisEvidenceCardState extends State<_AnalysisEvidenceCard> {
               _EvidencePoseTransition(
                 copy: copy,
                 insight: widget.insight,
-                poseFrame: _selectedFrame.poseFrame,
-                poseFrames: widget.result.poseFrames,
-                direction: widget.result.direction,
               ),
               const SizedBox(height: 12),
               _EvidenceControls(
@@ -5505,47 +5502,26 @@ class _EvidenceFrameCaption extends StatelessWidget {
   }
 }
 
-class _EvidencePoseTransition extends StatefulWidget {
+class _EvidencePoseTransition extends StatelessWidget {
   final RunningCoachInsightCopy copy;
   final RunningCoachingInsight insight;
-  final RunningPoseFrame? poseFrame;
-  final Iterable<RunningPoseFrame> poseFrames;
-  final RunningDirection direction;
 
   const _EvidencePoseTransition({
     required this.copy,
     required this.insight,
-    required this.poseFrame,
-    this.poseFrames = const <RunningPoseFrame>[],
-    required this.direction,
   });
-
-  @override
-  State<_EvidencePoseTransition> createState() =>
-      _EvidencePoseTransitionState();
-}
-
-class _EvidencePoseTransitionState extends State<_EvidencePoseTransition> {
-  bool _isMotionPlaying = true;
-
-  void _toggleMotion() {
-    setState(() {
-      _isMotionPlaying = !_isMotionPlaying;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
-    final isGood = widget.insight.status == RunningCoachStatus.good;
+    final isGood = insight.status == RunningCoachStatus.good;
     final successAccent = Colors.green.shade700;
     final actualAccent = isGood ? successAccent : scheme.error;
     final targetAccent = scheme.primary;
-    final poseFrame = widget.poseFrame;
     return Semantics(
       container: true,
-      label: l10n.runningCoachGoalMotionTitle,
+      label: l10n.runningCoachIllustrationTitle,
       child: DecoratedBox(
         key: const ValueKey('running-coach-evidence-pose-transition'),
         decoration: BoxDecoration(
@@ -5568,69 +5544,47 @@ class _EvidencePoseTransitionState extends State<_EvidencePoseTransition> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      l10n.runningCoachGoalMotionTitle,
+                      l10n.runningCoachIllustrationTitle,
                       style: Theme.of(context).textTheme.labelLarge?.copyWith(
                             fontWeight: FontWeight.w900,
                           ),
                     ),
                   ),
-                  if (poseFrame != null)
-                    AppBarActionButton.icon(
-                      key: const ValueKey('running-coach-goal-motion-toggle'),
-                      tooltip: _isMotionPlaying
-                          ? l10n.runningCoachGoalMotionPause
-                          : l10n.runningCoachGoalMotionPlay,
-                      onPressed: _toggleMotion,
-                      margin: EdgeInsets.zero,
-                      icon: _isMotionPlaying
-                          ? Icons.pause_circle_outline_rounded
-                          : Icons.play_circle_outline_rounded,
-                    ),
                 ],
               ),
               const SizedBox(height: 4),
               Text(
                 isGood
-                    ? l10n.runningCoachMeasuredPoseGoodBody
-                    : l10n.runningCoachGoalMotionBody,
+                    ? l10n.runningCoachIllustrationGoodBody
+                    : l10n.runningCoachIllustrationBody,
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               const SizedBox(height: 10),
               _CoordinateComparisonLegend(
-                currentValue: widget.copy.value,
-                targetRange:
-                    _comparisonTargetRange(l10n, widget.insight.metric),
+                currentValue: copy.value,
+                targetRange: _comparisonTargetRange(l10n, insight.metric),
                 isGood: isGood,
                 actualAccent: actualAccent,
                 targetAccent: targetAccent,
                 successAccent: successAccent,
               ),
-              if (poseFrame != null) ...[
-                const SizedBox(height: 8),
-                SizedBox(
-                  key: const ValueKey('running-coach-goal-motion'),
-                  height: 272,
-                  width: double.infinity,
-                  child: RunningPoseCoordinateComparison(
-                    key: const ValueKey(
-                      'running-coach-goal-motion-coordinate-comparison',
-                    ),
-                    frame: poseFrame,
-                    poseFrames: widget.poseFrames,
-                    insight: widget.insight,
-                    direction: widget.direction,
-                    playbackActive: _isMotionPlaying,
-                    surfaceColor: scheme.surface,
-                    mutedColor: scheme.onSurfaceVariant,
-                    actualAccent: actualAccent,
-                    targetAccent: targetAccent,
-                    successAccent: successAccent,
-                    semanticLabel: l10n.runningCoachGoalMotionTitle,
-                    currentLabel: l10n.runningCoachEvidenceCurrentLabel,
-                    nextStepLabel: l10n.runningCoachEvidenceNextLabel,
-                  ),
+              const SizedBox(height: 8),
+              SizedBox(
+                key: const ValueKey('running-coach-goal-motion'),
+                height: 212,
+                width: double.infinity,
+                child: RunningCoachIllustratedComparison(
+                  insight: insight,
+                  surfaceColor: scheme.surface,
+                  mutedColor: scheme.onSurfaceVariant,
+                  actualAccent: actualAccent,
+                  targetAccent: targetAccent,
+                  successAccent: successAccent,
+                  semanticLabel: l10n.runningCoachIllustrationTitle,
+                  currentLabel: l10n.runningCoachEvidenceCurrentLabel,
+                  nextStepLabel: l10n.runningCoachEvidenceNextLabel,
                 ),
-              ],
+              ),
             ],
           ),
         ),
@@ -7551,45 +7505,25 @@ class _RunningTargetGuideAnnotationPainter extends CustomPainter {
   }
 }
 
-class _MeasuredPoseGuideVisual extends StatefulWidget {
+class _MeasuredPoseGuideVisual extends StatelessWidget {
   final RunningCoachingInsight insight;
-  final RunningPoseFrame poseFrame;
-  final Iterable<RunningPoseFrame> poseFrames;
-  final RunningDirection direction;
 
   const _MeasuredPoseGuideVisual({
     required this.insight,
-    required this.poseFrame,
-    this.poseFrames = const <RunningPoseFrame>[],
-    required this.direction,
   });
-
-  @override
-  State<_MeasuredPoseGuideVisual> createState() =>
-      _MeasuredPoseGuideVisualState();
-}
-
-class _MeasuredPoseGuideVisualState extends State<_MeasuredPoseGuideVisual> {
-  bool _isMotionPlaying = true;
-
-  void _toggleMotion() {
-    setState(() {
-      _isMotionPlaying = !_isMotionPlaying;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
-    final copy = RunningCoachInsightCopy.fromInsight(widget.insight, l10n);
-    final isGood = widget.insight.status == RunningCoachStatus.good;
+    final copy = RunningCoachInsightCopy.fromInsight(insight, l10n);
+    final isGood = insight.status == RunningCoachStatus.good;
     final successAccent = Colors.green.shade700;
     final actualAccent = isGood ? successAccent : scheme.error;
     final targetAccent = scheme.primary;
     return Container(
       key: ValueKey(
-        'running-coach-insight-evidence-diagram-${widget.insight.metric.name}',
+        'running-coach-insight-evidence-diagram-${insight.metric.name}',
       ),
       width: double.infinity,
       decoration: BoxDecoration(
@@ -7604,38 +7538,25 @@ class _MeasuredPoseGuideVisualState extends State<_MeasuredPoseGuideVisual> {
             children: [
               Expanded(
                 child: Text(
-                  l10n.runningCoachMeasuredPoseTitle,
+                  l10n.runningCoachIllustrationTitle,
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
                         fontWeight: FontWeight.w900,
                       ),
                 ),
-              ),
-              AppBarActionButton.icon(
-                key: ValueKey(
-                  'running-coach-insight-goal-motion-toggle-${widget.insight.metric.name}',
-                ),
-                tooltip: _isMotionPlaying
-                    ? l10n.runningCoachGoalMotionPause
-                    : l10n.runningCoachGoalMotionPlay,
-                onPressed: _toggleMotion,
-                margin: EdgeInsets.zero,
-                icon: _isMotionPlaying
-                    ? Icons.pause_circle_outline_rounded
-                    : Icons.play_circle_outline_rounded,
               ),
             ],
           ),
           const SizedBox(height: 4),
           Text(
             isGood
-                ? l10n.runningCoachMeasuredPoseGoodBody
-                : l10n.runningCoachMeasuredPoseBody,
+                ? l10n.runningCoachIllustrationGoodBody
+                : l10n.runningCoachIllustrationBody,
             style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(height: 10),
           _CoordinateComparisonLegend(
             currentValue: copy.value,
-            targetRange: _comparisonTargetRange(l10n, widget.insight.metric),
+            targetRange: _comparisonTargetRange(l10n, insight.metric),
             isGood: isGood,
             actualAccent: actualAccent,
             targetAccent: targetAccent,
@@ -7644,25 +7565,21 @@ class _MeasuredPoseGuideVisualState extends State<_MeasuredPoseGuideVisual> {
           const SizedBox(height: 8),
           SizedBox(
             key: ValueKey(
-              'running-coach-insight-change-map-${widget.insight.metric.name}',
+              'running-coach-insight-change-map-${insight.metric.name}',
             ),
-            height: 272,
+            height: 212,
             width: double.infinity,
-            child: RunningPoseCoordinateComparison(
+            child: RunningCoachIllustratedComparison(
               key: ValueKey(
-                'running-coach-insight-coordinate-comparison-${widget.insight.metric.name}',
+                'running-coach-insight-illustrated-comparison-${insight.metric.name}',
               ),
-              frame: widget.poseFrame,
-              poseFrames: widget.poseFrames,
-              insight: widget.insight,
-              direction: widget.direction,
-              playbackActive: _isMotionPlaying,
+              insight: insight,
               surfaceColor: scheme.surface,
               mutedColor: scheme.onSurfaceVariant,
               actualAccent: actualAccent,
               targetAccent: targetAccent,
               successAccent: successAccent,
-              semanticLabel: l10n.runningCoachMeasuredPoseTitle,
+              semanticLabel: l10n.runningCoachIllustrationTitle,
               currentLabel: l10n.runningCoachEvidenceCurrentLabel,
               nextStepLabel: l10n.runningCoachEvidenceNextLabel,
             ),
@@ -7671,7 +7588,7 @@ class _MeasuredPoseGuideVisualState extends State<_MeasuredPoseGuideVisual> {
           Text(
             isGood
                 ? l10n.runningCoachMeasuredPoseGoodLegend
-                : l10n.runningCoachMeasuredPoseFootnote,
+                : l10n.runningCoachIllustrationFootnote,
             style: Theme.of(context).textTheme.bodySmall,
           ),
         ],
@@ -9481,9 +9398,6 @@ class _InsightCard extends StatelessWidget {
             if (poseFrame != null)
               _MeasuredPoseGuideVisual(
                 insight: insight,
-                poseFrame: poseFrame!,
-                poseFrames: poseFrames,
-                direction: direction,
               )
             else
               _InsightGuideVisual(insight: insight),
