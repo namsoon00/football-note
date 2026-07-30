@@ -17,7 +17,7 @@ class RunningThreeDRunnerComparisonView extends StatelessWidget {
   final Color successColor;
   final String currentLabel;
   final String targetLabel;
-  final double? playbackProgress;
+  final bool playbackActive;
 
   const RunningThreeDRunnerComparisonView({
     super.key,
@@ -30,7 +30,7 @@ class RunningThreeDRunnerComparisonView extends StatelessWidget {
     required this.successColor,
     required this.currentLabel,
     required this.targetLabel,
-    this.playbackProgress,
+    this.playbackActive = true,
   });
 
   @override
@@ -51,7 +51,7 @@ class RunningThreeDRunnerComparisonView extends StatelessWidget {
       currentColor: _hexColor(currentColor),
       targetColor: _hexColor(targetColor),
       successColor: _hexColor(successColor),
-      playbackProgress: playbackProgress,
+      playbackActive: playbackActive,
     );
     final frames = payload.data['frames'];
     if (frames is! List || frames.isEmpty) {

@@ -11,7 +11,7 @@ const int _maximumRetargetFrameCount = 48;
 const int _maximumLowConfidenceHoldFrames = 5;
 
 const String runningThreeDRendererVersion =
-    'rigged-human-runner-v5-parent-playback';
+    'rigged-human-runner-v6-safe-playback';
 
 class RunningThreeDRunnerPayload {
   final Map<String, Object?> data;
@@ -42,7 +42,7 @@ class RunningThreeDRunnerRetargeter {
     required String currentColor,
     required String targetColor,
     required String successColor,
-    double? playbackProgress,
+    bool playbackActive = true,
   }) {
     final sourceFrames = _sampleFrames(poseFrames, selectedFrame);
     final retargeted = _retargetSequence(
@@ -67,9 +67,7 @@ class RunningThreeDRunnerRetargeter {
       'selectedTimestampMs': selectedTimestampMs,
       'selectedFrameIndex': selectedIndex,
       'hasMotion': retargeted.length > 1,
-      if (playbackProgress != null)
-        'playbackProgress':
-            _round3(playbackProgress.clamp(0.0, 1.0).toDouble()),
+      'playbackActive': playbackActive,
       'focusIndices': focusIndicesForRunningThreeDMetric(insight.metric)
           .toList(growable: false),
       'colors': <String, Object?>{

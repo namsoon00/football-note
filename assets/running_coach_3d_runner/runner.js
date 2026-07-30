@@ -29,6 +29,8 @@ let prototype = null;
 let avatar = null;
 let comparisonVisible = true;
 let measuredPlaybackStartedAt = performance.now();
+let playbackActive = true;
+let pausedPlaybackProgress = 0;
 
 let renderer;
 try {
@@ -291,8 +293,24 @@ function createGuides(scene) {
 
 function setPayload(rawPayload) {
   try {
+    const previousPayload = payload;
+    const wasPlaying = playbackActive;
+    const previousProgress = wasPlaying
+      ? measuredPlaybackProgress(performance.now())
+      : pausedPlaybackProgress;
     payload = typeof rawPayload === 'string' ? JSON.parse(rawPayload) : rawPayload;
-    if (controlledPlaybackProgress() === null) resetMeasuredPlayback();
+    playbackActive = payload && payload.playbackActive !== false;
+    const range = measuredPlaybackRange();
+    if (!previousPayload || !range || range.sourceDuration <= 0) {
+      resetMeasuredPlayback();
+      pausedPlaybackProgress = measuredPlaybackProgress(performance.now());
+    } else if (!playbackActive) {
+      pausedPlaybackProgress = wasPlaying ? previousProgress : pausedPlaybackProgress;
+    } else if (!wasPlaying) {
+      resumeMeasuredPlayback();
+    } else {
+      resetMeasuredPlayback();
+    }
     updateHud();
     if (assetReady) {
       hideStatus();
@@ -558,11 +576,9 @@ function rigForMeasuredPlayback(kind, now) {
   const range = measuredPlaybackRange();
   if (!range || range.sourceDuration <= 0 || !payload.hasMotion) return selectedRig(kind);
   const frames = payload.frames;
-  const suppliedProgress = controlledPlaybackProgress();
-  const elapsed = Math.max(0, now - measuredPlaybackStartedAt);
-  const cycleProgress = suppliedProgress === null
-    ? (elapsed % range.displayDuration) / range.displayDuration
-    : suppliedProgress;
+  const cycleProgress = playbackActive
+    ? measuredPlaybackProgress(now, range)
+    : pausedPlaybackProgress;
   const measuredTimestamp = range.firstTimestamp + cycleProgress * range.sourceDuration;
 
   let previousFrame = frames[0];
@@ -584,10 +600,20 @@ function rigForMeasuredPlayback(kind, now) {
   return selectedRig(kind);
 }
 
-function controlledPlaybackProgress() {
-  if (!payload || typeof payload.playbackProgress !== 'number') return null;
-  if (!Number.isFinite(payload.playbackProgress)) return null;
-  return clamp(payload.playbackProgress, 0, 1);
+function measuredPlaybackProgress(now, range = measuredPlaybackRange()) {
+  if (!range || range.sourceDuration <= 0) return 0;
+  const elapsed = Math.max(0, now - measuredPlaybackStartedAt);
+  return (elapsed % range.displayDuration) / range.displayDuration;
+}
+
+function resumeMeasuredPlayback() {
+  const range = measuredPlaybackRange();
+  if (!range || range.sourceDuration <= 0) {
+    resetMeasuredPlayback();
+    return;
+  }
+  measuredPlaybackStartedAt =
+    performance.now() - clamp(pausedPlaybackProgress, 0, 1) * range.displayDuration;
 }
 
 function frameTimestamp(frame, fallback) {

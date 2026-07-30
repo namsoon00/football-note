@@ -5525,37 +5525,10 @@ class _EvidencePoseTransition extends StatefulWidget {
       _EvidencePoseTransitionState();
 }
 
-class _EvidencePoseTransitionState extends State<_EvidencePoseTransition>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _motionController;
-  bool _isMotionPlaying = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _motionController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1900),
-    )..repeat();
-    _isMotionPlaying = true;
-  }
-
-  @override
-  void dispose() {
-    _motionController.dispose();
-    super.dispose();
-  }
+class _EvidencePoseTransitionState extends State<_EvidencePoseTransition> {
+  bool _isMotionPlaying = true;
 
   void _toggleMotion() {
-    if (_isMotionPlaying) {
-      _motionController
-        ..stop()
-        ..value = 1;
-    } else {
-      _motionController
-        ..value = 0
-        ..repeat();
-    }
     setState(() {
       _isMotionPlaying = !_isMotionPlaying;
     });
@@ -5646,7 +5619,7 @@ class _EvidencePoseTransitionState extends State<_EvidencePoseTransition>
                     poseFrames: widget.poseFrames,
                     insight: widget.insight,
                     direction: widget.direction,
-                    progress: _motionController,
+                    playbackActive: _isMotionPlaying,
                     surfaceColor: scheme.surface,
                     mutedColor: scheme.onSurfaceVariant,
                     actualAccent: actualAccent,
@@ -7596,37 +7569,10 @@ class _MeasuredPoseGuideVisual extends StatefulWidget {
       _MeasuredPoseGuideVisualState();
 }
 
-class _MeasuredPoseGuideVisualState extends State<_MeasuredPoseGuideVisual>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _motionController;
-  bool _isMotionPlaying = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _motionController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1900),
-    )..repeat();
-    _isMotionPlaying = true;
-  }
-
-  @override
-  void dispose() {
-    _motionController.dispose();
-    super.dispose();
-  }
+class _MeasuredPoseGuideVisualState extends State<_MeasuredPoseGuideVisual> {
+  bool _isMotionPlaying = true;
 
   void _toggleMotion() {
-    if (_isMotionPlaying) {
-      _motionController
-        ..stop()
-        ..value = 1;
-    } else {
-      _motionController
-        ..value = 0
-        ..repeat();
-    }
     setState(() {
       _isMotionPlaying = !_isMotionPlaying;
     });
@@ -7710,7 +7656,7 @@ class _MeasuredPoseGuideVisualState extends State<_MeasuredPoseGuideVisual>
               poseFrames: widget.poseFrames,
               insight: widget.insight,
               direction: widget.direction,
-              progress: _motionController,
+              playbackActive: _isMotionPlaying,
               surfaceColor: scheme.surface,
               mutedColor: scheme.onSurfaceVariant,
               actualAccent: actualAccent,

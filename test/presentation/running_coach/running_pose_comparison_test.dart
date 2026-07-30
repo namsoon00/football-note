@@ -97,7 +97,7 @@ void main() {
                 value: 0.35,
               ),
               direction: RunningDirection.leftToRight,
-              progress: const AlwaysStoppedAnimation<double>(1),
+              playbackActive: true,
               surfaceColor: Colors.white,
               mutedColor: Colors.blueGrey,
               actualAccent: Colors.red,
