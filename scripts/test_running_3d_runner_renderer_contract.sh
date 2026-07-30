@@ -88,6 +88,7 @@ if runner.is_file() and html.is_file():
         "shouldShowComparison(",
         "rigForMeasuredPlayback(",
         "interpolateMeasuredRig(",
+        "controlledPlaybackProgress(",
         "MEASURED_PLAYBACK_SPEED",
         "copy.transparent = false",
         "copy.depthWrite = true",

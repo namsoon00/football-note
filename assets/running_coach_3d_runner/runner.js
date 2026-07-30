@@ -292,7 +292,7 @@ function createGuides(scene) {
 function setPayload(rawPayload) {
   try {
     payload = typeof rawPayload === 'string' ? JSON.parse(rawPayload) : rawPayload;
-    resetMeasuredPlayback();
+    if (controlledPlaybackProgress() === null) resetMeasuredPlayback();
     updateHud();
     if (assetReady) {
       hideStatus();
@@ -558,8 +558,11 @@ function rigForMeasuredPlayback(kind, now) {
   const range = measuredPlaybackRange();
   if (!range || range.sourceDuration <= 0 || !payload.hasMotion) return selectedRig(kind);
   const frames = payload.frames;
+  const suppliedProgress = controlledPlaybackProgress();
   const elapsed = Math.max(0, now - measuredPlaybackStartedAt);
-  const cycleProgress = (elapsed % range.displayDuration) / range.displayDuration;
+  const cycleProgress = suppliedProgress === null
+    ? (elapsed % range.displayDuration) / range.displayDuration
+    : suppliedProgress;
   const measuredTimestamp = range.firstTimestamp + cycleProgress * range.sourceDuration;
 
   let previousFrame = frames[0];
@@ -579,6 +582,12 @@ function rigForMeasuredPlayback(kind, now) {
     previousFrame = nextFrame;
   }
   return selectedRig(kind);
+}
+
+function controlledPlaybackProgress() {
+  if (!payload || typeof payload.playbackProgress !== 'number') return null;
+  if (!Number.isFinite(payload.playbackProgress)) return null;
+  return clamp(payload.playbackProgress, 0, 1);
 }
 
 function frameTimestamp(frame, fallback) {

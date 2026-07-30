@@ -5535,8 +5535,9 @@ class _EvidencePoseTransitionState extends State<_EvidencePoseTransition>
     super.initState();
     _motionController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1700),
-    )..value = 1;
+      duration: const Duration(milliseconds: 1900),
+    )..repeat();
+    _isMotionPlaying = true;
   }
 
   @override
@@ -5553,7 +5554,7 @@ class _EvidencePoseTransitionState extends State<_EvidencePoseTransition>
     } else {
       _motionController
         ..value = 0
-        ..repeat(reverse: true);
+        ..repeat();
     }
     setState(() {
       _isMotionPlaying = !_isMotionPlaying;
@@ -5600,7 +5601,7 @@ class _EvidencePoseTransitionState extends State<_EvidencePoseTransition>
                           ),
                     ),
                   ),
-                  if (poseFrame != null && !isGood)
+                  if (poseFrame != null)
                     AppBarActionButton.icon(
                       key: const ValueKey('running-coach-goal-motion-toggle'),
                       tooltip: _isMotionPlaying
@@ -7605,8 +7606,9 @@ class _MeasuredPoseGuideVisualState extends State<_MeasuredPoseGuideVisual>
     super.initState();
     _motionController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1700),
-    )..value = 1;
+      duration: const Duration(milliseconds: 1900),
+    )..repeat();
+    _isMotionPlaying = true;
   }
 
   @override
@@ -7623,7 +7625,7 @@ class _MeasuredPoseGuideVisualState extends State<_MeasuredPoseGuideVisual>
     } else {
       _motionController
         ..value = 0
-        ..repeat(reverse: true);
+        ..repeat();
     }
     setState(() {
       _isMotionPlaying = !_isMotionPlaying;
@@ -7662,20 +7664,19 @@ class _MeasuredPoseGuideVisualState extends State<_MeasuredPoseGuideVisual>
                       ),
                 ),
               ),
-              if (!isGood)
-                AppBarActionButton.icon(
-                  key: ValueKey(
-                    'running-coach-insight-goal-motion-toggle-${widget.insight.metric.name}',
-                  ),
-                  tooltip: _isMotionPlaying
-                      ? l10n.runningCoachGoalMotionPause
-                      : l10n.runningCoachGoalMotionPlay,
-                  onPressed: _toggleMotion,
-                  margin: EdgeInsets.zero,
-                  icon: _isMotionPlaying
-                      ? Icons.pause_circle_outline_rounded
-                      : Icons.play_circle_outline_rounded,
+              AppBarActionButton.icon(
+                key: ValueKey(
+                  'running-coach-insight-goal-motion-toggle-${widget.insight.metric.name}',
                 ),
+                tooltip: _isMotionPlaying
+                    ? l10n.runningCoachGoalMotionPause
+                    : l10n.runningCoachGoalMotionPlay,
+                onPressed: _toggleMotion,
+                margin: EdgeInsets.zero,
+                icon: _isMotionPlaying
+                    ? Icons.pause_circle_outline_rounded
+                    : Icons.play_circle_outline_rounded,
+              ),
             ],
           ),
           const SizedBox(height: 4),

@@ -127,19 +127,23 @@ class RunningPoseCoordinateComparison extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Expanded(
-            child: RunningThreeDRunnerComparisonView(
-              key: const ValueKey(
-                'running-coach-coordinate-pose-comparison',
+            child: AnimatedBuilder(
+              animation: progress,
+              builder: (context, _) => RunningThreeDRunnerComparisonView(
+                key: const ValueKey(
+                  'running-coach-coordinate-pose-comparison',
+                ),
+                poseFrames: sequence,
+                selectedFrame: frame,
+                insight: insight,
+                direction: direction,
+                currentColor: currentColor,
+                targetColor: nextColor,
+                successColor: successAccent,
+                currentLabel: currentLabel,
+                targetLabel: nextStepLabel,
+                playbackProgress: progress.value,
               ),
-              poseFrames: sequence,
-              selectedFrame: frame,
-              insight: insight,
-              direction: direction,
-              currentColor: currentColor,
-              targetColor: nextColor,
-              successColor: successAccent,
-              currentLabel: currentLabel,
-              targetLabel: nextStepLabel,
             ),
           ),
         ],
