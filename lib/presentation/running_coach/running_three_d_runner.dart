@@ -11,7 +11,7 @@ const int _maximumRetargetFrameCount = 48;
 const int _maximumLowConfidenceHoldFrames = 5;
 
 @visibleForTesting
-const String runningThreeDRendererVersion = 'procedural-webgl-runner-v1';
+const String runningThreeDRendererVersion = 'rigged-human-runner-v2';
 
 class RunningThreeDRunnerPayload {
   final Map<String, Object?> data;

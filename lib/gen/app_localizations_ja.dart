@@ -8831,7 +8831,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachThreeDReferenceNotice =>
-      'ポーズランドマークに基づく一般的な基準アバターで、身体を再構成したものではありません。';
+      '固定の基準ランナーに追跡座標で小さな姿勢補正だけを加えます。体格や顔を再構成するものではありません。';
 
   @override
   String get runningCoachHistoryEvidenceUnavailableTitle => '保存済みの関節根拠なし';

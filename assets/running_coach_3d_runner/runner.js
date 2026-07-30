@@ -1,799 +1,673 @@
-(function () {
-  'use strict';
+import * as THREE from 'three';
+import { GLTFLoader } from './vendor/loaders/GLTFLoader.js';
 
-  const canvas = document.getElementById('scene');
-  const statusEl = document.getElementById('status');
-  const noticeEl = document.getElementById('notice');
-  const currentLabelEl = document.getElementById('currentLabel');
-  const targetLabelEl = document.getElementById('targetLabel');
-  const currentConfidenceEl = document.getElementById('currentConfidence');
-  const targetConfidenceEl = document.getElementById('targetConfidence');
-  const currentSwatchEl = document.getElementById('currentSwatch');
-  const targetSwatchEl = document.getElementById('targetSwatch');
+const MODEL_URL = './models/reference_runner.glb';
+const DEFAULT_CURRENT = '#ef7370';
+const DEFAULT_TARGET = '#78a8ff';
+const MIN_CONFIDENCE = 0.35;
 
-  const gl = canvas.getContext('webgl', {
+const canvas = document.getElementById('scene');
+const statusEl = document.getElementById('status');
+const noticeEl = document.getElementById('notice');
+const currentLabelEl = document.getElementById('currentLabel');
+const targetLabelEl = document.getElementById('targetLabel');
+const currentConfidenceEl = document.getElementById('currentConfidence');
+const targetConfidenceEl = document.getElementById('targetConfidence');
+const currentSwatchEl = document.getElementById('currentSwatch');
+const targetSwatchEl = document.getElementById('targetSwatch');
+
+let payload = null;
+let assetReady = false;
+let startTime = performance.now();
+let prototype = null;
+let avatar = null;
+
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({
+    canvas,
     antialias: true,
     alpha: false,
-    premultipliedAlpha: false,
+    powerPreference: 'high-performance',
   });
+} catch (error) {
+  showStatus('');
+  throw error;
+}
 
-  let payload = null;
-  let startTime = performance.now();
-  let animationHandle = 0;
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFShadowMap;
+renderer.autoClear = false;
 
-  if (!gl) {
-    showStatus('WebGL renderer is unavailable.');
+const stage = createStage();
+const camera = createCamera();
+const shared = {
+  markerGeometry: new THREE.SphereGeometry(0.027, 14, 10),
+  markerHaloGeometry: new THREE.RingGeometry(0.035, 0.052, 20),
+};
+
+window.runningThreeDRunnerSetPayload = setPayload;
+window.addEventListener('message', (event) => {
+  const data = event.data;
+  if (!data || data.type !== 'football-note-running-3d-runner-payload') return;
+  setPayload(data.payload);
+});
+
+window.addEventListener('resize', resizeRenderer);
+loadRunnerAsset();
+requestAnimationFrame(render);
+
+function createStage() {
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color('#101929');
+  scene.fog = new THREE.Fog('#101929', 3.2, 6.4);
+
+  scene.add(new THREE.HemisphereLight(0xdbe9ff, 0x1b2638, 2.35));
+  const key = new THREE.DirectionalLight(0xfff4df, 2.65);
+  key.position.set(2.8, 4.1, 3.4);
+  key.castShadow = true;
+  key.shadow.mapSize.set(1024, 1024);
+  key.shadow.camera.left = -2;
+  key.shadow.camera.right = 2;
+  key.shadow.camera.top = 2.6;
+  key.shadow.camera.bottom = -0.4;
+  scene.add(key);
+
+  const rim = new THREE.DirectionalLight(0x7ca8ff, 1.45);
+  rim.position.set(-3.2, 2.3, -2.6);
+  scene.add(rim);
+
+  const ground = new THREE.Mesh(
+    new THREE.PlaneGeometry(4.4, 3.6),
+    new THREE.MeshStandardMaterial({
+      color: '#17243a',
+      roughness: 0.96,
+      metalness: 0.0,
+    }),
+  );
+  ground.rotation.x = -Math.PI / 2;
+  ground.position.set(0, -0.002, 0);
+  ground.receiveShadow = true;
+  scene.add(ground);
+
+  const lane = new THREE.Mesh(
+    new THREE.BoxGeometry(2.45, 0.006, 0.022),
+    new THREE.MeshBasicMaterial({ color: '#7c8ba3', transparent: true, opacity: 0.45 }),
+  );
+  lane.position.set(0, 0.005, 0.16);
+  scene.add(lane);
+  return scene;
+}
+
+function createCamera() {
+  const camera = new THREE.PerspectiveCamera(40, 1, 0.05, 20);
+  camera.position.set(0, 0.91, 2.85);
+  camera.lookAt(0, 0.86, 0);
+  return camera;
+}
+
+function loadRunnerAsset() {
+  showStatus((payload && payload.labels && payload.labels.loading) || '');
+  new GLTFLoader().load(
+    MODEL_URL,
+    (gltf) => {
+      prototype = gltf.scene;
+      avatar = createAvatar(stage);
+      assetReady = true;
+      updateHud();
+      if (payload) hideStatus();
+    },
+    undefined,
+    () => showStatus((payload && payload.labels && payload.labels.error) || ''),
+  );
+}
+
+function createAvatar(scene) {
+  // A single loaded rig is rendered twice per frame. This keeps the left and
+  // right panels perfectly comparable and avoids cloning a skinned hierarchy.
+  const root = new THREE.Group();
+  const model = prototype;
+  root.add(model);
+  model.rotation.set(0, Math.PI / 2, 0);
+  root.updateMatrixWorld(true);
+
+  const rawBounds = new THREE.Box3().setFromObject(root);
+  const rawHeight = rawBounds.getSize(new THREE.Vector3()).y;
+  root.scale.setScalar(1.72 / Math.max(rawHeight, 0.001));
+  root.updateMatrixWorld(true);
+  const fittedBounds = new THREE.Box3().setFromObject(root);
+  const fittedCenter = fittedBounds.getCenter(new THREE.Vector3());
+  root.position.set(-fittedCenter.x, -fittedBounds.min.y, -fittedCenter.z);
+  root.updateMatrixWorld(true);
+
+  const bones = {};
+  const accentMaterials = [];
+  root.traverse((node) => {
+    if (node.isBone || node.type === 'Bone') registerBone(bones, node);
+    if (!node.isMesh) return;
+    if (node.isSkinnedMesh && node.skeleton) {
+      node.skeleton.bones.forEach((bone) => {
+        registerBone(bones, bone);
+      });
+    }
+    node.castShadow = true;
+    node.receiveShadow = true;
+    node.frustumCulled = false;
+    node.material = cloneAndTuneMaterials(node.material, node.name, accentMaterials);
+  });
+  scene.add(root);
+
+  const guides = createGuides(scene);
+  return {
+    root,
+    bones,
+    restPose: captureRestPose(bones),
+    guides,
+    accentMaterials,
+  };
+}
+
+function registerBone(bones, bone) {
+  // GLTFLoader sanitizes ':' from node names on some platforms. The coaching
+  // mapping uses Mixamo's canonical spelling, so restore it in one place.
+  const rawName = String(bone.name || '');
+  const compactName = rawName.replace(':', '');
+  const canonicalName = compactName.startsWith('mixamorig')
+    ? `mixamorig:${compactName.slice('mixamorig'.length)}`
+    : rawName;
+  bones[canonicalName] = bone;
+}
+
+function captureRestPose(bones) {
+  const restPose = new Map();
+  Object.entries(bones).forEach(([name, bone]) => {
+    restPose.set(name, {
+      position: bone.position.clone(),
+      quaternion: bone.quaternion.clone(),
+      scale: bone.scale.clone(),
+    });
+  });
+  return restPose;
+}
+
+function cloneAndTuneMaterials(source, meshName, accentMaterials) {
+  const materialList = Array.isArray(source) ? source : [source];
+  const tuned = materialList.map((material) => {
+    const copy = material.clone();
+    const description = `${meshName || ''} ${copy.name || ''}`.toLowerCase();
+    if (/shirt|t-shirt|crude/.test(description)) {
+      copy.userData.runnerAccent = true;
+      accentMaterials.push(copy);
+      copy.roughness = 0.67;
+    } else if (/short|jean/.test(description)) {
+      copy.color = new THREE.Color('#182132');
+      copy.roughness = 0.78;
+    } else if (/shoe/.test(description)) {
+      copy.roughness = 0.56;
+    }
+    return copy;
+  });
+  return Array.isArray(source) ? tuned : tuned[0];
+}
+
+function createGuides(scene) {
+  const group = new THREE.Group();
+  group.renderOrder = 2;
+  const markerMaterial = new THREE.MeshBasicMaterial({
+    color: DEFAULT_CURRENT,
+    transparent: true,
+    opacity: 0.9,
+    depthTest: false,
+  });
+  const haloMaterial = new THREE.MeshBasicMaterial({
+    color: DEFAULT_CURRENT,
+    transparent: true,
+    opacity: 0.38,
+    side: THREE.DoubleSide,
+    depthTest: false,
+  });
+  const markers = [];
+  for (let index = 0; index < 8; index += 1) {
+    const halo = new THREE.Mesh(shared.markerHaloGeometry, haloMaterial.clone());
+    halo.rotation.x = -Math.PI / 2;
+    const marker = new THREE.Mesh(shared.markerGeometry, markerMaterial.clone());
+    marker.add(halo);
+    marker.visible = false;
+    markers.push(marker);
+    group.add(marker);
+  }
+  const positions = new Float32Array(16 * 3);
+  const lineGeometry = new THREE.BufferGeometry();
+  const positionAttribute = new THREE.BufferAttribute(positions, 3);
+  positionAttribute.setUsage(THREE.DynamicDrawUsage);
+  lineGeometry.setAttribute('position', positionAttribute);
+  lineGeometry.setDrawRange(0, 0);
+  const lines = new THREE.LineSegments(
+    lineGeometry,
+    new THREE.LineBasicMaterial({
+      color: DEFAULT_CURRENT,
+      transparent: true,
+      opacity: 0.70,
+      depthTest: false,
+    }),
+  );
+  lines.renderOrder = 3;
+  group.add(lines);
+  scene.add(group);
+  return { group, markers, lines, positionAttribute };
+}
+
+function setPayload(rawPayload) {
+  try {
+    payload = typeof rawPayload === 'string' ? JSON.parse(rawPayload) : rawPayload;
+    startTime = performance.now();
+    updateHud();
+    if (assetReady) {
+      hideStatus();
+    } else {
+      showStatus((payload.labels && payload.labels.loading) || '');
+    }
+  } catch (error) {
+    showStatus((payload && payload.labels && payload.labels.error) || '');
+  }
+}
+
+function updateHud() {
+  if (!payload) return;
+  const labels = payload.labels || {};
+  const colors = payload.colors || {};
+  const confidence = payload.confidence || {};
+  const currentColor = colors.current || DEFAULT_CURRENT;
+  const targetColor = colors.target || DEFAULT_TARGET;
+  currentLabelEl.textContent = labels.current || '';
+  targetLabelEl.textContent = labels.target || '';
+  noticeEl.textContent = labels.referenceNotice || '';
+  currentSwatchEl.style.background = currentColor;
+  currentSwatchEl.style.color = currentColor;
+  targetSwatchEl.style.background = targetColor;
+  targetSwatchEl.style.color = targetColor;
+  const confidenceLabel = labels.confidence || '';
+  currentConfidenceEl.textContent = confidenceLabel
+    ? `${confidenceLabel} ${Math.round((confidence.current || 0) * 100)}%`
+    : '';
+  targetConfidenceEl.textContent = confidenceLabel
+    ? `${confidenceLabel} ${Math.round((confidence.target || 0) * 100)}%`
+    : '';
+}
+
+function render(now) {
+  requestAnimationFrame(render);
+  resizeRenderer();
+  const currentRig = rigForTime('current', now);
+  const targetRig = rigForTime('target', now);
+  const colors = payload && payload.colors ? payload.colors : {};
+  if (assetReady) {
+    prepareAvatarPose(avatar, currentRig, now);
+    setAvatarAccent(avatar, colors.current || DEFAULT_CURRENT);
+    updateGuides(avatar, currentRig, currentRig);
+    if (payload) hideStatus();
+  }
+
+  // Three.js viewport coordinates are CSS pixels. `getDrawingBufferSize()` is
+  // device-pixel-ratio adjusted, so using it here would push the right panel
+  // outside high-density mobile canvases.
+  const viewportWidth = Math.max(1, canvas.clientWidth || window.innerWidth);
+  const viewportHeight = Math.max(1, canvas.clientHeight || window.innerHeight);
+  const panelWidth = Math.max(1, Math.floor(viewportWidth / 2));
+  renderPanel(stage, camera, 0, panelWidth, viewportHeight, '#101929');
+
+  if (assetReady) {
+    prepareAvatarPose(avatar, targetRig, now);
+    setAvatarAccent(avatar, colors.target || DEFAULT_TARGET);
+    updateGuides(avatar, targetRig, currentRig);
+  }
+  renderPanel(stage, camera, panelWidth, viewportWidth - panelWidth, viewportHeight, '#111d32');
+}
+
+function prepareAvatarPose(avatar, rig, now) {
+  restoreRestPose(avatar);
+  applyNaturalRunCycle(avatar, now);
+  // Landmark data changes only the measured joints, and every correction is
+  // deliberately capped below a full retarget. The reference body remains
+  // anatomically stable even when a video landmark is noisy or occluded.
+  applyPoseCorrection(avatar, rig);
+}
+
+function setAvatarAccent(avatar, color) {
+  const accent = new THREE.Color(color);
+  const shirt = accent.clone().lerp(new THREE.Color('#ffffff'), 0.18);
+  avatar.accentMaterials.forEach((material) => {
+    material.color.copy(shirt);
+    material.emissive.copy(accent).multiplyScalar(0.05);
+  });
+  avatar.guides.markers.forEach((marker) => {
+    marker.material.color.copy(accent);
+    const halo = marker.children[0];
+    if (halo && halo.material && halo.material.color) halo.material.color.copy(accent);
+  });
+  avatar.guides.lines.material.color.copy(accent);
+}
+
+function restoreRestPose(avatar) {
+  avatar.restPose.forEach((rest, name) => {
+    const bone = avatar.bones[name];
+    if (!bone) return;
+    bone.position.copy(rest.position);
+    bone.quaternion.copy(rest.quaternion);
+    bone.scale.copy(rest.scale);
+  });
+  avatar.root.updateMatrixWorld(true);
+}
+
+const localXAxis = new THREE.Vector3(1, 0, 0);
+
+function applyNaturalRunCycle(avatar, now) {
+  const phase = payload && payload.hasMotion
+    ? ((now - startTime) / 1000) * Math.PI * 2 * 2.1
+    : Math.PI / 2;
+  const leftSwing = Math.sin(phase);
+  const rightSwing = -leftSwing;
+  setLocalX(avatar, 'mixamorig:LeftUpLeg', 0.66 * leftSwing);
+  setLocalX(avatar, 'mixamorig:RightUpLeg', 0.66 * rightSwing);
+  setLocalX(avatar, 'mixamorig:LeftLeg', 0.16 + 0.78 * Math.max(0, -leftSwing));
+  setLocalX(avatar, 'mixamorig:RightLeg', 0.16 + 0.78 * Math.max(0, -rightSwing));
+  setLocalX(avatar, 'mixamorig:LeftFoot', -0.10 - 0.21 * leftSwing);
+  setLocalX(avatar, 'mixamorig:RightFoot', -0.10 - 0.21 * rightSwing);
+  setLocalX(avatar, 'mixamorig:LeftToeBase', 0.05 + 0.16 * Math.max(0, leftSwing));
+  setLocalX(avatar, 'mixamorig:RightToeBase', 0.05 + 0.16 * Math.max(0, rightSwing));
+  poseForwardLean(avatar);
+  poseArmSwing(avatar, 'Left', -leftSwing, 0.035);
+  poseArmSwing(avatar, 'Right', -rightSwing, -0.035);
+  avatar.root.updateMatrixWorld(true);
+}
+
+function poseForwardLean(avatar) {
+  setBoneWorldDirection(
+    avatar,
+    'mixamorig:Spine',
+    'mixamorig:Spine1',
+    new THREE.Vector3(0.006, 0.107, 0),
+  );
+  setBoneWorldDirection(
+    avatar,
+    'mixamorig:Spine1',
+    'mixamorig:Spine2',
+    new THREE.Vector3(0.010, 0.126, 0),
+  );
+}
+
+function poseArmSwing(avatar, side, swing, depth) {
+  const upperArm = `mixamorig:${side}Arm`;
+  const forearm = `mixamorig:${side}ForeArm`;
+  const hand = `mixamorig:${side}Hand`;
+  // A runner's arm swings opposite its leg. These world-space directions keep
+  // the elbow bend readable in profile instead of spinning around a raw local
+  // bone axis that varies between imported models.
+  setBoneWorldDirection(
+    avatar,
+    upperArm,
+    forearm,
+    new THREE.Vector3(0.155 * swing - 0.085, -0.36 + 0.04 * swing, depth),
+  );
+  setBoneWorldDirection(
+    avatar,
+    forearm,
+    hand,
+    new THREE.Vector3(0.11 * swing, 0.08 * swing - 0.05, depth * 0.35),
+  );
+}
+
+function setBoneWorldDirection(avatar, boneName, childName, targetDirection) {
+  const bone = avatar.bones[boneName];
+  const child = avatar.bones[childName];
+  if (!bone || !child || targetDirection.lengthSq() < 0.00001) return;
+  const boneStart = bone.getWorldPosition(new THREE.Vector3());
+  const currentDirection = child.getWorldPosition(new THREE.Vector3()).sub(boneStart);
+  if (currentDirection.lengthSq() < 0.00001) return;
+  const delta = new THREE.Quaternion().setFromUnitVectors(
+    currentDirection.normalize(),
+    targetDirection.normalize(),
+  );
+  const currentWorld = bone.getWorldQuaternion(new THREE.Quaternion());
+  const desiredWorld = delta.multiply(currentWorld).normalize();
+  const parentWorld = bone.parent.getWorldQuaternion(new THREE.Quaternion()).invert();
+  bone.quaternion.copy(parentWorld.multiply(desiredWorld).normalize());
+  bone.updateMatrixWorld(true);
+}
+
+function setLocalX(avatar, boneName, radians) {
+  const bone = avatar.bones[boneName];
+  const rest = avatar.restPose.get(boneName);
+  if (!bone || !rest) return;
+  bone.quaternion.copy(rest.quaternion).multiply(
+    new THREE.Quaternion().setFromAxisAngle(localXAxis, radians),
+  );
+}
+
+function renderPanel(scene, camera, x, width, height, background) {
+  camera.aspect = Math.max(0.36, width / Math.max(1, height));
+  camera.fov = camera.aspect < 0.68 ? 44 : 40;
+  camera.updateProjectionMatrix();
+  scene.background.set(background);
+  scene.fog.color.set(background);
+  renderer.setViewport(x, 0, width, height);
+  renderer.setScissor(x, 0, width, height);
+  renderer.setScissorTest(true);
+  renderer.setClearColor(background, 1);
+  renderer.clear(true, true, true);
+  renderer.render(scene, camera);
+  renderer.setScissorTest(false);
+}
+
+function resizeRenderer() {
+  const width = Math.max(1, canvas.clientWidth || window.innerWidth);
+  const height = Math.max(1, canvas.clientHeight || window.innerHeight);
+  const drawingSize = renderer.getDrawingBufferSize(new THREE.Vector2());
+  const expectedWidth = Math.floor(width * renderer.getPixelRatio());
+  const expectedHeight = Math.floor(height * renderer.getPixelRatio());
+  if (drawingSize.x !== expectedWidth || drawingSize.y !== expectedHeight) {
+    renderer.setSize(width, height, false);
+  }
+}
+
+function rigForTime(kind, now) {
+  if (!payload || !Array.isArray(payload.frames) || payload.frames.length === 0) return null;
+  const frames = payload.frames;
+  if (!payload.hasMotion || frames.length === 1) {
+    const index = clamp(Number(payload.selectedFrameIndex) || 0, 0, frames.length - 1);
+    return frames[index][kind];
+  }
+  const firstTime = Number(frames[0].timestampMs) || 0;
+  const lastTime = Number(frames[frames.length - 1].timestampMs) || firstTime + 1000;
+  const duration = Math.max(700, lastTime - firstTime);
+  const timestamp = firstTime + ((now - startTime) % duration);
+  let nextIndex = frames.findIndex((frame) => Number(frame.timestampMs) >= timestamp);
+  if (nextIndex <= 0) {
+    if (nextIndex < 0) nextIndex = 0;
+    return frames[nextIndex][kind];
+  }
+  const previous = frames[nextIndex - 1];
+  const next = frames[nextIndex];
+  const span = Math.max(1, Number(next.timestampMs) - Number(previous.timestampMs));
+  const amount = smoothstep(clamp((timestamp - Number(previous.timestampMs)) / span, 0, 1));
+  return interpolateRig(previous[kind], next[kind], amount);
+}
+
+function interpolateRig(first, second, amount) {
+  if (!first || !second) return second || first || null;
+  const joints = {};
+  const before = first.joints || {};
+  const after = second.joints || {};
+  Object.keys(before).forEach((name) => {
+    if (!Array.isArray(before[name]) || !Array.isArray(after[name])) return;
+    joints[name] = [
+      lerp(Number(before[name][0]), Number(after[name][0]), amount),
+      lerp(Number(before[name][1]), Number(after[name][1]), amount),
+      lerp(Number(before[name][2]), Number(after[name][2]), amount),
+    ];
+  });
+  return { ...second, joints };
+}
+
+const boneCorrections = [
+  { bone: 'mixamorig:LeftArm', child: 'mixamorig:LeftForeArm', start: 'leftShoulder', end: 'leftElbow', max: 5, weight: 0.16 },
+  { bone: 'mixamorig:LeftForeArm', child: 'mixamorig:LeftHand', start: 'leftElbow', end: 'leftWrist', max: 5, weight: 0.14 },
+  { bone: 'mixamorig:RightArm', child: 'mixamorig:RightForeArm', start: 'rightShoulder', end: 'rightElbow', max: 5, weight: 0.16 },
+  { bone: 'mixamorig:RightForeArm', child: 'mixamorig:RightHand', start: 'rightElbow', end: 'rightWrist', max: 5, weight: 0.14 },
+  { bone: 'mixamorig:LeftUpLeg', child: 'mixamorig:LeftLeg', start: 'leftHip', end: 'leftKnee', max: 7, weight: 0.18 },
+  { bone: 'mixamorig:LeftLeg', child: 'mixamorig:LeftFoot', start: 'leftKnee', end: 'leftAnkle', max: 6, weight: 0.15 },
+  { bone: 'mixamorig:RightUpLeg', child: 'mixamorig:RightLeg', start: 'rightHip', end: 'rightKnee', max: 7, weight: 0.18 },
+  { bone: 'mixamorig:RightLeg', child: 'mixamorig:RightFoot', start: 'rightKnee', end: 'rightAnkle', max: 6, weight: 0.15 },
+];
+
+function applyPoseCorrection(avatar, rig) {
+  if (!avatar || !rig || !rig.joints) return;
+  const confidence = clamp(Number(rig.confidence) || 0, 0, 1);
+  if (confidence < MIN_CONFIDENCE) return;
+  avatar.root.updateMatrixWorld(true);
+  for (const correction of boneCorrections) {
+    const bone = avatar.bones[correction.bone];
+    const child = avatar.bones[correction.child];
+    const start = vectorFromRig(rig.joints[correction.start]);
+    const end = vectorFromRig(rig.joints[correction.end]);
+    if (!bone || !child || !start || !end) continue;
+    const measured = toAvatarDirection(end.sub(start));
+    if (measured.lengthSq() < 0.00001) continue;
+    const boneStart = bone.getWorldPosition(new THREE.Vector3());
+    const boneEnd = child.getWorldPosition(new THREE.Vector3());
+    const animatedDirection = boneEnd.sub(boneStart);
+    if (animatedDirection.lengthSq() < 0.00001) continue;
+    animatedDirection.normalize();
+    measured.normalize();
+    const rawDelta = new THREE.Quaternion().setFromUnitVectors(animatedDirection, measured);
+    const rawAngle = 2 * Math.acos(clamp(Math.abs(rawDelta.w), -1, 1));
+    const maxAngle = THREE.MathUtils.degToRad(correction.max * (0.55 + confidence * 0.45));
+    const delta = rawAngle > maxAngle
+      ? new THREE.Quaternion().slerp(rawDelta, maxAngle / rawAngle)
+      : rawDelta;
+    const currentWorld = bone.getWorldQuaternion(new THREE.Quaternion());
+    const desiredWorld = delta.multiply(currentWorld).normalize();
+    const parentWorld = bone.parent.getWorldQuaternion(new THREE.Quaternion()).invert();
+    const desiredLocal = parentWorld.multiply(desiredWorld).normalize();
+    bone.quaternion.slerp(desiredLocal, correction.weight * confidence);
+    bone.updateMatrixWorld(true);
+  }
+  avatar.root.updateMatrixWorld(true);
+}
+
+function vectorFromRig(value) {
+  if (!Array.isArray(value) || value.length < 2) return null;
+  const x = Number(value[0]);
+  const y = Number(value[1]);
+  const z = Number(value[2] || 0);
+  if (![x, y, z].every(Number.isFinite)) return null;
+  return new THREE.Vector3(x, y, z);
+}
+
+function toAvatarDirection(vector) {
+  return new THREE.Vector3(vector.x, vector.y, -vector.z * 0.22);
+}
+
+const landmarkToJoint = {
+  0: 'head', 11: 'leftShoulder', 12: 'rightShoulder', 13: 'leftElbow', 14: 'rightElbow',
+  15: 'leftWrist', 16: 'rightWrist', 19: 'leftPinky', 20: 'rightPinky',
+  21: 'leftIndex', 22: 'rightIndex', 23: 'leftHip', 24: 'rightHip',
+  25: 'leftKnee', 26: 'rightKnee', 27: 'leftAnkle', 28: 'rightAnkle',
+  29: 'leftHeel', 30: 'rightHeel', 31: 'leftToe', 32: 'rightToe',
+};
+
+const jointToBone = {
+  head: 'mixamorig:Head', chest: 'mixamorig:Spine2', pelvisCenter: 'mixamorig:Hips',
+  leftShoulder: 'mixamorig:LeftArm', rightShoulder: 'mixamorig:RightArm',
+  leftElbow: 'mixamorig:LeftForeArm', rightElbow: 'mixamorig:RightForeArm',
+  leftWrist: 'mixamorig:LeftHand', rightWrist: 'mixamorig:RightHand',
+  leftIndex: 'mixamorig:LeftHandIndex1', rightIndex: 'mixamorig:RightHandIndex1',
+  leftPinky: 'mixamorig:LeftHandPinky1', rightPinky: 'mixamorig:RightHandPinky1',
+  leftHip: 'mixamorig:LeftUpLeg', rightHip: 'mixamorig:RightUpLeg',
+  leftKnee: 'mixamorig:LeftLeg', rightKnee: 'mixamorig:RightLeg',
+  leftAnkle: 'mixamorig:LeftFoot', rightAnkle: 'mixamorig:RightFoot',
+  leftHeel: 'mixamorig:LeftFoot', rightHeel: 'mixamorig:RightFoot',
+  leftToe: 'mixamorig:LeftToeBase', rightToe: 'mixamorig:RightToeBase',
+};
+
+const guidePairs = [
+  ['leftShoulder', 'leftHip'], ['rightShoulder', 'rightHip'],
+  ['leftShoulder', 'leftElbow'], ['leftElbow', 'leftWrist'],
+  ['rightShoulder', 'rightElbow'], ['rightElbow', 'rightWrist'],
+  ['leftHip', 'leftKnee'], ['leftKnee', 'leftAnkle'],
+  ['rightHip', 'rightKnee'], ['rightKnee', 'rightAnkle'],
+];
+
+function updateGuides(avatar, rig, baselineRig) {
+  if (!avatar) return;
+  if (!rig || !rig.joints || !payload) {
+    avatar.guides.group.visible = false;
     return;
   }
-
-  const program = createProgram(gl, vertexShaderSource(), fragmentShaderSource());
-  const locations = {
-    position: gl.getAttribLocation(program, 'aPosition'),
-    normal: gl.getAttribLocation(program, 'aNormal'),
-    model: gl.getUniformLocation(program, 'uModel'),
-    viewProjection: gl.getUniformLocation(program, 'uViewProjection'),
-    color: gl.getUniformLocation(program, 'uColor'),
-    lightDirection: gl.getUniformLocation(program, 'uLightDirection'),
-    cameraPosition: gl.getUniformLocation(program, 'uCameraPosition'),
-    ambient: gl.getUniformLocation(program, 'uAmbient'),
-  };
-
-  const sphere = createSphereMesh(26, 18);
-  const plane = createPlaneMesh();
-  const taperedMeshCache = new Map();
-
-  gl.enable(gl.DEPTH_TEST);
-  gl.enable(gl.CULL_FACE);
-  gl.enable(gl.BLEND);
-  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-
-  window.runningThreeDRunnerSetPayload = setPayload;
-  window.addEventListener('message', (event) => {
-    const data = event.data;
-    if (!data || data.type !== 'football-note-running-3d-runner-payload') return;
-    setPayload(data.payload);
+  const focusIndices = Array.isArray(payload.focusIndices) ? payload.focusIndices : [];
+  const jointNames = [];
+  for (const index of focusIndices) {
+    const name = landmarkToJoint[index];
+    if (name && !jointNames.includes(name)) jointNames.push(name);
+  }
+  if (jointNames.length === 0) jointNames.push('pelvisCenter', 'chest');
+  const anchorPositions = {};
+  for (const name of jointNames) {
+    const position = guidePositionForRig(avatar, rig, baselineRig, name);
+    if (position) anchorPositions[name] = position;
+  }
+  avatar.guides.group.visible = true;
+  avatar.guides.markers.forEach((marker, index) => {
+    const position = anchorPositions[jointNames[index]];
+    marker.visible = Boolean(position);
+    if (position) marker.position.copy(position);
   });
-
-  function setPayload(rawPayload) {
-    try {
-      payload = typeof rawPayload === 'string' ? JSON.parse(rawPayload) : rawPayload;
-      startTime = performance.now();
-      updateHud();
-      hideStatus();
-      if (!animationHandle) {
-        animationHandle = requestAnimationFrame(render);
-      }
-    } catch (error) {
-      showStatus((payload && payload.labels && payload.labels.error) || '3D renderer failed.');
-    }
+  let offset = 0;
+  for (const [from, to] of guidePairs) {
+    const start = anchorPositions[from];
+    const end = anchorPositions[to];
+    if (!start || !end) continue;
+    avatar.guides.positionAttribute.setXYZ(offset, start.x, start.y, start.z);
+    avatar.guides.positionAttribute.setXYZ(offset + 1, end.x, end.y, end.z);
+    offset += 2;
   }
+  avatar.guides.positionAttribute.needsUpdate = true;
+  avatar.guides.lines.geometry.setDrawRange(0, offset);
+}
 
-  function updateHud() {
-    if (!payload) return;
-    const labels = payload.labels || {};
-    const confidence = payload.confidence || {};
-    const colors = payload.colors || {};
-    currentLabelEl.textContent = labels.current || '';
-    targetLabelEl.textContent = labels.target || '';
-    noticeEl.textContent = labels.referenceNotice || '';
-    currentSwatchEl.style.background = colors.current || '#e44747';
-    targetSwatchEl.style.background = colors.target || '#3f7ee8';
-    const confidenceLabel = labels.confidence || '';
-    currentConfidenceEl.textContent = confidenceLabel
-      ? `${confidenceLabel} ${Math.round((confidence.current || 0) * 100)}%`
-      : '';
-    targetConfidenceEl.textContent = confidenceLabel
-      ? `${confidenceLabel} ${Math.round((confidence.target || 0) * 100)}%`
-      : '';
-  }
+function guidePositionForRig(avatar, rig, baselineRig, jointName) {
+  const bone = avatar.bones[jointToBone[jointName]];
+  if (!bone) return null;
+  const anchor = bone.getWorldPosition(new THREE.Vector3());
+  const measured = vectorFromRig(rig.joints[jointName]);
+  const baseline = baselineRig && vectorFromRig(baselineRig.joints?.[jointName]);
+  if (!measured || !baseline) return anchor;
+  // A fixed reference body cannot reproduce a user's proportions. Align the
+  // measured current pose to its anatomical anchor, then add only the exact
+  // current-to-target coordinate delta for a stable, readable comparison.
+  const delta = measured.sub(baseline);
+  return anchor.add(new THREE.Vector3(delta.x, delta.y, -delta.z * 0.22));
+}
 
-  function showStatus(message) {
-    statusEl.textContent = message;
-    statusEl.style.display = 'grid';
-  }
+function showStatus(message) {
+  statusEl.textContent = message;
+  statusEl.style.display = 'grid';
+}
 
-  function hideStatus() {
-    statusEl.style.display = 'none';
-  }
+function hideStatus() {
+  statusEl.style.display = 'none';
+}
 
-  function render(now) {
-    animationHandle = requestAnimationFrame(render);
-    resizeCanvas();
-    gl.clearColor(0.043, 0.071, 0.125, 1);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    if (!payload || !Array.isArray(payload.frames) || payload.frames.length === 0) {
-      showStatus((payload && payload.labels && payload.labels.loading) || '');
-      return;
-    }
-    hideStatus();
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
 
-    const currentRig = rigForTime('current', now);
-    const targetRig = rigForTime('target', now);
-    const width = canvas.width;
-    const height = canvas.height;
-    const halfWidth = Math.max(1, Math.floor(width / 2));
-    drawRunnerPanel(currentRig, 0, 0, halfWidth, height, payload.colors.current || '#e44747', false);
-    drawRunnerPanel(
-      targetRig,
-      halfWidth,
-      0,
-      width - halfWidth,
-      height,
-      payload.colors.target || '#3f7ee8',
-      true,
-    );
-  }
+function lerp(start, end, amount) {
+  return start + (end - start) * amount;
+}
 
-  function rigForTime(kind, now) {
-    const frames = payload.frames;
-    if (!payload.hasMotion || frames.length === 1) {
-      const index = clamp(payload.selectedFrameIndex || 0, 0, frames.length - 1);
-      return frames[index][kind];
-    }
-    const first = frames[0].timestampMs || 0;
-    const last = frames[frames.length - 1].timestampMs || first + 1000;
-    const duration = Math.max(700, last - first);
-    const elapsed = (now - startTime) % duration;
-    const timestamp = first + elapsed;
-    let nextIndex = frames.findIndex((frame) => frame.timestampMs >= timestamp);
-    if (nextIndex <= 0) {
-      nextIndex = nextIndex < 0 ? 0 : nextIndex;
-      return frames[nextIndex][kind];
-    }
-    const previous = frames[nextIndex - 1];
-    const next = frames[nextIndex];
-    const span = Math.max(1, next.timestampMs - previous.timestampMs);
-    const t = clamp((timestamp - previous.timestampMs) / span, 0, 1);
-    return interpolateRig(previous[kind], next[kind], smoothstep(t));
-  }
-
-  function interpolateRig(first, second, t) {
-    const joints = {};
-    const firstJoints = first.joints || {};
-    const secondJoints = second.joints || {};
-    for (const name of Object.keys(firstJoints)) {
-      if (!secondJoints[name]) continue;
-      joints[name] = lerpVec(firstJoints[name], secondJoints[name], t);
-    }
-    return {
-      ...second,
-      joints,
-    };
-  }
-
-  function drawRunnerPanel(rig, x, y, width, height, accentHex, isTarget) {
-    if (!rig || !rig.joints) return;
-    gl.viewport(x, y, width, height);
-    gl.scissor(x, y, width, height);
-    gl.enable(gl.SCISSOR_TEST);
-    gl.clearColor(0.050, 0.079, 0.135, 1);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    gl.disable(gl.SCISSOR_TEST);
-
-    const aspect = width / Math.max(1, height);
-    const camera = cameraForRig(rig, aspect);
-    const projection = mat4Perspective(camera.fovy, aspect, 0.05, 60);
-    const view = mat4LookAt(camera.eye, camera.target, [0, 1, 0]);
-    const viewProjection = mat4Multiply(projection, view);
-
-    gl.useProgram(program);
-    gl.uniformMatrix4fv(locations.viewProjection, false, viewProjection);
-    gl.uniform3fv(locations.lightDirection, normalizeVec([0.44, 0.82, 0.36]));
-    gl.uniform3fv(locations.cameraPosition, camera.eye);
-    gl.uniform1f(locations.ambient, 0.30);
-
-    drawGround(viewProjection, camera);
-    drawShadow(rig, viewProjection, accentHex);
-    drawHuman(rig, viewProjection, accentHex, isTarget);
-  }
-
-  function cameraForRig(rig, aspect) {
-    const bounds = runnerBounds(rig);
-    const safeAspect = Math.max(0.34, aspect);
-    const fovy = safeAspect < 0.58 ? Math.PI / 4.05 : Math.PI / 4.35;
-    const viewTangent = Math.tan(fovy / 2);
-    const requiredHeight = Math.max(2.05, bounds.maxY - bounds.minY);
-    const requiredWidth = Math.max(1.18, bounds.maxX - bounds.minX);
-    const heightDistance = requiredHeight / (2 * viewTangent);
-    const widthDistance = requiredWidth / (2 * viewTangent * safeAspect);
-    const distance = clamp(Math.max(heightDistance, widthDistance) + 0.32, 3.15, 5.35);
-    const targetX = clamp((bounds.minX + bounds.maxX) / 2, -0.08, 0.18);
-    const targetY = clamp((bounds.minY + bounds.maxY) / 2, 0.74, 0.94);
-    const targetZ = clamp((bounds.minZ + bounds.maxZ) / 2, -0.08, 0.08);
-    const target = [targetX, targetY, targetZ];
-    return {
-      bounds,
-      fovy,
-      target,
-      eye: [targetX + 0.18, targetY + 0.06, targetZ + distance],
-    };
-  }
-
-  function runnerBounds(rig) {
-    const joints = Object.values(rig.joints || {}).filter((point) => Array.isArray(point));
-    if (joints.length === 0) {
-      return {
-        minX: -0.55,
-        maxX: 0.58,
-        minY: -0.07,
-        maxY: 1.82,
-        minZ: -0.30,
-        maxZ: 0.30,
-      };
-    }
-    let minX = joints[0][0];
-    let maxX = joints[0][0];
-    let minY = joints[0][1];
-    let maxY = joints[0][1];
-    let minZ = joints[0][2];
-    let maxZ = joints[0][2];
-    for (const point of joints) {
-      minX = Math.min(minX, point[0]);
-      maxX = Math.max(maxX, point[0]);
-      minY = Math.min(minY, point[1]);
-      maxY = Math.max(maxY, point[1]);
-      minZ = Math.min(minZ, point[2]);
-      maxZ = Math.max(maxZ, point[2]);
-    }
-    return {
-      minX: minX - 0.24,
-      maxX: maxX + 0.24,
-      minY: Math.min(-0.07, minY - 0.08),
-      maxY: maxY + 0.20,
-      minZ: minZ - 0.24,
-      maxZ: maxZ + 0.24,
-    };
-  }
-
-  function drawGround(viewProjection, camera) {
-    const groundWidth = Math.max(2.1, camera.bounds.maxX - camera.bounds.minX + 0.78);
-    const model = composeBasisMatrix(
-      [camera.target[0], -0.018, camera.target[2]],
-      [1, 0, 0],
-      [0, 0, 1],
-      [0, 1, 0],
-      [groundWidth, 1.26, 1],
-    );
-    drawMesh(plane, model, viewProjection, [0.17, 0.23, 0.31, 0.52]);
-  }
-
-  function drawShadow(rig, viewProjection, accentHex) {
-    const bounds = runnerBounds(rig);
-    const center = [
-      (bounds.minX + bounds.maxX) / 2,
-      0.008,
-      (bounds.minZ + bounds.maxZ) / 2,
-    ];
-    const width = Math.max(0.58, (bounds.maxX - bounds.minX) * 0.40);
-    const model = composeBasisMatrix(
-      center,
-      [1, 0, 0],
-      [0, 0, 1],
-      [0, 1, 0],
-      [width, 0.25, 0.014],
-    );
-    drawMesh(sphere, model, viewProjection, [0.01, 0.014, 0.022, 0.25]);
-    drawFootShadow(rig.joints.leftHeel, rig.joints.leftToe, viewProjection);
-    drawFootShadow(rig.joints.rightHeel, rig.joints.rightToe, viewProjection);
-  }
-
-  function drawHuman(rig, viewProjection, accentHex, isTarget) {
-    const j = rig.joints;
-    const accent = hexToRgba(accentHex, 1);
-    const palette = {
-      accent,
-      skin: isTarget ? [0.86, 0.60, 0.42, 1] : [0.90, 0.63, 0.45, 1],
-      skinShadow: isTarget ? [0.70, 0.45, 0.34, 1] : [0.72, 0.45, 0.33, 1],
-      shirt: accent,
-      shirtShade: colorShade(accent, -0.16),
-      shirtLight: colorShade(accent, 0.12),
-      shorts: isTarget ? [0.06, 0.12, 0.25, 1] : [0.08, 0.10, 0.15, 1],
-      shortsTrim: colorShade(accent, -0.05),
-      shoe: isTarget ? [0.12, 0.28, 0.66, 1] : [0.20, 0.20, 0.24, 1],
-      shoeSole: [0.91, 0.94, 0.96, 1],
-      hair: isTarget ? [0.13, 0.09, 0.06, 1] : [0.08, 0.065, 0.05, 1],
-      feature: [0.055, 0.065, 0.075, 1],
-    };
-    const leftHipZ = j.leftHip ? j.leftHip[2] : 0;
-    const rightHipZ = j.rightHip ? j.rightHip[2] : 0;
-    const leftNear = leftHipZ >= rightHipZ;
-    const nearSide = leftNear ? 'left' : 'right';
-    const farSide = leftNear ? 'right' : 'left';
-
-    drawLeg(j, farSide, palette, palette.skinShadow, viewProjection);
-    drawArm(j, farSide, palette, palette.skinShadow, viewProjection);
-    drawTorso(j, palette, viewProjection);
-    drawLeg(j, nearSide, palette, palette.skin, viewProjection);
-    drawArm(j, nearSide, palette, palette.skin, viewProjection);
-    drawRunnerHead(j, palette, viewProjection);
-
-    for (const decision of rig.footLocks || []) {
-      if (!decision.locked) continue;
-      const toe = j[`${decision.side}Toe`];
-      if (toe) drawEllipsoid(toe, [0.036, 0.010, 0.032], hexToRgba(accentHex, 0.64), viewProjection);
-    }
-  }
-
-  function drawTorso(j, palette, viewProjection) {
-    if (!j.pelvisCenter || !j.chest) return;
-    const axes = bodyAxes(j.pelvisCenter, j.chest);
-    const lowerRib = lerpVec(j.pelvisCenter, j.chest, 0.43);
-    const upperChest = lerpVec(j.pelvisCenter, j.chest, 0.75);
-    drawOrientedEllipsoid(lowerRib, axes, [0.125, 0.215, 0.128], palette.shirtShade, viewProjection);
-    drawOrientedEllipsoid(upperChest, axes, [0.160, 0.245, 0.185], palette.shirt, viewProjection);
-    drawOrientedEllipsoid(j.pelvisCenter, axes, [0.155, 0.120, 0.156], palette.shorts, viewProjection);
-    drawOrientedEllipsoid(lerpVec(j.pelvisCenter, j.chest, 0.25), axes, [0.135, 0.034, 0.132], palette.shirtLight, viewProjection);
-    if (j.neck) {
-      drawSegment(j.chest, j.neck, 0.050, 0.036, palette.shirtLight, viewProjection);
-      drawEllipsoid(j.neck, [0.050, 0.036, 0.046], palette.skin, viewProjection);
-    }
-  }
-
-  function drawRunnerHead(j, palette, viewProjection) {
-    if (!j.head) return;
-    const faceVector = j.nose ? subVec(j.nose, j.head) : [1, 0, 0];
-    const forward = normalizeVecOr([faceVector[0], 0, faceVector[2]], [1, 0, 0]);
-    const sideAxis = normalizeVecOr(crossVec([0, 1, 0], forward), [0, 0, 1]);
-    const axes = {
-      xAxis: forward,
-      yAxis: [0, 1, 0],
-      zAxis: sideAxis,
-    };
-    if (j.neck) drawSegment(j.neck, j.head, 0.036, 0.030, palette.skin, viewProjection);
-    drawOrientedEllipsoid(j.head, axes, [0.103, 0.138, 0.098], palette.skin, viewProjection);
-    drawOrientedEllipsoid(
-      addVec(addVec(j.head, [0, 0.055, 0]), scaleVec(forward, -0.020)),
-      axes,
-      [0.096, 0.064, 0.100],
-      palette.hair,
-      viewProjection,
-    );
-    drawOrientedEllipsoid(
-      addVec(addVec(j.head, [0, 0.012, 0]), scaleVec(forward, -0.070)),
-      axes,
-      [0.036, 0.090, 0.088],
-      palette.hair,
-      viewProjection,
-    );
-    if (j.leftEar) drawEllipsoid(j.leftEar, [0.017, 0.027, 0.013], palette.skinShadow, viewProjection);
-    if (j.rightEar) drawEllipsoid(j.rightEar, [0.017, 0.027, 0.013], palette.skinShadow, viewProjection);
-    const noseCenter = addVec(j.head, scaleVec(forward, 0.092));
-    drawOrientedEllipsoid(noseCenter, axes, [0.020, 0.017, 0.015], palette.skinShadow, viewProjection);
-    if (j.leftEye) drawEllipsoid(j.leftEye, [0.010, 0.007, 0.008], palette.feature, viewProjection);
-    if (j.rightEye) drawEllipsoid(j.rightEye, [0.010, 0.007, 0.008], palette.feature, viewProjection);
-    if (j.mouthLeft && j.mouthRight) {
-      drawSegment(j.mouthLeft, j.mouthRight, 0.0045, 0.0045, [0.32, 0.14, 0.13, 1], viewProjection);
-    }
-  }
-
-  function drawArm(j, side, palette, skinColor, viewProjection) {
-    const shoulder = j[`${side}Shoulder`];
-    const elbow = j[`${side}Elbow`];
-    const wrist = j[`${side}Wrist`];
-    if (!shoulder || !elbow || !wrist) return;
-    const sleeveEnd = lerpVec(shoulder, elbow, 0.38);
-    const sleeveHem = lerpVec(shoulder, elbow, 0.46);
-    drawEllipsoid(shoulder, [0.066, 0.046, 0.062], palette.shirt, viewProjection);
-    drawSegment(shoulder, sleeveEnd, 0.061, 0.052, palette.shirt, viewProjection);
-    drawSegment(sleeveEnd, sleeveHem, 0.054, 0.048, palette.shirtLight, viewProjection);
-    drawSegment(sleeveHem, elbow, 0.043, 0.035, skinColor, viewProjection);
-    drawSegment(elbow, wrist, 0.038, 0.029, skinColor, viewProjection);
-    drawEllipsoid(elbow, [0.039, 0.032, 0.036], colorShade(skinColor, -0.06), viewProjection);
-    drawHand(j, side, skinColor, viewProjection);
-  }
-
-  function drawLeg(j, side, palette, skinColor, viewProjection) {
-    const hip = j[`${side}Hip`];
-    const knee = j[`${side}Knee`];
-    const ankle = j[`${side}Ankle`];
-    if (!hip || !knee || !ankle) return;
-    const shortsEnd = lerpVec(hip, knee, 0.34);
-    const shortsHem = lerpVec(hip, knee, 0.42);
-    drawEllipsoid(hip, [0.074, 0.052, 0.066], palette.shorts, viewProjection);
-    drawSegment(hip, shortsEnd, 0.088, 0.077, palette.shorts, viewProjection);
-    drawSegment(shortsEnd, shortsHem, 0.080, 0.074, palette.shortsTrim, viewProjection);
-    drawSegment(shortsHem, knee, 0.066, 0.050, skinColor, viewProjection);
-    drawSegment(knee, ankle, 0.052, 0.038, skinColor, viewProjection);
-    drawEllipsoid(knee, [0.049, 0.038, 0.045], colorShade(skinColor, -0.045), viewProjection);
-    drawEllipsoid(ankle, [0.032, 0.024, 0.030], skinColor, viewProjection);
-    drawShoe(j[`${side}Heel`], j[`${side}Toe`], palette.shoe, palette.shoeSole, palette.accent, viewProjection);
-  }
-
-  function drawHand(joints, side, color, viewProjection) {
-    const wrist = joints[`${side}Wrist`];
-    const hand = joints[`${side}Hand`];
-    if (!wrist || !hand) return;
-    drawSegment(wrist, hand, 0.030, 0.024, color, viewProjection);
-    drawEllipsoid(hand, [0.039, 0.025, 0.033], color, viewProjection);
-    for (const finger of ['Pinky', 'Index', 'Thumb']) {
-      const tip = joints[`${side}${finger}`];
-      if (!tip) continue;
-      drawSegment(hand, tip, finger === 'Thumb' ? 0.009 : 0.0075, 0.0045, color, viewProjection);
-      drawEllipsoid(tip, [0.006, 0.006, 0.005], color, viewProjection);
-    }
-  }
-
-  function drawShoe(heel, toe, shoeColor, soleColor, accentColor, viewProjection) {
-    if (!heel || !toe) return;
-    const center = scaleVec(addVec(heel, toe), 0.5);
-    const direction = normalizeVecOr(subVec(toe, heel), [1, 0, 0]);
-    const side = normalizeVecOr(crossVec(direction, [0, 1, 0]), [0, 0, 1]);
-    const up = normalizeVecOr(crossVec(side, direction), [0, 1, 0]);
-    const length = Math.max(0.12, lengthVec(subVec(toe, heel)));
-    const bodyCenter = addVec(center, scaleVec(direction, length * 0.07));
-    const model = composeBasisMatrix(bodyCenter, side, direction, up, [0.060, length * 0.46, 0.044]);
-    drawMesh(sphere, model, viewProjection, shoeColor);
-    const toeCenter = addVec(center, scaleVec(direction, length * 0.34));
-    const toeModel = composeBasisMatrix(toeCenter, side, direction, up, [0.066, length * 0.20, 0.041]);
-    drawMesh(sphere, toeModel, viewProjection, colorShade(shoeColor, 0.08));
-    const heelCenter = addVec(center, scaleVec(direction, -length * 0.30));
-    const heelModel = composeBasisMatrix(heelCenter, side, direction, up, [0.053, length * 0.18, 0.045]);
-    drawMesh(sphere, heelModel, viewProjection, colorShade(shoeColor, -0.12));
-    const soleCenter = addVec(center, [0, -0.030, 0]);
-    const soleModel = composeBasisMatrix(soleCenter, side, direction, up, [0.071, length * 0.56, 0.010]);
-    drawMesh(sphere, soleModel, viewProjection, soleColor);
-    const stripeCenter = addVec(addVec(center, scaleVec(up, 0.016)), scaleVec(direction, length * 0.04));
-    const stripeModel = composeBasisMatrix(stripeCenter, side, direction, up, [0.014, length * 0.34, 0.009]);
-    drawMesh(sphere, stripeModel, viewProjection, accentColor);
-  }
-
-  function drawFootShadow(heel, toe, viewProjection) {
-    if (!heel || !toe) return;
-    const center = [
-      (heel[0] + toe[0]) / 2,
-      0.010,
-      (heel[2] + toe[2]) / 2,
-    ];
-    const direction = normalizeVecOr([toe[0] - heel[0], 0, toe[2] - heel[2]], [1, 0, 0]);
-    const side = normalizeVecOr(crossVec([0, 1, 0], direction), [0, 0, 1]);
-    const length = Math.max(0.16, lengthVec(subVec(toe, heel)));
-    const model = composeBasisMatrix(center, side, direction, [0, 1, 0], [0.060, length * 0.40, 0.007]);
-    drawMesh(sphere, model, viewProjection, [0.005, 0.007, 0.012, 0.20]);
-  }
-
-  function bodyAxes(start, end) {
-    const yAxis = normalizeVecOr(subVec(end, start), [0, 1, 0]);
-    const xAxis = normalizeVecOr([yAxis[1], -yAxis[0], 0], [1, 0, 0]);
-    const zAxis = normalizeVecOr(crossVec(xAxis, yAxis), [0, 0, 1]);
-    return { xAxis, yAxis, zAxis };
-  }
-
-  function drawEllipsoidBetween(start, end, scale, color, viewProjection) {
-    if (!start || !end) return;
-    const center = scaleVec(addVec(start, end), 0.5);
-    const axis = normalizeVecOr(subVec(end, start), [0, 1, 0]);
-    const fallback = Math.abs(axis[1]) > 0.92 ? [1, 0, 0] : [0, 1, 0];
-    const xAxis = normalizeVecOr(crossVec(fallback, axis), [1, 0, 0]);
-    const zAxis = normalizeVecOr(crossVec(xAxis, axis), [0, 0, 1]);
-    const model = composeBasisMatrix(center, xAxis, axis, zAxis, scale);
-    drawMesh(sphere, model, viewProjection, color);
-  }
-
-  function drawOrientedEllipsoid(center, axes, scale, color, viewProjection) {
-    if (!center) return;
-    const model = composeBasisMatrix(center, axes.xAxis, axes.yAxis, axes.zAxis, scale);
-    drawMesh(sphere, model, viewProjection, color);
-  }
-
-  function drawEllipsoid(center, scale, color, viewProjection) {
-    if (!center) return;
-    const model = composeBasisMatrix(center, [1, 0, 0], [0, 1, 0], [0, 0, 1], scale);
-    drawMesh(sphere, model, viewProjection, color);
-  }
-
-  function drawSegment(start, end, startRadius, endRadius, color, viewProjection) {
-    drawTaperedSegment(start, end, startRadius, endRadius, color, viewProjection);
-  }
-
-  function drawTaperedSegment(start, end, startRadius, endRadius, color, viewProjection) {
-    if (!start || !end) return;
-    const vector = subVec(end, start);
-    const length = lengthVec(vector);
-    if (length < 0.001) return;
-    const yAxis = scaleVec(vector, 1 / length);
-    const fallback = Math.abs(yAxis[1]) > 0.92 ? [1, 0, 0] : [0, 1, 0];
-    const xAxis = normalizeVecOr(crossVec(fallback, yAxis), [1, 0, 0]);
-    const zAxis = normalizeVecOr(crossVec(xAxis, yAxis), [0, 0, 1]);
-    const center = scaleVec(addVec(start, end), 0.5);
-    const model = composeBasisMatrix(center, xAxis, yAxis, zAxis, [1, length, 1]);
-    drawMesh(taperedCylinderMesh(startRadius, endRadius), model, viewProjection, color);
-  }
-
-  function drawMesh(mesh, model, viewProjection, color) {
-    gl.useProgram(program);
-    gl.bindBuffer(gl.ARRAY_BUFFER, mesh.vertexBuffer);
-    gl.enableVertexAttribArray(locations.position);
-    gl.vertexAttribPointer(locations.position, 3, gl.FLOAT, false, 24, 0);
-    gl.enableVertexAttribArray(locations.normal);
-    gl.vertexAttribPointer(locations.normal, 3, gl.FLOAT, false, 24, 12);
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, mesh.indexBuffer);
-    gl.uniformMatrix4fv(locations.model, false, model);
-    gl.uniformMatrix4fv(locations.viewProjection, false, viewProjection);
-    gl.uniform4fv(locations.color, color);
-    gl.drawElements(gl.TRIANGLES, mesh.indexCount, gl.UNSIGNED_SHORT, 0);
-  }
-
-  function createSphereMesh(segments, rings) {
-    const vertices = [];
-    const indices = [];
-    for (let ring = 0; ring <= rings; ring += 1) {
-      const v = ring / rings;
-      const theta = v * Math.PI;
-      const sinTheta = Math.sin(theta);
-      const cosTheta = Math.cos(theta);
-      for (let segment = 0; segment <= segments; segment += 1) {
-        const u = segment / segments;
-        const phi = u * Math.PI * 2;
-        const x = Math.cos(phi) * sinTheta;
-        const y = cosTheta;
-        const z = Math.sin(phi) * sinTheta;
-        vertices.push(x, y, z, x, y, z);
-      }
-    }
-    for (let ring = 0; ring < rings; ring += 1) {
-      for (let segment = 0; segment < segments; segment += 1) {
-        const first = ring * (segments + 1) + segment;
-        const second = first + segments + 1;
-        indices.push(first, second, first + 1, second, second + 1, first + 1);
-      }
-    }
-    return uploadMesh(vertices, indices);
-  }
-
-  function taperedCylinderMesh(startRadius, endRadius) {
-    const start = Math.max(0.002, startRadius);
-    const end = Math.max(0.002, endRadius);
-    const key = `${Math.round(start * 1000)}:${Math.round(end * 1000)}`;
-    if (!taperedMeshCache.has(key)) {
-      taperedMeshCache.set(key, createCylinderMesh(24, start, end));
-    }
-    return taperedMeshCache.get(key);
-  }
-
-  function createCylinderMesh(segments, startRadius, endRadius) {
-    const vertices = [];
-    const indices = [];
-    const normalY = startRadius - endRadius;
-    for (let i = 0; i <= segments; i += 1) {
-      const u = i / segments;
-      const angle = u * Math.PI * 2;
-      const x = Math.cos(angle);
-      const z = Math.sin(angle);
-      const normal = normalizeVecOr([x, normalY, z], [x, 0, z]);
-      vertices.push(x * startRadius, -0.5, z * startRadius, normal[0], normal[1], normal[2]);
-      vertices.push(x * endRadius, 0.5, z * endRadius, normal[0], normal[1], normal[2]);
-    }
-    for (let i = 0; i < segments; i += 1) {
-      const a = i * 2;
-      indices.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
-    }
-    return uploadMesh(vertices, indices);
-  }
-
-  function createPlaneMesh() {
-    return uploadMesh(
-      [
-        -0.5, 0, -0.5, 0, 1, 0,
-        0.5, 0, -0.5, 0, 1, 0,
-        0.5, 0, 0.5, 0, 1, 0,
-        -0.5, 0, 0.5, 0, 1, 0,
-      ],
-      [0, 1, 2, 0, 2, 3],
-    );
-  }
-
-  function uploadMesh(vertices, indices) {
-    const vertexBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-    const indexBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
-    return {
-      vertexBuffer,
-      indexBuffer,
-      indexCount: indices.length,
-    };
-  }
-
-  function createProgram(context, vertexSource, fragmentSource) {
-    const vertexShader = compileShader(context, context.VERTEX_SHADER, vertexSource);
-    const fragmentShader = compileShader(context, context.FRAGMENT_SHADER, fragmentSource);
-    const shaderProgram = context.createProgram();
-    context.attachShader(shaderProgram, vertexShader);
-    context.attachShader(shaderProgram, fragmentShader);
-    context.linkProgram(shaderProgram);
-    if (!context.getProgramParameter(shaderProgram, context.LINK_STATUS)) {
-      throw new Error(context.getProgramInfoLog(shaderProgram) || 'WebGL link failed');
-    }
-    return shaderProgram;
-  }
-
-  function compileShader(context, type, source) {
-    const shader = context.createShader(type);
-    context.shaderSource(shader, source);
-    context.compileShader(shader);
-    if (!context.getShaderParameter(shader, context.COMPILE_STATUS)) {
-      throw new Error(context.getShaderInfoLog(shader) || 'WebGL shader failed');
-    }
-    return shader;
-  }
-
-  function vertexShaderSource() {
-    return `
-      attribute vec3 aPosition;
-      attribute vec3 aNormal;
-      uniform mat4 uModel;
-      uniform mat4 uViewProjection;
-      varying vec3 vNormal;
-      varying vec3 vWorld;
-      void main() {
-        vec4 world = uModel * vec4(aPosition, 1.0);
-        vWorld = world.xyz;
-        vNormal = normalize((uModel * vec4(aNormal, 0.0)).xyz);
-        gl_Position = uViewProjection * world;
-      }
-    `;
-  }
-
-  function fragmentShaderSource() {
-    return `
-      precision mediump float;
-      uniform vec4 uColor;
-      uniform vec3 uLightDirection;
-      uniform vec3 uCameraPosition;
-      uniform float uAmbient;
-      varying vec3 vNormal;
-      varying vec3 vWorld;
-      void main() {
-        vec3 normal = normalize(vNormal);
-        vec3 light = normalize(uLightDirection);
-        vec3 viewDir = normalize(uCameraPosition - vWorld);
-        vec3 halfDir = normalize(light + viewDir);
-        float diffuse = max(dot(normal, light), 0.0);
-        float rim = pow(1.0 - max(dot(normal, viewDir), 0.0), 2.0) * 0.16;
-        float specular = pow(max(dot(normal, halfDir), 0.0), 18.0) * 0.10;
-        float shade = min(1.0, uAmbient + diffuse * 0.66 + rim);
-        vec3 color = uColor.rgb * shade + vec3(1.0) * (diffuse * 0.035 + specular);
-        gl_FragColor = vec4(color, uColor.a);
-      }
-    `;
-  }
-
-  function resizeCanvas() {
-    const ratio = Math.max(1, window.devicePixelRatio || 1);
-    const width = Math.max(1, Math.floor(canvas.clientWidth * ratio));
-    const height = Math.max(1, Math.floor(canvas.clientHeight * ratio));
-    if (canvas.width !== width || canvas.height !== height) {
-      canvas.width = width;
-      canvas.height = height;
-    }
-  }
-
-  function composeBasisMatrix(center, xAxis, yAxis, zAxis, scale) {
-    return new Float32Array([
-      xAxis[0] * scale[0], xAxis[1] * scale[0], xAxis[2] * scale[0], 0,
-      yAxis[0] * scale[1], yAxis[1] * scale[1], yAxis[2] * scale[1], 0,
-      zAxis[0] * scale[2], zAxis[1] * scale[2], zAxis[2] * scale[2], 0,
-      center[0], center[1], center[2], 1,
-    ]);
-  }
-
-  function mat4Perspective(fovy, aspect, near, far) {
-    const f = 1.0 / Math.tan(fovy / 2);
-    const nf = 1 / (near - far);
-    return new Float32Array([
-      f / aspect, 0, 0, 0,
-      0, f, 0, 0,
-      0, 0, (far + near) * nf, -1,
-      0, 0, 2 * far * near * nf, 0,
-    ]);
-  }
-
-  function mat4LookAt(eye, center, up) {
-    const z = normalizeVec(subVec(eye, center));
-    const x = normalizeVec(crossVec(up, z));
-    const y = crossVec(z, x);
-    return new Float32Array([
-      x[0], y[0], z[0], 0,
-      x[1], y[1], z[1], 0,
-      x[2], y[2], z[2], 0,
-      -dotVec(x, eye), -dotVec(y, eye), -dotVec(z, eye), 1,
-    ]);
-  }
-
-  function mat4Multiply(a, b) {
-    const out = new Float32Array(16);
-    for (let column = 0; column < 4; column += 1) {
-      for (let row = 0; row < 4; row += 1) {
-        out[column * 4 + row] =
-          a[0 * 4 + row] * b[column * 4 + 0] +
-          a[1 * 4 + row] * b[column * 4 + 1] +
-          a[2 * 4 + row] * b[column * 4 + 2] +
-          a[3 * 4 + row] * b[column * 4 + 3];
-      }
-    }
-    return out;
-  }
-
-  function addVec(a, b) {
-    return [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
-  }
-
-  function subVec(a, b) {
-    return [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
-  }
-
-  function scaleVec(a, s) {
-    return [a[0] * s, a[1] * s, a[2] * s];
-  }
-
-  function dotVec(a, b) {
-    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-  }
-
-  function crossVec(a, b) {
-    return [
-      a[1] * b[2] - a[2] * b[1],
-      a[2] * b[0] - a[0] * b[2],
-      a[0] * b[1] - a[1] * b[0],
-    ];
-  }
-
-  function lengthVec(a) {
-    return Math.hypot(a[0], a[1], a[2]);
-  }
-
-  function normalizeVec(a) {
-    const length = lengthVec(a);
-    if (!Number.isFinite(length) || length < 0.00001) return [1, 0, 0];
-    return scaleVec(a, 1 / length);
-  }
-
-  function normalizeVecOr(a, fallback) {
-    const length = lengthVec(a);
-    if (!Number.isFinite(length) || length < 0.00001) return fallback;
-    return scaleVec(a, 1 / length);
-  }
-
-  function lerpVec(a, b, t) {
-    return [
-      a[0] + (b[0] - a[0]) * t,
-      a[1] + (b[1] - a[1]) * t,
-      a[2] + (b[2] - a[2]) * t,
-    ];
-  }
-
-  function smoothstep(t) {
-    return t * t * (3 - 2 * t);
-  }
-
-  function clamp(value, min, max) {
-    return Math.min(max, Math.max(min, value));
-  }
-
-  function hexToRgba(hex, alpha) {
-    const normalized = String(hex || '#3f7ee8').replace('#', '');
-    const value = Number.parseInt(normalized.length === 3
-      ? normalized.split('').map((part) => part + part).join('')
-      : normalized, 16);
-    if (!Number.isFinite(value)) return [0.247, 0.494, 0.91, alpha];
-    return [
-      ((value >> 16) & 255) / 255,
-      ((value >> 8) & 255) / 255,
-      (value & 255) / 255,
-      alpha,
-    ];
-  }
-
-  function colorShade(color, amount) {
-    const target = amount >= 0 ? [1, 1, 1] : [0, 0, 0];
-    const t = Math.min(1, Math.abs(amount));
-    return [
-      color[0] + (target[0] - color[0]) * t,
-      color[1] + (target[1] - color[1]) * t,
-      color[2] + (target[2] - color[2]) * t,
-      color[3],
-    ];
-  }
-}());
+function smoothstep(value) {
+  return value * value * (3 - 2 * value);
+}

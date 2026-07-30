@@ -8842,7 +8842,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachThreeDReferenceNotice =>
-      '포즈 랜드마크 기반의 일반 기준 아바타이며, 내 신체를 재구성한 것이 아니에요.';
+      '고정된 기준 러너에 추적 좌표로 작은 자세 보정만 적용해요. 내 체형이나 얼굴을 재구성한 것은 아니에요.';
 
   @override
   String get runningCoachHistoryEvidenceUnavailableTitle => '저장된 관절 근거 없음';
