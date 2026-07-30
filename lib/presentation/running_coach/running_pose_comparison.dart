@@ -49,7 +49,7 @@ class RunningPoseCoordinateComparison extends StatelessWidget {
   final Iterable<RunningPoseFrame> poseFrames;
   final RunningCoachingInsight insight;
   final RunningDirection direction;
-  final Animation<double> progress;
+  final bool playbackActive;
   final Color surfaceColor;
   final Color mutedColor;
   final Color actualAccent;
@@ -65,7 +65,7 @@ class RunningPoseCoordinateComparison extends StatelessWidget {
     this.poseFrames = const <RunningPoseFrame>[],
     required this.insight,
     required this.direction,
-    required this.progress,
+    this.playbackActive = true,
     required this.surfaceColor,
     required this.mutedColor,
     required this.actualAccent,
@@ -127,23 +127,20 @@ class RunningPoseCoordinateComparison extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Expanded(
-            child: AnimatedBuilder(
-              animation: progress,
-              builder: (context, _) => RunningThreeDRunnerComparisonView(
-                key: const ValueKey(
-                  'running-coach-coordinate-pose-comparison',
-                ),
-                poseFrames: sequence,
-                selectedFrame: frame,
-                insight: insight,
-                direction: direction,
-                currentColor: currentColor,
-                targetColor: nextColor,
-                successColor: successAccent,
-                currentLabel: currentLabel,
-                targetLabel: nextStepLabel,
-                playbackProgress: progress.value,
+            child: RunningThreeDRunnerComparisonView(
+              key: const ValueKey(
+                'running-coach-coordinate-pose-comparison',
               ),
+              poseFrames: sequence,
+              selectedFrame: frame,
+              insight: insight,
+              direction: direction,
+              currentColor: currentColor,
+              targetColor: nextColor,
+              successColor: successAccent,
+              currentLabel: currentLabel,
+              targetLabel: nextStepLabel,
+              playbackActive: playbackActive,
             ),
           ),
         ],
