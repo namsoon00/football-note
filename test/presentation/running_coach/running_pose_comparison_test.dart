@@ -67,7 +67,7 @@ void main() {
     );
   });
 
-  testWidgets('coordinate comparison selects the 3D runner platform view', (
+  testWidgets('coordinate comparison selects the curated illustration', (
     WidgetTester tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(320, 600));
@@ -117,8 +117,12 @@ void main() {
       findsOneWidget,
     );
     expect(
-      find.byKey(const ValueKey('running-coach-3d-runner-platform-view')),
+      find.byKey(const ValueKey('running-coach-illustrated-comparison')),
       findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('running-coach-3d-runner-platform-view')),
+      findsNothing,
     );
     expect(
       find.text('Current'),

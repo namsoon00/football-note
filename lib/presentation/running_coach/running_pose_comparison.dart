@@ -6,10 +6,10 @@ import 'package:flutter/material.dart';
 import '../../application/running_coaching_service.dart';
 import '../../domain/entities/running_video_analysis_result.dart';
 import 'running_coach_avatar.dart';
+import 'running_coach_illustrated_comparison.dart';
 import 'running_pose_overlay.dart';
 import 'running_professional_runner.dart';
 import 'running_professional_runner_art.dart';
-import 'running_three_d_runner_view.dart';
 
 const _comparisonCanvasPadding = 18.0;
 const _minimumMovedDistance = 0.75;
@@ -78,113 +78,17 @@ class RunningPoseCoordinateComparison extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isGood = insight.status == RunningCoachStatus.good;
-    final currentColor = isGood ? successAccent : actualAccent;
-    final nextColor = isGood ? successAccent : targetAccent;
-    final sequence =
-        poseFrames.isEmpty ? <RunningPoseFrame>[frame] : poseFrames;
-    return Semantics(
-      image: true,
-      label: semanticLabel,
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: _PoseComparisonPanelLabel(
-                  key: const ValueKey(
-                    'running-coach-coordinate-comparison-current-label',
-                  ),
-                  icon: isGood
-                      ? Icons.check_circle_outline_rounded
-                      : Icons.radio_button_checked_rounded,
-                  color: currentColor,
-                  label: currentLabel,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Icon(
-                  isGood ? Icons.check_rounded : Icons.arrow_forward_rounded,
-                  color: nextColor,
-                  size: 19,
-                ),
-              ),
-              Expanded(
-                child: _PoseComparisonPanelLabel(
-                  key: const ValueKey(
-                    'running-coach-coordinate-comparison-next-label',
-                  ),
-                  icon: isGood
-                      ? Icons.check_circle_outline_rounded
-                      : Icons.near_me_outlined,
-                  color: nextColor,
-                  label: nextStepLabel,
-                  alignEnd: true,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: RunningThreeDRunnerComparisonView(
-              key: const ValueKey(
-                'running-coach-coordinate-pose-comparison',
-              ),
-              poseFrames: sequence,
-              selectedFrame: frame,
-              insight: insight,
-              direction: direction,
-              currentColor: currentColor,
-              targetColor: nextColor,
-              successColor: successAccent,
-              currentLabel: currentLabel,
-              targetLabel: nextStepLabel,
-              playbackActive: playbackActive,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PoseComparisonPanelLabel extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-  final String label;
-  final bool alignEnd;
-
-  const _PoseComparisonPanelLabel({
-    super.key,
-    required this.icon,
-    required this.color,
-    required this.label,
-    this.alignEnd = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final content = <Widget>[
-      Icon(icon, size: 15, color: color),
-      const SizedBox(width: 5),
-      Flexible(
-        child: Text(
-          label,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          textAlign: alignEnd ? TextAlign.end : TextAlign.start,
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                color: color,
-                fontWeight: FontWeight.w900,
-              ),
-        ),
-      ),
-    ];
-    return Row(
-      mainAxisAlignment:
-          alignEnd ? MainAxisAlignment.end : MainAxisAlignment.start,
-      children: alignEnd ? content.reversed.toList(growable: false) : content,
+    return RunningCoachIllustratedComparison(
+      key: const ValueKey('running-coach-coordinate-pose-comparison'),
+      insight: insight,
+      surfaceColor: surfaceColor,
+      mutedColor: mutedColor,
+      actualAccent: actualAccent,
+      targetAccent: targetAccent,
+      successAccent: successAccent,
+      semanticLabel: semanticLabel,
+      currentLabel: currentLabel,
+      nextStepLabel: nextStepLabel,
     );
   }
 }

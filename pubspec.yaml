@@ -96,6 +96,7 @@ flutter:
   assets:
     - assets/images/
     - assets/images/running_guides/
+    - assets/images/running_guides/cases/
     - assets/images/running_guides/professional_runner/professional_runner_pose_atlas_v2.png
     - assets/running_coach_3d_runner/
     # Flutter directory entries include only immediate children. Keep every

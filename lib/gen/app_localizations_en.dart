@@ -9783,6 +9783,21 @@ class AppLocalizationsEn extends AppLocalizations {
       'Red marks the current point; blue marks the next target. Follow one arrow at a time.';
 
   @override
+  String get runningCoachIllustrationTitle => 'Measured case and next movement';
+
+  @override
+  String get runningCoachIllustrationBody =>
+      'This coaching reference was selected from the measurement in the video above. Red shows the current issue and blue shows the next movement.';
+
+  @override
+  String get runningCoachIllustrationGoodBody =>
+      'Your measurement in the video above is in range. This illustration is a reference for keeping that rhythm.';
+
+  @override
+  String get runningCoachIllustrationFootnote =>
+      'This is a generic runner reference matched to your measurement, not a reconstruction of your body.';
+
+  @override
   String get runningCoachMeasuredPoseActualLabel => 'Current point';
 
   @override
