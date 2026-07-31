@@ -3,10 +3,18 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-if ! command -v rg >/dev/null 2>&1; then
-  echo "[design] ripgrep is required for design consistency checks." >&2
+if ! command -v rg >/dev/null 2>&1 && ! command -v grep >/dev/null 2>&1; then
+  echo "[design] ripgrep or grep is required for design consistency checks." >&2
   exit 1
 fi
+
+search() {
+  if command -v rg >/dev/null 2>&1; then
+    rg "$@"
+  else
+    grep -E "$@"
+  fi
+}
 
 base_ref="${DESIGN_BASE_REF:-origin/main}"
 if ! git rev-parse --verify "${base_ref}" >/dev/null 2>&1; then
@@ -21,7 +29,7 @@ changed_files="$(
   } | sort -u
 )"
 
-presentation_files="$(printf '%s\n' "${changed_files}" | rg '^lib/presentation/.*\.dart$' || true)"
+presentation_files="$(printf '%s\n' "${changed_files}" | search '^lib/presentation/.*\.dart$' || true)"
 if [[ -z "${presentation_files}" ]]; then
   echo "[design] No changed presentation Dart files to check."
   exit 0
@@ -40,7 +48,7 @@ while IFS= read -r file; do
   )"
   [[ -z "${added_lines}" ]] && continue
 
-  copy_matches="$(printf '%s\n' "${added_lines}" | rg -n "isKo[[:space:]]*\\?[[:space:]]*['\"]|Localizations\\.localeOf\\(context\\)\\.languageCode[[:space:]]*==[[:space:]]*['\"]ko['\"]" 2>/dev/null || true)"
+  copy_matches="$(printf '%s\n' "${added_lines}" | search -n "isKo[[:space:]]*\\?[[:space:]]*['\"]|Localizations\\.localeOf\\(context\\)\\.languageCode[[:space:]]*==[[:space:]]*['\"]ko['\"]" 2>/dev/null || true)"
   if [[ -n "${copy_matches}" ]]; then
     echo "[design] ${file}: move newly added locale-specific user-facing copy to lib/l10n/*.arb." >&2
     echo "${copy_matches}" >&2
@@ -51,7 +59,7 @@ while IFS= read -r file; do
     continue
   fi
 
-  action_matches="$(printf '%s\n' "${added_lines}" | rg -n "IconButton[[:space:]]*\\(|TextButton[.]icon[[:space:]]*\\(|PopupMenuButton[<[:space:]]|PopupMenuButton[[:space:]]*\\(" 2>/dev/null || true)"
+  action_matches="$(printf '%s\n' "${added_lines}" | search -n "IconButton[[:space:]]*\\(|TextButton[.]icon[[:space:]]*\\(|PopupMenuButton[<[:space:]]|PopupMenuButton[[:space:]]*\\(" 2>/dev/null || true)"
   if [[ -n "${action_matches}" ]]; then
     echo "[design] ${file}: use AppBarActionButton/AppBarActionMenuButton for newly added top-right app bar actions." >&2
     echo "${action_matches}" >&2

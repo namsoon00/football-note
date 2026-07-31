@@ -39,6 +39,9 @@ jobs:
       - name: Generate l10n
         run: flutter gen-l10n
 
+      - name: Install verification tooling
+        run: sudo apt-get update && sudo apt-get install --yes ripgrep
+
       - name: Verify release contracts
         run: ./scripts/verify.sh
 
