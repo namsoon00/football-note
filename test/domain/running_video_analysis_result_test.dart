@@ -340,6 +340,62 @@ void main() {
     expect(gait.steps.first.maximumKneeFlexion, isNotNull);
     expect(gait.steps.first.contactExit, isNotNull);
   });
+
+  test('keeps verified rhythm available when pose pairing is unavailable', () {
+    const contactTimes = <int>[600, 900, 1200, 1500, 1800, 2100];
+    final result = RunningVideoAnalysisResult(
+      videoDuration: const Duration(seconds: 3),
+      sampledFrames: 14,
+      validFrames: 12,
+      direction: RunningDirection.leftToRight,
+      forwardLeanDegrees: 10,
+      verticalBounceRatio: 0.06,
+      footStrikeDistanceRatio: 0.10,
+      stanceKneeAngleDegrees: 154,
+      elbowAngleDegrees: 90,
+      denseSamples: const RunningAnalysisSampleSummary(
+        attemptedFrames: 12,
+        validFrames: 12,
+        poseFrameCount: 0,
+        targetFps: 30,
+      ),
+      contactWindows: [
+        for (var index = 0; index < contactTimes.length; index += 1)
+          RunningContactWindow(
+            start: Duration(milliseconds: contactTimes[index] - 80),
+            center: Duration(milliseconds: contactTimes[index]),
+            end: Duration(milliseconds: contactTimes[index] + 160),
+            side: index.isEven
+                ? RunningContactSide.left
+                : RunningContactSide.right,
+            denseSampleCount: 5,
+            validatedContactTimestamps: [
+              Duration(milliseconds: contactTimes[index]),
+            ],
+            confidence: 0.92,
+          ),
+      ],
+      validatedContactFrameTimestamps: const <Duration>[
+        Duration(milliseconds: 600),
+        Duration(milliseconds: 900),
+        Duration(milliseconds: 1200),
+        Duration(milliseconds: 1500),
+        Duration(milliseconds: 1800),
+        Duration(milliseconds: 2100),
+      ],
+      contactConfidence: 0.92,
+    );
+
+    final rhythm = result.rhythmAnalysis;
+
+    expect(result.gaitAnalysis, isNull);
+    expect(rhythm, isNotNull);
+    expect(rhythm!.hasReliableSample, isTrue);
+    expect(rhythm.hasBilateralSample, isTrue);
+    expect(rhythm.cadenceSpm, closeTo(200, 0.1));
+    expect(rhythm.medianStepTimeMs, 300);
+    expect(rhythm.leftRightStepTimeAsymmetryPercent, closeTo(0, 0.001));
+  });
 }
 
 Map<String, Object?> _poseFrameMap({
