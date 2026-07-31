@@ -8259,6 +8259,38 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachSampleGuideAction => 'サンプルビデオガイドを開く';
 
   @override
+  String get runningCoachCaptureGuideAction => '撮影ガイドを開く';
+
+  @override
+  String get runningCoachCaptureGuideTitle => '撮影ガイド';
+
+  @override
+  String get runningCoachCaptureGuideBody =>
+      'この画面は撮影構図のガイドです。フォームスコアとコーチングは、アップロードした自分の動画だけから計算されます。';
+
+  @override
+  String get runningCoachCaptureGuideChecklistTitle => 'アップロード前の確認';
+
+  @override
+  String get runningCoachCaptureGuideChecklistCamera =>
+      'カメラを固定し、走路に対して正確に直角に置きます。';
+
+  @override
+  String get runningCoachCaptureGuideChecklistFraming =>
+      '頭から両足のシューズまでが常に見え、全身が画面高の50〜75%を占めるように合わせます。';
+
+  @override
+  String get runningCoachCaptureGuideChecklistClip =>
+      '明るく単純な背景で、きれいな3〜6歩を含む5〜10秒の動画を使います。';
+
+  @override
+  String get runningCoachCaptureGuideAnalysisTitle => '分析結果は自分の動画だけから';
+
+  @override
+  String get runningCoachCaptureGuideAnalysisBody =>
+      'このガイドは撮影品質の確認用です。フォームスコアと修正は、アップロードしたフレームとその信頼度から計算されます。';
+
+  @override
   String get runningCoachSampleAnalysisLoadingTitle => '計測オーバーレイを追加中';
 
   @override

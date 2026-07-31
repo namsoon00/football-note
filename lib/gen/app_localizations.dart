@@ -14860,6 +14860,60 @@ abstract class AppLocalizations {
   /// **'Open sample video guide'**
   String get runningCoachSampleGuideAction;
 
+  /// No description provided for @runningCoachCaptureGuideAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Open recording guide'**
+  String get runningCoachCaptureGuideAction;
+
+  /// No description provided for @runningCoachCaptureGuideTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recording guide'**
+  String get runningCoachCaptureGuideTitle;
+
+  /// No description provided for @runningCoachCaptureGuideBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This screen helps you set up the recording. Form scores and coaching are calculated only from the video you upload.'**
+  String get runningCoachCaptureGuideBody;
+
+  /// No description provided for @runningCoachCaptureGuideChecklistTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Before you upload'**
+  String get runningCoachCaptureGuideChecklistTitle;
+
+  /// No description provided for @runningCoachCaptureGuideChecklistCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Fix the camera and place it square to the running line.'**
+  String get runningCoachCaptureGuideChecklistCamera;
+
+  /// No description provided for @runningCoachCaptureGuideChecklistFraming.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the head through both shoes in view, with the full body filling 50–75% of the frame height.'**
+  String get runningCoachCaptureGuideChecklistFraming;
+
+  /// No description provided for @runningCoachCaptureGuideChecklistClip.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a 5–10 second clip with 3–6 clean strides in bright, uncluttered light.'**
+  String get runningCoachCaptureGuideChecklistClip;
+
+  /// No description provided for @runningCoachCaptureGuideAnalysisTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysis uses only your video'**
+  String get runningCoachCaptureGuideAnalysisTitle;
+
+  /// No description provided for @runningCoachCaptureGuideAnalysisBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This guide checks recording setup. Form scores and corrections are calculated from your uploaded frames and their confidence.'**
+  String get runningCoachCaptureGuideAnalysisBody;
+
   /// No description provided for @runningCoachSampleAnalysisLoadingTitle.
   ///
   /// In en, this message translates to:

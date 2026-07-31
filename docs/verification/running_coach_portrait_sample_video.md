@@ -1,14 +1,15 @@
-# Running Coach Portrait Sample Video
+# Running Coach Portrait Sample Video Fixture
 
-The user-facing sample is:
+This asset is an internal regression fixture only:
 
 ```text
 assets/videos/running_coach_portrait_side_view_sample.mp4
 ```
 
 It is a 720x1280 H.264 MP4, rendered from the clothed beach side-view source
-at `assets/videos/running_coach_reference_sample.mp4`. It is deliberately a
-recording-framing example, not a claim that the runner has ideal sprint form.
+at `assets/videos/running_coach_reference_sample.mp4`. It is not packaged for
+the user-facing recording guide and must not be presented as a recommended
+running environment, a form reference, or a source of coaching scores.
 
 ## Render
 
@@ -38,4 +39,6 @@ found 3 validated contacts with a `0.462` hip-motion ratio.
 
 Re-run `./scripts/test_mediapipe_sample_videos.sh` after regenerating the
 asset. This verifies pose, contact-window, motion, and dense-frame evidence;
-it does not replace physical-device capture validation.
+it does not replace physical-device capture validation. Do not restore this
+asset to the user-facing app until commercial-use rights, model consent, and
+physical-device validation are all documented.

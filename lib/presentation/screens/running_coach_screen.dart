@@ -126,7 +126,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
           canCapture: !kIsWeb,
           canSaveVideo: !kIsWeb && _historyService != null,
           saveVideoToHistory: _saveSelectedVideoToHistory,
-          onShowSampleGuide: _showSampleAnalysis,
+          onShowCaptureGuide: _showCaptureGuide,
           onCaptureVideo: _captureVideo,
           onPickVideo: _pickVideo,
           onAnalyzeVideo: _analyzeVideo,
@@ -149,6 +149,19 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
 
   bool get _canAnalyze => !_isAnalyzing && _selectedVideo != null;
 
+  Future<void> _showCaptureGuide() {
+    return showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (_) => const _RunningCoachCaptureGuideSheet(),
+    );
+  }
+
+  // The former sample-video analyzer is intentionally no longer reachable
+  // from the product UI. Its removal is kept separate from this release-safe
+  // guide change so archived diagnostic work can still be migrated safely.
+  // ignore: unused_element
   Future<void> _showSampleAnalysis() {
     return showModalBottomSheet<void>(
       context: context,
@@ -496,7 +509,7 @@ class _RunningCoachUploadGuideCard extends StatelessWidget {
   final bool canCapture;
   final bool canSaveVideo;
   final bool saveVideoToHistory;
-  final VoidCallback onShowSampleGuide;
+  final VoidCallback onShowCaptureGuide;
   final VoidCallback onCaptureVideo;
   final VoidCallback onPickVideo;
   final VoidCallback onAnalyzeVideo;
@@ -509,7 +522,7 @@ class _RunningCoachUploadGuideCard extends StatelessWidget {
     required this.canCapture,
     required this.canSaveVideo,
     required this.saveVideoToHistory,
-    required this.onShowSampleGuide,
+    required this.onShowCaptureGuide,
     required this.onCaptureVideo,
     required this.onPickVideo,
     required this.onAnalyzeVideo,
@@ -653,13 +666,168 @@ class _RunningCoachUploadGuideCard extends StatelessWidget {
               width: double.infinity,
               child: OutlinedButton.icon(
                 key: const ValueKey('running-coach-capture-guide-action'),
-                onPressed: onShowSampleGuide,
+                onPressed: onShowCaptureGuide,
                 icon: const Icon(Icons.video_camera_back_outlined),
-                label: Text(l10n.runningCoachSampleGuideAction),
+                label: Text(l10n.runningCoachCaptureGuideAction),
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _RunningCoachCaptureGuideSheet extends StatelessWidget {
+  const _RunningCoachCaptureGuideSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                BackButton(
+                  key:
+                      const ValueKey('running-coach-capture-guide-back-button'),
+                  onPressed: () => Navigator.of(context).maybePop(),
+                ),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: Text(
+                      l10n.runningCoachCaptureGuideTitle,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w900,
+                          ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              l10n.runningCoachCaptureGuideBody,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 14),
+            _RunningCoachCaptureGuideChecklist(
+              title: l10n.runningCoachCaptureGuideChecklistTitle,
+              camera: l10n.runningCoachCaptureGuideChecklistCamera,
+              framing: l10n.runningCoachCaptureGuideChecklistFraming,
+              clip: l10n.runningCoachCaptureGuideChecklistClip,
+            ),
+            const SizedBox(height: 14),
+            _SampleRecordingGuidePanel(
+              title: l10n.runningCoachSampleRecordingGuideTitle,
+            ),
+            const SizedBox(height: 14),
+            _RunningCoachCaptureGuideAnalysisNotice(
+              title: l10n.runningCoachCaptureGuideAnalysisTitle,
+              body: l10n.runningCoachCaptureGuideAnalysisBody,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RunningCoachCaptureGuideChecklist extends StatelessWidget {
+  final String title;
+  final String camera;
+  final String framing;
+  final String clip;
+
+  const _RunningCoachCaptureGuideChecklist({
+    required this.title,
+    required this.camera,
+    required this.framing,
+    required this.clip,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      key: const ValueKey('running-coach-capture-guide-checklist'),
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: scheme.outlineVariant),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 10),
+          _SampleGuideStep(number: 1, text: camera),
+          const SizedBox(height: 8),
+          _SampleGuideStep(number: 2, text: framing),
+          const SizedBox(height: 8),
+          _SampleGuideStep(number: 3, text: clip),
+        ],
+      ),
+    );
+  }
+}
+
+class _RunningCoachCaptureGuideAnalysisNotice extends StatelessWidget {
+  final String title;
+  final String body;
+
+  const _RunningCoachCaptureGuideAnalysisNotice({
+    required this.title,
+    required this.body,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      key: const ValueKey('running-coach-capture-guide-analysis-notice'),
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: scheme.primaryContainer.withValues(alpha: 0.52),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: scheme.primary.withValues(alpha: 0.24)),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.verified_user_outlined, color: scheme.primary),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                ),
+                const SizedBox(height: 3),
+                Text(body, style: Theme.of(context).textTheme.bodySmall),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -114,7 +114,6 @@ flutter:
     - assets/watch_cart/images/
     - assets/watch_cart/svg/
     - assets/animations/
-    - assets/videos/running_coach_portrait_side_view_sample.mp4
     - assets/sounds/
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg

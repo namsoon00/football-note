@@ -8482,6 +8482,39 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachSampleGuideAction => 'Open sample video guide';
 
   @override
+  String get runningCoachCaptureGuideAction => 'Open recording guide';
+
+  @override
+  String get runningCoachCaptureGuideTitle => 'Recording guide';
+
+  @override
+  String get runningCoachCaptureGuideBody =>
+      'This screen helps you set up the recording. Form scores and coaching are calculated only from the video you upload.';
+
+  @override
+  String get runningCoachCaptureGuideChecklistTitle => 'Before you upload';
+
+  @override
+  String get runningCoachCaptureGuideChecklistCamera =>
+      'Fix the camera and place it square to the running line.';
+
+  @override
+  String get runningCoachCaptureGuideChecklistFraming =>
+      'Keep the head through both shoes in view, with the full body filling 50–75% of the frame height.';
+
+  @override
+  String get runningCoachCaptureGuideChecklistClip =>
+      'Use a 5–10 second clip with 3–6 clean strides in bright, uncluttered light.';
+
+  @override
+  String get runningCoachCaptureGuideAnalysisTitle =>
+      'Analysis uses only your video';
+
+  @override
+  String get runningCoachCaptureGuideAnalysisBody =>
+      'This guide checks recording setup. Form scores and corrections are calculated from your uploaded frames and their confidence.';
+
+  @override
   String get runningCoachSampleAnalysisLoadingTitle =>
       'Adding the measured overlay';
 
