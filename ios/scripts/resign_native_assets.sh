@@ -69,7 +69,11 @@ while IFS="$(printf '\t')" read -r framework_name asset_path; do
 
     mkdir -p "${frameworks_dir}"
     echo "Embedding native asset framework ${framework_name}.framework"
-    ditto "${source_framework_path}" "${framework_path}"
+    if command -v ditto >/dev/null 2>&1; then
+      ditto "${source_framework_path}" "${framework_path}"
+    else
+      cp -R "${source_framework_path}" "${framework_path}"
+    fi
   fi
 
   if [ ! -f "${target_asset_path}" ]; then
