@@ -82,6 +82,12 @@ final class RunningPoseAnalysisChannel {
         message: "Please select a running clip that is at least 1.5 seconds long."
       )
     }
+    guard durationMs <= Self.maxVideoDurationMs else {
+      throw AnalysisError(
+        code: "video_too_long",
+        message: "Please trim the running clip to 15 seconds or less."
+      )
+    }
 
     let imageGenerator = AVAssetImageGenerator(asset: asset)
     imageGenerator.appliesPreferredTrackTransform = true
@@ -108,13 +114,20 @@ final class RunningPoseAnalysisChannel {
     }
 
     let direction = resolveDirection(from: frameSamples)
-    let averageScale = max(frameSamples.map(\.bodyScale).reduce(0, +) / Double(frameSamples.count), 1.0)
     let leanDegrees =
       frameSamples.map { $0.forwardLeanDegrees(direction: direction) }.reduce(0, +) /
       Double(frameSamples.count)
-    let shoulderYs = frameSamples.map { Double($0.shoulderCenter.y) }
-    let bounceRatio =
-      ((shoulderYs.max() ?? 0) - (shoulderYs.min() ?? 0)) / averageScale
+    let normalizedShoulderYs = frameSamples.map {
+      Double($0.shoulderCenter.y) / max($0.bodyScale, 1.0)
+    }
+    let bounceRatio: Double
+    if let lower = percentile(normalizedShoulderYs, fraction: 0.10),
+      let upper = percentile(normalizedShoulderYs, fraction: 0.90)
+    {
+      bounceRatio = max(0, upper - lower)
+    } else {
+      bounceRatio = 0
+    }
     let detectedCandidateSet = deriveContactCandidateWindows(
       from: frameSamples,
       durationMs: durationMs
@@ -528,6 +541,28 @@ final class RunningPoseAnalysisChannel {
     let upperIndex = sortedValues.count / 2
     let lowerIndex = (sortedValues.count - 1) / 2
     return (sortedValues[lowerIndex] + sortedValues[upperIndex]) / 2.0
+  }
+
+  private func percentile(_ values: [Double], fraction: Double) -> Double? {
+    guard !values.isEmpty else {
+      return nil
+    }
+    let sortedValues = values.sorted()
+    let index = max(
+      0,
+      min(
+        Double(sortedValues.count - 1),
+        Double(sortedValues.count - 1) * fraction
+      )
+    )
+    let lowerIndex = Int(index.rounded(.down))
+    let upperIndex = Int(index.rounded(.up))
+    if lowerIndex == upperIndex {
+      return sortedValues[lowerIndex]
+    }
+    let weight = index - Double(lowerIndex)
+    return sortedValues[lowerIndex] +
+      ((sortedValues[upperIndex] - sortedValues[lowerIndex]) * weight)
   }
 
   private func actualSourceTimestampMs(from actualTime: CMTime) -> Int? {
@@ -1513,6 +1548,7 @@ final class RunningPoseAnalysisChannel {
   private static let sharpnessSampleWidth = 96
   private static let sharpnessSampleHeight = 64
   private static let minVideoDurationMs = 1500
+  private static let maxVideoDurationMs = 15000
   private static let sampleStartFraction = 0.15
   private static let sampleEndFraction = 0.85
   private static let minimumLikelihood: Float = 0.35
@@ -1525,7 +1561,7 @@ final class RunningPoseAnalysisChannel {
   private static let maxDenseFrameBudget = 48
   private static let maxContactWindows = 6
   private static let minimumContactCenterSeparationMs = 120
-  private static let minimumValidatedContactFrames = 2
+  private static let minimumValidatedContactFrames = 3
   private static let minimumContactFrameConfidence = 0.34
   private static let contactProxyConfidencePenalty = 0.60
   private static let coarseContactProxyConfidencePenalty = 0.42

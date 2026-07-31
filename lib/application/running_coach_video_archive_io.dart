@@ -18,13 +18,8 @@ Future<ArchivedRunningCoachVideo?> archiveRunningCoachVideo({
   try {
     final source = File(sourcePath);
     if (!await source.exists()) return null;
-    final documentsDirectory = await getApplicationDocumentsDirectory();
-    final archiveDirectory = Directory(
-      '${documentsDirectory.path}${Platform.pathSeparator}running_coach_videos',
-    );
-    if (!await archiveDirectory.exists()) {
-      await archiveDirectory.create(recursive: true);
-    }
+    final archiveDirectory = await _archiveDirectory(create: true);
+    if (archiveDirectory == null) return null;
     final extension = _safeVideoExtension(sourceName ?? source.path);
     final archivedName =
         'running-coach-${timestamp.microsecondsSinceEpoch}$extension';
@@ -42,15 +37,48 @@ Future<ArchivedRunningCoachVideo?> archiveRunningCoachVideo({
 }
 
 Future<void> deleteArchivedRunningCoachVideos(Iterable<String?> paths) async {
+  final archiveDirectory = await _archiveDirectory();
+  if (archiveDirectory == null || !await archiveDirectory.exists()) return;
+  String archiveRoot;
+  try {
+    archiveRoot = await archiveDirectory.resolveSymbolicLinks();
+  } catch (_) {
+    return;
+  }
   for (final path in paths) {
     if (path == null || path.isEmpty) continue;
     try {
       final file = File(path);
-      if (await file.exists()) await file.delete();
+      if (!await file.exists()) continue;
+      final resolvedFilePath = await file.resolveSymbolicLinks();
+      if (!_isManagedArchivePath(resolvedFilePath, archiveRoot)) continue;
+      await file.delete();
     } catch (_) {
       // History cleanup is best effort.
     }
   }
+}
+
+Future<Directory?> _archiveDirectory({bool create = false}) async {
+  try {
+    final documentsDirectory = await getApplicationDocumentsDirectory();
+    final directory = Directory(
+      '${documentsDirectory.path}${Platform.pathSeparator}running_coach_videos',
+    );
+    if (create && !await directory.exists()) {
+      await directory.create(recursive: true);
+    }
+    return directory;
+  } catch (_) {
+    return null;
+  }
+}
+
+bool _isManagedArchivePath(String resolvedFilePath, String archiveRoot) {
+  final prefix = archiveRoot.endsWith(Platform.pathSeparator)
+      ? archiveRoot
+      : '$archiveRoot${Platform.pathSeparator}';
+  return resolvedFilePath.startsWith(prefix);
 }
 
 String _safeVideoExtension(String name) {

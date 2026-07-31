@@ -113,18 +113,28 @@ void main() {
           'validatedContactFrameTimestampsMs': [1560],
           'confidence': 0.84,
         },
+        {
+          'side': 'right',
+          'startTimestampMs': 1780,
+          'centerTimestampMs': 1930,
+          'endTimestampMs': 2100,
+          'denseSampleCount': 8,
+          'validatedContactFrameTimestampsMs': [1933],
+          'confidence': 0.83,
+        },
       ],
-      'validatedContactFrameTimestampsMs': [1560, 1033, 1033],
+      'validatedContactFrameTimestampsMs': [1560, 1033, 1033, 1933],
       'contactConfidence': 0.81,
       'metricQualities': {
-        'footStrike': {'confidence': 0.82, 'sampleCount': 2},
-        'kneeFlexion': {'confidence': 0.80, 'sampleCount': 2},
+        'footStrike': {'confidence': 0.82, 'sampleCount': 3},
+        'kneeFlexion': {'confidence': 0.80, 'sampleCount': 3},
       },
       'poseFrames': [
         _poseFrameMap(timestampMs: 1033, imageWidth: 640, imageHeight: 360),
         _poseFrameMap(timestampMs: 1000, imageWidth: 640, imageHeight: 360),
         _poseFrameMap(timestampMs: 1033, imageWidth: 1280, imageHeight: 720),
         _poseFrameMap(timestampMs: 1560, imageWidth: 640, imageHeight: 360),
+        _poseFrameMap(timestampMs: 1933, imageWidth: 640, imageHeight: 360),
       ],
     });
 
@@ -132,7 +142,7 @@ void main() {
     expect(result.denseSamples.attemptedFrames, 18);
     expect(result.denseSamples.maxFrameBudget, 48);
     expect(result.denseSamples.targetFps, 30);
-    expect(result.contactWindows, hasLength(2));
+    expect(result.contactWindows, hasLength(3));
     expect(result.contactWindows.first.side, RunningContactSide.right);
     expect(
       result.contactWindows.first.validatedContactTimestamps
@@ -140,14 +150,14 @@ void main() {
       [1033],
     );
     expect(
-      result.contactWindows.last.validatedContactTimestamps
+      result.contactWindows[1].validatedContactTimestamps
           .map((timestamp) => timestamp.inMilliseconds),
       [1560],
     );
     expect(
       result.validatedContactFrameTimestamps
           .map((timestamp) => timestamp.inMilliseconds),
-      [1033, 1560],
+      [1033, 1560, 1933],
     );
     expect(
       result.validatedContactFrameTimestamps.length,
@@ -160,7 +170,7 @@ void main() {
     );
     expect(
       result.poseFrames.map((frame) => frame.timestampMs),
-      [1000, 1033, 1560],
+      [1000, 1033, 1560, 1933],
     );
     expect(result.poseFrames[1].imageWidth, 1280);
     expect(
@@ -226,6 +236,22 @@ void main() {
     expect(timestamps, containsAll(<int>[0, 300, 1900, 3900]));
     expect(snapshot.validatedContactFrameTimestamps,
         result.validatedContactFrameTimestamps);
+  });
+
+  test('requires three fresh samples before a metric can guide coaching', () {
+    const legacy = RunningMetricQuality(confidence: 0.90, sampleCount: 0);
+    const sparse = RunningMetricQuality(confidence: 0.90, sampleCount: 2);
+    const sufficient = RunningMetricQuality(confidence: 0.90, sampleCount: 3);
+    const proxy = RunningMetricQuality(
+      confidence: 0.90,
+      sampleCount: 3,
+      reason: 'contact_phase_proxy',
+    );
+
+    expect(legacy.isReliableForCoaching, isTrue);
+    expect(sparse.isReliableForCoaching, isFalse);
+    expect(sufficient.isReliableForCoaching, isTrue);
+    expect(proxy.isReliableForCoaching, isFalse);
   });
 }
 

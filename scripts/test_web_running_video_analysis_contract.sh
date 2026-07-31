@@ -37,7 +37,9 @@ for required in (
     "minConfidence: 0.35",
     "sampleCount: 14",
     "maxDenseFrames: 48",
-    "minValidatedContacts: 2",
+    "minValidatedContacts: 3",
+    "maxVideoDurationMs: 15000",
+    "percentile(normalizedShoulderYs, 0.10)",
     "detectForVideo",
     "poseFrames",
     "coarseSamples",
@@ -63,6 +65,16 @@ require(
 )
 for required in ("readAsBytes", "runningVideoPoseAnalysis", "toDart", "RunningVideoAnalysisResult.fromMap"):
     require(required in adapter_text, f"Web Dart adapter is missing required token: {required}")
+
+for required in (
+    "maxVideoBytes",
+    "analysisTimeout",
+    "video_too_large",
+    "analysis_timeout",
+    "video.length",
+    ".timeout(analysisTimeout)",
+):
+    require(required in facade_text, f"Running video service is missing launch safety token: {required}")
 
 for retired in (
     "getUserMedia",

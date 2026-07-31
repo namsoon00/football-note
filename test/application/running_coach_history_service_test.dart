@@ -43,6 +43,7 @@ void main() {
     expect(sessions.first.overallScore, 62);
     expect(sessions.first.primaryMetric, RunningCoachMetric.footStrike);
     expect(sessions.first.primaryConfidence, 0.72);
+    expect(sessions.first.primarySampleCount, 3);
   });
 
   test('persists a compact measured replay with an upload analysis', () async {
@@ -108,6 +109,51 @@ void main() {
       Duration(milliseconds: 500),
       Duration(milliseconds: 900),
     ]);
+  });
+
+  test('does not retain source-video metadata unless video saving is opted in',
+      () async {
+    final repository = _MemoryOptionRepository();
+    final service = RunningCoachHistoryService(repository);
+    const report = RunningCoachingReport(
+      overallScore: 86,
+      insights: [
+        RunningCoachingInsight(
+          metric: RunningCoachMetric.posture,
+          finding: RunningCoachFinding.postureAligned,
+          status: RunningCoachStatus.good,
+          score: 86,
+          value: 10,
+          quality: RunningMetricQuality(confidence: 0.90, sampleCount: 12),
+        ),
+      ],
+    );
+    const result = RunningVideoAnalysisResult(
+      videoDuration: Duration(seconds: 5),
+      sampledFrames: 14,
+      validFrames: 12,
+      direction: RunningDirection.leftToRight,
+      forwardLeanDegrees: 10,
+      verticalBounceRatio: 0.06,
+      footStrikeDistanceRatio: 0.08,
+      stanceKneeAngleDegrees: 155,
+      elbowAngleDegrees: 90,
+    );
+
+    final saved = await service.saveUploadAnalysis(
+      result: result,
+      report: report,
+      sourceVideoPath: '/private/runner-name-2026.mp4',
+      sourceVideoName: 'runner-name-2026.mp4',
+      analyzedAt: DateTime(2026, 7, 31, 9),
+    );
+
+    expect(saved.single.videoPath, isNull);
+    expect(saved.single.videoName, isNull);
+
+    final retained = await service.deleteSession(saved.single.id);
+    expect(retained, isEmpty);
+    expect(service.allSessions(), isEmpty);
   });
 }
 

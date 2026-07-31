@@ -90,7 +90,8 @@ void main() {
     );
   });
 
-  test('report exposes primary focus and metric confidence', () {
+  test('withholds a primary coaching goal when every metric is low quality',
+      () {
     const result = RunningVideoAnalysisResult(
       videoDuration: Duration(seconds: 4),
       sampledFrames: 14,
@@ -104,12 +105,9 @@ void main() {
     );
 
     final report = service.buildReport(result);
-    final primaryFocus = report.primaryFocus;
-
-    expect(primaryFocus, isNotNull);
-    expect(primaryFocus!.metric, RunningCoachMetric.bounce);
-    expect(primaryFocus.quality.isLowConfidence, isTrue);
-    expect(primaryFocus.quality.reason, 'low_coverage');
+    expect(report.primaryFocus, isNull);
+    expect(report.overallScore, 0);
+    expect(report.focusPriorityByMetric, isEmpty);
     expect(
       report.insights.every((insight) => insight.quality.sampleCount == 5),
       isTrue,
@@ -199,8 +197,8 @@ void main() {
     final report = service.buildReport(result);
 
     expect(report.overallScore, 100);
-    expect(report.primaryFocus?.metric, RunningCoachMetric.footStrike);
-    expect(report.primaryFocus?.quality.isReliableForCoaching, isFalse);
+    expect(report.primaryFocus?.metric, RunningCoachMetric.posture);
+    expect(report.primaryFocus?.quality.isReliableForCoaching, isTrue);
     expect(report.focusPriorityByMetric[RunningCoachMetric.footStrike], isNull);
     expect(
         report.focusPriorityByMetric[RunningCoachMetric.kneeFlexion], isNull);
@@ -228,5 +226,25 @@ void main() {
       report.insights[2].finding,
       RunningCoachFinding.footStrikeOverstride,
     );
+  });
+
+  test('keeps an in-range value on watch when it is far from target center',
+      () {
+    const result = RunningVideoAnalysisResult(
+      videoDuration: Duration(seconds: 6),
+      sampledFrames: 14,
+      validFrames: 14,
+      direction: RunningDirection.leftToRight,
+      forwardLeanDegrees: 6.1,
+      verticalBounceRatio: 0.058,
+      footStrikeDistanceRatio: 0.09,
+      stanceKneeAngleDegrees: 154,
+      elbowAngleDegrees: 92,
+    );
+
+    final report = service.buildReport(result);
+
+    expect(report.insights.first.finding, RunningCoachFinding.postureAligned);
+    expect(report.insights.first.status, RunningCoachStatus.watch);
   });
 }

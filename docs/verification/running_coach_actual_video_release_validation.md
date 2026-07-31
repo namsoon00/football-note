@@ -19,6 +19,24 @@ a physical-device camera test. It builds transformed fixtures from existing
 real-video frames and writes all generated MP4 files and reports under
 `.tmp/running-release-video-validation/`.
 
+## Current Product Safeguards
+
+- The app accepts running clips from 1.5 to 15 seconds and rejects files over
+  120 MB before on-device analysis. Analysis also has a 45-second app-side
+  timeout.
+- A lower-body score or next-step prescription requires at least three unique
+  validated contact events. Coarse contact proxies remain visible only as
+  limited evidence; they do not drive the overall score or next goal.
+- Values inside an outer coaching range are not automatically labelled
+  `Good`. A value must also be close enough to the calibrated target center;
+  otherwise it is shown as `Watch`.
+- Source videos are not retained by default. A runner must explicitly opt in
+  to local video retention, and deleting an analysis removes its managed local
+  video as well. Browser uploads are never represented as durable saved videos.
+
+These are product safety controls, not a replacement for biomechanics or
+physical-device validation.
+
 ## Fixture Matrix
 
 | Fixture | Source | Input condition | Required decision |

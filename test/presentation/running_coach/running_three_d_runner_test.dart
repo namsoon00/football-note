@@ -9,7 +9,7 @@ void main() {
     status: RunningCoachStatus.needsWork,
     score: 24,
     value: 0.35,
-    quality: RunningMetricQuality(confidence: 0.90, sampleCount: 2),
+    quality: RunningMetricQuality(confidence: 0.90, sampleCount: 3),
   );
 
   test('builds a WebGL payload with all 33 source landmarks and world data',

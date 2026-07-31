@@ -32,6 +32,7 @@ enum RunningCoachFinding {
 
 const int mediaPipePoseLandmarkCount = 33;
 const double runningCoachReliableMetricConfidence = 0.65;
+const int runningCoachMinimumReliableMetricSamples = 3;
 
 class RunningVideoPoseLandmark {
   final int index;
@@ -393,7 +394,8 @@ class RunningVideoAnalysisResult {
   }
 
   bool get hasDenseContactEvidence =>
-      validatedContactFrameTimestamps.isNotEmpty &&
+      validatedContactFrameTimestamps.length >=
+          runningCoachMinimumReliableMetricSamples &&
       denseSamples.validFrames > 0;
 
   Duration? nearestValidatedContactTimestamp(
@@ -700,8 +702,21 @@ class RunningMetricQuality {
 
   bool get isLowConfidence => confidence < 0.6;
 
+  /// A contact proxy is useful for explaining why a clip was rejected, but it
+  /// must never become a posture prescription. The native and web analyzers
+  /// deliberately tag those fallback measurements with this reason.
+  bool get isContactPhaseProxy => reason == 'contact_phase_proxy';
+
+  /// Old saved reports did not always persist a sample count. Preserve their
+  /// compatibility while requiring three fresh measurements for new results.
+  bool get hasSufficientSamples =>
+      sampleCount == 0 ||
+      sampleCount >= runningCoachMinimumReliableMetricSamples;
+
   bool get isReliableForCoaching =>
-      confidence >= runningCoachReliableMetricConfidence;
+      confidence >= runningCoachReliableMetricConfidence &&
+      hasSufficientSamples &&
+      !isContactPhaseProxy;
 }
 
 class RunningCoachingInsight {
@@ -767,36 +782,23 @@ extension RunningCoachingReportInsights on RunningCoachingReport {
   }
 
   RunningCoachingInsight? get primaryFocus {
-    final focus = focusInsights;
-    if (focus.isNotEmpty) {
-      final reliableFocus = focus
-          .where((insight) => insight.quality.isReliableForCoaching)
-          .toList(growable: false);
-      if (reliableFocus.isNotEmpty) {
-        return reliableFocus.first;
-      }
-      return focus.first;
-    }
-    final ranked = rankedInsights;
-    return ranked.isEmpty ? null : ranked.first;
+    final reliable = rankedInsights
+        .where((insight) => insight.quality.isReliableForCoaching)
+        .toList(growable: false);
+    if (reliable.isEmpty) return null;
+    final reliableFocus = reliable
+        .where((insight) => insight.status != RunningCoachStatus.good)
+        .toList(growable: false);
+    return reliableFocus.isNotEmpty ? reliableFocus.first : reliable.first;
   }
 
   Map<RunningCoachMetric, int> get focusPriorityByMetric {
     final priorities = <RunningCoachMetric, int>{};
-    final focus = focusInsights;
-    final reliableFocus = focus
+    final reliableFocus = focusInsights
         .where((insight) => insight.quality.isReliableForCoaching)
         .toList(growable: false);
-    final hasReliableMetrics = insights.any(
-      (insight) => insight.quality.isReliableForCoaching,
-    );
-    final prioritizedFocus = reliableFocus.isNotEmpty
-        ? reliableFocus
-        : hasReliableMetrics
-            ? const <RunningCoachingInsight>[]
-            : focus;
-    for (var index = 0; index < prioritizedFocus.length; index += 1) {
-      priorities[prioritizedFocus[index].metric] = index + 1;
+    for (var index = 0; index < reliableFocus.length; index += 1) {
+      priorities[reliableFocus[index].metric] = index + 1;
     }
     return Map<RunningCoachMetric, int>.unmodifiable(priorities);
   }
