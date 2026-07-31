@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -301,12 +302,21 @@ void main() {
     harness.repository.debugCounters.reset();
     final firstEmissions = <List<TrainingEntry>>[];
     final secondEmissions = <List<TrainingEntry>>[];
+    final updatedDate = DateTime(2026, 1, 2);
+    final secondStreamUpdated = Completer<void>();
     final firstSub = harness.repository
         .watchRecent(limit: 2, includeMatches: false)
         .listen(firstEmissions.add);
     final secondSub = harness.repository
         .watchRecent(limit: 2, includeMatches: false)
-        .listen(secondEmissions.add);
+        .listen((entries) {
+      secondEmissions.add(entries);
+      if (entries.length == 1 &&
+          entries.single.date == updatedDate &&
+          !secondStreamUpdated.isCompleted) {
+        secondStreamUpdated.complete();
+      }
+    });
     addTearDown(firstSub.cancel);
     addTearDown(secondSub.cancel);
 
@@ -330,14 +340,14 @@ void main() {
     await harness.trainingBox.put(
       0,
       _entry(
-        date: DateTime(2026, 1, 2),
+        date: updatedDate,
         createdAt: DateTime(2026, 1, 3, 8),
       ),
     );
-    await _waitForHiveEvents();
+    await secondStreamUpdated.future.timeout(const Duration(seconds: 1));
 
     expect(firstEmissions, hasLength(firstEmissionCount));
-    expect(secondEmissions.last.single.date, DateTime(2026, 1, 2));
+    expect(secondEmissions.last.single.date, updatedDate);
     expect(harness.repository.debugCounters.sourceScanCount, 0);
   });
 
