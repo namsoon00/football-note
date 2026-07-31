@@ -8269,6 +8269,38 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachSampleGuideAction => '샘플 영상 가이드 보기';
 
   @override
+  String get runningCoachCaptureGuideAction => '촬영 가이드 보기';
+
+  @override
+  String get runningCoachCaptureGuideTitle => '촬영 가이드';
+
+  @override
+  String get runningCoachCaptureGuideBody =>
+      '이 화면은 촬영 구도 안내예요. 자세 점수와 코칭은 내가 업로드한 영상에서만 계산해요.';
+
+  @override
+  String get runningCoachCaptureGuideChecklistTitle => '업로드 전 확인';
+
+  @override
+  String get runningCoachCaptureGuideChecklistCamera =>
+      '카메라를 고정하고 달리는 선과 정확히 직각으로 두세요.';
+
+  @override
+  String get runningCoachCaptureGuideChecklistFraming =>
+      '머리부터 양쪽 신발까지 계속 보이도록, 전신이 화면 높이의 50~75%를 차지하게 맞추세요.';
+
+  @override
+  String get runningCoachCaptureGuideChecklistClip =>
+      '밝고 단순한 배경에서 3~6보가 담긴 5~10초 영상을 사용하세요.';
+
+  @override
+  String get runningCoachCaptureGuideAnalysisTitle => '분석 결과는 내 영상에서만';
+
+  @override
+  String get runningCoachCaptureGuideAnalysisBody =>
+      '이 가이드는 촬영 품질을 보여 줍니다. 자세 점수와 교정은 업로드한 프레임과 신뢰도 기준으로 계산해요.';
+
+  @override
   String get runningCoachSampleAnalysisLoadingTitle => '측정 오버레이를 추가하는 중';
 
   @override

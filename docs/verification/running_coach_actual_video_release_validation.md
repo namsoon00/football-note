@@ -8,11 +8,12 @@ videos from the two real human-runner source clips kept in the repository:
 - `assets/videos/running_coach_reference_sample.mp4`
 - `assets/videos/running_coach_mistake_sample.mp4`
 
-The in-app guide instead uses
-`assets/videos/running_coach_portrait_side_view_sample.mp4`. It is a
-portrait full-body render derived from the clothed beach source. The two source
-clips are deliberately excluded from the Flutter asset manifest so the app
-does not ship an unused landscape clip or the shirtless track clip.
+The former in-app guide used
+`assets/videos/running_coach_portrait_side_view_sample.mp4`, a portrait
+full-body render derived from the clothed beach source. That asset is now an
+internal fixture only. The user-facing guide uses controlled treadmill and
+outdoor side-view reference images instead, so the app does not ship a beach
+recording as a coaching or camera reference.
 
 The script does **not** claim that it has newly recorded a runner or performed
 a physical-device camera test. It builds transformed fixtures from existing
@@ -124,6 +125,18 @@ iPhone and one physical Android phone for:
 
 Until those measurements are collected from the native camera/plugin path,
 the running coach should not be described as ready for paid release.
+
+## User-facing capture guide state
+
+As of 2026-07-31, the user-facing guide does not play or analyze a bundled
+runner video. It shows controlled treadmill and fixed outdoor side-view
+reference images, then states that form scores and coaching are calculated
+only from the runner's uploaded video. The former beach portrait video remains
+an internal regression fixture and is not packaged into the user-facing app.
+
+A motion-demo video may be added only after its commercial-use rights and
+model consent are recorded, its recording setup matches the guide, and the
+physical-device checks above are complete.
 
 ## Latest Executed Result
 

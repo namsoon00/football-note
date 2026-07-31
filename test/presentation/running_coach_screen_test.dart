@@ -16,11 +16,7 @@ import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/running_coach/running_foot_strike_target_motion_proof.dart';
 import 'package:football_note/presentation/screens/running_coach_screen.dart';
-import 'package:football_note/presentation/screens/running_coach_sample_video.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart';
-
-const _samplePortraitVideoAssetForTest =
-    'assets/videos/running_coach_portrait_side_view_sample.mp4';
 
 void main() {
   late VideoPlayerPlatform previousVideoPlayerPlatform;
@@ -39,6 +35,16 @@ void main() {
       final bytes = await rootBundle.load(asset);
       expect(bytes.lengthInBytes, greaterThan(100000));
     }
+  });
+
+  test('beach sample video is not bundled in the Flutter app', () {
+    final pubspec = File('pubspec.yaml').readAsStringSync();
+
+    expect(
+      pubspec,
+      isNot(contains(
+          'assets/videos/running_coach_portrait_side_view_sample.mp4')),
+    );
   });
 
   test('curated running coaching illustration assets are bundled', () async {
@@ -107,8 +113,63 @@ void main() {
       findsNothing,
     );
     expect(find.text("Today's speed mission"), findsNothing);
-    expect(find.text('Open sample video guide'), findsOneWidget);
+    expect(find.text('Open recording guide'), findsOneWidget);
   });
+
+  testWidgets(
+    'capture guide uses controlled references without analyzing a sample video',
+    (WidgetTester tester) async {
+      await tester.binding.setSurfaceSize(const Size(390, 844));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final analysisService = _PendingRunningVideoAnalysisService();
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: RunningCoachScreen(analysisService: analysisService),
+        ),
+      );
+
+      await tester.ensureVisible(find.text('Open recording guide'));
+      await tester.tap(find.text('Open recording guide'));
+      await tester.pumpAndSettle();
+
+      expect(analysisService.callCount, 0);
+      expect(find.text('Recording guide'), findsOneWidget);
+      expect(find.text('Before you upload'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('running-coach-capture-guide-checklist')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('running-coach-capture-reference-treadmill')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(
+            const ValueKey('running-coach-capture-guide-analysis-notice')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('running-coach-sample-video-frame')),
+        findsNothing,
+      );
+
+      await tester.tap(find.text('Outdoor pass'));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('running-coach-capture-reference-outdoor')),
+        findsOneWidget,
+      );
+      expect(analysisService.callCount, 0);
+    },
+  );
 
   testWidgets('coach uses an in-app capture result in the video analysis flow',
       (
@@ -208,329 +269,6 @@ void main() {
       findsNothing,
     );
     expect(tester.takeException(), isNull);
-  });
-
-  testWidgets('sample sheet shows framed runner posture cues', (
-    WidgetTester tester,
-  ) async {
-    await tester.binding.setSurfaceSize(const Size(800, 1200));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
-    final analysisService = _FakeRunningVideoAnalysisService();
-    await tester.pumpWidget(
-      MaterialApp(
-        locale: const Locale('en'),
-        localizationsDelegates: const [
-          AppLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: RunningCoachScreen(
-          analysisService: analysisService,
-          sampleVideoPreparer: _prepareSampleVideoForTest,
-        ),
-      ),
-    );
-
-    await tester.scrollUntilVisible(
-      find.text('Open sample video guide'),
-      -220,
-      scrollable: find.byType(Scrollable).first,
-    );
-    await tester.tap(find.text('Open sample video guide'));
-    await tester.pump();
-    expect(
-      find.byKey(const ValueKey('running-coach-sample-analysis-loading')),
-      findsOneWidget,
-    );
-    expect(
-      find.byKey(const ValueKey('running-coach-sample-video-frame')),
-      findsOneWidget,
-    );
-    await tester.runAsync(() => analysisService.waitForCallCount(1));
-    await tester.pump();
-    await _pumpUntilFound(
-      tester,
-      find.byKey(const ValueKey('running-coach-sample-video-frame')),
-    );
-
-    expect(analysisService.calls, hasLength(1));
-    expect(
-      analysisService.calls,
-      everyElement(contains('running_coach_sample_')),
-    );
-    expect(
-      analysisService.calls,
-      isNot(contains(_samplePortraitVideoAssetForTest)),
-    );
-    expect(analysisService.fileExistsAtCall, everyElement(isTrue));
-    expect(analysisService.fileLengthAtCall, everyElement(greaterThan(0)));
-
-    expect(
-      find.byKey(const ValueKey('running-coach-sample-video-frame')),
-      findsOneWidget,
-    );
-    final referenceVideo = await rootBundle.load(
-      _samplePortraitVideoAssetForTest,
-    );
-    expect(referenceVideo.lengthInBytes, greaterThan(1000000));
-    final sampleFrame = tester.getSize(
-      find.byKey(const ValueKey('running-coach-sample-video-frame')),
-    );
-    expect(sampleFrame.height / sampleFrame.width, closeTo(16 / 9, 0.01));
-    expect(
-      find.byKey(const ValueKey('running-coach-sample-recording-guide')),
-      findsOneWidget,
-    );
-    expect(
-      find.byKey(const ValueKey('running-coach-sample-real-pose-overlay')),
-      findsNothing,
-    );
-    expect(
-      find.byKey(const ValueKey('running-coach-sample-fake-video-view')),
-      findsOneWidget,
-    );
-    expect(find.byType(CircularProgressIndicator), findsNothing);
-    expect(
-      find.byKey(const ValueKey('running-coach-sample-back-button')),
-      findsOneWidget,
-    );
-    expect(find.text('Portrait full-body side-view example'), findsWidgets);
-    expect(find.text('Treadmill'), findsOneWidget);
-    expect(find.text('Outdoor pass'), findsOneWidget);
-    expect(find.text('Best setup for a treadmill'), findsOneWidget);
-    await tester.ensureVisible(find.text('Outdoor pass'));
-    await tester.pump();
-    await tester.tap(find.text('Outdoor pass'));
-    await tester.pump();
-    expect(find.text('Fixed side-pass setup'), findsOneWidget);
-    expect(
-      find.byKey(
-        const ValueKey('running-coach-capture-reference-outdoor'),
-      ),
-      findsOneWidget,
-    );
-
-    await tester.ensureVisible(find.text('How the analysis works'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('How the analysis works'));
-    await tester.pumpAndSettle();
-    expect(
-      find.byKey(const ValueKey('running-coach-sample-frame-guide')),
-      findsOneWidget,
-    );
-    expect(
-      find.byKey(const ValueKey('running-coach-sample-analysis-method')),
-      findsOneWidget,
-    );
-    expect(
-      find.byKey(const ValueKey('running-coach-sample-analysis-process')),
-      findsOneWidget,
-    );
-
-    await tester.ensureVisible(
-      find.byKey(const ValueKey('running-coach-sample-back-button')),
-    );
-    await tester.pump();
-    await tester.tap(
-      find.byKey(const ValueKey('running-coach-sample-back-button')),
-    );
-    await tester.pumpAndSettle();
-
-    expect(
-      find.byKey(const ValueKey('running-coach-sample-video-frame')),
-      findsNothing,
-    );
-    expect(find.text('Running Coach'), findsOneWidget);
-
-    await tester.scrollUntilVisible(
-      find.text('Open sample video guide'),
-      -220,
-      scrollable: find.byType(Scrollable).first,
-    );
-    await tester.tap(find.text('Open sample video guide'));
-    await tester.pump();
-    await _pumpUntilFound(
-      tester,
-      find.byKey(const ValueKey('running-coach-sample-video-frame')),
-    );
-    expect(analysisService.calls, hasLength(1));
-  });
-
-  testWidgets('sample video stays usable while native analysis is pending', (
-    WidgetTester tester,
-  ) async {
-    await tester.binding.setSurfaceSize(const Size(390, 844));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
-    final analysisService = _PendingRunningVideoAnalysisService();
-    await tester.pumpWidget(
-      MaterialApp(
-        locale: const Locale('en'),
-        localizationsDelegates: const [
-          AppLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: RunningCoachScreen(
-          analysisService: analysisService,
-          sampleVideoPreparer: _prepareSampleVideoForTest,
-        ),
-      ),
-    );
-
-    await tester.ensureVisible(find.text('Open sample video guide'));
-    await tester.pump();
-    await tester.tap(find.text('Open sample video guide'));
-    await tester.pump();
-    await tester.runAsync(analysisService.waitUntilCalled);
-    await tester.pump();
-
-    expect(analysisService.callCount, 1);
-    expect(
-      find.byKey(const ValueKey('running-coach-sample-video-frame')),
-      findsOneWidget,
-    );
-    expect(
-      find.byKey(const ValueKey('running-coach-sample-fake-video-view')),
-      findsOneWidget,
-    );
-    expect(
-      find.byKey(const ValueKey('running-coach-sample-analysis-loading')),
-      findsOneWidget,
-    );
-    expect(
-      find.byKey(const ValueKey('running-coach-sample-recording-guide')),
-      findsOneWidget,
-    );
-    expect(tester.takeException(), isNull);
-
-    analysisService.complete();
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 100));
-    expect(
-      find.byKey(const ValueKey('running-coach-sample-analysis-loading')),
-      findsNothing,
-    );
-  });
-
-  testWidgets('sample sheet does not draw a fake skeleton without poseFrames', (
-    WidgetTester tester,
-  ) async {
-    await tester.binding.setSurfaceSize(const Size(800, 1200));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
-    final analysisService = _FakeRunningVideoAnalysisService(
-      omitPoseFrames: true,
-    );
-    await tester.pumpWidget(
-      MaterialApp(
-        locale: const Locale('en'),
-        localizationsDelegates: const [
-          AppLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: RunningCoachScreen(
-          analysisService: analysisService,
-          sampleVideoPreparer: _prepareSampleVideoForTest,
-        ),
-      ),
-    );
-
-    await tester.scrollUntilVisible(
-      find.text('Open sample video guide'),
-      -220,
-      scrollable: find.byType(Scrollable).first,
-    );
-    await tester.tap(find.text('Open sample video guide'));
-    await tester.pump();
-    await tester.runAsync(() => analysisService.waitForCallCount(1));
-    await tester.pump();
-    await _pumpUntilFound(
-      tester,
-      find.byKey(const ValueKey('running-coach-sample-video-frame')),
-    );
-    await tester.binding.setSurfaceSize(const Size(360, 780));
-    await tester.pump();
-
-    expect(
-      find.byKey(const ValueKey('running-coach-sample-real-pose-overlay')),
-      findsNothing,
-    );
-    expect(find.text('No pose frames'), findsOneWidget);
-    expect(find.text('12.4° body lean'), findsWidgets);
-    expect(tester.takeException(), isNull);
-  });
-
-  testWidgets('sample sheet shows localized error and retries native analysis',
-      (
-    WidgetTester tester,
-  ) async {
-    await tester.binding.setSurfaceSize(const Size(800, 1200));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
-    final analysisService = _FakeRunningVideoAnalysisService(
-      failFirstCall: true,
-      failureCode: 'video_too_blurry',
-    );
-    await tester.pumpWidget(
-      MaterialApp(
-        locale: const Locale('en'),
-        localizationsDelegates: const [
-          AppLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: RunningCoachScreen(
-          analysisService: analysisService,
-          sampleVideoPreparer: _prepareSampleVideoForTest,
-        ),
-      ),
-    );
-
-    await tester.scrollUntilVisible(
-      find.text('Open sample video guide'),
-      -220,
-      scrollable: find.byType(Scrollable).first,
-    );
-    await tester.tap(find.text('Open sample video guide'));
-    await tester.pump();
-    await tester.runAsync(() => analysisService.waitForCallCount(1));
-    await tester.pump();
-    await _pumpUntilFound(
-      tester,
-      find.byKey(const ValueKey('running-coach-sample-analysis-error')),
-    );
-
-    expect(find.text('Sample analysis unavailable'), findsOneWidget);
-    expect(
-      find.text(
-        'This video is too blurry for a precise result. Keep the phone still and record a clearer side view with your whole body and both feet visible.',
-      ),
-      findsOneWidget,
-    );
-    expect(find.text('Retry sample analysis'), findsOneWidget);
-
-    final retryFinder =
-        find.byKey(const ValueKey('running-coach-sample-analysis-retry'));
-    await tester.ensureVisible(retryFinder);
-    await tester.pumpAndSettle();
-    await tester.tap(retryFinder);
-    await tester.pump();
-    await tester.runAsync(() => analysisService.waitForCallCount(2));
-    await tester.pump();
-    await _pumpUntilFound(
-      tester,
-      find.byKey(const ValueKey('running-coach-sample-video-frame')),
-    );
-
-    expect(analysisService.calls, hasLength(2));
-    expect(find.text('Portrait full-body side-view example'), findsWidgets);
   });
 
   testWidgets('analysis history opens a visual correction guide', (
@@ -1436,20 +1174,6 @@ void main() {
   });
 }
 
-Future<void> _pumpUntilFound(
-  WidgetTester tester,
-  Finder finder, {
-  int attempts = 40,
-}) async {
-  for (var attempt = 0; attempt < attempts; attempt += 1) {
-    await tester.pump(const Duration(milliseconds: 50));
-    if (finder.evaluate().isNotEmpty) {
-      return;
-    }
-  }
-  fail('Timed out waiting for $finder');
-}
-
 Future<void> _scrollAnalysisResultUntilFound(
   WidgetTester tester,
   Finder finder,
@@ -1485,24 +1209,6 @@ Future<void> _scrollAnalysisResultUntilFound(
   expect(finder, findsOneWidget);
 }
 
-Future<RunningCoachPreparedSampleVideo> _prepareSampleVideoForTest(
-  String assetPath,
-) async {
-  final tempDirectory = Directory.systemTemp.createTempSync(
-    'running_coach_sample_test_',
-  );
-  final file = File('${tempDirectory.path}/${assetPath.split('/').last}');
-  file.writeAsBytesSync(assetPath.codeUnits, flush: true);
-  return RunningCoachPreparedSampleVideo(
-    file: XFile(file.path, name: file.uri.pathSegments.last),
-    dispose: () async {
-      if (tempDirectory.existsSync()) {
-        tempDirectory.deleteSync(recursive: true);
-      }
-    },
-  );
-}
-
 RunningCoachSessionAnalysis _sessionForReport({
   required String id,
   required RunningVideoAnalysisResult result,
@@ -1526,126 +1232,6 @@ RunningCoachSessionAnalysis _sessionForReport({
     primarySampleCount: primary.quality.sampleCount,
     primaryQualityReason: primary.quality.reason,
   );
-}
-
-class _FakeRunningVideoAnalysisService extends RunningVideoAnalysisService {
-  final bool failFirstCall;
-  final bool omitPoseFrames;
-  final String failureCode;
-  final List<String> calls = <String>[];
-  final List<bool> fileExistsAtCall = <bool>[];
-  final List<int> fileLengthAtCall = <int>[];
-
-  _FakeRunningVideoAnalysisService({
-    this.failFirstCall = false,
-    this.omitPoseFrames = false,
-    this.failureCode = 'no_pose_detected',
-  });
-
-  Future<void> waitForCallCount(int count) async {
-    for (var attempt = 0; attempt < 500; attempt += 1) {
-      if (calls.length >= count) {
-        return;
-      }
-      await Future<void>.delayed(const Duration(milliseconds: 10));
-    }
-    throw StateError('Timed out waiting for $count analysis calls.');
-  }
-
-  @override
-  Future<RunningVideoAnalysisResult> analyzeVideo(XFile video) async {
-    final path = video.path;
-    calls.add(path);
-    final file = File(path);
-    fileExistsAtCall.add(file.existsSync());
-    fileLengthAtCall.add(file.existsSync() ? file.lengthSync() : 0);
-    if (failFirstCall && calls.length == 1) {
-      throw RunningVideoAnalysisException(
-        failureCode,
-        'No pose detected in fixture.',
-      );
-    }
-    if (path.endsWith('running_coach_mistake_sample.mp4')) {
-      return RunningVideoAnalysisResult(
-        videoDuration: const Duration(seconds: 4),
-        sampledFrames: 14,
-        validFrames: 12,
-        direction: RunningDirection.leftToRight,
-        forwardLeanDegrees: 4,
-        verticalBounceRatio: 0.10,
-        footStrikeDistanceRatio: 0.22,
-        stanceKneeAngleDegrees: 172,
-        elbowAngleDegrees: 126,
-        metricQualities: _testDenseMetricQualities(),
-        coarseSamples: const RunningAnalysisSampleSummary(
-          attemptedFrames: 14,
-          validFrames: 12,
-          poseFrameCount: 6,
-        ),
-        denseSamples: omitPoseFrames
-            ? RunningAnalysisSampleSummary.empty
-            : const RunningAnalysisSampleSummary(
-                attemptedFrames: 8,
-                validFrames: 6,
-                poseFrameCount: 6,
-                maxFrameBudget: 48,
-                targetFps: 30,
-              ),
-        contactWindows: omitPoseFrames
-            ? const <RunningContactWindow>[]
-            : _testContactWindows(),
-        validatedContactFrameTimestamps:
-            omitPoseFrames ? const <Duration>[] : _testContactTimestamps(),
-        contactConfidence: omitPoseFrames ? 0 : 0.82,
-        poseFrames: omitPoseFrames
-            ? const <RunningPoseFrame>[]
-            : _testPoseFrames(
-                startX: 0.22,
-                dxPerFrame: 0.055,
-                confidence: 0.88,
-              ),
-      );
-    }
-    return RunningVideoAnalysisResult(
-      videoDuration: const Duration(seconds: 4),
-      sampledFrames: 14,
-      validFrames: 13,
-      direction: RunningDirection.leftToRight,
-      forwardLeanDegrees: 12.4,
-      verticalBounceRatio: 0.07,
-      footStrikeDistanceRatio: 0.11,
-      stanceKneeAngleDegrees: 150,
-      elbowAngleDegrees: 96,
-      metricQualities: _testDenseMetricQualities(),
-      coarseSamples: const RunningAnalysisSampleSummary(
-        attemptedFrames: 14,
-        validFrames: 13,
-        poseFrameCount: 6,
-      ),
-      denseSamples: omitPoseFrames
-          ? RunningAnalysisSampleSummary.empty
-          : const RunningAnalysisSampleSummary(
-              attemptedFrames: 8,
-              validFrames: 6,
-              poseFrameCount: 6,
-              maxFrameBudget: 48,
-              targetFps: 30,
-            ),
-      contactWindows: omitPoseFrames
-          ? const <RunningContactWindow>[]
-          : _testContactWindows(),
-      validatedContactFrameTimestamps:
-          omitPoseFrames ? const <Duration>[] : _testContactTimestamps(),
-      contactConfidence: omitPoseFrames ? 0 : 0.84,
-      poseFrames: omitPoseFrames
-          ? const <RunningPoseFrame>[]
-          : _testPoseFrames(
-              startX: 0.34,
-              dxPerFrame: -0.018,
-              confidence: 0.93,
-            ),
-    );
-  }
 }
 
 class _PendingRunningVideoAnalysisService extends RunningVideoAnalysisService {
