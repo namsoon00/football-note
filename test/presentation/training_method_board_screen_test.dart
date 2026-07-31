@@ -4140,7 +4140,7 @@ void main() {
     final reorderable = tester.widget<ReorderableListView>(
       find.byKey(const ValueKey('training-action-timeline-reorderable-list')),
     );
-    reorderable.onReorder(1, 0);
+    _invokeReorderCallback(reorderable.onReorder, 1, 0);
     await tester.pumpAndSettle();
 
     await tester.tap(find.widgetWithText(TextButton, '저장'));
@@ -5484,7 +5484,7 @@ void main() {
       ),
       findsOneWidget,
     );
-    reorderableActions.onReorder(0, 3);
+    _invokeReorderCallback(reorderableActions.onReorder, 0, 3);
     await tester.pumpAndSettle();
 
     await tester.tap(find.widgetWithText(TextButton, '저장'));
@@ -5571,7 +5571,7 @@ void main() {
       ),
       findsOneWidget,
     );
-    reorderableActions.onReorder(0, 2);
+    _invokeReorderCallback(reorderableActions.onReorder, 0, 2);
     await tester.pumpAndSettle();
 
     await tester.tap(find.widgetWithText(TextButton, '저장'));
@@ -8339,6 +8339,14 @@ void main() {
       expect(ballDelta, greaterThan(playerDelta + 8));
     },
   );
+}
+
+void _invokeReorderCallback(
+  void Function(int oldIndex, int newIndex)? callback,
+  int oldIndex,
+  int newIndex,
+) {
+  callback!(oldIndex, newIndex);
 }
 
 bool _samePoint(TrainingMethodPoint a, TrainingMethodPoint b) {

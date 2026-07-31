@@ -1229,7 +1229,7 @@ void main() {
       final reorderableList = tester.widget<ReorderableListView>(
         find.byType(ReorderableListView),
       );
-      reorderableList.onReorder(1, 0);
+      _invokeReorderCallback(reorderableList.onReorder, 1, 0);
       await tester.pumpAndSettle();
 
       await tester.enterText(
@@ -1384,6 +1384,14 @@ void main() {
       lessThan(tester.getTopLeft(trainingSticker).dy),
     );
   });
+}
+
+void _invokeReorderCallback(
+  void Function(int oldIndex, int newIndex)? callback,
+  int oldIndex,
+  int newIndex,
+) {
+  callback!(oldIndex, newIndex);
 }
 
 class _FakeTrainingRepository implements TrainingRepository {
