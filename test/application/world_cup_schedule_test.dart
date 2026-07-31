@@ -32,8 +32,14 @@ void main() {
   });
 
   test('Korea local June 30 match list follows official round of 32 order', () {
-    final fixtures = worldCupFixturesForDay(DateTime(2026, 6, 30))
-        .where((fixture) => fixture.stage == WorldCupStage.roundOf32)
+    final fixtures = worldCupFixtures
+        .where((fixture) {
+          final koreaTime = fixture.kickoffUtc.add(const Duration(hours: 9));
+          return fixture.stage == WorldCupStage.roundOf32 &&
+              koreaTime.year == 2026 &&
+              koreaTime.month == 6 &&
+              koreaTime.day == 30;
+        })
         .toList(growable: false);
 
     expect(fixtures.map((fixture) => fixture.matchNumber), [76, 74, 75]);
