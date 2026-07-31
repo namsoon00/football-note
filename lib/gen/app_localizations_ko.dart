@@ -15286,4 +15286,157 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get matchCompetitionProgressAdvanced => '진출 확정';
+
+  @override
+  String get runningCoachCaptureContextTitle => '비교 기준 설정';
+
+  @override
+  String get runningCoachCaptureContextBody =>
+      '같은 조건의 이전 영상과만 비교하려면 이번 러닝 강도와 환경을 선택하세요. 선택하지 않아도 분석은 할 수 있어요.';
+
+  @override
+  String get runningCoachCaptureContextEffortLabel => '러닝 강도';
+
+  @override
+  String get runningCoachCaptureContextSurfaceLabel => '환경';
+
+  @override
+  String get runningCoachCaptureEffortEasy => '가벼움';
+
+  @override
+  String get runningCoachCaptureEffortSteady => '보통';
+
+  @override
+  String get runningCoachCaptureEffortFast => '빠름';
+
+  @override
+  String get runningCoachCaptureSurfaceTreadmill => '러닝머신';
+
+  @override
+  String get runningCoachCaptureSurfaceTrackOrRoad => '트랙 · 도로';
+
+  @override
+  String get runningCoachGaitTitle => '걸음별 측정';
+
+  @override
+  String get runningCoachGaitBody => '검증된 접지 프레임에서만 걸음·좌우·동작 단계를 나누어 다시 계산했어요.';
+
+  @override
+  String get runningCoachGaitUnavailableTitle => '걸음별 수치를 아직 확정할 수 없어요';
+
+  @override
+  String get runningCoachGaitUnavailableBody =>
+      '검증된 접지 프레임과 자세 프레임의 짝이 부족해요. 전신과 양발이 보이게 다시 촬영해 주세요.';
+
+  @override
+  String get runningCoachGaitReliableStepsLabel => '신뢰 가능한 걸음';
+
+  @override
+  String get runningCoachGaitCadenceLabel => '케이던스 (spm)';
+
+  @override
+  String get runningCoachGaitStepTimeLabel => '걸음 시간 (ms)';
+
+  @override
+  String get runningCoachGaitFootReachLabel => '착지 발 위치 (몸통 대비)';
+
+  @override
+  String get runningCoachGaitKneeAtContactLabel => '접지 무릎 각도 (°)';
+
+  @override
+  String get runningCoachGaitMinimumKneeLabel => '접지 후 최저 무릎 각도 (°)';
+
+  @override
+  String get runningCoachGaitForwardLeanLabel => '접지 상체 기울기 (°)';
+
+  @override
+  String get runningCoachGaitElbowLabel => '접지 팔꿈치 각도 (°)';
+
+  @override
+  String get runningCoachGaitLeftRightTimingLabel => '좌우 걸음 시간 차이 (%)';
+
+  @override
+  String get runningCoachGaitLeftRightFootLabel => '좌우 착지 발 위치 차이';
+
+  @override
+  String get runningCoachGaitLeftRightKneeLabel => '좌우 접지 무릎 차이 (°)';
+
+  @override
+  String runningCoachGaitRangeValue(
+      String median, String minimum, String maximum) {
+    return '$median · 범위 $minimum–$maximum';
+  }
+
+  @override
+  String get runningCoachGaitStepsTitle => '검증된 걸음';
+
+  @override
+  String runningCoachGaitStepNumber(int number) {
+    return '$number번째 걸음';
+  }
+
+  @override
+  String get runningCoachGaitStepLeft => '왼발';
+
+  @override
+  String get runningCoachGaitStepRight => '오른발';
+
+  @override
+  String get runningCoachGaitInitialContactLabel => '첫 접지';
+
+  @override
+  String get runningCoachGaitMaximumKneeFlexionLabel => '최대 무릎 굽힘';
+
+  @override
+  String get runningCoachGaitPhaseUnavailable => '이 단계는 측정되지 않음';
+
+  @override
+  String get runningCoachGaitEvidenceLimited =>
+      '안정적으로 읽힌 걸음이 3개 미만이라 이 수치는 참고용입니다.';
+
+  @override
+  String get runningCoachGaitLimitationsTitle => '이 영상으로 측정할 수 없는 것';
+
+  @override
+  String get runningCoachGaitLimitationsBody =>
+      '단일 측면 영상만으로는 발 롤링·회내, 지면 반력, 정확한 접지 시간, 부상 위험을 측정하거나 판정하지 않습니다.';
+
+  @override
+  String get runningCoachJudgmentWithheldTitle => '판정 보류';
+
+  @override
+  String get runningCoachJudgmentWithheldBody =>
+      '근거가 부족해 좋음/개선 필요와 훈련 처방을 표시하지 않았어요. 영상을 다시 촬영해 주세요.';
+
+  @override
+  String get runningCoachComparisonTitle => '같은 조건 비교';
+
+  @override
+  String runningCoachComparisonBody(String effort, String surface) {
+    return '이번 기록은 $effort · $surface 조건으로 저장됩니다. 같은 조건의 이전 영상과만 비교하세요.';
+  }
+
+  @override
+  String get runningCoachComparisonNoBaselineTitle => '같은 조건의 이전 기록이 아직 없어요';
+
+  @override
+  String get runningCoachComparisonNoBaselineBody =>
+      '같은 러닝 강도와 환경으로 한 번 더 촬영하면 변화를 비교할 수 있어요.';
+
+  @override
+  String get runningCoachComparisonPreviousLabel => '이전';
+
+  @override
+  String get runningCoachComparisonCurrentLabel => '현재';
+
+  @override
+  String get runningCoachComparisonChangeLabel => '이전 → 현재';
+
+  @override
+  String runningCoachComparisonChangeValue(String previous, String current) {
+    return '$previous → $current';
+  }
+
+  @override
+  String get runningCoachComparisonSameConditionRetake => '같은 조건으로 다시 촬영';
 }

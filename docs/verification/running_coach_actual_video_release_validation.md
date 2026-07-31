@@ -28,6 +28,18 @@ real-video frames and writes all generated MP4 files and reports under
 - A lower-body score or next-step prescription requires at least three unique
   validated contact events. Coarse contact proxies remain visible only as
   limited evidence; they do not drive the overall score or next goal.
+- Step-by-step measurements are derived only where a validated contact frame
+  can be paired with a pose frame. The product may show contact foot placement,
+  knee angle, post-contact minimum knee angle, torso angle, elbow angle,
+  cadence, and left/right differences; it withholds a coaching judgment when
+  the required evidence is missing.
+- A runner can save effort and surface conditions with a recording. Trend
+  comparison is enabled only when both recordings use the same saved
+  conditions and each has a sufficient step sample. It shows values before and
+  after, not a claim that one run is better.
+- A single fixed side-view video does **not** measure foot rolling/pronation,
+  ground-reaction force, exact ground-contact time, or injury risk. Those
+  fields must never be inferred from this product's result.
 - Values inside an outer coaching range are not automatically labelled
   `Good`. A value must also be close enough to the calibrated target center;
   otherwise it is shown as `Watch`.
@@ -105,6 +117,12 @@ for the tested input format, not a universal camera-quality certification.
 
 It does **not** label either sample as a technically correct or incorrect
 sprint, and it is not a biomechanics accuracy study.
+
+Fine gait values are 2D coaching estimates rather than a replacement for a
+force plate, an IMU, a multi-camera capture system, or clinical evaluation.
+Before a paid release, a physical-device study must also record repeatability
+of the same runner under the same capture condition, including whether the
+per-step value range and left/right difference remain stable across retakes.
 
 ## Release Decision
 

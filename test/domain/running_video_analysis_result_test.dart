@@ -233,7 +233,10 @@ void main() {
         .toList(growable: false);
 
     expect(snapshot.poseFrames.length, lessThanOrEqualTo(24));
-    expect(timestamps, containsAll(<int>[0, 300, 1900, 3900]));
+    expect(
+      timestamps,
+      containsAll(<int>[0, 200, 300, 400, 500, 1800, 1900, 2000, 2100, 3900]),
+    );
     expect(snapshot.validatedContactFrameTimestamps,
         result.validatedContactFrameTimestamps);
   });
@@ -253,6 +256,90 @@ void main() {
     expect(sufficient.isReliableForCoaching, isTrue);
     expect(proxy.isReliableForCoaching, isFalse);
   });
+
+  test('derives step, side, and phase measurements only from contacts', () {
+    const contactTimes = <int>[600, 900, 1200, 1500, 1800, 2100];
+    final frames = <RunningPoseFrame>[
+      for (var index = 0; index < contactTimes.length; index += 1) ...[
+        _gaitPoseFrame(
+          timestampMs: contactTimes[index],
+          side:
+              index.isEven ? RunningContactSide.left : RunningContactSide.right,
+          flexed: false,
+        ),
+        _gaitPoseFrame(
+          timestampMs: contactTimes[index] + 80,
+          side:
+              index.isEven ? RunningContactSide.left : RunningContactSide.right,
+          flexed: true,
+        ),
+      ],
+    ];
+    final result = RunningVideoAnalysisResult(
+      videoDuration: const Duration(seconds: 3),
+      sampledFrames: 14,
+      validFrames: 12,
+      direction: RunningDirection.leftToRight,
+      forwardLeanDegrees: 10,
+      verticalBounceRatio: 0.06,
+      footStrikeDistanceRatio: 0.10,
+      stanceKneeAngleDegrees: 154,
+      elbowAngleDegrees: 90,
+      poseFrames: frames,
+      denseSamples: const RunningAnalysisSampleSummary(
+        attemptedFrames: 12,
+        validFrames: 12,
+        poseFrameCount: 12,
+        targetFps: 30,
+      ),
+      contactWindows: [
+        for (var index = 0; index < contactTimes.length; index += 1)
+          RunningContactWindow(
+            start: Duration(milliseconds: contactTimes[index] - 80),
+            center: Duration(milliseconds: contactTimes[index]),
+            end: Duration(milliseconds: contactTimes[index] + 160),
+            side: index.isEven
+                ? RunningContactSide.left
+                : RunningContactSide.right,
+            denseSampleCount: 5,
+            validatedContactTimestamps: [
+              Duration(milliseconds: contactTimes[index]),
+            ],
+            confidence: 0.92,
+          ),
+      ],
+      validatedContactFrameTimestamps: const <Duration>[
+        Duration(milliseconds: 600),
+        Duration(milliseconds: 900),
+        Duration(milliseconds: 1200),
+        Duration(milliseconds: 1500),
+        Duration(milliseconds: 1800),
+        Duration(milliseconds: 2100),
+      ],
+      contactConfidence: 0.92,
+    );
+
+    final gait = result.gaitAnalysis;
+
+    expect(gait, isNotNull);
+    expect(gait!.steps, hasLength(6));
+    expect(gait.reliableStepCount, 6);
+    expect(gait.hasReliableStepSample, isTrue);
+    expect(gait.hasBilateralSample, isTrue);
+    expect(gait.cadenceSpm, closeTo(200, 0.1));
+    expect(gait.medianStepTimeMs, 300);
+    expect(gait.leftRightStepTimeAsymmetryPercent, closeTo(0, 0.001));
+    expect(gait.footStrikeDistance, isNotNull);
+    expect(gait.kneeAtContact, isNotNull);
+    expect(gait.minimumKneeFlexion, isNotNull);
+    expect(
+      gait.minimumKneeFlexion!.median,
+      lessThan(gait.kneeAtContact!.median),
+    );
+    expect(gait.steps.first.preContact, isNull);
+    expect(gait.steps.first.maximumKneeFlexion, isNotNull);
+    expect(gait.steps.first.contactExit, isNotNull);
+  });
 }
 
 Map<String, Object?> _poseFrameMap({
@@ -269,6 +356,59 @@ Map<String, Object?> _poseFrameMap({
         _landmarkMap(index),
     ],
   };
+}
+
+RunningPoseFrame _gaitPoseFrame({
+  required int timestampMs,
+  required RunningContactSide side,
+  required bool flexed,
+}) {
+  final landmarks = List<RunningVideoPoseLandmark>.generate(
+    mediaPipePoseLandmarkCount,
+    (index) => RunningVideoPoseLandmark(
+      index: index,
+      x: 0.45,
+      y: 0.5,
+      z: 0,
+      visibility: 0.95,
+      presence: 0.95,
+      confidence: 0.95,
+    ),
+  );
+  void setPoint(int index, double x, double y) {
+    landmarks[index] = RunningVideoPoseLandmark(
+      index: index,
+      x: x,
+      y: y,
+      z: 0,
+      visibility: 0.95,
+      presence: 0.95,
+      confidence: 0.95,
+    );
+  }
+
+  setPoint(11, 0.40, 0.30);
+  setPoint(12, 0.50, 0.30);
+  setPoint(13, 0.37, 0.43);
+  setPoint(14, 0.53, 0.43);
+  setPoint(15, 0.34, 0.50);
+  setPoint(16, 0.56, 0.50);
+  setPoint(23, 0.40, 0.50);
+  setPoint(24, 0.50, 0.50);
+  setPoint(27, 0.48, 0.80);
+  setPoint(28, 0.42, 0.80);
+  if (side == RunningContactSide.left) {
+    setPoint(25, flexed ? 0.56 : 0.44, 0.65);
+  } else {
+    setPoint(28, 0.48, 0.80);
+    setPoint(26, flexed ? 0.40 : 0.52, 0.65);
+  }
+  return RunningPoseFrame(
+    timestamp: Duration(milliseconds: timestampMs),
+    imageWidth: 720,
+    imageHeight: 1280,
+    landmarks: List<RunningVideoPoseLandmark>.unmodifiable(landmarks),
+  );
 }
 
 Map<String, Object?> _landmarkMap(int index) {

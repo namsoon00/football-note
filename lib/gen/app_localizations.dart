@@ -27010,6 +27010,283 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Advancement confirmed'**
   String get matchCompetitionProgressAdvanced;
+
+  /// No description provided for @runningCoachCaptureContextTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Comparison conditions'**
+  String get runningCoachCaptureContextTitle;
+
+  /// No description provided for @runningCoachCaptureContextBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose this run\'s effort and surface to compare only like-for-like recordings. Analysis still works without a comparison.'**
+  String get runningCoachCaptureContextBody;
+
+  /// No description provided for @runningCoachCaptureContextEffortLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Effort'**
+  String get runningCoachCaptureContextEffortLabel;
+
+  /// No description provided for @runningCoachCaptureContextSurfaceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Surface'**
+  String get runningCoachCaptureContextSurfaceLabel;
+
+  /// No description provided for @runningCoachCaptureEffortEasy.
+  ///
+  /// In en, this message translates to:
+  /// **'Easy'**
+  String get runningCoachCaptureEffortEasy;
+
+  /// No description provided for @runningCoachCaptureEffortSteady.
+  ///
+  /// In en, this message translates to:
+  /// **'Steady'**
+  String get runningCoachCaptureEffortSteady;
+
+  /// No description provided for @runningCoachCaptureEffortFast.
+  ///
+  /// In en, this message translates to:
+  /// **'Fast'**
+  String get runningCoachCaptureEffortFast;
+
+  /// No description provided for @runningCoachCaptureSurfaceTreadmill.
+  ///
+  /// In en, this message translates to:
+  /// **'Treadmill'**
+  String get runningCoachCaptureSurfaceTreadmill;
+
+  /// No description provided for @runningCoachCaptureSurfaceTrackOrRoad.
+  ///
+  /// In en, this message translates to:
+  /// **'Track / road'**
+  String get runningCoachCaptureSurfaceTrackOrRoad;
+
+  /// No description provided for @runningCoachGaitTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Step-by-step measurements'**
+  String get runningCoachGaitTitle;
+
+  /// No description provided for @runningCoachGaitBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Only validated contact frames are used to calculate each step, side, and movement phase again.'**
+  String get runningCoachGaitBody;
+
+  /// No description provided for @runningCoachGaitUnavailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Step measurements are not ready'**
+  String get runningCoachGaitUnavailableTitle;
+
+  /// No description provided for @runningCoachGaitUnavailableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'There are not enough paired contact and pose frames. Retake with your full body and both feet visible.'**
+  String get runningCoachGaitUnavailableBody;
+
+  /// No description provided for @runningCoachGaitReliableStepsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reliable steps'**
+  String get runningCoachGaitReliableStepsLabel;
+
+  /// No description provided for @runningCoachGaitCadenceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cadence (spm)'**
+  String get runningCoachGaitCadenceLabel;
+
+  /// No description provided for @runningCoachGaitStepTimeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Step time (ms)'**
+  String get runningCoachGaitStepTimeLabel;
+
+  /// No description provided for @runningCoachGaitFootReachLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Foot placement (body scale)'**
+  String get runningCoachGaitFootReachLabel;
+
+  /// No description provided for @runningCoachGaitKneeAtContactLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Knee at contact (°)'**
+  String get runningCoachGaitKneeAtContactLabel;
+
+  /// No description provided for @runningCoachGaitMinimumKneeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum knee after contact (°)'**
+  String get runningCoachGaitMinimumKneeLabel;
+
+  /// No description provided for @runningCoachGaitForwardLeanLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Forward lean at contact (°)'**
+  String get runningCoachGaitForwardLeanLabel;
+
+  /// No description provided for @runningCoachGaitElbowLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Elbow at contact (°)'**
+  String get runningCoachGaitElbowLabel;
+
+  /// No description provided for @runningCoachGaitLeftRightTimingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Left / right step-time difference (%)'**
+  String get runningCoachGaitLeftRightTimingLabel;
+
+  /// No description provided for @runningCoachGaitLeftRightFootLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Left / right foot-placement difference'**
+  String get runningCoachGaitLeftRightFootLabel;
+
+  /// No description provided for @runningCoachGaitLeftRightKneeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Left / right knee-at-contact difference (°)'**
+  String get runningCoachGaitLeftRightKneeLabel;
+
+  /// No description provided for @runningCoachGaitRangeValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{median} · range {minimum}–{maximum}'**
+  String runningCoachGaitRangeValue(
+      String median, String minimum, String maximum);
+
+  /// No description provided for @runningCoachGaitStepsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Validated steps'**
+  String get runningCoachGaitStepsTitle;
+
+  /// No description provided for @runningCoachGaitStepNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Step {number}'**
+  String runningCoachGaitStepNumber(int number);
+
+  /// No description provided for @runningCoachGaitStepLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'Left'**
+  String get runningCoachGaitStepLeft;
+
+  /// No description provided for @runningCoachGaitStepRight.
+  ///
+  /// In en, this message translates to:
+  /// **'Right'**
+  String get runningCoachGaitStepRight;
+
+  /// No description provided for @runningCoachGaitInitialContactLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Initial contact'**
+  String get runningCoachGaitInitialContactLabel;
+
+  /// No description provided for @runningCoachGaitMaximumKneeFlexionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum knee flexion'**
+  String get runningCoachGaitMaximumKneeFlexionLabel;
+
+  /// No description provided for @runningCoachGaitPhaseUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Not measured in this phase'**
+  String get runningCoachGaitPhaseUnavailable;
+
+  /// No description provided for @runningCoachGaitEvidenceLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Fewer than three stable steps were read, so these values are reference-only.'**
+  String get runningCoachGaitEvidenceLimited;
+
+  /// No description provided for @runningCoachGaitLimitationsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What this video cannot measure'**
+  String get runningCoachGaitLimitationsTitle;
+
+  /// No description provided for @runningCoachGaitLimitationsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A single side-view video does not measure foot rolling or pronation, ground-reaction force, exact ground-contact time, or injury risk.'**
+  String get runningCoachGaitLimitationsBody;
+
+  /// No description provided for @runningCoachJudgmentWithheldTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Judgment withheld'**
+  String get runningCoachJudgmentWithheldTitle;
+
+  /// No description provided for @runningCoachJudgmentWithheldBody.
+  ///
+  /// In en, this message translates to:
+  /// **'There is not enough evidence to label this movement as good or needing work, so no drill is prescribed. Retake the video instead.'**
+  String get runningCoachJudgmentWithheldBody;
+
+  /// No description provided for @runningCoachComparisonTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Same-condition comparison'**
+  String get runningCoachComparisonTitle;
+
+  /// No description provided for @runningCoachComparisonBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This recording is stored as {effort} on {surface}. Only compare it with a previous recording under the same conditions.'**
+  String runningCoachComparisonBody(String effort, String surface);
+
+  /// No description provided for @runningCoachComparisonNoBaselineTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No same-condition baseline yet'**
+  String get runningCoachComparisonNoBaselineTitle;
+
+  /// No description provided for @runningCoachComparisonNoBaselineBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Record another run with the same effort and surface before comparing changes.'**
+  String get runningCoachComparisonNoBaselineBody;
+
+  /// No description provided for @runningCoachComparisonPreviousLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous'**
+  String get runningCoachComparisonPreviousLabel;
+
+  /// No description provided for @runningCoachComparisonCurrentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Current'**
+  String get runningCoachComparisonCurrentLabel;
+
+  /// No description provided for @runningCoachComparisonChangeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous → current'**
+  String get runningCoachComparisonChangeLabel;
+
+  /// No description provided for @runningCoachComparisonChangeValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{previous} → {current}'**
+  String runningCoachComparisonChangeValue(String previous, String current);
+
+  /// No description provided for @runningCoachComparisonSameConditionRetake.
+  ///
+  /// In en, this message translates to:
+  /// **'Retake in the same conditions'**
+  String get runningCoachComparisonSameConditionRetake;
 }
 
 class _AppLocalizationsDelegate

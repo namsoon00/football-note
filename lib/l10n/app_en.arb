@@ -8599,5 +8599,73 @@
   "matchCompetitionProgressNextMatches": "Next matches",
   "matchCompetitionProgressChampion": "Champion",
   "matchCompetitionProgressLeader": "Current leader",
-  "matchCompetitionProgressAdvanced": "Advancement confirmed"
+  "matchCompetitionProgressAdvanced": "Advancement confirmed",
+  "runningCoachCaptureContextTitle": "Comparison conditions",
+  "runningCoachCaptureContextBody": "Choose this run's effort and surface to compare only like-for-like recordings. Analysis still works without a comparison.",
+  "runningCoachCaptureContextEffortLabel": "Effort",
+  "runningCoachCaptureContextSurfaceLabel": "Surface",
+  "runningCoachCaptureEffortEasy": "Easy",
+  "runningCoachCaptureEffortSteady": "Steady",
+  "runningCoachCaptureEffortFast": "Fast",
+  "runningCoachCaptureSurfaceTreadmill": "Treadmill",
+  "runningCoachCaptureSurfaceTrackOrRoad": "Track / road",
+  "runningCoachGaitTitle": "Step-by-step measurements",
+  "runningCoachGaitBody": "Only validated contact frames are used to calculate each step, side, and movement phase again.",
+  "runningCoachGaitUnavailableTitle": "Step measurements are not ready",
+  "runningCoachGaitUnavailableBody": "There are not enough paired contact and pose frames. Retake with your full body and both feet visible.",
+  "runningCoachGaitReliableStepsLabel": "Reliable steps",
+  "runningCoachGaitCadenceLabel": "Cadence (spm)",
+  "runningCoachGaitStepTimeLabel": "Step time (ms)",
+  "runningCoachGaitFootReachLabel": "Foot placement (body scale)",
+  "runningCoachGaitKneeAtContactLabel": "Knee at contact (°)",
+  "runningCoachGaitMinimumKneeLabel": "Minimum knee after contact (°)",
+  "runningCoachGaitForwardLeanLabel": "Forward lean at contact (°)",
+  "runningCoachGaitElbowLabel": "Elbow at contact (°)",
+  "runningCoachGaitLeftRightTimingLabel": "Left / right step-time difference (%)",
+  "runningCoachGaitLeftRightFootLabel": "Left / right foot-placement difference",
+  "runningCoachGaitLeftRightKneeLabel": "Left / right knee-at-contact difference (°)",
+  "runningCoachGaitRangeValue": "{median} · range {minimum}–{maximum}",
+  "@runningCoachGaitRangeValue": {
+    "placeholders": {
+      "median": { "type": "String" },
+      "minimum": { "type": "String" },
+      "maximum": { "type": "String" }
+    }
+  },
+  "runningCoachGaitStepsTitle": "Validated steps",
+  "runningCoachGaitStepNumber": "Step {number}",
+  "@runningCoachGaitStepNumber": {
+    "placeholders": { "number": { "type": "int" } }
+  },
+  "runningCoachGaitStepLeft": "Left",
+  "runningCoachGaitStepRight": "Right",
+  "runningCoachGaitInitialContactLabel": "Initial contact",
+  "runningCoachGaitMaximumKneeFlexionLabel": "Maximum knee flexion",
+  "runningCoachGaitPhaseUnavailable": "Not measured in this phase",
+  "runningCoachGaitEvidenceLimited": "Fewer than three stable steps were read, so these values are reference-only.",
+  "runningCoachGaitLimitationsTitle": "What this video cannot measure",
+  "runningCoachGaitLimitationsBody": "A single side-view video does not measure foot rolling or pronation, ground-reaction force, exact ground-contact time, or injury risk.",
+  "runningCoachJudgmentWithheldTitle": "Judgment withheld",
+  "runningCoachJudgmentWithheldBody": "There is not enough evidence to label this movement as good or needing work, so no drill is prescribed. Retake the video instead.",
+  "runningCoachComparisonTitle": "Same-condition comparison",
+  "runningCoachComparisonBody": "This recording is stored as {effort} on {surface}. Only compare it with a previous recording under the same conditions.",
+  "@runningCoachComparisonBody": {
+    "placeholders": {
+      "effort": { "type": "String" },
+      "surface": { "type": "String" }
+    }
+  },
+  "runningCoachComparisonNoBaselineTitle": "No same-condition baseline yet",
+  "runningCoachComparisonNoBaselineBody": "Record another run with the same effort and surface before comparing changes.",
+  "runningCoachComparisonPreviousLabel": "Previous",
+  "runningCoachComparisonCurrentLabel": "Current",
+  "runningCoachComparisonChangeLabel": "Previous → current",
+  "runningCoachComparisonChangeValue": "{previous} → {current}",
+  "@runningCoachComparisonChangeValue": {
+    "placeholders": {
+      "previous": { "type": "String" },
+      "current": { "type": "String" }
+    }
+  },
+  "runningCoachComparisonSameConditionRetake": "Retake in the same conditions"
 }

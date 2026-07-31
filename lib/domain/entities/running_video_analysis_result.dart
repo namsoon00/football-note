@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 enum RunningDirection { leftToRight, rightToLeft, stationary }
 
 enum RunningContactSide { left, right, unknown }
@@ -398,6 +400,14 @@ class RunningVideoAnalysisResult {
           runningCoachMinimumReliableMetricSamples &&
       denseSamples.validFrames > 0;
 
+  /// Per-step, phase-aware measurements derived from the same uploaded video.
+  /// Returns null when the clip has no validated contact frame / pose-frame
+  /// pairing; callers should then ask for a retake rather than show a number.
+  ///
+  /// This remains a getter so legacy constant result fixtures and persisted
+  /// snapshots retain their existing value semantics.
+  RunningGaitAnalysis? get gaitAnalysis => _deriveRunningGaitAnalysis(this);
+
   Duration? nearestValidatedContactTimestamp(
     Duration position, {
     Duration tolerance = const Duration(milliseconds: 90),
@@ -521,6 +531,631 @@ class RunningVideoAnalysisResult {
   }
 }
 
+/// The four locally observable stages used for a single contact window.
+/// `contactExit` is deliberately named after the measured window rather than
+/// `toeOff`: a side-view phone video cannot make a precise toe-off claim.
+enum RunningGaitPhase {
+  preContact,
+  initialContact,
+  maximumKneeFlexion,
+  contactExit,
+}
+
+class RunningGaitPhaseMeasurement {
+  final RunningGaitPhase phase;
+  final Duration timestamp;
+  final double? footStrikeDistanceRatio;
+  final double? kneeAngleDegrees;
+  final double? forwardLeanDegrees;
+  final double? elbowAngleDegrees;
+  final double confidence;
+
+  const RunningGaitPhaseMeasurement({
+    required this.phase,
+    required this.timestamp,
+    required this.footStrikeDistanceRatio,
+    required this.kneeAngleDegrees,
+    required this.forwardLeanDegrees,
+    required this.elbowAngleDegrees,
+    required this.confidence,
+  });
+}
+
+class RunningGaitStep {
+  final RunningContactSide side;
+  final Duration contactTimestamp;
+  final double confidence;
+  final RunningGaitPhaseMeasurement? preContact;
+  final RunningGaitPhaseMeasurement initialContact;
+  final RunningGaitPhaseMeasurement? maximumKneeFlexion;
+  final RunningGaitPhaseMeasurement? contactExit;
+
+  const RunningGaitStep({
+    required this.side,
+    required this.contactTimestamp,
+    required this.confidence,
+    required this.preContact,
+    required this.initialContact,
+    required this.maximumKneeFlexion,
+    required this.contactExit,
+  });
+
+  bool get isReliable =>
+      confidence >= runningCoachReliableMetricConfidence &&
+      initialContact.kneeAngleDegrees != null &&
+      initialContact.footStrikeDistanceRatio != null;
+
+  double? get footStrikeDistanceRatio => initialContact.footStrikeDistanceRatio;
+  double? get kneeAtContactDegrees => initialContact.kneeAngleDegrees;
+  double? get minimumKneeAngleDegrees => maximumKneeFlexion?.kneeAngleDegrees;
+  double? get forwardLeanAtContactDegrees => initialContact.forwardLeanDegrees;
+  double? get elbowAtContactDegrees => initialContact.elbowAngleDegrees;
+}
+
+/// A robust summary for a metric collected over several contact events.
+/// The range is intentionally shown with the median so a single average never
+/// hides an inconsistent set of strides.
+class RunningGaitDistribution {
+  final double median;
+  final double minimum;
+  final double maximum;
+  final int sampleCount;
+
+  const RunningGaitDistribution({
+    required this.median,
+    required this.minimum,
+    required this.maximum,
+    required this.sampleCount,
+  });
+
+  double get span => maximum - minimum;
+
+  static RunningGaitDistribution? fromValues(Iterable<double?> source) {
+    final values = source
+        .whereType<double>()
+        .where((value) => value.isFinite)
+        .toList(growable: false)
+      ..sort();
+    if (values.isEmpty) return null;
+    final middle = values.length ~/ 2;
+    final median = values.length.isOdd
+        ? values[middle]
+        : (values[middle - 1] + values[middle]) / 2;
+    return RunningGaitDistribution(
+      median: median,
+      minimum: values.first,
+      maximum: values.last,
+      sampleCount: values.length,
+    );
+  }
+}
+
+/// Fine-grained measurements that are defensible from a single fixed,
+/// side-view recording. Unsupported biomechanics such as pronation, ground
+/// reaction force, and injury risk intentionally have no field here.
+class RunningGaitAnalysis {
+  final List<RunningGaitStep> steps;
+  final RunningGaitDistribution? footStrikeDistance;
+  final RunningGaitDistribution? kneeAtContact;
+  final RunningGaitDistribution? minimumKneeFlexion;
+  final RunningGaitDistribution? forwardLeanAtContact;
+  final RunningGaitDistribution? elbowAtContact;
+  final double? cadenceSpm;
+  final double? medianStepTimeMs;
+  final double? leftRightStepTimeAsymmetryPercent;
+  final double? leftRightFootStrikeDifferenceRatio;
+  final double? leftRightKneeDifferenceDegrees;
+
+  const RunningGaitAnalysis({
+    required this.steps,
+    required this.footStrikeDistance,
+    required this.kneeAtContact,
+    required this.minimumKneeFlexion,
+    required this.forwardLeanAtContact,
+    required this.elbowAtContact,
+    required this.cadenceSpm,
+    required this.medianStepTimeMs,
+    required this.leftRightStepTimeAsymmetryPercent,
+    required this.leftRightFootStrikeDifferenceRatio,
+    required this.leftRightKneeDifferenceDegrees,
+  });
+
+  int get reliableStepCount => steps.where((step) => step.isReliable).length;
+
+  bool get hasReliableStepSample =>
+      reliableStepCount >= runningCoachMinimumReliableMetricSamples;
+
+  int get leftStepCount =>
+      steps.where((step) => step.side == RunningContactSide.left).length;
+
+  int get rightStepCount =>
+      steps.where((step) => step.side == RunningContactSide.right).length;
+
+  bool get hasBilateralSample => leftStepCount >= 2 && rightStepCount >= 2;
+}
+
+RunningGaitAnalysis? _deriveRunningGaitAnalysis(
+  RunningVideoAnalysisResult result,
+) {
+  if (!result.hasDenseContactEvidence ||
+      result.poseFrames.isEmpty ||
+      result.contactWindows.isEmpty) {
+    return null;
+  }
+  final frames = result.poseFrames;
+  final validated = result.validatedContactFrameTimestamps
+      .map((timestamp) => timestamp.inMilliseconds)
+      .toSet();
+  final consumedTimestamps = <int>{};
+  final steps = <RunningGaitStep>[];
+
+  for (final window in result.contactWindows) {
+    if (window.side == RunningContactSide.unknown) continue;
+    final contactCandidates = <int>{
+      ...window.validatedContactTimestamps.map(
+        (timestamp) => timestamp.inMilliseconds,
+      ),
+      ...validated.where(
+        (timestamp) => timestamp >= window.startMs && timestamp <= window.endMs,
+      ),
+    }.toList(growable: false)
+      ..sort((left, right) {
+        final leftDistance = (left - window.centerMs).abs();
+        final rightDistance = (right - window.centerMs).abs();
+        return leftDistance == rightDistance
+            ? left.compareTo(right)
+            : leftDistance.compareTo(rightDistance);
+      });
+    if (contactCandidates.isEmpty) continue;
+    final contactMs = contactCandidates.first;
+    if (!consumedTimestamps.add(contactMs)) continue;
+    final contactFrame = _nearestPoseFrame(
+      frames,
+      contactMs,
+      toleranceMs: 90,
+    );
+    if (contactFrame == null) continue;
+    final contactMeasurement = _gaitPhaseMeasurement(
+      frame: contactFrame,
+      phase: RunningGaitPhase.initialContact,
+      side: window.side,
+      direction: result.direction,
+    );
+    if (contactMeasurement.kneeAngleDegrees == null ||
+        contactMeasurement.footStrikeDistanceRatio == null) {
+      continue;
+    }
+
+    final preContactFrame = _nearestPoseFrameInRange(
+      frames,
+      targetMs: math.max(window.startMs, contactMs - 90).toInt(),
+      minimumMs: window.startMs,
+      maximumMs: math.max(window.startMs, contactMs - 20).toInt(),
+      toleranceMs: 90,
+    );
+    final phaseEndMs = math.min(window.endMs, contactMs + 220).toInt();
+    final phaseFrames = frames
+        .where(
+          (frame) =>
+              frame.timestampMs >= contactMs && frame.timestampMs <= phaseEndMs,
+        )
+        .toList(growable: false);
+    final kneeFlexionFrame = _minimumKneeAngleFrame(
+      phaseFrames,
+      side: window.side,
+    );
+    final exitFrame = _lastPoseFrameInRange(
+      frames,
+      minimumMs: math.min(window.endMs, contactMs + 50).toInt(),
+      maximumMs: window.endMs,
+    );
+    final stepConfidence = window.confidence > 0
+        ? math.min(window.confidence, contactMeasurement.confidence)
+        : contactMeasurement.confidence;
+    steps.add(
+      RunningGaitStep(
+        side: window.side,
+        contactTimestamp: contactMeasurement.timestamp,
+        confidence: stepConfidence.clamp(0.0, 1.0).toDouble(),
+        preContact: preContactFrame == null
+            ? null
+            : _gaitPhaseMeasurement(
+                frame: preContactFrame,
+                phase: RunningGaitPhase.preContact,
+                side: window.side,
+                direction: result.direction,
+              ),
+        initialContact: contactMeasurement,
+        maximumKneeFlexion: kneeFlexionFrame == null
+            ? null
+            : _gaitPhaseMeasurement(
+                frame: kneeFlexionFrame,
+                phase: RunningGaitPhase.maximumKneeFlexion,
+                side: window.side,
+                direction: result.direction,
+              ),
+        contactExit: exitFrame == null
+            ? null
+            : _gaitPhaseMeasurement(
+                frame: exitFrame,
+                phase: RunningGaitPhase.contactExit,
+                side: window.side,
+                direction: result.direction,
+              ),
+      ),
+    );
+  }
+
+  steps.sort(
+    (left, right) => left.contactTimestamp.compareTo(right.contactTimestamp),
+  );
+  if (steps.isEmpty) return null;
+
+  final reliableSteps = steps.where((step) => step.isReliable).toList(
+        growable: false,
+      );
+  final source =
+      reliableSteps.length >= runningCoachMinimumReliableMetricSamples
+          ? reliableSteps
+          : steps;
+  final footStrike = RunningGaitDistribution.fromValues(
+    source.map((step) => step.footStrikeDistanceRatio),
+  );
+  final kneeAtContact = RunningGaitDistribution.fromValues(
+    source.map((step) => step.kneeAtContactDegrees),
+  );
+  final minimumKneeFlexion = RunningGaitDistribution.fromValues(
+    source.map((step) => step.minimumKneeAngleDegrees),
+  );
+  final forwardLean = RunningGaitDistribution.fromValues(
+    source.map((step) => step.forwardLeanAtContactDegrees),
+  );
+  final elbow = RunningGaitDistribution.fromValues(
+    source.map((step) => step.elbowAtContactDegrees),
+  );
+  final timing = _gaitTimingSummary(source);
+  final left = source
+      .where((step) => step.side == RunningContactSide.left)
+      .toList(growable: false);
+  final right = source
+      .where((step) => step.side == RunningContactSide.right)
+      .toList(growable: false);
+  final leftFoot = RunningGaitDistribution.fromValues(
+    left.map((step) => step.footStrikeDistanceRatio),
+  );
+  final rightFoot = RunningGaitDistribution.fromValues(
+    right.map((step) => step.footStrikeDistanceRatio),
+  );
+  final leftKnee = RunningGaitDistribution.fromValues(
+    left.map((step) => step.kneeAtContactDegrees),
+  );
+  final rightKnee = RunningGaitDistribution.fromValues(
+    right.map((step) => step.kneeAtContactDegrees),
+  );
+
+  return RunningGaitAnalysis(
+    steps: List<RunningGaitStep>.unmodifiable(steps),
+    footStrikeDistance: footStrike,
+    kneeAtContact: kneeAtContact,
+    minimumKneeFlexion: minimumKneeFlexion,
+    forwardLeanAtContact: forwardLean,
+    elbowAtContact: elbow,
+    cadenceSpm: timing.cadenceSpm,
+    medianStepTimeMs: timing.medianStepTimeMs,
+    leftRightStepTimeAsymmetryPercent: timing.asymmetryPercent,
+    leftRightFootStrikeDifferenceRatio: leftFoot != null &&
+            rightFoot != null &&
+            left.length >= 2 &&
+            right.length >= 2
+        ? (leftFoot.median - rightFoot.median).abs()
+        : null,
+    leftRightKneeDifferenceDegrees: leftKnee != null &&
+            rightKnee != null &&
+            left.length >= 2 &&
+            right.length >= 2
+        ? (leftKnee.median - rightKnee.median).abs()
+        : null,
+  );
+}
+
+class _RunningGaitTimingSummary {
+  final double? cadenceSpm;
+  final double? medianStepTimeMs;
+  final double? asymmetryPercent;
+
+  const _RunningGaitTimingSummary({
+    required this.cadenceSpm,
+    required this.medianStepTimeMs,
+    required this.asymmetryPercent,
+  });
+}
+
+_RunningGaitTimingSummary _gaitTimingSummary(List<RunningGaitStep> steps) {
+  if (steps.length < 3) {
+    return const _RunningGaitTimingSummary(
+      cadenceSpm: null,
+      medianStepTimeMs: null,
+      asymmetryPercent: null,
+    );
+  }
+  final intervals = <double>[];
+  final byStartingSide = <RunningContactSide, List<double>>{
+    RunningContactSide.left: <double>[],
+    RunningContactSide.right: <double>[],
+  };
+  for (var index = 0; index < steps.length - 1; index += 1) {
+    final current = steps[index];
+    final next = steps[index + 1];
+    if (current.side == next.side) continue;
+    final interval = (next.contactTimestamp.inMilliseconds -
+            current.contactTimestamp.inMilliseconds)
+        .toDouble();
+    if (interval < 120 || interval > 1000) continue;
+    intervals.add(interval);
+    byStartingSide[current.side]!.add(interval);
+  }
+  final distribution = RunningGaitDistribution.fromValues(intervals);
+  final left = RunningGaitDistribution.fromValues(
+    byStartingSide[RunningContactSide.left]!,
+  );
+  final right = RunningGaitDistribution.fromValues(
+    byStartingSide[RunningContactSide.right]!,
+  );
+  final asymmetry = left != null &&
+          right != null &&
+          left.sampleCount >= 2 &&
+          right.sampleCount >= 2
+      ? ((left.median - right.median).abs() /
+              ((left.median + right.median) / 2) *
+              100)
+          .clamp(0.0, 100.0)
+          .toDouble()
+      : null;
+  return _RunningGaitTimingSummary(
+    cadenceSpm: distribution == null || distribution.median <= 0
+        ? null
+        : 60000 / distribution.median,
+    medianStepTimeMs: distribution?.median,
+    asymmetryPercent: asymmetry,
+  );
+}
+
+RunningPoseFrame? _nearestPoseFrame(
+  List<RunningPoseFrame> frames,
+  int targetMs, {
+  required int toleranceMs,
+}) {
+  return _nearestPoseFrameInRange(
+    frames,
+    targetMs: targetMs,
+    minimumMs: targetMs - toleranceMs,
+    maximumMs: targetMs + toleranceMs,
+    toleranceMs: toleranceMs,
+  );
+}
+
+RunningPoseFrame? _nearestPoseFrameInRange(
+  List<RunningPoseFrame> frames, {
+  required int targetMs,
+  required int minimumMs,
+  required int maximumMs,
+  required int toleranceMs,
+}) {
+  RunningPoseFrame? nearest;
+  var nearestDistance = toleranceMs + 1;
+  for (final frame in frames) {
+    final timestamp = frame.timestampMs;
+    if (timestamp < minimumMs || timestamp > maximumMs) continue;
+    final distance = (timestamp - targetMs).abs();
+    if (distance < nearestDistance) {
+      nearest = frame;
+      nearestDistance = distance;
+    }
+  }
+  return nearestDistance <= toleranceMs ? nearest : null;
+}
+
+RunningPoseFrame? _lastPoseFrameInRange(
+  List<RunningPoseFrame> frames, {
+  required int minimumMs,
+  required int maximumMs,
+}) {
+  RunningPoseFrame? candidate;
+  for (final frame in frames) {
+    if (frame.timestampMs < minimumMs || frame.timestampMs > maximumMs) {
+      continue;
+    }
+    if (candidate == null || frame.timestampMs > candidate.timestampMs) {
+      candidate = frame;
+    }
+  }
+  return candidate;
+}
+
+RunningPoseFrame? _minimumKneeAngleFrame(
+  List<RunningPoseFrame> frames, {
+  required RunningContactSide side,
+}) {
+  RunningPoseFrame? candidate;
+  double? minimum;
+  for (final frame in frames) {
+    final angle = _kneeAngle(frame, side);
+    if (angle == null) continue;
+    if (minimum == null || angle < minimum) {
+      minimum = angle;
+      candidate = frame;
+    }
+  }
+  return candidate;
+}
+
+RunningGaitPhaseMeasurement _gaitPhaseMeasurement({
+  required RunningPoseFrame frame,
+  required RunningGaitPhase phase,
+  required RunningContactSide side,
+  required RunningDirection direction,
+}) {
+  return RunningGaitPhaseMeasurement(
+    phase: phase,
+    timestamp: frame.timestamp,
+    footStrikeDistanceRatio: _footStrikeDistanceRatio(frame, side, direction),
+    kneeAngleDegrees: _kneeAngle(frame, side),
+    forwardLeanDegrees: _forwardLeanDegrees(frame, direction),
+    elbowAngleDegrees: _averageElbowAngle(frame),
+    confidence: _phaseConfidence(frame, side),
+  );
+}
+
+class _RunningPosePoint {
+  final double x;
+  final double y;
+  final double confidence;
+
+  const _RunningPosePoint(this.x, this.y, this.confidence);
+}
+
+_RunningPosePoint? _posePoint(RunningPoseFrame frame, int index) {
+  final landmark = frame.landmarkByIndex(index);
+  if (landmark == null ||
+      !landmark.x.isFinite ||
+      !landmark.y.isFinite ||
+      landmark.confidence <= 0) {
+    return null;
+  }
+  return _RunningPosePoint(
+    landmark.x,
+    landmark.y,
+    landmark.confidence.clamp(0.0, 1.0).toDouble(),
+  );
+}
+
+_RunningPosePoint? _midpoint(
+  _RunningPosePoint? first,
+  _RunningPosePoint? second,
+) {
+  if (first == null || second == null) return null;
+  return _RunningPosePoint(
+    (first.x + second.x) / 2,
+    (first.y + second.y) / 2,
+    math.min(first.confidence, second.confidence),
+  );
+}
+
+double _distance(_RunningPosePoint first, _RunningPosePoint second) =>
+    math.sqrt(
+      ((first.x - second.x) * (first.x - second.x)) +
+          ((first.y - second.y) * (first.y - second.y)),
+    );
+
+double? _bodyScale(RunningPoseFrame frame) {
+  final shoulder = _midpoint(_posePoint(frame, 11), _posePoint(frame, 12));
+  final hip = _midpoint(_posePoint(frame, 23), _posePoint(frame, 24));
+  final ankle = _midpoint(_posePoint(frame, 27), _posePoint(frame, 28));
+  if (shoulder == null || hip == null || ankle == null) return null;
+  final value = math.max(_distance(shoulder, hip), _distance(hip, ankle));
+  return value > 0.0001 ? value : null;
+}
+
+double? _footStrikeDistanceRatio(
+  RunningPoseFrame frame,
+  RunningContactSide side,
+  RunningDirection direction,
+) {
+  if (direction == RunningDirection.stationary) return null;
+  final hip = _midpoint(_posePoint(frame, 23), _posePoint(frame, 24));
+  final ankle = _posePoint(frame, side == RunningContactSide.left ? 27 : 28);
+  final scale = _bodyScale(frame);
+  if (hip == null || ankle == null || scale == null) return null;
+  final raw = ankle.x - hip.x;
+  final forward = switch (direction) {
+    RunningDirection.leftToRight => raw,
+    RunningDirection.rightToLeft => -raw,
+    RunningDirection.stationary => 0.0,
+  };
+  return math.max(0, forward) / scale;
+}
+
+double? _kneeAngle(RunningPoseFrame frame, RunningContactSide side) {
+  final indices = side == RunningContactSide.left
+      ? const <int>[23, 25, 27]
+      : const <int>[24, 26, 28];
+  final first = _posePoint(frame, indices[0]);
+  final vertex = _posePoint(frame, indices[1]);
+  final third = _posePoint(frame, indices[2]);
+  if (first == null || vertex == null || third == null) return null;
+  return _jointAngle(first, vertex, third);
+}
+
+double? _forwardLeanDegrees(
+  RunningPoseFrame frame,
+  RunningDirection direction,
+) {
+  if (direction == RunningDirection.stationary) return null;
+  final shoulder = _midpoint(_posePoint(frame, 11), _posePoint(frame, 12));
+  final hip = _midpoint(_posePoint(frame, 23), _posePoint(frame, 24));
+  if (shoulder == null || hip == null) return null;
+  final vertical = math.max(0.0001, hip.y - shoulder.y);
+  final raw = shoulder.x - hip.x;
+  final forward = switch (direction) {
+    RunningDirection.leftToRight => raw,
+    RunningDirection.rightToLeft => -raw,
+    RunningDirection.stationary => 0.0,
+  };
+  if (forward <= 0) return 0;
+  return math.atan2(forward.abs(), vertical) * 180 / math.pi;
+}
+
+double? _averageElbowAngle(RunningPoseFrame frame) {
+  final values = <double>[];
+  final left = _jointAngle(
+    _posePoint(frame, 11),
+    _posePoint(frame, 13),
+    _posePoint(frame, 15),
+  );
+  final right = _jointAngle(
+    _posePoint(frame, 12),
+    _posePoint(frame, 14),
+    _posePoint(frame, 16),
+  );
+  if (left != null) values.add(left);
+  if (right != null) values.add(right);
+  if (values.isEmpty) return null;
+  return values.reduce((sum, value) => sum + value) / values.length;
+}
+
+double? _jointAngle(
+  _RunningPosePoint? first,
+  _RunningPosePoint? vertex,
+  _RunningPosePoint? third,
+) {
+  if (first == null || vertex == null || third == null) return null;
+  final firstX = first.x - vertex.x;
+  final firstY = first.y - vertex.y;
+  final secondX = third.x - vertex.x;
+  final secondY = third.y - vertex.y;
+  final firstLength = math.sqrt((firstX * firstX) + (firstY * firstY));
+  final secondLength = math.sqrt((secondX * secondX) + (secondY * secondY));
+  if (firstLength <= 0.0001 || secondLength <= 0.0001) return null;
+  final cosine =
+      ((firstX * secondX) + (firstY * secondY)) / (firstLength * secondLength);
+  return math.acos(cosine.clamp(-1.0, 1.0)) * 180 / math.pi;
+}
+
+double _phaseConfidence(
+  RunningPoseFrame frame,
+  RunningContactSide side,
+) {
+  final indexes = side == RunningContactSide.left
+      ? const <int>[11, 12, 23, 24, 25, 27]
+      : const <int>[11, 12, 23, 24, 26, 28];
+  final values = indexes
+      .map((index) => _posePoint(frame, index)?.confidence)
+      .whereType<double>()
+      .toList(growable: false);
+  if (values.isEmpty) return 0;
+  return values.reduce((sum, value) => sum + value) / values.length;
+}
+
 List<RunningPoseFrame> _historyPoseFrames(
   List<RunningPoseFrame> frames, {
   required List<Duration> contactTimestamps,
@@ -534,13 +1169,11 @@ List<RunningPoseFrame> _historyPoseFrames(
   }
 
   final selectedIndexes = <int>{0, frames.length - 1};
-  for (final timestamp in contactTimestamps) {
+  void selectClosest(int timestampMs) {
     var closestIndex = 0;
-    var closestDistance =
-        (frames.first.timestampMs - timestamp.inMilliseconds).abs();
+    var closestDistance = (frames.first.timestampMs - timestampMs).abs();
     for (var index = 1; index < frames.length; index += 1) {
-      final distance =
-          (frames[index].timestampMs - timestamp.inMilliseconds).abs();
+      final distance = (frames[index].timestampMs - timestampMs).abs();
       if (distance < closestDistance) {
         closestIndex = index;
         closestDistance = distance;
@@ -549,6 +1182,21 @@ List<RunningPoseFrame> _historyPoseFrames(
     if (selectedIndexes.length < maxFrames) {
       selectedIndexes.add(closestIndex);
     }
+  }
+
+  // Preserve the actual contact frame first. Then retain frames immediately
+  // before and after it so archived step-by-step and comparison views do not
+  // silently lose their locally observable movement phases.
+  for (final timestamp in contactTimestamps) {
+    selectClosest(timestamp.inMilliseconds);
+  }
+  for (final timestamp in contactTimestamps) {
+    if (selectedIndexes.length >= maxFrames) break;
+    selectClosest(timestamp.inMilliseconds - 90);
+    if (selectedIndexes.length >= maxFrames) break;
+    selectClosest(timestamp.inMilliseconds + 80);
+    if (selectedIndexes.length >= maxFrames) break;
+    selectClosest(timestamp.inMilliseconds + 180);
   }
   for (var slot = 1;
       selectedIndexes.length < maxFrames && slot < maxFrames - 1;

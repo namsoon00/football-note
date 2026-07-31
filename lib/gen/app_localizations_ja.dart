@@ -15264,4 +15264,157 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get matchCompetitionProgressAdvanced => '勝ち上がり確定';
+
+  @override
+  String get runningCoachCaptureContextTitle => '比較条件';
+
+  @override
+  String get runningCoachCaptureContextBody =>
+      '同じ条件の以前の動画だけと比較するため、今回の走行強度と環境を選んでください。選ばなくても分析できます。';
+
+  @override
+  String get runningCoachCaptureContextEffortLabel => '走行強度';
+
+  @override
+  String get runningCoachCaptureContextSurfaceLabel => '環境';
+
+  @override
+  String get runningCoachCaptureEffortEasy => '軽め';
+
+  @override
+  String get runningCoachCaptureEffortSteady => '通常';
+
+  @override
+  String get runningCoachCaptureEffortFast => '速め';
+
+  @override
+  String get runningCoachCaptureSurfaceTreadmill => 'トレッドミル';
+
+  @override
+  String get runningCoachCaptureSurfaceTrackOrRoad => 'トラック・道路';
+
+  @override
+  String get runningCoachGaitTitle => '歩ごとの計測';
+
+  @override
+  String get runningCoachGaitBody => '検証済みの接地フレームだけを使い、歩ごと・左右・動作段階ごとに再計算しました。';
+
+  @override
+  String get runningCoachGaitUnavailableTitle => '歩ごとの数値をまだ確定できません';
+
+  @override
+  String get runningCoachGaitUnavailableBody =>
+      '検証済みの接地フレームと姿勢フレームの組み合わせが不足しています。全身と両足が見えるように撮り直してください。';
+
+  @override
+  String get runningCoachGaitReliableStepsLabel => '信頼できる歩数';
+
+  @override
+  String get runningCoachGaitCadenceLabel => 'ケイデンス (spm)';
+
+  @override
+  String get runningCoachGaitStepTimeLabel => '歩行時間 (ms)';
+
+  @override
+  String get runningCoachGaitFootReachLabel => '接地足の位置（胴体比）';
+
+  @override
+  String get runningCoachGaitKneeAtContactLabel => '接地時の膝角度 (°)';
+
+  @override
+  String get runningCoachGaitMinimumKneeLabel => '接地後の最小膝角度 (°)';
+
+  @override
+  String get runningCoachGaitForwardLeanLabel => '接地時の前傾 (°)';
+
+  @override
+  String get runningCoachGaitElbowLabel => '接地時の肘角度 (°)';
+
+  @override
+  String get runningCoachGaitLeftRightTimingLabel => '左右の歩行時間差 (%)';
+
+  @override
+  String get runningCoachGaitLeftRightFootLabel => '左右の接地足位置差';
+
+  @override
+  String get runningCoachGaitLeftRightKneeLabel => '左右の接地膝角度差 (°)';
+
+  @override
+  String runningCoachGaitRangeValue(
+      String median, String minimum, String maximum) {
+    return '$median · 範囲 $minimum–$maximum';
+  }
+
+  @override
+  String get runningCoachGaitStepsTitle => '検証済みの歩み';
+
+  @override
+  String runningCoachGaitStepNumber(int number) {
+    return '$number歩目';
+  }
+
+  @override
+  String get runningCoachGaitStepLeft => '左足';
+
+  @override
+  String get runningCoachGaitStepRight => '右足';
+
+  @override
+  String get runningCoachGaitInitialContactLabel => '初期接地';
+
+  @override
+  String get runningCoachGaitMaximumKneeFlexionLabel => '最大膝屈曲';
+
+  @override
+  String get runningCoachGaitPhaseUnavailable => 'この段階は未計測';
+
+  @override
+  String get runningCoachGaitEvidenceLimited =>
+      '安定して読み取れた歩みが3回未満のため、これらの値は参考用です。';
+
+  @override
+  String get runningCoachGaitLimitationsTitle => 'この動画で測定できないこと';
+
+  @override
+  String get runningCoachGaitLimitationsBody =>
+      '単一の側面動画では、足のローリング・回内、地面反力、正確な接地時間、けがのリスクを測定または判定できません。';
+
+  @override
+  String get runningCoachJudgmentWithheldTitle => '判定保留';
+
+  @override
+  String get runningCoachJudgmentWithheldBody =>
+      '根拠が不足しているため、良い／改善が必要という判定とドリルは表示しません。動画を撮り直してください。';
+
+  @override
+  String get runningCoachComparisonTitle => '同条件の比較';
+
+  @override
+  String runningCoachComparisonBody(String effort, String surface) {
+    return '今回の記録は $effort・$surface 条件として保存されます。同じ条件の以前の動画だけと比較してください。';
+  }
+
+  @override
+  String get runningCoachComparisonNoBaselineTitle => '同条件の過去記録がまだありません';
+
+  @override
+  String get runningCoachComparisonNoBaselineBody =>
+      '同じ走行強度と環境でもう一度撮影すると、変化を比較できます。';
+
+  @override
+  String get runningCoachComparisonPreviousLabel => '前回';
+
+  @override
+  String get runningCoachComparisonCurrentLabel => '今回';
+
+  @override
+  String get runningCoachComparisonChangeLabel => '前回 → 今回';
+
+  @override
+  String runningCoachComparisonChangeValue(String previous, String current) {
+    return '$previous → $current';
+  }
+
+  @override
+  String get runningCoachComparisonSameConditionRetake => '同じ条件で撮り直す';
 }

@@ -2,6 +2,59 @@ import 'running_video_analysis_result.dart';
 
 enum RunningCoachSessionSource { uploadVideo }
 
+/// Runner-selected conditions used only to decide whether two recordings can
+/// be compared. They do not change the coaching score or the model output.
+enum RunningCoachRunEffort { easy, steady, fast }
+
+enum RunningCoachRunningSurface { treadmill, trackOrRoad }
+
+class RunningCoachCaptureContext {
+  final RunningCoachRunEffort? effort;
+  final RunningCoachRunningSurface? surface;
+
+  const RunningCoachCaptureContext({
+    this.effort,
+    this.surface,
+  });
+
+  bool get isComplete => effort != null && surface != null;
+
+  RunningCoachCaptureContext copyWith({
+    RunningCoachRunEffort? effort,
+    RunningCoachRunningSurface? surface,
+    bool clearEffort = false,
+    bool clearSurface = false,
+  }) {
+    return RunningCoachCaptureContext(
+      effort: clearEffort ? null : effort ?? this.effort,
+      surface: clearSurface ? null : surface ?? this.surface,
+    );
+  }
+
+  bool isComparableTo(RunningCoachCaptureContext? other) {
+    if (!isComplete || other == null || !other.isComplete) return false;
+    return effort == other.effort && surface == other.surface;
+  }
+
+  Map<String, Object?> toMap() => <String, Object?>{
+        if (effort != null) 'effort': effort!.name,
+        if (surface != null) 'surface': surface!.name,
+      };
+
+  factory RunningCoachCaptureContext.fromMap(Map<String, dynamic> map) {
+    return RunningCoachCaptureContext(
+      effort: _enumByNameOrNull(
+        RunningCoachRunEffort.values,
+        map['effort']?.toString(),
+      ),
+      surface: _enumByNameOrNull(
+        RunningCoachRunningSurface.values,
+        map['surface']?.toString(),
+      ),
+    );
+  }
+}
+
 class RunningCoachSessionAnalysis {
   final String id;
   final DateTime analyzedAt;
@@ -20,6 +73,7 @@ class RunningCoachSessionAnalysis {
   final String? primaryQualityReason;
   final String? videoPath;
   final String? videoName;
+  final RunningCoachCaptureContext? captureContext;
   final List<RunningCoachSessionMetric> metricSnapshots;
   final RunningVideoAnalysisResult? analysisResult;
 
@@ -41,6 +95,7 @@ class RunningCoachSessionAnalysis {
     this.primaryQualityReason,
     this.videoPath,
     this.videoName,
+    this.captureContext,
     this.metricSnapshots = const <RunningCoachSessionMetric>[],
     this.analysisResult,
   });
@@ -92,6 +147,8 @@ class RunningCoachSessionAnalysis {
         'primaryQualityReason': primaryQualityReason,
       if (videoPath != null) 'videoPath': videoPath,
       if (videoName != null) 'videoName': videoName,
+      if (captureContext?.isComplete == true)
+        'captureContext': captureContext!.toMap(),
       if (metricSnapshots.isNotEmpty)
         'insights': metricSnapshots
             .map((snapshot) => snapshot.toMap())
@@ -133,10 +190,18 @@ class RunningCoachSessionAnalysis {
       primaryQualityReason: _optionalString(map['primaryQualityReason']),
       videoPath: _optionalString(map['videoPath']),
       videoName: _optionalString(map['videoName']),
+      captureContext: _captureContextFromMap(map['captureContext']),
       metricSnapshots: _metricSnapshotsFromMap(map['insights']),
       analysisResult: _analysisResultFromMap(map['analysisResult']),
     );
   }
+}
+
+RunningCoachCaptureContext? _captureContextFromMap(Object? raw) {
+  if (raw is! Map) return null;
+  return RunningCoachCaptureContext.fromMap(
+    raw.map<String, dynamic>((key, value) => MapEntry('$key', value)),
+  );
 }
 
 RunningVideoAnalysisResult? _analysisResultFromMap(Object? raw) {
@@ -275,4 +340,11 @@ T _enumByName<T extends Enum>(List<T> values, String? name, T fallback) {
     if (value.name == name) return value;
   }
   return fallback;
+}
+
+T? _enumByNameOrNull<T extends Enum>(List<T> values, String? name) {
+  for (final value in values) {
+    if (value.name == name) return value;
+  }
+  return null;
 }

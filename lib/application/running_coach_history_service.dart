@@ -53,6 +53,7 @@ class RunningCoachHistoryService {
   Future<List<RunningCoachSessionAnalysis>> saveUploadAnalysis({
     required RunningVideoAnalysisResult result,
     required RunningCoachingReport report,
+    RunningCoachCaptureContext? captureContext,
     String? sourceVideoPath,
     String? sourceVideoName,
     bool saveVideo = false,
@@ -89,6 +90,7 @@ class RunningCoachHistoryService {
             .map(RunningCoachSessionMetric.fromInsight)
             .toList(growable: false),
         analysisResult: result.historySnapshot(),
+        captureContext: captureContext,
         videoPath: archivedVideo?.path,
         // Keep neither a reusable path nor the original filename unless the
         // runner explicitly opted into retaining the source video.

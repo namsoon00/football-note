@@ -15769,4 +15769,166 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get matchCompetitionProgressAdvanced => 'Advancement confirmed';
+
+  @override
+  String get runningCoachCaptureContextTitle => 'Comparison conditions';
+
+  @override
+  String get runningCoachCaptureContextBody =>
+      'Choose this run\'s effort and surface to compare only like-for-like recordings. Analysis still works without a comparison.';
+
+  @override
+  String get runningCoachCaptureContextEffortLabel => 'Effort';
+
+  @override
+  String get runningCoachCaptureContextSurfaceLabel => 'Surface';
+
+  @override
+  String get runningCoachCaptureEffortEasy => 'Easy';
+
+  @override
+  String get runningCoachCaptureEffortSteady => 'Steady';
+
+  @override
+  String get runningCoachCaptureEffortFast => 'Fast';
+
+  @override
+  String get runningCoachCaptureSurfaceTreadmill => 'Treadmill';
+
+  @override
+  String get runningCoachCaptureSurfaceTrackOrRoad => 'Track / road';
+
+  @override
+  String get runningCoachGaitTitle => 'Step-by-step measurements';
+
+  @override
+  String get runningCoachGaitBody =>
+      'Only validated contact frames are used to calculate each step, side, and movement phase again.';
+
+  @override
+  String get runningCoachGaitUnavailableTitle =>
+      'Step measurements are not ready';
+
+  @override
+  String get runningCoachGaitUnavailableBody =>
+      'There are not enough paired contact and pose frames. Retake with your full body and both feet visible.';
+
+  @override
+  String get runningCoachGaitReliableStepsLabel => 'Reliable steps';
+
+  @override
+  String get runningCoachGaitCadenceLabel => 'Cadence (spm)';
+
+  @override
+  String get runningCoachGaitStepTimeLabel => 'Step time (ms)';
+
+  @override
+  String get runningCoachGaitFootReachLabel => 'Foot placement (body scale)';
+
+  @override
+  String get runningCoachGaitKneeAtContactLabel => 'Knee at contact (°)';
+
+  @override
+  String get runningCoachGaitMinimumKneeLabel =>
+      'Minimum knee after contact (°)';
+
+  @override
+  String get runningCoachGaitForwardLeanLabel => 'Forward lean at contact (°)';
+
+  @override
+  String get runningCoachGaitElbowLabel => 'Elbow at contact (°)';
+
+  @override
+  String get runningCoachGaitLeftRightTimingLabel =>
+      'Left / right step-time difference (%)';
+
+  @override
+  String get runningCoachGaitLeftRightFootLabel =>
+      'Left / right foot-placement difference';
+
+  @override
+  String get runningCoachGaitLeftRightKneeLabel =>
+      'Left / right knee-at-contact difference (°)';
+
+  @override
+  String runningCoachGaitRangeValue(
+      String median, String minimum, String maximum) {
+    return '$median · range $minimum–$maximum';
+  }
+
+  @override
+  String get runningCoachGaitStepsTitle => 'Validated steps';
+
+  @override
+  String runningCoachGaitStepNumber(int number) {
+    return 'Step $number';
+  }
+
+  @override
+  String get runningCoachGaitStepLeft => 'Left';
+
+  @override
+  String get runningCoachGaitStepRight => 'Right';
+
+  @override
+  String get runningCoachGaitInitialContactLabel => 'Initial contact';
+
+  @override
+  String get runningCoachGaitMaximumKneeFlexionLabel => 'Maximum knee flexion';
+
+  @override
+  String get runningCoachGaitPhaseUnavailable => 'Not measured in this phase';
+
+  @override
+  String get runningCoachGaitEvidenceLimited =>
+      'Fewer than three stable steps were read, so these values are reference-only.';
+
+  @override
+  String get runningCoachGaitLimitationsTitle =>
+      'What this video cannot measure';
+
+  @override
+  String get runningCoachGaitLimitationsBody =>
+      'A single side-view video does not measure foot rolling or pronation, ground-reaction force, exact ground-contact time, or injury risk.';
+
+  @override
+  String get runningCoachJudgmentWithheldTitle => 'Judgment withheld';
+
+  @override
+  String get runningCoachJudgmentWithheldBody =>
+      'There is not enough evidence to label this movement as good or needing work, so no drill is prescribed. Retake the video instead.';
+
+  @override
+  String get runningCoachComparisonTitle => 'Same-condition comparison';
+
+  @override
+  String runningCoachComparisonBody(String effort, String surface) {
+    return 'This recording is stored as $effort on $surface. Only compare it with a previous recording under the same conditions.';
+  }
+
+  @override
+  String get runningCoachComparisonNoBaselineTitle =>
+      'No same-condition baseline yet';
+
+  @override
+  String get runningCoachComparisonNoBaselineBody =>
+      'Record another run with the same effort and surface before comparing changes.';
+
+  @override
+  String get runningCoachComparisonPreviousLabel => 'Previous';
+
+  @override
+  String get runningCoachComparisonCurrentLabel => 'Current';
+
+  @override
+  String get runningCoachComparisonChangeLabel => 'Previous → current';
+
+  @override
+  String runningCoachComparisonChangeValue(String previous, String current) {
+    return '$previous → $current';
+  }
+
+  @override
+  String get runningCoachComparisonSameConditionRetake =>
+      'Retake in the same conditions';
 }
