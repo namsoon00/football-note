@@ -490,7 +490,7 @@ void main() {
     final reorderableList = tester.widget<ReorderableListView>(
       find.byKey(const ValueKey<String>('home-section-settings-list')),
     );
-    reorderableList.onReorder(5, 3);
+    _invokeReorderCallback(reorderableList.onReorder, 5, 3);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 250));
     expect(find.text('홈 화면 순서를 저장했어요.'), findsOneWidget);
@@ -1738,6 +1738,14 @@ void main() {
     expect(find.byType(TrainingMethodBoardScreen), findsOneWidget);
     expect(find.text('보호자 모드에서는 훈련 스케치를 수정할 수 없어요.'), findsOneWidget);
   });
+}
+
+void _invokeReorderCallback(
+  void Function(int oldIndex, int newIndex)? callback,
+  int oldIndex,
+  int newIndex,
+) {
+  callback!(oldIndex, newIndex);
 }
 
 Widget _buildApp(Widget home, {Locale locale = const Locale('ko', 'KR')}) {
