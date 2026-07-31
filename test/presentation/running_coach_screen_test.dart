@@ -209,6 +209,28 @@ void main() {
     expect(saveVideoToggle, findsOneWidget);
     expect(tester.widget<SwitchListTile>(saveVideoToggle).value, isFalse);
     expect(
+      find.byKey(const ValueKey('running-coach-capture-context-picker')),
+      findsOneWidget,
+    );
+    await tester.ensureVisible(find.text('Easy'));
+    await tester.tap(find.text('Easy'));
+    await tester.pump();
+    await tester.ensureVisible(find.text('Treadmill'));
+    await tester.tap(find.text('Treadmill'));
+    await tester.pump();
+    expect(
+      tester
+          .widget<ChoiceChip>(find.widgetWithText(ChoiceChip, 'Easy'))
+          .selected,
+      isTrue,
+    );
+    expect(
+      tester
+          .widget<ChoiceChip>(find.widgetWithText(ChoiceChip, 'Treadmill'))
+          .selected,
+      isTrue,
+    );
+    expect(
       find.text('Analyze run'),
       findsOneWidget,
     );
@@ -1152,11 +1174,21 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Retake setup'), findsOneWidget);
-    expect(find.text('Evidence limited'), findsWidgets);
+    final fineGaitUnavailable = find.byKey(
+      const ValueKey('running-coach-fine-gait-unavailable'),
+    );
+    await _scrollAnalysisResultUntilFound(tester, fineGaitUnavailable);
+    expect(find.text('Step measurements are not ready'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('running-coach-gait-limitations')),
+      findsOneWidget,
+    );
     final qualityDetails = find.byKey(
       const ValueKey('running-coach-analysis-quality-details'),
     );
     await _scrollAnalysisResultUntilFound(tester, qualityDetails);
+    expect(find.text('Evidence limited'), findsWidgets);
+    expect(find.text('Judgment withheld'), findsWidgets);
     await tester.tap(qualityDetails);
     await tester.pump(const Duration(milliseconds: 250));
     expect(

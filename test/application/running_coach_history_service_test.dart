@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/running_coach_history_service.dart';
+import 'package:football_note/domain/entities/running_coach_session.dart';
 import 'package:football_note/domain/entities/running_video_analysis_result.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 
@@ -36,6 +37,10 @@ void main() {
       result: result,
       report: report,
       analyzedAt: DateTime(2026, 5, 5, 12),
+      captureContext: const RunningCoachCaptureContext(
+        effort: RunningCoachRunEffort.steady,
+        surface: RunningCoachRunningSurface.treadmill,
+      ),
     );
 
     final sessions = service.allSessions();
@@ -44,6 +49,15 @@ void main() {
     expect(sessions.first.primaryMetric, RunningCoachMetric.footStrike);
     expect(sessions.first.primaryConfidence, 0.72);
     expect(sessions.first.primarySampleCount, 3);
+    expect(
+      sessions.first.captureContext?.isComparableTo(
+        const RunningCoachCaptureContext(
+          effort: RunningCoachRunEffort.steady,
+          surface: RunningCoachRunningSurface.treadmill,
+        ),
+      ),
+      isTrue,
+    );
   });
 
   test('persists a compact measured replay with an upload analysis', () async {
