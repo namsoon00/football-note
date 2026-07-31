@@ -16,6 +16,8 @@ class RunningCoachSessionAnalysis {
   final int primaryScore;
   final double primaryValue;
   final double primaryConfidence;
+  final int? primarySampleCount;
+  final String? primaryQualityReason;
   final String? videoPath;
   final String? videoName;
   final List<RunningCoachSessionMetric> metricSnapshots;
@@ -35,6 +37,8 @@ class RunningCoachSessionAnalysis {
     required this.primaryScore,
     required this.primaryValue,
     required this.primaryConfidence,
+    this.primarySampleCount,
+    this.primaryQualityReason,
     this.videoPath,
     this.videoName,
     this.metricSnapshots = const <RunningCoachSessionMetric>[],
@@ -53,7 +57,8 @@ class RunningCoachSessionAnalysis {
       value: primaryValue,
       quality: RunningMetricQuality(
         confidence: primaryConfidence,
-        sampleCount: validFrames,
+        sampleCount: primarySampleCount ?? validFrames,
+        reason: primaryQualityReason,
       ),
     );
   }
@@ -82,6 +87,9 @@ class RunningCoachSessionAnalysis {
       'primaryScore': primaryScore,
       'primaryValue': primaryValue,
       'primaryConfidence': primaryConfidence,
+      if (primarySampleCount != null) 'primarySampleCount': primarySampleCount,
+      if (primaryQualityReason != null)
+        'primaryQualityReason': primaryQualityReason,
       if (videoPath != null) 'videoPath': videoPath,
       if (videoName != null) 'videoName': videoName,
       if (metricSnapshots.isNotEmpty)
@@ -121,6 +129,8 @@ class RunningCoachSessionAnalysis {
       primaryScore: _intValue(map['primaryScore']),
       primaryValue: _doubleValue(map['primaryValue']),
       primaryConfidence: _doubleValue(map['primaryConfidence']).clamp(0.0, 1.0),
+      primarySampleCount: _optionalInt(map['primarySampleCount']),
+      primaryQualityReason: _optionalString(map['primaryQualityReason']),
       videoPath: _optionalString(map['videoPath']),
       videoName: _optionalString(map['videoName']),
       metricSnapshots: _metricSnapshotsFromMap(map['insights']),
@@ -144,6 +154,7 @@ class RunningCoachSessionMetric {
   final double value;
   final double confidence;
   final int sampleCount;
+  final String? reason;
 
   const RunningCoachSessionMetric({
     required this.metric,
@@ -153,6 +164,7 @@ class RunningCoachSessionMetric {
     required this.value,
     required this.confidence,
     required this.sampleCount,
+    this.reason,
   });
 
   factory RunningCoachSessionMetric.fromInsight(
@@ -166,6 +178,7 @@ class RunningCoachSessionMetric {
       value: insight.value,
       confidence: insight.quality.confidence,
       sampleCount: insight.quality.sampleCount,
+      reason: insight.quality.reason,
     );
   }
 
@@ -179,6 +192,7 @@ class RunningCoachSessionMetric {
       quality: RunningMetricQuality(
         confidence: confidence,
         sampleCount: sampleCount,
+        reason: reason,
       ),
     );
   }
@@ -192,6 +206,7 @@ class RunningCoachSessionMetric {
       'value': value,
       'confidence': confidence,
       'sampleCount': sampleCount,
+      if (reason != null) 'reason': reason,
     };
   }
 
@@ -216,6 +231,7 @@ class RunningCoachSessionMetric {
       value: _doubleValue(map['value']),
       confidence: _doubleValue(map['confidence']).clamp(0.0, 1.0),
       sampleCount: _intValue(map['sampleCount']),
+      reason: _optionalString(map['reason']),
     );
   }
 }
@@ -237,6 +253,11 @@ List<RunningCoachSessionMetric> _metricSnapshotsFromMap(Object? value) {
 String? _optionalString(Object? value) {
   final text = value?.toString().trim();
   return text == null || text.isEmpty ? null : text;
+}
+
+int? _optionalInt(Object? value) {
+  if (value is num) return value.toInt();
+  return int.tryParse(value?.toString() ?? '');
 }
 
 int _intValue(Object? value) {

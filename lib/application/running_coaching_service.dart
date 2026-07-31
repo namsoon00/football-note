@@ -45,9 +45,10 @@ class RunningCoachingService {
     final reliableWeightedInsights = weightedInsights
         .where((entry) => entry.key.quality.isReliableForCoaching)
         .toList(growable: false);
-    final scoringInsights = reliableWeightedInsights.isEmpty
-        ? weightedInsights
-        : reliableWeightedInsights;
+    // Never turn a low-quality estimate into a numerical form score. A zero
+    // here is intentionally paired with the retake-quality surface in the UI;
+    // it is not a claim that the runner performed poorly.
+    final scoringInsights = reliableWeightedInsights;
     final scoringWeight = scoringInsights.fold<double>(
       0,
       (total, entry) => total + entry.value,
@@ -65,7 +66,9 @@ class RunningCoachingService {
             : 0;
 
     return RunningCoachingReport(
-      overallScore: math.max(0, weightedTotal.round() - coveragePenalty),
+      overallScore: scoringInsights.isEmpty
+          ? 0
+          : math.max(0, weightedTotal.round() - coveragePenalty),
       insights: insights,
     );
   }
@@ -103,7 +106,7 @@ class RunningCoachingService {
     return RunningCoachingInsight(
       metric: RunningCoachMetric.posture,
       finding: RunningCoachFinding.postureAligned,
-      status: RunningCoachStatus.good,
+      status: _statusForInRangeScore(score),
       score: score,
       value: leanDegrees,
       quality: quality,
@@ -134,7 +137,7 @@ class RunningCoachingService {
     return RunningCoachingInsight(
       metric: RunningCoachMetric.bounce,
       finding: RunningCoachFinding.bounceEfficient,
-      status: RunningCoachStatus.good,
+      status: _statusForInRangeScore(score),
       score: score,
       value: bouncePercent,
       quality: quality,
@@ -169,7 +172,7 @@ class RunningCoachingService {
     return RunningCoachingInsight(
       metric: RunningCoachMetric.footStrike,
       finding: RunningCoachFinding.footStrikeUnderBody,
-      status: RunningCoachStatus.good,
+      status: _statusForInRangeScore(score),
       score: score,
       value: strikeRatio,
       quality: quality,
@@ -209,7 +212,7 @@ class RunningCoachingService {
     return RunningCoachingInsight(
       metric: RunningCoachMetric.kneeFlexion,
       finding: RunningCoachFinding.kneeFlexionLoaded,
-      status: RunningCoachStatus.good,
+      status: _statusForInRangeScore(score),
       score: score,
       value: kneeAngleDegrees,
       quality: quality,
@@ -249,7 +252,7 @@ class RunningCoachingService {
     return RunningCoachingInsight(
       metric: RunningCoachMetric.armCarriage,
       finding: RunningCoachFinding.armCompact,
-      status: RunningCoachStatus.good,
+      status: _statusForInRangeScore(score),
       score: score,
       value: elbowAngleDegrees,
       quality: quality,
@@ -262,6 +265,13 @@ class RunningCoachingService {
     return RunningCoachStatus.needsWork;
   }
 
+  /// The outer target range is a coaching guardrail, not proof of an ideal
+  /// movement. Values inside it but far from the calibrated center are shown
+  /// as "watch" rather than being promoted to "good".
+  RunningCoachStatus _statusForInRangeScore(int score) {
+    return score >= 85 ? RunningCoachStatus.good : RunningCoachStatus.watch;
+  }
+
   RunningMetricQuality _qualityForResult(
     RunningVideoAnalysisResult result,
     RunningCoachMetric metric,
@@ -269,6 +279,17 @@ class RunningCoachingService {
     final metricQuality = result.qualityFor(metric);
     if (metricQuality != null) {
       return metricQuality;
+    }
+    // New analyzer payloads always include every metric quality. If one is
+    // missing from a non-empty quality map, the measurement is unavailable;
+    // do not invent confidence from overall frame coverage. Completely legacy
+    // payloads (with no quality map) keep the previous compatibility path.
+    if (result.metricQualities.isNotEmpty) {
+      return const RunningMetricQuality(
+        confidence: 0,
+        sampleCount: 0,
+        reason: 'metric_unavailable',
+      );
     }
     final confidence = result.analysisConfidence;
     final reason =

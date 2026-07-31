@@ -38,6 +38,12 @@ jobs:
       - name: Generate l10n
         run: flutter gen-l10n
 
+      - name: Verify release contracts
+        run: ./scripts/verify.sh
+
+      - name: Run Flutter tests
+        run: flutter test
+
       - name: Build web
         run: >
           flutter build web

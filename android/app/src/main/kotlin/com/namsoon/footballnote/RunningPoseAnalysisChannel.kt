@@ -98,6 +98,12 @@ class RunningPoseAnalysisChannel(
                     "Please select a running clip that is at least 1.5 seconds long.",
                 )
             }
+            if (durationMs > maxVideoDurationMs) {
+                throw AnalysisException(
+                    "video_too_long",
+                    "Please trim the running clip to 15 seconds or less.",
+                )
+            }
 
             val coarseLandmarker = makePoseLandmarker()
             coarsePoseLandmarker = coarseLandmarker
@@ -120,15 +126,19 @@ class RunningPoseAnalysisChannel(
             }
 
             val direction = resolveDirection(frameSamples)
-            val averageScale = frameSamples.map { it.bodyScale }.average().coerceAtLeast(1.0)
             val leanDegrees = frameSamples
                 .map { it.forwardLeanDegrees(direction) }
                 .average()
-            val shoulderYs = frameSamples.map { it.shoulderCenter.y.toDouble() }
-            val bounceRatio = (
-                (shoulderYs.maxOrNull() ?: 0.0) -
-                    (shoulderYs.minOrNull() ?: 0.0)
-                ) / averageScale
+            val normalizedShoulderYs = frameSamples.map {
+                it.shoulderCenter.y.toDouble() / it.bodyScale.coerceAtLeast(1.0)
+            }
+            val lowerBouncePosition = percentile(normalizedShoulderYs, 0.10)
+            val upperBouncePosition = percentile(normalizedShoulderYs, 0.90)
+            val bounceRatio = if (lowerBouncePosition == null || upperBouncePosition == null) {
+                0.0
+            } else {
+                (upperBouncePosition - lowerBouncePosition).coerceAtLeast(0.0)
+            }
             val detectedCandidateSet = deriveContactCandidateWindows(frameSamples, durationMs)
             val candidateSet = if (detectedCandidateSet.windows.isEmpty()) {
                 fallbackContactCandidateWindows(frameSamples, durationMs)
@@ -487,6 +497,23 @@ class RunningPoseAnalysisChannel(
         val upperIndex = sortedValues.size / 2
         val lowerIndex = (sortedValues.size - 1) / 2
         return (sortedValues[lowerIndex] + sortedValues[upperIndex]) / 2.0
+    }
+
+    private fun percentile(values: List<Double>, fraction: Double): Double? {
+        if (values.isEmpty()) {
+            return null
+        }
+        val sortedValues = values.sorted()
+        val index = ((sortedValues.size - 1) * fraction)
+            .coerceIn(0.0, (sortedValues.size - 1).toDouble())
+        val lowerIndex = kotlin.math.floor(index).toInt()
+        val upperIndex = kotlin.math.ceil(index).toInt()
+        if (lowerIndex == upperIndex) {
+            return sortedValues[lowerIndex]
+        }
+        val weight = index - lowerIndex
+        return sortedValues[lowerIndex] +
+            ((sortedValues[upperIndex] - sortedValues[lowerIndex]) * weight)
     }
 
     private fun deriveContactCandidateWindows(
@@ -1489,6 +1516,7 @@ class RunningPoseAnalysisChannel(
         private const val sharpnessSampleWidth = 96
         private const val sharpnessSampleHeight = 64
         private const val minVideoDurationMs = 1500L
+        private const val maxVideoDurationMs = 15000L
         private const val minimumLikelihood = 0.35f
         private const val minimumBodyScalePx = 40.0
         private const val mediaPipePoseLandmarkCount = 33
@@ -1501,7 +1529,7 @@ class RunningPoseAnalysisChannel(
         private const val maxDenseFrameBudget = 48
         private const val maxContactWindows = 6
         private const val minimumContactCenterSeparationMs = 120L
-        private const val minimumValidatedContactFrames = 2
+        private const val minimumValidatedContactFrames = 3
         private const val minimumContactFrameConfidence = 0.34
         private const val contactProxyConfidencePenalty = 0.60
         private const val coarseContactProxyConfidencePenalty = 0.42

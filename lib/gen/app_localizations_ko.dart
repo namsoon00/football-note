@@ -8662,11 +8662,11 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachSampleBounceDetailGoodRange =>
-      '바운스는 머리와 엉덩이 높이 변화에 대한 코칭 가이드 범위와 이 클립의 실제 측정값을 함께 비교해요.';
+      '바운스는 상체 높이 변화에 대한 코칭 가이드 범위와 이 클립의 실제 측정값을 함께 비교해요.';
 
   @override
   String get runningCoachSampleBounceDetailKeyPosition =>
-      '공중-접지 전환 구간: 이웃 프레임의 머리와 엉덩이 높이 변화를 비교해요.';
+      '보폭 구간: 여러 프레임에서 상체 기준점의 이동 경로를 비교해요.';
 
   @override
   String get runningCoachSampleBounceDetailReference =>
@@ -8678,7 +8678,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachSampleBounceDetailHowRead =>
-      '앱은 보폭 전체에서 머리와 엉덩이 높이 범위를 추적하고 수직 변화 비율을 점수화해요.';
+      '앱은 한 프레임의 튐을 줄이기 위해 상체 높이 표본의 가운데 80% 범위를 사용해요. 점프 높이가 아니라 코칭용 추정값이에요.';
 
   @override
   String get runningCoachDenseContactEvidenceTitle => '정밀 접지 근거';
@@ -9346,6 +9346,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachVideoTooShort => '영상이 너무 짧아요. 몇 걸음 이상 달리는 장면을 찍어 주세요.';
 
   @override
+  String get runningCoachVideoTooLong => '영상이 너무 길어요. 15초 이하로 잘라서 다시 시도해 주세요.';
+
+  @override
+  String get runningCoachVideoTooLarge =>
+      '기기에서 분석하기에 영상 파일이 너무 커요. 5~15초의 더 작은 영상으로 잘라서 내보내 주세요.';
+
+  @override
   String get runningCoachVideoTooBlurry =>
       '영상이 흔들리거나 흐려서 정확히 분석할 수 없어요. 휴대폰을 고정하고 전신과 양발이 보이는 선명한 측면 영상으로 다시 찍어 주세요.';
 
@@ -9360,6 +9367,10 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get runningCoachAnalysisFailedGeneric =>
       '달리기 분석에 실패했어요. 측면이 더 잘 보이는 영상으로 다시 시도해 주세요.';
+
+  @override
+  String get runningCoachAnalysisTimedOut =>
+      '분석 시간이 너무 오래 걸렸어요. 더 짧고 선명한 측면 영상으로 다시 시도해 주세요.';
 
   @override
   String get runningCoachLowerBodyEvidenceLimited =>
@@ -9432,7 +9443,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachResultDetailsTitle => '세부 분석';
 
   @override
-  String get runningCoachReportDetailsBody => '필요할 때 5개 자세 항목을 확인하세요.';
+  String get runningCoachReportDetailsBody =>
+      '아래에 5개 자세 항목을 모두 보여 줘요. ‘주의’는 넓은 가이드 범위 안이라는 뜻이지, 완전히 좋다는 뜻은 아니에요.';
 
   @override
   String get runningCoachAnalysisHistoryTitle => '코칭 분석 기록';
@@ -9448,6 +9460,37 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachAnalysisHistoryEmpty => '아직 저장된 코칭 분석 기록이 없어요.';
+
+  @override
+  String get runningCoachHistoryClearAllAction => '전체 삭제';
+
+  @override
+  String get runningCoachHistoryClearAllTitle => '코칭 분석 기록을 모두 삭제할까요?';
+
+  @override
+  String get runningCoachHistoryClearAllBody =>
+      '저장된 모든 분석과, 이 기기에 저장하기로 선택한 영상이 함께 삭제돼요.';
+
+  @override
+  String get runningCoachHistoryDeleteTitle => '이 분석 기록을 삭제할까요?';
+
+  @override
+  String get runningCoachHistoryDeleteBody =>
+      '분석 기록과 함께 저장된 영상이 있다면 그 영상도 이 기기에서 삭제돼요.';
+
+  @override
+  String get runningCoachSaveVideoTitle => '분석과 함께 이 영상 저장';
+
+  @override
+  String get runningCoachSaveVideoBody =>
+      '기본값은 꺼짐이에요. 분석 기록을 삭제할 때까지 이 기기에 영상을 남기고 싶을 때만 켜세요.';
+
+  @override
+  String get runningCoachVideoSaveFailedTitle => '영상이 저장되지 않았어요';
+
+  @override
+  String get runningCoachVideoSaveFailedBody =>
+      '분석 기록은 저장됐지만, 이 기기에 영상 사본을 남기지 못했어요. 지금 결과는 계속 확인할 수 있어요.';
 
   @override
   String get runningCoachAnalysisHistoryDetailTitle => '분석 리포트';
@@ -9738,6 +9781,17 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachPostureGoodDrill => '드릴: 벽 마치 15m를 2번 하세요.';
+
+  @override
+  String get runningCoachInRangeWatchSummary =>
+      '넓은 가이드 범위 안이지만, ‘좋음’이라고 할 만큼 목표 중심에 가깝지는 않아요.';
+
+  @override
+  String get runningCoachInRangeWatchCue =>
+      '큰 자세 변화는 바로 시도하지 말고, 편한 리듬으로 2~3개의 비슷한 영상을 먼저 비교해 보세요.';
+
+  @override
+  String get runningCoachInRangeWatchDrill => '드릴: 편하게 20m를 2번 달린 뒤 다시 측정하세요.';
 
   @override
   String get runningCoachPostureUprightSummary =>

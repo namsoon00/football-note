@@ -76,6 +76,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
       const RunningCoachingService();
   RunningCoachHistoryService? _historyService;
   XFile? _selectedVideo;
+  bool _saveSelectedVideoToHistory = false;
   List<RunningCoachSessionAnalysis> _recentSessions =
       const <RunningCoachSessionAnalysis>[];
   _RunningCoachSampleAnalysisBundle? _sampleAnalysisCache;
@@ -123,10 +124,15 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
           isAnalyzing: _isAnalyzing,
           canAnalyze: _canAnalyze,
           canCapture: !kIsWeb,
+          canSaveVideo: !kIsWeb && _historyService != null,
+          saveVideoToHistory: _saveSelectedVideoToHistory,
           onShowSampleGuide: _showSampleAnalysis,
           onCaptureVideo: _captureVideo,
           onPickVideo: _pickVideo,
           onAnalyzeVideo: _analyzeVideo,
+          onSaveVideoChanged: (value) {
+            setState(() => _saveSelectedVideoToHistory = value);
+          },
         ),
         if (_recentSessions.isNotEmpty) ...[
           const SizedBox(height: 12),
@@ -222,11 +228,13 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
         child: SizedBox(
           height: MediaQuery.sizeOf(sheetContext).height * 0.82,
           child: _AnalysisHistorySheet(
-            sessions: sessions,
+            initialSessions: sessions,
             onSessionSelected: (session) {
               Navigator.of(sheetContext).pop();
               _openAnalysisHistoryDetail(session);
             },
+            onDeleteSession: _deleteAnalysisHistorySession,
+            onClearAll: _clearAnalysisHistory,
           ),
         ),
       ),
@@ -250,6 +258,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
       if (!mounted || selected == null) return;
       setState(() {
         _selectedVideo = selected;
+        _saveSelectedVideoToHistory = false;
       });
     } catch (_) {
       if (!mounted) return;
@@ -268,6 +277,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
       }
       setState(() {
         _selectedVideo = captured;
+        _saveSelectedVideoToHistory = false;
       });
     } catch (_) {
       if (!mounted) {
@@ -283,6 +293,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
   Future<void> _analyzeVideo() async {
     final selected = _selectedVideo;
     if (selected == null || _isAnalyzing) return;
+    final saveVideoToHistory = _saveSelectedVideoToHistory;
     setState(() => _isAnalyzing = true);
     try {
       final analyzedAt = DateTime.now();
@@ -296,6 +307,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
               report: report,
               sourceVideoPath: selected.path,
               sourceVideoName: selected.name,
+              saveVideo: saveVideoToHistory,
               analyzedAt: analyzedAt,
             );
       final session = updatedSessions.isNotEmpty
@@ -310,17 +322,28 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
       setState(() {
         _recentSessions = updatedSessions;
         _selectedVideo = null;
+        _saveSelectedVideoToHistory = false;
       });
       _openAnalysisResult(
         result: analysis,
         report: report,
         session: session,
+        activeVideoPath: selected.path,
+        videoSaveFailed: saveVideoToHistory &&
+            historyService != null &&
+            session.videoPath == null,
       );
     } on RunningVideoAnalysisException catch (error) {
       if (!mounted) return;
       AppFeedback.showMessage(
         context,
         text: _messageForException(AppLocalizations.of(context)!, error),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      AppFeedback.showMessage(
+        context,
+        text: AppLocalizations.of(context)!.runningCoachAnalysisFailedGeneric,
       );
     } finally {
       if (mounted) {
@@ -350,6 +373,8 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
       primaryScore: primary.score,
       primaryValue: primary.value,
       primaryConfidence: primary.quality.confidence,
+      primarySampleCount: primary.quality.sampleCount,
+      primaryQualityReason: primary.quality.reason,
       metricSnapshots: report.rankedInsights
           .map(RunningCoachSessionMetric.fromInsight)
           .toList(growable: false),
@@ -363,6 +388,8 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
     required RunningVideoAnalysisResult result,
     required RunningCoachingReport report,
     required RunningCoachSessionAnalysis session,
+    String? activeVideoPath,
+    bool videoSaveFailed = false,
   }) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
@@ -370,9 +397,34 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
           result: result,
           report: report,
           session: session,
+          activeVideoPath: activeVideoPath,
+          videoSaveFailed: videoSaveFailed,
         ),
       ),
     );
+  }
+
+  Future<List<RunningCoachSessionAnalysis>> _deleteAnalysisHistorySession(
+    RunningCoachSessionAnalysis session,
+  ) async {
+    final historyService = _historyService;
+    if (historyService == null) return _recentSessions;
+    final updated = await historyService.deleteSession(session.id);
+    if (mounted) {
+      setState(() => _recentSessions = updated);
+    }
+    return updated;
+  }
+
+  Future<List<RunningCoachSessionAnalysis>> _clearAnalysisHistory() async {
+    final historyService = _historyService;
+    if (historyService == null) return _recentSessions;
+    await historyService.clear();
+    const updated = <RunningCoachSessionAnalysis>[];
+    if (mounted) {
+      setState(() => _recentSessions = updated);
+    }
+    return updated;
   }
 
   String _messageForException(
@@ -387,10 +439,13 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
       'web_video_decode_failed' => l10n.runningCoachWebVideoDecodeFailed,
       'missing_file' => l10n.runningCoachVideoFileMissing,
       'video_too_short' => l10n.runningCoachVideoTooShort,
+      'video_too_long' => l10n.runningCoachVideoTooLong,
+      'video_too_large' => l10n.runningCoachVideoTooLarge,
       'video_too_blurry' => l10n.runningCoachVideoTooBlurry,
       'no_pose_detected' => l10n.runningCoachNoPoseDetected,
       'insufficient_contact_evidence' =>
         l10n.runningCoachInsufficientContactEvidence,
+      'analysis_timeout' => l10n.runningCoachAnalysisTimedOut,
       _ => l10n.runningCoachAnalysisFailedGeneric,
     };
   }
@@ -439,20 +494,26 @@ class _RunningCoachUploadGuideCard extends StatelessWidget {
   final bool isAnalyzing;
   final bool canAnalyze;
   final bool canCapture;
+  final bool canSaveVideo;
+  final bool saveVideoToHistory;
   final VoidCallback onShowSampleGuide;
   final VoidCallback onCaptureVideo;
   final VoidCallback onPickVideo;
   final VoidCallback onAnalyzeVideo;
+  final ValueChanged<bool> onSaveVideoChanged;
 
   const _RunningCoachUploadGuideCard({
     required this.selectedVideoName,
     required this.isAnalyzing,
     required this.canAnalyze,
     required this.canCapture,
+    required this.canSaveVideo,
+    required this.saveVideoToHistory,
     required this.onShowSampleGuide,
     required this.onCaptureVideo,
     required this.onPickVideo,
     required this.onAnalyzeVideo,
+    required this.onSaveVideoChanged,
   });
 
   @override
@@ -534,6 +595,18 @@ class _RunningCoachUploadGuideCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 10),
+              if (canSaveVideo)
+                SwitchListTile.adaptive(
+                  key: const ValueKey('running-coach-save-video-switch'),
+                  contentPadding: EdgeInsets.zero,
+                  value: saveVideoToHistory,
+                  onChanged: isAnalyzing ? null : onSaveVideoChanged,
+                  title: Text(l10n.runningCoachSaveVideoTitle),
+                  subtitle: Text(
+                    l10n.runningCoachSaveVideoBody,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ),
               SizedBox(
                 width: double.infinity,
                 child: FilledButton.icon(
@@ -4587,22 +4660,9 @@ class _RecentSessionTile extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            DecoratedBox(
-              decoration: BoxDecoration(
-                color: scheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                child: Text(
-                  '${session.overallScore}',
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium
-                      ?.copyWith(fontWeight: FontWeight.w800),
-                ),
-              ),
+            _ScoreBadge(
+              score: session.overallScore,
+              isReliable: _sessionHasReliableScore(session),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -4685,14 +4745,94 @@ class _TinySessionPill extends StatelessWidget {
   }
 }
 
-class _AnalysisHistorySheet extends StatelessWidget {
-  final List<RunningCoachSessionAnalysis> sessions;
+class _AnalysisHistorySheet extends StatefulWidget {
+  final List<RunningCoachSessionAnalysis> initialSessions;
   final ValueChanged<RunningCoachSessionAnalysis> onSessionSelected;
+  final Future<List<RunningCoachSessionAnalysis>> Function(
+    RunningCoachSessionAnalysis session,
+  ) onDeleteSession;
+  final Future<List<RunningCoachSessionAnalysis>> Function() onClearAll;
 
   const _AnalysisHistorySheet({
-    required this.sessions,
+    required this.initialSessions,
     required this.onSessionSelected,
+    required this.onDeleteSession,
+    required this.onClearAll,
   });
+
+  @override
+  State<_AnalysisHistorySheet> createState() => _AnalysisHistorySheetState();
+}
+
+class _AnalysisHistorySheetState extends State<_AnalysisHistorySheet> {
+  late List<RunningCoachSessionAnalysis> _sessions;
+  bool _isUpdating = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _sessions = List<RunningCoachSessionAnalysis>.from(
+      widget.initialSessions,
+    );
+  }
+
+  Future<void> _deleteSession(RunningCoachSessionAnalysis session) async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.runningCoachHistoryDeleteTitle),
+        content: Text(l10n.runningCoachHistoryDeleteBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.delete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    setState(() => _isUpdating = true);
+    final updated = await widget.onDeleteSession(session);
+    if (!mounted) return;
+    setState(() {
+      _sessions = updated;
+      _isUpdating = false;
+    });
+  }
+
+  Future<void> _clearAll() async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.runningCoachHistoryClearAllTitle),
+        content: Text(l10n.runningCoachHistoryClearAllBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.runningCoachHistoryClearAllAction),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    setState(() => _isUpdating = true);
+    final updated = await widget.onClearAll();
+    if (!mounted) return;
+    setState(() {
+      _sessions = updated;
+      _isUpdating = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -4718,6 +4858,12 @@ class _AnalysisHistorySheet extends StatelessWidget {
                   ],
                 ),
               ),
+              if (_sessions.isNotEmpty)
+                TextButton(
+                  key: const ValueKey('running-coach-history-clear-all'),
+                  onPressed: _isUpdating ? null : _clearAll,
+                  child: Text(l10n.runningCoachHistoryClearAllAction),
+                ),
               AppBarActionButton.icon(
                 tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
                 onPressed: () => Navigator.of(context).pop(),
@@ -4726,7 +4872,7 @@ class _AnalysisHistorySheet extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 14),
-          if (sessions.isEmpty)
+          if (_sessions.isEmpty)
             Expanded(
               child: Center(
                 child: Text(
@@ -4739,13 +4885,15 @@ class _AnalysisHistorySheet extends StatelessWidget {
           else
             Expanded(
               child: ListView.separated(
-                itemCount: sessions.length,
+                itemCount: _sessions.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 10),
                 itemBuilder: (context, index) {
-                  final session = sessions[index];
+                  final session = _sessions[index];
                   return _AnalysisHistoryTile(
                     session: session,
-                    onTap: () => onSessionSelected(session),
+                    onTap: () => widget.onSessionSelected(session),
+                    onDelete:
+                        _isUpdating ? null : () => _deleteSession(session),
                   );
                 },
               ),
@@ -4759,8 +4907,13 @@ class _AnalysisHistorySheet extends StatelessWidget {
 class _AnalysisHistoryTile extends StatelessWidget {
   final RunningCoachSessionAnalysis session;
   final VoidCallback onTap;
+  final VoidCallback? onDelete;
 
-  const _AnalysisHistoryTile({required this.session, required this.onTap});
+  const _AnalysisHistoryTile({
+    required this.session,
+    required this.onTap,
+    this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -4797,7 +4950,10 @@ class _AnalysisHistoryTile extends StatelessWidget {
                                 ?.copyWith(fontWeight: FontWeight.w900),
                           ),
                         ),
-                        _ScoreBadge(score: session.overallScore),
+                        _ScoreBadge(
+                          score: session.overallScore,
+                          isReliable: _sessionHasReliableScore(session),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 6),
@@ -4839,8 +4995,32 @@ class _AnalysisHistoryTile extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
-              Icon(Icons.chevron_right_rounded, color: scheme.outline),
+              Column(
+                children: [
+                  Semantics(
+                    button: true,
+                    label: l10n.delete,
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        key: ValueKey(
+                          'running-coach-history-delete-${session.id}',
+                        ),
+                        borderRadius: BorderRadius.circular(999),
+                        onTap: onDelete,
+                        child: Padding(
+                          padding: const EdgeInsets.all(10),
+                          child: Icon(
+                            Icons.delete_outline_rounded,
+                            color: scheme.error,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Icon(Icons.chevron_right_rounded, color: scheme.outline),
+                ],
+              ),
             ],
           ),
         ),
@@ -4854,20 +5034,23 @@ class _RunningAnalysisResultScreen extends StatelessWidget {
   final RunningCoachingReport report;
   final RunningCoachSessionAnalysis session;
   final bool isHistorical;
+  final String? activeVideoPath;
+  final bool videoSaveFailed;
 
   const _RunningAnalysisResultScreen({
     required this.result,
     required this.report,
     required this.session,
     this.isHistorical = false,
+    this.activeVideoPath,
+    this.videoSaveFailed = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final insightSections = _buildRunningInsightSections(l10n, report);
-    final primaryInsight = report.primaryFocus ??
-        (report.rankedInsights.isEmpty ? null : report.rankedInsights.first);
+    final primaryInsight = report.primaryFocus;
     return Scaffold(
       appBar: AppBar(title: Text(l10n.runningCoachAnalysisResultScreenTitle)),
       body: ListView(
@@ -4882,16 +5065,120 @@ class _RunningAnalysisResultScreen extends StatelessWidget {
               session: session,
               insight: primaryInsight,
               isHistorical: isHistorical,
+              videoPath: activeVideoPath ?? session.videoPath,
             ),
             const SizedBox(height: 12),
+          ] else ...[
+            const _AnalysisRetakeActionCard(),
+            const SizedBox(height: 12),
           ],
+          if (videoSaveFailed) ...[
+            const _VideoSaveFailedCard(),
+            const SizedBox(height: 12),
+          ],
+          _ResultsSummaryCard(result: result, report: report),
+          const SizedBox(height: 12),
           _ReportDetailsCard(
             result: result,
             report: report,
             sections: insightSections,
           ),
-          const SizedBox(height: 12),
-          _ResultsSummaryCard(result: result, report: report),
+        ],
+      ),
+    );
+  }
+}
+
+class _VideoSaveFailedCard extends StatelessWidget {
+  const _VideoSaveFailedCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      key: const ValueKey('running-coach-video-save-failed'),
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: scheme.secondaryContainer,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: scheme.secondary.withValues(alpha: 0.22)),
+      ),
+      padding: const EdgeInsets.all(14),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.save_outlined, color: scheme.onSecondaryContainer),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.runningCoachVideoSaveFailedTitle,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: scheme.onSecondaryContainer,
+                        fontWeight: FontWeight.w900,
+                      ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  l10n.runningCoachVideoSaveFailedBody,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: scheme.onSecondaryContainer,
+                      ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AnalysisRetakeActionCard extends StatelessWidget {
+  const _AnalysisRetakeActionCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      key: const ValueKey('running-coach-analysis-retake-action'),
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: scheme.errorContainer,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: scheme.error.withValues(alpha: 0.22)),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.videocam_outlined, color: scheme.onErrorContainer),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.runningCoachEvidenceRetakeLabel,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: scheme.onErrorContainer,
+                        fontWeight: FontWeight.w900,
+                      ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  l10n.runningCoachEvidenceInsufficientBody,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: scheme.onErrorContainer,
+                      ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -5044,12 +5331,14 @@ class _AnalysisEvidenceCard extends StatefulWidget {
   final RunningCoachSessionAnalysis session;
   final RunningCoachingInsight insight;
   final bool isHistorical;
+  final String? videoPath;
 
   const _AnalysisEvidenceCard({
     required this.result,
     required this.session,
     required this.insight,
     this.isHistorical = false,
+    this.videoPath,
   });
 
   @override
@@ -5085,7 +5374,7 @@ class _AnalysisEvidenceCardState extends State<_AnalysisEvidenceCard> {
       );
       _selectedIndex = 0;
     }
-    if (oldWidget.session.videoPath != widget.session.videoPath) {
+    if (oldWidget.videoPath != widget.videoPath) {
       _resetVideo();
       unawaited(_initializeVideo());
     }
@@ -5109,7 +5398,7 @@ class _AnalysisEvidenceCardState extends State<_AnalysisEvidenceCard> {
 
   Future<void> _initializeVideo() async {
     final requestGeneration = ++_videoLoadGeneration;
-    final path = widget.session.videoPath;
+    final path = widget.videoPath;
     if (path == null || path.isEmpty) {
       if (!mounted || requestGeneration != _videoLoadGeneration) return;
       setState(() {
@@ -6595,7 +6884,9 @@ _MetricEvidenceGate _metricEvidenceGate(
     );
   }
   final minimumSamples = switch (insight.metric) {
-    RunningCoachMetric.footStrike || RunningCoachMetric.kneeFlexion => 2,
+    RunningCoachMetric.footStrike ||
+    RunningCoachMetric.kneeFlexion =>
+      runningCoachMinimumReliableMetricSamples,
     RunningCoachMetric.posture ||
     RunningCoachMetric.bounce ||
     RunningCoachMetric.armCarriage =>
@@ -6609,8 +6900,7 @@ _MetricEvidenceGate _metricEvidenceGate(
   }
   if ((insight.metric == RunningCoachMetric.footStrike ||
           insight.metric == RunningCoachMetric.kneeFlexion) &&
-      (result.contactWindows.isEmpty ||
-          result.validatedContactFrameTimestamps.isEmpty)) {
+      (result.contactWindows.isEmpty || !result.hasDenseContactEvidence)) {
     return const _MetricEvidenceGate(
       isReliable: false,
       reason: _MetricEvidenceGateReason.missingContact,
@@ -8869,7 +9159,8 @@ class _ResultsSummaryCard extends StatelessWidget {
         );
     final quality = reliableMetricCount == 0
         ? _AnalysisQualityLevel.retake
-        : reliableMetricCount >= 3 && result.hasDenseContactEvidence
+        : reliableMetricCount == report.insights.length &&
+                result.hasDenseContactEvidence
             ? _AnalysisQualityLevel.strong
             : _AnalysisQualityLevel.limited;
     final qualityTitle = switch (quality) {
@@ -8968,7 +9259,7 @@ class _ResultsSummaryCard extends StatelessWidget {
                         value:
                             '${result.validatedContactFrameTimestamps.length}',
                       ),
-                      if (quality != _AnalysisQualityLevel.retake)
+                      if (quality == _AnalysisQualityLevel.strong)
                         _StatChip(
                           label: l10n.runningCoachOverallScoreLabel,
                           value: '$score',
@@ -9450,6 +9741,14 @@ String _formatSessionDate(
   final local = session.analyzedAt.toLocal();
   final material = MaterialLocalizations.of(context);
   return '${material.formatShortDate(local)} ${TimeOfDay.fromDateTime(local).format(context)}';
+}
+
+bool _sessionHasReliableScore(RunningCoachSessionAnalysis session) {
+  return session.insights.length == RunningCoachMetric.values.length &&
+      session.insights.every(
+        (insight) => insight.quality.isReliableForCoaching,
+      ) &&
+      session.analysisResult?.hasDenseContactEvidence == true;
 }
 
 class _ScoreBadge extends StatelessWidget {

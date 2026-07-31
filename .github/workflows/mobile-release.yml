@@ -32,9 +32,30 @@ permissions:
   contents: read
 
 jobs:
+  quality:
+    name: Release quality gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      - name: Verify release contracts
+        run: ./scripts/verify.sh
+
+      - name: Run Flutter tests
+        run: flutter test
+
   android:
     name: Android Release
     runs-on: ubuntu-latest
+    needs: quality
     if: ${{ github.event_name == 'push' || inputs.target == 'android' || inputs.target == 'both' }}
     steps:
       - uses: actions/checkout@v4
@@ -126,6 +147,7 @@ jobs:
   ios:
     name: iOS Release
     runs-on: macos-14
+    needs: quality
     if: ${{ github.event_name == 'push' || inputs.target == 'ios' || inputs.target == 'both' }}
     steps:
       - uses: actions/checkout@v4

@@ -65,6 +65,7 @@ for required in (
     "\"model_missing\"",
     "\"mediapipe_pose_failed\"",
     "\"video_too_short\"",
+    "\"video_too_long\"",
     "\"video_too_blurry\"",
     "\"no_pose_detected\"",
     "\"insufficient_contact_evidence\"",
@@ -85,6 +86,8 @@ for required in (
     "frameSharpness",
     "sharpnessValues",
     "minimumMedianSharpness",
+    "maxVideoDurationMs",
+    "percentile",
 ):
     require(required in channel_text, f"upload channel is missing required token: {required}")
 
@@ -105,6 +108,7 @@ for required in (
     '"model_missing"',
     '"mediapipe_pose_failed"',
     '"video_too_short"',
+    '"video_too_long"',
     '"video_too_blurry"',
     '"no_pose_detected"',
     '"insufficient_contact_evidence"',
@@ -125,6 +129,8 @@ for required in (
     "frameSharpness",
     "sharpnessValues",
     "minimumMedianSharpness",
+    "maxVideoDurationMs",
+    "percentile",
 ):
     require(required in ios_text, f"iOS running channel is missing required token: {required}")
 
@@ -179,6 +185,26 @@ require(
     "iOS running channel must keep the 14-frame sampling window",
 )
 require(
+    re.search(r"private const val maxVideoDurationMs\s*=\s*15000L\b", channel_text)
+    is not None,
+    "Android upload analysis must reject clips longer than 15 seconds",
+)
+require(
+    re.search(r"private static let maxVideoDurationMs\s*=\s*15000\b", ios_text)
+    is not None,
+    "iOS upload analysis must reject clips longer than 15 seconds",
+)
+require(
+    re.search(r"private const val minimumValidatedContactFrames\s*=\s*3\b", channel_text)
+    is not None,
+    "Android lower-body coaching must require three validated contacts",
+)
+require(
+    re.search(r"private static let minimumValidatedContactFrames\s*=\s*3\b", ios_text)
+    is not None,
+    "iOS lower-body coaching must require three validated contacts",
+)
+require(
     re.search(r"private const val minimumLikelihood\s*=\s*0\.35f\b", channel_text)
     is not None,
     "upload channel must keep the 0.35 MediaPipe confidence threshold",
@@ -223,11 +249,11 @@ require(
         re.DOTALL,
     )
     is not None,
-    "Android dense contact evidence must require at least two unique selected events",
+    "Android dense contact evidence must require unique selected contact events",
 )
 require(
     "Set(contactFrames.map(\\.timestampMs)).count" in ios_text,
-    "iOS dense contact evidence must require at least two unique selected events",
+    "iOS dense contact evidence must require unique selected contact events",
 )
 require(
     "selectedByTimestamp" in channel_text and "selectedByTimestamp" in ios_text,

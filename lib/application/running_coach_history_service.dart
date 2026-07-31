@@ -55,15 +55,18 @@ class RunningCoachHistoryService {
     required RunningCoachingReport report,
     String? sourceVideoPath,
     String? sourceVideoName,
+    bool saveVideo = false,
     DateTime? analyzedAt,
   }) async {
     final timestamp = analyzedAt ?? DateTime.now();
     final primary = report.primaryFocus ?? report.rankedInsights.first;
-    final archivedVideo = await archiveRunningCoachVideo(
-      sourcePath: sourceVideoPath,
-      sourceName: sourceVideoName,
-      timestamp: timestamp,
-    );
+    final archivedVideo = saveVideo
+        ? await archiveRunningCoachVideo(
+            sourcePath: sourceVideoPath,
+            sourceName: sourceVideoName,
+            timestamp: timestamp,
+          )
+        : null;
     final existingSessions = allSessions();
     final next = <RunningCoachSessionAnalysis>[
       RunningCoachSessionAnalysis(
@@ -80,12 +83,16 @@ class RunningCoachHistoryService {
         primaryScore: primary.score,
         primaryValue: primary.value,
         primaryConfidence: primary.quality.confidence,
+        primarySampleCount: primary.quality.sampleCount,
+        primaryQualityReason: primary.quality.reason,
         metricSnapshots: report.rankedInsights
             .map(RunningCoachSessionMetric.fromInsight)
             .toList(growable: false),
         analysisResult: result.historySnapshot(),
         videoPath: archivedVideo?.path,
-        videoName: archivedVideo?.name ?? sourceVideoName,
+        // Keep neither a reusable path nor the original filename unless the
+        // runner explicitly opted into retaining the source video.
+        videoName: archivedVideo?.name,
       ),
       ...existingSessions,
     ];
@@ -98,6 +105,23 @@ class RunningCoachHistoryService {
     await deleteArchivedRunningCoachVideos(
       existingSessions.map((session) => session.videoPath),
     );
+  }
+
+  Future<List<RunningCoachSessionAnalysis>> deleteSession(
+      String sessionId) async {
+    final existingSessions = allSessions();
+    final removed = existingSessions
+        .where((session) => session.id == sessionId)
+        .toList(growable: false);
+    if (removed.isEmpty) return existingSessions;
+    final retained = existingSessions
+        .where((session) => session.id != sessionId)
+        .toList(growable: false);
+    await _persist(retained);
+    await deleteArchivedRunningCoachVideos(
+      removed.map((session) => session.videoPath),
+    );
+    return List<RunningCoachSessionAnalysis>.unmodifiable(retained);
   }
 
   Future<void> _persist(List<RunningCoachSessionAnalysis> sessions) async {

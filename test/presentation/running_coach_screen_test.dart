@@ -142,6 +142,11 @@ void main() {
     await tester.pump();
 
     expect(find.text('captured-running-video.mp4'), findsOneWidget);
+    final saveVideoToggle = find.byKey(
+      const ValueKey('running-coach-save-video-switch'),
+    );
+    expect(saveVideoToggle, findsOneWidget);
+    expect(tester.widget<SwitchListTile>(saveVideoToggle).value, isFalse);
     expect(
       find.text('Analyze run'),
       findsOneWidget,
@@ -917,13 +922,25 @@ void main() {
       stanceKneeAngleDegrees: 150,
       elbowAngleDegrees: 96,
       metricQualities: <RunningCoachMetric, RunningMetricQuality>{
+        RunningCoachMetric.posture: RunningMetricQuality(
+          confidence: 0.84,
+          sampleCount: 12,
+        ),
+        RunningCoachMetric.bounce: RunningMetricQuality(
+          confidence: 0.84,
+          sampleCount: 12,
+        ),
         RunningCoachMetric.footStrike: RunningMetricQuality(
           confidence: 0.84,
-          sampleCount: 2,
+          sampleCount: 3,
         ),
         RunningCoachMetric.kneeFlexion: RunningMetricQuality(
           confidence: 0.84,
-          sampleCount: 2,
+          sampleCount: 3,
+        ),
+        RunningCoachMetric.armCarriage: RunningMetricQuality(
+          confidence: 0.84,
+          sampleCount: 12,
         ),
       },
       coarseSamples: RunningAnalysisSampleSummary(
@@ -957,10 +974,20 @@ void main() {
           validatedContactTimestamps: <Duration>[Duration(milliseconds: 500)],
           confidence: 0.86,
         ),
+        RunningContactWindow(
+          start: Duration(milliseconds: 820),
+          center: Duration(milliseconds: 1000),
+          end: Duration(milliseconds: 1180),
+          side: RunningContactSide.right,
+          denseSampleCount: 4,
+          validatedContactTimestamps: <Duration>[Duration(milliseconds: 1000)],
+          confidence: 0.84,
+        ),
       ],
       validatedContactFrameTimestamps: <Duration>[
         Duration.zero,
         Duration(milliseconds: 500),
+        Duration(milliseconds: 1000),
       ],
       contactConfidence: 0.84,
     );
@@ -1008,11 +1035,11 @@ void main() {
     );
 
     await tester.scrollUntilVisible(
-      find.text('0.00초, 0.50초'),
+      find.text('0.00초, 0.50초, 1.00초'),
       -400,
       scrollable: find.byType(Scrollable).first,
     );
-    expect(find.text('0.00초, 0.50초'), findsOneWidget);
+    expect(find.text('0.00초, 0.50초, 1.00초'), findsOneWidget);
   });
 
   testWidgets('analysis result shows navigable evidence at 320px portrait', (
@@ -1133,7 +1160,7 @@ void main() {
       find.byKey(const ValueKey('running-coach-3d-runner-platform-view')),
       findsNothing,
     );
-    expect(find.text('Evidence 1/2'), findsOneWidget);
+    expect(find.text('Evidence 1/3'), findsOneWidget);
     expect(tester.takeException(), isNull);
 
     final nextEvidence = find.byKey(
@@ -1145,7 +1172,7 @@ void main() {
     await tester.tap(nextEvidence);
     await tester.pump();
 
-    expect(find.text('Evidence 2/2'), findsOneWidget);
+    expect(find.text('Evidence 2/3'), findsOneWidget);
     final reportDetails = find.byKey(
       const ValueKey('running-coach-report-details'),
     );
@@ -1383,10 +1410,10 @@ void main() {
     await tester.pump();
 
     expect(
-      find.byKey(const ValueKey('running-coach-analysis-evidence-retake')),
+      find.byKey(const ValueKey('running-coach-analysis-retake-action')),
       findsOneWidget,
     );
-    expect(find.text('Retake this clip'), findsOneWidget);
+    expect(find.text('Retake setup'), findsOneWidget);
     expect(find.text('Evidence limited'), findsWidgets);
     final qualityDetails = find.byKey(
       const ValueKey('running-coach-analysis-quality-details'),
@@ -1394,11 +1421,12 @@ void main() {
     await _scrollAnalysisResultUntilFound(tester, qualityDetails);
     await tester.tap(qualityDetails);
     await tester.pump(const Duration(milliseconds: 250));
-    final limitedEvidenceNotice = find.byKey(
-      const ValueKey('running-coach-lower-body-evidence-limited'),
+    expect(
+      find.byKey(
+        const ValueKey('running-coach-lower-body-evidence-limited'),
+      ),
+      findsNothing,
     );
-    await _scrollAnalysisResultUntilFound(tester, limitedEvidenceNotice);
-    expect(limitedEvidenceNotice, findsOneWidget);
     expect(find.textContaining('Metric score 14'), findsNothing);
     expect(
       find.byKey(const ValueKey('running-coach-analysis-evidence-overlay')),
@@ -1480,7 +1508,7 @@ RunningCoachSessionAnalysis _sessionForReport({
   required RunningVideoAnalysisResult result,
   required RunningCoachingReport report,
 }) {
-  final primary = report.primaryFocus!;
+  final primary = report.primaryFocus ?? report.rankedInsights.first;
   return RunningCoachSessionAnalysis(
     id: id,
     analyzedAt: DateTime(2026, 7, 14, 9),
@@ -1495,6 +1523,8 @@ RunningCoachSessionAnalysis _sessionForReport({
     primaryScore: primary.score,
     primaryValue: primary.value,
     primaryConfidence: primary.quality.confidence,
+    primarySampleCount: primary.quality.sampleCount,
+    primaryQualityReason: primary.quality.reason,
   );
 }
 
@@ -1658,11 +1688,11 @@ Map<RunningCoachMetric, RunningMetricQuality> _testDenseMetricQualities() {
   return const <RunningCoachMetric, RunningMetricQuality>{
     RunningCoachMetric.footStrike: RunningMetricQuality(
       confidence: 0.84,
-      sampleCount: 2,
+      sampleCount: 3,
     ),
     RunningCoachMetric.kneeFlexion: RunningMetricQuality(
       confidence: 0.84,
-      sampleCount: 2,
+      sampleCount: 3,
     ),
   };
 }
@@ -1671,6 +1701,7 @@ List<Duration> _testContactTimestamps() {
   return const <Duration>[
     Duration.zero,
     Duration(milliseconds: 500),
+    Duration(milliseconds: 1000),
   ];
 }
 
@@ -1693,6 +1724,15 @@ List<RunningContactWindow> _testContactWindows() {
       denseSampleCount: 4,
       validatedContactTimestamps: <Duration>[Duration(milliseconds: 500)],
       confidence: 0.86,
+    ),
+    RunningContactWindow(
+      start: Duration(milliseconds: 820),
+      center: Duration(milliseconds: 1000),
+      end: Duration(milliseconds: 1180),
+      side: RunningContactSide.right,
+      denseSampleCount: 4,
+      validatedContactTimestamps: <Duration>[Duration(milliseconds: 1000)],
+      confidence: 0.84,
     ),
   ];
 }

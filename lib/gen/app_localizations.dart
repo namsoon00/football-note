@@ -15530,13 +15530,13 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleBounceDetailGoodRange.
   ///
   /// In en, this message translates to:
-  /// **'Use the coaching guide range for vertical head and hip change, then compare it with this clip\'s measured value.'**
+  /// **'Use the coaching guide range for upper-body vertical change, then compare it with this clip\'s measured value.'**
   String get runningCoachSampleBounceDetailGoodRange;
 
   /// No description provided for @runningCoachSampleBounceDetailKeyPosition.
   ///
   /// In en, this message translates to:
-  /// **'Flight-to-contact window: head and hip height are compared across neighboring frames.'**
+  /// **'Stride window: the upper-body landmark path is compared across multiple frames.'**
   String get runningCoachSampleBounceDetailKeyPosition;
 
   /// No description provided for @runningCoachSampleBounceDetailReference.
@@ -15554,7 +15554,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleBounceDetailHowRead.
   ///
   /// In en, this message translates to:
-  /// **'The app tracks the head and hip height band through the stride and scores the vertical change ratio.'**
+  /// **'The app uses the central 80% of upper-body height samples to reduce one-frame spikes. It is a coaching estimate, not a jump-height measurement.'**
   String get runningCoachSampleBounceDetailHowRead;
 
   /// No description provided for @runningCoachDenseContactEvidenceTitle.
@@ -16655,6 +16655,18 @@ abstract class AppLocalizations {
   /// **'The video is too short. Record at least a few running steps.'**
   String get runningCoachVideoTooShort;
 
+  /// No description provided for @runningCoachVideoTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'The video is too long. Trim it to 15 seconds or less.'**
+  String get runningCoachVideoTooLong;
+
+  /// No description provided for @runningCoachVideoTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'The video is too large for on-device analysis. Trim or export a smaller 5–15 second clip.'**
+  String get runningCoachVideoTooLarge;
+
   /// No description provided for @runningCoachVideoTooBlurry.
   ///
   /// In en, this message translates to:
@@ -16678,6 +16690,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Running analysis failed. Try another clip with a clearer side view.'**
   String get runningCoachAnalysisFailedGeneric;
+
+  /// No description provided for @runningCoachAnalysisTimedOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysis took too long. Try a shorter, clearer side-view clip.'**
+  String get runningCoachAnalysisTimedOut;
 
   /// No description provided for @runningCoachLowerBodyEvidenceLimited.
   ///
@@ -16802,7 +16820,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachReportDetailsBody.
   ///
   /// In en, this message translates to:
-  /// **'Open this only when you want to inspect all five form checks.'**
+  /// **'All five form checks are shown below. Watch means the value is inside a broad guide range, not a full pass.'**
   String get runningCoachReportDetailsBody;
 
   /// No description provided for @runningCoachAnalysisHistoryTitle.
@@ -16828,6 +16846,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No saved coaching analyses yet.'**
   String get runningCoachAnalysisHistoryEmpty;
+
+  /// No description provided for @runningCoachHistoryClearAllAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all'**
+  String get runningCoachHistoryClearAllAction;
+
+  /// No description provided for @runningCoachHistoryClearAllTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all coaching analyses?'**
+  String get runningCoachHistoryClearAllTitle;
+
+  /// No description provided for @runningCoachHistoryClearAllBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This removes every saved analysis and any video you chose to save on this device.'**
+  String get runningCoachHistoryClearAllBody;
+
+  /// No description provided for @runningCoachHistoryDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this analysis?'**
+  String get runningCoachHistoryDeleteTitle;
+
+  /// No description provided for @runningCoachHistoryDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This removes the analysis and its locally saved video, if one exists.'**
+  String get runningCoachHistoryDeleteBody;
+
+  /// No description provided for @runningCoachSaveVideoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save this video with the analysis'**
+  String get runningCoachSaveVideoTitle;
+
+  /// No description provided for @runningCoachSaveVideoBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Off by default. Turn this on only if you want a local copy kept until you delete the analysis.'**
+  String get runningCoachSaveVideoBody;
+
+  /// No description provided for @runningCoachVideoSaveFailedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Video was not saved'**
+  String get runningCoachVideoSaveFailedTitle;
+
+  /// No description provided for @runningCoachVideoSaveFailedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The analysis is saved, but this device could not keep a local video copy. You can still review this result now.'**
+  String get runningCoachVideoSaveFailedBody;
 
   /// No description provided for @runningCoachAnalysisHistoryDetailTitle.
   ///
@@ -17314,6 +17386,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Drill: Do two 15 m wall marches.'**
   String get runningCoachPostureGoodDrill;
+
+  /// No description provided for @runningCoachInRangeWatchSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'This value is inside the broad guide range, but not close enough to the target center to call it good.'**
+  String get runningCoachInRangeWatchSummary;
+
+  /// No description provided for @runningCoachInRangeWatchCue.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the rhythm relaxed and compare two or three similar clips before making a large form change.'**
+  String get runningCoachInRangeWatchCue;
+
+  /// No description provided for @runningCoachInRangeWatchDrill.
+  ///
+  /// In en, this message translates to:
+  /// **'Drill: Run two relaxed 20 m repeats, then remeasure.'**
+  String get runningCoachInRangeWatchDrill;
 
   /// No description provided for @runningCoachPostureUprightSummary.
   ///

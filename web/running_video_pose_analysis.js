@@ -4,6 +4,7 @@
   const config = Object.freeze({
     taskVersion: '0.10.35',
     minVideoDurationMs: 1500,
+    maxVideoDurationMs: 15000,
     minConfidence: 0.35,
     minValidFrames: 6,
     sampleCount: 14,
@@ -19,7 +20,7 @@
     maxDenseFrames: 48,
     maxContactWindows: 6,
     minContactSeparationMs: 120,
-    minValidatedContacts: 2,
+    minValidatedContacts: 3,
     minContactConfidence: 0.34,
   });
 
@@ -61,6 +62,18 @@
     const upper = Math.floor(sorted.length / 2);
     const lower = Math.floor((sorted.length - 1) / 2);
     return (sorted[lower] + sorted[upper]) / 2;
+  };
+  const percentile = (values, fraction) => {
+    if (values.length === 0) return null;
+    const sorted = [...values].sort((a, b) => a - b);
+    const index = Math.max(
+      0,
+      Math.min(sorted.length - 1, (sorted.length - 1) * fraction),
+    );
+    const lower = Math.floor(index);
+    const upper = Math.ceil(index);
+    if (lower === upper) return sorted[lower];
+    return sorted[lower] + ((sorted[upper] - sorted[lower]) * (index - lower));
   };
   const distance = (first, second) =>
     Math.hypot(first.x - second.x, first.y - second.y);
@@ -751,6 +764,12 @@
           'Please select a running clip that is at least 1.5 seconds long.',
         );
       }
+      if (durationMs > config.maxVideoDurationMs) {
+        throw createError(
+          'video_too_long',
+          'Please trim the running clip to 15 seconds or less.',
+        );
+      }
       if (video.videoWidth <= 0 || video.videoHeight <= 0) {
         throw createError('web_video_decode_failed', 'The selected video has no readable frames.');
       }
@@ -772,12 +791,20 @@
       }
 
       const direction = resolveDirection(coarse.samples);
-      const averageScale = Math.max(1, average(coarse.samples.map((sample) => sample.bodyScale)));
       const leanDegrees = average(
         coarse.samples.map((sample) => forwardLeanDegrees(sample, direction)),
       );
-      const shoulderYs = coarse.samples.map((sample) => sample.shoulderCenter.y);
-      const bounceRatio = (Math.max(...shoulderYs) - Math.min(...shoulderYs)) / averageScale;
+      // Use the central 80% of body-scale-normalized shoulder positions.
+      // A single tracking spike should not make a compact stride look like an
+      // exaggerated jump.
+      const normalizedShoulderYs = coarse.samples.map(
+        (sample) => sample.shoulderCenter.y / Math.max(1, sample.bodyScale),
+      );
+      const lowerBouncePosition = percentile(normalizedShoulderYs, 0.10);
+      const upperBouncePosition = percentile(normalizedShoulderYs, 0.90);
+      const bounceRatio = lowerBouncePosition === null || upperBouncePosition === null
+        ? 0
+        : Math.max(0, upperBouncePosition - lowerBouncePosition);
       let candidateSet = deriveContactCandidates(coarse.samples, durationMs);
       if (candidateSet.windows.length === 0) {
         candidateSet = fallbackContactCandidates(coarse.samples, durationMs);

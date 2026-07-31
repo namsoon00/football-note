@@ -89,4 +89,7 @@ if [[ "${VERIFY_SCOPE}" == "minimal" ]]; then
   exit 0
 fi
 
-echo "==> full verification complete (flutter test/run skipped by local policy)"
+echo "==> flutter test"
+run_with_timeout 600 flutter test
+
+echo "==> full verification complete"

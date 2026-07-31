@@ -8886,11 +8886,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSampleBounceDetailGoodRange =>
-      'Use the coaching guide range for vertical head and hip change, then compare it with this clip\'s measured value.';
+      'Use the coaching guide range for upper-body vertical change, then compare it with this clip\'s measured value.';
 
   @override
   String get runningCoachSampleBounceDetailKeyPosition =>
-      'Flight-to-contact window: head and hip height are compared across neighboring frames.';
+      'Stride window: the upper-body landmark path is compared across multiple frames.';
 
   @override
   String get runningCoachSampleBounceDetailReference =>
@@ -8902,7 +8902,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSampleBounceDetailHowRead =>
-      'The app tracks the head and hip height band through the stride and scores the vertical change ratio.';
+      'The app uses the central 80% of upper-body height samples to reduce one-frame spikes. It is a coaching estimate, not a jump-height measurement.';
 
   @override
   String get runningCoachDenseContactEvidenceTitle => 'Dense contact evidence';
@@ -9598,6 +9598,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'The video is too short. Record at least a few running steps.';
 
   @override
+  String get runningCoachVideoTooLong =>
+      'The video is too long. Trim it to 15 seconds or less.';
+
+  @override
+  String get runningCoachVideoTooLarge =>
+      'The video is too large for on-device analysis. Trim or export a smaller 5–15 second clip.';
+
+  @override
   String get runningCoachVideoTooBlurry =>
       'This video is too blurry for a precise result. Keep the phone still and record a clearer side view with your whole body and both feet visible.';
 
@@ -9612,6 +9620,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get runningCoachAnalysisFailedGeneric =>
       'Running analysis failed. Try another clip with a clearer side view.';
+
+  @override
+  String get runningCoachAnalysisTimedOut =>
+      'Analysis took too long. Try a shorter, clearer side-view clip.';
 
   @override
   String get runningCoachLowerBodyEvidenceLimited =>
@@ -9689,7 +9701,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachReportDetailsBody =>
-      'Open this only when you want to inspect all five form checks.';
+      'All five form checks are shown below. Watch means the value is inside a broad guide range, not a full pass.';
 
   @override
   String get runningCoachAnalysisHistoryTitle => 'Coaching analysis history';
@@ -9706,6 +9718,37 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get runningCoachAnalysisHistoryEmpty =>
       'No saved coaching analyses yet.';
+
+  @override
+  String get runningCoachHistoryClearAllAction => 'Clear all';
+
+  @override
+  String get runningCoachHistoryClearAllTitle => 'Clear all coaching analyses?';
+
+  @override
+  String get runningCoachHistoryClearAllBody =>
+      'This removes every saved analysis and any video you chose to save on this device.';
+
+  @override
+  String get runningCoachHistoryDeleteTitle => 'Delete this analysis?';
+
+  @override
+  String get runningCoachHistoryDeleteBody =>
+      'This removes the analysis and its locally saved video, if one exists.';
+
+  @override
+  String get runningCoachSaveVideoTitle => 'Save this video with the analysis';
+
+  @override
+  String get runningCoachSaveVideoBody =>
+      'Off by default. Turn this on only if you want a local copy kept until you delete the analysis.';
+
+  @override
+  String get runningCoachVideoSaveFailedTitle => 'Video was not saved';
+
+  @override
+  String get runningCoachVideoSaveFailedBody =>
+      'The analysis is saved, but this device could not keep a local video copy. You can still review this result now.';
 
   @override
   String get runningCoachAnalysisHistoryDetailTitle => 'Analysis review';
@@ -10006,6 +10049,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachPostureGoodDrill => 'Drill: Do two 15 m wall marches.';
+
+  @override
+  String get runningCoachInRangeWatchSummary =>
+      'This value is inside the broad guide range, but not close enough to the target center to call it good.';
+
+  @override
+  String get runningCoachInRangeWatchCue =>
+      'Keep the rhythm relaxed and compare two or three similar clips before making a large form change.';
+
+  @override
+  String get runningCoachInRangeWatchDrill =>
+      'Drill: Run two relaxed 20 m repeats, then remeasure.';
 
   @override
   String get runningCoachPostureUprightSummary =>
