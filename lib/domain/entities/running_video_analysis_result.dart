@@ -408,6 +408,15 @@ class RunningVideoAnalysisResult {
   /// snapshots retain their existing value semantics.
   RunningGaitAnalysis? get gaitAnalysis => _deriveRunningGaitAnalysis(this);
 
+  /// Rhythm measurements calculated from verified contact timestamps.
+  ///
+  /// This deliberately has a lower evidence requirement than [gaitAnalysis]:
+  /// cadence and the time between verified contacts do not require a complete
+  /// pose frame at every contact. Pose-dependent measurements (foot placement,
+  /// knee, trunk, and arm ranges) still remain behind [gaitAnalysis].
+  RunningRhythmAnalysis? get rhythmAnalysis =>
+      _deriveRunningRhythmAnalysis(this);
+
   Duration? nearestValidatedContactTimestamp(
     Duration position, {
     Duration tolerance = const Duration(milliseconds: 90),
@@ -628,6 +637,194 @@ class RunningGaitDistribution {
       sampleCount: values.length,
     );
   }
+}
+
+/// One contact used solely for timing and rhythm measurements.
+///
+/// The side is kept as [RunningContactSide.unknown] when the analyzer could
+/// validate a contact timestamp but could not defensibly assign it to a foot.
+class RunningRhythmContact {
+  final Duration timestamp;
+  final RunningContactSide side;
+  final double confidence;
+
+  const RunningRhythmContact({
+    required this.timestamp,
+    required this.side,
+    required this.confidence,
+  });
+}
+
+/// Timing-only information that can be shown even when a full pose/contact
+/// pairing is unavailable. This is an estimate of consecutive contact timing,
+/// never an exact ground-contact-duration measurement.
+class RunningRhythmAnalysis {
+  final List<RunningRhythmContact> contacts;
+  final double? cadenceSpm;
+  final double? medianStepTimeMs;
+  final double? leftRightStepTimeAsymmetryPercent;
+  final int validIntervalCount;
+
+  const RunningRhythmAnalysis({
+    required this.contacts,
+    required this.cadenceSpm,
+    required this.medianStepTimeMs,
+    required this.leftRightStepTimeAsymmetryPercent,
+    required this.validIntervalCount,
+  });
+
+  int get reliableContactCount => contacts
+      .where((contact) =>
+          contact.confidence >= runningCoachReliableMetricConfidence)
+      .length;
+
+  bool get hasReliableSample =>
+      reliableContactCount >= runningCoachMinimumReliableMetricSamples &&
+      validIntervalCount >= runningCoachMinimumReliableMetricSamples - 1;
+
+  int get leftContactCount => contacts
+      .where((contact) => contact.side == RunningContactSide.left)
+      .length;
+
+  int get rightContactCount => contacts
+      .where((contact) => contact.side == RunningContactSide.right)
+      .length;
+
+  bool get hasBilateralSample =>
+      leftContactCount >= 2 && rightContactCount >= 2;
+}
+
+RunningRhythmAnalysis? _deriveRunningRhythmAnalysis(
+  RunningVideoAnalysisResult result,
+) {
+  if (!result.hasDenseContactEvidence) return null;
+
+  final timestamps = result.validatedContactFrameTimestamps
+      .map((timestamp) => timestamp.inMilliseconds)
+      .toSet()
+      .toList(growable: false)
+    ..sort();
+  if (timestamps.length < runningCoachMinimumReliableMetricSamples) {
+    return null;
+  }
+
+  final contacts = timestamps
+      .map(
+        (timestamp) => _rhythmContactForTimestamp(
+          result: result,
+          timestampMs: timestamp,
+        ),
+      )
+      .toList(growable: false);
+  final timing = _rhythmTimingSummary(contacts);
+  return RunningRhythmAnalysis(
+    contacts: List<RunningRhythmContact>.unmodifiable(contacts),
+    cadenceSpm: timing.cadenceSpm,
+    medianStepTimeMs: timing.medianStepTimeMs,
+    leftRightStepTimeAsymmetryPercent: timing.asymmetryPercent,
+    validIntervalCount: timing.validIntervalCount,
+  );
+}
+
+RunningRhythmContact _rhythmContactForTimestamp({
+  required RunningVideoAnalysisResult result,
+  required int timestampMs,
+}) {
+  RunningContactWindow? nearestWindow;
+  var nearestDistanceMs = 181;
+  for (final window in result.contactWindows) {
+    final isInside =
+        timestampMs >= window.startMs && timestampMs <= window.endMs;
+    final distanceMs = (timestampMs - window.centerMs).abs();
+    if (!isInside && distanceMs > 180) continue;
+    if (nearestWindow == null || distanceMs < nearestDistanceMs) {
+      nearestWindow = window;
+      nearestDistanceMs = distanceMs;
+    }
+  }
+  final windowConfidence = nearestWindow?.confidence ?? 0;
+  final fallbackConfidence = result.contactConfidence;
+  final confidence = windowConfidence > 0 && fallbackConfidence > 0
+      ? math.min(windowConfidence, fallbackConfidence)
+      : math.max(windowConfidence, fallbackConfidence);
+  return RunningRhythmContact(
+    timestamp: Duration(milliseconds: timestampMs),
+    side: nearestWindow?.side ?? RunningContactSide.unknown,
+    confidence: confidence.clamp(0.0, 1.0).toDouble(),
+  );
+}
+
+class _RunningRhythmTimingSummary {
+  final double? cadenceSpm;
+  final double? medianStepTimeMs;
+  final double? asymmetryPercent;
+  final int validIntervalCount;
+
+  const _RunningRhythmTimingSummary({
+    required this.cadenceSpm,
+    required this.medianStepTimeMs,
+    required this.asymmetryPercent,
+    required this.validIntervalCount,
+  });
+}
+
+_RunningRhythmTimingSummary _rhythmTimingSummary(
+  List<RunningRhythmContact> contacts,
+) {
+  if (contacts.length < runningCoachMinimumReliableMetricSamples) {
+    return const _RunningRhythmTimingSummary(
+      cadenceSpm: null,
+      medianStepTimeMs: null,
+      asymmetryPercent: null,
+      validIntervalCount: 0,
+    );
+  }
+  final intervals = <double>[];
+  final byStartingSide = <RunningContactSide, List<double>>{
+    RunningContactSide.left: <double>[],
+    RunningContactSide.right: <double>[],
+  };
+  for (var index = 0; index < contacts.length - 1; index += 1) {
+    final current = contacts[index];
+    final next = contacts[index + 1];
+    final hasKnownSameSide =
+        current.side != RunningContactSide.unknown && current.side == next.side;
+    if (hasKnownSameSide) continue;
+    final interval =
+        (next.timestamp.inMilliseconds - current.timestamp.inMilliseconds)
+            .toDouble();
+    if (interval < 120 || interval > 1000) continue;
+    intervals.add(interval);
+    if (current.side != RunningContactSide.unknown &&
+        next.side != RunningContactSide.unknown) {
+      byStartingSide[current.side]!.add(interval);
+    }
+  }
+  final distribution = RunningGaitDistribution.fromValues(intervals);
+  final left = RunningGaitDistribution.fromValues(
+    byStartingSide[RunningContactSide.left]!,
+  );
+  final right = RunningGaitDistribution.fromValues(
+    byStartingSide[RunningContactSide.right]!,
+  );
+  final asymmetry = left != null &&
+          right != null &&
+          left.sampleCount >= 2 &&
+          right.sampleCount >= 2
+      ? ((left.median - right.median).abs() /
+              ((left.median + right.median) / 2) *
+              100)
+          .clamp(0.0, 100.0)
+          .toDouble()
+      : null;
+  return _RunningRhythmTimingSummary(
+    cadenceSpm: distribution == null || distribution.median <= 0
+        ? null
+        : 60000 / distribution.median,
+    medianStepTimeMs: distribution?.median,
+    asymmetryPercent: asymmetry,
+    validIntervalCount: intervals.length,
+  );
 }
 
 /// Fine-grained measurements that are defensible from a single fixed,

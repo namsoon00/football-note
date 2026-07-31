@@ -8153,6 +8153,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachCaptureAction => '바로 촬영';
 
   @override
+  String get runningCoachCaptureAndAnalyzeAction => '바로 촬영하고 분석하기';
+
+  @override
   String get runningCoachCaptureAgainAction => '다시 촬영';
 
   @override
@@ -9449,6 +9452,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachAnalysisQualityDetailsTitle => '측정값 자세히 보기';
 
   @override
+  String get runningCoachAnalysisQualityPosePairingLimited =>
+      '접지 시점은 확인했지만 전신 좌표 짝이 부족해 발·무릎·상체·팔의 걸음별 범위는 별도 확인이 필요해요.';
+
+  @override
   String get runningCoachVerifiedContactsLabel => '검증된 착지';
 
   @override
@@ -9607,7 +9614,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachIllustrationGoodBody =>
-      '위 영상의 측정값은 목표 범위 안에 있어요. 그림은 이 리듬을 유지하기 위한 레퍼런스입니다.';
+      '위 영상의 수치는 이 항목의 코칭 기준 안에 있어요. 전체 자세가 모두 좋다는 뜻은 아니에요.';
 
   @override
   String get runningCoachIllustrationFootnote =>
@@ -9620,7 +9627,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachMeasuredPoseTargetLabel => '다음 목표';
 
   @override
-  String get runningCoachMeasuredPoseTargetRangeLabel => '목표 범위';
+  String get runningCoachMeasuredPoseTargetRangeLabel => '코칭 기준';
 
   @override
   String get runningCoachMeasuredPoseCueLabel => '이렇게 움직여 보세요';
@@ -9634,15 +9641,14 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachMeasuredPoseGoodLegend =>
-      '초록: 현재 측정값이 이미 목표 범위 안에 있어요';
+      '초록: 이번 영상의 수치가 이 항목의 코칭 기준 안에 있어요';
 
   @override
   String get runningCoachMeasuredPoseGoodBody =>
-      '현재 측정 위치가 이미 목표 범위 안에 있어요. 이 움직임을 유지해 보세요.';
+      '현재 수치는 이 항목의 코칭 기준 안에 있어요. 전체 자세가 모두 좋다는 뜻은 아니에요.';
 
   @override
-  String get runningCoachMeasuredPoseGoodCue =>
-      '현재 움직임이 목표 범위 안에 있어요. 같은 리듬을 유지하세요.';
+  String get runningCoachMeasuredPoseGoodCue => '이 움직임은 유지하되, 다른 항목도 함께 확인하세요.';
 
   @override
   String runningCoachMeasuredPoseRangeDegrees(String minimum, String maximum) {
@@ -15320,6 +15326,30 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachGaitBody => '검증된 접지 프레임에서만 걸음·좌우·동작 단계를 나누어 다시 계산했어요.';
+
+  @override
+  String get runningCoachRhythmTitle => '러닝 리듬';
+
+  @override
+  String get runningCoachRhythmBody =>
+      '검증된 접지 시점으로 케이던스와 걸음 간 시간을 계산했어요. 정확한 접지 시간은 아니에요.';
+
+  @override
+  String get runningCoachRhythmContactsLabel => '검증된 접지';
+
+  @override
+  String get runningCoachRhythmBilateralUnavailable =>
+      '좌우 리듬 비교에는 왼발과 오른발이 구분된 접지 장면이 더 필요해요.';
+
+  @override
+  String get runningCoachRhythmEvidenceLimited => '검증된 접지가 적어 리듬 수치는 참고용이에요.';
+
+  @override
+  String get runningCoachGaitDetailsTitle => '걸음별 자세 수치와 측정 기준';
+
+  @override
+  String get runningCoachGaitDetailsCollapsedBody =>
+      '발 위치·무릎·상체·팔의 범위와 좌우 차이는 전신 좌표가 접지 장면과 짝지어지면 보여 드려요.';
 
   @override
   String get runningCoachGaitUnavailableTitle => '걸음별 수치를 아직 확정할 수 없어요';

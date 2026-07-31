@@ -104,7 +104,7 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Analyze a running video'), findsOneWidget);
-    expect(find.text('Record now'), findsOneWidget);
+    expect(find.text('Record and analyze now'), findsOneWidget);
     expect(find.text('Pick video'), findsOneWidget);
     expect(find.text('Live'), findsNothing);
     expect(find.text('Start live coaching'), findsNothing);
@@ -171,13 +171,13 @@ void main() {
     },
   );
 
-  testWidgets('coach uses an in-app capture result in the video analysis flow',
-      (
+  testWidgets('coach records and immediately analyzes a captured video', (
     WidgetTester tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(800, 1200));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
+    final analysisService = _PendingRunningVideoAnalysisService();
     await tester.pumpWidget(
       MaterialApp(
         locale: const Locale('en'),
@@ -190,6 +190,7 @@ void main() {
         supportedLocales: AppLocalizations.supportedLocales,
         home: RunningCoachScreen(
           optionRepository: _MemoryOptionRepository(),
+          analysisService: analysisService,
           captureLauncher: (_) async => XFile(
             '/tmp/captured-running-video.mp4',
             name: 'captured-running-video.mp4',
@@ -198,48 +199,17 @@ void main() {
       ),
     );
 
-    expect(find.text('Record now'), findsOneWidget);
-    await tester.tap(find.text('Record now'));
+    final directCaptureAction = find.byKey(
+      const ValueKey('running-coach-capture-and-analyze-action'),
+    );
+    expect(directCaptureAction, findsOneWidget);
+    await tester.tap(directCaptureAction);
     await tester.pump();
+    await analysisService.waitUntilCalled();
 
     expect(find.text('captured-running-video.mp4'), findsOneWidget);
-    final saveVideoToggle = find.byKey(
-      const ValueKey('running-coach-save-video-switch'),
-    );
-    expect(saveVideoToggle, findsOneWidget);
-    expect(tester.widget<SwitchListTile>(saveVideoToggle).value, isFalse);
     expect(
-      find.byKey(const ValueKey('running-coach-capture-context-picker')),
-      findsOneWidget,
-    );
-    await tester.ensureVisible(find.text('Easy'));
-    await tester.tap(find.text('Easy'));
-    await tester.pump();
-    await tester.ensureVisible(find.text('Treadmill'));
-    await tester.tap(find.text('Treadmill'));
-    await tester.pump();
-    expect(
-      tester
-          .widget<ChoiceChip>(find.widgetWithText(ChoiceChip, 'Easy'))
-          .selected,
-      isTrue,
-    );
-    expect(
-      tester
-          .widget<ChoiceChip>(find.widgetWithText(ChoiceChip, 'Treadmill'))
-          .selected,
-      isTrue,
-    );
-    expect(
-      find.text('Analyze run'),
-      findsOneWidget,
-    );
-    expect(
-      find.byKey(const ValueKey('running-coach-capture-primary-action')),
-      findsNothing,
-    );
-    expect(
-      find.byKey(const ValueKey('running-coach-capture-guide-action')),
+      find.text('Analyzing...'),
       findsOneWidget,
     );
   });
@@ -1174,10 +1144,13 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Retake setup'), findsOneWidget);
-    final fineGaitUnavailable = find.byKey(
-      const ValueKey('running-coach-fine-gait-unavailable'),
+    final fineGaitDetails = find.byKey(
+      const ValueKey('running-coach-fine-gait-details-toggle'),
     );
-    await _scrollAnalysisResultUntilFound(tester, fineGaitUnavailable);
+    await _scrollAnalysisResultUntilFound(tester, fineGaitDetails);
+    expect(find.text('Step measurements are not ready'), findsNothing);
+    await tester.tap(fineGaitDetails);
+    await tester.pumpAndSettle();
     expect(find.text('Step measurements are not ready'), findsOneWidget);
     expect(
       find.byKey(const ValueKey('running-coach-gait-limitations')),
@@ -1187,8 +1160,6 @@ void main() {
       const ValueKey('running-coach-analysis-quality-details'),
     );
     await _scrollAnalysisResultUntilFound(tester, qualityDetails);
-    expect(find.text('Evidence limited'), findsWidgets);
-    expect(find.text('Judgment withheld'), findsWidgets);
     await tester.tap(qualityDetails);
     await tester.pump(const Duration(milliseconds: 250));
     expect(
@@ -1204,6 +1175,66 @@ void main() {
     );
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets(
+    'shows verified running rhythm before full pose-paired gait values',
+    (WidgetTester tester) async {
+      await tester.binding.setSurfaceSize(const Size(390, 844));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final result = RunningVideoAnalysisResult(
+        videoDuration: const Duration(seconds: 4),
+        sampledFrames: 14,
+        validFrames: 12,
+        direction: RunningDirection.leftToRight,
+        forwardLeanDegrees: 10,
+        verticalBounceRatio: 0.06,
+        footStrikeDistanceRatio: 0.10,
+        stanceKneeAngleDegrees: 154,
+        elbowAngleDegrees: 90,
+        denseSamples: const RunningAnalysisSampleSummary(
+          attemptedFrames: 12,
+          validFrames: 12,
+          poseFrameCount: 0,
+          targetFps: 30,
+        ),
+        contactWindows: _testContactWindows(),
+        validatedContactFrameTimestamps: _testContactTimestamps(),
+        contactConfidence: 0.84,
+      );
+      final report = const RunningCoachingService().buildReport(result);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: runningAnalysisResultScreenForTesting(
+            result: result,
+            report: report,
+            session: _sessionForReport(
+              id: 'rhythm-before-pose-pairing',
+              result: result,
+              report: report,
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      final rhythmCard = find.byKey(
+        const ValueKey('running-coach-rhythm-card'),
+      );
+      await _scrollAnalysisResultUntilFound(tester, rhythmCard);
+      expect(find.text('Running rhythm'), findsOneWidget);
+      expect(find.text('Cadence (spm)'), findsOneWidget);
+      expect(find.text('Step time (ms)'), findsOneWidget);
+      expect(find.text('Step measurements are not ready'), findsNothing);
+    },
+  );
 }
 
 Future<void> _scrollAnalysisResultUntilFound(

@@ -28,11 +28,18 @@ real-video frames and writes all generated MP4 files and reports under
 - A lower-body score or next-step prescription requires at least three unique
   validated contact events. Coarse contact proxies remain visible only as
   limited evidence; they do not drive the overall score or next goal.
-- Step-by-step measurements are derived only where a validated contact frame
-  can be paired with a pose frame. The product may show contact foot placement,
-  knee angle, post-contact minimum knee angle, torso angle, elbow angle,
-  cadence, and left/right differences; it withholds a coaching judgment when
-  the required evidence is missing.
+- Cadence and the time between verified contacts are shown whenever at least
+  three verified contact timestamps are available, even if a full pose frame
+  cannot be paired to every contact. They are explicitly labelled as rhythm
+  estimates, not exact ground-contact time.
+- Foot placement, knee angle, post-contact minimum knee angle, torso angle,
+  elbow angle, and geometric left/right differences are derived only where a
+  validated contact frame can be paired with a full pose frame. The detailed
+  unavailable explanation is collapsed by default; the product never fills
+  missing pose values with an inferred runner shape.
+- A left/right rhythm difference is shown only after both feet have enough
+  confidently identified contact events. Unknown-side contact timing may still
+  contribute to cadence, but not to a bilateral comparison.
 - A runner can save effort and surface conditions with a recording. Trend
   comparison is enabled only when both recordings use the same saved
   conditions and each has a sufficient step sample. It shows values before and
@@ -42,7 +49,8 @@ real-video frames and writes all generated MP4 files and reports under
   fields must never be inferred from this product's result.
 - Values inside an outer coaching range are not automatically labelled
   `Good`. A value must also be close enough to the calibrated target center;
-  otherwise it is shown as `Watch`.
+  otherwise it is shown as `Watch`. Result visuals call the range a
+  **coaching reference**, not a universal correctness verdict.
 - Source videos are not retained by default. A runner must explicitly opt in
   to local video retention, and deleting an analysis removes its managed local
   video as well. Browser uploads are never represented as durable saved videos.
@@ -136,9 +144,12 @@ iPhone and one physical Android phone for:
 1. Rear-camera portrait capture, side-view 5-10 second running clip.
 2. Video upload and post-analysis, including an upright overlay and full-body
    framing decision.
-3. Live coaching with a fully visible runner, partial lower-body occlusion,
+3. Mobile-browser direct capture on Safari and Chrome: the web action must
+   open the rear-camera capture input where the browser supports it, then
+   return the recorded file to on-device analysis.
+4. Live coaching with a fully visible runner, partial lower-body occlusion,
    and a runner entering/leaving the frame.
-4. Indoor and outdoor lighting, with analyzed FPS, processing time, dropped
+5. Indoor and outdoor lighting, with analyzed FPS, processing time, dropped
    frames, thermal behavior, and user-visible coaching stability captured.
 
 Until those measurements are collected from the native camera/plugin path,

@@ -8364,6 +8364,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachCaptureAction => 'Record now';
 
   @override
+  String get runningCoachCaptureAndAnalyzeAction => 'Record and analyze now';
+
+  @override
   String get runningCoachCaptureAgainAction => 'Record again';
 
   @override
@@ -9706,6 +9709,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'View measurement details';
 
   @override
+  String get runningCoachAnalysisQualityPosePairingLimited =>
+      'Contact timing was verified, but there are not enough paired full-body pose frames for per-step foot, knee, trunk, and arm ranges.';
+
+  @override
   String get runningCoachVerifiedContactsLabel => 'Verified landings';
 
   @override
@@ -9867,7 +9874,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachIllustrationGoodBody =>
-      'Your measurement in the video above is in range. This illustration is a reference for keeping that rhythm.';
+      'This video\'s value is inside the coaching reference for this item. It does not mean your entire form is universally good.';
 
   @override
   String get runningCoachIllustrationFootnote =>
@@ -9880,7 +9887,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachMeasuredPoseTargetLabel => 'Next target';
 
   @override
-  String get runningCoachMeasuredPoseTargetRangeLabel => 'Target range';
+  String get runningCoachMeasuredPoseTargetRangeLabel => 'Coaching reference';
 
   @override
   String get runningCoachMeasuredPoseCueLabel => 'Try this movement';
@@ -9895,15 +9902,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachMeasuredPoseGoodLegend =>
-      'Green: your current measurement is already inside the target range';
+      'Green: this video\'s value is inside the coaching reference for this item';
 
   @override
   String get runningCoachMeasuredPoseGoodBody =>
-      'Your measured position is already inside the target range. Keep this movement.';
+      'Your current value is inside the coaching reference for this item. It does not mean your entire form is universally good.';
 
   @override
   String get runningCoachMeasuredPoseGoodCue =>
-      'Your movement is in range. Keep the same rhythm.';
+      'Keep this movement, and check the other items too.';
 
   @override
   String runningCoachMeasuredPoseRangeDegrees(String minimum, String maximum) {
@@ -15804,6 +15811,32 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get runningCoachGaitBody =>
       'Only validated contact frames are used to calculate each step, side, and movement phase again.';
+
+  @override
+  String get runningCoachRhythmTitle => 'Running rhythm';
+
+  @override
+  String get runningCoachRhythmBody =>
+      'Cadence and time between steps are calculated from verified contact timestamps. This is not an exact ground-contact-time measurement.';
+
+  @override
+  String get runningCoachRhythmContactsLabel => 'Verified contacts';
+
+  @override
+  String get runningCoachRhythmBilateralUnavailable =>
+      'Left/right rhythm comparison needs more contacts with a confidently identified foot.';
+
+  @override
+  String get runningCoachRhythmEvidenceLimited =>
+      'There are too few verified contacts, so these rhythm values are reference-only.';
+
+  @override
+  String get runningCoachGaitDetailsTitle =>
+      'Step form values and measurement criteria';
+
+  @override
+  String get runningCoachGaitDetailsCollapsedBody =>
+      'Foot placement, knee, trunk, arm ranges, and side differences appear when full-body pose coordinates pair with a contact frame.';
 
   @override
   String get runningCoachGaitUnavailableTitle =>

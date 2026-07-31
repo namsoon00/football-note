@@ -125,12 +125,16 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
           selectedVideoName: _selectedVideo?.name,
           isAnalyzing: _isAnalyzing,
           canAnalyze: _canAnalyze,
-          canCapture: !kIsWeb,
+          // image_picker uses a mobile-browser capture input on the web, so
+          // this primary action can be offered consistently on the deployed
+          // web app as well as the native app.
+          canCapture: true,
           canSaveVideo: !kIsWeb && _historyService != null,
           saveVideoToHistory: _saveSelectedVideoToHistory,
           captureContext: _captureContext,
           onShowCaptureGuide: _showCaptureGuide,
           onCaptureVideo: _captureVideo,
+          onCaptureAndAnalyze: _captureAndAnalyze,
           onPickVideo: _pickVideo,
           onAnalyzeVideo: _analyzeVideo,
           onSaveVideoChanged: (value) {
@@ -290,7 +294,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
 
   Future<void> _captureVideo() async {
     try {
-      final captured = await widget.captureLauncher(context);
+      final captured = await _requestCapturedVideo();
       if (!mounted || captured == null) {
         return;
       }
@@ -309,9 +313,44 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
     }
   }
 
+  Future<void> _captureAndAnalyze() async {
+    if (_isAnalyzing) return;
+    try {
+      final captured = await _requestCapturedVideo();
+      if (!mounted || captured == null) return;
+      setState(() {
+        _selectedVideo = captured;
+        _saveSelectedVideoToHistory = false;
+      });
+      await _analyzeSelectedVideo(captured);
+    } catch (_) {
+      if (!mounted) return;
+      AppFeedback.showMessage(
+        context,
+        text: AppLocalizations.of(context)!.runningCoachCaptureFailed,
+      );
+    }
+  }
+
+  Future<XFile?> _requestCapturedVideo() {
+    if (kIsWeb) {
+      return _picker.pickVideo(
+        source: ImageSource.camera,
+        preferredCameraDevice: CameraDevice.rear,
+        maxDuration: const Duration(seconds: 15),
+      );
+    }
+    return widget.captureLauncher(context);
+  }
+
   Future<void> _analyzeVideo() async {
     final selected = _selectedVideo;
     if (selected == null || _isAnalyzing) return;
+    await _analyzeSelectedVideo(selected);
+  }
+
+  Future<void> _analyzeSelectedVideo(XFile selected) async {
+    if (_isAnalyzing) return;
     final saveVideoToHistory = _saveSelectedVideoToHistory;
     final captureContext = _captureContext.isComplete ? _captureContext : null;
     final previousComparableSession =
@@ -541,6 +580,7 @@ class _RunningCoachUploadGuideCard extends StatelessWidget {
   final RunningCoachCaptureContext captureContext;
   final VoidCallback onShowCaptureGuide;
   final VoidCallback onCaptureVideo;
+  final VoidCallback onCaptureAndAnalyze;
   final VoidCallback onPickVideo;
   final VoidCallback onAnalyzeVideo;
   final ValueChanged<bool> onSaveVideoChanged;
@@ -556,6 +596,7 @@ class _RunningCoachUploadGuideCard extends StatelessWidget {
     required this.captureContext,
     required this.onShowCaptureGuide,
     required this.onCaptureVideo,
+    required this.onCaptureAndAnalyze,
     required this.onPickVideo,
     required this.onAnalyzeVideo,
     required this.onSaveVideoChanged,
@@ -596,10 +637,12 @@ class _RunningCoachUploadGuideCard extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: FilledButton.icon(
-                    key: const ValueKey('running-coach-capture-primary-action'),
-                    onPressed: isAnalyzing ? null : onCaptureVideo,
+                    key: const ValueKey(
+                      'running-coach-capture-and-analyze-action',
+                    ),
+                    onPressed: isAnalyzing ? null : onCaptureAndAnalyze,
                     icon: const Icon(Icons.videocam_rounded),
-                    label: Text(l10n.runningCoachCaptureAction),
+                    label: Text(l10n.runningCoachCaptureAndAnalyzeAction),
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -5409,6 +5452,10 @@ class _RunningAnalysisResultScreen extends StatelessWidget {
           ],
           _ResultsSummaryCard(result: result, report: report),
           const SizedBox(height: 12),
+          if (result.rhythmAnalysis != null) ...[
+            _RunningRhythmCard(result: result),
+            const SizedBox(height: 12),
+          ],
           _RunningFineGaitCard(result: result),
           const SizedBox(height: 12),
           if (!isHistorical && session.captureContext?.isComplete == true) ...[
@@ -9492,6 +9539,8 @@ class _ResultsSummaryCard extends StatelessWidget {
         .where((insight) => insight.quality.isReliableForCoaching)
         .length;
     final hasReliableMetrics = reliableMetricCount > 0;
+    final hasPosePairedGait =
+        result.gaitAnalysis?.hasReliableStepSample == true;
     final hasLimitedLowerBodyEvidence = hasReliableMetrics &&
         report.insights.any(
           (insight) =>
@@ -9502,7 +9551,8 @@ class _ResultsSummaryCard extends StatelessWidget {
     final quality = reliableMetricCount == 0
         ? _AnalysisQualityLevel.retake
         : reliableMetricCount == report.insights.length &&
-                result.hasDenseContactEvidence
+                result.hasDenseContactEvidence &&
+                hasPosePairedGait
             ? _AnalysisQualityLevel.strong
             : _AnalysisQualityLevel.limited;
     final qualityTitle = switch (quality) {
@@ -9644,8 +9694,133 @@ class _ResultsSummaryCard extends StatelessWidget {
                     ),
                   ),
                 ],
+                if (result.hasDenseContactEvidence && !hasPosePairedGait) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    key: const ValueKey(
+                      'running-coach-pose-pairing-limited',
+                    ),
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.secondaryContainer.withValues(alpha: 0.56),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.all(10),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.straighten_rounded,
+                          size: 18,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSecondaryContainer,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            l10n.runningCoachAnalysisQualityPosePairingLimited,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RunningRhythmCard extends StatelessWidget {
+  final RunningVideoAnalysisResult result;
+
+  const _RunningRhythmCard({required this.result});
+
+  @override
+  Widget build(BuildContext context) {
+    final rhythm = result.rhythmAnalysis;
+    if (rhythm == null) return const SizedBox.shrink();
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    return Card(
+      key: const ValueKey('running-coach-rhythm-card'),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.runningCoachRhythmTitle,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+            ),
+            const SizedBox(height: 5),
+            Text(
+              l10n.runningCoachRhythmBody,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _StatChip(
+                  label: l10n.runningCoachGaitCadenceLabel,
+                  value: rhythm.cadenceSpm == null
+                      ? l10n.runningCoachGaitPhaseUnavailable
+                      : _gaitNumber(rhythm.cadenceSpm, fractionDigits: 0),
+                ),
+                _StatChip(
+                  label: l10n.runningCoachGaitStepTimeLabel,
+                  value: rhythm.medianStepTimeMs == null
+                      ? l10n.runningCoachGaitPhaseUnavailable
+                      : _gaitNumber(
+                          rhythm.medianStepTimeMs,
+                          fractionDigits: 0,
+                        ),
+                ),
+                if (rhythm.leftRightStepTimeAsymmetryPercent != null)
+                  _StatChip(
+                    label: l10n.runningCoachGaitLeftRightTimingLabel,
+                    value: _gaitNumber(
+                      rhythm.leftRightStepTimeAsymmetryPercent,
+                      fractionDigits: 1,
+                    ),
+                  ),
+                _StatChip(
+                  label: l10n.runningCoachRhythmContactsLabel,
+                  value: '${rhythm.contacts.length}',
+                ),
+              ],
+            ),
+            if (!rhythm.hasReliableSample ||
+                rhythm.leftRightStepTimeAsymmetryPercent == null) ...[
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: scheme.secondaryContainer.withValues(alpha: 0.55),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                padding: const EdgeInsets.all(10),
+                child: Text(
+                  rhythm.leftRightStepTimeAsymmetryPercent == null
+                      ? l10n.runningCoachRhythmBilateralUnavailable
+                      : l10n.runningCoachRhythmEvidenceLimited,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: scheme.onSecondaryContainer,
+                      ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -9665,27 +9840,40 @@ class _RunningFineGaitCard extends StatelessWidget {
     final gait = result.gaitAnalysis;
     if (gait == null) {
       return Card(
-        key: const ValueKey('running-coach-fine-gait-unavailable'),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
+        key: const ValueKey('running-coach-fine-gait-details'),
+        child: ExpansionTile(
+          key: const ValueKey('running-coach-fine-gait-details-toggle'),
+          tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          leading: Icon(Icons.straighten_rounded, color: scheme.primary),
+          title: Text(
+            l10n.runningCoachGaitDetailsTitle,
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w900,
+                ),
+          ),
+          subtitle: Text(
+            l10n.runningCoachGaitDetailsCollapsedBody,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          children: [
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
                 l10n.runningCoachGaitUnavailableTitle,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w900,
                     ),
               ),
-              const SizedBox(height: 6),
-              Text(
-                l10n.runningCoachGaitUnavailableBody,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              const SizedBox(height: 12),
-              _GaitLimitationsPanel(),
-            ],
-          ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              l10n.runningCoachGaitUnavailableBody,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 12),
+            _GaitLimitationsPanel(),
+          ],
         ),
       );
     }
@@ -9695,16 +9883,6 @@ class _RunningFineGaitCard extends StatelessWidget {
         label: l10n.runningCoachGaitReliableStepsLabel,
         value: '${gait.reliableStepCount}/${gait.steps.length}',
       ),
-      if (gait.cadenceSpm != null)
-        _StatChip(
-          label: l10n.runningCoachGaitCadenceLabel,
-          value: _gaitNumber(gait.cadenceSpm, fractionDigits: 0),
-        ),
-      if (gait.medianStepTimeMs != null)
-        _StatChip(
-          label: l10n.runningCoachGaitStepTimeLabel,
-          value: _gaitNumber(gait.medianStepTimeMs, fractionDigits: 0),
-        ),
       if (gait.footStrikeDistance != null)
         _StatChip(
           label: l10n.runningCoachGaitFootReachLabel,

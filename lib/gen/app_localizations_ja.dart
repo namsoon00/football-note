@@ -8147,6 +8147,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachCaptureAction => '今すぐ撮影';
 
   @override
+  String get runningCoachCaptureAndAnalyzeAction => '撮影してすぐ分析';
+
+  @override
   String get runningCoachCaptureAgainAction => '撮り直す';
 
   @override
@@ -9437,6 +9440,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachAnalysisQualityDetailsTitle => '測定値を詳しく見る';
 
   @override
+  String get runningCoachAnalysisQualityPosePairingLimited =>
+      '接地時刻は確認できましたが、歩ごとの足・膝・上体・腕の範囲には、全身座標と対応したフレームがさらに必要です。';
+
+  @override
   String get runningCoachVerifiedContactsLabel => '検証済みの着地';
 
   @override
@@ -9594,7 +9601,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachIllustrationGoodBody =>
-      '上の動画の測定値は目標範囲内です。この図はそのリズムを保つための参考例です。';
+      '上の動画の値は、この項目のコーチング基準内です。フォーム全体が常に良いという意味ではありません。';
 
   @override
   String get runningCoachIllustrationFootnote =>
@@ -9607,7 +9614,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachMeasuredPoseTargetLabel => '次の目標';
 
   @override
-  String get runningCoachMeasuredPoseTargetRangeLabel => '目標範囲';
+  String get runningCoachMeasuredPoseTargetRangeLabel => 'コーチング基準';
 
   @override
   String get runningCoachMeasuredPoseCueLabel => 'こう動かしてみましょう';
@@ -9620,14 +9627,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachMeasuredPoseImproveLegend => '赤: 現在の測定値 · 青: 次の目標';
 
   @override
-  String get runningCoachMeasuredPoseGoodLegend => '緑: 現在の測定値はすでに目標範囲内です';
+  String get runningCoachMeasuredPoseGoodLegend =>
+      '緑: 今回の動画の値は、この項目のコーチング基準内です';
 
   @override
   String get runningCoachMeasuredPoseGoodBody =>
-      '測定した位置はすでに目標範囲内です。この動きを維持しましょう。';
+      '現在の値は、この項目のコーチング基準内です。フォーム全体が常に良いという意味ではありません。';
 
   @override
-  String get runningCoachMeasuredPoseGoodCue => '現在の動きは目標範囲内です。同じリズムを保ちましょう。';
+  String get runningCoachMeasuredPoseGoodCue => 'この動きは保ちつつ、ほかの項目も確認しましょう。';
 
   @override
   String runningCoachMeasuredPoseRangeDegrees(String minimum, String maximum) {
@@ -15298,6 +15306,30 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachGaitBody => '検証済みの接地フレームだけを使い、歩ごと・左右・動作段階ごとに再計算しました。';
+
+  @override
+  String get runningCoachRhythmTitle => 'ランニングリズム';
+
+  @override
+  String get runningCoachRhythmBody =>
+      '検証済みの接地時刻からケイデンスと歩間時間を計算しました。正確な接地時間の計測ではありません。';
+
+  @override
+  String get runningCoachRhythmContactsLabel => '検証済みの接地';
+
+  @override
+  String get runningCoachRhythmBilateralUnavailable =>
+      '左右のリズム比較には、左右の足を判別できる接地場面がさらに必要です。';
+
+  @override
+  String get runningCoachRhythmEvidenceLimited => '検証済みの接地が少ないため、リズムの値は参考用です。';
+
+  @override
+  String get runningCoachGaitDetailsTitle => '歩ごとのフォーム値と計測基準';
+
+  @override
+  String get runningCoachGaitDetailsCollapsedBody =>
+      '足の位置・膝・上体・腕の範囲と左右差は、全身座標が接地フレームと対応したときに表示します。';
 
   @override
   String get runningCoachGaitUnavailableTitle => '歩ごとの数値をまだ確定できません';

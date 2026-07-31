@@ -14662,6 +14662,12 @@ abstract class AppLocalizations {
   /// **'Record now'**
   String get runningCoachCaptureAction;
 
+  /// No description provided for @runningCoachCaptureAndAnalyzeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Record and analyze now'**
+  String get runningCoachCaptureAndAnalyzeAction;
+
   /// No description provided for @runningCoachCaptureAgainAction.
   ///
   /// In en, this message translates to:
@@ -16823,6 +16829,12 @@ abstract class AppLocalizations {
   /// **'View measurement details'**
   String get runningCoachAnalysisQualityDetailsTitle;
 
+  /// No description provided for @runningCoachAnalysisQualityPosePairingLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact timing was verified, but there are not enough paired full-body pose frames for per-step foot, knee, trunk, and arm ranges.'**
+  String get runningCoachAnalysisQualityPosePairingLimited;
+
   /// No description provided for @runningCoachVerifiedContactsLabel.
   ///
   /// In en, this message translates to:
@@ -17102,7 +17114,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachIllustrationGoodBody.
   ///
   /// In en, this message translates to:
-  /// **'Your measurement in the video above is in range. This illustration is a reference for keeping that rhythm.'**
+  /// **'This video\'s value is inside the coaching reference for this item. It does not mean your entire form is universally good.'**
   String get runningCoachIllustrationGoodBody;
 
   /// No description provided for @runningCoachIllustrationFootnote.
@@ -17126,7 +17138,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachMeasuredPoseTargetRangeLabel.
   ///
   /// In en, this message translates to:
-  /// **'Target range'**
+  /// **'Coaching reference'**
   String get runningCoachMeasuredPoseTargetRangeLabel;
 
   /// No description provided for @runningCoachMeasuredPoseCueLabel.
@@ -17150,19 +17162,19 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachMeasuredPoseGoodLegend.
   ///
   /// In en, this message translates to:
-  /// **'Green: your current measurement is already inside the target range'**
+  /// **'Green: this video\'s value is inside the coaching reference for this item'**
   String get runningCoachMeasuredPoseGoodLegend;
 
   /// No description provided for @runningCoachMeasuredPoseGoodBody.
   ///
   /// In en, this message translates to:
-  /// **'Your measured position is already inside the target range. Keep this movement.'**
+  /// **'Your current value is inside the coaching reference for this item. It does not mean your entire form is universally good.'**
   String get runningCoachMeasuredPoseGoodBody;
 
   /// No description provided for @runningCoachMeasuredPoseGoodCue.
   ///
   /// In en, this message translates to:
-  /// **'Your movement is in range. Keep the same rhythm.'**
+  /// **'Keep this movement, and check the other items too.'**
   String get runningCoachMeasuredPoseGoodCue;
 
   /// No description provided for @runningCoachMeasuredPoseRangeDegrees.
@@ -27076,6 +27088,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Only validated contact frames are used to calculate each step, side, and movement phase again.'**
   String get runningCoachGaitBody;
+
+  /// No description provided for @runningCoachRhythmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Running rhythm'**
+  String get runningCoachRhythmTitle;
+
+  /// No description provided for @runningCoachRhythmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Cadence and time between steps are calculated from verified contact timestamps. This is not an exact ground-contact-time measurement.'**
+  String get runningCoachRhythmBody;
+
+  /// No description provided for @runningCoachRhythmContactsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified contacts'**
+  String get runningCoachRhythmContactsLabel;
+
+  /// No description provided for @runningCoachRhythmBilateralUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Left/right rhythm comparison needs more contacts with a confidently identified foot.'**
+  String get runningCoachRhythmBilateralUnavailable;
+
+  /// No description provided for @runningCoachRhythmEvidenceLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'There are too few verified contacts, so these rhythm values are reference-only.'**
+  String get runningCoachRhythmEvidenceLimited;
+
+  /// No description provided for @runningCoachGaitDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Step form values and measurement criteria'**
+  String get runningCoachGaitDetailsTitle;
+
+  /// No description provided for @runningCoachGaitDetailsCollapsedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Foot placement, knee, trunk, arm ranges, and side differences appear when full-body pose coordinates pair with a contact frame.'**
+  String get runningCoachGaitDetailsCollapsedBody;
 
   /// No description provided for @runningCoachGaitUnavailableTitle.
   ///
