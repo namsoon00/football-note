@@ -223,7 +223,12 @@ void main() {
     expect(find.textContaining('줄넘기/리프팅 기록 없음 · 흐림 18°C'), findsOneWidget);
     expect(find.textContaining('학교 운동장'), findsNothing);
 
-    await tester.tap(find.text('드리블, 패스 · 45분'));
+    await tester.tap(find.text('캘린더 접기'));
+    await tester.pumpAndSettle();
+
+    final trainingRow = find.text('드리블, 패스 · 45분');
+    await tester.ensureVisible(trainingRow);
+    await tester.tap(trainingRow);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
 
@@ -265,7 +270,12 @@ void main() {
 
     await pumpCalendar(tester);
 
-    await tester.tap(find.textContaining('vs 라이벌 FC').first);
+    await tester.tap(find.text('캘린더 접기'));
+    await tester.pumpAndSettle();
+
+    final matchRow = find.textContaining('vs 라이벌 FC').first;
+    await tester.ensureVisible(matchRow);
+    await tester.tap(matchRow);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
 

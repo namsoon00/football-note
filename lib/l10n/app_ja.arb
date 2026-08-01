@@ -5089,12 +5089,56 @@
   "runningCoachEvidenceReasonLimitedFrames": "この指標を判断する安定フレームが少なすぎました。",
   "runningCoachEvidenceReasonMissingPoseFrames": "このクリップには保存済みの分析姿勢フレームがありません。",
   "runningCoachEvidenceReasonMissingContact": "この下半身指標を支える接地フレームが十分に安定していませんでした。",
+  "runningCoachEvidenceReasonMissingMeasuredFrames": "保存済み姿勢フレームに、この指標を防御的に読める瞬間が含まれていません。",
   "runningCoachEvidenceContactLabel": "接地の根拠",
   "runningCoachEvidencePostureLabel": "姿勢フレーム",
   "runningCoachEvidenceBounceLabel": "上下動フレーム",
   "runningCoachEvidenceLandingLabel": "着地フレーム",
   "runningCoachEvidenceKneeLabel": "膝フレーム",
   "runningCoachEvidenceArmLabel": "腕フレーム",
+  "runningCoachEvidenceSamplesLabel": "サンプル",
+  "runningCoachEvidenceReliabilityLabel": "信頼度",
+  "runningCoachEvidenceWhyThisResultLabel": "この結果の理由",
+  "runningCoachEvidenceVideoMissingTitle": "動画を使用できません",
+  "runningCoachEvidenceVideoMissingBody": "保存済み動画がないため、この指標はテキストの根拠要約として表示します。",
+  "runningCoachEvidenceMetricRhythm": "リズム",
+  "runningCoachEvidenceMetricPosture": "姿勢",
+  "runningCoachEvidenceMetricLanding": "着地",
+  "runningCoachEvidenceMetricKnee": "膝",
+  "runningCoachEvidenceMetricBounce": "上下動",
+  "runningCoachEvidenceMetricArms": "腕",
+  "runningCoachEvidenceRhythmValue": "{cadence} spm · {stepTime} ms",
+  "@runningCoachEvidenceRhythmValue": {
+    "placeholders": {
+      "cadence": {},
+      "stepTime": {}
+    }
+  },
+  "runningCoachEvidenceWhyRhythm": "検証済み接地時刻からケイデンスとステップ時間を計算しました。",
+  "runningCoachEvidenceWhyPosture": "安定した姿勢フレームの中から、測定した前傾値に最も近いフレームを選びました。",
+  "runningCoachEvidenceWhyLanding": "検証済み接地フレームで、足と腰の間の着地距離を読みました。",
+  "runningCoachEvidenceWhyKnee": "検証済み支持局面フレームで、この膝角度を読みました。",
+  "runningCoachEvidenceWhyBounce": "腰軌道の高い点と低い点が上下動の根拠です。",
+  "runningCoachEvidenceWhyArms": "腕の根拠は、肘角度を実際に読んだフレームから取得しました。",
+  "runningCoachEvidenceRoleRhythmContact": "検証済み接地時刻",
+  "runningCoachEvidenceRolePosture": "代表姿勢フレーム",
+  "runningCoachEvidenceRoleInitialContact": "初期接地フレーム",
+  "runningCoachEvidenceRoleKneeFlexion": "膝が最も曲がった局面",
+  "runningCoachEvidenceRoleTrajectoryHigh": "腰軌道の高い点",
+  "runningCoachEvidenceRoleTrajectoryLow": "腰軌道の低い点",
+  "runningCoachEvidenceRoleArmClosed": "肘が閉じた局面",
+  "runningCoachEvidenceRoleArmOpen": "肘が開いた局面",
+  "runningCoachMyVideoEvidenceTitle": "自分の動画の根拠",
+  "runningCoachEvidenceSummaryTimestamp": "{time} · {samples}サンプル",
+  "@runningCoachEvidenceSummaryTimestamp": {
+    "placeholders": {
+      "time": {},
+      "samples": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachOpenMyVideoEvidenceAction": "自分の動画の根拠で見る",
   "runningCoachPoseEvidenceBlockerFullBody": "頭と両足が画面に残るまで後ろに下がってください。",
   "runningCoachPoseEvidenceBlockerSideView": "安定した側面ビューを保ってください。",
   "runningCoachPoseEvidenceBlockerCoreJoints": "コーチが関節を見つけられるよう、カメラを動かさないでください。",

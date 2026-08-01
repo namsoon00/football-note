@@ -15,7 +15,6 @@ import '../../domain/entities/running_coach_session.dart';
 import '../../domain/entities/running_video_analysis_result.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../../gen/app_localizations.dart';
-import '../running_coach/running_coach_illustrated_comparison.dart';
 import '../running_coach/running_pose_overlay.dart';
 import '../running_coach/running_professional_runner.dart';
 import '../running_coach/running_professional_runner_art.dart';
@@ -5399,7 +5398,7 @@ class _AnalysisHistoryTile extends StatelessWidget {
   }
 }
 
-class _RunningAnalysisResultScreen extends StatelessWidget {
+class _RunningAnalysisResultScreen extends StatefulWidget {
   final RunningVideoAnalysisResult result;
   final RunningCoachingReport report;
   final RunningCoachSessionAnalysis session;
@@ -5421,56 +5420,90 @@ class _RunningAnalysisResultScreen extends StatelessWidget {
   });
 
   @override
+  State<_RunningAnalysisResultScreen> createState() =>
+      _RunningAnalysisResultScreenState();
+}
+
+class _RunningAnalysisResultScreenState
+    extends State<_RunningAnalysisResultScreen> {
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey<_AnalysisEvidenceCardState> _evidenceKey =
+      GlobalKey<_AnalysisEvidenceCardState>();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _showEvidence(RunningMetricEvidenceKind kind) {
+    _evidenceKey.currentState?.selectEvidenceKind(kind);
+    final evidenceContext = _evidenceKey.currentContext;
+    if (evidenceContext != null) {
+      Scrollable.ensureVisible(
+        evidenceContext,
+        duration: const Duration(milliseconds: 260),
+        curve: Curves.easeOutCubic,
+        alignment: 0.08,
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final insightSections = _buildRunningInsightSections(l10n, report);
-    final primaryInsight = report.primaryFocus;
+    final insightSections = _buildRunningInsightSections(l10n, widget.report);
+    final primaryInsight = widget.report.primaryFocus;
     return Scaffold(
       appBar: AppBar(title: Text(l10n.runningCoachAnalysisResultScreenTitle)),
       body: ListView(
         key: const ValueKey('running-coach-analysis-result-list'),
+        controller: _scrollController,
         padding: const EdgeInsets.all(16),
         children: [
           if (primaryInsight != null) ...[
             _BeginnerActionCard(insight: primaryInsight),
             const SizedBox(height: 12),
-            _AnalysisEvidenceCard(
-              result: result,
-              session: session,
-              insight: primaryInsight,
-              isHistorical: isHistorical,
-              videoPath: activeVideoPath ?? session.videoPath,
-            ),
-            const SizedBox(height: 12),
           ] else ...[
             const _AnalysisRetakeActionCard(),
             const SizedBox(height: 12),
           ],
-          if (videoSaveFailed) ...[
+          _AnalysisEvidenceCard(
+            key: _evidenceKey,
+            result: widget.result,
+            report: widget.report,
+            session: widget.session,
+            isHistorical: widget.isHistorical,
+            videoPath: widget.activeVideoPath ?? widget.session.videoPath,
+          ),
+          const SizedBox(height: 12),
+          if (widget.videoSaveFailed) ...[
             const _VideoSaveFailedCard(),
             const SizedBox(height: 12),
           ],
-          _ResultsSummaryCard(result: result, report: report),
+          _ResultsSummaryCard(result: widget.result, report: widget.report),
           const SizedBox(height: 12),
-          if (result.rhythmAnalysis != null) ...[
-            _RunningRhythmCard(result: result),
+          if (widget.result.rhythmAnalysis != null) ...[
+            _RunningRhythmCard(result: widget.result),
             const SizedBox(height: 12),
           ],
-          _RunningFineGaitCard(result: result),
+          _RunningFineGaitCard(result: widget.result),
           const SizedBox(height: 12),
-          if (!isHistorical && session.captureContext?.isComplete == true) ...[
+          if (!widget.isHistorical &&
+              widget.session.captureContext?.isComplete == true) ...[
             _SameConditionComparisonCard(
-              session: session,
-              result: result,
-              previousSession: previousComparableSession,
-              onRetakeSameCondition: onRetakeSameCondition,
+              session: widget.session,
+              result: widget.result,
+              previousSession: widget.previousComparableSession,
+              onRetakeSameCondition: widget.onRetakeSameCondition,
             ),
             const SizedBox(height: 12),
           ],
           _ReportDetailsCard(
-            result: result,
-            report: report,
+            result: widget.result,
+            report: widget.report,
             sections: insightSections,
+            onShowEvidence: _showEvidence,
           ),
         ],
       ),
@@ -5718,14 +5751,15 @@ class _BeginnerActionCard extends StatelessWidget {
 class _AnalysisEvidenceCard extends StatefulWidget {
   final RunningVideoAnalysisResult result;
   final RunningCoachSessionAnalysis session;
-  final RunningCoachingInsight insight;
+  final RunningCoachingReport report;
   final bool isHistorical;
   final String? videoPath;
 
   const _AnalysisEvidenceCard({
+    super.key,
     required this.result,
     required this.session,
-    required this.insight,
+    required this.report,
     this.isHistorical = false,
     this.videoPath,
   });
@@ -5739,15 +5773,20 @@ class _AnalysisEvidenceCardState extends State<_AnalysisEvidenceCard> {
   bool _isVideoReady = false;
   bool _isVideoUnavailable = false;
   int _videoLoadGeneration = 0;
-  late List<_AnalysisEvidenceFrame> _evidenceFrames;
+  late List<RunningMetricEvidence> _evidenceItems;
+  late RunningMetricEvidenceKind _selectedKind;
   int _selectedIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    _evidenceFrames = _analysisEvidenceFramesFor(
+    _evidenceItems = _analysisEvidenceItemsFor(
       result: widget.result,
-      insight: widget.insight,
+      report: widget.report,
+    );
+    _selectedKind = _initialEvidenceKind(
+      _evidenceItems,
+      widget.report.primaryFocus?.metric,
     );
     unawaited(_initializeVideo());
   }
@@ -5756,11 +5795,17 @@ class _AnalysisEvidenceCardState extends State<_AnalysisEvidenceCard> {
   void didUpdateWidget(covariant _AnalysisEvidenceCard oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.result != widget.result ||
-        oldWidget.insight != widget.insight) {
-      _evidenceFrames = _analysisEvidenceFramesFor(
+        oldWidget.report != widget.report) {
+      _evidenceItems = _analysisEvidenceItemsFor(
         result: widget.result,
-        insight: widget.insight,
+        report: widget.report,
       );
+      if (!_evidenceItems.any((evidence) => evidence.kind == _selectedKind)) {
+        _selectedKind = _initialEvidenceKind(
+          _evidenceItems,
+          widget.report.primaryFocus?.metric,
+        );
+      }
       _selectedIndex = 0;
     }
     if (oldWidget.videoPath != widget.videoPath) {
@@ -5774,6 +5819,17 @@ class _AnalysisEvidenceCardState extends State<_AnalysisEvidenceCard> {
     _videoLoadGeneration += 1;
     unawaited(_controller?.dispose());
     super.dispose();
+  }
+
+  void selectEvidenceKind(RunningMetricEvidenceKind kind) {
+    if (!_evidenceItems.any((evidence) => evidence.kind == kind)) {
+      return;
+    }
+    setState(() {
+      _selectedKind = kind;
+      _selectedIndex = 0;
+    });
+    _seekToSelectedFrame();
   }
 
   void _resetVideo() {
@@ -5833,14 +5889,17 @@ class _AnalysisEvidenceCardState extends State<_AnalysisEvidenceCard> {
 
   Future<void> _togglePlayback() async {
     final controller = _controller;
-    if (controller == null || !controller.value.isInitialized) {
+    final selectedFrame = _selectedFrameOrNull;
+    if (controller == null ||
+        !controller.value.isInitialized ||
+        selectedFrame == null) {
       return;
     }
     try {
       if (controller.value.isPlaying) {
         await controller.pause();
       } else {
-        await controller.seekTo(_selectedFrame.timestamp);
+        await controller.seekTo(selectedFrame.timestamp);
         await controller.play();
       }
       if (mounted) {
@@ -5852,11 +5911,12 @@ class _AnalysisEvidenceCardState extends State<_AnalysisEvidenceCard> {
   }
 
   void _selectFrame(int index) {
-    if (_evidenceFrames.isEmpty) {
+    final frames = _selectedFrames;
+    if (frames.isEmpty) {
       return;
     }
     setState(() {
-      _selectedIndex = index.clamp(0, _evidenceFrames.length - 1);
+      _selectedIndex = index.clamp(0, frames.length - 1);
     });
     _seekToSelectedFrame();
   }
@@ -5866,9 +5926,13 @@ class _AnalysisEvidenceCardState extends State<_AnalysisEvidenceCard> {
     if (controller == null || !controller.value.isInitialized) {
       return;
     }
+    final selectedFrame = _selectedFrameOrNull;
+    if (selectedFrame == null) {
+      return;
+    }
     try {
       await controller.pause();
-      await controller.seekTo(_selectedFrame.timestamp);
+      await controller.seekTo(selectedFrame.timestamp);
       if (mounted) {
         setState(() {});
       }
@@ -5890,18 +5954,42 @@ class _AnalysisEvidenceCardState extends State<_AnalysisEvidenceCard> {
     });
   }
 
-  _AnalysisEvidenceFrame get _selectedFrame =>
-      _evidenceFrames[_selectedIndex.clamp(0, _evidenceFrames.length - 1)];
+  RunningMetricEvidence get _selectedEvidence {
+    for (final evidence in _evidenceItems) {
+      if (evidence.kind == _selectedKind) return evidence;
+    }
+    return _evidenceItems.first;
+  }
+
+  List<RunningMetricEvidenceFrame> get _selectedFrames =>
+      _selectedEvidence.frames;
+
+  RunningMetricEvidenceFrame? get _selectedFrameOrNull {
+    final frames = _selectedFrames;
+    if (frames.isEmpty) return null;
+    return frames[_selectedIndex.clamp(0, frames.length - 1)];
+  }
+
+  RunningCoachingInsight? get _selectedInsight {
+    final metric = _selectedEvidence.metric;
+    if (metric == null) return null;
+    return _insightForMetric(widget.report, metric);
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
-    final gate = _metricEvidenceGate(widget.result, widget.insight);
+    final evidence = _selectedEvidence;
+    final selectedFrame = _selectedFrameOrNull;
+    final insight = _selectedInsight;
+    final isEvidenceReliable = evidence.isReliable;
     final isLegacyHistory =
         widget.isHistorical && widget.result.poseFrames.isEmpty;
     final canPlayVideo =
         _isVideoReady && _controller?.value.isInitialized == true;
+    final canShowPreview = selectedFrame != null &&
+        (canPlayVideo || selectedFrame.poseFrame != null);
 
     return Card(
       key: const ValueKey('running-coach-analysis-evidence-card'),
@@ -5915,10 +6003,10 @@ class _AnalysisEvidenceCardState extends State<_AnalysisEvidenceCard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Icon(
-                  gate.isReliable
+                  isEvidenceReliable
                       ? Icons.fact_check_outlined
                       : Icons.video_camera_back_outlined,
-                  color: gate.isReliable ? scheme.primary : scheme.error,
+                  color: isEvidenceReliable ? scheme.primary : scheme.error,
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -5928,7 +6016,7 @@ class _AnalysisEvidenceCardState extends State<_AnalysisEvidenceCard> {
                       Text(
                         isLegacyHistory
                             ? l10n.runningCoachHistoryEvidenceUnavailableTitle
-                            : gate.isReliable
+                            : isEvidenceReliable
                                 ? l10n.runningCoachEvidenceTitle
                                 : l10n.runningCoachEvidenceInsufficientTitle,
                         style:
@@ -5936,7 +6024,7 @@ class _AnalysisEvidenceCardState extends State<_AnalysisEvidenceCard> {
                                   fontWeight: FontWeight.w900,
                                 ),
                       ),
-                      if (isLegacyHistory || !gate.isReliable) ...[
+                      if (isLegacyHistory || !isEvidenceReliable) ...[
                         const SizedBox(height: 4),
                         Text(
                           isLegacyHistory
@@ -5951,24 +6039,43 @@ class _AnalysisEvidenceCardState extends State<_AnalysisEvidenceCard> {
               ],
             ),
             const SizedBox(height: 12),
-            if (!gate.isReliable || _evidenceFrames.isEmpty)
-              isLegacyHistory
+            _EvidenceMetricTabs(
+              items: _evidenceItems,
+              selectedKind: _selectedKind,
+              onSelected: selectEvidenceKind,
+            ),
+            const SizedBox(height: 12),
+            if (!isEvidenceReliable || selectedFrame == null)
+              isLegacyHistory &&
+                      evidence.withheldReason ==
+                          RunningMetricEvidenceWithheldReason.missingPoseFrames
                   ? const _HistoryEvidenceUnavailablePanel()
-                  : _EvidenceRetakePanel(gate: gate)
+                  : _EvidenceRetakePanel(evidence: evidence)
             else ...[
-              _EvidenceVideoPreview(
-                result: widget.result,
-                insight: widget.insight,
-                selectedFrame: _selectedFrame,
-                controller: canPlayVideo ? _controller : null,
-              ),
+              if (canShowPreview)
+                _EvidenceVideoPreview(
+                  result: widget.result,
+                  insight: insight,
+                  selectedFrame: selectedFrame,
+                  controller: canPlayVideo ? _controller : null,
+                )
+              else
+                const _EvidenceVideoMissingPanel(),
               if (_isVideoUnavailable) ...[
                 const SizedBox(height: 10),
-                const _EvidencePlaybackUnavailableNotice(),
+                selectedFrame.poseFrame == null
+                    ? const _EvidenceVideoMissingPanel()
+                    : const _EvidencePlaybackUnavailableNotice(),
               ],
               const SizedBox(height: 12),
+              _MetricEvidenceDetailsPanel(
+                evidence: evidence,
+                selectedFrame: selectedFrame,
+                insight: insight,
+              ),
+              const SizedBox(height: 12),
               _EvidenceControls(
-                frames: _evidenceFrames,
+                frames: _selectedFrames,
                 selectedIndex: _selectedIndex,
                 isPlaying:
                     canPlayVideo && (_controller?.value.isPlaying ?? false),
@@ -5986,17 +6093,16 @@ class _AnalysisEvidenceCardState extends State<_AnalysisEvidenceCard> {
   }
 
   void _selectNearestEvidenceFrame(double timestampMs) {
-    if (_evidenceFrames.isEmpty) {
+    final frames = _selectedFrames;
+    if (frames.isEmpty) {
       return;
     }
     var nearestIndex = 0;
     var nearestDistance =
-        (_evidenceFrames.first.timestamp.inMilliseconds - timestampMs.round())
-            .abs();
-    for (var index = 1; index < _evidenceFrames.length; index += 1) {
-      final distance = (_evidenceFrames[index].timestamp.inMilliseconds -
-              timestampMs.round())
-          .abs();
+        (frames.first.timestamp.inMilliseconds - timestampMs.round()).abs();
+    for (var index = 1; index < frames.length; index += 1) {
+      final distance =
+          (frames[index].timestamp.inMilliseconds - timestampMs.round()).abs();
       if (distance < nearestDistance) {
         nearestIndex = index;
         nearestDistance = distance;
@@ -6006,10 +6112,288 @@ class _AnalysisEvidenceCardState extends State<_AnalysisEvidenceCard> {
   }
 }
 
+List<RunningMetricEvidence> _analysisEvidenceItemsFor({
+  required RunningVideoAnalysisResult result,
+  required RunningCoachingReport report,
+}) {
+  final evidence = result.metricEvidence;
+  if (report.insights.isEmpty) {
+    return evidence;
+  }
+  final reportMetrics =
+      report.insights.map((insight) => insight.metric).toSet();
+  return evidence
+      .where(
+          (item) => item.metric == null || reportMetrics.contains(item.metric))
+      .toList(growable: false);
+}
+
+RunningMetricEvidenceKind _initialEvidenceKind(
+  List<RunningMetricEvidence> items,
+  RunningCoachMetric? primaryMetric,
+) {
+  if (primaryMetric != null) {
+    final primaryKind = _evidenceKindForMetric(primaryMetric);
+    for (final item in items) {
+      if (item.kind == primaryKind) return item.kind;
+    }
+  }
+  for (final item in items) {
+    if (item.isReliable) return item.kind;
+  }
+  return items.first.kind;
+}
+
+RunningMetricEvidenceKind _evidenceKindForMetric(RunningCoachMetric metric) {
+  return switch (metric) {
+    RunningCoachMetric.posture => RunningMetricEvidenceKind.posture,
+    RunningCoachMetric.bounce => RunningMetricEvidenceKind.bounce,
+    RunningCoachMetric.footStrike => RunningMetricEvidenceKind.landing,
+    RunningCoachMetric.kneeFlexion => RunningMetricEvidenceKind.knee,
+    RunningCoachMetric.armCarriage => RunningMetricEvidenceKind.arms,
+  };
+}
+
+class _EvidenceMetricTabs extends StatelessWidget {
+  final List<RunningMetricEvidence> items;
+  final RunningMetricEvidenceKind selectedKind;
+  final ValueChanged<RunningMetricEvidenceKind> onSelected;
+
+  const _EvidenceMetricTabs({
+    required this.items,
+    required this.selectedKind,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    return Wrap(
+      key: const ValueKey('running-coach-evidence-metric-tabs'),
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        for (final item in items)
+          ChoiceChip(
+            key: ValueKey('running-coach-evidence-chip-${item.kind.name}'),
+            selected: item.kind == selectedKind,
+            showCheckmark: false,
+            avatar: Icon(
+              _evidenceKindIcon(item.kind),
+              size: 18,
+              color: item.kind == selectedKind
+                  ? scheme.onSecondaryContainer
+                  : item.isReliable
+                      ? scheme.primary
+                      : scheme.error,
+            ),
+            label: Text(_evidenceKindLabel(l10n, item.kind)),
+            onSelected: (_) => onSelected(item.kind),
+          ),
+      ],
+    );
+  }
+}
+
+class _MetricEvidenceDetailsPanel extends StatelessWidget {
+  final RunningMetricEvidence evidence;
+  final RunningMetricEvidenceFrame selectedFrame;
+  final RunningCoachingInsight? insight;
+
+  const _MetricEvidenceDetailsPanel({
+    required this.evidence,
+    required this.selectedFrame,
+    required this.insight,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      key: const ValueKey('running-coach-metric-evidence-details'),
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.58),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: scheme.outlineVariant),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _StatChip(
+                label: l10n.runningCoachMetricValueLabel,
+                value: _evidenceValueText(l10n, evidence, insight),
+              ),
+              _StatChip(
+                label: l10n.runningCoachEvidenceSamplesLabel,
+                value: '${evidence.sampleCount}',
+              ),
+              _StatChip(
+                label: l10n.runningCoachEvidenceReliabilityLabel,
+                value: '${(evidence.reliability * 100).round()}%',
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _GuideTextRow(
+            icon: Icons.schedule_rounded,
+            label: l10n.runningCoachEvidenceTimestamp(
+              _formatContactTimestamp(l10n, selectedFrame.timestamp),
+            ),
+            body: _evidenceFrameRoleLabel(l10n, selectedFrame),
+          ),
+          const SizedBox(height: 10),
+          _GuideTextRow(
+            icon: Icons.manage_search_rounded,
+            label: l10n.runningCoachEvidenceWhyThisResultLabel,
+            body: _evidenceWhyText(l10n, evidence),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EvidenceVideoMissingPanel extends StatelessWidget {
+  const _EvidenceVideoMissingPanel();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      key: const ValueKey('running-coach-evidence-video-missing-fallback'),
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: scheme.outlineVariant),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: _GuideTextRow(
+        icon: Icons.video_file_outlined,
+        label: l10n.runningCoachEvidenceVideoMissingTitle,
+        body: l10n.runningCoachEvidenceVideoMissingBody,
+      ),
+    );
+  }
+}
+
+IconData _evidenceKindIcon(RunningMetricEvidenceKind kind) {
+  return switch (kind) {
+    RunningMetricEvidenceKind.rhythm => Icons.speed_rounded,
+    RunningMetricEvidenceKind.posture => Icons.show_chart_rounded,
+    RunningMetricEvidenceKind.landing => Icons.ads_click_rounded,
+    RunningMetricEvidenceKind.knee => Icons.timeline_rounded,
+    RunningMetricEvidenceKind.bounce => Icons.swap_vert_rounded,
+    RunningMetricEvidenceKind.arms => Icons.sync_alt_rounded,
+  };
+}
+
+String _evidenceKindLabel(
+  AppLocalizations l10n,
+  RunningMetricEvidenceKind kind,
+) {
+  return switch (kind) {
+    RunningMetricEvidenceKind.rhythm => l10n.runningCoachEvidenceMetricRhythm,
+    RunningMetricEvidenceKind.posture => l10n.runningCoachEvidenceMetricPosture,
+    RunningMetricEvidenceKind.landing => l10n.runningCoachEvidenceMetricLanding,
+    RunningMetricEvidenceKind.knee => l10n.runningCoachEvidenceMetricKnee,
+    RunningMetricEvidenceKind.bounce => l10n.runningCoachEvidenceMetricBounce,
+    RunningMetricEvidenceKind.arms => l10n.runningCoachEvidenceMetricArms,
+  };
+}
+
+String _evidenceValueText(
+  AppLocalizations l10n,
+  RunningMetricEvidence evidence,
+  RunningCoachingInsight? insight,
+) {
+  if (!evidence.isReliable) {
+    return l10n.runningCoachEvidenceQualityLimitedBadge;
+  }
+  if (insight != null) {
+    return RunningCoachInsightCopy.fromInsight(insight, l10n).value;
+  }
+  final cadence = evidence.measuredValues['cadenceSpm'];
+  final stepTime = evidence.measuredValues['stepTimeMs'];
+  return l10n.runningCoachEvidenceRhythmValue(
+    _gaitNumber(cadence, fractionDigits: 0),
+    _gaitNumber(stepTime, fractionDigits: 0),
+  );
+}
+
+String _evidenceWhyText(
+  AppLocalizations l10n,
+  RunningMetricEvidence evidence,
+) {
+  if (!evidence.isReliable) {
+    return _evidenceWithheldReasonText(l10n, evidence.withheldReason);
+  }
+  return switch (evidence.kind) {
+    RunningMetricEvidenceKind.rhythm => l10n.runningCoachEvidenceWhyRhythm,
+    RunningMetricEvidenceKind.posture => l10n.runningCoachEvidenceWhyPosture,
+    RunningMetricEvidenceKind.landing => l10n.runningCoachEvidenceWhyLanding,
+    RunningMetricEvidenceKind.knee => l10n.runningCoachEvidenceWhyKnee,
+    RunningMetricEvidenceKind.bounce => l10n.runningCoachEvidenceWhyBounce,
+    RunningMetricEvidenceKind.arms => l10n.runningCoachEvidenceWhyArms,
+  };
+}
+
+String _evidenceWithheldReasonText(
+  AppLocalizations l10n,
+  RunningMetricEvidenceWithheldReason? reason,
+) {
+  return switch (reason) {
+    RunningMetricEvidenceWithheldReason.lowConfidence =>
+      l10n.runningCoachEvidenceReasonLowConfidence,
+    RunningMetricEvidenceWithheldReason.limitedSamples =>
+      l10n.runningCoachEvidenceReasonLimitedFrames,
+    RunningMetricEvidenceWithheldReason.missingPoseFrames =>
+      l10n.runningCoachEvidenceReasonMissingPoseFrames,
+    RunningMetricEvidenceWithheldReason.missingContact =>
+      l10n.runningCoachEvidenceReasonMissingContact,
+    RunningMetricEvidenceWithheldReason.missingMeasuredFrames =>
+      l10n.runningCoachEvidenceReasonMissingMeasuredFrames,
+    null => l10n.runningCoachEvidenceInsufficientBody,
+  };
+}
+
+String _evidenceFrameRoleLabel(
+  AppLocalizations l10n,
+  RunningMetricEvidenceFrame frame,
+) {
+  return switch (frame.role) {
+    RunningMetricEvidenceFrameRole.rhythmContact =>
+      l10n.runningCoachEvidenceRoleRhythmContact,
+    RunningMetricEvidenceFrameRole.representativePosture =>
+      l10n.runningCoachEvidenceRolePosture,
+    RunningMetricEvidenceFrameRole.initialContact =>
+      l10n.runningCoachEvidenceRoleInitialContact,
+    RunningMetricEvidenceFrameRole.maximumKneeFlexion =>
+      l10n.runningCoachEvidenceRoleKneeFlexion,
+    RunningMetricEvidenceFrameRole.trajectoryHigh =>
+      l10n.runningCoachEvidenceRoleTrajectoryHigh,
+    RunningMetricEvidenceFrameRole.trajectoryLow =>
+      l10n.runningCoachEvidenceRoleTrajectoryLow,
+    RunningMetricEvidenceFrameRole.armClosed =>
+      l10n.runningCoachEvidenceRoleArmClosed,
+    RunningMetricEvidenceFrameRole.armOpen =>
+      l10n.runningCoachEvidenceRoleArmOpen,
+  };
+}
+
 class _EvidenceVideoPreview extends StatelessWidget {
   final RunningVideoAnalysisResult result;
-  final RunningCoachingInsight insight;
-  final _AnalysisEvidenceFrame selectedFrame;
+  final RunningCoachingInsight? insight;
+  final RunningMetricEvidenceFrame selectedFrame;
   final VideoPlayerController? controller;
 
   const _EvidenceVideoPreview({
@@ -6072,8 +6456,8 @@ class _EvidenceVideoPreview extends StatelessWidget {
 
 class _EvidenceVideoContent extends StatelessWidget {
   final RunningVideoAnalysisResult result;
-  final RunningCoachingInsight insight;
-  final _AnalysisEvidenceFrame selectedFrame;
+  final RunningCoachingInsight? insight;
+  final RunningMetricEvidenceFrame selectedFrame;
   final VideoPlayerController? controller;
 
   const _EvidenceVideoContent({
@@ -6132,8 +6516,8 @@ class _EvidenceVideoContent extends StatelessWidget {
                       )!,
                       contactColor: scheme.tertiary,
                       warningColor: actualAccent,
-                      highlightedMetric: insight.metric,
-                      finding: insight.finding,
+                      highlightedMetric: insight?.metric,
+                      finding: insight?.finding,
                       direction: result.direction,
                       useContainFit: true,
                       // Keep the uploaded video as the evidence surface. A
@@ -6196,6 +6580,7 @@ class _EvidencePlaybackUnavailableNotice extends StatelessWidget {
   }
 }
 
+// ignore: unused_element
 class _CoordinateComparisonLegend extends StatelessWidget {
   final String currentValue;
   final String targetRange;
@@ -7061,7 +7446,7 @@ class _PoseGoalMotionPainter extends CustomPainter {
 }
 
 class _EvidenceControls extends StatelessWidget {
-  final List<_AnalysisEvidenceFrame> frames;
+  final List<RunningMetricEvidenceFrame> frames;
   final int selectedIndex;
   final bool isPlaying;
   final bool canPlay;
@@ -7148,9 +7533,9 @@ class _EvidenceControls extends StatelessWidget {
 }
 
 class _EvidenceRetakePanel extends StatelessWidget {
-  final _MetricEvidenceGate gate;
+  final RunningMetricEvidence evidence;
 
-  const _EvidenceRetakePanel({required this.gate});
+  const _EvidenceRetakePanel({required this.evidence});
 
   @override
   Widget build(BuildContext context) {
@@ -7171,7 +7556,7 @@ class _EvidenceRetakePanel extends StatelessWidget {
           _GuideTextRow(
             icon: Icons.visibility_off_outlined,
             label: l10n.runningCoachEvidenceQualityLimitedBadge,
-            body: _evidenceGateReasonText(l10n, gate.reason),
+            body: _evidenceWithheldReasonText(l10n, evidence.withheldReason),
           ),
           const SizedBox(height: 10),
           _GuideTextRow(
@@ -7208,185 +7593,6 @@ class _HistoryEvidenceUnavailablePanel extends StatelessWidget {
       ),
     );
   }
-}
-
-class _AnalysisEvidenceFrame {
-  final Duration timestamp;
-  final RunningCoachMetric metric;
-  final RunningPoseFrame? poseFrame;
-  final bool isContact;
-
-  const _AnalysisEvidenceFrame({
-    required this.timestamp,
-    required this.metric,
-    required this.poseFrame,
-    this.isContact = false,
-  });
-
-  String label(AppLocalizations l10n) {
-    if (isContact) {
-      return l10n.runningCoachEvidenceContactLabel;
-    }
-    return switch (metric) {
-      RunningCoachMetric.posture => l10n.runningCoachEvidencePostureLabel,
-      RunningCoachMetric.bounce => l10n.runningCoachEvidenceBounceLabel,
-      RunningCoachMetric.footStrike => l10n.runningCoachEvidenceLandingLabel,
-      RunningCoachMetric.kneeFlexion => l10n.runningCoachEvidenceKneeLabel,
-      RunningCoachMetric.armCarriage => l10n.runningCoachEvidenceArmLabel,
-    };
-  }
-}
-
-enum _MetricEvidenceGateReason {
-  ready,
-  lowConfidence,
-  limitedFrames,
-  missingPoseFrames,
-  missingContact,
-}
-
-class _MetricEvidenceGate {
-  final bool isReliable;
-  final _MetricEvidenceGateReason reason;
-
-  const _MetricEvidenceGate({
-    required this.isReliable,
-    required this.reason,
-  });
-}
-
-_MetricEvidenceGate _metricEvidenceGate(
-  RunningVideoAnalysisResult result,
-  RunningCoachingInsight insight,
-) {
-  final quality = result.qualityFor(insight.metric) ?? insight.quality;
-  if (!quality.isReliableForCoaching) {
-    return const _MetricEvidenceGate(
-      isReliable: false,
-      reason: _MetricEvidenceGateReason.lowConfidence,
-    );
-  }
-  if (result.poseFrames.isEmpty) {
-    return const _MetricEvidenceGate(
-      isReliable: false,
-      reason: _MetricEvidenceGateReason.missingPoseFrames,
-    );
-  }
-  final minimumSamples = switch (insight.metric) {
-    RunningCoachMetric.footStrike ||
-    RunningCoachMetric.kneeFlexion =>
-      runningCoachMinimumReliableMetricSamples,
-    RunningCoachMetric.posture ||
-    RunningCoachMetric.bounce ||
-    RunningCoachMetric.armCarriage =>
-      5,
-  };
-  if (quality.sampleCount < minimumSamples) {
-    return const _MetricEvidenceGate(
-      isReliable: false,
-      reason: _MetricEvidenceGateReason.limitedFrames,
-    );
-  }
-  if ((insight.metric == RunningCoachMetric.footStrike ||
-          insight.metric == RunningCoachMetric.kneeFlexion) &&
-      (result.contactWindows.isEmpty || !result.hasDenseContactEvidence)) {
-    return const _MetricEvidenceGate(
-      isReliable: false,
-      reason: _MetricEvidenceGateReason.missingContact,
-    );
-  }
-  return const _MetricEvidenceGate(
-    isReliable: true,
-    reason: _MetricEvidenceGateReason.ready,
-  );
-}
-
-String _evidenceGateReasonText(
-  AppLocalizations l10n,
-  _MetricEvidenceGateReason reason,
-) {
-  return switch (reason) {
-    _MetricEvidenceGateReason.lowConfidence =>
-      l10n.runningCoachEvidenceReasonLowConfidence,
-    _MetricEvidenceGateReason.limitedFrames =>
-      l10n.runningCoachEvidenceReasonLimitedFrames,
-    _MetricEvidenceGateReason.missingPoseFrames =>
-      l10n.runningCoachEvidenceReasonMissingPoseFrames,
-    _MetricEvidenceGateReason.missingContact =>
-      l10n.runningCoachEvidenceReasonMissingContact,
-    _MetricEvidenceGateReason.ready => l10n.runningCoachEvidenceBody,
-  };
-}
-
-List<_AnalysisEvidenceFrame> _analysisEvidenceFramesFor({
-  required RunningVideoAnalysisResult result,
-  required RunningCoachingInsight insight,
-}) {
-  if (result.poseFrames.isEmpty) {
-    return const <_AnalysisEvidenceFrame>[];
-  }
-
-  final timestamps = <Duration>[];
-  final isContactMetric = insight.metric == RunningCoachMetric.footStrike ||
-      insight.metric == RunningCoachMetric.kneeFlexion;
-  if (isContactMetric) {
-    for (final window in result.contactWindows.take(3)) {
-      if (window.validatedContactTimestamps.isNotEmpty) {
-        timestamps.add(window.validatedContactTimestamps.first);
-      } else {
-        timestamps.add(window.center);
-      }
-    }
-    if (timestamps.isEmpty) {
-      timestamps.addAll(result.validatedContactFrameTimestamps.take(3));
-    }
-  } else if (insight.metric == RunningCoachMetric.bounce) {
-    final frames = result.poseFrames;
-    timestamps
-      ..add(frames.first.timestamp)
-      ..add(frames[frames.length ~/ 2].timestamp)
-      ..add(frames.last.timestamp);
-  } else {
-    final frames = result.poseFrames;
-    timestamps.add(frames[frames.length ~/ 2].timestamp);
-    if (frames.length >= 3) {
-      timestamps
-        ..add(frames[frames.length ~/ 3].timestamp)
-        ..add(frames[(frames.length * 2) ~/ 3].timestamp);
-    }
-  }
-
-  final uniqueMs = <int>{};
-  final evidence = <_AnalysisEvidenceFrame>[];
-  for (final timestamp in timestamps) {
-    if (!uniqueMs.add(timestamp.inMilliseconds)) {
-      continue;
-    }
-    final poseFrame = runningPoseFrameAtPosition(
-      frames: result.poseFrames,
-      position: timestamp,
-    );
-    evidence.add(
-      _AnalysisEvidenceFrame(
-        timestamp: poseFrame?.timestamp ?? timestamp,
-        metric: insight.metric,
-        poseFrame: poseFrame,
-        isContact: isContactMetric,
-      ),
-    );
-  }
-  if (evidence.isEmpty) {
-    final fallback = result.poseFrames[result.poseFrames.length ~/ 2];
-    evidence.add(
-      _AnalysisEvidenceFrame(
-        timestamp: fallback.timestamp,
-        metric: insight.metric,
-        poseFrame: fallback,
-      ),
-    );
-  }
-  evidence.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-  return List<_AnalysisEvidenceFrame>.unmodifiable(evidence.take(4));
 }
 
 class _AnalysisHistoryDetailScreen extends StatelessWidget {
@@ -7677,6 +7883,7 @@ class _GuideTextRow extends StatelessWidget {
   }
 }
 
+// ignore: unused_element
 class _InsightGuideVisual extends StatelessWidget {
   final RunningCoachingInsight insight;
 
@@ -8056,20 +8263,31 @@ class _RunningTargetGuideAnnotationPainter extends CustomPainter {
 
 class _MeasuredPoseGuideVisual extends StatelessWidget {
   final RunningCoachingInsight insight;
+  final RunningMetricEvidence? evidence;
+  final VoidCallback onShowEvidence;
 
   const _MeasuredPoseGuideVisual({
     required this.insight,
+    required this.evidence,
+    required this.onShowEvidence,
   });
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
-    final copy = RunningCoachInsightCopy.fromInsight(insight, l10n);
-    final isGood = insight.status == RunningCoachStatus.good;
-    final successAccent = Colors.green.shade700;
-    final actualAccent = isGood ? successAccent : scheme.error;
-    final targetAccent = scheme.primary;
+    final currentEvidence = evidence;
+    final isReliable = currentEvidence?.isReliable == true;
+    final evidenceFrames = currentEvidence?.frames;
+    final firstFrame = evidenceFrames == null || evidenceFrames.isEmpty
+        ? null
+        : evidenceFrames.first;
+    final subtitle = firstFrame == null
+        ? _evidenceWithheldReasonText(l10n, currentEvidence?.withheldReason)
+        : l10n.runningCoachEvidenceSummaryTimestamp(
+            _formatContactTimestamp(l10n, firstFrame.timestamp),
+            currentEvidence!.sampleCount,
+          );
     return Container(
       key: ValueKey(
         'running-coach-insight-evidence-diagram-${insight.metric.name}',
@@ -8084,10 +8302,18 @@ class _MeasuredPoseGuideVisual extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Icon(
+                isReliable
+                    ? Icons.video_collection_outlined
+                    : Icons.visibility_off_outlined,
+                color: isReliable ? scheme.primary : scheme.error,
+              ),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  l10n.runningCoachIllustrationTitle,
+                  l10n.runningCoachMyVideoEvidenceTitle,
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
                         fontWeight: FontWeight.w900,
                       ),
@@ -8097,48 +8323,20 @@ class _MeasuredPoseGuideVisual extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            isGood
-                ? l10n.runningCoachIllustrationGoodBody
-                : l10n.runningCoachIllustrationBody,
+            subtitle,
             style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(height: 10),
-          _CoordinateComparisonLegend(
-            currentValue: copy.value,
-            targetRange: _comparisonTargetRange(l10n, insight.metric),
-            isGood: isGood,
-            actualAccent: actualAccent,
-            targetAccent: targetAccent,
-            successAccent: successAccent,
-          ),
-          const SizedBox(height: 8),
           SizedBox(
-            key: ValueKey(
-              'running-coach-insight-change-map-${insight.metric.name}',
-            ),
-            height: 212,
             width: double.infinity,
-            child: RunningCoachIllustratedComparison(
+            child: OutlinedButton.icon(
               key: ValueKey(
-                'running-coach-insight-illustrated-comparison-${insight.metric.name}',
+                'running-coach-insight-open-evidence-${insight.metric.name}',
               ),
-              insight: insight,
-              surfaceColor: scheme.surface,
-              mutedColor: scheme.onSurfaceVariant,
-              actualAccent: actualAccent,
-              targetAccent: targetAccent,
-              successAccent: successAccent,
-              semanticLabel: l10n.runningCoachIllustrationTitle,
-              currentLabel: l10n.runningCoachEvidenceCurrentLabel,
-              nextStepLabel: l10n.runningCoachEvidenceNextLabel,
+              onPressed: onShowEvidence,
+              icon: const Icon(Icons.manage_search_rounded),
+              label: Text(l10n.runningCoachOpenMyVideoEvidenceAction),
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            isGood
-                ? l10n.runningCoachMeasuredPoseGoodLegend
-                : l10n.runningCoachIllustrationFootnote,
-            style: Theme.of(context).textTheme.bodySmall,
           ),
         ],
       ),
@@ -9469,11 +9667,13 @@ class _ReportDetailsCard extends StatelessWidget {
   final RunningVideoAnalysisResult result;
   final RunningCoachingReport report;
   final List<_InsightRegionSection> sections;
+  final ValueChanged<RunningMetricEvidenceKind> onShowEvidence;
 
   const _ReportDetailsCard({
     required this.result,
     required this.report,
     required this.sections,
+    required this.onShowEvidence,
   });
 
   @override
@@ -9512,6 +9712,11 @@ class _ReportDetailsCard extends StatelessWidget {
                 insights: sections[sectionIndex].insights,
                 priorities: report.focusPriorityByMetric,
                 result: result,
+                evidenceByMetric: {
+                  for (final evidence in result.metricEvidence)
+                    if (evidence.metric != null) evidence.metric!: evidence,
+                },
+                onShowEvidence: onShowEvidence,
               ),
               if (sectionIndex != sections.length - 1)
                 const SizedBox(height: 16),
@@ -10434,12 +10639,16 @@ class _InsightRegionSectionCard extends StatelessWidget {
   final List<RunningCoachingInsight> insights;
   final Map<RunningCoachMetric, int> priorities;
   final RunningVideoAnalysisResult result;
+  final Map<RunningCoachMetric, RunningMetricEvidence> evidenceByMetric;
+  final ValueChanged<RunningMetricEvidenceKind> onShowEvidence;
 
   const _InsightRegionSectionCard({
     required this.title,
     required this.insights,
     required this.priorities,
     required this.result,
+    required this.evidenceByMetric,
+    required this.onShowEvidence,
   });
 
   @override
@@ -10461,9 +10670,8 @@ class _InsightRegionSectionCard extends StatelessWidget {
           _InsightCard(
             insight: insights[index],
             priority: priorities[insights[index].metric],
-            poseFrame: _detailPoseFrameFor(result, insights[index]),
-            poseFrames: result.poseFrames,
-            direction: result.direction,
+            evidence: evidenceByMetric[insights[index].metric],
+            onShowEvidence: onShowEvidence,
           ),
           if (index != insights.length - 1) const SizedBox(height: 12),
         ],
@@ -10472,29 +10680,16 @@ class _InsightRegionSectionCard extends StatelessWidget {
   }
 }
 
-RunningPoseFrame? _detailPoseFrameFor(
-  RunningVideoAnalysisResult result,
-  RunningCoachingInsight insight,
-) {
-  if (!_metricEvidenceGate(result, insight).isReliable) {
-    return null;
-  }
-  final frames = _analysisEvidenceFramesFor(result: result, insight: insight);
-  return frames.isEmpty ? null : frames.first.poseFrame;
-}
-
 class _InsightCard extends StatelessWidget {
   final RunningCoachingInsight insight;
   final int? priority;
-  final RunningPoseFrame? poseFrame;
-  final Iterable<RunningPoseFrame> poseFrames;
-  final RunningDirection direction;
+  final RunningMetricEvidence? evidence;
+  final ValueChanged<RunningMetricEvidenceKind> onShowEvidence;
 
   const _InsightCard({
     required this.insight,
-    required this.poseFrame,
-    this.poseFrames = const <RunningPoseFrame>[],
-    required this.direction,
+    required this.evidence,
+    required this.onShowEvidence,
     this.priority,
   });
 
@@ -10570,13 +10765,15 @@ class _InsightCard extends StatelessWidget {
                   : l10n.runningCoachEvidenceQualityLimitedBadge,
             ),
             const SizedBox(height: 12),
-            if (isMetricReliable)
-              if (poseFrame != null)
-                _MeasuredPoseGuideVisual(
-                  insight: insight,
-                )
-              else
-                _InsightGuideVisual(insight: insight),
+            _MeasuredPoseGuideVisual(
+              insight: insight,
+              evidence: evidence,
+              onShowEvidence: () {
+                final evidenceKind =
+                    evidence?.kind ?? _evidenceKindForMetric(insight.metric);
+                onShowEvidence(evidenceKind);
+              },
+            ),
             if (!isMetricReliable) ...[
               const SizedBox(height: 10),
               Text(
@@ -10723,6 +10920,7 @@ String _metricGoodRange(AppLocalizations l10n, RunningCoachMetric metric) {
   };
 }
 
+// ignore: unused_element
 String _comparisonTargetRange(
   AppLocalizations l10n,
   RunningCoachMetric metric,

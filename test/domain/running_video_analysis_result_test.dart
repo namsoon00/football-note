@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/domain/entities/running_video_analysis_result.dart';
 
@@ -396,6 +398,207 @@ void main() {
     expect(rhythm.medianStepTimeMs, 300);
     expect(rhythm.leftRightStepTimeAsymmetryPercent, closeTo(0, 0.001));
   });
+
+  test('derives per-metric evidence from measured frames and phases', () {
+    const contactTimes = <int>[600, 900, 1200];
+    final result = RunningVideoAnalysisResult(
+      videoDuration: const Duration(seconds: 3),
+      sampledFrames: 16,
+      validFrames: 14,
+      direction: RunningDirection.leftToRight,
+      forwardLeanDegrees: 10,
+      verticalBounceRatio: 0.09,
+      footStrikeDistanceRatio: 0.10,
+      stanceKneeAngleDegrees: 132,
+      elbowAngleDegrees: 118,
+      metricQualities: const <RunningCoachMetric, RunningMetricQuality>{
+        RunningCoachMetric.posture: RunningMetricQuality(
+          confidence: 0.90,
+          sampleCount: 6,
+        ),
+        RunningCoachMetric.bounce: RunningMetricQuality(
+          confidence: 0.88,
+          sampleCount: 6,
+        ),
+        RunningCoachMetric.footStrike: RunningMetricQuality(
+          confidence: 0.91,
+          sampleCount: 3,
+        ),
+        RunningCoachMetric.kneeFlexion: RunningMetricQuality(
+          confidence: 0.91,
+          sampleCount: 3,
+        ),
+        RunningCoachMetric.armCarriage: RunningMetricQuality(
+          confidence: 0.89,
+          sampleCount: 6,
+        ),
+      },
+      poseFrames: [
+        _evidencePoseFrame(
+          timestampMs: 0,
+          leanDegrees: 5,
+          hipY: 0.54,
+          elbowAngleDegrees: 82,
+        ),
+        _evidencePoseFrame(
+          timestampMs: 100,
+          leanDegrees: 10,
+          hipY: 0.42,
+          elbowAngleDegrees: 118,
+        ),
+        _evidencePoseFrame(
+          timestampMs: 200,
+          leanDegrees: 14,
+          hipY: 0.50,
+          elbowAngleDegrees: 132,
+        ),
+        _evidencePoseFrame(
+          timestampMs: 300,
+          leanDegrees: 12,
+          hipY: 0.64,
+          elbowAngleDegrees: 64,
+        ),
+        _evidencePoseFrame(
+          timestampMs: 400,
+          leanDegrees: 8,
+          hipY: 0.56,
+          elbowAngleDegrees: 96,
+        ),
+        for (var index = 0; index < contactTimes.length; index += 1) ...[
+          _gaitPoseFrame(
+            timestampMs: contactTimes[index],
+            side: index.isEven
+                ? RunningContactSide.left
+                : RunningContactSide.right,
+            flexed: false,
+          ),
+          _gaitPoseFrame(
+            timestampMs: contactTimes[index] + 80,
+            side: index.isEven
+                ? RunningContactSide.left
+                : RunningContactSide.right,
+            flexed: true,
+          ),
+        ],
+      ],
+      denseSamples: const RunningAnalysisSampleSummary(
+        attemptedFrames: 12,
+        validFrames: 12,
+        poseFrameCount: 12,
+        targetFps: 30,
+      ),
+      contactWindows: [
+        for (var index = 0; index < contactTimes.length; index += 1)
+          RunningContactWindow(
+            start: Duration(milliseconds: contactTimes[index] - 80),
+            center: Duration(milliseconds: contactTimes[index]),
+            end: Duration(milliseconds: contactTimes[index] + 160),
+            side: index.isEven
+                ? RunningContactSide.left
+                : RunningContactSide.right,
+            denseSampleCount: 5,
+            validatedContactTimestamps: [
+              Duration(milliseconds: contactTimes[index]),
+            ],
+            confidence: 0.92,
+          ),
+      ],
+      validatedContactFrameTimestamps: const <Duration>[
+        Duration(milliseconds: 600),
+        Duration(milliseconds: 900),
+        Duration(milliseconds: 1200),
+      ],
+      contactConfidence: 0.92,
+    );
+
+    final byKind = <RunningMetricEvidenceKind, RunningMetricEvidence>{
+      for (final evidence in result.metricEvidence) evidence.kind: evidence,
+    };
+
+    expect(
+        byKind[RunningMetricEvidenceKind.rhythm]!
+            .frames
+            .map((frame) => frame.timestampMs),
+        [600, 900, 1200]);
+    expect(
+        byKind[RunningMetricEvidenceKind.posture]!
+            .frames
+            .map((frame) => frame.timestampMs),
+        contains(100));
+    expect(
+      byKind[RunningMetricEvidenceKind.landing]!
+          .frames
+          .map((frame) => frame.role)
+          .toSet(),
+      {RunningMetricEvidenceFrameRole.initialContact},
+    );
+    expect(
+        byKind[RunningMetricEvidenceKind.landing]!
+            .frames
+            .map((frame) => frame.timestampMs),
+        [600, 900, 1200]);
+    expect(
+      byKind[RunningMetricEvidenceKind.knee]!
+          .frames
+          .map((frame) => frame.role)
+          .toSet(),
+      {RunningMetricEvidenceFrameRole.maximumKneeFlexion},
+    );
+    expect(
+        byKind[RunningMetricEvidenceKind.knee]!
+            .frames
+            .map((frame) => frame.timestampMs),
+        [680, 980, 1280]);
+    expect(
+      {
+        for (final frame in byKind[RunningMetricEvidenceKind.bounce]!.frames)
+          frame.role: frame.timestampMs,
+      },
+      {
+        RunningMetricEvidenceFrameRole.trajectoryHigh: 100,
+        RunningMetricEvidenceFrameRole.trajectoryLow: 300,
+      },
+    );
+    expect(
+      byKind[RunningMetricEvidenceKind.arms]!
+          .frames
+          .map((frame) => frame.role)
+          .toSet(),
+      containsAll(<RunningMetricEvidenceFrameRole>{
+        RunningMetricEvidenceFrameRole.armClosed,
+        RunningMetricEvidenceFrameRole.armOpen,
+      }),
+    );
+  });
+
+  test('withholds evidence for legacy summaries without saved pose frames', () {
+    const result = RunningVideoAnalysisResult(
+      videoDuration: Duration(seconds: 4),
+      sampledFrames: 12,
+      validFrames: 12,
+      direction: RunningDirection.leftToRight,
+      forwardLeanDegrees: 10,
+      verticalBounceRatio: 0.06,
+      footStrikeDistanceRatio: 0.10,
+      stanceKneeAngleDegrees: 154,
+      elbowAngleDegrees: 90,
+      metricQualities: <RunningCoachMetric, RunningMetricQuality>{
+        RunningCoachMetric.posture: RunningMetricQuality(
+          confidence: 0.90,
+          sampleCount: 8,
+        ),
+      },
+    );
+
+    final evidence = result.evidenceForMetric(RunningCoachMetric.posture)!;
+
+    expect(evidence.isReliable, isFalse);
+    expect(
+      evidence.withheldReason,
+      RunningMetricEvidenceWithheldReason.missingPoseFrames,
+    );
+    expect(evidence.frames, isEmpty);
+  });
 }
 
 Map<String, Object?> _poseFrameMap({
@@ -459,6 +662,70 @@ RunningPoseFrame _gaitPoseFrame({
     setPoint(28, 0.48, 0.80);
     setPoint(26, flexed ? 0.40 : 0.52, 0.65);
   }
+  return RunningPoseFrame(
+    timestamp: Duration(milliseconds: timestampMs),
+    imageWidth: 720,
+    imageHeight: 1280,
+    landmarks: List<RunningVideoPoseLandmark>.unmodifiable(landmarks),
+  );
+}
+
+RunningPoseFrame _evidencePoseFrame({
+  required int timestampMs,
+  required double leanDegrees,
+  required double hipY,
+  required double elbowAngleDegrees,
+}) {
+  final landmarks = List<RunningVideoPoseLandmark>.generate(
+    mediaPipePoseLandmarkCount,
+    (index) => RunningVideoPoseLandmark(
+      index: index,
+      x: 0.45,
+      y: 0.5,
+      z: 0,
+      visibility: 0.95,
+      presence: 0.95,
+      confidence: 0.95,
+    ),
+  );
+  void setPoint(int index, double x, double y) {
+    landmarks[index] = RunningVideoPoseLandmark(
+      index: index,
+      x: x,
+      y: y,
+      z: 0,
+      visibility: 0.95,
+      presence: 0.95,
+      confidence: 0.95,
+    );
+  }
+
+  const hipX = 0.45;
+  const torsoHeight = 0.24;
+  final shoulderX = hipX + math.tan(leanDegrees * math.pi / 180) * torsoHeight;
+  final shoulderY = hipY - torsoHeight;
+  setPoint(11, shoulderX - 0.04, shoulderY);
+  setPoint(12, shoulderX + 0.04, shoulderY);
+  setPoint(23, hipX - 0.04, hipY);
+  setPoint(24, hipX + 0.04, hipY);
+  setPoint(25, hipX - 0.02, hipY + 0.15);
+  setPoint(26, hipX + 0.02, hipY + 0.15);
+  setPoint(27, hipX + 0.05, hipY + 0.31);
+  setPoint(28, hipX + 0.07, hipY + 0.31);
+
+  void setArm(int shoulder, int elbow, int wrist, double side) {
+    final shoulderPoint = landmarks[shoulder];
+    final elbowX = shoulderPoint.x + side * 0.03;
+    final elbowY = shoulderPoint.y + 0.13;
+    final radians = (-math.pi / 2) + (elbowAngleDegrees * math.pi / 180);
+    final wristX = elbowX + math.cos(radians) * 0.13 * side;
+    final wristY = elbowY + math.sin(radians) * 0.13;
+    setPoint(elbow, elbowX, elbowY);
+    setPoint(wrist, wristX, wristY);
+  }
+
+  setArm(11, 13, 15, -1);
+  setArm(12, 14, 16, 1);
   return RunningPoseFrame(
     timestamp: Duration(milliseconds: timestampMs),
     imageWidth: 720,

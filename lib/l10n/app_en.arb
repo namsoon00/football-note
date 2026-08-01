@@ -5089,12 +5089,56 @@
   "runningCoachEvidenceReasonLimitedFrames": "There were too few stable frames for this metric.",
   "runningCoachEvidenceReasonMissingPoseFrames": "No analyzed pose frames were saved for this clip.",
   "runningCoachEvidenceReasonMissingContact": "The contact frame was not stable enough to support this lower-body metric.",
+  "runningCoachEvidenceReasonMissingMeasuredFrames": "The saved pose frames do not include a defensible measurement moment for this metric.",
   "runningCoachEvidenceContactLabel": "Contact evidence",
   "runningCoachEvidencePostureLabel": "Posture frame",
   "runningCoachEvidenceBounceLabel": "Bounce frame",
   "runningCoachEvidenceLandingLabel": "Landing frame",
   "runningCoachEvidenceKneeLabel": "Knee frame",
   "runningCoachEvidenceArmLabel": "Arm frame",
+  "runningCoachEvidenceSamplesLabel": "Samples",
+  "runningCoachEvidenceReliabilityLabel": "Reliability",
+  "runningCoachEvidenceWhyThisResultLabel": "Why this result",
+  "runningCoachEvidenceVideoMissingTitle": "Video not available",
+  "runningCoachEvidenceVideoMissingBody": "The saved video is missing, so this metric is shown as a text evidence summary instead.",
+  "runningCoachEvidenceMetricRhythm": "Rhythm",
+  "runningCoachEvidenceMetricPosture": "Posture",
+  "runningCoachEvidenceMetricLanding": "Landing",
+  "runningCoachEvidenceMetricKnee": "Knee",
+  "runningCoachEvidenceMetricBounce": "Bounce",
+  "runningCoachEvidenceMetricArms": "Arms",
+  "runningCoachEvidenceRhythmValue": "{cadence} spm · {stepTime} ms",
+  "@runningCoachEvidenceRhythmValue": {
+    "placeholders": {
+      "cadence": {},
+      "stepTime": {}
+    }
+  },
+  "runningCoachEvidenceWhyRhythm": "Verified contact timestamps set the cadence and step-time readout.",
+  "runningCoachEvidenceWhyPosture": "The selected frame is closest to the measured forward-lean value across stable posture frames.",
+  "runningCoachEvidenceWhyLanding": "Validated contact frames provide the foot-to-hip landing distance used for this metric.",
+  "runningCoachEvidenceWhyKnee": "Validated stance-phase frames provide the knee angle used for this metric.",
+  "runningCoachEvidenceWhyBounce": "The high and low hip trajectory frames show the vertical motion behind this metric.",
+  "runningCoachEvidenceWhyArms": "The arm evidence comes from frames where elbow angle was actually measured.",
+  "runningCoachEvidenceRoleRhythmContact": "Verified contact timestamp",
+  "runningCoachEvidenceRolePosture": "Representative posture frame",
+  "runningCoachEvidenceRoleInitialContact": "Initial contact frame",
+  "runningCoachEvidenceRoleKneeFlexion": "Maximum knee-flexion phase",
+  "runningCoachEvidenceRoleTrajectoryHigh": "High point of the hip path",
+  "runningCoachEvidenceRoleTrajectoryLow": "Low point of the hip path",
+  "runningCoachEvidenceRoleArmClosed": "Closed elbow phase",
+  "runningCoachEvidenceRoleArmOpen": "Open elbow phase",
+  "runningCoachMyVideoEvidenceTitle": "My video evidence",
+  "runningCoachEvidenceSummaryTimestamp": "{time} · {samples} samples",
+  "@runningCoachEvidenceSummaryTimestamp": {
+    "placeholders": {
+      "time": {},
+      "samples": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachOpenMyVideoEvidenceAction": "View in my video evidence",
   "runningCoachPoseEvidenceBlockerFullBody": "Step back until your head and both feet stay on screen.",
   "runningCoachPoseEvidenceBlockerSideView": "Turn to a steady side view and keep it there.",
   "runningCoachPoseEvidenceBlockerCoreJoints": "Hold the camera steady so the coach can find your joints.",
