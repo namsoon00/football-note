@@ -8936,6 +8936,10 @@ class AppLocalizationsKo extends AppLocalizations {
       '이 하체 지표를 뒷받침할 접지 프레임이 충분히 안정적이지 않았어요.';
 
   @override
+  String get runningCoachEvidenceReasonMissingMeasuredFrames =>
+      '저장된 자세 프레임 안에 이 지표를 방어적으로 읽을 수 있는 순간이 없어요.';
+
+  @override
   String get runningCoachEvidenceContactLabel => '접지 근거';
 
   @override
@@ -8952,6 +8956,100 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachEvidenceArmLabel => '팔 프레임';
+
+  @override
+  String get runningCoachEvidenceSamplesLabel => '샘플';
+
+  @override
+  String get runningCoachEvidenceReliabilityLabel => '신뢰도';
+
+  @override
+  String get runningCoachEvidenceWhyThisResultLabel => '이 결과의 이유';
+
+  @override
+  String get runningCoachEvidenceVideoMissingTitle => '영상을 사용할 수 없음';
+
+  @override
+  String get runningCoachEvidenceVideoMissingBody =>
+      '저장된 영상이 없어 이 지표는 텍스트 근거 요약으로 보여 줍니다.';
+
+  @override
+  String get runningCoachEvidenceMetricRhythm => '리듬';
+
+  @override
+  String get runningCoachEvidenceMetricPosture => '자세';
+
+  @override
+  String get runningCoachEvidenceMetricLanding => '착지';
+
+  @override
+  String get runningCoachEvidenceMetricKnee => '무릎';
+
+  @override
+  String get runningCoachEvidenceMetricBounce => '바운스';
+
+  @override
+  String get runningCoachEvidenceMetricArms => '팔';
+
+  @override
+  String runningCoachEvidenceRhythmValue(Object cadence, Object stepTime) {
+    return '$cadence spm · $stepTime ms';
+  }
+
+  @override
+  String get runningCoachEvidenceWhyRhythm => '검증된 접지 시각으로 케이던스와 스텝 시간을 계산했어요.';
+
+  @override
+  String get runningCoachEvidenceWhyPosture =>
+      '안정적인 자세 프레임 중 측정된 전방 기울기 값에 가장 가까운 프레임을 골랐어요.';
+
+  @override
+  String get runningCoachEvidenceWhyLanding =>
+      '검증된 접지 프레임에서 발과 엉덩이 사이 착지 거리를 읽었어요.';
+
+  @override
+  String get runningCoachEvidenceWhyKnee => '검증된 지지 구간 프레임에서 이 무릎 각도를 읽었어요.';
+
+  @override
+  String get runningCoachEvidenceWhyBounce => '엉덩이 궤적의 높은 지점과 낮은 지점이 바운스 근거예요.';
+
+  @override
+  String get runningCoachEvidenceWhyArms => '팔 근거는 팔꿈치 각도를 실제로 읽은 프레임에서 가져왔어요.';
+
+  @override
+  String get runningCoachEvidenceRoleRhythmContact => '검증된 접지 시각';
+
+  @override
+  String get runningCoachEvidenceRolePosture => '대표 자세 프레임';
+
+  @override
+  String get runningCoachEvidenceRoleInitialContact => '초기 접지 프레임';
+
+  @override
+  String get runningCoachEvidenceRoleKneeFlexion => '무릎이 가장 굽혀진 구간';
+
+  @override
+  String get runningCoachEvidenceRoleTrajectoryHigh => '엉덩이 궤적의 높은 지점';
+
+  @override
+  String get runningCoachEvidenceRoleTrajectoryLow => '엉덩이 궤적의 낮은 지점';
+
+  @override
+  String get runningCoachEvidenceRoleArmClosed => '팔꿈치가 닫힌 구간';
+
+  @override
+  String get runningCoachEvidenceRoleArmOpen => '팔꿈치가 열린 구간';
+
+  @override
+  String get runningCoachMyVideoEvidenceTitle => '내 영상 근거';
+
+  @override
+  String runningCoachEvidenceSummaryTimestamp(Object time, int samples) {
+    return '$time · 샘플 $samples개';
+  }
+
+  @override
+  String get runningCoachOpenMyVideoEvidenceAction => '내 영상 근거에서 보기';
 
   @override
   String get runningCoachPoseEvidenceBlockerFullBody =>

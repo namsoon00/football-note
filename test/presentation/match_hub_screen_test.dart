@@ -901,9 +901,12 @@ void main() {
       findsOneWidget,
     );
 
-    await tester.tap(
-      find.byKey(const ValueKey('competition-schedule-unscheduled-action')),
+    final unscheduledAction = find.byKey(
+      const ValueKey('competition-schedule-unscheduled-action'),
     );
+    await tester.ensureVisible(unscheduledAction);
+    await tester.pump();
+    await tester.tap(unscheduledAction);
     await tester.pumpAndSettle();
 
     expect(find.text('일정 미정 경기'), findsOneWidget);

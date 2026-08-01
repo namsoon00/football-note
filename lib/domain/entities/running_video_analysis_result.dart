@@ -16,6 +16,27 @@ enum RunningCoachBodyRegion { upperBody, lowerBody, wholeBody }
 
 enum RunningCoachStatus { good, watch, needsWork }
 
+enum RunningMetricEvidenceKind { rhythm, posture, landing, knee, bounce, arms }
+
+enum RunningMetricEvidenceFrameRole {
+  rhythmContact,
+  representativePosture,
+  initialContact,
+  maximumKneeFlexion,
+  trajectoryHigh,
+  trajectoryLow,
+  armClosed,
+  armOpen,
+}
+
+enum RunningMetricEvidenceWithheldReason {
+  lowConfidence,
+  limitedSamples,
+  missingPoseFrames,
+  missingContact,
+  missingMeasuredFrames,
+}
+
 enum RunningCoachFinding {
   postureAligned,
   postureTooUpright,
@@ -213,6 +234,54 @@ class RunningPoseFrame {
       landmarks: List<RunningVideoPoseLandmark>.unmodifiable(landmarks),
     );
   }
+}
+
+class RunningMetricEvidenceFrame {
+  final Duration timestamp;
+  final RunningMetricEvidenceFrameRole role;
+  final RunningGaitPhase? phase;
+  final RunningContactSide side;
+  final RunningPoseFrame? poseFrame;
+  final Map<String, double> values;
+  final double confidence;
+
+  RunningMetricEvidenceFrame({
+    required this.timestamp,
+    required this.role,
+    required this.confidence,
+    this.phase,
+    this.side = RunningContactSide.unknown,
+    this.poseFrame,
+    Map<String, double> values = const <String, double>{},
+  }) : values = Map<String, double>.unmodifiable(values);
+
+  int get timestampMs => timestamp.inMilliseconds;
+}
+
+class RunningMetricEvidence {
+  final RunningMetricEvidenceKind kind;
+  final RunningCoachMetric? metric;
+  final List<RunningMetricEvidenceFrame> frames;
+  final Map<String, double> measuredValues;
+  final int sampleCount;
+  final double reliability;
+  final RunningMetricEvidenceWithheldReason? withheldReason;
+
+  RunningMetricEvidence({
+    required this.kind,
+    required this.metric,
+    required List<RunningMetricEvidenceFrame> frames,
+    required Map<String, double> measuredValues,
+    required this.sampleCount,
+    required this.reliability,
+    this.withheldReason,
+  })  : frames = List<RunningMetricEvidenceFrame>.unmodifiable(frames),
+        measuredValues = Map<String, double>.unmodifiable(measuredValues);
+
+  bool get isReliable =>
+      withheldReason == null &&
+      frames.isNotEmpty &&
+      reliability >= runningCoachReliableMetricConfidence;
 }
 
 class RunningAnalysisSampleSummary {
@@ -416,6 +485,26 @@ class RunningVideoAnalysisResult {
   /// knee, trunk, and arm ranges) still remain behind [gaitAnalysis].
   RunningRhythmAnalysis? get rhythmAnalysis =>
       _deriveRunningRhythmAnalysis(this);
+
+  /// Per-metric evidence selected from measured timestamps rather than display
+  /// placeholders. This is derived on demand so old saved sessions that only
+  /// contain summary values still deserialize without new persisted fields.
+  List<RunningMetricEvidence> get metricEvidence =>
+      _deriveRunningMetricEvidence(this);
+
+  RunningMetricEvidence? evidenceForKind(RunningMetricEvidenceKind kind) {
+    for (final evidence in metricEvidence) {
+      if (evidence.kind == kind) return evidence;
+    }
+    return null;
+  }
+
+  RunningMetricEvidence? evidenceForMetric(RunningCoachMetric metric) {
+    for (final evidence in metricEvidence) {
+      if (evidence.metric == metric) return evidence;
+    }
+    return null;
+  }
 
   Duration? nearestValidatedContactTimestamp(
     Duration position, {
@@ -1053,6 +1142,521 @@ RunningGaitAnalysis? _deriveRunningGaitAnalysis(
         ? (leftKnee.median - rightKnee.median).abs()
         : null,
   );
+}
+
+List<RunningMetricEvidence> _deriveRunningMetricEvidence(
+  RunningVideoAnalysisResult result,
+) {
+  final items = <RunningMetricEvidence>[];
+  final rhythm = _rhythmMetricEvidence(result);
+  if (rhythm != null) {
+    items.add(rhythm);
+  }
+  items
+    ..add(_poseMetricEvidence(result, RunningCoachMetric.posture))
+    ..add(_poseMetricEvidence(result, RunningCoachMetric.footStrike))
+    ..add(_poseMetricEvidence(result, RunningCoachMetric.kneeFlexion))
+    ..add(_poseMetricEvidence(result, RunningCoachMetric.bounce))
+    ..add(_poseMetricEvidence(result, RunningCoachMetric.armCarriage));
+  return List<RunningMetricEvidence>.unmodifiable(items);
+}
+
+RunningMetricEvidence? _rhythmMetricEvidence(
+  RunningVideoAnalysisResult result,
+) {
+  final rhythm = result.rhythmAnalysis;
+  if (rhythm == null) return null;
+  final reliableContacts = rhythm.contacts
+      .where((contact) =>
+          contact.confidence >= runningCoachReliableMetricConfidence)
+      .toList(growable: false);
+  final reliability = rhythm.contacts.isEmpty
+      ? 0.0
+      : rhythm.contacts
+              .map((contact) => contact.confidence)
+              .reduce((sum, value) => sum + value) /
+          rhythm.contacts.length;
+  final contacts =
+      reliableContacts.isEmpty ? rhythm.contacts : reliableContacts;
+  final frames = contacts.take(4).map((contact) {
+    final poseFrame = _nearestPoseFrame(
+      result.poseFrames,
+      contact.timestamp.inMilliseconds,
+      toleranceMs: 90,
+    );
+    return RunningMetricEvidenceFrame(
+      timestamp: contact.timestamp,
+      role: RunningMetricEvidenceFrameRole.rhythmContact,
+      side: contact.side,
+      poseFrame: poseFrame,
+      confidence: contact.confidence,
+      values: <String, double>{
+        if (rhythm.cadenceSpm != null) 'cadenceSpm': rhythm.cadenceSpm!,
+        if (rhythm.medianStepTimeMs != null)
+          'stepTimeMs': rhythm.medianStepTimeMs!,
+        if (rhythm.leftRightStepTimeAsymmetryPercent != null)
+          'leftRightStepTimeAsymmetryPercent':
+              rhythm.leftRightStepTimeAsymmetryPercent!,
+      },
+    );
+  }).toList(growable: false);
+  return RunningMetricEvidence(
+    kind: RunningMetricEvidenceKind.rhythm,
+    metric: null,
+    frames: frames,
+    measuredValues: <String, double>{
+      if (rhythm.cadenceSpm != null) 'cadenceSpm': rhythm.cadenceSpm!,
+      if (rhythm.medianStepTimeMs != null)
+        'stepTimeMs': rhythm.medianStepTimeMs!,
+      if (rhythm.leftRightStepTimeAsymmetryPercent != null)
+        'leftRightStepTimeAsymmetryPercent':
+            rhythm.leftRightStepTimeAsymmetryPercent!,
+    },
+    sampleCount: rhythm.contacts.length,
+    reliability: reliability.clamp(0.0, 1.0).toDouble(),
+    withheldReason: rhythm.hasReliableSample
+        ? null
+        : RunningMetricEvidenceWithheldReason.limitedSamples,
+  );
+}
+
+RunningMetricEvidence _poseMetricEvidence(
+  RunningVideoAnalysisResult result,
+  RunningCoachMetric metric,
+) {
+  final quality = _metricEvidenceQualityFor(result, metric);
+  final gate = _metricEvidenceGateFor(result, metric, quality);
+  if (gate != null) {
+    return _withheldMetricEvidence(
+      result,
+      metric,
+      quality,
+      reason: gate,
+    );
+  }
+
+  final candidates = switch (metric) {
+    RunningCoachMetric.posture => _postureEvidenceCandidates(result),
+    RunningCoachMetric.bounce => _bounceEvidenceCandidates(result),
+    RunningCoachMetric.footStrike => _landingEvidenceCandidates(result),
+    RunningCoachMetric.kneeFlexion => _kneeEvidenceCandidates(result),
+    RunningCoachMetric.armCarriage => _armEvidenceCandidates(result),
+  };
+  if (candidates.isEmpty) {
+    return _withheldMetricEvidence(
+      result,
+      metric,
+      quality,
+      reason: RunningMetricEvidenceWithheldReason.missingMeasuredFrames,
+    );
+  }
+
+  final frames = candidates
+      .map(
+        (candidate) => RunningMetricEvidenceFrame(
+          timestamp: candidate.timestamp,
+          role: candidate.role,
+          phase: candidate.phase,
+          side: candidate.side,
+          poseFrame: candidate.poseFrame,
+          confidence: candidate.confidence,
+          values: candidate.values,
+        ),
+      )
+      .toList(growable: false)
+    ..sort((left, right) => left.timestamp.compareTo(right.timestamp));
+  final sampleCount =
+      quality.sampleCount == 0 ? candidates.length : quality.sampleCount;
+  return RunningMetricEvidence(
+    kind: _evidenceKindForMetric(metric),
+    metric: metric,
+    frames: frames,
+    measuredValues: _measuredValuesForMetric(result, metric),
+    sampleCount: sampleCount,
+    reliability: quality.confidence,
+  );
+}
+
+RunningMetricEvidence _withheldMetricEvidence(
+  RunningVideoAnalysisResult result,
+  RunningCoachMetric metric,
+  RunningMetricQuality quality, {
+  required RunningMetricEvidenceWithheldReason reason,
+}) {
+  return RunningMetricEvidence(
+    kind: _evidenceKindForMetric(metric),
+    metric: metric,
+    frames: const <RunningMetricEvidenceFrame>[],
+    measuredValues: const <String, double>{},
+    sampleCount: quality.sampleCount,
+    reliability: quality.confidence,
+    withheldReason: reason,
+  );
+}
+
+RunningMetricEvidenceWithheldReason? _metricEvidenceGateFor(
+  RunningVideoAnalysisResult result,
+  RunningCoachMetric metric,
+  RunningMetricQuality quality,
+) {
+  if (quality.isContactPhaseProxy) {
+    return RunningMetricEvidenceWithheldReason.missingContact;
+  }
+  if (quality.confidence < runningCoachReliableMetricConfidence) {
+    return RunningMetricEvidenceWithheldReason.lowConfidence;
+  }
+  final minimumSamples = switch (metric) {
+    RunningCoachMetric.footStrike ||
+    RunningCoachMetric.kneeFlexion =>
+      runningCoachMinimumReliableMetricSamples,
+    RunningCoachMetric.posture ||
+    RunningCoachMetric.bounce ||
+    RunningCoachMetric.armCarriage =>
+      5,
+  };
+  if (quality.sampleCount != 0 && quality.sampleCount < minimumSamples) {
+    return RunningMetricEvidenceWithheldReason.limitedSamples;
+  }
+  if (result.poseFrames.isEmpty) {
+    return RunningMetricEvidenceWithheldReason.missingPoseFrames;
+  }
+  if ((metric == RunningCoachMetric.footStrike ||
+          metric == RunningCoachMetric.kneeFlexion) &&
+      (result.contactWindows.isEmpty ||
+          !result.hasDenseContactEvidence ||
+          result.gaitAnalysis == null)) {
+    return RunningMetricEvidenceWithheldReason.missingContact;
+  }
+  return null;
+}
+
+RunningMetricQuality _metricEvidenceQualityFor(
+  RunningVideoAnalysisResult result,
+  RunningCoachMetric metric,
+) {
+  final quality = result.qualityFor(metric);
+  if (quality != null) return quality;
+  if (result.metricQualities.isNotEmpty) {
+    return const RunningMetricQuality(
+      confidence: 0,
+      sampleCount: 0,
+      reason: 'metric_unavailable',
+    );
+  }
+  final reason = result.validFrameCoverage < 0.6
+      ? 'low_coverage'
+      : result.validFrames < 7
+          ? 'limited_samples'
+          : null;
+  return RunningMetricQuality(
+    confidence: result.analysisConfidence,
+    sampleCount: result.validFrames,
+    reason: reason,
+  );
+}
+
+Map<String, double> _measuredValuesForMetric(
+  RunningVideoAnalysisResult result,
+  RunningCoachMetric metric,
+) {
+  return switch (metric) {
+    RunningCoachMetric.posture => <String, double>{
+        'forwardLeanDegrees': result.forwardLeanDegrees,
+      },
+    RunningCoachMetric.bounce => <String, double>{
+        'verticalBouncePercent': result.verticalBounceRatio * 100,
+      },
+    RunningCoachMetric.footStrike => <String, double>{
+        'footStrikeDistanceRatio': result.footStrikeDistanceRatio,
+      },
+    RunningCoachMetric.kneeFlexion => <String, double>{
+        'kneeAngleDegrees': result.stanceKneeAngleDegrees,
+      },
+    RunningCoachMetric.armCarriage => <String, double>{
+        'elbowAngleDegrees': result.elbowAngleDegrees,
+      },
+  };
+}
+
+RunningMetricEvidenceKind _evidenceKindForMetric(RunningCoachMetric metric) {
+  return switch (metric) {
+    RunningCoachMetric.posture => RunningMetricEvidenceKind.posture,
+    RunningCoachMetric.bounce => RunningMetricEvidenceKind.bounce,
+    RunningCoachMetric.footStrike => RunningMetricEvidenceKind.landing,
+    RunningCoachMetric.kneeFlexion => RunningMetricEvidenceKind.knee,
+    RunningCoachMetric.armCarriage => RunningMetricEvidenceKind.arms,
+  };
+}
+
+class _RunningMetricEvidenceCandidate {
+  final Duration timestamp;
+  final RunningMetricEvidenceFrameRole role;
+  final RunningGaitPhase? phase;
+  final RunningContactSide side;
+  final RunningPoseFrame poseFrame;
+  final Map<String, double> values;
+  final double confidence;
+
+  _RunningMetricEvidenceCandidate({
+    required this.timestamp,
+    required this.role,
+    required this.poseFrame,
+    required this.values,
+    required this.confidence,
+    this.phase,
+    this.side = RunningContactSide.unknown,
+  });
+}
+
+List<_RunningMetricEvidenceCandidate> _postureEvidenceCandidates(
+  RunningVideoAnalysisResult result,
+) {
+  final candidates = <_RunningMetricEvidenceCandidate>[];
+  for (final frame in result.poseFrames) {
+    final value = _forwardLeanDegrees(frame, result.direction);
+    if (value == null) continue;
+    candidates.add(
+      _RunningMetricEvidenceCandidate(
+        timestamp: frame.timestamp,
+        role: RunningMetricEvidenceFrameRole.representativePosture,
+        poseFrame: frame,
+        values: <String, double>{'forwardLeanDegrees': value},
+        confidence:
+            _landmarkConfidenceAverage(frame, const <int>[11, 12, 23, 24]),
+      ),
+    );
+  }
+  return _selectClosestEvidenceCandidates(
+    candidates,
+    target: result.forwardLeanDegrees,
+    valueKey: 'forwardLeanDegrees',
+  );
+}
+
+List<_RunningMetricEvidenceCandidate> _landingEvidenceCandidates(
+  RunningVideoAnalysisResult result,
+) {
+  final gait = result.gaitAnalysis;
+  if (gait == null) return const <_RunningMetricEvidenceCandidate>[];
+  final candidates = <_RunningMetricEvidenceCandidate>[];
+  for (final step in gait.steps.where((step) => step.isReliable)) {
+    final measurement = step.initialContact;
+    final value = measurement.footStrikeDistanceRatio;
+    if (value == null) continue;
+    final poseFrame = _nearestPoseFrame(
+      result.poseFrames,
+      measurement.timestamp.inMilliseconds,
+      toleranceMs: 90,
+    );
+    if (poseFrame == null) continue;
+    candidates.add(
+      _RunningMetricEvidenceCandidate(
+        timestamp: measurement.timestamp,
+        role: RunningMetricEvidenceFrameRole.initialContact,
+        phase: RunningGaitPhase.initialContact,
+        side: step.side,
+        poseFrame: poseFrame,
+        values: <String, double>{'footStrikeDistanceRatio': value},
+        confidence: math.min(step.confidence, measurement.confidence),
+      ),
+    );
+  }
+  return _selectClosestEvidenceCandidates(
+    candidates,
+    target: result.footStrikeDistanceRatio,
+    valueKey: 'footStrikeDistanceRatio',
+  );
+}
+
+List<_RunningMetricEvidenceCandidate> _kneeEvidenceCandidates(
+  RunningVideoAnalysisResult result,
+) {
+  final gait = result.gaitAnalysis;
+  if (gait == null) return const <_RunningMetricEvidenceCandidate>[];
+  final candidates = <_RunningMetricEvidenceCandidate>[];
+  for (final step in gait.steps.where((step) => step.isReliable)) {
+    final measurement = step.maximumKneeFlexion ?? step.initialContact;
+    final value = measurement.kneeAngleDegrees;
+    if (value == null) continue;
+    final poseFrame = _nearestPoseFrame(
+      result.poseFrames,
+      measurement.timestamp.inMilliseconds,
+      toleranceMs: 90,
+    );
+    if (poseFrame == null) continue;
+    candidates.add(
+      _RunningMetricEvidenceCandidate(
+        timestamp: measurement.timestamp,
+        role: measurement.phase == RunningGaitPhase.maximumKneeFlexion
+            ? RunningMetricEvidenceFrameRole.maximumKneeFlexion
+            : RunningMetricEvidenceFrameRole.initialContact,
+        phase: measurement.phase,
+        side: step.side,
+        poseFrame: poseFrame,
+        values: <String, double>{'kneeAngleDegrees': value},
+        confidence: math.min(step.confidence, measurement.confidence),
+      ),
+    );
+  }
+  return _selectClosestEvidenceCandidates(
+    candidates,
+    target: result.stanceKneeAngleDegrees,
+    valueKey: 'kneeAngleDegrees',
+  );
+}
+
+List<_RunningMetricEvidenceCandidate> _bounceEvidenceCandidates(
+  RunningVideoAnalysisResult result,
+) {
+  final hipFrames = <({RunningPoseFrame frame, double hipY, double scale})>[];
+  for (final frame in result.poseFrames) {
+    final hip = _midpoint(_posePoint(frame, 23), _posePoint(frame, 24));
+    final scale = _bodyScale(frame);
+    if (hip == null || scale == null) continue;
+    hipFrames.add((frame: frame, hipY: hip.y, scale: scale));
+  }
+  if (hipFrames.length < 2) return const <_RunningMetricEvidenceCandidate>[];
+
+  var high = hipFrames.first;
+  var low = hipFrames.first;
+  for (final item in hipFrames.skip(1)) {
+    if (item.hipY < high.hipY) high = item;
+    if (item.hipY > low.hipY) low = item;
+  }
+  if (high.frame.timestamp == low.frame.timestamp) {
+    return const <_RunningMetricEvidenceCandidate>[];
+  }
+  final scale = RunningGaitDistribution.fromValues(
+        hipFrames.map((item) => item.scale),
+      )?.median ??
+      1.0;
+  final trajectoryPercent = ((low.hipY - high.hipY).abs() / scale) * 100;
+  final metricPercent = result.verticalBounceRatio * 100;
+  final candidates = <_RunningMetricEvidenceCandidate>[
+    _RunningMetricEvidenceCandidate(
+      timestamp: high.frame.timestamp,
+      role: RunningMetricEvidenceFrameRole.trajectoryHigh,
+      poseFrame: high.frame,
+      values: <String, double>{
+        'verticalBouncePercent': metricPercent,
+        'trajectoryPercent': trajectoryPercent,
+      },
+      confidence: _landmarkConfidenceAverage(high.frame, const <int>[23, 24]),
+    ),
+    _RunningMetricEvidenceCandidate(
+      timestamp: low.frame.timestamp,
+      role: RunningMetricEvidenceFrameRole.trajectoryLow,
+      poseFrame: low.frame,
+      values: <String, double>{
+        'verticalBouncePercent': metricPercent,
+        'trajectoryPercent': trajectoryPercent,
+      },
+      confidence: _landmarkConfidenceAverage(low.frame, const <int>[23, 24]),
+    ),
+  ];
+  candidates.sort((left, right) => left.timestamp.compareTo(right.timestamp));
+  return candidates;
+}
+
+List<_RunningMetricEvidenceCandidate> _armEvidenceCandidates(
+  RunningVideoAnalysisResult result,
+) {
+  final armFrames = <({RunningPoseFrame frame, double angle})>[];
+  for (final frame in result.poseFrames) {
+    final angle = _averageElbowAngle(frame);
+    if (angle == null) continue;
+    armFrames.add((frame: frame, angle: angle));
+  }
+  if (armFrames.isEmpty) return const <_RunningMetricEvidenceCandidate>[];
+
+  var closed = armFrames.first;
+  var open = armFrames.first;
+  for (final item in armFrames.skip(1)) {
+    if (item.angle < closed.angle) closed = item;
+    if (item.angle > open.angle) open = item;
+  }
+  final candidates = <_RunningMetricEvidenceCandidate>[];
+  void addArmCandidate(
+    ({RunningPoseFrame frame, double angle}) item,
+    RunningMetricEvidenceFrameRole role,
+  ) {
+    if (candidates.any(
+      (candidate) => candidate.timestamp == item.frame.timestamp,
+    )) {
+      return;
+    }
+    candidates.add(
+      _RunningMetricEvidenceCandidate(
+        timestamp: item.frame.timestamp,
+        role: role,
+        poseFrame: item.frame,
+        values: <String, double>{'elbowAngleDegrees': item.angle},
+        confidence: _landmarkConfidenceAverage(
+          item.frame,
+          const <int>[11, 12, 13, 14, 15, 16],
+        ),
+      ),
+    );
+  }
+
+  addArmCandidate(closed, RunningMetricEvidenceFrameRole.armClosed);
+  addArmCandidate(open, RunningMetricEvidenceFrameRole.armOpen);
+  if (candidates.length < 3) {
+    final representative = _closestArmFrame(
+      armFrames,
+      target: result.elbowAngleDegrees,
+    );
+    addArmCandidate(representative, RunningMetricEvidenceFrameRole.armOpen);
+  }
+  candidates.sort((left, right) => left.timestamp.compareTo(right.timestamp));
+  return candidates.take(3).toList(growable: false);
+}
+
+({RunningPoseFrame frame, double angle}) _closestArmFrame(
+  List<({RunningPoseFrame frame, double angle})> frames, {
+  required double target,
+}) {
+  var closest = frames.first;
+  var closestDistance = (closest.angle - target).abs();
+  for (final item in frames.skip(1)) {
+    final distance = (item.angle - target).abs();
+    if (distance < closestDistance) {
+      closest = item;
+      closestDistance = distance;
+    }
+  }
+  return closest;
+}
+
+List<_RunningMetricEvidenceCandidate> _selectClosestEvidenceCandidates(
+  List<_RunningMetricEvidenceCandidate> candidates, {
+  required double target,
+  required String valueKey,
+  int limit = 3,
+}) {
+  if (candidates.isEmpty) return const <_RunningMetricEvidenceCandidate>[];
+  final ranked = [...candidates]..sort((left, right) {
+      final leftDistance = ((left.values[valueKey] ?? target) - target).abs();
+      final rightDistance = ((right.values[valueKey] ?? target) - target).abs();
+      return leftDistance == rightDistance
+          ? left.timestamp.compareTo(right.timestamp)
+          : leftDistance.compareTo(rightDistance);
+    });
+  final selected = ranked.take(limit).toList(growable: false)
+    ..sort((left, right) => left.timestamp.compareTo(right.timestamp));
+  return selected;
+}
+
+double _landmarkConfidenceAverage(RunningPoseFrame frame, List<int> indexes) {
+  final values = indexes
+      .map((index) => frame.landmarkByIndex(index)?.confidence)
+      .whereType<double>()
+      .where((value) => value.isFinite)
+      .toList(growable: false);
+  if (values.isEmpty) return 0;
+  return (values.reduce((sum, value) => sum + value) / values.length)
+      .clamp(0.0, 1.0)
+      .toDouble();
 }
 
 class _RunningGaitTimingSummary {

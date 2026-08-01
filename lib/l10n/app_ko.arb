@@ -5089,12 +5089,56 @@
   "runningCoachEvidenceReasonLimitedFrames": "이 지표를 판단할 안정 프레임이 너무 적었어요.",
   "runningCoachEvidenceReasonMissingPoseFrames": "이 클립에 저장된 분석 자세 프레임이 없어요.",
   "runningCoachEvidenceReasonMissingContact": "이 하체 지표를 뒷받침할 접지 프레임이 충분히 안정적이지 않았어요.",
+  "runningCoachEvidenceReasonMissingMeasuredFrames": "저장된 자세 프레임 안에 이 지표를 방어적으로 읽을 수 있는 순간이 없어요.",
   "runningCoachEvidenceContactLabel": "접지 근거",
   "runningCoachEvidencePostureLabel": "자세 프레임",
   "runningCoachEvidenceBounceLabel": "바운스 프레임",
   "runningCoachEvidenceLandingLabel": "착지 프레임",
   "runningCoachEvidenceKneeLabel": "무릎 프레임",
   "runningCoachEvidenceArmLabel": "팔 프레임",
+  "runningCoachEvidenceSamplesLabel": "샘플",
+  "runningCoachEvidenceReliabilityLabel": "신뢰도",
+  "runningCoachEvidenceWhyThisResultLabel": "이 결과의 이유",
+  "runningCoachEvidenceVideoMissingTitle": "영상을 사용할 수 없음",
+  "runningCoachEvidenceVideoMissingBody": "저장된 영상이 없어 이 지표는 텍스트 근거 요약으로 보여 줍니다.",
+  "runningCoachEvidenceMetricRhythm": "리듬",
+  "runningCoachEvidenceMetricPosture": "자세",
+  "runningCoachEvidenceMetricLanding": "착지",
+  "runningCoachEvidenceMetricKnee": "무릎",
+  "runningCoachEvidenceMetricBounce": "바운스",
+  "runningCoachEvidenceMetricArms": "팔",
+  "runningCoachEvidenceRhythmValue": "{cadence} spm · {stepTime} ms",
+  "@runningCoachEvidenceRhythmValue": {
+    "placeholders": {
+      "cadence": {},
+      "stepTime": {}
+    }
+  },
+  "runningCoachEvidenceWhyRhythm": "검증된 접지 시각으로 케이던스와 스텝 시간을 계산했어요.",
+  "runningCoachEvidenceWhyPosture": "안정적인 자세 프레임 중 측정된 전방 기울기 값에 가장 가까운 프레임을 골랐어요.",
+  "runningCoachEvidenceWhyLanding": "검증된 접지 프레임에서 발과 엉덩이 사이 착지 거리를 읽었어요.",
+  "runningCoachEvidenceWhyKnee": "검증된 지지 구간 프레임에서 이 무릎 각도를 읽었어요.",
+  "runningCoachEvidenceWhyBounce": "엉덩이 궤적의 높은 지점과 낮은 지점이 바운스 근거예요.",
+  "runningCoachEvidenceWhyArms": "팔 근거는 팔꿈치 각도를 실제로 읽은 프레임에서 가져왔어요.",
+  "runningCoachEvidenceRoleRhythmContact": "검증된 접지 시각",
+  "runningCoachEvidenceRolePosture": "대표 자세 프레임",
+  "runningCoachEvidenceRoleInitialContact": "초기 접지 프레임",
+  "runningCoachEvidenceRoleKneeFlexion": "무릎이 가장 굽혀진 구간",
+  "runningCoachEvidenceRoleTrajectoryHigh": "엉덩이 궤적의 높은 지점",
+  "runningCoachEvidenceRoleTrajectoryLow": "엉덩이 궤적의 낮은 지점",
+  "runningCoachEvidenceRoleArmClosed": "팔꿈치가 닫힌 구간",
+  "runningCoachEvidenceRoleArmOpen": "팔꿈치가 열린 구간",
+  "runningCoachMyVideoEvidenceTitle": "내 영상 근거",
+  "runningCoachEvidenceSummaryTimestamp": "{time} · 샘플 {samples}개",
+  "@runningCoachEvidenceSummaryTimestamp": {
+    "placeholders": {
+      "time": {},
+      "samples": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachOpenMyVideoEvidenceAction": "내 영상 근거에서 보기",
   "runningCoachPoseEvidenceBlockerFullBody": "머리와 양발이 화면 안에 남을 때까지 뒤로 가세요.",
   "runningCoachPoseEvidenceBlockerSideView": "안정적인 측면 자세를 유지해 주세요.",
   "runningCoachPoseEvidenceBlockerCoreJoints": "코치가 관절을 찾을 수 있게 카메라를 흔들지 마세요.",

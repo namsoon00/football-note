@@ -8925,6 +8925,10 @@ class AppLocalizationsJa extends AppLocalizations {
       'この下半身指標を支える接地フレームが十分に安定していませんでした。';
 
   @override
+  String get runningCoachEvidenceReasonMissingMeasuredFrames =>
+      '保存済み姿勢フレームに、この指標を防御的に読める瞬間が含まれていません。';
+
+  @override
   String get runningCoachEvidenceContactLabel => '接地の根拠';
 
   @override
@@ -8941,6 +8945,99 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachEvidenceArmLabel => '腕フレーム';
+
+  @override
+  String get runningCoachEvidenceSamplesLabel => 'サンプル';
+
+  @override
+  String get runningCoachEvidenceReliabilityLabel => '信頼度';
+
+  @override
+  String get runningCoachEvidenceWhyThisResultLabel => 'この結果の理由';
+
+  @override
+  String get runningCoachEvidenceVideoMissingTitle => '動画を使用できません';
+
+  @override
+  String get runningCoachEvidenceVideoMissingBody =>
+      '保存済み動画がないため、この指標はテキストの根拠要約として表示します。';
+
+  @override
+  String get runningCoachEvidenceMetricRhythm => 'リズム';
+
+  @override
+  String get runningCoachEvidenceMetricPosture => '姿勢';
+
+  @override
+  String get runningCoachEvidenceMetricLanding => '着地';
+
+  @override
+  String get runningCoachEvidenceMetricKnee => '膝';
+
+  @override
+  String get runningCoachEvidenceMetricBounce => '上下動';
+
+  @override
+  String get runningCoachEvidenceMetricArms => '腕';
+
+  @override
+  String runningCoachEvidenceRhythmValue(Object cadence, Object stepTime) {
+    return '$cadence spm · $stepTime ms';
+  }
+
+  @override
+  String get runningCoachEvidenceWhyRhythm => '検証済み接地時刻からケイデンスとステップ時間を計算しました。';
+
+  @override
+  String get runningCoachEvidenceWhyPosture =>
+      '安定した姿勢フレームの中から、測定した前傾値に最も近いフレームを選びました。';
+
+  @override
+  String get runningCoachEvidenceWhyLanding => '検証済み接地フレームで、足と腰の間の着地距離を読みました。';
+
+  @override
+  String get runningCoachEvidenceWhyKnee => '検証済み支持局面フレームで、この膝角度を読みました。';
+
+  @override
+  String get runningCoachEvidenceWhyBounce => '腰軌道の高い点と低い点が上下動の根拠です。';
+
+  @override
+  String get runningCoachEvidenceWhyArms => '腕の根拠は、肘角度を実際に読んだフレームから取得しました。';
+
+  @override
+  String get runningCoachEvidenceRoleRhythmContact => '検証済み接地時刻';
+
+  @override
+  String get runningCoachEvidenceRolePosture => '代表姿勢フレーム';
+
+  @override
+  String get runningCoachEvidenceRoleInitialContact => '初期接地フレーム';
+
+  @override
+  String get runningCoachEvidenceRoleKneeFlexion => '膝が最も曲がった局面';
+
+  @override
+  String get runningCoachEvidenceRoleTrajectoryHigh => '腰軌道の高い点';
+
+  @override
+  String get runningCoachEvidenceRoleTrajectoryLow => '腰軌道の低い点';
+
+  @override
+  String get runningCoachEvidenceRoleArmClosed => '肘が閉じた局面';
+
+  @override
+  String get runningCoachEvidenceRoleArmOpen => '肘が開いた局面';
+
+  @override
+  String get runningCoachMyVideoEvidenceTitle => '自分の動画の根拠';
+
+  @override
+  String runningCoachEvidenceSummaryTimestamp(Object time, int samples) {
+    return '$time · $samplesサンプル';
+  }
+
+  @override
+  String get runningCoachOpenMyVideoEvidenceAction => '自分の動画の根拠で見る';
 
   @override
   String get runningCoachPoseEvidenceBlockerFullBody =>

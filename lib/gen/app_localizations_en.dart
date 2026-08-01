@@ -9167,6 +9167,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'The contact frame was not stable enough to support this lower-body metric.';
 
   @override
+  String get runningCoachEvidenceReasonMissingMeasuredFrames =>
+      'The saved pose frames do not include a defensible measurement moment for this metric.';
+
+  @override
   String get runningCoachEvidenceContactLabel => 'Contact evidence';
 
   @override
@@ -9183,6 +9187,109 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachEvidenceArmLabel => 'Arm frame';
+
+  @override
+  String get runningCoachEvidenceSamplesLabel => 'Samples';
+
+  @override
+  String get runningCoachEvidenceReliabilityLabel => 'Reliability';
+
+  @override
+  String get runningCoachEvidenceWhyThisResultLabel => 'Why this result';
+
+  @override
+  String get runningCoachEvidenceVideoMissingTitle => 'Video not available';
+
+  @override
+  String get runningCoachEvidenceVideoMissingBody =>
+      'The saved video is missing, so this metric is shown as a text evidence summary instead.';
+
+  @override
+  String get runningCoachEvidenceMetricRhythm => 'Rhythm';
+
+  @override
+  String get runningCoachEvidenceMetricPosture => 'Posture';
+
+  @override
+  String get runningCoachEvidenceMetricLanding => 'Landing';
+
+  @override
+  String get runningCoachEvidenceMetricKnee => 'Knee';
+
+  @override
+  String get runningCoachEvidenceMetricBounce => 'Bounce';
+
+  @override
+  String get runningCoachEvidenceMetricArms => 'Arms';
+
+  @override
+  String runningCoachEvidenceRhythmValue(Object cadence, Object stepTime) {
+    return '$cadence spm · $stepTime ms';
+  }
+
+  @override
+  String get runningCoachEvidenceWhyRhythm =>
+      'Verified contact timestamps set the cadence and step-time readout.';
+
+  @override
+  String get runningCoachEvidenceWhyPosture =>
+      'The selected frame is closest to the measured forward-lean value across stable posture frames.';
+
+  @override
+  String get runningCoachEvidenceWhyLanding =>
+      'Validated contact frames provide the foot-to-hip landing distance used for this metric.';
+
+  @override
+  String get runningCoachEvidenceWhyKnee =>
+      'Validated stance-phase frames provide the knee angle used for this metric.';
+
+  @override
+  String get runningCoachEvidenceWhyBounce =>
+      'The high and low hip trajectory frames show the vertical motion behind this metric.';
+
+  @override
+  String get runningCoachEvidenceWhyArms =>
+      'The arm evidence comes from frames where elbow angle was actually measured.';
+
+  @override
+  String get runningCoachEvidenceRoleRhythmContact =>
+      'Verified contact timestamp';
+
+  @override
+  String get runningCoachEvidenceRolePosture => 'Representative posture frame';
+
+  @override
+  String get runningCoachEvidenceRoleInitialContact => 'Initial contact frame';
+
+  @override
+  String get runningCoachEvidenceRoleKneeFlexion =>
+      'Maximum knee-flexion phase';
+
+  @override
+  String get runningCoachEvidenceRoleTrajectoryHigh =>
+      'High point of the hip path';
+
+  @override
+  String get runningCoachEvidenceRoleTrajectoryLow =>
+      'Low point of the hip path';
+
+  @override
+  String get runningCoachEvidenceRoleArmClosed => 'Closed elbow phase';
+
+  @override
+  String get runningCoachEvidenceRoleArmOpen => 'Open elbow phase';
+
+  @override
+  String get runningCoachMyVideoEvidenceTitle => 'My video evidence';
+
+  @override
+  String runningCoachEvidenceSummaryTimestamp(Object time, int samples) {
+    return '$time · $samples samples';
+  }
+
+  @override
+  String get runningCoachOpenMyVideoEvidenceAction =>
+      'View in my video evidence';
 
   @override
   String get runningCoachPoseEvidenceBlockerFullBody =>

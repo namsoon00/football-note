@@ -16007,6 +16007,12 @@ abstract class AppLocalizations {
   /// **'The contact frame was not stable enough to support this lower-body metric.'**
   String get runningCoachEvidenceReasonMissingContact;
 
+  /// No description provided for @runningCoachEvidenceReasonMissingMeasuredFrames.
+  ///
+  /// In en, this message translates to:
+  /// **'The saved pose frames do not include a defensible measurement moment for this metric.'**
+  String get runningCoachEvidenceReasonMissingMeasuredFrames;
+
   /// No description provided for @runningCoachEvidenceContactLabel.
   ///
   /// In en, this message translates to:
@@ -16042,6 +16048,180 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Arm frame'**
   String get runningCoachEvidenceArmLabel;
+
+  /// No description provided for @runningCoachEvidenceSamplesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Samples'**
+  String get runningCoachEvidenceSamplesLabel;
+
+  /// No description provided for @runningCoachEvidenceReliabilityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reliability'**
+  String get runningCoachEvidenceReliabilityLabel;
+
+  /// No description provided for @runningCoachEvidenceWhyThisResultLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Why this result'**
+  String get runningCoachEvidenceWhyThisResultLabel;
+
+  /// No description provided for @runningCoachEvidenceVideoMissingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Video not available'**
+  String get runningCoachEvidenceVideoMissingTitle;
+
+  /// No description provided for @runningCoachEvidenceVideoMissingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The saved video is missing, so this metric is shown as a text evidence summary instead.'**
+  String get runningCoachEvidenceVideoMissingBody;
+
+  /// No description provided for @runningCoachEvidenceMetricRhythm.
+  ///
+  /// In en, this message translates to:
+  /// **'Rhythm'**
+  String get runningCoachEvidenceMetricRhythm;
+
+  /// No description provided for @runningCoachEvidenceMetricPosture.
+  ///
+  /// In en, this message translates to:
+  /// **'Posture'**
+  String get runningCoachEvidenceMetricPosture;
+
+  /// No description provided for @runningCoachEvidenceMetricLanding.
+  ///
+  /// In en, this message translates to:
+  /// **'Landing'**
+  String get runningCoachEvidenceMetricLanding;
+
+  /// No description provided for @runningCoachEvidenceMetricKnee.
+  ///
+  /// In en, this message translates to:
+  /// **'Knee'**
+  String get runningCoachEvidenceMetricKnee;
+
+  /// No description provided for @runningCoachEvidenceMetricBounce.
+  ///
+  /// In en, this message translates to:
+  /// **'Bounce'**
+  String get runningCoachEvidenceMetricBounce;
+
+  /// No description provided for @runningCoachEvidenceMetricArms.
+  ///
+  /// In en, this message translates to:
+  /// **'Arms'**
+  String get runningCoachEvidenceMetricArms;
+
+  /// No description provided for @runningCoachEvidenceRhythmValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{cadence} spm · {stepTime} ms'**
+  String runningCoachEvidenceRhythmValue(Object cadence, Object stepTime);
+
+  /// No description provided for @runningCoachEvidenceWhyRhythm.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified contact timestamps set the cadence and step-time readout.'**
+  String get runningCoachEvidenceWhyRhythm;
+
+  /// No description provided for @runningCoachEvidenceWhyPosture.
+  ///
+  /// In en, this message translates to:
+  /// **'The selected frame is closest to the measured forward-lean value across stable posture frames.'**
+  String get runningCoachEvidenceWhyPosture;
+
+  /// No description provided for @runningCoachEvidenceWhyLanding.
+  ///
+  /// In en, this message translates to:
+  /// **'Validated contact frames provide the foot-to-hip landing distance used for this metric.'**
+  String get runningCoachEvidenceWhyLanding;
+
+  /// No description provided for @runningCoachEvidenceWhyKnee.
+  ///
+  /// In en, this message translates to:
+  /// **'Validated stance-phase frames provide the knee angle used for this metric.'**
+  String get runningCoachEvidenceWhyKnee;
+
+  /// No description provided for @runningCoachEvidenceWhyBounce.
+  ///
+  /// In en, this message translates to:
+  /// **'The high and low hip trajectory frames show the vertical motion behind this metric.'**
+  String get runningCoachEvidenceWhyBounce;
+
+  /// No description provided for @runningCoachEvidenceWhyArms.
+  ///
+  /// In en, this message translates to:
+  /// **'The arm evidence comes from frames where elbow angle was actually measured.'**
+  String get runningCoachEvidenceWhyArms;
+
+  /// No description provided for @runningCoachEvidenceRoleRhythmContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified contact timestamp'**
+  String get runningCoachEvidenceRoleRhythmContact;
+
+  /// No description provided for @runningCoachEvidenceRolePosture.
+  ///
+  /// In en, this message translates to:
+  /// **'Representative posture frame'**
+  String get runningCoachEvidenceRolePosture;
+
+  /// No description provided for @runningCoachEvidenceRoleInitialContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Initial contact frame'**
+  String get runningCoachEvidenceRoleInitialContact;
+
+  /// No description provided for @runningCoachEvidenceRoleKneeFlexion.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum knee-flexion phase'**
+  String get runningCoachEvidenceRoleKneeFlexion;
+
+  /// No description provided for @runningCoachEvidenceRoleTrajectoryHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'High point of the hip path'**
+  String get runningCoachEvidenceRoleTrajectoryHigh;
+
+  /// No description provided for @runningCoachEvidenceRoleTrajectoryLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Low point of the hip path'**
+  String get runningCoachEvidenceRoleTrajectoryLow;
+
+  /// No description provided for @runningCoachEvidenceRoleArmClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed elbow phase'**
+  String get runningCoachEvidenceRoleArmClosed;
+
+  /// No description provided for @runningCoachEvidenceRoleArmOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open elbow phase'**
+  String get runningCoachEvidenceRoleArmOpen;
+
+  /// No description provided for @runningCoachMyVideoEvidenceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My video evidence'**
+  String get runningCoachMyVideoEvidenceTitle;
+
+  /// No description provided for @runningCoachEvidenceSummaryTimestamp.
+  ///
+  /// In en, this message translates to:
+  /// **'{time} · {samples} samples'**
+  String runningCoachEvidenceSummaryTimestamp(Object time, int samples);
+
+  /// No description provided for @runningCoachOpenMyVideoEvidenceAction.
+  ///
+  /// In en, this message translates to:
+  /// **'View in my video evidence'**
+  String get runningCoachOpenMyVideoEvidenceAction;
 
   /// No description provided for @runningCoachPoseEvidenceBlockerFullBody.
   ///

@@ -20,6 +20,7 @@ import 'package:video_player_platform_interface/video_player_platform_interface.
 
 void main() {
   late VideoPlayerPlatform previousVideoPlayerPlatform;
+  late _FakeVideoPlayerPlatform fakeVideoPlayerPlatform;
 
   test('target guide illustration assets are bundled', () async {
     const guideAssets = <String>[
@@ -72,7 +73,8 @@ void main() {
 
   setUp(() {
     previousVideoPlayerPlatform = VideoPlayerPlatform.instance;
-    VideoPlayerPlatform.instance = _FakeVideoPlayerPlatform();
+    fakeVideoPlayerPlatform = _FakeVideoPlayerPlatform();
+    VideoPlayerPlatform.instance = fakeVideoPlayerPlatform;
   });
 
   tearDown(() {
@@ -918,8 +920,114 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('shared evidence viewer switches metrics in one card', (
+    WidgetTester tester,
+  ) async {
+    final result = RunningVideoAnalysisResult(
+      videoDuration: const Duration(seconds: 4),
+      sampledFrames: 14,
+      validFrames: 13,
+      direction: RunningDirection.leftToRight,
+      forwardLeanDegrees: 10,
+      verticalBounceRatio: 0.06,
+      footStrikeDistanceRatio: 0.24,
+      stanceKneeAngleDegrees: 155,
+      elbowAngleDegrees: 92,
+      metricQualities: _testDenseMetricQualities(),
+      coarseSamples: const RunningAnalysisSampleSummary(
+        attemptedFrames: 14,
+        validFrames: 13,
+        poseFrameCount: 6,
+      ),
+      denseSamples: const RunningAnalysisSampleSummary(
+        attemptedFrames: 8,
+        validFrames: 6,
+        poseFrameCount: 6,
+        maxFrameBudget: 48,
+        targetFps: 30,
+      ),
+      contactWindows: _testContactWindows(),
+      validatedContactFrameTimestamps: _testContactTimestamps(),
+      contactConfidence: 0.84,
+      poseFrames: _testPoseFrames(
+        startX: 0.34,
+        dxPerFrame: -0.018,
+        confidence: 0.93,
+      ),
+    );
+    final report = const RunningCoachingService().buildReport(result);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: runningAnalysisResultScreenForTesting(
+          result: result,
+          report: report,
+          session: _sessionForReport(
+            id: 'shared-player-evidence',
+            result: result,
+            report: report,
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    expect(
+      find.byKey(const ValueKey('running-coach-analysis-evidence-card')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('running-coach-evidence-chip-landing')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('running-coach-evidence-chip-knee')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('running-coach-evidence-metric-tabs')),
+      findsOneWidget,
+    );
+
+    await tester.tap(
+      find.byKey(const ValueKey('running-coach-evidence-chip-knee')),
+    );
+    await tester.pump();
+    expect(
+      tester
+          .widget<ChoiceChip>(
+            find.byKey(const ValueKey('running-coach-evidence-chip-knee')),
+          )
+          .selected,
+      isTrue,
+    );
+    await tester.tap(
+      find.byKey(const ValueKey('running-coach-evidence-chip-landing')),
+    );
+    await tester.pump();
+    expect(
+      tester
+          .widget<ChoiceChip>(
+            find.byKey(const ValueKey('running-coach-evidence-chip-landing')),
+          )
+          .selected,
+      isTrue,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets(
-      'analysis result renders a curated reference for every tracked metric', (
+      'analysis result uses my-video evidence affordances for tracked metrics',
+      (
     WidgetTester tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(360, 780));
@@ -1060,6 +1168,12 @@ void main() {
               'running-coach-insight-illustrated-comparison-posture',
             ),
           ),
+          findsNothing,
+        );
+        expect(
+          find.byKey(
+            const ValueKey('running-coach-insight-open-evidence-posture'),
+          ),
           findsOneWidget,
         );
         expect(
@@ -1143,7 +1257,13 @@ void main() {
       find.byKey(const ValueKey('running-coach-analysis-retake-action')),
       findsOneWidget,
     );
-    expect(find.text('Retake setup'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('running-coach-analysis-retake-action')),
+        matching: find.text('Retake setup'),
+      ),
+      findsOneWidget,
+    );
     final fineGaitDetails = find.byKey(
       const ValueKey('running-coach-fine-gait-details-toggle'),
     );
@@ -1276,6 +1396,7 @@ RunningCoachSessionAnalysis _sessionForReport({
   required String id,
   required RunningVideoAnalysisResult result,
   required RunningCoachingReport report,
+  String? videoPath,
 }) {
   final primary = report.primaryFocus ?? report.rankedInsights.first;
   return RunningCoachSessionAnalysis(
@@ -1294,6 +1415,7 @@ RunningCoachSessionAnalysis _sessionForReport({
     primaryConfidence: primary.quality.confidence,
     primarySampleCount: primary.quality.sampleCount,
     primaryQualityReason: primary.quality.reason,
+    videoPath: videoPath,
   );
 }
 
