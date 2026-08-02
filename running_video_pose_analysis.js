@@ -28,8 +28,11 @@
     minContactConfidence: 0.34,
     groundLineSampleFraction: 0.45,
     groundLineMinimumSamples: 3,
-    contactMotionToleranceRatio: 0.06,
-    contactMotionNeighborGapMs: 150,
+    // A contact must persist over adjacent dense samples. A single shoe point
+    // near the fitted ground line is only a candidate: it can just as easily
+    // be a swing leg or a tracking spike.
+    contactMotionToleranceRatio: 0.035,
+    contactMotionNeighborGapMs: 100,
   });
 
   const index = Object.freeze({
@@ -762,20 +765,42 @@
     rejectedFrameCounts[reason] = (rejectedFrameCounts[reason] ?? 0) + 1;
   }
 
+  function isEligibleContactRecord(record) {
+    return record.inGroundBand && record.confidence >= config.minContactConfidence;
+  }
+
+  function isTemporalNeighbor(current, neighbor) {
+    return neighbor &&
+      Math.abs(current.sample.timestampMs - neighbor.sample.timestampMs) <=
+        config.contactMotionNeighborGapMs;
+  }
+
+  function enteredGroundBand(current, previous) {
+    return isTemporalNeighbor(current, previous) &&
+      previous.groundGap > current.tolerance;
+  }
+
   function contactMotionReason(records, index) {
     const current = records[index];
     const previous = records[index - 1];
     const next = records[index + 1];
-    const hasPrevious = previous &&
-      current.sample.timestampMs - previous.sample.timestampMs <= config.contactMotionNeighborGapMs;
-    const hasNext = next &&
-      next.sample.timestampMs - current.sample.timestampMs <= config.contactMotionNeighborGapMs;
+    const hasPrevious = isTemporalNeighbor(current, previous);
+    const hasNext = isTemporalNeighbor(current, next);
     if (!hasPrevious && !hasNext) return 'insufficient_motion_window';
     const tolerance = Math.max(1, current.sample.bodyScale * config.contactMotionToleranceRatio);
     const currentY = current.foot.bottomPoint.y;
     const isLowestNearPrevious = !hasPrevious || currentY >= previous.foot.bottomPoint.y - tolerance;
     const isLowestNearNext = !hasNext || currentY >= next.foot.bottomPoint.y - tolerance;
-    return isLowestNearPrevious && isLowestNearNext ? null : 'unstable_foot_motion';
+    if (!isLowestNearPrevious || !isLowestNearNext) return 'unstable_foot_motion';
+
+    // Do not promote an isolated near-ground frame to initial contact. We
+    // need at least one neighbouring, eligible ground-band frame from the
+    // same tracked foot. This catches the common failure where the flexed
+    // swing leg happens to be the lowest landmark in one frame.
+    const hasGroundBandPersistence = [previous, next].some((neighbor) =>
+      isTemporalNeighbor(current, neighbor) && isEligibleContactRecord(neighbor),
+    );
+    return hasGroundBandPersistence ? null : 'insufficient_contact_persistence';
   }
 
   function validatedContact(window, samples, groundLine, direction) {
@@ -795,19 +820,22 @@
       records.push({
         sample,
         foot,
+        groundGap: gap,
+        tolerance,
         confidence: contactLandmarkConfidence(sample, window.side, foot) * (0.75 + 0.25 * proximityFactor),
         inGroundBand,
       });
     }
 
-    const candidates = [];
+    const temporalCandidates = [];
+    const persistentCandidates = [];
     for (let recordIndex = 0; recordIndex < records.length; recordIndex += 1) {
       const candidate = records[recordIndex];
       if (!candidate.inGroundBand) {
         incrementReason(rejectedFrameCounts, 'outside_ground_band');
         continue;
       }
-      if (candidate.confidence < config.minContactConfidence) {
+      if (!isEligibleContactRecord(candidate)) {
         incrementReason(rejectedFrameCounts, 'low_contact_confidence');
         continue;
       }
@@ -816,9 +844,16 @@
         incrementReason(rejectedFrameCounts, motionReason);
         continue;
       }
-      candidates.push(candidate);
+      if (enteredGroundBand(candidate, records[recordIndex - 1])) {
+        temporalCandidates.push(candidate);
+      } else {
+        persistentCandidates.push(candidate);
+      }
     }
 
+    const candidates = temporalCandidates.length > 0
+      ? temporalCandidates
+      : persistentCandidates;
     candidates.sort((left, right) =>
       right.confidence - left.confidence ||
       Math.abs(left.sample.timestampMs - window.centerTimestampMs) - Math.abs(right.sample.timestampMs - window.centerTimestampMs),
@@ -835,7 +870,7 @@
             confidence: selected.confidence,
           }
         : null,
-      candidateFrameCount: records.length,
+      candidateFrameCount: records.filter((record) => record.inGroundBand).length,
       rejectedFrameCounts,
     };
   }
@@ -992,6 +1027,7 @@
       // Keep them distinct from the old proxy path so the UI can show the
       // exact frame and value without pretending it is a complete assessment.
       const usesContactProxy = contacts.length === 0;
+      const hasCompleteContactSample = contacts.length >= config.minValidatedContacts;
       const denseProxies = usesContactProxy
         ? contactProxies(dense.samples, candidateSet.windows, direction, 0.6)
         : [];
@@ -1011,7 +1047,11 @@
       const bodyConfidence = average(coarse.samples.map(coreConfidence));
       const armConfidenceValues = coarse.samples.map(armConfidence).filter((value) => value !== null);
       const contactConfidence = average(metricContacts.map((contact) => contact.confidence));
-      const contactReason = usesContactProxy ? 'contact_phase_proxy' : null;
+      const contactReason = usesContactProxy
+        ? 'contact_phase_proxy'
+        : hasCompleteContactSample
+          ? null
+          : 'limited_contact_samples';
 
       return {
         durationMs,
