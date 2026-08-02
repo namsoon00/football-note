@@ -9898,6 +9898,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'The analysis is saved, but this device could not keep a local video copy. You can still review this result now.';
 
   @override
+  String get runningCoachAnalysisHistorySaveFailedTitle =>
+      'Analysis is complete, but it was not saved to history';
+
+  @override
+  String get runningCoachAnalysisHistorySaveFailedBody =>
+      'You can review this result now, but it may not remain in your analysis history after you close this screen. Delete an older analysis and try again.';
+
+  @override
   String get runningCoachAnalysisHistoryDetailTitle => 'Analysis review';
 
   @override

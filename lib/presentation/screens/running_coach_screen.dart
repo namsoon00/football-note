@@ -355,23 +355,39 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
     final previousComparableSession =
         _previousComparableSessionFor(captureContext);
     setState(() => _isAnalyzing = true);
+    late final RunningVideoAnalysisResult analysis;
+    late final RunningCoachingReport report;
+    late final RunningCoachSessionAnalysis session;
+    var historySaveFailed = false;
     try {
       final analyzedAt = DateTime.now();
-      final analysis = await widget.analysisService.analyzeVideo(selected);
-      final report = _coachingService.buildReport(analysis);
+      analysis = await widget.analysisService.analyzeVideo(selected);
+      report = _coachingService.buildReport(analysis);
       final historyService = _historyService;
-      final updatedSessions = historyService == null
-          ? _recentSessions
-          : await historyService.saveUploadAnalysis(
-              result: analysis,
-              report: report,
-              sourceVideoPath: selected.path,
-              sourceVideoName: selected.name,
-              saveVideo: saveVideoToHistory,
-              analyzedAt: analyzedAt,
-              captureContext: captureContext,
-            );
-      final session = updatedSessions.isNotEmpty
+      List<RunningCoachSessionAnalysis> updatedSessions;
+      if (historyService == null) {
+        updatedSessions = _recentSessions;
+      } else {
+        try {
+          updatedSessions = await historyService.saveUploadAnalysis(
+            result: analysis,
+            report: report,
+            sourceVideoPath: selected.path,
+            sourceVideoName: selected.name,
+            saveVideo: saveVideoToHistory,
+            analyzedAt: analyzedAt,
+            captureContext: captureContext,
+          );
+        } catch (_) {
+          // A full or temporarily unavailable local store must never turn a
+          // completed on-device measurement into a failed analysis.
+          updatedSessions = _recentSessions;
+          historySaveFailed = true;
+        }
+      }
+      session = historyService != null &&
+              !historySaveFailed &&
+              updatedSessions.isNotEmpty
           ? updatedSessions.first
           : _transientSessionForAnalysis(
               result: analysis,
@@ -386,33 +402,38 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
         _selectedVideo = null;
         _saveSelectedVideoToHistory = false;
       });
-      _openAnalysisResult(
-        result: analysis,
-        report: report,
-        session: session,
-        activeVideoPath: selected.path,
-        videoSaveFailed: saveVideoToHistory &&
-            historyService != null &&
-            session.videoPath == null,
-        previousComparableSession: previousComparableSession,
-      );
     } on RunningVideoAnalysisException catch (error) {
       if (!mounted) return;
       AppFeedback.showMessage(
         context,
         text: _messageForException(AppLocalizations.of(context)!, error),
       );
+      return;
     } catch (_) {
       if (!mounted) return;
       AppFeedback.showMessage(
         context,
         text: AppLocalizations.of(context)!.runningCoachAnalysisFailedGeneric,
       );
+      return;
     } finally {
       if (mounted) {
         setState(() => _isAnalyzing = false);
       }
     }
+    if (!mounted) return;
+    _openAnalysisResult(
+      result: analysis,
+      report: report,
+      session: session,
+      activeVideoPath: selected.path,
+      videoSaveFailed: saveVideoToHistory &&
+          !historySaveFailed &&
+          _historyService != null &&
+          session.videoPath == null,
+      historySaveFailed: historySaveFailed,
+      previousComparableSession: previousComparableSession,
+    );
   }
 
   RunningCoachSessionAnalysis _transientSessionForAnalysis({
@@ -467,6 +488,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
     required RunningCoachSessionAnalysis session,
     String? activeVideoPath,
     bool videoSaveFailed = false,
+    bool historySaveFailed = false,
     RunningCoachSessionAnalysis? previousComparableSession,
   }) {
     Navigator.of(context).push(
@@ -477,6 +499,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
           session: session,
           activeVideoPath: activeVideoPath,
           videoSaveFailed: videoSaveFailed,
+          historySaveFailed: historySaveFailed,
           previousComparableSession: previousComparableSession,
           onRetakeSameCondition: () => Navigator.of(context).pop(),
         ),
@@ -5405,6 +5428,7 @@ class _RunningAnalysisResultScreen extends StatefulWidget {
   final bool isHistorical;
   final String? activeVideoPath;
   final bool videoSaveFailed;
+  final bool historySaveFailed;
   final RunningCoachSessionAnalysis? previousComparableSession;
   final VoidCallback? onRetakeSameCondition;
 
@@ -5415,6 +5439,7 @@ class _RunningAnalysisResultScreen extends StatefulWidget {
     this.isHistorical = false,
     this.activeVideoPath,
     this.videoSaveFailed = false,
+    this.historySaveFailed = false,
     this.previousComparableSession,
     this.onRetakeSameCondition,
   });
@@ -5477,6 +5502,10 @@ class _RunningAnalysisResultScreenState
             videoPath: widget.activeVideoPath ?? widget.session.videoPath,
           ),
           const SizedBox(height: 12),
+          if (widget.historySaveFailed) ...[
+            const _AnalysisHistorySaveFailedCard(),
+            const SizedBox(height: 12),
+          ],
           if (widget.videoSaveFailed) ...[
             const _VideoSaveFailedCard(),
             const SizedBox(height: 12),
@@ -5504,6 +5533,54 @@ class _RunningAnalysisResultScreenState
             report: widget.report,
             sections: insightSections,
             onShowEvidence: _showEvidence,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AnalysisHistorySaveFailedCard extends StatelessWidget {
+  const _AnalysisHistorySaveFailedCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      key: const ValueKey('running-coach-analysis-history-save-failed'),
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: scheme.secondaryContainer,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: scheme.secondary.withValues(alpha: 0.22)),
+      ),
+      padding: const EdgeInsets.all(14),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.save_outlined, color: scheme.onSecondaryContainer),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.runningCoachAnalysisHistorySaveFailedTitle,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: scheme.onSecondaryContainer,
+                        fontWeight: FontWeight.w900,
+                      ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  l10n.runningCoachAnalysisHistorySaveFailedBody,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: scheme.onSecondaryContainer,
+                      ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

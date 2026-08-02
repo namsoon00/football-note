@@ -93,7 +93,7 @@ void main() {
         ),
       },
       poseFrames: [
-        for (var frameIndex = 0; frameIndex < 12; frameIndex += 1)
+        for (var frameIndex = 0; frameIndex < 30; frameIndex += 1)
           _poseFrame(frameIndex),
       ],
       validatedContactFrameTimestamps: const <Duration>[
@@ -111,7 +111,10 @@ void main() {
 
     final restored = service.allSessions().single.analysisResult;
     expect(restored, isNotNull);
-    expect(restored!.poseFrames, hasLength(12));
+    expect(
+      restored!.poseFrames,
+      hasLength(RunningCoachHistoryService.historyPoseFrameLimit),
+    );
     expect(restored.poseFrames.first.timestamp, Duration.zero);
     expect(
       restored.poseFrames.map((frame) => frame.timestamp.inMilliseconds),

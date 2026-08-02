@@ -60,7 +60,7 @@ require(
     "Web app must load the video analysis bridge before Flutter",
 )
 require(
-    "dart.library.js_interop" in facade_text,
+    "dart.library.html" in facade_text,
     "Running video analysis service must select a web implementation",
 )
 for required in ("readAsBytes", "runningVideoPoseAnalysis", "toDart", "RunningVideoAnalysisResult.fromMap"):

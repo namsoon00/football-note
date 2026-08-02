@@ -4,7 +4,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../domain/entities/running_video_analysis_result.dart';
 import 'running_video_analysis_platform_io.dart'
-    if (dart.library.js_interop) 'running_video_analysis_platform_web.dart'
+    if (dart.library.html) 'running_video_analysis_platform_web.dart'
     as platform;
 
 class RunningVideoAnalysisException implements Exception {
