@@ -42,6 +42,11 @@ for required in (
     "denseWindowRadiusMs: 500",
     "maxContactWindows: 8",
     "minValidatedContacts: 3",
+    "kinematicContactConfidencePenalty: 0.82",
+    "kinematicContactCandidate",
+    "kinematic_contact_estimate",
+    "missing_contact_joint_chain",
+    "centerOfPoints",
     "groundLineSampleFraction",
     "contactMotionToleranceRatio",
     "enteredGroundBand",
@@ -65,6 +70,11 @@ for required in (
     "window.runningVideoPoseAnalysis",
 ):
     require(required in bridge_text, f"Web analyzer is missing required token: {required}")
+
+require(
+    "shoulderPoints.length === 0 || hipPoints.length === 0" in bridge_text,
+    "Web analyzer must retain a torso frame when the far-side leg is occluded",
+)
 
 require(
     re.search(r"taskVersion:\s*'0\.10\.35'", bridge_text) is not None,

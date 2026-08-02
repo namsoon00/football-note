@@ -10843,6 +10843,9 @@ class _DenseContactEvidencePanel extends StatelessWidget {
     final contactTimes = result.validatedContactFrameTimestamps;
     const requiredContacts = runningCoachMinimumReliableMetricSamples;
     final primaryRejectionReason = result.primaryContactRejectionReason;
+    final usesKinematicContactEstimate = result.metricQualities.values.any(
+      (quality) => quality.reason == 'kinematic_contact_estimate',
+    );
     final contactTimesText = contactTimes.isEmpty
         ? l10n.runningCoachDenseContactUnavailable
         : contactTimes
@@ -10913,6 +10916,14 @@ class _DenseContactEvidencePanel extends StatelessWidget {
               ),
             ],
           ),
+          if (usesKinematicContactEstimate) ...[
+            const SizedBox(height: 10),
+            _GuideTextRow(
+              icon: Icons.route_outlined,
+              label: l10n.runningCoachDenseContactKinematicEstimateLabel,
+              body: l10n.runningCoachDenseContactKinematicEstimateBody,
+            ),
+          ],
           if (!result.hasDenseContactEvidence) ...[
             const SizedBox(height: 10),
             _GuideTextRow(
@@ -10937,6 +10948,8 @@ String _contactRejectionReasonText(
   return switch (reason) {
     'missing_foot_landmark' =>
       l10n.runningCoachContactRejectionMissingFootLandmark,
+    'missing_contact_joint_chain' =>
+      l10n.runningCoachContactRejectionMissingContactJointChain,
     'outside_ground_band' => l10n.runningCoachContactRejectionOutsideGround,
     'low_contact_confidence' => l10n.runningCoachContactRejectionLowConfidence,
     'unstable_foot_motion' => l10n.runningCoachContactRejectionUnstableMotion,
@@ -11312,6 +11325,8 @@ String _qualityReasonText(BuildContext context, RunningMetricQuality quality) {
     'low_coverage' => l10n.runningCoachQualityReasonLowCoverage,
     'limited_samples' => l10n.runningCoachQualityReasonLimitedSamples,
     'contact_phase_proxy' => l10n.runningCoachQualityReasonContactPhaseProxy,
+    'kinematic_contact_estimate' =>
+      l10n.runningCoachQualityReasonKinematicContactEstimate,
     'low_confidence' => l10n.runningCoachQualityReasonLowConfidence,
     'missing_contact_evidence' => l10n.runningCoachEvidenceReasonMissingContact,
     'missing_pose_frames' => l10n.runningCoachEvidenceReasonMissingPoseFrames,

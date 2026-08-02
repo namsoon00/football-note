@@ -8948,6 +8948,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'The full clip is scanned first. Foot-strike and stance-knee values come only from high-density re-read frames around validated contact.';
 
   @override
+  String get runningCoachDenseContactKinematicEstimateLabel =>
+      'Foot-path fallback';
+
+  @override
+  String get runningCoachDenseContactKinematicEstimateBody =>
+      'If the ground line is unstable, the contact window is backed up by the visible landing leg\'s hip, knee, ankle, and vertical foot path. This is used for scores and coaching only after three repeated steps.';
+
+  @override
   String get runningCoachDenseContactCoarseSamplesLabel => 'Full scan';
 
   @override
@@ -9224,6 +9232,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get runningCoachContactRejectionMissingFootLandmark =>
       'Foot and ankle landmarks were not tracked reliably in the contact-candidate window. Keep both feet in frame throughout the clip.';
+
+  @override
+  String get runningCoachContactRejectionMissingContactJointChain =>
+      'The candidate landing leg did not show its hip, knee, and ankle together on one side. Record a side view with the full leg visible.';
 
   @override
   String get runningCoachContactRejectionOutsideGround =>
@@ -10206,6 +10218,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get runningCoachQualityReasonContactPhaseProxy =>
       'Foot landing was hard to confirm. Check the landing and knee again.';
+
+  @override
+  String get runningCoachQualityReasonKinematicContactEstimate =>
+      'The contact window was confirmed from the foot trajectory and visible joint chain instead of the ground line. It was used for coaching only after three repeated steps.';
 
   @override
   String get runningCoachQualityReasonLowConfidence =>

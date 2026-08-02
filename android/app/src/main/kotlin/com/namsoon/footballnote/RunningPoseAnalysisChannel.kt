@@ -179,6 +179,9 @@ class RunningPoseAnalysisChannel(
                 .map { it.timestampMs }
                 .distinct()
                 .size
+            val usesKinematicContactEstimate = contactFrames.any {
+                it.isKinematicEstimate
+            }
             // A single verified contact remains an observed measurement, even
             // though it is still below the three-step coaching threshold.
             // Only fall back to a phase proxy when no continuous contact event
@@ -236,6 +239,8 @@ class RunningPoseAnalysisChannel(
                 .coerceIn(0.0, 1.0)
             val contactQualityReason = when {
                 usesContactProxy -> "contact_phase_proxy"
+                hasCompleteContactSample && usesKinematicContactEstimate ->
+                    "kinematic_contact_estimate"
                 hasCompleteContactSample -> null
                 else -> "limited_contact_samples"
             }
@@ -826,17 +831,21 @@ class RunningPoseAnalysisChannel(
                         sample.timestampMs <= window.endTimestampMs
                 }
                 .mapNotNull { sample ->
-                    sample.footBottom(window.side)?.let { evidence -> sample to evidence }
+                    val evidence = sample.footBottom(window.side) ?: return@mapNotNull null
+                    val confidence = sample.contactLandmarkConfidence(window.side, evidence)
+                        ?: return@mapNotNull null
+                    Triple(sample, evidence, confidence)
                 }
                 .sortedWith(
-                    compareBy<Pair<FrameSample, FootBottomEvidence>> {
+                    compareBy<Triple<FrameSample, FootBottomEvidence, Double>> {
                         abs(it.first.timestampMs - window.centerTimestampMs)
                     }.thenBy { it.first.timestampMs },
                 )
                 .firstOrNull() ?: continue
-            val (sample, evidence) = candidate
+            val (sample, evidence, landmarkConfidence) = candidate
+            val kneeAngleDegrees = sample.contactKneeAngleDegrees(window.side) ?: continue
             val confidence = (
-                min(window.confidence, sample.contactLandmarkConfidence(window.side, evidence)) *
+                min(window.confidence, landmarkConfidence) *
                     confidencePenalty
                 ).coerceIn(0.0, 1.0)
             val proxy = ContactFrameAnalysis(
@@ -844,7 +853,7 @@ class RunningPoseAnalysisChannel(
                 windowCenterTimestampMs = window.centerTimestampMs,
                 side = window.side,
                 footStrikeRatio = sample.contactFootStrikeRatio(window.side, direction),
-                kneeAngleDegrees = sample.contactKneeAngleDegrees(window.side),
+                kneeAngleDegrees = kneeAngleDegrees,
                 confidence = confidence,
             )
             val existing = selectedByTimestamp[proxy.timestampMs]
@@ -868,6 +877,15 @@ class RunningPoseAnalysisChannel(
                     sample.timestampMs <= window.endTimestampMs
             }
             .mapNotNull { sample ->
+                val evidence = sample.footBottom(window.side)
+                if (evidence == null) {
+                    incrementContactRejection(rejectedFrameCounts, "missing_foot_landmark")
+                    return@mapNotNull null
+                }
+                if (sample.contactLandmarkConfidence(window.side, evidence) == null) {
+                    incrementContactRejection(rejectedFrameCounts, "missing_contact_joint_chain")
+                    return@mapNotNull null
+                }
                 val candidate = denseContactCandidate(sample, window.side, groundLine)
                 if (candidate == null) {
                     incrementContactRejection(rejectedFrameCounts, "missing_foot_landmark")
@@ -925,9 +943,49 @@ class RunningPoseAnalysisChannel(
                     .thenBy { it.sample.timestampMs },
             )
             .firstOrNull()
+        val kinematicLowerEnvelope = percentile(
+            candidates.map { it.evidence.bottomPoint.y.toDouble() },
+            kinematicContactLowerPercentile,
+        )
+        val kinematicCandidates = if (kinematicLowerEnvelope == null) {
+            emptyList()
+        } else {
+            candidates.filterIndexed { index, _ ->
+                isKinematicContactCandidate(
+                    candidates = candidates,
+                    index = index,
+                    lowerEnvelopeY = kinematicLowerEnvelope,
+                )
+            }
+        }
+        val kinematicSelection = kinematicCandidates
+            .sortedWith(
+                compareByDescending<ContactFrameCandidate> { it.confidence }
+                    .thenBy { abs(it.sample.timestampMs - window.centerTimestampMs) }
+                    .thenBy { it.sample.timestampMs },
+            )
+            .firstOrNull()
+        val strictContact = selected?.toContactFrame(
+            window = window,
+            direction = direction,
+            isKinematicEstimate = false,
+        )
+        val kinematicContact = if (strictContact == null) {
+            kinematicSelection?.toContactFrame(
+                window = window,
+                direction = direction,
+                isKinematicEstimate = true,
+                confidence = kinematicSelection.confidence * kinematicContactConfidencePenalty,
+            )
+        } else {
+            null
+        }
         return ContactFrameSelection(
-            contact = selected?.toContactFrame(window, direction),
-            candidateFrameCount = candidates.count { it.inGroundBand },
+            contact = strictContact ?: kinematicContact,
+            candidateFrameCount = max(
+                candidates.count { it.inGroundBand },
+                kinematicCandidates.size,
+            ),
             rejectedFrameCounts = rejectedFrameCounts.toMap(),
         )
     }
@@ -953,6 +1011,8 @@ class RunningPoseAnalysisChannel(
         groundLine: GroundLine,
     ): ContactFrameCandidate? {
         val evidence = sample.footBottom(side) ?: return null
+        val landmarkConfidence = sample.contactLandmarkConfidence(side, evidence)
+            ?: return null
         val tolerance = (sample.bodyScale * denseContactGroundToleranceRatio)
             .coerceAtLeast(1.0)
         val proximity = groundGap(groundLine, evidence)
@@ -961,7 +1021,7 @@ class RunningPoseAnalysisChannel(
             1.0 - (proximity.coerceAtLeast(0.0) / tolerance)
             ).coerceIn(0.0, 1.0)
         val confidence = (
-            sample.contactLandmarkConfidence(side, evidence) *
+            landmarkConfidence *
                 (0.75 + (0.25 * proximityFactor))
             ).coerceIn(0.0, 1.0)
         return ContactFrameCandidate(
@@ -1014,18 +1074,53 @@ class RunningPoseAnalysisChannel(
         return isLowestNearPrevious && isLowestNearNext
     }
 
+    private fun isKinematicContactCandidate(
+        candidates: List<ContactFrameCandidate>,
+        index: Int,
+        lowerEnvelopeY: Double,
+    ): Boolean {
+        val current = candidates[index]
+        if (current.confidence < minimumContactFrameConfidence ||
+            current.evidence.bottomPoint.y.toDouble() < lowerEnvelopeY
+        ) {
+            return false
+        }
+        val previous = candidates.getOrNull(index - 1)
+        val next = candidates.getOrNull(index + 1)
+        val hasPrevious = hasTemporalNeighbor(current, previous)
+        val hasNext = hasTemporalNeighbor(current, next)
+        if (!hasPrevious && !hasNext) {
+            return false
+        }
+        val tolerance = max(
+            1.0,
+            current.sample.bodyScale * kinematicContactMotionToleranceRatio,
+        )
+        val currentY = current.evidence.bottomPoint.y.toDouble()
+        val isLowestNearPrevious = !hasPrevious ||
+            currentY >= previous!!.evidence.bottomPoint.y.toDouble() - tolerance
+        val isLowestNearNext = !hasNext ||
+            currentY >= next!!.evidence.bottomPoint.y.toDouble() - tolerance
+        return isLowestNearPrevious && isLowestNearNext
+    }
+
     private fun ContactFrameCandidate.toContactFrame(
         window: ContactCandidate,
         direction: AnalysisDirection,
-    ): ContactFrameAnalysis =
-        ContactFrameAnalysis(
+        isKinematicEstimate: Boolean,
+        confidence: Double = this.confidence,
+    ): ContactFrameAnalysis? {
+        val kneeAngleDegrees = sample.contactKneeAngleDegrees(side) ?: return null
+        return ContactFrameAnalysis(
             timestampMs = sample.timestampMs,
             windowCenterTimestampMs = window.centerTimestampMs,
             side = side,
             footStrikeRatio = sample.contactFootStrikeRatio(side, direction),
-            kneeAngleDegrees = sample.contactKneeAngleDegrees(side),
+            kneeAngleDegrees = kneeAngleDegrees,
             confidence = confidence,
+            isKinematicEstimate = isKinematicEstimate,
         )
+    }
 
     private fun sampleSummaryPayload(
         attemptedFrames: Int,
@@ -1167,68 +1262,43 @@ class RunningPoseAnalysisChannel(
             return null
         }
 
-        val leftShoulder =
-            confidentLandmarkPoint(
-                landmarks,
-                leftShoulderIndex,
-                imageWidth,
-                imageHeight,
-            ) ?: return null
-        val rightShoulder =
-            confidentLandmarkPoint(
-                landmarks,
-                rightShoulderIndex,
-                imageWidth,
-                imageHeight,
-            ) ?: return null
-        val leftHip =
-            confidentLandmarkPoint(
-                landmarks,
-                leftHipIndex,
-                imageWidth,
-                imageHeight,
-            ) ?: return null
-        val rightHip =
-            confidentLandmarkPoint(
-                landmarks,
-                rightHipIndex,
-                imageWidth,
-                imageHeight,
-            ) ?: return null
-        val leftKnee =
-            confidentLandmarkPoint(
-                landmarks,
-                leftKneeIndex,
-                imageWidth,
-                imageHeight,
-            ) ?: return null
-        val rightKnee =
-            confidentLandmarkPoint(
-                landmarks,
-                rightKneeIndex,
-                imageWidth,
-                imageHeight,
-            ) ?: return null
-        val leftAnkle =
-            confidentLandmarkPoint(
-                landmarks,
-                leftAnkleIndex,
-                imageWidth,
-                imageHeight,
-            ) ?: return null
-        val rightAnkle =
-            confidentLandmarkPoint(
-                landmarks,
-                rightAnkleIndex,
-                imageWidth,
-                imageHeight,
-            ) ?: return null
+        fun optionalPoint(index: Int): ConfidentPoint? =
+            confidentLandmarkPoint(landmarks, index, imageWidth, imageHeight)
 
-        val shoulderCenter = midpoint(leftShoulder.point, rightShoulder.point)
-        val hipCenter = midpoint(leftHip.point, rightHip.point)
-        val ankleCenter = midpoint(leftAnkle.point, rightAnkle.point)
+        val leftShoulder = optionalPoint(leftShoulderIndex)
+        val rightShoulder = optionalPoint(rightShoulderIndex)
+        val leftHip = optionalPoint(leftHipIndex)
+        val rightHip = optionalPoint(rightHipIndex)
+        val leftKnee = optionalPoint(leftKneeIndex)
+        val rightKnee = optionalPoint(rightKneeIndex)
+        val leftAnkle = optionalPoint(leftAnkleIndex)
+        val rightAnkle = optionalPoint(rightAnkleIndex)
+        val leftHeel = optionalPoint(leftHeelIndex)
+        val rightHeel = optionalPoint(rightHeelIndex)
+        val leftToe = optionalPoint(leftFootIndex)
+        val rightToe = optionalPoint(rightFootIndex)
+        val leftElbow = optionalPoint(leftElbowIndex)
+        val rightElbow = optionalPoint(rightElbowIndex)
+        val leftWrist = optionalPoint(leftWristIndex)
+        val rightWrist = optionalPoint(rightWristIndex)
+
+        // In side-view running footage, the far-side leg can be briefly
+        // occluded at exactly the moment the visible foot lands. Keep that
+        // torso frame for analysis; lower-body metrics still require a full
+        // hip-knee-ankle chain on the individual side being measured.
+        val shoulderPoints = listOfNotNull(leftShoulder, rightShoulder).map { it.point }
+        val hipPoints = listOfNotNull(leftHip, rightHip).map { it.point }
+        if (shoulderPoints.isEmpty() || hipPoints.isEmpty()) {
+            return null
+        }
+        val shoulderCenter = centerOfPoints(shoulderPoints)
+        val hipCenter = centerOfPoints(hipPoints)
+        val anklePoints = listOfNotNull(leftAnkle, rightAnkle).map { it.point }
         val torsoScale = distance(shoulderCenter, hipCenter)
-        val legScale = distance(hipCenter, ankleCenter)
+        val legScale = anklePoints
+            .takeIf { it.isNotEmpty() }
+            ?.let { distance(hipCenter, centerOfPoints(it)) }
+            ?: 0.0
         val bodyScale = max(torsoScale, legScale)
         if (bodyScale < minimumBodyScalePx) {
             return null
@@ -1236,80 +1306,40 @@ class RunningPoseAnalysisChannel(
 
         return FrameSample(
             timestampMs = timestampMs,
-            leftShoulder = copyPoint(leftShoulder.point),
-            rightShoulder = copyPoint(rightShoulder.point),
-            leftHip = copyPoint(leftHip.point),
-            rightHip = copyPoint(rightHip.point),
-            leftKnee = copyPoint(leftKnee.point),
-            rightKnee = copyPoint(rightKnee.point),
+            leftShoulder = leftShoulder?.point?.let(::copyPoint),
+            rightShoulder = rightShoulder?.point?.let(::copyPoint),
+            leftHip = leftHip?.point?.let(::copyPoint),
+            rightHip = rightHip?.point?.let(::copyPoint),
+            leftKnee = leftKnee?.point?.let(::copyPoint),
+            rightKnee = rightKnee?.point?.let(::copyPoint),
             shoulderCenter = shoulderCenter,
             hipCenter = hipCenter,
-            leftAnkle = copyPoint(leftAnkle.point),
-            rightAnkle = copyPoint(rightAnkle.point),
-            leftHeel =
-                confidentLandmarkPoint(landmarks, leftHeelIndex, imageWidth, imageHeight)
-                    ?.point
-                    ?.let(::copyPoint),
-            rightHeel =
-                confidentLandmarkPoint(landmarks, rightHeelIndex, imageWidth, imageHeight)
-                    ?.point
-                    ?.let(::copyPoint),
-            leftToe =
-                confidentLandmarkPoint(landmarks, leftFootIndex, imageWidth, imageHeight)
-                    ?.point
-                    ?.let(::copyPoint),
-            rightToe =
-                confidentLandmarkPoint(landmarks, rightFootIndex, imageWidth, imageHeight)
-                    ?.point
-                    ?.let(::copyPoint),
-            leftElbow =
-                confidentLandmarkPoint(landmarks, leftElbowIndex, imageWidth, imageHeight)
-                    ?.point
-                    ?.let(::copyPoint),
-            rightElbow =
-                confidentLandmarkPoint(landmarks, rightElbowIndex, imageWidth, imageHeight)
-                    ?.point
-                    ?.let(::copyPoint),
-            leftWrist =
-                confidentLandmarkPoint(landmarks, leftWristIndex, imageWidth, imageHeight)
-                    ?.point
-                    ?.let(::copyPoint),
-            rightWrist =
-                confidentLandmarkPoint(landmarks, rightWristIndex, imageWidth, imageHeight)
-                    ?.point
-                    ?.let(::copyPoint),
-            leftShoulderConfidence = leftShoulder.confidence,
-            rightShoulderConfidence = rightShoulder.confidence,
-            leftHipConfidence = leftHip.confidence,
-            rightHipConfidence = rightHip.confidence,
-            leftKneeConfidence = leftKnee.confidence,
-            rightKneeConfidence = rightKnee.confidence,
-            leftAnkleConfidence = leftAnkle.confidence,
-            rightAnkleConfidence = rightAnkle.confidence,
-            leftHeelConfidence =
-                confidentLandmarkPoint(landmarks, leftHeelIndex, imageWidth, imageHeight)
-                    ?.confidence,
-            rightHeelConfidence =
-                confidentLandmarkPoint(landmarks, rightHeelIndex, imageWidth, imageHeight)
-                    ?.confidence,
-            leftToeConfidence =
-                confidentLandmarkPoint(landmarks, leftFootIndex, imageWidth, imageHeight)
-                    ?.confidence,
-            rightToeConfidence =
-                confidentLandmarkPoint(landmarks, rightFootIndex, imageWidth, imageHeight)
-                    ?.confidence,
-            leftElbowConfidence =
-                confidentLandmarkPoint(landmarks, leftElbowIndex, imageWidth, imageHeight)
-                    ?.confidence,
-            rightElbowConfidence =
-                confidentLandmarkPoint(landmarks, rightElbowIndex, imageWidth, imageHeight)
-                    ?.confidence,
-            leftWristConfidence =
-                confidentLandmarkPoint(landmarks, leftWristIndex, imageWidth, imageHeight)
-                    ?.confidence,
-            rightWristConfidence =
-                confidentLandmarkPoint(landmarks, rightWristIndex, imageWidth, imageHeight)
-                    ?.confidence,
+            leftAnkle = leftAnkle?.point?.let(::copyPoint),
+            rightAnkle = rightAnkle?.point?.let(::copyPoint),
+            leftHeel = leftHeel?.point?.let(::copyPoint),
+            rightHeel = rightHeel?.point?.let(::copyPoint),
+            leftToe = leftToe?.point?.let(::copyPoint),
+            rightToe = rightToe?.point?.let(::copyPoint),
+            leftElbow = leftElbow?.point?.let(::copyPoint),
+            rightElbow = rightElbow?.point?.let(::copyPoint),
+            leftWrist = leftWrist?.point?.let(::copyPoint),
+            rightWrist = rightWrist?.point?.let(::copyPoint),
+            leftShoulderConfidence = leftShoulder?.confidence,
+            rightShoulderConfidence = rightShoulder?.confidence,
+            leftHipConfidence = leftHip?.confidence,
+            rightHipConfidence = rightHip?.confidence,
+            leftKneeConfidence = leftKnee?.confidence,
+            rightKneeConfidence = rightKnee?.confidence,
+            leftAnkleConfidence = leftAnkle?.confidence,
+            rightAnkleConfidence = rightAnkle?.confidence,
+            leftHeelConfidence = leftHeel?.confidence,
+            rightHeelConfidence = rightHeel?.confidence,
+            leftToeConfidence = leftToe?.confidence,
+            rightToeConfidence = rightToe?.confidence,
+            leftElbowConfidence = leftElbow?.confidence,
+            rightElbowConfidence = rightElbow?.confidence,
+            leftWristConfidence = leftWrist?.confidence,
+            rightWristConfidence = rightWrist?.confidence,
             bodyScale = bodyScale,
         )
     }
@@ -1384,6 +1414,12 @@ class RunningPoseAnalysisChannel(
             (first.y + second.y) / 2f,
         )
 
+    private fun centerOfPoints(points: List<PointF>): PointF =
+        PointF(
+            points.map { it.x }.average().toFloat(),
+            points.map { it.y }.average().toFloat(),
+        )
+
     private fun distance(first: PointF, second: PointF): Double {
         val dx = first.x - second.x
         val dy = first.y - second.y
@@ -1444,6 +1480,7 @@ class RunningPoseAnalysisChannel(
         val footStrikeRatio: Double,
         val kneeAngleDegrees: Double,
         val confidence: Double,
+        val isKinematicEstimate: Boolean = false,
     )
 
     private data class ContactFrameSelection(
@@ -1479,16 +1516,16 @@ class RunningPoseAnalysisChannel(
 
     private data class FrameSample(
         val timestampMs: Long,
-        val leftShoulder: PointF,
-        val rightShoulder: PointF,
-        val leftHip: PointF,
-        val rightHip: PointF,
-        val leftKnee: PointF,
-        val rightKnee: PointF,
+        val leftShoulder: PointF?,
+        val rightShoulder: PointF?,
+        val leftHip: PointF?,
+        val rightHip: PointF?,
+        val leftKnee: PointF?,
+        val rightKnee: PointF?,
         val shoulderCenter: PointF,
         val hipCenter: PointF,
-        val leftAnkle: PointF,
-        val rightAnkle: PointF,
+        val leftAnkle: PointF?,
+        val rightAnkle: PointF?,
         val leftHeel: PointF?,
         val rightHeel: PointF?,
         val leftToe: PointF?,
@@ -1497,14 +1534,14 @@ class RunningPoseAnalysisChannel(
         val rightElbow: PointF?,
         val leftWrist: PointF?,
         val rightWrist: PointF?,
-        val leftShoulderConfidence: Double,
-        val rightShoulderConfidence: Double,
-        val leftHipConfidence: Double,
-        val rightHipConfidence: Double,
-        val leftKneeConfidence: Double,
-        val rightKneeConfidence: Double,
-        val leftAnkleConfidence: Double,
-        val rightAnkleConfidence: Double,
+        val leftShoulderConfidence: Double?,
+        val rightShoulderConfidence: Double?,
+        val leftHipConfidence: Double?,
+        val rightHipConfidence: Double?,
+        val leftKneeConfidence: Double?,
+        val rightKneeConfidence: Double?,
+        val leftAnkleConfidence: Double?,
+        val rightAnkleConfidence: Double?,
         val leftHeelConfidence: Double?,
         val rightHeelConfidence: Double?,
         val leftToeConfidence: Double?,
@@ -1516,7 +1553,7 @@ class RunningPoseAnalysisChannel(
         val bodyScale: Double,
     ) {
         val coreLandmarkConfidence: Double
-            get() = listOf(
+            get() = listOfNotNull(
                 leftShoulderConfidence,
                 rightShoulderConfidence,
                 leftHipConfidence,
@@ -1529,15 +1566,29 @@ class RunningPoseAnalysisChannel(
 
         fun armLandmarkConfidence(): Double? {
             val confidences = mutableListOf<Double>()
-            if (leftElbowConfidence != null && leftWristConfidence != null) {
+            if (leftShoulderConfidence != null &&
+                leftElbowConfidence != null &&
+                leftWristConfidence != null
+            ) {
                 confidences.add(
-                    listOf(leftShoulderConfidence, leftElbowConfidence, leftWristConfidence)
+                    listOfNotNull(
+                        leftShoulderConfidence,
+                        leftElbowConfidence,
+                        leftWristConfidence,
+                    )
                         .average(),
                 )
             }
-            if (rightElbowConfidence != null && rightWristConfidence != null) {
+            if (rightShoulderConfidence != null &&
+                rightElbowConfidence != null &&
+                rightWristConfidence != null
+            ) {
                 confidences.add(
-                    listOf(rightShoulderConfidence, rightElbowConfidence, rightWristConfidence)
+                    listOfNotNull(
+                        rightShoulderConfidence,
+                        rightElbowConfidence,
+                        rightWristConfidence,
+                    )
                         .average(),
                 )
             }
@@ -1566,17 +1617,23 @@ class RunningPoseAnalysisChannel(
         fun leadFootStrikeRatio(direction: AnalysisDirection): Double {
             val leftFoot = leftHeel ?: leftAnkle
             val rightFoot = rightHeel ?: rightAnkle
+            if (leftFoot == null && rightFoot == null) {
+                return 0.0
+            }
             val forwardReachPx = when (direction) {
                 AnalysisDirection.leftToRight -> {
-                    max(leftFoot.x, rightFoot.x).toDouble() - hipCenter.x.toDouble()
+                    max(leftFoot?.x ?: Float.NEGATIVE_INFINITY, rightFoot?.x ?: Float.NEGATIVE_INFINITY)
+                        .toDouble() - hipCenter.x.toDouble()
                 }
                 AnalysisDirection.rightToLeft -> {
-                    hipCenter.x.toDouble() - min(leftFoot.x, rightFoot.x).toDouble()
+                    hipCenter.x.toDouble() -
+                        min(leftFoot?.x ?: Float.POSITIVE_INFINITY, rightFoot?.x ?: Float.POSITIVE_INFINITY)
+                            .toDouble()
                 }
                 AnalysisDirection.stationary -> {
                     max(
-                        abs(leftFoot.x.toDouble() - hipCenter.x.toDouble()),
-                        abs(rightFoot.x.toDouble() - hipCenter.x.toDouble()),
+                        leftFoot?.let { abs(it.x.toDouble() - hipCenter.x.toDouble()) } ?: 0.0,
+                        rightFoot?.let { abs(it.x.toDouble() - hipCenter.x.toDouble()) } ?: 0.0,
                     )
                 }
             }
@@ -1587,7 +1644,7 @@ class RunningPoseAnalysisChannel(
             val ankle = when (side) {
                 FootSide.left -> leftAnkle
                 FootSide.right -> rightAnkle
-            }
+            } ?: return null
             val heel = when (side) {
                 FootSide.left -> leftHeel
                 FootSide.right -> rightHeel
@@ -1610,7 +1667,7 @@ class RunningPoseAnalysisChannel(
             }
             val bottomPoint = listOfNotNull(ankle, heel, toe).maxByOrNull { it.y } ?: ankle
             val confidence = listOfNotNull(ankleConfidence, heelConfidence, toeConfidence)
-                .minOrNull() ?: ankleConfidence
+                .minOrNull() ?: return null
             return FootBottomEvidence(
                 bottomPoint = bottomPoint,
                 ankle = ankle,
@@ -1634,16 +1691,21 @@ class RunningPoseAnalysisChannel(
             return forwardReachPx.coerceAtLeast(0.0) / bodyScale.coerceAtLeast(1.0)
         }
 
-        fun contactKneeAngleDegrees(side: FootSide): Double =
-            when (side) {
-                FootSide.left -> jointAngle(leftHip, leftKnee, leftAnkle)
-                FootSide.right -> jointAngle(rightHip, rightKnee, rightAnkle)
+        fun contactKneeAngleDegrees(side: FootSide): Double? {
+            val (hip, knee, ankle) = when (side) {
+                FootSide.left -> Triple(leftHip, leftKnee, leftAnkle)
+                FootSide.right -> Triple(rightHip, rightKnee, rightAnkle)
             }
+            if (hip == null || knee == null || ankle == null) {
+                return null
+            }
+            return jointAngle(hip, knee, ankle)
+        }
 
         fun contactLandmarkConfidence(
             side: FootSide,
             footEvidence: FootBottomEvidence,
-        ): Double {
+        ): Double? {
             val hipConfidence = when (side) {
                 FootSide.left -> leftHipConfidence
                 FootSide.right -> rightHipConfidence
@@ -1652,16 +1714,29 @@ class RunningPoseAnalysisChannel(
                 FootSide.left -> leftKneeConfidence
                 FootSide.right -> rightKneeConfidence
             }
+            val hip = when (side) {
+                FootSide.left -> leftHip
+                FootSide.right -> rightHip
+            }
+            val knee = when (side) {
+                FootSide.left -> leftKnee
+                FootSide.right -> rightKnee
+            }
+            if (hip == null || knee == null || hipConfidence == null || kneeConfidence == null) {
+                return null
+            }
             return min(footEvidence.confidence, min(hipConfidence, kneeConfidence))
         }
 
         fun averageElbowAngleDegrees(): Double? {
             val angles = mutableListOf<Double>()
-            if (leftElbow != null && leftWrist != null) {
-                angles.add(jointAngle(leftShoulder, leftElbow, leftWrist))
+            val leftArm = listOfNotNull(leftShoulder, leftElbow, leftWrist)
+            if (leftArm.size == 3) {
+                angles.add(jointAngle(leftArm[0], leftArm[1], leftArm[2]))
             }
-            if (rightElbow != null && rightWrist != null) {
-                angles.add(jointAngle(rightShoulder, rightElbow, rightWrist))
+            val rightArm = listOfNotNull(rightShoulder, rightElbow, rightWrist)
+            if (rightArm.size == 3) {
+                angles.add(jointAngle(rightArm[0], rightArm[1], rightArm[2]))
             }
             return angles.takeIf { it.isNotEmpty() }?.average()
         }
@@ -1669,18 +1744,35 @@ class RunningPoseAnalysisChannel(
         fun leadKneeAngleDegrees(direction: AnalysisDirection): Double? {
             val leftFoot = leftHeel ?: leftAnkle
             val rightFoot = rightHeel ?: rightAnkle
+            if (leftFoot == null && rightFoot == null) {
+                return null
+            }
             val useLeft = when (direction) {
-                AnalysisDirection.leftToRight -> leftFoot.x >= rightFoot.x
-                AnalysisDirection.rightToLeft -> leftFoot.x <= rightFoot.x
+                AnalysisDirection.leftToRight ->
+                    (leftFoot?.x ?: Float.NEGATIVE_INFINITY) >=
+                        (rightFoot?.x ?: Float.NEGATIVE_INFINITY)
+                AnalysisDirection.rightToLeft ->
+                    (leftFoot?.x ?: Float.POSITIVE_INFINITY) <=
+                        (rightFoot?.x ?: Float.POSITIVE_INFINITY)
                 AnalysisDirection.stationary -> {
-                    abs(leftFoot.x.toDouble() - hipCenter.x.toDouble()) >=
-                        abs(rightFoot.x.toDouble() - hipCenter.x.toDouble())
+                    (leftFoot?.let { abs(it.x.toDouble() - hipCenter.x.toDouble()) } ?: 0.0) >=
+                        (rightFoot?.let { abs(it.x.toDouble() - hipCenter.x.toDouble()) } ?: 0.0)
                 }
             }
             return if (useLeft) {
-                jointAngle(leftHip, leftKnee, leftAnkle)
+                val leftLeg = listOfNotNull(leftHip, leftKnee, leftAnkle)
+                if (leftLeg.size != 3) {
+                    null
+                } else {
+                    jointAngle(leftLeg[0], leftLeg[1], leftLeg[2])
+                }
             } else {
-                jointAngle(rightHip, rightKnee, rightAnkle)
+                val rightLeg = listOfNotNull(rightHip, rightKnee, rightAnkle)
+                if (rightLeg.size != 3) {
+                    null
+                } else {
+                    jointAngle(rightLeg[0], rightLeg[1], rightLeg[2])
+                }
             }
         }
 
@@ -1744,6 +1836,9 @@ class RunningPoseAnalysisChannel(
         private const val minimumContactCenterSeparationMs = 180L
         private const val minimumValidatedContactFrames = 3
         private const val minimumContactFrameConfidence = 0.34
+        private const val kinematicContactConfidencePenalty = 0.82
+        private const val kinematicContactLowerPercentile = 0.65
+        private const val kinematicContactMotionToleranceRatio = 0.025
         private const val contactProxyConfidencePenalty = 0.60
         private const val coarseContactProxyConfidencePenalty = 0.42
         private const val coarseContactGroundToleranceRatio = 0.15

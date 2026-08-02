@@ -264,11 +264,17 @@ void main() {
       sampleCount: 3,
       reason: 'contact_phase_proxy',
     );
+    const kinematicEstimate = RunningMetricQuality(
+      confidence: 0.74,
+      sampleCount: 3,
+      reason: 'kinematic_contact_estimate',
+    );
 
     expect(legacy.isReliableForCoaching, isTrue);
     expect(sparse.isReliableForCoaching, isFalse);
     expect(sufficient.isReliableForCoaching, isTrue);
     expect(proxy.isReliableForCoaching, isFalse);
+    expect(kinematicEstimate.isReliableForCoaching, isTrue);
     expect(
       const RunningMetricQuality(
         confidence: 0.90,

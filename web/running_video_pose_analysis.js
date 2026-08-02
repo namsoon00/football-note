@@ -27,6 +27,13 @@
     minContactSeparationMs: 180,
     minValidatedContacts: 3,
     minContactConfidence: 0.34,
+    // A phone video can lose the far-side shoe for a frame exactly when the
+    // visible foot lands. When a stable, locally-low visible foot trajectory
+    // remains, use it as a lower-confidence kinematic contact rather than
+    // discarding an otherwise usable stride.
+    kinematicContactConfidencePenalty: 0.82,
+    kinematicContactLowerPercentile: 0.65,
+    kinematicContactMotionToleranceRatio: 0.025,
     groundLineSampleFraction: 0.45,
     groundLineMinimumSamples: 3,
     // A contact must persist over adjacent dense samples. A single shoe point
@@ -92,6 +99,10 @@
   const midpoint = (first, second) => ({
     x: (first.x + second.x) / 2,
     y: (first.y + second.y) / 2,
+  });
+  const centerOfPoints = (points) => ({
+    x: average(points.map((point) => point.x)),
+    y: average(points.map((point) => point.y)),
   });
   const nextAnimationFrame = () =>
     new Promise((resolve) => requestAnimationFrame(resolve));
@@ -271,45 +282,54 @@
   }
 
   function extractSample(landmarks, timestampMs, width, height) {
-    const core = {
-      leftShoulder: confidentPoint(landmarks, index.leftShoulder, width, height),
-      rightShoulder: confidentPoint(landmarks, index.rightShoulder, width, height),
-      leftHip: confidentPoint(landmarks, index.leftHip, width, height),
-      rightHip: confidentPoint(landmarks, index.rightHip, width, height),
-      leftKnee: confidentPoint(landmarks, index.leftKnee, width, height),
-      rightKnee: confidentPoint(landmarks, index.rightKnee, width, height),
-      leftAnkle: confidentPoint(landmarks, index.leftAnkle, width, height),
-      rightAnkle: confidentPoint(landmarks, index.rightAnkle, width, height),
-    };
-    if (Object.values(core).some((value) => value === null)) return null;
+    const optional = (landmarkIndex) =>
+      confidentPoint(landmarks, landmarkIndex, width, height);
+    const leftShoulder = optional(index.leftShoulder);
+    const rightShoulder = optional(index.rightShoulder);
+    const leftHip = optional(index.leftHip);
+    const rightHip = optional(index.rightHip);
+    const leftKnee = optional(index.leftKnee);
+    const rightKnee = optional(index.rightKnee);
+    const leftAnkle = optional(index.leftAnkle);
+    const rightAnkle = optional(index.rightAnkle);
 
-    const shoulderCenter = midpoint(
-      core.leftShoulder.point,
-      core.rightShoulder.point,
-    );
-    const hipCenter = midpoint(core.leftHip.point, core.rightHip.point);
-    const ankleCenter = midpoint(core.leftAnkle.point, core.rightAnkle.point);
+    // Do not throw away a full frame merely because the far-side leg is
+    // briefly occluded. A side-view running video commonly has only the
+    // landing leg readable for several frames. The torso still establishes a
+    // body scale, while lower-body measurements require a complete chain on
+    // the individual side that is actually being measured.
+    const shoulderPoints = [leftShoulder, rightShoulder]
+      .filter(Boolean)
+      .map((landmark) => landmark.point);
+    const hipPoints = [leftHip, rightHip]
+      .filter(Boolean)
+      .map((landmark) => landmark.point);
+    if (shoulderPoints.length === 0 || hipPoints.length === 0) return null;
+
+    const shoulderCenter = centerOfPoints(shoulderPoints);
+    const hipCenter = centerOfPoints(hipPoints);
+    const anklePoints = [leftAnkle, rightAnkle]
+      .filter(Boolean)
+      .map((landmark) => landmark.point);
     const bodyScale = Math.max(
       distance(shoulderCenter, hipCenter),
-      distance(hipCenter, ankleCenter),
+      anklePoints.length === 0 ? 0 : distance(hipCenter, centerOfPoints(anklePoints)),
     );
     if (bodyScale < config.minBodyScalePx) return null;
 
-    const optional = (landmarkIndex) =>
-      confidentPoint(landmarks, landmarkIndex, width, height);
     return {
       timestampMs,
       shoulderCenter,
       hipCenter,
       bodyScale,
-      leftShoulder: core.leftShoulder.point,
-      rightShoulder: core.rightShoulder.point,
-      leftHip: core.leftHip.point,
-      rightHip: core.rightHip.point,
-      leftKnee: core.leftKnee.point,
-      rightKnee: core.rightKnee.point,
-      leftAnkle: core.leftAnkle.point,
-      rightAnkle: core.rightAnkle.point,
+      leftShoulder: leftShoulder?.point ?? null,
+      rightShoulder: rightShoulder?.point ?? null,
+      leftHip: leftHip?.point ?? null,
+      rightHip: rightHip?.point ?? null,
+      leftKnee: leftKnee?.point ?? null,
+      rightKnee: rightKnee?.point ?? null,
+      leftAnkle: leftAnkle?.point ?? null,
+      rightAnkle: rightAnkle?.point ?? null,
       leftElbow: optional(index.leftElbow)?.point ?? null,
       rightElbow: optional(index.rightElbow)?.point ?? null,
       leftWrist: optional(index.leftWrist)?.point ?? null,
@@ -318,14 +338,14 @@
       rightHeel: optional(index.rightHeel)?.point ?? null,
       leftToe: optional(index.leftToe)?.point ?? null,
       rightToe: optional(index.rightToe)?.point ?? null,
-      leftShoulderConfidence: core.leftShoulder.confidence,
-      rightShoulderConfidence: core.rightShoulder.confidence,
-      leftHipConfidence: core.leftHip.confidence,
-      rightHipConfidence: core.rightHip.confidence,
-      leftKneeConfidence: core.leftKnee.confidence,
-      rightKneeConfidence: core.rightKnee.confidence,
-      leftAnkleConfidence: core.leftAnkle.confidence,
-      rightAnkleConfidence: core.rightAnkle.confidence,
+      leftShoulderConfidence: leftShoulder?.confidence ?? null,
+      rightShoulderConfidence: rightShoulder?.confidence ?? null,
+      leftHipConfidence: leftHip?.confidence ?? null,
+      rightHipConfidence: rightHip?.confidence ?? null,
+      leftKneeConfidence: leftKnee?.confidence ?? null,
+      rightKneeConfidence: rightKnee?.confidence ?? null,
+      leftAnkleConfidence: leftAnkle?.confidence ?? null,
+      rightAnkleConfidence: rightAnkle?.confidence ?? null,
       leftElbowConfidence: optional(index.leftElbow)?.confidence ?? null,
       rightElbowConfidence: optional(index.rightElbow)?.confidence ?? null,
       leftWristConfidence: optional(index.leftWrist)?.confidence ?? null,
@@ -490,11 +510,15 @@
 
   function contactLandmarkConfidence(sample, side, foot) {
     const prefix = side === 'left' ? 'left' : 'right';
-    return Math.min(
-      foot.confidence,
-      sample[`${prefix}HipConfidence`],
-      sample[`${prefix}KneeConfidence`],
-    );
+    const hip = sample[`${prefix}Hip`];
+    const knee = sample[`${prefix}Knee`];
+    const hipConfidence = sample[`${prefix}HipConfidence`];
+    const kneeConfidence = sample[`${prefix}KneeConfidence`];
+    if (!hip || !knee ||
+        !Number.isFinite(hipConfidence) || !Number.isFinite(kneeConfidence)) {
+      return null;
+    }
+    return Math.min(foot.confidence, hipConfidence, kneeConfidence);
   }
 
   function contactFootStrikeRatio(sample, side, direction) {
@@ -510,17 +534,20 @@
   }
 
   function contactKneeAngle(sample, side) {
-    return side === 'left'
-      ? jointAngle(sample.leftHip, sample.leftKnee, sample.leftAnkle)
-      : jointAngle(sample.rightHip, sample.rightKnee, sample.rightAnkle);
+    const prefix = side === 'left' ? 'left' : 'right';
+    const hip = sample[`${prefix}Hip`];
+    const knee = sample[`${prefix}Knee`];
+    const ankle = sample[`${prefix}Ankle`];
+    if (!hip || !knee || !ankle) return null;
+    return jointAngle(hip, knee, ankle);
   }
 
   function elbowAngle(sample) {
     const values = [];
-    if (sample.leftElbow && sample.leftWrist) {
+    if (sample.leftShoulder && sample.leftElbow && sample.leftWrist) {
       values.push(jointAngle(sample.leftShoulder, sample.leftElbow, sample.leftWrist));
     }
-    if (sample.rightElbow && sample.rightWrist) {
+    if (sample.rightShoulder && sample.rightElbow && sample.rightWrist) {
       values.push(jointAngle(sample.rightShoulder, sample.rightElbow, sample.rightWrist));
     }
     return values.length === 0 ? null : average(values);
@@ -536,19 +563,21 @@
       sample.rightKneeConfidence,
       sample.leftAnkleConfidence,
       sample.rightAnkleConfidence,
-    ]);
+    ].filter(Number.isFinite));
   }
 
   function armConfidence(sample) {
     const sides = [];
-    if (Number.isFinite(sample.leftElbowConfidence) && Number.isFinite(sample.leftWristConfidence)) {
+    if (Number.isFinite(sample.leftShoulderConfidence) &&
+        Number.isFinite(sample.leftElbowConfidence) && Number.isFinite(sample.leftWristConfidence)) {
       sides.push(average([
         sample.leftShoulderConfidence,
         sample.leftElbowConfidence,
         sample.leftWristConfidence,
       ]));
     }
-    if (Number.isFinite(sample.rightElbowConfidence) && Number.isFinite(sample.rightWristConfidence)) {
+    if (Number.isFinite(sample.rightShoulderConfidence) &&
+        Number.isFinite(sample.rightElbowConfidence) && Number.isFinite(sample.rightWristConfidence)) {
       sides.push(average([
         sample.rightShoulderConfidence,
         sample.rightElbowConfidence,
@@ -807,6 +836,42 @@
     return hasGroundBandPersistence ? null : 'insufficient_contact_persistence';
   }
 
+  function kinematicContactCandidate(records, index, lowerEnvelopeY) {
+    const current = records[index];
+    if (current.confidence < config.minContactConfidence ||
+        current.foot.bottomPoint.y < lowerEnvelopeY) {
+      return false;
+    }
+    const previous = records[index - 1];
+    const next = records[index + 1];
+    const hasPrevious = isTemporalNeighbor(current, previous);
+    const hasNext = isTemporalNeighbor(current, next);
+    if (!hasPrevious && !hasNext) return false;
+
+    const tolerance = Math.max(
+      1,
+      current.sample.bodyScale * config.kinematicContactMotionToleranceRatio,
+    );
+    const currentY = current.foot.bottomPoint.y;
+    const isLowestNearPrevious = !hasPrevious || currentY >= previous.foot.bottomPoint.y - tolerance;
+    const isLowestNearNext = !hasNext || currentY >= next.foot.bottomPoint.y - tolerance;
+    return isLowestNearPrevious && isLowestNearNext;
+  }
+
+  function contactPayload(selected, window, direction, confidence, selectionMethod) {
+    const kneeAngleDegrees = contactKneeAngle(selected.sample, window.side);
+    if (kneeAngleDegrees === null) return null;
+    return {
+      timestampMs: selected.sample.timestampMs,
+      windowCenterTimestampMs: window.centerTimestampMs,
+      side: window.side,
+      footStrikeRatio: contactFootStrikeRatio(selected.sample, window.side, direction),
+      kneeAngleDegrees,
+      confidence,
+      selectionMethod,
+    };
+  }
+
   function validatedContact(window, samples, groundLine, direction) {
     const rejectedFrameCounts = {};
     const records = [];
@@ -815,6 +880,11 @@
       const foot = footBottom(sample, window.side);
       if (!foot) {
         incrementReason(rejectedFrameCounts, 'missing_foot_landmark');
+        continue;
+      }
+      const landmarkConfidence = contactLandmarkConfidence(sample, window.side, foot);
+      if (landmarkConfidence === null) {
+        incrementReason(rejectedFrameCounts, 'missing_contact_joint_chain');
         continue;
       }
       const tolerance = Math.max(1, sample.bodyScale * 0.16);
@@ -826,7 +896,7 @@
         foot,
         groundGap: gap,
         tolerance,
-        confidence: contactLandmarkConfidence(sample, window.side, foot) * (0.75 + 0.25 * proximityFactor),
+        confidence: landmarkConfidence * (0.75 + 0.25 * proximityFactor),
         inGroundBand,
       });
     }
@@ -863,18 +933,41 @@
       Math.abs(left.sample.timestampMs - window.centerTimestampMs) - Math.abs(right.sample.timestampMs - window.centerTimestampMs),
     );
     const selected = candidates[0];
+    const kinematicLowerEnvelope = percentile(
+      records.map((record) => record.foot.bottomPoint.y),
+      config.kinematicContactLowerPercentile,
+    );
+    const kinematicCandidates = kinematicLowerEnvelope === null
+      ? []
+      : records.filter((record, recordIndex) =>
+          kinematicContactCandidate(records, recordIndex, kinematicLowerEnvelope),
+        );
+    const kinematicSelection = [...kinematicCandidates].sort((left, right) =>
+      right.confidence - left.confidence ||
+      Math.abs(left.sample.timestampMs - window.centerTimestampMs) -
+        Math.abs(right.sample.timestampMs - window.centerTimestampMs),
+    )[0];
+    const strictContact = selected
+      ? contactPayload(selected, window, direction, selected.confidence, 'ground')
+      : null;
+    const kinematicContact = strictContact || !kinematicSelection
+      ? null
+      : contactPayload(
+          kinematicSelection,
+          window,
+          direction,
+          kinematicSelection.confidence * config.kinematicContactConfidencePenalty,
+          'kinematic',
+        );
+    if (kinematicContact) {
+      incrementReason(rejectedFrameCounts, 'kinematic_contact_estimate');
+    }
     return {
-      contact: selected
-        ? {
-            timestampMs: selected.sample.timestampMs,
-            windowCenterTimestampMs: window.centerTimestampMs,
-            side: window.side,
-            footStrikeRatio: contactFootStrikeRatio(selected.sample, window.side, direction),
-            kneeAngleDegrees: contactKneeAngle(selected.sample, window.side),
-            confidence: selected.confidence,
-          }
-        : null,
-      candidateFrameCount: records.filter((record) => record.inGroundBand).length,
+      contact: strictContact ?? kinematicContact,
+      candidateFrameCount: Math.max(
+        records.filter((record) => record.inGroundBand).length,
+        kinematicCandidates.length,
+      ),
       rejectedFrameCounts,
     };
   }
@@ -886,8 +979,16 @@
         .filter((sample) =>
           sample.timestampMs >= window.startTimestampMs && sample.timestampMs <= window.endTimestampMs,
         )
-        .map((sample) => ({ sample, foot: footBottom(sample, window.side) }))
-        .filter(({ foot }) => foot !== null)
+        .map((sample) => {
+          const foot = footBottom(sample, window.side);
+          const landmarkConfidence = foot
+            ? contactLandmarkConfidence(sample, window.side, foot)
+            : null;
+          return { sample, foot, landmarkConfidence };
+        })
+        .filter(({ foot, landmarkConfidence }) =>
+          foot !== null && landmarkConfidence !== null,
+        )
         .sort((left, right) =>
           Math.abs(left.sample.timestampMs - window.centerTimestampMs) -
           Math.abs(right.sample.timestampMs - window.centerTimestampMs),
@@ -895,14 +996,16 @@
       if (!candidate) continue;
       const confidence = Math.min(
         window.confidence,
-        contactLandmarkConfidence(candidate.sample, window.side, candidate.foot),
+        candidate.landmarkConfidence,
       ) * confidencePenalty;
+      const kneeAngleDegrees = contactKneeAngle(candidate.sample, window.side);
+      if (kneeAngleDegrees === null) continue;
       const proxy = {
         timestampMs: candidate.sample.timestampMs,
         windowCenterTimestampMs: window.centerTimestampMs,
         side: window.side,
         footStrikeRatio: contactFootStrikeRatio(candidate.sample, window.side, direction),
-        kneeAngleDegrees: contactKneeAngle(candidate.sample, window.side),
+        kneeAngleDegrees,
         confidence,
       };
       const existing = byTimestamp.get(proxy.timestampMs);
@@ -1027,6 +1130,9 @@
       const contacts = contactValidations
         .map((validation) => validation.contact)
         .filter(Boolean);
+      const usesKinematicContactEstimate = contacts.some(
+        (contact) => contact.selectionMethod === 'kinematic',
+      );
       // One or two verified contacts are not enough for a score, cadence, or
       // left/right comparison, but they are still real measured observations.
       // Keep them distinct from the old proxy path so the UI can show the
@@ -1055,7 +1161,9 @@
       const contactReason = usesContactProxy
         ? 'contact_phase_proxy'
         : hasCompleteContactSample
-          ? null
+          ? usesKinematicContactEstimate
+            ? 'kinematic_contact_estimate'
+            : null
           : 'limited_contact_samples';
 
       const analyzedFrameTimestamps = new Set([...coarseFrameTimes, ...denseFrameTimes]);
