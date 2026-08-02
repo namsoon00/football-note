@@ -8996,6 +8996,33 @@ class AppLocalizationsEn extends AppLocalizations {
       'There were not enough stable frames for this focus, so the app is not showing a precise score.';
 
   @override
+  String runningCoachEvidenceMetricUnavailableTitle(Object metric) {
+    return 'We cannot yet confirm the $metric measurement';
+  }
+
+  @override
+  String runningCoachEvidenceMetricUnavailableBody(Object metric) {
+    return 'There is not enough evidence for $metric, so its score and coaching are withheld. You can still review measurements from other metrics.';
+  }
+
+  @override
+  String get runningCoachMeasurementStatusVerified => 'Verified';
+
+  @override
+  String get runningCoachMeasurementStatusObserved => 'Video observation';
+
+  @override
+  String get runningCoachMeasurementStatusUnavailable => 'Unavailable';
+
+  @override
+  String get runningCoachMeasurementCoverageTitle =>
+      'What this video could measure';
+
+  @override
+  String get runningCoachMeasurementCoverageBody =>
+      'Metrics are verified independently. Missing contact evidence does not invalidate measurements such as arm carriage or trunk position.';
+
+  @override
   String get runningCoachEvidenceVideoUnavailable =>
       'The saved video file is unavailable. The pose overlay still shows the analyzed frame.';
 
@@ -9237,6 +9264,47 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachEvidenceReliabilityLabel => 'Reliability';
+
+  @override
+  String get runningCoachEvidenceAggregateValueLabel => 'Representative value';
+
+  @override
+  String get runningCoachEvidenceGuideRangeLabel => 'Coaching guide';
+
+  @override
+  String get runningCoachEvidenceScoreCenterLabel => 'Scoring center';
+
+  @override
+  String get runningCoachEvidenceFrameRangeLabel => 'Evidence-frame value';
+
+  @override
+  String runningCoachEvidenceFrameRangeValue(Object minimum, Object maximum) {
+    return '$minimum–$maximum';
+  }
+
+  @override
+  String runningCoachEvidenceDegreesValue(Object value) {
+    return '$value°';
+  }
+
+  @override
+  String runningCoachEvidencePercentValue(Object value) {
+    return '$value%';
+  }
+
+  @override
+  String runningCoachEvidenceRatioValue(Object value) {
+    return '$value×';
+  }
+
+  @override
+  String runningCoachEvidenceAverageLabel(int samples) {
+    return 'Average · $samples frames';
+  }
+
+  @override
+  String get runningCoachMetricScoreBasis =>
+      'The score shows how close the representative value is to the scoring center.';
 
   @override
   String get runningCoachEvidenceWhyThisResultLabel => 'Why this result';

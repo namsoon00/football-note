@@ -500,6 +500,13 @@ class RunningVideoAnalysisResult {
           runningCoachMinimumReliableMetricSamples &&
       denseSamples.validFrames > 0;
 
+  /// At least one contact was confirmed against the dense pose pass. This is
+  /// deliberately weaker than [hasDenseContactEvidence]: one or two contacts
+  /// can be shown as an observed lower-body frame, but never earn a coaching
+  /// score, cadence, symmetry, or a good/bad judgement.
+  bool get hasObservedContactEvidence =>
+      validatedContactFrameTimestamps.isNotEmpty;
+
   int get contactCandidateFrameCount => contactWindows.fold<int>(
         0,
         (total, window) => total + window.candidateFrameCount,
@@ -527,7 +534,8 @@ class RunningVideoAnalysisResult {
 
   /// Per-step, phase-aware measurements derived from the same uploaded video.
   /// Returns null when the clip has no validated contact frame / pose-frame
-  /// pairing; callers should then ask for a retake rather than show a number.
+  /// pairing. A result with fewer than three steps remains an observation;
+  /// callers must not promote it to a score or coaching judgement.
   ///
   /// This remains a getter so legacy constant result fixtures and persisted
   /// snapshots retain their existing value semantics.
@@ -535,10 +543,11 @@ class RunningVideoAnalysisResult {
 
   /// Rhythm measurements calculated from verified contact timestamps.
   ///
-  /// This deliberately has a lower evidence requirement than [gaitAnalysis]:
-  /// cadence and the time between verified contacts do not require a complete
-  /// pose frame at every contact. Pose-dependent measurements (foot placement,
-  /// knee, trunk, and arm ranges) still remain behind [gaitAnalysis].
+  /// This deliberately requires a complete multi-contact sample: cadence and
+  /// time between contacts should never be inferred from one or two observed
+  /// steps. Pose-dependent observations may still be available through
+  /// [gaitAnalysis], but remain unscored until they meet their own evidence
+  /// threshold.
   RunningRhythmAnalysis? get rhythmAnalysis =>
       _deriveRunningRhythmAnalysis(this);
 
@@ -1019,7 +1028,7 @@ class RunningGaitAnalysis {
 RunningGaitAnalysis? _deriveRunningGaitAnalysis(
   RunningVideoAnalysisResult result,
 ) {
-  if (!result.hasDenseContactEvidence ||
+  if (!result.hasObservedContactEvidence ||
       result.poseFrames.isEmpty ||
       result.contactWindows.isEmpty) {
     return null;
@@ -1388,7 +1397,7 @@ RunningMetricEvidenceWithheldReason? _metricEvidenceGateFor(
   if ((metric == RunningCoachMetric.footStrike ||
           metric == RunningCoachMetric.kneeFlexion) &&
       (result.contactWindows.isEmpty ||
-          !result.hasDenseContactEvidence ||
+          !result.hasObservedContactEvidence ||
           result.gaitAnalysis == null)) {
     return RunningMetricEvidenceWithheldReason.missingContact;
   }
@@ -1504,7 +1513,10 @@ List<_RunningMetricEvidenceCandidate> _landingEvidenceCandidates(
   final gait = result.gaitAnalysis;
   if (gait == null) return const <_RunningMetricEvidenceCandidate>[];
   final candidates = <_RunningMetricEvidenceCandidate>[];
-  for (final step in gait.steps.where((step) => step.isReliable)) {
+  // A real, pose-paired contact remains useful as an explicitly limited
+  // observation even before there are enough stable steps for coaching. The
+  // per-metric quality gate keeps these frames out of scores and drills.
+  for (final step in gait.steps) {
     final measurement = step.initialContact;
     final value = measurement.footStrikeDistanceRatio;
     if (value == null) continue;
@@ -1539,7 +1551,7 @@ List<_RunningMetricEvidenceCandidate> _kneeEvidenceCandidates(
   final gait = result.gaitAnalysis;
   if (gait == null) return const <_RunningMetricEvidenceCandidate>[];
   final candidates = <_RunningMetricEvidenceCandidate>[];
-  for (final step in gait.steps.where((step) => step.isReliable)) {
+  for (final step in gait.steps) {
     final measurement = step.maximumKneeFlexion ?? step.initialContact;
     final value = measurement.kneeAngleDegrees;
     if (value == null) continue;

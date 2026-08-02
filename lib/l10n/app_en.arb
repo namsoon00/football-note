@@ -5019,6 +5019,23 @@
   "runningCoachEvidenceDetailsTitle": "Evidence details",
   "runningCoachEvidenceInsufficientTitle": "Retake this clip",
   "runningCoachEvidenceInsufficientBody": "There were not enough stable frames for this focus, so the app is not showing a precise score.",
+  "runningCoachEvidenceMetricUnavailableTitle": "We cannot yet confirm the {metric} measurement",
+  "@runningCoachEvidenceMetricUnavailableTitle": {
+    "placeholders": {
+      "metric": {}
+    }
+  },
+  "runningCoachEvidenceMetricUnavailableBody": "There is not enough evidence for {metric}, so its score and coaching are withheld. You can still review measurements from other metrics.",
+  "@runningCoachEvidenceMetricUnavailableBody": {
+    "placeholders": {
+      "metric": {}
+    }
+  },
+  "runningCoachMeasurementStatusVerified": "Verified",
+  "runningCoachMeasurementStatusObserved": "Video observation",
+  "runningCoachMeasurementStatusUnavailable": "Unavailable",
+  "runningCoachMeasurementCoverageTitle": "What this video could measure",
+  "runningCoachMeasurementCoverageBody": "Metrics are verified independently. Missing contact evidence does not invalidate measurements such as arm carriage or trunk position.",
   "runningCoachEvidenceVideoUnavailable": "The saved video file is unavailable. The pose overlay still shows the analyzed frame.",
   "runningCoachEvidencePoseFrameOnly": "Showing the analyzed pose frame. The video file was not saved with this view.",
   "runningCoachEvidenceTimestamp": "Evidence frame {time}",
@@ -5115,6 +5132,44 @@
   "runningCoachEvidenceArmLabel": "Arm frame",
   "runningCoachEvidenceSamplesLabel": "Samples",
   "runningCoachEvidenceReliabilityLabel": "Reliability",
+  "runningCoachEvidenceAggregateValueLabel": "Representative value",
+  "runningCoachEvidenceGuideRangeLabel": "Coaching guide",
+  "runningCoachEvidenceScoreCenterLabel": "Scoring center",
+  "runningCoachEvidenceFrameRangeLabel": "Evidence-frame value",
+  "runningCoachEvidenceFrameRangeValue": "{minimum}–{maximum}",
+  "@runningCoachEvidenceFrameRangeValue": {
+    "placeholders": {
+      "minimum": {},
+      "maximum": {}
+    }
+  },
+  "runningCoachEvidenceDegreesValue": "{value}°",
+  "@runningCoachEvidenceDegreesValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "runningCoachEvidencePercentValue": "{value}%",
+  "@runningCoachEvidencePercentValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "runningCoachEvidenceRatioValue": "{value}×",
+  "@runningCoachEvidenceRatioValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "runningCoachEvidenceAverageLabel": "Average · {samples} frames",
+  "@runningCoachEvidenceAverageLabel": {
+    "placeholders": {
+      "samples": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachMetricScoreBasis": "The score shows how close the representative value is to the scoring center.",
   "runningCoachEvidenceWhyThisResultLabel": "Why this result",
   "runningCoachEvidenceVideoMissingTitle": "Video not available",
   "runningCoachEvidenceVideoMissingBody": "The saved video is missing, so this metric is shown as a text evidence summary instead.",

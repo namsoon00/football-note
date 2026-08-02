@@ -5019,6 +5019,23 @@
   "runningCoachEvidenceDetailsTitle": "근거와 측정 방식",
   "runningCoachEvidenceInsufficientTitle": "이 클립을 다시 촬영해 주세요",
   "runningCoachEvidenceInsufficientBody": "이 포인트를 판단할 안정 프레임이 부족해 정확한 점수를 보여 주지 않습니다.",
+  "runningCoachEvidenceMetricUnavailableTitle": "{metric} 측정은 아직 확정할 수 없어요",
+  "@runningCoachEvidenceMetricUnavailableTitle": {
+    "placeholders": {
+      "metric": {}
+    }
+  },
+  "runningCoachEvidenceMetricUnavailableBody": "{metric}의 근거가 부족해 점수와 코칭은 보류했어요. 다른 항목의 측정은 그대로 확인할 수 있어요.",
+  "@runningCoachEvidenceMetricUnavailableBody": {
+    "placeholders": {
+      "metric": {}
+    }
+  },
+  "runningCoachMeasurementStatusVerified": "확정 측정",
+  "runningCoachMeasurementStatusObserved": "영상 관찰값",
+  "runningCoachMeasurementStatusUnavailable": "측정 불가",
+  "runningCoachMeasurementCoverageTitle": "이번 영상의 항목별 상태",
+  "runningCoachMeasurementCoverageBody": "항목별로 독립 검증합니다. 접지 근거가 부족해도 팔·상체 등의 측정이 함께 무효가 되지는 않습니다.",
   "runningCoachEvidenceVideoUnavailable": "저장된 영상 파일을 사용할 수 없어요. 분석된 프레임의 자세 오버레이는 보여 줍니다.",
   "runningCoachEvidencePoseFrameOnly": "분석된 자세 프레임을 보여 줍니다. 이 화면에는 영상 파일이 저장되지 않았어요.",
   "runningCoachEvidenceTimestamp": "근거 프레임 {time}",
@@ -5115,6 +5132,44 @@
   "runningCoachEvidenceArmLabel": "팔 프레임",
   "runningCoachEvidenceSamplesLabel": "샘플",
   "runningCoachEvidenceReliabilityLabel": "신뢰도",
+  "runningCoachEvidenceAggregateValueLabel": "대표값",
+  "runningCoachEvidenceGuideRangeLabel": "코칭 가이드",
+  "runningCoachEvidenceScoreCenterLabel": "판정 중심",
+  "runningCoachEvidenceFrameRangeLabel": "근거 프레임값",
+  "runningCoachEvidenceFrameRangeValue": "{minimum}–{maximum}",
+  "@runningCoachEvidenceFrameRangeValue": {
+    "placeholders": {
+      "minimum": {},
+      "maximum": {}
+    }
+  },
+  "runningCoachEvidenceDegreesValue": "{value}°",
+  "@runningCoachEvidenceDegreesValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "runningCoachEvidencePercentValue": "{value}%",
+  "@runningCoachEvidencePercentValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "runningCoachEvidenceRatioValue": "{value}×",
+  "@runningCoachEvidenceRatioValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "runningCoachEvidenceAverageLabel": "평균 · {samples} 프레임",
+  "@runningCoachEvidenceAverageLabel": {
+    "placeholders": {
+      "samples": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachMetricScoreBasis": "점수는 대표값이 판정 중심에 얼마나 가까운지 나타냅니다.",
   "runningCoachEvidenceWhyThisResultLabel": "이 결과의 이유",
   "runningCoachEvidenceVideoMissingTitle": "영상을 사용할 수 없음",
   "runningCoachEvidenceVideoMissingBody": "저장된 영상이 없어 이 지표는 텍스트 근거 요약으로 보여 줍니다.",

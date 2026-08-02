@@ -6062,12 +6062,30 @@ class _AnalysisEvidenceCardState extends State<_AnalysisEvidenceCard> {
     final insight = _selectedInsight;
     final isEvidenceReliable = evidence.isReliable;
     final hasObservedFrames = evidence.frames.isNotEmpty;
+    final hasReliableEvidence = _evidenceItems.any(
+      (item) => item.isReliable,
+    );
     final isLegacyHistory =
         widget.isHistorical && widget.result.poseFrames.isEmpty;
     final canPlayVideo =
         _isVideoReady && _controller?.value.isInitialized == true;
     final canShowPreview = selectedFrame != null &&
         (canPlayVideo || selectedFrame.poseFrame != null);
+    final metricLabel = _evidenceKindLabel(l10n, evidence.kind);
+    final headerTitle = isLegacyHistory
+        ? l10n.runningCoachHistoryEvidenceUnavailableTitle
+        : isEvidenceReliable
+            ? l10n.runningCoachEvidenceTitle
+            : hasReliableEvidence
+                ? l10n.runningCoachEvidenceMetricUnavailableTitle(metricLabel)
+                : l10n.runningCoachEvidenceInsufficientTitle;
+    final headerBody = isLegacyHistory
+        ? l10n.runningCoachHistoryEvidenceUnavailableBody
+        : isEvidenceReliable
+            ? l10n.runningCoachEvidenceBody
+            : hasReliableEvidence
+                ? l10n.runningCoachEvidenceMetricUnavailableBody(metricLabel)
+                : l10n.runningCoachEvidenceInsufficientBody;
 
     return Card(
       key: const ValueKey('running-coach-analysis-evidence-card'),
@@ -6092,25 +6110,17 @@ class _AnalysisEvidenceCardState extends State<_AnalysisEvidenceCard> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        isLegacyHistory
-                            ? l10n.runningCoachHistoryEvidenceUnavailableTitle
-                            : isEvidenceReliable
-                                ? l10n.runningCoachEvidenceTitle
-                                : l10n.runningCoachEvidenceInsufficientTitle,
+                        headerTitle,
                         style:
                             Theme.of(context).textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.w900,
                                 ),
                       ),
-                      if (isLegacyHistory || !isEvidenceReliable) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          isLegacyHistory
-                              ? l10n.runningCoachHistoryEvidenceUnavailableBody
-                              : l10n.runningCoachEvidenceInsufficientBody,
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ],
+                      const SizedBox(height: 4),
+                      Text(
+                        headerBody,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
                     ],
                   ),
                 ),
@@ -6258,25 +6268,63 @@ class _EvidenceMetricTabs extends StatelessWidget {
       runSpacing: 8,
       children: [
         for (final item in items)
-          ChoiceChip(
-            key: ValueKey('running-coach-evidence-chip-${item.kind.name}'),
-            selected: item.kind == selectedKind,
-            showCheckmark: false,
-            avatar: Icon(
-              _evidenceKindIcon(item.kind),
-              size: 18,
-              color: item.kind == selectedKind
-                  ? scheme.onSecondaryContainer
-                  : item.isReliable
-                      ? scheme.primary
-                      : scheme.error,
+          Semantics(
+            label:
+                '${_evidenceKindLabel(l10n, item.kind)} ${_measurementStatusLabel(l10n, item)}',
+            child: ChoiceChip(
+              key: ValueKey('running-coach-evidence-chip-${item.kind.name}'),
+              selected: item.kind == selectedKind,
+              showCheckmark: false,
+              avatar: Icon(
+                _evidenceKindIcon(item.kind),
+                size: 18,
+                color: item.kind == selectedKind
+                    ? scheme.onSecondaryContainer
+                    : item.isReliable
+                        ? scheme.primary
+                        : scheme.error,
+              ),
+              label: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(_evidenceKindLabel(l10n, item.kind)),
+                  const SizedBox(width: 4),
+                  Icon(
+                    _measurementStatusIcon(item),
+                    size: 15,
+                    color: item.isReliable
+                        ? scheme.primary
+                        : item.frames.isNotEmpty
+                            ? scheme.secondary
+                            : scheme.error,
+                  ),
+                ],
+              ),
+              onSelected: (_) => onSelected(item.kind),
             ),
-            label: Text(_evidenceKindLabel(l10n, item.kind)),
-            onSelected: (_) => onSelected(item.kind),
           ),
       ],
     );
   }
+}
+
+String _measurementStatusLabel(
+  AppLocalizations l10n,
+  RunningMetricEvidence evidence,
+) {
+  if (evidence.isReliable) {
+    return l10n.runningCoachMeasurementStatusVerified;
+  }
+  if (evidence.frames.isNotEmpty) {
+    return l10n.runningCoachMeasurementStatusObserved;
+  }
+  return l10n.runningCoachMeasurementStatusUnavailable;
+}
+
+IconData _measurementStatusIcon(RunningMetricEvidence evidence) {
+  if (evidence.isReliable) return Icons.verified_rounded;
+  if (evidence.frames.isNotEmpty) return Icons.visibility_outlined;
+  return Icons.block_rounded;
 }
 
 class _MetricEvidenceDetailsPanel extends StatelessWidget {
@@ -6294,6 +6342,9 @@ class _MetricEvidenceDetailsPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
+    final frameValueText = insight == null
+        ? ''
+        : _evidenceFrameValueText(l10n, evidence, insight!);
     return Container(
       key: const ValueKey('running-coach-metric-evidence-details'),
       width: double.infinity,
@@ -6311,9 +6362,16 @@ class _MetricEvidenceDetailsPanel extends StatelessWidget {
             runSpacing: 8,
             children: [
               _StatChip(
-                label: evidence.isReliable
-                    ? l10n.runningCoachMetricValueLabel
-                    : l10n.runningCoachObservedValueLabel,
+                label: insight == null
+                    ? evidence.isReliable
+                        ? l10n.runningCoachMetricValueLabel
+                        : l10n.runningCoachObservedValueLabel
+                    : _metricMeasurementValueLabel(
+                        l10n,
+                        insight!,
+                        evidence,
+                        isReliable: evidence.isReliable,
+                      ),
                 value: _evidenceValueText(l10n, evidence, insight),
               ),
               _StatChip(
@@ -6324,6 +6382,22 @@ class _MetricEvidenceDetailsPanel extends StatelessWidget {
                 label: l10n.runningCoachEvidenceReliabilityLabel,
                 value: '${(evidence.reliability * 100).round()}%',
               ),
+              if (insight != null) ...[
+                _StatChip(
+                  label: l10n.runningCoachEvidenceGuideRangeLabel,
+                  value: _comparisonTargetRange(l10n, insight!.metric),
+                ),
+                if (evidence.isReliable)
+                  _StatChip(
+                    label: l10n.runningCoachEvidenceScoreCenterLabel,
+                    value: _metricScoreCenterText(l10n, insight!.metric),
+                  ),
+                if (frameValueText.isNotEmpty)
+                  _StatChip(
+                    label: l10n.runningCoachEvidenceFrameRangeLabel,
+                    value: frameValueText,
+                  ),
+              ],
             ],
           ),
           const SizedBox(height: 12),
@@ -8447,7 +8521,7 @@ class _MeasuredPoseGuideVisual extends StatelessWidget {
           const SizedBox(height: 10),
           SizedBox(
             width: double.infinity,
-            child: OutlinedButton.icon(
+            child: FilledButton.tonalIcon(
               key: ValueKey(
                 'running-coach-insight-open-evidence-${insight.metric.name}',
               ),
@@ -9901,6 +9975,10 @@ class _ResultsSummaryCard extends StatelessWidget {
       _AnalysisQualityLevel.limited => Icons.info_outline_rounded,
       _AnalysisQualityLevel.retake => Icons.videocam_off_outlined,
     };
+    final evidenceByMetric = <RunningCoachMetric, RunningMetricEvidence>{
+      for (final evidence in result.metricEvidence)
+        if (evidence.metric != null) evidence.metric!: evidence,
+    };
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -9940,6 +10018,35 @@ class _ResultsSummaryCard extends StatelessWidget {
                 ),
               ],
             ),
+            if (quality != _AnalysisQualityLevel.strong) ...[
+              const SizedBox(height: 12),
+              Text(
+                l10n.runningCoachMeasurementCoverageTitle,
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final insight in report.insights)
+                    _MeasurementAvailabilityChip(
+                      label: _evidenceKindLabel(
+                        l10n,
+                        _evidenceKindForMetric(insight.metric),
+                      ),
+                      evidence: evidenceByMetric[insight.metric],
+                    ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                l10n.runningCoachMeasurementCoverageBody,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
             const SizedBox(height: 8),
             const Divider(height: 1),
             ExpansionTile(
@@ -10053,6 +10160,61 @@ class _ResultsSummaryCard extends StatelessWidget {
                   ),
                 ],
               ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MeasurementAvailabilityChip extends StatelessWidget {
+  final String label;
+  final RunningMetricEvidence? evidence;
+
+  const _MeasurementAvailabilityChip({
+    required this.label,
+    required this.evidence,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    final item = evidence;
+    final status = item == null
+        ? l10n.runningCoachMeasurementStatusUnavailable
+        : _measurementStatusLabel(l10n, item);
+    final icon =
+        item == null ? Icons.block_rounded : _measurementStatusIcon(item);
+    final color = item?.isReliable == true
+        ? scheme.primary
+        : item?.frames.isNotEmpty == true
+            ? scheme.secondary
+            : scheme.error;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withValues(alpha: 0.34)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+        child: Wrap(
+          spacing: 5,
+          runSpacing: 2,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            Icon(icon, size: 15, color: color),
+            Text(
+              '$label · $status',
+              softWrap: true,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.w800,
+                  ),
             ),
           ],
         ),
@@ -10859,6 +11021,9 @@ class _InsightCard extends StatelessWidget {
     final cue = insight.status == RunningCoachStatus.good
         ? l10n.runningCoachMeasuredPoseGoodCue
         : copy.cue;
+    final frameValueText = evidence == null
+        ? ''
+        : _evidenceFrameValueText(l10n, evidence!, insight);
     final badgeColor = switch (insight.status) {
       RunningCoachStatus.good => Colors.green.shade100,
       RunningCoachStatus.watch => Colors.orange.shade100,
@@ -10917,14 +11082,48 @@ class _InsightCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            _StatChip(
-              label: hasObservedEvidence
-                  ? l10n.runningCoachObservedValueLabel
-                  : l10n.runningCoachMetricValueLabel,
-              value: isMetricReliable || hasObservedEvidence
-                  ? copy.value
-                  : l10n.runningCoachMeasurementUnavailableValue,
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _StatChip(
+                  label: _metricMeasurementValueLabel(
+                    l10n,
+                    insight,
+                    evidence,
+                    isReliable: isMetricReliable,
+                  ),
+                  value: isMetricReliable || hasObservedEvidence
+                      ? copy.value
+                      : l10n.runningCoachMeasurementUnavailableValue,
+                ),
+                if (isMetricReliable || hasObservedEvidence) ...[
+                  _StatChip(
+                    label: l10n.runningCoachEvidenceGuideRangeLabel,
+                    value: _comparisonTargetRange(l10n, insight.metric),
+                  ),
+                  if (isMetricReliable)
+                    _StatChip(
+                      label: l10n.runningCoachEvidenceScoreCenterLabel,
+                      value: _metricScoreCenterText(l10n, insight.metric),
+                    ),
+                  if (frameValueText.isNotEmpty)
+                    _StatChip(
+                      label: l10n.runningCoachEvidenceFrameRangeLabel,
+                      value: frameValueText,
+                    ),
+                ],
+              ],
             ),
+            if (isMetricReliable) ...[
+              const SizedBox(height: 8),
+              Text(
+                l10n.runningCoachMetricScoreBasis,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+              ),
+            ],
             const SizedBox(height: 12),
             _MeasuredPoseGuideVisual(
               insight: insight,
@@ -11119,7 +11318,6 @@ String _metricGoodRange(AppLocalizations l10n, RunningCoachMetric metric) {
   };
 }
 
-// ignore: unused_element
 String _comparisonTargetRange(
   AppLocalizations l10n,
   RunningCoachMetric metric,
@@ -11151,6 +11349,90 @@ String _comparisonTargetRange(
     RunningCoachMetric.armCarriage => l10n.runningCoachMeasuredPoseRangeDegrees(
         formatNumber(thresholds.minimumElbowAngleDegrees),
         formatNumber(thresholds.maximumElbowAngleDegrees),
+      ),
+  };
+}
+
+String _metricMeasurementValueLabel(
+  AppLocalizations l10n,
+  RunningCoachingInsight insight,
+  RunningMetricEvidence? evidence, {
+  required bool isReliable,
+}) {
+  if (!isReliable) {
+    return evidence?.frames.isNotEmpty == true
+        ? l10n.runningCoachObservedValueLabel
+        : l10n.runningCoachMetricValueLabel;
+  }
+  final sampleCount = evidence?.sampleCount ?? 0;
+  final isAverageMetric =
+      insight.metric != RunningCoachMetric.bounce && sampleCount > 1;
+  return isAverageMetric
+      ? l10n.runningCoachEvidenceAverageLabel(sampleCount)
+      : l10n.runningCoachEvidenceAggregateValueLabel;
+}
+
+String _metricScoreCenterText(
+  AppLocalizations l10n,
+  RunningCoachMetric metric,
+) {
+  const thresholds = RunningCoachingThresholds();
+  final value = switch (metric) {
+    RunningCoachMetric.posture => thresholds.idealForwardLeanDegrees,
+    RunningCoachMetric.bounce => thresholds.idealVerticalBouncePercent,
+    RunningCoachMetric.footStrike => thresholds.idealFootStrikeRatio,
+    RunningCoachMetric.kneeFlexion => thresholds.idealStanceKneeAngleDegrees,
+    RunningCoachMetric.armCarriage => thresholds.idealElbowAngleDegrees,
+  };
+  return _formatMetricRawValue(l10n, metric, value);
+}
+
+String _evidenceFrameValueText(
+  AppLocalizations l10n,
+  RunningMetricEvidence evidence,
+  RunningCoachingInsight insight,
+) {
+  final valueKey = switch (insight.metric) {
+    RunningCoachMetric.posture => 'forwardLeanDegrees',
+    RunningCoachMetric.bounce => 'verticalBouncePercent',
+    RunningCoachMetric.footStrike => 'footStrikeDistanceRatio',
+    RunningCoachMetric.kneeFlexion => 'kneeAngleDegrees',
+    RunningCoachMetric.armCarriage => 'elbowAngleDegrees',
+  };
+  final values = evidence.frames
+      .map((frame) => frame.values[valueKey])
+      .whereType<double>()
+      .where((value) => value.isFinite)
+      .toList(growable: false);
+  if (values.isEmpty) return '';
+  final minimum = values.reduce(math.min).toDouble();
+  final maximum = values.reduce(math.max).toDouble();
+  final minimumText = _formatMetricRawValue(l10n, insight.metric, minimum);
+  final maximumText = _formatMetricRawValue(l10n, insight.metric, maximum);
+  if ((maximum - minimum).abs() < 0.001) return minimumText;
+  return l10n.runningCoachEvidenceFrameRangeValue(
+    minimumText,
+    maximumText,
+  );
+}
+
+String _formatMetricRawValue(
+  AppLocalizations l10n,
+  RunningCoachMetric metric,
+  double value,
+) {
+  return switch (metric) {
+    RunningCoachMetric.posture ||
+    RunningCoachMetric.kneeFlexion ||
+    RunningCoachMetric.armCarriage =>
+      l10n.runningCoachEvidenceDegreesValue(
+        value.toStringAsFixed(metric == RunningCoachMetric.posture ? 1 : 0),
+      ),
+    RunningCoachMetric.bounce => l10n.runningCoachEvidencePercentValue(
+        value.toStringAsFixed(1),
+      ),
+    RunningCoachMetric.footStrike => l10n.runningCoachEvidenceRatioValue(
+        value.toStringAsFixed(2),
       ),
   };
 }
