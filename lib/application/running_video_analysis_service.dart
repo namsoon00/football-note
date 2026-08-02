@@ -21,7 +21,9 @@ class RunningVideoAnalysisException implements Exception {
 /// MediaPipe Tasks Vision Web/Wasm bridge in browser builds.
 class RunningVideoAnalysisService {
   static const maxVideoBytes = 120 * 1024 * 1024;
-  static const analysisTimeout = Duration(seconds: 45);
+  // A dense 60-second scan can legitimately take longer than the old
+  // 14-frame pass, especially on lower-powered phones.
+  static const analysisTimeout = Duration(seconds: 120);
 
   const RunningVideoAnalysisService();
 

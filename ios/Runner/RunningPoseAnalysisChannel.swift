@@ -85,7 +85,7 @@ final class RunningPoseAnalysisChannel {
     guard durationMs <= Self.maxVideoDurationMs else {
       throw AnalysisError(
         code: "video_too_long",
-        message: "Please trim the running clip to 15 seconds or less."
+        message: "Please trim the running clip to 60 seconds or less."
       )
     }
 
@@ -95,10 +95,11 @@ final class RunningPoseAnalysisChannel {
     imageGenerator.requestedTimeToleranceAfter = .zero
 
     let coarsePoseLandmarker = try makePoseLandmarker()
+    let coarseFrameTimestamps = coarseSampleTimestamps(durationMs: durationMs)
     let coarsePass = try runPosePass(
       poseLandmarker: coarsePoseLandmarker,
       imageGenerator: imageGenerator,
-      timestampsMs: coarseSampleTimestamps(durationMs: durationMs),
+      timestampsMs: coarseFrameTimestamps,
       collectSharpness: true
     )
     let frameSamples = coarsePass.samples
@@ -233,11 +234,15 @@ final class RunningPoseAnalysisChannel {
     let armConfidenceValues = frameSamples.compactMap(\.armLandmarkConfidence)
     let armConfidence = armConfidenceValues.reduce(0, +) /
       Double(armConfidenceValues.count)
+    let analyzedFrameTimestamps = Set(coarseFrameTimestamps + denseTimestamps)
+    let validFrameTimestamps = Set(
+      (frameSamples + densePass.samples).map(\.timestampMs)
+    )
 
     return [
       "durationMs": durationMs,
-      "sampledFrames": Self.sampleCount,
-      "validFrames": frameSamples.count,
+      "sampledFrames": analyzedFrameTimestamps.count,
+      "validFrames": validFrameTimestamps.count,
       "direction": direction.rawValue,
       "forwardLeanDegrees": roundTo3(leanDegrees),
       "verticalBounceRatio": roundTo3(max(0, bounceRatio)),
@@ -269,9 +274,11 @@ final class RunningPoseAnalysisChannel {
         ),
       ],
       "coarseSamples": sampleSummaryPayload(
-        attemptedFrames: Self.sampleCount,
+        attemptedFrames: coarseFrameTimestamps.count,
         validFrames: coarsePass.samples.count,
-        poseFrameCount: coarsePass.poseFrames.count
+        poseFrameCount: coarsePass.poseFrames.count,
+        maxFrameBudget: Self.maxCoarseFrameBudget,
+        targetFps: Self.coarseTargetFps
       ),
       "denseSamples": sampleSummaryPayload(
         attemptedFrames: denseTimestamps.count,
@@ -347,17 +354,19 @@ final class RunningPoseAnalysisChannel {
   }
 
   private func coarseSampleTimestamps(durationMs: Int) -> [Int] {
-    (0..<Self.sampleCount).map { index in
-      let fraction: Double
-      if Self.sampleCount == 1 {
-        fraction = 0.5
-      } else {
-        let progress = Double(index) / Double(Self.sampleCount - 1)
-        fraction =
-          Self.sampleStartFraction +
-          ((Self.sampleEndFraction - Self.sampleStartFraction) * progress)
-      }
-      return min(durationMs, max(0, Int((Double(durationMs) * fraction).rounded())))
+    let requestedIntervalCount = max(
+      1,
+      (durationMs + Self.coarseFrameIntervalMs - 1) / Self.coarseFrameIntervalMs
+    )
+    let intervalCount = min(
+      requestedIntervalCount,
+      Self.maxCoarseFrameBudget - 1
+    )
+    return (0...intervalCount).map { index in
+      min(
+        durationMs,
+        max(0, Int((Double(durationMs) * Double(index) / Double(intervalCount)).rounded()))
+      )
     }
   }
 
@@ -1754,7 +1763,9 @@ final class RunningPoseAnalysisChannel {
 
   private static let channelName = "football_note/running_pose_analysis"
   private static let methodName = "analyzeRunningVideo"
-  private static let sampleCount = 14
+  private static let coarseTargetFps = 10
+  private static let coarseFrameIntervalMs = 100
+  private static let maxCoarseFrameBudget = 240
   private static let minimumValidFrames = 6
   private static let minimumSharpnessSampleCount = 6
   private static let minimumMedianSharpness = 0.018
@@ -1764,19 +1775,17 @@ final class RunningPoseAnalysisChannel {
   private static let sharpnessSampleWidth = 96
   private static let sharpnessSampleHeight = 64
   private static let minVideoDurationMs = 1500
-  private static let maxVideoDurationMs = 15000
-  private static let sampleStartFraction = 0.15
-  private static let sampleEndFraction = 0.85
+  private static let maxVideoDurationMs = 60000
   private static let minimumLikelihood: Float = 0.35
   private static let minimumBodyScalePx = 40.0
   private static let mediaPipePoseLandmarkCount = 33
   private static let stationaryThresholdRatio = 0.12
   private static let denseTargetFps = 30
   private static let denseFrameIntervalMs = 33
-  private static let denseWindowRadiusMs = 360
-  private static let maxDenseFrameBudget = 48
-  private static let maxContactWindows = 6
-  private static let minimumContactCenterSeparationMs = 120
+  private static let denseWindowRadiusMs = 500
+  private static let maxDenseFrameBudget = 240
+  private static let maxContactWindows = 8
+  private static let minimumContactCenterSeparationMs = 180
   private static let minimumValidatedContactFrames = 3
   private static let minimumContactFrameConfidence = 0.34
   private static let contactProxyConfidencePenalty = 0.60

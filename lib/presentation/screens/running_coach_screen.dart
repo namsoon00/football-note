@@ -275,7 +275,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
     try {
       final selected = await _picker.pickVideo(
         source: ImageSource.gallery,
-        maxDuration: const Duration(seconds: 15),
+        maxDuration: const Duration(seconds: 60),
       );
       if (!mounted || selected == null) return;
       setState(() {
@@ -336,7 +336,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
       return _picker.pickVideo(
         source: ImageSource.camera,
         preferredCameraDevice: CameraDevice.rear,
-        maxDuration: const Duration(seconds: 15),
+        maxDuration: const Duration(seconds: 60),
       );
     }
     return widget.captureLauncher(context);

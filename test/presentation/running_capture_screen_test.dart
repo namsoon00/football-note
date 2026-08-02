@@ -5,6 +5,12 @@ import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/running_capture_screen.dart';
 
 void main() {
+  test('allows a 60-second recording by default', () {
+    const screen = RunningCaptureScreen();
+
+    expect(screen.maximumDuration, const Duration(seconds: 60));
+  });
+
   testWidgets('shows a recoverable state when no camera is available', (
     WidgetTester tester,
   ) async {

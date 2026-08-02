@@ -8140,14 +8140,14 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachAnalyzeBody =>
-      '5~15초 측면 영상 하나를 고르세요. 먼저 가장 중요한 동작 하나를 알려주고, 이어서 5개 지표 전체 리포트를 보여줘요.';
+      '최대 60초 측면 영상 하나를 고르세요. 영상 전반을 훑은 뒤 접지 구간을 촘촘히 다시 분석해 5개 지표 리포트를 보여줘요.';
 
   @override
   String get runningCoachCaptureFlowTitle => '달리기 영상 분석';
 
   @override
   String get runningCoachCaptureFlowBody =>
-      '측면에서 찍은 5~15초 영상으로 한 보폭씩 자세를 분석해요.';
+      '최대 60초의 측면 영상을 전반적으로 스캔하고, 보폭과 접지 구간을 촘촘히 분석해요.';
 
   @override
   String get runningCoachCaptureAction => '바로 촬영';
@@ -8218,7 +8218,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachModeVideoBody =>
-      '측면으로 찍은 5~15초 영상을 선택하면 자세 리포트를 만들어요.';
+      '최대 60초 측면 영상을 선택하면 전 구간을 스캔해 자세 리포트를 만들어요.';
 
   @override
   String get runningCoachModeLiveAction => '실시간 코칭 시작';
@@ -8236,7 +8236,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachTipSteadyCamera =>
-      '카메라는 흔들리지 않게 두고 밝고 고른 빛에서 3보 이상 깨끗한 5~15초 장면을 사용해 주세요.';
+      '카메라는 흔들리지 않게 두고 밝고 고른 빛에서 촬영해 주세요. 최대 60초까지 가능하며, 가장 빠르고 안정적인 결과에는 3보 이상이 담긴 5~15초 구간이 좋아요.';
 
   @override
   String get runningCoachUploadGuideTitle => '동영상 업로드 가이드';
@@ -8255,7 +8255,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachUploadGuideStepDuration =>
-      '깨끗한 보폭이 3~6번 들어간 5~15초 영상을 쓰고, 준비 걸음, 회전, 멈춘 프레임은 잘라 주세요.';
+      '최대 60초 영상을 사용할 수 있어요. 앱이 전 구간을 스캔하므로 준비 걸음, 잦은 회전, 멈춘 장면은 가능한 한 빼 주세요.';
 
   @override
   String get runningCoachUploadGuideStepLight =>
@@ -8294,7 +8294,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachCaptureGuideChecklistClip =>
-      '밝고 단순한 배경에서 3~6보가 담긴 5~10초 영상을 사용하세요.';
+      '가장 빠르고 안정적인 결과에는 밝고 단순한 배경의 5~15초 영상이 좋아요. 최대 60초 영상도 분석할 수 있어요.';
 
   @override
   String get runningCoachCaptureGuideAnalysisTitle => '분석 결과는 내 영상에서만';
@@ -8720,13 +8720,13 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachDenseContactEvidenceBody =>
-      '발 착지와 접지 무릎 값은 검증된 접지 주변에서 다시 읽은 프레임만 사용해요.';
+      '영상 전체를 먼저 스캔하고, 발 착지와 접지 무릎 값은 검증된 접지 주변에서 다시 읽은 고밀도 프레임만 사용해요.';
 
   @override
-  String get runningCoachDenseContactCoarseSamplesLabel => '1차';
+  String get runningCoachDenseContactCoarseSamplesLabel => '전체 스캔';
 
   @override
-  String get runningCoachDenseContactDenseSamplesLabel => '정밀';
+  String get runningCoachDenseContactDenseSamplesLabel => '접지 정밀';
 
   @override
   String get runningCoachDenseContactWindowsLabel => '구간';
@@ -9597,11 +9597,11 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachVideoTooShort => '영상이 너무 짧아요. 몇 걸음 이상 달리는 장면을 찍어 주세요.';
 
   @override
-  String get runningCoachVideoTooLong => '영상이 너무 길어요. 15초 이하로 잘라서 다시 시도해 주세요.';
+  String get runningCoachVideoTooLong => '영상이 너무 길어요. 60초 이하로 잘라서 다시 시도해 주세요.';
 
   @override
   String get runningCoachVideoTooLarge =>
-      '기기에서 분석하기에 영상 파일이 너무 커요. 5~15초의 더 작은 영상으로 잘라서 내보내 주세요.';
+      '기기에서 분석하기에 영상 파일이 너무 커요. 60초 이하의 더 작은 영상으로 잘라서 내보내 주세요.';
 
   @override
   String get runningCoachVideoTooBlurry =>
