@@ -5002,7 +5002,15 @@
   "runningCoachDenseContactCoarseSamplesLabel": "Coarse",
   "runningCoachDenseContactDenseSamplesLabel": "Dense",
   "runningCoachDenseContactWindowsLabel": "Windows",
+  "runningCoachDenseContactCandidateFramesLabel": "Contact candidates",
   "runningCoachDenseContactFramesLabel": "Contact frames",
+  "runningCoachDenseContactVerificationProgress": "{verified}/{required} verified",
+  "@runningCoachDenseContactVerificationProgress": {
+    "placeholders": {
+      "verified": { "type": "int" },
+      "required": { "type": "int" }
+    }
+  },
   "runningCoachDenseContactConfidenceLabel": "Evidence",
   "runningCoachDenseContactTimesLabel": "Timestamps",
   "runningCoachDenseContactUnavailable": "No validated contact",
@@ -5090,6 +5098,15 @@
   "runningCoachEvidenceReasonMissingPoseFrames": "No analyzed pose frames were saved for this clip.",
   "runningCoachEvidenceReasonMissingContact": "The contact frame was not stable enough to support this lower-body metric.",
   "runningCoachEvidenceReasonMissingMeasuredFrames": "The saved pose frames do not include a defensible measurement moment for this metric.",
+  "runningCoachObservedValueBadge": "Video observation",
+  "runningCoachObservedValueLabel": "Video observation",
+  "runningCoachObservedValueBody": "This is a coordinate observed in the video. It was not used for a score, good/needs-work judgment, or drill because the evidence is not sufficient.",
+  "runningCoachMeasurementUnavailableValue": "No verified measurement",
+  "runningCoachContactRejectionMissingFootLandmark": "Foot and ankle landmarks were not tracked reliably in the contact-candidate window. Keep both feet in frame throughout the clip.",
+  "runningCoachContactRejectionOutsideGround": "The foot was not repeatedly confirmed near the ground line. Keep the camera fixed and include both the shoes and floor line.",
+  "runningCoachContactRejectionLowConfidence": "Joint confidence was low in the contact-candidate window. Record in even light without camera shake.",
+  "runningCoachContactRejectionUnstableMotion": "The foot's vertical movement did not form a stable contact moment. Use a sharp side-view clip with 3–6 strides.",
+  "runningCoachContactRejectionInsufficientMotionWindow": "There were not enough continuous frames before and after contact to confirm foot movement. Record 5–10 seconds at a steady pace.",
   "runningCoachEvidenceContactLabel": "Contact evidence",
   "runningCoachEvidencePostureLabel": "Posture frame",
   "runningCoachEvidenceBounceLabel": "Bounce frame",

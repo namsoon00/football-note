@@ -8732,7 +8732,16 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachDenseContactWindowsLabel => '구간';
 
   @override
+  String get runningCoachDenseContactCandidateFramesLabel => '접지 후보 프레임';
+
+  @override
   String get runningCoachDenseContactFramesLabel => '접지 프레임';
+
+  @override
+  String runningCoachDenseContactVerificationProgress(
+      int verified, int required) {
+    return '$verified/$required회 검증';
+  }
 
   @override
   String get runningCoachDenseContactConfidenceLabel => '근거';
@@ -8938,6 +8947,39 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get runningCoachEvidenceReasonMissingMeasuredFrames =>
       '저장된 자세 프레임 안에 이 지표를 방어적으로 읽을 수 있는 순간이 없어요.';
+
+  @override
+  String get runningCoachObservedValueBadge => '영상 관찰값';
+
+  @override
+  String get runningCoachObservedValueLabel => '영상 관찰값';
+
+  @override
+  String get runningCoachObservedValueBody =>
+      '이 값은 영상에서 관찰된 좌표예요. 근거가 충분하지 않아 점수·좋음/개선 판단·드릴에는 쓰지 않았어요.';
+
+  @override
+  String get runningCoachMeasurementUnavailableValue => '확정 측정값 없음';
+
+  @override
+  String get runningCoachContactRejectionMissingFootLandmark =>
+      '접지 후보 구간에서 발·발목 관절이 충분히 추적되지 않았어요. 양발이 화면 안에 계속 보이게 촬영해 주세요.';
+
+  @override
+  String get runningCoachContactRejectionOutsideGround =>
+      '발 위치가 접지면 가까이에서 반복적으로 확인되지 않았어요. 카메라를 고정하고 신발과 바닥선이 함께 보이게 촬영해 주세요.';
+
+  @override
+  String get runningCoachContactRejectionLowConfidence =>
+      '접지 후보 구간의 관절 신뢰도가 낮아요. 밝은 곳에서 흔들림 없이 촬영해 주세요.';
+
+  @override
+  String get runningCoachContactRejectionUnstableMotion =>
+      '발의 위아래 움직임이 접지 순간으로 안정적으로 이어지지 않았어요. 3~6보가 선명하게 담긴 측면 영상을 사용해 주세요.';
+
+  @override
+  String get runningCoachContactRejectionInsufficientMotionWindow =>
+      '접지 전후의 연속 프레임이 부족해 발의 움직임을 확인하지 못했어요. 일정한 속도로 5~10초를 촬영해 주세요.';
 
   @override
   String get runningCoachEvidenceContactLabel => '접지 근거';

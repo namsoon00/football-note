@@ -349,7 +349,17 @@ class RunningContactWindow {
   final Duration end;
   final RunningContactSide side;
   final int denseSampleCount;
+
+  /// Number of dense frames in this window where the tracked foot was
+  /// considered as a possible contact. This is diagnostic data: a candidate
+  /// is not a validated contact and must not be used for coaching scores.
+  final int candidateFrameCount;
   final List<Duration> validatedContactTimestamps;
+
+  /// Why dense-frame candidates were rejected. Kept as raw, stable analyzer
+  /// codes so the presentation layer can explain the exact capture problem
+  /// without turning an estimated contact into a measurement.
+  final Map<String, int> rejectedFrameCounts;
   final double confidence;
 
   const RunningContactWindow({
@@ -360,11 +370,25 @@ class RunningContactWindow {
     required this.denseSampleCount,
     required this.validatedContactTimestamps,
     required this.confidence,
+    this.candidateFrameCount = 0,
+    this.rejectedFrameCounts = const <String, int>{},
   });
 
   int get startMs => start.inMilliseconds;
   int get centerMs => center.inMilliseconds;
   int get endMs => end.inMilliseconds;
+
+  String? get primaryRejectedFrameReason {
+    if (rejectedFrameCounts.isEmpty) return null;
+    final entries = rejectedFrameCounts.entries
+        .where((entry) => entry.value > 0)
+        .toList(growable: false)
+      ..sort((first, second) {
+        final count = second.value.compareTo(first.value);
+        return count != 0 ? count : first.key.compareTo(second.key);
+      });
+    return entries.isEmpty ? null : entries.first.key;
+  }
 
   Map<String, Object?> toMap() {
     return <String, Object?>{
@@ -373,9 +397,12 @@ class RunningContactWindow {
       'endTimestampMs': endMs,
       'side': side.name,
       'denseSampleCount': denseSampleCount,
+      'candidateFrameCount': candidateFrameCount,
       'validatedContactFrameTimestampsMs': validatedContactTimestamps
           .map((timestamp) => timestamp.inMilliseconds)
           .toList(growable: false),
+      if (rejectedFrameCounts.isNotEmpty)
+        'rejectedFrameCounts': rejectedFrameCounts,
       'confidence': confidence,
     };
   }
@@ -401,9 +428,13 @@ class RunningContactWindow {
       side: _contactSideFromToken(map['side']?.toString()),
       denseSampleCount:
           (_finiteInt(map['denseSampleCount']) ?? 0).clamp(0, 1 << 30).toInt(),
+      candidateFrameCount: (_finiteInt(map['candidateFrameCount']) ?? 0)
+          .clamp(0, 1 << 30)
+          .toInt(),
       validatedContactTimestamps: _parseTimestampList(
         map['validatedContactFrameTimestampsMs'],
       ),
+      rejectedFrameCounts: _parsePositiveIntMap(map['rejectedFrameCounts']),
       confidence:
           (_finiteDouble(map['confidence']) ?? 0).clamp(0.0, 1.0).toDouble(),
     );
@@ -468,6 +499,31 @@ class RunningVideoAnalysisResult {
       validatedContactFrameTimestamps.length >=
           runningCoachMinimumReliableMetricSamples &&
       denseSamples.validFrames > 0;
+
+  int get contactCandidateFrameCount => contactWindows.fold<int>(
+        0,
+        (total, window) => total + window.candidateFrameCount,
+      );
+
+  String? get primaryContactRejectionReason {
+    final counts = <String, int>{};
+    for (final window in contactWindows) {
+      for (final entry in window.rejectedFrameCounts.entries) {
+        counts.update(
+          entry.key,
+          (count) => count + entry.value,
+          ifAbsent: () => entry.value,
+        );
+      }
+    }
+    if (counts.isEmpty) return null;
+    final entries = counts.entries.toList(growable: false)
+      ..sort((first, second) {
+        final count = second.value.compareTo(first.value);
+        return count != 0 ? count : first.key.compareTo(second.key);
+      });
+    return entries.first.key;
+  }
 
   /// Per-step, phase-aware measurements derived from the same uploaded video.
   /// Returns null when the clip has no validated contact frame / pose-frame
@@ -1226,7 +1282,15 @@ RunningMetricEvidence _poseMetricEvidence(
 ) {
   final quality = _metricEvidenceQualityFor(result, metric);
   final gate = _metricEvidenceGateFor(result, metric, quality);
-  if (gate != null) {
+  // Low-confidence or sparse *measured* frames are still useful to show as
+  // observations. They remain explicitly withheld from scoring and coaching,
+  // but the runner can inspect what the model actually saw. Missing contacts
+  // and missing pose frames are hard stops because there is no defensible
+  // frame to show for that metric.
+  final canShowObservation =
+      gate == RunningMetricEvidenceWithheldReason.lowConfidence ||
+          gate == RunningMetricEvidenceWithheldReason.limitedSamples;
+  if (gate != null && !canShowObservation) {
     return _withheldMetricEvidence(
       result,
       metric,
@@ -1274,6 +1338,7 @@ RunningMetricEvidence _poseMetricEvidence(
     measuredValues: _measuredValuesForMetric(result, metric),
     sampleCount: sampleCount,
     reliability: quality.confidence,
+    withheldReason: gate,
   );
 }
 
@@ -2058,6 +2123,18 @@ List<Duration> _parseTimestampList(Object? raw) {
   );
 }
 
+Map<String, int> _parsePositiveIntMap(Object? raw) {
+  if (raw is! Map) return const <String, int>{};
+  final values = <String, int>{};
+  for (final entry in raw.entries) {
+    final key = entry.key?.toString().trim();
+    final value = _finiteInt(entry.value);
+    if (key == null || key.isEmpty || value == null || value <= 0) continue;
+    values[key] = value;
+  }
+  return Map<String, int>.unmodifiable(values);
+}
+
 Map<RunningCoachMetric, RunningMetricQuality> _parseMetricQualities(
   Object? raw,
 ) {
@@ -2149,12 +2226,39 @@ class RunningMetricQuality {
 
   int get confidencePercent => (confidence.clamp(0.0, 1.0) * 100).round();
 
+  RunningMetricQuality copyWith({
+    double? confidence,
+    int? sampleCount,
+    String? reason,
+    bool clearReason = false,
+  }) {
+    return RunningMetricQuality(
+      confidence: confidence ?? this.confidence,
+      sampleCount: sampleCount ?? this.sampleCount,
+      reason: clearReason ? null : reason ?? this.reason,
+    );
+  }
+
   bool get isLowConfidence => confidence < 0.6;
 
   /// A contact proxy is useful for explaining why a clip was rejected, but it
   /// must never become a posture prescription. The native and web analyzers
   /// deliberately tag those fallback measurements with this reason.
   bool get isContactPhaseProxy => reason == 'contact_phase_proxy';
+
+  /// These codes mean the analyzer either could not pair the claimed value to
+  /// a measurable frame or deliberately used a phase proxy. They are stronger
+  /// than a low confidence warning: no score, good/bad label, or drill may be
+  /// derived from them.
+  bool get hasBlockingMeasurementReason => switch (reason) {
+        'contact_phase_proxy' ||
+        'missing_contact_evidence' ||
+        'missing_pose_frames' ||
+        'missing_measured_frames' ||
+        'metric_unavailable' =>
+          true,
+        _ => false,
+      };
 
   /// Old saved reports did not always persist a sample count. Preserve their
   /// compatibility while requiring three fresh measurements for new results.
@@ -2165,7 +2269,7 @@ class RunningMetricQuality {
   bool get isReliableForCoaching =>
       confidence >= runningCoachReliableMetricConfidence &&
       hasSufficientSamples &&
-      !isContactPhaseProxy;
+      !hasBlockingMeasurementReason;
 }
 
 class RunningCoachingInsight {

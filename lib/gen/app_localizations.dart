@@ -15647,11 +15647,24 @@ abstract class AppLocalizations {
   /// **'Windows'**
   String get runningCoachDenseContactWindowsLabel;
 
+  /// No description provided for @runningCoachDenseContactCandidateFramesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact candidates'**
+  String get runningCoachDenseContactCandidateFramesLabel;
+
   /// No description provided for @runningCoachDenseContactFramesLabel.
   ///
   /// In en, this message translates to:
   /// **'Contact frames'**
   String get runningCoachDenseContactFramesLabel;
+
+  /// No description provided for @runningCoachDenseContactVerificationProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{verified}/{required} verified'**
+  String runningCoachDenseContactVerificationProgress(
+      int verified, int required);
 
   /// No description provided for @runningCoachDenseContactConfidenceLabel.
   ///
@@ -16012,6 +16025,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The saved pose frames do not include a defensible measurement moment for this metric.'**
   String get runningCoachEvidenceReasonMissingMeasuredFrames;
+
+  /// No description provided for @runningCoachObservedValueBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Video observation'**
+  String get runningCoachObservedValueBadge;
+
+  /// No description provided for @runningCoachObservedValueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Video observation'**
+  String get runningCoachObservedValueLabel;
+
+  /// No description provided for @runningCoachObservedValueBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This is a coordinate observed in the video. It was not used for a score, good/needs-work judgment, or drill because the evidence is not sufficient.'**
+  String get runningCoachObservedValueBody;
+
+  /// No description provided for @runningCoachMeasurementUnavailableValue.
+  ///
+  /// In en, this message translates to:
+  /// **'No verified measurement'**
+  String get runningCoachMeasurementUnavailableValue;
+
+  /// No description provided for @runningCoachContactRejectionMissingFootLandmark.
+  ///
+  /// In en, this message translates to:
+  /// **'Foot and ankle landmarks were not tracked reliably in the contact-candidate window. Keep both feet in frame throughout the clip.'**
+  String get runningCoachContactRejectionMissingFootLandmark;
+
+  /// No description provided for @runningCoachContactRejectionOutsideGround.
+  ///
+  /// In en, this message translates to:
+  /// **'The foot was not repeatedly confirmed near the ground line. Keep the camera fixed and include both the shoes and floor line.'**
+  String get runningCoachContactRejectionOutsideGround;
+
+  /// No description provided for @runningCoachContactRejectionLowConfidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Joint confidence was low in the contact-candidate window. Record in even light without camera shake.'**
+  String get runningCoachContactRejectionLowConfidence;
+
+  /// No description provided for @runningCoachContactRejectionUnstableMotion.
+  ///
+  /// In en, this message translates to:
+  /// **'The foot\'s vertical movement did not form a stable contact moment. Use a sharp side-view clip with 3–6 strides.'**
+  String get runningCoachContactRejectionUnstableMotion;
+
+  /// No description provided for @runningCoachContactRejectionInsufficientMotionWindow.
+  ///
+  /// In en, this message translates to:
+  /// **'There were not enough continuous frames before and after contact to confirm foot movement. Record 5–10 seconds at a steady pace.'**
+  String get runningCoachContactRejectionInsufficientMotionWindow;
 
   /// No description provided for @runningCoachEvidenceContactLabel.
   ///

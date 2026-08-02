@@ -437,8 +437,8 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
     const longVideoName =
         '2026-07-14-side-view-sprint-overstride-right-camera-angle-final-review.mp4';
-    const result = RunningVideoAnalysisResult(
-      videoDuration: Duration(seconds: 8),
+    final result = RunningVideoAnalysisResult(
+      videoDuration: const Duration(seconds: 8),
       sampledFrames: 30,
       validFrames: 28,
       direction: RunningDirection.leftToRight,
@@ -448,33 +448,33 @@ void main() {
       stanceKneeAngleDegrees: 172,
       elbowAngleDegrees: 126,
       metricQualities: <RunningCoachMetric, RunningMetricQuality>{
-        RunningCoachMetric.posture: RunningMetricQuality(
+        RunningCoachMetric.posture: const RunningMetricQuality(
           confidence: 1,
           sampleCount: 28,
         ),
-        RunningCoachMetric.bounce: RunningMetricQuality(
+        RunningCoachMetric.bounce: const RunningMetricQuality(
           confidence: 1,
           sampleCount: 28,
         ),
-        RunningCoachMetric.footStrike: RunningMetricQuality(
+        RunningCoachMetric.footStrike: const RunningMetricQuality(
           confidence: 1,
           sampleCount: 28,
         ),
-        RunningCoachMetric.kneeFlexion: RunningMetricQuality(
+        RunningCoachMetric.kneeFlexion: const RunningMetricQuality(
           confidence: 1,
           sampleCount: 28,
         ),
-        RunningCoachMetric.armCarriage: RunningMetricQuality(
+        RunningCoachMetric.armCarriage: const RunningMetricQuality(
           confidence: 1,
           sampleCount: 28,
         ),
       },
-      coarseSamples: RunningAnalysisSampleSummary(
+      coarseSamples: const RunningAnalysisSampleSummary(
         attemptedFrames: 14,
         validFrames: 12,
         poseFrameCount: 12,
       ),
-      denseSamples: RunningAnalysisSampleSummary(
+      denseSamples: const RunningAnalysisSampleSummary(
         attemptedFrames: 18,
         validFrames: 16,
         poseFrameCount: 16,
@@ -482,7 +482,7 @@ void main() {
         targetFps: 30,
       ),
       contactWindows: <RunningContactWindow>[
-        RunningContactWindow(
+        const RunningContactWindow(
           start: Duration(milliseconds: 900),
           center: Duration(milliseconds: 1030),
           end: Duration(milliseconds: 1190),
@@ -493,7 +493,7 @@ void main() {
           ],
           confidence: 0.88,
         ),
-        RunningContactWindow(
+        const RunningContactWindow(
           start: Duration(milliseconds: 1400),
           center: Duration(milliseconds: 1560),
           end: Duration(milliseconds: 1740),
@@ -506,10 +506,15 @@ void main() {
         ),
       ],
       validatedContactFrameTimestamps: <Duration>[
-        Duration(milliseconds: 1033),
-        Duration(milliseconds: 1560),
+        const Duration(milliseconds: 1033),
+        const Duration(milliseconds: 1560),
       ],
       contactConfidence: 0.88,
+      poseFrames: _testPoseFrames(
+        startX: 0.22,
+        dxPerFrame: 0.04,
+        confidence: 0.94,
+      ),
     );
     final report = const RunningCoachingService().buildReport(result);
     final primary = report.primaryFocus!;
@@ -600,8 +605,8 @@ void main() {
   ) async {
     await tester.binding.setSurfaceSize(const Size(320, 780));
     addTearDown(() => tester.binding.setSurfaceSize(null));
-    const result = RunningVideoAnalysisResult(
-      videoDuration: Duration(seconds: 5),
+    final result = RunningVideoAnalysisResult(
+      videoDuration: const Duration(seconds: 5),
       sampledFrames: 18,
       validFrames: 16,
       direction: RunningDirection.leftToRight,
@@ -611,27 +616,32 @@ void main() {
       stanceKneeAngleDegrees: 152,
       elbowAngleDegrees: 92,
       metricQualities: <RunningCoachMetric, RunningMetricQuality>{
-        RunningCoachMetric.posture: RunningMetricQuality(
+        RunningCoachMetric.posture: const RunningMetricQuality(
           confidence: 1,
           sampleCount: 16,
         ),
-        RunningCoachMetric.bounce: RunningMetricQuality(
+        RunningCoachMetric.bounce: const RunningMetricQuality(
           confidence: 1,
           sampleCount: 16,
         ),
-        RunningCoachMetric.footStrike: RunningMetricQuality(
+        RunningCoachMetric.footStrike: const RunningMetricQuality(
           confidence: 1,
           sampleCount: 16,
         ),
-        RunningCoachMetric.kneeFlexion: RunningMetricQuality(
+        RunningCoachMetric.kneeFlexion: const RunningMetricQuality(
           confidence: 1,
           sampleCount: 16,
         ),
-        RunningCoachMetric.armCarriage: RunningMetricQuality(
+        RunningCoachMetric.armCarriage: const RunningMetricQuality(
           confidence: 1,
           sampleCount: 16,
         ),
       },
+      poseFrames: _testPoseFrames(
+        startX: 0.22,
+        dxPerFrame: 0.04,
+        confidence: 0.94,
+      ),
     );
     final report = const RunningCoachingService().buildReport(result);
     final primary = report.primaryFocus!;
@@ -699,8 +709,8 @@ void main() {
   ) async {
     await tester.binding.setSurfaceSize(const Size(800, 1400));
     addTearDown(() => tester.binding.setSurfaceSize(null));
-    const result = RunningVideoAnalysisResult(
-      videoDuration: Duration(seconds: 4),
+    final result = RunningVideoAnalysisResult(
+      videoDuration: const Duration(seconds: 4),
       sampledFrames: 14,
       validFrames: 12,
       direction: RunningDirection.leftToRight,
@@ -710,33 +720,33 @@ void main() {
       stanceKneeAngleDegrees: 150,
       elbowAngleDegrees: 96,
       metricQualities: <RunningCoachMetric, RunningMetricQuality>{
-        RunningCoachMetric.posture: RunningMetricQuality(
+        RunningCoachMetric.posture: const RunningMetricQuality(
           confidence: 0.84,
           sampleCount: 12,
         ),
-        RunningCoachMetric.bounce: RunningMetricQuality(
+        RunningCoachMetric.bounce: const RunningMetricQuality(
           confidence: 0.84,
           sampleCount: 12,
         ),
-        RunningCoachMetric.footStrike: RunningMetricQuality(
+        RunningCoachMetric.footStrike: const RunningMetricQuality(
           confidence: 0.84,
           sampleCount: 3,
         ),
-        RunningCoachMetric.kneeFlexion: RunningMetricQuality(
+        RunningCoachMetric.kneeFlexion: const RunningMetricQuality(
           confidence: 0.84,
           sampleCount: 3,
         ),
-        RunningCoachMetric.armCarriage: RunningMetricQuality(
+        RunningCoachMetric.armCarriage: const RunningMetricQuality(
           confidence: 0.84,
           sampleCount: 12,
         ),
       },
-      coarseSamples: RunningAnalysisSampleSummary(
+      coarseSamples: const RunningAnalysisSampleSummary(
         attemptedFrames: 14,
         validFrames: 12,
         poseFrameCount: 6,
       ),
-      denseSamples: RunningAnalysisSampleSummary(
+      denseSamples: const RunningAnalysisSampleSummary(
         attemptedFrames: 8,
         validFrames: 6,
         poseFrameCount: 6,
@@ -744,7 +754,7 @@ void main() {
         targetFps: 30,
       ),
       contactWindows: <RunningContactWindow>[
-        RunningContactWindow(
+        const RunningContactWindow(
           start: Duration.zero,
           center: Duration.zero,
           end: Duration(milliseconds: 180),
@@ -753,7 +763,7 @@ void main() {
           validatedContactTimestamps: <Duration>[Duration.zero],
           confidence: 0.82,
         ),
-        RunningContactWindow(
+        const RunningContactWindow(
           start: Duration(milliseconds: 320),
           center: Duration(milliseconds: 500),
           end: Duration(milliseconds: 680),
@@ -762,7 +772,7 @@ void main() {
           validatedContactTimestamps: <Duration>[Duration(milliseconds: 500)],
           confidence: 0.86,
         ),
-        RunningContactWindow(
+        const RunningContactWindow(
           start: Duration(milliseconds: 820),
           center: Duration(milliseconds: 1000),
           end: Duration(milliseconds: 1180),
@@ -774,10 +784,15 @@ void main() {
       ],
       validatedContactFrameTimestamps: <Duration>[
         Duration.zero,
-        Duration(milliseconds: 500),
-        Duration(milliseconds: 1000),
+        const Duration(milliseconds: 500),
+        const Duration(milliseconds: 1000),
       ],
       contactConfidence: 0.84,
+      poseFrames: _testPoseFrames(
+        startX: 0.22,
+        dxPerFrame: 0.04,
+        confidence: 0.94,
+      ),
     );
     final report = const RunningCoachingService().buildReport(result);
     final primary = report.primaryFocus!;
@@ -816,16 +831,13 @@ void main() {
     );
     await tester.pump();
 
-    await tester.scrollUntilVisible(
+    await _scrollAnalysisResultUntilFound(
+      tester,
       find.byKey(const ValueKey('running-coach-report-details')),
-      -320,
-      scrollable: find.byType(Scrollable).first,
     );
-
-    await tester.scrollUntilVisible(
+    await _scrollAnalysisResultUntilFound(
+      tester,
       find.text('0.00초, 0.50초, 1.00초'),
-      -400,
-      scrollable: find.byType(Scrollable).first,
     );
     expect(find.text('0.00초, 0.50초, 1.00초'), findsOneWidget);
   });
@@ -1601,6 +1613,7 @@ List<RunningPoseFrame> _testPoseFrames({
               index,
               baseX: startX + (frameIndex * dxPerFrame),
               confidence: confidence,
+              verticalOffset: frameIndex.isEven ? -0.015 : 0.015,
             ),
         ]),
       ),
@@ -1611,6 +1624,7 @@ RunningVideoPoseLandmark _testPoseLandmark(
   int index, {
   required double baseX,
   required double confidence,
+  double verticalOffset = 0,
 }) {
   final bodyY = switch (index) {
     0 => 0.22,
@@ -1633,7 +1647,7 @@ RunningVideoPoseLandmark _testPoseLandmark(
   return RunningVideoPoseLandmark(
     index: index,
     x: (baseX + sideOffset).clamp(0.05, 0.95).toDouble(),
-    y: bodyY,
+    y: (bodyY + verticalOffset).clamp(0.05, 0.95).toDouble(),
     z: -0.01 * index,
     visibility: confidence,
     presence: confidence,

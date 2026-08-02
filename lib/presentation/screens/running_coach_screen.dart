@@ -6061,6 +6061,7 @@ class _AnalysisEvidenceCardState extends State<_AnalysisEvidenceCard> {
     final selectedFrame = _selectedFrameOrNull;
     final insight = _selectedInsight;
     final isEvidenceReliable = evidence.isReliable;
+    final hasObservedFrames = evidence.frames.isNotEmpty;
     final isLegacyHistory =
         widget.isHistorical && widget.result.poseFrames.isEmpty;
     final canPlayVideo =
@@ -6122,13 +6123,18 @@ class _AnalysisEvidenceCardState extends State<_AnalysisEvidenceCard> {
               onSelected: selectEvidenceKind,
             ),
             const SizedBox(height: 12),
-            if (!isEvidenceReliable || selectedFrame == null)
+            if ((!isEvidenceReliable && !hasObservedFrames) ||
+                selectedFrame == null)
               isLegacyHistory &&
                       evidence.withheldReason ==
                           RunningMetricEvidenceWithheldReason.missingPoseFrames
                   ? const _HistoryEvidenceUnavailablePanel()
                   : _EvidenceRetakePanel(evidence: evidence)
             else ...[
+              if (!isEvidenceReliable) ...[
+                _EvidenceObservationPanel(evidence: evidence),
+                const SizedBox(height: 10),
+              ],
               if (canShowPreview)
                 _EvidenceVideoPreview(
                   result: widget.result,
@@ -6305,7 +6311,9 @@ class _MetricEvidenceDetailsPanel extends StatelessWidget {
             runSpacing: 8,
             children: [
               _StatChip(
-                label: l10n.runningCoachMetricValueLabel,
+                label: evidence.isReliable
+                    ? l10n.runningCoachMetricValueLabel
+                    : l10n.runningCoachObservedValueLabel,
                 value: _evidenceValueText(l10n, evidence, insight),
               ),
               _StatChip(
@@ -6393,7 +6401,7 @@ String _evidenceValueText(
   RunningMetricEvidence evidence,
   RunningCoachingInsight? insight,
 ) {
-  if (!evidence.isReliable) {
+  if (!evidence.isReliable && evidence.frames.isEmpty) {
     return l10n.runningCoachEvidenceQualityLimitedBadge;
   }
   if (insight != null) {
@@ -7647,6 +7655,34 @@ class _EvidenceRetakePanel extends StatelessWidget {
   }
 }
 
+class _EvidenceObservationPanel extends StatelessWidget {
+  final RunningMetricEvidence evidence;
+
+  const _EvidenceObservationPanel({required this.evidence});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      key: const ValueKey('running-coach-analysis-evidence-observation'),
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: scheme.secondaryContainer.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: scheme.secondary.withValues(alpha: 0.28)),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: _GuideTextRow(
+        icon: Icons.visibility_outlined,
+        label: l10n.runningCoachObservedValueBadge,
+        body:
+            '${l10n.runningCoachObservedValueBody} ${_evidenceWithheldReasonText(l10n, evidence.withheldReason)}',
+      ),
+    );
+  }
+}
+
 class _HistoryEvidenceUnavailablePanel extends StatelessWidget {
   const _HistoryEvidenceUnavailablePanel();
 
@@ -8359,6 +8395,7 @@ class _MeasuredPoseGuideVisual extends StatelessWidget {
     final firstFrame = evidenceFrames == null || evidenceFrames.isEmpty
         ? null
         : evidenceFrames.first;
+    final hasObservedFrame = firstFrame != null;
     final subtitle = firstFrame == null
         ? _evidenceWithheldReasonText(l10n, currentEvidence?.withheldReason)
         : l10n.runningCoachEvidenceSummaryTimestamp(
@@ -8382,10 +8419,14 @@ class _MeasuredPoseGuideVisual extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Icon(
-                isReliable
+                hasObservedFrame
                     ? Icons.video_collection_outlined
                     : Icons.visibility_off_outlined,
-                color: isReliable ? scheme.primary : scheme.error,
+                color: hasObservedFrame
+                    ? isReliable
+                        ? scheme.primary
+                        : scheme.secondary
+                    : scheme.error,
               ),
               const SizedBox(width: 8),
               Expanded(
@@ -10612,6 +10653,8 @@ class _DenseContactEvidencePanel extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
     final contactTimes = result.validatedContactFrameTimestamps;
+    const requiredContacts = runningCoachMinimumReliableMetricSamples;
+    final primaryRejectionReason = result.primaryContactRejectionReason;
     final contactTimesText = contactTimes.isEmpty
         ? l10n.runningCoachDenseContactUnavailable
         : contactTimes
@@ -10661,8 +10704,15 @@ class _DenseContactEvidencePanel extends StatelessWidget {
                 value: '${result.contactWindows.length}',
               ),
               _StatChip(
+                label: l10n.runningCoachDenseContactCandidateFramesLabel,
+                value: '${result.contactCandidateFrameCount}',
+              ),
+              _StatChip(
                 label: l10n.runningCoachDenseContactFramesLabel,
-                value: '${contactTimes.length}',
+                value: l10n.runningCoachDenseContactVerificationProgress(
+                  contactTimes.length,
+                  requiredContacts,
+                ),
               ),
               _StatChip(
                 label: l10n.runningCoachDenseContactConfidenceLabel,
@@ -10675,10 +10725,37 @@ class _DenseContactEvidencePanel extends StatelessWidget {
               ),
             ],
           ),
+          if (!result.hasDenseContactEvidence) ...[
+            const SizedBox(height: 10),
+            _GuideTextRow(
+              icon: Icons.info_outline_rounded,
+              label: l10n.runningCoachDenseContactUnavailable,
+              body: _contactRejectionReasonText(
+                l10n,
+                primaryRejectionReason,
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
+}
+
+String _contactRejectionReasonText(
+  AppLocalizations l10n,
+  String? reason,
+) {
+  return switch (reason) {
+    'missing_foot_landmark' =>
+      l10n.runningCoachContactRejectionMissingFootLandmark,
+    'outside_ground_band' => l10n.runningCoachContactRejectionOutsideGround,
+    'low_contact_confidence' => l10n.runningCoachContactRejectionLowConfidence,
+    'unstable_foot_motion' => l10n.runningCoachContactRejectionUnstableMotion,
+    'insufficient_motion_window' =>
+      l10n.runningCoachContactRejectionInsufficientMotionWindow,
+    _ => l10n.runningCoachEvidenceReasonMissingContact,
+  };
 }
 
 class _StatChip extends StatelessWidget {
@@ -10776,6 +10853,9 @@ class _InsightCard extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final copy = RunningCoachInsightCopy.fromInsight(insight, l10n);
     final isMetricReliable = insight.quality.isReliableForCoaching;
+    final hasObservedEvidence = !isMetricReliable &&
+        evidence?.frames.isNotEmpty == true &&
+        !insight.quality.isContactPhaseProxy;
     final cue = insight.status == RunningCoachStatus.good
         ? l10n.runningCoachMeasuredPoseGoodCue
         : copy.cue;
@@ -10803,10 +10883,12 @@ class _InsightCard extends StatelessWidget {
               runSpacing: 8,
               children: [
                 if (priority != null) _PriorityBadge(priority: priority!),
-                _ScoreBadge(
-                  score: insight.score,
-                  isReliable: isMetricReliable,
-                ),
+                if (isMetricReliable)
+                  _ScoreBadge(score: insight.score)
+                else
+                  _MeasurementStateBadge(
+                    isObserved: hasObservedEvidence,
+                  ),
                 _QualityBadge(quality: insight.quality),
                 DecoratedBox(
                   decoration: BoxDecoration(
@@ -10836,10 +10918,12 @@ class _InsightCard extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             _StatChip(
-              label: l10n.runningCoachMetricValueLabel,
-              value: isMetricReliable
+              label: hasObservedEvidence
+                  ? l10n.runningCoachObservedValueLabel
+                  : l10n.runningCoachMetricValueLabel,
+              value: isMetricReliable || hasObservedEvidence
                   ? copy.value
-                  : l10n.runningCoachEvidenceQualityLimitedBadge,
+                  : l10n.runningCoachMeasurementUnavailableValue,
             ),
             const SizedBox(height: 12),
             _MeasuredPoseGuideVisual(
@@ -10862,7 +10946,9 @@ class _InsightCard extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               Text(
-                l10n.runningCoachJudgmentWithheldBody,
+                hasObservedEvidence
+                    ? l10n.runningCoachObservedValueBody
+                    : l10n.runningCoachJudgmentWithheldBody,
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
             ] else ...[
@@ -10890,6 +10976,38 @@ class _InsightCard extends StatelessWidget {
               Text(copy.drill, style: Theme.of(context).textTheme.bodySmall),
             ],
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MeasurementStateBadge extends StatelessWidget {
+  final bool isObserved;
+
+  const _MeasurementStateBadge({required this.isObserved});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: isObserved ? scheme.secondaryContainer : scheme.errorContainer,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        child: Text(
+          isObserved
+              ? l10n.runningCoachObservedValueBadge
+              : l10n.runningCoachMeasurementUnavailableValue,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: isObserved
+                    ? scheme.onSecondaryContainer
+                    : scheme.onErrorContainer,
+                fontWeight: FontWeight.w700,
+              ),
         ),
       ),
     );
@@ -10968,6 +11086,10 @@ String _qualityReasonText(BuildContext context, RunningMetricQuality quality) {
     'limited_samples' => l10n.runningCoachQualityReasonLimitedSamples,
     'contact_phase_proxy' => l10n.runningCoachQualityReasonContactPhaseProxy,
     'low_confidence' => l10n.runningCoachQualityReasonLowConfidence,
+    'missing_contact_evidence' => l10n.runningCoachEvidenceReasonMissingContact,
+    'missing_pose_frames' => l10n.runningCoachEvidenceReasonMissingPoseFrames,
+    'missing_measured_frames' =>
+      l10n.runningCoachEvidenceReasonMissingMeasuredFrames,
     _ => l10n.runningCoachQualityReasonGeneric,
   };
 }
