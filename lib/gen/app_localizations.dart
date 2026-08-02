@@ -16122,6 +16122,12 @@ abstract class AppLocalizations {
   /// **'There were not enough continuous frames before and after contact to confirm foot movement. Record 5–10 seconds at a steady pace.'**
   String get runningCoachContactRejectionInsufficientMotionWindow;
 
+  /// No description provided for @runningCoachContactRejectionInsufficientContactPersistence.
+  ///
+  /// In en, this message translates to:
+  /// **'The foot appeared near the ground, but a continuous contact state was not confirmed. Record 3–6 strides with both feet and the ground line visible.'**
+  String get runningCoachContactRejectionInsufficientContactPersistence;
+
   /// No description provided for @runningCoachEvidenceContactLabel.
   ///
   /// In en, this message translates to:
@@ -16265,6 +16271,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Landing'**
   String get runningCoachEvidenceMetricLanding;
+
+  /// No description provided for @runningCoachEvidenceMetricLandingObserved.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed contact'**
+  String get runningCoachEvidenceMetricLandingObserved;
+
+  /// No description provided for @runningCoachEvidenceMetricLandingCandidate.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact candidate'**
+  String get runningCoachEvidenceMetricLandingCandidate;
 
   /// No description provided for @runningCoachEvidenceMetricKnee.
   ///

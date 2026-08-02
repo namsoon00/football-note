@@ -61,7 +61,9 @@ import UserNotifications
   }
 
   private func registerRunningThreeDRunnerView(pluginRegistry: FlutterPluginRegistry) {
-    let registrar = pluginRegistry.registrar(forPlugin: "RunningThreeDRunnerView")
+    guard let registrar = pluginRegistry.registrar(forPlugin: "RunningThreeDRunnerView") else {
+      return
+    }
     registrar.register(
       RunningThreeDRunnerViewFactory(messenger: registrar.messenger()),
       withId: "football_note/running_3d_runner"

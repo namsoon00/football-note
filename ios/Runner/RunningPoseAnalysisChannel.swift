@@ -159,14 +159,20 @@ final class RunningPoseAnalysisChannel {
       timestampsMs: denseTimestamps,
       collectSharpness: false
     )
-    let contactFrames = validateDenseContactFrames(
+    let contactValidations = validateDenseContactFrames(
       densePass.samples,
       windows: candidateSet.windows,
-      groundY: candidateSet.groundY,
+      groundLine: candidateSet.groundLine,
       direction: direction
     )
+    let contactFrames = contactValidations.compactMap(\.contact)
     let uniqueContactFrameCount = Set(contactFrames.map(\.timestampMs)).count
-    let usesContactProxy = uniqueContactFrameCount < Self.minimumValidatedContactFrames
+    // One confirmed contact is still useful as an observed frame, although it
+    // remains below the three-step threshold for coaching or cadence. Use a
+    // phase proxy only when no continuous contact event was confirmed.
+    let usesContactProxy = uniqueContactFrameCount == 0
+    let hasCompleteContactSample =
+      uniqueContactFrameCount >= Self.minimumValidatedContactFrames
     let denseContactProxyFrames: [ContactFrameAnalysis] = usesContactProxy
       ? contactProxyFrames(
         from: densePass.samples,
@@ -217,7 +223,11 @@ final class RunningPoseAnalysisChannel {
           Double(metricContactFrames.count)
       )
     )
-    let contactQualityReason = usesContactProxy ? "contact_phase_proxy" : nil
+    let contactQualityReason = usesContactProxy
+      ? "contact_phase_proxy"
+      : hasCompleteContactSample
+        ? nil
+        : "limited_contact_samples"
     let coreConfidence = frameSamples.map(\.coreLandmarkConfidence).reduce(0, +) /
       Double(frameSamples.count)
     let armConfidenceValues = frameSamples.compactMap(\.armLandmarkConfidence)
@@ -273,7 +283,7 @@ final class RunningPoseAnalysisChannel {
       "contactWindows": contactWindowPayloads(
         windows: candidateSet.windows,
         denseTimestamps: denseTimestamps,
-        contactFrames: contactFrames
+        contactValidations: contactValidations
       ),
       "validatedContactFrameTimestampsMs": Array(
         Set(contactFrames.map(\.timestampMs))
@@ -576,17 +586,90 @@ final class RunningPoseAnalysisChannel {
     return max(0, Int((seconds * 1000.0).rounded()))
   }
 
+  private func leastSquaresGroundLine(_ points: [GroundPoint]) -> GroundLine {
+    guard !points.isEmpty else {
+      return GroundLine(slope: 0, intercept: 0)
+    }
+    let meanX = points.map(\.x).reduce(0, +) / Double(points.count)
+    let meanY = points.map(\.y).reduce(0, +) / Double(points.count)
+    let covariance = points.reduce(0.0) { total, point in
+      total + ((point.x - meanX) * (point.y - meanY))
+    }
+    let variance = points.reduce(0.0) { total, point in
+      let delta = point.x - meanX
+      return total + (delta * delta)
+    }
+    let slope = variance <= 0.0001 ? 0 : covariance / variance
+    return GroundLine(slope: slope, intercept: meanY - (slope * meanX))
+  }
+
+  private func groundLineForFootEvidence(
+    _ observations: [FootObservation]
+  ) -> GroundLine? {
+    guard !observations.isEmpty else {
+      return nil
+    }
+    let points = observations.map { observation in
+      GroundPoint(
+        x: Double(observation.footEvidence.bottomPoint.x),
+        y: Double(observation.footEvidence.bottomPoint.y),
+        bodyScale: observation.sample.bodyScale
+      )
+    }
+    let lowerEnvelopeCount = min(
+      points.count,
+      max(
+        Self.groundLineMinimumSamples,
+        Int(ceil(Double(points.count) * Self.groundLineSampleFraction))
+      )
+    )
+    let lowerEnvelope = points
+      .sorted { $0.y > $1.y }
+      .prefix(lowerEnvelopeCount)
+    var line = leastSquaresGroundLine(Array(lowerEnvelope))
+    let residuals = lowerEnvelope.map { point in point.y - line.y(at: point.x) }
+    let residualCenter = percentile(residuals, fraction: 0.5) ?? 0
+    let medianDeviation = percentile(
+      residuals.map { abs($0 - residualCenter) },
+      fraction: 0.5
+    ) ?? 0
+    let averageScale = max(
+      1,
+      lowerEnvelope.map(\.bodyScale).reduce(0, +) / Double(lowerEnvelope.count)
+    )
+    let residualTolerance = max(averageScale * 0.025, medianDeviation * 2.5)
+    let inliers = lowerEnvelope.filter { point in
+      abs(point.y - line.y(at: point.x) - residualCenter) <= residualTolerance
+    }
+    if inliers.count >= 2 {
+      line = leastSquaresGroundLine(Array(inliers))
+    }
+    return line
+  }
+
+  private func groundGap(
+    _ groundLine: GroundLine,
+    footEvidence: FootBottomEvidence
+  ) -> Double {
+    groundLine.y(at: Double(footEvidence.bottomPoint.x)) - Double(footEvidence.bottomPoint.y)
+  }
+
   private func deriveContactCandidateWindows(
     from samples: [FrameSample],
     durationMs: Int
   ) -> ContactCandidateSet {
-    let footBottoms = samples.flatMap { sample in
+    let footObservations = samples.flatMap { sample in
       FootSide.allCases.compactMap { side in
-        sample.footBottom(side).map { evidence in (sample, evidence) }
+        sample.footBottom(side).map { evidence in
+          FootObservation(sample: sample, side: side, footEvidence: evidence)
+        }
       }
     }
-    guard let groundY = footBottoms.map({ Double($0.1.bottomPoint.y) }).max() else {
-      return ContactCandidateSet(windows: [], groundY: 0)
+    guard let groundLine = groundLineForFootEvidence(footObservations) else {
+      return ContactCandidateSet(
+        windows: [],
+        groundLine: GroundLine(slope: 0, intercept: 0)
+      )
     }
     let averageScale = max(samples.map(\.bodyScale).reduce(0, +) / Double(samples.count), 1)
     let groundTolerance = averageScale * Self.coarseContactGroundToleranceRatio
@@ -607,7 +690,9 @@ final class RunningPoseAnalysisChannel {
         let nextY: Double? = index + 1 < sideEvidence.count
           ? Double(sideEvidence[index + 1].1.bottomPoint.y)
           : nil
-        let nearGround = groundY - bottomY <= groundTolerance
+        let gap = groundGap(groundLine, footEvidence: evidence)
+        let nearGround =
+          gap >= -groundTolerance * 0.55 && gap <= groundTolerance * 1.1
         let localExtremum =
           (previousY == nil || bottomY >= previousY! - localTolerance) &&
           (nextY == nil || bottomY >= nextY! - localTolerance)
@@ -616,7 +701,7 @@ final class RunningPoseAnalysisChannel {
         }
         let proximityFactor = min(
           1.0,
-          max(0.0, 1.0 - (max(0.0, groundY - bottomY) / max(1.0, groundTolerance)))
+          max(0.0, 1.0 - (max(0.0, gap) / max(1.0, groundTolerance)))
         )
         candidates.append(
           ContactCandidate(
@@ -640,12 +725,8 @@ final class RunningPoseAnalysisChannel {
     for candidate in rankedCandidates {
       let overlapsExisting = selected.contains { selectedCandidate in
         selectedCandidate.side == candidate.side &&
-        (
-          abs(selectedCandidate.centerTimestampMs - candidate.centerTimestampMs) <
-            Self.minimumContactCenterSeparationMs ||
-            candidate.startTimestampMs <= selectedCandidate.endTimestampMs &&
-            candidate.endTimestampMs >= selectedCandidate.startTimestampMs
-        )
+        abs(selectedCandidate.centerTimestampMs - candidate.centerTimestampMs) <
+          Self.minimumContactCenterSeparationMs
       }
       if !overlapsExisting {
         selected.append(candidate)
@@ -657,7 +738,7 @@ final class RunningPoseAnalysisChannel {
 
     return ContactCandidateSet(
       windows: selected.sorted { $0.centerTimestampMs < $1.centerTimestampMs },
-      groundY: groundY
+      groundLine: groundLine
     )
   }
 
@@ -665,13 +746,18 @@ final class RunningPoseAnalysisChannel {
     from samples: [FrameSample],
     durationMs: Int
   ) -> ContactCandidateSet {
-    let footBottoms = samples.flatMap { sample in
+    let footObservations = samples.flatMap { sample in
       FootSide.allCases.compactMap { side in
-        sample.footBottom(side).map { evidence in (sample, evidence) }
+        sample.footBottom(side).map { evidence in
+          FootObservation(sample: sample, side: side, footEvidence: evidence)
+        }
       }
     }
-    guard let groundY = footBottoms.map({ Double($0.1.bottomPoint.y) }).max() else {
-      return ContactCandidateSet(windows: [], groundY: 0)
+    guard let groundLine = groundLineForFootEvidence(footObservations) else {
+      return ContactCandidateSet(
+        windows: [],
+        groundLine: GroundLine(slope: 0, intercept: 0)
+      )
     }
 
     let windows = FootSide.allCases.compactMap { side -> ContactCandidate? in
@@ -694,7 +780,7 @@ final class RunningPoseAnalysisChannel {
 
     return ContactCandidateSet(
       windows: windows.sorted { $0.centerTimestampMs < $1.centerTimestampMs },
-      groundY: groundY
+      groundLine: groundLine
     )
   }
 
@@ -702,73 +788,98 @@ final class RunningPoseAnalysisChannel {
     _ windows: [ContactCandidate],
     durationMs: Int
   ) -> [Int] {
-    var timestampDistances: [Int: Int] = [:]
-    for window in windows {
+    let selectedWindows = Array(windows.prefix(Self.maxContactWindows))
+    guard !selectedWindows.isEmpty else {
+      return []
+    }
+    // Reserve an even budget for every candidate window. A global sort by
+    // distance to the coarse centres can starve the real contact near a
+    // window edge when several steps overlap.
+    let perWindowBudget = max(3, Self.maxDenseFrameBudget / selectedWindows.count)
+    var timestamps = Set<Int>()
+    for window in selectedWindows {
+      var frameTimes: [Int] = []
       var timestampMs = window.startTimestampMs
       while timestampMs <= window.endTimestampMs {
-        recordDenseTimestamp(
-          &timestampDistances,
-          timestampMs: min(durationMs, max(0, timestampMs)),
-          centerTimestampMs: window.centerTimestampMs
-        )
+        frameTimes.append(min(durationMs, max(0, timestampMs)))
         timestampMs += Self.denseFrameIntervalMs
       }
-      recordDenseTimestamp(
-        &timestampDistances,
-        timestampMs: min(durationMs, max(0, window.centerTimestampMs)),
-        centerTimestampMs: window.centerTimestampMs
-      )
-    }
-    return timestampDistances
-      .sorted {
-        if $0.value == $1.value {
-          return $0.key < $1.key
-        }
-        return $0.value < $1.value
+      if frameTimes.isEmpty || frameTimes.last != window.endTimestampMs {
+        frameTimes.append(min(durationMs, max(0, window.endTimestampMs)))
       }
-      .prefix(Self.maxDenseFrameBudget)
-      .map(\.key)
-      .sorted()
-  }
-
-  private func recordDenseTimestamp(
-    _ timestampDistances: inout [Int: Int],
-    timestampMs: Int,
-    centerTimestampMs: Int
-  ) {
-    let distance = abs(timestampMs - centerTimestampMs)
-    if let existing = timestampDistances[timestampMs], existing <= distance {
-      return
+      var selected = Set<Int>()
+      let nearestToCenter = frameTimes.sorted { first, second in
+        let firstDistance = abs(first - window.centerTimestampMs)
+        let secondDistance = abs(second - window.centerTimestampMs)
+        return firstDistance == secondDistance ? first < second : firstDistance < secondDistance
+      }
+      selected.formUnion(nearestToCenter.prefix(min(3, perWindowBudget)))
+      let remaining = perWindowBudget - selected.count
+      if remaining > 0 {
+        for index in 0..<remaining {
+          let fraction = remaining <= 1
+            ? 0.5
+            : Double(index) / Double(remaining - 1)
+          let frameIndex = Int((Double(frameTimes.count - 1) * fraction).rounded())
+          selected.insert(frameTimes[frameIndex])
+        }
+      }
+      for timestamp in nearestToCenter where selected.count < perWindowBudget {
+        selected.insert(timestamp)
+      }
+      timestamps.formUnion(selected)
     }
-    timestampDistances[timestampMs] = distance
+    return timestamps.sorted().prefix(Self.maxDenseFrameBudget).map { $0 }
   }
 
   private func validateDenseContactFrames(
     _ samples: [FrameSample],
     windows: [ContactCandidate],
-    groundY: Double,
+    groundLine: GroundLine,
     direction: AnalysisDirection
-  ) -> [ContactFrameAnalysis] {
+  ) -> [ContactWindowValidation] {
     let orderedSamples = samples.sorted { $0.timestampMs < $1.timestampMs }
-    var selectedByTimestamp: [Int: ContactFrameAnalysis] = [:]
-    for window in windows.sorted(by: { $0.centerTimestampMs < $1.centerTimestampMs }) {
-      guard
-        let contactFrame = selectDenseContactFrame(
+    let validations = windows
+      .sorted { $0.centerTimestampMs < $1.centerTimestampMs }
+      .map { window in
+        let selection = selectDenseContactFrame(
           for: window,
           orderedSamples: orderedSamples,
-          groundY: groundY,
+          groundLine: groundLine,
           direction: direction
         )
-      else {
+        return ContactWindowValidation(
+          window: window,
+          contact: selection.contact,
+          candidateFrameCount: selection.candidateFrameCount,
+          rejectedFrameCounts: selection.rejectedFrameCounts
+        )
+      }
+    var selectedByTimestamp: [Int: Int] = [:]
+    for index in validations.indices {
+      guard let contact = validations[index].contact else {
         continue
       }
-      if let existing = selectedByTimestamp[contactFrame.timestampMs],
-         existing.confidence >= contactFrame.confidence {
+      guard let existingIndex = selectedByTimestamp[contact.timestampMs] else {
+        selectedByTimestamp[contact.timestampMs] = index
         continue
       }
-      selectedByTimestamp[contactFrame.timestampMs] = contactFrame
+      if contact.confidence > (validations[existingIndex].contact?.confidence ?? 0) {
+        selectedByTimestamp[contact.timestampMs] = index
+      }
     }
-    return selectedByTimestamp.keys.sorted().compactMap { selectedByTimestamp[$0] }
+    let selectedIndexes = Set(selectedByTimestamp.values)
+    return validations.enumerated().map { index, validation in
+      if validation.contact == nil || selectedIndexes.contains(index) {
+        return validation
+      }
+      return ContactWindowValidation(
+        window: validation.window,
+        contact: nil,
+        candidateFrameCount: validation.candidateFrameCount,
+        rejectedFrameCounts: validation.rejectedFrameCounts
+      )
+    }
   }
 
   private func contactProxyFrames(
@@ -838,39 +949,66 @@ final class RunningPoseAnalysisChannel {
   private func selectDenseContactFrame(
     for window: ContactCandidate,
     orderedSamples: [FrameSample],
-    groundY: Double,
+    groundLine: GroundLine,
     direction: AnalysisDirection
-  ) -> ContactFrameAnalysis? {
+  ) -> ContactFrameSelection {
+    var rejectedFrameCounts: [String: Int] = [:]
     let candidates = orderedSamples
       .filter { sample in
         sample.timestampMs >= window.startTimestampMs &&
         sample.timestampMs <= window.endTimestampMs
       }
       .compactMap { sample in
-        denseContactCandidate(sample, side: window.side, groundY: groundY)
+        let candidate = denseContactCandidate(sample, side: window.side, groundLine: groundLine)
+        if candidate == nil {
+          incrementContactRejection(&rejectedFrameCounts, reason: "missing_foot_landmark")
+        }
+        return candidate
       }
-    var eligibleCandidates: [ContactFrameCandidate] = []
+    var temporalCandidates: [ContactFrameCandidate] = []
     var persistentCandidates: [ContactFrameCandidate] = []
     for index in candidates.indices {
       let current = candidates[index]
-      guard isEligibleContact(current) else {
+      guard current.inGroundBand else {
+        incrementContactRejection(&rejectedFrameCounts, reason: "outside_ground_band")
         continue
       }
-      eligibleCandidates.append(current)
+      guard isEligibleContact(current) else {
+        incrementContactRejection(&rejectedFrameCounts, reason: "low_contact_confidence")
+        continue
+      }
       let previous = index > 0 ? candidates[index - 1] : nil
       let next = index + 1 < candidates.count ? candidates[index + 1] : nil
-      if enteredGroundBand(current, previous: previous) {
-        return contactFrame(from: current, window: window, direction: direction)
+      guard
+        hasTemporalNeighbor(current, previous: previous) ||
+          hasTemporalNeighbor(current, next: next)
+      else {
+        incrementContactRejection(&rejectedFrameCounts, reason: "insufficient_motion_window")
+        continue
       }
-      if hasGroundBandPersistence(current, previous: previous, next: next) {
+      guard hasGroundBandPersistence(current, previous: previous, next: next) else {
+        incrementContactRejection(
+          &rejectedFrameCounts,
+          reason: "insufficient_contact_persistence"
+        )
+        continue
+      }
+      guard isFootAtLocalBottom(current, previous: previous, next: next) else {
+        incrementContactRejection(&rejectedFrameCounts, reason: "unstable_foot_motion")
+        continue
+      }
+      if enteredGroundBand(current, previous: previous) {
+        temporalCandidates.append(current)
+      } else {
         persistentCandidates.append(current)
       }
     }
-    let candidatesForSelection = persistentCandidates.isEmpty
-      ? eligibleCandidates
-      : persistentCandidates
-    guard
-      let selected = candidatesForSelection.sorted(by: { first, second in
+    // Never fall back to an isolated near-ground frame. It remains a phase
+    // candidate only, rather than being promoted to initial contact.
+    let candidatesForSelection = temporalCandidates.isEmpty
+      ? persistentCandidates
+      : temporalCandidates
+    let selected = candidatesForSelection.sorted(by: { first, second in
         if first.confidence != second.confidence {
           return first.confidence > second.confidence
         }
@@ -881,23 +1019,42 @@ final class RunningPoseAnalysisChannel {
         }
         return first.sample.timestampMs < second.sample.timestampMs
       }).first
-    else {
-      return nil
+    return ContactFrameSelection(
+      contact: selected.map { contactFrame(from: $0, window: window, direction: direction) },
+      candidateFrameCount: candidates.filter(\.inGroundBand).count,
+      rejectedFrameCounts: rejectedFrameCounts
+    )
+  }
+
+  private func incrementContactRejection(
+    _ rejectedFrameCounts: inout [String: Int],
+    reason: String
+  ) {
+    rejectedFrameCounts[reason, default: 0] += 1
+  }
+
+  private func hasTemporalNeighbor(
+    _ current: ContactFrameCandidate,
+    previous: ContactFrameCandidate? = nil,
+    next: ContactFrameCandidate? = nil
+  ) -> Bool {
+    [previous, next].compactMap { $0 }.contains { neighbor in
+      abs(neighbor.sample.timestampMs - current.sample.timestampMs) <=
+        Self.contactMotionNeighborGapMs
     }
-    return contactFrame(from: selected, window: window, direction: direction)
   }
 
   private func denseContactCandidate(
     _ sample: FrameSample,
     side: FootSide,
-    groundY: Double
+    groundLine: GroundLine
   ) -> ContactFrameCandidate? {
     guard let evidence = sample.footBottom(side) else {
       return nil
     }
     let tolerance = max(1.0, sample.bodyScale * Self.denseContactGroundToleranceRatio)
-    let proximity = groundY - Double(evidence.bottomPoint.y)
-    let inGroundBand = proximity >= -tolerance * 0.35 && proximity <= tolerance
+    let proximity = groundGap(groundLine, footEvidence: evidence)
+    let inGroundBand = proximity >= -tolerance * 0.55 && proximity <= tolerance * 1.1
     let proximityFactor = min(1.0, max(0.0, 1.0 - (max(0.0, proximity) / tolerance)))
     let confidence = min(
       1.0,
@@ -931,7 +1088,7 @@ final class RunningPoseAnalysisChannel {
     }
     return previous.proximity > current.tolerance &&
       abs(previous.sample.timestampMs - current.sample.timestampMs) <=
-      Self.denseFrameIntervalMs * 2
+      Self.contactMotionNeighborGapMs
   }
 
   private func hasGroundBandPersistence(
@@ -942,8 +1099,32 @@ final class RunningPoseAnalysisChannel {
     [previous, next].compactMap { $0 }.contains { neighbor in
       isEligibleContact(neighbor) &&
         abs(neighbor.sample.timestampMs - current.sample.timestampMs) <=
-        Self.denseFrameIntervalMs * 2
+        Self.contactMotionNeighborGapMs
     }
+  }
+
+  private func isFootAtLocalBottom(
+    _ current: ContactFrameCandidate,
+    previous: ContactFrameCandidate?,
+    next: ContactFrameCandidate?
+  ) -> Bool {
+    let tolerance = max(1.0, current.sample.bodyScale * Self.contactMotionToleranceRatio)
+    let currentY = Double(current.footEvidence.bottomPoint.y)
+    if let previous,
+       abs(current.sample.timestampMs - previous.sample.timestampMs) <=
+         Self.contactMotionNeighborGapMs,
+       currentY < Double(previous.footEvidence.bottomPoint.y) - tolerance
+    {
+      return false
+    }
+    if let next,
+       abs(next.sample.timestampMs - current.sample.timestampMs) <=
+         Self.contactMotionNeighborGapMs,
+       currentY < Double(next.footEvidence.bottomPoint.y) - tolerance
+    {
+      return false
+    }
+    return true
   }
 
   private func contactFrame(
@@ -1003,15 +1184,14 @@ final class RunningPoseAnalysisChannel {
   private func contactWindowPayloads(
     windows: [ContactCandidate],
     denseTimestamps: [Int],
-    contactFrames: [ContactFrameAnalysis]
+    contactValidations: [ContactWindowValidation]
   ) -> [[String: Any]] {
     windows.map { window in
-      let validated = contactFrames.filter { frame in
-        frame.side == window.side &&
-        frame.windowCenterTimestampMs == window.centerTimestampMs &&
-        frame.timestampMs >= window.startTimestampMs &&
-        frame.timestampMs <= window.endTimestampMs
+      let validation = contactValidations.first { candidate in
+        candidate.window.side == window.side &&
+          candidate.window.centerTimestampMs == window.centerTimestampMs
       }
+      let validated: [ContactFrameAnalysis] = validation?.contact.map { [$0] } ?? []
       let confidence = validated.isEmpty
         ? 0.0
         : validated.map(\.confidence).reduce(0, +) / Double(validated.count)
@@ -1023,8 +1203,10 @@ final class RunningPoseAnalysisChannel {
         "coarseConfidence": roundTo3(window.confidence),
         "denseSampleCount": denseTimestamps.filter { timestampMs in
           timestampMs >= window.startTimestampMs &&
-          timestampMs <= window.endTimestampMs
+            timestampMs <= window.endTimestampMs
         }.count,
+        "candidateFrameCount": validation?.candidateFrameCount ?? 0,
+        "rejectedFrameCounts": validation?.rejectedFrameCounts ?? [:],
         "validatedContactFrameTimestampsMs": Array(
           Set(validated.map(\.timestampMs))
         ).sorted(),
@@ -1273,7 +1455,28 @@ final class RunningPoseAnalysisChannel {
 
   private struct ContactCandidateSet {
     let windows: [ContactCandidate]
-    let groundY: Double
+    let groundLine: GroundLine
+  }
+
+  private struct GroundLine {
+    let slope: Double
+    let intercept: Double
+
+    func y(at x: Double) -> Double {
+      slope * x + intercept
+    }
+  }
+
+  private struct GroundPoint {
+    let x: Double
+    let y: Double
+    let bodyScale: Double
+  }
+
+  private struct FootObservation {
+    let sample: FrameSample
+    let side: FootSide
+    let footEvidence: FootBottomEvidence
   }
 
   private struct ContactCandidate {
@@ -1291,6 +1494,19 @@ final class RunningPoseAnalysisChannel {
     let footStrikeRatio: Double
     let kneeAngleDegrees: Double
     let confidence: Double
+  }
+
+  private struct ContactFrameSelection {
+    let contact: ContactFrameAnalysis?
+    let candidateFrameCount: Int
+    let rejectedFrameCounts: [String: Int]
+  }
+
+  private struct ContactWindowValidation {
+    let window: ContactCandidate
+    let contact: ContactFrameAnalysis?
+    let candidateFrameCount: Int
+    let rejectedFrameCounts: [String: Int]
   }
 
   private struct ContactFrameCandidate {
@@ -1557,7 +1773,7 @@ final class RunningPoseAnalysisChannel {
   private static let stationaryThresholdRatio = 0.12
   private static let denseTargetFps = 30
   private static let denseFrameIntervalMs = 33
-  private static let denseWindowRadiusMs = 180
+  private static let denseWindowRadiusMs = 360
   private static let maxDenseFrameBudget = 48
   private static let maxContactWindows = 6
   private static let minimumContactCenterSeparationMs = 120
@@ -1565,9 +1781,13 @@ final class RunningPoseAnalysisChannel {
   private static let minimumContactFrameConfidence = 0.34
   private static let contactProxyConfidencePenalty = 0.60
   private static let coarseContactProxyConfidencePenalty = 0.42
-  private static let coarseContactGroundToleranceRatio = 0.12
-  private static let denseContactGroundToleranceRatio = 0.13
-  private static let localFootExtremumToleranceRatio = 0.025
+  private static let coarseContactGroundToleranceRatio = 0.15
+  private static let denseContactGroundToleranceRatio = 0.16
+  private static let localFootExtremumToleranceRatio = 0.035
+  private static let contactMotionToleranceRatio = 0.035
+  private static let contactMotionNeighborGapMs = 100
+  private static let groundLineSampleFraction = 0.45
+  private static let groundLineMinimumSamples = 3
   private static let modelResourceName = "pose_landmarker_full"
   private static let modelResourceExtension = "task"
   private static let leftShoulderIndex = 11

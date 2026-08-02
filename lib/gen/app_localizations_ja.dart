@@ -8997,6 +8997,10 @@ class AppLocalizationsJa extends AppLocalizations {
       '接地前後の連続フレームが足りず、足の動きを確認できませんでした。一定のペースで5〜10秒撮影してください。';
 
   @override
+  String get runningCoachContactRejectionInsufficientContactPersistence =>
+      '足が地面付近に見えましたが、連続した接地状態を確認できませんでした。両足と床の線が見える3〜6歩を撮影してください。';
+
+  @override
   String get runningCoachEvidenceContactLabel => '接地の根拠';
 
   @override
@@ -9078,6 +9082,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachEvidenceMetricLanding => '着地';
+
+  @override
+  String get runningCoachEvidenceMetricLandingObserved => '確認済み接地';
+
+  @override
+  String get runningCoachEvidenceMetricLandingCandidate => '接地候補';
 
   @override
   String get runningCoachEvidenceMetricKnee => '膝';

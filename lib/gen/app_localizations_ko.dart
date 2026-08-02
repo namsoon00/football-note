@@ -9008,6 +9008,10 @@ class AppLocalizationsKo extends AppLocalizations {
       '접지 전후의 연속 프레임이 부족해 발의 움직임을 확인하지 못했어요. 일정한 속도로 5~10초를 촬영해 주세요.';
 
   @override
+  String get runningCoachContactRejectionInsufficientContactPersistence =>
+      '발이 바닥 가까이에 보였지만 연속된 접지 상태는 확인하지 못했어요. 양발과 바닥선이 보이게 3~6보를 촬영해 주세요.';
+
+  @override
   String get runningCoachEvidenceContactLabel => '접지 근거';
 
   @override
@@ -9089,6 +9093,12 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachEvidenceMetricLanding => '착지';
+
+  @override
+  String get runningCoachEvidenceMetricLandingObserved => '확인된 접지';
+
+  @override
+  String get runningCoachEvidenceMetricLandingCandidate => '접지 후보';
 
   @override
   String get runningCoachEvidenceMetricKnee => '무릎';

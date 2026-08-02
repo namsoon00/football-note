@@ -1160,6 +1160,13 @@ void main() {
       await tester.pump();
 
       expect(find.text('Evidence from your video'), findsOneWidget);
+      final landingEvidenceChip = find.byKey(
+        const ValueKey('running-coach-evidence-chip-landing'),
+      );
+      await tester.ensureVisible(landingEvidenceChip);
+      await tester.tap(landingEvidenceChip);
+      await tester.pump();
+      expect(find.textContaining('Contact candidate'), findsWidgets);
       final kneeEvidenceChip = find.byKey(
         const ValueKey('running-coach-evidence-chip-knee'),
       );

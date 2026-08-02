@@ -167,17 +167,24 @@ class RunningPoseAnalysisChannel(
                 timestampsMs = denseTimestamps,
                 collectSharpness = false,
             )
-            val contactFrames = validateDenseContactFrames(
+            val contactValidations = validateDenseContactFrames(
                 samples = densePass.samples,
                 windows = candidateSet.windows,
-                groundY = candidateSet.groundY,
+                groundLine = candidateSet.groundLine,
                 direction = direction,
             )
+            val contactFrames = contactValidations.mapNotNull { it.contact }
             val uniqueContactFrameCount = contactFrames
                 .map { it.timestampMs }
                 .distinct()
                 .size
-            val usesContactProxy = uniqueContactFrameCount < minimumValidatedContactFrames
+            // A single verified contact remains an observed measurement, even
+            // though it is still below the three-step coaching threshold.
+            // Only fall back to a phase proxy when no continuous contact event
+            // could be confirmed at all.
+            val usesContactProxy = uniqueContactFrameCount == 0
+            val hasCompleteContactSample =
+                uniqueContactFrameCount >= minimumValidatedContactFrames
             val denseContactProxyFrames = if (usesContactProxy) {
                 contactProxyFrames(
                     samples = densePass.samples,
@@ -226,7 +233,11 @@ class RunningPoseAnalysisChannel(
                 .map { it.confidence }
                 .average()
                 .coerceIn(0.0, 1.0)
-            val contactQualityReason = if (usesContactProxy) "contact_phase_proxy" else null
+            val contactQualityReason = when {
+                usesContactProxy -> "contact_phase_proxy"
+                hasCompleteContactSample -> null
+                else -> "limited_contact_samples"
+            }
             val coreConfidence = frameSamples
                 .map { it.coreLandmarkConfidence }
                 .average()
@@ -283,7 +294,7 @@ class RunningPoseAnalysisChannel(
                 "contactWindows" to contactWindowPayloads(
                     windows = candidateSet.windows,
                     denseTimestamps = denseTimestamps,
-                    contactFrames = contactFrames,
+                    contactValidations = contactValidations,
                 ),
                 "validatedContactFrameTimestampsMs" to contactFrames
                     .map { it.timestampMs.toInt() }
@@ -516,17 +527,88 @@ class RunningPoseAnalysisChannel(
             ((sortedValues[upperIndex] - sortedValues[lowerIndex]) * weight)
     }
 
+    private fun leastSquaresGroundLine(points: List<GroundPoint>): GroundLine {
+        if (points.isEmpty()) {
+            return GroundLine(slope = 0.0, intercept = 0.0)
+        }
+        val meanX = points.map { it.x }.average()
+        val meanY = points.map { it.y }.average()
+        val covariance = points.sumOf { point ->
+            (point.x - meanX) * (point.y - meanY)
+        }
+        val variance = points.sumOf { point ->
+            val delta = point.x - meanX
+            delta * delta
+        }
+        val slope = if (variance <= 0.0001) 0.0 else covariance / variance
+        return GroundLine(
+            slope = slope,
+            intercept = meanY - (slope * meanX),
+        )
+    }
+
+    private fun groundLineForFootEvidence(
+        observations: List<FootObservation>,
+    ): GroundLine? {
+        if (observations.isEmpty()) {
+            return null
+        }
+        val points = observations.map { observation ->
+            GroundPoint(
+                x = observation.evidence.bottomPoint.x.toDouble(),
+                y = observation.evidence.bottomPoint.y.toDouble(),
+                bodyScale = observation.sample.bodyScale,
+            )
+        }
+        val lowerEnvelopeCount = min(
+            points.size,
+            max(
+                groundLineMinimumSamples,
+                kotlin.math.ceil(points.size * groundLineSampleFraction).toInt(),
+            ),
+        )
+        val lowerEnvelope = points
+            .sortedByDescending { it.y }
+            .take(lowerEnvelopeCount)
+        var line = leastSquaresGroundLine(lowerEnvelope)
+        val residuals = lowerEnvelope.map { point -> point.y - line.yAt(point.x) }
+        val residualCenter = percentile(residuals, 0.5) ?: 0.0
+        val medianDeviation = percentile(
+            residuals.map { residual -> abs(residual - residualCenter) },
+            0.5,
+        ) ?: 0.0
+        val averageScale = max(1.0, lowerEnvelope.map { it.bodyScale }.average())
+        val residualTolerance = max(averageScale * 0.025, medianDeviation * 2.5)
+        val inliers = lowerEnvelope.filter { point ->
+            abs(point.y - line.yAt(point.x) - residualCenter) <= residualTolerance
+        }
+        if (inliers.size >= 2) {
+            line = leastSquaresGroundLine(inliers)
+        }
+        return line
+    }
+
+    private fun groundGap(
+        groundLine: GroundLine,
+        evidence: FootBottomEvidence,
+    ): Double = groundLine.yAt(evidence.bottomPoint.x.toDouble()) - evidence.bottomPoint.y.toDouble()
+
     private fun deriveContactCandidateWindows(
         samples: List<FrameSample>,
         durationMs: Long,
     ): ContactCandidateSet {
-        val footBottoms = samples.flatMap { sample ->
+        val footObservations = samples.flatMap { sample ->
             FootSide.values().mapNotNull { side ->
-                sample.footBottom(side)?.let { evidence -> sample to evidence }
+                sample.footBottom(side)?.let { evidence ->
+                    FootObservation(sample = sample, side = side, evidence = evidence)
+                }
             }
         }
-        val groundY = footBottoms.maxOfOrNull { it.second.bottomPoint.y.toDouble() }
-            ?: return ContactCandidateSet(emptyList(), 0.0)
+        val groundLine = groundLineForFootEvidence(footObservations)
+            ?: return ContactCandidateSet(
+                windows = emptyList(),
+                groundLine = GroundLine(slope = 0.0, intercept = 0.0),
+            )
         val averageScale = samples.map { it.bodyScale }.average().coerceAtLeast(1.0)
         val groundTolerance = averageScale * coarseContactGroundToleranceRatio
         val localTolerance = averageScale * localFootExtremumToleranceRatio
@@ -543,7 +625,9 @@ class RunningPoseAnalysisChannel(
                     sideEvidence.getOrNull(index - 1)?.second?.bottomPoint?.y?.toDouble()
                 val nextY =
                     sideEvidence.getOrNull(index + 1)?.second?.bottomPoint?.y?.toDouble()
-                val nearGround = groundY - bottomY <= groundTolerance
+                val gap = groundGap(groundLine, evidence)
+                val nearGround =
+                    gap >= -groundTolerance * 0.55 && gap <= groundTolerance * 1.1
                 val localExtremum =
                     (previousY == null || bottomY >= previousY - localTolerance) &&
                         (nextY == null || bottomY >= nextY - localTolerance)
@@ -551,7 +635,7 @@ class RunningPoseAnalysisChannel(
                     continue
                 }
                 val proximityFactor = (
-                    1.0 - ((groundY - bottomY).coerceAtLeast(0.0) /
+                    1.0 - (gap.coerceAtLeast(0.0) /
                         groundTolerance.coerceAtLeast(1.0))
                     ).coerceIn(0.0, 1.0)
                 candidates.add(
@@ -575,12 +659,8 @@ class RunningPoseAnalysisChannel(
         for (candidate in rankedCandidates) {
             val overlapsExisting = selected.any { selectedCandidate ->
                 selectedCandidate.side == candidate.side &&
-                    (
-                        abs(selectedCandidate.centerTimestampMs - candidate.centerTimestampMs) <
-                            minimumContactCenterSeparationMs ||
-                            candidate.startTimestampMs <= selectedCandidate.endTimestampMs &&
-                            candidate.endTimestampMs >= selectedCandidate.startTimestampMs
-                        )
+                    abs(selectedCandidate.centerTimestampMs - candidate.centerTimestampMs) <
+                        minimumContactCenterSeparationMs
             }
             if (!overlapsExisting) {
                 selected.add(candidate)
@@ -592,7 +672,7 @@ class RunningPoseAnalysisChannel(
 
         return ContactCandidateSet(
             windows = selected.sortedBy { it.centerTimestampMs },
-            groundY = groundY,
+            groundLine = groundLine,
         )
     }
 
@@ -600,13 +680,18 @@ class RunningPoseAnalysisChannel(
         samples: List<FrameSample>,
         durationMs: Long,
     ): ContactCandidateSet {
-        val footBottoms = samples.flatMap { sample ->
+        val footObservations = samples.flatMap { sample ->
             FootSide.values().mapNotNull { side ->
-                sample.footBottom(side)?.let { evidence -> sample to evidence }
+                sample.footBottom(side)?.let { evidence ->
+                    FootObservation(sample = sample, side = side, evidence = evidence)
+                }
             }
         }
-        val groundY = footBottoms.maxOfOrNull { it.second.bottomPoint.y.toDouble() }
-            ?: return ContactCandidateSet(emptyList(), 0.0)
+        val groundLine = groundLineForFootEvidence(footObservations)
+            ?: return ContactCandidateSet(
+                windows = emptyList(),
+                groundLine = GroundLine(slope = 0.0, intercept = 0.0),
+            )
         val windows = FootSide.values().mapNotNull { side ->
             val candidate = samples
                 .mapNotNull { sample ->
@@ -625,7 +710,7 @@ class RunningPoseAnalysisChannel(
         }
         return ContactCandidateSet(
             windows = windows.sortedBy { it.centerTimestampMs },
-            groundY = groundY,
+            groundLine = groundLine,
         )
     }
 
@@ -633,64 +718,90 @@ class RunningPoseAnalysisChannel(
         windows: List<ContactCandidate>,
         durationMs: Long,
     ): List<Long> {
-        val timestampDistances = mutableMapOf<Long, Long>()
-        for (window in windows) {
+        val selectedWindows = windows.take(maxContactWindows)
+        if (selectedWindows.isEmpty()) {
+            return emptyList()
+        }
+        // Reserve an even budget for every candidate window. A global sort by
+        // distance to the coarse centres can starve the real contact near a
+        // window edge when several steps overlap.
+        val perWindowBudget = max(3, maxDenseFrameBudget / selectedWindows.size)
+        val timestamps = mutableSetOf<Long>()
+        for (window in selectedWindows) {
+            val frameTimes = mutableListOf<Long>()
             var timestampMs = window.startTimestampMs
             while (timestampMs <= window.endTimestampMs) {
-                recordDenseTimestamp(
-                    timestampDistances,
-                    timestampMs.coerceIn(0L, durationMs),
-                    window.centerTimestampMs,
-                )
+                frameTimes.add(timestampMs.coerceIn(0L, durationMs))
                 timestampMs += denseFrameIntervalMs
             }
-            recordDenseTimestamp(
-                timestampDistances,
-                window.centerTimestampMs.coerceIn(0L, durationMs),
-                window.centerTimestampMs,
+            if (frameTimes.isEmpty() || frameTimes.last() != window.endTimestampMs) {
+                frameTimes.add(window.endTimestampMs.coerceIn(0L, durationMs))
+            }
+            val selected = linkedSetOf<Long>()
+            val nearestToCenter = frameTimes.sortedWith(
+                compareBy<Long> { abs(it - window.centerTimestampMs) }.thenBy { it },
             )
+            selected.addAll(nearestToCenter.take(min(3, perWindowBudget)))
+            val remaining = perWindowBudget - selected.size
+            for (index in 0 until remaining) {
+                val fraction = if (remaining <= 1) {
+                    0.5
+                } else {
+                    index.toDouble() / (remaining - 1).toDouble()
+                }
+                val frameIndex = ((frameTimes.size - 1) * fraction).roundToInt()
+                selected.add(frameTimes[frameIndex])
+            }
+            for (timestamp in nearestToCenter) {
+                if (selected.size >= perWindowBudget) {
+                    break
+                }
+                selected.add(timestamp)
+            }
+            timestamps.addAll(selected)
         }
-        return timestampDistances.entries
-            .sortedWith(compareBy<Map.Entry<Long, Long>> { it.value }.thenBy { it.key })
-            .take(maxDenseFrameBudget)
-            .map { it.key }
-            .toSet()
-            .sorted()
-    }
-
-    private fun recordDenseTimestamp(
-        timestampDistances: MutableMap<Long, Long>,
-        timestampMs: Long,
-        centerTimestampMs: Long,
-    ) {
-        val distance = abs(timestampMs - centerTimestampMs)
-        val existing = timestampDistances[timestampMs]
-        if (existing == null || distance < existing) {
-            timestampDistances[timestampMs] = distance
-        }
+        return timestamps.sorted().take(maxDenseFrameBudget)
     }
 
     private fun validateDenseContactFrames(
         samples: List<FrameSample>,
         windows: List<ContactCandidate>,
-        groundY: Double,
+        groundLine: GroundLine,
         direction: AnalysisDirection,
-    ): List<ContactFrameAnalysis> {
+    ): List<ContactWindowValidation> {
         val orderedSamples = samples.sortedBy { it.timestampMs }
-        val selectedByTimestamp = TreeMap<Long, ContactFrameAnalysis>()
-        for (window in windows.sortedBy { it.centerTimestampMs }) {
-            val contactFrame = selectDenseContactFrame(
+        val validations = windows.sortedBy { it.centerTimestampMs }.map { window ->
+            val selection = selectDenseContactFrame(
                 window = window,
                 orderedSamples = orderedSamples,
-                groundY = groundY,
+                groundLine = groundLine,
                 direction = direction,
-            ) ?: continue
-            val existing = selectedByTimestamp[contactFrame.timestampMs]
-            if (existing == null || contactFrame.confidence > existing.confidence) {
-                selectedByTimestamp[contactFrame.timestampMs] = contactFrame
+            )
+            ContactWindowValidation(
+                window = window,
+                contact = selection.contact,
+                candidateFrameCount = selection.candidateFrameCount,
+                rejectedFrameCounts = selection.rejectedFrameCounts,
+            )
+        }
+        val selectedByTimestamp = TreeMap<Long, Int>()
+        for (index in validations.indices) {
+            val contact = validations[index].contact ?: continue
+            val existingIndex = selectedByTimestamp[contact.timestampMs]
+            if (existingIndex == null ||
+                contact.confidence > (validations[existingIndex].contact?.confidence ?: 0.0)
+            ) {
+                selectedByTimestamp[contact.timestampMs] = index
             }
         }
-        return selectedByTimestamp.values.toList()
+        val selectedIndexes = selectedByTimestamp.values.toSet()
+        return validations.mapIndexed { index, validation ->
+            if (validation.contact == null || selectedIndexes.contains(index)) {
+                validation
+            } else {
+                validation.copy(contact = null)
+            }
+        }
     }
 
     private fun contactProxyFrames(
@@ -740,59 +851,105 @@ class RunningPoseAnalysisChannel(
     private fun selectDenseContactFrame(
         window: ContactCandidate,
         orderedSamples: List<FrameSample>,
-        groundY: Double,
+        groundLine: GroundLine,
         direction: AnalysisDirection,
-    ): ContactFrameAnalysis? {
+    ): ContactFrameSelection {
+        val rejectedFrameCounts = mutableMapOf<String, Int>()
         val candidates = orderedSamples
             .filter { sample ->
                 sample.timestampMs >= window.startTimestampMs &&
                     sample.timestampMs <= window.endTimestampMs
             }
             .mapNotNull { sample ->
-                denseContactCandidate(sample, window.side, groundY)
+                val candidate = denseContactCandidate(sample, window.side, groundLine)
+                if (candidate == null) {
+                    incrementContactRejection(rejectedFrameCounts, "missing_foot_landmark")
+                }
+                candidate
             }
-        val eligibleCandidates = mutableListOf<ContactFrameCandidate>()
+        val temporalCandidates = mutableListOf<ContactFrameCandidate>()
         val persistentCandidates = mutableListOf<ContactFrameCandidate>()
         for (index in candidates.indices) {
             val current = candidates[index]
-            if (!current.isEligibleContact()) {
+            if (!current.inGroundBand) {
+                incrementContactRejection(rejectedFrameCounts, "outside_ground_band")
                 continue
             }
-            eligibleCandidates.add(current)
+            if (!current.isEligibleContact()) {
+                incrementContactRejection(rejectedFrameCounts, "low_contact_confidence")
+                continue
+            }
             val previous = candidates.getOrNull(index - 1)
             val next = candidates.getOrNull(index + 1)
-            if (enteredGroundBand(current, previous)) {
-                return current.toContactFrame(window, direction)
+            if (!hasTemporalNeighbor(current, previous) &&
+                !hasTemporalNeighbor(current, next)
+            ) {
+                incrementContactRejection(rejectedFrameCounts, "insufficient_motion_window")
+                continue
             }
-            if (hasGroundBandPersistence(current, previous, next)) {
+            if (!hasGroundBandPersistence(current, previous, next)) {
+                incrementContactRejection(
+                    rejectedFrameCounts,
+                    "insufficient_contact_persistence",
+                )
+                continue
+            }
+            if (!isFootAtLocalBottom(current, previous, next)) {
+                incrementContactRejection(rejectedFrameCounts, "unstable_foot_motion")
+                continue
+            }
+            if (enteredGroundBand(current, previous)) {
+                temporalCandidates.add(current)
+            } else {
                 persistentCandidates.add(current)
             }
         }
-        val candidatesForSelection = if (persistentCandidates.isEmpty()) {
-            eligibleCandidates
+        // Never fall back to an isolated near-ground frame. It is retained as
+        // an explicit phase proxy only, not promoted to initial contact.
+        val candidatesForSelection = if (temporalCandidates.isNotEmpty()) {
+            temporalCandidates
         } else {
             persistentCandidates
         }
-        return candidatesForSelection
+        val selected = candidatesForSelection
             .sortedWith(
                 compareByDescending<ContactFrameCandidate> { it.confidence }
                     .thenBy { abs(it.sample.timestampMs - window.centerTimestampMs) }
                     .thenBy { it.sample.timestampMs },
             )
             .firstOrNull()
-            ?.toContactFrame(window, direction)
+        return ContactFrameSelection(
+            contact = selected?.toContactFrame(window, direction),
+            candidateFrameCount = candidates.count { it.inGroundBand },
+            rejectedFrameCounts = rejectedFrameCounts.toMap(),
+        )
     }
+
+    private fun incrementContactRejection(
+        rejectedFrameCounts: MutableMap<String, Int>,
+        reason: String,
+    ) {
+        rejectedFrameCounts[reason] = (rejectedFrameCounts[reason] ?: 0) + 1
+    }
+
+    private fun hasTemporalNeighbor(
+        current: ContactFrameCandidate,
+        neighbor: ContactFrameCandidate?,
+    ): Boolean =
+        neighbor != null &&
+            abs(neighbor.sample.timestampMs - current.sample.timestampMs) <=
+                contactMotionNeighborGapMs
 
     private fun denseContactCandidate(
         sample: FrameSample,
         side: FootSide,
-        groundY: Double,
+        groundLine: GroundLine,
     ): ContactFrameCandidate? {
         val evidence = sample.footBottom(side) ?: return null
         val tolerance = (sample.bodyScale * denseContactGroundToleranceRatio)
             .coerceAtLeast(1.0)
-        val proximity = groundY - evidence.bottomPoint.y.toDouble()
-        val inGroundBand = proximity >= -tolerance * 0.35 && proximity <= tolerance
+        val proximity = groundGap(groundLine, evidence)
+        val inGroundBand = proximity >= -tolerance * 0.55 && proximity <= tolerance * 1.1
         val proximityFactor = (
             1.0 - (proximity.coerceAtLeast(0.0) / tolerance)
             ).coerceIn(0.0, 1.0)
@@ -821,7 +978,7 @@ class RunningPoseAnalysisChannel(
         previous != null &&
             previous.proximity > current.tolerance &&
             abs(previous.sample.timestampMs - current.sample.timestampMs) <=
-            denseFrameIntervalMs * 2
+            contactMotionNeighborGapMs
 
     private fun hasGroundBandPersistence(
         current: ContactFrameCandidate,
@@ -831,8 +988,24 @@ class RunningPoseAnalysisChannel(
         listOfNotNull(previous, next).any { neighbor ->
             neighbor.isEligibleContact() &&
                 abs(neighbor.sample.timestampMs - current.sample.timestampMs) <=
-                denseFrameIntervalMs * 2
+                contactMotionNeighborGapMs
         }
+
+    private fun isFootAtLocalBottom(
+        current: ContactFrameCandidate,
+        previous: ContactFrameCandidate?,
+        next: ContactFrameCandidate?,
+    ): Boolean {
+        val tolerance = max(1.0, current.sample.bodyScale * contactMotionToleranceRatio)
+        val currentY = current.evidence.bottomPoint.y.toDouble()
+        val isLowestNearPrevious = previous == null ||
+            abs(current.sample.timestampMs - previous.sample.timestampMs) > contactMotionNeighborGapMs ||
+            currentY >= previous.evidence.bottomPoint.y.toDouble() - tolerance
+        val isLowestNearNext = next == null ||
+            abs(next.sample.timestampMs - current.sample.timestampMs) > contactMotionNeighborGapMs ||
+            currentY >= next.evidence.bottomPoint.y.toDouble() - tolerance
+        return isLowestNearPrevious && isLowestNearNext
+    }
 
     private fun ContactFrameCandidate.toContactFrame(
         window: ContactCandidate,
@@ -883,15 +1056,14 @@ class RunningPoseAnalysisChannel(
     private fun contactWindowPayloads(
         windows: List<ContactCandidate>,
         denseTimestamps: List<Long>,
-        contactFrames: List<ContactFrameAnalysis>,
+        contactValidations: List<ContactWindowValidation>,
     ): List<Map<String, Any?>> =
         windows.map { window ->
-            val validated = contactFrames.filter { frame ->
-                frame.side == window.side &&
-                    frame.windowCenterTimestampMs == window.centerTimestampMs &&
-                    frame.timestampMs >= window.startTimestampMs &&
-                    frame.timestampMs <= window.endTimestampMs
+            val validation = contactValidations.firstOrNull { candidate ->
+                candidate.window.side == window.side &&
+                    candidate.window.centerTimestampMs == window.centerTimestampMs
             }
+            val validated = validation?.contact?.let(::listOf).orEmpty()
             mapOf(
                 "side" to window.side.token,
                 "startTimestampMs" to window.startTimestampMs.toInt(),
@@ -902,6 +1074,8 @@ class RunningPoseAnalysisChannel(
                     timestampMs >= window.startTimestampMs &&
                         timestampMs <= window.endTimestampMs
                 },
+                "candidateFrameCount" to (validation?.candidateFrameCount ?: 0),
+                "rejectedFrameCounts" to (validation?.rejectedFrameCounts ?: emptyMap<String, Int>()),
                 "validatedContactFrameTimestampsMs" to validated
                     .map { it.timestampMs.toInt() }
                     .distinct()
@@ -1226,7 +1400,26 @@ class RunningPoseAnalysisChannel(
 
     private data class ContactCandidateSet(
         val windows: List<ContactCandidate>,
-        val groundY: Double,
+        val groundLine: GroundLine,
+    )
+
+    private data class GroundLine(
+        val slope: Double,
+        val intercept: Double,
+    ) {
+        fun yAt(x: Double): Double = slope * x + intercept
+    }
+
+    private data class GroundPoint(
+        val x: Double,
+        val y: Double,
+        val bodyScale: Double,
+    )
+
+    private data class FootObservation(
+        val sample: FrameSample,
+        val side: FootSide,
+        val evidence: FootBottomEvidence,
     )
 
     private data class ContactCandidate(
@@ -1244,6 +1437,19 @@ class RunningPoseAnalysisChannel(
         val footStrikeRatio: Double,
         val kneeAngleDegrees: Double,
         val confidence: Double,
+    )
+
+    private data class ContactFrameSelection(
+        val contact: ContactFrameAnalysis?,
+        val candidateFrameCount: Int,
+        val rejectedFrameCounts: Map<String, Int>,
+    )
+
+    private data class ContactWindowValidation(
+        val window: ContactCandidate,
+        val contact: ContactFrameAnalysis?,
+        val candidateFrameCount: Int,
+        val rejectedFrameCounts: Map<String, Int>,
     )
 
     private data class ContactFrameCandidate(
@@ -1525,7 +1731,7 @@ class RunningPoseAnalysisChannel(
         private const val stationaryThresholdRatio = 0.12
         private const val denseTargetFps = 30
         private const val denseFrameIntervalMs = 33L
-        private const val denseWindowRadiusMs = 180L
+        private const val denseWindowRadiusMs = 360L
         private const val maxDenseFrameBudget = 48
         private const val maxContactWindows = 6
         private const val minimumContactCenterSeparationMs = 120L
@@ -1533,9 +1739,13 @@ class RunningPoseAnalysisChannel(
         private const val minimumContactFrameConfidence = 0.34
         private const val contactProxyConfidencePenalty = 0.60
         private const val coarseContactProxyConfidencePenalty = 0.42
-        private const val coarseContactGroundToleranceRatio = 0.12
-        private const val denseContactGroundToleranceRatio = 0.13
-        private const val localFootExtremumToleranceRatio = 0.025
+        private const val coarseContactGroundToleranceRatio = 0.15
+        private const val denseContactGroundToleranceRatio = 0.16
+        private const val localFootExtremumToleranceRatio = 0.035
+        private const val contactMotionToleranceRatio = 0.035
+        private const val contactMotionNeighborGapMs = 100L
+        private const val groundLineSampleFraction = 0.45
+        private const val groundLineMinimumSamples = 3
         private const val modelAssetPath = "pose_landmarker_full.task"
         private const val leftShoulderIndex = 11
         private const val rightShoulderIndex = 12

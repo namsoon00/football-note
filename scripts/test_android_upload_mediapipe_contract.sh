@@ -77,6 +77,13 @@ for required in (
     "selectDenseContactFrame",
     "hasGroundBandPersistence",
     "enteredGroundBand",
+    "hasTemporalNeighbor",
+    "isFootAtLocalBottom",
+    "groundLineForFootEvidence",
+    "GroundLine",
+    "candidateFrameCount",
+    "rejectedFrameCounts",
+    "insufficient_contact_persistence",
     "windowCenterTimestampMs",
     "uniqueContactFrameCount",
     "mergePoseFrames",
@@ -120,6 +127,13 @@ for required in (
     "selectDenseContactFrame",
     "hasGroundBandPersistence",
     "enteredGroundBand",
+    "hasTemporalNeighbor",
+    "isFootAtLocalBottom",
+    "groundLineForFootEvidence",
+    "GroundLine",
+    "candidateFrameCount",
+    "rejectedFrameCounts",
+    "insufficient_contact_persistence",
     "windowCenterTimestampMs",
     "uniqueContactFrameCount",
     "mergePoseFrames",
@@ -238,6 +252,16 @@ require(
     "Android dense pass must target approximately 30 fps",
 )
 require(
+    re.search(r"private const val denseWindowRadiusMs\s*=\s*360L\b", channel_text)
+    is not None,
+    "Android dense contact recovery window must match the web analyzer at 360 ms",
+)
+require(
+    re.search(r"private static let denseWindowRadiusMs\s*=\s*360\b", ios_text)
+    is not None,
+    "iOS dense contact recovery window must match the web analyzer at 360 ms",
+)
+require(
     re.search(r"private static let denseFrameIntervalMs\s*=\s*33\b", ios_text)
     is not None,
     "iOS dense pass must target approximately 30 fps",
@@ -258,6 +282,22 @@ require(
 require(
     "selectedByTimestamp" in channel_text and "selectedByTimestamp" in ios_text,
     "Android/iOS dense contact validation must deduplicate selected event timestamps",
+)
+require(
+    "val usesContactProxy = uniqueContactFrameCount == 0" in channel_text,
+    "Android must retain one verified contact as an observation instead of replacing it with a proxy",
+)
+require(
+    "let usesContactProxy = uniqueContactFrameCount == 0" in ios_text,
+    "iOS must retain one verified contact as an observation instead of replacing it with a proxy",
+)
+require(
+    "persistentCandidates.isEmpty()) {\n            eligibleCandidates" not in channel_text,
+    "Android must not promote an isolated near-ground frame to contact",
+)
+require(
+    "persistentCandidates.isEmpty\n      ? eligibleCandidates" not in ios_text,
+    "iOS must not promote an isolated near-ground frame to contact",
 )
 require(
     re.search(
