@@ -1094,6 +1094,102 @@ void main() {
   });
 
   testWidgets(
+    'labels missing contact evidence as metric-specific while preserving arms',
+    (WidgetTester tester) async {
+      final result = RunningVideoAnalysisResult(
+        videoDuration: const Duration(seconds: 4),
+        sampledFrames: 14,
+        validFrames: 13,
+        direction: RunningDirection.leftToRight,
+        forwardLeanDegrees: 10,
+        verticalBounceRatio: 0.06,
+        footStrikeDistanceRatio: 0.24,
+        stanceKneeAngleDegrees: 155,
+        elbowAngleDegrees: 99,
+        metricQualities: const <RunningCoachMetric, RunningMetricQuality>{
+          RunningCoachMetric.posture: RunningMetricQuality(
+            confidence: 0.90,
+            sampleCount: 13,
+          ),
+          RunningCoachMetric.bounce: RunningMetricQuality(
+            confidence: 0.90,
+            sampleCount: 13,
+          ),
+          RunningCoachMetric.footStrike: RunningMetricQuality(
+            confidence: 0.90,
+            sampleCount: 3,
+          ),
+          RunningCoachMetric.kneeFlexion: RunningMetricQuality(
+            confidence: 0.90,
+            sampleCount: 3,
+          ),
+          RunningCoachMetric.armCarriage: RunningMetricQuality(
+            confidence: 0.90,
+            sampleCount: 13,
+          ),
+        },
+        poseFrames: _testPoseFrames(
+          startX: 0.30,
+          dxPerFrame: 0.015,
+          confidence: 0.94,
+        ),
+      );
+      final report = const RunningCoachingService().buildReport(result);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: runningAnalysisResultScreenForTesting(
+            result: result,
+            report: report,
+            session: _sessionForReport(
+              id: 'metric-specific-contact-missing',
+              result: result,
+              report: report,
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.text('Evidence from your video'), findsOneWidget);
+      final kneeEvidenceChip = find.byKey(
+        const ValueKey('running-coach-evidence-chip-knee'),
+      );
+      await tester.ensureVisible(kneeEvidenceChip);
+      await tester.tap(kneeEvidenceChip);
+      await tester.pump();
+
+      expect(
+        find.text('We cannot yet confirm the Knee measurement'),
+        findsOneWidget,
+      );
+      expect(
+        find.text(
+          'There is not enough evidence for Knee, so its score and coaching are withheld. You can still review measurements from other metrics.',
+        ),
+        findsOneWidget,
+      );
+
+      final qualityDetails = find.byKey(
+        const ValueKey('running-coach-analysis-quality-details'),
+      );
+      await _scrollAnalysisResultUntilFound(tester, qualityDetails);
+      expect(find.text('What this video could measure'), findsOneWidget);
+      expect(find.text('Arms · Verified'), findsOneWidget);
+      expect(find.text('Knee · Unavailable'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
       'analysis result uses my-video evidence affordances for tracked metrics',
       (
     WidgetTester tester,

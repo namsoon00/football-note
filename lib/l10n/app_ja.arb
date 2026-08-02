@@ -5019,6 +5019,23 @@
   "runningCoachEvidenceDetailsTitle": "根拠と測定方法",
   "runningCoachEvidenceInsufficientTitle": "このクリップを撮り直してください",
   "runningCoachEvidenceInsufficientBody": "この重点を支える安定フレームが足りないため、正確なスコアは表示しません。",
+  "runningCoachEvidenceMetricUnavailableTitle": "{metric}の測定はまだ確定できません",
+  "@runningCoachEvidenceMetricUnavailableTitle": {
+    "placeholders": {
+      "metric": {}
+    }
+  },
+  "runningCoachEvidenceMetricUnavailableBody": "{metric}の根拠が不足しているため、スコアとコーチングは保留しています。他の項目の測定はそのまま確認できます。",
+  "@runningCoachEvidenceMetricUnavailableBody": {
+    "placeholders": {
+      "metric": {}
+    }
+  },
+  "runningCoachMeasurementStatusVerified": "確定測定",
+  "runningCoachMeasurementStatusObserved": "動画の観察値",
+  "runningCoachMeasurementStatusUnavailable": "測定不可",
+  "runningCoachMeasurementCoverageTitle": "この動画で確認できた項目",
+  "runningCoachMeasurementCoverageBody": "項目ごとに独立して検証します。接地の根拠が不足しても、腕や上体など他の測定まで無効にはなりません。",
   "runningCoachEvidenceVideoUnavailable": "保存済み動画ファイルを使用できません。分析フレームの姿勢オーバーレイは表示します。",
   "runningCoachEvidencePoseFrameOnly": "分析した姿勢フレームを表示しています。この画面には動画ファイルが保存されていません。",
   "runningCoachEvidenceTimestamp": "根拠フレーム {time}",
@@ -5115,6 +5132,44 @@
   "runningCoachEvidenceArmLabel": "腕フレーム",
   "runningCoachEvidenceSamplesLabel": "サンプル",
   "runningCoachEvidenceReliabilityLabel": "信頼度",
+  "runningCoachEvidenceAggregateValueLabel": "代表値",
+  "runningCoachEvidenceGuideRangeLabel": "コーチングガイド",
+  "runningCoachEvidenceScoreCenterLabel": "判定の中心",
+  "runningCoachEvidenceFrameRangeLabel": "根拠フレーム値",
+  "runningCoachEvidenceFrameRangeValue": "{minimum}～{maximum}",
+  "@runningCoachEvidenceFrameRangeValue": {
+    "placeholders": {
+      "minimum": {},
+      "maximum": {}
+    }
+  },
+  "runningCoachEvidenceDegreesValue": "{value}°",
+  "@runningCoachEvidenceDegreesValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "runningCoachEvidencePercentValue": "{value}%",
+  "@runningCoachEvidencePercentValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "runningCoachEvidenceRatioValue": "{value}×",
+  "@runningCoachEvidenceRatioValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "runningCoachEvidenceAverageLabel": "平均・{samples}フレーム",
+  "@runningCoachEvidenceAverageLabel": {
+    "placeholders": {
+      "samples": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachMetricScoreBasis": "スコアは、代表値が判定の中心にどれだけ近いかを示します。",
   "runningCoachEvidenceWhyThisResultLabel": "この結果の理由",
   "runningCoachEvidenceVideoMissingTitle": "動画を使用できません",
   "runningCoachEvidenceVideoMissingBody": "保存済み動画がないため、この指標はテキストの根拠要約として表示します。",

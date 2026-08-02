@@ -8759,6 +8759,32 @@ class AppLocalizationsJa extends AppLocalizations {
       'この重点を支える安定フレームが足りないため、正確なスコアは表示しません。';
 
   @override
+  String runningCoachEvidenceMetricUnavailableTitle(Object metric) {
+    return '$metricの測定はまだ確定できません';
+  }
+
+  @override
+  String runningCoachEvidenceMetricUnavailableBody(Object metric) {
+    return '$metricの根拠が不足しているため、スコアとコーチングは保留しています。他の項目の測定はそのまま確認できます。';
+  }
+
+  @override
+  String get runningCoachMeasurementStatusVerified => '確定測定';
+
+  @override
+  String get runningCoachMeasurementStatusObserved => '動画の観察値';
+
+  @override
+  String get runningCoachMeasurementStatusUnavailable => '測定不可';
+
+  @override
+  String get runningCoachMeasurementCoverageTitle => 'この動画で確認できた項目';
+
+  @override
+  String get runningCoachMeasurementCoverageBody =>
+      '項目ごとに独立して検証します。接地の根拠が不足しても、腕や上体など他の測定まで無効にはなりません。';
+
+  @override
   String get runningCoachEvidenceVideoUnavailable =>
       '保存済み動画ファイルを使用できません。分析フレームの姿勢オーバーレイは表示します。';
 
@@ -8993,6 +9019,46 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachEvidenceReliabilityLabel => '信頼度';
+
+  @override
+  String get runningCoachEvidenceAggregateValueLabel => '代表値';
+
+  @override
+  String get runningCoachEvidenceGuideRangeLabel => 'コーチングガイド';
+
+  @override
+  String get runningCoachEvidenceScoreCenterLabel => '判定の中心';
+
+  @override
+  String get runningCoachEvidenceFrameRangeLabel => '根拠フレーム値';
+
+  @override
+  String runningCoachEvidenceFrameRangeValue(Object minimum, Object maximum) {
+    return '$minimum～$maximum';
+  }
+
+  @override
+  String runningCoachEvidenceDegreesValue(Object value) {
+    return '$value°';
+  }
+
+  @override
+  String runningCoachEvidencePercentValue(Object value) {
+    return '$value%';
+  }
+
+  @override
+  String runningCoachEvidenceRatioValue(Object value) {
+    return '$value×';
+  }
+
+  @override
+  String runningCoachEvidenceAverageLabel(int samples) {
+    return '平均・$samplesフレーム';
+  }
+
+  @override
+  String get runningCoachMetricScoreBasis => 'スコアは、代表値が判定の中心にどれだけ近いかを示します。';
 
   @override
   String get runningCoachEvidenceWhyThisResultLabel => 'この結果の理由';

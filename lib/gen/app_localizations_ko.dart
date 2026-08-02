@@ -8770,6 +8770,32 @@ class AppLocalizationsKo extends AppLocalizations {
       '이 포인트를 판단할 안정 프레임이 부족해 정확한 점수를 보여 주지 않습니다.';
 
   @override
+  String runningCoachEvidenceMetricUnavailableTitle(Object metric) {
+    return '$metric 측정은 아직 확정할 수 없어요';
+  }
+
+  @override
+  String runningCoachEvidenceMetricUnavailableBody(Object metric) {
+    return '$metric의 근거가 부족해 점수와 코칭은 보류했어요. 다른 항목의 측정은 그대로 확인할 수 있어요.';
+  }
+
+  @override
+  String get runningCoachMeasurementStatusVerified => '확정 측정';
+
+  @override
+  String get runningCoachMeasurementStatusObserved => '영상 관찰값';
+
+  @override
+  String get runningCoachMeasurementStatusUnavailable => '측정 불가';
+
+  @override
+  String get runningCoachMeasurementCoverageTitle => '이번 영상의 항목별 상태';
+
+  @override
+  String get runningCoachMeasurementCoverageBody =>
+      '항목별로 독립 검증합니다. 접지 근거가 부족해도 팔·상체 등의 측정이 함께 무효가 되지는 않습니다.';
+
+  @override
   String get runningCoachEvidenceVideoUnavailable =>
       '저장된 영상 파일을 사용할 수 없어요. 분석된 프레임의 자세 오버레이는 보여 줍니다.';
 
@@ -9004,6 +9030,46 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachEvidenceReliabilityLabel => '신뢰도';
+
+  @override
+  String get runningCoachEvidenceAggregateValueLabel => '대표값';
+
+  @override
+  String get runningCoachEvidenceGuideRangeLabel => '코칭 가이드';
+
+  @override
+  String get runningCoachEvidenceScoreCenterLabel => '판정 중심';
+
+  @override
+  String get runningCoachEvidenceFrameRangeLabel => '근거 프레임값';
+
+  @override
+  String runningCoachEvidenceFrameRangeValue(Object minimum, Object maximum) {
+    return '$minimum–$maximum';
+  }
+
+  @override
+  String runningCoachEvidenceDegreesValue(Object value) {
+    return '$value°';
+  }
+
+  @override
+  String runningCoachEvidencePercentValue(Object value) {
+    return '$value%';
+  }
+
+  @override
+  String runningCoachEvidenceRatioValue(Object value) {
+    return '$value×';
+  }
+
+  @override
+  String runningCoachEvidenceAverageLabel(int samples) {
+    return '평균 · $samples 프레임';
+  }
+
+  @override
+  String get runningCoachMetricScoreBasis => '점수는 대표값이 판정 중심에 얼마나 가까운지 나타냅니다.';
 
   @override
   String get runningCoachEvidenceWhyThisResultLabel => '이 결과의 이유';

@@ -15714,6 +15714,48 @@ abstract class AppLocalizations {
   /// **'There were not enough stable frames for this focus, so the app is not showing a precise score.'**
   String get runningCoachEvidenceInsufficientBody;
 
+  /// No description provided for @runningCoachEvidenceMetricUnavailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'We cannot yet confirm the {metric} measurement'**
+  String runningCoachEvidenceMetricUnavailableTitle(Object metric);
+
+  /// No description provided for @runningCoachEvidenceMetricUnavailableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'There is not enough evidence for {metric}, so its score and coaching are withheld. You can still review measurements from other metrics.'**
+  String runningCoachEvidenceMetricUnavailableBody(Object metric);
+
+  /// No description provided for @runningCoachMeasurementStatusVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified'**
+  String get runningCoachMeasurementStatusVerified;
+
+  /// No description provided for @runningCoachMeasurementStatusObserved.
+  ///
+  /// In en, this message translates to:
+  /// **'Video observation'**
+  String get runningCoachMeasurementStatusObserved;
+
+  /// No description provided for @runningCoachMeasurementStatusUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Unavailable'**
+  String get runningCoachMeasurementStatusUnavailable;
+
+  /// No description provided for @runningCoachMeasurementCoverageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What this video could measure'**
+  String get runningCoachMeasurementCoverageTitle;
+
+  /// No description provided for @runningCoachMeasurementCoverageBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Metrics are verified independently. Missing contact evidence does not invalidate measurements such as arm carriage or trunk position.'**
+  String get runningCoachMeasurementCoverageBody;
+
   /// No description provided for @runningCoachEvidenceVideoUnavailable.
   ///
   /// In en, this message translates to:
@@ -16127,6 +16169,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reliability'**
   String get runningCoachEvidenceReliabilityLabel;
+
+  /// No description provided for @runningCoachEvidenceAggregateValueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Representative value'**
+  String get runningCoachEvidenceAggregateValueLabel;
+
+  /// No description provided for @runningCoachEvidenceGuideRangeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Coaching guide'**
+  String get runningCoachEvidenceGuideRangeLabel;
+
+  /// No description provided for @runningCoachEvidenceScoreCenterLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Scoring center'**
+  String get runningCoachEvidenceScoreCenterLabel;
+
+  /// No description provided for @runningCoachEvidenceFrameRangeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Evidence-frame value'**
+  String get runningCoachEvidenceFrameRangeLabel;
+
+  /// No description provided for @runningCoachEvidenceFrameRangeValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{minimum}–{maximum}'**
+  String runningCoachEvidenceFrameRangeValue(Object minimum, Object maximum);
+
+  /// No description provided for @runningCoachEvidenceDegreesValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{value}°'**
+  String runningCoachEvidenceDegreesValue(Object value);
+
+  /// No description provided for @runningCoachEvidencePercentValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{value}%'**
+  String runningCoachEvidencePercentValue(Object value);
+
+  /// No description provided for @runningCoachEvidenceRatioValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{value}×'**
+  String runningCoachEvidenceRatioValue(Object value);
+
+  /// No description provided for @runningCoachEvidenceAverageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Average · {samples} frames'**
+  String runningCoachEvidenceAverageLabel(int samples);
+
+  /// No description provided for @runningCoachMetricScoreBasis.
+  ///
+  /// In en, this message translates to:
+  /// **'The score shows how close the representative value is to the scoring center.'**
+  String get runningCoachMetricScoreBasis;
 
   /// No description provided for @runningCoachEvidenceWhyThisResultLabel.
   ///

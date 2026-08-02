@@ -591,6 +591,87 @@ void main() {
     );
   });
 
+  test('keeps a single verified contact as an observed lower-body frame', () {
+    final result = RunningVideoAnalysisResult(
+      videoDuration: const Duration(seconds: 3),
+      sampledFrames: 14,
+      validFrames: 12,
+      direction: RunningDirection.leftToRight,
+      forwardLeanDegrees: 10,
+      verticalBounceRatio: 0.06,
+      footStrikeDistanceRatio: 0.10,
+      stanceKneeAngleDegrees: 154,
+      elbowAngleDegrees: 90,
+      metricQualities: const <RunningCoachMetric, RunningMetricQuality>{
+        RunningCoachMetric.footStrike: RunningMetricQuality(
+          confidence: 0.92,
+          sampleCount: 1,
+        ),
+        RunningCoachMetric.kneeFlexion: RunningMetricQuality(
+          confidence: 0.92,
+          sampleCount: 1,
+        ),
+      },
+      poseFrames: <RunningPoseFrame>[
+        _gaitPoseFrame(
+          timestampMs: 600,
+          side: RunningContactSide.left,
+          flexed: false,
+        ),
+        _gaitPoseFrame(
+          timestampMs: 680,
+          side: RunningContactSide.left,
+          flexed: true,
+        ),
+      ],
+      denseSamples: const RunningAnalysisSampleSummary(
+        attemptedFrames: 6,
+        validFrames: 6,
+        poseFrameCount: 6,
+        targetFps: 30,
+      ),
+      contactWindows: <RunningContactWindow>[
+        const RunningContactWindow(
+          start: Duration(milliseconds: 520),
+          center: Duration(milliseconds: 600),
+          end: Duration(milliseconds: 760),
+          side: RunningContactSide.left,
+          denseSampleCount: 6,
+          validatedContactTimestamps: <Duration>[
+            Duration(milliseconds: 600),
+          ],
+          confidence: 0.92,
+        ),
+      ],
+      validatedContactFrameTimestamps: const <Duration>[
+        Duration(milliseconds: 600),
+      ],
+      contactConfidence: 0.92,
+    );
+
+    final gait = result.gaitAnalysis;
+    final landing = result.evidenceForMetric(RunningCoachMetric.footStrike)!;
+    final knee = result.evidenceForMetric(RunningCoachMetric.kneeFlexion)!;
+
+    expect(result.hasObservedContactEvidence, isTrue);
+    expect(result.hasDenseContactEvidence, isFalse);
+    expect(gait, isNotNull);
+    expect(gait!.steps, hasLength(1));
+    expect(gait.hasReliableStepSample, isFalse);
+    expect(landing.frames, hasLength(1));
+    expect(knee.frames, hasLength(1));
+    expect(
+      landing.withheldReason,
+      RunningMetricEvidenceWithheldReason.limitedSamples,
+    );
+    expect(
+      knee.withheldReason,
+      RunningMetricEvidenceWithheldReason.limitedSamples,
+    );
+    expect(landing.isReliable, isFalse);
+    expect(knee.isReliable, isFalse);
+  });
+
   test('withholds evidence for legacy summaries without saved pose frames', () {
     const result = RunningVideoAnalysisResult(
       videoDuration: Duration(seconds: 4),

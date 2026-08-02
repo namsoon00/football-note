@@ -15,7 +15,11 @@
     minBodyScalePx: 40,
     stationaryThresholdRatio: 0.12,
     denseIntervalMs: 33,
-    denseWindowRadiusMs: 180,
+    // The coarse pass is intentionally light-weight, so its strongest foot
+    // position can be a few hundred milliseconds away from the true contact
+    // in a longer clip. Give the dense pass enough room to recover that
+    // moment, then distribute its budget across the full window below.
+    denseWindowRadiusMs: 360,
     denseTargetFps: 30,
     maxDenseFrames: 48,
     maxContactWindows: 6,
@@ -24,8 +28,8 @@
     minContactConfidence: 0.34,
     groundLineSampleFraction: 0.45,
     groundLineMinimumSamples: 3,
-    contactMotionToleranceRatio: 0.045,
-    contactMotionNeighborGapMs: 95,
+    contactMotionToleranceRatio: 0.06,
+    contactMotionNeighborGapMs: 150,
   });
 
   const index = Object.freeze({
@@ -619,8 +623,8 @@
     if (footEvidence.length === 0) return { windows: [], groundLine: { slope: 0, intercept: 0 } };
     const groundLine = groundLineForFootEvidence(footEvidence);
     const averageScale = Math.max(1, average(samples.map((sample) => sample.bodyScale)));
-    const groundTolerance = averageScale * 0.12;
-    const localTolerance = averageScale * 0.025;
+    const groundTolerance = averageScale * 0.15;
+    const localTolerance = averageScale * 0.035;
     const candidates = [];
 
     for (const side of ['left', 'right']) {
@@ -631,7 +635,8 @@
         const previousY = sideEvidence[itemIndex - 1]?.foot.bottomPoint.y;
         const nextY = sideEvidence[itemIndex + 1]?.foot.bottomPoint.y;
         const gap = groundGap(groundLine, current.foot);
-        const nearGround = gap >= -groundTolerance * 0.35 && gap <= groundTolerance;
+        const nearGround =
+          gap >= -groundTolerance * 0.55 && gap <= groundTolerance * 1.1;
         const localExtremum =
           (previousY === undefined || bottomY >= previousY - localTolerance) &&
           (nextY === undefined || bottomY >= nextY - localTolerance);
@@ -653,11 +658,12 @@
     for (const candidate of [...candidates].sort(
       (left, right) => right.confidence - left.confidence || left.centerTimestampMs - right.centerTimestampMs,
     )) {
+      // Dense windows are intentionally allowed to overlap. Consecutive
+      // contacts can be less than twice the recovery window apart; treating
+      // that overlap as a duplicate would throw away valid left/right steps.
       const overlaps = selected.some((selectedCandidate) =>
         selectedCandidate.side === candidate.side &&
-        (Math.abs(selectedCandidate.centerTimestampMs - candidate.centerTimestampMs) < config.minContactSeparationMs ||
-          (candidate.startTimestampMs <= selectedCandidate.endTimestampMs &&
-            candidate.endTimestampMs >= selectedCandidate.startTimestampMs)),
+        Math.abs(selectedCandidate.centerTimestampMs - candidate.centerTimestampMs) < config.minContactSeparationMs,
       );
       if (!overlaps) selected.push(candidate);
       if (selected.length >= config.maxContactWindows) break;
@@ -696,26 +702,60 @@
   }
 
   function denseTimestamps(windows, durationMs) {
-    const distances = new Map();
-    const record = (timestampMs, centerTimestampMs) => {
-      const time = Math.max(0, Math.min(durationMs, timestampMs));
-      const distanceFromCenter = Math.abs(time - centerTimestampMs);
-      const existing = distances.get(time);
-      if (existing === undefined || distanceFromCenter < existing) {
-        distances.set(time, distanceFromCenter);
-      }
+    // A global "closest to coarse center" sort had an unfortunate failure
+    // mode: with several contact candidates it spent the entire dense budget
+    // around the coarse centers, never reaching the true contact near either
+    // edge of a window. Reserve a small, evenly distributed budget for every
+    // candidate window instead. This is still bounded by maxDenseFrames.
+    const selectedWindows = windows.slice(0, config.maxContactWindows);
+    if (selectedWindows.length === 0) return [];
+    const perWindowBudget = Math.max(
+      3,
+      Math.floor(config.maxDenseFrames / selectedWindows.length),
+    );
+    const timestamps = new Set();
+    const add = (timestampMs) => {
+      timestamps.add(Math.round(Math.max(0, Math.min(durationMs, timestampMs))));
     };
-    for (const window of windows) {
-      for (let timestamp = window.startTimestampMs; timestamp <= window.endTimestampMs; timestamp += config.denseIntervalMs) {
-        record(timestamp, window.centerTimestampMs);
+
+    for (const window of selectedWindows) {
+      const frameTimes = [];
+      for (
+        let timestamp = window.startTimestampMs;
+        timestamp <= window.endTimestampMs;
+        timestamp += config.denseIntervalMs
+      ) {
+        frameTimes.push(timestamp);
       }
-      record(window.centerTimestampMs, window.centerTimestampMs);
+      if (frameTimes.length === 0 ||
+          frameTimes[frameTimes.length - 1] !== window.endTimestampMs) {
+        frameTimes.push(window.endTimestampMs);
+      }
+      const selected = new Set();
+      const nearestToCenter = [...frameTimes].sort((left, right) =>
+        Math.abs(left - window.centerTimestampMs) -
+          Math.abs(right - window.centerTimestampMs) ||
+        left - right,
+      );
+      for (const timestamp of nearestToCenter.slice(0, Math.min(3, perWindowBudget))) {
+        selected.add(timestamp);
+      }
+      const remaining = perWindowBudget - selected.size;
+      for (let index = 0; index < remaining; index += 1) {
+        const fraction = remaining <= 1 ? 0.5 : index / (remaining - 1);
+        selected.add(frameTimes[Math.round((frameTimes.length - 1) * fraction)]);
+      }
+      // Rounded evenly-spaced indices can coincide in short windows. Fill the
+      // spare slots with center-near frames before moving to another window.
+      for (const timestamp of nearestToCenter) {
+        if (selected.size >= perWindowBudget) break;
+        selected.add(timestamp);
+      }
+      for (const timestamp of selected) add(timestamp);
     }
-    return [...distances.entries()]
-      .sort((left, right) => left[1] - right[1] || left[0] - right[0])
-      .slice(0, config.maxDenseFrames)
-      .map(([timestamp]) => timestamp)
-      .sort((left, right) => left - right);
+    return [...timestamps]
+      .sort((left, right) => left - right)
+      .slice(0, config.maxDenseFrames);
   }
 
   function incrementReason(rejectedFrameCounts, reason) {
@@ -748,9 +788,9 @@
         incrementReason(rejectedFrameCounts, 'missing_foot_landmark');
         continue;
       }
-      const tolerance = Math.max(1, sample.bodyScale * 0.13);
+      const tolerance = Math.max(1, sample.bodyScale * 0.16);
       const gap = groundGap(groundLine, foot);
-      const inGroundBand = gap >= -tolerance * 0.35 && gap <= tolerance;
+      const inGroundBand = gap >= -tolerance * 0.55 && gap <= tolerance * 1.1;
       const proximityFactor = Math.max(0, Math.min(1, 1 - Math.max(0, gap) / tolerance));
       records.push({
         sample,
@@ -947,7 +987,11 @@
       const contacts = contactValidations
         .map((validation) => validation.contact)
         .filter(Boolean);
-      const usesContactProxy = contacts.length < config.minValidatedContacts;
+      // One or two verified contacts are not enough for a score, cadence, or
+      // left/right comparison, but they are still real measured observations.
+      // Keep them distinct from the old proxy path so the UI can show the
+      // exact frame and value without pretending it is a complete assessment.
+      const usesContactProxy = contacts.length === 0;
       const denseProxies = usesContactProxy
         ? contactProxies(dense.samples, candidateSet.windows, direction, 0.6)
         : [];
