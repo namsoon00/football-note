@@ -9242,6 +9242,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'There were not enough continuous frames before and after contact to confirm foot movement. Record 5–10 seconds at a steady pace.';
 
   @override
+  String get runningCoachContactRejectionInsufficientContactPersistence =>
+      'The foot appeared near the ground, but a continuous contact state was not confirmed. Record 3–6 strides with both feet and the ground line visible.';
+
+  @override
   String get runningCoachEvidenceContactLabel => 'Contact evidence';
 
   @override
@@ -9324,6 +9328,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachEvidenceMetricLanding => 'Landing';
+
+  @override
+  String get runningCoachEvidenceMetricLandingObserved => 'Confirmed contact';
+
+  @override
+  String get runningCoachEvidenceMetricLandingCandidate => 'Contact candidate';
 
   @override
   String get runningCoachEvidenceMetricKnee => 'Knee';

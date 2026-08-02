@@ -45,18 +45,22 @@ minimum_valid_frames = 6
 minimum_detected_frames = 10
 minimum_pose_frame_timestamp_span_ms = 1200
 minimum_motion_ratio = 0.12
-minimum_validated_contact_frames = 2
+minimum_validated_contact_frames = 3
 minimum_contact_confidence = 0.34
 media_pipe_landmark_count = 33
 dense_target_fps = 30
 dense_interval_ms = 33
-dense_window_radius_ms = 180
+dense_window_radius_ms = 360
 max_dense_frame_budget = 48
 max_contact_windows = 6
 minimum_contact_center_separation_ms = 120
-coarse_ground_tolerance_ratio = 0.12
-dense_ground_tolerance_ratio = 0.13
-local_extremum_tolerance_ratio = 0.025
+coarse_ground_tolerance_ratio = 0.15
+dense_ground_tolerance_ratio = 0.16
+local_extremum_tolerance_ratio = 0.035
+contact_motion_tolerance_ratio = 0.035
+contact_motion_neighbor_gap_ms = 100
+ground_line_sample_fraction = 0.45
+ground_line_minimum_samples = 3
 
 LEFT = "left"
 RIGHT = "right"
@@ -113,10 +117,19 @@ class ContactFrameCandidate:
     sample: Sample
     side: str
     evidence: dict
-    proximity: float
+    ground_gap: float
     tolerance: float
     confidence: float
     in_ground_band: bool
+
+
+@dataclass(frozen=True)
+class GroundLine:
+    slope: float
+    intercept: float
+
+    def y_at(self, x: float) -> float:
+        return (self.slope * x) + self.intercept
 
 
 def confidence(landmark) -> float:
@@ -258,6 +271,65 @@ def contact_foot_strike_ratio(sample: Sample, side: str, direction: str) -> floa
     return max(0.0, reach_px) / max(1.0, sample.body_scale)
 
 
+def percentile(values: list[float], fraction: float) -> float | None:
+    if not values:
+        return None
+    ordered = sorted(values)
+    position = max(0.0, min(1.0, fraction)) * (len(ordered) - 1)
+    lower_index = int(math.floor(position))
+    upper_index = int(math.ceil(position))
+    if lower_index == upper_index:
+        return ordered[lower_index]
+    weight = position - lower_index
+    return ordered[lower_index] + ((ordered[upper_index] - ordered[lower_index]) * weight)
+
+
+def least_squares_ground_line(points: list[tuple[float, float, float]]) -> GroundLine:
+    if not points:
+        return GroundLine(slope=0.0, intercept=0.0)
+    mean_x = sum(point[0] for point in points) / len(points)
+    mean_y = sum(point[1] for point in points) / len(points)
+    covariance = sum((point[0] - mean_x) * (point[1] - mean_y) for point in points)
+    variance = sum((point[0] - mean_x) ** 2 for point in points)
+    slope = 0.0 if variance <= 0.0001 else covariance / variance
+    return GroundLine(slope=slope, intercept=mean_y - (slope * mean_x))
+
+
+def ground_line_for_foot_evidence(foot_observations) -> GroundLine | None:
+    points = [
+        (evidence["bottom"][0], evidence["bottom"][1], sample.body_scale)
+        for sample, _side, evidence in foot_observations
+    ]
+    if not points:
+        return None
+    lower_envelope_count = min(
+        len(points),
+        max(ground_line_minimum_samples, math.ceil(len(points) * ground_line_sample_fraction)),
+    )
+    lower_envelope = sorted(points, key=lambda point: point[1], reverse=True)[:lower_envelope_count]
+    line = least_squares_ground_line(lower_envelope)
+    residuals = [point[1] - line.y_at(point[0]) for point in lower_envelope]
+    residual_center = percentile(residuals, 0.5) or 0.0
+    median_deviation = percentile(
+        [abs(residual - residual_center) for residual in residuals],
+        0.5,
+    ) or 0.0
+    average_scale = max(1.0, sum(point[2] for point in lower_envelope) / len(lower_envelope))
+    residual_tolerance = max(average_scale * 0.025, median_deviation * 2.5)
+    inliers = [
+        point
+        for point in lower_envelope
+        if abs(point[1] - line.y_at(point[0]) - residual_center) <= residual_tolerance
+    ]
+    if len(inliers) >= 2:
+        line = least_squares_ground_line(inliers)
+    return line
+
+
+def ground_gap(ground_line: GroundLine, evidence) -> float:
+    return ground_line.y_at(evidence["bottom"][0]) - evidence["bottom"][1]
+
+
 def options():
     return vision.PoseLandmarkerOptions(
         base_options=python.BaseOptions(model_asset_path=str(model_path)),
@@ -318,15 +390,15 @@ def run_pose_pass(capture, fps: float, frame_count: int, timestamps_ms: list[int
 
 
 def derive_contact_windows(samples: list[Sample], duration_ms: int):
-    foot_bottoms = []
+    foot_observations = []
     for sample in samples:
         for side in FOOT_SIDES:
             evidence = foot_bottom(sample, side)
             if evidence is not None:
-                foot_bottoms.append((sample, side, evidence))
-    if not foot_bottoms:
-        return [], 0.0
-    ground_y = max(item[2]["bottom"][1] for item in foot_bottoms)
+                foot_observations.append((sample, side, evidence))
+    ground_line = ground_line_for_foot_evidence(foot_observations)
+    if ground_line is None:
+        return [], GroundLine(slope=0.0, intercept=0.0)
     average_scale = sum(sample.body_scale for sample in samples) / max(1, len(samples))
     ground_tolerance = max(1.0, average_scale * coarse_ground_tolerance_ratio)
     local_tolerance = average_scale * local_extremum_tolerance_ratio
@@ -341,14 +413,21 @@ def derive_contact_windows(samples: list[Sample], duration_ms: int):
             bottom_y = evidence["bottom"][1]
             previous_y = side_evidence[index - 1][1]["bottom"][1] if index > 0 else None
             next_y = side_evidence[index + 1][1]["bottom"][1] if index + 1 < len(side_evidence) else None
-            near_ground = ground_y - bottom_y <= ground_tolerance
+            gap = ground_gap(ground_line, evidence)
+            near_ground = (
+                gap >= -ground_tolerance * 0.55
+                and gap <= ground_tolerance * 1.1
+            )
             local_extremum = (
                 (previous_y is None or bottom_y >= previous_y - local_tolerance)
                 and (next_y is None or bottom_y >= next_y - local_tolerance)
             )
             if not near_ground or not local_extremum:
                 continue
-            proximity_factor = max(0.0, min(1.0, 1.0 - (max(0.0, ground_y - bottom_y) / ground_tolerance)))
+            proximity_factor = max(
+                0.0,
+                min(1.0, 1.0 - (max(0.0, gap) / ground_tolerance)),
+            )
             candidates.append(
                 ContactWindow(
                     side=side,
@@ -362,46 +441,53 @@ def derive_contact_windows(samples: list[Sample], duration_ms: int):
     for candidate in sorted(candidates, key=lambda item: (-item.confidence, item.center_timestamp_ms)):
         overlaps = any(
             existing.side == candidate.side
-            and (
-                abs(existing.center_timestamp_ms - candidate.center_timestamp_ms)
-                < minimum_contact_center_separation_ms
-                or (
-                    candidate.start_timestamp_ms <= existing.end_timestamp_ms
-                    and candidate.end_timestamp_ms >= existing.start_timestamp_ms
-                )
-            )
+            and abs(existing.center_timestamp_ms - candidate.center_timestamp_ms)
+            < minimum_contact_center_separation_ms
             for existing in selected
         )
         if not overlaps:
             selected.append(candidate)
         if len(selected) >= max_contact_windows:
             break
-    return sorted(selected, key=lambda item: item.center_timestamp_ms), ground_y
+    return sorted(selected, key=lambda item: item.center_timestamp_ms), ground_line
 
 
 def dense_timestamps_for_windows(windows: list[ContactWindow], duration_ms: int) -> list[int]:
-    timestamp_distances: dict[int, int] = {}
-    for window in windows:
+    selected_windows = windows[:max_contact_windows]
+    if not selected_windows:
+        return []
+    per_window_budget = max(3, max_dense_frame_budget // len(selected_windows))
+    timestamps: set[int] = set()
+    for window in selected_windows:
+        frame_times: list[int] = []
         timestamp_ms = window.start_timestamp_ms
         while timestamp_ms <= window.end_timestamp_ms:
-            clamped = min(duration_ms, max(0, timestamp_ms))
-            distance = abs(clamped - window.center_timestamp_ms)
-            if clamped not in timestamp_distances or distance < timestamp_distances[clamped]:
-                timestamp_distances[clamped] = distance
+            frame_times.append(min(duration_ms, max(0, timestamp_ms)))
             timestamp_ms += dense_interval_ms
-        center = min(duration_ms, max(0, window.center_timestamp_ms))
-        timestamp_distances[center] = min(
-            timestamp_distances.get(center, 10**9),
-            abs(center - window.center_timestamp_ms),
+        if not frame_times or frame_times[-1] != window.end_timestamp_ms:
+            frame_times.append(min(duration_ms, max(0, window.end_timestamp_ms)))
+        selected = set(
+            sorted(
+                frame_times,
+                key=lambda timestamp: (abs(timestamp - window.center_timestamp_ms), timestamp),
+            )[:min(3, per_window_budget)]
         )
-    selected = sorted(timestamp_distances.items(), key=lambda item: (item[1], item[0]))[:max_dense_frame_budget]
-    return sorted(timestamp for timestamp, _ in selected)
+        remaining = per_window_budget - len(selected)
+        for index in range(remaining):
+            fraction = 0.5 if remaining <= 1 else index / (remaining - 1)
+            timestamp = round(
+                window.start_timestamp_ms
+                + ((window.end_timestamp_ms - window.start_timestamp_ms) * fraction)
+            )
+            selected.add(min(duration_ms, max(0, timestamp)))
+        timestamps.update(selected)
+    return sorted(timestamps)[:max_dense_frame_budget]
 
 
 def validate_contact_frames(
     samples: list[Sample],
     windows: list[ContactWindow],
-    ground_y: float,
+    ground_line: GroundLine,
     direction: str,
 ) -> list[ContactFrame]:
     selected_by_timestamp: dict[int, ContactFrame] = {}
@@ -410,7 +496,7 @@ def validate_contact_frames(
         frame = select_contact_frame_for_window(
             window,
             ordered_samples=ordered_samples,
-            ground_y=ground_y,
+            ground_line=ground_line,
             direction=direction,
         )
         if frame is None:
@@ -424,29 +510,31 @@ def validate_contact_frames(
 def select_contact_frame_for_window(
     window: ContactWindow,
     ordered_samples: list[Sample],
-    ground_y: float,
+    ground_line: GroundLine,
     direction: str,
 ) -> ContactFrame | None:
     candidates = [
         candidate
         for sample in ordered_samples
         if window.start_timestamp_ms <= sample.timestamp_ms <= window.end_timestamp_ms
-        for candidate in [dense_contact_candidate(sample, window.side, ground_y)]
+        for candidate in [dense_contact_candidate(sample, window.side, ground_line)]
         if candidate is not None
     ]
-    eligible_candidates: list[ContactFrameCandidate] = []
+    temporal_candidates: list[ContactFrameCandidate] = []
     persistent_candidates: list[ContactFrameCandidate] = []
     for index, current in enumerate(candidates):
         if not is_eligible_contact(current):
             continue
-        eligible_candidates.append(current)
         previous = candidates[index - 1] if index > 0 else None
         next_candidate = candidates[index + 1] if index + 1 < len(candidates) else None
+        motion_reason = contact_motion_reason(current, previous, next_candidate)
+        if motion_reason is not None:
+            continue
         if entered_ground_band(current, previous):
-            return contact_frame_from_candidate(current, window, direction)
-        if has_ground_band_persistence(current, previous, next_candidate):
+            temporal_candidates.append(current)
+        else:
             persistent_candidates.append(current)
-    candidates_for_selection = persistent_candidates or eligible_candidates
+    candidates_for_selection = temporal_candidates or persistent_candidates
     if not candidates_for_selection:
         return None
     selected = sorted(
@@ -460,13 +548,13 @@ def select_contact_frame_for_window(
     return contact_frame_from_candidate(selected, window, direction)
 
 
-def dense_contact_candidate(sample: Sample, side: str, ground_y: float):
+def dense_contact_candidate(sample: Sample, side: str, ground_line: GroundLine):
     evidence = foot_bottom(sample, side)
     if evidence is None:
         return None
     tolerance = max(1.0, sample.body_scale * dense_ground_tolerance_ratio)
-    proximity = ground_y - evidence["bottom"][1]
-    proximity_factor = max(0.0, min(1.0, 1.0 - (max(0.0, proximity) / tolerance)))
+    gap = ground_gap(ground_line, evidence)
+    proximity_factor = max(0.0, min(1.0, 1.0 - (max(0.0, gap) / tolerance)))
     contact_confidence = max(
         0.0,
         min(
@@ -479,10 +567,10 @@ def dense_contact_candidate(sample: Sample, side: str, ground_y: float):
         sample=sample,
         side=side,
         evidence=evidence,
-        proximity=proximity,
+        ground_gap=gap,
         tolerance=tolerance,
         confidence=contact_confidence,
-        in_ground_band=proximity >= -tolerance * 0.35 and proximity <= tolerance,
+        in_ground_band=gap >= -tolerance * 0.55 and gap <= tolerance * 1.1,
     )
 
 
@@ -496,8 +584,9 @@ def entered_ground_band(
 ) -> bool:
     return (
         previous is not None
-        and previous.proximity > current.tolerance
-        and abs(previous.sample.timestamp_ms - current.sample.timestamp_ms) <= dense_interval_ms * 2
+        and previous.ground_gap > current.tolerance
+        and abs(previous.sample.timestamp_ms - current.sample.timestamp_ms)
+        <= contact_motion_neighbor_gap_ms
     )
 
 
@@ -509,9 +598,44 @@ def has_ground_band_persistence(
     return any(
         neighbor is not None
         and is_eligible_contact(neighbor)
-        and abs(neighbor.sample.timestamp_ms - current.sample.timestamp_ms) <= dense_interval_ms * 2
+        and abs(neighbor.sample.timestamp_ms - current.sample.timestamp_ms)
+        <= contact_motion_neighbor_gap_ms
         for neighbor in (previous, next_candidate)
     )
+
+
+def contact_motion_reason(
+    current: ContactFrameCandidate,
+    previous: ContactFrameCandidate | None,
+    next_candidate: ContactFrameCandidate | None,
+) -> str | None:
+    has_previous = (
+        previous is not None
+        and abs(current.sample.timestamp_ms - previous.sample.timestamp_ms)
+        <= contact_motion_neighbor_gap_ms
+    )
+    has_next = (
+        next_candidate is not None
+        and abs(next_candidate.sample.timestamp_ms - current.sample.timestamp_ms)
+        <= contact_motion_neighbor_gap_ms
+    )
+    if not has_previous and not has_next:
+        return "insufficient_motion_window"
+    tolerance = max(1.0, current.sample.body_scale * contact_motion_tolerance_ratio)
+    current_y = current.evidence["bottom"][1]
+    is_lowest_near_previous = (
+        not has_previous
+        or current_y >= previous.evidence["bottom"][1] - tolerance
+    )
+    is_lowest_near_next = (
+        not has_next
+        or current_y >= next_candidate.evidence["bottom"][1] - tolerance
+    )
+    if not is_lowest_near_previous or not is_lowest_near_next:
+        return "unstable_foot_motion"
+    if not has_ground_band_persistence(current, previous, next_candidate):
+        return "insufficient_contact_persistence"
+    return None
 
 
 def contact_frame_from_candidate(
@@ -544,7 +668,7 @@ for video in videos:
         frame_count=frame_count,
         timestamps_ms=coarse_timestamps(duration_ms),
     )
-    windows, ground_y = derive_contact_windows(coarse_pass["samples"], duration_ms)
+    windows, ground_line = derive_contact_windows(coarse_pass["samples"], duration_ms)
     dense_timestamps = dense_timestamps_for_windows(windows, duration_ms)
     dense_pass = run_pose_pass(
         capture,
@@ -558,7 +682,7 @@ for video in videos:
     contact_frames = validate_contact_frames(
         dense_pass["samples"],
         windows=windows,
-        ground_y=ground_y,
+        ground_line=ground_line,
         direction=direction,
     )
     merged_pose_timestamps = sorted(

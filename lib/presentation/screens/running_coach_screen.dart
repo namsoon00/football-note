@@ -6071,7 +6071,7 @@ class _AnalysisEvidenceCardState extends State<_AnalysisEvidenceCard> {
         _isVideoReady && _controller?.value.isInitialized == true;
     final canShowPreview = selectedFrame != null &&
         (canPlayVideo || selectedFrame.poseFrame != null);
-    final metricLabel = _evidenceKindLabel(l10n, evidence.kind);
+    final metricLabel = _evidenceItemLabel(l10n, evidence);
     final headerTitle = isLegacyHistory
         ? l10n.runningCoachHistoryEvidenceUnavailableTitle
         : isEvidenceReliable
@@ -6270,7 +6270,7 @@ class _EvidenceMetricTabs extends StatelessWidget {
         for (final item in items)
           Semantics(
             label:
-                '${_evidenceKindLabel(l10n, item.kind)} ${_measurementStatusLabel(l10n, item)}',
+                '${_evidenceItemLabel(l10n, item)} ${_measurementStatusLabel(l10n, item)}',
             child: ChoiceChip(
               key: ValueKey('running-coach-evidence-chip-${item.kind.name}'),
               selected: item.kind == selectedKind,
@@ -6287,6 +6287,9 @@ class _EvidenceMetricTabs extends StatelessWidget {
               label: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // Keep metric tabs compact on narrow screens. The selected
+                  // card's heading carries the more specific “contact
+                  // candidate” / “confirmed contact” wording.
                   Text(_evidenceKindLabel(l10n, item.kind)),
                   const SizedBox(width: 4),
                   Icon(
@@ -6468,6 +6471,29 @@ String _evidenceKindLabel(
     RunningMetricEvidenceKind.bounce => l10n.runningCoachEvidenceMetricBounce,
     RunningMetricEvidenceKind.arms => l10n.runningCoachEvidenceMetricArms,
   };
+}
+
+/// Lower-body evidence has three different states. Keep an observed, real
+/// contact distinct from a contact candidate so a single near-ground foot
+/// frame is never presented as a confirmed landing to the runner.
+String _evidenceItemLabel(
+  AppLocalizations l10n,
+  RunningMetricEvidence evidence,
+) {
+  if (evidence.kind != RunningMetricEvidenceKind.landing) {
+    return _evidenceKindLabel(l10n, evidence.kind);
+  }
+  if (evidence.isReliable) {
+    return l10n.runningCoachEvidenceMetricLanding;
+  }
+  if (evidence.frames.isNotEmpty) {
+    return l10n.runningCoachEvidenceMetricLandingObserved;
+  }
+  if (evidence.withheldReason ==
+      RunningMetricEvidenceWithheldReason.missingContact) {
+    return l10n.runningCoachEvidenceMetricLandingCandidate;
+  }
+  return l10n.runningCoachEvidenceMetricLanding;
 }
 
 String _evidenceValueText(
@@ -10916,6 +10942,8 @@ String _contactRejectionReasonText(
     'unstable_foot_motion' => l10n.runningCoachContactRejectionUnstableMotion,
     'insufficient_motion_window' =>
       l10n.runningCoachContactRejectionInsufficientMotionWindow,
+    'insufficient_contact_persistence' =>
+      l10n.runningCoachContactRejectionInsufficientContactPersistence,
     _ => l10n.runningCoachEvidenceReasonMissingContact,
   };
 }
