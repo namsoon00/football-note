@@ -15629,6 +15629,18 @@ abstract class AppLocalizations {
   /// **'The full clip is scanned first. Foot-strike and stance-knee values come only from high-density re-read frames around validated contact.'**
   String get runningCoachDenseContactEvidenceBody;
 
+  /// No description provided for @runningCoachDenseContactKinematicEstimateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Foot-path fallback'**
+  String get runningCoachDenseContactKinematicEstimateLabel;
+
+  /// No description provided for @runningCoachDenseContactKinematicEstimateBody.
+  ///
+  /// In en, this message translates to:
+  /// **'If the ground line is unstable, the contact window is backed up by the visible landing leg\'s hip, knee, ankle, and vertical foot path. This is used for scores and coaching only after three repeated steps.'**
+  String get runningCoachDenseContactKinematicEstimateBody;
+
   /// No description provided for @runningCoachDenseContactCoarseSamplesLabel.
   ///
   /// In en, this message translates to:
@@ -16097,6 +16109,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Foot and ankle landmarks were not tracked reliably in the contact-candidate window. Keep both feet in frame throughout the clip.'**
   String get runningCoachContactRejectionMissingFootLandmark;
+
+  /// No description provided for @runningCoachContactRejectionMissingContactJointChain.
+  ///
+  /// In en, this message translates to:
+  /// **'The candidate landing leg did not show its hip, knee, and ankle together on one side. Record a side view with the full leg visible.'**
+  String get runningCoachContactRejectionMissingContactJointChain;
 
   /// No description provided for @runningCoachContactRejectionOutsideGround.
   ///
@@ -17639,6 +17657,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Foot landing was hard to confirm. Check the landing and knee again.'**
   String get runningCoachQualityReasonContactPhaseProxy;
+
+  /// No description provided for @runningCoachQualityReasonKinematicContactEstimate.
+  ///
+  /// In en, this message translates to:
+  /// **'The contact window was confirmed from the foot trajectory and visible joint chain instead of the ground line. It was used for coaching only after three repeated steps.'**
+  String get runningCoachQualityReasonKinematicContactEstimate;
 
   /// No description provided for @runningCoachQualityReasonLowConfidence.
   ///

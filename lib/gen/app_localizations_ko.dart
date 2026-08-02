@@ -8723,6 +8723,13 @@ class AppLocalizationsKo extends AppLocalizations {
       '영상 전체를 먼저 스캔하고, 발 착지와 접지 무릎 값은 검증된 접지 주변에서 다시 읽은 고밀도 프레임만 사용해요.';
 
   @override
+  String get runningCoachDenseContactKinematicEstimateLabel => '발 궤적으로 보완';
+
+  @override
+  String get runningCoachDenseContactKinematicEstimateBody =>
+      '바닥선이 흔들리면 보이는 착지 다리의 엉덩이·무릎·발목과 발의 위아래 궤적으로 접지 구간을 보완해요. 이 방식은 반복된 3보 이상에서만 점수와 코칭에 사용해요.';
+
+  @override
   String get runningCoachDenseContactCoarseSamplesLabel => '전체 스캔';
 
   @override
@@ -8990,6 +8997,10 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get runningCoachContactRejectionMissingFootLandmark =>
       '접지 후보 구간에서 발·발목 관절이 충분히 추적되지 않았어요. 양발이 화면 안에 계속 보이게 촬영해 주세요.';
+
+  @override
+  String get runningCoachContactRejectionMissingContactJointChain =>
+      '착지 후보 다리의 엉덩이·무릎·발목이 한쪽에서 함께 보이지 않았어요. 한쪽 옆모습과 다리 전체가 보이게 촬영해 주세요.';
 
   @override
   String get runningCoachContactRejectionOutsideGround =>
@@ -9926,6 +9937,10 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get runningCoachQualityReasonContactPhaseProxy =>
       '발이 닿는 순간을 확인하기 어려웠어요. 착지와 무릎을 다시 확인하세요.';
+
+  @override
+  String get runningCoachQualityReasonKinematicContactEstimate =>
+      '바닥선 대신 발 궤적과 보이는 관절 사슬로 접지 구간을 확인했어요. 반복된 3보 이상에서만 코칭에 사용했어요.';
 
   @override
   String get runningCoachQualityReasonLowConfidence =>

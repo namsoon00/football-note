@@ -79,6 +79,11 @@ for required in (
     "enteredGroundBand",
     "hasTemporalNeighbor",
     "isFootAtLocalBottom",
+    "isKinematicContactCandidate",
+    "kinematicContactConfidencePenalty",
+    "kinematic_contact_estimate",
+    "missing_contact_joint_chain",
+    "centerOfPoints",
     "groundLineForFootEvidence",
     "GroundLine",
     "candidateFrameCount",
@@ -129,6 +134,11 @@ for required in (
     "enteredGroundBand",
     "hasTemporalNeighbor",
     "isFootAtLocalBottom",
+    "isKinematicContactCandidate",
+    "kinematicContactConfidencePenalty",
+    "kinematic_contact_estimate",
+    "missing_contact_joint_chain",
+    "centerOfPoints",
     "groundLineForFootEvidence",
     "GroundLine",
     "candidateFrameCount",
@@ -234,6 +244,18 @@ require(
     re.search(r"private const val minimumValidatedContactFrames\s*=\s*3\b", channel_text)
     is not None,
     "Android lower-body coaching must require three validated contacts",
+)
+require(
+    re.search(r"private const val kinematicContactConfidencePenalty\s*=\s*0\.82\b", channel_text)
+    is not None
+    and re.search(r"private static let kinematicContactConfidencePenalty\s*=\s*0\.82\b", ios_text)
+    is not None,
+    "Android/iOS must use the same conservative confidence penalty for trajectory-backed contact",
+)
+require(
+    "listOfNotNull(leftShoulder, rightShoulder)" in channel_text
+    and "[leftShoulder?.point, rightShoulder?.point].compactMap" in ios_text,
+    "Android/iOS must retain a torso sample when the far-side leg is occluded",
 )
 require(
     re.search(r"private static let minimumValidatedContactFrames\s*=\s*3\b", ios_text)

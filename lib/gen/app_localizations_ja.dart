@@ -8713,6 +8713,13 @@ class AppLocalizationsJa extends AppLocalizations {
       'まず動画全体を走査し、足の接地距離と接地膝の値には検証済み接地の周辺で高密度に再読み取りしたフレームだけを使います。';
 
   @override
+  String get runningCoachDenseContactKinematicEstimateLabel => '足の軌跡で補完';
+
+  @override
+  String get runningCoachDenseContactKinematicEstimateBody =>
+      '床の線が不安定な場合は、見えている着地脚の股関節・膝・足首と足の上下軌跡で接地区間を補います。この方法は繰り返し3歩以上の場合のみスコアとコーチングに使います。';
+
+  @override
   String get runningCoachDenseContactCoarseSamplesLabel => '全体走査';
 
   @override
@@ -8980,6 +8987,10 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get runningCoachContactRejectionMissingFootLandmark =>
       '接地候補区間で足と足首のランドマークを十分に追跡できませんでした。両足が常に画面に入るように撮影してください。';
+
+  @override
+  String get runningCoachContactRejectionMissingContactJointChain =>
+      '着地候補の脚で股関節・膝・足首が同じ側にそろって見えませんでした。脚全体が見える横向きで撮影してください。';
 
   @override
   String get runningCoachContactRejectionOutsideGround =>
@@ -9913,6 +9924,10 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get runningCoachQualityReasonContactPhaseProxy =>
       '足が着く瞬間を確認しにくい動画でした。着地と膝をもう一度確認してください。';
+
+  @override
+  String get runningCoachQualityReasonKinematicContactEstimate =>
+      '床の線ではなく足の軌跡と見えている関節のつながりで接地区間を確認しました。繰り返し3歩以上の場合のみコーチングに使っています。';
 
   @override
   String get runningCoachQualityReasonLowConfidence =>

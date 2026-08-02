@@ -47,6 +47,9 @@ minimum_pose_frame_timestamp_span_ms = 1200
 minimum_motion_ratio = 0.12
 minimum_validated_contact_frames = 3
 minimum_contact_confidence = 0.34
+kinematic_contact_confidence_penalty = 0.82
+kinematic_contact_lower_percentile = 0.65
+kinematic_contact_motion_tolerance_ratio = 0.025
 media_pipe_landmark_count = 33
 dense_target_fps = 30
 dense_interval_ms = 33
@@ -159,10 +162,17 @@ def midpoint(first, second) -> tuple[float, float]:
     return ((first[0] + second[0]) / 2.0, (first[1] + second[1]) / 2.0)
 
 
+def center_points(points: list[tuple[float, float]]) -> tuple[float, float]:
+    return (
+        sum(point[0] for point in points) / len(points),
+        sum(point[1] for point in points) / len(points),
+    )
+
+
 def build_sample(timestamp_ms: int, landmarks, width: int, height: int):
     if len(landmarks) < media_pipe_landmark_count:
         return None
-    required_names = [
+    core_names = [
         "left_shoulder",
         "right_shoulder",
         "left_hip",
@@ -172,13 +182,30 @@ def build_sample(timestamp_ms: int, landmarks, width: int, height: int):
         "left_ankle",
         "right_ankle",
     ]
-    points = {name: point(landmarks, name, width, height) for name in required_names}
-    if any(value is None for value in points.values()):
+    points = {name: point(landmarks, name, width, height) for name in core_names}
+    shoulder_points = [
+        points[name]
+        for name in ("left_shoulder", "right_shoulder")
+        if points[name] is not None
+    ]
+    hip_points = [
+        points[name]
+        for name in ("left_hip", "right_hip")
+        if points[name] is not None
+    ]
+    if not shoulder_points or not hip_points:
         return None
-    shoulder_center = midpoint(points["left_shoulder"], points["right_shoulder"])
-    hip = midpoint(points["left_hip"], points["right_hip"])
-    ankle_center = midpoint(points["left_ankle"], points["right_ankle"])
-    scale = max(distance(shoulder_center, hip), distance(hip, ankle_center))
+    shoulder_center = center_points(shoulder_points)
+    hip = center_points(hip_points)
+    ankle_points = [
+        points[name]
+        for name in ("left_ankle", "right_ankle")
+        if points[name] is not None
+    ]
+    scale = max(
+        distance(shoulder_center, hip),
+        distance(hip, center_points(ankle_points)) if ankle_points else 0.0,
+    )
     if scale < 40.0:
         return None
     return Sample(
@@ -190,6 +217,31 @@ def build_sample(timestamp_ms: int, landmarks, width: int, height: int):
         hip_center=hip,
         body_scale=scale,
     )
+
+
+class SyntheticLandmark:
+    def __init__(self, x: float, y: float, visible: float = 1.0):
+        self.x = x
+        self.y = y
+        self.visibility = visible
+        self.presence = visible
+
+
+# Regression guard: a visible landing leg must remain usable even when the
+# far-side knee and ankle are occluded at the same instant.
+synthetic_landmarks = [SyntheticLandmark(0.5, 0.5) for _ in range(media_pipe_landmark_count)]
+for name, x, y in (
+    ("left_shoulder", 0.45, 0.25),
+    ("right_shoulder", 0.55, 0.25),
+    ("left_hip", 0.46, 0.54),
+    ("right_hip", 0.54, 0.54),
+    ("left_knee", 0.43, 0.72),
+    ("left_ankle", 0.42, 0.90),
+):
+    synthetic_landmarks[LANDMARK[name]] = SyntheticLandmark(x, y)
+synthetic_landmarks[LANDMARK["right_knee"]] = SyntheticLandmark(0.58, 0.72, visible=0.0)
+synthetic_landmarks[LANDMARK["right_ankle"]] = SyntheticLandmark(0.59, 0.90, visible=0.0)
+assert build_sample(0, synthetic_landmarks, 400, 800) is not None
 
 
 def side_name(side: str, part: str) -> str:
@@ -236,14 +288,20 @@ def joint_angle(first, vertex, third) -> float:
     return math.degrees(math.acos(max(-1.0, min(1.0, cosine))))
 
 
-def contact_knee_angle(sample: Sample, side: str) -> float:
+def contact_knee_angle(sample: Sample, side: str) -> float | None:
     hip = point(sample.landmarks, side_name(side, "hip"), sample.width, sample.height)
     knee = point(sample.landmarks, side_name(side, "knee"), sample.width, sample.height)
     ankle = point(sample.landmarks, side_name(side, "ankle"), sample.width, sample.height)
+    if hip is None or knee is None or ankle is None:
+        return None
     return joint_angle(hip, knee, ankle)
 
 
-def contact_landmark_confidence(sample: Sample, side: str, evidence) -> float:
+def contact_landmark_confidence(sample: Sample, side: str, evidence) -> float | None:
+    hip = point(sample.landmarks, side_name(side, "hip"), sample.width, sample.height)
+    knee = point(sample.landmarks, side_name(side, "knee"), sample.width, sample.height)
+    if hip is None or knee is None:
+        return None
     hip_conf = confidence(sample.landmarks[LANDMARK[side_name(side, "hip")]])
     knee_conf = confidence(sample.landmarks[LANDMARK[side_name(side, "knee")]])
     return min(evidence["confidence"], hip_conf, knee_conf)
@@ -546,22 +604,60 @@ def select_contact_frame_for_window(
         else:
             persistent_candidates.append(current)
     candidates_for_selection = temporal_candidates or persistent_candidates
-    if not candidates_for_selection:
+    selected = (
+        sorted(
+            candidates_for_selection,
+            key=lambda item: (
+                -item.confidence,
+                abs(item.sample.timestamp_ms - window.center_timestamp_ms),
+                item.sample.timestamp_ms,
+            ),
+        )[0]
+        if candidates_for_selection
+        else None
+    )
+    strict_contact = (
+        contact_frame_from_candidate(selected, window, direction, confidence=selected.confidence)
+        if selected is not None
+        else None
+    )
+    if strict_contact is not None:
+        return strict_contact
+    lower_envelope_y = percentile(
+        [candidate.evidence["bottom"][1] for candidate in candidates],
+        kinematic_contact_lower_percentile,
+    )
+    if lower_envelope_y is None:
         return None
-    selected = sorted(
-        candidates_for_selection,
+    kinematic_candidates = [
+        candidate
+        for index, candidate in enumerate(candidates)
+        if is_kinematic_contact_candidate(candidates, index, lower_envelope_y)
+    ]
+    if not kinematic_candidates:
+        return None
+    kinematic_candidate = sorted(
+        kinematic_candidates,
         key=lambda item: (
             -item.confidence,
             abs(item.sample.timestamp_ms - window.center_timestamp_ms),
             item.sample.timestamp_ms,
         ),
     )[0]
-    return contact_frame_from_candidate(selected, window, direction)
+    return contact_frame_from_candidate(
+        kinematic_candidate,
+        window,
+        direction,
+        confidence=kinematic_candidate.confidence * kinematic_contact_confidence_penalty,
+    )
 
 
 def dense_contact_candidate(sample: Sample, side: str, ground_line: GroundLine):
     evidence = foot_bottom(sample, side)
     if evidence is None:
+        return None
+    landmark_confidence = contact_landmark_confidence(sample, side, evidence)
+    if landmark_confidence is None:
         return None
     tolerance = max(1.0, sample.body_scale * dense_ground_tolerance_ratio)
     gap = ground_gap(ground_line, evidence)
@@ -570,7 +666,7 @@ def dense_contact_candidate(sample: Sample, side: str, ground_line: GroundLine):
         0.0,
         min(
             1.0,
-            contact_landmark_confidence(sample, side, evidence)
+            landmark_confidence
             * (0.75 + (0.25 * proximity_factor)),
         ),
     )
@@ -649,18 +745,58 @@ def contact_motion_reason(
     return None
 
 
+def is_kinematic_contact_candidate(
+    candidates: list[ContactFrameCandidate],
+    index: int,
+    lower_envelope_y: float,
+) -> bool:
+    current = candidates[index]
+    if (
+        current.confidence < minimum_contact_confidence
+        or current.evidence["bottom"][1] < lower_envelope_y
+    ):
+        return False
+    previous = candidates[index - 1] if index > 0 else None
+    next_candidate = candidates[index + 1] if index + 1 < len(candidates) else None
+    has_previous = (
+        previous is not None
+        and abs(current.sample.timestamp_ms - previous.sample.timestamp_ms)
+        <= contact_motion_neighbor_gap_ms
+    )
+    has_next = (
+        next_candidate is not None
+        and abs(next_candidate.sample.timestamp_ms - current.sample.timestamp_ms)
+        <= contact_motion_neighbor_gap_ms
+    )
+    if not has_previous and not has_next:
+        return False
+    tolerance = max(1.0, current.sample.body_scale * kinematic_contact_motion_tolerance_ratio)
+    current_y = current.evidence["bottom"][1]
+    return (
+        (not has_previous or current_y >= previous.evidence["bottom"][1] - tolerance)
+        and (
+            not has_next
+            or current_y >= next_candidate.evidence["bottom"][1] - tolerance
+        )
+    )
+
+
 def contact_frame_from_candidate(
     candidate: ContactFrameCandidate,
     window: ContactWindow,
     direction: str,
-) -> ContactFrame:
+    confidence: float,
+) -> ContactFrame | None:
+    knee_angle = contact_knee_angle(candidate.sample, candidate.side)
+    if knee_angle is None:
+        return None
     return ContactFrame(
         timestamp_ms=candidate.sample.timestamp_ms,
         window_center_timestamp_ms=window.center_timestamp_ms,
         side=candidate.side,
         foot_strike_ratio=contact_foot_strike_ratio(candidate.sample, candidate.side, direction),
-        knee_angle_degrees=contact_knee_angle(candidate.sample, candidate.side),
-        confidence=candidate.confidence,
+        knee_angle_degrees=knee_angle,
+        confidence=confidence,
     )
 
 
