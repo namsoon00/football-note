@@ -127,7 +127,11 @@ class RunningCoachSessionAnalysis {
     );
   }
 
-  Map<String, Object?> toMap() {
+  /// Serializes an archived result without forcing every saved session to keep
+  /// the full set of sampled pose frames. Callers that persist many sessions
+  /// can pass a smaller [maxPoseFrames] while in-memory result views retain
+  /// their original evidence.
+  Map<String, Object?> toMap({int maxPoseFrames = 24}) {
     return <String, Object?>{
       'id': id,
       'analyzedAt': analyzedAt.toIso8601String(),
@@ -154,7 +158,9 @@ class RunningCoachSessionAnalysis {
             .map((snapshot) => snapshot.toMap())
             .toList(growable: false),
       if (analysisResult != null)
-        'analysisResult': analysisResult!.historySnapshot().toMap(),
+        'analysisResult': analysisResult!
+            .historySnapshot(maxPoseFrames: maxPoseFrames)
+            .toMap(),
     };
   }
 

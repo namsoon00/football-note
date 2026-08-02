@@ -9,6 +9,10 @@ class RunningCoachHistoryService {
   static const storageKey = 'running_coach_sessions_v1';
   static const maxStoredSessions = 20;
 
+  /// Keep enough timestamped poses for a compact history replay without
+  /// exhausting browser-local storage once a runner reaches the history cap.
+  static const historyPoseFrameLimit = 12;
+
   final OptionRepository _options;
   final String? _sportId;
 
@@ -89,7 +93,9 @@ class RunningCoachHistoryService {
         metricSnapshots: report.rankedInsights
             .map(RunningCoachSessionMetric.fromInsight)
             .toList(growable: false),
-        analysisResult: result.historySnapshot(),
+        analysisResult: result.historySnapshot(
+          maxPoseFrames: historyPoseFrameLimit,
+        ),
         captureContext: captureContext,
         videoPath: archivedVideo?.path,
         // Keep neither a reusable path nor the original filename unless the
@@ -128,7 +134,13 @@ class RunningCoachHistoryService {
 
   Future<void> _persist(List<RunningCoachSessionAnalysis> sessions) async {
     final payload = jsonEncode(
-      sessions.map((session) => session.toMap()).toList(growable: false),
+      sessions
+          .map(
+            (session) => session.toMap(
+              maxPoseFrames: historyPoseFrameLimit,
+            ),
+          )
+          .toList(growable: false),
     );
     await _options.setValue(_storageKey, payload);
   }

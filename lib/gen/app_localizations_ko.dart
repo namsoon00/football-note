@@ -9630,6 +9630,14 @@ class AppLocalizationsKo extends AppLocalizations {
       '분석 기록은 저장됐지만, 이 기기에 영상 사본을 남기지 못했어요. 지금 결과는 계속 확인할 수 있어요.';
 
   @override
+  String get runningCoachAnalysisHistorySaveFailedTitle =>
+      '분석은 완료됐지만 기록에 저장하지 못했어요';
+
+  @override
+  String get runningCoachAnalysisHistorySaveFailedBody =>
+      '이번 결과는 지금 확인할 수 있지만, 이 화면을 닫으면 분석 기록에 남지 않을 수 있어요. 오래된 분석 기록을 지운 뒤 다시 시도해 주세요.';
+
+  @override
   String get runningCoachAnalysisHistoryDetailTitle => '분석 리포트';
 
   @override

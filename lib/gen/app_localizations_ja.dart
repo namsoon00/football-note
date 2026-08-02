@@ -9616,6 +9616,14 @@ class AppLocalizationsJa extends AppLocalizations {
       '分析は保存されましたが、この端末に動画のローカルコピーを残せませんでした。今回の結果は引き続き確認できます。';
 
   @override
+  String get runningCoachAnalysisHistorySaveFailedTitle =>
+      '分析は完了しましたが、履歴に保存できませんでした';
+
+  @override
+  String get runningCoachAnalysisHistorySaveFailedBody =>
+      '今回の結果は確認できますが、この画面を閉じると分析履歴には残らない場合があります。古い分析を削除してからもう一度試してください。';
+
+  @override
   String get runningCoachAnalysisHistoryDetailTitle => '分析レポート';
 
   @override

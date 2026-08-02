@@ -17147,6 +17147,18 @@ abstract class AppLocalizations {
   /// **'The analysis is saved, but this device could not keep a local video copy. You can still review this result now.'**
   String get runningCoachVideoSaveFailedBody;
 
+  /// No description provided for @runningCoachAnalysisHistorySaveFailedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysis is complete, but it was not saved to history'**
+  String get runningCoachAnalysisHistorySaveFailedTitle;
+
+  /// No description provided for @runningCoachAnalysisHistorySaveFailedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You can review this result now, but it may not remain in your analysis history after you close this screen. Delete an older analysis and try again.'**
+  String get runningCoachAnalysisHistorySaveFailedBody;
+
   /// No description provided for @runningCoachAnalysisHistoryDetailTitle.
   ///
   /// In en, this message translates to:

@@ -5482,6 +5482,8 @@
   "runningCoachSaveVideoBody": "Off by default. Turn this on only if you want a local copy kept until you delete the analysis.",
   "runningCoachVideoSaveFailedTitle": "Video was not saved",
   "runningCoachVideoSaveFailedBody": "The analysis is saved, but this device could not keep a local video copy. You can still review this result now.",
+  "runningCoachAnalysisHistorySaveFailedTitle": "Analysis is complete, but it was not saved to history",
+  "runningCoachAnalysisHistorySaveFailedBody": "You can review this result now, but it may not remain in your analysis history after you close this screen. Delete an older analysis and try again.",
   "runningCoachAnalysisHistoryDetailTitle": "Analysis review",
   "runningCoachAnalysisHistoryPrimaryFocus": "Key coaching focus",
   "runningCoachHistoryMetricCount": "{count} metrics",

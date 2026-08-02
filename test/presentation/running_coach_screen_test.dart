@@ -217,6 +217,62 @@ void main() {
   });
 
   testWidgets(
+    'opens the completed analysis when local history persistence fails',
+    (WidgetTester tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: RunningCoachScreen(
+            optionRepository: _FailingHistoryOptionRepository(),
+            analysisService: _SuccessfulRunningVideoAnalysisService(),
+            captureLauncher: (_) async => XFile(
+              '/tmp/completed-running-video.mp4',
+              name: 'completed-running-video.mp4',
+            ),
+          ),
+        ),
+      );
+
+      final captureAction = find.byKey(
+        const ValueKey('running-coach-capture-and-analyze-action'),
+      );
+      await tester.ensureVisible(captureAction);
+      await tester.tap(captureAction);
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const ValueKey('running-coach-analysis-result-list')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(
+          const ValueKey('running-coach-analysis-history-save-failed'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.text('Analysis is complete, but it was not saved to history'),
+        findsOneWidget,
+      );
+      expect(
+          find.text(
+              'Running analysis failed. Try another clip with a clearer side view.'),
+          findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
       'foot strike rig refuses to fabricate a runner without coordinate data',
       (WidgetTester tester) async {
     await tester.binding.setSurfaceSize(const Size(360, 760));
@@ -1455,6 +1511,24 @@ class _PendingRunningVideoAnalysisService extends RunningVideoAnalysisService {
   }
 }
 
+class _SuccessfulRunningVideoAnalysisService
+    extends RunningVideoAnalysisService {
+  @override
+  Future<RunningVideoAnalysisResult> analyzeVideo(XFile video) async {
+    return const RunningVideoAnalysisResult(
+      videoDuration: Duration(seconds: 4),
+      sampledFrames: 14,
+      validFrames: 13,
+      direction: RunningDirection.leftToRight,
+      forwardLeanDegrees: 10,
+      verticalBounceRatio: 0.07,
+      footStrikeDistanceRatio: 0.12,
+      stanceKneeAngleDegrees: 154,
+      elbowAngleDegrees: 92,
+    );
+  }
+}
+
 Map<RunningCoachMetric, RunningMetricQuality> _testDenseMetricQualities() {
   return const <RunningCoachMetric, RunningMetricQuality>{
     RunningCoachMetric.footStrike: RunningMetricQuality(
@@ -1680,6 +1754,46 @@ class _MemoryOptionRepository implements OptionRepository {
 
   @override
   Future<void> setValue(String key, dynamic value) async {
+    _values[key] = value;
+  }
+}
+
+class _FailingHistoryOptionRepository implements OptionRepository {
+  final Map<String, dynamic> _values = <String, dynamic>{};
+
+  @override
+  List<String> getOptions(String key, List<String> defaults) {
+    final value = _values[key];
+    if (value is List) {
+      return value.map((item) => item.toString()).toList(growable: false);
+    }
+    return List<String>.from(defaults);
+  }
+
+  @override
+  List<int> getIntOptions(String key, List<int> defaults) {
+    final value = _values[key];
+    if (value is List) {
+      return value
+          .map((item) => int.tryParse(item.toString()) ?? 0)
+          .toList(growable: false);
+    }
+    return List<int>.from(defaults);
+  }
+
+  @override
+  T? getValue<T>(String key) => _values[key] as T?;
+
+  @override
+  Future<void> saveOptions(String key, List<dynamic> options) async {
+    _values[key] = options;
+  }
+
+  @override
+  Future<void> setValue(String key, dynamic value) async {
+    if (key.contains(RunningCoachHistoryService.storageKey)) {
+      throw StateError('Simulated local storage quota');
+    }
     _values[key] = value;
   }
 }

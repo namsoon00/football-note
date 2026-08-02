@@ -5482,6 +5482,8 @@
   "runningCoachSaveVideoBody": "初期値はオフです。分析を削除するまでこの端末にローカルコピーを残したい場合だけオンにしてください。",
   "runningCoachVideoSaveFailedTitle": "動画を保存できませんでした",
   "runningCoachVideoSaveFailedBody": "分析は保存されましたが、この端末に動画のローカルコピーを残せませんでした。今回の結果は引き続き確認できます。",
+  "runningCoachAnalysisHistorySaveFailedTitle": "分析は完了しましたが、履歴に保存できませんでした",
+  "runningCoachAnalysisHistorySaveFailedBody": "今回の結果は確認できますが、この画面を閉じると分析履歴には残らない場合があります。古い分析を削除してからもう一度試してください。",
   "runningCoachAnalysisHistoryDetailTitle": "分析レポート",
   "runningCoachAnalysisHistoryPrimaryFocus": "主要なコーチングポイント",
   "runningCoachHistoryMetricCount": "{count}項目",
