@@ -14641,7 +14641,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachAnalyzeBody.
   ///
   /// In en, this message translates to:
-  /// **'Choose a 5-15 second side-view clip. You will get one priority cue first, followed by the full five-metric report.'**
+  /// **'Choose a side-view clip up to 60 seconds. The app scans the whole clip, then re-reads contact windows densely for the five-metric report.'**
   String get runningCoachAnalyzeBody;
 
   /// No description provided for @runningCoachCaptureFlowTitle.
@@ -14653,7 +14653,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachCaptureFlowBody.
   ///
   /// In en, this message translates to:
-  /// **'Record or choose a 5-15 second side-view clip for stride-by-stride form analysis.'**
+  /// **'Record or choose a side-view clip up to 60 seconds. The full clip is scanned, then strides and contact windows are analyzed densely.'**
   String get runningCoachCaptureFlowBody;
 
   /// No description provided for @runningCoachCaptureAction.
@@ -14779,7 +14779,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachModeVideoBody.
   ///
   /// In en, this message translates to:
-  /// **'Choose a 5-15 second side-view video to create a form report.'**
+  /// **'Choose a side-view video up to 60 seconds to scan the full clip and create a form report.'**
   String get runningCoachModeVideoBody;
 
   /// No description provided for @runningCoachModeLiveAction.
@@ -14809,7 +14809,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachTipSteadyCamera.
   ///
   /// In en, this message translates to:
-  /// **'Use a steady camera, bright even light, and capture 5-15 seconds with at least 3 clean strides.'**
+  /// **'Use a steady camera and bright, even light. Videos up to 60 seconds are supported; for the fastest reliable result, include at least 3 clean strides in a steady 5–15 second section.'**
   String get runningCoachTipSteadyCamera;
 
   /// No description provided for @runningCoachUploadGuideTitle.
@@ -14839,7 +14839,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachUploadGuideStepDuration.
   ///
   /// In en, this message translates to:
-  /// **'Use a 5-15 second clip with 3-6 clean strides, then trim away walking setup, turns, and stopped frames.'**
+  /// **'Use a clip up to 60 seconds. The app scans it end-to-end, so remove walking setup, repeated turns, and stopped frames when possible.'**
   String get runningCoachUploadGuideStepDuration;
 
   /// No description provided for @runningCoachUploadGuideStepLight.
@@ -14905,7 +14905,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachCaptureGuideChecklistClip.
   ///
   /// In en, this message translates to:
-  /// **'Use a 5–10 second clip with 3–6 clean strides in bright, uncluttered light.'**
+  /// **'For the fastest reliable result, use a bright 5–15 second clip with 3–6 clean strides. Videos up to 60 seconds can also be analyzed.'**
   String get runningCoachCaptureGuideChecklistClip;
 
   /// No description provided for @runningCoachCaptureGuideAnalysisTitle.
@@ -15626,19 +15626,19 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachDenseContactEvidenceBody.
   ///
   /// In en, this message translates to:
-  /// **'Foot strike and stance-knee values come only from re-read frames around validated contact.'**
+  /// **'The full clip is scanned first. Foot-strike and stance-knee values come only from high-density re-read frames around validated contact.'**
   String get runningCoachDenseContactEvidenceBody;
 
   /// No description provided for @runningCoachDenseContactCoarseSamplesLabel.
   ///
   /// In en, this message translates to:
-  /// **'Coarse'**
+  /// **'Full scan'**
   String get runningCoachDenseContactCoarseSamplesLabel;
 
   /// No description provided for @runningCoachDenseContactDenseSamplesLabel.
   ///
   /// In en, this message translates to:
-  /// **'Dense'**
+  /// **'Contact detail'**
   String get runningCoachDenseContactDenseSamplesLabel;
 
   /// No description provided for @runningCoachDenseContactWindowsLabel.
@@ -17085,13 +17085,13 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachVideoTooLong.
   ///
   /// In en, this message translates to:
-  /// **'The video is too long. Trim it to 15 seconds or less.'**
+  /// **'The video is too long. Trim it to 60 seconds or less.'**
   String get runningCoachVideoTooLong;
 
   /// No description provided for @runningCoachVideoTooLarge.
   ///
   /// In en, this message translates to:
-  /// **'The video is too large for on-device analysis. Trim or export a smaller 5–15 second clip.'**
+  /// **'The video is too large for on-device analysis. Trim or export a smaller clip up to 60 seconds.'**
   String get runningCoachVideoTooLarge;
 
   /// No description provided for @runningCoachVideoTooBlurry.

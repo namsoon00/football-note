@@ -8134,14 +8134,14 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachAnalyzeBody =>
-      '5〜15秒の横向き動画を1本選びます。最優先のキューに続いて、5項目すべてのレポートを表示します。';
+      '最大60秒の横向き動画を1本選びます。動画全体を走査した後、接地の区間を高密度で再解析して5項目のレポートを表示します。';
 
   @override
   String get runningCoachCaptureFlowTitle => 'ランニング動画を分析';
 
   @override
   String get runningCoachCaptureFlowBody =>
-      '横から撮影した5〜15秒の動画を使って、ストライドごとにフォームを分析します。';
+      '最大60秒の横向き動画全体を走査し、ストライドと接地区間を高密度で分析します。';
 
   @override
   String get runningCoachCaptureAction => '今すぐ撮影';
@@ -8209,7 +8209,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachModeLiveBody => '全身が入る横向きの構図で数歩走ると、すぐにガイドを表示します。';
 
   @override
-  String get runningCoachModeVideoBody => '横から撮影した5〜15秒の動画を選ぶと、フォームレポートを作成します。';
+  String get runningCoachModeVideoBody =>
+      '最大60秒の横向き動画を選ぶと、全区間を走査してフォームレポートを作成します。';
 
   @override
   String get runningCoachModeLiveAction => 'ライブコーチングを開始';
@@ -8226,7 +8227,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachTipSteadyCamera =>
-      'カメラを固定し、明るく均一な光で、きれいな3歩以上を含む5〜15秒を撮影します。';
+      'カメラを固定し、明るく均一な光で撮影してください。最大60秒まで対応し、最も速く安定した結果には3歩以上を含む安定した5〜15秒の区間が適しています。';
 
   @override
   String get runningCoachUploadGuideTitle => '動画アップロードガイド';
@@ -8245,7 +8246,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachUploadGuideStepDuration =>
-      '3〜6歩のきれいなストライドを含む5〜15秒を使い、準備歩き、ターン、停止フレームは切ります。';
+      '最大60秒の動画を使えます。アプリは全区間を走査するため、準備歩き、繰り返すターン、停止場面はできるだけ外してください。';
 
   @override
   String get runningCoachUploadGuideStepLight =>
@@ -8284,7 +8285,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachCaptureGuideChecklistClip =>
-      '明るく単純な背景で、きれいな3〜6歩を含む5〜10秒の動画を使います。';
+      '最も速く安定した結果には、明るく単純な背景で3〜6歩を含む5〜15秒の動画が適しています。最大60秒の動画も分析できます。';
 
   @override
   String get runningCoachCaptureGuideAnalysisTitle => '分析結果は自分の動画だけから';
@@ -8709,13 +8710,13 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachDenseContactEvidenceBody =>
-      '足の接地距離と接地膝の値は、検証済み接地の周辺で再読み取りしたフレームだけを使います。';
+      'まず動画全体を走査し、足の接地距離と接地膝の値には検証済み接地の周辺で高密度に再読み取りしたフレームだけを使います。';
 
   @override
-  String get runningCoachDenseContactCoarseSamplesLabel => '粗い読取';
+  String get runningCoachDenseContactCoarseSamplesLabel => '全体走査';
 
   @override
-  String get runningCoachDenseContactDenseSamplesLabel => '高密度';
+  String get runningCoachDenseContactDenseSamplesLabel => '接地詳細';
 
   @override
   String get runningCoachDenseContactWindowsLabel => '区間';
@@ -9584,11 +9585,11 @@ class AppLocalizationsJa extends AppLocalizations {
       'ビデオが短すぎます。少なくともいくつかのランニングステップを記録します。';
 
   @override
-  String get runningCoachVideoTooLong => '動画が長すぎます。15秒以下にトリミングしてもう一度試してください。';
+  String get runningCoachVideoTooLong => '動画が長すぎます。60秒以下にトリミングしてもう一度試してください。';
 
   @override
   String get runningCoachVideoTooLarge =>
-      '端末上で分析するには動画ファイルが大きすぎます。5〜15秒の小さいクリップにして書き出してください。';
+      '端末上で分析するには動画ファイルが大きすぎます。60秒以下のより小さいクリップにして書き出してください。';
 
   @override
   String get runningCoachVideoTooBlurry =>

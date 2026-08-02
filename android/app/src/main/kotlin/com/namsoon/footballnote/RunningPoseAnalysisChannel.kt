@@ -101,16 +101,17 @@ class RunningPoseAnalysisChannel(
             if (durationMs > maxVideoDurationMs) {
                 throw AnalysisException(
                     "video_too_long",
-                    "Please trim the running clip to 15 seconds or less.",
+                    "Please trim the running clip to 60 seconds or less.",
                 )
             }
 
             val coarseLandmarker = makePoseLandmarker()
             coarsePoseLandmarker = coarseLandmarker
+            val coarseFrameTimestamps = coarseSampleTimestamps(durationMs)
             val coarsePass = runPosePass(
                 poseLandmarker = coarseLandmarker,
                 retriever = retriever,
-                timestampsMs = coarseSampleTimestamps(durationMs),
+                timestampsMs = coarseFrameTimestamps,
                 collectSharpness = true,
             )
             val frameSamples = coarsePass.samples
@@ -244,11 +245,15 @@ class RunningPoseAnalysisChannel(
             val armConfidenceValues = frameSamples
                 .mapNotNull { it.armLandmarkConfidence() }
             val armConfidence = armConfidenceValues.average()
+            val analyzedFrameTimestamps = (coarseFrameTimestamps + denseTimestamps).toSet()
+            val validFrameTimestamps = (frameSamples + densePass.samples)
+                .map { it.timestampMs }
+                .toSet()
 
             return mapOf(
                 "durationMs" to durationMs.toInt(),
-                "sampledFrames" to sampleCount,
-                "validFrames" to frameSamples.size,
+                "sampledFrames" to analyzedFrameTimestamps.size,
+                "validFrames" to validFrameTimestamps.size,
                 "direction" to direction.token,
                 "forwardLeanDegrees" to roundTo3(leanDegrees),
                 "verticalBounceRatio" to roundTo3(bounceRatio.coerceAtLeast(0.0)),
@@ -280,9 +285,11 @@ class RunningPoseAnalysisChannel(
                     ),
                 ),
                 "coarseSamples" to sampleSummaryPayload(
-                    attemptedFrames = sampleCount,
+                    attemptedFrames = coarseFrameTimestamps.size,
                     validFrames = coarsePass.samples.size,
                     poseFrameCount = coarsePass.poseFrames.size,
+                    maxFrameBudget = maxCoarseFrameBudget,
+                    targetFps = coarseTargetFps,
                 ),
                 "denseSamples" to sampleSummaryPayload(
                     attemptedFrames = denseTimestamps.size,
@@ -384,19 +391,19 @@ class RunningPoseAnalysisChannel(
             "This video is too blurry for precise running coaching.",
         )
 
-    private fun coarseSampleTimestamps(durationMs: Long): List<Long> =
-        (0 until sampleCount).map { index ->
-            val fraction = if (sampleCount == 1) {
-                0.5
-            } else {
-                sampleStartFraction +
-                    (sampleEndFraction - sampleStartFraction) *
-                    (index.toDouble() / (sampleCount - 1))
-            }
-            (durationMs.toDouble() * fraction)
+    private fun coarseSampleTimestamps(durationMs: Long): List<Long> {
+        val requestedIntervalCount =
+            ((durationMs + coarseFrameIntervalMs - 1L) / coarseFrameIntervalMs)
+                .coerceAtLeast(1L)
+        val intervalCount = requestedIntervalCount
+            .coerceAtMost((maxCoarseFrameBudget - 1).toLong())
+            .toInt()
+        return (0..intervalCount).map { index ->
+            ((durationMs.toDouble() * index) / intervalCount)
                 .roundToLong()
                 .coerceIn(0L, durationMs)
         }
+    }
 
     private fun runPosePass(
         poseLandmarker: PoseLandmarker,
@@ -1712,7 +1719,9 @@ class RunningPoseAnalysisChannel(
     companion object {
         private const val channelName = "football_note/running_pose_analysis"
         private const val methodName = "analyzeRunningVideo"
-        private const val sampleCount = 14
+        private const val coarseTargetFps = 10
+        private const val coarseFrameIntervalMs = 100L
+        private const val maxCoarseFrameBudget = 240
         private const val minimumValidFrames = 6
         private const val minimumSharpnessSampleCount = 6
         private const val minimumMedianSharpness = 0.018
@@ -1722,19 +1731,17 @@ class RunningPoseAnalysisChannel(
         private const val sharpnessSampleWidth = 96
         private const val sharpnessSampleHeight = 64
         private const val minVideoDurationMs = 1500L
-        private const val maxVideoDurationMs = 15000L
+        private const val maxVideoDurationMs = 60000L
         private const val minimumLikelihood = 0.35f
         private const val minimumBodyScalePx = 40.0
         private const val mediaPipePoseLandmarkCount = 33
-        private const val sampleStartFraction = 0.15
-        private const val sampleEndFraction = 0.85
         private const val stationaryThresholdRatio = 0.12
         private const val denseTargetFps = 30
         private const val denseFrameIntervalMs = 33L
-        private const val denseWindowRadiusMs = 360L
-        private const val maxDenseFrameBudget = 48
-        private const val maxContactWindows = 6
-        private const val minimumContactCenterSeparationMs = 120L
+        private const val denseWindowRadiusMs = 500L
+        private const val maxDenseFrameBudget = 240
+        private const val maxContactWindows = 8
+        private const val minimumContactCenterSeparationMs = 180L
         private const val minimumValidatedContactFrames = 3
         private const val minimumContactFrameConfidence = 0.34
         private const val contactProxyConfidencePenalty = 0.60

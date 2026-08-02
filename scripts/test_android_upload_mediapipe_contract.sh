@@ -191,22 +191,44 @@ require(
     "iOS sharpness gate must keep the calibrated 0.018 threshold",
 )
 require(
-    re.search(r"private const val sampleCount\s*=\s*14\b", channel_text) is not None,
-    "upload channel must keep the 14-frame sampling window",
+    re.search(r"private const val coarseTargetFps\s*=\s*10\b", channel_text) is not None,
+    "Android upload analysis must scan short clips at approximately 10 fps",
 )
 require(
-    re.search(r"private static let sampleCount\s*=\s*14\b", ios_text) is not None,
-    "iOS running channel must keep the 14-frame sampling window",
+    re.search(r"private static let coarseTargetFps\s*=\s*10\b", ios_text) is not None,
+    "iOS upload analysis must scan short clips at approximately 10 fps",
 )
 require(
-    re.search(r"private const val maxVideoDurationMs\s*=\s*15000L\b", channel_text)
+    re.search(r"private const val coarseFrameIntervalMs\s*=\s*100L\b", channel_text) is not None
+    and re.search(r"private const val maxCoarseFrameBudget\s*=\s*240\b", channel_text) is not None,
+    "Android upload analysis must retain a bounded 240-frame whole-clip scan",
+)
+require(
+    re.search(r"private static let coarseFrameIntervalMs\s*=\s*100\b", ios_text) is not None
+    and re.search(r"private static let maxCoarseFrameBudget\s*=\s*240\b", ios_text) is not None,
+    "iOS upload analysis must retain a bounded 240-frame whole-clip scan",
+)
+require(
+    re.search(r"private const val maxVideoDurationMs\s*=\s*60000L\b", channel_text)
     is not None,
-    "Android upload analysis must reject clips longer than 15 seconds",
+    "Android upload analysis must accept clips through 60 seconds",
 )
 require(
-    re.search(r"private static let maxVideoDurationMs\s*=\s*15000\b", ios_text)
+    re.search(r"private static let maxVideoDurationMs\s*=\s*60000\b", ios_text)
     is not None,
-    "iOS upload analysis must reject clips longer than 15 seconds",
+    "iOS upload analysis must accept clips through 60 seconds",
+)
+require(
+    "coarseFrameTimestamps = coarseSampleTimestamps(durationMs)" in channel_text
+    and "attemptedFrames = coarseFrameTimestamps.size" in channel_text
+    and "analyzedFrameTimestamps" in channel_text,
+    "Android must report the actual whole-clip and dense frame counts",
+)
+require(
+    "coarseFrameTimestamps = coarseSampleTimestamps(durationMs: durationMs)" in ios_text
+    and "attemptedFrames: coarseFrameTimestamps.count" in ios_text
+    and "analyzedFrameTimestamps" in ios_text,
+    "iOS must report the actual whole-clip and dense frame counts",
 )
 require(
     re.search(r"private const val minimumValidatedContactFrames\s*=\s*3\b", channel_text)
@@ -243,23 +265,23 @@ ios_budget = re.search(r"private static let maxDenseFrameBudget\s*=\s*(\d+)\b", 
 require(android_budget is not None, "Android dense pass must define a hard maxDenseFrameBudget")
 require(ios_budget is not None, "iOS dense pass must define a hard maxDenseFrameBudget")
 if android_budget is not None:
-    require(int(android_budget.group(1)) <= 48, "Android dense frame budget must stay at or below 48")
+    require(int(android_budget.group(1)) == 240, "Android dense frame budget must be 240")
 if ios_budget is not None:
-    require(int(ios_budget.group(1)) <= 48, "iOS dense frame budget must stay at or below 48")
+    require(int(ios_budget.group(1)) == 240, "iOS dense frame budget must be 240")
 require(
     re.search(r"private const val denseFrameIntervalMs\s*=\s*33L\b", channel_text)
     is not None,
     "Android dense pass must target approximately 30 fps",
 )
 require(
-    re.search(r"private const val denseWindowRadiusMs\s*=\s*360L\b", channel_text)
+    re.search(r"private const val denseWindowRadiusMs\s*=\s*500L\b", channel_text)
     is not None,
-    "Android dense contact recovery window must match the web analyzer at 360 ms",
+    "Android dense contact recovery window must match the web analyzer at 500 ms",
 )
 require(
-    re.search(r"private static let denseWindowRadiusMs\s*=\s*360\b", ios_text)
+    re.search(r"private static let denseWindowRadiusMs\s*=\s*500\b", ios_text)
     is not None,
-    "iOS dense contact recovery window must match the web analyzer at 360 ms",
+    "iOS dense contact recovery window must match the web analyzer at 500 ms",
 )
 require(
     re.search(r"private static let denseFrameIntervalMs\s*=\s*33\b", ios_text)

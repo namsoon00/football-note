@@ -25,7 +25,7 @@ class RunningCaptureScreen extends StatefulWidget {
     super.key,
     this.cameraProvider = availableCameras,
     this.minimumDuration = const Duration(seconds: 5),
-    this.maximumDuration = const Duration(seconds: 15),
+    this.maximumDuration = const Duration(seconds: 60),
   });
 
   @override

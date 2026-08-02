@@ -37,9 +37,9 @@ videos = [
     Path("assets/videos/running_coach_portrait_side_view_sample.mp4"),
     Path("assets/videos/running_coach_mistake_sample.mp4"),
 ]
-sample_count = 14
-sample_start = 0.15
-sample_end = 0.85
+coarse_target_fps = 10
+coarse_frame_interval_ms = 100
+max_coarse_frame_budget = 240
 min_confidence = 0.35
 minimum_valid_frames = 6
 minimum_detected_frames = 10
@@ -50,10 +50,10 @@ minimum_contact_confidence = 0.34
 media_pipe_landmark_count = 33
 dense_target_fps = 30
 dense_interval_ms = 33
-dense_window_radius_ms = 360
-max_dense_frame_budget = 48
-max_contact_windows = 6
-minimum_contact_center_separation_ms = 120
+dense_window_radius_ms = 500
+max_dense_frame_budget = 240
+max_contact_windows = 8
+minimum_contact_center_separation_ms = 180
 coarse_ground_tolerance_ratio = 0.15
 dense_ground_tolerance_ratio = 0.16
 local_extremum_tolerance_ratio = 0.035
@@ -342,12 +342,23 @@ def options():
 
 
 def coarse_timestamps(duration_ms: int) -> list[int]:
-    timestamps = []
-    for index in range(sample_count):
-        progress = 0.5 if sample_count == 1 else index / (sample_count - 1)
-        fraction = sample_start + ((sample_end - sample_start) * progress)
-        timestamps.append(min(duration_ms, max(0, round(duration_ms * fraction))))
-    return timestamps
+    requested_interval_count = max(1, math.ceil(duration_ms / coarse_frame_interval_ms))
+    interval_count = min(max_coarse_frame_budget - 1, requested_interval_count)
+    return [
+        min(duration_ms, max(0, round((duration_ms * index) / interval_count)))
+        for index in range(interval_count + 1)
+    ]
+
+
+assert coarse_target_fps == 1000 // coarse_frame_interval_ms
+assert coarse_timestamps(15_000) == list(range(0, 15_001, 100))
+long_scan_timestamps = coarse_timestamps(60_000)
+assert len(long_scan_timestamps) == max_coarse_frame_budget
+assert long_scan_timestamps[0] == 0 and long_scan_timestamps[-1] == 60_000
+assert all(
+    later > earlier
+    for earlier, later in zip(long_scan_timestamps, long_scan_timestamps[1:])
+)
 
 
 def frame_at_timestamp(capture, fps: float, frame_count: int, timestamp_ms: int):
@@ -662,11 +673,12 @@ for video in videos:
     fps = float(capture.get(cv2.CAP_PROP_FPS) or dense_target_fps)
     duration_ms = max(0, round((frame_count / max(fps, 1.0)) * 1000))
 
+    coarse_frame_timestamps = coarse_timestamps(duration_ms)
     coarse_pass = run_pose_pass(
         capture,
         fps=fps,
         frame_count=frame_count,
-        timestamps_ms=coarse_timestamps(duration_ms),
+        timestamps_ms=coarse_frame_timestamps,
     )
     windows, ground_line = derive_contact_windows(coarse_pass["samples"], duration_ms)
     dense_timestamps = dense_timestamps_for_windows(windows, duration_ms)
@@ -702,6 +714,7 @@ for video in videos:
         for earlier, later in zip(dense_timestamps, dense_timestamps[1:])
     )
     dense_budget_ok = len(dense_timestamps) <= max_dense_frame_budget
+    coarse_budget_ok = len(coarse_frame_timestamps) <= max_coarse_frame_budget
     dense_source_timestamps = {frame.timestamp_ms for frame in contact_frames}
     unique_contact_event_count = len(dense_source_timestamps)
     bounded_event_selection = len(contact_frames) <= len(windows)
@@ -736,6 +749,7 @@ for video in videos:
         and len(coarse_pass["samples"]) >= minimum_valid_frames
         and len(windows) > 0
         and len(dense_timestamps) > 0
+        and coarse_budget_ok
         and dense_budget_ok
         and dense_timestamps_increasing
         and unique_contact_event_count >= minimum_validated_contact_frames
@@ -747,7 +761,7 @@ for video in videos:
     ) else "FAIL"
     overall_ok = overall_ok and status == "PASS"
     print(
-        f"{video.name}: coarse={len(coarse_pass['samples'])}/{sample_count} "
+        f"{video.name}: coarse={len(coarse_pass['samples'])}/{len(coarse_frame_timestamps)} "
         f"dense={len(dense_pass['samples'])}/{len(dense_timestamps)} "
         f"budget={len(dense_timestamps)}/{max_dense_frame_budget} "
         f"windows={len(windows)} contactFrames={len(contact_frames)} "

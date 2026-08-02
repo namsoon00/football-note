@@ -4,26 +4,27 @@
   const config = Object.freeze({
     taskVersion: '0.10.35',
     minVideoDurationMs: 1500,
-    maxVideoDurationMs: 15000,
+    maxVideoDurationMs: 60000,
     minConfidence: 0.35,
     minValidFrames: 6,
-    sampleCount: 14,
-    sampleStartFraction: 0.15,
-    sampleEndFraction: 0.85,
+    // Read the whole clip at a useful temporal density first. Short clips
+    // receive an approximately 10 fps scan; long clips are still bounded so
+    // an on-device analysis cannot exhaust the browser or phone.
+    coarseTargetFps: 10,
+    coarseFrameIntervalMs: 100,
+    maxCoarseFrames: 240,
     minMedianSharpness: 0.018,
     minSharpnessSamples: 6,
     minBodyScalePx: 40,
     stationaryThresholdRatio: 0.12,
     denseIntervalMs: 33,
-    // The coarse pass is intentionally light-weight, so its strongest foot
-    // position can be a few hundred milliseconds away from the true contact
-    // in a longer clip. Give the dense pass enough room to recover that
-    // moment, then distribute its budget across the full window below.
-    denseWindowRadiusMs: 360,
+    // Coarse candidates can be up to one scan interval away from a true
+    // contact. Recover a full second around each candidate at 30 fps.
+    denseWindowRadiusMs: 500,
     denseTargetFps: 30,
-    maxDenseFrames: 48,
-    maxContactWindows: 6,
-    minContactSeparationMs: 120,
+    maxDenseFrames: 240,
+    maxContactWindows: 8,
+    minContactSeparationMs: 180,
     minValidatedContacts: 3,
     minContactConfidence: 0.34,
     groundLineSampleFraction: 0.45,
@@ -190,14 +191,17 @@
   }
 
   function sampleTimestamps(durationMs) {
-    return Array.from({ length: config.sampleCount }, (_, sampleIndex) => {
-      const progress = config.sampleCount === 1
-        ? 0.5
-        : sampleIndex / (config.sampleCount - 1);
-      const fraction = config.sampleStartFraction +
-        (config.sampleEndFraction - config.sampleStartFraction) * progress;
-      return Math.round(durationMs * fraction);
-    });
+    const safeDurationMs = Math.max(0, Math.round(durationMs));
+    const intervalCount = Math.max(
+      1,
+      Math.min(
+        config.maxCoarseFrames - 1,
+        Math.ceil(safeDurationMs / config.coarseFrameIntervalMs),
+      ),
+    );
+    return Array.from({ length: intervalCount + 1 }, (_, index) =>
+      Math.round((safeDurationMs * index) / intervalCount),
+    );
   }
 
   function landmarkConfidence(landmark) {
@@ -959,16 +963,17 @@
       if (durationMs > config.maxVideoDurationMs) {
         throw createError(
           'video_too_long',
-          'Please trim the running clip to 15 seconds or less.',
+          'Please trim the running clip to 60 seconds or less.',
         );
       }
       if (video.videoWidth <= 0 || video.videoHeight <= 0) {
         throw createError('web_video_decode_failed', 'The selected video has no readable frames.');
       }
 
+      const coarseFrameTimes = sampleTimestamps(durationMs);
       let coarse;
       try {
-        coarse = await runPosePass(video, sampleTimestamps(durationMs), true);
+        coarse = await runPosePass(video, coarseFrameTimes, true);
       } catch (error) {
         if (error?.code) throw error;
         throw createError('mediapipe_pose_failed', error?.message || 'MediaPipe pose inference failed.');
@@ -1053,10 +1058,16 @@
           ? null
           : 'limited_contact_samples';
 
+      const analyzedFrameTimestamps = new Set([...coarseFrameTimes, ...denseFrameTimes]);
+      const validFrameTimestamps = new Set([
+        ...coarse.samples.map((sample) => sample.timestampMs),
+        ...dense.samples.map((sample) => sample.timestampMs),
+      ]);
+
       return {
         durationMs,
-        sampledFrames: config.sampleCount,
-        validFrames: coarse.samples.length,
+        sampledFrames: analyzedFrameTimestamps.size,
+        validFrames: validFrameTimestamps.size,
         direction,
         forwardLeanDegrees: round3(leanDegrees),
         verticalBounceRatio: round3(Math.max(0, bounceRatio)),
@@ -1071,9 +1082,11 @@
           armCarriage: metricQuality(average(armConfidenceValues), armConfidenceValues.length),
         },
         coarseSamples: {
-          attemptedFrames: config.sampleCount,
+          attemptedFrames: coarseFrameTimes.length,
           validFrames: coarse.samples.length,
           poseFrameCount: coarse.poseFrames.length,
+          maxFrameBudget: config.maxCoarseFrames,
+          targetFps: config.coarseTargetFps,
         },
         denseSamples: {
           attemptedFrames: denseFrameTimes.length,

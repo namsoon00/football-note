@@ -8351,14 +8351,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachAnalyzeBody =>
-      'Choose a 5-15 second side-view clip. You will get one priority cue first, followed by the full five-metric report.';
+      'Choose a side-view clip up to 60 seconds. The app scans the whole clip, then re-reads contact windows densely for the five-metric report.';
 
   @override
   String get runningCoachCaptureFlowTitle => 'Analyze a running video';
 
   @override
   String get runningCoachCaptureFlowBody =>
-      'Record or choose a 5-15 second side-view clip for stride-by-stride form analysis.';
+      'Record or choose a side-view clip up to 60 seconds. The full clip is scanned, then strides and contact windows are analyzed densely.';
 
   @override
   String get runningCoachCaptureAction => 'Record now';
@@ -8431,7 +8431,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachModeVideoBody =>
-      'Choose a 5-15 second side-view video to create a form report.';
+      'Choose a side-view video up to 60 seconds to scan the full clip and create a form report.';
 
   @override
   String get runningCoachModeLiveAction => 'Start live coaching';
@@ -8449,7 +8449,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachTipSteadyCamera =>
-      'Use a steady camera, bright even light, and capture 5-15 seconds with at least 3 clean strides.';
+      'Use a steady camera and bright, even light. Videos up to 60 seconds are supported; for the fastest reliable result, include at least 3 clean strides in a steady 5–15 second section.';
 
   @override
   String get runningCoachUploadGuideTitle => 'Video upload guide';
@@ -8468,7 +8468,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachUploadGuideStepDuration =>
-      'Use a 5-15 second clip with 3-6 clean strides, then trim away walking setup, turns, and stopped frames.';
+      'Use a clip up to 60 seconds. The app scans it end-to-end, so remove walking setup, repeated turns, and stopped frames when possible.';
 
   @override
   String get runningCoachUploadGuideStepLight =>
@@ -8507,7 +8507,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachCaptureGuideChecklistClip =>
-      'Use a 5–10 second clip with 3–6 clean strides in bright, uncluttered light.';
+      'For the fastest reliable result, use a bright 5–15 second clip with 3–6 clean strides. Videos up to 60 seconds can also be analyzed.';
 
   @override
   String get runningCoachCaptureGuideAnalysisTitle =>
@@ -8945,13 +8945,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachDenseContactEvidenceBody =>
-      'Foot strike and stance-knee values come only from re-read frames around validated contact.';
+      'The full clip is scanned first. Foot-strike and stance-knee values come only from high-density re-read frames around validated contact.';
 
   @override
-  String get runningCoachDenseContactCoarseSamplesLabel => 'Coarse';
+  String get runningCoachDenseContactCoarseSamplesLabel => 'Full scan';
 
   @override
-  String get runningCoachDenseContactDenseSamplesLabel => 'Dense';
+  String get runningCoachDenseContactDenseSamplesLabel => 'Contact detail';
 
   @override
   String get runningCoachDenseContactWindowsLabel => 'Windows';
@@ -9864,11 +9864,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachVideoTooLong =>
-      'The video is too long. Trim it to 15 seconds or less.';
+      'The video is too long. Trim it to 60 seconds or less.';
 
   @override
   String get runningCoachVideoTooLarge =>
-      'The video is too large for on-device analysis. Trim or export a smaller 5–15 second clip.';
+      'The video is too large for on-device analysis. Trim or export a smaller clip up to 60 seconds.';
 
   @override
   String get runningCoachVideoTooBlurry =>
