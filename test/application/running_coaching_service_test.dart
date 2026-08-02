@@ -114,7 +114,8 @@ void main() {
     );
   });
 
-  test('prefers a reliable focus over a lower-scored contact proxy', () {
+  test('withholds all coaching when fresh metric qualities lack video frames',
+      () {
     const result = RunningVideoAnalysisResult(
       videoDuration: Duration(seconds: 6),
       sampledFrames: 14,
@@ -153,8 +154,14 @@ void main() {
 
     final report = service.buildReport(result);
 
-    expect(report.primaryFocus?.metric, RunningCoachMetric.posture);
-    expect(report.primaryFocus?.quality.isLowConfidence, isFalse);
+    expect(report.primaryFocus, isNull);
+    expect(report.overallScore, 0);
+    expect(
+      report.insights.every(
+        (insight) => !insight.quality.isReliableForCoaching,
+      ),
+      isTrue,
+    );
   });
 
   test('excludes low-confidence contact proxies from score and next goal', () {
@@ -196,12 +203,50 @@ void main() {
 
     final report = service.buildReport(result);
 
-    expect(report.overallScore, 100);
-    expect(report.primaryFocus?.metric, RunningCoachMetric.posture);
-    expect(report.primaryFocus?.quality.isReliableForCoaching, isTrue);
+    expect(report.overallScore, 0);
+    expect(report.primaryFocus, isNull);
     expect(report.focusPriorityByMetric[RunningCoachMetric.footStrike], isNull);
     expect(
         report.focusPriorityByMetric[RunningCoachMetric.kneeFlexion], isNull);
+  });
+
+  test('requires paired contact evidence before lower-body coaching', () {
+    final result = RunningVideoAnalysisResult(
+      videoDuration: const Duration(seconds: 4),
+      sampledFrames: 14,
+      validFrames: 12,
+      direction: RunningDirection.leftToRight,
+      forwardLeanDegrees: 10,
+      verticalBounceRatio: 0.06,
+      footStrikeDistanceRatio: 0.36,
+      stanceKneeAngleDegrees: 175,
+      elbowAngleDegrees: 92,
+      metricQualities: const <RunningCoachMetric, RunningMetricQuality>{
+        RunningCoachMetric.footStrike: RunningMetricQuality(
+          confidence: 0.92,
+          sampleCount: 3,
+        ),
+        RunningCoachMetric.kneeFlexion: RunningMetricQuality(
+          confidence: 0.92,
+          sampleCount: 3,
+        ),
+      },
+      poseFrames: <RunningPoseFrame>[_frameForEvidenceGate()],
+    );
+
+    final report = service.buildReport(result);
+    final footStrike = report.insights.firstWhere(
+      (insight) => insight.metric == RunningCoachMetric.footStrike,
+    );
+    final knee = report.insights.firstWhere(
+      (insight) => insight.metric == RunningCoachMetric.kneeFlexion,
+    );
+
+    expect(footStrike.quality.reason, 'missing_contact_evidence');
+    expect(knee.quality.reason, 'missing_contact_evidence');
+    expect(footStrike.quality.isReliableForCoaching, isFalse);
+    expect(knee.quality.isReliableForCoaching, isFalse);
+    expect(report.overallScore, 0);
   });
 
   test('custom thresholds can tune the coaching report', () {
@@ -247,4 +292,26 @@ void main() {
     expect(report.insights.first.finding, RunningCoachFinding.postureAligned);
     expect(report.insights.first.status, RunningCoachStatus.watch);
   });
+}
+
+RunningPoseFrame _frameForEvidenceGate() {
+  return RunningPoseFrame(
+    timestamp: Duration.zero,
+    imageWidth: 720,
+    imageHeight: 1280,
+    landmarks: List<RunningVideoPoseLandmark>.unmodifiable(
+      List<RunningVideoPoseLandmark>.generate(
+        mediaPipePoseLandmarkCount,
+        (index) => RunningVideoPoseLandmark(
+          index: index,
+          x: 0.5,
+          y: 0.5,
+          z: 0,
+          visibility: 0.95,
+          presence: 0.95,
+          confidence: 0.95,
+        ),
+      ),
+    ),
+  );
 }

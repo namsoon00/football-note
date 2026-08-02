@@ -8721,7 +8721,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachDenseContactWindowsLabel => '区間';
 
   @override
+  String get runningCoachDenseContactCandidateFramesLabel => '接地候補フレーム';
+
+  @override
   String get runningCoachDenseContactFramesLabel => '接地フレーム';
+
+  @override
+  String runningCoachDenseContactVerificationProgress(
+      int verified, int required) {
+    return '$verified/$required回を検証';
+  }
 
   @override
   String get runningCoachDenseContactConfidenceLabel => '根拠';
@@ -8927,6 +8936,39 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get runningCoachEvidenceReasonMissingMeasuredFrames =>
       '保存済み姿勢フレームに、この指標を防御的に読める瞬間が含まれていません。';
+
+  @override
+  String get runningCoachObservedValueBadge => '動画の観察値';
+
+  @override
+  String get runningCoachObservedValueLabel => '動画の観察値';
+
+  @override
+  String get runningCoachObservedValueBody =>
+      'この値は動画で観察された座標です。根拠が十分ではないため、スコア・良い/改善が必要の判定・ドリルには使っていません。';
+
+  @override
+  String get runningCoachMeasurementUnavailableValue => '確定測定値なし';
+
+  @override
+  String get runningCoachContactRejectionMissingFootLandmark =>
+      '接地候補区間で足と足首のランドマークを十分に追跡できませんでした。両足が常に画面に入るように撮影してください。';
+
+  @override
+  String get runningCoachContactRejectionOutsideGround =>
+      '足の位置を地面の線の近くで繰り返し確認できませんでした。カメラを固定し、靴と床の線が一緒に入るように撮影してください。';
+
+  @override
+  String get runningCoachContactRejectionLowConfidence =>
+      '接地候補区間の関節信頼度が低いです。明るく均一な場所で、カメラを揺らさずに撮影してください。';
+
+  @override
+  String get runningCoachContactRejectionUnstableMotion =>
+      '足の上下動が安定した接地の瞬間になりませんでした。3〜6歩が鮮明な横向き動画を使ってください。';
+
+  @override
+  String get runningCoachContactRejectionInsufficientMotionWindow =>
+      '接地前後の連続フレームが足りず、足の動きを確認できませんでした。一定のペースで5〜10秒撮影してください。';
 
   @override
   String get runningCoachEvidenceContactLabel => '接地の根拠';

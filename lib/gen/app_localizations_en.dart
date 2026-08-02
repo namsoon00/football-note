@@ -8957,7 +8957,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachDenseContactWindowsLabel => 'Windows';
 
   @override
+  String get runningCoachDenseContactCandidateFramesLabel =>
+      'Contact candidates';
+
+  @override
   String get runningCoachDenseContactFramesLabel => 'Contact frames';
+
+  @override
+  String runningCoachDenseContactVerificationProgress(
+      int verified, int required) {
+    return '$verified/$required verified';
+  }
 
   @override
   String get runningCoachDenseContactConfidenceLabel => 'Evidence';
@@ -9169,6 +9179,40 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get runningCoachEvidenceReasonMissingMeasuredFrames =>
       'The saved pose frames do not include a defensible measurement moment for this metric.';
+
+  @override
+  String get runningCoachObservedValueBadge => 'Video observation';
+
+  @override
+  String get runningCoachObservedValueLabel => 'Video observation';
+
+  @override
+  String get runningCoachObservedValueBody =>
+      'This is a coordinate observed in the video. It was not used for a score, good/needs-work judgment, or drill because the evidence is not sufficient.';
+
+  @override
+  String get runningCoachMeasurementUnavailableValue =>
+      'No verified measurement';
+
+  @override
+  String get runningCoachContactRejectionMissingFootLandmark =>
+      'Foot and ankle landmarks were not tracked reliably in the contact-candidate window. Keep both feet in frame throughout the clip.';
+
+  @override
+  String get runningCoachContactRejectionOutsideGround =>
+      'The foot was not repeatedly confirmed near the ground line. Keep the camera fixed and include both the shoes and floor line.';
+
+  @override
+  String get runningCoachContactRejectionLowConfidence =>
+      'Joint confidence was low in the contact-candidate window. Record in even light without camera shake.';
+
+  @override
+  String get runningCoachContactRejectionUnstableMotion =>
+      'The foot\'s vertical movement did not form a stable contact moment. Use a sharp side-view clip with 3–6 strides.';
+
+  @override
+  String get runningCoachContactRejectionInsufficientMotionWindow =>
+      'There were not enough continuous frames before and after contact to confirm foot movement. Record 5–10 seconds at a steady pace.';
 
   @override
   String get runningCoachEvidenceContactLabel => 'Contact evidence';

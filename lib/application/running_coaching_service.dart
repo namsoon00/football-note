@@ -45,10 +45,16 @@ class RunningCoachingService {
     final reliableWeightedInsights = weightedInsights
         .where((entry) => entry.key.quality.isReliableForCoaching)
         .toList(growable: false);
-    // Never turn a low-quality estimate into a numerical form score. A zero
-    // here is intentionally paired with the retake-quality surface in the UI;
-    // it is not a claim that the runner performed poorly.
-    final scoringInsights = reliableWeightedInsights;
+    // A single number describes a complete, evidence-backed form screen. It
+    // must not silently become a partial score when, for example, landing and
+    // knee measurements could not be paired to an actual contact frame. A
+    // zero is paired with the retake-quality surface in the UI; it is not a
+    // claim that the runner performed poorly.
+    final hasCompleteScoreEvidence =
+        reliableWeightedInsights.length == weightedInsights.length;
+    final scoringInsights = hasCompleteScoreEvidence
+        ? reliableWeightedInsights
+        : const <MapEntry<RunningCoachingInsight, double>>[];
     final scoringWeight = scoringInsights.fold<double>(
       0,
       (total, entry) => total + entry.value,
@@ -278,7 +284,7 @@ class RunningCoachingService {
   ) {
     final metricQuality = result.qualityFor(metric);
     if (metricQuality != null) {
-      return metricQuality;
+      return _qualityWithFrameEvidence(result, metric, metricQuality);
     }
     // New analyzer payloads always include every metric quality. If one is
     // missing from a non-empty quality map, the measurement is unavailable;
@@ -302,6 +308,34 @@ class RunningCoachingService {
       confidence: confidence,
       sampleCount: result.validFrames,
       reason: reason,
+    );
+  }
+
+  RunningMetricQuality _qualityWithFrameEvidence(
+    RunningVideoAnalysisResult result,
+    RunningCoachMetric metric,
+    RunningMetricQuality quality,
+  ) {
+    // Pre-evidence saved reports do not have a frame bundle. Keep their
+    // previous compatibility behavior; all newly analyzed payloads include a
+    // non-empty quality map and must be backed by a frame before scoring.
+    if (result.metricQualities.isEmpty || !quality.isReliableForCoaching) {
+      return quality;
+    }
+    final evidence = result.evidenceForMetric(metric);
+    if (evidence?.isReliable == true) return quality;
+    return quality.copyWith(
+      reason: switch (evidence?.withheldReason) {
+        RunningMetricEvidenceWithheldReason.lowConfidence => 'low_confidence',
+        RunningMetricEvidenceWithheldReason.limitedSamples => 'limited_samples',
+        RunningMetricEvidenceWithheldReason.missingPoseFrames =>
+          'missing_pose_frames',
+        RunningMetricEvidenceWithheldReason.missingContact =>
+          'missing_contact_evidence',
+        RunningMetricEvidenceWithheldReason.missingMeasuredFrames ||
+        null =>
+          'missing_measured_frames',
+      },
     );
   }
 

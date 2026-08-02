@@ -5002,7 +5002,15 @@
   "runningCoachDenseContactCoarseSamplesLabel": "粗い読取",
   "runningCoachDenseContactDenseSamplesLabel": "高密度",
   "runningCoachDenseContactWindowsLabel": "区間",
+  "runningCoachDenseContactCandidateFramesLabel": "接地候補フレーム",
   "runningCoachDenseContactFramesLabel": "接地フレーム",
+  "runningCoachDenseContactVerificationProgress": "{verified}/{required}回を検証",
+  "@runningCoachDenseContactVerificationProgress": {
+    "placeholders": {
+      "verified": { "type": "int" },
+      "required": { "type": "int" }
+    }
+  },
   "runningCoachDenseContactConfidenceLabel": "根拠",
   "runningCoachDenseContactTimesLabel": "時刻",
   "runningCoachDenseContactUnavailable": "検証済み接地なし",
@@ -5090,6 +5098,15 @@
   "runningCoachEvidenceReasonMissingPoseFrames": "このクリップには保存済みの分析姿勢フレームがありません。",
   "runningCoachEvidenceReasonMissingContact": "この下半身指標を支える接地フレームが十分に安定していませんでした。",
   "runningCoachEvidenceReasonMissingMeasuredFrames": "保存済み姿勢フレームに、この指標を防御的に読める瞬間が含まれていません。",
+  "runningCoachObservedValueBadge": "動画の観察値",
+  "runningCoachObservedValueLabel": "動画の観察値",
+  "runningCoachObservedValueBody": "この値は動画で観察された座標です。根拠が十分ではないため、スコア・良い/改善が必要の判定・ドリルには使っていません。",
+  "runningCoachMeasurementUnavailableValue": "確定測定値なし",
+  "runningCoachContactRejectionMissingFootLandmark": "接地候補区間で足と足首のランドマークを十分に追跡できませんでした。両足が常に画面に入るように撮影してください。",
+  "runningCoachContactRejectionOutsideGround": "足の位置を地面の線の近くで繰り返し確認できませんでした。カメラを固定し、靴と床の線が一緒に入るように撮影してください。",
+  "runningCoachContactRejectionLowConfidence": "接地候補区間の関節信頼度が低いです。明るく均一な場所で、カメラを揺らさずに撮影してください。",
+  "runningCoachContactRejectionUnstableMotion": "足の上下動が安定した接地の瞬間になりませんでした。3〜6歩が鮮明な横向き動画を使ってください。",
+  "runningCoachContactRejectionInsufficientMotionWindow": "接地前後の連続フレームが足りず、足の動きを確認できませんでした。一定のペースで5〜10秒撮影してください。",
   "runningCoachEvidenceContactLabel": "接地の根拠",
   "runningCoachEvidencePostureLabel": "姿勢フレーム",
   "runningCoachEvidenceBounceLabel": "上下動フレーム",

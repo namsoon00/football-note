@@ -103,6 +103,11 @@ void main() {
           'centerTimestampMs': 1030,
           'endTimestampMs': 1190,
           'denseSampleCount': 9,
+          'candidateFrameCount': 7,
+          'rejectedFrameCounts': {
+            'unstable_foot_motion': 4,
+            'outside_ground_band': 2,
+          },
           'validatedContactFrameTimestampsMs': [1033, 1033],
           'confidence': 0.82,
         },
@@ -146,6 +151,13 @@ void main() {
     expect(result.denseSamples.targetFps, 30);
     expect(result.contactWindows, hasLength(3));
     expect(result.contactWindows.first.side, RunningContactSide.right);
+    expect(result.contactWindows.first.candidateFrameCount, 7);
+    expect(
+      result.contactWindows.first.primaryRejectedFrameReason,
+      'unstable_foot_motion',
+    );
+    expect(result.contactCandidateFrameCount, 7);
+    expect(result.primaryContactRejectionReason, 'unstable_foot_motion');
     expect(
       result.contactWindows.first.validatedContactTimestamps
           .map((timestamp) => timestamp.inMilliseconds),
@@ -257,6 +269,14 @@ void main() {
     expect(sparse.isReliableForCoaching, isFalse);
     expect(sufficient.isReliableForCoaching, isTrue);
     expect(proxy.isReliableForCoaching, isFalse);
+    expect(
+      const RunningMetricQuality(
+        confidence: 0.90,
+        sampleCount: 3,
+        reason: 'missing_contact_evidence',
+      ).isReliableForCoaching,
+      isFalse,
+    );
   });
 
   test('derives step, side, and phase measurements only from contacts', () {
