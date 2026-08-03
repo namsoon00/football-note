@@ -43,7 +43,7 @@ const removeLoadingIndicator = () => {
   }
 };
 
-const webAssetVersion = '5709ab099a90';
+const webAssetVersion = '0b64f7f0070c';
 const unstampedAssetVersionToken = ['__WEB', 'ASSET', 'VERSION__'].join('_');
 const legacyCleanupReloadKey = 'football-note:legacy-flutter-cleanup-reload:v8';
 const webBuildReloadKeyPrefix = 'football-note:web-build-reload:v1';
