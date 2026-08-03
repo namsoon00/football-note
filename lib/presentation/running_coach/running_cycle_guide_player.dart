@@ -13,8 +13,6 @@ const runningCycleAnimationAtlasAsset =
 const _atlasColumns = 4;
 const _atlasRows = 2;
 const _frameCount = _atlasColumns * _atlasRows;
-const _normalSequenceDuration = Duration(milliseconds: 1280);
-const _slowSequenceDuration = Duration(milliseconds: 2560);
 const _observationBlue = Color(0xFF2563EB);
 
 Future<ui.Image>? _runningCycleAnimationAtlasFuture;
@@ -39,131 +37,34 @@ Future<ui.Image> _loadRunningCycleAnimationAtlas() async {
 enum RunningCycleGuidePhase { landing, support, pushOff, recovery }
 
 class RunningCycleGuidePlayer extends StatefulWidget {
-  final Duration sequenceDuration;
-
-  const RunningCycleGuidePlayer({
-    super.key,
-    this.sequenceDuration = _normalSequenceDuration,
-  });
+  const RunningCycleGuidePlayer({super.key});
 
   @override
   State<RunningCycleGuidePlayer> createState() =>
       _RunningCycleGuidePlayerState();
 }
 
-class _RunningCycleGuidePlayerState extends State<RunningCycleGuidePlayer>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  bool _didApplyInitialMotionPreference = false;
-  bool _isPlaying = false;
-  bool _isSlow = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: widget.sequenceDuration,
-    );
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final reduceMotion =
-        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
-    if (!_didApplyInitialMotionPreference) {
-      _didApplyInitialMotionPreference = true;
-      if (!reduceMotion) {
-        _startController();
-        _isPlaying = true;
-      }
-    } else if (reduceMotion && _isPlaying) {
-      _controller.stop();
-      _isPlaying = false;
-    }
-  }
-
-  @override
-  void didUpdateWidget(covariant RunningCycleGuidePlayer oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.sequenceDuration != widget.sequenceDuration && !_isSlow) {
-      _controller.duration = widget.sequenceDuration;
-      if (_isPlaying) {
-        _play();
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  Duration get _activeDuration =>
-      _isSlow ? _slowSequenceDuration : widget.sequenceDuration;
-
-  int get _activeFrame => _frameForProgress(_controller.value);
-
-  RunningCycleGuidePhase get _activePhase => _phaseForFrame(_activeFrame);
-
-  void _startController() {
-    final progress = _normalizedProgress(_controller.value);
-    _controller
-      ..stop()
-      ..duration = _activeDuration
-      ..value = progress
-      ..repeat();
-  }
-
-  void _play() {
-    _startController();
-    if (!_isPlaying) {
-      setState(() => _isPlaying = true);
-    }
-  }
-
-  void _pause() {
-    _controller.stop();
-    if (_isPlaying) {
-      setState(() => _isPlaying = false);
-    }
-  }
-
-  void _togglePlayback() {
-    if (_isPlaying) {
-      _pause();
-    } else {
-      _play();
-    }
-  }
-
-  void _toggleSlowView() {
-    setState(() => _isSlow = !_isSlow);
-    if (_isPlaying) {
-      _play();
-    }
-  }
+class _RunningCycleGuidePlayerState extends State<RunningCycleGuidePlayer> {
+  RunningCycleGuidePhase _selectedPhase = RunningCycleGuidePhase.landing;
 
   void _stepPhase() {
     const phases = RunningCycleGuidePhase.values;
-    final nextIndex = (_activePhase.index + 1) % phases.length;
+    final nextIndex = (_selectedPhase.index + 1) % phases.length;
     _selectPhase(phases[nextIndex]);
   }
 
   void _selectPhase(RunningCycleGuidePhase phase) {
-    _controller
-      ..stop()
-      ..value = _startFrameForPhase(phase) / _frameCount;
-    setState(() => _isPlaying = false);
+    if (_selectedPhase == phase) {
+      return;
+    }
+    setState(() => _selectedPhase = phase);
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final scheme = Theme.of(context).colorScheme;
     final phaseCopies = _phaseCopies(l10n);
+    final activeCopy = phaseCopies[_selectedPhase.index];
 
     return Card(
       key: const ValueKey('running-coach-good-form-cycle'),
@@ -196,61 +97,43 @@ class _RunningCycleGuidePlayerState extends State<RunningCycleGuidePlayer>
                 }
                 final cellAspectRatio =
                     (atlas.width / _atlasColumns) / (atlas.height / _atlasRows);
-                return AnimatedBuilder(
-                  animation: _controller,
-                  builder: (context, _) {
-                    final frame = _activeFrame;
-                    final activePhase = _phaseForFrame(frame);
-                    final copy = phaseCopies[activePhase.index];
-                    return _RunningCycleFrameView(
-                      atlas: atlas,
-                      progress: _controller.value,
-                      phase: activePhase,
-                      phaseCopy: copy,
-                      cellAspectRatio: cellAspectRatio,
-                    );
-                  },
+                return _RunningCycleFrameView(
+                  atlas: atlas,
+                  frame: runningCycleGuideRepresentativeFrameForPhase(
+                    _selectedPhase,
+                  ),
+                  phase: _selectedPhase,
+                  phaseCopy: activeCopy,
+                  cellAspectRatio: cellAspectRatio,
                 );
               },
             ),
             const SizedBox(height: 12),
-            AnimatedBuilder(
-              animation: _controller,
-              builder: (context, _) {
-                final copy = phaseCopies[_activePhase.index];
-                return _ActivePhasePanel(
-                  key: ValueKey(
-                    'running-coach-good-form-active-phase-${copy.phase.name}',
-                  ),
-                  copy: copy,
-                );
-              },
+            _ActivePhasePanel(
+              key: ValueKey(
+                'running-coach-good-form-active-phase-${activeCopy.phase.name}',
+              ),
+              copy: activeCopy,
             ),
             const SizedBox(height: 12),
-            AnimatedBuilder(
-              animation: _controller,
-              builder: (context, _) {
-                final activePhase = _activePhase;
-                return Wrap(
-                  key: const ValueKey(
-                    'running-coach-good-form-phase-selectors',
+            Wrap(
+              key: const ValueKey(
+                'running-coach-good-form-phase-selectors',
+              ),
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final copy in phaseCopies)
+                  ChoiceChip(
+                    key: ValueKey(
+                      'running-coach-good-form-phase-${copy.phase.index}',
+                    ),
+                    avatar: Icon(copy.icon, size: 18),
+                    label: Text('${copy.number}. ${copy.title}'),
+                    selected: _selectedPhase == copy.phase,
+                    onSelected: (_) => _selectPhase(copy.phase),
                   ),
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    for (final copy in phaseCopies)
-                      ChoiceChip(
-                        key: ValueKey(
-                          'running-coach-good-form-phase-${copy.phase.index}',
-                        ),
-                        avatar: Icon(copy.icon, size: 18),
-                        label: Text('${copy.number}. ${copy.title}'),
-                        selected: activePhase == copy.phase,
-                        onSelected: (_) => _selectPhase(copy.phase),
-                      ),
-                  ],
-                );
-              },
+              ],
             ),
             const SizedBox(height: 14),
             Wrap(
@@ -258,35 +141,6 @@ class _RunningCycleGuidePlayerState extends State<RunningCycleGuidePlayer>
               spacing: 8,
               runSpacing: 8,
               children: [
-                FilledButton.tonalIcon(
-                  key: const ValueKey(
-                    'running-coach-good-form-cycle-play-pause',
-                  ),
-                  onPressed: _togglePlayback,
-                  icon: Icon(
-                    _isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                  ),
-                  label: Text(
-                    _isPlaying
-                        ? l10n.runningCoachArchivedVideoPause
-                        : l10n.runningCoachArchivedVideoPlay,
-                  ),
-                ),
-                OutlinedButton.icon(
-                  key: const ValueKey(
-                    'running-coach-good-form-cycle-slow-view',
-                  ),
-                  onPressed: _toggleSlowView,
-                  icon: const Icon(Icons.slow_motion_video_rounded),
-                  label: Text(l10n.runningCoachGoodFormSlowMotionAction),
-                  style: _isSlow
-                      ? OutlinedButton.styleFrom(
-                          foregroundColor: scheme.onPrimaryContainer,
-                          backgroundColor: scheme.primaryContainer,
-                          side: BorderSide(color: scheme.primary),
-                        )
-                      : null,
-                ),
                 OutlinedButton.icon(
                   key: const ValueKey('running-coach-good-form-cycle-step'),
                   onPressed: _stepPhase,
@@ -304,14 +158,14 @@ class _RunningCycleGuidePlayerState extends State<RunningCycleGuidePlayer>
 
 class _RunningCycleFrameView extends StatelessWidget {
   final ui.Image atlas;
-  final double progress;
+  final int frame;
   final RunningCycleGuidePhase phase;
   final _RunningCyclePhaseCopy phaseCopy;
   final double cellAspectRatio;
 
   const _RunningCycleFrameView({
     required this.atlas,
-    required this.progress,
+    required this.frame,
     required this.phase,
     required this.phaseCopy,
     required this.cellAspectRatio,
@@ -341,7 +195,7 @@ class _RunningCycleFrameView extends StatelessWidget {
                     ),
                     painter: _RunningCycleAtlasPainter(
                       atlas: atlas,
-                      progress: progress,
+                      frame: frame,
                       cellAspectRatio: cellAspectRatio,
                     ),
                   ),
@@ -463,23 +317,22 @@ class _ActivePhasePanel extends StatelessWidget {
 
 class _RunningCycleAtlasPainter extends CustomPainter {
   final ui.Image atlas;
-  final double progress;
+  final int frame;
   final double cellAspectRatio;
 
   const _RunningCycleAtlasPainter({
     required this.atlas,
-    required this.progress,
+    required this.frame,
     required this.cellAspectRatio,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     final destination = _contentRectFor(size, cellAspectRatio);
-    final currentFrame = _frameForProgress(progress);
 
     canvas.drawImageRect(
       atlas,
-      _sourceRectForFrame(atlas, currentFrame),
+      _sourceRectForFrame(atlas, frame),
       destination,
       _imagePaint(),
     );
@@ -488,7 +341,7 @@ class _RunningCycleAtlasPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _RunningCycleAtlasPainter oldDelegate) {
     return atlas != oldDelegate.atlas ||
-        progress != oldDelegate.progress ||
+        frame != oldDelegate.frame ||
         cellAspectRatio != oldDelegate.cellAspectRatio;
   }
 }
@@ -589,36 +442,22 @@ List<_RunningCyclePhaseCopy> _phaseCopies(AppLocalizations l10n) {
   ];
 }
 
-RunningCycleGuidePhase _phaseForFrame(int frame) {
-  return switch (
-      _normalizedFrame(frame) % RunningCycleGuidePhase.values.length) {
-    0 => RunningCycleGuidePhase.landing,
-    1 => RunningCycleGuidePhase.support,
-    2 => RunningCycleGuidePhase.pushOff,
-    _ => RunningCycleGuidePhase.recovery,
+int _representativeFrameForPhase(RunningCycleGuidePhase phase) {
+  return switch (phase) {
+    // The atlas cells are static illustrations, not a dependable timeline.
+    // These representatives were selected by visible body shape.
+    RunningCycleGuidePhase.landing => 4,
+    RunningCycleGuidePhase.support => 5,
+    RunningCycleGuidePhase.pushOff => 2,
+    RunningCycleGuidePhase.recovery => 3,
   };
-}
-
-int _startFrameForPhase(RunningCycleGuidePhase phase) => phase.index;
-
-@visibleForTesting
-Duration get runningCycleGuideNormalSequenceDuration => _normalSequenceDuration;
-
-@visibleForTesting
-int runningCycleGuideFrameForProgress(double progress) {
-  return _frameForProgress(progress);
-}
-
-@visibleForTesting
-RunningCycleGuidePhase runningCycleGuidePhaseForFrame(int frame) {
-  return _phaseForFrame(frame);
 }
 
 @visibleForTesting
 int runningCycleGuideRepresentativeFrameForPhase(
   RunningCycleGuidePhase phase,
 ) {
-  return _startFrameForPhase(phase);
+  return _representativeFrameForPhase(phase);
 }
 
 @visibleForTesting
@@ -626,17 +465,7 @@ Rect runningCycleGuideSourceRectForFrame(ui.Image atlas, int frame) {
   return _sourceRectForFrame(atlas, frame);
 }
 
-int _frameForProgress(double progress) {
-  final frame = (_normalizedProgress(progress) * _frameCount).floor();
-  return _normalizedFrame(frame);
-}
-
 int _normalizedFrame(int frame) => frame % _frameCount;
-
-double _normalizedProgress(double progress) {
-  final normalized = progress % 1;
-  return normalized < 0 ? normalized + 1 : normalized;
-}
 
 Rect _sourceRectForFrame(ui.Image atlas, int frame) {
   final cellWidth = atlas.width / _atlasColumns;

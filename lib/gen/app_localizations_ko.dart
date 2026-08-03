@@ -9855,11 +9855,11 @@ class AppLocalizationsKo extends AppLocalizations {
       '처음에는 ‘먼저 이것만’을 따라 하고, 익숙해지면 ‘더 정확히 보기’로 좌우·타이밍·연속 동작을 확인하세요.';
 
   @override
-  String get runningCoachGoodFormCycleTitle => '달리기 한 사이클';
+  String get runningCoachGoodFormCycleTitle => '정지된 단계별 참고 그림';
 
   @override
   String get runningCoachGoodFormCycleBody =>
-      '착지부터 다음 착지를 준비하는 회수까지 네 단계가 자연스럽게 이어져야 해요.';
+      '이 그림은 단계별 참고 자료이며, 연속 영상이나 내 업로드 영상이 아니에요. 단계를 선택하면 대표 정지 프레임 한 장만 볼 수 있어요.';
 
   @override
   String get runningCoachGoodFormPhaseLandingTitle => '착지';
@@ -9898,7 +9898,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachGoodFormSlowMotionAction => '천천히 보기';
 
   @override
-  String get runningCoachGoodFormStepAction => '한 단계씩';
+  String get runningCoachGoodFormStepAction => '다음 단계';
 
   @override
   String get runningCoachGoodFormTechniqueTitle => '항목별 일러스트 가이드';
