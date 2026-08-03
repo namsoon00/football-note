@@ -9982,7 +9982,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachReportDetailsBody =>
-      'All five form checks are shown below. Watch means the value is inside a broad guide range, not a full pass.';
+      'See all five checks at a glance. Open the matching video evidence only when you want to inspect a frame.';
 
   @override
   String get runningCoachAnalysisHistoryTitle => 'Coaching analysis history';
@@ -10096,6 +10096,26 @@ class AppLocalizationsEn extends AppLocalizations {
       'Not one perfect still pose—these are five movements to repeat while running.';
 
   @override
+  String get runningCoachGoodFormPrinciplePosture =>
+      'Let your whole body lean gently forward from the ankles.';
+
+  @override
+  String get runningCoachGoodFormPrincipleBounce =>
+      'Keep the rhythm moving forward instead of bouncing upward.';
+
+  @override
+  String get runningCoachGoodFormPrincipleFootStrike =>
+      'Let the foot meet the ground close beneath your hips.';
+
+  @override
+  String get runningCoachGoodFormPrincipleKnee =>
+      'Allow the knee to absorb the landing without collapsing.';
+
+  @override
+  String get runningCoachGoodFormPrincipleArms =>
+      'Let relaxed elbows swing forward and back with the rhythm.';
+
+  @override
   String get runningCoachGoodFormGuideFootnoteTitle => 'How to use this';
 
   @override
@@ -10129,11 +10149,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Red marks the current point; blue marks the next target. Follow one arrow at a time.';
 
   @override
-  String get runningCoachIllustrationTitle => 'Measured case and next movement';
+  String get runningCoachIllustrationTitle => 'Next movement reference';
 
   @override
   String get runningCoachIllustrationBody =>
-      'This coaching reference was selected from the measurement in the video above. Red shows the current issue and blue shows the next movement.';
+      'Red marks the current issue. Blue shows the one movement to try next.';
 
   @override
   String get runningCoachIllustrationGoodBody =>
@@ -16080,7 +16100,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Only validated contact frames are used to calculate each step, side, and movement phase again.';
 
   @override
-  String get runningCoachRhythmTitle => 'Running rhythm';
+  String get runningCoachRhythmTitle => 'Running figures from this video';
 
   @override
   String get runningCoachRhythmBody =>

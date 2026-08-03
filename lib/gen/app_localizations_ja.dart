@@ -9698,7 +9698,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachReportDetailsBody =>
-      '5つの姿勢項目をすべて下に表示します。『注意』は広いガイド範囲内という意味で、完全な合格ではありません。';
+      '5つの項目をひと目で確認できます。フレームを詳しく見たいときだけ自分の動画の根拠を開いてください。';
 
   @override
   String get runningCoachAnalysisHistoryTitle => 'コーチング分析履歴';
@@ -9809,6 +9809,21 @@ class AppLocalizationsJa extends AppLocalizations {
       '完璧な一枚の姿勢ではなく、走っている間に繰り返す5つの動きです。';
 
   @override
+  String get runningCoachGoodFormPrinciplePosture => '足首から体全体をやさしく前へ傾けます。';
+
+  @override
+  String get runningCoachGoodFormPrincipleBounce => '上下に跳ねるより、前へ進むリズムを保ちます。';
+
+  @override
+  String get runningCoachGoodFormPrincipleFootStrike => '足は腰の近くで地面に触れるようにします。';
+
+  @override
+  String get runningCoachGoodFormPrincipleKnee => '膝は潰れずに着地の衝撃をやわらかく受けます。';
+
+  @override
+  String get runningCoachGoodFormPrincipleArms => '力を抜いた肘をリズムに合わせて前後に振ります。';
+
+  @override
   String get runningCoachGoodFormGuideFootnoteTitle => '参考にするとき';
 
   @override
@@ -9842,11 +9857,10 @@ class AppLocalizationsJa extends AppLocalizations {
       '赤が現在位置、青が次に合わせる場所です。一度に一つの矢印だけをたどってください。';
 
   @override
-  String get runningCoachIllustrationTitle => '測定ケースと次の動き';
+  String get runningCoachIllustrationTitle => '次の動きの参考';
 
   @override
-  String get runningCoachIllustrationBody =>
-      '上の動画の測定値から選んだコーチング用の参考例です。左の赤は現在の課題、右の青は次に行う動きを示します。';
+  String get runningCoachIllustrationBody => '赤は現在の課題、青は次に試す一つの動きを示します。';
 
   @override
   String get runningCoachIllustrationGoodBody =>
@@ -15561,7 +15575,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachGaitBody => '検証済みの接地フレームだけを使い、歩ごと・左右・動作段階ごとに再計算しました。';
 
   @override
-  String get runningCoachRhythmTitle => 'ランニングリズム';
+  String get runningCoachRhythmTitle => 'この動画のリズム数値';
 
   @override
   String get runningCoachRhythmBody =>
