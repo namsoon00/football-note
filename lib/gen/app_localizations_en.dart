@@ -10116,11 +10116,105 @@ class AppLocalizationsEn extends AppLocalizations {
       'Let relaxed elbows swing forward and back with the rhythm.';
 
   @override
-  String get runningCoachGoodFormGuideFootnoteTitle => 'How to use this';
+  String get runningCoachGoodFormAction => 'Good form';
+
+  @override
+  String get runningCoachGoodFormScreenTitle => 'Good running form';
+
+  @override
+  String get runningCoachGoodFormIntroTitle =>
+      'For new and experienced runners';
+
+  @override
+  String get runningCoachGoodFormIntroBody =>
+      'Start with ‘Start here.’ Once it feels natural, use ‘Look closer’ to check symmetry, timing, and movement across several strides.';
+
+  @override
+  String get runningCoachGoodFormCycleTitle => 'One running cycle';
+
+  @override
+  String get runningCoachGoodFormCycleBody =>
+      'Four phases should connect smoothly, from landing through recovery for the next contact.';
+
+  @override
+  String get runningCoachGoodFormPhaseLandingTitle => 'Landing';
+
+  @override
+  String get runningCoachGoodFormPhaseLandingCue =>
+      'Place the foot lightly near the hips instead of reaching it forward.';
+
+  @override
+  String get runningCoachGoodFormPhaseSupportTitle => 'Support';
+
+  @override
+  String get runningCoachGoodFormPhaseSupportCue =>
+      'Let the knee and ankle absorb load as the body moves smoothly over the foot.';
+
+  @override
+  String get runningCoachGoodFormPhasePushOffTitle => 'Push-off';
+
+  @override
+  String get runningCoachGoodFormPhasePushOffCue =>
+      'Press down, then let the foot travel behind as the body moves forward.';
+
+  @override
+  String get runningCoachGoodFormPhaseRecoveryTitle => 'Recovery';
+
+  @override
+  String get runningCoachGoodFormPhaseRecoveryCue =>
+      'Recover the heel naturally and bring the knee through for the next landing.';
+
+  @override
+  String get runningCoachGoodFormTechniqueTitle =>
+      'Illustrated technique guide';
+
+  @override
+  String get runningCoachGoodFormTechniqueBody =>
+      'Red shows a common mistake; blue shows the recommended movement. Focus on the marked relationship and direction, not the model\'s body shape.';
+
+  @override
+  String get runningCoachGoodFormCommonLabel => 'Common mistake';
+
+  @override
+  String get runningCoachGoodFormRecommendedLabel => 'Recommended';
+
+  @override
+  String get runningCoachGoodFormBeginnerLabel => 'Start here';
+
+  @override
+  String get runningCoachGoodFormExperiencedLabel => 'Look closer';
+
+  @override
+  String get runningCoachGoodFormExperiencedPosture =>
+      'Across several frames, check that the ankles, hips, and shoulders lean as one line instead of the waist folding as pace changes.';
+
+  @override
+  String get runningCoachGoodFormExperiencedBounce =>
+      'Do not judge one peak frame. Compare hip-height change and contact rhythm across several strides for a repeatable pattern.';
+
+  @override
+  String get runningCoachGoodFormExperiencedFootStrike =>
+      'At contact, compare foot-to-hip distance, shin direction, and whether the same pattern repeats differently on the left and right.';
+
+  @override
+  String get runningCoachGoodFormExperiencedKnee =>
+      'After contact, check that the knee neither locks nor collapses abruptly, then bends and extends smoothly through support.';
+
+  @override
+  String get runningCoachGoodFormExperiencedArms =>
+      'Check shoulder tension, elbow bend, hands crossing the midline, and differences between left and right arm swing.';
+
+  @override
+  String runningCoachGoodFormIllustrationSemantics(String metric) {
+    return 'Illustrated comparison for $metric: common mistake and recommended movement';
+  }
+
+  @override
+  String get runningCoachGoodFormGuideFootnoteTitle => 'What this guide is for';
 
   @override
   String get runningCoachGoodFormGuideFootnoteBody =>
-      'These are coaching references for this video\'s conditions. They can vary with pace, body, and setting.';
+      'This guide does not prescribe one perfect shape. Form varies with body, pace, and setting; in an analysis result, prioritize the evidence from your own video.';
 
   @override
   String get runningCoachAnalysisGuideRangeLabel => 'Good range';

@@ -701,6 +701,127 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets(
+    'good form action has icon and text and opens the layered guide at 320px',
+    (WidgetTester tester) async {
+      await tester.binding.setSurfaceSize(const Size(320, 780));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final result = RunningVideoAnalysisResult(
+        videoDuration: const Duration(seconds: 5),
+        sampledFrames: 18,
+        validFrames: 16,
+        direction: RunningDirection.leftToRight,
+        forwardLeanDegrees: 12,
+        verticalBounceRatio: 0.07,
+        footStrikeDistanceRatio: 0.25,
+        stanceKneeAngleDegrees: 152,
+        elbowAngleDegrees: 92,
+        metricQualities: _testDenseMetricQualities(),
+        poseFrames: _testPoseFrames(
+          startX: 0.22,
+          dxPerFrame: 0.04,
+          confidence: 0.94,
+        ),
+      );
+      final report = const RunningCoachingService().buildReport(result);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: runningAnalysisResultScreenForTesting(
+            result: result,
+            report: report,
+            session: _sessionForReport(
+              id: 'good-form-guide-navigation',
+              result: result,
+              report: report,
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      final guideAction = find.byKey(
+        const ValueKey('running-coach-good-form-action'),
+      );
+      expect(guideAction, findsOneWidget);
+      expect(
+        find.descendant(
+          of: guideAction,
+          matching: find.byIcon(Icons.directions_run_rounded),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: guideAction, matching: find.text('Good form')),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+
+      await tester.tap(guideAction);
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const ValueKey('running-coach-good-form-screen')),
+        findsOneWidget,
+      );
+      expect(find.text('Good running form'), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.byKey(const ValueKey('running-coach-good-form-phase-0')),
+        220,
+        scrollable: find.byType(Scrollable).last,
+      );
+      expect(find.text('1. Landing'), findsOneWidget);
+      expect(find.text('2. Support'), findsOneWidget);
+      expect(find.text('3. Push-off'), findsOneWidget);
+      expect(find.text('4. Recovery'), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.byKey(
+          const ValueKey('running-coach-good-form-technique-footStrike'),
+        ),
+        240,
+        scrollable: find.byType(Scrollable).last,
+      );
+      expect(
+        find.byKey(const ValueKey('running-coach-good-form-beginner')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('running-coach-good-form-experienced')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('running-coach-good-form-illustration')),
+        findsOneWidget,
+      );
+
+      final armsChip = find.byKey(
+        const ValueKey('running-coach-good-form-chip-armCarriage'),
+      );
+      await tester.scrollUntilVisible(
+        armsChip,
+        240,
+        scrollable: find.byType(Scrollable).last,
+      );
+      await tester.tap(armsChip);
+      await tester.pump();
+      expect(
+        find.byKey(
+          const ValueKey('running-coach-good-form-technique-armCarriage'),
+        ),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   testWidgets('analysis result localizes dense contact timestamp units', (
     WidgetTester tester,
   ) async {
@@ -1151,20 +1272,13 @@ void main() {
           .selected,
       isTrue,
     );
-    final goodFormGuide = find.byKey(
-      const ValueKey('running-coach-good-form-guide'),
-    );
-    await _scrollAnalysisResultUntilFound(tester, goodFormGuide);
-    expect(goodFormGuide, findsOneWidget);
-    expect(find.text('Good running form at a glance'), findsOneWidget);
     expect(
-      find.descendant(
-        of: goodFormGuide,
-        matching: find.text(
-          'Let your whole body lean gently forward from the ankles.',
-        ),
-      ),
+      find.byKey(const ValueKey('running-coach-good-form-action')),
       findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('running-coach-good-form-guide')),
+      findsNothing,
     );
     expect(tester.takeException(), isNull);
   });

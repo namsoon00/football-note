@@ -70,6 +70,11 @@ Widget runningArchivedAnalysisVideoCardForTesting({
   return _ArchivedAnalysisVideoCard(session: session);
 }
 
+@visibleForTesting
+Widget runningGoodFormGuideScreenForTesting() {
+  return const _GoodRunningFormGuideScreen();
+}
+
 class _RunningCoachScreenState extends State<RunningCoachScreen> {
   final ImagePicker _picker = ImagePicker();
   final RunningCoachingService _coachingService =
@@ -5479,13 +5484,37 @@ class _RunningAnalysisResultScreenState
     }
   }
 
+  void _openGoodFormGuide() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const _GoodRunningFormGuideScreen(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final insightSections = _buildRunningInsightSections(l10n, widget.report);
     final primaryInsight = widget.report.primaryFocus;
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.runningCoachAnalysisResultScreenTitle)),
+      appBar: AppBar(
+        title: Text(
+          l10n.runningCoachAnalysisResultScreenTitle,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        actions: [
+          AppBarActionButton.label(
+            key: const ValueKey('running-coach-good-form-action'),
+            icon: const Icon(Icons.directions_run_rounded),
+            label: l10n.runningCoachGoodFormAction,
+            tooltip: l10n.runningCoachGoodFormAction,
+            maxLabelWidth: 76,
+            onPressed: _openGoodFormGuide,
+          ),
+        ],
+      ),
       body: ListView(
         key: const ValueKey('running-coach-analysis-result-list'),
         controller: _scrollController,
@@ -5527,8 +5556,6 @@ class _RunningAnalysisResultScreenState
             sections: insightSections,
             onShowEvidence: _showEvidence,
           ),
-          const SizedBox(height: 12),
-          const _GoodRunningFormGuideCard(),
           const SizedBox(height: 12),
           _RunningFineGaitCard(result: widget.result),
           const SizedBox(height: 12),
@@ -6609,79 +6636,154 @@ class _EvidenceCoachingStoryPanel extends StatelessWidget {
   }
 }
 
-class _GoodRunningFormGuideCard extends StatelessWidget {
-  const _GoodRunningFormGuideCard();
+class _GoodRunningFormGuideScreen extends StatefulWidget {
+  const _GoodRunningFormGuideScreen();
+
+  @override
+  State<_GoodRunningFormGuideScreen> createState() =>
+      _GoodRunningFormGuideScreenState();
+}
+
+class _GoodRunningFormGuideScreenState
+    extends State<_GoodRunningFormGuideScreen> {
+  static const _techniques = <_GoodFormGuideTechnique>[
+    _GoodFormGuideTechnique(
+      metric: RunningCoachMetric.footStrike,
+      icon: Icons.ads_click_rounded,
+      assetPath: 'assets/images/running_guides/cases/foot_overstride.webp',
+      aspectRatio: 2,
+    ),
+    _GoodFormGuideTechnique(
+      metric: RunningCoachMetric.kneeFlexion,
+      icon: Icons.timeline_rounded,
+      assetPath: 'assets/images/running_guides/cases/knee_straight.webp',
+      aspectRatio: 2,
+    ),
+    _GoodFormGuideTechnique(
+      metric: RunningCoachMetric.posture,
+      icon: Icons.show_chart_rounded,
+      assetPath: 'assets/images/running_guides/cases/posture_upright.webp',
+      aspectRatio: 2,
+    ),
+    _GoodFormGuideTechnique(
+      metric: RunningCoachMetric.bounce,
+      icon: Icons.swap_vert_rounded,
+      assetPath: 'assets/images/running_guides/cases/bounce_high.webp',
+      aspectRatio: 2,
+    ),
+    _GoodFormGuideTechnique(
+      metric: RunningCoachMetric.armCarriage,
+      icon: Icons.sync_alt_rounded,
+      assetPath: 'assets/images/running_guides/cases/arm_open.webp',
+      aspectRatio: 1.5,
+    ),
+  ];
+
+  RunningCoachMetric _selectedMetric = RunningCoachMetric.footStrike;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final selectedTechnique = _techniques.firstWhere(
+      (item) => item.metric == _selectedMetric,
+    );
+    return Scaffold(
+      appBar: AppBar(title: Text(l10n.runningCoachGoodFormScreenTitle)),
+      body: ListView(
+        key: const ValueKey('running-coach-good-form-screen'),
+        padding: const EdgeInsets.all(16),
+        children: [
+          const _GoodFormIntroductionCard(),
+          const SizedBox(height: 12),
+          const _GoodFormCycleCard(),
+          const SizedBox(height: 20),
+          Text(
+            l10n.runningCoachGoodFormTechniqueTitle,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w900,
+                ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            l10n.runningCoachGoodFormTechniqueBody,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            key: const ValueKey('running-coach-good-form-technique-tabs'),
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final technique in _techniques)
+                ChoiceChip(
+                  key: ValueKey(
+                    'running-coach-good-form-chip-${technique.metric.name}',
+                  ),
+                  avatar: Icon(technique.icon, size: 18),
+                  label: Text(
+                    _evidenceKindLabel(
+                      l10n,
+                      _evidenceKindForMetric(technique.metric),
+                    ),
+                  ),
+                  selected: technique.metric == _selectedMetric,
+                  onSelected: (_) {
+                    setState(() => _selectedMetric = technique.metric);
+                  },
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _GoodFormTechniqueCard(technique: selectedTechnique),
+          const SizedBox(height: 12),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: _GuideTextRow(
+                icon: Icons.info_outline_rounded,
+                label: l10n.runningCoachGoodFormGuideFootnoteTitle,
+                body: l10n.runningCoachGoodFormGuideFootnoteBody,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GoodFormIntroductionCard extends StatelessWidget {
+  const _GoodFormIntroductionCard();
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
-    const items = <_GoodRunningFormGuideItem>[
-      _GoodRunningFormGuideItem(
-        metric: RunningCoachMetric.posture,
-        icon: Icons.show_chart_rounded,
-      ),
-      _GoodRunningFormGuideItem(
-        metric: RunningCoachMetric.footStrike,
-        icon: Icons.ads_click_rounded,
-      ),
-      _GoodRunningFormGuideItem(
-        metric: RunningCoachMetric.kneeFlexion,
-        icon: Icons.timeline_rounded,
-      ),
-      _GoodRunningFormGuideItem(
-        metric: RunningCoachMetric.bounce,
-        icon: Icons.swap_vert_rounded,
-      ),
-      _GoodRunningFormGuideItem(
-        metric: RunningCoachMetric.armCarriage,
-        icon: Icons.sync_alt_rounded,
-      ),
-    ];
-
     return Card(
-      key: const ValueKey('running-coach-good-form-guide'),
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
+        child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(Icons.directions_run_rounded, color: scheme.primary),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.runningCoachGoodFormGuideTitle,
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w900,
-                                ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        l10n.runningCoachGoodFormGuideBody,
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ],
+            Icon(Icons.directions_run_rounded, color: scheme.primary),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.runningCoachGoodFormIntroTitle,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w900,
+                        ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            for (var index = 0; index < items.length; index += 1) ...[
-              _GoodRunningFormGuideRow(item: items[index]),
-              if (index != items.length - 1) const Divider(height: 20),
-            ],
-            const SizedBox(height: 4),
-            _GuideTextRow(
-              icon: Icons.info_outline_rounded,
-              label: l10n.runningCoachGoodFormGuideFootnoteTitle,
-              body: l10n.runningCoachGoodFormGuideFootnoteBody,
+                  const SizedBox(height: 4),
+                  Text(
+                    l10n.runningCoachGoodFormIntroBody,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -6690,46 +6792,337 @@ class _GoodRunningFormGuideCard extends StatelessWidget {
   }
 }
 
-class _GoodRunningFormGuideItem {
-  final RunningCoachMetric metric;
-  final IconData icon;
-
-  const _GoodRunningFormGuideItem({required this.metric, required this.icon});
-}
-
-class _GoodRunningFormGuideRow extends StatelessWidget {
-  final _GoodRunningFormGuideItem item;
-
-  const _GoodRunningFormGuideRow({required this.item});
+class _GoodFormCycleCard extends StatelessWidget {
+  const _GoodFormCycleCard();
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(item.icon, color: scheme.primary, size: 20),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                _evidenceKindLabel(l10n, _evidenceKindForMetric(item.metric)),
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      fontWeight: FontWeight.w900,
+    final phases = <({IconData icon, String title, String cue})>[
+      (
+        icon: Icons.vertical_align_bottom_rounded,
+        title: l10n.runningCoachGoodFormPhaseLandingTitle,
+        cue: l10n.runningCoachGoodFormPhaseLandingCue,
+      ),
+      (
+        icon: Icons.accessibility_new_rounded,
+        title: l10n.runningCoachGoodFormPhaseSupportTitle,
+        cue: l10n.runningCoachGoodFormPhaseSupportCue,
+      ),
+      (
+        icon: Icons.trending_flat_rounded,
+        title: l10n.runningCoachGoodFormPhasePushOffTitle,
+        cue: l10n.runningCoachGoodFormPhasePushOffCue,
+      ),
+      (
+        icon: Icons.autorenew_rounded,
+        title: l10n.runningCoachGoodFormPhaseRecoveryTitle,
+        cue: l10n.runningCoachGoodFormPhaseRecoveryCue,
+      ),
+    ];
+    return Card(
+      key: const ValueKey('running-coach-good-form-cycle'),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.runningCoachGoodFormCycleTitle,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              l10n.runningCoachGoodFormCycleBody,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 14),
+            for (var index = 0; index < phases.length; index += 1) ...[
+              Container(
+                key: ValueKey('running-coach-good-form-phase-$index'),
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: scheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: scheme.outlineVariant),
+                ),
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: scheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(9),
+                      ),
+                      alignment: Alignment.center,
+                      child: Icon(
+                        phases[index].icon,
+                        size: 20,
+                        color: scheme.onPrimaryContainer,
+                      ),
                     ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${index + 1}. ${phases[index].title}',
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelLarge
+                                ?.copyWith(fontWeight: FontWeight.w900),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            phases[index].cue,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 2),
-              Text(
-                _goodFormPrinciple(l10n, item.metric),
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
+              if (index != phases.length - 1)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Center(
+                    child: Icon(
+                      Icons.arrow_downward_rounded,
+                      size: 17,
+                      color: scheme.primary,
+                    ),
+                  ),
+                ),
             ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _GoodFormGuideTechnique {
+  final RunningCoachMetric metric;
+  final IconData icon;
+  final String assetPath;
+  final double aspectRatio;
+
+  const _GoodFormGuideTechnique({
+    required this.metric,
+    required this.icon,
+    required this.assetPath,
+    required this.aspectRatio,
+  });
+}
+
+class _GoodFormTechniqueCard extends StatelessWidget {
+  final _GoodFormGuideTechnique technique;
+
+  const _GoodFormTechniqueCard({required this.technique});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    final metricLabel = _evidenceKindLabel(
+      l10n,
+      _evidenceKindForMetric(technique.metric),
+    );
+    return Card(
+      key: ValueKey(
+        'running-coach-good-form-technique-${technique.metric.name}',
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(technique.icon, color: scheme.primary),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    metricLabel,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w900,
+                        ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: _GoodFormComparisonLabel(
+                    icon: Icons.close_rounded,
+                    color: scheme.error,
+                    label: l10n.runningCoachGoodFormCommonLabel,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _GoodFormComparisonLabel(
+                    icon: Icons.check_rounded,
+                    color: scheme.primary,
+                    label: l10n.runningCoachGoodFormRecommendedLabel,
+                    alignEnd: true,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Semantics(
+              image: true,
+              label: l10n.runningCoachGoodFormIllustrationSemantics(
+                metricLabel,
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: AspectRatio(
+                  aspectRatio: technique.aspectRatio,
+                  child: Image.asset(
+                    technique.assetPath,
+                    key: const ValueKey(
+                      'running-coach-good-form-illustration',
+                    ),
+                    fit: BoxFit.contain,
+                    filterQuality: FilterQuality.high,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            _GoodFormAudiencePanel(
+              key: const ValueKey('running-coach-good-form-beginner'),
+              icon: Icons.flag_outlined,
+              title: l10n.runningCoachGoodFormBeginnerLabel,
+              body: _goodFormPrinciple(l10n, technique.metric),
+              emphasized: true,
+            ),
+            const SizedBox(height: 8),
+            _GoodFormAudiencePanel(
+              key: const ValueKey('running-coach-good-form-experienced'),
+              icon: Icons.analytics_outlined,
+              title: l10n.runningCoachGoodFormExperiencedLabel,
+              body: _goodFormExperiencedPrinciple(l10n, technique.metric),
+              emphasized: false,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _GoodFormComparisonLabel extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final String label;
+  final bool alignEnd;
+
+  const _GoodFormComparisonLabel({
+    required this.icon,
+    required this.color,
+    required this.label,
+    this.alignEnd = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment:
+          alignEnd ? MainAxisAlignment.end : MainAxisAlignment.start,
+      children: [
+        Icon(icon, size: 17, color: color),
+        const SizedBox(width: 5),
+        Flexible(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w900,
+                ),
           ),
         ),
       ],
+    );
+  }
+}
+
+class _GoodFormAudiencePanel extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String body;
+  final bool emphasized;
+
+  const _GoodFormAudiencePanel({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.body,
+    required this.emphasized,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final background = emphasized
+        ? scheme.primaryContainer.withValues(alpha: 0.68)
+        : scheme.surfaceContainerHighest.withValues(alpha: 0.55);
+    final foreground =
+        emphasized ? scheme.onPrimaryContainer : scheme.onSurfaceVariant;
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: emphasized
+              ? scheme.primary.withValues(alpha: 0.24)
+              : scheme.outlineVariant,
+        ),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: foreground, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: foreground,
+                        fontWeight: FontWeight.w900,
+                      ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  body,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: foreground,
+                      ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -11582,6 +11975,20 @@ String _goodFormPrinciple(AppLocalizations l10n, RunningCoachMetric metric) {
       l10n.runningCoachGoodFormPrincipleFootStrike,
     RunningCoachMetric.kneeFlexion => l10n.runningCoachGoodFormPrincipleKnee,
     RunningCoachMetric.armCarriage => l10n.runningCoachGoodFormPrincipleArms,
+  };
+}
+
+String _goodFormExperiencedPrinciple(
+  AppLocalizations l10n,
+  RunningCoachMetric metric,
+) {
+  return switch (metric) {
+    RunningCoachMetric.posture => l10n.runningCoachGoodFormExperiencedPosture,
+    RunningCoachMetric.bounce => l10n.runningCoachGoodFormExperiencedBounce,
+    RunningCoachMetric.footStrike =>
+      l10n.runningCoachGoodFormExperiencedFootStrike,
+    RunningCoachMetric.kneeFlexion => l10n.runningCoachGoodFormExperiencedKnee,
+    RunningCoachMetric.armCarriage => l10n.runningCoachGoodFormExperiencedArms,
   };
 }
 

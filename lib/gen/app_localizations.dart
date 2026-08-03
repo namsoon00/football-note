@@ -17490,16 +17490,172 @@ abstract class AppLocalizations {
   /// **'Let relaxed elbows swing forward and back with the rhythm.'**
   String get runningCoachGoodFormPrincipleArms;
 
+  /// No description provided for @runningCoachGoodFormAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Good form'**
+  String get runningCoachGoodFormAction;
+
+  /// No description provided for @runningCoachGoodFormScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Good running form'**
+  String get runningCoachGoodFormScreenTitle;
+
+  /// No description provided for @runningCoachGoodFormIntroTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'For new and experienced runners'**
+  String get runningCoachGoodFormIntroTitle;
+
+  /// No description provided for @runningCoachGoodFormIntroBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Start with ‘Start here.’ Once it feels natural, use ‘Look closer’ to check symmetry, timing, and movement across several strides.'**
+  String get runningCoachGoodFormIntroBody;
+
+  /// No description provided for @runningCoachGoodFormCycleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'One running cycle'**
+  String get runningCoachGoodFormCycleTitle;
+
+  /// No description provided for @runningCoachGoodFormCycleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Four phases should connect smoothly, from landing through recovery for the next contact.'**
+  String get runningCoachGoodFormCycleBody;
+
+  /// No description provided for @runningCoachGoodFormPhaseLandingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Landing'**
+  String get runningCoachGoodFormPhaseLandingTitle;
+
+  /// No description provided for @runningCoachGoodFormPhaseLandingCue.
+  ///
+  /// In en, this message translates to:
+  /// **'Place the foot lightly near the hips instead of reaching it forward.'**
+  String get runningCoachGoodFormPhaseLandingCue;
+
+  /// No description provided for @runningCoachGoodFormPhaseSupportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Support'**
+  String get runningCoachGoodFormPhaseSupportTitle;
+
+  /// No description provided for @runningCoachGoodFormPhaseSupportCue.
+  ///
+  /// In en, this message translates to:
+  /// **'Let the knee and ankle absorb load as the body moves smoothly over the foot.'**
+  String get runningCoachGoodFormPhaseSupportCue;
+
+  /// No description provided for @runningCoachGoodFormPhasePushOffTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Push-off'**
+  String get runningCoachGoodFormPhasePushOffTitle;
+
+  /// No description provided for @runningCoachGoodFormPhasePushOffCue.
+  ///
+  /// In en, this message translates to:
+  /// **'Press down, then let the foot travel behind as the body moves forward.'**
+  String get runningCoachGoodFormPhasePushOffCue;
+
+  /// No description provided for @runningCoachGoodFormPhaseRecoveryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery'**
+  String get runningCoachGoodFormPhaseRecoveryTitle;
+
+  /// No description provided for @runningCoachGoodFormPhaseRecoveryCue.
+  ///
+  /// In en, this message translates to:
+  /// **'Recover the heel naturally and bring the knee through for the next landing.'**
+  String get runningCoachGoodFormPhaseRecoveryCue;
+
+  /// No description provided for @runningCoachGoodFormTechniqueTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Illustrated technique guide'**
+  String get runningCoachGoodFormTechniqueTitle;
+
+  /// No description provided for @runningCoachGoodFormTechniqueBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Red shows a common mistake; blue shows the recommended movement. Focus on the marked relationship and direction, not the model\'s body shape.'**
+  String get runningCoachGoodFormTechniqueBody;
+
+  /// No description provided for @runningCoachGoodFormCommonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Common mistake'**
+  String get runningCoachGoodFormCommonLabel;
+
+  /// No description provided for @runningCoachGoodFormRecommendedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended'**
+  String get runningCoachGoodFormRecommendedLabel;
+
+  /// No description provided for @runningCoachGoodFormBeginnerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Start here'**
+  String get runningCoachGoodFormBeginnerLabel;
+
+  /// No description provided for @runningCoachGoodFormExperiencedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Look closer'**
+  String get runningCoachGoodFormExperiencedLabel;
+
+  /// No description provided for @runningCoachGoodFormExperiencedPosture.
+  ///
+  /// In en, this message translates to:
+  /// **'Across several frames, check that the ankles, hips, and shoulders lean as one line instead of the waist folding as pace changes.'**
+  String get runningCoachGoodFormExperiencedPosture;
+
+  /// No description provided for @runningCoachGoodFormExperiencedBounce.
+  ///
+  /// In en, this message translates to:
+  /// **'Do not judge one peak frame. Compare hip-height change and contact rhythm across several strides for a repeatable pattern.'**
+  String get runningCoachGoodFormExperiencedBounce;
+
+  /// No description provided for @runningCoachGoodFormExperiencedFootStrike.
+  ///
+  /// In en, this message translates to:
+  /// **'At contact, compare foot-to-hip distance, shin direction, and whether the same pattern repeats differently on the left and right.'**
+  String get runningCoachGoodFormExperiencedFootStrike;
+
+  /// No description provided for @runningCoachGoodFormExperiencedKnee.
+  ///
+  /// In en, this message translates to:
+  /// **'After contact, check that the knee neither locks nor collapses abruptly, then bends and extends smoothly through support.'**
+  String get runningCoachGoodFormExperiencedKnee;
+
+  /// No description provided for @runningCoachGoodFormExperiencedArms.
+  ///
+  /// In en, this message translates to:
+  /// **'Check shoulder tension, elbow bend, hands crossing the midline, and differences between left and right arm swing.'**
+  String get runningCoachGoodFormExperiencedArms;
+
+  /// No description provided for @runningCoachGoodFormIllustrationSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Illustrated comparison for {metric}: common mistake and recommended movement'**
+  String runningCoachGoodFormIllustrationSemantics(String metric);
+
   /// No description provided for @runningCoachGoodFormGuideFootnoteTitle.
   ///
   /// In en, this message translates to:
-  /// **'How to use this'**
+  /// **'What this guide is for'**
   String get runningCoachGoodFormGuideFootnoteTitle;
 
   /// No description provided for @runningCoachGoodFormGuideFootnoteBody.
   ///
   /// In en, this message translates to:
-  /// **'These are coaching references for this video\'s conditions. They can vary with pace, body, and setting.'**
+  /// **'This guide does not prescribe one perfect shape. Form varies with body, pace, and setting; in an analysis result, prioritize the evidence from your own video.'**
   String get runningCoachGoodFormGuideFootnoteBody;
 
   /// No description provided for @runningCoachAnalysisGuideRangeLabel.
