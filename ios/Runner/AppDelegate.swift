@@ -42,7 +42,6 @@ import UserNotifications
       registerRunningPoseAnalysisChannel(binaryMessenger: controller.binaryMessenger)
       registerAppBadgeChannel(binaryMessenger: controller.binaryMessenger)
     }
-    registerRunningThreeDRunnerView(pluginRegistry: self)
     return didFinish
   }
 

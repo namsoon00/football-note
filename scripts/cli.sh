@@ -32,6 +32,14 @@ Commands:
 EOF
 }
 
+run_flutter() {
+  if [[ ${#FLUTTER_DEFINE_ARGS[@]} -gt 0 ]]; then
+    flutter "$@" "${FLUTTER_DEFINE_ARGS[@]}"
+  else
+    flutter "$@"
+  fi
+}
+
 run_ios() {
   echo "==> launch iOS simulator"
   flutter emulators --launch apple_ios_simulator
@@ -44,7 +52,7 @@ run_ios() {
   fi
 
   echo "==> flutter run (iOS simulator: ${sim_id})"
-  flutter run "${FLUTTER_DEFINE_ARGS[@]}" -d "${sim_id}" --no-resident "$@"
+  run_flutter run -d "${sim_id}" --no-resident "$@"
 }
 
 cmd="${1:-help}"
@@ -83,7 +91,7 @@ case "${cmd}" in
     ;;
   run)
     shift || true
-    flutter run "${FLUTTER_DEFINE_ARGS[@]}" "$@"
+    run_flutter run "$@"
     ;;
   run-ios)
     shift || true
