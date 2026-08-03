@@ -9824,11 +9824,101 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachGoodFormPrincipleArms => '力を抜いた肘をリズムに合わせて前後に振ります。';
 
   @override
-  String get runningCoachGoodFormGuideFootnoteTitle => '参考にするとき';
+  String get runningCoachGoodFormAction => '良いフォーム';
+
+  @override
+  String get runningCoachGoodFormScreenTitle => '良いランニングフォーム';
+
+  @override
+  String get runningCoachGoodFormIntroTitle => '初心者から経験者まで';
+
+  @override
+  String get runningCoachGoodFormIntroBody =>
+      '最初は「まずはこれだけ」を意識し、慣れたら「さらに詳しく」で左右差、タイミング、連続した動きを確認します。';
+
+  @override
+  String get runningCoachGoodFormCycleTitle => 'ランニングの1サイクル';
+
+  @override
+  String get runningCoachGoodFormCycleBody =>
+      '着地から次の着地を準備するリカバリーまで、4つの段階が自然につながることが大切です。';
+
+  @override
+  String get runningCoachGoodFormPhaseLandingTitle => '着地';
+
+  @override
+  String get runningCoachGoodFormPhaseLandingCue => '足を前へ伸ばすより、腰の近くへ軽く下ろします。';
+
+  @override
+  String get runningCoachGoodFormPhaseSupportTitle => '支持';
+
+  @override
+  String get runningCoachGoodFormPhaseSupportCue =>
+      '膝と足首で負荷を受けながら、体が足の上をなめらかに通ります。';
+
+  @override
+  String get runningCoachGoodFormPhasePushOffTitle => '押し出し';
+
+  @override
+  String get runningCoachGoodFormPhasePushOffCue =>
+      '地面を下へ押し、足が後ろへ抜けながら体を前へ運びます。';
+
+  @override
+  String get runningCoachGoodFormPhaseRecoveryTitle => 'リカバリー';
+
+  @override
+  String get runningCoachGoodFormPhaseRecoveryCue => 'かかとを自然に戻し、膝を次の着地へ準備します。';
+
+  @override
+  String get runningCoachGoodFormTechniqueTitle => '項目別イラストガイド';
+
+  @override
+  String get runningCoachGoodFormTechniqueBody =>
+      '赤はよくあるミス、青は推奨する動きです。モデルの体型ではなく、示された位置関係と方向を確認してください。';
+
+  @override
+  String get runningCoachGoodFormCommonLabel => 'よくあるミス';
+
+  @override
+  String get runningCoachGoodFormRecommendedLabel => '推奨する動き';
+
+  @override
+  String get runningCoachGoodFormBeginnerLabel => 'まずはこれだけ';
+
+  @override
+  String get runningCoachGoodFormExperiencedLabel => 'さらに詳しく';
+
+  @override
+  String get runningCoachGoodFormExperiencedPosture =>
+      '複数のフレームで、ペースが変わっても腰だけを折らず、足首・骨盤・肩が一つの流れで傾いているか確認します。';
+
+  @override
+  String get runningCoachGoodFormExperiencedBounce =>
+      '1歩の最高点だけで判断せず、複数のストライドで腰の高さの変化と接地リズムが一定か確認します。';
+
+  @override
+  String get runningCoachGoodFormExperiencedFootStrike =>
+      '着地時の足と腰の前後距離、すねの向き、左右で同じパターンが繰り返されているかを確認します。';
+
+  @override
+  String get runningCoachGoodFormExperiencedKnee =>
+      '着地直後に膝が固まったり急に潰れたりせず、支持中になめらかに曲がって伸びるか確認します。';
+
+  @override
+  String get runningCoachGoodFormExperiencedArms =>
+      '肩の力み、肘の曲がり、手が体の中央を横切るか、左右の腕振りに差がないかを確認します。';
+
+  @override
+  String runningCoachGoodFormIllustrationSemantics(String metric) {
+    return '$metricのよくあるミスと推奨する動きを比較するイラスト';
+  }
+
+  @override
+  String get runningCoachGoodFormGuideFootnoteTitle => 'このガイドの役割';
 
   @override
   String get runningCoachGoodFormGuideFootnoteBody =>
-      'これは今回の動画の条件でのコーチング参考値です。ペース、体格、環境により変わることがあります。';
+      '一つの完璧な形を押しつける画面ではありません。体格、ペース、環境でフォームは変わるため、分析結果では自分の動画の根拠を優先してください。';
 
   @override
   String get runningCoachAnalysisGuideRangeLabel => '良い範囲';
