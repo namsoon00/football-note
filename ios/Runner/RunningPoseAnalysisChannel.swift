@@ -133,12 +133,14 @@ final class RunningPoseAnalysisChannel {
       from: frameSamples,
       durationMs: durationMs
     )
-    let candidateSet = detectedCandidateSet.windows.isEmpty
-      ? fallbackContactCandidateWindows(
-        from: frameSamples,
-        durationMs: durationMs
-      )
-      : detectedCandidateSet
+    let fallbackCandidateSet = fallbackContactCandidateWindows(
+      from: frameSamples,
+      durationMs: durationMs
+    )
+    let candidateSet = mergeContactCandidateSets(
+      detected: detectedCandidateSet,
+      fallback: fallbackCandidateSet
+    )
     guard !candidateSet.windows.isEmpty else {
       throw insufficientContactEvidence(
         "coarseValid=\(frameSamples.count); candidates=0"
@@ -666,6 +668,32 @@ final class RunningPoseAnalysisChannel {
     groundLine.y(at: Double(footEvidence.bottomPoint.x)) - Double(footEvidence.bottomPoint.y)
   }
 
+  private func selectContactCandidateWindows(
+    _ candidates: [ContactCandidate]
+  ) -> [ContactCandidate] {
+    var selected: [ContactCandidate] = []
+    let rankedCandidates = candidates.sorted {
+      if $0.confidence == $1.confidence {
+        return $0.centerTimestampMs < $1.centerTimestampMs
+      }
+      return $0.confidence > $1.confidence
+    }
+    for candidate in rankedCandidates {
+      let duplicatesSameStep = selected.contains { selectedCandidate in
+        selectedCandidate.side == candidate.side &&
+          abs(selectedCandidate.centerTimestampMs - candidate.centerTimestampMs) <
+          Self.minimumContactCenterSeparationMs
+      }
+      if !duplicatesSameStep {
+        selected.append(candidate)
+      }
+      if selected.count >= Self.maxContactWindows {
+        break
+      }
+    }
+    return selected.sorted { $0.centerTimestampMs < $1.centerTimestampMs }
+  }
+
   private func deriveContactCandidateWindows(
     from samples: [FrameSample],
     durationMs: Int
@@ -727,29 +755,8 @@ final class RunningPoseAnalysisChannel {
       }
     }
 
-    var selected: [ContactCandidate] = []
-    let rankedCandidates = candidates.sorted {
-      if $0.confidence == $1.confidence {
-        return $0.centerTimestampMs < $1.centerTimestampMs
-      }
-      return $0.confidence > $1.confidence
-    }
-    for candidate in rankedCandidates {
-      let overlapsExisting = selected.contains { selectedCandidate in
-        selectedCandidate.side == candidate.side &&
-        abs(selectedCandidate.centerTimestampMs - candidate.centerTimestampMs) <
-          Self.minimumContactCenterSeparationMs
-      }
-      if !overlapsExisting {
-        selected.append(candidate)
-      }
-      if selected.count >= Self.maxContactWindows {
-        break
-      }
-    }
-
     return ContactCandidateSet(
-      windows: selected.sorted { $0.centerTimestampMs < $1.centerTimestampMs },
+      windows: selectContactCandidateWindows(candidates),
       groundLine: groundLine
     )
   }
@@ -772,27 +779,65 @@ final class RunningPoseAnalysisChannel {
       )
     }
 
-    let windows = FootSide.allCases.compactMap { side -> ContactCandidate? in
+    let averageScale = max(
+      samples.map(\.bodyScale).reduce(0, +) / Double(samples.count),
+      1
+    )
+    let localTolerance = averageScale * Self.kinematicContactMotionToleranceRatio
+    var candidates: [ContactCandidate] = []
+    for side in FootSide.allCases {
       let sideEvidence = samples.compactMap { sample in
         sample.footBottom(side).map { evidence in (sample, evidence) }
+      }.sorted { $0.0.timestampMs < $1.0.timestampMs }
+      guard let lowerEnvelopeY = percentile(
+        sideEvidence.map { Double($0.1.bottomPoint.y) },
+        fraction: Self.kinematicContactLowerPercentile
+      ) else {
+        continue
       }
-      guard let candidate = sideEvidence.max(by: {
-        $0.1.bottomPoint.y < $1.1.bottomPoint.y
-      }) else {
-        return nil
+      for index in sideEvidence.indices {
+        let sample = sideEvidence[index].0
+        let evidence = sideEvidence[index].1
+        let currentY = Double(evidence.bottomPoint.y)
+        let previous = index > 0 ? sideEvidence[index - 1] : nil
+        let next = index + 1 < sideEvidence.count ? sideEvidence[index + 1] : nil
+        let closeToPrevious = previous.map {
+          sample.timestampMs - $0.0.timestampMs <= Self.coarseFrameIntervalMs * 2
+        } ?? false
+        let closeToNext = next.map {
+          $0.0.timestampMs - sample.timestampMs <= Self.coarseFrameIntervalMs * 2
+        } ?? false
+        let locallyLow =
+          (!closeToPrevious || currentY >= Double(previous!.1.bottomPoint.y) - localTolerance) &&
+          (!closeToNext || currentY >= Double(next!.1.bottomPoint.y) - localTolerance)
+        guard currentY >= lowerEnvelopeY, locallyLow else {
+          continue
+        }
+        candidates.append(
+          ContactCandidate(
+            side: side,
+            centerTimestampMs: sample.timestampMs,
+            startTimestampMs: max(0, sample.timestampMs - Self.denseWindowRadiusMs),
+            endTimestampMs: min(durationMs, sample.timestampMs + Self.denseWindowRadiusMs),
+            confidence: min(1.0, max(0.0, evidence.confidence))
+          )
+        )
       }
-      return ContactCandidate(
-        side: side,
-        centerTimestampMs: candidate.0.timestampMs,
-        startTimestampMs: max(0, candidate.0.timestampMs - Self.denseWindowRadiusMs),
-        endTimestampMs: min(durationMs, candidate.0.timestampMs + Self.denseWindowRadiusMs),
-        confidence: min(1.0, max(0.0, candidate.1.confidence))
-      )
     }
 
     return ContactCandidateSet(
-      windows: windows.sorted { $0.centerTimestampMs < $1.centerTimestampMs },
+      windows: selectContactCandidateWindows(candidates),
       groundLine: groundLine
+    )
+  }
+
+  private func mergeContactCandidateSets(
+    detected: ContactCandidateSet,
+    fallback: ContactCandidateSet
+  ) -> ContactCandidateSet {
+    ContactCandidateSet(
+      windows: selectContactCandidateWindows(detected.windows + fallback.windows),
+      groundLine: detected.windows.isEmpty ? fallback.groundLine : detected.groundLine
     )
   }
 
@@ -867,22 +912,30 @@ final class RunningPoseAnalysisChannel {
           rejectedFrameCounts: selection.rejectedFrameCounts
         )
       }
-    var selectedByTimestamp: [Int: Int] = [:]
-    for index in validations.indices {
-      guard let contact = validations[index].contact else {
-        continue
+    var selectedIndexes: [Int] = []
+    let rankedIndexes = validations.indices
+      .filter { validations[$0].contact != nil }
+      .sorted { first, second in
+        let firstContact = validations[first].contact!
+        let secondContact = validations[second].contact!
+        if firstContact.confidence == secondContact.confidence {
+          return firstContact.timestampMs < secondContact.timestampMs
+        }
+        return firstContact.confidence > secondContact.confidence
       }
-      guard let existingIndex = selectedByTimestamp[contact.timestampMs] else {
-        selectedByTimestamp[contact.timestampMs] = index
-        continue
+    for index in rankedIndexes {
+      let timestampMs = validations[index].contact!.timestampMs
+      let isSameEvent = selectedIndexes.contains { selectedIndex in
+        abs(validations[selectedIndex].contact!.timestampMs - timestampMs) <
+          Self.minimumDistinctContactSeparationMs
       }
-      if contact.confidence > (validations[existingIndex].contact?.confidence ?? 0) {
-        selectedByTimestamp[contact.timestampMs] = index
+      if !isSameEvent {
+        selectedIndexes.append(index)
       }
     }
-    let selectedIndexes = Set(selectedByTimestamp.values)
+    let selectedIndexSet = Set(selectedIndexes)
     return validations.enumerated().map { index, validation in
-      if validation.contact == nil || selectedIndexes.contains(index) {
+      if validation.contact == nil || selectedIndexSet.contains(index) {
         return validation
       }
       return ContactWindowValidation(
@@ -900,25 +953,29 @@ final class RunningPoseAnalysisChannel {
     direction: AnalysisDirection,
     confidencePenalty: Double
   ) -> [ContactFrameAnalysis] {
-    var selectedByTimestamp: [Int: ContactFrameAnalysis] = [:]
+    var proxies: [ContactFrameAnalysis] = []
     for window in windows.sorted(by: { $0.centerTimestampMs < $1.centerTimestampMs }) {
       let candidate = samples
         .filter { sample in
           sample.timestampMs >= window.startTimestampMs &&
             sample.timestampMs <= window.endTimestampMs
         }
-        .compactMap {
-          sample -> (sample: FrameSample, evidence: FootBottomEvidence, landmarkConfidence: Double)? in
-          guard let evidence = sample.footBottom(window.side) else {
-            return nil
+        .flatMap { sample in
+          FootSide.allCases.compactMap { side -> ContactProxyCandidate? in
+            guard let evidence = sample.footBottom(side),
+              let landmarkConfidence = sample.contactLandmarkConfidence(
+                side,
+                footEvidence: evidence
+              )
+            else {
+              return nil
+            }
+            return ContactProxyCandidate(
+              sample: sample,
+              side: side,
+              landmarkConfidence: landmarkConfidence
+            )
           }
-          guard let landmarkConfidence = sample.contactLandmarkConfidence(
-            window.side,
-            footEvidence: evidence
-          ) else {
-            return nil
-          }
-          return (sample, evidence, landmarkConfidence)
         }
         .sorted { first, second in
           let firstDistance = abs(first.sample.timestampMs - window.centerTimestampMs)
@@ -926,13 +983,16 @@ final class RunningPoseAnalysisChannel {
           if firstDistance != secondDistance {
             return firstDistance < secondDistance
           }
+          if first.landmarkConfidence != second.landmarkConfidence {
+            return first.landmarkConfidence > second.landmarkConfidence
+          }
           return first.sample.timestampMs < second.sample.timestampMs
         }
         .first
       guard let candidate else {
         continue
       }
-      guard let kneeAngleDegrees = candidate.sample.contactKneeAngleDegrees(window.side) else {
+      guard let kneeAngleDegrees = candidate.sample.contactKneeAngleDegrees(candidate.side) else {
         continue
       }
       let confidence = min(
@@ -948,26 +1008,102 @@ final class RunningPoseAnalysisChannel {
       let proxy = ContactFrameAnalysis(
         timestampMs: candidate.sample.timestampMs,
         windowCenterTimestampMs: window.centerTimestampMs,
-        side: window.side,
+        side: candidate.side,
         footStrikeRatio: candidate.sample.contactFootStrikeRatio(
-          window.side,
+          candidate.side,
           direction: direction
         ),
         kneeAngleDegrees: kneeAngleDegrees,
         confidence: confidence,
         isKinematicEstimate: false
       )
-      if let existing = selectedByTimestamp[proxy.timestampMs],
-         existing.confidence >= proxy.confidence {
-        continue
-      }
-      selectedByTimestamp[proxy.timestampMs] = proxy
+      proxies.append(proxy)
     }
-    return selectedByTimestamp.keys.sorted().compactMap { selectedByTimestamp[$0] }
+    var selected: [ContactFrameAnalysis] = []
+    let ranked = proxies.sorted {
+      if $0.confidence == $1.confidence {
+        return $0.timestampMs < $1.timestampMs
+      }
+      return $0.confidence > $1.confidence
+    }
+    for proxy in ranked {
+      let isSameEvent = selected.contains { existing in
+        abs(existing.timestampMs - proxy.timestampMs) <
+          Self.minimumDistinctContactSeparationMs
+      }
+      if !isSameEvent {
+        selected.append(proxy)
+      }
+    }
+    return selected.sorted { $0.timestampMs < $1.timestampMs }
   }
 
   private func selectDenseContactFrame(
     for window: ContactCandidate,
+    orderedSamples: [FrameSample],
+    groundLine: GroundLine,
+    direction: AnalysisDirection
+  ) -> ContactFrameSelection {
+    let alternateSide: FootSide = window.side == .left ? .right : .left
+    let preferred = selectDenseContactFrameForSide(
+      for: window,
+      side: window.side,
+      orderedSamples: orderedSamples,
+      groundLine: groundLine,
+      direction: direction
+    )
+    let alternate = selectDenseContactFrameForSide(
+      for: window,
+      side: alternateSide,
+      orderedSamples: orderedSamples,
+      groundLine: groundLine,
+      direction: direction
+    )
+    let selectedContact = [preferred.contact, alternate.contact]
+      .compactMap { $0 }
+      .max { first, second in
+        let firstBias = first.side == window.side ? 1.03 : 1
+        let secondBias = second.side == window.side ? 1.03 : 1
+        return contactSelectionScore(
+          timestampMs: first.timestampMs,
+          confidence: first.confidence,
+          window: window
+        ) * firstBias < contactSelectionScore(
+          timestampMs: second.timestampMs,
+          confidence: second.confidence,
+          window: window
+        ) * secondBias
+      }
+    var rejectedFrameCounts = preferred.rejectedFrameCounts
+    for (reason, count) in alternate.rejectedFrameCounts {
+      rejectedFrameCounts[reason, default: 0] += count
+    }
+    return ContactFrameSelection(
+      contact: selectedContact,
+      candidateFrameCount: max(
+        preferred.candidateFrameCount,
+        alternate.candidateFrameCount
+      ),
+      rejectedFrameCounts: rejectedFrameCounts
+    )
+  }
+
+  private func contactSelectionScore(
+    timestampMs: Int,
+    confidence: Double,
+    window: ContactCandidate
+  ) -> Double {
+    let distanceRatio = min(
+      1,
+      Double(abs(timestampMs - window.centerTimestampMs)) /
+        Double(max(1, Self.denseWindowRadiusMs))
+    )
+    return confidence * (1 - (distanceRatio * 0.65))
+  }
+
+  private func selectDenseContactFrameForSide(
+    for window: ContactCandidate,
+    side: FootSide,
     orderedSamples: [FrameSample],
     groundLine: GroundLine,
     direction: AnalysisDirection
@@ -979,18 +1115,18 @@ final class RunningPoseAnalysisChannel {
         sample.timestampMs <= window.endTimestampMs
       }
       .compactMap { sample -> ContactFrameCandidate? in
-        guard let evidence = sample.footBottom(window.side) else {
+        guard let evidence = sample.footBottom(side) else {
           incrementContactRejection(&rejectedFrameCounts, reason: "missing_foot_landmark")
           return nil
         }
         guard sample.contactLandmarkConfidence(
-          window.side,
+          side,
           footEvidence: evidence
         ) != nil else {
           incrementContactRejection(&rejectedFrameCounts, reason: "missing_contact_joint_chain")
           return nil
         }
-        let candidate = denseContactCandidate(sample, side: window.side, groundLine: groundLine)
+        let candidate = denseContactCandidate(sample, side: side, groundLine: groundLine)
         if candidate == nil {
           incrementContactRejection(&rejectedFrameCounts, reason: "missing_foot_landmark")
         }
@@ -1040,6 +1176,19 @@ final class RunningPoseAnalysisChannel {
       ? persistentCandidates
       : temporalCandidates
     let selected = candidatesForSelection.sorted(by: { first, second in
+        let firstScore = contactSelectionScore(
+          timestampMs: first.sample.timestampMs,
+          confidence: first.confidence,
+          window: window
+        )
+        let secondScore = contactSelectionScore(
+          timestampMs: second.sample.timestampMs,
+          confidence: second.confidence,
+          window: window
+        )
+        if firstScore != secondScore {
+          return firstScore > secondScore
+        }
         if first.confidence != second.confidence {
           return first.confidence > second.confidence
         }
@@ -1066,6 +1215,19 @@ final class RunningPoseAnalysisChannel {
       kinematicCandidates = []
     }
     let kinematicSelection = kinematicCandidates.sorted(by: { first, second in
+      let firstScore = contactSelectionScore(
+        timestampMs: first.sample.timestampMs,
+        confidence: first.confidence,
+        window: window
+      )
+      let secondScore = contactSelectionScore(
+        timestampMs: second.sample.timestampMs,
+        confidence: second.confidence,
+        window: window
+      )
+      if firstScore != secondScore {
+        return firstScore > secondScore
+      }
       if first.confidence != second.confidence {
         return first.confidence > second.confidence
       }
@@ -1325,7 +1487,7 @@ final class RunningPoseAnalysisChannel {
         ? 0.0
         : validated.map(\.confidence).reduce(0, +) / Double(validated.count)
       return [
-        "side": window.side.rawValue,
+        "side": (validation?.contact?.side ?? window.side).rawValue,
         "startTimestampMs": window.startTimestampMs,
         "centerTimestampMs": window.centerTimestampMs,
         "endTimestampMs": window.endTimestampMs,
@@ -1556,10 +1718,31 @@ final class RunningPoseAnalysisChannel {
     }
     let hipMovement = Double(last.hipCenter.x - first.hipCenter.x)
     let averageScale = max(samples.map(\.bodyScale).reduce(0, +) / Double(samples.count), 1.0)
-    if abs(hipMovement) < averageScale * Self.stationaryThresholdRatio {
+    if abs(hipMovement) >= averageScale * Self.stationaryThresholdRatio {
+      return hipMovement > 0 ? .leftToRight : .rightToLeft
+    }
+
+    // On a treadmill the hips stay in one image location. Heel-toe
+    // orientation still establishes a facing side, which lets the evidence
+    // layer pair posture and landing values to their measured frames.
+    let footDirections = samples.flatMap { sample in
+      FootSide.allCases.compactMap { side -> Double? in
+        guard let foot = sample.footBottom(side) else {
+          return nil
+        }
+        let normalizedDirection =
+          Double(foot.toe.x - foot.heel.x) / max(sample.bodyScale, 1.0)
+        return abs(normalizedDirection) >= Self.minimumFacingDirectionRatio
+          ? normalizedDirection
+          : nil
+      }
+    }
+    guard let facingDirection = percentile(footDirections, fraction: 0.5),
+      abs(facingDirection) >= Self.minimumFacingDirectionRatio
+    else {
       return .stationary
     }
-    return hipMovement > 0 ? .leftToRight : .rightToLeft
+    return facingDirection > 0 ? .leftToRight : .rightToLeft
   }
 
   private func midpoint(_ first: CGPoint, _ second: CGPoint) -> CGPoint {
@@ -1636,6 +1819,12 @@ final class RunningPoseAnalysisChannel {
     let kneeAngleDegrees: Double
     let confidence: Double
     let isKinematicEstimate: Bool
+  }
+
+  private struct ContactProxyCandidate {
+    let sample: FrameSample
+    let side: FootSide
+    let landmarkConfidence: Double
   }
 
   private struct ContactFrameSelection {
@@ -1953,7 +2142,9 @@ final class RunningPoseAnalysisChannel {
   private static let denseWindowRadiusMs = 500
   private static let maxDenseFrameBudget = 240
   private static let maxContactWindows = 8
-  private static let minimumContactCenterSeparationMs = 180
+  private static let minimumContactCenterSeparationMs = 320
+  private static let minimumDistinctContactSeparationMs = 120
+  private static let minimumFacingDirectionRatio = 0.02
   private static let minimumValidatedContactFrames = 3
   private static let minimumContactFrameConfidence = 0.34
   private static let kinematicContactConfidencePenalty = 0.82

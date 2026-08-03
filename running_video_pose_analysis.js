@@ -24,7 +24,14 @@
     denseTargetFps: 30,
     maxDenseFrames: 240,
     maxContactWindows: 8,
-    minContactSeparationMs: 180,
+    // A single foot remains close to the floor for several coarse frames.
+    // Same-side contacts faster than 320 ms apart are therefore treated as
+    // one event; a real running stride returns to the same foot later.
+    minContactSeparationMs: 320,
+    // Left/right detections can describe the same physical landing a frame
+    // apart. Collapse those before applying the three-contact reliability
+    // threshold so duplicated windows cannot create a false pass.
+    minDistinctContactSeparationMs: 120,
     minValidatedContacts: 3,
     minContactConfidence: 0.34,
     // A phone video can lose the far-side shoe for a frame exactly when the
@@ -451,10 +458,32 @@
     const movement =
       samples[samples.length - 1].hipCenter.x - samples[0].hipCenter.x;
     const scale = Math.max(1, average(samples.map((sample) => sample.bodyScale)));
-    if (Math.abs(movement) < scale * config.stationaryThresholdRatio) {
-      return 'stationary';
+    if (Math.abs(movement) >= scale * config.stationaryThresholdRatio) {
+      return movement > 0 ? 'leftToRight' : 'rightToLeft';
     }
-    return movement > 0 ? 'leftToRight' : 'rightToLeft';
+
+    // A treadmill runner stays in the same image location, but the heel-toe
+    // direction still tells us which way the runner faces. Without this
+    // fallback the analyzer produced a numeric posture value and then the
+    // evidence layer discarded it because the direction was "stationary".
+    const footDirections = [];
+    for (const sample of samples) {
+      for (const side of ['left', 'right']) {
+        const prefix = side === 'left' ? 'left' : 'right';
+        const heel = sample[`${prefix}Heel`];
+        const toe = sample[`${prefix}Toe`];
+        if (!heel || !toe) continue;
+        const normalizedDirection = (toe.x - heel.x) / Math.max(1, sample.bodyScale);
+        if (Math.abs(normalizedDirection) >= 0.02) {
+          footDirections.push(normalizedDirection);
+        }
+      }
+    }
+    const facingDirection = median(footDirections);
+    if (facingDirection !== null && Math.abs(facingDirection) >= 0.02) {
+      return facingDirection > 0 ? 'leftToRight' : 'rightToLeft';
+    }
+    return 'stationary';
   }
 
   function jointAngle(first, vertex, third) {
@@ -648,6 +677,22 @@
     return groundYAt(groundLine, foot.bottomPoint.x) - foot.bottomPoint.y;
   }
 
+  function selectContactCandidateWindows(candidates) {
+    const selected = [];
+    for (const candidate of [...candidates].sort(
+      (left, right) => right.confidence - left.confidence || left.centerTimestampMs - right.centerTimestampMs,
+    )) {
+      const duplicatesSameStep = selected.some((selectedCandidate) =>
+        selectedCandidate.side === candidate.side &&
+        Math.abs(selectedCandidate.centerTimestampMs - candidate.centerTimestampMs) <
+          config.minContactSeparationMs,
+      );
+      if (!duplicatesSameStep) selected.push(candidate);
+      if (selected.length >= config.maxContactWindows) break;
+    }
+    return selected.sort((left, right) => left.centerTimestampMs - right.centerTimestampMs);
+  }
+
   function deriveContactCandidates(samples, durationMs) {
     const footEvidence = [];
     for (const sample of samples) {
@@ -690,50 +735,69 @@
       }
     }
 
-    const selected = [];
-    for (const candidate of [...candidates].sort(
-      (left, right) => right.confidence - left.confidence || left.centerTimestampMs - right.centerTimestampMs,
-    )) {
-      // Dense windows are intentionally allowed to overlap. Consecutive
-      // contacts can be less than twice the recovery window apart; treating
-      // that overlap as a duplicate would throw away valid left/right steps.
-      const overlaps = selected.some((selectedCandidate) =>
-        selectedCandidate.side === candidate.side &&
-        Math.abs(selectedCandidate.centerTimestampMs - candidate.centerTimestampMs) < config.minContactSeparationMs,
-      );
-      if (!overlaps) selected.push(candidate);
-      if (selected.length >= config.maxContactWindows) break;
-    }
     return {
-      windows: selected.sort((left, right) => left.centerTimestampMs - right.centerTimestampMs),
+      windows: selectContactCandidateWindows(candidates),
       groundLine,
     };
   }
 
   function fallbackContactCandidates(samples, durationMs) {
     const footEvidence = [];
-    const windows = [];
+    const candidates = [];
+    const averageScale = Math.max(1, average(samples.map((sample) => sample.bodyScale)));
+    const localTolerance = averageScale * config.kinematicContactMotionToleranceRatio;
     for (const side of ['left', 'right']) {
-      const candidates = samples
+      const sideEvidence = samples
         .map((sample) => ({ sample, foot: footBottom(sample, side) }))
         .filter(({ foot }) => foot !== null)
-        .sort((left, right) => right.foot.bottomPoint.y - left.foot.bottomPoint.y);
-      for (const candidate of candidates) {
-        footEvidence.push({ sample: candidate.sample, side, foot: candidate.foot });
+        .sort((left, right) => left.sample.timestampMs - right.sample.timestampMs);
+      for (const item of sideEvidence) {
+        footEvidence.push({ sample: item.sample, side, foot: item.foot });
       }
-      const selected = candidates[0];
-      if (!selected) continue;
-      windows.push({
-        side,
-        centerTimestampMs: selected.sample.timestampMs,
-        startTimestampMs: Math.max(0, selected.sample.timestampMs - config.denseWindowRadiusMs),
-        endTimestampMs: Math.min(durationMs, selected.sample.timestampMs + config.denseWindowRadiusMs),
-        confidence: selected.foot.confidence,
-      });
+      const lowerEnvelopeY = percentile(
+        sideEvidence.map((item) => item.foot.bottomPoint.y),
+        config.kinematicContactLowerPercentile,
+      );
+      if (lowerEnvelopeY === null) continue;
+      for (let itemIndex = 0; itemIndex < sideEvidence.length; itemIndex += 1) {
+        const current = sideEvidence[itemIndex];
+        const currentY = current.foot.bottomPoint.y;
+        const previous = sideEvidence[itemIndex - 1];
+        const next = sideEvidence[itemIndex + 1];
+        const closeToPrevious = previous &&
+          current.sample.timestampMs - previous.sample.timestampMs <=
+            config.coarseFrameIntervalMs * 2;
+        const closeToNext = next &&
+          next.sample.timestampMs - current.sample.timestampMs <=
+            config.coarseFrameIntervalMs * 2;
+        const locallyLow =
+          (!closeToPrevious || currentY >= previous.foot.bottomPoint.y - localTolerance) &&
+          (!closeToNext || currentY >= next.foot.bottomPoint.y - localTolerance);
+        if (currentY < lowerEnvelopeY || !locallyLow) continue;
+        candidates.push({
+          side,
+          centerTimestampMs: current.sample.timestampMs,
+          startTimestampMs: Math.max(0, current.sample.timestampMs - config.denseWindowRadiusMs),
+          endTimestampMs: Math.min(durationMs, current.sample.timestampMs + config.denseWindowRadiusMs),
+          confidence: current.foot.confidence,
+        });
+      }
     }
     return {
-      windows: windows.sort((left, right) => left.centerTimestampMs - right.centerTimestampMs),
+      windows: selectContactCandidateWindows(candidates),
       groundLine: groundLineForFootEvidence(footEvidence),
+    };
+  }
+
+  function mergedContactCandidateSet(detected, fallback) {
+    return {
+      windows: selectContactCandidateWindows([
+        ...detected.windows,
+        ...fallback.windows,
+      ]),
+      groundLine: detected.windows.length > 0
+        ? detected.groundLine
+        : fallback.groundLine,
     };
   }
 
@@ -858,31 +922,40 @@
     return isLowestNearPrevious && isLowestNearNext;
   }
 
-  function contactPayload(selected, window, direction, confidence, selectionMethod) {
-    const kneeAngleDegrees = contactKneeAngle(selected.sample, window.side);
+  function contactSelectionScore(timestampMs, confidence, window) {
+    const distanceRatio = Math.min(
+      1,
+      Math.abs(timestampMs - window.centerTimestampMs) /
+        Math.max(1, config.denseWindowRadiusMs),
+    );
+    return confidence * (1 - (distanceRatio * 0.65));
+  }
+
+  function contactPayload(selected, window, side, direction, confidence, selectionMethod) {
+    const kneeAngleDegrees = contactKneeAngle(selected.sample, side);
     if (kneeAngleDegrees === null) return null;
     return {
       timestampMs: selected.sample.timestampMs,
       windowCenterTimestampMs: window.centerTimestampMs,
-      side: window.side,
-      footStrikeRatio: contactFootStrikeRatio(selected.sample, window.side, direction),
+      side,
+      footStrikeRatio: contactFootStrikeRatio(selected.sample, side, direction),
       kneeAngleDegrees,
       confidence,
       selectionMethod,
     };
   }
 
-  function validatedContact(window, samples, groundLine, direction) {
+  function validatedContactForSide(window, side, samples, groundLine, direction) {
     const rejectedFrameCounts = {};
     const records = [];
     for (const sample of samples) {
       if (sample.timestampMs < window.startTimestampMs || sample.timestampMs > window.endTimestampMs) continue;
-      const foot = footBottom(sample, window.side);
+      const foot = footBottom(sample, side);
       if (!foot) {
         incrementReason(rejectedFrameCounts, 'missing_foot_landmark');
         continue;
       }
-      const landmarkConfidence = contactLandmarkConfidence(sample, window.side, foot);
+      const landmarkConfidence = contactLandmarkConfidence(sample, side, foot);
       if (landmarkConfidence === null) {
         incrementReason(rejectedFrameCounts, 'missing_contact_joint_chain');
         continue;
@@ -929,6 +1002,8 @@
       ? temporalCandidates
       : persistentCandidates;
     candidates.sort((left, right) =>
+      contactSelectionScore(right.sample.timestampMs, right.confidence, window) -
+        contactSelectionScore(left.sample.timestampMs, left.confidence, window) ||
       right.confidence - left.confidence ||
       Math.abs(left.sample.timestampMs - window.centerTimestampMs) - Math.abs(right.sample.timestampMs - window.centerTimestampMs),
     );
@@ -943,18 +1018,21 @@
           kinematicContactCandidate(records, recordIndex, kinematicLowerEnvelope),
         );
     const kinematicSelection = [...kinematicCandidates].sort((left, right) =>
+      contactSelectionScore(right.sample.timestampMs, right.confidence, window) -
+        contactSelectionScore(left.sample.timestampMs, left.confidence, window) ||
       right.confidence - left.confidence ||
       Math.abs(left.sample.timestampMs - window.centerTimestampMs) -
         Math.abs(right.sample.timestampMs - window.centerTimestampMs),
     )[0];
     const strictContact = selected
-      ? contactPayload(selected, window, direction, selected.confidence, 'ground')
+      ? contactPayload(selected, window, side, direction, selected.confidence, 'ground')
       : null;
     const kinematicContact = strictContact || !kinematicSelection
       ? null
       : contactPayload(
           kinematicSelection,
           window,
+          side,
           direction,
           kinematicSelection.confidence * config.kinematicContactConfidencePenalty,
           'kinematic',
@@ -972,48 +1050,135 @@
     };
   }
 
+  function mergeRejectedFrameCounts(...counts) {
+    const merged = {};
+    for (const count of counts) {
+      for (const [reason, value] of Object.entries(count)) {
+        merged[reason] = (merged[reason] ?? 0) + value;
+      }
+    }
+    return merged;
+  }
+
+  function validatedContact(window, samples, groundLine, direction) {
+    const otherSide = window.side === 'left' ? 'right' : 'left';
+    const preferred = validatedContactForSide(
+      window,
+      window.side,
+      samples,
+      groundLine,
+      direction,
+    );
+    const alternate = validatedContactForSide(
+      window,
+      otherSide,
+      samples,
+      groundLine,
+      direction,
+    );
+    const options = [preferred.contact, alternate.contact].filter(Boolean);
+    options.sort((left, right) => {
+      const preferredBiasLeft = left.side === window.side ? 1.03 : 1;
+      const preferredBiasRight = right.side === window.side ? 1.03 : 1;
+      return (
+        contactSelectionScore(right.timestampMs, right.confidence, window) * preferredBiasRight -
+        contactSelectionScore(left.timestampMs, left.confidence, window) * preferredBiasLeft
+      );
+    });
+    return {
+      contact: options[0] ?? null,
+      candidateFrameCount: Math.max(
+        preferred.candidateFrameCount,
+        alternate.candidateFrameCount,
+      ),
+      rejectedFrameCounts: mergeRejectedFrameCounts(
+        preferred.rejectedFrameCounts,
+        alternate.rejectedFrameCounts,
+      ),
+    };
+  }
+
+  function deduplicateContactValidations(validations) {
+    const selectedIndexes = [];
+    const rankedIndexes = validations
+      .map((validation, validationIndex) => ({ validation, validationIndex }))
+      .filter(({ validation }) => validation.contact)
+      .sort((left, right) =>
+        right.validation.contact.confidence - left.validation.contact.confidence ||
+        left.validation.contact.timestampMs - right.validation.contact.timestampMs,
+      );
+    for (const item of rankedIndexes) {
+      const timestampMs = item.validation.contact.timestampMs;
+      const isSameEvent = selectedIndexes.some((selectedIndex) =>
+        Math.abs(validations[selectedIndex].contact.timestampMs - timestampMs) <
+          config.minDistinctContactSeparationMs,
+      );
+      if (!isSameEvent) selectedIndexes.push(item.validationIndex);
+    }
+    const selected = new Set(selectedIndexes);
+    return validations.map((validation, validationIndex) =>
+      validation.contact && !selected.has(validationIndex)
+        ? { ...validation, contact: null }
+        : validation,
+    );
+  }
+
+  function deduplicateContacts(contacts) {
+    const selected = [];
+    for (const contact of [...contacts].sort(
+      (left, right) => right.confidence - left.confidence || left.timestampMs - right.timestampMs,
+    )) {
+      if (selected.some((item) =>
+        Math.abs(item.timestampMs - contact.timestampMs) <
+          config.minDistinctContactSeparationMs,
+      )) {
+        continue;
+      }
+      selected.push(contact);
+    }
+    return selected.sort((left, right) => left.timestampMs - right.timestampMs);
+  }
+
   function contactProxies(samples, windows, direction, confidencePenalty) {
-    const byTimestamp = new Map();
+    const proxies = [];
     for (const window of windows) {
       const candidate = samples
         .filter((sample) =>
           sample.timestampMs >= window.startTimestampMs && sample.timestampMs <= window.endTimestampMs,
         )
-        .map((sample) => {
-          const foot = footBottom(sample, window.side);
+        .flatMap((sample) => ['left', 'right'].map((side) => {
+          const foot = footBottom(sample, side);
           const landmarkConfidence = foot
-            ? contactLandmarkConfidence(sample, window.side, foot)
+            ? contactLandmarkConfidence(sample, side, foot)
             : null;
-          return { sample, foot, landmarkConfidence };
-        })
+          return { sample, side, foot, landmarkConfidence };
+        }))
         .filter(({ foot, landmarkConfidence }) =>
           foot !== null && landmarkConfidence !== null,
         )
         .sort((left, right) =>
           Math.abs(left.sample.timestampMs - window.centerTimestampMs) -
-          Math.abs(right.sample.timestampMs - window.centerTimestampMs),
+            Math.abs(right.sample.timestampMs - window.centerTimestampMs) ||
+          right.landmarkConfidence - left.landmarkConfidence,
         )[0];
       if (!candidate) continue;
       const confidence = Math.min(
         window.confidence,
         candidate.landmarkConfidence,
       ) * confidencePenalty;
-      const kneeAngleDegrees = contactKneeAngle(candidate.sample, window.side);
+      const kneeAngleDegrees = contactKneeAngle(candidate.sample, candidate.side);
       if (kneeAngleDegrees === null) continue;
       const proxy = {
         timestampMs: candidate.sample.timestampMs,
         windowCenterTimestampMs: window.centerTimestampMs,
-        side: window.side,
-        footStrikeRatio: contactFootStrikeRatio(candidate.sample, window.side, direction),
+        side: candidate.side,
+        footStrikeRatio: contactFootStrikeRatio(candidate.sample, candidate.side, direction),
         kneeAngleDegrees,
         confidence,
       };
-      const existing = byTimestamp.get(proxy.timestampMs);
-      if (!existing || proxy.confidence > existing.confidence) {
-        byTimestamp.set(proxy.timestampMs, proxy);
-      }
+      proxies.push(proxy);
     }
-    return [...byTimestamp.values()];
+    return deduplicateContacts(proxies);
   }
 
   function contactWindowPayloads(windows, denseFrameTimes, validations) {
@@ -1021,7 +1186,7 @@
       const validation = validations[windowIndex];
       const contact = validation?.contact;
       return {
-        side: window.side,
+        side: contact?.side ?? window.side,
         startTimestampMs: window.startTimestampMs,
         centerTimestampMs: window.centerTimestampMs,
         endTimestampMs: window.endTimestampMs,
@@ -1105,10 +1270,12 @@
       const bounceRatio = lowerBouncePosition === null || upperBouncePosition === null
         ? 0
         : Math.max(0, upperBouncePosition - lowerBouncePosition);
-      let candidateSet = deriveContactCandidates(coarse.samples, durationMs);
-      if (candidateSet.windows.length === 0) {
-        candidateSet = fallbackContactCandidates(coarse.samples, durationMs);
-      }
+      const detectedCandidateSet = deriveContactCandidates(coarse.samples, durationMs);
+      const fallbackCandidateSet = fallbackContactCandidates(coarse.samples, durationMs);
+      const candidateSet = mergedContactCandidateSet(
+        detectedCandidateSet,
+        fallbackCandidateSet,
+      );
       if (candidateSet.windows.length === 0) {
         throw createError('insufficient_contact_evidence', 'We could not verify foot-contact frames in this video.');
       }
@@ -1124,8 +1291,10 @@
         if (error?.code) throw error;
         throw createError('mediapipe_pose_failed', error?.message || 'MediaPipe pose inference failed.');
       }
-      const contactValidations = candidateSet.windows.map((window) =>
-        validatedContact(window, dense.samples, candidateSet.groundLine, direction),
+      const contactValidations = deduplicateContactValidations(
+        candidateSet.windows.map((window) =>
+          validatedContact(window, dense.samples, candidateSet.groundLine, direction),
+        ),
       );
       const contacts = contactValidations
         .map((validation) => validation.contact)

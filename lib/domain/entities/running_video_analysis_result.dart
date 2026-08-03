@@ -886,7 +886,14 @@ RunningRhythmContact _rhythmContactForTimestamp({
 }) {
   RunningContactWindow? nearestWindow;
   var nearestDistanceMs = 181;
-  for (final window in result.contactWindows) {
+  final explicitWindows = result.contactWindows.where(
+    (window) => window.validatedContactTimestamps.any(
+      (timestamp) => timestamp.inMilliseconds == timestampMs,
+    ),
+  );
+  final candidateWindows =
+      explicitWindows.isNotEmpty ? explicitWindows : result.contactWindows;
+  for (final window in candidateWindows) {
     final isInside =
         timestampMs >= window.startMs && timestampMs <= window.endMs;
     final distanceMs = (timestampMs - window.centerMs).abs();
@@ -1037,19 +1044,27 @@ RunningGaitAnalysis? _deriveRunningGaitAnalysis(
   final validated = result.validatedContactFrameTimestamps
       .map((timestamp) => timestamp.inMilliseconds)
       .toSet();
+  final hasWindowLevelContactEvidence = result.contactWindows.any(
+    (window) => window.validatedContactTimestamps.isNotEmpty,
+  );
   final consumedTimestamps = <int>{};
   final steps = <RunningGaitStep>[];
 
   for (final window in result.contactWindows) {
     if (window.side == RunningContactSide.unknown) continue;
-    final contactCandidates = <int>{
-      ...window.validatedContactTimestamps.map(
-        (timestamp) => timestamp.inMilliseconds,
-      ),
-      ...validated.where(
-        (timestamp) => timestamp >= window.startMs && timestamp <= window.endMs,
-      ),
-    }.toList(growable: false)
+    final windowContacts = window.validatedContactTimestamps
+        .map((timestamp) => timestamp.inMilliseconds)
+        .toSet();
+    // Fresh analyzer payloads identify the exact window/side that produced
+    // each contact. Do not let another overlapping recovery window claim the
+    // timestamp. The range fallback is only for older saved snapshots.
+    final contactCandidates = (hasWindowLevelContactEvidence
+            ? windowContacts
+            : validated.where(
+                (timestamp) =>
+                    timestamp >= window.startMs && timestamp <= window.endMs,
+              ))
+        .toList(growable: false)
       ..sort((left, right) {
         final leftDistance = (left - window.centerMs).abs();
         final rightDistance = (right - window.centerMs).abs();
