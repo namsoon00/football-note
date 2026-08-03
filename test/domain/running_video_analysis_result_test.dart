@@ -369,6 +369,85 @@ void main() {
     expect(gait.steps.first.contactExit, isNotNull);
   });
 
+  test('overlapping empty windows cannot claim another side contact', () {
+    const contactTimes = <int>[600, 900, 1200];
+    final result = RunningVideoAnalysisResult(
+      videoDuration: const Duration(seconds: 2),
+      sampledFrames: 12,
+      validFrames: 9,
+      direction: RunningDirection.leftToRight,
+      forwardLeanDegrees: 10,
+      verticalBounceRatio: 0.06,
+      footStrikeDistanceRatio: 0.10,
+      stanceKneeAngleDegrees: 154,
+      elbowAngleDegrees: 90,
+      poseFrames: <RunningPoseFrame>[
+        for (var index = 0; index < contactTimes.length; index += 1)
+          _gaitPoseFrame(
+            timestampMs: contactTimes[index],
+            side: index.isEven
+                ? RunningContactSide.left
+                : RunningContactSide.right,
+            flexed: false,
+          ),
+      ],
+      denseSamples: const RunningAnalysisSampleSummary(
+        attemptedFrames: 9,
+        validFrames: 9,
+        poseFrameCount: 3,
+        targetFps: 30,
+      ),
+      contactWindows: <RunningContactWindow>[
+        const RunningContactWindow(
+          start: Duration(milliseconds: 300),
+          center: Duration(milliseconds: 590),
+          end: Duration(milliseconds: 1400),
+          side: RunningContactSide.right,
+          denseSampleCount: 9,
+          validatedContactTimestamps: <Duration>[],
+          confidence: 0,
+        ),
+        for (var index = 0; index < contactTimes.length; index += 1)
+          RunningContactWindow(
+            start: Duration(milliseconds: contactTimes[index] - 500),
+            center: Duration(milliseconds: contactTimes[index]),
+            end: Duration(milliseconds: contactTimes[index] + 500),
+            side: index.isEven
+                ? RunningContactSide.left
+                : RunningContactSide.right,
+            denseSampleCount: 9,
+            validatedContactTimestamps: <Duration>[
+              Duration(milliseconds: contactTimes[index]),
+            ],
+            confidence: 0.92,
+          ),
+      ],
+      validatedContactFrameTimestamps: const <Duration>[
+        Duration(milliseconds: 600),
+        Duration(milliseconds: 900),
+        Duration(milliseconds: 1200),
+      ],
+      contactConfidence: 0.92,
+    );
+
+    expect(
+      result.gaitAnalysis!.steps.map((step) => step.side),
+      <RunningContactSide>[
+        RunningContactSide.left,
+        RunningContactSide.right,
+        RunningContactSide.left,
+      ],
+    );
+    expect(
+      result.rhythmAnalysis!.contacts.map((contact) => contact.side),
+      <RunningContactSide>[
+        RunningContactSide.left,
+        RunningContactSide.right,
+        RunningContactSide.left,
+      ],
+    );
+  });
+
   test('keeps verified rhythm available when pose pairing is unavailable', () {
     const contactTimes = <int>[600, 900, 1200, 1500, 1800, 2100];
     final result = RunningVideoAnalysisResult(

@@ -72,9 +72,11 @@ for required in (
     "coarseSampleTimestamps",
     "deriveContactCandidateWindows",
     "fallbackContactCandidateWindows",
+    "mergeContactCandidateSets",
     "denseTimestampsForContactWindows",
     "validateDenseContactFrames",
     "selectDenseContactFrame",
+    "selectDenseContactFrameForSide",
     "hasGroundBandPersistence",
     "enteredGroundBand",
     "hasTemporalNeighbor",
@@ -94,6 +96,8 @@ for required in (
     "mergePoseFrames",
     "maxDenseFrameBudget",
     "minimumValidatedContactFrames",
+    "minimumDistinctContactSeparationMs",
+    "foot.toe.x - foot.heel.x",
     "coarseContactProxyConfidencePenalty",
     "frameSharpness",
     "sharpnessValues",
@@ -127,9 +131,11 @@ for required in (
     "coarseSampleTimestamps",
     "deriveContactCandidateWindows",
     "fallbackContactCandidateWindows",
+    "mergeContactCandidateSets",
     "denseTimestampsForContactWindows",
     "validateDenseContactFrames",
     "selectDenseContactFrame",
+    "selectDenseContactFrameForSide",
     "hasGroundBandPersistence",
     "enteredGroundBand",
     "hasTemporalNeighbor",
@@ -149,6 +155,8 @@ for required in (
     "mergePoseFrames",
     "maxDenseFrameBudget",
     "minimumValidatedContactFrames",
+    "minimumDistinctContactSeparationMs",
+    "foot.toe.x - foot.heel.x",
     "coarseContactProxyConfidencePenalty",
     "frameSharpness",
     "sharpnessValues",
@@ -324,8 +332,10 @@ require(
     "iOS dense contact evidence must require unique selected contact events",
 )
 require(
-    "selectedByTimestamp" in channel_text and "selectedByTimestamp" in ios_text,
-    "Android/iOS dense contact validation must deduplicate selected event timestamps",
+    "selectedIndexes" in channel_text and "selectedIndexes" in ios_text
+    and "minimumDistinctContactSeparationMs" in channel_text
+    and "minimumDistinctContactSeparationMs" in ios_text,
+    "Android/iOS dense contact validation must deduplicate nearby contact events",
 )
 require(
     "val usesContactProxy = uniqueContactFrameCount == 0" in channel_text,
