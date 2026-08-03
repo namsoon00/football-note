@@ -45,6 +45,59 @@ void main() {
     );
   });
 
+  test('static guide presentations share a bounded ground baseline', () {
+    final presentations = RunningCycleGuidePhase.values
+        .map(runningCycleGuidePresentationForPhase)
+        .toList();
+
+    expect(presentations.map((presentation) => presentation.frame), [
+      3,
+      4,
+      5,
+      6,
+    ]);
+    expect(
+      presentations.map((presentation) => presentation.targetGroundY).toSet(),
+      {403.0},
+    );
+    expect(presentations.first.sourceGroundY, 425.0);
+    expect(
+      presentations.skip(1).map((presentation) => presentation.sourceGroundY),
+      everyElement(403.0),
+    );
+    expect(presentations.first.scale, closeTo(1.025, 0.0001));
+    expect(
+      presentations.skip(1).map((presentation) => presentation.scale),
+      everyElement(1.0),
+    );
+
+    final scales = presentations
+        .map((presentation) => presentation.scale)
+        .toList(growable: false);
+    final scaleRange = scales.reduce((a, b) => a > b ? a : b) -
+        scales.reduce((a, b) => a < b ? a : b);
+    expect(scaleRange, lessThanOrEqualTo(0.025));
+
+    const size = Size(320, 360);
+    const aspectRatio = 418 / 470.5;
+    final mappedGroundYs = presentations.map((presentation) {
+      final destination = runningCycleGuideDestinationRectForPhase(
+        size,
+        aspectRatio,
+        presentation.phase,
+      );
+      expect(destination.left, greaterThanOrEqualTo(-size.width * 0.03));
+      expect(destination.right, lessThanOrEqualTo(size.width * 1.03));
+      expect(destination.top, greaterThanOrEqualTo(-size.height * 0.08));
+      expect(destination.bottom, lessThanOrEqualTo(size.height));
+      return destination.top +
+          destination.height * presentation.sourceGroundY / 470.5;
+    }).toList();
+    for (final groundY in mappedGroundYs.skip(1)) {
+      expect(groundY, closeTo(mappedGroundYs.first, 0.001));
+    }
+  });
+
   testWidgets('static guide uses ordered v2 atlas source rects', (
     WidgetTester tester,
   ) async {
@@ -71,9 +124,10 @@ void main() {
 
     expect(
       find.text(
-        'The four reference images follow the same lead leg from landing '
-        'through recovery. They are not a continuous video or your uploaded '
-        'run; select a phase to view one static frame.',
+        'The four reference images are static frames, not continuous video '
+        'or your uploaded run. Each selected runner is displayed at the same '
+        'scale on the same ground line; use the blue mark to inspect that '
+        'phase relationship.',
       ),
       findsOneWidget,
     );
@@ -208,6 +262,10 @@ void main() {
           'Press down, then let the foot travel behind as the body moves forward.'),
       findsOneWidget,
     );
+    expect(
+      find.text('Blue mark: Push-off toe and foot against the ground line'),
+      findsOneWidget,
+    );
     await _expectStaticSourceRect(tester, RunningCycleGuidePhase.pushOff);
 
     await tester.pump(const Duration(seconds: 2));
@@ -228,6 +286,58 @@ void main() {
       findsOneWidget,
     );
     await _expectStaticSourceRect(tester, RunningCycleGuidePhase.recovery);
+  });
+
+  testWidgets('focus overlay and localized legend change with selected phase', (
+    WidgetTester tester,
+  ) async {
+    await _pumpPlayer(tester);
+
+    expect(_focusOverlayPaint(RunningCycleGuidePhase.landing), findsOneWidget);
+    expect(
+      _focusOverlayPaint(RunningCycleGuidePhase.landing),
+      paintsExactlyCountTimes(#drawCircle, 3),
+    );
+    expect(
+      find.text('Blue mark: Landing foot near the shared ground line'),
+      findsOneWidget,
+    );
+
+    final supportPhase = find.byKey(
+      const ValueKey('running-coach-good-form-phase-1'),
+    );
+    await tester.ensureVisible(supportPhase);
+    await tester.tap(supportPhase);
+    await tester.pump();
+
+    expect(_focusOverlayPaint(RunningCycleGuidePhase.support), findsOneWidget);
+    expect(
+      find.text('Blue mark: Supporting knee over the loading leg'),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(
+        const ValueKey('running-coach-good-form-focus-legend-support'),
+      ),
+      findsOneWidget,
+    );
+
+    final recoveryPhase = find.byKey(
+      const ValueKey('running-coach-good-form-phase-3'),
+    );
+    await tester.ensureVisible(recoveryPhase);
+    await tester.tap(recoveryPhase);
+    await tester.pump();
+
+    expect(_focusOverlayPaint(RunningCycleGuidePhase.recovery), findsOneWidget);
+    expect(
+      _focusOverlayPaint(RunningCycleGuidePhase.recovery),
+      paintsExactlyCountTimes(#drawCircle, 6),
+    );
+    expect(
+      find.text('Blue mark: Recovery knee and heel moving through together'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('step control travels landing support push-off recovery', (
@@ -299,6 +409,13 @@ void main() {
 
 Finder get _atlasFramePaint => find.byKey(
       const ValueKey('running-coach-good-form-cycle-atlas-frame'),
+      skipOffstage: false,
+    );
+
+Finder _focusOverlayPaint(RunningCycleGuidePhase phase) => find.byKey(
+      ValueKey(
+        'running-coach-good-form-cycle-focus-overlay-${phase.name}',
+      ),
       skipOffstage: false,
     );
 

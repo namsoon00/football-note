@@ -9841,13 +9841,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachGoodFormCycleBody =>
-      '4枚の参考画像は、着地からリカバリーまで同じリード脚を追っています。連続動画でもあなたのアップロード動画でもありません。段階を選ぶと静止フレームを1枚だけ表示します。';
+      '4枚の参考画像は連続動画でもあなたのアップロード動画でもない静止フレームです。選択したランナーは同じスケールと同じ地面ラインに合わせて表示され、青い印がその段階で確認する位置関係を示します。';
 
   @override
   String get runningCoachGoodFormPhaseLandingTitle => '着地';
 
   @override
   String get runningCoachGoodFormPhaseLandingCue => '足を前へ伸ばすより、腰の近くへ軽く下ろします。';
+
+  @override
+  String get runningCoachGoodFormPhaseLandingFocus => '着地する足と共通の地面ライン';
 
   @override
   String get runningCoachGoodFormPhaseSupportTitle => '支持';
@@ -9857,11 +9860,17 @@ class AppLocalizationsJa extends AppLocalizations {
       '膝と足首で負荷を受けながら、体が足の上をなめらかに通ります。';
 
   @override
+  String get runningCoachGoodFormPhaseSupportFocus => '支える膝と荷重を受ける脚';
+
+  @override
   String get runningCoachGoodFormPhasePushOffTitle => '押し出し';
 
   @override
   String get runningCoachGoodFormPhasePushOffCue =>
       '地面を下へ押し、足が後ろへ抜けながら体を前へ運びます。';
+
+  @override
+  String get runningCoachGoodFormPhasePushOffFocus => '押し出すつま先・足と地面ライン';
 
   @override
   String get runningCoachGoodFormPhaseRecoveryTitle => 'リカバリー';
@@ -9870,8 +9879,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachGoodFormPhaseRecoveryCue => 'かかとを自然に戻し、膝を次の着地へ準備します。';
 
   @override
+  String get runningCoachGoodFormPhaseRecoveryFocus => '戻る膝とかかとのつながり';
+
+  @override
   String runningCoachGoodFormCycleObservationLabel(String phase) {
     return '観察: $phase';
+  }
+
+  @override
+  String runningCoachGoodFormCycleFocusLegend(String focus) {
+    return '青い印: $focus';
   }
 
   @override

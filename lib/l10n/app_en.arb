@@ -5602,19 +5602,31 @@
   "runningCoachGoodFormIntroTitle": "For new and experienced runners",
   "runningCoachGoodFormIntroBody": "Start with ‘Start here.’ Once it feels natural, use ‘Look closer’ to check symmetry, timing, and movement across several strides.",
   "runningCoachGoodFormCycleTitle": "Static phase references",
-  "runningCoachGoodFormCycleBody": "The four reference images follow the same lead leg from landing through recovery. They are not a continuous video or your uploaded run; select a phase to view one static frame.",
+  "runningCoachGoodFormCycleBody": "The four reference images are static frames, not continuous video or your uploaded run. Each selected runner is displayed at the same scale on the same ground line; use the blue mark to inspect that phase relationship.",
   "runningCoachGoodFormPhaseLandingTitle": "Landing",
   "runningCoachGoodFormPhaseLandingCue": "Place the foot lightly near the hips instead of reaching it forward.",
+  "runningCoachGoodFormPhaseLandingFocus": "Landing foot near the shared ground line",
   "runningCoachGoodFormPhaseSupportTitle": "Support",
   "runningCoachGoodFormPhaseSupportCue": "Let the knee and ankle absorb load as the body moves smoothly over the foot.",
+  "runningCoachGoodFormPhaseSupportFocus": "Supporting knee over the loading leg",
   "runningCoachGoodFormPhasePushOffTitle": "Push-off",
   "runningCoachGoodFormPhasePushOffCue": "Press down, then let the foot travel behind as the body moves forward.",
+  "runningCoachGoodFormPhasePushOffFocus": "Push-off toe and foot against the ground line",
   "runningCoachGoodFormPhaseRecoveryTitle": "Recovery",
   "runningCoachGoodFormPhaseRecoveryCue": "Recover the heel naturally and bring the knee through for the next landing.",
+  "runningCoachGoodFormPhaseRecoveryFocus": "Recovery knee and heel moving through together",
   "runningCoachGoodFormCycleObservationLabel": "Observe: {phase}",
   "@runningCoachGoodFormCycleObservationLabel": {
     "placeholders": {
       "phase": {
+        "type": "String"
+      }
+    }
+  },
+  "runningCoachGoodFormCycleFocusLegend": "Blue mark: {focus}",
+  "@runningCoachGoodFormCycleFocusLegend": {
+    "placeholders": {
+      "focus": {
         "type": "String"
       }
     }

@@ -9859,7 +9859,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachGoodFormCycleBody =>
-      '네 장의 참고 그림은 착지부터 회수까지 같은 리드 다리를 따라가요. 연속 영상이나 내 업로드 영상이 아니며, 단계를 선택하면 정지 프레임 한 장만 볼 수 있어요.';
+      '네 장의 참고 그림은 연속 영상이나 내 업로드 영상이 아닌 정지 프레임이에요. 선택한 러너는 같은 크기와 같은 지면선에 맞춰 표시되며, 파란 표시가 그 단계에서 확인할 관계를 알려줘요.';
 
   @override
   String get runningCoachGoodFormPhaseLandingTitle => '착지';
@@ -9869,11 +9869,17 @@ class AppLocalizationsKo extends AppLocalizations {
       '발을 앞으로 뻗기보다 엉덩이 가까이에 가볍게 내려놓아요.';
 
   @override
+  String get runningCoachGoodFormPhaseLandingFocus => '착지 발과 공통 지면선';
+
+  @override
   String get runningCoachGoodFormPhaseSupportTitle => '지지';
 
   @override
   String get runningCoachGoodFormPhaseSupportCue =>
       '무릎과 발목이 충격을 받으며 몸이 발 위를 부드럽게 지나가요.';
+
+  @override
+  String get runningCoachGoodFormPhaseSupportFocus => '지지하는 무릎과 하중을 받는 다리';
 
   @override
   String get runningCoachGoodFormPhasePushOffTitle => '밀어내기';
@@ -9883,6 +9889,9 @@ class AppLocalizationsKo extends AppLocalizations {
       '땅을 아래로 누른 뒤 발이 뒤로 빠지며 몸이 앞으로 이동해요.';
 
   @override
+  String get runningCoachGoodFormPhasePushOffFocus => '밀어내는 발끝과 발, 지면선';
+
+  @override
   String get runningCoachGoodFormPhaseRecoveryTitle => '회수';
 
   @override
@@ -9890,8 +9899,16 @@ class AppLocalizationsKo extends AppLocalizations {
       '뒤꿈치를 자연스럽게 회수하고 무릎이 다음 착지를 준비해요.';
 
   @override
+  String get runningCoachGoodFormPhaseRecoveryFocus => '회수되는 무릎과 뒤꿈치';
+
+  @override
   String runningCoachGoodFormCycleObservationLabel(String phase) {
     return '관찰: $phase';
+  }
+
+  @override
+  String runningCoachGoodFormCycleFocusLegend(String focus) {
+    return '파란 표시: $focus';
   }
 
   @override
