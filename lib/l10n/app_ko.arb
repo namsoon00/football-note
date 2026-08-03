@@ -5602,19 +5602,31 @@
   "runningCoachGoodFormIntroTitle": "초보자부터 경력자까지",
   "runningCoachGoodFormIntroBody": "처음에는 ‘먼저 이것만’을 따라 하고, 익숙해지면 ‘더 정확히 보기’로 좌우·타이밍·연속 동작을 확인하세요.",
   "runningCoachGoodFormCycleTitle": "정지된 단계별 참고 그림",
-  "runningCoachGoodFormCycleBody": "네 장의 참고 그림은 착지부터 회수까지 같은 리드 다리를 따라가요. 연속 영상이나 내 업로드 영상이 아니며, 단계를 선택하면 정지 프레임 한 장만 볼 수 있어요.",
+  "runningCoachGoodFormCycleBody": "네 장의 참고 그림은 연속 영상이나 내 업로드 영상이 아닌 정지 프레임이에요. 선택한 러너는 같은 크기와 같은 지면선에 맞춰 표시되며, 파란 표시가 그 단계에서 확인할 관계를 알려줘요.",
   "runningCoachGoodFormPhaseLandingTitle": "착지",
   "runningCoachGoodFormPhaseLandingCue": "발을 앞으로 뻗기보다 엉덩이 가까이에 가볍게 내려놓아요.",
+  "runningCoachGoodFormPhaseLandingFocus": "착지 발과 공통 지면선",
   "runningCoachGoodFormPhaseSupportTitle": "지지",
   "runningCoachGoodFormPhaseSupportCue": "무릎과 발목이 충격을 받으며 몸이 발 위를 부드럽게 지나가요.",
+  "runningCoachGoodFormPhaseSupportFocus": "지지하는 무릎과 하중을 받는 다리",
   "runningCoachGoodFormPhasePushOffTitle": "밀어내기",
   "runningCoachGoodFormPhasePushOffCue": "땅을 아래로 누른 뒤 발이 뒤로 빠지며 몸이 앞으로 이동해요.",
+  "runningCoachGoodFormPhasePushOffFocus": "밀어내는 발끝과 발, 지면선",
   "runningCoachGoodFormPhaseRecoveryTitle": "회수",
   "runningCoachGoodFormPhaseRecoveryCue": "뒤꿈치를 자연스럽게 회수하고 무릎이 다음 착지를 준비해요.",
+  "runningCoachGoodFormPhaseRecoveryFocus": "회수되는 무릎과 뒤꿈치",
   "runningCoachGoodFormCycleObservationLabel": "관찰: {phase}",
   "@runningCoachGoodFormCycleObservationLabel": {
     "placeholders": {
       "phase": {
+        "type": "String"
+      }
+    }
+  },
+  "runningCoachGoodFormCycleFocusLegend": "파란 표시: {focus}",
+  "@runningCoachGoodFormCycleFocusLegend": {
+    "placeholders": {
+      "focus": {
         "type": "String"
       }
     }

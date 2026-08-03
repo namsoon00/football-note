@@ -17523,7 +17523,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachGoodFormCycleBody.
   ///
   /// In en, this message translates to:
-  /// **'The four reference images follow the same lead leg from landing through recovery. They are not a continuous video or your uploaded run; select a phase to view one static frame.'**
+  /// **'The four reference images are static frames, not continuous video or your uploaded run. Each selected runner is displayed at the same scale on the same ground line; use the blue mark to inspect that phase relationship.'**
   String get runningCoachGoodFormCycleBody;
 
   /// No description provided for @runningCoachGoodFormPhaseLandingTitle.
@@ -17538,6 +17538,12 @@ abstract class AppLocalizations {
   /// **'Place the foot lightly near the hips instead of reaching it forward.'**
   String get runningCoachGoodFormPhaseLandingCue;
 
+  /// No description provided for @runningCoachGoodFormPhaseLandingFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'Landing foot near the shared ground line'**
+  String get runningCoachGoodFormPhaseLandingFocus;
+
   /// No description provided for @runningCoachGoodFormPhaseSupportTitle.
   ///
   /// In en, this message translates to:
@@ -17549,6 +17555,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Let the knee and ankle absorb load as the body moves smoothly over the foot.'**
   String get runningCoachGoodFormPhaseSupportCue;
+
+  /// No description provided for @runningCoachGoodFormPhaseSupportFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'Supporting knee over the loading leg'**
+  String get runningCoachGoodFormPhaseSupportFocus;
 
   /// No description provided for @runningCoachGoodFormPhasePushOffTitle.
   ///
@@ -17562,6 +17574,12 @@ abstract class AppLocalizations {
   /// **'Press down, then let the foot travel behind as the body moves forward.'**
   String get runningCoachGoodFormPhasePushOffCue;
 
+  /// No description provided for @runningCoachGoodFormPhasePushOffFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'Push-off toe and foot against the ground line'**
+  String get runningCoachGoodFormPhasePushOffFocus;
+
   /// No description provided for @runningCoachGoodFormPhaseRecoveryTitle.
   ///
   /// In en, this message translates to:
@@ -17574,11 +17592,23 @@ abstract class AppLocalizations {
   /// **'Recover the heel naturally and bring the knee through for the next landing.'**
   String get runningCoachGoodFormPhaseRecoveryCue;
 
+  /// No description provided for @runningCoachGoodFormPhaseRecoveryFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery knee and heel moving through together'**
+  String get runningCoachGoodFormPhaseRecoveryFocus;
+
   /// No description provided for @runningCoachGoodFormCycleObservationLabel.
   ///
   /// In en, this message translates to:
   /// **'Observe: {phase}'**
   String runningCoachGoodFormCycleObservationLabel(String phase);
+
+  /// No description provided for @runningCoachGoodFormCycleFocusLegend.
+  ///
+  /// In en, this message translates to:
+  /// **'Blue mark: {focus}'**
+  String runningCoachGoodFormCycleFocusLegend(String focus);
 
   /// No description provided for @runningCoachGoodFormSlowMotionAction.
   ///

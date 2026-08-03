@@ -10134,7 +10134,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachGoodFormCycleBody =>
-      'The four reference images follow the same lead leg from landing through recovery. They are not a continuous video or your uploaded run; select a phase to view one static frame.';
+      'The four reference images are static frames, not continuous video or your uploaded run. Each selected runner is displayed at the same scale on the same ground line; use the blue mark to inspect that phase relationship.';
 
   @override
   String get runningCoachGoodFormPhaseLandingTitle => 'Landing';
@@ -10144,11 +10144,19 @@ class AppLocalizationsEn extends AppLocalizations {
       'Place the foot lightly near the hips instead of reaching it forward.';
 
   @override
+  String get runningCoachGoodFormPhaseLandingFocus =>
+      'Landing foot near the shared ground line';
+
+  @override
   String get runningCoachGoodFormPhaseSupportTitle => 'Support';
 
   @override
   String get runningCoachGoodFormPhaseSupportCue =>
       'Let the knee and ankle absorb load as the body moves smoothly over the foot.';
+
+  @override
+  String get runningCoachGoodFormPhaseSupportFocus =>
+      'Supporting knee over the loading leg';
 
   @override
   String get runningCoachGoodFormPhasePushOffTitle => 'Push-off';
@@ -10158,6 +10166,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Press down, then let the foot travel behind as the body moves forward.';
 
   @override
+  String get runningCoachGoodFormPhasePushOffFocus =>
+      'Push-off toe and foot against the ground line';
+
+  @override
   String get runningCoachGoodFormPhaseRecoveryTitle => 'Recovery';
 
   @override
@@ -10165,8 +10177,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'Recover the heel naturally and bring the knee through for the next landing.';
 
   @override
+  String get runningCoachGoodFormPhaseRecoveryFocus =>
+      'Recovery knee and heel moving through together';
+
+  @override
   String runningCoachGoodFormCycleObservationLabel(String phase) {
     return 'Observe: $phase';
+  }
+
+  @override
+  String runningCoachGoodFormCycleFocusLegend(String focus) {
+    return 'Blue mark: $focus';
   }
 
   @override

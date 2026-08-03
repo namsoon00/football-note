@@ -5602,19 +5602,31 @@
   "runningCoachGoodFormIntroTitle": "初心者から経験者まで",
   "runningCoachGoodFormIntroBody": "最初は「まずはこれだけ」を意識し、慣れたら「さらに詳しく」で左右差、タイミング、連続した動きを確認します。",
   "runningCoachGoodFormCycleTitle": "静止した段階別参考図",
-  "runningCoachGoodFormCycleBody": "4枚の参考画像は、着地からリカバリーまで同じリード脚を追っています。連続動画でもあなたのアップロード動画でもありません。段階を選ぶと静止フレームを1枚だけ表示します。",
+  "runningCoachGoodFormCycleBody": "4枚の参考画像は連続動画でもあなたのアップロード動画でもない静止フレームです。選択したランナーは同じスケールと同じ地面ラインに合わせて表示され、青い印がその段階で確認する位置関係を示します。",
   "runningCoachGoodFormPhaseLandingTitle": "着地",
   "runningCoachGoodFormPhaseLandingCue": "足を前へ伸ばすより、腰の近くへ軽く下ろします。",
+  "runningCoachGoodFormPhaseLandingFocus": "着地する足と共通の地面ライン",
   "runningCoachGoodFormPhaseSupportTitle": "支持",
   "runningCoachGoodFormPhaseSupportCue": "膝と足首で負荷を受けながら、体が足の上をなめらかに通ります。",
+  "runningCoachGoodFormPhaseSupportFocus": "支える膝と荷重を受ける脚",
   "runningCoachGoodFormPhasePushOffTitle": "押し出し",
   "runningCoachGoodFormPhasePushOffCue": "地面を下へ押し、足が後ろへ抜けながら体を前へ運びます。",
+  "runningCoachGoodFormPhasePushOffFocus": "押し出すつま先・足と地面ライン",
   "runningCoachGoodFormPhaseRecoveryTitle": "リカバリー",
   "runningCoachGoodFormPhaseRecoveryCue": "かかとを自然に戻し、膝を次の着地へ準備します。",
+  "runningCoachGoodFormPhaseRecoveryFocus": "戻る膝とかかとのつながり",
   "runningCoachGoodFormCycleObservationLabel": "観察: {phase}",
   "@runningCoachGoodFormCycleObservationLabel": {
     "placeholders": {
       "phase": {
+        "type": "String"
+      }
+    }
+  },
+  "runningCoachGoodFormCycleFocusLegend": "青い印: {focus}",
+  "@runningCoachGoodFormCycleFocusLegend": {
+    "placeholders": {
+      "focus": {
         "type": "String"
       }
     }
