@@ -17523,7 +17523,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachGoodFormCycleBody.
   ///
   /// In en, this message translates to:
-  /// **'These are phase reference illustrations, not a continuous video or your uploaded run. Select a phase to view one representative frame.'**
+  /// **'The four reference images follow the same lead leg from landing through recovery. They are not a continuous video or your uploaded run; select a phase to view one static frame.'**
   String get runningCoachGoodFormCycleBody;
 
   /// No description provided for @runningCoachGoodFormPhaseLandingTitle.
@@ -17591,6 +17591,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Next phase'**
   String get runningCoachGoodFormStepAction;
+
+  /// No description provided for @runningCoachGoodFormRestartStepsAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Restart four steps'**
+  String get runningCoachGoodFormRestartStepsAction;
 
   /// No description provided for @runningCoachGoodFormTechniqueTitle.
   ///

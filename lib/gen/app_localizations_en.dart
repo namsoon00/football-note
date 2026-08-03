@@ -10134,7 +10134,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachGoodFormCycleBody =>
-      'These are phase reference illustrations, not a continuous video or your uploaded run. Select a phase to view one representative frame.';
+      'The four reference images follow the same lead leg from landing through recovery. They are not a continuous video or your uploaded run; select a phase to view one static frame.';
 
   @override
   String get runningCoachGoodFormPhaseLandingTitle => 'Landing';
@@ -10174,6 +10174,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachGoodFormStepAction => 'Next phase';
+
+  @override
+  String get runningCoachGoodFormRestartStepsAction => 'Restart four steps';
 
   @override
   String get runningCoachGoodFormTechniqueTitle =>

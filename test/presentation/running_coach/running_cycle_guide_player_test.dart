@@ -41,7 +41,26 @@ void main() {
             runningCycleGuideRepresentativeFrameForPhase,
           )
           .toList(),
-      [4, 5, 2, 3],
+      [3, 4, 5, 6],
+    );
+  });
+
+  testWidgets('static guide uses ordered v2 atlas source rects', (
+    WidgetTester tester,
+  ) async {
+    final atlas = await tester.runAsync(loadRunningCycleAnimationAtlas);
+
+    expect(
+      RunningCycleGuidePhase.values
+          .map(runningCycleGuideRepresentativeFrameForPhase)
+          .map((frame) => runningCycleGuideSourceRectForFrame(atlas!, frame))
+          .toList(),
+      [
+        const Rect.fromLTWH(1254, 0, 418, 470.5),
+        const Rect.fromLTWH(0, 470.5, 418, 470.5),
+        const Rect.fromLTWH(418, 470.5, 418, 470.5),
+        const Rect.fromLTWH(836, 470.5, 418, 470.5),
+      ],
     );
   });
 
@@ -50,6 +69,14 @@ void main() {
   ) async {
     await _pumpPlayer(tester, disableAnimations: false);
 
+    expect(
+      find.text(
+        'The four reference images follow the same lead leg from landing '
+        'through recovery. They are not a continuous video or your uploaded '
+        'run; select a phase to view one static frame.',
+      ),
+      findsOneWidget,
+    );
     await _expectStaticSourceRect(tester, RunningCycleGuidePhase.landing);
 
     await tester.pump(const Duration(seconds: 2));
@@ -102,6 +129,57 @@ void main() {
     );
     expect(find.descendant(of: step, matching: find.text('다음 단계')),
         findsOneWidget);
+  });
+
+  testWidgets('recovery action is labeled as restarting the references', (
+    WidgetTester tester,
+  ) async {
+    await _pumpPlayer(tester);
+
+    final step = find.byKey(
+      const ValueKey('running-coach-good-form-cycle-step'),
+    );
+    await tester.ensureVisible(step);
+
+    for (var i = 0; i < 3; i++) {
+      await tester.tap(step);
+      await tester.pump();
+    }
+
+    expect(
+      find.byKey(
+        const ValueKey('running-coach-good-form-active-phase-recovery'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: step, matching: find.text('Next phase')),
+      findsNothing,
+    );
+    expect(
+      find.descendant(of: step, matching: find.text('Restart four steps')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: step, matching: find.byIcon(Icons.replay_rounded)),
+      findsOneWidget,
+    );
+    await _expectStaticSourceRect(tester, RunningCycleGuidePhase.recovery);
+
+    await tester.tap(step);
+    await tester.pump();
+
+    expect(
+      find.byKey(
+        const ValueKey('running-coach-good-form-active-phase-landing'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: step, matching: find.text('Next phase')),
+      findsOneWidget,
+    );
+    await _expectStaticSourceRect(tester, RunningCycleGuidePhase.landing);
   });
 
   testWidgets('phase selection and next action show one static source rect', (

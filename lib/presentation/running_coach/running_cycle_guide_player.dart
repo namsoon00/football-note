@@ -65,6 +65,7 @@ class _RunningCycleGuidePlayerState extends State<RunningCycleGuidePlayer> {
     final l10n = AppLocalizations.of(context)!;
     final phaseCopies = _phaseCopies(l10n);
     final activeCopy = phaseCopies[_selectedPhase.index];
+    final isRestartAction = _selectedPhase == RunningCycleGuidePhase.recovery;
 
     return Card(
       key: const ValueKey('running-coach-good-form-cycle'),
@@ -144,8 +145,16 @@ class _RunningCycleGuidePlayerState extends State<RunningCycleGuidePlayer> {
                 OutlinedButton.icon(
                   key: const ValueKey('running-coach-good-form-cycle-step'),
                   onPressed: _stepPhase,
-                  icon: const Icon(Icons.skip_next_rounded),
-                  label: Text(l10n.runningCoachGoodFormStepAction),
+                  icon: Icon(
+                    isRestartAction
+                        ? Icons.replay_rounded
+                        : Icons.skip_next_rounded,
+                  ),
+                  label: Text(
+                    isRestartAction
+                        ? l10n.runningCoachGoodFormRestartStepsAction
+                        : l10n.runningCoachGoodFormStepAction,
+                  ),
                 ),
               ],
             ),
@@ -444,12 +453,11 @@ List<_RunningCyclePhaseCopy> _phaseCopies(AppLocalizations l10n) {
 
 int _representativeFrameForPhase(RunningCycleGuidePhase phase) {
   return switch (phase) {
-    // The atlas cells are static illustrations, not a dependable timeline.
-    // These representatives were selected by visible body shape.
-    RunningCycleGuidePhase.landing => 4,
-    RunningCycleGuidePhase.support => 5,
-    RunningCycleGuidePhase.pushOff => 2,
-    RunningCycleGuidePhase.recovery => 3,
+    // Use one temporally ordered half-stride from the existing v2 atlas.
+    RunningCycleGuidePhase.landing => 3,
+    RunningCycleGuidePhase.support => 4,
+    RunningCycleGuidePhase.pushOff => 5,
+    RunningCycleGuidePhase.recovery => 6,
   };
 }
 

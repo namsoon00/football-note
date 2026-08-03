@@ -9841,7 +9841,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachGoodFormCycleBody =>
-      'これは段階別の参考イラストで、連続動画でもあなたのアップロード動画でもありません。段階を選ぶと代表的な静止フレームを1枚だけ表示します。';
+      '4枚の参考画像は、着地からリカバリーまで同じリード脚を追っています。連続動画でもあなたのアップロード動画でもありません。段階を選ぶと静止フレームを1枚だけ表示します。';
 
   @override
   String get runningCoachGoodFormPhaseLandingTitle => '着地';
@@ -9879,6 +9879,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachGoodFormStepAction => '次の段階';
+
+  @override
+  String get runningCoachGoodFormRestartStepsAction => '4段階を最初から';
 
   @override
   String get runningCoachGoodFormTechniqueTitle => '項目別イラストガイド';
