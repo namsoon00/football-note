@@ -26,6 +26,7 @@ if grep -R "__WEB_ASSET_VERSION__" index.html flutter_bootstrap.js >/dev/null; t
 fi
 
 grep -F "running_video_pose_analysis.js?v=" index.html >/dev/null
+grep -F '<base href="/football-note/">' index.html >/dev/null
 grep -F "webAssetVersion" flutter_bootstrap.js >/dev/null
 grep -F "assetVersion" version.json >/dev/null
 grep -F "runningVideoPoseAnalysis" main.dart.js >/dev/null
