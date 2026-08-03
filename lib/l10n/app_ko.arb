@@ -5611,6 +5611,16 @@
   "runningCoachGoodFormPhasePushOffCue": "땅을 아래로 누른 뒤 발이 뒤로 빠지며 몸이 앞으로 이동해요.",
   "runningCoachGoodFormPhaseRecoveryTitle": "회수",
   "runningCoachGoodFormPhaseRecoveryCue": "뒤꿈치를 자연스럽게 회수하고 무릎이 다음 착지를 준비해요.",
+  "runningCoachGoodFormCycleObservationLabel": "관찰: {phase}",
+  "@runningCoachGoodFormCycleObservationLabel": {
+    "placeholders": {
+      "phase": {
+        "type": "String"
+      }
+    }
+  },
+  "runningCoachGoodFormSlowMotionAction": "천천히 보기",
+  "runningCoachGoodFormStepAction": "한 단계씩",
   "runningCoachGoodFormTechniqueTitle": "항목별 일러스트 가이드",
   "runningCoachGoodFormTechniqueBody": "빨강은 흔한 실수, 파랑은 권장 움직임입니다. 몸 모양보다 표시된 관계와 방향을 확인하세요.",
   "runningCoachGoodFormCommonLabel": "흔한 실수",

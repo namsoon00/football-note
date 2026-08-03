@@ -9870,6 +9870,17 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachGoodFormPhaseRecoveryCue => 'かかとを自然に戻し、膝を次の着地へ準備します。';
 
   @override
+  String runningCoachGoodFormCycleObservationLabel(String phase) {
+    return '観察: $phase';
+  }
+
+  @override
+  String get runningCoachGoodFormSlowMotionAction => 'ゆっくり見る';
+
+  @override
+  String get runningCoachGoodFormStepAction => '1段階ずつ';
+
+  @override
   String get runningCoachGoodFormTechniqueTitle => '項目別イラストガイド';
 
   @override

@@ -98,6 +98,7 @@ flutter:
     - assets/images/running_guides/
     - assets/images/running_guides/cases/
     - assets/images/running_guides/professional_runner/professional_runner_pose_atlas_v2.png
+    - assets/images/running_guides/professional_runner/running_cycle_animation_atlas_v1.png
     - assets/running_coach_3d_runner/
     # Flutter directory entries include only immediate children. Keep every
     # nested module and the rigged avatar explicit so the local WebGL page can

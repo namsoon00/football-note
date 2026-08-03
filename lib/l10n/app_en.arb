@@ -5611,6 +5611,16 @@
   "runningCoachGoodFormPhasePushOffCue": "Press down, then let the foot travel behind as the body moves forward.",
   "runningCoachGoodFormPhaseRecoveryTitle": "Recovery",
   "runningCoachGoodFormPhaseRecoveryCue": "Recover the heel naturally and bring the knee through for the next landing.",
+  "runningCoachGoodFormCycleObservationLabel": "Observe: {phase}",
+  "@runningCoachGoodFormCycleObservationLabel": {
+    "placeholders": {
+      "phase": {
+        "type": "String"
+      }
+    }
+  },
+  "runningCoachGoodFormSlowMotionAction": "Slow view",
+  "runningCoachGoodFormStepAction": "Step through",
   "runningCoachGoodFormTechniqueTitle": "Illustrated technique guide",
   "runningCoachGoodFormTechniqueBody": "Red shows a common mistake; blue shows the recommended movement. Focus on the marked relationship and direction, not the model's body shape.",
   "runningCoachGoodFormCommonLabel": "Common mistake",
