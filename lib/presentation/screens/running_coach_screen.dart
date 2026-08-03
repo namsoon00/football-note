@@ -15,6 +15,7 @@ import '../../domain/entities/running_coach_session.dart';
 import '../../domain/entities/running_video_analysis_result.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../../gen/app_localizations.dart';
+import '../running_coach/running_coach_illustrated_comparison.dart';
 import '../running_coach/running_pose_overlay.dart';
 import '../running_coach/running_professional_runner.dart';
 import '../running_coach/running_professional_runner_art.dart';
@@ -5518,6 +5519,8 @@ class _RunningAnalysisResultScreenState
           ],
           _RunningFineGaitCard(result: widget.result),
           const SizedBox(height: 12),
+          const _GoodRunningFormGuideCard(),
+          const SizedBox(height: 12),
           if (!widget.isHistorical &&
               widget.session.captureContext?.isComplete == true) ...[
             _SameConditionComparisonCard(
@@ -6178,6 +6181,16 @@ class _AnalysisEvidenceCardState extends State<_AnalysisEvidenceCard> {
                 onPlayPause: canPlayVideo ? _togglePlayback : null,
                 onScrub: _selectNearestEvidenceFrame,
               ),
+              if (insight != null &&
+                  evidence.isReliable &&
+                  insight.quality.isReliableForCoaching) ...[
+                const SizedBox(height: 16),
+                _EvidenceCoachingStoryPanel(
+                  evidence: evidence,
+                  selectedFrame: selectedFrame,
+                  insight: insight,
+                ),
+              ],
             ],
           ],
         ),
@@ -6419,6 +6432,262 @@ class _MetricEvidenceDetailsPanel extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Keeps the generic coaching illustration immediately beside the selected
+/// video evidence. The image explains one measured change; it never redraws
+/// the runner's body from the uploaded coordinates.
+class _EvidenceCoachingStoryPanel extends StatelessWidget {
+  final RunningMetricEvidence evidence;
+  final RunningMetricEvidenceFrame selectedFrame;
+  final RunningCoachingInsight insight;
+
+  const _EvidenceCoachingStoryPanel({
+    required this.evidence,
+    required this.selectedFrame,
+    required this.insight,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    final copy = RunningCoachInsightCopy.fromInsight(insight, l10n);
+    final isGood = insight.status == RunningCoachStatus.good;
+    final metricLabel = _evidenceItemLabel(l10n, evidence);
+    final illustrationHeight = (MediaQuery.sizeOf(context).width * 0.58)
+        .clamp(196.0, 268.0)
+        .toDouble();
+    final emphasisColor = isGood ? scheme.tertiary : scheme.primary;
+
+    return Container(
+      key: ValueKey(
+        'running-coach-evidence-story-${insight.metric.name}',
+      ),
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.48),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: scheme.outlineVariant),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.runningCoachIllustrationTitle,
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w900,
+                ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            isGood
+                ? l10n.runningCoachIllustrationGoodBody
+                : l10n.runningCoachIllustrationBody,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(height: 12),
+          _GuideTextRow(
+            icon: Icons.visibility_outlined,
+            label: l10n.runningCoachEvidenceWhatSeenLabel,
+            body: l10n.runningCoachEvidenceWhatSeenBody(
+              _formatContactTimestamp(l10n, selectedFrame.timestamp),
+              metricLabel,
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: illustrationHeight,
+            width: double.infinity,
+            child: RunningCoachIllustratedComparison(
+              key: ValueKey(
+                'running-coach-evidence-illustrated-comparison-${insight.metric.name}',
+              ),
+              insight: insight,
+              surfaceColor: scheme.surface,
+              mutedColor: scheme.onSurfaceVariant,
+              actualAccent: scheme.error,
+              targetAccent: scheme.primary,
+              successAccent: scheme.tertiary,
+              semanticLabel:
+                  '$metricLabel · ${l10n.runningCoachIllustrationTitle}',
+              currentLabel: isGood
+                  ? l10n.runningCoachStatusGood
+                  : l10n.runningCoachMeasuredPoseActualLabel,
+              nextStepLabel: l10n.runningCoachMeasuredPoseTargetLabel,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            l10n.runningCoachIllustrationFootnote,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: emphasisColor.withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: emphasisColor.withValues(alpha: 0.24)),
+            ),
+            padding: const EdgeInsets.all(10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.runningCoachMeasuredPoseCueLabel,
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: emphasisColor,
+                        fontWeight: FontWeight.w900,
+                      ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  isGood ? l10n.runningCoachMeasuredPoseGoodCue : copy.cue,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  copy.drill,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GoodRunningFormGuideCard extends StatelessWidget {
+  const _GoodRunningFormGuideCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    const items = <_GoodRunningFormGuideItem>[
+      _GoodRunningFormGuideItem(
+        metric: RunningCoachMetric.posture,
+        icon: Icons.show_chart_rounded,
+      ),
+      _GoodRunningFormGuideItem(
+        metric: RunningCoachMetric.footStrike,
+        icon: Icons.ads_click_rounded,
+      ),
+      _GoodRunningFormGuideItem(
+        metric: RunningCoachMetric.kneeFlexion,
+        icon: Icons.timeline_rounded,
+      ),
+      _GoodRunningFormGuideItem(
+        metric: RunningCoachMetric.bounce,
+        icon: Icons.swap_vert_rounded,
+      ),
+      _GoodRunningFormGuideItem(
+        metric: RunningCoachMetric.armCarriage,
+        icon: Icons.sync_alt_rounded,
+      ),
+    ];
+
+    return Card(
+      key: const ValueKey('running-coach-good-form-guide'),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.directions_run_rounded, color: scheme.primary),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.runningCoachGoodFormGuideTitle,
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w900,
+                                ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        l10n.runningCoachGoodFormGuideBody,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            for (var index = 0; index < items.length; index += 1) ...[
+              _GoodRunningFormGuideRow(item: items[index]),
+              if (index != items.length - 1) const Divider(height: 20),
+            ],
+            const SizedBox(height: 4),
+            _GuideTextRow(
+              icon: Icons.info_outline_rounded,
+              label: l10n.runningCoachGoodFormGuideFootnoteTitle,
+              body: l10n.runningCoachGoodFormGuideFootnoteBody,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _GoodRunningFormGuideItem {
+  final RunningCoachMetric metric;
+  final IconData icon;
+
+  const _GoodRunningFormGuideItem({required this.metric, required this.icon});
+}
+
+class _GoodRunningFormGuideRow extends StatelessWidget {
+  final _GoodRunningFormGuideItem item;
+
+  const _GoodRunningFormGuideRow({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(item.icon, color: scheme.primary, size: 20),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                _evidenceKindLabel(l10n, _evidenceKindForMetric(item.metric)),
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                _metricGoodRange(l10n, item.metric),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

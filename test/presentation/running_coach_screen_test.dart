@@ -988,7 +988,9 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('shared evidence viewer switches metrics in one card', (
+  testWidgets(
+      'shared evidence viewer switches metrics with matching coaching illustration',
+      (
     WidgetTester tester,
   ) async {
     final result = RunningVideoAnalysisResult(
@@ -1065,7 +1067,6 @@ void main() {
       find.byKey(const ValueKey('running-coach-evidence-metric-tabs')),
       findsOneWidget,
     );
-
     await tester.tap(
       find.byKey(const ValueKey('running-coach-evidence-chip-knee')),
     );
@@ -1090,6 +1091,44 @@ void main() {
           .selected,
       isTrue,
     );
+    expect(
+      find.byKey(
+        const ValueKey('running-coach-evidence-story-footStrike'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(
+        const ValueKey(
+          'running-coach-evidence-illustrated-comparison-footStrike',
+        ),
+      ),
+      findsOneWidget,
+    );
+    await tester.tap(
+      find.byKey(const ValueKey('running-coach-evidence-chip-knee')),
+    );
+    await tester.pump();
+    expect(
+      find.byKey(
+        const ValueKey('running-coach-evidence-story-kneeFlexion'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(
+        const ValueKey(
+          'running-coach-evidence-illustrated-comparison-kneeFlexion',
+        ),
+      ),
+      findsOneWidget,
+    );
+    final goodFormGuide = find.byKey(
+      const ValueKey('running-coach-good-form-guide'),
+    );
+    await _scrollAnalysisResultUntilFound(tester, goodFormGuide);
+    expect(goodFormGuide, findsOneWidget);
+    expect(find.text('Good running form at a glance'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -1183,6 +1222,12 @@ void main() {
           'There is not enough evidence for Knee, so its score and coaching are withheld. You can still review measurements from other metrics.',
         ),
         findsOneWidget,
+      );
+      expect(
+        find.byKey(
+          const ValueKey('running-coach-evidence-story-kneeFlexion'),
+        ),
+        findsNothing,
       );
 
       final qualityDetails = find.byKey(
