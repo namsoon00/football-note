@@ -685,10 +685,7 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Next goal'), findsOneWidget);
-    expect(
-      find.text('For your next three runs, focus only on this.'),
-      findsOneWidget,
-    );
+    expect(find.text('Recommended drill'), findsOneWidget);
     expect(
       find.byKey(const ValueKey('running-coach-beginner-action-drill')),
       findsOneWidget,
@@ -831,10 +828,15 @@ void main() {
     );
     await tester.pump();
 
+    final qualityDetails = find.byKey(
+      const ValueKey('running-coach-analysis-quality-details'),
+    );
     await _scrollAnalysisResultUntilFound(
       tester,
-      find.byKey(const ValueKey('running-coach-report-details')),
+      qualityDetails,
     );
+    await tester.tap(qualityDetails);
+    await tester.pump(const Duration(milliseconds: 250));
     await _scrollAnalysisResultUntilFound(
       tester,
       find.text('0.00초, 0.50초, 1.00초'),
@@ -1113,7 +1115,7 @@ void main() {
       find.byKey(
         const ValueKey('running-coach-evidence-story-kneeFlexion'),
       ),
-      findsOneWidget,
+      findsNothing,
     );
     expect(
       find.byKey(
@@ -1121,7 +1123,33 @@ void main() {
           'running-coach-evidence-illustrated-comparison-kneeFlexion',
         ),
       ),
-      findsOneWidget,
+      findsNothing,
+    );
+    final reportDetails = find.byKey(
+      const ValueKey('running-coach-report-details'),
+    );
+    await _scrollAnalysisResultUntilFound(tester, reportDetails);
+    for (final metric in RunningCoachMetric.values) {
+      expect(
+        find.byKey(ValueKey('running-coach-detail-row-${metric.name}')),
+        findsOneWidget,
+      );
+    }
+    final footStrikeEvidenceAction = find.byKey(
+      const ValueKey('running-coach-insight-open-evidence-footStrike'),
+    );
+    await _scrollAnalysisResultUntilFound(tester, footStrikeEvidenceAction);
+    await tester.tap(footStrikeEvidenceAction);
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<ChoiceChip>(
+            find.byKey(
+              const ValueKey('running-coach-evidence-chip-landing'),
+            ),
+          )
+          .selected,
+      isTrue,
     );
     final goodFormGuide = find.byKey(
       const ValueKey('running-coach-good-form-guide'),
@@ -1129,6 +1157,15 @@ void main() {
     await _scrollAnalysisResultUntilFound(tester, goodFormGuide);
     expect(goodFormGuide, findsOneWidget);
     expect(find.text('Good running form at a glance'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: goodFormGuide,
+        matching: find.text(
+          'Let your whole body lean gently forward from the ankles.',
+        ),
+      ),
+      findsOneWidget,
+    );
     expect(tester.takeException(), isNull);
   });
 
@@ -1373,11 +1410,11 @@ void main() {
           const ValueKey('running-coach-report-details'),
         );
         await _scrollAnalysisResultUntilFound(tester, reportDetails);
-        final detailComparison = find.byKey(
-          const ValueKey('running-coach-insight-evidence-diagram-posture'),
+        final detailRow = find.byKey(
+          const ValueKey('running-coach-detail-row-posture'),
         );
-        await _scrollAnalysisResultUntilFound(tester, detailComparison);
-        expect(detailComparison, findsOneWidget);
+        await _scrollAnalysisResultUntilFound(tester, detailRow);
+        expect(detailRow, findsOneWidget);
         expect(
           find.byKey(
             const ValueKey(
@@ -1480,18 +1517,6 @@ void main() {
       ),
       findsOneWidget,
     );
-    final fineGaitDetails = find.byKey(
-      const ValueKey('running-coach-fine-gait-details-toggle'),
-    );
-    await _scrollAnalysisResultUntilFound(tester, fineGaitDetails);
-    expect(find.text('Step measurements are not ready'), findsNothing);
-    await tester.tap(fineGaitDetails);
-    await tester.pumpAndSettle();
-    expect(find.text('Step measurements are not ready'), findsOneWidget);
-    expect(
-      find.byKey(const ValueKey('running-coach-gait-limitations')),
-      findsOneWidget,
-    );
     final qualityDetails = find.byKey(
       const ValueKey('running-coach-analysis-quality-details'),
     );
@@ -1508,6 +1533,18 @@ void main() {
     expect(
       find.byKey(const ValueKey('running-coach-analysis-evidence-overlay')),
       findsNothing,
+    );
+    final fineGaitDetails = find.byKey(
+      const ValueKey('running-coach-fine-gait-details-toggle'),
+    );
+    await _scrollAnalysisResultUntilFound(tester, fineGaitDetails);
+    expect(find.text('Step measurements are not ready'), findsNothing);
+    await tester.tap(fineGaitDetails);
+    await tester.pumpAndSettle();
+    expect(find.text('Step measurements are not ready'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('running-coach-gait-limitations')),
+      findsOneWidget,
     );
     expect(tester.takeException(), isNull);
   });
@@ -1565,7 +1602,7 @@ void main() {
         const ValueKey('running-coach-rhythm-card'),
       );
       await _scrollAnalysisResultUntilFound(tester, rhythmCard);
-      expect(find.text('Running rhythm'), findsOneWidget);
+      expect(find.text('Running figures from this video'), findsOneWidget);
       expect(find.text('Cadence (spm)'), findsOneWidget);
       expect(find.text('Step time (ms)'), findsOneWidget);
       expect(find.text('Step measurements are not ready'), findsNothing);

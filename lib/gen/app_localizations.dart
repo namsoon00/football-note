@@ -17271,7 +17271,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachReportDetailsBody.
   ///
   /// In en, this message translates to:
-  /// **'All five form checks are shown below. Watch means the value is inside a broad guide range, not a full pass.'**
+  /// **'See all five checks at a glance. Open the matching video evidence only when you want to inspect a frame.'**
   String get runningCoachReportDetailsBody;
 
   /// No description provided for @runningCoachAnalysisHistoryTitle.
@@ -17460,6 +17460,36 @@ abstract class AppLocalizations {
   /// **'Not one perfect still pose—these are five movements to repeat while running.'**
   String get runningCoachGoodFormGuideBody;
 
+  /// No description provided for @runningCoachGoodFormPrinciplePosture.
+  ///
+  /// In en, this message translates to:
+  /// **'Let your whole body lean gently forward from the ankles.'**
+  String get runningCoachGoodFormPrinciplePosture;
+
+  /// No description provided for @runningCoachGoodFormPrincipleBounce.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the rhythm moving forward instead of bouncing upward.'**
+  String get runningCoachGoodFormPrincipleBounce;
+
+  /// No description provided for @runningCoachGoodFormPrincipleFootStrike.
+  ///
+  /// In en, this message translates to:
+  /// **'Let the foot meet the ground close beneath your hips.'**
+  String get runningCoachGoodFormPrincipleFootStrike;
+
+  /// No description provided for @runningCoachGoodFormPrincipleKnee.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow the knee to absorb the landing without collapsing.'**
+  String get runningCoachGoodFormPrincipleKnee;
+
+  /// No description provided for @runningCoachGoodFormPrincipleArms.
+  ///
+  /// In en, this message translates to:
+  /// **'Let relaxed elbows swing forward and back with the rhythm.'**
+  String get runningCoachGoodFormPrincipleArms;
+
   /// No description provided for @runningCoachGoodFormGuideFootnoteTitle.
   ///
   /// In en, this message translates to:
@@ -17523,13 +17553,13 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachIllustrationTitle.
   ///
   /// In en, this message translates to:
-  /// **'Measured case and next movement'**
+  /// **'Next movement reference'**
   String get runningCoachIllustrationTitle;
 
   /// No description provided for @runningCoachIllustrationBody.
   ///
   /// In en, this message translates to:
-  /// **'This coaching reference was selected from the measurement in the video above. Red shows the current issue and blue shows the next movement.'**
+  /// **'Red marks the current issue. Blue shows the one movement to try next.'**
   String get runningCoachIllustrationBody;
 
   /// No description provided for @runningCoachIllustrationGoodBody.
@@ -27519,7 +27549,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachRhythmTitle.
   ///
   /// In en, this message translates to:
-  /// **'Running rhythm'**
+  /// **'Running figures from this video'**
   String get runningCoachRhythmTitle;
 
   /// No description provided for @runningCoachRhythmBody.
