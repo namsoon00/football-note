@@ -31,7 +31,7 @@ void main() {
       'assets/images/running_guides/professional_runner/'
           'professional_runner_pose_atlas_v2.png',
       'assets/images/running_guides/professional_runner/'
-          'running_cycle_animation_atlas_v1.png',
+          'running_cycle_continuous_atlas_v2.png',
     ];
 
     for (final asset in guideAssets) {

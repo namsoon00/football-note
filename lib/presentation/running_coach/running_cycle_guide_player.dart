@@ -8,13 +8,13 @@ import '../../gen/app_localizations.dart';
 
 const runningCycleAnimationAtlasAsset =
     'assets/images/running_guides/professional_runner/'
-    'running_cycle_animation_atlas_v1.png';
+    'running_cycle_continuous_atlas_v2.png';
 
 const _atlasColumns = 4;
 const _atlasRows = 2;
 const _frameCount = _atlasColumns * _atlasRows;
-const _normalSequenceDuration = Duration(milliseconds: 1800);
-const _slowSequenceDuration = Duration(milliseconds: 3600);
+const _normalSequenceDuration = Duration(milliseconds: 1280);
+const _slowSequenceDuration = Duration(milliseconds: 2560);
 const _observationBlue = Color(0xFF2563EB);
 
 Future<ui.Image>? _runningCycleAnimationAtlasFuture;
@@ -475,27 +475,14 @@ class _RunningCycleAtlasPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final destination = _contentRectFor(size, cellAspectRatio);
-    final normalized = _normalizedProgress(progress);
-    final exactFrame = normalized * _frameCount;
-    final currentFrame = exactFrame.floor() % _frameCount;
-    final nextFrame = (currentFrame + 1) % _frameCount;
-    final rawBlend = exactFrame - currentFrame;
-    final blend = rawBlend <= 0.68 ? 0.0 : ((rawBlend - 0.68) / 0.32);
+    final currentFrame = _frameForProgress(progress);
 
     canvas.drawImageRect(
       atlas,
       _sourceRectForFrame(atlas, currentFrame),
       destination,
-      _imagePaint(1.0),
+      _imagePaint(),
     );
-    if (blend > 0) {
-      canvas.drawImageRect(
-        atlas,
-        _sourceRectForFrame(atlas, nextFrame),
-        destination,
-        _imagePaint(blend.clamp(0.0, 1.0)),
-      );
-    }
   }
 
   @override
@@ -603,11 +590,41 @@ List<_RunningCyclePhaseCopy> _phaseCopies(AppLocalizations l10n) {
 }
 
 RunningCycleGuidePhase _phaseForFrame(int frame) {
-  final phaseIndex = math.min(3, math.max(0, _normalizedFrame(frame) ~/ 2));
-  return RunningCycleGuidePhase.values[phaseIndex];
+  return switch (
+      _normalizedFrame(frame) % RunningCycleGuidePhase.values.length) {
+    0 => RunningCycleGuidePhase.landing,
+    1 => RunningCycleGuidePhase.support,
+    2 => RunningCycleGuidePhase.pushOff,
+    _ => RunningCycleGuidePhase.recovery,
+  };
 }
 
-int _startFrameForPhase(RunningCycleGuidePhase phase) => phase.index * 2;
+int _startFrameForPhase(RunningCycleGuidePhase phase) => phase.index;
+
+@visibleForTesting
+Duration get runningCycleGuideNormalSequenceDuration => _normalSequenceDuration;
+
+@visibleForTesting
+int runningCycleGuideFrameForProgress(double progress) {
+  return _frameForProgress(progress);
+}
+
+@visibleForTesting
+RunningCycleGuidePhase runningCycleGuidePhaseForFrame(int frame) {
+  return _phaseForFrame(frame);
+}
+
+@visibleForTesting
+int runningCycleGuideRepresentativeFrameForPhase(
+  RunningCycleGuidePhase phase,
+) {
+  return _startFrameForPhase(phase);
+}
+
+@visibleForTesting
+Rect runningCycleGuideSourceRectForFrame(ui.Image atlas, int frame) {
+  return _sourceRectForFrame(atlas, frame);
+}
 
 int _frameForProgress(double progress) {
   final frame = (_normalizedProgress(progress) * _frameCount).floor();
@@ -665,15 +682,8 @@ Rect _phaseBandFor(Rect content, RunningCycleGuidePhase phase) {
   );
 }
 
-Paint _imagePaint(double opacity) {
-  final paint = Paint()
+Paint _imagePaint() {
+  return Paint()
     ..filterQuality = FilterQuality.high
     ..isAntiAlias = true;
-  if (opacity < 1) {
-    paint.colorFilter = ColorFilter.mode(
-      Colors.white.withValues(alpha: opacity),
-      BlendMode.modulate,
-    );
-  }
-  return paint;
 }
