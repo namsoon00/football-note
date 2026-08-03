@@ -17448,6 +17448,30 @@ abstract class AppLocalizations {
   /// **'Use the picture to see what to change first.'**
   String get runningCoachAnalysisGuideBody;
 
+  /// No description provided for @runningCoachGoodFormGuideTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Good running form at a glance'**
+  String get runningCoachGoodFormGuideTitle;
+
+  /// No description provided for @runningCoachGoodFormGuideBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Not one perfect still pose—these are five movements to repeat while running.'**
+  String get runningCoachGoodFormGuideBody;
+
+  /// No description provided for @runningCoachGoodFormGuideFootnoteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How to use this'**
+  String get runningCoachGoodFormGuideFootnoteTitle;
+
+  /// No description provided for @runningCoachGoodFormGuideFootnoteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'These are coaching references for this video\'s conditions. They can vary with pace, body, and setting.'**
+  String get runningCoachGoodFormGuideFootnoteBody;
+
   /// No description provided for @runningCoachAnalysisGuideRangeLabel.
   ///
   /// In en, this message translates to:

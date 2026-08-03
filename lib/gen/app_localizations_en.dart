@@ -10089,6 +10089,20 @@ class AppLocalizationsEn extends AppLocalizations {
       'Use the picture to see what to change first.';
 
   @override
+  String get runningCoachGoodFormGuideTitle => 'Good running form at a glance';
+
+  @override
+  String get runningCoachGoodFormGuideBody =>
+      'Not one perfect still pose—these are five movements to repeat while running.';
+
+  @override
+  String get runningCoachGoodFormGuideFootnoteTitle => 'How to use this';
+
+  @override
+  String get runningCoachGoodFormGuideFootnoteBody =>
+      'These are coaching references for this video\'s conditions. They can vary with pace, body, and setting.';
+
+  @override
   String get runningCoachAnalysisGuideRangeLabel => 'Good range';
 
   @override

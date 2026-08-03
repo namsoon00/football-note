@@ -9815,6 +9815,20 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachAnalysisGuideBody => '그림을 보고 먼저 바꿀 부분을 확인하세요.';
 
   @override
+  String get runningCoachGoodFormGuideTitle => '좋은 달리기 자세 한눈에';
+
+  @override
+  String get runningCoachGoodFormGuideBody =>
+      '완벽한 한 장의 자세가 아니라, 달리는 동안 반복할 다섯 가지 움직임이에요.';
+
+  @override
+  String get runningCoachGoodFormGuideFootnoteTitle => '참고할 때';
+
+  @override
+  String get runningCoachGoodFormGuideFootnoteBody =>
+      '이 기준은 이번 영상 조건의 코칭 참고값이에요. 속도, 체형, 환경에 따라 달라질 수 있어요.';
+
+  @override
   String get runningCoachAnalysisGuideRangeLabel => '좋은 범위';
 
   @override

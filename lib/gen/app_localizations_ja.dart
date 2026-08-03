@@ -9802,6 +9802,20 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachAnalysisGuideBody => '絵を見て、最初に直す点を確認してください。';
 
   @override
+  String get runningCoachGoodFormGuideTitle => '良いランニングフォームをひと目で';
+
+  @override
+  String get runningCoachGoodFormGuideBody =>
+      '完璧な一枚の姿勢ではなく、走っている間に繰り返す5つの動きです。';
+
+  @override
+  String get runningCoachGoodFormGuideFootnoteTitle => '参考にするとき';
+
+  @override
+  String get runningCoachGoodFormGuideFootnoteBody =>
+      'これは今回の動画の条件でのコーチング参考値です。ペース、体格、環境により変わることがあります。';
+
+  @override
   String get runningCoachAnalysisGuideRangeLabel => '良い範囲';
 
   @override
