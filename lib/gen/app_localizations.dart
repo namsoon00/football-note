@@ -17517,13 +17517,13 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachGoodFormCycleTitle.
   ///
   /// In en, this message translates to:
-  /// **'One running cycle'**
+  /// **'Static phase references'**
   String get runningCoachGoodFormCycleTitle;
 
   /// No description provided for @runningCoachGoodFormCycleBody.
   ///
   /// In en, this message translates to:
-  /// **'Four phases should connect smoothly, from landing through recovery for the next contact.'**
+  /// **'These are phase reference illustrations, not a continuous video or your uploaded run. Select a phase to view one representative frame.'**
   String get runningCoachGoodFormCycleBody;
 
   /// No description provided for @runningCoachGoodFormPhaseLandingTitle.
@@ -17589,7 +17589,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachGoodFormStepAction.
   ///
   /// In en, this message translates to:
-  /// **'Step through'**
+  /// **'Next phase'**
   String get runningCoachGoodFormStepAction;
 
   /// No description provided for @runningCoachGoodFormTechniqueTitle.

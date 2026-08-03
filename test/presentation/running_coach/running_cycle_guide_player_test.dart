@@ -6,7 +6,7 @@ import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/running_coach/running_cycle_guide_player.dart';
 
 void main() {
-  testWidgets('running-cycle v2 atlas is bundled and cached', (
+  testWidgets('running-cycle v2 atlas remains bundled and cached', (
     WidgetTester tester,
   ) async {
     expect(
@@ -34,116 +34,82 @@ void main() {
     expect(result.height, 941);
   });
 
-  test('continuous atlas maps frames and phase starts to one stride cycle', () {
-    expect(runningCycleGuideNormalSequenceDuration,
-        const Duration(milliseconds: 1280));
+  test('static guide maps each phase to inspected representative frames', () {
     expect(
-      List<RunningCycleGuidePhase>.generate(
-        8,
-        runningCycleGuidePhaseForFrame,
-      ),
-      const [
-        RunningCycleGuidePhase.landing,
-        RunningCycleGuidePhase.support,
-        RunningCycleGuidePhase.pushOff,
-        RunningCycleGuidePhase.recovery,
-        RunningCycleGuidePhase.landing,
-        RunningCycleGuidePhase.support,
-        RunningCycleGuidePhase.pushOff,
-        RunningCycleGuidePhase.recovery,
-      ],
+      RunningCycleGuidePhase.values
+          .map<int>(
+            runningCycleGuideRepresentativeFrameForPhase,
+          )
+          .toList(),
+      [4, 5, 2, 3],
     );
-    expect(
-      RunningCycleGuidePhase.values.map(
-        runningCycleGuideRepresentativeFrameForPhase,
-      ),
-      [0, 1, 2, 3],
-    );
-    expect(runningCycleGuideFrameForProgress(0.72 / 8), 0);
   });
 
-  testWidgets('renders one atlas frame without blending adjacent sprites', (
+  testWidgets('renders one static atlas frame and does not autoplay', (
     WidgetTester tester,
   ) async {
     await _pumpPlayer(tester, disableAnimations: false);
-    await tester.pump(const Duration(milliseconds: 125));
 
-    final atlasPaint = _atlasFramePaint;
-    expect(atlasPaint, paintsExactlyCountTimes(#drawImageRect, 1));
+    await _expectStaticSourceRect(tester, RunningCycleGuidePhase.landing);
+
+    await tester.pump(const Duration(seconds: 2));
+
+    await _expectStaticSourceRect(tester, RunningCycleGuidePhase.landing);
   });
 
-  testWidgets('playback controls contain both icon and Korean text', (
+  testWidgets('does not expose autoplay, play pause, or slow controls', (
     WidgetTester tester,
   ) async {
     await _pumpPlayer(tester, locale: const Locale('ko'));
 
-    final playPause = find.byKey(
-      const ValueKey('running-coach-good-form-cycle-play-pause'),
-    );
-    final slowView = find.byKey(
-      const ValueKey('running-coach-good-form-cycle-slow-view'),
+    final controls = find.byKey(
+      const ValueKey('running-coach-good-form-cycle-controls'),
     );
     final step = find.byKey(
       const ValueKey('running-coach-good-form-cycle-step'),
     );
 
     expect(
-      find.descendant(
-          of: playPause, matching: find.byIcon(Icons.play_arrow_rounded)),
-      findsOneWidget,
-    );
-    expect(find.descendant(of: playPause, matching: find.text('재생')),
-        findsOneWidget);
-    expect(
-      find.descendant(
-        of: slowView,
-        matching: find.byIcon(Icons.slow_motion_video_rounded),
-      ),
-      findsOneWidget,
+      find.byKey(const ValueKey('running-coach-good-form-cycle-play-pause')),
+      findsNothing,
     );
     expect(
-      find.descendant(of: slowView, matching: find.text('천천히 보기')),
-      findsOneWidget,
+      find.byKey(const ValueKey('running-coach-good-form-cycle-slow-view')),
+      findsNothing,
     );
+    expect(
+        find.descendant(of: controls, matching: find.text('재생')), findsNothing);
+    expect(find.descendant(of: controls, matching: find.text('일시정지')),
+        findsNothing);
+    expect(find.descendant(of: controls, matching: find.text('천천히 보기')),
+        findsNothing);
+    expect(
+        find.descendant(
+            of: controls, matching: find.byIcon(Icons.play_arrow_rounded)),
+        findsNothing);
+    expect(
+        find.descendant(
+            of: controls, matching: find.byIcon(Icons.pause_rounded)),
+        findsNothing);
+    expect(
+        find.descendant(
+            of: controls,
+            matching: find.byIcon(Icons.slow_motion_video_rounded)),
+        findsNothing);
     expect(
       find.descendant(of: step, matching: find.byIcon(Icons.skip_next_rounded)),
       findsOneWidget,
     );
-    expect(find.descendant(of: step, matching: find.text('한 단계씩')),
-        findsOneWidget);
-
-    await tester.tap(playPause);
-    await tester.pump();
-
-    expect(
-      find.descendant(
-          of: playPause, matching: find.byIcon(Icons.pause_rounded)),
-      findsOneWidget,
-    );
-    expect(
-      find.descendant(of: playPause, matching: find.text('일시정지')),
-      findsOneWidget,
-    );
-
-    await tester.tap(playPause);
-    await tester.pump();
-    expect(find.descendant(of: playPause, matching: find.text('재생')),
+    expect(find.descendant(of: step, matching: find.text('다음 단계')),
         findsOneWidget);
   });
 
-  testWidgets('phase selection pauses and changes active phase content', (
+  testWidgets('phase selection and next action show one static source rect', (
     WidgetTester tester,
   ) async {
     await _pumpPlayer(tester);
 
-    final playPause = find.byKey(
-      const ValueKey('running-coach-good-form-cycle-play-pause'),
-    );
-    await tester.ensureVisible(playPause);
-    await tester.pump();
-    await tester.tap(playPause);
-    await tester.pump();
-    expect(find.text('Pause'), findsOneWidget);
+    await _expectStaticSourceRect(tester, RunningCycleGuidePhase.landing);
 
     final pushOffPhase = find.byKey(
       const ValueKey('running-coach-good-form-phase-2'),
@@ -164,25 +130,26 @@ void main() {
           'Press down, then let the foot travel behind as the body moves forward.'),
       findsOneWidget,
     );
-    expect(find.text('Play'), findsOneWidget);
-    expect(find.text('Pause'), findsNothing);
+    await _expectStaticSourceRect(tester, RunningCycleGuidePhase.pushOff);
 
-    final atlas = await tester.runAsync(loadRunningCycleAnimationAtlas);
-    final atlasPaint = _atlasFramePaint;
-    final pushOffFrame = runningCycleGuideRepresentativeFrameForPhase(
-      RunningCycleGuidePhase.pushOff,
+    await tester.pump(const Duration(seconds: 2));
+    await _expectStaticSourceRect(tester, RunningCycleGuidePhase.pushOff);
+
+    final step = find.byKey(
+      const ValueKey('running-coach-good-form-cycle-step'),
     );
-    expect(atlasPaint, paintsExactlyCountTimes(#drawImageRect, 1));
+    await tester.ensureVisible(step);
+    await tester.pump();
+    await tester.tap(step);
+    await tester.pump();
+
     expect(
-      atlasPaint,
-      paints
-        ..drawImageRect(
-          source: runningCycleGuideSourceRectForFrame(
-            atlas!,
-            pushOffFrame,
-          ),
-        ),
+      find.byKey(
+        const ValueKey('running-coach-good-form-active-phase-recovery'),
+      ),
+      findsOneWidget,
     );
+    await _expectStaticSourceRect(tester, RunningCycleGuidePhase.recovery);
   });
 
   testWidgets('step control travels landing support push-off recovery', (
@@ -256,6 +223,24 @@ Finder get _atlasFramePaint => find.byKey(
       const ValueKey('running-coach-good-form-cycle-atlas-frame'),
       skipOffstage: false,
     );
+
+Future<void> _expectStaticSourceRect(
+  WidgetTester tester,
+  RunningCycleGuidePhase phase,
+) async {
+  final atlas = await tester.runAsync(loadRunningCycleAnimationAtlas);
+  final frame = runningCycleGuideRepresentativeFrameForPhase(phase);
+  final atlasPaint = _atlasFramePaint;
+
+  expect(atlasPaint, paintsExactlyCountTimes(#drawImageRect, 1));
+  expect(
+    atlasPaint,
+    paints
+      ..drawImageRect(
+        source: runningCycleGuideSourceRectForFrame(atlas!, frame),
+      ),
+  );
+}
 
 Future<void> _pumpPlayer(
   WidgetTester tester, {

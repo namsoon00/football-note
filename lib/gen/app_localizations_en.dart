@@ -10130,11 +10130,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Start with ‘Start here.’ Once it feels natural, use ‘Look closer’ to check symmetry, timing, and movement across several strides.';
 
   @override
-  String get runningCoachGoodFormCycleTitle => 'One running cycle';
+  String get runningCoachGoodFormCycleTitle => 'Static phase references';
 
   @override
   String get runningCoachGoodFormCycleBody =>
-      'Four phases should connect smoothly, from landing through recovery for the next contact.';
+      'These are phase reference illustrations, not a continuous video or your uploaded run. Select a phase to view one representative frame.';
 
   @override
   String get runningCoachGoodFormPhaseLandingTitle => 'Landing';
@@ -10173,7 +10173,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachGoodFormSlowMotionAction => 'Slow view';
 
   @override
-  String get runningCoachGoodFormStepAction => 'Step through';
+  String get runningCoachGoodFormStepAction => 'Next phase';
 
   @override
   String get runningCoachGoodFormTechniqueTitle =>

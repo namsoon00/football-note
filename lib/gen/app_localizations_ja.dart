@@ -9837,11 +9837,11 @@ class AppLocalizationsJa extends AppLocalizations {
       '最初は「まずはこれだけ」を意識し、慣れたら「さらに詳しく」で左右差、タイミング、連続した動きを確認します。';
 
   @override
-  String get runningCoachGoodFormCycleTitle => 'ランニングの1サイクル';
+  String get runningCoachGoodFormCycleTitle => '静止した段階別参考図';
 
   @override
   String get runningCoachGoodFormCycleBody =>
-      '着地から次の着地を準備するリカバリーまで、4つの段階が自然につながることが大切です。';
+      'これは段階別の参考イラストで、連続動画でもあなたのアップロード動画でもありません。段階を選ぶと代表的な静止フレームを1枚だけ表示します。';
 
   @override
   String get runningCoachGoodFormPhaseLandingTitle => '着地';
@@ -9878,7 +9878,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachGoodFormSlowMotionAction => 'ゆっくり見る';
 
   @override
-  String get runningCoachGoodFormStepAction => '1段階ずつ';
+  String get runningCoachGoodFormStepAction => '次の段階';
 
   @override
   String get runningCoachGoodFormTechniqueTitle => '項目別イラストガイド';
