@@ -9859,7 +9859,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachGoodFormCycleBody =>
-      '이 그림은 단계별 참고 자료이며, 연속 영상이나 내 업로드 영상이 아니에요. 단계를 선택하면 대표 정지 프레임 한 장만 볼 수 있어요.';
+      '네 장의 참고 그림은 착지부터 회수까지 같은 리드 다리를 따라가요. 연속 영상이나 내 업로드 영상이 아니며, 단계를 선택하면 정지 프레임 한 장만 볼 수 있어요.';
 
   @override
   String get runningCoachGoodFormPhaseLandingTitle => '착지';
@@ -9899,6 +9899,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachGoodFormStepAction => '다음 단계';
+
+  @override
+  String get runningCoachGoodFormRestartStepsAction => '4단계 다시 시작';
 
   @override
   String get runningCoachGoodFormTechniqueTitle => '항목별 일러스트 가이드';
