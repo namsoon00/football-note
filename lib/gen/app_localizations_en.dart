@@ -10165,6 +10165,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'Recover the heel naturally and bring the knee through for the next landing.';
 
   @override
+  String runningCoachGoodFormCycleObservationLabel(String phase) {
+    return 'Observe: $phase';
+  }
+
+  @override
+  String get runningCoachGoodFormSlowMotionAction => 'Slow view';
+
+  @override
+  String get runningCoachGoodFormStepAction => 'Step through';
+
+  @override
   String get runningCoachGoodFormTechniqueTitle =>
       'Illustrated technique guide';
 

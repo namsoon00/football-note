@@ -16,6 +16,7 @@ import '../../domain/entities/running_video_analysis_result.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../../gen/app_localizations.dart';
 import '../running_coach/running_coach_illustrated_comparison.dart';
+import '../running_coach/running_cycle_guide_player.dart';
 import '../running_coach/running_pose_overlay.dart';
 import '../running_coach/running_professional_runner.dart';
 import '../running_coach/running_professional_runner_art.dart';
@@ -6695,7 +6696,7 @@ class _GoodRunningFormGuideScreenState
         children: [
           const _GoodFormIntroductionCard(),
           const SizedBox(height: 12),
-          const _GoodFormCycleCard(),
+          const RunningCycleGuidePlayer(),
           const SizedBox(height: 20),
           Text(
             l10n.runningCoachGoodFormTechniqueTitle,
@@ -6785,123 +6786,6 @@ class _GoodFormIntroductionCard extends StatelessWidget {
                 ],
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _GoodFormCycleCard extends StatelessWidget {
-  const _GoodFormCycleCard();
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final scheme = Theme.of(context).colorScheme;
-    final phases = <({IconData icon, String title, String cue})>[
-      (
-        icon: Icons.vertical_align_bottom_rounded,
-        title: l10n.runningCoachGoodFormPhaseLandingTitle,
-        cue: l10n.runningCoachGoodFormPhaseLandingCue,
-      ),
-      (
-        icon: Icons.accessibility_new_rounded,
-        title: l10n.runningCoachGoodFormPhaseSupportTitle,
-        cue: l10n.runningCoachGoodFormPhaseSupportCue,
-      ),
-      (
-        icon: Icons.trending_flat_rounded,
-        title: l10n.runningCoachGoodFormPhasePushOffTitle,
-        cue: l10n.runningCoachGoodFormPhasePushOffCue,
-      ),
-      (
-        icon: Icons.autorenew_rounded,
-        title: l10n.runningCoachGoodFormPhaseRecoveryTitle,
-        cue: l10n.runningCoachGoodFormPhaseRecoveryCue,
-      ),
-    ];
-    return Card(
-      key: const ValueKey('running-coach-good-form-cycle'),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.runningCoachGoodFormCycleTitle,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w900,
-                  ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              l10n.runningCoachGoodFormCycleBody,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-            const SizedBox(height: 14),
-            for (var index = 0; index < phases.length; index += 1) ...[
-              Container(
-                key: ValueKey('running-coach-good-form-phase-$index'),
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: scheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: scheme.outlineVariant),
-                ),
-                padding: const EdgeInsets.all(12),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: scheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(9),
-                      ),
-                      alignment: Alignment.center,
-                      child: Icon(
-                        phases[index].icon,
-                        size: 20,
-                        color: scheme.onPrimaryContainer,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '${index + 1}. ${phases[index].title}',
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelLarge
-                                ?.copyWith(fontWeight: FontWeight.w900),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            phases[index].cue,
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (index != phases.length - 1)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Center(
-                    child: Icon(
-                      Icons.arrow_downward_rounded,
-                      size: 17,
-                      color: scheme.primary,
-                    ),
-                  ),
-                ),
-            ],
           ],
         ),
       ),

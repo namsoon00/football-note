@@ -9890,6 +9890,17 @@ class AppLocalizationsKo extends AppLocalizations {
       '뒤꿈치를 자연스럽게 회수하고 무릎이 다음 착지를 준비해요.';
 
   @override
+  String runningCoachGoodFormCycleObservationLabel(String phase) {
+    return '관찰: $phase';
+  }
+
+  @override
+  String get runningCoachGoodFormSlowMotionAction => '천천히 보기';
+
+  @override
+  String get runningCoachGoodFormStepAction => '한 단계씩';
+
+  @override
   String get runningCoachGoodFormTechniqueTitle => '항목별 일러스트 가이드';
 
   @override

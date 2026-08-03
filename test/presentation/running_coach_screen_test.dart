@@ -30,6 +30,8 @@ void main() {
       'assets/images/running_guides/target_landing.png',
       'assets/images/running_guides/professional_runner/'
           'professional_runner_pose_atlas_v2.png',
+      'assets/images/running_guides/professional_runner/'
+          'running_cycle_animation_atlas_v1.png',
     ];
 
     for (final asset in guideAssets) {
@@ -766,7 +768,8 @@ void main() {
       expect(tester.takeException(), isNull);
 
       await tester.tap(guideAction);
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 350));
 
       expect(
         find.byKey(const ValueKey('running-coach-good-form-screen')),

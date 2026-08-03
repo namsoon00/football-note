@@ -17574,6 +17574,24 @@ abstract class AppLocalizations {
   /// **'Recover the heel naturally and bring the knee through for the next landing.'**
   String get runningCoachGoodFormPhaseRecoveryCue;
 
+  /// No description provided for @runningCoachGoodFormCycleObservationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Observe: {phase}'**
+  String runningCoachGoodFormCycleObservationLabel(String phase);
+
+  /// No description provided for @runningCoachGoodFormSlowMotionAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Slow view'**
+  String get runningCoachGoodFormSlowMotionAction;
+
+  /// No description provided for @runningCoachGoodFormStepAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Step through'**
+  String get runningCoachGoodFormStepAction;
+
   /// No description provided for @runningCoachGoodFormTechniqueTitle.
   ///
   /// In en, this message translates to:
