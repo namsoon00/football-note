@@ -1218,6 +1218,52 @@
     };
   }
 
+  async function extractEvidenceFrames(bytes, name, timestampsJson) {
+    let timestamps;
+    try {
+      timestamps = JSON.parse(timestampsJson || '[]');
+    } catch (_) {
+      timestamps = [];
+    }
+    const uniqueTimestamps = [...new Set(
+      (Array.isArray(timestamps) ? timestamps : [])
+        .map((value) => Math.round(Number(value)))
+        .filter((value) => Number.isFinite(value) && value >= 0),
+    )].sort((left, right) => left - right).slice(0, 8);
+    if (uniqueTimestamps.length === 0) return [];
+    const { video, url } = await loadVideo(bytes, name);
+    try {
+      const sourceWidth = video.videoWidth;
+      const sourceHeight = video.videoHeight;
+      if (sourceWidth <= 0 || sourceHeight <= 0) return [];
+      const maximumDimension = 640;
+      const scale = Math.min(1, maximumDimension / Math.max(sourceWidth, sourceHeight));
+      const width = Math.max(1, Math.round(sourceWidth * scale));
+      const height = Math.max(1, Math.round(sourceHeight * scale));
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext('2d');
+      if (!context) return [];
+      const frames = [];
+      for (const timestampMs of uniqueTimestamps) {
+        await seekVideo(video, timestampMs / 1000);
+        context.drawImage(video, 0, 0, width, height);
+        frames.push({
+          timestampMs,
+          width,
+          height,
+          dataUrl: canvas.toDataURL('image/jpeg', 0.72),
+        });
+      }
+      return frames;
+    } finally {
+      video.removeAttribute('src');
+      video.load();
+      URL.revokeObjectURL(url);
+    }
+  }
+
   async function analyze(bytes, name) {
     const { video, url } = await loadVideo(bytes, name);
     try {
@@ -1384,5 +1430,5 @@
     }
   }
 
-  window.runningVideoPoseAnalysis = Object.freeze({ analyze });
+  window.runningVideoPoseAnalysis = Object.freeze({ analyze, extractEvidenceFrames });
 })();

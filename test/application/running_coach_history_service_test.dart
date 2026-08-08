@@ -172,6 +172,106 @@ void main() {
     expect(retained, isEmpty);
     expect(service.allSessions(), isEmpty);
   });
+
+  test('retains selected evidence frames without source video opt-in',
+      () async {
+    final repository = _MemoryOptionRepository();
+    var deletedEvidenceCount = 0;
+    final capturedRequestTimestamps = <int>[];
+    final service = RunningCoachHistoryService(
+      repository,
+      archiveEvidenceImages: ({
+        required sourceVideo,
+        required sessionId,
+        required requests,
+      }) async {
+        capturedRequestTimestamps.addAll(
+          requests.map((request) => request.timestamp.inMilliseconds),
+        );
+        return <RunningCoachEvidenceImage>[
+          for (final request in requests)
+            RunningCoachEvidenceImage(
+              id: request.id,
+              timestamp: request.timestamp,
+              kind: request.kind,
+              role: request.role,
+              storageReference: 'test://${request.id}',
+              width: 120,
+              height: 80,
+            ),
+        ];
+      },
+      deleteEvidenceImages: (images) async {
+        deletedEvidenceCount += images.length;
+      },
+    );
+    const report = RunningCoachingReport(
+      overallScore: 86,
+      insights: [
+        RunningCoachingInsight(
+          metric: RunningCoachMetric.posture,
+          finding: RunningCoachFinding.postureAligned,
+          status: RunningCoachStatus.good,
+          score: 86,
+          value: 10,
+          quality: RunningMetricQuality(confidence: 0.90, sampleCount: 6),
+        ),
+      ],
+    );
+    final result = RunningVideoAnalysisResult(
+      videoDuration: const Duration(seconds: 5),
+      sampledFrames: 14,
+      validFrames: 12,
+      direction: RunningDirection.leftToRight,
+      forwardLeanDegrees: 10,
+      verticalBounceRatio: 0.06,
+      footStrikeDistanceRatio: 0.08,
+      stanceKneeAngleDegrees: 155,
+      elbowAngleDegrees: 90,
+      metricQualities: const <RunningCoachMetric, RunningMetricQuality>{
+        RunningCoachMetric.posture: RunningMetricQuality(
+          confidence: 0.90,
+          sampleCount: 6,
+        ),
+      },
+      poseFrames: [
+        for (var frameIndex = 0; frameIndex < 8; frameIndex += 1)
+          _poseFrame(frameIndex),
+      ],
+    );
+
+    final saved = await service.saveUploadAnalysis(
+      result: result,
+      report: report,
+      sourceVideoPath: '/private/not-retained.mp4',
+      sourceVideoName: 'not-retained.mp4',
+      analyzedAt: DateTime(2026, 8, 2, 9),
+    );
+
+    final session = saved.single;
+    expect(session.videoPath, isNull);
+    expect(session.videoName, isNull);
+    expect(session.evidenceImages, isNotEmpty);
+    expect(
+      session.evidenceImages.map((image) => image.timestamp.inMilliseconds),
+      orderedEquals(capturedRequestTimestamps),
+    );
+    expect(
+        capturedRequestTimestamps.toSet(),
+        hasLength(
+          capturedRequestTimestamps.length,
+        ));
+    expect(
+      session.analysisResult!.poseFrames.map(
+        (frame) => frame.timestamp.inMilliseconds,
+      ),
+      containsAll(capturedRequestTimestamps),
+    );
+
+    final retained = await service.deleteSession(session.id);
+    expect(retained, isEmpty);
+    expect(deletedEvidenceCount, session.evidenceImages.length);
+  });
 }
 
 RunningPoseFrame _poseFrame(int frameIndex) {

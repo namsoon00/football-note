@@ -2,6 +2,13 @@ import 'running_video_analysis_result.dart';
 
 enum RunningCoachSessionSource { uploadVideo }
 
+/// Whether a session may participate in score comparisons.
+///
+/// A numeric score is deliberately separate from this state: `0` is not a
+/// substitute for a missing score, and legacy sessions may not retain enough
+/// measured evidence to be compared fairly.
+enum RunningCoachScoreEligibility { verified, unavailable, legacy }
+
 /// Runner-selected conditions used only to decide whether two recordings can
 /// be compared. They do not change the coaching score or the model output.
 enum RunningCoachRunEffort { easy, steady, fast }
@@ -60,6 +67,8 @@ class RunningCoachSessionAnalysis {
   final DateTime analyzedAt;
   final RunningCoachSessionSource source;
   final int overallScore;
+  final RunningCoachScoreEligibility scoreEligibility;
+  final int scoreVersion;
   final Duration duration;
   final int sampledFrames;
   final int validFrames;
@@ -75,6 +84,7 @@ class RunningCoachSessionAnalysis {
   final String? videoName;
   final RunningCoachCaptureContext? captureContext;
   final List<RunningCoachSessionMetric> metricSnapshots;
+  final List<RunningCoachEvidenceImage> evidenceImages;
   final RunningVideoAnalysisResult? analysisResult;
 
   const RunningCoachSessionAnalysis({
@@ -82,6 +92,8 @@ class RunningCoachSessionAnalysis {
     required this.analyzedAt,
     required this.source,
     required this.overallScore,
+    this.scoreEligibility = RunningCoachScoreEligibility.legacy,
+    this.scoreVersion = 1,
     required this.duration,
     required this.sampledFrames,
     required this.validFrames,
@@ -97,8 +109,12 @@ class RunningCoachSessionAnalysis {
     this.videoName,
     this.captureContext,
     this.metricSnapshots = const <RunningCoachSessionMetric>[],
+    this.evidenceImages = const <RunningCoachEvidenceImage>[],
     this.analysisResult,
   });
+
+  bool get hasVerifiedScore =>
+      scoreEligibility == RunningCoachScoreEligibility.verified;
 
   double get coverage =>
       sampledFrames == 0 ? 0.0 : (validFrames / sampledFrames).clamp(0.0, 1.0);
@@ -137,6 +153,8 @@ class RunningCoachSessionAnalysis {
       'analyzedAt': analyzedAt.toIso8601String(),
       'source': source.name,
       'overallScore': overallScore,
+      'scoreEligibility': scoreEligibility.name,
+      'scoreVersion': scoreVersion,
       'durationMs': duration.inMilliseconds,
       'sampledFrames': sampledFrames,
       'validFrames': validFrames,
@@ -157,9 +175,20 @@ class RunningCoachSessionAnalysis {
         'insights': metricSnapshots
             .map((snapshot) => snapshot.toMap())
             .toList(growable: false),
+      if (evidenceImages.isNotEmpty)
+        'evidenceImages': evidenceImages
+            .map((image) => image.toMap())
+            .toList(growable: false),
       if (analysisResult != null)
         'analysisResult': analysisResult!
-            .historySnapshot(maxPoseFrames: maxPoseFrames)
+            .historySnapshot(
+              maxPoseFrames: maxPoseFrames,
+              // Keep pose data for every retained still so history can draw
+              // the same measured overlay over that actual video frame.
+              evidenceTimestamps: evidenceImages.map(
+                (image) => image.timestamp,
+              ),
+            )
             .toMap(),
     };
   }
@@ -171,6 +200,12 @@ class RunningCoachSessionAnalysis {
           DateTime.fromMillisecondsSinceEpoch(0),
       source: RunningCoachSessionSource.uploadVideo,
       overallScore: _intValue(map['overallScore']),
+      scoreEligibility: _enumByName(
+        RunningCoachScoreEligibility.values,
+        map['scoreEligibility']?.toString(),
+        RunningCoachScoreEligibility.legacy,
+      ),
+      scoreVersion: _intValue(map['scoreVersion']).clamp(1, 9999).toInt(),
       duration: Duration(milliseconds: _intValue(map['durationMs'])),
       sampledFrames: _intValue(map['sampledFrames']),
       validFrames: _intValue(map['validFrames']),
@@ -198,7 +233,65 @@ class RunningCoachSessionAnalysis {
       videoName: _optionalString(map['videoName']),
       captureContext: _captureContextFromMap(map['captureContext']),
       metricSnapshots: _metricSnapshotsFromMap(map['insights']),
+      evidenceImages: _evidenceImagesFromMap(map['evidenceImages']),
       analysisResult: _analysisResultFromMap(map['analysisResult']),
+    );
+  }
+}
+
+/// A compact, local-only still from the analyzed source video.
+///
+/// The frame remains separate from its pose coordinates, so the UI can show
+/// the original image or add a current-version overlay later without altering
+/// the captured evidence.
+class RunningCoachEvidenceImage {
+  final String id;
+  final Duration timestamp;
+  final RunningMetricEvidenceKind kind;
+  final RunningMetricEvidenceFrameRole role;
+  final String storageReference;
+  final int width;
+  final int height;
+
+  const RunningCoachEvidenceImage({
+    required this.id,
+    required this.timestamp,
+    required this.kind,
+    required this.role,
+    required this.storageReference,
+    this.width = 0,
+    this.height = 0,
+  });
+
+  bool get isAvailable => storageReference.isNotEmpty;
+
+  Map<String, Object?> toMap() => <String, Object?>{
+        'id': id,
+        'timestampMs': timestamp.inMilliseconds,
+        'kind': kind.name,
+        'role': role.name,
+        'storageReference': storageReference,
+        if (width > 0) 'width': width,
+        if (height > 0) 'height': height,
+      };
+
+  factory RunningCoachEvidenceImage.fromMap(Map<String, dynamic> map) {
+    return RunningCoachEvidenceImage(
+      id: _optionalString(map['id']) ?? '',
+      timestamp: Duration(milliseconds: _intValue(map['timestampMs'])),
+      kind: _enumByName(
+        RunningMetricEvidenceKind.values,
+        map['kind']?.toString(),
+        RunningMetricEvidenceKind.posture,
+      ),
+      role: _enumByName(
+        RunningMetricEvidenceFrameRole.values,
+        map['role']?.toString(),
+        RunningMetricEvidenceFrameRole.representativePosture,
+      ),
+      storageReference: _optionalString(map['storageReference']) ?? '',
+      width: _intValue(map['width']),
+      height: _intValue(map['height']),
     );
   }
 }
@@ -317,6 +410,21 @@ List<RunningCoachSessionMetric> _metricSnapshotsFromMap(Object? value) {
             item.cast<String, dynamic>(),
           ),
         )
+        .toList(growable: false),
+  );
+}
+
+List<RunningCoachEvidenceImage> _evidenceImagesFromMap(Object? value) {
+  if (value is! List) return const <RunningCoachEvidenceImage>[];
+  return List<RunningCoachEvidenceImage>.unmodifiable(
+    value
+        .whereType<Map>()
+        .map(
+          (item) => RunningCoachEvidenceImage.fromMap(
+            item.cast<String, dynamic>(),
+          ),
+        )
+        .where((image) => image.id.isNotEmpty && image.isAvailable)
         .toList(growable: false),
   );
 }

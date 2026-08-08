@@ -18,6 +18,7 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import java.io.File
 import java.io.IOException
+import java.io.ByteArrayOutputStream
 import java.util.Optional
 import java.util.TreeMap
 import java.util.concurrent.ExecutorService
@@ -48,33 +49,104 @@ class RunningPoseAnalysisChannel(
     }
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
-        if (call.method != methodName) {
-            result.notImplemented()
-            return
-        }
-
         val path = call.argument<String>("path")
         if (path.isNullOrBlank()) {
             result.error("missing_file", "Video file is missing.", null)
             return
         }
-
-        executor.execute {
-            try {
-                val analysis = analyzeVideo(path)
-                mainHandler.post { result.success(analysis) }
-            } catch (error: AnalysisException) {
-                mainHandler.post { result.error(error.code, error.message, null) }
-            } catch (error: Exception) {
-                mainHandler.post {
-                    result.error(
-                        "analysis_failed",
-                        error.message ?: "Running video analysis failed.",
-                        null,
-                    )
+        when (call.method) {
+            methodName -> executor.execute {
+                try {
+                    val analysis = analyzeVideo(path)
+                    mainHandler.post { result.success(analysis) }
+                } catch (error: AnalysisException) {
+                    mainHandler.post { result.error(error.code, error.message, null) }
+                } catch (error: Exception) {
+                    mainHandler.post {
+                        result.error(
+                            "analysis_failed",
+                            error.message ?: "Running video analysis failed.",
+                            null,
+                        )
+                    }
                 }
             }
+            evidenceFramesMethodName -> {
+                val timestamps = call.argument<List<Any?>>("timestampsMs")
+                    ?.mapNotNull { (it as? Number)?.toLong() }
+                    ?.distinct()
+                    ?.sorted()
+                    ?: emptyList()
+                val maximumDimension = (call.argument<Number>("maxDimension")?.toInt() ?: 640)
+                    .coerceIn(160, 960)
+                executor.execute {
+                    try {
+                        val frames = extractEvidenceFrames(path, timestamps, maximumDimension)
+                        mainHandler.post { result.success(frames) }
+                    } catch (error: AnalysisException) {
+                        mainHandler.post { result.error(error.code, error.message, null) }
+                    } catch (error: Exception) {
+                        mainHandler.post {
+                            result.error(
+                                "evidence_frame_failed",
+                                error.message ?: "Could not extract video evidence frames.",
+                                null,
+                            )
+                        }
+                    }
+                }
+            }
+            else -> result.notImplemented()
         }
+    }
+
+    private fun extractEvidenceFrames(
+        path: String,
+        timestampsMs: List<Long>,
+        maximumDimension: Int,
+    ): List<Map<String, Any>> {
+        val file = File(path)
+        if (!file.exists()) {
+            throw AnalysisException("missing_file", "Video file is missing.")
+        }
+        if (timestampsMs.isEmpty()) return emptyList()
+        val retriever = MediaMetadataRetriever()
+        try {
+            retriever.setDataSource(path)
+            return timestampsMs.mapNotNull { timestampMs ->
+                val source = retriever.getFrameAtTime(
+                    timestampMs * 1000L,
+                    MediaMetadataRetriever.OPTION_CLOSEST,
+                ) ?: return@mapNotNull null
+                val scaled = scaleBitmap(source, maximumDimension)
+                if (scaled !== source) source.recycle()
+                val bytes = ByteArrayOutputStream().use { output ->
+                    scaled.compress(Bitmap.CompressFormat.JPEG, 72, output)
+                    output.toByteArray()
+                }
+                val width = scaled.width
+                val height = scaled.height
+                scaled.recycle()
+                if (bytes.isEmpty()) return@mapNotNull null
+                mapOf(
+                    "timestampMs" to timestampMs,
+                    "bytes" to bytes,
+                    "width" to width,
+                    "height" to height,
+                )
+            }
+        } finally {
+            retriever.release()
+        }
+    }
+
+    private fun scaleBitmap(source: Bitmap, maximumDimension: Int): Bitmap {
+        val longestSide = max(source.width, source.height)
+        if (longestSide <= maximumDimension || longestSide <= 0) return source
+        val scale = maximumDimension.toDouble() / longestSide.toDouble()
+        val width = max(1, (source.width * scale).roundToInt())
+        val height = max(1, (source.height * scale).roundToInt())
+        return Bitmap.createScaledBitmap(source, width, height, true)
     }
 
     private fun analyzeVideo(path: String): Map<String, Any?> {
@@ -1977,6 +2049,7 @@ class RunningPoseAnalysisChannel(
     companion object {
         private const val channelName = "football_note/running_pose_analysis"
         private const val methodName = "analyzeRunningVideo"
+        private const val evidenceFramesMethodName = "extractRunningEvidenceFrames"
         private const val coarseTargetFps = 10
         private const val coarseFrameIntervalMs = 100L
         private const val maxCoarseFrameBudget = 240

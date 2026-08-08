@@ -704,6 +704,233 @@ void main() {
   });
 
   testWidgets(
+    'score hero appears only for a fully evidence-backed score',
+    (WidgetTester tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 1400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final verifiedResult = RunningVideoAnalysisResult(
+        videoDuration: const Duration(seconds: 4),
+        sampledFrames: 14,
+        validFrames: 13,
+        direction: RunningDirection.leftToRight,
+        forwardLeanDegrees: 10,
+        verticalBounceRatio: 0.06,
+        footStrikeDistanceRatio: 0.24,
+        stanceKneeAngleDegrees: 155,
+        elbowAngleDegrees: 92,
+        metricQualities: _testAllMetricQualities(),
+        coarseSamples: const RunningAnalysisSampleSummary(
+          attemptedFrames: 14,
+          validFrames: 13,
+          poseFrameCount: 6,
+        ),
+        denseSamples: const RunningAnalysisSampleSummary(
+          attemptedFrames: 8,
+          validFrames: 6,
+          poseFrameCount: 6,
+          maxFrameBudget: 48,
+          targetFps: 30,
+        ),
+        contactWindows: _testContactWindows(),
+        validatedContactFrameTimestamps: _testContactTimestamps(),
+        contactConfidence: 0.88,
+        poseFrames: _testPoseFrames(
+          startX: 0.34,
+          dxPerFrame: -0.018,
+          confidence: 0.93,
+        ),
+      );
+      final verifiedReport =
+          const RunningCoachingService().buildReport(verifiedResult);
+      final verifiedSession = _sessionForReport(
+        id: 'verified-score-hero',
+        result: verifiedResult,
+        report: verifiedReport,
+      );
+      expect(verifiedSession.hasVerifiedScore, isTrue);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: runningAnalysisResultScreenForTesting(
+            result: verifiedResult,
+            report: verifiedReport,
+            session: verifiedSession,
+          ),
+        ),
+      );
+      await tester.pump();
+
+      final scoreHero = find.byKey(
+        const ValueKey('running-coach-score-hero'),
+      );
+      final overview = find.byKey(
+        const ValueKey('running-coach-metric-overview'),
+      );
+      final primaryCoaching = find.byKey(
+        const ValueKey('running-coach-beginner-action-card'),
+      );
+      expect(scoreHero, findsOneWidget);
+      expect(overview, findsOneWidget);
+      expect(primaryCoaching, findsOneWidget);
+      expect(
+        tester.getTopLeft(scoreHero).dy,
+        lessThan(tester.getTopLeft(overview).dy),
+      );
+      expect(
+        tester.getTopLeft(overview).dy,
+        lessThan(tester.getTopLeft(primaryCoaching).dy),
+      );
+
+      final limitedResult = RunningVideoAnalysisResult(
+        videoDuration: const Duration(seconds: 4),
+        sampledFrames: 14,
+        validFrames: 13,
+        direction: RunningDirection.leftToRight,
+        forwardLeanDegrees: 10,
+        verticalBounceRatio: 0.06,
+        footStrikeDistanceRatio: 0.24,
+        stanceKneeAngleDegrees: 155,
+        elbowAngleDegrees: 92,
+        metricQualities: _testAllMetricQualities(),
+      );
+      final limitedReport =
+          const RunningCoachingService().buildReport(limitedResult);
+      final limitedSession = _sessionForReport(
+        id: 'missing-score-hero',
+        result: limitedResult,
+        report: limitedReport,
+      );
+      expect(limitedSession.hasVerifiedScore, isFalse);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: runningAnalysisResultScreenForTesting(
+            result: limitedResult,
+            report: limitedReport,
+            session: limitedSession,
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(scoreHero, findsNothing);
+      expect(find.text('Overall running score 0/100'), findsNothing);
+      expect(
+        find.byKey(const ValueKey('running-coach-metric-overview')),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('historical detail shows saved evidence frame gallery', (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1400));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final result = RunningVideoAnalysisResult(
+      videoDuration: const Duration(seconds: 4),
+      sampledFrames: 14,
+      validFrames: 13,
+      direction: RunningDirection.leftToRight,
+      forwardLeanDegrees: 10,
+      verticalBounceRatio: 0.06,
+      footStrikeDistanceRatio: 0.24,
+      stanceKneeAngleDegrees: 155,
+      elbowAngleDegrees: 92,
+      metricQualities: _testAllMetricQualities(),
+      coarseSamples: const RunningAnalysisSampleSummary(
+        attemptedFrames: 14,
+        validFrames: 13,
+        poseFrameCount: 6,
+      ),
+      denseSamples: const RunningAnalysisSampleSummary(
+        attemptedFrames: 8,
+        validFrames: 6,
+        poseFrameCount: 6,
+        maxFrameBudget: 48,
+        targetFps: 30,
+      ),
+      contactWindows: _testContactWindows(),
+      validatedContactFrameTimestamps: _testContactTimestamps(),
+      contactConfidence: 0.88,
+      poseFrames: _testPoseFrames(
+        startX: 0.34,
+        dxPerFrame: -0.018,
+        confidence: 0.93,
+      ),
+    );
+    final report = const RunningCoachingService().buildReport(result);
+    final session = _sessionForReport(
+      id: 'historical-gallery',
+      result: result,
+      report: report,
+      evidenceImages: const <RunningCoachEvidenceImage>[
+        RunningCoachEvidenceImage(
+          id: 'posture-representativePosture-0',
+          timestamp: Duration.zero,
+          kind: RunningMetricEvidenceKind.posture,
+          role: RunningMetricEvidenceFrameRole.representativePosture,
+          storageReference: '/missing/evidence-frame.jpg',
+          width: 160,
+          height: 90,
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: runningAnalysisResultScreenForTesting(
+          result: result,
+          report: report,
+          session: session,
+          isHistorical: true,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final gallery = find.byKey(
+      const ValueKey('running-coach-history-evidence-gallery'),
+    );
+    await _scrollAnalysisResultUntilFound(tester, gallery);
+    expect(find.text('Saved evidence frames'), findsOneWidget);
+    expect(
+      find.byKey(
+        const ValueKey(
+          'running-coach-history-evidence-thumbnail-posture-representativePosture-0',
+        ),
+      ),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
     'good form action has icon and text and opens the layered guide at 320px',
     (WidgetTester tester) async {
       await tester.binding.setSurfaceSize(const Size(320, 780));
@@ -1032,10 +1259,11 @@ void main() {
     );
     await tester.pump();
 
-    expect(
-      find.byKey(const ValueKey('running-coach-analysis-evidence-card')),
-      findsOneWidget,
+    final evidenceCard = find.byKey(
+      const ValueKey('running-coach-analysis-evidence-card'),
     );
+    await _scrollAnalysisResultUntilFound(tester, evidenceCard);
+    expect(evidenceCard, findsOneWidget);
     expect(find.text('Evidence from your video'), findsOneWidget);
     expect(
       find.byKey(const ValueKey('running-coach-analysis-evidence-overlay')),
@@ -1177,10 +1405,11 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    expect(
-      find.byKey(const ValueKey('running-coach-analysis-evidence-card')),
-      findsOneWidget,
+    final evidenceCard = find.byKey(
+      const ValueKey('running-coach-analysis-evidence-card'),
     );
+    await _scrollAnalysisResultUntilFound(tester, evidenceCard);
+    expect(evidenceCard, findsOneWidget);
     expect(
       find.byKey(const ValueKey('running-coach-evidence-chip-landing')),
       findsOneWidget,
@@ -1352,6 +1581,10 @@ void main() {
       );
       await tester.pump();
 
+      await _scrollAnalysisResultUntilFound(
+        tester,
+        find.byKey(const ValueKey('running-coach-analysis-evidence-card')),
+      );
       expect(find.text('Evidence from your video'), findsOneWidget);
       final landingEvidenceChip = find.byKey(
         const ValueKey('running-coach-evidence-chip-landing'),
@@ -1734,30 +1967,35 @@ Future<void> _scrollAnalysisResultUntilFound(
   final resultList = find.byKey(
     const ValueKey('running-coach-analysis-result-list'),
   );
-  for (var attempt = 0; attempt < 40; attempt += 1) {
-    if (finder.evaluate().isNotEmpty) {
-      final targetBounds = tester.getRect(finder);
-      final viewportBounds = tester.getRect(resultList);
-      final isLargeTarget = targetBounds.height > viewportBounds.height;
-      final isVisible = isLargeTarget
-          ? targetBounds.bottom > viewportBounds.top &&
-              targetBounds.top < viewportBounds.bottom
-          : targetBounds.top >= viewportBounds.top + 16 &&
-              targetBounds.bottom <= viewportBounds.bottom - 16;
-      if (isVisible) return;
+  // ListView lazily removes distant cards. A target may therefore be above
+  // the currently viewed evidence card, not just below it. Search in both
+  // directions so layout-order changes do not make this helper one-way.
+  for (final searchDelta in const <double>[-420, 420]) {
+    for (var attempt = 0; attempt < 40; attempt += 1) {
+      if (finder.evaluate().isNotEmpty) {
+        final targetBounds = tester.getRect(finder);
+        final viewportBounds = tester.getRect(resultList);
+        final isLargeTarget = targetBounds.height > viewportBounds.height;
+        final isVisible = isLargeTarget
+            ? targetBounds.bottom > viewportBounds.top &&
+                targetBounds.top < viewportBounds.bottom
+            : targetBounds.top >= viewportBounds.top + 16 &&
+                targetBounds.bottom <= viewportBounds.bottom - 16;
+        if (isVisible) return;
 
-      final verticalAdjustment = targetBounds.top < viewportBounds.top + 16
-          ? viewportBounds.top + 16 - targetBounds.top
-          : viewportBounds.bottom - 16 - targetBounds.bottom;
-      await tester.drag(
-        resultList,
-        Offset(0, verticalAdjustment.clamp(-420.0, 420.0).toDouble()),
-      );
+        final verticalAdjustment = targetBounds.top < viewportBounds.top + 16
+            ? viewportBounds.top + 16 - targetBounds.top
+            : viewportBounds.bottom - 16 - targetBounds.bottom;
+        await tester.drag(
+          resultList,
+          Offset(0, verticalAdjustment.clamp(-420.0, 420.0).toDouble()),
+        );
+        await tester.pump(const Duration(milliseconds: 80));
+        continue;
+      }
+      await tester.drag(resultList, Offset(0, searchDelta));
       await tester.pump(const Duration(milliseconds: 80));
-      continue;
     }
-    await tester.drag(resultList, const Offset(0, -420));
-    await tester.pump(const Duration(milliseconds: 80));
   }
   expect(finder, findsOneWidget);
 }
@@ -1767,6 +2005,8 @@ RunningCoachSessionAnalysis _sessionForReport({
   required RunningVideoAnalysisResult result,
   required RunningCoachingReport report,
   String? videoPath,
+  List<RunningCoachEvidenceImage> evidenceImages =
+      const <RunningCoachEvidenceImage>[],
 }) {
   final primary = report.primaryFocus ?? report.rankedInsights.first;
   return RunningCoachSessionAnalysis(
@@ -1774,6 +2014,8 @@ RunningCoachSessionAnalysis _sessionForReport({
     analyzedAt: DateTime(2026, 7, 14, 9),
     source: RunningCoachSessionSource.uploadVideo,
     overallScore: report.overallScore,
+    scoreEligibility: _scoreEligibilityForTest(result, report),
+    scoreVersion: RunningCoachHistoryService.runningScoreVersion,
     duration: result.videoDuration,
     sampledFrames: result.sampledFrames,
     validFrames: result.validFrames,
@@ -1786,7 +2028,25 @@ RunningCoachSessionAnalysis _sessionForReport({
     primarySampleCount: primary.quality.sampleCount,
     primaryQualityReason: primary.quality.reason,
     videoPath: videoPath,
+    evidenceImages: evidenceImages,
   );
+}
+
+RunningCoachScoreEligibility _scoreEligibilityForTest(
+  RunningVideoAnalysisResult result,
+  RunningCoachingReport report,
+) {
+  final hasCompleteEvidence =
+      report.insights.length == RunningCoachMetric.values.length &&
+          report.insights.every(
+            (insight) => insight.quality.isReliableForCoaching,
+          ) &&
+          RunningCoachMetric.values.every(
+            (metric) => result.evidenceForMetric(metric)?.isReliable == true,
+          );
+  return hasCompleteEvidence
+      ? RunningCoachScoreEligibility.verified
+      : RunningCoachScoreEligibility.unavailable;
 }
 
 class _PendingRunningVideoAnalysisService extends RunningVideoAnalysisService {
@@ -1852,6 +2112,31 @@ Map<RunningCoachMetric, RunningMetricQuality> _testDenseMetricQualities() {
     RunningCoachMetric.kneeFlexion: RunningMetricQuality(
       confidence: 0.84,
       sampleCount: 3,
+    ),
+  };
+}
+
+Map<RunningCoachMetric, RunningMetricQuality> _testAllMetricQualities() {
+  return const <RunningCoachMetric, RunningMetricQuality>{
+    RunningCoachMetric.posture: RunningMetricQuality(
+      confidence: 0.88,
+      sampleCount: 6,
+    ),
+    RunningCoachMetric.bounce: RunningMetricQuality(
+      confidence: 0.88,
+      sampleCount: 6,
+    ),
+    RunningCoachMetric.footStrike: RunningMetricQuality(
+      confidence: 0.88,
+      sampleCount: 3,
+    ),
+    RunningCoachMetric.kneeFlexion: RunningMetricQuality(
+      confidence: 0.88,
+      sampleCount: 3,
+    ),
+    RunningCoachMetric.armCarriage: RunningMetricQuality(
+      confidence: 0.88,
+      sampleCount: 6,
     ),
   };
 }

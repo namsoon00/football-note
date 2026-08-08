@@ -17313,7 +17313,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachHistoryClearAllBody.
   ///
   /// In en, this message translates to:
-  /// **'This removes every saved analysis and any video you chose to save on this device.'**
+  /// **'This removes every saved analysis, locally saved evidence frame, and any video you chose to save on this device.'**
   String get runningCoachHistoryClearAllBody;
 
   /// No description provided for @runningCoachHistoryDeleteTitle.
@@ -17325,7 +17325,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachHistoryDeleteBody.
   ///
   /// In en, this message translates to:
-  /// **'This removes the analysis and its locally saved video, if one exists.'**
+  /// **'This removes the analysis, its locally saved evidence frames, and its saved video if one exists.'**
   String get runningCoachHistoryDeleteBody;
 
   /// No description provided for @runningCoachSaveVideoTitle.
@@ -17435,6 +17435,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The saved video cannot be opened. The file may have been removed from this device.'**
   String get runningCoachArchivedVideoUnavailable;
+
+  /// No description provided for @runningCoachEvidenceFramesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved evidence frames'**
+  String get runningCoachEvidenceFramesTitle;
+
+  /// No description provided for @runningCoachEvidenceFramesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'These still frames and pose markers stay only on this device. Deleting the analysis removes them. The full video is saved only when you turned on video saving.'**
+  String get runningCoachEvidenceFramesBody;
 
   /// No description provided for @runningCoachAnalysisGuideTitle.
   ///

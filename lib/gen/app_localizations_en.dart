@@ -10008,14 +10008,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachHistoryClearAllBody =>
-      'This removes every saved analysis and any video you chose to save on this device.';
+      'This removes every saved analysis, locally saved evidence frame, and any video you chose to save on this device.';
 
   @override
   String get runningCoachHistoryDeleteTitle => 'Delete this analysis?';
 
   @override
   String get runningCoachHistoryDeleteBody =>
-      'This removes the analysis and its locally saved video, if one exists.';
+      'This removes the analysis, its locally saved evidence frames, and its saved video if one exists.';
 
   @override
   String get runningCoachSaveVideoTitle => 'Save this video with the analysis';
@@ -10080,6 +10080,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get runningCoachArchivedVideoUnavailable =>
       'The saved video cannot be opened. The file may have been removed from this device.';
+
+  @override
+  String get runningCoachEvidenceFramesTitle => 'Saved evidence frames';
+
+  @override
+  String get runningCoachEvidenceFramesBody =>
+      'These still frames and pose markers stay only on this device. Deleting the analysis removes them. The full video is saved only when you turned on video saving.';
 
   @override
   String get runningCoachAnalysisGuideTitle => 'Correction point in pictures';

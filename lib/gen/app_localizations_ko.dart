@@ -9735,14 +9735,14 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachHistoryClearAllBody =>
-      '저장된 모든 분석과, 이 기기에 저장하기로 선택한 영상이 함께 삭제돼요.';
+      '저장된 모든 분석, 이 기기에 저장된 근거 프레임, 저장하기로 선택한 영상이 함께 삭제돼요.';
 
   @override
   String get runningCoachHistoryDeleteTitle => '이 분석 기록을 삭제할까요?';
 
   @override
   String get runningCoachHistoryDeleteBody =>
-      '분석 기록과 함께 저장된 영상이 있다면 그 영상도 이 기기에서 삭제돼요.';
+      '분석 기록, 이 기기에 저장된 근거 프레임, 저장된 영상이 있다면 그 영상도 삭제돼요.';
 
   @override
   String get runningCoachSaveVideoTitle => '분석과 함께 이 영상 저장';
@@ -9807,6 +9807,13 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get runningCoachArchivedVideoUnavailable =>
       '저장된 영상을 열 수 없어요. 영상 파일이 기기에서 삭제되었을 수 있어요.';
+
+  @override
+  String get runningCoachEvidenceFramesTitle => '저장된 근거 프레임';
+
+  @override
+  String get runningCoachEvidenceFramesBody =>
+      '이 정지 화면과 자세 표시는 이 기기에만 저장돼요. 분석 기록을 삭제하면 함께 삭제됩니다. 전체 영상은 영상 저장을 켰을 때만 저장돼요.';
 
   @override
   String get runningCoachAnalysisGuideTitle => '그림으로 보는 교정 포인트';
