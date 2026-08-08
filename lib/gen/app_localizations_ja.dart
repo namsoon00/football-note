@@ -9723,13 +9723,14 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachHistoryClearAllBody =>
-      '保存済みのすべての分析と、この端末に保存することを選んだ動画を削除します。';
+      '保存済みのすべての分析、ローカル保存された証拠フレーム、この端末に保存することを選んだ動画を削除します。';
 
   @override
   String get runningCoachHistoryDeleteTitle => 'この分析を削除しますか？';
 
   @override
-  String get runningCoachHistoryDeleteBody => '分析と、存在する場合はローカルに保存した動画を削除します。';
+  String get runningCoachHistoryDeleteBody =>
+      '分析、ローカル保存された証拠フレーム、存在する場合は保存済み動画を削除します。';
 
   @override
   String get runningCoachSaveVideoTitle => 'この動画を分析と一緒に保存';
@@ -9794,6 +9795,13 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get runningCoachArchivedVideoUnavailable =>
       '保存された動画を開けません。端末からファイルが削除された可能性があります。';
+
+  @override
+  String get runningCoachEvidenceFramesTitle => '保存された証拠フレーム';
+
+  @override
+  String get runningCoachEvidenceFramesBody =>
+      'これらの静止フレームとポーズマーカーはこの端末内だけに保存されます。分析を削除すると一緒に削除されます。動画全体は、動画保存をオンにした場合だけ保存されます。';
 
   @override
   String get runningCoachAnalysisGuideTitle => '図で見る修正ポイント';

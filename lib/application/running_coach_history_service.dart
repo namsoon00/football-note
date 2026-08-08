@@ -1,9 +1,24 @@
 import 'dart:convert';
+
+import 'package:image_picker/image_picker.dart';
+
 import '../domain/entities/running_coach_session.dart';
 import '../domain/entities/running_video_analysis_result.dart';
 import '../domain/repositories/option_repository.dart';
+import 'running_coach_evidence_archive.dart';
 import 'running_coach_video_archive.dart';
 import 'sport_scoped_storage.dart';
+
+typedef RunningCoachEvidenceImageArchiver
+    = Future<List<RunningCoachEvidenceImage>> Function({
+  required XFile? sourceVideo,
+  required String sessionId,
+  required List<RunningCoachEvidenceFrameRequest> requests,
+});
+
+typedef RunningCoachEvidenceImageDeleter = Future<void> Function(
+  Iterable<RunningCoachEvidenceImage> images,
+);
 
 class RunningCoachHistoryService {
   static const storageKey = 'running_coach_sessions_v1';
@@ -12,12 +27,24 @@ class RunningCoachHistoryService {
   /// Keep enough timestamped poses for a compact history replay without
   /// exhausting browser-local storage once a runner reaches the history cap.
   static const historyPoseFrameLimit = 12;
+  static const historyEvidenceImageLimit = 8;
+  static const runningScoreVersion = 1;
 
   final OptionRepository _options;
   final String? _sportId;
+  final RunningCoachEvidenceImageArchiver _archiveEvidenceImages;
+  final RunningCoachEvidenceImageDeleter _deleteEvidenceImages;
 
-  const RunningCoachHistoryService(this._options, {String? sportId})
-      : _sportId = sportId;
+  RunningCoachHistoryService(
+    this._options, {
+    String? sportId,
+    RunningCoachEvidenceImageArchiver? archiveEvidenceImages,
+    RunningCoachEvidenceImageDeleter? deleteEvidenceImages,
+  })  : _sportId = sportId,
+        _archiveEvidenceImages =
+            archiveEvidenceImages ?? archiveRunningCoachEvidenceImages,
+        _deleteEvidenceImages =
+            deleteEvidenceImages ?? deleteArchivedRunningCoachEvidenceImages;
 
   String get _storageKey => sportScopedOptionKey(
         _options,
@@ -58,13 +85,25 @@ class RunningCoachHistoryService {
     required RunningVideoAnalysisResult result,
     required RunningCoachingReport report,
     RunningCoachCaptureContext? captureContext,
+    XFile? sourceVideo,
     String? sourceVideoPath,
     String? sourceVideoName,
     bool saveVideo = false,
     DateTime? analyzedAt,
   }) async {
     final timestamp = analyzedAt ?? DateTime.now();
+    final sessionId = 'upload-${timestamp.microsecondsSinceEpoch}';
     final primary = report.primaryFocus ?? report.rankedInsights.first;
+    final evidenceRequests = _historyEvidenceFrameRequests(
+      result,
+      report,
+      limit: historyEvidenceImageLimit,
+    );
+    final evidenceImages = await _archiveEvidenceImages(
+      sourceVideo: sourceVideo,
+      sessionId: sessionId,
+      requests: evidenceRequests,
+    );
     final archivedVideo = saveVideo
         ? await archiveRunningCoachVideo(
             sourcePath: sourceVideoPath,
@@ -75,10 +114,12 @@ class RunningCoachHistoryService {
     final existingSessions = allSessions();
     final next = <RunningCoachSessionAnalysis>[
       RunningCoachSessionAnalysis(
-        id: 'upload-${timestamp.microsecondsSinceEpoch}',
+        id: sessionId,
         analyzedAt: timestamp,
         source: RunningCoachSessionSource.uploadVideo,
         overallScore: report.overallScore,
+        scoreEligibility: _scoreEligibilityFor(result, report),
+        scoreVersion: runningScoreVersion,
         duration: result.videoDuration,
         sampledFrames: result.sampledFrames,
         validFrames: result.validFrames,
@@ -93,8 +134,12 @@ class RunningCoachHistoryService {
         metricSnapshots: report.rankedInsights
             .map(RunningCoachSessionMetric.fromInsight)
             .toList(growable: false),
+        evidenceImages: evidenceImages,
         analysisResult: result.historySnapshot(
           maxPoseFrames: historyPoseFrameLimit,
+          evidenceTimestamps: evidenceRequests.map(
+            (request) => request.timestamp,
+          ),
         ),
         captureContext: captureContext,
         videoPath: archivedVideo?.path,
@@ -113,6 +158,9 @@ class RunningCoachHistoryService {
     await deleteArchivedRunningCoachVideos(
       existingSessions.map((session) => session.videoPath),
     );
+    await _deleteEvidenceImages(
+      existingSessions.expand((session) => session.evidenceImages),
+    );
   }
 
   Future<List<RunningCoachSessionAnalysis>> deleteSession(
@@ -128,6 +176,9 @@ class RunningCoachHistoryService {
     await _persist(retained);
     await deleteArchivedRunningCoachVideos(
       removed.map((session) => session.videoPath),
+    );
+    await _deleteEvidenceImages(
+      removed.expand((session) => session.evidenceImages),
     );
     return List<RunningCoachSessionAnalysis>.unmodifiable(retained);
   }
@@ -153,6 +204,9 @@ class RunningCoachHistoryService {
     await deleteArchivedRunningCoachVideos(
       trimmed.removed.map((session) => session.videoPath),
     );
+    await _deleteEvidenceImages(
+      trimmed.removed.expand((session) => session.evidenceImages),
+    );
     return List<RunningCoachSessionAnalysis>.unmodifiable(trimmed.retained);
   }
 
@@ -171,6 +225,61 @@ class RunningCoachHistoryService {
       removed: removed,
     );
   }
+}
+
+RunningCoachScoreEligibility _scoreEligibilityFor(
+  RunningVideoAnalysisResult result,
+  RunningCoachingReport report,
+) {
+  final hasCompleteEvidence =
+      report.insights.length == RunningCoachMetric.values.length &&
+          report.insights
+              .every((insight) => insight.quality.isReliableForCoaching) &&
+          RunningCoachMetric.values.every(
+            (metric) => result.evidenceForMetric(metric)?.isReliable == true,
+          );
+  return hasCompleteEvidence
+      ? RunningCoachScoreEligibility.verified
+      : RunningCoachScoreEligibility.unavailable;
+}
+
+List<RunningCoachEvidenceFrameRequest> _historyEvidenceFrameRequests(
+  RunningVideoAnalysisResult result,
+  RunningCoachingReport report, {
+  required int limit,
+}) {
+  final primaryMetric = report.primaryFocus?.metric;
+  final orderedEvidence = <RunningMetricEvidence>[
+    if (primaryMetric != null)
+      ...result.metricEvidence.where(
+        (evidence) => evidence.metric == primaryMetric,
+      ),
+    ...result.metricEvidence.where(
+      (evidence) => evidence.metric != primaryMetric,
+    ),
+  ];
+  final requests = <RunningCoachEvidenceFrameRequest>[];
+  final seenTimestamps = <int>{};
+  for (final evidence in orderedEvidence) {
+    if (!evidence.isReliable) continue;
+    for (final frame in evidence.frames) {
+      if (frame.poseFrame == null) continue;
+      final timestampMs = frame.timestamp.inMilliseconds;
+      if (!seenTimestamps.add(timestampMs)) continue;
+      requests.add(
+        RunningCoachEvidenceFrameRequest(
+          id: '${evidence.kind.name}-${frame.role.name}-$timestampMs',
+          timestamp: frame.timestamp,
+          kind: evidence.kind,
+          role: frame.role,
+        ),
+      );
+      if (requests.length >= limit) {
+        return List<RunningCoachEvidenceFrameRequest>.unmodifiable(requests);
+      }
+    }
+  }
+  return List<RunningCoachEvidenceFrameRequest>.unmodifiable(requests);
 }
 
 class _RunningCoachHistoryTrim {

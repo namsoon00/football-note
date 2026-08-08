@@ -255,6 +255,39 @@ void main() {
         result.validatedContactFrameTimestamps);
   });
 
+  test('history snapshot keeps selected evidence-frame timestamps', () {
+    final result = RunningVideoAnalysisResult.fromMap({
+      'durationMs': 4000,
+      'sampledFrames': 40,
+      'validFrames': 40,
+      'direction': 'leftToRight',
+      'forwardLeanDegrees': 10,
+      'verticalBounceRatio': 0.06,
+      'footStrikeDistanceRatio': 0.10,
+      'stanceKneeAngleDegrees': 152,
+      'elbowAngleDegrees': 94,
+      'poseFrames': [
+        for (var frameIndex = 0; frameIndex < 40; frameIndex += 1)
+          _poseFrameMap(
+            timestampMs: frameIndex * 100,
+            imageWidth: 720,
+            imageHeight: 1280,
+          ),
+      ],
+      'validatedContactFrameTimestampsMs': [300],
+    });
+
+    final snapshot = result.historySnapshot(
+      maxPoseFrames: 5,
+      evidenceTimestamps: const <Duration>[Duration(milliseconds: 2900)],
+    );
+
+    expect(
+      snapshot.poseFrames.map((frame) => frame.timestamp.inMilliseconds),
+      contains(2900),
+    );
+  });
+
   test('requires three fresh samples before a metric can guide coaching', () {
     const legacy = RunningMetricQuality(confidence: 0.90, sampleCount: 0);
     const sparse = RunningMetricQuality(confidence: 0.90, sampleCount: 2);

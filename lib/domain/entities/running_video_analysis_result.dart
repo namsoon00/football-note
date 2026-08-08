@@ -590,10 +590,14 @@ class RunningVideoAnalysisResult {
 
   /// Keeps enough measured frames for an archived coaching replay without
   /// persisting every sampled frame with each history entry.
-  RunningVideoAnalysisResult historySnapshot({int maxPoseFrames = 24}) {
+  RunningVideoAnalysisResult historySnapshot({
+    int maxPoseFrames = 24,
+    Iterable<Duration> evidenceTimestamps = const <Duration>[],
+  }) {
     final frames = _historyPoseFrames(
       poseFrames,
       contactTimestamps: validatedContactFrameTimestamps,
+      evidenceTimestamps: evidenceTimestamps.toList(growable: false),
       maxFrames: maxPoseFrames,
     );
     return RunningVideoAnalysisResult(
@@ -2052,6 +2056,7 @@ double _phaseConfidence(
 List<RunningPoseFrame> _historyPoseFrames(
   List<RunningPoseFrame> frames, {
   required List<Duration> contactTimestamps,
+  required List<Duration> evidenceTimestamps,
   required int maxFrames,
 }) {
   if (maxFrames <= 0) {
@@ -2077,10 +2082,17 @@ List<RunningPoseFrame> _historyPoseFrames(
     }
   }
 
-  // Preserve the actual contact frame first. Then retain frames immediately
+  // Preserve the frames that were already selected as user-facing evidence.
+  for (final timestamp in evidenceTimestamps) {
+    if (selectedIndexes.length >= maxFrames) break;
+    selectClosest(timestamp.inMilliseconds);
+  }
+
+  // Preserve the actual contact frame next. Then retain frames immediately
   // before and after it so archived step-by-step and comparison views do not
   // silently lose their locally observable movement phases.
   for (final timestamp in contactTimestamps) {
+    if (selectedIndexes.length >= maxFrames) break;
     selectClosest(timestamp.inMilliseconds);
   }
   for (final timestamp in contactTimestamps) {

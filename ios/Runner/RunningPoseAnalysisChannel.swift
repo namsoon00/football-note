@@ -26,11 +26,6 @@ final class RunningPoseAnalysisChannel {
   }
 
   private func handle(call: FlutterMethodCall, result: @escaping FlutterResult) {
-    guard call.method == Self.methodName else {
-      result(FlutterMethodNotImplemented)
-      return
-    }
-
     guard
       let arguments = call.arguments as? [String: Any],
       let path = arguments["path"] as? String,
@@ -40,27 +35,113 @@ final class RunningPoseAnalysisChannel {
       return
     }
 
-    queue.async {
-      do {
-        let analysis = try self.analyzeVideo(at: path)
-        DispatchQueue.main.async {
-          result(analysis)
-        }
-      } catch let error as AnalysisError {
-        DispatchQueue.main.async {
-          result(FlutterError(code: error.code, message: error.message, details: nil))
-        }
-      } catch {
-        DispatchQueue.main.async {
-          result(
-            FlutterError(
-              code: "analysis_failed",
-              message: error.localizedDescription,
-              details: nil
+    switch call.method {
+    case Self.methodName:
+      queue.async {
+        do {
+          let analysis = try self.analyzeVideo(at: path)
+          DispatchQueue.main.async {
+            result(analysis)
+          }
+        } catch let error as AnalysisError {
+          DispatchQueue.main.async {
+            result(FlutterError(code: error.code, message: error.message, details: nil))
+          }
+        } catch {
+          DispatchQueue.main.async {
+            result(
+              FlutterError(
+                code: "analysis_failed",
+                message: error.localizedDescription,
+                details: nil
+              )
             )
-          )
+          }
         }
       }
+    case Self.evidenceFramesMethodName:
+      let timestamps = (arguments["timestampsMs"] as? [NSNumber])?.map(\.intValue) ?? []
+      let maximumDimension = (arguments["maxDimension"] as? NSNumber)?.intValue ?? 640
+      queue.async {
+        do {
+          let frames = try self.extractEvidenceFrames(
+            at: path,
+            timestampsMs: timestamps,
+            maximumDimension: maximumDimension
+          )
+          DispatchQueue.main.async {
+            result(frames)
+          }
+        } catch let error as AnalysisError {
+          DispatchQueue.main.async {
+            result(FlutterError(code: error.code, message: error.message, details: nil))
+          }
+        } catch {
+          DispatchQueue.main.async {
+            result(
+              FlutterError(
+                code: "evidence_frame_failed",
+                message: error.localizedDescription,
+                details: nil
+              )
+            )
+          }
+        }
+      }
+    default:
+      result(FlutterMethodNotImplemented)
+    }
+  }
+
+  private func extractEvidenceFrames(
+    at path: String,
+    timestampsMs: [Int],
+    maximumDimension: Int
+  ) throws -> [[String: Any]] {
+    guard FileManager.default.fileExists(atPath: path) else {
+      throw AnalysisError(code: "missing_file", message: "Video file is missing.")
+    }
+    let uniqueTimestamps = Array(Set(timestampsMs.filter { $0 >= 0 })).sorted()
+    guard !uniqueTimestamps.isEmpty else { return [] }
+    let asset = AVAsset(url: URL(fileURLWithPath: path))
+    let generator = AVAssetImageGenerator(asset: asset)
+    generator.appliesPreferredTrackTransform = true
+    generator.requestedTimeToleranceBefore = .zero
+    generator.requestedTimeToleranceAfter = .zero
+    let safeMaximumDimension = max(160, min(maximumDimension, 960))
+    var frames = [[String: Any]]()
+    for timestampMs in uniqueTimestamps {
+      let time = CMTime(value: CMTimeValue(timestampMs), timescale: 1000)
+      guard let cgImage = try? generator.copyCGImage(at: time, actualTime: nil) else {
+        continue
+      }
+      let image = UIImage(cgImage: cgImage)
+      let scaled = resizedImage(image, maximumDimension: safeMaximumDimension)
+      guard let jpeg = scaled.jpegData(compressionQuality: 0.72) else { continue }
+      frames.append([
+        "timestampMs": timestampMs,
+        "bytes": FlutterStandardTypedData(bytes: jpeg),
+        "width": Int(scaled.size.width.rounded()),
+        "height": Int(scaled.size.height.rounded())
+      ])
+    }
+    return frames
+  }
+
+  private func resizedImage(_ image: UIImage, maximumDimension: Int) -> UIImage {
+    let sourceSize = image.size
+    let longestSide = max(sourceSize.width, sourceSize.height)
+    guard longestSide > CGFloat(maximumDimension), longestSide > 0 else {
+      return image
+    }
+    let scale = CGFloat(maximumDimension) / longestSide
+    let targetSize = CGSize(
+      width: max(1, (sourceSize.width * scale).rounded()),
+      height: max(1, (sourceSize.height * scale).rounded())
+    )
+    let renderer = UIGraphicsImageRenderer(size: targetSize)
+    return renderer.image { _ in
+      image.draw(in: CGRect(origin: .zero, size: targetSize))
     }
   }
 
@@ -2120,6 +2201,7 @@ final class RunningPoseAnalysisChannel {
 
   private static let channelName = "football_note/running_pose_analysis"
   private static let methodName = "analyzeRunningVideo"
+  private static let evidenceFramesMethodName = "extractRunningEvidenceFrames"
   private static let coarseTargetFps = 10
   private static let coarseFrameIntervalMs = 100
   private static let maxCoarseFrameBudget = 240
