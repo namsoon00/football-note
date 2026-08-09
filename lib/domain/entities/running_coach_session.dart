@@ -9,6 +9,14 @@ enum RunningCoachSessionSource { uploadVideo }
 /// measured evidence to be compared fairly.
 enum RunningCoachScoreEligibility { verified, unavailable, legacy }
 
+enum RunningCoachEvidenceArchiveStatus {
+  success,
+  partialFailure,
+  failed,
+  notRequested,
+  legacy,
+}
+
 /// Runner-selected conditions used only to decide whether two recordings can
 /// be compared. They do not change the coaching score or the model output.
 enum RunningCoachRunEffort { easy, steady, fast }
@@ -62,6 +70,70 @@ class RunningCoachCaptureContext {
   }
 }
 
+class RunningCoachEvidenceArchiveSummary {
+  final int requestedCount;
+  final int savedCount;
+  final RunningCoachEvidenceArchiveStatus status;
+  final String? failureCode;
+
+  const RunningCoachEvidenceArchiveSummary({
+    required this.requestedCount,
+    required this.savedCount,
+    required this.status,
+    this.failureCode,
+  });
+
+  bool get hasFailure =>
+      status == RunningCoachEvidenceArchiveStatus.failed ||
+      status == RunningCoachEvidenceArchiveStatus.partialFailure;
+
+  bool get hasSavedImages =>
+      status == RunningCoachEvidenceArchiveStatus.success ||
+      status == RunningCoachEvidenceArchiveStatus.partialFailure;
+
+  Map<String, Object?> toMap() => <String, Object?>{
+        'requestedCount': requestedCount,
+        'savedCount': savedCount,
+        'status': status.name,
+        if (failureCode != null) 'failureCode': failureCode,
+      };
+
+  factory RunningCoachEvidenceArchiveSummary.fromMap(
+    Map<String, dynamic> map,
+  ) {
+    final requestedCount = _intValue(map['requestedCount']);
+    final savedCount = _intValue(map['savedCount']);
+    final status = _enumByName(
+      RunningCoachEvidenceArchiveStatus.values,
+      map['status']?.toString(),
+      RunningCoachEvidenceArchiveStatus.legacy,
+    );
+    return RunningCoachEvidenceArchiveSummary(
+      requestedCount: requestedCount,
+      savedCount: savedCount,
+      status: status,
+      failureCode: _optionalString(map['failureCode']),
+    );
+  }
+
+  factory RunningCoachEvidenceArchiveSummary.legacyForImages(
+    List<RunningCoachEvidenceImage> images,
+  ) {
+    if (images.isEmpty) {
+      return const RunningCoachEvidenceArchiveSummary(
+        requestedCount: 0,
+        savedCount: 0,
+        status: RunningCoachEvidenceArchiveStatus.legacy,
+      );
+    }
+    return RunningCoachEvidenceArchiveSummary(
+      requestedCount: images.length,
+      savedCount: images.length,
+      status: RunningCoachEvidenceArchiveStatus.success,
+    );
+  }
+}
+
 class RunningCoachSessionAnalysis {
   final String id;
   final DateTime analyzedAt;
@@ -85,6 +157,7 @@ class RunningCoachSessionAnalysis {
   final RunningCoachCaptureContext? captureContext;
   final List<RunningCoachSessionMetric> metricSnapshots;
   final List<RunningCoachEvidenceImage> evidenceImages;
+  final RunningCoachEvidenceArchiveSummary evidenceArchive;
   final RunningVideoAnalysisResult? analysisResult;
 
   const RunningCoachSessionAnalysis({
@@ -110,6 +183,11 @@ class RunningCoachSessionAnalysis {
     this.captureContext,
     this.metricSnapshots = const <RunningCoachSessionMetric>[],
     this.evidenceImages = const <RunningCoachEvidenceImage>[],
+    this.evidenceArchive = const RunningCoachEvidenceArchiveSummary(
+      requestedCount: 0,
+      savedCount: 0,
+      status: RunningCoachEvidenceArchiveStatus.legacy,
+    ),
     this.analysisResult,
   });
 
@@ -179,6 +257,7 @@ class RunningCoachSessionAnalysis {
         'evidenceImages': evidenceImages
             .map((image) => image.toMap())
             .toList(growable: false),
+      'evidenceArchive': evidenceArchive.toMap(),
       if (analysisResult != null)
         'analysisResult': analysisResult!
             .historySnapshot(
@@ -194,6 +273,7 @@ class RunningCoachSessionAnalysis {
   }
 
   factory RunningCoachSessionAnalysis.fromMap(Map<String, dynamic> map) {
+    final evidenceImages = _evidenceImagesFromMap(map['evidenceImages']);
     return RunningCoachSessionAnalysis(
       id: map['id']?.toString() ?? '',
       analyzedAt: DateTime.tryParse(map['analyzedAt']?.toString() ?? '') ??
@@ -233,7 +313,11 @@ class RunningCoachSessionAnalysis {
       videoName: _optionalString(map['videoName']),
       captureContext: _captureContextFromMap(map['captureContext']),
       metricSnapshots: _metricSnapshotsFromMap(map['insights']),
-      evidenceImages: _evidenceImagesFromMap(map['evidenceImages']),
+      evidenceImages: evidenceImages,
+      evidenceArchive: _evidenceArchiveFromMap(
+        map['evidenceArchive'],
+        evidenceImages,
+      ),
       analysisResult: _analysisResultFromMap(map['analysisResult']),
     );
   }
@@ -426,6 +510,18 @@ List<RunningCoachEvidenceImage> _evidenceImagesFromMap(Object? value) {
         )
         .where((image) => image.id.isNotEmpty && image.isAvailable)
         .toList(growable: false),
+  );
+}
+
+RunningCoachEvidenceArchiveSummary _evidenceArchiveFromMap(
+  Object? value,
+  List<RunningCoachEvidenceImage> images,
+) {
+  if (value is! Map) {
+    return RunningCoachEvidenceArchiveSummary.legacyForImages(images);
+  }
+  return RunningCoachEvidenceArchiveSummary.fromMap(
+    value.map<String, dynamic>((key, value) => MapEntry('$key', value)),
   );
 }
 

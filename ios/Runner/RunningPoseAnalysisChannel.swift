@@ -26,17 +26,16 @@ final class RunningPoseAnalysisChannel {
   }
 
   private func handle(call: FlutterMethodCall, result: @escaping FlutterResult) {
-    guard
-      let arguments = call.arguments as? [String: Any],
-      let path = arguments["path"] as? String,
-      !path.isEmpty
-    else {
-      result(FlutterError(code: "missing_file", message: "Video file is missing.", details: nil))
-      return
-    }
-
     switch call.method {
     case Self.methodName:
+      guard
+        let arguments = call.arguments as? [String: Any],
+        let path = arguments["path"] as? String,
+        !path.isEmpty
+      else {
+        result(FlutterError(code: "missing_file", message: "Video file is missing.", details: nil))
+        return
+      }
       queue.async {
         do {
           let analysis = try self.analyzeVideo(at: path)
@@ -60,6 +59,14 @@ final class RunningPoseAnalysisChannel {
         }
       }
     case Self.evidenceFramesMethodName:
+      guard
+        let arguments = call.arguments as? [String: Any],
+        let path = arguments["path"] as? String,
+        !path.isEmpty
+      else {
+        result(FlutterError(code: "missing_file", message: "Video file is missing.", details: nil))
+        return
+      }
       let timestamps = (arguments["timestampsMs"] as? [NSNumber])?.map(\.intValue) ?? []
       let maximumDimension = (arguments["maxDimension"] as? NSNumber)?.intValue ?? 640
       queue.async {
@@ -88,8 +95,164 @@ final class RunningPoseAnalysisChannel {
           }
         }
       }
+    case Self.liveFrameMethodName:
+      queue.async {
+        do {
+          let frame = try self.analyzeLiveFrame(arguments: call.arguments as? [String: Any])
+          DispatchQueue.main.async {
+            result(frame)
+          }
+        } catch let error as AnalysisError {
+          DispatchQueue.main.async {
+            result(FlutterError(code: error.code, message: error.message, details: nil))
+          }
+        } catch {
+          DispatchQueue.main.async {
+            result(
+              FlutterError(
+                code: "live_pose_failed",
+                message: error.localizedDescription,
+                details: nil
+              )
+            )
+          }
+        }
+      }
     default:
       result(FlutterMethodNotImplemented)
+    }
+  }
+
+  private func analyzeLiveFrame(arguments: [String: Any]?) throws -> [String: Any]? {
+    guard let arguments else {
+      throw AnalysisError(code: "live_pose_invalid_frame", message: "Live camera frame data is missing.")
+    }
+    guard
+      let width = (arguments["width"] as? NSNumber)?.intValue,
+      let height = (arguments["height"] as? NSNumber)?.intValue,
+      width > 0,
+      height > 0,
+      let format = arguments["format"] as? String,
+      let planes = arguments["planes"] as? [[String: Any]]
+    else {
+      throw AnalysisError(code: "live_pose_invalid_frame", message: "Live camera frame dimensions are invalid.")
+    }
+    guard format == "bgra8888" else {
+      throw AnalysisError(
+        code: "live_pose_unsupported",
+        message: "Live camera frame format is not supported: \(format)."
+      )
+    }
+    let rotationDegrees = ((arguments["rotationDegrees"] as? NSNumber)?.intValue ?? 0) % 360
+    let isFrontCamera = (arguments["isFrontCamera"] as? NSNumber)?.boolValue ??
+      (arguments["isFrontCamera"] as? Bool ?? false)
+    let maximumDimension = min(
+      640,
+      max(160, (arguments["maxDimension"] as? NSNumber)?.intValue ?? 360)
+    )
+    let image = try liveImage(
+      width: width,
+      height: height,
+      planes: planes,
+      rotationDegrees: rotationDegrees,
+      mirrored: isFrontCamera,
+      maximumDimension: maximumDimension
+    )
+    let poseLandmarker = try makePoseLandmarker(runningMode: .image)
+    let mpImage = try MPImage(uiImage: image)
+    let pose: PoseLandmarkerResult
+    do {
+      pose = try poseLandmarker.detect(image: mpImage)
+    } catch {
+      throw mediaPipeFailure(
+        error,
+        fallbackMessage: "MediaPipe pose inference failed."
+      )
+    }
+    return poseFrame(
+      from: pose,
+      timestampMs: 0,
+      imageSize: image.size
+    )
+  }
+
+  private func liveImage(
+    width: Int,
+    height: Int,
+    planes: [[String: Any]],
+    rotationDegrees: Int,
+    mirrored: Bool,
+    maximumDimension: Int
+  ) throws -> UIImage {
+    guard
+      let firstPlane = planes.first,
+      let typedData = firstPlane["bytes"] as? FlutterStandardTypedData
+    else {
+      throw AnalysisError(code: "live_pose_invalid_frame", message: "BGRA plane is missing.")
+    }
+    let bytesPerRow = (firstPlane["bytesPerRow"] as? NSNumber)?.intValue ?? width * 4
+    let colorSpace = CGColorSpaceCreateDeviceRGB()
+    let bitmapInfo = CGBitmapInfo(
+      rawValue: CGImageAlphaInfo.premultipliedFirst.rawValue |
+        CGBitmapInfo.byteOrder32Little.rawValue
+    )
+    guard
+      let provider = CGDataProvider(data: typedData.data as CFData),
+      let cgImage = CGImage(
+        width: width,
+        height: height,
+        bitsPerComponent: 8,
+        bitsPerPixel: 32,
+        bytesPerRow: bytesPerRow,
+        space: colorSpace,
+        bitmapInfo: bitmapInfo,
+        provider: provider,
+        decode: nil,
+        shouldInterpolate: true,
+        intent: .defaultIntent
+      )
+    else {
+      throw AnalysisError(code: "live_pose_invalid_frame", message: "BGRA image could not be decoded.")
+    }
+    let source = UIImage(cgImage: cgImage)
+    let normalized = normalizeLiveImage(
+      source,
+      rotationDegrees: rotationDegrees,
+      mirrored: mirrored
+    )
+    return resizedImage(normalized, maximumDimension: maximumDimension)
+  }
+
+  private func normalizeLiveImage(
+    _ image: UIImage,
+    rotationDegrees: Int,
+    mirrored: Bool
+  ) -> UIImage {
+    let normalizedRotation = ((rotationDegrees % 360) + 360) % 360
+    guard normalizedRotation != 0 || mirrored else {
+      return image
+    }
+    let sourceSize = image.size
+    let swapsAxes = normalizedRotation == 90 || normalizedRotation == 270
+    let targetSize = swapsAxes
+      ? CGSize(width: sourceSize.height, height: sourceSize.width)
+      : sourceSize
+    let renderer = UIGraphicsImageRenderer(size: targetSize)
+    return renderer.image { context in
+      let cgContext = context.cgContext
+      cgContext.translateBy(x: targetSize.width / 2, y: targetSize.height / 2)
+      if mirrored {
+        cgContext.scaleBy(x: -1, y: 1)
+      }
+      cgContext.rotate(by: CGFloat(normalizedRotation) * .pi / 180.0)
+      image.draw(
+        in: CGRect(
+          x: -sourceSize.width / 2,
+          y: -sourceSize.height / 2,
+          width: sourceSize.width,
+          height: sourceSize.height
+        )
+      )
     }
   }
 
@@ -389,7 +552,9 @@ final class RunningPoseAnalysisChannel {
     ]
   }
 
-  private func makePoseLandmarker() throws -> PoseLandmarker {
+  private func makePoseLandmarker(
+    runningMode: RunningMode = .video
+  ) throws -> PoseLandmarker {
     guard let modelPath = Bundle.main.path(
       forResource: Self.modelResourceName,
       ofType: Self.modelResourceExtension
@@ -402,7 +567,11 @@ final class RunningPoseAnalysisChannel {
 
     let options = PoseLandmarkerOptions()
     options.baseOptions.modelAssetPath = modelPath
-    options.runningMode = .video
+    if runningMode == .video {
+      options.runningMode = .video
+    } else {
+      options.runningMode = runningMode
+    }
     options.numPoses = 1
     options.minPoseDetectionConfidence = Self.minimumLikelihood
     options.minPosePresenceConfidence = Self.minimumLikelihood
@@ -2202,6 +2371,7 @@ final class RunningPoseAnalysisChannel {
   private static let channelName = "football_note/running_pose_analysis"
   private static let methodName = "analyzeRunningVideo"
   private static let evidenceFramesMethodName = "extractRunningEvidenceFrames"
+  private static let liveFrameMethodName = "analyzeRunningLiveFrame"
   private static let coarseTargetFps = 10
   private static let coarseFrameIntervalMs = 100
   private static let maxCoarseFrameBudget = 240

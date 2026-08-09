@@ -4816,6 +4816,41 @@
   "runningCoachCaptureUnavailable": "利用できるカメラが見つかりません。",
   "runningCoachCaptureFailed": "撮影を開始できませんでした。カメラを確認してもう一度試してください。",
   "runningCoachCaptureRetry": "カメラをもう一度開く",
+  "runningCoachCaptureFramingTitle": "スマート構図チェック",
+  "runningCoachCaptureFramingReadyCount": "{count}/{total} 準備完了",
+  "@runningCoachCaptureFramingReadyCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachCaptureFramingFallbackBody": "ライブ姿勢チェックを利用できないため、端末とプレビューの状態だけを表示します。",
+  "runningCoachCaptureFramingLiveBody": "撮影前にライブ姿勢チェックが更新されます。警告があっても撮影はできます。",
+  "runningCoachCaptureFramingStartingBody": "ライブ構図チェックを開始しています...",
+  "runningCoachCaptureFramingLiveSearching": "全身姿勢を探しています",
+  "runningCoachCaptureFramingLiveReady": "ライブ姿勢を検出しました",
+  "runningCoachCaptureFramingNotMeasured": "未測定",
+  "runningCoachCaptureFramingPhoneGood": "端末は縦向き",
+  "runningCoachCaptureFramingPhoneWarning": "縦向きにしてください",
+  "runningCoachCaptureFramingPreviewGood": "プレビューが画面を満たしています",
+  "runningCoachCaptureFramingFullBodyGood": "全身がガイド内",
+  "runningCoachCaptureFramingFullBodyWarning": "全身を中央へ",
+  "runningCoachCaptureFramingFullBodyUnknown": "全身は未測定",
+  "runningCoachCaptureFramingScaleGood": "ランナーの大きさ良好",
+  "runningCoachCaptureFramingScaleTooSmall": "ランナーが小さすぎます",
+  "runningCoachCaptureFramingScaleTooLarge": "ランナーが近すぎます",
+  "runningCoachCaptureFramingScaleUnknown": "大きさは未測定",
+  "runningCoachCaptureFramingLandmarksGood": "頭とシューズが見えます",
+  "runningCoachCaptureFramingLandmarksWarning": "頭・関節・シューズを入れてください",
+  "runningCoachCaptureFramingLandmarksUnknown": "関節は未測定",
+  "runningCoachCaptureFramingSideGood": "横向き構図",
+  "runningCoachCaptureFramingSideWarning": "真横へ移動してください",
+  "runningCoachCaptureFramingSideUnknown": "横向きは未測定",
+  "runningCoachCaptureFramingCheckWarning": "構図を確認してください",
   "runningCoachModeLive": "ライブ",
   "runningCoachModeVideo": "動画分析",
   "runningCoachModeLiveTitle": "走りながらフォームを確認",
@@ -5590,6 +5625,50 @@
   "runningCoachArchivedVideoUnavailable": "保存された動画を開けません。端末からファイルが削除された可能性があります。",
   "runningCoachEvidenceFramesTitle": "保存された証拠フレーム",
   "runningCoachEvidenceFramesBody": "これらの静止フレームとポーズマーカーはこの端末内だけに保存されます。分析を削除すると一緒に削除されます。動画全体は、動画保存をオンにした場合だけ保存されます。",
+  "runningCoachEvidenceArchiveSavedTitle": "証拠画像を{count}枚保存しました",
+  "@runningCoachEvidenceArchiveSavedTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachEvidenceArchiveSavedBody": "これらの静止画像は任意保存の元動画とは別で、この端末内だけに残ります。",
+  "runningCoachEvidenceArchivePartialTitle": "証拠画像を{saved}/{requested}枚保存しました",
+  "@runningCoachEvidenceArchivePartialTitle": {
+    "placeholders": {
+      "saved": {
+        "type": "int"
+      },
+      "requested": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachEvidenceArchivePartialBody": "一部の静止画像を保存できませんでした: {reason}",
+  "@runningCoachEvidenceArchivePartialBody": {
+    "placeholders": {
+      "reason": {}
+    }
+  },
+  "runningCoachEvidenceArchiveFailedTitle": "証拠画像を保存できませんでした",
+  "runningCoachEvidenceArchiveFailedBody": "分析は保存されましたが、静止証拠画像は保持できませんでした: {reason}",
+  "@runningCoachEvidenceArchiveFailedBody": {
+    "placeholders": {
+      "reason": {}
+    }
+  },
+  "runningCoachEvidenceArchiveNotRequestedTitle": "要求された証拠画像はありません",
+  "runningCoachEvidenceArchiveNotRequestedBody": "この分析では、保存できるほど信頼できる静止フレームがありませんでした。測定済みの姿勢データは結果に残ります。",
+  "runningCoachEvidenceArchiveReasonSourceUnavailable": "分析後に元動画を利用できませんでした。",
+  "runningCoachEvidenceArchiveReasonExtractionEmpty": "選択された証拠時刻でJPEGフレームを抽出できませんでした。",
+  "runningCoachEvidenceArchiveReasonStorageUnavailable": "ローカル画像ストレージを利用できませんでした。",
+  "runningCoachEvidenceArchiveReasonFileWrite": "端末がJPEGファイルを書き込めませんでした。",
+  "runningCoachEvidenceArchiveReasonWebLimit": "ブラウザの保存容量上限を超える可能性がありました。",
+  "runningCoachEvidenceArchiveReasonPlatformUnavailable": "このアプリビルドで証拠フレーム抽出を実行できませんでした。",
+  "runningCoachEvidenceArchiveReasonUnknown": "端末が不明な画像保存エラーを返しました。",
+  "runningCoachEvidenceImageReadFailed": "画像を開けません",
+  "runningCoachEvidenceImageReadFailedReason": "保存されたファイルがこの端末から削除された可能性があります。",
   "runningCoachAnalysisGuideTitle": "図で見る修正ポイント",
   "runningCoachAnalysisGuideBody": "絵を見て、最初に直す点を確認してください。",
   "runningCoachGoodFormGuideTitle": "良いランニングフォームをひと目で",

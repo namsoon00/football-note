@@ -10,17 +10,26 @@ import 'running_coach_evidence_archive_types.dart';
 const _channel = MethodChannel('football_note/running_pose_analysis');
 const _maximumImageDimension = 640;
 
-Future<List<RunningCoachEvidenceImage>> archiveRunningCoachEvidenceImages({
+Future<RunningCoachEvidenceArchiveResult> archiveRunningCoachEvidenceImages({
   required XFile? sourceVideo,
   required String sessionId,
   required List<RunningCoachEvidenceFrameRequest> requests,
 }) async {
-  if (sourceVideo == null || requests.isEmpty) {
-    return const <RunningCoachEvidenceImage>[];
+  if (requests.isEmpty) {
+    return RunningCoachEvidenceArchiveResult.notRequested();
+  }
+  if (sourceVideo == null) {
+    return RunningCoachEvidenceArchiveResult.failed(
+      requestedCount: requests.length,
+      failureCode: 'source_video_unavailable',
+    );
   }
   final sourcePath = sourceVideo.path.trim();
   if (sourcePath.isEmpty || !await File(sourcePath).exists()) {
-    return const <RunningCoachEvidenceImage>[];
+    return RunningCoachEvidenceArchiveResult.failed(
+      requestedCount: requests.length,
+      failureCode: 'source_video_unavailable',
+    );
   }
   try {
     final raw = await _channel.invokeMethod<List<Object?>>(
@@ -33,13 +42,26 @@ Future<List<RunningCoachEvidenceImage>> archiveRunningCoachEvidenceImages({
         'maxDimension': _maximumImageDimension,
       },
     );
-    if (raw == null || raw.isEmpty) return const <RunningCoachEvidenceImage>[];
+    if (raw == null || raw.isEmpty) {
+      return RunningCoachEvidenceArchiveResult.failed(
+        requestedCount: requests.length,
+        failureCode: 'no_evidence_frames_extracted',
+      );
+    }
     final archiveDirectory = await _archiveDirectory(create: true);
-    if (archiveDirectory == null) return const <RunningCoachEvidenceImage>[];
+    if (archiveDirectory == null) {
+      return RunningCoachEvidenceArchiveResult.failed(
+        requestedCount: requests.length,
+        failureCode: 'archive_directory_unavailable',
+      );
+    }
     final requestsByTimestamp = <int, RunningCoachEvidenceFrameRequest>{
       for (final request in requests) request.timestamp.inMilliseconds: request,
     };
     final archived = <RunningCoachEvidenceImage>[];
+    var failureCode = raw.length < requests.length
+        ? 'partial_evidence_frames_extracted'
+        : null;
     for (final item in raw) {
       if (item is! Map) continue;
       final timestampMs = _intValue(item['timestampMs']);
@@ -51,7 +73,12 @@ Future<List<RunningCoachEvidenceImage>> archiveRunningCoachEvidenceImages({
       final destination = File(
         '${archiveDirectory.path}${Platform.pathSeparator}$filename',
       );
-      await destination.writeAsBytes(bytes, flush: true);
+      try {
+        await destination.writeAsBytes(bytes, flush: true);
+      } on FileSystemException {
+        failureCode ??= 'file_write_failed';
+        continue;
+      }
       archived.add(
         RunningCoachEvidenceImage(
           id: request.id,
@@ -64,16 +91,30 @@ Future<List<RunningCoachEvidenceImage>> archiveRunningCoachEvidenceImages({
         ),
       );
     }
-    return List<RunningCoachEvidenceImage>.unmodifiable(archived);
-  } on PlatformException {
-    return const <RunningCoachEvidenceImage>[];
+    return RunningCoachEvidenceArchiveResult.fromImages(
+      requestedCount: requests.length,
+      images: archived,
+      failureCode: failureCode,
+    );
+  } on PlatformException catch (error) {
+    return RunningCoachEvidenceArchiveResult.failed(
+      requestedCount: requests.length,
+      failureCode:
+          error.code.isEmpty ? 'platform_extraction_failed' : error.code,
+    );
   } on FileSystemException {
-    return const <RunningCoachEvidenceImage>[];
+    return RunningCoachEvidenceArchiveResult.failed(
+      requestedCount: requests.length,
+      failureCode: 'file_system_failed',
+    );
   } catch (_) {
     // Saving a history still is optional. An unsupported platform channel or
     // a decoder failure must not turn a completed pose analysis into a failed
     // coaching result.
-    return const <RunningCoachEvidenceImage>[];
+    return RunningCoachEvidenceArchiveResult.failed(
+      requestedCount: requests.length,
+      failureCode: 'evidence_archive_failed',
+    );
   }
 }
 

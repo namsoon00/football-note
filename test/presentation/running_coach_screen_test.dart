@@ -930,6 +930,73 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('analysis result explains evidence image archive failure', (
+    WidgetTester tester,
+  ) async {
+    final result = RunningVideoAnalysisResult(
+      videoDuration: const Duration(seconds: 4),
+      sampledFrames: 14,
+      validFrames: 13,
+      direction: RunningDirection.leftToRight,
+      forwardLeanDegrees: 10,
+      verticalBounceRatio: 0.06,
+      footStrikeDistanceRatio: 0.24,
+      stanceKneeAngleDegrees: 155,
+      elbowAngleDegrees: 92,
+      metricQualities: _testAllMetricQualities(),
+      poseFrames: _testPoseFrames(
+        startX: 0.34,
+        dxPerFrame: -0.018,
+        confidence: 0.93,
+      ),
+    );
+    final report = const RunningCoachingService().buildReport(result);
+    final session = _sessionForReport(
+      id: 'evidence-archive-failed',
+      result: result,
+      report: report,
+      evidenceArchive: const RunningCoachEvidenceArchiveSummary(
+        requestedCount: 2,
+        savedCount: 0,
+        status: RunningCoachEvidenceArchiveStatus.failed,
+        failureCode: 'file_write_failed',
+      ),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: runningAnalysisResultScreenForTesting(
+          result: result,
+          report: report,
+          session: session,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(
+      find.byKey(const ValueKey('running-coach-evidence-archive-status')),
+      findsOneWidget,
+    );
+    expect(find.text('Evidence images were not saved'), findsOneWidget);
+    expect(
+      find.textContaining('the device could not write the JPEG file'),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('running-coach-video-save-failed')),
+      findsNothing,
+    );
+  });
+
   testWidgets(
     'good form action has icon and text and opens the layered guide at 320px',
     (WidgetTester tester) async {
@@ -2007,6 +2074,7 @@ RunningCoachSessionAnalysis _sessionForReport({
   String? videoPath,
   List<RunningCoachEvidenceImage> evidenceImages =
       const <RunningCoachEvidenceImage>[],
+  RunningCoachEvidenceArchiveSummary? evidenceArchive,
 }) {
   final primary = report.primaryFocus ?? report.rankedInsights.first;
   return RunningCoachSessionAnalysis(
@@ -2029,6 +2097,8 @@ RunningCoachSessionAnalysis _sessionForReport({
     primaryQualityReason: primary.quality.reason,
     videoPath: videoPath,
     evidenceImages: evidenceImages,
+    evidenceArchive: evidenceArchive ??
+        RunningCoachEvidenceArchiveSummary.legacyForImages(evidenceImages),
   );
 }
 

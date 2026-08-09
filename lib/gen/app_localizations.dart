@@ -14746,6 +14746,156 @@ abstract class AppLocalizations {
   /// **'Open camera again'**
   String get runningCoachCaptureRetry;
 
+  /// No description provided for @runningCoachCaptureFramingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart framing'**
+  String get runningCoachCaptureFramingTitle;
+
+  /// No description provided for @runningCoachCaptureFramingReadyCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}/{total} ready'**
+  String runningCoachCaptureFramingReadyCount(int count, int total);
+
+  /// No description provided for @runningCoachCaptureFramingFallbackBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Live pose checks are unavailable here, so only device and preview checks are shown.'**
+  String get runningCoachCaptureFramingFallbackBody;
+
+  /// No description provided for @runningCoachCaptureFramingLiveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Live pose checks update before recording. Warnings do not block recording.'**
+  String get runningCoachCaptureFramingLiveBody;
+
+  /// No description provided for @runningCoachCaptureFramingStartingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Starting the live framing check...'**
+  String get runningCoachCaptureFramingStartingBody;
+
+  /// No description provided for @runningCoachCaptureFramingLiveSearching.
+  ///
+  /// In en, this message translates to:
+  /// **'Looking for a full-body pose'**
+  String get runningCoachCaptureFramingLiveSearching;
+
+  /// No description provided for @runningCoachCaptureFramingLiveReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Live pose detected'**
+  String get runningCoachCaptureFramingLiveReady;
+
+  /// No description provided for @runningCoachCaptureFramingNotMeasured.
+  ///
+  /// In en, this message translates to:
+  /// **'Not measured'**
+  String get runningCoachCaptureFramingNotMeasured;
+
+  /// No description provided for @runningCoachCaptureFramingPhoneGood.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone upright'**
+  String get runningCoachCaptureFramingPhoneGood;
+
+  /// No description provided for @runningCoachCaptureFramingPhoneWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Rotate upright'**
+  String get runningCoachCaptureFramingPhoneWarning;
+
+  /// No description provided for @runningCoachCaptureFramingPreviewGood.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview fills screen'**
+  String get runningCoachCaptureFramingPreviewGood;
+
+  /// No description provided for @runningCoachCaptureFramingFullBodyGood.
+  ///
+  /// In en, this message translates to:
+  /// **'Body inside guide'**
+  String get runningCoachCaptureFramingFullBodyGood;
+
+  /// No description provided for @runningCoachCaptureFramingFullBodyWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Center full body'**
+  String get runningCoachCaptureFramingFullBodyWarning;
+
+  /// No description provided for @runningCoachCaptureFramingFullBodyUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Body not measured'**
+  String get runningCoachCaptureFramingFullBodyUnknown;
+
+  /// No description provided for @runningCoachCaptureFramingScaleGood.
+  ///
+  /// In en, this message translates to:
+  /// **'Good runner size'**
+  String get runningCoachCaptureFramingScaleGood;
+
+  /// No description provided for @runningCoachCaptureFramingScaleTooSmall.
+  ///
+  /// In en, this message translates to:
+  /// **'Runner too small'**
+  String get runningCoachCaptureFramingScaleTooSmall;
+
+  /// No description provided for @runningCoachCaptureFramingScaleTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Runner too close'**
+  String get runningCoachCaptureFramingScaleTooLarge;
+
+  /// No description provided for @runningCoachCaptureFramingScaleUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Size not measured'**
+  String get runningCoachCaptureFramingScaleUnknown;
+
+  /// No description provided for @runningCoachCaptureFramingLandmarksGood.
+  ///
+  /// In en, this message translates to:
+  /// **'Head and shoes visible'**
+  String get runningCoachCaptureFramingLandmarksGood;
+
+  /// No description provided for @runningCoachCaptureFramingLandmarksWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Show head, joints, shoes'**
+  String get runningCoachCaptureFramingLandmarksWarning;
+
+  /// No description provided for @runningCoachCaptureFramingLandmarksUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Joints not measured'**
+  String get runningCoachCaptureFramingLandmarksUnknown;
+
+  /// No description provided for @runningCoachCaptureFramingSideGood.
+  ///
+  /// In en, this message translates to:
+  /// **'Side view'**
+  String get runningCoachCaptureFramingSideGood;
+
+  /// No description provided for @runningCoachCaptureFramingSideWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Move square to side'**
+  String get runningCoachCaptureFramingSideWarning;
+
+  /// No description provided for @runningCoachCaptureFramingSideUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Side view not measured'**
+  String get runningCoachCaptureFramingSideUnknown;
+
+  /// No description provided for @runningCoachCaptureFramingCheckWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Check framing'**
+  String get runningCoachCaptureFramingCheckWarning;
+
   /// No description provided for @runningCoachModeLive.
   ///
   /// In en, this message translates to:
@@ -17447,6 +17597,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'These still frames and pose markers stay only on this device. Deleting the analysis removes them. The full video is saved only when you turned on video saving.'**
   String get runningCoachEvidenceFramesBody;
+
+  /// No description provided for @runningCoachEvidenceArchiveSavedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} evidence image(s) saved'**
+  String runningCoachEvidenceArchiveSavedTitle(int count);
+
+  /// No description provided for @runningCoachEvidenceArchiveSavedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'These still frames are separate from the optional source video and stay only on this device.'**
+  String get runningCoachEvidenceArchiveSavedBody;
+
+  /// No description provided for @runningCoachEvidenceArchivePartialTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{saved}/{requested} evidence images saved'**
+  String runningCoachEvidenceArchivePartialTitle(int saved, int requested);
+
+  /// No description provided for @runningCoachEvidenceArchivePartialBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Some still frames could not be saved: {reason}'**
+  String runningCoachEvidenceArchivePartialBody(Object reason);
+
+  /// No description provided for @runningCoachEvidenceArchiveFailedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Evidence images were not saved'**
+  String get runningCoachEvidenceArchiveFailedTitle;
+
+  /// No description provided for @runningCoachEvidenceArchiveFailedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The analysis is saved, but the still evidence images could not be kept: {reason}'**
+  String runningCoachEvidenceArchiveFailedBody(Object reason);
+
+  /// No description provided for @runningCoachEvidenceArchiveNotRequestedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No evidence image requested'**
+  String get runningCoachEvidenceArchiveNotRequestedTitle;
+
+  /// No description provided for @runningCoachEvidenceArchiveNotRequestedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This analysis did not produce a reliable still frame to archive. The measured pose data remains in the result.'**
+  String get runningCoachEvidenceArchiveNotRequestedBody;
+
+  /// No description provided for @runningCoachEvidenceArchiveReasonSourceUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'the source video was unavailable after analysis.'**
+  String get runningCoachEvidenceArchiveReasonSourceUnavailable;
+
+  /// No description provided for @runningCoachEvidenceArchiveReasonExtractionEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'no JPEG frame could be extracted at the selected evidence timestamps.'**
+  String get runningCoachEvidenceArchiveReasonExtractionEmpty;
+
+  /// No description provided for @runningCoachEvidenceArchiveReasonStorageUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'local image storage was unavailable.'**
+  String get runningCoachEvidenceArchiveReasonStorageUnavailable;
+
+  /// No description provided for @runningCoachEvidenceArchiveReasonFileWrite.
+  ///
+  /// In en, this message translates to:
+  /// **'the device could not write the JPEG file.'**
+  String get runningCoachEvidenceArchiveReasonFileWrite;
+
+  /// No description provided for @runningCoachEvidenceArchiveReasonWebLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'the browser storage limit would be exceeded.'**
+  String get runningCoachEvidenceArchiveReasonWebLimit;
+
+  /// No description provided for @runningCoachEvidenceArchiveReasonPlatformUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'this app build could not run the evidence-frame extractor.'**
+  String get runningCoachEvidenceArchiveReasonPlatformUnavailable;
+
+  /// No description provided for @runningCoachEvidenceArchiveReasonUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'the device reported an unknown image-save error.'**
+  String get runningCoachEvidenceArchiveReasonUnknown;
+
+  /// No description provided for @runningCoachEvidenceImageReadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Image unavailable'**
+  String get runningCoachEvidenceImageReadFailed;
+
+  /// No description provided for @runningCoachEvidenceImageReadFailedReason.
+  ///
+  /// In en, this message translates to:
+  /// **'The saved file may have been removed from this device.'**
+  String get runningCoachEvidenceImageReadFailedReason;
 
   /// No description provided for @runningCoachAnalysisGuideTitle.
   ///

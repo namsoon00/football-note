@@ -2,7 +2,12 @@ package com.namsoon.footballnote
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.ImageFormat
+import android.graphics.Matrix
 import android.graphics.PointF
+import android.graphics.Rect
+import android.graphics.YuvImage
 import android.media.MediaMetadataRetriever
 import android.os.Handler
 import android.os.Looper
@@ -49,13 +54,15 @@ class RunningPoseAnalysisChannel(
     }
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
-        val path = call.argument<String>("path")
-        if (path.isNullOrBlank()) {
-            result.error("missing_file", "Video file is missing.", null)
-            return
-        }
         when (call.method) {
             methodName -> executor.execute {
+                val path = call.argument<String>("path")
+                if (path.isNullOrBlank()) {
+                    mainHandler.post {
+                        result.error("missing_file", "Video file is missing.", null)
+                    }
+                    return@execute
+                }
                 try {
                     val analysis = analyzeVideo(path)
                     mainHandler.post { result.success(analysis) }
@@ -72,6 +79,11 @@ class RunningPoseAnalysisChannel(
                 }
             }
             evidenceFramesMethodName -> {
+                val path = call.argument<String>("path")
+                if (path.isNullOrBlank()) {
+                    result.error("missing_file", "Video file is missing.", null)
+                    return
+                }
                 val timestamps = call.argument<List<Any?>>("timestampsMs")
                     ?.mapNotNull { (it as? Number)?.toLong() }
                     ?.distinct()
@@ -96,8 +108,189 @@ class RunningPoseAnalysisChannel(
                     }
                 }
             }
+            liveFrameMethodName -> executor.execute {
+                try {
+                    val frame = analyzeLiveFrame(call.arguments as? Map<*, *>)
+                    mainHandler.post { result.success(frame) }
+                } catch (error: AnalysisException) {
+                    mainHandler.post { result.error(error.code, error.message, null) }
+                } catch (error: Exception) {
+                    mainHandler.post {
+                        result.error(
+                            "live_pose_failed",
+                            error.message ?: "Could not analyze the live camera frame.",
+                            null,
+                        )
+                    }
+                }
+            }
             else -> result.notImplemented()
         }
+    }
+
+    private fun analyzeLiveFrame(arguments: Map<*, *>?): Map<String, Any?>? {
+        val args = arguments ?: throw AnalysisException(
+            "live_pose_invalid_frame",
+            "Live camera frame data is missing.",
+        )
+        val width = (args["width"] as? Number)?.toInt() ?: 0
+        val height = (args["height"] as? Number)?.toInt() ?: 0
+        val format = args["format"]?.toString() ?: ""
+        val planes = args["planes"] as? List<*> ?: emptyList<Any>()
+        val rotationDegrees = Math.floorMod(
+            (args["rotationDegrees"] as? Number)?.toInt() ?: 0,
+            360,
+        )
+        val isFrontCamera = args["isFrontCamera"] as? Boolean ?: false
+        val maximumDimension = ((args["maxDimension"] as? Number)?.toInt() ?: 360)
+            .coerceIn(160, 640)
+        if (width <= 0 || height <= 0 || planes.isEmpty()) {
+            throw AnalysisException(
+                "live_pose_invalid_frame",
+                "Live camera frame dimensions are invalid.",
+            )
+        }
+
+        var sourceBitmap = bitmapFromLiveFrame(
+            width = width,
+            height = height,
+            format = format,
+            planes = planes,
+        )
+        sourceBitmap = normalizeLiveBitmap(
+            source = sourceBitmap,
+            rotationDegrees = rotationDegrees,
+            mirror = isFrontCamera,
+            maximumDimension = maximumDimension,
+        )
+        val poseLandmarker = makePoseLandmarker(RunningMode.IMAGE)
+        try {
+            val pose = try {
+                poseLandmarker.detect(BitmapImageBuilder(sourceBitmap).build())
+            } catch (error: Exception) {
+                throw mediaPipeFailure(
+                    error,
+                    fallbackMessage = "MediaPipe pose inference failed.",
+                )
+            }
+            return poseFrameFromResult(
+                pose,
+                timestampMs = 0L,
+                imageWidth = sourceBitmap.width,
+                imageHeight = sourceBitmap.height,
+            )
+        } finally {
+            poseLandmarker.close()
+            sourceBitmap.recycle()
+        }
+    }
+
+    private fun bitmapFromLiveFrame(
+        width: Int,
+        height: Int,
+        format: String,
+        planes: List<*>,
+    ): Bitmap {
+        return when (format) {
+            "yuv420" -> bitmapFromYuv420(width, height, planes)
+            "nv21" -> bitmapFromNv21(width, height, planes)
+            else -> throw AnalysisException(
+                "live_pose_unsupported",
+                "Live camera frame format is not supported: $format",
+            )
+        }
+    }
+
+    private fun bitmapFromNv21(width: Int, height: Int, planes: List<*>): Bitmap {
+        val firstPlane = planes.firstOrNull() as? Map<*, *>
+            ?: throw AnalysisException("live_pose_invalid_frame", "NV21 plane is missing.")
+        val bytes = firstPlane["bytes"] as? ByteArray
+            ?: throw AnalysisException("live_pose_invalid_frame", "NV21 bytes are missing.")
+        return bitmapFromNv21Bytes(bytes, width, height)
+    }
+
+    private fun bitmapFromYuv420(width: Int, height: Int, planes: List<*>): Bitmap {
+        if (planes.size < 3) {
+            throw AnalysisException("live_pose_invalid_frame", "YUV planes are missing.")
+        }
+        val yPlane = planes[0] as? Map<*, *>
+            ?: throw AnalysisException("live_pose_invalid_frame", "Y plane is missing.")
+        val uPlane = planes[1] as? Map<*, *>
+            ?: throw AnalysisException("live_pose_invalid_frame", "U plane is missing.")
+        val vPlane = planes[2] as? Map<*, *>
+            ?: throw AnalysisException("live_pose_invalid_frame", "V plane is missing.")
+        val yBytes = yPlane["bytes"] as? ByteArray
+            ?: throw AnalysisException("live_pose_invalid_frame", "Y bytes are missing.")
+        val uBytes = uPlane["bytes"] as? ByteArray
+            ?: throw AnalysisException("live_pose_invalid_frame", "U bytes are missing.")
+        val vBytes = vPlane["bytes"] as? ByteArray
+            ?: throw AnalysisException("live_pose_invalid_frame", "V bytes are missing.")
+        val yRowStride = (yPlane["bytesPerRow"] as? Number)?.toInt() ?: width
+        val uRowStride = (uPlane["bytesPerRow"] as? Number)?.toInt() ?: width / 2
+        val vRowStride = (vPlane["bytesPerRow"] as? Number)?.toInt() ?: width / 2
+        val uPixelStride = (uPlane["bytesPerPixel"] as? Number)?.toInt() ?: 1
+        val vPixelStride = (vPlane["bytesPerPixel"] as? Number)?.toInt() ?: 1
+        val ySize = width * height
+        val nv21 = ByteArray(ySize + (width * height / 2))
+        for (row in 0 until height) {
+            val sourceOffset = row * yRowStride
+            val destinationOffset = row * width
+            System.arraycopy(yBytes, sourceOffset, nv21, destinationOffset, width)
+        }
+        var outputOffset = ySize
+        for (row in 0 until height / 2) {
+            val uRowOffset = row * uRowStride
+            val vRowOffset = row * vRowStride
+            for (column in 0 until width / 2) {
+                nv21[outputOffset++] = vBytes[vRowOffset + column * vPixelStride]
+                nv21[outputOffset++] = uBytes[uRowOffset + column * uPixelStride]
+            }
+        }
+        return bitmapFromNv21Bytes(nv21, width, height)
+    }
+
+    private fun bitmapFromNv21Bytes(bytes: ByteArray, width: Int, height: Int): Bitmap {
+        val jpeg = ByteArrayOutputStream()
+        val image = YuvImage(bytes, ImageFormat.NV21, width, height, null)
+        if (!image.compressToJpeg(Rect(0, 0, width, height), 72, jpeg)) {
+            throw AnalysisException(
+                "live_pose_invalid_frame",
+                "Live camera frame could not be converted.",
+            )
+        }
+        return BitmapFactory.decodeByteArray(jpeg.toByteArray(), 0, jpeg.size())
+            ?: throw AnalysisException(
+                "live_pose_invalid_frame",
+                "Live camera JPEG could not be decoded.",
+            )
+    }
+
+    private fun normalizeLiveBitmap(
+        source: Bitmap,
+        rotationDegrees: Int,
+        mirror: Boolean,
+        maximumDimension: Int,
+    ): Bitmap {
+        val matrix = Matrix()
+        if (rotationDegrees != 0) {
+            matrix.postRotate(rotationDegrees.toFloat())
+        }
+        if (mirror) {
+            matrix.postScale(-1f, 1f)
+        }
+        val rotated = if (rotationDegrees != 0 || mirror) {
+            Bitmap.createBitmap(source, 0, 0, source.width, source.height, matrix, true)
+        } else {
+            source
+        }
+        if (rotated !== source) {
+            source.recycle()
+        }
+        val scaled = scaleBitmap(rotated, maximumDimension)
+        if (scaled !== rotated) {
+            rotated.recycle()
+        }
+        return scaled
     }
 
     private fun extractEvidenceFrames(
@@ -397,7 +590,9 @@ class RunningPoseAnalysisChannel(
         }
     }
 
-    private fun makePoseLandmarker(): PoseLandmarker {
+    private fun makePoseLandmarker(
+        runningMode: RunningMode = RunningMode.VIDEO,
+    ): PoseLandmarker {
         ensureModelAssetAvailable()
 
         val baseOptions = BaseOptions.builder()
@@ -405,7 +600,7 @@ class RunningPoseAnalysisChannel(
             .build()
         val options = PoseLandmarker.PoseLandmarkerOptions.builder()
             .setBaseOptions(baseOptions)
-            .setRunningMode(RunningMode.VIDEO)
+            .setRunningMode(runningMode)
             .setNumPoses(1)
             .setMinPoseDetectionConfidence(minimumLikelihood)
             .setMinPosePresenceConfidence(minimumLikelihood)
@@ -2050,6 +2245,7 @@ class RunningPoseAnalysisChannel(
         private const val channelName = "football_note/running_pose_analysis"
         private const val methodName = "analyzeRunningVideo"
         private const val evidenceFramesMethodName = "extractRunningEvidenceFrames"
+        private const val liveFrameMethodName = "analyzeRunningLiveFrame"
         private const val coarseTargetFps = 10
         private const val coarseFrameIntervalMs = 100L
         private const val maxCoarseFrameBudget = 240

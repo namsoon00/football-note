@@ -8194,6 +8194,85 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachCaptureRetry => 'カメラをもう一度開く';
 
   @override
+  String get runningCoachCaptureFramingTitle => 'スマート構図チェック';
+
+  @override
+  String runningCoachCaptureFramingReadyCount(int count, int total) {
+    return '$count/$total 準備完了';
+  }
+
+  @override
+  String get runningCoachCaptureFramingFallbackBody =>
+      'ライブ姿勢チェックを利用できないため、端末とプレビューの状態だけを表示します。';
+
+  @override
+  String get runningCoachCaptureFramingLiveBody =>
+      '撮影前にライブ姿勢チェックが更新されます。警告があっても撮影はできます。';
+
+  @override
+  String get runningCoachCaptureFramingStartingBody => 'ライブ構図チェックを開始しています...';
+
+  @override
+  String get runningCoachCaptureFramingLiveSearching => '全身姿勢を探しています';
+
+  @override
+  String get runningCoachCaptureFramingLiveReady => 'ライブ姿勢を検出しました';
+
+  @override
+  String get runningCoachCaptureFramingNotMeasured => '未測定';
+
+  @override
+  String get runningCoachCaptureFramingPhoneGood => '端末は縦向き';
+
+  @override
+  String get runningCoachCaptureFramingPhoneWarning => '縦向きにしてください';
+
+  @override
+  String get runningCoachCaptureFramingPreviewGood => 'プレビューが画面を満たしています';
+
+  @override
+  String get runningCoachCaptureFramingFullBodyGood => '全身がガイド内';
+
+  @override
+  String get runningCoachCaptureFramingFullBodyWarning => '全身を中央へ';
+
+  @override
+  String get runningCoachCaptureFramingFullBodyUnknown => '全身は未測定';
+
+  @override
+  String get runningCoachCaptureFramingScaleGood => 'ランナーの大きさ良好';
+
+  @override
+  String get runningCoachCaptureFramingScaleTooSmall => 'ランナーが小さすぎます';
+
+  @override
+  String get runningCoachCaptureFramingScaleTooLarge => 'ランナーが近すぎます';
+
+  @override
+  String get runningCoachCaptureFramingScaleUnknown => '大きさは未測定';
+
+  @override
+  String get runningCoachCaptureFramingLandmarksGood => '頭とシューズが見えます';
+
+  @override
+  String get runningCoachCaptureFramingLandmarksWarning => '頭・関節・シューズを入れてください';
+
+  @override
+  String get runningCoachCaptureFramingLandmarksUnknown => '関節は未測定';
+
+  @override
+  String get runningCoachCaptureFramingSideGood => '横向き構図';
+
+  @override
+  String get runningCoachCaptureFramingSideWarning => '真横へ移動してください';
+
+  @override
+  String get runningCoachCaptureFramingSideUnknown => '横向きは未測定';
+
+  @override
+  String get runningCoachCaptureFramingCheckWarning => '構図を確認してください';
+
+  @override
   String get runningCoachModeLive => 'ライブ';
 
   @override
@@ -9802,6 +9881,74 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get runningCoachEvidenceFramesBody =>
       'これらの静止フレームとポーズマーカーはこの端末内だけに保存されます。分析を削除すると一緒に削除されます。動画全体は、動画保存をオンにした場合だけ保存されます。';
+
+  @override
+  String runningCoachEvidenceArchiveSavedTitle(int count) {
+    return '証拠画像を$count枚保存しました';
+  }
+
+  @override
+  String get runningCoachEvidenceArchiveSavedBody =>
+      'これらの静止画像は任意保存の元動画とは別で、この端末内だけに残ります。';
+
+  @override
+  String runningCoachEvidenceArchivePartialTitle(int saved, int requested) {
+    return '証拠画像を$saved/$requested枚保存しました';
+  }
+
+  @override
+  String runningCoachEvidenceArchivePartialBody(Object reason) {
+    return '一部の静止画像を保存できませんでした: $reason';
+  }
+
+  @override
+  String get runningCoachEvidenceArchiveFailedTitle => '証拠画像を保存できませんでした';
+
+  @override
+  String runningCoachEvidenceArchiveFailedBody(Object reason) {
+    return '分析は保存されましたが、静止証拠画像は保持できませんでした: $reason';
+  }
+
+  @override
+  String get runningCoachEvidenceArchiveNotRequestedTitle => '要求された証拠画像はありません';
+
+  @override
+  String get runningCoachEvidenceArchiveNotRequestedBody =>
+      'この分析では、保存できるほど信頼できる静止フレームがありませんでした。測定済みの姿勢データは結果に残ります。';
+
+  @override
+  String get runningCoachEvidenceArchiveReasonSourceUnavailable =>
+      '分析後に元動画を利用できませんでした。';
+
+  @override
+  String get runningCoachEvidenceArchiveReasonExtractionEmpty =>
+      '選択された証拠時刻でJPEGフレームを抽出できませんでした。';
+
+  @override
+  String get runningCoachEvidenceArchiveReasonStorageUnavailable =>
+      'ローカル画像ストレージを利用できませんでした。';
+
+  @override
+  String get runningCoachEvidenceArchiveReasonFileWrite =>
+      '端末がJPEGファイルを書き込めませんでした。';
+
+  @override
+  String get runningCoachEvidenceArchiveReasonWebLimit =>
+      'ブラウザの保存容量上限を超える可能性がありました。';
+
+  @override
+  String get runningCoachEvidenceArchiveReasonPlatformUnavailable =>
+      'このアプリビルドで証拠フレーム抽出を実行できませんでした。';
+
+  @override
+  String get runningCoachEvidenceArchiveReasonUnknown => '端末が不明な画像保存エラーを返しました。';
+
+  @override
+  String get runningCoachEvidenceImageReadFailed => '画像を開けません';
+
+  @override
+  String get runningCoachEvidenceImageReadFailedReason =>
+      '保存されたファイルがこの端末から削除された可能性があります。';
 
   @override
   String get runningCoachAnalysisGuideTitle => '図で見る修正ポイント';
