@@ -312,12 +312,12 @@ void main() {
 
     expect(
       find.text(
-        'The 3D runner cannot be built from this frame. Try a clearer side-view clip with full-body landmarks.',
+        'This frame does not contain enough measured joint coordinates for a side-by-side pose comparison.',
       ),
       findsOneWidget,
     );
     expect(
-      find.byKey(const ValueKey('running-coach-foot-strike-3d-runner')),
+      find.byKey(const ValueKey('running-coach-foot-strike-2d-comparison')),
       findsNothing,
     );
     expect(tester.takeException(), isNull);
@@ -782,11 +782,11 @@ void main() {
       expect(primaryCoaching, findsOneWidget);
       expect(
         tester.getTopLeft(scoreHero).dy,
-        lessThan(tester.getTopLeft(overview).dy),
+        lessThan(tester.getTopLeft(primaryCoaching).dy),
       );
       expect(
-        tester.getTopLeft(overview).dy,
-        lessThan(tester.getTopLeft(primaryCoaching).dy),
+        tester.getTopLeft(primaryCoaching).dy,
+        lessThan(tester.getTopLeft(overview).dy),
       );
 
       final limitedResult = RunningVideoAnalysisResult(
@@ -829,7 +829,11 @@ void main() {
       );
       await tester.pump();
 
-      expect(scoreHero, findsNothing);
+      expect(
+        find.byKey(const ValueKey('running-coach-score-hero-withheld')),
+        findsOneWidget,
+      );
+      expect(find.text('Score withheld'), findsOneWidget);
       expect(find.text('Overall running score 0/100'), findsNothing);
       expect(
         find.byKey(const ValueKey('running-coach-metric-overview')),
@@ -838,6 +842,103 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+
+  testWidgets('result trend uses verified comparable same-condition sessions', (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(900, 1600));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    const captureContext = RunningCoachCaptureContext(
+      effort: RunningCoachRunEffort.steady,
+      surface: RunningCoachRunningSurface.trackOrRoad,
+    );
+    final result = RunningVideoAnalysisResult(
+      videoDuration: const Duration(seconds: 60),
+      sampledFrames: 481,
+      validFrames: 430,
+      direction: RunningDirection.leftToRight,
+      forwardLeanDegrees: 10,
+      verticalBounceRatio: 0.06,
+      footStrikeDistanceRatio: 0.10,
+      stanceKneeAngleDegrees: 154,
+      elbowAngleDegrees: 92,
+      metricQualities: _testAllMetricQualities(sampleCount: 8),
+      coarseSamples: const RunningAnalysisSampleSummary(
+        attemptedFrames: 481,
+        validFrames: 430,
+        poseFrameCount: 24,
+        maxFrameBudget: 481,
+        targetFps: 8,
+      ),
+      denseSamples: const RunningAnalysisSampleSummary(
+        attemptedFrames: 24,
+        validFrames: 24,
+        poseFrameCount: 24,
+        maxFrameBudget: 240,
+        targetFps: 30,
+      ),
+      contactWindows: _testContactWindows(),
+      validatedContactFrameTimestamps: _testContactTimestamps(),
+      contactConfidence: 0.9,
+      poseFrames: _testPoseFrames(
+        startX: 0.34,
+        dxPerFrame: -0.018,
+        confidence: 0.95,
+      ),
+    );
+    final report = const RunningCoachingService().buildReport(result);
+    final session = _sessionForReport(
+      id: 'trend-current',
+      result: result,
+      report: report,
+      captureContext: captureContext,
+      analysisResult: result.historySnapshot(),
+    );
+    final baseline = <RunningCoachSessionAnalysis>[
+      _sessionForReport(
+        id: 'trend-baseline-1',
+        result: result,
+        report: report,
+        captureContext: captureContext,
+        analysisResult: result.historySnapshot(),
+      ),
+      _sessionForReport(
+        id: 'trend-baseline-2',
+        result: result,
+        report: report,
+        captureContext: captureContext,
+        analysisResult: result.historySnapshot(),
+      ),
+    ];
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: runningAnalysisResultScreenForTesting(
+          result: result,
+          report: report,
+          session: session,
+          comparableSessions: baseline,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('Same-condition trend'), findsOneWidget);
+    expect(
+      find.textContaining('Uses 2 recent verified sessions'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('Δ +0'), findsWidgets);
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets('historical detail shows saved evidence frame gallery', (
     WidgetTester tester,
@@ -982,10 +1083,11 @@ void main() {
     );
     await tester.pump();
 
-    expect(
-      find.byKey(const ValueKey('running-coach-evidence-archive-status')),
-      findsOneWidget,
+    final archiveStatus = find.byKey(
+      const ValueKey('running-coach-evidence-archive-status'),
     );
+    await _scrollAnalysisResultUntilFound(tester, archiveStatus);
+    expect(archiveStatus, findsOneWidget);
     expect(find.text('Evidence images were not saved'), findsOneWidget);
     expect(
       find.textContaining('the device could not write the JPEG file'),
@@ -1375,10 +1477,6 @@ void main() {
     );
     expect(
       find.byKey(const ValueKey('running-coach-goal-motion-toggle')),
-      findsNothing,
-    );
-    expect(
-      find.byKey(const ValueKey('running-coach-3d-runner-platform-view')),
       findsNothing,
     );
     expect(find.text('Evidence 1/3'), findsOneWidget);
@@ -2075,6 +2173,8 @@ RunningCoachSessionAnalysis _sessionForReport({
   List<RunningCoachEvidenceImage> evidenceImages =
       const <RunningCoachEvidenceImage>[],
   RunningCoachEvidenceArchiveSummary? evidenceArchive,
+  RunningCoachCaptureContext? captureContext,
+  RunningVideoAnalysisResult? analysisResult,
 }) {
   final primary = report.primaryFocus ?? report.rankedInsights.first;
   return RunningCoachSessionAnalysis(
@@ -2096,9 +2196,11 @@ RunningCoachSessionAnalysis _sessionForReport({
     primarySampleCount: primary.quality.sampleCount,
     primaryQualityReason: primary.quality.reason,
     videoPath: videoPath,
+    captureContext: captureContext,
     evidenceImages: evidenceImages,
     evidenceArchive: evidenceArchive ??
         RunningCoachEvidenceArchiveSummary.legacyForImages(evidenceImages),
+    analysisResult: analysisResult,
   );
 }
 
@@ -2186,27 +2288,31 @@ Map<RunningCoachMetric, RunningMetricQuality> _testDenseMetricQualities() {
   };
 }
 
-Map<RunningCoachMetric, RunningMetricQuality> _testAllMetricQualities() {
-  return const <RunningCoachMetric, RunningMetricQuality>{
+Map<RunningCoachMetric, RunningMetricQuality> _testAllMetricQualities({
+  int? sampleCount,
+}) {
+  final generalSampleCount = sampleCount ?? 6;
+  final lowerBodySampleCount = sampleCount ?? 3;
+  return <RunningCoachMetric, RunningMetricQuality>{
     RunningCoachMetric.posture: RunningMetricQuality(
       confidence: 0.88,
-      sampleCount: 6,
+      sampleCount: generalSampleCount,
     ),
     RunningCoachMetric.bounce: RunningMetricQuality(
       confidence: 0.88,
-      sampleCount: 6,
+      sampleCount: generalSampleCount,
     ),
     RunningCoachMetric.footStrike: RunningMetricQuality(
       confidence: 0.88,
-      sampleCount: 3,
+      sampleCount: lowerBodySampleCount,
     ),
     RunningCoachMetric.kneeFlexion: RunningMetricQuality(
       confidence: 0.88,
-      sampleCount: 3,
+      sampleCount: lowerBodySampleCount,
     ),
     RunningCoachMetric.armCarriage: RunningMetricQuality(
       confidence: 0.88,
-      sampleCount: 6,
+      sampleCount: generalSampleCount,
     ),
   };
 }

@@ -5,10 +5,9 @@ import 'package:flutter/material.dart';
 
 import '../../domain/entities/running_video_analysis_result.dart';
 import '../../gen/app_localizations.dart';
+import 'running_pose_comparison.dart';
 import 'running_pose_overlay.dart';
 import 'running_professional_runner.dart';
-import 'running_professional_runner_art.dart';
-import 'running_three_d_runner_view.dart';
 
 /// Shows the single next action after the coordinate-driven comparison.
 ///
@@ -219,7 +218,7 @@ class RunningFootStrikeEvidenceReferencePreview extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    l10n.runningCoachThreeDComparisonTitle,
+                    l10n.runningCoachPoseComparisonTitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
@@ -244,9 +243,10 @@ class RunningFootStrikeEvidenceReferencePreview extends StatelessWidget {
                 poseFrames: poseFrames,
                 insight: insight,
                 direction: direction,
-                currentLabel: l10n.runningCoachThreeDCurrentLabel,
-                targetLabel: l10n.runningCoachThreeDTargetLabel,
-                unavailableLabel: l10n.runningCoachThreeDRendererUnavailable,
+                currentLabel: l10n.runningCoachPoseComparisonCurrentLabel,
+                targetLabel: l10n.runningCoachPoseComparisonTargetLabel,
+                unavailableLabel: l10n.runningCoachPoseComparisonUnavailable,
+                semanticLabel: l10n.runningCoachPoseComparisonTitle,
               ),
             ),
             const SizedBox(height: 14),
@@ -305,6 +305,7 @@ class _FootStrikeCoordinateRigComparison extends StatelessWidget {
   final String currentLabel;
   final String targetLabel;
   final String unavailableLabel;
+  final String semanticLabel;
 
   const _FootStrikeCoordinateRigComparison({
     super.key,
@@ -315,6 +316,7 @@ class _FootStrikeCoordinateRigComparison extends StatelessWidget {
     required this.currentLabel,
     required this.targetLabel,
     required this.unavailableLabel,
+    required this.semanticLabel,
   });
 
   @override
@@ -384,21 +386,24 @@ class _FootStrikeCoordinateRigComparison extends StatelessWidget {
                     ),
                     const SizedBox(height: 7),
                     Expanded(
-                      child: RunningThreeDRunnerComparisonView(
+                      child: RunningPoseCoordinateComparison(
                         key: const ValueKey(
-                          'running-coach-foot-strike-3d-runner',
+                          'running-coach-foot-strike-2d-comparison',
                         ),
                         poseFrames: poseFrames.isEmpty
                             ? <RunningPoseFrame>[frame]
                             : poseFrames,
-                        selectedFrame: frame,
+                        frame: frame,
                         insight: insight,
                         direction: direction,
-                        currentColor: scheme.error,
-                        targetColor: scheme.primary,
-                        successColor: Colors.green.shade700,
+                        surfaceColor: const Color(0xFF152033),
+                        mutedColor: scheme.onSurfaceVariant,
+                        actualAccent: scheme.error,
+                        targetAccent: scheme.primary,
+                        successAccent: Colors.green.shade700,
+                        semanticLabel: semanticLabel,
                         currentLabel: currentLabel,
-                        targetLabel: targetLabel,
+                        nextStepLabel: targetLabel,
                       ),
                     ),
                   ],
@@ -880,27 +885,7 @@ class _FootStrikeCoordinateRigPainter extends CustomPainter {
       forward: rig.forward,
     );
     if (athlete == null) return;
-    final focusIndices = <int>{
-      rig.leadHipIndex,
-      rig.leadKneeIndex,
-      rig.leadAnkleIndex,
-      rig.leadHeelIndex,
-      rig.leadToeIndex,
-    };
-    final atlas = artAtlas;
-    if (atlas != null) {
-      paintIllustratedProfessionalRunner(
-        canvas,
-        atlas: atlas,
-        pose: athlete,
-        accentColor: accent,
-        isTarget: isTarget,
-        focusIndices: focusIndices,
-        bounds: panel,
-      );
-    } else {
-      _drawIllustrationPending(canvas, panel, accent);
-    }
+    _drawIllustrationPending(canvas, panel, accent);
     _drawLandingGuide(
       canvas,
       panel,

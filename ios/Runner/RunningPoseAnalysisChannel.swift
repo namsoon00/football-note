@@ -358,6 +358,7 @@ final class RunningPoseAnalysisChannel {
       throw videoTooBlurry()
     }
 
+    let perspectiveQuality = perspectiveQualityPayload(from: frameSamples)
     let direction = resolveDirection(from: frameSamples)
     let leanDegrees =
       frameSamples.map { $0.forwardLeanDegrees(direction: direction) }.reduce(0, +) /
@@ -487,6 +488,30 @@ final class RunningPoseAnalysisChannel {
     let validFrameTimestamps = Set(
       (frameSamples + densePass.samples).map(\.timestampMs)
     )
+    let baseMetricQualities: [String: [String: Any]] = [
+      "posture": metricQualityPayload(
+        confidence: coreConfidence,
+        sampleCount: frameSamples.count
+      ),
+      "bounce": metricQualityPayload(
+        confidence: coreConfidence,
+        sampleCount: frameSamples.count
+      ),
+      "footStrike": metricQualityPayload(
+        confidence: contactConfidence,
+        sampleCount: metricContactFrames.count,
+        reason: contactQualityReason
+      ),
+      "kneeFlexion": metricQualityPayload(
+        confidence: contactConfidence,
+        sampleCount: metricContactFrames.count,
+        reason: contactQualityReason
+      ),
+      "armCarriage": metricQualityPayload(
+        confidence: armConfidence,
+        sampleCount: armConfidenceValues.count
+      ),
+    ]
 
     return [
       "durationMs": durationMs,
@@ -499,27 +524,30 @@ final class RunningPoseAnalysisChannel {
       "stanceKneeAngleDegrees": roundTo3(stanceKneeAngle),
       "elbowAngleDegrees": roundTo3(elbowAngle),
       "metricQualities": [
-        "posture": metricQualityPayload(
-          confidence: coreConfidence,
-          sampleCount: frameSamples.count
+        "posture": applyPerspectiveQuality(
+          metric: "posture",
+          baseQuality: baseMetricQualities["posture"]!,
+          perspectiveQuality: perspectiveQuality
         ),
-        "bounce": metricQualityPayload(
-          confidence: coreConfidence,
-          sampleCount: frameSamples.count
+        "bounce": applyPerspectiveQuality(
+          metric: "bounce",
+          baseQuality: baseMetricQualities["bounce"]!,
+          perspectiveQuality: perspectiveQuality
         ),
-        "footStrike": metricQualityPayload(
-          confidence: contactConfidence,
-          sampleCount: metricContactFrames.count,
-          reason: contactQualityReason
+        "footStrike": applyPerspectiveQuality(
+          metric: "footStrike",
+          baseQuality: baseMetricQualities["footStrike"]!,
+          perspectiveQuality: perspectiveQuality
         ),
-        "kneeFlexion": metricQualityPayload(
-          confidence: contactConfidence,
-          sampleCount: metricContactFrames.count,
-          reason: contactQualityReason
+        "kneeFlexion": applyPerspectiveQuality(
+          metric: "kneeFlexion",
+          baseQuality: baseMetricQualities["kneeFlexion"]!,
+          perspectiveQuality: perspectiveQuality
         ),
-        "armCarriage": metricQualityPayload(
-          confidence: armConfidence,
-          sampleCount: armConfidenceValues.count
+        "armCarriage": applyPerspectiveQuality(
+          metric: "armCarriage",
+          baseQuality: baseMetricQualities["armCarriage"]!,
+          perspectiveQuality: perspectiveQuality
         ),
       ],
       "coarseSamples": sampleSummaryPayload(
@@ -545,6 +573,7 @@ final class RunningPoseAnalysisChannel {
         Set(contactFrames.map(\.timestampMs))
       ).sorted(),
       "contactConfidence": roundTo3(contactConfidence),
+      "perspectiveQuality": perspectiveQuality.payload,
       "poseFrames": mergePoseFrames(
         coarsePoseFrames: coarsePass.poseFrames,
         densePoseFrames: densePass.poseFrames
@@ -921,7 +950,7 @@ final class RunningPoseAnalysisChannel {
   private func selectContactCandidateWindows(
     _ candidates: [ContactCandidate]
   ) -> [ContactCandidate] {
-    var selected: [ContactCandidate] = []
+    var deduped: [ContactCandidate] = []
     let rankedCandidates = candidates.sorted {
       if $0.confidence == $1.confidence {
         return $0.centerTimestampMs < $1.centerTimestampMs
@@ -929,16 +958,54 @@ final class RunningPoseAnalysisChannel {
       return $0.confidence > $1.confidence
     }
     for candidate in rankedCandidates {
-      let duplicatesSameStep = selected.contains { selectedCandidate in
+      let duplicatesSameStep = deduped.contains { selectedCandidate in
         selectedCandidate.side == candidate.side &&
           abs(selectedCandidate.centerTimestampMs - candidate.centerTimestampMs) <
           Self.minimumContactCenterSeparationMs
       }
       if !duplicatesSameStep {
-        selected.append(candidate)
+        deduped.append(candidate)
       }
-      if selected.count >= Self.maxContactWindows {
-        break
+    }
+    if deduped.count <= Self.maxContactWindows {
+      return deduped.sorted { $0.centerTimestampMs < $1.centerTimestampMs }
+    }
+
+    let ordered = deduped.sorted { $0.centerTimestampMs < $1.centerTimestampMs }
+    guard let firstTime = ordered.first?.centerTimestampMs,
+      let lastTime = ordered.last?.centerTimestampMs
+    else {
+      return []
+    }
+    var selected: [ContactCandidate] = []
+    var selectedIndexes = Set<Int>()
+    for slot in 0..<Self.maxContactWindows {
+      let target = Self.maxContactWindows <= 1
+        ? Double(firstTime + lastTime) / 2.0
+        : Double(firstTime) +
+          (Double(lastTime - firstTime) * Double(slot)) /
+          Double(Self.maxContactWindows - 1)
+      var bestIndex: Int?
+      for index in ordered.indices where !selectedIndexes.contains(index) {
+        guard let currentBest = bestIndex else {
+          bestIndex = index
+          continue
+        }
+        let current = ordered[index]
+        let best = ordered[currentBest]
+        let distance = abs(Double(current.centerTimestampMs) - target)
+        let bestDistance = abs(Double(best.centerTimestampMs) - target)
+        if distance < bestDistance ||
+          (distance == bestDistance && current.confidence > best.confidence) ||
+          (distance == bestDistance && current.confidence == best.confidence &&
+            current.centerTimestampMs < best.centerTimestampMs)
+        {
+          bestIndex = index
+        }
+      }
+      if let bestIndex {
+        selectedIndexes.insert(bestIndex)
+        selected.append(ordered[bestIndex])
       }
     }
     return selected.sorted { $0.centerTimestampMs < $1.centerTimestampMs }
@@ -1722,6 +1789,113 @@ final class RunningPoseAnalysisChannel {
     return payload
   }
 
+  private func perspectiveQualityPayload(from samples: [FrameSample]) -> PerspectiveQuality {
+    guard !samples.isEmpty else {
+      return PerspectiveQuality(
+        evaluatedFrameCount: 0,
+        medianBodyScaleRatio: 0,
+        minBodyScaleRatio: 0,
+        visibilityCoverage: 0,
+        sideViewScore: 0,
+        scaleDriftRatio: 0,
+        cutOffFrameRatio: 0,
+        issues: []
+      )
+    }
+    let bodyScaleRatios = samples.map { sample in
+      sample.bodyScale / Double(max(1, min(sample.imageWidth, sample.imageHeight)))
+    }
+    let medianBodyScaleRatio = median(bodyScaleRatios) ?? 0
+    let minBodyScaleRatio = bodyScaleRatios.min() ?? 0
+    let scales = samples.map(\.bodyScale).filter { $0 > 0 }
+    let lowerScale = percentile(scales, fraction: 0.10) ?? 0
+    let upperScale = percentile(scales, fraction: 0.90) ?? lowerScale
+    let scaleDriftRatio = lowerScale <= 0 ? 0 : (upperScale - lowerScale) / lowerScale
+    let visibilityCoverage = samples.map { sample in
+      Double([
+        sample.leftShoulder,
+        sample.rightShoulder,
+        sample.leftHip,
+        sample.rightHip,
+        sample.leftKnee,
+        sample.rightKnee,
+        sample.leftAnkle,
+        sample.rightAnkle,
+      ].compactMap { $0 }.count) / 8.0
+    }.reduce(0, +) / Double(samples.count)
+    let sideRatios = samples.compactMap { $0.sideViewWidthRatio }
+    let sideWidthRatio = median(sideRatios) ?? 1
+    let sideViewScore = min(1.0, max(0.0, 1.0 - ((sideWidthRatio - 0.18) / 0.34)))
+    let cutOffFrameRatio = Double(samples.filter(\.touchesFrameEdge).count) /
+      Double(samples.count)
+    var issues: [String] = []
+    if medianBodyScaleRatio < Self.minimumBodyScaleRatio ||
+      minBodyScaleRatio < Self.minimumBodyScaleRatio * 0.72
+    {
+      issues.append("tooSmall")
+    }
+    if sideViewScore < Self.minimumSideViewScore {
+      issues.append("notSideOn")
+    }
+    if cutOffFrameRatio > Self.maximumCutOffFrameRatio ||
+      visibilityCoverage < Self.minimumVisibilityCoverage
+    {
+      issues.append("bodyCutOff")
+    }
+    if scaleDriftRatio > Self.maximumScaleDriftRatio {
+      issues.append("scaleDrift")
+    }
+    return PerspectiveQuality(
+      evaluatedFrameCount: samples.count,
+      medianBodyScaleRatio: roundTo3(medianBodyScaleRatio),
+      minBodyScaleRatio: roundTo3(minBodyScaleRatio),
+      visibilityCoverage: roundTo3(visibilityCoverage),
+      sideViewScore: roundTo3(sideViewScore),
+      scaleDriftRatio: roundTo3(scaleDriftRatio),
+      cutOffFrameRatio: roundTo3(cutOffFrameRatio),
+      issues: issues
+    )
+  }
+
+  private func perspectiveReasonForMetric(
+    _ quality: PerspectiveQuality,
+    metric: String
+  ) -> String? {
+    if quality.issues.contains("tooSmall") {
+      return "too_small_runner"
+    }
+    if quality.issues.contains("bodyCutOff") {
+      return "body_cut_off"
+    }
+    let isLowerBody = metric == "footStrike" || metric == "kneeFlexion"
+    if isLowerBody, quality.issues.contains("notSideOn") {
+      return "not_side_on"
+    }
+    if (isLowerBody || metric == "bounce"), quality.issues.contains("scaleDrift") {
+      return "scale_drift"
+    }
+    return nil
+  }
+
+  private func applyPerspectiveQuality(
+    metric: String,
+    baseQuality: [String: Any],
+    perspectiveQuality: PerspectiveQuality
+  ) -> [String: Any] {
+    guard let reason = perspectiveReasonForMetric(perspectiveQuality, metric: metric) else {
+      return baseQuality
+    }
+    let confidence = (baseQuality["confidence"] as? NSNumber)?.doubleValue ??
+      (baseQuality["confidence"] as? Double ?? 0)
+    let sampleCount = (baseQuality["sampleCount"] as? NSNumber)?.intValue ??
+      (baseQuality["sampleCount"] as? Int ?? 0)
+    return metricQualityPayload(
+      confidence: min(confidence, reason == "too_small_runner" ? 0 : 0.55),
+      sampleCount: sampleCount,
+      reason: reason
+    )
+  }
+
   private func contactWindowPayloads(
     windows: [ContactCandidate],
     denseTimestamps: [Int],
@@ -1868,6 +2042,8 @@ final class RunningPoseAnalysisChannel {
 
     return FrameSample(
       timestampMs: timestampMs,
+      imageWidth: Int(imageSize.width.rounded()),
+      imageHeight: Int(imageSize.height.rounded()),
       leftShoulder: leftShoulder?.point,
       rightShoulder: rightShoulder?.point,
       leftHip: leftHip?.point,
@@ -2108,8 +2284,34 @@ final class RunningPoseAnalysisChannel {
     let confidence: Double
   }
 
+  private struct PerspectiveQuality {
+    let evaluatedFrameCount: Int
+    let medianBodyScaleRatio: Double
+    let minBodyScaleRatio: Double
+    let visibilityCoverage: Double
+    let sideViewScore: Double
+    let scaleDriftRatio: Double
+    let cutOffFrameRatio: Double
+    let issues: [String]
+
+    var payload: [String: Any] {
+      [
+        "evaluatedFrameCount": evaluatedFrameCount,
+        "medianBodyScaleRatio": medianBodyScaleRatio,
+        "minBodyScaleRatio": minBodyScaleRatio,
+        "visibilityCoverage": visibilityCoverage,
+        "sideViewScore": sideViewScore,
+        "scaleDriftRatio": scaleDriftRatio,
+        "cutOffFrameRatio": cutOffFrameRatio,
+        "issues": issues,
+      ]
+    }
+  }
+
   private struct FrameSample {
     let timestampMs: Int
+    let imageWidth: Int
+    let imageHeight: Int
     let leftShoulder: CGPoint?
     let rightShoulder: CGPoint?
     let leftHip: CGPoint?
@@ -2145,6 +2347,47 @@ final class RunningPoseAnalysisChannel {
     let leftWristConfidence: Double?
     let rightWristConfidence: Double?
     let bodyScale: Double
+
+    var sideViewWidthRatio: Double? {
+      func pointDistance(_ first: CGPoint, _ second: CGPoint) -> Double {
+        hypot(Double(first.x - second.x), Double(first.y - second.y))
+      }
+      var widths: [Double] = []
+      if let leftShoulder, let rightShoulder {
+        widths.append(pointDistance(leftShoulder, rightShoulder) / max(bodyScale, 1.0))
+      }
+      if let leftHip, let rightHip {
+        widths.append(pointDistance(leftHip, rightHip) / max(bodyScale, 1.0))
+      }
+      guard !widths.isEmpty else {
+        return nil
+      }
+      return widths.reduce(0, +) / Double(widths.count)
+    }
+
+    var touchesFrameEdge: Bool {
+      let marginX = Double(imageWidth) * RunningPoseAnalysisChannel.edgeCutOffMarginRatio
+      let marginY = Double(imageHeight) * RunningPoseAnalysisChannel.edgeCutOffMarginRatio
+      return [
+        leftShoulder,
+        rightShoulder,
+        leftHip,
+        rightHip,
+        leftKnee,
+        rightKnee,
+        leftAnkle,
+        rightAnkle,
+        leftHeel,
+        rightHeel,
+        leftToe,
+        rightToe,
+      ].compactMap { $0 }.contains { point in
+        Double(point.x) <= marginX ||
+          Double(point.x) >= Double(imageWidth) - marginX ||
+          Double(point.y) <= marginY ||
+          Double(point.y) >= Double(imageHeight) - marginY
+      }
+    }
 
     var coreLandmarkConfidence: Double {
       let values = [
@@ -2372,9 +2615,9 @@ final class RunningPoseAnalysisChannel {
   private static let methodName = "analyzeRunningVideo"
   private static let evidenceFramesMethodName = "extractRunningEvidenceFrames"
   private static let liveFrameMethodName = "analyzeRunningLiveFrame"
-  private static let coarseTargetFps = 10
-  private static let coarseFrameIntervalMs = 100
-  private static let maxCoarseFrameBudget = 240
+  private static let coarseTargetFps = 8
+  private static let coarseFrameIntervalMs = 125
+  private static let maxCoarseFrameBudget = 481
   private static let minimumValidFrames = 6
   private static let minimumSharpnessSampleCount = 6
   private static let minimumMedianSharpness = 0.018
@@ -2411,6 +2654,12 @@ final class RunningPoseAnalysisChannel {
   private static let contactMotionNeighborGapMs = 100
   private static let groundLineSampleFraction = 0.45
   private static let groundLineMinimumSamples = 3
+  private static let minimumBodyScaleRatio = 0.12
+  private static let minimumSideViewScore = 0.46
+  private static let maximumScaleDriftRatio = 0.34
+  private static let maximumCutOffFrameRatio = 0.18
+  private static let minimumVisibilityCoverage = 0.62
+  private static let edgeCutOffMarginRatio = 0.025
   private static let modelResourceName = "pose_landmarker_full"
   private static let modelResourceExtension = "task"
   private static let leftShoulderIndex = 11

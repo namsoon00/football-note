@@ -8883,6 +8883,158 @@ class AppLocalizationsKo extends AppLocalizations {
       '항목별로 독립 검증합니다. 접지 근거가 부족해도 팔·상체 등의 측정이 함께 무효가 되지는 않습니다.';
 
   @override
+  String get runningCoachScoreWithheldLabel => '점수 보류';
+
+  @override
+  String get runningCoachScoreWithheldSummary => '이 영상으로는 검증된 점수를 낼 수 없어요.';
+
+  @override
+  String get runningCoachScoreWithheldValue => '—';
+
+  @override
+  String runningCoachScoreWithheldContactReason(Object reason) {
+    return '착지 근거가 충분하지 않아요: $reason';
+  }
+
+  @override
+  String get runningCoachScoreWithheldGenericReason =>
+      '필수 측정 중 일부가 제한되어 추정 점수 대신 점수를 보류했어요.';
+
+  @override
+  String get runningCoachMeasuredMetricsTitle => '측정 지표';
+
+  @override
+  String get runningCoachMeasuredMetricsBody =>
+      '영상이 뒷받침하는 값만 확정 측정으로 표시해요. 제한된 관찰값은 점수나 드릴 없이 보여 줍니다.';
+
+  @override
+  String get runningCoachReferenceRangeNotice =>
+      '기준 범위는 일반 코칭 참고값이며 개인별 의학적 한계나 부상 위험 한계가 아니에요.';
+
+  @override
+  String get runningCoachMetricVerticalBounceLabel => '상하 흔들림 (%)';
+
+  @override
+  String runningCoachMeasuredMetricSpmValue(Object value) {
+    return '$value spm';
+  }
+
+  @override
+  String runningCoachMeasuredMetricMsValue(Object value) {
+    return '$value ms';
+  }
+
+  @override
+  String get runningCoachMeasuredMetricWithinReference => '일반 기준 안';
+
+  @override
+  String get runningCoachMeasuredMetricNearReferenceEdge => '기준 경계 근처';
+
+  @override
+  String get runningCoachMeasuredMetricOutsideReference => '일반 기준 밖';
+
+  @override
+  String get runningCoachMeasuredMetricInconsistent => '샘플 간 변동 큼';
+
+  @override
+  String get runningCoachMeasuredMetricLimited => '근거 제한';
+
+  @override
+  String get runningCoachMeasuredMetricUnavailable => '이 영상에서는 사용 불가';
+
+  @override
+  String runningCoachMeasuredMetricSampleCount(int count) {
+    return '$count개 샘플';
+  }
+
+  @override
+  String get runningCoachMeasuredMetricNoSamples => '방어 가능한 샘플 없음';
+
+  @override
+  String runningCoachMeasuredMetricEvidenceDetail(
+      Object quality, Object samples) {
+    return '$quality · $samples';
+  }
+
+  @override
+  String runningCoachMeasuredMetricEvidenceReasonDetail(
+      Object quality, Object samples, Object reason) {
+    return '$quality · $samples · $reason';
+  }
+
+  @override
+  String get runningCoachQualityReasonLabelLowCoverage => '낮은 커버리지';
+
+  @override
+  String get runningCoachQualityReasonLabelLimitedSamples => '샘플 부족';
+
+  @override
+  String get runningCoachQualityReasonLabelContactPhaseProxy => '착지 대체값';
+
+  @override
+  String get runningCoachQualityReasonLabelKinematicContact => '움직임 기반 착지';
+
+  @override
+  String get runningCoachQualityReasonLabelLowConfidence => '낮은 신뢰도';
+
+  @override
+  String get runningCoachQualityReasonLabelMissingContact => '착지 근거 없음';
+
+  @override
+  String get runningCoachQualityReasonLabelMissingPoseFrames => '자세 프레임 없음';
+
+  @override
+  String get runningCoachQualityReasonLabelMissingMeasuredFrames => '측정 프레임 없음';
+
+  @override
+  String get runningCoachPerspectiveTooSmallLabel => '너무 멀거나 작음';
+
+  @override
+  String get runningCoachPerspectiveNotSideOnLabel => '측면 부족';
+
+  @override
+  String get runningCoachPerspectiveBodyCutOffLabel => '몸이 잘림';
+
+  @override
+  String get runningCoachPerspectiveScaleDriftLabel => '거리 변화';
+
+  @override
+  String get runningCoachPerspectiveTooSmallReason =>
+      '러너가 화면에서 너무 작아 위치 기반 코칭이 제한돼요.';
+
+  @override
+  String get runningCoachPerspectiveNotSideOnReason =>
+      '대각선 또는 정면에 가까워 하체 착지 코칭이 제한돼요.';
+
+  @override
+  String get runningCoachPerspectiveBodyCutOffReason =>
+      '많은 프레임에서 몸이 잘려 해당 측정이 제한돼요.';
+
+  @override
+  String get runningCoachPerspectiveScaleDriftReason =>
+      '클립 중 러너 크기가 크게 변해 거리 민감 측정이 제한돼요.';
+
+  @override
+  String get runningCoachPerspectiveTooSmallRetake =>
+      '전신이 보이도록 더 가까운 측면에서 다시 촬영해 주세요.';
+
+  @override
+  String get runningCoachPerspectiveNotSideOnRetake =>
+      '러너가 화면을 가로질러 움직이는 정확한 측면에서 다시 촬영해 주세요.';
+
+  @override
+  String get runningCoachPerspectiveBodyCutOffRetake =>
+      '머리, 골반, 무릎, 발이 전체 클립에서 프레임 안에 있게 해 주세요.';
+
+  @override
+  String get runningCoachPerspectiveScaleDriftRetake =>
+      '러너 크기가 일정하게 보이도록 카메라 거리를 유지해 주세요.';
+
+  @override
+  String get runningCoachPerspectiveGenericRetake =>
+      '전신이 보이는 안정적인 측면 영상으로 다시 촬영해 주세요.';
+
+  @override
   String get runningCoachEvidenceVideoUnavailable =>
       '저장된 영상 파일을 사용할 수 없어요. 분석된 프레임의 자세 오버레이는 보여 줍니다.';
 
@@ -8976,30 +9128,17 @@ class AppLocalizationsKo extends AppLocalizations {
       '이 프레임의 관절 좌표가 부족해 동작 비교를 만들 수 없어요.';
 
   @override
-  String get runningCoachThreeDComparisonTitle => '3D 러너 비교';
+  String get runningCoachPoseComparisonTitle => '측정 자세 비교';
 
   @override
-  String get runningCoachThreeDCurrentLabel => '현재 3D 러너';
+  String get runningCoachPoseComparisonCurrentLabel => '현재 측정 자세';
 
   @override
-  String get runningCoachThreeDTargetLabel => '다음 3D 목표';
+  String get runningCoachPoseComparisonTargetLabel => '기준 목표';
 
   @override
-  String get runningCoachThreeDConfidenceLabel => '추적';
-
-  @override
-  String get runningCoachThreeDRendererLoading => '3D 러너를 불러오는 중...';
-
-  @override
-  String get runningCoachThreeDRendererUnavailable =>
-      '이 프레임으로는 3D 러너를 만들 수 없어요. 전신 랜드마크가 보이는 더 선명한 측면 영상을 사용해 주세요.';
-
-  @override
-  String get runningCoachThreeDRendererError => '로컬 WebGL 러너를 시작할 수 없어요.';
-
-  @override
-  String get runningCoachThreeDReferenceNotice =>
-      '고정된 기준 러너에 추적 좌표로 작은 자세 보정만 적용해요. 내 체형이나 얼굴을 재구성한 것은 아니에요.';
+  String get runningCoachPoseComparisonUnavailable =>
+      '이 프레임에는 나란히 비교할 측정 관절 좌표가 충분하지 않아요.';
 
   @override
   String get runningCoachHistoryEvidenceUnavailableTitle => '저장된 관절 근거 없음';
@@ -10011,11 +10150,11 @@ class AppLocalizationsKo extends AppLocalizations {
       '처음에는 ‘먼저 이것만’을 따라 하고, 익숙해지면 ‘더 정확히 보기’로 좌우·타이밍·연속 동작을 확인하세요.';
 
   @override
-  String get runningCoachGoodFormCycleTitle => '정지된 단계별 참고 그림';
+  String get runningCoachGoodFormCycleTitle => '연속 동작 루프';
 
   @override
   String get runningCoachGoodFormCycleBody =>
-      '네 장의 참고 그림은 연속 영상이나 내 업로드 영상이 아닌 정지 프레임이에요. 선택한 러너는 같은 크기와 같은 지면선에 맞춰 표시되며, 파란 표시가 그 단계에서 확인할 관계를 알려줘요.';
+      '한 명의 기준 러너가 착지, 지지, 밀어내기, 회복, 다음 착지까지 같은 스케일과 지면선으로 이어집니다.';
 
   @override
   String get runningCoachGoodFormPhaseLandingTitle => '착지';
@@ -10075,6 +10214,21 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachGoodFormRestartStepsAction => '4단계 다시 시작';
+
+  @override
+  String get runningCoachGoodFormPlayAction => '재생';
+
+  @override
+  String get runningCoachGoodFormPauseAction => '일시정지';
+
+  @override
+  String get runningCoachGoodFormStepFrameAction => '다음 프레임';
+
+  @override
+  String get runningCoachGoodFormSpeedNormal => '보통';
+
+  @override
+  String get runningCoachGoodFormSpeedSlow => '느리게';
 
   @override
   String get runningCoachGoodFormTechniqueTitle => '항목별 일러스트 가이드';
@@ -15989,6 +16143,26 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get runningCoachJudgmentWithheldBody =>
       '근거가 부족해 좋음/개선 필요와 훈련 처방을 표시하지 않았어요. 영상을 다시 촬영해 주세요.';
+
+  @override
+  String get runningCoachTrendTitle => '같은 조건 추세';
+
+  @override
+  String runningCoachTrendBody(Object effort, Object surface, int count) {
+    return '비교 조건: $surface에서 $effort. 같은 점수 버전의 최근 검증 세션 $count개를 사용합니다.';
+  }
+
+  @override
+  String get runningCoachTrendInsufficientBaselineTitle => '검증 기준선 부족';
+
+  @override
+  String get runningCoachTrendInsufficientBaselineBody =>
+      '변화를 보여 주려면 같은 점수 버전의 검증된 같은 조건 세션이 최소 2개 필요해요.';
+
+  @override
+  String runningCoachTrendMetricValue(Object current, Object delta) {
+    return '$current · Δ $delta';
+  }
 
   @override
   String get runningCoachComparisonTitle => '같은 조건 비교';

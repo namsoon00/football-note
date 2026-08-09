@@ -81,8 +81,8 @@ echo "==> web upload video analysis contract"
 echo "==> published Pages root artifact contract"
 ./scripts/test_pages_root_static_web_contract.sh
 
-echo "==> running 3D runner renderer contract"
-./scripts/test_running_3d_runner_renderer_contract.sh
+echo "==> running 3D removal contract"
+./scripts/test_running_no_3d_runner_contract.sh
 
 echo "==> running release video fixture contract"
 ./scripts/test_running_release_video_fixtures_contract.sh

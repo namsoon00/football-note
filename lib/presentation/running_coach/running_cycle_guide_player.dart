@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
@@ -38,6 +39,8 @@ Future<ui.Image> _loadRunningCycleAnimationAtlas() async {
 
 enum RunningCycleGuidePhase { landing, support, pushOff, recovery }
 
+enum _RunningCycleGuideSpeed { normal, slow }
+
 class RunningCycleGuidePlayer extends StatefulWidget {
   const RunningCycleGuidePlayer({super.key});
 
@@ -47,19 +50,70 @@ class RunningCycleGuidePlayer extends StatefulWidget {
 }
 
 class _RunningCycleGuidePlayerState extends State<RunningCycleGuidePlayer> {
-  RunningCycleGuidePhase _selectedPhase = RunningCycleGuidePhase.landing;
+  Timer? _timer;
+  int _currentFrame = runningCycleGuideRepresentativeFrameForPhase(
+    RunningCycleGuidePhase.landing,
+  );
+  _RunningCycleGuideSpeed _speed = _RunningCycleGuideSpeed.normal;
+  var _isPlaying = false;
+  var _didApplyInitialMotionPreference = false;
+
+  RunningCycleGuidePhase get _selectedPhase =>
+      runningCycleGuidePhaseForFrame(_currentFrame);
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_didApplyInitialMotionPreference) return;
+    _didApplyInitialMotionPreference = true;
+    _isPlaying = !MediaQuery.of(context).disableAnimations;
+    _syncTimer();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _syncTimer() {
+    _timer?.cancel();
+    if (!_isPlaying) return;
+    final duration = switch (_speed) {
+      _RunningCycleGuideSpeed.normal => const Duration(milliseconds: 340),
+      _RunningCycleGuideSpeed.slow => const Duration(milliseconds: 720),
+    };
+    _timer = Timer.periodic(duration, (_) => _advanceFrame());
+  }
 
   void _stepPhase() {
-    const phases = RunningCycleGuidePhase.values;
-    final nextIndex = (_selectedPhase.index + 1) % phases.length;
-    _selectPhase(phases[nextIndex]);
+    _advanceFrame();
   }
 
   void _selectPhase(RunningCycleGuidePhase phase) {
-    if (_selectedPhase == phase) {
+    final frame = runningCycleGuideRepresentativeFrameForPhase(phase);
+    if (_currentFrame == frame) {
       return;
     }
-    setState(() => _selectedPhase = phase);
+    setState(() => _currentFrame = frame);
+  }
+
+  void _advanceFrame() {
+    if (!mounted) return;
+    setState(() {
+      _currentFrame = _nextRunningCycleGuideFrame(_currentFrame);
+    });
+  }
+
+  void _togglePlayback() {
+    setState(() => _isPlaying = !_isPlaying);
+    _syncTimer();
+  }
+
+  void _selectSpeed(_RunningCycleGuideSpeed speed) {
+    if (_speed == speed) return;
+    setState(() => _speed = speed);
+    _syncTimer();
   }
 
   @override
@@ -67,7 +121,6 @@ class _RunningCycleGuidePlayerState extends State<RunningCycleGuidePlayer> {
     final l10n = AppLocalizations.of(context)!;
     final phaseCopies = _phaseCopies(l10n);
     final activeCopy = phaseCopies[_selectedPhase.index];
-    final isRestartAction = _selectedPhase == RunningCycleGuidePhase.recovery;
 
     return Card(
       key: const ValueKey('running-coach-good-form-cycle'),
@@ -102,8 +155,8 @@ class _RunningCycleGuidePlayerState extends State<RunningCycleGuidePlayer> {
                     (atlas.width / _atlasColumns) / (atlas.height / _atlasRows);
                 return _RunningCycleFrameView(
                   atlas: atlas,
-                  presentation: runningCycleGuidePresentationForPhase(
-                    _selectedPhase,
+                  presentation: runningCycleGuidePresentationForFrame(
+                    _currentFrame,
                   ),
                   phaseCopy: activeCopy,
                   cellAspectRatio: cellAspectRatio,
@@ -143,19 +196,42 @@ class _RunningCycleGuidePlayerState extends State<RunningCycleGuidePlayer> {
               spacing: 8,
               runSpacing: 8,
               children: [
+                FilledButton.icon(
+                  key: const ValueKey(
+                    'running-coach-good-form-cycle-play-pause',
+                  ),
+                  onPressed: _togglePlayback,
+                  icon: Icon(
+                    _isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                  ),
+                  label: Text(
+                    _isPlaying
+                        ? l10n.runningCoachGoodFormPauseAction
+                        : l10n.runningCoachGoodFormPlayAction,
+                  ),
+                ),
                 OutlinedButton.icon(
                   key: const ValueKey('running-coach-good-form-cycle-step'),
                   onPressed: _stepPhase,
-                  icon: Icon(
-                    isRestartAction
-                        ? Icons.replay_rounded
-                        : Icons.skip_next_rounded,
-                  ),
-                  label: Text(
-                    isRestartAction
-                        ? l10n.runningCoachGoodFormRestartStepsAction
-                        : l10n.runningCoachGoodFormStepAction,
-                  ),
+                  icon: const Icon(Icons.skip_next_rounded),
+                  label: Text(l10n.runningCoachGoodFormStepFrameAction),
+                ),
+                SegmentedButton<_RunningCycleGuideSpeed>(
+                  key: const ValueKey('running-coach-good-form-cycle-speed'),
+                  showSelectedIcon: false,
+                  segments: [
+                    ButtonSegment<_RunningCycleGuideSpeed>(
+                      value: _RunningCycleGuideSpeed.normal,
+                      label: Text(l10n.runningCoachGoodFormSpeedNormal),
+                    ),
+                    ButtonSegment<_RunningCycleGuideSpeed>(
+                      value: _RunningCycleGuideSpeed.slow,
+                      label: Text(l10n.runningCoachGoodFormSpeedSlow),
+                    ),
+                  ],
+                  selected: {_speed},
+                  onSelectionChanged: (selection) =>
+                      _selectSpeed(selection.single),
                 ),
               ],
             ),
@@ -478,6 +554,26 @@ class RunningCycleGuideFramePresentation {
     required this.focusPoints,
     required this.guideLines,
   });
+
+  RunningCycleGuideFramePresentation copyWith({
+    RunningCycleGuidePhase? phase,
+    int? frame,
+    double? sourceGroundY,
+    double? targetGroundY,
+    double? scale,
+    List<Offset>? focusPoints,
+    List<RunningCycleGuideRelationLine>? guideLines,
+  }) {
+    return RunningCycleGuideFramePresentation(
+      phase: phase ?? this.phase,
+      frame: frame ?? this.frame,
+      sourceGroundY: sourceGroundY ?? this.sourceGroundY,
+      targetGroundY: targetGroundY ?? this.targetGroundY,
+      scale: scale ?? this.scale,
+      focusPoints: focusPoints ?? this.focusPoints,
+      guideLines: guideLines ?? this.guideLines,
+    );
+  }
 }
 
 class _RunningCyclePhaseCopy {
@@ -548,9 +644,9 @@ const _runningCycleGuidePresentations =
   RunningCycleGuidePhase.landing: RunningCycleGuideFramePresentation(
     phase: RunningCycleGuidePhase.landing,
     frame: 3,
-    sourceGroundY: 425.0,
+    sourceGroundY: _sharedGroundY,
     targetGroundY: _sharedGroundY,
-    scale: 1.025,
+    scale: 1.0,
     focusPoints: [Offset(0.72, 0.87)],
     guideLines: [
       RunningCycleGuideRelationLine(
@@ -607,6 +703,16 @@ int _representativeFrameForPhase(RunningCycleGuidePhase phase) {
   return _presentationForPhase(phase).frame;
 }
 
+const _runningCycleGuideLoopFrames = <int>[3, 4, 5, 6, 7, 0, 1, 2];
+
+int _nextRunningCycleGuideFrame(int currentFrame) {
+  final normalized = _normalizedFrame(currentFrame);
+  final currentIndex = _runningCycleGuideLoopFrames.indexOf(normalized);
+  if (currentIndex < 0) return _runningCycleGuideLoopFrames.first;
+  return _runningCycleGuideLoopFrames[
+      (currentIndex + 1) % _runningCycleGuideLoopFrames.length];
+}
+
 @visibleForTesting
 int runningCycleGuideRepresentativeFrameForPhase(
   RunningCycleGuidePhase phase,
@@ -615,10 +721,41 @@ int runningCycleGuideRepresentativeFrameForPhase(
 }
 
 @visibleForTesting
+List<int> runningCycleGuideLoopFrameOrderForTesting() {
+  return List<int>.unmodifiable(_runningCycleGuideLoopFrames);
+}
+
+@visibleForTesting
+RunningCycleGuidePhase runningCycleGuidePhaseForFrame(int frame) {
+  return switch (_normalizedFrame(frame)) {
+    3 || 0 => RunningCycleGuidePhase.landing,
+    4 || 1 => RunningCycleGuidePhase.support,
+    5 || 2 => RunningCycleGuidePhase.pushOff,
+    6 || 7 => RunningCycleGuidePhase.recovery,
+    _ => RunningCycleGuidePhase.landing,
+  };
+}
+
+@visibleForTesting
 RunningCycleGuideFramePresentation runningCycleGuidePresentationForPhase(
   RunningCycleGuidePhase phase,
 ) {
   return _presentationForPhase(phase);
+}
+
+@visibleForTesting
+RunningCycleGuideFramePresentation runningCycleGuidePresentationForFrame(
+  int frame,
+) {
+  final normalized = _normalizedFrame(frame);
+  final base =
+      _presentationForPhase(runningCycleGuidePhaseForFrame(normalized));
+  return base.copyWith(
+    frame: normalized,
+    sourceGroundY: _sharedGroundY,
+    targetGroundY: _sharedGroundY,
+    scale: 1.0,
+  );
 }
 
 @visibleForTesting
@@ -635,6 +772,18 @@ Rect runningCycleGuideDestinationRectForPhase(
   return _destinationRectForPresentation(
     _contentRectFor(size, aspectRatio),
     _presentationForPhase(phase),
+  );
+}
+
+@visibleForTesting
+Rect runningCycleGuideDestinationRectForFrame(
+  Size size,
+  double aspectRatio,
+  int frame,
+) {
+  return _destinationRectForPresentation(
+    _contentRectFor(size, aspectRatio),
+    runningCycleGuidePresentationForFrame(frame),
   );
 }
 

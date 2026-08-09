@@ -58,12 +58,15 @@ Widget runningAnalysisResultScreenForTesting({
   required RunningCoachingReport report,
   required RunningCoachSessionAnalysis session,
   bool isHistorical = false,
+  List<RunningCoachSessionAnalysis> comparableSessions =
+      const <RunningCoachSessionAnalysis>[],
 }) {
   return _RunningAnalysisResultScreen(
     result: result,
     report: report,
     session: session,
     isHistorical: isHistorical,
+    comparableSessions: comparableSessions,
   );
 }
 
@@ -362,8 +365,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
     if (_isAnalyzing) return;
     final saveVideoToHistory = _saveSelectedVideoToHistory;
     final captureContext = _captureContext.isComplete ? _captureContext : null;
-    final previousComparableSession =
-        _previousComparableSessionFor(captureContext);
+    final comparableSessions = _comparableSessionsFor(captureContext);
     setState(() => _isAnalyzing = true);
     late final RunningVideoAnalysisResult analysis;
     late final RunningCoachingReport report;
@@ -443,7 +445,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
           _historyService != null &&
           session.videoPath == null,
       historySaveFailed: historySaveFailed,
-      previousComparableSession: previousComparableSession,
+      comparableSessions: comparableSessions,
     );
   }
 
@@ -499,16 +501,14 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
         : RunningCoachScoreEligibility.unavailable;
   }
 
-  RunningCoachSessionAnalysis? _previousComparableSessionFor(
+  List<RunningCoachSessionAnalysis> _comparableSessionsFor(
     RunningCoachCaptureContext? captureContext,
   ) {
-    if (captureContext == null) return null;
-    for (final session in _recentSessions) {
-      if (captureContext.isComparableTo(session.captureContext)) {
-        return session;
-      }
-    }
-    return null;
+    if (captureContext == null) return const <RunningCoachSessionAnalysis>[];
+    return _recentSessions
+        .where(
+            (session) => captureContext.isComparableTo(session.captureContext))
+        .toList(growable: false);
   }
 
   void _openAnalysisResult({
@@ -518,7 +518,8 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
     String? activeVideoPath,
     bool videoSaveFailed = false,
     bool historySaveFailed = false,
-    RunningCoachSessionAnalysis? previousComparableSession,
+    List<RunningCoachSessionAnalysis> comparableSessions =
+        const <RunningCoachSessionAnalysis>[],
   }) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
@@ -529,7 +530,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
           activeVideoPath: activeVideoPath,
           videoSaveFailed: videoSaveFailed,
           historySaveFailed: historySaveFailed,
-          previousComparableSession: previousComparableSession,
+          comparableSessions: comparableSessions,
           onRetakeSameCondition: () => Navigator.of(context).pop(),
         ),
       ),
@@ -5081,9 +5082,19 @@ class _RecentSessionTile extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _ScoreBadge(
-              score: session.overallScore,
-              isReliable: _sessionHasReliableScore(session),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _SessionEvidenceThumbnail(
+                  session: session,
+                  insight: session.primaryInsight,
+                ),
+                const SizedBox(height: 6),
+                _ScoreBadge(
+                  score: session.overallScore,
+                  isReliable: _sessionHasReliableScore(session),
+                ),
+              ],
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -5461,6 +5472,7 @@ class _SessionEvidenceThumbnail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final evidenceImage =
         session.evidenceImages.isEmpty ? null : session.evidenceImages.first;
     if (evidenceImage == null) {
@@ -5492,11 +5504,35 @@ class _SessionEvidenceThumbnail extends StatelessWidget {
               }
               return ColoredBox(
                 color: Colors.black,
-                child: Icon(
-                  snapshot.connectionState == ConnectionState.waiting
-                      ? Icons.image_search_rounded
-                      : Icons.broken_image_outlined,
-                  color: Colors.white70,
+                child: Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        snapshot.connectionState == ConnectionState.waiting
+                            ? Icons.image_search_rounded
+                            : Icons.broken_image_outlined,
+                        color: Colors.white70,
+                        size: 20,
+                      ),
+                      if (snapshot.connectionState !=
+                          ConnectionState.waiting) ...[
+                        const SizedBox(height: 3),
+                        Text(
+                          l10n.runningCoachEvidenceImageReadFailed,
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style:
+                              Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               );
             },
@@ -5515,7 +5551,7 @@ class _RunningAnalysisResultScreen extends StatefulWidget {
   final String? activeVideoPath;
   final bool videoSaveFailed;
   final bool historySaveFailed;
-  final RunningCoachSessionAnalysis? previousComparableSession;
+  final List<RunningCoachSessionAnalysis> comparableSessions;
   final VoidCallback? onRetakeSameCondition;
 
   const _RunningAnalysisResultScreen({
@@ -5526,7 +5562,7 @@ class _RunningAnalysisResultScreen extends StatefulWidget {
     this.activeVideoPath,
     this.videoSaveFailed = false,
     this.historySaveFailed = false,
-    this.previousComparableSession,
+    this.comparableSessions = const <RunningCoachSessionAnalysis>[],
     this.onRetakeSameCondition,
   });
 
@@ -5601,17 +5637,29 @@ class _RunningAnalysisResultScreenState
         controller: _scrollController,
         padding: const EdgeInsets.all(16),
         children: [
-          if (widget.session.hasVerifiedScore) ...[
-            _ScoreFirstHeroCard(session: widget.session),
-            const SizedBox(height: 12),
-          ],
-          _MetricOverviewCard(result: widget.result, report: widget.report),
+          _ScoreFirstHeroCard(
+            session: widget.session,
+            result: widget.result,
+            report: widget.report,
+          ),
           const SizedBox(height: 12),
           if (primaryInsight != null) ...[
             _BeginnerActionCard(insight: primaryInsight),
             const SizedBox(height: 12),
           ] else ...[
             const _AnalysisRetakeActionCard(),
+            const SizedBox(height: 12),
+          ],
+          _MetricOverviewCard(result: widget.result, report: widget.report),
+          const SizedBox(height: 12),
+          if (!widget.isHistorical &&
+              widget.session.captureContext?.isComplete == true) ...[
+            _SameConditionComparisonCard(
+              session: widget.session,
+              result: widget.result,
+              comparableSessions: widget.comparableSessions,
+              onRetakeSameCondition: widget.onRetakeSameCondition,
+            ),
             const SizedBox(height: 12),
           ],
           if (widget.historySaveFailed) ...[
@@ -5658,17 +5706,6 @@ class _RunningAnalysisResultScreenState
             videoPath: widget.activeVideoPath ?? widget.session.videoPath,
             requestedEvidenceKind: _requestedEvidenceKind,
           ),
-          const SizedBox(height: 12),
-          if (!widget.isHistorical &&
-              widget.session.captureContext?.isComplete == true) ...[
-            _SameConditionComparisonCard(
-              session: widget.session,
-              result: widget.result,
-              previousSession: widget.previousComparableSession,
-              onRetakeSameCondition: widget.onRetakeSameCondition,
-            ),
-            const SizedBox(height: 12),
-          ],
         ],
       ),
     );
@@ -10699,17 +10736,29 @@ class _RunningInsightGuidePainter extends CustomPainter {
 
 class _ScoreFirstHeroCard extends StatelessWidget {
   final RunningCoachSessionAnalysis session;
+  final RunningVideoAnalysisResult result;
+  final RunningCoachingReport report;
 
-  const _ScoreFirstHeroCard({required this.session});
+  const _ScoreFirstHeroCard({
+    required this.session,
+    required this.result,
+    required this.report,
+  });
 
   @override
   Widget build(BuildContext context) {
-    if (!session.hasVerifiedScore) return const SizedBox.shrink();
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
+    final hasVerifiedScore = session.hasVerifiedScore;
+    final foreground =
+        hasVerifiedScore ? scheme.onPrimaryContainer : scheme.onErrorContainer;
     return Card(
-      key: const ValueKey('running-coach-score-hero'),
-      color: scheme.primaryContainer,
+      key: ValueKey(
+        hasVerifiedScore
+            ? 'running-coach-score-hero'
+            : 'running-coach-score-hero-withheld',
+      ),
+      color: hasVerifiedScore ? scheme.primaryContainer : scheme.errorContainer,
       clipBehavior: Clip.antiAlias,
       child: Padding(
         padding: const EdgeInsets.all(18),
@@ -10721,28 +10770,43 @@ class _ScoreFirstHeroCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    l10n.runningCoachOverallScoreLabel,
+                    hasVerifiedScore
+                        ? l10n.runningCoachOverallScoreLabel
+                        : l10n.runningCoachScoreWithheldLabel,
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: scheme.onPrimaryContainer,
+                          color: foreground,
                           fontWeight: FontWeight.w900,
                         ),
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    l10n.runningCoachOverallSummary(session.overallScore),
+                    hasVerifiedScore
+                        ? l10n.runningCoachOverallSummary(session.overallScore)
+                        : l10n.runningCoachScoreWithheldSummary,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: scheme.onPrimaryContainer,
+                          color: foreground,
                           fontWeight: FontWeight.w900,
                         ),
                   ),
+                  if (!hasVerifiedScore) ...[
+                    const SizedBox(height: 5),
+                    Text(
+                      _scoreWithheldReasonText(context, result, report),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: foreground,
+                          ),
+                    ),
+                  ],
                 ],
               ),
             ),
             const SizedBox(width: 16),
             Text(
-              '${session.overallScore}',
+              hasVerifiedScore
+                  ? '${session.overallScore}'
+                  : l10n.runningCoachScoreWithheldValue,
               style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                    color: scheme.onPrimaryContainer,
+                    color: foreground,
                     fontWeight: FontWeight.w900,
                   ),
             ),
@@ -10751,6 +10815,34 @@ class _ScoreFirstHeroCard extends StatelessWidget {
       ),
     );
   }
+}
+
+String _scoreWithheldReasonText(
+  BuildContext context,
+  RunningVideoAnalysisResult result,
+  RunningCoachingReport report,
+) {
+  final l10n = AppLocalizations.of(context)!;
+  final perspectiveReason = result.perspectiveQuality.primaryReasonCode;
+  if (perspectiveReason != null) {
+    return _perspectiveReasonText(l10n, perspectiveReason);
+  }
+  if (!result.hasDenseContactEvidence) {
+    return l10n.runningCoachScoreWithheldContactReason(
+      _contactRejectionReasonText(l10n, result.primaryContactRejectionReason),
+    );
+  }
+  RunningCoachingInsight? blockedInsight;
+  for (final insight in report.insights) {
+    if (!insight.quality.isReliableForCoaching) {
+      blockedInsight = insight;
+      break;
+    }
+  }
+  if (blockedInsight != null) {
+    return _qualityReasonText(context, blockedInsight.quality);
+  }
+  return l10n.runningCoachScoreWithheldGenericReason;
 }
 
 class _MetricOverviewCard extends StatelessWidget {
@@ -10765,14 +10857,7 @@ class _MetricOverviewCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final orderedInsights = [
-      for (final metric in RunningCoachMetric.values)
-        if (_insightForMetric(report, metric) case final insight?) insight,
-    ];
-    final evidenceByMetric = <RunningCoachMetric, RunningMetricEvidence>{
-      for (final evidence in result.metricEvidence)
-        if (evidence.metric != null) evidence.metric!: evidence,
-    };
+    final rows = _measuredMetricRows(l10n, result, report);
     return Card(
       key: const ValueKey('running-coach-metric-overview'),
       child: Padding(
@@ -10781,22 +10866,46 @@ class _MetricOverviewCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              l10n.runningCoachMetricScoresTitle,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+              l10n.runningCoachMeasuredMetricsTitle,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w900,
                   ),
             ),
+            const SizedBox(height: 4),
+            Text(
+              l10n.runningCoachMeasuredMetricsBody,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            if (result.perspectiveQuality.hasLimitations) ...[
+              const SizedBox(height: 10),
+              _PerspectiveQualitySummary(quality: result.perspectiveQuality),
+            ],
             const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (final insight in orderedInsights)
-                  _MetricOverviewChip(
-                    insight: insight,
-                    evidence: evidenceByMetric[insight.metric],
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final twoColumns = constraints.maxWidth >= 560;
+                final tileWidth = twoColumns
+                    ? (constraints.maxWidth - 10) / 2
+                    : constraints.maxWidth;
+                return Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: [
+                    for (final row in rows)
+                      SizedBox(
+                        width: tileWidth,
+                        child: _MeasuredMetricTile(row: row),
+                      ),
+                  ],
+                );
+              },
+            ),
+            const SizedBox(height: 12),
+            Text(
+              l10n.runningCoachReferenceRangeNotice,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
-              ],
             ),
           ],
         ),
@@ -10805,70 +10914,404 @@ class _MetricOverviewCard extends StatelessWidget {
   }
 }
 
-class _MetricOverviewChip extends StatelessWidget {
-  final RunningCoachingInsight insight;
-  final RunningMetricEvidence? evidence;
+enum _MeasuredMetricAvailability { verified, limited, unavailable }
 
-  const _MetricOverviewChip({
-    required this.insight,
-    required this.evidence,
+class _MeasuredMetricRowData {
+  final IconData icon;
+  final String label;
+  final String value;
+  final String interpretation;
+  final String detail;
+  final _MeasuredMetricAvailability availability;
+
+  const _MeasuredMetricRowData({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.interpretation,
+    required this.detail,
+    required this.availability,
   });
+}
+
+class _MeasuredMetricTile extends StatelessWidget {
+  final _MeasuredMetricRowData row;
+
+  const _MeasuredMetricTile({required this.row});
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
-    final copy = RunningCoachInsightCopy.fromInsight(insight, l10n);
-    final isReliable = insight.quality.isReliableForCoaching;
-    final isObserved = !isReliable && evidence?.frames.isNotEmpty == true;
-    final color = isReliable
-        ? _statusAccentColor(insight.status)
-        : isObserved
-            ? scheme.secondary
-            : scheme.error;
-    final value = isReliable
-        ? l10n.runningCoachMetricScore(insight.score)
-        : isObserved
-            ? l10n.runningCoachObservedValueBadge
-            : l10n.runningCoachMeasurementUnavailableValue;
+    final color = switch (row.availability) {
+      _MeasuredMetricAvailability.verified => scheme.tertiary,
+      _MeasuredMetricAvailability.limited => scheme.secondary,
+      _MeasuredMetricAvailability.unavailable => scheme.error,
+    };
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.10),
+        color: scheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withValues(alpha: 0.26)),
+        border: Border.all(color: color.withValues(alpha: 0.30)),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(
-              isReliable
-                  ? _statusIcon(insight.status)
-                  : isObserved
-                      ? Icons.visibility_outlined
-                      : Icons.visibility_off_outlined,
-              size: 16,
-              color: color,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(row.icon, size: 18, color: color),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    row.label,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.w900,
+                        ),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 6),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 160),
-              child: Text(
-                '${copy.title} · $value',
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: color,
-                      fontWeight: FontWeight.w800,
-                    ),
-              ),
+            const SizedBox(height: 8),
+            Text(
+              row.value,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              row.interpretation,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.w800,
+                  ),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              row.detail,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
             ),
           ],
         ),
       ),
     );
   }
+}
+
+class _PerspectiveQualitySummary extends StatelessWidget {
+  final RunningVideoPerspectiveQuality quality;
+
+  const _PerspectiveQualitySummary({required this.quality});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      key: const ValueKey('running-coach-perspective-quality-summary'),
+      decoration: BoxDecoration(
+        color: scheme.errorContainer.withValues(alpha: 0.54),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: scheme.error.withValues(alpha: 0.30)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(10),
+        child: Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final reason in quality.issues)
+              _TinySessionPill(
+                text: _perspectiveIssueLabel(l10n, reason),
+              ),
+            Text(
+              _perspectiveRetakeInstruction(l10n, quality.primaryReasonCode),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: scheme.onErrorContainer,
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+List<_MeasuredMetricRowData> _measuredMetricRows(
+  AppLocalizations l10n,
+  RunningVideoAnalysisResult result,
+  RunningCoachingReport report,
+) {
+  final rhythm = result.rhythmAnalysis;
+  final gait = result.gaitAnalysis;
+  final evidenceByMetric = <RunningCoachMetric, RunningMetricEvidence>{
+    for (final evidence in result.metricEvidence)
+      if (evidence.metric != null) evidence.metric!: evidence,
+  };
+
+  _MeasuredMetricRowData timingRow({
+    required IconData icon,
+    required String label,
+    required double? value,
+    required String Function(double value) format,
+    required int sampleCount,
+    required bool verified,
+  }) {
+    final availability = value == null
+        ? _MeasuredMetricAvailability.unavailable
+        : verified
+            ? _MeasuredMetricAvailability.verified
+            : _MeasuredMetricAvailability.limited;
+    return _MeasuredMetricRowData(
+      icon: icon,
+      label: label,
+      value: value == null
+          ? l10n.runningCoachMeasurementUnavailableValue
+          : format(value),
+      interpretation: _measuredMetricInterpretation(
+        l10n,
+        availability,
+        RunningCoachStatus.good,
+      ),
+      detail: _measuredMetricDetail(l10n, availability, sampleCount),
+      availability: availability,
+    );
+  }
+
+  _MeasuredMetricRowData poseRow({
+    required RunningCoachMetric metric,
+    required IconData icon,
+    required String label,
+    required RunningGaitDistribution? distribution,
+    required int fractionDigits,
+  }) {
+    final insight = _insightForMetric(report, metric);
+    final evidence = evidenceByMetric[metric];
+    final fallbackValue = distribution == null
+        ? _defensibleMetricSummaryValue(result, insight)
+        : null;
+    final hasValue = distribution != null || fallbackValue != null;
+    final availability = _measuredAvailabilityFor(
+      insight: insight,
+      evidence: evidence,
+      hasValue: hasValue,
+    );
+    final value = distribution != null
+        ? _gaitDistributionText(
+            l10n,
+            distribution,
+            fractionDigits: fractionDigits,
+          )
+        : fallbackValue == null
+            ? l10n.runningCoachMeasurementUnavailableValue
+            : _formatMetricRawValue(l10n, metric, fallbackValue);
+    return _MeasuredMetricRowData(
+      icon: icon,
+      label: label,
+      value: value,
+      interpretation: _measuredMetricInterpretation(
+        l10n,
+        availability,
+        insight?.status,
+        distribution: distribution,
+        metric: metric,
+      ),
+      detail: _measuredMetricDetail(
+        l10n,
+        availability,
+        distribution?.sampleCount ?? insight?.quality.sampleCount ?? 0,
+        reason: insight?.quality.reason,
+      ),
+      availability: availability,
+    );
+  }
+
+  final rhythmSampleCount = rhythm?.contacts.length ?? gait?.steps.length ?? 0;
+  final verifiedRhythm = rhythm?.hasReliableSample == true;
+  return <_MeasuredMetricRowData>[
+    timingRow(
+      icon: Icons.speed_rounded,
+      label: l10n.runningCoachGaitCadenceLabel,
+      value: rhythm?.cadenceSpm ?? gait?.cadenceSpm,
+      format: (value) => l10n.runningCoachMeasuredMetricSpmValue(
+        value.toStringAsFixed(0),
+      ),
+      sampleCount: rhythmSampleCount,
+      verified: verifiedRhythm,
+    ),
+    timingRow(
+      icon: Icons.timer_outlined,
+      label: l10n.runningCoachGaitStepTimeLabel,
+      value: rhythm?.medianStepTimeMs ?? gait?.medianStepTimeMs,
+      format: (value) => l10n.runningCoachMeasuredMetricMsValue(
+        value.toStringAsFixed(0),
+      ),
+      sampleCount: rhythmSampleCount,
+      verified: verifiedRhythm,
+    ),
+    timingRow(
+      icon: Icons.compare_arrows_rounded,
+      label: l10n.runningCoachGaitLeftRightTimingLabel,
+      value: rhythm?.leftRightStepTimeAsymmetryPercent ??
+          gait?.leftRightStepTimeAsymmetryPercent,
+      format: (value) => l10n.runningCoachEvidencePercentValue(
+        value.toStringAsFixed(1),
+      ),
+      sampleCount: rhythmSampleCount,
+      verified: verifiedRhythm && rhythm?.hasBilateralSample == true,
+    ),
+    poseRow(
+      metric: RunningCoachMetric.footStrike,
+      icon: Icons.vertical_align_bottom_rounded,
+      label: l10n.runningCoachGaitFootReachLabel,
+      distribution: gait?.footStrikeDistance,
+      fractionDigits: 2,
+    ),
+    poseRow(
+      metric: RunningCoachMetric.kneeFlexion,
+      icon: Icons.accessibility_new_rounded,
+      label: l10n.runningCoachGaitKneeAtContactLabel,
+      distribution: gait?.kneeAtContact,
+      fractionDigits: 0,
+    ),
+    poseRow(
+      metric: RunningCoachMetric.posture,
+      icon: Icons.show_chart_rounded,
+      label: l10n.runningCoachGaitForwardLeanLabel,
+      distribution: gait?.forwardLeanAtContact,
+      fractionDigits: 1,
+    ),
+    poseRow(
+      metric: RunningCoachMetric.bounce,
+      icon: Icons.height_rounded,
+      label: l10n.runningCoachMetricVerticalBounceLabel,
+      distribution: null,
+      fractionDigits: 1,
+    ),
+    poseRow(
+      metric: RunningCoachMetric.armCarriage,
+      icon: Icons.sports_martial_arts_rounded,
+      label: l10n.runningCoachGaitElbowLabel,
+      distribution: gait?.elbowAtContact,
+      fractionDigits: 0,
+    ),
+  ];
+}
+
+_MeasuredMetricAvailability _measuredAvailabilityFor({
+  required RunningCoachingInsight? insight,
+  required RunningMetricEvidence? evidence,
+  required bool hasValue,
+}) {
+  if (!hasValue) return _MeasuredMetricAvailability.unavailable;
+  if (insight?.quality.isReliableForCoaching == true) {
+    return _MeasuredMetricAvailability.verified;
+  }
+  if (evidence?.frames.isNotEmpty == true ||
+      (insight?.quality.confidence ?? 0) > 0) {
+    return _MeasuredMetricAvailability.limited;
+  }
+  return _MeasuredMetricAvailability.unavailable;
+}
+
+double? _defensibleMetricSummaryValue(
+  RunningVideoAnalysisResult result,
+  RunningCoachingInsight? insight,
+) {
+  final quality = insight?.quality;
+  if (insight == null || quality == null) return null;
+  final reason = quality.reason;
+  if (quality.sampleCount == 0 ||
+      quality.confidence <= 0 ||
+      reason == 'metric_unavailable' ||
+      reason == 'missing_contact_evidence' ||
+      reason == 'missing_pose_frames' ||
+      reason == 'missing_measured_frames') {
+    return null;
+  }
+  return switch (insight.metric) {
+    RunningCoachMetric.posture => result.forwardLeanDegrees,
+    RunningCoachMetric.bounce => result.verticalBounceRatio * 100,
+    RunningCoachMetric.footStrike => result.footStrikeDistanceRatio,
+    RunningCoachMetric.kneeFlexion => result.stanceKneeAngleDegrees,
+    RunningCoachMetric.armCarriage => result.elbowAngleDegrees,
+  };
+}
+
+String _measuredMetricInterpretation(
+  AppLocalizations l10n,
+  _MeasuredMetricAvailability availability,
+  RunningCoachStatus? status, {
+  RunningGaitDistribution? distribution,
+  RunningCoachMetric? metric,
+}) {
+  if (availability == _MeasuredMetricAvailability.unavailable) {
+    return l10n.runningCoachMeasuredMetricUnavailable;
+  }
+  if (availability == _MeasuredMetricAvailability.limited) {
+    return l10n.runningCoachMeasuredMetricLimited;
+  }
+  if (_distributionLooksInconsistent(distribution, metric)) {
+    return l10n.runningCoachMeasuredMetricInconsistent;
+  }
+  return switch (status) {
+    RunningCoachStatus.good ||
+    null =>
+      l10n.runningCoachMeasuredMetricWithinReference,
+    RunningCoachStatus.watch =>
+      l10n.runningCoachMeasuredMetricNearReferenceEdge,
+    RunningCoachStatus.needsWork =>
+      l10n.runningCoachMeasuredMetricOutsideReference,
+  };
+}
+
+bool _distributionLooksInconsistent(
+  RunningGaitDistribution? distribution,
+  RunningCoachMetric? metric,
+) {
+  if (distribution == null || distribution.sampleCount < 3) return false;
+  return switch (metric) {
+    RunningCoachMetric.footStrike => distribution.span >= 0.12,
+    RunningCoachMetric.kneeFlexion => distribution.span >= 12,
+    RunningCoachMetric.posture => distribution.span >= 8,
+    RunningCoachMetric.armCarriage => distribution.span >= 24,
+    _ => false,
+  };
+}
+
+String _measuredMetricDetail(
+  AppLocalizations l10n,
+  _MeasuredMetricAvailability availability,
+  int sampleCount, {
+  String? reason,
+}) {
+  final quality = switch (availability) {
+    _MeasuredMetricAvailability.verified =>
+      l10n.runningCoachMeasurementStatusVerified,
+    _MeasuredMetricAvailability.limited =>
+      l10n.runningCoachMeasurementStatusObserved,
+    _MeasuredMetricAvailability.unavailable =>
+      l10n.runningCoachMeasurementStatusUnavailable,
+  };
+  final samples = sampleCount > 0
+      ? l10n.runningCoachMeasuredMetricSampleCount(sampleCount)
+      : l10n.runningCoachMeasuredMetricNoSamples;
+  final reasonText = reason == null ? null : _qualityReasonLabel(l10n, reason);
+  if (reasonText == null) {
+    return l10n.runningCoachMeasuredMetricEvidenceDetail(quality, samples);
+  }
+  return l10n.runningCoachMeasuredMetricEvidenceReasonDetail(
+    quality,
+    samples,
+    reasonText,
+  );
 }
 
 class _HistoricalEvidenceFrameGallery extends StatelessWidget {
@@ -11927,13 +12370,13 @@ String _gaitDistributionText(
 class _SameConditionComparisonCard extends StatelessWidget {
   final RunningCoachSessionAnalysis session;
   final RunningVideoAnalysisResult result;
-  final RunningCoachSessionAnalysis? previousSession;
+  final List<RunningCoachSessionAnalysis> comparableSessions;
   final VoidCallback? onRetakeSameCondition;
 
   const _SameConditionComparisonCard({
     required this.session,
     required this.result,
-    required this.previousSession,
+    required this.comparableSessions,
     required this.onRetakeSameCondition,
   });
 
@@ -11942,10 +12385,17 @@ class _SameConditionComparisonCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
     final contextValue = session.captureContext!;
-    final currentGait = result.gaitAnalysis;
-    final previousGait = previousSession?.analysisResult?.gaitAnalysis;
-    final canCompare = currentGait?.hasReliableStepSample == true &&
-        previousGait?.hasReliableStepSample == true;
+    final verifiedComparable = comparableSessions
+        .where(
+          (candidate) =>
+              candidate.scoreVersion == session.scoreVersion &&
+              _sessionHasReliableScore(candidate) &&
+              contextValue.isComparableTo(candidate.captureContext),
+        )
+        .take(5)
+        .toList(growable: false);
+    final canCompare =
+        session.hasVerifiedScore && verifiedComparable.length >= 2;
     return Card(
       key: const ValueKey('running-coach-same-condition-comparison'),
       child: Padding(
@@ -11954,16 +12404,17 @@ class _SameConditionComparisonCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              l10n.runningCoachComparisonTitle,
+              l10n.runningCoachTrendTitle,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w900,
                   ),
             ),
             const SizedBox(height: 5),
             Text(
-              l10n.runningCoachComparisonBody(
+              l10n.runningCoachTrendBody(
                 _effortLabel(l10n, contextValue.effort!),
                 _surfaceLabel(l10n, contextValue.surface!),
+                verifiedComparable.length,
               ),
               style: Theme.of(context).textTheme.bodySmall,
             ),
@@ -11972,19 +12423,23 @@ class _SameConditionComparisonCard extends StatelessWidget {
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children:
-                    _comparisonMetricChips(l10n, previousGait!, currentGait!),
+                children: _trendMetricChips(
+                  l10n,
+                  currentSession: session,
+                  currentResult: result,
+                  baselineSessions: verifiedComparable,
+                ),
               ),
             ] else ...[
               Text(
-                l10n.runningCoachComparisonNoBaselineTitle,
+                l10n.runningCoachTrendInsufficientBaselineTitle,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w800,
                     ),
               ),
               const SizedBox(height: 4),
               Text(
-                l10n.runningCoachComparisonNoBaselineBody,
+                l10n.runningCoachTrendInsufficientBaselineBody,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: scheme.onSurfaceVariant,
                     ),
@@ -12006,54 +12461,181 @@ class _SameConditionComparisonCard extends StatelessWidget {
   }
 }
 
-List<Widget> _comparisonMetricChips(
-  AppLocalizations l10n,
-  RunningGaitAnalysis previous,
-  RunningGaitAnalysis current,
-) {
-  String paired(double? oldValue, double? newValue, {required int digits}) {
-    return l10n.runningCoachComparisonChangeValue(
-      _gaitNumber(oldValue, fractionDigits: digits),
-      _gaitNumber(newValue, fractionDigits: digits),
+List<Widget> _trendMetricChips(
+  AppLocalizations l10n, {
+  required RunningCoachSessionAnalysis currentSession,
+  required RunningVideoAnalysisResult currentResult,
+  required List<RunningCoachSessionAnalysis> baselineSessions,
+}) {
+  final widgets = <Widget>[
+    _StatChip(
+      label: l10n.runningCoachOverallScoreLabel,
+      value: _trendMetricValue(
+        l10n,
+        current: currentSession.overallScore.toDouble(),
+        baseline: _medianValue(
+          baselineSessions.map((session) => session.overallScore.toDouble()),
+        ),
+        format: (value) => value.toStringAsFixed(0),
+      ),
+    ),
+  ];
+
+  void addMetric({
+    required String label,
+    required double? current,
+    required Iterable<double?> baselines,
+    required String Function(double value) format,
+  }) {
+    if (current == null) return;
+    final baseline = _medianValue(baselines);
+    if (baseline == null) return;
+    widgets.add(
+      _StatChip(
+        label: label,
+        value: _trendMetricValue(
+          l10n,
+          current: current,
+          baseline: baseline,
+          format: format,
+        ),
+      ),
     );
   }
 
-  return <Widget>[
-    if (previous.cadenceSpm != null && current.cadenceSpm != null)
-      _StatChip(
-        label: l10n.runningCoachGaitCadenceLabel,
-        value: paired(previous.cadenceSpm, current.cadenceSpm, digits: 0),
-      ),
-    if (previous.footStrikeDistance != null &&
-        current.footStrikeDistance != null)
-      _StatChip(
-        label: l10n.runningCoachGaitFootReachLabel,
-        value: paired(
-          previous.footStrikeDistance!.median,
-          current.footStrikeDistance!.median,
-          digits: 2,
-        ),
-      ),
-    if (previous.kneeAtContact != null && current.kneeAtContact != null)
-      _StatChip(
-        label: l10n.runningCoachGaitKneeAtContactLabel,
-        value: paired(
-          previous.kneeAtContact!.median,
-          current.kneeAtContact!.median,
-          digits: 0,
-        ),
-      ),
-    if (previous.forwardLeanAtContact != null &&
-        current.forwardLeanAtContact != null)
-      _StatChip(
-        label: l10n.runningCoachGaitForwardLeanLabel,
-        value: paired(
-          previous.forwardLeanAtContact!.median,
-          current.forwardLeanAtContact!.median,
-          digits: 0,
-        ),
-      ),
-  ];
+  addMetric(
+    label: l10n.runningCoachGaitCadenceLabel,
+    current: _trendCadence(currentResult),
+    baselines: baselineSessions.map(
+      (session) => session.analysisResult == null
+          ? null
+          : _trendCadence(session.analysisResult!),
+    ),
+    format: (value) => l10n.runningCoachMeasuredMetricSpmValue(
+      value.toStringAsFixed(0),
+    ),
+  );
+  addMetric(
+    label: l10n.runningCoachGaitStepTimeLabel,
+    current: _trendStepTime(currentResult),
+    baselines: baselineSessions.map(
+      (session) => session.analysisResult == null
+          ? null
+          : _trendStepTime(session.analysisResult!),
+    ),
+    format: (value) => l10n.runningCoachMeasuredMetricMsValue(
+      value.toStringAsFixed(0),
+    ),
+  );
+  addMetric(
+    label: l10n.runningCoachGaitFootReachLabel,
+    current: currentResult.gaitAnalysis?.footStrikeDistance?.median,
+    baselines: baselineSessions.map(
+      (session) =>
+          session.analysisResult?.gaitAnalysis?.footStrikeDistance?.median,
+    ),
+    format: (value) => value.toStringAsFixed(2),
+  );
+  addMetric(
+    label: l10n.runningCoachGaitKneeAtContactLabel,
+    current: currentResult.gaitAnalysis?.kneeAtContact?.median,
+    baselines: baselineSessions.map(
+      (session) => session.analysisResult?.gaitAnalysis?.kneeAtContact?.median,
+    ),
+    format: (value) => l10n.runningCoachEvidenceDegreesValue(
+      value.toStringAsFixed(0),
+    ),
+  );
+  addMetric(
+    label: l10n.runningCoachGaitForwardLeanLabel,
+    current: currentResult.gaitAnalysis?.forwardLeanAtContact?.median,
+    baselines: baselineSessions.map(
+      (session) =>
+          session.analysisResult?.gaitAnalysis?.forwardLeanAtContact?.median,
+    ),
+    format: (value) => l10n.runningCoachEvidenceDegreesValue(
+      value.toStringAsFixed(1),
+    ),
+  );
+  addMetric(
+    label: l10n.runningCoachMetricVerticalBounceLabel,
+    current: _trendReliableMetricValue(
+      currentResult,
+      RunningCoachMetric.bounce,
+    ),
+    baselines: baselineSessions.map(
+      (session) => session.analysisResult == null
+          ? null
+          : _trendReliableMetricValue(
+              session.analysisResult!,
+              RunningCoachMetric.bounce,
+            ),
+    ),
+    format: (value) => l10n.runningCoachEvidencePercentValue(
+      value.toStringAsFixed(1),
+    ),
+  );
+  addMetric(
+    label: l10n.runningCoachGaitElbowLabel,
+    current: currentResult.gaitAnalysis?.elbowAtContact?.median,
+    baselines: baselineSessions.map(
+      (session) => session.analysisResult?.gaitAnalysis?.elbowAtContact?.median,
+    ),
+    format: (value) => l10n.runningCoachEvidenceDegreesValue(
+      value.toStringAsFixed(0),
+    ),
+  );
+
+  return widgets;
+}
+
+String _trendMetricValue(
+  AppLocalizations l10n, {
+  required double current,
+  required double? baseline,
+  required String Function(double value) format,
+}) {
+  if (baseline == null) return format(current);
+  final delta = current - baseline;
+  final deltaText = '${delta >= 0 ? '+' : ''}${format(delta)}';
+  return l10n.runningCoachTrendMetricValue(format(current), deltaText);
+}
+
+double? _medianValue(Iterable<double?> source) {
+  final values = source
+      .whereType<double>()
+      .where((value) => value.isFinite)
+      .toList(growable: false)
+    ..sort();
+  if (values.length < 2) return null;
+  final middle = values.length ~/ 2;
+  return values.length.isOdd
+      ? values[middle]
+      : (values[middle - 1] + values[middle]) / 2;
+}
+
+double? _trendCadence(RunningVideoAnalysisResult result) {
+  return result.rhythmAnalysis?.cadenceSpm ?? result.gaitAnalysis?.cadenceSpm;
+}
+
+double? _trendStepTime(RunningVideoAnalysisResult result) {
+  return result.rhythmAnalysis?.medianStepTimeMs ??
+      result.gaitAnalysis?.medianStepTimeMs;
+}
+
+double? _trendReliableMetricValue(
+  RunningVideoAnalysisResult result,
+  RunningCoachMetric metric,
+) {
+  final quality = result.qualityFor(metric);
+  if (quality?.isReliableForCoaching != true) return null;
+  return switch (metric) {
+    RunningCoachMetric.posture => result.forwardLeanDegrees,
+    RunningCoachMetric.bounce => result.verticalBounceRatio * 100,
+    RunningCoachMetric.footStrike => result.footStrikeDistanceRatio,
+    RunningCoachMetric.kneeFlexion => result.stanceKneeAngleDegrees,
+    RunningCoachMetric.armCarriage => result.elbowAngleDegrees,
+  };
 }
 
 class _DenseContactEvidencePanel extends StatelessWidget {
@@ -12421,7 +13003,88 @@ String _qualityReasonText(BuildContext context, RunningMetricQuality quality) {
     'missing_pose_frames' => l10n.runningCoachEvidenceReasonMissingPoseFrames,
     'missing_measured_frames' =>
       l10n.runningCoachEvidenceReasonMissingMeasuredFrames,
+    'too_small_runner' ||
+    'not_side_on' ||
+    'body_cut_off' ||
+    'scale_drift' =>
+      _perspectiveReasonText(l10n, quality.reason!),
     _ => l10n.runningCoachQualityReasonGeneric,
+  };
+}
+
+String? _qualityReasonLabel(AppLocalizations l10n, String reason) {
+  return switch (reason) {
+    'low_coverage' => l10n.runningCoachQualityReasonLabelLowCoverage,
+    'limited_samples' => l10n.runningCoachQualityReasonLabelLimitedSamples,
+    'contact_phase_proxy' =>
+      l10n.runningCoachQualityReasonLabelContactPhaseProxy,
+    'kinematic_contact_estimate' =>
+      l10n.runningCoachQualityReasonLabelKinematicContact,
+    'low_confidence' => l10n.runningCoachQualityReasonLabelLowConfidence,
+    'missing_contact_evidence' =>
+      l10n.runningCoachQualityReasonLabelMissingContact,
+    'missing_pose_frames' =>
+      l10n.runningCoachQualityReasonLabelMissingPoseFrames,
+    'missing_measured_frames' =>
+      l10n.runningCoachQualityReasonLabelMissingMeasuredFrames,
+    'too_small_runner' ||
+    'not_side_on' ||
+    'body_cut_off' ||
+    'scale_drift' =>
+      _perspectiveIssueLabelForReason(l10n, reason),
+    _ => null,
+  };
+}
+
+String _perspectiveReasonText(AppLocalizations l10n, String reason) {
+  return switch (reason) {
+    'too_small_runner' => l10n.runningCoachPerspectiveTooSmallReason,
+    'not_side_on' => l10n.runningCoachPerspectiveNotSideOnReason,
+    'body_cut_off' => l10n.runningCoachPerspectiveBodyCutOffReason,
+    'scale_drift' => l10n.runningCoachPerspectiveScaleDriftReason,
+    _ => l10n.runningCoachQualityReasonGeneric,
+  };
+}
+
+String _perspectiveIssueLabel(
+  AppLocalizations l10n,
+  RunningVideoQualityIssue issue,
+) {
+  return switch (issue) {
+    RunningVideoQualityIssue.tooSmall =>
+      l10n.runningCoachPerspectiveTooSmallLabel,
+    RunningVideoQualityIssue.notSideOn =>
+      l10n.runningCoachPerspectiveNotSideOnLabel,
+    RunningVideoQualityIssue.bodyCutOff =>
+      l10n.runningCoachPerspectiveBodyCutOffLabel,
+    RunningVideoQualityIssue.scaleDrift =>
+      l10n.runningCoachPerspectiveScaleDriftLabel,
+  };
+}
+
+String _perspectiveIssueLabelForReason(
+  AppLocalizations l10n,
+  String reason,
+) {
+  return switch (reason) {
+    'too_small_runner' => l10n.runningCoachPerspectiveTooSmallLabel,
+    'not_side_on' => l10n.runningCoachPerspectiveNotSideOnLabel,
+    'body_cut_off' => l10n.runningCoachPerspectiveBodyCutOffLabel,
+    'scale_drift' => l10n.runningCoachPerspectiveScaleDriftLabel,
+    _ => l10n.runningCoachMeasurementStatusObserved,
+  };
+}
+
+String _perspectiveRetakeInstruction(
+  AppLocalizations l10n,
+  String? reason,
+) {
+  return switch (reason) {
+    'too_small_runner' => l10n.runningCoachPerspectiveTooSmallRetake,
+    'not_side_on' => l10n.runningCoachPerspectiveNotSideOnRetake,
+    'body_cut_off' => l10n.runningCoachPerspectiveBodyCutOffRetake,
+    'scale_drift' => l10n.runningCoachPerspectiveScaleDriftRetake,
+    _ => l10n.runningCoachPerspectiveGenericRetake,
   };
 }
 

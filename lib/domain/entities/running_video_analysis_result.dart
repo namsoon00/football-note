@@ -37,6 +37,13 @@ enum RunningMetricEvidenceWithheldReason {
   missingMeasuredFrames,
 }
 
+enum RunningVideoQualityIssue {
+  tooSmall,
+  notSideOn,
+  bodyCutOff,
+  scaleDrift,
+}
+
 enum RunningCoachFinding {
   postureAligned,
   postureTooUpright,
@@ -343,6 +350,131 @@ class RunningAnalysisSampleSummary {
   }
 }
 
+class RunningVideoPerspectiveQuality {
+  final int evaluatedFrameCount;
+  final double medianBodyScaleRatio;
+  final double minBodyScaleRatio;
+  final double visibilityCoverage;
+  final double sideViewScore;
+  final double scaleDriftRatio;
+  final double cutOffFrameRatio;
+  final List<RunningVideoQualityIssue> issues;
+
+  const RunningVideoPerspectiveQuality({
+    required this.evaluatedFrameCount,
+    required this.medianBodyScaleRatio,
+    required this.minBodyScaleRatio,
+    required this.visibilityCoverage,
+    required this.sideViewScore,
+    required this.scaleDriftRatio,
+    required this.cutOffFrameRatio,
+    this.issues = const <RunningVideoQualityIssue>[],
+  });
+
+  static const unevaluated = RunningVideoPerspectiveQuality(
+    evaluatedFrameCount: 0,
+    medianBodyScaleRatio: 0,
+    minBodyScaleRatio: 0,
+    visibilityCoverage: 0,
+    sideViewScore: 0,
+    scaleDriftRatio: 0,
+    cutOffFrameRatio: 0,
+  );
+
+  bool get isEvaluated => evaluatedFrameCount > 0;
+
+  bool get hasLimitations => issues.isNotEmpty;
+
+  String? get primaryReasonCode {
+    if (issues.contains(RunningVideoQualityIssue.tooSmall)) {
+      return 'too_small_runner';
+    }
+    if (issues.contains(RunningVideoQualityIssue.notSideOn)) {
+      return 'not_side_on';
+    }
+    if (issues.contains(RunningVideoQualityIssue.bodyCutOff)) {
+      return 'body_cut_off';
+    }
+    if (issues.contains(RunningVideoQualityIssue.scaleDrift)) {
+      return 'scale_drift';
+    }
+    return null;
+  }
+
+  String? limitationReasonForMetric(RunningCoachMetric metric) {
+    if (!isEvaluated) return null;
+    if (issues.contains(RunningVideoQualityIssue.tooSmall)) {
+      return 'too_small_runner';
+    }
+    if (issues.contains(RunningVideoQualityIssue.bodyCutOff)) {
+      return 'body_cut_off';
+    }
+    final isLowerBodyPositionMetric = metric == RunningCoachMetric.footStrike ||
+        metric == RunningCoachMetric.kneeFlexion;
+    if (isLowerBodyPositionMetric &&
+        issues.contains(RunningVideoQualityIssue.notSideOn)) {
+      return 'not_side_on';
+    }
+    if ((isLowerBodyPositionMetric || metric == RunningCoachMetric.bounce) &&
+        issues.contains(RunningVideoQualityIssue.scaleDrift)) {
+      return 'scale_drift';
+    }
+    return null;
+  }
+
+  Map<String, Object?> toMap() {
+    return <String, Object?>{
+      'evaluatedFrameCount': evaluatedFrameCount,
+      'medianBodyScaleRatio': medianBodyScaleRatio,
+      'minBodyScaleRatio': minBodyScaleRatio,
+      'visibilityCoverage': visibilityCoverage,
+      'sideViewScore': sideViewScore,
+      'scaleDriftRatio': scaleDriftRatio,
+      'cutOffFrameRatio': cutOffFrameRatio,
+      if (issues.isNotEmpty)
+        'issues': issues.map((issue) => issue.name).toList(growable: false),
+    };
+  }
+
+  static RunningVideoPerspectiveQuality fromObject(Object? raw) {
+    final map = _asObjectMap(raw);
+    if (map == null) return unevaluated;
+    final rawIssues = map['issues'];
+    final issues = <RunningVideoQualityIssue>[];
+    if (rawIssues is Iterable<Object?>) {
+      for (final item in rawIssues) {
+        final issue = _qualityIssueFromToken(item?.toString());
+        if (issue != null && !issues.contains(issue)) {
+          issues.add(issue);
+        }
+      }
+    }
+    return RunningVideoPerspectiveQuality(
+      evaluatedFrameCount: (_finiteInt(map['evaluatedFrameCount']) ?? 0)
+          .clamp(0, 1 << 30)
+          .toInt(),
+      medianBodyScaleRatio: (_finiteDouble(map['medianBodyScaleRatio']) ?? 0)
+          .clamp(0.0, 1.0)
+          .toDouble(),
+      minBodyScaleRatio: (_finiteDouble(map['minBodyScaleRatio']) ?? 0)
+          .clamp(0.0, 1.0)
+          .toDouble(),
+      visibilityCoverage: (_finiteDouble(map['visibilityCoverage']) ?? 0)
+          .clamp(0.0, 1.0)
+          .toDouble(),
+      sideViewScore:
+          (_finiteDouble(map['sideViewScore']) ?? 0).clamp(0.0, 1.0).toDouble(),
+      scaleDriftRatio: (_finiteDouble(map['scaleDriftRatio']) ?? 0)
+          .clamp(0.0, 10.0)
+          .toDouble(),
+      cutOffFrameRatio: (_finiteDouble(map['cutOffFrameRatio']) ?? 0)
+          .clamp(0.0, 1.0)
+          .toDouble(),
+      issues: List<RunningVideoQualityIssue>.unmodifiable(issues),
+    );
+  }
+}
+
 class RunningContactWindow {
   final Duration start;
   final Duration center;
@@ -458,6 +590,7 @@ class RunningVideoAnalysisResult {
   final List<RunningContactWindow> contactWindows;
   final List<Duration> validatedContactFrameTimestamps;
   final double contactConfidence;
+  final RunningVideoPerspectiveQuality perspectiveQuality;
 
   const RunningVideoAnalysisResult({
     required this.videoDuration,
@@ -476,6 +609,7 @@ class RunningVideoAnalysisResult {
     this.contactWindows = const <RunningContactWindow>[],
     this.validatedContactFrameTimestamps = const <Duration>[],
     this.contactConfidence = 0,
+    this.perspectiveQuality = RunningVideoPerspectiveQuality.unevaluated,
   });
 
   double get validFrameCoverage =>
@@ -617,6 +751,7 @@ class RunningVideoAnalysisResult {
       contactWindows: contactWindows,
       validatedContactFrameTimestamps: validatedContactFrameTimestamps,
       contactConfidence: contactConfidence,
+      perspectiveQuality: perspectiveQuality,
     );
   }
 
@@ -647,6 +782,7 @@ class RunningVideoAnalysisResult {
           .map((timestamp) => timestamp.inMilliseconds)
           .toList(growable: false),
       'contactConfidence': contactConfidence,
+      'perspectiveQuality': perspectiveQuality.toMap(),
     };
   }
 
@@ -694,6 +830,9 @@ class RunningVideoAnalysisResult {
       contactConfidence: (_finiteDouble(map['contactConfidence']) ?? 0)
           .clamp(0.0, 1.0)
           .toDouble(),
+      perspectiveQuality: RunningVideoPerspectiveQuality.fromObject(
+        map['perspectiveQuality'],
+      ),
     );
   }
 }
@@ -1427,25 +1566,36 @@ RunningMetricQuality _metricEvidenceQualityFor(
   RunningVideoAnalysisResult result,
   RunningCoachMetric metric,
 ) {
+  final perspectiveReason =
+      result.perspectiveQuality.limitationReasonForMetric(metric);
+  RunningMetricQuality applyPerspectiveGate(RunningMetricQuality quality) {
+    if (perspectiveReason == null) return quality;
+    if (quality.hasBlockingMeasurementReason) return quality;
+    return quality.copyWith(
+      confidence: math.min(quality.confidence, 0.55),
+      reason: perspectiveReason,
+    );
+  }
+
   final quality = result.qualityFor(metric);
-  if (quality != null) return quality;
+  if (quality != null) return applyPerspectiveGate(quality);
   if (result.metricQualities.isNotEmpty) {
-    return const RunningMetricQuality(
+    return applyPerspectiveGate(const RunningMetricQuality(
       confidence: 0,
       sampleCount: 0,
       reason: 'metric_unavailable',
-    );
+    ));
   }
   final reason = result.validFrameCoverage < 0.6
       ? 'low_coverage'
       : result.validFrames < 7
           ? 'limited_samples'
           : null;
-  return RunningMetricQuality(
+  return applyPerspectiveGate(RunningMetricQuality(
     confidence: result.analysisConfidence,
     sampleCount: result.validFrames,
     reason: reason,
-  );
+  ));
 }
 
 Map<String, double> _measuredValuesForMetric(
@@ -2206,6 +2356,16 @@ RunningContactSide _contactSideFromToken(String? token) {
   };
 }
 
+RunningVideoQualityIssue? _qualityIssueFromToken(String? token) {
+  return switch (token) {
+    'tooSmall' || 'too_small_runner' => RunningVideoQualityIssue.tooSmall,
+    'notSideOn' || 'not_side_on' => RunningVideoQualityIssue.notSideOn,
+    'bodyCutOff' || 'body_cut_off' => RunningVideoQualityIssue.bodyCutOff,
+    'scaleDrift' || 'scale_drift' => RunningVideoQualityIssue.scaleDrift,
+    _ => null,
+  };
+}
+
 Map<Object?, Object?>? _asObjectMap(Object? raw) {
   if (raw is Map<Object?, Object?>) return raw;
   if (raw is Map) {
@@ -2294,7 +2454,11 @@ class RunningMetricQuality {
         'missing_contact_evidence' ||
         'missing_pose_frames' ||
         'missing_measured_frames' ||
-        'metric_unavailable' =>
+        'metric_unavailable' ||
+        'too_small_runner' ||
+        'not_side_on' ||
+        'body_cut_off' ||
+        'scale_drift' =>
           true,
         _ => false,
       };

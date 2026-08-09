@@ -5073,6 +5073,81 @@
   "runningCoachMeasurementStatusUnavailable": "측정 불가",
   "runningCoachMeasurementCoverageTitle": "이번 영상의 항목별 상태",
   "runningCoachMeasurementCoverageBody": "항목별로 독립 검증합니다. 접지 근거가 부족해도 팔·상체 등의 측정이 함께 무효가 되지는 않습니다.",
+  "runningCoachScoreWithheldLabel": "점수 보류",
+  "runningCoachScoreWithheldSummary": "이 영상으로는 검증된 점수를 낼 수 없어요.",
+  "runningCoachScoreWithheldValue": "—",
+  "runningCoachScoreWithheldContactReason": "착지 근거가 충분하지 않아요: {reason}",
+  "@runningCoachScoreWithheldContactReason": {
+    "placeholders": {
+      "reason": {}
+    }
+  },
+  "runningCoachScoreWithheldGenericReason": "필수 측정 중 일부가 제한되어 추정 점수 대신 점수를 보류했어요.",
+  "runningCoachMeasuredMetricsTitle": "측정 지표",
+  "runningCoachMeasuredMetricsBody": "영상이 뒷받침하는 값만 확정 측정으로 표시해요. 제한된 관찰값은 점수나 드릴 없이 보여 줍니다.",
+  "runningCoachReferenceRangeNotice": "기준 범위는 일반 코칭 참고값이며 개인별 의학적 한계나 부상 위험 한계가 아니에요.",
+  "runningCoachMetricVerticalBounceLabel": "상하 흔들림 (%)",
+  "runningCoachMeasuredMetricSpmValue": "{value} spm",
+  "@runningCoachMeasuredMetricSpmValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "runningCoachMeasuredMetricMsValue": "{value} ms",
+  "@runningCoachMeasuredMetricMsValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "runningCoachMeasuredMetricWithinReference": "일반 기준 안",
+  "runningCoachMeasuredMetricNearReferenceEdge": "기준 경계 근처",
+  "runningCoachMeasuredMetricOutsideReference": "일반 기준 밖",
+  "runningCoachMeasuredMetricInconsistent": "샘플 간 변동 큼",
+  "runningCoachMeasuredMetricLimited": "근거 제한",
+  "runningCoachMeasuredMetricUnavailable": "이 영상에서는 사용 불가",
+  "runningCoachMeasuredMetricSampleCount": "{count}개 샘플",
+  "@runningCoachMeasuredMetricSampleCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "runningCoachMeasuredMetricNoSamples": "방어 가능한 샘플 없음",
+  "runningCoachMeasuredMetricEvidenceDetail": "{quality} · {samples}",
+  "@runningCoachMeasuredMetricEvidenceDetail": {
+    "placeholders": {
+      "quality": {},
+      "samples": {}
+    }
+  },
+  "runningCoachMeasuredMetricEvidenceReasonDetail": "{quality} · {samples} · {reason}",
+  "@runningCoachMeasuredMetricEvidenceReasonDetail": {
+    "placeholders": {
+      "quality": {},
+      "samples": {},
+      "reason": {}
+    }
+  },
+  "runningCoachQualityReasonLabelLowCoverage": "낮은 커버리지",
+  "runningCoachQualityReasonLabelLimitedSamples": "샘플 부족",
+  "runningCoachQualityReasonLabelContactPhaseProxy": "착지 대체값",
+  "runningCoachQualityReasonLabelKinematicContact": "움직임 기반 착지",
+  "runningCoachQualityReasonLabelLowConfidence": "낮은 신뢰도",
+  "runningCoachQualityReasonLabelMissingContact": "착지 근거 없음",
+  "runningCoachQualityReasonLabelMissingPoseFrames": "자세 프레임 없음",
+  "runningCoachQualityReasonLabelMissingMeasuredFrames": "측정 프레임 없음",
+  "runningCoachPerspectiveTooSmallLabel": "너무 멀거나 작음",
+  "runningCoachPerspectiveNotSideOnLabel": "측면 부족",
+  "runningCoachPerspectiveBodyCutOffLabel": "몸이 잘림",
+  "runningCoachPerspectiveScaleDriftLabel": "거리 변화",
+  "runningCoachPerspectiveTooSmallReason": "러너가 화면에서 너무 작아 위치 기반 코칭이 제한돼요.",
+  "runningCoachPerspectiveNotSideOnReason": "대각선 또는 정면에 가까워 하체 착지 코칭이 제한돼요.",
+  "runningCoachPerspectiveBodyCutOffReason": "많은 프레임에서 몸이 잘려 해당 측정이 제한돼요.",
+  "runningCoachPerspectiveScaleDriftReason": "클립 중 러너 크기가 크게 변해 거리 민감 측정이 제한돼요.",
+  "runningCoachPerspectiveTooSmallRetake": "전신이 보이도록 더 가까운 측면에서 다시 촬영해 주세요.",
+  "runningCoachPerspectiveNotSideOnRetake": "러너가 화면을 가로질러 움직이는 정확한 측면에서 다시 촬영해 주세요.",
+  "runningCoachPerspectiveBodyCutOffRetake": "머리, 골반, 무릎, 발이 전체 클립에서 프레임 안에 있게 해 주세요.",
+  "runningCoachPerspectiveScaleDriftRetake": "러너 크기가 일정하게 보이도록 카메라 거리를 유지해 주세요.",
+  "runningCoachPerspectiveGenericRetake": "전신이 보이는 안정적인 측면 영상으로 다시 촬영해 주세요.",
   "runningCoachEvidenceVideoUnavailable": "저장된 영상 파일을 사용할 수 없어요. 분석된 프레임의 자세 오버레이는 보여 줍니다.",
   "runningCoachEvidencePoseFrameOnly": "분석된 자세 프레임을 보여 줍니다. 이 화면에는 영상 파일이 저장되지 않았어요.",
   "runningCoachEvidenceTimestamp": "근거 프레임 {time}",
@@ -5121,14 +5196,10 @@
   "runningCoachTwoDTargetLabel": "다음 착지",
   "runningCoachTwoDVideoOverlayTitle": "업로드한 영상 위 측정",
   "runningCoachCoordinateRigUnavailable": "이 프레임의 관절 좌표가 부족해 동작 비교를 만들 수 없어요.",
-  "runningCoachThreeDComparisonTitle": "3D 러너 비교",
-  "runningCoachThreeDCurrentLabel": "현재 3D 러너",
-  "runningCoachThreeDTargetLabel": "다음 3D 목표",
-  "runningCoachThreeDConfidenceLabel": "추적",
-  "runningCoachThreeDRendererLoading": "3D 러너를 불러오는 중...",
-  "runningCoachThreeDRendererUnavailable": "이 프레임으로는 3D 러너를 만들 수 없어요. 전신 랜드마크가 보이는 더 선명한 측면 영상을 사용해 주세요.",
-  "runningCoachThreeDRendererError": "로컬 WebGL 러너를 시작할 수 없어요.",
-  "runningCoachThreeDReferenceNotice": "고정된 기준 러너에 추적 좌표로 작은 자세 보정만 적용해요. 내 체형이나 얼굴을 재구성한 것은 아니에요.",
+  "runningCoachPoseComparisonTitle": "측정 자세 비교",
+  "runningCoachPoseComparisonCurrentLabel": "현재 측정 자세",
+  "runningCoachPoseComparisonTargetLabel": "기준 목표",
+  "runningCoachPoseComparisonUnavailable": "이 프레임에는 나란히 비교할 측정 관절 좌표가 충분하지 않아요.",
   "runningCoachHistoryEvidenceUnavailableTitle": "저장된 관절 근거 없음",
   "runningCoachHistoryEvidenceUnavailableBody": "이전 버전에서 저장한 기록이라 자세 프레임은 없어요. 점수와 코칭 목표는 그대로 볼 수 있어요.",
   "runningCoachEvidenceCurrentLabel": "현재",
@@ -5682,8 +5753,8 @@
   "runningCoachGoodFormScreenTitle": "좋은 러닝 자세",
   "runningCoachGoodFormIntroTitle": "초보자부터 경력자까지",
   "runningCoachGoodFormIntroBody": "처음에는 ‘먼저 이것만’을 따라 하고, 익숙해지면 ‘더 정확히 보기’로 좌우·타이밍·연속 동작을 확인하세요.",
-  "runningCoachGoodFormCycleTitle": "정지된 단계별 참고 그림",
-  "runningCoachGoodFormCycleBody": "네 장의 참고 그림은 연속 영상이나 내 업로드 영상이 아닌 정지 프레임이에요. 선택한 러너는 같은 크기와 같은 지면선에 맞춰 표시되며, 파란 표시가 그 단계에서 확인할 관계를 알려줘요.",
+  "runningCoachGoodFormCycleTitle": "연속 동작 루프",
+  "runningCoachGoodFormCycleBody": "한 명의 기준 러너가 착지, 지지, 밀어내기, 회복, 다음 착지까지 같은 스케일과 지면선으로 이어집니다.",
   "runningCoachGoodFormPhaseLandingTitle": "착지",
   "runningCoachGoodFormPhaseLandingCue": "발을 앞으로 뻗기보다 엉덩이 가까이에 가볍게 내려놓아요.",
   "runningCoachGoodFormPhaseLandingFocus": "착지 발과 공통 지면선",
@@ -5715,6 +5786,11 @@
   "runningCoachGoodFormSlowMotionAction": "천천히 보기",
   "runningCoachGoodFormStepAction": "다음 단계",
   "runningCoachGoodFormRestartStepsAction": "4단계 다시 시작",
+  "runningCoachGoodFormPlayAction": "재생",
+  "runningCoachGoodFormPauseAction": "일시정지",
+  "runningCoachGoodFormStepFrameAction": "다음 프레임",
+  "runningCoachGoodFormSpeedNormal": "보통",
+  "runningCoachGoodFormSpeedSlow": "느리게",
   "runningCoachGoodFormTechniqueTitle": "항목별 일러스트 가이드",
   "runningCoachGoodFormTechniqueBody": "빨강은 흔한 실수, 파랑은 권장 움직임입니다. 몸 모양보다 표시된 관계와 방향을 확인하세요.",
   "runningCoachGoodFormCommonLabel": "흔한 실수",
@@ -8927,6 +9003,24 @@
   "runningCoachGaitLimitationsBody": "단일 측면 영상만으로는 발 롤링·회내, 지면 반력, 정확한 접지 시간, 부상 위험을 측정하거나 판정하지 않습니다.",
   "runningCoachJudgmentWithheldTitle": "판정 보류",
   "runningCoachJudgmentWithheldBody": "근거가 부족해 좋음/개선 필요와 훈련 처방을 표시하지 않았어요. 영상을 다시 촬영해 주세요.",
+  "runningCoachTrendTitle": "같은 조건 추세",
+  "runningCoachTrendBody": "비교 조건: {surface}에서 {effort}. 같은 점수 버전의 최근 검증 세션 {count}개를 사용합니다.",
+  "@runningCoachTrendBody": {
+    "placeholders": {
+      "effort": {},
+      "surface": {},
+      "count": { "type": "int" }
+    }
+  },
+  "runningCoachTrendInsufficientBaselineTitle": "검증 기준선 부족",
+  "runningCoachTrendInsufficientBaselineBody": "변화를 보여 주려면 같은 점수 버전의 검증된 같은 조건 세션이 최소 2개 필요해요.",
+  "runningCoachTrendMetricValue": "{current} · Δ {delta}",
+  "@runningCoachTrendMetricValue": {
+    "placeholders": {
+      "current": {},
+      "delta": {}
+    }
+  },
   "runningCoachComparisonTitle": "같은 조건 비교",
   "runningCoachComparisonBody": "이번 기록은 {effort} · {surface} 조건으로 저장됩니다. 같은 조건의 이전 영상과만 비교하세요.",
   "@runningCoachComparisonBody": {

@@ -9115,6 +9115,167 @@ class AppLocalizationsEn extends AppLocalizations {
       'Metrics are verified independently. Missing contact evidence does not invalidate measurements such as arm carriage or trunk position.';
 
   @override
+  String get runningCoachScoreWithheldLabel => 'Score withheld';
+
+  @override
+  String get runningCoachScoreWithheldSummary =>
+      'The video does not support a verified score.';
+
+  @override
+  String get runningCoachScoreWithheldValue => '—';
+
+  @override
+  String runningCoachScoreWithheldContactReason(Object reason) {
+    return 'Contact evidence is not defensible: $reason';
+  }
+
+  @override
+  String get runningCoachScoreWithheldGenericReason =>
+      'One or more required measurements are limited, so the score is withheld instead of estimated.';
+
+  @override
+  String get runningCoachMeasuredMetricsTitle => 'Measured metrics';
+
+  @override
+  String get runningCoachMeasuredMetricsBody =>
+      'Only values supported by this video are listed as verified. Limited observations are shown without a score or drill.';
+
+  @override
+  String get runningCoachReferenceRangeNotice =>
+      'Reference ranges are general coaching references, not individualized medical or injury-risk limits.';
+
+  @override
+  String get runningCoachMetricVerticalBounceLabel => 'Vertical bounce (%)';
+
+  @override
+  String runningCoachMeasuredMetricSpmValue(Object value) {
+    return '$value spm';
+  }
+
+  @override
+  String runningCoachMeasuredMetricMsValue(Object value) {
+    return '$value ms';
+  }
+
+  @override
+  String get runningCoachMeasuredMetricWithinReference =>
+      'Within general reference';
+
+  @override
+  String get runningCoachMeasuredMetricNearReferenceEdge =>
+      'Near reference edge';
+
+  @override
+  String get runningCoachMeasuredMetricOutsideReference =>
+      'Outside general reference';
+
+  @override
+  String get runningCoachMeasuredMetricInconsistent =>
+      'Inconsistent across samples';
+
+  @override
+  String get runningCoachMeasuredMetricLimited => 'Limited evidence';
+
+  @override
+  String get runningCoachMeasuredMetricUnavailable =>
+      'Unavailable from this video';
+
+  @override
+  String runningCoachMeasuredMetricSampleCount(int count) {
+    return '$count samples';
+  }
+
+  @override
+  String get runningCoachMeasuredMetricNoSamples => 'No defensible sample';
+
+  @override
+  String runningCoachMeasuredMetricEvidenceDetail(
+      Object quality, Object samples) {
+    return '$quality · $samples';
+  }
+
+  @override
+  String runningCoachMeasuredMetricEvidenceReasonDetail(
+      Object quality, Object samples, Object reason) {
+    return '$quality · $samples · $reason';
+  }
+
+  @override
+  String get runningCoachQualityReasonLabelLowCoverage => 'low coverage';
+
+  @override
+  String get runningCoachQualityReasonLabelLimitedSamples => 'limited samples';
+
+  @override
+  String get runningCoachQualityReasonLabelContactPhaseProxy => 'contact proxy';
+
+  @override
+  String get runningCoachQualityReasonLabelKinematicContact =>
+      'kinematic contact';
+
+  @override
+  String get runningCoachQualityReasonLabelLowConfidence => 'low confidence';
+
+  @override
+  String get runningCoachQualityReasonLabelMissingContact => 'missing contact';
+
+  @override
+  String get runningCoachQualityReasonLabelMissingPoseFrames =>
+      'missing pose frames';
+
+  @override
+  String get runningCoachQualityReasonLabelMissingMeasuredFrames =>
+      'missing measured frames';
+
+  @override
+  String get runningCoachPerspectiveTooSmallLabel => 'Too far/small';
+
+  @override
+  String get runningCoachPerspectiveNotSideOnLabel => 'Not side-on enough';
+
+  @override
+  String get runningCoachPerspectiveBodyCutOffLabel => 'Body cut off';
+
+  @override
+  String get runningCoachPerspectiveScaleDriftLabel => 'Distance changed';
+
+  @override
+  String get runningCoachPerspectiveTooSmallReason =>
+      'The runner is too small in the frame, so position-based coaching is limited.';
+
+  @override
+  String get runningCoachPerspectiveNotSideOnReason =>
+      'The view is diagonal or front-facing enough that lower-body contact coaching is limited.';
+
+  @override
+  String get runningCoachPerspectiveBodyCutOffReason =>
+      'The body is cut off in too many frames, so affected measurements are limited.';
+
+  @override
+  String get runningCoachPerspectiveScaleDriftReason =>
+      'The runner changes size across the clip, so distance-sensitive measurements are limited.';
+
+  @override
+  String get runningCoachPerspectiveTooSmallRetake =>
+      'Retake closer from the side with the full body visible.';
+
+  @override
+  String get runningCoachPerspectiveNotSideOnRetake =>
+      'Retake from a true side view with the runner moving across the frame.';
+
+  @override
+  String get runningCoachPerspectiveBodyCutOffRetake =>
+      'Keep head, hips, knees, and feet inside the frame for the full clip.';
+
+  @override
+  String get runningCoachPerspectiveScaleDriftRetake =>
+      'Keep camera distance steady so the runner stays the same size.';
+
+  @override
+  String get runningCoachPerspectiveGenericRetake =>
+      'Retake from a steady side view with the full runner visible.';
+
+  @override
   String get runningCoachEvidenceVideoUnavailable =>
       'The saved video file is unavailable. The pose overlay still shows the analyzed frame.';
 
@@ -9212,31 +9373,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'This frame does not contain enough joint coordinates to build the motion comparison.';
 
   @override
-  String get runningCoachThreeDComparisonTitle => '3D runner comparison';
+  String get runningCoachPoseComparisonTitle => 'Measured pose comparison';
 
   @override
-  String get runningCoachThreeDCurrentLabel => 'Current 3D runner';
+  String get runningCoachPoseComparisonCurrentLabel => 'Current measured pose';
 
   @override
-  String get runningCoachThreeDTargetLabel => 'Next 3D target';
+  String get runningCoachPoseComparisonTargetLabel => 'Reference target';
 
   @override
-  String get runningCoachThreeDConfidenceLabel => 'Tracking';
-
-  @override
-  String get runningCoachThreeDRendererLoading => 'Loading 3D runner...';
-
-  @override
-  String get runningCoachThreeDRendererUnavailable =>
-      'The 3D runner cannot be built from this frame. Try a clearer side-view clip with full-body landmarks.';
-
-  @override
-  String get runningCoachThreeDRendererError =>
-      'The local WebGL runner could not start.';
-
-  @override
-  String get runningCoachThreeDReferenceNotice =>
-      'Fixed reference runner: tracked landmarks make small, constrained pose adjustments. This does not recreate your body or face.';
+  String get runningCoachPoseComparisonUnavailable =>
+      'This frame does not contain enough measured joint coordinates for a side-by-side pose comparison.';
 
   @override
   String get runningCoachHistoryEvidenceUnavailableTitle =>
@@ -10292,11 +10439,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Start with ‘Start here.’ Once it feels natural, use ‘Look closer’ to check symmetry, timing, and movement across several strides.';
 
   @override
-  String get runningCoachGoodFormCycleTitle => 'Static phase references';
+  String get runningCoachGoodFormCycleTitle => 'Continuous form loop';
 
   @override
   String get runningCoachGoodFormCycleBody =>
-      'The four reference images are static frames, not continuous video or your uploaded run. Each selected runner is displayed at the same scale on the same ground line; use the blue mark to inspect that phase relationship.';
+      'One reference runner loops through landing, support, push-off, recovery, and the next landing with shared scale and ground alignment.';
 
   @override
   String get runningCoachGoodFormPhaseLandingTitle => 'Landing';
@@ -10360,6 +10507,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachGoodFormRestartStepsAction => 'Restart four steps';
+
+  @override
+  String get runningCoachGoodFormPlayAction => 'Play';
+
+  @override
+  String get runningCoachGoodFormPauseAction => 'Pause';
+
+  @override
+  String get runningCoachGoodFormStepFrameAction => 'Next frame';
+
+  @override
+  String get runningCoachGoodFormSpeedNormal => 'Normal';
+
+  @override
+  String get runningCoachGoodFormSpeedSlow => 'Slow';
 
   @override
   String get runningCoachGoodFormTechniqueTitle =>
@@ -16508,6 +16670,27 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get runningCoachJudgmentWithheldBody =>
       'There is not enough evidence to label this movement as good or needing work, so no drill is prescribed. Retake the video instead.';
+
+  @override
+  String get runningCoachTrendTitle => 'Same-condition trend';
+
+  @override
+  String runningCoachTrendBody(Object effort, Object surface, int count) {
+    return 'Compared condition: $effort on $surface. Uses $count recent verified sessions with the same score version.';
+  }
+
+  @override
+  String get runningCoachTrendInsufficientBaselineTitle =>
+      'Insufficient verified baseline';
+
+  @override
+  String get runningCoachTrendInsufficientBaselineBody =>
+      'At least two verified same-condition sessions with the same score version are required before showing deltas.';
+
+  @override
+  String runningCoachTrendMetricValue(Object current, Object delta) {
+    return '$current · Δ $delta';
+  }
 
   @override
   String get runningCoachComparisonTitle => 'Same-condition comparison';

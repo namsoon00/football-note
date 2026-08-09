@@ -391,6 +391,7 @@ class RunningPoseAnalysisChannel(
                 throw videoTooBlurry()
             }
 
+            val perspectiveQuality = perspectiveQualityPayload(frameSamples)
             val direction = resolveDirection(frameSamples)
             val leanDegrees = frameSamples
                 .map { it.forwardLeanDegrees(direction) }
@@ -519,6 +520,30 @@ class RunningPoseAnalysisChannel(
             val validFrameTimestamps = (frameSamples + densePass.samples)
                 .map { it.timestampMs }
                 .toSet()
+            val baseMetricQualities = mapOf(
+                "posture" to metricQualityPayload(
+                    coreConfidence,
+                    frameSamples.size,
+                ),
+                "bounce" to metricQualityPayload(
+                    coreConfidence,
+                    frameSamples.size,
+                ),
+                "footStrike" to metricQualityPayload(
+                    contactConfidence,
+                    metricContactFrames.size,
+                    contactQualityReason,
+                ),
+                "kneeFlexion" to metricQualityPayload(
+                    contactConfidence,
+                    metricContactFrames.size,
+                    contactQualityReason,
+                ),
+                "armCarriage" to metricQualityPayload(
+                    armConfidence,
+                    armConfidenceValues.size,
+                ),
+            )
 
             return mapOf(
                 "durationMs" to durationMs.toInt(),
@@ -531,27 +556,30 @@ class RunningPoseAnalysisChannel(
                 "stanceKneeAngleDegrees" to roundTo3(stanceKneeAngle),
                 "elbowAngleDegrees" to roundTo3(elbowAngle),
                 "metricQualities" to mapOf(
-                    "posture" to metricQualityPayload(
-                        coreConfidence,
-                        frameSamples.size,
+                    "posture" to applyPerspectiveQuality(
+                        "posture",
+                        baseMetricQualities.getValue("posture"),
+                        perspectiveQuality,
                     ),
-                    "bounce" to metricQualityPayload(
-                        coreConfidence,
-                        frameSamples.size,
+                    "bounce" to applyPerspectiveQuality(
+                        "bounce",
+                        baseMetricQualities.getValue("bounce"),
+                        perspectiveQuality,
                     ),
-                    "footStrike" to metricQualityPayload(
-                        contactConfidence,
-                        metricContactFrames.size,
-                        contactQualityReason,
+                    "footStrike" to applyPerspectiveQuality(
+                        "footStrike",
+                        baseMetricQualities.getValue("footStrike"),
+                        perspectiveQuality,
                     ),
-                    "kneeFlexion" to metricQualityPayload(
-                        contactConfidence,
-                        metricContactFrames.size,
-                        contactQualityReason,
+                    "kneeFlexion" to applyPerspectiveQuality(
+                        "kneeFlexion",
+                        baseMetricQualities.getValue("kneeFlexion"),
+                        perspectiveQuality,
                     ),
-                    "armCarriage" to metricQualityPayload(
-                        armConfidence,
-                        armConfidenceValues.size,
+                    "armCarriage" to applyPerspectiveQuality(
+                        "armCarriage",
+                        baseMetricQualities.getValue("armCarriage"),
+                        perspectiveQuality,
                     ),
                 ),
                 "coarseSamples" to sampleSummaryPayload(
@@ -578,6 +606,7 @@ class RunningPoseAnalysisChannel(
                     .distinct()
                     .sorted(),
                 "contactConfidence" to roundTo3(contactConfidence),
+                "perspectiveQuality" to perspectiveQuality.toPayload(),
                 "poseFrames" to mergePoseFrames(
                     coarsePass.poseFrames,
                     densePass.poseFrames,
@@ -875,22 +904,59 @@ class RunningPoseAnalysisChannel(
     private fun selectContactCandidateWindows(
         candidates: List<ContactCandidate>,
     ): List<ContactCandidate> {
-        val selected = mutableListOf<ContactCandidate>()
+        val deduped = mutableListOf<ContactCandidate>()
         val rankedCandidates = candidates.sortedWith(
             compareByDescending<ContactCandidate> { it.confidence }
                 .thenBy { it.centerTimestampMs },
         )
         for (candidate in rankedCandidates) {
-            val duplicatesSameStep = selected.any { selectedCandidate ->
+            val duplicatesSameStep = deduped.any { selectedCandidate ->
                 selectedCandidate.side == candidate.side &&
                     abs(selectedCandidate.centerTimestampMs - candidate.centerTimestampMs) <
                     minimumContactCenterSeparationMs
             }
             if (!duplicatesSameStep) {
-                selected.add(candidate)
+                deduped.add(candidate)
             }
-            if (selected.size >= maxContactWindows) {
-                break
+        }
+        if (deduped.size <= maxContactWindows) {
+            return deduped.sortedBy { it.centerTimestampMs }
+        }
+        val ordered = deduped.sortedBy { it.centerTimestampMs }
+        val firstTime = ordered.first().centerTimestampMs
+        val lastTime = ordered.last().centerTimestampMs
+        val selected = mutableListOf<ContactCandidate>()
+        val selectedIndexes = mutableSetOf<Int>()
+        for (slot in 0 until maxContactWindows) {
+            val target = if (maxContactWindows <= 1) {
+                (firstTime + lastTime) / 2.0
+            } else {
+                firstTime + ((lastTime - firstTime).toDouble() * slot) /
+                    (maxContactWindows - 1).toDouble()
+            }
+            var bestIndex: Int? = null
+            for (index in ordered.indices) {
+                if (selectedIndexes.contains(index)) continue
+                val currentBest = bestIndex
+                if (currentBest == null) {
+                    bestIndex = index
+                    continue
+                }
+                val current = ordered[index]
+                val best = ordered[currentBest]
+                val distance = abs(current.centerTimestampMs.toDouble() - target)
+                val bestDistance = abs(best.centerTimestampMs.toDouble() - target)
+                if (distance < bestDistance ||
+                    (distance == bestDistance && current.confidence > best.confidence) ||
+                    (distance == bestDistance && current.confidence == best.confidence &&
+                        current.centerTimestampMs < best.centerTimestampMs)
+                ) {
+                    bestIndex = index
+                }
+            }
+            bestIndex?.let {
+                selectedIndexes.add(it)
+                selected.add(ordered[it])
             }
         }
         return selected.sortedBy { it.centerTimestampMs }
@@ -1562,6 +1628,111 @@ class RunningPoseAnalysisChannel(
         }
     }
 
+    private fun perspectiveQualityPayload(samples: List<FrameSample>): PerspectiveQuality {
+        if (samples.isEmpty()) {
+            return PerspectiveQuality(
+                evaluatedFrameCount = 0,
+                medianBodyScaleRatio = 0.0,
+                minBodyScaleRatio = 0.0,
+                visibilityCoverage = 0.0,
+                sideViewScore = 0.0,
+                scaleDriftRatio = 0.0,
+                cutOffFrameRatio = 0.0,
+                issues = emptyList(),
+            )
+        }
+        val bodyScaleRatios = samples.map { sample ->
+            sample.bodyScale / min(sample.imageWidth, sample.imageHeight).coerceAtLeast(1)
+        }
+        val medianBodyScaleRatio = median(bodyScaleRatios) ?: 0.0
+        val minBodyScaleRatio = bodyScaleRatios.minOrNull() ?: 0.0
+        val scales = samples.map { it.bodyScale }.filter { it > 0.0 }
+        val lowerScale = percentile(scales, 0.10) ?: 0.0
+        val upperScale = percentile(scales, 0.90) ?: lowerScale
+        val scaleDriftRatio = if (lowerScale <= 0.0) {
+            0.0
+        } else {
+            (upperScale - lowerScale) / lowerScale
+        }
+        val visibilityCoverage = samples.map { sample ->
+            listOf(
+                sample.leftShoulder,
+                sample.rightShoulder,
+                sample.leftHip,
+                sample.rightHip,
+                sample.leftKnee,
+                sample.rightKnee,
+                sample.leftAnkle,
+                sample.rightAnkle,
+            ).count { it != null } / 8.0
+        }.average()
+        val sideRatios = samples.mapNotNull { it.sideViewWidthRatio() }
+        val sideWidthRatio = median(sideRatios) ?: 1.0
+        val sideViewScore = (1.0 - ((sideWidthRatio - 0.18) / 0.34))
+            .coerceIn(0.0, 1.0)
+        val cutOffFrameRatio = samples.count { it.touchesFrameEdge() } /
+            samples.size.toDouble()
+        val issues = mutableListOf<String>()
+        if (medianBodyScaleRatio < minimumBodyScaleRatio ||
+            minBodyScaleRatio < minimumBodyScaleRatio * 0.72
+        ) {
+            issues.add("tooSmall")
+        }
+        if (sideViewScore < minimumSideViewScore) {
+            issues.add("notSideOn")
+        }
+        if (cutOffFrameRatio > maximumCutOffFrameRatio ||
+            visibilityCoverage < minimumVisibilityCoverage
+        ) {
+            issues.add("bodyCutOff")
+        }
+        if (scaleDriftRatio > maximumScaleDriftRatio) {
+            issues.add("scaleDrift")
+        }
+        return PerspectiveQuality(
+            evaluatedFrameCount = samples.size,
+            medianBodyScaleRatio = roundTo3(medianBodyScaleRatio),
+            minBodyScaleRatio = roundTo3(minBodyScaleRatio),
+            visibilityCoverage = roundTo3(visibilityCoverage),
+            sideViewScore = roundTo3(sideViewScore),
+            scaleDriftRatio = roundTo3(scaleDriftRatio),
+            cutOffFrameRatio = roundTo3(cutOffFrameRatio),
+            issues = issues,
+        )
+    }
+
+    private fun perspectiveReasonForMetric(
+        quality: PerspectiveQuality,
+        metric: String,
+    ): String? {
+        if (quality.issues.contains("tooSmall")) return "too_small_runner"
+        if (quality.issues.contains("bodyCutOff")) return "body_cut_off"
+        val isLowerBody = metric == "footStrike" || metric == "kneeFlexion"
+        if (isLowerBody && quality.issues.contains("notSideOn")) {
+            return "not_side_on"
+        }
+        if ((isLowerBody || metric == "bounce") && quality.issues.contains("scaleDrift")) {
+            return "scale_drift"
+        }
+        return null
+    }
+
+    private fun applyPerspectiveQuality(
+        metric: String,
+        baseQuality: Map<String, Any?>,
+        perspectiveQuality: PerspectiveQuality,
+    ): Map<String, Any?> {
+        val reason = perspectiveReasonForMetric(perspectiveQuality, metric)
+            ?: return baseQuality
+        val confidence = (baseQuality["confidence"] as? Number)?.toDouble() ?: 0.0
+        val sampleCount = (baseQuality["sampleCount"] as? Number)?.toInt() ?: 0
+        return metricQualityPayload(
+            confidence = min(confidence, if (reason == "too_small_runner") 0.0 else 0.55),
+            sampleCount = sampleCount,
+            reason = reason,
+        )
+    }
+
     private fun contactWindowPayloads(
         windows: List<ContactCandidate>,
         denseTimestamps: List<Long>,
@@ -1713,6 +1884,8 @@ class RunningPoseAnalysisChannel(
 
         return FrameSample(
             timestampMs = timestampMs,
+            imageWidth = imageWidth,
+            imageHeight = imageHeight,
             leftShoulder = leftShoulder?.point?.let(::copyPoint),
             rightShoulder = rightShoulder?.point?.let(::copyPoint),
             leftHip = leftHip?.point?.let(::copyPoint),
@@ -1947,8 +2120,32 @@ class RunningPoseAnalysisChannel(
         val confidence: Double,
     )
 
+    private data class PerspectiveQuality(
+        val evaluatedFrameCount: Int,
+        val medianBodyScaleRatio: Double,
+        val minBodyScaleRatio: Double,
+        val visibilityCoverage: Double,
+        val sideViewScore: Double,
+        val scaleDriftRatio: Double,
+        val cutOffFrameRatio: Double,
+        val issues: List<String>,
+    ) {
+        fun toPayload(): Map<String, Any?> = mapOf(
+            "evaluatedFrameCount" to evaluatedFrameCount,
+            "medianBodyScaleRatio" to medianBodyScaleRatio,
+            "minBodyScaleRatio" to minBodyScaleRatio,
+            "visibilityCoverage" to visibilityCoverage,
+            "sideViewScore" to sideViewScore,
+            "scaleDriftRatio" to scaleDriftRatio,
+            "cutOffFrameRatio" to cutOffFrameRatio,
+            "issues" to issues,
+        )
+    }
+
     private data class FrameSample(
         val timestampMs: Long,
+        val imageWidth: Int,
+        val imageHeight: Int,
         val leftShoulder: PointF?,
         val rightShoulder: PointF?,
         val leftHip: PointF?,
@@ -1985,6 +2182,53 @@ class RunningPoseAnalysisChannel(
         val rightWristConfidence: Double?,
         val bodyScale: Double,
     ) {
+        fun sideViewWidthRatio(): Double? {
+            fun pointDistance(first: PointF, second: PointF): Double {
+                return hypot(
+                    (first.x - second.x).toDouble(),
+                    (first.y - second.y).toDouble(),
+                )
+            }
+            val widths = mutableListOf<Double>()
+            if (leftShoulder != null && rightShoulder != null) {
+                widths.add(
+                    pointDistance(leftShoulder, rightShoulder) /
+                        bodyScale.coerceAtLeast(1.0),
+                )
+            }
+            if (leftHip != null && rightHip != null) {
+                widths.add(
+                    pointDistance(leftHip, rightHip) /
+                        bodyScale.coerceAtLeast(1.0),
+                )
+            }
+            return widths.takeIf { it.isNotEmpty() }?.average()
+        }
+
+        fun touchesFrameEdge(): Boolean {
+            val marginX = imageWidth * edgeCutOffMarginRatio
+            val marginY = imageHeight * edgeCutOffMarginRatio
+            return listOfNotNull(
+                leftShoulder,
+                rightShoulder,
+                leftHip,
+                rightHip,
+                leftKnee,
+                rightKnee,
+                leftAnkle,
+                rightAnkle,
+                leftHeel,
+                rightHeel,
+                leftToe,
+                rightToe,
+            ).any { point ->
+                point.x <= marginX ||
+                    point.x >= imageWidth - marginX ||
+                    point.y <= marginY ||
+                    point.y >= imageHeight - marginY
+            }
+        }
+
         val coreLandmarkConfidence: Double
             get() = listOfNotNull(
                 leftShoulderConfidence,
@@ -2246,9 +2490,9 @@ class RunningPoseAnalysisChannel(
         private const val methodName = "analyzeRunningVideo"
         private const val evidenceFramesMethodName = "extractRunningEvidenceFrames"
         private const val liveFrameMethodName = "analyzeRunningLiveFrame"
-        private const val coarseTargetFps = 10
-        private const val coarseFrameIntervalMs = 100L
-        private const val maxCoarseFrameBudget = 240
+        private const val coarseTargetFps = 8
+        private const val coarseFrameIntervalMs = 125L
+        private const val maxCoarseFrameBudget = 481
         private const val minimumValidFrames = 6
         private const val minimumSharpnessSampleCount = 6
         private const val minimumMedianSharpness = 0.018
@@ -2285,6 +2529,12 @@ class RunningPoseAnalysisChannel(
         private const val contactMotionNeighborGapMs = 100L
         private const val groundLineSampleFraction = 0.45
         private const val groundLineMinimumSamples = 3
+        private const val minimumBodyScaleRatio = 0.12
+        private const val minimumSideViewScore = 0.46
+        private const val maximumScaleDriftRatio = 0.34
+        private const val maximumCutOffFrameRatio = 0.18
+        private const val minimumVisibilityCoverage = 0.62
+        private const val edgeCutOffMarginRatio = 0.025
         private const val modelAssetPath = "pose_landmarker_full.task"
         private const val leftShoulderIndex = 11
         private const val rightShoulderIndex = 12

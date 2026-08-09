@@ -5073,6 +5073,81 @@
   "runningCoachMeasurementStatusUnavailable": "測定不可",
   "runningCoachMeasurementCoverageTitle": "この動画で確認できた項目",
   "runningCoachMeasurementCoverageBody": "項目ごとに独立して検証します。接地の根拠が不足しても、腕や上体など他の測定まで無効にはなりません。",
+  "runningCoachScoreWithheldLabel": "スコア保留",
+  "runningCoachScoreWithheldSummary": "この動画では検証済みスコアを出せません。",
+  "runningCoachScoreWithheldValue": "—",
+  "runningCoachScoreWithheldContactReason": "接地の根拠が十分ではありません: {reason}",
+  "@runningCoachScoreWithheldContactReason": {
+    "placeholders": {
+      "reason": {}
+    }
+  },
+  "runningCoachScoreWithheldGenericReason": "必須測定の一部が制限されているため、推定スコアではなく保留にしています。",
+  "runningCoachMeasuredMetricsTitle": "測定指標",
+  "runningCoachMeasuredMetricsBody": "動画で裏づけられる値だけを確定測定として表示します。制限付きの観察値は、スコアやドリルなしで表示します。",
+  "runningCoachReferenceRangeNotice": "基準範囲は一般的なコーチング参考値であり、個別の医療上の限界やけがリスクの限界ではありません。",
+  "runningCoachMetricVerticalBounceLabel": "上下動 (%)",
+  "runningCoachMeasuredMetricSpmValue": "{value} spm",
+  "@runningCoachMeasuredMetricSpmValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "runningCoachMeasuredMetricMsValue": "{value} ms",
+  "@runningCoachMeasuredMetricMsValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "runningCoachMeasuredMetricWithinReference": "一般基準内",
+  "runningCoachMeasuredMetricNearReferenceEdge": "基準の境界付近",
+  "runningCoachMeasuredMetricOutsideReference": "一般基準外",
+  "runningCoachMeasuredMetricInconsistent": "サンプル間のばらつき大",
+  "runningCoachMeasuredMetricLimited": "根拠が限定的",
+  "runningCoachMeasuredMetricUnavailable": "この動画では使用不可",
+  "runningCoachMeasuredMetricSampleCount": "{count}サンプル",
+  "@runningCoachMeasuredMetricSampleCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "runningCoachMeasuredMetricNoSamples": "根拠にできるサンプルなし",
+  "runningCoachMeasuredMetricEvidenceDetail": "{quality} · {samples}",
+  "@runningCoachMeasuredMetricEvidenceDetail": {
+    "placeholders": {
+      "quality": {},
+      "samples": {}
+    }
+  },
+  "runningCoachMeasuredMetricEvidenceReasonDetail": "{quality} · {samples} · {reason}",
+  "@runningCoachMeasuredMetricEvidenceReasonDetail": {
+    "placeholders": {
+      "quality": {},
+      "samples": {},
+      "reason": {}
+    }
+  },
+  "runningCoachQualityReasonLabelLowCoverage": "カバー不足",
+  "runningCoachQualityReasonLabelLimitedSamples": "サンプル不足",
+  "runningCoachQualityReasonLabelContactPhaseProxy": "接地の代替値",
+  "runningCoachQualityReasonLabelKinematicContact": "動きベースの接地",
+  "runningCoachQualityReasonLabelLowConfidence": "低信頼度",
+  "runningCoachQualityReasonLabelMissingContact": "接地根拠なし",
+  "runningCoachQualityReasonLabelMissingPoseFrames": "姿勢フレームなし",
+  "runningCoachQualityReasonLabelMissingMeasuredFrames": "測定フレームなし",
+  "runningCoachPerspectiveTooSmallLabel": "遠すぎ/小さすぎ",
+  "runningCoachPerspectiveNotSideOnLabel": "側面不足",
+  "runningCoachPerspectiveBodyCutOffLabel": "体が切れている",
+  "runningCoachPerspectiveScaleDriftLabel": "距離が変化",
+  "runningCoachPerspectiveTooSmallReason": "ランナーが画面内で小さすぎるため、位置ベースのコーチングは制限されます。",
+  "runningCoachPerspectiveNotSideOnReason": "斜めまたは正面に近く、下半身の接地コーチングは制限されます。",
+  "runningCoachPerspectiveBodyCutOffReason": "多くのフレームで体が切れているため、該当する測定は制限されます。",
+  "runningCoachPerspectiveScaleDriftReason": "クリップ中にランナーの大きさが変わるため、距離に敏感な測定は制限されます。",
+  "runningCoachPerspectiveTooSmallRetake": "全身が見えるように、より近い側面から撮り直してください。",
+  "runningCoachPerspectiveNotSideOnRetake": "ランナーが画面を横切る、真横の視点で撮り直してください。",
+  "runningCoachPerspectiveBodyCutOffRetake": "頭、腰、膝、足がクリップ全体でフレーム内に入るようにしてください。",
+  "runningCoachPerspectiveScaleDriftRetake": "ランナーの大きさが一定に見えるよう、カメラ距離を保ってください。",
+  "runningCoachPerspectiveGenericRetake": "全身が見える安定した側面動画で撮り直してください。",
   "runningCoachEvidenceVideoUnavailable": "保存済み動画ファイルを使用できません。分析フレームの姿勢オーバーレイは表示します。",
   "runningCoachEvidencePoseFrameOnly": "分析した姿勢フレームを表示しています。この画面には動画ファイルが保存されていません。",
   "runningCoachEvidenceTimestamp": "根拠フレーム {time}",
@@ -5121,14 +5196,10 @@
   "runningCoachTwoDTargetLabel": "次の着地",
   "runningCoachTwoDVideoOverlayTitle": "アップロードした動画上の測定",
   "runningCoachCoordinateRigUnavailable": "このフレームには動作比較を作るための関節座標が十分にありません。",
-  "runningCoachThreeDComparisonTitle": "3Dランナー比較",
-  "runningCoachThreeDCurrentLabel": "現在の3Dランナー",
-  "runningCoachThreeDTargetLabel": "次の3D目標",
-  "runningCoachThreeDConfidenceLabel": "追跡",
-  "runningCoachThreeDRendererLoading": "3Dランナーを読み込み中...",
-  "runningCoachThreeDRendererUnavailable": "このフレームから3Dランナーを作れません。全身ランドマークが見える、より鮮明な横向き動画で試してください。",
-  "runningCoachThreeDRendererError": "ローカルWebGLランナーを開始できませんでした。",
-  "runningCoachThreeDReferenceNotice": "固定の基準ランナーに追跡座標で小さな姿勢補正だけを加えます。体格や顔を再構成するものではありません。",
+  "runningCoachPoseComparisonTitle": "測定姿勢の比較",
+  "runningCoachPoseComparisonCurrentLabel": "現在の測定姿勢",
+  "runningCoachPoseComparisonTargetLabel": "基準ターゲット",
+  "runningCoachPoseComparisonUnavailable": "このフレームには、並べて比較できる測定済み関節座標が十分にありません。",
   "runningCoachHistoryEvidenceUnavailableTitle": "保存済みの関節根拠なし",
   "runningCoachHistoryEvidenceUnavailableBody": "以前のバージョンで保存された記録のため姿勢フレームはありません。スコアとコーチング目標は確認できます。",
   "runningCoachEvidenceCurrentLabel": "現在",
@@ -5682,8 +5753,8 @@
   "runningCoachGoodFormScreenTitle": "良いランニングフォーム",
   "runningCoachGoodFormIntroTitle": "初心者から経験者まで",
   "runningCoachGoodFormIntroBody": "最初は「まずはこれだけ」を意識し、慣れたら「さらに詳しく」で左右差、タイミング、連続した動きを確認します。",
-  "runningCoachGoodFormCycleTitle": "静止した段階別参考図",
-  "runningCoachGoodFormCycleBody": "4枚の参考画像は連続動画でもあなたのアップロード動画でもない静止フレームです。選択したランナーは同じスケールと同じ地面ラインに合わせて表示され、青い印がその段階で確認する位置関係を示します。",
+  "runningCoachGoodFormCycleTitle": "連続フォームループ",
+  "runningCoachGoodFormCycleBody": "1人の基準ランナーが、着地、支持、押し出し、リカバリー、次の着地まで同じスケールと地面ラインでつながります。",
   "runningCoachGoodFormPhaseLandingTitle": "着地",
   "runningCoachGoodFormPhaseLandingCue": "足を前へ伸ばすより、腰の近くへ軽く下ろします。",
   "runningCoachGoodFormPhaseLandingFocus": "着地する足と共通の地面ライン",
@@ -5715,6 +5786,11 @@
   "runningCoachGoodFormSlowMotionAction": "ゆっくり見る",
   "runningCoachGoodFormStepAction": "次の段階",
   "runningCoachGoodFormRestartStepsAction": "4段階を最初から",
+  "runningCoachGoodFormPlayAction": "再生",
+  "runningCoachGoodFormPauseAction": "一時停止",
+  "runningCoachGoodFormStepFrameAction": "次のフレーム",
+  "runningCoachGoodFormSpeedNormal": "通常",
+  "runningCoachGoodFormSpeedSlow": "ゆっくり",
   "runningCoachGoodFormTechniqueTitle": "項目別イラストガイド",
   "runningCoachGoodFormTechniqueBody": "赤はよくあるミス、青は推奨する動きです。モデルの体型ではなく、示された位置関係と方向を確認してください。",
   "runningCoachGoodFormCommonLabel": "よくあるミス",
@@ -8927,6 +9003,24 @@
   "runningCoachGaitLimitationsBody": "単一の側面動画では、足のローリング・回内、地面反力、正確な接地時間、けがのリスクを測定または判定できません。",
   "runningCoachJudgmentWithheldTitle": "判定保留",
   "runningCoachJudgmentWithheldBody": "根拠が不足しているため、良い／改善が必要という判定とドリルは表示しません。動画を撮り直してください。",
+  "runningCoachTrendTitle": "同条件の傾向",
+  "runningCoachTrendBody": "比較条件: {surface}で{effort}。同じスコア版の最近の検証済みセッション {count} 件を使用します。",
+  "@runningCoachTrendBody": {
+    "placeholders": {
+      "effort": {},
+      "surface": {},
+      "count": { "type": "int" }
+    }
+  },
+  "runningCoachTrendInsufficientBaselineTitle": "検証済み基準が不足",
+  "runningCoachTrendInsufficientBaselineBody": "差分を表示するには、同じスコア版の検証済み同条件セッションが少なくとも2件必要です。",
+  "runningCoachTrendMetricValue": "{current} · Δ {delta}",
+  "@runningCoachTrendMetricValue": {
+    "placeholders": {
+      "current": {},
+      "delta": {}
+    }
+  },
   "runningCoachComparisonTitle": "同条件の比較",
   "runningCoachComparisonBody": "今回の記録は {effort}・{surface} 条件として保存されます。同じ条件の以前の動画だけと比較してください。",
   "@runningCoachComparisonBody": {
