@@ -2366,27 +2366,43 @@ final class RunningPoseAnalysisChannel {
     }
 
     var touchesFrameEdge: Bool {
-      let marginX = Double(imageWidth) * RunningPoseAnalysisChannel.edgeCutOffMarginRatio
-      let marginY = Double(imageHeight) * RunningPoseAnalysisChannel.edgeCutOffMarginRatio
-      return [
-        leftShoulder,
-        rightShoulder,
-        leftHip,
-        rightHip,
-        leftKnee,
-        rightKnee,
-        leftAnkle,
-        rightAnkle,
-        leftHeel,
-        rightHeel,
-        leftToe,
-        rightToe,
-      ].compactMap { $0 }.contains { point in
-        Double(point.x) <= marginX ||
-          Double(point.x) >= Double(imageWidth) - marginX ||
-          Double(point.y) <= marginY ||
-          Double(point.y) >= Double(imageHeight) - marginY
+      let marginX: Double =
+        Double(imageWidth) * RunningPoseAnalysisChannel.edgeCutOffMarginRatio
+      let marginY: Double =
+        Double(imageHeight) * RunningPoseAnalysisChannel.edgeCutOffMarginRatio
+      let maxX: Double = Double(imageWidth) - marginX
+      let maxY: Double = Double(imageHeight) - marginY
+
+      let shoulderEdgePoints: [CGPoint] = [leftShoulder, rightShoulder]
+        .compactMap { point -> CGPoint? in point }
+      let hipEdgePoints: [CGPoint] = [leftHip, rightHip]
+        .compactMap { point -> CGPoint? in point }
+      let kneeEdgePoints: [CGPoint] = [leftKnee, rightKnee]
+        .compactMap { point -> CGPoint? in point }
+      let ankleEdgePoints: [CGPoint] = [leftAnkle, rightAnkle]
+        .compactMap { point -> CGPoint? in point }
+      let heelEdgePoints: [CGPoint] = [leftHeel, rightHeel]
+        .compactMap { point -> CGPoint? in point }
+      let toeEdgePoints: [CGPoint] = [leftToe, rightToe]
+        .compactMap { point -> CGPoint? in point }
+
+      var edgeContactPoints: [CGPoint] = []
+      edgeContactPoints.append(contentsOf: shoulderEdgePoints)
+      edgeContactPoints.append(contentsOf: hipEdgePoints)
+      edgeContactPoints.append(contentsOf: kneeEdgePoints)
+      edgeContactPoints.append(contentsOf: ankleEdgePoints)
+      edgeContactPoints.append(contentsOf: heelEdgePoints)
+      edgeContactPoints.append(contentsOf: toeEdgePoints)
+
+      let hasHorizontalEdgeContact: Bool = edgeContactPoints.contains {
+        (point: CGPoint) -> Bool in
+        Double(point.x) <= marginX || Double(point.x) >= maxX
       }
+      let hasVerticalEdgeContact: Bool = edgeContactPoints.contains {
+        (point: CGPoint) -> Bool in
+        Double(point.y) <= marginY || Double(point.y) >= maxY
+      }
+      return hasHorizontalEdgeContact || hasVerticalEdgeContact
     }
 
     var coreLandmarkConfidence: Double {

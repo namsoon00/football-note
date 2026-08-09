@@ -365,6 +365,38 @@ require(
     "Android/iOS analyzers must emit perspective quality limitations",
 )
 require(
+    re.search(
+        r"return\s*\[\s*leftShoulder,\s*rightShoulder,\s*leftHip,\s*rightHip,"
+        r"\s*leftKnee,\s*rightKnee,\s*leftAnkle,\s*rightAnkle,"
+        r"\s*leftHeel,\s*rightHeel,\s*leftToe,\s*rightToe,\s*\]"
+        r"\.compactMap\s*\{\s*\$0\s*\}\.contains",
+        ios_text,
+        re.DOTALL,
+    )
+    is None,
+    "iOS edge cutoff must not use one oversized optional CGPoint compactMap/contains expression",
+)
+for edge_group in (
+    "let shoulderEdgePoints: [CGPoint]",
+    "let hipEdgePoints: [CGPoint]",
+    "let kneeEdgePoints: [CGPoint]",
+    "let ankleEdgePoints: [CGPoint]",
+    "let heelEdgePoints: [CGPoint]",
+    "let toeEdgePoints: [CGPoint]",
+):
+    require(edge_group in ios_text, f"iOS edge cutoff must keep typed {edge_group}")
+require(
+    "hasHorizontalEdgeContact" in ios_text
+    and "hasVerticalEdgeContact" in ios_text
+    and "edgeContactPoints.append(contentsOf: shoulderEdgePoints)" in ios_text
+    and "edgeContactPoints.append(contentsOf: hipEdgePoints)" in ios_text
+    and "edgeContactPoints.append(contentsOf: kneeEdgePoints)" in ios_text
+    and "edgeContactPoints.append(contentsOf: ankleEdgePoints)" in ios_text
+    and "edgeContactPoints.append(contentsOf: heelEdgePoints)" in ios_text
+    and "edgeContactPoints.append(contentsOf: toeEdgePoints)" in ios_text,
+    "iOS edge cutoff must preserve typed edge checks for shoulders, hips, knees, ankles, heels, and toes",
+)
+require(
     "val usesContactProxy = uniqueContactFrameCount == 0" in channel_text,
     "Android must retain one verified contact as an observation instead of replacing it with a proxy",
 )
