@@ -10,7 +10,7 @@ import 'running_coach_video_archive.dart';
 import 'sport_scoped_storage.dart';
 
 typedef RunningCoachEvidenceImageArchiver
-    = Future<List<RunningCoachEvidenceImage>> Function({
+    = Future<RunningCoachEvidenceArchiveResult> Function({
   required XFile? sourceVideo,
   required String sessionId,
   required List<RunningCoachEvidenceFrameRequest> requests,
@@ -99,7 +99,7 @@ class RunningCoachHistoryService {
       report,
       limit: historyEvidenceImageLimit,
     );
-    final evidenceImages = await _archiveEvidenceImages(
+    final evidenceArchiveResult = await _archiveEvidenceImages(
       sourceVideo: sourceVideo,
       sessionId: sessionId,
       requests: evidenceRequests,
@@ -134,7 +134,13 @@ class RunningCoachHistoryService {
         metricSnapshots: report.rankedInsights
             .map(RunningCoachSessionMetric.fromInsight)
             .toList(growable: false),
-        evidenceImages: evidenceImages,
+        evidenceImages: evidenceArchiveResult.images,
+        evidenceArchive: RunningCoachEvidenceArchiveSummary(
+          requestedCount: evidenceArchiveResult.requestedCount,
+          savedCount: evidenceArchiveResult.savedCount,
+          status: evidenceArchiveResult.status,
+          failureCode: evidenceArchiveResult.failureCode,
+        ),
         analysisResult: result.historySnapshot(
           maxPoseFrames: historyPoseFrameLimit,
           evidenceTimestamps: evidenceRequests.map(

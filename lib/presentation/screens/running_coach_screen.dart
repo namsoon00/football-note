@@ -5354,7 +5354,7 @@ class _AnalysisHistoryTile extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _InsightGuideThumbnail(insight: insight),
+              _SessionEvidenceThumbnail(session: session, insight: insight),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -5443,6 +5443,63 @@ class _AnalysisHistoryTile extends StatelessWidget {
                 ],
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SessionEvidenceThumbnail extends StatelessWidget {
+  final RunningCoachSessionAnalysis session;
+  final RunningCoachingInsight insight;
+
+  const _SessionEvidenceThumbnail({
+    required this.session,
+    required this.insight,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final evidenceImage =
+        session.evidenceImages.isEmpty ? null : session.evidenceImages.first;
+    if (evidenceImage == null) {
+      return _InsightGuideThumbnail(insight: insight);
+    }
+    final scheme = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.black,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: scheme.outlineVariant),
+      ),
+      child: SizedBox(
+        key: const ValueKey('running-coach-history-real-evidence-thumbnail'),
+        width: 72,
+        height: 72,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(13),
+          child: FutureBuilder<Uint8List?>(
+            future: readArchivedRunningCoachEvidenceImage(evidenceImage),
+            builder: (context, snapshot) {
+              final bytes = snapshot.data;
+              if (bytes != null) {
+                return Image.memory(
+                  bytes,
+                  fit: BoxFit.cover,
+                  gaplessPlayback: true,
+                );
+              }
+              return ColoredBox(
+                color: Colors.black,
+                child: Icon(
+                  snapshot.connectionState == ConnectionState.waiting
+                      ? Icons.image_search_rounded
+                      : Icons.broken_image_outlined,
+                  color: Colors.white70,
+                ),
+              );
+            },
           ),
         ),
       ),
@@ -5563,6 +5620,11 @@ class _RunningAnalysisResultScreenState
           ],
           if (widget.videoSaveFailed) ...[
             const _VideoSaveFailedCard(),
+            const SizedBox(height: 12),
+          ],
+          if (widget.session.evidenceArchive.status !=
+              RunningCoachEvidenceArchiveStatus.legacy) ...[
+            _EvidenceArchiveStatusCard(session: widget.session),
             const SizedBox(height: 12),
           ],
           _ResultsSummaryCard(result: widget.result, report: widget.report),
@@ -5707,6 +5769,114 @@ class _VideoSaveFailedCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class _EvidenceArchiveStatusCard extends StatelessWidget {
+  final RunningCoachSessionAnalysis session;
+
+  const _EvidenceArchiveStatusCard({required this.session});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final archive = session.evidenceArchive;
+    final scheme = Theme.of(context).colorScheme;
+    final isFailure = archive.hasFailure;
+    final statusColor = isFailure ? scheme.error : scheme.tertiary;
+    final title = switch (archive.status) {
+      RunningCoachEvidenceArchiveStatus.success =>
+        l10n.runningCoachEvidenceArchiveSavedTitle(archive.savedCount),
+      RunningCoachEvidenceArchiveStatus.partialFailure =>
+        l10n.runningCoachEvidenceArchivePartialTitle(
+          archive.savedCount,
+          archive.requestedCount,
+        ),
+      RunningCoachEvidenceArchiveStatus.failed =>
+        l10n.runningCoachEvidenceArchiveFailedTitle,
+      RunningCoachEvidenceArchiveStatus.notRequested =>
+        l10n.runningCoachEvidenceArchiveNotRequestedTitle,
+      RunningCoachEvidenceArchiveStatus.legacy =>
+        l10n.runningCoachHistoryEvidenceUnavailableTitle,
+    };
+    final body = switch (archive.status) {
+      RunningCoachEvidenceArchiveStatus.success =>
+        l10n.runningCoachEvidenceArchiveSavedBody,
+      RunningCoachEvidenceArchiveStatus.partialFailure =>
+        l10n.runningCoachEvidenceArchivePartialBody(
+          _evidenceArchiveFailureReason(l10n, archive.failureCode),
+        ),
+      RunningCoachEvidenceArchiveStatus.failed =>
+        l10n.runningCoachEvidenceArchiveFailedBody(
+          _evidenceArchiveFailureReason(l10n, archive.failureCode),
+        ),
+      RunningCoachEvidenceArchiveStatus.notRequested =>
+        l10n.runningCoachEvidenceArchiveNotRequestedBody,
+      RunningCoachEvidenceArchiveStatus.legacy =>
+        l10n.runningCoachHistoryEvidenceUnavailableBody,
+    };
+    return Container(
+      key: const ValueKey('running-coach-evidence-archive-status'),
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: statusColor.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: statusColor.withValues(alpha: 0.28)),
+      ),
+      padding: const EdgeInsets.all(14),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            isFailure ? Icons.image_not_supported_outlined : Icons.image,
+            color: statusColor,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: statusColor,
+                        fontWeight: FontWeight.w900,
+                      ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  body,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+String _evidenceArchiveFailureReason(
+  AppLocalizations l10n,
+  String? failureCode,
+) {
+  return switch (failureCode) {
+    'source_video_unavailable' =>
+      l10n.runningCoachEvidenceArchiveReasonSourceUnavailable,
+    'no_evidence_frames_extracted' =>
+      l10n.runningCoachEvidenceArchiveReasonExtractionEmpty,
+    'archive_directory_unavailable' =>
+      l10n.runningCoachEvidenceArchiveReasonStorageUnavailable,
+    'file_write_failed' ||
+    'file_system_failed' =>
+      l10n.runningCoachEvidenceArchiveReasonFileWrite,
+    'web_evidence_storage_limit' =>
+      l10n.runningCoachEvidenceArchiveReasonWebLimit,
+    'web_evidence_bridge_unavailable' =>
+      l10n.runningCoachEvidenceArchiveReasonPlatformUnavailable,
+    'missing_file' => l10n.runningCoachEvidenceArchiveReasonSourceUnavailable,
+    _ => l10n.runningCoachEvidenceArchiveReasonUnknown,
+  };
 }
 
 class _AnalysisRetakeActionCard extends StatelessWidget {
@@ -10813,12 +10983,44 @@ class _HistoricalEvidenceFrameTile extends StatelessWidget {
                           )
                         else
                           Center(
-                            child: Icon(
-                              snapshot.connectionState ==
-                                      ConnectionState.waiting
-                                  ? Icons.image_search_rounded
-                                  : Icons.broken_image_outlined,
-                              color: Colors.white70,
+                            child: Padding(
+                              padding: const EdgeInsets.all(10),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    snapshot.connectionState ==
+                                            ConnectionState.waiting
+                                        ? Icons.image_search_rounded
+                                        : Icons.broken_image_outlined,
+                                    color: Colors.white70,
+                                  ),
+                                  if (snapshot.connectionState !=
+                                      ConnectionState.waiting) ...[
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      l10n.runningCoachEvidenceImageReadFailed,
+                                      textAlign: TextAlign.center,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .labelSmall
+                                          ?.copyWith(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      l10n.runningCoachEvidenceImageReadFailedReason,
+                                      textAlign: TextAlign.center,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .labelSmall
+                                          ?.copyWith(color: Colors.white70),
+                                    ),
+                                  ],
+                                ],
+                              ),
                             ),
                           ),
                         Positioned.fill(

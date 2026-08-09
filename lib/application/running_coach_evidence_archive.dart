@@ -16,7 +16,7 @@ export 'running_coach_evidence_archive_types.dart';
 /// The original video remains optional. These images are kept only as local
 /// coaching evidence, alongside the timestamp and pose metadata already held
 /// by a [RunningCoachSessionAnalysis].
-Future<List<RunningCoachEvidenceImage>> archiveRunningCoachEvidenceImages({
+Future<RunningCoachEvidenceArchiveResult> archiveRunningCoachEvidenceImages({
   required XFile? sourceVideo,
   required String sessionId,
   required List<RunningCoachEvidenceFrameRequest> requests,

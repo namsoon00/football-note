@@ -193,6 +193,26 @@ for required in (
     require(required in channel_text, f"Android poseFrames schema is missing token: {required}")
     require(required in ios_text, f"iOS poseFrames schema is missing token: {required}")
 
+for required in (
+    'liveFrameMethodName = "analyzeRunningLiveFrame"',
+    "analyzeLiveFrame",
+    "RunningMode.IMAGE",
+    "bitmapFromYuv420",
+    "normalizeLiveBitmap",
+    '"live_pose_unsupported"',
+):
+    require(required in channel_text, f"Android live framing contract is missing token: {required}")
+
+for required in (
+    'liveFrameMethodName = "analyzeRunningLiveFrame"',
+    "analyzeLiveFrame",
+    "runningMode: .image",
+    'format == "bgra8888"',
+    "normalizeLiveImage",
+    '"live_pose_unsupported"',
+):
+    require(required in ios_text, f"iOS live framing contract is missing token: {required}")
+
 require(
     re.search(r"class RunningPoseAnalysisChannel\(\s*private val context: Context,", channel_text)
     is not None,

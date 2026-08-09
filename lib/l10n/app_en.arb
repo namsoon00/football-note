@@ -4816,6 +4816,41 @@
   "runningCoachCaptureUnavailable": "No camera is available.",
   "runningCoachCaptureFailed": "Could not start recording. Check the camera and try again.",
   "runningCoachCaptureRetry": "Open camera again",
+  "runningCoachCaptureFramingTitle": "Smart framing",
+  "runningCoachCaptureFramingReadyCount": "{count}/{total} ready",
+  "@runningCoachCaptureFramingReadyCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachCaptureFramingFallbackBody": "Live pose checks are unavailable here, so only device and preview checks are shown.",
+  "runningCoachCaptureFramingLiveBody": "Live pose checks update before recording. Warnings do not block recording.",
+  "runningCoachCaptureFramingStartingBody": "Starting the live framing check...",
+  "runningCoachCaptureFramingLiveSearching": "Looking for a full-body pose",
+  "runningCoachCaptureFramingLiveReady": "Live pose detected",
+  "runningCoachCaptureFramingNotMeasured": "Not measured",
+  "runningCoachCaptureFramingPhoneGood": "Phone upright",
+  "runningCoachCaptureFramingPhoneWarning": "Rotate upright",
+  "runningCoachCaptureFramingPreviewGood": "Preview fills screen",
+  "runningCoachCaptureFramingFullBodyGood": "Body inside guide",
+  "runningCoachCaptureFramingFullBodyWarning": "Center full body",
+  "runningCoachCaptureFramingFullBodyUnknown": "Body not measured",
+  "runningCoachCaptureFramingScaleGood": "Good runner size",
+  "runningCoachCaptureFramingScaleTooSmall": "Runner too small",
+  "runningCoachCaptureFramingScaleTooLarge": "Runner too close",
+  "runningCoachCaptureFramingScaleUnknown": "Size not measured",
+  "runningCoachCaptureFramingLandmarksGood": "Head and shoes visible",
+  "runningCoachCaptureFramingLandmarksWarning": "Show head, joints, shoes",
+  "runningCoachCaptureFramingLandmarksUnknown": "Joints not measured",
+  "runningCoachCaptureFramingSideGood": "Side view",
+  "runningCoachCaptureFramingSideWarning": "Move square to side",
+  "runningCoachCaptureFramingSideUnknown": "Side view not measured",
+  "runningCoachCaptureFramingCheckWarning": "Check framing",
   "runningCoachModeLive": "Live",
   "runningCoachModeVideo": "Video analysis",
   "runningCoachModeLiveTitle": "Check your form while running",
@@ -5590,6 +5625,50 @@
   "runningCoachArchivedVideoUnavailable": "The saved video cannot be opened. The file may have been removed from this device.",
   "runningCoachEvidenceFramesTitle": "Saved evidence frames",
   "runningCoachEvidenceFramesBody": "These still frames and pose markers stay only on this device. Deleting the analysis removes them. The full video is saved only when you turned on video saving.",
+  "runningCoachEvidenceArchiveSavedTitle": "{count} evidence image(s) saved",
+  "@runningCoachEvidenceArchiveSavedTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachEvidenceArchiveSavedBody": "These still frames are separate from the optional source video and stay only on this device.",
+  "runningCoachEvidenceArchivePartialTitle": "{saved}/{requested} evidence images saved",
+  "@runningCoachEvidenceArchivePartialTitle": {
+    "placeholders": {
+      "saved": {
+        "type": "int"
+      },
+      "requested": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachEvidenceArchivePartialBody": "Some still frames could not be saved: {reason}",
+  "@runningCoachEvidenceArchivePartialBody": {
+    "placeholders": {
+      "reason": {}
+    }
+  },
+  "runningCoachEvidenceArchiveFailedTitle": "Evidence images were not saved",
+  "runningCoachEvidenceArchiveFailedBody": "The analysis is saved, but the still evidence images could not be kept: {reason}",
+  "@runningCoachEvidenceArchiveFailedBody": {
+    "placeholders": {
+      "reason": {}
+    }
+  },
+  "runningCoachEvidenceArchiveNotRequestedTitle": "No evidence image requested",
+  "runningCoachEvidenceArchiveNotRequestedBody": "This analysis did not produce a reliable still frame to archive. The measured pose data remains in the result.",
+  "runningCoachEvidenceArchiveReasonSourceUnavailable": "the source video was unavailable after analysis.",
+  "runningCoachEvidenceArchiveReasonExtractionEmpty": "no JPEG frame could be extracted at the selected evidence timestamps.",
+  "runningCoachEvidenceArchiveReasonStorageUnavailable": "local image storage was unavailable.",
+  "runningCoachEvidenceArchiveReasonFileWrite": "the device could not write the JPEG file.",
+  "runningCoachEvidenceArchiveReasonWebLimit": "the browser storage limit would be exceeded.",
+  "runningCoachEvidenceArchiveReasonPlatformUnavailable": "this app build could not run the evidence-frame extractor.",
+  "runningCoachEvidenceArchiveReasonUnknown": "the device reported an unknown image-save error.",
+  "runningCoachEvidenceImageReadFailed": "Image unavailable",
+  "runningCoachEvidenceImageReadFailedReason": "The saved file may have been removed from this device.",
   "runningCoachAnalysisGuideTitle": "Correction point in pictures",
   "runningCoachAnalysisGuideBody": "Use the picture to see what to change first.",
   "runningCoachGoodFormGuideTitle": "Good running form at a glance",

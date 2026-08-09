@@ -8202,6 +8202,86 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachCaptureRetry => '카메라 다시 열기';
 
   @override
+  String get runningCoachCaptureFramingTitle => '스마트 구도 확인';
+
+  @override
+  String runningCoachCaptureFramingReadyCount(int count, int total) {
+    return '$count/$total 준비됨';
+  }
+
+  @override
+  String get runningCoachCaptureFramingFallbackBody =>
+      '실시간 자세 확인을 사용할 수 없어 기기와 미리보기 상태만 표시해요.';
+
+  @override
+  String get runningCoachCaptureFramingLiveBody =>
+      '촬영 전 실시간 자세 상태가 갱신돼요. 경고가 있어도 촬영은 막지 않아요.';
+
+  @override
+  String get runningCoachCaptureFramingStartingBody =>
+      '실시간 구도 확인을 시작하는 중이에요...';
+
+  @override
+  String get runningCoachCaptureFramingLiveSearching => '전신 자세를 찾는 중';
+
+  @override
+  String get runningCoachCaptureFramingLiveReady => '실시간 자세 감지됨';
+
+  @override
+  String get runningCoachCaptureFramingNotMeasured => '측정 안 됨';
+
+  @override
+  String get runningCoachCaptureFramingPhoneGood => '휴대폰 세로 고정';
+
+  @override
+  String get runningCoachCaptureFramingPhoneWarning => '세로로 세워 주세요';
+
+  @override
+  String get runningCoachCaptureFramingPreviewGood => '미리보기 화면 채움';
+
+  @override
+  String get runningCoachCaptureFramingFullBodyGood => '전신이 안내선 안';
+
+  @override
+  String get runningCoachCaptureFramingFullBodyWarning => '전신을 중앙으로';
+
+  @override
+  String get runningCoachCaptureFramingFullBodyUnknown => '전신 미측정';
+
+  @override
+  String get runningCoachCaptureFramingScaleGood => '러너 크기 적절';
+
+  @override
+  String get runningCoachCaptureFramingScaleTooSmall => '러너가 너무 작음';
+
+  @override
+  String get runningCoachCaptureFramingScaleTooLarge => '러너가 너무 가까움';
+
+  @override
+  String get runningCoachCaptureFramingScaleUnknown => '크기 미측정';
+
+  @override
+  String get runningCoachCaptureFramingLandmarksGood => '머리와 신발 보임';
+
+  @override
+  String get runningCoachCaptureFramingLandmarksWarning => '머리·관절·신발 보이게';
+
+  @override
+  String get runningCoachCaptureFramingLandmarksUnknown => '관절 미측정';
+
+  @override
+  String get runningCoachCaptureFramingSideGood => '측면 구도';
+
+  @override
+  String get runningCoachCaptureFramingSideWarning => '정확한 측면으로 이동';
+
+  @override
+  String get runningCoachCaptureFramingSideUnknown => '측면 여부 미측정';
+
+  @override
+  String get runningCoachCaptureFramingCheckWarning => '구도 확인 필요';
+
+  @override
   String get runningCoachModeLive => '실시간';
 
   @override
@@ -9814,6 +9894,75 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get runningCoachEvidenceFramesBody =>
       '이 정지 화면과 자세 표시는 이 기기에만 저장돼요. 분석 기록을 삭제하면 함께 삭제됩니다. 전체 영상은 영상 저장을 켰을 때만 저장돼요.';
+
+  @override
+  String runningCoachEvidenceArchiveSavedTitle(int count) {
+    return '근거 이미지 $count장 저장됨';
+  }
+
+  @override
+  String get runningCoachEvidenceArchiveSavedBody =>
+      '이 정지 이미지는 선택 저장하는 원본 영상과 별개이며 이 기기에만 남아요.';
+
+  @override
+  String runningCoachEvidenceArchivePartialTitle(int saved, int requested) {
+    return '근거 이미지 $saved/$requested장 저장됨';
+  }
+
+  @override
+  String runningCoachEvidenceArchivePartialBody(Object reason) {
+    return '일부 정지 이미지를 저장하지 못했어요: $reason';
+  }
+
+  @override
+  String get runningCoachEvidenceArchiveFailedTitle => '근거 이미지를 저장하지 못했어요';
+
+  @override
+  String runningCoachEvidenceArchiveFailedBody(Object reason) {
+    return '분석 기록은 저장됐지만 정지 근거 이미지는 보관하지 못했어요: $reason';
+  }
+
+  @override
+  String get runningCoachEvidenceArchiveNotRequestedTitle => '요청된 근거 이미지가 없어요';
+
+  @override
+  String get runningCoachEvidenceArchiveNotRequestedBody =>
+      '이 분석에서는 보관할 만큼 신뢰할 수 있는 정지 프레임이 나오지 않았어요. 측정된 자세 데이터는 결과에 남아 있어요.';
+
+  @override
+  String get runningCoachEvidenceArchiveReasonSourceUnavailable =>
+      '분석 뒤 원본 영상을 사용할 수 없었어요.';
+
+  @override
+  String get runningCoachEvidenceArchiveReasonExtractionEmpty =>
+      '선택된 근거 시점에서 JPEG 프레임을 추출하지 못했어요.';
+
+  @override
+  String get runningCoachEvidenceArchiveReasonStorageUnavailable =>
+      '로컬 이미지 저장소를 사용할 수 없었어요.';
+
+  @override
+  String get runningCoachEvidenceArchiveReasonFileWrite =>
+      '기기가 JPEG 파일을 쓰지 못했어요.';
+
+  @override
+  String get runningCoachEvidenceArchiveReasonWebLimit =>
+      '브라우저 저장 용량 제한을 넘을 수 있어 저장하지 않았어요.';
+
+  @override
+  String get runningCoachEvidenceArchiveReasonPlatformUnavailable =>
+      '이 앱 빌드에서 근거 프레임 추출기를 실행할 수 없었어요.';
+
+  @override
+  String get runningCoachEvidenceArchiveReasonUnknown =>
+      '기기에서 알 수 없는 이미지 저장 오류를 보고했어요.';
+
+  @override
+  String get runningCoachEvidenceImageReadFailed => '이미지를 열 수 없어요';
+
+  @override
+  String get runningCoachEvidenceImageReadFailedReason =>
+      '저장된 파일이 이 기기에서 삭제되었을 수 있어요.';
 
   @override
   String get runningCoachAnalysisGuideTitle => '그림으로 보는 교정 포인트';

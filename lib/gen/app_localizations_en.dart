@@ -8414,6 +8414,90 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachCaptureRetry => 'Open camera again';
 
   @override
+  String get runningCoachCaptureFramingTitle => 'Smart framing';
+
+  @override
+  String runningCoachCaptureFramingReadyCount(int count, int total) {
+    return '$count/$total ready';
+  }
+
+  @override
+  String get runningCoachCaptureFramingFallbackBody =>
+      'Live pose checks are unavailable here, so only device and preview checks are shown.';
+
+  @override
+  String get runningCoachCaptureFramingLiveBody =>
+      'Live pose checks update before recording. Warnings do not block recording.';
+
+  @override
+  String get runningCoachCaptureFramingStartingBody =>
+      'Starting the live framing check...';
+
+  @override
+  String get runningCoachCaptureFramingLiveSearching =>
+      'Looking for a full-body pose';
+
+  @override
+  String get runningCoachCaptureFramingLiveReady => 'Live pose detected';
+
+  @override
+  String get runningCoachCaptureFramingNotMeasured => 'Not measured';
+
+  @override
+  String get runningCoachCaptureFramingPhoneGood => 'Phone upright';
+
+  @override
+  String get runningCoachCaptureFramingPhoneWarning => 'Rotate upright';
+
+  @override
+  String get runningCoachCaptureFramingPreviewGood => 'Preview fills screen';
+
+  @override
+  String get runningCoachCaptureFramingFullBodyGood => 'Body inside guide';
+
+  @override
+  String get runningCoachCaptureFramingFullBodyWarning => 'Center full body';
+
+  @override
+  String get runningCoachCaptureFramingFullBodyUnknown => 'Body not measured';
+
+  @override
+  String get runningCoachCaptureFramingScaleGood => 'Good runner size';
+
+  @override
+  String get runningCoachCaptureFramingScaleTooSmall => 'Runner too small';
+
+  @override
+  String get runningCoachCaptureFramingScaleTooLarge => 'Runner too close';
+
+  @override
+  String get runningCoachCaptureFramingScaleUnknown => 'Size not measured';
+
+  @override
+  String get runningCoachCaptureFramingLandmarksGood =>
+      'Head and shoes visible';
+
+  @override
+  String get runningCoachCaptureFramingLandmarksWarning =>
+      'Show head, joints, shoes';
+
+  @override
+  String get runningCoachCaptureFramingLandmarksUnknown =>
+      'Joints not measured';
+
+  @override
+  String get runningCoachCaptureFramingSideGood => 'Side view';
+
+  @override
+  String get runningCoachCaptureFramingSideWarning => 'Move square to side';
+
+  @override
+  String get runningCoachCaptureFramingSideUnknown => 'Side view not measured';
+
+  @override
+  String get runningCoachCaptureFramingCheckWarning => 'Check framing';
+
+  @override
   String get runningCoachModeLive => 'Live';
 
   @override
@@ -10087,6 +10171,77 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get runningCoachEvidenceFramesBody =>
       'These still frames and pose markers stay only on this device. Deleting the analysis removes them. The full video is saved only when you turned on video saving.';
+
+  @override
+  String runningCoachEvidenceArchiveSavedTitle(int count) {
+    return '$count evidence image(s) saved';
+  }
+
+  @override
+  String get runningCoachEvidenceArchiveSavedBody =>
+      'These still frames are separate from the optional source video and stay only on this device.';
+
+  @override
+  String runningCoachEvidenceArchivePartialTitle(int saved, int requested) {
+    return '$saved/$requested evidence images saved';
+  }
+
+  @override
+  String runningCoachEvidenceArchivePartialBody(Object reason) {
+    return 'Some still frames could not be saved: $reason';
+  }
+
+  @override
+  String get runningCoachEvidenceArchiveFailedTitle =>
+      'Evidence images were not saved';
+
+  @override
+  String runningCoachEvidenceArchiveFailedBody(Object reason) {
+    return 'The analysis is saved, but the still evidence images could not be kept: $reason';
+  }
+
+  @override
+  String get runningCoachEvidenceArchiveNotRequestedTitle =>
+      'No evidence image requested';
+
+  @override
+  String get runningCoachEvidenceArchiveNotRequestedBody =>
+      'This analysis did not produce a reliable still frame to archive. The measured pose data remains in the result.';
+
+  @override
+  String get runningCoachEvidenceArchiveReasonSourceUnavailable =>
+      'the source video was unavailable after analysis.';
+
+  @override
+  String get runningCoachEvidenceArchiveReasonExtractionEmpty =>
+      'no JPEG frame could be extracted at the selected evidence timestamps.';
+
+  @override
+  String get runningCoachEvidenceArchiveReasonStorageUnavailable =>
+      'local image storage was unavailable.';
+
+  @override
+  String get runningCoachEvidenceArchiveReasonFileWrite =>
+      'the device could not write the JPEG file.';
+
+  @override
+  String get runningCoachEvidenceArchiveReasonWebLimit =>
+      'the browser storage limit would be exceeded.';
+
+  @override
+  String get runningCoachEvidenceArchiveReasonPlatformUnavailable =>
+      'this app build could not run the evidence-frame extractor.';
+
+  @override
+  String get runningCoachEvidenceArchiveReasonUnknown =>
+      'the device reported an unknown image-save error.';
+
+  @override
+  String get runningCoachEvidenceImageReadFailed => 'Image unavailable';
+
+  @override
+  String get runningCoachEvidenceImageReadFailedReason =>
+      'The saved file may have been removed from this device.';
 
   @override
   String get runningCoachAnalysisGuideTitle => 'Correction point in pictures';

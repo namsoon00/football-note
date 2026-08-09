@@ -5,12 +5,17 @@ import 'package:image_picker/image_picker.dart';
 import '../domain/entities/running_coach_session.dart';
 import 'running_coach_evidence_archive_types.dart';
 
-Future<List<RunningCoachEvidenceImage>> archiveRunningCoachEvidenceImages({
+Future<RunningCoachEvidenceArchiveResult> archiveRunningCoachEvidenceImages({
   required XFile? sourceVideo,
   required String sessionId,
   required List<RunningCoachEvidenceFrameRequest> requests,
 }) async =>
-    const <RunningCoachEvidenceImage>[];
+    requests.isEmpty
+        ? RunningCoachEvidenceArchiveResult.notRequested()
+        : RunningCoachEvidenceArchiveResult.failed(
+            requestedCount: requests.length,
+            failureCode: 'evidence_archive_unavailable',
+          );
 
 Future<Uint8List?> readArchivedRunningCoachEvidenceImage(
   RunningCoachEvidenceImage image,

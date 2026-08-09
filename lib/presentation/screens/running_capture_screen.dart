@@ -1,9 +1,13 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
+import '../../application/running_live_framing_analysis.dart';
+import '../../domain/entities/running_video_analysis_result.dart';
 import '../../gen/app_localizations.dart';
 
 /// Records a short side-view clip for the running analysis flow.
@@ -46,11 +50,29 @@ class _RunningCaptureScreenState extends State<RunningCaptureScreen>
   bool _isStopping = false;
   String? _errorCode;
   int _cameraSession = 0;
+  bool _liveFramingActive = false;
+  bool _liveFrameInFlight = false;
+  bool _livePoseUnavailable = false;
+  DateTime? _lastLiveFrameSentAt;
+  RunningPoseFrame? _livePoseFrame;
+  String? _livePoseErrorCode;
+
+  static const _liveFrameInterval = Duration(milliseconds: 1100);
 
   bool get _isSupportedPlatform =>
       !kIsWeb &&
       (defaultTargetPlatform == TargetPlatform.android ||
           defaultTargetPlatform == TargetPlatform.iOS);
+
+  ImageFormatGroup? get _liveImageFormatGroup {
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      return ImageFormatGroup.bgra8888;
+    }
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      return ImageFormatGroup.yuv420;
+    }
+    return null;
+  }
 
   bool get _canStopRecording =>
       _recordingElapsed >= widget.minimumDuration && !_isStopping;
@@ -73,11 +95,12 @@ class _RunningCaptureScreenState extends State<RunningCaptureScreen>
     if (state == AppLifecycleState.inactive ||
         state == AppLifecycleState.paused) {
       _cancelTimers();
+      _liveFramingActive = false;
       _cameraSession++;
       final controller = _controller;
       _controller = null;
       if (controller != null) {
-        unawaited(controller.dispose());
+        unawaited(_disposeController(controller));
       }
     }
   }
@@ -90,7 +113,7 @@ class _RunningCaptureScreenState extends State<RunningCaptureScreen>
     final controller = _controller;
     _controller = null;
     if (controller != null) {
-      unawaited(controller.dispose());
+      unawaited(_disposeController(controller));
     }
     super.dispose();
   }
@@ -98,10 +121,11 @@ class _RunningCaptureScreenState extends State<RunningCaptureScreen>
   Future<void> _initializeCamera({CameraDescription? preferredCamera}) async {
     final session = ++_cameraSession;
     _cancelTimers();
+    await _stopLiveFraming();
     final previous = _controller;
     _controller = null;
     if (previous != null) {
-      await previous.dispose();
+      await _disposeController(previous);
     }
     if (!mounted || session != _cameraSession) {
       return;
@@ -137,10 +161,11 @@ class _RunningCaptureScreenState extends State<RunningCaptureScreen>
         selected,
         ResolutionPreset.high,
         enableAudio: false,
+        imageFormatGroup: _liveImageFormatGroup,
       );
       await controller.initialize();
       if (!mounted || session != _cameraSession) {
-        await controller.dispose();
+        await _disposeController(controller);
         return;
       }
       setState(() {
@@ -148,7 +173,11 @@ class _RunningCaptureScreenState extends State<RunningCaptureScreen>
         _activeCamera = selected;
         _controller = controller;
         _isInitializing = false;
+        _livePoseFrame = null;
+        _livePoseErrorCode = null;
+        _livePoseUnavailable = false;
       });
+      unawaited(_startLiveFraming(controller, session));
     } on CameraException catch (error) {
       if (!mounted || session != _cameraSession) {
         return;
@@ -166,6 +195,114 @@ class _RunningCaptureScreenState extends State<RunningCaptureScreen>
         _errorCode = 'camera_failed';
       });
     }
+  }
+
+  Future<void> _startLiveFraming(
+    CameraController controller,
+    int session,
+  ) async {
+    if (!_isSupportedPlatform ||
+        _livePoseUnavailable ||
+        _isRecording ||
+        !controller.value.isInitialized ||
+        controller.value.isStreamingImages) {
+      return;
+    }
+    try {
+      await controller.startImageStream(_handleLiveCameraImage);
+      if (!mounted || session != _cameraSession) {
+        await _stopLiveFraming(controller: controller);
+        return;
+      }
+      setState(() {
+        _liveFramingActive = true;
+        _livePoseErrorCode = null;
+      });
+    } on CameraException catch (error) {
+      if (!mounted || session != _cameraSession) return;
+      setState(() {
+        _liveFramingActive = false;
+        _livePoseUnavailable = true;
+        _livePoseErrorCode = error.code;
+      });
+    } catch (_) {
+      if (!mounted || session != _cameraSession) return;
+      setState(() {
+        _liveFramingActive = false;
+        _livePoseUnavailable = true;
+        _livePoseErrorCode = 'live_pose_unavailable';
+      });
+    }
+  }
+
+  Future<void> _handleLiveCameraImage(CameraImage image) async {
+    if (!_liveFramingActive || _liveFrameInFlight || _isRecording) {
+      return;
+    }
+    final now = DateTime.now();
+    final lastSentAt = _lastLiveFrameSentAt;
+    if (lastSentAt != null && now.difference(lastSentAt) < _liveFrameInterval) {
+      return;
+    }
+    final activeCamera = _activeCamera;
+    if (activeCamera == null) return;
+    _lastLiveFrameSentAt = now;
+    _liveFrameInFlight = true;
+    final session = _cameraSession;
+    try {
+      final poseFrame = await analyzeRunningLiveCameraImage(
+        image: image,
+        rotationDegrees: _liveFrameRotationDegrees(activeCamera),
+        isFrontCamera: activeCamera.lensDirection == CameraLensDirection.front,
+      );
+      if (!mounted || session != _cameraSession) return;
+      setState(() {
+        _livePoseFrame = poseFrame;
+        _livePoseErrorCode = poseFrame == null ? 'no_pose_detected' : null;
+      });
+    } on MissingPluginException {
+      if (!mounted || session != _cameraSession) return;
+      setState(() {
+        _livePoseUnavailable = true;
+        _livePoseErrorCode = 'live_pose_unavailable';
+      });
+      unawaited(_stopLiveFraming());
+    } on PlatformException catch (error) {
+      if (!mounted || session != _cameraSession) return;
+      setState(() {
+        _livePoseErrorCode = error.code;
+        if (error.code == 'live_pose_unsupported' ||
+            error.code == 'mediapipe_pose_failed' ||
+            error.code == 'model_missing') {
+          _livePoseUnavailable = true;
+        }
+      });
+      if (_livePoseUnavailable) {
+        unawaited(_stopLiveFraming());
+      }
+    } catch (_) {
+      if (!mounted || session != _cameraSession) return;
+      setState(() {
+        _livePoseErrorCode = 'live_pose_failed';
+      });
+    } finally {
+      _liveFrameInFlight = false;
+    }
+  }
+
+  int _liveFrameRotationDegrees(CameraDescription camera) {
+    final deviceDegrees = switch (_controller?.value.deviceOrientation) {
+      DeviceOrientation.portraitUp => 0,
+      DeviceOrientation.landscapeLeft => 90,
+      DeviceOrientation.portraitDown => 180,
+      DeviceOrientation.landscapeRight => 270,
+      _ => 0,
+    };
+    final sensorDegrees = camera.sensorOrientation;
+    if (camera.lensDirection == CameraLensDirection.front) {
+      return (sensorDegrees + deviceDegrees) % 360;
+    }
+    return (sensorDegrees - deviceDegrees + 360) % 360;
   }
 
   void _beginCountdown() {
@@ -199,6 +336,7 @@ class _RunningCaptureScreenState extends State<RunningCaptureScreen>
       return;
     }
     try {
+      await _stopLiveFraming(controller: controller);
       await controller.startVideoRecording();
       if (!mounted) {
         return;
@@ -292,6 +430,23 @@ class _RunningCaptureScreenState extends State<RunningCaptureScreen>
     _recordingTimer = null;
   }
 
+  Future<void> _stopLiveFraming({CameraController? controller}) async {
+    _liveFramingActive = false;
+    final target = controller ?? _controller;
+    if (target == null || !target.value.isInitialized) return;
+    if (!target.value.isStreamingImages) return;
+    try {
+      await target.stopImageStream();
+    } on CameraException {
+      // The stream is only a framing aid. Recording and disposal must continue.
+    } catch (_) {}
+  }
+
+  Future<void> _disposeController(CameraController controller) async {
+    await _stopLiveFraming(controller: controller);
+    await controller.dispose();
+  }
+
   String _errorMessage(AppLocalizations l10n) {
     return switch (_errorCode) {
       'unsupported_platform' => l10n.runningCoachCaptureUnsupportedPlatform,
@@ -318,12 +473,7 @@ class _RunningCaptureScreenState extends State<RunningCaptureScreen>
           fit: StackFit.expand,
           children: [
             if (controller != null && controller.value.isInitialized)
-              Center(
-                child: AspectRatio(
-                  aspectRatio: controller.value.aspectRatio,
-                  child: CameraPreview(controller),
-                ),
-              )
+              _CoverCameraPreview(controller: controller)
             else
               const ColoredBox(color: Colors.black),
             if (controller != null && controller.value.isInitialized)
@@ -396,26 +546,47 @@ class _RunningCaptureScreenState extends State<RunningCaptureScreen>
               )
             else ...[
               Positioned(
-                left: 24,
-                right: 24,
-                bottom: 138,
-                child: Text(
-                  _isRecording
+                left: 12,
+                right: 12,
+                bottom: 118,
+                child: _CaptureFramingStatusPanel(
+                  status: _captureFramingStatus(
+                    controller: controller,
+                    poseFrame: _livePoseFrame,
+                    livePoseUnavailable:
+                        _livePoseUnavailable || !_isSupportedPlatform,
+                    livePoseActive: _liveFramingActive,
+                    livePoseErrorCode: _livePoseErrorCode,
+                    isRecording: _isRecording,
+                  ),
+                  recordingLabel: _isRecording
                       ? l10n.runningCoachCaptureRecording(
                           _recordingElapsed.inSeconds,
                           widget.maximumDuration.inSeconds,
                         )
                       : l10n.runningCoachCaptureGuide,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                    shadows: const [
-                      Shadow(color: Colors.black, blurRadius: 8),
-                    ],
-                  ),
                 ),
               ),
+              if (!_isRecording && !_livePoseUnavailable)
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 92,
+                  child: Center(
+                    child: Text(
+                      _livePoseFrame == null
+                          ? l10n.runningCoachCaptureFramingLiveSearching
+                          : l10n.runningCoachCaptureFramingLiveReady,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        shadows: const [
+                          Shadow(color: Colors.black, blurRadius: 8),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               Positioned(
                 left: 0,
                 right: 0,
@@ -475,6 +646,536 @@ class _RunningCaptureScreenState extends State<RunningCaptureScreen>
       ),
     );
   }
+}
+
+class _CoverCameraPreview extends StatelessWidget {
+  final CameraController controller;
+
+  const _CoverCameraPreview({required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final previewAspectRatio = _cameraPreviewAspectRatio(controller);
+        final viewportAspectRatio =
+            constraints.maxWidth / math.max(1.0, constraints.maxHeight);
+        final scale = previewAspectRatio > viewportAspectRatio
+            ? previewAspectRatio / viewportAspectRatio
+            : viewportAspectRatio / previewAspectRatio;
+        return ClipRect(
+          child: Transform.scale(
+            scale: math.max(1.0, scale),
+            child: Center(
+              child: AspectRatio(
+                aspectRatio: previewAspectRatio,
+                child: CameraPreview(controller),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+double _cameraPreviewAspectRatio(CameraController controller) {
+  final orientation = controller.value.isRecordingVideo
+      ? controller.value.recordingOrientation
+      : controller.value.previewPauseOrientation ??
+          controller.value.lockedCaptureOrientation ??
+          controller.value.deviceOrientation;
+  final isLandscape = orientation == DeviceOrientation.landscapeLeft ||
+      orientation == DeviceOrientation.landscapeRight;
+  return isLandscape
+      ? controller.value.aspectRatio
+      : 1 / controller.value.aspectRatio;
+}
+
+enum _CaptureFramingCheckKind {
+  phoneLevel,
+  previewFill,
+  fullBodySafe,
+  runnerScale,
+  landmarksVisible,
+  sideView,
+}
+
+enum _CaptureFramingCheckState { good, warning, unknown }
+
+class _CaptureFramingStatus {
+  final bool livePoseUnavailable;
+  final bool livePoseActive;
+  final String? livePoseErrorCode;
+  final List<_CaptureFramingCheck> checks;
+
+  const _CaptureFramingStatus({
+    required this.livePoseUnavailable,
+    required this.livePoseActive,
+    required this.livePoseErrorCode,
+    required this.checks,
+  });
+
+  int get readyCount => checks
+      .where((check) => check.state == _CaptureFramingCheckState.good)
+      .length;
+}
+
+class _CaptureFramingCheck {
+  final _CaptureFramingCheckKind kind;
+  final _CaptureFramingCheckState state;
+  final String? code;
+
+  const _CaptureFramingCheck({
+    required this.kind,
+    required this.state,
+    this.code,
+  });
+}
+
+_CaptureFramingStatus _captureFramingStatus({
+  required CameraController? controller,
+  required RunningPoseFrame? poseFrame,
+  required bool livePoseUnavailable,
+  required bool livePoseActive,
+  required String? livePoseErrorCode,
+  required bool isRecording,
+}) {
+  final isPhoneUpright =
+      controller?.value.deviceOrientation == DeviceOrientation.portraitUp ||
+          controller?.value.deviceOrientation == DeviceOrientation.portraitDown;
+  final checks = <_CaptureFramingCheck>[
+    _CaptureFramingCheck(
+      kind: _CaptureFramingCheckKind.phoneLevel,
+      state: isPhoneUpright
+          ? _CaptureFramingCheckState.good
+          : _CaptureFramingCheckState.warning,
+      code: isPhoneUpright ? null : 'not_upright',
+    ),
+    const _CaptureFramingCheck(
+      kind: _CaptureFramingCheckKind.previewFill,
+      state: _CaptureFramingCheckState.good,
+    ),
+  ];
+  if (poseFrame == null || livePoseUnavailable || isRecording) {
+    checks.addAll(
+      const <_CaptureFramingCheck>[
+        _CaptureFramingCheck(
+          kind: _CaptureFramingCheckKind.fullBodySafe,
+          state: _CaptureFramingCheckState.unknown,
+        ),
+        _CaptureFramingCheck(
+          kind: _CaptureFramingCheckKind.runnerScale,
+          state: _CaptureFramingCheckState.unknown,
+        ),
+        _CaptureFramingCheck(
+          kind: _CaptureFramingCheckKind.landmarksVisible,
+          state: _CaptureFramingCheckState.unknown,
+        ),
+        _CaptureFramingCheck(
+          kind: _CaptureFramingCheckKind.sideView,
+          state: _CaptureFramingCheckState.unknown,
+        ),
+      ],
+    );
+    return _CaptureFramingStatus(
+      livePoseUnavailable: livePoseUnavailable,
+      livePoseActive: livePoseActive,
+      livePoseErrorCode: livePoseErrorCode,
+      checks: List<_CaptureFramingCheck>.unmodifiable(checks),
+    );
+  }
+
+  final poseQuality = _LivePoseFramingQuality(poseFrame);
+  checks.addAll(<_CaptureFramingCheck>[
+    _CaptureFramingCheck(
+      kind: _CaptureFramingCheckKind.fullBodySafe,
+      state: poseQuality.isInsideSafeArea
+          ? _CaptureFramingCheckState.good
+          : _CaptureFramingCheckState.warning,
+      code: poseQuality.isInsideSafeArea ? null : 'body_outside_safe_area',
+    ),
+    _CaptureFramingCheck(
+      kind: _CaptureFramingCheckKind.runnerScale,
+      state: poseQuality.runnerScaleState,
+      code: poseQuality.runnerScaleCode,
+    ),
+    _CaptureFramingCheck(
+      kind: _CaptureFramingCheckKind.landmarksVisible,
+      state: poseQuality.hasRequiredLandmarks
+          ? _CaptureFramingCheckState.good
+          : _CaptureFramingCheckState.warning,
+      code: poseQuality.hasRequiredLandmarks ? null : 'missing_landmarks',
+    ),
+    _CaptureFramingCheck(
+      kind: _CaptureFramingCheckKind.sideView,
+      state: poseQuality.isSideView
+          ? _CaptureFramingCheckState.good
+          : _CaptureFramingCheckState.warning,
+      code: poseQuality.isSideView ? null : 'not_side_view',
+    ),
+  ]);
+  return _CaptureFramingStatus(
+    livePoseUnavailable: livePoseUnavailable,
+    livePoseActive: livePoseActive,
+    livePoseErrorCode: livePoseErrorCode,
+    checks: List<_CaptureFramingCheck>.unmodifiable(checks),
+  );
+}
+
+class _LivePoseFramingQuality {
+  final RunningPoseFrame frame;
+  late final List<RunningVideoPoseLandmark> _visibleLandmarks = frame.landmarks
+      .where((landmark) =>
+          landmark.confidence >= runningLiveFramingMinimumConfidence)
+      .toList(growable: false);
+
+  _LivePoseFramingQuality(this.frame);
+
+  static const _safeLeft = 0.06;
+  static const _safeRight = 0.94;
+  static const _safeTop = 0.04;
+  static const _safeBottom = 0.96;
+  static const _minimumRunnerHeight = 0.40;
+  static const _idealMinimumRunnerHeight = 0.50;
+  static const _idealMaximumRunnerHeight = 0.78;
+  static const _maximumRunnerHeight = 0.88;
+  static const _maximumSidePairRatio = 0.22;
+
+  Rect? get _bounds {
+    if (_visibleLandmarks.isEmpty) return null;
+    var minX = _visibleLandmarks.first.x;
+    var maxX = _visibleLandmarks.first.x;
+    var minY = _visibleLandmarks.first.y;
+    var maxY = _visibleLandmarks.first.y;
+    for (final landmark in _visibleLandmarks.skip(1)) {
+      minX = math.min(minX, landmark.x);
+      maxX = math.max(maxX, landmark.x);
+      minY = math.min(minY, landmark.y);
+      maxY = math.max(maxY, landmark.y);
+    }
+    return Rect.fromLTRB(minX, minY, maxX, maxY);
+  }
+
+  bool get isInsideSafeArea {
+    final bounds = _bounds;
+    if (bounds == null) return false;
+    return bounds.left >= _safeLeft &&
+        bounds.right <= _safeRight &&
+        bounds.top >= _safeTop &&
+        bounds.bottom <= _safeBottom;
+  }
+
+  _CaptureFramingCheckState get runnerScaleState {
+    final height = _bounds?.height ?? 0;
+    if (height >= _idealMinimumRunnerHeight &&
+        height <= _idealMaximumRunnerHeight) {
+      return _CaptureFramingCheckState.good;
+    }
+    return _CaptureFramingCheckState.warning;
+  }
+
+  String? get runnerScaleCode {
+    final height = _bounds?.height ?? 0;
+    if (height < _minimumRunnerHeight || height < _idealMinimumRunnerHeight) {
+      return 'runner_too_small';
+    }
+    if (height > _maximumRunnerHeight || height > _idealMaximumRunnerHeight) {
+      return 'runner_too_large';
+    }
+    return null;
+  }
+
+  bool get hasRequiredLandmarks {
+    return const <int>[
+      0,
+      11,
+      12,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+    ].every(_hasConfidentLandmark);
+  }
+
+  bool get isSideView {
+    final bounds = _bounds;
+    if (bounds == null || bounds.height <= 0) return false;
+    final shoulderSpan = _pairSpan(11, 12);
+    final hipSpan = _pairSpan(23, 24);
+    if (shoulderSpan == null || hipSpan == null) return false;
+    final pairRatio = ((shoulderSpan + hipSpan) / 2) / bounds.height;
+    return pairRatio <= _maximumSidePairRatio;
+  }
+
+  bool _hasConfidentLandmark(int index) {
+    final landmark = frame.landmarkByIndex(index);
+    return landmark != null &&
+        landmark.confidence >= runningLiveFramingMinimumConfidence &&
+        landmark.x.isFinite &&
+        landmark.y.isFinite;
+  }
+
+  double? _pairSpan(int firstIndex, int secondIndex) {
+    final first = frame.landmarkByIndex(firstIndex);
+    final second = frame.landmarkByIndex(secondIndex);
+    if (first == null ||
+        second == null ||
+        first.confidence < runningLiveFramingMinimumConfidence ||
+        second.confidence < runningLiveFramingMinimumConfidence) {
+      return null;
+    }
+    return (first.x - second.x).abs();
+  }
+}
+
+const runningLiveFramingMinimumConfidence = 0.35;
+
+class _CaptureFramingStatusPanel extends StatelessWidget {
+  final _CaptureFramingStatus status;
+  final String recordingLabel;
+
+  const _CaptureFramingStatusPanel({
+    required this.status,
+    required this.recordingLabel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final measuredCount = status.checks
+        .where((check) => check.state != _CaptureFramingCheckState.unknown)
+        .length;
+    return DecoratedBox(
+      key: const ValueKey('running-capture-framing-status-panel'),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.62),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(10),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  status.readyCount >= measuredCount
+                      ? Icons.verified_outlined
+                      : Icons.info_outline_rounded,
+                  color: Colors.white,
+                  size: 18,
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    l10n.runningCoachCaptureFramingTitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+                Text(
+                  l10n.runningCoachCaptureFramingReadyCount(
+                    status.readyCount,
+                    measuredCount,
+                  ),
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              status.livePoseUnavailable
+                  ? l10n.runningCoachCaptureFramingFallbackBody
+                  : status.livePoseActive
+                      ? l10n.runningCoachCaptureFramingLiveBody
+                      : l10n.runningCoachCaptureFramingStartingBody,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: Colors.white.withValues(alpha: 0.82),
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                for (final check in status.checks)
+                  _CaptureFramingStatusChip(check: check),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              recordingLabel,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CaptureFramingStatusChip extends StatelessWidget {
+  final _CaptureFramingCheck check;
+
+  const _CaptureFramingStatusChip({required this.check});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final color = switch (check.state) {
+      _CaptureFramingCheckState.good => const Color(0xff80cbc4),
+      _CaptureFramingCheckState.warning => const Color(0xffffcc80),
+      _CaptureFramingCheckState.unknown => Colors.white70,
+    };
+    final icon = switch (check.state) {
+      _CaptureFramingCheckState.good => Icons.check_circle_outline_rounded,
+      _CaptureFramingCheckState.warning => Icons.warning_amber_rounded,
+      _CaptureFramingCheckState.unknown => Icons.radio_button_unchecked,
+    };
+    return Container(
+      key: ValueKey('running-capture-framing-${check.kind.name}'),
+      constraints: const BoxConstraints(maxWidth: 148),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: 0.44)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 15, color: color),
+          const SizedBox(width: 5),
+          Flexible(
+            child: Text(
+              _framingCheckText(l10n, check),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                  ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+String _framingCheckText(
+  AppLocalizations l10n,
+  _CaptureFramingCheck check,
+) {
+  if (check.state == _CaptureFramingCheckState.unknown) {
+    return switch (check.kind) {
+      _CaptureFramingCheckKind.fullBodySafe =>
+        l10n.runningCoachCaptureFramingFullBodyUnknown,
+      _CaptureFramingCheckKind.runnerScale =>
+        l10n.runningCoachCaptureFramingScaleUnknown,
+      _CaptureFramingCheckKind.landmarksVisible =>
+        l10n.runningCoachCaptureFramingLandmarksUnknown,
+      _CaptureFramingCheckKind.sideView =>
+        l10n.runningCoachCaptureFramingSideUnknown,
+      _ => l10n.runningCoachCaptureFramingNotMeasured,
+    };
+  }
+  if (check.state == _CaptureFramingCheckState.good) {
+    return switch (check.kind) {
+      _CaptureFramingCheckKind.phoneLevel =>
+        l10n.runningCoachCaptureFramingPhoneGood,
+      _CaptureFramingCheckKind.previewFill =>
+        l10n.runningCoachCaptureFramingPreviewGood,
+      _CaptureFramingCheckKind.fullBodySafe =>
+        l10n.runningCoachCaptureFramingFullBodyGood,
+      _CaptureFramingCheckKind.runnerScale =>
+        l10n.runningCoachCaptureFramingScaleGood,
+      _CaptureFramingCheckKind.landmarksVisible =>
+        l10n.runningCoachCaptureFramingLandmarksGood,
+      _CaptureFramingCheckKind.sideView =>
+        l10n.runningCoachCaptureFramingSideGood,
+    };
+  }
+  return switch (check.code) {
+    'not_upright' => l10n.runningCoachCaptureFramingPhoneWarning,
+    'body_outside_safe_area' => l10n.runningCoachCaptureFramingFullBodyWarning,
+    'runner_too_small' => l10n.runningCoachCaptureFramingScaleTooSmall,
+    'runner_too_large' => l10n.runningCoachCaptureFramingScaleTooLarge,
+    'missing_landmarks' => l10n.runningCoachCaptureFramingLandmarksWarning,
+    'not_side_view' => l10n.runningCoachCaptureFramingSideWarning,
+    _ => l10n.runningCoachCaptureFramingCheckWarning,
+  };
+}
+
+@visibleForTesting
+Widget runningCaptureFramingStatusPanelForTesting({
+  required RunningPoseFrame? poseFrame,
+  bool livePoseUnavailable = false,
+  bool livePoseActive = true,
+  String? livePoseErrorCode,
+  bool isPhoneUpright = true,
+}) {
+  final controllerStatus = _CaptureFramingStatus(
+    livePoseUnavailable: livePoseUnavailable,
+    livePoseActive: livePoseActive,
+    livePoseErrorCode: livePoseErrorCode,
+    checks: _captureFramingStatusForTesting(
+      poseFrame: poseFrame,
+      livePoseUnavailable: livePoseUnavailable,
+      isPhoneUpright: isPhoneUpright,
+    ),
+  );
+  return _CaptureFramingStatusPanel(
+    status: controllerStatus,
+    recordingLabel: '',
+  );
+}
+
+List<_CaptureFramingCheck> _captureFramingStatusForTesting({
+  required RunningPoseFrame? poseFrame,
+  required bool livePoseUnavailable,
+  required bool isPhoneUpright,
+}) {
+  final checks = _captureFramingStatus(
+    controller: null,
+    poseFrame: poseFrame,
+    livePoseUnavailable: livePoseUnavailable,
+    livePoseActive: true,
+    livePoseErrorCode: null,
+    isRecording: false,
+  ).checks.toList();
+  checks[0] = _CaptureFramingCheck(
+    kind: _CaptureFramingCheckKind.phoneLevel,
+    state: isPhoneUpright
+        ? _CaptureFramingCheckState.good
+        : _CaptureFramingCheckState.warning,
+    code: isPhoneUpright ? null : 'not_upright',
+  );
+  return List<_CaptureFramingCheck>.unmodifiable(checks);
 }
 
 class _CaptureIconButton extends StatelessWidget {
