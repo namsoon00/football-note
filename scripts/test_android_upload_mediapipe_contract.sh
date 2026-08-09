@@ -229,22 +229,22 @@ require(
     "iOS sharpness gate must keep the calibrated 0.018 threshold",
 )
 require(
-    re.search(r"private const val coarseTargetFps\s*=\s*10\b", channel_text) is not None,
-    "Android upload analysis must scan short clips at approximately 10 fps",
+    re.search(r"private const val coarseTargetFps\s*=\s*8\b", channel_text) is not None,
+    "Android upload analysis must scan 60-second clips at a documented 8 fps budget",
 )
 require(
-    re.search(r"private static let coarseTargetFps\s*=\s*10\b", ios_text) is not None,
-    "iOS upload analysis must scan short clips at approximately 10 fps",
+    re.search(r"private static let coarseTargetFps\s*=\s*8\b", ios_text) is not None,
+    "iOS upload analysis must scan 60-second clips at a documented 8 fps budget",
 )
 require(
-    re.search(r"private const val coarseFrameIntervalMs\s*=\s*100L\b", channel_text) is not None
-    and re.search(r"private const val maxCoarseFrameBudget\s*=\s*240\b", channel_text) is not None,
-    "Android upload analysis must retain a bounded 240-frame whole-clip scan",
+    re.search(r"private const val coarseFrameIntervalMs\s*=\s*125L\b", channel_text) is not None
+    and re.search(r"private const val maxCoarseFrameBudget\s*=\s*481\b", channel_text) is not None,
+    "Android upload analysis must retain a bounded 481-frame whole-clip scan",
 )
 require(
-    re.search(r"private static let coarseFrameIntervalMs\s*=\s*100\b", ios_text) is not None
-    and re.search(r"private static let maxCoarseFrameBudget\s*=\s*240\b", ios_text) is not None,
-    "iOS upload analysis must retain a bounded 240-frame whole-clip scan",
+    re.search(r"private static let coarseFrameIntervalMs\s*=\s*125\b", ios_text) is not None
+    and re.search(r"private static let maxCoarseFrameBudget\s*=\s*481\b", ios_text) is not None,
+    "iOS upload analysis must retain a bounded 481-frame whole-clip scan",
 )
 require(
     re.search(r"private const val maxVideoDurationMs\s*=\s*60000L\b", channel_text)
@@ -356,6 +356,13 @@ require(
     and "minimumDistinctContactSeparationMs" in channel_text
     and "minimumDistinctContactSeparationMs" in ios_text,
     "Android/iOS dense contact validation must deduplicate nearby contact events",
+)
+require(
+    "perspectiveQuality" in channel_text and "perspectiveQuality" in ios_text
+    and "minimumBodyScaleRatio" in channel_text and "minimumBodyScaleRatio" in ios_text
+    and '"not_side_on"' in channel_text and '"not_side_on"' in ios_text
+    and '"scale_drift"' in channel_text and '"scale_drift"' in ios_text,
+    "Android/iOS analyzers must emit perspective quality limitations",
 )
 require(
     "val usesContactProxy = uniqueContactFrameCount == 0" in channel_text,

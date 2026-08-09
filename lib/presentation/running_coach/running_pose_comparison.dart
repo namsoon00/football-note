@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import '../../application/running_coaching_service.dart';
 import '../../domain/entities/running_video_analysis_result.dart';
 import 'running_coach_avatar.dart';
-import 'running_coach_illustrated_comparison.dart';
 import 'running_pose_overlay.dart';
 import 'running_professional_runner.dart';
 import 'running_professional_runner_art.dart';
@@ -78,17 +77,104 @@ class RunningPoseCoordinateComparison extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RunningCoachIllustratedComparison(
+    return Semantics(
       key: const ValueKey('running-coach-coordinate-pose-comparison'),
-      insight: insight,
-      surfaceColor: surfaceColor,
-      mutedColor: mutedColor,
-      actualAccent: actualAccent,
-      targetAccent: targetAccent,
-      successAccent: successAccent,
-      semanticLabel: semanticLabel,
-      currentLabel: currentLabel,
-      nextStepLabel: nextStepLabel,
+      container: true,
+      label: semanticLabel,
+      child: FutureBuilder<ui.Image>(
+        future: loadProfessionalRunnerArtAtlas(),
+        builder: (context, snapshot) {
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              CustomPaint(
+                key: const ValueKey(
+                  'running-coach-coordinate-pose-comparison-painter',
+                ),
+                painter: RunningPoseCoordinateComparisonPainter(
+                  frame: frame,
+                  insight: insight,
+                  direction: direction,
+                  progress: 1,
+                  surfaceColor: surfaceColor,
+                  mutedColor: mutedColor,
+                  actualAccent: actualAccent,
+                  targetAccent: targetAccent,
+                  successAccent: successAccent,
+                  artAtlas: snapshot.data,
+                ),
+              ),
+              Positioned(
+                left: 10,
+                right: 10,
+                bottom: 8,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _ComparisonPanelLabel(
+                        label: currentLabel,
+                        color: insight.status == RunningCoachStatus.good
+                            ? successAccent
+                            : actualAccent,
+                        alignEnd: false,
+                      ),
+                    ),
+                    const SizedBox(width: 18),
+                    Expanded(
+                      child: _ComparisonPanelLabel(
+                        label: nextStepLabel,
+                        color: insight.status == RunningCoachStatus.good
+                            ? successAccent
+                            : targetAccent,
+                        alignEnd: true,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _ComparisonPanelLabel extends StatelessWidget {
+  final String label;
+  final Color color;
+  final bool alignEnd;
+
+  const _ComparisonPanelLabel({
+    required this.label,
+    required this.color,
+    required this.alignEnd,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: alignEnd ? Alignment.centerRight : Alignment.centerLeft,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.16),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: color.withValues(alpha: 0.38)),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: alignEnd ? TextAlign.end : TextAlign.start,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w900,
+                ),
+          ),
+        ),
+      ),
     );
   }
 }

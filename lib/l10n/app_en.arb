@@ -5073,6 +5073,81 @@
   "runningCoachMeasurementStatusUnavailable": "Unavailable",
   "runningCoachMeasurementCoverageTitle": "What this video could measure",
   "runningCoachMeasurementCoverageBody": "Metrics are verified independently. Missing contact evidence does not invalidate measurements such as arm carriage or trunk position.",
+  "runningCoachScoreWithheldLabel": "Score withheld",
+  "runningCoachScoreWithheldSummary": "The video does not support a verified score.",
+  "runningCoachScoreWithheldValue": "—",
+  "runningCoachScoreWithheldContactReason": "Contact evidence is not defensible: {reason}",
+  "@runningCoachScoreWithheldContactReason": {
+    "placeholders": {
+      "reason": {}
+    }
+  },
+  "runningCoachScoreWithheldGenericReason": "One or more required measurements are limited, so the score is withheld instead of estimated.",
+  "runningCoachMeasuredMetricsTitle": "Measured metrics",
+  "runningCoachMeasuredMetricsBody": "Only values supported by this video are listed as verified. Limited observations are shown without a score or drill.",
+  "runningCoachReferenceRangeNotice": "Reference ranges are general coaching references, not individualized medical or injury-risk limits.",
+  "runningCoachMetricVerticalBounceLabel": "Vertical bounce (%)",
+  "runningCoachMeasuredMetricSpmValue": "{value} spm",
+  "@runningCoachMeasuredMetricSpmValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "runningCoachMeasuredMetricMsValue": "{value} ms",
+  "@runningCoachMeasuredMetricMsValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "runningCoachMeasuredMetricWithinReference": "Within general reference",
+  "runningCoachMeasuredMetricNearReferenceEdge": "Near reference edge",
+  "runningCoachMeasuredMetricOutsideReference": "Outside general reference",
+  "runningCoachMeasuredMetricInconsistent": "Inconsistent across samples",
+  "runningCoachMeasuredMetricLimited": "Limited evidence",
+  "runningCoachMeasuredMetricUnavailable": "Unavailable from this video",
+  "runningCoachMeasuredMetricSampleCount": "{count} samples",
+  "@runningCoachMeasuredMetricSampleCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "runningCoachMeasuredMetricNoSamples": "No defensible sample",
+  "runningCoachMeasuredMetricEvidenceDetail": "{quality} · {samples}",
+  "@runningCoachMeasuredMetricEvidenceDetail": {
+    "placeholders": {
+      "quality": {},
+      "samples": {}
+    }
+  },
+  "runningCoachMeasuredMetricEvidenceReasonDetail": "{quality} · {samples} · {reason}",
+  "@runningCoachMeasuredMetricEvidenceReasonDetail": {
+    "placeholders": {
+      "quality": {},
+      "samples": {},
+      "reason": {}
+    }
+  },
+  "runningCoachQualityReasonLabelLowCoverage": "low coverage",
+  "runningCoachQualityReasonLabelLimitedSamples": "limited samples",
+  "runningCoachQualityReasonLabelContactPhaseProxy": "contact proxy",
+  "runningCoachQualityReasonLabelKinematicContact": "kinematic contact",
+  "runningCoachQualityReasonLabelLowConfidence": "low confidence",
+  "runningCoachQualityReasonLabelMissingContact": "missing contact",
+  "runningCoachQualityReasonLabelMissingPoseFrames": "missing pose frames",
+  "runningCoachQualityReasonLabelMissingMeasuredFrames": "missing measured frames",
+  "runningCoachPerspectiveTooSmallLabel": "Too far/small",
+  "runningCoachPerspectiveNotSideOnLabel": "Not side-on enough",
+  "runningCoachPerspectiveBodyCutOffLabel": "Body cut off",
+  "runningCoachPerspectiveScaleDriftLabel": "Distance changed",
+  "runningCoachPerspectiveTooSmallReason": "The runner is too small in the frame, so position-based coaching is limited.",
+  "runningCoachPerspectiveNotSideOnReason": "The view is diagonal or front-facing enough that lower-body contact coaching is limited.",
+  "runningCoachPerspectiveBodyCutOffReason": "The body is cut off in too many frames, so affected measurements are limited.",
+  "runningCoachPerspectiveScaleDriftReason": "The runner changes size across the clip, so distance-sensitive measurements are limited.",
+  "runningCoachPerspectiveTooSmallRetake": "Retake closer from the side with the full body visible.",
+  "runningCoachPerspectiveNotSideOnRetake": "Retake from a true side view with the runner moving across the frame.",
+  "runningCoachPerspectiveBodyCutOffRetake": "Keep head, hips, knees, and feet inside the frame for the full clip.",
+  "runningCoachPerspectiveScaleDriftRetake": "Keep camera distance steady so the runner stays the same size.",
+  "runningCoachPerspectiveGenericRetake": "Retake from a steady side view with the full runner visible.",
   "runningCoachEvidenceVideoUnavailable": "The saved video file is unavailable. The pose overlay still shows the analyzed frame.",
   "runningCoachEvidencePoseFrameOnly": "Showing the analyzed pose frame. The video file was not saved with this view.",
   "runningCoachEvidenceTimestamp": "Evidence frame {time}",
@@ -5121,14 +5196,10 @@
   "runningCoachTwoDTargetLabel": "Next landing",
   "runningCoachTwoDVideoOverlayTitle": "Overlay on your uploaded video",
   "runningCoachCoordinateRigUnavailable": "This frame does not contain enough joint coordinates to build the motion comparison.",
-  "runningCoachThreeDComparisonTitle": "3D runner comparison",
-  "runningCoachThreeDCurrentLabel": "Current 3D runner",
-  "runningCoachThreeDTargetLabel": "Next 3D target",
-  "runningCoachThreeDConfidenceLabel": "Tracking",
-  "runningCoachThreeDRendererLoading": "Loading 3D runner...",
-  "runningCoachThreeDRendererUnavailable": "The 3D runner cannot be built from this frame. Try a clearer side-view clip with full-body landmarks.",
-  "runningCoachThreeDRendererError": "The local WebGL runner could not start.",
-  "runningCoachThreeDReferenceNotice": "Fixed reference runner: tracked landmarks make small, constrained pose adjustments. This does not recreate your body or face.",
+  "runningCoachPoseComparisonTitle": "Measured pose comparison",
+  "runningCoachPoseComparisonCurrentLabel": "Current measured pose",
+  "runningCoachPoseComparisonTargetLabel": "Reference target",
+  "runningCoachPoseComparisonUnavailable": "This frame does not contain enough measured joint coordinates for a side-by-side pose comparison.",
   "runningCoachHistoryEvidenceUnavailableTitle": "No saved joint evidence",
   "runningCoachHistoryEvidenceUnavailableBody": "This older record has no saved pose frames. Its score and coaching goal are still available.",
   "runningCoachEvidenceCurrentLabel": "Current",
@@ -5682,8 +5753,8 @@
   "runningCoachGoodFormScreenTitle": "Good running form",
   "runningCoachGoodFormIntroTitle": "For new and experienced runners",
   "runningCoachGoodFormIntroBody": "Start with ‘Start here.’ Once it feels natural, use ‘Look closer’ to check symmetry, timing, and movement across several strides.",
-  "runningCoachGoodFormCycleTitle": "Static phase references",
-  "runningCoachGoodFormCycleBody": "The four reference images are static frames, not continuous video or your uploaded run. Each selected runner is displayed at the same scale on the same ground line; use the blue mark to inspect that phase relationship.",
+  "runningCoachGoodFormCycleTitle": "Continuous form loop",
+  "runningCoachGoodFormCycleBody": "One reference runner loops through landing, support, push-off, recovery, and the next landing with shared scale and ground alignment.",
   "runningCoachGoodFormPhaseLandingTitle": "Landing",
   "runningCoachGoodFormPhaseLandingCue": "Place the foot lightly near the hips instead of reaching it forward.",
   "runningCoachGoodFormPhaseLandingFocus": "Landing foot near the shared ground line",
@@ -5715,6 +5786,11 @@
   "runningCoachGoodFormSlowMotionAction": "Slow view",
   "runningCoachGoodFormStepAction": "Next phase",
   "runningCoachGoodFormRestartStepsAction": "Restart four steps",
+  "runningCoachGoodFormPlayAction": "Play",
+  "runningCoachGoodFormPauseAction": "Pause",
+  "runningCoachGoodFormStepFrameAction": "Next frame",
+  "runningCoachGoodFormSpeedNormal": "Normal",
+  "runningCoachGoodFormSpeedSlow": "Slow",
   "runningCoachGoodFormTechniqueTitle": "Illustrated technique guide",
   "runningCoachGoodFormTechniqueBody": "Red shows a common mistake; blue shows the recommended movement. Focus on the marked relationship and direction, not the model's body shape.",
   "runningCoachGoodFormCommonLabel": "Common mistake",
@@ -8927,6 +9003,24 @@
   "runningCoachGaitLimitationsBody": "A single side-view video does not measure foot rolling or pronation, ground-reaction force, exact ground-contact time, or injury risk.",
   "runningCoachJudgmentWithheldTitle": "Judgment withheld",
   "runningCoachJudgmentWithheldBody": "There is not enough evidence to label this movement as good or needing work, so no drill is prescribed. Retake the video instead.",
+  "runningCoachTrendTitle": "Same-condition trend",
+  "runningCoachTrendBody": "Compared condition: {effort} on {surface}. Uses {count} recent verified sessions with the same score version.",
+  "@runningCoachTrendBody": {
+    "placeholders": {
+      "effort": {},
+      "surface": {},
+      "count": { "type": "int" }
+    }
+  },
+  "runningCoachTrendInsufficientBaselineTitle": "Insufficient verified baseline",
+  "runningCoachTrendInsufficientBaselineBody": "At least two verified same-condition sessions with the same score version are required before showing deltas.",
+  "runningCoachTrendMetricValue": "{current} · Δ {delta}",
+  "@runningCoachTrendMetricValue": {
+    "placeholders": {
+      "current": {},
+      "delta": {}
+    }
+  },
   "runningCoachComparisonTitle": "Same-condition comparison",
   "runningCoachComparisonBody": "This recording is stored as {effort} on {surface}. Only compare it with a previous recording under the same conditions.",
   "@runningCoachComparisonBody": {

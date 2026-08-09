@@ -22,9 +22,10 @@ real-video frames and writes all generated MP4 files and reports under
 
 ## Current Product Safeguards
 
-- The app accepts running clips from 1.5 to 15 seconds and rejects files over
-  120 MB before on-device analysis. Analysis also has a 45-second app-side
-  timeout.
+- The app accepts running clips from 1.5 to 60 seconds and rejects files over
+  120 MB before on-device analysis. The coarse pass samples across the full
+  clip at an 8 fps / 481-frame budget so a 60-second capture is not silently
+  reduced to the first few seconds.
 - A lower-body score or next-step prescription requires at least three unique
   validated contact events. Coarse contact proxies remain visible only as
   limited evidence; they do not drive the overall score or next goal.
@@ -41,9 +42,9 @@ real-video frames and writes all generated MP4 files and reports under
   confidently identified contact events. Unknown-side contact timing may still
   contribute to cadence, but not to a bilateral comparison.
 - A runner can save effort and surface conditions with a recording. Trend
-  comparison is enabled only when both recordings use the same saved
-  conditions and each has a sufficient step sample. It shows values before and
-  after, not a claim that one run is better.
+  comparison is enabled only for recent verified sessions with the same saved
+  conditions and the same score-rule version. It shows current values and
+  deltas from comparable baselines, not a claim that one run is better.
 - A single fixed side-view video does **not** measure foot rolling/pronation,
   ground-reaction force, exact ground-contact time, or injury risk. Those
   fields must never be inferred from this product's result.
@@ -154,6 +155,35 @@ iPhone and one physical Android phone for:
 
 Until those measurements are collected from the native camera/plugin path,
 the running coach should not be described as ready for paid release.
+
+## Physical-device smoke checklist
+
+These items are intentionally unchecked. Repository-derived videos and local
+fixture analysis are not physical-device approval.
+
+### iPhone
+
+- [ ] Camera preview fills the capture screen without stretching or cropping
+  the runner unexpectedly.
+- [ ] Live framing statuses correctly report full body visible, partial
+  lower-body occlusion, runner too small/far, and runner leaving the frame.
+- [ ] Rear-camera side-view recording completes for a 60-second clip.
+- [ ] Analysis completes from that 60-second recording without truncating to
+  the first few seconds.
+- [ ] Saved JPEG evidence appears in history, and reopening history preserves
+  metric-to-frame navigation.
+
+### Android
+
+- [ ] Camera preview fills the capture screen without stretching or cropping
+  the runner unexpectedly.
+- [ ] Live framing statuses correctly report full body visible, partial
+  lower-body occlusion, runner too small/far, and runner leaving the frame.
+- [ ] Rear-camera side-view recording completes for a 60-second clip.
+- [ ] Analysis completes from that 60-second recording without truncating to
+  the first few seconds.
+- [ ] Saved JPEG evidence appears in history, and reopening history preserves
+  metric-to-frame navigation.
 
 ## User-facing capture guide state
 

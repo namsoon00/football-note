@@ -56,17 +56,6 @@ import UserNotifications
     registerAppBadgeChannel(
       binaryMessenger: engineBridge.applicationRegistrar.messenger()
     )
-    registerRunningThreeDRunnerView(pluginRegistry: engineBridge.pluginRegistry)
-  }
-
-  private func registerRunningThreeDRunnerView(pluginRegistry: FlutterPluginRegistry) {
-    guard let registrar = pluginRegistry.registrar(forPlugin: "RunningThreeDRunnerView") else {
-      return
-    }
-    registrar.register(
-      RunningThreeDRunnerViewFactory(messenger: registrar.messenger()),
-      withId: "football_note/running_3d_runner"
-    )
   }
 
   private func registerRunningPoseAnalysisChannel(binaryMessenger: FlutterBinaryMessenger) {

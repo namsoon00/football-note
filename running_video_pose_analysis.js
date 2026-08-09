@@ -7,12 +7,12 @@
     maxVideoDurationMs: 60000,
     minConfidence: 0.35,
     minValidFrames: 6,
-    // Read the whole clip at a useful temporal density first. Short clips
-    // receive an approximately 10 fps scan; long clips are still bounded so
-    // an on-device analysis cannot exhaust the browser or phone.
-    coarseTargetFps: 10,
-    coarseFrameIntervalMs: 100,
-    maxCoarseFrames: 240,
+    // Read the whole clip at a predictable coarse density. The release budget
+    // is 8 fps through the supported 60-second capture, capped at 481 inclusive
+    // timestamps so start, middle, and end are always represented.
+    coarseTargetFps: 8,
+    coarseFrameIntervalMs: 125,
+    maxCoarseFrames: 481,
     minMedianSharpness: 0.018,
     minSharpnessSamples: 6,
     minBodyScalePx: 40,
@@ -43,6 +43,12 @@
     kinematicContactMotionToleranceRatio: 0.025,
     groundLineSampleFraction: 0.45,
     groundLineMinimumSamples: 3,
+    minimumBodyScaleRatio: 0.12,
+    minimumSideViewScore: 0.46,
+    maximumScaleDriftRatio: 0.34,
+    maximumCutOffFrameRatio: 0.18,
+    minimumVisibilityCoverage: 0.62,
+    edgeCutOffMarginRatio: 0.025,
     // A contact must persist over adjacent dense samples. A single shoe point
     // near the fitted ground line is only a candidate: it can just as easily
     // be a swing leg or a tracking spike.
@@ -326,6 +332,8 @@
 
     return {
       timestampMs,
+      imageWidth: width,
+      imageHeight: height,
       shoulderCenter,
       hipCenter,
       bodyScale,
@@ -678,17 +686,52 @@
   }
 
   function selectContactCandidateWindows(candidates) {
-    const selected = [];
+    const deduped = [];
     for (const candidate of [...candidates].sort(
       (left, right) => right.confidence - left.confidence || left.centerTimestampMs - right.centerTimestampMs,
     )) {
-      const duplicatesSameStep = selected.some((selectedCandidate) =>
+      const duplicatesSameStep = deduped.some((selectedCandidate) =>
         selectedCandidate.side === candidate.side &&
         Math.abs(selectedCandidate.centerTimestampMs - candidate.centerTimestampMs) <
           config.minContactSeparationMs,
       );
-      if (!duplicatesSameStep) selected.push(candidate);
-      if (selected.length >= config.maxContactWindows) break;
+      if (!duplicatesSameStep) deduped.push(candidate);
+    }
+    if (deduped.length <= config.maxContactWindows) {
+      return deduped.sort((left, right) => left.centerTimestampMs - right.centerTimestampMs);
+    }
+
+    const ordered = deduped.sort((left, right) => left.centerTimestampMs - right.centerTimestampMs);
+    const firstTime = ordered[0].centerTimestampMs;
+    const lastTime = ordered[ordered.length - 1].centerTimestampMs;
+    const selected = [];
+    const selectedIndexes = new Set();
+    for (let slot = 0; slot < config.maxContactWindows; slot += 1) {
+      const target = config.maxContactWindows <= 1
+        ? (firstTime + lastTime) / 2
+        : firstTime + ((lastTime - firstTime) * slot) / (config.maxContactWindows - 1);
+      let bestIndex = -1;
+      for (let index = 0; index < ordered.length; index += 1) {
+        if (selectedIndexes.has(index)) continue;
+        if (bestIndex < 0) {
+          bestIndex = index;
+          continue;
+        }
+        const current = ordered[index];
+        const best = ordered[bestIndex];
+        const distance = Math.abs(current.centerTimestampMs - target);
+        const bestDistance = Math.abs(best.centerTimestampMs - target);
+        if (distance < bestDistance ||
+            (distance === bestDistance && current.confidence > best.confidence) ||
+            (distance === bestDistance && current.confidence === best.confidence &&
+              current.centerTimestampMs < best.centerTimestampMs)) {
+          bestIndex = index;
+        }
+      }
+      if (bestIndex >= 0) {
+        selectedIndexes.add(bestIndex);
+        selected.push(ordered[bestIndex]);
+      }
     }
     return selected.sort((left, right) => left.centerTimestampMs - right.centerTimestampMs);
   }
@@ -1218,6 +1261,134 @@
     };
   }
 
+  function presentPointCount(sample, points) {
+    return points.filter((point) => point !== null && point !== undefined).length;
+  }
+
+  function sideViewWidthRatio(sample) {
+    const widths = [];
+    if (sample.leftShoulder && sample.rightShoulder) {
+      widths.push(distance(sample.leftShoulder, sample.rightShoulder) / Math.max(1, sample.bodyScale));
+    }
+    if (sample.leftHip && sample.rightHip) {
+      widths.push(distance(sample.leftHip, sample.rightHip) / Math.max(1, sample.bodyScale));
+    }
+    return widths.length === 0 ? null : average(widths);
+  }
+
+  function sampleTouchesFrameEdge(sample) {
+    const marginX = sample.imageWidth * config.edgeCutOffMarginRatio;
+    const marginY = sample.imageHeight * config.edgeCutOffMarginRatio;
+    const points = [
+      sample.leftShoulder,
+      sample.rightShoulder,
+      sample.leftHip,
+      sample.rightHip,
+      sample.leftKnee,
+      sample.rightKnee,
+      sample.leftAnkle,
+      sample.rightAnkle,
+      sample.leftHeel,
+      sample.rightHeel,
+      sample.leftToe,
+      sample.rightToe,
+    ].filter(Boolean);
+    return points.some((point) =>
+      point.x <= marginX ||
+      point.x >= sample.imageWidth - marginX ||
+      point.y <= marginY ||
+      point.y >= sample.imageHeight - marginY,
+    );
+  }
+
+  function perspectiveQuality(samples) {
+    if (samples.length === 0) {
+      return {
+        evaluatedFrameCount: 0,
+        medianBodyScaleRatio: 0,
+        minBodyScaleRatio: 0,
+        visibilityCoverage: 0,
+        sideViewScore: 0,
+        scaleDriftRatio: 0,
+        cutOffFrameRatio: 0,
+        issues: [],
+      };
+    }
+    const bodyScaleRatios = samples.map((sample) =>
+      sample.bodyScale / Math.max(1, Math.min(sample.imageWidth, sample.imageHeight)),
+    );
+    const medianBodyScaleRatio = median(bodyScaleRatios) ?? 0;
+    const minBodyScaleRatio = Math.min(...bodyScaleRatios);
+    const scales = samples.map((sample) => sample.bodyScale).filter((value) => value > 0);
+    const lowerScale = percentile(scales, 0.10) ?? 0;
+    const upperScale = percentile(scales, 0.90) ?? lowerScale;
+    const scaleDriftRatio = lowerScale <= 0 ? 0 : (upperScale - lowerScale) / lowerScale;
+    const visibilityCoverage = average(samples.map((sample) =>
+      presentPointCount(sample, [
+        sample.leftShoulder,
+        sample.rightShoulder,
+        sample.leftHip,
+        sample.rightHip,
+        sample.leftKnee,
+        sample.rightKnee,
+        sample.leftAnkle,
+        sample.rightAnkle,
+      ]) / 8,
+    ));
+    const sideRatios = samples.map(sideViewWidthRatio).filter((value) => value !== null);
+    const sideWidthRatio = median(sideRatios) ?? 1;
+    const sideViewScore = Math.max(0, Math.min(1, 1 - ((sideWidthRatio - 0.18) / 0.34)));
+    const cutOffFrameRatio =
+      samples.filter(sampleTouchesFrameEdge).length / Math.max(1, samples.length);
+    const issues = [];
+    if (medianBodyScaleRatio < config.minimumBodyScaleRatio ||
+        minBodyScaleRatio < config.minimumBodyScaleRatio * 0.72) {
+      issues.push('tooSmall');
+    }
+    if (sideViewScore < config.minimumSideViewScore) {
+      issues.push('notSideOn');
+    }
+    if (cutOffFrameRatio > config.maximumCutOffFrameRatio ||
+        visibilityCoverage < config.minimumVisibilityCoverage) {
+      issues.push('bodyCutOff');
+    }
+    if (scaleDriftRatio > config.maximumScaleDriftRatio) {
+      issues.push('scaleDrift');
+    }
+    return {
+      evaluatedFrameCount: samples.length,
+      medianBodyScaleRatio: round3(medianBodyScaleRatio),
+      minBodyScaleRatio: round3(minBodyScaleRatio),
+      visibilityCoverage: round3(visibilityCoverage),
+      sideViewScore: round3(sideViewScore),
+      scaleDriftRatio: round3(scaleDriftRatio),
+      cutOffFrameRatio: round3(cutOffFrameRatio),
+      issues,
+    };
+  }
+
+  function perspectiveReasonForMetric(quality, metric) {
+    if (!quality || !Array.isArray(quality.issues)) return null;
+    if (quality.issues.includes('tooSmall')) return 'too_small_runner';
+    if (quality.issues.includes('bodyCutOff')) return 'body_cut_off';
+    const isLowerBody = metric === 'footStrike' || metric === 'kneeFlexion';
+    if (isLowerBody && quality.issues.includes('notSideOn')) return 'not_side_on';
+    if ((isLowerBody || metric === 'bounce') && quality.issues.includes('scaleDrift')) {
+      return 'scale_drift';
+    }
+    return null;
+  }
+
+  function applyPerspectiveQuality(metric, baseQuality, quality) {
+    const reason = perspectiveReasonForMetric(quality, metric);
+    if (!reason) return baseQuality;
+    return metricQuality(
+      Math.min(baseQuality.confidence, reason === 'too_small_runner' ? 0 : 0.55),
+      baseQuality.sampleCount,
+      reason,
+    );
+  }
+
   async function extractEvidenceFrames(bytes, name, timestampsJson) {
     let timestamps;
     try {
@@ -1301,6 +1472,7 @@
         throw createError('video_too_blurry', 'This video is too blurry for precise running coaching.');
       }
 
+      const perspective = perspectiveQuality(coarse.samples);
       const direction = resolveDirection(coarse.samples);
       const leanDegrees = average(
         coarse.samples.map((sample) => forwardLeanDegrees(sample, direction)),
@@ -1387,6 +1559,14 @@
         ...dense.samples.map((sample) => sample.timestampMs),
       ]);
 
+      const baseMetricQualities = {
+        posture: metricQuality(bodyConfidence, coarse.samples.length),
+        bounce: metricQuality(bodyConfidence, coarse.samples.length),
+        footStrike: metricQuality(contactConfidence, metricContacts.length, contactReason),
+        kneeFlexion: metricQuality(contactConfidence, metricContacts.length, contactReason),
+        armCarriage: metricQuality(average(armConfidenceValues), armConfidenceValues.length),
+      };
+
       return {
         durationMs,
         sampledFrames: analyzedFrameTimestamps.size,
@@ -1398,11 +1578,11 @@
         stanceKneeAngleDegrees: round3(average(metricContacts.map((contact) => contact.kneeAngleDegrees))),
         elbowAngleDegrees: round3(average(elbowAngles)),
         metricQualities: {
-          posture: metricQuality(bodyConfidence, coarse.samples.length),
-          bounce: metricQuality(bodyConfidence, coarse.samples.length),
-          footStrike: metricQuality(contactConfidence, metricContacts.length, contactReason),
-          kneeFlexion: metricQuality(contactConfidence, metricContacts.length, contactReason),
-          armCarriage: metricQuality(average(armConfidenceValues), armConfidenceValues.length),
+          posture: applyPerspectiveQuality('posture', baseMetricQualities.posture, perspective),
+          bounce: applyPerspectiveQuality('bounce', baseMetricQualities.bounce, perspective),
+          footStrike: applyPerspectiveQuality('footStrike', baseMetricQualities.footStrike, perspective),
+          kneeFlexion: applyPerspectiveQuality('kneeFlexion', baseMetricQualities.kneeFlexion, perspective),
+          armCarriage: applyPerspectiveQuality('armCarriage', baseMetricQualities.armCarriage, perspective),
         },
         coarseSamples: {
           attemptedFrames: coarseFrameTimes.length,
@@ -1421,6 +1601,7 @@
         contactWindows: contactWindowPayloads(candidateSet.windows, denseFrameTimes, contactValidations),
         validatedContactFrameTimestampsMs: [...new Set(contacts.map((contact) => contact.timestampMs))].sort((a, b) => a - b),
         contactConfidence: round3(contactConfidence),
+        perspectiveQuality: perspective,
         poseFrames: mergedPoseFrames(coarse.poseFrames, dense.poseFrames),
       };
     } finally {

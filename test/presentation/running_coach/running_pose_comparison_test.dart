@@ -117,12 +117,10 @@ void main() {
       findsOneWidget,
     );
     expect(
-      find.byKey(const ValueKey('running-coach-illustrated-comparison')),
+      find.byKey(
+        const ValueKey('running-coach-coordinate-pose-comparison-painter'),
+      ),
       findsOneWidget,
-    );
-    expect(
-      find.byKey(const ValueKey('running-coach-3d-runner-platform-view')),
-      findsNothing,
     );
     expect(
       find.text('Current'),
@@ -134,7 +132,7 @@ void main() {
     );
     expect(
       find.byWidgetPredicate((widget) => widget is FutureBuilder),
-      findsNothing,
+      findsOneWidget,
     );
     expect(tester.takeException(), isNull);
   });

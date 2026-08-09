@@ -282,20 +282,37 @@ class RunningCoachingService {
     RunningVideoAnalysisResult result,
     RunningCoachMetric metric,
   ) {
+    RunningMetricQuality applyPerspectiveGate(RunningMetricQuality quality) {
+      final reason = result.perspectiveQuality.limitationReasonForMetric(
+        metric,
+      );
+      if (reason == null || quality.hasBlockingMeasurementReason) {
+        return quality;
+      }
+      return quality.copyWith(
+        confidence: math.min(quality.confidence, 0.55),
+        reason: reason,
+      );
+    }
+
     final metricQuality = result.qualityFor(metric);
     if (metricQuality != null) {
-      return _qualityWithFrameEvidence(result, metric, metricQuality);
+      return _qualityWithFrameEvidence(
+        result,
+        metric,
+        applyPerspectiveGate(metricQuality),
+      );
     }
     // New analyzer payloads always include every metric quality. If one is
     // missing from a non-empty quality map, the measurement is unavailable;
     // do not invent confidence from overall frame coverage. Completely legacy
     // payloads (with no quality map) keep the previous compatibility path.
     if (result.metricQualities.isNotEmpty) {
-      return const RunningMetricQuality(
+      return applyPerspectiveGate(const RunningMetricQuality(
         confidence: 0,
         sampleCount: 0,
         reason: 'metric_unavailable',
-      );
+      ));
     }
     final confidence = result.analysisConfidence;
     final reason =
@@ -304,11 +321,11 @@ class RunningCoachingService {
             : result.validFrames < thresholds.minimumReliableFrames
                 ? 'limited_samples'
                 : null;
-    return RunningMetricQuality(
+    return applyPerspectiveGate(RunningMetricQuality(
       confidence: confidence,
       sampleCount: result.validFrames,
       reason: reason,
-    );
+    ));
   }
 
   RunningMetricQuality _qualityWithFrameEvidence(

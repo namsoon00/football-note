@@ -164,6 +164,68 @@ void main() {
     );
   });
 
+  test('perspective gates preserve exact lower-body limitation reasons', () {
+    const result = RunningVideoAnalysisResult(
+      videoDuration: Duration(seconds: 60),
+      sampledFrames: 481,
+      validFrames: 430,
+      direction: RunningDirection.leftToRight,
+      forwardLeanDegrees: 10,
+      verticalBounceRatio: 0.06,
+      footStrikeDistanceRatio: 0.20,
+      stanceKneeAngleDegrees: 170,
+      elbowAngleDegrees: 92,
+      perspectiveQuality: RunningVideoPerspectiveQuality(
+        evaluatedFrameCount: 430,
+        medianBodyScaleRatio: 0.22,
+        minBodyScaleRatio: 0.20,
+        visibilityCoverage: 0.9,
+        sideViewScore: 0.42,
+        scaleDriftRatio: 1.05,
+        cutOffFrameRatio: 0.02,
+        issues: <RunningVideoQualityIssue>[
+          RunningVideoQualityIssue.notSideOn,
+        ],
+      ),
+      metricQualities: <RunningCoachMetric, RunningMetricQuality>{
+        RunningCoachMetric.posture: RunningMetricQuality(
+          confidence: 0.9,
+          sampleCount: 10,
+        ),
+        RunningCoachMetric.bounce: RunningMetricQuality(
+          confidence: 0.9,
+          sampleCount: 10,
+        ),
+        RunningCoachMetric.footStrike: RunningMetricQuality(
+          confidence: 0.9,
+          sampleCount: 6,
+        ),
+        RunningCoachMetric.kneeFlexion: RunningMetricQuality(
+          confidence: 0.9,
+          sampleCount: 6,
+        ),
+        RunningCoachMetric.armCarriage: RunningMetricQuality(
+          confidence: 0.9,
+          sampleCount: 10,
+        ),
+      },
+    );
+
+    final report = service.buildReport(result);
+    final footStrike = report.insights.firstWhere(
+      (insight) => insight.metric == RunningCoachMetric.footStrike,
+    );
+    final knee = report.insights.firstWhere(
+      (insight) => insight.metric == RunningCoachMetric.kneeFlexion,
+    );
+
+    expect(report.overallScore, 0);
+    expect(footStrike.quality.confidence, closeTo(0.55, 0.0001));
+    expect(footStrike.quality.reason, 'not_side_on');
+    expect(knee.quality.confidence, closeTo(0.55, 0.0001));
+    expect(knee.quality.reason, 'not_side_on');
+  });
+
   test('excludes low-confidence contact proxies from score and next goal', () {
     const result = RunningVideoAnalysisResult(
       videoDuration: Duration(seconds: 6),

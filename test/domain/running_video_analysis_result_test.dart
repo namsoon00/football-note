@@ -219,6 +219,125 @@ void main() {
     );
   });
 
+  test('fromMap parses perspective quality limitations and metric gates', () {
+    final result = RunningVideoAnalysisResult.fromMap({
+      'durationMs': 60000,
+      'sampledFrames': 481,
+      'validFrames': 430,
+      'direction': 'leftToRight',
+      'forwardLeanDegrees': 10,
+      'verticalBounceRatio': 0.06,
+      'footStrikeDistanceRatio': 0.10,
+      'stanceKneeAngleDegrees': 154,
+      'elbowAngleDegrees': 92,
+      'perspectiveQuality': {
+        'evaluatedFrameCount': 430,
+        'medianBodyScaleRatio': 0.08,
+        'minBodyScaleRatio': 0.05,
+        'visibilityCoverage': 0.88,
+        'sideViewScore': 0.44,
+        'scaleDriftRatio': 1.8,
+        'cutOffFrameRatio': 0.12,
+        'issues': [
+          'too_small_runner',
+          'not_side_on',
+          'scale_drift',
+          'bodyCutOff',
+          'not_side_on',
+        ],
+      },
+      'metricQualities': {
+        'footStrike': {'confidence': 0.9, 'sampleCount': 5},
+      },
+    });
+
+    expect(result.sampledFrames, 481);
+    expect(result.videoDuration, const Duration(seconds: 60));
+    expect(result.perspectiveQuality.evaluatedFrameCount, 430);
+    expect(result.perspectiveQuality.issues, <RunningVideoQualityIssue>[
+      RunningVideoQualityIssue.tooSmall,
+      RunningVideoQualityIssue.notSideOn,
+      RunningVideoQualityIssue.scaleDrift,
+      RunningVideoQualityIssue.bodyCutOff,
+    ]);
+    expect(result.perspectiveQuality.primaryReasonCode, 'too_small_runner');
+    expect(
+      result.perspectiveQuality.limitationReasonForMetric(
+        RunningCoachMetric.footStrike,
+      ),
+      'too_small_runner',
+    );
+    expect(
+      result.evidenceForMetric(RunningCoachMetric.footStrike)!.reliability,
+      closeTo(0.55, 0.0001),
+    );
+  });
+
+  test('perspective fixtures gate small diagonal drift and valid side-on cases',
+      () {
+    const smallRunner = RunningVideoPerspectiveQuality(
+      evaluatedFrameCount: 120,
+      medianBodyScaleRatio: 0.08,
+      minBodyScaleRatio: 0.06,
+      visibilityCoverage: 0.9,
+      sideViewScore: 0.9,
+      scaleDriftRatio: 1,
+      cutOffFrameRatio: 0,
+      issues: <RunningVideoQualityIssue>[RunningVideoQualityIssue.tooSmall],
+    );
+    const diagonalView = RunningVideoPerspectiveQuality(
+      evaluatedFrameCount: 120,
+      medianBodyScaleRatio: 0.22,
+      minBodyScaleRatio: 0.20,
+      visibilityCoverage: 0.9,
+      sideViewScore: 0.42,
+      scaleDriftRatio: 1,
+      cutOffFrameRatio: 0,
+      issues: <RunningVideoQualityIssue>[RunningVideoQualityIssue.notSideOn],
+    );
+    const scaleDrift = RunningVideoPerspectiveQuality(
+      evaluatedFrameCount: 120,
+      medianBodyScaleRatio: 0.22,
+      minBodyScaleRatio: 0.18,
+      visibilityCoverage: 0.9,
+      sideViewScore: 0.85,
+      scaleDriftRatio: 1.7,
+      cutOffFrameRatio: 0,
+      issues: <RunningVideoQualityIssue>[RunningVideoQualityIssue.scaleDrift],
+    );
+    const validSideOn = RunningVideoPerspectiveQuality(
+      evaluatedFrameCount: 120,
+      medianBodyScaleRatio: 0.22,
+      minBodyScaleRatio: 0.20,
+      visibilityCoverage: 0.94,
+      sideViewScore: 0.9,
+      scaleDriftRatio: 1.04,
+      cutOffFrameRatio: 0.01,
+    );
+
+    expect(
+      smallRunner.limitationReasonForMetric(RunningCoachMetric.armCarriage),
+      'too_small_runner',
+    );
+    expect(
+      diagonalView.limitationReasonForMetric(RunningCoachMetric.footStrike),
+      'not_side_on',
+    );
+    expect(
+      diagonalView.limitationReasonForMetric(RunningCoachMetric.armCarriage),
+      isNull,
+    );
+    expect(
+      scaleDrift.limitationReasonForMetric(RunningCoachMetric.bounce),
+      'scale_drift',
+    );
+    expect(validSideOn.hasLimitations, isFalse);
+    expect(
+      validSideOn.limitationReasonForMetric(RunningCoachMetric.footStrike),
+      isNull,
+    );
+  });
+
   test('history snapshot keeps the beginning, end, and contact frames', () {
     final result = RunningVideoAnalysisResult.fromMap({
       'durationMs': 4000,

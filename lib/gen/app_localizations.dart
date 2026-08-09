@@ -15918,6 +15918,260 @@ abstract class AppLocalizations {
   /// **'Metrics are verified independently. Missing contact evidence does not invalidate measurements such as arm carriage or trunk position.'**
   String get runningCoachMeasurementCoverageBody;
 
+  /// No description provided for @runningCoachScoreWithheldLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Score withheld'**
+  String get runningCoachScoreWithheldLabel;
+
+  /// No description provided for @runningCoachScoreWithheldSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'The video does not support a verified score.'**
+  String get runningCoachScoreWithheldSummary;
+
+  /// No description provided for @runningCoachScoreWithheldValue.
+  ///
+  /// In en, this message translates to:
+  /// **'—'**
+  String get runningCoachScoreWithheldValue;
+
+  /// No description provided for @runningCoachScoreWithheldContactReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact evidence is not defensible: {reason}'**
+  String runningCoachScoreWithheldContactReason(Object reason);
+
+  /// No description provided for @runningCoachScoreWithheldGenericReason.
+  ///
+  /// In en, this message translates to:
+  /// **'One or more required measurements are limited, so the score is withheld instead of estimated.'**
+  String get runningCoachScoreWithheldGenericReason;
+
+  /// No description provided for @runningCoachMeasuredMetricsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Measured metrics'**
+  String get runningCoachMeasuredMetricsTitle;
+
+  /// No description provided for @runningCoachMeasuredMetricsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Only values supported by this video are listed as verified. Limited observations are shown without a score or drill.'**
+  String get runningCoachMeasuredMetricsBody;
+
+  /// No description provided for @runningCoachReferenceRangeNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference ranges are general coaching references, not individualized medical or injury-risk limits.'**
+  String get runningCoachReferenceRangeNotice;
+
+  /// No description provided for @runningCoachMetricVerticalBounceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Vertical bounce (%)'**
+  String get runningCoachMetricVerticalBounceLabel;
+
+  /// No description provided for @runningCoachMeasuredMetricSpmValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} spm'**
+  String runningCoachMeasuredMetricSpmValue(Object value);
+
+  /// No description provided for @runningCoachMeasuredMetricMsValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} ms'**
+  String runningCoachMeasuredMetricMsValue(Object value);
+
+  /// No description provided for @runningCoachMeasuredMetricWithinReference.
+  ///
+  /// In en, this message translates to:
+  /// **'Within general reference'**
+  String get runningCoachMeasuredMetricWithinReference;
+
+  /// No description provided for @runningCoachMeasuredMetricNearReferenceEdge.
+  ///
+  /// In en, this message translates to:
+  /// **'Near reference edge'**
+  String get runningCoachMeasuredMetricNearReferenceEdge;
+
+  /// No description provided for @runningCoachMeasuredMetricOutsideReference.
+  ///
+  /// In en, this message translates to:
+  /// **'Outside general reference'**
+  String get runningCoachMeasuredMetricOutsideReference;
+
+  /// No description provided for @runningCoachMeasuredMetricInconsistent.
+  ///
+  /// In en, this message translates to:
+  /// **'Inconsistent across samples'**
+  String get runningCoachMeasuredMetricInconsistent;
+
+  /// No description provided for @runningCoachMeasuredMetricLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Limited evidence'**
+  String get runningCoachMeasuredMetricLimited;
+
+  /// No description provided for @runningCoachMeasuredMetricUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Unavailable from this video'**
+  String get runningCoachMeasuredMetricUnavailable;
+
+  /// No description provided for @runningCoachMeasuredMetricSampleCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} samples'**
+  String runningCoachMeasuredMetricSampleCount(int count);
+
+  /// No description provided for @runningCoachMeasuredMetricNoSamples.
+  ///
+  /// In en, this message translates to:
+  /// **'No defensible sample'**
+  String get runningCoachMeasuredMetricNoSamples;
+
+  /// No description provided for @runningCoachMeasuredMetricEvidenceDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'{quality} · {samples}'**
+  String runningCoachMeasuredMetricEvidenceDetail(
+      Object quality, Object samples);
+
+  /// No description provided for @runningCoachMeasuredMetricEvidenceReasonDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'{quality} · {samples} · {reason}'**
+  String runningCoachMeasuredMetricEvidenceReasonDetail(
+      Object quality, Object samples, Object reason);
+
+  /// No description provided for @runningCoachQualityReasonLabelLowCoverage.
+  ///
+  /// In en, this message translates to:
+  /// **'low coverage'**
+  String get runningCoachQualityReasonLabelLowCoverage;
+
+  /// No description provided for @runningCoachQualityReasonLabelLimitedSamples.
+  ///
+  /// In en, this message translates to:
+  /// **'limited samples'**
+  String get runningCoachQualityReasonLabelLimitedSamples;
+
+  /// No description provided for @runningCoachQualityReasonLabelContactPhaseProxy.
+  ///
+  /// In en, this message translates to:
+  /// **'contact proxy'**
+  String get runningCoachQualityReasonLabelContactPhaseProxy;
+
+  /// No description provided for @runningCoachQualityReasonLabelKinematicContact.
+  ///
+  /// In en, this message translates to:
+  /// **'kinematic contact'**
+  String get runningCoachQualityReasonLabelKinematicContact;
+
+  /// No description provided for @runningCoachQualityReasonLabelLowConfidence.
+  ///
+  /// In en, this message translates to:
+  /// **'low confidence'**
+  String get runningCoachQualityReasonLabelLowConfidence;
+
+  /// No description provided for @runningCoachQualityReasonLabelMissingContact.
+  ///
+  /// In en, this message translates to:
+  /// **'missing contact'**
+  String get runningCoachQualityReasonLabelMissingContact;
+
+  /// No description provided for @runningCoachQualityReasonLabelMissingPoseFrames.
+  ///
+  /// In en, this message translates to:
+  /// **'missing pose frames'**
+  String get runningCoachQualityReasonLabelMissingPoseFrames;
+
+  /// No description provided for @runningCoachQualityReasonLabelMissingMeasuredFrames.
+  ///
+  /// In en, this message translates to:
+  /// **'missing measured frames'**
+  String get runningCoachQualityReasonLabelMissingMeasuredFrames;
+
+  /// No description provided for @runningCoachPerspectiveTooSmallLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Too far/small'**
+  String get runningCoachPerspectiveTooSmallLabel;
+
+  /// No description provided for @runningCoachPerspectiveNotSideOnLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Not side-on enough'**
+  String get runningCoachPerspectiveNotSideOnLabel;
+
+  /// No description provided for @runningCoachPerspectiveBodyCutOffLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Body cut off'**
+  String get runningCoachPerspectiveBodyCutOffLabel;
+
+  /// No description provided for @runningCoachPerspectiveScaleDriftLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance changed'**
+  String get runningCoachPerspectiveScaleDriftLabel;
+
+  /// No description provided for @runningCoachPerspectiveTooSmallReason.
+  ///
+  /// In en, this message translates to:
+  /// **'The runner is too small in the frame, so position-based coaching is limited.'**
+  String get runningCoachPerspectiveTooSmallReason;
+
+  /// No description provided for @runningCoachPerspectiveNotSideOnReason.
+  ///
+  /// In en, this message translates to:
+  /// **'The view is diagonal or front-facing enough that lower-body contact coaching is limited.'**
+  String get runningCoachPerspectiveNotSideOnReason;
+
+  /// No description provided for @runningCoachPerspectiveBodyCutOffReason.
+  ///
+  /// In en, this message translates to:
+  /// **'The body is cut off in too many frames, so affected measurements are limited.'**
+  String get runningCoachPerspectiveBodyCutOffReason;
+
+  /// No description provided for @runningCoachPerspectiveScaleDriftReason.
+  ///
+  /// In en, this message translates to:
+  /// **'The runner changes size across the clip, so distance-sensitive measurements are limited.'**
+  String get runningCoachPerspectiveScaleDriftReason;
+
+  /// No description provided for @runningCoachPerspectiveTooSmallRetake.
+  ///
+  /// In en, this message translates to:
+  /// **'Retake closer from the side with the full body visible.'**
+  String get runningCoachPerspectiveTooSmallRetake;
+
+  /// No description provided for @runningCoachPerspectiveNotSideOnRetake.
+  ///
+  /// In en, this message translates to:
+  /// **'Retake from a true side view with the runner moving across the frame.'**
+  String get runningCoachPerspectiveNotSideOnRetake;
+
+  /// No description provided for @runningCoachPerspectiveBodyCutOffRetake.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep head, hips, knees, and feet inside the frame for the full clip.'**
+  String get runningCoachPerspectiveBodyCutOffRetake;
+
+  /// No description provided for @runningCoachPerspectiveScaleDriftRetake.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep camera distance steady so the runner stays the same size.'**
+  String get runningCoachPerspectiveScaleDriftRetake;
+
+  /// No description provided for @runningCoachPerspectiveGenericRetake.
+  ///
+  /// In en, this message translates to:
+  /// **'Retake from a steady side view with the full runner visible.'**
+  String get runningCoachPerspectiveGenericRetake;
+
   /// No description provided for @runningCoachEvidenceVideoUnavailable.
   ///
   /// In en, this message translates to:
@@ -16080,53 +16334,29 @@ abstract class AppLocalizations {
   /// **'This frame does not contain enough joint coordinates to build the motion comparison.'**
   String get runningCoachCoordinateRigUnavailable;
 
-  /// No description provided for @runningCoachThreeDComparisonTitle.
+  /// No description provided for @runningCoachPoseComparisonTitle.
   ///
   /// In en, this message translates to:
-  /// **'3D runner comparison'**
-  String get runningCoachThreeDComparisonTitle;
+  /// **'Measured pose comparison'**
+  String get runningCoachPoseComparisonTitle;
 
-  /// No description provided for @runningCoachThreeDCurrentLabel.
+  /// No description provided for @runningCoachPoseComparisonCurrentLabel.
   ///
   /// In en, this message translates to:
-  /// **'Current 3D runner'**
-  String get runningCoachThreeDCurrentLabel;
+  /// **'Current measured pose'**
+  String get runningCoachPoseComparisonCurrentLabel;
 
-  /// No description provided for @runningCoachThreeDTargetLabel.
+  /// No description provided for @runningCoachPoseComparisonTargetLabel.
   ///
   /// In en, this message translates to:
-  /// **'Next 3D target'**
-  String get runningCoachThreeDTargetLabel;
+  /// **'Reference target'**
+  String get runningCoachPoseComparisonTargetLabel;
 
-  /// No description provided for @runningCoachThreeDConfidenceLabel.
+  /// No description provided for @runningCoachPoseComparisonUnavailable.
   ///
   /// In en, this message translates to:
-  /// **'Tracking'**
-  String get runningCoachThreeDConfidenceLabel;
-
-  /// No description provided for @runningCoachThreeDRendererLoading.
-  ///
-  /// In en, this message translates to:
-  /// **'Loading 3D runner...'**
-  String get runningCoachThreeDRendererLoading;
-
-  /// No description provided for @runningCoachThreeDRendererUnavailable.
-  ///
-  /// In en, this message translates to:
-  /// **'The 3D runner cannot be built from this frame. Try a clearer side-view clip with full-body landmarks.'**
-  String get runningCoachThreeDRendererUnavailable;
-
-  /// No description provided for @runningCoachThreeDRendererError.
-  ///
-  /// In en, this message translates to:
-  /// **'The local WebGL runner could not start.'**
-  String get runningCoachThreeDRendererError;
-
-  /// No description provided for @runningCoachThreeDReferenceNotice.
-  ///
-  /// In en, this message translates to:
-  /// **'Fixed reference runner: tracked landmarks make small, constrained pose adjustments. This does not recreate your body or face.'**
-  String get runningCoachThreeDReferenceNotice;
+  /// **'This frame does not contain enough measured joint coordinates for a side-by-side pose comparison.'**
+  String get runningCoachPoseComparisonUnavailable;
 
   /// No description provided for @runningCoachHistoryEvidenceUnavailableTitle.
   ///
@@ -17781,13 +18011,13 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachGoodFormCycleTitle.
   ///
   /// In en, this message translates to:
-  /// **'Static phase references'**
+  /// **'Continuous form loop'**
   String get runningCoachGoodFormCycleTitle;
 
   /// No description provided for @runningCoachGoodFormCycleBody.
   ///
   /// In en, this message translates to:
-  /// **'The four reference images are static frames, not continuous video or your uploaded run. Each selected runner is displayed at the same scale on the same ground line; use the blue mark to inspect that phase relationship.'**
+  /// **'One reference runner loops through landing, support, push-off, recovery, and the next landing with shared scale and ground alignment.'**
   String get runningCoachGoodFormCycleBody;
 
   /// No description provided for @runningCoachGoodFormPhaseLandingTitle.
@@ -17891,6 +18121,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Restart four steps'**
   String get runningCoachGoodFormRestartStepsAction;
+
+  /// No description provided for @runningCoachGoodFormPlayAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Play'**
+  String get runningCoachGoodFormPlayAction;
+
+  /// No description provided for @runningCoachGoodFormPauseAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get runningCoachGoodFormPauseAction;
+
+  /// No description provided for @runningCoachGoodFormStepFrameAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Next frame'**
+  String get runningCoachGoodFormStepFrameAction;
+
+  /// No description provided for @runningCoachGoodFormSpeedNormal.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal'**
+  String get runningCoachGoodFormSpeedNormal;
+
+  /// No description provided for @runningCoachGoodFormSpeedSlow.
+  ///
+  /// In en, this message translates to:
+  /// **'Slow'**
+  String get runningCoachGoodFormSpeedSlow;
 
   /// No description provided for @runningCoachGoodFormTechniqueTitle.
   ///
@@ -28218,6 +28478,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'There is not enough evidence to label this movement as good or needing work, so no drill is prescribed. Retake the video instead.'**
   String get runningCoachJudgmentWithheldBody;
+
+  /// No description provided for @runningCoachTrendTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Same-condition trend'**
+  String get runningCoachTrendTitle;
+
+  /// No description provided for @runningCoachTrendBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Compared condition: {effort} on {surface}. Uses {count} recent verified sessions with the same score version.'**
+  String runningCoachTrendBody(Object effort, Object surface, int count);
+
+  /// No description provided for @runningCoachTrendInsufficientBaselineTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Insufficient verified baseline'**
+  String get runningCoachTrendInsufficientBaselineTitle;
+
+  /// No description provided for @runningCoachTrendInsufficientBaselineBody.
+  ///
+  /// In en, this message translates to:
+  /// **'At least two verified same-condition sessions with the same score version are required before showing deltas.'**
+  String get runningCoachTrendInsufficientBaselineBody;
+
+  /// No description provided for @runningCoachTrendMetricValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{current} · Δ {delta}'**
+  String runningCoachTrendMetricValue(Object current, Object delta);
 
   /// No description provided for @runningCoachComparisonTitle.
   ///

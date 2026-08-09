@@ -37,9 +37,9 @@ videos = [
     Path("assets/videos/running_coach_portrait_side_view_sample.mp4"),
     Path("assets/videos/running_coach_mistake_sample.mp4"),
 ]
-coarse_target_fps = 10
-coarse_frame_interval_ms = 100
-max_coarse_frame_budget = 240
+coarse_target_fps = 8
+coarse_frame_interval_ms = 125
+max_coarse_frame_budget = 481
 min_confidence = 0.35
 minimum_valid_frames = 6
 minimum_detected_frames = 10
