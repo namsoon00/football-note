@@ -2109,6 +2109,14 @@ final class RunningPoseAnalysisChannel {
       let confidence = validated.isEmpty
         ? 0.0
         : validated.map(\.confidence).reduce(0, +) / Double(validated.count)
+      let selectionMethod: Any
+      if !validated.isEmpty {
+        selectionMethod = "ground"
+      } else if !estimated.isEmpty {
+        selectionMethod = "kinematic"
+      } else {
+        selectionMethod = NSNull()
+      }
       return [
         "side": (validation?.contact?.side ?? window.side).rawValue,
         "startTimestampMs": window.startTimestampMs,
@@ -2127,9 +2135,7 @@ final class RunningPoseAnalysisChannel {
         "estimatedContactFrameTimestampsMs": Array(
           Set(estimated.map(\.timestampMs))
         ).sorted(),
-        "selectionMethod": validated.isEmpty
-          ? (estimated.isEmpty ? NSNull() : "kinematic")
-          : "ground",
+        "selectionMethod": selectionMethod,
         "confidence": roundTo3(confidence),
       ]
     }
