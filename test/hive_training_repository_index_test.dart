@@ -229,6 +229,12 @@ void main() {
     await _waitForHiveEvents();
     expect(await harness.repository.getRecent(limit: 1), isEmpty);
     expect(harness.repository.debugCounters.sourceScanCount, 0);
+    expect(await harness.repository.getAll(), isEmpty);
+    expect(harness.trainingBox.values.single.deletedAt, isNotNull);
+    expect(
+      harness.trainingBox.values.single.recordId,
+      matchRecent.single.effectiveRecordId,
+    );
   });
 
   test('missing partial duplicate and stale indexes rebuild from source',

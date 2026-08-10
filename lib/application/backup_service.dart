@@ -13,9 +13,15 @@ class BackupService {
 
   Future<void> restoreLatest() => _repository.restoreLatest();
 
-  Future<RestoreReceipt> restoreLatestWithMode(RestoreMode mode) async {
+  Future<RestoreReceipt> restoreLatestWithMode(
+    RestoreMode mode, {
+    String? expectedPlanHash,
+  }) async {
     if (_repository case final DriveBackupService drive) {
-      return drive.restoreLatestWithMode(mode);
+      return drive.restoreLatestWithMode(
+        mode,
+        expectedPlanHash: expectedPlanHash,
+      );
     }
     await _repository.restoreLatest();
     return const RestoreReceipt(

@@ -1858,7 +1858,26 @@ class _SettingsScreenState extends State<SettingsScreen>
       _runRestoreFromDrive(
         l10n,
         restoreAction: () async {
-          await backup.restoreLatestWithMode(selectedMode);
+          var selectedPlan = safePlan!;
+          if (selectedMode != selectedPlan.mode) {
+            final refreshedPlan = await backup.previewLatestRestore(
+              mode: selectedMode,
+            );
+            if (refreshedPlan == null ||
+                refreshedPlan.source.contentHash !=
+                    selectedPlan.source.contentHash ||
+                refreshedPlan.target.contentHash !=
+                    selectedPlan.target.contentHash) {
+              throw StateError(
+                DriveBackupService.backupPreviewChangedErrorCode,
+              );
+            }
+            selectedPlan = refreshedPlan;
+          }
+          await backup.restoreLatestWithMode(
+            selectedMode,
+            expectedPlanHash: selectedPlan.planHash,
+          );
         },
       ),
     );
@@ -3250,6 +3269,9 @@ class _SettingsScreenState extends State<SettingsScreen>
     }
     if (raw.contains(DriveBackupService.backupPlayerMismatchErrorCode)) {
       return l10n.driveBackupPlayerMismatch;
+    }
+    if (raw.contains(DriveBackupService.backupPreviewChangedErrorCode)) {
+      return l10n.backupPreviewChanged;
     }
     if (raw
         .contains(DriveBackupService.changedPlayerDriveConnectionErrorCode)) {

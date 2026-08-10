@@ -192,9 +192,12 @@ class BackupRestorePlanner {
 
   BackupSnapshotDescriptor describe(Map<String, dynamic> backup) {
     final entries = _entryRecords(backup);
+    final activeEntries = entries
+        .where((entry) => _parseDateTime(entry[entryDeletedAtKey]) == null)
+        .toList(growable: false);
     DateTime? firstTrainingAt;
     DateTime? lastTrainingAt;
-    for (final entry in entries) {
+    for (final entry in activeEntries) {
       final parsed = _parseDateTime(entry['date']);
       if (parsed == null) continue;
       if (firstTrainingAt == null || parsed.isBefore(firstTrainingAt)) {
@@ -241,7 +244,7 @@ class BackupRestorePlanner {
       integrityVerified: manifest['hashAlgorithm'] == 'sha256' &&
           manifest['contentHash'] == stableBackupContentHash(backup),
       counts: BackupCategoryCounts(
-        trainingEntries: entries.length,
+        trainingEntries: activeEntries.length,
         options: options.length,
         assets: assets is Map ? assets.length : 0,
       ),
@@ -540,13 +543,13 @@ class BackupRestorePlanner {
         yield RestoreOperation(
           type: remoteRecord.deletedAt == null
               ? RestoreOperationType.add
-              : RestoreOperationType.skip,
+              : RestoreOperationType.tombstone,
           category: category,
           recordId: id,
           label: remoteRecord.label,
           reason: remoteRecord.deletedAt == null
               ? 'remote_only'
-              : 'remote_tombstone_without_local_record',
+              : 'remote_tombstone_retained',
           remoteHash: remoteRecord.payloadHash,
         );
         continue;
@@ -576,6 +579,23 @@ class BackupRestorePlanner {
               baselineHash != null && localRecord.payloadHash == baselineHash
                   ? 'explicit_tombstone'
                   : 'delete_vs_local_edit',
+          localHash: localRecord.payloadHash,
+          remoteHash: remoteRecord.payloadHash,
+        );
+        continue;
+      }
+      if (localRecord.deletedAt != null) {
+        yield RestoreOperation(
+          type: baselineHash != null && remoteRecord.payloadHash == baselineHash
+              ? RestoreOperationType.skip
+              : RestoreOperationType.conflict,
+          category: category,
+          recordId: id,
+          label: remoteRecord.label,
+          reason:
+              baselineHash != null && remoteRecord.payloadHash == baselineHash
+                  ? 'local_tombstone_remote_unchanged'
+                  : 'local_delete_vs_remote_edit',
           localHash: localRecord.payloadHash,
           remoteHash: remoteRecord.payloadHash,
         );

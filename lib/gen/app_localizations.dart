@@ -20831,6 +20831,12 @@ abstract class AppLocalizations {
   /// **'Backup preview is unavailable right now.'**
   String get backupDetailsPreviewUnavailable;
 
+  /// No description provided for @backupPreviewChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'The remote backup changed after the preview. Review the latest details before restoring.'**
+  String get backupPreviewChanged;
+
   /// No description provided for @backupDetailsParentCoreZero.
   ///
   /// In en, this message translates to:

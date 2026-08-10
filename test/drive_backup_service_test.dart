@@ -2896,7 +2896,9 @@ void main() {
     await service.restoreFromMapForTesting(tombstone);
     await service.restoreFromMapForTesting(tombstone);
 
-    expect(trainingBox.length, 0);
+    expect(trainingBox.length, 1);
+    expect(trainingBox.values.single.deletedAt, isNotNull);
+    expect(service.describeLocalBackup().counts.trainingEntries, 0);
   });
 
   test('safe restore conflicts when a tombstone races a local edit', () async {
@@ -2961,6 +2963,83 @@ void main() {
           as Map<String, dynamic>)['contributionLayerOnly'],
       isTrue,
     );
+  });
+
+  test('parent contribution merge preserves records from another device',
+      () async {
+    await optionBox.put(FamilyAccessService.currentRoleLocalKey, 'parent');
+    await optionBox.put(FamilyAccessService.familyIdKey, 'family-1');
+    await optionBox.put(
+      FamilyAccessService.parentTrainingFeedbackKey,
+      <String, dynamic>{
+        'entry-remote': <String, dynamic>{'message': 'Remote feedback'},
+      },
+    );
+    final remote = service.buildFamilyContributionBackupForTesting();
+
+    await optionBox.put(
+      FamilyAccessService.parentTrainingFeedbackKey,
+      <String, dynamic>{
+        'entry-local': <String, dynamic>{'message': 'Local feedback'},
+      },
+    );
+    final merged = service.mergeFamilyContributionBackupForTesting(remote);
+    final options = merged['options'] as Map<String, dynamic>;
+    final feedback = options[FamilyAccessService.parentTrainingFeedbackKey]
+        as Map<String, dynamic>;
+
+    expect(feedback.keys, containsAll(<String>['entry-remote', 'entry-local']));
+    expect(merged['entries'], isEmpty);
+    expect(
+      merged['format'],
+      BackupRestorePlanner.contributionFormatValue,
+    );
+  });
+
+  test('full restore rejects a parent contribution file', () async {
+    await optionBox.put(FamilyAccessService.currentRoleLocalKey, 'parent');
+    final contribution = service.buildFamilyContributionBackupForTesting();
+
+    expect(
+      () => service.restoreFromMapForTesting(contribution),
+      throwsA(
+        isA<StateError>().having(
+          (error) => error.message,
+          'message',
+          DriveBackupService.invalidBackupPayloadErrorCode,
+        ),
+      ),
+    );
+  });
+
+  test('restore rejects a plan that changed after preview', () async {
+    await trainingBox.add(_trainingEntry(
+      recordId: 'remote-entry',
+      notes: 'remote',
+    ));
+    final remote = service.buildBackupForTesting();
+    await trainingBox.clear();
+    final preview = service.previewRestorePlanForTesting(remote);
+    await trainingBox.add(_trainingEntry(
+      recordId: 'new-local-entry',
+      notes: 'created after preview',
+    ));
+
+    await expectLater(
+      service.restoreFromMapForTesting(
+        remote,
+        expectedPlanHash: preview.planHash,
+      ),
+      throwsA(
+        isA<StateError>().having(
+          (error) => error.message,
+          'message',
+          DriveBackupService.backupPreviewChangedErrorCode,
+        ),
+      ),
+    );
+    expect(trainingBox.values.single.notes, 'created after preview');
+    expect(service.hasPendingRestoreTransactionForTesting(), isFalse);
   });
 
   test('parent Drive backup writes only the contribution file', () async {
@@ -3062,6 +3141,125 @@ void main() {
     expect(trainingBox.length, 1);
     expect(trainingBox.values.single.notes, 'before restore');
     expect(optionBox.get('profile_name'), 'Before');
+  });
+
+  test('failed startup rollback retains the journal for another recovery',
+      () async {
+    await optionBox.put(
+      'drive_restore_transaction_journal_v1',
+      <String, dynamic>{
+        'status': 'applying',
+        'rollback': '{not-valid-json',
+      },
+    );
+
+    await expectLater(
+      DriveBackupService.recoverInterruptedRestoreJournal(
+        trainingBox,
+        optionBox,
+        backupAssetFileStore: assetStore,
+      ),
+      throwsA(isA<StateError>()),
+    );
+    expect(service.hasPendingRestoreTransactionForTesting(), isTrue);
+  });
+
+  test('empty unbound install adopts the remote dataset and player ids',
+      () async {
+    final local = service.buildBackupForTesting();
+    final remote = jsonDecode(jsonEncode(local)) as Map<String, dynamic>;
+    final manifest = remote['safetyManifest'] as Map<String, dynamic>;
+    manifest['datasetId'] = 'dataset-from-remote';
+    manifest['playerId'] = 'player-from-remote';
+    manifest['familyId'] = 'family-from-remote';
+
+    expect(
+      () => service.validateRestoreBindingForTesting(remote),
+      returnsNormally,
+    );
+    await service.restoreFromMapForTesting(
+      remote,
+      mode: RestoreMode.exactReplace,
+    );
+
+    final restored = service.buildBackupForTesting();
+    final restoredManifest = restored['safetyManifest'] as Map<String, dynamic>;
+    expect(restoredManifest['datasetId'], 'dataset-from-remote');
+    expect(restoredManifest['playerId'], 'player-from-remote');
+    expect(
+      optionBox.get(FamilyAccessService.familyIdKey),
+      'family-from-remote',
+    );
+  });
+
+  test('normal restore rejects different identity when local core data exists',
+      () async {
+    await trainingBox.add(_trainingEntry(
+      recordId: 'local-entry',
+      notes: 'local core data',
+    ));
+    final remote = jsonDecode(
+      jsonEncode(service.buildBackupForTesting()),
+    ) as Map<String, dynamic>;
+    final manifest = remote['safetyManifest'] as Map<String, dynamic>;
+    manifest['datasetId'] = 'different-dataset';
+    manifest['playerId'] = 'different-player';
+
+    expect(
+      () => service.validateRestoreBindingForTesting(remote),
+      throwsA(
+        isA<StateError>().having(
+          (error) => error.message,
+          'message',
+          DriveBackupService.backupDatasetMismatchErrorCode,
+        ),
+      ),
+    );
+  });
+
+  test('explicit account import replaces prior local identity safely',
+      () async {
+    await optionBox.put(
+      DriveBackupService.recordDriveEmailLocalKey,
+      'old@example.com',
+    );
+    await optionBox.put(
+      DriveBackupService.recordDriveSubjectLocalKey,
+      'old-subject',
+    );
+    await trainingBox.add(_trainingEntry(
+      recordId: 'entry-1',
+      notes: 'remote player record',
+    ));
+    final remote = jsonDecode(
+      jsonEncode(service.buildBackupForTesting()),
+    ) as Map<String, dynamic>;
+    final manifest = remote['safetyManifest'] as Map<String, dynamic>;
+    manifest['datasetId'] = 'new-dataset';
+    manifest['playerId'] = 'new-player';
+    manifest['accountEmail'] = 'new@example.com';
+    manifest['accountSubjectId'] = 'new-subject';
+    remote['driveAccount'] = <String, dynamic>{
+      'email': 'new@example.com',
+      'label': 'New Player · new@example.com',
+      'subjectId': 'new-subject',
+    };
+
+    final imported = await service.syncConnectedPlayerBackupForTesting(
+      connectedAccount: const DriveConnectionInfo(
+        email: 'new@example.com',
+        displayName: 'New Player',
+        subjectId: 'new-subject',
+      ),
+      remoteBackup: remote,
+    );
+
+    expect(imported, isTrue);
+    final restoredManifest = service.buildBackupForTesting()['safetyManifest']
+        as Map<String, dynamic>;
+    expect(restoredManifest['datasetId'], 'new-dataset');
+    expect(restoredManifest['playerId'], 'new-player');
+    expect(service.getSavedRecordDriveEmail(), 'new@example.com');
   });
 
   test('rejects a backup whose SHA-256 safety hash was tampered', () async {
