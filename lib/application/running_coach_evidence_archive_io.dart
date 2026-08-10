@@ -9,6 +9,9 @@ import 'running_coach_evidence_archive_types.dart';
 
 const _channel = MethodChannel('football_note/running_pose_analysis');
 const _maximumImageDimension = 640;
+const _maximumEvidenceFrames = 24;
+const _maximumEvidenceJpegBytes = 700 * 1024;
+const _maximumEvidenceArchiveBytes = 12 * 1024 * 1024;
 
 Future<RunningCoachEvidenceArchiveResult> archiveRunningCoachEvidenceImages({
   required XFile? sourceVideo,
@@ -32,13 +35,18 @@ Future<RunningCoachEvidenceArchiveResult> archiveRunningCoachEvidenceImages({
     );
   }
   try {
+    final uniqueTimestamps = requests
+        .map((request) => request.timestamp.inMilliseconds)
+        .toSet()
+        .toList(growable: false)
+      ..sort();
     final raw = await _channel.invokeMethod<List<Object?>>(
       'extractRunningEvidenceFrames',
       <String, Object?>{
         'path': sourcePath,
-        'timestampsMs': requests
-            .map((request) => request.timestamp.inMilliseconds)
-            .toList(growable: false),
+        'timestampsMs': uniqueTimestamps.take(_maximumEvidenceFrames).toList(
+              growable: false,
+            ),
         'maxDimension': _maximumImageDimension,
       },
     );
@@ -55,21 +63,32 @@ Future<RunningCoachEvidenceArchiveResult> archiveRunningCoachEvidenceImages({
         failureCode: 'archive_directory_unavailable',
       );
     }
-    final requestsByTimestamp = <int, RunningCoachEvidenceFrameRequest>{
-      for (final request in requests) request.timestamp.inMilliseconds: request,
-    };
+    final requestsByTimestamp = <int, List<RunningCoachEvidenceFrameRequest>>{};
+    for (final request in requests) {
+      requestsByTimestamp
+          .putIfAbsent(request.timestamp.inMilliseconds, () => [])
+          .add(request);
+    }
     final archived = <RunningCoachEvidenceImage>[];
-    var failureCode = raw.length < requests.length
+    var totalBytes = 0;
+    var failureCode = raw.length < uniqueTimestamps.length
         ? 'partial_evidence_frames_extracted'
         : null;
     for (final item in raw) {
       if (item is! Map) continue;
       final timestampMs = _intValue(item['timestampMs']);
-      final request = requestsByTimestamp[timestampMs];
+      final timestampRequests = requestsByTimestamp[timestampMs];
       final bytes = item['bytes'];
-      if (request == null || bytes is! Uint8List || bytes.isEmpty) continue;
-      final safeId = request.id.replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_');
-      final filename = '$sessionId-$safeId.jpg';
+      if (timestampRequests == null || bytes is! Uint8List || bytes.isEmpty) {
+        continue;
+      }
+      if (bytes.length > _maximumEvidenceJpegBytes ||
+          totalBytes + bytes.length > _maximumEvidenceArchiveBytes) {
+        failureCode ??= 'evidence_storage_limit';
+        continue;
+      }
+      totalBytes += bytes.length;
+      final filename = '$sessionId-frame-$timestampMs.jpg';
       final destination = File(
         '${archiveDirectory.path}${Platform.pathSeparator}$filename',
       );
@@ -79,17 +98,23 @@ Future<RunningCoachEvidenceArchiveResult> archiveRunningCoachEvidenceImages({
         failureCode ??= 'file_write_failed';
         continue;
       }
-      archived.add(
-        RunningCoachEvidenceImage(
-          id: request.id,
-          timestamp: request.timestamp,
-          kind: request.kind,
-          role: request.role,
-          storageReference: destination.path,
-          width: _intValue(item['width']),
-          height: _intValue(item['height']),
-        ),
-      );
+      for (final request in timestampRequests) {
+        archived.add(
+          RunningCoachEvidenceImage(
+            id: request.id,
+            timestamp: request.timestamp,
+            kind: request.kind,
+            role: request.role,
+            storageReference: destination.path,
+            width: _intValue(item['width']),
+            height: _intValue(item['height']),
+            side: request.side,
+            values: request.values,
+            confidence: request.confidence,
+            poseFrame: request.poseFrame,
+          ),
+        );
+      }
     }
     return RunningCoachEvidenceArchiveResult.fromImages(
       requestedCount: requests.length,
@@ -156,8 +181,10 @@ Future<void> deleteArchivedRunningCoachEvidenceImages(
   } catch (_) {
     return;
   }
+  final deletedReferences = <String>{};
   for (final image in images) {
     if (image.storageReference.isEmpty) continue;
+    if (!deletedReferences.add(image.storageReference)) continue;
     try {
       final file = File(image.storageReference);
       if (!await file.exists()) continue;
@@ -198,4 +225,27 @@ bool _isManagedArchivePath(String resolvedFilePath, String archiveRoot) {
 int _intValue(Object? value) {
   if (value is num) return value.toInt();
   return int.tryParse(value?.toString() ?? '') ?? 0;
+}
+
+Future<Uint8List?> extractRunningVideoThumbnail(
+  XFile video, {
+  Duration timestamp = const Duration(milliseconds: 200),
+}) async {
+  final path = video.path.trim();
+  if (path.isEmpty || !await File(path).exists()) return null;
+  try {
+    final raw = await _channel.invokeMethod<List<Object?>>(
+      'extractRunningEvidenceFrames',
+      <String, Object?>{
+        'path': path,
+        'timestampsMs': <int>[timestamp.inMilliseconds],
+        'maxDimension': 240,
+      },
+    );
+    if (raw == null || raw.isEmpty || raw.first is! Map) return null;
+    final bytes = (raw.first as Map)['bytes'];
+    return bytes is Uint8List && bytes.isNotEmpty ? bytes : null;
+  } catch (_) {
+    return null;
+  }
 }

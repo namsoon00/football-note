@@ -306,7 +306,7 @@ class RunningPoseAnalysisChannel(
         val retriever = MediaMetadataRetriever()
         try {
             retriever.setDataSource(path)
-            return timestampsMs.mapNotNull { timestampMs ->
+            return timestampsMs.distinct().sorted().take(24).mapNotNull { timestampMs ->
                 val source = retriever.getFrameAtTime(
                     timestampMs * 1000L,
                     MediaMetadataRetriever.OPTION_CLOSEST,
@@ -350,6 +350,7 @@ class RunningPoseAnalysisChannel(
 
         val retriever = MediaMetadataRetriever()
         var coarsePoseLandmarker: PoseLandmarker? = null
+        var recoveryPoseLandmarker: PoseLandmarker? = null
         var densePoseLandmarker: PoseLandmarker? = null
 
         try {
@@ -363,10 +364,10 @@ class RunningPoseAnalysisChannel(
                     "Please select a running clip that is at least 1.5 seconds long.",
                 )
             }
-            if (durationMs > maxVideoDurationMs) {
+            if (durationMs > maxDecodableVideoDurationMs) {
                 throw AnalysisException(
                     "video_too_long",
-                    "Please trim the running clip to 60 seconds or less.",
+                    "This video is longer than the bounded on-device decoding budget.",
                 )
             }
 
@@ -379,16 +380,44 @@ class RunningPoseAnalysisChannel(
                 timestampsMs = coarseFrameTimestamps,
                 collectSharpness = true,
             )
-            val frameSamples = coarsePass.samples
+            var frameSamples = coarsePass.samples
 
-            if (frameSamples.size < minimumValidFrames) {
+            if (frameSamples.size < 2) {
                 throw AnalysisException(
                     "no_pose_detected",
                     "We could not detect a clear running pose in this video.",
                 )
             }
-            if (!hasSufficientSharpness(coarsePass.sharpnessValues)) {
-                throw videoTooBlurry()
+            val hasUsableSharpness = hasSufficientSharpness(coarsePass.sharpnessValues)
+
+            var recoveryFrameTimestamps = emptyList<Long>()
+            var recoveryPass = PosePassResult(
+                samples = emptyList(),
+                poseFrames = emptyList(),
+                sharpnessValues = emptyList(),
+            )
+            val preliminaryPerspective = perspectiveQualityPayload(frameSamples)
+            val preliminaryCandidates = mergeContactCandidateSets(
+                deriveContactCandidateWindows(frameSamples, durationMs),
+                fallbackContactCandidateWindows(frameSamples, durationMs),
+            )
+            val needsRecovery = durationMs > maxVideoDurationMs ||
+                preliminaryCandidates.windows.size < minimumValidatedContactFrames ||
+                preliminaryPerspective.scaleDriftRatio > maximumScaleDriftRatio ||
+                frameSamples.size.toDouble() / coarseFrameTimestamps.size.coerceAtLeast(1) < 0.45
+            if (needsRecovery) {
+                recoveryFrameTimestamps = recoverySampleTimestamps(frameSamples, durationMs)
+                if (recoveryFrameTimestamps.isNotEmpty()) {
+                    val recoveryLandmarker = makePoseLandmarker()
+                    recoveryPoseLandmarker = recoveryLandmarker
+                    recoveryPass = runPosePass(
+                        poseLandmarker = recoveryLandmarker,
+                        retriever = retriever,
+                        timestampsMs = recoveryFrameTimestamps,
+                        collectSharpness = false,
+                    )
+                    frameSamples = mergeFrameSamples(frameSamples, recoveryPass.samples)
+                }
             }
 
             val perspectiveQuality = perspectiveQualityPayload(frameSamples)
@@ -412,20 +441,10 @@ class RunningPoseAnalysisChannel(
                 detectedCandidateSet,
                 fallbackCandidateSet,
             )
-            if (candidateSet.windows.isEmpty()) {
-                throw insufficientContactEvidence(
-                    "coarseValid=${frameSamples.size}; candidates=0",
-                )
-            }
             val denseTimestamps = denseTimestampsForContactWindows(
                 candidateSet.windows,
                 durationMs,
             )
-            if (denseTimestamps.isEmpty()) {
-                throw insufficientContactEvidence(
-                    "coarseValid=${frameSamples.size}; candidates=${candidateSet.windows.size}; dense=0",
-                )
-            }
             val denseLandmarker = makePoseLandmarker()
             densePoseLandmarker = denseLandmarker
             val densePass = runPosePass(
@@ -441,20 +460,20 @@ class RunningPoseAnalysisChannel(
                 direction = direction,
             )
             val contactFrames = contactValidations.mapNotNull { it.contact }
-            val uniqueContactFrameCount = contactFrames
+            val confirmedContactFrames = contactFrames.filterNot { it.isKinematicEstimate }
+            val estimatedContactFrames = contactFrames.filter { it.isKinematicEstimate }
+            val uniqueConfirmedContactFrameCount = confirmedContactFrames
                 .map { it.timestampMs }
                 .distinct()
                 .size
-            val usesKinematicContactEstimate = contactFrames.any {
-                it.isKinematicEstimate
-            }
+            val usesKinematicContactEstimate = estimatedContactFrames.isNotEmpty()
             // A single verified contact remains an observed measurement, even
             // though it is still below the three-step coaching threshold.
             // Only fall back to a phase proxy when no continuous contact event
             // could be confirmed at all.
-            val usesContactProxy = uniqueContactFrameCount == 0
+            val usesContactProxy = contactFrames.isEmpty()
             val hasCompleteContactSample =
-                uniqueContactFrameCount >= minimumValidatedContactFrames
+                uniqueConfirmedContactFrameCount >= minimumValidatedContactFrames
             val denseContactProxyFrames = if (usesContactProxy) {
                 contactProxyFrames(
                     samples = densePass.samples,
@@ -478,35 +497,22 @@ class RunningPoseAnalysisChannel(
                     confidencePenalty = coarseContactProxyConfidencePenalty,
                 )
             }
-            if (metricContactFrames.isEmpty()) {
-                throw insufficientContactEvidence(
-                    "coarseValid=${frameSamples.size}; candidates=${candidateSet.windows.size}; " +
-                        "denseValid=${densePass.samples.size}; contacts=$uniqueContactFrameCount; " +
-                        "proxySource=$contactProxySource; proxies=0",
-                )
-            }
-
             val footStrikeRatio = metricContactFrames
-                .map { it.footStrikeRatio }
-                .average()
+                .takeIf { it.isNotEmpty() }
+                ?.map { it.footStrikeRatio }
+                ?.average()
             val kneeAngles = metricContactFrames.map { it.kneeAngleDegrees }
             val elbowAngles = frameSamples.mapNotNull { it.averageElbowAngleDegrees() }
-            if (elbowAngles.isEmpty()) {
-                throw AnalysisException(
-                    "no_pose_detected",
-                    "We could not detect a clear running pose in this video.",
-                )
-            }
-            val stanceKneeAngle = kneeAngles.average()
-            val elbowAngle = elbowAngles.average()
+            val stanceKneeAngle = kneeAngles.takeIf { it.isNotEmpty() }?.average()
+            val elbowAngle = elbowAngles.takeIf { it.isNotEmpty() }?.average()
             val contactConfidence = metricContactFrames
-                .map { it.confidence }
-                .average()
-                .coerceIn(0.0, 1.0)
+                .takeIf { it.isNotEmpty() }
+                ?.map { it.confidence }
+                ?.average()
+                ?.coerceIn(0.0, 1.0) ?: 0.0
             val contactQualityReason = when {
                 usesContactProxy -> "contact_phase_proxy"
-                hasCompleteContactSample && usesKinematicContactEstimate ->
-                    "kinematic_contact_estimate"
+                usesKinematicContactEstimate -> "kinematic_contact_estimate"
                 hasCompleteContactSample -> null
                 else -> "limited_contact_samples"
             }
@@ -516,45 +522,71 @@ class RunningPoseAnalysisChannel(
             val armConfidenceValues = frameSamples
                 .mapNotNull { it.armLandmarkConfidence() }
             val armConfidence = armConfidenceValues.average()
-            val analyzedFrameTimestamps = (coarseFrameTimestamps + denseTimestamps).toSet()
+            val analyzedFrameTimestamps = (
+                coarseFrameTimestamps + recoveryFrameTimestamps + denseTimestamps
+            ).toSet()
             val validFrameTimestamps = (frameSamples + densePass.samples)
                 .map { it.timestampMs }
                 .toSet()
             val baseMetricQualities = mapOf(
                 "posture" to metricQualityPayload(
-                    coreConfidence,
+                    if (hasUsableSharpness) coreConfidence else min(coreConfidence, 0.58),
                     frameSamples.size,
+                    if (hasUsableSharpness) null else "low_sharpness",
                 ),
                 "bounce" to metricQualityPayload(
-                    coreConfidence,
+                    if (hasUsableSharpness) coreConfidence else min(coreConfidence, 0.58),
                     frameSamples.size,
+                    if (hasUsableSharpness) null else "low_sharpness",
                 ),
                 "footStrike" to metricQualityPayload(
-                    contactConfidence,
+                    if (hasUsableSharpness) contactConfidence else min(contactConfidence, 0.58),
                     metricContactFrames.size,
-                    contactQualityReason,
+                    if (metricContactFrames.isEmpty()) {
+                        "coordinates_unavailable"
+                    } else {
+                        contactQualityReason ?: if (hasUsableSharpness) null else "low_sharpness"
+                    },
                 ),
                 "kneeFlexion" to metricQualityPayload(
-                    contactConfidence,
+                    if (hasUsableSharpness) contactConfidence else min(contactConfidence, 0.58),
                     metricContactFrames.size,
-                    contactQualityReason,
+                    if (metricContactFrames.isEmpty()) {
+                        "coordinates_unavailable"
+                    } else {
+                        contactQualityReason ?: if (hasUsableSharpness) null else "low_sharpness"
+                    },
                 ),
                 "armCarriage" to metricQualityPayload(
-                    armConfidence,
+                    if (armConfidenceValues.isEmpty()) {
+                        0.0
+                    } else if (hasUsableSharpness) {
+                        armConfidence
+                    } else {
+                        min(armConfidence, 0.58)
+                    },
                     armConfidenceValues.size,
+                    if (armConfidenceValues.isEmpty()) {
+                        "coordinates_unavailable"
+                    } else if (hasUsableSharpness) {
+                        null
+                    } else {
+                        "low_sharpness"
+                    },
                 ),
             )
 
             return mapOf(
+                "analysisVersion" to 2,
                 "durationMs" to durationMs.toInt(),
                 "sampledFrames" to analyzedFrameTimestamps.size,
                 "validFrames" to validFrameTimestamps.size,
                 "direction" to direction.token,
                 "forwardLeanDegrees" to roundTo3(leanDegrees),
                 "verticalBounceRatio" to roundTo3(bounceRatio.coerceAtLeast(0.0)),
-                "footStrikeDistanceRatio" to roundTo3(footStrikeRatio),
-                "stanceKneeAngleDegrees" to roundTo3(stanceKneeAngle),
-                "elbowAngleDegrees" to roundTo3(elbowAngle),
+                "footStrikeDistanceRatio" to footStrikeRatio?.let(::roundTo3),
+                "stanceKneeAngleDegrees" to stanceKneeAngle?.let(::roundTo3),
+                "elbowAngleDegrees" to elbowAngle?.let(::roundTo3),
                 "metricQualities" to mapOf(
                     "posture" to applyPerspectiveQuality(
                         "posture",
@@ -596,25 +628,37 @@ class RunningPoseAnalysisChannel(
                     maxFrameBudget = maxDenseFrameBudget,
                     targetFps = denseTargetFps,
                 ),
+                "recoverySamples" to sampleSummaryPayload(
+                    attemptedFrames = recoveryFrameTimestamps.size,
+                    validFrames = recoveryPass.samples.size,
+                    poseFrameCount = recoveryPass.poseFrames.size,
+                    maxFrameBudget = maxRecoveryFrameBudget,
+                    targetFps = recoveryTargetFps,
+                ),
                 "contactWindows" to contactWindowPayloads(
                     windows = candidateSet.windows,
                     denseTimestamps = denseTimestamps,
                     contactValidations = contactValidations,
                 ),
-                "validatedContactFrameTimestampsMs" to contactFrames
+                "validatedContactFrameTimestampsMs" to confirmedContactFrames
+                    .map { it.timestampMs.toInt() }
+                    .distinct()
+                    .sorted(),
+                "estimatedContactFrameTimestampsMs" to estimatedContactFrames
                     .map { it.timestampMs.toInt() }
                     .distinct()
                     .sorted(),
                 "contactConfidence" to roundTo3(contactConfidence),
                 "perspectiveQuality" to perspectiveQuality.toPayload(),
                 "poseFrames" to mergePoseFrames(
-                    coarsePass.poseFrames,
+                    mergePoseFrames(coarsePass.poseFrames, recoveryPass.poseFrames),
                     densePass.poseFrames,
                 ),
             )
         } finally {
             retriever.release()
             coarsePoseLandmarker?.close()
+            recoveryPoseLandmarker?.close()
             densePoseLandmarker?.close()
         }
     }
@@ -705,6 +749,95 @@ class RunningPoseAnalysisChannel(
                 .coerceIn(0L, durationMs)
         }
     }
+
+    private fun recoverySampleTimestamps(
+        samples: List<FrameSample>,
+        durationMs: Long,
+    ): List<Long> {
+        if (samples.isEmpty()) return emptyList()
+        val maximumWindowMs = 8000L
+        var selectedStartMs = (samples.first().timestampMs - maximumWindowMs / 2)
+            .coerceIn(0L, max(0L, durationMs - maximumWindowMs))
+        var selectedScore = -1.0
+        for (center in samples) {
+            val startMs = (center.timestampMs - maximumWindowMs / 2)
+                .coerceIn(0L, max(0L, durationMs - maximumWindowMs))
+            val endMs = min(durationMs, startMs + maximumWindowMs)
+            val visible = samples.filter { it.timestampMs in startMs..endMs }
+            val scales = visible.map { it.bodyScale }.filter { it > 0.0 }
+            val lower = percentile(scales, 0.10) ?: 0.0
+            val upper = percentile(scales, 0.90) ?: lower
+            val driftPenalty = if (lower > 0) min(0.7, (upper - lower) / lower) else 0.7
+            val confidence = if (visible.isEmpty()) {
+                0.0
+            } else {
+                visible.map { it.coreLandmarkConfidence }.average()
+            }
+            val runningMotion = recoveryRunningMotionScore(visible)
+            val score = visible.size * confidence *
+                (0.20 + 0.80 * runningMotion) * (1 - driftPenalty)
+            if (score > selectedScore || (score == selectedScore && startMs < selectedStartMs)) {
+                selectedScore = score
+                selectedStartMs = startMs
+            }
+        }
+        val selectedEndMs = min(durationMs, selectedStartMs + maximumWindowMs)
+        val intervalCount = max(
+            1,
+            min(
+                maxRecoveryFrameBudget - 1,
+                kotlin.math.ceil(
+                    (selectedEndMs - selectedStartMs).toDouble() / recoveryFrameIntervalMs,
+                ).toInt(),
+            ),
+        )
+        return (0..intervalCount).map { index ->
+            (selectedStartMs +
+                ((selectedEndMs - selectedStartMs).toDouble() * index / intervalCount))
+                .roundToLong()
+                .coerceIn(0L, durationMs)
+        }
+    }
+
+    private fun recoveryRunningMotionScore(samples: List<FrameSample>): Double {
+        if (samples.size < 3) return 0.0
+        var hipTravel = 0.0
+        var ankleTravel = 0.0
+        var kneeTravel = 0.0
+        var transitions = 0
+        for (index in 1 until samples.size) {
+            val previous = samples[index - 1]
+            val current = samples[index]
+            if (current.timestampMs - previous.timestampMs > 400L) continue
+            val scale = max(1.0, (previous.bodyScale + current.bodyScale) / 2)
+            fun normalizedDistance(first: PointF?, second: PointF?): Double =
+                if (first == null || second == null) 0.0 else
+                    hypot(
+                        (second.x - first.x).toDouble(),
+                        (second.y - first.y).toDouble(),
+                    ) / scale
+            hipTravel += normalizedDistance(previous.hipCenter, current.hipCenter)
+            ankleTravel += normalizedDistance(previous.leftAnkle, current.leftAnkle)
+            ankleTravel += normalizedDistance(previous.rightAnkle, current.rightAnkle)
+            kneeTravel += normalizedDistance(previous.leftKnee, current.leftKnee)
+            kneeTravel += normalizedDistance(previous.rightKnee, current.rightKnee)
+            transitions += 1
+        }
+        if (transitions == 0) return 0.0
+        return (
+            (hipTravel / transitions / 0.10) * 0.35 +
+                (ankleTravel / transitions / 0.22) * 0.45 +
+                (kneeTravel / transitions / 0.16) * 0.20
+            ).coerceIn(0.0, 1.0)
+    }
+
+    private fun mergeFrameSamples(
+        first: List<FrameSample>,
+        second: List<FrameSample>,
+    ): List<FrameSample> = (first + second)
+        .groupBy { it.timestampMs }
+        .map { (_, values) -> values.maxBy { it.coreLandmarkConfidence } }
+        .sortedBy { it.timestampMs }
 
     private fun runPosePass(
         poseLandmarker: PoseLandmarker,
@@ -1743,7 +1876,13 @@ class RunningPoseAnalysisChannel(
                 candidate.window.side == window.side &&
                     candidate.window.centerTimestampMs == window.centerTimestampMs
             }
-            val validated = validation?.contact?.let(::listOf).orEmpty()
+            val contact = validation?.contact
+            val validated = contact?.takeUnless { it.isKinematicEstimate }
+                ?.let(::listOf)
+                .orEmpty()
+            val estimated = contact?.takeIf { it.isKinematicEstimate }
+                ?.let(::listOf)
+                .orEmpty()
             mapOf(
                 "side" to (validation?.contact?.side ?: window.side).token,
                 "startTimestampMs" to window.startTimestampMs.toInt(),
@@ -1760,6 +1899,15 @@ class RunningPoseAnalysisChannel(
                     .map { it.timestampMs.toInt() }
                     .distinct()
                     .sorted(),
+                "estimatedContactFrameTimestampsMs" to estimated
+                    .map { it.timestampMs.toInt() }
+                    .distinct()
+                    .sorted(),
+                "selectionMethod" to when {
+                    validated.isNotEmpty() -> "ground"
+                    estimated.isNotEmpty() -> "kinematic"
+                    else -> null
+                },
                 "confidence" to roundTo3(
                     if (validated.isEmpty()) {
                         0.0
@@ -2282,13 +2430,10 @@ class RunningPoseAnalysisChannel(
                     hipCenter.x.toDouble() - shoulderCenter.x.toDouble()
                 }
                 AnalysisDirection.stationary -> {
-                    abs(shoulderCenter.x.toDouble() - hipCenter.x.toDouble())
+                    0.0
                 }
             }
-            if (direction != AnalysisDirection.stationary && forwardOffset <= 0.0) {
-                return 0.0
-            }
-            return Math.toDegrees(atan2(abs(forwardOffset), verticalTravel))
+            return Math.toDegrees(atan2(forwardOffset, verticalTravel))
         }
 
         fun leadFootStrikeRatio(direction: AnalysisDirection): Double {
@@ -2493,6 +2638,9 @@ class RunningPoseAnalysisChannel(
         private const val coarseTargetFps = 8
         private const val coarseFrameIntervalMs = 125L
         private const val maxCoarseFrameBudget = 481
+        private const val recoveryTargetFps = 15
+        private const val recoveryFrameIntervalMs = 67L
+        private const val maxRecoveryFrameBudget = 120
         private const val minimumValidFrames = 6
         private const val minimumSharpnessSampleCount = 6
         private const val minimumMedianSharpness = 0.018
@@ -2503,6 +2651,7 @@ class RunningPoseAnalysisChannel(
         private const val sharpnessSampleHeight = 64
         private const val minVideoDurationMs = 1500L
         private const val maxVideoDurationMs = 60000L
+        private const val maxDecodableVideoDurationMs = 600000L
         private const val minimumLikelihood = 0.35f
         private const val minimumBodyScalePx = 40.0
         private const val mediaPipePoseLandmarkCount = 33

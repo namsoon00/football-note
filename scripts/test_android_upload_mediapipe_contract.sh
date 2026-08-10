@@ -92,7 +92,7 @@ for required in (
     "rejectedFrameCounts",
     "insufficient_contact_persistence",
     "windowCenterTimestampMs",
-    "uniqueContactFrameCount",
+    "uniqueConfirmedContactFrameCount",
     "mergePoseFrames",
     "maxDenseFrameBudget",
     "minimumValidatedContactFrames",
@@ -151,7 +151,7 @@ for required in (
     "rejectedFrameCounts",
     "insufficient_contact_persistence",
     "windowCenterTimestampMs",
-    "uniqueContactFrameCount",
+    "uniqueConfirmedContactFrameCount",
     "mergePoseFrames",
     "maxDenseFrameBudget",
     "minimumValidatedContactFrames",
@@ -172,6 +172,7 @@ for required in (
     '"denseSamples"',
     '"contactWindows"',
     '"validatedContactFrameTimestampsMs"',
+    '"estimatedContactFrameTimestampsMs"',
     '"contactConfidence"',
     '"metricQualities"',
     '"footStrike"',
@@ -340,7 +341,7 @@ require(
 )
 require(
     re.search(
-        r"uniqueContactFrameCount\s*=\s*contactFrames\s*\.map\s*\{\s*it\.timestampMs\s*\}\s*\.distinct\(\)\s*\.size",
+        r"uniqueConfirmedContactFrameCount\s*=\s*confirmedContactFrames\s*\.map\s*\{\s*it\.timestampMs\s*\}\s*\.distinct\(\)\s*\.size",
         channel_text,
         re.DOTALL,
     )
@@ -348,7 +349,7 @@ require(
     "Android dense contact evidence must require unique selected contact events",
 )
 require(
-    "Set(contactFrames.map(\\.timestampMs)).count" in ios_text,
+    "confirmedContactFrames.map(\\.timestampMs)" in ios_text,
     "iOS dense contact evidence must require unique selected contact events",
 )
 require(
@@ -397,12 +398,12 @@ require(
     "iOS edge cutoff must preserve typed edge checks for shoulders, hips, knees, ankles, heels, and toes",
 )
 require(
-    "val usesContactProxy = uniqueContactFrameCount == 0" in channel_text,
-    "Android must retain one verified contact as an observation instead of replacing it with a proxy",
+    "val usesContactProxy = contactFrames.isEmpty()" in channel_text,
+    "Android must retain selected confirmed or estimated contact observations instead of replacing them with a proxy",
 )
 require(
-    "let usesContactProxy = uniqueContactFrameCount == 0" in ios_text,
-    "iOS must retain one verified contact as an observation instead of replacing it with a proxy",
+    "let usesContactProxy = contactFrames.isEmpty" in ios_text,
+    "iOS must retain selected confirmed or estimated contact observations instead of replacing them with a proxy",
 )
 require(
     "persistentCandidates.isEmpty()) {\n            eligibleCandidates" not in channel_text,

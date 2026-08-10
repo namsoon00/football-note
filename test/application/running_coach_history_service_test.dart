@@ -78,6 +78,7 @@ void main() {
       ],
     );
     final result = RunningVideoAnalysisResult(
+      analysisVersion: runningAnalysisVersionV2,
       videoDuration: const Duration(seconds: 5),
       sampledFrames: 14,
       validFrames: 12,
@@ -110,7 +111,13 @@ void main() {
       analyzedAt: DateTime(2026, 7, 26, 12),
     );
 
-    final restored = service.allSessions().single.analysisResult;
+    final restoredSession = service.allSessions().single;
+    final restored = restoredSession.analysisResult;
+    expect(restoredSession.analysisVersion, runningAnalysisVersionV2);
+    expect(
+      restoredSession.scoreVersion,
+      RunningCoachHistoryService.runningScoreVersion,
+    );
     expect(restored, isNotNull);
     expect(
       restored!.poseFrames,
@@ -179,6 +186,7 @@ void main() {
     final repository = _MemoryOptionRepository();
     var deletedEvidenceCount = 0;
     final capturedRequestTimestamps = <int>[];
+    final capturedRequestKinds = <RunningMetricEvidenceKind>[];
     final service = RunningCoachHistoryService(
       repository,
       archiveEvidenceImages: ({
@@ -189,6 +197,7 @@ void main() {
         capturedRequestTimestamps.addAll(
           requests.map((request) => request.timestamp.inMilliseconds),
         );
+        capturedRequestKinds.addAll(requests.map((request) => request.kind));
         return RunningCoachEvidenceArchiveResult.fromImages(
           requestedCount: requests.length,
           images: <RunningCoachEvidenceImage>[
@@ -201,6 +210,10 @@ void main() {
                 storageReference: 'test://${request.id}',
                 width: 120,
                 height: 80,
+                side: request.side,
+                values: request.values,
+                confidence: request.confidence,
+                poseFrame: request.poseFrame,
               ),
           ],
         );
@@ -257,19 +270,34 @@ void main() {
     expect(session.videoName, isNull);
     expect(session.evidenceImages, isNotEmpty);
     expect(
+      session.evidenceImages.every(
+        (image) =>
+            image.confidence > 0 &&
+            image.values.isNotEmpty &&
+            image.poseFrame != null,
+      ),
+      isTrue,
+    );
+    expect(
       session.evidenceImages.map((image) => image.timestamp.inMilliseconds),
       orderedEquals(capturedRequestTimestamps),
     );
     expect(
-        capturedRequestTimestamps.toSet(),
-        hasLength(
-          capturedRequestTimestamps.length,
-        ));
+      capturedRequestTimestamps.length,
+      greaterThan(capturedRequestTimestamps.toSet().length),
+      reason: 'shared JPEG timestamps must retain per-metric metadata',
+    );
+    final countsByKind = <RunningMetricEvidenceKind, int>{};
+    for (final kind in capturedRequestKinds) {
+      countsByKind.update(kind, (count) => count + 1, ifAbsent: () => 1);
+    }
+    expect(
+        countsByKind.values.every((count) => count >= 2 && count <= 4), isTrue);
     expect(
       session.analysisResult!.poseFrames.map(
         (frame) => frame.timestamp.inMilliseconds,
       ),
-      containsAll(capturedRequestTimestamps),
+      containsAll(capturedRequestTimestamps.toSet()),
     );
 
     final retained = await service.deleteSession(session.id);

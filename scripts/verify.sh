@@ -78,6 +78,9 @@ echo "==> android upload mediapipe contract"
 echo "==> web upload video analysis contract"
 ./scripts/test_web_running_video_analysis_contract.sh
 
+echo "==> running analysis v2 cross-platform contract"
+./scripts/test_running_analysis_v2_contract.sh
+
 echo "==> published Pages root artifact contract"
 ./scripts/test_pages_root_static_web_contract.sh
 

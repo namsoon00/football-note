@@ -15,6 +15,8 @@ import 'package:football_note/domain/entities/running_video_analysis_result.dart
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/running_coach/running_foot_strike_target_motion_proof.dart';
+import 'package:football_note/presentation/running_coach/running_evidence_slow_loop_sheet.dart';
+import 'package:football_note/presentation/running_coach/running_video_preview_sheet.dart';
 import 'package:football_note/presentation/screens/running_coach_screen.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart';
 
@@ -81,6 +83,103 @@ void main() {
 
   tearDown(() {
     VideoPlayerPlatform.instance = previousVideoPlayerPlatform;
+  });
+
+  testWidgets('video preview confirms the candidate chosen inside the app', (
+    WidgetTester tester,
+  ) async {
+    RunningVideoPreviewResult? selection;
+    await tester.binding.setSurfaceSize(const Size(800, 1000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final firstVideo = File('tmp/first-run.mp4')..createSync(recursive: true);
+    final secondVideo = File('tmp/second-run.mp4')..createSync(recursive: true);
+    addTearDown(() {
+      if (firstVideo.existsSync()) firstVideo.deleteSync();
+      if (secondVideo.existsSync()) secondVideo.deleteSync();
+    });
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: TextButton(
+              onPressed: () async {
+                selection = await showRunningVideoPreviewSheet(
+                  context: context,
+                  candidates: <XFile>[
+                    XFile(firstVideo.path, name: 'first-run.mp4'),
+                    XFile(secondVideo.path, name: 'second-run.mp4'),
+                  ],
+                  isCapturedVideo: false,
+                );
+              },
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('running-coach-video-candidates')),
+      findsOneWidget,
+    );
+    expect(find.text('first-run.mp4'), findsWidgets);
+    expect(find.text('second-run.mp4'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('running-coach-video-thumbnail-0')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('running-coach-preview-scrubber')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('running-coach-preview-timeline')),
+      findsOneWidget,
+    );
+
+    await tester.tap(
+      find.byKey(const ValueKey('running-coach-video-candidate-1')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('running-coach-preview-confirm')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(selection?.action, RunningVideoPreviewAction.confirm);
+    expect(selection?.video?.name, 'second-run.mp4');
+    expect(fakeVideoPlayerPlatform._streams.length, lessThanOrEqualTo(1));
+  });
+
+  test('slow loop window clamps lead and trail to the video boundary', () {
+    expect(
+      runningEvidenceLoopWindow(
+        const Duration(milliseconds: 200),
+        const Duration(seconds: 4),
+      ),
+      (Duration.zero, const Duration(milliseconds: 1000)),
+    );
+    expect(
+      runningEvidenceLoopWindow(
+        const Duration(milliseconds: 3800),
+        const Duration(seconds: 4),
+      ),
+      (
+        const Duration(milliseconds: 3300),
+        const Duration(seconds: 4),
+      ),
+    );
   });
 
   testWidgets('coach screen presents one recording and analysis flow', (
@@ -208,10 +307,18 @@ void main() {
     );
     expect(directCaptureAction, findsOneWidget);
     await tester.tap(directCaptureAction);
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('running-coach-preview-confirm')),
+      findsOneWidget,
+    );
+    await tester.tap(
+      find.byKey(const ValueKey('running-coach-preview-confirm')),
+    );
     await tester.pump();
     await analysisService.waitUntilCalled();
 
-    expect(find.text('captured-running-video.mp4'), findsOneWidget);
+    expect(find.text('captured-running-video.mp4'), findsWidgets);
     expect(
       find.text('Analyzing...'),
       findsOneWidget,
@@ -251,15 +358,21 @@ void main() {
       await tester.ensureVisible(captureAction);
       await tester.tap(captureAction);
       await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(const ValueKey('running-coach-preview-confirm')),
+      );
+      await tester.pumpAndSettle();
 
       expect(
         find.byKey(const ValueKey('running-coach-analysis-result-list')),
         findsOneWidget,
       );
+      final saveFailed = find.byKey(
+        const ValueKey('running-coach-analysis-history-save-failed'),
+      );
+      await _scrollAnalysisResultUntilFound(tester, saveFailed);
       expect(
-        find.byKey(
-          const ValueKey('running-coach-analysis-history-save-failed'),
-        ),
+        saveFailed,
         findsOneWidget,
       );
       expect(
@@ -417,17 +530,18 @@ void main() {
     );
     expect(
       find.byKey(const ValueKey('running-coach-history-evidence-unavailable')),
-      findsOneWidget,
+      findsNothing,
     );
     expect(
       find.byKey(const ValueKey('running-coach-report-details')),
       findsOneWidget,
     );
-    await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('running-coach-report-details')),
-      -320,
-      scrollable: find.byType(Scrollable).first,
+    final detailExpansion = find.byKey(
+      const ValueKey('running-coach-report-details-expansion'),
     );
+    await _scrollAnalysisResultUntilFound(tester, detailExpansion);
+    await tester.tap(detailExpansion);
+    await tester.pumpAndSettle();
     expect(find.text('Foot strike'), findsWidgets);
     expect(find.text('Arm carriage'), findsWidgets);
   });
@@ -940,7 +1054,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('historical detail shows saved evidence frame gallery', (
+  testWidgets('historical detail nests saved evidence in its metric', (
     WidgetTester tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(800, 1400));
@@ -1015,11 +1129,24 @@ void main() {
     );
     await tester.pump();
 
-    final gallery = find.byKey(
-      const ValueKey('running-coach-history-evidence-gallery'),
+    final details = find.byKey(
+      const ValueKey('running-coach-report-details-expansion'),
     );
-    await _scrollAnalysisResultUntilFound(tester, gallery);
-    expect(find.text('Saved evidence frames'), findsOneWidget);
+    await _scrollAnalysisResultUntilFound(tester, details);
+    expect(tester.widget<ExpansionTile>(details).initiallyExpanded, isFalse);
+    await tester.tap(details);
+    await tester.pumpAndSettle();
+    final posture = find.byKey(
+      const ValueKey('running-coach-metric-expansion-posture'),
+    );
+    await _scrollAnalysisResultUntilFound(tester, posture);
+    expect(tester.widget<ExpansionTile>(posture).initiallyExpanded, isFalse);
+    await tester.tap(posture);
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('running-coach-history-evidence-gallery')),
+      findsNothing,
+    );
     expect(
       find.byKey(
         const ValueKey(
@@ -1028,6 +1155,15 @@ void main() {
       ),
       findsOneWidget,
     );
+    final nextFrame = find.byKey(
+      const ValueKey('running-coach-inline-evidence-next-posture'),
+    );
+    expect(nextFrame, findsOneWidget);
+    expect(tester.widget<IconButton>(nextFrame).onPressed, isNotNull);
+    await _scrollAnalysisResultUntilFound(tester, nextFrame);
+    await tester.tap(nextFrame);
+    await tester.pump();
+    expect(find.text('Evidence 2/3'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -1428,70 +1564,10 @@ void main() {
     );
     await tester.pump();
 
-    final evidenceCard = find.byKey(
-      const ValueKey('running-coach-analysis-evidence-card'),
-    );
-    await _scrollAnalysisResultUntilFound(tester, evidenceCard);
-    expect(evidenceCard, findsOneWidget);
-    expect(find.text('Evidence from your video'), findsOneWidget);
     expect(
-      find.byKey(const ValueKey('running-coach-analysis-evidence-overlay')),
+      find.byKey(const ValueKey('running-coach-analysis-evidence-card')),
       findsNothing,
     );
-    expect(
-      find.byKey(
-        const ValueKey('running-coach-analysis-evidence-measurement'),
-      ),
-      findsOneWidget,
-    );
-    expect(
-      tester
-          .getSize(
-            find.byKey(
-              const ValueKey('running-coach-analysis-evidence-preview'),
-            ),
-          )
-          .height,
-      lessThanOrEqualTo(320),
-    );
-    expect(
-      find.byKey(const ValueKey('running-coach-analysis-evidence-caption')),
-      findsNothing,
-    );
-    await tester.pump(const Duration(milliseconds: 100));
-    final unavailablePlay = find.byKey(
-      const ValueKey('running-coach-evidence-play-pause'),
-    );
-    expect(tester.widget<IconButton>(unavailablePlay).onPressed, isNull);
-    expect(
-      find.byKey(const ValueKey('running-coach-evidence-video-unavailable')),
-      findsOneWidget,
-    );
-    expect(
-      find.byKey(const ValueKey('running-coach-evidence-pose-transition')),
-      findsNothing,
-    );
-    expect(
-      find.byKey(const ValueKey('running-coach-goal-motion')),
-      findsNothing,
-    );
-    expect(
-      find.byKey(const ValueKey('running-coach-goal-motion-toggle')),
-      findsNothing,
-    );
-    expect(find.text('Evidence 1/3'), findsOneWidget);
-    expect(tester.takeException(), isNull);
-
-    final nextEvidence = find.byKey(
-      const ValueKey('running-coach-evidence-next'),
-    );
-    await tester.ensureVisible(nextEvidence);
-    await tester.pump();
-    expect(tester.widget<IconButton>(nextEvidence).onPressed, isNotNull);
-    await tester.tap(nextEvidence);
-    await tester.pump();
-
-    expect(find.text('Evidence 2/3'), findsOneWidget);
     final reportDetails = find.byKey(
       const ValueKey('running-coach-report-details'),
     );
@@ -1502,13 +1578,41 @@ void main() {
         of: reportDetails,
         matching: find.byType(ExpansionTile),
       ),
-      findsNothing,
+      findsOneWidget,
+    );
+    expect(
+      tester
+          .widget<ExpansionTile>(
+            find.byKey(
+              const ValueKey('running-coach-report-details-expansion'),
+            ),
+          )
+          .initiallyExpanded,
+      isFalse,
+    );
+    await tester.tap(
+      find.byKey(const ValueKey('running-coach-report-details-expansion')),
+    );
+    await tester.pumpAndSettle();
+    final postureExpansion = find.byKey(
+      const ValueKey('running-coach-metric-expansion-posture'),
+    );
+    await _scrollAnalysisResultUntilFound(tester, postureExpansion);
+    await tester.tap(postureExpansion);
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('running-coach-inline-evidence-posture')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('running-coach-coordinate-preview-label')),
+      findsOneWidget,
     );
     expect(tester.takeException(), isNull);
   });
 
   testWidgets(
-      'shared evidence viewer switches metrics with matching coaching illustration',
+      'metric evidence opens one short slow-loop player without a global gallery',
       (
     WidgetTester tester,
   ) async {
@@ -1545,6 +1649,11 @@ void main() {
       ),
     );
     final report = const RunningCoachingService().buildReport(result);
+    final videoFile = File('tmp/running-coach-slow-loop-test.mp4')
+      ..createSync(recursive: true);
+    addTearDown(() {
+      if (videoFile.existsSync()) videoFile.deleteSync();
+    });
 
     await tester.pumpWidget(
       MaterialApp(
@@ -1563,6 +1672,7 @@ void main() {
             id: 'shared-player-evidence',
             result: result,
             report: report,
+            videoPath: videoFile.path,
           ),
         ),
       ),
@@ -1570,105 +1680,60 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    final evidenceCard = find.byKey(
-      const ValueKey('running-coach-analysis-evidence-card'),
-    );
-    await _scrollAnalysisResultUntilFound(tester, evidenceCard);
-    expect(evidenceCard, findsOneWidget);
     expect(
-      find.byKey(const ValueKey('running-coach-evidence-chip-landing')),
-      findsOneWidget,
-    );
-    expect(
-      find.byKey(const ValueKey('running-coach-evidence-chip-knee')),
-      findsOneWidget,
-    );
-    expect(
-      find.byKey(const ValueKey('running-coach-evidence-metric-tabs')),
-      findsOneWidget,
-    );
-    await tester.tap(
-      find.byKey(const ValueKey('running-coach-evidence-chip-knee')),
-    );
-    await tester.pump();
-    expect(
-      tester
-          .widget<ChoiceChip>(
-            find.byKey(const ValueKey('running-coach-evidence-chip-knee')),
-          )
-          .selected,
-      isTrue,
-    );
-    await tester.tap(
-      find.byKey(const ValueKey('running-coach-evidence-chip-landing')),
-    );
-    await tester.pump();
-    expect(
-      tester
-          .widget<ChoiceChip>(
-            find.byKey(const ValueKey('running-coach-evidence-chip-landing')),
-          )
-          .selected,
-      isTrue,
-    );
-    expect(
-      find.byKey(
-        const ValueKey('running-coach-evidence-story-footStrike'),
-      ),
-      findsOneWidget,
-    );
-    expect(
-      find.byKey(
-        const ValueKey(
-          'running-coach-evidence-illustrated-comparison-footStrike',
-        ),
-      ),
-      findsOneWidget,
-    );
-    await tester.tap(
-      find.byKey(const ValueKey('running-coach-evidence-chip-knee')),
-    );
-    await tester.pump();
-    expect(
-      find.byKey(
-        const ValueKey('running-coach-evidence-story-kneeFlexion'),
-      ),
-      findsNothing,
-    );
-    expect(
-      find.byKey(
-        const ValueKey(
-          'running-coach-evidence-illustrated-comparison-kneeFlexion',
-        ),
-      ),
+      find.byKey(const ValueKey('running-coach-analysis-evidence-card')),
       findsNothing,
     );
     final reportDetails = find.byKey(
       const ValueKey('running-coach-report-details'),
     );
     await _scrollAnalysisResultUntilFound(tester, reportDetails);
+    final reportExpansion = find.byKey(
+      const ValueKey('running-coach-report-details-expansion'),
+    );
+    await tester.tap(reportExpansion);
+    await tester.pumpAndSettle();
     for (final metric in RunningCoachMetric.values) {
       expect(
         find.byKey(ValueKey('running-coach-detail-row-${metric.name}')),
         findsOneWidget,
       );
     }
+    final footStrikeExpansion = find.byKey(
+      const ValueKey('running-coach-metric-expansion-footStrike'),
+    );
+    await _scrollAnalysisResultUntilFound(tester, footStrikeExpansion);
+    await tester.tap(footStrikeExpansion);
+    await tester.pumpAndSettle();
     final footStrikeEvidenceAction = find.byKey(
-      const ValueKey('running-coach-insight-open-evidence-footStrike'),
+      const ValueKey('running-coach-inline-evidence-view-landing'),
     );
     await _scrollAnalysisResultUntilFound(tester, footStrikeEvidenceAction);
     await tester.tap(footStrikeEvidenceAction);
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
     expect(
-      tester
-          .widget<ChoiceChip>(
-            find.byKey(
-              const ValueKey('running-coach-evidence-chip-landing'),
-            ),
-          )
-          .selected,
-      isTrue,
+      find.byKey(const ValueKey('running-coach-evidence-slow-loop-sheet')),
+      findsOneWidget,
     );
+    expect(fakeVideoPlayerPlatform.playbackSpeeds, contains(0.5));
+    expect(fakeVideoPlayerPlatform.loopingValues, contains(false));
+    expect(
+      fakeVideoPlayerPlatform.seekPositions,
+      contains(const Duration(milliseconds: 0)),
+    );
+    final initialLoopSeekCount = fakeVideoPlayerPlatform.seekPositions
+        .where((position) => position == Duration.zero)
+        .length;
+    fakeVideoPlayerPlatform.advanceAllTo(const Duration(seconds: 2));
+    await tester.pump(const Duration(milliseconds: 250));
+    expect(
+      fakeVideoPlayerPlatform.seekPositions
+          .where((position) => position == Duration.zero)
+          .length,
+      greaterThan(initialLoopSeekCount),
+    );
+    expect(fakeVideoPlayerPlatform._streams.length, 1);
     expect(
       find.byKey(const ValueKey('running-coach-good-form-action')),
       findsOneWidget,
@@ -1746,39 +1811,8 @@ void main() {
       );
       await tester.pump();
 
-      await _scrollAnalysisResultUntilFound(
-        tester,
+      expect(
         find.byKey(const ValueKey('running-coach-analysis-evidence-card')),
-      );
-      expect(find.text('Evidence from your video'), findsOneWidget);
-      final landingEvidenceChip = find.byKey(
-        const ValueKey('running-coach-evidence-chip-landing'),
-      );
-      await tester.ensureVisible(landingEvidenceChip);
-      await tester.tap(landingEvidenceChip);
-      await tester.pump();
-      expect(find.textContaining('Contact candidate'), findsWidgets);
-      final kneeEvidenceChip = find.byKey(
-        const ValueKey('running-coach-evidence-chip-knee'),
-      );
-      await tester.ensureVisible(kneeEvidenceChip);
-      await tester.tap(kneeEvidenceChip);
-      await tester.pump();
-
-      expect(
-        find.text('We cannot yet confirm the Knee measurement'),
-        findsOneWidget,
-      );
-      expect(
-        find.text(
-          'There is not enough evidence for Knee, so its score and coaching are withheld. You can still review measurements from other metrics.',
-        ),
-        findsOneWidget,
-      );
-      expect(
-        find.byKey(
-          const ValueKey('running-coach-evidence-story-kneeFlexion'),
-        ),
         findsNothing,
       );
 
@@ -1925,6 +1959,11 @@ void main() {
           const ValueKey('running-coach-report-details'),
         );
         await _scrollAnalysisResultUntilFound(tester, reportDetails);
+        final reportExpansion = find.byKey(
+          const ValueKey('running-coach-report-details-expansion'),
+        );
+        await tester.tap(reportExpansion);
+        await tester.pumpAndSettle();
         final detailRow = find.byKey(
           const ValueKey('running-coach-detail-row-posture'),
         );
@@ -1938,9 +1977,18 @@ void main() {
           ),
           findsNothing,
         );
+        final postureExpansion = find.byKey(
+          const ValueKey('running-coach-metric-expansion-posture'),
+        );
+        expect(
+          postureExpansion,
+          findsOneWidget,
+        );
+        await tester.tap(postureExpansion);
+        await tester.pumpAndSettle();
         expect(
           find.byKey(
-            const ValueKey('running-coach-insight-open-evidence-posture'),
+            const ValueKey('running-coach-inline-evidence-view-posture'),
           ),
           findsOneWidget,
         );
@@ -2184,6 +2232,7 @@ RunningCoachSessionAnalysis _sessionForReport({
     overallScore: report.overallScore,
     scoreEligibility: _scoreEligibilityForTest(result, report),
     scoreVersion: RunningCoachHistoryService.runningScoreVersion,
+    analysisVersion: result.analysisVersion,
     duration: result.videoDuration,
     sampledFrames: result.sampledFrames,
     validFrames: result.validFrames,
@@ -2421,7 +2470,11 @@ RunningVideoPoseLandmark _testPoseLandmark(
 class _FakeVideoPlayerPlatform extends VideoPlayerPlatform {
   final Map<int, StreamController<VideoEvent>> _streams =
       <int, StreamController<VideoEvent>>{};
+  final Map<int, Duration> _positions = <int, Duration>{};
   int _nextPlayerId = 0;
+  final List<bool> loopingValues = <bool>[];
+  final List<double> playbackSpeeds = <double>[];
+  final List<Duration> seekPositions = <Duration>[];
 
   @override
   Future<void> init() async {}
@@ -2437,6 +2490,7 @@ class _FakeVideoPlayerPlatform extends VideoPlayerPlatform {
     final playerId = _nextPlayerId++;
     final stream = StreamController<VideoEvent>();
     _streams[playerId] = stream;
+    _positions[playerId] = const Duration(milliseconds: 500);
     scheduleMicrotask(() {
       if (stream.isClosed) return;
       stream.add(
@@ -2461,11 +2515,14 @@ class _FakeVideoPlayerPlatform extends VideoPlayerPlatform {
 
   @override
   Future<void> dispose(int playerId) async {
+    _positions.remove(playerId);
     await _streams.remove(playerId)?.close();
   }
 
   @override
-  Future<void> setLooping(int playerId, bool looping) async {}
+  Future<void> setLooping(int playerId, bool looping) async {
+    loopingValues.add(looping);
+  }
 
   @override
   Future<void> setVolume(int playerId, double volume) async {}
@@ -2478,13 +2535,24 @@ class _FakeVideoPlayerPlatform extends VideoPlayerPlatform {
 
   @override
   Future<Duration> getPosition(int playerId) async =>
-      const Duration(milliseconds: 500);
+      _positions[playerId] ?? Duration.zero;
 
   @override
-  Future<void> seekTo(int playerId, Duration position) async {}
+  Future<void> seekTo(int playerId, Duration position) async {
+    seekPositions.add(position);
+    _positions[playerId] = position;
+  }
+
+  void advanceAllTo(Duration position) {
+    for (final playerId in _positions.keys) {
+      _positions[playerId] = position;
+    }
+  }
 
   @override
-  Future<void> setPlaybackSpeed(int playerId, double speed) async {}
+  Future<void> setPlaybackSpeed(int playerId, double speed) async {
+    playbackSpeeds.add(speed);
+  }
 
   @override
   Widget buildView(int playerId) {

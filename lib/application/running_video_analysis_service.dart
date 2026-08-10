@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:image_picker/image_picker.dart';
 
 import '../domain/entities/running_video_analysis_result.dart';
+import '../domain/services/running_analysis_v2.dart';
 import 'running_video_analysis_platform_io.dart'
     if (dart.library.html) 'running_video_analysis_platform_web.dart'
     as platform;
@@ -20,7 +21,15 @@ class RunningVideoAnalysisException implements Exception {
 /// Uses the native MediaPipe implementation on iOS/Android and the
 /// MediaPipe Tasks Vision Web/Wasm bridge in browser builds.
 class RunningVideoAnalysisService {
-  static const maxVideoBytes = 120 * 1024 * 1024;
+  /// Files over 120 MB receive the same bounded frame-budget analysis instead
+  /// of being rejected before the platform decoder gets a chance to read an
+  /// analysis window. The larger ceiling protects browsers from an
+  /// unbounded in-memory upload while keeping the previous 120 MB value as a
+  /// soft proxy threshold.
+  static const proxyPreferredVideoBytes = 120 * 1024 * 1024;
+  static const mobileMaxVideoBytes = 512 * 1024 * 1024;
+  static const webMaxVideoBytes = 96 * 1024 * 1024;
+  static const maxVideoBytes = mobileMaxVideoBytes;
   // A dense 60-second scan can legitimately take longer than the old
   // 14-frame pass, especially on lower-powered phones.
   static const analysisTimeout = Duration(seconds: 120);
@@ -42,20 +51,33 @@ class RunningVideoAnalysisService {
         'Video file is missing.',
       );
     }
-    if (length > maxVideoBytes) {
+    if (length > platform.maximumRunningVideoBytes) {
+      if (platform.maximumRunningVideoBytes == webMaxVideoBytes) {
+        throw const RunningVideoAnalysisException(
+          'web_video_too_large',
+          'The selected browser video exceeds the 96 MB analysis budget.',
+        );
+      }
       throw const RunningVideoAnalysisException(
         'video_too_large',
-        'The selected video is too large for on-device analysis.',
+        'The selected video is too large for this platform analysis budget.',
       );
     }
     try {
-      return await platform.analyzeRunningVideo(video).timeout(analysisTimeout);
+      final platformResult =
+          await platform.analyzeRunningVideo(video).timeout(analysisTimeout);
+      return deriveRunningAnalysisV2(platformResult);
     } on TimeoutException {
       throw const RunningVideoAnalysisException(
         'analysis_timeout',
         'Running video analysis timed out.',
       );
     }
+  }
+
+  static bool isReusableBrowserVideoUrl(String path) {
+    final uri = Uri.tryParse(path.trim());
+    return uri != null && uri.scheme == 'blob';
   }
 
   Future<int> _videoLength(XFile video) async {

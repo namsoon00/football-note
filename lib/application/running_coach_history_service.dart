@@ -26,9 +26,9 @@ class RunningCoachHistoryService {
 
   /// Keep enough timestamped poses for a compact history replay without
   /// exhausting browser-local storage once a runner reaches the history cap.
-  static const historyPoseFrameLimit = 12;
-  static const historyEvidenceImageLimit = 8;
-  static const runningScoreVersion = 1;
+  static const historyPoseFrameLimit = 24;
+  static const historyEvidenceImageLimit = 24;
+  static const runningScoreVersion = 2;
 
   final OptionRepository _options;
   final String? _sportId;
@@ -120,6 +120,7 @@ class RunningCoachHistoryService {
         overallScore: report.overallScore,
         scoreEligibility: _scoreEligibilityFor(result, report),
         scoreVersion: runningScoreVersion,
+        analysisVersion: result.analysisVersion,
         duration: result.videoDuration,
         sampledFrames: result.sampledFrames,
         validFrames: result.validFrames,
@@ -244,9 +245,14 @@ RunningCoachScoreEligibility _scoreEligibilityFor(
           RunningCoachMetric.values.every(
             (metric) => result.evidenceForMetric(metric)?.isReliable == true,
           );
-  return hasCompleteEvidence
-      ? RunningCoachScoreEligibility.verified
-      : RunningCoachScoreEligibility.unavailable;
+  if (hasCompleteEvidence &&
+      report.scoreStatus == RunningCoachScoreStatus.confirmed) {
+    return RunningCoachScoreEligibility.verified;
+  }
+  if (report.scoreStatus == RunningCoachScoreStatus.estimated) {
+    return RunningCoachScoreEligibility.estimated;
+  }
+  return RunningCoachScoreEligibility.unavailable;
 }
 
 List<RunningCoachEvidenceFrameRequest> _historyEvidenceFrameRequests(
@@ -254,30 +260,35 @@ List<RunningCoachEvidenceFrameRequest> _historyEvidenceFrameRequests(
   RunningCoachingReport report, {
   required int limit,
 }) {
-  final primaryMetric = report.primaryFocus?.metric;
-  final orderedEvidence = <RunningMetricEvidence>[
-    if (primaryMetric != null)
-      ...result.metricEvidence.where(
-        (evidence) => evidence.metric == primaryMetric,
-      ),
-    ...result.metricEvidence.where(
-      (evidence) => evidence.metric != primaryMetric,
-    ),
-  ];
+  final orderedEvidence = result.metricEvidence
+      .where(
+        (evidence) => evidence.frames.any((frame) => frame.poseFrame != null),
+      )
+      .toList(growable: false);
   final requests = <RunningCoachEvidenceFrameRequest>[];
-  final seenTimestamps = <int>{};
-  for (final evidence in orderedEvidence) {
-    if (!evidence.isReliable) continue;
-    for (final frame in evidence.frames) {
+  // Distribute real captures across every available metric. Two passes first
+  // guarantee up to two captures per metric; passes three and four fill the
+  // remaining budget without allowing the primary metric to monopolize it.
+  for (var round = 0; round < 4 && requests.length < limit; round += 1) {
+    for (final evidence in orderedEvidence) {
+      final frames = evidence.frames
+          .where((frame) => frame.poseFrame != null)
+          .take(4)
+          .toList(growable: false);
+      if (round >= frames.length) continue;
+      final frame = frames[round];
       if (frame.poseFrame == null) continue;
       final timestampMs = frame.timestamp.inMilliseconds;
-      if (!seenTimestamps.add(timestampMs)) continue;
       requests.add(
         RunningCoachEvidenceFrameRequest(
-          id: '${evidence.kind.name}-${frame.role.name}-$timestampMs',
+          id: '${evidence.kind.name}-${frame.role.name}-$timestampMs-$round',
           timestamp: frame.timestamp,
           kind: evidence.kind,
           role: frame.role,
+          side: frame.side,
+          values: frame.values,
+          confidence: frame.confidence,
+          poseFrame: frame.poseFrame,
         ),
       );
       if (requests.length >= limit) {

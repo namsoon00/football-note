@@ -41,3 +41,15 @@ Future<void> deleteArchivedRunningCoachEvidenceImages(
 ) {
   return platform.deleteArchivedRunningCoachEvidenceImages(images);
 }
+
+/// Reads one real source-video frame for candidate preview. Implementations
+/// keep extraction sequential and bounded; callers may cache the small JPEG.
+Future<Uint8List?> extractRunningVideoThumbnail(
+  XFile video, {
+  Duration timestamp = const Duration(milliseconds: 200),
+}) {
+  return platform.extractRunningVideoThumbnail(
+    video,
+    timestamp: timestamp,
+  );
+}

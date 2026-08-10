@@ -272,6 +272,88 @@ void main() {
         report.focusPriorityByMetric[RunningCoachMetric.kneeFlexion], isNull);
   });
 
+  test('v2 labels partial coordinate coverage as an expected score', () {
+    const estimatedQuality = RunningMetricQuality(
+      confidence: 0.58,
+      sampleCount: 6,
+      reason: 'coarse_pose_estimate',
+    );
+    const unavailableQuality = RunningMetricQuality(
+      confidence: 0,
+      sampleCount: 0,
+      reason: 'coordinates_unavailable',
+    );
+    const result = RunningVideoAnalysisResult(
+      analysisVersion: runningAnalysisVersionV2,
+      videoDuration: Duration(seconds: 75),
+      sampledFrames: 120,
+      validFrames: 82,
+      direction: RunningDirection.leftToRight,
+      forwardLeanDegrees: 9,
+      verticalBounceRatio: 0.065,
+      footStrikeDistanceRatio: 0,
+      stanceKneeAngleDegrees: 0,
+      elbowAngleDegrees: 94,
+      metricQualities: <RunningCoachMetric, RunningMetricQuality>{
+        RunningCoachMetric.posture: estimatedQuality,
+        RunningCoachMetric.bounce: estimatedQuality,
+        RunningCoachMetric.footStrike: unavailableQuality,
+        RunningCoachMetric.kneeFlexion: unavailableQuality,
+        RunningCoachMetric.armCarriage: estimatedQuality,
+      },
+      measurements: <RunningAnalysisMetric, RunningMetricMeasurement>{
+        RunningAnalysisMetric.posture: RunningMetricMeasurement(
+          metric: RunningAnalysisMetric.posture,
+          state: RunningMeasurementState.estimated,
+          value: 9,
+          expectedRange: RunningExpectedRange(lower: 8, upper: 11),
+          confidence: 0.58,
+          sampleCount: 6,
+          method: 'stable_segment_trunk_median',
+          evidenceTimestamps: <Duration>[Duration(milliseconds: 500)],
+        ),
+        RunningAnalysisMetric.bounce: RunningMetricMeasurement(
+          metric: RunningAnalysisMetric.bounce,
+          state: RunningMeasurementState.estimated,
+          value: 6.5,
+          expectedRange: RunningExpectedRange(lower: 5.8, upper: 7.4),
+          confidence: 0.56,
+          sampleCount: 6,
+          method: 'scale_drift_corrected_trajectory',
+          evidenceTimestamps: <Duration>[Duration(milliseconds: 750)],
+        ),
+        RunningAnalysisMetric.footStrike: RunningMetricMeasurement.unavailable(
+          metric: RunningAnalysisMetric.footStrike,
+          method: 'coarse_kinematic_contact_estimate',
+          reason: 'coordinates_unavailable',
+        ),
+        RunningAnalysisMetric.kneeAtContact:
+            RunningMetricMeasurement.unavailable(
+          metric: RunningAnalysisMetric.kneeAtContact,
+          method: 'coarse_kinematic_contact_estimate',
+          reason: 'coordinates_unavailable',
+        ),
+        RunningAnalysisMetric.elbowAngle: RunningMetricMeasurement(
+          metric: RunningAnalysisMetric.elbowAngle,
+          state: RunningMeasurementState.estimated,
+          value: 94,
+          expectedRange: RunningExpectedRange(lower: 88, upper: 101),
+          confidence: 0.57,
+          sampleCount: 6,
+          method: 'bilateral_elbow_angle_median',
+          evidenceTimestamps: <Duration>[Duration(milliseconds: 625)],
+        ),
+      },
+    );
+
+    final report = service.buildReport(result);
+
+    expect(report.scoreStatus, RunningCoachScoreStatus.estimated);
+    expect(report.estimatedScore, isNotNull);
+    expect(report.overallScore, report.estimatedScore);
+    expect(report.primaryFocus, isNotNull);
+  });
+
   test('requires paired contact evidence before lower-body coaching', () {
     final result = RunningVideoAnalysisResult(
       videoDuration: const Duration(seconds: 4),

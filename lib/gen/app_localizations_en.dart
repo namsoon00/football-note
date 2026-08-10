@@ -8351,14 +8351,130 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachAnalyzeBody =>
-      'Choose a side-view clip up to 60 seconds. The app scans the whole clip, then re-reads contact windows densely for the five-metric report.';
+      'Choose a side-view clip. The app scans within a fixed frame budget, focuses on the clearest runner section, then re-reads contact windows densely.';
 
   @override
   String get runningCoachCaptureFlowTitle => 'Analyze a running video';
 
   @override
+  String get runningCoachCandidatePreviewTitle => 'Preview candidate videos';
+
+  @override
+  String get runningCoachCapturedPreviewTitle => 'Review this recording';
+
+  @override
+  String get runningCoachPreviewBody =>
+      'Play and scrub the video before confirming it. Quality checks below are warnings and do not block analysis.';
+
+  @override
+  String get runningCoachPreviewUnavailable =>
+      'Preview is unavailable. You can choose another video or let the analysis decoder try this file.';
+
+  @override
+  String get runningCoachPreviewSelectAction => 'Choose this video';
+
+  @override
+  String get runningCoachPreviewAnalyzeAction => 'Analyze this video';
+
+  @override
+  String get runningCoachPreviewLongVideoWarning =>
+      'This is longer than 60 seconds. The app will scan within its frame budget and focus on the clearest runner segment.';
+
+  @override
+  String get runningCoachPreviewLargeVideoWarning =>
+      'This file is over 120 MB. Analysis will use a bounded frame budget and may take longer.';
+
+  @override
+  String get runningCoachPreviewLargeWebVideoWarning =>
+      'This browser file is over 64 MB. Files above 96 MB are rejected before analysis to protect browser memory.';
+
+  @override
+  String get runningCoachPreviewResolutionWarning =>
+      'The resolution is low, so some measurements may be estimates.';
+
+  @override
+  String get runningCoachPreviewUnknownInfo => 'unknown';
+
+  @override
+  String runningCoachPreviewMegabytes(String value) {
+    return '$value MB';
+  }
+
+  @override
+  String runningCoachPreviewVideoInfo(
+      String duration, String size, String resolution) {
+    return '$duration · $size · $resolution';
+  }
+
+  @override
+  String runningCoachPreviewTimeline(String current, String total) {
+    return '$current / $total';
+  }
+
+  @override
+  String get runningCoachCoordinatePreviewLabel => 'Coordinate preview';
+
+  @override
+  String get runningCoachSlowLoopTitle => 'View this moment in the video';
+
+  @override
+  String get runningCoachSlowLoopBody =>
+      'Plays only the short interval around this measurement at 0.5× speed and repeats it.';
+
+  @override
+  String get runningCoachSlowLoopUnavailable =>
+      'The original video was not saved, so this moment cannot be played.';
+
+  @override
+  String get runningCoachSlowLoopCaptureOnly =>
+      'Only the saved real capture is available because the original video was not retained.';
+
+  @override
+  String runningCoachSlowLoopTiming(String start, String end) {
+    return '0.5× loop · ${start}s–${end}s';
+  }
+
+  @override
+  String get runningCoachConfirmedScoreLabel => 'Confirmed score';
+
+  @override
+  String get runningCoachEstimatedScoreLabel => 'Expected score';
+
+  @override
+  String get runningCoachEstimatedScoreSummary =>
+      'An expected score based on the coordinates available in this video';
+
+  @override
+  String runningCoachMeasurementCountTitle(int count, int total) {
+    return 'Measurement results $count/$total';
+  }
+
+  @override
+  String get runningCoachMeasurementStatusEstimated => 'Estimated measurement';
+
+  @override
+  String get runningCoachMeasurementStatusCoordinatesUnavailable =>
+      'No coordinates';
+
+  @override
+  String runningCoachMeasurementExpectedRange(String lower, String upper) {
+    return 'Expected range $lower–$upper';
+  }
+
+  @override
+  String runningCoachEvidenceFrameMetadata(
+      String side, String time, String value, int confidence) {
+    return '$side · $time · $value · confidence $confidence%';
+  }
+
+  @override
+  String runningCoachEvidenceViewAtTime(String time) {
+    return 'View at $time in video';
+  }
+
+  @override
   String get runningCoachCaptureFlowBody =>
-      'Record or choose a side-view clip up to 60 seconds. The full clip is scanned, then strides and contact windows are analyzed densely.';
+      'Record or choose a side-view clip, preview it, then confirm analysis. Longer clips are handled within a fixed frame budget.';
 
   @override
   String get runningCoachCaptureAction => 'Record now';
@@ -8515,7 +8631,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachModeVideoBody =>
-      'Choose a side-view video up to 60 seconds to scan the full clip and create a form report.';
+      'Choose a side-view video to scan within a fixed frame budget and create a form report.';
 
   @override
   String get runningCoachModeLiveAction => 'Start live coaching';
@@ -8533,7 +8649,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachTipSteadyCamera =>
-      'Use a steady camera and bright, even light. Videos up to 60 seconds are supported; for the fastest reliable result, include at least 3 clean strides in a steady 5–15 second section.';
+      'Use a steady camera and bright, even light. For the fastest reliable result, include at least 3 clean strides in a steady 5–15 second section.';
 
   @override
   String get runningCoachUploadGuideTitle => 'Video upload guide';
@@ -8552,7 +8668,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachUploadGuideStepDuration =>
-      'Use a clip up to 60 seconds. The app scans it end-to-end, so remove walking setup, repeated turns, and stopped frames when possible.';
+      'A focused 5–15 second section is fastest. Longer clips are sampled within a fixed budget, so remove walking setup, repeated turns, and stopped frames when possible.';
 
   @override
   String get runningCoachUploadGuideStepLight =>
@@ -8591,7 +8707,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachCaptureGuideChecklistClip =>
-      'For the fastest reliable result, use a bright 5–15 second clip with 3–6 clean strides. Videos up to 60 seconds can also be analyzed.';
+      'For the fastest reliable result, use a bright 5–15 second clip with 3–6 clean strides. Longer clips use bounded sampling.';
 
   @override
   String get runningCoachCaptureGuideAnalysisTitle =>
@@ -10107,11 +10223,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachVideoTooLong =>
-      'The video is too long. Trim it to 60 seconds or less.';
+      'The video exceeds the safe on-device decoding budget. Trim it to the section where the runner is visible.';
 
   @override
   String get runningCoachVideoTooLarge =>
-      'The video is too large for on-device analysis. Trim or export a smaller clip up to 60 seconds.';
+      'The file exceeds the safe in-memory analysis limit. Export a smaller file while keeping the runner visible.';
+
+  @override
+  String get runningCoachWebVideoTooLarge =>
+      'This browser file is over the 96 MB analysis limit. Export a smaller clip before trying again.';
 
   @override
   String get runningCoachVideoTooBlurry =>

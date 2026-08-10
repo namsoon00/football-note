@@ -1,0 +1,602 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:football_note/domain/entities/running_video_analysis_result.dart';
+import 'package:football_note/domain/services/running_analysis_v2.dart';
+
+void main() {
+  test('weighted aggregation resists outliers and returns a finite range', () {
+    final estimate = runningWeightedEstimate(const <RunningWeightedValue>[
+      RunningWeightedValue(
+        value: 10,
+        confidence: 0.9,
+        timestamp: Duration(milliseconds: 100),
+      ),
+      RunningWeightedValue(
+        value: 11,
+        confidence: 0.8,
+        timestamp: Duration(milliseconds: 200),
+      ),
+      RunningWeightedValue(
+        value: 200,
+        confidence: 0.05,
+        timestamp: Duration(milliseconds: 300),
+      ),
+    ]);
+
+    expect(estimate, isNotNull);
+    expect(estimate!.value, 10);
+    expect(estimate.range.lower, 10);
+    expect(estimate.range.upper, 11);
+    expect(estimate.value.isFinite, isTrue);
+    expect(estimate.sampleCount, 3);
+  });
+
+  test('scale segmentation identifies an approaching runner', () {
+    final frames = <RunningPoseFrame>[
+      for (var index = 0; index < 8; index += 1)
+        _poseFrame(
+          timestampMs: index * 125,
+          torsoScale: 0.18 + index * 0.025,
+          hipY: 0.48,
+        ),
+    ];
+
+    final segments = runningScaleSegments(frames);
+
+    expect(segments, isNotEmpty);
+    expect(segments.last.trend, RunningScaleTrend.approaching);
+    expect(segments.last.sampleCount, greaterThanOrEqualTo(3));
+    expect(segments.last.medianScale, greaterThan(0));
+  });
+
+  test('stable to approaching scale change creates separate segments', () {
+    final frames = <RunningPoseFrame>[
+      for (var index = 0; index < 6; index += 1)
+        _poseFrame(timestampMs: index * 125, torsoScale: 0.18),
+      for (var index = 0; index < 7; index += 1)
+        _poseFrame(
+          timestampMs: (index + 6) * 125,
+          torsoScale: 0.18 + index * 0.035,
+        ),
+    ];
+
+    final segments = runningScaleSegments(frames);
+
+    expect(segments.length, greaterThanOrEqualTo(2));
+    expect(segments.first.trend, RunningScaleTrend.stable);
+    expect(segments.last.trend, RunningScaleTrend.approaching);
+  });
+
+  test('approaching to receding transition is not merged as stable', () {
+    final frames = <RunningPoseFrame>[
+      for (var index = 0; index < 7; index += 1)
+        _poseFrame(
+          timestampMs: index * 125,
+          torsoScale: 0.18 + index * 0.025,
+          leftFootY: 0.60,
+          rightFootY: 0.60,
+        ),
+      for (var index = 1; index < 8; index += 1)
+        _poseFrame(
+          timestampMs: (index + 6) * 125,
+          torsoScale: 0.33 - index * 0.022,
+          leftFootY: 0.60,
+          rightFootY: 0.60,
+        ),
+    ];
+
+    final segments = runningScaleSegments(frames);
+
+    expect(
+      segments.map((segment) => segment.trend),
+      containsAll(<RunningScaleTrend>[
+        RunningScaleTrend.approaching,
+        RunningScaleTrend.receding,
+      ]),
+    );
+  });
+
+  test('short gaps and isolated coordinate spikes are stabilized', () {
+    final first = _poseFrame(timestampMs: 0, leftAnkleX: 0.43);
+    final missing = _poseFrame(
+      timestampMs: 125,
+      leftAnkleX: 0.9,
+      missingIndexes: const <int>{27},
+    );
+    final last = _poseFrame(timestampMs: 250, leftAnkleX: 0.45);
+    final stabilized = runningStabilizedPoseFrames(<RunningPoseFrame>[
+      last,
+      missing,
+      first,
+    ]);
+
+    final ankle = stabilized[1].landmarkByIndex(27)!;
+    expect(ankle.x, closeTo(0.44, 0.0001));
+    expect(ankle.confidence, closeTo(0.558, 0.001));
+
+    final spike = _poseFrame(timestampMs: 125, leftAnkleX: 0.95);
+    final spikeStabilized = runningStabilizedPoseFrames(
+      <RunningPoseFrame>[first, spike, last],
+    );
+    expect(
+      spikeStabilized[1].landmarkByIndex(27)!.x,
+      closeTo(0.44, 0.0001),
+    );
+    expect(
+      spikeStabilized[1].landmarkByIndex(27)!.confidence,
+      lessThan(0.5),
+    );
+  });
+
+  test('one-frame left-right identity swap is corrected and penalized', () {
+    final before = _poseFrame(
+      timestampMs: 0,
+      leftAnkleX: 0.36,
+      rightAnkleX: 0.62,
+    );
+    final swapped = _swapLeftRight(
+      _poseFrame(
+        timestampMs: 125,
+        leftAnkleX: 0.37,
+        rightAnkleX: 0.61,
+      ),
+    );
+    final after = _poseFrame(
+      timestampMs: 250,
+      leftAnkleX: 0.38,
+      rightAnkleX: 0.60,
+    );
+
+    final stabilized =
+        runningStabilizedPoseFrames(<RunningPoseFrame>[before, swapped, after]);
+
+    expect(stabilized[1].landmarkByIndex(27)!.x, closeTo(0.37, 0.0001));
+    expect(stabilized[1].landmarkByIndex(28)!.x, closeTo(0.61, 0.0001));
+    expect(stabilized[1].landmarkByIndex(27)!.confidence, lessThan(0.6));
+  });
+
+  test('local ground and fallback contacts preserve alternating sides', () {
+    const leftY = <double>[
+      0.74,
+      0.80,
+      0.74,
+      0.74,
+      0.74,
+      0.80,
+      0.74,
+      0.74,
+      0.74
+    ];
+    const rightY = <double>[
+      0.74,
+      0.74,
+      0.74,
+      0.80,
+      0.74,
+      0.74,
+      0.74,
+      0.80,
+      0.74
+    ];
+    final frames = <RunningPoseFrame>[
+      for (var index = 0; index < leftY.length; index += 1)
+        _poseFrame(
+          timestampMs: index * 125,
+          leftFootY: leftY[index],
+          rightFootY: rightY[index],
+        ),
+    ];
+    final result = _baseResult(poseFrames: frames);
+
+    final ground = runningLocalGroundLevel(
+      frames,
+      side: RunningContactSide.left,
+      around: const Duration(milliseconds: 125),
+    );
+    final contacts = runningFallbackContacts(result);
+
+    expect(ground, closeTo(0.80, 0.01));
+    expect(contacts.length, greaterThanOrEqualTo(4));
+    expect(contacts.every((contact) => !contact.isConfirmed), isTrue);
+    expect(
+      contacts.map((contact) => contact.side).take(4),
+      orderedEquals(const <RunningContactSide>[
+        RunningContactSide.left,
+        RunningContactSide.right,
+        RunningContactSide.left,
+        RunningContactSide.right,
+      ]),
+    );
+  });
+
+  test('missing lower body does not block estimated upper-body metrics', () {
+    final frames = <RunningPoseFrame>[
+      for (var index = 0; index < 8; index += 1)
+        _poseFrame(
+          timestampMs: index * 125,
+          hipY: 0.48 + (index.isEven ? 0.006 : -0.006),
+          wristOffset: index.isEven ? 0.05 : -0.05,
+          missingIndexes: const <int>{25, 26, 27, 28, 29, 30, 31, 32},
+        ),
+    ];
+
+    final derived = deriveRunningAnalysisV2(_baseResult(poseFrames: frames));
+
+    expect(derived.analysisVersion, runningAnalysisVersionV2);
+    expect(
+      derived.measurementFor(RunningAnalysisMetric.posture).state,
+      RunningMeasurementState.estimated,
+    );
+    expect(
+      derived.measurementFor(RunningAnalysisMetric.bounce).state,
+      RunningMeasurementState.estimated,
+    );
+    expect(
+      derived.measurementFor(RunningAnalysisMetric.elbowAngle).state,
+      RunningMeasurementState.estimated,
+    );
+    expect(
+      derived.measurementFor(RunningAnalysisMetric.footStrike).state,
+      RunningMeasurementState.unavailable,
+    );
+    expect(
+      derived.measurementFor(RunningAnalysisMetric.kneeAtContact).state,
+      RunningMeasurementState.unavailable,
+    );
+    expect(
+      derived.measurements.values
+          .where((measurement) => measurement.value != null)
+          .every((measurement) => measurement.value!.isFinite),
+      isTrue,
+    );
+  });
+
+  test('kinematic-only payload keeps lower body and rhythm estimated', () {
+    final frames = <RunningPoseFrame>[
+      for (var index = 0; index < 9; index += 1)
+        _poseFrame(
+          timestampMs: index * 125,
+          leftFootY: index.isEven ? 0.82 : 0.74,
+          rightFootY: index.isOdd ? 0.82 : 0.74,
+        ),
+    ];
+    const timestamps = <Duration>[
+      Duration(milliseconds: 125),
+      Duration(milliseconds: 375),
+      Duration(milliseconds: 625),
+    ];
+    final source = _baseResult(
+      poseFrames: frames,
+      estimatedContacts: timestamps,
+      contactWindows: <RunningContactWindow>[
+        for (var index = 0; index < timestamps.length; index += 1)
+          RunningContactWindow(
+            start: timestamps[index] - const Duration(milliseconds: 80),
+            center: timestamps[index],
+            end: timestamps[index] + const Duration(milliseconds: 80),
+            side: index.isEven
+                ? RunningContactSide.left
+                : RunningContactSide.right,
+            denseSampleCount: 5,
+            validatedContactTimestamps: const <Duration>[],
+            estimatedContactTimestamps: <Duration>[timestamps[index]],
+            selectionMethod: 'kinematic',
+            confidence: 0,
+          ),
+      ],
+      metricQualities: <RunningCoachMetric, RunningMetricQuality>{
+        for (final metric in RunningCoachMetric.values)
+          metric: RunningMetricQuality(
+            confidence: 0.82,
+            sampleCount: 6,
+            reason: metric == RunningCoachMetric.footStrike ||
+                    metric == RunningCoachMetric.kneeFlexion
+                ? 'kinematic_contact_estimate'
+                : null,
+          ),
+      },
+    );
+    final restored = RunningVideoAnalysisResult.fromMap(source.toMap());
+    final fallback = runningFallbackContacts(restored);
+    final derived = deriveRunningAnalysisV2(restored);
+
+    expect(restored.validatedContactFrameTimestamps, isEmpty);
+    expect(restored.estimatedContactFrameTimestamps, timestamps);
+    expect(fallback.where((contact) => contact.isConfirmed), isEmpty);
+    for (final metric in const <RunningAnalysisMetric>[
+      RunningAnalysisMetric.footStrike,
+      RunningAnalysisMetric.kneeAtContact,
+      RunningAnalysisMetric.maximumKneeFlexion,
+      RunningAnalysisMetric.cadence,
+      RunningAnalysisMetric.stepTime,
+      RunningAnalysisMetric.leftRightTiming,
+    ]) {
+      expect(
+        derived.measurementFor(metric).state,
+        isNot(RunningMeasurementState.confirmed),
+        reason: metric.name,
+      );
+    }
+  });
+
+  test('signed lean distinguishes forward and backward in both directions', () {
+    RunningMetricMeasurement posture(
+      RunningDirection direction,
+      double shoulderCenterX,
+      double hipCenterX,
+    ) {
+      final frames = <RunningPoseFrame>[
+        for (var index = 0; index < 6; index += 1)
+          _poseFrame(
+            timestampMs: index * 125,
+            shoulderCenterX: shoulderCenterX,
+            hipCenterX: hipCenterX,
+          ),
+      ];
+      return deriveRunningAnalysisV2(
+        _baseResult(poseFrames: frames, direction: direction),
+      ).measurementFor(RunningAnalysisMetric.posture);
+    }
+
+    expect(posture(RunningDirection.leftToRight, 0.52, 0.47).value,
+        greaterThan(0));
+    expect(
+        posture(RunningDirection.leftToRight, 0.42, 0.47).value, lessThan(0));
+    expect(posture(RunningDirection.rightToLeft, 0.42, 0.47).value,
+        greaterThan(0));
+    expect(
+        posture(RunningDirection.rightToLeft, 0.52, 0.47).value, lessThan(0));
+  });
+
+  test('running window beats a stationary preparation segment', () {
+    final frames = <RunningPoseFrame>[
+      for (var index = 0; index < 6; index += 1)
+        _poseFrame(timestampMs: index * 125),
+      for (var index = 0; index < 8; index += 1)
+        _poseFrame(
+          timestampMs: 1000 + index * 125,
+          leftAnkleX: 0.38 + (index.isEven ? -0.08 : 0.08),
+          rightAnkleX: 0.56 + (index.isEven ? 0.08 : -0.08),
+          leftFootY: index.isEven ? 0.82 : 0.70,
+          rightFootY: index.isEven ? 0.70 : 0.82,
+        ),
+    ];
+    final segments = <RunningScaleSegment>[
+      const RunningScaleSegment(
+        start: Duration.zero,
+        end: Duration(milliseconds: 625),
+        trend: RunningScaleTrend.stable,
+        medianScale: 0.3,
+        confidence: 0.95,
+        sampleCount: 6,
+      ),
+      const RunningScaleSegment(
+        start: Duration(milliseconds: 1000),
+        end: Duration(milliseconds: 1875),
+        trend: RunningScaleTrend.stable,
+        medianScale: 0.3,
+        confidence: 0.85,
+        sampleCount: 8,
+      ),
+    ];
+
+    final selected = runningBestAnalysisWindow(frames, segments);
+
+    expect(runningMotionScore(frames.take(6).toList()), lessThan(0.1));
+    expect(runningMotionScore(frames.skip(6).toList()), greaterThan(0.5));
+    expect(selected?.$1, const Duration(milliseconds: 1000));
+  });
+
+  test('trajectory extrema estimate rhythm without validated contacts', () {
+    const left = <double>[
+      0.72,
+      0.76,
+      0.82,
+      0.76,
+      0.72,
+      0.70,
+      0.72,
+      0.76,
+      0.82,
+      0.76,
+      0.72,
+      0.70,
+      0.72,
+      0.76,
+      0.82,
+      0.76,
+      0.72,
+    ];
+    const right = <double>[
+      0.72,
+      0.70,
+      0.72,
+      0.76,
+      0.78,
+      0.82,
+      0.78,
+      0.74,
+      0.72,
+      0.70,
+      0.72,
+      0.76,
+      0.78,
+      0.82,
+      0.78,
+      0.74,
+      0.72,
+    ];
+    final frames = <RunningPoseFrame>[
+      for (var index = 0; index < left.length; index += 1)
+        _poseFrame(
+          timestampMs: index * 100,
+          leftFootY: left[index],
+          rightFootY: right[index],
+        ),
+    ];
+
+    final estimate = runningTrajectoryRhythmEstimate(frames);
+    final derived = deriveRunningAnalysisV2(_baseResult(poseFrames: frames));
+
+    expect(estimate, isNotNull);
+    expect(estimate!.cadenceSpm, closeTo(200, 15));
+    expect(
+      derived.measurementFor(RunningAnalysisMetric.cadence).state,
+      RunningMeasurementState.estimated,
+    );
+    expect(
+      derived.measurementFor(RunningAnalysisMetric.cadence).method,
+      anyOf('pose_cycle_period_estimate', 'pose_trajectory_cycle_estimate'),
+    );
+  });
+
+  test('v2 payload round-trips states, ranges, methods, and evidence', () {
+    final derived = deriveRunningAnalysisV2(
+      _baseResult(
+        poseFrames: <RunningPoseFrame>[
+          for (var index = 0; index < 8; index += 1)
+            _poseFrame(timestampMs: index * 125),
+        ],
+      ),
+    );
+
+    final restored = RunningVideoAnalysisResult.fromMap(derived.toMap());
+    final posture = restored.measurementFor(RunningAnalysisMetric.posture);
+
+    expect(restored.analysisVersion, runningAnalysisVersionV2);
+    expect(restored.measurements.length, RunningAnalysisMetric.values.length);
+    expect(posture.state, RunningMeasurementState.estimated);
+    expect(posture.expectedRange, isNotNull);
+    expect(posture.method, 'stable_segment_trunk_median');
+    expect(posture.evidenceTimestamps, isNotEmpty);
+    expect(restored.scaleSegments, isNotEmpty);
+  });
+}
+
+RunningVideoAnalysisResult _baseResult({
+  required List<RunningPoseFrame> poseFrames,
+  RunningDirection direction = RunningDirection.leftToRight,
+  List<Duration> estimatedContacts = const <Duration>[],
+  List<RunningContactWindow> contactWindows = const <RunningContactWindow>[],
+  Map<RunningCoachMetric, RunningMetricQuality>? metricQualities,
+}) {
+  return RunningVideoAnalysisResult(
+    videoDuration: const Duration(seconds: 75),
+    sampledFrames: poseFrames.length,
+    validFrames: poseFrames.length,
+    direction: direction,
+    forwardLeanDegrees: 0,
+    verticalBounceRatio: 0,
+    footStrikeDistanceRatio: 0,
+    stanceKneeAngleDegrees: 0,
+    elbowAngleDegrees: 0,
+    metricQualities: metricQualities ??
+        <RunningCoachMetric, RunningMetricQuality>{
+          for (final metric in RunningCoachMetric.values)
+            metric: const RunningMetricQuality(
+              confidence: 0.5,
+              sampleCount: 8,
+              reason: 'coarse_only',
+            ),
+        },
+    poseFrames: poseFrames,
+    contactWindows: contactWindows,
+    estimatedContactFrameTimestamps: estimatedContacts,
+    contactConfidence: estimatedContacts.isEmpty ? 0 : 0.58,
+  );
+}
+
+RunningPoseFrame _poseFrame({
+  required int timestampMs,
+  double torsoScale = 0.22,
+  double hipY = 0.48,
+  double leftAnkleX = 0.43,
+  double leftFootY = 0.78,
+  double rightFootY = 0.75,
+  double rightAnkleX = 0.51,
+  double wristOffset = 0.04,
+  double shoulderCenterX = 0.47,
+  double hipCenterX = 0.47,
+  Set<int> missingIndexes = const <int>{},
+}) {
+  final landmarks = List<RunningVideoPoseLandmark>.generate(
+    mediaPipePoseLandmarkCount,
+    (index) => RunningVideoPoseLandmark(
+      index: index,
+      x: 0,
+      y: 0,
+      z: 0,
+      visibility: 0,
+      presence: 0,
+      confidence: 0,
+    ),
+  );
+  void setPoint(int index, double x, double y) {
+    if (missingIndexes.contains(index)) return;
+    landmarks[index] = RunningVideoPoseLandmark(
+      index: index,
+      x: x,
+      y: y,
+      z: 0,
+      visibility: 0.95,
+      presence: 0.95,
+      confidence: 0.9,
+    );
+  }
+
+  final shoulderY = hipY - torsoScale;
+  setPoint(11, shoulderCenterX - 0.05, shoulderY);
+  setPoint(12, shoulderCenterX + 0.05, shoulderY);
+  setPoint(23, hipCenterX - 0.04, hipY);
+  setPoint(24, hipCenterX + 0.04, hipY);
+  setPoint(13, 0.40, shoulderY + 0.10);
+  setPoint(14, 0.54, shoulderY + 0.10);
+  setPoint(15, 0.40 + wristOffset, shoulderY + 0.19);
+  setPoint(16, 0.54 - wristOffset, shoulderY + 0.19);
+  setPoint(25, 0.44, hipY + 0.16);
+  setPoint(26, 0.50, hipY + 0.16);
+  setPoint(27, leftAnkleX, leftFootY);
+  setPoint(28, rightAnkleX, rightFootY);
+  setPoint(29, leftAnkleX - 0.01, leftFootY);
+  setPoint(30, rightAnkleX - 0.01, rightFootY);
+  setPoint(31, leftAnkleX + 0.04, leftFootY);
+  setPoint(32, rightAnkleX + 0.04, rightFootY);
+  return RunningPoseFrame(
+    timestamp: Duration(milliseconds: timestampMs),
+    imageWidth: 720,
+    imageHeight: 1280,
+    landmarks: List<RunningVideoPoseLandmark>.unmodifiable(landmarks),
+  );
+}
+
+RunningPoseFrame _swapLeftRight(RunningPoseFrame frame) {
+  final byIndex = <int, RunningVideoPoseLandmark>{
+    for (final landmark in frame.landmarks) landmark.index: landmark,
+  };
+  for (final pair in const <(int, int)>[
+    (11, 12),
+    (13, 14),
+    (15, 16),
+    (23, 24),
+    (25, 26),
+    (27, 28),
+    (29, 30),
+    (31, 32),
+  ]) {
+    final left = byIndex[pair.$1]!;
+    final right = byIndex[pair.$2]!;
+    byIndex[pair.$1] = RunningVideoPoseLandmark.fromObject(
+      <String, Object?>{...right.toMap(), 'index': pair.$1},
+    )!;
+    byIndex[pair.$2] = RunningVideoPoseLandmark.fromObject(
+      <String, Object?>{...left.toMap(), 'index': pair.$2},
+    )!;
+  }
+  final landmarks = byIndex.values.toList(growable: false)
+    ..sort((left, right) => left.index.compareTo(right.index));
+  return RunningPoseFrame(
+    timestamp: frame.timestamp,
+    imageWidth: frame.imageWidth,
+    imageHeight: frame.imageHeight,
+    landmarks: landmarks,
+  );
+}

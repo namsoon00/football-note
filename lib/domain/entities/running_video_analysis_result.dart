@@ -1,5 +1,9 @@
 import 'dart:math' as math;
 
+import 'running_analysis_measurement.dart';
+
+export 'running_analysis_measurement.dart';
+
 enum RunningDirection { leftToRight, rightToLeft, stationary }
 
 enum RunningContactSide { left, right, unknown }
@@ -15,6 +19,8 @@ enum RunningCoachMetric {
 enum RunningCoachBodyRegion { upperBody, lowerBody, wholeBody }
 
 enum RunningCoachStatus { good, watch, needsWork }
+
+enum RunningCoachScoreStatus { confirmed, estimated, unavailable }
 
 enum RunningMetricEvidenceKind { rhythm, posture, landing, knee, bounce, arms }
 
@@ -487,6 +493,12 @@ class RunningContactWindow {
   /// is not a validated contact and must not be used for coaching scores.
   final int candidateFrameCount;
   final List<Duration> validatedContactTimestamps;
+  final List<Duration> estimatedContactTimestamps;
+
+  /// Stable analyzer token describing how this window's observation was
+  /// selected. `ground` is a dense, validated contact; `kinematic` is only a
+  /// trajectory estimate and must never be promoted to validated evidence.
+  final String? selectionMethod;
 
   /// Why dense-frame candidates were rejected. Kept as raw, stable analyzer
   /// codes so the presentation layer can explain the exact capture problem
@@ -502,6 +514,8 @@ class RunningContactWindow {
     required this.denseSampleCount,
     required this.validatedContactTimestamps,
     required this.confidence,
+    this.estimatedContactTimestamps = const <Duration>[],
+    this.selectionMethod,
     this.candidateFrameCount = 0,
     this.rejectedFrameCounts = const <String, int>{},
   });
@@ -533,6 +547,10 @@ class RunningContactWindow {
       'validatedContactFrameTimestampsMs': validatedContactTimestamps
           .map((timestamp) => timestamp.inMilliseconds)
           .toList(growable: false),
+      'estimatedContactFrameTimestampsMs': estimatedContactTimestamps
+          .map((timestamp) => timestamp.inMilliseconds)
+          .toList(growable: false),
+      if (selectionMethod != null) 'selectionMethod': selectionMethod,
       if (rejectedFrameCounts.isNotEmpty)
         'rejectedFrameCounts': rejectedFrameCounts,
       'confidence': confidence,
@@ -566,6 +584,10 @@ class RunningContactWindow {
       validatedContactTimestamps: _parseTimestampList(
         map['validatedContactFrameTimestampsMs'],
       ),
+      estimatedContactTimestamps: _parseTimestampList(
+        map['estimatedContactFrameTimestampsMs'],
+      ),
+      selectionMethod: _optionalToken(map['selectionMethod']),
       rejectedFrameCounts: _parsePositiveIntMap(map['rejectedFrameCounts']),
       confidence:
           (_finiteDouble(map['confidence']) ?? 0).clamp(0.0, 1.0).toDouble(),
@@ -574,6 +596,7 @@ class RunningContactWindow {
 }
 
 class RunningVideoAnalysisResult {
+  final int analysisVersion;
   final Duration videoDuration;
   final int sampledFrames;
   final int validFrames;
@@ -586,13 +609,20 @@ class RunningVideoAnalysisResult {
   final Map<RunningCoachMetric, RunningMetricQuality> metricQualities;
   final List<RunningPoseFrame> poseFrames;
   final RunningAnalysisSampleSummary coarseSamples;
+  final RunningAnalysisSampleSummary recoverySamples;
   final RunningAnalysisSampleSummary denseSamples;
   final List<RunningContactWindow> contactWindows;
   final List<Duration> validatedContactFrameTimestamps;
+  final List<Duration> estimatedContactFrameTimestamps;
   final double contactConfidence;
   final RunningVideoPerspectiveQuality perspectiveQuality;
+  final Map<RunningAnalysisMetric, RunningMetricMeasurement> measurements;
+  final List<RunningScaleSegment> scaleSegments;
+  final Duration? analysisWindowStart;
+  final Duration? analysisWindowEnd;
 
   const RunningVideoAnalysisResult({
+    this.analysisVersion = 1,
     required this.videoDuration,
     required this.sampledFrames,
     required this.validFrames,
@@ -605,11 +635,18 @@ class RunningVideoAnalysisResult {
     this.metricQualities = const <RunningCoachMetric, RunningMetricQuality>{},
     this.poseFrames = const <RunningPoseFrame>[],
     this.coarseSamples = RunningAnalysisSampleSummary.empty,
+    this.recoverySamples = RunningAnalysisSampleSummary.empty,
     this.denseSamples = RunningAnalysisSampleSummary.empty,
     this.contactWindows = const <RunningContactWindow>[],
     this.validatedContactFrameTimestamps = const <Duration>[],
+    this.estimatedContactFrameTimestamps = const <Duration>[],
     this.contactConfidence = 0,
     this.perspectiveQuality = RunningVideoPerspectiveQuality.unevaluated,
+    this.measurements =
+        const <RunningAnalysisMetric, RunningMetricMeasurement>{},
+    this.scaleSegments = const <RunningScaleSegment>[],
+    this.analysisWindowStart,
+    this.analysisWindowEnd,
   });
 
   double get validFrameCoverage =>
@@ -627,6 +664,10 @@ class RunningVideoAnalysisResult {
 
   RunningMetricQuality? qualityFor(RunningCoachMetric metric) {
     return metricQualities[metric];
+  }
+
+  RunningMetricMeasurement measurementFor(RunningAnalysisMetric metric) {
+    return measurements[metric] ?? _legacyMeasurementFor(this, metric);
   }
 
   bool get hasDenseContactEvidence =>
@@ -735,6 +776,7 @@ class RunningVideoAnalysisResult {
       maxFrames: maxPoseFrames,
     );
     return RunningVideoAnalysisResult(
+      analysisVersion: analysisVersion,
       videoDuration: videoDuration,
       sampledFrames: sampledFrames,
       validFrames: validFrames,
@@ -747,16 +789,74 @@ class RunningVideoAnalysisResult {
       metricQualities: metricQualities,
       poseFrames: frames,
       coarseSamples: coarseSamples,
+      recoverySamples: recoverySamples,
       denseSamples: denseSamples,
       contactWindows: contactWindows,
       validatedContactFrameTimestamps: validatedContactFrameTimestamps,
+      estimatedContactFrameTimestamps: estimatedContactFrameTimestamps,
       contactConfidence: contactConfidence,
       perspectiveQuality: perspectiveQuality,
+      measurements: measurements,
+      scaleSegments: scaleSegments,
+      analysisWindowStart: analysisWindowStart,
+      analysisWindowEnd: analysisWindowEnd,
+    );
+  }
+
+  RunningVideoAnalysisResult copyWith({
+    int? analysisVersion,
+    double? forwardLeanDegrees,
+    double? verticalBounceRatio,
+    double? footStrikeDistanceRatio,
+    double? stanceKneeAngleDegrees,
+    double? elbowAngleDegrees,
+    Map<RunningCoachMetric, RunningMetricQuality>? metricQualities,
+    List<RunningPoseFrame>? poseFrames,
+    RunningAnalysisSampleSummary? recoverySamples,
+    List<RunningContactWindow>? contactWindows,
+    List<Duration>? validatedContactFrameTimestamps,
+    List<Duration>? estimatedContactFrameTimestamps,
+    double? contactConfidence,
+    Map<RunningAnalysisMetric, RunningMetricMeasurement>? measurements,
+    List<RunningScaleSegment>? scaleSegments,
+    Duration? analysisWindowStart,
+    Duration? analysisWindowEnd,
+  }) {
+    return RunningVideoAnalysisResult(
+      analysisVersion: analysisVersion ?? this.analysisVersion,
+      videoDuration: videoDuration,
+      sampledFrames: sampledFrames,
+      validFrames: validFrames,
+      direction: direction,
+      forwardLeanDegrees: forwardLeanDegrees ?? this.forwardLeanDegrees,
+      verticalBounceRatio: verticalBounceRatio ?? this.verticalBounceRatio,
+      footStrikeDistanceRatio:
+          footStrikeDistanceRatio ?? this.footStrikeDistanceRatio,
+      stanceKneeAngleDegrees:
+          stanceKneeAngleDegrees ?? this.stanceKneeAngleDegrees,
+      elbowAngleDegrees: elbowAngleDegrees ?? this.elbowAngleDegrees,
+      metricQualities: metricQualities ?? this.metricQualities,
+      poseFrames: poseFrames ?? this.poseFrames,
+      coarseSamples: coarseSamples,
+      recoverySamples: recoverySamples ?? this.recoverySamples,
+      denseSamples: denseSamples,
+      contactWindows: contactWindows ?? this.contactWindows,
+      validatedContactFrameTimestamps: validatedContactFrameTimestamps ??
+          this.validatedContactFrameTimestamps,
+      estimatedContactFrameTimestamps: estimatedContactFrameTimestamps ??
+          this.estimatedContactFrameTimestamps,
+      contactConfidence: contactConfidence ?? this.contactConfidence,
+      perspectiveQuality: perspectiveQuality,
+      measurements: measurements ?? this.measurements,
+      scaleSegments: scaleSegments ?? this.scaleSegments,
+      analysisWindowStart: analysisWindowStart ?? this.analysisWindowStart,
+      analysisWindowEnd: analysisWindowEnd ?? this.analysisWindowEnd,
     );
   }
 
   Map<String, Object?> toMap() {
     return <String, Object?>{
+      'analysisVersion': analysisVersion,
       'durationMs': videoDuration.inMilliseconds,
       'sampledFrames': sampledFrames,
       'validFrames': validFrames,
@@ -774,6 +874,7 @@ class RunningVideoAnalysisResult {
             growable: false,
           ),
       'coarseSamples': coarseSamples.toMap(),
+      'recoverySamples': recoverySamples.toMap(),
       'denseSamples': denseSamples.toMap(),
       'contactWindows': contactWindows.map((window) => window.toMap()).toList(
             growable: false,
@@ -781,8 +882,21 @@ class RunningVideoAnalysisResult {
       'validatedContactFrameTimestampsMs': validatedContactFrameTimestamps
           .map((timestamp) => timestamp.inMilliseconds)
           .toList(growable: false),
+      'estimatedContactFrameTimestampsMs': estimatedContactFrameTimestamps
+          .map((timestamp) => timestamp.inMilliseconds)
+          .toList(growable: false),
       'contactConfidence': contactConfidence,
       'perspectiveQuality': perspectiveQuality.toMap(),
+      'measurements': measurements.values
+          .map((measurement) => measurement.toMap())
+          .toList(growable: false),
+      'scaleSegments': scaleSegments
+          .map((segment) => segment.toMap())
+          .toList(growable: false),
+      if (analysisWindowStart != null)
+        'analysisWindowStartMs': analysisWindowStart!.inMilliseconds,
+      if (analysisWindowEnd != null)
+        'analysisWindowEndMs': analysisWindowEnd!.inMilliseconds,
     };
   }
 
@@ -798,7 +912,45 @@ class RunningVideoAnalysisResult {
       validFrames: validFrames,
       poseFrameCount: poseFrames.length,
     );
+    final parsedQualities = _parseMetricQualities(map['metricQualities']);
+    final payloadUsesKinematicEstimate = parsedQualities.values.any(
+      (quality) => quality.reason == 'kinematic_contact_estimate',
+    );
+    final parsedWindows = _parseContactWindows(map['contactWindows']);
+    final parsedValidated = _parseTimestampList(
+      map['validatedContactFrameTimestampsMs'],
+    );
+    final parsedEstimated = _parseTimestampList(
+      map['estimatedContactFrameTimestampsMs'],
+    );
+    final hasExplicitEstimatedContactContract =
+        map.containsKey('estimatedContactFrameTimestampsMs') ||
+            parsedWindows.any(
+              (window) =>
+                  window.estimatedContactTimestamps.isNotEmpty ||
+                  window.selectionMethod != null,
+            );
+    final shouldDemoteLegacyKinematicContacts =
+        payloadUsesKinematicEstimate && !hasExplicitEstimatedContactContract;
+    // Early v2 builds placed kinematic estimates in the validated list. They
+    // always tagged the lower-body metric quality, so old history can be
+    // repaired deterministically without changing truly validated v1 data.
+    final contactWindows = shouldDemoteLegacyKinematicContacts
+        ? _demoteLegacyKinematicWindows(parsedWindows)
+        : parsedWindows;
+    final validatedContacts = shouldDemoteLegacyKinematicContacts
+        ? const <Duration>[]
+        : parsedValidated;
+    final estimatedContacts = <Duration>{
+      ...parsedEstimated,
+      if (shouldDemoteLegacyKinematicContacts) ...parsedValidated,
+    }.toList(growable: false)
+      ..sort();
+    final parsedMeasurements = _parseRunningMeasurements(map['measurements']);
     return RunningVideoAnalysisResult(
+      analysisVersion: (_finiteInt(map['analysisVersion']) ?? 1)
+          .clamp(1, runningAnalysisVersionV2)
+          .toInt(),
       videoDuration: Duration(milliseconds: durationMs),
       sampledFrames: sampledFrames,
       validFrames: validFrames,
@@ -813,25 +965,39 @@ class RunningVideoAnalysisResult {
           _finiteDouble(map['footStrikeDistanceRatio']) ?? 0,
       stanceKneeAngleDegrees: _finiteDouble(map['stanceKneeAngleDegrees']) ?? 0,
       elbowAngleDegrees: _finiteDouble(map['elbowAngleDegrees']) ?? 0,
-      metricQualities: _parseMetricQualities(map['metricQualities']),
+      metricQualities: parsedQualities,
       poseFrames: poseFrames,
       coarseSamples: RunningAnalysisSampleSummary.fromObject(
         map['coarseSamples'],
         fallback: coarseFallback,
       ),
+      recoverySamples: RunningAnalysisSampleSummary.fromObject(
+        map['recoverySamples'],
+        fallback: RunningAnalysisSampleSummary.empty,
+      ),
       denseSamples: RunningAnalysisSampleSummary.fromObject(
         map['denseSamples'],
         fallback: RunningAnalysisSampleSummary.empty,
       ),
-      contactWindows: _parseContactWindows(map['contactWindows']),
-      validatedContactFrameTimestamps: _parseTimestampList(
-        map['validatedContactFrameTimestampsMs'],
-      ),
+      contactWindows: contactWindows,
+      validatedContactFrameTimestamps: validatedContacts,
+      estimatedContactFrameTimestamps:
+          List<Duration>.unmodifiable(estimatedContacts),
       contactConfidence: (_finiteDouble(map['contactConfidence']) ?? 0)
           .clamp(0.0, 1.0)
           .toDouble(),
       perspectiveQuality: RunningVideoPerspectiveQuality.fromObject(
         map['perspectiveQuality'],
+      ),
+      measurements: shouldDemoteLegacyKinematicContacts
+          ? _demoteLegacyKinematicMeasurements(parsedMeasurements)
+          : parsedMeasurements,
+      scaleSegments: _parseScaleSegments(map['scaleSegments']),
+      analysisWindowStart: _durationFromMilliseconds(
+        map['analysisWindowStartMs'],
+      ),
+      analysisWindowEnd: _durationFromMilliseconds(
+        map['analysisWindowEndMs'],
       ),
     );
   }
@@ -1388,7 +1554,52 @@ RunningMetricEvidence? _rhythmMetricEvidence(
   RunningVideoAnalysisResult result,
 ) {
   final rhythm = result.rhythmAnalysis;
-  if (rhythm == null) return null;
+  if (rhythm == null) {
+    final cadence = result.measurementFor(RunningAnalysisMetric.cadence);
+    final stepTime = result.measurementFor(RunningAnalysisMetric.stepTime);
+    final asymmetry =
+        result.measurementFor(RunningAnalysisMetric.leftRightTiming);
+    final timestamps = <Duration>{
+      ...cadence.evidenceTimestamps,
+      ...stepTime.evidenceTimestamps,
+    }.toList(growable: false)
+      ..sort();
+    if (cadence.state == RunningMeasurementState.unavailable &&
+        stepTime.state == RunningMeasurementState.unavailable) {
+      return null;
+    }
+    return RunningMetricEvidence(
+      kind: RunningMetricEvidenceKind.rhythm,
+      metric: null,
+      frames: timestamps.take(4).map((timestamp) {
+        return RunningMetricEvidenceFrame(
+          timestamp: timestamp,
+          role: RunningMetricEvidenceFrameRole.rhythmContact,
+          confidence: math.max(cadence.confidence, stepTime.confidence),
+          poseFrame: _nearestPoseFrame(
+            result.poseFrames,
+            timestamp.inMilliseconds,
+            toleranceMs: 180,
+          ),
+          values: <String, double>{
+            if (cadence.value != null) 'cadenceSpm': cadence.value!,
+            if (stepTime.value != null) 'stepTimeMs': stepTime.value!,
+            if (asymmetry.value != null)
+              'leftRightStepTimeAsymmetryPercent': asymmetry.value!,
+          },
+        );
+      }).toList(growable: false),
+      measuredValues: <String, double>{
+        if (cadence.value != null) 'cadenceSpm': cadence.value!,
+        if (stepTime.value != null) 'stepTimeMs': stepTime.value!,
+        if (asymmetry.value != null)
+          'leftRightStepTimeAsymmetryPercent': asymmetry.value!,
+      },
+      sampleCount: math.max(cadence.sampleCount, stepTime.sampleCount),
+      reliability: math.max(cadence.confidence, stepTime.confidence),
+      withheldReason: RunningMetricEvidenceWithheldReason.lowConfidence,
+    );
+  }
   final reliableContacts = rhythm.contacts
       .where((contact) =>
           contact.confidence >= runningCoachReliableMetricConfidence)
@@ -1557,6 +1768,14 @@ RunningMetricEvidenceWithheldReason? _metricEvidenceGateFor(
       (result.contactWindows.isEmpty ||
           !result.hasObservedContactEvidence ||
           result.gaitAnalysis == null)) {
+    final analysisMetric = metric == RunningCoachMetric.footStrike
+        ? RunningAnalysisMetric.footStrike
+        : RunningAnalysisMetric.kneeAtContact;
+    final measurement = result.measurementFor(analysisMetric);
+    if (measurement.state == RunningMeasurementState.estimated &&
+        measurement.evidenceTimestamps.isNotEmpty) {
+      return RunningMetricEvidenceWithheldReason.lowConfidence;
+    }
     return RunningMetricEvidenceWithheldReason.missingContact;
   }
   return null;
@@ -1602,21 +1821,30 @@ Map<String, double> _measuredValuesForMetric(
   RunningVideoAnalysisResult result,
   RunningCoachMetric metric,
 ) {
+  final measurement = result.measurementFor(switch (metric) {
+    RunningCoachMetric.posture => RunningAnalysisMetric.posture,
+    RunningCoachMetric.bounce => RunningAnalysisMetric.bounce,
+    RunningCoachMetric.footStrike => RunningAnalysisMetric.footStrike,
+    RunningCoachMetric.kneeFlexion => RunningAnalysisMetric.kneeAtContact,
+    RunningCoachMetric.armCarriage => RunningAnalysisMetric.elbowAngle,
+  });
+  final value = measurement.value;
+  if (value == null || !value.isFinite) return const <String, double>{};
   return switch (metric) {
     RunningCoachMetric.posture => <String, double>{
-        'forwardLeanDegrees': result.forwardLeanDegrees,
+        'forwardLeanDegrees': value,
       },
     RunningCoachMetric.bounce => <String, double>{
-        'verticalBouncePercent': result.verticalBounceRatio * 100,
+        'verticalBouncePercent': value,
       },
     RunningCoachMetric.footStrike => <String, double>{
-        'footStrikeDistanceRatio': result.footStrikeDistanceRatio,
+        'footStrikeDistanceRatio': value,
       },
     RunningCoachMetric.kneeFlexion => <String, double>{
-        'kneeAngleDegrees': result.stanceKneeAngleDegrees,
+        'kneeAngleDegrees': value,
       },
     RunningCoachMetric.armCarriage => <String, double>{
-        'elbowAngleDegrees': result.elbowAngleDegrees,
+        'elbowAngleDegrees': value,
       },
   };
 }
@@ -1680,12 +1908,11 @@ List<_RunningMetricEvidenceCandidate> _landingEvidenceCandidates(
   RunningVideoAnalysisResult result,
 ) {
   final gait = result.gaitAnalysis;
-  if (gait == null) return const <_RunningMetricEvidenceCandidate>[];
   final candidates = <_RunningMetricEvidenceCandidate>[];
   // A real, pose-paired contact remains useful as an explicitly limited
   // observation even before there are enough stable steps for coaching. The
   // per-metric quality gate keeps these frames out of scores and drills.
-  for (final step in gait.steps) {
+  for (final step in gait?.steps ?? const <RunningGaitStep>[]) {
     final measurement = step.initialContact;
     final value = measurement.footStrikeDistanceRatio;
     if (value == null) continue;
@@ -1707,6 +1934,33 @@ List<_RunningMetricEvidenceCandidate> _landingEvidenceCandidates(
       ),
     );
   }
+  if (candidates.isEmpty) {
+    final measurement = result.measurementFor(RunningAnalysisMetric.footStrike);
+    for (final timestamp in measurement.evidenceTimestamps) {
+      final poseFrame = _nearestPoseFrame(
+        result.poseFrames,
+        timestamp.inMilliseconds,
+        toleranceMs: 180,
+      );
+      if (poseFrame == null) continue;
+      final side = _estimatedSideForTimestamp(result, timestamp);
+      final value = _footStrikeDistanceRatio(
+        poseFrame,
+        side,
+        result.direction,
+      );
+      if (value == null) continue;
+      candidates.add(_RunningMetricEvidenceCandidate(
+        timestamp: poseFrame.timestamp,
+        role: RunningMetricEvidenceFrameRole.initialContact,
+        phase: RunningGaitPhase.initialContact,
+        side: side,
+        poseFrame: poseFrame,
+        values: <String, double>{'footStrikeDistanceRatio': value},
+        confidence: measurement.confidence,
+      ));
+    }
+  }
   return _selectClosestEvidenceCandidates(
     candidates,
     target: result.footStrikeDistanceRatio,
@@ -1718,9 +1972,8 @@ List<_RunningMetricEvidenceCandidate> _kneeEvidenceCandidates(
   RunningVideoAnalysisResult result,
 ) {
   final gait = result.gaitAnalysis;
-  if (gait == null) return const <_RunningMetricEvidenceCandidate>[];
   final candidates = <_RunningMetricEvidenceCandidate>[];
-  for (final step in gait.steps) {
+  for (final step in gait?.steps ?? const <RunningGaitStep>[]) {
     final measurement = step.maximumKneeFlexion ?? step.initialContact;
     final value = measurement.kneeAngleDegrees;
     if (value == null) continue;
@@ -1744,11 +1997,64 @@ List<_RunningMetricEvidenceCandidate> _kneeEvidenceCandidates(
       ),
     );
   }
+  if (candidates.isEmpty) {
+    final measurement =
+        result.measurementFor(RunningAnalysisMetric.kneeAtContact);
+    for (final timestamp in measurement.evidenceTimestamps) {
+      final poseFrame = _nearestPoseFrame(
+        result.poseFrames,
+        timestamp.inMilliseconds,
+        toleranceMs: 180,
+      );
+      if (poseFrame == null) continue;
+      final side = _estimatedSideForTimestamp(result, timestamp);
+      final value = _kneeAngle(poseFrame, side);
+      if (value == null) continue;
+      candidates.add(_RunningMetricEvidenceCandidate(
+        timestamp: poseFrame.timestamp,
+        role: RunningMetricEvidenceFrameRole.initialContact,
+        phase: RunningGaitPhase.initialContact,
+        side: side,
+        poseFrame: poseFrame,
+        values: <String, double>{'kneeAngleDegrees': value},
+        confidence: measurement.confidence,
+      ));
+    }
+  }
   return _selectClosestEvidenceCandidates(
     candidates,
     target: result.stanceKneeAngleDegrees,
     valueKey: 'kneeAngleDegrees',
   );
+}
+
+RunningContactSide _estimatedSideForTimestamp(
+  RunningVideoAnalysisResult result,
+  Duration timestamp,
+) {
+  RunningContactWindow? nearest;
+  var nearestDistance = 1 << 30;
+  for (final window in result.contactWindows) {
+    final distance = (window.centerMs - timestamp.inMilliseconds).abs();
+    if (distance < nearestDistance) {
+      nearest = window;
+      nearestDistance = distance;
+    }
+  }
+  if (nearest?.side != null && nearest!.side != RunningContactSide.unknown) {
+    return nearest.side;
+  }
+  final frame = _nearestPoseFrame(
+    result.poseFrames,
+    timestamp.inMilliseconds,
+    toleranceMs: 180,
+  );
+  if (frame == null) return RunningContactSide.unknown;
+  final left = _posePoint(frame, 27);
+  final right = _posePoint(frame, 28);
+  if (left == null) return RunningContactSide.right;
+  if (right == null) return RunningContactSide.left;
+  return left.y >= right.y ? RunningContactSide.left : RunningContactSide.right;
 }
 
 List<_RunningMetricEvidenceCandidate> _bounceEvidenceCandidates(
@@ -1847,6 +2153,10 @@ List<_RunningMetricEvidenceCandidate> _armEvidenceCandidates(
 
   addArmCandidate(closed, RunningMetricEvidenceFrameRole.armClosed);
   addArmCandidate(open, RunningMetricEvidenceFrameRole.armOpen);
+  if (candidates.length < 2 && armFrames.length > 1) {
+    addArmCandidate(armFrames.first, RunningMetricEvidenceFrameRole.armClosed);
+    addArmCandidate(armFrames.last, RunningMetricEvidenceFrameRole.armOpen);
+  }
   if (candidates.length < 3) {
     final representative = _closestArmFrame(
       armFrames,
@@ -2148,8 +2458,10 @@ double? _forwardLeanDegrees(
     RunningDirection.rightToLeft => -raw,
     RunningDirection.stationary => 0.0,
   };
-  if (forward <= 0) return 0;
-  return math.atan2(forward.abs(), vertical) * 180 / math.pi;
+  // Preserve the sign: positive is leaning into the resolved travel
+  // direction, while negative is leaning backward. Clamping or taking abs()
+  // would make a backward lean look like the ideal forward posture.
+  return math.atan2(forward, vertical) * 180 / math.pi;
 }
 
 double? _averageElbowAngle(RunningPoseFrame frame) {
@@ -2295,6 +2607,33 @@ List<RunningContactWindow> _parseContactWindows(Object? raw) {
   return List<RunningContactWindow>.unmodifiable(windows);
 }
 
+List<RunningContactWindow> _demoteLegacyKinematicWindows(
+  List<RunningContactWindow> windows,
+) {
+  return List<RunningContactWindow>.unmodifiable(
+    windows.map((window) {
+      final estimated = <Duration>{
+        ...window.estimatedContactTimestamps,
+        ...window.validatedContactTimestamps,
+      }.toList(growable: false)
+        ..sort();
+      return RunningContactWindow(
+        start: window.start,
+        center: window.center,
+        end: window.end,
+        side: window.side,
+        denseSampleCount: window.denseSampleCount,
+        candidateFrameCount: window.candidateFrameCount,
+        validatedContactTimestamps: const <Duration>[],
+        estimatedContactTimestamps: estimated,
+        selectionMethod: 'kinematic',
+        rejectedFrameCounts: window.rejectedFrameCounts,
+        confidence: window.confidence,
+      );
+    }),
+  );
+}
+
 List<Duration> _parseTimestampList(Object? raw) {
   if (raw is! Iterable<Object?>) {
     return const <Duration>[];
@@ -2338,6 +2677,166 @@ Map<RunningCoachMetric, RunningMetricQuality> _parseMetricQualities(
     }
   }
   return Map<RunningCoachMetric, RunningMetricQuality>.unmodifiable(qualities);
+}
+
+Map<RunningAnalysisMetric, RunningMetricMeasurement> _parseRunningMeasurements(
+  Object? raw,
+) {
+  if (raw is! Iterable<Object?>) {
+    return const <RunningAnalysisMetric, RunningMetricMeasurement>{};
+  }
+  final parsed = <RunningAnalysisMetric, RunningMetricMeasurement>{};
+  for (final item in raw) {
+    final measurement = RunningMetricMeasurement.fromObject(item);
+    if (measurement != null) {
+      parsed[measurement.metric] = measurement;
+    }
+  }
+  return Map<RunningAnalysisMetric, RunningMetricMeasurement>.unmodifiable(
+    parsed,
+  );
+}
+
+Map<RunningAnalysisMetric, RunningMetricMeasurement>
+    _demoteLegacyKinematicMeasurements(
+  Map<RunningAnalysisMetric, RunningMetricMeasurement> measurements,
+) {
+  const contactDependentMetrics = <RunningAnalysisMetric>{
+    RunningAnalysisMetric.cadence,
+    RunningAnalysisMetric.stepTime,
+    RunningAnalysisMetric.leftRightTiming,
+    RunningAnalysisMetric.footStrike,
+    RunningAnalysisMetric.kneeAtContact,
+    RunningAnalysisMetric.maximumKneeFlexion,
+  };
+  return Map<RunningAnalysisMetric, RunningMetricMeasurement>.unmodifiable(
+    measurements.map((metric, measurement) {
+      if (!contactDependentMetrics.contains(metric) ||
+          measurement.state != RunningMeasurementState.confirmed) {
+        return MapEntry(metric, measurement);
+      }
+      return MapEntry(
+        metric,
+        RunningMetricMeasurement(
+          metric: metric,
+          state: RunningMeasurementState.estimated,
+          value: measurement.value,
+          expectedRange: measurement.expectedRange,
+          confidence: measurement.confidence * 0.65,
+          sampleCount: measurement.sampleCount,
+          method: measurement.method,
+          reason: 'kinematic_contact_estimate',
+          evidenceTimestamps: measurement.evidenceTimestamps,
+        ),
+      );
+    }),
+  );
+}
+
+List<RunningScaleSegment> _parseScaleSegments(Object? raw) {
+  if (raw is! Iterable<Object?>) return const <RunningScaleSegment>[];
+  final parsed = raw
+      .map(RunningScaleSegment.fromObject)
+      .whereType<RunningScaleSegment>()
+      .toList(growable: false)
+    ..sort((left, right) => left.start.compareTo(right.start));
+  return List<RunningScaleSegment>.unmodifiable(parsed);
+}
+
+Duration? _durationFromMilliseconds(Object? raw) {
+  final milliseconds = _finiteInt(raw);
+  return milliseconds == null || milliseconds < 0
+      ? null
+      : Duration(milliseconds: milliseconds);
+}
+
+String? _optionalToken(Object? raw) {
+  final value = raw?.toString().trim();
+  return value == null || value.isEmpty ? null : value;
+}
+
+RunningMetricMeasurement _legacyMeasurementFor(
+  RunningVideoAnalysisResult result,
+  RunningAnalysisMetric metric,
+) {
+  final rhythm = result.rhythmAnalysis;
+  final gait = result.gaitAnalysis;
+  final metricQuality = switch (metric) {
+    RunningAnalysisMetric.posture =>
+      result.qualityFor(RunningCoachMetric.posture),
+    RunningAnalysisMetric.bounce =>
+      result.qualityFor(RunningCoachMetric.bounce),
+    RunningAnalysisMetric.footStrike =>
+      result.qualityFor(RunningCoachMetric.footStrike),
+    RunningAnalysisMetric.kneeAtContact ||
+    RunningAnalysisMetric.maximumKneeFlexion =>
+      result.qualityFor(RunningCoachMetric.kneeFlexion),
+    RunningAnalysisMetric.elbowAngle ||
+    RunningAnalysisMetric.armSwingRange ||
+    RunningAnalysisMetric.armAsymmetry =>
+      result.qualityFor(RunningCoachMetric.armCarriage),
+    _ => null,
+  };
+  final value = switch (metric) {
+    RunningAnalysisMetric.cadence => rhythm?.cadenceSpm ?? gait?.cadenceSpm,
+    RunningAnalysisMetric.stepTime =>
+      rhythm?.medianStepTimeMs ?? gait?.medianStepTimeMs,
+    RunningAnalysisMetric.leftRightTiming =>
+      rhythm?.leftRightStepTimeAsymmetryPercent ??
+          gait?.leftRightStepTimeAsymmetryPercent,
+    RunningAnalysisMetric.posture => result.forwardLeanDegrees,
+    RunningAnalysisMetric.bounce => result.verticalBounceRatio * 100,
+    RunningAnalysisMetric.footStrike =>
+      gait?.footStrikeDistance?.median ?? result.footStrikeDistanceRatio,
+    RunningAnalysisMetric.kneeAtContact =>
+      gait?.kneeAtContact?.median ?? result.stanceKneeAngleDegrees,
+    RunningAnalysisMetric.maximumKneeFlexion =>
+      gait?.minimumKneeFlexion?.median,
+    RunningAnalysisMetric.elbowAngle =>
+      gait?.elbowAtContact?.median ?? result.elbowAngleDegrees,
+    RunningAnalysisMetric.armSwingRange ||
+    RunningAnalysisMetric.armAsymmetry ||
+    RunningAnalysisMetric.footRolling =>
+      null,
+  };
+  final confidence = metricQuality?.confidence ??
+      (metric == RunningAnalysisMetric.cadence ||
+              metric == RunningAnalysisMetric.stepTime ||
+              metric == RunningAnalysisMetric.leftRightTiming
+          ? result.contactConfidence
+          : result.analysisConfidence);
+  final sampleCount = metricQuality?.sampleCount ??
+      rhythm?.contacts.length ??
+      gait?.steps.length ??
+      0;
+  final isBlocked = metricQuality?.hasBlockingMeasurementReason == true;
+  if (value == null || !value.isFinite || confidence <= 0 || isBlocked) {
+    return RunningMetricMeasurement.unavailable(
+      metric: metric,
+      method: 'legacy_unavailable',
+      reason: metricQuality?.reason ?? 'coordinates_unavailable',
+    );
+  }
+  final confirmed = metricQuality?.isReliableForCoaching == true;
+  final timestamps = result.validatedContactFrameTimestamps.isNotEmpty
+      ? result.validatedContactFrameTimestamps.take(4).toList(growable: false)
+      : result.poseFrames
+          .take(4)
+          .map((frame) => frame.timestamp)
+          .toList(growable: false);
+  return RunningMetricMeasurement(
+    metric: metric,
+    state: confirmed
+        ? RunningMeasurementState.confirmed
+        : RunningMeasurementState.estimated,
+    value: value,
+    expectedRange: null,
+    confidence: confidence.clamp(0.0, 1.0).toDouble(),
+    sampleCount: sampleCount,
+    method: confirmed ? 'legacy_verified' : 'legacy_estimate',
+    reason: metricQuality?.reason,
+    evidenceTimestamps: timestamps,
+  );
 }
 
 RunningCoachMetric? _metricFromToken(String? token) {
@@ -2451,6 +2950,10 @@ class RunningMetricQuality {
   /// derived from them.
   bool get hasBlockingMeasurementReason => switch (reason) {
         'contact_phase_proxy' ||
+        'kinematic_contact_estimate' ||
+        'coarse_kinematic_contact_estimate' ||
+        'estimated_contact_maximum_flexion' ||
+        'pose_cycle_period_estimate' ||
         'missing_contact_evidence' ||
         'missing_pose_frames' ||
         'missing_measured_frames' ||
@@ -2496,10 +2999,14 @@ class RunningCoachingInsight {
 class RunningCoachingReport {
   final int overallScore;
   final List<RunningCoachingInsight> insights;
+  final RunningCoachScoreStatus scoreStatus;
+  final int? estimatedScore;
 
   const RunningCoachingReport({
     required this.overallScore,
     required this.insights,
+    this.scoreStatus = RunningCoachScoreStatus.confirmed,
+    this.estimatedScore,
   });
 }
 
@@ -2541,7 +3048,20 @@ extension RunningCoachingReportInsights on RunningCoachingReport {
     final reliable = rankedInsights
         .where((insight) => insight.quality.isReliableForCoaching)
         .toList(growable: false);
-    if (reliable.isEmpty) return null;
+    if (reliable.isEmpty) {
+      if (scoreStatus != RunningCoachScoreStatus.estimated) return null;
+      final estimated = rankedInsights
+          .where((insight) =>
+              insight.quality.confidence > 0 &&
+              insight.quality.reason != 'coordinates_unavailable' &&
+              insight.quality.reason != 'metric_unavailable')
+          .toList(growable: false);
+      if (estimated.isEmpty) return null;
+      final estimatedFocus = estimated
+          .where((insight) => insight.status != RunningCoachStatus.good)
+          .toList(growable: false);
+      return estimatedFocus.isNotEmpty ? estimatedFocus.first : estimated.first;
+    }
     final reliableFocus = reliable
         .where((insight) => insight.status != RunningCoachStatus.good)
         .toList(growable: false);
