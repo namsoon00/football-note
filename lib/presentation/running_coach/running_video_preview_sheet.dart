@@ -23,6 +23,7 @@ Future<RunningVideoPreviewResult?> showRunningVideoPreviewSheet({
   required BuildContext context,
   required List<XFile> candidates,
   required bool isCapturedVideo,
+  String? runnerDisplayName,
 }) {
   if (candidates.isEmpty) return Future.value(null);
   return showModalBottomSheet<RunningVideoPreviewResult>(
@@ -35,6 +36,7 @@ Future<RunningVideoPreviewResult?> showRunningVideoPreviewSheet({
       child: RunningVideoPreviewSheet(
         candidates: candidates,
         isCapturedVideo: isCapturedVideo,
+        runnerDisplayName: runnerDisplayName,
       ),
     ),
   );
@@ -43,11 +45,13 @@ Future<RunningVideoPreviewResult?> showRunningVideoPreviewSheet({
 class RunningVideoPreviewSheet extends StatefulWidget {
   final List<XFile> candidates;
   final bool isCapturedVideo;
+  final String? runnerDisplayName;
 
   const RunningVideoPreviewSheet({
     super.key,
     required this.candidates,
     required this.isCapturedVideo,
+    this.runnerDisplayName,
   });
 
   @override
@@ -205,11 +209,20 @@ class _RunningVideoPreviewSheetState extends State<RunningVideoPreviewSheet> {
                         fontWeight: FontWeight.w900,
                       ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  l10n.runningCoachPreviewBody,
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
+                if (widget.runnerDisplayName != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    l10n.runningCoachRunnerTarget(widget.runnerDisplayName!),
+                    key: const ValueKey(
+                      'running-coach-preview-runner-name',
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -391,6 +404,25 @@ class _RunningVideoPreviewSheetState extends State<RunningVideoPreviewSheet> {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      _PreviewCheckChip(
+                        icon: Icons.accessibility_new_rounded,
+                        label: l10n.runningCoachPreviewCheckFullBody,
+                      ),
+                      _PreviewCheckChip(
+                        icon: Icons.compare_arrows_rounded,
+                        label: l10n.runningCoachPreviewCheckSide,
+                      ),
+                      _PreviewCheckChip(
+                        icon: Icons.hd_outlined,
+                        label: l10n.runningCoachPreviewCheckClarity,
+                      ),
+                    ],
+                  ),
                   if (warnings.isNotEmpty) ...[
                     const SizedBox(height: 8),
                     Container(
@@ -401,7 +433,7 @@ class _RunningVideoPreviewSheetState extends State<RunningVideoPreviewSheet> {
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
-                        warnings.join('\n'),
+                        warnings.first,
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ),
@@ -442,9 +474,7 @@ class _RunningVideoPreviewSheetState extends State<RunningVideoPreviewSheet> {
                       ),
                     ),
                     child: Text(
-                      widget.isCapturedVideo
-                          ? l10n.runningCoachPreviewAnalyzeAction
-                          : l10n.runningCoachPreviewSelectAction,
+                      l10n.runningCoachPreviewAnalyzeAction,
                     ),
                   ),
                 ),
@@ -452,6 +482,35 @@ class _RunningVideoPreviewSheetState extends State<RunningVideoPreviewSheet> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _PreviewCheckChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _PreviewCheckChip({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 15, color: scheme.primary),
+            const SizedBox(width: 4),
+            Text(label, style: Theme.of(context).textTheme.labelSmall),
+          ],
+        ),
       ),
     );
   }

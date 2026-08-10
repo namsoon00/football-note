@@ -1,4 +1,5 @@
 import 'running_video_analysis_result.dart';
+import 'running_coach_runner_profile.dart';
 
 enum RunningCoachSessionSource { uploadVideo }
 
@@ -136,6 +137,7 @@ class RunningCoachEvidenceArchiveSummary {
 
 class RunningCoachSessionAnalysis {
   final String id;
+  final String runnerId;
   final DateTime analyzedAt;
   final RunningCoachSessionSource source;
   final int overallScore;
@@ -163,6 +165,7 @@ class RunningCoachSessionAnalysis {
 
   const RunningCoachSessionAnalysis({
     required this.id,
+    this.runnerId = runningCoachDefaultRunnerId,
     required this.analyzedAt,
     required this.source,
     required this.overallScore,
@@ -226,6 +229,39 @@ class RunningCoachSessionAnalysis {
     );
   }
 
+  RunningCoachSessionAnalysis copyWith({
+    String? runnerId,
+  }) {
+    return RunningCoachSessionAnalysis(
+      id: id,
+      runnerId: runnerId ?? this.runnerId,
+      analyzedAt: analyzedAt,
+      source: source,
+      overallScore: overallScore,
+      scoreEligibility: scoreEligibility,
+      scoreVersion: scoreVersion,
+      analysisVersion: analysisVersion,
+      duration: duration,
+      sampledFrames: sampledFrames,
+      validFrames: validFrames,
+      primaryMetric: primaryMetric,
+      primaryFinding: primaryFinding,
+      primaryStatus: primaryStatus,
+      primaryScore: primaryScore,
+      primaryValue: primaryValue,
+      primaryConfidence: primaryConfidence,
+      primarySampleCount: primarySampleCount,
+      primaryQualityReason: primaryQualityReason,
+      videoPath: videoPath,
+      videoName: videoName,
+      captureContext: captureContext,
+      metricSnapshots: metricSnapshots,
+      evidenceImages: evidenceImages,
+      evidenceArchive: evidenceArchive,
+      analysisResult: analysisResult,
+    );
+  }
+
   /// Serializes an archived result without forcing every saved session to keep
   /// the full set of sampled pose frames. Callers that persist many sessions
   /// can pass a smaller [maxPoseFrames] while in-memory result views retain
@@ -233,6 +269,7 @@ class RunningCoachSessionAnalysis {
   Map<String, Object?> toMap({int maxPoseFrames = 24}) {
     return <String, Object?>{
       'id': id,
+      'runnerId': runnerId,
       'analyzedAt': analyzedAt.toIso8601String(),
       'source': source.name,
       'overallScore': overallScore,
@@ -282,6 +319,7 @@ class RunningCoachSessionAnalysis {
     final evidenceImages = _evidenceImagesFromMap(map['evidenceImages']);
     return RunningCoachSessionAnalysis(
       id: map['id']?.toString() ?? '',
+      runnerId: _optionalString(map['runnerId']) ?? runningCoachDefaultRunnerId,
       analyzedAt: DateTime.tryParse(map['analyzedAt']?.toString() ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0),
       source: RunningCoachSessionSource.uploadVideo,

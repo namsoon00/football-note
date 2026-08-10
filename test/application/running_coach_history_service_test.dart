@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/running_coach_evidence_archive.dart';
 import 'package:football_note/application/running_coach_history_service.dart';
+import 'package:football_note/domain/entities/running_coach_runner_profile.dart';
 import 'package:football_note/domain/entities/running_coach_session.dart';
 import 'package:football_note/domain/entities/running_video_analysis_result.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
@@ -377,6 +380,126 @@ void main() {
     expect(restored.evidenceArchive.status,
         RunningCoachEvidenceArchiveStatus.failed);
     expect(restored.analysisResult, isNotNull);
+  });
+
+  test('runner ownership survives evidence history trimming and deletion',
+      () async {
+    final repository = _MemoryOptionRepository();
+    final deletedEvidenceIds = <String>[];
+    final seeded = <RunningCoachSessionAnalysis>[
+      for (var index = 0;
+          index < RunningCoachHistoryService.maxStoredSessions;
+          index += 1)
+        RunningCoachSessionAnalysis(
+          id: 'seed-$index',
+          runnerId: index.isEven ? 'runner-a' : 'runner-b',
+          analyzedAt: DateTime(2026, 8, 1).add(Duration(hours: index)),
+          source: RunningCoachSessionSource.uploadVideo,
+          overallScore: 70 + index,
+          duration: const Duration(seconds: 5),
+          sampledFrames: 12,
+          validFrames: 10,
+          primaryMetric: RunningCoachMetric.posture,
+          primaryFinding: RunningCoachFinding.postureAligned,
+          primaryStatus: RunningCoachStatus.good,
+          primaryScore: 80,
+          primaryValue: 10,
+          primaryConfidence: 0.9,
+          evidenceImages: <RunningCoachEvidenceImage>[
+            RunningCoachEvidenceImage(
+              id: 'evidence-$index',
+              timestamp: const Duration(milliseconds: 800),
+              kind: RunningMetricEvidenceKind.posture,
+              role: RunningMetricEvidenceFrameRole.representativePosture,
+              storageReference: 'test://evidence-$index',
+              confidence: 0.9,
+            ),
+          ],
+        ),
+    ];
+    await repository.setValue(
+      RunningCoachHistoryService.storageKey,
+      jsonEncode(seeded.map((session) => session.toMap()).toList()),
+    );
+    final service = RunningCoachHistoryService(
+      repository,
+      archiveEvidenceImages: ({
+        required sourceVideo,
+        required sessionId,
+        required requests,
+      }) async =>
+          RunningCoachEvidenceArchiveResult.fromImages(
+        requestedCount: requests.length,
+        images: const <RunningCoachEvidenceImage>[],
+      ),
+      deleteEvidenceImages: (images) async {
+        deletedEvidenceIds.addAll(images.map((image) => image.id));
+      },
+    );
+    const report = RunningCoachingReport(
+      overallScore: 82,
+      insights: <RunningCoachingInsight>[
+        RunningCoachingInsight(
+          metric: RunningCoachMetric.posture,
+          finding: RunningCoachFinding.postureAligned,
+          status: RunningCoachStatus.good,
+          score: 82,
+          value: 10,
+          quality: RunningMetricQuality(confidence: 0.9, sampleCount: 4),
+        ),
+      ],
+    );
+    const result = RunningVideoAnalysisResult(
+      videoDuration: Duration(seconds: 5),
+      sampledFrames: 12,
+      validFrames: 10,
+      direction: RunningDirection.leftToRight,
+      forwardLeanDegrees: 10,
+      verticalBounceRatio: 0.06,
+      footStrikeDistanceRatio: 0.08,
+      stanceKneeAngleDegrees: 155,
+      elbowAngleDegrees: 90,
+    );
+
+    final trimmed = await service.saveUploadAnalysis(
+      runnerId: 'runner-c',
+      result: result,
+      report: report,
+      analyzedAt: DateTime(2026, 8, 3),
+    );
+
+    expect(trimmed, hasLength(RunningCoachHistoryService.maxStoredSessions));
+    expect(trimmed.first.runnerId, 'runner-c');
+    expect(
+        trimmed.every((session) =>
+            session.runnerId != 'runner-c' || session.id == trimmed.first.id),
+        isTrue);
+    expect(
+        trimmed.every(
+            (session) => session.runnerId != runningCoachDefaultRunnerId),
+        isTrue);
+    expect(deletedEvidenceIds, contains('evidence-0'));
+    final retainedEvidenceSession =
+        trimmed.firstWhere((session) => session.id == 'seed-1');
+    expect(retainedEvidenceSession.runnerId, 'runner-b');
+    expect(retainedEvidenceSession.evidenceImages.single.id, 'evidence-1');
+
+    final runnerA =
+        trimmed.firstWhere((session) => session.runnerId == 'runner-a');
+    final expectedOwnership = <String, String>{
+      for (final session in trimmed)
+        if (session.id != runnerA.id) session.id: session.runnerId,
+    };
+    final afterDelete = await service.deleteSession(runnerA.id);
+
+    expect(
+      <String, String>{
+        for (final session in afterDelete) session.id: session.runnerId,
+      },
+      expectedOwnership,
+    );
+    expect(service.allSessions().map((session) => session.runnerId),
+        afterDelete.map((session) => session.runnerId));
   });
 }
 

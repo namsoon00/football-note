@@ -16926,4 +16926,149 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get runningCoachComparisonSameConditionRetake =>
       'Retake in the same conditions';
+
+  @override
+  String get runningCoachDefaultRunner => 'Me';
+
+  @override
+  String runningCoachRunnerTarget(String name) {
+    return 'Analysis target: $name';
+  }
+
+  @override
+  String get runningCoachManageRunners => 'Manage runners';
+
+  @override
+  String get runningCoachSelectRunnerTitle => 'Who are you analyzing?';
+
+  @override
+  String get runningCoachAddRunner => 'Add runner';
+
+  @override
+  String get runningCoachRenameRunner => 'Rename';
+
+  @override
+  String get runningCoachArchiveRunner => 'Archive';
+
+  @override
+  String get runningCoachRunnerNameLabel => 'Runner name';
+
+  @override
+  String get runningCoachManageRunner => 'Manage runner';
+
+  @override
+  String get runningCoachAnalysisSteps =>
+      'Find runner → Analyze movement → Build result';
+
+  @override
+  String get runningCoachCaptureWarningAnalysisLimited =>
+      'You can still record, but unclear framing may limit or estimate the analysis.';
+
+  @override
+  String get runningCoachPreviewCheckFullBody => 'Full body';
+
+  @override
+  String get runningCoachPreviewCheckSide => 'Side view';
+
+  @override
+  String get runningCoachPreviewCheckClarity => 'Clear distance';
+
+  @override
+  String get runningCoachTodayOneThingTitle => 'Change just this today';
+
+  @override
+  String get runningCoachStatusEstimatedShort => 'Estimated';
+
+  @override
+  String get runningCoachViewEvidenceSlowly => 'View evidence slowly';
+
+  @override
+  String get runningCoachTenSecondDrill => '10-second drill';
+
+  @override
+  String get runningCoachFiveMovementsTitle => 'Five movements';
+
+  @override
+  String get runningCoachStatusImproveShort => 'Improve';
+
+  @override
+  String get runningCoachStatusUnavailableShort => 'Not measured';
+
+  @override
+  String get runningCoachFullAnalysisAction => 'View full analysis';
+
+  @override
+  String get runningCoachGoodBandLabel => 'Good band';
+
+  @override
+  String get runningCoachNextCueLabel => 'Next cue';
+
+  @override
+  String get runningCoachRawMeasurementDetails => 'View measurement details';
+
+  @override
+  String get runningCoachConfidenceShortLabel => 'Confidence';
+
+  @override
+  String get runningCoachMeasurementMethodLabel => 'Method';
+
+  @override
+  String get runningCoachGaitRhythmTitle => 'Rhythm and timing';
+
+  @override
+  String get runningCoachReportDetailsTitle => 'Movement details';
+
+  @override
+  String get runningCoachGaitFineTitle => 'Detailed gait';
+
+  @override
+  String get runningCoachTodayLabel => 'Today';
+
+  @override
+  String get runningCoachAnalysisQualityBadgeStrong => 'Stable analysis';
+
+  @override
+  String get runningCoachAnalysisQualityBadgeLimited => 'Limited analysis';
+
+  @override
+  String runningCoachPreviousScoreDelta(int delta) {
+    return 'Previous $delta';
+  }
+
+  @override
+  String runningCoachHistoryConfirmedScore(int score) {
+    return 'Confirmed $score';
+  }
+
+  @override
+  String runningCoachHistoryEstimatedScore(int score) {
+    return 'Estimated $score';
+  }
+
+  @override
+  String get runningCoachHistoryScoreUnavailable => 'Score withheld';
+
+  @override
+  String get runningCoachMultiplePersonLabel => 'More than one person';
+
+  @override
+  String get runningCoachTargetIdentityUnstableLabel =>
+      'Runner tracking changed';
+
+  @override
+  String get runningCoachMultiplePersonReason =>
+      'More than one person may be in the clip, so the app withheld the score to avoid scoring the wrong runner.';
+
+  @override
+  String get runningCoachTargetIdentityUnstableReason =>
+      'Runner tracking changed abruptly, so the app withheld the score to avoid mixing people.';
+
+  @override
+  String get runningCoachSingleRunnerRetake =>
+      'Record one runner at a time and keep everyone else outside the frame.';
+
+  @override
+  String runningCoachHistoryTrendSummary(int best, int delta) {
+    return 'Best confirmed score $best · latest change $delta';
+  }
 }

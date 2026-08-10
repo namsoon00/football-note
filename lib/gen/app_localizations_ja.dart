@@ -16360,4 +16360,146 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachComparisonSameConditionRetake => '同じ条件で撮り直す';
+
+  @override
+  String get runningCoachDefaultRunner => '自分';
+
+  @override
+  String runningCoachRunnerTarget(String name) {
+    return '分析対象: $name';
+  }
+
+  @override
+  String get runningCoachManageRunners => 'ランナー管理';
+
+  @override
+  String get runningCoachSelectRunnerTitle => '誰を分析しますか？';
+
+  @override
+  String get runningCoachAddRunner => 'ランナーを追加';
+
+  @override
+  String get runningCoachRenameRunner => '名前を変更';
+
+  @override
+  String get runningCoachArchiveRunner => 'アーカイブ';
+
+  @override
+  String get runningCoachRunnerNameLabel => 'ランナー名';
+
+  @override
+  String get runningCoachManageRunner => 'ランナー管理';
+
+  @override
+  String get runningCoachAnalysisSteps => 'ランナー検出 → 動きの分析 → 結果作成';
+
+  @override
+  String get runningCoachCaptureWarningAnalysisLimited =>
+      'そのまま撮影できますが、構図が不明瞭だと分析が推定または制限される場合があります。';
+
+  @override
+  String get runningCoachPreviewCheckFullBody => '全身';
+
+  @override
+  String get runningCoachPreviewCheckSide => '側面';
+
+  @override
+  String get runningCoachPreviewCheckClarity => '鮮明な距離';
+
+  @override
+  String get runningCoachTodayOneThingTitle => '今日はこれだけ変えましょう';
+
+  @override
+  String get runningCoachStatusEstimatedShort => '推定';
+
+  @override
+  String get runningCoachViewEvidenceSlowly => '根拠をスローで見る';
+
+  @override
+  String get runningCoachTenSecondDrill => '10秒練習';
+
+  @override
+  String get runningCoachFiveMovementsTitle => '5つの動き';
+
+  @override
+  String get runningCoachStatusImproveShort => '改善';
+
+  @override
+  String get runningCoachStatusUnavailableShort => '測定不可';
+
+  @override
+  String get runningCoachFullAnalysisAction => '分析全体を見る';
+
+  @override
+  String get runningCoachGoodBandLabel => '良好な範囲';
+
+  @override
+  String get runningCoachNextCueLabel => '次のキュー';
+
+  @override
+  String get runningCoachRawMeasurementDetails => '測定値の詳細を見る';
+
+  @override
+  String get runningCoachConfidenceShortLabel => '信頼度';
+
+  @override
+  String get runningCoachMeasurementMethodLabel => '測定方法';
+
+  @override
+  String get runningCoachGaitRhythmTitle => 'リズムとタイミング';
+
+  @override
+  String get runningCoachReportDetailsTitle => '動きの詳細';
+
+  @override
+  String get runningCoachGaitFineTitle => '歩容の詳細';
+
+  @override
+  String get runningCoachTodayLabel => '今日';
+
+  @override
+  String get runningCoachAnalysisQualityBadgeStrong => '安定した分析';
+
+  @override
+  String get runningCoachAnalysisQualityBadgeLimited => '制限付き分析';
+
+  @override
+  String runningCoachPreviousScoreDelta(int delta) {
+    return '前回比 $delta';
+  }
+
+  @override
+  String runningCoachHistoryConfirmedScore(int score) {
+    return '確定 $score';
+  }
+
+  @override
+  String runningCoachHistoryEstimatedScore(int score) {
+    return '推定 $score';
+  }
+
+  @override
+  String get runningCoachHistoryScoreUnavailable => 'スコア保留';
+
+  @override
+  String get runningCoachMultiplePersonLabel => '複数人を検出';
+
+  @override
+  String get runningCoachTargetIdentityUnstableLabel => 'ランナー追跡の変化';
+
+  @override
+  String get runningCoachMultiplePersonReason =>
+      '動画に複数人がいる可能性があるため、別の人を採点しないようスコアを保留しました。';
+
+  @override
+  String get runningCoachTargetIdentityUnstableReason =>
+      'ランナー追跡が急に変化したため、別人の記録を混ぜないようスコアを保留しました。';
+
+  @override
+  String get runningCoachSingleRunnerRetake => '一度に1人だけを撮影し、ほかの人は画面の外にしてください。';
+
+  @override
+  String runningCoachHistoryTrendSummary(int best, int delta) {
+    return '確定ベスト $best点・直近の変化 $delta点';
+  }
 }

@@ -48,6 +48,8 @@ enum RunningVideoQualityIssue {
   notSideOn,
   bodyCutOff,
   scaleDrift,
+  multiplePerson,
+  targetIdentityUnstable,
 }
 
 enum RunningCoachFinding {
@@ -392,6 +394,12 @@ class RunningVideoPerspectiveQuality {
   bool get hasLimitations => issues.isNotEmpty;
 
   String? get primaryReasonCode {
+    if (issues.contains(RunningVideoQualityIssue.multiplePerson)) {
+      return 'multiple_person';
+    }
+    if (issues.contains(RunningVideoQualityIssue.targetIdentityUnstable)) {
+      return 'target_identity_unstable';
+    }
     if (issues.contains(RunningVideoQualityIssue.tooSmall)) {
       return 'too_small_runner';
     }
@@ -409,6 +417,12 @@ class RunningVideoPerspectiveQuality {
 
   String? limitationReasonForMetric(RunningCoachMetric metric) {
     if (!isEvaluated) return null;
+    if (issues.contains(RunningVideoQualityIssue.multiplePerson)) {
+      return 'multiple_person';
+    }
+    if (issues.contains(RunningVideoQualityIssue.targetIdentityUnstable)) {
+      return 'target_identity_unstable';
+    }
     if (issues.contains(RunningVideoQualityIssue.tooSmall)) {
       return 'too_small_runner';
     }
@@ -681,6 +695,28 @@ class RunningVideoAnalysisResult {
   /// score, cadence, symmetry, or a good/bad judgement.
   bool get hasObservedContactEvidence =>
       validatedContactFrameTimestamps.isNotEmpty;
+
+  /// Defensive single-runner contract for analyzers that currently return one
+  /// pose per frame. Explicit native/web payload issues win; otherwise an
+  /// extreme center, scale, or body-proportion discontinuity is treated as a
+  /// likely identity jump. The guard withholds scoring instead of pretending
+  /// that the second pose belongs to the selected runner.
+  String? get targetIdentityIssueReason {
+    if (perspectiveQuality.issues
+        .contains(RunningVideoQualityIssue.multiplePerson)) {
+      return 'multiple_person';
+    }
+    if (perspectiveQuality.issues
+        .contains(RunningVideoQualityIssue.targetIdentityUnstable)) {
+      return 'target_identity_unstable';
+    }
+    if (_hasExtremePoseIdentityDiscontinuity(poseFrames)) {
+      return 'target_identity_unstable';
+    }
+    return null;
+  }
+
+  bool get hasTargetIdentityRisk => targetIdentityIssueReason != null;
 
   int get contactCandidateFrameCount => contactWindows.fold<int>(
         0,
@@ -2861,8 +2897,126 @@ RunningVideoQualityIssue? _qualityIssueFromToken(String? token) {
     'notSideOn' || 'not_side_on' => RunningVideoQualityIssue.notSideOn,
     'bodyCutOff' || 'body_cut_off' => RunningVideoQualityIssue.bodyCutOff,
     'scaleDrift' || 'scale_drift' => RunningVideoQualityIssue.scaleDrift,
+    'multiplePerson' ||
+    'multiple_person' =>
+      RunningVideoQualityIssue.multiplePerson,
+    'targetIdentityUnstable' ||
+    'target_identity_unstable' =>
+      RunningVideoQualityIssue.targetIdentityUnstable,
     _ => null,
   };
+}
+
+bool _hasExtremePoseIdentityDiscontinuity(List<RunningPoseFrame> frames) {
+  if (frames.length < 2) return false;
+  final ordered = frames.toList(growable: false)
+    ..sort((left, right) => left.timestamp.compareTo(right.timestamp));
+  _PoseIdentitySignature? previous;
+  Duration? previousTimestamp;
+  for (final frame in ordered) {
+    final current = _PoseIdentitySignature.fromFrame(frame);
+    if (current == null) continue;
+    if (previous != null && previousTimestamp != null) {
+      final gapMs =
+          frame.timestamp.inMilliseconds - previousTimestamp.inMilliseconds;
+      if (gapMs > 0 && gapMs <= 850) {
+        final centerJump = math.sqrt(
+          math.pow(current.centerX - previous.centerX, 2) +
+              math.pow(current.centerY - previous.centerY, 2),
+        );
+        final scaleRatio = math.max(current.height, previous.height) /
+            math.max(0.001, math.min(current.height, previous.height));
+        final proportionRatio =
+            current.proportion == null || previous.proportion == null
+                ? 1.0
+                : math.max(current.proportion!, previous.proportion!) /
+                    math.max(
+                      0.001,
+                      math.min(current.proportion!, previous.proportion!),
+                    );
+        final implausibleTranslation = centerJump >
+            math.max(0.38, math.max(current.height, previous.height) * 1.15);
+        if (implausibleTranslation ||
+            scaleRatio > 2.6 ||
+            proportionRatio > 2.35) {
+          return true;
+        }
+      }
+    }
+    previous = current;
+    previousTimestamp = frame.timestamp;
+  }
+  return false;
+}
+
+class _PoseIdentitySignature {
+  final double centerX;
+  final double centerY;
+  final double height;
+  final double? proportion;
+
+  const _PoseIdentitySignature({
+    required this.centerX,
+    required this.centerY,
+    required this.height,
+    required this.proportion,
+  });
+
+  static _PoseIdentitySignature? fromFrame(RunningPoseFrame frame) {
+    final visible = frame.landmarks
+        .where((landmark) =>
+            landmark.confidence >= 0.35 &&
+            landmark.x.isFinite &&
+            landmark.y.isFinite)
+        .toList(growable: false);
+    if (visible.length < 8) return null;
+    var minX = visible.first.x;
+    var maxX = visible.first.x;
+    var minY = visible.first.y;
+    var maxY = visible.first.y;
+    for (final landmark in visible.skip(1)) {
+      minX = math.min(minX, landmark.x);
+      maxX = math.max(maxX, landmark.x);
+      minY = math.min(minY, landmark.y);
+      maxY = math.max(maxY, landmark.y);
+    }
+    final height = maxY - minY;
+    if (height <= 0.05) return null;
+    final shoulder = _identityMidpoint(frame, 11, 12);
+    final hip = _identityMidpoint(frame, 23, 24);
+    final ankle = _identityMidpoint(frame, 27, 28);
+    final torso = shoulder == null || hip == null
+        ? null
+        : math.sqrt(
+            math.pow(shoulder.$1 - hip.$1, 2) +
+                math.pow(shoulder.$2 - hip.$2, 2),
+          );
+    final leg = hip == null || ankle == null
+        ? null
+        : math.sqrt(
+            math.pow(hip.$1 - ankle.$1, 2) + math.pow(hip.$2 - ankle.$2, 2),
+          );
+    return _PoseIdentitySignature(
+      centerX: (minX + maxX) / 2,
+      centerY: (minY + maxY) / 2,
+      height: height,
+      proportion:
+          torso == null || leg == null || leg <= 0.01 ? null : torso / leg,
+    );
+  }
+}
+
+(double, double)? _identityMidpoint(
+  RunningPoseFrame frame,
+  int first,
+  int second,
+) {
+  final a = frame.landmarkByIndex(first);
+  final b = frame.landmarkByIndex(second);
+  if (a == null || b == null || a.confidence < 0.35 || b.confidence < 0.35) {
+    return null;
+  }
+  return ((a.x + b.x) / 2, (a.y + b.y) / 2);
 }
 
 Map<Object?, Object?>? _asObjectMap(Object? raw) {

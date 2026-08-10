@@ -12,9 +12,18 @@ import '../../gen/app_localizations.dart';
 
 /// Records a short side-view clip for the running analysis flow.
 Future<XFile?> captureRunningCoachVideo(BuildContext context) {
+  return captureRunningCoachVideoForRunner(context);
+}
+
+Future<XFile?> captureRunningCoachVideoForRunner(
+  BuildContext context, {
+  String? runnerDisplayName,
+}) {
   return Navigator.of(context).push<XFile>(
     MaterialPageRoute<XFile>(
-      builder: (_) => const RunningCaptureScreen(),
+      builder: (_) => RunningCaptureScreen(
+        runnerDisplayName: runnerDisplayName,
+      ),
       fullscreenDialog: true,
     ),
   );
@@ -24,12 +33,14 @@ class RunningCaptureScreen extends StatefulWidget {
   final Future<List<CameraDescription>> Function() cameraProvider;
   final Duration minimumDuration;
   final Duration maximumDuration;
+  final String? runnerDisplayName;
 
   const RunningCaptureScreen({
     super.key,
     this.cameraProvider = availableCameras,
     this.minimumDuration = const Duration(seconds: 5),
     this.maximumDuration = const Duration(seconds: 60),
+    this.runnerDisplayName,
   });
 
   @override
@@ -495,12 +506,33 @@ class _RunningCaptureScreenState extends State<RunningCaptureScreen>
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: Text(
-                      l10n.runningCoachCaptureTitle,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.runningCoachCaptureTitle,
+                          style:
+                              Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                        ),
+                        if (widget.runnerDisplayName != null)
+                          Text(
+                            l10n.runningCoachRunnerTarget(
+                              widget.runnerDisplayName!,
+                            ),
+                            key: const ValueKey(
+                              'running-coach-capture-runner-name',
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelMedium
+                                ?.copyWith(color: Colors.white70),
                           ),
+                      ],
                     ),
                   ),
                   if (canSwitchCamera)
@@ -953,6 +985,29 @@ class _CaptureFramingStatusPanel extends StatelessWidget {
     final measuredCount = status.checks
         .where((check) => check.state != _CaptureFramingCheckState.unknown)
         .length;
+    final compactChecks = status.checks
+        .where(
+          (check) =>
+              check.kind == _CaptureFramingCheckKind.fullBodySafe ||
+              check.kind == _CaptureFramingCheckKind.runnerScale ||
+              check.kind == _CaptureFramingCheckKind.sideView,
+        )
+        .toList(growable: false);
+    _CaptureFramingCheck? priorityWarning;
+    for (final check in <_CaptureFramingCheck>[
+      ...status.checks.where(
+        (item) => item.kind == _CaptureFramingCheckKind.phoneLevel,
+      ),
+      ...compactChecks,
+      ...status.checks.where(
+        (item) => item.kind == _CaptureFramingCheckKind.landmarksVisible,
+      ),
+    ]) {
+      if (check.state == _CaptureFramingCheckState.warning) {
+        priorityWarning = check;
+        break;
+      }
+    }
     return DecoratedBox(
       key: const ValueKey('running-capture-framing-status-panel'),
       decoration: BoxDecoration(
@@ -1001,12 +1056,15 @@ class _CaptureFramingStatusPanel extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              status.livePoseUnavailable
-                  ? l10n.runningCoachCaptureFramingFallbackBody
-                  : status.livePoseActive
-                      ? l10n.runningCoachCaptureFramingLiveBody
-                      : l10n.runningCoachCaptureFramingStartingBody,
-              maxLines: 2,
+              priorityWarning == null
+                  ? status.livePoseUnavailable
+                      ? l10n.runningCoachCaptureFramingFallbackBody
+                      : status.livePoseActive
+                          ? l10n.runningCoachCaptureFramingLiveReady
+                          : l10n.runningCoachCaptureFramingLiveSearching
+                  : _framingCheckText(l10n, priorityWarning),
+              key: const ValueKey('running-capture-priority-guidance'),
+              maxLines: 3,
               overflow: TextOverflow.ellipsis,
               style: theme.textTheme.labelSmall?.copyWith(
                 color: Colors.white.withValues(alpha: 0.82),
@@ -1018,13 +1076,15 @@ class _CaptureFramingStatusPanel extends StatelessWidget {
               spacing: 6,
               runSpacing: 6,
               children: [
-                for (final check in status.checks)
+                for (final check in compactChecks)
                   _CaptureFramingStatusChip(check: check),
               ],
             ),
             const SizedBox(height: 8),
             Text(
-              recordingLabel,
+              status.readyCount >= measuredCount
+                  ? recordingLabel
+                  : l10n.runningCoachCaptureWarningAnalysisLimited,
               textAlign: TextAlign.center,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: Colors.white,

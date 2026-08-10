@@ -1,3 +1,4 @@
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -33,6 +34,24 @@ void main() {
     expect(find.text('No camera is available.'), findsOneWidget);
     expect(find.text('Open camera again'), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('shows the selected runner in capture', (tester) async {
+    await tester.pumpWidget(
+      _localizedApp(
+        RunningCaptureScreen(
+          runnerDisplayName: 'Minjun',
+          cameraProvider: () async => const <CameraDescription>[],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey('running-coach-capture-runner-name')),
+      findsOneWidget,
+    );
+    expect(find.text('Analysis target: Minjun'), findsOneWidget);
   });
 
   testWidgets('framing status panel stays readable at 320px portrait', (
@@ -76,7 +95,7 @@ void main() {
 
     expect(find.text('6/6 ready'), findsOneWidget);
     expect(
-      find.byKey(const ValueKey('running-capture-framing-landmarksVisible')),
+      find.byKey(const ValueKey('running-capture-framing-fullBodySafe')),
       findsOneWidget,
     );
     expect(tester.takeException(), isNull);
@@ -101,7 +120,7 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Body not measured'), findsOneWidget);
-    expect(find.text('Joints not measured'), findsOneWidget);
+    expect(find.text('Size not measured'), findsOneWidget);
     expect(find.text('Side view not measured'), findsOneWidget);
   });
 }
