@@ -12186,6 +12186,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Backup preview is unavailable right now.';
 
   @override
+  String get backupPreviewChanged =>
+      'The remote backup changed after the preview. Review the latest details before restoring.';
+
+  @override
   String get backupDetailsParentCoreZero =>
       'Parent and coach uploads write zero player core records; only feedback and reward names are included.';
 

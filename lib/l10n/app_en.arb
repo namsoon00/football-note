@@ -6492,6 +6492,7 @@
     }
   },
   "backupDetailsPreviewUnavailable": "Backup preview is unavailable right now.",
+  "backupPreviewChanged": "The remote backup changed after the preview. Review the latest details before restoring.",
   "backupDetailsParentCoreZero": "Parent and coach uploads write zero player core records; only feedback and reward names are included.",
   "restoreModeAddMissingOnly": "Add missing only",
   "restoreModeSafeMerge": "Safe merge",

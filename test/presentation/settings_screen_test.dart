@@ -859,6 +859,7 @@ void main() {
 
     expect(backupService.restoreLatestWithModeCalled, isTrue);
     expect(backupService.lastRestoreMode, RestoreMode.safeMerge);
+    expect(backupService.lastExpectedPlanHash, 'plan-hash');
   });
 
   testWidgets('parent backup details show contribution scope', (
@@ -1689,6 +1690,7 @@ class _FakeDriveBackupService extends BackupService {
   bool restoreLatestCalled;
   bool restoreLatestWithModeCalled;
   RestoreMode? lastRestoreMode;
+  String? lastExpectedPlanHash;
   bool importChangedPlayerDriveBackupCalled;
   bool restorePreviousBackupCalled;
   bool refreshParentSharedDataIfNeededCalled;
@@ -1722,6 +1724,7 @@ class _FakeDriveBackupService extends BackupService {
         restoreLatestCalled = false,
         restoreLatestWithModeCalled = false,
         lastRestoreMode = null,
+        lastExpectedPlanHash = null,
         importChangedPlayerDriveBackupCalled = false,
         restorePreviousBackupCalled = false,
         refreshParentSharedDataIfNeededCalled = false,
@@ -1978,11 +1981,15 @@ class _FakeDriveBackupService extends BackupService {
   }
 
   @override
-  Future<RestoreReceipt> restoreLatestWithMode(RestoreMode mode) async {
+  Future<RestoreReceipt> restoreLatestWithMode(
+    RestoreMode mode, {
+    String? expectedPlanHash,
+  }) async {
     _legacyPlayerDriveConnection = false;
     restoreLatestCalled = true;
     restoreLatestWithModeCalled = true;
     lastRestoreMode = mode;
+    lastExpectedPlanHash = expectedPlanHash;
     return const RestoreReceipt(
       planHash: 'plan-hash',
       applied: 1,

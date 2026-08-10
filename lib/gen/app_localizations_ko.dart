@@ -11806,6 +11806,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get backupDetailsPreviewUnavailable => '지금은 백업 미리보기를 불러올 수 없어요.';
 
   @override
+  String get backupPreviewChanged =>
+      '미리보기 이후 원격 백업이 변경됐어요. 최신 상세 내용을 다시 확인한 뒤 가져오세요.';
+
+  @override
   String get backupDetailsParentCoreZero =>
       '보호자/코치 업로드는 선수 핵심 기록을 0개만 씁니다. 피드백과 선물 이름만 포함됩니다.';
 

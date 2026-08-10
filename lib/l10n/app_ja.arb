@@ -6492,6 +6492,7 @@
     }
   },
   "backupDetailsPreviewUnavailable": "現在バックアッププレビューを表示できません。",
+  "backupPreviewChanged": "プレビュー後にリモートバックアップが変更されました。最新の詳細を再確認してから復元してください。",
   "backupDetailsParentCoreZero": "保護者/コーチのアップロードではプレーヤーのコア記録は 0 件です。フィードバックと報酬名のみが含まれます。",
   "restoreModeAddMissingOnly": "不足分のみ追加",
   "restoreModeSafeMerge": "安全にマージ",

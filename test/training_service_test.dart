@@ -53,6 +53,8 @@ void main() {
     await Future<void>.delayed(const Duration(milliseconds: 50));
 
     expect(emissions.last.length, 0);
+    expect(box.values.single.deletedAt, isNotNull);
+    expect(box.values.single.recordId, isNotEmpty);
 
     await sub.cancel();
   });

@@ -11780,6 +11780,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get backupDetailsPreviewUnavailable => '現在バックアッププレビューを表示できません。';
 
   @override
+  String get backupPreviewChanged =>
+      'プレビュー後にリモートバックアップが変更されました。最新の詳細を再確認してから復元してください。';
+
+  @override
   String get backupDetailsParentCoreZero =>
       '保護者/コーチのアップロードではプレーヤーのコア記録は 0 件です。フィードバックと報酬名のみが含まれます。';
 

@@ -193,9 +193,11 @@ class HiveTrainingRepository implements TrainingRepository {
   @override
   Future<List<TrainingEntry>> getAll() async {
     debugCounters.sourceScanCount += 1;
-    final entries = _box.values.toList();
+    final entries = _box.values.toList(growable: false);
     debugCounters.sourceEntryVisitCount += entries.length;
-    return entries;
+    return entries
+        .where((entry) => entry.deletedAt == null)
+        .toList(growable: false);
   }
 
   @override
@@ -258,24 +260,47 @@ class HiveTrainingRepository implements TrainingRepository {
 
   @override
   Future<void> add(TrainingEntry entry) async {
-    final key = await _box.add(entry);
+    final now = DateTime.now();
+    final stored = entry.copyWithSyncMetadata(
+      recordId: entry.effectiveRecordId,
+      updatedAt: entry.updatedAt ?? now,
+      revision: entry.revision < 1 ? 1 : entry.revision,
+    );
+    final key = await _box.add(stored);
     await _tryUpdateIndexAfterSourceWrite(
-      () => _upsertIndexRecord(key, entry),
+      () => _upsertIndexRecord(key, stored),
     );
   }
 
   @override
   Future<void> update(int key, TrainingEntry entry) async {
-    await _box.put(key, entry);
+    final previous = _box.get(key);
+    final stored = entry.copyWithSyncMetadata(
+      recordId: previous?.effectiveRecordId ?? entry.effectiveRecordId,
+      updatedAt: DateTime.now(),
+      revision: (previous?.revision ?? entry.revision) + 1,
+      originDeviceId: entry.originDeviceId.trim().isNotEmpty
+          ? entry.originDeviceId
+          : previous?.originDeviceId,
+    );
+    await _box.put(key, stored);
     await _tryUpdateIndexAfterSourceWrite(
-      () => _upsertIndexRecord(key, entry),
+      () => _upsertIndexRecord(key, stored),
     );
   }
 
   @override
   Future<void> delete(TrainingEntry entry) async {
     final key = entry.key;
-    await entry.delete();
+    if (key == null) return;
+    final deletedAt = DateTime.now();
+    final tombstone = entry.copyWithSyncMetadata(
+      recordId: entry.effectiveRecordId,
+      updatedAt: deletedAt,
+      revision: entry.revision + 1,
+      deletedAt: deletedAt,
+    );
+    await _box.put(key, tombstone);
     await _tryUpdateIndexAfterSourceWrite(
       () => _removeIndexRecord(key),
     );
@@ -334,6 +359,7 @@ class HiveTrainingRepository implements TrainingRepository {
     debugCounters.sourceEntryVisitCount += source.length;
     final records = <_TrainingEntryIndexRecord>[];
     source.forEach((key, entry) {
+      if (entry.deletedAt != null) return;
       records.add(_TrainingEntryIndexRecord.fromEntry(key, entry));
     });
     return _TrainingIndexSnapshot.fromRecords(
@@ -450,6 +476,10 @@ class HiveTrainingRepository implements TrainingRepository {
   Future<void> _upsertIndexRecord(dynamic key, TrainingEntry entry) async {
     final box = _indexBox;
     if (box == null) return;
+    if (entry.deletedAt != null) {
+      await _removeIndexRecord(key);
+      return;
+    }
     final record = _TrainingEntryIndexRecord.fromEntry(key, entry);
     final recent = _readRecordList(box.get(_recentKey))
       ..removeWhere((item) => item.key == key)
@@ -615,7 +645,8 @@ class HiveTrainingRepository implements TrainingRepository {
 
   TrainingEntry? _entryForRecord(_TrainingEntryIndexRecord record) {
     debugCounters.trainingEntryFetchCount += 1;
-    return _box.get(record.key);
+    final entry = _box.get(record.key);
+    return entry?.deletedAt == null ? entry : null;
   }
 
   List<TrainingEntry> _entriesInRangeByFullScan(
@@ -626,6 +657,7 @@ class HiveTrainingRepository implements TrainingRepository {
     final entries = <TrainingEntry>[];
     for (final entry in _box.values) {
       debugCounters.sourceEntryVisitCount += 1;
+      if (entry.deletedAt != null) continue;
       if (!entry.date.isBefore(startInclusive) &&
           entry.date.isBefore(endExclusive)) {
         entries.add(entry);
@@ -645,6 +677,7 @@ class HiveTrainingRepository implements TrainingRepository {
     final entries = <TrainingEntry>[];
     for (final entry in _box.values) {
       debugCounters.sourceEntryVisitCount += 1;
+      if (entry.deletedAt != null) continue;
       if ((sportId == null || entry.sportId == sportId) &&
           (includeMatches || !entry.isMatch)) {
         entries.add(entry);
@@ -685,6 +718,7 @@ class HiveTrainingRepository implements TrainingRepository {
     return keys
         .map((key) => keyedEntries[key])
         .whereType<TrainingEntry>()
+        .where((entry) => entry.deletedAt == null)
         .toList(growable: false);
   }
 
