@@ -5,6 +5,7 @@ import 'package:football_note/gen/app_localizations.dart';
 import 'package:intl/intl.dart';
 
 import '../../application/backup_service.dart';
+import '../../application/backup_restore_plan.dart';
 import '../../application/coach_roster_service.dart';
 import '../../application/drive_connection_info.dart';
 import '../../application/drive_backup_service.dart';
@@ -1501,6 +1502,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       children.add(_buildDriveBackupLockedWarning(l10n));
     }
     children.add(_buildDriveQuickActions(l10n: l10n, familyState: familyState));
+    children.add(_buildBackupRestoreDetailsButton(l10n, familyState));
     if (!_signedIn || backupBlockedBeforeImport) {
       return children;
     }
@@ -1550,6 +1552,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     final children = <Widget>[
       _buildCurrentDriveAccountTile(l10n),
       _buildDriveQuickActions(l10n: l10n, familyState: familyState),
+      _buildBackupRestoreDetailsButton(l10n, familyState),
     ];
     if (!_signedIn) {
       return children;
@@ -1695,6 +1698,24 @@ class _SettingsScreenState extends State<SettingsScreen>
         ),
       );
     }
+    if (_signedIn && isSupportMode) {
+      actions.add(
+        _buildDriveQuickActionButton(
+          icon: Icons.cloud_upload_outlined,
+          label: l10n.settingsBackupContributionActionTitle,
+          tone: _DriveQuickActionTone.backup,
+          onPressed: (_backupBusy || _restoreBusy)
+              ? null
+              : () => _backupToDrive(
+                    l10n,
+                    title: l10n.settingsBackupContributionActionTitle,
+                    message: l10n.settingsSupportBackupConfirm,
+                    successMessage: l10n.settingsSupportBackupSuccess,
+                    failedMessage: l10n.settingsSupportBackupFailed,
+                  ),
+        ),
+      );
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1704,6 +1725,142 @@ class _SettingsScreenState extends State<SettingsScreen>
           if (i != actions.length - 1) const SizedBox(height: 8),
         ],
       ],
+    );
+  }
+
+  Widget _buildBackupRestoreDetailsButton(
+    AppLocalizations l10n,
+    FamilyAccessState familyState,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: OutlinedButton.icon(
+        onPressed: _driveStatusLoading || _backupBusy || _restoreBusy
+            ? null
+            : () => _showBackupRestoreDetails(l10n, familyState),
+        icon: const Icon(Icons.manage_search_outlined, size: 18),
+        label: Text(l10n.backupRestoreDetailsAction),
+      ),
+    );
+  }
+
+  Future<void> _showBackupRestoreDetails(
+    AppLocalizations l10n,
+    FamilyAccessState familyState,
+  ) async {
+    final backup = widget.driveBackupService;
+    if (backup == null) return;
+    BackupSnapshotDescriptor? local;
+    RestorePlan? safePlan;
+    Object? previewError;
+    try {
+      local = backup.describeLocalBackup();
+      if (_signedIn) {
+        safePlan = await backup.previewLatestRestore();
+      }
+    } catch (error) {
+      previewError = error;
+    }
+    if (!mounted) return;
+    final selectedMode = await showDialog<RestoreMode>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.backupRestoreDetailsTitle),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (local != null) ...[
+                _BackupDetailsLine(
+                  label: l10n.backupDetailsConnectedAccount,
+                  value: _connectedDriveLabel.trim().isEmpty
+                      ? l10n.driveConnectedAccountEmpty
+                      : _connectedDriveLabel.trim(),
+                ),
+                _BackupDetailsLine(
+                  label: l10n.backupDetailsTarget,
+                  value: familyState.isChildMode
+                      ? l10n.backupDetailsPlayerSourceTarget
+                      : l10n.backupDetailsParentContributionTarget,
+                ),
+                _BackupDetailsLine(
+                  label: l10n.backupDetailsLocalData,
+                  value: l10n.backupDetailsLocalCounts(
+                    local.counts.trainingEntries,
+                    local.counts.options,
+                  ),
+                ),
+              ],
+              if (safePlan != null) ...[
+                const SizedBox(height: 12),
+                _BackupDetailsLine(
+                  label: l10n.backupDetailsRemoteCreated,
+                  value: safePlan.source.createdAt == null
+                      ? l10n.settingsDriveActionBackupTimeUnknown
+                      : _formatBackupTime(safePlan.source.createdAt!),
+                ),
+                _BackupDetailsLine(
+                  label: l10n.backupDetailsIntegrity,
+                  value: safePlan.source.integrityVerified
+                      ? l10n.backupDetailsIntegrityVerified
+                      : l10n.backupDetailsIntegrityLegacy,
+                ),
+                _BackupDetailsLine(
+                  label: l10n.backupDetailsDiff,
+                  value: l10n.backupDetailsDiffCounts(
+                    safePlan.count(RestoreOperationType.add),
+                    safePlan.count(RestoreOperationType.update),
+                    safePlan.count(RestoreOperationType.conflict),
+                    safePlan.count(RestoreOperationType.tombstone),
+                    safePlan.count(RestoreOperationType.skip),
+                  ),
+                ),
+              ] else if (previewError != null) ...[
+                const SizedBox(height: 12),
+                Text(
+                  _driveFailureMessage(
+                    l10n,
+                    previewError,
+                    fallback: l10n.backupDetailsPreviewUnavailable,
+                  ),
+                ),
+              ],
+              if (familyState.isSupportMode) ...[
+                const SizedBox(height: 12),
+                Text(l10n.backupDetailsParentCoreZero),
+              ],
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(l10n.close),
+          ),
+          if (safePlan != null) ...[
+            TextButton(
+              onPressed: () =>
+                  Navigator.of(context).pop(RestoreMode.addMissingOnly),
+              child: Text(l10n.restoreModeAddMissingOnly),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(RestoreMode.safeMerge),
+              child: Text(l10n.restoreModeSafeMerge),
+            ),
+          ],
+        ],
+      ),
+    );
+    if (selectedMode == null || !mounted) return;
+    setState(() => _restoreBusy = true);
+    unawaited(
+      _runRestoreFromDrive(
+        l10n,
+        restoreAction: () async {
+          await backup.restoreLatestWithMode(selectedMode);
+        },
+      ),
     );
   }
 
@@ -3088,6 +3245,12 @@ class _SettingsScreenState extends State<SettingsScreen>
     if (raw.contains(DriveBackupService.backupOwnerMismatchErrorCode)) {
       return l10n.driveBackupOwnerMismatch;
     }
+    if (raw.contains(DriveBackupService.backupDatasetMismatchErrorCode)) {
+      return l10n.driveBackupDatasetMismatch;
+    }
+    if (raw.contains(DriveBackupService.backupPlayerMismatchErrorCode)) {
+      return l10n.driveBackupPlayerMismatch;
+    }
     if (raw
         .contains(DriveBackupService.changedPlayerDriveConnectionErrorCode)) {
       return l10n.driveBackupLockedAccountChanged;
@@ -3168,6 +3331,48 @@ class _SettingsScreenState extends State<SettingsScreen>
       ),
     );
     return secondConfirm == true;
+  }
+}
+
+class _BackupDetailsLine extends StatelessWidget {
+  const _BackupDetailsLine({
+    required this.label,
+    required this.value,
+  });
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              label,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              value,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

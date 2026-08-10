@@ -116,14 +116,13 @@ class FamilyAccessService {
     parentTrainingFeedbackKey,
     lastSharedSyncAtKey,
     lastSharedSyncRoleKey,
-    ...challengeRunSharedOptionKeys,
     ...PlayerLevelService.customRewardNamesOptionKeys,
   };
 
   static const FamilyBackupPolicy policy = FamilyBackupPolicy(
     childOwnsCoreData: true,
     parentMergesFamilyLayerOnly: true,
-    parentWritableScopes: <String>['feedback', 'rewards', 'challenges'],
+    parentWritableScopes: <String>['feedback', 'rewards'],
   );
 
   final OptionRepository _options;

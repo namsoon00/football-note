@@ -4791,7 +4791,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get restoreConfirm =>
-      'Import the latest data from Google Drive? This will replace current data.';
+      'Import the latest data from Google Drive with safe merge? Local-only records are kept.';
 
   @override
   String get restorePreviousConfirm =>
@@ -4882,6 +4882,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get driveBackupOwnerMismatch =>
       'Backup was stopped because the Drive backup belongs to a different Google account. Reconnect the correct account first.';
+
+  @override
+  String get driveBackupDatasetMismatch =>
+      'This Drive backup belongs to a different data set. Automatic merge was stopped.';
+
+  @override
+  String get driveBackupPlayerMismatch =>
+      'This Drive backup belongs to a different player. Automatic merge was stopped.';
 
   @override
   String get driveAccountSwitchImportAction => 'Import this account\'s backup';
@@ -5008,6 +5016,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get confirm => 'Confirm';
+
+  @override
+  String get close => 'Close';
 
   @override
   String get language => 'Language';
@@ -11790,7 +11801,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get familySharedBackupDescription =>
-      'Use one shared Drive backup without a server. Player mode manages core records directly, while parent mode syncs only feedback and reward names.';
+      'Use Drive backups without a server. Player mode owns the source snapshot, while parent mode syncs feedback and reward names through a separate contribution file.';
 
   @override
   String get familyBackupIncludesMedia =>
@@ -11805,7 +11816,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get familyChildDriveConnectionDescription =>
-      'In parent mode, connect the Google Drive account that holds the player\'s source data so both modes can share the same backup file.';
+      'In parent mode, connect the Google Drive account that holds the player\'s source data. Parent changes sync through a separate contribution file.';
 
   @override
   String get familyConnectChildDrive => 'Connect shared Drive';
@@ -12009,7 +12020,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsDataSyncSupportSummary =>
-      'Import the latest backup and write shared changes back to the parent or active player file.';
+      'Import the latest backup and write shared changes to the separate contribution file.';
 
   @override
   String get settingsSyncSourceStatusTitle => 'Backup data';
@@ -12120,6 +12131,71 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsBackupDataActionTitle => 'Back up data';
 
   @override
+  String get settingsBackupContributionActionTitle => 'Back up contribution';
+
+  @override
+  String get backupRestoreDetailsAction => 'Review backup details';
+
+  @override
+  String get backupRestoreDetailsTitle => 'Backup and restore details';
+
+  @override
+  String get backupDetailsConnectedAccount => 'Connected account';
+
+  @override
+  String get backupDetailsTarget => 'Target';
+
+  @override
+  String get backupDetailsPlayerSourceTarget => 'Player source snapshot';
+
+  @override
+  String get backupDetailsParentContributionTarget =>
+      'Parent contribution file';
+
+  @override
+  String get backupDetailsLocalData => 'Local data';
+
+  @override
+  String backupDetailsLocalCounts(int trainingCount, int optionCount) {
+    return '$trainingCount training, $optionCount app records';
+  }
+
+  @override
+  String get backupDetailsRemoteCreated => 'Remote backup';
+
+  @override
+  String get backupDetailsIntegrity => 'Integrity';
+
+  @override
+  String get backupDetailsIntegrityVerified => 'Hash verified';
+
+  @override
+  String get backupDetailsIntegrityLegacy => 'Legacy backup';
+
+  @override
+  String get backupDetailsDiff => 'Restore preview';
+
+  @override
+  String backupDetailsDiffCounts(int addCount, int updateCount,
+      int conflictCount, int deleteCount, int skipCount) {
+    return '$addCount add, $updateCount update, $conflictCount conflict, $deleteCount delete candidate, $skipCount skip';
+  }
+
+  @override
+  String get backupDetailsPreviewUnavailable =>
+      'Backup preview is unavailable right now.';
+
+  @override
+  String get backupDetailsParentCoreZero =>
+      'Parent and coach uploads write zero player core records; only feedback and reward names are included.';
+
+  @override
+  String get restoreModeAddMissingOnly => 'Add missing only';
+
+  @override
+  String get restoreModeSafeMerge => 'Safe merge';
+
+  @override
   String get settingsRoleAccountSummary =>
       'Choose this device usage mode first.';
 
@@ -12155,7 +12231,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsSupportActionSummary =>
-      'Parent mode does not create new source backups here. Instead, it imports player data or rolls back to the state saved before the last import.';
+      'Parent mode does not create new source backups here. It imports player data and writes feedback or reward names to a separate contribution file.';
 
   @override
   String get settingsPlayerAccountTitle => 'Record backup Drive account';
@@ -12173,7 +12249,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsPlayerRestoreDriveActionBody =>
-      'Replace the current device data with the latest backup stored on Google Drive.';
+      'Safely merge the latest backup from Google Drive while keeping local-only records.';
 
   @override
   String get settingsPlayerRestoreLocalActionTitle => 'Undo latest import';
@@ -12199,15 +12275,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsSupportBackupConfirm =>
-      'Back up parent-mode feedback and level reward names into the player\'s source Drive backup?';
+      'Back up parent-mode feedback and level reward names to the separate contribution file?';
 
   @override
   String get settingsSupportBackupSuccess =>
-      'Shared changes were backed up to the player\'s source Drive.';
+      'Shared changes were backed up to the contribution file.';
 
   @override
   String get settingsSupportBackupFailed =>
-      'Could not back up shared changes. Check that this Drive account already has a player-mode backup.';
+      'Could not back up shared changes. Check the Drive connection and family/player match.';
 
   @override
   String get settingsRestoreRollbackTitle => 'Import rollback';
@@ -12323,18 +12399,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get familyParentUsesChildDriveHint =>
-      'In parent mode, sign in with the Google Drive account that holds the player\'s source data to sync training feedback and reward names into the same backup file.';
+      'In parent mode, sign in with the Google Drive account that holds the player\'s source data to sync training feedback and reward names into a separate contribution file.';
 
   @override
   String get familyParentUsesChildDriveWarning =>
-      'Parent mode should connect to the Google Drive account that holds the player\'s source data so training feedback and reward names sync safely into the same backup file.';
+      'Parent mode should connect to the Google Drive account that holds the player\'s source data so feedback and reward names sync safely into the contribution file.';
 
   @override
   String get familySharedSyncTitle => 'Data sync status';
 
   @override
   String get familySharedSyncDescription =>
-      'Parent feedback and level reward names are written automatically into the same player backup file.';
+      'Parent feedback and level reward names are written automatically into a separate contribution file.';
 
   @override
   String get familySyncAlertTitle => 'Parent sync';
@@ -12390,7 +12466,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get familySharedRestoreConfirm =>
-      'Import the latest player data from Google Drive? This replaces the player records and shared data shown on this device.';
+      'Import the latest player data from Google Drive with safe merge? Local-only records on this device are kept.';
 
   @override
   String get familySharedRestoreSuccess => 'Player data imported.';
@@ -12418,7 +12494,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get restoreReconfirmBody =>
-      'Do you really want to restore? Current data will be replaced.';
+      'Do you really want to continue? Safe merge keeps local-only records; advanced rollback replaces current data.';
 
   @override
   String get familyParentFamilyMismatch =>
@@ -12665,14 +12741,15 @@ class AppLocalizationsEn extends AppLocalizations {
       'Parent mode does not create new training logs. Parent feedback can only be saved on an existing training log after the player records it first.';
 
   @override
-  String get parentSharedSyncInProgress => 'Syncing to the player\'s Drive...';
+  String get parentSharedSyncInProgress =>
+      'Syncing to the contribution file...';
 
   @override
-  String get parentSharedSyncDone => 'Synced to the player\'s Drive too.';
+  String get parentSharedSyncDone => 'Synced to the contribution file.';
 
   @override
   String get parentSharedSyncPending =>
-      'It will sync into the same player backup file after Drive is connected.';
+      'It will sync into the contribution file after Drive is connected.';
 
   @override
   String get levelGuideParentModeLabel => 'Parent mode';
@@ -12682,7 +12759,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get levelGuideParentModeDescription =>
-      'Parent mode can save reward names only, and saved reward names also sync into the shared player Drive backup. Reward received marks stay in player mode.';
+      'Parent mode can save reward names only, and saved reward names sync through the parent contribution file. Reward received marks stay in player mode.';
 
   @override
   String get levelGuideChildModeDescription =>

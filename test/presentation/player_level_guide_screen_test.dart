@@ -153,7 +153,7 @@ void main() {
 
     expect(
       find.text(
-        '보호자 모드에서는 레벨 선물 이름만 저장할 수 있고, 저장한 선물 이름은 선수 Drive 공유에도 반영됩니다. 선물 수령 표시는 선수 모드에서 진행합니다.',
+        '보호자 모드에서는 레벨 선물 이름만 저장할 수 있고, 저장한 선물 이름은 보호자 기여 파일로 동기화됩니다. 선물 수령 표시는 선수 모드에서 진행합니다.',
       ),
       findsOneWidget,
     );
@@ -191,7 +191,7 @@ void main() {
     await tester.pump();
 
     expect(find.text('동기화 중...'), findsOneWidget);
-    expect(find.text('선수 Drive로 동기화 중이에요...'), findsWidgets);
+    expect(find.text('기여 파일로 동기화 중이에요...'), findsWidgets);
 
     completer.complete(true);
     await tester.pumpAndSettle();

@@ -1,4 +1,5 @@
 import '../domain/repositories/backup_repository.dart';
+import 'backup_restore_plan.dart';
 import 'drive_connection_info.dart';
 import 'drive_backup_service.dart';
 import 'family_access_service.dart';
@@ -11,6 +12,37 @@ class BackupService {
   Future<void> backup() => _repository.backup();
 
   Future<void> restoreLatest() => _repository.restoreLatest();
+
+  Future<RestoreReceipt> restoreLatestWithMode(RestoreMode mode) async {
+    if (_repository case final DriveBackupService drive) {
+      return drive.restoreLatestWithMode(mode);
+    }
+    await _repository.restoreLatest();
+    return const RestoreReceipt(
+      planHash: '',
+      applied: 0,
+      updated: 0,
+      skipped: 0,
+      conflicts: 0,
+      deleted: 0,
+    );
+  }
+
+  Future<RestorePlan?> previewLatestRestore({
+    RestoreMode mode = RestoreMode.safeMerge,
+  }) async {
+    if (_repository case final DriveBackupService drive) {
+      return drive.previewLatestRestore(mode: mode);
+    }
+    return null;
+  }
+
+  BackupSnapshotDescriptor? describeLocalBackup() {
+    if (_repository case final DriveBackupService drive) {
+      return drive.describeLocalBackup();
+    }
+    return null;
+  }
 
   Future<void> restorePreviousBackup() async {
     if (_repository case final DriveBackupService drive) {

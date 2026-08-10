@@ -4669,7 +4669,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get backupConfirm => 'Google Drive에 새 백업을 만들까요?';
 
   @override
-  String get restoreConfirm => 'Google Drive의 최신 데이터를 가져올까요? 현재 데이터가 교체됩니다.';
+  String get restoreConfirm =>
+      'Google Drive의 최신 데이터를 안전 병합으로 가져올까요? 이 기기에만 있는 기록은 유지됩니다.';
 
   @override
   String get restorePreviousConfirm =>
@@ -4757,6 +4758,14 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get driveBackupOwnerMismatch =>
       'Drive 백업이 다른 Google 계정의 데이터로 확인되어 백업을 중단했어요. 올바른 계정으로 다시 연결해 주세요.';
+
+  @override
+  String get driveBackupDatasetMismatch =>
+      '이 Drive 백업은 다른 데이터 세트에 속해 있어 자동 병합을 중단했어요.';
+
+  @override
+  String get driveBackupPlayerMismatch =>
+      '이 Drive 백업은 다른 선수의 데이터로 확인되어 자동 병합을 중단했어요.';
 
   @override
   String get driveAccountSwitchImportAction => '이 계정 백업 가져오기';
@@ -4876,6 +4885,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get confirm => '확인';
+
+  @override
+  String get close => '닫기';
 
   @override
   String get language => '언어';
@@ -11417,7 +11429,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get familySharedBackupDescription =>
-      '서버 없이 Google Drive 백업 파일 하나를 함께 사용합니다. 선수 모드에서는 핵심 기록을 직접 관리하고, 보호자 모드에서는 피드백과 선물 이름만 동기화합니다.';
+      '서버 없이 Google Drive 백업을 사용합니다. 선수 모드는 원본 스냅샷을 소유하고, 보호자 모드는 피드백과 선물 이름을 별도 기여 파일로 동기화합니다.';
 
   @override
   String get familyBackupIncludesMedia =>
@@ -11432,7 +11444,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get familyChildDriveConnectionDescription =>
-      '보호자 모드에서는 선수 데이터 원본이 있는 Google Drive 계정으로 연결해야 같은 백업 파일을 함께 사용할 수 있어요.';
+      '보호자 모드에서는 선수 데이터 원본이 있는 Google Drive 계정으로 연결합니다. 보호자 변경사항은 별도 기여 파일로 동기화됩니다.';
 
   @override
   String get familyConnectChildDrive => '공유 Drive 연결';
@@ -11630,7 +11642,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get settingsDataSyncSupportSummary =>
-      '최신 백업을 가져오고 공유 변경은 보호자 또는 현재 선수 파일에 반영합니다.';
+      '최신 백업을 가져오고 공유 변경은 별도 기여 파일에 저장합니다.';
 
   @override
   String get settingsSyncSourceStatusTitle => '백업 데이터';
@@ -11741,6 +11753,69 @@ class AppLocalizationsKo extends AppLocalizations {
   String get settingsBackupDataActionTitle => '데이터 백업하기';
 
   @override
+  String get settingsBackupContributionActionTitle => '기여 파일 백업';
+
+  @override
+  String get backupRestoreDetailsAction => '백업 상세 확인';
+
+  @override
+  String get backupRestoreDetailsTitle => '백업 및 가져오기 상세';
+
+  @override
+  String get backupDetailsConnectedAccount => '연결 계정';
+
+  @override
+  String get backupDetailsTarget => '대상';
+
+  @override
+  String get backupDetailsPlayerSourceTarget => '선수 원본 스냅샷';
+
+  @override
+  String get backupDetailsParentContributionTarget => '보호자 기여 파일';
+
+  @override
+  String get backupDetailsLocalData => '로컬 데이터';
+
+  @override
+  String backupDetailsLocalCounts(int trainingCount, int optionCount) {
+    return '훈련 $trainingCount개, 앱 기록 $optionCount개';
+  }
+
+  @override
+  String get backupDetailsRemoteCreated => '원격 백업';
+
+  @override
+  String get backupDetailsIntegrity => '무결성';
+
+  @override
+  String get backupDetailsIntegrityVerified => '해시 확인됨';
+
+  @override
+  String get backupDetailsIntegrityLegacy => '이전 형식 백업';
+
+  @override
+  String get backupDetailsDiff => '가져오기 미리보기';
+
+  @override
+  String backupDetailsDiffCounts(int addCount, int updateCount,
+      int conflictCount, int deleteCount, int skipCount) {
+    return '추가 $addCount개, 업데이트 $updateCount개, 충돌 $conflictCount개, 삭제 후보 $deleteCount개, 건너뜀 $skipCount개';
+  }
+
+  @override
+  String get backupDetailsPreviewUnavailable => '지금은 백업 미리보기를 불러올 수 없어요.';
+
+  @override
+  String get backupDetailsParentCoreZero =>
+      '보호자/코치 업로드는 선수 핵심 기록을 0개만 씁니다. 피드백과 선물 이름만 포함됩니다.';
+
+  @override
+  String get restoreModeAddMissingOnly => '없는 항목만 추가';
+
+  @override
+  String get restoreModeSafeMerge => '안전 병합';
+
+  @override
   String get settingsRoleAccountSummary => '먼저 이 기기 사용 방식을 고르세요.';
 
   @override
@@ -11775,7 +11850,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get settingsSupportActionSummary =>
-      '보호자 모드에서는 새 원본 백업을 만들지 않고, 선수 모드에서 만든 데이터를 가져오거나 이전 가져오기 전 상태로 되돌립니다.';
+      '보호자 모드에서는 새 원본 백업을 만들지 않습니다. 선수 데이터를 가져오고 피드백/선물 이름은 별도 기여 파일에 저장합니다.';
 
   @override
   String get settingsPlayerAccountTitle => '기록 백업 Drive 계정';
@@ -11793,7 +11868,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get settingsPlayerRestoreDriveActionBody =>
-      'Google Drive에 있는 최신 백업을 가져와 현재 기기 데이터를 교체합니다.';
+      'Google Drive의 최신 백업을 안전 병합으로 가져오며, 이 기기에만 있는 기록은 유지합니다.';
 
   @override
   String get settingsPlayerRestoreLocalActionTitle => '최근 가져오기 취소';
@@ -11818,14 +11893,14 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get settingsSupportBackupConfirm =>
-      '보호자 모드에서 저장한 피드백과 레벨 선물 이름을 선수 데이터 원본 Drive에 반영할까요?';
+      '보호자 모드에서 저장한 피드백과 레벨 선물 이름을 별도 기여 파일에 백업할까요?';
 
   @override
-  String get settingsSupportBackupSuccess => '공유 변경사항을 선수 데이터 원본 Drive에 반영했어요.';
+  String get settingsSupportBackupSuccess => '공유 변경사항을 기여 파일에 백업했어요.';
 
   @override
   String get settingsSupportBackupFailed =>
-      '공유 변경사항 반영에 실패했어요. 선수 모드 백업이 있는 Drive 계정인지 확인해 주세요.';
+      '공유 변경사항 백업에 실패했어요. Drive 연결과 가족/선수 일치 여부를 확인해 주세요.';
 
   @override
   String get settingsRestoreRollbackTitle => '가져오기 되돌리기';
@@ -11938,18 +12013,18 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get familyParentUsesChildDriveHint =>
-      '보호자 모드에서는 선수 데이터 원본이 있는 Google Drive 계정으로 로그인하면 훈련 피드백과 선물 이름을 같은 백업 파일에 동기화할 수 있어요.';
+      '보호자 모드에서는 선수 데이터 원본이 있는 Google Drive 계정으로 로그인하면 훈련 피드백과 선물 이름을 별도 기여 파일로 동기화할 수 있어요.';
 
   @override
   String get familyParentUsesChildDriveWarning =>
-      '보호자 모드에서는 선수 데이터 원본이 있는 Google Drive 계정으로 연결해야 같은 백업 파일에 훈련 피드백과 선물 이름을 안전하게 동기화할 수 있어요.';
+      '보호자 모드에서는 선수 데이터 원본이 있는 Google Drive 계정으로 연결해야 피드백과 선물 이름을 기여 파일에 안전하게 동기화할 수 있어요.';
 
   @override
   String get familySharedSyncTitle => '데이터 동기화 상태';
 
   @override
   String get familySharedSyncDescription =>
-      '보호자 피드백과 레벨 선물 이름은 같은 선수 백업 파일로 자동 반영됩니다.';
+      '보호자 피드백과 레벨 선물 이름은 별도 기여 파일로 자동 반영됩니다.';
 
   @override
   String get familySyncAlertTitle => '보호자 동기화';
@@ -12005,7 +12080,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get familySharedRestoreConfirm =>
-      'Google Drive의 최신 선수 데이터를 가져올까요? 현재 기기에서 보이는 선수 기록과 공유 데이터가 교체됩니다.';
+      'Google Drive의 최신 선수 데이터를 안전 병합으로 가져올까요? 이 기기에만 있는 기록은 유지됩니다.';
 
   @override
   String get familySharedRestoreSuccess => '선수 데이터를 가져왔어요.';
@@ -12030,7 +12105,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get restoreReconfirmTitle => '복원 재확인';
 
   @override
-  String get restoreReconfirmBody => '정말 복원할까요? 현재 데이터는 백업 데이터로 교체됩니다.';
+  String get restoreReconfirmBody =>
+      '계속할까요? 안전 병합은 이 기기에만 있는 기록을 유지하고, 고급 되돌리기는 현재 데이터를 교체합니다.';
 
   @override
   String get familyParentFamilyMismatch =>
@@ -12265,13 +12341,13 @@ class AppLocalizationsKo extends AppLocalizations {
       '보호자 모드에서는 새 훈련기록을 만들지 않고, 이미 저장된 훈련기록에만 보호자 피드백을 저장할 수 있어요. 선수 모드에서 먼저 기록을 남긴 뒤 해당 기록을 열어 주세요.';
 
   @override
-  String get parentSharedSyncInProgress => '선수 Drive로 동기화 중이에요...';
+  String get parentSharedSyncInProgress => '기여 파일로 동기화 중이에요...';
 
   @override
-  String get parentSharedSyncDone => '선수 Drive에도 동기화했어요.';
+  String get parentSharedSyncDone => '기여 파일에 동기화했어요.';
 
   @override
-  String get parentSharedSyncPending => 'Drive 연결 후 같은 선수 백업 파일로 자동 동기화됩니다.';
+  String get parentSharedSyncPending => 'Drive 연결 후 기여 파일로 자동 동기화됩니다.';
 
   @override
   String get levelGuideParentModeLabel => '보호자 모드';
@@ -12281,7 +12357,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get levelGuideParentModeDescription =>
-      '보호자 모드에서는 레벨 선물 이름만 저장할 수 있고, 저장한 선물 이름은 선수 Drive 공유에도 반영됩니다. 선물 수령 표시는 선수 모드에서 진행합니다.';
+      '보호자 모드에서는 레벨 선물 이름만 저장할 수 있고, 저장한 선물 이름은 보호자 기여 파일로 동기화됩니다. 선물 수령 표시는 선수 모드에서 진행합니다.';
 
   @override
   String get levelGuideChildModeDescription =>

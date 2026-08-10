@@ -121,6 +121,13 @@ Future<_FootballNoteDependencies> _initializeAppDependencies() async {
     ),
   );
   await _runStartupStage<void>(
+    'drive_restore_recovery',
+    () => DriveBackupService.recoverInterruptedRestoreJournal(
+      trainingBox,
+      optionBox,
+    ),
+  );
+  await _runStartupStage<void>(
     'date_formatting',
     () => initializeDateFormatting('ko_KR'),
   );
