@@ -103,6 +103,23 @@ require(
     "iOS must recover after 60 seconds and reject only beyond the decode budget",
 )
 
+ios_selection_method = sources["ios"]
+require(
+    re.search(r"let selectionMethod:\s*Any\b", ios_selection_method) is not None
+    and 'selectionMethod = "ground"' in ios_selection_method
+    and 'selectionMethod = "kinematic"' in ios_selection_method
+    and "selectionMethod = NSNull()" in ios_selection_method
+    and '"selectionMethod": selectionMethod' in ios_selection_method,
+    "iOS selectionMethod must use an Any-typed payload value for ground, kinematic, and null states",
+)
+require(
+    re.search(
+        r"estimated\.isEmpty\s*\?\s*NSNull\(\)\s*:\s*\"kinematic\"",
+        ios_selection_method,
+    ) is None,
+    "iOS must not mix NSNull and String directly in a nested ternary",
+)
+
 partial_result_tokens = {
     "web": (
         "metricContacts.length === 0 ? null",
