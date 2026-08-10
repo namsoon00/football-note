@@ -89,7 +89,7 @@ class ParentSharedFeedbackService {
         );
 
   static String entryIdFor(TrainingEntry entry) {
-    return 'training_${entry.createdAt.toUtc().microsecondsSinceEpoch}';
+    return entry.effectiveRecordId;
   }
 
   Map<String, ParentTrainingFeedback> loadAll() {

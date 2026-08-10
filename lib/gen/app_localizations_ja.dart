@@ -4670,7 +4670,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get restoreConfirm =>
-      'Google ドライブから最新のデータをインポートしますか?これにより、現在のデータが置き換えられます。';
+      'Google ドライブから最新データを安全にマージしてインポートしますか?このデバイスだけの記録は保持されます。';
 
   @override
   String get restorePreviousConfirm =>
@@ -4758,6 +4758,14 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get driveBackupOwnerMismatch =>
       'Drive バックアップが別の Google アカウントのデータとして確認されたため、バックアップを停止しました。正しいアカウントに接続し直してください。';
+
+  @override
+  String get driveBackupDatasetMismatch =>
+      'この Drive バックアップは別のデータセットに属しています。自動マージを停止しました。';
+
+  @override
+  String get driveBackupPlayerMismatch =>
+      'この Drive バックアップは別のプレーヤーのデータです。自動マージを停止しました。';
 
   @override
   String get driveAccountSwitchImportAction => 'このアカウントのバックアップをインポート';
@@ -4879,6 +4887,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get confirm => '確認する';
+
+  @override
+  String get close => '閉じる';
 
   @override
   String get language => '言語';
@@ -11392,7 +11403,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get familySharedBackupDescription =>
-      'サーバーなしで 1 つの共有ドライブのバックアップを使用します。プレーヤー モードはコア レコードを直接管理しますが、親モードはフィードバックと報酬名のみを同期します。';
+      'サーバーなしで Drive バックアップを使用します。プレーヤー モードはソース スナップショットを所有し、親モードはフィードバックと報酬名を別の貢献ファイルで同期します。';
 
   @override
   String get familyBackupIncludesMedia =>
@@ -11407,7 +11418,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get familyChildDriveConnectionDescription =>
-      '親モードでは、プレーヤーのソース データを保持する Google ドライブ アカウントに接続し、両方のモードで同じバックアップ ファイルを共有できるようにします。';
+      '親モードでは、プレーヤーのソース データを保持する Google ドライブ アカウントに接続します。保護者の変更は別の貢献ファイルで同期されます。';
 
   @override
   String get familyConnectChildDrive => '共有ドライブを接続する';
@@ -11605,7 +11616,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settingsDataSyncSupportSummary =>
-      '最新のバックアップをインポートし、共有された変更を保護者または現在のプレーヤーのファイルに書き込みます。';
+      '最新のバックアップをインポートし、共有された変更は別の貢献ファイルに書き込みます。';
 
   @override
   String get settingsSyncSourceStatusTitle => 'バックアップデータ';
@@ -11716,6 +11727,69 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsBackupDataActionTitle => 'データのバックアップ';
 
   @override
+  String get settingsBackupContributionActionTitle => '貢献ファイルをバックアップ';
+
+  @override
+  String get backupRestoreDetailsAction => 'バックアップ詳細を確認';
+
+  @override
+  String get backupRestoreDetailsTitle => 'バックアップと復元の詳細';
+
+  @override
+  String get backupDetailsConnectedAccount => '接続中のアカウント';
+
+  @override
+  String get backupDetailsTarget => '対象';
+
+  @override
+  String get backupDetailsPlayerSourceTarget => 'プレーヤーのソーススナップショット';
+
+  @override
+  String get backupDetailsParentContributionTarget => '保護者の貢献ファイル';
+
+  @override
+  String get backupDetailsLocalData => 'ローカルデータ';
+
+  @override
+  String backupDetailsLocalCounts(int trainingCount, int optionCount) {
+    return 'トレーニング $trainingCount 件、アプリ記録 $optionCount 件';
+  }
+
+  @override
+  String get backupDetailsRemoteCreated => 'リモートバックアップ';
+
+  @override
+  String get backupDetailsIntegrity => '整合性';
+
+  @override
+  String get backupDetailsIntegrityVerified => 'ハッシュ確認済み';
+
+  @override
+  String get backupDetailsIntegrityLegacy => '旧形式のバックアップ';
+
+  @override
+  String get backupDetailsDiff => '復元プレビュー';
+
+  @override
+  String backupDetailsDiffCounts(int addCount, int updateCount,
+      int conflictCount, int deleteCount, int skipCount) {
+    return '追加 $addCount 件、更新 $updateCount 件、競合 $conflictCount 件、削除候補 $deleteCount 件、スキップ $skipCount 件';
+  }
+
+  @override
+  String get backupDetailsPreviewUnavailable => '現在バックアッププレビューを表示できません。';
+
+  @override
+  String get backupDetailsParentCoreZero =>
+      '保護者/コーチのアップロードではプレーヤーのコア記録は 0 件です。フィードバックと報酬名のみが含まれます。';
+
+  @override
+  String get restoreModeAddMissingOnly => '不足分のみ追加';
+
+  @override
+  String get restoreModeSafeMerge => '安全にマージ';
+
+  @override
   String get settingsRoleAccountSummary => '最初にこのデバイス使用モードを選択します。';
 
   @override
@@ -11750,7 +11824,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settingsSupportActionSummary =>
-      '親モードでは、ここでは新しいソース バックアップは作成されません。代わりに、プレーヤー データをインポートするか、最後のインポート前に保存された状態にロールバックします。';
+      '親モードでは新しいソース バックアップは作成されません。プレーヤー データをインポートし、フィードバックや報酬名は別の貢献ファイルに保存します。';
 
   @override
   String get settingsPlayerAccountTitle => 'バックアップ ドライブ アカウントを記録する';
@@ -11768,7 +11842,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settingsPlayerRestoreDriveActionBody =>
-      '現在のデバイスのデータを、Google ドライブに保存されている最新のバックアップに置き換えます。';
+      'Google ドライブの最新バックアップを安全にマージし、このデバイスだけの記録は保持します。';
 
   @override
   String get settingsPlayerRestoreLocalActionTitle => '最新のインポートを元に戻す';
@@ -11793,15 +11867,14 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settingsSupportBackupConfirm =>
-      '親モードのフィードバックとレベル報酬名をプレーヤーのソース ドライブのバックアップにバックアップしますか?';
+      '親モードのフィードバックとレベル報酬名を別の貢献ファイルにバックアップしますか?';
 
   @override
-  String get settingsSupportBackupSuccess =>
-      '共有された変更は、プレーヤーのソース ドライブにバックアップされました。';
+  String get settingsSupportBackupSuccess => '共有された変更を貢献ファイルにバックアップしました。';
 
   @override
   String get settingsSupportBackupFailed =>
-      '共有された変更をバックアップできませんでした。このドライブ アカウントにプレーヤー モードのバックアップが既に存在することを確認してください。';
+      '共有された変更をバックアップできませんでした。Drive 接続と家族/プレーヤーの一致を確認してください。';
 
   @override
   String get settingsRestoreRollbackTitle => 'インポートのロールバック';
@@ -11915,18 +11988,18 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get familyParentUsesChildDriveHint =>
-      '親モードでは、プレーヤーのソース データを保持する Google ドライブ アカウントでサインインし、トレーニング フィードバックと報酬名を同じバックアップ ファイルに同期します。';
+      '親モードでは、プレーヤーのソース データを保持する Google ドライブ アカウントでサインインし、トレーニング フィードバックと報酬名を別の貢献ファイルに同期します。';
 
   @override
   String get familyParentUsesChildDriveWarning =>
-      '親モードでは、トレーニング フィードバックと報酬名が同じバックアップ ファイルに安全に同期されるように、プレーヤーのソース データを保持する Google ドライブ アカウントに接続する必要があります。';
+      '親モードでは、フィードバックと報酬名を貢献ファイルに安全に同期するため、プレーヤーのソース データを保持する Google ドライブ アカウントに接続する必要があります。';
 
   @override
   String get familySharedSyncTitle => 'データ同期ステータス';
 
   @override
   String get familySharedSyncDescription =>
-      '親のフィードバックとレベル報酬の名前は、同じプレーヤーのバックアップ ファイルに自動的に書き込まれます。';
+      '親のフィードバックとレベル報酬名は、別の貢献ファイルに自動的に書き込まれます。';
 
   @override
   String get familySyncAlertTitle => '保護者同期';
@@ -11982,7 +12055,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get familySharedRestoreConfirm =>
-      'Google ドライブから最新のプレーヤー データをインポートしますか?これにより、このデバイスに表示されるプレーヤーのレコードと共有データが置き換えられます。';
+      'Google ドライブから最新のプレーヤー データを安全にマージしてインポートしますか?このデバイスだけの記録は保持されます。';
 
   @override
   String get familySharedRestoreSuccess => 'プレイヤーデータをインポートしました。';
@@ -12008,7 +12081,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get restoreReconfirmTitle => '復元の確認';
 
   @override
-  String get restoreReconfirmBody => '本当に復元しますか?現在のデータは置き換えられます。';
+  String get restoreReconfirmBody =>
+      '続行しますか?安全なマージではこのデバイスだけの記録を保持し、高度なロールバックでは現在のデータを置き換えます。';
 
   @override
   String get familyParentFamilyMismatch =>
@@ -12243,14 +12317,13 @@ class AppLocalizationsJa extends AppLocalizations {
       '親モードでは、新しいトレーニング ログは作成されません。親のフィードバックは、プレーヤーが最初に記録した後でのみ、既存のトレーニング ログに保存できます。';
 
   @override
-  String get parentSharedSyncInProgress => 'プレーヤーのドライブと同期しています...';
+  String get parentSharedSyncInProgress => '貢献ファイルに同期しています...';
 
   @override
-  String get parentSharedSyncDone => 'プレーヤーのドライブにも同期されます。';
+  String get parentSharedSyncDone => '貢献ファイルに同期しました。';
 
   @override
-  String get parentSharedSyncPending =>
-      'ドライブが接続された後、同じプレーヤーのバックアップ ファイルに同期されます。';
+  String get parentSharedSyncPending => 'ドライブ接続後、貢献ファイルに同期されます。';
 
   @override
   String get levelGuideParentModeLabel => '親モード';
@@ -12260,7 +12333,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get levelGuideParentModeDescription =>
-      '親モードでは報酬名のみを保存でき、保存された報酬名は共有プレーヤーのドライブのバックアップにも同期されます。報酬で受け取ったマークはプレーヤー モードに残ります。';
+      '親モードでは報酬名のみ保存でき、保存した報酬名は保護者の貢献ファイルで同期されます。報酬の受け取り印はプレーヤーモードに残ります。';
 
   @override
   String get levelGuideChildModeDescription =>

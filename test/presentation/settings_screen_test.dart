@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:football_note/application/backup_restore_plan.dart';
 import 'package:football_note/application/backup_service.dart';
 import 'package:football_note/application/coach_roster_service.dart';
 import 'package:football_note/application/drive_connection_info.dart';
@@ -13,6 +14,81 @@ import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/settings_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+BackupSnapshotDescriptor _backupDescriptor({
+  FamilyRole role = FamilyRole.child,
+  int trainingEntries = 0,
+  int options = 0,
+  DateTime? createdAt,
+  String accountEmail = 'player@example.com',
+}) {
+  return BackupSnapshotDescriptor(
+    format: BackupRestorePlanner.backupFormatValue,
+    version: 7,
+    createdAt: createdAt ?? DateTime(2026, 3, 22, 10),
+    role: role,
+    familyId: 'family-1',
+    playerId: 'player-1',
+    datasetId: 'dataset-1',
+    accountEmail: accountEmail,
+    accountLabel: accountEmail,
+    accountSubjectId: 'subject-1',
+    contentHash: 'hash-1',
+    integrityVerified: true,
+    counts: BackupCategoryCounts(
+      trainingEntries: trainingEntries,
+      options: options,
+    ),
+  );
+}
+
+RestorePlan _restorePlan({
+  FamilyRole sourceRole = FamilyRole.child,
+  int addCount = 0,
+  int updateCount = 0,
+  int conflictCount = 0,
+  int tombstoneCount = 0,
+  int skipCount = 0,
+}) {
+  List<RestoreOperation> operations(
+    RestoreOperationType type,
+    int count,
+  ) {
+    return List<RestoreOperation>.generate(
+      count,
+      (index) => RestoreOperation(
+        type: type,
+        category: RestoreOperationCategory.training,
+        recordId: '${type.name}-$index',
+        label: '${type.name}-$index',
+        reason: type.name,
+      ),
+    );
+  }
+
+  final operationList = <RestoreOperation>[
+    ...operations(RestoreOperationType.add, addCount),
+    ...operations(RestoreOperationType.update, updateCount),
+    ...operations(RestoreOperationType.conflict, conflictCount),
+    ...operations(RestoreOperationType.tombstone, tombstoneCount),
+    ...operations(RestoreOperationType.skip, skipCount),
+  ];
+  return RestorePlan(
+    source: _backupDescriptor(
+      role: sourceRole,
+      trainingEntries: addCount + updateCount + skipCount,
+      options: 2,
+      createdAt: DateTime(2026, 3, 23, 8),
+    ),
+    target: _backupDescriptor(trainingEntries: 1, options: 1),
+    mode: RestoreMode.safeMerge,
+    planHash: 'plan-hash',
+    beforeSummary: const <String, int>{'trainingEntries': 1, 'options': 1},
+    afterSummary: const <String, int>{'trainingEntries': 2, 'options': 2},
+    warnings: const <String>[],
+    operations: operationList,
+  );
+}
 
 void main() {
   testWidgets('general settings can disable sound effects', (
@@ -717,6 +793,140 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(backupService.restoreLatestCalled, isTrue);
+  });
+
+  testWidgets('backup details dialog previews safe merge before restore',
+      (WidgetTester tester) async {
+    final optionRepository = _MemoryOptionRepository();
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+    final backupService = _FakeDriveBackupService(
+      signedIn: true,
+      connectionInfo: const DriveConnectionInfo(
+        email: 'player@example.com',
+        displayName: '민수',
+        subjectId: 'subject-player',
+      ),
+      sharedChildDriveLabel: '',
+      sharedChildDriveEmail: '',
+      savedRecordDriveLabel: '민수 · player@example.com',
+      savedRecordDriveEmail: 'player@example.com',
+      lastBackupAt: DateTime(2026, 3, 22, 10),
+      localDescriptor: _backupDescriptor(trainingEntries: 1, options: 1),
+      previewPlan: _restorePlan(
+        addCount: 2,
+        updateCount: 1,
+        conflictCount: 1,
+        tombstoneCount: 1,
+        skipCount: 3,
+      ),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: SettingsScreen(
+          localeService: localeService,
+          settingsService: settingsService,
+          optionRepository: optionRepository,
+          driveBackupService: backupService,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(
+      find.widgetWithText(OutlinedButton, '백업 상세 확인'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(OutlinedButton, '백업 상세 확인'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('백업 및 가져오기 상세'), findsOneWidget);
+    expect(
+      find.text('추가 2개, 업데이트 1개, 충돌 1개, 삭제 후보 1개, 건너뜀 3개'),
+      findsOneWidget,
+    );
+    expect(find.widgetWithText(TextButton, '없는 항목만 추가'), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, '안전 병합'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(FilledButton, '안전 병합'));
+    await tester.pumpAndSettle();
+
+    expect(backupService.restoreLatestWithModeCalled, isTrue);
+    expect(backupService.lastRestoreMode, RestoreMode.safeMerge);
+  });
+
+  testWidgets('parent backup details show contribution scope', (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _MemoryOptionRepository();
+    await optionRepository.setValue(
+      FamilyAccessService.currentRoleLocalKey,
+      FamilyRole.parent.name,
+    );
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+    final backupService = _FakeDriveBackupService(
+      signedIn: true,
+      connectionInfo: const DriveConnectionInfo(
+        email: 'parent@example.com',
+        displayName: '부모',
+        subjectId: 'subject-parent',
+      ),
+      sharedChildDriveLabel: '민수 · child@example.com',
+      sharedChildDriveEmail: 'child@example.com',
+      lastBackupAt: DateTime(2026, 3, 22, 10),
+      localDescriptor: _backupDescriptor(
+        role: FamilyRole.parent,
+        trainingEntries: 4,
+        options: 2,
+        accountEmail: 'parent@example.com',
+      ),
+      previewPlan: _restorePlan(sourceRole: FamilyRole.parent, skipCount: 2),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: SettingsScreen(
+          localeService: localeService,
+          settingsService: settingsService,
+          optionRepository: optionRepository,
+          driveBackupService: backupService,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(
+      find.widgetWithText(OutlinedButton, '백업 상세 확인'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.widgetWithText(OutlinedButton, '기여 파일 백업'), findsOneWidget);
+    expect(find.widgetWithText(OutlinedButton, '데이터 백업하기'), findsNothing);
+
+    await tester.tap(find.widgetWithText(OutlinedButton, '백업 상세 확인'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('보호자 기여 파일'), findsOneWidget);
+    expect(
+      find.text('보호자/코치 업로드는 선수 핵심 기록을 0개만 씁니다. 피드백과 선물 이름만 포함됩니다.'),
+      findsOneWidget,
+    );
+    expect(
+      find.text('추가 0개, 업데이트 0개, 충돌 0개, 삭제 후보 0개, 건너뜀 2개'),
+      findsOneWidget,
+    );
   });
 
   testWidgets(
@@ -1469,12 +1679,16 @@ class _FakeDriveBackupService extends BackupService {
   final DateTime? _localPreRestoreAt;
   final DriveConnectionInfo? _remoteSharedChildConnectionInfo;
   final bool _hasRemotePlayerBackup;
+  final BackupSnapshotDescriptor? _localDescriptor;
+  final RestorePlan? _previewPlan;
   bool _pendingParentSharedChanges;
   final DriveConnectionInfo? signInConnectionInfo;
   bool throwNextIsSignedIn;
   final bool throwIsSignedInAfterSignInOnce;
   bool signOutCalled;
   bool restoreLatestCalled;
+  bool restoreLatestWithModeCalled;
+  RestoreMode? lastRestoreMode;
   bool importChangedPlayerDriveBackupCalled;
   bool restorePreviousBackupCalled;
   bool refreshParentSharedDataIfNeededCalled;
@@ -1496,6 +1710,8 @@ class _FakeDriveBackupService extends BackupService {
     DateTime? localPreRestoreAt,
     DriveConnectionInfo? remoteSharedChildConnectionInfo,
     bool hasRemotePlayerBackup = false,
+    BackupSnapshotDescriptor? localDescriptor,
+    RestorePlan? previewPlan,
     bool pendingParentSharedChanges = false,
     bool legacyPlayerDriveConnection = false,
     this.signInConnectionInfo,
@@ -1504,6 +1720,8 @@ class _FakeDriveBackupService extends BackupService {
   })  : _signedIn = signedIn,
         signOutCalled = false,
         restoreLatestCalled = false,
+        restoreLatestWithModeCalled = false,
+        lastRestoreMode = null,
         importChangedPlayerDriveBackupCalled = false,
         restorePreviousBackupCalled = false,
         refreshParentSharedDataIfNeededCalled = false,
@@ -1521,6 +1739,8 @@ class _FakeDriveBackupService extends BackupService {
         _localPreRestoreAt = localPreRestoreAt,
         _remoteSharedChildConnectionInfo = remoteSharedChildConnectionInfo,
         _hasRemotePlayerBackup = hasRemotePlayerBackup,
+        _localDescriptor = localDescriptor,
+        _previewPlan = previewPlan,
         _pendingParentSharedChanges = pendingParentSharedChanges,
         _legacyPlayerDriveConnection = legacyPlayerDriveConnection,
         super(_FakeBackupRepository(lastBackupAt: lastBackupAt));
@@ -1745,6 +1965,32 @@ class _FakeDriveBackupService extends BackupService {
   Future<void> restoreLatest() async {
     _legacyPlayerDriveConnection = false;
     restoreLatestCalled = true;
+  }
+
+  @override
+  BackupSnapshotDescriptor? describeLocalBackup() => _localDescriptor;
+
+  @override
+  Future<RestorePlan?> previewLatestRestore({
+    RestoreMode mode = RestoreMode.safeMerge,
+  }) async {
+    return _previewPlan;
+  }
+
+  @override
+  Future<RestoreReceipt> restoreLatestWithMode(RestoreMode mode) async {
+    _legacyPlayerDriveConnection = false;
+    restoreLatestCalled = true;
+    restoreLatestWithModeCalled = true;
+    lastRestoreMode = mode;
+    return const RestoreReceipt(
+      planHash: 'plan-hash',
+      applied: 1,
+      updated: 0,
+      skipped: 0,
+      conflicts: 0,
+      deleted: 0,
+    );
   }
 
   @override

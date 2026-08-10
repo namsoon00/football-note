@@ -211,6 +211,24 @@ class TrainingEntry extends HiveObject {
   @HiveField(74)
   final String matchFixtureId;
 
+  @HiveField(75)
+  final String recordId;
+
+  @HiveField(76)
+  final DateTime? updatedAt;
+
+  @HiveField(77)
+  final int revision;
+
+  @HiveField(78)
+  final String originDeviceId;
+
+  @HiveField(79)
+  final String payloadHash;
+
+  @HiveField(80)
+  final DateTime? deletedAt;
+
   TrainingEntry({
     required this.date,
     required this.durationMinutes,
@@ -280,9 +298,114 @@ class TrainingEntry extends HiveObject {
     this.penaltyShootoutGoalsAgainst,
     this.matchCompetitionId = '',
     this.matchFixtureId = '',
+    this.recordId = '',
+    this.updatedAt,
+    this.revision = 1,
+    this.originDeviceId = '',
+    this.payloadHash = '',
+    this.deletedAt,
     String sportId = SportCatalog.defaultSportId,
   })  : sportId = SportCatalog.normalizeSportId(sportId),
         createdAt = createdAt ?? DateTime.now();
+
+  String get effectiveRecordId {
+    final explicit = recordId.trim();
+    if (explicit.isNotEmpty) return explicit;
+    return legacyRecordIdForCreatedAt(createdAt);
+  }
+
+  DateTime get effectiveUpdatedAt => updatedAt ?? createdAt;
+
+  static String legacyRecordIdForCreatedAt(DateTime createdAt) {
+    return 'training_${createdAt.toUtc().microsecondsSinceEpoch}';
+  }
+
+  TrainingEntry copyWithSyncMetadata({
+    String? recordId,
+    DateTime? updatedAt,
+    int? revision,
+    String? originDeviceId,
+    String? payloadHash,
+    DateTime? deletedAt,
+  }) {
+    return TrainingEntry(
+      date: date,
+      durationMinutes: durationMinutes,
+      intensity: intensity,
+      type: type,
+      mood: mood,
+      injury: injury,
+      notes: notes,
+      location: location,
+      program: program,
+      drills: drills,
+      club: club,
+      injuryPart: injuryPart,
+      painLevel: painLevel,
+      rehab: rehab,
+      goal: goal,
+      feedback: feedback,
+      heightCm: heightCm,
+      weightKg: weightKg,
+      imagePath: imagePath,
+      imagePaths: imagePaths,
+      status: status,
+      liftingByPart: liftingByPart,
+      liftingMinutes: liftingMinutes,
+      coachComment: coachComment,
+      fortuneComment: fortuneComment,
+      fortuneRecommendation: fortuneRecommendation,
+      fortuneRecommendedProgram: fortuneRecommendedProgram,
+      goalFocuses: goalFocuses,
+      goodPoints: goodPoints,
+      improvements: improvements,
+      nextGoal: nextGoal,
+      createdAt: createdAt,
+      jumpRopeCount: jumpRopeCount,
+      jumpRopeMinutes: jumpRopeMinutes,
+      jumpRopeEnabled: jumpRopeEnabled,
+      jumpRopeNote: jumpRopeNote,
+      opponentTeam: opponentTeam,
+      scoredGoals: scoredGoals,
+      concededGoals: concededGoals,
+      playerGoals: playerGoals,
+      playerAssists: playerAssists,
+      minutesPlayed: minutesPlayed,
+      matchLocation: matchLocation,
+      breakfastDone: breakfastDone,
+      breakfastRiceBowls: breakfastRiceBowls,
+      lunchDone: lunchDone,
+      lunchRiceBowls: lunchRiceBowls,
+      dinnerDone: dinnerDone,
+      dinnerRiceBowls: dinnerRiceBowls,
+      shotsOnTarget: shotsOnTarget,
+      ballsWon: ballsWon,
+      matchKind: matchKind,
+      leagueTeamNames: leagueTeamNames,
+      leagueResultMode: leagueResultMode,
+      leaguePoints: leaguePoints,
+      tournamentWins: tournamentWins,
+      trainingProgramMinutes: trainingProgramMinutes,
+      matchCompetitionName: matchCompetitionName,
+      matchStage: matchStage,
+      tournamentOutcome: tournamentOutcome,
+      isLesson: isLesson,
+      lessonDetail: lessonDetail,
+      yellowCards: yellowCards,
+      redCards: redCards,
+      penaltyShootoutGoalsFor: penaltyShootoutGoalsFor,
+      penaltyShootoutGoalsAgainst: penaltyShootoutGoalsAgainst,
+      matchCompetitionId: matchCompetitionId,
+      matchFixtureId: matchFixtureId,
+      recordId: recordId ?? this.recordId,
+      updatedAt: updatedAt ?? this.updatedAt,
+      revision: revision ?? this.revision,
+      originDeviceId: originDeviceId ?? this.originDeviceId,
+      payloadHash: payloadHash ?? this.payloadHash,
+      deletedAt: deletedAt ?? this.deletedAt,
+      sportId: sportId,
+    );
+  }
 
   String get effectiveMatchLocation =>
       matchLocation.trim().isNotEmpty ? matchLocation : location;
@@ -462,13 +585,19 @@ class TrainingEntryAdapter extends TypeAdapter<TrainingEntry> {
       penaltyShootoutGoalsAgainst: (fields[72] as num?)?.toInt(),
       matchCompetitionId: (fields[73] as String?) ?? '',
       matchFixtureId: (fields[74] as String?) ?? '',
+      recordId: (fields[75] as String?) ?? '',
+      updatedAt: fields[76] as DateTime?,
+      revision: (fields[77] as num?)?.toInt() ?? 1,
+      originDeviceId: (fields[78] as String?) ?? '',
+      payloadHash: (fields[79] as String?) ?? '',
+      deletedAt: fields[80] as DateTime?,
     );
   }
 
   @override
   void write(BinaryWriter writer, TrainingEntry obj) {
     writer
-      ..writeByte(69)
+      ..writeByte(75)
       ..writeByte(0)
       ..write(obj.date)
       ..writeByte(1)
@@ -606,7 +735,19 @@ class TrainingEntryAdapter extends TypeAdapter<TrainingEntry> {
       ..writeByte(73)
       ..write(obj.matchCompetitionId)
       ..writeByte(74)
-      ..write(obj.matchFixtureId);
+      ..write(obj.matchFixtureId)
+      ..writeByte(75)
+      ..write(obj.recordId)
+      ..writeByte(76)
+      ..write(obj.updatedAt)
+      ..writeByte(77)
+      ..write(obj.revision)
+      ..writeByte(78)
+      ..write(obj.originDeviceId)
+      ..writeByte(79)
+      ..write(obj.payloadHash)
+      ..writeByte(80)
+      ..write(obj.deletedAt);
   }
 
   Map<String, int> _readProgramMinutes(Object? raw) {

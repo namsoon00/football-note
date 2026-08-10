@@ -8391,7 +8391,7 @@ abstract class AppLocalizations {
   /// No description provided for @restoreConfirm.
   ///
   /// In en, this message translates to:
-  /// **'Import the latest data from Google Drive? This will replace current data.'**
+  /// **'Import the latest data from Google Drive with safe merge? Local-only records are kept.'**
   String get restoreConfirm;
 
   /// No description provided for @restorePreviousConfirm.
@@ -8549,6 +8549,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Backup was stopped because the Drive backup belongs to a different Google account. Reconnect the correct account first.'**
   String get driveBackupOwnerMismatch;
+
+  /// No description provided for @driveBackupDatasetMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'This Drive backup belongs to a different data set. Automatic merge was stopped.'**
+  String get driveBackupDatasetMismatch;
+
+  /// No description provided for @driveBackupPlayerMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'This Drive backup belongs to a different player. Automatic merge was stopped.'**
+  String get driveBackupPlayerMismatch;
 
   /// No description provided for @driveAccountSwitchImportAction.
   ///
@@ -8771,6 +8783,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Confirm'**
   String get confirm;
+
+  /// No description provided for @close.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get close;
 
   /// No description provided for @language.
   ///
@@ -20167,7 +20185,7 @@ abstract class AppLocalizations {
   /// No description provided for @familySharedBackupDescription.
   ///
   /// In en, this message translates to:
-  /// **'Use one shared Drive backup without a server. Player mode manages core records directly, while parent mode syncs only feedback and reward names.'**
+  /// **'Use Drive backups without a server. Player mode owns the source snapshot, while parent mode syncs feedback and reward names through a separate contribution file.'**
   String get familySharedBackupDescription;
 
   /// No description provided for @familyBackupIncludesMedia.
@@ -20191,7 +20209,7 @@ abstract class AppLocalizations {
   /// No description provided for @familyChildDriveConnectionDescription.
   ///
   /// In en, this message translates to:
-  /// **'In parent mode, connect the Google Drive account that holds the player\'s source data so both modes can share the same backup file.'**
+  /// **'In parent mode, connect the Google Drive account that holds the player\'s source data. Parent changes sync through a separate contribution file.'**
   String get familyChildDriveConnectionDescription;
 
   /// No description provided for @familyConnectChildDrive.
@@ -20527,7 +20545,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsDataSyncSupportSummary.
   ///
   /// In en, this message translates to:
-  /// **'Import the latest backup and write shared changes back to the parent or active player file.'**
+  /// **'Import the latest backup and write shared changes to the separate contribution file.'**
   String get settingsDataSyncSupportSummary;
 
   /// No description provided for @settingsSyncSourceStatusTitle.
@@ -20716,6 +20734,121 @@ abstract class AppLocalizations {
   /// **'Back up data'**
   String get settingsBackupDataActionTitle;
 
+  /// No description provided for @settingsBackupContributionActionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up contribution'**
+  String get settingsBackupContributionActionTitle;
+
+  /// No description provided for @backupRestoreDetailsAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Review backup details'**
+  String get backupRestoreDetailsAction;
+
+  /// No description provided for @backupRestoreDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup and restore details'**
+  String get backupRestoreDetailsTitle;
+
+  /// No description provided for @backupDetailsConnectedAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected account'**
+  String get backupDetailsConnectedAccount;
+
+  /// No description provided for @backupDetailsTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Target'**
+  String get backupDetailsTarget;
+
+  /// No description provided for @backupDetailsPlayerSourceTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Player source snapshot'**
+  String get backupDetailsPlayerSourceTarget;
+
+  /// No description provided for @backupDetailsParentContributionTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent contribution file'**
+  String get backupDetailsParentContributionTarget;
+
+  /// No description provided for @backupDetailsLocalData.
+  ///
+  /// In en, this message translates to:
+  /// **'Local data'**
+  String get backupDetailsLocalData;
+
+  /// No description provided for @backupDetailsLocalCounts.
+  ///
+  /// In en, this message translates to:
+  /// **'{trainingCount} training, {optionCount} app records'**
+  String backupDetailsLocalCounts(int trainingCount, int optionCount);
+
+  /// No description provided for @backupDetailsRemoteCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Remote backup'**
+  String get backupDetailsRemoteCreated;
+
+  /// No description provided for @backupDetailsIntegrity.
+  ///
+  /// In en, this message translates to:
+  /// **'Integrity'**
+  String get backupDetailsIntegrity;
+
+  /// No description provided for @backupDetailsIntegrityVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Hash verified'**
+  String get backupDetailsIntegrityVerified;
+
+  /// No description provided for @backupDetailsIntegrityLegacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Legacy backup'**
+  String get backupDetailsIntegrityLegacy;
+
+  /// No description provided for @backupDetailsDiff.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore preview'**
+  String get backupDetailsDiff;
+
+  /// No description provided for @backupDetailsDiffCounts.
+  ///
+  /// In en, this message translates to:
+  /// **'{addCount} add, {updateCount} update, {conflictCount} conflict, {deleteCount} delete candidate, {skipCount} skip'**
+  String backupDetailsDiffCounts(int addCount, int updateCount,
+      int conflictCount, int deleteCount, int skipCount);
+
+  /// No description provided for @backupDetailsPreviewUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup preview is unavailable right now.'**
+  String get backupDetailsPreviewUnavailable;
+
+  /// No description provided for @backupDetailsParentCoreZero.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent and coach uploads write zero player core records; only feedback and reward names are included.'**
+  String get backupDetailsParentCoreZero;
+
+  /// No description provided for @restoreModeAddMissingOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Add missing only'**
+  String get restoreModeAddMissingOnly;
+
+  /// No description provided for @restoreModeSafeMerge.
+  ///
+  /// In en, this message translates to:
+  /// **'Safe merge'**
+  String get restoreModeSafeMerge;
+
   /// No description provided for @settingsRoleAccountSummary.
   ///
   /// In en, this message translates to:
@@ -20773,7 +20906,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsSupportActionSummary.
   ///
   /// In en, this message translates to:
-  /// **'Parent mode does not create new source backups here. Instead, it imports player data or rolls back to the state saved before the last import.'**
+  /// **'Parent mode does not create new source backups here. It imports player data and writes feedback or reward names to a separate contribution file.'**
   String get settingsSupportActionSummary;
 
   /// No description provided for @settingsPlayerAccountTitle.
@@ -20803,7 +20936,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsPlayerRestoreDriveActionBody.
   ///
   /// In en, this message translates to:
-  /// **'Replace the current device data with the latest backup stored on Google Drive.'**
+  /// **'Safely merge the latest backup from Google Drive while keeping local-only records.'**
   String get settingsPlayerRestoreDriveActionBody;
 
   /// No description provided for @settingsPlayerRestoreLocalActionTitle.
@@ -20845,19 +20978,19 @@ abstract class AppLocalizations {
   /// No description provided for @settingsSupportBackupConfirm.
   ///
   /// In en, this message translates to:
-  /// **'Back up parent-mode feedback and level reward names into the player\'s source Drive backup?'**
+  /// **'Back up parent-mode feedback and level reward names to the separate contribution file?'**
   String get settingsSupportBackupConfirm;
 
   /// No description provided for @settingsSupportBackupSuccess.
   ///
   /// In en, this message translates to:
-  /// **'Shared changes were backed up to the player\'s source Drive.'**
+  /// **'Shared changes were backed up to the contribution file.'**
   String get settingsSupportBackupSuccess;
 
   /// No description provided for @settingsSupportBackupFailed.
   ///
   /// In en, this message translates to:
-  /// **'Could not back up shared changes. Check that this Drive account already has a player-mode backup.'**
+  /// **'Could not back up shared changes. Check the Drive connection and family/player match.'**
   String get settingsSupportBackupFailed;
 
   /// No description provided for @settingsRestoreRollbackTitle.
@@ -21055,13 +21188,13 @@ abstract class AppLocalizations {
   /// No description provided for @familyParentUsesChildDriveHint.
   ///
   /// In en, this message translates to:
-  /// **'In parent mode, sign in with the Google Drive account that holds the player\'s source data to sync training feedback and reward names into the same backup file.'**
+  /// **'In parent mode, sign in with the Google Drive account that holds the player\'s source data to sync training feedback and reward names into a separate contribution file.'**
   String get familyParentUsesChildDriveHint;
 
   /// No description provided for @familyParentUsesChildDriveWarning.
   ///
   /// In en, this message translates to:
-  /// **'Parent mode should connect to the Google Drive account that holds the player\'s source data so training feedback and reward names sync safely into the same backup file.'**
+  /// **'Parent mode should connect to the Google Drive account that holds the player\'s source data so feedback and reward names sync safely into the contribution file.'**
   String get familyParentUsesChildDriveWarning;
 
   /// No description provided for @familySharedSyncTitle.
@@ -21073,7 +21206,7 @@ abstract class AppLocalizations {
   /// No description provided for @familySharedSyncDescription.
   ///
   /// In en, this message translates to:
-  /// **'Parent feedback and level reward names are written automatically into the same player backup file.'**
+  /// **'Parent feedback and level reward names are written automatically into a separate contribution file.'**
   String get familySharedSyncDescription;
 
   /// No description provided for @familySyncAlertTitle.
@@ -21158,7 +21291,7 @@ abstract class AppLocalizations {
   /// No description provided for @familySharedRestoreConfirm.
   ///
   /// In en, this message translates to:
-  /// **'Import the latest player data from Google Drive? This replaces the player records and shared data shown on this device.'**
+  /// **'Import the latest player data from Google Drive with safe merge? Local-only records on this device are kept.'**
   String get familySharedRestoreConfirm;
 
   /// No description provided for @familySharedRestoreSuccess.
@@ -21206,7 +21339,7 @@ abstract class AppLocalizations {
   /// No description provided for @restoreReconfirmBody.
   ///
   /// In en, this message translates to:
-  /// **'Do you really want to restore? Current data will be replaced.'**
+  /// **'Do you really want to continue? Safe merge keeps local-only records; advanced rollback replaces current data.'**
   String get restoreReconfirmBody;
 
   /// No description provided for @familyParentFamilyMismatch.
@@ -21626,19 +21759,19 @@ abstract class AppLocalizations {
   /// No description provided for @parentSharedSyncInProgress.
   ///
   /// In en, this message translates to:
-  /// **'Syncing to the player\'s Drive...'**
+  /// **'Syncing to the contribution file...'**
   String get parentSharedSyncInProgress;
 
   /// No description provided for @parentSharedSyncDone.
   ///
   /// In en, this message translates to:
-  /// **'Synced to the player\'s Drive too.'**
+  /// **'Synced to the contribution file.'**
   String get parentSharedSyncDone;
 
   /// No description provided for @parentSharedSyncPending.
   ///
   /// In en, this message translates to:
-  /// **'It will sync into the same player backup file after Drive is connected.'**
+  /// **'It will sync into the contribution file after Drive is connected.'**
   String get parentSharedSyncPending;
 
   /// No description provided for @levelGuideParentModeLabel.
@@ -21656,7 +21789,7 @@ abstract class AppLocalizations {
   /// No description provided for @levelGuideParentModeDescription.
   ///
   /// In en, this message translates to:
-  /// **'Parent mode can save reward names only, and saved reward names also sync into the shared player Drive backup. Reward received marks stay in player mode.'**
+  /// **'Parent mode can save reward names only, and saved reward names sync through the parent contribution file. Reward received marks stay in player mode.'**
   String get levelGuideParentModeDescription;
 
   /// No description provided for @levelGuideChildModeDescription.

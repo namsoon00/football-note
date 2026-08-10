@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:football_note/application/backup_asset_store_types.dart';
+import 'package:football_note/application/backup_restore_plan.dart';
 import 'package:football_note/application/coach_roster_service.dart';
 import 'package:football_note/application/drive_connection_info.dart';
 import 'package:football_note/application/drive_backup_service.dart';
@@ -58,6 +59,31 @@ Map<String, dynamic> _remotePlayerBackup({
       'familyLayerOnly': false,
     },
   };
+}
+
+TrainingEntry _trainingEntry({
+  required String recordId,
+  required String notes,
+  DateTime? createdAt,
+  DateTime? updatedAt,
+  DateTime? deletedAt,
+}) {
+  final created = createdAt ?? DateTime(2026, 4, 20, 9);
+  return TrainingEntry(
+    date: DateTime(created.year, created.month, created.day),
+    createdAt: created,
+    durationMinutes: 45,
+    intensity: 3,
+    type: 'passing',
+    mood: 4,
+    injury: false,
+    notes: notes,
+    location: 'main field',
+    recordId: recordId,
+    updatedAt: updatedAt ?? created,
+    originDeviceId: 'device-test',
+    deletedAt: deletedAt,
+  );
 }
 
 void main() {
@@ -515,13 +541,13 @@ void main() {
     );
   });
 
-  test('restore uses remote sport selection when backup provides it', () async {
+  test('safe restore conflicts on sport selection without baseline', () async {
     await optionBox.put(
       SportCatalog.currentSportOptionKey,
       SportCatalog.basketballId,
     );
 
-    await service.restoreFromMapForTesting(<String, dynamic>{
+    final remote = <String, dynamic>{
       'version': 6,
       'createdAt': '2026-02-02T08:00:00.000',
       'entries': const <dynamic>[],
@@ -538,11 +564,25 @@ void main() {
         'updatedByRole': 'child',
         'familyLayerOnly': false,
       },
-    });
+    };
+
+    final plan = service.previewRestorePlanForTesting(remote);
+
+    expect(
+      plan.operations
+          .singleWhere(
+            (operation) =>
+                operation.recordId == SportCatalog.currentSportOptionKey,
+          )
+          .type,
+      RestoreOperationType.conflict,
+    );
+
+    await service.restoreFromMapForTesting(remote);
 
     expect(
       optionBox.get(SportCatalog.currentSportOptionKey),
-      SportCatalog.tennisId,
+      SportCatalog.basketballId,
     );
   });
 
@@ -942,36 +982,71 @@ void main() {
         },
       };
 
+      final plan = service.previewRestorePlanForTesting(remote);
+
+      expect(
+        plan.categoryCount(
+          RestoreOperationCategory.training,
+          RestoreOperationType.add,
+        ),
+        1,
+      );
+      expect(
+        plan.categoryCount(
+          RestoreOperationCategory.training,
+          RestoreOperationType.skip,
+        ),
+        1,
+      );
+      expect(
+        plan.categoryCount(
+          RestoreOperationCategory.option,
+          RestoreOperationType.conflict,
+        ),
+        greaterThanOrEqualTo(1),
+      );
+
       await service.restoreFromMapForTesting(remote);
 
-      expect(trainingBox.length, 1);
-      expect(trainingBox.values.first.notes, 'remote player record');
-      expect(optionBox.get('profile_name'), 'Remote player profile');
-      expect(optionBox.get(FamilyAccessService.childNameKey), 'Remote player');
-      expect(optionBox.get(FamilyAccessService.parentNameKey), 'Remote parent');
+      expect(trainingBox.length, 2);
+      expect(
+        trainingBox.values.map((entry) => entry.notes),
+        containsAll(<String>[
+          'keep local player record',
+          'remote player record',
+        ]),
+      );
+      expect(optionBox.get('profile_name'), 'Local player profile');
+      expect(optionBox.get(FamilyAccessService.childNameKey), 'Local player');
+      expect(optionBox.get(FamilyAccessService.parentNameKey), 'Local parent');
       expect(optionBox.get(FamilyAccessService.messagesKey), isNull);
       expect(
-        (optionBox.get('player_custom_reward_names_v1') as Map)['4'],
-        'Remote boots',
+        (optionBox.get('player_custom_reward_names_v1') as Map)['2'],
+        'Local ball',
       );
       expect(
         (optionBox.get('player_custom_reward_names_v1') as Map).containsKey(
-          '2',
+          '4',
         ),
         isFalse,
       );
       expect(
         ((optionBox.get(FamilyAccessService.parentTrainingFeedbackKey)
-            as Map)['training_1713427800000000'] as Map)['message'],
-        'Remote parent feedback',
+            as Map)['training_1'] as Map)['message'],
+        'Local parent feedback',
+      );
+      expect(
+        (optionBox.get(FamilyAccessService.parentTrainingFeedbackKey) as Map)
+            .containsKey('training_1713427800000000'),
+        isFalse,
       );
       expect(
         optionBox.get(DriveBackupService.sharedChildDriveEmailKey),
-        'remote-player@example.com',
+        'local-player@example.com',
       );
       expect(
         optionBox.get(DriveBackupService.sharedChildDriveLabelKey),
-        'Remote player · remote-player@example.com',
+        'Local player · local-player@example.com',
       );
       expect(
         optionBox.get(FamilyAccessService.currentRoleLocalKey),
@@ -989,7 +1064,7 @@ void main() {
   );
 
   test(
-    'parent restore replaces option-backed child data when remote omits it',
+    'safe parent restore keeps option-backed child data when remote omits it',
     () async {
       await optionBox.put(FamilyAccessService.currentRoleLocalKey, 'parent');
       await optionBox.put(FamilyAccessService.familyIdKey, 'family-1');
@@ -1023,23 +1098,28 @@ void main() {
         },
       });
 
-      expect(optionBox.get('profile_name'), isNull);
-      expect(optionBox.get(PlayerLevelService.totalXpKey), isNull);
-      expect(optionBox.get(PlayerLevelService.xpHistoryKey), isNull);
-      expect(optionBox.get(PlayerLevelService.diaryCreatedDayKey), isNull);
-      expect(optionBox.get(MealLogService.storageKey), isNull);
-      expect(optionBox.get('custom_diary_entries_v3'), isNull);
+      expect(optionBox.get('profile_name'), 'Local child profile');
+      expect(optionBox.get(PlayerLevelService.totalXpKey), 240);
+      expect(optionBox.get(PlayerLevelService.xpHistoryKey), hasLength(1));
+      expect(
+          optionBox.get(PlayerLevelService.diaryCreatedDayKey), '2026-04-18');
+      expect(optionBox.get(MealLogService.storageKey), '[{"id":"meal-local"}]');
+      expect(
+        optionBox.get('custom_diary_entries_v3'),
+        '{"2026-04-18":{"body":"local diary"}}',
+      );
       expect(optionBox.get(FamilyAccessService.childNameKey), 'Remote player');
     },
   );
 
-  test('parent restore uses remote critical options when present', () async {
+  test('safe parent restore conflicts on critical options without baseline',
+      () async {
     await optionBox.put(FamilyAccessService.currentRoleLocalKey, 'parent');
     await optionBox.put(FamilyAccessService.familyIdKey, 'family-1');
     await optionBox.put(PlayerLevelService.totalXpKey, 240);
     await optionBox.put(MealLogService.storageKey, '[{"id":"meal-local"}]');
 
-    await service.restoreFromMapForTesting(<String, dynamic>{
+    final remote = <String, dynamic>{
       'version': 5,
       'createdAt': '2026-04-19T10:00:00.000',
       'entries': const <Map<String, dynamic>>[],
@@ -1053,10 +1133,28 @@ void main() {
         'updatedByRole': 'child',
         'familyLayerOnly': false,
       },
-    });
+    };
 
-    expect(optionBox.get(PlayerLevelService.totalXpKey), 0);
-    expect(optionBox.get(MealLogService.storageKey), '[]');
+    final plan = service.previewRestorePlanForTesting(remote);
+
+    expect(
+      plan.operations
+          .where(
+            (operation) =>
+                operation.category == RestoreOperationCategory.option &&
+                operation.type == RestoreOperationType.conflict,
+          )
+          .map((operation) => operation.recordId),
+      containsAll(<String>[
+        PlayerLevelService.totalXpKey,
+        MealLogService.storageKey,
+      ]),
+    );
+
+    await service.restoreFromMapForTesting(remote);
+
+    expect(optionBox.get(PlayerLevelService.totalXpKey), 240);
+    expect(optionBox.get(MealLogService.storageKey), '[{"id":"meal-local"}]');
   });
 
   test(
@@ -1086,19 +1184,22 @@ void main() {
       await Future<void>.delayed(Duration.zero);
       expect(observedMeals.last, hasLength(1));
 
-      await service.restoreFromMapForTesting(<String, dynamic>{
-        'version': 5,
-        'createdAt': '2026-04-19T10:00:00.000',
-        'entries': const <Map<String, dynamic>>[],
-        'options': <String, dynamic>{
-          MealLogService.storageKey: '[]',
-          'custom_diary_entries_v3': '{"2026-04-19":{"body":"remote diary"}}',
+      await service.restoreFromMapForTesting(
+        <String, dynamic>{
+          'version': 5,
+          'createdAt': '2026-04-19T10:00:00.000',
+          'entries': const <Map<String, dynamic>>[],
+          'options': <String, dynamic>{
+            MealLogService.storageKey: '[]',
+            'custom_diary_entries_v3': '{"2026-04-19":{"body":"remote diary"}}',
+          },
+          'family': const <String, dynamic>{
+            'updatedByRole': 'child',
+            'familyLayerOnly': false,
+          },
         },
-        'family': const <String, dynamic>{
-          'updatedByRole': 'child',
-          'familyLayerOnly': false,
-        },
-      });
+        mode: RestoreMode.exactReplace,
+      );
       await Future<void>.delayed(Duration.zero);
 
       expect(optionBox.get(MealLogService.storageKey), '[]');
@@ -2671,6 +2772,298 @@ void main() {
     expect(recordCounts['coreRecords'], 1);
   });
 
+  test('safe restore adds remote-only entries and keeps local-only entries',
+      () async {
+    await trainingBox.add(_trainingEntry(
+      recordId: 'remote-only',
+      notes: 'remote only',
+      createdAt: DateTime(2026, 4, 20, 8),
+    ));
+    final remote = service.buildBackupForTesting();
+
+    await trainingBox.clear();
+    await optionBox.clear();
+    await trainingBox.add(_trainingEntry(
+      recordId: 'local-only',
+      notes: 'local only',
+      createdAt: DateTime(2026, 4, 21, 8),
+    ));
+
+    final plan = service.previewRestorePlanForTesting(remote);
+    expect(
+      plan.categoryCount(
+        RestoreOperationCategory.training,
+        RestoreOperationType.add,
+      ),
+      1,
+    );
+    expect(
+      plan.categoryCount(
+        RestoreOperationCategory.training,
+        RestoreOperationType.skip,
+      ),
+      1,
+    );
+
+    await service.restoreFromMapForTesting(remote);
+    await service.restoreFromMapForTesting(remote);
+
+    expect(trainingBox.length, 2);
+    expect(
+      trainingBox.values.map((entry) => entry.notes),
+      containsAll(<String>['local only', 'remote only']),
+    );
+  });
+
+  test('safe restore conflicts on same record without a baseline', () async {
+    await trainingBox.add(_trainingEntry(
+      recordId: 'entry-1',
+      notes: 'remote edit',
+      updatedAt: DateTime(2026, 4, 20, 11),
+    ));
+    final remote = service.buildBackupForTesting();
+
+    await trainingBox.clear();
+    await trainingBox.add(_trainingEntry(
+      recordId: 'entry-1',
+      notes: 'local edit',
+      updatedAt: DateTime(2026, 4, 20, 10),
+    ));
+
+    final plan = service.previewRestorePlanForTesting(remote);
+    expect(plan.count(RestoreOperationType.conflict), 1);
+
+    await service.restoreFromMapForTesting(remote);
+
+    expect(trainingBox.length, 1);
+    expect(trainingBox.values.single.notes, 'local edit');
+  });
+
+  test(
+      'safe restore updates remote-changed records when local matches baseline',
+      () async {
+    final baseEntry = _trainingEntry(
+      recordId: 'entry-1',
+      notes: 'baseline',
+      updatedAt: DateTime(2026, 4, 20, 9),
+    );
+    await trainingBox.add(baseEntry);
+    final baseline = service.buildBackupForTesting();
+    await service.restoreFromMapForTesting(baseline);
+
+    await trainingBox.clear();
+    await trainingBox.add(_trainingEntry(
+      recordId: 'entry-1',
+      notes: 'remote changed',
+      updatedAt: DateTime(2026, 4, 20, 12),
+    ));
+    final remote = service.buildBackupForTesting();
+
+    await trainingBox.clear();
+    await trainingBox.add(baseEntry);
+
+    final plan = service.previewRestorePlanForTesting(remote);
+    expect(plan.count(RestoreOperationType.update), 1);
+
+    await service.restoreFromMapForTesting(remote);
+
+    expect(trainingBox.length, 1);
+    expect(trainingBox.values.single.notes, 'remote changed');
+  });
+
+  test(
+      'safe restore applies explicit tombstones only against unchanged local data',
+      () async {
+    final baseEntry = _trainingEntry(recordId: 'entry-1', notes: 'baseline');
+    await trainingBox.add(baseEntry);
+    final baseline = service.buildBackupForTesting();
+    await service.restoreFromMapForTesting(baseline);
+
+    await trainingBox.clear();
+    await trainingBox.add(_trainingEntry(
+      recordId: 'entry-1',
+      notes: 'baseline',
+      deletedAt: DateTime(2026, 4, 21, 9),
+    ));
+    final tombstone = service.buildBackupForTesting();
+
+    await trainingBox.clear();
+    await trainingBox.add(baseEntry);
+
+    final plan = service.previewRestorePlanForTesting(tombstone);
+    expect(plan.count(RestoreOperationType.tombstone), 1);
+
+    await service.restoreFromMapForTesting(tombstone);
+    await service.restoreFromMapForTesting(tombstone);
+
+    expect(trainingBox.length, 0);
+  });
+
+  test('safe restore conflicts when a tombstone races a local edit', () async {
+    final baseEntry = _trainingEntry(recordId: 'entry-1', notes: 'baseline');
+    await trainingBox.add(baseEntry);
+    final baseline = service.buildBackupForTesting();
+    await service.restoreFromMapForTesting(baseline);
+
+    await trainingBox.clear();
+    await trainingBox.add(_trainingEntry(
+      recordId: 'entry-1',
+      notes: 'baseline',
+      deletedAt: DateTime(2026, 4, 21, 9),
+    ));
+    final tombstone = service.buildBackupForTesting();
+
+    await trainingBox.clear();
+    await trainingBox.add(_trainingEntry(
+      recordId: 'entry-1',
+      notes: 'local changed',
+      updatedAt: DateTime(2026, 4, 21, 10),
+    ));
+
+    final plan = service.previewRestorePlanForTesting(tombstone);
+    expect(plan.count(RestoreOperationType.conflict), 1);
+
+    await service.restoreFromMapForTesting(tombstone);
+
+    expect(trainingBox.length, 1);
+    expect(trainingBox.values.single.notes, 'local changed');
+  });
+
+  test('parent contribution backup excludes player core records', () async {
+    await optionBox.put(FamilyAccessService.currentRoleLocalKey, 'parent');
+    await optionBox.put(FamilyAccessService.familyIdKey, 'family-1');
+    await optionBox.put(
+      FamilyAccessService.parentTrainingFeedbackKey,
+      <String, dynamic>{
+        'entry-1': <String, dynamic>{'message': 'Good tempo.'},
+      },
+    );
+    await optionBox.put(
+      PlayerLevelService.customRewardNamesKey,
+      <String, String>{'2': 'New boots'},
+    );
+    await optionBox.put(PlayerLevelService.totalXpKey, 999);
+    await trainingBox.add(_trainingEntry(
+      recordId: 'entry-1',
+      notes: 'player training',
+    ));
+
+    final backup = service.buildFamilyContributionBackupForTesting();
+    final options = backup['options'] as Map<String, dynamic>;
+
+    expect(backup['format'], BackupRestorePlanner.contributionFormatValue);
+    expect(backup['entries'], isEmpty);
+    expect(options[FamilyAccessService.parentTrainingFeedbackKey], isNotNull);
+    expect(options[PlayerLevelService.customRewardNamesKey], isNotNull);
+    expect(options.containsKey(PlayerLevelService.totalXpKey), isFalse);
+    expect(
+      (backup['safetyManifest']
+          as Map<String, dynamic>)['contributionLayerOnly'],
+      isTrue,
+    );
+  });
+
+  test('parent Drive backup writes only the contribution file', () async {
+    await optionBox.put(FamilyAccessService.currentRoleLocalKey, 'parent');
+    await optionBox.put(FamilyAccessService.familyIdKey, 'family-1');
+    await optionBox.put(
+      DriveBackupService.parentDriveEmailLocalKey,
+      'parent@example.com',
+    );
+    await optionBox.put(
+      DriveBackupService.parentDriveLabelLocalKey,
+      'Parent · parent@example.com',
+    );
+    await optionBox.put(
+      DriveBackupService.parentDriveSubjectLocalKey,
+      'parent-subject',
+    );
+    await optionBox.put(
+      FamilyAccessService.parentTrainingFeedbackKey,
+      <String, dynamic>{
+        'entry-1': <String, dynamic>{'message': 'Keep the shape.'},
+      },
+    );
+    await optionBox.put(
+      PlayerLevelService.customRewardNamesKey,
+      <String, String>{'4': 'Recovery kit'},
+    );
+    await optionBox.put(PlayerLevelService.totalXpKey, 1200);
+    await trainingBox.add(_trainingEntry(
+      recordId: 'entry-1',
+      notes: 'player-owned data',
+    ));
+
+    final contributionFileName = service.familyContributionFileNameForTesting();
+    final driveClient = _ContributionWriteDriveClient(
+      contributionFileName: contributionFileName,
+    );
+    service = DriveBackupService(
+      trainingBox,
+      optionBox,
+      backupAssetFileStore: assetStore,
+      driveConnectionLoader: () async => const DriveConnectionInfo(
+        email: 'parent@example.com',
+        displayName: 'Parent',
+        subjectId: 'parent-subject',
+      ),
+      driveApiLoader: ({required bool requireInteractive}) async {
+        return drive.DriveApi(driveClient);
+      },
+    );
+
+    await service.backup();
+
+    expect(driveClient.playerSnapshotWriteCount, 0);
+    expect(driveClient.contributionWriteCount, 1);
+    final uploaded = driveClient.uploadedContribution!;
+    expect(uploaded['format'], BackupRestorePlanner.contributionFormatValue);
+    expect(uploaded['entries'], isEmpty);
+    final options = uploaded['options'] as Map<String, dynamic>;
+    expect(options[FamilyAccessService.parentTrainingFeedbackKey], isNotNull);
+    expect(options[PlayerLevelService.customRewardNamesKey], isNotNull);
+    expect(options.containsKey(PlayerLevelService.totalXpKey), isFalse);
+  });
+
+  test('interrupted restore journal is rolled back on startup', () async {
+    await trainingBox.add(_trainingEntry(
+      recordId: 'entry-1',
+      notes: 'before restore',
+    ));
+    await optionBox.put('profile_name', 'Before');
+    final rollback = service.buildBackupForTesting();
+    await service.writeRestoreTransactionJournalForTesting(
+      rollback: rollback,
+      planHash: 'test-plan',
+      mode: RestoreMode.safeMerge,
+    );
+
+    await trainingBox.clear();
+    await trainingBox.add(_trainingEntry(
+      recordId: 'partial',
+      notes: 'partial restore',
+    ));
+    await optionBox.put('profile_name', 'Partial');
+
+    final recovered = await DriveBackupService.recoverInterruptedRestoreJournal(
+      trainingBox,
+      optionBox,
+      backupAssetFileStore: assetStore,
+    );
+    final recoveredAgain =
+        await DriveBackupService.recoverInterruptedRestoreJournal(
+      trainingBox,
+      optionBox,
+      backupAssetFileStore: assetStore,
+    );
+
+    expect(recovered, isTrue);
+    expect(recoveredAgain, isFalse);
+    expect(trainingBox.length, 1);
+    expect(trainingBox.values.single.notes, 'before restore');
+    expect(optionBox.get('profile_name'), 'Before');
+  });
+
   test('rejects a backup whose SHA-256 safety hash was tampered', () async {
     final backup = service.buildBackupForTesting();
     (backup['entries'] as List).add(const <String, dynamic>{});
@@ -2989,6 +3382,123 @@ void main() {
     );
     expect(driveClient.writeRequestCount, 0);
   });
+}
+
+class _ContributionWriteDriveClient extends http.BaseClient {
+  _ContributionWriteDriveClient({required this.contributionFileName});
+
+  final String contributionFileName;
+  int contributionWriteCount = 0;
+  int playerSnapshotWriteCount = 0;
+  Map<String, dynamic>? uploadedContribution;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    if (request.method == 'GET' &&
+        request.url.path.endsWith('/drive/v3/files')) {
+      final query = request.url.queryParameters['q'] ?? '';
+      if (query.contains("mimeType='application/vnd.google-apps.folder'") &&
+          query.contains("name='${DriveBackupService.backupFolderName}'")) {
+        return _jsonResponse(request, <String, Object?>{
+          'files': <Map<String, String>>[
+            <String, String>{
+              'id': 'folder-id',
+              'name': DriveBackupService.backupFolderName,
+            },
+          ],
+        });
+      }
+      if (query.contains("'folder-id' in parents") &&
+          query.contains("name='$contributionFileName'")) {
+        return _jsonResponse(request, const <String, Object?>{
+          'files': <Map<String, String>>[],
+        });
+      }
+      if (query.contains("'folder-id' in parents") &&
+          query.contains("name='${DriveBackupService.backupFileName}'")) {
+        return _jsonResponse(request, <String, Object?>{
+          'files': <Map<String, String>>[
+            <String, String>{
+              'id': 'player-backup-id',
+              'name': DriveBackupService.backupFileName,
+            },
+          ],
+        });
+      }
+      return _jsonResponse(request, const <String, Object?>{'files': []});
+    }
+
+    if (request.method == 'POST' &&
+        request.url.path.endsWith('/upload/drive/v3/files')) {
+      final body = await utf8.decoder.bind(request.finalize()).join();
+      if (body.contains(DriveBackupService.backupFileName)) {
+        playerSnapshotWriteCount += 1;
+      }
+      if (body.contains(contributionFileName)) {
+        contributionWriteCount += 1;
+        uploadedContribution = _extractBackupPayloadFromMultipart(body);
+        return _jsonResponse(request, const <String, Object?>{
+          'id': 'contribution-id',
+          'modifiedTime': '2026-04-20T10:00:00.000Z',
+        });
+      }
+    }
+
+    if (request.method == 'PATCH' &&
+        request.url.path.contains('/upload/drive/v3/files/player-backup-id')) {
+      playerSnapshotWriteCount += 1;
+    }
+    throw StateError(
+      'Unexpected Drive request: ${request.method} ${request.url}',
+    );
+  }
+
+  Map<String, dynamic> _extractBackupPayloadFromMultipart(String body) {
+    final start = body.indexOf('{"format":');
+    if (start >= 0) {
+      final end = body.indexOf('\r\n--', start);
+      final payload =
+          (end < 0 ? body.substring(start) : body.substring(start, end)).trim();
+      return jsonDecode(payload) as Map<String, dynamic>;
+    }
+
+    const transferEncodingMarker = 'Content-Transfer-Encoding: base64';
+    final marker = body.indexOf(transferEncodingMarker);
+    if (marker >= 0) {
+      final bodyStart = body.indexOf('\r\n\r\n', marker);
+      final normalizedStart =
+          bodyStart >= 0 ? bodyStart + 4 : body.indexOf('\n\n', marker) + 2;
+      if (normalizedStart > 1) {
+        var bodyEnd = body.indexOf('\r\n--', normalizedStart);
+        if (bodyEnd < 0) {
+          bodyEnd = body.indexOf('\n--', normalizedStart);
+        }
+        final encoded = (bodyEnd < 0
+                ? body.substring(normalizedStart)
+                : body.substring(
+                    normalizedStart,
+                    bodyEnd,
+                  ))
+            .replaceAll(RegExp(r'\s+'), '');
+        return jsonDecode(utf8.decode(base64Decode(encoded)))
+            as Map<String, dynamic>;
+      }
+    }
+    throw StateError('Contribution upload did not contain backup JSON.');
+  }
+
+  http.StreamedResponse _jsonResponse(
+    http.BaseRequest request,
+    Map<String, Object?> payload,
+  ) {
+    final bytes = utf8.encode(jsonEncode(payload));
+    return http.StreamedResponse(
+      Stream<List<int>>.value(bytes),
+      200,
+      request: request,
+      headers: const <String, String>{'content-type': 'application/json'},
+    );
+  }
 }
 
 class _RemoteBackupDriveClient extends http.BaseClient {
