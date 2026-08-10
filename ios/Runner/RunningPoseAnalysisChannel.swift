@@ -264,7 +264,9 @@ final class RunningPoseAnalysisChannel {
     guard FileManager.default.fileExists(atPath: path) else {
       throw AnalysisError(code: "missing_file", message: "Video file is missing.")
     }
-    let uniqueTimestamps = Array(Set(timestampsMs.filter { $0 >= 0 })).sorted()
+    let uniqueTimestamps = Array(
+      Array(Set(timestampsMs.filter { $0 >= 0 })).sorted().prefix(24)
+    )
     guard !uniqueTimestamps.isEmpty else { return [] }
     let asset = AVAsset(url: URL(fileURLWithPath: path))
     let generator = AVAssetImageGenerator(asset: asset)
@@ -326,10 +328,10 @@ final class RunningPoseAnalysisChannel {
         message: "Please select a running clip that is at least 1.5 seconds long."
       )
     }
-    guard durationMs <= Self.maxVideoDurationMs else {
+    guard durationMs <= Self.maxDecodableVideoDurationMs else {
       throw AnalysisError(
         code: "video_too_long",
-        message: "Please trim the running clip to 60 seconds or less."
+        message: "This video is longer than the bounded on-device decoding budget."
       )
     }
 
@@ -346,16 +348,52 @@ final class RunningPoseAnalysisChannel {
       timestampsMs: coarseFrameTimestamps,
       collectSharpness: true
     )
-    let frameSamples = coarsePass.samples
+    var frameSamples = coarsePass.samples
 
-    guard frameSamples.count >= Self.minimumValidFrames else {
+    guard frameSamples.count >= 2 else {
       throw AnalysisError(
         code: "no_pose_detected",
         message: "We could not detect a clear running pose in this video."
       )
     }
-    guard hasSufficientSharpness(coarsePass.sharpnessValues) else {
-      throw videoTooBlurry()
+    let hasUsableSharpness = hasSufficientSharpness(coarsePass.sharpnessValues)
+
+    var recoveryTimestamps: [Int] = []
+    var recoveryPass = PosePassResult(
+      samples: [],
+      poseFrames: [],
+      sharpnessValues: []
+    )
+    let preliminaryPerspective = perspectiveQualityPayload(from: frameSamples)
+    let preliminaryCandidates = mergeContactCandidateSets(
+      detected: deriveContactCandidateWindows(
+        from: frameSamples,
+        durationMs: durationMs
+      ),
+      fallback: fallbackContactCandidateWindows(
+        from: frameSamples,
+        durationMs: durationMs
+      )
+    )
+    let needsRecovery = durationMs > Self.maxVideoDurationMs ||
+      preliminaryCandidates.windows.count < Self.minimumValidatedContactFrames ||
+      preliminaryPerspective.scaleDriftRatio > Self.maximumScaleDriftRatio ||
+      Double(frameSamples.count) / Double(max(1, coarseFrameTimestamps.count)) < 0.45
+    if needsRecovery {
+      recoveryTimestamps = recoverySampleTimestamps(
+        from: frameSamples,
+        durationMs: durationMs
+      )
+      if !recoveryTimestamps.isEmpty {
+        let recoveryPoseLandmarker = try makePoseLandmarker()
+        recoveryPass = try runPosePass(
+          poseLandmarker: recoveryPoseLandmarker,
+          imageGenerator: imageGenerator,
+          timestampsMs: recoveryTimestamps,
+          collectSharpness: false
+        )
+        frameSamples = mergeFrameSamples(frameSamples, recoveryPass.samples)
+      }
     }
 
     let perspectiveQuality = perspectiveQualityPayload(from: frameSamples)
@@ -386,20 +424,10 @@ final class RunningPoseAnalysisChannel {
       detected: detectedCandidateSet,
       fallback: fallbackCandidateSet
     )
-    guard !candidateSet.windows.isEmpty else {
-      throw insufficientContactEvidence(
-        "coarseValid=\(frameSamples.count); candidates=0"
-      )
-    }
     let denseTimestamps = denseTimestampsForContactWindows(
       candidateSet.windows,
       durationMs: durationMs
     )
-    guard !denseTimestamps.isEmpty else {
-      throw insufficientContactEvidence(
-        "coarseValid=\(frameSamples.count); candidates=\(candidateSet.windows.count); dense=0"
-      )
-    }
     let densePoseLandmarker = try makePoseLandmarker()
     let densePass = try runPosePass(
       poseLandmarker: densePoseLandmarker,
@@ -414,16 +442,18 @@ final class RunningPoseAnalysisChannel {
       direction: direction
     )
     let contactFrames = contactValidations.compactMap(\.contact)
-    let uniqueContactFrameCount = Set(contactFrames.map(\.timestampMs)).count
-    let usesKinematicContactEstimate = contactFrames.contains {
-      $0.isKinematicEstimate
-    }
+    let confirmedContactFrames = contactFrames.filter { !$0.isKinematicEstimate }
+    let estimatedContactFrames = contactFrames.filter { $0.isKinematicEstimate }
+    let uniqueConfirmedContactFrameCount = Set(
+      confirmedContactFrames.map(\.timestampMs)
+    ).count
+    let usesKinematicContactEstimate = !estimatedContactFrames.isEmpty
     // One confirmed contact is still useful as an observed frame, although it
     // remains below the three-step threshold for coaching or cadence. Use a
     // phase proxy only when no continuous contact event was confirmed.
-    let usesContactProxy = uniqueContactFrameCount == 0
+    let usesContactProxy = contactFrames.isEmpty
     let hasCompleteContactSample =
-      uniqueContactFrameCount >= Self.minimumValidatedContactFrames
+      uniqueConfirmedContactFrameCount >= Self.minimumValidatedContactFrames
     let denseContactProxyFrames: [ContactFrameAnalysis] = usesContactProxy
       ? contactProxyFrames(
         from: densePass.samples,
@@ -448,81 +478,112 @@ final class RunningPoseAnalysisChannel {
         confidencePenalty: Self.coarseContactProxyConfidencePenalty
       )
     }
-    guard !metricContactFrames.isEmpty else {
-      throw insufficientContactEvidence(
-        "coarseValid=\(frameSamples.count); candidates=\(candidateSet.windows.count); denseValid=\(densePass.samples.count); contacts=\(uniqueContactFrameCount); proxySource=\(contactProxySource); proxies=0"
-      )
-    }
-    let footStrikeRatio =
-      metricContactFrames.map(\.footStrikeRatio).reduce(0, +) /
-      Double(metricContactFrames.count)
+    let footStrikeRatio: Double? = metricContactFrames.isEmpty
+      ? nil
+      : metricContactFrames.map(\.footStrikeRatio).reduce(0, +) /
+        Double(metricContactFrames.count)
     let kneeAngles = metricContactFrames.map(\.kneeAngleDegrees)
     let elbowAngles = frameSamples.compactMap { $0.averageElbowAngleDegrees }
-    guard !elbowAngles.isEmpty else {
-      throw AnalysisError(
-        code: "no_pose_detected",
-        message: "We could not detect a clear running pose in this video."
+    let stanceKneeAngle: Double? = kneeAngles.isEmpty
+      ? nil
+      : kneeAngles.reduce(0, +) / Double(kneeAngles.count)
+    let elbowAngle: Double? = elbowAngles.isEmpty
+      ? nil
+      : elbowAngles.reduce(0, +) / Double(elbowAngles.count)
+    let contactConfidence = metricContactFrames.isEmpty
+      ? 0
+      : min(
+        1.0,
+        max(
+          0.0,
+          metricContactFrames.map(\.confidence).reduce(0, +) /
+            Double(metricContactFrames.count)
+        )
       )
-    }
-    let stanceKneeAngle = kneeAngles.reduce(0, +) / Double(kneeAngles.count)
-    let elbowAngle = elbowAngles.reduce(0, +) / Double(elbowAngles.count)
-    let contactConfidence = min(
-      1.0,
-      max(
-        0.0,
-        metricContactFrames.map(\.confidence).reduce(0, +) /
-          Double(metricContactFrames.count)
-      )
-    )
     let contactQualityReason = usesContactProxy
       ? "contact_phase_proxy"
-      : hasCompleteContactSample
-        ? (usesKinematicContactEstimate ? "kinematic_contact_estimate" : nil)
-        : "limited_contact_samples"
+      : usesKinematicContactEstimate
+        ? "kinematic_contact_estimate"
+        : hasCompleteContactSample ? nil : "limited_contact_samples"
     let coreConfidence = frameSamples.map(\.coreLandmarkConfidence).reduce(0, +) /
       Double(frameSamples.count)
     let armConfidenceValues = frameSamples.compactMap(\.armLandmarkConfidence)
-    let armConfidence = armConfidenceValues.reduce(0, +) /
-      Double(armConfidenceValues.count)
-    let analyzedFrameTimestamps = Set(coarseFrameTimestamps + denseTimestamps)
+    let armConfidence = armConfidenceValues.isEmpty
+      ? 0
+      : armConfidenceValues.reduce(0, +) /
+        Double(armConfidenceValues.count)
+    let analyzedFrameTimestamps = Set(
+      coarseFrameTimestamps + recoveryTimestamps + denseTimestamps
+    )
     let validFrameTimestamps = Set(
       (frameSamples + densePass.samples).map(\.timestampMs)
     )
     let baseMetricQualities: [String: [String: Any]] = [
       "posture": metricQualityPayload(
-        confidence: coreConfidence,
-        sampleCount: frameSamples.count
+        confidence: hasUsableSharpness ? coreConfidence : min(coreConfidence, 0.58),
+        sampleCount: frameSamples.count,
+        reason: hasUsableSharpness ? nil : "low_sharpness"
       ),
       "bounce": metricQualityPayload(
-        confidence: coreConfidence,
-        sampleCount: frameSamples.count
+        confidence: hasUsableSharpness ? coreConfidence : min(coreConfidence, 0.58),
+        sampleCount: frameSamples.count,
+        reason: hasUsableSharpness ? nil : "low_sharpness"
       ),
       "footStrike": metricQualityPayload(
-        confidence: contactConfidence,
+        confidence: hasUsableSharpness ? contactConfidence : min(contactConfidence, 0.58),
         sampleCount: metricContactFrames.count,
-        reason: contactQualityReason
+        reason: metricContactFrames.isEmpty
+          ? "coordinates_unavailable"
+          : contactQualityReason ?? (hasUsableSharpness ? nil : "low_sharpness")
       ),
       "kneeFlexion": metricQualityPayload(
-        confidence: contactConfidence,
+        confidence: hasUsableSharpness ? contactConfidence : min(contactConfidence, 0.58),
         sampleCount: metricContactFrames.count,
-        reason: contactQualityReason
+        reason: metricContactFrames.isEmpty
+          ? "coordinates_unavailable"
+          : contactQualityReason ?? (hasUsableSharpness ? nil : "low_sharpness")
       ),
       "armCarriage": metricQualityPayload(
-        confidence: armConfidence,
-        sampleCount: armConfidenceValues.count
+        confidence: armConfidenceValues.isEmpty
+          ? 0
+          : hasUsableSharpness ? armConfidence : min(armConfidence, 0.58),
+        sampleCount: armConfidenceValues.count,
+        reason: armConfidenceValues.isEmpty
+          ? "coordinates_unavailable"
+          : hasUsableSharpness ? nil : "low_sharpness"
       ),
     ]
 
+    let footStrikePayload: Any
+    if let value = footStrikeRatio {
+      footStrikePayload = roundTo3(value)
+    } else {
+      footStrikePayload = NSNull()
+    }
+    let kneePayload: Any
+    if let value = stanceKneeAngle {
+      kneePayload = roundTo3(value)
+    } else {
+      kneePayload = NSNull()
+    }
+    let elbowPayload: Any
+    if let value = elbowAngle {
+      elbowPayload = roundTo3(value)
+    } else {
+      elbowPayload = NSNull()
+    }
+
     return [
+      "analysisVersion": 2,
       "durationMs": durationMs,
       "sampledFrames": analyzedFrameTimestamps.count,
       "validFrames": validFrameTimestamps.count,
       "direction": direction.rawValue,
       "forwardLeanDegrees": roundTo3(leanDegrees),
       "verticalBounceRatio": roundTo3(max(0, bounceRatio)),
-      "footStrikeDistanceRatio": roundTo3(footStrikeRatio),
-      "stanceKneeAngleDegrees": roundTo3(stanceKneeAngle),
-      "elbowAngleDegrees": roundTo3(elbowAngle),
+      "footStrikeDistanceRatio": footStrikePayload,
+      "stanceKneeAngleDegrees": kneePayload,
+      "elbowAngleDegrees": elbowPayload,
       "metricQualities": [
         "posture": applyPerspectiveQuality(
           metric: "posture",
@@ -564,18 +625,31 @@ final class RunningPoseAnalysisChannel {
         maxFrameBudget: Self.maxDenseFrameBudget,
         targetFps: Self.denseTargetFps
       ),
+      "recoverySamples": sampleSummaryPayload(
+        attemptedFrames: recoveryTimestamps.count,
+        validFrames: recoveryPass.samples.count,
+        poseFrameCount: recoveryPass.poseFrames.count,
+        maxFrameBudget: Self.maxRecoveryFrameBudget,
+        targetFps: Self.recoveryTargetFps
+      ),
       "contactWindows": contactWindowPayloads(
         windows: candidateSet.windows,
         denseTimestamps: denseTimestamps,
         contactValidations: contactValidations
       ),
       "validatedContactFrameTimestampsMs": Array(
-        Set(contactFrames.map(\.timestampMs))
+        Set(confirmedContactFrames.map(\.timestampMs))
+      ).sorted(),
+      "estimatedContactFrameTimestampsMs": Array(
+        Set(estimatedContactFrames.map(\.timestampMs))
       ).sorted(),
       "contactConfidence": roundTo3(contactConfidence),
       "perspectiveQuality": perspectiveQuality.payload,
       "poseFrames": mergePoseFrames(
-        coarsePoseFrames: coarsePass.poseFrames,
+        coarsePoseFrames: mergePoseFrames(
+          coarsePoseFrames: coarsePass.poseFrames,
+          densePoseFrames: recoveryPass.poseFrames
+        ),
         densePoseFrames: densePass.poseFrames
       ),
     ]
@@ -652,6 +726,125 @@ final class RunningPoseAnalysisChannel {
         max(0, Int((Double(durationMs) * Double(index) / Double(intervalCount)).rounded()))
       )
     }
+  }
+
+  private func recoverySampleTimestamps(
+    from samples: [FrameSample],
+    durationMs: Int
+  ) -> [Int] {
+    guard !samples.isEmpty else { return [] }
+    let maximumWindowMs = 8000
+    let latestStart = max(0, durationMs - maximumWindowMs)
+    var selectedStart = min(
+      latestStart,
+      max(0, samples[0].timestampMs - maximumWindowMs / 2)
+    )
+    var selectedScore = -1.0
+    for center in samples {
+      let start = min(
+        latestStart,
+        max(0, center.timestampMs - maximumWindowMs / 2)
+      )
+      let end = min(durationMs, start + maximumWindowMs)
+      let visible = samples.filter { sample in
+        sample.timestampMs >= start && sample.timestampMs <= end
+      }
+      let scales = visible.map(\.bodyScale).filter { $0 > 0 }
+      let lower = percentile(scales, fraction: 0.10) ?? 0
+      let upper = percentile(scales, fraction: 0.90) ?? lower
+      let driftPenalty = lower > 0
+        ? min(0.7, (upper - lower) / lower)
+        : 0.7
+      let confidence = visible.isEmpty
+        ? 0
+        : visible.map(\.coreLandmarkConfidence).reduce(0, +) /
+          Double(visible.count)
+      let runningMotion = recoveryRunningMotionScore(visible)
+      let score = Double(visible.count) * confidence *
+        (0.20 + 0.80 * runningMotion) * (1 - driftPenalty)
+      if score > selectedScore || (score == selectedScore && start < selectedStart) {
+        selectedScore = score
+        selectedStart = start
+      }
+    }
+    let selectedEnd = min(durationMs, selectedStart + maximumWindowMs)
+    let intervalCount = max(
+      1,
+      min(
+        Self.maxRecoveryFrameBudget - 1,
+        Int(
+          ceil(
+            Double(selectedEnd - selectedStart) /
+              Double(Self.recoveryFrameIntervalMs)
+          )
+        )
+      )
+    )
+    return (0...intervalCount).map { index in
+      min(
+        durationMs,
+        max(
+          0,
+          Int(
+            (
+              Double(selectedStart) +
+                Double(selectedEnd - selectedStart) * Double(index) /
+                Double(intervalCount)
+            ).rounded()
+          )
+        )
+      )
+    }
+  }
+
+  private func recoveryRunningMotionScore(_ samples: [FrameSample]) -> Double {
+    guard samples.count >= 3 else { return 0 }
+    var hipTravel = 0.0
+    var ankleTravel = 0.0
+    var kneeTravel = 0.0
+    var transitions = 0
+    for index in 1..<samples.count {
+      let previous = samples[index - 1]
+      let current = samples[index]
+      guard current.timestampMs - previous.timestampMs <= 400 else { continue }
+      let scale = max(1.0, (previous.bodyScale + current.bodyScale) / 2)
+      func normalizedDistance(_ first: CGPoint?, _ second: CGPoint?) -> Double {
+        guard let first, let second else { return 0 }
+        return hypot(Double(second.x - first.x), Double(second.y - first.y)) / scale
+      }
+      hipTravel += normalizedDistance(previous.hipCenter, current.hipCenter)
+      ankleTravel += normalizedDistance(previous.leftAnkle, current.leftAnkle)
+      ankleTravel += normalizedDistance(previous.rightAnkle, current.rightAnkle)
+      kneeTravel += normalizedDistance(previous.leftKnee, current.leftKnee)
+      kneeTravel += normalizedDistance(previous.rightKnee, current.rightKnee)
+      transitions += 1
+    }
+    guard transitions > 0 else { return 0 }
+    return min(
+      1,
+      max(
+        0,
+        (hipTravel / Double(transitions) / 0.10) * 0.35 +
+          (ankleTravel / Double(transitions) / 0.22) * 0.45 +
+          (kneeTravel / Double(transitions) / 0.16) * 0.20
+      )
+    )
+  }
+
+  private func mergeFrameSamples(
+    _ first: [FrameSample],
+    _ second: [FrameSample]
+  ) -> [FrameSample] {
+    var byTimestamp: [Int: FrameSample] = [:]
+    for sample in first + second {
+      if let existing = byTimestamp[sample.timestampMs],
+        existing.coreLandmarkConfidence >= sample.coreLandmarkConfidence
+      {
+        continue
+      }
+      byTimestamp[sample.timestampMs] = sample
+    }
+    return byTimestamp.values.sorted { $0.timestampMs < $1.timestampMs }
   }
 
   private func runPosePass(
@@ -1906,7 +2099,13 @@ final class RunningPoseAnalysisChannel {
         candidate.window.side == window.side &&
           candidate.window.centerTimestampMs == window.centerTimestampMs
       }
-      let validated: [ContactFrameAnalysis] = validation?.contact.map { [$0] } ?? []
+      let contact = validation?.contact
+      let validated: [ContactFrameAnalysis] = contact.map {
+        $0.isKinematicEstimate ? [] : [$0]
+      } ?? []
+      let estimated: [ContactFrameAnalysis] = contact.map {
+        $0.isKinematicEstimate ? [$0] : []
+      } ?? []
       let confidence = validated.isEmpty
         ? 0.0
         : validated.map(\.confidence).reduce(0, +) / Double(validated.count)
@@ -1925,6 +2124,12 @@ final class RunningPoseAnalysisChannel {
         "validatedContactFrameTimestampsMs": Array(
           Set(validated.map(\.timestampMs))
         ).sorted(),
+        "estimatedContactFrameTimestampsMs": Array(
+          Set(estimated.map(\.timestampMs))
+        ).sorted(),
+        "selectionMethod": validated.isEmpty
+          ? (estimated.isEmpty ? NSNull() : "kinematic")
+          : "ground",
         "confidence": roundTo3(confidence),
       ]
     }
@@ -2445,13 +2650,9 @@ final class RunningPoseAnalysisChannel {
       case .rightToLeft:
         forwardOffset = Double(hipCenter.x - shoulderCenter.x)
       case .stationary:
-        forwardOffset = abs(Double(shoulderCenter.x - hipCenter.x))
+        forwardOffset = 0
       }
-
-      if direction != .stationary && forwardOffset <= 0 {
-        return 0
-      }
-      return atan2(abs(forwardOffset), verticalTravel) * 180 / .pi
+      return atan2(forwardOffset, verticalTravel) * 180 / .pi
     }
 
     func leadFootStrikeRatio(direction: AnalysisDirection) -> Double {
@@ -2634,6 +2835,9 @@ final class RunningPoseAnalysisChannel {
   private static let coarseTargetFps = 8
   private static let coarseFrameIntervalMs = 125
   private static let maxCoarseFrameBudget = 481
+  private static let recoveryTargetFps = 15
+  private static let recoveryFrameIntervalMs = 67
+  private static let maxRecoveryFrameBudget = 120
   private static let minimumValidFrames = 6
   private static let minimumSharpnessSampleCount = 6
   private static let minimumMedianSharpness = 0.018
@@ -2644,6 +2848,7 @@ final class RunningPoseAnalysisChannel {
   private static let sharpnessSampleHeight = 64
   private static let minVideoDurationMs = 1500
   private static let maxVideoDurationMs = 60000
+  private static let maxDecodableVideoDurationMs = 600000
   private static let minimumLikelihood: Float = 0.35
   private static let minimumBodyScalePx = 40.0
   private static let mediaPipePoseLandmarkCount = 33

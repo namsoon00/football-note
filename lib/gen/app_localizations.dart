@@ -14641,7 +14641,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachAnalyzeBody.
   ///
   /// In en, this message translates to:
-  /// **'Choose a side-view clip up to 60 seconds. The app scans the whole clip, then re-reads contact windows densely for the five-metric report.'**
+  /// **'Choose a side-view clip. The app scans within a fixed frame budget, focuses on the clearest runner section, then re-reads contact windows densely.'**
   String get runningCoachAnalyzeBody;
 
   /// No description provided for @runningCoachCaptureFlowTitle.
@@ -14650,10 +14650,186 @@ abstract class AppLocalizations {
   /// **'Analyze a running video'**
   String get runningCoachCaptureFlowTitle;
 
+  /// No description provided for @runningCoachCandidatePreviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview candidate videos'**
+  String get runningCoachCandidatePreviewTitle;
+
+  /// No description provided for @runningCoachCapturedPreviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review this recording'**
+  String get runningCoachCapturedPreviewTitle;
+
+  /// No description provided for @runningCoachPreviewBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Play and scrub the video before confirming it. Quality checks below are warnings and do not block analysis.'**
+  String get runningCoachPreviewBody;
+
+  /// No description provided for @runningCoachPreviewUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview is unavailable. You can choose another video or let the analysis decoder try this file.'**
+  String get runningCoachPreviewUnavailable;
+
+  /// No description provided for @runningCoachPreviewSelectAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose this video'**
+  String get runningCoachPreviewSelectAction;
+
+  /// No description provided for @runningCoachPreviewAnalyzeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyze this video'**
+  String get runningCoachPreviewAnalyzeAction;
+
+  /// No description provided for @runningCoachPreviewLongVideoWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This is longer than 60 seconds. The app will scan within its frame budget and focus on the clearest runner segment.'**
+  String get runningCoachPreviewLongVideoWarning;
+
+  /// No description provided for @runningCoachPreviewLargeVideoWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This file is over 120 MB. Analysis will use a bounded frame budget and may take longer.'**
+  String get runningCoachPreviewLargeVideoWarning;
+
+  /// No description provided for @runningCoachPreviewLargeWebVideoWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This browser file is over 64 MB. Files above 96 MB are rejected before analysis to protect browser memory.'**
+  String get runningCoachPreviewLargeWebVideoWarning;
+
+  /// No description provided for @runningCoachPreviewResolutionWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'The resolution is low, so some measurements may be estimates.'**
+  String get runningCoachPreviewResolutionWarning;
+
+  /// No description provided for @runningCoachPreviewUnknownInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'unknown'**
+  String get runningCoachPreviewUnknownInfo;
+
+  /// No description provided for @runningCoachPreviewMegabytes.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} MB'**
+  String runningCoachPreviewMegabytes(String value);
+
+  /// No description provided for @runningCoachPreviewVideoInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'{duration} · {size} · {resolution}'**
+  String runningCoachPreviewVideoInfo(
+      String duration, String size, String resolution);
+
+  /// No description provided for @runningCoachPreviewTimeline.
+  ///
+  /// In en, this message translates to:
+  /// **'{current} / {total}'**
+  String runningCoachPreviewTimeline(String current, String total);
+
+  /// No description provided for @runningCoachCoordinatePreviewLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Coordinate preview'**
+  String get runningCoachCoordinatePreviewLabel;
+
+  /// No description provided for @runningCoachSlowLoopTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'View this moment in the video'**
+  String get runningCoachSlowLoopTitle;
+
+  /// No description provided for @runningCoachSlowLoopBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Plays only the short interval around this measurement at 0.5× speed and repeats it.'**
+  String get runningCoachSlowLoopBody;
+
+  /// No description provided for @runningCoachSlowLoopUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The original video was not saved, so this moment cannot be played.'**
+  String get runningCoachSlowLoopUnavailable;
+
+  /// No description provided for @runningCoachSlowLoopCaptureOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the saved real capture is available because the original video was not retained.'**
+  String get runningCoachSlowLoopCaptureOnly;
+
+  /// No description provided for @runningCoachSlowLoopTiming.
+  ///
+  /// In en, this message translates to:
+  /// **'0.5× loop · {start}s–{end}s'**
+  String runningCoachSlowLoopTiming(String start, String end);
+
+  /// No description provided for @runningCoachConfirmedScoreLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed score'**
+  String get runningCoachConfirmedScoreLabel;
+
+  /// No description provided for @runningCoachEstimatedScoreLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected score'**
+  String get runningCoachEstimatedScoreLabel;
+
+  /// No description provided for @runningCoachEstimatedScoreSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'An expected score based on the coordinates available in this video'**
+  String get runningCoachEstimatedScoreSummary;
+
+  /// No description provided for @runningCoachMeasurementCountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Measurement results {count}/{total}'**
+  String runningCoachMeasurementCountTitle(int count, int total);
+
+  /// No description provided for @runningCoachMeasurementStatusEstimated.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated measurement'**
+  String get runningCoachMeasurementStatusEstimated;
+
+  /// No description provided for @runningCoachMeasurementStatusCoordinatesUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No coordinates'**
+  String get runningCoachMeasurementStatusCoordinatesUnavailable;
+
+  /// No description provided for @runningCoachMeasurementExpectedRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected range {lower}–{upper}'**
+  String runningCoachMeasurementExpectedRange(String lower, String upper);
+
+  /// No description provided for @runningCoachEvidenceFrameMetadata.
+  ///
+  /// In en, this message translates to:
+  /// **'{side} · {time} · {value} · confidence {confidence}%'**
+  String runningCoachEvidenceFrameMetadata(
+      String side, String time, String value, int confidence);
+
+  /// No description provided for @runningCoachEvidenceViewAtTime.
+  ///
+  /// In en, this message translates to:
+  /// **'View at {time} in video'**
+  String runningCoachEvidenceViewAtTime(String time);
+
   /// No description provided for @runningCoachCaptureFlowBody.
   ///
   /// In en, this message translates to:
-  /// **'Record or choose a side-view clip up to 60 seconds. The full clip is scanned, then strides and contact windows are analyzed densely.'**
+  /// **'Record or choose a side-view clip, preview it, then confirm analysis. Longer clips are handled within a fixed frame budget.'**
   String get runningCoachCaptureFlowBody;
 
   /// No description provided for @runningCoachCaptureAction.
@@ -14929,7 +15105,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachModeVideoBody.
   ///
   /// In en, this message translates to:
-  /// **'Choose a side-view video up to 60 seconds to scan the full clip and create a form report.'**
+  /// **'Choose a side-view video to scan within a fixed frame budget and create a form report.'**
   String get runningCoachModeVideoBody;
 
   /// No description provided for @runningCoachModeLiveAction.
@@ -14959,7 +15135,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachTipSteadyCamera.
   ///
   /// In en, this message translates to:
-  /// **'Use a steady camera and bright, even light. Videos up to 60 seconds are supported; for the fastest reliable result, include at least 3 clean strides in a steady 5–15 second section.'**
+  /// **'Use a steady camera and bright, even light. For the fastest reliable result, include at least 3 clean strides in a steady 5–15 second section.'**
   String get runningCoachTipSteadyCamera;
 
   /// No description provided for @runningCoachUploadGuideTitle.
@@ -14989,7 +15165,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachUploadGuideStepDuration.
   ///
   /// In en, this message translates to:
-  /// **'Use a clip up to 60 seconds. The app scans it end-to-end, so remove walking setup, repeated turns, and stopped frames when possible.'**
+  /// **'A focused 5–15 second section is fastest. Longer clips are sampled within a fixed budget, so remove walking setup, repeated turns, and stopped frames when possible.'**
   String get runningCoachUploadGuideStepDuration;
 
   /// No description provided for @runningCoachUploadGuideStepLight.
@@ -15055,7 +15231,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachCaptureGuideChecklistClip.
   ///
   /// In en, this message translates to:
-  /// **'For the fastest reliable result, use a bright 5–15 second clip with 3–6 clean strides. Videos up to 60 seconds can also be analyzed.'**
+  /// **'For the fastest reliable result, use a bright 5–15 second clip with 3–6 clean strides. Longer clips use bounded sampling.'**
   String get runningCoachCaptureGuideChecklistClip;
 
   /// No description provided for @runningCoachCaptureGuideAnalysisTitle.
@@ -17483,14 +17659,20 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachVideoTooLong.
   ///
   /// In en, this message translates to:
-  /// **'The video is too long. Trim it to 60 seconds or less.'**
+  /// **'The video exceeds the safe on-device decoding budget. Trim it to the section where the runner is visible.'**
   String get runningCoachVideoTooLong;
 
   /// No description provided for @runningCoachVideoTooLarge.
   ///
   /// In en, this message translates to:
-  /// **'The video is too large for on-device analysis. Trim or export a smaller clip up to 60 seconds.'**
+  /// **'The file exceeds the safe in-memory analysis limit. Export a smaller file while keeping the runner visible.'**
   String get runningCoachVideoTooLarge;
+
+  /// No description provided for @runningCoachWebVideoTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'This browser file is over the 96 MB analysis limit. Export a smaller clip before trying again.'**
+  String get runningCoachWebVideoTooLarge;
 
   /// No description provided for @runningCoachVideoTooBlurry.
   ///

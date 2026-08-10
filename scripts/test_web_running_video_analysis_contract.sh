@@ -14,6 +14,7 @@ model = Path("web/mediapipe/pose_landmarker_full.task")
 index = Path("web/index.html")
 adapter = Path("lib/application/running_video_analysis_platform_web.dart")
 facade = Path("lib/application/running_video_analysis_service.dart")
+archive = Path("lib/application/running_coach_evidence_archive_web.dart")
 
 failures: list[str] = []
 
@@ -28,6 +29,7 @@ bridge_text = bridge.read_text()
 index_text = index.read_text()
 adapter_text = adapter.read_text()
 facade_text = facade.read_text()
+archive_text = archive.read_text()
 
 for required in (
     "@mediapipe/tasks-vision@${config.taskVersion}",
@@ -76,6 +78,13 @@ for required in (
     "denseSamples",
     "contactWindows",
     "validatedContactFrameTimestampsMs",
+    "estimatedContactFrameTimestampsMs",
+    "selectionMethod",
+    "recoveryRunningMotionScore",
+    "slice(0, 24)",
+    "releaseVideo(video, url, ownsUrl)",
+    "analyzeUrl",
+    "extractEvidenceFramesFromUrl",
     "metricQualities",
     "window.runningVideoPoseAnalysis",
 ):
@@ -98,8 +107,25 @@ require(
     "dart.library.html" in facade_text,
     "Running video analysis service must select a web implementation",
 )
-for required in ("readAsBytes", "runningVideoPoseAnalysis", "toDart", "RunningVideoAnalysisResult.fromMap"):
+for required in (
+    "analyzeUrl",
+    "isReusableBrowserVideoUrl",
+    "maximumRunningVideoBytes",
+    "webMaxVideoBytes",
+    "runningVideoPoseAnalysis",
+    "toDart",
+    "RunningVideoAnalysisResult.fromMap",
+):
     require(required in adapter_text, f"Web Dart adapter is missing required token: {required}")
+
+for required in (
+    "extractEvidenceFramesFromUrl",
+    "_maximumWebEvidenceByteFallback",
+    "_maximumWebEvidenceFrames = 24",
+    "web_evidence_url_required",
+    "requestsByTimestamp",
+):
+    require(required in archive_text, f"Web evidence archive is missing required token: {required}")
 
 for required in (
     "maxVideoBytes",
@@ -107,6 +133,8 @@ for required in (
     "video_too_large",
     "analysis_timeout",
     "video.length",
+    "platform.maximumRunningVideoBytes",
+    "webMaxVideoBytes = 96 * 1024 * 1024",
     ".timeout(analysisTimeout)",
 ):
     require(required in facade_text, f"Running video service is missing launch safety token: {required}")

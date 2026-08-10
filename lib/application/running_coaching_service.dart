@@ -42,40 +42,97 @@ class RunningCoachingService {
       MapEntry(insights[3], weights.kneeWeight),
       MapEntry(insights[4], weights.armWeight),
     ];
-    final reliableWeightedInsights = weightedInsights
-        .where((entry) => entry.key.quality.isReliableForCoaching)
-        .toList(growable: false);
-    // A single number describes a complete, evidence-backed form screen. It
-    // must not silently become a partial score when, for example, landing and
-    // knee measurements could not be paired to an actual contact frame. A
-    // zero is paired with the retake-quality surface in the UI; it is not a
-    // claim that the runner performed poorly.
-    final hasCompleteScoreEvidence =
-        reliableWeightedInsights.length == weightedInsights.length;
-    final scoringInsights = hasCompleteScoreEvidence
-        ? reliableWeightedInsights
-        : const <MapEntry<RunningCoachingInsight, double>>[];
-    final scoringWeight = scoringInsights.fold<double>(
-      0,
-      (total, entry) => total + entry.value,
-    );
-    final weightedTotal = scoringWeight == 0
-        ? 0.0
-        : scoringInsights.fold<double>(
-              0,
-              (total, entry) => total + (entry.key.score * entry.value),
-            ) /
-            scoringWeight;
-    final coveragePenalty =
-        result.validFrameCoverage < thresholds.minimumReliableCoverage
-            ? thresholds.lowCoveragePenalty
-            : 0;
-
-    return RunningCoachingReport(
-      overallScore: scoringInsights.isEmpty
+    if (result.analysisVersion < runningAnalysisVersionV2 &&
+        result.measurements.isEmpty) {
+      final reliable = weightedInsights
+          .where((entry) => entry.key.quality.isReliableForCoaching)
+          .toList(growable: false);
+      final complete = reliable.length == weightedInsights.length;
+      final weight = reliable.fold<double>(
+        0,
+        (total, entry) => total + entry.value,
+      );
+      final coveragePenalty =
+          result.validFrameCoverage < thresholds.minimumReliableCoverage
+              ? thresholds.lowCoveragePenalty
+              : 0;
+      final score = !complete || weight == 0
           ? 0
-          : math.max(0, weightedTotal.round() - coveragePenalty),
+          : math.max(
+              0,
+              (reliable.fold<double>(
+                            0,
+                            (total, entry) =>
+                                total + (entry.key.score * entry.value),
+                          ) /
+                          weight)
+                      .round() -
+                  coveragePenalty,
+            );
+      return RunningCoachingReport(
+        overallScore: score,
+        insights: insights,
+        scoreStatus: complete
+            ? RunningCoachScoreStatus.confirmed
+            : RunningCoachScoreStatus.unavailable,
+      );
+    }
+    const analysisMetricForCoachMetric =
+        <RunningCoachMetric, RunningAnalysisMetric>{
+      RunningCoachMetric.posture: RunningAnalysisMetric.posture,
+      RunningCoachMetric.bounce: RunningAnalysisMetric.bounce,
+      RunningCoachMetric.footStrike: RunningAnalysisMetric.footStrike,
+      RunningCoachMetric.kneeFlexion: RunningAnalysisMetric.kneeAtContact,
+      RunningCoachMetric.armCarriage: RunningAnalysisMetric.elbowAngle,
+    };
+    final confirmedInsights = weightedInsights.where((entry) {
+      final metric = analysisMetricForCoachMetric[entry.key.metric]!;
+      return result.measurementFor(metric).state ==
+              RunningMeasurementState.confirmed &&
+          entry.key.quality.isReliableForCoaching;
+    }).toList(growable: false);
+    final estimatedInsights = weightedInsights.where((entry) {
+      final metric = analysisMetricForCoachMetric[entry.key.metric]!;
+      return result.measurementFor(metric).state !=
+          RunningMeasurementState.unavailable;
+    }).toList(growable: false);
+    final hasCompleteConfirmedScore =
+        confirmedInsights.length == weightedInsights.length;
+    final canEstimateScore = estimatedInsights.length >= 3;
+
+    int aggregate(List<MapEntry<RunningCoachingInsight, double>> entries) {
+      final scoringWeight = entries.fold<double>(
+        0,
+        (total, entry) => total + entry.value,
+      );
+      if (scoringWeight == 0) return 0;
+      final weightedTotal = entries.fold<double>(
+            0,
+            (total, entry) => total + (entry.key.score * entry.value),
+          ) /
+          scoringWeight;
+      final coveragePenalty =
+          result.validFrameCoverage < thresholds.minimumReliableCoverage
+              ? thresholds.lowCoveragePenalty
+              : 0;
+      return math.max(0, weightedTotal.round() - coveragePenalty);
+    }
+
+    final confirmedScore =
+        hasCompleteConfirmedScore ? aggregate(confirmedInsights) : null;
+    final estimatedScore = confirmedScore == null && canEstimateScore
+        ? aggregate(estimatedInsights)
+        : null;
+    final scoreStatus = confirmedScore != null
+        ? RunningCoachScoreStatus.confirmed
+        : estimatedScore != null
+            ? RunningCoachScoreStatus.estimated
+            : RunningCoachScoreStatus.unavailable;
+    return RunningCoachingReport(
+      overallScore: confirmedScore ?? estimatedScore ?? 0,
       insights: insights,
+      scoreStatus: scoreStatus,
+      estimatedScore: estimatedScore,
     );
   }
 

@@ -25,3 +25,9 @@ Future<Uint8List?> readArchivedRunningCoachEvidenceImage(
 Future<void> deleteArchivedRunningCoachEvidenceImages(
   Iterable<RunningCoachEvidenceImage> images,
 ) async {}
+
+Future<Uint8List?> extractRunningVideoThumbnail(
+  XFile video, {
+  Duration timestamp = const Duration(milliseconds: 200),
+}) async =>
+    null;

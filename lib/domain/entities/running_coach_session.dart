@@ -7,7 +7,7 @@ enum RunningCoachSessionSource { uploadVideo }
 /// A numeric score is deliberately separate from this state: `0` is not a
 /// substitute for a missing score, and legacy sessions may not retain enough
 /// measured evidence to be compared fairly.
-enum RunningCoachScoreEligibility { verified, unavailable, legacy }
+enum RunningCoachScoreEligibility { verified, estimated, unavailable, legacy }
 
 enum RunningCoachEvidenceArchiveStatus {
   success,
@@ -141,6 +141,7 @@ class RunningCoachSessionAnalysis {
   final int overallScore;
   final RunningCoachScoreEligibility scoreEligibility;
   final int scoreVersion;
+  final int analysisVersion;
   final Duration duration;
   final int sampledFrames;
   final int validFrames;
@@ -167,6 +168,7 @@ class RunningCoachSessionAnalysis {
     required this.overallScore,
     this.scoreEligibility = RunningCoachScoreEligibility.legacy,
     this.scoreVersion = 1,
+    this.analysisVersion = 1,
     required this.duration,
     required this.sampledFrames,
     required this.validFrames,
@@ -193,6 +195,9 @@ class RunningCoachSessionAnalysis {
 
   bool get hasVerifiedScore =>
       scoreEligibility == RunningCoachScoreEligibility.verified;
+
+  bool get hasEstimatedScore =>
+      scoreEligibility == RunningCoachScoreEligibility.estimated;
 
   double get coverage =>
       sampledFrames == 0 ? 0.0 : (validFrames / sampledFrames).clamp(0.0, 1.0);
@@ -233,6 +238,7 @@ class RunningCoachSessionAnalysis {
       'overallScore': overallScore,
       'scoreEligibility': scoreEligibility.name,
       'scoreVersion': scoreVersion,
+      'analysisVersion': analysisVersion,
       'durationMs': duration.inMilliseconds,
       'sampledFrames': sampledFrames,
       'validFrames': validFrames,
@@ -286,6 +292,7 @@ class RunningCoachSessionAnalysis {
         RunningCoachScoreEligibility.legacy,
       ),
       scoreVersion: _intValue(map['scoreVersion']).clamp(1, 9999).toInt(),
+      analysisVersion: _intValue(map['analysisVersion']).clamp(1, 9999).toInt(),
       duration: Duration(milliseconds: _intValue(map['durationMs'])),
       sampledFrames: _intValue(map['sampledFrames']),
       validFrames: _intValue(map['validFrames']),
@@ -336,6 +343,10 @@ class RunningCoachEvidenceImage {
   final String storageReference;
   final int width;
   final int height;
+  final RunningContactSide side;
+  final Map<String, double> values;
+  final double confidence;
+  final RunningPoseFrame? poseFrame;
 
   const RunningCoachEvidenceImage({
     required this.id,
@@ -345,6 +356,10 @@ class RunningCoachEvidenceImage {
     required this.storageReference,
     this.width = 0,
     this.height = 0,
+    this.side = RunningContactSide.unknown,
+    this.values = const <String, double>{},
+    this.confidence = 0,
+    this.poseFrame,
   });
 
   bool get isAvailable => storageReference.isNotEmpty;
@@ -357,6 +372,10 @@ class RunningCoachEvidenceImage {
         'storageReference': storageReference,
         if (width > 0) 'width': width,
         if (height > 0) 'height': height,
+        'side': side.name,
+        if (values.isNotEmpty) 'values': values,
+        'confidence': confidence,
+        if (poseFrame != null) 'poseFrame': poseFrame!.toMap(),
       };
 
   factory RunningCoachEvidenceImage.fromMap(Map<String, dynamic> map) {
@@ -376,8 +395,28 @@ class RunningCoachEvidenceImage {
       storageReference: _optionalString(map['storageReference']) ?? '',
       width: _intValue(map['width']),
       height: _intValue(map['height']),
+      side: _enumByName(
+        RunningContactSide.values,
+        map['side']?.toString(),
+        RunningContactSide.unknown,
+      ),
+      values: _doubleMap(map['values']),
+      confidence: _doubleValue(map['confidence']).clamp(0.0, 1.0),
+      poseFrame: RunningPoseFrame.fromObject(map['poseFrame']),
     );
   }
+}
+
+Map<String, double> _doubleMap(Object? raw) {
+  if (raw is! Map) return const <String, double>{};
+  final values = <String, double>{};
+  for (final entry in raw.entries) {
+    final key = entry.key?.toString().trim();
+    if (key == null || key.isEmpty || entry.value is! num) continue;
+    final value = (entry.value as num).toDouble();
+    if (value.isFinite) values[key] = value;
+  }
+  return Map<String, double>.unmodifiable(values);
 }
 
 RunningCoachCaptureContext? _captureContextFromMap(Object? raw) {

@@ -4,7 +4,10 @@
   const config = Object.freeze({
     taskVersion: '0.10.35',
     minVideoDurationMs: 1500,
+    // Clips through 60 seconds keep the full 8 fps scan. Longer clips use the
+    // same bounded whole-video budget plus a best-runner recovery window.
     maxVideoDurationMs: 60000,
+    maxDecodableVideoDurationMs: 600000,
     minConfidence: 0.35,
     minValidFrames: 6,
     // Read the whole clip at a predictable coarse density. The release budget
@@ -13,6 +16,9 @@
     coarseTargetFps: 8,
     coarseFrameIntervalMs: 125,
     maxCoarseFrames: 481,
+    recoveryTargetFps: 15,
+    recoveryFrameIntervalMs: 67,
+    maxRecoveryFrames: 120,
     minMedianSharpness: 0.018,
     minSharpnessSamples: 6,
     minBodyScalePx: 40,
@@ -147,14 +153,8 @@
     });
   }
 
-  function loadVideo(bytes, name) {
+  function loadVideoUrl(url, ownsUrl = false) {
     return new Promise((resolve, reject) => {
-      const blob = new Blob([bytes], {
-        type: name && name.toLowerCase().endsWith('.mov')
-          ? 'video/quicktime'
-          : 'video/mp4',
-      });
-      const url = URL.createObjectURL(blob);
       const video = document.createElement('video');
       video.muted = true;
       video.playsInline = true;
@@ -167,11 +167,11 @@
       };
       const onLoaded = () => {
         cleanup();
-        resolve({ video, url });
+        resolve({ video, url, ownsUrl });
       };
       const onError = () => {
         cleanup();
-        URL.revokeObjectURL(url);
+        if (ownsUrl) URL.revokeObjectURL(url);
         reject(
           createError(
             'web_video_decode_failed',
@@ -182,6 +182,22 @@
       video.addEventListener('loadedmetadata', onLoaded, { once: true });
       video.addEventListener('error', onError, { once: true });
     });
+  }
+
+  function loadVideo(bytes, name) {
+    const blob = new Blob([bytes], {
+      type: name && name.toLowerCase().endsWith('.mov')
+        ? 'video/quicktime'
+        : 'video/mp4',
+    });
+    return loadVideoUrl(URL.createObjectURL(blob), true);
+  }
+
+  function releaseVideo(video, url, ownsUrl) {
+    video.pause();
+    video.removeAttribute('src');
+    video.load();
+    if (ownsUrl) URL.revokeObjectURL(url);
   }
 
   function seekVideo(video, seconds) {
@@ -226,6 +242,88 @@
     return Array.from({ length: intervalCount + 1 }, (_, index) =>
       Math.round((safeDurationMs * index) / intervalCount),
     );
+  }
+
+  function recoveryRunningMotionScore(samples) {
+    if (!Array.isArray(samples) || samples.length < 3) return 0;
+    let hipTravel = 0;
+    let ankleTravel = 0;
+    let kneeTravel = 0;
+    let transitions = 0;
+    const normalizedDistance = (first, second, scale) =>
+      !first || !second ? 0 : distance(first, second) / scale;
+    for (let sampleIndex = 1; sampleIndex < samples.length; sampleIndex += 1) {
+      const previous = samples[sampleIndex - 1];
+      const current = samples[sampleIndex];
+      if (current.timestampMs - previous.timestampMs > 400) continue;
+      const scale = Math.max(1, (previous.bodyScale + current.bodyScale) / 2);
+      hipTravel += normalizedDistance(previous.hipCenter, current.hipCenter, scale);
+      ankleTravel += normalizedDistance(previous.leftAnkle, current.leftAnkle, scale);
+      ankleTravel += normalizedDistance(previous.rightAnkle, current.rightAnkle, scale);
+      kneeTravel += normalizedDistance(previous.leftKnee, current.leftKnee, scale);
+      kneeTravel += normalizedDistance(previous.rightKnee, current.rightKnee, scale);
+      transitions += 1;
+    }
+    if (transitions === 0) return 0;
+    return Math.max(0, Math.min(1,
+      (hipTravel / transitions / 0.10) * 0.35 +
+      (ankleTravel / transitions / 0.22) * 0.45 +
+      (kneeTravel / transitions / 0.16) * 0.20
+    ));
+  }
+
+  function recoveryTimestamps(samples, durationMs) {
+    if (!Array.isArray(samples) || samples.length === 0) return [];
+    const maximumWindowMs = 8000;
+    let selectedStartMs = Math.max(
+      0,
+      Math.min(durationMs, samples[0].timestampMs - maximumWindowMs / 2),
+    );
+    let selectedScore = -1;
+    for (const center of samples) {
+      const startMs = Math.max(
+        0,
+        Math.min(durationMs - maximumWindowMs, center.timestampMs - maximumWindowMs / 2),
+      );
+      const endMs = Math.min(durationMs, startMs + maximumWindowMs);
+      const visible = samples.filter((sample) =>
+        sample.timestampMs >= startMs && sample.timestampMs <= endMs,
+      );
+      const scales = visible.map((sample) => sample.bodyScale).filter((value) => value > 0);
+      const lower = percentile(scales, 0.10) ?? 0;
+      const upper = percentile(scales, 0.90) ?? lower;
+      const driftPenalty = lower > 0 ? Math.min(0.7, (upper - lower) / lower) : 0.7;
+      const confidence = visible.length === 0 ? 0 : average(visible.map(coreConfidence));
+      const runningMotion = recoveryRunningMotionScore(visible);
+      const score = visible.length * confidence *
+        (0.20 + 0.80 * runningMotion) * (1 - driftPenalty);
+      if (score > selectedScore || (score === selectedScore && startMs < selectedStartMs)) {
+        selectedScore = score;
+        selectedStartMs = startMs;
+      }
+    }
+    const selectedEndMs = Math.min(durationMs, selectedStartMs + maximumWindowMs);
+    const intervalCount = Math.max(
+      1,
+      Math.min(
+        config.maxRecoveryFrames - 1,
+        Math.ceil((selectedEndMs - selectedStartMs) / config.recoveryFrameIntervalMs),
+      ),
+    );
+    return Array.from({ length: intervalCount + 1 }, (_, sampleIndex) =>
+      Math.round(selectedStartMs + ((selectedEndMs - selectedStartMs) * sampleIndex) / intervalCount),
+    );
+  }
+
+  function mergedSamples(...groups) {
+    const byTimestamp = new Map();
+    for (const sample of groups.flat()) {
+      const existing = byTimestamp.get(sample.timestampMs);
+      if (!existing || coreConfidence(sample) > coreConfidence(existing)) {
+        byTimestamp.set(sample.timestampMs, sample);
+      }
+    }
+    return [...byTimestamp.values()].sort((left, right) => left.timestampMs - right.timestampMs);
   }
 
   function landmarkConfidence(landmark) {
@@ -516,9 +614,8 @@
       ? rawOffset
       : direction === 'rightToLeft'
         ? -rawOffset
-        : Math.abs(rawOffset);
-    if (direction !== 'stationary' && forwardOffset <= 0) return 0;
-    return (Math.atan2(Math.abs(forwardOffset), verticalTravel) * 180) / Math.PI;
+        : 0;
+    return (Math.atan2(forwardOffset, verticalTravel) * 180) / Math.PI;
   }
 
   function footBottom(sample, side) {
@@ -1228,6 +1325,7 @@
     return windows.map((window, windowIndex) => {
       const validation = validations[windowIndex];
       const contact = validation?.contact;
+      const isEstimated = contact?.selectionMethod === 'kinematic';
       return {
         side: contact?.side ?? window.side,
         startTimestampMs: window.startTimestampMs,
@@ -1239,8 +1337,10 @@
         ).length,
         candidateFrameCount: validation?.candidateFrameCount ?? 0,
         rejectedFrameCounts: validation?.rejectedFrameCounts ?? {},
-        validatedContactFrameTimestampsMs: contact ? [contact.timestampMs] : [],
-        confidence: round3(contact?.confidence ?? 0),
+        validatedContactFrameTimestampsMs: contact && !isEstimated ? [contact.timestampMs] : [],
+        estimatedContactFrameTimestampsMs: isEstimated ? [contact.timestampMs] : [],
+        selectionMethod: contact?.selectionMethod ?? null,
+        confidence: round3(contact && !isEstimated ? contact.confidence : 0),
       };
     });
   }
@@ -1389,7 +1489,7 @@
     );
   }
 
-  async function extractEvidenceFrames(bytes, name, timestampsJson) {
+  async function extractEvidenceFramesFromLoader(load, timestampsJson) {
     let timestamps;
     try {
       timestamps = JSON.parse(timestampsJson || '[]');
@@ -1400,9 +1500,9 @@
       (Array.isArray(timestamps) ? timestamps : [])
         .map((value) => Math.round(Number(value)))
         .filter((value) => Number.isFinite(value) && value >= 0),
-    )].sort((left, right) => left - right).slice(0, 8);
+    )].sort((left, right) => left - right).slice(0, 24);
     if (uniqueTimestamps.length === 0) return [];
-    const { video, url } = await loadVideo(bytes, name);
+    const { video, url, ownsUrl } = await load();
     try {
       const sourceWidth = video.videoWidth;
       const sourceHeight = video.videoHeight;
@@ -1429,14 +1529,26 @@
       }
       return frames;
     } finally {
-      video.removeAttribute('src');
-      video.load();
-      URL.revokeObjectURL(url);
+      releaseVideo(video, url, ownsUrl);
     }
   }
 
-  async function analyze(bytes, name) {
-    const { video, url } = await loadVideo(bytes, name);
+  function extractEvidenceFrames(bytes, name, timestampsJson) {
+    return extractEvidenceFramesFromLoader(
+      () => loadVideo(bytes, name),
+      timestampsJson,
+    );
+  }
+
+  function extractEvidenceFramesFromUrl(url, name, timestampsJson) {
+    return extractEvidenceFramesFromLoader(
+      () => loadVideoUrl(url, false),
+      timestampsJson,
+    );
+  }
+
+  async function analyzeFromLoader(load) {
+    const { video, url, ownsUrl } = await load();
     try {
       const durationMs = Math.round(video.duration * 1000);
       if (!Number.isFinite(durationMs) || durationMs < config.minVideoDurationMs) {
@@ -1445,10 +1557,10 @@
           'Please select a running clip that is at least 1.5 seconds long.',
         );
       }
-      if (durationMs > config.maxVideoDurationMs) {
+      if (durationMs > config.maxDecodableVideoDurationMs) {
         throw createError(
           'video_too_long',
-          'Please trim the running clip to 60 seconds or less.',
+          'This video is longer than the bounded on-device decoding budget.',
         );
       }
       if (video.videoWidth <= 0 || video.videoHeight <= 0) {
@@ -1463,24 +1575,46 @@
         if (error?.code) throw error;
         throw createError('mediapipe_pose_failed', error?.message || 'MediaPipe pose inference failed.');
       }
-      if (coarse.samples.length < config.minValidFrames) {
+      if (coarse.samples.length < 2) {
         throw createError('no_pose_detected', 'We could not detect a clear running pose in this video.');
       }
       const sharpness = median(coarse.sharpnessValues);
-      if (coarse.sharpnessValues.length < config.minSharpnessSamples ||
-          sharpness === null || sharpness < config.minMedianSharpness) {
-        throw createError('video_too_blurry', 'This video is too blurry for precise running coaching.');
-      }
+      const hasUsableSharpness = coarse.sharpnessValues.length >= config.minSharpnessSamples &&
+        sharpness !== null && sharpness >= config.minMedianSharpness;
 
-      const perspective = perspectiveQuality(coarse.samples);
-      const direction = resolveDirection(coarse.samples);
+      let analysisSamples = coarse.samples;
+      let recovery = { samples: [], poseFrames: [], sharpnessValues: [] };
+      let recoveryFrameTimes = [];
+      let perspective = perspectiveQuality(analysisSamples);
+      let initialCandidateSet = mergedContactCandidateSet(
+        deriveContactCandidates(analysisSamples, durationMs),
+        fallbackContactCandidates(analysisSamples, durationMs),
+      );
+      const needsRecovery =
+        durationMs > config.maxVideoDurationMs ||
+        initialCandidateSet.windows.length < config.minValidatedContacts ||
+        perspective.scaleDriftRatio > config.maximumScaleDriftRatio ||
+        analysisSamples.length / Math.max(1, coarseFrameTimes.length) < 0.45;
+      if (needsRecovery) {
+        recoveryFrameTimes = recoveryTimestamps(analysisSamples, durationMs);
+        if (recoveryFrameTimes.length > 0) {
+          recovery = await runPosePass(video, recoveryFrameTimes, false);
+          analysisSamples = mergedSamples(analysisSamples, recovery.samples);
+          perspective = perspectiveQuality(analysisSamples);
+          initialCandidateSet = mergedContactCandidateSet(
+            deriveContactCandidates(analysisSamples, durationMs),
+            fallbackContactCandidates(analysisSamples, durationMs),
+          );
+        }
+      }
+      const direction = resolveDirection(analysisSamples);
       const leanDegrees = average(
-        coarse.samples.map((sample) => forwardLeanDegrees(sample, direction)),
+        analysisSamples.map((sample) => forwardLeanDegrees(sample, direction)),
       );
       // Use the central 80% of body-scale-normalized shoulder positions.
       // A single tracking spike should not make a compact stride look like an
       // exaggerated jump.
-      const normalizedShoulderYs = coarse.samples.map(
+      const normalizedShoulderYs = analysisSamples.map(
         (sample) => sample.shoulderCenter.y / Math.max(1, sample.bodyScale),
       );
       const lowerBouncePosition = percentile(normalizedShoulderYs, 0.10);
@@ -1488,26 +1622,17 @@
       const bounceRatio = lowerBouncePosition === null || upperBouncePosition === null
         ? 0
         : Math.max(0, upperBouncePosition - lowerBouncePosition);
-      const detectedCandidateSet = deriveContactCandidates(coarse.samples, durationMs);
-      const fallbackCandidateSet = fallbackContactCandidates(coarse.samples, durationMs);
-      const candidateSet = mergedContactCandidateSet(
-        detectedCandidateSet,
-        fallbackCandidateSet,
-      );
-      if (candidateSet.windows.length === 0) {
-        throw createError('insufficient_contact_evidence', 'We could not verify foot-contact frames in this video.');
-      }
+      const candidateSet = initialCandidateSet;
       const denseFrameTimes = denseTimestamps(candidateSet.windows, durationMs);
-      if (denseFrameTimes.length === 0) {
-        throw createError('insufficient_contact_evidence', 'We could not verify foot-contact frames in this video.');
-      }
 
-      let dense;
-      try {
-        dense = await runPosePass(video, denseFrameTimes, false);
-      } catch (error) {
-        if (error?.code) throw error;
-        throw createError('mediapipe_pose_failed', error?.message || 'MediaPipe pose inference failed.');
+      let dense = { samples: [], poseFrames: [], sharpnessValues: [] };
+      if (denseFrameTimes.length > 0) {
+        try {
+          dense = await runPosePass(video, denseFrameTimes, false);
+        } catch (error) {
+          if (error?.code) throw error;
+          throw createError('mediapipe_pose_failed', error?.message || 'MediaPipe pose inference failed.');
+        }
       }
       const contactValidations = deduplicateContactValidations(
         candidateSet.windows.map((window) =>
@@ -1517,15 +1642,19 @@
       const contacts = contactValidations
         .map((validation) => validation.contact)
         .filter(Boolean);
-      const usesKinematicContactEstimate = contacts.some(
+      const confirmedContacts = contacts.filter(
+        (contact) => contact.selectionMethod !== 'kinematic',
+      );
+      const estimatedContacts = contacts.filter(
         (contact) => contact.selectionMethod === 'kinematic',
       );
+      const usesKinematicContactEstimate = estimatedContacts.length > 0;
       // One or two verified contacts are not enough for a score, cadence, or
       // left/right comparison, but they are still real measured observations.
       // Keep them distinct from the old proxy path so the UI can show the
       // exact frame and value without pretending it is a complete assessment.
       const usesContactProxy = contacts.length === 0;
-      const hasCompleteContactSample = contacts.length >= config.minValidatedContacts;
+      const hasCompleteContactSample = confirmedContacts.length >= config.minValidatedContacts;
       const denseProxies = usesContactProxy
         ? contactProxies(dense.samples, candidateSet.windows, direction, 0.6)
         : [];
@@ -1533,50 +1662,69 @@
         ? contacts
         : denseProxies.length > 0
           ? denseProxies
-          : contactProxies(coarse.samples, candidateSet.windows, direction, 0.42);
-      if (metricContacts.length === 0) {
-        throw createError('insufficient_contact_evidence', 'We could not verify foot-contact frames in this video.');
-      }
+          : contactProxies(analysisSamples, candidateSet.windows, direction, 0.42);
 
-      const elbowAngles = coarse.samples.map(elbowAngle).filter((value) => value !== null);
-      if (elbowAngles.length === 0) {
-        throw createError('no_pose_detected', 'We could not detect a clear running pose in this video.');
-      }
-      const bodyConfidence = average(coarse.samples.map(coreConfidence));
-      const armConfidenceValues = coarse.samples.map(armConfidence).filter((value) => value !== null);
-      const contactConfidence = average(metricContacts.map((contact) => contact.confidence));
+      const elbowAngles = analysisSamples.map(elbowAngle).filter((value) => value !== null);
+      const bodyConfidence = average(analysisSamples.map(coreConfidence));
+      const armConfidenceValues = analysisSamples.map(armConfidence).filter((value) => value !== null);
+      const contactConfidence = metricContacts.length === 0
+        ? 0
+        : average(metricContacts.map((contact) => contact.confidence));
       const contactReason = usesContactProxy
         ? 'contact_phase_proxy'
-        : hasCompleteContactSample
-          ? usesKinematicContactEstimate
-            ? 'kinematic_contact_estimate'
-            : null
-          : 'limited_contact_samples';
+        : usesKinematicContactEstimate
+          ? 'kinematic_contact_estimate'
+          : hasCompleteContactSample ? null : 'limited_contact_samples';
 
-      const analyzedFrameTimestamps = new Set([...coarseFrameTimes, ...denseFrameTimes]);
+      const analyzedFrameTimestamps = new Set([
+        ...coarseFrameTimes,
+        ...recoveryFrameTimes,
+        ...denseFrameTimes,
+      ]);
       const validFrameTimestamps = new Set([
-        ...coarse.samples.map((sample) => sample.timestampMs),
+        ...analysisSamples.map((sample) => sample.timestampMs),
         ...dense.samples.map((sample) => sample.timestampMs),
       ]);
 
       const baseMetricQualities = {
-        posture: metricQuality(bodyConfidence, coarse.samples.length),
-        bounce: metricQuality(bodyConfidence, coarse.samples.length),
-        footStrike: metricQuality(contactConfidence, metricContacts.length, contactReason),
-        kneeFlexion: metricQuality(contactConfidence, metricContacts.length, contactReason),
-        armCarriage: metricQuality(average(armConfidenceValues), armConfidenceValues.length),
+        posture: metricQuality(
+          hasUsableSharpness ? bodyConfidence : Math.min(bodyConfidence, 0.58),
+          analysisSamples.length,
+          hasUsableSharpness ? null : 'low_sharpness',
+        ),
+        bounce: metricQuality(
+          hasUsableSharpness ? bodyConfidence : Math.min(bodyConfidence, 0.58),
+          analysisSamples.length,
+          hasUsableSharpness ? null : 'low_sharpness',
+        ),
+        footStrike: metricQuality(
+          hasUsableSharpness ? contactConfidence : Math.min(contactConfidence, 0.58),
+          metricContacts.length,
+          metricContacts.length === 0 ? 'coordinates_unavailable' : contactReason ?? (hasUsableSharpness ? null : 'low_sharpness'),
+        ),
+        kneeFlexion: metricQuality(
+          hasUsableSharpness ? contactConfidence : Math.min(contactConfidence, 0.58),
+          metricContacts.length,
+          metricContacts.length === 0 ? 'coordinates_unavailable' : contactReason ?? (hasUsableSharpness ? null : 'low_sharpness'),
+        ),
+        armCarriage: metricQuality(
+          armConfidenceValues.length === 0 ? 0 : Math.min(average(armConfidenceValues), hasUsableSharpness ? 1 : 0.58),
+          armConfidenceValues.length,
+          armConfidenceValues.length === 0 ? 'coordinates_unavailable' : hasUsableSharpness ? null : 'low_sharpness',
+        ),
       };
 
       return {
+        analysisVersion: 2,
         durationMs,
         sampledFrames: analyzedFrameTimestamps.size,
         validFrames: validFrameTimestamps.size,
         direction,
         forwardLeanDegrees: round3(leanDegrees),
         verticalBounceRatio: round3(Math.max(0, bounceRatio)),
-        footStrikeDistanceRatio: round3(average(metricContacts.map((contact) => contact.footStrikeRatio))),
-        stanceKneeAngleDegrees: round3(average(metricContacts.map((contact) => contact.kneeAngleDegrees))),
-        elbowAngleDegrees: round3(average(elbowAngles)),
+        footStrikeDistanceRatio: metricContacts.length === 0 ? null : round3(average(metricContacts.map((contact) => contact.footStrikeRatio))),
+        stanceKneeAngleDegrees: metricContacts.length === 0 ? null : round3(average(metricContacts.map((contact) => contact.kneeAngleDegrees))),
+        elbowAngleDegrees: elbowAngles.length === 0 ? null : round3(average(elbowAngles)),
         metricQualities: {
           posture: applyPerspectiveQuality('posture', baseMetricQualities.posture, perspective),
           bounce: applyPerspectiveQuality('bounce', baseMetricQualities.bounce, perspective),
@@ -1591,6 +1739,13 @@
           maxFrameBudget: config.maxCoarseFrames,
           targetFps: config.coarseTargetFps,
         },
+        recoverySamples: {
+          attemptedFrames: recoveryFrameTimes.length,
+          validFrames: recovery.samples.length,
+          poseFrameCount: recovery.poseFrames.length,
+          maxFrameBudget: config.maxRecoveryFrames,
+          targetFps: config.recoveryTargetFps,
+        },
         denseSamples: {
           attemptedFrames: denseFrameTimes.length,
           validFrames: dense.samples.length,
@@ -1599,17 +1754,32 @@
           targetFps: config.denseTargetFps,
         },
         contactWindows: contactWindowPayloads(candidateSet.windows, denseFrameTimes, contactValidations),
-        validatedContactFrameTimestampsMs: [...new Set(contacts.map((contact) => contact.timestampMs))].sort((a, b) => a - b),
+        validatedContactFrameTimestampsMs: [...new Set(confirmedContacts.map((contact) => contact.timestampMs))].sort((a, b) => a - b),
+        estimatedContactFrameTimestampsMs: [...new Set(estimatedContacts.map((contact) => contact.timestampMs))].sort((a, b) => a - b),
         contactConfidence: round3(contactConfidence),
         perspectiveQuality: perspective,
-        poseFrames: mergedPoseFrames(coarse.poseFrames, dense.poseFrames),
+        poseFrames: mergedPoseFrames(
+          mergedPoseFrames(coarse.poseFrames, recovery.poseFrames),
+          dense.poseFrames,
+        ),
       };
     } finally {
-      video.removeAttribute('src');
-      video.load();
-      URL.revokeObjectURL(url);
+      releaseVideo(video, url, ownsUrl);
     }
   }
 
-  window.runningVideoPoseAnalysis = Object.freeze({ analyze, extractEvidenceFrames });
+  function analyze(bytes, name) {
+    return analyzeFromLoader(() => loadVideo(bytes, name));
+  }
+
+  function analyzeUrl(url, name) {
+    return analyzeFromLoader(() => loadVideoUrl(url, false));
+  }
+
+  window.runningVideoPoseAnalysis = Object.freeze({
+    analyze,
+    analyzeUrl,
+    extractEvidenceFrames,
+    extractEvidenceFramesFromUrl,
+  });
 })();

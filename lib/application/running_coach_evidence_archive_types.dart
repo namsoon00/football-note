@@ -7,12 +7,20 @@ class RunningCoachEvidenceFrameRequest {
   final Duration timestamp;
   final RunningMetricEvidenceKind kind;
   final RunningMetricEvidenceFrameRole role;
+  final RunningContactSide side;
+  final Map<String, double> values;
+  final double confidence;
+  final RunningPoseFrame? poseFrame;
 
   const RunningCoachEvidenceFrameRequest({
     required this.id,
     required this.timestamp,
     required this.kind,
     required this.role,
+    this.side = RunningContactSide.unknown,
+    this.values = const <String, double>{},
+    this.confidence = 0,
+    this.poseFrame,
   });
 }
 

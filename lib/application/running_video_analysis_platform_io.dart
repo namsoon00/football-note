@@ -7,6 +7,8 @@ import '../domain/entities/running_video_analysis_result.dart';
 import 'running_video_analysis_service.dart';
 
 const _channel = MethodChannel('football_note/running_pose_analysis');
+const maximumRunningVideoBytes =
+    RunningVideoAnalysisService.mobileMaxVideoBytes;
 
 Future<RunningVideoAnalysisResult> analyzeRunningVideo(XFile video) async {
   if (!(Platform.isAndroid || Platform.isIOS)) {

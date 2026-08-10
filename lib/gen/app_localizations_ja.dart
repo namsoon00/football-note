@@ -8134,14 +8134,126 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachAnalyzeBody =>
-      '最大60秒の横向き動画を1本選びます。動画全体を走査した後、接地の区間を高密度で再解析して5項目のレポートを表示します。';
+      '横向き動画を1本選びます。固定フレーム予算で全体を確認し、ランナーが鮮明な区間と接地周辺を再解析します。';
 
   @override
   String get runningCoachCaptureFlowTitle => 'ランニング動画を分析';
 
   @override
+  String get runningCoachCandidatePreviewTitle => '候補動画をプレビュー';
+
+  @override
+  String get runningCoachCapturedPreviewTitle => '撮影した動画を確認';
+
+  @override
+  String get runningCoachPreviewBody =>
+      '確定前に動画を再生して確認してください。下の品質チェックは警告のみで、分析を止めません。';
+
+  @override
+  String get runningCoachPreviewUnavailable =>
+      'プレビューを開けません。別の動画を選ぶか、分析デコーダーでこのファイルを試せます。';
+
+  @override
+  String get runningCoachPreviewSelectAction => 'この動画を選択';
+
+  @override
+  String get runningCoachPreviewAnalyzeAction => 'この動画を分析';
+
+  @override
+  String get runningCoachPreviewLongVideoWarning =>
+      '60秒を超える動画です。フレーム予算内で全体を確認し、ランナーが最も見やすい区間を重点的に分析します。';
+
+  @override
+  String get runningCoachPreviewLargeVideoWarning =>
+      '120MBを超えるファイルです。制限されたフレーム予算で分析するため、時間がかかる場合があります。';
+
+  @override
+  String get runningCoachPreviewLargeWebVideoWarning =>
+      'ブラウザのファイルが64MBを超えています。ブラウザのメモリ保護のため、96MBを超えるファイルは解析前に拒否されます。';
+
+  @override
+  String get runningCoachPreviewResolutionWarning =>
+      '解像度が低いため、一部の項目は推定値になる場合があります。';
+
+  @override
+  String get runningCoachPreviewUnknownInfo => '不明';
+
+  @override
+  String runningCoachPreviewMegabytes(String value) {
+    return '${value}MB';
+  }
+
+  @override
+  String runningCoachPreviewVideoInfo(
+      String duration, String size, String resolution) {
+    return '$duration · $size · $resolution';
+  }
+
+  @override
+  String runningCoachPreviewTimeline(String current, String total) {
+    return '$current / $total';
+  }
+
+  @override
+  String get runningCoachCoordinatePreviewLabel => '座標プレビュー';
+
+  @override
+  String get runningCoachSlowLoopTitle => '動画でこの瞬間を見る';
+
+  @override
+  String get runningCoachSlowLoopBody => 'この測定の前後だけを0.5倍速で繰り返し再生します。';
+
+  @override
+  String get runningCoachSlowLoopUnavailable => '元の動画が保存されていないため、この瞬間は再生できません。';
+
+  @override
+  String get runningCoachSlowLoopCaptureOnly =>
+      '元の動画を保持していないため、保存した実際のキャプチャのみ表示できます。';
+
+  @override
+  String runningCoachSlowLoopTiming(String start, String end) {
+    return '0.5倍速ループ · $start秒〜$end秒';
+  }
+
+  @override
+  String get runningCoachConfirmedScoreLabel => '確定スコア';
+
+  @override
+  String get runningCoachEstimatedScoreLabel => '予想スコア';
+
+  @override
+  String get runningCoachEstimatedScoreSummary => 'この動画で利用できる座標から計算した予想スコアです';
+
+  @override
+  String runningCoachMeasurementCountTitle(int count, int total) {
+    return '測定結果 $count/$total';
+  }
+
+  @override
+  String get runningCoachMeasurementStatusEstimated => '推定測定';
+
+  @override
+  String get runningCoachMeasurementStatusCoordinatesUnavailable => '座標なし';
+
+  @override
+  String runningCoachMeasurementExpectedRange(String lower, String upper) {
+    return '予想範囲 $lower〜$upper';
+  }
+
+  @override
+  String runningCoachEvidenceFrameMetadata(
+      String side, String time, String value, int confidence) {
+    return '$side · $time · $value · 信頼度 $confidence%';
+  }
+
+  @override
+  String runningCoachEvidenceViewAtTime(String time) {
+    return '動画の$timeを見る';
+  }
+
+  @override
   String get runningCoachCaptureFlowBody =>
-      '最大60秒の横向き動画全体を走査し、ストライドと接地区間を高密度で分析します。';
+      '横向き動画を撮影または選択し、プレビューしてから分析を確定します。長い動画も固定フレーム予算で処理します。';
 
   @override
   String get runningCoachCaptureAction => '今すぐ撮影';
@@ -8289,7 +8401,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachModeVideoBody =>
-      '最大60秒の横向き動画を選ぶと、全区間を走査してフォームレポートを作成します。';
+      '横向き動画を選ぶと、固定フレーム予算で走査してフォームレポートを作成します。';
 
   @override
   String get runningCoachModeLiveAction => 'ライブコーチングを開始';
@@ -8306,7 +8418,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachTipSteadyCamera =>
-      'カメラを固定し、明るく均一な光で撮影してください。最大60秒まで対応し、最も速く安定した結果には3歩以上を含む安定した5〜15秒の区間が適しています。';
+      'カメラを固定し、明るく均一な光で撮影してください。最も速く安定した結果には3歩以上を含む安定した5〜15秒の区間が適しています。';
 
   @override
   String get runningCoachUploadGuideTitle => '動画アップロードガイド';
@@ -8325,7 +8437,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachUploadGuideStepDuration =>
-      '最大60秒の動画を使えます。アプリは全区間を走査するため、準備歩き、繰り返すターン、停止場面はできるだけ外してください。';
+      '5〜15秒の集中した区間が最速です。長い動画は固定予算でサンプリングするため、準備歩き、繰り返すターン、停止場面はできるだけ外してください。';
 
   @override
   String get runningCoachUploadGuideStepLight =>
@@ -8364,7 +8476,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachCaptureGuideChecklistClip =>
-      '最も速く安定した結果には、明るく単純な背景で3〜6歩を含む5〜15秒の動画が適しています。最大60秒の動画も分析できます。';
+      '最も速く安定した結果には、明るく単純な背景で3〜6歩を含む5〜15秒の動画が適しています。長い動画は制限されたサンプルで分析します。';
 
   @override
   String get runningCoachCaptureGuideAnalysisTitle => '分析結果は自分の動画だけから';
@@ -9814,11 +9926,16 @@ class AppLocalizationsJa extends AppLocalizations {
       'ビデオが短すぎます。少なくともいくつかのランニングステップを記録します。';
 
   @override
-  String get runningCoachVideoTooLong => '動画が長すぎます。60秒以下にトリミングしてもう一度試してください。';
+  String get runningCoachVideoTooLong =>
+      '安全な端末内デコード範囲を超えています。ランナーが見える区間にトリミングしてください。';
 
   @override
   String get runningCoachVideoTooLarge =>
-      '端末上で分析するには動画ファイルが大きすぎます。60秒以下のより小さいクリップにして書き出してください。';
+      '安全なメモリ分析上限を超えています。ランナーを残したまま小さいファイルに書き出してください。';
+
+  @override
+  String get runningCoachWebVideoTooLarge =>
+      'ブラウザ解析の上限である96MBを超えています。小さい動画に書き出してから、もう一度お試しください。';
 
   @override
   String get runningCoachVideoTooBlurry =>

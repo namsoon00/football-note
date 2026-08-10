@@ -219,6 +219,108 @@ void main() {
     );
   });
 
+  test('explicit v2 contact contract preserves strict and estimated contacts',
+      () {
+    final result = RunningVideoAnalysisResult.fromMap({
+      'analysisVersion': 2,
+      'durationMs': 2000,
+      'sampledFrames': 12,
+      'validFrames': 10,
+      'metricQualities': {
+        'footStrike': {
+          'confidence': 0.7,
+          'sampleCount': 4,
+          'reason': 'kinematic_contact_estimate',
+        },
+      },
+      'validatedContactFrameTimestampsMs': [400],
+      'estimatedContactFrameTimestampsMs': [800],
+      'contactWindows': [
+        {
+          'startTimestampMs': 300,
+          'centerTimestampMs': 400,
+          'endTimestampMs': 500,
+          'side': 'left',
+          'denseSampleCount': 5,
+          'validatedContactFrameTimestampsMs': [400],
+          'estimatedContactFrameTimestampsMs': <int>[],
+          'selectionMethod': 'ground',
+          'confidence': 0.8,
+        },
+        {
+          'startTimestampMs': 700,
+          'centerTimestampMs': 800,
+          'endTimestampMs': 900,
+          'side': 'right',
+          'denseSampleCount': 5,
+          'validatedContactFrameTimestampsMs': <int>[],
+          'estimatedContactFrameTimestampsMs': [800],
+          'selectionMethod': 'kinematic',
+          'confidence': 0.5,
+        },
+      ],
+    });
+
+    expect(result.validatedContactFrameTimestamps,
+        const <Duration>[Duration(milliseconds: 400)]);
+    expect(result.estimatedContactFrameTimestamps,
+        const <Duration>[Duration(milliseconds: 800)]);
+    expect(result.contactWindows.first.selectionMethod, 'ground');
+    expect(result.contactWindows.last.selectionMethod, 'kinematic');
+  });
+
+  test('early v2 kinematic history is demoted on load', () {
+    final result = RunningVideoAnalysisResult.fromMap({
+      'analysisVersion': 2,
+      'durationMs': 2000,
+      'sampledFrames': 12,
+      'validFrames': 10,
+      'metricQualities': {
+        'footStrike': {
+          'confidence': 0.82,
+          'sampleCount': 3,
+          'reason': 'kinematic_contact_estimate',
+        },
+      },
+      'validatedContactFrameTimestampsMs': [400, 800, 1200],
+      'contactWindows': [
+        {
+          'startTimestampMs': 300,
+          'centerTimestampMs': 400,
+          'endTimestampMs': 500,
+          'side': 'left',
+          'denseSampleCount': 5,
+          'validatedContactFrameTimestampsMs': [400],
+          'confidence': 0.82,
+        },
+      ],
+      'measurements': [
+        {
+          'metric': 'cadence',
+          'state': 'confirmed',
+          'value': 176,
+          'confidence': 0.82,
+          'sampleCount': 3,
+          'method': 'validated_contacts',
+          'evidenceTimestampsMs': [400, 800, 1200],
+        },
+      ],
+    });
+
+    expect(result.validatedContactFrameTimestamps, isEmpty);
+    expect(result.estimatedContactFrameTimestamps, const <Duration>[
+      Duration(milliseconds: 400),
+      Duration(milliseconds: 800),
+      Duration(milliseconds: 1200),
+    ]);
+    expect(result.contactWindows.single.validatedContactTimestamps, isEmpty);
+    expect(result.contactWindows.single.selectionMethod, 'kinematic');
+    expect(
+      result.measurementFor(RunningAnalysisMetric.cadence).state,
+      RunningMeasurementState.estimated,
+    );
+  });
+
   test('fromMap parses perspective quality limitations and metric gates', () {
     final result = RunningVideoAnalysisResult.fromMap({
       'durationMs': 60000,
@@ -426,7 +528,7 @@ void main() {
     expect(sparse.isReliableForCoaching, isFalse);
     expect(sufficient.isReliableForCoaching, isTrue);
     expect(proxy.isReliableForCoaching, isFalse);
-    expect(kinematicEstimate.isReliableForCoaching, isTrue);
+    expect(kinematicEstimate.isReliableForCoaching, isFalse);
     expect(
       const RunningMetricQuality(
         confidence: 0.90,

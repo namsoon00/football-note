@@ -8140,14 +8140,127 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachAnalyzeBody =>
-      '최대 60초 측면 영상 하나를 고르세요. 영상 전반을 훑은 뒤 접지 구간을 촘촘히 다시 분석해 5개 지표 리포트를 보여줘요.';
+      '측면 영상 하나를 고르세요. 정해진 프레임 예산으로 전체를 훑고 러너가 선명한 구간과 접지 주변을 다시 분석해요.';
 
   @override
   String get runningCoachCaptureFlowTitle => '달리기 영상 분석';
 
   @override
+  String get runningCoachCandidatePreviewTitle => '후보 영상을 미리 봐요';
+
+  @override
+  String get runningCoachCapturedPreviewTitle => '촬영한 영상을 확인해요';
+
+  @override
+  String get runningCoachPreviewBody =>
+      '확정하기 전에 영상을 재생하고 탐색해 보세요. 아래 품질 점검은 경고일 뿐 분석을 막지 않아요.';
+
+  @override
+  String get runningCoachPreviewUnavailable =>
+      '미리보기를 열 수 없어요. 다른 영상을 고르거나 분석 디코더로 이 파일을 시도할 수 있어요.';
+
+  @override
+  String get runningCoachPreviewSelectAction => '이 영상 선택';
+
+  @override
+  String get runningCoachPreviewAnalyzeAction => '이 영상 분석';
+
+  @override
+  String get runningCoachPreviewLongVideoWarning =>
+      '60초보다 긴 영상이에요. 프레임 예산 안에서 전체를 훑고 러너가 가장 잘 보이는 구간을 집중 분석해요.';
+
+  @override
+  String get runningCoachPreviewLargeVideoWarning =>
+      '120MB보다 큰 파일이에요. 제한된 프레임 예산으로 분석하며 시간이 더 걸릴 수 있어요.';
+
+  @override
+  String get runningCoachPreviewLargeWebVideoWarning =>
+      '브라우저 파일이 64MB보다 커요. 브라우저 메모리를 보호하기 위해 96MB를 넘으면 분석 전에 거절해요.';
+
+  @override
+  String get runningCoachPreviewResolutionWarning =>
+      '해상도가 낮아 일부 항목은 추정값으로 표시될 수 있어요.';
+
+  @override
+  String get runningCoachPreviewUnknownInfo => '정보 없음';
+
+  @override
+  String runningCoachPreviewMegabytes(String value) {
+    return '${value}MB';
+  }
+
+  @override
+  String runningCoachPreviewVideoInfo(
+      String duration, String size, String resolution) {
+    return '$duration · $size · $resolution';
+  }
+
+  @override
+  String runningCoachPreviewTimeline(String current, String total) {
+    return '$current / $total';
+  }
+
+  @override
+  String get runningCoachCoordinatePreviewLabel => '좌표 미리보기';
+
+  @override
+  String get runningCoachSlowLoopTitle => '영상에서 이 순간 보기';
+
+  @override
+  String get runningCoachSlowLoopBody => '이 측정 전후의 짧은 구간만 0.5배속으로 반복 재생해요.';
+
+  @override
+  String get runningCoachSlowLoopUnavailable =>
+      '원본 영상을 저장하지 않아 이 순간을 재생할 수 없어요.';
+
+  @override
+  String get runningCoachSlowLoopCaptureOnly =>
+      '원본 영상을 보관하지 않아 저장된 실제 캡처만 볼 수 있어요.';
+
+  @override
+  String runningCoachSlowLoopTiming(String start, String end) {
+    return '0.5배속 반복 · $start초–$end초';
+  }
+
+  @override
+  String get runningCoachConfirmedScoreLabel => '확정 점수';
+
+  @override
+  String get runningCoachEstimatedScoreLabel => '예상 점수';
+
+  @override
+  String get runningCoachEstimatedScoreSummary => '이 영상에서 읽은 좌표로 계산한 예상 점수예요';
+
+  @override
+  String runningCoachMeasurementCountTitle(int count, int total) {
+    return '측정 결과 $count/$total';
+  }
+
+  @override
+  String get runningCoachMeasurementStatusEstimated => '추정 측정';
+
+  @override
+  String get runningCoachMeasurementStatusCoordinatesUnavailable => '좌표 없음';
+
+  @override
+  String runningCoachMeasurementExpectedRange(String lower, String upper) {
+    return '예상 범위 $lower–$upper';
+  }
+
+  @override
+  String runningCoachEvidenceFrameMetadata(
+      String side, String time, String value, int confidence) {
+    return '$side · $time · $value · 신뢰도 $confidence%';
+  }
+
+  @override
+  String runningCoachEvidenceViewAtTime(String time) {
+    return '영상에서 $time 보기';
+  }
+
+  @override
   String get runningCoachCaptureFlowBody =>
-      '최대 60초의 측면 영상을 전반적으로 스캔하고, 보폭과 접지 구간을 촘촘히 분석해요.';
+      '측면 영상을 촬영하거나 고른 뒤 미리 보고 분석을 확정하세요. 긴 영상도 정해진 프레임 예산으로 처리해요.';
 
   @override
   String get runningCoachCaptureAction => '바로 촬영';
@@ -8298,7 +8411,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachModeVideoBody =>
-      '최대 60초 측면 영상을 선택하면 전 구간을 스캔해 자세 리포트를 만들어요.';
+      '측면 영상을 선택하면 정해진 프레임 예산으로 훑어 자세 리포트를 만들어요.';
 
   @override
   String get runningCoachModeLiveAction => '실시간 코칭 시작';
@@ -8316,7 +8429,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachTipSteadyCamera =>
-      '카메라는 흔들리지 않게 두고 밝고 고른 빛에서 촬영해 주세요. 최대 60초까지 가능하며, 가장 빠르고 안정적인 결과에는 3보 이상이 담긴 5~15초 구간이 좋아요.';
+      '카메라는 흔들리지 않게 두고 밝고 고른 빛에서 촬영해 주세요. 가장 빠르고 안정적인 결과에는 3보 이상이 담긴 5~15초 구간이 좋아요.';
 
   @override
   String get runningCoachUploadGuideTitle => '동영상 업로드 가이드';
@@ -8335,7 +8448,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachUploadGuideStepDuration =>
-      '최대 60초 영상을 사용할 수 있어요. 앱이 전 구간을 스캔하므로 준비 걸음, 잦은 회전, 멈춘 장면은 가능한 한 빼 주세요.';
+      '5~15초의 집중된 구간이 가장 빨라요. 긴 영상은 정해진 예산으로 표본을 뽑으므로 준비 걸음, 잦은 회전, 멈춘 장면은 가능한 한 빼 주세요.';
 
   @override
   String get runningCoachUploadGuideStepLight =>
@@ -8374,7 +8487,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachCaptureGuideChecklistClip =>
-      '가장 빠르고 안정적인 결과에는 밝고 단순한 배경의 5~15초 영상이 좋아요. 최대 60초 영상도 분석할 수 있어요.';
+      '가장 빠르고 안정적인 결과에는 밝고 단순한 배경의 5~15초 영상이 좋아요. 긴 영상은 제한된 표본으로 분석해요.';
 
   @override
   String get runningCoachCaptureGuideAnalysisTitle => '분석 결과는 내 영상에서만';
@@ -9827,11 +9940,16 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachVideoTooShort => '영상이 너무 짧아요. 몇 걸음 이상 달리는 장면을 찍어 주세요.';
 
   @override
-  String get runningCoachVideoTooLong => '영상이 너무 길어요. 60초 이하로 잘라서 다시 시도해 주세요.';
+  String get runningCoachVideoTooLong =>
+      '안전한 기기 내 디코딩 범위를 넘는 영상이에요. 러너가 보이는 구간으로 잘라 주세요.';
 
   @override
   String get runningCoachVideoTooLarge =>
-      '기기에서 분석하기에 영상 파일이 너무 커요. 60초 이하의 더 작은 영상으로 잘라서 내보내 주세요.';
+      '안전한 메모리 분석 한도를 넘는 파일이에요. 러너가 보이도록 유지하면서 더 작은 파일로 내보내 주세요.';
+
+  @override
+  String get runningCoachWebVideoTooLarge =>
+      '브라우저 분석 한도인 96MB를 넘는 파일이에요. 더 작은 영상으로 내보낸 뒤 다시 시도해 주세요.';
 
   @override
   String get runningCoachVideoTooBlurry =>
