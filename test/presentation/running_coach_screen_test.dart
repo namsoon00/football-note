@@ -118,6 +118,7 @@ void main() {
                     XFile(secondVideo.path, name: 'second-run.mp4'),
                   ],
                   isCapturedVideo: false,
+                  runnerDisplayName: 'Minjun',
                 );
               },
               child: const Text('open'),
@@ -133,6 +134,11 @@ void main() {
       find.byKey(const ValueKey('running-coach-video-candidates')),
       findsOneWidget,
     );
+    expect(
+      find.byKey(const ValueKey('running-coach-preview-runner-name')),
+      findsOneWidget,
+    );
+    expect(find.text('Analysis target: Minjun'), findsOneWidget);
     expect(find.text('first-run.mp4'), findsWidgets);
     expect(find.text('second-run.mp4'), findsOneWidget);
     expect(
@@ -523,18 +529,13 @@ void main() {
     await tester.pump(const Duration(milliseconds: 500));
 
     expect(find.text('Running analysis result'), findsOneWidget);
-    expect(find.text('Next goal'), findsOneWidget);
     expect(
-      find.byKey(const ValueKey('running-coach-beginner-action-card')),
+      find.byKey(const ValueKey('running-coach-today-focus-card')),
       findsOneWidget,
     );
     expect(
       find.byKey(const ValueKey('running-coach-history-evidence-unavailable')),
       findsNothing,
-    );
-    expect(
-      find.byKey(const ValueKey('running-coach-report-details')),
-      findsOneWidget,
     );
     final detailExpansion = find.byKey(
       const ValueKey('running-coach-report-details-expansion'),
@@ -711,7 +712,7 @@ void main() {
     await tester.pump();
     expect(tester.takeException(), isNull);
     expect(
-      find.byKey(const ValueKey('running-coach-beginner-action-card')),
+      find.byKey(const ValueKey('running-coach-today-focus-card')),
       findsOneWidget,
     );
   });
@@ -797,13 +798,11 @@ void main() {
     await tester.pump();
 
     expect(
-      find.byKey(const ValueKey('running-coach-beginner-action-card')),
+      find.byKey(const ValueKey('running-coach-today-focus-card')),
       findsOneWidget,
     );
-    expect(find.text('Next goal'), findsOneWidget);
-    expect(find.text('Recommended drill'), findsOneWidget);
     expect(
-      find.byKey(const ValueKey('running-coach-beginner-action-drill')),
+      find.byKey(const ValueKey('running-coach-primary-drill')),
       findsOneWidget,
     );
     final qualityDetails = find.byKey(
@@ -886,10 +885,10 @@ void main() {
         const ValueKey('running-coach-score-hero'),
       );
       final overview = find.byKey(
-        const ValueKey('running-coach-metric-overview'),
+        const ValueKey('running-coach-compact-metric-grid'),
       );
       final primaryCoaching = find.byKey(
-        const ValueKey('running-coach-beginner-action-card'),
+        const ValueKey('running-coach-today-focus-card'),
       );
       expect(scoreHero, findsOneWidget);
       expect(overview, findsOneWidget);
@@ -950,7 +949,7 @@ void main() {
       expect(find.text('Score withheld'), findsOneWidget);
       expect(find.text('Overall running score 0/100'), findsNothing);
       expect(
-        find.byKey(const ValueKey('running-coach-metric-overview')),
+        find.byKey(const ValueKey('running-coach-compact-metric-grid')),
         findsOneWidget,
       );
       expect(tester.takeException(), isNull);
@@ -1045,12 +1044,10 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text('Same-condition trend'), findsOneWidget);
     expect(
-      find.textContaining('Uses 2 recent verified sessions'),
+      find.byKey(const ValueKey('running-coach-score-previous-delta')),
       findsOneWidget,
     );
-    expect(find.textContaining('Δ +0'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
 
@@ -1736,7 +1733,7 @@ void main() {
     expect(fakeVideoPlayerPlatform._streams.length, 1);
     expect(
       find.byKey(const ValueKey('running-coach-good-form-action')),
-      findsOneWidget,
+      findsNothing,
     );
     expect(
       find.byKey(const ValueKey('running-coach-good-form-guide')),
@@ -2177,8 +2174,66 @@ Future<void> _scrollAnalysisResultUntilFound(
   WidgetTester tester,
   Finder finder,
 ) async {
+  final targetDescription = finder.toString();
+  final staysOnSimpleResult =
+      targetDescription.contains('evidence-archive-status') ||
+          targetDescription.contains('history-save-failed') ||
+          targetDescription.contains('video-save-failed');
+  if (finder.evaluate().isEmpty && !staysOnSimpleResult) {
+    final fullAction = find.byKey(
+      const ValueKey('running-coach-full-analysis-action'),
+    );
+    final simpleResultList = find.byKey(
+      const ValueKey('running-coach-analysis-result-list'),
+    );
+    for (var attempt = 0;
+        attempt < 20 &&
+            fullAction.evaluate().isEmpty &&
+            simpleResultList.evaluate().isNotEmpty;
+        attempt += 1) {
+      await tester.drag(simpleResultList, const Offset(0, -320));
+      await tester.pump(const Duration(milliseconds: 60));
+    }
+    if (fullAction.evaluate().isNotEmpty) {
+      await tester.tap(fullAction);
+      await tester.pumpAndSettle();
+    }
+    final fullScreen =
+        find.byKey(const ValueKey('running-coach-full-analysis-screen'));
+    if (fullScreen.evaluate().isNotEmpty) {
+      final sectionKey = targetDescription.contains('analysis-quality') ||
+              targetDescription.contains('dense-contact') ||
+              targetDescription.contains('lower-body-evidence')
+          ? const ValueKey('running-coach-full-section-quality')
+          : targetDescription.contains('rhythm-card')
+              ? const ValueKey('running-coach-full-section-rhythm')
+              : targetDescription.contains('fine-gait')
+                  ? const ValueKey('running-coach-full-section-gait')
+                  : const ValueKey('running-coach-full-section-movements');
+      final fullList = find.byKey(
+        const ValueKey('running-coach-full-analysis-screen'),
+      );
+      final section = find.byKey(sectionKey);
+      final fullScrollable = find.descendant(
+        of: fullList,
+        matching: find.byType(Scrollable),
+      );
+      await tester.scrollUntilVisible(
+        section,
+        240,
+        scrollable: fullScrollable.first,
+      );
+      await tester.tap(section);
+      await tester.pumpAndSettle();
+    }
+  }
   final resultList = find.byKey(
-    const ValueKey('running-coach-analysis-result-list'),
+    find
+            .byKey(const ValueKey('running-coach-full-analysis-screen'))
+            .evaluate()
+            .isNotEmpty
+        ? const ValueKey('running-coach-full-analysis-screen')
+        : const ValueKey('running-coach-analysis-result-list'),
   );
   // ListView lazily removes distant cards. A target may therefore be above
   // the currently viewed evidence card, not just below it. Search in both

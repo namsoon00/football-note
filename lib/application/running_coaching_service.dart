@@ -42,6 +42,13 @@ class RunningCoachingService {
       MapEntry(insights[3], weights.kneeWeight),
       MapEntry(insights[4], weights.armWeight),
     ];
+    if (result.hasTargetIdentityRisk) {
+      return RunningCoachingReport(
+        overallScore: 0,
+        insights: insights,
+        scoreStatus: RunningCoachScoreStatus.unavailable,
+      );
+    }
     if (result.analysisVersion < runningAnalysisVersionV2 &&
         result.measurements.isEmpty) {
       final reliable = weightedInsights
@@ -340,6 +347,13 @@ class RunningCoachingService {
     RunningCoachMetric metric,
   ) {
     RunningMetricQuality applyPerspectiveGate(RunningMetricQuality quality) {
+      final identityReason = result.targetIdentityIssueReason;
+      if (identityReason != null) {
+        return quality.copyWith(
+          confidence: math.min(quality.confidence, 0.35),
+          reason: identityReason,
+        );
+      }
       final reason = result.perspectiveQuality.limitationReasonForMetric(
         metric,
       );

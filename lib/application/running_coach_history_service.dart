@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
 
 import '../domain/entities/running_coach_session.dart';
+import '../domain/entities/running_coach_runner_profile.dart';
 import '../domain/entities/running_video_analysis_result.dart';
 import '../domain/repositories/option_repository.dart';
 import 'running_coach_evidence_archive.dart';
@@ -81,7 +82,31 @@ class RunningCoachHistoryService {
     return List<RunningCoachSessionAnalysis>.unmodifiable(sessions);
   }
 
+  List<RunningCoachSessionAnalysis> sessionsForRunner(String runnerId) {
+    return List<RunningCoachSessionAnalysis>.unmodifiable(
+      allSessions().where((session) => session.runnerId == runnerId),
+    );
+  }
+
+  List<RunningCoachSessionAnalysis> comparableVerifiedSessions({
+    required String runnerId,
+    required int scoreVersion,
+    required int analysisVersion,
+    required RunningCoachCaptureContext captureContext,
+  }) {
+    return List<RunningCoachSessionAnalysis>.unmodifiable(
+      sessionsForRunner(runnerId).where(
+        (session) =>
+            session.scoreEligibility == RunningCoachScoreEligibility.verified &&
+            session.scoreVersion == scoreVersion &&
+            session.analysisVersion == analysisVersion &&
+            captureContext.isComparableTo(session.captureContext),
+      ),
+    );
+  }
+
   Future<List<RunningCoachSessionAnalysis>> saveUploadAnalysis({
+    String runnerId = runningCoachDefaultRunnerId,
     required RunningVideoAnalysisResult result,
     required RunningCoachingReport report,
     RunningCoachCaptureContext? captureContext,
@@ -115,6 +140,7 @@ class RunningCoachHistoryService {
     final next = <RunningCoachSessionAnalysis>[
       RunningCoachSessionAnalysis(
         id: sessionId,
+        runnerId: runnerId,
         analyzedAt: timestamp,
         source: RunningCoachSessionSource.uploadVideo,
         overallScore: report.overallScore,
@@ -168,6 +194,24 @@ class RunningCoachHistoryService {
     await _deleteEvidenceImages(
       existingSessions.expand((session) => session.evidenceImages),
     );
+  }
+
+  Future<List<RunningCoachSessionAnalysis>> clearRunner(String runnerId) async {
+    final existingSessions = allSessions();
+    final removed = existingSessions
+        .where((session) => session.runnerId == runnerId)
+        .toList(growable: false);
+    final retained = existingSessions
+        .where((session) => session.runnerId != runnerId)
+        .toList(growable: false);
+    await _persist(retained);
+    await deleteArchivedRunningCoachVideos(
+      removed.map((session) => session.videoPath),
+    );
+    await _deleteEvidenceImages(
+      removed.expand((session) => session.evidenceImages),
+    );
+    return List<RunningCoachSessionAnalysis>.unmodifiable(retained);
   }
 
   Future<List<RunningCoachSessionAnalysis>> deleteSession(

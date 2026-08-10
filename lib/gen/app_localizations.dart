@@ -28883,6 +28883,264 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Retake in the same conditions'**
   String get runningCoachComparisonSameConditionRetake;
+
+  /// No description provided for @runningCoachDefaultRunner.
+  ///
+  /// In en, this message translates to:
+  /// **'Me'**
+  String get runningCoachDefaultRunner;
+
+  /// No description provided for @runningCoachRunnerTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysis target: {name}'**
+  String runningCoachRunnerTarget(String name);
+
+  /// No description provided for @runningCoachManageRunners.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage runners'**
+  String get runningCoachManageRunners;
+
+  /// No description provided for @runningCoachSelectRunnerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Who are you analyzing?'**
+  String get runningCoachSelectRunnerTitle;
+
+  /// No description provided for @runningCoachAddRunner.
+  ///
+  /// In en, this message translates to:
+  /// **'Add runner'**
+  String get runningCoachAddRunner;
+
+  /// No description provided for @runningCoachRenameRunner.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get runningCoachRenameRunner;
+
+  /// No description provided for @runningCoachArchiveRunner.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive'**
+  String get runningCoachArchiveRunner;
+
+  /// No description provided for @runningCoachRunnerNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Runner name'**
+  String get runningCoachRunnerNameLabel;
+
+  /// No description provided for @runningCoachManageRunner.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage runner'**
+  String get runningCoachManageRunner;
+
+  /// No description provided for @runningCoachAnalysisSteps.
+  ///
+  /// In en, this message translates to:
+  /// **'Find runner → Analyze movement → Build result'**
+  String get runningCoachAnalysisSteps;
+
+  /// No description provided for @runningCoachCaptureWarningAnalysisLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'You can still record, but unclear framing may limit or estimate the analysis.'**
+  String get runningCoachCaptureWarningAnalysisLimited;
+
+  /// No description provided for @runningCoachPreviewCheckFullBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Full body'**
+  String get runningCoachPreviewCheckFullBody;
+
+  /// No description provided for @runningCoachPreviewCheckSide.
+  ///
+  /// In en, this message translates to:
+  /// **'Side view'**
+  String get runningCoachPreviewCheckSide;
+
+  /// No description provided for @runningCoachPreviewCheckClarity.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear distance'**
+  String get runningCoachPreviewCheckClarity;
+
+  /// No description provided for @runningCoachTodayOneThingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Change just this today'**
+  String get runningCoachTodayOneThingTitle;
+
+  /// No description provided for @runningCoachStatusEstimatedShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated'**
+  String get runningCoachStatusEstimatedShort;
+
+  /// No description provided for @runningCoachViewEvidenceSlowly.
+  ///
+  /// In en, this message translates to:
+  /// **'View evidence slowly'**
+  String get runningCoachViewEvidenceSlowly;
+
+  /// No description provided for @runningCoachTenSecondDrill.
+  ///
+  /// In en, this message translates to:
+  /// **'10-second drill'**
+  String get runningCoachTenSecondDrill;
+
+  /// No description provided for @runningCoachFiveMovementsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Five movements'**
+  String get runningCoachFiveMovementsTitle;
+
+  /// No description provided for @runningCoachStatusImproveShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Improve'**
+  String get runningCoachStatusImproveShort;
+
+  /// No description provided for @runningCoachStatusUnavailableShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Not measured'**
+  String get runningCoachStatusUnavailableShort;
+
+  /// No description provided for @runningCoachFullAnalysisAction.
+  ///
+  /// In en, this message translates to:
+  /// **'View full analysis'**
+  String get runningCoachFullAnalysisAction;
+
+  /// No description provided for @runningCoachGoodBandLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Good band'**
+  String get runningCoachGoodBandLabel;
+
+  /// No description provided for @runningCoachNextCueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Next cue'**
+  String get runningCoachNextCueLabel;
+
+  /// No description provided for @runningCoachRawMeasurementDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'View measurement details'**
+  String get runningCoachRawMeasurementDetails;
+
+  /// No description provided for @runningCoachConfidenceShortLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Confidence'**
+  String get runningCoachConfidenceShortLabel;
+
+  /// No description provided for @runningCoachMeasurementMethodLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Method'**
+  String get runningCoachMeasurementMethodLabel;
+
+  /// No description provided for @runningCoachGaitRhythmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rhythm and timing'**
+  String get runningCoachGaitRhythmTitle;
+
+  /// No description provided for @runningCoachReportDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Movement details'**
+  String get runningCoachReportDetailsTitle;
+
+  /// No description provided for @runningCoachGaitFineTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Detailed gait'**
+  String get runningCoachGaitFineTitle;
+
+  /// No description provided for @runningCoachTodayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get runningCoachTodayLabel;
+
+  /// No description provided for @runningCoachAnalysisQualityBadgeStrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Stable analysis'**
+  String get runningCoachAnalysisQualityBadgeStrong;
+
+  /// No description provided for @runningCoachAnalysisQualityBadgeLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Limited analysis'**
+  String get runningCoachAnalysisQualityBadgeLimited;
+
+  /// No description provided for @runningCoachPreviousScoreDelta.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous {delta}'**
+  String runningCoachPreviousScoreDelta(int delta);
+
+  /// No description provided for @runningCoachHistoryConfirmedScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed {score}'**
+  String runningCoachHistoryConfirmedScore(int score);
+
+  /// No description provided for @runningCoachHistoryEstimatedScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated {score}'**
+  String runningCoachHistoryEstimatedScore(int score);
+
+  /// No description provided for @runningCoachHistoryScoreUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Score withheld'**
+  String get runningCoachHistoryScoreUnavailable;
+
+  /// No description provided for @runningCoachMultiplePersonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'More than one person'**
+  String get runningCoachMultiplePersonLabel;
+
+  /// No description provided for @runningCoachTargetIdentityUnstableLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Runner tracking changed'**
+  String get runningCoachTargetIdentityUnstableLabel;
+
+  /// No description provided for @runningCoachMultiplePersonReason.
+  ///
+  /// In en, this message translates to:
+  /// **'More than one person may be in the clip, so the app withheld the score to avoid scoring the wrong runner.'**
+  String get runningCoachMultiplePersonReason;
+
+  /// No description provided for @runningCoachTargetIdentityUnstableReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Runner tracking changed abruptly, so the app withheld the score to avoid mixing people.'**
+  String get runningCoachTargetIdentityUnstableReason;
+
+  /// No description provided for @runningCoachSingleRunnerRetake.
+  ///
+  /// In en, this message translates to:
+  /// **'Record one runner at a time and keep everyone else outside the frame.'**
+  String get runningCoachSingleRunnerRetake;
+
+  /// No description provided for @runningCoachHistoryTrendSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Best confirmed score {best} · latest change {delta}'**
+  String runningCoachHistoryTrendSummary(int best, int delta);
 }
 
 class _AppLocalizationsDelegate
