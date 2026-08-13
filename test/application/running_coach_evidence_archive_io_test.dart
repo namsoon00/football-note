@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/services.dart';
@@ -42,8 +43,8 @@ void main() {
       () async {
     final sourceVideo = File('${tempRoot.path}/source.mov')
       ..writeAsBytesSync(<int>[1, 2, 3, 4]);
-    final jpegA = Uint8List.fromList(_jpegBytes(0x01));
-    final jpegB = Uint8List.fromList(_jpegBytes(0x02));
+    final jpegA = Uint8List.fromList(_imageBytes());
+    final jpegB = Uint8List.fromList(_imageBytes());
     final calls = <MethodCall>[];
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(poseChannel, (call) async {
@@ -55,13 +56,13 @@ void main() {
         <String, Object?>{
           'timestampMs': 100,
           'bytes': jpegA,
-          'width': 2,
+          'width': 1,
           'height': 1,
         },
         <String, Object?>{
           'timestampMs': 240,
           'bytes': jpegB,
-          'width': 2,
+          'width': 1,
           'height': 1,
         },
       ];
@@ -70,6 +71,12 @@ void main() {
     final requests = <RunningCoachEvidenceFrameRequest>[
       const RunningCoachEvidenceFrameRequest(
         id: 'posture-representativePosture-100',
+        timestamp: Duration(milliseconds: 100),
+        kind: RunningMetricEvidenceKind.posture,
+        role: RunningMetricEvidenceFrameRole.representativePosture,
+      ),
+      const RunningCoachEvidenceFrameRequest(
+        id: 'posture-second-100',
         timestamp: Duration(milliseconds: 100),
         kind: RunningMetricEvidenceKind.posture,
         role: RunningMetricEvidenceFrameRole.representativePosture,
@@ -90,12 +97,20 @@ void main() {
 
     expect(calls, hasLength(1));
     expect(result.status, RunningCoachEvidenceArchiveStatus.success);
-    expect(result.requestedCount, 2);
-    expect(result.savedCount, 2);
-    expect(result.images, hasLength(2));
+    expect(result.requestedCount, 3);
+    expect(result.savedCount, 3);
+    expect(result.images, hasLength(3));
     expect(await readArchivedRunningCoachEvidenceImage(result.images.first),
         jpegA);
     expect(File(result.images.first.storageReference).existsSync(), isTrue);
+    expect(
+      result.images
+          .where(
+              (image) => image.timestamp == const Duration(milliseconds: 100))
+          .map((image) => image.storageReference)
+          .toSet(),
+      hasLength(1),
+    );
 
     final session = RunningCoachSessionAnalysis(
       id: 'session-1',
@@ -121,11 +136,11 @@ void main() {
       ),
     );
     final restored = RunningCoachSessionAnalysis.fromMap(session.toMap());
-    expect(restored.evidenceImages, hasLength(2));
+    expect(restored.evidenceImages, hasLength(3));
     expect(restored.evidenceArchive.status,
         RunningCoachEvidenceArchiveStatus.success);
-    expect(restored.evidenceArchive.requestedCount, 2);
-    expect(restored.evidenceArchive.savedCount, 2);
+    expect(restored.evidenceArchive.requestedCount, 3);
+    expect(restored.evidenceArchive.savedCount, 3);
 
     await deleteArchivedRunningCoachEvidenceImages(result.images);
     expect(File(result.images.first.storageReference).existsSync(), isFalse);
@@ -160,12 +175,20 @@ void main() {
   });
 }
 
-List<int> _jpegBytes(int marker) => <int>[
-      0xff,
-      0xd8,
-      0xff,
-      0xe0,
-      marker,
-      0xff,
-      0xd9,
-    ];
+List<int> _imageBytes() => base64Decode(
+      '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAK'
+      'CgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0o'
+      'MCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgo'
+      'KCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAED'
+      'ASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL'
+      '/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKB'
+      'kaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdI'
+      'SUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZ'
+      'mqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl'
+      '5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQF'
+      'BgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdh'
+      'cRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5'
+      'OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImK'
+      'kpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX'
+      '2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD6pooooA//2Q==',
+    );

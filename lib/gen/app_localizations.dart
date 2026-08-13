@@ -14692,6 +14692,18 @@ abstract class AppLocalizations {
   /// **'Preview is unavailable. You can choose another video or let the analysis decoder try this file.'**
   String get runningCoachPreviewUnavailable;
 
+  /// No description provided for @runningCoachPreviewPoseAnalyzing.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking joints'**
+  String get runningCoachPreviewPoseAnalyzing;
+
+  /// No description provided for @runningCoachPreviewPoseUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Joint overlay unavailable'**
+  String get runningCoachPreviewPoseUnavailable;
+
   /// No description provided for @runningCoachPreviewSelectAction.
   ///
   /// In en, this message translates to:
@@ -16402,6 +16414,31 @@ abstract class AppLocalizations {
   /// **'Next evidence frame'**
   String get runningCoachEvidenceNextFrame;
 
+  /// No description provided for @runningCoachEvidenceImageViewerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Evidence image'**
+  String get runningCoachEvidenceImageViewerTitle;
+
+  /// No description provided for @runningCoachEvidenceImageViewerMetadata.
+  ///
+  /// In en, this message translates to:
+  /// **'{kind} · {role} · {side} · {time}'**
+  String runningCoachEvidenceImageViewerMetadata(
+      String kind, String role, String side, String time);
+
+  /// No description provided for @runningCoachEvidenceOverlayOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Show overlay'**
+  String get runningCoachEvidenceOverlayOn;
+
+  /// No description provided for @runningCoachEvidenceOverlayOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide overlay'**
+  String get runningCoachEvidenceOverlayOff;
+
   /// No description provided for @runningCoachEvidencePlay.
   ///
   /// In en, this message translates to:
@@ -16948,6 +16985,12 @@ abstract class AppLocalizations {
   /// **'Representative posture frame'**
   String get runningCoachEvidenceRolePosture;
 
+  /// No description provided for @runningCoachEvidenceRoleLowering.
+  ///
+  /// In en, this message translates to:
+  /// **'Lowering before contact'**
+  String get runningCoachEvidenceRoleLowering;
+
   /// No description provided for @runningCoachEvidenceRoleInitialContact.
   ///
   /// In en, this message translates to:
@@ -16957,8 +17000,20 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachEvidenceRoleKneeFlexion.
   ///
   /// In en, this message translates to:
-  /// **'Maximum knee-flexion phase'**
+  /// **'Maximum support knee flexion'**
   String get runningCoachEvidenceRoleKneeFlexion;
+
+  /// No description provided for @runningCoachEvidenceRoleRecoveryKneeFlexion.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery knee fold'**
+  String get runningCoachEvidenceRoleRecoveryKneeFlexion;
+
+  /// No description provided for @runningCoachEvidenceRolePushOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Push-off frame'**
+  String get runningCoachEvidenceRolePushOff;
 
   /// No description provided for @runningCoachEvidenceRoleTrajectoryHigh.
   ///
@@ -28995,7 +29050,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachFiveMovementsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Five movements'**
+  /// **'Six checks'**
   String get runningCoachFiveMovementsTitle;
 
   /// No description provided for @runningCoachStatusImproveShort.

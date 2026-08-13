@@ -37,7 +37,7 @@ void main() {
   test('continuous guide crosses landing support push-off recovery landing',
       () {
     final frames = runningCycleGuideLoopFrameOrderForTesting();
-    expect(frames, <int>[3, 4, 5, 6, 7, 0, 1, 2]);
+    expect(frames, <int>[4, 5, 6, 7, 0, 1, 2, 3]);
     expect(
       frames.map(runningCycleGuidePhaseForFrame).toList(growable: false),
       <RunningCycleGuidePhase>[
@@ -45,27 +45,33 @@ void main() {
         RunningCycleGuidePhase.support,
         RunningCycleGuidePhase.pushOff,
         RunningCycleGuidePhase.recovery,
-        RunningCycleGuidePhase.recovery,
         RunningCycleGuidePhase.landing,
         RunningCycleGuidePhase.support,
         RunningCycleGuidePhase.pushOff,
+        RunningCycleGuidePhase.recovery,
       ],
     );
   });
 
-  test('continuous guide keeps scale and ground stable across all frames', () {
+  test('continuous guide aligns per-row ground and normalizes runner scale',
+      () {
     final presentations = runningCycleGuideLoopFrameOrderForTesting()
         .map(runningCycleGuidePresentationForFrame)
         .toList(growable: false);
 
-    expect(presentations.map((item) => item.scale).toSet(), <double>{1.0});
+    expect(
+      presentations.map((item) => item.scale).every((scale) {
+        return scale >= 0.99 && scale <= 1.02;
+      }),
+      isTrue,
+    );
     expect(
       presentations.map((item) => item.sourceGroundY).toSet(),
-      <double>{403.0},
+      <double>{403.0, 425.0},
     );
     expect(
       presentations.map((item) => item.targetGroundY).toSet(),
-      <double>{403.0},
+      <double>{414.0},
     );
 
     const size = Size(320, 360);
@@ -79,7 +85,6 @@ void main() {
           ),
         )
         .toList(growable: false);
-    final widths = destinations.map((rect) => rect.width).toSet();
     final groundYs = destinations.map((rect) {
       final presentation = runningCycleGuidePresentationForFrame(
         runningCycleGuideLoopFrameOrderForTesting()[destinations.indexOf(rect)],
@@ -87,7 +92,12 @@ void main() {
       return rect.top + rect.height * presentation.sourceGroundY / 470.5;
     }).toList(growable: false);
 
-    expect(widths.length, 1);
+    final widths = destinations.map((rect) => rect.width).toList();
+    expect(
+      widths.reduce((a, b) => a > b ? a : b) /
+          widths.reduce((a, b) => a < b ? a : b),
+      lessThan(1.04),
+    );
     for (final groundY in groundYs.skip(1)) {
       expect(groundY, closeTo(groundYs.first, 0.001));
     }
@@ -108,10 +118,10 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Play'), findsOneWidget);
-    await _expectSourceRectForFrame(tester, 3);
+    await _expectSourceRectForFrame(tester, 4);
 
     await tester.pump(const Duration(seconds: 1));
-    await _expectSourceRectForFrame(tester, 3);
+    await _expectSourceRectForFrame(tester, 4);
   });
 
   testWidgets('normal motion plays through the next phase', (
@@ -120,7 +130,7 @@ void main() {
     await _pumpPlayer(tester, disableAnimations: false);
 
     expect(find.text('Pause'), findsOneWidget);
-    await _expectSourceRectForFrame(tester, 3);
+    await _expectSourceRectForFrame(tester, 4);
 
     await tester.pump(const Duration(milliseconds: 360));
     expect(
@@ -129,7 +139,7 @@ void main() {
       ),
       findsOneWidget,
     );
-    await _expectSourceRectForFrame(tester, 4);
+    await _expectSourceRectForFrame(tester, 5);
   });
 
   testWidgets('phase selector and frame step update labels and frame', (
@@ -150,7 +160,7 @@ void main() {
       ),
       findsOneWidget,
     );
-    await _expectSourceRectForFrame(tester, 5);
+    await _expectSourceRectForFrame(tester, 6);
 
     final step = find.byKey(
       const ValueKey('running-coach-good-form-cycle-step'),
@@ -165,7 +175,7 @@ void main() {
       ),
       findsOneWidget,
     );
-    await _expectSourceRectForFrame(tester, 6);
+    await _expectSourceRectForFrame(tester, 7);
   });
 
   testWidgets('localized controls fit compact Korean layout', (

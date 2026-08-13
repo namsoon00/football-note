@@ -584,7 +584,10 @@ List<RunningFallbackContact> runningFallbackContacts(
       samples.add(
         _FootSample(
           frame: frame,
+          x: foot.x,
           y: foot.y,
+          hipX: hip.x,
+          hipY: hip.y,
           scale: scale,
           confidence: math.min(
             foot.confidence,
@@ -608,6 +611,7 @@ List<RunningFallbackContact> runningFallbackContacts(
       final isLocalBottom = current.y >= previous.y - tolerance &&
           current.y >= next.y - tolerance;
       if (!isLocalBottom) continue;
+      if (current.confidence < 0.35) continue;
       final localMotion = math.max(
         (current.y - previous.y).abs(),
         (next.y - current.y).abs(),
@@ -621,18 +625,37 @@ List<RunningFallbackContact> runningFallbackContacts(
           current.y;
       final nearLocalGround = localGround - current.y <= current.scale * 0.13;
       if (!nearLocalGround) continue;
-      final verticalTurn = (current.y - previous.y) >= -tolerance &&
-          (next.y - current.y) <= tolerance;
+      final descendingBeforeContact =
+          current.y - previous.y >= current.scale * 0.010;
+      final verticalTurn = descendingBeforeContact &&
+          (next.y - current.y) <= current.scale * 0.006;
+      final relativeY = current.y - current.hipY;
+      final previousRelativeY = previous.y - previous.hipY;
+      final nextRelativeY = next.y - next.hipY;
+      final relativeX = current.x - current.hipX;
+      final previousRelativeX = previous.x - previous.hipX;
+      final nextRelativeX = next.x - next.hipX;
+      final relativeTurn =
+          relativeY - previousRelativeY >= current.scale * 0.010 &&
+              nextRelativeY - relativeY <= current.scale * 0.010;
+      final footPelvisRelativeMotion = (relativeX - previousRelativeX).abs() +
+              (nextRelativeX - relativeX).abs() >=
+          current.scale * 0.010;
+      final footBelowPelvis = relativeY >= current.scale * 0.45;
       final kneeFlexionBegins = next.kneeAngle <= current.kneeAngle + 4;
-      final persistence =
-          (previous.y - current.y).abs() <= current.scale * 0.20 ||
-              (next.y - current.y).abs() <= current.scale * 0.20;
+      final persistence = localGround - previous.y <= current.scale * 0.18 ||
+          localGround - next.y <= current.scale * 0.18;
+      final notRecoveryKnee = current.kneeAngle >= 105;
       final signalCount = <bool>[
         verticalTurn,
+        relativeTurn,
+        footPelvisRelativeMotion,
+        footBelowPelvis,
         kneeFlexionBegins,
         persistence,
+        notRecoveryKnee,
       ].where((value) => value).length;
-      if (signalCount < 2) continue;
+      if (signalCount < 4) continue;
       candidates.add(
         RunningFallbackContact(
           timestamp: current.frame.timestamp,
@@ -666,7 +689,32 @@ List<RunningFallbackContact> runningFallbackContacts(
     }
   }
   deduplicated.sort((left, right) => left.timestamp.compareTo(right.timestamp));
-  return List<RunningFallbackContact>.unmodifiable(deduplicated.take(12));
+  return List<RunningFallbackContact>.unmodifiable(
+    _enforceFallbackContactAlternation(deduplicated).take(12),
+  );
+}
+
+List<RunningFallbackContact> _enforceFallbackContactAlternation(
+  List<RunningFallbackContact> contacts,
+) {
+  final filtered = <RunningFallbackContact>[];
+  for (final contact in contacts) {
+    if (filtered.isEmpty ||
+        contact.side == RunningContactSide.unknown ||
+        filtered.last.side == RunningContactSide.unknown ||
+        contact.isConfirmed ||
+        filtered.last.isConfirmed ||
+        contact.side != filtered.last.side ||
+        contact.timestamp - filtered.last.timestamp >=
+            const Duration(milliseconds: 420)) {
+      filtered.add(contact);
+      continue;
+    }
+    if (contact.confidence > filtered.last.confidence) {
+      filtered[filtered.length - 1] = contact;
+    }
+  }
+  return filtered;
 }
 
 RunningVideoAnalysisResult deriveRunningAnalysisV2(
@@ -721,6 +769,7 @@ RunningVideoAnalysisResult deriveRunningAnalysisV2(
     metric: RunningAnalysisMetric.kneeAtContact,
   ));
   add(_maximumKneeMeasurement(source, preferredFrames, metricContacts));
+  add(_recoveryKneeMeasurement(source, preferredFrames, metricContacts));
   add(_rhythmMeasurement(
     source,
     metricContacts,
@@ -1152,6 +1201,75 @@ RunningMetricMeasurement _maximumKneeMeasurement(
         ? 'estimated_contact_maximum_flexion'
         : 'dense_contact_maximum_flexion',
     confirmed: contacts.where((contact) => contact.isConfirmed).length >= 3 &&
+        _qualityConfirms(result, RunningCoachMetric.kneeFlexion),
+    timestamps: values.map((value) => value.timestamp),
+  );
+}
+
+RunningMetricMeasurement _recoveryKneeMeasurement(
+  RunningVideoAnalysisResult result,
+  List<RunningPoseFrame> frames,
+  List<RunningFallbackContact> contacts,
+) {
+  final values = <RunningWeightedValue>[];
+  for (final contact in contacts) {
+    final localFrames = frames
+        .where((frame) =>
+            frame.timestamp >=
+                contact.timestamp - const Duration(milliseconds: 520) &&
+            frame.timestamp <=
+                contact.timestamp - const Duration(milliseconds: 120))
+        .toList(growable: false);
+    if (localFrames.isEmpty) continue;
+    final ground = runningLocalGroundLevel(
+      frames,
+      side: contact.side,
+      around: contact.timestamp,
+    );
+    RunningWeightedValue? minimum;
+    for (final frame in localFrames) {
+      final indexes = contact.side == RunningContactSide.left
+          ? const <int>[23, 25, 27]
+          : const <int>[24, 26, 28];
+      final hip = _point(frame, indexes[0]);
+      final knee = _point(frame, indexes[1]);
+      final ankle = _point(frame, indexes[2]);
+      final foot = _footBottom(frame, contact.side);
+      final scale = _bodyScale(frame);
+      if (hip == null ||
+          knee == null ||
+          ankle == null ||
+          foot == null ||
+          scale == null) {
+        continue;
+      }
+      final isClearlyAirborne =
+          ground == null || ground - foot.y >= scale * 0.055;
+      if (!isClearlyAirborne) continue;
+      final value = RunningWeightedValue(
+        value: _jointAngle(hip, knee, ankle),
+        confidence: math.min(
+          contact.confidence,
+          math.min(
+            hip.confidence,
+            math.min(knee.confidence, ankle.confidence),
+          ),
+        ),
+        timestamp: frame.timestamp,
+      );
+      if (minimum == null || value.value < minimum.value) minimum = value;
+    }
+    if (minimum != null) values.add(minimum);
+  }
+  final confirmedContacts = contacts.where((contact) => contact.isConfirmed);
+  return _measurementFromEstimate(
+    metric: RunningAnalysisMetric.recoveryKneeFlexion,
+    estimate: runningWeightedEstimate(values),
+    method: contacts.any((contact) => !contact.isConfirmed)
+        ? 'estimated_recovery_maximum_knee_flexion'
+        : 'recovery_maximum_knee_flexion',
+    confirmed: confirmedContacts.length >= 3 &&
+        values.length >= 3 &&
         _qualityConfirms(result, RunningCoachMetric.kneeFlexion),
     timestamps: values.map((value) => value.timestamp),
   );
@@ -1765,14 +1883,20 @@ class _ScaleSample {
 
 class _FootSample {
   final RunningPoseFrame frame;
+  final double x;
   final double y;
+  final double hipX;
+  final double hipY;
   final double scale;
   final double confidence;
   final double kneeAngle;
 
   const _FootSample({
     required this.frame,
+    required this.x,
     required this.y,
+    required this.hipX,
+    required this.hipY,
     required this.scale,
     required this.confidence,
     required this.kneeAngle,

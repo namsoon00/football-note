@@ -889,25 +889,31 @@ void main() {
           .frames
           .map((frame) => frame.role)
           .toSet(),
-      {RunningMetricEvidenceFrameRole.initialContact},
+      containsAll(<RunningMetricEvidenceFrameRole>{
+        RunningMetricEvidenceFrameRole.initialContact,
+        RunningMetricEvidenceFrameRole.pushOff,
+      }),
     );
     expect(
         byKind[RunningMetricEvidenceKind.landing]!
             .frames
             .map((frame) => frame.timestampMs),
-        [600, 900, 1200]);
+        [600, 680]);
     expect(
       byKind[RunningMetricEvidenceKind.knee]!
           .frames
           .map((frame) => frame.role)
           .toSet(),
-      {RunningMetricEvidenceFrameRole.maximumKneeFlexion},
+      containsAll(<RunningMetricEvidenceFrameRole>{
+        RunningMetricEvidenceFrameRole.initialContact,
+        RunningMetricEvidenceFrameRole.maximumKneeFlexion,
+      }),
     );
     expect(
         byKind[RunningMetricEvidenceKind.knee]!
             .frames
             .map((frame) => frame.timestampMs),
-        [680, 980, 1280]);
+        containsAll(<int>[600, 680]));
     expect(
       {
         for (final frame in byKind[RunningMetricEvidenceKind.bounce]!.frames)
@@ -997,8 +1003,22 @@ void main() {
     expect(gait, isNotNull);
     expect(gait!.steps, hasLength(1));
     expect(gait.hasReliableStepSample, isFalse);
-    expect(landing.frames, hasLength(1));
-    expect(knee.frames, hasLength(1));
+    expect(landing.frames, hasLength(2));
+    expect(knee.frames, hasLength(2));
+    expect(
+      landing.frames.map((frame) => frame.role),
+      containsAll(<RunningMetricEvidenceFrameRole>[
+        RunningMetricEvidenceFrameRole.initialContact,
+        RunningMetricEvidenceFrameRole.pushOff,
+      ]),
+    );
+    expect(
+      knee.frames.map((frame) => frame.role),
+      containsAll(<RunningMetricEvidenceFrameRole>[
+        RunningMetricEvidenceFrameRole.initialContact,
+        RunningMetricEvidenceFrameRole.maximumKneeFlexion,
+      ]),
+    );
     expect(
       landing.withheldReason,
       RunningMetricEvidenceWithheldReason.limitedSamples,

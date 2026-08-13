@@ -91,9 +91,16 @@ class RunningPoseAnalysisChannel(
                     ?: emptyList()
                 val maximumDimension = (call.argument<Number>("maxDimension")?.toInt() ?: 640)
                     .coerceIn(160, 960)
+                val jpegQuality = (call.argument<Number>("jpegQuality")?.toInt() ?: 72)
+                    .coerceIn(45, 92)
                 executor.execute {
                     try {
-                        val frames = extractEvidenceFrames(path, timestamps, maximumDimension)
+                        val frames = extractEvidenceFrames(
+                            path,
+                            timestamps,
+                            maximumDimension,
+                            jpegQuality,
+                        )
                         mainHandler.post { result.success(frames) }
                     } catch (error: AnalysisException) {
                         mainHandler.post { result.error(error.code, error.message, null) }
@@ -297,6 +304,7 @@ class RunningPoseAnalysisChannel(
         path: String,
         timestampsMs: List<Long>,
         maximumDimension: Int,
+        jpegQuality: Int = 72,
     ): List<Map<String, Any>> {
         val file = File(path)
         if (!file.exists()) {
@@ -314,7 +322,7 @@ class RunningPoseAnalysisChannel(
                 val scaled = scaleBitmap(source, maximumDimension)
                 if (scaled !== source) source.recycle()
                 val bytes = ByteArrayOutputStream().use { output ->
-                    scaled.compress(Bitmap.CompressFormat.JPEG, 72, output)
+                    scaled.compress(Bitmap.CompressFormat.JPEG, jpegQuality, output)
                     output.toByteArray()
                 }
                 val width = scaled.width

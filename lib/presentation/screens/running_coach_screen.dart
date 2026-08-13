@@ -420,6 +420,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
           isCapturedVideo: false,
           runnerDisplayName:
               _selectedRunnerDisplayName(AppLocalizations.of(context)!),
+          analyzer: widget.analysisService.analyzeVideo,
         );
         if (!mounted ||
             preview == null ||
@@ -433,7 +434,10 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
           _selectedVideo = selected;
           _saveSelectedVideoToHistory = false;
         });
-        await _analyzeSelectedVideo(selected);
+        await _analyzeSelectedVideo(
+          selected,
+          precomputedAnalysis: preview.analysis,
+        );
         return;
       }
     } catch (_) {
@@ -456,6 +460,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
           isCapturedVideo: true,
           runnerDisplayName:
               _selectedRunnerDisplayName(AppLocalizations.of(context)!),
+          analyzer: widget.analysisService.analyzeVideo,
         );
         if (!mounted ||
             preview == null ||
@@ -469,7 +474,10 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
           _selectedVideo = selected;
           _saveSelectedVideoToHistory = false;
         });
-        await _analyzeSelectedVideo(selected);
+        await _analyzeSelectedVideo(
+          selected,
+          precomputedAnalysis: preview.analysis,
+        );
         return;
       }
     } catch (_) {
@@ -511,7 +519,10 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
     await _analyzeSelectedVideo(selected);
   }
 
-  Future<void> _analyzeSelectedVideo(XFile selected) async {
+  Future<void> _analyzeSelectedVideo(
+    XFile selected, {
+    RunningVideoAnalysisResult? precomputedAnalysis,
+  }) async {
     if (_isAnalyzing) return;
     final saveVideoToHistory = _saveSelectedVideoToHistory;
     final runner = _selectedRunner ??
@@ -529,7 +540,8 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
     var historySaveFailed = false;
     try {
       final analyzedAt = DateTime.now();
-      analysis = await widget.analysisService.analyzeVideo(selected);
+      analysis = precomputedAnalysis ??
+          await widget.analysisService.analyzeVideo(selected);
       report = _coachingService.buildReport(analysis);
       comparableSessions = _comparableSessionsFor(
         runnerId: runner.id,
@@ -2375,13 +2387,89 @@ class _CaptureReferenceVisual extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: scheme.outlineVariant),
         ),
-        child: Image.asset(
-          assetPath,
-          fit: BoxFit.cover,
-          filterQuality: FilterQuality.high,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Image.asset(
+              assetPath,
+              fit: BoxFit.cover,
+              filterQuality: FilterQuality.high,
+            ),
+            IgnorePointer(
+              child: CustomPaint(
+                key: ValueKey(
+                  'running-coach-capture-reference-guide-${mode.name}',
+                ),
+                painter: _CaptureReferenceGuideOverlayPainter(
+                  color: scheme.primary,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
+  }
+}
+
+class _CaptureReferenceGuideOverlayPainter extends CustomPainter {
+  final Color color;
+
+  const _CaptureReferenceGuideOverlayPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final safeRect = Rect.fromLTRB(
+      size.width * 0.31,
+      size.height * 0.07,
+      size.width * 0.80,
+      size.height * 0.91,
+    );
+    final paint = Paint()
+      ..color = color.withValues(alpha: 0.92)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(1.5, size.shortestSide * 0.008)
+      ..strokeCap = StrokeCap.round;
+    final corner = math.min(safeRect.width, safeRect.height) * 0.10;
+    for (final (start, middle, end) in <(Offset, Offset, Offset)>[
+      (
+        Offset(safeRect.left + corner, safeRect.top),
+        safeRect.topLeft,
+        Offset(safeRect.left, safeRect.top + corner),
+      ),
+      (
+        Offset(safeRect.right - corner, safeRect.top),
+        safeRect.topRight,
+        Offset(safeRect.right, safeRect.top + corner),
+      ),
+      (
+        Offset(safeRect.left, safeRect.bottom - corner),
+        safeRect.bottomLeft,
+        Offset(safeRect.left + corner, safeRect.bottom),
+      ),
+      (
+        Offset(safeRect.right, safeRect.bottom - corner),
+        safeRect.bottomRight,
+        Offset(safeRect.right - corner, safeRect.bottom),
+      ),
+    ]) {
+      final path = Path()
+        ..moveTo(start.dx, start.dy)
+        ..lineTo(middle.dx, middle.dy)
+        ..lineTo(end.dx, end.dy);
+      canvas.drawPath(path, paint);
+    }
+    canvas.drawLine(
+      Offset(safeRect.left, safeRect.bottom),
+      Offset(safeRect.right, safeRect.bottom),
+      paint..color = color.withValues(alpha: 0.68),
+    );
+  }
+
+  @override
+  bool shouldRepaint(
+      covariant _CaptureReferenceGuideOverlayPainter oldDelegate) {
+    return color != oldDelegate.color;
   }
 }
 
@@ -2786,6 +2874,17 @@ String _formatContactTimestamp(
   return l10n.runningCoachContactTimestampSeconds(
     seconds.toStringAsFixed(2),
   );
+}
+
+String _runningContactSideLabel(
+  AppLocalizations l10n,
+  RunningContactSide side,
+) {
+  return switch (side) {
+    RunningContactSide.left => l10n.runningCoachGaitStepLeft,
+    RunningContactSide.right => l10n.runningCoachGaitStepRight,
+    RunningContactSide.unknown => l10n.runningCoachGaitPhaseUnavailable,
+  };
 }
 
 class _SampleDecisionMetric {
@@ -6374,6 +6473,7 @@ class _TodayFocusCard extends StatelessWidget {
                   poseFrame: archived.poseFrame ?? coordinateFrame?.poseFrame,
                   insight: insight,
                   direction: result.direction,
+                  gallery: session.evidenceImages,
                 ),
               )
             else if (coordinateFrame?.poseFrame != null)
@@ -6521,6 +6621,10 @@ class _CompactMetricGrid extends StatelessWidget {
                   spacing: 8,
                   runSpacing: 8,
                   children: [
+                    SizedBox(
+                      width: width,
+                      child: _CompactRhythmTile(result: result),
+                    ),
                     for (final metric in RunningCoachMetric.values)
                       SizedBox(
                         width: width,
@@ -6570,6 +6674,75 @@ RunningCoachingInsight _gridInsightForMetric(
       reason: 'metric_unavailable',
     ),
   );
+}
+
+class _CompactRhythmTile extends StatelessWidget {
+  final RunningVideoAnalysisResult result;
+
+  const _CompactRhythmTile({required this.result});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    final cadence = result.measurementFor(RunningAnalysisMetric.cadence);
+    final stepTime = result.measurementFor(RunningAnalysisMetric.stepTime);
+    final confirmed = cadence.isConfirmed && stepTime.isConfirmed;
+    final estimated = cadence.isEstimated || stepTime.isEstimated;
+    final status = confirmed
+        ? l10n.runningCoachMeasurementStatusVerified
+        : estimated
+            ? l10n.runningCoachStatusEstimatedShort
+            : l10n.runningCoachStatusUnavailableShort;
+    final color = confirmed
+        ? scheme.primary
+        : estimated
+            ? scheme.secondary
+            : scheme.error;
+    final icon = confirmed
+        ? Icons.speed_rounded
+        : estimated
+            ? Icons.visibility_outlined
+            : Icons.block_rounded;
+    return Material(
+      color: color.withValues(alpha: 0.08),
+      borderRadius: BorderRadius.circular(10),
+      child: Padding(
+        key: const ValueKey('running-coach-metric-tile-rhythm'),
+        padding: const EdgeInsets.all(10),
+        child: Row(
+          children: [
+            Icon(icon, size: 19, color: color),
+            const SizedBox(width: 7),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.runningCoachEvidenceMetricRhythm,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                          fontWeight: FontWeight.w900,
+                        ),
+                  ),
+                  Text(
+                    status,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: color,
+                          fontWeight: FontWeight.w800,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _CompactMetricTile extends StatelessWidget {
@@ -6756,6 +6929,7 @@ class _MetricDetailSheet extends StatelessWidget {
                   poseFrame: archived.first.poseFrame,
                   insight: insight,
                   direction: direction,
+                  gallery: archived,
                 ),
               ),
               const SizedBox(height: 8),
@@ -6894,16 +7068,14 @@ class _RunningFullAnalysisScreen extends StatelessWidget {
             title: l10n.runningCoachAnalysisQualityTitle,
             child: _ResultsSummaryCard(result: result, report: report),
           ),
-          if (result.rhythmAnalysis != null) ...[
-            const SizedBox(height: 10),
-            _FullAnalysisSection(
-              sectionKey: const ValueKey(
-                'running-coach-full-section-rhythm',
-              ),
-              title: l10n.runningCoachGaitRhythmTitle,
-              child: _RunningRhythmCard(result: result),
+          const SizedBox(height: 10),
+          _FullAnalysisSection(
+            sectionKey: const ValueKey(
+              'running-coach-full-section-rhythm',
             ),
-          ],
+            title: l10n.runningCoachGaitRhythmTitle,
+            child: _RunningRhythmCard(result: result),
+          ),
           const SizedBox(height: 10),
           _FullAnalysisSection(
             sectionKey: const ValueKey(
@@ -7822,10 +7994,16 @@ String _evidenceFrameRoleLabelForRole(
       l10n.runningCoachEvidenceRoleRhythmContact,
     RunningMetricEvidenceFrameRole.representativePosture =>
       l10n.runningCoachEvidenceRolePosture,
+    RunningMetricEvidenceFrameRole.lowering =>
+      l10n.runningCoachEvidenceRoleLowering,
     RunningMetricEvidenceFrameRole.initialContact =>
       l10n.runningCoachEvidenceRoleInitialContact,
     RunningMetricEvidenceFrameRole.maximumKneeFlexion =>
       l10n.runningCoachEvidenceRoleKneeFlexion,
+    RunningMetricEvidenceFrameRole.recoveryKneeFlexion =>
+      l10n.runningCoachEvidenceRoleRecoveryKneeFlexion,
+    RunningMetricEvidenceFrameRole.pushOff =>
+      l10n.runningCoachEvidenceRolePushOff,
     RunningMetricEvidenceFrameRole.trajectoryHigh =>
       l10n.runningCoachEvidenceRoleTrajectoryHigh,
     RunningMetricEvidenceFrameRole.trajectoryLow =>
@@ -11504,12 +11682,14 @@ class _HistoricalEvidenceFrameTile extends StatelessWidget {
   final RunningPoseFrame? poseFrame;
   final RunningCoachingInsight? insight;
   final RunningDirection direction;
+  final List<RunningCoachEvidenceImage> gallery;
 
   const _HistoricalEvidenceFrameTile({
     required this.image,
     required this.poseFrame,
     required this.insight,
     required this.direction,
+    this.gallery = const <RunningCoachEvidenceImage>[],
   });
 
   @override
@@ -11527,88 +11707,95 @@ class _HistoricalEvidenceFrameTile extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
               child: ColoredBox(
                 color: Colors.black,
-                child: FutureBuilder<Uint8List?>(
-                  future: readArchivedRunningCoachEvidenceImage(image),
-                  builder: (context, snapshot) {
-                    final bytes = snapshot.data;
-                    return Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        if (bytes != null)
-                          Image.memory(
-                            bytes,
-                            // The pose overlay maps landmark coordinates with
-                            // a contain fit. Keep the original still on the
-                            // same fit so the saved evidence and marker stay
-                            // aligned instead of cropping a foot or head.
-                            fit: BoxFit.contain,
-                            gaplessPlayback: true,
-                          )
-                        else
-                          Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(10),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    snapshot.connectionState ==
-                                            ConnectionState.waiting
-                                        ? Icons.image_search_rounded
-                                        : Icons.broken_image_outlined,
-                                    color: Colors.white70,
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => _openEvidenceImageViewer(context),
+                    child: FutureBuilder<Uint8List?>(
+                      future: readArchivedRunningCoachEvidenceImage(image),
+                      builder: (context, snapshot) {
+                        final bytes = snapshot.data;
+                        return Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            if (bytes != null)
+                              Image.memory(
+                                bytes,
+                                // The pose overlay maps landmark coordinates
+                                // with a contain fit. Keep the original still
+                                // on the same fit so the saved evidence and
+                                // marker stay aligned instead of cropping a
+                                // foot or head.
+                                fit: BoxFit.contain,
+                                gaplessPlayback: true,
+                              )
+                            else
+                              Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(10),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        snapshot.connectionState ==
+                                                ConnectionState.waiting
+                                            ? Icons.image_search_rounded
+                                            : Icons.broken_image_outlined,
+                                        color: Colors.white70,
+                                      ),
+                                      if (snapshot.connectionState !=
+                                          ConnectionState.waiting) ...[
+                                        const SizedBox(height: 6),
+                                        Text(
+                                          l10n.runningCoachEvidenceImageReadFailed,
+                                          textAlign: TextAlign.center,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .labelSmall
+                                              ?.copyWith(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.w800,
+                                              ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          l10n.runningCoachEvidenceImageReadFailedReason,
+                                          textAlign: TextAlign.center,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .labelSmall
+                                              ?.copyWith(color: Colors.white70),
+                                        ),
+                                      ],
+                                    ],
                                   ),
-                                  if (snapshot.connectionState !=
-                                      ConnectionState.waiting) ...[
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      l10n.runningCoachEvidenceImageReadFailed,
-                                      textAlign: TextAlign.center,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .labelSmall
-                                          ?.copyWith(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w800,
-                                          ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      l10n.runningCoachEvidenceImageReadFailedReason,
-                                      textAlign: TextAlign.center,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .labelSmall
-                                          ?.copyWith(color: Colors.white70),
-                                    ),
-                                  ],
-                                ],
+                                ),
+                              ),
+                            Positioned.fill(
+                              child: IgnorePointer(
+                                child: CustomPaint(
+                                  painter: _RunningPoseOverlayPainter(
+                                    poseFrame: poseFrame,
+                                    primaryColor: scheme.primary,
+                                    secondaryColor: scheme.tertiary,
+                                    contactColor: scheme.tertiary,
+                                    warningColor: scheme.error,
+                                    highlightedMetric: insight?.metric,
+                                    finding: insight?.finding,
+                                    direction: direction,
+                                    useContainFit: true,
+                                    showRefinedPose: bytes == null,
+                                    showFullBodyTrace: true,
+                                    showTargetDirection: false,
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
-                        Positioned.fill(
-                          child: IgnorePointer(
-                            child: CustomPaint(
-                              painter: _RunningPoseOverlayPainter(
-                                poseFrame: poseFrame,
-                                primaryColor: scheme.primary,
-                                secondaryColor: scheme.tertiary,
-                                contactColor: scheme.tertiary,
-                                warningColor: scheme.error,
-                                highlightedMetric: insight?.metric,
-                                finding: insight?.finding,
-                                direction: direction,
-                                useContainFit: true,
-                                showRefinedPose: bytes == null,
-                                showFullBodyTrace: true,
-                                showTargetDirection: false,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
+                          ],
+                        );
+                      },
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -11631,6 +11818,293 @@ class _HistoricalEvidenceFrameTile extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void _openEvidenceImageViewer(BuildContext context) {
+    final images =
+        gallery.isEmpty ? <RunningCoachEvidenceImage>[image] : gallery;
+    final initialIndex =
+        images.indexWhere((candidate) => candidate.id == image.id);
+    unawaited(
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          fullscreenDialog: true,
+          builder: (_) => _RunningEvidenceImageViewer(
+            images: images,
+            initialIndex: initialIndex < 0 ? 0 : initialIndex,
+            initialPoseFrame: poseFrame,
+            insight: insight,
+            direction: direction,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RunningEvidenceImageViewer extends StatefulWidget {
+  final List<RunningCoachEvidenceImage> images;
+  final int initialIndex;
+  final RunningPoseFrame? initialPoseFrame;
+  final RunningCoachingInsight? insight;
+  final RunningDirection direction;
+
+  const _RunningEvidenceImageViewer({
+    required this.images,
+    required this.initialIndex,
+    required this.initialPoseFrame,
+    required this.insight,
+    required this.direction,
+  });
+
+  @override
+  State<_RunningEvidenceImageViewer> createState() =>
+      _RunningEvidenceImageViewerState();
+}
+
+class _RunningEvidenceImageViewerState
+    extends State<_RunningEvidenceImageViewer> {
+  late int _index;
+  final _transformationController = TransformationController();
+  TapDownDetails? _doubleTapDetails;
+  var _showOverlay = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _index = widget.initialIndex.clamp(0, widget.images.length - 1).toInt();
+  }
+
+  @override
+  void dispose() {
+    _transformationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final image = widget.images[_index];
+    final poseFrame = image.poseFrame ??
+        (image.id == widget.images[widget.initialIndex].id
+            ? widget.initialPoseFrame
+            : null);
+    final sideLabel = _runningContactSideLabel(l10n, image.side);
+    final metadata = l10n.runningCoachEvidenceImageViewerMetadata(
+      _evidenceKindLabel(l10n, image.kind),
+      _evidenceFrameRoleLabelForRole(l10n, image.role),
+      sideLabel,
+      _formatContactTimestamp(l10n, image.timestamp),
+    );
+    return Scaffold(
+      key: const ValueKey('running-coach-evidence-image-viewer'),
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+        title: Text(l10n.runningCoachEvidenceImageViewerTitle),
+        actions: [
+          AppBarActionButton.icon(
+            key: const ValueKey('running-coach-evidence-overlay-toggle'),
+            icon: _showOverlay
+                ? Icons.visibility_rounded
+                : Icons.visibility_off_rounded,
+            tooltip: _showOverlay
+                ? l10n.runningCoachEvidenceOverlayOff
+                : l10n.runningCoachEvidenceOverlayOn,
+            onPressed: () => setState(() => _showOverlay = !_showOverlay),
+          ),
+        ],
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: FutureBuilder<Uint8List?>(
+                future: readArchivedRunningCoachEvidenceImage(image),
+                builder: (context, snapshot) {
+                  final bytes = snapshot.data;
+                  if (bytes == null) {
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              snapshot.connectionState ==
+                                      ConnectionState.waiting
+                                  ? Icons.image_search_rounded
+                                  : Icons.broken_image_outlined,
+                              color: Colors.white70,
+                              size: 36,
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              l10n.runningCoachEvidenceImageReadFailed,
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleSmall
+                                  ?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              l10n.runningCoachEvidenceImageReadFailedReason,
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(color: Colors.white70),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+                  final aspectRatio = image.width > 0 && image.height > 0
+                      ? image.width / image.height
+                      : 1.0;
+                  return GestureDetector(
+                    onDoubleTapDown: (details) => _doubleTapDetails = details,
+                    onDoubleTap: _toggleZoom,
+                    child: InteractiveViewer(
+                      key: const ValueKey(
+                        'running-coach-evidence-image-interactive-viewer',
+                      ),
+                      transformationController: _transformationController,
+                      minScale: 0.8,
+                      maxScale: 5,
+                      child: Center(
+                        child: AspectRatio(
+                          aspectRatio: aspectRatio,
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              Image.memory(
+                                bytes,
+                                fit: BoxFit.contain,
+                                gaplessPlayback: true,
+                              ),
+                              if (_showOverlay)
+                                IgnorePointer(
+                                  child: CustomPaint(
+                                    painter: _RunningPoseOverlayPainter(
+                                      poseFrame: poseFrame,
+                                      primaryColor:
+                                          Theme.of(context).colorScheme.primary,
+                                      secondaryColor: Theme.of(context)
+                                          .colorScheme
+                                          .tertiary,
+                                      contactColor: Theme.of(context)
+                                          .colorScheme
+                                          .tertiary,
+                                      warningColor:
+                                          Theme.of(context).colorScheme.error,
+                                      highlightedMetric: widget.insight?.metric,
+                                      finding: widget.insight?.finding,
+                                      direction: widget.direction,
+                                      useContainFit: true,
+                                      showRefinedPose: false,
+                                      showFullBodyTrace: true,
+                                      showTargetDirection: false,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+              child: Row(
+                children: [
+                  IconButton.filledTonal(
+                    key: const ValueKey(
+                      'running-coach-evidence-viewer-previous',
+                    ),
+                    tooltip: l10n.runningCoachEvidencePreviousFrame,
+                    onPressed: _index > 0
+                        ? () => setState(() {
+                              _index -= 1;
+                              _resetZoom();
+                            })
+                        : null,
+                    icon: const Icon(Icons.chevron_left_rounded),
+                  ),
+                  Expanded(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          l10n.runningCoachEvidenceFrameCount(
+                            _index + 1,
+                            widget.images.length,
+                          ),
+                          textAlign: TextAlign.center,
+                          style:
+                              Theme.of(context).textTheme.labelMedium?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          metadata,
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style:
+                              Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    color: Colors.white70,
+                                  ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton.filledTonal(
+                    key: const ValueKey('running-coach-evidence-viewer-next'),
+                    tooltip: l10n.runningCoachEvidenceNextFrame,
+                    onPressed: _index < widget.images.length - 1
+                        ? () => setState(() {
+                              _index += 1;
+                              _resetZoom();
+                            })
+                        : null,
+                    icon: const Icon(Icons.chevron_right_rounded),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _toggleZoom() {
+    if (_transformationController.value.getMaxScaleOnAxis() > 1.01) {
+      _resetZoom();
+      return;
+    }
+    final position = _doubleTapDetails?.localPosition ?? Offset.zero;
+    _transformationController.value = Matrix4.identity()
+      ..setEntry(0, 0, 2.4)
+      ..setEntry(1, 1, 2.4)
+      ..setEntry(0, 3, -position.dx)
+      ..setEntry(1, 3, -position.dy);
+  }
+
+  void _resetZoom() {
+    _transformationController.value = Matrix4.identity();
   }
 }
 
@@ -12044,9 +12518,6 @@ class _RunningRhythmCard extends StatelessWidget {
           stepTimeMeasurement,
           asymmetryMeasurement,
         ].any((measurement) => measurement?.isEstimated == true);
-    if (rhythm == null && !isTrajectoryEstimate) {
-      return const SizedBox.shrink();
-    }
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
     final hasCoreRhythm =
@@ -12066,14 +12537,18 @@ class _RunningRhythmCard extends StatelessWidget {
                 ),
           ),
           subtitle: Text(
-            l10n.runningCoachRhythmEvidenceLimited,
+            hasCoreRhythm
+                ? l10n.runningCoachRhythmEvidenceLimited
+                : l10n.runningCoachMeasurementStatusUnavailable,
             style: Theme.of(context).textTheme.bodySmall,
           ),
           children: [
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                l10n.runningCoachRhythmBody,
+                hasCoreRhythm
+                    ? l10n.runningCoachRhythmBody
+                    : l10n.runningCoachMeasuredMetricUnavailable,
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ),
@@ -13234,11 +13709,7 @@ class _InlineEvidenceCarouselState extends State<_InlineEvidenceCarousel> {
     final frames = widget.evidence.frames.take(4).toList(growable: false);
     if (frames.isEmpty) return const SizedBox.shrink();
     final frame = frames[_index.clamp(0, frames.length - 1)];
-    final sideLabel = switch (frame.side) {
-      RunningContactSide.left => l10n.runningCoachGaitStepLeft,
-      RunningContactSide.right => l10n.runningCoachGaitStepRight,
-      RunningContactSide.unknown => l10n.runningCoachGaitPhaseUnavailable,
-    };
+    final sideLabel = _runningContactSideLabel(l10n, frame.side);
     final frameValue = _inlineEvidenceFrameValue(
       l10n,
       frame,
@@ -13271,6 +13742,7 @@ class _InlineEvidenceCarouselState extends State<_InlineEvidenceCarousel> {
                       poseFrame: archived.poseFrame ?? frame.poseFrame,
                       insight: widget.insight,
                       direction: widget.direction,
+                      gallery: widget.archivedImages,
                     ),
                   )
                 : ClipRRect(

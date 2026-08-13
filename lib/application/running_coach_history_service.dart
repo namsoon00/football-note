@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:image_picker/image_picker.dart';
 
@@ -21,6 +22,10 @@ typedef RunningCoachEvidenceImageDeleter = Future<void> Function(
   Iterable<RunningCoachEvidenceImage> images,
 );
 
+typedef RunningCoachEvidenceImageReader = Future<Uint8List?> Function(
+  RunningCoachEvidenceImage image,
+);
+
 class RunningCoachHistoryService {
   static const storageKey = 'running_coach_sessions_v1';
   static const maxStoredSessions = 20;
@@ -35,17 +40,21 @@ class RunningCoachHistoryService {
   final String? _sportId;
   final RunningCoachEvidenceImageArchiver _archiveEvidenceImages;
   final RunningCoachEvidenceImageDeleter _deleteEvidenceImages;
+  final RunningCoachEvidenceImageReader _readEvidenceImage;
 
   RunningCoachHistoryService(
     this._options, {
     String? sportId,
     RunningCoachEvidenceImageArchiver? archiveEvidenceImages,
     RunningCoachEvidenceImageDeleter? deleteEvidenceImages,
+    RunningCoachEvidenceImageReader? readEvidenceImage,
   })  : _sportId = sportId,
         _archiveEvidenceImages =
             archiveEvidenceImages ?? archiveRunningCoachEvidenceImages,
         _deleteEvidenceImages =
-            deleteEvidenceImages ?? deleteArchivedRunningCoachEvidenceImages;
+            deleteEvidenceImages ?? deleteArchivedRunningCoachEvidenceImages,
+        _readEvidenceImage =
+            readEvidenceImage ?? readArchivedRunningCoachEvidenceImage;
 
   String get _storageKey => sportScopedOptionKey(
         _options,
@@ -124,10 +133,12 @@ class RunningCoachHistoryService {
       report,
       limit: historyEvidenceImageLimit,
     );
-    final evidenceArchiveResult = await _archiveEvidenceImages(
-      sourceVideo: sourceVideo,
-      sessionId: sessionId,
-      requests: evidenceRequests,
+    final evidenceArchiveResult = await _verifiedEvidenceArchiveResult(
+      await _archiveEvidenceImages(
+        sourceVideo: sourceVideo,
+        sessionId: sessionId,
+        requests: evidenceRequests,
+      ),
     );
     final archivedVideo = saveVideo
         ? await archiveRunningCoachVideo(
@@ -274,6 +285,25 @@ class RunningCoachHistoryService {
     return _RunningCoachHistoryTrim(
       retained: List<RunningCoachSessionAnalysis>.unmodifiable(retained),
       removed: removed,
+    );
+  }
+
+  Future<RunningCoachEvidenceArchiveResult> _verifiedEvidenceArchiveResult(
+    RunningCoachEvidenceArchiveResult result,
+  ) async {
+    if (result.images.isEmpty) return result;
+    final readableImages = <RunningCoachEvidenceImage>[];
+    for (final image in result.images) {
+      final bytes = await _readEvidenceImage(image);
+      if (bytes != null && bytes.isNotEmpty) {
+        readableImages.add(image);
+      }
+    }
+    if (readableImages.length == result.images.length) return result;
+    return RunningCoachEvidenceArchiveResult.fromImages(
+      requestedCount: result.requestedCount,
+      images: readableImages,
+      failureCode: result.failureCode ?? 'evidence_readback_failed',
     );
   }
 }

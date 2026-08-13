@@ -8172,6 +8172,12 @@ class AppLocalizationsKo extends AppLocalizations {
       '미리보기를 열 수 없어요. 다른 영상을 고르거나 분석 디코더로 이 파일을 시도할 수 있어요.';
 
   @override
+  String get runningCoachPreviewPoseAnalyzing => '관절 확인 중';
+
+  @override
+  String get runningCoachPreviewPoseUnavailable => '관절 오버레이 확인 불가';
+
+  @override
   String get runningCoachPreviewSelectAction => '이 영상 선택';
 
   @override
@@ -9184,6 +9190,21 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachEvidenceNextFrame => '다음 근거 프레임';
 
   @override
+  String get runningCoachEvidenceImageViewerTitle => '근거 이미지';
+
+  @override
+  String runningCoachEvidenceImageViewerMetadata(
+      String kind, String role, String side, String time) {
+    return '$kind · $role · $side · $time';
+  }
+
+  @override
+  String get runningCoachEvidenceOverlayOn => '오버레이 보기';
+
+  @override
+  String get runningCoachEvidenceOverlayOff => '오버레이 숨기기';
+
+  @override
   String get runningCoachEvidencePlay => '근거 영상 재생';
 
   @override
@@ -9496,10 +9517,19 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachEvidenceRolePosture => '대표 자세 프레임';
 
   @override
+  String get runningCoachEvidenceRoleLowering => '접지 전 하강 구간';
+
+  @override
   String get runningCoachEvidenceRoleInitialContact => '초기 접지 프레임';
 
   @override
-  String get runningCoachEvidenceRoleKneeFlexion => '무릎이 가장 굽혀진 구간';
+  String get runningCoachEvidenceRoleKneeFlexion => '지지 중 무릎이 가장 굽혀진 구간';
+
+  @override
+  String get runningCoachEvidenceRoleRecoveryKneeFlexion => '회수 중 무릎 접힘';
+
+  @override
+  String get runningCoachEvidenceRolePushOff => '밀어내기 프레임';
 
   @override
   String get runningCoachEvidenceRoleTrajectoryHigh => '엉덩이 궤적의 높은 지점';
@@ -16452,7 +16482,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachTenSecondDrill => '10초 연습';
 
   @override
-  String get runningCoachFiveMovementsTitle => '5가지 움직임';
+  String get runningCoachFiveMovementsTitle => '6가지 체크';
 
   @override
   String get runningCoachStatusImproveShort => '개선';
