@@ -7,7 +7,9 @@ import 'package:video_player/video_player.dart';
 
 import '../../application/running_video_analysis_service.dart';
 import '../../application/running_coach_evidence_archive.dart';
+import '../../domain/entities/running_video_analysis_result.dart';
 import '../../gen/app_localizations.dart';
+import 'running_pose_overlay.dart';
 import '../screens/running_video_player_source.dart';
 
 enum RunningVideoPreviewAction { confirm, change, retake, cancel }
@@ -15,15 +17,20 @@ enum RunningVideoPreviewAction { confirm, change, retake, cancel }
 class RunningVideoPreviewResult {
   final RunningVideoPreviewAction action;
   final XFile? video;
+  final RunningVideoAnalysisResult? analysis;
 
-  const RunningVideoPreviewResult(this.action, [this.video]);
+  const RunningVideoPreviewResult(this.action, [this.video, this.analysis]);
 }
+
+typedef RunningVideoPreviewAnalyzer = Future<RunningVideoAnalysisResult>
+    Function(XFile video);
 
 Future<RunningVideoPreviewResult?> showRunningVideoPreviewSheet({
   required BuildContext context,
   required List<XFile> candidates,
   required bool isCapturedVideo,
   String? runnerDisplayName,
+  RunningVideoPreviewAnalyzer? analyzer,
 }) {
   if (candidates.isEmpty) return Future.value(null);
   return showModalBottomSheet<RunningVideoPreviewResult>(
@@ -37,6 +44,7 @@ Future<RunningVideoPreviewResult?> showRunningVideoPreviewSheet({
         candidates: candidates,
         isCapturedVideo: isCapturedVideo,
         runnerDisplayName: runnerDisplayName,
+        analyzer: analyzer,
       ),
     ),
   );
@@ -46,12 +54,14 @@ class RunningVideoPreviewSheet extends StatefulWidget {
   final List<XFile> candidates;
   final bool isCapturedVideo;
   final String? runnerDisplayName;
+  final RunningVideoPreviewAnalyzer? analyzer;
 
   const RunningVideoPreviewSheet({
     super.key,
     required this.candidates,
     required this.isCapturedVideo,
     this.runnerDisplayName,
+    this.analyzer,
   });
 
   @override
@@ -67,6 +77,12 @@ class _RunningVideoPreviewSheetState extends State<RunningVideoPreviewSheet> {
   var _isUnavailable = false;
   int? _videoBytes;
   final Map<int, Uint8List> _thumbnails = <int, Uint8List>{};
+  final Map<int, RunningVideoAnalysisResult> _analyses =
+      <int, RunningVideoAnalysisResult>{};
+  final Map<int, Future<RunningVideoAnalysisResult>> _analysisRequests =
+      <int, Future<RunningVideoAnalysisResult>>{};
+  var _isAnalyzingPreview = false;
+  var _previewAnalysisFailed = false;
 
   XFile get _selected => widget.candidates[_selectedIndex];
 
@@ -107,6 +123,8 @@ class _RunningVideoPreviewSheetState extends State<RunningVideoPreviewSheet> {
       _isLoading = true;
       _isUnavailable = false;
       _videoBytes = null;
+      _isAnalyzingPreview = false;
+      _previewAnalysisFailed = false;
     });
     await previous?.dispose();
     if (!mounted || generation != _loadGeneration) return;
@@ -126,6 +144,7 @@ class _RunningVideoPreviewSheetState extends State<RunningVideoPreviewSheet> {
         _controller = controller;
         _isLoading = false;
       });
+      unawaited(_loadSelectedAnalysis(generation));
     } catch (_) {
       await controller?.dispose();
       if (!mounted || generation != _loadGeneration) return;
@@ -134,6 +153,77 @@ class _RunningVideoPreviewSheetState extends State<RunningVideoPreviewSheet> {
         _isUnavailable = true;
       });
     }
+  }
+
+  Future<void> _loadSelectedAnalysis(int generation) async {
+    final analyzer = widget.analyzer;
+    if (analyzer == null || _analyses.containsKey(_selectedIndex)) return;
+    final index = _selectedIndex;
+    setState(() {
+      _isAnalyzingPreview = true;
+      _previewAnalysisFailed = false;
+    });
+    try {
+      final result = await _analysisRequests.putIfAbsent(
+        index,
+        () => analyzer(widget.candidates[index]),
+      );
+      if (!mounted ||
+          generation != _loadGeneration ||
+          index != _selectedIndex) {
+        return;
+      }
+      setState(() {
+        _analyses[index] = result;
+        _isAnalyzingPreview = false;
+      });
+    } catch (_) {
+      if (!mounted ||
+          generation != _loadGeneration ||
+          index != _selectedIndex) {
+        return;
+      }
+      setState(() {
+        _isAnalyzingPreview = false;
+        _previewAnalysisFailed = true;
+      });
+    }
+  }
+
+  Future<void> _confirmSelected() async {
+    final index = _selectedIndex;
+    final video = widget.candidates[index];
+    var analysis = _analyses[index];
+    final analyzer = widget.analyzer;
+    if (analysis == null && analyzer != null) {
+      if (mounted) {
+        setState(() {
+          _isAnalyzingPreview = true;
+          _previewAnalysisFailed = false;
+        });
+      }
+      try {
+        analysis = await _analysisRequests.putIfAbsent(
+          index,
+          () => analyzer(video),
+        );
+        _analyses[index] = analysis;
+      } catch (_) {
+        _previewAnalysisFailed = true;
+      } finally {
+        if (mounted && index == _selectedIndex) {
+          setState(() => _isAnalyzingPreview = false);
+        }
+      }
+    }
+    if (!mounted) return;
+    Navigator.of(context).pop(
+      RunningVideoPreviewResult(
+        RunningVideoPreviewAction.confirm,
+        video,
+        analysis,
+      ),
+    );
   }
 
   Future<void> _loadSelectedLength(XFile video, int generation) async {
@@ -177,6 +267,8 @@ class _RunningVideoPreviewSheetState extends State<RunningVideoPreviewSheet> {
     final controller = _controller;
     final value = controller?.value;
     final duration = value?.duration ?? Duration.zero;
+    final previewAnalysis = _analyses[_selectedIndex];
+    final perspective = previewAnalysis?.perspectiveQuality;
     final warnings = <String>[
       if (duration > const Duration(seconds: 60))
         l10n.runningCoachPreviewLongVideoWarning,
@@ -328,6 +420,70 @@ class _RunningVideoPreviewSheetState extends State<RunningVideoPreviewSheet> {
                                         fit: StackFit.expand,
                                         children: [
                                           VideoPlayer(controller!),
+                                          if (previewAnalysis != null)
+                                            Positioned.fill(
+                                              child: IgnorePointer(
+                                                child: AnimatedBuilder(
+                                                  animation: controller,
+                                                  builder: (context, _) {
+                                                    final frameIndex =
+                                                        nearestRunningPoseFrameIndex(
+                                                      frames: previewAnalysis
+                                                          .poseFrames,
+                                                      position: controller
+                                                          .value.position,
+                                                    );
+                                                    final frame =
+                                                        frameIndex == null
+                                                            ? null
+                                                            : previewAnalysis
+                                                                    .poseFrames[
+                                                                frameIndex];
+                                                    final scheme =
+                                                        Theme.of(context)
+                                                            .colorScheme;
+                                                    return CustomPaint(
+                                                      key: const ValueKey(
+                                                        'running-coach-preview-pose-overlay',
+                                                      ),
+                                                      painter:
+                                                          RunningPoseFrameOverlayPainter(
+                                                        poseFrame: frame,
+                                                        fit: BoxFit.fill,
+                                                        primaryColor:
+                                                            scheme.primary,
+                                                        secondaryColor:
+                                                            scheme.tertiary,
+                                                        jointColor:
+                                                            Colors.white,
+                                                        focusColor:
+                                                            scheme.secondary,
+                                                      ),
+                                                    );
+                                                  },
+                                                ),
+                                              ),
+                                            ),
+                                          if (_isAnalyzingPreview)
+                                            Positioned(
+                                              top: 10,
+                                              right: 10,
+                                              child: _PreviewAnalysisBadge(
+                                                label: l10n
+                                                    .runningCoachPreviewPoseAnalyzing,
+                                                isLoading: true,
+                                              ),
+                                            )
+                                          else if (_previewAnalysisFailed)
+                                            Positioned(
+                                              top: 10,
+                                              right: 10,
+                                              child: _PreviewAnalysisBadge(
+                                                label: l10n
+                                                    .runningCoachPreviewPoseUnavailable,
+                                                isLoading: false,
+                                              ),
+                                            ),
                                           Center(
                                             child: IconButton.filledTonal(
                                               key: const ValueKey(
@@ -412,14 +568,27 @@ class _RunningVideoPreviewSheetState extends State<RunningVideoPreviewSheet> {
                       _PreviewCheckChip(
                         icon: Icons.accessibility_new_rounded,
                         label: l10n.runningCoachPreviewCheckFullBody,
+                        isReady: perspective == null
+                            ? null
+                            : !perspective.issues.contains(
+                                RunningVideoQualityIssue.bodyCutOff,
+                              ),
                       ),
                       _PreviewCheckChip(
                         icon: Icons.compare_arrows_rounded,
                         label: l10n.runningCoachPreviewCheckSide,
+                        isReady: perspective == null
+                            ? null
+                            : !perspective.issues.contains(
+                                RunningVideoQualityIssue.notSideOn,
+                              ),
                       ),
                       _PreviewCheckChip(
                         icon: Icons.hd_outlined,
                         label: l10n.runningCoachPreviewCheckClarity,
+                        isReady: previewAnalysis == null
+                            ? null
+                            : previewAnalysis.validFrameCoverage >= 0.55,
                       ),
                     ],
                   ),
@@ -467,12 +636,7 @@ class _RunningVideoPreviewSheetState extends State<RunningVideoPreviewSheet> {
                 Expanded(
                   child: FilledButton(
                     key: const ValueKey('running-coach-preview-confirm'),
-                    onPressed: () => Navigator.of(context).pop(
-                      RunningVideoPreviewResult(
-                        RunningVideoPreviewAction.confirm,
-                        _selected,
-                      ),
-                    ),
+                    onPressed: _confirmSelected,
                     child: Text(
                       l10n.runningCoachPreviewAnalyzeAction,
                     ),
@@ -490,12 +654,27 @@ class _RunningVideoPreviewSheetState extends State<RunningVideoPreviewSheet> {
 class _PreviewCheckChip extends StatelessWidget {
   final IconData icon;
   final String label;
+  final bool? isReady;
 
-  const _PreviewCheckChip({required this.icon, required this.label});
+  const _PreviewCheckChip({
+    required this.icon,
+    required this.label,
+    required this.isReady,
+  });
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final color = switch (isReady) {
+      true => scheme.primary,
+      false => scheme.error,
+      null => scheme.onSurfaceVariant,
+    };
+    final stateIcon = switch (isReady) {
+      true => Icons.check_circle_rounded,
+      false => Icons.error_outline_rounded,
+      null => icon,
+    };
     return DecoratedBox(
       decoration: BoxDecoration(
         color: scheme.surfaceContainerHighest,
@@ -506,9 +685,53 @@ class _PreviewCheckChip extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 15, color: scheme.primary),
+            Icon(stateIcon, size: 15, color: color),
             const SizedBox(width: 4),
             Text(label, style: Theme.of(context).textTheme.labelSmall),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PreviewAnalysisBadge extends StatelessWidget {
+  final String label;
+  final bool isLoading;
+
+  const _PreviewAnalysisBadge({required this.label, required this.isLoading});
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (isLoading)
+              const SizedBox.square(
+                dimension: 13,
+                child: CircularProgressIndicator(
+                  strokeWidth: 1.8,
+                  color: Colors.white,
+                ),
+              )
+            else
+              const Icon(Icons.visibility_off_outlined,
+                  size: 14, color: Colors.white),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                  ),
+            ),
           ],
         ),
       ),

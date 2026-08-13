@@ -8165,6 +8165,12 @@ class AppLocalizationsJa extends AppLocalizations {
       'プレビューを開けません。別の動画を選ぶか、分析デコーダーでこのファイルを試せます。';
 
   @override
+  String get runningCoachPreviewPoseAnalyzing => '関節を確認中';
+
+  @override
+  String get runningCoachPreviewPoseUnavailable => '関節オーバーレイを表示できません';
+
+  @override
   String get runningCoachPreviewSelectAction => 'この動画を選択';
 
   @override
@@ -9171,6 +9177,21 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachEvidenceNextFrame => '次の根拠フレーム';
 
   @override
+  String get runningCoachEvidenceImageViewerTitle => '根拠画像';
+
+  @override
+  String runningCoachEvidenceImageViewerMetadata(
+      String kind, String role, String side, String time) {
+    return '$kind · $role · $side · $time';
+  }
+
+  @override
+  String get runningCoachEvidenceOverlayOn => 'オーバーレイを表示';
+
+  @override
+  String get runningCoachEvidenceOverlayOff => 'オーバーレイを隠す';
+
+  @override
   String get runningCoachEvidencePlay => '根拠動画を再生';
 
   @override
@@ -9482,10 +9503,19 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachEvidenceRolePosture => '代表姿勢フレーム';
 
   @override
+  String get runningCoachEvidenceRoleLowering => '接地前の下降局面';
+
+  @override
   String get runningCoachEvidenceRoleInitialContact => '初期接地フレーム';
 
   @override
-  String get runningCoachEvidenceRoleKneeFlexion => '膝が最も曲がった局面';
+  String get runningCoachEvidenceRoleKneeFlexion => '支持中に膝が最も曲がった局面';
+
+  @override
+  String get runningCoachEvidenceRoleRecoveryKneeFlexion => 'リカバリー中の膝の折りたたみ';
+
+  @override
+  String get runningCoachEvidenceRolePushOff => '押し出しフレーム';
 
   @override
   String get runningCoachEvidenceRoleTrajectoryHigh => '腰軌道の高い点';
@@ -16419,7 +16449,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachTenSecondDrill => '10秒練習';
 
   @override
-  String get runningCoachFiveMovementsTitle => '5つの動き';
+  String get runningCoachFiveMovementsTitle => '6項目チェック';
 
   @override
   String get runningCoachStatusImproveShort => '改善';

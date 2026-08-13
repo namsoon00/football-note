@@ -9,6 +9,7 @@ enum RunningAnalysisMetric {
   footStrike,
   kneeAtContact,
   maximumKneeFlexion,
+  recoveryKneeFlexion,
   elbowAngle,
   armSwingRange,
   armAsymmetry,

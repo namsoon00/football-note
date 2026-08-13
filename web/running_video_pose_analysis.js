@@ -230,6 +230,114 @@
     });
   }
 
+  const evidenceStoreConfig = Object.freeze({
+    databaseName: 'football_note_running_evidence_v1',
+    storeName: 'frames',
+    version: 1,
+  });
+
+  function openEvidenceDatabase() {
+    return new Promise((resolve, reject) => {
+      if (!('indexedDB' in window)) {
+        reject(
+          createError(
+            'web_evidence_storage_unavailable',
+            'Browser evidence storage is unavailable.',
+          ),
+        );
+        return;
+      }
+      const request = window.indexedDB.open(
+        evidenceStoreConfig.databaseName,
+        evidenceStoreConfig.version,
+      );
+      request.onupgradeneeded = () => {
+        const database = request.result;
+        if (!database.objectStoreNames.contains(evidenceStoreConfig.storeName)) {
+          database.createObjectStore(evidenceStoreConfig.storeName);
+        }
+      };
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(
+        createError(
+          'web_evidence_storage_failed',
+          request.error?.message || 'Browser evidence storage failed.',
+        ),
+      );
+      request.onblocked = () => reject(
+        createError(
+          'web_evidence_storage_blocked',
+          'Browser evidence storage is blocked by another tab.',
+        ),
+      );
+    });
+  }
+
+  function evidenceStoreRequest(mode, callback) {
+    return openEvidenceDatabase().then((database) => new Promise((resolve, reject) => {
+      const transaction = database.transaction(evidenceStoreConfig.storeName, mode);
+      const store = transaction.objectStore(evidenceStoreConfig.storeName);
+      let request;
+      try {
+        request = callback(store);
+      } catch (error) {
+        database.close();
+        reject(error);
+        return;
+      }
+      transaction.oncomplete = () => {
+        database.close();
+        resolve(request?.result ?? true);
+      };
+      transaction.onerror = () => {
+        database.close();
+        reject(
+          createError(
+            'web_evidence_storage_failed',
+            transaction.error?.message || 'Browser evidence storage failed.',
+          ),
+        );
+      };
+      transaction.onabort = transaction.onerror;
+    }));
+  }
+
+  function storeEvidenceFrame(reference, dataUrl) {
+    if (!reference || typeof reference !== 'string' || !dataUrl) {
+      return Promise.reject(
+        createError('web_evidence_storage_failed', 'Invalid evidence frame.'),
+      );
+    }
+    return evidenceStoreRequest('readwrite', (store) =>
+      store.put({ dataUrl, savedAt: Date.now() }, reference),
+    ).then(() => reference);
+  }
+
+  function readEvidenceFrame(reference) {
+    if (!reference || typeof reference !== 'string') return Promise.resolve(null);
+    return evidenceStoreRequest('readonly', (store) => store.get(reference))
+      .then((record) => record?.dataUrl || null);
+  }
+
+  function deleteEvidenceFrames(referencesJson) {
+    let references;
+    try {
+      references = JSON.parse(referencesJson || '[]');
+    } catch (_) {
+      references = [];
+    }
+    const keys = (Array.isArray(references) ? references : [])
+      .filter((reference) => typeof reference === 'string' && reference);
+    if (keys.length === 0) return Promise.resolve(true);
+    return evidenceStoreRequest('readwrite', (store) => {
+      let lastRequest = null;
+      for (const reference of keys) {
+        lastRequest = store.delete(reference);
+      }
+      return lastRequest;
+    }).then(() => true);
+  }
+
   function sampleTimestamps(durationMs) {
     const safeDurationMs = Math.max(0, Math.round(durationMs));
     const intervalCount = Math.max(
@@ -1489,7 +1597,7 @@
     );
   }
 
-  async function extractEvidenceFramesFromLoader(load, timestampsJson) {
+  async function extractEvidenceFramesFromLoader(load, timestampsJson, jpegQuality = 72) {
     let timestamps;
     try {
       timestamps = JSON.parse(timestampsJson || '[]');
@@ -1508,6 +1616,7 @@
       const sourceHeight = video.videoHeight;
       if (sourceWidth <= 0 || sourceHeight <= 0) return [];
       const maximumDimension = 640;
+      const safeQuality = Math.max(45, Math.min(Number(jpegQuality) || 72, 92)) / 100;
       const scale = Math.min(1, maximumDimension / Math.max(sourceWidth, sourceHeight));
       const width = Math.max(1, Math.round(sourceWidth * scale));
       const height = Math.max(1, Math.round(sourceHeight * scale));
@@ -1524,7 +1633,7 @@
           timestampMs,
           width,
           height,
-          dataUrl: canvas.toDataURL('image/jpeg', 0.72),
+          dataUrl: canvas.toDataURL('image/jpeg', safeQuality),
         });
       }
       return frames;
@@ -1533,17 +1642,19 @@
     }
   }
 
-  function extractEvidenceFrames(bytes, name, timestampsJson) {
+  function extractEvidenceFrames(bytes, name, timestampsJson, jpegQuality) {
     return extractEvidenceFramesFromLoader(
       () => loadVideo(bytes, name),
       timestampsJson,
+      jpegQuality,
     );
   }
 
-  function extractEvidenceFramesFromUrl(url, name, timestampsJson) {
+  function extractEvidenceFramesFromUrl(url, name, timestampsJson, jpegQuality) {
     return extractEvidenceFramesFromLoader(
       () => loadVideoUrl(url, false),
       timestampsJson,
+      jpegQuality,
     );
   }
 
@@ -1781,5 +1892,8 @@
     analyzeUrl,
     extractEvidenceFrames,
     extractEvidenceFramesFromUrl,
+    storeEvidenceFrame,
+    readEvidenceFrame,
+    deleteEvidenceFrames,
   });
 })();

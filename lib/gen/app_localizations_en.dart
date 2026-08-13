@@ -8382,6 +8382,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Preview is unavailable. You can choose another video or let the analysis decoder try this file.';
 
   @override
+  String get runningCoachPreviewPoseAnalyzing => 'Checking joints';
+
+  @override
+  String get runningCoachPreviewPoseUnavailable => 'Joint overlay unavailable';
+
+  @override
   String get runningCoachPreviewSelectAction => 'Choose this video';
 
   @override
@@ -9427,6 +9433,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachEvidenceNextFrame => 'Next evidence frame';
 
   @override
+  String get runningCoachEvidenceImageViewerTitle => 'Evidence image';
+
+  @override
+  String runningCoachEvidenceImageViewerMetadata(
+      String kind, String role, String side, String time) {
+    return '$kind · $role · $side · $time';
+  }
+
+  @override
+  String get runningCoachEvidenceOverlayOn => 'Show overlay';
+
+  @override
+  String get runningCoachEvidenceOverlayOff => 'Hide overlay';
+
+  @override
   String get runningCoachEvidencePlay => 'Play evidence video';
 
   @override
@@ -9751,11 +9772,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachEvidenceRolePosture => 'Representative posture frame';
 
   @override
+  String get runningCoachEvidenceRoleLowering => 'Lowering before contact';
+
+  @override
   String get runningCoachEvidenceRoleInitialContact => 'Initial contact frame';
 
   @override
   String get runningCoachEvidenceRoleKneeFlexion =>
-      'Maximum knee-flexion phase';
+      'Maximum support knee flexion';
+
+  @override
+  String get runningCoachEvidenceRoleRecoveryKneeFlexion =>
+      'Recovery knee fold';
+
+  @override
+  String get runningCoachEvidenceRolePushOff => 'Push-off frame';
 
   @override
   String get runningCoachEvidenceRoleTrajectoryHigh =>
@@ -16986,7 +17017,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachTenSecondDrill => '10-second drill';
 
   @override
-  String get runningCoachFiveMovementsTitle => 'Five movements';
+  String get runningCoachFiveMovementsTitle => 'Six checks';
 
   @override
   String get runningCoachStatusImproveShort => 'Improve';

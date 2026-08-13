@@ -119,6 +119,22 @@ void main() {
                   ],
                   isCapturedVideo: false,
                   runnerDisplayName: 'Minjun',
+                  analyzer: (video) async => RunningVideoAnalysisResult(
+                    videoDuration: const Duration(seconds: 4),
+                    sampledFrames: 6,
+                    validFrames: 6,
+                    direction: RunningDirection.leftToRight,
+                    forwardLeanDegrees: 9,
+                    verticalBounceRatio: 0.07,
+                    footStrikeDistanceRatio: 0.10,
+                    stanceKneeAngleDegrees: 150,
+                    elbowAngleDegrees: 94,
+                    poseFrames: _testPoseFrames(
+                      startX: 0.42,
+                      dxPerFrame: 0.01,
+                      confidence: 0.94,
+                    ),
+                  ),
                 );
               },
               child: const Text('open'),
@@ -153,6 +169,10 @@ void main() {
       find.byKey(const ValueKey('running-coach-preview-timeline')),
       findsOneWidget,
     );
+    expect(
+      find.byKey(const ValueKey('running-coach-preview-pose-overlay')),
+      findsOneWidget,
+    );
 
     await tester.tap(
       find.byKey(const ValueKey('running-coach-video-candidate-1')),
@@ -165,6 +185,7 @@ void main() {
 
     expect(selection?.action, RunningVideoPreviewAction.confirm);
     expect(selection?.video?.name, 'second-run.mp4');
+    expect(selection?.analysis?.poseFrames, isNotEmpty);
     expect(fakeVideoPlayerPlatform._streams.length, lessThanOrEqualTo(1));
   });
 
@@ -280,7 +301,7 @@ void main() {
     },
   );
 
-  testWidgets('coach records and immediately analyzes a captured video', (
+  testWidgets('coach previews joints while analyzing a captured video', (
     WidgetTester tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(800, 1200));
@@ -326,7 +347,7 @@ void main() {
 
     expect(find.text('captured-running-video.mp4'), findsWidgets);
     expect(
-      find.text('Analyzing...'),
+      find.byKey(const ValueKey('running-coach-preview-confirm')),
       findsOneWidget,
     );
   });
@@ -2094,18 +2115,6 @@ void main() {
       find.byKey(const ValueKey('running-coach-analysis-evidence-overlay')),
       findsNothing,
     );
-    final fineGaitDetails = find.byKey(
-      const ValueKey('running-coach-fine-gait-details-toggle'),
-    );
-    await _scrollAnalysisResultUntilFound(tester, fineGaitDetails);
-    expect(find.text('Step measurements are not ready'), findsNothing);
-    await tester.tap(fineGaitDetails);
-    await tester.pumpAndSettle();
-    expect(find.text('Step measurements are not ready'), findsOneWidget);
-    expect(
-      find.byKey(const ValueKey('running-coach-gait-limitations')),
-      findsOneWidget,
-    );
     expect(tester.takeException(), isNull);
   });
 
@@ -2223,7 +2232,15 @@ Future<void> _scrollAnalysisResultUntilFound(
         240,
         scrollable: fullScrollable.first,
       );
-      await tester.tap(section);
+      await tester.ensureVisible(section);
+      await tester.pump(const Duration(milliseconds: 80));
+      final sectionBox = tester.getRect(section);
+      await tester.tapAt(
+        Offset(
+          sectionBox.left + 24,
+          sectionBox.top.clamp(0.0, 700.0) + 24,
+        ),
+      );
       await tester.pumpAndSettle();
     }
   }

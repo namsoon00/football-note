@@ -1,9 +1,116 @@
 import 'dart:math' as math;
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart'
+    show Alignment, BoxFit, CustomPainter, applyBoxFit;
+
 import '../../domain/entities/running_video_analysis_result.dart';
 
 const double runningPoseOverlayMinimumJointConfidence = 0.18;
+
+/// A reusable, source-aligned full-body pose overlay for videos and images.
+///
+/// The same [BoxFit] transform must be used by the media underneath this
+/// painter. This keeps the head, hands, knees, and shoes on the measured
+/// pixels even when a portrait video is letterboxed or a camera preview is
+/// cropped to fill the screen.
+class RunningPoseFrameOverlayPainter extends CustomPainter {
+  final RunningPoseFrame? poseFrame;
+  final BoxFit fit;
+  final bool mirrorHorizontally;
+  final Color primaryColor;
+  final Color secondaryColor;
+  final Color jointColor;
+  final Color focusColor;
+
+  const RunningPoseFrameOverlayPainter({
+    required this.poseFrame,
+    required this.primaryColor,
+    required this.secondaryColor,
+    required this.jointColor,
+    required this.focusColor,
+    this.fit = BoxFit.contain,
+    this.mirrorHorizontally = false,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final frame = poseFrame;
+    if (frame == null || size.isEmpty) return;
+    final points = <int, Offset>{
+      for (final landmark in frame.landmarks)
+        if (landmark.confidence >= runningPoseOverlayMinimumJointConfidence)
+          landmark.index: mapRunningPoseLandmarkToCanvas(
+            frame: frame,
+            landmark: landmark,
+            canvasSize: size,
+            fit: fit,
+            mirrorHorizontally: mirrorHorizontally,
+          ),
+    };
+    paintRunningPoseHumanForm(
+      canvas,
+      points: points,
+      canvasSize: size,
+      style: RunningPoseHumanFormStyle(
+        bodyColor: primaryColor,
+        leftSideColor: secondaryColor,
+        rightSideColor: primaryColor,
+        jointColor: jointColor,
+        focusColor: focusColor,
+        opacity: 0.92,
+      ),
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant RunningPoseFrameOverlayPainter oldDelegate) {
+    return poseFrame != oldDelegate.poseFrame ||
+        fit != oldDelegate.fit ||
+        mirrorHorizontally != oldDelegate.mirrorHorizontally ||
+        primaryColor != oldDelegate.primaryColor ||
+        secondaryColor != oldDelegate.secondaryColor ||
+        jointColor != oldDelegate.jointColor ||
+        focusColor != oldDelegate.focusColor;
+  }
+}
+
+@visibleForTesting
+Offset mapRunningPoseLandmarkToCanvas({
+  required RunningPoseFrame frame,
+  required RunningVideoPoseLandmark landmark,
+  required Size canvasSize,
+  required BoxFit fit,
+  bool mirrorHorizontally = false,
+}) {
+  final sourceSize = Size(
+    frame.imageWidth.toDouble(),
+    frame.imageHeight.toDouble(),
+  );
+  if (sourceSize.isEmpty || canvasSize.isEmpty) return Offset.zero;
+  final fitted = applyBoxFit(fit, sourceSize, canvasSize);
+  final sourceRect = Alignment.center.inscribe(
+    fitted.source,
+    Offset.zero & sourceSize,
+  );
+  final destinationRect = Alignment.center.inscribe(
+    fitted.destination,
+    Offset.zero & canvasSize,
+  );
+  final sourcePoint = Offset(
+    landmark.x * sourceSize.width,
+    landmark.y * sourceSize.height,
+  );
+  final normalizedX = (sourcePoint.dx - sourceRect.left) / sourceRect.width;
+  final normalizedY = (sourcePoint.dy - sourceRect.top) / sourceRect.height;
+  var canvasX = destinationRect.left + normalizedX * destinationRect.width;
+  if (mirrorHorizontally) canvasX = canvasSize.width - canvasX;
+  return Offset(
+    canvasX,
+    destinationRect.top + normalizedY * destinationRect.height,
+  );
+}
 
 enum RunningPoseOverlayPresentation { refinedJoints, sportsAvatar }
 

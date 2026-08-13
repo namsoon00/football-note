@@ -16,7 +16,7 @@ const _atlasRows = 2;
 const _frameCount = _atlasColumns * _atlasRows;
 const _observationBlue = Color(0xFF2563EB);
 const _inspectedAtlasCellHeight = 470.5;
-const _sharedGroundY = 403.0;
+const _alignedTargetGroundY = 414.0;
 
 Future<ui.Image>? _runningCycleAnimationAtlasFuture;
 
@@ -640,60 +640,116 @@ List<_RunningCyclePhaseCopy> _phaseCopies(AppLocalizations l10n) {
 }
 
 const _runningCycleGuidePresentations =
-    <RunningCycleGuidePhase, RunningCycleGuideFramePresentation>{
-  RunningCycleGuidePhase.landing: RunningCycleGuideFramePresentation(
+    <int, RunningCycleGuideFramePresentation>{
+  0: RunningCycleGuideFramePresentation(
     phase: RunningCycleGuidePhase.landing,
-    frame: 3,
-    sourceGroundY: _sharedGroundY,
-    targetGroundY: _sharedGroundY,
-    scale: 1.0,
-    focusPoints: [Offset(0.72, 0.87)],
+    frame: 0,
+    sourceGroundY: 425,
+    targetGroundY: _alignedTargetGroundY,
+    scale: 0.992,
+    focusPoints: [Offset(0.52, 0.88)],
     guideLines: [
       RunningCycleGuideRelationLine(
-        start: Offset(0.60, _sharedGroundY / _inspectedAtlasCellHeight),
-        end: Offset(0.78, _sharedGroundY / _inspectedAtlasCellHeight),
+        start: Offset(0.47, 0.88),
+        end: Offset(0.57, 0.88),
       ),
     ],
   ),
-  RunningCycleGuidePhase.support: RunningCycleGuideFramePresentation(
+  1: RunningCycleGuideFramePresentation(
     phase: RunningCycleGuidePhase.support,
-    frame: 4,
-    sourceGroundY: _sharedGroundY,
-    targetGroundY: _sharedGroundY,
-    scale: 1.0,
-    focusPoints: [Offset(0.62, 0.64)],
+    frame: 1,
+    sourceGroundY: 425,
+    targetGroundY: _alignedTargetGroundY,
+    scale: 0.992,
+    focusPoints: [Offset(0.58, 0.66)],
     guideLines: [
       RunningCycleGuideRelationLine(
-        start: Offset(0.62, 0.64),
-        end: Offset(0.68, 0.84),
+        start: Offset(0.58, 0.66),
+        end: Offset(0.50, 0.88),
       ),
     ],
   ),
-  RunningCycleGuidePhase.pushOff: RunningCycleGuideFramePresentation(
+  2: RunningCycleGuideFramePresentation(
     phase: RunningCycleGuidePhase.pushOff,
-    frame: 5,
-    sourceGroundY: _sharedGroundY,
-    targetGroundY: _sharedGroundY,
-    scale: 1.0,
-    focusPoints: [Offset(0.34, 0.82)],
+    frame: 2,
+    sourceGroundY: 425,
+    targetGroundY: _alignedTargetGroundY,
+    scale: 0.995,
+    focusPoints: [Offset(0.37, 0.83)],
     guideLines: [
       RunningCycleGuideRelationLine(
-        start: Offset(0.34, 0.82),
-        end: Offset(0.50, _sharedGroundY / _inspectedAtlasCellHeight),
+        start: Offset(0.37, 0.83),
+        end: Offset(0.48, 0.90),
       ),
     ],
   ),
-  RunningCycleGuidePhase.recovery: RunningCycleGuideFramePresentation(
+  3: RunningCycleGuideFramePresentation(
     phase: RunningCycleGuidePhase.recovery,
-    frame: 6,
-    sourceGroundY: _sharedGroundY,
-    targetGroundY: _sharedGroundY,
+    frame: 3,
+    sourceGroundY: 425,
+    targetGroundY: _alignedTargetGroundY,
     scale: 1.0,
-    focusPoints: [Offset(0.63, 0.55), Offset(0.52, 0.73)],
+    focusPoints: [Offset(0.35, 0.64), Offset(0.24, 0.69)],
     guideLines: [
       RunningCycleGuideRelationLine(
-        start: Offset(0.63, 0.55),
-        end: Offset(0.52, 0.73),
+        start: Offset(0.35, 0.64),
+        end: Offset(0.24, 0.69),
+      ),
+    ],
+  ),
+  4: RunningCycleGuideFramePresentation(
+    phase: RunningCycleGuidePhase.landing,
+    frame: 4,
+    sourceGroundY: 403,
+    targetGroundY: _alignedTargetGroundY,
+    scale: 1.016,
+    focusPoints: [Offset(0.69, 0.84)],
+    guideLines: [
+      RunningCycleGuideRelationLine(
+        start: Offset(0.62, 0.86),
+        end: Offset(0.75, 0.86),
+      ),
+    ],
+  ),
+  5: RunningCycleGuideFramePresentation(
+    phase: RunningCycleGuidePhase.support,
+    frame: 5,
+    sourceGroundY: 403,
+    targetGroundY: _alignedTargetGroundY,
+    scale: 1.003,
+    focusPoints: [Offset(0.57, 0.66)],
+    guideLines: [
+      RunningCycleGuideRelationLine(
+        start: Offset(0.57, 0.66),
+        end: Offset(0.53, 0.85),
+      ),
+    ],
+  ),
+  6: RunningCycleGuideFramePresentation(
+    phase: RunningCycleGuidePhase.pushOff,
+    frame: 6,
+    sourceGroundY: 403,
+    targetGroundY: _alignedTargetGroundY,
+    scale: 1.0,
+    focusPoints: [Offset(0.38, 0.83)],
+    guideLines: [
+      RunningCycleGuideRelationLine(
+        start: Offset(0.38, 0.83),
+        end: Offset(0.48, 0.86),
+      ),
+    ],
+  ),
+  7: RunningCycleGuideFramePresentation(
+    phase: RunningCycleGuidePhase.recovery,
+    frame: 7,
+    sourceGroundY: 403,
+    targetGroundY: _alignedTargetGroundY,
+    scale: 1.014,
+    focusPoints: [Offset(0.42, 0.64), Offset(0.29, 0.72)],
+    guideLines: [
+      RunningCycleGuideRelationLine(
+        start: Offset(0.42, 0.64),
+        end: Offset(0.29, 0.72),
       ),
     ],
   ),
@@ -703,7 +759,7 @@ int _representativeFrameForPhase(RunningCycleGuidePhase phase) {
   return _presentationForPhase(phase).frame;
 }
 
-const _runningCycleGuideLoopFrames = <int>[3, 4, 5, 6, 7, 0, 1, 2];
+const _runningCycleGuideLoopFrames = <int>[4, 5, 6, 7, 0, 1, 2, 3];
 
 int _nextRunningCycleGuideFrame(int currentFrame) {
   final normalized = _normalizedFrame(currentFrame);
@@ -728,10 +784,10 @@ List<int> runningCycleGuideLoopFrameOrderForTesting() {
 @visibleForTesting
 RunningCycleGuidePhase runningCycleGuidePhaseForFrame(int frame) {
   return switch (_normalizedFrame(frame)) {
-    3 || 0 => RunningCycleGuidePhase.landing,
-    4 || 1 => RunningCycleGuidePhase.support,
-    5 || 2 => RunningCycleGuidePhase.pushOff,
-    6 || 7 => RunningCycleGuidePhase.recovery,
+    4 || 0 => RunningCycleGuidePhase.landing,
+    5 || 1 => RunningCycleGuidePhase.support,
+    6 || 2 => RunningCycleGuidePhase.pushOff,
+    7 || 3 => RunningCycleGuidePhase.recovery,
     _ => RunningCycleGuidePhase.landing,
   };
 }
@@ -748,14 +804,7 @@ RunningCycleGuideFramePresentation runningCycleGuidePresentationForFrame(
   int frame,
 ) {
   final normalized = _normalizedFrame(frame);
-  final base =
-      _presentationForPhase(runningCycleGuidePhaseForFrame(normalized));
-  return base.copyWith(
-    frame: normalized,
-    sourceGroundY: _sharedGroundY,
-    targetGroundY: _sharedGroundY,
-    scale: 1.0,
-  );
+  return _runningCycleGuidePresentations[normalized]!;
 }
 
 @visibleForTesting
@@ -790,7 +839,13 @@ Rect runningCycleGuideDestinationRectForFrame(
 RunningCycleGuideFramePresentation _presentationForPhase(
   RunningCycleGuidePhase phase,
 ) {
-  return _runningCycleGuidePresentations[phase]!;
+  final frame = switch (phase) {
+    RunningCycleGuidePhase.landing => 4,
+    RunningCycleGuidePhase.support => 5,
+    RunningCycleGuidePhase.pushOff => 6,
+    RunningCycleGuidePhase.recovery => 7,
+  };
+  return _runningCycleGuidePresentations[frame]!;
 }
 
 int _normalizedFrame(int frame) => frame % _frameCount;

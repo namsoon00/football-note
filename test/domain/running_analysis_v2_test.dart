@@ -306,6 +306,7 @@ void main() {
       RunningAnalysisMetric.footStrike,
       RunningAnalysisMetric.kneeAtContact,
       RunningAnalysisMetric.maximumKneeFlexion,
+      RunningAnalysisMetric.recoveryKneeFlexion,
       RunningAnalysisMetric.cadence,
       RunningAnalysisMetric.stepTime,
       RunningAnalysisMetric.leftRightTiming,
@@ -316,6 +317,142 @@ void main() {
         reason: metric.name,
       );
     }
+  });
+
+  test('airborne recovery knee is not classified as a landing contact', () {
+    final frames = <RunningPoseFrame>[
+      _poseFrame(
+        timestampMs: 0,
+        leftFootY: 0.72,
+        leftKneeX: 0.34,
+        leftKneeY: 0.58,
+      ),
+      _poseFrame(
+        timestampMs: 125,
+        leftFootY: 0.61,
+        leftKneeX: 0.34,
+        leftKneeY: 0.57,
+      ),
+      _poseFrame(
+        timestampMs: 250,
+        leftFootY: 0.73,
+        leftKneeX: 0.34,
+        leftKneeY: 0.58,
+      ),
+      _poseFrame(timestampMs: 375, leftFootY: 0.82),
+      _poseFrame(timestampMs: 500, leftFootY: 0.73),
+    ];
+
+    final contacts = runningFallbackContacts(_baseResult(poseFrames: frames));
+
+    expect(
+      contacts.map((contact) => contact.timestamp),
+      isNot(contains(const Duration(milliseconds: 125))),
+    );
+  });
+
+  test('recovery knee flexion is reported separately from contact knee', () {
+    const contactTimes = <int>[600, 900, 1200];
+    final frames = <RunningPoseFrame>[
+      _poseFrame(
+        timestampMs: 240,
+        leftFootY: 0.62,
+        leftKneeX: 0.34,
+        leftKneeY: 0.59,
+      ),
+      _poseFrame(timestampMs: 600, leftFootY: 0.82, rightFootY: 0.70),
+      _poseFrame(
+        timestampMs: 680,
+        leftFootY: 0.82,
+        rightFootY: 0.70,
+        leftKneeX: 0.39,
+        leftKneeY: 0.64,
+      ),
+      _poseFrame(
+        timestampMs: 700,
+        rightFootY: 0.62,
+        rightKneeX: 0.60,
+        rightKneeY: 0.59,
+      ),
+      _poseFrame(timestampMs: 900, leftFootY: 0.70, rightFootY: 0.82),
+      _poseFrame(
+        timestampMs: 980,
+        leftFootY: 0.70,
+        rightFootY: 0.82,
+        rightKneeX: 0.55,
+        rightKneeY: 0.64,
+      ),
+      _poseFrame(
+        timestampMs: 1000,
+        leftFootY: 0.62,
+        leftKneeX: 0.34,
+        leftKneeY: 0.59,
+      ),
+      _poseFrame(timestampMs: 1200, leftFootY: 0.82, rightFootY: 0.70),
+      _poseFrame(
+        timestampMs: 1280,
+        leftFootY: 0.82,
+        rightFootY: 0.70,
+        leftKneeX: 0.39,
+        leftKneeY: 0.64,
+      ),
+    ];
+    final contactWindows = <RunningContactWindow>[
+      for (var index = 0; index < contactTimes.length; index += 1)
+        RunningContactWindow(
+          start: Duration(milliseconds: contactTimes[index] - 80),
+          center: Duration(milliseconds: contactTimes[index]),
+          end: Duration(milliseconds: contactTimes[index] + 160),
+          side:
+              index.isEven ? RunningContactSide.left : RunningContactSide.right,
+          denseSampleCount: 5,
+          validatedContactTimestamps: <Duration>[
+            Duration(milliseconds: contactTimes[index]),
+          ],
+          confidence: 0.92,
+        ),
+    ];
+    final result = deriveRunningAnalysisV2(
+      _baseResult(
+        poseFrames: frames,
+        contactWindows: contactWindows,
+        validatedContacts: <Duration>[
+          for (final timestamp in contactTimes)
+            Duration(milliseconds: timestamp),
+        ],
+        metricQualities: <RunningCoachMetric, RunningMetricQuality>{
+          for (final metric in RunningCoachMetric.values)
+            metric: const RunningMetricQuality(
+              confidence: 0.90,
+              sampleCount: 5,
+            ),
+        },
+      ),
+    );
+
+    final contactKnee =
+        result.measurementFor(RunningAnalysisMetric.kneeAtContact);
+    final supportKnee =
+        result.measurementFor(RunningAnalysisMetric.maximumKneeFlexion);
+    final recoveryKnee =
+        result.measurementFor(RunningAnalysisMetric.recoveryKneeFlexion);
+
+    expect(contactKnee.state, isNot(RunningMeasurementState.unavailable));
+    expect(supportKnee.state, isNot(RunningMeasurementState.unavailable));
+    expect(recoveryKnee.state, isNot(RunningMeasurementState.unavailable));
+    expect(recoveryKnee.value!, lessThan(contactKnee.value! - 20));
+    expect(recoveryKnee.value!, isNot(closeTo(supportKnee.value!, 0.001)));
+    expect(
+      recoveryKnee.evidenceTimestamps,
+      everyElement(
+        isNot(
+          isIn(<Duration>[
+            for (final timestamp in contactTimes)
+              Duration(milliseconds: timestamp),
+          ]),
+        ),
+      ),
+    );
   });
 
   test('signed lean distinguishes forward and backward in both directions', () {
@@ -476,6 +613,7 @@ RunningVideoAnalysisResult _baseResult({
   required List<RunningPoseFrame> poseFrames,
   RunningDirection direction = RunningDirection.leftToRight,
   List<Duration> estimatedContacts = const <Duration>[],
+  List<Duration> validatedContacts = const <Duration>[],
   List<RunningContactWindow> contactWindows = const <RunningContactWindow>[],
   Map<RunningCoachMetric, RunningMetricQuality>? metricQualities,
 }) {
@@ -500,8 +638,13 @@ RunningVideoAnalysisResult _baseResult({
         },
     poseFrames: poseFrames,
     contactWindows: contactWindows,
+    validatedContactFrameTimestamps: validatedContacts,
     estimatedContactFrameTimestamps: estimatedContacts,
-    contactConfidence: estimatedContacts.isEmpty ? 0 : 0.58,
+    contactConfidence: validatedContacts.isNotEmpty
+        ? 0.90
+        : estimatedContacts.isEmpty
+            ? 0
+            : 0.58,
   );
 }
 
@@ -513,6 +656,10 @@ RunningPoseFrame _poseFrame({
   double leftFootY = 0.78,
   double rightFootY = 0.75,
   double rightAnkleX = 0.51,
+  double? leftKneeX,
+  double? leftKneeY,
+  double? rightKneeX,
+  double? rightKneeY,
   double wristOffset = 0.04,
   double shoulderCenterX = 0.47,
   double hipCenterX = 0.47,
@@ -552,8 +699,8 @@ RunningPoseFrame _poseFrame({
   setPoint(14, 0.54, shoulderY + 0.10);
   setPoint(15, 0.40 + wristOffset, shoulderY + 0.19);
   setPoint(16, 0.54 - wristOffset, shoulderY + 0.19);
-  setPoint(25, 0.44, hipY + 0.16);
-  setPoint(26, 0.50, hipY + 0.16);
+  setPoint(25, leftKneeX ?? 0.44, leftKneeY ?? hipY + 0.16);
+  setPoint(26, rightKneeX ?? 0.50, rightKneeY ?? hipY + 0.16);
   setPoint(27, leftAnkleX, leftFootY);
   setPoint(28, rightAnkleX, rightFootY);
   setPoint(29, leftAnkleX - 0.01, leftFootY);

@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:flutter/material.dart' show BoxFit;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/domain/entities/running_video_analysis_result.dart';
 import 'package:football_note/presentation/running_coach/running_pose_overlay.dart';
@@ -203,6 +204,39 @@ void main() {
 
     expect(point.dx, closeTo(150, 0.0001));
     expect(point.dy, closeTo(0, 0.0001));
+  });
+
+  test('shared overlay mapping matches contain and cover media transforms', () {
+    final frame = _poseFrame(timestampMs: 0, x: 0.5, confidence: 1);
+    final landmark = frame.landmarkByIndex(0)!;
+
+    final contain = mapRunningPoseLandmarkToCanvas(
+      frame: frame,
+      landmark: landmark,
+      canvasSize: const Size(300, 300),
+      fit: BoxFit.contain,
+    );
+    final cover = mapRunningPoseLandmarkToCanvas(
+      frame: frame,
+      landmark: landmark,
+      canvasSize: const Size(300, 300),
+      fit: BoxFit.cover,
+    );
+
+    expect(contain.dx, closeTo(150, 0.0001));
+    expect(cover.dx, closeTo(150, 0.0001));
+    expect(contain.dy, closeTo(107.8125, 0.0001));
+    expect(cover.dy, closeTo(75, 0.0001));
+    expect(
+      mapRunningPoseLandmarkToCanvas(
+        frame: frame,
+        landmark: landmark,
+        canvasSize: const Size(300, 300),
+        fit: BoxFit.contain,
+        mirrorHorizontally: true,
+      ).dx,
+      closeTo(150, 0.0001),
+    );
   });
 }
 

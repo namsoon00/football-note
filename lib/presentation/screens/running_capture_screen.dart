@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import '../../application/running_live_framing_analysis.dart';
 import '../../domain/entities/running_video_analysis_result.dart';
 import '../../gen/app_localizations.dart';
+import '../running_coach/running_pose_overlay.dart';
 
 /// Records a short side-view clip for the running analysis flow.
 Future<XFile?> captureRunningCoachVideo(BuildContext context) {
@@ -490,6 +491,25 @@ class _RunningCaptureScreenState extends State<RunningCaptureScreen>
             if (controller != null && controller.value.isInitialized)
               const IgnorePointer(
                   child: CustomPaint(painter: _CaptureGuidePainter())),
+            if (controller != null &&
+                controller.value.isInitialized &&
+                _livePoseFrame != null &&
+                !_isRecording)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: CustomPaint(
+                    key: const ValueKey('running-capture-live-pose-overlay'),
+                    painter: RunningPoseFrameOverlayPainter(
+                      poseFrame: _livePoseFrame,
+                      fit: BoxFit.cover,
+                      primaryColor: const Color(0xFF75A7FF),
+                      secondaryColor: const Color(0xFF62D6C5),
+                      jointColor: Colors.white,
+                      focusColor: const Color(0xFFFFD180),
+                    ),
+                  ),
+                ),
+              ),
             Positioned(
               top: 12,
               left: 12,

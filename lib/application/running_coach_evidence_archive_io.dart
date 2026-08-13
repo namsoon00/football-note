@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui' as ui;
 
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
@@ -8,10 +9,11 @@ import '../domain/entities/running_coach_session.dart';
 import 'running_coach_evidence_archive_types.dart';
 
 const _channel = MethodChannel('football_note/running_pose_analysis');
-const _maximumImageDimension = 640;
 const _maximumEvidenceFrames = 24;
 const _maximumEvidenceJpegBytes = 700 * 1024;
 const _maximumEvidenceArchiveBytes = 12 * 1024 * 1024;
+const _evidenceRetryDimensions = <int>[640, 480, 360];
+const _evidenceRetryQualities = <int>[72, 64, 56];
 
 Future<RunningCoachEvidenceArchiveResult> archiveRunningCoachEvidenceImages({
   required XFile? sourceVideo,
@@ -40,22 +42,6 @@ Future<RunningCoachEvidenceArchiveResult> archiveRunningCoachEvidenceImages({
         .toSet()
         .toList(growable: false)
       ..sort();
-    final raw = await _channel.invokeMethod<List<Object?>>(
-      'extractRunningEvidenceFrames',
-      <String, Object?>{
-        'path': sourcePath,
-        'timestampsMs': uniqueTimestamps.take(_maximumEvidenceFrames).toList(
-              growable: false,
-            ),
-        'maxDimension': _maximumImageDimension,
-      },
-    );
-    if (raw == null || raw.isEmpty) {
-      return RunningCoachEvidenceArchiveResult.failed(
-        requestedCount: requests.length,
-        failureCode: 'no_evidence_frames_extracted',
-      );
-    }
     final archiveDirectory = await _archiveDirectory(create: true);
     if (archiveDirectory == null) {
       return RunningCoachEvidenceArchiveResult.failed(
@@ -71,50 +57,89 @@ Future<RunningCoachEvidenceArchiveResult> archiveRunningCoachEvidenceImages({
     }
     final archived = <RunningCoachEvidenceImage>[];
     var totalBytes = 0;
-    var failureCode = raw.length < uniqueTimestamps.length
-        ? 'partial_evidence_frames_extracted'
+    var failureCode = uniqueTimestamps.length > _maximumEvidenceFrames
+        ? 'evidence_frame_limit'
         : null;
-    for (final item in raw) {
-      if (item is! Map) continue;
-      final timestampMs = _intValue(item['timestampMs']);
-      final timestampRequests = requestsByTimestamp[timestampMs];
-      final bytes = item['bytes'];
-      if (timestampRequests == null || bytes is! Uint8List || bytes.isEmpty) {
-        continue;
-      }
-      if (bytes.length > _maximumEvidenceJpegBytes ||
-          totalBytes + bytes.length > _maximumEvidenceArchiveBytes) {
-        failureCode ??= 'evidence_storage_limit';
-        continue;
-      }
-      totalBytes += bytes.length;
-      final filename = '$sessionId-frame-$timestampMs.jpg';
-      final destination = File(
-        '${archiveDirectory.path}${Platform.pathSeparator}$filename',
+    final unresolved = uniqueTimestamps.take(_maximumEvidenceFrames).toSet();
+    for (var attempt = 0;
+        attempt < _evidenceRetryDimensions.length && unresolved.isNotEmpty;
+        attempt += 1) {
+      final raw = await _channel.invokeMethod<List<Object?>>(
+        'extractRunningEvidenceFrames',
+        <String, Object?>{
+          'path': sourcePath,
+          'timestampsMs': unresolved.toList(growable: false)..sort(),
+          'maxDimension': _evidenceRetryDimensions[attempt],
+          'jpegQuality': _evidenceRetryQualities[attempt],
+        },
       );
-      try {
-        await destination.writeAsBytes(bytes, flush: true);
-      } on FileSystemException {
-        failureCode ??= 'file_write_failed';
+      if (raw == null || raw.isEmpty) {
+        failureCode ??= 'no_evidence_frames_extracted';
         continue;
       }
-      for (final request in timestampRequests) {
-        archived.add(
-          RunningCoachEvidenceImage(
-            id: request.id,
-            timestamp: request.timestamp,
-            kind: request.kind,
-            role: request.role,
-            storageReference: destination.path,
-            width: _intValue(item['width']),
-            height: _intValue(item['height']),
-            side: request.side,
-            values: request.values,
-            confidence: request.confidence,
-            poseFrame: request.poseFrame,
-          ),
+      final returnedTimestamps = <int>{};
+      for (final item in raw) {
+        if (item is! Map) continue;
+        final timestampMs = _intValue(item['timestampMs']);
+        returnedTimestamps.add(timestampMs);
+        if (!unresolved.contains(timestampMs)) continue;
+        final timestampRequests = requestsByTimestamp[timestampMs];
+        final bytes = item['bytes'];
+        final width = _intValue(item['width']);
+        final height = _intValue(item['height']);
+        if (timestampRequests == null ||
+            bytes is! Uint8List ||
+            bytes.isEmpty ||
+            width <= 0 ||
+            height <= 0) {
+          failureCode ??= 'invalid_evidence_frame';
+          continue;
+        }
+        if (bytes.length > _maximumEvidenceJpegBytes ||
+            totalBytes + bytes.length > _maximumEvidenceArchiveBytes) {
+          failureCode ??= 'evidence_storage_limit';
+          continue;
+        }
+        final filename = '$sessionId-frame-$timestampMs.jpg';
+        final destination = File(
+          '${archiveDirectory.path}${Platform.pathSeparator}$filename',
         );
+        final saved = await _writeEvidenceImageAtomically(
+          destination: destination,
+          bytes: bytes,
+          expectedWidth: width,
+          expectedHeight: height,
+        );
+        if (!saved) {
+          failureCode ??= 'file_write_failed';
+          continue;
+        }
+        totalBytes += bytes.length;
+        unresolved.remove(timestampMs);
+        for (final request in timestampRequests) {
+          archived.add(
+            RunningCoachEvidenceImage(
+              id: request.id,
+              timestamp: request.timestamp,
+              kind: request.kind,
+              role: request.role,
+              storageReference: destination.path,
+              width: width,
+              height: height,
+              side: request.side,
+              values: request.values,
+              confidence: request.confidence,
+              poseFrame: request.poseFrame,
+            ),
+          );
+        }
       }
+      if (returnedTimestamps.length < unresolved.length) {
+        failureCode ??= 'partial_evidence_frames_extracted';
+      }
+    }
+    if (unresolved.isNotEmpty) {
+      failureCode ??= 'partial_evidence_frames_extracted';
     }
     return RunningCoachEvidenceArchiveResult.fromImages(
       requestedCount: requests.length,
@@ -222,6 +247,73 @@ bool _isManagedArchivePath(String resolvedFilePath, String archiveRoot) {
   return resolvedFilePath.startsWith(prefix);
 }
 
+Future<bool> _writeEvidenceImageAtomically({
+  required File destination,
+  required Uint8List bytes,
+  required int expectedWidth,
+  required int expectedHeight,
+}) async {
+  final temporary = File(
+    '${destination.path}.tmp-${DateTime.now().microsecondsSinceEpoch}',
+  );
+  try {
+    await temporary.writeAsBytes(bytes, flush: true);
+    if (!await _evidenceImageFileIsReadable(
+      temporary,
+      expectedWidth: expectedWidth,
+      expectedHeight: expectedHeight,
+    )) {
+      await _deleteIfExists(temporary);
+      return false;
+    }
+    await temporary.rename(destination.path);
+    return _evidenceImageFileIsReadable(
+      destination,
+      expectedWidth: expectedWidth,
+      expectedHeight: expectedHeight,
+    );
+  } on FileSystemException {
+    await _deleteIfExists(temporary);
+    return false;
+  } catch (_) {
+    await _deleteIfExists(temporary);
+    return false;
+  }
+}
+
+Future<bool> _evidenceImageFileIsReadable(
+  File file, {
+  required int expectedWidth,
+  required int expectedHeight,
+}) async {
+  try {
+    final bytes = await file.readAsBytes();
+    if (bytes.isEmpty) return false;
+    final codec = await ui.instantiateImageCodec(bytes);
+    try {
+      final frame = await codec.getNextFrame();
+      final image = frame.image;
+      try {
+        return image.width == expectedWidth && image.height == expectedHeight;
+      } finally {
+        image.dispose();
+      }
+    } finally {
+      codec.dispose();
+    }
+  } catch (_) {
+    return false;
+  }
+}
+
+Future<void> _deleteIfExists(File file) async {
+  try {
+    if (await file.exists()) await file.delete();
+  } on FileSystemException {
+    // Best effort cleanup for a failed temp write.
+  }
+}
+
 int _intValue(Object? value) {
   if (value is num) return value.toInt();
   return int.tryParse(value?.toString() ?? '') ?? 0;
@@ -240,6 +332,7 @@ Future<Uint8List?> extractRunningVideoThumbnail(
         'path': path,
         'timestampsMs': <int>[timestamp.inMilliseconds],
         'maxDimension': 240,
+        'jpegQuality': 72,
       },
     );
     if (raw == null || raw.isEmpty || raw.first is! Map) return null;

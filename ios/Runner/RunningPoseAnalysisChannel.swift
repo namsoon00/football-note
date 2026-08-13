@@ -69,12 +69,14 @@ final class RunningPoseAnalysisChannel {
       }
       let timestamps = (arguments["timestampsMs"] as? [NSNumber])?.map(\.intValue) ?? []
       let maximumDimension = (arguments["maxDimension"] as? NSNumber)?.intValue ?? 640
+      let jpegQuality = (arguments["jpegQuality"] as? NSNumber)?.doubleValue ?? 72
       queue.async {
         do {
           let frames = try self.extractEvidenceFrames(
             at: path,
             timestampsMs: timestamps,
-            maximumDimension: maximumDimension
+            maximumDimension: maximumDimension,
+            jpegQuality: jpegQuality
           )
           DispatchQueue.main.async {
             result(frames)
@@ -259,7 +261,8 @@ final class RunningPoseAnalysisChannel {
   private func extractEvidenceFrames(
     at path: String,
     timestampsMs: [Int],
-    maximumDimension: Int
+    maximumDimension: Int,
+    jpegQuality: Double = 72
   ) throws -> [[String: Any]] {
     guard FileManager.default.fileExists(atPath: path) else {
       throw AnalysisError(code: "missing_file", message: "Video file is missing.")
@@ -282,7 +285,8 @@ final class RunningPoseAnalysisChannel {
       }
       let image = UIImage(cgImage: cgImage)
       let scaled = resizedImage(image, maximumDimension: safeMaximumDimension)
-      guard let jpeg = scaled.jpegData(compressionQuality: 0.72) else { continue }
+      let safeQuality = max(45, min(jpegQuality, 92)) / 100.0
+      guard let jpeg = scaled.jpegData(compressionQuality: safeQuality) else { continue }
       frames.append([
         "timestampMs": timestampMs,
         "bytes": FlutterStandardTypedData(bytes: jpeg),

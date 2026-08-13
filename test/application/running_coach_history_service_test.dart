@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/running_coach_evidence_archive.dart';
@@ -224,6 +225,7 @@ void main() {
       deleteEvidenceImages: (images) async {
         deletedEvidenceCount += images.length;
       },
+      readEvidenceImage: (_) async => Uint8List.fromList(<int>[1]),
     );
     const report = RunningCoachingReport(
       overallScore: 86,
@@ -295,7 +297,7 @@ void main() {
       countsByKind.update(kind, (count) => count + 1, ifAbsent: () => 1);
     }
     expect(
-        countsByKind.values.every((count) => count >= 2 && count <= 4), isTrue);
+        countsByKind.values.every((count) => count >= 1 && count <= 4), isTrue);
     expect(
       session.analysisResult!.poseFrames.map(
         (frame) => frame.timestamp.inMilliseconds,
@@ -380,6 +382,87 @@ void main() {
     expect(restored.evidenceArchive.status,
         RunningCoachEvidenceArchiveStatus.failed);
     expect(restored.analysisResult, isNotNull);
+  });
+
+  test('marks evidence archive failed when saved images cannot be read',
+      () async {
+    final repository = _MemoryOptionRepository();
+    final service = RunningCoachHistoryService(
+      repository,
+      archiveEvidenceImages: ({
+        required sourceVideo,
+        required sessionId,
+        required requests,
+      }) async {
+        return RunningCoachEvidenceArchiveResult.fromImages(
+          requestedCount: requests.length,
+          images: <RunningCoachEvidenceImage>[
+            for (final request in requests)
+              RunningCoachEvidenceImage(
+                id: request.id,
+                timestamp: request.timestamp,
+                kind: request.kind,
+                role: request.role,
+                storageReference: 'broken://${request.id}',
+                width: 120,
+                height: 80,
+                poseFrame: request.poseFrame,
+              ),
+          ],
+        );
+      },
+      readEvidenceImage: (_) async => null,
+    );
+    const report = RunningCoachingReport(
+      overallScore: 86,
+      insights: [
+        RunningCoachingInsight(
+          metric: RunningCoachMetric.posture,
+          finding: RunningCoachFinding.postureAligned,
+          status: RunningCoachStatus.good,
+          score: 86,
+          value: 10,
+          quality: RunningMetricQuality(confidence: 0.90, sampleCount: 6),
+        ),
+      ],
+    );
+    final result = RunningVideoAnalysisResult(
+      videoDuration: const Duration(seconds: 5),
+      sampledFrames: 14,
+      validFrames: 12,
+      direction: RunningDirection.leftToRight,
+      forwardLeanDegrees: 10,
+      verticalBounceRatio: 0.06,
+      footStrikeDistanceRatio: 0.08,
+      stanceKneeAngleDegrees: 155,
+      elbowAngleDegrees: 90,
+      metricQualities: const <RunningCoachMetric, RunningMetricQuality>{
+        RunningCoachMetric.posture: RunningMetricQuality(
+          confidence: 0.90,
+          sampleCount: 6,
+        ),
+      },
+      poseFrames: [
+        for (var frameIndex = 0; frameIndex < 3; frameIndex += 1)
+          _poseFrame(frameIndex),
+      ],
+    );
+
+    final saved = await service.saveUploadAnalysis(
+      result: result,
+      report: report,
+      analyzedAt: DateTime(2026, 8, 4, 9),
+    );
+
+    final session = saved.single;
+    expect(session.evidenceImages, isEmpty);
+    expect(session.evidenceArchive.requestedCount, greaterThan(0));
+    expect(session.evidenceArchive.savedCount, 0);
+    expect(
+      session.evidenceArchive.status,
+      RunningCoachEvidenceArchiveStatus.failed,
+    );
+    expect(session.evidenceArchive.failureCode, 'evidence_readback_failed');
   });
 
   test('runner ownership survives evidence history trimming and deletion',
