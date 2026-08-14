@@ -33,7 +33,7 @@ class RunningVideoAnalysisService {
   // A dense 60-second scan can legitimately take longer than the old
   // 14-frame pass, especially on lower-powered phones.
   static const analysisTimeout = Duration(seconds: 120);
-  static const previewPoseAnalysisTimeout = Duration(seconds: 8);
+  static const previewPoseAnalysisTimeout = Duration(seconds: 20);
 
   const RunningVideoAnalysisService();
 

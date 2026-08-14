@@ -37,8 +37,10 @@ for required in (
     "runningMode: 'VIDEO'",
     "pose_landmarker_full.task",
     "minConfidence: 0.35",
-    "previewFrameIntervalMs: 1000",
-    "maxPreviewPoseFrames: 9",
+    "previewFrameIntervalMs: 250",
+    "maxPreviewPoseFrames: 37",
+    "previewSafeInsetMs: 150",
+    "seekTimeoutMs: 3500",
     "coarseTargetFps: 8",
     "coarseFrameIntervalMs: 125",
     "maxCoarseFrames: 481",
@@ -73,7 +75,9 @@ for required in (
     "maxVideoDurationMs: 60000",
     "Math.ceil(safeDurationMs / config.coarseFrameIntervalMs)",
     "analyzedFrameTimestamps",
-    "percentile(normalizedShoulderYs, 0.10)",
+    "verticalBounceTrajectory",
+    "verticalBounceRatio",
+    "groundLineForFootEvidence(footEvidence)",
     "detectForVideo",
     "poseFrames",
     "coarseSamples",
@@ -90,6 +94,7 @@ for required in (
     "analyzePreviewPose",
     "analyzePreviewPoseUrl",
     "releaseVideo(video, url, ownsUrl)",
+    "visionFilesetPromise",
     "analyzeUrl",
     "extractEvidenceFramesFromUrl",
     "metricQualities",
@@ -100,6 +105,11 @@ for required in (
 require(
     "shoulderPoints.length === 0 || hipPoints.length === 0" in bridge_text,
     "Web analyzer must retain a torso frame when the far-side leg is occluded",
+)
+require(
+    "normalizedShoulderYs" not in bridge_text
+    and "shoulderCenter.y / Math.max(1, sample.bodyScale)" not in bridge_text,
+    "Web analyzer must not compute bounce from absolute shoulder y divided by bodyScale",
 )
 
 require(
@@ -174,6 +184,18 @@ if preview_match is not None:
             forbidden not in preview_body,
             f"Web preview pose analyzer must not run full-analysis token: {forbidden}",
         )
+
+timestamp_match = re.search(
+    r"function previewPoseTimestamps\(durationMs\) \{(?P<body>.*?)\n  \}",
+    bridge_text,
+    re.DOTALL,
+)
+require(timestamp_match is not None, "Web preview timestamp helper is missing")
+if timestamp_match is not None:
+    timestamp_body = timestamp_match.group("body")
+    require("startMs" in timestamp_body and "endMs" in timestamp_body, "Web preview timestamps must use a safe interior window")
+    require("config.previewSafeInsetMs" in timestamp_body, "Web preview timestamps must use the configured safe inset")
+    require("safeDurationMs * index" not in timestamp_body, "Web preview timestamps must not include exact 0/duration endpoints")
 
 for retired in (
     "getUserMedia",

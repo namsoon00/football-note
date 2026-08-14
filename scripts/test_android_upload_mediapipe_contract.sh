@@ -104,6 +104,10 @@ for required in (
     "minimumMedianSharpness",
     "maxVideoDurationMs",
     "percentile",
+    "verticalBounceTrajectory",
+    "verticalBounceRatio",
+    "minimumBounceTrajectorySamples",
+    "previewPoseSafeInsetMs",
 ):
     require(required in channel_text, f"upload channel is missing required token: {required}")
 
@@ -163,6 +167,10 @@ for required in (
     "minimumMedianSharpness",
     "maxVideoDurationMs",
     "percentile",
+    "verticalBounceTrajectory",
+    "verticalBounceRatio",
+    "minimumBounceTrajectorySamples",
+    "previewPoseSafeInsetMs",
 ):
     require(required in ios_text, f"iOS running channel is missing required token: {required}")
 
@@ -236,6 +244,23 @@ require(
 require(
     re.search(r"private static let coarseTargetFps\s*=\s*8\b", ios_text) is not None,
     "iOS upload analysis must scan 60-second clips at a documented 8 fps budget",
+)
+require(
+    re.search(r"private const val previewPoseFrameIntervalMs\s*=\s*250L\b", channel_text) is not None
+    and re.search(r"private const val maxPreviewPoseFrameBudget\s*=\s*37\b", channel_text) is not None
+    and re.search(r"private const val previewPoseSafeInsetMs\s*=\s*150L\b", channel_text) is not None,
+    "Android preview pose analysis must use bounded dense interior timestamps",
+)
+require(
+    re.search(r"private static let previewPoseFrameIntervalMs\s*=\s*250\b", ios_text) is not None
+    and re.search(r"private static let maxPreviewPoseFrameBudget\s*=\s*37\b", ios_text) is not None
+    and re.search(r"private static let previewPoseSafeInsetMs\s*=\s*150\b", ios_text) is not None,
+    "iOS preview pose analysis must use bounded dense interior timestamps",
+)
+require(
+    "normalizedShoulderYs" not in channel_text
+    and "normalizedShoulderYs" not in ios_text,
+    "Android/iOS analyzers must not compute bounce from absolute shoulder y divided by bodyScale",
 )
 require(
     re.search(r"private const val coarseFrameIntervalMs\s*=\s*125L\b", channel_text) is not None

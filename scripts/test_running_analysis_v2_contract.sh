@@ -57,8 +57,13 @@ for platform, text in sources.items():
         "selectionMethod",
         "recoveryRunningMotionScore",
         "0.20 + 0.80",
+        "verticalBounceTrajectory",
     ):
         require(token in text, f"{platform} is missing v2 quality token {token}")
+    require(
+        "normalizedShoulderYs" not in text,
+        f"{platform} must not compute bounce from absolute shoulder y",
+    )
 
 constant_patterns = {
     "web": (
@@ -141,6 +146,7 @@ for field in (
     "analysisWindowEnd",
     "estimatedContactFrameTimestamps",
     "selectionMethod",
+    "runningVerticalBounceTrajectoryForPoseFrames",
 ):
     require(field in dart_contract, f"Dart result contract is missing {field}")
 

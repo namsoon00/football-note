@@ -254,6 +254,22 @@ class RunningPoseFrame {
   }
 }
 
+class RunningBounceTrajectoryPoint {
+  final Duration timestamp;
+  final RunningPoseFrame frame;
+  final double value;
+  final double confidence;
+
+  const RunningBounceTrajectoryPoint({
+    required this.timestamp,
+    required this.frame,
+    required this.value,
+    required this.confidence,
+  });
+
+  int get timestampMs => timestamp.inMilliseconds;
+}
+
 class RunningMetricEvidenceFrame {
   final Duration timestamp;
   final RunningMetricEvidenceFrameRole role;
@@ -2303,53 +2319,137 @@ RunningContactSide _estimatedSideForTimestamp(
   return left.y >= right.y ? RunningContactSide.left : RunningContactSide.right;
 }
 
+List<RunningBounceTrajectoryPoint> runningVerticalBounceTrajectoryForPoseFrames(
+  List<RunningPoseFrame> source,
+) {
+  final frames = source
+      .where((frame) => frame.landmarks.length == mediaPipePoseLandmarkCount)
+      .toList(growable: false)
+    ..sort((left, right) => left.timestampMs.compareTo(right.timestampMs));
+  if (frames.length < 3) return const <RunningBounceTrajectoryPoint>[];
+
+  final groundPoints = <_RunningGroundPoint>[];
+  for (final frame in frames) {
+    final torso = _torsoLengthPx(frame);
+    if (torso == null) continue;
+    for (final side in const <RunningContactSide>[
+      RunningContactSide.left,
+      RunningContactSide.right,
+    ]) {
+      final foot = _footBottomPointPx(frame, side);
+      if (foot == null) continue;
+      groundPoints.add(_RunningGroundPoint(
+        x: foot.x,
+        y: foot.y,
+        bodyScale: torso,
+      ));
+    }
+  }
+  if (groundPoints.length < _runningGroundLineMinimumSamples) {
+    return const <RunningBounceTrajectoryPoint>[];
+  }
+  final groundLine = _runningGroundLineForPoints(groundPoints);
+  final raw = <RunningBounceTrajectoryPoint>[];
+  for (final frame in frames) {
+    final hip = _midpoint(
+      _posePointPx(frame, 23),
+      _posePointPx(frame, 24),
+    );
+    final torso = _torsoLengthPx(frame);
+    if (hip == null || torso == null) continue;
+    final clearance = (groundLine.yAt(hip.x) - hip.y) / torso;
+    if (!clearance.isFinite || clearance < 0.20 || clearance > 4.50) {
+      continue;
+    }
+    raw.add(RunningBounceTrajectoryPoint(
+      timestamp: frame.timestamp,
+      frame: frame,
+      value: clearance,
+      confidence: math.min(
+        hip.confidence,
+        _landmarkConfidenceAverage(frame, const <int>[11, 12, 23, 24]),
+      ),
+    ));
+  }
+  if (raw.length < 3) return const <RunningBounceTrajectoryPoint>[];
+
+  final first = raw.first;
+  final last = raw.last;
+  final durationMs =
+      math.max(1, last.timestampMs - first.timestampMs).toDouble();
+  final drift = last.value - first.value;
+  final corrected = raw.map((point) {
+    final fraction = (point.timestampMs - first.timestampMs) / durationMs;
+    return RunningBounceTrajectoryPoint(
+      timestamp: point.timestamp,
+      frame: point.frame,
+      value: point.value - (first.value + (drift * fraction)),
+      confidence: point.confidence,
+    );
+  }).toList(growable: false);
+  final values = corrected.map((point) => point.value).toList(growable: false);
+  final center = RunningGaitDistribution.fromValues(values)?.median ?? 0;
+  final deviations = corrected
+      .map((point) => (point.value - center).abs())
+      .toList(growable: false);
+  final medianDeviation =
+      RunningGaitDistribution.fromValues(deviations)?.median ?? 0;
+  final tolerance = math.max(0.18, medianDeviation * 4.0);
+  return List<RunningBounceTrajectoryPoint>.unmodifiable(
+    corrected.where((point) => (point.value - center).abs() <= tolerance),
+  );
+}
+
+double? runningVerticalBounceRatioForPoseFrames(
+  List<RunningPoseFrame> source,
+) {
+  final trajectory = runningVerticalBounceTrajectoryForPoseFrames(source);
+  if (trajectory.length < _runningMinimumBounceTrajectorySamples) return null;
+  final values = trajectory.map((point) => point.value).toList()..sort();
+  return math.max(
+    0,
+    _runningQuantile(values, 0.90) - _runningQuantile(values, 0.10),
+  );
+}
+
 List<_RunningMetricEvidenceCandidate> _bounceEvidenceCandidates(
   RunningVideoAnalysisResult result,
 ) {
-  final hipFrames = <({RunningPoseFrame frame, double hipY, double scale})>[];
-  for (final frame in result.poseFrames) {
-    final hip = _midpoint(_posePoint(frame, 23), _posePoint(frame, 24));
-    final scale = _bodyScale(frame);
-    if (hip == null || scale == null) continue;
-    hipFrames.add((frame: frame, hipY: hip.y, scale: scale));
-  }
-  if (hipFrames.length < 2) return const <_RunningMetricEvidenceCandidate>[];
+  final trajectory =
+      runningVerticalBounceTrajectoryForPoseFrames(result.poseFrames);
+  if (trajectory.length < 2) return const <_RunningMetricEvidenceCandidate>[];
 
-  var high = hipFrames.first;
-  var low = hipFrames.first;
-  for (final item in hipFrames.skip(1)) {
-    if (item.hipY < high.hipY) high = item;
-    if (item.hipY > low.hipY) low = item;
+  var high = trajectory.first;
+  var low = trajectory.first;
+  for (final item in trajectory.skip(1)) {
+    if (item.value > high.value) high = item;
+    if (item.value < low.value) low = item;
   }
-  if (high.frame.timestamp == low.frame.timestamp) {
+  if (high.timestamp == low.timestamp) {
     return const <_RunningMetricEvidenceCandidate>[];
   }
-  final scale = RunningGaitDistribution.fromValues(
-        hipFrames.map((item) => item.scale),
-      )?.median ??
-      1.0;
-  final trajectoryPercent = ((low.hipY - high.hipY).abs() / scale) * 100;
+  final trajectoryPercent = (high.value - low.value).abs() * 100;
   final metricPercent = result.verticalBounceRatio * 100;
   final candidates = <_RunningMetricEvidenceCandidate>[
     _RunningMetricEvidenceCandidate(
-      timestamp: high.frame.timestamp,
+      timestamp: high.timestamp,
       role: RunningMetricEvidenceFrameRole.trajectoryHigh,
       poseFrame: high.frame,
       values: <String, double>{
         'verticalBouncePercent': metricPercent,
         'trajectoryPercent': trajectoryPercent,
       },
-      confidence: _landmarkConfidenceAverage(high.frame, const <int>[23, 24]),
+      confidence: high.confidence,
     ),
     _RunningMetricEvidenceCandidate(
-      timestamp: low.frame.timestamp,
+      timestamp: low.timestamp,
       role: RunningMetricEvidenceFrameRole.trajectoryLow,
       poseFrame: low.frame,
       values: <String, double>{
         'verticalBouncePercent': metricPercent,
         'trajectoryPercent': trajectoryPercent,
       },
-      confidence: _landmarkConfidenceAverage(low.frame, const <int>[23, 24]),
+      confidence: low.confidence,
     ),
   ];
   candidates.sort((left, right) => left.timestamp.compareTo(right.timestamp));
@@ -2670,6 +2770,34 @@ class _RunningPosePoint {
   const _RunningPosePoint(this.x, this.y, this.confidence);
 }
 
+class _RunningGroundPoint {
+  final double x;
+  final double y;
+  final double bodyScale;
+
+  const _RunningGroundPoint({
+    required this.x,
+    required this.y,
+    required this.bodyScale,
+  });
+}
+
+class _RunningGroundLine {
+  final double slope;
+  final double intercept;
+
+  const _RunningGroundLine({
+    required this.slope,
+    required this.intercept,
+  });
+
+  double yAt(double x) => (slope * x) + intercept;
+}
+
+const int _runningGroundLineMinimumSamples = 3;
+const double _runningGroundLineSampleFraction = 0.45;
+const int _runningMinimumBounceTrajectorySamples = 4;
+
 _RunningPosePoint? _posePoint(RunningPoseFrame frame, int index) {
   final landmark = frame.landmarkByIndex(index);
   if (landmark == null ||
@@ -2682,6 +2810,16 @@ _RunningPosePoint? _posePoint(RunningPoseFrame frame, int index) {
     landmark.x,
     landmark.y,
     landmark.confidence.clamp(0.0, 1.0).toDouble(),
+  );
+}
+
+_RunningPosePoint? _posePointPx(RunningPoseFrame frame, int index) {
+  final point = _posePoint(frame, index);
+  if (point == null) return null;
+  return _RunningPosePoint(
+    point.x * frame.imageWidth,
+    point.y * frame.imageHeight,
+    point.confidence,
   );
 }
 
@@ -2712,6 +2850,14 @@ double? _bodyScale(RunningPoseFrame frame) {
   return value > 0.0001 ? value : null;
 }
 
+double? _torsoLengthPx(RunningPoseFrame frame) {
+  final shoulder = _midpoint(_posePointPx(frame, 11), _posePointPx(frame, 12));
+  final hip = _midpoint(_posePointPx(frame, 23), _posePointPx(frame, 24));
+  if (shoulder == null || hip == null) return null;
+  final value = _distance(shoulder, hip);
+  return value > 0.0001 ? value : null;
+}
+
 _RunningPosePoint? _footBottomPoint(
   RunningPoseFrame frame,
   RunningContactSide side,
@@ -2726,6 +2872,102 @@ _RunningPosePoint? _footBottomPoint(
     if (bottom == null || point.y > bottom.y) bottom = point;
   }
   return bottom;
+}
+
+_RunningPosePoint? _footBottomPointPx(
+  RunningPoseFrame frame,
+  RunningContactSide side,
+) {
+  final indexes = side == RunningContactSide.left
+      ? const <int>[27, 29, 31]
+      : const <int>[28, 30, 32];
+  _RunningPosePoint? bottom;
+  for (final index in indexes) {
+    final point = _posePointPx(frame, index);
+    if (point == null) continue;
+    if (bottom == null || point.y > bottom.y) bottom = point;
+  }
+  return bottom;
+}
+
+_RunningGroundLine _leastSquaresRunningGroundLine(
+  List<_RunningGroundPoint> points,
+) {
+  if (points.isEmpty) {
+    return const _RunningGroundLine(slope: 0, intercept: 0);
+  }
+  final meanX =
+      points.map((point) => point.x).reduce((sum, value) => sum + value) /
+          points.length;
+  final meanY =
+      points.map((point) => point.y).reduce((sum, value) => sum + value) /
+          points.length;
+  var covariance = 0.0;
+  var variance = 0.0;
+  for (final point in points) {
+    covariance += (point.x - meanX) * (point.y - meanY);
+    variance += (point.x - meanX) * (point.x - meanX);
+  }
+  final slope = variance <= 0.0001 ? 0.0 : covariance / variance;
+  return _RunningGroundLine(
+    slope: slope,
+    intercept: meanY - (slope * meanX),
+  );
+}
+
+_RunningGroundLine _runningGroundLineForPoints(
+  List<_RunningGroundPoint> points,
+) {
+  final lowerEnvelopeCount = math.min(
+    points.length,
+    math.max(
+      _runningGroundLineMinimumSamples,
+      (points.length * _runningGroundLineSampleFraction).ceil(),
+    ),
+  );
+  final lowerEnvelope = ([...points]..sort((left, right) {
+          return right.y.compareTo(left.y);
+        }))
+      .take(lowerEnvelopeCount)
+      .toList(growable: false);
+  var line = _leastSquaresRunningGroundLine(lowerEnvelope);
+  final residuals = lowerEnvelope
+      .map((point) => point.y - line.yAt(point.x))
+      .toList(growable: false);
+  final residualCenter =
+      RunningGaitDistribution.fromValues(residuals)?.median ?? 0;
+  final medianDeviation = RunningGaitDistribution.fromValues(
+        residuals.map((value) => (value - residualCenter).abs()),
+      )?.median ??
+      0;
+  final averageScale =
+      lowerEnvelope.map((point) => point.bodyScale).reduce((a, b) => a + b) /
+          lowerEnvelope.length;
+  final residualTolerance =
+      math.max(averageScale * 0.025, medianDeviation * 2.5);
+  final inliers = lowerEnvelope
+      .where(
+        (point) =>
+            (point.y - line.yAt(point.x) - residualCenter).abs() <=
+            residualTolerance,
+      )
+      .toList(growable: false);
+  if (inliers.length >= 2) {
+    line = _leastSquaresRunningGroundLine(inliers);
+  }
+  return line;
+}
+
+double _runningQuantile(List<double> sortedValues, double fraction) {
+  if (sortedValues.isEmpty) return 0;
+  final index = ((sortedValues.length - 1) * fraction)
+      .clamp(0.0, (sortedValues.length - 1).toDouble())
+      .toDouble();
+  final lower = index.floor();
+  final upper = index.ceil();
+  if (lower == upper) return sortedValues[lower];
+  return sortedValues[lower] +
+      ((sortedValues[upper] - sortedValues[lower]) * (index - lower));
 }
 
 double? _footStrikeDistanceRatio(

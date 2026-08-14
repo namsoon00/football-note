@@ -16,6 +16,7 @@ import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/running_coach/running_foot_strike_target_motion_proof.dart';
 import 'package:football_note/presentation/running_coach/running_evidence_slow_loop_sheet.dart';
+import 'package:football_note/presentation/running_coach/running_pose_overlay.dart';
 import 'package:football_note/presentation/running_coach/running_video_preview_sheet.dart';
 import 'package:football_note/presentation/screens/running_coach_screen.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart';
@@ -298,6 +299,60 @@ void main() {
     );
   });
 
+  testWidgets('slow loop renders pose overlay for the playback position', (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(800, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final video = File('tmp/slow-loop-run.mp4')..createSync(recursive: true);
+    addTearDown(() {
+      if (video.existsSync()) video.deleteSync();
+    });
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: RunningEvidenceSlowLoopSheet(
+          videoPath: video.path,
+          timestamp: const Duration(milliseconds: 500),
+          poseFrames: _testPoseFrames(
+            startX: 0.40,
+            dxPerFrame: 0.04,
+            confidence: 0.94,
+          ),
+          highlightedMetric: RunningCoachMetric.bounce,
+          finding: RunningCoachFinding.bounceTooHigh,
+          direction: RunningDirection.leftToRight,
+        ),
+      ),
+    );
+
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    final overlay = find.byKey(
+      const ValueKey('running-coach-slow-loop-pose-overlay'),
+    );
+    expect(overlay, findsOneWidget);
+    expect(_slowLoopOverlayPoseFrame(tester)!.timestampMs, 0);
+
+    fakeVideoPlayerPlatform._positions[0] = const Duration(milliseconds: 1000);
+    fakeVideoPlayerPlatform._streams[0]!.add(
+      VideoEvent(
+        eventType: VideoEventType.isPlayingStateUpdate,
+        isPlaying: true,
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 700));
+
+    expect(_slowLoopOverlayPoseFrame(tester)!.timestampMs, 1000);
+  });
+
   testWidgets('coach screen presents one recording and analysis flow', (
     WidgetTester tester,
   ) async {
@@ -457,6 +512,121 @@ void main() {
       findsNothing,
     );
     expect(analysisService.previewCallCount, 1);
+    expect(analysisService.callCount, 1);
+    analysisService.complete();
+    await tester.pump();
+  });
+
+  testWidgets('gallery cancel returns without opening preview or analysis', (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1200));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final analysisService = _PendingRunningVideoAnalysisService();
+    var pickerCalls = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: RunningCoachScreen(
+          optionRepository: _MemoryOptionRepository(),
+          analysisService: analysisService,
+          galleryVideoPicker: () async {
+            pickerCalls += 1;
+            return null;
+          },
+        ),
+      ),
+    );
+
+    await tester.tap(
+      find.byKey(const ValueKey('running-coach-pick-video-action')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(pickerCalls, 1);
+    expect(
+      find.byKey(const ValueKey('running-coach-preview-confirm')),
+      findsNothing,
+    );
+    expect(analysisService.previewCallCount, 0);
+    expect(analysisService.callCount, 0);
+  });
+
+  testWidgets('gallery change reopens single picker before analysis starts', (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1200));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final firstVideo = File('tmp/gallery-first-run.mp4')
+      ..createSync(recursive: true);
+    final secondVideo = File('tmp/gallery-second-run.mp4')
+      ..createSync(recursive: true);
+    addTearDown(() {
+      if (firstVideo.existsSync()) firstVideo.deleteSync();
+      if (secondVideo.existsSync()) secondVideo.deleteSync();
+    });
+    final analysisService = _PendingRunningVideoAnalysisService();
+    var pickerCalls = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: RunningCoachScreen(
+          optionRepository: _MemoryOptionRepository(),
+          analysisService: analysisService,
+          galleryVideoPicker: () async {
+            pickerCalls += 1;
+            return pickerCalls == 1
+                ? XFile(firstVideo.path, name: 'gallery-first-run.mp4')
+                : XFile(secondVideo.path, name: 'gallery-second-run.mp4');
+          },
+        ),
+      ),
+    );
+
+    await tester.tap(
+      find.byKey(const ValueKey('running-coach-pick-video-action')),
+    );
+    await tester.pumpAndSettle();
+    expect(pickerCalls, 1);
+    expect(
+      find.byKey(const ValueKey('running-coach-video-candidates')),
+      findsNothing,
+    );
+    expect(find.text('gallery-first-run.mp4'), findsWidgets);
+
+    await tester.tap(
+      find.byKey(const ValueKey('running-coach-preview-change')),
+    );
+    await tester.pumpAndSettle();
+    expect(pickerCalls, 2);
+    expect(find.text('gallery-second-run.mp4'), findsWidgets);
+    expect(analysisService.callCount, 0);
+
+    await tester.tap(
+      find.byKey(const ValueKey('running-coach-preview-confirm')),
+    );
+    await tester.pump();
+    for (var attempt = 0;
+        attempt < 100 && analysisService.callCount == 0;
+        attempt += 1) {
+      await tester.pump(const Duration(milliseconds: 10));
+    }
+
+    expect(analysisService.previewCallCount, 2);
     expect(analysisService.callCount, 1);
     analysisService.complete();
     await tester.pump();
@@ -2393,6 +2563,19 @@ Future<void> _scrollAnalysisResultUntilFound(
     }
   }
   expect(finder, findsOneWidget);
+}
+
+RunningPoseFrame? _slowLoopOverlayPoseFrame(WidgetTester tester) {
+  final overlay = find.byKey(
+    const ValueKey('running-coach-slow-loop-pose-overlay'),
+  );
+  final customPaint = find.descendant(
+    of: overlay,
+    matching: find.byType(CustomPaint),
+  );
+  final widget = tester.widget<CustomPaint>(customPaint.first);
+  final painter = widget.painter as RunningPoseFrameOverlayPainter;
+  return painter.poseFrame;
 }
 
 RunningCoachSessionAnalysis _sessionForReport({

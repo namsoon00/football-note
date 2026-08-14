@@ -955,14 +955,14 @@ void main() {
             .map((frame) => frame.timestampMs),
         containsAll(<int>[600, 680]));
     expect(
-      {
-        for (final frame in byKind[RunningMetricEvidenceKind.bounce]!.frames)
-          frame.role: frame.timestampMs,
-      },
-      {
-        RunningMetricEvidenceFrameRole.trajectoryHigh: 100,
-        RunningMetricEvidenceFrameRole.trajectoryLow: 300,
-      },
+      byKind[RunningMetricEvidenceKind.bounce]!
+          .frames
+          .map((frame) => frame.role)
+          .toSet(),
+      containsAll(<RunningMetricEvidenceFrameRole>{
+        RunningMetricEvidenceFrameRole.trajectoryHigh,
+        RunningMetricEvidenceFrameRole.trajectoryLow,
+      }),
     );
     expect(
       byKind[RunningMetricEvidenceKind.arms]!
@@ -974,6 +974,62 @@ void main() {
         RunningMetricEvidenceFrameRole.armOpen,
       }),
     );
+  });
+
+  test('bounce trajectory is stable under screen translation and scale drift',
+      () {
+    final base = runningVerticalBounceRatioForPoseFrames(
+      _perspectiveBounceFrames(),
+    );
+    final transformed = runningVerticalBounceRatioForPoseFrames(
+      _perspectiveBounceFrames(
+        xShift: 0.10,
+        yShift: 0.05,
+        scaleStart: 0.74,
+        scaleEnd: 1.26,
+      ),
+    );
+
+    expect(base, isNotNull);
+    expect(transformed, isNotNull);
+    expect(transformed!, closeTo(base!, 0.006));
+  });
+
+  test('bounce evidence ignores absolute hip y perspective drift', () {
+    final frames = _perspectiveBounceFrames(
+      yShift: 0.03,
+      yDrift: 0.14,
+      scaleStart: 0.78,
+      scaleEnd: 1.22,
+    );
+    final result = RunningVideoAnalysisResult(
+      videoDuration: const Duration(seconds: 3),
+      sampledFrames: frames.length,
+      validFrames: frames.length,
+      direction: RunningDirection.leftToRight,
+      forwardLeanDegrees: 10,
+      verticalBounceRatio: runningVerticalBounceRatioForPoseFrames(frames) ?? 0,
+      footStrikeDistanceRatio: 0.10,
+      stanceKneeAngleDegrees: 154,
+      elbowAngleDegrees: 90,
+      metricQualities: const <RunningCoachMetric, RunningMetricQuality>{
+        RunningCoachMetric.bounce: RunningMetricQuality(
+          confidence: 0.90,
+          sampleCount: 8,
+        ),
+      },
+      poseFrames: frames,
+    );
+
+    final evidence = result.evidenceForMetric(RunningCoachMetric.bounce)!;
+    final byRole = {
+      for (final frame in evidence.frames) frame.role: frame.timestampMs,
+    };
+
+    expect(byRole[RunningMetricEvidenceFrameRole.trajectoryHigh], 1000);
+    expect(byRole[RunningMetricEvidenceFrameRole.trajectoryLow], 600);
+    expect(byRole.values, isNot(contains(0)));
+    expect(byRole.values, isNot(contains(1100)));
   });
 
   test('keeps a single verified contact as an observed lower-body frame', () {
@@ -1210,8 +1266,12 @@ RunningPoseFrame _evidencePoseFrame({
   setPoint(24, hipX + 0.04, hipY);
   setPoint(25, hipX - 0.02, hipY + 0.15);
   setPoint(26, hipX + 0.02, hipY + 0.15);
-  setPoint(27, hipX + 0.05, hipY + 0.31);
-  setPoint(28, hipX + 0.07, hipY + 0.31);
+  setPoint(27, hipX + 0.05, 0.82);
+  setPoint(28, hipX + 0.07, 0.82);
+  setPoint(29, hipX + 0.03, 0.83);
+  setPoint(30, hipX + 0.05, 0.83);
+  setPoint(31, hipX + 0.09, 0.83);
+  setPoint(32, hipX + 0.11, 0.83);
 
   void setArm(int shoulder, int elbow, int wrist, double side) {
     final shoulderPoint = landmarks[shoulder];
@@ -1230,6 +1290,98 @@ RunningPoseFrame _evidencePoseFrame({
     timestamp: Duration(milliseconds: timestampMs),
     imageWidth: 720,
     imageHeight: 1280,
+    landmarks: List<RunningVideoPoseLandmark>.unmodifiable(landmarks),
+  );
+}
+
+List<RunningPoseFrame> _perspectiveBounceFrames({
+  double xShift = 0,
+  double yShift = 0,
+  double yDrift = 0,
+  double scaleStart = 1,
+  double scaleEnd = 1,
+}) {
+  const wave = <double>[
+    0.00,
+    0.02,
+    0.05,
+    0.02,
+    0.00,
+    -0.02,
+    -0.05,
+    -0.02,
+    0.00,
+    0.02,
+    0.05,
+    0.02,
+  ];
+  return <RunningPoseFrame>[
+    for (var index = 0; index < wave.length; index += 1)
+      _perspectiveBounceFrame(
+        timestampMs: index * 100,
+        xShift: xShift,
+        yShift: yShift + (yDrift * index / (wave.length - 1)),
+        scale:
+            scaleStart + ((scaleEnd - scaleStart) * index / (wave.length - 1)),
+        clearanceOffset: wave[index],
+      ),
+  ];
+}
+
+RunningPoseFrame _perspectiveBounceFrame({
+  required int timestampMs,
+  required double xShift,
+  required double yShift,
+  required double scale,
+  required double clearanceOffset,
+}) {
+  final landmarks = List<RunningVideoPoseLandmark>.generate(
+    mediaPipePoseLandmarkCount,
+    (index) => RunningVideoPoseLandmark(
+      index: index,
+      x: 0.45,
+      y: 0.50,
+      z: 0,
+      visibility: 0.95,
+      presence: 0.95,
+      confidence: 0.95,
+    ),
+  );
+  void setPoint(int index, double x, double y) {
+    landmarks[index] = RunningVideoPoseLandmark(
+      index: index,
+      x: x,
+      y: y,
+      z: 0,
+      visibility: 0.95,
+      presence: 0.95,
+      confidence: 0.95,
+    );
+  }
+
+  final progress = timestampMs / 1100;
+  final hipX = 0.42 + xShift + (progress * 0.12);
+  final groundY = 0.86 + yShift;
+  final torso = 0.18 * scale;
+  final clearance = torso * (1.72 + clearanceOffset);
+  final hipY = groundY - clearance;
+  final shoulderY = hipY - torso;
+  setPoint(11, hipX - (0.05 * scale), shoulderY);
+  setPoint(12, hipX + (0.05 * scale), shoulderY);
+  setPoint(23, hipX - (0.04 * scale), hipY);
+  setPoint(24, hipX + (0.04 * scale), hipY);
+  setPoint(25, hipX - (0.03 * scale), hipY + (0.15 * scale));
+  setPoint(26, hipX + (0.03 * scale), hipY + (0.15 * scale));
+  setPoint(27, hipX - (0.05 * scale), groundY - (0.01 * scale));
+  setPoint(28, hipX + (0.05 * scale), groundY - (0.015 * scale));
+  setPoint(29, hipX - (0.07 * scale), groundY);
+  setPoint(30, hipX + (0.03 * scale), groundY);
+  setPoint(31, hipX - (0.02 * scale), groundY);
+  setPoint(32, hipX + (0.08 * scale), groundY);
+  return RunningPoseFrame(
+    timestamp: Duration(milliseconds: timestampMs),
+    imageWidth: 1000,
+    imageHeight: 1000,
     landmarks: List<RunningVideoPoseLandmark>.unmodifiable(landmarks),
   );
 }

@@ -4,7 +4,9 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
+import '../../domain/entities/running_video_analysis_result.dart';
 import '../../gen/app_localizations.dart';
+import 'running_pose_overlay.dart';
 import '../screens/running_video_player_source.dart';
 
 const runningEvidenceLoopLead = Duration(milliseconds: 500);
@@ -34,6 +36,10 @@ Future<void> showRunningEvidenceSlowLoopSheet({
   required String? videoPath,
   required Duration timestamp,
   Uint8List? capturedFrame,
+  List<RunningPoseFrame> poseFrames = const <RunningPoseFrame>[],
+  RunningCoachMetric? highlightedMetric,
+  RunningCoachFinding? finding,
+  RunningDirection direction = RunningDirection.stationary,
 }) {
   return showModalBottomSheet<void>(
     context: context,
@@ -44,6 +50,10 @@ Future<void> showRunningEvidenceSlowLoopSheet({
       videoPath: videoPath,
       timestamp: timestamp,
       capturedFrame: capturedFrame,
+      poseFrames: poseFrames,
+      highlightedMetric: highlightedMetric,
+      finding: finding,
+      direction: direction,
     ),
   );
 }
@@ -52,12 +62,20 @@ class RunningEvidenceSlowLoopSheet extends StatefulWidget {
   final String? videoPath;
   final Duration timestamp;
   final Uint8List? capturedFrame;
+  final List<RunningPoseFrame> poseFrames;
+  final RunningCoachMetric? highlightedMetric;
+  final RunningCoachFinding? finding;
+  final RunningDirection direction;
 
   const RunningEvidenceSlowLoopSheet({
     super.key,
     required this.videoPath,
     required this.timestamp,
     this.capturedFrame,
+    this.poseFrames = const <RunningPoseFrame>[],
+    this.highlightedMetric,
+    this.finding,
+    this.direction = RunningDirection.stationary,
   });
 
   @override
@@ -207,6 +225,27 @@ class _RunningEvidenceSlowLoopSheetState
                         fit: StackFit.expand,
                         children: [
                           VideoPlayer(controller!),
+                          Positioned.fill(
+                            child: IgnorePointer(
+                              child: AnimatedBuilder(
+                                animation: controller,
+                                builder: (context, _) {
+                                  return _SlowLoopPoseOverlay(
+                                    key: const ValueKey(
+                                      'running-coach-slow-loop-pose-overlay',
+                                    ),
+                                    poseFrame: runningPoseFrameAtPosition(
+                                      frames: widget.poseFrames,
+                                      position: controller.value.position,
+                                    ),
+                                    highlightedMetric: widget.highlightedMetric,
+                                    finding: widget.finding,
+                                    direction: widget.direction,
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
                           Center(
                             child: IconButton.filledTonal(
                               key: const ValueKey(
@@ -223,12 +262,33 @@ class _RunningEvidenceSlowLoopSheetState
                         ],
                       )
                     : widget.capturedFrame != null
-                        ? Image.memory(
-                            widget.capturedFrame!,
-                            fit: BoxFit.contain,
-                            key: const ValueKey(
-                              'running-coach-slow-loop-captured-frame',
-                            ),
+                        ? Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              Image.memory(
+                                widget.capturedFrame!,
+                                fit: BoxFit.contain,
+                                key: const ValueKey(
+                                  'running-coach-slow-loop-captured-frame',
+                                ),
+                              ),
+                              Positioned.fill(
+                                child: IgnorePointer(
+                                  child: _SlowLoopPoseOverlay(
+                                    key: const ValueKey(
+                                      'running-coach-slow-loop-pose-overlay',
+                                    ),
+                                    poseFrame: runningPoseFrameAtPosition(
+                                      frames: widget.poseFrames,
+                                      position: widget.timestamp,
+                                    ),
+                                    highlightedMetric: widget.highlightedMetric,
+                                    finding: widget.finding,
+                                    direction: widget.direction,
+                                  ),
+                                ),
+                              ),
+                            ],
                           )
                         : Center(
                             child: _loading
@@ -264,3 +324,60 @@ class _RunningEvidenceSlowLoopSheetState
 
 String _seconds(Duration duration) =>
     (duration.inMilliseconds / 1000).toStringAsFixed(1);
+
+class _SlowLoopPoseOverlay extends StatelessWidget {
+  final RunningPoseFrame? poseFrame;
+  final RunningCoachMetric? highlightedMetric;
+  final RunningCoachFinding? finding;
+  final RunningDirection direction;
+
+  const _SlowLoopPoseOverlay({
+    super.key,
+    required this.poseFrame,
+    required this.highlightedMetric,
+    required this.finding,
+    required this.direction,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return CustomPaint(
+      painter: RunningPoseFrameOverlayPainter(
+        poseFrame: poseFrame,
+        fit: BoxFit.contain,
+        primaryColor: scheme.primary,
+        secondaryColor: scheme.tertiary,
+        jointColor: Colors.white,
+        focusColor: scheme.secondary,
+        focusIndices: _focusIndicesForMetric(
+          highlightedMetric,
+          finding,
+          direction,
+        ),
+      ),
+    );
+  }
+}
+
+Set<int> _focusIndicesForMetric(
+  RunningCoachMetric? metric,
+  RunningCoachFinding? finding,
+  RunningDirection direction,
+) {
+  final leadLowerBody = switch (direction) {
+    RunningDirection.leftToRight => const <int>{23, 25, 27, 29, 31},
+    RunningDirection.rightToLeft => const <int>{24, 26, 28, 30, 32},
+    RunningDirection.stationary => const <int>{23, 24, 27, 28, 29, 30, 31, 32},
+  };
+  return switch (metric) {
+    RunningCoachMetric.posture => const <int>{11, 12, 23, 24},
+    RunningCoachMetric.bounce => finding == RunningCoachFinding.bounceTooHigh
+        ? const <int>{0, 7, 8, 11, 12, 23, 24}
+        : const <int>{0, 7, 8, 23, 24},
+    RunningCoachMetric.footStrike => leadLowerBody,
+    RunningCoachMetric.kneeFlexion => const <int>{23, 24, 25, 26, 27, 28},
+    RunningCoachMetric.armCarriage => const <int>{11, 12, 13, 14, 15, 16},
+    null => const <int>{},
+  };
+}

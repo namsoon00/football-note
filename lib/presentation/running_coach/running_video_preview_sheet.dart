@@ -142,6 +142,7 @@ class _RunningVideoPreviewSheetState extends State<RunningVideoPreviewSheet> {
       await controller.initialize();
       await controller.setLooping(true);
       await controller.setVolume(0);
+      await controller.play();
       if (!mounted || generation != _loadGeneration) {
         await controller.dispose();
         return;
@@ -420,19 +421,13 @@ class _RunningVideoPreviewSheetState extends State<RunningVideoPreviewSheet> {
                                                 child: AnimatedBuilder(
                                                   animation: controller,
                                                   builder: (context, _) {
-                                                    final frameIndex =
-                                                        nearestRunningPoseFrameIndex(
+                                                    final frame =
+                                                        runningPoseFrameAtPosition(
                                                       frames: previewAnalysis
                                                           .poseFrames,
                                                       position: controller
                                                           .value.position,
                                                     );
-                                                    final frame =
-                                                        frameIndex == null
-                                                            ? null
-                                                            : previewAnalysis
-                                                                    .poseFrames[
-                                                                frameIndex];
                                                     final scheme =
                                                         Theme.of(context)
                                                             .colorScheme;
@@ -443,7 +438,7 @@ class _RunningVideoPreviewSheetState extends State<RunningVideoPreviewSheet> {
                                                       painter:
                                                           RunningPoseFrameOverlayPainter(
                                                         poseFrame: frame,
-                                                        fit: BoxFit.fill,
+                                                        fit: BoxFit.contain,
                                                         primaryColor:
                                                             scheme.primary,
                                                         secondaryColor:

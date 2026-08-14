@@ -228,7 +228,7 @@ void main() {
     );
     expect(
       derived.measurementFor(RunningAnalysisMetric.bounce).state,
-      RunningMeasurementState.estimated,
+      RunningMeasurementState.unavailable,
     );
     expect(
       derived.measurementFor(RunningAnalysisMetric.elbowAngle).state,
