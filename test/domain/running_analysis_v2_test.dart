@@ -576,6 +576,35 @@ void main() {
     expect(selected?.$1, const Duration(milliseconds: 1000));
   });
 
+  test('motion score accepts in-place cadence but rejects static jitter', () {
+    final inPlaceRunning = <RunningPoseFrame>[
+      for (var index = 0; index < 16; index += 1)
+        _poseFrame(
+          timestampMs: index * 125,
+          leftAnkleX: 0.43 + (index.isEven ? -0.08 : 0.08),
+          rightAnkleX: 0.51 + (index.isEven ? 0.08 : -0.08),
+          leftFootY: index.isEven ? 0.82 : 0.70,
+          rightFootY: index.isEven ? 0.70 : 0.82,
+          leftKneeY: index.isEven ? 0.64 : 0.58,
+          rightKneeY: index.isEven ? 0.58 : 0.64,
+        ),
+    ];
+    final staticJitter = <RunningPoseFrame>[
+      for (var index = 0; index < 16; index += 1)
+        _poseFrame(
+          timestampMs: index * 125,
+          hipCenterX: 0.47 + (((index % 5) - 2) * 0.0004),
+          leftAnkleX: 0.43 + (((index % 3) - 1) * 0.001),
+          rightAnkleX: 0.51 - (((index % 3) - 1) * 0.001),
+          leftFootY: 0.78 + (((index % 4) - 1.5) * 0.001),
+          rightFootY: 0.75 - (((index % 4) - 1.5) * 0.001),
+        ),
+    ];
+
+    expect(runningMotionScore(inPlaceRunning), greaterThan(0.5));
+    expect(runningMotionScore(staticJitter), lessThan(0.1));
+  });
+
   test('trajectory extrema estimate rhythm without validated contacts', () {
     const left = <double>[
       0.72,

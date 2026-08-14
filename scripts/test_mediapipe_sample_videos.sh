@@ -45,6 +45,11 @@ minimum_valid_frames = 6
 minimum_detected_frames = 10
 minimum_pose_frame_timestamp_span_ms = 1200
 minimum_motion_ratio = 0.12
+minimum_stationary_strict_contact_frames = 4
+minimum_stationary_contact_span_ms = 900
+minimum_stationary_periodic_joint_ratio = 0.12
+minimum_stationary_relative_foot_motion_ratio = 0.16
+minimum_stationary_phase_crossings = 2
 minimum_validated_contact_frames = 3
 minimum_contact_confidence = 0.34
 kinematic_contact_confidence_penalty = 0.82
@@ -115,6 +120,7 @@ class ContactFrame:
     foot_strike_ratio: float
     knee_angle_degrees: float
     confidence: float
+    strict: bool
 
 
 @dataclass(frozen=True)
@@ -759,7 +765,13 @@ def select_contact_frame_for_side(
         else None
     )
     strict_contact = (
-        contact_frame_from_candidate(selected, window, direction, confidence=selected.confidence)
+        contact_frame_from_candidate(
+            selected,
+            window,
+            direction,
+            confidence=selected.confidence,
+            strict=True,
+        )
         if selected is not None
         else None
     )
@@ -796,6 +808,7 @@ def select_contact_frame_for_side(
         window,
         direction,
         confidence=kinematic_candidate.confidence * kinematic_contact_confidence_penalty,
+        strict=False,
     )
 
 
@@ -926,6 +939,7 @@ def contact_frame_from_candidate(
     window: ContactWindow,
     direction: str,
     confidence: float,
+    strict: bool,
 ) -> ContactFrame | None:
     knee_angle = contact_knee_angle(candidate.sample, candidate.side)
     if knee_angle is None:
@@ -937,7 +951,165 @@ def contact_frame_from_candidate(
         foot_strike_ratio=contact_foot_strike_ratio(candidate.sample, candidate.side, direction),
         knee_angle_degrees=knee_angle,
         confidence=confidence,
+        strict=strict,
     )
+
+
+def hip_motion_ratio(samples: list[Sample]) -> float:
+    if len(samples) < 2:
+        return 0.0
+    average_scale = sum(sample.body_scale for sample in samples) / len(samples)
+    return abs(samples[-1].hip_center[0] - samples[0].hip_center[0]) / max(average_scale, 1.0)
+
+
+def normalized_landmark(sample: Sample, side: str, part: str):
+    landmark = point(sample.landmarks, side_name(side, part), sample.width, sample.height)
+    if landmark is None:
+        return None
+    scale = max(1.0, sample.body_scale)
+    return (
+        (landmark[0] - sample.hip_center[0]) / scale,
+        (landmark[1] - sample.hip_center[1]) / scale,
+    )
+
+
+def robust_range(values: list[float]) -> float:
+    if len(values) < 3:
+        return 0.0
+    low = percentile(values, 0.10)
+    high = percentile(values, 0.90)
+    if low is None or high is None:
+        return 0.0
+    return max(0.0, high - low)
+
+
+def median_crossing_count(values: list[float]) -> int:
+    if len(values) < 4:
+        return 0
+    center = percentile(values, 0.5)
+    if center is None:
+        return 0
+    spread = robust_range(values)
+    epsilon = max(0.01, spread * 0.08)
+    previous_sign = 0
+    crossings = 0
+    for value in values:
+        delta = value - center
+        sign = 1 if delta > epsilon else -1 if delta < -epsilon else 0
+        if sign == 0:
+            continue
+        if previous_sign != 0 and sign != previous_sign:
+            crossings += 1
+        previous_sign = sign
+    return crossings
+
+
+def lower_joint_periodic_evidence(samples: list[Sample]) -> tuple[float, int]:
+    best_range = 0.0
+    best_crossings = 0
+    for part in ("knee", "ankle"):
+        for axis_index in (0, 1):
+            deltas = []
+            for sample in sorted(samples, key=lambda item: item.timestamp_ms):
+                left = normalized_landmark(sample, LEFT, part)
+                right = normalized_landmark(sample, RIGHT, part)
+                if left is None or right is None:
+                    continue
+                deltas.append(left[axis_index] - right[axis_index])
+            best_range = max(best_range, robust_range(deltas))
+            best_crossings = max(best_crossings, median_crossing_count(deltas))
+    return best_range, best_crossings
+
+
+def relative_foot_motion_ratio(samples: list[Sample]) -> float:
+    best_range = 0.0
+    for side in FOOT_SIDES:
+        for part in ("ankle", "heel", "toe"):
+            for axis_index in (0, 1):
+                values = []
+                for sample in sorted(samples, key=lambda item: item.timestamp_ms):
+                    landmark = normalized_landmark(sample, side, part)
+                    if landmark is not None:
+                        values.append(landmark[axis_index])
+                best_range = max(best_range, robust_range(values))
+    return best_range
+
+
+def alternating_strict_contacts(contact_frames: list[ContactFrame]) -> list[ContactFrame]:
+    alternating: list[ContactFrame] = []
+    for frame in sorted(
+        [frame for frame in contact_frames if frame.strict],
+        key=lambda item: item.timestamp_ms,
+    ):
+        if alternating and frame.side == alternating[-1].side:
+            if frame.confidence > alternating[-1].confidence:
+                alternating[-1] = frame
+            continue
+        alternating.append(frame)
+    return alternating
+
+
+def stationary_temporal_running_evidence(
+    samples: list[Sample],
+    contact_frames: list[ContactFrame],
+    timestamp_span_ms: int,
+) -> dict:
+    strict_contacts = alternating_strict_contacts(contact_frames)
+    strict_contact_span_ms = (
+        strict_contacts[-1].timestamp_ms - strict_contacts[0].timestamp_ms
+        if len(strict_contacts) >= 2
+        else 0
+    )
+    periodic_ratio, phase_crossings = lower_joint_periodic_evidence(samples)
+    foot_motion_ratio = relative_foot_motion_ratio(samples)
+    has_strict_alternation = (
+        len(strict_contacts) >= minimum_stationary_strict_contact_frames
+        and {frame.side for frame in strict_contacts} == {LEFT, RIGHT}
+    )
+    has_temporal_span = (
+        timestamp_span_ms >= minimum_pose_frame_timestamp_span_ms
+        and strict_contact_span_ms >= minimum_stationary_contact_span_ms
+    )
+    has_periodic_limb_motion = (
+        periodic_ratio >= minimum_stationary_periodic_joint_ratio
+        and phase_crossings >= minimum_stationary_phase_crossings
+    )
+    has_relative_foot_motion = foot_motion_ratio >= minimum_stationary_relative_foot_motion_ratio
+    return {
+        "stationary_temporal_ok": has_strict_alternation
+        and has_temporal_span
+        and (has_periodic_limb_motion or has_relative_foot_motion),
+        "strict_contacts": len(strict_contacts),
+        "strict_contact_span_ms": strict_contact_span_ms,
+        "periodic_ratio": periodic_ratio,
+        "phase_crossings": phase_crossings,
+        "relative_foot_motion_ratio": foot_motion_ratio,
+    }
+
+
+def motion_gate_evidence(
+    samples: list[Sample],
+    contact_frames: list[ContactFrame],
+    timestamp_span_ms: int,
+) -> dict:
+    motion_ratio = hip_motion_ratio(samples)
+    stationary_evidence = stationary_temporal_running_evidence(
+        samples,
+        contact_frames,
+        timestamp_span_ms,
+    )
+    if motion_ratio >= minimum_motion_ratio:
+        reason = "hip"
+    elif stationary_evidence["stationary_temporal_ok"]:
+        reason = "temporal"
+    else:
+        reason = "insufficient"
+    return {
+        "ok": reason != "insufficient",
+        "reason": reason,
+        "hip_motion_ratio": motion_ratio,
+        **stationary_evidence,
+    }
 
 
 def synthetic_running_sample(
@@ -945,6 +1117,9 @@ def synthetic_running_sample(
     left_foot_y: float,
     right_foot_y: float,
     *,
+    hip_x: float = 0.50,
+    left_ankle_x: float = 0.44,
+    right_ankle_x: float = 0.54,
     hide_left_leg: bool = False,
 ) -> Sample:
     landmarks = [
@@ -952,18 +1127,18 @@ def synthetic_running_sample(
         for _ in range(media_pipe_landmark_count)
     ]
     fixed = (
-        ("left_shoulder", 0.45, 0.24),
-        ("right_shoulder", 0.55, 0.24),
-        ("left_hip", 0.46, 0.52),
-        ("right_hip", 0.54, 0.52),
-        ("left_knee", 0.45, (0.52 + left_foot_y) / 2),
-        ("right_knee", 0.55, (0.52 + right_foot_y) / 2),
-        ("left_ankle", 0.44, left_foot_y),
-        ("right_ankle", 0.54, right_foot_y),
-        ("left_heel", 0.42, left_foot_y),
-        ("right_heel", 0.52, right_foot_y),
-        ("left_toe", 0.49, left_foot_y),
-        ("right_toe", 0.59, right_foot_y),
+        ("left_shoulder", hip_x - 0.05, 0.24),
+        ("right_shoulder", hip_x + 0.05, 0.24),
+        ("left_hip", hip_x - 0.04, 0.52),
+        ("right_hip", hip_x + 0.04, 0.52),
+        ("left_knee", (hip_x + left_ankle_x) / 2, (0.52 + left_foot_y) / 2),
+        ("right_knee", (hip_x + right_ankle_x) / 2, (0.52 + right_foot_y) / 2),
+        ("left_ankle", left_ankle_x, left_foot_y),
+        ("right_ankle", right_ankle_x, right_foot_y),
+        ("left_heel", left_ankle_x - 0.02, left_foot_y),
+        ("right_heel", right_ankle_x - 0.02, right_foot_y),
+        ("left_toe", left_ankle_x + 0.05, left_foot_y),
+        ("right_toe", right_ankle_x + 0.05, right_foot_y),
     )
     for name, x, y in fixed:
         landmarks[LANDMARK[name]] = SyntheticLandmark(x, y)
@@ -1036,6 +1211,110 @@ alternate_contact = select_contact_frame_for_window(
     direction="leftToRight",
 )
 assert alternate_contact is not None and alternate_contact.side == RIGHT
+
+
+def synthetic_gait_samples(*, hip_start: float, hip_end: float) -> list[Sample]:
+    timestamps = list(range(0, 2401, dense_interval_ms))
+    samples = []
+    for index, timestamp_ms in enumerate(timestamps):
+        progress = index / max(1, len(timestamps) - 1)
+        hip_x = hip_start + ((hip_end - hip_start) * progress)
+        left_distance = min(abs(timestamp_ms - contact) for contact in left_contacts)
+        right_distance = min(abs(timestamp_ms - contact) for contact in right_contacts)
+        left_y = 0.91 if left_distance <= dense_interval_ms + 2 else 0.70
+        right_y = 0.91 if right_distance <= dense_interval_ms + 2 else 0.70
+        swing = math.sin((timestamp_ms / 800.0) * math.tau)
+        samples.append(
+            synthetic_running_sample(
+                timestamp_ms,
+                left_y,
+                right_y,
+                hip_x=hip_x,
+                left_ankle_x=hip_x - 0.06 - (swing * 0.035),
+                right_ankle_x=hip_x + 0.06 + (swing * 0.035),
+            )
+        )
+    return samples
+
+
+def synthetic_static_jitter_samples() -> list[Sample]:
+    samples = []
+    for index, timestamp_ms in enumerate(range(0, 2401, dense_interval_ms)):
+        jitter = ((index % 5) - 2) * 0.0007
+        samples.append(
+            synthetic_running_sample(
+                timestamp_ms,
+                0.89 + jitter,
+                0.89 - jitter,
+                hip_x=0.50 + (jitter * 0.2),
+                left_ankle_x=0.44 + (jitter * 0.4),
+                right_ankle_x=0.54 - (jitter * 0.4),
+            )
+        )
+    return samples
+
+
+def synthetic_motion_gate(samples: list[Sample]) -> tuple[dict, list[ContactFrame], list[ContactWindow]]:
+    duration_ms = samples[-1].timestamp_ms
+    windows = [
+        ContactWindow(
+            side=LEFT,
+            center_timestamp_ms=timestamp_ms,
+            start_timestamp_ms=max(0, timestamp_ms - 100),
+            end_timestamp_ms=min(duration_ms, timestamp_ms + 100),
+            confidence=1.0,
+        )
+        for timestamp_ms in left_contacts
+    ] + [
+        ContactWindow(
+            side=RIGHT,
+            center_timestamp_ms=timestamp_ms,
+            start_timestamp_ms=max(0, timestamp_ms - 100),
+            end_timestamp_ms=min(duration_ms, timestamp_ms + 100),
+            confidence=1.0,
+        )
+        for timestamp_ms in right_contacts
+    ]
+    windows = sorted(windows, key=lambda item: item.center_timestamp_ms)
+    ground_line = GroundLine(slope=0.0, intercept=samples[0].height * 0.91)
+    contacts = validate_contact_frames(
+        samples,
+        windows=windows,
+        ground_line=ground_line,
+        direction=resolve_direction(samples),
+    )
+    timestamps = [sample.timestamp_ms for sample in samples]
+    evidence = motion_gate_evidence(
+        samples,
+        contacts,
+        timestamp_span_ms=timestamps[-1] - timestamps[0],
+    )
+    return evidence, contacts, windows
+
+
+horizontal_evidence, _horizontal_contacts, _horizontal_windows = synthetic_motion_gate(
+    synthetic_gait_samples(hip_start=0.38, hip_end=0.58)
+)
+assert horizontal_evidence["ok"] and horizontal_evidence["reason"] == "hip", (
+    f"horizontal synthetic runner should pass with hip motion: {horizontal_evidence}"
+)
+
+stationary_evidence, _stationary_contacts, _stationary_windows = synthetic_motion_gate(
+    synthetic_gait_samples(hip_start=0.50, hip_end=0.50)
+)
+assert stationary_evidence["hip_motion_ratio"] < minimum_motion_ratio
+assert stationary_evidence["ok"] and stationary_evidence["reason"] == "temporal", (
+    f"stationary synthetic runner should pass with temporal proof: "
+    f"{stationary_evidence}, contacts={_stationary_contacts}, windows={_stationary_windows}"
+)
+
+jitter_evidence, _jitter_contacts, _jitter_windows = synthetic_motion_gate(
+    synthetic_static_jitter_samples()
+)
+assert not jitter_evidence["ok"], (
+    f"static jitter must not replace hip motion: "
+    f"{jitter_evidence}, contacts={_jitter_contacts}, windows={_jitter_windows}"
+)
 
 
 overall_ok = True
@@ -1114,12 +1393,11 @@ for video in videos:
         if contact_frames
         else 0.0
     )
-    motion_ratio = 0.0
-    if len(coarse_pass["samples"]) >= 2:
-        first = coarse_pass["samples"][0]
-        last = coarse_pass["samples"][-1]
-        average_scale = sum(sample.body_scale for sample in coarse_pass["samples"]) / len(coarse_pass["samples"])
-        motion_ratio = abs(last.hip_center[0] - first.hip_center[0]) / max(average_scale, 1.0)
+    motion_evidence = motion_gate_evidence(
+        coarse_pass["samples"],
+        contact_frames,
+        timestamp_span_ms,
+    )
 
     status = "PASS" if (
         coarse_pass["detected"] >= minimum_detected_frames
@@ -1134,7 +1412,7 @@ for video in videos:
         and foot_knee_from_dense
         and timestamps_increasing
         and timestamp_span_ms >= minimum_pose_frame_timestamp_span_ms
-        and motion_ratio >= minimum_motion_ratio
+        and motion_evidence["ok"]
     ) else "FAIL"
     overall_ok = overall_ok and status == "PASS"
     print(
@@ -1142,12 +1420,20 @@ for video in videos:
         f"dense={len(dense_pass['samples'])}/{len(dense_timestamps)} "
         f"budget={len(dense_timestamps)}/{max_dense_frame_budget} "
         f"windows={len(windows)} contactFrames={len(contact_frames)} "
+        f"strictContacts={motion_evidence['strict_contacts']} "
         f"boundedEvents={len(contact_frames)}/{len(windows)} "
         f"contactConfidence={contact_confidence:.3f} "
         f"footStrike={foot_strike:.3f} stanceKnee={stance_knee:.1f} "
         f"footKneeSource=dense_contact_frames "
         f"monotonic={timestamps_increasing and dense_timestamps_increasing} "
-        f"hipMotionRatio={motion_ratio:.3f} status={status}"
+        f"hipMotionRatio={motion_evidence['hip_motion_ratio']:.3f} "
+        f"motionGate={motion_evidence['reason']} "
+        f"stationaryTemporal="
+        f"{motion_evidence['strict_contact_span_ms']}ms/"
+        f"{motion_evidence['periodic_ratio']:.3f}/"
+        f"{motion_evidence['phase_crossings']}/"
+        f"{motion_evidence['relative_foot_motion_ratio']:.3f} "
+        f"status={status}"
     )
 
 if not overall_ok:
