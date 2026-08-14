@@ -15096,6 +15096,30 @@ abstract class AppLocalizations {
   /// **'Side view not measured'**
   String get runningCoachCaptureFramingSideUnknown;
 
+  /// No description provided for @runningCoachCaptureFramingVideoQualityGood.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear and steady'**
+  String get runningCoachCaptureFramingVideoQualityGood;
+
+  /// No description provided for @runningCoachCaptureFramingVideoQualityWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold camera steady'**
+  String get runningCoachCaptureFramingVideoQualityWarning;
+
+  /// No description provided for @runningCoachCaptureFramingVideoQualityLowConfidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Improve light; avoid blur or blocking'**
+  String get runningCoachCaptureFramingVideoQualityLowConfidence;
+
+  /// No description provided for @runningCoachCaptureFramingVideoQualityUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Clarity not measured'**
+  String get runningCoachCaptureFramingVideoQualityUnknown;
+
   /// No description provided for @runningCoachCaptureFramingCheckWarning.
   ///
   /// In en, this message translates to:

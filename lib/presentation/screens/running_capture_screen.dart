@@ -67,6 +67,7 @@ class _RunningCaptureScreenState extends State<RunningCaptureScreen>
   bool _livePoseUnavailable = false;
   DateTime? _lastLiveFrameSentAt;
   RunningPoseFrame? _livePoseFrame;
+  RunningPoseFrame? _previousLivePoseFrame;
   String? _livePoseErrorCode;
 
   static const _liveFrameInterval = Duration(milliseconds: 1100);
@@ -186,6 +187,7 @@ class _RunningCaptureScreenState extends State<RunningCaptureScreen>
         _controller = controller;
         _isInitializing = false;
         _livePoseFrame = null;
+        _previousLivePoseFrame = null;
         _livePoseErrorCode = null;
         _livePoseUnavailable = false;
       });
@@ -269,6 +271,7 @@ class _RunningCaptureScreenState extends State<RunningCaptureScreen>
       );
       if (!mounted || session != _cameraSession) return;
       setState(() {
+        _previousLivePoseFrame = _livePoseFrame;
         _livePoseFrame = poseFrame;
         _livePoseErrorCode = poseFrame == null ? 'no_pose_detected' : null;
       });
@@ -605,6 +608,7 @@ class _RunningCaptureScreenState extends State<RunningCaptureScreen>
                   status: _captureFramingStatus(
                     controller: controller,
                     poseFrame: _livePoseFrame,
+                    previousPoseFrame: _previousLivePoseFrame,
                     livePoseUnavailable:
                         _livePoseUnavailable || !_isSupportedPlatform,
                     livePoseActive: _liveFramingActive,
@@ -751,6 +755,7 @@ enum _CaptureFramingCheckKind {
   runnerScale,
   landmarksVisible,
   sideView,
+  videoQuality,
 }
 
 enum _CaptureFramingCheckState { good, warning, unknown }
@@ -788,6 +793,7 @@ class _CaptureFramingCheck {
 _CaptureFramingStatus _captureFramingStatus({
   required CameraController? controller,
   required RunningPoseFrame? poseFrame,
+  RunningPoseFrame? previousPoseFrame,
   required bool livePoseUnavailable,
   required bool livePoseActive,
   required String? livePoseErrorCode,
@@ -828,6 +834,10 @@ _CaptureFramingStatus _captureFramingStatus({
           kind: _CaptureFramingCheckKind.sideView,
           state: _CaptureFramingCheckState.unknown,
         ),
+        _CaptureFramingCheck(
+          kind: _CaptureFramingCheckKind.videoQuality,
+          state: _CaptureFramingCheckState.unknown,
+        ),
       ],
     );
     return _CaptureFramingStatus(
@@ -866,6 +876,11 @@ _CaptureFramingStatus _captureFramingStatus({
           : _CaptureFramingCheckState.warning,
       code: poseQuality.isSideView ? null : 'not_side_view',
     ),
+    _CaptureFramingCheck(
+      kind: _CaptureFramingCheckKind.videoQuality,
+      state: poseQuality.videoQualityState(previousPoseFrame),
+      code: poseQuality.videoQualityCode(previousPoseFrame),
+    ),
   ]);
   return _CaptureFramingStatus(
     livePoseUnavailable: livePoseUnavailable,
@@ -893,6 +908,9 @@ class _LivePoseFramingQuality {
   static const _idealMaximumRunnerHeight = 0.78;
   static const _maximumRunnerHeight = 0.88;
   static const _maximumSidePairRatio = 0.22;
+  static const _minimumClearPoseConfidence = 0.55;
+  static const _maximumStableCenterShift = 0.42;
+  static const _maximumStableScaleChange = 0.32;
 
   Rect? get _bounds {
     if (_visibleLandmarks.isEmpty) return null;
@@ -966,6 +984,42 @@ class _LivePoseFramingQuality {
     return pairRatio <= _maximumSidePairRatio;
   }
 
+  _CaptureFramingCheckState videoQualityState(RunningPoseFrame? previous) {
+    final code = videoQualityCode(previous);
+    if (code == null) return _CaptureFramingCheckState.good;
+    if (previous == null) return _CaptureFramingCheckState.unknown;
+    return _CaptureFramingCheckState.warning;
+  }
+
+  String? videoQualityCode(RunningPoseFrame? previous) {
+    if (previous == null) return 'video_quality_not_measured';
+    final currentConfidence = _averageRequiredLandmarkConfidence(frame);
+    final previousConfidence = _averageRequiredLandmarkConfidence(previous);
+    if (currentConfidence < _minimumClearPoseConfidence ||
+        previousConfidence < _minimumClearPoseConfidence) {
+      return 'low_tracking_confidence';
+    }
+    final currentCenter = _torsoCenter(frame);
+    final previousCenter = _torsoCenter(previous);
+    final currentScale = _torsoScale(frame);
+    final previousScale = _torsoScale(previous);
+    if (currentCenter == null ||
+        previousCenter == null ||
+        currentScale == null ||
+        previousScale == null) {
+      return 'low_tracking_confidence';
+    }
+    final averageScale = math.max(0.001, (currentScale + previousScale) / 2);
+    final centerShift = (currentCenter - previousCenter).distance;
+    final scaleChange =
+        (currentScale - previousScale).abs() / math.max(0.001, previousScale);
+    if (centerShift / averageScale > _maximumStableCenterShift ||
+        scaleChange > _maximumStableScaleChange) {
+      return 'camera_unstable';
+    }
+    return null;
+  }
+
   bool _hasConfidentLandmark(int index) {
     final landmark = frame.landmarkByIndex(index);
     return landmark != null &&
@@ -984,6 +1038,65 @@ class _LivePoseFramingQuality {
       return null;
     }
     return (first.x - second.x).abs();
+  }
+
+  double _averageRequiredLandmarkConfidence(RunningPoseFrame source) {
+    final confidences = const <int>[
+      0,
+      11,
+      12,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+    ]
+        .map(source.landmarkByIndex)
+        .whereType<RunningVideoPoseLandmark>()
+        .map((landmark) => landmark.confidence)
+        .where((confidence) => confidence.isFinite)
+        .toList(growable: false);
+    if (confidences.isEmpty) return 0;
+    return confidences.fold<double>(0, (sum, value) => sum + value) /
+        confidences.length;
+  }
+
+  Offset? _torsoCenter(RunningPoseFrame source) {
+    final shoulder = _averagePoint(source, 11, 12);
+    final hip = _averagePoint(source, 23, 24);
+    if (shoulder == null || hip == null) return null;
+    return Offset((shoulder.dx + hip.dx) / 2, (shoulder.dy + hip.dy) / 2);
+  }
+
+  double? _torsoScale(RunningPoseFrame source) {
+    final shoulder = _averagePoint(source, 11, 12);
+    final hip = _averagePoint(source, 23, 24);
+    if (shoulder == null || hip == null) return null;
+    return (shoulder - hip).distance;
+  }
+
+  Offset? _averagePoint(
+    RunningPoseFrame source,
+    int firstIndex,
+    int secondIndex,
+  ) {
+    final first = source.landmarkByIndex(firstIndex);
+    final second = source.landmarkByIndex(secondIndex);
+    if (first == null ||
+        second == null ||
+        first.confidence < runningLiveFramingMinimumConfidence ||
+        second.confidence < runningLiveFramingMinimumConfidence) {
+      return null;
+    }
+    return Offset(
+      (first.x + second.x) / 2,
+      (first.y + second.y) / 2,
+    );
   }
 }
 
@@ -1010,7 +1123,8 @@ class _CaptureFramingStatusPanel extends StatelessWidget {
           (check) =>
               check.kind == _CaptureFramingCheckKind.fullBodySafe ||
               check.kind == _CaptureFramingCheckKind.runnerScale ||
-              check.kind == _CaptureFramingCheckKind.sideView,
+              check.kind == _CaptureFramingCheckKind.sideView ||
+              check.kind == _CaptureFramingCheckKind.videoQuality,
         )
         .toList(growable: false);
     _CaptureFramingCheck? priorityWarning;
@@ -1181,6 +1295,8 @@ String _framingCheckText(
         l10n.runningCoachCaptureFramingLandmarksUnknown,
       _CaptureFramingCheckKind.sideView =>
         l10n.runningCoachCaptureFramingSideUnknown,
+      _CaptureFramingCheckKind.videoQuality =>
+        l10n.runningCoachCaptureFramingVideoQualityUnknown,
       _ => l10n.runningCoachCaptureFramingNotMeasured,
     };
   }
@@ -1198,6 +1314,8 @@ String _framingCheckText(
         l10n.runningCoachCaptureFramingLandmarksGood,
       _CaptureFramingCheckKind.sideView =>
         l10n.runningCoachCaptureFramingSideGood,
+      _CaptureFramingCheckKind.videoQuality =>
+        l10n.runningCoachCaptureFramingVideoQualityGood,
     };
   }
   return switch (check.code) {
@@ -1207,6 +1325,9 @@ String _framingCheckText(
     'runner_too_large' => l10n.runningCoachCaptureFramingScaleTooLarge,
     'missing_landmarks' => l10n.runningCoachCaptureFramingLandmarksWarning,
     'not_side_view' => l10n.runningCoachCaptureFramingSideWarning,
+    'low_tracking_confidence' =>
+      l10n.runningCoachCaptureFramingVideoQualityLowConfidence,
+    'camera_unstable' => l10n.runningCoachCaptureFramingVideoQualityWarning,
     _ => l10n.runningCoachCaptureFramingCheckWarning,
   };
 }
@@ -1214,6 +1335,7 @@ String _framingCheckText(
 @visibleForTesting
 Widget runningCaptureFramingStatusPanelForTesting({
   required RunningPoseFrame? poseFrame,
+  RunningPoseFrame? previousPoseFrame,
   bool livePoseUnavailable = false,
   bool livePoseActive = true,
   String? livePoseErrorCode,
@@ -1225,6 +1347,7 @@ Widget runningCaptureFramingStatusPanelForTesting({
     livePoseErrorCode: livePoseErrorCode,
     checks: _captureFramingStatusForTesting(
       poseFrame: poseFrame,
+      previousPoseFrame: previousPoseFrame,
       livePoseUnavailable: livePoseUnavailable,
       isPhoneUpright: isPhoneUpright,
     ),
@@ -1237,12 +1360,14 @@ Widget runningCaptureFramingStatusPanelForTesting({
 
 List<_CaptureFramingCheck> _captureFramingStatusForTesting({
   required RunningPoseFrame? poseFrame,
+  RunningPoseFrame? previousPoseFrame,
   required bool livePoseUnavailable,
   required bool isPhoneUpright,
 }) {
   final checks = _captureFramingStatus(
     controller: null,
     poseFrame: poseFrame,
+    previousPoseFrame: previousPoseFrame,
     livePoseUnavailable: livePoseUnavailable,
     livePoseActive: true,
     livePoseErrorCode: null,

@@ -8628,6 +8628,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachCaptureFramingSideUnknown => 'Side view not measured';
 
   @override
+  String get runningCoachCaptureFramingVideoQualityGood => 'Clear and steady';
+
+  @override
+  String get runningCoachCaptureFramingVideoQualityWarning =>
+      'Hold camera steady';
+
+  @override
+  String get runningCoachCaptureFramingVideoQualityLowConfidence =>
+      'Improve light; avoid blur or blocking';
+
+  @override
+  String get runningCoachCaptureFramingVideoQualityUnknown =>
+      'Clarity not measured';
+
+  @override
   String get runningCoachCaptureFramingCheckWarning => 'Check framing';
 
   @override
