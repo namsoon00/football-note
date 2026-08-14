@@ -16457,6 +16457,18 @@ abstract class AppLocalizations {
   String runningCoachEvidenceImageViewerMetadata(
       String kind, String role, String side, String time);
 
+  /// No description provided for @runningCoachEvidenceFocusView.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom to runner'**
+  String get runningCoachEvidenceFocusView;
+
+  /// No description provided for @runningCoachEvidenceOriginalView.
+  ///
+  /// In en, this message translates to:
+  /// **'Show full frame'**
+  String get runningCoachEvidenceOriginalView;
+
   /// No description provided for @runningCoachEvidenceOverlayOn.
   ///
   /// In en, this message translates to:

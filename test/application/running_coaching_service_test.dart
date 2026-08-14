@@ -272,7 +272,8 @@ void main() {
         report.focusPriorityByMetric[RunningCoachMetric.kneeFlexion], isNull);
   });
 
-  test('v2 withholds score when only estimated metrics are available', () {
+  test('v2 produces estimated score from coordinate-backed estimated metrics',
+      () {
     const estimatedQuality = RunningMetricQuality(
       confidence: 0.58,
       sampleCount: 6,
@@ -348,10 +349,250 @@ void main() {
 
     final report = service.buildReport(result);
 
+    expect(report.scoreStatus, RunningCoachScoreStatus.estimated);
+    expect(report.estimatedScore, greaterThan(0));
+    expect(report.overallScore, 0);
+    expect(report.primaryFocus, isNotNull);
+  });
+
+  test('v2 estimated score skips one unavailable metric without zeroing it',
+      () {
+    const estimatedQuality = RunningMetricQuality(
+      confidence: 0.58,
+      sampleCount: 6,
+      reason: 'too_small_runner',
+    );
+    const unavailableQuality = RunningMetricQuality(
+      confidence: 0,
+      sampleCount: 0,
+      reason: 'coordinates_unavailable',
+    );
+    const result = RunningVideoAnalysisResult(
+      analysisVersion: runningAnalysisVersionV2,
+      videoDuration: Duration(seconds: 8),
+      sampledFrames: 64,
+      validFrames: 42,
+      direction: RunningDirection.leftToRight,
+      forwardLeanDegrees: 9,
+      verticalBounceRatio: 0,
+      footStrikeDistanceRatio: 0.09,
+      stanceKneeAngleDegrees: 154,
+      elbowAngleDegrees: 94,
+      metricQualities: <RunningCoachMetric, RunningMetricQuality>{
+        RunningCoachMetric.posture: estimatedQuality,
+        RunningCoachMetric.bounce: unavailableQuality,
+        RunningCoachMetric.footStrike: estimatedQuality,
+        RunningCoachMetric.kneeFlexion: estimatedQuality,
+        RunningCoachMetric.armCarriage: estimatedQuality,
+      },
+      measurements: <RunningAnalysisMetric, RunningMetricMeasurement>{
+        RunningAnalysisMetric.posture: RunningMetricMeasurement(
+          metric: RunningAnalysisMetric.posture,
+          state: RunningMeasurementState.estimated,
+          value: 9,
+          expectedRange: RunningExpectedRange(lower: 8, upper: 11),
+          confidence: 0.58,
+          sampleCount: 6,
+          method: 'stable_segment_trunk_median',
+          evidenceTimestamps: <Duration>[Duration(milliseconds: 500)],
+        ),
+        RunningAnalysisMetric.bounce: RunningMetricMeasurement.unavailable(
+          metric: RunningAnalysisMetric.bounce,
+          method: 'scale_drift_corrected_trajectory',
+          reason: 'coordinates_unavailable',
+        ),
+        RunningAnalysisMetric.footStrike: RunningMetricMeasurement(
+          metric: RunningAnalysisMetric.footStrike,
+          state: RunningMeasurementState.estimated,
+          value: 0.09,
+          expectedRange: RunningExpectedRange(lower: 0.07, upper: 0.12),
+          confidence: 0.54,
+          sampleCount: 4,
+          method: 'coarse_kinematic_contact_estimate',
+          evidenceTimestamps: <Duration>[Duration(milliseconds: 650)],
+        ),
+        RunningAnalysisMetric.kneeAtContact: RunningMetricMeasurement(
+          metric: RunningAnalysisMetric.kneeAtContact,
+          state: RunningMeasurementState.estimated,
+          value: 154,
+          expectedRange: RunningExpectedRange(lower: 150, upper: 158),
+          confidence: 0.54,
+          sampleCount: 4,
+          method: 'coarse_kinematic_contact_estimate',
+          evidenceTimestamps: <Duration>[Duration(milliseconds: 650)],
+        ),
+        RunningAnalysisMetric.elbowAngle: RunningMetricMeasurement(
+          metric: RunningAnalysisMetric.elbowAngle,
+          state: RunningMeasurementState.estimated,
+          value: 94,
+          expectedRange: RunningExpectedRange(lower: 88, upper: 101),
+          confidence: 0.57,
+          sampleCount: 6,
+          method: 'bilateral_elbow_angle_median',
+          evidenceTimestamps: <Duration>[Duration(milliseconds: 625)],
+        ),
+      },
+    );
+
+    final report = service.buildReport(result);
+
+    expect(report.scoreStatus, RunningCoachScoreStatus.estimated);
+    expect(report.estimatedScore, greaterThan(0));
+    expect(report.overallScore, 0);
+    expect(
+      report.estimatedScore,
+      greaterThan(50),
+      reason: 'The unavailable bounce metric must not be treated as zero.',
+    );
+  });
+
+  test('v2 excludes coordinate-unavailable metrics from estimated score', () {
+    const estimatedQuality = RunningMetricQuality(
+      confidence: 0.58,
+      sampleCount: 6,
+      reason: 'coarse_pose_estimate',
+    );
+    const unavailableQuality = RunningMetricQuality(
+      confidence: 0,
+      sampleCount: 0,
+      reason: 'coordinates_unavailable',
+    );
+    const result = RunningVideoAnalysisResult(
+      analysisVersion: runningAnalysisVersionV2,
+      videoDuration: Duration(seconds: 8),
+      sampledFrames: 64,
+      validFrames: 42,
+      direction: RunningDirection.leftToRight,
+      forwardLeanDegrees: 9,
+      verticalBounceRatio: 0.06,
+      footStrikeDistanceRatio: 0,
+      stanceKneeAngleDegrees: 0,
+      elbowAngleDegrees: 0,
+      metricQualities: <RunningCoachMetric, RunningMetricQuality>{
+        RunningCoachMetric.posture: estimatedQuality,
+        RunningCoachMetric.bounce: estimatedQuality,
+        RunningCoachMetric.footStrike: unavailableQuality,
+        RunningCoachMetric.kneeFlexion: unavailableQuality,
+        RunningCoachMetric.armCarriage: unavailableQuality,
+      },
+      measurements: <RunningAnalysisMetric, RunningMetricMeasurement>{
+        RunningAnalysisMetric.posture: RunningMetricMeasurement(
+          metric: RunningAnalysisMetric.posture,
+          state: RunningMeasurementState.estimated,
+          value: 9,
+          expectedRange: RunningExpectedRange(lower: 8, upper: 11),
+          confidence: 0.58,
+          sampleCount: 6,
+          method: 'stable_segment_trunk_median',
+          evidenceTimestamps: <Duration>[Duration(milliseconds: 500)],
+        ),
+        RunningAnalysisMetric.bounce: RunningMetricMeasurement(
+          metric: RunningAnalysisMetric.bounce,
+          state: RunningMeasurementState.estimated,
+          value: 6,
+          expectedRange: RunningExpectedRange(lower: 5.8, upper: 7.4),
+          confidence: 0.56,
+          sampleCount: 6,
+          method: 'scale_drift_corrected_trajectory',
+          evidenceTimestamps: <Duration>[Duration(milliseconds: 750)],
+        ),
+        RunningAnalysisMetric.footStrike: RunningMetricMeasurement.unavailable(
+          metric: RunningAnalysisMetric.footStrike,
+          method: 'dense_contact_weighted_median',
+          reason: 'coordinates_unavailable',
+        ),
+        RunningAnalysisMetric.kneeAtContact:
+            RunningMetricMeasurement.unavailable(
+          metric: RunningAnalysisMetric.kneeAtContact,
+          method: 'dense_contact_weighted_median',
+          reason: 'coordinates_unavailable',
+        ),
+        RunningAnalysisMetric.elbowAngle: RunningMetricMeasurement.unavailable(
+          metric: RunningAnalysisMetric.elbowAngle,
+          method: 'bilateral_elbow_angle_median',
+          reason: 'coordinates_unavailable',
+        ),
+      },
+    );
+
+    final report = service.buildReport(result);
+
     expect(report.scoreStatus, RunningCoachScoreStatus.unavailable);
     expect(report.estimatedScore, isNull);
-    expect(report.overallScore, 0);
-    expect(report.primaryFocus, isNull);
+  });
+
+  test('v2 identity risk excludes estimated score', () {
+    const estimatedQuality = RunningMetricQuality(
+      confidence: 0.58,
+      sampleCount: 6,
+      reason: 'coarse_pose_estimate',
+    );
+    const result = RunningVideoAnalysisResult(
+      analysisVersion: runningAnalysisVersionV2,
+      videoDuration: Duration(seconds: 8),
+      sampledFrames: 64,
+      validFrames: 42,
+      direction: RunningDirection.leftToRight,
+      forwardLeanDegrees: 9,
+      verticalBounceRatio: 0.06,
+      footStrikeDistanceRatio: 0,
+      stanceKneeAngleDegrees: 0,
+      elbowAngleDegrees: 94,
+      perspectiveQuality: RunningVideoPerspectiveQuality(
+        evaluatedFrameCount: 42,
+        medianBodyScaleRatio: 0.1,
+        minBodyScaleRatio: 0.08,
+        visibilityCoverage: 0.9,
+        sideViewScore: 0.8,
+        scaleDriftRatio: 0.1,
+        cutOffFrameRatio: 0,
+        issues: <RunningVideoQualityIssue>[
+          RunningVideoQualityIssue.targetIdentityUnstable,
+        ],
+      ),
+      metricQualities: <RunningCoachMetric, RunningMetricQuality>{
+        RunningCoachMetric.posture: estimatedQuality,
+        RunningCoachMetric.bounce: estimatedQuality,
+        RunningCoachMetric.armCarriage: estimatedQuality,
+      },
+      measurements: <RunningAnalysisMetric, RunningMetricMeasurement>{
+        RunningAnalysisMetric.posture: RunningMetricMeasurement(
+          metric: RunningAnalysisMetric.posture,
+          state: RunningMeasurementState.estimated,
+          value: 9,
+          expectedRange: RunningExpectedRange(lower: 8, upper: 11),
+          confidence: 0.58,
+          sampleCount: 6,
+          method: 'stable_segment_trunk_median',
+          evidenceTimestamps: <Duration>[Duration(milliseconds: 500)],
+        ),
+        RunningAnalysisMetric.bounce: RunningMetricMeasurement(
+          metric: RunningAnalysisMetric.bounce,
+          state: RunningMeasurementState.estimated,
+          value: 6,
+          expectedRange: RunningExpectedRange(lower: 5.8, upper: 7.4),
+          confidence: 0.56,
+          sampleCount: 6,
+          method: 'scale_drift_corrected_trajectory',
+          evidenceTimestamps: <Duration>[Duration(milliseconds: 750)],
+        ),
+        RunningAnalysisMetric.elbowAngle: RunningMetricMeasurement(
+          metric: RunningAnalysisMetric.elbowAngle,
+          state: RunningMeasurementState.estimated,
+          value: 94,
+          expectedRange: RunningExpectedRange(lower: 88, upper: 101),
+          confidence: 0.57,
+          sampleCount: 6,
+          method: 'bilateral_elbow_angle_median',
+          evidenceTimestamps: <Duration>[Duration(milliseconds: 625)],
+        ),
+      },
+    );
+
+    final report = service.buildReport(result);
+
+    expect(report.scoreStatus, RunningCoachScoreStatus.unavailable);
+    expect(report.estimatedScore, isNull);
   });
 
   test('v2 produces a score from enough reliable confirmed metrics', () {

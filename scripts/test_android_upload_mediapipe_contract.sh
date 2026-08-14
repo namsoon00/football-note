@@ -250,16 +250,29 @@ require(
     "iOS upload analysis must scan 60-second clips at a documented 8 fps budget",
 )
 require(
-    re.search(r"private const val previewPoseFrameIntervalMs\s*=\s*250L\b", channel_text) is not None
-    and re.search(r"private const val maxPreviewPoseFrameBudget\s*=\s*37\b", channel_text) is not None
+    re.search(r"private const val previewPoseFrameIntervalMs\s*=\s*125L\b", channel_text) is not None
+    and re.search(r"private const val maxPreviewPoseFrameBudget\s*=\s*121\b", channel_text) is not None
+    and re.search(r"private const val previewPoseRecoveryFrameIntervalMs\s*=\s*67L\b", channel_text) is not None
+    and re.search(r"private const val maxPreviewRecoveryPoseFrameBudget\s*=\s*48\b", channel_text) is not None
     and re.search(r"private const val previewPoseSafeInsetMs\s*=\s*150L\b", channel_text) is not None,
-    "Android preview pose analysis must use bounded dense interior timestamps",
+    "Android preview pose analysis must use bounded dense interior timestamps with recovery",
 )
 require(
-    re.search(r"private static let previewPoseFrameIntervalMs\s*=\s*250\b", ios_text) is not None
-    and re.search(r"private static let maxPreviewPoseFrameBudget\s*=\s*37\b", ios_text) is not None
+    re.search(r"private static let previewPoseFrameIntervalMs\s*=\s*125\b", ios_text) is not None
+    and re.search(r"private static let maxPreviewPoseFrameBudget\s*=\s*121\b", ios_text) is not None
+    and re.search(r"private static let previewPoseRecoveryFrameIntervalMs\s*=\s*67\b", ios_text) is not None
+    and re.search(r"private static let maxPreviewRecoveryPoseFrameBudget\s*=\s*48\b", ios_text) is not None
     and re.search(r"private static let previewPoseSafeInsetMs\s*=\s*150\b", ios_text) is not None,
-    "iOS preview pose analysis must use bounded dense interior timestamps",
+    "iOS preview pose analysis must use bounded dense interior timestamps with recovery",
+)
+require(
+    "previewPoseRecoveryTimestamps" in channel_text
+    and "previewPoseRecoveryTimestamps" in ios_text
+    and "previewPass.poseFrames" in channel_text
+    and "recoveryPass.poseFrames" in channel_text
+    and "previewPass.poseFrames" in ios_text
+    and "recoveryPass.poseFrames" in ios_text,
+    "Android/iOS preview pose analysis must retry a bounded recovery pass before declaring pose unavailable",
 )
 require(
     "normalizedShoulderYs" not in channel_text
@@ -393,6 +406,13 @@ require(
     and '"not_side_on"' in channel_text and '"not_side_on"' in ios_text
     and '"scale_drift"' in channel_text and '"scale_drift"' in ios_text,
     "Android/iOS analyzers must emit perspective quality limitations",
+)
+require(
+    'if (reason == "too_small_runner") 0.0 else 0.55' not in channel_text
+    and 'reason == "too_small_runner" ? 0 : 0.55' not in ios_text
+    and "confidence = min(confidence, 0.55)" in channel_text
+    and "confidence: min(confidence, 0.55)" in ios_text,
+    "Android/iOS too-small perspective quality must remain a low-confidence estimate, not confidence zero",
 )
 require(
     re.search(

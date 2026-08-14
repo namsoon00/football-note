@@ -9215,6 +9215,12 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get runningCoachEvidenceFocusView => '러너 확대 보기';
+
+  @override
+  String get runningCoachEvidenceOriginalView => '전체 프레임 보기';
+
+  @override
   String get runningCoachEvidenceOverlayOn => '오버레이 보기';
 
   @override

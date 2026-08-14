@@ -84,46 +84,56 @@ Future<RunningCoachEvidenceArchiveResult> archiveRunningCoachEvidenceImages({
         : null;
     final unresolved = uniqueTimestamps.toSet();
     Uint8List? sourceBytes;
+    Future<JSAny?> extractRawFrames(
+      JSString timestampsJson,
+      int quality,
+    ) async {
+      if (RunningVideoAnalysisService.isReusableBrowserVideoUrl(path)) {
+        try {
+          return await bridge
+              .extractEvidenceFramesFromUrl(
+                path.toJS,
+                source.name.toJS,
+                timestampsJson,
+                quality.toJS,
+              )
+              .toDart;
+        } catch (_) {
+          failureCode ??= 'web_evidence_url_failed';
+        }
+      }
+      final length = await source.length();
+      if (length > _maximumWebEvidenceByteFallback) {
+        failureCode ??= 'web_evidence_url_required';
+        return null;
+      }
+      sourceBytes ??= await source.readAsBytes();
+      if (sourceBytes == null || sourceBytes!.isEmpty) {
+        failureCode ??= 'source_video_unavailable';
+        return null;
+      }
+      try {
+        return await bridge
+            .extractEvidenceFrames(
+              sourceBytes!.toJS,
+              source.name.toJS,
+              timestampsJson,
+              quality.toJS,
+            )
+            .toDart;
+      } catch (_) {
+        failureCode ??= 'web_evidence_extraction_failed';
+        return null;
+      }
+    }
+
     for (final quality in _webEvidenceRetryQualities) {
       if (unresolved.isEmpty) break;
       final timestampsJson = jsonEncode(
         unresolved.toList(growable: false)..sort(),
       ).toJS;
-      final JSAny? raw;
-      if (RunningVideoAnalysisService.isReusableBrowserVideoUrl(path)) {
-        raw = await bridge
-            .extractEvidenceFramesFromUrl(
-              path.toJS,
-              source.name.toJS,
-              timestampsJson,
-              quality.toJS,
-            )
-            .toDart;
-      } else {
-        final length = await source.length();
-        if (length > _maximumWebEvidenceByteFallback) {
-          return RunningCoachEvidenceArchiveResult.failed(
-            requestedCount: requests.length,
-            failureCode: 'web_evidence_url_required',
-          );
-        }
-        sourceBytes ??= await source.readAsBytes();
-        if (sourceBytes.isEmpty) {
-          return RunningCoachEvidenceArchiveResult.failed(
-            requestedCount: requests.length,
-            failureCode: 'source_video_unavailable',
-          );
-        }
-        raw = await bridge
-            .extractEvidenceFrames(
-              sourceBytes.toJS,
-              source.name.toJS,
-              timestampsJson,
-              quality.toJS,
-            )
-            .toDart;
-      }
-      final converted = raw.dartify();
+      final raw = await extractRawFrames(timestampsJson, quality);
+      final converted = raw?.dartify();
       if (converted is! List) {
         failureCode ??= 'web_evidence_extraction_failed';
         continue;
@@ -147,13 +157,19 @@ Future<RunningCoachEvidenceArchiveResult> archiveRunningCoachEvidenceImages({
           failureCode ??= 'web_evidence_storage_limit';
           continue;
         }
-        final storageReference = 'idb:$sessionId:$timestampMs';
-        final stored = await bridge
-            .storeEvidenceFrame(storageReference.toJS, dataUrl.toJS)
-            .toDart;
-        if (stored.dartify()?.toString() != storageReference) {
+        final idbReference = 'idb:$sessionId:$timestampMs';
+        var storageReference = idbReference;
+        try {
+          final stored = await bridge
+              .storeEvidenceFrame(idbReference.toJS, dataUrl.toJS)
+              .toDart;
+          if (stored.dartify()?.toString() != idbReference) {
+            failureCode ??= 'web_evidence_storage_failed';
+            storageReference = dataUrl;
+          }
+        } catch (_) {
           failureCode ??= 'web_evidence_storage_failed';
-          continue;
+          storageReference = dataUrl;
         }
         unresolved.remove(timestampMs);
         for (final request in timestampRequests) {
@@ -255,21 +271,11 @@ Future<Uint8List?> extractRunningVideoThumbnail(
   try {
     final timestamps = jsonEncode(<int>[timestamp.inMilliseconds]).toJS;
     final path = video.path.trim();
-    final JSAny? raw;
-    if (RunningVideoAnalysisService.isReusableBrowserVideoUrl(path)) {
-      raw = await bridge
-          .extractEvidenceFramesFromUrl(
-            path.toJS,
-            video.name.toJS,
-            timestamps,
-            72.toJS,
-          )
-          .toDart;
-    } else {
+    Future<JSAny?> extractFromBytes() async {
       if (await video.length() > 8 * 1024 * 1024) return null;
       final bytes = await video.readAsBytes();
       if (bytes.isEmpty) return null;
-      raw = await bridge
+      return bridge
           .extractEvidenceFrames(
             bytes.toJS,
             video.name.toJS,
@@ -278,7 +284,25 @@ Future<Uint8List?> extractRunningVideoThumbnail(
           )
           .toDart;
     }
-    final converted = raw.dartify();
+
+    JSAny? raw;
+    if (RunningVideoAnalysisService.isReusableBrowserVideoUrl(path)) {
+      try {
+        raw = await bridge
+            .extractEvidenceFramesFromUrl(
+              path.toJS,
+              video.name.toJS,
+              timestamps,
+              72.toJS,
+            )
+            .toDart;
+      } catch (_) {
+        raw = await extractFromBytes();
+      }
+    } else {
+      raw = await extractFromBytes();
+    }
+    final converted = raw?.dartify();
     if (converted is! List || converted.isEmpty || converted.first is! Map) {
       return null;
     }

@@ -5215,6 +5215,8 @@
   "runningCoachEvidenceImageViewerTitle": "Evidence image",
   "runningCoachEvidenceImageViewerMetadata": "{kind} · {role} · {side} · {time}",
   "@runningCoachEvidenceImageViewerMetadata": {"placeholders": {"kind": {"type": "String"}, "role": {"type": "String"}, "side": {"type": "String"}, "time": {"type": "String"}}},
+  "runningCoachEvidenceFocusView": "Zoom to runner",
+  "runningCoachEvidenceOriginalView": "Show full frame",
   "runningCoachEvidenceOverlayOn": "Show overlay",
   "runningCoachEvidenceOverlayOff": "Hide overlay",
   "runningCoachEvidencePlay": "Play evidence video",

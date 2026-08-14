@@ -1909,6 +1909,80 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('inline evidence confidence is capped by metric quality', (
+    WidgetTester tester,
+  ) async {
+    final result = RunningVideoAnalysisResult(
+      videoDuration: const Duration(seconds: 4),
+      sampledFrames: 14,
+      validFrames: 13,
+      direction: RunningDirection.leftToRight,
+      forwardLeanDegrees: 10,
+      verticalBounceRatio: 0.06,
+      footStrikeDistanceRatio: 0.12,
+      stanceKneeAngleDegrees: 155,
+      elbowAngleDegrees: 92,
+      metricQualities: _testAllMetricQualities(),
+      perspectiveQuality: const RunningVideoPerspectiveQuality(
+        evaluatedFrameCount: 13,
+        medianBodyScaleRatio: 0.08,
+        minBodyScaleRatio: 0.06,
+        visibilityCoverage: 0.9,
+        sideViewScore: 0.8,
+        scaleDriftRatio: 0.1,
+        cutOffFrameRatio: 0,
+        issues: <RunningVideoQualityIssue>[RunningVideoQualityIssue.tooSmall],
+      ),
+      poseFrames: _testPoseFrames(
+        startX: 0.48,
+        dxPerFrame: 0.004,
+        confidence: 0.92,
+      ),
+    );
+    final report = const RunningCoachingService().buildReport(result);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: runningAnalysisResultScreenForTesting(
+          result: result,
+          report: report,
+          session: _sessionForReport(
+            id: 'conservative-confidence',
+            result: result,
+            report: report,
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final reportDetails = find.byKey(
+      const ValueKey('running-coach-report-details'),
+    );
+    await _scrollAnalysisResultUntilFound(tester, reportDetails);
+    await tester.tap(
+      find.byKey(const ValueKey('running-coach-report-details-expansion')),
+    );
+    await tester.pumpAndSettle();
+    final postureExpansion = find.byKey(
+      const ValueKey('running-coach-metric-expansion-posture'),
+    );
+    await _scrollAnalysisResultUntilFound(tester, postureExpansion);
+    await tester.tap(postureExpansion);
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('confidence 55%'), findsOneWidget);
+    expect(find.textContaining('confidence 92%'), findsNothing);
+  });
+
   testWidgets(
       'metric evidence opens one short slow-loop player without a global gallery',
       (

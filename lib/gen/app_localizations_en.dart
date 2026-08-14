@@ -9460,6 +9460,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get runningCoachEvidenceFocusView => 'Zoom to runner';
+
+  @override
+  String get runningCoachEvidenceOriginalView => 'Show full frame';
+
+  @override
   String get runningCoachEvidenceOverlayOn => 'Show overlay';
 
   @override

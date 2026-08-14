@@ -5215,6 +5215,8 @@
   "runningCoachEvidenceImageViewerTitle": "根拠画像",
   "runningCoachEvidenceImageViewerMetadata": "{kind} · {role} · {side} · {time}",
   "@runningCoachEvidenceImageViewerMetadata": {"placeholders": {"kind": {"type": "String"}, "role": {"type": "String"}, "side": {"type": "String"}, "time": {"type": "String"}}},
+  "runningCoachEvidenceFocusView": "ランナーを拡大",
+  "runningCoachEvidenceOriginalView": "全体フレームを表示",
   "runningCoachEvidenceOverlayOn": "オーバーレイを表示",
   "runningCoachEvidenceOverlayOff": "オーバーレイを隠す",
   "runningCoachEvidencePlay": "根拠動画を再生",

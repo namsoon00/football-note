@@ -185,15 +185,43 @@ class RunningPoseAnalysisChannel(
                 )
             }
 
-            val previewTimestamps = previewPoseTimestamps(durationMs)
+            var previewTimestamps = previewPoseTimestamps(durationMs)
             val landmarker = makePoseLandmarker()
             poseLandmarker = landmarker
-            val previewPass = runPosePass(
+            var previewPass = runPosePass(
                 poseLandmarker = landmarker,
                 retriever = retriever,
                 timestampsMs = previewTimestamps,
                 collectSharpness = false,
             )
+            if (previewPass.poseFrames.isEmpty()) {
+                val recoveryTimestamps = previewPoseRecoveryTimestamps(
+                    durationMs,
+                    previewTimestamps.toSet(),
+                )
+                if (recoveryTimestamps.isNotEmpty()) {
+                    val recoveryPass = runPosePass(
+                        poseLandmarker = landmarker,
+                        retriever = retriever,
+                        timestampsMs = recoveryTimestamps,
+                        collectSharpness = false,
+                    )
+                    previewTimestamps = (previewTimestamps + recoveryTimestamps)
+                        .distinct()
+                        .sorted()
+                    previewPass = PosePassResult(
+                        samples = mergeFrameSamples(
+                            previewPass.samples,
+                            recoveryPass.samples,
+                        ),
+                        poseFrames = mergePoseFrames(
+                            previewPass.poseFrames,
+                            recoveryPass.poseFrames,
+                        ),
+                        sharpnessValues = emptyList(),
+                    )
+                }
+            }
             if (previewPass.poseFrames.isEmpty()) {
                 throw AnalysisException(
                     "preview_pose_unavailable",
@@ -863,6 +891,32 @@ class RunningPoseAnalysisChannel(
                 .roundToLong()
                 .coerceIn(1L, durationMs - 1L)
         }
+    }
+
+    private fun previewPoseRecoveryTimestamps(
+        durationMs: Long,
+        attemptedTimestamps: Set<Long>,
+    ): List<Long> {
+        val insetMs = min(
+            previewPoseSafeInsetMs,
+            max(1L, (durationMs.toDouble() * 0.08).toLong()),
+        )
+        val startMs = min(durationMs - 1L, max(1L, insetMs / 2L))
+        val endMs = max(startMs, durationMs - max(1L, insetMs / 2L))
+        if (endMs <= startMs) return emptyList()
+        val safeDurationMs = endMs - startMs
+        val requestedIntervalCount =
+            ((safeDurationMs + previewPoseRecoveryFrameIntervalMs - 1L) /
+                previewPoseRecoveryFrameIntervalMs)
+                .coerceAtLeast(1L)
+        val intervalCount = requestedIntervalCount
+            .coerceAtMost((maxPreviewRecoveryPoseFrameBudget - 1).toLong())
+            .toInt()
+        return (0..intervalCount).map { index ->
+            (startMs + ((safeDurationMs.toDouble() * index) / intervalCount))
+                .roundToLong()
+                .coerceIn(1L, durationMs - 1L)
+        }.filterNot(attemptedTimestamps::contains)
     }
 
     private fun recoverySampleTimestamps(
@@ -2036,7 +2090,7 @@ class RunningPoseAnalysisChannel(
         val confidence = (baseQuality["confidence"] as? Number)?.toDouble() ?: 0.0
         val sampleCount = (baseQuality["sampleCount"] as? Number)?.toInt() ?: 0
         return metricQualityPayload(
-            confidence = min(confidence, if (reason == "too_small_runner") 0.0 else 0.55),
+            confidence = min(confidence, 0.55),
             sampleCount = sampleCount,
             reason = reason,
         )
@@ -2833,8 +2887,10 @@ class RunningPoseAnalysisChannel(
         private const val coarseTargetFps = 8
         private const val coarseFrameIntervalMs = 125L
         private const val maxCoarseFrameBudget = 481
-        private const val previewPoseFrameIntervalMs = 250L
-        private const val maxPreviewPoseFrameBudget = 37
+        private const val previewPoseFrameIntervalMs = 125L
+        private const val maxPreviewPoseFrameBudget = 121
+        private const val previewPoseRecoveryFrameIntervalMs = 67L
+        private const val maxPreviewRecoveryPoseFrameBudget = 48
         private const val previewPoseSafeInsetMs = 150L
         private const val recoveryTargetFps = 15
         private const val recoveryFrameIntervalMs = 67L
