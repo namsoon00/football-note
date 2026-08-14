@@ -8410,6 +8410,19 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachCaptureFramingSideUnknown => '측면 여부 미측정';
 
   @override
+  String get runningCoachCaptureFramingVideoQualityGood => '선명하고 안정적';
+
+  @override
+  String get runningCoachCaptureFramingVideoQualityWarning => '카메라를 흔들림 없이 고정';
+
+  @override
+  String get runningCoachCaptureFramingVideoQualityLowConfidence =>
+      '빛을 밝게 하고 흐림·가림을 피하세요';
+
+  @override
+  String get runningCoachCaptureFramingVideoQualityUnknown => '선명도 미측정';
+
+  @override
   String get runningCoachCaptureFramingCheckWarning => '구도 확인 필요';
 
   @override

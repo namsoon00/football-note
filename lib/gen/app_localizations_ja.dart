@@ -8399,6 +8399,19 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachCaptureFramingSideUnknown => '横向きは未測定';
 
   @override
+  String get runningCoachCaptureFramingVideoQualityGood => '鮮明で安定';
+
+  @override
+  String get runningCoachCaptureFramingVideoQualityWarning => 'カメラを固定してください';
+
+  @override
+  String get runningCoachCaptureFramingVideoQualityLowConfidence =>
+      '明るくして、ぶれや隠れを避けてください';
+
+  @override
+  String get runningCoachCaptureFramingVideoQualityUnknown => '鮮明さは未測定';
+
+  @override
   String get runningCoachCaptureFramingCheckWarning => '構図を確認してください';
 
   @override

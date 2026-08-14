@@ -76,6 +76,7 @@ void main() {
     expect(find.text('Body inside guide'), findsOneWidget);
     expect(find.text('Good runner size'), findsOneWidget);
     expect(find.text('Side view'), findsOneWidget);
+    expect(find.text('Clarity not measured'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -98,6 +99,40 @@ void main() {
       find.byKey(const ValueKey('running-capture-framing-fullBodySafe')),
       findsOneWidget,
     );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('framing status confirms stable clear live pose samples', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      _localizedApp(
+        runningCaptureFramingStatusPanelForTesting(
+          previousPoseFrame: _sideViewPoseFrame(offsetX: -0.004),
+          poseFrame: _sideViewPoseFrame(offsetX: 0.004),
+        ),
+      ),
+    );
+
+    expect(find.text('7/7 ready'), findsOneWidget);
+    expect(find.text('Clear and steady'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('framing status warns on low-confidence blur or occlusion', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      _localizedApp(
+        runningCaptureFramingStatusPanelForTesting(
+          previousPoseFrame: _sideViewPoseFrame(),
+          poseFrame: _sideViewPoseFrame(confidence: 0.45),
+        ),
+      ),
+    );
+
+    expect(find.text('6/7 ready'), findsOneWidget);
+    expect(find.text('Improve light; avoid blur or blocking'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
 
@@ -139,28 +174,31 @@ Widget _localizedApp(Widget child) {
   );
 }
 
-RunningPoseFrame _sideViewPoseFrame() {
+RunningPoseFrame _sideViewPoseFrame({
+  double offsetX = 0,
+  double confidence = 0.95,
+}) {
   final landmarks = List<RunningVideoPoseLandmark>.generate(
     mediaPipePoseLandmarkCount,
     (index) => RunningVideoPoseLandmark(
       index: index,
-      x: 0.50,
+      x: 0.50 + offsetX,
       y: 0.50,
       z: 0,
-      visibility: 0.95,
-      presence: 0.95,
-      confidence: 0.95,
+      visibility: confidence,
+      presence: confidence,
+      confidence: confidence,
     ),
   );
   void setLandmark(int index, double x, double y) {
     landmarks[index] = RunningVideoPoseLandmark(
       index: index,
-      x: x,
+      x: x + offsetX,
       y: y,
       z: 0,
-      visibility: 0.95,
-      presence: 0.95,
-      confidence: 0.95,
+      visibility: confidence,
+      presence: confidence,
+      confidence: confidence,
     );
   }
 
