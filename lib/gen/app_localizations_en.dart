@@ -8840,7 +8840,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSampleReferencePosture =>
-      'Forward lean: the coach reads the shoulder-to-hip line and reports the current posture value.';
+      'Trunk lean: the coach reads the shoulder-to-hip line and reports the current posture value.';
 
   @override
   String get runningCoachSampleReferenceFoot =>
@@ -8860,7 +8860,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSampleMistakePosture =>
-      'Forward lean: the coach reports the same posture metric and status for this clip.';
+      'Trunk lean: the coach reports the same posture metric and status for this clip.';
 
   @override
   String get runningCoachSampleMistakeFoot =>
@@ -8892,7 +8892,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSampleMethodAngles =>
-      'Angles: forward lean, stance knee, and elbow carriage are measured frame by frame.';
+      'Angles: trunk lean, stance knee, and elbow carriage are measured frame by frame.';
 
   @override
   String get runningCoachSampleMethodContact =>
@@ -9007,7 +9007,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachSampleDecisionTitle => 'Decision evidence';
 
   @override
-  String get runningCoachSampleMetricPosture => 'Forward lean';
+  String get runningCoachSampleMetricPosture => 'Trunk lean';
 
   @override
   String get runningCoachSampleMetricArms => 'Arms';
@@ -9037,7 +9037,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get runningCoachSampleOverlayPosture => 'Lean value';
+  String get runningCoachSampleOverlayPosture => 'Trunk lean value';
 
   @override
   String get runningCoachSampleOverlayArms => 'Arm value';
@@ -9052,7 +9052,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachSampleOverlayFrames => 'Pose frames';
 
   @override
-  String get runningCoachSampleMistakeOverlayPosture => 'Lean value';
+  String get runningCoachSampleMistakeOverlayPosture => 'Trunk lean value';
 
   @override
   String get runningCoachSampleMistakeOverlayArms => 'Arm value';
@@ -9097,7 +9097,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSamplePostureDetailGoodRange =>
-      'Use the coaching guide range for forward lean, then compare it with this clip\'s measured value.';
+      'Use the coaching guide range for trunk lean, then compare it with this clip\'s measured value.';
 
   @override
   String get runningCoachSamplePostureDetailKeyPosition =>
@@ -9645,6 +9645,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get runningCoachContactRejectionUnstableMotion =>
       'The foot\'s vertical movement did not form a stable contact moment. Use a sharp side-view clip with 3–6 strides.';
+
+  @override
+  String get runningCoachContactRejectionNotDescending =>
+      'The foot did not descend into the ground band before contact, so the frame was treated as recovery or flight. Record a steady side view with the floor line visible.';
 
   @override
   String get runningCoachContactRejectionInsufficientMotionWindow =>
@@ -10586,7 +10590,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachGoodFormPrinciplePosture =>
-      'Let your whole body lean gently forward from the ankles.';
+      'Keep the shoulder-to-hip line gently forward without folding at the waist.';
 
   @override
   String get runningCoachGoodFormPrincipleBounce =>
@@ -10725,7 +10729,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachGoodFormExperiencedPosture =>
-      'Across several frames, check that the ankles, hips, and shoulders lean as one line instead of the waist folding as pace changes.';
+      'Across several frames, check that the shoulder-to-hip line stays slightly forward instead of the waist folding as pace changes.';
 
   @override
   String get runningCoachGoodFormExperiencedBounce =>
@@ -10845,7 +10849,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachGuideRangePosture =>
-      'Goal: slight forward lean, without bending at the waist';
+      'Goal: slight trunk lean, without bending at the waist';
 
   @override
   String get runningCoachGuideRangeBounce =>
@@ -10968,7 +10972,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String runningCoachLeanValue(Object value) {
-    return '$value° body lean';
+    return '$value° trunk lean';
   }
 
   @override
@@ -11001,11 +11005,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachPostureGoodSummary =>
-      'Your body leans forward a little and stays tall.';
+      'Your trunk line leans forward a little and stays tall.';
 
   @override
   String get runningCoachPostureGoodCue =>
-      'Keep your chest tall. Let the whole body lean forward together.';
+      'Keep your chest tall and the shoulder-to-hip line slightly forward.';
 
   @override
   String get runningCoachPostureGoodDrill => 'Drill: Do two 15 m wall marches.';
@@ -11024,11 +11028,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachPostureUprightSummary =>
-      'You are too upright. It can slow the next step.';
+      'Your trunk line is too upright. It can slow the next step.';
 
   @override
   String get runningCoachPostureUprightCue =>
-      'Lean forward from the ankles. Keep your chest tall.';
+      'Bring the shoulder-to-hip line slightly forward while keeping your chest tall.';
 
   @override
   String get runningCoachPostureUprightDrill =>
@@ -11036,7 +11040,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachPostureLeanSummary =>
-      'You are leaning too far forward. Your steps may feel rushed.';
+      'Your trunk line is leaning too far forward. Your steps may feel rushed.';
 
   @override
   String get runningCoachPostureLeanCue =>

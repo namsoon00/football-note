@@ -8598,7 +8598,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachSampleReferencePosture =>
-      '前傾: コーチは肩と腰のラインを読み、現在の姿勢値を表示します。';
+      '体幹の傾き: コーチは肩と腰のラインを読み、現在の姿勢値を表示します。';
 
   @override
   String get runningCoachSampleReferenceFoot =>
@@ -8618,7 +8618,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachSampleMistakePosture =>
-      '前傾: コーチはこのクリップにも同じ姿勢指標と状態を表示します。';
+      '体幹の傾き: コーチはこのクリップにも同じ姿勢指標と状態を表示します。';
 
   @override
   String get runningCoachSampleMistakeFoot =>
@@ -8648,7 +8648,8 @@ class AppLocalizationsJa extends AppLocalizations {
       '見えている体の点: 肩、腰、膝、足首、肘、手首、頭が見えている必要があります。';
 
   @override
-  String get runningCoachSampleMethodAngles => '角度: 前傾、接地膝、肘の角度をフレームごとに測定します。';
+  String get runningCoachSampleMethodAngles =>
+      '角度: 体幹の傾き、接地膝、肘の角度をフレームごとに測定します。';
 
   @override
   String get runningCoachSampleMethodContact =>
@@ -8762,7 +8763,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachSampleDecisionTitle => '判定根拠';
 
   @override
-  String get runningCoachSampleMetricPosture => '前傾';
+  String get runningCoachSampleMetricPosture => '体幹の傾き';
 
   @override
   String get runningCoachSampleMetricArms => '腕';
@@ -8792,7 +8793,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get runningCoachSampleOverlayPosture => '前傾値';
+  String get runningCoachSampleOverlayPosture => '体幹の傾き値';
 
   @override
   String get runningCoachSampleOverlayArms => '腕の値';
@@ -8807,7 +8808,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachSampleOverlayFrames => '関節フレーム';
 
   @override
-  String get runningCoachSampleMistakeOverlayPosture => '前傾値';
+  String get runningCoachSampleMistakeOverlayPosture => '体幹の傾き値';
 
   @override
   String get runningCoachSampleMistakeOverlayArms => '腕の値';
@@ -8851,7 +8852,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachSamplePostureDetailGoodRange =>
-      '前傾はコーチングガイド範囲と、このクリップの実測値を合わせて比較します。';
+      '体幹の傾きはコーチングガイド範囲と、このクリップの実測値を合わせて比較します。';
 
   @override
   String get runningCoachSamplePostureDetailKeyPosition =>
@@ -8863,7 +8864,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachSamplePostureDetailReview =>
-      '測定された前傾がこのランのコーチング範囲から外れると、確認状態として表示されます。';
+      '測定された体幹の傾きがこのランのコーチング範囲から外れると、確認状態として表示されます。';
 
   @override
   String get runningCoachSamplePostureDetailHowRead =>
@@ -9381,6 +9382,10 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get runningCoachContactRejectionUnstableMotion =>
       '足の上下動が安定した接地の瞬間になりませんでした。3〜6歩が鮮明な横向き動画を使ってください。';
+
+  @override
+  String get runningCoachContactRejectionNotDescending =>
+      '接地前に足が地面付近の帯へ下がっていないため、リカバリーまたは空中フレームとして扱いました。床のラインが見える安定した横向き動画を撮影してください。';
 
   @override
   String get runningCoachContactRejectionInsufficientMotionWindow =>
@@ -10277,7 +10282,8 @@ class AppLocalizationsJa extends AppLocalizations {
       '完璧な一枚の姿勢ではなく、走っている間に繰り返す5つの動きです。';
 
   @override
-  String get runningCoachGoodFormPrinciplePosture => '足首から体全体をやさしく前へ傾けます。';
+  String get runningCoachGoodFormPrinciplePosture =>
+      '腰を折らず、肩から腰のラインをやさしく前へ保ちます。';
 
   @override
   String get runningCoachGoodFormPrincipleBounce => '上下に跳ねるより、前へ進むリズムを保ちます。';
@@ -10404,7 +10410,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachGoodFormExperiencedPosture =>
-      '複数のフレームで、ペースが変わっても腰だけを折らず、足首・骨盤・肩が一つの流れで傾いているか確認します。';
+      '複数のフレームで、ペースが変わっても腰だけを折らず、肩から腰のラインが少し前に保たれているか確認します。';
 
   @override
   String get runningCoachGoodFormExperiencedBounce =>
@@ -10520,7 +10526,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get runningCoachGuideRangePosture => '目標: 腰を折らずに少し前へ傾く';
+  String get runningCoachGuideRangePosture => '目標: 腰を折らずに体幹を少し前へ傾ける';
 
   @override
   String get runningCoachGuideRangeBounce => '目標: 上下動を小さくし、足をすばやく動かす';
@@ -10637,7 +10643,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String runningCoachLeanValue(Object value) {
-    return '体の傾き $value°';
+    return '体幹の傾き $value°';
   }
 
   @override
@@ -10669,10 +10675,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachInsightPostureTitle => '姿勢';
 
   @override
-  String get runningCoachPostureGoodSummary => '体が少し前に傾き、姿勢は高く保てています。';
+  String get runningCoachPostureGoodSummary => '体幹のラインが少し前に傾き、姿勢は高く保てています。';
 
   @override
-  String get runningCoachPostureGoodCue => '胸を高く保ちます。体全体を一緒に前へ傾けます。';
+  String get runningCoachPostureGoodCue => '胸を高く保ち、肩から腰のラインを少し前に置きます。';
 
   @override
   String get runningCoachPostureGoodDrill => 'ドリル: 15 mの壁マーチを2本行います。';
@@ -10690,16 +10696,17 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachPostureUprightSummary =>
-      '体が起きすぎています。次の一歩が遅くなることがあります。';
+      '体幹のラインが起きすぎています。次の一歩が遅くなることがあります。';
 
   @override
-  String get runningCoachPostureUprightCue => '足首から前へ傾きます。胸は高く保ちます。';
+  String get runningCoachPostureUprightCue => '胸は高く保ち、肩から腰のラインを少し前へ持っていきます。';
 
   @override
   String get runningCoachPostureUprightDrill => 'ドリル: 15 mのフォーリングスタートを2本行います。';
 
   @override
-  String get runningCoachPostureLeanSummary => '前に傾きすぎています。歩きが急ぎすぎることがあります。';
+  String get runningCoachPostureLeanSummary =>
+      '体幹のラインが前に傾きすぎています。歩きが急ぎすぎることがあります。';
 
   @override
   String get runningCoachPostureLeanCue => '少し高く立ちます。腰を胸の下に置きます。';
