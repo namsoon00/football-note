@@ -3712,6 +3712,7 @@ class _RunningPoseOverlayPainter extends CustomPainter {
   final bool showRefinedPose;
   final bool showFullBodyTrace;
   final bool showTargetDirection;
+  final Rect? focusSourceRect;
 
   const _RunningPoseOverlayPainter({
     required this.poseFrame,
@@ -3726,6 +3727,7 @@ class _RunningPoseOverlayPainter extends CustomPainter {
     this.showRefinedPose = false,
     this.showFullBodyTrace = false,
     this.showTargetDirection = true,
+    this.focusSourceRect,
   });
 
   @override
@@ -4239,6 +4241,16 @@ class _RunningPoseOverlayPainter extends CustomPainter {
     RunningPoseFrame frame,
     RunningVideoPoseLandmark landmark,
   ) {
+    final focusRect = focusSourceRect;
+    if (focusRect != null) {
+      return runningPoseFocusedOffset(
+        landmark: landmark,
+        imageWidth: frame.imageWidth,
+        imageHeight: frame.imageHeight,
+        outputSize: size,
+        sourceRect: focusRect,
+      );
+    }
     if (useContainFit) {
       return runningPoseContainOffset(
         landmark: landmark,
@@ -4268,7 +4280,8 @@ class _RunningPoseOverlayPainter extends CustomPainter {
         oldDelegate.useContainFit != useContainFit ||
         oldDelegate.showRefinedPose != showRefinedPose ||
         oldDelegate.showFullBodyTrace != showFullBodyTrace ||
-        oldDelegate.showTargetDirection != showTargetDirection;
+        oldDelegate.showTargetDirection != showTargetDirection ||
+        oldDelegate.focusSourceRect != focusSourceRect;
   }
 }
 
@@ -11686,6 +11699,88 @@ String _measuredMetricDetail(
   );
 }
 
+Rect? _runningEvidenceFocusRect(
+  RunningPoseFrame? poseFrame,
+  Size outputSize,
+) {
+  final frame = poseFrame;
+  if (frame == null) return null;
+  return runningPoseFocusSourceRect(
+    frame: frame,
+    imageWidth: frame.imageWidth,
+    imageHeight: frame.imageHeight,
+    outputSize: outputSize,
+  );
+}
+
+class _FocusedEvidenceImage extends StatelessWidget {
+  final Uint8List bytes;
+  final int imageWidth;
+  final int imageHeight;
+  final RunningPoseFrame? poseFrame;
+  final bool focusRunner;
+
+  const _FocusedEvidenceImage({
+    required this.bytes,
+    required this.imageWidth,
+    required this.imageHeight,
+    required this.poseFrame,
+    required this.focusRunner,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (imageWidth <= 0 || imageHeight <= 0) {
+      return Image.memory(
+        bytes,
+        fit: BoxFit.contain,
+        gaplessPlayback: true,
+      );
+    }
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final outputSize = Size(constraints.maxWidth, constraints.maxHeight);
+        final focusRect = focusRunner
+            ? runningPoseFocusSourceRect(
+                frame: poseFrame,
+                imageWidth: imageWidth,
+                imageHeight: imageHeight,
+                outputSize: outputSize,
+              )
+            : null;
+        final transform = runningPoseSourceTransform(
+          imageWidth: imageWidth,
+          imageHeight: imageHeight,
+          outputSize: outputSize,
+          sourceRect: focusRect,
+        );
+        return ClipRect(
+          child: Transform(
+            alignment: Alignment.topLeft,
+            transform: Matrix4.identity()
+              ..translateByDouble(
+                transform.translation.dx,
+                transform.translation.dy,
+                0,
+                1,
+              )
+              ..scaleByDouble(transform.scale, transform.scale, 1, 1),
+            child: SizedBox(
+              width: imageWidth.toDouble(),
+              height: imageHeight.toDouble(),
+              child: Image.memory(
+                bytes,
+                fit: BoxFit.fill,
+                gaplessPlayback: true,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
 class _HistoricalEvidenceFrameTile extends StatelessWidget {
   final RunningCoachEvidenceImage image;
   final RunningPoseFrame? poseFrame;
@@ -11724,83 +11819,95 @@ class _HistoricalEvidenceFrameTile extends StatelessWidget {
                       future: readArchivedRunningCoachEvidenceImage(image),
                       builder: (context, snapshot) {
                         final bytes = snapshot.data;
-                        return Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            if (bytes != null)
-                              Image.memory(
-                                bytes,
-                                // The pose overlay maps landmark coordinates
-                                // with a contain fit. Keep the original still
-                                // on the same fit so the saved evidence and
-                                // marker stay aligned instead of cropping a
-                                // foot or head.
-                                fit: BoxFit.contain,
-                                gaplessPlayback: true,
-                              )
-                            else
-                              Center(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(10),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        snapshot.connectionState ==
-                                                ConnectionState.waiting
-                                            ? Icons.image_search_rounded
-                                            : Icons.broken_image_outlined,
-                                        color: Colors.white70,
-                                      ),
-                                      if (snapshot.connectionState !=
-                                          ConnectionState.waiting) ...[
-                                        const SizedBox(height: 6),
-                                        Text(
-                                          l10n.runningCoachEvidenceImageReadFailed,
-                                          textAlign: TextAlign.center,
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .labelSmall
-                                              ?.copyWith(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w800,
-                                              ),
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          l10n.runningCoachEvidenceImageReadFailedReason,
-                                          textAlign: TextAlign.center,
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .labelSmall
-                                              ?.copyWith(color: Colors.white70),
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            Positioned.fill(
-                              child: IgnorePointer(
-                                child: CustomPaint(
-                                  painter: _RunningPoseOverlayPainter(
+                        return LayoutBuilder(
+                          builder: (context, constraints) {
+                            final outputSize = Size(
+                              constraints.maxWidth,
+                              constraints.maxHeight,
+                            );
+                            final focusRect = _runningEvidenceFocusRect(
+                              poseFrame,
+                              outputSize,
+                            );
+                            return Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                if (bytes != null)
+                                  _FocusedEvidenceImage(
+                                    bytes: bytes,
+                                    imageWidth: image.width,
+                                    imageHeight: image.height,
                                     poseFrame: poseFrame,
-                                    primaryColor: scheme.primary,
-                                    secondaryColor: scheme.tertiary,
-                                    contactColor: scheme.tertiary,
-                                    warningColor: scheme.error,
-                                    highlightedMetric: insight?.metric,
-                                    finding: insight?.finding,
-                                    direction: direction,
-                                    useContainFit: true,
-                                    showRefinedPose: bytes == null,
-                                    showFullBodyTrace: true,
-                                    showTargetDirection: false,
+                                    focusRunner: true,
+                                  )
+                                else
+                                  Center(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(10),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            snapshot.connectionState ==
+                                                    ConnectionState.waiting
+                                                ? Icons.image_search_rounded
+                                                : Icons.broken_image_outlined,
+                                            color: Colors.white70,
+                                          ),
+                                          if (snapshot.connectionState !=
+                                              ConnectionState.waiting) ...[
+                                            const SizedBox(height: 6),
+                                            Text(
+                                              l10n.runningCoachEvidenceImageReadFailed,
+                                              textAlign: TextAlign.center,
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .labelSmall
+                                                  ?.copyWith(
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.w800,
+                                                  ),
+                                            ),
+                                            const SizedBox(height: 2),
+                                            Text(
+                                              l10n.runningCoachEvidenceImageReadFailedReason,
+                                              textAlign: TextAlign.center,
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .labelSmall
+                                                  ?.copyWith(
+                                                    color: Colors.white70,
+                                                  ),
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                Positioned.fill(
+                                  child: IgnorePointer(
+                                    child: CustomPaint(
+                                      painter: _RunningPoseOverlayPainter(
+                                        poseFrame: poseFrame,
+                                        primaryColor: scheme.primary,
+                                        secondaryColor: scheme.tertiary,
+                                        contactColor: scheme.tertiary,
+                                        warningColor: scheme.error,
+                                        highlightedMetric: insight?.metric,
+                                        finding: insight?.finding,
+                                        direction: direction,
+                                        useContainFit: true,
+                                        focusSourceRect: focusRect,
+                                        showRefinedPose: bytes == null,
+                                        showFullBodyTrace: true,
+                                        showTargetDirection: false,
+                                      ),
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ),
-                          ],
+                              ],
+                            );
+                          },
                         );
                       },
                     ),
@@ -11877,6 +11984,7 @@ class _RunningEvidenceImageViewerState
   final _transformationController = TransformationController();
   TapDownDetails? _doubleTapDetails;
   var _showOverlay = true;
+  var _focusRunner = true;
 
   @override
   void initState() {
@@ -11913,6 +12021,19 @@ class _RunningEvidenceImageViewerState
         foregroundColor: Colors.white,
         title: Text(l10n.runningCoachEvidenceImageViewerTitle),
         actions: [
+          AppBarActionButton.icon(
+            key: const ValueKey('running-coach-evidence-focus-toggle'),
+            icon: _focusRunner
+                ? Icons.center_focus_weak_rounded
+                : Icons.center_focus_strong_rounded,
+            tooltip: _focusRunner
+                ? l10n.runningCoachEvidenceOriginalView
+                : l10n.runningCoachEvidenceFocusView,
+            onPressed: () => setState(() {
+              _focusRunner = !_focusRunner;
+              _resetZoom();
+            }),
+          ),
           AppBarActionButton.icon(
             key: const ValueKey('running-coach-evidence-overlay-toggle'),
             icon: _showOverlay
@@ -11990,40 +12111,60 @@ class _RunningEvidenceImageViewerState
                       child: Center(
                         child: AspectRatio(
                           aspectRatio: aspectRatio,
-                          child: Stack(
-                            fit: StackFit.expand,
-                            children: [
-                              Image.memory(
-                                bytes,
-                                fit: BoxFit.contain,
-                                gaplessPlayback: true,
-                              ),
-                              if (_showOverlay)
-                                IgnorePointer(
-                                  child: CustomPaint(
-                                    painter: _RunningPoseOverlayPainter(
-                                      poseFrame: poseFrame,
-                                      primaryColor:
-                                          Theme.of(context).colorScheme.primary,
-                                      secondaryColor: Theme.of(context)
-                                          .colorScheme
-                                          .tertiary,
-                                      contactColor: Theme.of(context)
-                                          .colorScheme
-                                          .tertiary,
-                                      warningColor:
-                                          Theme.of(context).colorScheme.error,
-                                      highlightedMetric: widget.insight?.metric,
-                                      finding: widget.insight?.finding,
-                                      direction: widget.direction,
-                                      useContainFit: true,
-                                      showRefinedPose: false,
-                                      showFullBodyTrace: true,
-                                      showTargetDirection: false,
-                                    ),
+                          child: LayoutBuilder(
+                            builder: (context, constraints) {
+                              final outputSize = Size(
+                                constraints.maxWidth,
+                                constraints.maxHeight,
+                              );
+                              final focusRect = _focusRunner
+                                  ? _runningEvidenceFocusRect(
+                                      poseFrame,
+                                      outputSize,
+                                    )
+                                  : null;
+                              return Stack(
+                                fit: StackFit.expand,
+                                children: [
+                                  _FocusedEvidenceImage(
+                                    bytes: bytes,
+                                    imageWidth: image.width,
+                                    imageHeight: image.height,
+                                    poseFrame: poseFrame,
+                                    focusRunner: _focusRunner,
                                   ),
-                                ),
-                            ],
+                                  if (_showOverlay)
+                                    IgnorePointer(
+                                      child: CustomPaint(
+                                        painter: _RunningPoseOverlayPainter(
+                                          poseFrame: poseFrame,
+                                          primaryColor: Theme.of(context)
+                                              .colorScheme
+                                              .primary,
+                                          secondaryColor: Theme.of(context)
+                                              .colorScheme
+                                              .tertiary,
+                                          contactColor: Theme.of(context)
+                                              .colorScheme
+                                              .tertiary,
+                                          warningColor: Theme.of(context)
+                                              .colorScheme
+                                              .error,
+                                          highlightedMetric:
+                                              widget.insight?.metric,
+                                          finding: widget.insight?.finding,
+                                          direction: widget.direction,
+                                          useContainFit: true,
+                                          focusSourceRect: focusRect,
+                                          showRefinedPose: false,
+                                          showFullBodyTrace: true,
+                                          showTargetDirection: false,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              );
+                            },
                           ),
                         ),
                       ),
@@ -13761,54 +13902,69 @@ class _InlineEvidenceCarouselState extends State<_InlineEvidenceCarousel> {
                     child: ColoredBox(
                       color: Theme.of(context).colorScheme.surfaceContainerHigh,
                       child: SizedBox.expand(
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            CustomPaint(
-                              painter: _RunningPoseOverlayPainter(
-                                poseFrame: frame.poseFrame,
-                                primaryColor:
-                                    Theme.of(context).colorScheme.primary,
-                                secondaryColor:
-                                    Theme.of(context).colorScheme.tertiary,
-                                contactColor:
-                                    Theme.of(context).colorScheme.tertiary,
-                                warningColor:
-                                    Theme.of(context).colorScheme.error,
-                                highlightedMetric: widget.insight.metric,
-                                finding: widget.insight.finding,
-                                direction: widget.direction,
-                                useContainFit: true,
-                                showRefinedPose: true,
-                                showFullBodyTrace: true,
-                                showTargetDirection: false,
-                              ),
-                            ),
-                            Align(
-                              alignment: Alignment.topLeft,
-                              child: Container(
-                                key: const ValueKey(
-                                  'running-coach-coordinate-preview-label',
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            final outputSize = Size(
+                              constraints.maxWidth,
+                              constraints.maxHeight,
+                            );
+                            final focusRect = _runningEvidenceFocusRect(
+                              frame.poseFrame,
+                              outputSize,
+                            );
+                            return Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                CustomPaint(
+                                  painter: _RunningPoseOverlayPainter(
+                                    poseFrame: frame.poseFrame,
+                                    primaryColor:
+                                        Theme.of(context).colorScheme.primary,
+                                    secondaryColor:
+                                        Theme.of(context).colorScheme.tertiary,
+                                    contactColor:
+                                        Theme.of(context).colorScheme.tertiary,
+                                    warningColor:
+                                        Theme.of(context).colorScheme.error,
+                                    highlightedMetric: widget.insight.metric,
+                                    finding: widget.insight.finding,
+                                    direction: widget.direction,
+                                    useContainFit: true,
+                                    focusSourceRect: focusRect,
+                                    showRefinedPose: true,
+                                    showFullBodyTrace: true,
+                                    showTargetDirection: false,
+                                  ),
                                 ),
-                                margin: const EdgeInsets.all(8),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
+                                Align(
+                                  alignment: Alignment.topLeft,
+                                  child: Container(
+                                    key: const ValueKey(
+                                      'running-coach-coordinate-preview-label',
+                                    ),
+                                    margin: const EdgeInsets.all(8),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .surface
+                                          .withValues(alpha: 0.90),
+                                      borderRadius: BorderRadius.circular(999),
+                                    ),
+                                    child: Text(
+                                      l10n.runningCoachCoordinatePreviewLabel,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .labelSmall,
+                                    ),
+                                  ),
                                 ),
-                                decoration: BoxDecoration(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .surface
-                                      .withValues(alpha: 0.90),
-                                  borderRadius: BorderRadius.circular(999),
-                                ),
-                                child: Text(
-                                  l10n.runningCoachCoordinatePreviewLabel,
-                                  style: Theme.of(context).textTheme.labelSmall,
-                                ),
-                              ),
-                            ),
-                          ],
+                              ],
+                            );
+                          },
                         ),
                       ),
                     ),
@@ -13864,7 +14020,13 @@ class _InlineEvidenceCarouselState extends State<_InlineEvidenceCarousel> {
                 sideLabel,
                 _formatContactTimestamp(l10n, frame.timestamp),
                 frameValue,
-                (frame.confidence.clamp(0.0, 1.0) * 100).round(),
+                (_conservativeEvidenceFrameConfidence(
+                          frame,
+                          widget.evidence,
+                          widget.insight,
+                        ) *
+                        100)
+                    .round(),
               ),
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.labelSmall,
@@ -13885,6 +14047,20 @@ class _InlineEvidenceCarouselState extends State<_InlineEvidenceCarousel> {
       ),
     );
   }
+}
+
+double _conservativeEvidenceFrameConfidence(
+  RunningMetricEvidenceFrame frame,
+  RunningMetricEvidence evidence,
+  RunningCoachingInsight insight,
+) {
+  return math
+      .min(
+        frame.confidence,
+        math.min(evidence.reliability, insight.quality.confidence),
+      )
+      .clamp(0.0, 1.0)
+      .toDouble();
 }
 
 String _inlineEvidenceFrameValue(

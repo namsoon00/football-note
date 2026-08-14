@@ -287,6 +287,59 @@ void main() {
       closeTo(150, 0.0001),
     );
   });
+
+  test('focus viewport enlarges a distant runner without clipping landmarks',
+      () {
+    final frame = _scaledOverlayFrame(0.32);
+    final focusRect = runningPoseFocusSourceRect(
+      frame: frame,
+      imageWidth: frame.imageWidth,
+      imageHeight: frame.imageHeight,
+      outputSize: const Size(172, 178),
+    );
+
+    expect(focusRect, isNotNull);
+    expect(focusRect!.width, lessThan(frame.imageWidth * 0.7));
+    expect(focusRect.height, lessThan(frame.imageHeight * 0.8));
+    for (final landmark in frame.landmarks) {
+      if (landmark.confidence < runningPoseOverlayMinimumJointConfidence) {
+        continue;
+      }
+      expect(
+        focusRect.inflate(0.5).contains(
+              Offset(
+                landmark.x * frame.imageWidth,
+                landmark.y * frame.imageHeight,
+              ),
+            ),
+        isTrue,
+        reason: 'landmark ${landmark.index} should remain in the focus crop',
+      );
+    }
+    final transform = runningPoseSourceTransform(
+      imageWidth: frame.imageWidth,
+      imageHeight: frame.imageHeight,
+      outputSize: const Size(172, 178),
+      sourceRect: focusRect,
+    );
+    final toe = frame.landmarkByIndex(32)!;
+    final mappedToe = runningPoseFocusedOffset(
+      landmark: toe,
+      imageWidth: frame.imageWidth,
+      imageHeight: frame.imageHeight,
+      outputSize: const Size(172, 178),
+      sourceRect: focusRect,
+    );
+
+    expect(
+      mappedToe,
+      transform.mapSourcePoint(
+        Offset(toe.x * frame.imageWidth, toe.y * frame.imageHeight),
+      ),
+    );
+    expect(mappedToe.dx, inInclusiveRange(0, 172));
+    expect(mappedToe.dy, inInclusiveRange(0, 178));
+  });
 }
 
 int _alphaAt(List<int> pixels, int width, int x, int y) {
@@ -375,6 +428,28 @@ RunningPoseFrame _realisticOverlayFrame({
           visibility: 0.95,
           presence: 0.95,
           confidence: 0.95,
+        ),
+    ]),
+  );
+}
+
+RunningPoseFrame _scaledOverlayFrame(double scale) {
+  final base = _realisticOverlayFrame();
+  const center = Offset(0.52, 0.52);
+  return RunningPoseFrame(
+    timestamp: base.timestamp,
+    imageWidth: base.imageWidth,
+    imageHeight: base.imageHeight,
+    landmarks: List<RunningVideoPoseLandmark>.unmodifiable([
+      for (final landmark in base.landmarks)
+        RunningVideoPoseLandmark(
+          index: landmark.index,
+          x: center.dx + (landmark.x - center.dx) * scale,
+          y: center.dy + (landmark.y - center.dy) * scale,
+          z: landmark.z,
+          visibility: landmark.visibility,
+          presence: landmark.presence,
+          confidence: landmark.confidence,
         ),
     ]),
   );

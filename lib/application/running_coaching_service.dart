@@ -121,14 +121,108 @@ class RunningCoachingService {
 
     final confirmedScore =
         hasReliableConfirmedScore ? aggregate(confirmedInsights) : null;
+    final estimatedInsights = confirmedScore == null
+        ? weightedInsights.where((entry) {
+            final metric = analysisMetricForCoachMetric[entry.key.metric]!;
+            return _isEstimatedScoreEligible(
+              result,
+              entry.key,
+              result.measurementFor(metric),
+            );
+          }).toList(growable: false)
+        : const <MapEntry<RunningCoachingInsight, double>>[];
+    final estimatedScore =
+        estimatedInsights.length >= thresholds.minimumReliableScoreMetrics
+            ? _aggregateEstimated(result, estimatedInsights)
+            : null;
     final scoreStatus = confirmedScore != null
         ? RunningCoachScoreStatus.confirmed
-        : RunningCoachScoreStatus.unavailable;
+        : estimatedScore != null
+            ? RunningCoachScoreStatus.estimated
+            : RunningCoachScoreStatus.unavailable;
     return RunningCoachingReport(
       overallScore: confirmedScore ?? 0,
       insights: insights,
       scoreStatus: scoreStatus,
+      estimatedScore: estimatedScore,
     );
+  }
+
+  int _aggregateEstimated(
+    RunningVideoAnalysisResult result,
+    List<MapEntry<RunningCoachingInsight, double>> entries,
+  ) {
+    final scoringWeight = entries.fold<double>(
+      0,
+      (total, entry) => total + entry.value,
+    );
+    if (scoringWeight == 0) return 0;
+    final weightedScore = entries.fold<double>(
+          0,
+          (total, entry) => total + (entry.key.score * entry.value),
+        ) /
+        scoringWeight;
+    final weightedConfidence = entries.fold<double>(
+          0,
+          (total, entry) =>
+              total + (entry.key.quality.confidence * entry.value),
+        ) /
+        scoringWeight;
+    final frameCoveragePenalty =
+        result.validFrameCoverage < thresholds.minimumReliableCoverage
+            ? thresholds.lowCoveragePenalty
+            : 0;
+    final metricCoveragePenalty =
+        (((5 - entries.length).clamp(0, 5) / 5) * 10).round();
+    final confidencePenalty =
+        ((1 - weightedConfidence.clamp(0.0, 1.0)) * 12).round();
+    return math.max(
+      0,
+      weightedScore.round() -
+          frameCoveragePenalty -
+          metricCoveragePenalty -
+          confidencePenalty,
+    );
+  }
+
+  bool _isEstimatedScoreEligible(
+    RunningVideoAnalysisResult result,
+    RunningCoachingInsight insight,
+    RunningMetricMeasurement measurement,
+  ) {
+    if (result.hasTargetIdentityRisk) return false;
+    if (measurement.state == RunningMeasurementState.unavailable ||
+        measurement.value == null ||
+        !measurement.value!.isFinite ||
+        measurement.sampleCount <= 0 ||
+        measurement.confidence <= 0) {
+      return false;
+    }
+    if (!insight.value.isFinite || insight.quality.confidence <= 0) {
+      return false;
+    }
+    if (_reasonBlocksEstimatedScore(insight.quality.reason) ||
+        _reasonBlocksEstimatedScore(measurement.reason) ||
+        _reasonBlocksEstimatedScore(measurement.method)) {
+      return false;
+    }
+    return true;
+  }
+
+  bool _reasonBlocksEstimatedScore(String? reason) {
+    return switch (reason) {
+      'coordinates_unavailable' ||
+      'metric_unavailable' ||
+      'missing_pose_frames' ||
+      'missing_measured_frames' ||
+      'missing_contact_evidence' ||
+      'contact_phase_proxy' ||
+      'direction_unresolved' ||
+      'multiple_person' ||
+      'target_identity_unstable' =>
+        true,
+      _ => false,
+    };
   }
 
   RunningCoachingInsight _buildPostureInsight(

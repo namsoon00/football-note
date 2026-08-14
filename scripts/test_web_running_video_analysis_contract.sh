@@ -37,8 +37,10 @@ for required in (
     "runningMode: 'VIDEO'",
     "pose_landmarker_full.task",
     "minConfidence: 0.35",
-    "previewFrameIntervalMs: 250",
-    "maxPreviewPoseFrames: 37",
+    "previewFrameIntervalMs: 125",
+    "maxPreviewPoseFrames: 121",
+    "previewRecoveryFrameIntervalMs: 67",
+    "maxPreviewRecoveryPoseFrames: 48",
     "previewSafeInsetMs: 150",
     "seekTimeoutMs: 3500",
     "coarseTargetFps: 8",
@@ -92,6 +94,7 @@ for required in (
     "recoveryRunningMotionScore",
     "slice(0, 24)",
     "previewPoseTimestamps",
+    "previewPoseRecoveryTimestamps",
     "analyzePreviewPoseFromLoader",
     "preview_pose_unavailable",
     "analyzePreviewPose",
@@ -144,6 +147,9 @@ for required in (
 
 for required in (
     "extractEvidenceFramesFromUrl",
+    "web_evidence_storage_failed",
+    "storageReference = dataUrl",
+    "extractRawFrames",
     "_maximumWebEvidenceByteFallback",
     "_maximumWebEvidenceFrames = 24",
     "web_evidence_url_required",
@@ -165,6 +171,17 @@ for required in (
     ".timeout(previewPoseAnalysisTimeout)",
 ):
     require(required in facade_text, f"Running video service is missing launch safety token: {required}")
+
+require(
+    "previewPoseAnalysisTimeout = Duration(seconds: 45)" in facade_text,
+    "Running video preview timeout must cover MediaPipe/WebAssembly cold starts",
+)
+
+require(
+    "reason === 'too_small_runner' ? 0" not in bridge_text
+    and "Math.min(baseQuality.confidence, 0.55)" in bridge_text,
+    "Web too-small perspective quality must remain a low-confidence estimate, not confidence zero",
+)
 
 preview_match = re.search(
     r"async function analyzePreviewPoseFromLoader\(load\) \{(?P<body>.*?)\n  function analyzePreviewPose\(",

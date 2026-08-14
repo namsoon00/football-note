@@ -5215,6 +5215,8 @@
   "runningCoachEvidenceImageViewerTitle": "근거 이미지",
   "runningCoachEvidenceImageViewerMetadata": "{kind} · {role} · {side} · {time}",
   "@runningCoachEvidenceImageViewerMetadata": {"placeholders": {"kind": {"type": "String"}, "role": {"type": "String"}, "side": {"type": "String"}, "time": {"type": "String"}}},
+  "runningCoachEvidenceFocusView": "러너 확대 보기",
+  "runningCoachEvidenceOriginalView": "전체 프레임 보기",
   "runningCoachEvidenceOverlayOn": "오버레이 보기",
   "runningCoachEvidenceOverlayOff": "오버레이 숨기기",
   "runningCoachEvidencePlay": "근거 영상 재생",

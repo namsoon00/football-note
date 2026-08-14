@@ -10,8 +10,10 @@
     maxDecodableVideoDurationMs: 600000,
     minConfidence: 0.35,
     minValidFrames: 6,
-    previewFrameIntervalMs: 250,
-    maxPreviewPoseFrames: 37,
+    previewFrameIntervalMs: 125,
+    maxPreviewPoseFrames: 121,
+    previewRecoveryFrameIntervalMs: 67,
+    maxPreviewRecoveryPoseFrames: 48,
     previewSafeInsetMs: 150,
     seekTimeoutMs: 3500,
     // Read the whole clip at a predictable coarse density. The release budget
@@ -399,6 +401,29 @@
     return Array.from({ length: intervalCount + 1 }, (_, index) =>
       Math.round(startMs + ((safeSpanMs * index) / intervalCount)),
     );
+  }
+
+  function previewPoseRecoveryTimestamps(durationMs, attemptedTimestamps) {
+    const safeDurationMs = Math.max(0, Math.round(durationMs));
+    const attempted = new Set(attemptedTimestamps || []);
+    const insetMs = Math.min(
+      config.previewSafeInsetMs,
+      Math.max(1, Math.floor(safeDurationMs * 0.08)),
+    );
+    const startMs = Math.min(safeDurationMs - 1, Math.max(1, Math.floor(insetMs / 2)));
+    const endMs = Math.max(startMs, safeDurationMs - Math.max(1, Math.floor(insetMs / 2)));
+    if (endMs <= startMs) return [];
+    const safeSpanMs = endMs - startMs;
+    const intervalCount = Math.max(
+      1,
+      Math.min(
+        config.maxPreviewRecoveryPoseFrames - 1,
+        Math.ceil(safeSpanMs / config.previewRecoveryFrameIntervalMs),
+      ),
+    );
+    return Array.from({ length: intervalCount + 1 }, (_, index) =>
+      Math.round(startMs + ((safeSpanMs * index) / intervalCount)),
+    ).filter((timestampMs) => !attempted.has(timestampMs));
   }
 
   function recoveryRunningMotionScore(samples) {
@@ -1804,7 +1829,7 @@
     const reason = perspectiveReasonForMetric(quality, metric);
     if (!reason) return baseQuality;
     return metricQuality(
-      Math.min(baseQuality.confidence, reason === 'too_small_runner' ? 0 : 0.55),
+      Math.min(baseQuality.confidence, 0.55),
       baseQuality.sampleCount,
       reason,
     );
@@ -1840,14 +1865,18 @@
       if (!context) return [];
       const frames = [];
       for (const timestampMs of uniqueTimestamps) {
-        await seekVideo(video, timestampMs / 1000);
-        context.drawImage(video, 0, 0, width, height);
-        frames.push({
-          timestampMs,
-          width,
-          height,
-          dataUrl: canvas.toDataURL('image/jpeg', safeQuality),
-        });
+        try {
+          await seekVideo(video, timestampMs / 1000);
+          context.drawImage(video, 0, 0, width, height);
+          frames.push({
+            timestampMs,
+            width,
+            height,
+            dataUrl: canvas.toDataURL('image/jpeg', safeQuality),
+          });
+        } catch (_) {
+          await nextAnimationFrame();
+        }
       }
       return frames;
     } finally {
@@ -2124,13 +2153,32 @@
         throw createError('web_video_decode_failed', 'The selected video has no readable frames.');
       }
 
-      const previewFrameTimes = previewPoseTimestamps(durationMs);
+      let previewFrameTimes = previewPoseTimestamps(durationMs);
       let preview;
       try {
         preview = await runPosePass(video, previewFrameTimes, false);
       } catch (error) {
         if (error?.code) throw error;
         throw createError('mediapipe_pose_failed', error?.message || 'MediaPipe pose inference failed.');
+      }
+      if (preview.poseFrames.length === 0) {
+        const recoveryFrameTimes = previewPoseRecoveryTimestamps(durationMs, previewFrameTimes);
+        if (recoveryFrameTimes.length > 0) {
+          let recovery;
+          try {
+            recovery = await runPosePass(video, recoveryFrameTimes, false);
+          } catch (error) {
+            if (error?.code) throw error;
+            throw createError('mediapipe_pose_failed', error?.message || 'MediaPipe pose inference failed.');
+          }
+          previewFrameTimes = [...new Set([...previewFrameTimes, ...recoveryFrameTimes])]
+            .sort((left, right) => left - right);
+          preview = {
+            samples: mergedSamples(preview.samples, recovery.samples),
+            poseFrames: mergedPoseFrames(preview.poseFrames, recovery.poseFrames),
+            sharpnessValues: [],
+          };
+        }
       }
       if (preview.poseFrames.length === 0) {
         throw createError(

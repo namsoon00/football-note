@@ -9203,6 +9203,12 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get runningCoachEvidenceFocusView => 'ランナーを拡大';
+
+  @override
+  String get runningCoachEvidenceOriginalView => '全体フレームを表示';
+
+  @override
   String get runningCoachEvidenceOverlayOn => 'オーバーレイを表示';
 
   @override

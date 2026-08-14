@@ -182,14 +182,37 @@ final class RunningPoseAnalysisChannel {
     imageGenerator.requestedTimeToleranceBefore = .zero
     imageGenerator.requestedTimeToleranceAfter = .zero
 
-    let previewTimestamps = previewPoseTimestamps(durationMs: durationMs)
+    var previewTimestamps = previewPoseTimestamps(durationMs: durationMs)
     let poseLandmarker = try makePoseLandmarker()
-    let previewPass = try runPosePass(
+    var previewPass = try runPosePass(
       poseLandmarker: poseLandmarker,
       imageGenerator: imageGenerator,
       timestampsMs: previewTimestamps,
       collectSharpness: false
     )
+    if previewPass.poseFrames.isEmpty {
+      let recoveryTimestamps = previewPoseRecoveryTimestamps(
+        durationMs: durationMs,
+        attemptedTimestamps: Set(previewTimestamps)
+      )
+      if !recoveryTimestamps.isEmpty {
+        let recoveryPass = try runPosePass(
+          poseLandmarker: poseLandmarker,
+          imageGenerator: imageGenerator,
+          timestampsMs: recoveryTimestamps,
+          collectSharpness: false
+        )
+        previewTimestamps = Array(Set(previewTimestamps + recoveryTimestamps)).sorted()
+        previewPass = PosePassResult(
+          samples: mergeFrameSamples(previewPass.samples, recoveryPass.samples),
+          poseFrames: mergePoseFrames(
+            coarsePoseFrames: previewPass.poseFrames,
+            densePoseFrames: recoveryPass.poseFrames
+          ),
+          sharpnessValues: []
+        )
+      }
+    }
     guard !previewPass.poseFrames.isEmpty else {
       throw AnalysisError(
         code: "preview_pose_unavailable",
@@ -847,6 +870,41 @@ final class RunningPoseAnalysisChannel {
         )
       )
     }
+  }
+
+  private func previewPoseRecoveryTimestamps(
+    durationMs: Int,
+    attemptedTimestamps: Set<Int>
+  ) -> [Int] {
+    let insetMs = min(
+      Self.previewPoseSafeInsetMs,
+      max(1, Int(Double(durationMs) * 0.08))
+    )
+    let startMs = min(durationMs - 1, max(1, insetMs / 2))
+    let endMs = max(startMs, durationMs - max(1, insetMs / 2))
+    if endMs <= startMs {
+      return []
+    }
+    let safeDurationMs = endMs - startMs
+    let requestedIntervalCount = max(
+      1,
+      (safeDurationMs + Self.previewPoseRecoveryFrameIntervalMs - 1) /
+        Self.previewPoseRecoveryFrameIntervalMs
+    )
+    let intervalCount = min(
+      requestedIntervalCount,
+      Self.maxPreviewRecoveryPoseFrameBudget - 1
+    )
+    return (0...intervalCount).map { index in
+      min(
+        durationMs - 1,
+        max(
+          1,
+          startMs + Int((Double(safeDurationMs) * Double(index) /
+            Double(intervalCount)).rounded())
+        )
+      )
+    }.filter { !attemptedTimestamps.contains($0) }
   }
 
   private func recoverySampleTimestamps(
@@ -2268,7 +2326,7 @@ final class RunningPoseAnalysisChannel {
     let sampleCount = (baseQuality["sampleCount"] as? NSNumber)?.intValue ??
       (baseQuality["sampleCount"] as? Int ?? 0)
     return metricQualityPayload(
-      confidence: min(confidence, reason == "too_small_runner" ? 0 : 0.55),
+      confidence: min(confidence, 0.55),
       sampleCount: sampleCount,
       reason: reason
     )
@@ -3050,8 +3108,10 @@ final class RunningPoseAnalysisChannel {
   private static let coarseTargetFps = 8
   private static let coarseFrameIntervalMs = 125
   private static let maxCoarseFrameBudget = 481
-  private static let previewPoseFrameIntervalMs = 250
-  private static let maxPreviewPoseFrameBudget = 37
+  private static let previewPoseFrameIntervalMs = 125
+  private static let maxPreviewPoseFrameBudget = 121
+  private static let previewPoseRecoveryFrameIntervalMs = 67
+  private static let maxPreviewRecoveryPoseFrameBudget = 48
   private static let previewPoseSafeInsetMs = 150
   private static let recoveryTargetFps = 15
   private static let recoveryFrameIntervalMs = 67

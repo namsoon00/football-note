@@ -117,6 +117,175 @@ Offset mapRunningPoseLandmarkToCanvas({
   );
 }
 
+class RunningPoseSourceTransform {
+  final Rect sourceRect;
+  final double scale;
+  final Offset translation;
+
+  const RunningPoseSourceTransform({
+    required this.sourceRect,
+    required this.scale,
+    required this.translation,
+  });
+
+  Offset mapSourcePoint(Offset sourcePoint) {
+    return Offset(
+      translation.dx + sourcePoint.dx * scale,
+      translation.dy + sourcePoint.dy * scale,
+    );
+  }
+}
+
+Rect? runningPoseFocusSourceRect({
+  required RunningPoseFrame? frame,
+  required int imageWidth,
+  required int imageHeight,
+  required Size outputSize,
+}) {
+  final refined = refineRunningPoseFrameForOverlay(frame);
+  if (refined == null ||
+      imageWidth <= 0 ||
+      imageHeight <= 0 ||
+      outputSize.isEmpty) {
+    return null;
+  }
+  final points = refined.landmarks
+      .where((landmark) =>
+          landmark.confidence >= runningPoseOverlayMinimumJointConfidence &&
+          landmark.x.isFinite &&
+          landmark.y.isFinite &&
+          landmark.x >= 0 &&
+          landmark.x <= 1 &&
+          landmark.y >= 0 &&
+          landmark.y <= 1)
+      .map(
+        (landmark) => Offset(
+          landmark.x * imageWidth,
+          landmark.y * imageHeight,
+        ),
+      )
+      .toList(growable: false);
+  if (points.length < 4) return null;
+  var left = points.first.dx;
+  var right = points.first.dx;
+  var top = points.first.dy;
+  var bottom = points.first.dy;
+  for (final point in points.skip(1)) {
+    left = math.min(left, point.dx);
+    right = math.max(right, point.dx);
+    top = math.min(top, point.dy);
+    bottom = math.max(bottom, point.dy);
+  }
+  final bounds = Rect.fromLTRB(left, top, right, bottom);
+  if (bounds.width <= 1 || bounds.height <= 1) return null;
+  final marginX = math.max(bounds.width * 0.34, imageWidth * 0.035);
+  final marginTop = math.max(bounds.height * 0.30, imageHeight * 0.045);
+  final marginBottom = math.max(bounds.height * 0.24, imageHeight * 0.04);
+  var focusRect = Rect.fromLTRB(
+    bounds.left - marginX,
+    bounds.top - marginTop,
+    bounds.right + marginX,
+    bounds.bottom + marginBottom,
+  );
+  focusRect = _expandRectToAspect(
+    focusRect,
+    outputSize.width / outputSize.height,
+  );
+  return _clampRectToSource(
+    focusRect,
+    Size(imageWidth.toDouble(), imageHeight.toDouble()),
+  );
+}
+
+RunningPoseSourceTransform runningPoseSourceTransform({
+  required int imageWidth,
+  required int imageHeight,
+  required Size outputSize,
+  Rect? sourceRect,
+}) {
+  final sourceSize = Size(imageWidth.toDouble(), imageHeight.toDouble());
+  final fullSource = Offset.zero & sourceSize;
+  final rect = _clampRectToSource(sourceRect ?? fullSource, sourceSize);
+  if (sourceSize.isEmpty || outputSize.isEmpty || rect.isEmpty) {
+    return RunningPoseSourceTransform(
+      sourceRect: fullSource,
+      scale: 1,
+      translation: Offset.zero,
+    );
+  }
+  final scale = math.min(
+    outputSize.width / rect.width,
+    outputSize.height / rect.height,
+  );
+  final displayWidth = rect.width * scale;
+  final displayHeight = rect.height * scale;
+  final dx = (outputSize.width - displayWidth) / 2 - rect.left * scale;
+  final dy = (outputSize.height - displayHeight) / 2 - rect.top * scale;
+  return RunningPoseSourceTransform(
+    sourceRect: rect,
+    scale: scale,
+    translation: Offset(dx, dy),
+  );
+}
+
+Offset runningPoseFocusedOffset({
+  required RunningVideoPoseLandmark landmark,
+  required int imageWidth,
+  required int imageHeight,
+  required Size outputSize,
+  required Rect sourceRect,
+}) {
+  final transform = runningPoseSourceTransform(
+    imageWidth: imageWidth,
+    imageHeight: imageHeight,
+    outputSize: outputSize,
+    sourceRect: sourceRect,
+  );
+  return transform.mapSourcePoint(
+    Offset(landmark.x * imageWidth, landmark.y * imageHeight),
+  );
+}
+
+Rect _expandRectToAspect(Rect rect, double aspectRatio) {
+  if (!aspectRatio.isFinite || aspectRatio <= 0 || rect.isEmpty) return rect;
+  final currentAspect = rect.width / rect.height;
+  if ((currentAspect - aspectRatio).abs() < 0.0001) return rect;
+  if (currentAspect < aspectRatio) {
+    final width = rect.height * aspectRatio;
+    final delta = (width - rect.width) / 2;
+    return Rect.fromLTRB(
+      rect.left - delta,
+      rect.top,
+      rect.right + delta,
+      rect.bottom,
+    );
+  }
+  final height = rect.width / aspectRatio;
+  final delta = (height - rect.height) / 2;
+  return Rect.fromLTRB(
+    rect.left,
+    rect.top - delta,
+    rect.right,
+    rect.bottom + delta,
+  );
+}
+
+Rect _clampRectToSource(Rect rect, Size sourceSize) {
+  if (sourceSize.isEmpty) return Rect.zero;
+  var width = math.min(rect.width, sourceSize.width);
+  var height = math.min(rect.height, sourceSize.height);
+  if (width <= 0 || height <= 0) {
+    return Offset.zero & sourceSize;
+  }
+  var left = rect.left;
+  var top = rect.top;
+  if (left < 0) left = 0;
+  if (top < 0) top = 0;
+  if (left + width > sourceSize.width) left = sourceSize.width - width;
+  if (top + height > sourceSize.height) top = sourceSize.height - height;
+  return Rect.fromLTWH(left, top, width, height);
+}
+
 RunningPoseFrame? refineRunningPoseFrameForOverlay(RunningPoseFrame? frame) {
   if (frame == null ||
       frame.imageWidth <= 0 ||

@@ -64,6 +64,13 @@ for platform, text in sources.items():
         "normalizedShoulderYs" not in text,
         f"{platform} must not compute bounce from absolute shoulder y",
     )
+    require(
+        "too_small_runner" in text
+        and "reason === 'too_small_runner' ? 0" not in text
+        and 'if (reason == "too_small_runner") 0.0 else 0.55' not in text
+        and 'reason == "too_small_runner" ? 0 : 0.55' not in text,
+        f"{platform} must not zero confidence for too-small runner estimates",
+    )
 
 constant_patterns = {
     "web": (
