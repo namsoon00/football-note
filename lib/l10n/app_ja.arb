@@ -4792,6 +4792,7 @@
   "runningCoachPreviewUnavailable": "プレビューを開けません。別の動画を選ぶか、分析デコーダーでこのファイルを試せます。",
   "runningCoachPreviewPoseAnalyzing": "関節を確認中",
   "runningCoachPreviewPoseUnavailable": "関節オーバーレイを表示できません",
+  "runningCoachPreviewPoseRetryAction": "再試行",
   "runningCoachPreviewSelectAction": "この動画を選択",
   "runningCoachPreviewAnalyzeAction": "この動画を分析",
   "runningCoachPreviewLongVideoWarning": "60秒を超える動画です。フレーム予算内で全体を確認し、ランナーが最も見やすい区間を重点的に分析します。",

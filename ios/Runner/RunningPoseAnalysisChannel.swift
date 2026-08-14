@@ -58,6 +58,37 @@ final class RunningPoseAnalysisChannel {
           }
         }
       }
+    case Self.previewPoseMethodName:
+      guard
+        let arguments = call.arguments as? [String: Any],
+        let path = arguments["path"] as? String,
+        !path.isEmpty
+      else {
+        result(FlutterError(code: "missing_file", message: "Video file is missing.", details: nil))
+        return
+      }
+      queue.async {
+        do {
+          let preview = try self.analyzePreviewPose(at: path)
+          DispatchQueue.main.async {
+            result(preview)
+          }
+        } catch let error as AnalysisError {
+          DispatchQueue.main.async {
+            result(FlutterError(code: error.code, message: error.message, details: nil))
+          }
+        } catch {
+          DispatchQueue.main.async {
+            result(
+              FlutterError(
+                code: "preview_pose_failed",
+                message: error.localizedDescription,
+                details: nil
+              )
+            )
+          }
+        }
+      }
     case Self.evidenceFramesMethodName:
       guard
         let arguments = call.arguments as? [String: Any],
@@ -123,6 +154,56 @@ final class RunningPoseAnalysisChannel {
     default:
       result(FlutterMethodNotImplemented)
     }
+  }
+
+  private func analyzePreviewPose(at path: String) throws -> [String: Any] {
+    guard FileManager.default.fileExists(atPath: path) else {
+      throw AnalysisError(code: "missing_file", message: "Video file is missing.")
+    }
+
+    let asset = AVURLAsset(url: URL(fileURLWithPath: path))
+    let durationSeconds = CMTimeGetSeconds(asset.duration)
+    let durationMs = Int((durationSeconds * 1000.0).rounded())
+    guard durationMs >= Self.minVideoDurationMs else {
+      throw AnalysisError(
+        code: "video_too_short",
+        message: "Please select a running clip that is at least 1.5 seconds long."
+      )
+    }
+    guard durationMs <= Self.maxDecodableVideoDurationMs else {
+      throw AnalysisError(
+        code: "video_too_long",
+        message: "This video is longer than the bounded on-device decoding budget."
+      )
+    }
+
+    let imageGenerator = AVAssetImageGenerator(asset: asset)
+    imageGenerator.appliesPreferredTrackTransform = true
+    imageGenerator.requestedTimeToleranceBefore = .zero
+    imageGenerator.requestedTimeToleranceAfter = .zero
+
+    let previewTimestamps = previewPoseTimestamps(durationMs: durationMs)
+    let poseLandmarker = try makePoseLandmarker()
+    let previewPass = try runPosePass(
+      poseLandmarker: poseLandmarker,
+      imageGenerator: imageGenerator,
+      timestampsMs: previewTimestamps,
+      collectSharpness: false
+    )
+    guard !previewPass.poseFrames.isEmpty else {
+      throw AnalysisError(
+        code: "preview_pose_unavailable",
+        message: "No readable pose frame was found for preview."
+      )
+    }
+
+    return [
+      "durationMs": durationMs,
+      "sampledFrames": previewTimestamps.count,
+      "validFrames": previewPass.samples.count,
+      "perspectiveQuality": perspectiveQualityPayload(from: previewPass.samples).payload,
+      "poseFrames": previewPass.poseFrames,
+    ]
   }
 
   private func analyzeLiveFrame(arguments: [String: Any]?) throws -> [String: Any]? {
@@ -723,6 +804,23 @@ final class RunningPoseAnalysisChannel {
     let intervalCount = min(
       requestedIntervalCount,
       Self.maxCoarseFrameBudget - 1
+    )
+    return (0...intervalCount).map { index in
+      min(
+        durationMs,
+        max(0, Int((Double(durationMs) * Double(index) / Double(intervalCount)).rounded()))
+      )
+    }
+  }
+
+  private func previewPoseTimestamps(durationMs: Int) -> [Int] {
+    let requestedIntervalCount = max(
+      1,
+      (durationMs + Self.previewPoseFrameIntervalMs - 1) / Self.previewPoseFrameIntervalMs
+    )
+    let intervalCount = min(
+      requestedIntervalCount,
+      Self.maxPreviewPoseFrameBudget - 1
     )
     return (0...intervalCount).map { index in
       min(
@@ -2840,11 +2938,14 @@ final class RunningPoseAnalysisChannel {
 
   private static let channelName = "football_note/running_pose_analysis"
   private static let methodName = "analyzeRunningVideo"
+  private static let previewPoseMethodName = "analyzeRunningVideoPreviewPose"
   private static let evidenceFramesMethodName = "extractRunningEvidenceFrames"
   private static let liveFrameMethodName = "analyzeRunningLiveFrame"
   private static let coarseTargetFps = 8
   private static let coarseFrameIntervalMs = 125
   private static let maxCoarseFrameBudget = 481
+  private static let previewPoseFrameIntervalMs = 1000
+  private static let maxPreviewPoseFrameBudget = 9
   private static let recoveryTargetFps = 15
   private static let recoveryFrameIntervalMs = 67
   private static let maxRecoveryFrameBudget = 120

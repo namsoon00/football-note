@@ -10,6 +10,8 @@
     maxDecodableVideoDurationMs: 600000,
     minConfidence: 0.35,
     minValidFrames: 6,
+    previewFrameIntervalMs: 1000,
+    maxPreviewPoseFrames: 9,
     // Read the whole clip at a predictable coarse density. The release budget
     // is 8 fps through the supported 60-second capture, capped at 481 inclusive
     // timestamps so start, middle, and end are always represented.
@@ -345,6 +347,20 @@
       Math.min(
         config.maxCoarseFrames - 1,
         Math.ceil(safeDurationMs / config.coarseFrameIntervalMs),
+      ),
+    );
+    return Array.from({ length: intervalCount + 1 }, (_, index) =>
+      Math.round((safeDurationMs * index) / intervalCount),
+    );
+  }
+
+  function previewPoseTimestamps(durationMs) {
+    const safeDurationMs = Math.max(0, Math.round(durationMs));
+    const intervalCount = Math.max(
+      1,
+      Math.min(
+        config.maxPreviewPoseFrames - 1,
+        Math.ceil(safeDurationMs / config.previewFrameIntervalMs),
       ),
     );
     return Array.from({ length: intervalCount + 1 }, (_, index) =>
@@ -1887,9 +1903,65 @@
     return analyzeFromLoader(() => loadVideoUrl(url, false));
   }
 
+  async function analyzePreviewPoseFromLoader(load) {
+    const { video, url, ownsUrl } = await load();
+    try {
+      const durationMs = Math.round(video.duration * 1000);
+      if (!Number.isFinite(durationMs) || durationMs < config.minVideoDurationMs) {
+        throw createError(
+          'video_too_short',
+          'Please select a running clip that is at least 1.5 seconds long.',
+        );
+      }
+      if (durationMs > config.maxDecodableVideoDurationMs) {
+        throw createError(
+          'video_too_long',
+          'This video is longer than the bounded on-device decoding budget.',
+        );
+      }
+      if (video.videoWidth <= 0 || video.videoHeight <= 0) {
+        throw createError('web_video_decode_failed', 'The selected video has no readable frames.');
+      }
+
+      const previewFrameTimes = previewPoseTimestamps(durationMs);
+      let preview;
+      try {
+        preview = await runPosePass(video, previewFrameTimes, false);
+      } catch (error) {
+        if (error?.code) throw error;
+        throw createError('mediapipe_pose_failed', error?.message || 'MediaPipe pose inference failed.');
+      }
+      if (preview.poseFrames.length === 0) {
+        throw createError(
+          'preview_pose_unavailable',
+          'No readable pose frame was found for preview.',
+        );
+      }
+      return {
+        durationMs,
+        sampledFrames: previewFrameTimes.length,
+        validFrames: preview.samples.length,
+        perspectiveQuality: perspectiveQuality(preview.samples),
+        poseFrames: preview.poseFrames,
+      };
+    } finally {
+      releaseVideo(video, url, ownsUrl);
+    }
+  }
+
+  function analyzePreviewPose(bytes, name) {
+    return analyzePreviewPoseFromLoader(() => loadVideo(bytes, name));
+  }
+
+  function analyzePreviewPoseUrl(url, name) {
+    return analyzePreviewPoseFromLoader(() => loadVideoUrl(url, false));
+  }
+
   window.runningVideoPoseAnalysis = Object.freeze({
     analyze,
     analyzeUrl,
+    analyzePreviewPose,
+    analyzePreviewPoseUrl,
     extractEvidenceFrames,
     extractEvidenceFramesFromUrl,
     storeEvidenceFrame,

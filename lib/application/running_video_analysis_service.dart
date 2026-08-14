@@ -33,6 +33,7 @@ class RunningVideoAnalysisService {
   // A dense 60-second scan can legitimately take longer than the old
   // 14-frame pass, especially on lower-powered phones.
   static const analysisTimeout = Duration(seconds: 120);
+  static const previewPoseAnalysisTimeout = Duration(seconds: 8);
 
   const RunningVideoAnalysisService();
 
@@ -71,6 +72,52 @@ class RunningVideoAnalysisService {
       throw const RunningVideoAnalysisException(
         'analysis_timeout',
         'Running video analysis timed out.',
+      );
+    }
+  }
+
+  Future<RunningVideoPosePreviewResult> analyzePreviewPose(XFile video) async {
+    final path = video.path.trim();
+    if (path.isEmpty) {
+      throw const RunningVideoAnalysisException(
+        'missing_file',
+        'Video file is missing.',
+      );
+    }
+    final length = await _videoLength(video);
+    if (length <= 0) {
+      throw const RunningVideoAnalysisException(
+        'missing_file',
+        'Video file is missing.',
+      );
+    }
+    if (length > platform.maximumRunningVideoBytes) {
+      if (platform.maximumRunningVideoBytes == webMaxVideoBytes) {
+        throw const RunningVideoAnalysisException(
+          'web_video_too_large',
+          'The selected browser video exceeds the 96 MB analysis budget.',
+        );
+      }
+      throw const RunningVideoAnalysisException(
+        'video_too_large',
+        'The selected video is too large for this platform analysis budget.',
+      );
+    }
+    try {
+      final preview = await platform
+          .analyzeRunningVideoPreviewPose(video)
+          .timeout(previewPoseAnalysisTimeout);
+      if (preview.poseFrames.isEmpty) {
+        throw const RunningVideoAnalysisException(
+          'preview_pose_unavailable',
+          'No readable pose frame was found for preview.',
+        );
+      }
+      return preview;
+    } on TimeoutException {
+      throw const RunningVideoAnalysisException(
+        'preview_pose_timeout',
+        'Running video preview pose analysis timed out.',
       );
     }
   }

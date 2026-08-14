@@ -66,6 +66,13 @@ void main() {
     });
   }
 
+  Future<void> collapseCalendarForTimeline(WidgetTester tester) async {
+    final collapseButton = find.text('캘린더 접기');
+    if (collapseButton.evaluate().isEmpty) return;
+    await tester.tap(collapseButton);
+    await tester.pumpAndSettle();
+  }
+
   Future<void> saveTrainingEntry(
     WidgetTester _,
     TrainingEntry entry,
@@ -180,6 +187,7 @@ void main() {
     );
 
     await pumpCalendar(tester);
+    await collapseCalendarForTimeline(tester);
 
     expect(find.text('승'), findsOneWidget);
     expect(find.text('vs 라이벌 FC'), findsOneWidget);
@@ -218,13 +226,11 @@ void main() {
     );
 
     await pumpCalendar(tester, onEdit: (entry) => editedEntry = entry);
+    await collapseCalendarForTimeline(tester);
 
     expect(find.text('드리블, 패스 · 45분'), findsOneWidget);
     expect(find.textContaining('줄넘기/리프팅 기록 없음 · 흐림 18°C'), findsOneWidget);
     expect(find.textContaining('학교 운동장'), findsNothing);
-
-    await tester.tap(find.text('캘린더 접기'));
-    await tester.pumpAndSettle();
 
     final trainingRow = find.text('드리블, 패스 · 45분');
     await tester.ensureVisible(trainingRow);
@@ -902,6 +908,7 @@ void main() {
     );
 
     await pumpCalendar(tester);
+    await collapseCalendarForTimeline(tester);
 
     expect(find.text('식사 기록'), findsWidgets);
     expect(find.textContaining('아침 1공기'), findsOneWidget);

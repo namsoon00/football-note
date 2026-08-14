@@ -73,6 +73,46 @@ void main() {
     expect(serializedLandmarks[32]['worldX'], closeTo(3.2, 0.0001));
   });
 
+  test('preview pose result parses bounded payload without coaching fields',
+      () {
+    final preview = RunningVideoPosePreviewResult.fromMap({
+      'durationMs': 4000,
+      'sampledFrames': 4,
+      'validFrames': 2,
+      'poseFrames': [
+        _poseFrameMap(timestampMs: 1000, imageWidth: 640, imageHeight: 360),
+        _poseFrameMap(timestampMs: 0, imageWidth: 640, imageHeight: 360),
+      ],
+      'perspectiveQuality': {
+        'evaluatedFrameCount': 2,
+        'medianBodyScaleRatio': 0.22,
+        'minBodyScaleRatio': 0.18,
+        'visibilityCoverage': 0.75,
+        'sideViewScore': 0.64,
+        'scaleDriftRatio': 0.08,
+        'cutOffFrameRatio': 0.1,
+        'issues': ['bodyCutOff'],
+      },
+      'metricQualities': {
+        'posture': {'confidence': 1, 'sampleCount': 2},
+      },
+      'contactWindows': [
+        {'centerTimestampMs': 500},
+      ],
+    });
+
+    expect(preview.videoDuration, const Duration(seconds: 4));
+    expect(preview.validFrameCoverage, 0.5);
+    expect(preview.poseFrames.map((frame) => frame.timestampMs), [0, 1000]);
+    expect(
+      preview.perspectiveQuality.issues,
+      contains(RunningVideoQualityIssue.bodyCutOff),
+    );
+    final serialized = preview.toMap();
+    expect(serialized.containsKey('metricQualities'), isFalse);
+    expect(serialized.containsKey('contactWindows'), isFalse);
+  });
+
   test('fromMap parses dense contact contract immutably', () {
     final result = RunningVideoAnalysisResult.fromMap({
       'durationMs': 3200,

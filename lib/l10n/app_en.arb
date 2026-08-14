@@ -4792,6 +4792,7 @@
   "runningCoachPreviewUnavailable": "Preview is unavailable. You can choose another video or let the analysis decoder try this file.",
   "runningCoachPreviewPoseAnalyzing": "Checking joints",
   "runningCoachPreviewPoseUnavailable": "Joint overlay unavailable",
+  "runningCoachPreviewPoseRetryAction": "Retry",
   "runningCoachPreviewSelectAction": "Choose this video",
   "runningCoachPreviewAnalyzeAction": "Analyze this video",
   "runningCoachPreviewLongVideoWarning": "This is longer than 60 seconds. The app will scan within its frame budget and focus on the clearest runner segment.",
