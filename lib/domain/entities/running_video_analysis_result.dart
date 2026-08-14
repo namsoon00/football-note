@@ -74,6 +74,10 @@ enum RunningCoachFinding {
 const int mediaPipePoseLandmarkCount = 33;
 const double runningCoachReliableMetricConfidence = 0.65;
 const int runningCoachMinimumReliableMetricSamples = 3;
+const double _runningMinimumLandmarkConfidence = 0.35;
+const Duration _runningBounceResampleInterval = Duration(milliseconds: 50);
+const Duration _runningBounceWindow = Duration(milliseconds: 800);
+const Duration _runningBounceWindowStep = Duration(milliseconds: 400);
 
 class RunningVideoPoseLandmark {
   final int index;
@@ -448,13 +452,18 @@ class RunningVideoPerspectiveQuality {
     if (issues.contains(RunningVideoQualityIssue.bodyCutOff)) {
       return 'body_cut_off';
     }
-    final isLowerBodyPositionMetric = metric == RunningCoachMetric.footStrike ||
-        metric == RunningCoachMetric.kneeFlexion;
-    if (isLowerBodyPositionMetric &&
+    final isProjectionSensitiveMetric = metric == RunningCoachMetric.posture ||
+        metric == RunningCoachMetric.footStrike ||
+        metric == RunningCoachMetric.kneeFlexion ||
+        metric == RunningCoachMetric.armCarriage;
+    if (isProjectionSensitiveMetric &&
         issues.contains(RunningVideoQualityIssue.notSideOn)) {
       return 'not_side_on';
     }
-    if ((isLowerBodyPositionMetric || metric == RunningCoachMetric.bounce) &&
+    final isScaleSensitiveMetric = metric == RunningCoachMetric.footStrike ||
+        metric == RunningCoachMetric.kneeFlexion ||
+        metric == RunningCoachMetric.bounce;
+    if (isScaleSensitiveMetric &&
         issues.contains(RunningVideoQualityIssue.scaleDrift)) {
       return 'scale_drift';
     }
@@ -907,6 +916,7 @@ class RunningVideoAnalysisResult {
 
   RunningVideoAnalysisResult copyWith({
     int? analysisVersion,
+    RunningDirection? direction,
     double? forwardLeanDegrees,
     double? verticalBounceRatio,
     double? footStrikeDistanceRatio,
@@ -929,7 +939,7 @@ class RunningVideoAnalysisResult {
       videoDuration: videoDuration,
       sampledFrames: sampledFrames,
       validFrames: validFrames,
-      direction: direction,
+      direction: direction ?? this.direction,
       forwardLeanDegrees: forwardLeanDegrees ?? this.forwardLeanDegrees,
       verticalBounceRatio: verticalBounceRatio ?? this.verticalBounceRatio,
       footStrikeDistanceRatio:
@@ -1037,15 +1047,26 @@ class RunningVideoAnalysisResult {
     // Early v2 builds placed kinematic estimates in the validated list. They
     // always tagged the lower-body metric quality, so old history can be
     // repaired deterministically without changing truly validated v1 data.
+    final alternation = shouldDemoteLegacyKinematicContacts
+        ? null
+        : _partitionAlternatingValidatedContacts(
+            parsedValidated,
+            parsedWindows,
+          );
     final contactWindows = shouldDemoteLegacyKinematicContacts
         ? _demoteLegacyKinematicWindows(parsedWindows)
-        : parsedWindows;
+        : _demoteAlternationEstimatedWindows(
+            parsedWindows,
+            alternation?.demoted ?? const <Duration>[],
+          );
     final validatedContacts = shouldDemoteLegacyKinematicContacts
         ? const <Duration>[]
-        : parsedValidated;
+        : alternation?.confirmed ?? parsedValidated;
     final estimatedContacts = <Duration>{
       ...parsedEstimated,
       if (shouldDemoteLegacyKinematicContacts) ...parsedValidated,
+      if (!shouldDemoteLegacyKinematicContacts)
+        ...(alternation?.demoted ?? const <Duration>[]),
     }.toList(growable: false)
       ..sort();
     final parsedMeasurements = _parseRunningMeasurements(map['measurements']);
@@ -1605,15 +1626,17 @@ RunningGaitAnalysis? _deriveRunningGaitAnalysis(
   steps.sort(
     (left, right) => left.contactTimestamp.compareTo(right.contactTimestamp),
   );
-  if (steps.isEmpty) return null;
+  final alternatingSteps = _alternatingGaitSteps(steps);
+  if (alternatingSteps.isEmpty) return null;
 
-  final reliableSteps = steps.where((step) => step.isReliable).toList(
-        growable: false,
-      );
+  final reliableSteps =
+      alternatingSteps.where((step) => step.isReliable).toList(
+            growable: false,
+          );
   final source =
       reliableSteps.length >= runningCoachMinimumReliableMetricSamples
           ? reliableSteps
-          : steps;
+          : alternatingSteps;
   final footStrike = RunningGaitDistribution.fromValues(
     source.map((step) => step.footStrikeDistanceRatio),
   );
@@ -1653,7 +1676,7 @@ RunningGaitAnalysis? _deriveRunningGaitAnalysis(
   );
 
   return RunningGaitAnalysis(
-    steps: List<RunningGaitStep>.unmodifiable(steps),
+    steps: List<RunningGaitStep>.unmodifiable(alternatingSteps),
     footStrikeDistance: footStrike,
     kneeAtContact: kneeAtContact,
     minimumKneeFlexion: minimumKneeFlexion,
@@ -1676,6 +1699,23 @@ RunningGaitAnalysis? _deriveRunningGaitAnalysis(
         ? (leftKnee.median - rightKnee.median).abs()
         : null,
   );
+}
+
+List<RunningGaitStep> _alternatingGaitSteps(List<RunningGaitStep> steps) {
+  final filtered = <RunningGaitStep>[];
+  for (final step in steps) {
+    if (filtered.isEmpty ||
+        step.side == RunningContactSide.unknown ||
+        filtered.last.side == RunningContactSide.unknown ||
+        step.side != filtered.last.side) {
+      filtered.add(step);
+      continue;
+    }
+    if (step.confidence > filtered.last.confidence) {
+      filtered[filtered.length - 1] = step;
+    }
+  }
+  return filtered;
 }
 
 List<RunningMetricEvidence> _deriveRunningMetricEvidence(
@@ -2339,6 +2379,7 @@ List<RunningBounceTrajectoryPoint> runningVerticalBounceTrajectoryForPoseFrames(
       final foot = _footBottomPointPx(frame, side);
       if (foot == null) continue;
       groundPoints.add(_RunningGroundPoint(
+        timestamp: frame.timestamp,
         x: foot.x,
         y: foot.y,
         bodyScale: torso,
@@ -2357,7 +2398,17 @@ List<RunningBounceTrajectoryPoint> runningVerticalBounceTrajectoryForPoseFrames(
     );
     final torso = _torsoLengthPx(frame);
     if (hip == null || torso == null) continue;
-    final clearance = (groundLine.yAt(hip.x) - hip.y) / torso;
+    final localGroundPoints = groundPoints
+        .where(
+          (point) =>
+              (point.timestamp.inMilliseconds - frame.timestampMs).abs() <= 600,
+        )
+        .toList(growable: false);
+    final localGroundLine =
+        localGroundPoints.length >= _runningGroundLineMinimumSamples
+            ? _runningGroundLineForPoints(localGroundPoints)
+            : groundLine;
+    final clearance = (localGroundLine.yAt(hip.x) - hip.y) / torso;
     if (!clearance.isFinite || clearance < 0.20 || clearance > 4.50) {
       continue;
     }
@@ -2405,11 +2456,73 @@ double? runningVerticalBounceRatioForPoseFrames(
 ) {
   final trajectory = runningVerticalBounceTrajectoryForPoseFrames(source);
   if (trajectory.length < _runningMinimumBounceTrajectorySamples) return null;
+  final spans = _runningBounceWindowRatios(trajectory);
+  if (spans.isNotEmpty) {
+    spans.sort();
+    return math.max(0, _runningQuantile(spans, 0.50));
+  }
   final values = trajectory.map((point) => point.value).toList()..sort();
   return math.max(
     0,
     _runningQuantile(values, 0.90) - _runningQuantile(values, 0.10),
   );
+}
+
+List<double> _runningBounceWindowRatios(
+  List<RunningBounceTrajectoryPoint> source,
+) {
+  final trajectory = source.toList(growable: false)
+    ..sort((left, right) => left.timestamp.compareTo(right.timestamp));
+  if (trajectory.length < 3) return <double>[];
+
+  final firstMs = trajectory.first.timestampMs;
+  final lastMs = trajectory.last.timestampMs;
+  if (lastMs <= firstMs) return <double>[];
+
+  final resampled = <({int timestampMs, double value, double confidence})>[];
+  var cursor = 0;
+  for (var timestampMs = firstMs;
+      timestampMs <= lastMs;
+      timestampMs += _runningBounceResampleInterval.inMilliseconds) {
+    while (cursor < trajectory.length - 2 &&
+        trajectory[cursor + 1].timestampMs < timestampMs) {
+      cursor += 1;
+    }
+    final before = trajectory[cursor];
+    final after = trajectory[math.min(cursor + 1, trajectory.length - 1)];
+    if (timestampMs < before.timestampMs || timestampMs > after.timestampMs) {
+      continue;
+    }
+    final gapMs = after.timestampMs - before.timestampMs;
+    if (gapMs <= 0 || gapMs > 300) continue;
+    final fraction = (timestampMs - before.timestampMs) / gapMs;
+    resampled.add((
+      timestampMs: timestampMs,
+      value: before.value + ((after.value - before.value) * fraction),
+      confidence: math.min(before.confidence, after.confidence),
+    ));
+  }
+  if (resampled.length < 3) return <double>[];
+
+  final spans = <double>[];
+  for (var windowStartMs = firstMs;
+      windowStartMs <= lastMs - _runningBounceWindow.inMilliseconds;
+      windowStartMs += _runningBounceWindowStep.inMilliseconds) {
+    final windowEndMs = windowStartMs + _runningBounceWindow.inMilliseconds;
+    final values = resampled
+        .where((sample) =>
+            sample.timestampMs >= windowStartMs &&
+            sample.timestampMs <= windowEndMs)
+        .map((sample) => sample.value)
+        .toList(growable: false);
+    if (values.length < 3) continue;
+    values.sort();
+    spans.add(math.max(
+      0,
+      _runningQuantile(values, 0.90) - _runningQuantile(values, 0.10),
+    ));
+  }
+  return spans;
 }
 
 List<_RunningMetricEvidenceCandidate> _bounceEvidenceCandidates(
@@ -2771,11 +2884,13 @@ class _RunningPosePoint {
 }
 
 class _RunningGroundPoint {
+  final Duration timestamp;
   final double x;
   final double y;
   final double bodyScale;
 
   const _RunningGroundPoint({
+    required this.timestamp,
     required this.x,
     required this.y,
     required this.bodyScale,
@@ -2803,24 +2918,21 @@ _RunningPosePoint? _posePoint(RunningPoseFrame frame, int index) {
   if (landmark == null ||
       !landmark.x.isFinite ||
       !landmark.y.isFinite ||
-      landmark.confidence <= 0) {
+      !landmark.confidence.isFinite ||
+      landmark.confidence < _runningMinimumLandmarkConfidence ||
+      frame.imageWidth <= 0 ||
+      frame.imageHeight <= 0) {
     return null;
   }
   return _RunningPosePoint(
-    landmark.x,
-    landmark.y,
+    landmark.x * frame.imageWidth,
+    landmark.y * frame.imageHeight,
     landmark.confidence.clamp(0.0, 1.0).toDouble(),
   );
 }
 
 _RunningPosePoint? _posePointPx(RunningPoseFrame frame, int index) {
-  final point = _posePoint(frame, index);
-  if (point == null) return null;
-  return _RunningPosePoint(
-    point.x * frame.imageWidth,
-    point.y * frame.imageHeight,
-    point.confidence,
-  );
+  return _posePoint(frame, index);
 }
 
 _RunningPosePoint? _midpoint(
@@ -2847,7 +2959,7 @@ double? _bodyScale(RunningPoseFrame frame) {
   final ankle = _midpoint(_posePoint(frame, 27), _posePoint(frame, 28));
   if (shoulder == null || hip == null || ankle == null) return null;
   final value = math.max(_distance(shoulder, hip), _distance(hip, ankle));
-  return value > 0.0001 ? value : null;
+  return value > 1 ? value : null;
 }
 
 double? _torsoLengthPx(RunningPoseFrame frame) {
@@ -3164,6 +3276,102 @@ List<RunningContactWindow> _parseContactWindows(Object? raw) {
   return List<RunningContactWindow>.unmodifiable(windows);
 }
 
+({List<Duration> confirmed, List<Duration> demoted})
+    _partitionAlternatingValidatedContacts(
+  List<Duration> contacts,
+  List<RunningContactWindow> windows,
+) {
+  final confirmed = <Duration>[];
+  final demoted = <Duration>[];
+  RunningContactSide? lastConfirmedSide;
+  for (final contact in contacts.toList(growable: false)..sort()) {
+    final side = _contactSideForTimestamp(contact, windows);
+    if (side != RunningContactSide.unknown &&
+        lastConfirmedSide != null &&
+        side == lastConfirmedSide) {
+      demoted.add(contact);
+      continue;
+    }
+    confirmed.add(contact);
+    if (side != RunningContactSide.unknown) {
+      lastConfirmedSide = side;
+    }
+  }
+  return (
+    confirmed: List<Duration>.unmodifiable(confirmed),
+    demoted: List<Duration>.unmodifiable(demoted),
+  );
+}
+
+RunningContactSide _contactSideForTimestamp(
+  Duration timestamp,
+  List<RunningContactWindow> windows,
+) {
+  RunningContactWindow? nearest;
+  var nearestDistanceMs = 181;
+  final timestampMs = timestamp.inMilliseconds;
+  final explicitWindows = windows.where(
+    (window) => window.validatedContactTimestamps.any(
+      (item) => item.inMilliseconds == timestampMs,
+    ),
+  );
+  final candidates = explicitWindows.isNotEmpty ? explicitWindows : windows;
+  for (final window in candidates) {
+    final isInside =
+        timestampMs >= window.startMs && timestampMs <= window.endMs;
+    final distanceMs = (timestampMs - window.centerMs).abs();
+    if (!isInside && distanceMs > 180) continue;
+    if (nearest == null || distanceMs < nearestDistanceMs) {
+      nearest = window;
+      nearestDistanceMs = distanceMs;
+    }
+  }
+  return nearest?.side ?? RunningContactSide.unknown;
+}
+
+List<RunningContactWindow> _demoteAlternationEstimatedWindows(
+  List<RunningContactWindow> windows,
+  List<Duration> demotedContacts,
+) {
+  if (demotedContacts.isEmpty) return windows;
+  final demotedMs =
+      demotedContacts.map((timestamp) => timestamp.inMilliseconds).toSet();
+  return List<RunningContactWindow>.unmodifiable(
+    windows.map((window) {
+      final validated = window.validatedContactTimestamps
+          .where((timestamp) => !demotedMs.contains(timestamp.inMilliseconds))
+          .toList(growable: false);
+      final moved = window.validatedContactTimestamps
+          .where((timestamp) => demotedMs.contains(timestamp.inMilliseconds))
+          .toList(growable: false);
+      if (moved.isEmpty) return window;
+      final estimated = <Duration>{
+        ...window.estimatedContactTimestamps,
+        ...moved,
+      }.toList(growable: false)
+        ..sort();
+      return RunningContactWindow(
+        start: window.start,
+        center: window.center,
+        end: window.end,
+        side: window.side,
+        denseSampleCount: window.denseSampleCount,
+        candidateFrameCount: window.candidateFrameCount,
+        validatedContactTimestamps:
+            List<Duration>.unmodifiable(validated..sort()),
+        estimatedContactTimestamps: List<Duration>.unmodifiable(estimated),
+        selectionMethod: validated.isEmpty
+            ? 'alternation_estimated'
+            : window.selectionMethod,
+        rejectedFrameCounts: window.rejectedFrameCounts,
+        confidence: validated.isEmpty
+            ? math.min(window.confidence, 0.62)
+            : window.confidence,
+      );
+    }),
+  );
+}
+
 List<RunningContactWindow> _demoteLegacyKinematicWindows(
   List<RunningContactWindow> windows,
 ) {
@@ -3459,8 +3667,13 @@ bool _hasExtremePoseIdentityDiscontinuity(List<RunningPoseFrame> frames) {
                       0.001,
                       math.min(current.proportion!, previous.proportion!),
                     );
-        final implausibleTranslation = centerJump >
-            math.max(0.38, math.max(current.height, previous.height) * 1.15);
+        final gapFactor = (gapMs / 850).clamp(0.0, 1.0).toDouble();
+        final allowedTranslation = math.max(
+          40.0,
+          math.max(current.height, previous.height) *
+              (0.35 + (0.80 * gapFactor)),
+        );
+        final implausibleTranslation = centerJump > allowedTranslation;
         if (implausibleTranslation ||
             scaleRatio > 2.6 ||
             proportionRatio > 2.35) {
@@ -3490,23 +3703,27 @@ class _PoseIdentitySignature {
   static _PoseIdentitySignature? fromFrame(RunningPoseFrame frame) {
     final visible = frame.landmarks
         .where((landmark) =>
-            landmark.confidence >= 0.35 &&
+            landmark.confidence >= _runningMinimumLandmarkConfidence &&
             landmark.x.isFinite &&
             landmark.y.isFinite)
         .toList(growable: false);
     if (visible.length < 8) return null;
-    var minX = visible.first.x;
-    var maxX = visible.first.x;
-    var minY = visible.first.y;
-    var maxY = visible.first.y;
+    var minX = visible.first.x * frame.imageWidth;
+    var maxX = visible.first.x * frame.imageWidth;
+    var minY = visible.first.y * frame.imageHeight;
+    var maxY = visible.first.y * frame.imageHeight;
     for (final landmark in visible.skip(1)) {
-      minX = math.min(minX, landmark.x);
-      maxX = math.max(maxX, landmark.x);
-      minY = math.min(minY, landmark.y);
-      maxY = math.max(maxY, landmark.y);
+      final x = landmark.x * frame.imageWidth;
+      final y = landmark.y * frame.imageHeight;
+      minX = math.min(minX, x);
+      maxX = math.max(maxX, x);
+      minY = math.min(minY, y);
+      maxY = math.max(maxY, y);
     }
     final height = maxY - minY;
-    if (height <= 0.05) return null;
+    if (height <= math.min(frame.imageWidth, frame.imageHeight) * 0.05) {
+      return null;
+    }
     final shoulder = _identityMidpoint(frame, 11, 12);
     final hip = _identityMidpoint(frame, 23, 24);
     final ankle = _identityMidpoint(frame, 27, 28);
@@ -3538,10 +3755,16 @@ class _PoseIdentitySignature {
 ) {
   final a = frame.landmarkByIndex(first);
   final b = frame.landmarkByIndex(second);
-  if (a == null || b == null || a.confidence < 0.35 || b.confidence < 0.35) {
+  if (a == null ||
+      b == null ||
+      a.confidence < _runningMinimumLandmarkConfidence ||
+      b.confidence < _runningMinimumLandmarkConfidence) {
     return null;
   }
-  return ((a.x + b.x) / 2, (a.y + b.y) / 2);
+  return (
+    ((a.x + b.x) / 2) * frame.imageWidth,
+    ((a.y + b.y) / 2) * frame.imageHeight,
+  );
 }
 
 Map<Object?, Object?>? _asObjectMap(Object? raw) {
@@ -3631,8 +3854,10 @@ class RunningMetricQuality {
         'contact_phase_proxy' ||
         'kinematic_contact_estimate' ||
         'coarse_kinematic_contact_estimate' ||
+        'alternation_estimated' ||
         'estimated_contact_maximum_flexion' ||
         'pose_cycle_period_estimate' ||
+        'direction_unresolved' ||
         'missing_contact_evidence' ||
         'missing_pose_frames' ||
         'missing_measured_frames' ||

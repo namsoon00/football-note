@@ -723,19 +723,34 @@
   }
 
   function resolveDirection(samples) {
-    const movement =
-      samples[samples.length - 1].hipCenter.x - samples[0].hipCenter.x;
-    const scale = Math.max(1, average(samples.map((sample) => sample.bodyScale)));
-    if (Math.abs(movement) >= scale * config.stationaryThresholdRatio) {
-      return movement > 0 ? 'leftToRight' : 'rightToLeft';
+    const ordered = [...samples].sort((left, right) => left.timestampMs - right.timestampMs);
+    const scale = Math.max(1, median(ordered.map((sample) => sample.bodyScale)) ?? 1);
+    let motionDirection = null;
+    if (ordered.length >= 3) {
+      const firstTime = ordered[0].timestampMs;
+      const times = ordered.map((sample) => sample.timestampMs - firstTime);
+      const meanT = average(times);
+      const meanX = average(ordered.map((sample) => sample.hipCenter.x));
+      const covariance = ordered.reduce(
+        (sum, sample, sampleIndex) =>
+          sum + (times[sampleIndex] - meanT) * (sample.hipCenter.x - meanX),
+        0,
+      );
+      const variance = times.reduce(
+        (sum, time) => sum + (time - meanT) * (time - meanT),
+        0,
+      );
+      if (variance > 0) {
+        const durationMs = Math.max(1, times[times.length - 1] - times[0]);
+        const signedTravel = (covariance / variance) * durationMs / scale;
+        if (Math.abs(signedTravel) >= config.stationaryThresholdRatio) {
+          motionDirection = signedTravel > 0 ? 'leftToRight' : 'rightToLeft';
+        }
+      }
     }
 
-    // A treadmill runner stays in the same image location, but the heel-toe
-    // direction still tells us which way the runner faces. Without this
-    // fallback the analyzer produced a numeric posture value and then the
-    // evidence layer discarded it because the direction was "stationary".
     const footDirections = [];
-    for (const sample of samples) {
+    for (const sample of ordered) {
       for (const side of ['left', 'right']) {
         const prefix = side === 'left' ? 'left' : 'right';
         const heel = sample[`${prefix}Heel`];
@@ -748,10 +763,14 @@
       }
     }
     const facingDirection = median(footDirections);
+    let footDirection = null;
     if (facingDirection !== null && Math.abs(facingDirection) >= 0.02) {
-      return facingDirection > 0 ? 'leftToRight' : 'rightToLeft';
+      footDirection = facingDirection > 0 ? 'leftToRight' : 'rightToLeft';
     }
-    return 'stationary';
+    if (motionDirection && footDirection) {
+      return motionDirection === footDirection ? motionDirection : 'stationary';
+    }
+    return motionDirection ?? footDirection ?? 'stationary';
   }
 
   function jointAngle(first, vertex, third) {
@@ -1000,10 +1019,59 @@
     );
   }
 
+  function bounceWindowRatios(trajectory) {
+    if (!Array.isArray(trajectory) || trajectory.length < 3) return [];
+    const ordered = [...trajectory].sort((left, right) => left.timestampMs - right.timestampMs);
+    const firstTime = ordered[0].timestampMs;
+    const lastTime = ordered[ordered.length - 1].timestampMs;
+    if (lastTime <= firstTime) return [];
+    const resampled = [];
+    let cursor = 0;
+    for (let timestampMs = firstTime; timestampMs <= lastTime; timestampMs += 50) {
+      while (cursor < ordered.length - 2 && ordered[cursor + 1].timestampMs < timestampMs) {
+        cursor += 1;
+      }
+      const before = ordered[cursor];
+      const after = ordered[Math.min(cursor + 1, ordered.length - 1)];
+      if (timestampMs < before.timestampMs || timestampMs > after.timestampMs) continue;
+      const gapMs = after.timestampMs - before.timestampMs;
+      if (gapMs <= 0 || gapMs > 300) continue;
+      const fraction = (timestampMs - before.timestampMs) / gapMs;
+      resampled.push({
+        timestampMs,
+        value: before.value + ((after.value - before.value) * fraction),
+        confidence: Math.min(before.confidence, after.confidence),
+      });
+    }
+    if (resampled.length < 3) return [];
+
+    const spans = [];
+    const windowMs = 800;
+    const stepMs = 400;
+    for (let windowStartMs = firstTime; windowStartMs <= lastTime - windowMs; windowStartMs += stepMs) {
+      const windowEndMs = windowStartMs + windowMs;
+      const values = resampled
+        .filter((sample) => sample.timestampMs >= windowStartMs && sample.timestampMs <= windowEndMs)
+        .map((sample) => sample.value);
+      if (values.length < 3) continue;
+      const lower = percentile(values, 0.10);
+      const upper = percentile(values, 0.90);
+      if (lower !== null && upper !== null) spans.push(Math.max(0, upper - lower));
+    }
+    return spans;
+  }
+
   function verticalBounceRatio(samples) {
     const trajectory = verticalBounceTrajectory(samples);
     if (trajectory.length < config.minBounceTrajectorySamples) {
       return { ratio: 0, trajectory };
+    }
+    const spans = bounceWindowRatios(trajectory);
+    if (spans.length > 0) {
+      return {
+        ratio: median(spans) ?? 0,
+        trajectory,
+      };
     }
     const values = trajectory.map((item) => item.value);
     const lower = percentile(values, 0.10);
@@ -1258,18 +1326,18 @@
     if (!hasPrevious && !hasNext) return 'insufficient_motion_window';
     const tolerance = Math.max(1, current.sample.bodyScale * config.contactMotionToleranceRatio);
     const currentY = current.foot.bottomPoint.y;
-    const isLowestNearPrevious = !hasPrevious || currentY >= previous.foot.bottomPoint.y - tolerance;
-    const isLowestNearNext = !hasNext || currentY >= next.foot.bottomPoint.y - tolerance;
-    if (!isLowestNearPrevious || !isLowestNearNext) return 'unstable_foot_motion';
+    const descendingIntoContact = hasPrevious &&
+      currentY - previous.foot.bottomPoint.y >=
+        current.sample.bodyScale * 0.010;
+    if (!enteredGroundBand(current, previous) || !descendingIntoContact) {
+      return 'not_descending_to_contact';
+    }
+    const supportAfter = hasNext &&
+      isEligibleContactRecord(next) &&
+      Math.abs(next.foot.bottomPoint.y - currentY) <= tolerance * 1.4;
+    if (!supportAfter) return 'insufficient_contact_persistence';
 
-    // Do not promote an isolated near-ground frame to initial contact. We
-    // need at least one neighbouring, eligible ground-band frame from the
-    // same tracked foot. This catches the common failure where the flexed
-    // swing leg happens to be the lowest landmark in one frame.
-    const hasGroundBandPersistence = [previous, next].some((neighbor) =>
-      isTemporalNeighbor(current, neighbor) && isEligibleContactRecord(neighbor),
-    );
-    return hasGroundBandPersistence ? null : 'insufficient_contact_persistence';
+    return null;
   }
 
   function kinematicContactCandidate(records, index, lowerEnvelopeY) {
@@ -1289,9 +1357,12 @@
       current.sample.bodyScale * config.kinematicContactMotionToleranceRatio,
     );
     const currentY = current.foot.bottomPoint.y;
-    const isLowestNearPrevious = !hasPrevious || currentY >= previous.foot.bottomPoint.y - tolerance;
-    const isLowestNearNext = !hasNext || currentY >= next.foot.bottomPoint.y - tolerance;
-    return isLowestNearPrevious && isLowestNearNext;
+    const descendingIntoContact = hasPrevious &&
+      currentY - previous.foot.bottomPoint.y >= current.sample.bodyScale * 0.008;
+    const supportAfter = hasNext &&
+      isEligibleContactRecord(next) &&
+      Math.abs(next.foot.bottomPoint.y - currentY) <= tolerance * 1.8;
+    return descendingIntoContact && supportAfter;
   }
 
   function contactSelectionScore(timestampMs, confidence, window) {
@@ -1347,7 +1418,6 @@
     }
 
     const temporalCandidates = [];
-    const persistentCandidates = [];
     for (let recordIndex = 0; recordIndex < records.length; recordIndex += 1) {
       const candidate = records[recordIndex];
       if (!candidate.inGroundBand) {
@@ -1363,23 +1433,14 @@
         incrementReason(rejectedFrameCounts, motionReason);
         continue;
       }
-      if (enteredGroundBand(candidate, records[recordIndex - 1])) {
-        temporalCandidates.push(candidate);
-      } else {
-        persistentCandidates.push(candidate);
-      }
+      temporalCandidates.push(candidate);
     }
 
-    const candidates = temporalCandidates.length > 0
-      ? temporalCandidates
-      : persistentCandidates;
-    candidates.sort((left, right) =>
-      contactSelectionScore(right.sample.timestampMs, right.confidence, window) -
-        contactSelectionScore(left.sample.timestampMs, left.confidence, window) ||
-      right.confidence - left.confidence ||
-      Math.abs(left.sample.timestampMs - window.centerTimestampMs) - Math.abs(right.sample.timestampMs - window.centerTimestampMs),
+    temporalCandidates.sort((left, right) =>
+      left.sample.timestampMs - right.sample.timestampMs ||
+      right.confidence - left.confidence,
     );
-    const selected = candidates[0];
+    const selected = temporalCandidates[0];
     const kinematicLowerEnvelope = percentile(
       records.map((record) => record.foot.bottomPoint.y),
       config.kinematicContactLowerPercentile,
@@ -1492,7 +1553,35 @@
       validation.contact && !selected.has(validationIndex)
         ? { ...validation, contact: null }
         : validation,
-    );
+      );
+  }
+
+  function enforceContactValidationAlternation(validations) {
+    const next = validations.map((validation) => ({ ...validation }));
+    const ordered = next
+      .map((validation, validationIndex) => ({ validation, validationIndex }))
+      .filter(({ validation }) => validation.contact)
+      .sort((left, right) =>
+        left.validation.contact.timestampMs - right.validation.contact.timestampMs,
+      );
+    let lastStrictSide = null;
+    for (const item of ordered) {
+      const contact = item.validation.contact;
+      if (contact.selectionMethod !== 'ground') continue;
+      if (lastStrictSide !== null && contact.side === lastStrictSide) {
+        next[item.validationIndex] = {
+          ...item.validation,
+          contact: {
+            ...contact,
+            selectionMethod: 'alternation_estimated',
+            confidence: Math.min(contact.confidence * 0.72, 0.62),
+          },
+        };
+        continue;
+      }
+      lastStrictSide = contact.side;
+    }
+    return next;
   }
 
   function deduplicateContacts(contacts) {
@@ -1557,7 +1646,7 @@
     return windows.map((window, windowIndex) => {
       const validation = validations[windowIndex];
       const contact = validation?.contact;
-      const isEstimated = contact?.selectionMethod === 'kinematic';
+      const isEstimated = Boolean(contact) && contact.selectionMethod !== 'ground';
       return {
         side: contact?.side ?? window.side,
         startTimestampMs: window.startTimestampMs,
@@ -1860,21 +1949,23 @@
           throw createError('mediapipe_pose_failed', error?.message || 'MediaPipe pose inference failed.');
         }
       }
-      const contactValidations = deduplicateContactValidations(
-        candidateSet.windows.map((window) =>
-          validatedContact(window, dense.samples, candidateSet.groundLine, direction),
+      const contactValidations = enforceContactValidationAlternation(
+        deduplicateContactValidations(
+          candidateSet.windows.map((window) =>
+            validatedContact(window, dense.samples, candidateSet.groundLine, direction),
+          ),
         ),
       );
       const contacts = contactValidations
         .map((validation) => validation.contact)
         .filter(Boolean);
       const confirmedContacts = contacts.filter(
-        (contact) => contact.selectionMethod !== 'kinematic',
+        (contact) => contact.selectionMethod === 'ground',
       );
       const estimatedContacts = contacts.filter(
-        (contact) => contact.selectionMethod === 'kinematic',
+        (contact) => contact.selectionMethod !== 'ground',
       );
-      const usesKinematicContactEstimate = estimatedContacts.length > 0;
+      const usesEstimatedContact = estimatedContacts.length > 0;
       // One or two verified contacts are not enough for a score, cadence, or
       // left/right comparison, but they are still real measured observations.
       // Keep them distinct from the old proxy path so the UI can show the
@@ -1898,9 +1989,11 @@
         : average(metricContacts.map((contact) => contact.confidence));
       const contactReason = usesContactProxy
         ? 'contact_phase_proxy'
-        : usesKinematicContactEstimate
+        : hasCompleteContactSample
+          ? null
+          : usesEstimatedContact
           ? 'kinematic_contact_estimate'
-          : hasCompleteContactSample ? null : 'limited_contact_samples';
+          : 'limited_contact_samples';
 
       const analyzedFrameTimestamps = new Set([
         ...coarseFrameTimes,

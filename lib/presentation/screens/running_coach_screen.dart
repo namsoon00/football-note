@@ -13407,6 +13407,8 @@ String _contactRejectionReasonText(
     'outside_ground_band' => l10n.runningCoachContactRejectionOutsideGround,
     'low_contact_confidence' => l10n.runningCoachContactRejectionLowConfidence,
     'unstable_foot_motion' => l10n.runningCoachContactRejectionUnstableMotion,
+    'not_descending_to_contact' =>
+      l10n.runningCoachContactRejectionNotDescending,
     'insufficient_motion_window' =>
       l10n.runningCoachContactRejectionInsufficientMotionWindow,
     'insufficient_contact_persistence' =>

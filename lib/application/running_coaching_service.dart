@@ -98,14 +98,8 @@ class RunningCoachingService {
               RunningMeasurementState.confirmed &&
           entry.key.quality.isReliableForCoaching;
     }).toList(growable: false);
-    final estimatedInsights = weightedInsights.where((entry) {
-      final metric = analysisMetricForCoachMetric[entry.key.metric]!;
-      return result.measurementFor(metric).state !=
-          RunningMeasurementState.unavailable;
-    }).toList(growable: false);
-    final hasCompleteConfirmedScore =
-        confirmedInsights.length == weightedInsights.length;
-    final canEstimateScore = estimatedInsights.length >= 3;
+    final hasReliableConfirmedScore =
+        confirmedInsights.length >= thresholds.minimumReliableScoreMetrics;
 
     int aggregate(List<MapEntry<RunningCoachingInsight, double>> entries) {
       final scoringWeight = entries.fold<double>(
@@ -126,20 +120,14 @@ class RunningCoachingService {
     }
 
     final confirmedScore =
-        hasCompleteConfirmedScore ? aggregate(confirmedInsights) : null;
-    final estimatedScore = confirmedScore == null && canEstimateScore
-        ? aggregate(estimatedInsights)
-        : null;
+        hasReliableConfirmedScore ? aggregate(confirmedInsights) : null;
     final scoreStatus = confirmedScore != null
         ? RunningCoachScoreStatus.confirmed
-        : estimatedScore != null
-            ? RunningCoachScoreStatus.estimated
-            : RunningCoachScoreStatus.unavailable;
+        : RunningCoachScoreStatus.unavailable;
     return RunningCoachingReport(
-      overallScore: confirmedScore ?? estimatedScore ?? 0,
+      overallScore: confirmedScore ?? 0,
       insights: insights,
       scoreStatus: scoreStatus,
-      estimatedScore: estimatedScore,
     );
   }
 
@@ -453,6 +441,7 @@ class RunningCoachingThresholds {
   final double minimumReliableCoverage;
   final int minimumReliableFrames;
   final int lowCoveragePenalty;
+  final int minimumReliableScoreMetrics;
 
   const RunningCoachingThresholds({
     this.idealForwardLeanDegrees = 10,
@@ -477,6 +466,7 @@ class RunningCoachingThresholds {
     this.minimumReliableCoverage = 0.6,
     this.minimumReliableFrames = 7,
     this.lowCoveragePenalty = 8,
+    this.minimumReliableScoreMetrics = 3,
   });
 }
 

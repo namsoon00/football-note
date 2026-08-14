@@ -591,8 +591,8 @@ class RunningPoseAnalysisChannel(
                 ?.coerceIn(0.0, 1.0) ?: 0.0
             val contactQualityReason = when {
                 usesContactProxy -> "contact_phase_proxy"
-                usesKinematicContactEstimate -> "kinematic_contact_estimate"
                 hasCompleteContactSample -> null
+                usesKinematicContactEstimate -> "kinematic_contact_estimate"
                 else -> "limited_contact_samples"
             }
             val coreConfidence = frameSamples
@@ -1499,12 +1499,36 @@ class RunningPoseAnalysisChannel(
             }
         }
         val selectedIndexSet = selectedIndexes.toSet()
-        return validations.mapIndexed { index, validation ->
+        val deduped = validations.mapIndexed { index, validation ->
             if (validation.contact == null || selectedIndexSet.contains(index)) {
                 validation
             } else {
                 validation.copy(contact = null)
             }
+        }
+        return enforceContactValidationAlternation(deduped)
+    }
+
+    private fun enforceContactValidationAlternation(
+        validations: List<ContactWindowValidation>,
+    ): List<ContactWindowValidation> {
+        var lastStrictSide: FootSide? = null
+        return validations.map { validation ->
+            val contact = validation.contact ?: return@map validation
+            if (contact.selectionMethod != "ground") {
+                return@map validation
+            }
+            if (lastStrictSide == contact.side) {
+                return@map validation.copy(
+                    contact = contact.copy(
+                        confidence = min(contact.confidence * 0.72, 0.62),
+                        isKinematicEstimate = true,
+                        selectionMethod = "alternation_estimated",
+                    ),
+                )
+            }
+            lastStrictSide = contact.side
+            validation
         }
     }
 
@@ -1662,7 +1686,6 @@ class RunningPoseAnalysisChannel(
                 candidate
             }
         val temporalCandidates = mutableListOf<ContactFrameCandidate>()
-        val persistentCandidates = mutableListOf<ContactFrameCandidate>()
         for (index in candidates.indices) {
             val current = candidates[index]
             if (!current.inGroundBand) {
@@ -1675,48 +1698,17 @@ class RunningPoseAnalysisChannel(
             }
             val previous = candidates.getOrNull(index - 1)
             val next = candidates.getOrNull(index + 1)
-            if (!hasTemporalNeighbor(current, previous) &&
-                !hasTemporalNeighbor(current, next)
-            ) {
-                incrementContactRejection(rejectedFrameCounts, "insufficient_motion_window")
+            val motionReason = contactMotionReason(current, previous, next)
+            if (motionReason != null) {
+                incrementContactRejection(rejectedFrameCounts, motionReason)
                 continue
             }
-            if (!hasGroundBandPersistence(current, previous, next)) {
-                incrementContactRejection(
-                    rejectedFrameCounts,
-                    "insufficient_contact_persistence",
-                )
-                continue
-            }
-            if (!isFootAtLocalBottom(current, previous, next)) {
-                incrementContactRejection(rejectedFrameCounts, "unstable_foot_motion")
-                continue
-            }
-            if (enteredGroundBand(current, previous)) {
-                temporalCandidates.add(current)
-            } else {
-                persistentCandidates.add(current)
-            }
+            temporalCandidates.add(current)
         }
-        // Never fall back to an isolated near-ground frame. It is retained as
-        // an explicit phase proxy only, not promoted to initial contact.
-        val candidatesForSelection = if (temporalCandidates.isNotEmpty()) {
-            temporalCandidates
-        } else {
-            persistentCandidates
-        }
-        val selected = candidatesForSelection
+        val selected = temporalCandidates
             .sortedWith(
-                compareByDescending<ContactFrameCandidate> {
-                    contactSelectionScore(
-                        it.sample.timestampMs,
-                        it.confidence,
-                        window,
-                    )
-                }
-                    .thenByDescending { it.confidence }
-                    .thenBy { abs(it.sample.timestampMs - window.centerTimestampMs) }
-                    .thenBy { it.sample.timestampMs },
+                compareBy<ContactFrameCandidate> { it.sample.timestampMs }
+                    .thenByDescending { it.confidence },
             )
             .firstOrNull()
         val kinematicLowerEnvelope = percentile(
@@ -1759,6 +1751,7 @@ class RunningPoseAnalysisChannel(
                 direction = direction,
                 isKinematicEstimate = true,
                 confidence = kinematicSelection.confidence * kinematicContactConfidencePenalty,
+                selectionMethod = "kinematic",
             )
         } else {
             null
@@ -1830,31 +1823,31 @@ class RunningPoseAnalysisChannel(
             abs(previous.sample.timestampMs - current.sample.timestampMs) <=
             contactMotionNeighborGapMs
 
-    private fun hasGroundBandPersistence(
+    private fun contactMotionReason(
         current: ContactFrameCandidate,
         previous: ContactFrameCandidate?,
         next: ContactFrameCandidate?,
-    ): Boolean =
-        listOfNotNull(previous, next).any { neighbor ->
-            neighbor.isEligibleContact() &&
-                abs(neighbor.sample.timestampMs - current.sample.timestampMs) <=
-                contactMotionNeighborGapMs
+    ): String? {
+        val hasPrevious = hasTemporalNeighbor(current, previous)
+        val hasNext = hasTemporalNeighbor(current, next)
+        if (!hasPrevious && !hasNext) {
+            return "insufficient_motion_window"
         }
-
-    private fun isFootAtLocalBottom(
-        current: ContactFrameCandidate,
-        previous: ContactFrameCandidate?,
-        next: ContactFrameCandidate?,
-    ): Boolean {
         val tolerance = max(1.0, current.sample.bodyScale * contactMotionToleranceRatio)
         val currentY = current.evidence.bottomPoint.y.toDouble()
-        val isLowestNearPrevious = previous == null ||
-            abs(current.sample.timestampMs - previous.sample.timestampMs) > contactMotionNeighborGapMs ||
-            currentY >= previous.evidence.bottomPoint.y.toDouble() - tolerance
-        val isLowestNearNext = next == null ||
-            abs(next.sample.timestampMs - current.sample.timestampMs) > contactMotionNeighborGapMs ||
-            currentY >= next.evidence.bottomPoint.y.toDouble() - tolerance
-        return isLowestNearPrevious && isLowestNearNext
+        val descendingIntoContact = hasPrevious &&
+            currentY - previous!!.evidence.bottomPoint.y.toDouble() >=
+            current.sample.bodyScale * 0.010
+        if (!enteredGroundBand(current, previous) || !descendingIntoContact) {
+            return "not_descending_to_contact"
+        }
+        val supportAfter = hasNext &&
+            next!!.isEligibleContact() &&
+            abs(next.evidence.bottomPoint.y.toDouble() - currentY) <= tolerance * 1.4
+        if (!supportAfter) {
+            return "insufficient_contact_persistence"
+        }
+        return null
     }
 
     private fun isKinematicContactCandidate(
@@ -1875,16 +1868,20 @@ class RunningPoseAnalysisChannel(
         if (!hasPrevious && !hasNext) {
             return false
         }
+        val currentY = current.evidence.bottomPoint.y.toDouble()
+        val descendingIntoContact = hasPrevious &&
+            currentY - previous!!.evidence.bottomPoint.y.toDouble() >=
+            current.sample.bodyScale * 0.008
+        if (!descendingIntoContact) {
+            return false
+        }
         val tolerance = max(
             1.0,
             current.sample.bodyScale * kinematicContactMotionToleranceRatio,
         )
-        val currentY = current.evidence.bottomPoint.y.toDouble()
-        val isLowestNearPrevious = !hasPrevious ||
-            currentY >= previous!!.evidence.bottomPoint.y.toDouble() - tolerance
-        val isLowestNearNext = !hasNext ||
-            currentY >= next!!.evidence.bottomPoint.y.toDouble() - tolerance
-        return isLowestNearPrevious && isLowestNearNext
+        return hasNext &&
+            next!!.isEligibleContact() &&
+            abs(next.evidence.bottomPoint.y.toDouble() - currentY) <= tolerance * 1.8
     }
 
     private fun ContactFrameCandidate.toContactFrame(
@@ -1892,6 +1889,7 @@ class RunningPoseAnalysisChannel(
         direction: AnalysisDirection,
         isKinematicEstimate: Boolean,
         confidence: Double = this.confidence,
+        selectionMethod: String = "ground",
     ): ContactFrameAnalysis? {
         val kneeAngleDegrees = sample.contactKneeAngleDegrees(side) ?: return null
         return ContactFrameAnalysis(
@@ -1902,6 +1900,7 @@ class RunningPoseAnalysisChannel(
             kneeAngleDegrees = kneeAngleDegrees,
             confidence = confidence,
             isKinematicEstimate = isKinematicEstimate,
+            selectionMethod = selectionMethod,
         )
     }
 
@@ -2054,10 +2053,14 @@ class RunningPoseAnalysisChannel(
                     candidate.window.centerTimestampMs == window.centerTimestampMs
             }
             val contact = validation?.contact
-            val validated = contact?.takeUnless { it.isKinematicEstimate }
+            val validated = contact?.takeIf {
+                !it.isKinematicEstimate && it.selectionMethod == "ground"
+            }
                 ?.let(::listOf)
                 .orEmpty()
-            val estimated = contact?.takeIf { it.isKinematicEstimate }
+            val estimated = contact?.takeIf {
+                it.isKinematicEstimate || it.selectionMethod != "ground"
+            }
                 ?.let(::listOf)
                 .orEmpty()
             mapOf(
@@ -2082,7 +2085,7 @@ class RunningPoseAnalysisChannel(
                     .sorted(),
                 "selectionMethod" to when {
                     validated.isNotEmpty() -> "ground"
-                    estimated.isNotEmpty() -> "kinematic"
+                    estimated.isNotEmpty() -> estimated.first().selectionMethod
                     else -> null
                 },
                 "confidence" to roundTo3(
@@ -2417,6 +2420,7 @@ class RunningPoseAnalysisChannel(
         val kneeAngleDegrees: Double,
         val confidence: Double,
         val isKinematicEstimate: Boolean = false,
+        val selectionMethod: String = "ground",
     )
 
     private data class ContactProxyCandidate(

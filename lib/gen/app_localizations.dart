@@ -15447,7 +15447,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleReferencePosture.
   ///
   /// In en, this message translates to:
-  /// **'Forward lean: the coach reads the shoulder-to-hip line and reports the current posture value.'**
+  /// **'Trunk lean: the coach reads the shoulder-to-hip line and reports the current posture value.'**
   String get runningCoachSampleReferencePosture;
 
   /// No description provided for @runningCoachSampleReferenceFoot.
@@ -15477,7 +15477,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleMistakePosture.
   ///
   /// In en, this message translates to:
-  /// **'Forward lean: the coach reports the same posture metric and status for this clip.'**
+  /// **'Trunk lean: the coach reports the same posture metric and status for this clip.'**
   String get runningCoachSampleMistakePosture;
 
   /// No description provided for @runningCoachSampleMistakeFoot.
@@ -15525,7 +15525,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleMethodAngles.
   ///
   /// In en, this message translates to:
-  /// **'Angles: forward lean, stance knee, and elbow carriage are measured frame by frame.'**
+  /// **'Angles: trunk lean, stance knee, and elbow carriage are measured frame by frame.'**
   String get runningCoachSampleMethodAngles;
 
   /// No description provided for @runningCoachSampleMethodContact.
@@ -15717,7 +15717,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleMetricPosture.
   ///
   /// In en, this message translates to:
-  /// **'Forward lean'**
+  /// **'Trunk lean'**
   String get runningCoachSampleMetricPosture;
 
   /// No description provided for @runningCoachSampleMetricArms.
@@ -15772,7 +15772,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleOverlayPosture.
   ///
   /// In en, this message translates to:
-  /// **'Lean value'**
+  /// **'Trunk lean value'**
   String get runningCoachSampleOverlayPosture;
 
   /// No description provided for @runningCoachSampleOverlayArms.
@@ -15802,7 +15802,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSampleMistakeOverlayPosture.
   ///
   /// In en, this message translates to:
-  /// **'Lean value'**
+  /// **'Trunk lean value'**
   String get runningCoachSampleMistakeOverlayPosture;
 
   /// No description provided for @runningCoachSampleMistakeOverlayArms.
@@ -15886,7 +15886,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSamplePostureDetailGoodRange.
   ///
   /// In en, this message translates to:
-  /// **'Use the coaching guide range for forward lean, then compare it with this clip\'s measured value.'**
+  /// **'Use the coaching guide range for trunk lean, then compare it with this clip\'s measured value.'**
   String get runningCoachSamplePostureDetailGoodRange;
 
   /// No description provided for @runningCoachSamplePostureDetailKeyPosition.
@@ -16774,6 +16774,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The foot\'s vertical movement did not form a stable contact moment. Use a sharp side-view clip with 3–6 strides.'**
   String get runningCoachContactRejectionUnstableMotion;
+
+  /// No description provided for @runningCoachContactRejectionNotDescending.
+  ///
+  /// In en, this message translates to:
+  /// **'The foot did not descend into the ground band before contact, so the frame was treated as recovery or flight. Record a steady side view with the floor line visible.'**
+  String get runningCoachContactRejectionNotDescending;
 
   /// No description provided for @runningCoachContactRejectionInsufficientMotionWindow.
   ///
@@ -18242,7 +18248,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachGoodFormPrinciplePosture.
   ///
   /// In en, this message translates to:
-  /// **'Let your whole body lean gently forward from the ankles.'**
+  /// **'Keep the shoulder-to-hip line gently forward without folding at the waist.'**
   String get runningCoachGoodFormPrinciplePosture;
 
   /// No description provided for @runningCoachGoodFormPrincipleBounce.
@@ -18476,7 +18482,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachGoodFormExperiencedPosture.
   ///
   /// In en, this message translates to:
-  /// **'Across several frames, check that the ankles, hips, and shoulders lean as one line instead of the waist folding as pace changes.'**
+  /// **'Across several frames, check that the shoulder-to-hip line stays slightly forward instead of the waist folding as pace changes.'**
   String get runningCoachGoodFormExperiencedPosture;
 
   /// No description provided for @runningCoachGoodFormExperiencedBounce.
@@ -18668,7 +18674,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachGuideRangePosture.
   ///
   /// In en, this message translates to:
-  /// **'Goal: slight forward lean, without bending at the waist'**
+  /// **'Goal: slight trunk lean, without bending at the waist'**
   String get runningCoachGuideRangePosture;
 
   /// No description provided for @runningCoachGuideRangeBounce.
@@ -18872,7 +18878,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachLeanValue.
   ///
   /// In en, this message translates to:
-  /// **'{value}° body lean'**
+  /// **'{value}° trunk lean'**
   String runningCoachLeanValue(Object value);
 
   /// No description provided for @runningCoachBounceValue.
@@ -18914,13 +18920,13 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachPostureGoodSummary.
   ///
   /// In en, this message translates to:
-  /// **'Your body leans forward a little and stays tall.'**
+  /// **'Your trunk line leans forward a little and stays tall.'**
   String get runningCoachPostureGoodSummary;
 
   /// No description provided for @runningCoachPostureGoodCue.
   ///
   /// In en, this message translates to:
-  /// **'Keep your chest tall. Let the whole body lean forward together.'**
+  /// **'Keep your chest tall and the shoulder-to-hip line slightly forward.'**
   String get runningCoachPostureGoodCue;
 
   /// No description provided for @runningCoachPostureGoodDrill.
@@ -18950,13 +18956,13 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachPostureUprightSummary.
   ///
   /// In en, this message translates to:
-  /// **'You are too upright. It can slow the next step.'**
+  /// **'Your trunk line is too upright. It can slow the next step.'**
   String get runningCoachPostureUprightSummary;
 
   /// No description provided for @runningCoachPostureUprightCue.
   ///
   /// In en, this message translates to:
-  /// **'Lean forward from the ankles. Keep your chest tall.'**
+  /// **'Bring the shoulder-to-hip line slightly forward while keeping your chest tall.'**
   String get runningCoachPostureUprightCue;
 
   /// No description provided for @runningCoachPostureUprightDrill.
@@ -18968,7 +18974,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachPostureLeanSummary.
   ///
   /// In en, this message translates to:
-  /// **'You are leaning too far forward. Your steps may feel rushed.'**
+  /// **'Your trunk line is leaning too far forward. Your steps may feel rushed.'**
   String get runningCoachPostureLeanSummary;
 
   /// No description provided for @runningCoachPostureLeanCue.

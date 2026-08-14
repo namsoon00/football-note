@@ -309,6 +309,54 @@ void main() {
     expect(result.contactWindows.last.selectionMethod, 'kinematic');
   });
 
+  test('v2 loader demotes same-side strict contact repeats to estimated', () {
+    final result = RunningVideoAnalysisResult.fromMap({
+      'analysisVersion': 2,
+      'durationMs': 2200,
+      'sampledFrames': 24,
+      'validFrames': 22,
+      'direction': 'leftToRight',
+      'contactWindows': [
+        for (final item in const <(String, int)>[
+          ('right', 400),
+          ('left', 800),
+          ('right', 1200),
+          ('right', 1500),
+        ])
+          {
+            'startTimestampMs': item.$2 - 90,
+            'centerTimestampMs': item.$2,
+            'endTimestampMs': item.$2 + 120,
+            'side': item.$1,
+            'denseSampleCount': 5,
+            'validatedContactFrameTimestampsMs': [item.$2],
+            'confidence': 0.86,
+            'selectionMethod': 'ground',
+          },
+      ],
+      'validatedContactFrameTimestampsMs': [400, 800, 1200, 1500],
+    });
+
+    expect(
+      result.validatedContactFrameTimestamps,
+      const <Duration>[
+        Duration(milliseconds: 400),
+        Duration(milliseconds: 800),
+        Duration(milliseconds: 1200),
+      ],
+    );
+    expect(
+      result.estimatedContactFrameTimestamps,
+      const <Duration>[Duration(milliseconds: 1500)],
+    );
+    expect(result.contactWindows.last.validatedContactTimestamps, isEmpty);
+    expect(
+      result.contactWindows.last.estimatedContactTimestamps,
+      const <Duration>[Duration(milliseconds: 1500)],
+    );
+    expect(result.contactWindows.last.selectionMethod, 'alternation_estimated');
+  });
+
   test('early v2 kinematic history is demoted on load', () {
     final result = RunningVideoAnalysisResult.fromMap({
       'analysisVersion': 2,
@@ -467,7 +515,11 @@ void main() {
     );
     expect(
       diagonalView.limitationReasonForMetric(RunningCoachMetric.armCarriage),
-      isNull,
+      'not_side_on',
+    );
+    expect(
+      diagonalView.limitationReasonForMetric(RunningCoachMetric.posture),
+      'not_side_on',
     );
     expect(
       scaleDrift.limitationReasonForMetric(RunningCoachMetric.bounce),
@@ -995,6 +1047,39 @@ void main() {
     expect(transformed!, closeTo(base!, 0.006));
   });
 
+  test('bounce ratio is stable across uniform and contact-dense frame density',
+      () {
+    final uniform8Fps = runningVerticalBounceRatioForPoseFrames(
+      _densityBounceFrames(<int>[
+        for (var timestampMs = 0; timestampMs <= 2400; timestampMs += 125)
+          timestampMs,
+      ]),
+    );
+    final full30Fps = runningVerticalBounceRatioForPoseFrames(
+      _densityBounceFrames(<int>[
+        for (var timestampMs = 0; timestampMs <= 2400; timestampMs += 33)
+          timestampMs,
+      ]),
+    );
+    final contactDense = runningVerticalBounceRatioForPoseFrames(
+      _densityBounceFrames(
+        <int>{
+          for (var timestampMs = 0; timestampMs <= 2400; timestampMs += 125)
+            timestampMs,
+          for (final center in const <int>[500, 1500, 2250])
+            for (var offset = -132; offset <= 132; offset += 33)
+              center + offset,
+        }.where((timestampMs) => timestampMs >= 0 && timestampMs <= 2400),
+      ),
+    );
+
+    expect(uniform8Fps, isNotNull);
+    expect(full30Fps, isNotNull);
+    expect(contactDense, isNotNull);
+    expect(full30Fps!, closeTo(uniform8Fps!, 0.006));
+    expect(contactDense!, closeTo(uniform8Fps, 0.006));
+  });
+
   test('bounce evidence ignores absolute hip y perspective drift', () {
     final frames = _perspectiveBounceFrames(
       yShift: 0.03,
@@ -1026,7 +1111,7 @@ void main() {
       for (final frame in evidence.frames) frame.role: frame.timestampMs,
     };
 
-    expect(byRole[RunningMetricEvidenceFrameRole.trajectoryHigh], 1000);
+    expect(byRole[RunningMetricEvidenceFrameRole.trajectoryHigh], 200);
     expect(byRole[RunningMetricEvidenceFrameRole.trajectoryLow], 600);
     expect(byRole.values, isNot(contains(0)));
     expect(byRole.values, isNot(contains(1100)));
@@ -1324,6 +1409,20 @@ List<RunningPoseFrame> _perspectiveBounceFrames({
         scale:
             scaleStart + ((scaleEnd - scaleStart) * index / (wave.length - 1)),
         clearanceOffset: wave[index],
+      ),
+  ];
+}
+
+List<RunningPoseFrame> _densityBounceFrames(Iterable<int> timestampsMs) {
+  final timestamps = timestampsMs.toSet().toList(growable: false)..sort();
+  return <RunningPoseFrame>[
+    for (final timestampMs in timestamps)
+      _perspectiveBounceFrame(
+        timestampMs: timestampMs,
+        xShift: 0,
+        yShift: 0,
+        scale: 1,
+        clearanceOffset: 0.05 * math.sin((timestampMs / 1000) * math.pi * 2),
       ),
   ];
 }

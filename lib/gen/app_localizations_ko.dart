@@ -8610,7 +8610,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachSampleReferencePosture =>
-      '전경사: 코치는 어깨-엉덩이 선을 읽고 현재 자세 값을 표시해요.';
+      '몸통 기울기: 코치는 어깨-엉덩이 선을 읽고 현재 자세 값을 표시해요.';
 
   @override
   String get runningCoachSampleReferenceFoot =>
@@ -8630,7 +8630,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachSampleMistakePosture =>
-      '전경사: 코치는 이 클립에도 같은 자세 지표와 상태를 표시해요.';
+      '몸통 기울기: 코치는 이 클립에도 같은 자세 지표와 상태를 표시해요.';
 
   @override
   String get runningCoachSampleMistakeFoot =>
@@ -8661,7 +8661,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachSampleMethodAngles =>
-      '각도: 전경사, 접지 무릎, 팔꿈치 각도를 프레임마다 측정해요.';
+      '각도: 몸통 기울기, 접지 무릎, 팔꿈치 각도를 프레임마다 측정해요.';
 
   @override
   String get runningCoachSampleMethodContact =>
@@ -8775,7 +8775,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachSampleDecisionTitle => '판정 근거';
 
   @override
-  String get runningCoachSampleMetricPosture => '전경사';
+  String get runningCoachSampleMetricPosture => '몸통 기울기';
 
   @override
   String get runningCoachSampleMetricArms => '팔';
@@ -8805,7 +8805,7 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get runningCoachSampleOverlayPosture => '전경사 값';
+  String get runningCoachSampleOverlayPosture => '몸통 기울기 값';
 
   @override
   String get runningCoachSampleOverlayArms => '팔 값';
@@ -8820,7 +8820,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachSampleOverlayFrames => '관절 프레임';
 
   @override
-  String get runningCoachSampleMistakeOverlayPosture => '전경사 값';
+  String get runningCoachSampleMistakeOverlayPosture => '몸통 기울기 값';
 
   @override
   String get runningCoachSampleMistakeOverlayArms => '팔 값';
@@ -8864,7 +8864,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachSamplePostureDetailGoodRange =>
-      '전경사는 코칭 가이드 범위와 이 클립의 실제 측정값을 함께 비교해요.';
+      '몸통 기울기는 코칭 가이드 범위와 이 클립의 실제 측정값을 함께 비교해요.';
 
   @override
   String get runningCoachSamplePostureDetailKeyPosition =>
@@ -8876,7 +8876,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachSamplePostureDetailReview =>
-      '측정된 전경사가 이 러닝의 코칭 범위를 벗어나면 확인 상태로 표시돼요.';
+      '측정된 몸통 기울기가 이 러닝의 코칭 범위를 벗어나면 확인 상태로 표시돼요.';
 
   @override
   String get runningCoachSamplePostureDetailHowRead =>
@@ -9394,6 +9394,10 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get runningCoachContactRejectionUnstableMotion =>
       '발의 위아래 움직임이 접지 순간으로 안정적으로 이어지지 않았어요. 3~6보가 선명하게 담긴 측면 영상을 사용해 주세요.';
+
+  @override
+  String get runningCoachContactRejectionNotDescending =>
+      '발이 접지 전에 바닥 가까운 구간으로 내려오지 않아 회수 또는 공중 프레임으로 처리했어요. 바닥선이 보이는 안정적인 측면 영상을 촬영해 주세요.';
 
   @override
   String get runningCoachContactRejectionInsufficientMotionWindow =>
@@ -10294,7 +10298,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachGoodFormPrinciplePosture =>
-      '발목에서부터 몸 전체를 가볍게 앞으로 기울여요.';
+      '허리를 접지 않고 어깨-엉덩이 선을 가볍게 앞으로 둬요.';
 
   @override
   String get runningCoachGoodFormPrincipleBounce =>
@@ -10427,7 +10431,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachGoodFormExperiencedPosture =>
-      '발목·골반·어깨가 한 흐름으로 기울고, 속도가 바뀌어도 허리만 접히지 않는지 여러 프레임에서 확인해요.';
+      '속도가 바뀌어도 허리만 접히지 않고 어깨-엉덩이 선이 살짝 앞으로 유지되는지 여러 프레임에서 확인해요.';
 
   @override
   String get runningCoachGoodFormExperiencedBounce =>
@@ -10544,7 +10548,7 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get runningCoachGuideRangePosture => '목표: 허리를 접지 않고 몸을 살짝 앞으로 기울이기';
+  String get runningCoachGuideRangePosture => '목표: 허리를 접지 않고 몸통을 살짝 앞으로 기울이기';
 
   @override
   String get runningCoachGuideRangeBounce => '목표: 위아래 움직임은 작게, 발은 빠르게';
@@ -10662,7 +10666,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String runningCoachLeanValue(Object value) {
-    return '몸 기울기 $value°';
+    return '몸통 기울기 $value°';
   }
 
   @override
@@ -10694,10 +10698,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachInsightPostureTitle => '상체 자세';
 
   @override
-  String get runningCoachPostureGoodSummary => '몸이 살짝 앞으로 기울고 자세가 곧게 유지돼요.';
+  String get runningCoachPostureGoodSummary => '몸통 선이 살짝 앞으로 기울고 자세가 곧게 유지돼요.';
 
   @override
-  String get runningCoachPostureGoodCue => '가슴은 세우고 몸 전체를 함께 앞으로 기울이세요.';
+  String get runningCoachPostureGoodCue => '가슴은 세우고 어깨-엉덩이 선을 살짝 앞으로 두세요.';
 
   @override
   String get runningCoachPostureGoodDrill => '드릴: 벽 마치 15m를 2번 하세요.';
@@ -10715,17 +10719,17 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachPostureUprightSummary =>
-      '몸이 너무 서 있어요. 다음 걸음이 느려질 수 있어요.';
+      '몸통 선이 너무 서 있어요. 다음 걸음이 느려질 수 있어요.';
 
   @override
-  String get runningCoachPostureUprightCue => '발목에서 앞으로 살짝 기울이세요. 가슴은 세워 주세요.';
+  String get runningCoachPostureUprightCue => '가슴은 세우고 어깨-엉덩이 선을 살짝 앞으로 가져가세요.';
 
   @override
   String get runningCoachPostureUprightDrill => '드릴: 폴링 스타트 15m를 2번 하세요.';
 
   @override
   String get runningCoachPostureLeanSummary =>
-      '몸이 너무 앞으로 기울었어요. 걸음이 급해질 수 있어요.';
+      '몸통 선이 너무 앞으로 기울었어요. 걸음이 급해질 수 있어요.';
 
   @override
   String get runningCoachPostureLeanCue => '조금 더 크게 서세요. 엉덩이가 가슴 아래에 오게 하세요.';

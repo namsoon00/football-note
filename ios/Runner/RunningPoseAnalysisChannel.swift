@@ -578,9 +578,9 @@ final class RunningPoseAnalysisChannel {
       )
     let contactQualityReason = usesContactProxy
       ? "contact_phase_proxy"
-      : usesKinematicContactEstimate
-        ? "kinematic_contact_estimate"
-        : hasCompleteContactSample ? nil : "limited_contact_samples"
+      : hasCompleteContactSample
+        ? nil
+        : usesKinematicContactEstimate ? "kinematic_contact_estimate" : "limited_contact_samples"
     let coreConfidence = frameSamples.map(\.coreLandmarkConfidence).reduce(0, +) /
       Double(frameSamples.count)
     let armConfidenceValues = frameSamples.compactMap(\.armLandmarkConfidence)
@@ -1639,7 +1639,7 @@ final class RunningPoseAnalysisChannel {
       }
     }
     let selectedIndexSet = Set(selectedIndexes)
-    return validations.enumerated().map { index, validation in
+    let deduped = validations.enumerated().map { index, validation in
       if validation.contact == nil || selectedIndexSet.contains(index) {
         return validation
       }
@@ -1649,6 +1649,41 @@ final class RunningPoseAnalysisChannel {
         candidateFrameCount: validation.candidateFrameCount,
         rejectedFrameCounts: validation.rejectedFrameCounts
       )
+    }
+    return enforceContactValidationAlternation(deduped)
+  }
+
+  private func enforceContactValidationAlternation(
+    _ validations: [ContactWindowValidation]
+  ) -> [ContactWindowValidation] {
+    var lastStrictSide: FootSide?
+    return validations.map { validation in
+      guard let contact = validation.contact else {
+        return validation
+      }
+      guard contact.selectionMethod == "ground" else {
+        return validation
+      }
+      if lastStrictSide == contact.side {
+        let demoted = ContactFrameAnalysis(
+          timestampMs: contact.timestampMs,
+          windowCenterTimestampMs: contact.windowCenterTimestampMs,
+          side: contact.side,
+          footStrikeRatio: contact.footStrikeRatio,
+          kneeAngleDegrees: contact.kneeAngleDegrees,
+          confidence: min(contact.confidence * 0.72, 0.62),
+          isKinematicEstimate: true,
+          selectionMethod: "alternation_estimated"
+        )
+        return ContactWindowValidation(
+          window: validation.window,
+          contact: demoted,
+          candidateFrameCount: validation.candidateFrameCount,
+          rejectedFrameCounts: validation.rejectedFrameCounts
+        )
+      }
+      lastStrictSide = contact.side
+      return validation
     }
   }
 
@@ -1838,7 +1873,6 @@ final class RunningPoseAnalysisChannel {
         return candidate
       }
     var temporalCandidates: [ContactFrameCandidate] = []
-    var persistentCandidates: [ContactFrameCandidate] = []
     for index in candidates.indices {
       let current = candidates[index]
       guard current.inGroundBand else {
@@ -1851,58 +1885,21 @@ final class RunningPoseAnalysisChannel {
       }
       let previous = index > 0 ? candidates[index - 1] : nil
       let next = index + 1 < candidates.count ? candidates[index + 1] : nil
-      guard
-        hasTemporalNeighbor(current, previous: previous) ||
-          hasTemporalNeighbor(current, next: next)
-      else {
-        incrementContactRejection(&rejectedFrameCounts, reason: "insufficient_motion_window")
+      if let motionReason = contactMotionReason(
+        current,
+        previous: previous,
+        next: next
+      ) {
+        incrementContactRejection(&rejectedFrameCounts, reason: motionReason)
         continue
       }
-      guard hasGroundBandPersistence(current, previous: previous, next: next) else {
-        incrementContactRejection(
-          &rejectedFrameCounts,
-          reason: "insufficient_contact_persistence"
-        )
-        continue
-      }
-      guard isFootAtLocalBottom(current, previous: previous, next: next) else {
-        incrementContactRejection(&rejectedFrameCounts, reason: "unstable_foot_motion")
-        continue
-      }
-      if enteredGroundBand(current, previous: previous) {
-        temporalCandidates.append(current)
-      } else {
-        persistentCandidates.append(current)
-      }
+      temporalCandidates.append(current)
     }
-    // Never fall back to an isolated near-ground frame. It remains a phase
-    // candidate only, rather than being promoted to initial contact.
-    let candidatesForSelection = temporalCandidates.isEmpty
-      ? persistentCandidates
-      : temporalCandidates
-    let selected = candidatesForSelection.sorted(by: { first, second in
-        let firstScore = contactSelectionScore(
-          timestampMs: first.sample.timestampMs,
-          confidence: first.confidence,
-          window: window
-        )
-        let secondScore = contactSelectionScore(
-          timestampMs: second.sample.timestampMs,
-          confidence: second.confidence,
-          window: window
-        )
-        if firstScore != secondScore {
-          return firstScore > secondScore
+    let selected = temporalCandidates.sorted(by: { first, second in
+        if first.sample.timestampMs != second.sample.timestampMs {
+          return first.sample.timestampMs < second.sample.timestampMs
         }
-        if first.confidence != second.confidence {
-          return first.confidence > second.confidence
-        }
-        let firstDistance = abs(first.sample.timestampMs - window.centerTimestampMs)
-        let secondDistance = abs(second.sample.timestampMs - window.centerTimestampMs)
-        if firstDistance != secondDistance {
-          return firstDistance < secondDistance
-        }
-        return first.sample.timestampMs < second.sample.timestampMs
+        return first.confidence > second.confidence
       }).first
     let kinematicCandidates: [ContactFrameCandidate]
     if let lowerEnvelopeY = percentile(
@@ -1958,7 +1955,8 @@ final class RunningPoseAnalysisChannel {
           window: window,
           direction: direction,
           isKinematicEstimate: true,
-          confidence: $0.confidence * Self.kinematicContactConfidencePenalty
+          confidence: $0.confidence * Self.kinematicContactConfidencePenalty,
+          selectionMethod: "kinematic"
         )
       }
       : nil
@@ -2043,40 +2041,32 @@ final class RunningPoseAnalysisChannel {
       Self.contactMotionNeighborGapMs
   }
 
-  private func hasGroundBandPersistence(
+  private func contactMotionReason(
     _ current: ContactFrameCandidate,
     previous: ContactFrameCandidate?,
     next: ContactFrameCandidate?
-  ) -> Bool {
-    [previous, next].compactMap { $0 }.contains { neighbor in
-      isEligibleContact(neighbor) &&
-        abs(neighbor.sample.timestampMs - current.sample.timestampMs) <=
-        Self.contactMotionNeighborGapMs
+  ) -> String? {
+    let hasPrevious = hasTemporalNeighbor(current, previous: previous)
+    let hasNext = hasTemporalNeighbor(current, next: next)
+    if !hasPrevious && !hasNext {
+      return "insufficient_motion_window"
     }
-  }
-
-  private func isFootAtLocalBottom(
-    _ current: ContactFrameCandidate,
-    previous: ContactFrameCandidate?,
-    next: ContactFrameCandidate?
-  ) -> Bool {
     let tolerance = max(1.0, current.sample.bodyScale * Self.contactMotionToleranceRatio)
     let currentY = Double(current.footEvidence.bottomPoint.y)
-    if let previous,
-       abs(current.sample.timestampMs - previous.sample.timestampMs) <=
-         Self.contactMotionNeighborGapMs,
-       currentY < Double(previous.footEvidence.bottomPoint.y) - tolerance
-    {
-      return false
+    let descendingIntoContact = hasPrevious && previous.map {
+      currentY - Double($0.footEvidence.bottomPoint.y) >= current.sample.bodyScale * 0.010
+    } == true
+    if !enteredGroundBand(current, previous: previous) || !descendingIntoContact {
+      return "not_descending_to_contact"
     }
-    if let next,
-       abs(next.sample.timestampMs - current.sample.timestampMs) <=
-         Self.contactMotionNeighborGapMs,
-       currentY < Double(next.footEvidence.bottomPoint.y) - tolerance
-    {
-      return false
+    let supportAfter = hasNext && next.map {
+      isEligibleContact($0) &&
+        abs(Double($0.footEvidence.bottomPoint.y) - currentY) <= tolerance * 1.4
+    } == true
+    if !supportAfter {
+      return "insufficient_contact_persistence"
     }
-    return true
+    return nil
   }
 
   private func isKinematicContactCandidate(
@@ -2097,24 +2087,22 @@ final class RunningPoseAnalysisChannel {
     guard hasPrevious || hasNext else {
       return false
     }
+    let currentY = Double(current.footEvidence.bottomPoint.y)
+    guard hasPrevious,
+      let previous,
+      currentY - Double(previous.footEvidence.bottomPoint.y) >=
+        current.sample.bodyScale * 0.008
+    else {
+      return false
+    }
     let tolerance = max(
       1.0,
       current.sample.bodyScale * Self.kinematicContactMotionToleranceRatio
     )
-    let currentY = Double(current.footEvidence.bottomPoint.y)
-    if hasPrevious,
-       let previous,
-       currentY < Double(previous.footEvidence.bottomPoint.y) - tolerance
-    {
-      return false
-    }
-    if hasNext,
-       let next,
-       currentY < Double(next.footEvidence.bottomPoint.y) - tolerance
-    {
-      return false
-    }
-    return true
+    return hasNext && next.map {
+      isEligibleContact($0) &&
+        abs(Double($0.footEvidence.bottomPoint.y) - currentY) <= tolerance * 1.8
+    } == true
   }
 
   private func contactFrame(
@@ -2122,7 +2110,8 @@ final class RunningPoseAnalysisChannel {
     window: ContactCandidate,
     direction: AnalysisDirection,
     isKinematicEstimate: Bool,
-    confidence: Double? = nil
+    confidence: Double? = nil,
+    selectionMethod: String = "ground"
   ) -> ContactFrameAnalysis? {
     guard let kneeAngleDegrees = candidate.sample.contactKneeAngleDegrees(candidate.side) else {
       return nil
@@ -2137,7 +2126,8 @@ final class RunningPoseAnalysisChannel {
       ),
       kneeAngleDegrees: kneeAngleDegrees,
       confidence: confidence ?? candidate.confidence,
-      isKinematicEstimate: isKinematicEstimate
+      isKinematicEstimate: isKinematicEstimate,
+      selectionMethod: selectionMethod
     )
   }
 
@@ -2296,10 +2286,10 @@ final class RunningPoseAnalysisChannel {
       }
       let contact = validation?.contact
       let validated: [ContactFrameAnalysis] = contact.map {
-        $0.isKinematicEstimate ? [] : [$0]
+        !$0.isKinematicEstimate && $0.selectionMethod == "ground" ? [$0] : []
       } ?? []
       let estimated: [ContactFrameAnalysis] = contact.map {
-        $0.isKinematicEstimate ? [$0] : []
+        $0.isKinematicEstimate || $0.selectionMethod != "ground" ? [$0] : []
       } ?? []
       let confidence = validated.isEmpty
         ? 0.0
@@ -2308,7 +2298,11 @@ final class RunningPoseAnalysisChannel {
       if !validated.isEmpty {
         selectionMethod = "ground"
       } else if !estimated.isEmpty {
-        selectionMethod = "kinematic"
+        if estimated[0].selectionMethod == "alternation_estimated" {
+          selectionMethod = "alternation_estimated"
+        } else {
+          selectionMethod = "kinematic"
+        }
       } else {
         selectionMethod = NSNull()
       }
@@ -2662,6 +2656,7 @@ final class RunningPoseAnalysisChannel {
     let kneeAngleDegrees: Double
     let confidence: Double
     let isKinematicEstimate: Bool
+    let selectionMethod: String = "ground"
   }
 
   private struct ContactProxyCandidate {

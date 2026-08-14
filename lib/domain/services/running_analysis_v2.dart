@@ -2,6 +2,11 @@ import 'dart:math' as math;
 
 import '../entities/running_video_analysis_result.dart';
 
+const double _runningMinimumLandmarkConfidence = 0.35;
+const Duration _runningBounceResampleInterval = Duration(milliseconds: 50);
+const Duration _runningBounceWindow = Duration(milliseconds: 800);
+const Duration _runningBounceWindowStep = Duration(milliseconds: 400);
+
 class RunningWeightedValue {
   final double value;
   final double confidence;
@@ -317,12 +322,18 @@ List<RunningPoseFrame> runningStabilizedPoseFrames(
       final observed = landmarks[index];
       final after = next.landmarkByIndex(index);
       if (!_usableLandmark(before) || !_usableLandmark(after)) continue;
-      final neighbourDistance = _landmarkDistance(before!, after!);
+      final neighbourDistance = _landmarkDistance(
+        previous,
+        before!,
+        next,
+        after!,
+      );
       if (neighbourDistance > scale * 0.42) continue;
       final isMissing = !_usableLandmark(observed);
       final isSpike = !isMissing &&
-          _landmarkDistance(observed!, before) > scale * 0.55 &&
-          _landmarkDistance(observed, after) > scale * 0.55;
+          _landmarkDistance(current, observed!, previous, before) >
+              scale * 0.55 &&
+          _landmarkDistance(current, observed, next, after) > scale * 0.55;
       if (!isMissing && !isSpike) continue;
       final fraction = beforeGap / (beforeGap + afterGap);
       landmarks[index] = _interpolateLandmark(
@@ -378,14 +389,16 @@ bool _hasLikelyLeftRightSwap(
         !_usableLandmark(afterRight)) {
       continue;
     }
-    directCost += _landmarkDistance(observedLeft!, beforeLeft!) +
-        _landmarkDistance(observedLeft, afterLeft!) +
-        _landmarkDistance(observedRight!, beforeRight!) +
-        _landmarkDistance(observedRight, afterRight!);
-    swappedCost += _landmarkDistance(observedRight, beforeLeft) +
-        _landmarkDistance(observedRight, afterLeft) +
-        _landmarkDistance(observedLeft, beforeRight) +
-        _landmarkDistance(observedLeft, afterRight);
+    directCost +=
+        _landmarkDistance(current, observedLeft!, previous, beforeLeft!) +
+            _landmarkDistance(current, observedLeft, next, afterLeft!) +
+            _landmarkDistance(current, observedRight!, previous, beforeRight!) +
+            _landmarkDistance(current, observedRight, next, afterRight!);
+    swappedCost +=
+        _landmarkDistance(current, observedRight, previous, beforeLeft) +
+            _landmarkDistance(current, observedRight, next, afterLeft) +
+            _landmarkDistance(current, observedLeft, previous, beforeRight) +
+            _landmarkDistance(current, observedLeft, next, afterRight);
     compared += 1;
   }
   return compared >= 2 && directCost - swappedCost > scale * 0.28 * compared;
@@ -727,13 +740,15 @@ RunningVideoAnalysisResult deriveRunningAnalysisV2(
   final frames = runningStabilizedPoseFrames(source.poseFrames);
   final segments = runningScaleSegments(frames);
   final analysisWindow = runningBestAnalysisWindow(frames, segments);
+  final direction = _resolvedRunningDirection(source.direction, frames);
+  final result = source.copyWith(direction: direction);
   final stableFrames = frames.where((frame) {
     if (analysisWindow == null) return true;
     return frame.timestamp >= analysisWindow.$1 &&
         frame.timestamp <= analysisWindow.$2;
   }).toList(growable: false);
   final preferredFrames = stableFrames.length >= 3 ? stableFrames : frames;
-  final contacts = runningFallbackContacts(source);
+  final contacts = runningFallbackContacts(result);
   final preferredContacts = analysisWindow == null
       ? contacts
       : contacts
@@ -751,39 +766,39 @@ RunningVideoAnalysisResult deriveRunningAnalysisV2(
     measurements[measurement.metric] = measurement;
   }
 
-  add(_postureMeasurement(source, preferredFrames));
-  add(_bounceMeasurement(source, preferredFrames));
-  add(_armMeasurement(source, preferredFrames));
+  add(_postureMeasurement(result, preferredFrames));
+  add(_bounceMeasurement(result, preferredFrames));
+  add(_armMeasurement(result, preferredFrames));
   add(_armSwingMeasurement(preferredFrames));
   add(_armAsymmetryMeasurement(preferredFrames));
   add(_contactMeasurement(
-    source,
+    result,
     frames,
     metricContacts,
     metric: RunningAnalysisMetric.footStrike,
   ));
   add(_contactMeasurement(
-    source,
+    result,
     frames,
     metricContacts,
     metric: RunningAnalysisMetric.kneeAtContact,
   ));
-  add(_maximumKneeMeasurement(source, preferredFrames, metricContacts));
-  add(_recoveryKneeMeasurement(source, preferredFrames, metricContacts));
+  add(_maximumKneeMeasurement(result, preferredFrames, metricContacts));
+  add(_recoveryKneeMeasurement(result, preferredFrames, metricContacts));
   add(_rhythmMeasurement(
-    source,
+    result,
     metricContacts,
     preferredFrames,
     metric: RunningAnalysisMetric.cadence,
   ));
   add(_rhythmMeasurement(
-    source,
+    result,
     metricContacts,
     preferredFrames,
     metric: RunningAnalysisMetric.stepTime,
   ));
   add(_rhythmMeasurement(
-    source,
+    result,
     metricContacts,
     preferredFrames,
     metric: RunningAnalysisMetric.leftRightTiming,
@@ -841,7 +856,7 @@ RunningVideoAnalysisResult deriveRunningAnalysisV2(
     return value == null || !value.isFinite ? fallback : value / scale;
   }
 
-  return source.copyWith(
+  return result.copyWith(
     analysisVersion: runningAnalysisVersionV2,
     forwardLeanDegrees: valueOr(
       RunningAnalysisMetric.posture,
@@ -881,6 +896,13 @@ RunningMetricMeasurement _postureMeasurement(
   RunningVideoAnalysisResult result,
   List<RunningPoseFrame> frames,
 ) {
+  if (result.direction == RunningDirection.stationary) {
+    return const RunningMetricMeasurement.unavailable(
+      metric: RunningAnalysisMetric.posture,
+      method: 'stable_segment_trunk_median',
+      reason: 'direction_unresolved',
+    );
+  }
   final values = <RunningWeightedValue>[];
   for (final frame in frames) {
     final shoulder = _midpoint(_point(frame, 11), _point(frame, 12));
@@ -927,22 +949,7 @@ RunningMetricMeasurement _bounceMeasurement(
   final sorted = trajectory.map((point) => point.value).toList()..sort();
   final bouncePercent =
       (_quantile(sorted, 0.90) - _quantile(sorted, 0.10)).abs() * 100;
-  final spans = <RunningWeightedValue>[];
-  const chunkSize = 8;
-  for (var start = 0; start < corrected.length; start += chunkSize ~/ 2) {
-    final end = math.min(corrected.length, start + chunkSize);
-    if (end - start < 3) continue;
-    final chunk = corrected.sublist(start, end);
-    final chunkValues = chunk.map((value) => value.value).toList()..sort();
-    spans.add(RunningWeightedValue(
-      value: (_quantile(chunkValues, 0.9) - _quantile(chunkValues, 0.1)).abs() *
-          100,
-      confidence:
-          chunk.fold<double>(0, (sum, value) => sum + value.confidence) /
-              chunk.length,
-      timestamp: chunk[chunk.length ~/ 2].timestamp,
-    ));
-  }
+  final spans = _runningBounceWindowSpans(trajectory);
   final estimate = runningWeightedEstimate(spans) ??
       RunningWeightedEstimate(
         value: bouncePercent,
@@ -1115,6 +1122,10 @@ RunningMetricMeasurement _contactMeasurement(
     final ankle = _point(frame, indexes[2]);
     final scale = _bodyScale(frame);
     if (hip == null || knee == null || ankle == null || scale == null) continue;
+    if (metric == RunningAnalysisMetric.footStrike &&
+        result.direction == RunningDirection.stationary) {
+      continue;
+    }
     final value = metric == RunningAnalysisMetric.footStrike
         ? _forwardDistanceRatio(result.direction, hip, ankle, scale)
         : _jointAngle(hip, knee, ankle);
@@ -1153,10 +1164,12 @@ RunningMetricMeasurement _maximumKneeMeasurement(
 ) {
   final values = <RunningWeightedValue>[];
   for (final contact in contacts) {
+    final phaseRange = _supportPhaseRange(contacts, contact);
     RunningWeightedValue? minimum;
     for (final frame in frames) {
-      final delta = frame.timestampMs - contact.timestamp.inMilliseconds;
-      if (delta < 0 || delta > 260) continue;
+      if (frame.timestamp < phaseRange.$1 || frame.timestamp > phaseRange.$2) {
+        continue;
+      }
       final indexes = contact.side == RunningContactSide.left
           ? const <int>[23, 25, 27]
           : const <int>[24, 26, 28];
@@ -1195,12 +1208,13 @@ RunningMetricMeasurement _recoveryKneeMeasurement(
 ) {
   final values = <RunningWeightedValue>[];
   for (final contact in contacts) {
+    final recoveryRange = _recoveryPhaseRange(contacts, contact);
     final localFrames = frames
-        .where((frame) =>
-            frame.timestamp >=
-                contact.timestamp - const Duration(milliseconds: 520) &&
-            frame.timestamp <=
-                contact.timestamp - const Duration(milliseconds: 120))
+        .where(
+          (frame) =>
+              frame.timestamp >= recoveryRange.$1 &&
+              frame.timestamp <= recoveryRange.$2,
+        )
         .toList(growable: false);
     if (localFrames.isEmpty) continue;
     final ground = runningLocalGroundLevel(
@@ -1401,8 +1415,14 @@ RunningMetricMeasurement _footRollingMeasurement(
     final heel = _point(frame, heelIndex);
     final toe = _point(frame, toeIndex);
     if (heel == null || toe == null) continue;
+    final pitch = math.atan2(
+          (toe.y - heel.y).abs(),
+          (toe.x - heel.x).abs(),
+        ) *
+        180 /
+        math.pi;
     values.add(RunningWeightedValue(
-      value: math.atan2(toe.y - heel.y, toe.x - heel.x).abs() * 180 / math.pi,
+      value: pitch.clamp(0.0, 90.0).toDouble(),
       confidence: math.min(
               contact.confidence, math.min(heel.confidence, toe.confidence)) *
           0.72,
@@ -1612,6 +1632,209 @@ double runningMotionScore(List<RunningPoseFrame> source) {
   return (selected.start, end);
 }
 
+RunningDirection _resolvedRunningDirection(
+  RunningDirection fallback,
+  List<RunningPoseFrame> frames,
+) {
+  final samples =
+      <({Duration timestamp, double hipX, double scale, double confidence})>[];
+  final footDirections = <double>[];
+  for (final frame in frames) {
+    final hip = _midpoint(_point(frame, 23), _point(frame, 24));
+    final scale = _bodyScale(frame);
+    if (hip != null && scale != null) {
+      samples.add((
+        timestamp: frame.timestamp,
+        hipX: hip.x,
+        scale: scale,
+        confidence: _frameConfidence(frame, const <int>[23, 24]),
+      ));
+      for (final pair in const <(int, int)>[(29, 31), (30, 32)]) {
+        final heel = _point(frame, pair.$1);
+        final toe = _point(frame, pair.$2);
+        if (heel == null || toe == null) continue;
+        final normalized = (toe.x - heel.x) / scale;
+        if (normalized.abs() >= 0.02) {
+          footDirections.add(normalized);
+        }
+      }
+    }
+  }
+
+  RunningDirection? motionDirection;
+  if (samples.length >= 3) {
+    final scales = samples.map((sample) => sample.scale).toList()..sort();
+    final scale = math.max(1.0, _median(scales));
+    final firstMs = samples.first.timestamp.inMilliseconds.toDouble();
+    final times = samples
+        .map((sample) => sample.timestamp.inMilliseconds.toDouble() - firstMs)
+        .toList(growable: false);
+    final meanT = times.reduce((sum, value) => sum + value) / times.length;
+    final meanX = samples
+            .map((sample) => sample.hipX)
+            .reduce((sum, value) => sum + value) /
+        samples.length;
+    var covariance = 0.0;
+    var variance = 0.0;
+    for (var index = 0; index < samples.length; index += 1) {
+      covariance += (times[index] - meanT) * (samples[index].hipX - meanX);
+      variance += (times[index] - meanT) * (times[index] - meanT);
+    }
+    if (variance > 0) {
+      final durationMs = math.max(1.0, times.last - times.first);
+      final signedTravel = (covariance / variance) * durationMs / scale;
+      if (signedTravel.abs() >= 0.12) {
+        motionDirection = signedTravel > 0
+            ? RunningDirection.leftToRight
+            : RunningDirection.rightToLeft;
+      }
+    }
+  }
+
+  RunningDirection? footDirection;
+  if (footDirections.isNotEmpty) {
+    footDirections.sort();
+    final facing = _median(footDirections);
+    if (facing.abs() >= 0.02) {
+      footDirection = facing > 0
+          ? RunningDirection.leftToRight
+          : RunningDirection.rightToLeft;
+    }
+  }
+
+  if (motionDirection != null && footDirection != null) {
+    return motionDirection == footDirection
+        ? motionDirection
+        : RunningDirection.stationary;
+  }
+  if (motionDirection != null) return motionDirection;
+  if (footDirection != null) return footDirection;
+  return fallback;
+}
+
+List<RunningWeightedValue> _runningBounceWindowSpans(
+  List<RunningBounceTrajectoryPoint> source,
+) {
+  final trajectory = source.toList(growable: false)
+    ..sort((left, right) => left.timestamp.compareTo(right.timestamp));
+  if (trajectory.length < 3) return const <RunningWeightedValue>[];
+
+  final firstMs = trajectory.first.timestampMs;
+  final lastMs = trajectory.last.timestampMs;
+  if (lastMs <= firstMs) return const <RunningWeightedValue>[];
+
+  final resampled = <RunningWeightedValue>[];
+  var cursor = 0;
+  for (var timestampMs = firstMs;
+      timestampMs <= lastMs;
+      timestampMs += _runningBounceResampleInterval.inMilliseconds) {
+    while (cursor < trajectory.length - 2 &&
+        trajectory[cursor + 1].timestampMs < timestampMs) {
+      cursor += 1;
+    }
+    final before = trajectory[cursor];
+    final after = trajectory[math.min(cursor + 1, trajectory.length - 1)];
+    if (timestampMs < before.timestampMs || timestampMs > after.timestampMs) {
+      continue;
+    }
+    final gapMs = after.timestampMs - before.timestampMs;
+    if (gapMs <= 0 || gapMs > 300) continue;
+    final fraction = (timestampMs - before.timestampMs) / gapMs;
+    resampled.add(RunningWeightedValue(
+      value: before.value + ((after.value - before.value) * fraction),
+      confidence: math.min(before.confidence, after.confidence),
+      timestamp: Duration(milliseconds: timestampMs),
+    ));
+  }
+  if (resampled.length < 3) return const <RunningWeightedValue>[];
+
+  final spans = <RunningWeightedValue>[];
+  for (var windowStartMs = firstMs;
+      windowStartMs <= lastMs - _runningBounceWindow.inMilliseconds;
+      windowStartMs += _runningBounceWindowStep.inMilliseconds) {
+    final windowEndMs = windowStartMs + _runningBounceWindow.inMilliseconds;
+    final chunk = resampled
+        .where((sample) =>
+            sample.timestamp.inMilliseconds >= windowStartMs &&
+            sample.timestamp.inMilliseconds <= windowEndMs)
+        .toList(growable: false);
+    if (chunk.length < 3) continue;
+    final values = chunk.map((sample) => sample.value).toList()..sort();
+    spans.add(RunningWeightedValue(
+      value: (_quantile(values, 0.9) - _quantile(values, 0.1)).abs() * 100,
+      confidence:
+          chunk.fold<double>(0, (sum, sample) => sum + sample.confidence) /
+              chunk.length,
+      timestamp: Duration(milliseconds: windowStartMs) +
+          Duration(milliseconds: _runningBounceWindow.inMilliseconds ~/ 2),
+    ));
+  }
+  return List<RunningWeightedValue>.unmodifiable(spans);
+}
+
+(Duration, Duration) _supportPhaseRange(
+  List<RunningFallbackContact> contacts,
+  RunningFallbackContact contact,
+) {
+  final ordered = contacts.toList(growable: false)
+    ..sort((left, right) => left.timestamp.compareTo(right.timestamp));
+  Duration? nextAny;
+  Duration? nextSame;
+  for (final item in ordered) {
+    if (item.timestamp <= contact.timestamp) continue;
+    nextAny ??= item.timestamp;
+    if (item.side == contact.side && item.side != RunningContactSide.unknown) {
+      nextSame = item.timestamp;
+      break;
+    }
+  }
+  var end = contact.timestamp + const Duration(milliseconds: 360);
+  if (nextAny != null) {
+    final beforeNextContact = nextAny - const Duration(milliseconds: 40);
+    if (beforeNextContact < end) end = beforeNextContact;
+  }
+  if (nextSame != null) {
+    final beforeNextSame = nextSame - const Duration(milliseconds: 160);
+    if (beforeNextSame < end) end = beforeNextSame;
+  }
+  final minimumEnd = contact.timestamp + const Duration(milliseconds: 80);
+  if (end < minimumEnd) end = minimumEnd;
+  return (contact.timestamp, end);
+}
+
+(Duration, Duration) _recoveryPhaseRange(
+  List<RunningFallbackContact> contacts,
+  RunningFallbackContact contact,
+) {
+  final ordered = contacts.toList(growable: false)
+    ..sort((left, right) => left.timestamp.compareTo(right.timestamp));
+  Duration? previousSame;
+  Duration? previousAny;
+  for (final item in ordered) {
+    if (item.timestamp >= contact.timestamp) break;
+    previousAny = item.timestamp;
+    if (item.side == contact.side && item.side != RunningContactSide.unknown) {
+      previousSame = item.timestamp;
+    }
+  }
+  var start = contact.timestamp - const Duration(milliseconds: 520);
+  if (previousSame != null) {
+    final afterPreviousSame = previousSame + const Duration(milliseconds: 220);
+    if (afterPreviousSame > start) start = afterPreviousSame;
+  } else if (previousAny != null) {
+    final afterPrevious = previousAny + const Duration(milliseconds: 80);
+    if (afterPrevious > start) start = afterPrevious;
+  }
+  final end = contact.timestamp - const Duration(milliseconds: 100);
+  if (end <= start) {
+    return (
+      contact.timestamp - const Duration(milliseconds: 520),
+      contact.timestamp - const Duration(milliseconds: 120),
+    );
+  }
+  return (start, end);
+}
+
 List<RunningPoseFrame> _orderedPoseFrames(List<RunningPoseFrame> frames) {
   final byTimestamp = <int, RunningPoseFrame>{};
   for (final frame in frames) {
@@ -1631,15 +1854,19 @@ bool _usableLandmark(RunningVideoPoseLandmark? landmark) {
       landmark.y.isFinite &&
       landmark.z.isFinite &&
       landmark.confidence.isFinite &&
-      landmark.confidence >= 0.12;
+      landmark.confidence >= _runningMinimumLandmarkConfidence;
 }
 
 double _landmarkDistance(
+  RunningPoseFrame firstFrame,
   RunningVideoPoseLandmark first,
+  RunningPoseFrame secondFrame,
   RunningVideoPoseLandmark second,
 ) {
-  final x = first.x - second.x;
-  final y = first.y - second.y;
+  final x =
+      (first.x * firstFrame.imageWidth) - (second.x * secondFrame.imageWidth);
+  final y =
+      (first.y * firstFrame.imageHeight) - (second.y * secondFrame.imageHeight);
   return math.sqrt(x * x + y * y);
 }
 
@@ -1744,10 +1971,16 @@ _Point? _point(RunningPoseFrame frame, int index) {
       !landmark.x.isFinite ||
       !landmark.y.isFinite ||
       !landmark.confidence.isFinite ||
-      landmark.confidence < 0.12) {
+      landmark.confidence < _runningMinimumLandmarkConfidence ||
+      frame.imageWidth <= 0 ||
+      frame.imageHeight <= 0) {
     return null;
   }
-  return _Point(landmark.x, landmark.y, landmark.confidence);
+  return _Point(
+    landmark.x * frame.imageWidth,
+    landmark.y * frame.imageHeight,
+    landmark.confidence,
+  );
 }
 
 _Point? _midpoint(_Point? first, _Point? second) {
@@ -1769,7 +2002,7 @@ double? _bodyScale(RunningPoseFrame frame) {
   final ankles = _midpoint(_point(frame, 27), _point(frame, 28));
   final leg = ankles == null ? 0.0 : _distance(hip, ankles);
   final scale = math.max(torso, leg);
-  return scale.isFinite && scale > 0.01 ? scale : null;
+  return scale.isFinite && scale > 1 ? scale : null;
 }
 
 _Point? _footBottom(RunningPoseFrame frame, RunningContactSide side) {

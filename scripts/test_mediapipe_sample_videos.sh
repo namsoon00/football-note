@@ -425,7 +425,7 @@ def coarse_timestamps(duration_ms: int) -> list[int]:
 
 
 assert coarse_target_fps == 1000 // coarse_frame_interval_ms
-assert coarse_timestamps(15_000) == list(range(0, 15_001, 100))
+assert coarse_timestamps(15_000) == list(range(0, 15_001, coarse_frame_interval_ms))
 long_scan_timestamps = coarse_timestamps(60_000)
 assert len(long_scan_timestamps) == max_coarse_frame_budget
 assert long_scan_timestamps[0] == 0 and long_scan_timestamps[-1] == 60_000
@@ -673,7 +673,14 @@ def validate_contact_frames(
         ):
             continue
         selected.append(frame)
-    return sorted(selected, key=lambda item: item.timestamp_ms)
+    alternating: list[ContactFrame] = []
+    last_side: str | None = None
+    for frame in sorted(selected, key=lambda item: item.timestamp_ms):
+        if last_side is not None and frame.side == last_side:
+            continue
+        alternating.append(frame)
+        last_side = frame.side
+    return alternating
 
 
 def select_contact_frame_for_window(
@@ -733,7 +740,6 @@ def select_contact_frame_for_side(
         if candidate is not None
     ]
     temporal_candidates: list[ContactFrameCandidate] = []
-    persistent_candidates: list[ContactFrameCandidate] = []
     for index, current in enumerate(candidates):
         if not is_eligible_contact(current):
             continue
@@ -742,24 +748,12 @@ def select_contact_frame_for_side(
         motion_reason = contact_motion_reason(current, previous, next_candidate)
         if motion_reason is not None:
             continue
-        if entered_ground_band(current, previous):
-            temporal_candidates.append(current)
-        else:
-            persistent_candidates.append(current)
-    candidates_for_selection = temporal_candidates or persistent_candidates
+        temporal_candidates.append(current)
+    candidates_for_selection = temporal_candidates
     selected = (
         sorted(
             candidates_for_selection,
-            key=lambda item: (
-                -contact_selection_score(
-                    item.sample.timestamp_ms,
-                    item.confidence,
-                    window,
-                ),
-                -item.confidence,
-                abs(item.sample.timestamp_ms - window.center_timestamp_ms),
-                item.sample.timestamp_ms,
-            ),
+            key=lambda item: (item.sample.timestamp_ms, -item.confidence),
         )[0]
         if candidates_for_selection
         else None
@@ -850,20 +844,6 @@ def entered_ground_band(
     )
 
 
-def has_ground_band_persistence(
-    current: ContactFrameCandidate,
-    previous: ContactFrameCandidate | None,
-    next_candidate: ContactFrameCandidate | None,
-) -> bool:
-    return any(
-        neighbor is not None
-        and is_eligible_contact(neighbor)
-        and abs(neighbor.sample.timestamp_ms - current.sample.timestamp_ms)
-        <= contact_motion_neighbor_gap_ms
-        for neighbor in (previous, next_candidate)
-    )
-
-
 def contact_motion_reason(
     current: ContactFrameCandidate,
     previous: ContactFrameCandidate | None,
@@ -883,17 +863,19 @@ def contact_motion_reason(
         return "insufficient_motion_window"
     tolerance = max(1.0, current.sample.body_scale * contact_motion_tolerance_ratio)
     current_y = current.evidence["bottom"][1]
-    is_lowest_near_previous = (
-        not has_previous
-        or current_y >= previous.evidence["bottom"][1] - tolerance
+    descending_into_contact = (
+        has_previous
+        and current_y - previous.evidence["bottom"][1]
+        >= current.sample.body_scale * 0.010
     )
-    is_lowest_near_next = (
-        not has_next
-        or current_y >= next_candidate.evidence["bottom"][1] - tolerance
+    if not entered_ground_band(current, previous) or not descending_into_contact:
+        return "not_descending_to_contact"
+    support_after = (
+        has_next
+        and is_eligible_contact(next_candidate)
+        and abs(next_candidate.evidence["bottom"][1] - current_y) <= tolerance * 1.4
     )
-    if not is_lowest_near_previous or not is_lowest_near_next:
-        return "unstable_foot_motion"
-    if not has_ground_band_persistence(current, previous, next_candidate):
+    if not support_after:
         return "insufficient_contact_persistence"
     return None
 
@@ -923,14 +905,19 @@ def is_kinematic_contact_candidate(
     )
     if not has_previous and not has_next:
         return False
-    tolerance = max(1.0, current.sample.body_scale * kinematic_contact_motion_tolerance_ratio)
     current_y = current.evidence["bottom"][1]
+    descending_into_contact = (
+        has_previous
+        and current_y - previous.evidence["bottom"][1]
+        >= current.sample.body_scale * 0.008
+    )
+    if not descending_into_contact:
+        return False
+    tolerance = max(1.0, current.sample.body_scale * kinematic_contact_motion_tolerance_ratio)
     return (
-        (not has_previous or current_y >= previous.evidence["bottom"][1] - tolerance)
-        and (
-            not has_next
-            or current_y >= next_candidate.evidence["bottom"][1] - tolerance
-        )
+        has_next
+        and is_eligible_contact(next_candidate)
+        and abs(next_candidate.evidence["bottom"][1] - current_y) <= tolerance * 1.8
     )
 
 

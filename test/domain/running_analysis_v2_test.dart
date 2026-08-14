@@ -194,7 +194,7 @@ void main() {
     );
     final contacts = runningFallbackContacts(result);
 
-    expect(ground, closeTo(0.80, 0.01));
+    expect(ground, closeTo(0.80 * 1280, 0.01 * 1280));
     expect(contacts.length, greaterThanOrEqualTo(4));
     expect(contacts.every((contact) => !contact.isConfirmed), isTrue);
     expect(
@@ -317,6 +317,58 @@ void main() {
         reason: metric.name,
       );
     }
+  });
+
+  test('pixel-space measurements are invariant to frame aspect and resize', () {
+    final portrait = deriveRunningAnalysisV2(
+      _physicalPoseResult(imageWidth: 1080, imageHeight: 1920, scale: 1),
+    );
+    final landscape = deriveRunningAnalysisV2(
+      _physicalPoseResult(imageWidth: 1920, imageHeight: 1080, scale: 1),
+    );
+    final resized = deriveRunningAnalysisV2(
+      _physicalPoseResult(imageWidth: 540, imageHeight: 960, scale: 0.5),
+    );
+
+    for (final metric in const <RunningAnalysisMetric>[
+      RunningAnalysisMetric.posture,
+      RunningAnalysisMetric.footStrike,
+      RunningAnalysisMetric.kneeAtContact,
+      RunningAnalysisMetric.elbowAngle,
+    ]) {
+      final base = portrait.measurementFor(metric);
+      expect(base.state, RunningMeasurementState.confirmed,
+          reason: metric.name);
+      for (final candidate in <RunningVideoAnalysisResult>[
+        landscape,
+        resized,
+      ]) {
+        final compared = candidate.measurementFor(metric);
+        expect(compared.state, base.state, reason: metric.name);
+        expect(compared.value, isNotNull, reason: metric.name);
+        expect(
+          compared.value!,
+          closeTo(base.value!, 0.001),
+          reason: metric.name,
+        );
+      }
+    }
+  });
+
+  test('foot pitch measurement folds reversed atan2 orientation into 0 to 90',
+      () {
+    final result = deriveRunningAnalysisV2(
+      _physicalPoseResult(
+        imageWidth: 1080,
+        imageHeight: 1920,
+        scale: 1,
+        reverseFootPitch: true,
+      ),
+    );
+    final rolling = result.measurementFor(RunningAnalysisMetric.footRolling);
+
+    expect(rolling.value, isNotNull);
+    expect(rolling.value!, inInclusiveRange(0, 90));
   });
 
   test('airborne recovery knee is not classified as a landing contact', () {
@@ -467,6 +519,7 @@ void main() {
             timestampMs: index * 125,
             shoulderCenterX: shoulderCenterX,
             hipCenterX: hipCenterX,
+            missingIndexes: const <int>{29, 30, 31, 32},
           ),
       ];
       return deriveRunningAnalysisV2(
@@ -645,6 +698,122 @@ RunningVideoAnalysisResult _baseResult({
         : estimatedContacts.isEmpty
             ? 0
             : 0.58,
+  );
+}
+
+RunningVideoAnalysisResult _physicalPoseResult({
+  required int imageWidth,
+  required int imageHeight,
+  required double scale,
+  bool reverseFootPitch = false,
+}) {
+  const contactTimes = <int>[125, 375, 625];
+  final frames = <RunningPoseFrame>[
+    for (var index = 0; index < 6; index += 1)
+      _physicalPoseFrame(
+        timestampMs: index * 125,
+        frameIndex: index,
+        imageWidth: imageWidth,
+        imageHeight: imageHeight,
+        scale: scale,
+        reverseFootPitch: reverseFootPitch,
+      ),
+  ];
+  final contactDurations = <Duration>[
+    for (final timestampMs in contactTimes) Duration(milliseconds: timestampMs),
+  ];
+  return _baseResult(
+    poseFrames: frames,
+    validatedContacts: contactDurations,
+    contactWindows: <RunningContactWindow>[
+      for (var index = 0; index < contactDurations.length; index += 1)
+        RunningContactWindow(
+          start: contactDurations[index] - const Duration(milliseconds: 70),
+          center: contactDurations[index],
+          end: contactDurations[index] + const Duration(milliseconds: 120),
+          side:
+              index.isEven ? RunningContactSide.left : RunningContactSide.right,
+          denseSampleCount: 5,
+          validatedContactTimestamps: <Duration>[contactDurations[index]],
+          confidence: 0.92,
+          selectionMethod: 'ground',
+        ),
+    ],
+    metricQualities: <RunningCoachMetric, RunningMetricQuality>{
+      for (final metric in RunningCoachMetric.values)
+        metric: const RunningMetricQuality(confidence: 0.92, sampleCount: 6),
+    },
+  );
+}
+
+RunningPoseFrame _physicalPoseFrame({
+  required int timestampMs,
+  required int frameIndex,
+  required int imageWidth,
+  required int imageHeight,
+  required double scale,
+  required bool reverseFootPitch,
+}) {
+  final landmarks = List<RunningVideoPoseLandmark>.generate(
+    mediaPipePoseLandmarkCount,
+    (index) => RunningVideoPoseLandmark(
+      index: index,
+      x: 0,
+      y: 0,
+      z: 0,
+      visibility: 0,
+      presence: 0,
+      confidence: 0,
+    ),
+  );
+  void setPoint(int index, double x, double y) {
+    landmarks[index] = RunningVideoPoseLandmark(
+      index: index,
+      x: x / imageWidth,
+      y: y / imageHeight,
+      z: 0,
+      visibility: 0.96,
+      presence: 0.96,
+      confidence: 0.94,
+    );
+  }
+
+  final hipX = (360 + frameIndex * 32) * scale;
+  final hipY = 520 * scale;
+  final torso = 220 * scale;
+  final shoulderX = hipX + (50 * scale);
+  final shoulderY = hipY - torso;
+  setPoint(11, shoulderX - (50 * scale), shoulderY);
+  setPoint(12, shoulderX + (50 * scale), shoulderY);
+  setPoint(23, hipX - (42 * scale), hipY);
+  setPoint(24, hipX + (42 * scale), hipY);
+
+  setPoint(13, shoulderX - (88 * scale), shoulderY + (95 * scale));
+  setPoint(14, shoulderX + (88 * scale), shoulderY + (98 * scale));
+  setPoint(15, shoulderX - (44 * scale), shoulderY + (205 * scale));
+  setPoint(16, shoulderX + (132 * scale), shoulderY + (208 * scale));
+
+  setPoint(25, hipX - (24 * scale), hipY + (175 * scale));
+  setPoint(26, hipX + (35 * scale), hipY + (170 * scale));
+  setPoint(27, hipX + (10 * scale), hipY + (380 * scale));
+  setPoint(28, hipX + (38 * scale), hipY + (372 * scale));
+  final leftHeelX =
+      reverseFootPitch ? hipX + (62 * scale) : hipX - (12 * scale);
+  final leftToeX = reverseFootPitch ? hipX - (6 * scale) : hipX + (58 * scale);
+  final rightHeelX =
+      reverseFootPitch ? hipX + (88 * scale) : hipX + (16 * scale);
+  final rightToeX =
+      reverseFootPitch ? hipX + (22 * scale) : hipX + (86 * scale);
+  setPoint(29, leftHeelX, hipY + (382 * scale));
+  setPoint(30, rightHeelX, hipY + (374 * scale));
+  setPoint(31, leftToeX, hipY + (382 * scale));
+  setPoint(32, rightToeX, hipY + (374 * scale));
+
+  return RunningPoseFrame(
+    timestamp: Duration(milliseconds: timestampMs),
+    imageWidth: imageWidth,
+    imageHeight: imageHeight,
+    landmarks: List<RunningVideoPoseLandmark>.unmodifiable(landmarks),
   );
 }
 

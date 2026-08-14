@@ -77,13 +77,15 @@ for required in (
     "validateDenseContactFrames",
     "selectDenseContactFrame",
     "selectDenseContactFrameForSide",
-    "hasGroundBandPersistence",
+    "contactMotionReason",
+    "enforceContactValidationAlternation",
     "enteredGroundBand",
     "hasTemporalNeighbor",
-    "isFootAtLocalBottom",
+    "not_descending_to_contact",
     "isKinematicContactCandidate",
     "kinematicContactConfidencePenalty",
     "kinematic_contact_estimate",
+    "alternation_estimated",
     "missing_contact_joint_chain",
     "centerOfPoints",
     "groundLineForFootEvidence",
@@ -140,13 +142,15 @@ for required in (
     "validateDenseContactFrames",
     "selectDenseContactFrame",
     "selectDenseContactFrameForSide",
-    "hasGroundBandPersistence",
+    "contactMotionReason",
+    "enforceContactValidationAlternation",
     "enteredGroundBand",
     "hasTemporalNeighbor",
-    "isFootAtLocalBottom",
+    "not_descending_to_contact",
     "isKinematicContactCandidate",
     "kinematicContactConfidencePenalty",
     "kinematic_contact_estimate",
+    "alternation_estimated",
     "missing_contact_joint_chain",
     "centerOfPoints",
     "groundLineForFootEvidence",
@@ -435,8 +439,16 @@ require(
     "Android must not promote an isolated near-ground frame to contact",
 )
 require(
+    "persistentCandidates" not in channel_text,
+    "Android must not keep persistent near-ground frames in the strict contact selector",
+)
+require(
     "persistentCandidates.isEmpty\n      ? eligibleCandidates" not in ios_text,
     "iOS must not promote an isolated near-ground frame to contact",
+)
+require(
+    "persistentCandidates" not in ios_text,
+    "iOS must not keep persistent near-ground frames in the strict contact selector",
 )
 require(
     re.search(
