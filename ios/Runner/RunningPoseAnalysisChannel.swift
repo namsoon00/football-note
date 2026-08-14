@@ -486,17 +486,8 @@ final class RunningPoseAnalysisChannel {
     let leanDegrees =
       frameSamples.map { $0.forwardLeanDegrees(direction: direction) }.reduce(0, +) /
       Double(frameSamples.count)
-    let normalizedShoulderYs = frameSamples.map {
-      Double($0.shoulderCenter.y) / max($0.bodyScale, 1.0)
-    }
-    let bounceRatio: Double
-    if let lower = percentile(normalizedShoulderYs, fraction: 0.10),
-      let upper = percentile(normalizedShoulderYs, fraction: 0.90)
-    {
-      bounceRatio = max(0, upper - lower)
-    } else {
-      bounceRatio = 0
-    }
+    let bounce = verticalBounceRatio(from: frameSamples)
+    let bounceRatio = bounce.ratio
     let detectedCandidateSet = deriveContactCandidateWindows(
       from: frameSamples,
       durationMs: durationMs
@@ -597,6 +588,10 @@ final class RunningPoseAnalysisChannel {
       ? 0
       : armConfidenceValues.reduce(0, +) /
         Double(armConfidenceValues.count)
+    let bounceConfidence = bounce.trajectory.isEmpty
+      ? 0
+      : bounce.trajectory.map(\.confidence).reduce(0, +) /
+        Double(bounce.trajectory.count)
     let analyzedFrameTimestamps = Set(
       coarseFrameTimestamps + recoveryTimestamps + denseTimestamps
     )
@@ -610,9 +605,15 @@ final class RunningPoseAnalysisChannel {
         reason: hasUsableSharpness ? nil : "low_sharpness"
       ),
       "bounce": metricQualityPayload(
-        confidence: hasUsableSharpness ? coreConfidence : min(coreConfidence, 0.58),
-        sampleCount: frameSamples.count,
-        reason: hasUsableSharpness ? nil : "low_sharpness"
+        confidence: bounce.trajectory.count < Self.minimumBounceTrajectorySamples
+          ? 0
+          : hasUsableSharpness
+            ? bounceConfidence
+            : min(bounceConfidence, 0.58),
+        sampleCount: bounce.trajectory.count,
+        reason: bounce.trajectory.count < Self.minimumBounceTrajectorySamples
+          ? "coordinates_unavailable"
+          : hasUsableSharpness ? nil : "low_sharpness"
       ),
       "footStrike": metricQualityPayload(
         confidence: hasUsableSharpness ? contactConfidence : min(contactConfidence, 0.58),
@@ -814,9 +815,19 @@ final class RunningPoseAnalysisChannel {
   }
 
   private func previewPoseTimestamps(durationMs: Int) -> [Int] {
+    let insetMs = min(
+      Self.previewPoseSafeInsetMs,
+      max(1, Int(Double(durationMs) * 0.10))
+    )
+    let startMs = min(durationMs - 1, insetMs)
+    let endMs = max(startMs, durationMs - insetMs)
+    if endMs <= startMs {
+      return [max(1, min(durationMs - 1, Int((Double(durationMs) / 2.0).rounded())))]
+    }
+    let safeDurationMs = endMs - startMs
     let requestedIntervalCount = max(
       1,
-      (durationMs + Self.previewPoseFrameIntervalMs - 1) / Self.previewPoseFrameIntervalMs
+      (safeDurationMs + Self.previewPoseFrameIntervalMs - 1) / Self.previewPoseFrameIntervalMs
     )
     let intervalCount = min(
       requestedIntervalCount,
@@ -824,8 +835,16 @@ final class RunningPoseAnalysisChannel {
     )
     return (0...intervalCount).map { index in
       min(
-        durationMs,
-        max(0, Int((Double(durationMs) * Double(index) / Double(intervalCount)).rounded()))
+        durationMs - 1,
+        max(
+          1,
+          Int(
+            (
+              Double(startMs) +
+                (Double(safeDurationMs) * Double(index) / Double(intervalCount))
+            ).rounded()
+          )
+        )
       )
     }
   }
@@ -1240,6 +1259,80 @@ final class RunningPoseAnalysisChannel {
     footEvidence: FootBottomEvidence
   ) -> Double {
     groundLine.y(at: Double(footEvidence.bottomPoint.x)) - Double(footEvidence.bottomPoint.y)
+  }
+
+  private func footObservationsForSamples(_ samples: [FrameSample]) -> [FootObservation] {
+    samples.flatMap { sample in
+      FootSide.allCases.compactMap { side in
+        sample.footBottom(side).map { evidence in
+          FootObservation(sample: sample, side: side, footEvidence: evidence)
+        }
+      }
+    }
+  }
+
+  private func verticalBounceTrajectory(
+    from samples: [FrameSample]
+  ) -> [BounceTrajectoryPoint] {
+    guard samples.count >= 3 else {
+      return []
+    }
+    let footObservations = footObservationsForSamples(samples)
+    guard footObservations.count >= Self.groundLineMinimumSamples,
+      let groundLine = groundLineForFootEvidence(footObservations)
+    else {
+      return []
+    }
+    let raw = samples.sorted { $0.timestampMs < $1.timestampMs }.compactMap {
+      sample -> BounceTrajectoryPoint? in
+      let torso = sample.torsoLength
+      guard torso.isFinite, torso >= Self.minimumBodyScalePx * 0.25 else {
+        return nil
+      }
+      let clearance =
+        (groundLine.y(at: Double(sample.hipCenter.x)) - Double(sample.hipCenter.y)) /
+        torso
+      guard clearance.isFinite, clearance >= 0.20, clearance <= 4.50 else {
+        return nil
+      }
+      return BounceTrajectoryPoint(
+        timestampMs: sample.timestampMs,
+        value: clearance,
+        confidence: sample.coreLandmarkConfidence
+      )
+    }
+    guard raw.count >= 3, let first = raw.first, let last = raw.last else {
+      return []
+    }
+
+    let durationMs = Double(max(1, last.timestampMs - first.timestampMs))
+    let drift = last.value - first.value
+    let corrected = raw.map { point -> BounceTrajectoryPoint in
+      let fraction = Double(point.timestampMs - first.timestampMs) / durationMs
+      return BounceTrajectoryPoint(
+        timestampMs: point.timestampMs,
+        value: point.value - (first.value + (drift * fraction)),
+        confidence: point.confidence
+      )
+    }
+    let center = median(corrected.map(\.value)) ?? 0
+    let medianDeviation = median(corrected.map { abs($0.value - center) }) ?? 0
+    let tolerance = max(0.18, medianDeviation * 4.0)
+    return corrected.filter { abs($0.value - center) <= tolerance }
+  }
+
+  private func verticalBounceRatio(from samples: [FrameSample]) -> BounceTrajectory {
+    let trajectory = verticalBounceTrajectory(from: samples)
+    guard trajectory.count >= Self.minimumBounceTrajectorySamples else {
+      return BounceTrajectory(ratio: 0, trajectory: trajectory)
+    }
+    let values = trajectory.map(\.value)
+    guard let lower = percentile(values, fraction: 0.10),
+      let upper = percentile(values, fraction: 0.90)
+    else {
+      return BounceTrajectory(ratio: 0, trajectory: trajectory)
+    }
+    return BounceTrajectory(ratio: max(0, upper - lower), trajectory: trajectory)
   }
 
   private func selectContactCandidateWindows(
@@ -2536,6 +2629,17 @@ final class RunningPoseAnalysisChannel {
     let bodyScale: Double
   }
 
+  private struct BounceTrajectoryPoint {
+    let timestampMs: Int
+    let value: Double
+    let confidence: Double
+  }
+
+  private struct BounceTrajectory {
+    let ratio: Double
+    let trajectory: [BounceTrajectoryPoint]
+  }
+
   private struct FootObservation {
     let sample: FrameSample
     let side: FootSide
@@ -2660,6 +2764,13 @@ final class RunningPoseAnalysisChannel {
     let leftWristConfidence: Double?
     let rightWristConfidence: Double?
     let bodyScale: Double
+
+    var torsoLength: Double {
+      hypot(
+        Double(shoulderCenter.x - hipCenter.x),
+        Double(shoulderCenter.y - hipCenter.y)
+      )
+    }
 
     var sideViewWidthRatio: Double? {
       func pointDistance(_ first: CGPoint, _ second: CGPoint) -> Double {
@@ -2944,8 +3055,9 @@ final class RunningPoseAnalysisChannel {
   private static let coarseTargetFps = 8
   private static let coarseFrameIntervalMs = 125
   private static let maxCoarseFrameBudget = 481
-  private static let previewPoseFrameIntervalMs = 1000
-  private static let maxPreviewPoseFrameBudget = 9
+  private static let previewPoseFrameIntervalMs = 250
+  private static let maxPreviewPoseFrameBudget = 37
+  private static let previewPoseSafeInsetMs = 150
   private static let recoveryTargetFps = 15
   private static let recoveryFrameIntervalMs = 67
   private static let maxRecoveryFrameBudget = 120
@@ -2984,6 +3096,7 @@ final class RunningPoseAnalysisChannel {
   private static let localFootExtremumToleranceRatio = 0.035
   private static let contactMotionToleranceRatio = 0.035
   private static let contactMotionNeighborGapMs = 100
+  private static let minimumBounceTrajectorySamples = 4
   private static let groundLineSampleFraction = 0.45
   private static let groundLineMinimumSamples = 3
   private static let minimumBodyScaleRatio = 0.12

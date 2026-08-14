@@ -512,16 +512,8 @@ class RunningPoseAnalysisChannel(
             val leanDegrees = frameSamples
                 .map { it.forwardLeanDegrees(direction) }
                 .average()
-            val normalizedShoulderYs = frameSamples.map {
-                it.shoulderCenter.y.toDouble() / it.bodyScale.coerceAtLeast(1.0)
-            }
-            val lowerBouncePosition = percentile(normalizedShoulderYs, 0.10)
-            val upperBouncePosition = percentile(normalizedShoulderYs, 0.90)
-            val bounceRatio = if (lowerBouncePosition == null || upperBouncePosition == null) {
-                0.0
-            } else {
-                (upperBouncePosition - lowerBouncePosition).coerceAtLeast(0.0)
-            }
+            val bounce = verticalBounceRatio(frameSamples)
+            val bounceRatio = bounce.ratio
             val detectedCandidateSet = deriveContactCandidateWindows(frameSamples, durationMs)
             val fallbackCandidateSet = fallbackContactCandidateWindows(frameSamples, durationMs)
             val candidateSet = mergeContactCandidateSets(
@@ -622,9 +614,21 @@ class RunningPoseAnalysisChannel(
                     if (hasUsableSharpness) null else "low_sharpness",
                 ),
                 "bounce" to metricQualityPayload(
-                    if (hasUsableSharpness) coreConfidence else min(coreConfidence, 0.58),
-                    frameSamples.size,
-                    if (hasUsableSharpness) null else "low_sharpness",
+                    if (bounce.trajectory.size < minimumBounceTrajectorySamples) {
+                        0.0
+                    } else if (hasUsableSharpness) {
+                        bounce.trajectory.map { it.confidence }.average()
+                    } else {
+                        min(bounce.trajectory.map { it.confidence }.average(), 0.58)
+                    },
+                    bounce.trajectory.size,
+                    if (bounce.trajectory.size < minimumBounceTrajectorySamples) {
+                        "coordinates_unavailable"
+                    } else if (hasUsableSharpness) {
+                        null
+                    } else {
+                        "low_sharpness"
+                    },
                 ),
                 "footStrike" to metricQualityPayload(
                     if (hasUsableSharpness) contactConfidence else min(contactConfidence, 0.58),
@@ -838,16 +842,26 @@ class RunningPoseAnalysisChannel(
     }
 
     private fun previewPoseTimestamps(durationMs: Long): List<Long> {
+        val insetMs = min(
+            previewPoseSafeInsetMs,
+            max(1L, (durationMs.toDouble() * 0.10).toLong()),
+        )
+        val startMs = min(durationMs - 1L, insetMs)
+        val endMs = max(startMs, durationMs - insetMs)
+        if (endMs <= startMs) {
+            return listOf(max(1L, min(durationMs - 1L, (durationMs / 2.0).roundToLong())))
+        }
+        val safeDurationMs = endMs - startMs
         val requestedIntervalCount =
-            ((durationMs + previewPoseFrameIntervalMs - 1L) / previewPoseFrameIntervalMs)
+            ((safeDurationMs + previewPoseFrameIntervalMs - 1L) / previewPoseFrameIntervalMs)
                 .coerceAtLeast(1L)
         val intervalCount = requestedIntervalCount
             .coerceAtMost((maxPreviewPoseFrameBudget - 1).toLong())
             .toInt()
         return (0..intervalCount).map { index ->
-            ((durationMs.toDouble() * index) / intervalCount)
+            (startMs + ((safeDurationMs.toDouble() * index) / intervalCount))
                 .roundToLong()
-                .coerceIn(0L, durationMs)
+                .coerceIn(1L, durationMs - 1L)
         }
     }
 
@@ -1134,6 +1148,68 @@ class RunningPoseAnalysisChannel(
         groundLine: GroundLine,
         evidence: FootBottomEvidence,
     ): Double = groundLine.yAt(evidence.bottomPoint.x.toDouble()) - evidence.bottomPoint.y.toDouble()
+
+    private fun footObservationsForSamples(samples: List<FrameSample>): List<FootObservation> =
+        samples.flatMap { sample ->
+            FootSide.values().mapNotNull { side ->
+                sample.footBottom(side)?.let { evidence ->
+                    FootObservation(sample = sample, side = side, evidence = evidence)
+                }
+            }
+        }
+
+    private fun verticalBounceTrajectory(samples: List<FrameSample>): List<BounceTrajectoryPoint> {
+        if (samples.size < 3) return emptyList()
+        val footObservations = footObservationsForSamples(samples)
+        if (footObservations.size < groundLineMinimumSamples) return emptyList()
+        val groundLine = groundLineForFootEvidence(footObservations) ?: return emptyList()
+        val raw = samples.sortedBy { it.timestampMs }.mapNotNull { sample ->
+            val torso = sample.torsoLength()
+            if (!torso.isFinite() || torso < minimumBodyScalePx * 0.25) {
+                return@mapNotNull null
+            }
+            val clearance = (
+                groundLine.yAt(sample.hipCenter.x.toDouble()) -
+                    sample.hipCenter.y.toDouble()
+            ) / torso
+            if (!clearance.isFinite() || clearance < 0.20 || clearance > 4.50) {
+                return@mapNotNull null
+            }
+            BounceTrajectoryPoint(
+                timestampMs = sample.timestampMs,
+                value = clearance,
+                confidence = sample.coreLandmarkConfidence,
+            )
+        }
+        if (raw.size < 3) return emptyList()
+
+        val first = raw.first()
+        val last = raw.last()
+        val durationMs = (last.timestampMs - first.timestampMs).coerceAtLeast(1L).toDouble()
+        val drift = last.value - first.value
+        val corrected = raw.map { point ->
+            val fraction = (point.timestampMs - first.timestampMs).toDouble() / durationMs
+            point.copy(value = point.value - (first.value + drift * fraction))
+        }
+        val center = median(corrected.map { it.value }) ?: 0.0
+        val medianDeviation = median(corrected.map { abs(it.value - center) }) ?: 0.0
+        val tolerance = max(0.18, medianDeviation * 4.0)
+        return corrected.filter { abs(it.value - center) <= tolerance }
+    }
+
+    private fun verticalBounceRatio(samples: List<FrameSample>): BounceTrajectory {
+        val trajectory = verticalBounceTrajectory(samples)
+        if (trajectory.size < minimumBounceTrajectorySamples) {
+            return BounceTrajectory(ratio = 0.0, trajectory = trajectory)
+        }
+        val values = trajectory.map { it.value }
+        val lower = percentile(values, 0.10)
+        val upper = percentile(values, 0.90)
+        return BounceTrajectory(
+            ratio = if (lower == null || upper == null) 0.0 else (upper - lower).coerceAtLeast(0.0),
+            trajectory = trajectory,
+        )
+    }
 
     private fun selectContactCandidateWindows(
         candidates: List<ContactCandidate>,
@@ -2308,6 +2384,17 @@ class RunningPoseAnalysisChannel(
         val bodyScale: Double,
     )
 
+    private data class BounceTrajectoryPoint(
+        val timestampMs: Long,
+        val value: Double,
+        val confidence: Double,
+    )
+
+    private data class BounceTrajectory(
+        val ratio: Double,
+        val trajectory: List<BounceTrajectoryPoint>,
+    )
+
     private data class FootObservation(
         val sample: FrameSample,
         val side: FootSide,
@@ -2431,6 +2518,8 @@ class RunningPoseAnalysisChannel(
         val rightWristConfidence: Double?,
         val bodyScale: Double,
     ) {
+        fun torsoLength(): Double = distance(shoulderCenter, hipCenter)
+
         fun sideViewWidthRatio(): Double? {
             fun pointDistance(first: PointF, second: PointF): Double {
                 return hypot(
@@ -2740,8 +2829,9 @@ class RunningPoseAnalysisChannel(
         private const val coarseTargetFps = 8
         private const val coarseFrameIntervalMs = 125L
         private const val maxCoarseFrameBudget = 481
-        private const val previewPoseFrameIntervalMs = 1000L
-        private const val maxPreviewPoseFrameBudget = 9
+        private const val previewPoseFrameIntervalMs = 250L
+        private const val maxPreviewPoseFrameBudget = 37
+        private const val previewPoseSafeInsetMs = 150L
         private const val recoveryTargetFps = 15
         private const val recoveryFrameIntervalMs = 67L
         private const val maxRecoveryFrameBudget = 120
@@ -2780,6 +2870,7 @@ class RunningPoseAnalysisChannel(
         private const val localFootExtremumToleranceRatio = 0.035
         private const val contactMotionToleranceRatio = 0.035
         private const val contactMotionNeighborGapMs = 100L
+        private const val minimumBounceTrajectorySamples = 4
         private const val groundLineSampleFraction = 0.45
         private const val groundLineMinimumSamples = 3
         private const val minimumBodyScaleRatio = 0.12

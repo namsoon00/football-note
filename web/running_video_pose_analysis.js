@@ -10,8 +10,10 @@
     maxDecodableVideoDurationMs: 600000,
     minConfidence: 0.35,
     minValidFrames: 6,
-    previewFrameIntervalMs: 1000,
-    maxPreviewPoseFrames: 9,
+    previewFrameIntervalMs: 250,
+    maxPreviewPoseFrames: 37,
+    previewSafeInsetMs: 150,
+    seekTimeoutMs: 3500,
     // Read the whole clip at a predictable coarse density. The release budget
     // is 8 fps through the supported 60-second capture, capped at 481 inclusive
     // timestamps so start, middle, and end are always represented.
@@ -62,6 +64,7 @@
     // be a swing leg or a tracking spike.
     contactMotionToleranceRatio: 0.035,
     contactMotionNeighborGapMs: 100,
+    minBounceTrajectorySamples: 4,
   });
 
   const index = Object.freeze({
@@ -84,6 +87,7 @@
   });
 
   let visionModulePromise;
+  let visionFilesetPromise;
 
   const createError = (code, message) => {
     const error = new Error(message);
@@ -142,7 +146,11 @@
     const visionModule = await loadVisionModule();
     const wasmRoot =
       `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${config.taskVersion}/wasm`;
-    const vision = await visionModule.FilesetResolver.forVisionTasks(wasmRoot);
+    if (!visionFilesetPromise) {
+      visionFilesetPromise =
+        visionModule.FilesetResolver.forVisionTasks(wasmRoot);
+    }
+    const vision = await visionFilesetPromise;
     return visionModule.PoseLandmarker.createFromOptions(vision, {
       baseOptions: {
         modelAssetPath: assetUrl('mediapipe/pose_landmarker_full.task'),
@@ -209,6 +217,7 @@
         resolve();
         return;
       }
+      let timeoutId = null;
       const onSeeked = () => {
         cleanup();
         resolve();
@@ -222,12 +231,26 @@
           ),
         );
       };
+      const onTimeout = () => {
+        cleanup();
+        reject(
+          createError(
+            'web_video_seek_timeout',
+            'The selected video could not seek to an analysis frame.',
+          ),
+        );
+      };
       const cleanup = () => {
+        if (timeoutId !== null) {
+          clearTimeout(timeoutId);
+          timeoutId = null;
+        }
         video.removeEventListener('seeked', onSeeked);
         video.removeEventListener('error', onError);
       };
       video.addEventListener('seeked', onSeeked, { once: true });
       video.addEventListener('error', onError, { once: true });
+      timeoutId = setTimeout(onTimeout, config.seekTimeoutMs);
       video.currentTime = target;
     });
   }
@@ -356,15 +379,25 @@
 
   function previewPoseTimestamps(durationMs) {
     const safeDurationMs = Math.max(0, Math.round(durationMs));
+    const insetMs = Math.min(
+      config.previewSafeInsetMs,
+      Math.max(1, Math.floor(safeDurationMs * 0.10)),
+    );
+    const startMs = Math.min(safeDurationMs - 1, insetMs);
+    const endMs = Math.max(startMs, safeDurationMs - insetMs);
+    if (endMs <= startMs) {
+      return [Math.max(1, Math.min(safeDurationMs - 1, Math.round(safeDurationMs / 2)))];
+    }
+    const safeSpanMs = endMs - startMs;
     const intervalCount = Math.max(
       1,
       Math.min(
         config.maxPreviewPoseFrames - 1,
-        Math.ceil(safeDurationMs / config.previewFrameIntervalMs),
+        Math.ceil(safeSpanMs / config.previewFrameIntervalMs),
       ),
     );
     return Array.from({ length: intervalCount + 1 }, (_, index) =>
-      Math.round((safeDurationMs * index) / intervalCount),
+      Math.round(startMs + ((safeSpanMs * index) / intervalCount)),
     );
   }
 
@@ -656,7 +689,12 @@
     let lastDetectionTimestamp = -1;
     try {
       for (const timestampMs of [...new Set(timestamps)].sort((a, b) => a - b)) {
-        await seekVideo(video, timestampMs / 1000);
+        try {
+          await seekVideo(video, timestampMs / 1000);
+        } catch (_) {
+          await nextAnimationFrame();
+          continue;
+        }
         if (collectSharpness) {
           const sharpness = frameSharpness(video, canvas);
           if (sharpness !== null) sharpnessValues.push(sharpness);
@@ -904,6 +942,76 @@
 
   function groundGap(groundLine, foot) {
     return groundYAt(groundLine, foot.bottomPoint.x) - foot.bottomPoint.y;
+  }
+
+  function footObservationsForSamples(samples) {
+    const observations = [];
+    for (const sample of samples) {
+      for (const side of ['left', 'right']) {
+        const foot = footBottom(sample, side);
+        if (foot) observations.push({ sample, side, foot });
+      }
+    }
+    return observations;
+  }
+
+  function torsoLength(sample) {
+    return distance(sample.shoulderCenter, sample.hipCenter);
+  }
+
+  function verticalBounceTrajectory(samples) {
+    if (!Array.isArray(samples) || samples.length < 3) return [];
+    const footEvidence = footObservationsForSamples(samples);
+    if (footEvidence.length < config.groundLineMinimumSamples) return [];
+    const groundLine = groundLineForFootEvidence(footEvidence);
+    const raw = [];
+    for (const sample of [...samples].sort((a, b) => a.timestampMs - b.timestampMs)) {
+      const torso = torsoLength(sample);
+      if (!Number.isFinite(torso) || torso < config.minBodyScalePx * 0.25) continue;
+      const groundY = groundYAt(groundLine, sample.hipCenter.x);
+      const clearance = (groundY - sample.hipCenter.y) / torso;
+      if (!Number.isFinite(clearance) || clearance < 0.20 || clearance > 4.50) continue;
+      raw.push({
+        timestampMs: sample.timestampMs,
+        value: clearance,
+        confidence: coreConfidence(sample),
+      });
+    }
+    if (raw.length < 3) return [];
+
+    const first = raw[0];
+    const last = raw[raw.length - 1];
+    const durationMs = Math.max(1, last.timestampMs - first.timestampMs);
+    const drift = last.value - first.value;
+    const corrected = raw.map((item) => {
+      const fraction = (item.timestampMs - first.timestampMs) / durationMs;
+      return {
+        ...item,
+        value: item.value - (first.value + drift * fraction),
+      };
+    });
+    const center = median(corrected.map((item) => item.value)) ?? 0;
+    const medianDeviation = median(
+      corrected.map((item) => Math.abs(item.value - center)),
+    ) ?? 0;
+    const tolerance = Math.max(0.18, medianDeviation * 4.0);
+    return corrected.filter((item) =>
+      Math.abs(item.value - center) <= tolerance,
+    );
+  }
+
+  function verticalBounceRatio(samples) {
+    const trajectory = verticalBounceTrajectory(samples);
+    if (trajectory.length < config.minBounceTrajectorySamples) {
+      return { ratio: 0, trajectory };
+    }
+    const values = trajectory.map((item) => item.value);
+    const lower = percentile(values, 0.10);
+    const upper = percentile(values, 0.90);
+    return {
+      ratio: lower === null || upper === null ? 0 : Math.max(0, upper - lower),
+      trajectory,
+    };
   }
 
   function selectContactCandidateWindows(candidates) {
@@ -1738,17 +1846,8 @@
       const leanDegrees = average(
         analysisSamples.map((sample) => forwardLeanDegrees(sample, direction)),
       );
-      // Use the central 80% of body-scale-normalized shoulder positions.
-      // A single tracking spike should not make a compact stride look like an
-      // exaggerated jump.
-      const normalizedShoulderYs = analysisSamples.map(
-        (sample) => sample.shoulderCenter.y / Math.max(1, sample.bodyScale),
-      );
-      const lowerBouncePosition = percentile(normalizedShoulderYs, 0.10);
-      const upperBouncePosition = percentile(normalizedShoulderYs, 0.90);
-      const bounceRatio = lowerBouncePosition === null || upperBouncePosition === null
-        ? 0
-        : Math.max(0, upperBouncePosition - lowerBouncePosition);
+      const bounce = verticalBounceRatio(analysisSamples);
+      const bounceRatio = bounce.ratio;
       const candidateSet = initialCandidateSet;
       const denseFrameTimes = denseTimestamps(candidateSet.windows, durationMs);
 
@@ -1820,9 +1919,18 @@
           hasUsableSharpness ? null : 'low_sharpness',
         ),
         bounce: metricQuality(
-          hasUsableSharpness ? bodyConfidence : Math.min(bodyConfidence, 0.58),
-          analysisSamples.length,
-          hasUsableSharpness ? null : 'low_sharpness',
+          bounce.trajectory.length < config.minBounceTrajectorySamples
+            ? 0
+            : hasUsableSharpness
+              ? average(bounce.trajectory.map((item) => item.confidence))
+              : Math.min(
+                  average(bounce.trajectory.map((item) => item.confidence)),
+                  0.58,
+                ),
+          bounce.trajectory.length,
+          bounce.trajectory.length < config.minBounceTrajectorySamples
+            ? 'coordinates_unavailable'
+            : hasUsableSharpness ? null : 'low_sharpness',
         ),
         footStrike: metricQuality(
           hasUsableSharpness ? contactConfidence : Math.min(contactConfidence, 0.58),

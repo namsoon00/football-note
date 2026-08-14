@@ -38,6 +38,7 @@ class RunningCoachScreen extends StatefulWidget {
   final RunningVideoAnalysisService analysisService;
   final RunningCoachSampleVideoPreparer sampleVideoPreparer;
   final RunningCoachCaptureLauncher captureLauncher;
+  final RunningCoachGalleryVideoPicker? galleryVideoPicker;
 
   const RunningCoachScreen({
     super.key,
@@ -45,6 +46,7 @@ class RunningCoachScreen extends StatefulWidget {
     this.analysisService = const RunningVideoAnalysisService(),
     this.sampleVideoPreparer = prepareRunningCoachSampleVideoForAnalysis,
     this.captureLauncher = captureRunningCoachVideo,
+    this.galleryVideoPicker,
   });
 
   @override
@@ -54,6 +56,8 @@ class RunningCoachScreen extends StatefulWidget {
 typedef RunningCoachCaptureLauncher = Future<XFile?> Function(
   BuildContext context,
 );
+
+typedef RunningCoachGalleryVideoPicker = Future<XFile?> Function();
 
 @visibleForTesting
 Widget runningAnalysisResultScreenForTesting({
@@ -406,17 +410,13 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
   Future<void> _pickVideo() async {
     try {
       while (mounted) {
-        List<XFile> candidates;
-        try {
-          candidates = await _picker.pickMultiVideo(limit: 8);
-        } on UnimplementedError {
-          final selected = await _picker.pickVideo(source: ImageSource.gallery);
-          candidates = selected == null ? const <XFile>[] : <XFile>[selected];
-        }
-        if (!mounted || candidates.isEmpty) return;
+        final picked = widget.galleryVideoPicker == null
+            ? await _picker.pickVideo(source: ImageSource.gallery)
+            : await widget.galleryVideoPicker!();
+        if (!mounted || picked == null) return;
         final preview = await showRunningVideoPreviewSheet(
           context: context,
-          candidates: candidates,
+          candidates: <XFile>[picked],
           isCapturedVideo: false,
           runnerDisplayName:
               _selectedRunnerDisplayName(AppLocalizations.of(context)!),
@@ -3730,7 +3730,7 @@ class _RunningPoseOverlayPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final frame = poseFrame;
+    final frame = refineRunningPoseFrameForOverlay(poseFrame);
     if (frame == null) return;
 
     if (showRefinedPose) {
@@ -6224,11 +6224,19 @@ class _RunningAnalysisResultScreenState
         ? null
         : await readArchivedRunningCoachEvidenceImage(archived);
     if (!mounted) return;
+    final highlightedMetric = _metricForEvidenceKind(kind);
+    final insight = highlightedMetric == null
+        ? null
+        : _insightForMetric(widget.report, highlightedMetric);
     await showRunningEvidenceSlowLoopSheet(
       context: context,
       videoPath: widget.activeVideoPath ?? widget.session.videoPath,
       timestamp: timestamp,
       capturedFrame: capturedFrame,
+      poseFrames: widget.result.poseFrames,
+      highlightedMetric: highlightedMetric,
+      finding: insight?.finding,
+      direction: widget.result.direction,
     );
   }
 
@@ -7907,6 +7915,17 @@ RunningMetricEvidenceKind _evidenceKindForMetric(RunningCoachMetric metric) {
     RunningCoachMetric.footStrike => RunningMetricEvidenceKind.landing,
     RunningCoachMetric.kneeFlexion => RunningMetricEvidenceKind.knee,
     RunningCoachMetric.armCarriage => RunningMetricEvidenceKind.arms,
+  };
+}
+
+RunningCoachMetric? _metricForEvidenceKind(RunningMetricEvidenceKind kind) {
+  return switch (kind) {
+    RunningMetricEvidenceKind.posture => RunningCoachMetric.posture,
+    RunningMetricEvidenceKind.bounce => RunningCoachMetric.bounce,
+    RunningMetricEvidenceKind.landing => RunningCoachMetric.footStrike,
+    RunningMetricEvidenceKind.knee => RunningCoachMetric.kneeFlexion,
+    RunningMetricEvidenceKind.arms => RunningCoachMetric.armCarriage,
+    RunningMetricEvidenceKind.rhythm => null,
   };
 }
 

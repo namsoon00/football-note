@@ -8,6 +8,7 @@ import 'package:flutter/material.dart'
 import '../../domain/entities/running_video_analysis_result.dart';
 
 const double runningPoseOverlayMinimumJointConfidence = 0.18;
+const int _maximumPoseInterpolationGapMs = 700;
 
 /// A reusable, source-aligned full-body pose overlay for videos and images.
 ///
@@ -23,6 +24,7 @@ class RunningPoseFrameOverlayPainter extends CustomPainter {
   final Color secondaryColor;
   final Color jointColor;
   final Color focusColor;
+  final Set<int> focusIndices;
 
   const RunningPoseFrameOverlayPainter({
     required this.poseFrame,
@@ -30,13 +32,14 @@ class RunningPoseFrameOverlayPainter extends CustomPainter {
     required this.secondaryColor,
     required this.jointColor,
     required this.focusColor,
+    this.focusIndices = const <int>{},
     this.fit = BoxFit.contain,
     this.mirrorHorizontally = false,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final frame = poseFrame;
+    final frame = refineRunningPoseFrameForOverlay(poseFrame);
     if (frame == null || size.isEmpty) return;
     final points = <int, Offset>{
       for (final landmark in frame.landmarks)
@@ -61,6 +64,7 @@ class RunningPoseFrameOverlayPainter extends CustomPainter {
         focusColor: focusColor,
         opacity: 0.92,
       ),
+      focusIndices: focusIndices,
     );
   }
 
@@ -72,7 +76,8 @@ class RunningPoseFrameOverlayPainter extends CustomPainter {
         primaryColor != oldDelegate.primaryColor ||
         secondaryColor != oldDelegate.secondaryColor ||
         jointColor != oldDelegate.jointColor ||
-        focusColor != oldDelegate.focusColor;
+        focusColor != oldDelegate.focusColor ||
+        !setEquals(focusIndices, oldDelegate.focusIndices);
   }
 }
 
@@ -109,6 +114,137 @@ Offset mapRunningPoseLandmarkToCanvas({
   return Offset(
     canvasX,
     destinationRect.top + normalizedY * destinationRect.height,
+  );
+}
+
+RunningPoseFrame? refineRunningPoseFrameForOverlay(RunningPoseFrame? frame) {
+  if (frame == null ||
+      frame.imageWidth <= 0 ||
+      frame.imageHeight <= 0 ||
+      frame.landmarks.length != mediaPipePoseLandmarkCount) {
+    return null;
+  }
+  final landmarks = <int, RunningVideoPoseLandmark>{
+    for (final landmark in frame.landmarks) landmark.index: landmark,
+  };
+  if (landmarks.length != mediaPipePoseLandmarkCount) return null;
+  bool usable(int index) {
+    final landmark = landmarks[index];
+    return landmark != null &&
+        landmark.confidence >= runningPoseOverlayMinimumJointConfidence &&
+        landmark.x.isFinite &&
+        landmark.y.isFinite &&
+        landmark.z.isFinite &&
+        landmark.x >= 0 &&
+        landmark.x <= 1 &&
+        landmark.y >= 0 &&
+        landmark.y <= 1;
+  }
+
+  void invalidate(int index) {
+    final landmark = landmarks[index];
+    if (landmark == null) return;
+    landmarks[index] = _copyOverlayLandmark(landmark, confidence: 0);
+  }
+
+  for (var index = 0; index < mediaPipePoseLandmarkCount; index += 1) {
+    if (!usable(index)) invalidate(index);
+  }
+
+  Offset? point(int index) {
+    if (!usable(index)) return null;
+    final landmark = landmarks[index]!;
+    return Offset(
+      landmark.x * frame.imageWidth,
+      landmark.y * frame.imageHeight,
+    );
+  }
+
+  final leftShoulder = point(11);
+  final rightShoulder = point(12);
+  final leftHip = point(23);
+  final rightHip = point(24);
+  if (leftShoulder == null ||
+      rightShoulder == null ||
+      leftHip == null ||
+      rightHip == null) {
+    return null;
+  }
+  final shoulderCenter = _humanMidpoint(leftShoulder, rightShoulder);
+  final hipCenter = _humanMidpoint(leftHip, rightHip);
+  final torsoLength = (hipCenter - shoulderCenter).distance;
+  final shoulderWidth = (leftShoulder - rightShoulder).distance;
+  final hipWidth = (leftHip - rightHip).distance;
+  if (!torsoLength.isFinite ||
+      torsoLength < math.max(4.0, frame.imageHeight * 0.015) ||
+      shoulderWidth > torsoLength * 1.25 ||
+      hipWidth > torsoLength * 1.10) {
+    return null;
+  }
+
+  final leftAnkle = point(27);
+  final rightAnkle = point(28);
+  final ankleCenter = leftAnkle != null && rightAnkle != null
+      ? _humanMidpoint(leftAnkle, rightAnkle)
+      : null;
+  final bodyScale = math.max(
+    torsoLength,
+    ankleCenter == null ? torsoLength : (ankleCenter - hipCenter).distance,
+  );
+
+  void rejectSegment(int from, int to, double maximumRatio) {
+    final fromPoint = point(from);
+    final toPoint = point(to);
+    if (fromPoint == null || toPoint == null) return;
+    final length = (toPoint - fromPoint).distance;
+    if (!length.isFinite || length > bodyScale * maximumRatio) {
+      invalidate(to);
+    }
+  }
+
+  rejectSegment(11, 13, 0.92);
+  rejectSegment(13, 15, 0.88);
+  rejectSegment(12, 14, 0.92);
+  rejectSegment(14, 16, 0.88);
+  rejectSegment(23, 25, 1.08);
+  rejectSegment(25, 27, 1.18);
+  rejectSegment(24, 26, 1.08);
+  rejectSegment(26, 28, 1.18);
+  rejectSegment(27, 29, 0.46);
+  rejectSegment(29, 31, 0.50);
+  rejectSegment(28, 30, 0.46);
+  rejectSegment(30, 32, 0.50);
+
+  final refined = <RunningVideoPoseLandmark>[
+    for (var index = 0; index < mediaPipePoseLandmarkCount; index += 1)
+      landmarks[index]!,
+  ];
+  return RunningPoseFrame(
+    timestamp: frame.timestamp,
+    imageWidth: frame.imageWidth,
+    imageHeight: frame.imageHeight,
+    landmarks: List<RunningVideoPoseLandmark>.unmodifiable(refined),
+  );
+}
+
+RunningVideoPoseLandmark _copyOverlayLandmark(
+  RunningVideoPoseLandmark landmark, {
+  required double confidence,
+}) {
+  return RunningVideoPoseLandmark(
+    index: landmark.index,
+    x: landmark.x,
+    y: landmark.y,
+    z: landmark.z,
+    visibility: landmark.visibility,
+    presence: landmark.presence,
+    confidence: confidence.clamp(0.0, 1.0).toDouble(),
+    worldX: landmark.worldX,
+    worldY: landmark.worldY,
+    worldZ: landmark.worldZ,
+    worldVisibility: landmark.worldVisibility,
+    worldPresence: landmark.worldPresence,
+    worldConfidence: landmark.worldConfidence,
   );
 }
 
@@ -1958,16 +2094,23 @@ RunningPoseFrame? runningPoseFrameAtPosition({
   }
 
   final medianIntervalMs = _medianIntervalMs(sortedFrames);
-  final halfIntervalMs = math.max(1, (medianIntervalMs / 2).round());
+  final halfIntervalMs = math.min(
+    math.max(1, (medianIntervalMs / 2).round()),
+    _maximumPoseInterpolationGapMs ~/ 2,
+  );
   final bracket = _bracketFrames(sortedFrames, targetMs, halfIntervalMs);
   if (bracket == null) return null;
 
   final baseFrame = _interpolateFrame(bracket.$1, bracket.$2, targetMs);
+  if (baseFrame == null) return null;
   return _smoothFrame(
     baseFrame,
     sortedFrames,
     targetMs,
-    smoothingWindowMs: medianIntervalMs,
+    smoothingWindowMs: math.min(
+      medianIntervalMs,
+      _maximumPoseInterpolationGapMs,
+    ),
   );
 }
 
@@ -2061,18 +2204,24 @@ int? nearestRunningPoseFrameIndex({
     final current = frames[index];
     final next = frames[index + 1];
     if (targetMs >= current.timestampMs && targetMs <= next.timestampMs) {
+      if (next.timestampMs - current.timestampMs >
+          _maximumPoseInterpolationGapMs) {
+        return null;
+      }
+      if (!_samePoseFrameSource(current, next)) return null;
       return (current, next);
     }
   }
   return null;
 }
 
-RunningPoseFrame _interpolateFrame(
+RunningPoseFrame? _interpolateFrame(
   RunningPoseFrame first,
   RunningPoseFrame second,
   int targetMs,
 ) {
   if (first.timestampMs == second.timestampMs) return first;
+  if (!_samePoseFrameSource(first, second)) return null;
   final t = ((targetMs - first.timestampMs) /
           (second.timestampMs - first.timestampMs))
       .clamp(0.0, 1.0)
@@ -2082,7 +2231,7 @@ RunningPoseFrame _interpolateFrame(
     final a = first.landmarkByIndex(index);
     final b = second.landmarkByIndex(index);
     if (a == null || b == null) {
-      return first;
+      return null;
     }
     landmarks.add(_lerpLandmark(a, b, t));
   }
@@ -2102,7 +2251,9 @@ RunningPoseFrame _smoothFrame(
 }) {
   final windowMs = math.max(1, smoothingWindowMs);
   final nearby = sourceFrames
-      .where((frame) => (frame.timestampMs - targetMs).abs() <= windowMs)
+      .where((frame) =>
+          _samePoseFrameSource(baseFrame, frame) &&
+          (frame.timestampMs - targetMs).abs() <= windowMs)
       .toList(growable: false);
   if (nearby.isEmpty) return baseFrame;
 
@@ -2166,6 +2317,13 @@ RunningPoseFrame _smoothFrame(
     imageHeight: baseFrame.imageHeight,
     landmarks: List<RunningVideoPoseLandmark>.unmodifiable(smoothed),
   );
+}
+
+bool _samePoseFrameSource(RunningPoseFrame first, RunningPoseFrame second) {
+  return first.imageWidth == second.imageWidth &&
+      first.imageHeight == second.imageHeight &&
+      first.landmarks.length == mediaPipePoseLandmarkCount &&
+      second.landmarks.length == mediaPipePoseLandmarkCount;
 }
 
 RunningVideoPoseLandmark _lerpLandmark(

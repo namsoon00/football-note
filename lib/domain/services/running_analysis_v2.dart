@@ -909,40 +909,22 @@ RunningMetricMeasurement _bounceMeasurement(
   RunningVideoAnalysisResult result,
   List<RunningPoseFrame> frames,
 ) {
-  final raw = <({Duration timestamp, double position, double confidence})>[];
-  for (final frame in frames) {
-    final hip = _midpoint(_point(frame, 23), _point(frame, 24));
-    final scale = _bodyScale(frame);
-    if (hip == null || scale == null) continue;
-    raw.add((
-      timestamp: frame.timestamp,
-      position: hip.y / scale,
-      confidence: hip.confidence,
-    ));
-  }
-  if (raw.length < 3) {
+  final trajectory = runningVerticalBounceTrajectoryForPoseFrames(frames);
+  if (trajectory.length < 4) {
     return const RunningMetricMeasurement.unavailable(
       metric: RunningAnalysisMetric.bounce,
       method: 'scale_drift_corrected_trajectory',
       reason: 'coordinates_unavailable',
     );
   }
-  final startMs = raw.first.timestamp.inMilliseconds.toDouble();
-  final durationMs = math.max(
-    1.0,
-    raw.last.timestamp.inMilliseconds.toDouble() - startMs,
-  );
-  final first = raw.first.position;
-  final drift = raw.last.position - first;
-  final corrected = raw.map((item) {
-    final fraction = (item.timestamp.inMilliseconds - startMs) / durationMs;
+  final corrected = trajectory.map((point) {
     return RunningWeightedValue(
-      value: item.position - (first + drift * fraction),
-      confidence: item.confidence,
-      timestamp: item.timestamp,
+      value: point.value,
+      confidence: point.confidence,
+      timestamp: point.timestamp,
     );
   }).toList(growable: false);
-  final sorted = corrected.map((value) => value.value).toList()..sort();
+  final sorted = trajectory.map((point) => point.value).toList()..sort();
   final bouncePercent =
       (_quantile(sorted, 0.90) - _quantile(sorted, 0.10)).abs() * 100;
   final spans = <RunningWeightedValue>[];

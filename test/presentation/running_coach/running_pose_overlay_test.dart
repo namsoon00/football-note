@@ -129,16 +129,16 @@ void main() {
   test('interpolates adjacent pose frames by video timestamp', () {
     final frames = [
       _poseFrame(timestampMs: 0, x: 0.20, confidence: 0.9),
-      _poseFrame(timestampMs: 1000, x: 0.40, confidence: 0.9),
+      _poseFrame(timestampMs: 250, x: 0.40, confidence: 0.9),
     ];
 
     final sampled = runningPoseFrameAtPosition(
       frames: frames,
-      position: const Duration(milliseconds: 500),
+      position: const Duration(milliseconds: 125),
     );
 
     expect(sampled, isNotNull);
-    expect(sampled!.timestampMs, 500);
+    expect(sampled!.timestampMs, 125);
     expect(sampled.landmarkByIndex(0)!.x, closeTo(0.30, 0.0001));
     expect(
       runningPoseFrameAtPosition(
@@ -153,17 +153,66 @@ void main() {
       () {
     final frames = [
       _poseFrame(timestampMs: 0, x: 0.0, confidence: 0.1),
-      _poseFrame(timestampMs: 1000, x: 1.0, confidence: 1.0),
+      _poseFrame(timestampMs: 250, x: 1.0, confidence: 1.0),
     ];
 
     final sampled = runningPoseFrameAtPosition(
       frames: frames,
-      position: const Duration(milliseconds: 500),
+      position: const Duration(milliseconds: 125),
     );
 
     expect(sampled, isNotNull);
     expect(sampled!.landmarkByIndex(0)!.x, greaterThan(0.5));
     expect(sampled.landmarkByIndex(0)!.confidence, greaterThan(0.55));
+  });
+
+  test('hides overlay across large detection gaps', () {
+    final frames = [
+      _poseFrame(timestampMs: 0, x: 0.20, confidence: 0.9),
+      _poseFrame(timestampMs: 1200, x: 0.40, confidence: 0.9),
+    ];
+
+    expect(
+      runningPoseFrameAtPosition(
+        frames: frames,
+        position: const Duration(milliseconds: 600),
+      ),
+      isNull,
+    );
+  });
+
+  test('does not interpolate pose frames from different sources', () {
+    final first = _poseFrame(timestampMs: 0, x: 0.20, confidence: 0.9);
+    final second = RunningPoseFrame(
+      timestamp: const Duration(milliseconds: 250),
+      imageWidth: 1280,
+      imageHeight: 720,
+      landmarks: first.landmarks,
+    );
+
+    expect(
+      runningPoseFrameAtPosition(
+        frames: [first, second],
+        position: const Duration(milliseconds: 125),
+      ),
+      isNull,
+    );
+  });
+
+  test('refinement removes out-of-range landmarks and impossible segments', () {
+    final frame = _realisticOverlayFrame(
+      overrides: const <int, (double, double)>{
+        15: (1.20, 0.55),
+        16: (0.98, 0.96),
+      },
+    );
+
+    final refined = refineRunningPoseFrameForOverlay(frame);
+
+    expect(refined, isNotNull);
+    expect(refined!.landmarkByIndex(15)!.confidence, 0);
+    expect(refined.landmarkByIndex(16)!.confidence, 0);
+    expect(refined.landmarkByIndex(14)!.confidence, greaterThan(0.8));
   });
 
   test('maps normalized landmarks through BoxFit.cover crop', () {
@@ -287,6 +336,49 @@ const Map<int, Offset> _sideProfileHumanFormPoints = <int, Offset>{
   31: Offset(98, 332),
   32: Offset(201, 318),
 };
+
+RunningPoseFrame _realisticOverlayFrame({
+  Map<int, (double, double)> overrides = const <int, (double, double)>{},
+}) {
+  const points = <int, (double, double)>{
+    0: (0.50, 0.16),
+    7: (0.47, 0.18),
+    8: (0.53, 0.18),
+    11: (0.44, 0.30),
+    12: (0.56, 0.30),
+    13: (0.40, 0.43),
+    14: (0.60, 0.43),
+    15: (0.37, 0.56),
+    16: (0.63, 0.56),
+    23: (0.46, 0.55),
+    24: (0.54, 0.55),
+    25: (0.43, 0.70),
+    26: (0.57, 0.70),
+    27: (0.41, 0.86),
+    28: (0.59, 0.86),
+    29: (0.39, 0.88),
+    30: (0.57, 0.88),
+    31: (0.45, 0.89),
+    32: (0.63, 0.89),
+  };
+  return RunningPoseFrame(
+    timestamp: Duration.zero,
+    imageWidth: 640,
+    imageHeight: 360,
+    landmarks: List<RunningVideoPoseLandmark>.unmodifiable([
+      for (var index = 0; index < mediaPipePoseLandmarkCount; index += 1)
+        RunningVideoPoseLandmark(
+          index: index,
+          x: (overrides[index] ?? points[index] ?? (0.50, 0.50)).$1,
+          y: (overrides[index] ?? points[index] ?? (0.50, 0.50)).$2,
+          z: 0,
+          visibility: 0.95,
+          presence: 0.95,
+          confidence: 0.95,
+        ),
+    ]),
+  );
+}
 
 RunningPoseFrame _poseFrame({
   required int timestampMs,
