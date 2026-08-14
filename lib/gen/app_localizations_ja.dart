@@ -8171,6 +8171,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get runningCoachPreviewPoseUnavailable => '関節オーバーレイを表示できません';
 
   @override
+  String get runningCoachPreviewPoseRetryAction => '再試行';
+
+  @override
   String get runningCoachPreviewSelectAction => 'この動画を選択';
 
   @override

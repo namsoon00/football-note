@@ -37,6 +37,8 @@ for required in (
     "runningMode: 'VIDEO'",
     "pose_landmarker_full.task",
     "minConfidence: 0.35",
+    "previewFrameIntervalMs: 1000",
+    "maxPreviewPoseFrames: 9",
     "coarseTargetFps: 8",
     "coarseFrameIntervalMs: 125",
     "maxCoarseFrames: 481",
@@ -82,6 +84,11 @@ for required in (
     "selectionMethod",
     "recoveryRunningMotionScore",
     "slice(0, 24)",
+    "previewPoseTimestamps",
+    "analyzePreviewPoseFromLoader",
+    "preview_pose_unavailable",
+    "analyzePreviewPose",
+    "analyzePreviewPoseUrl",
     "releaseVideo(video, url, ownsUrl)",
     "analyzeUrl",
     "extractEvidenceFramesFromUrl",
@@ -109,11 +116,15 @@ require(
 )
 for required in (
     "analyzeUrl",
+    "analyzePreviewPose",
+    "analyzePreviewPoseUrl",
     "isReusableBrowserVideoUrl",
     "maximumRunningVideoBytes",
     "webMaxVideoBytes",
     "runningVideoPoseAnalysis",
     "toDart",
+    "analyzeRunningVideoPreviewPose",
+    "RunningVideoPosePreviewResult.fromMap",
     "RunningVideoAnalysisResult.fromMap",
 ):
     require(required in adapter_text, f"Web Dart adapter is missing required token: {required}")
@@ -132,12 +143,37 @@ for required in (
     "analysisTimeout",
     "video_too_large",
     "analysis_timeout",
+    "previewPoseAnalysisTimeout",
+    "preview_pose_timeout",
     "video.length",
     "platform.maximumRunningVideoBytes",
     "webMaxVideoBytes = 96 * 1024 * 1024",
     ".timeout(analysisTimeout)",
+    ".timeout(previewPoseAnalysisTimeout)",
 ):
     require(required in facade_text, f"Running video service is missing launch safety token: {required}")
+
+preview_match = re.search(
+    r"async function analyzePreviewPoseFromLoader\(load\) \{(?P<body>.*?)\n  function analyzePreviewPose\(",
+    bridge_text,
+    re.DOTALL,
+)
+require(preview_match is not None, "Web preview pose analyzer function is missing")
+if preview_match is not None:
+    preview_body = preview_match.group("body")
+    for forbidden in (
+        "denseTimestamps",
+        "deriveContactCandidates",
+        "fallbackContactCandidates",
+        "validatedContact",
+        "contactWindows",
+        "metricQualities",
+        "forwardLeanDegrees",
+    ):
+        require(
+            forbidden not in preview_body,
+            f"Web preview pose analyzer must not run full-analysis token: {forbidden}",
+        )
 
 for retired in (
     "getUserMedia",

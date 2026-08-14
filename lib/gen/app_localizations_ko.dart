@@ -8178,6 +8178,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachPreviewPoseUnavailable => '관절 오버레이 확인 불가';
 
   @override
+  String get runningCoachPreviewPoseRetryAction => '다시 시도';
+
+  @override
   String get runningCoachPreviewSelectAction => '이 영상 선택';
 
   @override

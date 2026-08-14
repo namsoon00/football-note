@@ -8388,6 +8388,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachPreviewPoseUnavailable => 'Joint overlay unavailable';
 
   @override
+  String get runningCoachPreviewPoseRetryAction => 'Retry';
+
+  @override
   String get runningCoachPreviewSelectAction => 'Choose this video';
 
   @override

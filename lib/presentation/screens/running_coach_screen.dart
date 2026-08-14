@@ -420,7 +420,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
           isCapturedVideo: false,
           runnerDisplayName:
               _selectedRunnerDisplayName(AppLocalizations.of(context)!),
-          analyzer: widget.analysisService.analyzeVideo,
+          analyzer: widget.analysisService.analyzePreviewPose,
         );
         if (!mounted ||
             preview == null ||
@@ -434,10 +434,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
           _selectedVideo = selected;
           _saveSelectedVideoToHistory = false;
         });
-        await _analyzeSelectedVideo(
-          selected,
-          precomputedAnalysis: preview.analysis,
-        );
+        await _analyzeSelectedVideo(selected);
         return;
       }
     } catch (_) {
@@ -460,7 +457,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
           isCapturedVideo: true,
           runnerDisplayName:
               _selectedRunnerDisplayName(AppLocalizations.of(context)!),
-          analyzer: widget.analysisService.analyzeVideo,
+          analyzer: widget.analysisService.analyzePreviewPose,
         );
         if (!mounted ||
             preview == null ||
@@ -474,10 +471,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
           _selectedVideo = selected;
           _saveSelectedVideoToHistory = false;
         });
-        await _analyzeSelectedVideo(
-          selected,
-          precomputedAnalysis: preview.analysis,
-        );
+        await _analyzeSelectedVideo(selected);
         return;
       }
     } catch (_) {
@@ -519,10 +513,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
     await _analyzeSelectedVideo(selected);
   }
 
-  Future<void> _analyzeSelectedVideo(
-    XFile selected, {
-    RunningVideoAnalysisResult? precomputedAnalysis,
-  }) async {
+  Future<void> _analyzeSelectedVideo(XFile selected) async {
     if (_isAnalyzing) return;
     final saveVideoToHistory = _saveSelectedVideoToHistory;
     final runner = _selectedRunner ??
@@ -540,8 +531,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
     var historySaveFailed = false;
     try {
       final analyzedAt = DateTime.now();
-      analysis = precomputedAnalysis ??
-          await widget.analysisService.analyzeVideo(selected);
+      analysis = await widget.analysisService.analyzeVideo(selected);
       report = _coachingService.buildReport(analysis);
       comparableSessions = _comparableSessionsFor(
         runnerId: runner.id,

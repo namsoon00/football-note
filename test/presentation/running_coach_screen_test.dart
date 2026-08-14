@@ -119,16 +119,10 @@ void main() {
                   ],
                   isCapturedVideo: false,
                   runnerDisplayName: 'Minjun',
-                  analyzer: (video) async => RunningVideoAnalysisResult(
+                  analyzer: (video) async => RunningVideoPosePreviewResult(
                     videoDuration: const Duration(seconds: 4),
                     sampledFrames: 6,
                     validFrames: 6,
-                    direction: RunningDirection.leftToRight,
-                    forwardLeanDegrees: 9,
-                    verticalBounceRatio: 0.07,
-                    footStrikeDistanceRatio: 0.10,
-                    stanceKneeAngleDegrees: 150,
-                    elbowAngleDegrees: 94,
                     poseFrames: _testPoseFrames(
                       startX: 0.42,
                       dxPerFrame: 0.01,
@@ -185,8 +179,103 @@ void main() {
 
     expect(selection?.action, RunningVideoPreviewAction.confirm);
     expect(selection?.video?.name, 'second-run.mp4');
-    expect(selection?.analysis?.poseFrames, isNotEmpty);
+    expect(selection?.analysis, isNull);
     expect(fakeVideoPlayerPlatform._streams.length, lessThanOrEqualTo(1));
+  });
+
+  testWidgets('video preview retry starts a fresh pose request after timeout', (
+    WidgetTester tester,
+  ) async {
+    RunningVideoPreviewResult? selection;
+    await tester.binding.setSurfaceSize(const Size(800, 1000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final video = File('tmp/retry-preview-run.mp4')
+      ..createSync(recursive: true);
+    addTearDown(() {
+      if (video.existsSync()) video.deleteSync();
+    });
+    var callCount = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: TextButton(
+              onPressed: () async {
+                selection = await showRunningVideoPreviewSheet(
+                  context: context,
+                  candidates: <XFile>[
+                    XFile(video.path, name: 'retry-preview-run.mp4'),
+                  ],
+                  isCapturedVideo: false,
+                  analyzer: (_) {
+                    callCount += 1;
+                    if (callCount == 1) {
+                      return Completer<RunningVideoPosePreviewResult>().future;
+                    }
+                    return Future<RunningVideoPosePreviewResult>.value(
+                      RunningVideoPosePreviewResult(
+                        videoDuration: const Duration(seconds: 4),
+                        sampledFrames: 3,
+                        validFrames: 1,
+                        poseFrames: _testPoseFrames(
+                          startX: 0.48,
+                          dxPerFrame: 0,
+                          confidence: 0.94,
+                        ).take(1).toList(growable: false),
+                      ),
+                    );
+                  },
+                  previewTimeout: const Duration(seconds: 2),
+                );
+              },
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('open'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Checking joints'), findsOneWidget);
+
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pump();
+    expect(find.text('Joint overlay unavailable'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('running-coach-preview-pose-retry')),
+      findsOneWidget,
+    );
+
+    await tester.tap(
+      find.byKey(const ValueKey('running-coach-preview-pose-retry')),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    expect(callCount, 2);
+    expect(find.text('Joint overlay unavailable'), findsNothing);
+    expect(
+      find.byKey(const ValueKey('running-coach-preview-pose-overlay')),
+      findsOneWidget,
+    );
+
+    await tester.tap(
+      find.byKey(const ValueKey('running-coach-preview-confirm')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(selection?.action, RunningVideoPreviewAction.confirm);
+    expect(selection?.analysis, isNull);
   });
 
   test('slow loop window clamps lead and trail to the video boundary', () {
@@ -301,13 +390,20 @@ void main() {
     },
   );
 
-  testWidgets('coach previews joints while analyzing a captured video', (
+  testWidgets('coach starts full analysis while preview pose is pending', (
     WidgetTester tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(800, 1200));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    final analysisService = _PendingRunningVideoAnalysisService();
+    final analysisService = _PendingRunningVideoAnalysisService(
+      previewCompletes: false,
+    );
+    final video = File('tmp/captured-running-video.mp4')
+      ..createSync(recursive: true);
+    addTearDown(() {
+      if (video.existsSync()) video.deleteSync();
+    });
     await tester.pumpWidget(
       MaterialApp(
         locale: const Locale('en'),
@@ -321,10 +417,8 @@ void main() {
         home: RunningCoachScreen(
           optionRepository: _MemoryOptionRepository(),
           analysisService: analysisService,
-          captureLauncher: (_) async => XFile(
-            '/tmp/captured-running-video.mp4',
-            name: 'captured-running-video.mp4',
-          ),
+          captureLauncher: (_) async =>
+              XFile(video.path, name: 'captured-running-video.mp4'),
         ),
       ),
     );
@@ -339,17 +433,33 @@ void main() {
       find.byKey(const ValueKey('running-coach-preview-confirm')),
       findsOneWidget,
     );
+    for (var attempt = 0;
+        attempt < 100 && analysisService.previewCallCount == 0;
+        attempt += 1) {
+      await tester.pump(const Duration(milliseconds: 10));
+    }
+    expect(analysisService.previewCallCount, 1);
     await tester.tap(
       find.byKey(const ValueKey('running-coach-preview-confirm')),
     );
     await tester.pump();
-    await analysisService.waitUntilCalled();
+    for (var attempt = 0;
+        attempt < 100 && analysisService.callCount == 0;
+        attempt += 1) {
+      await tester.pump(const Duration(milliseconds: 10));
+    }
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump();
 
     expect(find.text('captured-running-video.mp4'), findsWidgets);
     expect(
       find.byKey(const ValueKey('running-coach-preview-confirm')),
-      findsOneWidget,
+      findsNothing,
     );
+    expect(analysisService.previewCallCount, 1);
+    expect(analysisService.callCount, 1);
+    analysisService.complete();
+    await tester.pump();
   });
 
   testWidgets(
@@ -2345,12 +2455,38 @@ RunningCoachScoreEligibility _scoreEligibilityForTest(
 class _PendingRunningVideoAnalysisService extends RunningVideoAnalysisService {
   final Completer<RunningVideoAnalysisResult> _result =
       Completer<RunningVideoAnalysisResult>();
+  final Completer<RunningVideoPosePreviewResult> _previewResult =
+      Completer<RunningVideoPosePreviewResult>();
+  final bool previewCompletes;
   int callCount = 0;
+  int previewCallCount = 0;
+
+  _PendingRunningVideoAnalysisService({this.previewCompletes = true});
 
   @override
   Future<RunningVideoAnalysisResult> analyzeVideo(XFile video) {
     callCount += 1;
     return _result.future;
+  }
+
+  @override
+  Future<RunningVideoPosePreviewResult> analyzePreviewPose(XFile video) {
+    previewCallCount += 1;
+    if (previewCompletes && !_previewResult.isCompleted) {
+      _previewResult.complete(
+        RunningVideoPosePreviewResult(
+          videoDuration: const Duration(seconds: 4),
+          sampledFrames: 3,
+          validFrames: 3,
+          poseFrames: _testPoseFrames(
+            startX: 0.42,
+            dxPerFrame: 0.01,
+            confidence: 0.94,
+          ).take(3).toList(growable: false),
+        ),
+      );
+    }
+    return _previewResult.future;
   }
 
   Future<void> waitUntilCalled() async {
@@ -2380,6 +2516,20 @@ class _PendingRunningVideoAnalysisService extends RunningVideoAnalysisService {
 
 class _SuccessfulRunningVideoAnalysisService
     extends RunningVideoAnalysisService {
+  @override
+  Future<RunningVideoPosePreviewResult> analyzePreviewPose(XFile video) async {
+    return RunningVideoPosePreviewResult(
+      videoDuration: const Duration(seconds: 4),
+      sampledFrames: 3,
+      validFrames: 3,
+      poseFrames: _testPoseFrames(
+        startX: 0.42,
+        dxPerFrame: 0.01,
+        confidence: 0.94,
+      ).take(3).toList(growable: false),
+    );
+  }
+
   @override
   Future<RunningVideoAnalysisResult> analyzeVideo(XFile video) async {
     return const RunningVideoAnalysisResult(

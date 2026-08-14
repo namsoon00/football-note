@@ -50,3 +50,46 @@ Future<RunningVideoAnalysisResult> analyzeRunningVideo(XFile video) async {
     );
   }
 }
+
+Future<RunningVideoPosePreviewResult> analyzeRunningVideoPreviewPose(
+  XFile video,
+) async {
+  if (!(Platform.isAndroid || Platform.isIOS)) {
+    throw const RunningVideoAnalysisException(
+      'unsupported_platform',
+      'Running video preview pose analysis is not available on this platform.',
+    );
+  }
+
+  final path = video.path.trim();
+  if (path.isEmpty) {
+    throw const RunningVideoAnalysisException(
+      'missing_file',
+      'Video file is missing.',
+    );
+  }
+
+  try {
+    final result = await _channel.invokeMethod<Map<Object?, Object?>>(
+      'analyzeRunningVideoPreviewPose',
+      <String, Object?>{'path': path},
+    );
+    if (result == null) {
+      throw const RunningVideoAnalysisException(
+        'empty_result',
+        'The platform analyzer returned no preview pose data.',
+      );
+    }
+    return RunningVideoPosePreviewResult.fromMap(result);
+  } on PlatformException catch (error) {
+    throw RunningVideoAnalysisException(
+      error.code,
+      error.message ?? 'Running video preview pose analysis failed.',
+    );
+  } on MissingPluginException {
+    throw const RunningVideoAnalysisException(
+      'native_analyzer_unavailable',
+      'Running video preview pose analysis is not available in this app build.',
+    );
+  }
+}

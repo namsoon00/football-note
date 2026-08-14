@@ -14704,6 +14704,12 @@ abstract class AppLocalizations {
   /// **'Joint overlay unavailable'**
   String get runningCoachPreviewPoseUnavailable;
 
+  /// No description provided for @runningCoachPreviewPoseRetryAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get runningCoachPreviewPoseRetryAction;
+
   /// No description provided for @runningCoachPreviewSelectAction.
   ///
   /// In en, this message translates to:

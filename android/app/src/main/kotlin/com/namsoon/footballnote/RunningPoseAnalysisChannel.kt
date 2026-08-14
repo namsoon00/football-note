@@ -78,6 +78,29 @@ class RunningPoseAnalysisChannel(
                     }
                 }
             }
+            previewPoseMethodName -> executor.execute {
+                val path = call.argument<String>("path")
+                if (path.isNullOrBlank()) {
+                    mainHandler.post {
+                        result.error("missing_file", "Video file is missing.", null)
+                    }
+                    return@execute
+                }
+                try {
+                    val preview = analyzePreviewPose(path)
+                    mainHandler.post { result.success(preview) }
+                } catch (error: AnalysisException) {
+                    mainHandler.post { result.error(error.code, error.message, null) }
+                } catch (error: Exception) {
+                    mainHandler.post {
+                        result.error(
+                            "preview_pose_failed",
+                            error.message ?: "Running video preview pose analysis failed.",
+                            null,
+                        )
+                    }
+                }
+            }
             evidenceFramesMethodName -> {
                 val path = call.argument<String>("path")
                 if (path.isNullOrBlank()) {
@@ -132,6 +155,62 @@ class RunningPoseAnalysisChannel(
                 }
             }
             else -> result.notImplemented()
+        }
+    }
+
+    private fun analyzePreviewPose(path: String): Map<String, Any?> {
+        val file = File(path)
+        if (!file.exists()) {
+            throw AnalysisException("missing_file", "Video file is missing.")
+        }
+
+        val retriever = MediaMetadataRetriever()
+        var poseLandmarker: PoseLandmarker? = null
+
+        try {
+            retriever.setDataSource(path)
+            val durationMs = retriever
+                .extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                ?.toLongOrNull() ?: 0L
+            if (durationMs < minVideoDurationMs) {
+                throw AnalysisException(
+                    "video_too_short",
+                    "Please select a running clip that is at least 1.5 seconds long.",
+                )
+            }
+            if (durationMs > maxDecodableVideoDurationMs) {
+                throw AnalysisException(
+                    "video_too_long",
+                    "This video is longer than the bounded on-device decoding budget.",
+                )
+            }
+
+            val previewTimestamps = previewPoseTimestamps(durationMs)
+            val landmarker = makePoseLandmarker()
+            poseLandmarker = landmarker
+            val previewPass = runPosePass(
+                poseLandmarker = landmarker,
+                retriever = retriever,
+                timestampsMs = previewTimestamps,
+                collectSharpness = false,
+            )
+            if (previewPass.poseFrames.isEmpty()) {
+                throw AnalysisException(
+                    "preview_pose_unavailable",
+                    "No readable pose frame was found for preview.",
+                )
+            }
+            return mapOf(
+                "durationMs" to durationMs.toInt(),
+                "sampledFrames" to previewTimestamps.size,
+                "validFrames" to previewPass.samples.size,
+                "perspectiveQuality" to
+                    perspectiveQualityPayload(previewPass.samples).toPayload(),
+                "poseFrames" to previewPass.poseFrames,
+            )
+        } finally {
+            retriever.release()
+            poseLandmarker?.close()
         }
     }
 
@@ -750,6 +829,20 @@ class RunningPoseAnalysisChannel(
                 .coerceAtLeast(1L)
         val intervalCount = requestedIntervalCount
             .coerceAtMost((maxCoarseFrameBudget - 1).toLong())
+            .toInt()
+        return (0..intervalCount).map { index ->
+            ((durationMs.toDouble() * index) / intervalCount)
+                .roundToLong()
+                .coerceIn(0L, durationMs)
+        }
+    }
+
+    private fun previewPoseTimestamps(durationMs: Long): List<Long> {
+        val requestedIntervalCount =
+            ((durationMs + previewPoseFrameIntervalMs - 1L) / previewPoseFrameIntervalMs)
+                .coerceAtLeast(1L)
+        val intervalCount = requestedIntervalCount
+            .coerceAtMost((maxPreviewPoseFrameBudget - 1).toLong())
             .toInt()
         return (0..intervalCount).map { index ->
             ((durationMs.toDouble() * index) / intervalCount)
@@ -2641,11 +2734,14 @@ class RunningPoseAnalysisChannel(
     companion object {
         private const val channelName = "football_note/running_pose_analysis"
         private const val methodName = "analyzeRunningVideo"
+        private const val previewPoseMethodName = "analyzeRunningVideoPreviewPose"
         private const val evidenceFramesMethodName = "extractRunningEvidenceFrames"
         private const val liveFrameMethodName = "analyzeRunningLiveFrame"
         private const val coarseTargetFps = 8
         private const val coarseFrameIntervalMs = 125L
         private const val maxCoarseFrameBudget = 481
+        private const val previewPoseFrameIntervalMs = 1000L
+        private const val maxPreviewPoseFrameBudget = 9
         private const val recoveryTargetFps = 15
         private const val recoveryFrameIntervalMs = 67L
         private const val maxRecoveryFrameBudget = 120

@@ -4792,6 +4792,7 @@
   "runningCoachPreviewUnavailable": "미리보기를 열 수 없어요. 다른 영상을 고르거나 분석 디코더로 이 파일을 시도할 수 있어요.",
   "runningCoachPreviewPoseAnalyzing": "관절 확인 중",
   "runningCoachPreviewPoseUnavailable": "관절 오버레이 확인 불가",
+  "runningCoachPreviewPoseRetryAction": "다시 시도",
   "runningCoachPreviewSelectAction": "이 영상 선택",
   "runningCoachPreviewAnalyzeAction": "이 영상 분석",
   "runningCoachPreviewLongVideoWarning": "60초보다 긴 영상이에요. 프레임 예산 안에서 전체를 훑고 러너가 가장 잘 보이는 구간을 집중 분석해요.",

@@ -22,7 +22,7 @@ class RunningVideoPreviewResult {
   const RunningVideoPreviewResult(this.action, [this.video, this.analysis]);
 }
 
-typedef RunningVideoPreviewAnalyzer = Future<RunningVideoAnalysisResult>
+typedef RunningVideoPosePreviewAnalyzer = Future<RunningVideoPosePreviewResult>
     Function(XFile video);
 
 Future<RunningVideoPreviewResult?> showRunningVideoPreviewSheet({
@@ -30,7 +30,9 @@ Future<RunningVideoPreviewResult?> showRunningVideoPreviewSheet({
   required List<XFile> candidates,
   required bool isCapturedVideo,
   String? runnerDisplayName,
-  RunningVideoPreviewAnalyzer? analyzer,
+  RunningVideoPosePreviewAnalyzer? analyzer,
+  Duration previewTimeout =
+      RunningVideoAnalysisService.previewPoseAnalysisTimeout,
 }) {
   if (candidates.isEmpty) return Future.value(null);
   return showModalBottomSheet<RunningVideoPreviewResult>(
@@ -45,6 +47,7 @@ Future<RunningVideoPreviewResult?> showRunningVideoPreviewSheet({
         isCapturedVideo: isCapturedVideo,
         runnerDisplayName: runnerDisplayName,
         analyzer: analyzer,
+        previewTimeout: previewTimeout,
       ),
     ),
   );
@@ -54,7 +57,8 @@ class RunningVideoPreviewSheet extends StatefulWidget {
   final List<XFile> candidates;
   final bool isCapturedVideo;
   final String? runnerDisplayName;
-  final RunningVideoPreviewAnalyzer? analyzer;
+  final RunningVideoPosePreviewAnalyzer? analyzer;
+  final Duration previewTimeout;
 
   const RunningVideoPreviewSheet({
     super.key,
@@ -62,6 +66,8 @@ class RunningVideoPreviewSheet extends StatefulWidget {
     required this.isCapturedVideo,
     this.runnerDisplayName,
     this.analyzer,
+    this.previewTimeout =
+        RunningVideoAnalysisService.previewPoseAnalysisTimeout,
   });
 
   @override
@@ -77,10 +83,10 @@ class _RunningVideoPreviewSheetState extends State<RunningVideoPreviewSheet> {
   var _isUnavailable = false;
   int? _videoBytes;
   final Map<int, Uint8List> _thumbnails = <int, Uint8List>{};
-  final Map<int, RunningVideoAnalysisResult> _analyses =
-      <int, RunningVideoAnalysisResult>{};
-  final Map<int, Future<RunningVideoAnalysisResult>> _analysisRequests =
-      <int, Future<RunningVideoAnalysisResult>>{};
+  final Map<int, RunningVideoPosePreviewResult> _analyses =
+      <int, RunningVideoPosePreviewResult>{};
+  final Map<int, Future<RunningVideoPosePreviewResult>> _analysisRequests =
+      <int, Future<RunningVideoPosePreviewResult>>{};
   var _isAnalyzingPreview = false;
   var _previewAnalysisFailed = false;
 
@@ -166,8 +172,13 @@ class _RunningVideoPreviewSheetState extends State<RunningVideoPreviewSheet> {
     try {
       final result = await _analysisRequests.putIfAbsent(
         index,
-        () => analyzer(widget.candidates[index]),
+        () => analyzer(widget.candidates[index]).timeout(
+          widget.previewTimeout,
+        ),
       );
+      if (result.poseFrames.isEmpty) {
+        throw StateError('preview_pose_unavailable');
+      }
       if (!mounted ||
           generation != _loadGeneration ||
           index != _selectedIndex) {
@@ -178,6 +189,7 @@ class _RunningVideoPreviewSheetState extends State<RunningVideoPreviewSheet> {
         _isAnalyzingPreview = false;
       });
     } catch (_) {
+      _analysisRequests.remove(index);
       if (!mounted ||
           generation != _loadGeneration ||
           index != _selectedIndex) {
@@ -190,38 +202,20 @@ class _RunningVideoPreviewSheetState extends State<RunningVideoPreviewSheet> {
     }
   }
 
-  Future<void> _confirmSelected() async {
+  void _retryPreviewAnalysis() {
+    _analysisRequests.remove(_selectedIndex);
+    _analyses.remove(_selectedIndex);
+    unawaited(_loadSelectedAnalysis(_loadGeneration));
+  }
+
+  void _confirmSelected() {
     final index = _selectedIndex;
     final video = widget.candidates[index];
-    var analysis = _analyses[index];
-    final analyzer = widget.analyzer;
-    if (analysis == null && analyzer != null) {
-      if (mounted) {
-        setState(() {
-          _isAnalyzingPreview = true;
-          _previewAnalysisFailed = false;
-        });
-      }
-      try {
-        analysis = await _analysisRequests.putIfAbsent(
-          index,
-          () => analyzer(video),
-        );
-        _analyses[index] = analysis;
-      } catch (_) {
-        _previewAnalysisFailed = true;
-      } finally {
-        if (mounted && index == _selectedIndex) {
-          setState(() => _isAnalyzingPreview = false);
-        }
-      }
-    }
     if (!mounted) return;
     Navigator.of(context).pop(
       RunningVideoPreviewResult(
         RunningVideoPreviewAction.confirm,
         video,
-        analysis,
       ),
     );
   }
@@ -482,6 +476,10 @@ class _RunningVideoPreviewSheetState extends State<RunningVideoPreviewSheet> {
                                                 label: l10n
                                                     .runningCoachPreviewPoseUnavailable,
                                                 isLoading: false,
+                                                actionLabel: l10n
+                                                    .runningCoachPreviewPoseRetryAction,
+                                                onActionPressed:
+                                                    _retryPreviewAnalysis,
                                               ),
                                             ),
                                           Center(
@@ -698,8 +696,15 @@ class _PreviewCheckChip extends StatelessWidget {
 class _PreviewAnalysisBadge extends StatelessWidget {
   final String label;
   final bool isLoading;
+  final String? actionLabel;
+  final VoidCallback? onActionPressed;
 
-  const _PreviewAnalysisBadge({required this.label, required this.isLoading});
+  const _PreviewAnalysisBadge({
+    required this.label,
+    required this.isLoading,
+    this.actionLabel,
+    this.onActionPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -732,6 +737,27 @@ class _PreviewAnalysisBadge extends StatelessWidget {
                     fontWeight: FontWeight.w800,
                   ),
             ),
+            if (actionLabel != null && onActionPressed != null) ...[
+              const SizedBox(width: 6),
+              TextButton(
+                key: const ValueKey('running-coach-preview-pose-retry'),
+                onPressed: onActionPressed,
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  visualDensity: VisualDensity.compact,
+                  minimumSize: const Size(44, 28),
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: Text(
+                  actionLabel!,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                      ),
+                ),
+              ),
+            ],
           ],
         ),
       ),

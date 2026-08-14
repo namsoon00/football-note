@@ -612,6 +612,53 @@ class RunningContactWindow {
   }
 }
 
+class RunningVideoPosePreviewResult {
+  final Duration videoDuration;
+  final int sampledFrames;
+  final int validFrames;
+  final List<RunningPoseFrame> poseFrames;
+  final RunningVideoPerspectiveQuality perspectiveQuality;
+
+  const RunningVideoPosePreviewResult({
+    required this.videoDuration,
+    required this.sampledFrames,
+    required this.validFrames,
+    required this.poseFrames,
+    this.perspectiveQuality = RunningVideoPerspectiveQuality.unevaluated,
+  });
+
+  double get validFrameCoverage =>
+      sampledFrames == 0 ? 0.0 : validFrames / sampledFrames;
+
+  Map<String, Object?> toMap() {
+    return <String, Object?>{
+      'durationMs': videoDuration.inMilliseconds,
+      'sampledFrames': sampledFrames,
+      'validFrames': validFrames,
+      'poseFrames': poseFrames.map((frame) => frame.toMap()).toList(
+            growable: false,
+          ),
+      'perspectiveQuality': perspectiveQuality.toMap(),
+    };
+  }
+
+  factory RunningVideoPosePreviewResult.fromMap(Map<Object?, Object?> map) {
+    final poseFrames = _parsePoseFrames(map['poseFrames']);
+    return RunningVideoPosePreviewResult(
+      videoDuration: Duration(milliseconds: _finiteInt(map['durationMs']) ?? 0),
+      sampledFrames:
+          (_finiteInt(map['sampledFrames']) ?? 0).clamp(0, 1 << 30).toInt(),
+      validFrames: (_finiteInt(map['validFrames']) ?? poseFrames.length)
+          .clamp(0, 1 << 30)
+          .toInt(),
+      poseFrames: poseFrames,
+      perspectiveQuality: RunningVideoPerspectiveQuality.fromObject(
+        map['perspectiveQuality'],
+      ),
+    );
+  }
+}
+
 class RunningVideoAnalysisResult {
   final int analysisVersion;
   final Duration videoDuration;
