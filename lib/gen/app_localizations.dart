@@ -18215,6 +18215,12 @@ abstract class AppLocalizations {
   /// **'this app build could not run the evidence-frame extractor.'**
   String get runningCoachEvidenceArchiveReasonPlatformUnavailable;
 
+  /// No description provided for @runningCoachEvidenceArchiveReasonTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'saving evidence images took too long, so the app opened the result without waiting longer.'**
+  String get runningCoachEvidenceArchiveReasonTimeout;
+
   /// No description provided for @runningCoachEvidenceArchiveReasonUnknown.
   ///
   /// In en, this message translates to:
@@ -29046,6 +29052,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Find runner → Analyze movement → Build result'**
   String get runningCoachAnalysisSteps;
+
+  /// No description provided for @runningCoachAnalysisStageJointLanding.
+  ///
+  /// In en, this message translates to:
+  /// **'Joint and landing analysis'**
+  String get runningCoachAnalysisStageJointLanding;
+
+  /// No description provided for @runningCoachAnalysisStageSavingResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Result and evidence saving'**
+  String get runningCoachAnalysisStageSavingResult;
+
+  /// No description provided for @runningCoachAnalysisElapsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Elapsed {elapsed}'**
+  String runningCoachAnalysisElapsed(Object elapsed);
 
   /// No description provided for @runningCoachCaptureWarningAnalysisLimited.
   ///

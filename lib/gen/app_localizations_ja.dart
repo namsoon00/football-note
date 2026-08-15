@@ -10265,6 +10265,10 @@ class AppLocalizationsJa extends AppLocalizations {
       'このアプリビルドで証拠フレーム抽出を実行できませんでした。';
 
   @override
+  String get runningCoachEvidenceArchiveReasonTimeout =>
+      '証拠画像の保存に時間がかかりすぎたため、待機せず結果画面を開きました。';
+
+  @override
   String get runningCoachEvidenceArchiveReasonUnknown => '端末が不明な画像保存エラーを返しました。';
 
   @override
@@ -16451,6 +16455,17 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get runningCoachAnalysisSteps => 'ランナー検出 → 動きの分析 → 結果作成';
+
+  @override
+  String get runningCoachAnalysisStageJointLanding => '関節・着地分析';
+
+  @override
+  String get runningCoachAnalysisStageSavingResult => '結果と証拠の保存';
+
+  @override
+  String runningCoachAnalysisElapsed(Object elapsed) {
+    return '経過 $elapsed';
+  }
 
   @override
   String get runningCoachCaptureWarningAnalysisLimited =>

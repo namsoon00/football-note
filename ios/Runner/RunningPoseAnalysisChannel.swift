@@ -101,13 +101,15 @@ final class RunningPoseAnalysisChannel {
       let timestamps = (arguments["timestampsMs"] as? [NSNumber])?.map(\.intValue) ?? []
       let maximumDimension = (arguments["maxDimension"] as? NSNumber)?.intValue ?? 640
       let jpegQuality = (arguments["jpegQuality"] as? NSNumber)?.doubleValue ?? 72
+      let deadlineEpochMs = (arguments["deadlineEpochMs"] as? NSNumber)?.doubleValue
       queue.async {
         do {
           let frames = try self.extractEvidenceFrames(
             at: path,
             timestampsMs: timestamps,
             maximumDimension: maximumDimension,
-            jpegQuality: jpegQuality
+            jpegQuality: jpegQuality,
+            deadlineEpochMs: deadlineEpochMs
           )
           DispatchQueue.main.async {
             result(frames)
@@ -369,7 +371,8 @@ final class RunningPoseAnalysisChannel {
     at path: String,
     timestampsMs: [Int],
     maximumDimension: Int,
-    jpegQuality: Double = 72
+    jpegQuality: Double = 72,
+    deadlineEpochMs: Double? = nil
   ) throws -> [[String: Any]] {
     guard FileManager.default.fileExists(atPath: path) else {
       throw AnalysisError(code: "missing_file", message: "Video file is missing.")
@@ -386,6 +389,10 @@ final class RunningPoseAnalysisChannel {
     let safeMaximumDimension = max(160, min(maximumDimension, 960))
     var frames = [[String: Any]]()
     for timestampMs in uniqueTimestamps {
+      if let deadlineEpochMs,
+         Date().timeIntervalSince1970 * 1000 >= deadlineEpochMs {
+        break
+      }
       let time = CMTime(value: CMTimeValue(timestampMs), timescale: 1000)
       guard let cgImage = try? generator.copyCGImage(at: time, actualTime: nil) else {
         continue

@@ -705,15 +705,28 @@
     return Math.max(0, squaredSum / count - mean * mean) / (255 * 255);
   }
 
-  async function runPosePass(video, timestamps, collectSharpness) {
-    const landmarker = await createLandmarker();
+  async function runPosePass(video, timestamps, collectSharpness, posePassCache = null) {
+    const uniqueTimestamps = [...new Set(timestamps)].sort((a, b) => a - b);
     const samples = [];
     const poseFrames = [];
     const sharpnessValues = [];
     const canvas = collectSharpness ? document.createElement('canvas') : null;
     let lastDetectionTimestamp = -1;
+    let landmarker = null;
+    const appendCached = (cached) => {
+      if (cached.sharpness !== null && collectSharpness) sharpnessValues.push(cached.sharpness);
+      if (cached.poseFrame) poseFrames.push(cached.poseFrame);
+      if (cached.sample) samples.push(cached.sample);
+    };
     try {
-      for (const timestampMs of [...new Set(timestamps)].sort((a, b) => a - b)) {
+      for (const timestampMs of uniqueTimestamps) {
+        const cached = posePassCache?.get(timestampMs);
+        if (cached) {
+          appendCached(cached);
+          continue;
+        }
+        if (!landmarker) landmarker = await createLandmarker();
+        let sharpness = null;
         try {
           await seekVideo(video, timestampMs / 1000);
         } catch (_) {
@@ -721,7 +734,7 @@
           continue;
         }
         if (collectSharpness) {
-          const sharpness = frameSharpness(video, canvas);
+          sharpness = frameSharpness(video, canvas);
           if (sharpness !== null) sharpnessValues.push(sharpness);
         }
         const detectionTimestamp = Math.max(timestampMs, lastDetectionTimestamp + 1);
@@ -739,10 +752,11 @@
         if (frame) poseFrames.push(frame);
         const sample = extractSample(landmarks, timestampMs, width, height);
         if (sample) samples.push(sample);
+        posePassCache?.set(timestampMs, { sample, poseFrame: frame, sharpness });
         await nextAnimationFrame();
       }
     } finally {
-      landmarker.close();
+      landmarker?.close();
     }
     return { samples, poseFrames, sharpnessValues };
   }
@@ -1835,7 +1849,12 @@
     );
   }
 
-  async function extractEvidenceFramesFromLoader(load, timestampsJson, jpegQuality = 72) {
+  const evidenceDeadlineExpired = (deadlineEpochMs) => {
+    const deadline = Number(deadlineEpochMs);
+    return Number.isFinite(deadline) && deadline > 0 && Date.now() >= deadline;
+  };
+
+  async function extractEvidenceFramesFromLoader(load, timestampsJson, jpegQuality = 72, deadlineEpochMs = 0) {
     let timestamps;
     try {
       timestamps = JSON.parse(timestampsJson || '[]');
@@ -1848,8 +1867,10 @@
         .filter((value) => Number.isFinite(value) && value >= 0),
     )].sort((left, right) => left - right).slice(0, 24);
     if (uniqueTimestamps.length === 0) return [];
+    if (evidenceDeadlineExpired(deadlineEpochMs)) return [];
     const { video, url, ownsUrl } = await load();
     try {
+      if (evidenceDeadlineExpired(deadlineEpochMs)) return [];
       const sourceWidth = video.videoWidth;
       const sourceHeight = video.videoHeight;
       if (sourceWidth <= 0 || sourceHeight <= 0) return [];
@@ -1865,8 +1886,10 @@
       if (!context) return [];
       const frames = [];
       for (const timestampMs of uniqueTimestamps) {
+        if (evidenceDeadlineExpired(deadlineEpochMs)) break;
         try {
           await seekVideo(video, timestampMs / 1000);
+          if (evidenceDeadlineExpired(deadlineEpochMs)) break;
           context.drawImage(video, 0, 0, width, height);
           frames.push({
             timestampMs,
@@ -1884,19 +1907,21 @@
     }
   }
 
-  function extractEvidenceFrames(bytes, name, timestampsJson, jpegQuality) {
+  function extractEvidenceFrames(bytes, name, timestampsJson, jpegQuality, deadlineEpochMs) {
     return extractEvidenceFramesFromLoader(
       () => loadVideo(bytes, name),
       timestampsJson,
       jpegQuality,
+      deadlineEpochMs,
     );
   }
 
-  function extractEvidenceFramesFromUrl(url, name, timestampsJson, jpegQuality) {
+  function extractEvidenceFramesFromUrl(url, name, timestampsJson, jpegQuality, deadlineEpochMs) {
     return extractEvidenceFramesFromLoader(
       () => loadVideoUrl(url, false),
       timestampsJson,
       jpegQuality,
+      deadlineEpochMs,
     );
   }
 
@@ -1921,9 +1946,10 @@
       }
 
       const coarseFrameTimes = sampleTimestamps(durationMs);
+      const posePassCache = new Map();
       let coarse;
       try {
-        coarse = await runPosePass(video, coarseFrameTimes, true);
+        coarse = await runPosePass(video, coarseFrameTimes, true, posePassCache);
       } catch (error) {
         if (error?.code) throw error;
         throw createError('mediapipe_pose_failed', error?.message || 'MediaPipe pose inference failed.');
@@ -1951,7 +1977,7 @@
       if (needsRecovery) {
         recoveryFrameTimes = recoveryTimestamps(analysisSamples, durationMs);
         if (recoveryFrameTimes.length > 0) {
-          recovery = await runPosePass(video, recoveryFrameTimes, false);
+          recovery = await runPosePass(video, recoveryFrameTimes, false, posePassCache);
           analysisSamples = mergedSamples(analysisSamples, recovery.samples);
           perspective = perspectiveQuality(analysisSamples);
           initialCandidateSet = mergedContactCandidateSet(
@@ -1972,7 +1998,7 @@
       let dense = { samples: [], poseFrames: [], sharpnessValues: [] };
       if (denseFrameTimes.length > 0) {
         try {
-          dense = await runPosePass(video, denseFrameTimes, false);
+          dense = await runPosePass(video, denseFrameTimes, false, posePassCache);
         } catch (error) {
           if (error?.code) throw error;
           throw createError('mediapipe_pose_failed', error?.message || 'MediaPipe pose inference failed.');

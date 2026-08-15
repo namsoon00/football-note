@@ -5796,6 +5796,7 @@
   "runningCoachEvidenceArchiveReasonFileWrite": "기기가 JPEG 파일을 쓰지 못했어요.",
   "runningCoachEvidenceArchiveReasonWebLimit": "브라우저 저장 용량 제한을 넘을 수 있어 저장하지 않았어요.",
   "runningCoachEvidenceArchiveReasonPlatformUnavailable": "이 앱 빌드에서 근거 프레임 추출기를 실행할 수 없었어요.",
+  "runningCoachEvidenceArchiveReasonTimeout": "근거 이미지 저장 시간이 너무 오래 걸려 결과 화면을 먼저 열었어요.",
   "runningCoachEvidenceArchiveReasonUnknown": "기기에서 알 수 없는 이미지 저장 오류를 보고했어요.",
   "runningCoachEvidenceImageReadFailed": "이미지를 열 수 없어요",
   "runningCoachEvidenceImageReadFailedReason": "저장된 파일이 이 기기에서 삭제되었을 수 있어요.",
@@ -9161,6 +9162,14 @@
   "runningCoachRunnerNameLabel": "러너 이름",
   "runningCoachManageRunner": "러너 관리",
   "runningCoachAnalysisSteps": "러너 찾기 → 움직임 분석 → 결과 만들기",
+  "runningCoachAnalysisStageJointLanding": "관절·착지 분석",
+  "runningCoachAnalysisStageSavingResult": "결과 및 근거 저장",
+  "runningCoachAnalysisElapsed": "경과 {elapsed}",
+  "@runningCoachAnalysisElapsed": {
+    "placeholders": {
+      "elapsed": {}
+    }
+  },
   "runningCoachCaptureWarningAnalysisLimited": "그대로 촬영할 수 있지만 구도가 흐리면 분석이 추정되거나 제한될 수 있어요.",
   "runningCoachPreviewCheckFullBody": "전신",
   "runningCoachPreviewCheckSide": "측면",

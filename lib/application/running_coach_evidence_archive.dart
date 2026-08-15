@@ -20,11 +20,13 @@ Future<RunningCoachEvidenceArchiveResult> archiveRunningCoachEvidenceImages({
   required XFile? sourceVideo,
   required String sessionId,
   required List<RunningCoachEvidenceFrameRequest> requests,
+  DateTime? deadline,
 }) {
   return platform.archiveRunningCoachEvidenceImages(
     sourceVideo: sourceVideo,
     sessionId: sessionId,
     requests: requests,
+    deadline: deadline,
   );
 }
 

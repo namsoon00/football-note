@@ -87,6 +87,12 @@ for required in (
     "poseFrames",
     "coarseSamples",
     "denseSamples",
+    "posePassCache",
+    "posePassCache?.get(timestampMs)",
+    "posePassCache?.set(timestampMs",
+    "runPosePass(video, coarseFrameTimes, true, posePassCache)",
+    "runPosePass(video, recoveryFrameTimes, false, posePassCache)",
+    "runPosePass(video, denseFrameTimes, false, posePassCache)",
     "contactWindows",
     "validatedContactFrameTimestampsMs",
     "estimatedContactFrameTimestampsMs",
@@ -103,6 +109,8 @@ for required in (
     "visionFilesetPromise",
     "analyzeUrl",
     "extractEvidenceFramesFromUrl",
+    "evidenceDeadlineExpired",
+    "deadlineEpochMs",
     "metricQualities",
     "window.runningVideoPoseAnalysis",
 ):
@@ -153,6 +161,9 @@ for required in (
     "_maximumWebEvidenceByteFallback",
     "_maximumWebEvidenceFrames = 24",
     "web_evidence_url_required",
+    "evidence_archive_timeout",
+    "deadlineEpochMs",
+    "_beforeDeadline",
     "requestsByTimestamp",
 ):
     require(required in archive_text, f"Web evidence archive is missing required token: {required}")

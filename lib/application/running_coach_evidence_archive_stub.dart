@@ -9,6 +9,7 @@ Future<RunningCoachEvidenceArchiveResult> archiveRunningCoachEvidenceImages({
   required XFile? sourceVideo,
   required String sessionId,
   required List<RunningCoachEvidenceFrameRequest> requests,
+  DateTime? deadline,
 }) async =>
     requests.isEmpty
         ? RunningCoachEvidenceArchiveResult.notRequested()
