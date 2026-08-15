@@ -155,7 +155,7 @@ class RunningCoachHistoryService {
         analyzedAt: timestamp,
         source: RunningCoachSessionSource.uploadVideo,
         overallScore: report.overallScore,
-        scoreEligibility: _scoreEligibilityFor(result, report),
+        scoreEligibility: runningCoachScoreEligibilityFor(result, report),
         scoreVersion: runningScoreVersion,
         analysisVersion: result.analysisVersion,
         duration: result.videoDuration,
@@ -308,7 +308,7 @@ class RunningCoachHistoryService {
   }
 }
 
-RunningCoachScoreEligibility _scoreEligibilityFor(
+RunningCoachScoreEligibility runningCoachScoreEligibilityFor(
   RunningVideoAnalysisResult result,
   RunningCoachingReport report,
 ) {
@@ -323,7 +323,11 @@ RunningCoachScoreEligibility _scoreEligibilityFor(
       report.scoreStatus == RunningCoachScoreStatus.confirmed) {
     return RunningCoachScoreEligibility.verified;
   }
-  if (report.scoreStatus == RunningCoachScoreStatus.estimated) {
+  if (report.scoreStatus == RunningCoachScoreStatus.estimated ||
+      (report.scoreStatus == RunningCoachScoreStatus.confirmed &&
+          report.overallScore > 0 &&
+          result.analysisVersion >= runningAnalysisVersionV2 &&
+          !result.hasTargetIdentityRisk)) {
     return RunningCoachScoreEligibility.estimated;
   }
   return RunningCoachScoreEligibility.unavailable;

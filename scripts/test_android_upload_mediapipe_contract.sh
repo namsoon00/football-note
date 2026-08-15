@@ -275,6 +275,13 @@ require(
     "Android/iOS preview pose analysis must retry a bounded recovery pass before declaring pose unavailable",
 )
 require(
+    "val recoveryLandmarker = makePoseLandmarker()" in channel_text
+    and "poseLandmarker = recoveryLandmarker" in channel_text
+    and "let recoveryPoseLandmarker = try makePoseLandmarker()" in ios_text
+    and "poseLandmarker: recoveryPoseLandmarker" in ios_text,
+    "Android/iOS preview recovery must use a fresh VIDEO-mode landmarker so timestamps stay monotonic",
+)
+require(
     "normalizedShoulderYs" not in channel_text
     and "normalizedShoulderYs" not in ios_text,
     "Android/iOS analyzers must not compute bounce from absolute shoulder y divided by bodyScale",

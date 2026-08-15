@@ -10,6 +10,102 @@ import 'package:football_note/domain/entities/running_video_analysis_result.dart
 import 'package:football_note/domain/repositories/option_repository.dart';
 
 void main() {
+  test('v2 partial confirmed score is labeled estimated instead of withheld',
+      () {
+    const result = RunningVideoAnalysisResult(
+      analysisVersion: runningAnalysisVersionV2,
+      videoDuration: Duration(seconds: 5),
+      sampledFrames: 40,
+      validFrames: 28,
+      direction: RunningDirection.leftToRight,
+      forwardLeanDegrees: 10,
+      verticalBounceRatio: 0.06,
+      footStrikeDistanceRatio: 0.10,
+      stanceKneeAngleDegrees: 154,
+      elbowAngleDegrees: 92,
+    );
+    const report = RunningCoachingReport(
+      overallScore: 76,
+      scoreStatus: RunningCoachScoreStatus.confirmed,
+      insights: <RunningCoachingInsight>[
+        RunningCoachingInsight(
+          metric: RunningCoachMetric.posture,
+          finding: RunningCoachFinding.postureAligned,
+          status: RunningCoachStatus.good,
+          score: 82,
+          value: 10,
+          quality: RunningMetricQuality(confidence: 0.86, sampleCount: 8),
+        ),
+        RunningCoachingInsight(
+          metric: RunningCoachMetric.bounce,
+          finding: RunningCoachFinding.bounceEfficient,
+          status: RunningCoachStatus.good,
+          score: 78,
+          value: 0.06,
+          quality: RunningMetricQuality(confidence: 0.82, sampleCount: 8),
+        ),
+        RunningCoachingInsight(
+          metric: RunningCoachMetric.armCarriage,
+          finding: RunningCoachFinding.armCompact,
+          status: RunningCoachStatus.good,
+          score: 75,
+          value: 92,
+          quality: RunningMetricQuality(confidence: 0.80, sampleCount: 8),
+        ),
+      ],
+    );
+
+    expect(
+      runningCoachScoreEligibilityFor(result, report),
+      RunningCoachScoreEligibility.estimated,
+    );
+  });
+
+  test('v2 partial score stays withheld when runner identity is unstable', () {
+    const result = RunningVideoAnalysisResult(
+      analysisVersion: runningAnalysisVersionV2,
+      videoDuration: Duration(seconds: 5),
+      sampledFrames: 40,
+      validFrames: 28,
+      direction: RunningDirection.leftToRight,
+      forwardLeanDegrees: 10,
+      verticalBounceRatio: 0.06,
+      footStrikeDistanceRatio: 0.10,
+      stanceKneeAngleDegrees: 154,
+      elbowAngleDegrees: 92,
+      perspectiveQuality: RunningVideoPerspectiveQuality(
+        evaluatedFrameCount: 28,
+        medianBodyScaleRatio: 0.12,
+        minBodyScaleRatio: 0.08,
+        visibilityCoverage: 0.8,
+        sideViewScore: 0.8,
+        scaleDriftRatio: 0.2,
+        cutOffFrameRatio: 0,
+        issues: <RunningVideoQualityIssue>[
+          RunningVideoQualityIssue.targetIdentityUnstable,
+        ],
+      ),
+    );
+    const report = RunningCoachingReport(
+      overallScore: 76,
+      scoreStatus: RunningCoachScoreStatus.confirmed,
+      insights: <RunningCoachingInsight>[
+        RunningCoachingInsight(
+          metric: RunningCoachMetric.posture,
+          finding: RunningCoachFinding.postureAligned,
+          status: RunningCoachStatus.good,
+          score: 82,
+          value: 10,
+        ),
+      ],
+    );
+
+    expect(
+      runningCoachScoreEligibilityFor(result, report),
+      RunningCoachScoreEligibility.unavailable,
+    );
+  });
+
   test('saves recent upload analyses with primary focus', () async {
     final repository = _MemoryOptionRepository();
     final service = RunningCoachHistoryService(repository);
