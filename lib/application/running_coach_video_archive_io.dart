@@ -37,6 +37,11 @@ Future<ArchivedRunningCoachVideo?> archiveRunningCoachVideo({
 }
 
 Future<void> deleteArchivedRunningCoachVideos(Iterable<String?> paths) async {
+  final requestedPaths = paths
+      .where((path) => path != null && path.isNotEmpty)
+      .cast<String>()
+      .toList(growable: false);
+  if (requestedPaths.isEmpty) return;
   final archiveDirectory = await _archiveDirectory();
   if (archiveDirectory == null || !await archiveDirectory.exists()) return;
   String archiveRoot;
@@ -45,8 +50,7 @@ Future<void> deleteArchivedRunningCoachVideos(Iterable<String?> paths) async {
   } catch (_) {
     return;
   }
-  for (final path in paths) {
-    if (path == null || path.isEmpty) continue;
+  for (final path in requestedPaths) {
     try {
       final file = File(path);
       if (!await file.exists()) continue;

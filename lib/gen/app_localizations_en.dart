@@ -10570,6 +10570,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'this app build could not run the evidence-frame extractor.';
 
   @override
+  String get runningCoachEvidenceArchiveReasonTimeout =>
+      'saving evidence images took too long, so the app opened the result without waiting longer.';
+
+  @override
   String get runningCoachEvidenceArchiveReasonUnknown =>
       'the device reported an unknown image-save error.';
 
@@ -17018,6 +17022,19 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get runningCoachAnalysisSteps =>
       'Find runner → Analyze movement → Build result';
+
+  @override
+  String get runningCoachAnalysisStageJointLanding =>
+      'Joint and landing analysis';
+
+  @override
+  String get runningCoachAnalysisStageSavingResult =>
+      'Result and evidence saving';
+
+  @override
+  String runningCoachAnalysisElapsed(Object elapsed) {
+    return 'Elapsed $elapsed';
+  }
 
   @override
   String get runningCoachCaptureWarningAnalysisLimited =>

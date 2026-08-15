@@ -116,6 +116,7 @@ class RunningPoseAnalysisChannel(
                     .coerceIn(160, 960)
                 val jpegQuality = (call.argument<Number>("jpegQuality")?.toInt() ?: 72)
                     .coerceIn(45, 92)
+                val deadlineEpochMs = call.argument<Number>("deadlineEpochMs")?.toLong()
                 executor.execute {
                     try {
                         val frames = extractEvidenceFrames(
@@ -123,6 +124,7 @@ class RunningPoseAnalysisChannel(
                             timestamps,
                             maximumDimension,
                             jpegQuality,
+                            deadlineEpochMs,
                         )
                         mainHandler.post { result.success(frames) }
                     } catch (error: AnalysisException) {
@@ -419,6 +421,7 @@ class RunningPoseAnalysisChannel(
         timestampsMs: List<Long>,
         maximumDimension: Int,
         jpegQuality: Int = 72,
+        deadlineEpochMs: Long? = null,
     ): List<Map<String, Any>> {
         val file = File(path)
         if (!file.exists()) {
@@ -428,11 +431,15 @@ class RunningPoseAnalysisChannel(
         val retriever = MediaMetadataRetriever()
         try {
             retriever.setDataSource(path)
-            return timestampsMs.distinct().sorted().take(24).mapNotNull { timestampMs ->
+            val frames = mutableListOf<Map<String, Any>>()
+            for (timestampMs in timestampsMs.distinct().sorted().take(24)) {
+                if (deadlineEpochMs != null && System.currentTimeMillis() >= deadlineEpochMs) {
+                    break
+                }
                 val source = retriever.getFrameAtTime(
                     timestampMs * 1000L,
                     MediaMetadataRetriever.OPTION_CLOSEST,
-                ) ?: return@mapNotNull null
+                ) ?: continue
                 val scaled = scaleBitmap(source, maximumDimension)
                 if (scaled !== source) source.recycle()
                 val bytes = ByteArrayOutputStream().use { output ->
@@ -442,14 +449,15 @@ class RunningPoseAnalysisChannel(
                 val width = scaled.width
                 val height = scaled.height
                 scaled.recycle()
-                if (bytes.isEmpty()) return@mapNotNull null
-                mapOf(
+                if (bytes.isEmpty()) continue
+                frames.add(mapOf(
                     "timestampMs" to timestampMs,
                     "bytes" to bytes,
                     "width" to width,
                     "height" to height,
-                )
+                ))
             }
+            return frames
         } finally {
             retriever.release()
         }

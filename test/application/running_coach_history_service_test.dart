@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -293,6 +294,7 @@ void main() {
         required sourceVideo,
         required sessionId,
         required requests,
+        deadline,
       }) async {
         capturedRequestTimestamps.addAll(
           requests.map((request) => request.timestamp.inMilliseconds),
@@ -414,6 +416,7 @@ void main() {
         required sourceVideo,
         required sessionId,
         required requests,
+        deadline,
       }) async {
         return RunningCoachEvidenceArchiveResult.failed(
           requestedCount: requests.length,
@@ -480,6 +483,82 @@ void main() {
     expect(restored.analysisResult, isNotNull);
   });
 
+  test('bounds a never-completing evidence archiver and saves the session',
+      () async {
+    final repository = _MemoryOptionRepository();
+    final stalledArchive = Completer<RunningCoachEvidenceArchiveResult>();
+    DateTime? receivedDeadline;
+    final service = RunningCoachHistoryService(
+      repository,
+      evidenceArchiveTimeout: const Duration(milliseconds: 20),
+      archiveEvidenceImages: ({
+        required sourceVideo,
+        required sessionId,
+        required requests,
+        deadline,
+      }) {
+        receivedDeadline = deadline;
+        return stalledArchive.future;
+      },
+    );
+    const report = RunningCoachingReport(
+      overallScore: 86,
+      insights: [
+        RunningCoachingInsight(
+          metric: RunningCoachMetric.posture,
+          finding: RunningCoachFinding.postureAligned,
+          status: RunningCoachStatus.good,
+          score: 86,
+          value: 10,
+          quality: RunningMetricQuality(confidence: 0.90, sampleCount: 6),
+        ),
+      ],
+    );
+    final result = RunningVideoAnalysisResult(
+      videoDuration: const Duration(seconds: 5),
+      sampledFrames: 14,
+      validFrames: 12,
+      direction: RunningDirection.leftToRight,
+      forwardLeanDegrees: 10,
+      verticalBounceRatio: 0.06,
+      footStrikeDistanceRatio: 0.08,
+      stanceKneeAngleDegrees: 155,
+      elbowAngleDegrees: 90,
+      metricQualities: const <RunningCoachMetric, RunningMetricQuality>{
+        RunningCoachMetric.posture: RunningMetricQuality(
+          confidence: 0.90,
+          sampleCount: 6,
+        ),
+      },
+      poseFrames: [
+        for (var frameIndex = 0; frameIndex < 3; frameIndex += 1)
+          _poseFrame(frameIndex),
+      ],
+    );
+
+    final saved = await service
+        .saveUploadAnalysis(
+          result: result,
+          report: report,
+          analyzedAt: DateTime(2026, 8, 5, 9),
+        )
+        .timeout(const Duration(seconds: 1));
+
+    expect(receivedDeadline, isNotNull);
+    expect(stalledArchive.isCompleted, isFalse);
+    final session = saved.single;
+    expect(session.analysisResult, isNotNull);
+    expect(session.evidenceImages, isEmpty);
+    expect(session.evidenceArchive.requestedCount, greaterThan(0));
+    expect(session.evidenceArchive.status,
+        RunningCoachEvidenceArchiveStatus.failed);
+    expect(session.evidenceArchive.failureCode, 'evidence_archive_timeout');
+
+    final restored = service.allSessions().single;
+    expect(restored.evidenceArchive.failureCode, 'evidence_archive_timeout');
+    expect(restored.analysisResult, isNotNull);
+  });
+
   test('marks evidence archive failed when saved images cannot be read',
       () async {
     final repository = _MemoryOptionRepository();
@@ -489,6 +568,7 @@ void main() {
         required sourceVideo,
         required sessionId,
         required requests,
+        deadline,
       }) async {
         return RunningCoachEvidenceArchiveResult.fromImages(
           requestedCount: requests.length,
@@ -606,6 +686,7 @@ void main() {
         required sourceVideo,
         required sessionId,
         required requests,
+        deadline,
       }) async =>
           RunningCoachEvidenceArchiveResult.fromImages(
         requestedCount: requests.length,

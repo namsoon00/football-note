@@ -7,6 +7,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:football_note/application/running_coach_evidence_archive.dart';
 import 'package:football_note/application/running_coach_history_service.dart';
 import 'package:football_note/application/running_coaching_service.dart';
 import 'package:football_note/application/running_video_analysis_service.dart';
@@ -690,6 +691,132 @@ void main() {
           find.text(
               'Running analysis failed. Try another clip with a clearer side view.'),
           findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'opens result after bounded evidence save timeout and shows progress stage',
+    (WidgetTester tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final video = File('tmp/evidence-timeout-run.mp4')
+        ..createSync(recursive: true);
+      addTearDown(() {
+        if (video.existsSync()) video.deleteSync();
+      });
+      final analysisService = _PendingRunningVideoAnalysisService();
+      final stalledArchive = Completer<RunningCoachEvidenceArchiveResult>();
+      var archivedRequestCount = 0;
+      final optionRepository = _MemoryOptionRepository();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: RunningCoachScreen(
+            optionRepository: optionRepository,
+            analysisService: analysisService,
+            captureLauncher: (_) async =>
+                XFile(video.path, name: 'evidence-timeout-run.mp4'),
+            historyServiceFactory: (repository, {sportId}) =>
+                RunningCoachHistoryService(
+              repository,
+              sportId: sportId,
+              evidenceArchiveTimeout: const Duration(milliseconds: 300),
+              archiveEvidenceImages: ({
+                required sourceVideo,
+                required sessionId,
+                required requests,
+                deadline,
+              }) {
+                archivedRequestCount = requests.length;
+                return stalledArchive.future;
+              },
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(
+        find.byKey(const ValueKey('running-coach-capture-and-analyze-action')),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(const ValueKey('running-coach-preview-confirm')),
+      );
+      await tester.pump();
+      for (var attempt = 0;
+          attempt < 100 && analysisService.callCount == 0;
+          attempt += 1) {
+        await tester.pump(const Duration(milliseconds: 10));
+      }
+
+      expect(find.text('Joint and landing analysis'), findsOneWidget);
+      expect(find.text('Elapsed 0:00'), findsOneWidget);
+      await tester.pump(const Duration(seconds: 2));
+      expect(find.text('Elapsed 0:02'), findsOneWidget);
+
+      analysisService.complete(_runningResultWithEvidence());
+      await tester.pump();
+      expect(find.text('Result and evidence saving'), findsOneWidget);
+      expect(stalledArchive.isCompleted, isFalse);
+      expect(archivedRequestCount, greaterThan(0));
+
+      stalledArchive.complete(
+        RunningCoachEvidenceArchiveResult.failed(
+          requestedCount: archivedRequestCount,
+          failureCode: 'evidence_archive_timeout',
+        ),
+      );
+      await tester.idle();
+      for (var attempt = 0;
+          attempt < 30 &&
+              !optionRepository._values.keys.any(
+                (key) => key.contains(RunningCoachHistoryService.storageKey),
+              );
+          attempt += 1) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(
+        optionRepository._values.keys.any(
+          (key) => key.contains(RunningCoachHistoryService.storageKey),
+        ),
+        isTrue,
+      );
+      expect(tester.takeException(), isNull);
+      final resultList = find.byKey(
+        const ValueKey('running-coach-analysis-result-list'),
+      );
+      for (var attempt = 0;
+          attempt < 30 && resultList.evaluate().isEmpty;
+          attempt += 1) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(resultList, findsOneWidget);
+      final archiveStatus = find.byKey(
+        const ValueKey('running-coach-evidence-archive-status'),
+      );
+      await _scrollAnalysisResultUntilFound(tester, archiveStatus);
+      expect(archiveStatus, findsOneWidget);
+      expect(
+        find.textContaining(
+          'saving evidence images took too long',
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.text(
+          'Analysis is complete, but it was not saved to history',
+        ),
+        findsNothing,
+      );
       expect(tester.takeException(), isNull);
     },
   );
@@ -2754,19 +2881,20 @@ class _PendingRunningVideoAnalysisService extends RunningVideoAnalysisService {
     throw StateError('Timed out waiting for sample analysis.');
   }
 
-  void complete() {
+  void complete([RunningVideoAnalysisResult? result]) {
     _result.complete(
-      const RunningVideoAnalysisResult(
-        videoDuration: Duration(seconds: 4),
-        sampledFrames: 14,
-        validFrames: 13,
-        direction: RunningDirection.leftToRight,
-        forwardLeanDegrees: 12.4,
-        verticalBounceRatio: 0.07,
-        footStrikeDistanceRatio: 0.11,
-        stanceKneeAngleDegrees: 150,
-        elbowAngleDegrees: 96,
-      ),
+      result ??
+          const RunningVideoAnalysisResult(
+            videoDuration: Duration(seconds: 4),
+            sampledFrames: 14,
+            validFrames: 13,
+            direction: RunningDirection.leftToRight,
+            forwardLeanDegrees: 12.4,
+            verticalBounceRatio: 0.07,
+            footStrikeDistanceRatio: 0.11,
+            stanceKneeAngleDegrees: 150,
+            elbowAngleDegrees: 96,
+          ),
     );
   }
 }
@@ -2801,6 +2929,39 @@ class _SuccessfulRunningVideoAnalysisService
       elbowAngleDegrees: 92,
     );
   }
+}
+
+RunningVideoAnalysisResult _runningResultWithEvidence() {
+  return RunningVideoAnalysisResult(
+    videoDuration: const Duration(seconds: 4),
+    sampledFrames: 14,
+    validFrames: 13,
+    direction: RunningDirection.leftToRight,
+    forwardLeanDegrees: 10,
+    verticalBounceRatio: 0.07,
+    footStrikeDistanceRatio: 0.12,
+    stanceKneeAngleDegrees: 154,
+    elbowAngleDegrees: 92,
+    metricQualities: const <RunningCoachMetric, RunningMetricQuality>{
+      RunningCoachMetric.posture: RunningMetricQuality(
+        confidence: 0.90,
+        sampleCount: 6,
+      ),
+      RunningCoachMetric.bounce: RunningMetricQuality(
+        confidence: 0.86,
+        sampleCount: 6,
+      ),
+      RunningCoachMetric.armCarriage: RunningMetricQuality(
+        confidence: 0.88,
+        sampleCount: 6,
+      ),
+    },
+    poseFrames: _testPoseFrames(
+      startX: 0.34,
+      dxPerFrame: -0.018,
+      confidence: 0.93,
+    ),
+  );
 }
 
 Map<RunningCoachMetric, RunningMetricQuality> _testDenseMetricQualities() {

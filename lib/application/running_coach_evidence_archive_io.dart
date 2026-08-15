@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:flutter/services.dart';
@@ -14,14 +15,22 @@ const _maximumEvidenceJpegBytes = 700 * 1024;
 const _maximumEvidenceArchiveBytes = 12 * 1024 * 1024;
 const _evidenceRetryDimensions = <int>[640, 480, 360];
 const _evidenceRetryQualities = <int>[72, 64, 56];
+const _evidenceArchiveTimeoutFailureCode = 'evidence_archive_timeout';
 
 Future<RunningCoachEvidenceArchiveResult> archiveRunningCoachEvidenceImages({
   required XFile? sourceVideo,
   required String sessionId,
   required List<RunningCoachEvidenceFrameRequest> requests,
+  DateTime? deadline,
 }) async {
   if (requests.isEmpty) {
     return RunningCoachEvidenceArchiveResult.notRequested();
+  }
+  if (_deadlineHasExpired(deadline)) {
+    return RunningCoachEvidenceArchiveResult.failed(
+      requestedCount: requests.length,
+      failureCode: _evidenceArchiveTimeoutFailureCode,
+    );
   }
   if (sourceVideo == null) {
     return RunningCoachEvidenceArchiveResult.failed(
@@ -30,7 +39,12 @@ Future<RunningCoachEvidenceArchiveResult> archiveRunningCoachEvidenceImages({
     );
   }
   final sourcePath = sourceVideo.path.trim();
-  if (sourcePath.isEmpty || !await File(sourcePath).exists()) {
+  final sourceExists = await _beforeDeadline(
+    File(sourcePath).exists(),
+    deadline,
+    fallback: false,
+  );
+  if (sourcePath.isEmpty || sourceExists != true) {
     return RunningCoachEvidenceArchiveResult.failed(
       requestedCount: requests.length,
       failureCode: 'source_video_unavailable',
@@ -42,7 +56,10 @@ Future<RunningCoachEvidenceArchiveResult> archiveRunningCoachEvidenceImages({
         .toSet()
         .toList(growable: false)
       ..sort();
-    final archiveDirectory = await _archiveDirectory(create: true);
+    final archiveDirectory = await _beforeDeadline(
+      _archiveDirectory(create: true),
+      deadline,
+    );
     if (archiveDirectory == null) {
       return RunningCoachEvidenceArchiveResult.failed(
         requestedCount: requests.length,
@@ -64,17 +81,31 @@ Future<RunningCoachEvidenceArchiveResult> archiveRunningCoachEvidenceImages({
     for (var attempt = 0;
         attempt < _evidenceRetryDimensions.length && unresolved.isNotEmpty;
         attempt += 1) {
-      final raw = await _channel.invokeMethod<List<Object?>>(
-        'extractRunningEvidenceFrames',
-        <String, Object?>{
-          'path': sourcePath,
-          'timestampsMs': unresolved.toList(growable: false)..sort(),
-          'maxDimension': _evidenceRetryDimensions[attempt],
-          'jpegQuality': _evidenceRetryQualities[attempt],
-        },
+      if (_deadlineHasExpired(deadline)) {
+        failureCode ??= _evidenceArchiveTimeoutFailureCode;
+        break;
+      }
+      final raw = await _beforeDeadline(
+        _channel.invokeMethod<List<Object?>>(
+          'extractRunningEvidenceFrames',
+          <String, Object?>{
+            'path': sourcePath,
+            'timestampsMs': unresolved.toList(growable: false)..sort(),
+            'maxDimension': _evidenceRetryDimensions[attempt],
+            'jpegQuality': _evidenceRetryQualities[attempt],
+            if (deadline != null)
+              'deadlineEpochMs': deadline.millisecondsSinceEpoch,
+          },
+        ),
+        deadline,
       );
+      if (_deadlineHasExpired(deadline)) {
+        failureCode ??= _evidenceArchiveTimeoutFailureCode;
+      }
       if (raw == null || raw.isEmpty) {
-        failureCode ??= 'no_evidence_frames_extracted';
+        failureCode ??= _deadlineHasExpired(deadline)
+            ? _evidenceArchiveTimeoutFailureCode
+            : 'no_evidence_frames_extracted';
         continue;
       }
       final returnedTimestamps = <int>{};
@@ -99,6 +130,10 @@ Future<RunningCoachEvidenceArchiveResult> archiveRunningCoachEvidenceImages({
             totalBytes + bytes.length > _maximumEvidenceArchiveBytes) {
           failureCode ??= 'evidence_storage_limit';
           continue;
+        }
+        if (_deadlineHasExpired(deadline)) {
+          failureCode ??= _evidenceArchiveTimeoutFailureCode;
+          break;
         }
         final filename = '$sessionId-frame-$timestampMs.jpg';
         final destination = File(
@@ -317,6 +352,29 @@ Future<void> _deleteIfExists(File file) async {
 int _intValue(Object? value) {
   if (value is num) return value.toInt();
   return int.tryParse(value?.toString() ?? '') ?? 0;
+}
+
+bool _deadlineHasExpired(DateTime? deadline) =>
+    deadline != null && !DateTime.now().isBefore(deadline);
+
+Duration? _remainingUntil(DateTime? deadline) {
+  if (deadline == null) return null;
+  return deadline.difference(DateTime.now());
+}
+
+Future<T?> _beforeDeadline<T>(
+  Future<T> future,
+  DateTime? deadline, {
+  T? fallback,
+}) async {
+  final remaining = _remainingUntil(deadline);
+  if (remaining == null) return future;
+  if (remaining <= Duration.zero) return fallback;
+  try {
+    return await future.timeout(remaining);
+  } on TimeoutException {
+    return fallback;
+  }
 }
 
 Future<Uint8List?> extractRunningVideoThumbnail(

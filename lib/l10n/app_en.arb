@@ -5796,6 +5796,7 @@
   "runningCoachEvidenceArchiveReasonFileWrite": "the device could not write the JPEG file.",
   "runningCoachEvidenceArchiveReasonWebLimit": "the browser storage limit would be exceeded.",
   "runningCoachEvidenceArchiveReasonPlatformUnavailable": "this app build could not run the evidence-frame extractor.",
+  "runningCoachEvidenceArchiveReasonTimeout": "saving evidence images took too long, so the app opened the result without waiting longer.",
   "runningCoachEvidenceArchiveReasonUnknown": "the device reported an unknown image-save error.",
   "runningCoachEvidenceImageReadFailed": "Image unavailable",
   "runningCoachEvidenceImageReadFailedReason": "The saved file may have been removed from this device.",
@@ -9161,6 +9162,14 @@
   "runningCoachRunnerNameLabel": "Runner name",
   "runningCoachManageRunner": "Manage runner",
   "runningCoachAnalysisSteps": "Find runner → Analyze movement → Build result",
+  "runningCoachAnalysisStageJointLanding": "Joint and landing analysis",
+  "runningCoachAnalysisStageSavingResult": "Result and evidence saving",
+  "runningCoachAnalysisElapsed": "Elapsed {elapsed}",
+  "@runningCoachAnalysisElapsed": {
+    "placeholders": {
+      "elapsed": {}
+    }
+  },
   "runningCoachCaptureWarningAnalysisLimited": "You can still record, but unclear framing may limit or estimate the analysis.",
   "runningCoachPreviewCheckFullBody": "Full body",
   "runningCoachPreviewCheckSide": "Side view",

@@ -39,6 +39,7 @@ class RunningCoachScreen extends StatefulWidget {
   final RunningCoachSampleVideoPreparer sampleVideoPreparer;
   final RunningCoachCaptureLauncher captureLauncher;
   final RunningCoachGalleryVideoPicker? galleryVideoPicker;
+  final RunningCoachHistoryServiceFactory? historyServiceFactory;
 
   const RunningCoachScreen({
     super.key,
@@ -47,6 +48,7 @@ class RunningCoachScreen extends StatefulWidget {
     this.sampleVideoPreparer = prepareRunningCoachSampleVideoForAnalysis,
     this.captureLauncher = captureRunningCoachVideo,
     this.galleryVideoPicker,
+    this.historyServiceFactory,
   });
 
   @override
@@ -58,6 +60,16 @@ typedef RunningCoachCaptureLauncher = Future<XFile?> Function(
 );
 
 typedef RunningCoachGalleryVideoPicker = Future<XFile?> Function();
+
+typedef RunningCoachHistoryServiceFactory = RunningCoachHistoryService Function(
+  OptionRepository optionRepository, {
+  String? sportId,
+});
+
+enum _RunningAnalysisProgressStage {
+  jointAndLanding,
+  savingResult,
+}
 
 @visibleForTesting
 Widget runningAnalysisResultScreenForTesting({
@@ -106,7 +118,9 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
   _RunningCoachSampleAnalysisBundle? _sampleAnalysisCache;
   Future<_RunningCoachSampleAnalysisBundle>? _sampleAnalysisFuture;
   int _sampleAnalysisRequestId = 0;
-  bool _isAnalyzing = false;
+  _RunningAnalysisProgressStage? _analysisProgressStage;
+  Timer? _analysisProgressTimer;
+  int _analysisElapsedSeconds = 0;
   bool _runnerProfilesInitialized = false;
   List<RunningCoachRunnerProfile> _runnerProfiles =
       const <RunningCoachRunnerProfile>[];
@@ -118,16 +132,26 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
     final optionRepository = widget.optionRepository;
     if (optionRepository != null) {
       final sportId = SportService(optionRepository).currentSportId();
-      _historyService = RunningCoachHistoryService(
-        optionRepository,
-        sportId: sportId,
-      );
+      _historyService = widget.historyServiceFactory?.call(
+            optionRepository,
+            sportId: sportId,
+          ) ??
+          RunningCoachHistoryService(
+            optionRepository,
+            sportId: sportId,
+          );
       _runnerProfileService = RunningCoachRunnerProfileService(
         optionRepository,
         sportId: sportId,
       );
       _recentSessions = _historyService!.allSessions();
     }
+  }
+
+  @override
+  void dispose() {
+    _analysisProgressTimer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -193,6 +217,9 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
         if (_isAnalyzing) ...[
           _RunningAnalysisProgressCard(
             runnerName: _selectedRunnerDisplayName(l10n),
+            stage: _analysisProgressStage ??
+                _RunningAnalysisProgressStage.jointAndLanding,
+            elapsedSeconds: _analysisElapsedSeconds,
           ),
           const SizedBox(height: 10),
         ],
@@ -234,6 +261,8 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
 
   bool get _canAnalyze => !_isAnalyzing && _selectedVideo != null;
 
+  bool get _isAnalyzing => _analysisProgressStage != null;
+
   List<RunningCoachSessionAnalysis> get _selectedRunnerSessions {
     final runnerId = _selectedRunner?.id ?? runningCoachDefaultRunnerId;
     return _recentSessions
@@ -243,6 +272,30 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
 
   String _selectedRunnerDisplayName(AppLocalizations l10n) {
     return _selectedRunner?.displayName ?? l10n.runningCoachDefaultRunner;
+  }
+
+  void _beginAnalysisProgress() {
+    _analysisProgressTimer?.cancel();
+    setState(() {
+      _analysisProgressStage = _RunningAnalysisProgressStage.jointAndLanding;
+      _analysisElapsedSeconds = 0;
+    });
+    _analysisProgressTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted || _analysisProgressStage == null) return;
+      setState(() => _analysisElapsedSeconds += 1);
+    });
+  }
+
+  void _setAnalysisProgressStage(_RunningAnalysisProgressStage stage) {
+    if (!mounted || _analysisProgressStage == stage) return;
+    setState(() => _analysisProgressStage = stage);
+  }
+
+  void _endAnalysisProgress() {
+    _analysisProgressTimer?.cancel();
+    _analysisProgressTimer = null;
+    if (!mounted) return;
+    setState(() => _analysisProgressStage = null);
   }
 
   Future<void> _showRunnerPicker() async {
@@ -524,7 +577,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
         );
     final captureContext = _captureContext.isComplete ? _captureContext : null;
     late final List<RunningCoachSessionAnalysis> comparableSessions;
-    setState(() => _isAnalyzing = true);
+    _beginAnalysisProgress();
     late final RunningVideoAnalysisResult analysis;
     late final RunningCoachingReport report;
     late final RunningCoachSessionAnalysis session;
@@ -538,6 +591,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
         captureContext: captureContext,
         analysisVersion: analysis.analysisVersion,
       );
+      _setAnalysisProgressStage(_RunningAnalysisProgressStage.savingResult);
       final historyService = _historyService;
       List<RunningCoachSessionAnalysis> updatedSessions;
       if (historyService == null) {
@@ -595,9 +649,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
       );
       return;
     } finally {
-      if (mounted) {
-        setState(() => _isAnalyzing = false);
-      }
+      _endAnalysisProgress();
     }
     if (!mounted) return;
     _openAnalysisResult(
@@ -824,12 +876,24 @@ class _RunnerIdentitySelector extends StatelessWidget {
 
 class _RunningAnalysisProgressCard extends StatelessWidget {
   final String runnerName;
+  final _RunningAnalysisProgressStage stage;
+  final int elapsedSeconds;
 
-  const _RunningAnalysisProgressCard({required this.runnerName});
+  const _RunningAnalysisProgressCard({
+    required this.runnerName,
+    required this.stage,
+    required this.elapsedSeconds,
+  });
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final stageLabel = switch (stage) {
+      _RunningAnalysisProgressStage.jointAndLanding =>
+        l10n.runningCoachAnalysisStageJointLanding,
+      _RunningAnalysisProgressStage.savingResult =>
+        l10n.runningCoachAnalysisStageSavingResult,
+    };
     return Card(
       key: const ValueKey('running-coach-analysis-progress-steps'),
       child: Padding(
@@ -853,14 +917,51 @@ class _RunningAnalysisProgressCard extends StatelessWidget {
                   child: CircularProgressIndicator(strokeWidth: 2),
                 ),
                 const SizedBox(width: 8),
-                Expanded(child: Text(l10n.runningCoachAnalysisSteps)),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        stageLabel,
+                        key: const ValueKey(
+                          'running-coach-analysis-progress-stage',
+                        ),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w800,
+                            ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        l10n.runningCoachAnalysisElapsed(
+                          _formatProgressElapsed(elapsedSeconds),
+                        ),
+                        key: const ValueKey(
+                          'running-coach-analysis-progress-elapsed',
+                        ),
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
               ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              l10n.runningCoachAnalysisSteps,
+              style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
         ),
       ),
     );
   }
+}
+
+String _formatProgressElapsed(int elapsedSeconds) {
+  final safeSeconds = math.max(0, elapsedSeconds);
+  final minutes = safeSeconds ~/ 60;
+  final seconds = safeSeconds % 60;
+  return '$minutes:${seconds.toString().padLeft(2, '0')}';
 }
 
 class _RunnerPickerSheet extends StatefulWidget {
@@ -7328,6 +7429,7 @@ String _evidenceArchiveFailureReason(
       l10n.runningCoachEvidenceArchiveReasonWebLimit,
     'web_evidence_bridge_unavailable' =>
       l10n.runningCoachEvidenceArchiveReasonPlatformUnavailable,
+    'evidence_archive_timeout' => l10n.runningCoachEvidenceArchiveReasonTimeout,
     'missing_file' => l10n.runningCoachEvidenceArchiveReasonSourceUnavailable,
     _ => l10n.runningCoachEvidenceArchiveReasonUnknown,
   };

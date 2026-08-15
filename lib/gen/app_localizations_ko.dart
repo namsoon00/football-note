@@ -10279,6 +10279,10 @@ class AppLocalizationsKo extends AppLocalizations {
       '이 앱 빌드에서 근거 프레임 추출기를 실행할 수 없었어요.';
 
   @override
+  String get runningCoachEvidenceArchiveReasonTimeout =>
+      '근거 이미지 저장 시간이 너무 오래 걸려 결과 화면을 먼저 열었어요.';
+
+  @override
   String get runningCoachEvidenceArchiveReasonUnknown =>
       '기기에서 알 수 없는 이미지 저장 오류를 보고했어요.';
 
@@ -16481,6 +16485,17 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachAnalysisSteps => '러너 찾기 → 움직임 분석 → 결과 만들기';
+
+  @override
+  String get runningCoachAnalysisStageJointLanding => '관절·착지 분석';
+
+  @override
+  String get runningCoachAnalysisStageSavingResult => '결과 및 근거 저장';
+
+  @override
+  String runningCoachAnalysisElapsed(Object elapsed) {
+    return '경과 $elapsed';
+  }
 
   @override
   String get runningCoachCaptureWarningAnalysisLimited =>

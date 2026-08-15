@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -16,6 +17,7 @@ typedef RunningCoachEvidenceImageArchiver
   required XFile? sourceVideo,
   required String sessionId,
   required List<RunningCoachEvidenceFrameRequest> requests,
+  DateTime? deadline,
 });
 
 typedef RunningCoachEvidenceImageDeleter = Future<void> Function(
@@ -35,12 +37,14 @@ class RunningCoachHistoryService {
   static const historyPoseFrameLimit = 24;
   static const historyEvidenceImageLimit = 24;
   static const runningScoreVersion = 2;
+  static const evidenceArchiveTimeout = Duration(seconds: 12);
 
   final OptionRepository _options;
   final String? _sportId;
   final RunningCoachEvidenceImageArchiver _archiveEvidenceImages;
   final RunningCoachEvidenceImageDeleter _deleteEvidenceImages;
   final RunningCoachEvidenceImageReader _readEvidenceImage;
+  final Duration _evidenceArchiveTimeout;
 
   RunningCoachHistoryService(
     this._options, {
@@ -48,13 +52,16 @@ class RunningCoachHistoryService {
     RunningCoachEvidenceImageArchiver? archiveEvidenceImages,
     RunningCoachEvidenceImageDeleter? deleteEvidenceImages,
     RunningCoachEvidenceImageReader? readEvidenceImage,
+    Duration evidenceArchiveTimeout =
+        RunningCoachHistoryService.evidenceArchiveTimeout,
   })  : _sportId = sportId,
         _archiveEvidenceImages =
             archiveEvidenceImages ?? archiveRunningCoachEvidenceImages,
         _deleteEvidenceImages =
             deleteEvidenceImages ?? deleteArchivedRunningCoachEvidenceImages,
         _readEvidenceImage =
-            readEvidenceImage ?? readArchivedRunningCoachEvidenceImage;
+            readEvidenceImage ?? readArchivedRunningCoachEvidenceImage,
+        _evidenceArchiveTimeout = evidenceArchiveTimeout;
 
   String get _storageKey => sportScopedOptionKey(
         _options,
@@ -133,12 +140,10 @@ class RunningCoachHistoryService {
       report,
       limit: historyEvidenceImageLimit,
     );
-    final evidenceArchiveResult = await _verifiedEvidenceArchiveResult(
-      await _archiveEvidenceImages(
-        sourceVideo: sourceVideo,
-        sessionId: sessionId,
-        requests: evidenceRequests,
-      ),
+    final evidenceArchiveResult = await _boundedEvidenceArchiveResult(
+      sourceVideo: sourceVideo,
+      sessionId: sessionId,
+      requests: evidenceRequests,
     );
     final archivedVideo = saveVideo
         ? await archiveRunningCoachVideo(
@@ -289,12 +294,20 @@ class RunningCoachHistoryService {
   }
 
   Future<RunningCoachEvidenceArchiveResult> _verifiedEvidenceArchiveResult(
-    RunningCoachEvidenceArchiveResult result,
-  ) async {
+    RunningCoachEvidenceArchiveResult result, {
+    DateTime? deadline,
+  }) async {
     if (result.images.isEmpty) return result;
     final readableImages = <RunningCoachEvidenceImage>[];
     for (final image in result.images) {
-      final bytes = await _readEvidenceImage(image);
+      if (_deadlineHasExpired(deadline)) {
+        return RunningCoachEvidenceArchiveResult.fromImages(
+          requestedCount: result.requestedCount,
+          images: readableImages,
+          failureCode: 'evidence_archive_timeout',
+        );
+      }
+      final bytes = await _readEvidenceImageBeforeDeadline(image, deadline);
       if (bytes != null && bytes.isNotEmpty) {
         readableImages.add(image);
       }
@@ -306,6 +319,62 @@ class RunningCoachHistoryService {
       failureCode: result.failureCode ?? 'evidence_readback_failed',
     );
   }
+
+  Future<RunningCoachEvidenceArchiveResult> _boundedEvidenceArchiveResult({
+    required XFile? sourceVideo,
+    required String sessionId,
+    required List<RunningCoachEvidenceFrameRequest> requests,
+  }) async {
+    if (requests.isEmpty) {
+      return RunningCoachEvidenceArchiveResult.notRequested();
+    }
+    final deadline = DateTime.now().add(_evidenceArchiveTimeout);
+    try {
+      final result = await _archiveEvidenceImages(
+        sourceVideo: sourceVideo,
+        sessionId: sessionId,
+        requests: requests,
+        deadline: deadline,
+      ).timeout(_evidenceArchiveTimeout);
+      return _verifiedEvidenceArchiveResult(result, deadline: deadline);
+    } on TimeoutException {
+      return RunningCoachEvidenceArchiveResult.failed(
+        requestedCount: requests.length,
+        failureCode: 'evidence_archive_timeout',
+      );
+    } catch (_) {
+      return RunningCoachEvidenceArchiveResult.failed(
+        requestedCount: requests.length,
+        failureCode: 'evidence_archive_failed',
+      );
+    }
+  }
+
+  Future<Uint8List?> _readEvidenceImageBeforeDeadline(
+    RunningCoachEvidenceImage image,
+    DateTime? deadline,
+  ) async {
+    final remaining = _remainingUntil(deadline);
+    if (remaining != null && remaining <= Duration.zero) return null;
+    final future = _readEvidenceImage(image);
+    if (remaining == null) return future;
+    try {
+      return await future.timeout(remaining);
+    } on TimeoutException {
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+}
+
+bool _deadlineHasExpired(DateTime? deadline) {
+  return deadline != null && !DateTime.now().isBefore(deadline);
+}
+
+Duration? _remainingUntil(DateTime? deadline) {
+  if (deadline == null) return null;
+  return deadline.difference(DateTime.now());
 }
 
 RunningCoachScoreEligibility runningCoachScoreEligibilityFor(

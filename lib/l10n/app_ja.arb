@@ -5796,6 +5796,7 @@
   "runningCoachEvidenceArchiveReasonFileWrite": "端末がJPEGファイルを書き込めませんでした。",
   "runningCoachEvidenceArchiveReasonWebLimit": "ブラウザの保存容量上限を超える可能性がありました。",
   "runningCoachEvidenceArchiveReasonPlatformUnavailable": "このアプリビルドで証拠フレーム抽出を実行できませんでした。",
+  "runningCoachEvidenceArchiveReasonTimeout": "証拠画像の保存に時間がかかりすぎたため、待機せず結果画面を開きました。",
   "runningCoachEvidenceArchiveReasonUnknown": "端末が不明な画像保存エラーを返しました。",
   "runningCoachEvidenceImageReadFailed": "画像を開けません",
   "runningCoachEvidenceImageReadFailedReason": "保存されたファイルがこの端末から削除された可能性があります。",
@@ -9161,6 +9162,14 @@
   "runningCoachRunnerNameLabel": "ランナー名",
   "runningCoachManageRunner": "ランナー管理",
   "runningCoachAnalysisSteps": "ランナー検出 → 動きの分析 → 結果作成",
+  "runningCoachAnalysisStageJointLanding": "関節・着地分析",
+  "runningCoachAnalysisStageSavingResult": "結果と証拠の保存",
+  "runningCoachAnalysisElapsed": "経過 {elapsed}",
+  "@runningCoachAnalysisElapsed": {
+    "placeholders": {
+      "elapsed": {}
+    }
+  },
   "runningCoachCaptureWarningAnalysisLimited": "そのまま撮影できますが、構図が不明瞭だと分析が推定または制限される場合があります。",
   "runningCoachPreviewCheckFullBody": "全身",
   "runningCoachPreviewCheckSide": "側面",

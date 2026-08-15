@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -16,6 +17,7 @@ const _maximumWebEvidenceFrames = 24;
 const _maximumWebEvidenceDataUrlCharacters = 360000;
 const _maximumWebEvidenceByteFallback = 32 * 1024 * 1024;
 const _webEvidenceRetryQualities = <int>[72, 64, 56];
+const _evidenceArchiveTimeoutFailureCode = 'evidence_archive_timeout';
 
 extension type _RunningEvidenceFrameExtractor._(JSObject _)
     implements JSObject {
@@ -24,12 +26,14 @@ extension type _RunningEvidenceFrameExtractor._(JSObject _)
     JSString name,
     JSString timestampsJson,
     JSNumber jpegQuality,
+    JSNumber deadlineEpochMs,
   );
   external JSPromise<JSAny?> extractEvidenceFramesFromUrl(
     JSString url,
     JSString name,
     JSString timestampsJson,
     JSNumber jpegQuality,
+    JSNumber deadlineEpochMs,
   );
   external JSPromise<JSAny?> storeEvidenceFrame(
     JSString reference,
@@ -43,11 +47,18 @@ Future<RunningCoachEvidenceArchiveResult> archiveRunningCoachEvidenceImages({
   required XFile? sourceVideo,
   required String sessionId,
   required List<RunningCoachEvidenceFrameRequest> requests,
+  DateTime? deadline,
 }) async {
   final source = sourceVideo;
   final bridge = _runningEvidenceFrameExtractor;
   if (requests.isEmpty) {
     return RunningCoachEvidenceArchiveResult.notRequested();
+  }
+  if (_deadlineHasExpired(deadline)) {
+    return RunningCoachEvidenceArchiveResult.failed(
+      requestedCount: requests.length,
+      failureCode: _evidenceArchiveTimeoutFailureCode,
+    );
   }
   if (source == null) {
     return RunningCoachEvidenceArchiveResult.failed(
@@ -90,52 +101,79 @@ Future<RunningCoachEvidenceArchiveResult> archiveRunningCoachEvidenceImages({
     ) async {
       if (RunningVideoAnalysisService.isReusableBrowserVideoUrl(path)) {
         try {
-          return await bridge
-              .extractEvidenceFramesFromUrl(
-                path.toJS,
-                source.name.toJS,
-                timestampsJson,
-                quality.toJS,
-              )
-              .toDart;
+          return await _beforeDeadline(
+            bridge
+                .extractEvidenceFramesFromUrl(
+                  path.toJS,
+                  source.name.toJS,
+                  timestampsJson,
+                  quality.toJS,
+                  _deadlineEpochMs(deadline).toJS,
+                )
+                .toDart,
+            deadline,
+          );
         } catch (_) {
-          failureCode ??= 'web_evidence_url_failed';
+          failureCode ??= _deadlineHasExpired(deadline)
+              ? _evidenceArchiveTimeoutFailureCode
+              : 'web_evidence_url_failed';
         }
       }
-      final length = await source.length();
+      final length = await _beforeDeadline(source.length(), deadline);
+      if (length == null) {
+        failureCode ??= _evidenceArchiveTimeoutFailureCode;
+        return null;
+      }
       if (length > _maximumWebEvidenceByteFallback) {
         failureCode ??= 'web_evidence_url_required';
         return null;
       }
-      sourceBytes ??= await source.readAsBytes();
+      sourceBytes ??= await _beforeDeadline(source.readAsBytes(), deadline);
       if (sourceBytes == null || sourceBytes!.isEmpty) {
-        failureCode ??= 'source_video_unavailable';
+        failureCode ??= _deadlineHasExpired(deadline)
+            ? _evidenceArchiveTimeoutFailureCode
+            : 'source_video_unavailable';
         return null;
       }
       try {
-        return await bridge
-            .extractEvidenceFrames(
-              sourceBytes!.toJS,
-              source.name.toJS,
-              timestampsJson,
-              quality.toJS,
-            )
-            .toDart;
+        return await _beforeDeadline(
+          bridge
+              .extractEvidenceFrames(
+                sourceBytes!.toJS,
+                source.name.toJS,
+                timestampsJson,
+                quality.toJS,
+                _deadlineEpochMs(deadline).toJS,
+              )
+              .toDart,
+          deadline,
+        );
       } catch (_) {
-        failureCode ??= 'web_evidence_extraction_failed';
+        failureCode ??= _deadlineHasExpired(deadline)
+            ? _evidenceArchiveTimeoutFailureCode
+            : 'web_evidence_extraction_failed';
         return null;
       }
     }
 
     for (final quality in _webEvidenceRetryQualities) {
       if (unresolved.isEmpty) break;
+      if (_deadlineHasExpired(deadline)) {
+        failureCode ??= _evidenceArchiveTimeoutFailureCode;
+        break;
+      }
       final timestampsJson = jsonEncode(
         unresolved.toList(growable: false)..sort(),
       ).toJS;
       final raw = await extractRawFrames(timestampsJson, quality);
+      if (_deadlineHasExpired(deadline)) {
+        failureCode ??= _evidenceArchiveTimeoutFailureCode;
+      }
       final converted = raw?.dartify();
       if (converted is! List) {
-        failureCode ??= 'web_evidence_extraction_failed';
+        failureCode ??= _deadlineHasExpired(deadline)
+            ? _evidenceArchiveTimeoutFailureCode
+            : 'web_evidence_extraction_failed';
         continue;
       }
       for (final item in converted) {
@@ -160,15 +198,22 @@ Future<RunningCoachEvidenceArchiveResult> archiveRunningCoachEvidenceImages({
         final idbReference = 'idb:$sessionId:$timestampMs';
         var storageReference = idbReference;
         try {
-          final stored = await bridge
-              .storeEvidenceFrame(idbReference.toJS, dataUrl.toJS)
-              .toDart;
-          if (stored.dartify()?.toString() != idbReference) {
+          if (_deadlineHasExpired(deadline)) {
+            failureCode ??= _evidenceArchiveTimeoutFailureCode;
+            break;
+          }
+          final stored = await _beforeDeadline(
+            bridge.storeEvidenceFrame(idbReference.toJS, dataUrl.toJS).toDart,
+            deadline,
+          );
+          if (stored?.dartify()?.toString() != idbReference) {
             failureCode ??= 'web_evidence_storage_failed';
             storageReference = dataUrl;
           }
         } catch (_) {
-          failureCode ??= 'web_evidence_storage_failed';
+          failureCode ??= _deadlineHasExpired(deadline)
+              ? _evidenceArchiveTimeoutFailureCode
+              : 'web_evidence_storage_failed';
           storageReference = dataUrl;
         }
         unresolved.remove(timestampMs);
@@ -262,6 +307,28 @@ int _intValue(Object? value) {
   return int.tryParse(value?.toString() ?? '') ?? 0;
 }
 
+int _deadlineEpochMs(DateTime? deadline) =>
+    deadline?.millisecondsSinceEpoch ?? 0;
+
+bool _deadlineHasExpired(DateTime? deadline) =>
+    deadline != null && !DateTime.now().isBefore(deadline);
+
+Duration? _remainingUntil(DateTime? deadline) {
+  if (deadline == null) return null;
+  return deadline.difference(DateTime.now());
+}
+
+Future<T?> _beforeDeadline<T>(Future<T?> future, DateTime? deadline) async {
+  final remaining = _remainingUntil(deadline);
+  if (remaining == null) return future;
+  if (remaining <= Duration.zero) return null;
+  try {
+    return await future.timeout(remaining);
+  } on TimeoutException {
+    return null;
+  }
+}
+
 Future<Uint8List?> extractRunningVideoThumbnail(
   XFile video, {
   Duration timestamp = const Duration(milliseconds: 200),
@@ -281,6 +348,7 @@ Future<Uint8List?> extractRunningVideoThumbnail(
             video.name.toJS,
             timestamps,
             72.toJS,
+            0.toJS,
           )
           .toDart;
     }
@@ -294,6 +362,7 @@ Future<Uint8List?> extractRunningVideoThumbnail(
               video.name.toJS,
               timestamps,
               72.toJS,
+              0.toJS,
             )
             .toDart;
       } catch (_) {
