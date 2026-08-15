@@ -658,21 +658,7 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
     RunningVideoAnalysisResult result,
     RunningCoachingReport report,
   ) {
-    final hasCompleteEvidence =
-        report.insights.length == RunningCoachMetric.values.length &&
-            report.insights
-                .every((insight) => insight.quality.isReliableForCoaching) &&
-            RunningCoachMetric.values.every(
-              (metric) => result.evidenceForMetric(metric)?.isReliable == true,
-            );
-    if (hasCompleteEvidence &&
-        report.scoreStatus == RunningCoachScoreStatus.confirmed) {
-      return RunningCoachScoreEligibility.verified;
-    }
-    if (report.scoreStatus == RunningCoachScoreStatus.estimated) {
-      return RunningCoachScoreEligibility.estimated;
-    }
-    return RunningCoachScoreEligibility.unavailable;
+    return runningCoachScoreEligibilityFor(result, report);
   }
 
   List<RunningCoachSessionAnalysis> _comparableSessionsFor({

@@ -196,8 +196,11 @@ final class RunningPoseAnalysisChannel {
         attemptedTimestamps: Set(previewTimestamps)
       )
       if !recoveryTimestamps.isEmpty {
+        // A VIDEO-mode landmarker accepts monotonically increasing timestamps
+        // only. Recovery revisits earlier gaps, so use a new tracking timeline.
+        let recoveryPoseLandmarker = try makePoseLandmarker()
         let recoveryPass = try runPosePass(
-          poseLandmarker: poseLandmarker,
+          poseLandmarker: recoveryPoseLandmarker,
           imageGenerator: imageGenerator,
           timestampsMs: recoveryTimestamps,
           collectSharpness: false
@@ -2714,7 +2717,27 @@ final class RunningPoseAnalysisChannel {
     let kneeAngleDegrees: Double
     let confidence: Double
     let isKinematicEstimate: Bool
-    let selectionMethod: String = "ground"
+    let selectionMethod: String
+
+    init(
+      timestampMs: Int,
+      windowCenterTimestampMs: Int,
+      side: FootSide,
+      footStrikeRatio: Double,
+      kneeAngleDegrees: Double,
+      confidence: Double,
+      isKinematicEstimate: Bool,
+      selectionMethod: String = "ground"
+    ) {
+      self.timestampMs = timestampMs
+      self.windowCenterTimestampMs = windowCenterTimestampMs
+      self.side = side
+      self.footStrikeRatio = footStrikeRatio
+      self.kneeAngleDegrees = kneeAngleDegrees
+      self.confidence = confidence
+      self.isKinematicEstimate = isKinematicEstimate
+      self.selectionMethod = selectionMethod
+    }
   }
 
   private struct ContactProxyCandidate {

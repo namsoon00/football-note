@@ -200,8 +200,15 @@ class RunningPoseAnalysisChannel(
                     previewTimestamps.toSet(),
                 )
                 if (recoveryTimestamps.isNotEmpty()) {
+                    // VIDEO mode requires monotonically increasing timestamps
+                    // for each landmarker instance. Recovery revisits gaps
+                    // earlier in the clip, so start with a fresh tracker.
+                    landmarker.close()
+                    poseLandmarker = null
+                    val recoveryLandmarker = makePoseLandmarker()
+                    poseLandmarker = recoveryLandmarker
                     val recoveryPass = runPosePass(
-                        poseLandmarker = landmarker,
+                        poseLandmarker = recoveryLandmarker,
                         retriever = retriever,
                         timestampsMs = recoveryTimestamps,
                         collectSharpness = false,
@@ -2576,7 +2583,10 @@ class RunningPoseAnalysisChannel(
         val rightWristConfidence: Double?,
         val bodyScale: Double,
     ) {
-        fun torsoLength(): Double = distance(shoulderCenter, hipCenter)
+        fun torsoLength(): Double = hypot(
+            (shoulderCenter.x - hipCenter.x).toDouble(),
+            (shoulderCenter.y - hipCenter.y).toDouble(),
+        )
 
         fun sideViewWidthRatio(): Double? {
             fun pointDistance(first: PointF, second: PointF): Double {
