@@ -11807,6 +11807,23 @@ class AppLocalizationsKo extends AppLocalizations {
   String get settingsDriveDisconnectAction => 'Google Drive 연결 해제';
 
   @override
+  String get settingsDriveRevokeAccessAction => 'Google 접근 권한 철회';
+
+  @override
+  String get settingsDriveRevokeAccessTitle => 'Google 접근 권한 철회';
+
+  @override
+  String get settingsDriveRevokeAccessBody =>
+      '현재 Google 계정에서 이 앱의 Google Drive 권한을 제거합니다. 일반 로그아웃은 Google Drive 연결 해제를 사용하세요.';
+
+  @override
+  String get settingsDriveRevokeAccessDone => 'Google 접근 권한을 철회했어요.';
+
+  @override
+  String get settingsDriveRevokeAccessFailed =>
+      'Google 접근 권한 철회에 실패했어요. 다시 연결한 뒤 시도해 주세요.';
+
+  @override
   String get settingsRestoreLatestActionTitle => '최근 데이터 가져오기';
 
   @override
@@ -12069,19 +12086,142 @@ class AppLocalizationsKo extends AppLocalizations {
       '원격 백업은 확인됐어요. 같은 Google Drive 계정으로 연결해 주세요.';
 
   @override
+  String get familyLinkConnectTitle => '가족 연결';
+
+  @override
+  String get familyLinkConnectedTitle => '가족 연결됨';
+
+  @override
+  String get familyLinkConnectedStatus => '가족 연결이 활성화되어 있어요.';
+
+  @override
+  String familyLinkConnectedAccount(Object parent) {
+    return '$parent와 연결됨';
+  }
+
+  @override
+  String get familyLinkConnectedAccountHidden => '연결된 가족 구성원';
+
+  @override
+  String familyLinkConnectedSubtitle(Object parent) {
+    return '$parent와 연결되어 있어요. 선수 데이터는 자녀 소유로 유지되고, 보호자 쓰기는 별도 기여 파일만 사용합니다.';
+  }
+
+  @override
+  String get familyLinkConnectedSubtitleHidden =>
+      '선수 데이터는 자녀 소유로 유지되고, 보호자 쓰기는 별도 기여 파일만 사용합니다.';
+
+  @override
+  String get familyLinkParentConnectBody =>
+      '보호자 Google 계정으로 로그인하고 QR을 보여 준 뒤 자녀 승인을 기다리세요.';
+
+  @override
+  String get familyLinkChildConnectBody =>
+      '자녀 Google 계정으로 로그인하고 보호자 QR을 스캔한 뒤 연결을 승인하세요.';
+
+  @override
+  String get familyLinkParentStartAction => '연결 QR 표시';
+
+  @override
+  String get familyLinkChildScanAction => '연결 QR 스캔';
+
+  @override
+  String get familyLinkParentQrTitle => '가족 연결';
+
+  @override
+  String familyLinkParentQrExpires(Object time) {
+    return '이 QR은 $time에 만료됩니다.';
+  }
+
+  @override
+  String get familyLinkWaitingBody => '자녀 기기에서 승인하고 파일을 공유하기를 기다리는 중입니다.';
+
+  @override
+  String get familyLinkWaitingChecking => '공유 파일을 확인하는 중입니다.';
+
+  @override
+  String get familyLinkCheckNowAction => '지금 확인';
+
+  @override
+  String get familyLinkChildScanTitle => '연결 QR 스캔';
+
+  @override
+  String get familyLinkChildScanBody => '카메라를 보호자 연결 QR에 맞추세요.';
+
+  @override
+  String get familyLinkChildConfirmTitle => '가족 연결 승인';
+
+  @override
+  String familyLinkChildConfirmBody(Object parent) {
+    return '$parent와 가족 연결을 승인할까요? 보호자는 선수 백업을 읽고 피드백과 선물 이름만 쓸 수 있어요.';
+  }
+
+  @override
+  String get familyLinkApproveAction => '연결 승인';
+
+  @override
+  String get familyLinkUnlinkAction => '가족 연결 해제';
+
+  @override
+  String get familyLinkUnlinkTitle => '가족 연결 해제';
+
+  @override
+  String get familyLinkUnlinkBody =>
+      '자녀 쪽 연결 해제는 보호자의 Drive 권한을 제거합니다. 보호자 쪽 연결 해제는 이 기기의 로컬 가족 연결을 제거하고, 가능하면 다음 새로고침 때 자녀 기기에 접근 해제를 요청합니다.';
+
+  @override
+  String get familyLinkConnectedSnack => '가족 연결이 완료됐어요.';
+
+  @override
+  String get familyLinkApprovedSnack => '가족 연결을 승인했어요.';
+
+  @override
+  String get familyLinkUnlinkedSnack => '가족 연결을 제거했어요.';
+
+  @override
+  String get familyLinkCreateFailed => '연결 QR을 만들 수 없어요.';
+
+  @override
+  String get familyLinkCompleteFailed => '아직 연결을 완료할 수 없어요.';
+
+  @override
+  String get familyLinkApproveFailed => '가족 연결 승인에 실패했어요.';
+
+  @override
+  String get familyLinkUnlinkFailed => '가족 연결 해제에 실패했어요.';
+
+  @override
+  String get familyLinkInvalidQr => '유효하지 않은 연결 QR입니다.';
+
+  @override
+  String get familyLinkExpiredMessage =>
+      '이 연결 QR은 만료됐어요. 보호자 기기에서 새 QR을 시작하세요.';
+
+  @override
+  String get familyLinkWrongAccount => '계속하려면 예상된 Google 계정으로 다시 연결하세요.';
+
+  @override
+  String get familyLinkPermissionRevoked =>
+      'Drive 권한이 철회됐거나 연결 파일을 사용할 수 없어요. 가족 연결을 다시 설정하세요.';
+
+  @override
+  String get familyLinkInviteUsed => '이 연결 QR은 이미 사용됐어요. 새 연결 QR을 시작하세요.';
+
+  @override
   String get familyChildDriveConnectionSummary =>
       '원본 백업이 있는 Google Drive 계정으로 연결해요.';
 
   @override
-  String get familyParentUsesChildDriveSummary => '여기서는 원본 백업 Drive 계정을 사용해요.';
+  String get familyParentUsesChildDriveSummary =>
+      '가족 연결 후에는 보호자의 Google Drive 계정을 사용하세요.';
 
   @override
   String get familyParentUsesChildDriveHint =>
-      '보호자 모드에서는 선수 데이터 원본이 있는 Google Drive 계정으로 로그인하면 훈련 피드백과 선물 이름을 별도 기여 파일로 동기화할 수 있어요.';
+      '보호자 모드에서는 보호자의 Google 계정으로 로그인하세요. 가족 연결은 선수 데이터 읽기와 별도 기여 파일 쓰기 권한만 제공합니다.';
 
   @override
   String get familyParentUsesChildDriveWarning =>
-      '보호자 모드에서는 선수 데이터 원본이 있는 Google Drive 계정으로 연결해야 피드백과 선물 이름을 기여 파일에 안전하게 동기화할 수 있어요.';
+      '이 기기가 예상된 가족 연결과 맞지 않습니다. 보호자 Google 계정으로 다시 연결하거나 새로 연결하세요.';
 
   @override
   String get familySharedSyncTitle => '데이터 동기화 상태';

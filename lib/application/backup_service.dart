@@ -2,6 +2,7 @@ import '../domain/repositories/backup_repository.dart';
 import 'backup_restore_plan.dart';
 import 'drive_connection_info.dart';
 import 'drive_backup_service.dart';
+import 'family_drive_link_service.dart';
 import 'family_access_service.dart';
 
 class BackupService {
@@ -346,6 +347,62 @@ class BackupService {
   Future<void> signOut() async {
     if (_repository case final DriveBackupService drive) {
       await drive.signOut();
+    }
+  }
+
+  Future<void> revokeGoogleAppAccess() async {
+    if (_repository case final DriveBackupService drive) {
+      await drive.revokeGoogleAppAccess();
+    }
+  }
+
+  bool hasActiveFamilyDriveLink() {
+    if (_repository case final DriveBackupService drive) {
+      return drive.hasActiveFamilyDriveLink();
+    }
+    return false;
+  }
+
+  FamilyDriveLinkRecord? getActiveFamilyDriveLink() {
+    if (_repository case final DriveBackupService drive) {
+      return drive.getActiveFamilyDriveLink();
+    }
+    return null;
+  }
+
+  String getActiveFamilyDriveLinkParentName() {
+    if (_repository case final DriveBackupService drive) {
+      return drive.getActiveFamilyDriveLinkParentName();
+    }
+    return '';
+  }
+
+  Future<FamilyPairingOffer> createParentPairingOffer() async {
+    if (_repository case final DriveBackupService drive) {
+      return drive.createParentPairingOffer();
+    }
+    throw StateError('Family pairing is not available.');
+  }
+
+  Future<FamilyDriveLinkRecord> approveFamilyPairingOffer(
+    String qrPayload,
+  ) async {
+    if (_repository case final DriveBackupService drive) {
+      return drive.approveFamilyPairingOffer(qrPayload);
+    }
+    throw StateError('Family pairing is not available.');
+  }
+
+  Future<FamilyDriveLinkRecord> completeParentPairing(String inviteId) async {
+    if (_repository case final DriveBackupService drive) {
+      return drive.completeParentPairing(inviteId);
+    }
+    throw StateError('Family pairing is not available.');
+  }
+
+  Future<void> unlinkActiveFamilyLink() async {
+    if (_repository case final DriveBackupService drive) {
+      await drive.unlinkActiveFamilyLink();
     }
   }
 

@@ -20831,6 +20831,36 @@ abstract class AppLocalizations {
   /// **'Disconnect Google Drive'**
   String get settingsDriveDisconnectAction;
 
+  /// No description provided for @settingsDriveRevokeAccessAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoke Google access'**
+  String get settingsDriveRevokeAccessAction;
+
+  /// No description provided for @settingsDriveRevokeAccessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoke Google access'**
+  String get settingsDriveRevokeAccessTitle;
+
+  /// No description provided for @settingsDriveRevokeAccessBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This removes this app\'s Google Drive authorization for the current Google account. Use Disconnect Google Drive for a normal sign-out.'**
+  String get settingsDriveRevokeAccessBody;
+
+  /// No description provided for @settingsDriveRevokeAccessDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Google access was revoked.'**
+  String get settingsDriveRevokeAccessDone;
+
+  /// No description provided for @settingsDriveRevokeAccessFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not revoke Google access. Try again after reconnecting.'**
+  String get settingsDriveRevokeAccessFailed;
+
   /// No description provided for @settingsRestoreLatestActionTitle.
   ///
   /// In en, this message translates to:
@@ -21288,6 +21318,222 @@ abstract class AppLocalizations {
   /// **'A remote backup was found. Connect the same Google Drive account.'**
   String get driveSharedChildAccountRemoteBackup;
 
+  /// No description provided for @familyLinkConnectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Family link'**
+  String get familyLinkConnectTitle;
+
+  /// No description provided for @familyLinkConnectedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Family connected'**
+  String get familyLinkConnectedTitle;
+
+  /// No description provided for @familyLinkConnectedStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Family link is active.'**
+  String get familyLinkConnectedStatus;
+
+  /// No description provided for @familyLinkConnectedAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked with {parent}'**
+  String familyLinkConnectedAccount(Object parent);
+
+  /// No description provided for @familyLinkConnectedAccountHidden.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked family member'**
+  String get familyLinkConnectedAccountHidden;
+
+  /// No description provided for @familyLinkConnectedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked with {parent}. Player data stays child-owned; parent writes use the separate contribution file.'**
+  String familyLinkConnectedSubtitle(Object parent);
+
+  /// No description provided for @familyLinkConnectedSubtitleHidden.
+  ///
+  /// In en, this message translates to:
+  /// **'Player data stays child-owned; parent writes use the separate contribution file.'**
+  String get familyLinkConnectedSubtitleHidden;
+
+  /// No description provided for @familyLinkParentConnectBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with the parent\'s Google account, show the QR, then wait for the child to approve.'**
+  String get familyLinkParentConnectBody;
+
+  /// No description provided for @familyLinkChildConnectBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with the child\'s Google account, scan the parent\'s QR, then approve the link.'**
+  String get familyLinkChildConnectBody;
+
+  /// No description provided for @familyLinkParentStartAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Show pairing QR'**
+  String get familyLinkParentStartAction;
+
+  /// No description provided for @familyLinkChildScanAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan pairing QR'**
+  String get familyLinkChildScanAction;
+
+  /// No description provided for @familyLinkParentQrTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pair family'**
+  String get familyLinkParentQrTitle;
+
+  /// No description provided for @familyLinkParentQrExpires.
+  ///
+  /// In en, this message translates to:
+  /// **'This QR expires at {time}.'**
+  String familyLinkParentQrExpires(Object time);
+
+  /// No description provided for @familyLinkWaitingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for the child device to approve and share the files.'**
+  String get familyLinkWaitingBody;
+
+  /// No description provided for @familyLinkWaitingChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking shared files.'**
+  String get familyLinkWaitingChecking;
+
+  /// No description provided for @familyLinkCheckNowAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Check now'**
+  String get familyLinkCheckNowAction;
+
+  /// No description provided for @familyLinkChildScanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan pairing QR'**
+  String get familyLinkChildScanTitle;
+
+  /// No description provided for @familyLinkChildScanBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Point the camera at the parent\'s pairing QR.'**
+  String get familyLinkChildScanBody;
+
+  /// No description provided for @familyLinkChildConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve family link'**
+  String get familyLinkChildConfirmTitle;
+
+  /// No description provided for @familyLinkChildConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve a family link with {parent}? The parent can read player backups and write only feedback and reward names.'**
+  String familyLinkChildConfirmBody(Object parent);
+
+  /// No description provided for @familyLinkApproveAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve link'**
+  String get familyLinkApproveAction;
+
+  /// No description provided for @familyLinkUnlinkAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink family'**
+  String get familyLinkUnlinkAction;
+
+  /// No description provided for @familyLinkUnlinkTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink family'**
+  String get familyLinkUnlinkTitle;
+
+  /// No description provided for @familyLinkUnlinkBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Child unlink removes the parent\'s Drive permissions. Parent unlink removes this device\'s local family link and asks the child device to revoke access on its next refresh when possible.'**
+  String get familyLinkUnlinkBody;
+
+  /// No description provided for @familyLinkConnectedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Family link connected.'**
+  String get familyLinkConnectedSnack;
+
+  /// No description provided for @familyLinkApprovedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Family link approved.'**
+  String get familyLinkApprovedSnack;
+
+  /// No description provided for @familyLinkUnlinkedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Family link removed.'**
+  String get familyLinkUnlinkedSnack;
+
+  /// No description provided for @familyLinkCreateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not create a pairing QR.'**
+  String get familyLinkCreateFailed;
+
+  /// No description provided for @familyLinkCompleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not complete pairing yet.'**
+  String get familyLinkCompleteFailed;
+
+  /// No description provided for @familyLinkApproveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not approve the family link.'**
+  String get familyLinkApproveFailed;
+
+  /// No description provided for @familyLinkUnlinkFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not unlink the family.'**
+  String get familyLinkUnlinkFailed;
+
+  /// No description provided for @familyLinkInvalidQr.
+  ///
+  /// In en, this message translates to:
+  /// **'This pairing QR is not valid.'**
+  String get familyLinkInvalidQr;
+
+  /// No description provided for @familyLinkExpiredMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This pairing QR expired. Start a new pairing QR on the parent device.'**
+  String get familyLinkExpiredMessage;
+
+  /// No description provided for @familyLinkWrongAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnect the expected Google account before continuing.'**
+  String get familyLinkWrongAccount;
+
+  /// No description provided for @familyLinkPermissionRevoked.
+  ///
+  /// In en, this message translates to:
+  /// **'Drive permission was revoked or the linked file is unavailable. Reconnect the family link.'**
+  String get familyLinkPermissionRevoked;
+
+  /// No description provided for @familyLinkInviteUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'This pairing QR was already used. Start a new pairing QR.'**
+  String get familyLinkInviteUsed;
+
   /// No description provided for @familyChildDriveConnectionSummary.
   ///
   /// In en, this message translates to:
@@ -21297,19 +21543,19 @@ abstract class AppLocalizations {
   /// No description provided for @familyParentUsesChildDriveSummary.
   ///
   /// In en, this message translates to:
-  /// **'Use the source backup Drive account here.'**
+  /// **'Use the parent\'s Google Drive account after family linking.'**
   String get familyParentUsesChildDriveSummary;
 
   /// No description provided for @familyParentUsesChildDriveHint.
   ///
   /// In en, this message translates to:
-  /// **'In parent mode, sign in with the Google Drive account that holds the player\'s source data to sync training feedback and reward names into a separate contribution file.'**
+  /// **'In parent mode, sign in with the parent\'s Google account. Family linking gives read access to player data and writer access only to the separate contribution file.'**
   String get familyParentUsesChildDriveHint;
 
   /// No description provided for @familyParentUsesChildDriveWarning.
   ///
   /// In en, this message translates to:
-  /// **'Parent mode should connect to the Google Drive account that holds the player\'s source data so feedback and reward names sync safely into the contribution file.'**
+  /// **'This device is not connected to the expected family link. Reconnect the parent\'s Google account or pair again.'**
   String get familyParentUsesChildDriveWarning;
 
   /// No description provided for @familySharedSyncTitle.

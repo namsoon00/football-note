@@ -11784,6 +11784,23 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsDriveDisconnectAction => 'Googleドライブを切断する';
 
   @override
+  String get settingsDriveRevokeAccessAction => 'Googleアクセスを取り消す';
+
+  @override
+  String get settingsDriveRevokeAccessTitle => 'Googleアクセスを取り消す';
+
+  @override
+  String get settingsDriveRevokeAccessBody =>
+      '現在の Google アカウントで、このアプリの Google Drive 認可を削除します。通常のサインアウトには Google Drive の切断を使ってください。';
+
+  @override
+  String get settingsDriveRevokeAccessDone => 'Googleアクセスを取り消しました。';
+
+  @override
+  String get settingsDriveRevokeAccessFailed =>
+      'Googleアクセスを取り消せませんでした。再接続してからもう一度お試しください。';
+
+  @override
   String get settingsRestoreLatestActionTitle => '最新データをインポートする';
 
   @override
@@ -12046,20 +12063,143 @@ class AppLocalizationsJa extends AppLocalizations {
       'リモート バックアップが見つかりました。同じ Google ドライブ アカウントを接続します。';
 
   @override
+  String get familyLinkConnectTitle => 'ファミリーリンク';
+
+  @override
+  String get familyLinkConnectedTitle => 'ファミリー接続済み';
+
+  @override
+  String get familyLinkConnectedStatus => 'ファミリーリンクが有効です。';
+
+  @override
+  String familyLinkConnectedAccount(Object parent) {
+    return '$parentと接続済み';
+  }
+
+  @override
+  String get familyLinkConnectedAccountHidden => '接続済みの家族メンバー';
+
+  @override
+  String familyLinkConnectedSubtitle(Object parent) {
+    return '$parentと接続済みです。プレーヤーデータは子ども所有のままで、保護者の書き込みは別の貢献ファイルだけを使います。';
+  }
+
+  @override
+  String get familyLinkConnectedSubtitleHidden =>
+      'プレーヤーデータは子ども所有のままで、保護者の書き込みは別の貢献ファイルだけを使います。';
+
+  @override
+  String get familyLinkParentConnectBody =>
+      '保護者の Google アカウントでログインし、QR を表示して子どもの承認を待ちます。';
+
+  @override
+  String get familyLinkChildConnectBody =>
+      '子どもの Google アカウントでログインし、保護者の QR をスキャンしてリンクを承認します。';
+
+  @override
+  String get familyLinkParentStartAction => 'ペアリングQRを表示';
+
+  @override
+  String get familyLinkChildScanAction => 'ペアリングQRをスキャン';
+
+  @override
+  String get familyLinkParentQrTitle => 'ファミリーを接続';
+
+  @override
+  String familyLinkParentQrExpires(Object time) {
+    return 'この QR は $time に期限切れになります。';
+  }
+
+  @override
+  String get familyLinkWaitingBody => '子どものデバイスが承認し、ファイルを共有するのを待っています。';
+
+  @override
+  String get familyLinkWaitingChecking => '共有ファイルを確認しています。';
+
+  @override
+  String get familyLinkCheckNowAction => '今すぐ確認';
+
+  @override
+  String get familyLinkChildScanTitle => 'ペアリングQRをスキャン';
+
+  @override
+  String get familyLinkChildScanBody => 'カメラを保護者のペアリング QR に向けてください。';
+
+  @override
+  String get familyLinkChildConfirmTitle => 'ファミリーリンクを承認';
+
+  @override
+  String familyLinkChildConfirmBody(Object parent) {
+    return '$parentとのファミリーリンクを承認しますか？保護者はプレーヤーバックアップを読み取り、フィードバックと報酬名だけを書き込めます。';
+  }
+
+  @override
+  String get familyLinkApproveAction => 'リンクを承認';
+
+  @override
+  String get familyLinkUnlinkAction => 'ファミリー解除';
+
+  @override
+  String get familyLinkUnlinkTitle => 'ファミリー解除';
+
+  @override
+  String get familyLinkUnlinkBody =>
+      '子ども側の解除では保護者の Drive 権限を削除します。保護者側の解除ではこのデバイスのローカルリンクを削除し、可能な場合は次回更新時に子どもデバイスへアクセス解除を依頼します。';
+
+  @override
+  String get familyLinkConnectedSnack => 'ファミリーリンクが接続されました。';
+
+  @override
+  String get familyLinkApprovedSnack => 'ファミリーリンクを承認しました。';
+
+  @override
+  String get familyLinkUnlinkedSnack => 'ファミリーリンクを削除しました。';
+
+  @override
+  String get familyLinkCreateFailed => 'ペアリング QR を作成できませんでした。';
+
+  @override
+  String get familyLinkCompleteFailed => 'まだペアリングを完了できません。';
+
+  @override
+  String get familyLinkApproveFailed => 'ファミリーリンクを承認できませんでした。';
+
+  @override
+  String get familyLinkUnlinkFailed => 'ファミリーを解除できませんでした。';
+
+  @override
+  String get familyLinkInvalidQr => 'このペアリング QR は無効です。';
+
+  @override
+  String get familyLinkExpiredMessage =>
+      'このペアリング QR は期限切れです。保護者デバイスで新しい QR を開始してください。';
+
+  @override
+  String get familyLinkWrongAccount => '続行する前に、想定された Google アカウントで再接続してください。';
+
+  @override
+  String get familyLinkPermissionRevoked =>
+      'Drive 権限が取り消されたか、リンク済みファイルを利用できません。ファミリーリンクを再接続してください。';
+
+  @override
+  String get familyLinkInviteUsed =>
+      'このペアリング QR はすでに使用されています。新しい QR を開始してください。';
+
+  @override
   String get familyChildDriveConnectionSummary =>
       'ソース バックアップを保持する Google ドライブ アカウントを使用します。';
 
   @override
   String get familyParentUsesChildDriveSummary =>
-      'ここではソース バックアップ ドライブ アカウントを使用します。';
+      'ファミリーリンク後は保護者の Google Drive アカウントを使います。';
 
   @override
   String get familyParentUsesChildDriveHint =>
-      '親モードでは、プレーヤーのソース データを保持する Google ドライブ アカウントでサインインし、トレーニング フィードバックと報酬名を別の貢献ファイルに同期します。';
+      '保護者モードでは保護者の Google アカウントでログインします。ファミリーリンクはプレーヤーデータの読み取りと、別の貢献ファイルへの書き込みだけを許可します。';
 
   @override
   String get familyParentUsesChildDriveWarning =>
-      '親モードでは、フィードバックと報酬名を貢献ファイルに安全に同期するため、プレーヤーのソース データを保持する Google ドライブ アカウントに接続する必要があります。';
+      'このデバイスは想定されたファミリーリンクに接続されていません。保護者の Google アカウントで再接続するか、もう一度ペアリングしてください。';
 
   @override
   String get familySharedSyncTitle => 'データ同期ステータス';

@@ -5,6 +5,7 @@ import 'package:football_note/application/backup_service.dart';
 import 'package:football_note/application/coach_roster_service.dart';
 import 'package:football_note/application/drive_connection_info.dart';
 import 'package:football_note/application/family_access_service.dart';
+import 'package:football_note/application/family_drive_link_service.dart';
 import 'package:football_note/application/locale_service.dart';
 import 'package:football_note/application/settings_service.dart';
 import 'package:football_note/application/tutorial_guide_service.dart';
@@ -14,6 +15,7 @@ import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/settings_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 BackupSnapshotDescriptor _backupDescriptor({
   FamilyRole role = FamilyRole.child,
@@ -615,6 +617,182 @@ void main() {
       expect(backupService.hasRemotePlayerBackupChecks, greaterThan(0));
     },
   );
+
+  testWidgets('active family link settings hide linked email addresses', (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _MemoryOptionRepository();
+    await optionRepository.setValue(
+      FamilyAccessService.currentRoleLocalKey,
+      FamilyRole.parent.name,
+    );
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+    final backupService = _FakeDriveBackupService(
+      signedIn: true,
+      connectionInfo: const DriveConnectionInfo(
+        email: 'parent@example.com',
+        displayName: '아빠',
+        subjectId: 'parent-subject',
+      ),
+      sharedChildDriveLabel: '민수 · child@example.com',
+      sharedChildDriveEmail: 'child@example.com',
+      activeFamilyDriveLink: _familyLinkRecord(parentDisplayName: '아빠'),
+      lastBackupAt: DateTime(2026, 3, 22, 10),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: SettingsScreen(
+          localeService: localeService,
+          settingsService: settingsService,
+          optionRepository: optionRepository,
+          driveBackupService: backupService,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('가족 연결됨'), findsOneWidget);
+    expect(find.textContaining('아빠와 연결되어 있어요'), findsOneWidget);
+    expect(find.text('아빠'), findsOneWidget);
+    expect(find.textContaining('parent@example.com'), findsNothing);
+    expect(find.textContaining('child@example.com'), findsNothing);
+    expect(find.widgetWithText(OutlinedButton, '가족 연결 해제'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(OutlinedButton, '가족 연결 해제'));
+    await tester.pumpAndSettle();
+    expect(find.text('가족 연결 해제'), findsWidgets);
+    await tester.tap(find.widgetWithText(FilledButton, '가족 연결 해제'));
+    await tester.pumpAndSettle();
+
+    expect(backupService.unlinkActiveFamilyLinkCalled, isTrue);
+    expect(find.text('가족 연결을 제거했어요.'), findsOneWidget);
+  });
+
+  testWidgets('parent pairing QR waits without rendering email text', (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _MemoryOptionRepository();
+    await optionRepository.setValue(
+      FamilyAccessService.currentRoleLocalKey,
+      FamilyRole.parent.name,
+    );
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+    final offer = FamilyPairingOffer.create(
+      parentAccount: const DriveConnectionInfo(
+        email: 'parent@example.com',
+        displayName: '아빠',
+        subjectId: 'parent-subject',
+      ),
+      now: DateTime.now().toUtc().subtract(const Duration(minutes: 1)),
+    );
+    final backupService = _FakeDriveBackupService(
+      signedIn: true,
+      connectionInfo: const DriveConnectionInfo(
+        email: 'parent@example.com',
+        displayName: '아빠',
+        subjectId: 'parent-subject',
+      ),
+      sharedChildDriveLabel: '',
+      sharedChildDriveEmail: '',
+      pairingOffer: offer,
+      completeParentPairingError: const FamilyDriveLinkException(
+        FamilyDriveLinkException.completionMissing,
+      ),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: SettingsScreen(
+          localeService: localeService,
+          settingsService: settingsService,
+          optionRepository: optionRepository,
+          driveBackupService: backupService,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.widgetWithText(FilledButton, '연결 QR 표시'), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilledButton, '연결 QR 표시'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.text('가족 연결'), findsWidgets);
+    expect(find.byType(QrImageView), findsOneWidget);
+    expect(find.textContaining('자녀 기기에서 승인하고'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.textContaining('parent@example.com'),
+      ),
+      findsNothing,
+    );
+    expect(backupService.createParentPairingOfferCalled, 1);
+    expect(backupService.completeParentPairingCalled, greaterThan(0));
+
+    await tester.tap(find.widgetWithText(TextButton, '취소'));
+    await tester.pump();
+  });
+
+  testWidgets('explicit revoke action is separate from normal sign out', (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _MemoryOptionRepository();
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+    final backupService = _FakeDriveBackupService(
+      signedIn: true,
+      connectionInfo: const DriveConnectionInfo(
+        email: 'player@example.com',
+        displayName: '민수',
+        subjectId: 'subject-player',
+      ),
+      sharedChildDriveLabel: '',
+      sharedChildDriveEmail: '',
+      savedRecordDriveLabel: '민수 · player@example.com',
+      savedRecordDriveEmail: 'player@example.com',
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: SettingsScreen(
+          localeService: localeService,
+          settingsService: settingsService,
+          optionRepository: optionRepository,
+          driveBackupService: backupService,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(
+      find.widgetWithText(OutlinedButton, 'Google 접근 권한 철회'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(OutlinedButton, 'Google 접근 권한 철회'));
+    await tester.pumpAndSettle();
+    expect(find.text('Google 접근 권한 철회'), findsWidgets);
+    await tester.tap(find.widgetWithText(FilledButton, 'Google 접근 권한 철회'));
+    await tester.pumpAndSettle();
+
+    expect(backupService.revokeGoogleAppAccessCalled, isTrue);
+    expect(backupService.signOutCalled, isFalse);
+    expect(find.text('Google 접근 권한을 철회했어요.'), findsOneWidget);
+  });
 
   testWidgets('enabling parent mode does not persist the current Drive account',
       (
@@ -1665,6 +1843,32 @@ void main() {
   );
 }
 
+FamilyDriveLinkRecord _familyLinkRecord({
+  String parentMemberId = 'parent-member-1',
+  String parentSubjectId = 'parent-subject',
+  String parentDisplayName = 'Parent',
+  String inviteId = 'invite-1',
+  String nonceHash = 'nonce-hash-1',
+}) {
+  return FamilyDriveLinkRecord(
+    familyId: 'family-1',
+    datasetId: 'dataset-1',
+    playerId: 'player-1',
+    parentMemberId: parentMemberId,
+    parentSubjectId: parentSubjectId,
+    parentDisplayName: parentDisplayName,
+    childSubjectId: 'child-subject',
+    coreBackupFileId: 'core-file',
+    contributionFileId: 'contribution-file',
+    corePermissionId: 'core-permission',
+    contributionPermissionId: 'contribution-permission',
+    pairingInviteId: inviteId,
+    pairingNonceHash: nonceHash,
+    createdAt: DateTime.utc(2026, 8, 27, 10),
+    updatedAt: DateTime.utc(2026, 8, 27, 10),
+  );
+}
+
 class _FakeDriveBackupService extends BackupService {
   bool _signedIn;
   DriveConnectionInfo? _connectionInfo;
@@ -1682,11 +1886,16 @@ class _FakeDriveBackupService extends BackupService {
   final bool _hasRemotePlayerBackup;
   final BackupSnapshotDescriptor? _localDescriptor;
   final RestorePlan? _previewPlan;
+  FamilyDriveLinkRecord? _activeFamilyDriveLink;
+  final FamilyPairingOffer? _pairingOffer;
+  final Object? _completeParentPairingError;
   bool _pendingParentSharedChanges;
   final DriveConnectionInfo? signInConnectionInfo;
   bool throwNextIsSignedIn;
   final bool throwIsSignedInAfterSignInOnce;
   bool signOutCalled;
+  bool revokeGoogleAppAccessCalled;
+  bool unlinkActiveFamilyLinkCalled;
   bool restoreLatestCalled;
   bool restoreLatestWithModeCalled;
   RestoreMode? lastRestoreMode;
@@ -1694,6 +1903,8 @@ class _FakeDriveBackupService extends BackupService {
   bool importChangedPlayerDriveBackupCalled;
   bool restorePreviousBackupCalled;
   bool refreshParentSharedDataIfNeededCalled;
+  int createParentPairingOfferCalled;
+  int completeParentPairingCalled;
   int hasRemotePlayerBackupChecks;
   final StreamController<void> _driveAccountStateController =
       StreamController<void>.broadcast();
@@ -1714,6 +1925,9 @@ class _FakeDriveBackupService extends BackupService {
     bool hasRemotePlayerBackup = false,
     BackupSnapshotDescriptor? localDescriptor,
     RestorePlan? previewPlan,
+    FamilyDriveLinkRecord? activeFamilyDriveLink,
+    FamilyPairingOffer? pairingOffer,
+    Object? completeParentPairingError,
     bool pendingParentSharedChanges = false,
     bool legacyPlayerDriveConnection = false,
     this.signInConnectionInfo,
@@ -1721,6 +1935,8 @@ class _FakeDriveBackupService extends BackupService {
     DateTime? lastBackupAt,
   })  : _signedIn = signedIn,
         signOutCalled = false,
+        revokeGoogleAppAccessCalled = false,
+        unlinkActiveFamilyLinkCalled = false,
         restoreLatestCalled = false,
         restoreLatestWithModeCalled = false,
         lastRestoreMode = null,
@@ -1728,6 +1944,8 @@ class _FakeDriveBackupService extends BackupService {
         importChangedPlayerDriveBackupCalled = false,
         restorePreviousBackupCalled = false,
         refreshParentSharedDataIfNeededCalled = false,
+        createParentPairingOfferCalled = 0,
+        completeParentPairingCalled = 0,
         hasRemotePlayerBackupChecks = 0,
         throwNextIsSignedIn = false,
         _connectionInfo = connectionInfo,
@@ -1744,6 +1962,9 @@ class _FakeDriveBackupService extends BackupService {
         _hasRemotePlayerBackup = hasRemotePlayerBackup,
         _localDescriptor = localDescriptor,
         _previewPlan = previewPlan,
+        _activeFamilyDriveLink = activeFamilyDriveLink,
+        _pairingOffer = pairingOffer,
+        _completeParentPairingError = completeParentPairingError,
         _pendingParentSharedChanges = pendingParentSharedChanges,
         _legacyPlayerDriveConnection = legacyPlayerDriveConnection,
         super(_FakeBackupRepository(lastBackupAt: lastBackupAt));
@@ -1865,6 +2086,18 @@ class _FakeDriveBackupService extends BackupService {
   String getSavedParentDriveLabel() => _savedParentDriveLabel;
 
   @override
+  bool hasActiveFamilyDriveLink() =>
+      _activeFamilyDriveLink != null && !_activeFamilyDriveLink!.isRevoked;
+
+  @override
+  FamilyDriveLinkRecord? getActiveFamilyDriveLink() => _activeFamilyDriveLink;
+
+  @override
+  String getActiveFamilyDriveLinkParentName() {
+    return _activeFamilyDriveLink?.parentDisplayName.trim() ?? '';
+  }
+
+  @override
   DateTime? getLastFamilySyncPush() => _lastFamilySyncPushAt;
 
   @override
@@ -1959,6 +2192,71 @@ class _FakeDriveBackupService extends BackupService {
   }
 
   @override
+  Future<FamilyPairingOffer> createParentPairingOffer() async {
+    createParentPairingOfferCalled += 1;
+    _signedIn = true;
+    return _pairingOffer ??
+        FamilyPairingOffer.create(
+          parentAccount: _connectionInfo ??
+              const DriveConnectionInfo(
+                email: 'parent@example.com',
+                displayName: 'Parent',
+                subjectId: 'parent-subject',
+              ),
+          now: DateTime.utc(2026, 8, 27, 10),
+        );
+  }
+
+  @override
+  Future<FamilyDriveLinkRecord> completeParentPairing(String inviteId) async {
+    completeParentPairingCalled += 1;
+    final error = _completeParentPairingError;
+    if (error != null) throw error;
+    final offer = _pairingOffer ??
+        FamilyPairingOffer.create(
+          parentAccount: _connectionInfo ??
+              const DriveConnectionInfo(
+                email: 'parent@example.com',
+                displayName: 'Parent',
+                subjectId: 'parent-subject',
+              ),
+          now: DateTime.utc(2026, 8, 27, 10),
+        );
+    _activeFamilyDriveLink = _familyLinkRecord(
+      parentMemberId: offer.parentMemberId,
+      parentSubjectId: offer.parentSubjectId,
+      parentDisplayName: offer.parentDisplayName,
+      inviteId: offer.inviteId,
+      nonceHash: offer.nonceHash,
+    );
+    return _activeFamilyDriveLink!;
+  }
+
+  @override
+  Future<FamilyDriveLinkRecord> approveFamilyPairingOffer(
+    String qrPayload,
+  ) async {
+    final offer = FamilyPairingOffer.parse(qrPayload);
+    _activeFamilyDriveLink = _familyLinkRecord(
+      parentMemberId: offer.parentMemberId,
+      parentSubjectId: offer.parentSubjectId,
+      parentDisplayName: offer.parentDisplayName,
+      inviteId: offer.inviteId,
+      nonceHash: offer.nonceHash,
+    );
+    return _activeFamilyDriveLink!;
+  }
+
+  @override
+  Future<void> unlinkActiveFamilyLink() async {
+    unlinkActiveFamilyLinkCalled = true;
+    _activeFamilyDriveLink = _activeFamilyDriveLink?.revoked(
+      at: DateTime.utc(2026, 8, 27, 11),
+      reason: 'test_unlink',
+    );
+  }
+
+  @override
   Future<FamilySharedSyncResult> refreshFamilySharedDataIfNeeded() async {
     refreshParentSharedDataIfNeededCalled = true;
     return const FamilySharedSyncResult.none(role: FamilyRole.parent);
@@ -2032,6 +2330,13 @@ class _FakeDriveBackupService extends BackupService {
     _connectionInfo = null;
     _sharedChildDriveLabel = '';
     _sharedChildDriveEmail = '';
+  }
+
+  @override
+  Future<void> revokeGoogleAppAccess() async {
+    revokeGoogleAppAccessCalled = true;
+    _signedIn = false;
+    _connectionInfo = null;
   }
 }
 

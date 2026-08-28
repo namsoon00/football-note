@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -8,6 +9,7 @@ import 'package:football_note/application/coach_roster_service.dart';
 import 'package:football_note/application/drive_connection_info.dart';
 import 'package:football_note/application/drive_backup_service.dart';
 import 'package:football_note/application/family_access_service.dart';
+import 'package:football_note/application/family_drive_link_service.dart';
 import 'package:football_note/application/meal_log_service.dart';
 import 'package:football_note/application/player_level_service.dart';
 import 'package:football_note/application/training_plan_reminder_service.dart';
@@ -17,6 +19,7 @@ import 'package:football_note/domain/entities/training_entry.dart';
 import 'package:football_note/infrastructure/hive_option_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 
@@ -3104,6 +3107,172 @@ void main() {
     expect(options.containsKey(PlayerLevelService.totalXpKey), isFalse);
   });
 
+  test('linked parent backup updates only its contribution file id', () async {
+    await optionBox.put(FamilyAccessService.currentRoleLocalKey, 'parent');
+    await optionBox.put(FamilyAccessService.familyIdKey, 'family-v2');
+    await optionBox.put(
+      FamilyAccessService.parentTrainingFeedbackKey,
+      <String, dynamic>{
+        'entry-1': <String, dynamic>{'message': 'Keep the shape.'},
+      },
+    );
+    await optionBox.put(
+      PlayerLevelService.customRewardNamesKey,
+      <String, String>{'4': 'Recovery kit'},
+    );
+    await optionBox.put(PlayerLevelService.totalXpKey, 1200);
+    await trainingBox.add(_trainingEntry(
+      recordId: 'entry-1',
+      notes: 'player-owned data',
+    ));
+    service = DriveBackupService(
+      trainingBox,
+      optionBox,
+      backupAssetFileStore: assetStore,
+      driveConnectionLoader: () async => const DriveConnectionInfo(
+        email: 'parent@example.com',
+        displayName: 'Parent',
+        subjectId: 'parent-subject',
+      ),
+    );
+    await service.getDriveConnectionInfo();
+    final localSnapshot = service.buildBackupForTesting();
+    final safetyManifest =
+        localSnapshot['safetyManifest'] as Map<String, dynamic>;
+    final datasetId = safetyManifest['datasetId'] as String;
+    final playerId = safetyManifest['playerId'] as String;
+    final remoteContribution =
+        service.buildFamilyContributionBackupForTesting();
+    final link = FamilyDriveLinkRecord(
+      familyId: 'family-v2',
+      datasetId: datasetId,
+      playerId: playerId,
+      parentMemberId: 'parent-member-1',
+      parentSubjectId: 'parent-subject',
+      parentDisplayName: 'Parent',
+      childSubjectId: 'child-subject',
+      coreBackupFileId: 'child-core-file-id',
+      contributionFileId: 'linked-contribution-file-id',
+      corePermissionId: 'core-reader-permission',
+      contributionPermissionId: 'contribution-writer-permission',
+      createdAt: DateTime.utc(2026, 8, 27, 10),
+      updatedAt: DateTime.utc(2026, 8, 27, 10),
+    );
+    await FamilyDriveLinkStore(HiveOptionRepository(optionBox))
+        .saveRecord(link);
+
+    final driveClient = _LinkedFamilyContributionDriveClient(
+      remoteContribution: remoteContribution,
+      contributionFileId: link.contributionFileId,
+    );
+    service = DriveBackupService(
+      trainingBox,
+      optionBox,
+      backupAssetFileStore: assetStore,
+      driveConnectionLoader: () async => const DriveConnectionInfo(
+        email: 'parent@example.com',
+        displayName: 'Parent',
+        subjectId: 'parent-subject',
+      ),
+      driveApiLoader: ({required bool requireInteractive}) async {
+        return drive.DriveApi(driveClient);
+      },
+    );
+
+    await service.backup();
+
+    expect(driveClient.coreWriteCount, 0);
+    expect(driveClient.contributionDownloadCount, 1);
+    expect(driveClient.contributionUpdateCount, 1);
+    expect(
+      driveClient.lastUploadedFileName,
+      DriveBackupService.familyMemberContributionFileName(
+        playerId: playerId,
+        familyId: 'family-v2',
+        parentMemberId: 'parent-member-1',
+      ),
+    );
+    final uploaded = driveClient.uploadedContribution!;
+    expect(uploaded['format'], BackupRestorePlanner.contributionFormatValue);
+    expect(uploaded['entries'], isEmpty);
+    expect(
+      _containsValue(uploaded, 'parent@example.com'),
+      isFalse,
+    );
+    final options = uploaded['options'] as Map<String, dynamic>;
+    expect(options[FamilyAccessService.parentTrainingFeedbackKey], isNotNull);
+    expect(options[PlayerLevelService.customRewardNamesKey], isNotNull);
+    expect(options.containsKey(PlayerLevelService.totalXpKey), isFalse);
+  });
+
+  test('linked parent backup fails closed before upload under wrong subject',
+      () async {
+    await optionBox.put(FamilyAccessService.currentRoleLocalKey, 'parent');
+    await optionBox.put(FamilyAccessService.familyIdKey, 'family-v2');
+    await FamilyDriveLinkStore(HiveOptionRepository(optionBox)).saveRecord(
+      FamilyDriveLinkRecord(
+        familyId: 'family-v2',
+        datasetId: 'dataset-1',
+        playerId: 'player-1',
+        parentMemberId: 'parent-member-1',
+        parentSubjectId: 'expected-parent-subject',
+        parentDisplayName: 'Parent',
+        childSubjectId: 'child-subject',
+        coreBackupFileId: 'child-core-file-id',
+        contributionFileId: 'linked-contribution-file-id',
+        corePermissionId: 'core-reader-permission',
+        contributionPermissionId: 'contribution-writer-permission',
+        createdAt: DateTime.utc(2026, 8, 27, 10),
+        updatedAt: DateTime.utc(2026, 8, 27, 10),
+      ),
+    );
+    var driveApiRequested = false;
+    service = DriveBackupService(
+      trainingBox,
+      optionBox,
+      backupAssetFileStore: assetStore,
+      driveConnectionLoader: () async => const DriveConnectionInfo(
+        email: 'other-parent@example.com',
+        displayName: 'Other Parent',
+        subjectId: 'other-parent-subject',
+      ),
+      driveApiLoader: ({required bool requireInteractive}) async {
+        driveApiRequested = true;
+        throw StateError('Drive API must not be requested.');
+      },
+    );
+
+    await expectLater(
+      service.backup(),
+      throwsA(
+        isA<StateError>().having(
+          (error) => error.message,
+          'message',
+          DriveBackupService.driveAccountBindingRequiredErrorCode,
+        ),
+      ),
+    );
+
+    expect(driveApiRequested, isFalse);
+  });
+
+  test('normal Drive sign-out never revokes OAuth access', () async {
+    final google = _CountingGoogleSignIn();
+    service = DriveBackupService(
+      trainingBox,
+      optionBox,
+      googleSignIn: google,
+      backupAssetFileStore: assetStore,
+    );
+
+    await service.signOut();
+    await service.revokeGoogleAppAccess();
+
+    expect(google.signOutCount, 1);
+    expect(google.disconnectCount, 1);
+    await google.close();
+  });
+
   test('interrupted restore journal is rolled back on startup', () async {
     await trainingBox.add(_trainingEntry(
       recordId: 'entry-1',
@@ -3580,6 +3749,141 @@ void main() {
     );
     expect(driveClient.writeRequestCount, 0);
   });
+}
+
+bool _containsValue(Object? value, String expected) {
+  if (value == expected) return true;
+  if (value is Map) {
+    return value.values.any((item) => _containsValue(item, expected));
+  }
+  if (value is Iterable) {
+    return value.any((item) => _containsValue(item, expected));
+  }
+  return false;
+}
+
+class _LinkedFamilyContributionDriveClient extends http.BaseClient {
+  _LinkedFamilyContributionDriveClient({
+    required this.remoteContribution,
+    required this.contributionFileId,
+  });
+
+  final Map<String, dynamic> remoteContribution;
+  final String contributionFileId;
+  int contributionDownloadCount = 0;
+  int contributionUpdateCount = 0;
+  int coreWriteCount = 0;
+  String lastUploadedFileName = '';
+  Map<String, dynamic>? uploadedContribution;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    if (request.method == 'GET' &&
+        request.url.path.endsWith('/drive/v3/files/$contributionFileId')) {
+      contributionDownloadCount += 1;
+      final bytes = utf8.encode(jsonEncode(remoteContribution));
+      return http.StreamedResponse(
+        Stream<List<int>>.value(bytes),
+        200,
+        request: request,
+        headers: const <String, String>{'content-type': 'application/json'},
+      );
+    }
+
+    if (request.method == 'PATCH' &&
+        request.url.path
+            .endsWith('/upload/drive/v3/files/$contributionFileId')) {
+      contributionUpdateCount += 1;
+      final body = await utf8.decoder.bind(request.finalize()).join();
+      uploadedContribution = _extractBackupPayloadFromMultipart(body);
+      lastUploadedFileName =
+          RegExp(r'"name":"([^"]+)"').firstMatch(body)?.group(1) ?? '';
+      return _jsonResponse(request, const <String, Object?>{
+        'id': 'linked-contribution-file-id',
+        'modifiedTime': '2026-08-27T10:05:00.000Z',
+      });
+    }
+
+    if (request.method != 'GET') {
+      coreWriteCount += 1;
+    }
+    throw StateError(
+      'Unexpected linked Drive request: ${request.method} ${request.url}',
+    );
+  }
+
+  Map<String, dynamic> _extractBackupPayloadFromMultipart(String body) {
+    final start = body.indexOf('{"format":');
+    if (start >= 0) {
+      final end = body.indexOf('\r\n--', start);
+      final payload =
+          (end < 0 ? body.substring(start) : body.substring(start, end)).trim();
+      return jsonDecode(payload) as Map<String, dynamic>;
+    }
+
+    const transferEncodingMarker = 'Content-Transfer-Encoding: base64';
+    final marker = body.indexOf(transferEncodingMarker);
+    if (marker >= 0) {
+      final bodyStart = body.indexOf('\r\n\r\n', marker);
+      final normalizedStart =
+          bodyStart >= 0 ? bodyStart + 4 : body.indexOf('\n\n', marker) + 2;
+      if (normalizedStart > 1) {
+        var bodyEnd = body.indexOf('\r\n--', normalizedStart);
+        if (bodyEnd < 0) {
+          bodyEnd = body.indexOf('\n--', normalizedStart);
+        }
+        final encoded = (bodyEnd < 0
+                ? body.substring(normalizedStart)
+                : body.substring(
+                    normalizedStart,
+                    bodyEnd,
+                  ))
+            .replaceAll(RegExp(r'\s+'), '');
+        return jsonDecode(utf8.decode(base64Decode(encoded)))
+            as Map<String, dynamic>;
+      }
+    }
+    throw StateError('Linked contribution upload did not contain backup JSON.');
+  }
+
+  http.StreamedResponse _jsonResponse(
+    http.BaseRequest request,
+    Map<String, Object?> payload,
+  ) {
+    final bytes = utf8.encode(jsonEncode(payload));
+    return http.StreamedResponse(
+      Stream<List<int>>.value(bytes),
+      200,
+      request: request,
+      headers: const <String, String>{'content-type': 'application/json'},
+    );
+  }
+}
+
+class _CountingGoogleSignIn extends GoogleSignIn {
+  _CountingGoogleSignIn() : super(scopes: const <String>[]);
+
+  final StreamController<GoogleSignInAccount?> _controller =
+      StreamController<GoogleSignInAccount?>.broadcast();
+  int signOutCount = 0;
+  int disconnectCount = 0;
+
+  @override
+  Stream<GoogleSignInAccount?> get onCurrentUserChanged => _controller.stream;
+
+  @override
+  Future<GoogleSignInAccount?> signOut() async {
+    signOutCount += 1;
+    return null;
+  }
+
+  @override
+  Future<GoogleSignInAccount?> disconnect() async {
+    disconnectCount += 1;
+    return null;
+  }
+
+  Future<void> close() => _controller.close();
 }
 
 class _ContributionWriteDriveClient extends http.BaseClient {
