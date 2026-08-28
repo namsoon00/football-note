@@ -399,8 +399,14 @@ void main() {
 
   test('unlink tombstones the record and removes stored Drive permissions',
       () async {
-    final store = FamilyDriveLinkStore(_MemoryOptionRepository());
-    final gateway = _FakeFamilyDriveLinkGateway(account: childAccount);
+    final events = <String>[];
+    final store = FamilyDriveLinkStore(
+      _MemoryOptionRepository(events: events),
+    );
+    final gateway = _FakeFamilyDriveLinkGateway(
+      account: childAccount,
+      events: events,
+    );
     final service = FamilyDriveLinkService(store: store, gateway: gateway);
     final offer = FamilyPairingOffer.create(
       parentAccount: parentAccount,
@@ -408,6 +414,7 @@ void main() {
     );
     final record = _recordFromOffer(offer);
     await store.saveRecord(record);
+    events.clear();
 
     await service.childInitiatedUnlink(
       record: record,
@@ -426,6 +433,144 @@ void main() {
     final durable = manifest?.records.single;
     expect(durable?.isRevoked, isTrue);
     expect(durable?.revocationReason, 'child_unlinked');
+    expect(
+      events,
+      <String>[
+        'saveChildManifest',
+        'saveLocalRecords',
+        'deletePermission:core-file:core-permission',
+        'deletePermission:contribution-${offer.parentMemberId}:'
+            'contribution-permission',
+      ],
+    );
+  });
+
+  test('child unlink keeps access active when durable tombstone write fails',
+      () async {
+    final events = <String>[];
+    final store = FamilyDriveLinkStore(
+      _MemoryOptionRepository(events: events),
+    );
+    final gateway = _FakeFamilyDriveLinkGateway(
+      account: childAccount,
+      events: events,
+      failChildManifestSave: true,
+    );
+    final service = FamilyDriveLinkService(store: store, gateway: gateway);
+    final offer = FamilyPairingOffer.create(
+      parentAccount: parentAccount,
+      now: issuedAt,
+    );
+    final record = _recordFromOffer(offer);
+    await store.saveRecord(record);
+    events.clear();
+
+    await expectLater(
+      service.childInitiatedUnlink(
+        record: record,
+        now: issuedAt.add(const Duration(minutes: 3)),
+      ),
+      throwsA(isA<StateError>()),
+    );
+
+    expect(gateway.deletedPermissions, isEmpty);
+    expect(store.loadActiveRecord()?.parentMemberId, record.parentMemberId);
+    expect(store.loadRecords().single.isRevoked, isFalse);
+    expect(events, <String>['saveChildManifest']);
+  });
+
+  test('parent local unlink writes a parent manifest tombstone before recovery',
+      () async {
+    final repository = _MemoryOptionRepository();
+    final store = FamilyDriveLinkStore(repository);
+    final gateway = _FakeFamilyDriveLinkGateway(account: parentAccount);
+    final service = FamilyDriveLinkService(store: store, gateway: gateway);
+    final offer = FamilyPairingOffer.create(
+      parentAccount: parentAccount,
+      now: issuedAt,
+    );
+    final record = _recordFromOffer(offer);
+    await store.saveRecord(record);
+
+    await service.parentLocalUnlink(
+      record: record,
+      now: issuedAt.add(const Duration(minutes: 4)),
+    );
+
+    expect(gateway.deletedPermissions, isEmpty);
+    expect(store.loadActiveRecord(), isNull);
+    final durable = gateway.savedParentManifest?.records.single;
+    expect(durable?.isRevoked, isTrue);
+    expect(durable?.revocationReason, 'parent_local_unlinked');
+
+    final reinstallStore = FamilyDriveLinkStore(_MemoryOptionRepository());
+    final reinstallService = FamilyDriveLinkService(
+      store: reinstallStore,
+      gateway: gateway,
+    );
+    final recovered = await reinstallService.recoverParentLinkAfterReinstall();
+
+    expect(recovered, isNull);
+    expect(reinstallStore.loadActiveRecord(), isNull);
+    expect(reinstallStore.loadRecords().single.isRevoked, isTrue);
+  });
+
+  test('parent local unlink validates the current parent subject', () async {
+    final store = FamilyDriveLinkStore(_MemoryOptionRepository());
+    final gateway = _FakeFamilyDriveLinkGateway(
+      account: const DriveConnectionInfo(
+        email: 'other@example.com',
+        displayName: 'Other',
+        subjectId: 'other-parent-subject',
+      ),
+    );
+    final service = FamilyDriveLinkService(store: store, gateway: gateway);
+    final offer = FamilyPairingOffer.create(
+      parentAccount: parentAccount,
+      now: issuedAt,
+    );
+    final record = _recordFromOffer(offer);
+    await store.saveRecord(record);
+
+    await expectLater(
+      service.parentLocalUnlink(
+        record: record,
+        now: issuedAt.add(const Duration(minutes: 4)),
+      ),
+      throwsA(_familyLinkError(FamilyDriveLinkException.accountMismatch)),
+    );
+
+    expect(gateway.savedParentManifest, isNull);
+    expect(store.loadActiveRecord()?.parentMemberId, record.parentMemberId);
+  });
+
+  test('parent local unlink keeps link active when manifest write fails',
+      () async {
+    final store = FamilyDriveLinkStore(_MemoryOptionRepository());
+    final gateway = _FakeFamilyDriveLinkGateway(
+      account: parentAccount,
+      failParentManifestSave: true,
+    );
+    final service = FamilyDriveLinkService(store: store, gateway: gateway);
+    final offer = FamilyPairingOffer.create(
+      parentAccount: parentAccount,
+      now: issuedAt,
+    );
+    final record = _recordFromOffer(offer);
+    await store.saveRecord(record);
+
+    await expectLater(
+      service.parentLocalUnlink(
+        record: record,
+        now: issuedAt.add(const Duration(minutes: 4)),
+      ),
+      throwsA(isA<StateError>()),
+    );
+
+    expect(gateway.deletedPermissions, isEmpty);
+    expect(gateway.savedParentManifest, isNull);
+    expect(store.loadActiveRecord()?.parentMemberId, record.parentMemberId);
+    expect(store.loadRecords().single.isRevoked, isFalse);
   });
 
   test('parent reinstall recovers durable link manifest without email',
@@ -639,10 +784,16 @@ class _FakeFamilyDriveLinkGateway implements FamilyDriveLinkGateway {
   _FakeFamilyDriveLinkGateway({
     required this.account,
     this.failPairingCompletionWrite = false,
-  });
+    this.failChildManifestSave = false,
+    this.failParentManifestSave = false,
+    List<String>? events,
+  }) : events = events ?? <String>[];
 
   DriveConnectionInfo? account;
   final bool failPairingCompletionWrite;
+  final bool failChildManifestSave;
+  final bool failParentManifestSave;
+  final List<String> events;
   final List<_PermissionCall> permissionCalls = <_PermissionCall>[];
   final List<_DeletedPermission> deletedPermissions = <_DeletedPermission>[];
   final List<String> trashedFileIds = <String>[];
@@ -750,6 +901,7 @@ class _FakeFamilyDriveLinkGateway implements FamilyDriveLinkGateway {
     required String fileId,
     required String permissionId,
   }) async {
+    events.add('deletePermission:$fileId:$permissionId');
     deletedPermissions.add(
       _DeletedPermission(fileId: fileId, permissionId: permissionId),
     );
@@ -783,6 +935,10 @@ class _FakeFamilyDriveLinkGateway implements FamilyDriveLinkGateway {
   Future<FamilyDriveFileRef> saveParentManifest({
     required FamilyDriveLinkManifest manifest,
   }) async {
+    events.add('saveParentManifest');
+    if (failParentManifestSave) {
+      throw StateError('parent manifest write failed');
+    }
     savedParentManifest = manifest;
     return const FamilyDriveFileRef(
       id: 'parent-manifest-file',
@@ -802,6 +958,10 @@ class _FakeFamilyDriveLinkGateway implements FamilyDriveLinkGateway {
   Future<FamilyDriveFileRef> saveChildManifest({
     required FamilyDriveLinkManifest manifest,
   }) async {
+    events.add('saveChildManifest');
+    if (failChildManifestSave) {
+      throw StateError('child manifest write failed');
+    }
     savedChildManifest = manifest;
     return const FamilyDriveFileRef(
       id: 'child-manifest-file',
@@ -843,7 +1003,10 @@ class _DeletedPermission {
 }
 
 class _MemoryOptionRepository implements OptionRepository {
+  _MemoryOptionRepository({this.events});
+
   final Map<String, dynamic> values = <String, dynamic>{};
+  final List<String>? events;
 
   @override
   List<String> getOptions(String key, List<String> defaults) {
@@ -869,6 +1032,9 @@ class _MemoryOptionRepository implements OptionRepository {
 
   @override
   Future<void> setValue(String key, dynamic value) async {
+    if (key == FamilyDriveLinkStore.linkRecordsKey) {
+      events?.add('saveLocalRecords');
+    }
     values[key] = value;
   }
 }
