@@ -21414,6 +21414,18 @@ abstract class AppLocalizations {
   /// **'Check now'**
   String get familyLinkCheckNowAction;
 
+  /// No description provided for @familyLinkOpenSharedFileAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Open shared file'**
+  String get familyLinkOpenSharedFileAction;
+
+  /// No description provided for @familyLinkOpeningSharedFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening selected file.'**
+  String get familyLinkOpeningSharedFile;
+
   /// No description provided for @familyLinkChildScanTitle.
   ///
   /// In en, this message translates to:
@@ -21491,6 +21503,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not complete pairing yet.'**
   String get familyLinkCompleteFailed;
+
+  /// No description provided for @familyLinkCompletionFileFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not complete pairing from the selected file.'**
+  String get familyLinkCompletionFileFailed;
 
   /// No description provided for @familyLinkApproveFailed.
   ///

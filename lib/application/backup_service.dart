@@ -400,6 +400,19 @@ class BackupService {
     throw StateError('Family pairing is not available.');
   }
 
+  Future<FamilyDriveLinkRecord> completeParentPairingFromCompletionPayload(
+    String inviteId,
+    Map<dynamic, dynamic> completionPayload,
+  ) async {
+    if (_repository case final DriveBackupService drive) {
+      return drive.completeParentPairingFromCompletionPayload(
+        inviteId,
+        completionPayload,
+      );
+    }
+    throw StateError('Family pairing is not available.');
+  }
+
   Future<void> unlinkActiveFamilyLink() async {
     if (_repository case final DriveBackupService drive) {
       await drive.unlinkActiveFamilyLink();
