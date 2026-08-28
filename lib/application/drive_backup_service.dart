@@ -106,6 +106,7 @@ class DriveBackupService implements BackupRepository {
   DateTime? _recentDriveConnectionExpiresAt;
   GoogleSignInAccount? _lastSilentSignInAccount;
   DateTime? _lastSilentSignInAt;
+  bool _familyLinkRecoveryInFlight = false;
 
   static const String _defaultWebClientId =
       '771305087734-atioeqhkpt2f0kqqhqq54nqkqi8630ju.apps.googleusercontent.com';
@@ -1418,7 +1419,9 @@ class DriveBackupService implements BackupRepository {
   Future<void> signIn() async {
     if (kIsWeb) {
       await _ensureWebAccessToken(requireInteractive: true);
-      await _syncConnectedDriveAccountCache();
+      await _syncConnectedDriveAccountCache(
+        attemptFamilyLinkRecovery: true,
+      );
       await _prepareConnectedDriveDataForCurrentRole();
       return;
     }
@@ -1432,7 +1435,9 @@ class DriveBackupService implements BackupRepository {
         subjectId: account.id,
       ),
     );
-    await _syncConnectedDriveAccountCache();
+    await _syncConnectedDriveAccountCache(
+      attemptFamilyLinkRecovery: true,
+    );
     await _prepareConnectedDriveDataForCurrentRole();
   }
 
@@ -1751,7 +1756,9 @@ class DriveBackupService implements BackupRepository {
     FamilyAccessState state,
   ) async {
     try {
-      await _syncConnectedDriveAccountCache();
+      await _syncConnectedDriveAccountCache(
+        attemptFamilyLinkRecovery: true,
+      );
       if (_driveAccountNeedsResolutionBeforeBackup()) {
         return FamilySharedSyncResult.none(role: state.currentRole);
       }
@@ -1901,7 +1908,9 @@ class DriveBackupService implements BackupRepository {
     FamilyAccessState state,
   ) async {
     try {
-      await _syncConnectedDriveAccountCache();
+      await _syncConnectedDriveAccountCache(
+        attemptFamilyLinkRecovery: true,
+      );
       if (_driveAccountNeedsResolutionBeforeBackup()) {
         return FamilySharedSyncResult.none(role: state.currentRole);
       }
@@ -2200,7 +2209,9 @@ class DriveBackupService implements BackupRepository {
     }
   }
 
-  Future<void> _syncConnectedDriveAccountCache() async {
+  Future<void> _syncConnectedDriveAccountCache({
+    bool attemptFamilyLinkRecovery = false,
+  }) async {
     final info = await _loadDriveConnectionInfo();
     if (info == null || info.isEmpty) {
       final recent = _loadRecentDriveConnection();
@@ -2209,10 +2220,57 @@ class DriveBackupService implements BackupRepository {
         return;
       }
       await _storeConnectedDriveAccountCache(recent);
+      if (attemptFamilyLinkRecovery) {
+        await _recoverFamilyDriveLinksAfterReinstallIfNeeded();
+      }
       return;
     }
     _cacheRecentDriveConnection(info);
     await _storeConnectedDriveAccountCache(info);
+    if (attemptFamilyLinkRecovery) {
+      await _recoverFamilyDriveLinksAfterReinstallIfNeeded();
+    }
+  }
+
+  Future<void> _recoverFamilyDriveLinksAfterReinstallIfNeeded() async {
+    if (_familyLinkRecoveryInFlight) return;
+    if (_familyLinkStore.loadRecords().isNotEmpty) return;
+    final state = _familyService.loadState();
+    if (!state.isChildMode && !state.isParentRole) return;
+    final current =
+        _loadCachedDriveConnectionInfo() ?? _loadRecentDriveConnection();
+    if (current == null || current.subjectId.trim().isEmpty) return;
+    if (!_canLoadDriveApiWithoutInteractiveSignIn()) return;
+
+    _familyLinkRecoveryInFlight = true;
+    try {
+      final service = _familyDriveLinkService();
+      if (state.isChildMode) {
+        final result = await service.recoverChildLinksAfterReinstall();
+        if (result.hasRecords) {
+          await _rememberRecoveredFamilyDriveLinkIdentifiers(result);
+        }
+      } else {
+        final record = await service.recoverParentLinkAfterReinstall();
+        if (record != null) {
+          await _rememberFamilyDriveLinkIdentifiers(record);
+        }
+      }
+    } catch (e, st) {
+      debugPrint('Family Drive link reinstall recovery skipped: $e');
+      debugPrintStack(stackTrace: st);
+    } finally {
+      _familyLinkRecoveryInFlight = false;
+    }
+  }
+
+  bool _canLoadDriveApiWithoutInteractiveSignIn() {
+    if (_driveApiLoader != null) return true;
+    if (_webAccessToken != null) return true;
+    if (_googleSignIn?.currentUser != null) return true;
+    if (_lastSilentSignInAccount != null) return true;
+    if (kIsWeb && _firebaseAuth?.currentUser != null) return true;
+    return false;
   }
 
   Future<void> _storeConnectedDriveAccountCache(
@@ -2259,6 +2317,13 @@ class DriveBackupService implements BackupRepository {
     if (_familyService.loadState().currentRole != FamilyRole.child) {
       return PlayerDriveBindingState.notApplicable;
     }
+    final link = _activeFamilyDriveLink();
+    if (link != null) {
+      return _familyLinkDriveBindingState(
+        link: link,
+        expectedRole: FamilyDriveLinkOwnerRole.child,
+      );
+    }
     return _driveBindingStateForSaved(
       _loadSavedRecordDriveConnectionInfo(),
     );
@@ -2267,6 +2332,13 @@ class DriveBackupService implements BackupRepository {
   PlayerDriveBindingState _currentRoleDriveBindingState() {
     final state = _familyService.loadState();
     if (state.currentRole == FamilyRole.child) {
+      final link = _activeFamilyDriveLink();
+      if (link != null) {
+        return _familyLinkDriveBindingState(
+          link: link,
+          expectedRole: FamilyDriveLinkOwnerRole.child,
+        );
+      }
       return _driveBindingStateForSaved(_loadSavedRecordDriveConnectionInfo());
     }
     if (state.currentRole == FamilyRole.coach) {
@@ -2278,19 +2350,33 @@ class DriveBackupService implements BackupRepository {
     }
     final link = _activeFamilyDriveLink();
     if (link != null) {
-      final current =
-          _loadCachedDriveConnectionInfo() ?? _loadRecentDriveConnection();
-      if (current == null || current.isEmpty) {
-        return PlayerDriveBindingState.notConnected;
-      }
-      final currentSubject = current.subjectId.trim();
-      if (currentSubject.isNotEmpty &&
-          currentSubject == link.parentSubjectId.trim()) {
-        return PlayerDriveBindingState.verified;
-      }
-      return PlayerDriveBindingState.accountMismatch;
+      return _familyLinkDriveBindingState(
+        link: link,
+        expectedRole: FamilyDriveLinkOwnerRole.parent,
+      );
     }
     return _driveBindingStateForSaved(_loadSavedParentDriveConnectionInfo());
+  }
+
+  PlayerDriveBindingState _familyLinkDriveBindingState({
+    required FamilyDriveLinkRecord link,
+    required FamilyDriveLinkOwnerRole expectedRole,
+  }) {
+    final current =
+        _loadCachedDriveConnectionInfo() ?? _loadRecentDriveConnection();
+    if (current == null || current.isEmpty) {
+      return PlayerDriveBindingState.notConnected;
+    }
+    final expectedSubject = expectedRole == FamilyDriveLinkOwnerRole.child
+        ? link.childSubjectId.trim()
+        : link.parentSubjectId.trim();
+    final currentSubject = current.subjectId.trim();
+    if (expectedSubject.isNotEmpty &&
+        currentSubject.isNotEmpty &&
+        currentSubject == expectedSubject) {
+      return PlayerDriveBindingState.verified;
+    }
+    return PlayerDriveBindingState.accountMismatch;
   }
 
   PlayerDriveBindingState _driveBindingStateForSaved(
@@ -2477,7 +2563,9 @@ class DriveBackupService implements BackupRepository {
         _lastSilentSignInAccount = null;
         _lastSilentSignInAt = null;
       }
-      await _syncConnectedDriveAccountCache();
+      await _syncConnectedDriveAccountCache(
+        attemptFamilyLinkRecovery: true,
+      );
     } catch (e, st) {
       debugPrint('Drive account state sync failed: $e');
       debugPrintStack(stackTrace: st);
@@ -5505,9 +5593,19 @@ class DriveBackupService implements BackupRepository {
       store: _familyLinkStore,
       gateway: GoogleDriveFamilyLinkGateway(
         driveApiLoader: _driveApi,
-        accountLoader: getDriveConnectionInfo,
+        accountLoader: _loadCurrentDriveConnectionForFamilyLink,
       ),
     );
+  }
+
+  Future<DriveConnectionInfo?>
+      _loadCurrentDriveConnectionForFamilyLink() async {
+    final cached =
+        _loadCachedDriveConnectionInfo() ?? _loadRecentDriveConnection();
+    if (cached != null && !cached.isEmpty) {
+      return cached;
+    }
+    return _loadDriveConnectionInfo();
   }
 
   Future<String> _ensureFamilyIdForPairing() async {
@@ -5538,6 +5636,34 @@ class DriveBackupService implements BackupRepository {
         record.parentDisplayName.trim(),
       );
     }
+  }
+
+  Future<void> _rememberRecoveredFamilyDriveLinkIdentifiers(
+    FamilyDriveLinkRecoveryResult result,
+  ) async {
+    final identityRecord = result.activeRecord ?? result.records.firstOrNull;
+    if (identityRecord == null) return;
+    if (identityRecord.familyId.trim().isNotEmpty) {
+      await _optionBox.put(
+        FamilyAccessService.familyIdKey,
+        identityRecord.familyId.trim(),
+      );
+    }
+    if (identityRecord.datasetId.trim().isNotEmpty) {
+      await _optionBox.put(_localDatasetIdKey, identityRecord.datasetId.trim());
+    }
+    if (identityRecord.playerId.trim().isNotEmpty &&
+        _activeCoachPlayerId.isEmpty) {
+      await _optionBox.put(_localPlayerIdKey, identityRecord.playerId.trim());
+    }
+    final active = result.activeRecord;
+    if (active != null && active.parentDisplayName.trim().isNotEmpty) {
+      await _optionBox.put(
+        FamilyAccessService.parentNameKey,
+        active.parentDisplayName.trim(),
+      );
+    }
+    await _syncSharedChildDriveMetadataIfNeeded();
   }
 
   Future<Map<String, dynamic>> _downloadBackupMap(
