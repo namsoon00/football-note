@@ -619,6 +619,22 @@ class FamilyDriveLinkManifest {
   }
 }
 
+class FamilyDriveLinkRecoveryResult {
+  const FamilyDriveLinkRecoveryResult({
+    required this.records,
+    required this.activeRecord,
+  });
+
+  const FamilyDriveLinkRecoveryResult.empty()
+      : records = const <FamilyDriveLinkRecord>[],
+        activeRecord = null;
+
+  final List<FamilyDriveLinkRecord> records;
+  final FamilyDriveLinkRecord? activeRecord;
+
+  bool get hasRecords => records.isNotEmpty;
+}
+
 class FamilyPairingCompletion {
   const FamilyPairingCompletion({
     required this.inviteId,
@@ -750,6 +766,39 @@ class FamilyDriveLinkStore {
     }
   }
 
+  Future<void> saveRecords(
+    List<FamilyDriveLinkRecord> incoming, {
+    String? activeLinkId,
+  }) async {
+    if (incoming.isEmpty) return;
+    final records = loadRecords().toList(growable: true);
+    for (final record in incoming) {
+      final index =
+          records.indexWhere((item) => item.storageId == record.storageId);
+      if (index >= 0) {
+        records[index] = record;
+      } else {
+        records.add(record);
+      }
+    }
+    await _options.setValue(
+      linkRecordsKey,
+      records.map((item) => item.toMap()).toList(growable: false),
+    );
+    final requestedActiveId = activeLinkId?.trim();
+    final activeId = requestedActiveId == null
+        ? _resolveActiveLinkId(records)
+        : records.any(
+            (item) =>
+                !item.isRevoked &&
+                requestedActiveId.isNotEmpty &&
+                item.storageId == requestedActiveId,
+          )
+            ? requestedActiveId
+            : '';
+    await _options.setValue(activeLinkIdKey, activeId);
+  }
+
   Future<void> revokeRecord({
     required String parentMemberId,
     required DateTime at,
@@ -822,6 +871,16 @@ class FamilyDriveLinkStore {
       return item.isNotEmpty;
     }).toSet();
   }
+
+  String _resolveActiveLinkId(List<FamilyDriveLinkRecord> records) {
+    final current = _options.getValue<String>(activeLinkIdKey)?.trim() ?? '';
+    if (current.isNotEmpty &&
+        records.any((item) => !item.isRevoked && item.storageId == current)) {
+      return current;
+    }
+    return records.where((item) => !item.isRevoked).firstOrNull?.storageId ??
+        '';
+  }
 }
 
 abstract class FamilyDriveLinkGateway {
@@ -869,6 +928,12 @@ abstract class FamilyDriveLinkGateway {
   });
 
   Future<FamilyDriveLinkManifest?> loadParentManifest();
+
+  Future<FamilyDriveFileRef> saveChildManifest({
+    required FamilyDriveLinkManifest manifest,
+  });
+
+  Future<FamilyDriveLinkManifest?> loadChildManifest();
 }
 
 class FamilyDriveLinkService {
@@ -1008,19 +1073,12 @@ class FamilyDriveLinkService {
         pairingCompletionFileId: completionFile.id,
         updatedAt: approvedAt,
       );
-      final childManifest = _manifestFor(
-        role: FamilyDriveLinkOwnerRole.child,
-        records: <FamilyDriveLinkRecord>[completedRecord],
+      final childManifest = await _mergedChildManifestForRecord(
+        record: completedRecord,
         at: approvedAt,
       );
-      final childManifestFile = await _gateway.writeJsonFile(
-        fileName: _childManifestFileName,
-        kind: FamilyDriveFileKind.childManifest,
-        payload: childManifest.toMap(),
-        appProperties: <String, String>{
-          _appPropertyKind: FamilyDriveFileKind.childManifest.name,
-          if (familyId.trim().isNotEmpty) _appPropertyFamilyId: familyId.trim(),
-        },
+      final childManifestFile = await _gateway.saveChildManifest(
+        manifest: childManifest,
       );
       if (childManifestFile.created) createdFiles.add(childManifestFile);
       final persisted = completedRecord.copyWith(
@@ -1165,13 +1223,16 @@ class FamilyDriveLinkService {
   }
 
   Future<FamilyDriveLinkRecord?> recoverParentLinkAfterReinstall() async {
-    final manifest = await _gateway.loadParentManifest();
-    if (manifest == null) return null;
-    final record =
-        manifest.records.where((item) => !item.isRevoked).firstOrNull;
-    if (record == null) return null;
-    await _store.saveRecord(record);
-    return record;
+    final result = await _recoverLinksAfterReinstall(
+      expectedRole: FamilyDriveLinkOwnerRole.parent,
+    );
+    return result.activeRecord;
+  }
+
+  Future<FamilyDriveLinkRecoveryResult> recoverChildLinksAfterReinstall() {
+    return _recoverLinksAfterReinstall(
+      expectedRole: FamilyDriveLinkOwnerRole.child,
+    );
   }
 
   Future<void> childInitiatedUnlink({
@@ -1179,6 +1240,19 @@ class FamilyDriveLinkService {
     DateTime? now,
   }) async {
     final at = (now ?? DateTime.now()).toUtc();
+    final account = await _gateway.currentAccount();
+    final currentSubjectId = account?.subjectId.trim() ?? '';
+    if (currentSubjectId.isEmpty) {
+      throw const FamilyDriveLinkException(
+        FamilyDriveLinkException.missingGoogleAccount,
+      );
+    }
+    if (record.childSubjectId.trim().isNotEmpty &&
+        record.childSubjectId.trim() != currentSubjectId) {
+      throw const FamilyDriveLinkException(
+        FamilyDriveLinkException.accountMismatch,
+      );
+    }
     await _bestEffort(
       () => _gateway.deletePermission(
         fileId: record.coreBackupFileId,
@@ -1191,9 +1265,13 @@ class FamilyDriveLinkService {
         permissionId: record.contributionPermissionId,
       ),
     );
+    final revoked = record.revoked(at: at, reason: 'child_unlinked');
     await _store.saveRecord(
-      record.revoked(at: at, reason: 'child_unlinked'),
+      revoked,
       makeActive: false,
+    );
+    await _gateway.saveChildManifest(
+      manifest: await _mergedChildManifestForRecord(record: revoked, at: at),
     );
   }
 
@@ -1225,6 +1303,169 @@ class FamilyDriveLinkService {
       createdAt: active.createdAt,
       updatedAt: at,
     );
+  }
+
+  Future<FamilyDriveLinkManifest> _mergedChildManifestForRecord({
+    required FamilyDriveLinkRecord record,
+    required DateTime at,
+  }) async {
+    final durable = await _gateway.loadChildManifest();
+    final records = _mergeCompatibleRecords(
+      familyId: record.familyId,
+      datasetId: record.datasetId,
+      playerId: record.playerId,
+      durableManifest:
+          durable?.ownerRole == FamilyDriveLinkOwnerRole.child ? durable : null,
+      localRecords: _store.loadRecords(),
+      upsertRecord: record,
+    );
+    return _manifestFor(
+      role: FamilyDriveLinkOwnerRole.child,
+      records: records,
+      at: at,
+    );
+  }
+
+  Future<FamilyDriveLinkRecoveryResult> _recoverLinksAfterReinstall({
+    required FamilyDriveLinkOwnerRole expectedRole,
+  }) async {
+    final account = await _gateway.currentAccount();
+    final currentSubjectId = account?.subjectId.trim() ?? '';
+    if (currentSubjectId.isEmpty) {
+      return const FamilyDriveLinkRecoveryResult.empty();
+    }
+    final manifest = expectedRole == FamilyDriveLinkOwnerRole.child
+        ? await _gateway.loadChildManifest()
+        : await _gateway.loadParentManifest();
+    if (manifest == null || manifest.ownerRole != expectedRole) {
+      return const FamilyDriveLinkRecoveryResult.empty();
+    }
+    final records = manifest.records
+        .where(
+          (record) =>
+              _recordMatchesManifestIdentity(record, manifest) &&
+              _recordMatchesRecoverySubject(
+                record: record,
+                role: expectedRole,
+                subjectId: currentSubjectId,
+              ) &&
+              (record.isRevoked || _hasUsableFileRefs(record)),
+        )
+        .toList(growable: false);
+    if (records.isEmpty) {
+      return const FamilyDriveLinkRecoveryResult.empty();
+    }
+    final active = records.where((record) => !record.isRevoked).firstOrNull;
+    await _store.saveRecords(
+      records,
+      activeLinkId: active?.storageId ?? '',
+    );
+    return FamilyDriveLinkRecoveryResult(
+      records: records,
+      activeRecord: active,
+    );
+  }
+
+  List<FamilyDriveLinkRecord> _mergeCompatibleRecords({
+    required String familyId,
+    required String datasetId,
+    required String playerId,
+    required FamilyDriveLinkManifest? durableManifest,
+    required List<FamilyDriveLinkRecord> localRecords,
+    required FamilyDriveLinkRecord upsertRecord,
+  }) {
+    final mergedByParent = <String, FamilyDriveLinkRecord>{};
+    void mergeRecord(FamilyDriveLinkRecord record, {bool force = false}) {
+      if (!_recordMatchesIdentity(
+        record,
+        familyId: familyId,
+        datasetId: datasetId,
+        playerId: playerId,
+      )) {
+        return;
+      }
+      final parentMemberId = record.parentMemberId.trim();
+      if (parentMemberId.isEmpty) return;
+      final existing = mergedByParent[parentMemberId];
+      if (force ||
+          existing == null ||
+          !record.updatedAt.isBefore(existing.updatedAt)) {
+        mergedByParent[parentMemberId] = record;
+      }
+    }
+
+    if (durableManifest != null &&
+        _manifestMatchesIdentity(
+          durableManifest,
+          familyId: familyId,
+          datasetId: datasetId,
+          playerId: playerId,
+        )) {
+      for (final record in durableManifest.records) {
+        mergeRecord(record);
+      }
+    }
+    for (final record in localRecords) {
+      mergeRecord(record);
+    }
+    mergeRecord(upsertRecord, force: true);
+    return mergedByParent.values.toList(growable: false);
+  }
+
+  bool _manifestMatchesIdentity(
+    FamilyDriveLinkManifest manifest, {
+    required String familyId,
+    required String datasetId,
+    required String playerId,
+  }) {
+    return _sameRequiredId(manifest.familyId, familyId) &&
+        _sameRequiredId(manifest.datasetId, datasetId) &&
+        _sameRequiredId(manifest.playerId, playerId);
+  }
+
+  bool _recordMatchesManifestIdentity(
+    FamilyDriveLinkRecord record,
+    FamilyDriveLinkManifest manifest,
+  ) {
+    return _recordMatchesIdentity(
+      record,
+      familyId: manifest.familyId,
+      datasetId: manifest.datasetId,
+      playerId: manifest.playerId,
+    );
+  }
+
+  bool _recordMatchesIdentity(
+    FamilyDriveLinkRecord record, {
+    required String familyId,
+    required String datasetId,
+    required String playerId,
+  }) {
+    return _sameRequiredId(record.familyId, familyId) &&
+        _sameRequiredId(record.datasetId, datasetId) &&
+        _sameRequiredId(record.playerId, playerId);
+  }
+
+  bool _recordMatchesRecoverySubject({
+    required FamilyDriveLinkRecord record,
+    required FamilyDriveLinkOwnerRole role,
+    required String subjectId,
+  }) {
+    final expected = role == FamilyDriveLinkOwnerRole.child
+        ? record.childSubjectId.trim()
+        : record.parentSubjectId.trim();
+    return expected.isNotEmpty && expected == subjectId.trim();
+  }
+
+  bool _hasUsableFileRefs(FamilyDriveLinkRecord record) {
+    return record.coreBackupFileId.trim().isNotEmpty &&
+        record.contributionFileId.trim().isNotEmpty;
+  }
+
+  bool _sameRequiredId(String a, String b) {
+    final left = a.trim();
+    final right = b.trim();
+    return left.isNotEmpty && right.isNotEmpty && left == right;
   }
 
   void _validateCompletionAgainstPending(
@@ -1457,6 +1698,10 @@ class GoogleDriveFamilyLinkGateway implements FamilyDriveLinkGateway {
         _appPropertyKind: FamilyDriveFileKind.parentManifest.name,
         if (manifest.familyId.trim().isNotEmpty)
           _appPropertyFamilyId: manifest.familyId.trim(),
+        if (manifest.datasetId.trim().isNotEmpty)
+          _appPropertyDatasetId: manifest.datasetId.trim(),
+        if (manifest.playerId.trim().isNotEmpty)
+          _appPropertyPlayerId: manifest.playerId.trim(),
       },
     );
   }
@@ -1477,6 +1722,46 @@ class GoogleDriveFamilyLinkGateway implements FamilyDriveLinkGateway {
     if (file?.id == null) return null;
     final payload = await downloadJsonFile(
       _fileRefFromDriveFile(file!, kind: FamilyDriveFileKind.parentManifest),
+    );
+    return FamilyDriveLinkManifest.fromMap(payload);
+  }
+
+  @override
+  Future<FamilyDriveFileRef> saveChildManifest({
+    required FamilyDriveLinkManifest manifest,
+  }) {
+    return writeJsonFile(
+      fileName: _childManifestFileName,
+      kind: FamilyDriveFileKind.childManifest,
+      payload: manifest.toMap(),
+      appProperties: <String, String>{
+        _appPropertyKind: FamilyDriveFileKind.childManifest.name,
+        if (manifest.familyId.trim().isNotEmpty)
+          _appPropertyFamilyId: manifest.familyId.trim(),
+        if (manifest.datasetId.trim().isNotEmpty)
+          _appPropertyDatasetId: manifest.datasetId.trim(),
+        if (manifest.playerId.trim().isNotEmpty)
+          _appPropertyPlayerId: manifest.playerId.trim(),
+      },
+    );
+  }
+
+  @override
+  Future<FamilyDriveLinkManifest?> loadChildManifest() async {
+    final api = await _driveApiLoader(requireInteractive: false);
+    final folderId = await _findFolderId(api);
+    if (folderId == null) return null;
+    final file = await _findTaggedFile(
+      api,
+      folderId: folderId,
+      kind: FamilyDriveFileKind.childManifest,
+      appProperties: const <String, String>{
+        _appPropertyKind: 'childManifest',
+      },
+    );
+    if (file?.id == null) return null;
+    final payload = await downloadJsonFile(
+      _fileRefFromDriveFile(file!, kind: FamilyDriveFileKind.childManifest),
     );
     return FamilyDriveLinkManifest.fromMap(payload);
   }
@@ -1518,11 +1803,23 @@ class GoogleDriveFamilyLinkGateway implements FamilyDriveLinkGateway {
       "appProperties has { key='$_appPropertyKind' and value='${kind.name}' }",
     );
     final familyId = appProperties[_appPropertyFamilyId]?.trim() ?? '';
+    final datasetId = appProperties[_appPropertyDatasetId]?.trim() ?? '';
+    final playerId = appProperties[_appPropertyPlayerId]?.trim() ?? '';
     final parentMemberId =
         appProperties[_appPropertyParentMemberId]?.trim() ?? '';
     if (familyId.isNotEmpty) {
       query.write(
         " and appProperties has { key='$_appPropertyFamilyId' and value='${_escapeQueryValue(familyId)}' }",
+      );
+    }
+    if (datasetId.isNotEmpty) {
+      query.write(
+        " and appProperties has { key='$_appPropertyDatasetId' and value='${_escapeQueryValue(datasetId)}' }",
+      );
+    }
+    if (playerId.isNotEmpty) {
+      query.write(
+        " and appProperties has { key='$_appPropertyPlayerId' and value='${_escapeQueryValue(playerId)}' }",
       );
     }
     if (parentMemberId.isNotEmpty) {

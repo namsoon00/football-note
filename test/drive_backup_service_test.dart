@@ -89,6 +89,76 @@ TrainingEntry _trainingEntry({
   );
 }
 
+FamilyDriveLinkRecord _familyLinkRecord({
+  required String parentMemberId,
+  required String parentSubjectId,
+  String childSubjectId = 'child-subject',
+  String familyId = 'family-v2',
+  String datasetId = 'dataset-v2',
+  String playerId = 'player-v2',
+}) {
+  return FamilyDriveLinkRecord(
+    familyId: familyId,
+    datasetId: datasetId,
+    playerId: playerId,
+    parentMemberId: parentMemberId,
+    parentSubjectId: parentSubjectId,
+    parentDisplayName: 'Parent',
+    childSubjectId: childSubjectId,
+    coreBackupFileId: 'core-$parentMemberId',
+    contributionFileId: 'contribution-$parentMemberId',
+    corePermissionId: 'core-permission-$parentMemberId',
+    contributionPermissionId: 'contribution-permission-$parentMemberId',
+    createdAt: DateTime.utc(2026, 8, 27, 10),
+    updatedAt: DateTime.utc(2026, 8, 27, 10),
+  );
+}
+
+Map<String, dynamic> _linkedContributionPayload(FamilyDriveLinkRecord link) {
+  return <String, dynamic>{
+    'format': BackupRestorePlanner.contributionFormatValue,
+    'version': 6,
+    'createdAt': '2026-08-27T12:00:00.000Z',
+    'entries': const <Map<String, dynamic>>[],
+    'options': <String, dynamic>{
+      FamilyAccessService.parentTrainingFeedbackKey: <String, dynamic>{
+        'entry-1': <String, dynamic>{
+          'message': 'Keep scanning.',
+          'reaction': 'thumbs_up',
+          'updatedAt': '2026-08-27T12:00:00.000Z',
+        },
+      },
+    },
+    'optionRecords': <Map<String, dynamic>>[
+      <String, dynamic>{
+        'key': FamilyAccessService.parentTrainingFeedbackKey,
+        'value': <String, dynamic>{
+          'entry-1': <String, dynamic>{
+            'message': 'Keep scanning.',
+            'reaction': 'thumbs_up',
+            'updatedAt': '2026-08-27T12:00:00.000Z',
+          },
+        },
+      },
+    ],
+    'assetRecords': const <String, dynamic>{},
+    'family': <String, dynamic>{
+      'updatedByRole': 'parent',
+      'familyLayerOnly': true,
+      'familyId': link.familyId,
+    },
+    'safetyManifest': <String, dynamic>{
+      'schemaVersion': 1,
+      'datasetId': link.datasetId,
+      'deviceId': 'device-parent',
+      'playerId': link.playerId,
+      'familyId': link.familyId,
+      'recordCounts': const <String, dynamic>{'coreRecords': 0},
+      'contentHash': 'legacy',
+    },
+  };
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -3256,6 +3326,156 @@ void main() {
     expect(driveApiRequested, isFalse);
   });
 
+  test(
+    'child family link manifest recovers before refresh binding resolution',
+    () async {
+      final active = _familyLinkRecord(
+        parentMemberId: 'parent-member-1',
+        parentSubjectId: 'parent-subject-1',
+      );
+      final revoked = _familyLinkRecord(
+        parentMemberId: 'parent-member-2',
+        parentSubjectId: 'parent-subject-2',
+      ).revoked(
+        at: DateTime.utc(2026, 8, 27, 12),
+        reason: 'child_unlinked',
+      );
+      final driveClient = _FamilyManifestRecoveryDriveClient(
+        childManifest: FamilyDriveLinkManifest(
+          ownerRole: FamilyDriveLinkOwnerRole.child,
+          familyId: active.familyId,
+          datasetId: active.datasetId,
+          playerId: active.playerId,
+          records: <FamilyDriveLinkRecord>[active, revoked],
+          createdAt: DateTime.utc(2026, 8, 27, 10),
+          updatedAt: DateTime.utc(2026, 8, 27, 12),
+        ),
+        contributionFileId: active.contributionFileId,
+        contributionPayload: _linkedContributionPayload(active),
+      );
+      service = DriveBackupService(
+        trainingBox,
+        optionBox,
+        backupAssetFileStore: assetStore,
+        driveConnectionLoader: () async => const DriveConnectionInfo(
+          email: 'child@example.com',
+          displayName: 'Child',
+          subjectId: 'child-subject',
+        ),
+        driveApiLoader: ({required bool requireInteractive}) async {
+          return drive.DriveApi(driveClient);
+        },
+      );
+
+      final result = await service.refreshFamilySharedDataIfNeeded();
+
+      expect(result.refreshed, isTrue);
+      final records =
+          FamilyDriveLinkStore(HiveOptionRepository(optionBox)).loadRecords();
+      expect(records, hasLength(2));
+      expect(
+        records.map((record) => record.parentMemberId),
+        containsAll(<String>['parent-member-1', 'parent-member-2']),
+      );
+      expect(records.where((record) => record.isRevoked), hasLength(1));
+      expect(service.getActiveFamilyDriveLink()?.parentMemberId,
+          'parent-member-1');
+      expect(
+        service.getCurrentRoleDriveBindingState(),
+        PlayerDriveBindingState.verified,
+      );
+      expect(optionBox.get(FamilyAccessService.familyIdKey), active.familyId);
+      expect(optionBox.get('family_parent_training_feedback_v1'), isNotNull);
+      expect(driveClient.writeRequestCount, 0);
+    },
+  );
+
+  test('child recovery subject mismatch fails closed before Drive write',
+      () async {
+    final record = _familyLinkRecord(
+      parentMemberId: 'parent-member-1',
+      parentSubjectId: 'parent-subject-1',
+      childSubjectId: 'other-child-subject',
+    );
+    final driveClient = _FamilyManifestRecoveryDriveClient(
+      childManifest: FamilyDriveLinkManifest(
+        ownerRole: FamilyDriveLinkOwnerRole.child,
+        familyId: record.familyId,
+        datasetId: record.datasetId,
+        playerId: record.playerId,
+        records: <FamilyDriveLinkRecord>[record],
+        createdAt: DateTime.utc(2026, 8, 27, 10),
+        updatedAt: DateTime.utc(2026, 8, 27, 10),
+      ),
+    );
+    service = DriveBackupService(
+      trainingBox,
+      optionBox,
+      backupAssetFileStore: assetStore,
+      driveConnectionLoader: () async => const DriveConnectionInfo(
+        email: 'child@example.com',
+        displayName: 'Child',
+        subjectId: 'child-subject',
+      ),
+      driveApiLoader: ({required bool requireInteractive}) async {
+        return drive.DriveApi(driveClient);
+      },
+    );
+
+    final result = await service.refreshFamilySharedDataIfNeeded();
+
+    expect(result.refreshed, isFalse);
+    expect(
+      FamilyDriveLinkStore(HiveOptionRepository(optionBox)).loadRecords(),
+      isEmpty,
+    );
+    expect(driveClient.manifestDownloadCount, 1);
+    expect(driveClient.writeRequestCount, 0);
+  });
+
+  test('parent recovery subject mismatch fails closed before Drive write',
+      () async {
+    await optionBox.put(FamilyAccessService.currentRoleLocalKey, 'parent');
+    final record = _familyLinkRecord(
+      parentMemberId: 'parent-member-1',
+      parentSubjectId: 'other-parent-subject',
+    );
+    final driveClient = _FamilyManifestRecoveryDriveClient(
+      parentManifest: FamilyDriveLinkManifest(
+        ownerRole: FamilyDriveLinkOwnerRole.parent,
+        familyId: record.familyId,
+        datasetId: record.datasetId,
+        playerId: record.playerId,
+        records: <FamilyDriveLinkRecord>[record],
+        createdAt: DateTime.utc(2026, 8, 27, 10),
+        updatedAt: DateTime.utc(2026, 8, 27, 10),
+      ),
+    );
+    service = DriveBackupService(
+      trainingBox,
+      optionBox,
+      backupAssetFileStore: assetStore,
+      driveConnectionLoader: () async => const DriveConnectionInfo(
+        email: 'parent@example.com',
+        displayName: 'Parent',
+        subjectId: 'parent-subject',
+      ),
+      driveApiLoader: ({required bool requireInteractive}) async {
+        return drive.DriveApi(driveClient);
+      },
+    );
+
+    final result = await service.refreshFamilySharedDataIfNeeded();
+
+    expect(result.refreshed, isFalse);
+    expect(
+      FamilyDriveLinkStore(HiveOptionRepository(optionBox)).loadRecords(),
+      isEmpty,
+    );
+    expect(driveClient.manifestDownloadCount, 1);
+    expect(driveClient.writeRequestCount, 0);
+  });
+
   test('normal Drive sign-out never revokes OAuth access', () async {
     final google = _CountingGoogleSignIn();
     service = DriveBackupService(
@@ -3844,6 +4064,135 @@ class _LinkedFamilyContributionDriveClient extends http.BaseClient {
       }
     }
     throw StateError('Linked contribution upload did not contain backup JSON.');
+  }
+
+  http.StreamedResponse _jsonResponse(
+    http.BaseRequest request,
+    Map<String, Object?> payload,
+  ) {
+    final bytes = utf8.encode(jsonEncode(payload));
+    return http.StreamedResponse(
+      Stream<List<int>>.value(bytes),
+      200,
+      request: request,
+      headers: const <String, String>{'content-type': 'application/json'},
+    );
+  }
+}
+
+class _FamilyManifestRecoveryDriveClient extends http.BaseClient {
+  _FamilyManifestRecoveryDriveClient({
+    this.childManifest,
+    this.parentManifest,
+    this.contributionFileId = '',
+    this.contributionPayload,
+  });
+
+  final FamilyDriveLinkManifest? childManifest;
+  final FamilyDriveLinkManifest? parentManifest;
+  final String contributionFileId;
+  final Map<String, dynamic>? contributionPayload;
+  int manifestDownloadCount = 0;
+  int contributionDownloadCount = 0;
+  int writeRequestCount = 0;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    if (request.method == 'GET' &&
+        request.url.path.endsWith('/drive/v3/files')) {
+      final query = request.url.queryParameters['q'] ?? '';
+      if (query.contains("mimeType='application/vnd.google-apps.folder'") &&
+          query.contains("name='${DriveBackupService.backupFolderName}'")) {
+        return _jsonResponse(request, const <String, Object?>{
+          'files': <Map<String, String>>[
+            <String, String>{
+              'id': 'folder-id',
+              'name': DriveBackupService.backupFolderName,
+            },
+          ],
+        });
+      }
+      if (query.contains("'folder-id' in parents") &&
+          query.contains("value='childManifest'")) {
+        return _manifestListResponse(
+          request,
+          fileId: 'child-manifest-id',
+          manifest: childManifest,
+        );
+      }
+      if (query.contains("'folder-id' in parents") &&
+          query.contains("value='parentManifest'")) {
+        return _manifestListResponse(
+          request,
+          fileId: 'parent-manifest-id',
+          manifest: parentManifest,
+        );
+      }
+      return _jsonResponse(request, const <String, Object?>{'files': []});
+    }
+
+    if (request.method == 'GET' &&
+        request.url.path.endsWith('/drive/v3/files/child-manifest-id')) {
+      manifestDownloadCount += 1;
+      return _mapResponse(request, childManifest!.toMap());
+    }
+    if (request.method == 'GET' &&
+        request.url.path.endsWith('/drive/v3/files/parent-manifest-id')) {
+      manifestDownloadCount += 1;
+      return _mapResponse(request, parentManifest!.toMap());
+    }
+    if (request.method == 'GET' &&
+        contributionFileId.isNotEmpty &&
+        request.url.path.endsWith('/drive/v3/files/$contributionFileId')) {
+      if (request.url.queryParameters['alt'] == 'media') {
+        contributionDownloadCount += 1;
+        return _mapResponse(request, contributionPayload!);
+      }
+      return _jsonResponse(request, <String, Object?>{
+        'id': contributionFileId,
+        'name': 'family_contribution.json',
+        'modifiedTime': '2026-08-27T12:00:00.000Z',
+        'capabilities': const <String, Object?>{'canEdit': true},
+        'trashed': false,
+      });
+    }
+
+    if (request.method != 'GET') {
+      writeRequestCount += 1;
+      throw StateError('Unexpected Drive write request: ${request.method}');
+    }
+    return _jsonResponse(request, const <String, Object?>{'files': []});
+  }
+
+  http.StreamedResponse _manifestListResponse(
+    http.BaseRequest request, {
+    required String fileId,
+    required FamilyDriveLinkManifest? manifest,
+  }) {
+    return _jsonResponse(request, <String, Object?>{
+      'files': manifest == null
+          ? const <Map<String, String>>[]
+          : <Map<String, String>>[
+              <String, String>{
+                'id': fileId,
+                'name': 'family_links_manifest_v2.json',
+                'modifiedTime': '2026-08-27T12:00:00.000Z',
+              },
+            ],
+    });
+  }
+
+  http.StreamedResponse _mapResponse(
+    http.BaseRequest request,
+    Map<String, dynamic> payload,
+  ) {
+    final bytes = utf8.encode(jsonEncode(payload));
+    return http.StreamedResponse(
+      Stream<List<int>>.value(bytes),
+      200,
+      request: request,
+      headers: const <String, String>{'content-type': 'application/json'},
+    );
   }
 
   http.StreamedResponse _jsonResponse(

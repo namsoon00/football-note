@@ -16,6 +16,11 @@ void main() {
     displayName: 'Child One',
     subjectId: 'child-subject',
   );
+  const secondParentAccount = DriveConnectionInfo(
+    email: 'parent-two@example.com',
+    displayName: 'Parent Two',
+    subjectId: 'parent-subject-two',
+  );
   final issuedAt = DateTime.utc(2026, 8, 27, 10);
 
   test('pairing offer is versioned, expiring, and durable maps omit email', () {
@@ -185,6 +190,60 @@ void main() {
     );
     expect(store.loadRecords(), isEmpty);
     expect(store.isInviteUsed(offer.inviteId), isFalse);
+  });
+
+  test('child approval preserves existing parent records in manifest',
+      () async {
+    final store = FamilyDriveLinkStore(_MemoryOptionRepository());
+    final gateway = _FakeFamilyDriveLinkGateway(account: childAccount);
+    final service = FamilyDriveLinkService(store: store, gateway: gateway);
+    final firstOffer = FamilyPairingOffer.create(
+      parentAccount: parentAccount,
+      now: issuedAt,
+    );
+    final secondOffer = FamilyPairingOffer.create(
+      parentAccount: secondParentAccount,
+      now: issuedAt.add(const Duration(seconds: 1)),
+    );
+
+    await service.approveOfferOnChild(
+      qrPayload: firstOffer.toQrPayload(),
+      familyId: 'family-1',
+      datasetId: 'dataset-1',
+      playerId: 'player-1',
+      childBackupPayload: _childBackupPayload(),
+      parentContributionPayload: _contributionPayload(),
+      now: issuedAt.add(const Duration(minutes: 1)),
+    );
+    await service.approveOfferOnChild(
+      qrPayload: secondOffer.toQrPayload(),
+      familyId: 'family-1',
+      datasetId: 'dataset-1',
+      playerId: 'player-1',
+      childBackupPayload: _childBackupPayload(),
+      parentContributionPayload: _contributionPayload(),
+      now: issuedAt.add(const Duration(minutes: 2)),
+    );
+
+    final storedParentIds =
+        store.loadRecords().map((record) => record.parentMemberId).toSet();
+    final manifestParentIds = gateway.savedChildManifest?.records
+            .map((record) => record.parentMemberId)
+            .toSet() ??
+        <String>{};
+    expect(
+        storedParentIds,
+        containsAll(<String>[
+          firstOffer.parentMemberId,
+          secondOffer.parentMemberId,
+        ]));
+    expect(
+        manifestParentIds,
+        containsAll(<String>[
+          firstOffer.parentMemberId,
+          secondOffer.parentMemberId,
+        ]));
+    expect(gateway.savedChildManifest?.records, hasLength(2));
   });
 
   test('parent completion validates pending offer, roles, and single use',
@@ -363,6 +422,10 @@ void main() {
     expect(stored.isRevoked, isTrue);
     expect(stored.revocationReason, 'child_unlinked');
     expect(store.loadActiveRecord(), isNull);
+    final manifest = await gateway.loadChildManifest();
+    final durable = manifest?.records.single;
+    expect(durable?.isRevoked, isTrue);
+    expect(durable?.revocationReason, 'child_unlinked');
   });
 
   test('parent reinstall recovers durable link manifest without email',
@@ -394,6 +457,106 @@ void main() {
       _containsValue(repository.values, parentAccount.email),
       isFalse,
     );
+  });
+
+  test('child reinstall restores compatible manifest records and tombstones',
+      () async {
+    final store = FamilyDriveLinkStore(_MemoryOptionRepository());
+    final gateway = _FakeFamilyDriveLinkGateway(account: childAccount);
+    final service = FamilyDriveLinkService(store: store, gateway: gateway);
+    final firstOffer = FamilyPairingOffer.create(
+      parentAccount: parentAccount,
+      now: issuedAt,
+    );
+    final secondOffer = FamilyPairingOffer.create(
+      parentAccount: secondParentAccount,
+      now: issuedAt.add(const Duration(seconds: 1)),
+    );
+    final active = _recordFromOffer(firstOffer);
+    final revoked = _recordFromOffer(secondOffer).revoked(
+      at: issuedAt.add(const Duration(minutes: 3)),
+      reason: 'child_unlinked',
+    );
+    final mismatched = active.copyWith(
+      parentMemberId: 'other-parent-member',
+      familyId: 'other-family',
+    );
+    gateway.savedChildManifest = FamilyDriveLinkManifest(
+      ownerRole: FamilyDriveLinkOwnerRole.child,
+      familyId: active.familyId,
+      datasetId: active.datasetId,
+      playerId: active.playerId,
+      records: <FamilyDriveLinkRecord>[active, revoked, mismatched],
+      createdAt: issuedAt,
+      updatedAt: issuedAt.add(const Duration(minutes: 3)),
+    );
+
+    final recovered = await service.recoverChildLinksAfterReinstall();
+
+    expect(recovered.records, hasLength(2));
+    expect(recovered.activeRecord?.parentMemberId, firstOffer.parentMemberId);
+    expect(store.loadActiveRecord()?.parentMemberId, firstOffer.parentMemberId);
+    expect(
+      store
+          .loadRecords()
+          .where((record) => record.isRevoked)
+          .single
+          .parentMemberId,
+      secondOffer.parentMemberId,
+    );
+  });
+
+  test('reinstall recovery rejects owner role and subject mismatches',
+      () async {
+    final childStore = FamilyDriveLinkStore(_MemoryOptionRepository());
+    final childGateway = _FakeFamilyDriveLinkGateway(account: childAccount);
+    final childService = FamilyDriveLinkService(
+      store: childStore,
+      gateway: childGateway,
+    );
+    final offer = FamilyPairingOffer.create(
+      parentAccount: parentAccount,
+      now: issuedAt,
+    );
+    final record = _recordFromOffer(offer);
+    childGateway.savedChildManifest = FamilyDriveLinkManifest(
+      ownerRole: FamilyDriveLinkOwnerRole.child,
+      familyId: record.familyId,
+      datasetId: record.datasetId,
+      playerId: record.playerId,
+      records: <FamilyDriveLinkRecord>[
+        record.copyWith(childSubjectId: 'other-child-subject'),
+      ],
+      createdAt: issuedAt,
+      updatedAt: issuedAt,
+    );
+
+    final childRecovered = await childService.recoverChildLinksAfterReinstall();
+
+    expect(childRecovered.hasRecords, isFalse);
+    expect(childStore.loadRecords(), isEmpty);
+
+    final parentStore = FamilyDriveLinkStore(_MemoryOptionRepository());
+    final parentGateway = _FakeFamilyDriveLinkGateway(account: parentAccount);
+    final parentService = FamilyDriveLinkService(
+      store: parentStore,
+      gateway: parentGateway,
+    );
+    parentGateway.savedParentManifest = FamilyDriveLinkManifest(
+      ownerRole: FamilyDriveLinkOwnerRole.child,
+      familyId: record.familyId,
+      datasetId: record.datasetId,
+      playerId: record.playerId,
+      records: <FamilyDriveLinkRecord>[record],
+      createdAt: issuedAt,
+      updatedAt: issuedAt,
+    );
+
+    final parentRecovered =
+        await parentService.recoverParentLinkAfterReinstall();
+
+    expect(parentRecovered, isNull);
+    expect(parentStore.loadRecords(), isEmpty);
   });
 }
 
@@ -486,6 +649,7 @@ class _FakeFamilyDriveLinkGateway implements FamilyDriveLinkGateway {
   final List<FamilyPairingCompletionCandidate> completionCandidates =
       <FamilyPairingCompletionCandidate>[];
   FamilyDriveLinkManifest? savedParentManifest;
+  FamilyDriveLinkManifest? savedChildManifest;
   Map<String, dynamic> childBackup = _childBackupPayload();
   Map<String, dynamic> contribution = _contributionPayload();
   int listPairingCompletionCalls = 0;
@@ -632,6 +796,25 @@ class _FakeFamilyDriveLinkGateway implements FamilyDriveLinkGateway {
   @override
   Future<FamilyDriveLinkManifest?> loadParentManifest() async {
     return savedParentManifest;
+  }
+
+  @override
+  Future<FamilyDriveFileRef> saveChildManifest({
+    required FamilyDriveLinkManifest manifest,
+  }) async {
+    savedChildManifest = manifest;
+    return const FamilyDriveFileRef(
+      id: 'child-manifest-file',
+      kind: FamilyDriveFileKind.childManifest,
+      created: true,
+      canRead: true,
+      canWrite: true,
+    );
+  }
+
+  @override
+  Future<FamilyDriveLinkManifest?> loadChildManifest() async {
+    return savedChildManifest;
   }
 }
 
