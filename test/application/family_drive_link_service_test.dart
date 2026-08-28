@@ -251,6 +251,52 @@ void main() {
     );
   });
 
+  test('parent completion accepts a picked completion payload fallback',
+      () async {
+    final parentStore = FamilyDriveLinkStore(_MemoryOptionRepository());
+    final childStore = FamilyDriveLinkStore(_MemoryOptionRepository());
+    final gateway = _FakeFamilyDriveLinkGateway(account: parentAccount);
+    final parentService = FamilyDriveLinkService(
+      store: parentStore,
+      gateway: gateway,
+    );
+    final childService = FamilyDriveLinkService(
+      store: childStore,
+      gateway: gateway,
+    );
+    final offer = await parentService.createParentOffer(now: issuedAt);
+    gateway.account = childAccount;
+    await childService.approveOfferOnChild(
+      qrPayload: offer.toQrPayload(),
+      familyId: 'family-1',
+      datasetId: 'dataset-1',
+      playerId: 'player-1',
+      childBackupPayload: _childBackupPayload(),
+      parentContributionPayload: _contributionPayload(),
+      now: issuedAt.add(const Duration(minutes: 1)),
+    );
+    final pickedPayload = gateway.completionCandidates.single.payload;
+    gateway.completionCandidates.clear();
+    gateway.account = parentAccount;
+
+    var restored = false;
+    final record =
+        await parentService.completeParentPairingFromCompletionPayload(
+      inviteId: offer.inviteId,
+      completionPayload: pickedPayload,
+      restoreChildBackup: (record, childBackup) async {
+        restored = true;
+        expect(childBackup['format'], 'teo_note_backup');
+      },
+      now: issuedAt.add(const Duration(minutes: 2)),
+    );
+
+    expect(restored, isTrue);
+    expect(record.parentManifestFileId, 'parent-manifest-file');
+    expect(parentStore.loadActiveRecord()?.familyId, 'family-1');
+    expect(gateway.listPairingCompletionCalls, 0);
+  });
+
   test('parent completion rejects incorrect permission roles', () async {
     final store = FamilyDriveLinkStore(_MemoryOptionRepository());
     final gateway = _FakeFamilyDriveLinkGateway(account: parentAccount);
@@ -442,6 +488,7 @@ class _FakeFamilyDriveLinkGateway implements FamilyDriveLinkGateway {
   FamilyDriveLinkManifest? savedParentManifest;
   Map<String, dynamic> childBackup = _childBackupPayload();
   Map<String, dynamic> contribution = _contributionPayload();
+  int listPairingCompletionCalls = 0;
   var _permissionCounter = 0;
 
   @override
@@ -553,6 +600,7 @@ class _FakeFamilyDriveLinkGateway implements FamilyDriveLinkGateway {
   Future<List<FamilyPairingCompletionCandidate>> listPairingCompletions({
     required String inviteId,
   }) async {
+    listPairingCompletionCalls += 1;
     return completionCandidates
         .where((candidate) => candidate.payload['inviteId'] == inviteId)
         .toList(growable: false);

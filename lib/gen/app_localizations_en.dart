@@ -12532,6 +12532,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get familyLinkCheckNowAction => 'Check now';
 
   @override
+  String get familyLinkOpenSharedFileAction => 'Open shared file';
+
+  @override
+  String get familyLinkOpeningSharedFile => 'Opening selected file.';
+
+  @override
   String get familyLinkChildScanTitle => 'Scan pairing QR';
 
   @override
@@ -12573,6 +12579,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get familyLinkCompleteFailed => 'Could not complete pairing yet.';
+
+  @override
+  String get familyLinkCompletionFileFailed =>
+      'Could not complete pairing from the selected file.';
 
   @override
   String get familyLinkApproveFailed => 'Could not approve the family link.';

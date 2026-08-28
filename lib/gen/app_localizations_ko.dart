@@ -12143,6 +12143,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get familyLinkCheckNowAction => '지금 확인';
 
   @override
+  String get familyLinkOpenSharedFileAction => '공유 파일 열기';
+
+  @override
+  String get familyLinkOpeningSharedFile => '선택한 파일을 여는 중입니다.';
+
+  @override
   String get familyLinkChildScanTitle => '연결 QR 스캔';
 
   @override
@@ -12183,6 +12189,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get familyLinkCompleteFailed => '아직 연결을 완료할 수 없어요.';
+
+  @override
+  String get familyLinkCompletionFileFailed => '선택한 파일로 연결을 완료할 수 없어요.';
 
   @override
   String get familyLinkApproveFailed => '가족 연결 승인에 실패했어요.';

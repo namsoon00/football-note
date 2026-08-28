@@ -1509,6 +1509,36 @@ class DriveBackupService implements BackupRepository {
     return record;
   }
 
+  Future<FamilyDriveLinkRecord> completeParentPairingFromCompletionPayload(
+    String inviteId,
+    Map<dynamic, dynamic> completionPayload,
+  ) async {
+    if (!await isSignedIn()) {
+      await signIn();
+    }
+    await _syncConnectedDriveAccountCache();
+    final state = _familyService.loadState();
+    if (!state.isParentRole) {
+      throw StateError(driveAccountBindingRequiredErrorCode);
+    }
+    final record = await _familyDriveLinkService()
+        .completeParentPairingFromCompletionPayload(
+      inviteId: inviteId,
+      completionPayload: completionPayload,
+      restoreChildBackup: (record, childBackup) async {
+        _validateLinkedCorePayload(link: record, remote: childBackup);
+        await _saveLocalPreRestore();
+        await _restoreFromMap(childBackup, mode: RestoreMode.safeMerge);
+        await _recordRemoteBackupReceipt(
+          childBackup,
+          modifiedAt: DateTime.now(),
+        );
+      },
+    );
+    await _rememberFamilyDriveLinkIdentifiers(record);
+    return record;
+  }
+
   Future<void> unlinkActiveFamilyLink() async {
     final record = _activeFamilyDriveLink();
     if (record == null) return;

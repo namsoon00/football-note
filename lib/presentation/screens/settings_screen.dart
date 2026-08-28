@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:intl/intl.dart';
@@ -3315,6 +3317,64 @@ class _SettingsScreenState extends State<SettingsScreen>
       }
     }
 
+    Future<void> openSharedCompletionFile(
+      BuildContext dialogContext,
+      StateSetter setDialogState,
+    ) async {
+      if (polling || expired) return;
+      final now = DateTime.now().toUtc();
+      if (!now.isBefore(offer.expiresAt)) {
+        expired = true;
+        _familyPairingPollTimer?.cancel();
+        if (dialogContext.mounted) {
+          setDialogState(() => status = l10n.familyLinkExpiredMessage);
+        }
+        return;
+      }
+      polling = true;
+      if (dialogContext.mounted) {
+        setDialogState(() => status = l10n.familyLinkOpeningSharedFile);
+      }
+      try {
+        final picked = await FilePicker.pickFile(type: FileType.any);
+        if (picked == null) {
+          if (dialogContext.mounted) {
+            setDialogState(() => status = l10n.familyLinkWaitingBody);
+          }
+          return;
+        }
+        final bytes = await picked.readAsBytes();
+        final decoded = jsonDecode(utf8.decode(bytes));
+        if (decoded is! Map) {
+          throw const FamilyDriveLinkException(
+            FamilyDriveLinkException.completionMissing,
+          );
+        }
+        await backup.completeParentPairingFromCompletionPayload(
+          offer.inviteId,
+          decoded,
+        );
+        _familyPairingPollTimer?.cancel();
+        if (dialogContext.mounted) {
+          Navigator.of(dialogContext).pop(true);
+        }
+      } catch (e, st) {
+        debugPrint('Family pairing picked-file completion failed: $e');
+        debugPrintStack(stackTrace: st);
+        if (dialogContext.mounted) {
+          setDialogState(() {
+            status = _driveFailureMessage(
+              l10n,
+              e,
+              fallback: l10n.familyLinkCompletionFileFailed,
+            );
+          });
+        }
+      } finally {
+        polling = false;
+      }
+    }
+
     final result = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
@@ -3369,6 +3429,17 @@ class _SettingsScreenState extends State<SettingsScreen>
                       ? null
                       : () => unawaited(poll(dialogContext, setDialogState)),
                   child: Text(l10n.familyLinkCheckNowAction),
+                ),
+                TextButton(
+                  onPressed: polling || expired
+                      ? null
+                      : () => unawaited(
+                            openSharedCompletionFile(
+                              dialogContext,
+                              setDialogState,
+                            ),
+                          ),
+                  child: Text(l10n.familyLinkOpenSharedFileAction),
                 ),
               ],
             );

@@ -729,6 +729,7 @@ void main() {
     expect(find.text('가족 연결'), findsWidgets);
     expect(find.byType(QrImageView), findsOneWidget);
     expect(find.textContaining('자녀 기기에서 승인하고'), findsOneWidget);
+    expect(find.widgetWithText(TextButton, '공유 파일 열기'), findsOneWidget);
     expect(
       find.descendant(
         of: find.byType(AlertDialog),
@@ -1905,6 +1906,7 @@ class _FakeDriveBackupService extends BackupService {
   bool refreshParentSharedDataIfNeededCalled;
   int createParentPairingOfferCalled;
   int completeParentPairingCalled;
+  int completeParentPairingFromPayloadCalled;
   int hasRemotePlayerBackupChecks;
   final StreamController<void> _driveAccountStateController =
       StreamController<void>.broadcast();
@@ -1946,6 +1948,7 @@ class _FakeDriveBackupService extends BackupService {
         refreshParentSharedDataIfNeededCalled = false,
         createParentPairingOfferCalled = 0,
         completeParentPairingCalled = 0,
+        completeParentPairingFromPayloadCalled = 0,
         hasRemotePlayerBackupChecks = 0,
         throwNextIsSignedIn = false,
         _connectionInfo = connectionInfo,
@@ -2230,6 +2233,15 @@ class _FakeDriveBackupService extends BackupService {
       nonceHash: offer.nonceHash,
     );
     return _activeFamilyDriveLink!;
+  }
+
+  @override
+  Future<FamilyDriveLinkRecord> completeParentPairingFromCompletionPayload(
+    String inviteId,
+    Map<dynamic, dynamic> completionPayload,
+  ) async {
+    completeParentPairingFromPayloadCalled += 1;
+    return completeParentPairing(inviteId);
   }
 
   @override

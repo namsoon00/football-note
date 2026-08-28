@@ -12120,6 +12120,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get familyLinkCheckNowAction => '今すぐ確認';
 
   @override
+  String get familyLinkOpenSharedFileAction => '共有ファイルを開く';
+
+  @override
+  String get familyLinkOpeningSharedFile => '選択したファイルを開いています。';
+
+  @override
   String get familyLinkChildScanTitle => 'ペアリングQRをスキャン';
 
   @override
@@ -12160,6 +12166,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get familyLinkCompleteFailed => 'まだペアリングを完了できません。';
+
+  @override
+  String get familyLinkCompletionFileFailed => '選択したファイルからペアリングを完了できませんでした。';
 
   @override
   String get familyLinkApproveFailed => 'ファミリーリンクを承認できませんでした。';

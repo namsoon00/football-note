@@ -1055,6 +1055,52 @@ class FamilyDriveLinkService {
     DateTime? now,
   }) async {
     final completedAt = (now ?? DateTime.now()).toUtc();
+    final pending = await _validatedPendingParentOffer(
+      inviteId: inviteId,
+      completedAt: completedAt,
+    );
+    final candidates = await _gateway.listPairingCompletions(
+      inviteId: inviteId,
+    );
+    if (candidates.isEmpty) {
+      throw const FamilyDriveLinkException(
+        FamilyDriveLinkException.completionMissing,
+      );
+    }
+    return _completeParentPairingWithCompletion(
+      pending: pending,
+      completion: FamilyPairingCompletion.fromMap(candidates.first.payload),
+      completedAt: completedAt,
+      restoreChildBackup: restoreChildBackup,
+    );
+  }
+
+  Future<FamilyDriveLinkRecord> completeParentPairingFromCompletionPayload({
+    required String inviteId,
+    required Map<dynamic, dynamic> completionPayload,
+    Future<void> Function(
+      FamilyDriveLinkRecord record,
+      Map<String, dynamic> childBackup,
+    )? restoreChildBackup,
+    DateTime? now,
+  }) async {
+    final completedAt = (now ?? DateTime.now()).toUtc();
+    final pending = await _validatedPendingParentOffer(
+      inviteId: inviteId,
+      completedAt: completedAt,
+    );
+    return _completeParentPairingWithCompletion(
+      pending: pending,
+      completion: FamilyPairingCompletion.fromMap(completionPayload),
+      completedAt: completedAt,
+      restoreChildBackup: restoreChildBackup,
+    );
+  }
+
+  Future<Map<String, dynamic>> _validatedPendingParentOffer({
+    required String inviteId,
+    required DateTime completedAt,
+  }) async {
     if (_store.isInviteUsed(inviteId)) {
       throw const FamilyDriveLinkException(
         FamilyDriveLinkException.inviteAlreadyUsed,
@@ -1082,16 +1128,19 @@ class FamilyDriveLinkService {
         FamilyDriveLinkException.accountMismatch,
       );
     }
-    final candidates = await _gateway.listPairingCompletions(
-      inviteId: inviteId,
-    );
-    if (candidates.isEmpty) {
-      throw const FamilyDriveLinkException(
-        FamilyDriveLinkException.completionMissing,
-      );
-    }
-    final completion =
-        FamilyPairingCompletion.fromMap(candidates.first.payload);
+    return pending;
+  }
+
+  Future<FamilyDriveLinkRecord> _completeParentPairingWithCompletion({
+    required Map<String, dynamic> pending,
+    required FamilyPairingCompletion completion,
+    required DateTime completedAt,
+    Future<void> Function(
+      FamilyDriveLinkRecord record,
+      Map<String, dynamic> childBackup,
+    )? restoreChildBackup,
+  }) async {
+    final inviteId = pending['inviteId']?.toString().trim() ?? '';
     _validateCompletionAgainstPending(completion, pending);
     final childBackup = await _gateway.downloadJsonFile(
       completion.record.coreBackupFile,
