@@ -107,6 +107,8 @@ class DriveBackupService implements BackupRepository {
   GoogleSignInAccount? _lastSilentSignInAccount;
   DateTime? _lastSilentSignInAt;
   bool _familyLinkRecoveryInFlight = false;
+  final Map<String, DateTime> _familyLinkNoManifestRecoveryCheckedAt =
+      <String, DateTime>{};
 
   static const String _defaultWebClientId =
       '771305087734-atioeqhkpt2f0kqqhqq54nqkqi8630ju.apps.googleusercontent.com';
@@ -436,6 +438,7 @@ class DriveBackupService implements BackupRepository {
   static const unsupportedBackupValueErrorCode = 'unsupported_backup_value';
   static const _recentDriveConnectionTtl = Duration(minutes: 5);
   static const _silentSignInTtl = Duration(minutes: 5);
+  static const _familyLinkNoManifestRecoveryCooldown = Duration(minutes: 5);
   static const Set<String> _excludedOptionKeys = {
     _lastBackupKey,
     _lastRecordBackupKey,
@@ -2239,8 +2242,18 @@ class DriveBackupService implements BackupRepository {
     if (!state.isChildMode && !state.isParentRole) return;
     final current =
         _loadCachedDriveConnectionInfo() ?? _loadRecentDriveConnection();
-    if (current == null || current.subjectId.trim().isEmpty) return;
+    final subjectId = current?.subjectId.trim() ?? '';
+    if (current == null || subjectId.isEmpty) return;
     if (!_canLoadDriveApiWithoutInteractiveSignIn()) return;
+    final role = state.isChildMode
+        ? FamilyDriveLinkOwnerRole.child
+        : FamilyDriveLinkOwnerRole.parent;
+    if (_isFamilyLinkNoManifestRecoveryCoolingDown(
+      subjectId: subjectId,
+      role: role,
+    )) {
+      return;
+    }
 
     _familyLinkRecoveryInFlight = true;
     try {
@@ -2249,11 +2262,22 @@ class DriveBackupService implements BackupRepository {
         final result = await service.recoverChildLinksAfterReinstall();
         if (result.hasRecords) {
           await _rememberRecoveredFamilyDriveLinkIdentifiers(result);
+        } else if (result.noManifest) {
+          _rememberFamilyLinkNoManifestRecoveryCheck(
+            subjectId: subjectId,
+            role: role,
+          );
         }
       } else {
-        final record = await service.recoverParentLinkAfterReinstall();
+        final result = await service.recoverParentLinksAfterReinstall();
+        final record = result.activeRecord;
         if (record != null) {
           await _rememberFamilyDriveLinkIdentifiers(record);
+        } else if (result.noManifest) {
+          _rememberFamilyLinkNoManifestRecoveryCheck(
+            subjectId: subjectId,
+            role: role,
+          );
         }
       }
     } catch (e, st) {
@@ -2262,6 +2286,43 @@ class DriveBackupService implements BackupRepository {
     } finally {
       _familyLinkRecoveryInFlight = false;
     }
+  }
+
+  bool _isFamilyLinkNoManifestRecoveryCoolingDown({
+    required String subjectId,
+    required FamilyDriveLinkOwnerRole role,
+  }) {
+    final key = _familyLinkRecoveryCooldownKey(
+      subjectId: subjectId,
+      role: role,
+    );
+    final checkedAt = _familyLinkNoManifestRecoveryCheckedAt[key];
+    if (checkedAt == null) {
+      return false;
+    }
+    if (DateTime.now().difference(checkedAt) <
+        _familyLinkNoManifestRecoveryCooldown) {
+      return true;
+    }
+    _familyLinkNoManifestRecoveryCheckedAt.remove(key);
+    return false;
+  }
+
+  void _rememberFamilyLinkNoManifestRecoveryCheck({
+    required String subjectId,
+    required FamilyDriveLinkOwnerRole role,
+  }) {
+    _familyLinkNoManifestRecoveryCheckedAt[_familyLinkRecoveryCooldownKey(
+      subjectId: subjectId,
+      role: role,
+    )] = DateTime.now();
+  }
+
+  String _familyLinkRecoveryCooldownKey({
+    required String subjectId,
+    required FamilyDriveLinkOwnerRole role,
+  }) {
+    return '${role.name}:${subjectId.trim().toLowerCase()}';
   }
 
   bool _canLoadDriveApiWithoutInteractiveSignIn() {
@@ -2317,13 +2378,6 @@ class DriveBackupService implements BackupRepository {
     if (_familyService.loadState().currentRole != FamilyRole.child) {
       return PlayerDriveBindingState.notApplicable;
     }
-    final link = _activeFamilyDriveLink();
-    if (link != null) {
-      return _familyLinkDriveBindingState(
-        link: link,
-        expectedRole: FamilyDriveLinkOwnerRole.child,
-      );
-    }
     return _driveBindingStateForSaved(
       _loadSavedRecordDriveConnectionInfo(),
     );
@@ -2332,13 +2386,6 @@ class DriveBackupService implements BackupRepository {
   PlayerDriveBindingState _currentRoleDriveBindingState() {
     final state = _familyService.loadState();
     if (state.currentRole == FamilyRole.child) {
-      final link = _activeFamilyDriveLink();
-      if (link != null) {
-        return _familyLinkDriveBindingState(
-          link: link,
-          expectedRole: FamilyDriveLinkOwnerRole.child,
-        );
-      }
       return _driveBindingStateForSaved(_loadSavedRecordDriveConnectionInfo());
     }
     if (state.currentRole == FamilyRole.coach) {

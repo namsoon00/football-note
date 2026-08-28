@@ -623,14 +623,16 @@ class FamilyDriveLinkRecoveryResult {
   const FamilyDriveLinkRecoveryResult({
     required this.records,
     required this.activeRecord,
+    this.noManifest = false,
   });
 
-  const FamilyDriveLinkRecoveryResult.empty()
+  const FamilyDriveLinkRecoveryResult.empty({this.noManifest = false})
       : records = const <FamilyDriveLinkRecord>[],
         activeRecord = null;
 
   final List<FamilyDriveLinkRecord> records;
   final FamilyDriveLinkRecord? activeRecord;
+  final bool noManifest;
 
   bool get hasRecords => records.isNotEmpty;
 }
@@ -1223,10 +1225,14 @@ class FamilyDriveLinkService {
   }
 
   Future<FamilyDriveLinkRecord?> recoverParentLinkAfterReinstall() async {
-    final result = await _recoverLinksAfterReinstall(
+    final result = await recoverParentLinksAfterReinstall();
+    return result.activeRecord;
+  }
+
+  Future<FamilyDriveLinkRecoveryResult> recoverParentLinksAfterReinstall() {
+    return _recoverLinksAfterReinstall(
       expectedRole: FamilyDriveLinkOwnerRole.parent,
     );
-    return result.activeRecord;
   }
 
   Future<FamilyDriveLinkRecoveryResult> recoverChildLinksAfterReinstall() {
@@ -1240,19 +1246,23 @@ class FamilyDriveLinkService {
     DateTime? now,
   }) async {
     final at = (now ?? DateTime.now()).toUtc();
-    final account = await _gateway.currentAccount();
-    final currentSubjectId = account?.subjectId.trim() ?? '';
-    if (currentSubjectId.isEmpty) {
-      throw const FamilyDriveLinkException(
-        FamilyDriveLinkException.missingGoogleAccount,
-      );
-    }
-    if (record.childSubjectId.trim().isNotEmpty &&
-        record.childSubjectId.trim() != currentSubjectId) {
-      throw const FamilyDriveLinkException(
-        FamilyDriveLinkException.accountMismatch,
-      );
-    }
+    await _validateCurrentSubjectForRecord(
+      record: record,
+      role: FamilyDriveLinkOwnerRole.child,
+    );
+    final revoked = record.revoked(at: at, reason: 'child_unlinked');
+    final manifestFile = await _gateway.saveChildManifest(
+      manifest: await _mergedChildManifestForRecord(record: revoked, at: at),
+    );
+    final localRevoked = revoked.copyWith(
+      childManifestFileId: manifestFile.id.trim().isNotEmpty
+          ? manifestFile.id.trim()
+          : revoked.childManifestFileId,
+    );
+    await _store.saveRecord(
+      localRevoked,
+      makeActive: false,
+    );
     await _bestEffort(
       () => _gateway.deletePermission(
         fileId: record.coreBackupFileId,
@@ -1265,27 +1275,54 @@ class FamilyDriveLinkService {
         permissionId: record.contributionPermissionId,
       ),
     );
-    final revoked = record.revoked(at: at, reason: 'child_unlinked');
-    await _store.saveRecord(
-      revoked,
-      makeActive: false,
-    );
-    await _gateway.saveChildManifest(
-      manifest: await _mergedChildManifestForRecord(record: revoked, at: at),
-    );
   }
 
   Future<void> parentLocalUnlink({
     required FamilyDriveLinkRecord record,
     DateTime? now,
   }) async {
+    final at = (now ?? DateTime.now()).toUtc();
+    await _validateCurrentSubjectForRecord(
+      record: record,
+      role: FamilyDriveLinkOwnerRole.parent,
+    );
+    final revoked = record.revoked(
+      at: at,
+      reason: 'parent_local_unlinked',
+    );
+    final manifestFile = await _gateway.saveParentManifest(
+      manifest: await _mergedParentManifestForRecord(record: revoked, at: at),
+    );
+    final localRevoked = revoked.copyWith(
+      parentManifestFileId: manifestFile.id.trim().isNotEmpty
+          ? manifestFile.id.trim()
+          : revoked.parentManifestFileId,
+    );
     await _store.saveRecord(
-      record.revoked(
-        at: (now ?? DateTime.now()).toUtc(),
-        reason: 'parent_local_unlinked',
-      ),
+      localRevoked,
       makeActive: false,
     );
+  }
+
+  Future<void> _validateCurrentSubjectForRecord({
+    required FamilyDriveLinkRecord record,
+    required FamilyDriveLinkOwnerRole role,
+  }) async {
+    final account = await _gateway.currentAccount();
+    final currentSubjectId = account?.subjectId.trim() ?? '';
+    if (currentSubjectId.isEmpty) {
+      throw const FamilyDriveLinkException(
+        FamilyDriveLinkException.missingGoogleAccount,
+      );
+    }
+    final expectedSubjectId = role == FamilyDriveLinkOwnerRole.child
+        ? record.childSubjectId.trim()
+        : record.parentSubjectId.trim();
+    if (expectedSubjectId.isEmpty || expectedSubjectId != currentSubjectId) {
+      throw const FamilyDriveLinkException(
+        FamilyDriveLinkException.accountMismatch,
+      );
+    }
   }
 
   FamilyDriveLinkManifest _manifestFor({
@@ -1309,18 +1346,42 @@ class FamilyDriveLinkService {
     required FamilyDriveLinkRecord record,
     required DateTime at,
   }) async {
-    final durable = await _gateway.loadChildManifest();
+    return _mergedManifestForRecord(
+      role: FamilyDriveLinkOwnerRole.child,
+      record: record,
+      at: at,
+    );
+  }
+
+  Future<FamilyDriveLinkManifest> _mergedParentManifestForRecord({
+    required FamilyDriveLinkRecord record,
+    required DateTime at,
+  }) async {
+    return _mergedManifestForRecord(
+      role: FamilyDriveLinkOwnerRole.parent,
+      record: record,
+      at: at,
+    );
+  }
+
+  Future<FamilyDriveLinkManifest> _mergedManifestForRecord({
+    required FamilyDriveLinkOwnerRole role,
+    required FamilyDriveLinkRecord record,
+    required DateTime at,
+  }) async {
+    final durable = role == FamilyDriveLinkOwnerRole.child
+        ? await _gateway.loadChildManifest()
+        : await _gateway.loadParentManifest();
     final records = _mergeCompatibleRecords(
       familyId: record.familyId,
       datasetId: record.datasetId,
       playerId: record.playerId,
-      durableManifest:
-          durable?.ownerRole == FamilyDriveLinkOwnerRole.child ? durable : null,
+      durableManifest: durable?.ownerRole == role ? durable : null,
       localRecords: _store.loadRecords(),
       upsertRecord: record,
     );
     return _manifestFor(
-      role: FamilyDriveLinkOwnerRole.child,
+      role: role,
       records: records,
       at: at,
     );
@@ -1337,7 +1398,10 @@ class FamilyDriveLinkService {
     final manifest = expectedRole == FamilyDriveLinkOwnerRole.child
         ? await _gateway.loadChildManifest()
         : await _gateway.loadParentManifest();
-    if (manifest == null || manifest.ownerRole != expectedRole) {
+    if (manifest == null) {
+      return const FamilyDriveLinkRecoveryResult.empty(noManifest: true);
+    }
+    if (manifest.ownerRole != expectedRole) {
       return const FamilyDriveLinkRecoveryResult.empty();
     }
     final records = manifest.records

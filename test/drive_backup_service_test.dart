@@ -3327,7 +3327,7 @@ void main() {
   });
 
   test(
-    'child family link manifest recovers before refresh binding resolution',
+    'child family link recovery does not establish core backup binding',
     () async {
       final active = _familyLinkRecord(
         parentMemberId: 'parent-member-1',
@@ -3353,6 +3353,7 @@ void main() {
         contributionFileId: active.contributionFileId,
         contributionPayload: _linkedContributionPayload(active),
       );
+      var driveApiRequests = 0;
       service = DriveBackupService(
         trainingBox,
         optionBox,
@@ -3363,13 +3364,14 @@ void main() {
           subjectId: 'child-subject',
         ),
         driveApiLoader: ({required bool requireInteractive}) async {
+          driveApiRequests += 1;
           return drive.DriveApi(driveClient);
         },
       );
 
       final result = await service.refreshFamilySharedDataIfNeeded();
 
-      expect(result.refreshed, isTrue);
+      expect(result.refreshed, isFalse);
       final records =
           FamilyDriveLinkStore(HiveOptionRepository(optionBox)).loadRecords();
       expect(records, hasLength(2));
@@ -3382,13 +3384,151 @@ void main() {
           'parent-member-1');
       expect(
         service.getCurrentRoleDriveBindingState(),
-        PlayerDriveBindingState.verified,
+        PlayerDriveBindingState.unbound,
       );
+      expect(service.needsPlayerDriveImportBeforeBackup(), isTrue);
       expect(optionBox.get(FamilyAccessService.familyIdKey), active.familyId);
-      expect(optionBox.get('family_parent_training_feedback_v1'), isNotNull);
+      expect(
+        optionBox.get(FamilyAccessService.parentTrainingFeedbackKey),
+        isNull,
+      );
+      expect(driveClient.contributionDownloadCount, 0);
+      expect(driveClient.writeRequestCount, 0);
+      final recoveryDriveApiRequests = driveApiRequests;
+      expect(recoveryDriveApiRequests, greaterThan(0));
+
+      await expectLater(
+        service.backup(),
+        throwsA(
+          isA<StateError>().having(
+            (error) => error.message,
+            'message',
+            DriveBackupService.changedPlayerDriveConnectionErrorCode,
+          ),
+        ),
+      );
+
+      expect(driveApiRequests, recoveryDriveApiRequests);
       expect(driveClient.writeRequestCount, 0);
     },
   );
+
+  test('child recovered link refreshes contribution after saved record import',
+      () async {
+    final active = _familyLinkRecord(
+      parentMemberId: 'parent-member-1',
+      parentSubjectId: 'parent-subject-1',
+    );
+    await optionBox.put(
+      DriveBackupService.recordDriveSubjectLocalKey,
+      active.childSubjectId,
+    );
+    await optionBox.put(
+      DriveBackupService.recordDriveEmailLocalKey,
+      'child@example.com',
+    );
+    final driveClient = _FamilyManifestRecoveryDriveClient(
+      childManifest: FamilyDriveLinkManifest(
+        ownerRole: FamilyDriveLinkOwnerRole.child,
+        familyId: active.familyId,
+        datasetId: active.datasetId,
+        playerId: active.playerId,
+        records: <FamilyDriveLinkRecord>[active],
+        createdAt: DateTime.utc(2026, 8, 27, 10),
+        updatedAt: DateTime.utc(2026, 8, 27, 12),
+      ),
+      contributionFileId: active.contributionFileId,
+      contributionPayload: _linkedContributionPayload(active),
+    );
+    service = DriveBackupService(
+      trainingBox,
+      optionBox,
+      backupAssetFileStore: assetStore,
+      driveConnectionLoader: () async => const DriveConnectionInfo(
+        email: 'child@example.com',
+        displayName: 'Child',
+        subjectId: 'child-subject',
+      ),
+      driveApiLoader: ({required bool requireInteractive}) async {
+        return drive.DriveApi(driveClient);
+      },
+    );
+
+    final result = await service.refreshFamilySharedDataIfNeeded();
+
+    expect(result.refreshed, isTrue);
+    expect(
+      service.getCurrentRoleDriveBindingState(),
+      PlayerDriveBindingState.verified,
+    );
+    expect(optionBox.get(FamilyAccessService.parentTrainingFeedbackKey),
+        isNotNull);
+    expect(driveClient.contributionDownloadCount, 1);
+    expect(driveClient.writeRequestCount, 0);
+  });
+
+  test('missing family link manifest recovery is throttled in memory',
+      () async {
+    final driveClient = _FamilyManifestRecoveryDriveClient();
+    var driveApiRequests = 0;
+    service = DriveBackupService(
+      trainingBox,
+      optionBox,
+      backupAssetFileStore: assetStore,
+      driveConnectionLoader: () async => const DriveConnectionInfo(
+        email: 'child@example.com',
+        displayName: 'Child',
+        subjectId: 'child-subject',
+      ),
+      driveApiLoader: ({required bool requireInteractive}) async {
+        driveApiRequests += 1;
+        return drive.DriveApi(driveClient);
+      },
+    );
+
+    final first = await service.refreshFamilySharedDataIfNeeded();
+    final second = await service.refreshFamilySharedDataIfNeeded();
+
+    expect(first.refreshed, isFalse);
+    expect(second.refreshed, isFalse);
+    expect(driveApiRequests, 1);
+    expect(driveClient.folderListCount, 1);
+    expect(driveClient.childManifestListCount, 1);
+    expect(driveClient.manifestDownloadCount, 0);
+    expect(driveClient.writeRequestCount, 0);
+  });
+
+  test('transient family link recovery errors are not cooldown throttled',
+      () async {
+    final driveClient = _FamilyManifestRecoveryDriveClient(
+      failingChildManifestListResponses: 1,
+    );
+    var driveApiRequests = 0;
+    service = DriveBackupService(
+      trainingBox,
+      optionBox,
+      backupAssetFileStore: assetStore,
+      driveConnectionLoader: () async => const DriveConnectionInfo(
+        email: 'child@example.com',
+        displayName: 'Child',
+        subjectId: 'child-subject',
+      ),
+      driveApiLoader: ({required bool requireInteractive}) async {
+        driveApiRequests += 1;
+        return drive.DriveApi(driveClient);
+      },
+    );
+
+    final first = await service.refreshFamilySharedDataIfNeeded();
+    final second = await service.refreshFamilySharedDataIfNeeded();
+
+    expect(first.refreshed, isFalse);
+    expect(second.refreshed, isFalse);
+    expect(driveApiRequests, 2);
+    expect(driveClient.childManifestListCount, 2);
+    expect(driveClient.manifestDownloadCount, 0);
+    expect(driveClient.writeRequestCount, 0);
+  });
 
   test('child recovery subject mismatch fails closed before Drive write',
       () async {
@@ -4086,12 +4226,17 @@ class _FamilyManifestRecoveryDriveClient extends http.BaseClient {
     this.parentManifest,
     this.contributionFileId = '',
     this.contributionPayload,
+    this.failingChildManifestListResponses = 0,
   });
 
   final FamilyDriveLinkManifest? childManifest;
   final FamilyDriveLinkManifest? parentManifest;
   final String contributionFileId;
   final Map<String, dynamic>? contributionPayload;
+  int failingChildManifestListResponses;
+  int folderListCount = 0;
+  int childManifestListCount = 0;
+  int parentManifestListCount = 0;
   int manifestDownloadCount = 0;
   int contributionDownloadCount = 0;
   int writeRequestCount = 0;
@@ -4103,6 +4248,7 @@ class _FamilyManifestRecoveryDriveClient extends http.BaseClient {
       final query = request.url.queryParameters['q'] ?? '';
       if (query.contains("mimeType='application/vnd.google-apps.folder'") &&
           query.contains("name='${DriveBackupService.backupFolderName}'")) {
+        folderListCount += 1;
         return _jsonResponse(request, const <String, Object?>{
           'files': <Map<String, String>>[
             <String, String>{
@@ -4114,6 +4260,11 @@ class _FamilyManifestRecoveryDriveClient extends http.BaseClient {
       }
       if (query.contains("'folder-id' in parents") &&
           query.contains("value='childManifest'")) {
+        childManifestListCount += 1;
+        if (failingChildManifestListResponses > 0) {
+          failingChildManifestListResponses -= 1;
+          throw StateError('transient child manifest list failed');
+        }
         return _manifestListResponse(
           request,
           fileId: 'child-manifest-id',
@@ -4122,6 +4273,7 @@ class _FamilyManifestRecoveryDriveClient extends http.BaseClient {
       }
       if (query.contains("'folder-id' in parents") &&
           query.contains("value='parentManifest'")) {
+        parentManifestListCount += 1;
         return _manifestListResponse(
           request,
           fileId: 'parent-manifest-id',
