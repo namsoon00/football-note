@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:intl/intl.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../application/backup_service.dart';
 import '../../application/backup_restore_plan.dart';
@@ -10,6 +12,7 @@ import '../../application/coach_roster_service.dart';
 import '../../application/drive_connection_info.dart';
 import '../../application/drive_backup_service.dart';
 import '../../application/family_access_service.dart';
+import '../../application/family_drive_link_service.dart';
 import '../../application/health_connect_jump_rope_sync_service.dart';
 import '../../application/locale_service.dart';
 import '../../application/localized_option_defaults.dart';
@@ -146,6 +149,7 @@ class _SettingsScreenState extends State<SettingsScreen>
   final ScrollController _scrollController = ScrollController();
   bool _backupBusy = false;
   bool _restoreBusy = false;
+  bool _familyLinkBusy = false;
   bool _signInBusy = false;
   bool _signedIn = false;
   bool _autoDaily = true;
@@ -161,6 +165,7 @@ class _SettingsScreenState extends State<SettingsScreen>
   HealthConnectStatus _healthConnectStatus =
       const HealthConnectStatus.unavailable();
   StreamSubscription<void>? _driveAccountStateSubscription;
+  Timer? _familyPairingPollTimer;
 
   late List<int> _durationOptions;
   late List<String> _programOptions;
@@ -202,6 +207,7 @@ class _SettingsScreenState extends State<SettingsScreen>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     unawaited(_driveAccountStateSubscription?.cancel());
+    _familyPairingPollTimer?.cancel();
     _scrollController.dispose();
     super.dispose();
   }
@@ -316,15 +322,21 @@ class _SettingsScreenState extends State<SettingsScreen>
     final familyState = FamilyAccessService(
       widget.optionRepository,
     ).loadState();
+    final hasFamilyDriveLink =
+        widget.driveBackupService?.hasActiveFamilyDriveLink() ?? false;
     DriveConnectionInfo? sharedChildConnection;
     var hasRemotePlayerBackup = _hasRemotePlayerBackup;
     try {
-      sharedChildConnection =
-          await widget.driveBackupService!.getSharedChildDriveConnectionInfo(
-        allowRemoteLookup: allowRemoteSharedLookup && familyState.isParentMode,
-      );
+      if (!hasFamilyDriveLink) {
+        sharedChildConnection =
+            await widget.driveBackupService!.getSharedChildDriveConnectionInfo(
+          allowRemoteLookup:
+              allowRemoteSharedLookup && familyState.isParentMode,
+        );
+      }
       if (checkRemotePlayerBackup &&
           familyState.isParentMode &&
+          !hasFamilyDriveLink &&
           (sharedChildConnection == null || sharedChildConnection.isEmpty)) {
         hasRemotePlayerBackup =
             await widget.driveBackupService!.hasRemotePlayerBackup();
@@ -343,16 +355,23 @@ class _SettingsScreenState extends State<SettingsScreen>
       debugPrintStack(stackTrace: st);
     }
     final cachedConnectedDriveLabel = _cachedConnectedDriveLabel();
+    final connectedLabel = hasFamilyDriveLink
+        ? connection?.displayName.trim()
+        : connection?.label.trim();
     if (!mounted) return;
     setState(() {
       _signedIn = signedIn ||
           (connection != null && !connection.isEmpty) ||
           (allowCachedConnection && cachedConnectedDriveLabel.isNotEmpty);
-      _connectedDriveLabel = connection?.label.trim().isNotEmpty == true
-          ? connection!.label.trim()
-          : cachedConnectedDriveLabel;
-      _sharedChildDriveLabel = sharedChildConnection?.label.trim() ?? '';
-      _sharedChildDriveEmail = sharedChildConnection?.email.trim() ?? '';
+      _connectedDriveLabel = connectedLabel?.isNotEmpty == true
+          ? connectedLabel!
+          : hasFamilyDriveLink
+              ? ''
+              : cachedConnectedDriveLabel;
+      _sharedChildDriveLabel =
+          hasFamilyDriveLink ? '' : sharedChildConnection?.label.trim() ?? '';
+      _sharedChildDriveEmail =
+          hasFamilyDriveLink ? '' : sharedChildConnection?.email.trim() ?? '';
       _hasRemotePlayerBackup = hasRemotePlayerBackup;
     });
   }
@@ -428,17 +447,30 @@ class _SettingsScreenState extends State<SettingsScreen>
       widget.optionRepository,
     ).loadState();
     final parentSettingsReadOnly = familyState.isSupportMode;
-    final expectedChildDriveLabel = _sharedChildDriveLabel.trim().isNotEmpty
-        ? _sharedChildDriveLabel.trim()
-        : _sharedChildDriveEmail.trim();
+    final hasFamilyDriveLink =
+        widget.driveBackupService?.hasActiveFamilyDriveLink() ?? false;
+    final linkedParentName = widget.driveBackupService
+            ?.getActiveFamilyDriveLinkParentName()
+            .trim() ??
+        '';
+    final expectedChildDriveLabel = hasFamilyDriveLink
+        ? (linkedParentName.isEmpty
+            ? l10n.familyLinkConnectedAccountHidden
+            : l10n.familyLinkConnectedAccount(linkedParentName))
+        : _sharedChildDriveLabel.trim().isNotEmpty
+            ? _sharedChildDriveLabel.trim()
+            : _sharedChildDriveEmail.trim();
     final sharedChildDriveSubtitle = _driveStatusLoading
         ? l10n.settingsSyncStatusChecking
-        : expectedChildDriveLabel.isNotEmpty
-            ? l10n.settingsSyncBackupDataReady
-            : _hasRemotePlayerBackup
-                ? l10n.driveSharedChildAccountRemoteBackup
-                : l10n.driveSharedChildAccountEmpty;
-    final driveMatchesExpected = expectedChildDriveLabel.isEmpty ||
+        : hasFamilyDriveLink
+            ? l10n.familyLinkConnectedStatus
+            : expectedChildDriveLabel.isNotEmpty
+                ? l10n.settingsSyncBackupDataReady
+                : _hasRemotePlayerBackup
+                    ? l10n.driveSharedChildAccountRemoteBackup
+                    : l10n.driveSharedChildAccountEmpty;
+    final driveMatchesExpected = hasFamilyDriveLink ||
+        expectedChildDriveLabel.isEmpty ||
         _connectedDriveLabel.trim().isEmpty ||
         _driveLabelMatchesEmail(_connectedDriveLabel, _sharedChildDriveEmail);
 
@@ -1502,6 +1534,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       children.add(_buildDriveBackupLockedWarning(l10n));
     }
     children.add(_buildDriveQuickActions(l10n: l10n, familyState: familyState));
+    children.add(_buildFamilyLinkStatus(l10n, familyState));
     children.add(_buildBackupRestoreDetailsButton(l10n, familyState));
     if (!_signedIn || backupBlockedBeforeImport) {
       return children;
@@ -1546,11 +1579,15 @@ class _SettingsScreenState extends State<SettingsScreen>
     required bool driveMatchesExpected,
   }) {
     final driveBackupService = widget.driveBackupService!;
+    final hasFamilyDriveLink = driveBackupService.hasActiveFamilyDriveLink();
     final hasKnownBackupData = _hasRemotePlayerBackup ||
+        hasFamilyDriveLink ||
         _sharedChildDriveLabel.trim().isNotEmpty ||
         _sharedChildDriveEmail.trim().isNotEmpty;
     final children = <Widget>[
       _buildCurrentDriveAccountTile(l10n),
+      if (familyState.currentRole == FamilyRole.parent)
+        _buildFamilyLinkStatus(l10n, familyState),
       _buildDriveQuickActions(l10n: l10n, familyState: familyState),
       _buildBackupRestoreDetailsButton(l10n, familyState),
     ];
@@ -1602,6 +1639,16 @@ class _SettingsScreenState extends State<SettingsScreen>
         onPressed: _signInBusy ? null : () => _toggleDriveSignIn(l10n),
       ),
     ];
+    if (_signedIn) {
+      actions.add(
+        _buildDriveQuickActionButton(
+          icon: Icons.no_accounts_outlined,
+          label: l10n.settingsDriveRevokeAccessAction,
+          tone: _DriveQuickActionTone.disconnect,
+          onPressed: _signInBusy ? null : () => _revokeGoogleAppAccess(l10n),
+        ),
+      );
+    }
     if (_shouldShowLatestRestoreAction(familyState)) {
       actions.add(
         _buildDriveQuickActionButton(
@@ -1905,6 +1952,67 @@ class _SettingsScreenState extends State<SettingsScreen>
       title: l10n.settingsSyncSourceStatusTitle,
       subtitle: sharedChildDriveSubtitle,
       loading: _driveStatusLoading,
+    );
+  }
+
+  Widget _buildFamilyLinkStatus(
+    AppLocalizations l10n,
+    FamilyAccessState familyState,
+  ) {
+    final backup = widget.driveBackupService;
+    if (backup == null || familyState.currentRole == FamilyRole.coach) {
+      return const SizedBox.shrink();
+    }
+    final link = backup.getActiveFamilyDriveLink();
+    final isConnected = link != null && !link.isRevoked;
+    final parentName = link?.parentDisplayName.trim() ?? '';
+    final subtitle = isConnected
+        ? (parentName.isEmpty
+            ? l10n.familyLinkConnectedSubtitleHidden
+            : l10n.familyLinkConnectedSubtitle(parentName))
+        : familyState.isParentMode
+            ? l10n.familyLinkParentConnectBody
+            : l10n.familyLinkChildConnectBody;
+    final action = isConnected
+        ? OutlinedButton.icon(
+            onPressed:
+                _familyLinkBusy ? null : () => _unlinkFamilyDriveLink(l10n),
+            icon: const Icon(Icons.link_off_outlined, size: 18),
+            label: Text(l10n.familyLinkUnlinkAction),
+          )
+        : FilledButton.icon(
+            onPressed: _familyLinkBusy
+                ? null
+                : familyState.isParentMode
+                    ? () => _startParentFamilyPairing(l10n)
+                    : () => _startChildFamilyPairing(l10n),
+            icon: Icon(
+              familyState.isParentMode
+                  ? Icons.qr_code_2_outlined
+                  : Icons.qr_code_scanner_outlined,
+              size: 18,
+            ),
+            label: Text(
+              familyState.isParentMode
+                  ? l10n.familyLinkParentStartAction
+                  : l10n.familyLinkChildScanAction,
+            ),
+          );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildDriveAccountTile(
+          icon: isConnected ? Icons.verified_user_outlined : Icons.link,
+          title: isConnected
+              ? l10n.familyLinkConnectedTitle
+              : l10n.familyLinkConnectTitle,
+          subtitle: subtitle,
+          loading: _familyLinkBusy,
+        ),
+        const SizedBox(height: 8),
+        action,
+      ],
     );
   }
 
@@ -3108,6 +3216,357 @@ class _SettingsScreenState extends State<SettingsScreen>
     }
   }
 
+  Future<void> _startParentFamilyPairing(AppLocalizations l10n) async {
+    final backup = widget.driveBackupService;
+    if (backup == null) return;
+    setState(() => _familyLinkBusy = true);
+    FamilyPairingOffer offer;
+    try {
+      offer = await backup.createParentPairingOffer();
+    } catch (e, st) {
+      debugPrint('Family pairing offer creation failed: $e');
+      debugPrintStack(stackTrace: st);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _driveFailureMessage(
+              l10n,
+              e,
+              fallback: l10n.familyLinkCreateFailed,
+            ),
+          ),
+        ),
+      );
+      setState(() => _familyLinkBusy = false);
+      return;
+    }
+    if (!mounted) return;
+    setState(() => _familyLinkBusy = false);
+    final completed = await _showParentPairingDialog(l10n, offer);
+    if (completed != true || !mounted) return;
+    await _refreshDriveUi(
+      allowCachedConnection: true,
+      refreshParentSharedData: true,
+      allowRemoteStatusLookup: true,
+      showLoading: false,
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(l10n.familyLinkConnectedSnack)),
+    );
+  }
+
+  Future<bool?> _showParentPairingDialog(
+    AppLocalizations l10n,
+    FamilyPairingOffer offer,
+  ) async {
+    final backup = widget.driveBackupService;
+    if (backup == null) return false;
+    _familyPairingPollTimer?.cancel();
+    var polling = false;
+    var pollStarted = false;
+    var expired = false;
+    var status = l10n.familyLinkWaitingBody;
+
+    Future<void> poll(
+      BuildContext dialogContext,
+      StateSetter setDialogState,
+    ) async {
+      if (polling || expired) return;
+      final now = DateTime.now().toUtc();
+      if (!now.isBefore(offer.expiresAt)) {
+        expired = true;
+        _familyPairingPollTimer?.cancel();
+        if (dialogContext.mounted) {
+          setDialogState(() => status = l10n.familyLinkExpiredMessage);
+        }
+        return;
+      }
+      polling = true;
+      if (dialogContext.mounted) {
+        setDialogState(() => status = l10n.familyLinkWaitingChecking);
+      }
+      try {
+        await backup.completeParentPairing(offer.inviteId);
+        _familyPairingPollTimer?.cancel();
+        if (dialogContext.mounted) {
+          Navigator.of(dialogContext).pop(true);
+        }
+      } catch (e, st) {
+        final pending = _isFamilyPairingPending(e);
+        if (!pending) {
+          debugPrint('Family pairing completion failed: $e');
+          debugPrintStack(stackTrace: st);
+        }
+        if (dialogContext.mounted) {
+          setDialogState(() {
+            status = pending
+                ? l10n.familyLinkWaitingBody
+                : _driveFailureMessage(
+                    l10n,
+                    e,
+                    fallback: l10n.familyLinkCompleteFailed,
+                  );
+          });
+        }
+      } finally {
+        polling = false;
+      }
+    }
+
+    final result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (dialogContext, setDialogState) {
+            if (!pollStarted) {
+              pollStarted = true;
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!dialogContext.mounted) return;
+                unawaited(poll(dialogContext, setDialogState));
+                _familyPairingPollTimer = Timer.periodic(
+                  const Duration(seconds: 4),
+                  (_) => unawaited(poll(dialogContext, setDialogState)),
+                );
+              });
+            }
+            return AlertDialog(
+              title: Text(l10n.familyLinkParentQrTitle),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox.square(
+                      dimension: 220,
+                      child: QrImageView(
+                        data: offer.toQrPayload(),
+                        version: QrVersions.auto,
+                        backgroundColor: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      l10n.familyLinkParentQrExpires(
+                        _formatBackupTimestamp(offer.expiresAt),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(status, textAlign: TextAlign.center),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(false),
+                  child: Text(l10n.cancel),
+                ),
+                TextButton(
+                  onPressed: polling || expired
+                      ? null
+                      : () => unawaited(poll(dialogContext, setDialogState)),
+                  child: Text(l10n.familyLinkCheckNowAction),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+    _familyPairingPollTimer?.cancel();
+    _familyPairingPollTimer = null;
+    return result;
+  }
+
+  Future<void> _startChildFamilyPairing(AppLocalizations l10n) async {
+    final backup = widget.driveBackupService;
+    if (backup == null) return;
+    final payload = await showDialog<String>(
+      context: context,
+      builder: (context) => const _FamilyQrScannerDialog(),
+    );
+    if (payload == null || !mounted) return;
+    FamilyPairingOffer offer;
+    try {
+      offer = FamilyPairingOffer.parse(payload);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _driveFailureMessage(
+              l10n,
+              e,
+              fallback: l10n.familyLinkInvalidQr,
+            ),
+          ),
+        ),
+      );
+      return;
+    }
+    final parentName = offer.parentDisplayName.trim().isEmpty
+        ? l10n.familyParentName
+        : offer.parentDisplayName.trim();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.familyLinkChildConfirmTitle),
+        content: Text(l10n.familyLinkChildConfirmBody(parentName)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton.icon(
+            onPressed: () => Navigator.of(context).pop(true),
+            icon: const Icon(Icons.verified_user_outlined, size: 18),
+            label: Text(l10n.familyLinkApproveAction),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    setState(() => _familyLinkBusy = true);
+    try {
+      await backup.approveFamilyPairingOffer(payload);
+      await _refreshDriveUi(
+        allowCachedConnection: true,
+        refreshParentSharedData: true,
+        allowRemoteStatusLookup: true,
+        showLoading: false,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.familyLinkApprovedSnack)),
+      );
+    } catch (e, st) {
+      debugPrint('Family pairing approval failed: $e');
+      debugPrintStack(stackTrace: st);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _driveFailureMessage(
+              l10n,
+              e,
+              fallback: l10n.familyLinkApproveFailed,
+            ),
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _familyLinkBusy = false);
+      }
+    }
+  }
+
+  Future<void> _unlinkFamilyDriveLink(AppLocalizations l10n) async {
+    final backup = widget.driveBackupService;
+    if (backup == null) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.familyLinkUnlinkTitle),
+        content: Text(l10n.familyLinkUnlinkBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton.icon(
+            onPressed: () => Navigator.of(context).pop(true),
+            icon: const Icon(Icons.link_off_outlined, size: 18),
+            label: Text(l10n.familyLinkUnlinkAction),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    setState(() => _familyLinkBusy = true);
+    try {
+      await backup.unlinkActiveFamilyLink();
+      await _refreshDriveUi(
+        allowCachedConnection: true,
+        allowRemoteStatusLookup: true,
+        showLoading: false,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.familyLinkUnlinkedSnack)),
+      );
+    } catch (e, st) {
+      debugPrint('Family unlink failed: $e');
+      debugPrintStack(stackTrace: st);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _driveFailureMessage(
+              l10n,
+              e,
+              fallback: l10n.familyLinkUnlinkFailed,
+            ),
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _familyLinkBusy = false);
+      }
+    }
+  }
+
+  Future<void> _revokeGoogleAppAccess(AppLocalizations l10n) async {
+    final backup = widget.driveBackupService;
+    if (backup == null) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.settingsDriveRevokeAccessTitle),
+        content: Text(l10n.settingsDriveRevokeAccessBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton.icon(
+            onPressed: () => Navigator.of(context).pop(true),
+            icon: const Icon(Icons.no_accounts_outlined, size: 18),
+            label: Text(l10n.settingsDriveRevokeAccessAction),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    setState(() => _signInBusy = true);
+    try {
+      await backup.revokeGoogleAppAccess();
+      await _refreshDriveUi(
+        allowCachedConnection: false,
+        allowRemoteStatusLookup: true,
+        showLoading: false,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.settingsDriveRevokeAccessDone)),
+      );
+    } catch (e, st) {
+      debugPrint('Drive access revocation failed: $e');
+      debugPrintStack(stackTrace: st);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.settingsDriveRevokeAccessFailed)),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _signInBusy = false);
+      }
+    }
+  }
+
   Future<void> _showPreviousBackupRestoreInfo(AppLocalizations l10n) async {
     final familyState =
         FamilyAccessService(widget.optionRepository).loadState();
@@ -3241,6 +3700,12 @@ class _SettingsScreenState extends State<SettingsScreen>
     return lines.join('\n\n');
   }
 
+  bool _isFamilyPairingPending(Object error) {
+    return error
+        .toString()
+        .contains(FamilyDriveLinkException.completionMissing);
+  }
+
   String _driveFailureMessage(
     AppLocalizations l10n,
     Object error, {
@@ -3272,6 +3737,35 @@ class _SettingsScreenState extends State<SettingsScreen>
     }
     if (raw.contains(DriveBackupService.backupPreviewChangedErrorCode)) {
       return l10n.backupPreviewChanged;
+    }
+    if (raw.contains(FamilyDriveLinkException.expiredOffer)) {
+      return l10n.familyLinkExpiredMessage;
+    }
+    if (raw.contains(FamilyDriveLinkException.malformedOffer) ||
+        raw.contains(FamilyDriveLinkException.unsupportedOfferVersion)) {
+      return l10n.familyLinkInvalidQr;
+    }
+    if (raw.contains(FamilyDriveLinkException.accountMismatch) ||
+        raw.contains(FamilyDriveLinkException.missingGoogleAccount) ||
+        raw.contains(
+          DriveBackupService.familyLinkAccountMismatchErrorCode,
+        )) {
+      return l10n.familyLinkWrongAccount;
+    }
+    if (raw.contains(FamilyDriveLinkException.permissionRevoked) ||
+        raw.contains(
+          DriveBackupService.familyLinkPermissionRevokedErrorCode,
+        )) {
+      return l10n.familyLinkPermissionRevoked;
+    }
+    if (raw.contains(FamilyDriveLinkException.familyMismatch) ||
+        raw.contains(FamilyDriveLinkException.datasetMismatch) ||
+        raw.contains(FamilyDriveLinkException.playerMismatch) ||
+        raw.contains(FamilyDriveLinkException.permissionMismatch)) {
+      return l10n.familyParentFamilyMismatch;
+    }
+    if (raw.contains(FamilyDriveLinkException.inviteAlreadyUsed)) {
+      return l10n.familyLinkInviteUsed;
     }
     if (raw
         .contains(DriveBackupService.changedPlayerDriveConnectionErrorCode)) {
@@ -3611,6 +4105,62 @@ class _BackupHealthCardState extends State<_BackupHealthCard> {
   }
 
   bool get _hasKnownBackup => widget.lastBackupAt != null || widget.backupKnown;
+}
+
+class _FamilyQrScannerDialog extends StatefulWidget {
+  const _FamilyQrScannerDialog();
+
+  @override
+  State<_FamilyQrScannerDialog> createState() => _FamilyQrScannerDialogState();
+}
+
+class _FamilyQrScannerDialogState extends State<_FamilyQrScannerDialog> {
+  bool _handled = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return AlertDialog(
+      title: Text(l10n.familyLinkChildScanTitle),
+      content: SizedBox(
+        width: 320,
+        height: 360,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Expanded(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: MobileScanner(
+                  onDetect: (capture) {
+                    if (_handled) return;
+                    for (final barcode in capture.barcodes) {
+                      final value = barcode.rawValue?.trim() ?? '';
+                      if (value.isEmpty) continue;
+                      _handled = true;
+                      Navigator.of(context).pop(value);
+                      break;
+                    }
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              l10n.familyLinkChildScanBody,
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l10n.cancel),
+        ),
+      ],
+    );
+  }
 }
 
 class _InfoPill extends StatelessWidget {

@@ -12188,6 +12188,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsDriveDisconnectAction => 'Disconnect Google Drive';
 
   @override
+  String get settingsDriveRevokeAccessAction => 'Revoke Google access';
+
+  @override
+  String get settingsDriveRevokeAccessTitle => 'Revoke Google access';
+
+  @override
+  String get settingsDriveRevokeAccessBody =>
+      'This removes this app\'s Google Drive authorization for the current Google account. Use Disconnect Google Drive for a normal sign-out.';
+
+  @override
+  String get settingsDriveRevokeAccessDone => 'Google access was revoked.';
+
+  @override
+  String get settingsDriveRevokeAccessFailed =>
+      'Could not revoke Google access. Try again after reconnecting.';
+
+  @override
   String get settingsRestoreLatestActionTitle => 'Import latest data';
 
   @override
@@ -12457,20 +12474,146 @@ class AppLocalizationsEn extends AppLocalizations {
       'A remote backup was found. Connect the same Google Drive account.';
 
   @override
+  String get familyLinkConnectTitle => 'Family link';
+
+  @override
+  String get familyLinkConnectedTitle => 'Family connected';
+
+  @override
+  String get familyLinkConnectedStatus => 'Family link is active.';
+
+  @override
+  String familyLinkConnectedAccount(Object parent) {
+    return 'Linked with $parent';
+  }
+
+  @override
+  String get familyLinkConnectedAccountHidden => 'Linked family member';
+
+  @override
+  String familyLinkConnectedSubtitle(Object parent) {
+    return 'Linked with $parent. Player data stays child-owned; parent writes use the separate contribution file.';
+  }
+
+  @override
+  String get familyLinkConnectedSubtitleHidden =>
+      'Player data stays child-owned; parent writes use the separate contribution file.';
+
+  @override
+  String get familyLinkParentConnectBody =>
+      'Sign in with the parent\'s Google account, show the QR, then wait for the child to approve.';
+
+  @override
+  String get familyLinkChildConnectBody =>
+      'Sign in with the child\'s Google account, scan the parent\'s QR, then approve the link.';
+
+  @override
+  String get familyLinkParentStartAction => 'Show pairing QR';
+
+  @override
+  String get familyLinkChildScanAction => 'Scan pairing QR';
+
+  @override
+  String get familyLinkParentQrTitle => 'Pair family';
+
+  @override
+  String familyLinkParentQrExpires(Object time) {
+    return 'This QR expires at $time.';
+  }
+
+  @override
+  String get familyLinkWaitingBody =>
+      'Waiting for the child device to approve and share the files.';
+
+  @override
+  String get familyLinkWaitingChecking => 'Checking shared files.';
+
+  @override
+  String get familyLinkCheckNowAction => 'Check now';
+
+  @override
+  String get familyLinkChildScanTitle => 'Scan pairing QR';
+
+  @override
+  String get familyLinkChildScanBody =>
+      'Point the camera at the parent\'s pairing QR.';
+
+  @override
+  String get familyLinkChildConfirmTitle => 'Approve family link';
+
+  @override
+  String familyLinkChildConfirmBody(Object parent) {
+    return 'Approve a family link with $parent? The parent can read player backups and write only feedback and reward names.';
+  }
+
+  @override
+  String get familyLinkApproveAction => 'Approve link';
+
+  @override
+  String get familyLinkUnlinkAction => 'Unlink family';
+
+  @override
+  String get familyLinkUnlinkTitle => 'Unlink family';
+
+  @override
+  String get familyLinkUnlinkBody =>
+      'Child unlink removes the parent\'s Drive permissions. Parent unlink removes this device\'s local family link and asks the child device to revoke access on its next refresh when possible.';
+
+  @override
+  String get familyLinkConnectedSnack => 'Family link connected.';
+
+  @override
+  String get familyLinkApprovedSnack => 'Family link approved.';
+
+  @override
+  String get familyLinkUnlinkedSnack => 'Family link removed.';
+
+  @override
+  String get familyLinkCreateFailed => 'Could not create a pairing QR.';
+
+  @override
+  String get familyLinkCompleteFailed => 'Could not complete pairing yet.';
+
+  @override
+  String get familyLinkApproveFailed => 'Could not approve the family link.';
+
+  @override
+  String get familyLinkUnlinkFailed => 'Could not unlink the family.';
+
+  @override
+  String get familyLinkInvalidQr => 'This pairing QR is not valid.';
+
+  @override
+  String get familyLinkExpiredMessage =>
+      'This pairing QR expired. Start a new pairing QR on the parent device.';
+
+  @override
+  String get familyLinkWrongAccount =>
+      'Reconnect the expected Google account before continuing.';
+
+  @override
+  String get familyLinkPermissionRevoked =>
+      'Drive permission was revoked or the linked file is unavailable. Reconnect the family link.';
+
+  @override
+  String get familyLinkInviteUsed =>
+      'This pairing QR was already used. Start a new pairing QR.';
+
+  @override
   String get familyChildDriveConnectionSummary =>
       'Use the Google Drive account that holds the source backup.';
 
   @override
   String get familyParentUsesChildDriveSummary =>
-      'Use the source backup Drive account here.';
+      'Use the parent\'s Google Drive account after family linking.';
 
   @override
   String get familyParentUsesChildDriveHint =>
-      'In parent mode, sign in with the Google Drive account that holds the player\'s source data to sync training feedback and reward names into a separate contribution file.';
+      'In parent mode, sign in with the parent\'s Google account. Family linking gives read access to player data and writer access only to the separate contribution file.';
 
   @override
   String get familyParentUsesChildDriveWarning =>
-      'Parent mode should connect to the Google Drive account that holds the player\'s source data so feedback and reward names sync safely into the contribution file.';
+      'This device is not connected to the expected family link. Reconnect the parent\'s Google account or pair again.';
 
   @override
   String get familySharedSyncTitle => 'Data sync status';

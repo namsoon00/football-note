@@ -19,6 +19,7 @@ import 'club_schedule_service.dart';
 import 'club_training_reminder_service.dart';
 import 'coach_roster_service.dart';
 import 'drive_connection_info.dart';
+import 'family_drive_link_service.dart';
 import 'league_fixture_reminder_service.dart';
 import 'match_competition_service.dart';
 import 'meal_log_service.dart';
@@ -369,6 +370,23 @@ class DriveBackupService implements BackupRepository {
     return 'family_${safePlayerId}_${safeFamilyId}_contribution.json';
   }
 
+  static String familyMemberContributionFileName({
+    required String playerId,
+    required String familyId,
+    required String parentMemberId,
+  }) {
+    final safePlayerId = CoachRosterService.fileSafePlayerId(
+      playerId.trim().isEmpty ? 'default_player' : playerId.trim(),
+    );
+    final safeFamilyId = CoachRosterService.fileSafePlayerId(
+      familyId.trim().isEmpty ? 'unlinked_family' : familyId.trim(),
+    );
+    final safeMemberId = CoachRosterService.fileSafePlayerId(
+      parentMemberId.trim().isEmpty ? 'parent_member' : parentMemberId.trim(),
+    );
+    return 'family_${safePlayerId}_${safeFamilyId}_${safeMemberId}_contribution.json';
+  }
+
   static String playerBackupDisplayPath(String playerId) =>
       'Google Drive > $backupFolderName > ${playerBackupFileName(playerId)}';
   static String previousPlayerBackupDisplayPath(String playerId) =>
@@ -407,6 +425,10 @@ class DriveBackupService implements BackupRepository {
   static const backupOwnerMismatchErrorCode = 'backup_owner_mismatch';
   static const backupDatasetMismatchErrorCode = 'backup_dataset_mismatch';
   static const backupPlayerMismatchErrorCode = 'backup_player_mismatch';
+  static const familyLinkPermissionRevokedErrorCode =
+      FamilyDriveLinkException.permissionRevoked;
+  static const familyLinkAccountMismatchErrorCode =
+      FamilyDriveLinkException.accountMismatch;
   static const backupPreviewChangedErrorCode = 'backup_preview_changed';
   static const invalidBackupPayloadErrorCode = 'invalid_backup_payload';
   static const unsupportedBackupVersionErrorCode = 'unsupported_backup_version';
@@ -439,6 +461,10 @@ class DriveBackupService implements BackupRepository {
     parentDriveEmailLocalKey,
     parentDriveLabelLocalKey,
     parentDriveSubjectLocalKey,
+    FamilyDriveLinkStore.activeLinkIdKey,
+    FamilyDriveLinkStore.linkRecordsKey,
+    FamilyDriveLinkStore.usedInviteIdsKey,
+    FamilyDriveLinkStore.pendingOffersKey,
     ...FamilyAccessService.localOnlyOptionKeys,
   };
   static const Set<String> _backedUpOptionKeys = {
@@ -846,6 +872,14 @@ class DriveBackupService implements BackupRepository {
   }
 
   String get _activeFamilyContributionFileName {
+    final linkedParent = _activeFamilyDriveLink();
+    if (linkedParent != null && _familyService.loadState().isParentRole) {
+      return familyMemberContributionFileName(
+        playerId: linkedParent.playerId,
+        familyId: linkedParent.familyId,
+        parentMemberId: linkedParent.parentMemberId,
+      );
+    }
     return familyContributionFileName(
       playerId: _activePlayerIdForMetadata,
       familyId: _familyService.loadState().familyId,
@@ -1153,6 +1187,14 @@ class DriveBackupService implements BackupRepository {
         PlayerDriveBindingState.legacyEmailMatch;
   }
 
+  bool hasActiveFamilyDriveLink() => _activeFamilyDriveLink() != null;
+
+  FamilyDriveLinkRecord? getActiveFamilyDriveLink() => _activeFamilyDriveLink();
+
+  String getActiveFamilyDriveLinkParentName() {
+    return _activeFamilyDriveLink()?.parentDisplayName.trim() ?? '';
+  }
+
   bool needsPlayerDriveImportBeforeBackup() {
     final state = _playerDriveBindingState();
     return state == PlayerDriveBindingState.unbound ||
@@ -1256,10 +1298,17 @@ class DriveBackupService implements BackupRepository {
   }
 
   String getSavedParentDriveEmail() {
+    if (_activeFamilyDriveLink() != null) {
+      return '';
+    }
     return (_optionBox.get(parentDriveEmailLocalKey) as String?)?.trim() ?? '';
   }
 
   String getSavedParentDriveLabel() {
+    final linkLabel = _activeFamilyDriveLink()?.parentDisplayName.trim() ?? '';
+    if (linkLabel.isNotEmpty) {
+      return linkLabel;
+    }
     return (_optionBox.get(parentDriveLabelLocalKey) as String?)?.trim() ?? '';
   }
 
@@ -1387,6 +1436,96 @@ class DriveBackupService implements BackupRepository {
     await _prepareConnectedDriveDataForCurrentRole();
   }
 
+  Future<FamilyPairingOffer> createParentPairingOffer() async {
+    if (!await isSignedIn()) {
+      await signIn();
+    }
+    await _syncConnectedDriveAccountCache();
+    return _familyDriveLinkService().createParentOffer();
+  }
+
+  Future<FamilyDriveLinkRecord> approveFamilyPairingOffer(
+    String qrPayload,
+  ) async {
+    if (!await isSignedIn()) {
+      await signIn();
+    }
+    await _syncConnectedDriveAccountCache();
+    final state = _familyService.loadState();
+    if (!state.isChildMode) {
+      throw StateError(driveAccountBindingRequiredErrorCode);
+    }
+    _throwIfDriveAccountNeedsResolutionBeforeBackup();
+    final familyId = await _ensureFamilyIdForPairing();
+    final refreshedState = _familyService.loadState();
+    final childBackup = _buildBackup(
+      updatedByRole: FamilyRole.child,
+      familyLayerOnly: false,
+    );
+    final record = await _familyDriveLinkService().approveOfferOnChild(
+      qrPayload: qrPayload,
+      familyId: familyId,
+      datasetId: _loadOrCreateLocalDatasetId(),
+      playerId: _activePlayerIdForMetadata,
+      childBackupPayload: childBackup,
+      parentContributionPayload:
+          _emptyParentContributionForPairing(refreshedState),
+    );
+    if (record.parentDisplayName.trim().isNotEmpty &&
+        (_optionBox.get(FamilyAccessService.parentNameKey) as String?)
+                ?.trim()
+                .isNotEmpty !=
+            true) {
+      await _optionBox.put(
+        FamilyAccessService.parentNameKey,
+        record.parentDisplayName.trim(),
+      );
+    }
+    return record;
+  }
+
+  Future<FamilyDriveLinkRecord> completeParentPairing(String inviteId) async {
+    if (!await isSignedIn()) {
+      await signIn();
+    }
+    await _syncConnectedDriveAccountCache();
+    final state = _familyService.loadState();
+    if (!state.isParentRole) {
+      throw StateError(driveAccountBindingRequiredErrorCode);
+    }
+    final record = await _familyDriveLinkService().completeParentPairing(
+      inviteId: inviteId,
+      restoreChildBackup: (record, childBackup) async {
+        _validateLinkedCorePayload(link: record, remote: childBackup);
+        await _saveLocalPreRestore();
+        await _restoreFromMap(childBackup, mode: RestoreMode.safeMerge);
+        await _recordRemoteBackupReceipt(
+          childBackup,
+          modifiedAt: DateTime.now(),
+        );
+      },
+    );
+    await _rememberFamilyDriveLinkIdentifiers(record);
+    return record;
+  }
+
+  Future<void> unlinkActiveFamilyLink() async {
+    final record = _activeFamilyDriveLink();
+    if (record == null) return;
+    if (!await isSignedIn()) {
+      await signIn();
+    }
+    await _syncConnectedDriveAccountCache();
+    final service = _familyDriveLinkService();
+    final state = _familyService.loadState();
+    if (state.isChildMode) {
+      await service.childInitiatedUnlink(record: record);
+    } else {
+      await service.parentLocalUnlink(record: record);
+    }
+    await _setParentSharedDataDirty(false);
+  }
+
   Future<bool> isSignedIn() async {
     if (kIsWeb) {
       var googleAccount = _googleSignIn?.currentUser;
@@ -1443,13 +1582,32 @@ class DriveBackupService implements BackupRepository {
     }
     final google = _googleSignIn;
     if (google == null) return;
-    try {
-      await google.disconnect();
-    } catch (_) {
-      // Ignore disconnect failures.
-    }
     await google.signOut();
     await _clearConnectedDriveAccountCache();
+  }
+
+  Future<void> revokeGoogleAppAccess() async {
+    _webAccessToken = null;
+    _clearRecentDriveConnection();
+    _lastSilentSignInAccount = null;
+    _lastSilentSignInAt = null;
+    if (kIsWeb) {
+      try {
+        await _googleSignIn?.disconnect();
+      } catch (_) {
+        await _googleSignIn?.signOut();
+      }
+      await _firebaseAuth?.signOut();
+      await _clearConnectedDriveAccountCache();
+      return;
+    }
+    final google = _googleSignIn;
+    if (google == null) return;
+    try {
+      await google.disconnect();
+    } finally {
+      await _clearConnectedDriveAccountCache();
+    }
   }
 
   Future<void> setCurrentFamilyRole(FamilyRole role) async {
@@ -1567,6 +1725,10 @@ class DriveBackupService implements BackupRepository {
       if (_driveAccountNeedsResolutionBeforeBackup()) {
         return FamilySharedSyncResult.none(role: state.currentRole);
       }
+      final link = _activeFamilyDriveLink();
+      if (link != null && state.isParentRole) {
+        return _refreshLinkedParentFamilyDataIfNeeded(state, link);
+      }
       final driveApi = await _driveApi(requireInteractive: false);
       final folderId = await _findFolderId(driveApi);
       if (folderId == null) {
@@ -1621,6 +1783,90 @@ class DriveBackupService implements BackupRepository {
     }
   }
 
+  Future<FamilySharedSyncResult> _refreshLinkedParentFamilyDataIfNeeded(
+    FamilyAccessState state,
+    FamilyDriveLinkRecord link,
+  ) async {
+    try {
+      _validateFamilyLinkForCurrentSession(link, state);
+      final driveApi = await _driveApi(requireInteractive: false);
+      final coreMetadata = await _linkedFileMetadata(
+        driveApi,
+        link.coreBackupFileId,
+        FamilyDriveFileKind.coreBackup,
+      );
+      if (!_shouldRefreshParentSharedData(
+        remoteModifiedAt: coreMetadata.modifiedAt,
+      )) {
+        return FamilySharedSyncResult.none(role: state.currentRole);
+      }
+      final hadKnownRemoteSnapshot = _getLastFamilyRemoteSnapshot() != null;
+      final beforeTrainingIds = _trainingEntryIds();
+      final beforeRewardClaims = _loadRewardClaimFingerprints();
+      await _saveLocalPreRestore();
+      final remote =
+          await _downloadLinkedBackupMap(driveApi, link.coreBackupFile);
+      _validateLinkedCorePayload(link: link, remote: remote);
+      await _restoreFromMap(remote, mode: RestoreMode.safeMerge);
+      DateTime? contributionModifiedAt;
+      try {
+        final contributionMetadata = await _linkedFileMetadata(
+          driveApi,
+          link.contributionFileId,
+          FamilyDriveFileKind.parentContribution,
+        );
+        contributionModifiedAt = contributionMetadata.modifiedAt;
+        final contributionData = await _downloadLinkedBackupMap(
+          driveApi,
+          link.contributionFile,
+        );
+        _validateLinkedContributionPayload(
+          link: link,
+          remote: contributionData,
+        );
+        await _restoreSharedOptionsFromMap(contributionData);
+      } on StateError catch (error) {
+        if (error.message != familyLinkPermissionRevokedErrorCode) {
+          rethrow;
+        }
+      }
+      final remoteModifiedAt =
+          coreMetadata.modifiedAt ?? contributionModifiedAt ?? DateTime.now();
+      await _familyLinkStore.saveRecord(
+        link.copyWith(
+          lastCoreModifiedAt: coreMetadata.modifiedAt,
+          lastContributionModifiedAt: contributionModifiedAt,
+          updatedAt: DateTime.now(),
+        ),
+      );
+      await _recordFamilySyncPull(DateTime.now(),
+          remoteModifiedAt: remoteModifiedAt);
+      await _setParentSharedDataDirty(false);
+      final newTrainingCount = hadKnownRemoteSnapshot
+          ? _trainingEntryIds().difference(beforeTrainingIds).length
+          : 0;
+      final newRewardClaimCount = hadKnownRemoteSnapshot
+          ? _countChangedStringMap(
+              before: beforeRewardClaims,
+              after: _loadRewardClaimFingerprints(),
+            )
+          : 0;
+      return FamilySharedSyncResult(
+        refreshed: true,
+        role: state.currentRole,
+        newTrainingEntryCount: newTrainingCount,
+        newRewardClaimCount: newRewardClaimCount,
+      );
+    } catch (e, st) {
+      if (_isAuthError(e)) {
+        return FamilySharedSyncResult.none(role: state.currentRole);
+      }
+      debugPrint('Parent linked family refresh skipped: $e');
+      debugPrintStack(stackTrace: st);
+      return FamilySharedSyncResult.none(role: state.currentRole);
+    }
+  }
+
   Future<FamilySharedSyncResult> _refreshChildSharedLayerIfNeeded(
     FamilyAccessState state,
   ) async {
@@ -1628,6 +1874,10 @@ class DriveBackupService implements BackupRepository {
       await _syncConnectedDriveAccountCache();
       if (_driveAccountNeedsResolutionBeforeBackup()) {
         return FamilySharedSyncResult.none(role: state.currentRole);
+      }
+      final linkedResult = await _refreshLinkedChildSharedLayersIfNeeded(state);
+      if (linkedResult != null) {
+        return linkedResult;
       }
       final driveApi = await _driveApi(requireInteractive: false);
       final folderId = await _findFolderId(driveApi);
@@ -1672,6 +1922,70 @@ class DriveBackupService implements BackupRepository {
     }
   }
 
+  Future<FamilySharedSyncResult?> _refreshLinkedChildSharedLayersIfNeeded(
+    FamilyAccessState state,
+  ) async {
+    final links = _familyLinkStore
+        .loadRecords()
+        .where((link) => !link.isRevoked && link.contributionFileId.isNotEmpty)
+        .toList(growable: false);
+    if (links.isEmpty) {
+      return null;
+    }
+    final driveApi = await _driveApi(requireInteractive: false);
+    var refreshed = false;
+    DateTime? newestRemoteModifiedAt;
+    final beforeFeedback = _loadParentFeedbackFingerprints();
+    final beforeRewards = _loadRewardNames();
+    for (final link in links) {
+      _validateFamilyLinkForCurrentSession(link, state);
+      final metadata = await _linkedFileMetadata(
+        driveApi,
+        link.contributionFileId,
+        FamilyDriveFileKind.parentContribution,
+      );
+      if (!_shouldRefreshLinkedContribution(
+        link: link,
+        remoteModifiedAt: metadata.modifiedAt,
+      )) {
+        continue;
+      }
+      final remote =
+          await _downloadLinkedBackupMap(driveApi, link.contributionFile);
+      _validateLinkedContributionPayload(link: link, remote: remote);
+      await _restoreSharedOptionsFromMap(remote);
+      refreshed = true;
+      newestRemoteModifiedAt = _maxDateTime(
+        newestRemoteModifiedAt,
+        metadata.modifiedAt,
+      );
+      await _familyLinkStore.saveRecord(
+        link.copyWith(
+          lastContributionModifiedAt: metadata.modifiedAt,
+          updatedAt: DateTime.now(),
+        ),
+      );
+    }
+    if (!refreshed) {
+      return FamilySharedSyncResult.none(role: state.currentRole);
+    }
+    await _recordFamilySyncPull(
+      DateTime.now(),
+      remoteModifiedAt: newestRemoteModifiedAt ?? DateTime.now(),
+    );
+    final afterFeedback = _loadParentFeedbackFingerprints();
+    final afterRewards = _loadRewardNames();
+    return FamilySharedSyncResult(
+      refreshed: true,
+      role: state.currentRole,
+      newParentFeedbackCount: _countChangedFeedback(
+        before: beforeFeedback,
+        after: afterFeedback,
+      ),
+      rewardNamesChanged: !_sameStringMap(beforeRewards, afterRewards),
+    );
+  }
+
   Future<void> _reauthenticateForDriveScope() async {
     final reauthenticator = _driveScopeReauthenticator;
     if (reauthenticator != null) {
@@ -1682,11 +1996,6 @@ class DriveBackupService implements BackupRepository {
       _webAccessToken = null;
       final google = _googleSignIn;
       if (google != null) {
-        try {
-          await google.disconnect();
-        } catch (_) {
-          // Ignore and continue with sign-out/sign-in flow.
-        }
         await google.signOut();
       } else {
         await _firebaseAuth?.signOut();
@@ -1697,11 +2006,6 @@ class DriveBackupService implements BackupRepository {
     final google = _googleSignIn;
     if (google == null) {
       throw StateError('Google sign-in required.');
-    }
-    try {
-      await google.disconnect();
-    } catch (_) {
-      // Ignore and continue with sign-out/sign-in flow.
     }
     await google.signOut();
     final account = await google.signIn();
@@ -1941,6 +2245,20 @@ class DriveBackupService implements BackupRepository {
           HiveOptionRepository(_optionBox),
         ).activePlayerDriveConnection(),
       );
+    }
+    final link = _activeFamilyDriveLink();
+    if (link != null) {
+      final current =
+          _loadCachedDriveConnectionInfo() ?? _loadRecentDriveConnection();
+      if (current == null || current.isEmpty) {
+        return PlayerDriveBindingState.notConnected;
+      }
+      final currentSubject = current.subjectId.trim();
+      if (currentSubject.isNotEmpty &&
+          currentSubject == link.parentSubjectId.trim()) {
+        return PlayerDriveBindingState.verified;
+      }
+      return PlayerDriveBindingState.accountMismatch;
     }
     return _driveBindingStateForSaved(_loadSavedParentDriveConnectionInfo());
   }
@@ -2592,6 +2910,15 @@ class DriveBackupService implements BackupRepository {
     drive.DriveApi driveApi,
     FamilyAccessState familyState,
   ) async {
+    final link = _activeFamilyDriveLink();
+    if (link != null && familyState.isParentRole) {
+      await _backupLinkedFamilyContributionWithApi(
+        driveApi,
+        familyState,
+        link,
+      );
+      return;
+    }
     final folderId = await _findOrCreateFolder(driveApi);
     final local = _buildFamilyContributionBackup(familyState);
     final existing = await _findFamilyContributionFile(driveApi, folderId);
@@ -2622,6 +2949,39 @@ class DriveBackupService implements BackupRepository {
       );
       syncedAt = created.modifiedTime ?? DateTime.now();
     }
+    await _recordSyncSuccess(role: familyState.currentRole, syncedAt: syncedAt);
+  }
+
+  Future<void> _backupLinkedFamilyContributionWithApi(
+    drive.DriveApi driveApi,
+    FamilyAccessState familyState,
+    FamilyDriveLinkRecord link,
+  ) async {
+    _validateFamilyLinkForCurrentSession(link, familyState);
+    final remote =
+        await _downloadLinkedBackupMap(driveApi, link.contributionFile);
+    _validateLinkedContributionPayload(link: link, remote: remote);
+    final local = _buildFamilyContributionBackup(familyState);
+    final data = _mergeFamilyContributionBackup(
+      remote: remote,
+      local: local,
+      familyState: familyState,
+    );
+    final bytes = utf8.encode(jsonEncode(data));
+    final media = drive.Media(Stream.value(bytes), bytes.length);
+    final updated = await _updateLinkedJsonFile(
+      driveApi,
+      fileId: link.contributionFileId,
+      fileName: _activeFamilyContributionFileName,
+      uploadMedia: media,
+    );
+    final syncedAt = updated.modifiedTime ?? DateTime.now();
+    await _familyLinkStore.saveRecord(
+      link.copyWith(
+        lastContributionModifiedAt: syncedAt,
+        updatedAt: syncedAt,
+      ),
+    );
     await _recordSyncSuccess(role: familyState.currentRole, syncedAt: syncedAt);
   }
 
@@ -2803,6 +3163,56 @@ class DriveBackupService implements BackupRepository {
   }
 
   Future<void> _restoreLatestWithApi(drive.DriveApi driveApi) async {
+    final state = _familyService.loadState();
+    final link = _activeFamilyDriveLink();
+    if (state.isParentRole && link != null) {
+      _validateFamilyLinkForCurrentSession(link, state);
+      final coreMetadata = await _linkedFileMetadata(
+        driveApi,
+        link.coreBackupFileId,
+        FamilyDriveFileKind.coreBackup,
+      );
+      final remote =
+          await _downloadLinkedBackupMap(driveApi, link.coreBackupFile);
+      _validateLinkedCorePayload(link: link, remote: remote);
+      await _restoreFromMap(remote, mode: RestoreMode.safeMerge);
+      DateTime? contributionModifiedAt;
+      try {
+        final contributionMetadata = await _linkedFileMetadata(
+          driveApi,
+          link.contributionFileId,
+          FamilyDriveFileKind.parentContribution,
+        );
+        contributionModifiedAt = contributionMetadata.modifiedAt;
+        final contributionData = await _downloadLinkedBackupMap(
+          driveApi,
+          link.contributionFile,
+        );
+        _validateLinkedContributionPayload(
+          link: link,
+          remote: contributionData,
+        );
+        await _restoreSharedOptionsFromMap(contributionData);
+      } on StateError catch (error) {
+        if (error.message != familyLinkPermissionRevokedErrorCode) {
+          rethrow;
+        }
+      }
+      await _familyLinkStore.saveRecord(
+        link.copyWith(
+          lastCoreModifiedAt: coreMetadata.modifiedAt,
+          lastContributionModifiedAt: contributionModifiedAt,
+          updatedAt: DateTime.now(),
+        ),
+      );
+      await _recordFamilySyncPull(
+        DateTime.now(),
+        remoteModifiedAt:
+            coreMetadata.modifiedAt ?? contributionModifiedAt ?? DateTime.now(),
+      );
+      await _setParentSharedDataDirty(false);
+      return;
+    }
     final folderId = await _findFolderId(driveApi);
     if (folderId == null) {
       throw StateError('No backup file found.');
@@ -2841,6 +3251,65 @@ class DriveBackupService implements BackupRepository {
     RestoreMode mode, {
     String? expectedPlanHash,
   }) async {
+    final state = _familyService.loadState();
+    final link = _activeFamilyDriveLink();
+    if (state.isParentRole && link != null) {
+      _validateFamilyLinkForCurrentSession(link, state);
+      final coreMetadata = await _linkedFileMetadata(
+        driveApi,
+        link.coreBackupFileId,
+        FamilyDriveFileKind.coreBackup,
+      );
+      final remote =
+          await _downloadLinkedBackupMap(driveApi, link.coreBackupFile);
+      _validateLinkedCorePayload(link: link, remote: remote);
+      final plan = mode == RestoreMode.exactReplace
+          ? null
+          : _buildRestorePlan(remote: remote, mode: mode);
+      if (expectedPlanHash != null && plan?.planHash != expectedPlanHash) {
+        throw StateError(backupPreviewChangedErrorCode);
+      }
+      await _restoreFromMap(
+        remote,
+        mode: mode,
+        expectedPlanHash: expectedPlanHash,
+      );
+      await _recordRemoteBackupReceipt(
+        remote,
+        modifiedAt: coreMetadata.modifiedAt ?? DateTime.now(),
+      );
+      await _familyLinkStore.saveRecord(
+        link.copyWith(
+          lastCoreModifiedAt: coreMetadata.modifiedAt,
+          updatedAt: DateTime.now(),
+        ),
+      );
+      await _recordFamilySyncPull(
+        DateTime.now(),
+        remoteModifiedAt: coreMetadata.modifiedAt ?? DateTime.now(),
+      );
+      await _setParentSharedDataDirty(false);
+      if (plan == null) {
+        final descriptor = const BackupRestorePlanner().describe(remote);
+        return RestoreReceipt(
+          planHash: descriptor.contentHash,
+          applied:
+              descriptor.counts.trainingEntries + descriptor.counts.options,
+          updated: 0,
+          skipped: 0,
+          conflicts: 0,
+          deleted: 0,
+        );
+      }
+      return RestoreReceipt(
+        planHash: plan.planHash,
+        applied: plan.count(RestoreOperationType.add),
+        updated: plan.count(RestoreOperationType.update),
+        skipped: plan.count(RestoreOperationType.skip),
+        conflicts: plan.count(RestoreOperationType.conflict),
+        deleted: plan.count(RestoreOperationType.tombstone),
+      );
+    }
     final folderId = await _findFolderId(driveApi);
     if (folderId == null) {
       throw StateError('No backup file found.');
@@ -3058,13 +3527,52 @@ class DriveBackupService implements BackupRepository {
       _assetRecordsKey: const <String, dynamic>{},
       _familyMetadataKey: metadata,
       if (driveAccount != null && !driveAccount.isEmpty)
-        _driveAccountMetadataKey: _driveConnectionMetadata(driveAccount),
+        _driveAccountMetadataKey: _driveConnectionMetadata(
+          driveAccount,
+          includeEmail: false,
+        ),
     };
     backup[_backupSafetyManifestKey] = _buildSafetyManifest(
       backup,
       driveAccount: driveAccount,
+      includeAccountEmail: false,
     )..addAll(<String, dynamic>{
         'playerId': playerId,
+        'familyId': familyState.familyId,
+        'contributionLayerOnly': true,
+      });
+    return backup;
+  }
+
+  Map<String, dynamic> _emptyParentContributionForPairing(
+    FamilyAccessState familyState,
+  ) {
+    final metadata = <String, dynamic>{
+      ...FamilyAccessService.backupMetadataFromState(
+        familyState,
+        updatedByRole: FamilyRole.parent,
+        familyLayerOnly: true,
+      ),
+      'playerId': _activePlayerIdForMetadata,
+      'contributionLayerOnly': true,
+      'ownedScopes': const <String>['feedback', 'rewardNames'],
+    };
+    final backup = <String, dynamic>{
+      _backupFormatKey: BackupRestorePlanner.contributionFormatValue,
+      'version': _backupVersion,
+      'createdAt': DateTime.now().toIso8601String(),
+      'entries': const <Map<String, dynamic>>[],
+      'options': const <String, dynamic>{},
+      _optionRecordsKey: const <Map<String, dynamic>>[],
+      _assetRecordsKey: const <String, dynamic>{},
+      _familyMetadataKey: metadata,
+    };
+    backup[_backupSafetyManifestKey] = _buildSafetyManifest(
+      backup,
+      driveAccount: _driveAccountInfoForBackup(),
+      includeAccountEmail: false,
+    )..addAll(<String, dynamic>{
+        'playerId': _activePlayerIdForMetadata,
         'familyId': familyState.familyId,
         'contributionLayerOnly': true,
       });
@@ -3121,6 +3629,7 @@ class DriveBackupService implements BackupRepository {
     merged[_backupSafetyManifestKey] = _buildSafetyManifest(
       merged,
       driveAccount: _driveAccountInfoForBackup(),
+      includeAccountEmail: false,
       datasetIdOverride: _extractSafetyManifestDatasetId(remote),
     )..addAll(<String, dynamic>{
         'playerId': localPlayerId,
@@ -3288,6 +3797,15 @@ class DriveBackupService implements BackupRepository {
     RestoreMode mode = RestoreMode.safeMerge,
   }) async {
     final driveApi = await _driveApi(requireInteractive: false);
+    final state = _familyService.loadState();
+    final link = _activeFamilyDriveLink();
+    if (state.isParentRole && link != null) {
+      _validateFamilyLinkForCurrentSession(link, state);
+      final remote =
+          await _downloadLinkedBackupMap(driveApi, link.coreBackupFile);
+      _validateLinkedCorePayload(link: link, remote: remote);
+      return _buildRestorePlan(remote: remote, mode: mode);
+    }
     final folderId = await _findFolderId(driveApi);
     if (folderId == null) {
       throw StateError('No backup file found.');
@@ -3890,6 +4408,12 @@ class DriveBackupService implements BackupRepository {
     if (!state.isSupportMode || remote == null) {
       return;
     }
+    final link = _activeFamilyDriveLink();
+    if (link != null && state.isParentRole) {
+      _validateFamilyLinkForCurrentSession(link, state);
+      _validateLinkedCorePayload(link: link, remote: remote);
+      return;
+    }
     final localFamilyId = state.familyId.trim();
     final remoteFamilyId = _extractFamilyId(remote);
     if (localFamilyId.isNotEmpty &&
@@ -3914,6 +4438,12 @@ class DriveBackupService implements BackupRepository {
   }) {
     _validatePlayerSourceBackup(remote);
     final state = _familyService.loadState();
+    final activeLink = _activeFamilyDriveLink();
+    if (state.isSupportMode && activeLink != null && state.isParentRole) {
+      _validateFamilyLinkForCurrentSession(activeLink, state);
+      _validateLinkedCorePayload(link: activeLink, remote: remote);
+      return;
+    }
     final canAdoptIdentity = !state.isSupportMode &&
         (allowIdentityAdoption || _canAdoptRemoteIdentityForRestore());
     final localFamilyId = state.familyId.trim();
@@ -3987,6 +4517,94 @@ class DriveBackupService implements BackupRepository {
       }
     }
     return _loadSharedChildDriveConnectionInfo();
+  }
+
+  void _validateFamilyLinkForCurrentSession(
+    FamilyDriveLinkRecord link,
+    FamilyAccessState state,
+  ) {
+    if (link.isRevoked ||
+        link.coreBackupFileId.trim().isEmpty ||
+        link.contributionFileId.trim().isEmpty) {
+      throw StateError(familyLinkPermissionRevokedErrorCode);
+    }
+    final localFamilyId = state.familyId.trim();
+    if (localFamilyId.isNotEmpty &&
+        link.familyId.trim().isNotEmpty &&
+        localFamilyId != link.familyId.trim()) {
+      throw StateError(parentFamilyMismatchErrorCode);
+    }
+    final localDatasetId =
+        (_optionBox.get(_localDatasetIdKey) as String?)?.trim() ?? '';
+    if (localDatasetId.isNotEmpty &&
+        link.datasetId.trim().isNotEmpty &&
+        localDatasetId != link.datasetId.trim()) {
+      throw StateError(backupDatasetMismatchErrorCode);
+    }
+    final localPlayerId = _localPlayerIdForComparison();
+    if (localPlayerId.isNotEmpty &&
+        link.playerId.trim().isNotEmpty &&
+        localPlayerId != link.playerId.trim()) {
+      throw StateError(backupPlayerMismatchErrorCode);
+    }
+    final connected =
+        _loadCachedDriveConnectionInfo() ?? _loadRecentDriveConnection();
+    if (connected == null || connected.isEmpty) {
+      throw StateError(driveAccountBindingRequiredErrorCode);
+    }
+    final expectedSubject = state.isChildMode
+        ? link.childSubjectId.trim()
+        : link.parentSubjectId.trim();
+    if (expectedSubject.isNotEmpty &&
+        connected.subjectId.trim() != expectedSubject) {
+      throw StateError(familyLinkAccountMismatchErrorCode);
+    }
+  }
+
+  void _validateLinkedCorePayload({
+    required FamilyDriveLinkRecord link,
+    required Map<String, dynamic> remote,
+  }) {
+    _validateLinkedFamilyDatasetPlayer(link: link, remote: remote);
+    if (remote[_backupFormatKey] ==
+        BackupRestorePlanner.contributionFormatValue) {
+      throw StateError(invalidBackupPayloadErrorCode);
+    }
+  }
+
+  void _validateLinkedContributionPayload({
+    required FamilyDriveLinkRecord link,
+    required Map<String, dynamic> remote,
+  }) {
+    _validateLinkedFamilyDatasetPlayer(link: link, remote: remote);
+    if (remote[_backupFormatKey] !=
+        BackupRestorePlanner.contributionFormatValue) {
+      throw StateError(invalidBackupPayloadErrorCode);
+    }
+  }
+
+  void _validateLinkedFamilyDatasetPlayer({
+    required FamilyDriveLinkRecord link,
+    required Map<String, dynamic> remote,
+  }) {
+    final remoteFamilyId = _extractFamilyId(remote);
+    if (remoteFamilyId.isNotEmpty &&
+        link.familyId.trim().isNotEmpty &&
+        remoteFamilyId != link.familyId.trim()) {
+      throw StateError(parentFamilyMismatchErrorCode);
+    }
+    final remoteDatasetId = _extractSafetyManifestDatasetId(remote) ?? '';
+    if (remoteDatasetId.isNotEmpty &&
+        link.datasetId.trim().isNotEmpty &&
+        remoteDatasetId != link.datasetId.trim()) {
+      throw StateError(backupDatasetMismatchErrorCode);
+    }
+    final remotePlayerId = _extractSafetyManifestPlayerId(remote) ?? '';
+    if (remotePlayerId.isNotEmpty &&
+        link.playerId.trim().isNotEmpty &&
+        remotePlayerId != link.playerId.trim()) {
+      throw StateError(backupPlayerMismatchErrorCode);
+    }
   }
 
   String _extractFamilyId(Map<String, dynamic> backup) {
@@ -4098,6 +4716,60 @@ class DriveBackupService implements BackupRepository {
       return true;
     }
     return remoteModifiedAt.isAfter(knownRemoteAt);
+  }
+
+  bool _shouldRefreshLinkedContribution({
+    required FamilyDriveLinkRecord link,
+    required DateTime? remoteModifiedAt,
+  }) {
+    if (_familyService.loadState().isSupportMode) {
+      return false;
+    }
+    if (remoteModifiedAt == null) {
+      return link.lastContributionModifiedAt == null;
+    }
+    final known = link.lastContributionModifiedAt;
+    return known == null || remoteModifiedAt.isAfter(known);
+  }
+
+  DateTime? _maxDateTime(DateTime? a, DateTime? b) {
+    if (a == null) return b;
+    if (b == null) return a;
+    return a.isAfter(b) ? a : b;
+  }
+
+  Future<FamilyDriveFileRef> _linkedFileMetadata(
+    drive.DriveApi driveApi,
+    String fileId,
+    FamilyDriveFileKind kind,
+  ) async {
+    try {
+      final file = await driveApi.files.get(
+        fileId,
+        $fields: 'id,name,resourceKey,modifiedTime,capabilities,trashed',
+      ) as drive.File;
+      if (file.trashed == true) {
+        throw StateError(familyLinkPermissionRevokedErrorCode);
+      }
+      return FamilyDriveFileRef(
+        id: file.id ?? fileId,
+        name: file.name ?? '',
+        resourceKey: file.resourceKey ?? '',
+        kind: kind,
+        modifiedAt: file.modifiedTime,
+        canRead: true,
+        canWrite: file.capabilities?.canEdit == true,
+      );
+    } catch (error) {
+      if (error is StateError &&
+          error.message == familyLinkPermissionRevokedErrorCode) {
+        rethrow;
+      }
+      if (_isAuthError(error) || _isNotFoundOrPermissionError(error)) {
+        throw StateError(familyLinkPermissionRevokedErrorCode);
+      }
+      rethrow;
+    }
   }
 
   @visibleForTesting
@@ -4776,8 +5448,66 @@ class DriveBackupService implements BackupRepository {
         msg.contains('request is missing required authentication credential');
   }
 
+  bool _isNotFoundOrPermissionError(Object error) {
+    final msg = error.toString().toLowerCase();
+    return msg.contains('404') ||
+        msg.contains('not found') ||
+        msg.contains('403') ||
+        msg.contains('forbidden') ||
+        msg.contains('permission') ||
+        msg.contains('insufficient file permissions');
+  }
+
   FamilyAccessService get _familyService {
     return FamilyAccessService(HiveOptionRepository(_optionBox));
+  }
+
+  FamilyDriveLinkStore get _familyLinkStore {
+    return FamilyDriveLinkStore(HiveOptionRepository(_optionBox));
+  }
+
+  FamilyDriveLinkRecord? _activeFamilyDriveLink() {
+    return _familyLinkStore.loadActiveRecord();
+  }
+
+  FamilyDriveLinkService _familyDriveLinkService() {
+    return FamilyDriveLinkService(
+      store: _familyLinkStore,
+      gateway: GoogleDriveFamilyLinkGateway(
+        driveApiLoader: _driveApi,
+        accountLoader: getDriveConnectionInfo,
+      ),
+    );
+  }
+
+  Future<String> _ensureFamilyIdForPairing() async {
+    final existing =
+        (_optionBox.get(FamilyAccessService.familyIdKey) as String?)?.trim() ??
+            '';
+    if (existing.isNotEmpty) return existing;
+    final generated = _createLocalIdValue('family');
+    await _optionBox.put(FamilyAccessService.familyIdKey, generated);
+    return generated;
+  }
+
+  Future<void> _rememberFamilyDriveLinkIdentifiers(
+    FamilyDriveLinkRecord record,
+  ) async {
+    if (record.familyId.trim().isNotEmpty) {
+      await _optionBox.put(FamilyAccessService.familyIdKey, record.familyId);
+    }
+    if (record.datasetId.trim().isNotEmpty) {
+      await _optionBox.put(_localDatasetIdKey, record.datasetId);
+    }
+    if (record.playerId.trim().isNotEmpty && _activeCoachPlayerId.isEmpty) {
+      await _optionBox.put(_localPlayerIdKey, record.playerId);
+    }
+    if (record.parentDisplayName.trim().isNotEmpty) {
+      await _optionBox.put(
+        FamilyAccessService.parentNameKey,
+        record.parentDisplayName.trim(),
+      );
+    }
   }
 
   Future<Map<String, dynamic>> _downloadBackupMap(
@@ -4786,6 +5516,41 @@ class DriveBackupService implements BackupRepository {
   ) async {
     final content = await _downloadFileContent(driveApi, fileId);
     return _decodeBackupPayload(content);
+  }
+
+  Future<Map<String, dynamic>> _downloadLinkedBackupMap(
+    drive.DriveApi driveApi,
+    FamilyDriveFileRef file,
+  ) async {
+    try {
+      return await _downloadBackupMap(driveApi, file.id);
+    } catch (error) {
+      if (_isAuthError(error) || _isNotFoundOrPermissionError(error)) {
+        throw StateError(familyLinkPermissionRevokedErrorCode);
+      }
+      rethrow;
+    }
+  }
+
+  Future<drive.File> _updateLinkedJsonFile(
+    drive.DriveApi driveApi, {
+    required String fileId,
+    required String fileName,
+    required drive.Media uploadMedia,
+  }) async {
+    try {
+      return await driveApi.files.update(
+        drive.File(name: fileName),
+        fileId,
+        uploadMedia: uploadMedia,
+        $fields: 'id,modifiedTime',
+      );
+    } catch (error) {
+      if (_isAuthError(error) || _isNotFoundOrPermissionError(error)) {
+        throw StateError(familyLinkPermissionRevokedErrorCode);
+      }
+      rethrow;
+    }
   }
 
   Future<String> _downloadFileContent(
@@ -5040,9 +5805,13 @@ class DriveBackupService implements BackupRepository {
     return info;
   }
 
-  Map<String, dynamic> _driveConnectionMetadata(DriveConnectionInfo info) {
+  Map<String, dynamic> _driveConnectionMetadata(
+    DriveConnectionInfo info, {
+    bool includeEmail = true,
+  }) {
     return <String, dynamic>{
-      if (info.email.trim().isNotEmpty) 'email': info.email.trim(),
+      if (includeEmail && info.email.trim().isNotEmpty)
+        'email': info.email.trim(),
       if (info.label.trim().isNotEmpty) 'label': info.label.trim(),
       if (info.subjectId.trim().isNotEmpty) 'subjectId': info.subjectId.trim(),
     };
@@ -5103,6 +5872,7 @@ class DriveBackupService implements BackupRepository {
     Map<String, dynamic> backup, {
     required DriveConnectionInfo? driveAccount,
     String? datasetIdOverride,
+    bool includeAccountEmail = true,
   }) {
     final counts = _backupSafetyCounts(backup);
     final datasetId = datasetIdOverride ?? _loadOrCreateLocalDatasetId();
@@ -5118,7 +5888,9 @@ class DriveBackupService implements BackupRepository {
       if (familyState.familyId.trim().isNotEmpty)
         'familyId': familyState.familyId.trim(),
       'createdAt': DateTime.now().toIso8601String(),
-      if (driveAccount != null && driveAccount.email.trim().isNotEmpty)
+      if (includeAccountEmail &&
+          driveAccount != null &&
+          driveAccount.email.trim().isNotEmpty)
         'accountEmail': driveAccount.email.trim(),
       if (driveAccount != null && driveAccount.subjectId.trim().isNotEmpty)
         'accountSubjectId': driveAccount.subjectId.trim(),
