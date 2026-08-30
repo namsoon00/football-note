@@ -20501,6 +20501,217 @@ abstract class AppLocalizations {
   /// **'Jump rope auto import is off.'**
   String get healthConnectDisabled;
 
+  /// No description provided for @healthConnectManageAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Health Connect access'**
+  String get healthConnectManageAccess;
+
+  /// No description provided for @healthConnectPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Data use details'**
+  String get healthConnectPrivacy;
+
+  /// No description provided for @healthConnectManageAccessFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open Health Connect access settings.'**
+  String get healthConnectManageAccessFailed;
+
+  /// No description provided for @healthConnectSourceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Data source'**
+  String get healthConnectSourceLabel;
+
+  /// No description provided for @healthConnectSourceDetected.
+  ///
+  /// In en, this message translates to:
+  /// **'A Samsung Health jump rope record was detected.'**
+  String get healthConnectSourceDetected;
+
+  /// No description provided for @healthConnectSourceNotDetected.
+  ///
+  /// In en, this message translates to:
+  /// **'No Samsung Health jump rope record has been detected yet.'**
+  String get healthConnectSourceNotDetected;
+
+  /// No description provided for @healthConnectExercisePermissionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercise read access'**
+  String get healthConnectExercisePermissionLabel;
+
+  /// No description provided for @healthConnectPermissionGranted.
+  ///
+  /// In en, this message translates to:
+  /// **'Allowed'**
+  String get healthConnectPermissionGranted;
+
+  /// No description provided for @healthConnectPermissionNotGranted.
+  ///
+  /// In en, this message translates to:
+  /// **'Permission needed'**
+  String get healthConnectPermissionNotGranted;
+
+  /// No description provided for @healthConnectNotificationPermissionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-import alerts'**
+  String get healthConnectNotificationPermissionLabel;
+
+  /// No description provided for @healthConnectEnableNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable import alerts'**
+  String get healthConnectEnableNotifications;
+
+  /// No description provided for @healthConnectNotificationGranted.
+  ///
+  /// In en, this message translates to:
+  /// **'Allowed'**
+  String get healthConnectNotificationGranted;
+
+  /// No description provided for @healthConnectNotificationNotGranted.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get healthConnectNotificationNotGranted;
+
+  /// No description provided for @healthConnectHistoryScopeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Initial sync range'**
+  String get healthConnectHistoryScopeLabel;
+
+  /// No description provided for @healthConnectHistoryScopeValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 30 days'**
+  String get healthConnectHistoryScopeValue;
+
+  /// No description provided for @healthConnectSyncModeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic check'**
+  String get healthConnectSyncModeLabel;
+
+  /// No description provided for @healthConnectSyncModeValue.
+  ///
+  /// In en, this message translates to:
+  /// **'On app launch and resume'**
+  String get healthConnectSyncModeValue;
+
+  /// No description provided for @healthConnectIncrementalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Change sync'**
+  String get healthConnectIncrementalLabel;
+
+  /// No description provided for @healthConnectIncrementalReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracking additions, edits, and deletions'**
+  String get healthConnectIncrementalReady;
+
+  /// No description provided for @healthConnectIncrementalPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready after the first sync'**
+  String get healthConnectIncrementalPending;
+
+  /// No description provided for @healthConnectLastResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Last run: scanned {scanned} · imported {imported} · updated {updated} · deleted {deleted} · duplicate {duplicate}'**
+  String healthConnectLastResult(
+      int scanned, int imported, int updated, int deleted, int duplicate);
+
+  /// No description provided for @healthConnectPermissionDeniedGuidance.
+  ///
+  /// In en, this message translates to:
+  /// **'Access was denied more than once. Open Health Connect access settings and allow Taeo\'s Note to read exercise data.'**
+  String get healthConnectPermissionDeniedGuidance;
+
+  /// No description provided for @healthConnectSyncApplied.
+  ///
+  /// In en, this message translates to:
+  /// **'Applied {imported} import(s), {updated} update(s), and {deleted} deletion(s).'**
+  String healthConnectSyncApplied(int imported, int updated, int deleted);
+
+  /// No description provided for @healthConnectPrivacyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Health Connect data use'**
+  String get healthConnectPrivacyTitle;
+
+  /// No description provided for @healthConnectPrivacyIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Taeo\'s Note reads Samsung Health jump rope records through Health Connect only after you grant access.'**
+  String get healthConnectPrivacyIntro;
+
+  /// No description provided for @healthConnectPrivacyDataTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Data read'**
+  String get healthConnectPrivacyDataTitle;
+
+  /// No description provided for @healthConnectPrivacyDataBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The app reads the exercise session ID, start and end times, jump rope duration and count, title, and data source.'**
+  String get healthConnectPrivacyDataBody;
+
+  /// No description provided for @healthConnectPrivacySourceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Allowed source'**
+  String get healthConnectPrivacySourceTitle;
+
+  /// No description provided for @healthConnectPrivacySourceBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Only workouts shared by the Samsung Health package are processed. Workouts recorded by other apps are not imported.'**
+  String get healthConnectPrivacySourceBody;
+
+  /// No description provided for @healthConnectPrivacyStorageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Storage'**
+  String get healthConnectPrivacyStorageTitle;
+
+  /// No description provided for @healthConnectPrivacyStorageBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported jump rope records are stored with other training logs in this app\'s on-device storage. If Google Drive backup is enabled, they can be included with those training logs. The Health Connect change token and permission status remain only on this device.'**
+  String get healthConnectPrivacyStorageBody;
+
+  /// No description provided for @healthConnectPrivacyUseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Purpose'**
+  String get healthConnectPrivacyUseTitle;
+
+  /// No description provided for @healthConnectPrivacyUseBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The data is used only to create jump rope training logs, calculate challenge progress and XP, prevent duplicates, and apply source edits or deletions.'**
+  String get healthConnectPrivacyUseBody;
+
+  /// No description provided for @healthConnectPrivacyControlTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your controls'**
+  String get healthConnectPrivacyControlTitle;
+
+  /// No description provided for @healthConnectPrivacyControlBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You can turn off auto import in Settings or revoke read access in Health Connect. The first connection checks the last 30 days; later changes sync when the app opens.'**
+  String get healthConnectPrivacyControlBody;
+
   /// No description provided for @settingsInfoTooltip.
   ///
   /// In en, this message translates to:

@@ -12,6 +12,7 @@ class NotificationAppLink {
     'level',
     'league',
     'notifications',
+    'settings',
     'weather',
     'world-cup',
     'xp',
@@ -99,6 +100,14 @@ class NotificationAppLink {
 
   static String notificationCenter() {
     return Uri(scheme: scheme, host: 'notifications').toString();
+  }
+
+  static String healthConnectPrivacy() {
+    return Uri(
+      scheme: scheme,
+      host: 'settings',
+      path: '/health-connect-privacy',
+    ).toString();
   }
 
   static String leagueFixture({
@@ -278,6 +287,8 @@ class NotificationAppLink {
         return 'club';
       case 'center':
         return 'notifications';
+      case 'health-connect-privacy':
+        return 'settings';
       case 'fixture':
         return queryParameters.containsKey('match') ? 'world-cup' : 'league';
       case 'detail':

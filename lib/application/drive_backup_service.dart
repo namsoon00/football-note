@@ -683,6 +683,7 @@ class DriveBackupService implements BackupRepository {
   };
   static const List<String> _localDeviceOptionKeyPrefixes = [
     'drive_',
+    'health_connect_',
     'local_pre_restore_',
     'benchmark_',
     'news_badge_',

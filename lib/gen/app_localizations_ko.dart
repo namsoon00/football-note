@@ -11609,6 +11609,124 @@ class AppLocalizationsKo extends AppLocalizations {
   String get healthConnectDisabled => '줄넘기 자동 등록을 껐어요.';
 
   @override
+  String get healthConnectManageAccess => 'Health Connect 권한 관리';
+
+  @override
+  String get healthConnectPrivacy => '데이터 이용 안내';
+
+  @override
+  String get healthConnectManageAccessFailed =>
+      'Health Connect 권한 관리 화면을 열지 못했어요.';
+
+  @override
+  String get healthConnectSourceLabel => '데이터 출처';
+
+  @override
+  String get healthConnectSourceDetected => '삼성 헬스 줄넘기 기록을 확인했어요.';
+
+  @override
+  String get healthConnectSourceNotDetected => '아직 삼성 헬스 줄넘기 기록을 확인하지 못했어요.';
+
+  @override
+  String get healthConnectExercisePermissionLabel => '운동 읽기 권한';
+
+  @override
+  String get healthConnectPermissionGranted => '허용됨';
+
+  @override
+  String get healthConnectPermissionNotGranted => '허용 필요';
+
+  @override
+  String get healthConnectNotificationPermissionLabel => '자동 등록 알림';
+
+  @override
+  String get healthConnectEnableNotifications => '등록 알림 켜기';
+
+  @override
+  String get healthConnectNotificationGranted => '허용됨';
+
+  @override
+  String get healthConnectNotificationNotGranted => '꺼짐';
+
+  @override
+  String get healthConnectHistoryScopeLabel => '최초 동기화 범위';
+
+  @override
+  String get healthConnectHistoryScopeValue => '최근 30일';
+
+  @override
+  String get healthConnectSyncModeLabel => '자동 확인 시점';
+
+  @override
+  String get healthConnectSyncModeValue => '앱 시작 및 앱 복귀 시';
+
+  @override
+  String get healthConnectIncrementalLabel => '변경 동기화';
+
+  @override
+  String get healthConnectIncrementalReady => '추가·수정·삭제 추적 준비됨';
+
+  @override
+  String get healthConnectIncrementalPending => '첫 동기화 후 준비됨';
+
+  @override
+  String healthConnectLastResult(
+      int scanned, int imported, int updated, int deleted, int duplicate) {
+    return '마지막 처리: 검사 $scanned · 등록 $imported · 수정 $updated · 삭제 $deleted · 중복 $duplicate';
+  }
+
+  @override
+  String get healthConnectPermissionDeniedGuidance =>
+      '권한 요청이 반복해서 거부됐어요. Health Connect 권한 관리에서 태오의노트의 운동 읽기 권한을 켜 주세요.';
+
+  @override
+  String healthConnectSyncApplied(int imported, int updated, int deleted) {
+    return '등록 $imported개, 수정 $updated개, 삭제 $deleted개를 반영했어요.';
+  }
+
+  @override
+  String get healthConnectPrivacyTitle => 'Health Connect 데이터 이용 안내';
+
+  @override
+  String get healthConnectPrivacyIntro =>
+      '태오의노트는 사용자가 허용한 경우에만 Health Connect를 통해 삼성 헬스 줄넘기 기록을 읽습니다.';
+
+  @override
+  String get healthConnectPrivacyDataTitle => '읽는 데이터';
+
+  @override
+  String get healthConnectPrivacyDataBody =>
+      '운동 세션의 식별자, 시작·종료 시각, 줄넘기 시간, 횟수, 제목과 데이터 출처를 읽습니다.';
+
+  @override
+  String get healthConnectPrivacySourceTitle => '허용하는 출처';
+
+  @override
+  String get healthConnectPrivacySourceBody =>
+      '삼성 헬스 패키지에서 공유한 운동만 처리하며 다른 앱이 기록한 운동은 가져오지 않습니다.';
+
+  @override
+  String get healthConnectPrivacyStorageTitle => '저장 위치';
+
+  @override
+  String get healthConnectPrivacyStorageBody =>
+      '가져온 줄넘기 기록은 다른 훈련 기록과 함께 이 기기의 앱 저장소에 저장됩니다. Google Drive 백업을 켜면 해당 훈련 기록과 함께 백업될 수 있습니다. Health Connect 변경 토큰과 권한 상태는 이 기기에만 보관합니다.';
+
+  @override
+  String get healthConnectPrivacyUseTitle => '사용 목적';
+
+  @override
+  String get healthConnectPrivacyUseBody =>
+      '줄넘기 훈련 기록 자동 등록, 챌린지 진행도와 경험치 계산, 중복 방지와 원본 수정·삭제 반영에만 사용합니다.';
+
+  @override
+  String get healthConnectPrivacyControlTitle => '사용자 제어';
+
+  @override
+  String get healthConnectPrivacyControlBody =>
+      '설정에서 자동 등록을 끌 수 있고 Health Connect 권한 관리에서 읽기 권한을 취소할 수 있습니다. 최초 연결은 최근 30일을 확인하며 이후 변경은 앱을 열 때 동기화합니다.';
+
+  @override
   String get settingsInfoTooltip => '설명 보기';
 
   @override

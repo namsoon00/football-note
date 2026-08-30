@@ -93,6 +93,11 @@ void main() {
         host: 'club',
         path: '/morning-workout',
       );
+      expectLink(
+        NotificationAppLink.healthConnectPrivacy(),
+        host: 'settings',
+        path: '/health-connect-privacy',
+      );
     });
 
     test('generated notification links use explicit app scheme domains', () {
@@ -127,6 +132,7 @@ void main() {
           kickoffAt: date,
         ),
         'notifications': NotificationAppLink.notificationCenter(),
+        'health connect privacy': NotificationAppLink.healthConnectPrivacy(),
         'weather': NotificationAppLink.weatherToday(),
         'world-cup': NotificationAppLink.worldCup(),
         'world-cup fixture': NotificationAppLink.worldCupFixture(

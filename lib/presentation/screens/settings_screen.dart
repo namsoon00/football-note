@@ -23,6 +23,8 @@ import '../../application/sport_defaults.dart';
 import '../../application/tutorial_guide_service.dart';
 import '../../domain/entities/sport_definition.dart';
 import '../../domain/repositories/option_repository.dart';
+import 'health_connect_privacy_screen.dart';
+import '../widgets/app_page_route.dart';
 import '../widgets/sport_scope.dart';
 import '../widgets/watch_cart/constants.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
@@ -166,6 +168,7 @@ class _SettingsScreenState extends State<SettingsScreen>
   bool _healthConnectStatusLoading = false;
   HealthConnectStatus _healthConnectStatus =
       const HealthConnectStatus.unavailable();
+  HealthConnectJumpRopeDiagnostics? _healthConnectDiagnostics;
   StreamSubscription<void>? _driveAccountStateSubscription;
   Timer? _familyPairingPollTimer;
 
@@ -790,11 +793,14 @@ class _SettingsScreenState extends State<SettingsScreen>
   }) {
     final service = widget.healthConnectJumpRopeSyncService;
     if (service == null) return const SizedBox.shrink();
+    final diagnostics = _healthConnectDiagnostics;
     final statusText = _healthConnectStatusText(l10n);
     final autoEnabled = service.autoSyncEnabled;
     final canUse = _healthConnectStatus.isAvailable;
     final canRunAction = !_healthConnectBusy && !readOnly && canUse;
-    final lastSyncAt = service.lastSyncAt;
+    final lastSyncAt = diagnostics?.lastSyncAt ?? service.lastSyncAt;
+    final notificationAllowed =
+        diagnostics?.notificationPermissionGranted ?? false;
     return _buildSectionCard(
       title: l10n.healthConnectSectionTitle,
       icon: Icons.health_and_safety_outlined,
@@ -827,6 +833,79 @@ class _SettingsScreenState extends State<SettingsScreen>
             style: Theme.of(context).textTheme.bodySmall,
           ),
         ),
+        if (_healthConnectStatusLoading) ...[
+          const SizedBox(height: 12),
+          const LinearProgressIndicator(),
+        ] else ...[
+          const SizedBox(height: 8),
+          _healthConnectDiagnosticTile(
+            icon: diagnostics?.samsungRecordDetected == true
+                ? Icons.verified_outlined
+                : Icons.search_outlined,
+            title: l10n.healthConnectSourceLabel,
+            value: diagnostics?.samsungRecordDetected == true
+                ? l10n.healthConnectSourceDetected
+                : l10n.healthConnectSourceNotDetected,
+            positive: diagnostics?.samsungRecordDetected == true,
+          ),
+          _healthConnectDiagnosticTile(
+            icon: Icons.fitness_center_outlined,
+            title: l10n.healthConnectExercisePermissionLabel,
+            value: _healthConnectStatus.permissionsGranted
+                ? l10n.healthConnectPermissionGranted
+                : l10n.healthConnectPermissionNotGranted,
+            positive: _healthConnectStatus.permissionsGranted,
+          ),
+          _healthConnectDiagnosticTile(
+            icon: Icons.notifications_outlined,
+            title: l10n.healthConnectNotificationPermissionLabel,
+            value: notificationAllowed
+                ? l10n.healthConnectNotificationGranted
+                : l10n.healthConnectNotificationNotGranted,
+            positive: notificationAllowed,
+          ),
+          _healthConnectDiagnosticTile(
+            icon: Icons.history_outlined,
+            title: l10n.healthConnectHistoryScopeLabel,
+            value: l10n.healthConnectHistoryScopeValue,
+          ),
+          _healthConnectDiagnosticTile(
+            icon: Icons.sync_outlined,
+            title: l10n.healthConnectSyncModeLabel,
+            value: l10n.healthConnectSyncModeValue,
+          ),
+          _healthConnectDiagnosticTile(
+            icon: Icons.change_circle_outlined,
+            title: l10n.healthConnectIncrementalLabel,
+            value: diagnostics?.incrementalSyncReady == true
+                ? l10n.healthConnectIncrementalReady
+                : l10n.healthConnectIncrementalPending,
+            positive: diagnostics?.incrementalSyncReady == true,
+          ),
+        ],
+        if ((diagnostics?.permissionDenialCount ?? 0) >= 2) ...[
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.warning_amber_rounded,
+                  size: 18,
+                  color: Theme.of(context).colorScheme.error,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    l10n.healthConnectPermissionDeniedGuidance,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
         const SizedBox(height: 10),
         Wrap(
           spacing: 8,
@@ -849,6 +928,32 @@ class _SettingsScreenState extends State<SettingsScreen>
                     : l10n.healthConnectGrantAndSync,
               ),
             ),
+            OutlinedButton.icon(
+              onPressed: !_healthConnectBusy && !readOnly
+                  ? () => unawaited(_openHealthConnectAccess(l10n))
+                  : null,
+              icon: const Icon(Icons.tune_outlined),
+              label: Text(l10n.healthConnectManageAccess),
+            ),
+            OutlinedButton.icon(
+              onPressed: () => Navigator.of(context).push(
+                AppPageRoute<void>(
+                  builder: (_) => const HealthConnectPrivacyScreen(),
+                ),
+              ),
+              icon: const Icon(Icons.policy_outlined),
+              label: Text(l10n.healthConnectPrivacy),
+            ),
+            if (autoEnabled && !notificationAllowed)
+              OutlinedButton.icon(
+                onPressed: !_healthConnectBusy && !readOnly
+                    ? () => unawaited(
+                          _requestHealthConnectNotificationPermission(),
+                        )
+                    : null,
+                icon: const Icon(Icons.notifications_active_outlined),
+                label: Text(l10n.healthConnectEnableNotifications),
+              ),
           ],
         ),
         if (lastSyncAt != null) ...[
@@ -860,8 +965,44 @@ class _SettingsScreenState extends State<SettingsScreen>
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ),
+          if (diagnostics != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 4, 4, 0),
+              child: Text(
+                l10n.healthConnectLastResult(
+                  diagnostics.lastScannedCount,
+                  diagnostics.lastImportCount,
+                  diagnostics.lastUpdateCount,
+                  diagnostics.lastDeleteCount,
+                  diagnostics.lastDuplicateCount,
+                ),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
         ],
       ],
+    );
+  }
+
+  Widget _healthConnectDiagnosticTile({
+    required IconData icon,
+    required String title,
+    required String value,
+    bool? positive,
+  }) {
+    final scheme = Theme.of(context).colorScheme;
+    final color = switch (positive) {
+      true => scheme.primary,
+      false => scheme.onSurfaceVariant,
+      null => scheme.onSurfaceVariant,
+    };
+    return ListTile(
+      dense: true,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+      minLeadingWidth: 24,
+      leading: Icon(icon, size: 20, color: color),
+      title: Text(title),
+      subtitle: Text(value),
     );
   }
 
@@ -888,12 +1029,41 @@ class _SettingsScreenState extends State<SettingsScreen>
     if (mounted) {
       setState(() => _healthConnectStatusLoading = true);
     }
-    final status = await service.status();
-    if (!mounted) return;
-    setState(() {
-      _healthConnectStatus = status;
-      _healthConnectStatusLoading = false;
-    });
+    try {
+      final diagnostics = await service.diagnostics();
+      if (!mounted) return;
+      setState(() {
+        _healthConnectStatus = diagnostics.status;
+        _healthConnectDiagnostics = diagnostics;
+      });
+    } catch (_) {
+      final status = await service.status();
+      if (!mounted) return;
+      setState(() => _healthConnectStatus = status);
+    } finally {
+      if (mounted) {
+        setState(() => _healthConnectStatusLoading = false);
+      }
+    }
+  }
+
+  Future<void> _openHealthConnectAccess(AppLocalizations l10n) async {
+    final opened =
+        await widget.healthConnectJumpRopeSyncService?.openManageAccess() ??
+            false;
+    if (!opened && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.healthConnectManageAccessFailed)),
+      );
+    }
+  }
+
+  Future<void> _requestHealthConnectNotificationPermission() async {
+    await widget.healthConnectJumpRopeSyncService
+        ?.requestImportNotificationPermission();
+    if (mounted) {
+      await _refreshHealthConnectUi();
+    }
   }
 
   Future<void> _setHealthConnectAutoSync(
@@ -962,12 +1132,18 @@ class _SettingsScreenState extends State<SettingsScreen>
     AppLocalizations l10n,
     HealthConnectJumpRopeSyncResult result,
   ) {
+    final changedCount =
+        result.importedCount + result.updatedCount + result.deletedCount;
     final message = !result.status.isAvailable
         ? l10n.healthConnectStatusUnavailable
         : !result.status.permissionsGranted
             ? l10n.healthConnectStatusPermissionNeeded
-            : result.importedCount > 0
-                ? l10n.healthConnectSyncImported(result.importedCount)
+            : changedCount > 0
+                ? l10n.healthConnectSyncApplied(
+                    result.importedCount,
+                    result.updatedCount,
+                    result.deletedCount,
+                  )
                 : l10n.healthConnectSyncNoNewRecords;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
