@@ -11585,6 +11585,125 @@ class AppLocalizationsJa extends AppLocalizations {
   String get healthConnectDisabled => '縄跳びの自動登録をオフにしました。';
 
   @override
+  String get healthConnectManageAccess => 'Health Connectの権限を管理';
+
+  @override
+  String get healthConnectPrivacy => 'データ利用の詳細';
+
+  @override
+  String get healthConnectManageAccessFailed =>
+      'Health Connectの権限管理画面を開けませんでした。';
+
+  @override
+  String get healthConnectSourceLabel => 'データ提供元';
+
+  @override
+  String get healthConnectSourceDetected => 'Samsung Healthの縄跳び記録を確認しました。';
+
+  @override
+  String get healthConnectSourceNotDetected =>
+      'Samsung Healthの縄跳び記録はまだ確認されていません。';
+
+  @override
+  String get healthConnectExercisePermissionLabel => '運動データの読み取り権限';
+
+  @override
+  String get healthConnectPermissionGranted => '許可済み';
+
+  @override
+  String get healthConnectPermissionNotGranted => '許可が必要';
+
+  @override
+  String get healthConnectNotificationPermissionLabel => '自動登録の通知';
+
+  @override
+  String get healthConnectEnableNotifications => '登録通知をオンにする';
+
+  @override
+  String get healthConnectNotificationGranted => '許可済み';
+
+  @override
+  String get healthConnectNotificationNotGranted => 'オフ';
+
+  @override
+  String get healthConnectHistoryScopeLabel => '初回同期の範囲';
+
+  @override
+  String get healthConnectHistoryScopeValue => '過去30日間';
+
+  @override
+  String get healthConnectSyncModeLabel => '自動確認のタイミング';
+
+  @override
+  String get healthConnectSyncModeValue => 'アプリ起動時と復帰時';
+
+  @override
+  String get healthConnectIncrementalLabel => '変更の同期';
+
+  @override
+  String get healthConnectIncrementalReady => '追加・変更・削除を追跡中';
+
+  @override
+  String get healthConnectIncrementalPending => '初回同期後に準備完了';
+
+  @override
+  String healthConnectLastResult(
+      int scanned, int imported, int updated, int deleted, int duplicate) {
+    return '前回: 確認 $scanned · 登録 $imported · 更新 $updated · 削除 $deleted · 重複 $duplicate';
+  }
+
+  @override
+  String get healthConnectPermissionDeniedGuidance =>
+      '権限が複数回拒否されました。Health Connectの権限管理で、Taeo\'s Noteの運動データ読み取りを許可してください。';
+
+  @override
+  String healthConnectSyncApplied(int imported, int updated, int deleted) {
+    return '登録$imported件、更新$updated件、削除$deleted件を反映しました。';
+  }
+
+  @override
+  String get healthConnectPrivacyTitle => 'Health Connectデータ利用について';
+
+  @override
+  String get healthConnectPrivacyIntro =>
+      'Taeo\'s Noteは、許可された場合にのみHealth Connect経由でSamsung Healthの縄跳び記録を読み取ります。';
+
+  @override
+  String get healthConnectPrivacyDataTitle => '読み取るデータ';
+
+  @override
+  String get healthConnectPrivacyDataBody =>
+      '運動セッションID、開始・終了時刻、縄跳びの時間と回数、タイトル、データ提供元を読み取ります。';
+
+  @override
+  String get healthConnectPrivacySourceTitle => '許可する提供元';
+
+  @override
+  String get healthConnectPrivacySourceBody =>
+      'Samsung Healthパッケージが共有した運動のみを処理し、他のアプリが記録した運動は取り込みません。';
+
+  @override
+  String get healthConnectPrivacyStorageTitle => '保存場所';
+
+  @override
+  String get healthConnectPrivacyStorageBody =>
+      '取り込んだ縄跳び記録は、他のトレーニング記録と一緒に端末内のアプリストレージへ保存されます。Google Driveバックアップを有効にすると、それらのトレーニング記録と一緒にバックアップされる場合があります。Health Connectの変更トークンと権限状態はこの端末にのみ保持します。';
+
+  @override
+  String get healthConnectPrivacyUseTitle => '利用目的';
+
+  @override
+  String get healthConnectPrivacyUseBody =>
+      '縄跳び記録の自動登録、チャレンジ進捗とXPの計算、重複防止、元データの変更・削除反映にのみ使用します。';
+
+  @override
+  String get healthConnectPrivacyControlTitle => 'ユーザーによる管理';
+
+  @override
+  String get healthConnectPrivacyControlBody =>
+      '設定で自動登録をオフにし、Health Connectで読み取り権限を取り消せます。初回は過去30日間を確認し、その後の変更はアプリを開いたときに同期します。';
+
+  @override
   String get settingsInfoTooltip => '説明を表示';
 
   @override

@@ -11989,6 +11989,127 @@ class AppLocalizationsEn extends AppLocalizations {
   String get healthConnectDisabled => 'Jump rope auto import is off.';
 
   @override
+  String get healthConnectManageAccess => 'Manage Health Connect access';
+
+  @override
+  String get healthConnectPrivacy => 'Data use details';
+
+  @override
+  String get healthConnectManageAccessFailed =>
+      'Could not open Health Connect access settings.';
+
+  @override
+  String get healthConnectSourceLabel => 'Data source';
+
+  @override
+  String get healthConnectSourceDetected =>
+      'A Samsung Health jump rope record was detected.';
+
+  @override
+  String get healthConnectSourceNotDetected =>
+      'No Samsung Health jump rope record has been detected yet.';
+
+  @override
+  String get healthConnectExercisePermissionLabel => 'Exercise read access';
+
+  @override
+  String get healthConnectPermissionGranted => 'Allowed';
+
+  @override
+  String get healthConnectPermissionNotGranted => 'Permission needed';
+
+  @override
+  String get healthConnectNotificationPermissionLabel => 'Auto-import alerts';
+
+  @override
+  String get healthConnectEnableNotifications => 'Enable import alerts';
+
+  @override
+  String get healthConnectNotificationGranted => 'Allowed';
+
+  @override
+  String get healthConnectNotificationNotGranted => 'Off';
+
+  @override
+  String get healthConnectHistoryScopeLabel => 'Initial sync range';
+
+  @override
+  String get healthConnectHistoryScopeValue => 'Last 30 days';
+
+  @override
+  String get healthConnectSyncModeLabel => 'Automatic check';
+
+  @override
+  String get healthConnectSyncModeValue => 'On app launch and resume';
+
+  @override
+  String get healthConnectIncrementalLabel => 'Change sync';
+
+  @override
+  String get healthConnectIncrementalReady =>
+      'Tracking additions, edits, and deletions';
+
+  @override
+  String get healthConnectIncrementalPending => 'Ready after the first sync';
+
+  @override
+  String healthConnectLastResult(
+      int scanned, int imported, int updated, int deleted, int duplicate) {
+    return 'Last run: scanned $scanned · imported $imported · updated $updated · deleted $deleted · duplicate $duplicate';
+  }
+
+  @override
+  String get healthConnectPermissionDeniedGuidance =>
+      'Access was denied more than once. Open Health Connect access settings and allow Taeo\'s Note to read exercise data.';
+
+  @override
+  String healthConnectSyncApplied(int imported, int updated, int deleted) {
+    return 'Applied $imported import(s), $updated update(s), and $deleted deletion(s).';
+  }
+
+  @override
+  String get healthConnectPrivacyTitle => 'Health Connect data use';
+
+  @override
+  String get healthConnectPrivacyIntro =>
+      'Taeo\'s Note reads Samsung Health jump rope records through Health Connect only after you grant access.';
+
+  @override
+  String get healthConnectPrivacyDataTitle => 'Data read';
+
+  @override
+  String get healthConnectPrivacyDataBody =>
+      'The app reads the exercise session ID, start and end times, jump rope duration and count, title, and data source.';
+
+  @override
+  String get healthConnectPrivacySourceTitle => 'Allowed source';
+
+  @override
+  String get healthConnectPrivacySourceBody =>
+      'Only workouts shared by the Samsung Health package are processed. Workouts recorded by other apps are not imported.';
+
+  @override
+  String get healthConnectPrivacyStorageTitle => 'Storage';
+
+  @override
+  String get healthConnectPrivacyStorageBody =>
+      'Imported jump rope records are stored with other training logs in this app\'s on-device storage. If Google Drive backup is enabled, they can be included with those training logs. The Health Connect change token and permission status remain only on this device.';
+
+  @override
+  String get healthConnectPrivacyUseTitle => 'Purpose';
+
+  @override
+  String get healthConnectPrivacyUseBody =>
+      'The data is used only to create jump rope training logs, calculate challenge progress and XP, prevent duplicates, and apply source edits or deletions.';
+
+  @override
+  String get healthConnectPrivacyControlTitle => 'Your controls';
+
+  @override
+  String get healthConnectPrivacyControlBody =>
+      'You can turn off auto import in Settings or revoke read access in Health Connect. The first connection checks the last 30 days; later changes sync when the app opens.';
+
+  @override
   String get settingsInfoTooltip => 'Show description';
 
   @override

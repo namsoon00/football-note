@@ -21,6 +21,7 @@ class HealthConnectJumpRopeImportNotification {
 
 abstract class HealthConnectJumpRopeImportNotifier {
   Future<bool> requestPermission();
+  Future<bool> permissionGranted();
   Future<String?> launchPayload();
   Future<void> showImported(
     HealthConnectJumpRopeImportNotification notification,
@@ -33,6 +34,9 @@ class NoopHealthConnectJumpRopeImportNotifier
 
   @override
   Future<bool> requestPermission() async => true;
+
+  @override
+  Future<bool> permissionGranted() async => true;
 
   @override
   Future<String?> launchPayload() async => null;
@@ -134,7 +138,8 @@ class HealthConnectJumpRopeImportNotificationService
     }
   }
 
-  Future<bool> _hasPermission() async {
+  @override
+  Future<bool> permissionGranted() async {
     await initialize();
     if (kIsWeb) return true;
     switch (defaultTargetPlatform) {
@@ -168,7 +173,7 @@ class HealthConnectJumpRopeImportNotificationService
     if (notification.count <= 0) return;
     await initialize();
     if (kIsWeb) return;
-    if (!await _hasPermission()) return;
+    if (!await permissionGranted()) return;
 
     final l10n = _localizations();
     final targetDay = notification.firstSessionStart ?? notification.importedAt;

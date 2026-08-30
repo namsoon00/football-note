@@ -1,12 +1,19 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hive/hive.dart';
+import 'package:football_note/application/challenge_service.dart';
 import 'package:football_note/application/health_connect_jump_rope_import_notification_service.dart';
 import 'package:football_note/application/health_connect_jump_rope_sync_service.dart';
+import 'package:football_note/application/player_level_service.dart';
 import 'package:football_note/application/training_service.dart';
+import 'package:football_note/domain/entities/challenge.dart';
 import 'package:football_note/domain/entities/sport_definition.dart';
 import 'package:football_note/domain/entities/training_entry.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/domain/repositories/training_repository.dart';
+import 'package:football_note/infrastructure/hive_training_repository.dart';
 
 void main() {
   tearDown(() {
@@ -59,7 +66,7 @@ void main() {
 
     expect(firstResult.importedCount, 1);
     expect(secondResult.importedCount, 0);
-    expect(secondResult.duplicateCount, 1);
+    expect(secondResult.duplicateCount, 0);
     expect(trainingRepository.entries, hasLength(1));
     final imported = trainingRepository.entries.single;
     expect(imported.sportId, SportCatalog.footballId);
@@ -264,6 +271,252 @@ void main() {
     expect(notifier.permissionRequests, 1);
     expect(trainingRepository.entries.single.program, '줄넘기');
   });
+
+  test('imports only Samsung Health sessions and stores sync ownership',
+      () async {
+    final options = _MemoryOptionRepository();
+    final trainingRepository = _MemoryTrainingRepository();
+    final platform = _FakeHealthConnectJumpRopePlatform(
+      sessions: [
+        _session(id: 'samsung-1'),
+        _session(
+          id: 'other-1',
+          sourcePackage: 'com.google.android.apps.fitness',
+        ),
+      ],
+    );
+    final service = HealthConnectJumpRopeSyncService(
+      trainingService: TrainingService(trainingRepository),
+      optionRepository: options,
+      platform: platform,
+    );
+
+    final result = await service.syncRecent(now: DateTime(2026, 7, 11, 9));
+
+    expect(result.importedCount, 1);
+    expect(trainingRepository.entries, hasLength(1));
+    expect(
+      trainingRepository.entries.single.recordId,
+      '${HealthConnectJumpRopeSyncService.ownedRecordIdPrefix}samsung-1',
+    );
+    expect(
+      trainingRepository.entries.single.originDeviceId,
+      'health_connect:samsung_health',
+    );
+    expect(trainingRepository.entries.single.payloadHash, isNotEmpty);
+    expect(
+      options.getValue<bool>(
+        HealthConnectJumpRopeSyncService.samsungRecordDetectedKey,
+      ),
+      isTrue,
+    );
+  });
+
+  test('first sync reads 30 days and later sync uses only changes', () async {
+    final options = _MemoryOptionRepository();
+    final platform = _FakeHealthConnectJumpRopePlatform(
+      sessions: [_session(id: 'history-1')],
+    );
+    final service = HealthConnectJumpRopeSyncService(
+      trainingService: TrainingService(_MemoryTrainingRepository()),
+      optionRepository: options,
+      platform: platform,
+    );
+    final now = DateTime(2026, 7, 31, 12);
+
+    await service.syncRecent(now: now);
+    await service.syncRecent(now: now.add(const Duration(hours: 1)));
+
+    expect(platform.snapshotReadCount, 1);
+    expect(platform.lastReadStart, now.subtract(const Duration(days: 30)));
+    expect(platform.changesTokenRequests, 1);
+    expect(
+      options.getValue<String>(
+        HealthConnectJumpRopeSyncService.changesTokenKey,
+      ),
+      isNotEmpty,
+    );
+  });
+
+  test('expired changes token rebuilds the recent snapshot', () async {
+    final options = _MemoryOptionRepository();
+    await options.setValue(
+      HealthConnectJumpRopeSyncService.changesTokenKey,
+      'expired-token',
+    );
+    final platform = _FakeHealthConnectJumpRopePlatform(
+      sessions: [_session(id: 'recovered-1')],
+      changes: const [
+        HealthConnectJumpRopeChanges(
+          upsertedSessions: <HealthConnectJumpRopeSession>[],
+          removedRecordIds: <String>[],
+          nextChangesToken: '',
+          changesTokenExpired: true,
+          scannedCount: 0,
+        ),
+      ],
+    );
+    final trainingRepository = _MemoryTrainingRepository();
+    final service = HealthConnectJumpRopeSyncService(
+      trainingService: TrainingService(trainingRepository),
+      optionRepository: options,
+      platform: platform,
+    );
+
+    final result = await service.syncRecent(now: DateTime(2026, 7, 11, 9));
+
+    expect(result.importedCount, 1);
+    expect(platform.snapshotReadCount, 1);
+    expect(platform.changesTokenRequests, 1);
+    expect(trainingRepository.entries, hasLength(1));
+  });
+
+  test('incremental changes update and delete the owned Hive record', () async {
+    final store = await _HiveTrainingTestStore.open();
+    addTearDown(store.dispose);
+    final options = _MemoryOptionRepository();
+    final platform = _FakeHealthConnectJumpRopePlatform(
+      sessions: [_session(id: 'mutable-1', durationMinutes: 10)],
+    );
+    final service = HealthConnectJumpRopeSyncService(
+      trainingService: TrainingService(store.repository),
+      optionRepository: options,
+      platform: platform,
+    );
+
+    final initial = await service.syncRecent(now: DateTime(2026, 7, 11, 9));
+    expect(initial.importedCount, 1);
+    expect(PlayerLevelService(options).loadState().totalXp, greaterThan(0));
+
+    platform.changes.add(
+      HealthConnectJumpRopeChanges(
+        upsertedSessions: [
+          _session(id: 'mutable-1', durationMinutes: 20, jumpCount: 1400),
+        ],
+        removedRecordIds: const <String>[],
+        nextChangesToken: 'after-update',
+        changesTokenExpired: false,
+        scannedCount: 1,
+      ),
+    );
+    final updated = await service.syncRecent(now: DateTime(2026, 7, 11, 10));
+    final entriesAfterUpdate = await store.repository.getAll();
+
+    expect(updated.updatedCount, 1);
+    expect(updated.importedCount, 0);
+    expect(entriesAfterUpdate, hasLength(1));
+    expect(entriesAfterUpdate.single.jumpRopeMinutes, 20);
+    expect(entriesAfterUpdate.single.jumpRopeCount, 1400);
+
+    platform.changes.add(
+      const HealthConnectJumpRopeChanges(
+        upsertedSessions: <HealthConnectJumpRopeSession>[],
+        removedRecordIds: <String>['mutable-1'],
+        nextChangesToken: 'after-delete',
+        changesTokenExpired: false,
+        scannedCount: 1,
+      ),
+    );
+    final deleted = await service.syncRecent(now: DateTime(2026, 7, 11, 11));
+
+    expect(deleted.deletedCount, 1);
+    expect(await store.repository.getAll(), isEmpty);
+    expect(PlayerLevelService(options).loadState().totalXp, 0);
+  });
+
+  test('imported jump rope time completes the matching challenge mission',
+      () async {
+    final options = _MemoryOptionRepository();
+    final trainingRepository = _MemoryTrainingRepository();
+    final syncService = HealthConnectJumpRopeSyncService(
+      trainingService: TrainingService(trainingRepository),
+      optionRepository: options,
+      platform: _FakeHealthConnectJumpRopePlatform(
+        sessions: [_session(id: 'challenge-1', durationMinutes: 10)],
+      ),
+    );
+    await syncService.syncRecent(now: DateTime(2026, 7, 11, 9));
+
+    final challengeService = ChallengeService(options);
+    final run = await challengeService.startChallenge(
+      challengeService.templateById('starter_3')!,
+      selectedSkillIds: const <String>[],
+      missionTargets: const ChallengeMissionTargets(
+        trainingMinutes: 0,
+        jumpRopeMinutes: 10,
+        liftingMinutes: 0,
+        riceBowls: 0,
+      ),
+      startedAt: DateTime(2026, 7, 11, 6),
+    );
+    final progress = challengeService.progressForRun(
+      run: run,
+      trainingEntries: await trainingRepository.getAll(),
+      mealEntries: const [],
+    )!;
+
+    expect(progress.rounds.first.jumpRopeMinutes, 10);
+    expect(progress.rounds.first.jumpRopeCompleted, isTrue);
+    expect(progress.rounds.first.completed, isTrue);
+  });
+
+  test('repeated permission denial is exposed in diagnostics', () async {
+    final options = _MemoryOptionRepository();
+    final service = HealthConnectJumpRopeSyncService(
+      trainingService: TrainingService(_MemoryTrainingRepository()),
+      optionRepository: options,
+      platform: _FakeHealthConnectJumpRopePlatform(
+        permissionsGranted: false,
+        grantOnRequest: false,
+      ),
+    );
+
+    await service.requestPermissionsAndSync();
+    await service.requestPermissionsAndSync();
+    final diagnostics = await service.diagnostics();
+
+    expect(diagnostics.permissionDenialCount, 2);
+    expect(diagnostics.status.permissionsGranted, isFalse);
+  });
+
+  test('forwards access management and consumes privacy launch once', () async {
+    final platform = _FakeHealthConnectJumpRopePlatform(
+      launchPayload: 'taeonote://settings/health-connect-privacy',
+    );
+    final service = HealthConnectJumpRopeSyncService(
+      trainingService: TrainingService(_MemoryTrainingRepository()),
+      optionRepository: _MemoryOptionRepository(),
+      platform: platform,
+    );
+
+    expect(await service.openManageAccess(), isTrue);
+    expect(platform.manageAccessRequests, 1);
+    expect(
+      await service.healthConnectLaunchPayload(),
+      'taeonote://settings/health-connect-privacy',
+    );
+    expect(await service.healthConnectLaunchPayload(), isNull);
+  });
+}
+
+HealthConnectJumpRopeSession _session({
+  required String id,
+  String sourcePackage =
+      HealthConnectJumpRopeSyncService.samsungHealthPackageName,
+  int durationMinutes = 10,
+  int jumpCount = 700,
+}) {
+  final start = DateTime(2026, 7, 11, 7, 30);
+  return HealthConnectJumpRopeSession(
+    id: id,
+    startTime: start,
+    endTime: start.add(Duration(minutes: durationMinutes)),
+    durationMillis: durationMinutes * Duration.millisecondsPerMinute,
+    jumpCount: jumpCount,
+    title: 'Jump rope',
+    sourcePackage: sourcePackage,
+    matchedBySegment: true,
+  );
 }
 
 String _sessionFingerprint({
@@ -288,6 +541,9 @@ class _FakeHealthConnectJumpRopeImportNotifier
   var permissionRequests = 0;
 
   @override
+  Future<bool> permissionGranted() async => true;
+
+  @override
   Future<String?> launchPayload() async => null;
 
   @override
@@ -309,12 +565,53 @@ class _FakeHealthConnectJumpRopePlatform
   bool permissionsGranted;
   final bool grantOnRequest;
   final List<HealthConnectJumpRopeSession> sessions;
+  final List<HealthConnectJumpRopeChanges> changes;
+  String? launchPayload;
+  var changesTokenRequests = 0;
+  var manageAccessRequests = 0;
+  var snapshotReadCount = 0;
+  DateTime? lastReadStart;
+  DateTime? lastReadEnd;
 
   _FakeHealthConnectJumpRopePlatform({
     this.permissionsGranted = true,
     this.grantOnRequest = true,
     this.sessions = const <HealthConnectJumpRopeSession>[],
-  });
+    List<HealthConnectJumpRopeChanges> changes =
+        const <HealthConnectJumpRopeChanges>[],
+    this.launchPayload,
+  }) : changes = changes.toList(growable: true);
+
+  @override
+  Future<String?> consumeLaunchPayload() async {
+    final value = launchPayload;
+    launchPayload = null;
+    return value;
+  }
+
+  @override
+  Future<String> createChangesToken() async {
+    changesTokenRequests += 1;
+    return 'token-$changesTokenRequests';
+  }
+
+  @override
+  Future<bool> openManageAccess() async {
+    manageAccessRequests += 1;
+    return true;
+  }
+
+  @override
+  Future<HealthConnectJumpRopeChanges> readChanges(String token) async {
+    if (changes.isNotEmpty) return changes.removeAt(0);
+    return HealthConnectJumpRopeChanges(
+      upsertedSessions: const <HealthConnectJumpRopeSession>[],
+      removedRecordIds: const <String>[],
+      nextChangesToken: '$token-next',
+      changesTokenExpired: false,
+      scannedCount: 0,
+    );
+  }
 
   @override
   Future<HealthConnectStatus> status() async {
@@ -335,10 +632,52 @@ class _FakeHealthConnectJumpRopePlatform
     required DateTime startInclusive,
     required DateTime endExclusive,
   }) async {
+    snapshotReadCount += 1;
+    lastReadStart = startInclusive;
+    lastReadEnd = endExclusive;
     return sessions
         .where((session) => !session.startTime.isBefore(startInclusive))
         .where((session) => session.startTime.isBefore(endExclusive))
         .toList(growable: false);
+  }
+}
+
+class _HiveTrainingTestStore {
+  final Directory directory;
+  final Box<TrainingEntry> box;
+  final HiveTrainingRepository repository;
+
+  const _HiveTrainingTestStore({
+    required this.directory,
+    required this.box,
+    required this.repository,
+  });
+
+  static Future<_HiveTrainingTestStore> open() async {
+    final directory = await Directory.systemTemp.createTemp(
+      'health_connect_sync_test_',
+    );
+    Hive.init(directory.path);
+    const trainingEntryTypeId = 1;
+    if (!Hive.isAdapterRegistered(trainingEntryTypeId)) {
+      Hive.registerAdapter(TrainingEntryAdapter());
+    }
+    final box = await Hive.openBox<TrainingEntry>(
+      'training_${DateTime.now().microsecondsSinceEpoch}',
+    );
+    return _HiveTrainingTestStore(
+      directory: directory,
+      box: box,
+      repository: HiveTrainingRepository(box),
+    );
+  }
+
+  Future<void> dispose() async {
+    await repository.dispose();
+    await box.close();
+    if (directory.existsSync()) {
+      await directory.delete(recursive: true);
+    }
   }
 }
 

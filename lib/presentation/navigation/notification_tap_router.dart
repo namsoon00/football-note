@@ -16,6 +16,7 @@ import '../../domain/repositories/option_repository.dart';
 import '../screens/challenge_screen.dart';
 import '../screens/club_schedule_screen.dart';
 import '../screens/home_screen.dart';
+import '../screens/health_connect_privacy_screen.dart';
 import '../screens/league_standings_screen.dart';
 import '../screens/notification_center_screen.dart';
 import '../screens/player_level_guide_screen.dart';
@@ -204,6 +205,11 @@ class NotificationTapRouter {
         );
       case 'weather':
         return WeatherDetailScreen(initialAction: _weatherActionFromLink(uri));
+      case 'settings':
+        if (uri.pathSegments.firstOrNull == 'health-connect-privacy') {
+          return const HealthConnectPrivacyScreen();
+        }
+        return null;
       case 'family':
       case 'notifications':
         return _notificationCenterBuilder(dependencies);

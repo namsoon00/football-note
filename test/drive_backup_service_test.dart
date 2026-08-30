@@ -304,6 +304,7 @@ void main() {
       'drive_auto_daily': false,
       'drive_auto_on_save': true,
       'drive_last_backup': '2026-01-07T10:00:00.000',
+      'health_connect_jump_rope_changes_token_v1': 'local-token',
       'local_pre_restore_backup': '{"should":"be excluded"}',
       'local_pre_restore_backup_at': '2026-01-01T00:00:00.000',
     });
@@ -345,6 +346,10 @@ void main() {
       isFalse,
     );
     expect(backupOptions.containsKey('drive_last_backup'), isFalse);
+    expect(
+      backupOptions.containsKey('health_connect_jump_rope_changes_token_v1'),
+      isFalse,
+    );
     expect(backupOptions.containsKey('local_pre_restore_backup'), isFalse);
     expect(backupOptions.containsKey('local_pre_restore_backup_at'), isFalse);
     expect(family['updatedByRole'], 'child');
@@ -513,6 +518,10 @@ void main() {
     await optionBox.put('welcome_seen_v1', true);
     await optionBox.put('tab_quick_guide_seen_parent_mode_v1', true);
     await optionBox.put('tab_quick_guide_seen_v1_0', true);
+    await optionBox.put(
+      'health_connect_jump_rope_changes_token_v1',
+      'local-token',
+    );
 
     await service.restoreFromMapForTesting(<String, dynamic>{
       'version': 6,
@@ -528,6 +537,7 @@ void main() {
         'club_morning_workout_alert_time': '05:00',
         'club_morning_workout_alert_weekdays': <int>[2, 4],
         'league_standings_last_selected_type_v1': 'kLeague1',
+        'health_connect_jump_rope_changes_token_v1': 'remote-token',
       },
       'optionRecords': <Map<String, dynamic>>[
         <String, dynamic>{
@@ -560,6 +570,10 @@ void main() {
           'key': 'league_standings_last_selected_type_v1',
           'value': 'kLeague1',
         },
+        <String, dynamic>{
+          'key': 'health_connect_jump_rope_changes_token_v1',
+          'value': 'remote-token',
+        },
       ],
       'family': const <String, dynamic>{
         'updatedByRole': 'child',
@@ -585,6 +599,10 @@ void main() {
     expect(optionBox.get('welcome_seen_v1'), isTrue);
     expect(optionBox.get('tab_quick_guide_seen_parent_mode_v1'), isTrue);
     expect(optionBox.get('tab_quick_guide_seen_v1_0'), isTrue);
+    expect(
+      optionBox.get('health_connect_jump_rope_changes_token_v1'),
+      'local-token',
+    );
   });
 
   test('restore keeps local sport selection when remote omits startup sport',

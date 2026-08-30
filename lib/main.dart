@@ -390,6 +390,9 @@ Future<void> _warmStartupServices({
     handleLaunchPayload(
       await healthConnectJumpRopeSyncService?.importNotificationLaunchPayload(),
     );
+    handleLaunchPayload(
+      await healthConnectJumpRopeSyncService?.healthConnectLaunchPayload(),
+    );
   } catch (_) {
     // Health Connect notification launch handling can recover later.
   }
@@ -990,7 +993,14 @@ class _EntryGateState extends State<_EntryGate> with WidgetsBindingObserver {
     }
     _healthConnectSyncBusy = true;
     try {
+      final launchPayload =
+          await healthConnectJumpRopeSyncService.healthConnectLaunchPayload();
+      if (launchPayload != null && launchPayload.trim().isNotEmpty) {
+        NotificationTapRouter.handlePayload(launchPayload);
+      }
       await healthConnectJumpRopeSyncService.syncIfEnabled();
+    } catch (_) {
+      // Automatic sync retries the next time the app enters the foreground.
     } finally {
       _healthConnectSyncBusy = false;
     }
